@@ -1,43 +1,45 @@
-(**************************************************************************)
-(*                                                                        *)
-(*  Copyright (C) 2001-2003                                               *)
-(*   George C. Necula    <necula@cs.berkeley.edu>                         *)
-(*   Scott McPeak        <smcpeak@cs.berkeley.edu>                        *)
-(*   Wes Weimer          <weimer@cs.berkeley.edu>                         *)
-(*   Ben Liblit          <liblit@cs.berkeley.edu>                         *)
-(*  All rights reserved.                                                  *)
-(*                                                                        *)
-(*  Redistribution and use in source and binary forms, with or without    *)
-(*  modification, are permitted provided that the following conditions    *)
-(*  are met:                                                              *)
-(*                                                                        *)
-(*  1. Redistributions of source code must retain the above copyright     *)
-(*  notice, this list of conditions and the following disclaimer.         *)
-(*                                                                        *)
-(*  2. Redistributions in binary form must reproduce the above copyright  *)
-(*  notice, this list of conditions and the following disclaimer in the   *)
-(*  documentation and/or other materials provided with the distribution.  *)
-(*                                                                        *)
-(*  3. The names of the contributors may not be used to endorse or        *)
-(*  promote products derived from this software without specific prior    *)
-(*  written permission.                                                   *)
-(*                                                                        *)
-(*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS   *)
-(*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT     *)
-(*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS     *)
-(*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE        *)
-(*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,   *)
-(*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,  *)
-(*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;      *)
-(*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER      *)
-(*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT    *)
-(*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN     *)
-(*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE       *)
-(*  POSSIBILITY OF SUCH DAMAGE.                                           *)
-(*                                                                        *)
-(*  File modified by CEA (Commissariat à l'énergie atomique et aux        *)
-(*                        énergies alternatives).                         *)
-(**************************************************************************)
+(****************************************************************************)
+(*                                                                          *)
+(*  Copyright (C) 2001-2003                                                 *)
+(*   George C. Necula    <necula@cs.berkeley.edu>                           *)
+(*   Scott McPeak        <smcpeak@cs.berkeley.edu>                          *)
+(*   Wes Weimer          <weimer@cs.berkeley.edu>                           *)
+(*   Ben Liblit          <liblit@cs.berkeley.edu>                           *)
+(*  All rights reserved.                                                    *)
+(*                                                                          *)
+(*  Redistribution and use in source and binary forms, with or without      *)
+(*  modification, are permitted provided that the following conditions      *)
+(*  are met:                                                                *)
+(*                                                                          *)
+(*  1. Redistributions of source code must retain the above copyright       *)
+(*  notice, this list of conditions and the following disclaimer.           *)
+(*                                                                          *)
+(*  2. Redistributions in binary form must reproduce the above copyright    *)
+(*  notice, this list of conditions and the following disclaimer in the     *)
+(*  documentation and/or other materials provided with the distribution.    *)
+(*                                                                          *)
+(*  3. The names of the contributors may not be used to endorse or          *)
+(*  promote products derived from this software without specific prior      *)
+(*  written permission.                                                     *)
+(*                                                                          *)
+(*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS     *)
+(*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT       *)
+(*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS       *)
+(*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE          *)
+(*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,     *)
+(*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,    *)
+(*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;        *)
+(*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER        *)
+(*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT      *)
+(*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN       *)
+(*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE         *)
+(*  POSSIBILITY OF SUCH DAMAGE.                                             *)
+(*                                                                          *)
+(*  File modified by CEA (Commissariat à l'énergie atomique et aux          *)
+(*                        énergies alternatives)                            *)
+(*               and INRIA (Institut National de Recherche en Informatique  *)
+(*                          et Automatique).                                *)
+(****************************************************************************)
 
 (* FrontC -- lexical analyzer
 **
@@ -65,23 +67,6 @@ let enter_ghost_code () = ghost_code := true
 let exit_ghost_code () = ghost_code := false
 
 let addComment c = Cabshelper.Comments.add (currentLoc()) c
-
-(* track whitespace for the current token *)
-let white = ref ""
-
-let addWhite lexbuf =
-  if !Whitetrack.enabled then
-    let w = Lexing.lexeme lexbuf in
-    white := !white ^ w
-let clear_white () = white := ""
-let get_white () = !white
-
-let lexeme = ref ""
-let addLexeme lexbuf =
-    let l = Lexing.lexeme lexbuf in
-    lexeme := !lexeme ^ l
-let clear_lexeme () = lexeme := ""
-let get_extra_lexeme () = !lexeme
 
 (* Some debugging support for line numbers *)
 let dbgToken (t: token) =
@@ -206,11 +191,12 @@ let init_lexicon _ =
       ("__builtin_types_compatible_p", fun loc -> BUILTIN_TYPES_COMPAT loc);
       ("__builtin_offsetof", fun loc -> BUILTIN_OFFSETOF loc);
       (* On some versions of GCC __thread is a regular identifier *)
-      ("__thread", fun loc ->
-                      if Machdep.state.Machdep.__thread_is_keyword then
-                         THREAD loc
-                       else
-                         IDENT "__thread");
+      ("__thread",
+       (fun loc ->
+          if Cil.theMachine.Cil.theMachine.Cil_types.__thread_is_keyword then
+            THREAD loc
+          else
+            IDENT "__thread"));
     ]
 
 
@@ -415,7 +401,8 @@ let make_annot ~one_line lexbuf s =
   let start = snd !annot_start_pos in
   let stop, token = Logic_lexer.annot (start, s) in
   lexbuf.Lexing.lex_curr_p <- stop; 
-  E.setCurrentFile stop.Lexing.pos_fname;
+  (* The filename has already been normalized, so we must reuse it "as is". *)
+  E.setCurrentFile ~normalize:false stop.Lexing.pos_fname;
   E.setCurrentLine stop.Lexing.pos_lnum;
   if one_line then E.newline ();
   match token with
@@ -487,7 +474,6 @@ rule initial =
   parse "/*"
       {
 	do_lex_comment comment lexbuf ;
-	addWhite lexbuf ;
         initial lexbuf
       }
 
@@ -505,7 +491,6 @@ rule initial =
       end else
 	begin
 	  do_lex_comment ~first_char:c comment lexbuf ;
-          addWhite lexbuf;
           initial lexbuf
 	end
     }
@@ -517,7 +502,6 @@ rule initial =
         exit_oneline_ghost ();
         RGHOST
       end else begin
-        addWhite lexbuf;
         initial lexbuf
       end
     }
@@ -543,12 +527,11 @@ rule initial =
 	    end
 	  else
 	    begin
-              addWhite lexbuf;
               initial lexbuf
 	    end
 	end
     }
-|		blank			{addWhite lexbuf; initial lexbuf}
+|		blank			{initial lexbuf}
 |               '\n'                    { E.newline ();
                                           if !pragmaLine then
                                             begin
@@ -561,18 +544,16 @@ rule initial =
                                               RGHOST
                                             end
                                           else begin
-                                            addWhite lexbuf;
                                             initial lexbuf
                                           end }
-|               '\\' '\r' * '\n'        { addWhite lexbuf;
-                                          E.newline ();
+|               '\\' '\r' * '\n'        { E.newline ();
                                           initial lexbuf
                                         }
-|		'#'			{ addWhite lexbuf; hash lexbuf}
+|		'#'			{ hash lexbuf}
 |               "_Pragma" 	        { PRAGMA (currentLoc ()) }
 |		'\''			{ CST_CHAR (chr lexbuf, currentLoc ())}
 |		"L'"			{ CST_WCHAR (chr lexbuf, currentLoc ()) }
-|		'"'			{  addLexeme lexbuf; (* '"' *)
+|		'"'			{  
 (* matth: BUG:  this could be either a regular string or a wide string.
  *  e.g. if it's the "world" in
  *     L"Hello, " "world"
@@ -652,13 +633,12 @@ rule initial =
 (* If we see __pragma we eat it and the matching parentheses as well *)
 |               "__pragma"              { matchingParsOpen := 0;
                                           let _ = matchingpars lexbuf in
-                                          addWhite lexbuf;
                                           initial lexbuf
                                         }
 
 (* __extension__ is a black. The parser runs into some conflicts if we let it
  * pass *)
-|               "__extension__"         {addWhite lexbuf; initial lexbuf }
+|               "__extension__"         {initial lexbuf }
 |		ident			{scan_ident (Lexing.lexeme lexbuf)}
 |		eof
   { if is_oneline_ghost() then begin
@@ -673,36 +653,35 @@ and might_end_ghost = parse
   | "" { STAR (currentLoc()) }
 
 and comment buffer = parse
-  |  "*/"       { addWhite lexbuf; }
-  | _           { addWhite lexbuf; lex_comment comment buffer lexbuf }
+  |  "*/"       {  }
+  | eof         { E.parse_error "Unterminated C comment" }
+  | _           { lex_comment comment buffer lexbuf }
 
 and onelinecomment buffer = parse
-  | '\n'|eof    { addWhite lexbuf; }
-  | _           { addWhite lexbuf; lex_comment onelinecomment buffer lexbuf }
+  | '\n'|eof    {  }
+  | _           { lex_comment onelinecomment buffer lexbuf }
 
 and matchingpars = parse
-  '\n'          { addWhite lexbuf; E.newline (); matchingpars lexbuf }
-| blank         { addWhite lexbuf; matchingpars lexbuf }
-| '('           { addWhite lexbuf; incr matchingParsOpen; matchingpars lexbuf }
-| ')'           { addWhite lexbuf; decr matchingParsOpen;
+  '\n'          { E.newline (); matchingpars lexbuf }
+| blank         { matchingpars lexbuf }
+| '('           { incr matchingParsOpen; matchingpars lexbuf }
+| ')'           { decr matchingParsOpen;
                   if !matchingParsOpen = 0 then
                      ()
                   else
                      matchingpars lexbuf
                 }
-|  "/*"		{ addWhite lexbuf;
-		  do_lex_comment comment lexbuf ;
+|  "/*"		{ do_lex_comment comment lexbuf ;
                   matchingpars lexbuf }
-|  '"'		{ addWhite lexbuf; (* '"' *)
-                  let _ = str lexbuf in
+|  '"'		{ let _ = str lexbuf in
                   matchingpars lexbuf }
-| _              { addWhite lexbuf; matchingpars lexbuf }
+| _              { matchingpars lexbuf }
 
 (* # <line number> <file name> ... *)
 and hash = parse
-  '\n'		{ addWhite lexbuf; E.newline (); initial lexbuf}
-| blank		{ addWhite lexbuf; hash lexbuf}
-| intnum	{ addWhite lexbuf; (* We are seeing a line number. This is the number for the
+  '\n'		{ E.newline (); initial lexbuf}
+| blank		{ hash lexbuf}
+| intnum	{ (* We are seeing a line number. This is the number for the
                    * next line *)
                  let s = Lexing.lexeme lexbuf in
                  let lineno = try
@@ -715,7 +694,7 @@ and hash = parse
                  E.setCurrentLine (lineno - 1);
                   (* A file name may follow *)
 		  file lexbuf }
-| "line"        { addWhite lexbuf; hash lexbuf } (* MSVC line number info *)
+| "line"        { hash lexbuf } (* MSVC line number info *)
                 (* For pragmas with irregular syntax, like #pragma warning,
                  * we parse them as a whole line. *)
 | "pragma" blank (no_parse_pragma as pragmaName)
@@ -723,24 +702,31 @@ and hash = parse
                   PRAGMA_LINE (pragmaName ^ pragma lexbuf, here)
                 }
 | "pragma"      { pragmaLine := true; PRAGMA (currentLoc ()) }
-| _	        { addWhite lexbuf; endline lexbuf}
+| _	        { endline lexbuf}
 
 and file =  parse
-        '\n'		        {addWhite lexbuf; E.newline (); initial lexbuf}
-|	blank			{addWhite lexbuf; file lexbuf}
-|	'"' [^ '\012' '\t' '"']* '"' 	{ addWhite lexbuf;  (* '"' *)
+        '\n'		        {E.newline (); initial lexbuf}
+|	blank			{file lexbuf}
+(* The //-ending file directive is a GCC extension that provides the CWD of the
+   preprocessor when the file was preprocessed. *)
+|       '"' [^ '\012' '\t' '"']* '/' '/' '"' {
+                                 let n = Lexing.lexeme lexbuf in
+				 let n1 = String.sub n 1 ((String.length n) - 4) in
+                                 E.setCurrentWorkingDirectory n1;
+                                 endline lexbuf }
+|	'"' [^ '\012' '\t' '"']* '"' 	{  (* '"' *)
                                    let n = Lexing.lexeme lexbuf in
                                    let n1 = String.sub n 1
                                        ((String.length n) - 2) in
                                    E.setCurrentFile n1;
 				 endline lexbuf}
 
-|	_			{addWhite lexbuf; endline lexbuf}
+|	_			{endline lexbuf}
 
 and endline = parse
-        '\n' 			{ addWhite lexbuf; E.newline (); initial lexbuf}
+        '\n' 			{ E.newline (); initial lexbuf}
 |   eof                         { EOF }
-|	_			{ addWhite lexbuf; endline lexbuf}
+|	_			{ endline lexbuf}
 
 and pragma = parse
    '\n'                 { E.newline (); "" }
@@ -749,11 +735,11 @@ and pragma = parse
 
 and str = parse
         '"'             {[]} (* no nul terminiation in CST_STRING '"' *)
-|	hex_escape	{addLexeme lexbuf; lex_hex_escape str lexbuf}
-|	oct_escape	{addLexeme lexbuf; lex_oct_escape str lexbuf}
-|	escape		{addLexeme lexbuf; lex_simple_escape str lexbuf}
+|	hex_escape	{lex_hex_escape str lexbuf}
+|	oct_escape	{lex_oct_escape str lexbuf}
+|	escape		{lex_simple_escape str lexbuf}
 |       eof             {E.parse_error "unterminated string" }
-|	_		{addLexeme lexbuf; lex_unescaped str lexbuf}
+|	_		{lex_unescaped str lexbuf}
 
 and chr =  parse
 	'\''	        {[]}

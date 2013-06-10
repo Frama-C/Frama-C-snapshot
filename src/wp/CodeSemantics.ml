@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -55,7 +55,7 @@ struct
     | Loc l -> M.is_null l
 
   let is_zero_float = function 
-    | Val e -> p_equal e (e_float 0.0)
+    | Val e -> p_equal e e_zero_real
     | Loc l -> M.is_null l
 
   let is_zero_ptr v = M.is_null (cloc v)
@@ -70,12 +70,14 @@ struct
 	    (fun f -> is_zero sigma (Ctypes.object_of f.ftype) (M.field l f))
 	    c.cfields
       | C_array a ->
+	  (*TODO[LC] make zero-initializers model-dependent.
+	    For instance, a[N][M] becomes a[N*M] in MemTyped, but not in MemVar *)
 	  let x = Lang.freshvar ~basename:"k" Logic.Int in
 	  let k = e_var x in
 	  let obj = Ctypes.object_of a.arr_element in
 	  let range = match a.arr_flat with
 	    | None -> []
-	    | Some f -> [ p_leq e_zero k ; p_leq k (e_int64 f.arr_size) ] in
+	    | Some f -> [ p_leq e_zero k ; p_lt k (e_int64 f.arr_size) ] in
 	  let init = is_zero sigma obj (M.shift l obj k) in
 	  p_forall [x] (p_hyps range init)
 	    
@@ -127,10 +129,10 @@ struct
 	| C_int i , BNot -> Cint.bnot i (val_of_exp env e)
 	| C_float f , Neg -> Cfloat.fopp f (val_of_exp env e)
 	| C_int _ , LNot -> Cvalues.bool_eq (val_of_exp env e) e_zero
-	| C_float _ , LNot -> Cvalues.bool_eq (val_of_exp env e) (e_float 0.0)
+	| C_float _ , LNot -> Cvalues.bool_eq (val_of_exp env e) e_zero_real
 	| C_pointer _ , LNot -> Cvalues.is_true (M.is_null (loc_of_exp env e))
 	| _ -> 
-	    Warning.error "Undefined unary operator (%a)" !Ast_printer.d_type typ
+	    Warning.error "Undefined unary operator (%a)" Printer.pp_typ typ
     in Val v
 
   (* -------------------------------------------------------------------------- *)
@@ -159,7 +161,7 @@ struct
   let bool_of_exp env e =
     match Ctypes.object_of (Cil.typeOf e) with
       | C_int _ -> Cvalues.bool_neq (val_of_exp env e) e_zero
-      | C_float _ -> Cvalues.bool_neq (val_of_exp env e) (e_float 0.0)
+      | C_float _ -> Cvalues.bool_neq (val_of_exp env e) e_zero_real
       | C_pointer _ -> Cvalues.is_false (M.is_null (loc_of_exp env e))
       | _ -> assert false
 	  
@@ -193,7 +195,7 @@ struct
     | MinusPP ->
 	let te = Cil.typeOf_pointed (Cil.typeOf e1) in
 	let obj = Ctypes.object_of te in
-	Val(M.loc_offset obj (loc_of_exp env e1) (loc_of_exp env e2))
+	Val(M.loc_diff obj (loc_of_exp env e1) (loc_of_exp env e2))
 
   (* -------------------------------------------------------------------------- *)
   (* --- Cast                                                               --- *)
@@ -211,7 +213,7 @@ struct
 	  Val( if Ctypes.sub_c_float fe fr then v else Cfloat.fconvert fr v )
 
       | C_int ir , C_float _ -> Val(Cint.of_real ir (cval ve))
-      | C_float fr , C_int _ -> Val(Cfloat.of_int fr (cval ve))
+      | C_float fr , C_int _ -> Val(Cfloat.float_of_int fr (cval ve))
 
       | C_pointer tr , C_pointer te ->
 	  let obj_r = Ctypes.object_of tr in
@@ -232,7 +234,7 @@ struct
 
       | _ ->
 	  Warning.error "cast (%a) into (%a) not yet implemented"
-	    !Ast_printer.d_type te !Ast_printer.d_type tr
+	    Printer.pp_typ te Printer.pp_typ tr
 
   (* -------------------------------------------------------------------------- *)
   (* --- Exp-Node                                                           --- *)
@@ -241,6 +243,8 @@ struct
   let exp_node env e = 
     match e.enode with
 
+      | Const (CStr s)  -> Loc (M.literal ~eid:e.eid (Cstring.C_str s))
+      | Const (CWStr s) -> Loc (M.literal ~eid:e.eid (Cstring.W_str s))
       | Const c -> Val (Cvalues.constant c)
 
       | Lval lv ->
@@ -324,7 +328,7 @@ struct
 	  begin
 	    match Ctypes.object_of (Cil.typeOf e) with
 	      | C_int _ -> p_neq (val_of_exp env e) e_zero
-	      | C_float _ -> p_neq (val_of_exp env e) (e_float 0.0)
+	      | C_float _ -> p_neq (val_of_exp env e) e_zero_real
 	      | C_pointer _ -> p_not (M.is_null (loc_of_exp env e))
 	      | obj -> Warning.error "Condition from (%a)" Ctypes.pretty obj
 	  end

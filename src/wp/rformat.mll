@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -30,6 +30,8 @@
   (* --- Time Utilities                                                     --- *)
   (* -------------------------------------------------------------------------- *)
 
+  let epsilon = 0.0005
+
   let get_time ladder t =
     let rec dicho ladder t i j =
       let k = (i+j)/2 in
@@ -49,7 +51,7 @@
     d , r
     
   let pp_time fmt t =
-    if t < 1.0 then Format.fprintf fmt "%dms" (truncate (t *. 1000.0)) else
+    if t < 1.0 then Format.fprintf fmt "%dms" (truncate (t *. 1000.0 +. 0.5)) else
       if t < 60.0 then 
 	let dt = t -. floor t in
 	if dt < 0.1 

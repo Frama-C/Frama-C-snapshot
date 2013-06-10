@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -34,7 +34,7 @@ let (compute_sub_function_ref
     -> local_slevel_info
     -> State_set.t
     -> Cvalue.Model.t
-     * Locations.Location_Bits.Top_Param.t)
+     * Base.SetLattice.t)
     ref) = ref (fun _ -> assert false)
 let compute_sub_function kf = !compute_sub_function_ref kf
 
@@ -60,7 +60,7 @@ let optional_slevel stmt =
  match stmt.skind with
    | Instr (Call (None, {enode = Lval (Var {vtype = TFun _}, _)}, _ ::
        {enode = Const (CInt64 (n, _, _))} :: _, _)) ->
-           let n' = try My_bigint.to_int n with Assert_failure _ ->
+           let n' = try Integer.to_int n with Assert_failure _ ->
                fail () in if n' < 0 then fail () else Some n'
    | _ -> None
 
@@ -76,7 +76,7 @@ let get_id stmt =
         , {enode = Const (CInt64 (n, _, _))} :: _
         , _
         )
-      ) -> begin try My_bigint.to_int n with Assert_failure _ -> fail () end
+      ) -> begin try Integer.to_int n with Assert_failure _ -> fail () end
     | _ -> fail ()
 
 
@@ -302,7 +302,7 @@ let get_check_tuples =
   Get_check_tuples_cache.memo get_check_tuples_raw
 
 
-(* This function determines what should be done in eval_stmts.mls computers
+(* This function determines what should be done in eval_slevel.ml computers
  * doStmt
  * FIXME [SCM] currently only implemented for strict mode because of single
  * return restriction

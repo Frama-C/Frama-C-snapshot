@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -128,7 +128,7 @@ module States_operations = struct
     in
     if not (State_selection.is_empty states_to_clear) then begin
       warning "clearing dangling project pointers in project %S" p.unique_name;
-      debug ~once:true ~append:(fun fmt -> Format.fprintf fmt "@]")
+      debug ~dkey ~once:true ~append:(fun fmt -> Format.fprintf fmt "@]")
         "@[the involved states are:%t"
         (fun fmt ->
            iter_on_selection
@@ -199,7 +199,7 @@ module States_operations = struct
       "They are invalid in";
     if debug_atleast 1 then
       Hashtbl.iter
-        (fun k s -> if s.on_disk_saved then debug "ignoring state %s" k)
+        (fun k s -> if s.on_disk_saved then debug ~dkey "ignoring state %s" k)
         tbl;
     (* after loading, reset dependencies of incompatible states *)
     let to_be_cleared =
@@ -222,44 +222,22 @@ module States_operations = struct
 
 end
 
-let generic_guarded_feedback pp_selection get_size selection level fmt_msg =
+let guarded_feedback selection level fmt_msg =
   if verbose_atleast level then
     if State_selection.is_full selection then
       feedback ~level fmt_msg
     else
-      let n = get_size selection in
+      let n = State_selection.cardinal selection in
       if n = 0 then
         Log.nullprintf fmt_msg
       else
         let states fmt =
           if n > 1 then Format.fprintf fmt " (for %d states)" n
-          else Format.fprintf fmt " (for 1 state)";
-          if debug_atleast 1 then begin
-            Format.pp_print_newline fmt ();
-            pp_selection fmt selection
-          end
-        in
-        feedback ~level ~append:states fmt_msg
+          else Format.fprintf fmt " (for 1 state)"
+	in
+        feedback ~level ~append:states fmt_msg;
   else
     Log.nullprintf fmt_msg
-
-let guarded_feedback selection level fmt_msg =
-  (* eta-expansion required *)
-  generic_guarded_feedback
-    State_selection.pretty
-    State_selection.cardinal
-    selection
-    level
-    fmt_msg
-
-let full_guarded_feedback selection level fmt_msg =
-  (* eta-expansion required *)
-  generic_guarded_feedback
-    State_selection.pretty
-    State_selection.cardinal
-    selection
-    level
-    fmt_msg
 
 let dft_sel () = State_selection.full
 
@@ -374,7 +352,7 @@ let on ?selection p f x =
 (* [set_current] must never be called internally. *)
 module Hide_set_current = struct let set_current () = assert false end
 open Hide_set_current
-(* Silence warning on unused functions in OCaml >= 3.13 *)
+(* Silence warning on unused and unexported functions *)
 let () = if false then set_current ()
 
 exception Cannot_remove of string
@@ -448,11 +426,10 @@ let journalized_clear =
     (lbl "selection" dft_sel State_selection.ty
        (lbl "project" current ty (Datatype.func Datatype.unit Datatype.unit)))
     (fun selection project () ->
-       full_guarded_feedback selection 2 "clearing project %S"
-         project.unique_name;
-       Before_Clear_Hook.apply project;
-       States_operations.clear ~selection project;
-       After_Clear_Hook.apply project;
+      guarded_feedback selection 2 "clearing project %S" project.unique_name;
+      Before_Clear_Hook.apply project;
+      States_operations.clear ~selection project;
+      After_Clear_Hook.apply project;
        (*Gc.major ()*))
 
 let clear ?(selection=State_selection.full) ?(project=current()) () =
@@ -618,8 +595,8 @@ module Descr = struct
       let unmarshal_states p =
         Descr.dynamic
           (fun () ->
-            (* Local states must be up-to-date according [p] when unmarshalling
-               states of [p] *)
+            (* Local states must be up-to-date according to [p] when
+	       unmarshalling states of [p] *)
             unjournalized_set_current true selection p;
             Before_load.apply ();
             Descr.t_list tbl_on_disk)

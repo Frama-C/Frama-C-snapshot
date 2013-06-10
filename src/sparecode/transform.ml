@@ -2,11 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
-(*           alternatives)                                                *)
-(*    INRIA (Institut National de Recherche en Informatique et en         *)
-(*           Automatique)                                                 *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -26,8 +24,8 @@ open Cil_types
 open Cil
 
 module BoolInfo = struct
-  type t_proj = Marks.t_proj
-  type t_fct = Marks.t_fct option * Kernel_function.t
+  type proj = Marks.proj
+  type fct = Marks.fct option * Kernel_function.t
 
   exception EraseAssigns
   exception EraseAllocation
@@ -81,9 +79,12 @@ module BoolInfo = struct
     let lab_key = PdgIndex.Key.label_key stmt label in
       key_visible "label_visible" fm lab_key
 
-  let annotation_visible _ stmt _annot =
-    Db.Value.is_reachable_stmt stmt
-    (* all the reachable annotation should have been selected by the analysis *)
+  let annotation_visible _ stmt annot =
+    Db.Value.is_reachable_stmt stmt && Alarms.find annot = None
+    (* Keep annotations on reachable, but not alarms: they can be resynthesized,
+       and the alarms table is not synchronized in the new project anyway *)
+    (* TODO: does not seem really coherent with the fact that almost everything
+       else in the logic is cleared... *)
 
   let fun_precond_visible _ _p =
     (* TODO : we say that they are removed in order to get correct results,

@@ -2,11 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
-(*           alternatives)                                                *)
-(*    INRIA (Institut National de Recherche en Informatique et en         *)
-(*           Automatique)                                                 *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -70,6 +68,9 @@ end
 (** A place to map each data to the state of statements that modify it. *)
 module InitSid = struct
   module LM = Lmap_bitwise.Make_bitwise (StmtSetLattice)
+  (* Clear the (non-project compliant) internal caches each time the ast
+     changes, which includes every time we switch project. *)
+  let () = Ast.add_hook_on_update LM.clear_caches
 
   type t = LM.t
 
@@ -96,7 +97,7 @@ let get_lval_zones ~for_writing stmt lval =
                     (Kstmt stmt)
                     ~deps:Locations.Zone.bottom lval
   in
-  let zone = Locations.valid_enumerate_bits ~for_writing loc in
+  let zone = Locations.enumerate_valid_bits ~for_writing loc in
   let exact =  Locations.valid_cardinal_zero_or_one ~for_writing loc in
     dpds, exact, zone
 
@@ -114,7 +115,7 @@ let register_modified_zones lmap stmt inst =
             (fun out _ lmap -> register lmap out) from_table lmap
       with Lmap_bitwise.From_Model.Cannot_fold ->
         (R.debug ~level:1 "register_modified_zones : top on stmt(%d) : %a@."
-          stmt.sid !Ast_printer.d_stmt stmt;
+          stmt.sid Printer.pp_stmt stmt;
         register lmap Locations.Zone.top)
   in
     match inst with
@@ -351,23 +352,21 @@ let get_data_scope_at_stmt kf stmt lval =
   let zone = Locations.Zone.join dpds zone in
   let allstmts, info = compute kf in
   let modif_stmts = InitSid.find info zone in
-  let (f_scope, fb_scope, b_scope) =
-    find_scope allstmts modif_stmts stmt
-  in
-    R.debug
-      "@[<hv 4>get_data_scope_at_stmt %a at %d @\n\
+  let (f_scope, fb_scope, b_scope) = find_scope allstmts modif_stmts stmt in
+  R.debug
+    "@[<hv 4>get_data_scope_at_stmt %a at %d @\n\
                    modified by = %a@\n\
                    f = %a@\nfb = %a@\nb = %a@]"
       (* stmt at *)
-      Locations.Zone.pretty zone stmt.sid
+    Locations.Zone.pretty zone stmt.sid
       (* modified by *)
-      (Cilutil.pretty_list (Cilutil.space_sep " ") Cil_datatype.Stmt.pretty_sid)
-      (StmtSetLattice.to_list ~keep_default:false modif_stmts)
+    (Pretty_utils.pp_list ~sep:",@ " Cil_datatype.Stmt.pretty_sid)
+    (StmtSetLattice.to_list ~keep_default:false modif_stmts)
       (* scope *)
-      Cil_datatype.Stmt.Set.pretty f_scope
-      Cil_datatype.Stmt.Set.pretty fb_scope
-      Cil_datatype.Stmt.Set.pretty b_scope;
-    (f_scope, (fb_scope, b_scope))
+    Cil_datatype.Stmt.Set.pretty f_scope
+    Cil_datatype.Stmt.Set.pretty fb_scope
+    Cil_datatype.Stmt.Set.pretty b_scope;
+  (f_scope, (fb_scope, b_scope))
 
 exception ToDo
 
@@ -395,32 +394,31 @@ let get_annot_zone kf stmt annot =
             zone
 
 (** add [annot] to [acc] if it is not already in.
-  * Return [true] if it has been added.
-  * [acc] is supposed to be sorted according to [annot_id].
-  * *)
-let rec add_annot annot acc =
-    match acc with
-      | [] -> [annot], true
-      | a::tl ->
-          if  annot.annot_id < a.annot_id then annot::acc, true
-          else if annot.annot_id = a.annot_id then acc, false
-          else
-            let tl, added = add_annot annot tl in
-              a::tl, added
+    [acc] is supposed to be sorted according to [annot_id].
+    @return true if it has been added. *)
+let rec add_annot annot acc = match acc with
+  | [] -> [ annot ], true
+  | a :: tl ->
+    if  annot.annot_id < a.annot_id then annot::acc, true
+    else if annot.annot_id = a.annot_id then acc, false
+    else
+      let tl, added = add_annot annot tl in
+      a::tl, added
 
 (** Check if some assertions before [s] are identical to [pred].
   * Add them to acc if any *)
 let check_stmt_annots pred stmt acc =
-  let check _ annot acc = match annot with
-    | AI (_, ({annot_content= AAssert (_, p) } as annot)) ->
-      if Logic_utils.is_same_named_predicate p pred then
-        let acc, added = add_annot annot acc in
-        if added then
-          R.debug "annot at stmt %d could be removed: %a"
-            stmt.sid !Ast_printer.d_code_annotation annot;
-        acc
-      else 
-	acc
+  let check _ annot acc =
+    match annot.annot_content with
+    | AAssert (_, p) ->
+        if Logic_utils.is_same_predicate p.content pred.content then
+          let acc, added =add_annot annot acc in
+          if added then
+            R.debug "annot at stmt %d could be removed: %a"
+              stmt.sid Printer.pp_code_annotation annot;
+          acc
+        else 
+	  acc
     | _ -> acc
   in
   Annotations.fold_code_annot check stmt acc
@@ -433,7 +431,7 @@ let check_stmt_annots pred stmt acc =
 let get_prop_scope_at_stmt kf stmt ?(to_be_removed=[]) annot =
   R.debug "[get_prop_scope_at_stmt] at stmt %d in %a : %a"
     stmt.sid Kernel_function.pretty kf
-    !Ast_printer.d_code_annotation annot;
+    Printer.pp_code_annotation annot;
 
   let sets = (Cil_datatype.Stmt.Set.empty, to_be_removed) in
     try
@@ -446,21 +444,20 @@ let get_prop_scope_at_stmt kf stmt ?(to_be_removed=[]) annot =
         | AAssert (_, p) -> p
         | _ -> R.abort "only 'assert' are handled here"
       in
-      let add s x ((acc_scope, acc_to_be_rm) as acc) =
-        match x with
-          | State.Start -> (add_s s acc_scope, acc_to_be_rm)
-          | State.SameVal ->
-              if !Db.Dominators.is_dominator kf ~opening:stmt ~closing:s
-              then begin
-                let acc_scope = add_s s acc_scope in
-                let acc_to_be_rm = check_stmt_annots pred s acc_to_be_rm in
-                (acc_scope, acc_to_be_rm)
-              end
-              else acc
-          | _ -> acc
+      let add s x ((acc_scope, acc_to_be_rm) as acc) = match x with
+        | State.Start -> (add_s s acc_scope, acc_to_be_rm)
+        | State.SameVal ->
+          if !Db.Dominators.is_dominator kf ~opening:stmt ~closing:s
+          then begin
+            let acc_scope = add_s s acc_scope in
+            let acc_to_be_rm = check_stmt_annots pred s acc_to_be_rm in
+            (acc_scope, acc_to_be_rm)
+          end
+          else acc
+        | _ -> acc
       in
       let sets = States.fold add sets in
-        sets
+      sets
     with ToDo ->
       R.warning
         "[get_annot_zone] don't know how to compute zone: skip this annotation";
@@ -469,34 +466,30 @@ let get_prop_scope_at_stmt kf stmt ?(to_be_removed=[]) annot =
 (** Collect the annotations that can be removed because they are redondant. *)
 class check_annot_visitor = object(self)
 
-  inherit Visitor.generic_frama_c_visitor
-            (Project.current ()) (Cil.inplace_visit ())
+  inherit Visitor.frama_c_inplace
 
   val mutable to_be_removed = []
 
   method get_to_be_removed () = to_be_removed
-  method to_be_removed = to_be_removed
 
   method vcode_annot annot =
     let kf = Extlib.the self#current_kf in
     let stmt =
       Cil.get_original_stmt self#behavior (Extlib.the self#current_stmt)
     in
-    let before = self#is_annot_before in
     let _ = match annot.annot_content with
         | AAssert (_, _) ->
-            if before then begin
               R.debug ~level:2 "[check] annot %d at stmt %d in %a : %a@."
                 annot.annot_id stmt.sid Kernel_function.pretty kf
-                !Ast_printer.d_code_annotation annot;
+                Printer.pp_code_annotation annot;
               let _, added = add_annot annot to_be_removed in
                 (* just check if [annot] is in [to_be_removed] :
                  * don't add it... *)
                 if added then (* annot is not already removed *)
                   let _scope, rem =
                     get_prop_scope_at_stmt kf stmt ~to_be_removed annot
-                  in to_be_removed <- rem
-            end
+                  in 
+		  to_be_removed <- rem
         | _ -> ()
     in Cil.SkipChildren
 
@@ -505,6 +498,7 @@ class check_annot_visitor = object(self)
         Cil.DoChildren
     | _ -> Cil.SkipChildren
 
+  method vexpr _ = Cil.SkipChildren
 
 end (* class check_annot_visitor *)
 
@@ -539,7 +533,7 @@ class rm_annot_visitor to_be_removed = object
       match annot.annot_content with
       | AAssert (_, p) ->
           R.debug ~level:2 
-            "[rm_asserts] removing redundant %a@." Cil.d_code_annotation annot;
+            "[rm_asserts] removing redundant %a@." Printer.pp_code_annotation annot;
           let p = { p with content = Ptrue } in
           let aassert = AAssert ([], p) in
           let annot = { annot with annot_content = aassert } in

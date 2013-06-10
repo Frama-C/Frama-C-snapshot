@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -226,6 +226,7 @@ val strategy_has_prop_goal : strategy -> bool
 val strategy_kind : strategy -> strategy_kind
 val global_axioms : strategy -> WpPropId.axiom_info list
 val behavior_name_of_strategy : strategy -> string option
+val is_default_behavior : strategy -> bool
 
 val cfg_of_strategy : strategy -> Cil2cfg.t
 
@@ -240,8 +241,6 @@ val pp_info_of_strategy : Format.formatter -> strategy -> unit
 
 (** The function is the main entry point AND it is not a lib entry *)
 val is_main_init : Cil_types.kernel_function -> bool
-
-val get_called_kf : Cil_types.exp -> Cil_types.kernel_function option
 
 (** apply [f_normal] on the [Normal] postconditions,
 * [f_exits] on the [Exits] postconditions, and warn on the others. *)

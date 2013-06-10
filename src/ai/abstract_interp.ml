@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -54,7 +54,6 @@ module type Lattice = sig
       @raise Not_less_than whenever the cardinal of [t] is higher than [v] *)
   val cardinal_less_than: t -> int -> int
 
-  val tag : t -> int
 
 end
 
@@ -144,8 +143,6 @@ module Make_Lattice_Set(V:LatValue): Lattice_Set with type O.elt = V.t = struct
           67 * acc + (V.hash v)
         in
         O.fold f s 17
-
-  let tag = hash
 
   let compare =
     if O.compare == Datatype.undefined then (
@@ -304,11 +301,11 @@ module Make_Lattice_Set(V:LatValue): Lattice_Set with type O.elt = V.t = struct
          let name = V.name ^ " lattice_set"
          let structural_descr =
            Structural_descr.Structure
-             (Structural_descr.Sum [| [| O.packed_descr |] |])
+	     (Structural_descr.Sum [| [| O.packed_descr |] |])
          let reprs = Top :: List.map (fun o -> Set o) O.reprs
          let equal = equal
          let compare = compare
-         let hash = tag
+         let hash = hash
          let rehash = Datatype.identity
          let copy = Datatype.undefined
          let internal_pretty_code = Datatype.undefined
@@ -320,7 +317,7 @@ module Make_Lattice_Set(V:LatValue): Lattice_Set with type O.elt = V.t = struct
 end
 
 module Make_Hashconsed_Lattice_Set(V: Hptset.Id_Datatype)(O: Hptset.S with type elt = V.t)
-  : Lattice_Set with type O.elt=V.t =
+  : Lattice_Set with module O = O =
 struct
 
   exception Error_Top
@@ -341,8 +338,6 @@ struct
           67 * acc + (V.id v)
         in
         O.fold f s 17
-
-  let tag = hash
 
   let equal e1 e2 =
     if e1==e2 then true
@@ -513,8 +508,6 @@ struct
 
 end
 
-module Make_Pair = Datatype.Pair
-
 module Make_Lattice_Base (V:LatValue):(Lattice_Base with type l = V.t) = struct
 
   type l = V.t
@@ -561,7 +554,7 @@ module Make_Lattice_Base (V:LatValue):(Lattice_Base with type l = V.t) = struct
     | Value v1, Value v2 -> V.equal v1 v2
     | _ -> false
 
-  let tag = function
+  let hash = function
     | Top -> 3
     | Bottom -> 5
     | Value v -> V.hash v * 7
@@ -629,7 +622,7 @@ module Make_Lattice_Base (V:LatValue):(Lattice_Base with type l = V.t) = struct
     let reprs = Top :: Bottom :: List.map (fun v -> Value v) V.reprs
     let equal = equal
     let compare = compare
-    let hash = tag
+    let hash = hash
     let rehash = Datatype.identity
     let copy = Datatype.undefined
     let internal_pretty_code = Datatype.undefined
@@ -642,16 +635,16 @@ module Make_Lattice_Base (V:LatValue):(Lattice_Base with type l = V.t) = struct
 end
 
 module Int = struct
-  include My_bigint.M
-  include Datatype.Big_int
+  include (Integer: module type of Integer with type t = Integer.t)
+  include (Datatype.Big_int: Datatype.S_with_collections with type t:=Integer.t)
 
   let pretty fmt v =
     if not (Kernel.BigIntsHex.is_default ()) then
       let max = of_int (Kernel.BigIntsHex.get ()) in
-      if gt (abs v) max then My_bigint.pretty ~hexa:true fmt v
-      else My_bigint.pretty ~hexa:false fmt v
+      if gt (abs v) max then Integer.pretty ~hexa:true fmt v
+      else Integer.pretty ~hexa:false fmt v
     else
-      My_bigint.pretty ~hexa:false fmt v
+      Integer.pretty ~hexa:false fmt v
 
   (** execute [f] on [inf], [inf + step], ... *)
   let fold f ~inf ~sup ~step acc =
@@ -672,22 +665,19 @@ module Int = struct
 
 end
 
-module type Key = sig
-  include Datatype.S
-  val is_null : t -> bool
-  val null : t
-  val id : t -> int
+
+(* Typing constraints are enfored directly in the .mli *)
+module Rel = struct
+  include Int
+
+  let check ~rem ~modu =
+    zero <= rem && rem < modu
+
+  let add_abs = add
+  let sub_abs = sub
 end
 
-module VarinfoSetLattice =
-  Make_Hashconsed_Lattice_Set
-    (struct include Cil_datatype.Varinfo let id v = v.Cil_types.vid end)
-    (Cil_datatype.Varinfo.Hptset)
 
-module LocationSetLattice = struct
-  include Make_Lattice_Set(Cil_datatype.Location)
-  let currentloc_singleton () = inject_singleton (Cil.CurrentLoc.get ())
-end
 
 module type Collapse = sig
   val collapse : bool
@@ -706,9 +696,9 @@ struct
   type tt = Product of t1*t2 | Bottom
   type widen_hint = L1.widen_hint * L2.widen_hint
 
-  let tag = function
+  let hash = function
     | Bottom -> 3
-    | Product(v1, v2) -> L1.tag v1 + 3 * L2.tag v2
+    | Product(v1, v2) -> L1.hash v1 + 3 * L2.hash v2
 
   let cardinal_less_than _ = assert false
 
@@ -841,7 +831,7 @@ struct
             L1.reprs
         let equal = equal
         let compare = compare
-        let hash = tag
+        let hash = hash
         let rehash = Datatype.identity
         let copy = Datatype.undefined
         let internal_pretty_code = Datatype.undefined
@@ -867,11 +857,11 @@ struct
   let top = Top
   let bottom = Bottom
 
-  let tag = function
+  let hash = function
     | Top -> 3
     | Bottom -> 5
-    | T1 t -> 7 * L1.tag t
-    | T2 t -> - 17 * L2.tag t
+    | T1 t -> 7 * L1.hash t
+    | T2 t -> - 17 * L2.hash t
 
   let cardinal_less_than _ = assert false
 
@@ -996,7 +986,7 @@ struct
         (fun acc t -> T2 t :: acc) (List.map (fun t -> T1 t) L1.reprs) L2.reprs
     let equal = equal
     let compare = compare
-    let hash = tag
+    let hash = hash
     let rehash = Datatype.undefined
     let copy = Datatype.undefined
     let internal_pretty_code = Datatype.undefined

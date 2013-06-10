@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -51,8 +51,8 @@ let with_null k msg = Format.kfprintf (fun _ -> k ()) null msg
 let nullprintf msg = Format.ifprintf null msg
 
 let min_buffer = 128    (* initial size of buffer *)
-let max_buffer = 262144 (* maximal size of buffer *)
-let tgr_buffer = 327680 (* elasticity (internal overhead) *)
+let max_buffer = 2097152 (* maximal size of buffer *)
+let tgr_buffer = 3145728 (* elasticity (internal overhead) *)
 
 type lock =
   | Ready
@@ -597,14 +597,28 @@ let echo e =
 module type Messages =
 sig
 
-  val verbose_atleast : int -> bool
-  val debug_atleast : int -> bool
-  val set_debug_keys : string list -> unit
-  val get_debug_keyset : unit -> string list
+  type category = private string
 
-  val result  : ?level:int -> 'a pretty_printer
-  val feedback: ?level:int -> 'a pretty_printer
-  val debug   : ?level:int -> ?dkey:string -> 'a pretty_printer
+  val register_category: string -> category
+
+  module Category_set: Set.S with type elt = category
+
+  val get_category: string -> Category_set.t
+  val get_all_categories: unit -> Category_set.t
+
+  val verbose_atleast: int -> bool
+  val debug_atleast: int -> bool
+  val add_debug_keys: Category_set.t -> unit
+  val del_debug_keys: Category_set.t -> unit
+  val get_debug_keys: unit -> Category_set.t
+
+  val is_debug_key_enabled: category -> bool
+
+  val get_debug_keyset : unit -> category list
+
+  val result  : ?level:int -> ?dkey:category -> 'a pretty_printer
+  val feedback: ?level:int -> ?dkey:category -> 'a pretty_printer
+  val debug   : ?level:int -> ?dkey:category -> 'a pretty_printer
   val warning : 'a pretty_printer
   val error   : 'a pretty_printer
   val abort   : ('a,'b) pretty_aborter
@@ -639,6 +653,56 @@ struct
 
   include P
 
+  type category = string
+
+  module Category_set = (Set.Make(String): Set.S with type elt = category)
+
+  let categories = Hashtbl.create 3
+
+  let () =
+    Hashtbl.add
+      categories "" (Category_set.add "" Category_set.empty)
+
+  let register_category (s:string) =
+    let res: category = s in
+    (* empty string is already handled *)
+    if s <> "" then begin
+      let add s =
+        let existing =
+          try Hashtbl.find categories s
+          with Not_found -> Category_set.empty
+        in
+        Hashtbl.replace categories s (Category_set.add res existing)
+      in
+      let rec aux super =
+        add super;
+        if String.contains super ':' then
+          aux (String.sub super 0 (String.rindex super ':'))
+      in 
+      add "";
+      aux s
+    end; 
+    res
+
+  let get_category s =
+    let s = if s = "*" then "" else s in
+    try Hashtbl.find categories s with Not_found -> Category_set.empty
+
+  let get_all_categories () = get_category ""
+
+  let debug_keys = ref Category_set.empty
+
+  let add_debug_keys s = debug_keys:= Category_set.union s !debug_keys
+  let del_debug_keys s = debug_keys:= Category_set.diff !debug_keys s
+
+  let get_debug_keys () = !debug_keys
+
+  let is_debug_key_enabled s = Category_set.mem s !debug_keys
+
+   let has_debug_key = function 
+    | None -> true (* No key means to be displayed each time *)
+    | Some k -> Category_set.mem k !debug_keys
+
   let channel = new_channel P.channel
   let prefix_first = Label (Printf.sprintf "[%s] " label)
   let prefix_all = Prefix (Printf.sprintf "[%s] " label)
@@ -646,8 +710,10 @@ struct
   let prefix_warning = Label (Printf.sprintf "[%s] warning: " label)
   let prefix_failure = Label (Printf.sprintf "[%s] failure: " label)
   let prefix_dkey = function
-    | None -> prefix_all
-    | Some key -> Prefix (Printf.sprintf "[%s:%s] " label key)
+    | None -> if debug_atleast 1 then prefix_all else prefix_first
+    | Some key -> 
+      let lab = (Printf.sprintf "[%s:%s] " label key) in
+      if debug_atleast 1 then Prefix lab else Label lab
 
   let prefix_for = function
     | Result | Feedback | Debug ->
@@ -708,46 +774,21 @@ struct
     else nullprintf text
 
   let result
-      ?(level=1) ?(current=false) ?source
+      ?(level=1) ?dkey ?(current=false) ?source
       ?emitwith ?(echo=true) ?(once=false) ?append text =
-    if verbose_atleast level then
+    if verbose_atleast level && has_debug_key dkey then
       logtext channel
         ~kind:Result
-        ~prefix:(if debug_atleast 1 then prefix_all else prefix_first)
+        ~prefix:(prefix_dkey dkey)
         ~source:(get_source current source)
         ~once ?emitwith ~echo ?append
         text
     else nullprintf text
 
   let feedback
-      ?(level=1) ?(current=false) ?source
-      ?emitwith ?(echo=true) ?(once=false) ?append text =
-    if verbose_atleast level then
-      logtext channel
-        ~kind:Feedback
-        ~prefix:(if debug_atleast 1 then prefix_all else prefix_first)
-        ~source:(get_source current source)
-        ~once ?emitwith ~echo ?append
-        text
-    else nullprintf text
-
-  module Skey = Set.Make(String)
-
-  let debug_keys = ref []
-  let debug_keyset = ref Skey.empty
-  let debug_collect = ref false
-  let set_debug_keys ks = debug_keys := ks ; debug_collect := List.mem "?" ks
-  let get_debug_keyset () = Skey.elements !debug_keyset
-  let has_debug_key = function None -> false | Some k -> 
-    if !debug_collect && not (Skey.mem k !debug_keyset) 
-    then debug_keyset := Skey.add k !debug_keyset ;
-    List.mem k !debug_keys
-
-  let debug
       ?(level=1) ?dkey ?(current=false) ?source
       ?emitwith ?(echo=true) ?(once=false) ?append text =
-
-    if debug_atleast level || has_debug_key dkey then
+    if verbose_atleast level && has_debug_key dkey then
       logtext channel
         ~kind:Feedback
         ~prefix:(prefix_dkey dkey)
@@ -755,6 +796,19 @@ struct
         ~once ?emitwith ~echo ?append
         text
     else nullprintf text
+
+  let debug
+      ?(level=1) ?dkey ?(current=false) ?source
+      ?emitwith ?(echo=true) ?(once=false) ?append text =
+    if debug_atleast level && has_debug_key dkey then
+      logtext channel
+        ~kind:Feedback
+        ~prefix:(prefix_dkey dkey)
+        ~source:(get_source current source)
+        ~once ?emitwith ~echo ?append
+        text
+    else
+      nullprintf text
 
   let warning
       ?(current=false) ?source
@@ -876,6 +930,10 @@ struct
       name now ;
     f x
 
+  let get_debug_keyset =
+    deprecated "Log.get_debug_key_set"
+      ~now:"Log.get_all_categories (which returns a set instead of list)"
+      (fun () -> Category_set.elements (get_debug_keys ()))
 end
 
 (*

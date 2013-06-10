@@ -2,8 +2,7 @@
    OPT: -deps -journal-disable
 */
 #define FRAMA_C_MALLOC_INFINITE
-#include "../../share/builtin.h"
-#include "../../share/malloc.c"
+#include "../../share/libc/stdlib.c"
 
 struct T { int a; int b; };
 

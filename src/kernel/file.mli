@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -41,16 +41,15 @@ val new_file_type:
   (** [new_file_type suffix func funcname] registers a new type of files (with
       corresponding suffix) as recognized by Frama-C through [func]. *)
 
-val new_machdep: string -> bool -> (unit -> unit) -> unit
-(** [new_machdep name public func] registers a new machdep name as recognized by
-    Frama-C through [func]. [public] must be set to [true] to display it in the
-    help displayed by [frama-c -machdep help]. The usual uses is
+val new_machdep: string -> (module Cil.Machdeps) -> unit
+(** [new_machdep name module] registers a new machdep name as recognized by
+    Frama-C through The usual uses is
     [Cmdline.run_after_loading_stage
     (fun () -> File.new_machdep
     "my_machdep"
-    true
-    (fun () -> let module M = Machdep.DEFINE(My_machdep_implem) in ()))]
+    (module My_machdep_implem: Cil.Machdeps))]
     @since Nitrogen-20111001
+    @modify Fluorine-20130401 Receives the machdep (as a module) as argument
     @raise Invalid_argument if the given name already exists *)
 
 val get_suffixes: unit -> string list
@@ -101,28 +100,34 @@ val init_project_from_cil_file: Project.t -> Cil_types.file -> unit
       @raise File_types.Bad_Initialization if called more than once.
       @plugin development guide *)
 
-val init_project_from_visitor: Project.t -> Visitor.frama_c_visitor -> unit
+val init_project_from_visitor:
+  ?reorder:bool -> Project.t -> Visitor.frama_c_visitor -> unit
   (** [init_project_from_visitor prj vis] initialize the cil file
       representation of [prj]. [prj] must be essentially empty: it can have
       some options set, but not an existing cil file; [proj] is filled using
       [vis], which must be a copy visitor that puts its results in [prj].
+      if [reorder] is [true] (default is [false]) the new AST in [prj] 
+      will be reordered.
       @since Oxygen-20120901
+      @modify Fluorine-20130401 added reorder optional argument
       @plugin development guide
    *)
 
 val create_project_from_visitor:
-  string -> (Project.t -> Visitor.frama_c_visitor) -> Project.t
+  ?reorder:bool -> string -> (Project.t -> Visitor.frama_c_visitor) -> Project.t
   (** Return a new project with a new cil file representation by visiting the
-      file of the current project.
+      file of the current project. If [reorder] is [true], the globals in the
+      AST of the new project are reordered (default is [false]).
       The visitor is responsible to avoid sharing between old file and new
       file (i.e. it should use {!Cil.copy_visit} at some point).
       @raise File_types.Bad_Initialization if called more than once.
       @since Beryllium-20090601-beta1
+      @modify Fluorine-20130401 added reorder optional argument
       @plugin development guide *)
 
 val create_rebuilt_project_from_visitor:
-  ?preprocess:bool -> string -> (Project.t -> Visitor.frama_c_visitor) ->
-  Project.t
+  ?reorder:bool -> ?preprocess:bool -> 
+  string -> (Project.t -> Visitor.frama_c_visitor) -> Project.t
 (** Like {!create_project_from_visitor}, but the new generated cil file is
     generated into a temp .i or .c file according to [preprocess], then re-built
     by Frama-C in the returned project. For instance, use this function if the
@@ -133,7 +138,9 @@ val create_rebuilt_project_from_visitor:
     NOT preprocessed by default.
 
     @raise File_types.Bad_Initialization if called more than once.
-    @since Nitrogen-20111001 *)
+    @since Nitrogen-20111001 
+    @modify Fluorine-20130401 added reorder optional argument
+*)
 
 val init_from_cmdline: unit -> unit
 (** Initialize the cil file representation with the file given on the

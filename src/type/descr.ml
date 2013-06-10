@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -88,12 +88,10 @@ let t_queue = t_poly Unmarshal.t_queue
 
 let of_type ty = pack (Type.structural_descr ty)
 let of_structural ty d =
-  if not (Type.may_use_obj ()) || 
-    Structural_descr.are_consistent (Type.structural_descr ty) d 
-  then
-    pack d
-  else
-    invalid_arg "Descr.of_structural: inconsistent descriptor"
+  let ty_d = Type.structural_descr ty in
+  if not (Type.may_use_obj ()) || Structural_descr.are_consistent ty_d d 
+  then pack d
+  else invalid_arg "Descr.of_structural: inconsistent descriptor"
 
 (** {3 Builders mapping transformers of {!Unmarshal}} *)
 

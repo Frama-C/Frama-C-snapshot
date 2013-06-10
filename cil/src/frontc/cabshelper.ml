@@ -1,43 +1,45 @@
-(**************************************************************************)
-(*                                                                        *)
-(*  Copyright (C) 2001-2003                                               *)
-(*   George C. Necula    <necula@cs.berkeley.edu>                         *)
-(*   Scott McPeak        <smcpeak@cs.berkeley.edu>                        *)
-(*   Wes Weimer          <weimer@cs.berkeley.edu>                         *)
-(*   Ben Liblit          <liblit@cs.berkeley.edu>                         *)
-(*  All rights reserved.                                                  *)
-(*                                                                        *)
-(*  Redistribution and use in source and binary forms, with or without    *)
-(*  modification, are permitted provided that the following conditions    *)
-(*  are met:                                                              *)
-(*                                                                        *)
-(*  1. Redistributions of source code must retain the above copyright     *)
-(*  notice, this list of conditions and the following disclaimer.         *)
-(*                                                                        *)
-(*  2. Redistributions in binary form must reproduce the above copyright  *)
-(*  notice, this list of conditions and the following disclaimer in the   *)
-(*  documentation and/or other materials provided with the distribution.  *)
-(*                                                                        *)
-(*  3. The names of the contributors may not be used to endorse or        *)
-(*  promote products derived from this software without specific prior    *)
-(*  written permission.                                                   *)
-(*                                                                        *)
-(*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS   *)
-(*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT     *)
-(*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS     *)
-(*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE        *)
-(*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,   *)
-(*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,  *)
-(*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;      *)
-(*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER      *)
-(*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT    *)
-(*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN     *)
-(*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE       *)
-(*  POSSIBILITY OF SUCH DAMAGE.                                           *)
-(*                                                                        *)
-(*  File modified by CEA (Commissariat à l'énergie atomique et aux        *)
-(*                        énergies alternatives).                         *)
-(**************************************************************************)
+(****************************************************************************)
+(*                                                                          *)
+(*  Copyright (C) 2001-2003                                                 *)
+(*   George C. Necula    <necula@cs.berkeley.edu>                           *)
+(*   Scott McPeak        <smcpeak@cs.berkeley.edu>                          *)
+(*   Wes Weimer          <weimer@cs.berkeley.edu>                           *)
+(*   Ben Liblit          <liblit@cs.berkeley.edu>                           *)
+(*  All rights reserved.                                                    *)
+(*                                                                          *)
+(*  Redistribution and use in source and binary forms, with or without      *)
+(*  modification, are permitted provided that the following conditions      *)
+(*  are met:                                                                *)
+(*                                                                          *)
+(*  1. Redistributions of source code must retain the above copyright       *)
+(*  notice, this list of conditions and the following disclaimer.           *)
+(*                                                                          *)
+(*  2. Redistributions in binary form must reproduce the above copyright    *)
+(*  notice, this list of conditions and the following disclaimer in the     *)
+(*  documentation and/or other materials provided with the distribution.    *)
+(*                                                                          *)
+(*  3. The names of the contributors may not be used to endorse or          *)
+(*  promote products derived from this software without specific prior      *)
+(*  written permission.                                                     *)
+(*                                                                          *)
+(*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS     *)
+(*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT       *)
+(*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS       *)
+(*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE          *)
+(*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,     *)
+(*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,    *)
+(*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;        *)
+(*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER        *)
+(*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT      *)
+(*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN       *)
+(*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE         *)
+(*  POSSIBILITY OF SUCH DAMAGE.                                             *)
+(*                                                                          *)
+(*  File modified by CEA (Commissariat à l'énergie atomique et aux          *)
+(*                        énergies alternatives)                            *)
+(*               and INRIA (Institut National de Recherche en Informatique  *)
+(*                          et Automatique).                                *)
+(****************************************************************************)
 
 open Cabs
 
@@ -50,7 +52,7 @@ let currentLoc () = Errorloc.getPosition ()
 
 let cabslu = Lexing.dummy_pos,Lexing.dummy_pos
 
-let continue_annot (l,_) job default msg =
+let continue_annot _ job default msg =
   try
     Cilmsg.push_errors () ;
     let result = job () in
@@ -59,15 +61,19 @@ let continue_annot (l,_) job default msg =
     Log.with_null (fun _ -> result) msg ;
   with exn when Kernel.ContinueOnAnnotError.get () ->
     Kernel.debug "Continue on annotation error (%s)" (Printexc.to_string exn) ;
-    Cilmsg.pop_errors () ;
-    Kernel.with_warning (fun _ -> default ()) ~source:l msg
+    Cilmsg.pop_errors ();
+    Log.with_null (fun _ -> default ()) msg
 
 module Comments =
   struct
+    module MapDest = struct
+      include Datatype.List(Datatype.Pair(Cil_datatype.Position)(Datatype.String))
+      let fast_equal (_:t) (_:t) = false
+    end
     module MyTable = 
       Rangemap.Make 
         (Cil_datatype.Position)
-        (Datatype.List(Datatype.Pair(Cil_datatype.Position)(Datatype.String)))
+        (MapDest)
     module MyState =
       State_builder.Ref
         (MyTable)

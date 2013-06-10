@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -20,20 +20,39 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* -------------------------------------------------------------------------- *)
-(* --- C-Integer Arithmetics for Alt-Ergo                                 --- *)
-(* -------------------------------------------------------------------------- *)
+(* ---------------------------------------------------------------------- *)
+(* --- cint library: C-Integer Arithmetics for Alt-Ergo               --- *)
+(* ---------------------------------------------------------------------- *)
 
 (* C-Integer Ranges *)
 
-predicate is_uint8(x:int) = 0 <= x < 256 
-predicate is_sint8(x:int) = -128 <= x < 128
-predicate is_uint16(x:int) = 0 <= x < 65536
-predicate is_sint16(x:int) = -32768 <= x < 32768
-predicate is_uint32(x:int) = 0 <= x < 4294967296
-predicate is_sint32(x:int) = -2147483648 <= x < 2147483648
-predicate is_uint64(x:int) = 0 <= x < 18446744073709551616
-predicate is_sint64(x:int) = -9223372036854775808 <= x < 9223372036854775808
+logic is_uint8 : int -> prop
+logic is_sint8 : int -> prop
+logic is_uint16 : int -> prop
+logic is_sint16 : int -> prop
+logic is_uint32 : int -> prop
+logic is_sint32 : int -> prop
+logic is_uint64 : int -> prop
+logic is_sint64 : int -> prop
+
+(* C-Integer Ranges Definitions *)
+
+axiom def_uint8 : forall x:int  [ is_uint8(x) ].
+                0 <= x < 256 <-> is_uint8(x) 
+axiom def_sint8 : forall x:int  [ is_sint8(x) ].
+             -128 <= x < 128 <-> is_sint8(x) 
+axiom def_uint16 : forall x:int [ is_uint16(x) ].
+               0 <= x < 65536 <-> is_uint16(x) 
+axiom def_sint16 : forall x:int [ is_sint16(x) ].
+          -32768 <= x < 32768 <-> is_sint16(x) 
+axiom def_uint32 : forall x:int [ is_uint32(x) ].
+          0 <= x < 4294967296 <-> is_uint32(x) 
+axiom def_sint32 : forall x:int [ is_sint32(x) ].
+  -2147483648 <= x < 2147483648 <-> is_sint32(x) 
+axiom def_uint64 : forall x:int [ is_uint64(x) ].
+  0 <= x < 18446744073709551616 <-> is_uint64(x) 
+axiom def_sint64 : forall x:int [ is_sint64(x) ].
+  -9223372036854775808 <= x < 9223372036854775808 <-> is_sint64(x) 
 
 (* C-Integer Conversion *)
 
@@ -48,40 +67,53 @@ logic to_sint64 : int -> int
 
 (* C-Integer Conversions are in-range *)
 
-axiom is_to_uint8 : forall x:int [ is_uint8(to_uint8(x)) ]. is_uint8(to_uint8(x)) 
-axiom is_to_sint8 : forall x:int [ is_sint8(to_sint8(x)) ]. is_sint8(to_sint8(x)) 
-axiom is_to_uint16 : forall x:int [ is_uint16(to_uint16(x)) ]. is_uint16(to_uint16(x)) 
-axiom is_to_sint16 : forall x:int [ is_sint16(to_sint16(x)) ]. is_sint16(to_sint16(x)) 
-axiom is_to_uint32 : forall x:int [ is_uint32(to_uint32(x)) ]. is_uint32(to_uint32(x)) 
-axiom is_to_sint32 : forall x:int [ is_sint32(to_sint32(x)) ]. is_sint32(to_sint32(x)) 
-axiom is_to_uint64 : forall x:int [ is_uint64(to_uint64(x)) ]. is_uint64(to_uint64(x)) 
-axiom is_to_sint64 : forall x:int [ is_sint64(to_sint64(x)) ]. is_sint64(to_sint64(x)) 
+axiom is_to_uint8 : forall x:int 
+[ is_uint8(to_uint8(x)) ].
+  is_uint8(to_uint8(x)) 
+axiom is_to_sint8 : forall x:int 
+[ is_sint8(to_sint8(x)) ].
+  is_sint8(to_sint8(x)) 
+axiom is_to_uint16 : forall x:int 
+[ is_uint16(to_uint16(x)) ].
+  is_uint16(to_uint16(x)) 
+axiom is_to_sint16 : forall x:int 
+[ is_sint16(to_sint16(x)) ].
+  is_sint16(to_sint16(x)) 
+axiom is_to_uint32 : forall x:int 
+[ is_uint32(to_uint32(x)) ].
+  is_uint32(to_uint32(x)) 
+axiom is_to_sint32 : forall x:int 
+[ is_sint32(to_sint32(x)) ].
+  is_sint32(to_sint32(x)) 
+axiom is_to_uint64 : forall x:int 
+[ is_uint64(to_uint64(x)) ].
+  is_uint64(to_uint64(x)) 
+axiom is_to_sint64 : forall x:int 
+[ is_sint64(to_sint64(x)) ].
+  is_sint64(to_sint64(x)) 
 
 (* C-Integer Conversions are identity when in-range *)
 
-axiom id_uint8 : forall x:int [ to_uint8(x) ]. is_uint8(x) -> to_uint8(x) = x 
-axiom id_sint8 : forall x:int [ to_sint8(x) ]. is_sint8(x) -> to_sint8(x) = x 
-axiom id_uint16 : forall x:int [ to_uint16(x) ]. is_uint16(x) -> to_uint16(x) = x 
-axiom id_sint16 : forall x:int [ to_sint16(x) ]. is_sint16(x) -> to_sint16(x) = x 
-axiom id_uint32 : forall x:int [ to_uint32(x) ]. is_uint32(x) -> to_uint32(x) = x 
-axiom id_sint32 : forall x:int [ to_sint32(x) ]. is_sint32(x) -> to_sint32(x) = x 
-axiom id_uint64 : forall x:int [ to_uint64(x) ]. is_uint64(x) -> to_uint64(x) = x 
-axiom id_sint64 : forall x:int [ to_sint64(x) ]. is_sint64(x) -> to_sint64(x) = x 
-
-(* C-Integer Conversions are projections *)
-
-axiom proj_uint8 : forall x:int [ to_uint8(to_uint8(x)) ]. to_uint8(to_uint8(x))=to_uint8(x) 
-axiom proj_sint8 : forall x:int [ to_sint8(to_sint8(x)) ]. to_sint8(to_sint8(x))=to_sint8(x)
-axiom proj_uint16 : forall x:int [ to_uint16(to_uint16(x)) ]. to_uint16(to_uint16(x))=to_uint16(x) 
-axiom proj_sint16 : forall x:int [ to_sint16(to_sint16(x)) ]. to_sint16(to_sint16(x))=to_sint16(x)
-axiom proj_uint32 : forall x:int [ to_uint32(to_uint32(x)) ]. to_uint32(to_uint32(x))=to_uint32(x) 
-axiom proj_sint32 : forall x:int [ to_sint32(to_sint32(x)) ]. to_sint32(to_sint32(x))=to_sint32(x)
-axiom proj_uint64 : forall x:int [ to_uint64(to_uint64(x)) ]. to_uint64(to_uint64(x))=to_uint64(x) 
-axiom proj_sint64 : forall x:int [ to_sint64(to_sint64(x)) ]. to_sint64(to_sint64(x))=to_sint64(x)
-
+axiom id_uint8 : forall x:int [ to_uint8(x) ].
+                0 <= x < 256 -> to_uint8(x) = x 
+axiom id_sint8 : forall x:int [ to_sint8(x) ].
+             -128 <= x < 128 -> to_sint8(x) = x 
+axiom id_uint16 : forall x:int [ to_uint16(x) ].
+               0 <= x < 65536 -> to_uint16(x) = x 
+axiom id_sint16 : forall x:int [ to_sint16(x) ].
+          -32768 <= x < 32768 -> to_sint16(x) = x 
+axiom id_uint32 : forall x:int [ to_uint32(x) ].
+          0 <= x < 4294967296 -> to_uint32(x) = x 
+axiom id_sint32 : forall x:int   [ to_sint32(x) ].
+  -2147483648 <= x < 2147483648 -> to_sint32(x) = x 
+axiom id_uint64 : forall x:int   [ to_uint64(x) ].
+  0 <= x < 18446744073709551616 -> to_uint64(x) = x 
+axiom id_sint64 : forall x:int                     [ to_sint64(x) ].
+  -9223372036854775808 <= x < 9223372036854775808 -> to_sint64(x) = x 
+ 
 (* C-Integer Bits Signature *)
 
-logic lnot : int -> int
+logic    lnot : int -> int
 logic ac land : int,int -> int
 logic ac lxor : int,int -> int
 logic ac lor  : int,int -> int
@@ -89,114 +121,6 @@ logic ac lor  : int,int -> int
 logic lsl  : int,int -> int
 logic lsr  : int,int -> int
 
-(* Some C-Integer Bits Conversions are identity *)
+logic bit_test : int,int -> bool
 
-(* Signed conversions *)
-
-(* sint8 *)
-axiom is_sint8_bnot : forall x:int [to_sint8(lnot(x))].
- is_sint8(x) -> lnot(x) = to_sint8(lnot(x))
-
-axiom is_sint8_bxor : forall x,y:int [to_sint8(lxor(x,y))].
- is_sint8(x) -> is_sint8(y) -> lxor(x,y) = to_sint8(lxor(x,y))
-
-axiom is_sint8_bor : forall x,y:int [to_sint8(lor(x,y))].
- is_sint8(x) -> is_sint8(y) -> lor(x,y) = to_sint8(lor(x,y))
-
-axiom is_sint8_band : forall x,y:int [to_sint8(land(x,y))].
- is_sint8(x) -> is_sint8(y) -> land(x,y) = to_sint8(land(x,y))
-
-axiom is_sint8_blsr : forall x,y:int [to_sint8(lsr(x,y))].
- is_sint8(x) -> is_sint8(y) -> lsr(x,y) = to_sint8(lsr(x,y))
-
-(* sint16 *)
-axiom is_sint16_bnot : forall x:int [to_sint16(lnot(x))].
- is_sint16(x) -> lnot(x) = to_sint16(lnot(x))
-
-axiom is_sint16_bxor : forall x,y:int [to_sint16(lxor(x,y))].
- is_sint16(x) ->  is_sint16(y) -> lxor(x,y) = to_sint16(lxor(x,y))
-
-axiom is_sint16_bor : forall x,y:int [to_sint16(lor(x,y))].
- is_sint16(x) -> is_sint16(y) -> lor(x,y) = to_sint16(lor(x,y))
-
-axiom is_sint16_band : forall x,y:int [to_sint16(land(x,y))].
- is_sint16(x) -> is_sint16(y) -> land(x,y) = to_sint16(land(x,y))
-
-axiom is_sint16_blsr : forall x,y:int [to_sint16(lsr(x,y))].
- is_sint16(x) -> is_sint16(y) -> lsr(x,y) = to_sint16(lsr(x,y))
-
-(* sint32 *)
-axiom is_sint32_bnot : forall x:int [to_sint32(lnot(x))].
- is_sint32(x) -> lnot(x) = to_sint32(lnot(x))
-
-axiom is_sint32_bxor : forall x,y:int [to_sint32(lxor(x,y))].
- is_sint32(x) ->  is_sint32(y) -> lxor(x,y) = to_sint32(lxor(x,y))
-
-axiom is_sint32_bor : forall x,y:int [to_sint32(lor(x,y))].
- is_sint32(x) -> is_sint32(y) -> lor(x,y) = to_sint32(lor(x,y))
-
-axiom is_sint32_band : forall x,y:int [to_sint32(land(x,y))].
- is_sint32(x) -> is_sint32(y) -> land(x,y) = to_sint32(land(x,y))
-
-axiom is_sint32_blsr : forall x,y:int [to_sint32(lsr(x,y))].
- is_sint32(x) -> is_sint32(y) -> lsr(x,y) = to_sint32(lsr(x,y))
-
-(* sint64 *)
-axiom is_sint64_bnot : forall x:int [to_sint64(lnot(x))].
- is_sint64(x) -> lnot(x) = to_sint64(lnot(x))
-
-axiom is_sint64_bxor : forall x,y:int [to_sint64(lxor(x,y))].
- is_sint64(x) ->  is_sint64(y) -> lxor(x,y) = to_sint64(lxor(x,y))
-
-axiom is_sint64_bor : forall x,y:int [to_sint64(lor(x,y))].
- is_sint64(x) -> is_sint64(y) -> lor(x,y) = to_sint64(lor(x,y))
-
-axiom is_sint64_band : forall x,y:int [to_sint64(land(x,y))].
- is_sint64(x) -> is_sint64(y) -> land(x,y) = to_sint64(land(x,y))
-
-axiom is_sint64_blsr : forall x,y:int [to_sint64(lsr(x,y))].
- is_sint64(x) -> is_sint64(y) -> lsr(x,y) = to_sint64(lsr(x,y))
-
-
-(* Unsigned conversions *)
-
-(* uint8 *)
-axiom is_uint8_bor : forall x,y:int [to_uint8(lor(x,y))].
- is_uint8(x) ->  is_uint8(y) -> lor(x,y) = to_uint8(lor(x,y))
-
-axiom is_uint8_band : forall x,y:int [to_uint8(land(x,y))].
- is_uint8(x) -> is_uint8(y) -> land(x,y) = to_uint8(land(x,y))
-
-axiom is_uint8_blsr : forall x,y:int [to_uint8(lsr(x,y))].
- is_uint8(x) -> is_uint8(y) -> lsr(x,y) = to_uint8(lsr(x,y))
-
-(* uint16 *)
-axiom is_uint16_bor : forall x,y:int [to_uint16(lor(x,y))].
- is_uint16(x) ->  is_uint16(y) -> lor(x,y) = to_uint16(lor(x,y))
-
-axiom is_uint16_band : forall x,y:int [to_uint16(land(x,y))].
- is_uint16(x) -> is_uint16(y) -> land(x,y) = to_uint16(land(x,y))
-
-axiom is_uint16_blsr : forall x,y:int [to_uint16(lsr(x,y))].
- is_uint16(x) -> is_uint16(y) -> lsr(x,y) = to_uint16(lsr(x,y))
-
-(* uint32 *)
-axiom is_uint32_bor : forall x,y:int [to_uint32(lor(x,y))].
- is_uint32(x) ->  is_uint32(y) -> lor(x,y) = to_uint32(lor(x,y))
-
-axiom is_uint32_band : forall x,y:int [to_uint32(land(x,y))].
- is_uint32(x) -> is_uint32(y) -> land(x,y) = to_uint32(land(x,y))
-
-axiom is_uint32_blsr : forall x,y:int [to_uint32(lsr(x,y))].
- is_uint32(x) -> is_uint32(y) -> lsr(x,y) = to_uint32(lsr(x,y))
-
-(* uint64 *)
-axiom is_uint64_bor : forall x,y:int [to_uint64(lor(x,y))].
- is_uint64(x) ->  is_uint64(y) -> lor(x,y) = to_uint64(lor(x,y))
-
-axiom is_uint64_band : forall x,y:int [to_uint64(land(x,y))].
- is_uint64(x) -> is_uint64(y) -> land(x,y) = to_uint64(land(x,y))
-
-axiom is_uint64_blsr : forall x,y:int [to_uint64(lsr(x,y))].
- is_uint64(x) -> is_uint64(y) -> lsr(x,y) = to_uint64(lsr(x,y))
-
+(* End of cint library *)

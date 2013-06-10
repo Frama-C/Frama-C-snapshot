@@ -1,3 +1,9 @@
+(* This datatype tests the bug fix of BTS #1277 *)
+module A = 
+  Datatype.Pair
+    (Datatype.List(Datatype.String))
+    (Datatype.List(Datatype.String))
+
 module StateA =
   State_builder.Ref
     (Datatype.Int)

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -110,6 +110,10 @@ module Configuration: sig
   val find_list: string -> configData list
   val use_list: string -> (configData list -> unit) -> unit
 end
+
+(** {2 UTF8} *)
+
+val to_utf8 : string -> string
 
 (* ************************************************************************** *)
 (** {2 Tags} *)
@@ -252,12 +256,13 @@ class type host = object
     'a option
   method protect :
     cancelable:bool -> ?parent:GWindow.window_skel -> (unit -> unit) -> unit
+  method private set_reset: (unit -> unit) -> unit
 end
 
 (**  A utility class to catch exceptions and report proper error messages.
      The error dialog will be transient for the [GWindow.window_skel] argument.
      @since Beryllium-20090901 *)
-class error_manager : GWindow.window_skel -> host
+class error_manager : ?reset:(unit -> unit) -> GWindow.window_skel -> host
 
 (* ************************************************************************** *)
 (** {2 Source files chooser} *)
@@ -282,6 +287,8 @@ val source_files_chooser:
 (* ************************************************************************** *)
 (** {2 Miscellaneous} *)
 (* ************************************************************************** *)
+
+val later : (unit -> unit) -> unit
 
 val refresh_gui: unit -> unit
   (** Process pending events in the main Glib loop.
@@ -360,50 +367,68 @@ module MAKE_CUSTOM_LIST(A : sig type t end)
         GTree.view_column
     end
 
-(* Simple and high level custom model interface *)
+(** Simple and high level custom model interface *)
 module Custom: sig
 
   type ('a,'b) column =
       ?title:string -> 'b list -> ('a -> 'b list) -> GTree.view_column
       
-  class type virtual ['a] custom = ['a,'a,unit,unit] GTree.custom_tree_model
-    
-  class ['a] columns : 
-    ?packing:(GObj.widget -> unit) -> GTree.view -> 'a #custom ->
+  class type virtual ['a] custom =
   object
-    method view : GTree.view
+    inherit ['a,'a,unit,unit] GTree.custom_tree_model
+    method reload : unit
+  end
+    
+  class type ['a] columns =
+  object
+    method view : GTree.view (** the tree *)
+    method scroll : GBin.scrolled_window (** scrolled tree (build on demand) *)
+    method coerce : GObj.widget (** widget of the scroll *)
+    method pack : (GObj.widget -> unit) -> unit (** packs the scroll *)
     method reload : unit (** Structure has changed *)
     method update_all : unit (** (only) Content of rows has changed *)
     method update_row : 'a -> unit
     method insert_row : 'a -> unit
     method set_focus : 'a -> GTree.view_column -> unit
     method on_click : ('a -> GTree.view_column -> unit) -> unit
+    method on_right_click : ('a -> GTree.view_column -> unit) -> unit
     method on_double_click : ('a -> GTree.view_column -> unit) -> unit
+    method set_selection_mode : Gtk.Tags.selection_mode -> unit
+    method on_selection : (unit -> unit) -> unit
+    method count_selected : int
+    method iter_selected : ('a -> unit) -> unit
+    method is_selected : 'a -> bool
     method add_column_text   : ('a,GTree.cell_properties_text) column
     method add_column_pixbuf : ('a,GTree.cell_properties_pixbuf) column
     method add_column_toggle : ('a,GTree.cell_properties_toggle) column
+    method add_column_empty : unit
   end
 
   module List: sig 
     
     class type ['a] model =
     object
+      method reload : unit
       method size : int
       method index : 'a -> int
       method get : int -> 'a
     end
       
-    class ['a] view : 
-      ?packing:(GObj.widget->unit) 
-      -> ?headers:bool -> ?rules:bool -> 'a model ->
+    class ['a] view : ?packing:(GObj.widget->unit) -> 
+		 ?width:int -> ?height:int -> 
+		 ?headers:bool -> ?rules:bool -> 
+		 'a model ->
     object
       inherit ['a] columns
     end
+
   end
 
   module Tree: sig
+
     class type ['a] model =
     object
+      method reload : unit
       method has_child : 'a -> bool
       method children : 'a option -> int
       method child_at : 'a option -> int -> 'a
@@ -411,12 +436,32 @@ module Custom: sig
       method index : 'a -> int
     end
       
-    class ['a] view : ?headers:bool -> ?rules:bool -> 'a model ->
+    class ['a] view : ?packing:(GObj.widget->unit) ->
+		 ?width:int -> ?height:int -> 
+		 ?headers:bool -> ?rules:bool ->
+		 'a model ->
     object
       inherit ['a] columns
     end
+
   end
 end
+
+(** Create a new window displaying a graph. 
+    @plugin development guide *)
+val graph_window: 
+  parent: GWindow.window ->
+  title:string ->
+  (packing:(GObj.widget -> unit) -> unit ->
+   <adapt_zoom: unit -> unit; ..>) ->
+  unit
+
+(** Create a new window displaying a graph, by printing dot commands. *)
+val graph_window_through_dot: 
+  parent: GWindow.window ->
+  title:string ->
+  (Format.formatter -> unit) ->
+  unit
 
 (*
 Local Variables:

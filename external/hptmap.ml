@@ -32,50 +32,25 @@ module Big_Endian = struct
 
   type mask = int
 
-(* inlined
-  let branching_bit p0 p1 =
-    let v = p0 lxor p1 in
-    (* compute highest bit. 
-       First, set all bits with weight less than
-       the highest set bit *)
-    let v1 = v lsr 1 in
-    let v2 = v lsr 2 in
-    let v = v lor v1 in
-    let v = v lor v2 in
-    let v1 = v lsr 3 in
-    let v2 = v lsr 6 in
-    let v = v lor v1 in
-    let v = v lor v2 in
-    let v1 = v lsr 9 in
-    let v2 = v lsr 18 in
-    let v = v lor v1 in
-    let v = v lor v2 in
-    (* then get highest bit *)
-    (succ v) lsr 1
-*)
+  (* The ``relevant'' bits in an integer [i] are those which are
+     found (strictly) to the left of the single one bit in the mask
+     [m]. We keep these bits, and set all others to 0. Okasaki uses
+     a different convention, which allows big-endian Patricia trees
+     to masquerade as binary search trees. This feature does not
+     seem to be useful here. *)
 
-    (* The ``relevant'' bits in an integer [i] are those which are found (strictly) to the left of the single one bit
-       in the mask [m]. We keep these bits, and set all others to 0. Okasaki uses a different convention, which allows
-       big-endian Patricia trees to masquerade as binary search trees. This feature does not seem to be useful here. *)
+  let mask i m =
+    i land (lnot (2*m-1))
 
-    let mask i m =
-      i land (lnot (2*m-1))
+  (* The smaller [m] is, the more bits are relevant. *)
 
-    (* The smaller [m] is, the more bits are relevant. *)
+  let shorter (m:int) (n:int) = m > n
 
-    let shorter (m:int) (n:int) = m > n
-      
-
-  end
+end
 
 
 (*i ------------------------------------------------------------------------ i*)
 (*s \mysection{Patricia-tree-based maps} *)
-
-module type Tagged_type = sig
-  include Datatype.S
-  val tag : t -> int
-end
 
 module Tag_comp : 
 sig
@@ -100,13 +75,27 @@ struct
   let default = false
 end
 
+type ('key, 'value, 'tag) tree =
+    | Empty
+    | Leaf of 'key * 'value * bool
+    | Branch of int (** prefix *) *
+                Big_Endian.mask *
+                ('key, 'value, 'tag) tree *
+                ('key, 'value, 'tag) tree *
+                'tag
+
 module Make
   (Key:sig
     include Datatype.S
     val id : t -> int
   end)
-  (V : Tagged_type)
-  (Comp : sig val e: bool val f : Key.t -> V.t -> bool val compose : bool -> bool -> bool val default: bool end)
+  (V : Datatype.S)
+  (Comp : sig
+     val e: bool
+     val f : Key.t -> V.t -> bool
+     val compose : bool -> bool -> bool
+     val default: bool
+   end)
   (Initial_Values: sig val v : (Key.t * V.t) list list end)
   (Datatype_deps: sig val l : State.t list end)
  =
@@ -125,10 +114,7 @@ struct
        It is an integer with a single one bit (i.e. a power of 2),
        which describes the bit being tested at this node. *)
 
-    type tt =
-      | Empty
-      | Leaf of Key.t * V.t * bool
-      | Branch of int * Big_Endian.mask * tt * tt * Tag_comp.t
+    type tt = (Key.t, V.t, Tag_comp.t) tree
 
     let compare =
       if Key.compare == Datatype.undefined ||
@@ -207,7 +193,7 @@ struct
     let tag tr =
       match tr with
 	Empty -> 27
-      | Leaf (k, v, _) -> Key.id k + 547 * V.tag v
+      | Leaf (k, v, _) -> Key.id k + 547 * V.hash v
       | Branch (_, _, _, _, tl) -> Tag_comp.get_tag tl
 
     let hash_internal tr =
@@ -277,8 +263,6 @@ struct
     let () = Type.set_ml_name Datatype.ty None
     include Datatype
 
-    module PatriciaHashtbl = Hashtbl
-
     module PatriciaHashconsTbl =
       State_builder.Hashconsing_tbl
 	(struct
@@ -340,6 +324,12 @@ struct
       | Branch (p,m,l,r,_) -> wrap_Branch p m l r
 
     let () = rehash_ref := rehash_node
+
+
+    (* This reference will contain a list of functions that will clear
+       all the transient caches used in this module *)
+    let clear_caches = ref []
+
 
     (* [find k m] looks up the value associated to the key [k] in the map [m],
        and raises [Not_found] if no value is bound to [k].
@@ -805,7 +795,7 @@ struct
 	let sentinel = Empty
       end
 
-      let symetric_merge ~cache ~decide_none ~decide_some =
+      let symetric_merge ~cache:_ ~decide_none ~decide_some =
 	let symetric_fine_add k d m =
 	  (* this function to be called when one of the trees
 	     is a single binding *)
@@ -843,11 +833,10 @@ struct
 
 	  add m
 	in
-	let _name, _cache = cache in
 	let module SymetricCache =
 	  Binary_cache.Make_Symetric(Cacheable)(R)
 	in
-	Project.register_after_set_current_hook ~user_only:false (fun _ -> SymetricCache.clear ());
+        clear_caches := SymetricCache.clear :: !clear_caches;
 	let rec union s t =
 	  if s==t then s else
 	    SymetricCache.merge uncached_union s t
@@ -901,14 +890,13 @@ struct
 	in union
 
       let generic_merge ~cache ~decide =
-	let _name, _cache = cache in
+	let _name, cache_size = cache in
 	let cache_merge =
-	  if _cache = 0
+	  if cache_size = 0
 	  then fun f x y -> f x y
 	  else begin
-	      let module Cache = Binary_cache.Make_Asymetric(Cacheable)(R)
-	      in
-	      Project.register_after_set_current_hook ~user_only:false (fun _ -> Cache.clear ());
+	      let module Cache = Binary_cache.Make_Asymetric(Cacheable)(R) in
+              clear_caches := Cache.clear :: !clear_caches;
 	      Cache.merge
 	    end
 	in
@@ -1077,20 +1065,17 @@ struct
       inclusion 
 
     let generic_is_included exn ~cache ~decide_fst ~decide_snd ~decide_both =
-      let _name, _cache = cache in
+      let cache_name, _cache_size = cache in
       let use_comp = 
-	if _name = "lmap" 
+	if cache_name = "lmap" 
 	then (fun s t ->
-	  if s==t then
-	    false
-	  else
-	    ((if comp t then raise exn); true))
+                if s==t then false else ((if comp t then raise exn); true))
 	else (fun s t -> s != t)
       in
       let module Cache =
 	Binary_cache.Make_Binary(Cacheable)(Cacheable)
       in
-      Project.register_after_set_current_hook ~user_only:false (fun _ -> Cache.clear ());
+      clear_caches := Cache.clear :: !clear_caches;
       make_predicate 
 	Cache.merge
 	exn
@@ -1102,16 +1087,15 @@ struct
       let module Cache =
 	Binary_cache.Make_Symetric_Binary(Cacheable)
       in 
-      Project.register_after_set_current_hook ~user_only:false (fun _ -> Cache.clear ()); 
+      clear_caches := Cache.clear :: !clear_caches;
       make_predicate Cache.merge exn do_it
 	~decide_fst:decide_one ~decide_snd:decide_one ~decide_both 
 
     let cached_fold ~cache ~temporary ~f ~joiner ~empty =
-      let _name, cache = cache in
-      let table = PatriciaHashtbl.create cache in
+      let _name, cache_size = cache in
+      let table = Hashtbl.create cache_size in
       if not temporary then
-	Project.register_after_set_current_hook ~user_only:false 
-	  (fun _-> PatriciaHashtbl.clear table);
+        clear_caches := (fun () -> Hashtbl.clear table) :: !clear_caches;
       let counter = ref 0 in
       fun m ->
 	let rec traverse t =
@@ -1121,7 +1105,7 @@ struct
 	      f key value
 	  | Branch(_p, _m, s0, s1, _) ->
 	      try
-		let result = PatriciaHashtbl.find table t in
+		let result = Hashtbl.find table t in
 (*		Format.printf "find %s %d@." name !counter; *)
 		result
 	      with Not_found ->
@@ -1129,24 +1113,23 @@ struct
 		let result1 = traverse s1 in
 		let result = joiner result0 result1 in
 		incr counter;
-		if !counter >= cache
+		if !counter >= cache_size
 		then begin
 		    (*	    Format.printf "Clearing %s fold table@." name;*)
-		    PatriciaHashtbl.clear table;
+		    Hashtbl.clear table;
 		    counter := 0;
 		  end;
 (*		Format.printf "add  %s %d@." name !counter; *)
-		PatriciaHashtbl.add table t result;
+		Hashtbl.add table t result;
 		result
 	in
 	traverse m
 
   let cached_map ~cache ~temporary ~f =
       let _name, cache = cache in
-      let table = PatriciaHashtbl.create cache in
+      let table = Hashtbl.create cache in
       if not temporary then
-	Project.register_after_set_current_hook ~user_only:false
-	  (fun _ -> PatriciaHashtbl.clear table);
+        clear_caches := (fun () -> Hashtbl.clear table) :: !clear_caches;
       let counter = ref 0 in
       fun m ->
 	let rec traverse t =
@@ -1156,7 +1139,7 @@ struct
 	      wrap_Leaf key (f key value)
 	  | Branch(p, m, s0, s1, _) ->
 	      try
-		let result = PatriciaHashtbl.find table t in
+		let result = Hashtbl.find table t in
 (*		Format.printf "find %s %d@." name !counter; *)
 		result
 	      with Not_found ->
@@ -1167,11 +1150,11 @@ struct
 		if !counter >= cache
 		then begin
 		    (*	    Format.printf "Clearing %s fold table@." name;*)
-		    PatriciaHashtbl.clear table;
+		    Hashtbl.clear table;
 		    counter := 0;
 		  end;
 (*		Format.printf "add  %s %d@." name !counter; *)
-		PatriciaHashtbl.add table t result;
+		Hashtbl.add table t result;
 		result
 	in
 	traverse m
@@ -1193,6 +1176,8 @@ struct
             let (lr, pres, rr) = aux r in (union l lr, pres, rr)
       in
       aux htr
+
+    let clear_caches () = List.iter (fun f -> f ()) !clear_caches
 
 end
 

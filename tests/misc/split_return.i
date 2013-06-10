@@ -1,6 +1,6 @@
 /* run.config
-   STDOPT: +"-slevel-function init:2,main1:2,f2:3,main2:3,f4:2" +"-val-split-return-function f2:0,f3:-2,f4:4" +"-then -report"
-   STDOPT: +"-slevel 5" +"-val-split-return-auto" +"-then -report"
+   STDOPT: +"-slevel-function init:3,main1:3,f2:4,main2:4,f4:3,main5:3" +"-val-split-return-function f2:0,f3:-2,f4:4,f5:-2" +"-then -report"
+   STDOPT: +"-slevel 6" +"-val-split-return-auto" +"-then -report"
  */
 /*@ assigns \result \from \nothing;
   assigns *p \from \nothing;
@@ -24,8 +24,8 @@ unsigned int main1() {
   return x;
 }
 
-extern int i2;
-int f2() {
+extern unsigned int i2;
+unsigned int f2() {
   if (!i2) {
     i2 = 0;
     return 0;
@@ -39,7 +39,7 @@ int f2() {
 }
 
 void main2() {
-  int r = f2();
+  unsigned int r = f2();
   Frama_C_show_each_f2(r, i2);
   if (r == 0) {
     //@ assert i2 == 0;
@@ -51,13 +51,16 @@ void main2() {
 
 extern int i3;
 int f3() {
+  int res1, res2;
   if (i3) {
     i3 = 0;
-    return -2;
+    res1 = -2;
   } else {
     i3 = 5;
-    return 7;
+    res1 = 7;
   }
+  res2 = res1;
+  return res2;
 }
 
 void main3() {
@@ -91,11 +94,33 @@ void main4() {
   }
 }
 
+extern int i5;
+int f5() {
+  int res;
+  if (i5) {
+    i5 = 0;
+    res = -2;
+  } else {
+    i5 = 5;
+    res = 7;
+  }
+  return res;
+}
 
+void main5() {
+  int r = f5();
+  Frama_C_show_each_f5(r, i5);
+  if (r == -2) {
+    //@ assert i5 == 0;
+  } else {
+    //@ assert i5 != 0;
+  }
+}
 
 void main() {
   main1();
   main2();
   main3(); // not enough slevel in f3. One warning
   main4(); // not enough slevel in main4. No warning
+  main5(); // no need for slevel, because we do not fuse on return instr
 }

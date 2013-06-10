@@ -1,5 +1,5 @@
 /* run.config
-   STDOPT: +"-remove-redundant-alarms"
+   STDOPT: +"-remove-redundant-alarms -context-width 3"
    */
 
 
@@ -7,9 +7,9 @@ int u,v,w;
 
 int main(int x,int *p) {
   /*@ assert x >=0; */
-  /*@ assert \valid(p); */
   /*@ assert \valid(p+1); */
-  *p=x;
+  /*@ assert \valid_read(p+2); */
+  *(p+1)=x;
 
-  return x+*(p+1);
+  return x+*(p+2);
 }

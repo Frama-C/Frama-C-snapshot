@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -101,6 +101,7 @@ val apply_after_computed: (Cil_types.file -> unit) -> unit
 (** Apply the given hook just after building the AST. 
     @since Oxygen-20120901 *)
 
+
 (*****************************************************************************)
 (** {2 Internals}
 
@@ -124,8 +125,16 @@ val set_default_initialization: (unit -> unit) -> unit
 val mark_as_computed: unit -> unit
   (** @since Beryllium-20090901 *)
 
+val add_hook_on_update: (unit -> unit) -> unit
+(** Apply the given hook each time the reference to the AST is updated,
+    including on a project switch. 
+    @since Fluorine-20130401 *)
+
+
 (**/**)
 val add_linked_state: State.t -> unit
+
+
 
 (*
 Local Variables:

@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -40,6 +40,7 @@ struct
   let id = ref 0 (* for debugging purpose *)
   let build map = let k = !id in incr id ; { id = k ; map = map }
   let create () = build H.Map.empty
+  let copy s = build s.map
 
   let newchunk c = 
     Lang.freshvar ~basename:(C.basename_of_chunk c) (C.tau_of_chunk c)
@@ -62,7 +63,7 @@ struct
       let x = newchunk c in
       w.map <- H.Map.add c x w.map ; x
 
-  let mem w c = H.Map.mem c w.map
+  let mem w c = H.Map.mem c w.map    
 
   let join a b =
     let p = ref Passive.empty in
@@ -72,7 +73,20 @@ struct
 	   | Some x , Some y -> p := Passive.join x y !p
 	   | Some x , None -> b.map <- H.Map.add chunk x b.map
 	   | None , Some y -> a.map <- H.Map.add chunk y a.map
-	   | _ -> ())
+	   | None , None -> ())
+      a.map b.map ; !p
+
+  let assigned a b written =
+    let p = ref Bag.empty in
+    H.Map.iter2
+      (fun chunk x y ->
+	 if not (H.Set.mem chunk written) then
+	   match x,y with
+	     | Some x , Some y when x != y -> 
+		 p := Bag.add (p_equal (e_var x) (e_var y)) !p
+	     | Some x , None -> b.map <- H.Map.add chunk x b.map
+	     | None , Some y -> a.map <- H.Map.add chunk y a.map
+	     | _ -> ())
       a.map b.map ; !p
 
   let value w c = e_var (get w c)

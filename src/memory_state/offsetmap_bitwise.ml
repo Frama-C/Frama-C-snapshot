@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -25,7 +25,7 @@ open Lattice_Interval_Set
 
 type itv = Int.t * Int.t
 
-module Make(V:sig include Abstract_interp.Lattice val tag: t -> int end) =
+module Make(V: Abstract_interp.Lattice) =
 struct
 
   open Abstract_interp
@@ -35,16 +35,18 @@ struct
       (struct let module_name =
                 Format.sprintf "Offsetmap_bitwise(%s).Make.V_bool" V.name end)
     let hash (b,v) =
-      let h = V.tag v in
+      let h = V.hash v in
       if b then h else 100000 + h
+
+    let fast_equal (b1, v1: t) (b2, v2: t) = b1 = b2 && v1 == v2
   end
 
   module M = Int_Interv_Map.Make(V_bool)
 
   type tt = Map of M.t | Degenerate of V.t
 
-  let tag x = match x with
-    | Degenerate v -> 571 + V.tag v
+  let hash x = match x with
+    | Degenerate v -> 571 + V.hash v
     | Map map -> M.hash map
 
   let empty = Map M.empty
@@ -78,6 +80,13 @@ struct
           | Map _, Degenerate _ -> -1
           | Degenerate _, Map _ -> 1
 
+
+  module MapIntervals =
+    Map.Make(struct
+      type t = Int_Intervals.t
+      let compare = Int_Intervals.compare_itvs
+    end)
+
   (* Print a map by fusing together intervals that map to the same value *)
   let fold_fuse_same_aux f m acc =
     let h = V_bool.Hashtbl.create 17 in
@@ -92,16 +101,12 @@ struct
     in
     M.fold sort_by_content m ();
     (* Now sort the contents of h by increasing intervals *)
-    let module M = Map.Make(struct
-      type t = Int_Intervals.t
-      let compare = Int_Intervals.compare_itvs
-    end) in
     let m = V_bool.Hashtbl.fold
-      (fun v itvs acc -> M.add itvs v acc)
-      h M.empty
+      (fun v itvs acc -> MapIntervals.add itvs v acc)
+      h MapIntervals.empty
     in
     (* Call f on those intervals *)
-    M.fold (fun itvs v acc -> f itvs v acc) m acc
+    MapIntervals.fold (fun itvs v acc -> f itvs v acc) m acc
 
   let fold_fuse_same f offsm acc =
     match offsm with
@@ -159,7 +164,7 @@ struct
         (List.map (fun v -> Degenerate v) V.reprs)
         M.reprs
     let equal = equal
-    let hash = tag
+    let hash = hash
     let compare = compare
     let pretty = pretty
     let internal_pretty_code = Datatype.undefined
@@ -220,11 +225,6 @@ struct
               )
               implicit
               concerned_intervals
-
-  let find_intervs default intervs m =
-    Int_Intervals.fold (fun itv acc -> V.join (find default itv m) acc)
-      intervs
-      V.bottom
 
   let same_values ((bx:bool),x) (by,y) =
     (bx = by) && (V.equal x y )

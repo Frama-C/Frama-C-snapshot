@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -31,11 +31,11 @@
 open Cil_types
 open Cil 
 
-let dkey = "var_analysis" (* debugging key*)
+let dkey = Wp_parameters.register_category "var_analysis" (* debugging key*)
 
 let debug = Wp_parameters.debug ~dkey 
 
-let dkey = "var_kind"
+let dkey = Wp_parameters.register_category "var_kind"
 
 let oracle = Wp_parameters.debug ~dkey
 	  
@@ -310,12 +310,12 @@ module LogicParam =
      end)
 
 let logic_param_memory_info x = 
-  debug "[LogicParam] %a" !Ast_printer.d_logic_var x;
+  debug "[LogicParam] %a" Printer.pp_logic_var x;
  if LogicParam.mem x then 
-  (debug "[LogicParam] %a in " !Ast_printer.d_logic_var x;
+  (debug "[LogicParam] %a in " Printer.pp_logic_var x;
     LogicParam.replace x true)
  else 
-   (debug "[LogicParam] %a out"!Ast_printer.d_logic_var x;())
+   (debug "[LogicParam] %a out"Printer.pp_logic_var x;())
 
 (* Type of ACSL Variable, C-variable or Logic Variable or Formal parameters 
    of builtin predicates/functions.*)
@@ -336,8 +336,8 @@ let var_type_of_lvar = function
   | l -> Lv l 
 
 let pp_var_type fmt = function 
-  | Cv x -> !Ast_printer.d_var fmt x
-  | Lv p -> !Ast_printer.d_logic_var fmt p 
+  | Cv x -> Printer.pp_varinfo fmt x
+  | Lv p -> Printer.pp_logic_var fmt p 
   | Prop -> Format.pp_print_string fmt "Prop"
 
 let _brackets_var_type_typ = function 
@@ -487,7 +487,7 @@ class logic_parameters_and_addr_taken_collection :
     method vannotation = function
       | Dfun_or_pred (linfo,_) ->
 	  List.iter (fun lv -> 
-		       oracle "[logicParam] %a" !Ast_printer.d_logic_var lv;
+		       oracle "[logicParam] %a" Printer.pp_logic_var lv;
 		       LogicParam.replace lv false) linfo.l_profile;
 	  DoChildren
       | _ ->DoChildren
@@ -699,22 +699,22 @@ let by_array_reference_usage e =
 	       debug "%s not a bracket pattern" s;
 	       Any
 	   | Some (x,n) ->
-	       debug "%s %a[]<%d>" s !Ast_printer.d_var x n;
+	       debug "%s %a[]<%d>" s Printer.pp_varinfo x n;
 	       if x.vformal then 
-		 (debug "%s %a is a formal" s !Ast_printer.d_var x;
+		 (debug "%s %a is a formal" s Printer.pp_varinfo x;
 		  let arr = brackets_and_stars_typ x.vtype in 
 		  if (arr >= n) then 
-		    (debug "%s %a has dim %d ok!" s !Ast_printer.d_var x arr;
+		    (debug "%s %a has dim %d ok!" s Printer.pp_varinfo x arr;
 		     Ok (x,arr)) else 
 		      (debug "%s %a has dim %d when need %d ko!"
-			 s !Ast_printer.d_var x arr n;
+			 s Printer.pp_varinfo x arr n;
 		       Ko(x,arr))
 		 )
 	       else 
-		 ( debug "%s %a is not a formal" s !Ast_printer.d_var x; 
+		 ( debug "%s %a is not a formal" s Printer.pp_varinfo x; 
 		   Any) )
     | Some (x,n) -> 
-	 debug "%s %a[]" s !Ast_printer.d_var x ;
+	 debug "%s %a[]" s Printer.pp_varinfo x ;
 	       if x.vformal then Ok (x,n) else Any
 		
 
@@ -728,24 +728,24 @@ let by_array_reference_usage_term e =
 	       debug "%s not a bracket pattern" s; Any
 	   | Some (x,n) ->
 	       begin
-		 debug "%s %a[]<%d>" s !Ast_printer.d_logic_var x n;
+		 debug "%s %a[]<%d>" s Printer.pp_logic_var x n;
 		 if (is_lformal x) then 
-		   (  debug "%s %a is a formal" s !Ast_printer.d_logic_var x;
+		   (  debug "%s %a is a formal" s Printer.pp_logic_var x;
 		      let arr = brackets_and_stars_lv_typ x.lv_type in
 		      if (arr >= n) then 
 			(debug "%s %a has dim %d ok!" s 
-			   !Ast_printer.d_logic_var x arr ;Ok (x,arr)) 
+			   Printer.pp_logic_var x arr ;Ok (x,arr)) 
 		      else 
 			(debug "%s %a has dim %d when need %d ko!"
-			   s !Ast_printer.d_logic_var x arr n  
+			   s Printer.pp_logic_var x arr n  
 			;Ko (x,arr))) 
 		 else
 		   ( debug "%s %a is not a formal" 
-		       s !Ast_printer.d_logic_var x;Any)
+		       s Printer.pp_logic_var x;Any)
 	       end)
 
     |Some (x,n) ->
-       debug "%s %a[]" s !Ast_printer.d_logic_var x ;
+       debug "%s %a[]" s Printer.pp_logic_var x ;
 	if is_lformal x then Ok (x,n) else Any
 	  
 (*[reference_parameter_usage e] implements the recognition of the patterns 
@@ -755,21 +755,21 @@ let reference_parameter_usage e =
   match by_pointer_reference_usage e with 
     | Ok(x,n) -> 
 	debug "   %a used as ptr reference param of arity %d"
-	  !Ast_printer.d_var x n ;
+	  Printer.pp_varinfo x n ;
 	add_ptr_reference_param (Cv x) n; true 
     | Ko(x,_) -> 
 	debug "   %a BADLY used as ptr reference param"
-	  !Ast_printer.d_var x  ;
+	  Printer.pp_varinfo x  ;
 	remove_ptr_reference_param (Cv x); true 
     | Any -> 
 	(match by_array_reference_usage e with
 	   | Ok(x,n) -> 
 	       debug "   %a used as array reference param of arity %d"
-		 !Ast_printer.d_var x n ;
+		 Printer.pp_varinfo x n ;
 	       add_array_reference_param (Cv x) n ; true
 	   | Ko(x,_) -> 
 	       debug "   %a BADLY used as array reference param"
-		 !Ast_printer.d_var x  ;
+		 Printer.pp_varinfo x  ;
 	       remove_array_reference_param (Cv x);true
 	   | Any -> (); false)
 
@@ -780,21 +780,21 @@ let reference_parameter_usage_term e =
   match by_pointer_reference_usage_term e with 
     | Ok(x,n) -> 
 	debug "   %a used as ptr reference param of arity %d"
-	  !Ast_printer.d_logic_var x n ;
+	  Printer.pp_logic_var x n ;
 	add_ptr_reference_param (var_type_of_lvar x) n ; true
     | Ko(x,_) ->
 	debug "   %a BADLY used as ptr reference param"
-	  !Ast_printer.d_logic_var x  ;
+	  Printer.pp_logic_var x  ;
 	remove_ptr_reference_param (var_type_of_lvar x) ; true
     | Any -> 
 	(match by_array_reference_usage_term e with 
 	   | Ok(x,n) ->
 	       debug "   %a used as array reference param of arity %d"
-		 !Ast_printer.d_logic_var x n ;
+		 Printer.pp_logic_var x n ;
 	       add_array_reference_param (var_type_of_lvar x) n ; true
 	   | Ko(x,_) -> 
 	       debug "   %a BADLY used as array reference param"
-		 !Ast_printer.d_logic_var x  ;
+		 Printer.pp_logic_var x  ;
 	       remove_array_reference_param (var_type_of_lvar x) ; true
 	   | Any -> (); false)
 
@@ -977,23 +977,23 @@ let help_array_reference_pattern_term s t =
 	   | Some (x,n) ->
 	       if is_lformal x then
 		 begin
-	           debug "%s %a[]<%d>" s !Ast_printer.d_logic_var x n;
+	           debug "%s %a[]<%d>" s Printer.pp_logic_var x n;
 		   let dim = brackets_lv_typ x.lv_type in
 		   if n < dim 
 		   then 
 		     (debug "%s %a has dimension %d ok!"
-			s !Ast_printer.d_logic_var x n;
+			s Printer.pp_logic_var x n;
 		      Ok (x,false,n)) 
 		   else 
 		     ( if dim = n then Any else 
 			 (debug "%s %a has dimension %d when need %d!"
-                            s !Ast_printer.d_logic_var x dim n;
+                            s Printer.pp_logic_var x dim n;
 			  Ko (x,false,n)))
 		 end
 	       else Ok(x,false,n)
 	)
     | Some (x,n) -> 
-	debug "%s %a in delta_array term" s !Ast_printer.d_logic_var x;
+	debug "%s %a in delta_array term" s Printer.pp_logic_var x;
 	Ok (x,false,n) 
 	  
 let by_array_reference_pattern_term t =
@@ -1001,13 +1001,13 @@ let by_array_reference_pattern_term t =
   match t with 
   | TStartOf (TVar lvar,off) 
   | Tat ({term_node = TStartOf (TVar lvar,off) },_)-> 
-      debug "%s %a " s!Ast_printer.d_logic_var lvar; 
+    debug "%s %a " s Printer.pp_logic_var lvar; 
       Ok(lvar,true,brackets_lv_typ (Cil.typeOfTermLval (TVar lvar,off)))
      
   |TCastE(ty,{term_node = ( TStartOf (TVar lvar,off) 
 	      | Tat ({term_node = TStartOf (TVar lvar,off) },_))}) when 
       Cil.isPointerType ty ->
-     debug "%s %a " s!Ast_printer.d_logic_var lvar; 
+    debug "%s %a " s Printer.pp_logic_var lvar; 
 	Ok (lvar,true,brackets_lv_typ(Cil.typeOfTermLval (TVar lvar,off)))
 
   | TAddrOf (TMem t, _) 
@@ -1015,7 +1015,7 @@ let by_array_reference_pattern_term t =
       (match delta_ptr_term t.term_node with 
 	 | None -> Any
 	 | Some (x,n) -> 
-	     debug "%s %a in delta_ptr term" s !Ast_printer.d_logic_var x;
+	     debug "%s %a in delta_ptr term" s Printer.pp_logic_var x;
 	     Ok (x,true,n)) 
   | Tat({term_node = t},_)-> help_array_reference_pattern_term s t
   | TCastE(ty,{term_node = t}) when (Cil.isPointerType ty)->
@@ -1353,7 +1353,7 @@ let rec collect_calls_rec (eargs,fmls) =
 	   | Ok (x,b,n) ->
 	       let sb =string_addr b in
 	       debug "%s array pattern of %a with %s" s 
-		 !Ast_printer.d_var x sb;
+		 Printer.pp_varinfo x sb;
 	       let x = Cv x and p = Cv p in 
 	       if is_formal_var_type x then
 		 collect_formal_array_call s x n b p 
@@ -1370,7 +1370,7 @@ let rec collect_calls_rec (eargs,fmls) =
 		   | Ok (x,b,n) ->
 		       let sb = string_addr b in
 		       debug "%s ptr pattern of %a with %s and %d" 
-			 s !Ast_printer.d_var x sb n;
+			 s Printer.pp_varinfo x sb n;
 		       let x = Cv x and p = Cv p in 
 		       if is_formal_var_type x then  
 			 collect_formal_ptr_call s x n b p 
@@ -1422,7 +1422,7 @@ let rec collect_apps_rec = function
       (match by_array_reference_pattern_term t.term_node with 
 	 | Ok (x,b,n) -> 
 	     debug "(%a,%b,%d) by_array in apps_rec" 
-	       !Ast_printer.d_logic_var x b n;
+	       Printer.pp_logic_var x b n;
 	     ok_array_term s (var_type_of_lvar x) n b (var_type_of_lvar p )
 	 | Ko (x,_,_) -> 
 	     let x = var_type_of_lvar x in
@@ -1460,12 +1460,12 @@ let rec collect_apps_builtin targs =
 	(match by_array_reference_pattern_term t.term_node with 
 	   | Ok (x,b,n) ->
 	       debug "%s %a in array ref position with %s with dim = %d" 
-		 s !Ast_printer.d_logic_var x (string_addr b) n;
+		 s Printer.pp_logic_var x (string_addr b) n;
 	       logic_param_memory_info x; 
 	       ok_array_term s (var_type_of_lvar x) n b Prop
 	   | Ko (x,_,_) -> 
 	       debug "%s %a is not in a array ref position"
-		 s !Ast_printer.d_logic_var x ;
+		 s Printer.pp_logic_var x ;
 	       let x = var_type_of_lvar x in 
 	       if is_formal_var_type x 
 	       then remove_array_reference_param x
@@ -1475,12 +1475,12 @@ let rec collect_apps_builtin targs =
 	       ( match by_pointer_reference_pattern_term t.term_node with 
 		   | Ok (x,b,n) ->  
 		       debug "%s %a in ptr ref position with %s with %d *" 
-			 s !Ast_printer.d_logic_var x (string_addr b) n;
+			 s Printer.pp_logic_var x (string_addr b) n;
 		       logic_param_memory_info x;
 		       ok_pointer_term s (var_type_of_lvar x) n b Prop
 		   | Ko (x,_,_) ->
 		       debug "%s %a is not in a ptr ref position" 
-			 s !Ast_printer.d_logic_var x ;
+			 s Printer.pp_logic_var x ;
 		       let x = var_type_of_lvar x in
 		       if is_formal_var_type x 
 		       then remove_ptr_reference_param x
@@ -1514,17 +1514,17 @@ class calls_collection : Visitor.frama_c_visitor = object
 
   method vinst = function 
     | Call (_ ,{enode =Lval(Var f,NoOffset)} , el,_) as e->
-	debug "[Calls_collection] call %a" !Ast_printer.d_instr e;
+	debug "[Calls_collection] call %a" Printer.pp_instr e;
 	collect_calls f el ; SkipChildren
     | _ -> DoChildren
 	    
   method vterm t = 
     match t.term_node with 
       | Tapp (lf,_ , targs) -> 
-	  debug "[Calls_collection] app %a" !Ast_printer.d_term t;
+	  debug "[Calls_collection] app %a" Printer.pp_term t;
 	  collect_apps lf targs ; SkipChildren
       | Tblock_length (_label,ta) -> (* [PB] TODO label added *)
-	  debug "[Calls_collection] block_length %a" !Ast_printer.d_term t;
+	  debug "[Calls_collection] block_length %a" Printer.pp_term t;
 	 collect_apps_builtin [ta] ; SkipChildren
       | _ -> DoChildren
 	  
@@ -1532,14 +1532,14 @@ class calls_collection : Visitor.frama_c_visitor = object
     | Papp (lf, _, targs) -> collect_apps lf targs ; SkipChildren
     | Pfresh (_todo_label1,_todo_label2,t,n) -> (* [PB] TODO: labels and size added *)
 	debug "[Calls_collection] predicate app on %a, %a" 
-	  !Ast_printer.d_term t  !Ast_printer.d_term n ;
+	  Printer.pp_term t  Printer.pp_term n ;
 	collect_apps_builtin [t;n] ; SkipChildren
     | Pallocable (_todo_label,t) (* [PB] TODO: construct added *)
     | Pfreeable (_todo_label,t)  (* [PB] TODO: construct added *)
     | Pvalid_read (_todo_label,t)(* [PB] TODO: construct added *)
     | Pvalid (_todo_label,t)     (* [PB] TODO: label added *)
     | Pinitialized (_todo_label,t) -> (* [PB] TODO: label added *)
-	debug "[Calls_collection] predicate app on %a" !Ast_printer.d_term t;
+	debug "[Calls_collection] predicate app on %a" Printer.pp_term t;
 	collect_apps_builtin [t] ; SkipChildren
     | Pseparated lt  ->	collect_apps_builtin lt ; SkipChildren
     | _ -> DoChildren
@@ -1972,7 +1972,7 @@ let resolved_call_chain_arg () =
 	 match collect_refparams kf loc [] [] [] formals with
 	 | Some hyp ->
 	   debug "[kf separation hyps] case hyp:%a" 
-	     Cil.d_identified_predicate hyp;
+	     Printer.pp_identified_predicate hyp;
 	   add_requires hyp kf;
 	 | None -> 
 	   debug "[kf separation hyps] case None")
@@ -2011,12 +2011,12 @@ type case =
   | Nothing (* none of the optimization are required *)
   | Half (* only logic var is required*)
 
-
 (* Discrimination of the case of the analysis *)
-let case_of_optimization logicvar refvar =
+(* [LC] Discrimination is now performed in Factory *)
+let case_of_optimization ~logicvar ~refvar =
   if not logicvar then (if refvar then All else Nothing)
   else  (if refvar then All else Half)
-      
+  
 let not_half_computed () = 
   not (AddrTaken.is_computed()) || not (LogicParam.is_computed())
 
@@ -2033,17 +2033,16 @@ let not_computed () =
     
 
 let compute () =
-  match case_of_optimization 
-    (Wp_parameters.LogicVar.get ()) (Wp_parameters.RefVar.get()) with 
-      | Nothing -> ()
-      | Half ->
-	  if not_half_computed() then 
+  match case_of_optimization ~logicvar:true ~refvar:false with
+    | Nothing -> ()
+    | Half ->
+	if not_half_computed() then 
 	  (debug
-	    "[COMPUTE] DO address taken table computing";
+	     "[COMPUTE] DO address taken table computing";
 	   compute_logic_params ())
-	  else ()
-      | All ->
-	  if not_computed () then 
+	else ()
+    | All ->
+	if not_computed () then 
 	  begin
 	    debug "[COMPUTE] DO all table computation";
 	    compute_calls_collection (); 
@@ -2061,36 +2060,35 @@ let compute () =
 	      "[COMPUTE] resolved address taken equation"; 
 	    resolve_addr_taken ()
 	  end	    
-	  else ()
-	    
+	else ()
+	  
 let dispatch_var var =   
-    match case_of_optimization 
-    (Wp_parameters.LogicVar.get ()) (Wp_parameters.RefVar.get()) with 
-      | Nothing -> Cvar 
-      | Half -> 
-	  compute();
-	  if AddrTaken.mem var then Cvar else Fvar	   
-      | All ->
-	  compute();
-	  if is_formal_var_type var then 
-	    begin
-	      if ByValue.mem var then
-		if AddrTaken.mem var then Cvar else Fvar
-	      else
-		( try let (n,_) = ByPReference.find var in PRpar n 
-		  with Not_found ->
-		    (try let (n,_) = ByAReference.find var in ARpar n
-		     with Not_found -> (* impossible case *) Cvar ))
-	    end
-	  else
-	    begin 
-	      if AddrTaken.mem var then Cvar
-	      else 
-		(if ArgAReference.mem var then ARarg 
-		 else (if ArgPReference.mem var 
-		       then PRarg else Fvar))
-	    end
-	      
+  match case_of_optimization ~logicvar:true ~refvar:false with
+    | Nothing -> Cvar 
+    | Half -> 
+	compute();
+	if AddrTaken.mem var then Cvar else Fvar	   
+    | All ->
+	compute();
+	if is_formal_var_type var then 
+	  begin
+	    if ByValue.mem var then
+	      if AddrTaken.mem var then Cvar else Fvar
+	    else
+	      ( try let (n,_) = ByPReference.find var in PRpar n 
+		with Not_found ->
+		  (try let (n,_) = ByAReference.find var in ARpar n
+		   with Not_found -> (* impossible case *) Cvar ))
+	  end
+	else
+	  begin 
+	    if AddrTaken.mem var then Cvar
+	    else 
+	      (if ArgAReference.mem var then ARarg 
+	       else (if ArgPReference.mem var 
+		     then PRarg else Fvar))
+	  end
+	    
 let dispatch_cvar vinfo = dispatch_var (Cv vinfo)
 let dispatch_lvar lv    = dispatch_var (Lv lv)
 
@@ -2104,34 +2102,24 @@ let is_memvar case vinfo =
    
 let is_ref case vinfo = 
   match case with
-      | Nothing -> false
-      | Half  -> false 
-      | All -> 
-	  compute();
-	  let cv = Cv vinfo in
-	  if vinfo.vformal then
-	    (try fst (ByPReference.find cv) = 0 with Not_found -> false)
-	  else 
-	    (try fst (ArgPReference.find cv) = 0 with Not_found -> false)
-
+    | Nothing -> false
+    | Half  -> false 
+    | All -> 
+	compute();
+	let cv = Cv vinfo in
+	if vinfo.vformal then
+	  (try fst (ByPReference.find cv) = 0 with Not_found -> false)
+	else 
+	  (try fst (ArgPReference.find cv) = 0 with Not_found -> false)
+	    
 let is_to_scope vinfo = 
-  let case =  case_of_optimization 
-    (Wp_parameters.LogicVar.get ()) (Wp_parameters.RefVar.get())
-  in
+  let case =  case_of_optimization ~logicvar:true ~refvar:false in
   is_ref case vinfo || is_memvar case vinfo
-
+    
 let precondition_compute () = 
-  if Wp_parameters.RefVar.get () then 
+  if (* Wp_parameters.RefVar.get () *) false then 
     begin
       compute ();
       kernel_functions_separation_hyps ()
     end
   else ()
-
-
-	  
-(*
-Local Variables:
-compile-command: "make -C ../.."
-End:
-*)

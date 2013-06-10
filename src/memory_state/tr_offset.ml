@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -32,25 +32,12 @@ exception Unbounded
 
 let empty = Set (Ival.O.empty)
 
+(* Returns [still_exact_flag, (alarm, reduce_ival)] *)
 let reduce_ival_by_bound ival size validity =
   let pred_size = Int.pred size in
   match validity with
-  | Base.All -> begin (* no clipping can be performed *)
-        match ival with
-        | Ival.Top (Some mn,Some mx,_r,m) ->
-            let result =
-              if Int.lt m size
-              then Imprecise(mn, Int.add mx pred_size)
-              else Interval(mn, mx, m)
-            in
-            true, (false, result)
-        | Ival.Top (None,_,_,_)
-        | Ival.Top (_,None,_,_)
-        | Ival.Float _ ->
-            raise Unbounded
-        | Ival.Set o -> true, (false, Set (Ival.set_of_array o))
-    end
-  | Base.Known (bound_min, bound_max) | Base.Unknown (bound_min, bound_max)
+  | Base.Invalid -> true, (true, Set Ival.O.empty)
+  | Base.Known (bound_min, bound_max) | Base.Unknown (bound_min, _, bound_max)
   | Base.Periodic (bound_min, bound_max, _) ->
       let max_in_bound = Int.sub bound_max pred_size in
       let is_in_bound mn mx r modu = 
@@ -61,7 +48,15 @@ let reduce_ival_by_bound ival size validity =
           in
           let out, new_mx =
             match mx with
-            | Some mx when (Int.le mx max_in_bound) -> out, mx
+            | Some mx when (Int.le mx max_in_bound) -> 
+		let out =
+		  match validity with
+                    | Base.Unknown (_,Some valid_max, _)
+		      when Int.gt mx (Int.sub valid_max pred_size) -> true
+                    | Base.Unknown (_, None, _) -> true
+		    | _ -> out
+		in
+		out, mx
             | _ -> true, Int.round_down_to_r ~r ~modu ~max:max_in_bound
           in
           let itv_or_set =
@@ -78,23 +73,23 @@ let reduce_ival_by_bound ival size validity =
       let out, reduced_bounds as result =
         begin match ival with
         | Ival.Top (mn,mx,r,m) -> is_in_bound mn mx r m
-        | Ival.Float _ -> is_in_bound None None My_bigint.zero My_bigint.one
+        | Ival.Float _ -> is_in_bound None None Integer.zero Integer.one
         | Ival.Set s ->
             let out, set =
               Array.fold_right
                 (fun offset (out_acc, reduced_acc) ->
 		  let sOffset = Some offset in
-                  let out, _reduced =
+                  let out, reduced =
 		    is_in_bound 
 		      sOffset
 		      sOffset
-		      My_bigint.zero
-		      My_bigint.one
+		      Integer.zero
+		      Integer.one
 		  in
                   out || out_acc,
-                  if out
-                  then reduced_acc
-                  else Ival.O.add offset reduced_acc)
+		  if reduced != empty
+		  then Ival.O.add offset reduced_acc
+		  else reduced_acc)
 		s
                 (false, Ival.O.empty)
             in
@@ -148,7 +143,7 @@ let reduce_ival_by_bound ival size validity =
     if out then warn_mem_read with_alarms;
     filtered_by_bound
 
-  let filter_by_bound_for_writing ~exact ~with_alarms ival size validity =
+  let filter_by_bound_for_writing ~with_alarms ~exact ival size validity =
     let still_exact, (out, filtered_by_bound) =
       reduce_ival_by_bound ival size validity
     in

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -111,6 +111,9 @@ val mk_cast: ?loc:location -> typ -> term -> term
     [array'] being [array] cast to a pointer to char *)
 val array_with_range: exp -> term -> term
 
+(** Removes TLogic_coerce at head of term. *)
+val remove_logic_coerce: term -> term
+
 (** {2 Predicates} *)
 
 (** \valid_index *)
@@ -119,6 +122,9 @@ val array_with_range: exp -> term -> term
 (** \valid_range *)
 (* val mk_pvalid_range: ?loc:location -> term * term * term -> predicate named *)
 
+val pointer_comparable: ?loc:location -> term -> term -> predicate named
+(** \pointer_comparable
+    @since Fluorine-20130401 *)
 
 (** {3 Conversion from exp to term}*)
 (** translates a C expression into an "equivalent" logical term.
@@ -135,6 +141,12 @@ val offset_to_term_offset :
 
 val constant_to_lconstant: constant -> logic_constant
 val lconstant_to_constant: logic_constant-> constant
+
+(** Parse the given string as a float logic constant, taking into account
+    the fact that the constant may not be exactly representable. This
+    function should only be called on strings that have been recognized
+    by the parser as valid floats *)
+val string_to_float_lconstant: string -> logic_constant
 
 (** [remove_term_offset o] returns [o] without its last offset and
     this last offset. *)
@@ -156,7 +168,7 @@ val get_pred_body :
   logic_info -> predicate named
 
 (** true if the term is \result or an offset of \result.
-    @deprecated since Carbon-20101201 use Logic_const.is_result instead *)
+    @deprecated since Carbon-20101201 use Logic_const².is_result instead *)
 val is_result : term -> bool
 
 val lhost_c_type : term_lhost -> typ
@@ -330,6 +342,11 @@ val extract_contract :
 (** Values that control the various modes of the parser and lexer for logic.
     Use with care.
 *)
+
+(** register a given name as a clause name for extended contract. *)
+val register_extension: string -> unit
+
+val is_extension: string -> bool
 
 val kw_c_mode : bool ref
 val enter_kw_c_mode : unit -> unit

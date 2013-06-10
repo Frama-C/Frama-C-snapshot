@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -213,7 +213,7 @@ end
 module Consolidation_graph: sig
   type t
   val get: Property.t -> t
-  val dump: t -> string -> unit
+  val dump: t -> Format.formatter -> unit
 end
   
 (* ************************************************************************* *)
@@ -231,6 +231,8 @@ val register: Property.t -> unit
 (** Register the given property. It must not be already registered. *)
 
 val remove: Property.t -> unit
+(** Remove the property deeply. Must be called only when removing the
+    corresponding annotation. *)
 
 val merge: old:Property.t list  -> Property.t list -> unit
 (** [merge old new] registers properties in [new] which are not in [old] and

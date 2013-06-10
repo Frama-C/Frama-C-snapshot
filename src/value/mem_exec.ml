@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -48,7 +48,7 @@ module ValueOutputs = Datatype.Pair
     Datatype.Pair
       (Datatype.Option(Cvalue.V_Offsetmap)) (* Return *)
       (Cvalue.Model) (* Memory state *)))
-  (Locations.Location_Bits.Top_Param) (* cloberred set for local variables *)
+  (Base.SetLattice) (* cloberred set for local variables *)
 
 (* let pretty fmt (((bin, stin), (_, stout, _), _i) : PreviousState.t) =
   Format.fprintf fmt
@@ -81,7 +81,7 @@ module PreviousStates =
 
 (* Reference filled in by the callwise-inout callback *)
 module ResultFromCallback =
-  State_builder.Option_ref(Datatype.Pair(Value_aux.Callstack)(Inout_type))
+  State_builder.Option_ref(Datatype.Pair(Value_types.Callstack)(Inout_type))
     (struct
       let dependencies = [Db.Value.self]
       let name = "Mem_exec.ResultFromCallback"
@@ -113,7 +113,8 @@ let new_counter, current_counter =
   (fun () -> cur := SaveCounter.next (); !cur),
   (fun () -> !cur)
 
-let store_computed_call (callsite: Value_aux.call_site) input_state (outputs, clobbered) =
+let store_computed_call (callsite: Value_types.call_site) input_state callres =
+  if callres.Value_types.c_cacheable = Value_types.Cacheable then
   match ResultFromCallback.get_option () with
     | None -> ()
     | Some (_stack, inout) ->
@@ -124,8 +125,10 @@ let store_computed_call (callsite: Value_aux.call_site) input_state (outputs, cl
         (* TODO. add only outputs that are not completely overwritten *)
         let input_bases = Base.Hptset.union input_bases output_bases in
         let state_input =  filter_state input_bases input_state in
+        let clear = filter_state output_bases in
         let outputs =
-          Value_util.map_outputs (filter_state output_bases) outputs in
+          Value_util.map_outputs clear callres.Value_types.c_values
+        in
         let call_number = current_counter () in
         let hkf =
           try PreviousStates.find kf
@@ -142,7 +145,7 @@ let store_computed_call (callsite: Value_aux.call_site) input_state (outputs, cl
             h
         in
         Cvalue.Model.Hashtbl.add hkb state_input
-          ((outputs, clobbered), call_number);
+          ((outputs, callres.Value_types.c_clobbered), call_number);
         ResultFromCallback.clear ()
       with
         | TooImprecise
@@ -161,7 +164,7 @@ let previous_matches st (map_inputs: MapBasesInputsPrevious.t) =
       let aux st_outputs =
         if Cvalue.Model.is_reachable st_outputs then
           Cvalue.Model.fold_base_offsetmap
-            Cvalue.Model.add_offsetmap st_outputs st(*=acc*)
+            Cvalue.Model.add_base st_outputs st(*=acc*)
         else st_outputs
       in
       let outputs = Value_util.map_outputs aux outputs in
@@ -171,7 +174,7 @@ let previous_matches st (map_inputs: MapBasesInputsPrevious.t) =
   Base.Hptset.Hashtbl.iter aux map_inputs
 
 
-let reuse_previous_call (kf, _ as _callsite: Value_aux.call_site) state =
+let reuse_previous_call (kf, _ as _callsite: Value_types.call_site) state =
   try
     let previous = PreviousStates.find kf in
     previous_matches state previous;
@@ -186,8 +189,13 @@ let reuse_previous_call (kf, _ as _callsite: Value_aux.call_site) state =
                 (Value_util.remove_formals_from_state fdec.sformals) out
           | Declaration _ -> out
         in
-        Some ((st_without_formals, clob), i)
-
+        let res_call = {
+          Value_types.c_values = st_without_formals;
+          c_clobbered = clob;
+          c_cacheable = Value_types.Cacheable
+            (* call can be cached since it was cached once *);
+        } in
+        Some (res_call, i)
 
 
 (* TEST code, to be pasted in eval_funs, below the call to reuse_previous_state
@@ -211,11 +219,11 @@ let reuse_previous_call (kf, _ as _callsite: Value_aux.call_site) state =
               Cvalue.Model.LBase.iter
                 (fun b offsm ->
                   let offsm' = Cvalue.Model.find_base b st' in
-                  if not (V_Offsetmap_ext.equal offsm offsm') then (
+                  if not (V_Offsetmap.equal offsm offsm') then (
                     Format.printf "Different offsm for %a@\n%a@\n%a@."
                       Base.pretty b
-                      V_Offsetmap_ext.pretty offsm
-                      V_Offsetmap_ext.pretty offsm'
+                      V_Offsetmap.pretty offsm
+                      V_Offsetmap.pretty offsm'
                   )
                 ) lb);
           (match st' with
@@ -224,7 +232,7 @@ let reuse_previous_call (kf, _ as _callsite: Value_aux.call_site) state =
               Cvalue.Model.LBase.iter
                 (fun b offsm' ->
                   let offsm = Cvalue.Model.find_base b st in
-                  if not (V_Offsetmap_ext.equal offsm offsm') then
+                  if not (V_Offsetmap.equal offsm offsm') then
                     Format.printf "Different offsm2 for %a@." Base.pretty b
                 ) lb');
         end;

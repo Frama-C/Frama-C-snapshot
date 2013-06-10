@@ -37,6 +37,7 @@ type token =
   | EOF
 
 open Parsing;;
+let _ = parse_error;;
 # 30 "src/aorai/ltlparser.mly"
 open Promelaast
 open Logic_ptree
@@ -47,7 +48,7 @@ let ident_count=ref 0
 let get_fresh_ident () =
   ident_count:=!ident_count+1;
   ("buchfreshident"^(string_of_int !ident_count))
-# 51 "src/aorai/ltlparser.ml"
+# 52 "src/aorai/ltlparser.ml"
 let yytransl_const = [|
   257 (* LTL_TRUE *);
   258 (* LTL_FALSE *);
@@ -320,40 +321,40 @@ let yyact = [|
     Obj.repr(
 # 84 "src/aorai/ltlparser.mly"
                       ((_1,observed_expressions))
-# 324 "src/aorai/ltlparser.ml"
+# 325 "src/aorai/ltlparser.ml"
                : (Ltlast.formula * (string, (Logic_ptree.relation *  Promelaast.expression * Promelaast.expression)) Hashtbl.t)))
 ; (fun __caml_parser_env ->
     Obj.repr(
 # 90 "src/aorai/ltlparser.mly"
             (Ltlast.LTrue)
-# 330 "src/aorai/ltlparser.ml"
+# 331 "src/aorai/ltlparser.ml"
                : 'formula))
 ; (fun __caml_parser_env ->
     Obj.repr(
 # 92 "src/aorai/ltlparser.mly"
      (Ltlast.LFalse)
-# 336 "src/aorai/ltlparser.ml"
+# 337 "src/aorai/ltlparser.ml"
                : 'formula))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 1 : 'formula) in
     Obj.repr(
 # 94 "src/aorai/ltlparser.mly"
      ( _2 )
-# 343 "src/aorai/ltlparser.ml"
+# 344 "src/aorai/ltlparser.ml"
                : 'formula))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'formula) in
     Obj.repr(
 # 97 "src/aorai/ltlparser.mly"
      ( Ltlast.LGlobally(_2) )
-# 350 "src/aorai/ltlparser.ml"
+# 351 "src/aorai/ltlparser.ml"
                : 'formula))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'formula) in
     Obj.repr(
 # 99 "src/aorai/ltlparser.mly"
      ( Ltlast.LFatally(_2) )
-# 357 "src/aorai/ltlparser.ml"
+# 358 "src/aorai/ltlparser.ml"
                : 'formula))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'formula) in
@@ -361,7 +362,7 @@ let yyact = [|
     Obj.repr(
 # 101 "src/aorai/ltlparser.mly"
      ( Ltlast.LUntil(_1,_3) )
-# 365 "src/aorai/ltlparser.ml"
+# 366 "src/aorai/ltlparser.ml"
                : 'formula))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'formula) in
@@ -369,14 +370,14 @@ let yyact = [|
     Obj.repr(
 # 103 "src/aorai/ltlparser.mly"
      ( Ltlast.LRelease(_1,_3) )
-# 373 "src/aorai/ltlparser.ml"
+# 374 "src/aorai/ltlparser.ml"
                : 'formula))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'formula) in
     Obj.repr(
 # 105 "src/aorai/ltlparser.mly"
      ( Ltlast.LNext(_2) )
-# 380 "src/aorai/ltlparser.ml"
+# 381 "src/aorai/ltlparser.ml"
                : 'formula))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'formula) in
@@ -384,7 +385,7 @@ let yyact = [|
     Obj.repr(
 # 108 "src/aorai/ltlparser.mly"
      ( Ltlast.LOr(_1,_3) )
-# 388 "src/aorai/ltlparser.ml"
+# 389 "src/aorai/ltlparser.ml"
                : 'formula))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'formula) in
@@ -392,14 +393,14 @@ let yyact = [|
     Obj.repr(
 # 110 "src/aorai/ltlparser.mly"
      ( Ltlast.LAnd(_1,_3) )
-# 396 "src/aorai/ltlparser.ml"
+# 397 "src/aorai/ltlparser.ml"
                : 'formula))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'formula) in
     Obj.repr(
 # 112 "src/aorai/ltlparser.mly"
      ( Ltlast.LNot(_2) )
-# 403 "src/aorai/ltlparser.ml"
+# 404 "src/aorai/ltlparser.ml"
                : 'formula))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'formula) in
@@ -407,7 +408,7 @@ let yyact = [|
     Obj.repr(
 # 114 "src/aorai/ltlparser.mly"
      ( Ltlast.LImplies(_1,_3) )
-# 411 "src/aorai/ltlparser.ml"
+# 412 "src/aorai/ltlparser.ml"
                : 'formula))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'formula) in
@@ -415,28 +416,28 @@ let yyact = [|
     Obj.repr(
 # 116 "src/aorai/ltlparser.mly"
      ( Ltlast.LIff(_1,_3) )
-# 419 "src/aorai/ltlparser.ml"
+# 420 "src/aorai/ltlparser.ml"
                : 'formula))
 ; (fun __caml_parser_env ->
     let _3 = (Parsing.peek_val __caml_parser_env 1 : string) in
     Obj.repr(
 # 119 "src/aorai/ltlparser.mly"
      ( Ltlast.LCall(_3))
-# 426 "src/aorai/ltlparser.ml"
+# 427 "src/aorai/ltlparser.ml"
                : 'formula))
 ; (fun __caml_parser_env ->
     let _3 = (Parsing.peek_val __caml_parser_env 1 : string) in
     Obj.repr(
 # 121 "src/aorai/ltlparser.mly"
      ( Ltlast.LReturn(_3))
-# 433 "src/aorai/ltlparser.ml"
+# 434 "src/aorai/ltlparser.ml"
                : 'formula))
 ; (fun __caml_parser_env ->
     let _3 = (Parsing.peek_val __caml_parser_env 1 : string) in
     Obj.repr(
 # 123 "src/aorai/ltlparser.mly"
      ( Ltlast.LCallOrReturn(_3))
-# 440 "src/aorai/ltlparser.ml"
+# 441 "src/aorai/ltlparser.ml"
                : 'formula))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'logic_relation) in
@@ -447,7 +448,7 @@ let yyact = [|
 	        Hashtbl.add observed_expressions id _1;
 	        Ltlast.LIdent(id)
 	    )
-# 451 "src/aorai/ltlparser.ml"
+# 452 "src/aorai/ltlparser.ml"
                : 'formula))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'arith_relation) in
@@ -455,7 +456,7 @@ let yyact = [|
     Obj.repr(
 # 135 "src/aorai/ltlparser.mly"
                                          ( Eq, _1 , _3)
-# 459 "src/aorai/ltlparser.ml"
+# 460 "src/aorai/ltlparser.ml"
                : 'logic_relation))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'arith_relation) in
@@ -463,7 +464,7 @@ let yyact = [|
     Obj.repr(
 # 136 "src/aorai/ltlparser.mly"
                                          ( Lt, _1, _3 )
-# 467 "src/aorai/ltlparser.ml"
+# 468 "src/aorai/ltlparser.ml"
                : 'logic_relation))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'arith_relation) in
@@ -471,7 +472,7 @@ let yyact = [|
     Obj.repr(
 # 137 "src/aorai/ltlparser.mly"
                                          ( Gt, _1, _3 )
-# 475 "src/aorai/ltlparser.ml"
+# 476 "src/aorai/ltlparser.ml"
                : 'logic_relation))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'arith_relation) in
@@ -479,7 +480,7 @@ let yyact = [|
     Obj.repr(
 # 138 "src/aorai/ltlparser.mly"
                                          ( Le, _1, _3 )
-# 483 "src/aorai/ltlparser.ml"
+# 484 "src/aorai/ltlparser.ml"
                : 'logic_relation))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'arith_relation) in
@@ -487,7 +488,7 @@ let yyact = [|
     Obj.repr(
 # 139 "src/aorai/ltlparser.mly"
                                          ( Ge, _1, _3 )
-# 491 "src/aorai/ltlparser.ml"
+# 492 "src/aorai/ltlparser.ml"
                : 'logic_relation))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'arith_relation) in
@@ -495,14 +496,14 @@ let yyact = [|
     Obj.repr(
 # 140 "src/aorai/ltlparser.mly"
                                          ( Neq, _1, _3 )
-# 499 "src/aorai/ltlparser.ml"
+# 500 "src/aorai/ltlparser.ml"
                : 'logic_relation))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'arith_relation) in
     Obj.repr(
 # 141 "src/aorai/ltlparser.mly"
                   ( Neq, _1, PCst (IntConstant "0") )
-# 506 "src/aorai/ltlparser.ml"
+# 507 "src/aorai/ltlparser.ml"
                : 'logic_relation))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'arith_relation_mul) in
@@ -510,7 +511,7 @@ let yyact = [|
     Obj.repr(
 # 145 "src/aorai/ltlparser.mly"
                                                      ( PBinop(Badd,_1,_3) )
-# 514 "src/aorai/ltlparser.ml"
+# 515 "src/aorai/ltlparser.ml"
                : 'arith_relation))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'arith_relation_mul) in
@@ -518,14 +519,14 @@ let yyact = [|
     Obj.repr(
 # 146 "src/aorai/ltlparser.mly"
                                                ( PBinop(Bsub,_1,_3) )
-# 522 "src/aorai/ltlparser.ml"
+# 523 "src/aorai/ltlparser.ml"
                : 'arith_relation))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'arith_relation_mul) in
     Obj.repr(
 # 147 "src/aorai/ltlparser.mly"
                       ( _1 )
-# 529 "src/aorai/ltlparser.ml"
+# 530 "src/aorai/ltlparser.ml"
                : 'arith_relation))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'arith_relation_mul) in
@@ -533,7 +534,7 @@ let yyact = [|
     Obj.repr(
 # 152 "src/aorai/ltlparser.mly"
                                               ( PBinop(Bdiv,_1,_3) )
-# 537 "src/aorai/ltlparser.ml"
+# 538 "src/aorai/ltlparser.ml"
                : 'arith_relation_mul))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'arith_relation_mul) in
@@ -541,7 +542,7 @@ let yyact = [|
     Obj.repr(
 # 153 "src/aorai/ltlparser.mly"
                                                ( PBinop(Bmul,_1,_3) )
-# 545 "src/aorai/ltlparser.ml"
+# 546 "src/aorai/ltlparser.ml"
                : 'arith_relation_mul))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'arith_relation_mul) in
@@ -549,42 +550,42 @@ let yyact = [|
     Obj.repr(
 # 154 "src/aorai/ltlparser.mly"
                                                  ( PBinop(Bmod,_1,_3))
-# 553 "src/aorai/ltlparser.ml"
+# 554 "src/aorai/ltlparser.ml"
                : 'arith_relation_mul))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'access_or_const) in
     Obj.repr(
 # 155 "src/aorai/ltlparser.mly"
                    ( _1 )
-# 560 "src/aorai/ltlparser.ml"
+# 561 "src/aorai/ltlparser.ml"
                : 'arith_relation_mul))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : string) in
     Obj.repr(
 # 160 "src/aorai/ltlparser.mly"
                   ( PCst (IntConstant _1) )
-# 567 "src/aorai/ltlparser.ml"
+# 568 "src/aorai/ltlparser.ml"
                : 'access_or_const))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 0 : string) in
     Obj.repr(
 # 161 "src/aorai/ltlparser.mly"
                             ( PUnop (Uminus,PCst (IntConstant _2)) )
-# 574 "src/aorai/ltlparser.ml"
+# 575 "src/aorai/ltlparser.ml"
                : 'access_or_const))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'access) in
     Obj.repr(
 # 162 "src/aorai/ltlparser.mly"
           ( _1 )
-# 581 "src/aorai/ltlparser.ml"
+# 582 "src/aorai/ltlparser.ml"
                : 'access_or_const))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 1 : 'arith_relation) in
     Obj.repr(
 # 163 "src/aorai/ltlparser.mly"
                                         ( _2 )
-# 588 "src/aorai/ltlparser.ml"
+# 589 "src/aorai/ltlparser.ml"
                : 'access_or_const))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'access) in
@@ -592,7 +593,7 @@ let yyact = [|
     Obj.repr(
 # 169 "src/aorai/ltlparser.mly"
                                     ( PField (PUnop(Ustar,_1),_3) )
-# 596 "src/aorai/ltlparser.ml"
+# 597 "src/aorai/ltlparser.ml"
                : 'access))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'access) in
@@ -600,14 +601,14 @@ let yyact = [|
     Obj.repr(
 # 170 "src/aorai/ltlparser.mly"
                             ( PField(_1,_3) )
-# 604 "src/aorai/ltlparser.ml"
+# 605 "src/aorai/ltlparser.ml"
                : 'access))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'access_array) in
     Obj.repr(
 # 171 "src/aorai/ltlparser.mly"
                 (_1)
-# 611 "src/aorai/ltlparser.ml"
+# 612 "src/aorai/ltlparser.ml"
                : 'access))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 3 : 'access_array) in
@@ -615,42 +616,42 @@ let yyact = [|
     Obj.repr(
 # 175 "src/aorai/ltlparser.mly"
      ( PArrget(_1,_3) )
-# 619 "src/aorai/ltlparser.ml"
+# 620 "src/aorai/ltlparser.ml"
                : 'access_array))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'access_leaf) in
     Obj.repr(
 # 176 "src/aorai/ltlparser.mly"
                    (_1)
-# 626 "src/aorai/ltlparser.ml"
+# 627 "src/aorai/ltlparser.ml"
                : 'access_array))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'access) in
     Obj.repr(
 # 180 "src/aorai/ltlparser.mly"
                              ( PUnop (Uamp,_2) )
-# 633 "src/aorai/ltlparser.ml"
+# 634 "src/aorai/ltlparser.ml"
                : 'access_leaf))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'access) in
     Obj.repr(
 # 181 "src/aorai/ltlparser.mly"
                    ( PUnop (Ustar, _2 ) )
-# 640 "src/aorai/ltlparser.ml"
+# 641 "src/aorai/ltlparser.ml"
                : 'access_leaf))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : string) in
     Obj.repr(
 # 182 "src/aorai/ltlparser.mly"
              ( PVar _1 )
-# 647 "src/aorai/ltlparser.ml"
+# 648 "src/aorai/ltlparser.ml"
                : 'access_leaf))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 1 : 'access) in
     Obj.repr(
 # 183 "src/aorai/ltlparser.mly"
                                 ( _2 )
-# 654 "src/aorai/ltlparser.ml"
+# 655 "src/aorai/ltlparser.ml"
                : 'access_leaf))
 (* Entry ltl *)
 ; (fun __caml_parser_env -> raise (Parsing.YYexit (Parsing.peek_val __caml_parser_env 0)))

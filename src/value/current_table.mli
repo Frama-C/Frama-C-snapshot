@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -49,4 +49,5 @@ val states : t -> Cvalue.Model.t Stmt.Hashtbl.t
 
 (** Merge the results of the current analysis with the global results.
     Honor [-no-results*] options *)
-val merge_db_table : Db.Value.state Stmt.Hashtbl.t Lazy.t -> unit
+val merge_db_table : 
+  Db.Value.state Stmt.Hashtbl.t Lazy.t -> Db.Value.callstack -> unit

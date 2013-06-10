@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -64,7 +64,6 @@ val c_label : Cil_types.logic_label -> c_label
   *)
 
 val pretty : Format.formatter -> c_label -> unit
-val label : (string -> 'a -> 'a) -> c_label -> 'a -> 'a
 
 open Cil_types
 

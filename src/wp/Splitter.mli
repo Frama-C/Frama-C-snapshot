@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -44,9 +44,6 @@ type 'a t
 
 val empty : 'a t
 val singleton : 'a -> 'a t
-(* [VP 2012-07-06] Another filter exists below. If you really need this function
-   please choose another name. *)
-(* val filter : (tag list -> bool) -> 'a t -> 'a t *)
 val group : tag -> ('a list -> 'a) -> 'a t -> 'a t
 
 val union : ('a -> 'a -> 'a) -> 'a t -> 'a t -> 'a t

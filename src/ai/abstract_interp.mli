@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,14 +20,11 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Undocumented. 
-    Do not use this module if you don't know what you are doing. 
-    @plugin development guide *)
+(** Signatures for generic lattices, with functors providing generic
+    implementations. *)
 
-(* [JS 2011/10/03] To the authors/users of this module: please document it. *)
-
-(** Raised by [cardinal_less_than] *)
 exception Not_less_than
+(** Raised by {!Lattice.cardinal_less_than}. *)
 
 exception Is_not_included
 
@@ -59,10 +56,8 @@ module type Lattice = sig
   val cardinal_zero_or_one: t -> bool
 
   val cardinal_less_than: t -> int -> int
-    (** [cardinal_less_than t v ]
-        @raise Not_less_than whenever the cardinal of [t] is higher than [v] *)
-
-  val tag : t -> int
+(** @raise Not_less_than whenever the cardinal of the given lattice is higher
+    than the given integer. *)
 
 end
 
@@ -134,49 +129,59 @@ end
 module type LatValue = Datatype.S_with_collections
 
 module Int : sig
-  include My_bigint.S
-  include LatValue with type t = My_bigint.t
+  include module type of Integer with type t = Integer.t
+  include LatValue with type t := Integer.t
   val pretty : Format.formatter -> t -> unit
   val fold : (t -> 'a -> 'a) -> inf:t -> sup:t -> step:t -> 'a -> 'a
 
 end
 
+(** "Relative" integers. They are subtraction between two absolute integers *)
+module Rel : sig
+  type t
+
+  val pretty: t Pretty_utils.formatter
+
+  val equal: t -> t -> bool
+  val compare: t -> t -> int
+  val hash: t -> int
+
+  val zero: t
+  val is_zero: t -> bool
+
+  val sub : t -> t -> t
+  val add_abs : Int.t -> t -> Int.t 
+  val sub_abs : Int.t -> Int.t -> t
+  val pos_rem: t -> Int.t -> t
+
+  val check: rem:t -> modu:Int.t -> bool
+end
+
 module Make_Lattice_Base (V : LatValue) : Lattice_Base with type l = V.t
-
-module Make_Pair (V:LatValue)(W:LatValue) : Datatype.S with type t = V.t * W.t
-
 module Make_Lattice_Set (V : LatValue) : Lattice_Set with type O.elt=V.t
 
 module Make_Hashconsed_Lattice_Set
   (V : Hptset.Id_Datatype)
   (O: Hptset.S with type elt = V.t)
-  : Lattice_Set with type O.elt=V.t
-(** See e.g. Base.ml and Locations.ml to see how this functor shoudl be 
-    applied. *)
-(* The [O] module passed as argument is the same as [O] in the result. It
-   is passed here to avoid having multiple modules calling Hptset.Make on the
-   same argument (which is not forbidden by the datatype library *)
-
-module LocationSetLattice : sig
-  include Lattice_Set with type O.elt = Cil_types.location
-  val currentloc_singleton : unit -> t
-    val compare:t -> t -> int
-end
-
-module type Key = sig
-  include Datatype.S
-  val is_null : t -> bool
-  val null : t
-  val id : t -> int
-end
-
-module VarinfoSetLattice : Lattice_Set with type O.elt = Cil_types.varinfo
+  : Lattice_Set with module O = O
+(** See e.g. base.ml and locations.ml to see how this functor should be
+    applied. The [O] module passed as argument is the same as [O] in the
+    result. It is passed here to avoid having multiple modules calling
+    [Hptset.Make] on the same argument (which is not forbidden by the datatype
+    library *)
 
 module type Collapse = sig val collapse : bool end
 
 (** If [C.collapse] then [L1.bottom,_] = [_,L2.bottom] = [bottom] *)
+(* Untested *)
 module Make_Lattice_Product (L1:Lattice) (L2:Lattice) (C:Collapse):
   Lattice_Product with type t1 = L1.t and type t2 = L2.t
+
+
+(* Untested *)
+module Make_Lattice_Sum (L1:Lattice) (L2:Lattice):
+  (Lattice_Sum with type t1 = L1.t and type t2 = L2.t)
+
 
 (*
 Local Variables:

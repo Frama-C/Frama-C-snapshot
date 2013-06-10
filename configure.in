@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2012                                               #
+#  Copyright (C) 2007-2013                                               #
 #    CEA   (Commissariat à l'énergie atomique et aux énergies            #
 #           alternatives)                                                #
 #    INRIA (Institut National de Recherche en Informatique et en         #
@@ -57,9 +57,9 @@ AC_SUBST([FRAMAC_VERSION],[`cat VERSION`])
 new_section "configure make"
 
 AC_CHECK_PROG(MAKE,make,make,)
-MAKE_DISTRIB=`$MAKE -v | sed -n -e 's/\(.*\) Make.*$/\1/p' `
-MAKE_MAJOR=`$MAKE -v | sed -n  -f bin/sed_get_make_major `
-MAKE_MINOR=`$MAKE -v | sed -n -f bin/sed_get_make_minor `
+MAKE_DISTRIB=`sh -c "$MAKE -v | sed -n -e 's/\(.*\) Make.*$/\1/p'"`
+MAKE_MAJOR=`sh -c "$MAKE -v | sed -n  -f bin/sed_get_make_major"`
+MAKE_MINOR=`sh -c "$MAKE -v | sed -n -f bin/sed_get_make_minor"`
 echo $ECHO_N "make version is $MAKE_DISTRIB Make $MAKE_MAJOR.$MAKE_MINOR: $ECHO_C"
 if test "$MAKE_DISTRIB" != GNU -o "$MAKE_MAJOR" -lt 3 -o "$MAKE_MINOR" -lt 81;
 then
@@ -115,46 +115,23 @@ else
 fi
 }
 
-# check binutils/ocaml compatibility.
-# See Ocaml's bug 5237
-# ranlib is the only binutils program to have a specific check in autoconf.
-check_binutils_version () {
-echo "${ECHO_T}good"
-AC_PROG_RANLIB()
-if test "$RANLIB" != ":"; then
-  RANLIBVERSION=`$RANLIB -v | head -n 1 | sed -n -f bin/sed_get_binutils_version`;
-  if test -n "$RANLIBVERSION"; then
-    echo "binutils version is $RANLIBVERSION";
-    echo $ECHO_N "Checking binutils compatibility with Ocaml: $ECHO_C";
-    case $RANLIBVERSION in
-     2.20*) echo "${ECHO_T}good";;
-     2.2*) echo "${ECHO_T}This version of Ocaml is known to have issues \
-with newer binutils. (See http://caml.inria.fr/mantis/view.php?id=5237) \
-Please install Ocaml>=3.12.1 or binutils<2.21";
-           warn_or_die;
-
-;;
-     *) echo "${ECHO_T}good";;
-    esac
-  # Not a Gnu binutils. Assumes assembler is fine
-  fi
-#No ranlib. Assuming the assembler is not from binutils and immune to #5237
-fi
-}
-
 # we extract Ocaml version number and library path
 # "sed -n" is the posix version of "sed --quiet"
 OCAMLVERSION=`$OCAMLC -v | sed -n -e 's|.*version *\(.*\)$|\1|p' `
 echo $ECHO_N "OCaml version is $OCAMLVERSION: $ECHO_C"
 case $OCAMLVERSION in
-  3.0*) echo "${ECHO_T}Incompatible version! Use at least OCaml 3.10.1."; exit 2;;
-  3.10.0) echo "${ECHO_T}Warning: unsupported version." ;
-          warn_or_die
-         ;;
-  3.12.1*) echo "${ECHO_T}good!"; OCAML_ANNOT_OPTION="-annot";;
-  3.10*) check_binutils_version;;
-  3.1*) check_binutils_version; OCAML_ANNOT_OPTION="-annot";;
-  4.*) echo "${ECHO_T}good!";;
+  3.12.1*) echo "${ECHO_T}good!"; 
+	   OCAML_ANNOT_OPTION="-annot";;
+  3.0*) echo "${ECHO_T}Incompatible version! Use at least OCaml 3.12.1."; 
+        exit 2;; 
+  3.10*) echo "${ECHO_T}Incompatible version! Use at least OCaml 3.12.1."; 
+         exit 2;;
+  3.11*) echo "${ECHO_T}Incompatible version! Use at least OCaml 3.12.1."; 
+         exit 2;;
+  3.12.0*) echo "${ECHO_T}Incompatible version! Use at least OCaml 3.12.1."; 
+           exit 2;;
+  4.*) echo "${ECHO_T}good!";
+       OCAML_ANNOT_OPTION="-annot";;
   *) echo "${ECHO_T}Incompatible version!"; exit 2;;
 esac
 
@@ -283,7 +260,8 @@ if test "$OCAMLGRAPH_EXISTS" = "yes"; then
     OCAMLGRAPH_VERSION=`./test_ocamlgraph`
     case $OCAMLGRAPH_VERSION in
     1.8.1) ocamlgraph_error;;
-    1.8.2) AC_MSG_NOTICE([OcamlGraph $OCAMLGRAPH_VERSION found: great!]);;
+    1.8.2) ocamlgraph_error;;
+    1.8.3) AC_MSG_NOTICE([OcamlGraph $OCAMLGRAPH_VERSION found: great!]);;
     1.8.*) AC_MSG_NOTICE([OcamlGraph $OCAMLGRAPH_VERSION > 1.8.2 found: should be compatible!]);;
     *) ocamlgraph_error;;
     esac
@@ -345,13 +323,9 @@ if test "$OCAMLDOC" = no ; then
   AC_MSG_RESULT(ocamldoc discarded not present)
 else
   AC_CHECK_PROG(OCAMLDOCOPT,ocamldoc.opt,ocamldoc.opt,no)
-  # native linking of ocamldoc only works with OCaml >= 3.11.1
-  # (approximate by 3.12 for simplicity)
-  if test "$OCAMLDOCOPT" != no; then
-    case $OCAMLVERSION in
-    3.12*) OCAMLDOC=$OCAMLDOCOPT;;
-    4*) OCAMLDOC=$OCAMLDOCOPT;;
-    esac
+  # Strange quantic segfault with native ocamldoc in version 4.00.0
+  if test "$OCAMLDOCOPT" != no -a "$OCAMLVERSION" != 4.00.0; then
+     OCAMLDOC=$OCAMLDOCOPT;
   fi
 fi
 
@@ -506,50 +480,6 @@ AC_MSG_RESULT($UNDERSCORE_NAME)
 
 fi # local machdep configuration
 
-AC_MSG_CHECKING(whether performance counters are usable)
-# Create a C file from src/perfcount.c.in
-rm -f ./cycles.exe
-if gcc -DCONFIGURATION_ONLY \
-       -x c cil/ocamlutil/perfcount.c.in -lm -o bin/cycles.exe >/dev/null 2>&1; then
-
-   if CYCLES_PER_USEC=`bin/cycles.exe 2>&1` ;then
-     AC_MSG_RESULT([ok ($CYCLES_PER_USEC cycles per us)])
-   else
-     # Print what we got
-     AC_MSG_RESULT([no ($CYCLES_PER_USEC)])
-     CYCLES_PER_USEC=0
-   fi
-else
-   CYCLES_PER_USEC=0
-   AC_MSG_RESULT([no (cannot compile perfcount.c)])
-fi
-rm -f bin/cycles.exe
-
-# If we are on Linux and we use performance counters try to get
-# the processor speed from /proc/cpuinfo
-if test "$CYCLES_PER_USEC" != "0" ;then
-     case "$target" in
-        # linux
-        *86*linux*)
-             AC_MSG_CHECKING(if /proc/cpuinfo has processor speed)
-             cpuinfo=`cat /proc/cpuinfo 2>/dev/null | grep "cpu MHz"`
-             [procspeed=`echo $cpuinfo | sed 's/^.*[^0-9]\([0-9]\+\.[0-9]\+\).*$/\1/g'`]
-             if test "$procspeed"!="" ;then
-                CYCLES_PER_USEC=$procspeed
-                AC_MSG_RESULT([got $CYCLES_PER_USEC cycles per us])
-             else
-                AC_MSG_RESULT(no)
-             fi
-             ;;
-        *)
-             ;;
-      esac
-      # Now set HAS_PERFCOUNT
-      HAS_PERFCOUNT=1
-else
-      HAS_PERFCOUNT=0
-fi
-
 ##########################
 # Frama-C's mcpp support #
 ##########################
@@ -655,6 +585,7 @@ plugin_require(semantic_constant_folding,value_analysis)
 check_plugin(from_analysis,src/from,[support for from analysis],yes,no)
 
 plugin_require(from_analysis,value_analysis)
+plugin_require(from_analysis,semantic_callgraph)
 
 # gui
 #####
@@ -682,6 +613,7 @@ plugin_require(impact,inout)
 check_plugin(inout,src/inout,[support for inout analysis],yes,no)
 plugin_require(inout,from_analysis)
 plugin_require(inout,value_analysis)
+plugin_require(inout,semantic_callgraph)
 
 # metrics
 #########
@@ -1000,7 +932,6 @@ AC_SUBST(HAVE_PTRDIFF_H)
 AC_SUBST(HAVE_BUILTIN_VA_LIST)
 AC_SUBST(THREAD_IS_KEYWORD)
 AC_SUBST(UNDERSCORE_NAME)
-AC_SUBST(HAS_PERFCOUNT)
 AC_SUBST(CYCLES_PER_USEC)
 AC_SUBST(LOCAL_MACHDEP)
 AC_SUBST(datarootdir)
@@ -1025,8 +956,6 @@ AC_FOREACH([p],PLUGINS_LIST,
 
 new_section "creating makefile"
 
-AC_CONFIG_FILES([cil/ocamlutil/perfcount.c],
-                [chmod a-w cil/ocamlutil/perfcount.c])
 AC_CONFIG_FILES([share/Makefile.config], [chmod a-w share/Makefile.config])
 
 AC_OUTPUT()

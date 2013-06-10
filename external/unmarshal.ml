@@ -209,47 +209,6 @@ let readfloat_big =
 
 (* Auxiliary functions for handling closures. *)
 
-(* the int64 thing is a work-around for a bug in OCaml <= 3.11.2 *)
-
-let int64 = ref 0L
-
-let _ = int64 := Int64.add !int64 !int64
-
-let raw_value_big32 x =
-  let result = Obj.dup (Obj.repr !int64) in
-  Obj.set_field result 2 (Obj.repr x);
-  (Obj.obj result : Int64.t)
-;;
-
-let raw_value_other x =
-  let result = Obj.dup (Obj.repr !int64) in
-  Obj.set_field result 1 (Obj.repr x);
-  (Obj.obj result : Int64.t)
-;;
-
-let raw_value =
-  if arch_bigendian && not arch_sixtyfour
-  then raw_value_big32
-  else raw_value_other
-;;
-
-let value_raw_big32 x = Obj.field (Obj.repr x) 2;;
-let value_raw_other x = Obj.field (Obj.repr x) 1;;
-
-let value_raw =
-  if arch_bigendian && not arch_sixtyfour
-  then value_raw_big32
-  else value_raw_other
-;;
-
-(* Note: this function is 100% safe only when manipulating a pointer
-   outside the heap. Otherwise, we may be unlucky with the GC.
-   To do it correctly, we need a primitive to add an offset to a value.
-   (3.12.0 minimum) *)
-let obj_add_offset v ofs =
-  value_raw (Int64.add (raw_value v) (Int64.of_int32 ofs))
-;;
-
 let (code_area_start, cksum) =
   let s = Marshal.to_string id [Marshal.Closures] in
   let cksum = String.sub s 0x1E 16 in
@@ -260,11 +219,7 @@ let (code_area_start, cksum) =
   let ofs = Int32.logor (Int32.shift_left (Int32.of_int c3) 24)
                         (Int32.of_int ((c2 lsl 16) lor (c1 lsl 8) lor c0))
   in
-  let start = 
-    (* This call to obj_add_offset is safe because the pointer is outside
-       the heap *)
-    obj_add_offset (Obj.field (Obj.repr id) 0) (Int32.neg ofs) 
-  in
+  let start = Obj.add_offset (Obj.field (Obj.repr id) 0) (Int32.neg ofs) in
   (start, cksum)
 ;;
 
@@ -459,17 +414,12 @@ let input_val ch t =
       | 0x10 (* CODE_CODEPOINTER *) ->
           let ofs = getword ch in
           check_const ch cksum "input_value: code mismatch";
-	  let offset_pointer = 
-	    (* This call to obj_add_offset is safe because the pointer 
-	       is outside the heap *)
-	    obj_add_offset code_area_start ofs
-	  in
+	  let offset_pointer = Obj.add_offset code_area_start ofs in
           return stk (do_transform t offset_pointer)
       | 0x11 (* CODE_INFIXPOINTER *) ->
           let ofs = getword ch in
           let clos = intern_rec [] t in
-	    (* This call to obj_add_offset is unsafe *)
-          return stk (obj_add_offset clos ofs)
+          return stk (Obj.add_offset (Obj.repr clos) ofs)
 
       | 0x12 (* CODE_CUSTOM *) ->
           let id = read_customident ch in
@@ -609,13 +559,13 @@ let input_val ch t =
 (* Functions for handling Int32, Int64, and Nativeint custom blocks. *)
 
 let readint64_little32 ch =
-  let result = Obj.dup (Obj.repr !int64) in
+  let result = Obj.dup (Obj.repr 0L) in
   readblock_rev ch result 4 8;
   result
 ;;
 
 let readint64_big32 ch =
-  let result = Obj.dup (Obj.repr !int64) in
+  let result = Obj.dup (Obj.repr 0L) in
   readblock ch result 4 8;
   result
 ;;
@@ -736,10 +686,12 @@ type ('a, 'b) _caml_hashtable =
   { mutable size: int;                        (* number of elements *)
     mutable data: ('a, 'b) _bucketlist array } (* the buckets *)
 
-and ('a, 'b) _caml_hashtable_3_13 =
+and ('a, 'b) _caml_hashtable_4_ =
   { mutable _size: int;                        (* number of entries *)
     mutable _data: ('a, 'b) _bucketlist array;  (* the buckets *)
-    mutable _seed: int }                       (* for randomization *)
+    mutable _seed: int;                        (* for randomization *)
+    _initial_size: int;                        (* initial array size *)
+  }
 
 and ('a, 'b) _bucketlist =
     Empty

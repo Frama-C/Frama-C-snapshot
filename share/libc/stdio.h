@@ -2,8 +2,8 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2012                                               */
-/*    CEA (Commissariat à l'énergie atomique et aux énergies              */
+/*  Copyright (C) 2007-2013                                               */
+/*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
 /*  you can redistribute it and/or modify it under the terms of the GNU   */
@@ -26,6 +26,7 @@
 #include "__fc_machdep.h"
 #include "stdarg.h"
 #include "errno.h"
+#include "__fc_define_stat.h"
 #include "__fc_define_size_t.h"
 #include "__fc_define_restrict.h"
 
@@ -33,11 +34,14 @@ struct __fc_pos_t { unsigned long __fc_stdio_position; };
 typedef struct __fc_pos_t fpos_t;
 
 struct __fc_FILE {
-  fpos_t __fc_stdio_fpos;
-  char* __fc_stdio_buffer;
-  char __fc_stdio_error;
-  char __fc_stdio_eof; 
-  long __fc_stdio_id;};
+  unsigned int __fc_stdio_id;
+  unsigned int 	__fc_maxsz;
+  unsigned int 	__fc_writepos;
+  unsigned int 	__fc_readpos;
+  int 		__fc_is_a_socket;
+  int		mode; // O_RDONLY 1 | O_RDWR 2 | O_WRONLY 3
+  struct stat* 	__fc_inode;
+};
 typedef struct __fc_FILE FILE;
 
 #include "__fc_define_null.h"
@@ -57,13 +61,13 @@ typedef struct __fc_FILE FILE;
 #define TMP_MAX __FC_TMP_MAX
 
 extern FILE * __fc_stderr;
-#define stderr __fc_stderr
+#define stderr (__fc_stderr)
 
 extern FILE * __fc_stdin;
-#define stdin __fc_stdin
+#define stdin (__fc_stdin)
 
 extern FILE * __fc_stdout;
-#define stdout __fc_stdout
+#define stdout (__fc_stdout)
 
 /*@ assigns \nothing; */ 
 int remove(const char *filename);
@@ -197,7 +201,9 @@ int vsscanf(const char * restrict s,
  */
 int fgetc(FILE *stream);
 
-/*@ assigns s[0..n],*stream;
+/*@ assigns s[0..n],*stream \from *stream;
+  assigns \result \from s,n,*stream;
+  ensures \result == \null || \result==s;
  */
 char *fgets(char * restrict s, int n,
     FILE * restrict stream);
@@ -310,6 +316,8 @@ size_t fwrite_unlocked(const void *ptr, size_t size, size_t n,
 
 char *fgets_unlocked(char *s, int n, FILE *stream);
 int fputs_unlocked(const char *s, FILE *stream);
+
+#define IOV_MAX 1024
 
 
 #endif

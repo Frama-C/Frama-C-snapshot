@@ -2,11 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
-(*           alternatives)                                                *)
-(*    INRIA (Institut National de Recherche en Informatique et en         *)
-(*           Automatique)                                                 *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -24,34 +22,35 @@
 
 exception Cannot_fold
 
-type t_loc = Locations.Zone.t
-type t_node = PdgTypes.Node.t
-type t = PdgTypes.t_data_state
+open PdgTypes
+(** Types data_state and Node.t come froms this module *)
 
-val make : PdgTypes.LocInfo.t -> Locations.Zone.t -> t
-val empty : t
-val bottom: t
+val make : PdgTypes.LocInfo.t -> Locations.Zone.t -> data_state
+val empty : data_state
+val bottom: data_state
 
-val add_loc_node : t -> exact:bool -> Locations.Zone.t -> t_node -> t
-val add_init_state_input : t -> Locations.Zone.t -> t_node -> t
+val add_loc_node :
+  data_state -> exact:bool -> Locations.Zone.t -> Node.t -> data_state
+val add_init_state_input :
+  data_state -> Locations.Zone.t -> Node.t -> data_state
 
 
 val test_and_merge :
-  old:t -> t -> bool * t
+  old:data_state -> data_state -> bool * data_state
 
 (** @raise Cannot_fold if the state is Top *)
 val get_loc_nodes :
-  t -> Locations.Zone.t -> (t_node * Locations.Zone.t option) list * Locations.Zone.t option
+  data_state -> Locations.Zone.t -> (Node.t * Locations.Zone.t option) list * Locations.Zone.t option
 
-val pretty : Format.formatter -> t -> unit
+val pretty : Format.formatter -> data_state -> unit
 
 (* ~~~~~~~~~~~~~~~~~~~ *)
 
-type t_states = t Datatype.Int.Hashtbl.t
+type states = data_state Cil_datatype.Stmt.Hashtbl.t
 
-val store_init_state : t_states -> t -> unit
-val store_last_state : t_states -> t -> unit
+val store_init_state : states -> data_state -> unit
+val store_last_state : states -> data_state -> unit
 
-val get_init_state : t_states -> t
-val get_stmt_state : t_states -> Cil_types.stmt -> t
-val get_last_state : t_states -> t
+val get_init_state : states -> data_state
+val get_stmt_state : states -> Cil_types.stmt -> data_state
+val get_last_state : states -> data_state

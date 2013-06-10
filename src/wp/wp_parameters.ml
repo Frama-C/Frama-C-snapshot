@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -20,13 +20,14 @@
 (*                                                                        *)
 (**************************************************************************)
 
+module STRING = String
 let () = Plugin.is_share_visible ()
 include Plugin.Register
   (struct
      let name = "WP"
      let shortname = "wp"
      let help = "Weakest Preconditions Calculus\n\
-WP 0.6 for " ^ Config.version
+WP 0.7 for " ^ Config.version
    end)
 
 (* localize all warnings inside WP *)
@@ -39,9 +40,17 @@ let resetdemon = ref []
 let on_reset f = resetdemon := f :: !resetdemon
 let reset () = List.iter (fun f -> f ()) !resetdemon
 
-(* implemented as an alias for -wp-debug-category. *)
-let () = Debug_category.add_aliases [ "-wp-log" ]
-let has_dkey k = List.mem k (Debug_category.get())
+module Log = 
+  StringSet
+    (struct
+      let option_name = "-wp-log"
+      let arg_name = "..."
+      let help = "Log Specific informations"
+     end)
+
+let has_dkey k = 
+  Datatype.String.Set.mem k (Log.get()) ||
+    Datatype.String.Set.mem k (Debug_category.get())
 
 (* ------------------------------------------------------------------------ *)
 (* ---  WP Generation                                                   --- *)
@@ -71,6 +80,17 @@ let () = on_reset Functions.clear
 
 let () = Plugin.set_group wp_generation
 let () = Plugin.do_not_save ()
+module SkipFunctions =
+  StringList
+    (struct
+      let option_name = "-wp-skip-fct"
+      let arg_name = "f,..."
+      let help = "skip the specified functions (defaults to none)"
+     end)
+let () = on_reset SkipFunctions.clear
+
+let () = Plugin.set_group wp_generation
+let () = Plugin.do_not_save ()
 module Behaviors =
   StringList
     (struct
@@ -97,18 +117,20 @@ let () = on_reset Properties.clear
 type job =
   | WP_None
   | WP_All
-  | WP_Select of string list
-
-type assigns_method =
-  | NoAssigns
-  | NormalAssigns
-  | EffectAssigns
+  | WP_SkipFct of string list
+  | WP_Fct of string list
 
 let job () =
   let nonempty p = p () <> [] in
-  if WP.get () || nonempty Functions.get || nonempty Behaviors.get || nonempty Properties.get then
+  if WP.get () || nonempty Functions.get || nonempty Behaviors.get || nonempty Properties.get 
+  then
     let fct = Functions.get () in
-    if fct <> [] then WP_Select fct else WP_All
+    let skp = SkipFunctions.get () in
+    match fct , skp with
+      | [] , [] -> WP_All
+      | _ , [] -> WP_Fct fct
+      | [] , _ -> WP_SkipFct skp
+      | _ , _ -> WP_Fct (List.filter (fun f -> not (List.mem f skp)) fct)
   else WP_None
 
 let () = Plugin.set_group wp_generation
@@ -156,67 +178,23 @@ module Froms =
 
 let wp_model = add_group "Model Selection"
 
-type model_kind =
-  | M_Q of string
-  | M_Hoare
-  | M_Logic
-  | M_Store
-  | M_Runtime
-
-let model_of_name = function
-  | "Runtime" -> M_Runtime
-  | "Store" -> M_Store
-  | "Logic" -> M_Logic
-  | "Hoare" -> M_Hoare
-  | m -> M_Q m
-
 let () = Plugin.set_group wp_model
 module Model =
-  String(struct
-           let option_name = "-wp-model"
-           let arg_name = "model"
-           let help =
-             "Memory model selection:\n\
-              - 'Hoare':  no indirect access to the memory\n\
-              - 'Store':  no heterogeneous casts (default)\n\
-              - 'Logic':  Store with logic variables\n\
-              - 'Runtime': low-level model"
-           let default = "Store"
-         end)
-
-let get_model () =
-  let m = Model.get () in
-  try model_of_name m
-  with Not_found -> abort "Unknown model '%s'" m
-
-let () = Plugin.set_group wp_model
-module LogicVar =
-  True(struct
-         let option_name = "-wp-logicvar"
-         let help = "Apply Hoare model for variables when possible."
-       end)
-
-let () = Plugin.set_group wp_model
-module RefVar = 
-  False(struct
-         let option_name = "-wp-byreference"
-         let help = "Apply Hoare model for arguments passed by reference."
-       end)
-
-let () = Plugin.set_group wp_model
-module Fits = 
-  False(struct
-         let option_name = "-wp-fits"
-         let help = "Accept casts among fitting pointers in Typed model."
-       end)
-
-let () = Plugin.set_group wp_model
-module Natural = 
-  False(struct
-         let option_name = "-wp-untyped"
-         let help = "No hypothesis on type."
-       end)
-
+  StringList
+    (struct
+       let option_name = "-wp-model"
+       let arg_name = "model+..."
+       let help = "Memory model selection. Available selectors:\n \
+                    * 'Hoare' logic variables only\n \
+                    * 'Typed' typed pointers only\n \
+                    * '+nocast' no pointer cast\n \
+                    * '+cast' unsafe pointer casts\n \
+                    * '+raw' no logic variable\n \
+                    * '+ref' by-reference-style pointers detection\n \
+                    * '+nat/+cint' natural or machine integers arithmetics\n \
+                    * '+real/+float' real or IEEE floatting point arithmetics"
+     end)
+    
 let () = Plugin.set_group wp_model
 module ExternArrays =
   False(struct
@@ -232,25 +210,11 @@ module ExtEqual =
 	end)
 
 let () = Plugin.set_group wp_model
-module Assigns =
-  String(struct
-           let option_name = "-wp-assigns"
-           let arg_name = "mth"
-           let help = "Method for proving assigns clauses:\n\
-                       - 'effect' one sub-goal per assignment (default)\n\
-                       - 'memory' strong proof (incompatible with Hoare)\n\
-                       - 'none'   skip assigns clause (default with Hoare)"
-           let default = "effect"
-         end)
-let () = Assigns.set_possible_values [ "effect" ; "memory" ; "none" ]
-(* no reset for GUI *)
-
-let get_assigns_method () =
-  match Assigns.get () with
-    | "effect" -> EffectAssigns
-    | "memory" -> NormalAssigns
-    | "none"   -> NoAssigns
-    | m -> abort "Unknown assigns method '%s'" m
+module Literals =
+  False(struct
+	  let option_name = "-wp-literals"
+	  let help = "Export content of string literals (not by default)"
+	end)
 
 (* ------------------------------------------------------------------------ *)
 (* ---  WP Strategy                                                     --- *)
@@ -272,10 +236,25 @@ module Simpl =
         let help = "Simplify constant terms and predicates."
        end)
 
-module Qed =
-  False(struct
-          let option_name = "-wp-qed"
-          let help = "Use Qed Simplifier (not by default)."
+let () = Plugin.set_group wp_strategy
+module Let =
+  True(struct
+         let option_name = "-wp-let"
+         let help = "Use variable elimination (by default)."
+       end)
+
+let () = Plugin.set_group wp_strategy
+module Prune =
+  True(struct
+         let option_name = "-wp-pruning"
+         let help = "Prune trivial branches (by default)."
+       end)
+
+let () = Plugin.set_group wp_strategy
+module Clean =
+  True(struct
+          let option_name = "-wp-clean"
+          let help = "Use variable filtering (by default)."
 	end)
 
 let () = Plugin.set_group wp_strategy
@@ -292,57 +271,6 @@ module Split =
           let help = "Split conjunctions into sub-goals."
         end)
 
-let () = Plugin.set_group wp_strategy
-module SplitDim =
-  Int(struct
-        let option_name = "-wp-split-dim"
-        let arg_name = "n"
-        let default = 6
-        let help =
-          Printf.sprintf
-            "Bounds the number of splited sub-goals to 2**n (default 2**%d)" default
-      end)
-
-let () = Plugin.set_group wp_strategy
-module Norm =
-  String(struct
-           let option_name = "-wp-norm"
-           let arg_name = "norm"
-           let help =
-             "Predicate normalization for Coq and Alt-Ergo provers:\n\
-              - Eqs: replace let-bindings by equalities (default).\n\
-              - Let: preserve let-bindings.\n\
-              - Exp: let-expansion.\n\
-              - Cc:  generates local functions by closure-conversion"
-           let default = "Eqs"
-         end)
-
-let () = Norm.set_possible_values [ "Let";"Exp";"Cc";"Eqs" ]
-
-type norm = Let | Exp | Eqs | Cc
-
-let get_norm () =
-  match Norm.get () with
-  | "Let" -> Let
-  | "Exp" -> Exp
-  | "Eqs" -> Eqs
-  | "Cc" -> Cc
-  | m -> abort "Unknown normalization '%s'" m
-
-let () = Plugin.set_group wp_strategy
-module Huge =
-  Int(struct
-        let option_name = "-wp-huge"
-        let default = 30
-        let arg_name = "s"
-        let help =
-          Printf.sprintf
-            "Limits the size for generated proof obligation.\n\
-             Proof terms of size exceeding 2^s are not generated.\n\
-             (default: 2^%d)"
-            default
-      end)
-
 (* ------------------------------------------------------------------------ *)
 (* ---  Prover Interface                                                --- *)
 (* ------------------------------------------------------------------------ *)
@@ -350,62 +278,47 @@ module Huge =
 let wp_prover = add_group "Prover Interface"
 
 let () = Plugin.set_group wp_prover
-module Provers = FilledStringSet
+module Provers = StringList
   (struct
-     let option_name = "-wp-proof"
+     let option_name = "-wp-prover"
      let arg_name = "dp,..."
      let help =
        "Submit proof obligations to external prover(s):\n\
-         - 'none' to skip proofs\n\
+         - 'none' to skip provers\n\
         Directly supported provers:\n\
          - 'alt-ergo' (default)\n\
          - 'altgr-ergo' (gui)\n\
          - 'coq', 'coqide' (see also -wp-script)\n\
-        Supported provers via Why:\n\
-         - 'simplify', 'vampire', 'yices', 'cvc3', 'z3', 'zenon'"
-     let default =
-       if !Config.is_gui
-       then Datatype.String.Set.singleton "alt-ergo"
-       else Datatype.String.Set.empty
+         - 'why3:<dp>' or '<dp>' (why3 prover, see -wp-detect)\n\
+         - 'why3ide' (why3 gui)"
    end)
 
-let get_provers () =
-  match Datatype.String.Set.elements (Provers.get()) with
-    | [] -> ["alt-ergo"]
-    | ps -> ps
-
-let _prover_names =
-  [ "none" ;
-    "coq" ; "coqide" ;
-    "alt-ergo"; "altgr-ergo" ;
-    "simplify";
-    "vampire";
-    "yices";
-    "cvc3";
-    "zenon";
-    "z3" ]
+let () = Provers.add_aliases [ "-wp-proof" ] (* Deprecated *)
 
 let () = Plugin.set_group wp_prover
-let () = Plugin.do_not_save ()
-module Check =
-  String(struct
-           let option_name = "-wp-check"
-           let default =  "none"
-           let arg_name = "dp"
-           let help =
-             "Typecheck proof obligations for external prover:\n\
-               - 'none' to skip checks (default)\n\
-               - 'alt-ergo'\n\
-               - 'coq'\n\
-               - 'why' "
-         end)
-let () = on_reset Check.clear
+module Generate = False
+  (struct
+     let option_name = "-wp-gen"
+     let help = "Only generate prover files (default: no)."
+   end)
+let () = on_reset Generate.clear 
 
-let _check_names =
-  [ "none" ;
-    "coq" ;
-    "alt-ergo";
-    "why" ]
+let () = Plugin.set_group wp_prover
+module Detect = Action
+  (struct
+     let option_name = "-wp-detect"
+     let help = "List installed provers."
+   end)
+let () = on_reset Detect.clear
+
+let () = Plugin.set_group wp_prover
+module Drivers =
+  StringList
+    (struct
+       let option_name = "-wp-driver"
+       let arg_name = "file,..."
+       let help = "Load drivers for linking to external libraries"
+     end)
 
 let () = Plugin.set_group wp_prover
 module Depth =
@@ -416,6 +329,7 @@ module Depth =
 	let help = "Set depth of exploration for provers."
       end)
 
+let () = Plugin.set_group wp_prover
 module Steps =
   Int(struct
 	let option_name = "-wp-steps"
@@ -456,13 +370,6 @@ module Procs =
           Printf.sprintf
             "Number of parallel proof process (default: %d)" default
       end)
-
-let () = Plugin.set_group wp_prover
-module Trace =
-  False(struct
-          let option_name = "-wp-trace"
-          let help = "Keep labels in proof obligations (default: no)."
-        end)
 
 let () = Plugin.set_group wp_prover
 module ProofTrace =
@@ -540,21 +447,12 @@ module Includes =
      end)
 
 let () = Plugin.set_group wp_proverlibs
-module ProverSwitch =
-  EmptyString
-    (struct
-      let option_name = "-wp-prover-switch"
-      let arg_name ="switches"
-      let help = "Adds extra <switches> to the selected prover"
-     end)
-
-let () = Plugin.set_group wp_proverlibs
 module CoqLibs =
   StringList
     (struct
        let option_name = "-wp-coq-lib"
-       let arg_name = "file,..."
-       let help = "Additional library for Coq (either '.v' or '.vo' extension)"
+       let arg_name = "*.v,*.vo"
+       let help = "Additional libraries for Coq."
      end)
 
 let () = Plugin.set_group wp_proverlibs
@@ -562,8 +460,17 @@ module WhyLibs =
   StringList
     (struct
        let option_name = "-wp-why-lib"
-       let arg_name = "file,..."
-       let help = "Additional library file for Why"
+       let arg_name = "*.why"
+       let help = "Additional libraries for Why"
+     end)
+
+let () = Plugin.set_group wp_proverlibs
+module WhyFlags =
+  StringList
+    (struct
+       let option_name = "-wp-why-opt"
+       let arg_name = "option,..."
+       let help = "Additional options for Why3"
      end)
 
 let () = Plugin.set_group wp_proverlibs
@@ -571,8 +478,25 @@ module AltErgoLibs =
   StringList
     (struct
        let option_name = "-wp-alt-ergo-lib"
-       let arg_name = "file,..."
+       let arg_name = "*.mlw"
        let help = "Additional library file for Alt-Ergo"
+     end)
+
+let () = Plugin.set_group wp_proverlibs
+module AltErgoFlags =
+  StringList
+    (struct
+       let option_name = "-wp-alt-ergo-opt"
+       let arg_name = "option,..."
+       let help = "Additional options for Alt-Ergo"
+     end)
+
+let () = Plugin.set_group wp_proverlibs
+module AltErgoLightInt =
+  False
+    (struct
+       let option_name = "-wp-alt-ergo-lightint"
+       let help = "Use lightweight machine integer library for Alt-Ergo"
      end)
 
 (* ------------------------------------------------------------------------ *)
@@ -595,7 +519,7 @@ let () = Plugin.do_not_save ()
 module Report =
   StringList(struct
 	       let option_name = "-wp-report"
-	       let arg_name = "<report,...>"
+	       let arg_name = "report,..."
 	       let help = "Report specification file(s)"
 	     end)
 
@@ -604,19 +528,10 @@ let () = Plugin.do_not_save ()
 module ReportName =
   String(struct
 	   let option_name = "-wp-report-basename"
-	   let arg_name = "<f>"
+	   let arg_name = "file"
 	   let default = "wp-report"
 	   let help = Printf.sprintf "Basename of generated reports (default %S)" default
 	 end)
-
-let () = Plugin.set_group wp_po
-let () = Plugin.do_not_save ()
-module Dot =
-  False(struct
-          let option_name = "-wp-dot"
-          let help = "Generates dot files for wp computations."
-        end)
-let () = on_reset Dot.clear
 
 let () = Plugin.set_group wp_po
 module OutputDir =
@@ -629,28 +544,42 @@ module OutputDir =
          end)
 
 let () = Plugin.set_group wp_po
-module Details =
-  False(struct
-          let option_name = "-wp-warnings"
-          let help = "Print details about warnings for 'stronger' and 'degenerated' goals"
-        end)
+let () = Plugin.do_not_save ()
+module Check =
+  Action(struct
+           let option_name = "-wp-check"
+           let help =
+        "check the syntax and type of the produced file against \n\
+         alt-ergo, why3 and coq when the environnement variable WPCHECK=YES."
+         end)
+let () = on_reset Print.clear
+
+let wpcheck () =
+  Check.get () &&
+    try
+      Sys.getenv "WPCHECK" = "YES"
+    with Not_found -> false
 
 (* -------------------------------------------------------------------------- *)
 (* --- OS environment variables                                           --- *)
 (* -------------------------------------------------------------------------- *)
 
+let dkey = register_category "env"
+
 let get_env ?default var =
   try
     let varval = Sys.getenv var in
-    debug "ENV %s=%S" var varval ; varval
+    debug ~dkey "ENV %s=%S" var varval ; varval
   with Not_found ->
-    debug "ENV %s not set." var ;
+    debug ~dkey "ENV %s not set." var ;
     match default with
       | Some varval ->
-          debug "ENV %s default(%S)" var varval ; varval
+          debug ~dkey "ENV %s default(%S)" var varval ; varval
       | None ->
-          debug "ENV %s undefined." var ;
+          debug ~dkey "ENV %s undefined." var ;
           raise Not_found
+
+let dkey = register_category "out"
 
 let is_out () = !Config.is_gui || OutputDir.get() <> ""
 
@@ -664,13 +593,13 @@ let make_output_dir dir =
     begin
       try
         Unix.mkdir dir 0o770 ;
-        debug "Created output directory '%s'" dir
+        debug ~dkey "Created output directory '%s'" dir
       with e ->
-        debug "System error '%s'" (Printexc.to_string e) ;
+        debug ~dkey "System error '%s'" (Printexc.to_string e) ;
         abort "Can not create output directory '%s'" dir
     end
       
-(* Do not projectify this reference : it is common to all projects *)
+(*[LC] Do not projectify this reference : it is common to all projects *)
 let unique_tmp = ref None
 let make_tmp_dir () =
   match !unique_tmp with
@@ -689,18 +618,27 @@ let make_gui_dir () =
         try Sys.getenv "HOME" (*Unix like*) with Not_found ->
           "." in
     let dir = Filename.concat home ".frama-c-wp" in
+    if Sys.file_exists dir && Sys.is_directory dir then
+      Extlib.safe_remove_dir dir;
     make_output_dir dir ; dir
   with _ ->
     make_tmp_dir ()
 
+(** call the construction of the directory only once *)
+let base_output = ref None
 let base_output () =
-  match OutputDir.get () with
-    | "" ->
-        if !Config.is_gui || debug_atleast 1
-        then make_gui_dir ()
-        else make_tmp_dir ()
-    | dir ->
-        make_output_dir dir ; dir
+  match !base_output with
+  | None -> let output =
+              match OutputDir.get () with
+              | "" ->
+                if !Config.is_gui
+                then make_gui_dir ()
+                else make_tmp_dir ()
+              | dir ->
+                make_output_dir dir ; dir in
+            base_output := Some output;
+            output
+  | Some output -> output
 
 let get_output () =
   let base = base_output () in
@@ -716,8 +654,39 @@ let get_output_dir d =
   let path = Printf.sprintf "%s/%s" base d in
   make_output_dir path ; path
 
-(*
-Local Variables:
-compile-command: "make -C ../.."
-End:
-*)
+let dkey = register_category "includes"
+let find_db = ref false
+let find_lib file =
+  if Sys.file_exists file then file else 
+    let rec lookup file = function
+      | [] -> abort "File '%s' not found (see -wp-include)" file
+      | dir::dirs ->
+	  let path = Printf.sprintf "%s/%s" dir file in
+	  if Sys.file_exists path then path else lookup file dirs
+    in
+    let includes = 
+      List.map
+	(fun d ->
+	   if STRING.get d 0 = '+' then
+	     Printf.sprintf "%s/%s"
+	       (Kernel.Share.dir ()) 
+	       (STRING.sub d 1 (STRING.length d - 1))
+	   else d)
+	(Includes.get ())
+    in
+    let shared = 
+      try [Share.dir ~error:false ()] 
+      with Share.No_dir -> [] in
+    let drivers = List.map Filename.dirname (Drivers.get ()) in
+    let directories = includes @ drivers @ shared in
+    if not !find_db && has_dkey "includes" then
+      begin
+	find_db := true ;
+	debug ~dkey "Included directories:%t"
+	  (fun fmt ->
+	     List.iter 
+	       (fun d -> Format.fprintf fmt "@\n - '%s'" d)
+	       directories
+	  )
+      end ;
+    lookup file directories

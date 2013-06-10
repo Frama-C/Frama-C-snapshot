@@ -1,7 +1,7 @@
 /* run.config
-   OPT: -rte -rte-print -machdep x86_32 -journal-disable
-   OPT: -rte -rte-no-all -rte-print -rte-signed -machdep x86_32 -journal-disable
-   OPT: -rte -rte-no-all -rte-print -rte-unsigned-downcast -machdep x86_32 -journal-disable
+   OPT: -rte -warn-signed-overflow  -warn-signed-downcast -print -machdep x86_32
+   OPT: -rte -warn-signed-overflow -rte-no-all -print -warn-signed-overflow -machdep x86_32
+   OPT: -rte -warn-signed-overflow -rte-no-all -print -warn-signed-downcast -warn-unsigned-downcast -machdep x86_32
 */
 int main(void) {
   signed char sx,sy,sz;

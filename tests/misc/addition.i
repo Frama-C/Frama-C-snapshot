@@ -1,11 +1,11 @@
 /* run.config
    GCC:
-   OPT: -memory-footprint 1 -val -deps -out -input -absolute-valid-range 0x2D-0x30 -journal-disable
+   OPT: -memory-footprint 1 -val -deps -out -input -absolute-valid-range 0x2D-0x30 -journal-disable -then -absolute-valid-range 0x2D-0x31
 */
 
 
 int t[10],x,y,z,zz;
-int p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,p16;
+int p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,p16,p17;
 unsigned int u1,u3;
 int * q1;
 
@@ -16,7 +16,7 @@ int ttt[5][6];
 
 int square;
 
-int main(int u2, int u3)
+int main(int u2, int u3, int u4)
 {
   z = 37;
 
@@ -93,5 +93,9 @@ int main(int u2, int u3)
   u1 = u2 >> 2 ;
 
   2[t]=3;
+
+  p17 = -0x80000000;
+  if (u4 & 1) p17 %= -1;
+
   return (*(2+t)) + t[2];
 }

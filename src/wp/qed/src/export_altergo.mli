@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -36,13 +36,21 @@ sig
 
   open T
 
+  type trigger = (T.var,Fun.t) ftrigger
+
   class virtual engine :
   object
+
+    method typecheck : term -> tau (** or raise Not_found *)
+    method typeof_call : Fun.t -> tau (** or raise Not_found *)
+    method typeof_setfield : Field.t -> tau (** or raise Not_found *)
+    method typeof_getfield : Field.t -> tau (** or raise Not_found *)
 
     method virtual get_typedef : ADT.t -> tau option
     method virtual set_typedef : ADT.t -> tau -> unit
 
     inherit [ADT.t,Field.t,Fun.t,tau,var,term] Engine.engine
+    method op_spaced : string -> bool
     method op_record : string * string
     method pp_forall : tau -> var list printer
     method pp_intros : tau -> var list printer
@@ -54,6 +62,9 @@ sig
     method pp_declare_def : formatter -> ADT.t -> int -> tau -> unit
     method pp_declare_sum : formatter -> ADT.t -> int -> (Fun.t * tau list) list -> unit
     method pp_goal : model:int -> formatter -> term -> unit
+
+    method declare_prop : kind:string -> formatter -> string -> T.var list -> trigger list list -> term -> unit
+
   end
 
 end

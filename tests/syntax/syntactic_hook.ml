@@ -29,14 +29,14 @@ let warn_pure_exp f e =
   let loc = e.eloc in
   Kernel.warning ~source:(fst loc)
     "[SH]: function %s, pure expression %a is dropped"
-    f (!Ast_printer.d_exp) e
+    f (Printer.pp_exp) e
 ;;
 
 Cabs2cil.register_ignore_pure_exp_hook warn_pure_exp;;
 
 let warn_proto vi =
   Kernel.warning ~source:(fst vi.vdecl) "[SH]: implicit declaration for prototype %a"
-    (!Ast_printer.d_ident) vi.vname
+    (Format.pp_print_string) vi.vname
 ;;
 
 Cabs2cil.register_implicit_prototype_hook warn_proto
@@ -46,7 +46,7 @@ let warn_conflict oldvi vi reason =
   Kernel.warning
     ~source:(fst vi.vdecl)
     "[SH]: conflict with declaration of %a at line %d: %s"
-    !Ast_printer.d_ident vi.vname
+    Format.pp_print_string vi.vname
     (fst oldvi.vdecl).pos_lnum
     reason
 ;;
@@ -58,7 +58,7 @@ let warn_distinct oldvi vi =
     ~source:(fst vi.vdecl)
     "[SH]: definition of %a does not use exactly the same prototype as \
      declared on line %d"
-    !Ast_printer.d_ident vi.vname
+    Format.pp_print_string vi.vname
     (fst oldvi.vdecl).pos_lnum
 ;;
 
@@ -66,7 +66,7 @@ Cabs2cil.register_different_decl_hook warn_distinct;;
 
 let warn_local_func vi =
   Kernel.warning ~source:(fst vi.vdecl)
-    "[SH]: definition of local function %a" !Ast_printer.d_ident vi.vname
+    "[SH]: definition of local function %a" Format.pp_print_string vi.vname
 ;;
 
 Cabs2cil.register_local_func_hook warn_local_func;;
@@ -75,7 +75,7 @@ let warn_drop_effect olde e =
   Kernel.warning ~source:(fst e.eloc)
     "[SH]: dropping side effect in sizeof: %a is converted to %a"
     Cprint.print_expression olde
-    !Ast_printer.d_exp e
+    Printer.pp_exp e
 ;;
 
 Cabs2cil.register_ignore_side_effect_hook warn_drop_effect

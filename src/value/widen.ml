@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -48,10 +48,7 @@ class widen_visitor kf init_widen_hints init_enclosing_loop_info = object
       begin match s.skind with
       | Loop (_, bl, _, _, _) ->
           let annot = Annotations.code_annot s in
-          let l_pragma =
-            Ast_info.lift_annot_list_func
-              Logic_utils.extract_loop_pragma annot
-          in
+          let l_pragma = Logic_utils.extract_loop_pragma annot in
           let widening_stmts = match bl.bstmts with
             | [] -> [ s]
             | x :: _ -> [ s; x ]
@@ -103,8 +100,7 @@ class widen_visitor kf init_widen_hints init_enclosing_loop_info = object
                       let vid = Base.create_varinfo vi in
                       (vid::lv, lnum, lt)
                   | { term_node= TConst (Integer(v,_))} ->
-                      let v = Ival.Widen_Hints.V.of_int64 (My_bigint.to_int64 v)
-                      in (lv, v::lnum, lt)
+                      (lv, v::lnum, lt)
                   | _ -> (lv, lnum, t::lt)
                 in begin match List.fold_left f ([], [], []) l with
                 | (lv, lnum, []) ->
@@ -174,9 +170,9 @@ class widen_visitor kf init_widen_hints init_enclosing_loop_info = object
       end ;
     end
   method vexpr (e:exp) = begin
-    let with_succ v = [v ; Ival.Widen_Hints.V.succ v]
-    and with_pred v = [Ival.Widen_Hints.V.pred v ; v ]
-    and with_s_p_ v = [Ival.Widen_Hints.V.pred v; v; Ival.Widen_Hints.V.succ v]
+    let with_succ v = [v ; Integer.succ v]
+    and with_pred v = [Integer.pred v ; v ]
+    and with_s_p_ v = [Integer.pred v; v; Integer.succ v]
     and default_visit e =
       match Cil.isInteger e with
       | Some _int64 ->

@@ -1,43 +1,45 @@
-(**************************************************************************)
-(*                                                                        *)
-(*  Copyright (C) 2001-2003                                               *)
-(*   George C. Necula    <necula@cs.berkeley.edu>                         *)
-(*   Scott McPeak        <smcpeak@cs.berkeley.edu>                        *)
-(*   Wes Weimer          <weimer@cs.berkeley.edu>                         *)
-(*   Ben Liblit          <liblit@cs.berkeley.edu>                         *)
-(*  All rights reserved.                                                  *)
-(*                                                                        *)
-(*  Redistribution and use in source and binary forms, with or without    *)
-(*  modification, are permitted provided that the following conditions    *)
-(*  are met:                                                              *)
-(*                                                                        *)
-(*  1. Redistributions of source code must retain the above copyright     *)
-(*  notice, this list of conditions and the following disclaimer.         *)
-(*                                                                        *)
-(*  2. Redistributions in binary form must reproduce the above copyright  *)
-(*  notice, this list of conditions and the following disclaimer in the   *)
-(*  documentation and/or other materials provided with the distribution.  *)
-(*                                                                        *)
-(*  3. The names of the contributors may not be used to endorse or        *)
-(*  promote products derived from this software without specific prior    *)
-(*  written permission.                                                   *)
-(*                                                                        *)
-(*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS   *)
-(*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT     *)
-(*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS     *)
-(*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE        *)
-(*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,   *)
-(*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,  *)
-(*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;      *)
-(*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER      *)
-(*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT    *)
-(*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN     *)
-(*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE       *)
-(*  POSSIBILITY OF SUCH DAMAGE.                                           *)
-(*                                                                        *)
-(*  File modified by CEA (Commissariat à l'énergie atomique et aux        *)
-(*                        énergies alternatives).                         *)
-(**************************************************************************)
+(****************************************************************************)
+(*                                                                          *)
+(*  Copyright (C) 2001-2003                                                 *)
+(*   George C. Necula    <necula@cs.berkeley.edu>                           *)
+(*   Scott McPeak        <smcpeak@cs.berkeley.edu>                          *)
+(*   Wes Weimer          <weimer@cs.berkeley.edu>                           *)
+(*   Ben Liblit          <liblit@cs.berkeley.edu>                           *)
+(*  All rights reserved.                                                    *)
+(*                                                                          *)
+(*  Redistribution and use in source and binary forms, with or without      *)
+(*  modification, are permitted provided that the following conditions      *)
+(*  are met:                                                                *)
+(*                                                                          *)
+(*  1. Redistributions of source code must retain the above copyright       *)
+(*  notice, this list of conditions and the following disclaimer.           *)
+(*                                                                          *)
+(*  2. Redistributions in binary form must reproduce the above copyright    *)
+(*  notice, this list of conditions and the following disclaimer in the     *)
+(*  documentation and/or other materials provided with the distribution.    *)
+(*                                                                          *)
+(*  3. The names of the contributors may not be used to endorse or          *)
+(*  promote products derived from this software without specific prior      *)
+(*  written permission.                                                     *)
+(*                                                                          *)
+(*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS     *)
+(*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT       *)
+(*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS       *)
+(*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE          *)
+(*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,     *)
+(*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,    *)
+(*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;        *)
+(*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER        *)
+(*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT      *)
+(*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN       *)
+(*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE         *)
+(*  POSSIBILITY OF SUCH DAMAGE.                                             *)
+(*                                                                          *)
+(*  File modified by CEA (Commissariat à l'énergie atomique et aux          *)
+(*                        énergies alternatives)                            *)
+(*               and INRIA (Institut National de Recherche en Informatique  *)
+(*                          et Automatique).                                *)
+(****************************************************************************)
 
 (** Datatypes of some useful CIL types.
     @plugin development guide *)
@@ -63,8 +65,6 @@ module Location: sig
         [<dir/f>:<l>] *)
   val pretty_line: t Pretty_utils.formatter
     (** Prints only the line of the location *)
-  (**/**)
-  val pretty_ref: (Format.formatter -> t -> unit) ref
 end
 
 module Localisation: Datatype.S with type t = localisation
@@ -89,6 +89,11 @@ end
 module Compinfo: S_with_collections with type t = compinfo
 module Enuminfo: S_with_collections with type t = enuminfo
 module Enumitem: S_with_collections with type t = enumitem
+
+(**
+   @since Fluorine-20130401
+*)
+module Wide_string: S_with_collections with type t = int64 list
 
 (**
    @since Oxygen-20120901 
@@ -136,7 +141,7 @@ module Kinstr: sig
   val loc: t -> location
 end
 
-module Label: S with type t = label
+module Label: S_with_collections with type t = label
 
 (** Note that the equality is based on eid (for sub-expressions). 
     For structural equality, use {!LvalStructEq} *)
@@ -183,14 +188,23 @@ end
 (**/**)
 val pretty_typ_ref: (Format.formatter -> Cil_types.typ -> unit) ref
 (**/**)
+
+(** Types, with comparison over struct done by key and unrolling of typedefs. *)
 module Typ: sig
   include S_with_collections with type t = typ
 end
 
+(** Types, with comparison over struct done by name and no unrolling. *)
 module TypByName: sig
   include S_with_collections with type t = typ
 end
 
+(** Types, with comparison over struct done by key and no unrolling
+    @since Fluorine-20130401 
+ *)
+module TypNoUnroll: sig
+  include S_with_collections with type t = typ
+end
 
 (**/**) (* Forward declarations from Cil *)
 val pbitsSizeOf : (typ -> int) ref
@@ -240,6 +254,9 @@ end
 
 module Funspec: S with type t = funspec
 
+(** @since Fluorine-20130401 *)
+module Fundec: S_with_collections with type t = fundec
+
 module Global_annotation: sig
   include S_with_collections with type t = global_annotation
   val loc: t -> location
@@ -255,8 +272,11 @@ module Logic_label: S_with_collections with type t = logic_label
 (**/**)
 val pretty_logic_type_ref: (Format.formatter -> logic_type -> unit) ref
 (**/**)
+(** Logic_type. See the various [Typ*] modules for the distinction between
+    those modules *)
 module Logic_type: S_with_collections with type t = logic_type
 module Logic_type_ByName: S_with_collections with type t = logic_type
+module Logic_type_NoUnroll: S_with_collections with type t = logic_type
 
 module Logic_type_info: S_with_collections with type t = logic_type_info
 
@@ -265,9 +285,6 @@ module Logic_var: sig
   (**/**)
   val pretty_ref: (Format.formatter -> t -> unit) ref
 end
-
-(** @since Oxygen-20120901 *)
-module Rooted_code_annotation: S with type t = rooted_code_annotation
 
 (** @since Oxygen-20120901 *)
 module Model_info: sig
@@ -286,6 +303,8 @@ module Term_lhost: S_with_collections with type t = term_lhost
 module Term_offset: S_with_collections with type t = term_offset
 module Term_lval: S_with_collections with type t = term_lval
 
+module Predicate_named: S with type t = predicate named
+
 (**************************************************************************)
 (** {3 Logic_ptree}
     Sorted by alphabetic order. *)
@@ -293,18 +312,13 @@ module Term_lval: S_with_collections with type t = term_lval
 
 module Lexpr: S with type t = Logic_ptree.lexpr
 
-(**************************************************************************)
-(** {3 Other types} *)
-(**************************************************************************)
-
-module Alarm: Datatype.S_with_collections with type t = alarm
-
 (**/**)
 (* ****************************************************************************)
 (** {2 Internal API} *)
 (* ****************************************************************************)
 
 val drop_non_logic_attributes : (attributes -> attributes) ref
+val clear_caches: unit -> unit
 
 (**/**)
 

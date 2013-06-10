@@ -1,47 +1,101 @@
-(**************************************************************************)
-(*                                                                        *)
-(*  Copyright (C) 2001-2003                                               *)
-(*   George C. Necula    <necula@cs.berkeley.edu>                         *)
-(*   Scott McPeak        <smcpeak@cs.berkeley.edu>                        *)
-(*   Wes Weimer          <weimer@cs.berkeley.edu>                         *)
-(*   Ben Liblit          <liblit@cs.berkeley.edu>                         *)
-(*  All rights reserved.                                                  *)
-(*                                                                        *)
-(*  Redistribution and use in source and binary forms, with or without    *)
-(*  modification, are permitted provided that the following conditions    *)
-(*  are met:                                                              *)
-(*                                                                        *)
-(*  1. Redistributions of source code must retain the above copyright     *)
-(*  notice, this list of conditions and the following disclaimer.         *)
-(*                                                                        *)
-(*  2. Redistributions in binary form must reproduce the above copyright  *)
-(*  notice, this list of conditions and the following disclaimer in the   *)
-(*  documentation and/or other materials provided with the distribution.  *)
-(*                                                                        *)
-(*  3. The names of the contributors may not be used to endorse or        *)
-(*  promote products derived from this software without specific prior    *)
-(*  written permission.                                                   *)
-(*                                                                        *)
-(*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS   *)
-(*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT     *)
-(*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS     *)
-(*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE        *)
-(*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,   *)
-(*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,  *)
-(*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;      *)
-(*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER      *)
-(*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT    *)
-(*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN     *)
-(*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE       *)
-(*  POSSIBILITY OF SUCH DAMAGE.                                           *)
-(*                                                                        *)
-(*  File modified by CEA (Commissariat à l'énergie atomique et aux        *)
-(*                        énergies alternatives).                         *)
-(**************************************************************************)
+(****************************************************************************)
+(*                                                                          *)
+(*  Copyright (C) 2001-2003                                                 *)
+(*   George C. Necula    <necula@cs.berkeley.edu>                           *)
+(*   Scott McPeak        <smcpeak@cs.berkeley.edu>                          *)
+(*   Wes Weimer          <weimer@cs.berkeley.edu>                           *)
+(*   Ben Liblit          <liblit@cs.berkeley.edu>                           *)
+(*  All rights reserved.                                                    *)
+(*                                                                          *)
+(*  Redistribution and use in source and binary forms, with or without      *)
+(*  modification, are permitted provided that the following conditions      *)
+(*  are met:                                                                *)
+(*                                                                          *)
+(*  1. Redistributions of source code must retain the above copyright       *)
+(*  notice, this list of conditions and the following disclaimer.           *)
+(*                                                                          *)
+(*  2. Redistributions in binary form must reproduce the above copyright    *)
+(*  notice, this list of conditions and the following disclaimer in the     *)
+(*  documentation and/or other materials provided with the distribution.    *)
+(*                                                                          *)
+(*  3. The names of the contributors may not be used to endorse or          *)
+(*  promote products derived from this software without specific prior      *)
+(*  written permission.                                                     *)
+(*                                                                          *)
+(*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS     *)
+(*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT       *)
+(*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS       *)
+(*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE          *)
+(*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,     *)
+(*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,    *)
+(*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;        *)
+(*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER        *)
+(*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT      *)
+(*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN       *)
+(*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE         *)
+(*  POSSIBILITY OF SUCH DAMAGE.                                             *)
+(*                                                                          *)
+(*  File modified by CEA (Commissariat à l'énergie atomique et aux          *)
+(*                        énergies alternatives)                            *)
+(*               and INRIA (Institut National de Recherche en Informatique  *)
+(*                          et Automatique).                                *)
+(****************************************************************************)
 
 open Cil_types
 open Cil
 open Logic_const
+
+let adjust_assigns_clause loc var code_annot =
+  let change_result = object
+    inherit Cil.nopCilVisitor
+    method vterm_lhost = function
+      | TResult _ -> ChangeTo (TVar var)
+      | TVar _ | TMem _ -> DoChildren
+  end
+  in
+  let change_term t = Cil.visitCilTerm change_result t in
+  let module M = struct exception Found end in
+  let check_var = object
+    inherit Cil.nopCilVisitor
+    method vterm_lhost = function
+      | TVar v when Cil_datatype.Logic_var.equal var v -> raise M.Found
+      | TVar _ | TResult _ | TMem _ -> DoChildren
+  end
+  in
+  let contains_var l =
+    try ignore (Cil.visitCilAssigns check_var (Writes l)); false
+    with M.Found -> true
+  in
+  let change_from = function
+    | FromAny -> FromAny
+    | From l -> From (List.map Logic_const.refresh_identified_term l)
+  in
+  let adjust_lval (_,assigns as acc) (loc,from) =
+    if Logic_utils.contains_result loc.it_content then begin
+      true,
+      (Logic_const.new_identified_term (change_term loc.it_content),
+       change_from from)::assigns
+    end else acc
+  in
+  let adjust_clause b =
+    match b.b_assigns with
+      | WritesAny -> ()
+      | Writes l ->
+          if not (contains_var l) then begin
+            let (changed, a) = List.fold_left adjust_lval (false,l) l in
+            let a =
+              if changed then a 
+              else 
+                (Logic_const.new_identified_term (Logic_const.tvar ~loc var),
+                 FromAny)
+                :: a
+            in
+            b.b_assigns <- Writes a
+          end
+  in
+  match code_annot with
+    | AStmtSpec (_,s) -> List.iter adjust_clause s.spec_behavior
+    | _ -> ()
 
 let oneret (f: fundec) : unit =
   let fname = f.svar.vname in
@@ -145,10 +199,12 @@ let oneret (f: fundec) : unit =
      of plain assert.
    *)
   let returns_clause_stack = Stack.create () in
+  let stmt_contract_stack = Stack.create () in
   let rec popn n =
     if n > 0 then begin
       assert (not (Stack.is_empty returns_clause_stack));
       ignore (Stack.pop returns_clause_stack);
+      ignore (Stack.pop stmt_contract_stack);
       popn (n-1)
     end
   in
@@ -177,8 +233,8 @@ let oneret (f: fundec) : unit =
       popn popstack;
       List.rev (s::acc)
 
-    | ({skind=Return (retval, l)} as s) :: rests ->
-        Cil.CurrentLoc.set l;
+    | ({skind=Return (retval, loc)} as s) :: rests ->
+        Cil.CurrentLoc.set loc;
     (*
       ignore (E.log "Fixing return(%a) at %a\n"
       insert
@@ -195,12 +251,19 @@ let oneret (f: fundec) : unit =
      * an instruction that sets the return value (if any). *)
       s.skind <- begin
         match retval with
-            Some rval -> Instr (Set((Var (getRetVar ()), NoOffset), rval, l))
-          | None -> Instr (Skip (*locUnknown*)l)
+            Some rval -> Instr (Set((Var (getRetVar ()), NoOffset), rval, loc))
+          | None -> Instr (Skip loc)
       end;
       let returns_assert = ref ptrue in
-      Stack.iter (fun p -> returns_assert := pand (p, !returns_assert))
+      Stack.iter (fun p -> returns_assert := pand ~loc (p, !returns_assert))
         returns_clause_stack;
+      (match retval with
+        | Some _ ->
+            Stack.iter
+              (adjust_assigns_clause loc (Cil.cvar_to_lvar (getRetVar())))
+              stmt_contract_stack;
+        | None -> () (* There's no \result: no need to adjust it *)
+      );
       let add_assert res =
         match !returns_assert with
             { content = Ptrue } -> res
@@ -208,7 +271,7 @@ let oneret (f: fundec) : unit =
             let a =
               Logic_const.new_code_annotation (AAssert ([],p))
             in
-            mkStmt (Instr(Code_annot (a,l))) :: res
+            mkStmt (Instr(Code_annot (a,loc))) :: res
       in
     (* See if this is the last statement in function *)
       if mainbody && rests == [] then begin
@@ -217,7 +280,7 @@ let oneret (f: fundec) : unit =
       end else begin
       (* Add a Goto *)
         let sgref = ref (getRetStmt ()) in
-        let sg = mkStmt (Goto (sgref, l)) in
+        let sg = mkStmt (Goto (sgref, loc)) in
         haveGoto := true;
         popn popstack;
         scanStmts (sg :: (add_assert (s::acc))) mainbody 0 rests
@@ -272,6 +335,7 @@ let oneret (f: fundec) : unit =
       let returns = assert_of_returns ca in
       let returns = Logic_utils.translate_old_label s returns in
       Stack.push returns returns_clause_stack;
+      Stack.push ca.annot_content stmt_contract_stack;
       scanStmts (s::acc) mainbody (popstack + 1) rests
 
     | ({skind=(Goto _ | Instr _ | Continue _ | Break _

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -75,6 +75,7 @@ module type S = sig
   val list_state_union: ?deps:(State.t -> t) -> State.t list -> t
   val diff: t -> t -> t
   val cardinal: t -> int
+  val to_list: t -> State.t list
   val pretty: Format.formatter -> t -> unit
   val iter_succ: (State.t -> unit) -> t -> State.t -> unit
   val fold_succ: (State.t -> 'a -> 'a) -> t -> State.t -> 'a -> 'a
@@ -175,6 +176,8 @@ module Static = struct
     | Full -> 
       State_dependency_graph.G.fold_vertex f State_dependency_graph.graph acc
     | Subset sel -> Selection.fold_vertex f sel acc
+
+  let to_list s = fold (fun s acc -> s :: acc) s []
 
   module TG = State_topological.Make(State_dependency_graph.G)
   module TS = State_topological.Make(Selection)

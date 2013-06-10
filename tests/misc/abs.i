@@ -1,6 +1,6 @@
-/* run.config
-   STDOPT: +"-remove-redundant-alarms"
-   */
+
+
+
 
 
 //@ requires \valid(p);

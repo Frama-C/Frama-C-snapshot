@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -41,7 +41,7 @@ end
 let () =
   Cmdline.run_after_extended_stage
     (fun () ->
-      State_dependency_graph.Static.add_codependencies
+      State_dependency_graph.add_codependencies
         ~onto:SelectedStmt.self
         [ !Db.Pdg.self ])
 
@@ -87,11 +87,18 @@ module ImpactedNodes =
     let default () = Kernel_function.Map.empty
   end)
 
+module ReasonGraph =
+  State_builder.Ref(Reason_graph.Reason.Set)(struct
+    let name = "Impact.Register_gui.ReasonGraph"
+    let dependencies = [SelectedStmt.self]
+    let default () = Reason_graph.empty
+  end)
+
 module InitialNodes =
-  State_builder.Ref(Datatype.List(PdgTypes.Node))(struct
+  State_builder.Ref(PdgTypes.NodeSet)(struct
     let name = "Impact.Register_gui.InitialNodes"
     let dependencies = [SelectedStmt.self]
-    let default () = []
+    let default () = PdgTypes.NodeSet.empty
   end)
 
 let impact_in_kf kf = Compute_impact.impact_in_kf (ImpactedNodes.get ()) kf
@@ -150,15 +157,42 @@ let impact_highlighter buffer loc ~start ~stop =
     in
     apply_on_stmt hilight loc
 
+let reason_graph_window main_window reason =
+  try
+    let dot_file = Reason_graph.to_dot_file ~temp:true reason in
+    let reason_graph ~packing =
+      snd (Dgraph.DGraphContainer.Dot.from_dot_with_commands ~packing dot_file)
+    in
+    let height = int_of_float (float main_window#default_height *. 3. /. 4.) in
+    let width = int_of_float (float main_window#default_width *. 3. /. 4.) in
+    let window =
+      GWindow.window
+	~width ~height ~allow_shrink:true ~allow_grow:true
+	~position:`CENTER ()
+    in
+    let view = reason_graph ~packing:window#add in
+    window#show ();
+    view#adapt_zoom ()
+  with
+    | Dgraph.DGraphModel.DotError _ as exn ->
+        Options.error "@[cannot display impact graph:@ %s@]"
+          (Printexc.to_string exn)
+    | Sys_error _ as exn ->
+        Options.error "issue when generating impact graph: %s"
+          (Printexc.to_string exn)
+
 
 let impact_statement s =
   let kf = Kernel_function.find_englobing_kf s in
   let skip = Compute_impact.skip () in
-  let impact = Compute_impact.impacted_nodes ~skip kf [s] in
-  let init = Compute_impact.initial_nodes ~skip kf s in
+  let reason = Options.Reason.get () in
+  let impact, initial, reason =
+    Compute_impact.impacted_nodes ~skip ~reason kf [s]
+  in
   SelectedStmt.set s;
   ImpactedNodes.set impact;
-  InitialNodes.set init;
+  InitialNodes.set (Kernel_function.Map.find kf initial);
+  ReasonGraph.set reason;
   let stmts = ref [] in
   Kernel_function.Map.iter
     (fun kf s ->
@@ -171,15 +205,31 @@ let impact_statement s =
   Enabled.set true;
   impact
 
+
+let impact_statement =
+  Dynamic.register
+    ~comment:"Compute the impact of the statement in the Gui"
+    ~plugin:"impact"
+    "impact_statement_gui"
+    (Datatype.func Cil_datatype.Stmt.ty (Datatype.list Cil_datatype.Stmt.ty))
+    ~journalize:true
+    impact_statement
+
+
 let impact_statement_ui (main_ui:Design.main_window_extension_points) s =
   let val_computed = Db.Value.is_computed () in
-  ignore (!Db.Impact.from_stmt s);
+  ignore (impact_statement s);
   if not val_computed then
     main_ui#reset ()
   else (
     !update_column `Contents;
     main_ui#rehighlight ()
-  )
+  );
+  if Options.Reason.get () then
+    let g = ReasonGraph.get () in
+    if not (Reason_graph.Reason.Set.is_empty g) then
+      reason_graph_window main_ui#main_window g
+    
 
 let pretty_info = ref false
 
@@ -199,7 +249,8 @@ let impact_selector
           | Some s' when Cil_datatype.Stmt.equal s s' ->
             if !pretty_info then
             main_ui#pretty_information "@[Impact initial nodes:@ %a@]@."
-              (Pretty_utils.pp_list ~sep:",@ " (!Db.Pdg.pretty_node false))
+              (Pretty_utils.pp_iter PdgTypes.NodeSet.iter
+                 ~sep:",@ " (!Db.Pdg.pretty_node false))
               (InitialNodes.get ());
           | _ -> ());
         let nodes = impact_in_kf kf in
@@ -236,15 +287,6 @@ let impact_selector
 
 let impact_panel main_ui =
   let w = GPack.vbox () in
-  (* button "set_selected" *)
-  let bbox = GPack.hbox ~width:120 ~packing:w#pack () in
-  let set_selected =
-    GButton.button ~label:"Set selected"
-      ~packing:(bbox#pack ~fill:false ~expand:true) ()
-  in
-  let do_select = apply_on_stmt (fun _ -> impact_statement_ui main_ui) in
-  ignore (set_selected#connect#pressed
-            (fun () -> History.apply_on_selected do_select));
   (* check buttons *)
   let enabled_button =
     on_bool w "Enable" Enabled.get
@@ -261,10 +303,6 @@ let impact_panel main_ui =
   in
   (* panel refresh *)
   let refresh () =
-    let sensitive_set_selected_button = ref false in
-    History.apply_on_selected
-      (apply_on_stmt (fun _ _ -> sensitive_set_selected_button := true));
-    set_selected#misc#set_sensitive !sensitive_set_selected_button;
     enabled_button ();
     slicing_button ();
     follow_focus_button ()
@@ -298,15 +336,6 @@ let main main_ui =
   file_tree_decorate main_ui#file_tree
 
 let () = Design.register_extension main
-
-let () =
-  Db.register
-    (Db.Journalize
-       ("Impact.from_stmt",
-        Datatype.func Cil_datatype.Stmt.ty
-        (Datatype.list Cil_datatype.Stmt.ty)))
-    Impact.from_stmt
-    impact_statement
 
 
 (*

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -129,7 +129,7 @@ module Model_info =
 
 (* We depend from ast, but it is initialized after Logic_typing... *)
 let init_dependencies from =
-  State_dependency_graph.Static.add_dependencies
+  State_dependency_graph.add_dependencies
     ~from
     [ Logic_info.self; 
       Logic_type_info.self;
@@ -140,7 +140,7 @@ let init_dependencies from =
 
 let builtin_to_logic b =
   let params =
-    List.map (fun (x, t) -> Cil_const.make_logic_var x t) b.bl_profile
+    List.map (fun (x, t) -> Cil_const.make_logic_var_formal x t) b.bl_profile
   in
   let li = Cil_const.make_logic_info b.bl_name in
   li.l_type <- b.bl_type;

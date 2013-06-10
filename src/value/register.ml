@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -53,15 +53,15 @@ let () = Db.Main.extend main
 (** Functions to register in Db.Value *)
 
 let lval_to_loc_with_deps_state ~with_alarms state ~deps lv =
-  let _state, deps, r =
-    lval_to_loc_with_deps
+  let _state, deps, r, _ =
+    lval_to_loc_deps_state
       ~with_alarms
-      ~deps
+      ~deps:(Some deps)
       ~reduce_valid_index:(Kernel.SafeArrays.get ())
       state
       lv
   in
-  Zone.out_some_or_bottom deps, r
+  Extlib.opt_conv Zone.bottom deps, r
 
 let lval_to_loc_with_deps kinstr ~with_alarms ~deps lv =
   CilE.start_stmt kinstr;
@@ -81,18 +81,18 @@ let lval_to_loc_kinstr kinstr ~with_alarms lv =
   r
 
 let lval_to_zone kinstr ~with_alarms lv =
-  Locations.valid_enumerate_bits
+  Locations.enumerate_valid_bits
     ~for_writing:false
     (lval_to_loc_kinstr ~with_alarms kinstr lv)
 
 let lval_to_zone_state state lv =
-  Locations.valid_enumerate_bits
+  Locations.enumerate_valid_bits
     ~for_writing:false
     (lval_to_loc ~with_alarms:CilE.warn_none_mode state lv)
 
 let expr_to_kernel_function_state ~with_alarms state ~deps exp =
   let r, deps = resolv_func_vinfo ~with_alarms deps state exp in
-  Zone.out_some_or_bottom deps, r
+  Extlib.opt_conv Zone.bottom deps, r
 
 let expr_to_kernel_function kinstr ~with_alarms ~deps exp =
   CilE.start_stmt kinstr;
@@ -112,7 +112,7 @@ let eval_error_reason fmt e =
   then Eval_terms.pretty_logic_evaluation_error fmt e
 
 let assigns_inputs_to_zone state assigns =
-  let env = Eval_terms.env_pre_f state in
+  let env = Eval_terms.env_pre_f ~init:state () in
   let treat_asgn acc (_,ins as asgn) =
     match ins with
       | FromAny -> Zone.top
@@ -121,15 +121,15 @@ let assigns_inputs_to_zone state assigns =
           List.fold_left
             (fun acc t ->
               let z = Eval_terms.eval_tlval_as_zone
-                ~with_alarms:Eval_terms.warn_raise_mode
-                ~for_writing:false env None t.it_content in
+                ~with_alarms:CilE.warn_none_mode
+                ~for_writing:false env t.it_content in
               Zone.join acc z)
             acc
             l
         with Eval_terms.LogicEvalError e ->
           Value_parameters.warning ~current:true ~once:true
             "Failed to interpret inputs in assigns clause '%a'%a"
-            Cil.d_from asgn eval_error_reason e;
+            Printer.pp_from asgn eval_error_reason e;
           Zone.top
   in
   match assigns with
@@ -137,18 +137,18 @@ let assigns_inputs_to_zone state assigns =
     | Writes l  -> List.fold_left treat_asgn Zone.bottom l
 
 let assigns_outputs_aux ~eval ~bot ~top ~join state ~result assigns =
-  let env = Eval_terms.env_pre_f state in
+  let env = Eval_terms.env_post_f state state result () in
   let treat_asgn acc ({it_content = out},_) =
     if Logic_utils.is_result out && result = None
     then acc
     else
       try
-        let z = eval env result out in
+        let z = eval env out in
         join z acc
       with Eval_terms.LogicEvalError e ->
         Value_parameters.warning ~current:true ~once:true
           "Failed to interpret assigns clause '%a'%a"
-          Cil.d_term out eval_error_reason e;
+          Printer.pp_term out eval_error_reason e;
         join top acc
   in
   match assigns with
@@ -158,13 +158,13 @@ let assigns_outputs_aux ~eval ~bot ~top ~join state ~result assigns =
 let assigns_outputs_to_zone =
   assigns_outputs_aux
     ~eval:(Eval_terms.eval_tlval_as_zone
-             ~with_alarms:Eval_terms.warn_raise_mode ~for_writing:true)
+             ~with_alarms:CilE.warn_none_mode ~for_writing:true)
     ~bot:Locations.Zone.bottom ~top:Locations.Zone.top ~join:Locations.Zone.join
 
 let assigns_outputs_to_locations =
   assigns_outputs_aux
     ~eval:(Eval_terms.eval_tlval_as_location
-             ~with_alarms:Eval_terms.warn_raise_mode)
+             ~with_alarms:CilE.warn_none_mode)
     ~bot:[] ~top:(Locations.make_loc Locations.Location_Bits.top Int_Base.top)
     ~join:(fun v l -> v :: l)
 
@@ -188,6 +188,75 @@ let lval_to_offsetmap_state state lv =
       (lval_to_loc ~with_alarms state lv)
   in
   Cvalue.Model.copy_offsetmap ~with_alarms loc state
+
+
+(* "access" functions (before and after evaluation) in Db.Value *)
+let access_value_of_lval kinstr lv =
+  let state = Db.Value.get_state kinstr in
+  snd (!Db.Value.eval_lval ~with_alarms:CilE.warn_none_mode None state lv)
+
+let access_value_of_expr kinstr e =
+  let state = Db.Value.get_state kinstr in
+  !Db.Value.eval_expr ~with_alarms:CilE.warn_none_mode state e
+
+let access_value_of_location kinstr loc =
+  let state = Db.Value.get_state kinstr in
+  Db.Value.find state loc
+
+let access_value_of_lval_after ki lv =
+  match ki with
+  | Cil_types.Kstmt {Cil_types.succs = (_::_ ) as l} ->
+      let result =
+        List.fold_left
+          (fun acc s ->
+             let ks = Cil_types.Kstmt s in
+             Cvalue.V.join (access_value_of_lval ks lv) acc)
+          Cvalue.V.bottom
+          l
+      in
+      begin match Bit_utils.sizeof_lval lv with
+      | Int_Base.Top -> result
+      | Int_Base.Value size ->
+          Cvalue.V.anisotropic_cast ~size result
+      end
+  | _ -> raise Not_found
+
+let access_offsetmap_of_lval_after ki lv =
+  match ki with
+  | Cil_types.Kstmt {Cil_types.succs = (_::_ ) as l} ->
+      let result =
+        List.fold_left
+          (fun acc s ->
+             let ks = Cil_types.Kstmt s in
+             let state = Db.Value.get_state ks in
+             let loc =
+               Locations.valid_part ~for_writing:false
+               (!Db.Value.lval_to_loc_state state lv)
+             in
+             let offsetmap =
+               Cvalue.Model.copy_offsetmap
+                 ~with_alarms:CilE.warn_none_mode loc state
+             in
+             match acc, offsetmap with
+             | None, x | x , None -> x
+             | Some acc, Some offsetmap ->
+                 Some ((Cvalue.V_Offsetmap.join acc offsetmap)))
+          None
+          l
+      in
+      result
+  | _ -> raise Not_found
+
+let access_value_of_location_after ki loc =
+  match ki with
+    | Cil_types.Kstmt {Cil_types.succs=(_::_ ) as l} ->
+        List.fold_left
+          (fun acc s ->
+             let ks = Cil_types.Kstmt s in
+             Cvalue.V.join (access_value_of_location ks loc) acc)
+          Cvalue.V.bottom
+          l
+    | _ -> raise Not_found
 
 
 (* If the function is a builtin, or if the user has requested it, use
@@ -222,13 +291,17 @@ let () =
       s,v);
   Db.Value.eval_lval :=
     (fun ~with_alarms deps state lval ->
-      let _, deps, r = eval_lval ~conflate_bottom:true ~with_alarms deps state lval in
+      let _, deps, r, _ =
+        eval_lval ~conflate_bottom:true ~with_alarms deps state lval
+      in
       deps, r);
-  Db.Value.find_lv_plus :=
-    (fun ~with_alarms state e ->
-      try [find_lv_plus_offset ~with_alarms state e]
-      with Cannot_find_lv -> []);
-;;
+  Db.Value.access := access_value_of_lval;
+  Db.Value.access_after := access_value_of_lval_after;
+  Db.Value.access_location_after := access_value_of_location_after;
+  Db.Value.access_location := access_value_of_location;
+  Db.Value.access_expr := access_value_of_expr;
+  Db.Value.lval_to_offsetmap_after := access_offsetmap_of_lval_after
+
 
 
 (*

@@ -21,5 +21,5 @@ void main (int c) {
     f(1);
     if(c) f(-1);
   }
-  g ();
+  g ();g ();
 }

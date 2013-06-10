@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -20,7 +20,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* $Id: Wp.mli 17476 2012-03-07 09:29:09Z virgile $ *)
+(* $Id: Wp.mli 22051 2013-04-09 13:52:27Z correnson $ *)
 
 (** Weakest preconditions. *)
 

@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -28,7 +28,6 @@ open Cil_types
 open Cil_datatype
 open Ctypes
 
-open Qed
 open Lang
 open Lang.F
 open Memory
@@ -45,7 +44,7 @@ module Make(V : VarUsage)(M : Memory.Model) =
 struct
 
   let datatype = "MemVar." ^ V.datatype ^ M.datatype
-  let register = M.register
+  let configure = M.configure
 
   (* -------------------------------------------------------------------------- *)
   (* ---  Chunk                                                             --- *)
@@ -61,6 +60,7 @@ struct
     type t = varinfo
     let self = "var"
     let hash = Varinfo.hash
+    let equal = Varinfo.equal
     let compare = Varinfo.compare
     let pretty = Varinfo.pretty
     let typ_of_param x = 
@@ -77,8 +77,9 @@ struct
     let self = "alloc"
     let hash = Varinfo.hash
     let compare = Varinfo.compare
+    let equal = Varinfo.equal
     let pretty = Varinfo.pretty
-    let tau_of_chunk _x = Logic.Bool
+    let tau_of_chunk _x = Qed.Logic.Bool
     let basename_of_chunk x = 
       match V.param x with
 	| ByRef -> "ra_" ^ LogicUsage.basename x
@@ -103,6 +104,7 @@ struct
 	  | _ , Var _ -> 1
 	  | Alloc _  , _ -> (-1)
 	  | _ , Alloc _ -> 1
+    let equal c1 c2 = (compare c1 c2 = 0)
     let pretty fmt = function
       | Var x -> Varinfo.pretty fmt x
       | Alloc x -> Format.fprintf fmt "alloc(%a)" Varinfo.pretty x
@@ -143,6 +145,11 @@ struct
       alloc = ALLOC.create () ;
       mem = M.Sigma.create () ;
     }
+    let copy s = {
+      vars = SIGMA.copy s.vars ;
+      alloc = ALLOC.copy s.alloc ;
+      mem = M.Sigma.copy s.mem ;
+    }
     let merge s1 s2 =
       let s,pa1,pa2 = SIGMA.merge s1.vars s2.vars in
       let a,ta1,ta2 = ALLOC.merge s1.alloc s2.alloc in
@@ -156,6 +163,7 @@ struct
 	   (SIGMA.join s1.vars s2.vars)
 	   (ALLOC.join s1.alloc s2.alloc))
 	(M.Sigma.join s1.mem s2.mem)
+      
     let get s = function
       | Var x -> SIGMA.get s.vars x
       | Alloc x -> ALLOC.get s.alloc x
@@ -200,6 +208,13 @@ struct
 
     let domain_mem ms =
       M.Heap.Set.fold (fun m s -> Heap.Set.add (Mem m) s) ms Heap.Set.empty
+
+    let assigned s1 s2 w =
+      let w_vars , w_alloc , w_mem = domain_partition w in
+      let h_vars = SIGMA.assigned s1.vars s2.vars w_vars in
+      let h_alloc = ALLOC.assigned s1.alloc s2.alloc w_alloc in
+      let h_mem = M.Sigma.assigned s1.mem s2.mem w_mem in
+      Bag.ulist [h_vars;h_alloc;h_mem]
 
     let havoc s r = 
       let rvar , ralloc , rmem = domain_partition r 
@@ -261,9 +276,9 @@ struct
     | Mloc l -> Format.fprintf fmt "ptr(%a)" M.pretty l
     | Fref x -> Format.fprintf fmt "ref(%a)" VAR.pretty x
     | Fval(x,ofs) ->
-	Format.fprintf fmt "@[&var(%a)%a@]" VAR.pretty x pp_ofs ofs
+	Format.fprintf fmt "@[var(%a)%a@]" VAR.pretty x pp_ofs ofs
     | Mval(x,ofs) -> 
-	Format.fprintf fmt "@[&mem(%a)%a@]" VAR.pretty x pp_ofs ofs
+	Format.fprintf fmt "@[mem(%a)%a@]" VAR.pretty x pp_ofs ofs
 
   let rec ofs_vars xs = function
     | [] -> xs
@@ -290,21 +305,27 @@ struct
   (* -------------------------------------------------------------------------- *)
 
   let null = Mloc M.null
+
+  let literal ~eid cst = Mloc (M.literal ~eid cst)
+
   let cvar x = 	match V.param x with
     | ByRef -> Fref x
     | ByValue -> Fval(x,[])
     | InHeap -> Mval(x,[])
+
+  let mloc x ofs = 
+    List.fold_left
+      (fun l d -> match d with
+	 | Field f -> M.field l f
+	 | Index(e,k) -> M.shift l e k)
+      (M.cvar x) ofs
+      
   let mloc_of_loc = function
     | Mloc l -> l
     | Fref _ -> 
 	(* x should never be ByRef when its address is taken *)
 	Wp_parameters.fatal "Addr of ref-var"
-    | Fval(x,ofs) | Mval(x,ofs) -> 
-	List.fold_left
-	  (fun l d -> match d with
-	     | Field f -> M.field l f
-	     | Index(e,k) -> M.shift l e k)
-	  (M.cvar x) ofs
+    | Fval(x,ofs) | Mval(x,ofs) -> mloc x ofs
 
   let pointer_loc p = Mloc (M.pointer_loc p)
   let pointer_val l = M.pointer_val (mloc_of_loc l)
@@ -315,11 +336,17 @@ struct
     | Fval(x,ofs) -> Fval(x,ofs @ [Field f])
     | Mval(x,ofs) -> Mval(x,ofs @ [Field f])
 
+  let rec index ofs obj k =
+    match ofs with
+      | [] -> [Index(obj,k)]
+      | [Index(elt,i)] when Ctypes.equal elt obj -> [Index(elt,e_add i k)]
+      | delta :: ofs -> delta :: index ofs obj k
+
   let shift l obj k = match l with
     | Mloc l -> Mloc (M.shift l obj k)
     | Fref _ -> Wp_parameters.fatal "Index of ref-var"
-    | Fval(x,ofs) -> Fval(x,ofs @ [Index(obj,k)])
-    | Mval(x,ofs) -> Mval(x,ofs @ [Index(obj,k)])
+    | Fval(x,ofs) -> Fval(x,index ofs obj k)
+    | Mval(x,ofs) -> Mval(x,index ofs obj k)
 
   let base_addr = function
     | Mloc l -> Mloc (M.base_addr l)
@@ -400,39 +427,38 @@ struct
     | Field f :: ofs -> e_add (e_int64 (Ctypes.field_offset f)) (offset ofs)
     | Index(obj,k)::ofs -> e_add (e_fact (Ctypes.sizeof_object obj) k) (offset ofs)
 
-  let loc_offset obj a b =
+  let loc_diff obj a b =
     match a , b with
-      | Mloc l1 , Mloc l2 -> M.loc_offset obj l1 l2
+      | Mloc l1 , Mloc l2 -> M.loc_diff obj l1 l2
       | Fref x , Fref y when Varinfo.equal x y -> e_zero
       | (Fval(x,p)|Mval(x,p)) , (Fval(y,q)|Mval(y,q)) when Varinfo.equal x y ->
-	  e_div (e_sub (offset p) (offset q)) (e_int64 (sizeof_object obj))
+	  e_div (e_sub (offset p) (offset q)) (e_int64 (Ctypes.sizeof_object obj))
       | Mval _ , _ | _ , Mval _
       | Fval _ , _ | _ , Fval _
       | Fref _ , _ | _ , Fref _
 	  -> Warning.error ~source:"Reference Variable Model" 
 	  "Uncomparable locations %a and %a" pretty a pretty b
 	    
-  let loc_compare lcmp icmp a b =
+  let loc_compare lcmp icmp same a b =
     match a , b with
       | Mloc l1 , Mloc l2 -> lcmp l1 l2
-      | Fref x , Fref y -> if Varinfo.equal x y then p_true else p_false
-      | (Fval(x,p) , Fval(y,q)) | (Mval(x,p) , Mval(y,q)) ->
-	  if Varinfo.equal x y then icmp (offset p) (offset q) else p_false
-      | Mval _ , _ | _ , Mval _
-      | Fval _ , _ | _ , Fval _
-      | Fref _ , _ | _ , Fref _
-	 -> p_false
+      | Fref x , Fref y -> 
+	  if Varinfo.equal x y then same else p_not same
+      | (Fval(x,p)|Mval(x,p)) , (Fval(y,q)|Mval(y,q)) ->
+	  if Varinfo.equal x y then icmp (offset p) (offset q) else p_not same
+      | (Fval _|Mval _|Mloc _) , (Fval _|Mval _|Mloc _) -> lcmp (mloc_of_loc a) (mloc_of_loc b)
+      | Fref _ , _ | _ , Fref _ -> p_not same
 
-  let loc_eq = loc_compare M.loc_eq F.p_equal
-  let loc_lt = loc_compare M.loc_lt F.p_lt
-  let loc_leq = loc_compare M.loc_leq F.p_leq
-  let loc_neq = loc_compare M.loc_neq F.p_neq
+  let loc_eq = loc_compare M.loc_eq F.p_equal F.p_true
+  let loc_lt = loc_compare M.loc_lt F.p_lt F.p_false
+  let loc_leq = loc_compare M.loc_leq F.p_leq F.p_true
+  let loc_neq = loc_compare M.loc_neq F.p_neq F.p_false
 
   (* -------------------------------------------------------------------------- *)
   (* ---  Validity                                                          --- *)
   (* -------------------------------------------------------------------------- *)
 
-  let valid_of_array typ = match object_of typ with
+  let size_of_array_type typ = match object_of typ with
     | C_int _ | C_float _ | C_pointer _ | C_comp _ -> assert false
     | C_array { arr_flat=None } -> 
 	if not (Wp_parameters.ExternArrays.get ())
@@ -443,8 +469,10 @@ struct
 
   (* offset *)
 	
+  let first_index = Some e_zero
+	
   let range_offset typ k = 
-    match valid_of_array typ with
+    match size_of_array_type typ with
       | None -> p_positive k
       | Some s -> p_and (p_positive k) (p_lt k s)
 
@@ -457,13 +485,28 @@ struct
 
   let rec valid_offsetrange typ p a b = match p with
     | Field f :: ofs -> valid_offsetrange f.ftype ofs a b
-    | Index(_,k) :: ofs -> 
-	let h = range_offset typ k in
+    | [Index(obj,k)] ->
 	let te = Cil.typeOf_array_elem typ in
-	p_and h (valid_offsetrange te ofs a b)
+	let elt = Ctypes.object_of te in
+	if Ctypes.equal elt obj then
+	  let n = size_of_array_type typ in
+	  let a = Vset.bound_shift a k in
+	  let b = Vset.bound_shift b k in
+	  let p_inf = Vset.ordered ~limit:true ~strict:false first_index a in
+	  let p_sup = Vset.ordered ~limit:true ~strict:true b n in
+	  p_and p_inf p_sup
+	else
+	  let rg = range_offset typ k in
+	  let te = Cil.typeOf_array_elem typ in
+	  p_and rg (valid_offsetrange te [] a b)
+    | Index(_,k) :: ofs -> 
+	let rg = range_offset typ k in
+	let te = Cil.typeOf_array_elem typ in
+	p_and rg (valid_offsetrange te ofs a b)
     | [] ->
-	let p_inf = match a with None -> p_true | Some a -> p_positive a in
-	let p_sup = Vset.ordered b (valid_of_array typ) in
+	let n = size_of_array_type typ in
+	let p_inf = Vset.ordered ~limit:true ~strict:false first_index a in
+	let p_sup = Vset.ordered ~limit:true ~strict:true b n in
 	p_and p_inf p_sup
 
   (* varinfo + offset *)
@@ -474,29 +517,40 @@ struct
 
   let valid_path sigma x t ofs =
     p_and 
-      (valid_base sigma x) 
+      (valid_base sigma x)
       (valid_offset t ofs)
 
   let valid_pathrange sigma x t ofs a b =
     p_and 
       (valid_base sigma x) 
-      (p_imply (Vset.ordered a b) (valid_offsetrange t ofs a b))
+      (p_imply 
+	 (Vset.ordered ~limit:true ~strict:false a b) 
+	 (valid_offsetrange t ofs a b))
 
   (* segment *)
 
-  let valid_loc sigma obj = function
+  let valid_loc sigma acs obj = function
     | Fref _ -> p_true
     | Fval(x,p) | Mval(x,p) -> valid_path sigma x (VAR.typ_of_param x) p
-    | Mloc _ as l -> M.valid sigma.mem (Rloc(obj,mloc_of_loc l))
+    | Mloc _ as l -> M.valid sigma.mem acs (Rloc(obj,mloc_of_loc l))
 	
-  let valid_range sigma l obj a b = match l with
+  let valid_range sigma acs l obj a b = match l with
     | Fref _ -> Wp_parameters.fatal "range of ref-var"
     | Fval(x,p) | Mval(x,p) -> valid_pathrange sigma x (VAR.typ_of_param x) p a b
-    | Mloc _ as l -> M.valid sigma.mem (Rrange(mloc_of_loc l,obj,a,b))
+    | Mloc _ as l -> M.valid sigma.mem acs (Rrange(mloc_of_loc l,obj,a,b))
+
+  let valid_array sigma acs l obj s = match l with
+    | Fref _ -> Wp_parameters.fatal "range of ref-var"
+    | Fval(x,p) | Mval(x,p) -> valid_path sigma x (VAR.typ_of_param x) p
+    | Mloc _ as l -> 
+	let a = Some e_zero in
+	let b = Some (e_int64 (Int64.pred s)) in
+	M.valid sigma.mem acs (Rrange(mloc_of_loc l,obj,a,b))
 	  
-  let valid sigma = function
-    | Rloc(obj,l) -> valid_loc sigma obj l
-    | Rrange(l,obj,a,b) -> valid_range sigma l obj a b
+  let valid sigma acs = function
+    | Rloc(obj,l) -> valid_loc sigma acs obj l
+    | Rarray(l,obj,s) -> valid_array sigma acs l obj s
+    | Rrange(l,obj,a,b) -> valid_range sigma acs l obj a b
 
   (* -------------------------------------------------------------------------- *)
   (* ---  Scope                                                             --- *)
@@ -539,11 +593,11 @@ struct
   (* -------------------------------------------------------------------------- *)
 
   type seq =
-    | Lseg of M.loc rloc
+    | Rseg of varinfo
     | Fseg of varinfo * delta list
     | Mseg of M.loc rloc * varinfo * delta list
+    | Lseg of M.loc rloc
   and delta =
-    | Dref
     | Dfield of fieldinfo 
     | Drange of term option * term option
 	
@@ -552,19 +606,41 @@ struct
     | Index(_,k) -> let u = Some k in Drange(u,u)
 
   let delta ofs = List.map dofs ofs
-  let range ofs a b = delta ofs @ [ Drange(a,b) ]
+
+  let rec range ofs obj a b = 
+    match ofs with
+      | [] -> [ Drange(a,b) ]
+      | [Index(elt,k)] when Ctypes.equal elt obj ->
+	  [ Drange( Vset.bound_shift a k , Vset.bound_shift b k ) ]
+      | d :: ofs -> dofs d :: range ofs obj a b
+
+  let dsize s = Drange(Some (e_int 0) , Some (e_int64 (Int64.pred s)))
+  let rsize ofs s = delta ofs @ [ dsize s ]
+
+
 
   let locseg = function
+
+    | Rloc(_,Fref x) -> Rseg x
+    | Rarray(Fref _,_,_) | Rrange(Fref _,_,_,_) -> 
+	Wp_parameters.fatal "range of ref-var"
+
     | Rloc(obj,Mloc l) -> Lseg (Rloc(obj,l))
-    | Rloc(_,Fref x) -> Fseg(x,[Dref])
     | Rloc(_,Fval(x,ofs)) -> Fseg(x,delta ofs)
+
+    | Rarray(Mloc l,obj,s) -> Lseg (Rarray(l,obj,s))
+    | Rarray(Fval(x,ofs),_,s) -> Fseg(x,rsize ofs s)
+
     | Rrange(Mloc l,obj,a,b) -> Lseg (Rrange(l,obj,a,b))
-    | Rrange(Fref x,_,a,b) -> Fseg(x,[Dref;Drange(a,b)])
-    | Rrange(Fval(x,ofs),_,a,b) -> Fseg(x,range ofs a b)
-    | Rloc(obj,(Mval(x,ofs) as l)) -> 
-	Mseg(Rloc(obj,mloc_of_loc l),x,delta ofs)
-    | Rrange((Mval(x,ofs) as l),obj,a,b) -> 
-	Mseg(Rrange(mloc_of_loc l,obj,a,b),x,range ofs a b)
+    | Rrange(Fval(x,ofs),obj,a,b) -> Fseg(x,range ofs obj a b)
+
+	(* in M: *)
+    | Rloc(obj,Mval(x,ofs)) -> 
+	Mseg(Rloc(obj,mloc x ofs),x,delta ofs)
+    | Rarray(Mval(x,ofs),obj,s) ->
+	Mseg(Rarray(mloc x ofs,obj,s),x,rsize ofs s)
+    | Rrange(Mval(x,ofs),obj,a,b) -> 
+	Mseg(Rrange(mloc x ofs,obj,a,b),x,range ofs obj a b)
 
   (* -------------------------------------------------------------------------- *)
   (* ---  Segment Inclusion                                                 --- *)
@@ -576,21 +652,25 @@ struct
       | [] , _ -> p_false
       | u :: d1 , v :: d2 -> 
 	  match u , v with
-	    | Dref , Dref -> included_delta d1 d2
-	    | Dref , _ | _ , Dref -> p_false
-	    | Dfield f , Dfield g 
-		when Fieldinfo.equal f g -> included_delta d1 d2
+	    | Dfield f , Dfield g when Fieldinfo.equal f g -> 
+		included_delta d1 d2
 	    | Dfield _ , _ | _ , Dfield _ -> p_false
 	    | Drange(a1,b1) , Drange(a2,b2) ->
-		p_conj [ Vset.ordered a2 a1 ; 
-			 Vset.ordered b1 b2 ;
+		p_conj [ Vset.ordered ~strict:false ~limit:true a2 a1 ; 
+			 Vset.ordered ~strict:false ~limit:true b1 b2 ;
 			 included_delta d1 d2 ]
 
   let included s1 s2 =
     match locseg s1 , locseg s2 with
-      | Lseg _ , Fseg _ | Fseg _ , Lseg _ -> p_false
-      | (Fseg(x1,d1)|Mseg(_,x1,d1)) , (Fseg(x2,d2)|Mseg(_,x2,d2)) -> 
+      | Rseg x , Rseg y -> if Varinfo.equal x y then p_true else p_false
+      | Rseg _ , _ | _ , Rseg _ -> p_false
+
+      | Fseg(x1,d1) , Fseg(x2,d2) 
+      | Mseg(_,x1,d1) , Mseg(_,x2,d2) ->
 	  if Varinfo.equal x1 x2 then included_delta d1 d2 else p_false
+
+      | Fseg _ , _ | _ , Fseg _ -> p_false
+
       | (Lseg s1|Mseg(s1,_,_)) , (Lseg s2|Mseg(s2,_,_)) -> M.included s1 s2
 
   (* -------------------------------------------------------------------------- *)
@@ -599,25 +679,27 @@ struct
 
   let rec separated_delta d1 d2 =
     match d1 , d2 with
-      | [] , [] -> p_true
       | [] , _ | _ , [] -> p_false
       | u :: d1 , v :: d2 -> 
 	  match u , v with
-	    | Dref , Dref -> separated_delta d1 d2
-	    | Dref , _ | _ , Dref -> p_true
-	    | Dfield f , Dfield g 
-		when Fieldinfo.equal f g -> separated_delta d1 d2
+	    | Dfield f , Dfield g when Fieldinfo.equal f g 
+		-> separated_delta d1 d2
 	    | Dfield _ , _ | _ , Dfield _ -> p_true
 	    | Drange(a1,b1) , Drange(a2,b2) ->
-		p_disj [ Vset.strictly_ordered b1 a2 ; 
-			 Vset.strictly_ordered b2 a1 ;
+		p_disj [ Vset.ordered ~strict:true ~limit:false b1 a2 ; 
+			 Vset.ordered ~strict:true ~limit:false b2 a1 ;
 			 separated_delta d1 d2 ]
 
   let separated r1 r2 =
     match locseg r1 , locseg r2 with
-      | Lseg _ , Fseg _ | Fseg _ , Lseg _ -> p_true
-      | (Fseg(x1,d1)|Mseg(_,x1,d1)) , (Fseg(x2,d2)|Mseg(_,x2,d2)) -> 
+      | Rseg x , Rseg y -> if Varinfo.equal x y then p_false else p_true
+      | Rseg _ , _ | _ , Rseg _ -> p_true
+
+      | Fseg(x1,d1) , Fseg(x2,d2) 
+      | Mseg(_,x1,d1) , Mseg(_,x2,d2) ->
 	  if Varinfo.equal x1 x2 then separated_delta d1 d2 else p_true
+      | Fseg _ , _ | _ , Fseg _ -> p_true
+
       | (Lseg s1|Mseg(s1,_,_)) , (Lseg s2|Mseg(s2,_,_)) -> M.separated s1 s2
 
   (* -------------------------------------------------------------------------- *)
@@ -627,8 +709,12 @@ struct
   let sloc_descr = function
     | Sloc l -> [],l,p_true
     | Sdescr(xs,l,p) -> xs,l,p
+    | Sarray(l,obj,s) ->
+	let x = Lang.freshvar ~basename:"k" Qed.Logic.Int in
+	let k = e_var x in
+	[x],shift l obj k,Vset.in_size k s
     | Srange(l,obj,a,b) -> 
-	let x = Lang.freshvar ~basename:"k" Logic.Int in
+	let x = Lang.freshvar ~basename:"k" Qed.Logic.Int in
 	let k = e_var x in
 	[x],shift l obj k,Vset.in_range k a b
 
@@ -664,7 +750,7 @@ struct
 	      ) hs f.fcomp.cfields
 
 	| Index(_,e) :: ofs ->
-	    let y = Lang.freshvar ~basename:"k" Logic.Int in
+	    let y = Lang.freshvar ~basename:"k" Qed.Logic.Int in
 	    let k = e_var y in
 	    let ak = e_get a k in
 	    let bk = e_get b k in
@@ -689,10 +775,16 @@ struct
 	let v = Lang.freshvar ~basename:"v" (Lang.tau_of_object obj) in
 	stored s obj loc (e_var v)
 
+    (* Optimisation for full update of one array variable *)
+    | Sarray(Fval(_,[]),_,_) -> []
+    | Sarray(Fval(x,ofs),_,_) ->
+	let a = get_term s.pre x in
+	let b = get_term s.post x in
+	assigned_path [] [] [] a b ofs
+
     | sloc ->
 
-	(* Transfer the job to memory model M is sloc is in M *)
-
+	(* Transfer the job to memory model M if sloc is in M *)
 	try 
 	  let sloc = Cvalues.map_sloc 
 	    (function

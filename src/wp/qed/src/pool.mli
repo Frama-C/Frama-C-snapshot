@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -30,6 +30,7 @@ open Logic
 module type Type =
 sig
   type t
+  val dummy : t
   val equal : t -> t -> bool
 end
 
@@ -44,13 +45,15 @@ sig
 	vtau : T.t ;
       }
 
+  val dummy : var (** null vid *)
+
   val hash : var -> int (** [vid] *)
   val equal : var -> var -> bool (** [==] *)
   val compare : var -> var -> int
   val pretty : Format.formatter -> var -> unit
 
   type pool
-  val create : unit -> pool
+  val create : ?copy:pool -> unit -> pool
   val add : pool -> var -> unit
   val fresh : pool -> string -> T.t -> var
   val alpha : pool -> var -> var

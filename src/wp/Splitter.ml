@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -128,7 +128,12 @@ let mark stmt = MARK stmt
 (* --- Switch Cases                                                       --- *)
 (* -------------------------------------------------------------------------- *)
 
-module Tags = Qed.Listset.Make(struct type t = tag let compare = compare end)
+module Tags = Qed.Listset.Make
+  (struct 
+     type t = tag 
+     let compare = compare 
+     let equal x y = (compare x y = 0)
+   end)
 module M = Qed.Listmap.Make(Tags)
 module I = Map.Make(Tags)
 

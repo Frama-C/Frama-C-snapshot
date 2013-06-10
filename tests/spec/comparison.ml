@@ -10,8 +10,8 @@ let run () =
           | TBinOp ((Lt | Gt | Le | Ge | Eq | Ne), t1, t2) ->
             Kernel.result
               "Term comparison between %a of type %a and %a of type %a"
-              !Ast_printer.d_term t1 !Ast_printer.d_logic_type t1.term_type
-              !Ast_printer.d_term t2 !Ast_printer.d_logic_type t2.term_type;
+              Printer.pp_term t1 Printer.pp_logic_type t1.term_type
+              Printer.pp_term t2 Printer.pp_logic_type t2.term_type;
             DoChildren
           | _ -> DoChildren
       method vpredicate p =
@@ -19,8 +19,8 @@ let run () =
           | Prel ((Rlt | Rgt | Rle | Rge | Req | Rneq), t1, t2) ->
               Kernel.result
                 "Predicate comparison between %a of type %a and %a of type %a"
-                !Ast_printer.d_term t1 !Ast_printer.d_logic_type t1.term_type
-                !Ast_printer.d_term t2 !Ast_printer.d_logic_type t2.term_type;
+                Printer.pp_term t1 Printer.pp_logic_type t1.term_type
+                Printer.pp_term t2 Printer.pp_logic_type t2.term_type;
               DoChildren
           | _ -> DoChildren
     end

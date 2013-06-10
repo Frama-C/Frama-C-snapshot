@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -76,6 +76,8 @@ class slocVisitor : sloc_visitor = object(self)
   val mutable metrics_map:
       (BasicMetrics.t Datatype.String.Map.t) Datatype.String.Map.t =
     Datatype.String.Map.empty
+
+  val mutable seen_vars = Varinfo.Set.empty;
 
   val fundecl_calls: int VInfoMap.t ref = ref VInfoMap.empty;
   val fundef_calls: int VInfoMap.t ref = ref VInfoMap.empty;
@@ -174,26 +176,20 @@ class slocVisitor : sloc_visitor = object(self)
     local_metrics := empty_metrics;
 
   method vvdec vi =
-    if Cil.isFunctionType vi.vtype && consider_function vi then begin
-      (* If this function is only declared, and has never been seen before,
-         we place it into the no_source table. Defined functions are dealt
-         with in vfunc method *)
-        if not (self#is_defined_function vi) &&
-           not (VInfoMap.mem vi !fundecl_calls)
-        then
-          self#add_map fundecl_calls vi 0;
-    end
-    (*If this is a global variable of the initial file*)
-    else if vi.vglob  && not vi.vgenerated
-    then begin
-      global_metrics:= incr_glob_vars !global_metrics;
-    (* Format.printf "BEGIN@.";
-     Cil.d_var Format.std_formatter vi;
-     Format.printf "@.";
-     Format.printf "@.END@.";*)
-    end;
+    if not (Varinfo.Set.mem vi seen_vars) then (
+      if Cil.isFunctionType vi.vtype then (
+        if consider_function vi then
+          global_metrics := incr_funcs !global_metrics;
+      ) else (
+        if vi.vglob && not vi.vgenerated
+        then (
+	  global_metrics:= incr_glob_vars !global_metrics;
+        )
+      );
+      seen_vars <- Varinfo.Set.add vi seen_vars;
+    );
     Cil.SkipChildren
-
+      
   method vfunc fdec =
     if consider_function fdec.svar then
       begin
@@ -204,7 +200,6 @@ class slocVisitor : sloc_visitor = object(self)
             cfile_name = file_of_fundef fdec;
             cfunc_name = fdec.svar.vname;
             cfuncs = 1; (* Only one function is indeed being defined here *)};
-        global_metrics := incr_funcs !global_metrics;
         let fvinfo = fdec.svar in
         (if not (VInfoMap.mem fvinfo !fundef_calls) then
            (* Never seen before, including never been called *)
@@ -276,13 +271,6 @@ class slocVisitor : sloc_visitor = object(self)
     end;
     Cil.DoChildren
 
-  method private is_defined_function (v:varinfo) =
-    try
-      let kf = Globals.Functions.get v in
-      Kernel_function.is_definition kf
-    with
-      | Not_found -> Metrics.abort "Function %s not found in the ast" v.vname
-
   method private image (glob:global) =
     (* extract just the name of the global , for printing purposes *)
     match glob with
@@ -324,7 +312,7 @@ class slocVisitor : sloc_visitor = object(self)
                   self#add_map funcmap vinfo
                     (1 + try VInfoMap.find vinfo !funcmap with Not_found-> 0)
                 in
-                if self#is_defined_function vinfo
+                if vinfo.vdefined
                 then update_call_map fundef_calls
                 else update_call_map fundecl_calls
               end

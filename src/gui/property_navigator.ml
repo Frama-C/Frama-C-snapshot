@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -90,34 +90,6 @@ let make_property ip =
     consolidated_status_name = consolidated_status_name ;
     status_icon = status_icon ;
   }
-
-let graph_window main_window title ip = 
-  try
-    let state_dependency_graph ~packing =
-      let f =
-	try
-          Extlib.temp_file_cleanup_at_exit
-            "framac_property_status_navigator_graph" "dot"
-	with Extlib.Temp_file_error s ->
-          Gui_parameters.abort "cannot create temporary file: %s" s
-      in
-      Consolidation_graph.dump (Consolidation_graph.get ip) f;
-      snd (Dgraph.DGraphContainer.Dot.from_dot_with_commands ~packing f)
-    in
-    let height = int_of_float (float main_window#default_height *. 3. /. 4.) in
-    let width = int_of_float (float main_window#default_width *. 3. /. 4.) in
-    let window =
-      GWindow.window
-	~width ~height ~title ~allow_shrink:true ~allow_grow:true
-	~position:`CENTER ()
-    in
-    let view = state_dependency_graph ~packing:window#add in
-    window#show ();
-    view#adapt_zoom ()
-  with Dgraph.DGraphModel.DotError _ as exn ->
-    Gui_parameters.error
-      "@[cannot display consolidation graph:@ %s@]"
-      (Printexc.to_string exn)
 
 module Refreshers: sig
   module OnlyCurrent: State_builder.Ref with type data = bool
@@ -310,12 +282,11 @@ open Refreshers
 
 (* Process the rte statuses for the given kf, and add the result in the
    accumulator. Filter the statuses according to user-selected filters*)
-let aux_rte kf acc (rte_emitter, _, rte_status_get: Db.RteGen.status_accessor) =
+let aux_rte kf acc (name, _, rte_status_get: Db.RteGen.status_accessor) =
   let st = rte_status_get kf in
   match st, RteGenerated.get (), RteNotGenerated.get () with
     | true, true, _
     | false, _, true ->
-        let name = Emitter.get_name rte_emitter in
         (* Considered that leaf functions are not verified internally *)
 	let status_name, status = 
 	  if st then
@@ -379,7 +350,9 @@ let make_panel (main_ui:main_window_extension_points) =
        ~callback:(fun path _col ->
 	 match model#custom_get_iter path with
 	 | Some { MODEL.finfo = { ip = ip } } ->
-	   graph_window main_ui#main_window "Dependencies" ip
+	   let format_graph ppf = 
+	     Consolidation_graph.dump (Consolidation_graph.get ip) ppf in
+	   Gtk_helper.graph_window_through_dot main_ui#main_window "Dependencies" format_graph
 	 | None -> ()));
   view#selection#set_select_function
     (fun path currently_selected ->

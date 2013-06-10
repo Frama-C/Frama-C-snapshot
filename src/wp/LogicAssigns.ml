@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -63,7 +63,7 @@ struct
 
   let dsloc obj = function
     | Sloc l | Sdescr(_,l,_) -> M.domain obj l
-    | Srange(l,obj,_,_) -> M.domain obj l
+    | Srange(l,obj,_,_) | Sarray(l,obj,_) -> M.domain obj l
 
   let domain (r:region) =
     List.fold_left
@@ -76,37 +76,29 @@ struct
   (* --- Assignation                                                        --- *)
   (* -------------------------------------------------------------------------- *)
 
-  let is_havoc s1 s2 domain =
-    let pool = ref [] in
-    M.Sigma.iter2
-      (fun chunk c1 c2 ->
-	 match c1 , c2 with
-	   | Some x , Some y when not (M.Heap.Set.mem chunk domain)
-	       -> pool := F.p_equal (e_var x) (e_var y) :: !pool
-	   | _ -> ()
-      ) s1 s2 ;
-    !pool
-
   let rec assigned_seq hs s = function
-    | [] -> hs
+    | [] -> Bag.concat (M.Sigma.assigned s.pre s.post Dom.empty) hs
 
     | [obj,sloc] -> 
-	let hs_sloc = M.assigned s obj sloc in
-	let hs_others = is_havoc s.pre s.post (dsloc obj sloc) in
-	hs_sloc @ hs_others @ hs
+	let hs_sloc = Bag.list (M.assigned s obj sloc) in
+	let hs_sdom = M.Sigma.assigned s.pre s.post (dsloc obj sloc) in
+	Bag.concat (Bag.concat hs_sloc hs_sdom) hs
 
     | (obj,sloc)::tail ->
 	let sigma = M.Sigma.havoc s.post (dsloc obj sloc) in
-	let hs_sloc = M.assigned { pre = sigma ; post = s.post } obj sloc in
-	assigned_seq (hs_sloc @ hs) { pre = s.pre ; post = sigma } tail
+	let s_local = { pre = sigma ; post = s.post } in
+	let s_other = { pre = s.pre ; post = sigma } in
+	let hs_sloc = Bag.list (M.assigned s_local obj sloc) in
+	assigned_seq (Bag.concat hs_sloc hs) s_other tail
 
   let assigned (s:sigma sequence) (r:region) = 
-    assigned_seq [] s
+    let hs = assigned_seq Bag.empty s
       begin
 	List.fold_left
 	  (fun w (obj,slocs) ->
 	     List.fold_left (fun w sloc -> (obj,sloc) :: w) w slocs
 	  ) [] r
       end
+    in Bag.elements hs
       
 end

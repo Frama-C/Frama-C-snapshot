@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -40,7 +40,7 @@ class annotateFunFromDeclspec =
 	  Cil_datatype.Location.unknown i
       | AUnOp(Neg,AInt i) ->
         Ast_info.constant_term
-	  Cil_datatype.Location.unknown (My_bigint.neg i)
+	  Cil_datatype.Location.unknown (Integer.neg i)
       | AStr s
       | ACons(s,[]) ->
         begin try
@@ -193,9 +193,7 @@ class annotateFunFromDeclspec =
       List.iter insert_spec spec.spec_behavior
   in
 object
-
-  inherit Visitor.generic_frama_c_visitor
-    (Project.current ()) (Cil.inplace_visit ())
+  inherit Visitor.frama_c_inplace
 
   method vglob_aux = function
   | GFun(f,_) ->

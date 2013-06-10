@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -44,9 +44,14 @@ let trim name =
     if ( name.[0]='_' || name.[n-1]='_' ) then
       let p = first name 0 n in
       let q = last name (pred n) in
-      if p <= q then String.sub name p (q+1-p) else ""
+      if p <= q then 
+	let name = String.sub name p (q+1-p) in
+	match name.[0] with
+	  | '0' .. '9' -> "_" ^ name
+	  | _ -> name
+      else "_"
     else name
-  else ""
+  else "_"
 
 (* -------------------------------------------------------------------------- *)
 (* --- Definition Blocks                                                  --- *)
@@ -136,7 +141,7 @@ module Database = State_builder.Ref(DatabaseType)
      let default = empty_database
    end)
 
-let pp_logic fmt l = !Ast_printer.d_logic_var fmt l.l_var_info
+let pp_logic fmt l = Printer.pp_logic_var fmt l.l_var_info
 
 (* -------------------------------------------------------------------------- *)
 (* --- Overloading                                                        --- *)
@@ -174,10 +179,10 @@ let pp_profile fmt l =
   match l.l_profile with
     | [] -> ()
     | x::xs -> 
-	Format.fprintf fmt "@[<hov 1>(%a" !Ast_printer.d_logic_type x.lv_type ;
+	Format.fprintf fmt "@[<hov 1>(%a" Printer.pp_logic_type x.lv_type ;
 	List.iter
 	  (fun y -> Format.fprintf fmt ",@,%a" 
-	     !Ast_printer.d_logic_type y.lv_type)
+	     Printer.pp_logic_type y.lv_type)
 	  xs ;
 	Format.fprintf fmt ")@]"
 
@@ -571,9 +576,3 @@ let dump () =
 	d.lemmas ;
       Format.fprintf fmt "-------------------------------------------------@." ;
     end
-
-(*
-Local Variables:
-compile-command: "make -C ../.."
-End:
-*)

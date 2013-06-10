@@ -1,6 +1,6 @@
 /* run.config
-   OPT: -memory-footprint 1 -val -deps -out -input -journal-disable -val-signed-overflow-alarms
-   OPT: -memory-footprint 1 -val -deps -out -input -journal-disable 
+   OPT: -memory-footprint 1 -val -deps -out -input -warn-signed-overflow
+   OPT: -memory-footprint 1 -val -deps -out -input -no-warn-signed-overflow
 */
 extern int printf (__const char *__restrict __format, ...);
 /* L'analyseur déborde et dit i=-1 */
@@ -17,7 +17,7 @@ int main (int c) {
   unsigned long j1 = j+1;
 
   int y = c?1:100000;
-  int x = (60000 * y ) / 100000;
+  int x = (60000 * y) / 100000;
   int z = y * 1000 * 1000;
   int t = (-y) * 10000000; 
 /*

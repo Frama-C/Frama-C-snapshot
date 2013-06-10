@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -23,7 +23,6 @@
 open Cil_types
 open Cil_datatype
 open Cil
-open Ast_info
 
 (* ************************************************************************* *)
 (** {2 Global variables} *)
@@ -102,6 +101,16 @@ module Vars = struct
       | GVarDecl _ | GFun _ | GAsm _ | GPragma _ | GText _ | GAnnot _ -> ()
     in
     List.iter treat_global (Ast.get ()).globals
+
+  let fold_in_file_order f acc = 
+    let treat_global acc g = match g with
+      | GVar(vi,init,_) -> f vi init acc
+      | GVarDecl (_,vi,_) when not (Cil.isFunctionType vi.vtype) ->
+        f vi { init = None } acc
+      | GType _ | GCompTag _ | GCompTagDecl _ | GEnumTag _ | GEnumTagDecl _
+      | GVarDecl _ | GFun _ | GAsm _ | GPragma _ | GText _ | GAnnot _ -> acc
+    in
+    List.fold_left treat_global acc (Ast.get ()).globals
 
 end
 
@@ -182,7 +191,7 @@ module Functions = struct
   let update_kf kf fundec spec =
     kf.fundec <- fundec;
 (*    Kernel.feedback "UPDATE Spec of function %a (%a)" 
-      Cil_datatype.Kf.pretty kf !Ast_printer.d_funspec spec;*)
+      Cil_datatype.Kf.pretty kf Printer.pp_funspec spec;*)
     let loc = match kf.fundec with
       | Definition (_, loc) | Declaration (_, _, _, loc) -> loc 
     in
@@ -206,21 +215,23 @@ module Functions = struct
     if State.mem f.svar then
       update_kf (State.find f.svar) (Definition (f,l)) spec
     else
-      State.replace f.svar (init_kernel_function (Definition (f, l)) spec)
+      State.replace f.svar (init_kernel_function (Definition (f, l)) spec);
+    try ignore (Cil.getFormalsDecl f.svar)
+    with Not_found -> Cil.unsafeSetFormalsDecl f.svar f.sformals
 
   let add f =
     match f with
     | Definition (n, l) ->
       Kernel.debug
 	"@[<hov 2>Register definition %a with specification@. \"%a\"@]"
-        Varinfo.pretty_vname n.svar !Ast_printer.d_funspec n.sspec ;
+        Varinfo.pretty_vname n.svar Cil_printer.pp_funspec n.sspec ;
       replace_by_definition n.sspec n l;
       (* Kernel.MainFunction.set_possible_values
         (n.svar.vname :: Kernel.MainFunction.get_possible_values ()) *)
     | Declaration (spec, v,_,l) ->
       Kernel.debug
 	"@[<hov 2>Register declaration %a with specification@ \"%a\"@]"
-        Varinfo.pretty_vname v !Ast_printer.d_funspec spec;
+        Varinfo.pretty_vname v Cil_printer.pp_funspec spec;
       replace_by_declaration spec v l
 
   let iter f = Iterator.iter (fun v -> f (State.find v))
@@ -235,7 +246,7 @@ module Functions = struct
   let get vi =
     (*Kernel.feedback "get %a in %a" Cil_datatype.Varinfo.pretty vi
     Project.pretty (Project.current()); *)
-    if not (is_function_type vi) then raise Not_found;
+    if not (Ast_info.is_function_type vi) then raise Not_found;
     let add v = 
       (* Builtins don't automatically get a kernel function (unless they
          are used explicitly), but might still be accessed after AST
@@ -280,7 +291,8 @@ module Functions = struct
 
   let find_by_name fct_name =
     let f kf =
-      if Function.get_name kf.fundec = fct_name then raise (Found_kf kf)
+      if Ast_info.Function.get_name kf.fundec = fct_name
+      then raise (Found_kf kf)
     in
     try
       iter f;
@@ -290,8 +302,8 @@ module Functions = struct
 
   let find_def_by_name fct_name =
     let f kf =
-      if Function.is_definition kf.fundec
-        && Function.get_name kf.fundec = fct_name
+      if Ast_info.Function.is_definition kf.fundec
+        && Ast_info.Function.get_name kf.fundec = fct_name
       then
         raise (Found_kf kf)
     in
@@ -307,7 +319,8 @@ module Functions = struct
 	State.fold
 	  (fun _ kf acc ->
 	    let f = kf.fundec in
-	    if Function.is_definition f then Function.get_name f :: acc 
+	    if Ast_info.Function.is_definition f
+            then Ast_info.Function.get_name f :: acc 
 	    else acc)
 	  [])
 
@@ -509,9 +522,9 @@ module FileIndex = struct
   let kernel_function_of_local_var_or_param_varinfo x =
     compute ();
     let is_param = ref false in
-    let pred vi =
+    let pred g =
       let pred symb = (x.Cil_types.vid = symb.Cil_types.vid)
-      in match vi with
+      in match g with
         | Cil_types.GFun (fundec, _) ->
             if List.exists pred fundec.Cil_types.slocals then true
             else if List.exists pred fundec.Cil_types.sformals then
@@ -612,7 +625,7 @@ let get_comments_global g =
       match l with
         | [] -> 
           Kernel.fatal "Cannot find global %a in file %s"
-            !Ast_printer.d_global g file
+            Cil_printer.pp_global g file
         | g' :: l when Cil_datatype.Global.equal g g' ->
             { Lexing.pos_fname = file;
               Lexing.pos_lnum = 1;

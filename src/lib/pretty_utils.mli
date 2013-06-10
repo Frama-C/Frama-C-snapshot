@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -33,23 +33,8 @@ val to_string: (Format.formatter -> 'a -> unit) -> 'a -> string
 
 (** {2 separators} *)
 
-val no_sep: (unit,Format.formatter,unit) format
-(** do nothing *)
-
-val space_sep: (unit,Format.formatter,unit) format
-(** a breakable space *)
-
-val nl_sep: (unit,Format.formatter,unit) format
-(** forces a newline *)
-
 val pp_print_string_fill : Format.formatter -> string -> unit
 (** transforms every space in a string in breakable spaces.*)
-
-val open_box: (unit,Format.formatter,unit) format
-(** opens a new formatting box. *)
-
-val close_box: (unit,Format.formatter,unit) format
-(** close a formatting box. *)
 
 val escape_underscores : string -> string
 
@@ -87,8 +72,8 @@ val pp_iter:
     a box for [suf], nothing for [sep]. *)
 
 val pp_opt: ?pre:sformat -> ?suf:sformat -> 'a formatter -> 'a option formatter
-(** pretty-prints an optional value. Prefix and suffix default to nothing.
-    Nothing is printed if the option is [None]. *)
+(** pretty-prints an optional value. Prefix and suffix default to "@[" and "@]"
+    respectively. Nothing is printed if the option is [None]. *)
 
 val pp_cond: ?pr_false:sformat -> bool -> sformat formatter
 (** [pp_cond cond f s]  pretty-prints [s] if cond is [true] and the optional

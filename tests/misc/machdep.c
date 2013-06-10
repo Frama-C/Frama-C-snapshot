@@ -1,6 +1,5 @@
 /* run.config
-   OPT: -memory-footprint 1 -val -cpp-command "gcc -C -E -DPTEST"  -journal-disable
-   OPT: -memory-footprint 1 -machdep x86_64 -val -cpp-command "gcc -C -E -DPTEST" -journal-disable
+   OPT: -memory-footprint 1 -val -cpp-command "gcc -C -E -DPTEST"  -journal-disable -then -machdep x86_64 -then -machdep x86_16
 */
 
 #ifndef PTEST

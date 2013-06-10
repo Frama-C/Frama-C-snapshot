@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -33,8 +33,6 @@ module type Location_map_bitwise = sig
 
   module LOffset: sig
     include Datatype.S
-    val find_intervs : (Int.t -> Int.t -> y) ->
-      Int_Intervals.t -> t -> y
     val map: ((bool * y) -> (bool * y)) -> t -> t
     val fold :
       (Int_Intervals.t -> bool * y -> 'a -> 'a) -> t -> 'a -> 'a
@@ -48,7 +46,6 @@ module type Location_map_bitwise = sig
     val degenerate: y -> t
     val is_empty: t->bool
     val add_iset : exact:bool -> Int_Intervals.t -> y -> t -> t
-    val tag : t -> int
   end
 
   val empty : t
@@ -67,7 +64,7 @@ module type Location_map_bitwise = sig
 
   exception Cannot_fold
 
-  val uninitialize_locals: Cil_types.varinfo list -> t -> t
+  val uninitialize: Cil_types.varinfo list -> t -> t
 
   val fold : (Zone.t -> bool * y -> 'a -> 'a) -> t -> 'a -> 'a
   val fold_base : (Base.t -> LOffset.t -> 'a -> 'a) -> t -> 'a -> 'a
@@ -79,9 +76,7 @@ module type Location_map_bitwise = sig
     f:(bool * y -> bool * y) ->
     location -> location -> t -> t
 
- exception Zone_unchanged
-  val find_or_unchanged : t -> Zone.t -> y
-
+  val clear_caches: unit -> unit
 end
 
 module type With_default = sig
@@ -104,6 +99,7 @@ module Make_bitwise (V:With_default) = struct
     let find_or_default base m =
       try find base m with Not_found -> LOffset.empty
   end
+  let clear_caches = LBase.clear_caches
 
   type tt = Top | Map of LBase.t | Bottom
   type y = V.t
@@ -115,7 +111,7 @@ module Make_bitwise (V:With_default) = struct
   let hash = function
     | Top -> 0
     | Bottom -> 17
-    | Map x -> LBase.tag x
+    | Map x -> LBase.hash x
 
   let equal a b = match a,b with
     | Top,Top -> true
@@ -195,8 +191,8 @@ module Make_bitwise (V:With_default) = struct
 
  let add_binding ~exact m (loc:Zone.t) v  =
    match loc, m with
-   | Zone.Top (Zone.Top_Param.Top, _),_|_,Top -> Top
-   | Zone.Top (Zone.Top_Param.Set s, _), Map m ->
+   | Zone.Top (Base.SetLattice.Top, _),_|_,Top -> Top
+   | Zone.Top (Base.SetLattice.Set s, _), Map m ->
        let result =
          let treat_base base acc =
            let offsetmap_orig =
@@ -210,7 +206,7 @@ module Make_bitwise (V:With_default) = struct
            in
            LBase.add base new_offsetmap acc
          in
-         Zone.Top_Param.O.fold treat_base s (treat_base Base.null m)
+         Base.Hptset.fold treat_base s (treat_base Base.null m)
        in Map result
    | Zone.Map _, Map m ->
        let result =
@@ -410,7 +406,7 @@ module Make_bitwise (V:With_default) = struct
        in
        Map result
 
- let uninitialize_locals locals m =
+ let uninitialize locals m =
    match m with
      | Top -> Top
      | Bottom -> Bottom
@@ -421,12 +417,11 @@ module Make_bitwise (V:With_default) = struct
                 let base = Base.create_varinfo v in
                 let (i1,i2) =
                   match Base.validity base with
+                  | Base.Invalid -> assert false (* map should be empty *)
                   | Base.Periodic(i1, _, p) ->
                       assert (Int.is_zero i1);
                       i1, Int.pred p
-                  | Base.Unknown (i1,i2) | Base.Known(i1,i2) -> (i1,i2)
-                  | Base.All -> assert false
-                        (* not supposed to happen for a local*)
+                  | Base.Unknown (i1,_,i2) | Base.Known(i1,i2) -> (i1,i2)
                 in
                 if Int.lt i2 i1 then assert false (* not supposed to happen
                                                      for a local *)
@@ -473,32 +468,6 @@ module Make_bitwise (V:With_default) = struct
          in
          Zone.fold_i treat_offset loc V.bottom
 
- exception Zone_unchanged
-
- let find_or_unchanged m loc =
-    match loc, m with
-     | Zone.Top _, _ | _, Top -> V.top
-     | _, Bottom -> V.bottom
-     | Zone.Map _, Map m ->
-         let treat_offset varid offs (zone,unchanged) =
-           let default = V.default varid in
-           let offsetmap, this_base_unchanged =
-             try
-               LBase.find varid m, false
-             with Not_found ->
-               LOffset.empty, true
-           in
-           let new_zone =
-             V.join
-               (LOffset.find_iset default (V.defaultall varid) offs offsetmap)
-               zone
-           in
-           new_zone, (this_base_unchanged && unchanged)
-         in
-         let zone, unchanged = Zone.fold_i treat_offset loc (V.bottom, true) in
-         if unchanged then raise Zone_unchanged;
-         zone
-
   let copy_offsetmap ~f src_loc m =
     let result =
       begin
@@ -521,10 +490,11 @@ module Make_bitwise (V:With_default) = struct
                       match validity with
                       | Base.Periodic _ ->
                           raise Bitwise_cannot_copy
-                      | (Base.Known (b,e) | Base.Unknown (b,e)) when Int.lt start b
+                      | Base.Invalid -> acc
+                      | (Base.Known (b,e) | Base.Unknown (b,_,e)) when Int.lt start b
                             || Int.gt stop e ->
                           acc
-                      | Base.Known _ | Base.All | Base.Unknown _ ->
+                      | Base.Known _ | Base.Unknown _ ->
                           let default = V.default k_src in
                           let copy =
                             LOffset.real_copy ~f:(Some (f, default))
@@ -597,12 +567,21 @@ module Make_bitwise (V:With_default) = struct
                 match validity with
                 | Base.Periodic _ ->
                     raise Bitwise_cannot_copy
-                | Base.Known (b,e) | Base.Unknown (b,e) 
+                | Base.Known (b,e) | Base.Unknown (b,_,e) 
 		      when Int.lt start_to b || Int.gt stop_to e ->
                     CilE.warn_mem_write with_alarms;
                     acc
-                | Base.Known _ | Base.All | Base.Unknown _ ->
+                | Base.Invalid ->
+                    CilE.warn_mem_write with_alarms;
+                    acc
+                | Base.Known _ | Base.Unknown _ ->
                     had_non_bottom := true;
+		    (match validity with
+		      | Base.Unknown (_, None, _) ->
+                          CilE.warn_mem_write with_alarms
+                      | Base.Unknown (_, Some k, _) when Int.gt stop_to k ->
+                          CilE.warn_mem_write with_alarms
+		    | _ -> ());
                     (if dst_is_exact
                       then LOffset.copy_paste ~f:None
                       else LOffset.copy_merge)
@@ -634,8 +613,8 @@ module Make_bitwise (V:With_default) = struct
     assert (Int_Base.equal src_loc.size dst_loc.size );
 
 (* temporary fix *)
-      if not (Locations.can_be_accessed src_loc
-                  && Locations.can_be_accessed dst_loc)
+      if not (Locations.is_valid ~for_writing:false src_loc
+                  && Locations.is_valid ~for_writing:true dst_loc)
           then raise Bitwise_cannot_copy;
 
     try

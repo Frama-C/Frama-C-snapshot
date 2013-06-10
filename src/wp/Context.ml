@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -73,5 +73,9 @@ let free env f e = bind_with env None f e
 
 let push env x = let old = env.current in env.current <- Some x ; old
 let pop env old = env.current <- old
+
+let once f =
+  let once = ref (Some f) in
+  (fun () -> match !once with Some f -> once := None ; f () | None -> ())
 
 (* -------------------------------------------------------------------------- *)

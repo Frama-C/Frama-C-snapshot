@@ -1,50 +1,52 @@
-(**************************************************************************)
-(*                                                                        *)
-(*  Copyright (C) 2001-2003                                               *)
-(*   George C. Necula    <necula@cs.berkeley.edu>                         *)
-(*   Scott McPeak        <smcpeak@cs.berkeley.edu>                        *)
-(*   Wes Weimer          <weimer@cs.berkeley.edu>                         *)
-(*   Ben Liblit          <liblit@cs.berkeley.edu>                         *)
-(*  All rights reserved.                                                  *)
-(*                                                                        *)
-(*  Redistribution and use in source and binary forms, with or without    *)
-(*  modification, are permitted provided that the following conditions    *)
-(*  are met:                                                              *)
-(*                                                                        *)
-(*  1. Redistributions of source code must retain the above copyright     *)
-(*  notice, this list of conditions and the following disclaimer.         *)
-(*                                                                        *)
-(*  2. Redistributions in binary form must reproduce the above copyright  *)
-(*  notice, this list of conditions and the following disclaimer in the   *)
-(*  documentation and/or other materials provided with the distribution.  *)
-(*                                                                        *)
-(*  3. The names of the contributors may not be used to endorse or        *)
-(*  promote products derived from this software without specific prior    *)
-(*  written permission.                                                   *)
-(*                                                                        *)
-(*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS   *)
-(*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT     *)
-(*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS     *)
-(*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE        *)
-(*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,   *)
-(*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,  *)
-(*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;      *)
-(*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER      *)
-(*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT    *)
-(*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN     *)
-(*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE       *)
-(*  POSSIBILITY OF SUCH DAMAGE.                                           *)
-(*                                                                        *)
-(*  File modified by CEA (Commissariat à l'énergie atomique et aux        *)
-(*                        énergies alternatives).                         *)
-(**************************************************************************)
+(****************************************************************************)
+(*                                                                          *)
+(*  Copyright (C) 2001-2003                                                 *)
+(*   George C. Necula    <necula@cs.berkeley.edu>                           *)
+(*   Scott McPeak        <smcpeak@cs.berkeley.edu>                          *)
+(*   Wes Weimer          <weimer@cs.berkeley.edu>                           *)
+(*   Ben Liblit          <liblit@cs.berkeley.edu>                           *)
+(*  All rights reserved.                                                    *)
+(*                                                                          *)
+(*  Redistribution and use in source and binary forms, with or without      *)
+(*  modification, are permitted provided that the following conditions      *)
+(*  are met:                                                                *)
+(*                                                                          *)
+(*  1. Redistributions of source code must retain the above copyright       *)
+(*  notice, this list of conditions and the following disclaimer.           *)
+(*                                                                          *)
+(*  2. Redistributions in binary form must reproduce the above copyright    *)
+(*  notice, this list of conditions and the following disclaimer in the     *)
+(*  documentation and/or other materials provided with the distribution.    *)
+(*                                                                          *)
+(*  3. The names of the contributors may not be used to endorse or          *)
+(*  promote products derived from this software without specific prior      *)
+(*  written permission.                                                     *)
+(*                                                                          *)
+(*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS     *)
+(*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT       *)
+(*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS       *)
+(*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE          *)
+(*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,     *)
+(*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,    *)
+(*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;        *)
+(*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER        *)
+(*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT      *)
+(*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN       *)
+(*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE         *)
+(*  POSSIBILITY OF SUCH DAMAGE.                                             *)
+(*                                                                          *)
+(*  File modified by CEA (Commissariat à l'énergie atomique et aux          *)
+(*                        énergies alternatives)                            *)
+(*               and INRIA (Institut National de Recherche en Informatique  *)
+(*                          et Automatique).                                *)
+(****************************************************************************)
 
 let level=666
 
+open Extlib
 open Cil_types
 open Cil
 module H = Hashtbl
-module U = Cilutil
 
 (* Set on the command-line: *)
 let keepUnused = ref false
@@ -67,7 +69,7 @@ let clearReferencedBits file =
 
     | GEnumTag (info, _)
     | GEnumTagDecl (info, _) ->
-	Kernel.debug ~level "clearing mark: %a" d_global global;
+	Kernel.debug ~level "clearing mark: %a" Cil_printer.pp_global global;
 	info.ereferenced <- false
 
     | GCompTag (info, _)
@@ -129,10 +131,10 @@ let categorizePragmas file =
 
   (* names of things which should be retained *)
   let keepers = {
-    typedefs = H.create 0;
-    enums = H.create 0;
-    structs = H.create 0;
-    unions = H.create 0;
+    typedefs = H.create 1;
+    enums = H.create 1;
+    structs = H.create 1;
+    unions = H.create 1;
     defines = H.create 1
   } in
 
@@ -191,7 +193,7 @@ let categorizePragmas file =
           | _ ->
 	    Kernel.fatal ~current:true
 	      "Bad alias attribute at %a"
-	      d_loc (CurrentLoc.get ())
+	      Cil_printer.pp_location (CurrentLoc.get ())
       end
 
       (*** Begin CCured-specific checks:  ***)
@@ -238,32 +240,6 @@ let categorizePragmas file =
   in
   iterGlobals file considerPragma;
   keepers
-
-
-
-(***********************************************************************
- *
- *  Function body elimination from pragmas
- *
- *)
-
-
-(* When performing global slicing, any functions not explicitly marked
- * as pragma roots are reduced to mere declarations.  This leaves one
- * with a reduced source file that still compiles to object code, but
- * which contains the bodies of only explicitly retained functions.
- *)
-
-let amputateFunctionBodies keptGlobals file =
-  let considerGlobal = function
-    | GFun ({svar = {vname = name} as info}, location)
-      when not (H.mem keptGlobals name) ->
-	(Kernel.debug ~level "slicing: reducing to prototype: function %s\n" name);
-	GVarDecl (empty_funspec(),info, location)
-    | other ->
-	other
-  in
-  mapGlobals file considerGlobal
 
 
 
@@ -484,42 +460,36 @@ class markReachableVisitor
     SkipChildren
 
   method private mark_enum e =
-     let old = e.ereferenced in
-     if not old then
-       begin
-	 Kernel.debug ~level "marking transitive use: enum %s\n" e.ename;
-	 e.ereferenced <- true;
-	 self#visitAttrs e.eattr;
-         (* Must visit the value attributed to the enum constants *)
-         ignore (visitCilEnumInfo (self:>cilVisitor) e);
-       end
-     else 
-       Kernel.debug ~level "not marking transitive use: enum %s\n" e.ename;
-     old
+    if not e.ereferenced then
+      begin
+	Kernel.debug ~level "marking transitive use: enum %s\n" e.ename;
+	e.ereferenced <- true;
+	self#visitAttrs e.eattr;
+        (* Must visit the value attributed to the enum constants *)
+        ignore (visitCilEnumInfo (self:>cilVisitor) e);
+      end
+    else 
+      Kernel.debug ~level "not marking transitive use: enum %s\n" e.ename;
 
   method vexpr e =
     match e.enode with
-      Const (CEnum {eihost = ei}) -> ignore (self#mark_enum ei); DoChildren
+      Const (CEnum {eihost = ei}) -> self#mark_enum ei; DoChildren
     | _ -> DoChildren
       
   method vterm_node t =
     match t with
-      TConst (LEnum {eihost = ei}) -> ignore (self#mark_enum ei); DoChildren
+      TConst (LEnum {eihost = ei}) -> self#mark_enum ei; DoChildren
     | _ -> DoChildren
       
   method private visitAttrs attrs =
     ignore (visitCilAttributes (self :> cilVisitor) attrs)
       
   method vtype typ =
-    let old : bool =
-      let visitType typ =
-	ignore (visitCilType (self :> cilVisitor) typ)
-      in
-      match typ with
+    (match typ with
       | TEnum(e, attrs) ->
-	self#visitAttrs attrs;
-        self#mark_enum e
-          
+	  self#visitAttrs attrs;
+          self#mark_enum e
+            
       | TComp(c, _, attrs) ->
 	  let old = c.creferenced in
           if not old then
@@ -529,12 +499,11 @@ class markReachableVisitor
 	      c.creferenced <- true;
 
               (* to recurse, we must ask explicitly *)
-	      let recurse f = visitType f.ftype in
+	      let recurse f = ignore (self#vtype f.ftype) in
 	      List.iter recurse c.cfields;
 	      self#visitAttrs attrs;
 	      self#visitAttrs c.cattr
 	    end;
-	  old
 
       | TNamed(ti, attrs) ->
 	  let old = ti.treferenced in
@@ -546,20 +515,22 @@ class markReachableVisitor
 
 	      (* recurse deeper into the type referred-to by the typedef *)
 	      (* to recurse, we must ask explicitly *)
-	      visitType ti.ttype;
+	      ignore (self#vtype ti.ttype);
 	      self#visitAttrs attrs
 	    end;
-	  old
 
-      | _ ->
-          (* for anything else, just look inside it *)
-	  false
-    in
-    if old then
-      SkipChildren
-    else
-      DoChildren
-
+      | TVoid a | TInt (_,a) | TFloat (_,a) | TBuiltin_va_list a ->
+         self#visitAttrs a
+      | TPtr(ty,a) -> ignore (self#vtype ty); self#visitAttrs a
+      | TArray(ty,sz, _, a) ->
+          ignore (self#vtype ty); self#visitAttrs a;
+          Extlib.may (ignore $ (visitCilExpr (self:>cilVisitor))) sz
+      | TFun (ty, args,_,a) ->
+          ignore (self#vtype ty);
+          Extlib.may (List.iter (fun (_,ty,_) -> ignore (self#vtype ty))) args;
+          self#visitAttrs a
+    );
+    SkipChildren
 end
 
 
@@ -636,7 +607,7 @@ class markUsedLabels is_removable (labelMap: (string, unit) H.t) =
   let keep_label dest =
   let (ln, _), _ = labelsToKeep is_removable !dest.labels in
   if ln = "" then
-    Kernel.fatal "Statement has no label:@\n%a" Cil.d_stmt !dest ;
+    Kernel.fatal "Statement has no label:@\n%a" Cil_printer.pp_stmt !dest ;
   (* Mark it as used *)
   H.replace labelMap ln ()
 in
@@ -825,10 +796,6 @@ let removeUnusedTemps ?(isRoot : rootsFilter = isDefaultRoot) file =
 
       (* digest any pragmas that would create additional roots *)
       let keepers = categorizePragmas file in
-
-      (* if slicing, remove the bodies of non-kept functions *)
-      if !Cilglobopt.sliceGlobal then
-	amputateFunctionBodies keepers.defines file;
 
       (* build up the root set *)
       let isRoot global =

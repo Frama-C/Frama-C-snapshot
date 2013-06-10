@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -28,6 +28,7 @@ module type Elt =
 sig
   type t
   val hash : t -> int
+  val equal : t -> t -> bool
   val compare : t -> t -> int
 end
 
@@ -40,6 +41,11 @@ struct
 
   type t = E.t list Intmap.t
 
+  let is_empty es = 
+    try 
+      Intmap.iteri (fun _ s -> if s <> [] then raise Exit) es ; 
+      true
+    with Exit -> false
   let empty = Intmap.empty
 
   let add e m =
@@ -100,5 +106,7 @@ struct
 	     | Some w1 , Some w2 -> if Lset.intersect w1 w2 then raise Exit
 	) m1 m2 ; false
     with Exit -> true
+
+  let equal = Intmap.equal E.equal
 
 end

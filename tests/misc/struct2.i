@@ -1,6 +1,6 @@
 /* run.config
   GCC:
-  OPT: -memory-footprint 1 -val -deps -out -input  -main f_precis -journal-disable
+  OPT: -memory-footprint 1 -val -deps -out -input  -main f_precis -journal-disable -absolute-valid-range 0x1000-0x2000
 */
 struct st1 {
  int a;
@@ -39,7 +39,7 @@ int tab6[2];
 int *p, *p2, *p3, *p4, *p5, *p6, *p7;
 int **q,**r,**s,**t;
 
-int a,b;
+int a,b; volatile int v;
 
 void f_precis(int x, int i, int j, int k, int l, int m){
 
@@ -116,36 +116,36 @@ void f_precis(int x, int i, int j, int k, int l, int m){
 
   *p               = *p + x;
 
-  q = (int*)0;
+  q = (int*)0x1000;
   r = (int*)0;
 
   *q               = p;
 
-  **r              = a;
+  if (v) **r              = a;
 
   p2               = &tab1[2];
 
   p3               = &tab1[i];
 
-  b                = *(p3+2);
+  if (v) b                = *(p3+2);
 
   p4               = p;
 
   p5               = (int *) 0x1000;
 
-  p6 = (int*)0;
+  p6               = (int*)0x1010;
 
-  *p6              = *(int *) 0x1000 + i;
+  *p6              = *(int *) 0x1020 + i;
 
   p7               = p2 + 1;
 
 /*  p8                = p2 - i; */
 
-  s = (int*)0;
+  s                = (int*)0x1030;
 
-  *s               = (int *) 0x1000;
+  *s               = (int *) 0x1040;
 
-  t = (int*)0;
+  t                = (int*)0x1050;
  (*t)[i]           = 2;
 
 /* ---------  */
@@ -182,7 +182,7 @@ void f_precis(int x, int i, int j, int k, int l, int m){
 
   s1.c->c->c->a    = x;
 
-  s4.e[tabst[tab1[i+j]].a].a = *(tab2[k] + s5.e[tabst2[tab3[l] + m].a].b);
+  s4.e[tabst[tab1[i+j]].a].a = *((char*)(tab2[k] + s5.e[tabst2[tab3[l] + m].a].b)+0x1060);
 
 /*------------------------------*/
 /* Clauses From attendues       */

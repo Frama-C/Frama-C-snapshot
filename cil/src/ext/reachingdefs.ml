@@ -1,43 +1,45 @@
-(**************************************************************************)
-(*                                                                        *)
-(*  Copyright (C) 2001-2003                                               *)
-(*   George C. Necula    <necula@cs.berkeley.edu>                         *)
-(*   Scott McPeak        <smcpeak@cs.berkeley.edu>                        *)
-(*   Wes Weimer          <weimer@cs.berkeley.edu>                         *)
-(*   Ben Liblit          <liblit@cs.berkeley.edu>                         *)
-(*  All rights reserved.                                                  *)
-(*                                                                        *)
-(*  Redistribution and use in source and binary forms, with or without    *)
-(*  modification, are permitted provided that the following conditions    *)
-(*  are met:                                                              *)
-(*                                                                        *)
-(*  1. Redistributions of source code must retain the above copyright     *)
-(*  notice, this list of conditions and the following disclaimer.         *)
-(*                                                                        *)
-(*  2. Redistributions in binary form must reproduce the above copyright  *)
-(*  notice, this list of conditions and the following disclaimer in the   *)
-(*  documentation and/or other materials provided with the distribution.  *)
-(*                                                                        *)
-(*  3. The names of the contributors may not be used to endorse or        *)
-(*  promote products derived from this software without specific prior    *)
-(*  written permission.                                                   *)
-(*                                                                        *)
-(*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS   *)
-(*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT     *)
-(*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS     *)
-(*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE        *)
-(*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,   *)
-(*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,  *)
-(*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;      *)
-(*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER      *)
-(*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT    *)
-(*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN     *)
-(*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE       *)
-(*  POSSIBILITY OF SUCH DAMAGE.                                           *)
-(*                                                                        *)
-(*  File modified by CEA (Commissariat à l'énergie atomique et aux        *)
-(*                        énergies alternatives).                         *)
-(**************************************************************************)
+(****************************************************************************)
+(*                                                                          *)
+(*  Copyright (C) 2001-2003                                                 *)
+(*   George C. Necula    <necula@cs.berkeley.edu>                           *)
+(*   Scott McPeak        <smcpeak@cs.berkeley.edu>                          *)
+(*   Wes Weimer          <weimer@cs.berkeley.edu>                           *)
+(*   Ben Liblit          <liblit@cs.berkeley.edu>                           *)
+(*  All rights reserved.                                                    *)
+(*                                                                          *)
+(*  Redistribution and use in source and binary forms, with or without      *)
+(*  modification, are permitted provided that the following conditions      *)
+(*  are met:                                                                *)
+(*                                                                          *)
+(*  1. Redistributions of source code must retain the above copyright       *)
+(*  notice, this list of conditions and the following disclaimer.           *)
+(*                                                                          *)
+(*  2. Redistributions in binary form must reproduce the above copyright    *)
+(*  notice, this list of conditions and the following disclaimer in the     *)
+(*  documentation and/or other materials provided with the distribution.    *)
+(*                                                                          *)
+(*  3. The names of the contributors may not be used to endorse or          *)
+(*  promote products derived from this software without specific prior      *)
+(*  written permission.                                                     *)
+(*                                                                          *)
+(*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS     *)
+(*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT       *)
+(*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS       *)
+(*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE          *)
+(*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,     *)
+(*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,    *)
+(*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;        *)
+(*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER        *)
+(*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT      *)
+(*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN       *)
+(*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE         *)
+(*  POSSIBILITY OF SUCH DAMAGE.                                             *)
+(*                                                                          *)
+(*  File modified by CEA (Commissariat à l'énergie atomique et aux          *)
+(*                        énergies alternatives)                            *)
+(*               and INRIA (Institut National de Recherche en Informatique  *)
+(*                          et Automatique).                                *)
+(****************************************************************************)
 
 (* Calculate reaching definitions for each instruction.
  * Determine when it is okay to replace some variables with
@@ -67,18 +69,7 @@ module IH = Datatype.Int.Hashtbl
      at some point. Thus, it cannot be easily be replaced by
      Cil_datatype.Varinfo.Hashtbl... *)
 
-module S = (*Stats*) struct
-  let time _ f c = f c
-end
-
 let debug_fn = ref ""
-
-let doTime = ref false
-
-let time s f a =
-  if !doTime then
-    S.time s f a
-  else f a
 
 module IOS =
   Set.Make(struct
@@ -357,10 +348,10 @@ module ReachingDef =
 
     let combinePredecessors (_stm:stmt) ~(old:t) ((_, _s, iosh):t) =
       match old with (_, os, oiosh) -> begin
-	if time "iosh_equals" (iosh_equals oiosh) iosh
+	if iosh_equals oiosh iosh
 	then None
 	else
-	  Some((), os, time "iosh_combine" (iosh_combine oiosh) iosh)
+	  Some((), os, iosh_combine oiosh iosh)
       end
 
     (* return an action that removes things that
@@ -377,7 +368,7 @@ module ReachingDef =
     let doStmt stm (_, _s, iosh) =
       if not(Datatype.Int.Hashtbl.mem sidStmtHash stm.sid) then
 	Datatype.Int.Hashtbl.add sidStmtHash stm.sid stm;
-      if !debug then Kernel.debug "RD: looking at %a\n" d_stmt stm;
+      if !debug then Kernel.debug "RD: looking at %a\n" Cil_printer.pp_stmt stm;
       match L.getLiveSet stm with
       | None -> DF.SDefault
       | Some vs -> begin
@@ -419,7 +410,7 @@ let getDefRhs didstmh defId =
       begin try
 	let iihl = List.combine (List.combine [il] ivihl) ivihl_in in
 	(try let ((i,(_,_,_diosh)),(_,_,iosh_in)) = List.find (fun ((i,(_,_,iosh')),_) ->
-	  match time "iosh_defId_find" (iosh_defId_find iosh') defId with
+	  match iosh_defId_find iosh' defId with
 	    Some vid ->
 	      (match i with
 		Set((Var vi',NoOffset),_,_) -> vi'.vid = vid (* _ -> NoOffset *)
@@ -485,7 +476,7 @@ let computeRDs fdec =
   try
     if String.compare fdec.svar.vname (!debug_fn) = 0 then
       (debug := true;
-       Kernel.debug "%s =\n%a\n" (!debug_fn) d_block fdec.sbody);
+       Kernel.debug "%s =\n%a\n" (!debug_fn) Cil_printer.pp_block fdec.sbody);
     let bdy = fdec.sbody in
     let slst = bdy.bstmts in
     ReachingDef.StmtStartData.clear ();
@@ -497,7 +488,7 @@ let computeRDs fdec =
     let fst_iosh = IH.create 32 in
     UD.onlyNoOffsetsAreDefs := false;
     ReachingDef.StmtStartData.add fst_stm ((), 0, fst_iosh);
-    time "liveness" L.computeLiveness fdec;
+    L.computeLiveness fdec;
     ignore(ReachingDef.computeFirstPredecessor fst_stm ((), 0, fst_iosh));
     if !debug then Kernel.debug "computeRDs: fst_stm.sid=%d\n" fst_stm.sid ;
     RD.compute [fst_stm];
@@ -581,7 +572,7 @@ class rdVisitorClass = object (self)
 
   method vinst i =
     if !debug then Kernel.debug "rdVis: before %a, rd_dat_lst is %d long\n"
-      d_instr i (List.length rd_dat_lst);
+      Cil_printer.pp_instr i (List.length rd_dat_lst);
     try
       cur_rd_dat <- Some(List.hd rd_dat_lst);
       rd_dat_lst <- List.tl rd_dat_lst;

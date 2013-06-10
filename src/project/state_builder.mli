@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -40,7 +40,7 @@ end
 
 module type Info_with_size = sig
   include Info
-  val size: int
+  val size: int (** Initial size for the hash table. *)
 end
 
 (** Output signature of {!State_builder.Register}. *)
@@ -75,10 +75,6 @@ module type S = sig
       function must be used if [Datatype.t] is not marshallable and
       [do_not_save] is not called.
       @since Boron-20100401 *)
-
-  val set_descr: 'a Type.t -> 'a Descr.t -> unit
-(** Modified the descriptor of this state. 
-    @since Oxygen-20120901 *)
 
 end
 
@@ -321,6 +317,7 @@ module type Hashtbl = sig
   val remove: key -> unit
 end
 
+(** @plugin development guide *)
 module Hashtbl
   (H: Datatype.Hashtbl (** hashtable implementation *))
   (Data: Datatype.S (** datatype for values stored in the table *))
@@ -394,6 +391,34 @@ module Proxy : sig
 end
 
 (* ************************************************************************* *)
+(** {3 Counters} *)
+(* ************************************************************************* *)
+
+module type Counter = sig
+
+  val next : unit -> int
+    (** Increments the counter and returns a fresh value *)
+
+  val get: unit -> int
+  (** @return the current value of the counter, without incrementing it. 
+      @since Fluorine-20130401 *)
+
+  val self: State.t
+  (** @since Oxygen-20120901 *)
+
+end
+
+(** Creates a counter that is shared among all projects, but which is
+    marshalling-compliant.
+    @since Carbon-20101201 *)
+module SharedCounter(Info : sig val name : string end) : Counter
+
+(** Creates a projectified counter.
+
+    @since Nitrogen-20111001 *)
+module Counter(Info : sig val name : string end) : Counter
+
+(* ************************************************************************* *)
 (** {3 Useful operations} *)
 (* ************************************************************************* *)
 
@@ -405,25 +430,27 @@ val apply_once:
         be used partially applied. If [f] raises an exception, then it is
         considered as not applied. *)
 
-(** Creates a counter that is shared among all projects, but which is
-    marshalling-compliant.
-    @since Carbon-20101201 *)
-module SharedCounter(Info : sig val name : string end) : sig
-  val next : unit -> int
-    (** Increments the counter and returns a fresh value *)
+(** @since Fluorine-20130401 *)
+module States: sig 
 
-  val self: State.t
-  (** @since Oxygen-20120901 *)
-end
+  val iter: 
+    ?prj:Project.t -> (string -> 'a Type.t -> 'a -> bool -> unit) -> unit
+  (** iterates a function [f] over all registered states.  Arguments of [f] are
+      its name, its type value, its value for the given project
+      ([Project.current ()] by default) and a boolean which indicates if it is
+      already computed.  @since Fluorine-20130401 *)
 
-(** Creates a projectified counter.
+  val fold:
+    ?prj:Project.t -> 
+    (string -> 'a Type.t -> 'a -> bool -> 'acc -> 'acc) -> 'acc -> 'acc
+  (** As iter, but for folding.
+      @since Fluorine-20130401*)
 
-    @since Nitrogen-20111001 *)
-module Counter(Info : sig val name : string end) : sig
-  val next : unit -> int
-    (** Increments the counter and returns a fresh value *)
+  val find:
+    ?prj:Project.t -> string -> 'a Type.t -> 'a * bool
+(** @return the value of a state given by its name (and if it is computed), in
+    the given project ([Project.current ()] by default) *)
 
-  val self: State.t
 end
 
 (*

@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -30,89 +30,6 @@ open Plib
 open Linker
 open Engine
 open Export
-
-module Kreal =
-struct
-  
-  (* -------------------------------------------------------------------------- *)
-  (* --- Coq Real Constants                                                 --- *)
-  (* -------------------------------------------------------------------------- *)
-  
-  let error () = raise (Invalid_argument "invalid real constant")
-    
-  type sign = Positive | Negative
-  type state = Integral | Fraction | Exponent
-      
-  type env = {
-    mantiss  : Buffer.t ;
-    exponent : Buffer.t ;
-    mutable sign  : sign ;
-    mutable coma  : int ;  (* number of digits afer '.' *)
-    mutable state : state ;
-  }
-      
-  type token = Digit | Plus | Minus | Exp | Dot
-      
-  let token = function
-    | ('0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9') -> Digit
-    | '.' -> Dot
-    | '-' -> Minus
-    | '+' -> Plus
-    | 'e' | 'E' -> Exp
-    | _ -> error ()
-	
-  let trail m =
-    let n = String.length m in
-    let rec first k = if k < n && m.[k] = '0' then first (succ k) else k in
-    let rec last k = if k >= 0 && m.[k] = '0' then last (pred k) else k in
-    let a = first 0 in
-    let b = last (n-1) in
-    if a <= b then Some(a , n-b-1) else None
-      
-  let convert r =
-    let e = {
-      mantiss  = Buffer.create 64 ; sign = Positive ;
-      exponent = Buffer.create 64 ;
-      coma = 0 ; state = Integral ;
-    } in
-    String.iter
-      (fun c ->
-	 let tk = token c in
-	 match e.state , tk with
-           | _ , Dot -> e.state <- Fraction ;
-           | _ , Exp -> e.state <- Exponent ;
-           | (Integral|Fraction) , Plus -> e.sign <- Positive
-           | (Integral|Fraction) , Minus -> e.sign <- Negative
-           | Integral , Digit -> Buffer.add_char e.mantiss c
-           | Fraction , Digit -> Buffer.add_char e.mantiss c ; e.coma <- succ e.coma
-           | Exponent , (Minus|Digit) -> Buffer.add_char e.exponent c
-	   | Exponent , Plus -> ()
-      ) r ;
-    let m = Buffer.contents e.mantiss in
-    begin
-      match trail m with
-	| None -> "0"
-	| Some(a,b) ->
-            let digits = String.sub m a (String.length m - a - b) in
-            let exp =
-              let ex = Buffer.contents e.exponent in
-              if ex = "" then b - e.coma else int_of_string ex + b - e.coma
-            in
-            let size = 4 + String.length m + abs exp in
-            let buffer = Buffer.create size in
-            let parent = e.sign = Negative || exp <> 0 in
-            if parent then Buffer.add_char buffer '(' ;
-            if e.sign = Negative then Buffer.add_char buffer '-' ;
-            Buffer.add_string buffer digits ;
-            if exp > 0 then Buffer.add_string buffer (String.make exp '0') ;
-            if exp < 0 then
-              (Buffer.add_string buffer "/1" ;
-               Buffer.add_string buffer (String.make (-exp) '0')) ;
-            if parent then Buffer.add_char buffer ')' ;
-            Buffer.contents buffer
-    end
-      
-end
 
 module Make(T : Term) =
 struct
@@ -189,9 +106,14 @@ struct
     method callstyle = CallApply
     method op_scope = function Aint -> Some "%Z" | Areal -> Some "%R"
 
-    method pp_int fmt z = Z.pretty fmt z
-    method pp_real fmt r =
-      pp_print_string fmt (Kreal.convert (R.to_string r))
+    method pp_int _amode fmt z = Z.pretty fmt z
+    method pp_cst fmt cst =
+      let open Numbers in
+      let man,exp = significant cst in
+      let sign = match cst.sign with Pos -> "" | Neg -> "-" in
+      match cst.base with
+	| Dec -> fprintf fmt "(real_dec (%s%s) (%d))" sign man exp
+	| Hex -> fprintf fmt "(real_hex (%s%s) (%d))" sign (dec_of_hex man) exp
 	
     method e_true  = function Cterm -> "true"  | Cprop -> "True"
     method e_false = function Cterm -> "false" | Cprop -> "False"
@@ -201,6 +123,7 @@ struct
     (* -------------------------------------------------------------------------- *)
 	      
     method op_add (_:amode) = Assoc "+"
+    method op_sub (_:amode) = Assoc "-"
     method op_mul (_:amode) = Assoc "*"
     method op_div = function Aint -> Call "Cdiv" | Areal -> Call "Rdiv"
     method op_mod = function Aint -> Call "Cmod" | Areal -> Call "Rmod"
@@ -249,14 +172,12 @@ struct
 
     method pp_conditional fmt a b c =
       match Export.cmode self#mode with
-	| Cterm -> 
+	| Cprop -> 
 	    begin
-	      fprintf fmt "itep@ " ;
-	      self#with_mode Mterm (fun _ -> self#pp_atom fmt a) ;
-	      fprintf fmt "@ %a" self#pp_atom b ;
-	      fprintf fmt "@ %a" self#pp_atom c ;
+	      fprintf fmt "itep@ %a@ %a@ %a"
+		self#pp_atom a self#pp_atom b self#pp_atom c ;
 	    end
-	| Cprop ->
+	| Cterm ->
 	    begin
 	      fprintf fmt "@[<hov 0>if " ;
 	      self#with_mode Mterm (fun _ -> self#pp_atom fmt a) ;
@@ -301,6 +222,8 @@ struct
     (* --- Atomicity                                                          --- *)
     (* -------------------------------------------------------------------------- *)
 
+    method op_spaced = is_ident
+
     method is_atomic e =
       match T.repr e with
 	| Kint z -> Z.positive z
@@ -311,7 +234,7 @@ struct
 	| And _ | Or _ | Imply _ | Bind _ | Fun _ | If _ -> false
 	| _ -> T.is_simple e
 
-    method is_shareable e =  not (T.is_prop e)
+    method is_shareable e = not (T.is_prop e)
 
     method pp_let fmt x e =
       fprintf fmt "@[<hov 4>let %s := %a in@]@ " x self#pp_flow e
@@ -432,6 +355,13 @@ struct
 	  fprintf fmt "@ : %a :=@ " self#pp_tau t ; 
 	  fprintf fmt "@[<hov 2>%a@]@].@\n" (self#pp_expr t) e ;
 	end
+
+    method declare_fixpoint ~prefix fmt f xs t e =
+      begin
+	self#declare_signature fmt f (List.map tau_of_var xs) t ;
+	let fix = prefix ^ self#link_name (ctau t) f in
+	self#declare_axiom fmt fix xs [] (e_eq (e_fun f (List.map e_var xs)) e) ;
+      end
 
     method declare_axiom fmt lemma xs (_:trigger list list) p =
       self#global

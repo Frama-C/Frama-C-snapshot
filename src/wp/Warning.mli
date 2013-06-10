@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -29,11 +29,11 @@ val error : ?source:string -> ('a,Format.formatter,unit,'b) format4 -> 'a
 (** Warning Manager *)
 
 type t = {
-  wrn_loc : Lexing.position ;
-  wrn_severe : bool ;
-  wrn_source : string ;
-  wrn_reason : string ;
-  wrn_effect : string ;
+  loc : Lexing.position ;
+  severe : bool ;
+  source : string ;
+  reason : string ;
+  effect : string ;
 }
 
 val compare : t -> t -> int

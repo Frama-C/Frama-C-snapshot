@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -33,12 +33,13 @@ open Linker
 
 type op =
   | Op of string (** Infix or prefix operator *)
-  | Assoc of string (** Associative binary operator *)
+  | Assoc of string (** Left-associative binary operator (like + and -) *)
   | Call of string (** Logic function or predicate *)
 
 type link =
   | F_call  of string (** n-ary function *)
-  | F_call2 of string (** 2-ary function *)
+  | F_left  of string * string (** 2-ary function left-to-right (0,+) *)
+  | F_right of string * string (** 2-ary function right-to-left (0,+) *)
   | F_assoc of string (** associative infix operator *)
 
 type callstyle =
@@ -84,6 +85,8 @@ object
   
   method virtual datatype : 'adt -> string
   method virtual field : 'field -> string
+  method basename : string -> string
+  (** Allows to sanitize the basename used for every name except function. *)
   method virtual link : cmode -> 'logic -> link
   method link_name : cmode -> 'logic -> string
     
@@ -140,8 +143,9 @@ object
   method e_true : cmode -> string (** ["true"] *)
   method e_false : cmode -> string (** ["false"] *)
     
-  method pp_int  : Z.t printer
+  method pp_int : amode -> Z.t printer
   method pp_real : R.t printer
+  method pp_cst : Numbers.cst printer (** Non-zero reals *)
     
   (** {3 Variables} *)
     
@@ -161,6 +165,7 @@ object
     
   method op_real_of_int : op
   method op_add : amode -> op
+  method op_sub : amode -> op
   method op_mul : amode -> op
   method op_div : amode -> op
   method op_mod : amode -> op
@@ -251,7 +256,8 @@ object
 	respect to provided type. *)
     
   method declare_type : formatter -> 'adt -> int -> ('tau,'field,'logic) ftypedef -> unit
-  method declare_axiom : formatter -> string -> 'var list -> ('var,'logic) ftrigger list list -> 'term -> unit
+  method declare_axiom :
+    formatter -> string -> 'var list -> ('var,'logic) ftrigger list list -> 'term -> unit
   method declare_signature : formatter -> 'logic -> 'tau list -> 'tau -> unit
   method declare_definition : formatter -> 'logic -> 'var list -> 'tau -> 'term -> unit
     

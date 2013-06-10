@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -37,7 +37,6 @@ module Make
      val iter_succ : (V.t -> unit) -> t -> V.t -> unit
      val iter_pred : (V.t -> unit) -> t -> V.t -> unit
      val fold_pred : (V.t -> 'a -> 'a) -> t -> V.t -> 'a -> 'a
-     val in_degree: t -> V.t -> int
      val datatype_name: string
    end) =
 struct
@@ -214,7 +213,7 @@ Src root:%s in %s (is_root:%b) Dst:%s in %s (is_root:%b) [2d case]"
           (* update *)
           v.is_root <- true;
           v.root <- v;
-	  Vertices.replace node (v, In_service v);
+          Vertices.replace node (v, In_service v);
     with Not_found ->
       assert false
 
@@ -273,10 +272,8 @@ Src root:%s in %s (is_root:%b) Dst:%s in %s (is_root:%b) [2d case]"
 
     let vertex_attributes s =
       let attr =
-        `Label
-          (Pretty_utils.sfprintf "@[%a@]" !Ast_printer.d_ident
-             (G.V.name s.node))
-        :: (`Color (Extlib.number_to_color (G.V.id s.root.node)))
+        `Label (G.V.name s.node)
+        :: `Color (Extlib.number_to_color (G.V.id s.root.node))
         :: G.V.attributes s.node
       in
       if s.is_root then `Shape `Diamond :: attr else attr
@@ -285,15 +282,15 @@ Src root:%s in %s (is_root:%b) Dst:%s in %s (is_root:%b) [2d case]"
 
     let edge_attributes e =
       let color e =
-	let sr = root_id (CallG.E.src e) in
-	[ `Color (Extlib.number_to_color sr) ]
+        let sr = root_id (CallG.E.src e) in
+        [ `Color (Extlib.number_to_color sr) ]
       in
       if !inter_services_ref then 
-	color e
+        color e
       else
-	match CallG.E.label e with
-	| Inter_services -> [ `Style `Invis ]
-	| Inter_functions | Both -> color e
+        match CallG.E.label e with
+        | Inter_services -> [ `Style `Invis ]
+        | Inter_functions | Both -> color e
 
     let default_edge_attributes _ = []
 

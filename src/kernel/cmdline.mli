@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -267,17 +267,24 @@ val add_aliases:
 
     They should not be used directly by a standard plug-in developer. *)
 
-val debug_level_ref: int ref
-  (** @since Boron-20100401 *)
+(** @since Fluorine-20130401 *)
+module type Level = sig
+  val value_if_set: int option ref
+  val get: unit -> int
+  val set: int -> unit
+end
 
-val verbose_level_ref: int ref
-  (** @since Boron-20100401 *)
+module Debug_level: Level
+(** @since Fluorine-20130401 *)
 
-val kernel_debug_level: int
-  (** @since Boron-20100401 *)
+module Verbose_level: Level
+(** @since Fluorine-20130401 *)
 
-val kernel_verbose_level: int
-  (** @since Boron-20100401 *)
+module Kernel_debug_level: Level
+(** @since Fluorine-20130401 *)
+
+module Kernel_verbose_level: Level
+(** @since Fluorine-20130401 *)
 
 val kernel_debug_atleast_ref: (int -> bool) ref
   (** @since Boron-20100401 *)

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -60,7 +60,7 @@ let obfuscate_code code_fmt =
     (fun k v -> Format.fprintf code_fmt "#define %s %s@\n" k v)
     sorted_dictionary;
   Format.fprintf code_fmt "// End of dictionary for obfuscation.@\n";
-  Format.fprintf code_fmt "@[%a@]" !Ast_printer.d_file ast
+  Format.fprintf code_fmt "@[%a@]" Printer.pp_file ast
 
 let force_run () = Kernel.CodeOutput.output obfuscate_code
 

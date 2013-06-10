@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -28,6 +28,7 @@ module type Elt =
 sig
   type t
   val hash : t -> int
+  val equal : t -> t -> bool
   val compare : t -> t -> int
 end
 
@@ -38,6 +39,7 @@ sig
 
   type t = elt list Intmap.t
 
+  val is_empty : t -> bool
   val empty : t
   val add : elt -> t -> t
   val singleton : elt -> t

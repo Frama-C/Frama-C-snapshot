@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,48 +20,49 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* Module [Kernel] is not usable here. Thus use this module to emit messages. *)
+(* Modules [Hashtbl] and [Kernel] are not usable here. Thus use above modules
+   instead. *)
 module Output = Project_skeleton.Output
 
 (**************************************************************************)
 (** {2 Datatype} *)
 (**************************************************************************)
 
-type kind = Property_status | Code_annot | Funspec | Global_annot
+type kind = Property_status | Alarm | Code_annot | Funspec | Global_annot
 
 type emitter =
-    { e_name: string;
+    { name: string;
       kinds: kind list;
       tuning_parameters: Parameter.t list;
       correctness_parameters: Parameter.t list }
 
-include Datatype.Make_with_collections
-      (struct
-        open Datatype
-        type t = emitter
-        let name = "Emitter.t"
-        let rehash = identity
-        let structural_descr = Structural_descr.Abstract
-        let reprs = 
-          [ { e_name = ""; 
-	      kinds = [];
-              tuning_parameters = []; 
-              correctness_parameters = [] } ]
-	(* does not use (==) in order to prevent unmarshalling issue + in order
-	   to be able to compare emitters coming from Usable_emitter.get *)
-        let equal x y = Datatype.String.equal x.e_name y.e_name
-        let compare x y = String.compare x.e_name y.e_name
-        let hash x = String.hash x.e_name
-        let copy x = x (* strings are immutable here *)
-        let pretty fmt x = Format.pp_print_string fmt x.e_name
-        let internal_pretty_code = undefined
-        let varname _ = assert false (* unused while [internal_pretty_code]
-        				unimplemented *)
-        let mem_project = never_any_project
-       end)
+module D =
+  Datatype.Make_with_collections
+    (struct
+      type t = emitter
+      let name = "Emitter.t"
+      let rehash = Datatype.identity
+      let structural_descr = Structural_descr.Unknown
+      let reprs = 
+        [ { name = ""; 
+	    kinds = [];
+            tuning_parameters = []; 
+            correctness_parameters = [] } ]
+      (* does not use (==) in order to prevent unmarshalling issue + in order
+	 to be able to compare emitters coming from Usable_emitter.get *)
+      let equal x y = Datatype.String.equal x.name y.name
+      let compare x y = Datatype.String.compare x.name y.name
+      let hash x = Datatype.String.hash x.name
+      let copy x = x (* strings are immutable here *)
+      let pretty fmt x = Format.pp_print_string fmt x.name
+      let internal_pretty_code = Datatype.undefined
+      let varname _ = assert false (* unused while [internal_pretty_code]
+        			      unimplemented *)
+      let mem_project = Datatype.never_any_project
+     end)
 
 type usable_emitter =
-    { id: int;
+    { u_id: int;
       u_name: string;
       u_kinds: kind list;
       mutable used: bool;
@@ -76,41 +77,41 @@ let has_several_versions_ref = Extlib.mk_fun "Emitter.has_several_versions"
 module Usable_emitter = struct
 
   include Datatype.Make_with_collections
-        (struct
-          open Datatype
-          type t = usable_emitter
-          let name = "Emitter.Usable_emitter.t"
-          let rehash = identity
-          let structural_descr = Structural_descr.Abstract
-          let reprs = 
-            [ let p = Datatype.String.Map.empty in
-              { id = -1;
-		u_kinds = [];
-        	u_name = "";
-        	used = false;
-        	version = -1; 
-        	tuning_values = p; 
-        	correctness_values = p } ]
-          let equal = ( == )
-          let compare x y = if x == y then 0 else Datatype.Int.compare x.id y.id
-          let hash x = Datatype.Int.hash x.id
-          let copy x = x (* strings are immutable here *)
-          let pretty fmt x = 
-            if !has_several_versions_ref x.u_name then
-              Format.fprintf fmt "%s (v%d)" x.u_name x.version
-            else
-              Format.pp_print_string fmt x.u_name
-          let internal_pretty_code = undefined
-          let varname _ = assert false (* unused while [internal_pretty_code]
-        				  unimplemented *)
-          let mem_project = never_any_project
-         end)
+    (struct
+      type t = usable_emitter
+      let name = "Emitter.Usable_emitter.t"
+      let rehash = Datatype.identity
+      let structural_descr = Structural_descr.Abstract
+      let reprs = 
+	let p = Datatype.String.Map.empty in
+	[ { u_id = -1;
+	    u_name = "";
+	    u_kinds = [ Property_status ];
+            used = false;
+            version = -1; 
+            tuning_values = p; 
+            correctness_values = p } ]
+      let equal = ( == )
+      let compare x y = if x == y then 0 else Datatype.Int.compare x.u_id y.u_id
+      let hash x = Datatype.Int.hash x.u_id
+      let copy x = x (* strings are immutable here *)
+      let pretty fmt x = 
+	let name = x.u_name in
+        if !has_several_versions_ref name then
+          Format.fprintf fmt "%s (v%d)" name x.version
+        else
+          Format.pp_print_string fmt name
+      let internal_pretty_code = Datatype.undefined
+      let varname _ = assert false (* unused while [internal_pretty_code]
+        			      unimplemented *)
+      let mem_project = Datatype.never_any_project
+     end)
 
-  let get e = 
+  let get e =
     let get_params map =
       Datatype.String.Map.fold (fun s _ acc -> Parameter.get s :: acc) map []
     in
-    { e_name = e.u_name;
+    { name = e.u_name;
       kinds = e.u_kinds;
       correctness_parameters = get_params e.correctness_values;
       tuning_parameters = get_params e.tuning_values }
@@ -135,26 +136,21 @@ end
 (** {2 Implementation for Plug-in Developers} *)
 (**************************************************************************)
 
-module Names = 
-  State_builder.Hashtbl
-    (Datatype.String.Hashtbl)
-    (Datatype.Unit)
-    (struct
-      let dependencies = []
-      let size = 17
-      let name = "Emitter.Names"
-     end)
+let names: unit Datatype.String.Hashtbl.t = Datatype.String.Hashtbl.create 7
 
 let create name kinds ~correctness ~tuning = 
-  if Names.mem name then
-    Kernel.fatal "An emitter of name `%s' already exists" name;
-  Names.add name ();
-  { e_name = name; 
-    kinds = kinds;
-    correctness_parameters = correctness;
-    tuning_parameters = tuning }
+  if Datatype.String.Hashtbl.mem names name then
+    Kernel.fatal "emitter %s already exists with the same parameters" name;
+  let e =
+    { name = name; 
+      kinds = kinds;
+      correctness_parameters = correctness;
+      tuning_parameters = tuning }
+  in
+  Datatype.String.Hashtbl.add names name ();
+  e
 
-let get_name e = e.e_name
+let get_name e = e.name
 
 let correctness_parameters e = 
   List.map (fun p -> p.Parameter.name) e.correctness_parameters
@@ -180,11 +176,12 @@ let kernel =
 (** {2 State of all known emitters} *)
 (**************************************************************************)
 
-module Id = State_builder.SharedCounter(struct let name = "Emitter.Ids" end)
+module Usable_id = 
+  State_builder.SharedCounter(struct let name = "Emitter.Usable_id" end)
 
 (* For each emitter, the info required to be able to get the right usable
    emitter. *)
-module Emitters =           
+module Usable_emitters_of_emitter =           
   State_builder.Hashtbl
     (Datatype.String.Hashtbl)
     (Datatype.Pair
@@ -193,24 +190,24 @@ module Emitters =
        (Datatype.Ref(Usable_emitter.Set))) (* existing usables emitters with
         				      the old parameter values *)
     (struct 
-      let name = "Emitter.Emitters" 
+      let name = "Emitter.Usable_emitters_of_emitter" 
       let size = 7 
-      let dependencies = [ Id.self ]
+      let dependencies = [ Usable_id.self ]
      end)
 
-let self = Emitters.self
+let self = Usable_emitters_of_emitter.self
 
-let has_several_versions s =
+let has_several_versions name =
   try 
-    let _, set = Emitters.find s in
+    let _, set = Usable_emitters_of_emitter.find name in
     Usable_emitter.Set.cardinal !set > 1
   with Not_found -> 
-    Kernel.fatal "Unknown emitter %s" s
+    Kernel.fatal "Unknown emitter %s" name
 
 let () = has_several_versions_ref := has_several_versions
 
 let distinct_parameters get_them tuning e =
-  let s = e.u_name in
+  let name = e.u_name in
   let values = get_them e in
   let get e s =
     Pretty_utils.sfprintf
@@ -218,7 +215,7 @@ let distinct_parameters get_them tuning e =
       (fun fmt -> Usable_emitter.pretty_parameter fmt ~tuning e s)
   in
   try
-    let _, set = Emitters.find s in
+    let _, set = Usable_emitters_of_emitter.find name in
     Usable_emitter.Set.fold
       (fun e' acc -> 
 	List.fold_left2
@@ -231,7 +228,7 @@ let distinct_parameters get_them tuning e =
       !set
       Datatype.String.Set.empty
   with Not_found ->
-    Kernel.fatal "Unknown emitter %s" s
+    Kernel.fatal "Unknown emitter %s" name
 
 let distinct_tuning_parameters = 
   distinct_parameters Usable_emitter.tuning_parameters true
@@ -245,12 +242,12 @@ let distinct_correctness_parameters =
 
 (* set the value of a parameter of an emitter *)
 let update_usable_emitter tuning ~used usable_e param_name value = 
-  let id = Id.next () in
+  let id = Usable_id.next () in
   let name = usable_e.u_name in
   let kinds = usable_e.u_kinds in
   let add = Datatype.String.Map.add param_name value in
   if tuning then
-    { id = id;
+    { u_id = id;
       u_name = name;
       u_kinds = kinds;
       used = used;
@@ -258,7 +255,7 @@ let update_usable_emitter tuning ~used usable_e param_name value =
       tuning_values = add usable_e.tuning_values;
       correctness_values = usable_e.correctness_values }
   else
-    { id = id;
+    { u_id = id;
       u_name = name;
       u_kinds = kinds;
       used = used;
@@ -272,7 +269,7 @@ let update_parameter tuning usable_e p =
   let param_name = p.Parameter.name in
   let value = Parameter.get_value p in
   try 
-    let _, set = Emitters.find usable_e.u_name in
+    let _, set = Usable_emitters_of_emitter.find usable_e.u_name in
     try
       Usable_emitter.Set.iter
         (fun e ->
@@ -303,34 +300,33 @@ let update_parameter tuning usable_e p =
        it is going to be used *)
     update_usable_emitter tuning ~used:true usable_e param_name value
 
-let property_status_state = ref State.dummy
-let code_annot_state = ref State.dummy
-let funspec_state = ref State.dummy
-let global_annot_state = ref State.dummy
+let kinds: (kind, State.t list) Hashtbl.t = Hashtbl.create 7
+
+let iter_on_kinds f l = 
+  List.iter
+    (fun k ->
+      try 
+	let states = Hashtbl.find kinds k in
+	f states
+      with Not_found -> 
+	())
+    l
 
 let correctness_states: unit State.Hashtbl.t = State.Hashtbl.create 7
 
 let register_correctness_parameter name kinds =
-  let convert_kind = function
-    | Property_status -> !property_status_state
-    | Code_annot -> !code_annot_state
-    | Funspec -> !funspec_state
-    | Global_annot -> !global_annot_state
-  in
   let state = State.get name in
   State.Hashtbl.replace correctness_states state ();
-  State_dependency_graph.Static.add_dependencies
-    ~from:state
-    (List.map convert_kind kinds)
+  iter_on_kinds (State_dependency_graph.add_dependencies ~from:state) kinds
 
 let parameter_hooks 
     : (unit -> unit) Datatype.String.Hashtbl.t Parameter.Hashtbl.t
     = Parameter.Hashtbl.create 97
 
-let register_tuning_parameter emitter_name p =
+let register_tuning_parameter name p =
   let update () =
     try
-      let current, set = Emitters.find emitter_name in
+      let current, set = Usable_emitters_of_emitter.find name in
       let c = !current in
       let v = c.version in
       let new_e = update_parameter true c p in
@@ -354,7 +350,7 @@ let register_tuning_parameter emitter_name p =
   in
   try
     let tbl = Parameter.Hashtbl.find parameter_hooks p in
-    Datatype.String.Hashtbl.replace tbl emitter_name update
+    Datatype.String.Hashtbl.replace tbl name update
   with Not_found ->
     Kernel.fatal "[Emitter] no hook table for parameter %s" p.Parameter.name
 
@@ -368,7 +364,7 @@ let () =
 	  Parameter.Hashtbl.add parameter_hooks p tbl;
 	  let update () = Datatype.String.Hashtbl.iter (fun _ f -> f ()) tbl in
 	  match p.Parameter.accessor with
-	  (* factorisation requires GADT (will be in OCaml 3.13?) *)
+	  (* factorisation requires GADT (OCaml 4.01) *)
 	  | Parameter.Bool(a, _) -> 
 	    a.Parameter.add_set_hook (fun _ _ -> update ())
 	  | Parameter.Int(a, _) ->  
@@ -387,16 +383,16 @@ let () =
 
 let update_table tbl =
   (* remove old stuff *)
-  Emitters.iter
+  Usable_emitters_of_emitter.iter
     (fun _ (_, all_usable_e) ->
       Usable_emitter.Set.iter
 	(fun e ->
 	  (* remove dependencies corresponding to old correctness parameters *)
 	  Datatype.String.Map.iter 
 	    (fun p _ ->
-	      State_dependency_graph.Static.remove_codependencies
-		~onto:!property_status_state
-		[ State.get p ])
+	      iter_on_kinds
+		(State_dependency_graph.remove_dependencies ~from:(State.get p))
+		e.u_kinds)
 	    e.correctness_values;
 	  (* remove hooks corresponding to old tuning parameters *)
 	  Parameter.Hashtbl.iter 
@@ -417,7 +413,7 @@ let update_table tbl =
 	!all_usable_e)
     tbl
 
-let () = Emitters.add_hook_on_update update_table
+let () = Usable_emitters_of_emitter.add_hook_on_update update_table
 
 let register_parameter tuning usable_e p =
   let usable_e = update_parameter tuning usable_e p in
@@ -426,10 +422,10 @@ let register_parameter tuning usable_e p =
   usable_e
 
 let create_usable_emitter e =
-  let id = Id.next () in
+  let id = Usable_id.next () in
   let usable_e = 
-    { id = id; 
-      u_name = e.e_name; 
+    { u_id = id; 
+      u_name = e.name;
       u_kinds = e.kinds;
       used = true;
       version = -1; (* delayed *)
@@ -446,33 +442,36 @@ let create_usable_emitter e =
   usable_e
 
 let get e = 
-  let name = e.e_name in
+  let name = e.name in
   try 
-    let current, _ = Emitters.find name in
+    let current, _ = Usable_emitters_of_emitter.find name in
     let c = !current in
     c.used <- true;
     c
   with Not_found ->
     let usable_e = create_usable_emitter e in
-    Emitters.add 
+    Usable_emitters_of_emitter.add 
       name
       (ref usable_e, ref (Usable_emitter.Set.singleton usable_e));
     usable_e
+
+module ED = D (* for debugging *)
 
 module Make_table
   (H: Datatype.Hashtbl)
   (E: sig 
     include Datatype.S_with_collections
     val local_clear: H.key -> 'a Hashtbl.t -> unit
-    val get: t -> Usable_emitter.t 
+    val usable_get: t -> Usable_emitter.t 
+    val get: t -> emitter
   end)
   (D: Datatype.S) 
-  (Info: sig 
-    val name: string 
-    val dependencies: State.t list 
-    val remove_binding: H.key -> D.t -> unit
-  end) =
+  (Info: sig include State_builder.Info_with_size val kinds: kind list end) =
 struct
+
+  module Remove_hooks = Hook.Build(struct type t = E.t * H.key * D.t end)
+  let add_hook_on_remove f = Remove_hooks.extend (fun (e, k, d) -> f e k d)
+  let apply_hooks_on_remove e k d = Remove_hooks.apply (e, k, d)
 
   (* this list is computed after defining [self] *)
   let static_dependencies = ref []
@@ -496,7 +495,7 @@ struct
     with Exit ->
       false
 
-  let create () = H.create 97
+  let create () = H.create Info.size
 
   let state = ref (create ())
 
@@ -504,6 +503,8 @@ struct
   type internal_tbl = Tbl.t
 
   module H_datatype = H.Make(Tbl)
+
+  let dkey = Kernel.register_category "emitter"
 
   (* standard projectified hashtbl, but an ad-hoc function 'clear' *)
   include State_builder.Register
@@ -516,18 +517,19 @@ struct
        (*       Kernel.feedback "SELECT: %a" State_selection.pretty sel;*)
        if must_clear_all sel then begin
 	 (* someone explicitly requires to fully reset the table *)
-	 (*	 Kernel.feedback "FULL CLEAR of %s in project %a" 
-		 Info.name Project.pretty (Project.current ());*)
+	 Kernel.debug ~dkey ~level:3 "FULL CLEAR of %s in %a" 
+	   Info.name Project.pretty (Project.current ());
 	 H.clear tbl
        end else 
 	 (* AST is unchanged *)
 	 if must_local_clear sel then begin
 	   (* one have to clear the table, but we have to keep the keys *)
-(*	   Kernel.feedback "LOCAL CLEAR of %s in project %a"
-	     Info.name Project.pretty (Project.current ());*)
+	   Kernel.debug ~dkey ~level:3 "LOCAL CLEAR of %s in %a"
+	     Info.name Project.pretty (Project.current ());
 	   H.iter 
-	     (fun k h -> 
-	       E.Hashtbl.iter (fun _ x -> Info.remove_binding k x) h;
+	     (fun k h ->
+	       if not (Remove_hooks.is_empty ()) then
+		 E.Hashtbl.iter (fun e x -> apply_hooks_on_remove e k x) h;
 	       E.local_clear k h)
 	     tbl;
 	 end else begin
@@ -541,28 +543,22 @@ struct
 		   let is_param_selected =
 		     List.exists
 		       (fun p -> State_selection.mem sel (State.get p))
-		       (Usable_emitter.correctness_parameters (E.get e))
+		       (Usable_emitter.correctness_parameters (E.usable_get e))
 		   in
 		   if is_param_selected then 
 		     to_be_removed := (k, e, x) :: !to_be_removed)
 		 h)
 	     tbl;
-(*	   List.iter 
-	     (fun (k, _, _) -> 
-	       Kernel.feedback "%a -->" H.Key.pretty k;
-	       Kernel.feedback "hash %d" (H.Key.hash k);
-	       Kernel.feedback "equal %b" (H.Key.equal k k))
-	     !to_be_removed; *)
 	   List.iter
 	     (fun (k, e, x) -> 
 	       try 
 		 let h = H.find tbl k in
-(*		 Kernel.feedback "CLEARING binding %a of %s in project %a" 
-		   Usable_emitter.pretty (E.get e)
+		 Kernel.debug ~dkey ~level:3 "CLEARING binding %a of %s in %a" 
+		   ED.pretty (E.get e)
 		   Info.name
-		   Project.pretty (Project.current ());*)
+		   Project.pretty (Project.current ());
 		 E.Hashtbl.remove h e;
-		 Info.remove_binding k x
+		 apply_hooks_on_remove e k x
 	       with Not_found -> 
 		 assert false) 
 	     !to_be_removed
@@ -571,10 +567,22 @@ struct
      let set x = state := x
      let clear_some_projects _f _h = false
    end)
-  (struct include Info let unique_name = name end)
+  (struct 
+    include Info
+    let unique_name = name
+    let dependencies = self :: dependencies
+   end)
+
+  let add_kind k =
+    try
+      let l = Hashtbl.find kinds k in
+      Hashtbl.replace kinds k (self :: l)
+    with Not_found ->
+      Hashtbl.add kinds k [ self ]
 
   (* compute which states always impact this one (i.e. [self]) *)
   let () =
+    List.iter add_kind Info.kinds;
     let get_dependencies () =
       State_dependency_graph.G.fold_pred
 	(fun s acc -> s :: acc)
@@ -583,16 +591,26 @@ struct
 	[]    
     in
     Cmdline.run_after_early_stage
-      (fun () -> static_dependencies := get_dependencies ())
+      (fun () -> static_dependencies := get_dependencies ())    
 
   let add key v = H.add !state key v
   let find key = H.find !state key
   let mem key = H.mem !state key
-  let remove key = H.remove !state key
   let iter f = H.iter f !state
   let fold f acc = H.fold f !state acc
+  let remove key = 
+    if not (Remove_hooks.is_empty ()) then begin
+      try
+	let tbl = find key in
+	E.Hashtbl.iter (fun e v -> apply_hooks_on_remove e key v) tbl;
+      with Not_found ->
+	()
+    end;    
+    H.remove !state key;
 
 end
+
+include D
 
 (*
 Local Variables:

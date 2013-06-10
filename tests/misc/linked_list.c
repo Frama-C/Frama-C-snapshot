@@ -1,7 +1,13 @@
-/* This is a C file */
+/* run.config
+   STDOPT:
+   STDOPT: +"-plevel 100" +"-big-ints-hex 257"
+   STDOPT: +"-slevel 12" +"-big-ints-hex 257"
+*/
+
 #define FRAMA_C_MALLOC_HEAP
-#include "../../share/malloc.c"
+#include "share/libc/stdlib.c"
 #include "share/libc/stdio.h"
+#include "share/libc/stdio.c"
 
 struct list_el {
    int val;

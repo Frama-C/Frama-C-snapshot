@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -31,7 +31,8 @@
 (**************************************************************************)
 
 type emitter
-type kind = Property_status | Code_annot | Funspec | Global_annot
+type kind = Property_status | Alarm | Code_annot | Funspec | Global_annot
+(** When selecting [Alarm], [Code_annot] is also automatically selected *)
 
 include Datatype.S_with_collections with type t = emitter
 
@@ -46,7 +47,8 @@ val create:
     element when its value changes (for instance, a valid status may become
     invalid and conversely). A "tuning" parameter may improve a generated
     element when its value changes (for instance, a "dont_know" status may
-    become valid or invalid, but a valid status cannot become invalid) 
+    become valid or invalid, but a valid status cannot become invalid).
+    The given name must be unique.
     @raise Invalid_argument if an emitter with the given name already exist 
     @plugin development guide *)
 
@@ -82,12 +84,12 @@ module Usable_emitter: sig
 end
 
 val distinct_tuning_parameters: Usable_emitter.t -> Datatype.String.Set.t
-(** Return the tuning parameter which distinguates this usable emitter from the
+(** Return the tuning parameter which distinguishes this usable emitter from the
     other ones.
     @since Oxygen-20120901 *)
 
 val distinct_correctness_parameters: Usable_emitter.t -> Datatype.String.Set.t
-(** Return the correctness_parameters which distinguates this usable emitter
+(** Return the correctness_parameters which distinguishes this usable emitter
     from the other ones.
     @since Oxygen-20120901 *)
 
@@ -103,11 +105,6 @@ val get: t -> Usable_emitter.t
 
 val self: State.t
 
-val property_status_state: State.t ref
-val code_annot_state: State.t ref
-val funspec_state: State.t ref
-val global_annot_state: State.t ref
-
 (** Table indexing: key -> emitter (or equivalent data) -> value.
     Quick access + handle cleaning in the right way (only remove relevant
     bindings when required. 
@@ -117,23 +114,27 @@ module Make_table
   (E: sig 
     include Datatype.S_with_collections
     val local_clear: H.key -> 'a Hashtbl.t -> unit
-    val get: t -> Usable_emitter.t 
+    val usable_get: t -> Usable_emitter.t 
+    val get: t -> emitter
   end)
   (D: Datatype.S) 
-  (Info: sig 
-    val name: string 
-    val dependencies: State.t list 
-    val remove_binding: H.key -> D.t -> unit
-  end) : 
+  (Info: sig include State_builder.Info_with_size val kinds: kind list end) : 
 sig
   type internal_tbl = D.t E.Hashtbl.t
   val self: State.t
   val add: H.key -> internal_tbl -> unit
   val find: H.key -> internal_tbl
   val mem: H.key -> bool
-  val remove: H.key -> unit
   val iter: (H.key -> internal_tbl -> unit) -> unit
   val fold: (H.key -> internal_tbl -> 'a -> 'a) -> 'a -> 'a
+  val remove: H.key -> unit
+  val add_hook_on_remove: (E.t -> H.key -> D.t -> unit) -> unit
+(** Register a hook to be applied whenever a binding is removed from the table.
+    @since Fluorine-20130401 *)
+  val apply_hooks_on_remove: E.t -> H.key -> D.t -> unit
+(** This function must be called on each binding which is removed from the
+    table without directly calling the function {!remove}.
+    @since Fluorine-20130401 *)
 end
 
 (*

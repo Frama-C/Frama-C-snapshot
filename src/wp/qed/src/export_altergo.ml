@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -35,6 +35,16 @@ let rec cartesian f = function
   | [] | [_] -> ()
   | x::xs -> List.iter (fun y -> f x y) xs ; cartesian f xs
 
+let tau_of_sort = function
+  | Sint -> Int
+  | Sreal -> Real
+  | Sbool -> Bool
+  | Sprop | Sdata | Sarray _ -> raise Not_found
+
+let tau_of_arraysort = function
+  | Sarray s -> tau_of_sort s
+  | _ -> raise Not_found
+
 module Make(T : Term) =
 struct
 
@@ -48,11 +58,12 @@ struct
   type var = Var.t
   type term = T.term
   type record = (Field.t * term) list
+  type trigger = (T.var,Fun.t) ftrigger
     
   class virtual engine =
   object(self)
 
-    inherit E.engine
+    inherit E.engine as super
 
     initializer
       begin
@@ -102,10 +113,39 @@ struct
     (* --- Arithmetics                                                        --- *)
     (* -------------------------------------------------------------------------- *)
 
+    method pp_int amode fmt z = match amode with
+      | Aint -> Z.pretty fmt z
+      | Areal -> fprintf fmt "%a.0" Z.pretty z
+
+    method pp_cst fmt cst = 
+      let open Numbers in
+      match cst.sign , cst.base with
+	| Pos,Dec -> 
+	    let man = if cst.man = "" then "0" else cst.man in
+	    let com = if cst.com = "" then "0" else cst.com in
+	    fprintf fmt "%s.%se%d" man com cst.exp
+	| Neg,Dec -> 
+	    let man = if cst.man = "" then "0" else cst.man in
+	    let com = if cst.com = "" then "0" else cst.com in
+	    fprintf fmt "(-%s.%se%d)" man com cst.exp
+	| _,Hex ->
+	    let hex,exp = Numbers.significant cst in
+	    let base = Numbers.dec_of_hex hex in
+	    if exp > 0 then
+	      let sign = match cst.sign with Pos -> "" | Neg -> "-" in
+	      fprintf fmt "(%s%s.0*%s.0)" sign base (Numbers.power_of_two exp)
+	    else if exp < 0 then
+	      let sign = match cst.sign with Pos -> "" | Neg -> "-" in
+	      fprintf fmt "(%s%s.0/%s.0)" sign base (Numbers.power_of_two (-exp))
+	    else match cst.sign with
+	      | Pos -> fprintf fmt "%s.0" base
+	      | Neg -> fprintf fmt "(-%s.0)" base
+		  
     method op_real_of_int = Call "real_of_int"
 
     method op_minus (_:amode) = Op "-"
     method op_add (_:amode) = Assoc "+"
+    method op_sub (_:amode) = Assoc "-"
     method op_mul (_:amode) = Assoc "*"
     method op_div = function Aint -> Call "cdiv" | Areal -> Op "/"
     method op_mod = function Aint -> Call "cmod" | Areal -> Call "rmod"
@@ -179,12 +219,60 @@ struct
     (* --- Atomicity                                                          --- *)
     (* -------------------------------------------------------------------------- *)
 
+    method op_spaced op = is_ident op
     method is_atomic e =
       match T.repr e with
 	| Kint z -> Z.positive z
+	| Kreal _ -> true
 	| Apply _ -> true
 	| Aset _ | Aget _ | Fun _ -> true
 	| _ -> T.is_simple e
+
+    (* -------------------------------------------------------------------------- *)
+    (* --- Type Checking                                                      --- *)
+    (* -------------------------------------------------------------------------- *)
+
+    method typeof_getfield _ = raise Not_found
+    method typeof_setfield _ = raise Not_found
+    method typeof_call _ = raise Not_found
+
+    method typecheck e = 
+      match T.sort e with
+	| Sint -> Int
+	| Sreal -> Real
+	| Sbool -> Bool
+	| Sprop -> raise Not_found
+	| Sdata | Sarray _ ->
+	    match T.repr e with
+	      | Var x -> tau_of_var x
+	      | Aset(m,k,v) ->
+		  (try self#typecheck m
+		   with Not_found -> Array(self#typecheck k,self#typecheck v))
+	      | Fun(f,_) -> 
+		  (try tau_of_sort (Fun.sort f)
+		   with Not_found -> self#typeof_call f)
+	      | Aget(m,_) -> 
+		  (try tau_of_arraysort (T.sort m)
+		   with Not_found ->
+		     match self#typecheck m with
+		       | Array(_,v) -> v
+		       | _ -> raise Not_found)
+	      | Rdef ((f,_)::_) -> self#typeof_setfield f
+	      | Rget (_,f) -> self#typeof_getfield f
+	      | _ -> raise Not_found
+
+    (* -------------------------------------------------------------------------- *)
+    (* --- Lets                                                               --- *)
+    (* -------------------------------------------------------------------------- *)
+
+    method pp_let fmt x e =
+      try
+	let tau = self#typecheck e in
+	fprintf fmt "@[<hov 4>let %s = %a : %a in@]@ " 
+	  x self#pp_flow e self#pp_tau tau
+      with Not_found ->
+	fprintf fmt "@[<hov 4>let %s = %a in@]@ " 
+	  x self#pp_flow e
 
     (* -------------------------------------------------------------------------- *)
     (* --- Binders                                                            --- *)
@@ -222,7 +310,8 @@ struct
       and call mode f fmt ts =
 	match self#link mode f with 
 	  | F_call f -> Plib.pp_call_var ~f pretty fmt ts
-	  | F_call2 f -> Plib.pp_fold_call ~e:"?" ~f pretty fmt ts
+	  | F_left(e,f) -> Plib.pp_fold_call ~e ~f pretty fmt ts
+	  | F_right(e,f) -> Plib.pp_fold_call_rev ~e ~f pretty fmt (List.rev ts)
 	  | F_assoc op -> Plib.pp_assoc ~e:"?" ~op pretty fmt ts
       in fprintf fmt "@[<hov 2>%a@]" pretty t
 
@@ -307,8 +396,12 @@ struct
       begin
 	let cmode = Export.ctau t in
 	fprintf fmt "@[<hv 4>logic %s :@ " (self#link_name cmode f) ;
-	Plib.pp_listcompact ~sep:"," self#pp_tau fmt ts ;
-	fprintf fmt "@ -> %a@]@\n" self#pp_tau t
+	if ts <> [] then
+	  begin
+	    Plib.pp_listcompact ~sep:"," self#pp_tau fmt ts ;
+	    fprintf fmt "@ -> " ;
+	  end ;
+	fprintf fmt "%a@]@\n" self#pp_tau t
       end
 
     method declare_definition fmt f xs t e =

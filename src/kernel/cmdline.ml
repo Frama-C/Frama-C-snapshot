@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -41,12 +41,25 @@
 (** {2 Global declarations} *)
 (* ************************************************************************* *)
 
-let debug_level_ref = ref 0
-let verbose_level_ref = ref 1
-let kernel_debug_level_ref = ref 0
-let kernel_verbose_level_ref = ref 1
-let kernel_debug_atleast_ref = ref (fun n -> !kernel_debug_level_ref >= n)
-let kernel_verbose_atleast_ref = ref (fun n -> !kernel_verbose_level_ref >= n)
+module type Level = sig
+  val value_if_set: int option ref
+  val get: unit -> int
+  val set: int -> unit
+end
+
+module Make_level(X: sig val default: int end) = struct
+  let value_if_set = ref None
+  let get () = match !value_if_set with None -> X.default | Some x -> x
+  let set n = value_if_set := Some n
+end
+
+module Debug_level = Make_level(struct let default = 0 end)
+module Verbose_level = Make_level(struct let default = 1 end)
+module Kernel_debug_level = Make_level(struct let default = 0 end)
+module Kernel_verbose_level = Make_level(struct let default = 1 end)
+
+let kernel_debug_atleast_ref = ref (fun n -> Kernel_debug_level.get () >= n)
+let kernel_verbose_atleast_ref = ref (fun n -> Kernel_verbose_level.get () >= n)
 let quiet_ref = ref false
 let journal_enable_ref = ref !Config.is_gui
 let journal_isset_ref = ref false
@@ -80,10 +93,12 @@ Look at the console for additional information (if any)."
     ""
 
 let get_backtrace () =
-  try
-    "The full backtrace is:\n" ^ Printexc_common_interface.get_backtrace ()
-  with Printexc_common_interface.No_backtrace ->
-    "No backtrace available (OCaml version is lower than 3.11.0)"
+  let current_src_string =
+    try
+      let src = Log.get_current_source() in
+      "Current source was: " ^ (Printf.sprintf "%s:%d" src.Lexing.pos_fname src.Lexing.pos_lnum) ^ "\n"
+    with Not_found -> "Current source was not set\n" in
+  current_src_string ^ "The full backtrace is:\n" ^ Printexc.get_backtrace ()
 
 let request_crash_report =
   Format.sprintf
@@ -97,7 +112,7 @@ let request_crash_report =
 let protect = function
   | Sys.Break -> 
     "User Interruption (Ctrl-C)" 
-    ^ if !kernel_debug_level_ref > 0 then "\n" ^ get_backtrace () else ""
+    ^ if Kernel_debug_level.get () > 0 then "\n" ^ get_backtrace () else ""
   | Sys_error s -> Printf.sprintf "System error: %s" s
   | Unix.Unix_error(err, a, b) ->
     let error = Printf.sprintf "System error: %s" (Unix.error_message err) in
@@ -150,7 +165,7 @@ let nop = ()
 let catch_at_toplevel = function
   | Log.AbortError _ -> true
   | Log.FeatureRequest _ -> true
-  | _ -> !kernel_debug_level_ref = 0
+  | _ -> Kernel_debug_level.get () = 0
 
 let exit_code = function
   | Log.AbortError _ -> 1
@@ -334,12 +349,12 @@ let () =
       "-quiet",
       Unit (fun () ->
         quiet_ref := true;
-        verbose_level_ref := 0;
-        debug_level_ref := 0);
-      "-verbose", Int (fun n -> verbose_level_ref := n);
-      "-debug", Int (fun n -> debug_level_ref := n);
-      "-kernel-verbose", Int (fun n -> kernel_verbose_level_ref := n);
-      "-kernel-debug", Int (fun n -> kernel_debug_level_ref := n)
+        Verbose_level.set 0;
+        Debug_level.set 0);
+      "-verbose", Int (fun n -> Verbose_level.set n);
+      "-debug", Int (fun n -> Debug_level.set n);
+      "-kernel-verbose", Int (fun n -> Kernel_verbose_level.set n);
+      "-kernel-debug", Int (fun n -> Kernel_debug_level.set n)
     ]
       false
       all_options
@@ -363,9 +378,6 @@ let () =
   end
 
 let quiet = !quiet_ref
-
-let kernel_debug_level = !kernel_debug_level_ref
-let kernel_verbose_level = !kernel_verbose_level_ref
 
 let journal_enable = !journal_enable_ref
 let journal_isset = !journal_isset_ref
@@ -756,11 +768,11 @@ let print_helpline fmt head help ext_help =
   let n = max 1 (19 - String.length head) in
   Format.fprintf fmt "@[<hov 20>%s%s %t%t@]@\n"
     head
-        (* let enough spaces *)
+    (* let enough spaces *)
     (String.make n ' ')
-        (* the description *)
+    (* the description *)
     (fun fmt ->
-           (* add a cutting point at each space *)
+      (* add a cutting point at each space *)
       let cut_space fmt s =
         let rec cut_list fmt = function
           | [] -> ()
@@ -769,7 +781,7 @@ let print_helpline fmt head help ext_help =
         in
         cut_list fmt (Str.split (Str.regexp_string " ") s)
       in
-           (* replace each '\n' by '@\n' (except for the last one) *)
+      (* replace each '\n' by '@\n' (except for the last one) *)
       let rec cut_newline fmt = function
         | [] -> ()
         | [ s ] -> Format.fprintf fmt "%a" cut_space s
@@ -777,7 +789,7 @@ let print_helpline fmt head help ext_help =
           Format.fprintf fmt "%a@\n%a" cut_space s cut_newline tl
       in
       cut_newline fmt (Str.split (Str.regexp_string "\n") help))
-        (* the extended description *)
+    (* the extended description *)
     (fun fmt -> Format.fprintf fmt ext_help)
 
 let low_print_option_help fmt print_invisible o =

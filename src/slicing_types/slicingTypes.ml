@@ -2,11 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
-(*           alternatives)                                                *)
-(*    INRIA (Institut National de Recherche en Informatique et en         *)
-(*           Automatique)                                                 *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -52,26 +50,26 @@ exception NoPdg
   - the slices of the functions,
   - and the queue of actions to be applied.
   *)
-type sl_project   = SlicingInternals.t_project
+type sl_project   = SlicingInternals.project
 
 (** Type of the selections
 * (we store the varinfo because we cannot use the kernel_function in this file)
 * *)
-type sl_select = Cil_types.varinfo * SlicingInternals.t_fct_user_crit
+type sl_select = Cil_types.varinfo * SlicingInternals.fct_user_crit
 
 module Fct_user_crit =
   Datatype.Make
     (struct
       include Datatype.Undefined (* TODO: unmarshal *)
-      type t = SlicingInternals.t_fct_user_crit
-      let reprs = [ SlicingInternals.dummy_t_fct_user_crit ]
+      type t = SlicingInternals.fct_user_crit
+      let reprs = [ SlicingInternals.dummy_fct_user_crit ]
       let name = "SlicingTypes.Fct_user_crit"
       let mem_project = Datatype.never_any_project
       let varname _ = "user_criteria"
      end)
 
 (** Function slice *)
-type sl_fct_slice = SlicingInternals.t_fct_slice
+type sl_fct_slice = SlicingInternals.fct_slice
 
 (** Marks : used to put 'colors' in the result *)
 type sl_mark = SlicingInternals.pdg_mark
@@ -90,7 +88,7 @@ module Sl_project =
     (struct
       include Datatype.Undefined (* TODO: unmarshal *)
       type t = sl_project
-      let reprs = [ SlicingInternals.dummy_t_project ]
+      let reprs = [ SlicingInternals.dummy_project ]
       let name = "SlicingTypes.Sl_project"
       let internal_pretty_code = pp_sl_project
       let varname s = "sl_project_" ^ s.SlicingInternals.name
@@ -104,7 +102,7 @@ module Sl_select =
       type t = sl_select
       let reprs =
         List.map
-          (fun v -> v, SlicingInternals.dummy_t_fct_user_crit)
+          (fun v -> v, SlicingInternals.dummy_fct_user_crit)
           Cil_datatype.Varinfo.reprs
       let name = "SlicingTypes.Sl_select"
       let varname _s = "sl_select"
@@ -128,9 +126,9 @@ module Sl_fct_slice =
     (struct
       include Datatype.Undefined (* TODO: unmarshal *)
       open SlicingInternals
-      type t = t_fct_slice
+      type t = fct_slice
       let name = "SlicingTypes.Sl_fct_slice"
-      let reprs = [ dummy_t_fct_slice ]
+      let reprs = [ dummy_fct_slice ]
       let internal_pretty_code = pp_sl_fct_slice
       let mem_project f x = f x.ff_fct.fi_project.application
      end)

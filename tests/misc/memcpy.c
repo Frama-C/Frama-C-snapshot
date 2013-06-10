@@ -1,5 +1,5 @@
 /* run.config
-   STDOPT: +"-calldeps" +"-no-deps" +"-slevel-function" +"init:2000" +"-inout-callwise" +"-inout" +"-value-debug-category imprecision" +"-plevel 150" +"-then" +"-report"
+   STDOPT: +"-calldeps" +"-no-deps" +"-slevel-function" +"init:2000" +"-inout-callwise" +"-inout" +"-value-msg-key imprecision" +"-plevel 150" +"-then" +"-report"
 */
 #include "share/builtin.h"
 
@@ -103,4 +103,44 @@ void main (int a, int b){
   //@ assert 1 <= b < 20;
   p = maybe ? &dst5[40] : &dst5[70];
   Frama_C_memcpy(p, &src[0], b);
+
+  // Destination pointer is unbounded
+  char ptop1[100];
+  int *pptop = ptop1;
+  while (1) {
+    pptop++;
+    if (maybe) break;
+  }
+  Frama_C_memcpy(pptop, src, 4);
+
+  char ptop2[100];
+  pptop = &ptop2[50];
+  while (1) {
+    pptop--;
+    if (maybe) break;
+  }
+  Frama_C_memcpy(pptop, src+1, 4);
+
+  char ptop3[100];
+  pptop = &ptop3[2];
+  while (1) {
+    if (maybe) pptop--;
+    if (maybe) pptop++;
+    if (maybe) break;
+  }
+  Frama_C_memcpy(pptop, src+2, 4);
+
+  char ptop4[100];
+  pptop = &ptop4[2];
+  while (1) {
+    if (maybe) pptop--;
+    if (maybe) pptop++;
+    if (maybe) break;
+  }
+  Frama_C_memcpy(pptop, src+2, 5);
+
+  // Size is a garbled mix
+  char garbledsize[100];
+  int* pgarbledsize = &garbledsize[10];
+  Frama_C_memcpy(pgarbledsize, src, garbledsize);
 }

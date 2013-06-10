@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -30,7 +30,7 @@ open Lattice_Interval_Set
 
 type itv = Int.t * Int.t
 
-module Make(V:sig include Abstract_interp.Lattice val tag: t -> int end) : sig
+module Make(V: Abstract_interp.Lattice) : sig
 
   include Datatype.S_no_copy
   val degenerate : V.t -> t
@@ -40,8 +40,6 @@ module Make(V:sig include Abstract_interp.Lattice val tag: t -> int end) : sig
   val is_empty : t -> bool
 
   val find : (Int.t -> Int.t -> V.t) -> itv -> t -> V.t
-  val find_intervs : (Int.t -> Int.t -> V.t) ->
-    Int_Intervals.t -> t -> V.t
 
   val add : itv -> V.t -> t -> t
   val add_approximate :
@@ -78,8 +76,6 @@ module Make(V:sig include Abstract_interp.Lattice val tag: t -> int end) : sig
   val copy :
     f:((bool*V.t -> bool*V.t) * (Int.t -> Int.t -> V.t)) option ->
     t -> Int.t -> Int.t -> t
-
-  val tag: t -> int
 
 end
 

@@ -2,11 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
-(*           alternatives)                                                *)
-(*    INRIA (Institut National de Recherche en Informatique et en         *)
-(*           Automatique)                                                 *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -145,18 +143,18 @@ let translate_out_mark _pdg m2m other_rqs (call, l) =
 * functor. This is, of course, not mandatory because one can want to use a more
 * complex propagation (like slicing for instance, that has more than one
 * version for a source function). *)
-module F_Proj (C : PdgMarks.T_Config) :
-  PdgMarks.T_Proj with type t_mark = C.M.t
-                  and type t_call_info = C.M.t_call_info
+module F_Proj (C : PdgMarks.Config) :
+  PdgMarks.Proj with type mark = C.M.t
+                  and type call_info = C.M.call_info
 = struct
 
   module F = PdgMarks.F_Fct (C.M)
 
-  type t_mark = C.M.t
-  type t_call_info = C.M.t_call_info
-  type t_fct = F.t_fi
-  type t_fct_info = F.t
-  type t = t_fct_info Varinfo.Hashtbl.t
+  type mark = C.M.t
+  type call_info = C.M.call_info
+  type fct = F.fi
+  type fct_info = F.t
+  type t = fct_info Varinfo.Hashtbl.t
 
   let empty () = Varinfo.Hashtbl.create 10
 

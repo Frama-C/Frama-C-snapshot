@@ -1,43 +1,45 @@
-(**************************************************************************)
-(*                                                                        *)
-(*  Copyright (C) 2001-2003                                               *)
-(*   George C. Necula    <necula@cs.berkeley.edu>                         *)
-(*   Scott McPeak        <smcpeak@cs.berkeley.edu>                        *)
-(*   Wes Weimer          <weimer@cs.berkeley.edu>                         *)
-(*   Ben Liblit          <liblit@cs.berkeley.edu>                         *)
-(*  All rights reserved.                                                  *)
-(*                                                                        *)
-(*  Redistribution and use in source and binary forms, with or without    *)
-(*  modification, are permitted provided that the following conditions    *)
-(*  are met:                                                              *)
-(*                                                                        *)
-(*  1. Redistributions of source code must retain the above copyright     *)
-(*  notice, this list of conditions and the following disclaimer.         *)
-(*                                                                        *)
-(*  2. Redistributions in binary form must reproduce the above copyright  *)
-(*  notice, this list of conditions and the following disclaimer in the   *)
-(*  documentation and/or other materials provided with the distribution.  *)
-(*                                                                        *)
-(*  3. The names of the contributors may not be used to endorse or        *)
-(*  promote products derived from this software without specific prior    *)
-(*  written permission.                                                   *)
-(*                                                                        *)
-(*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS   *)
-(*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT     *)
-(*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS     *)
-(*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE        *)
-(*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,   *)
-(*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,  *)
-(*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;      *)
-(*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER      *)
-(*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT    *)
-(*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN     *)
-(*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE       *)
-(*  POSSIBILITY OF SUCH DAMAGE.                                           *)
-(*                                                                        *)
-(*  File modified by CEA (Commissariat à l'énergie atomique et aux        *)
-(*                        énergies alternatives).                         *)
-(**************************************************************************)
+(****************************************************************************)
+(*                                                                          *)
+(*  Copyright (C) 2001-2003                                                 *)
+(*   George C. Necula    <necula@cs.berkeley.edu>                           *)
+(*   Scott McPeak        <smcpeak@cs.berkeley.edu>                          *)
+(*   Wes Weimer          <weimer@cs.berkeley.edu>                           *)
+(*   Ben Liblit          <liblit@cs.berkeley.edu>                           *)
+(*  All rights reserved.                                                    *)
+(*                                                                          *)
+(*  Redistribution and use in source and binary forms, with or without      *)
+(*  modification, are permitted provided that the following conditions      *)
+(*  are met:                                                                *)
+(*                                                                          *)
+(*  1. Redistributions of source code must retain the above copyright       *)
+(*  notice, this list of conditions and the following disclaimer.           *)
+(*                                                                          *)
+(*  2. Redistributions in binary form must reproduce the above copyright    *)
+(*  notice, this list of conditions and the following disclaimer in the     *)
+(*  documentation and/or other materials provided with the distribution.    *)
+(*                                                                          *)
+(*  3. The names of the contributors may not be used to endorse or          *)
+(*  promote products derived from this software without specific prior      *)
+(*  written permission.                                                     *)
+(*                                                                          *)
+(*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS     *)
+(*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT       *)
+(*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS       *)
+(*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE          *)
+(*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,     *)
+(*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,    *)
+(*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;        *)
+(*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER        *)
+(*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT      *)
+(*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN       *)
+(*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE         *)
+(*  POSSIBILITY OF SUCH DAMAGE.                                             *)
+(*                                                                          *)
+(*  File modified by CEA (Commissariat à l'énergie atomique et aux          *)
+(*                        énergies alternatives)                            *)
+(*               and INRIA (Institut National de Recherche en Informatique  *)
+(*                          et Automatique).                                *)
+(****************************************************************************)
 
 (* cprint -- pretty printer of C program from abstract syntax
 **
@@ -195,7 +197,7 @@ let rec print_specifiers fmt (specs: spec_elem list) =
     | SpecType bt -> print_type_spec fmt bt
     | SpecPattern name -> fprintf fmt "@@specifier(%s)" name
   in
-  Pretty_utils.pp_list ~sep:space_sep print_spec_elem fmt specs
+  Pretty_utils.pp_list ~sep:"@ " print_spec_elem fmt specs
 
 and print_type_spec fmt = function
     Tvoid -> fprintf fmt "void"
@@ -232,7 +234,7 @@ and print_type_spec fmt = function
 and print_struct_name_attr keyword fmt (name, extraAttrs) =
     fprintf fmt "%s%a%a@ %s"
       keyword
-      (pp_cond (extraAttrs <> [])) space_sep
+      (pp_cond (extraAttrs <> [])) "@ "
       print_attributes extraAttrs name
 
 (* This is the main printer for declarations. It is easy bacause the
@@ -254,14 +256,14 @@ and print_decl (n: string) fmt = function
         (print_decl n) d print_params (args,isva)
 
 and print_fields fmt (flds : field_group list) =
-  pp_list ~sep:space_sep print_field_group fmt flds
+  pp_list ~sep:"@ " print_field_group fmt flds
 
 and print_enum_items fmt items =
   let print_item fmt (id,exp,_) =
     fprintf fmt "%s%a%a"
       id (pp_cond (exp.expr_node=NOTHING)) "@ =@ " print_expression exp
   in
-  pp_list ~sep:(","^^space_sep) print_item fmt items
+  pp_list ~sep:",@ " print_item fmt items
 
 and print_onlytype fmt (specs, dt) =
   fprintf fmt "%a%a" print_specifiers specs (print_decl "") dt
@@ -276,13 +278,13 @@ and print_init_name fmt ((n, i) : init_name) =
 
 and print_name_group fmt (specs, names) =
   fprintf fmt "%a@ %a"
-    print_specifiers specs (pp_list ~sep:(","^^space_sep) print_name) names
+    print_specifiers specs (pp_list ~sep:",@ " print_name) names
 
 and print_field_group fmt fld = match fld with
   | FIELD (specs, fields) ->
       fprintf fmt "%a@ %a;"
         print_specifiers specs
-        (pp_list ~sep:(","^^space_sep) print_field) fields
+        (pp_list ~sep:",@ " print_field) fields
   | TYPE_ANNOT annot ->
       fprintf fmt "@\n/*@@@[@ %a@]@ */@\n"
         Logic_print.print_type_annot annot
@@ -294,13 +296,13 @@ and print_field fmt (name, widtho) =
 
 and print_init_name_group fmt (specs, names) =
   fprintf fmt "%a@ @[%a@]"
-    print_specifiers specs (pp_list ~sep:(","^^space_sep) print_init_name) names
+    print_specifiers specs (pp_list ~sep:",@ " print_init_name) names
 
 and print_single_name fmt (specs, name) =
   fprintf fmt "%a@ %a" print_specifiers specs print_name name
 
 and print_params fmt (pars,ell) =
-  pp_list ~sep:(","^^space_sep) print_single_name fmt pars;
+  pp_list ~sep:",@ " print_single_name fmt pars;
   if ell then begin
     match pars with
         [] -> pp_print_string fmt "..."
@@ -308,7 +310,7 @@ and print_params fmt (pars,ell) =
   end
 
 and print_comma_exps fmt exps =
-  pp_list ~sep:(","^^space_sep) print_expression fmt exps
+  pp_list ~sep:",@ " print_expression fmt exps
 
 and print_init_expression fmt (iexp: init_expression) =
   match iexp with
@@ -331,7 +333,7 @@ and print_init_expression fmt (iexp: init_expression) =
               doinit i print_init_expression e
       in
       fprintf fmt "{@[<hov 2>%a@]}"
-        (pp_list ~sep:(","^^space_sep) doinitexp) initexps
+        (pp_list ~sep:",@ " doinitexp) initexps
 
 and print_cast_expression fmt = function
     NO_INIT -> Kernel.fatal "no init in cast"
@@ -412,7 +414,8 @@ and print_for_init fmt fc =
 and print_statement fmt stat =
   let loc = Cabshelper.get_statementloc stat in
   Cil_const.CurrentLoc.set loc;
-  if Kernel.debug_atleast 2 then fprintf fmt "@\n/* %a */@\n" Cil.d_loc loc;
+  if Kernel.debug_atleast 2 then 
+    fprintf fmt "@\n/* %a */@\n" Cil_printer.pp_location loc;
   match stat.stmt_node with
       NOP _ -> pp_print_string fmt ";"
     | COMPUTATION (exp,_) -> fprintf fmt "%a;" print_expression exp
@@ -451,7 +454,7 @@ and print_statement fmt stat =
           | PAREN _ -> true
           | _  -> false in
       fprintf fmt "return%a%a;"
-        (pp_cond (not (exp.expr_node = NOTHING || has_paren exp))) space_sep
+        (pp_cond (not (exp.expr_node = NOTHING || has_paren exp))) "@ "
 	            print_expression exp
     | SWITCH (exp, stat,_) ->
         fprintf fmt "@[<hov 2>switch@ (@[%a@])@ %a@]"
@@ -478,20 +481,20 @@ and print_statement fmt stat =
         in
         if !msvcMode then begin
           fprintf fmt "__asm@ {@[%a@]}"
-            (pp_list ~sep:nl_sep pp_print_string) tlist
+            (pp_list ~sep:"@\n" pp_print_string) tlist
         end else begin
           let print_details
               fmt { aoutputs = outs; ainputs = ins; aclobbers = clobs } =
-            pp_list ~sep:(","^^space_sep) print_asm_operand fmt outs;
+            pp_list ~sep:",@ " print_asm_operand fmt outs;
             pp_cond (ins<>[]||clobs<>[]) fmt ":@ ";
-            pp_list ~sep:(","^^space_sep) print_asm_operand fmt ins;
+            pp_list ~sep:",@ " print_asm_operand fmt ins;
             pp_cond (clobs<>[]) fmt ":@ ";
-            pp_list ~sep:(","^^space_sep) pp_print_string fmt clobs
+            pp_list ~sep:",@ " pp_print_string fmt clobs
           in
           fprintf fmt "@[__asm__%a@;(@[%a%a])@]"
             print_attributes attrs
-            (pp_list ~sep:nl_sep pp_print_string) tlist
-            (pp_opt ~pre:(":"^^space_sep) print_details) details
+            (pp_list ~sep:"@ " pp_print_string) tlist
+            (pp_opt ~pre:":@ " print_details) details
 	end
     | TRY_FINALLY (b, h, _) ->
         fprintf fmt "__try@ @[%a@]@ __finally@ @[%a@]"
@@ -510,8 +513,8 @@ and print_block fmt blk =
     (pp_list
        ~pre:"__label__@ " ~sep:",@ " ~suf:";@\n" pp_print_string)
     blk.blabels
-    (pp_list ~suf:nl_sep print_attribute) blk.battrs
-    (pp_list ~sep:nl_sep print_statement) blk.bstmts
+    (pp_list ~suf:"@ " print_attribute) blk.battrs
+    (pp_list ~sep:"@ " print_statement) blk.bstmts
 
 and print_substatement fmt stat =
   match stat.stmt_node with
@@ -542,7 +545,7 @@ and print_attribute fmt (name,args) =
 
 (* Print attributes. *)
 and print_attributes fmt attrs =
-  pp_list ~pre:space_sep ~sep:space_sep ~suf:space_sep print_attribute fmt attrs
+  pp_list ~pre:"@ " ~sep:"@ " ~suf:"@ " print_attribute fmt attrs
 
 (*
 ** Declaration printing
@@ -594,7 +597,7 @@ and print_def fmt def =
 
   | GLOBANNOT (annot) ->
       fprintf fmt "@[/*@@@ @[%a@]@ */@]@\n"
-        (pp_list ~sep:nl_sep Logic_print.print_decl) annot
+        (pp_list ~sep:"@\n" Logic_print.print_decl) annot
 
   | CUSTOM _ -> fprintf fmt "<custom annot>"
 
@@ -608,3 +611,9 @@ and print_def fmt def =
 **		Pretty printing the given abstract syntax program.
 *)
 let printFile fmt ((_fname, defs) : file) = print_defs fmt defs
+
+(*
+Local Variables:
+compile-command: "make -C ../../.."
+End:
+*)

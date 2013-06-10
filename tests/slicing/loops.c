@@ -23,7 +23,7 @@
    OPT: -check -deps -slice-rd Z -journal-disable -then-on 'Slicing export' -print
    OPT: -check -deps -slice-wr Y -journal-disable -then-on 'Slicing export' -print
    OPT: -check -deps -slice-wr Z -journal-disable -then-on 'Slicing export' -print
-
+   OPT: -check -deps -lib-entry -main alarm -slice-threat alarm -journal-disable -then-on 'Slicing export' -print
 
 
  */
@@ -203,3 +203,10 @@ void main (int y) {
     }
 }
 /*-------------------------------------------*/
+
+void alarm() {
+  int i = 1;
+  volatile int j = 3;
+  //@ assert i == 1;
+  j++;
+}

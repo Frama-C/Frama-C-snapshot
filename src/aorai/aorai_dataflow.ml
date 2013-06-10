@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Aorai plug-in of Frama-C.                        *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -30,6 +30,8 @@ open Dataflow
 open Data_for_aorai
 open Promelaast
 open Cil_types
+
+let dkey = Aorai_option.register_category "dataflow"
 
 let set_of_map map =
   Data_for_aorai.Aorai_state.Map.fold
@@ -326,11 +328,11 @@ module Computer(I: Init) = struct
         | _ -> false
     in
     Aorai_option.debug 
-      ~dkey:"dataflow" "Combining state (loop is %B)@\n  @[%a@]@\nwith state@\n  @[%a@]"
+      ~dkey "Combining state (loop is %B)@\n  @[%a@]@\nwith state@\n  @[%a@]"
       is_loop
       Data_for_aorai.pretty_state old Data_for_aorai.pretty_state cur;
     if Data_for_aorai.included_state cur old then begin
-      Aorai_option.debug ~dkey:"dataflow" "Included";
+      Aorai_option.debug ~dkey "Included";
       if is_loop && Cil_datatype.Stmt.Set.mem stmt loops &&
         Data_for_aorai.Aorai_state.Map.is_empty
         (Data_for_aorai.get_loop_invariant_state stmt)
@@ -355,7 +357,7 @@ module Computer(I: Init) = struct
           Data_for_aorai.merge_state old cur 
         end
       in
-      Aorai_option.debug ~dkey:"dataflow" "Merged state is@\n  @[%a@]"
+      Aorai_option.debug ~dkey "Merged state is@\n  @[%a@]"
         Data_for_aorai.pretty_state res;
       let loops = 
         if is_loop then
@@ -373,22 +375,20 @@ module Computer(I: Init) = struct
         then Dataflow.Default (* we simply skip ignored functions. *)
         else begin
           set_call_state s state;
-          Aorai_option.debug ~dkey:"dataflow"
-            "Call to %a from state:@\n  @[%a@]"
+          Aorai_option.debug ~dkey "Call to %a from state:@\n  @[%a@]"
             Kernel_function.pretty kf Data_for_aorai.pretty_state state;
           let init_states = extract_current_states state in
           let kf = Globals.Functions.get v in
           let init_trans = make_start_transition kf init_states in
           let end_state = !compute_func I.stack (Kstmt s) kf init_trans in
           let new_state = compose_states state end_state in
-          Aorai_option.debug ~dkey:"dataflow"
-            "At end of call:@\n  @[%a@]"
+          Aorai_option.debug ~dkey "At end of call:@\n  @[%a@]"
             Data_for_aorai.pretty_state new_state;
           Done (new_state,loops)
         end
       | Call (_,e,_,_) ->
 	Aorai_option.not_yet_implemented
-          "Indirect call to %a is not handled yet" !Ast_printer.d_exp e
+          "Indirect call to %a is not handled yet" Printer.pp_exp e
       | Set _ | Asm _ | Skip _ | Code_annot _ -> Dataflow.Default
         
 
@@ -447,8 +447,7 @@ let compute_func_aux stack call_site kf init_state =
     in
     let module Compute = Computer (Init) in
     let module Dataflow = Forwards(Compute) in
-    Aorai_option.debug 
-      ~dkey:"dataflow" "Call to %a, Initial state is:@\n  @[%a@]"
+    Aorai_option.debug ~dkey "Call to %a, Initial state is:@\n  @[%a@]"
       Kernel_function.pretty kf Data_for_aorai.pretty_state init_state;
     Data_for_aorai.set_kf_init_state kf init_state;
     if Kernel_function.is_definition kf then begin
@@ -538,7 +537,7 @@ let set_kf_init_state kf state =
   let change old_state = Data_for_aorai.merge_state old_state state in
   let set _ = state in
   let state = (Pre_state.memo ~change set kf) in
-    Aorai_option.debug ~dkey:"dataflow" 
+    Aorai_option.debug ~dkey 
       "Call to %a, pre-state after backward analysis:@\n  @[%a@]"
       Kernel_function.pretty kf Data_for_aorai.pretty_state state;
 
@@ -654,7 +653,7 @@ struct
         end
       | Call (_,e,_,_) ->
         Aorai_option.not_yet_implemented
-          "Indirect call to %a is not handled yet" !Ast_printer.d_exp e
+          "Indirect call to %a is not handled yet" Printer.pp_exp e
       | Set _ | Asm _ | Skip _ | Code_annot _ -> Dataflow.Default
 
   let filterStmt s1 s2 = Stmts_graph.stmt_can_reach Reach.kf s1 s2
@@ -823,7 +822,7 @@ let backward_analysis_aux stack kf ret_state =
         Aorai_option.warning ~source:(fst (Cil_datatype.Stmt.loc s))
           "Statement %a@ not conforming to automaton. \
            Assuming it is on a dead path"
-          !Ast_printer.d_stmt s
+          Printer.pp_stmt s
     in
     let visit = object
       inherit Visitor.frama_c_inplace
@@ -860,10 +859,10 @@ let compute_backward () =
 
 let compute () = 
   compute_forward (); 
-  Aorai_option.debug ~dkey:"dataflow" "After forward analysis";
+  Aorai_option.debug ~dkey "After forward analysis";
   Data_for_aorai.debug_computed_state ();
   compute_backward ();
-  Aorai_option.debug ~dkey:"dataflow" "After backward analysis";
+  Aorai_option.debug ~dkey "After backward analysis";
   Data_for_aorai.debug_computed_state();
 
 (* 

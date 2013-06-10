@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -222,7 +222,7 @@ include Datatype.Make_with_collections
       let pretty fmt = function
 	| IPPredicate (kind,_,_,p) -> 
           Format.fprintf fmt "%a@ %a"
-            pretty_predicate_kind kind Cil.d_identified_predicate p
+            pretty_predicate_kind kind Cil_printer.pp_identified_predicate p
 	| IPAxiom (s,_,_,_,_) -> Format.fprintf fmt "axiom@ %s" s
 	| IPAxiomatic(s, _) -> Format.fprintf fmt "axiomatic@ %s" s
 	| IPLemma (s,_,_,_,_) -> Format.fprintf fmt "lemma@ %s" s
@@ -234,7 +234,7 @@ include Datatype.Make_with_collections
 	    (match ki with 
 	    | Kstmt s -> Format.fprintf fmt " for statement %d" s.sid
 	    | Kglobal -> ())
-	| IPCodeAnnot(_, _, a) -> Cil.d_code_annotation fmt a
+	| IPCodeAnnot(_, _, a) -> Cil_printer.pp_code_annotation fmt a
 	| IPComplete(_, _, l) ->
 	  Format.fprintf fmt "complete@ %a"
 	    (Pretty_utils.pp_list ~sep:","
@@ -246,11 +246,11 @@ include Datatype.Make_with_collections
 	       (fun fmt s ->  Format.fprintf fmt " %s" s))
 	    l
 	| IPAllocation(_, _, _, (f,a)) -> 
-	    Cil.d_allocation fmt (FreeAlloc(f,a))
-	| IPAssigns(_, _, _, l) -> Cil.d_assigns fmt (Writes l)
-	| IPFrom (_,_,_, f) -> Cil.d_from fmt f
-	| IPDecrease(_, _, None,v) -> Cil.d_decreases fmt v
-	| IPDecrease(_, _, _,v) -> Cil.d_loop_variant fmt v
+	    Cil_printer.pp_allocation fmt (FreeAlloc(f,a))
+	| IPAssigns(_, _, _, l) -> Cil_printer.pp_assigns fmt (Writes l)
+	| IPFrom (_,_,_, f) -> Cil_printer.pp_from fmt f
+	| IPDecrease(_, _, None,v) -> Cil_printer.pp_decreases fmt v
+	| IPDecrease(_, _, _,v) -> Cil_printer.pp_variant fmt v
 	| IPReachable(None, Kstmt _, _) ->  assert false
 	| IPReachable(None, Kglobal, _) -> 
 	  Format.fprintf fmt "reachability of entry point"
@@ -435,7 +435,7 @@ module Names = struct
     State_builder.Hashtbl(Hashtbl)(Datatype.String)
       (struct
 	 let name = "PropertyIndex"
-	 let dependencies = [ Ast.self; NamesTbl.self; Kernel_function.self ] 
+	 let dependencies = [ Ast.self; NamesTbl.self; Globals.Functions.self ] 
 	 let size = 97
        end)
 
@@ -443,7 +443,12 @@ module Names = struct
 
   let kf_prefix kf = (Ast_info.Function.get_vi kf.fundec).vname ^ "_"
 
-  let pp_names fmt l =  
+  let ident_names names =
+    List.filter (function "" -> true
+		   | _ as n -> '\"' <> (String.get n 0) ) names
+
+  let pp_names fmt l =
+    let l = ident_names l in
     match l with [] -> ()
       | _ -> Format.fprintf fmt "_%a"
           (Pretty_utils.pp_list ~sep:"_" Format.pp_print_string) l
@@ -505,9 +510,11 @@ module Names = struct
         Pretty_utils.sfprintf  "%s%sdisjoint%a" (kf_prefix kf) (ki_prefix ki) pp_names lb
     | IPDecrease (kf,_,None, variant) -> (kf_prefix kf) ^ "decr" ^ (variant_suffix variant)
     | IPDecrease (kf,_,_,variant) -> (kf_prefix kf) ^ "loop_term" ^ (variant_suffix variant)
-    | IPAxiom (name,_,_,_,_) -> "axiom_" ^ name
+    | IPAxiom (name,_,_,named_pred,_) ->
+	Pretty_utils.sfprintf "axiom_%s%a" name pp_names named_pred.name
     | IPAxiomatic(name, _) -> "axiomatic_" ^ name
-    | IPLemma (name,_,_,_,_) -> "lemma_" ^ name
+    | IPLemma (name,_,_,named_pred,_) ->
+	Pretty_utils.sfprintf "lemma_%s%a" name pp_names named_pred.name
     | IPAllocation (kf, ki, (Id_behavior b), _) ->  (kf_prefix kf) ^ (ki_prefix ki) ^ (behavior_prefix b) ^ "alloc" 
     | IPAllocation (kf, Kstmt _s, (Id_code_annot ca), _) -> Pretty_utils.sfprintf "%sloop_alloc%a" (kf_prefix kf) pp_code_annot_names ca
     | IPAllocation _ -> assert false
@@ -522,7 +529,25 @@ module Names = struct
     | IPOther(s,None,ki) -> (ki_prefix ki) ^ s
 
   (** function used to normanize basename *)
-  let normalize_basename s = if s = "" then "property" else s
+  let normalize_basename s = 
+    let is_valid_id = ref true 
+    and is_valid_char_id = function
+      | 'a'..'z' | 'A' .. 'Z' | '0' .. '9' | '_' -> true
+      | _ -> false
+    and is_numeric = function
+      | '0'..'9' -> true
+      | _ -> false
+    in
+    String.iter (fun c -> if not (is_valid_char_id c) then is_valid_id := false) s  ;
+    let s = if !is_valid_id then s else
+      begin
+	let sn = String.copy s
+	and i = ref 0 
+	in String.iter (fun c -> if not (is_valid_char_id c) then String.set sn !i '_' ; i := succ !i) s ;
+	   sn
+      end
+    in if s = "" then "property" else 
+	if is_numeric (String.get s 0) then "property_" ^ s else s
 
   (** returns the name that should be returned by the function [get_prop_name_id] if the given property has [name] as basename. That name is reserved so that [get_prop_name_id prop] can never return an identical name. *)
   let reserve_name_id basename =
@@ -721,14 +746,14 @@ let ip_of_code_annot_single kf ki ca = match ip_of_code_annot kf ki ca with
        function ip_of_code_annot above. *)
     Kernel.error
       "@[cannot find a property to extract from code annotation@\n%a@]"
-      Cil.d_code_annotation ca;
+      Cil_printer.pp_code_annotation ca;
     raise (Invalid_argument "ip_of_code_annot_single")
   | [ ip ] -> ip
   | ip :: _ ->
     Kernel.warning 
       "@[choosing one of multiple properties associated \
            to code annotation@\n%a@]"
-      Cil.d_code_annotation ca;
+      Cil_printer.pp_code_annotation ca;
     ip
 
 (* Must ensure that the first property is the best one in order to represent

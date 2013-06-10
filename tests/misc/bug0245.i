@@ -1,5 +1,5 @@
 /* run.config
-   STDOPT: +"-slevel 3"
+   STDOPT: +"-slevel 4"
 */
 int R,*p,S,*q;
 

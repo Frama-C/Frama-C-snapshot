@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -34,10 +34,14 @@ struct
   module HV = Hashtbl.Make(Stmt)
   module HptmapStmtBool = Hptmap.Make
     (struct include Stmt let id s = s.sid end)
-    (struct include Datatype.Bool let tag b = if b then 1 else 0 end)
+    (Datatype.Bool)
     (Hptmap.Comp_unused)
     (struct let v = [ [] ] end)
     (struct let l = [ Ast.self ] end)
+    (* Clear the (non-project compliant) internal caches each time the ast
+       changes, which includes every time we switch project. *)
+  let () = Ast.add_hook_on_update (fun _ -> HptmapStmtBool.clear_caches ())
+
   module HashStmtHptmapStmtBool = Stmt.Hashtbl.Make(HptmapStmtBool)
 
   (* this a cache containing the path tests already computed *)
@@ -112,7 +116,7 @@ module TP = struct
   let graph_attributes _ = []
 
   let pretty_raw_stmt s =
-    let s = Pretty_utils.sfprintf "%a" !Ast_printer.d_stmt s in
+    let s = Pretty_utils.sfprintf "%a" Printer.pp_stmt s in
     if String.length s >= 50 then (String.sub s 0 49) ^ "..." else s
 
   let vertex_name s =
@@ -124,7 +128,7 @@ module TP = struct
        | Break _ -> Format.sprintf "BREAK <%d>" s.sid
        | Continue _ -> Format.sprintf "CONTINUE <%d>" s.sid
        | If(e,_,_,_) ->
-         Pretty_utils.sfprintf "IF <%d>\n%a" s.sid !Ast_printer.d_exp e
+	 Pretty_utils.sfprintf "IF <%d>\n%a" s.sid Printer.pp_exp e
        | Switch _ ->  Format.sprintf "SWITCH <%d>" s.sid
        | Loop _ ->  Format.sprintf "WHILE(1) <%d>" s.sid
        | Block _ ->  Format.sprintf "BLOCK <%d>" s.sid
@@ -168,8 +172,8 @@ let compute_stmtgraph_func func =
   if Kernel.debug_atleast 1 then
     begin
       Kernel.debug
-        "Function %a: Nb vertex: %d Nb edges:%d See file '%s_cfg.dot'.@\n"
-        !Ast_printer.d_ident func.svar.vname
+        "Function %s: Nb vertex: %d Nb edges:%d See file '%s_cfg.dot'.@\n"
+        func.svar.vname
         (SG.nb_edges o#result)
         (SG.nb_vertex o#result)
         func.svar.vname;
@@ -204,6 +208,8 @@ let get_graph kf =
       compute_stmtgraph_func f
     | Declaration _ -> assert false)
     kf
+
+
 
 module Reachable_Stmts =
   Cil_state_builder.Stmt_hashtbl

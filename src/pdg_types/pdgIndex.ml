@@ -2,11 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
-(*           alternatives)                                                *)
-(*    INRIA (Institut National de Recherche en Informatique et en         *)
-(*           Automatique)                                                 *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -279,20 +277,23 @@ module Signature = struct
     | (InNum n)  -> Format.fprintf fmt "In%d" n
     | InCtrl -> Format.fprintf fmt "InCtrl"
     | InImpl loc ->
-        Format.fprintf fmt "@[<h 1>In(%a)@]" Locations.Zone.pretty loc
+        Format.fprintf fmt "@[<hv 1>In(%a)@]" Locations.Zone.pretty loc
 
   let pretty_out_key fmt key = match key with
     | OutRet -> Format.fprintf fmt "OutRet"
     | OutLoc loc ->
-        Format.fprintf fmt "@[<h 1>Out(%a)@]" Locations.Zone.pretty loc
+        Format.fprintf fmt "@[<hv 1>Out(%a)@]" Locations.Zone.pretty loc
 
   let pretty_key fmt key = match key with
     | In in_key  -> pretty_in_key fmt in_key
     | Out key -> pretty_out_key fmt key
 
   let pretty pp fmt sgn =
-    let print _ (k,i) = Format.fprintf fmt "(%a:%a)" pretty_key k pp i in
+    let print _ (k,i) = 
+      Format.fprintf fmt "@[<hv>(%a:@ %a)@]" pretty_key k pp i 
+    in
     fold print () sgn
+
 end
 
 module Key = struct
@@ -349,12 +350,12 @@ module Key = struct
       let str =
         match s.skind with
         | Switch (exp,_,_,_) | If (exp,_,_,_) ->
-          Pretty_utils.sfprintf "%a" ! Ast_printer.d_exp exp
+          Pretty_utils.to_string Printer.pp_exp exp
         | Loop _ -> "while(1)"
         | Block _ -> "block"
         | Goto _ | Break _ | Continue _ | Return _ | Instr _ ->
-          Pretty_utils.sfprintf "@[<h 1>%a@]"
-            (Cil.defaultCilPrinter#pStmtKind s) s.skind
+          Pretty_utils.sfprintf "@[<h 1>%a@]" 
+	    (Printer.without_annot Printer.pp_stmt) s
         | UnspecifiedSequence _ -> "unspecified sequence"
         | TryExcept _ | TryFinally _  -> "ERROR"
       in
@@ -365,9 +366,9 @@ module Key = struct
       let call = call_from_id call in
       Format.fprintf fmt "Call%d : %a" call.sid print_stmt call
     | Stmt s -> print_stmt fmt s
-    | Label (_,l) -> Format.fprintf fmt "%a" !Ast_printer.d_label l
-    | VarDecl v -> Format.fprintf fmt "VarDecl : %a" !Ast_printer.d_var v
-    | SigKey k -> Format.fprintf fmt "%a" Signature.pretty_key k
+    | Label (_,l) -> Printer.pp_label fmt l
+    | VarDecl v -> Format.fprintf fmt "VarDecl : %a" Printer.pp_varinfo v
+    | SigKey k -> Signature.pretty_key fmt k
     | SigCallKey (call, sgn) ->
       let call = call_from_id call in
       Format.fprintf fmt "Call%d-%a : %a"
@@ -408,46 +409,37 @@ module Key = struct
 
 end
 
-module Hkey = struct
-  type tt = Hdecl of Cil_types.varinfo
-    | Hstmt of int | Hlabel of int * Cil_types.label
-   (* Check the structural_descr for H.t below if this type changes *)
+(* [Key] restricted to [Stmt], [VarDecl] and [Label] constructors. Hash tables
+   are built upon this type, and we currently have no full hash/equality
+   function for [Key.t]. *)
+module RKey = struct
 
-  let hkey k =
-    match k with
-      | Key.Stmt stmt -> Hstmt stmt.sid
-      | Key.VarDecl var -> Hdecl var
-      | Key.Label (s,l) -> Hlabel (s.sid,l)
-      | _ -> assert false
+  include Key
 
-  let key hk = match hk with
-    | Hdecl v -> Key.VarDecl v
-    | Hstmt sid -> Key.Stmt (fst (Kernel_function.find_from_sid sid))
-    | Hlabel (sid,l) -> Key.Label (fst (Kernel_function.find_from_sid sid),l)
+  let hash = function
+    | Key.VarDecl v -> 17 * Cil_datatype.Varinfo.hash v
+    | Key.Stmt s -> 29 * Cil_datatype.Stmt.hash s
+    | Key.Label (s, _l) ->
+      (* Intentionnaly buggy: ignore the label and consider only the statement.
+         There seems to be bug in the pdg, only one 'case :' per statement is
+         present. This avoids removing the other 'case' clauses
+         (see tests/slicing/switch.c *)
+         53 * Cil_datatype.Stmt.hash s (* 7 * Cil_datatype.Label.hash l *)
+    | _ -> assert false
 
-  include Datatype.Make(struct
-    include Datatype.Serializable_undefined
-
-    let hash k =
-      let code n c = assert (c < 4) ; n*4 + c in
-      match k with
-        | Hdecl v -> code v.vid 1
-        | Hstmt n -> code n 2
-        | Hlabel (n,_) -> code n 3
-
-    let equal k1 k2 = (hash k1) = (hash k2)
-      (* TODO: write better function, or check that the computation of the hash
-         does not overflow *)
-    type t = tt
-    let reprs = [Hstmt (-1)]
-    let name = "PdgIndex.Hkey.t"
-  end)
+  let equal k1 k2 = match k1, k2 with
+    | Key.VarDecl v1, Key.VarDecl v2 -> Cil_datatype.Varinfo.equal v1 v2
+    | Key.Stmt s1, Key.Stmt s2 -> Cil_datatype.Stmt.equal s1 s2
+    | Key.Label (s1, _l1), Key.Label (s2, _l2) ->
+        (* See [hash] above *)
+      Cil_datatype.Stmt.equal s1 s2  (* && Cil_datatype.Label.equal l1 l2 *)
+    | _ -> false
 end
 
 module H = struct
-  include Hashtbl.Make(Hkey)
+  include Hashtbl.Make(RKey)
   let structural_descr =
-    Structural_descr.t_hashtbl_unchanged_hashs (Descr.str Hkey.descr)
+    Structural_descr.t_hashtbl_unchanged_hashs (Descr.str RKey.descr)
 end
 
 module FctIndex = struct
@@ -590,8 +582,7 @@ module FctIndex = struct
       | Key.CallStmt _ -> raise CallStatement (* see add_info_call *)
       | Key.SigCallKey (call, k) ->
           idx.calls <- add_info_sig_call idx.calls call k e replace
-      | Key.VarDecl _ | Key.Stmt _ | Key.Label _ ->
-          hfct idx.other (Hkey.hkey key) e
+      | Key.VarDecl _ | Key.Stmt _ | Key.Label _ -> hfct idx.other key e
 
   let add idx key e = add_replace idx key e false
 
@@ -605,7 +596,7 @@ module FctIndex = struct
       | Key.CallStmt _ -> raise CallStatement (* see find_info_call *)
       | Key.SigCallKey (call, k) -> find_info_sig_call idx call k
       | Key.VarDecl _ | Key.Stmt _ | Key.Label _ ->
-          (try H.find idx.other (Hkey.hkey key) 
+          (try H.find idx.other key
            with Not_found -> raise Not_found)
 
   let find_all idx key =
@@ -615,7 +606,7 @@ module FctIndex = struct
 
   let find_label idx lab =
     let collect k info res = match k with
-      | Hkey.Hlabel (_,k_lab) -> 
+      | Key.Label (_,k_lab) -> 
           if Cil_datatype.Label.equal k_lab lab then  info :: res else res
       | _ -> res
     in
@@ -631,15 +622,13 @@ module FctIndex = struct
     let acc = Signature.fold 
                 (fun acc (k, info) -> f (Key.SigKey k) info acc) 
                 acc idx.sgn in
-    let acc = H.fold 
-                (fun k info acc -> f (Hkey.key k) info acc) idx.other acc in
+    let acc = H.fold (fun k info acc -> f k info acc) idx.other acc in
     List.fold_left 
       (fun acc (call, (_, sgn)) -> 
         Signature.fold (fun acc (k, info) -> 
           f (Key.SigCallKey (call, k)) info acc) 
           acc sgn) 
       acc idx.calls
-
 
 end
 

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -63,9 +63,9 @@ class virtual do_it_ = object(self)
         then
           Inout_parameters.debug ~current:true
             "Problem with %a@\nValue at this point:@\n%a"
-            !Ast_printer.d_lval lv
+            Printer.pp_lval lv
             Value.pretty_state (Value.get_state self#current_kinstr) ;
-        let bits_loc = valid_enumerate_bits ~for_writing:true loc in
+        let bits_loc = enumerate_valid_bits ~for_writing:true loc in
         self#join bits_loc
       end
 
@@ -97,7 +97,8 @@ class virtual do_it_ = object(self)
 
   method clean_kf_result kf r =
     Zone.filter_base
-      (Value_aux.accept_base ~with_formals:true ~with_locals:true kf) r
+      (!Db.Semantic_Callgraph.accept_base
+         ~with_formals:true ~with_locals:true kf) r
 
   method compute_funspec kf =
     let state = self#specialize_state_on_call kf in
@@ -120,7 +121,8 @@ let get_internal = Analysis.kernel_function
 
 let externalize kf x =
   Zone.filter_base
-    (Value_aux.accept_base ~with_formals:false ~with_locals:false kf) x
+    (!Db.Semantic_Callgraph.accept_base
+       ~with_formals:false ~with_locals:false kf) x
 
 module Externals =
   Kernel_function.Make_Table(Locations.Zone)

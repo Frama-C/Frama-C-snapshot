@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -21,16 +21,68 @@
 (**************************************************************************)
 
 open Abstract_interp
-include Make_Lattice_Base(Int)
 
+type i = Top | Value of Integer.t
+
+let equal i1 i2 = match i1, i2 with
+  | Top, Top -> true
+  | Value i1, Value i2 -> Integer.equal i1 i2
+  | Top, Value _ | Value _, Top -> false
+
+let compare i1 i2 = match i1, i2 with
+  | Top, Top -> 0
+  | Value i1, Value i2 -> Integer.compare i1 i2
+  | Top, Value _ -> -1
+  | Value _, Top -> 1
+
+let hash = function
+  | Top -> 37
+  | Value i -> Integer.hash i
+
+let pretty fmt = function
+  | Top -> Format.fprintf fmt "Top"
+  | Value i -> Format.fprintf fmt "<%a>" Int.pretty i
+
+include Datatype.Make
+(struct
+  type t = i (*= Top | Value of Integer.t *)
+  let name = "Int_Base.t"
+  let structural_descr =
+    Structural_descr.Structure
+      (Structural_descr.Sum [| [| Datatype.Big_int.packed_descr |] |])
+  let reprs = Top :: List.map (fun v -> Value v) Datatype.Big_int.reprs
+  let equal = equal
+  let compare = compare
+  let hash = hash
+  let rehash = Datatype.identity
+  let copy = Extlib.id
+  let internal_pretty_code = Datatype.undefined
+  let pretty = pretty
+  let varname = Datatype.undefined
+  let mem_project = Datatype.never_any_project
+ end)
+
+let minus_one = Value Int.minus_one
+let one = Value Int.one
+let zero = Value Int.zero
+let is_zero x = equal x zero
+let top = Top
+let is_top v = (v = Top)
 let neg x =
   match x with
-    | Value v -> inject (Int.neg v)
-    | Top | Bottom -> x
-let minus_one = inject Int.minus_one
-let one = inject Int.one
-let zero = inject Int.zero
-let is_zero x = equal x zero
+    | Value v -> Value (Int.neg v)
+    | Top -> x
+let inject i = Value i
+
+exception Error_Top
+
+let project = function
+  | Top -> raise Error_Top
+  | Value i -> i
+
+let cardinal_zero_or_one = function
+  | Top -> false
+  | Value _ -> true
 
 (*
 Local Variables:

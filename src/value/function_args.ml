@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -23,6 +23,7 @@
 open Cil_types
 open Abstract_interp
 open Locations
+open Cvalue
 
 exception Actual_is_bottom
 exception WrongFunctionType (* at a call through a pointer *)
@@ -41,19 +42,19 @@ let rec fold_left2_best_effort f acc l1 l2 =
   | [],_ -> raise WrongFunctionType (* Too few arguments *)
   | (x1::r1),(x2::r2) -> fold_left2_best_effort f (f acc x1 x2) r1 r2
 
-let actualize_formals ?(check = fun _ _ -> ()) kf state actuals =
+let actualize_formals ?(check = fun _ _ -> ()) ?(exact = fun _ -> true) kf state actuals =
   let formals = Kernel_function.get_formals kf in
-  let treat_one_formal acc (expr, _actual_val,actual_o) formal =
+  let treat_one_formal acc (expr, actual_o) formal =
     (check expr formal: unit);
     let loc_without_size =
       Location_Bits.inject (Base.create_varinfo formal) (Ival.zero)
     in
-    Cvalue.Model.paste_offsetmap CilE.warn_none_mode
-      actual_o
-      loc_without_size
-      Int.zero
-      (Int_Base.project (Bit_utils.sizeof_vid formal))
-      true
+    Cvalue.Model.paste_offsetmap ~with_alarms:CilE.warn_none_mode
+      ~from:actual_o
+      ~dst_loc:loc_without_size
+      ~start:Int.zero
+      ~size:(Int_Base.project (Bit_utils.sizeof_vid formal))
+      ~exact:(exact formal)
       acc
   in
   fold_left2_best_effort treat_one_formal state actuals formals
@@ -74,65 +75,70 @@ let main_initial_state_with_formals kf (state:Cvalue.Model.t) =
           l
           state
 
-let compute_actual ~with_alarms (one_library_fun, all_library_funs) state e =
-  let interpreted_expr, o = match e with
-  | { enode = Lval l }
-      when not (Eval_exprs.is_bitfield l ()) ->
-      let _, _, interpreted_expr =
-	Eval_exprs.eval_lval ~conflate_bottom:false ~with_alarms None state l
-      in
-      if one_library_fun then
-	ignore (Eval_exprs.eval_lval
-                  ~conflate_bottom:true ~with_alarms None state l);
-      if Cvalue.V.is_bottom interpreted_expr
-      then begin
-	  if not one_library_fun then (* alarm *)
-	    ignore (Eval_exprs.eval_lval
-                      ~conflate_bottom:true ~with_alarms None state l);
-	  if all_library_funs
-	  then begin
-	      Value_parameters.result ~current:true
-		"Non-termination@ in@ evaluation@ of@ library function@ call@ lvalue@ argument@ @[%a@]" Cil.d_lval l;
-	    end;
-	  raise Actual_is_bottom;
-	end;
-      CilE.set_syntactic_context (CilE.SyUnOp e);
-      let r = Eval_exprs.do_cast ~with_alarms (Cil.typeOf e) interpreted_expr in
-      let _, o = Eval_exprs.offsetmap_of_lv ~with_alarms state l in
+let offsetmap_contains_indeterminate offs =
+  V_Offsetmap.fold_on_values
+    (fun v _ (allbot, init, noesc) ->
+       let allbot = allbot && V.is_bottom (V_Or_Uninitialized.get_v v) in
+       let flags = V_Or_Uninitialized.get_flags v in
+       let init  = init  && V_Or_Uninitialized.is_initialized flags in
+       let noesc = noesc && V_Or_Uninitialized.is_noesc flags in
+       (allbot, init, noesc)
+    ) offs (true, true, true)
+
+
+let compute_actual ~with_alarms one_library_fun state e =
+  let offsm = match e with
+  | { enode = Lval lv } when not (Eval_op.is_bitfield (Cil.typeOfLval lv)) ->
+      let loc, _, o = Eval_exprs.offsetmap_of_lv ~with_alarms state lv in
       (match o with
-      | Some o -> r, o
+      | Some o ->
+          (match Warn.offsetmap_contains_imprecision o with
+             | Some v -> Warn.warn_imprecise_lval_read ~with_alarms lv loc v
+             | None -> ());
+          let allbot, init, noesc = offsetmap_contains_indeterminate o in
+          if one_library_fun || allbot then (
+            CilE.set_syntactic_context (CilE.SyMem lv);
+            if not init then CilE.warn_uninitialized with_alarms;
+            if not noesc then CilE.warn_escapingaddr with_alarms;
+          );
+          if allbot then (
+            if with_alarms.CilE.imprecision_tracing.CilE.a_log != None then
+              Value_parameters.result ~current:true ~once:true
+                "completely invalid@ value in evaluation of@ argument %a"
+                Printer.pp_lval lv;
+	    raise Actual_is_bottom);
+          o
       | None ->
-	  Format.printf "failure in evaluation of function arguments@\n\
-		    lval %a -> %a@."
-            Cil.d_lval l Cvalue.V.pretty interpreted_expr;
-	  assert false)
+          if with_alarms.CilE.imprecision_tracing.CilE.a_log != None then
+            Value_parameters.result ~current:true ~once:true
+              "completely invalid@ location in evaluation of@ argument %a"
+              Printer.pp_lval lv;
+	raise Actual_is_bottom)
   | _ ->
       let interpreted_expr = Eval_exprs.eval_expr ~with_alarms state e in
       if Cvalue.V.is_bottom interpreted_expr
       then begin
+        if with_alarms.CilE.imprecision_tracing.CilE.a_log != None then
 	  Value_parameters.result ~current:true
-	    "Non-termination@ in@ evaluation@ of@ function@ call@ expression@ argument@ @[%a@]"
-	    Cil.d_exp e;
-	  raise Actual_is_bottom
+	    "all evaluations are invalid@ for function call argument@ @[%a@]"
+            Printer.pp_exp e;
+	raise Actual_is_bottom
 	end;
       let typ = Cil.typeOf e in
-      interpreted_expr,
-      Cvalue_convert.offsetmap_of_value ~typ interpreted_expr
+      Eval_op.offsetmap_of_v ~typ interpreted_expr
   in
-  e, interpreted_expr, o
-
-
+  e, offsm
 
 let () =
   Db.Value.add_formals_to_state :=
     (fun state kf exps ->
        try
-         let compute_actual = compute_actual
-           ~with_alarms:CilE.warn_none_mode (false, false) in
+         let compute_actual =
+           compute_actual ~with_alarms:CilE.warn_none_mode false
+         in
          let actuals = List.map (compute_actual state) exps in
          actualize_formals kf state actuals
        with Actual_is_bottom -> Cvalue.Model.bottom)
-
 
 (*
 Local Variables:

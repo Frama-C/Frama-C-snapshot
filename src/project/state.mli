@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -159,8 +159,6 @@ val dummy_state_on_disk: state_on_disk
 
 val private_ops: t -> private_ops
 (** @since Carbon-20101201 *)
-
-val set_descr: t -> Structural_descr.pack -> unit
 
 (* ************************************************************************** *)
 (** {3 State generators} *)

@@ -11,10 +11,7 @@ let main () =
       Annotations.iter_code_annot
 	(fun _ ca ->
 	  let kf = Kernel_function.find_englobing_kf stmt in
-	  let ps =
-	    Property.ip_of_code_annot
-	      kf stmt (Annotations.code_annotation_of_rooted ca)
-	  in
+	  let ps = Property.ip_of_code_annot kf stmt ca in
 	  List.iter
             (fun p ->
               Property_status.emit

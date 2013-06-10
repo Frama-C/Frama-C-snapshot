@@ -2,11 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
-(*           alternatives)                                                *)
-(*    INRIA (Institut National de Recherche en Informatique et en         *)
-(*           Automatique)                                                 *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -140,7 +138,7 @@ let rec add_caller_nodes z kf acc (undef, nodes) =
 
 let compute_aux kf stmt lval =
   debug1 "[Defs.compute] for %a at sid:%d in '%a'@."
-    !Ast_printer.d_lval lval stmt.sid Kernel_function.pretty kf;
+    Printer.pp_lval lval stmt.sid Kernel_function.pretty kf;
   try
     let pdg = !Db.Pdg.get kf in
     let zone = !Db.Value.lval_to_zone (Kstmt stmt)
@@ -196,10 +194,21 @@ let compute_with_def_type kf stmt lval =
         | PdgIndex.Key.SigCallKey (s, sign) ->
           (match sign with
             | PdgIndex.Signature.Out (PdgIndex.Signature.OutRet) ->
-                change s (true, false)
-            | PdgIndex.Signature.Out (PdgIndex.Signature.OutLoc _) ->
-                change s (false, true)
-            | PdgIndex.Signature.In _ -> assert false
+                change s (true, false) (* defined by affectation in 'v = ()' *)
+            | PdgIndex.Signature.In _ ->
+                change s (true, false) (* defined by formal v in 'f(v)' *)
+            | PdgIndex.Signature.Out (PdgIndex.Signature.OutLoc _) -> begin
+                match s.skind with
+                  | Instr (Call (_, { enode = Lval (Var vi, NoOffset)}, _, _))
+                      when let kf = Globals.Functions.get vi in
+                           !Db.Value.use_spec_instead_of_definition kf
+                      ->
+                      (* defined through a call, but function has no body *)
+                      change s (true, false)
+                  | _ ->
+                      (* defined within call to a function with a body*)
+                      change s (false, true)  
+              end
           )
         | PdgIndex.Key.SigKey _ -> acc
         | s -> Format.printf "## %a@." PdgIndex.Key.pretty s; acc

@@ -4,7 +4,7 @@ int G;
 void F1(char *s);
 
 char T[100];
-
+char Tpost[100];
 
 typedef struct {
   int f1;
@@ -24,6 +24,18 @@ void g(int len);
 //@ assigns p[..] \from \nothing;
 void h(int *p);
 
+/*@ logic int foo(int p) ; */
+//@ assigns p[0..foo(*p)] \from \nothing;
+void j(int *p);
+
+int x;
+int k = 53;
+
+/*@ assigns \at(x, Post) \from \at(x, Post);
+    assigns Tpost[\at(i, Post)];
+    assigns Tpost[\at(k, Post)];
+*/
+void assigns_post(int i);
 
 void main(void)
 {
@@ -34,5 +46,8 @@ void main(void)
 
   g(2 * (int)(&T) );
   h(2 * (int)(&t3) );
+  
+  j(T+9);
 
+  assigns_post(18);
 }

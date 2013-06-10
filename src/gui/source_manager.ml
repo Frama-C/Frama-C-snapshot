@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -47,17 +47,7 @@ let make ?tab_pos ?packing () =
   }
 
 (* Try to convert a source file either as UTF-8 or as locale. *)
-let try_convert s =
-  try
-    if Glib.Utf8.validate s then s else Glib.Convert.locale_to_utf8 s
-  with Glib.Convert.Error _ ->
-    try
-      Glib.Convert.convert_with_fallback
-        ~fallback:"#neither UTF-8 nor locale nor ISO-8859-15#"
-        ~to_codeset:"UTF-8"
-        ~from_codeset:"ISO_8859-15"
-        s
-    with Glib.Convert.Error _ as e -> Printexc.to_string e
+let try_convert = Gtk_helper.to_utf8
 
 let input_channel b ic =
   let buf = String.create 1024 and len = ref 0 in

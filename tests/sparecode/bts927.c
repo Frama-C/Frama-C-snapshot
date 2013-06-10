@@ -1,6 +1,6 @@
 /*  run.config
- OPT: -journal-disable -sparecode
- OPT: -journal-disable -val-signed-overflow-alarms -sparecode
+ OPT: -no-warn-signed-overflow -sparecode
+ OPT: -warn-signed-overflow -sparecode
 */
 
 /* The purpose of these tests is to check if the conditions are removed

@@ -1,30 +1,16 @@
-int G = 0;
-int H;
+/* run.config
+   STDOPT: +"-warn-signed-overflow"
+*/
 
-int f (int x) {
-  G = x;
-  return 0;
+void ff(float f, int i, int j){
+  Frama_C_show_each(i, f, j);
 }
 
-int i_auCyc () {
-  f(0);
-  G=17;
-  if (H) f(2);
-  else f(5);
-  f(6);
-  return 0;
+void main(int i, int j, int c) {
+  float f;
+  int z;
+  int *p = (int*)&f;
+  *p = i;
+  if (c) z = 1;
+  ff(f, i+j, z); // Arguments with potential RTE
 }
-
-extern void fp (int*p);
-
-int G,x;
-void main() {
-  x = 1;
-  G = 0;
-  while (x) {
-    G ++;
-    }
-
-
-}
-

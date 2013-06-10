@@ -73,7 +73,13 @@ module type S = sig
   val fold2: (key -> value option -> value option -> 'a -> 'a) -> t -> t -> 'a -> 'a
 end
 
-module Make(Ord: Datatype.S)(Value: Datatype.S) = struct
+
+module type Value = sig
+  include Datatype.S
+  val fast_equal: t -> t -> bool
+end
+
+module Make(Ord: Datatype.S)(Value: Value) = struct
 
   type key = Ord.t
   type value = Value.t
@@ -139,10 +145,11 @@ module Make(Ord: Datatype.S)(Value: Datatype.S) = struct
    let rec add x data = function
         Empty ->
           create Empty x data Empty
-      | Node(l, v, d, r, _, _) ->
+      | Node(l, v, d, r, _, _) as node ->
           let c = Ord.compare x v in
           if c = 0 then
-            create l x data r
+            if Value.fast_equal d data then node
+            else create l x data r
           else if c < 0 then
             bal (add x data l) v d r
           else

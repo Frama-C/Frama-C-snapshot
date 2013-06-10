@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -32,11 +32,7 @@
     descriptors. See module {!Recursive}. *)
 type recursive
 
-type single_pack = (*private*) Unmarshal.t
-(** Please consider that this type is private. It is public only for
-    compatibility with OCaml 3.10.2.
-
-    It MUST NOT be used directly in any case. *)
+type single_pack = private Unmarshal.t
 
 (** Structural descriptor used inside structures.
     @modify Nitrogen-20111001 this type is now private. Use smart

@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2012                                               #
+#  Copyright (C) 2007-2013                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -103,12 +103,12 @@ endif
 
 $(PLUGIN_NAME)_INSTALL_DOC: plugin-doc/$(PLUGIN_NAME)
 	$(PRINT_CP) $(patsubst %_INSTALL_DOC,%,$@) Documentation
-	$(MKDIR) $(FRAMAC_SHARE)/doc/$(@:%_INSTALL_DOC=%)
+	$(MKDIR) $(FRAMAC_SHARE)/doc/code/$(@:%_INSTALL_DOC=%)
 	$(CP) $(patsubst %,"%", \
 	         $(wildcard $($(@:%_INSTALL_DOC=%_DOC_DIR))/*.css \
 	                    $($(@:%_INSTALL_DOC=%_DOC_DIR))/*.html \
                             $($(@:%_INSTALL_DOC=%_DOC_DIR))/*.png)) \
-              $(FRAMAC_SHARE)/doc/$(@:%_INSTALL_DOC=%)
+              $(FRAMAC_SHARE)/doc/code/$(@:%_INSTALL_DOC=%)
 
 
 ifndef PLUGIN_INTERNAL_TEST

@@ -2,11 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
-(*           alternatives)                                                *)
-(*    INRIA (Institut National de Recherche en Informatique et en         *)
-(*           Automatique)                                                 *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -30,15 +28,8 @@
 
 open Cil_types
 
-exception Break
-
 (**/**)
-
-(** {2 Debug and utils} *)
-
-let cbug assert_cond msg =
-  if not assert_cond then raise (SlicingTypes.Slicing_Internal_Error msg)
-
+  
 (** {2 Options} *)
 
 let str_level_option opt = match opt with
@@ -59,9 +50,6 @@ let get_default_level_option defined_function =
   if defined_function || (SlicingParameters.Mode.SliceUndef.get ()) then
     translate_num_to_slicing_level (SlicingParameters.Mode.Calls.get ())
   else SlicingInternals.DontSlice
-
-let get_str_default_level_option defined_function =
-  str_level_option (get_default_level_option defined_function)
 
 
 (** {2 Getting [fct_info] and others } *)
@@ -106,13 +94,7 @@ let fold_fi f acc proj =
     proj.SlicingInternals.functions
     acc
 
-(*
-let ff_fi ff = ff.SlicingInternals.ff_fct
-*)
 
-let f_fi f = match f with
-  | SlicingInternals.FctSrc fct -> fct
-  | SlicingInternals.FctSliced ff -> ff.SlicingInternals.ff_fct
 
 (** {4 getting num id} *)
 let get_ff_id ff = ff.SlicingInternals.ff_id
@@ -133,9 +115,6 @@ let f_name f = match f with
   | SlicingInternals.FctSliced ff -> ff_name ff
 
 let ff_src_name ff = fi_name ff.SlicingInternals.ff_fct
-
-let pdg_name pdg =
-  Kernel_function.get_name ( PdgTypes.Pdg.get_kf pdg)
 
 (** {4 getting [kernel_function]} *)
 
@@ -179,12 +158,6 @@ let equal_fi fi1 fi2 =
 
 let equal_ff ff1 ff2 = (equal_fi ff1.SlicingInternals.ff_fct ff2.SlicingInternals.ff_fct) &&
                        ((get_ff_id ff1) = (get_ff_id ff2))
-
-let equal_f f1 f2 =
-  match f1, f2 with
-    | SlicingInternals.FctSrc fi1, SlicingInternals.FctSrc fi2 -> equal_fi fi1 fi2
-    | SlicingInternals.FctSliced ff1, SlicingInternals.FctSliced ff2 -> equal_ff ff1 ff2
-    | _ -> false
 
 
 (** {2 Calls} *)

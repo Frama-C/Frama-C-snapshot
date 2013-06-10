@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,14 +24,16 @@
 (** {2 Logging machinery} *)
 (* ************************************************************************** *)
 
-module Output =
-  Log.Register
+module Output = struct
+  include Log.Register
     (struct
        let channel = Log.kernel_channel_name
        let label = Log.kernel_label_name
        let verbose_atleast n = !Cmdline.kernel_verbose_atleast_ref n
        let debug_atleast n = !Cmdline.kernel_debug_atleast_ref n
      end)
+  let dkey = register_category "project"
+end
 
 (* ************************************************************************** *)
 (** {2 Type declaration} *)

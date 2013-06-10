@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -rte -rte-print -rte-no-all -rte-precond -journal-disable
+   OPT: -rte -warn-signed-overflow -print -rte-no-all -rte-precond -journal-disable
 */
 
 int z;

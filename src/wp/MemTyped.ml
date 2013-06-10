@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -27,59 +27,97 @@
 open Cil_types
 open Cil_datatype
 open Ctypes
-open Qed
 open Lang
 open Lang.F
 open Memory
 open Definitions
 
+module L = Qed.Logic
+
 let datatype = "MemTyped"
 let theory = "memory"
 
-let a_addr = record ~link:"addr" ~theory [ "base" , Logic.Int ; "offset" , Logic.Int ]
-let t_addr = Logic.Data(a_addr,[])
-let f_base = field a_addr "base"
-let f_offset = field a_addr "offset"
-let _f_shift = Lang.extern_f ~theory "shift"
-let p_valid = Lang.extern_fp ~theory "valid"
+let a_addr = Lang.datatype ~theory ~link:"addr"
+let t_addr = L.Data(a_addr,[])
+let f_base   = Lang.extern_f ~theory ~result:L.Sint "base"
+let f_offset = Lang.extern_f ~theory ~result:L.Sint "offset"
+let f_shift  = Lang.extern_f ~theory "shift"
+let f_global = Lang.extern_f ~theory "global"
+let f_null   = Lang.extern_f ~theory "null"
+
+let p_valid_rd = Lang.extern_fp ~theory "valid_rd"
+let p_valid_rw = Lang.extern_fp ~theory "valid_rw"
 let p_separated = Lang.extern_fp ~theory "separated"
 let p_included = Lang.extern_fp ~theory "included"
 let p_eqmem = Lang.extern_fp ~theory "eqmem"
 let p_havoc = Lang.extern_fp ~theory "havoc"
-let f_region = Lang.extern_f ~theory ~sort:Logic.Sint "region"   (* base -> region *)
-let p_linked = Lang.extern_fp ~theory "linked" (* t-alloc -> prop *)
+let f_region = Lang.extern_f ~theory ~result:L.Sint "region"   (* base -> region *)
+let p_linked = Lang.extern_fp ~theory "linked" (* allocation-table -> prop *)
+let p_sconst = Lang.extern_fp ~theory "sconst" (* int-memory -> prop *)
 let p_framed = Lang.extern_fp ~theory "framed" (* m-pointer -> prop *)
-let a_lt = Lang.extern_p ~theory ~prop:"addr_lt" ~bool:"addr_lt_bool"
-let a_leq = Lang.extern_p ~theory ~prop:"addr_le" ~bool:"addr_le_bool"
-let a_cast = Lang.extern_f ~sort:Logic.Sint ~category:Logic.Injection ~theory "cast"
-let a_hardware = Lang.extern_f ~sort:Logic.Sint ~category:Logic.Injection ~theory "hardware"
+let a_lt = Lang.extern_p ~theory ~prop:"addr_lt" ~bool:"addr_lt_bool" ()
+let a_leq = Lang.extern_p ~theory ~prop:"addr_le" ~bool:"addr_le_bool" ()
+let a_cast = Lang.extern_f ~result:L.Sint ~category:L.Injection ~theory "cast"
+let a_hardware = Lang.extern_f ~result:L.Sint ~category:L.Injection ~theory "hardware"
 
 (* -------------------------------------------------------------------------- *)
 (* --- Utilities on loc-as-term                                           --- *)
 (* -------------------------------------------------------------------------- *)
 
-let a_base l = F.e_getfield l f_base
-let a_offset l = F.e_getfield l f_offset
-let a_addr base offset = F.e_record [ f_base , base ; f_offset , offset ]
-let a_shift l k = 
-  if F.is_zero k then l else a_addr (a_base l) (F.e_add (a_offset l) k)
-  (* if F.is_zero k then l else F.e_fun f_shift [l;k] *)
-let a_null = a_addr e_zero e_zero
+let rec a_base l = match F.repr l with
+  | L.Fun(f,[p;_]) when f==f_shift -> a_base p
+  | L.Fun(f,[b]) when f==f_global -> b
+  | L.Fun(f,[]) when f==f_null -> e_zero
+  | _ -> F.e_funraw f_base [l]
+
+let rec a_offset l = match F.repr l with
+  | L.Fun(f,[p;k]) when f==f_shift -> F.e_add (a_offset p) k
+  | L.Fun(f,_) when f==f_global || f==f_null -> F.e_zero
+  | _ -> F.e_funraw f_offset [l]
+
+let rec a_shift l k = match F.repr l with
+  | L.Fun(f,[p;i]) when f==f_shift -> F.e_funraw f_shift [p;e_add i k]
+  | _ -> F.e_funraw f_shift [l;k]
+
+let a_null = F.e_funraw f_null []
+
+let a_global base = 
+  if base == e_zero then a_null else F.e_funraw f_global [base]
+
+let a_addr base offset = a_shift (a_global base) offset
+
+let eq_shift a b =
+  let p = a_base a in
+  let q = a_base b in
+  let i = a_offset a in
+  let j = a_offset b in
+  if i==j then F.p_equal p q else
+    match F.is_equal p q with
+      | L.No -> F.p_false
+      | L.Yes -> F.p_equal i j
+      | L.Maybe -> raise Not_found
+	  
+let () =
+  begin
+    F.add_builtin_1   f_base   a_base ;
+    F.add_builtin_1   f_offset a_offset ;
+    F.add_builtin_2   f_shift  a_shift ;
+    F.add_builtin_peq f_shift  eq_shift ;
+    F.add_builtin_peq f_global eq_shift ;
+  end
 
 (* -------------------------------------------------------------------------- *)
 (* --- Model Parameters                                                   --- *)
 (* -------------------------------------------------------------------------- *)
 
-let register ~name ?id ?descr ?tuning () =
-  let model = Model.register ~name ?id ?descr ?tuning () in
-  Model.set_parameter model Lang.pointer (fun _ -> t_addr) "addr" ;
-  Model.set_parameter model Cvalues.null (p_equal a_null) "null" ;
-  model
+let configure () =
+  begin
+    Context.set Lang.pointer (fun _ -> t_addr) ;
+    Context.set Cvalues.null (p_equal a_null) ;
+  end
 
-type pointer = NoCast | Fits
+type pointer = NoCast | Fits | Unsafe
 let pointer = Context.create ~default:NoCast "MemTyped.pointer"
-let nocast m = Model.set_parameter m pointer NoCast "No pointer casts"
-let fits m = Model.set_parameter m pointer Fits "Casts with fitting pointers"
 
 (* -------------------------------------------------------------------------- *)
 (* --- Chunks                                                             --- *)
@@ -87,6 +125,7 @@ let fits m = Model.set_parameter m pointer Fits "Casts with fitting pointers"
 
 type chunk = 
   | M_int
+  | M_char
   | M_float
   | M_pointer
   | T_alloc
@@ -97,12 +136,14 @@ struct
   let self = "typed"
   let rank = function 
     | M_int -> 0
-    | M_float -> 1
-    | M_pointer -> 2
-    | T_alloc -> 3
+    | M_char -> 1
+    | M_float -> 2
+    | M_pointer -> 3
+    | T_alloc -> 4
   let hash = rank
   let name = function
     | M_int -> "Mint"
+    | M_char -> "Mchar"
     | M_float -> "Mflt"
     | M_pointer -> "Mptr"
     | T_alloc -> "Malloc"
@@ -110,18 +151,18 @@ struct
   let equal = (=)
   let pretty fmt c = Format.pp_print_string fmt (name c)
   let key_of_chunk = function
-    | M_int | M_float | M_pointer -> t_addr
-    | T_alloc -> Logic.Int
+    | M_int | M_char | M_float | M_pointer -> t_addr
+    | T_alloc -> L.Int
   let val_of_chunk = function
-    | M_int -> Logic.Int
-    | M_float -> Logic.Real
+    | M_int | M_char -> L.Int
+    | M_float -> L.Real
     | M_pointer -> t_addr
-    | T_alloc -> Logic.Int
+    | T_alloc -> L.Int
   let tau_of_chunk =
-    let m = Array.create 4 Logic.Int in
+    let m = Array.create 5 L.Int in
     List.iter 
-      (fun c -> m.(rank c) <- Logic.Array(key_of_chunk c,val_of_chunk c))
-      [M_int;M_float;M_pointer;T_alloc] ;
+      (fun c -> m.(rank c) <- L.Array(key_of_chunk c,val_of_chunk c))
+      [M_int;M_char;M_float;M_pointer;T_alloc] ;
     fun c -> m.(rank c)
   let basename_of_chunk = name
 end
@@ -135,8 +176,10 @@ type loc = term (* of type addr *)
 (* --- Utilities on locations                                             --- *)
 (* -------------------------------------------------------------------------- *)
 
+let m_int i = if Ctypes.is_char i then M_char else M_int
+
 let rec footprint = function
-  | C_int _ -> Heap.Set.singleton M_int
+  | C_int i -> Heap.Set.singleton (m_int i)
   | C_float _ -> Heap.Set.singleton M_float
   | C_pointer _ -> Heap.Set.singleton M_pointer
   | C_array a -> footprint (object_of a.arr_element)
@@ -181,7 +224,7 @@ let offset_of_field f =
     | [] -> assert false
     | g::gs ->
 	if Fieldinfo.equal f g then k 
-	else fnext (Int64.add k (size_of_field f)) f gs
+	else fnext (Int64.add k (size_of_field g)) f gs
   in fnext Int64.zero f f.fcomp.cfields
 
 (* -------------------------------------------------------------------------- *)
@@ -212,6 +255,82 @@ let cluster_globals () =
 
 let cluster_memory () = 
   Definitions.cluster ~id:"Compound" ~title:"Memory Compound Updates" ()
+
+module LITERAL =
+struct
+  type t = int * Cstring.cst
+  let compare (a:t) (b:t) = Pervasives.compare (fst a) (fst b)
+  let pretty fmt (eid,cst) = Format.fprintf fmt "%a@%d" Cstring.pretty cst eid
+end
+
+module STRING = Model.Generator(LITERAL)
+  (struct
+     let name = "MemTyped.STRING"
+     type key = LITERAL.t
+     type data = term
+
+     let linked lfun base cst =
+       let name = Fun.id lfun ^ "_linked" in
+       let a = Lang.freshvar ~basename:"alloc" (Chunk.tau_of_chunk T_alloc) in
+       let m = e_var a in
+       let m_linked = p_call p_linked [m] in
+       let base_size = Cstring.str_len cst (F.e_get m base) in
+       Definitions.define_lemma {
+	 l_assumed = true ;
+	 l_name = name ; l_types = 0 ;
+	 l_triggers = [] ; l_forall = [] ;
+	 l_lemma = p_forall [a] (p_imply m_linked base_size) ;
+	 l_cluster = Cstring.cluster () ;
+       }
+
+     let region lfun base cst =
+       let name = Fun.id lfun ^ "_region" in
+       let re = - Cstring.str_id cst in
+       Definitions.define_lemma {
+	 l_assumed = true ;
+	 l_name = name ; l_types = 0 ; l_triggers = [] ; l_forall = [] ;
+	 l_lemma = p_equal (e_fun f_region [base]) (e_int re) ;
+	 l_cluster = Cstring.cluster () ;
+       }
+
+     let sconst lfun base cst =
+       let name = Fun.id lfun ^ "_literal" in
+       let i = Lang.freshvar ~basename:"i" L.Int in
+       let c = Cstring.char_at cst (e_var i) in
+       let addr = a_addr base (e_var i) in
+       let m = Lang.freshvar ~basename:"mchar" (Chunk.tau_of_chunk M_char) in
+       let m_sconst = F.p_call p_sconst [e_var m] in 
+       let v = F.e_get (e_var m) addr in
+       let read = F.p_equal c v in
+       Definitions.define_lemma {
+	 l_assumed = true ;
+	 l_name = name ; l_types = 0 ; l_triggers = [] ; 
+	 l_forall = [m;i] ;
+	 l_cluster = Cstring.cluster () ;
+	 l_lemma = F.p_imply m_sconst read ;
+       }
+
+     let compile (eid,cst) =
+       let lfun = Lang.generated_f ~result:L.Sint "Str_%d" eid in
+       let base = F.e_fun lfun [] in
+       Definitions.define_symbol {
+	 d_lfun = lfun ; d_types = 0 ; d_params = [] ; 
+	 d_definition = Logic L.Int ;
+	 d_cluster = Cstring.cluster () ;
+       } ;
+       Definitions.define_lemma {
+	 l_name = Lang.Fun.id lfun ^ "_base" ;
+	 l_assumed = true ;
+	 l_types = 0 ; l_triggers = [] ; l_forall = [] ;
+	 l_lemma = F.p_lt base F.e_zero ;
+	 l_cluster = Cstring.cluster () ;
+       } ;
+       region lfun base cst ;
+       linked lfun base cst ;
+       sconst lfun base cst ;
+       base
+
+   end)
 
 module BASE = Model.Generator(Varinfo)
   (struct
@@ -247,9 +366,9 @@ module BASE = Model.Generator(Varinfo)
      let generate x = 
        let prefix = if x.vglob then "G" else if x.vformal then "P" else "L" in
        let lfun = Lang.generated_f 
-	 ~category:Logic.Constructor ~sort:Logic.Sint 
+	 ~category:L.Constructor ~result:L.Sint 
 	 "%s_%s_%d" prefix x.vorig_name x.vid in
-       let dfun = Definitions.Value( Logic.Int , Def , e_int (succ x.vid) ) in
+       let dfun = Definitions.Value( L.Int , Def , e_int (succ x.vid) ) in
        Definitions.define_symbol {
 	 d_lfun = lfun ; d_types = 0 ; d_params = [] ; d_definition = dfun ;
 	 d_cluster = cluster_globals () ;
@@ -308,7 +427,7 @@ struct
   let generate_eqmem env c =
     let name = Lang.Fun.id env.lfun ^ "_eqmem_" ^ Chunk.name c in
     let q = e_var (Lang.freshvar ~basename:"q" (Chunk.key_of_chunk c)) in
-    let k = e_var (Lang.freshvar ~basename:"k" Logic.Int) in
+    let k = e_var (Lang.freshvar ~basename:"k" L.Int) in
     let phi = e_fun env.lfun (env.params @ env.memories) in
     let mem = Sigma.value env.sigma c in
     let mem' = e_var (Lang.freshen (Sigma.get env.sigma c)) in
@@ -330,7 +449,7 @@ struct
   let generate_havoc env c =
     let name = Lang.Fun.id env.lfun ^ "_havoc_" ^ Chunk.name c in
     let q = e_var (Lang.freshvar ~basename:"q" (Chunk.key_of_chunk c)) in
-    let k = e_var (Lang.freshvar ~basename:"k" Logic.Int) in
+    let k = e_var (Lang.freshvar ~basename:"k" L.Int) in
     let phi = e_fun env.lfun (env.params @ env.memories) in
     let mem = Sigma.value env.sigma c in
     let mem' = e_var (Lang.freshen (Sigma.get env.sigma c)) in
@@ -446,7 +565,7 @@ module ARRAY = Model.Generator(Matrix.NATURAL)
 (* -------------------------------------------------------------------------- *)
 
 let loadvalue sigma obj l = match obj with
-  | C_int _ -> F.e_get (Sigma.value sigma M_int) l
+  | C_int i -> F.e_get (Sigma.value sigma (m_int i)) l
   | C_float _ -> F.e_get (Sigma.value sigma M_float) l
   | C_pointer _ -> F.e_get (Sigma.value sigma M_pointer) l
   | C_comp c -> 
@@ -466,6 +585,7 @@ let load sigma obj l = Val (loadvalue sigma obj l)
 (* -------------------------------------------------------------------------- *)
 
 let null = a_null
+let literal ~eid cst = a_addr (STRING.get (eid,cst)) e_zero
 let cvar x = a_addr (BASE.get x) e_zero
 let pointer_loc t = t
 let pointer_val t = t
@@ -487,19 +607,17 @@ struct
   type atom = P of typ | I of c_int | F of c_float
 
   let pp_atom fmt = function
-    | P ty -> !Ast_printer.d_type fmt (TPtr(ty,[]))
+    | P ty -> Printer.pp_typ fmt (TPtr(ty,[]))
     | I i -> Ctypes.pp_int fmt i
     | F f -> Ctypes.pp_float fmt f
 
   let is_one n = (Int64.compare n Int64.one = 0)
 
-  let rfits = ref (fun _ _ -> assert false)
-    
   let eqatom a1 a2 =
     match a1 , a2 with
-      | P t1 , P t2 -> !rfits (Ctypes.object_of t1) (Ctypes.object_of t2)
+      | P _ , P _ -> true
       | _ -> (a1 = a2)
-
+	  
   type block = 
     | Str of atom * int64
     | Arr of layout * int64 (* non-homogeneous, more than one *)
@@ -565,7 +683,9 @@ struct
 
   and flayout w f = rlayout w (Ctypes.object_of f.ftype)
 
-  type comparison = Fits | Equal | Mismatch
+  let layout (obj : c_object) : layout = List.rev (rlayout [] obj)
+
+  type comparison = Fit | Equal | Mismatch
 
   let add_array ly n w = 
     if is_one n then ly @ w else add_many ly n w
@@ -573,7 +693,7 @@ struct
   let rec compare l1 l2 =
     match l1 , l2 with
       | [] , [] -> Equal
-      | [] , _ -> Fits
+      | [] , _ -> Fit
       | _ , [] -> Mismatch
       | p::w1 , q::w2 ->
 	  match p , q with
@@ -597,8 +717,8 @@ struct
 		begin
 		  match compare u v with
 		    | Mismatch -> Mismatch
-		    | Fits -> 
-			if is_one n then Fits else Mismatch
+		    | Fit -> 
+			if is_one n then Fit else Mismatch
 		    | Equal ->
 			let cmp = Int64.compare n m in
 			if cmp < 0 then
@@ -618,41 +738,54 @@ struct
 	    | Str _ , Arr(v,n) ->
 		compare l1 (v @ add_array v (Int64.pred n) w2)
 
-  let layout obj = List.rev (rlayout [] obj)
-
-  let fits obj1 obj2 = 
-    match compare (layout obj1) (layout obj2) with
-      | Equal | Fits -> true
-      | Mismatch -> false
-
-  let () = rfits := fits
-
+  let rec fits obj1 obj2 = 
+    match obj1 , obj2 with
+      | C_int i1 , C_int i2 -> i1 = i2 
+      | C_float f1 , C_float f2 -> f1 = f2
+      | C_comp c , C_comp d when Compinfo.equal c d -> true
+      | C_pointer _ , C_pointer _ -> true
+      | _ ->
+	  match compare (layout obj1) (layout obj2) with
+	    | Equal | Fit -> true
+	    | Mismatch -> false
+		
   let rec pretty fmt = function
     | C_pointer ty -> Format.fprintf fmt "%a*" pretty (Ctypes.object_of ty)
     | obj -> pp_layout fmt (layout obj)
 
 end
 
-let cast s l = if F.is_zero l then null else
-  if Context.get pointer = Fits && Layout.fits s.post s.pre then l 
-  else
-    if Context.get pointer = Fits && Wp_parameters.has_dkey "layout" 
-    then
-      Warning.error ~source:"Typed Model"
-	"Cast with incompatible pointers types@\n\
+
+let pp_mismatch fmt s =
+  if Context.get pointer <> NoCast && Wp_parameters.has_dkey "layout" then
+    Format.fprintf fmt 
+      "Cast with incompatible pointers types@\n\
                @[@[Source: %a*@]@ @[(layout: %a)@]@]@\n\
                @[@[Target: %a*@]@ @[(layout: %a)@]@]"
-	Ctypes.pretty s.pre Layout.pretty s.pre
-	Ctypes.pretty s.post Layout.pretty s.post
-    else
-      Warning.error ~source:"Typed Model"
-	"@[Cast with incompatible pointers types\
+      Ctypes.pretty s.pre Layout.pretty s.pre
+      Ctypes.pretty s.post Layout.pretty s.post
+  else
+    Format.fprintf fmt 
+      "@[<hov 3>Cast with incompatible pointers types\
                @ (source: %a*)@ (target: %a*)@]"
-	Ctypes.pretty s.pre Ctypes.pretty s.post
+      Ctypes.pretty s.pre Ctypes.pretty s.post
+
+let cast s l = if F.is_zero l then null else
+  match Context.get pointer with
+    | NoCast -> Warning.error ~source:"Typed Model" "%a" pp_mismatch s
+    | Fits -> 
+	if Layout.fits s.post s.pre then l else
+	  Warning.error ~source:"Typed Model" "%a" pp_mismatch s
+    | Unsafe ->
+	if not (Layout.fits s.post s.pre) then
+	  Warning.emit ~severe:false ~source:"Typed Model" 
+	    ~effect:"Keep pointer value" 
+	    "%a" pp_mismatch s 
+	; l
 	
 let loc_of_int _ v =
   match F.repr v with
-    | Logic.Kint _ -> a_addr e_zero (e_fun a_hardware [v])
+    | L.Kint _ -> a_addr e_zero (e_fun a_hardware [v])
     | _ -> Warning.error ~source:"Typed Model" "Forbidden cast of int to pointer"
 
 let int_of_loc _i loc = e_fun a_cast [pointer_val loc]
@@ -696,7 +829,7 @@ let eqmem s obj l =
 
 let stored s obj l v =
   match obj with
-    | C_int _ -> updated s M_int l v
+    | C_int i -> updated s (m_int i) l v
     | C_float _ -> updated s M_float l v
     | C_pointer _ -> updated s M_pointer l v
     | C_comp _ | C_array _ ->
@@ -731,6 +864,8 @@ let assigned s obj = function
   | Sdescr(xs,l,p) ->
       let hs = equal_loc s obj l in
       List.map (fun h -> p_forall xs (p_or p h)) hs
+  | Sarray(l,obj,n) ->
+      assigned_range s obj l (e_zero) (e_int64 (Int64.pred n))
   | Srange(l,obj,u,v) -> 
       let a = match u with Some a -> a | None -> e_zero in
       let b = match v with Some b -> b | None -> get_last s.pre l in
@@ -742,39 +877,47 @@ let assigned s obj = function
 
 let loc_compare f_cmp i_cmp p q =
   match F.is_equal (a_base p) (a_base q) with
-    | Logic.No -> p_false
-    | Logic.Yes -> i_cmp (a_offset p) (a_offset q)
-    | Logic.Maybe -> p_call f_cmp [p;q]
+    | L.Yes -> i_cmp (a_offset p) (a_offset q)
+    | L.Maybe | L.No -> p_call f_cmp [p;q]
 
 let is_null l = p_equal l null
 let loc_eq = p_equal
+let loc_neq = p_neq
 let loc_lt = loc_compare a_lt p_lt
 let loc_leq = loc_compare a_leq p_leq
-let loc_neq = p_neq
-let loc_offset obj p q = 
-  let delta = e_sub (a_offset q) (a_offset p) in
+let loc_diff obj p q = 
+  let delta = e_sub (a_offset p) (a_offset q) in
   e_fact (Ctypes.sizeof_object obj) delta
 
 (* -------------------------------------------------------------------------- *)
 (* --- Validity                                                           --- *)
 (* -------------------------------------------------------------------------- *)
 
-let s_valid sigma p n = p_call p_valid [Sigma.value sigma T_alloc;p;n]
+let s_valid sigma acs p n = 
+  let p_valid = match acs with RW -> p_valid_rw | RD -> p_valid_rd in
+  p_call p_valid [Sigma.value sigma T_alloc;p;n]
 
-let valid sigma = function
-  | Rloc(obj,l) -> s_valid sigma l (e_int64 (size_of_object obj))
+let access acs l = match acs with
+  | RW -> p_lt e_zero (a_base l)
+  | RD -> p_true
+
+let valid sigma acs = function
+  | Rloc(obj,l) -> s_valid sigma acs l (e_int64 (size_of_object obj))
+  | Rarray(l,obj,s) ->
+      let n = e_fact (size_of_object obj) (e_int64 s) in
+      s_valid sigma acs l n
   | Rrange(l,obj,Some a,Some b) ->
       let l = shift l obj a in
       let n = e_fact (size_of_object obj) (e_range a b) in
-      s_valid sigma l n
+      s_valid sigma acs l n
   | Rrange(l,obj,None,Some b) ->
       let n = e_add b e_one in
-      s_valid sigma l (e_fact (size_of_object obj) n)
+      s_valid sigma acs l (e_fact (size_of_object obj) n)
   | Rrange(l,obj,Some a,None) ->
       let k = e_add (a_offset l) (e_fact (size_of_object obj) a) in
-      p_and (p_lt e_zero k) (p_leq k (get_alloc sigma l))
+      p_conj [ access acs l ; p_lt e_zero k ; p_leq k (get_alloc sigma l) ]
   | Rrange(l,_obj,None,None) ->
-      p_lt e_zero (get_alloc sigma l)
+      p_conj [ access acs l ; p_lt e_zero (get_alloc sigma l) ]
 
 type alloc = ALLOC | FREE
 
@@ -797,7 +940,9 @@ let framed sigma =
     then [ p_call phi [Sigma.value sigma chunk] ]
     else [] 
   in 
-  frame p_linked T_alloc @ frame p_framed M_pointer
+  frame p_linked T_alloc @
+  frame p_sconst M_char @
+  frame p_framed M_pointer
 
 let scope sigma scope xs = match scope with
   | Mcfg.SC_Global -> sigma , framed sigma
@@ -816,6 +961,9 @@ type range =
 let range = function
   | Rloc(obj,l) -> 
       LOC( l , e_int64 (size_of_object obj) )
+  | Rarray(l,obj,n) ->
+      let n = e_fact (size_of_object obj) (e_int64 n) in
+      LOC( l , n )
   | Rrange(l,obj,Some a,Some b) ->
       let l = shift l obj a in
       let n = e_fact (size_of_object obj) (e_range a b) in

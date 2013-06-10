@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -43,6 +43,12 @@ let amode = function
   | Mpositive | Mnegative | Mterm | Mterm_int | Mint -> Aint 
   | Mterm_real | Mreal -> Areal
 
+let smode = function
+  | Sprop -> Mpositive
+  | Sint -> Mterm_int
+  | Sreal -> Mterm_real
+  | Sbool | Sarray _ | Sdata -> Mterm
+
 let tmode = function
   | Prop -> Mpositive
   | Bool -> Mterm
@@ -54,19 +60,7 @@ let ctau = function
   | Prop -> Cprop
   | _ -> Cterm
 
-let link_compare a b =
-  if a==b then 0 else
-    match a , b with
-      | F_call f , F_call g 
-      | F_call2 f , F_call2 g
-      | F_assoc f , F_assoc g
-	  -> String.compare f g
-      | F_call _ , _ -> (-1)
-      | _ , F_call _ -> 1
-      | F_call2 _ , _ -> (-1)
-      | _ , F_call2 _ -> 1
-
-let link_name = function F_call f | F_call2 f | F_assoc f -> f
+let link_name = function F_call f | F_left(_,f) | F_right(_,f) | F_assoc f -> f
 
 module Make(T : Term) =
 struct
@@ -132,6 +126,7 @@ struct
 
     method virtual datatype : ADT.t -> string
     method virtual field : Field.t -> string
+    method basename : string -> string = fun x -> x
 
     val mutable global = allocator () 
     val mutable vars = Vars.empty
@@ -140,7 +135,7 @@ struct
     method declare_all = List.iter (Linker.declare global)
 
     val linker_variable  = Lvar.linker ()
-    val linker_shared    = STerm.linker ()
+    val linker_shared = STerm.linker ()
 
     method private push =
       let gstack = global in
@@ -148,14 +143,16 @@ struct
 	global <- copy global ;
 	linker_variable#alloc_with global ;
 	linker_shared#alloc_with global ;
-	gstack
+	gstack , linker_variable#push , linker_shared#push
       end
 
-    method private pop gstack =
+    method private pop (gstack,idx_var,idx_shared) =
       begin
 	global <- gstack ;
 	linker_variable#alloc_with gstack ;
+	linker_variable#pop idx_var ;
 	linker_shared#alloc_with gstack ;
+	linker_shared#pop idx_shared ;
       end
 
     method local (job : unit -> unit) =
@@ -169,8 +166,11 @@ struct
 	linker_variable#clear ;
 	linker_shared#clear ;
 	vars <- Vars.empty ;
-	job () ; self#pop gstack
-      with err -> self#pop gstack ; raise err
+	job () ; 
+	self#pop gstack
+      with err -> 
+	self#pop gstack ; 
+	raise err
 	
     (* -------------------------------------------------------------------------- *)
     (* --- Types                                                              --- *)
@@ -227,19 +227,24 @@ struct
 
     method virtual e_true : cmode -> string
     method virtual e_false : cmode -> string
-    method virtual pp_int : Z.t printer
-    method virtual pp_real : R.t printer
+    method virtual pp_int : amode -> Z.t printer
+    method virtual pp_cst : Numbers.cst printer
     method virtual is_atomic : term -> bool
 
+    method pp_real fmt x =
+      let cst = Numbers.parse (R.to_string x) in
+      if Numbers.is_zero cst 
+      then self#pp_int Areal fmt Z.zero
+      else self#pp_cst fmt cst
+	
     (* -------------------------------------------------------------------------- *)
     (* --- Calls                                                              --- *)
     (* -------------------------------------------------------------------------- *)
 
+    method virtual op_spaced : string -> bool
     method virtual callstyle : callstyle
     method virtual link : cmode -> Fun.t -> link
-    method link_name m f = match self#link m f with
-      | F_call f | F_call2 f -> f
-      | F_assoc _ -> assert false
+    method link_name m f = link_name (self#link m f)
 
     method private pp_call ~f fmt xs =
       match self#callstyle with
@@ -247,10 +252,22 @@ struct
 	| CallVoid -> Plib.pp_call_void ~f self#pp_flow fmt xs
 	| CallApply -> Plib.pp_call_apply ~f self#pp_atom fmt xs
 
+    method private pp_callsorts ~f fmt sorts xs =
+      let pp_mode pp fmt (m,x) = self#with_mode m (fun _ -> pp fmt x) in
+      let rec wrap sorts xs = match sorts , xs with
+	| [] , _ -> List.map (fun x -> Mterm,x) xs
+	| _ , [] -> []
+	| m::ms , x::xs -> (smode m,x)::(wrap ms xs) in
+      let mxs = wrap sorts xs in
+      match self#callstyle with
+	| CallVar -> Plib.pp_call_var ~f (pp_mode self#pp_flow) fmt mxs
+	| CallVoid -> Plib.pp_call_void ~f (pp_mode self#pp_flow) fmt mxs
+	| CallApply -> Plib.pp_call_apply ~f (pp_mode self#pp_atom) fmt mxs
+
     method private pp_unop ~op fmt x =
       match op with
 	| Assoc op | Op op ->
-	    if is_identop op && self#is_atomic x then
+	    if self#op_spaced op && self#is_atomic x then
 	      fprintf fmt "%s %a" op self#pp_flow x
 	    else
 	      fprintf fmt "%s%a" op self#pp_atom x
@@ -276,11 +293,27 @@ struct
 	      | CallApply -> 
 		  Plib.pp_fold_apply ~e:"?" ~f self#pp_atom fmt xs
 
-    method pp_fun cmode f fmt xs = 
-      match self#link cmode f with
-	| F_call f -> self#pp_call ~f fmt xs
-	| F_call2 f -> self#pp_nary ~op:(Call f) fmt xs
+    method pp_fun cmode fct fmt xs = 
+      match self#link cmode fct with
+	| F_call f -> self#pp_callsorts ~f fmt (Fun.params fct) xs
 	| F_assoc op -> Plib.pp_assoc ~e:"?" ~op self#pp_atom fmt xs
+	| F_left(e,f) ->
+	    begin
+	      match self#callstyle with
+		| CallVar | CallVoid -> 
+		    Plib.pp_fold_call ~e ~f self#pp_flow fmt xs
+		| CallApply ->
+		    Plib.pp_fold_apply ~e ~f self#pp_atom fmt xs
+	    end
+	| F_right(e,f) ->
+	    begin
+	      let xs = List.rev xs in
+	      match self#callstyle with
+		| CallVar | CallVoid -> 
+		    Plib.pp_fold_call_rev ~e ~f self#pp_flow fmt xs
+		| CallApply ->
+		    Plib.pp_fold_apply_rev ~e ~f self#pp_atom fmt xs
+	    end
 
     method virtual pp_apply : cmode -> term -> term list printer
 
@@ -291,6 +324,7 @@ struct
     method virtual op_scope : amode -> string option
     method virtual op_real_of_int : op
     method virtual op_add : amode -> op
+    method virtual op_sub : amode -> op
     method virtual op_mul : amode -> op
     method virtual op_div : amode -> op
     method virtual op_mod : amode -> op
@@ -310,34 +344,37 @@ struct
     (* -------------------------------------------------------------------------- *)
     (* --- Arithmetics Printers                                               --- *)
     (* -------------------------------------------------------------------------- *)
-
+      
     method private pp_arith_arg flow fmt e =
-      if linker_shared#mem e then self#pp_atom fmt e 
-      else
-	if mode = Mreal && T.is_int e then
-	  self#with_mode Mint
-	    (fun _ -> 
-	       match self#op_real_of_int with
-		 | Op op | Assoc op -> 
-		     begin
-		       match flow with
-			 | Atom -> fprintf fmt "(%s %a)" op self#pp_atom e
-			 | Flow -> fprintf fmt "%s %a" op self#pp_atom e
-		     end
-		 | Call f ->
-		     begin
-		       match self#callstyle with
-			 | CallVar | CallVoid -> 
-			     fprintf fmt "%s(%a)" f self#pp_flow e
-			 | CallApply -> 
-			     match flow with
-			       | Atom -> fprintf fmt "(%s %a)" f self#pp_atom e
-			       | Flow -> fprintf fmt "%s %a" f self#pp_atom e
-		     end)
-	else match flow with
-	  | Flow -> self#pp_flow fmt e
-	  | Atom -> self#pp_atom fmt e
-
+      match T.repr e with
+	| Kint _ | Kreal _ -> self#pp_atom fmt e
+	| _ -> self#pp_arith_atom flow fmt e
+	    
+    method private pp_arith_atom flow fmt e =
+      if mode = Mreal && T.is_int e then
+	self#with_mode Mint
+	  (fun _ -> 
+	     match self#op_real_of_int with
+	       | Op op | Assoc op -> 
+		   begin
+		     match flow with
+		       | Atom -> fprintf fmt "(%s %a)" op self#pp_atom e
+		       | Flow -> fprintf fmt "%s %a" op self#pp_atom e
+		   end
+	       | Call f ->
+		   begin
+		     match self#callstyle with
+		       | CallVar | CallVoid -> 
+			   fprintf fmt "%s(%a)" f self#pp_flow e
+		       | CallApply -> 
+			   match flow with
+			     | Atom -> fprintf fmt "(%s %a)" f self#pp_atom e
+			     | Flow -> fprintf fmt "%s %a" f self#pp_atom e
+		   end)
+      else match flow with
+	| Flow -> self#pp_flow fmt e
+	| Atom -> self#pp_atom fmt e
+	    
     method private pp_arith_call ~f fmt xs =
       match self#callstyle with
 	| CallVar -> Plib.pp_call_var ~f (self#pp_arith_arg Flow) fmt xs
@@ -345,14 +382,18 @@ struct
 	| CallApply -> Plib.pp_call_apply ~f (self#pp_arith_arg Atom) fmt xs
 
     method private pp_arith_unop ~phi fmt a =
-      match phi (amode mode) with
-	| Assoc op | Op op ->
-	    if is_identop op && self#is_atomic a then
-	      fprintf fmt "%s %a" op (self#pp_arith_arg Atom) a
-	    else
-	      fprintf fmt "%s%a" op (self#pp_arith_arg Atom) a
-	| Call f -> self#pp_arith_call ~f fmt [a]
-	    	      
+      self#with_mode
+	(if T.is_real a then Mreal else Mint)
+	begin fun _ ->
+	  match phi (amode mode) with
+	    | Assoc op | Op op ->
+		if self#op_spaced op && self#is_atomic a then
+		  fprintf fmt "%s %a" op (self#pp_arith_arg Atom) a
+		else
+		  fprintf fmt "%s%a" op (self#pp_arith_arg Atom) a
+	    | Call f -> self#pp_arith_call ~f fmt [a]
+	end
+
     method private pp_arith_binop ~phi fmt a b =
       self#with_mode
 	(if T.is_real a || T.is_real b then Mreal else Mint)
@@ -534,7 +575,7 @@ struct
     (* -------------------------------------------------------------------------- *)
 
     method bind x =
-      let basename = T.base_of_var x in
+      let basename = self#basename (T.base_of_var x) in
       ignore (linker_variable#alloc ~basename x) ;
       vars <- Vars.add x vars
 
@@ -556,21 +597,22 @@ struct
       end
 
     method private pp_shared fmt e =
-      let atomic e = self#is_atomic e || linker_shared#mem e in
+      let shared e = linker_shared#mem e in
       let shareable e = self#is_shareable e in
-      let es = T.shared ~atomic ~shareable ~closed:vars [e] in
+      let es = T.shared ~shareable ~shared ~closed:vars [e] in
       if es <> [] then
 	self#local 
 	  (fun () ->
 	     let xes =
 	       List.map
 		 (fun e -> 
-		    let basename = Kind.basename (T.sort e) in
+		    let basename = self#basename (T.basename e) in
 		    let var = linker_shared#reserve ~basename in
 		    var , e
 		 ) es 
 	     in self#pp_lets fmt xes e)
-      else self#pp_flow fmt e
+      else 
+	self#pp_flow fmt e
 
     (* -------------------------------------------------------------------------- *)
     (* --- Expressions                                                        --- *)
@@ -601,6 +643,44 @@ struct
 	  | None -> self#pp_repr fmt e
 	  | Some s -> fprintf fmt "@[<hov 1>(%a)%s@]" self#pp_repr e s
 
+    method private pp_addition fmt xs =
+      let amode = if List.exists T.is_real xs then Areal else Aint in
+      match 
+	self#op_add amode , 
+	self#op_sub amode , 
+	self#op_minus amode 
+      with
+	| Assoc add , Assoc sub , Op minus ->
+	    let factor x = match T.repr x with
+	      | Kint z when Z.negative z -> (false,T.e_zint (Z.opp z))
+	      | Kreal r when R.negative r -> (false,T.e_real (R.opp r))
+	      | Times(k,y) when Z.negative k -> (false,T.e_times (Z.opp k) y)
+	      | _ -> (true,x) in
+	    let sxs = List.map factor xs in
+	    let sxs = List.stable_sort
+	      (fun (s1,e1) (s2,e2) ->
+		 match s1,s2 with
+		   | true,true | false,false ->
+		       Pervasives.compare (T.weigth e1) (T.weigth e2)
+		   | true,false -> (-1)
+		   | false,true -> 1
+	      ) sxs in
+	    Plib.iteri
+	      (fun i (s,x) ->
+		 begin
+		   match i , s with
+		     | (Ifirst | Isingle) , false ->
+			 if self#op_spaced minus && self#is_atomic x
+			 then fprintf fmt "%s " minus
+			 else pp_print_string fmt minus
+		     | (Ifirst | Isingle) , true -> ()
+		     | (Imiddle | Ilast) , true -> fprintf fmt "@ %s " add
+		     | (Imiddle | Ilast) , false -> fprintf fmt "@ %s " sub
+		 end ;
+		 self#pp_arith_arg Atom fmt x
+	      ) sxs
+	| _ -> self#pp_arith_nary ~phi:(self#op_add) fmt xs
+
     method private pp_repr fmt e =
       match T.repr e with
 	| True -> pp_print_string fmt (self#e_true (cmode mode))
@@ -624,27 +704,9 @@ struct
 		    end
 		| _ -> self#pp_not fmt p 
 	    end
-	| Kint x -> self#pp_int fmt x
+	| Kint x -> self#pp_int (amode mode) fmt x
 	| Kreal x -> self#pp_real fmt x
-	| Add xs -> 
-	    begin
-	      let amode = amode mode in
-	      match self#op_add amode , self#op_minus amode with
-		| Assoc plus , Op minus ->
-		    let sxs = List.map
-		      (fun x ->
-			 match T.repr x with
-			   | Kint z when Z.negative z -> (false,T.e_zint (Z.opp z))
-			   | Times(k,y) when Z.equal k Z.minus_one -> (false,y)
-			   | _ -> (true,x)
-		      ) xs 
-		    in Plib.iteri
-			 (fun i (s,x) ->
-			    if not s || i <> Ifirst then
-			      fprintf fmt "@ %s " (if s then plus else minus) ;
-			    self#pp_arith_arg Atom fmt x) sxs
-		| _ -> self#pp_arith_nary ~phi:(self#op_add) fmt xs
-	    end
+	| Add xs -> self#pp_addition fmt xs
 	| Mul xs -> self#pp_arith_nary ~phi:(self#op_mul) fmt xs
 	| Div(a,b) -> self#pp_arith_binop ~phi:(self#op_div) fmt a b
 	| Mod(a,b) -> self#pp_arith_binop ~phi:(self#op_mod) fmt a b
@@ -653,18 +715,16 @@ struct
 	| Neq(a,b) -> self#pp_noteq fmt a b
 	| Lt(a,b)  -> self#pp_arith_cmp ~phi:(self#op_lt) fmt a b
 	| Leq(a,b) -> self#pp_arith_cmp ~phi:(self#op_leq) fmt a b
-	| Aget(a,k) -> self#pp_array_get fmt a k
-	| Aset(a,k,v) -> self#pp_array_set fmt a k v
-	| Rget(r,f) -> self#pp_get_field fmt r f
-	| Rdef fts -> self#pp_def_fields fmt fts
+	| Aget(a,k) -> self#with_mode Mterm (fun _ -> self#pp_array_get fmt a k)
+	| Aset(a,k,v) -> self#with_mode Mterm (fun _ -> self#pp_array_set fmt a k v)
+	| Rget(r,f) -> self#with_mode Mterm (fun _ -> self#pp_get_field fmt r f)
+	| Rdef fts -> self#with_mode Mterm (fun _ -> self#pp_def_fields fmt fts)
 	| If(a,b,c) -> self#pp_conditional fmt a b c
 	| And ts -> self#pp_nary ~op:(self#op_and (cmode mode)) fmt ts
 	| Or ts -> self#pp_nary ~op:(self#op_or (cmode mode)) fmt ts
 	| Imply(hs,p) -> self#pp_imply fmt hs p
-	| Apply(e,es) -> self#with_mode Mterm 
-	    (fun em -> self#pp_apply (cmode em) e fmt es)
-	| Fun(f,ts) -> self#with_mode Mterm 
-	    (fun em -> self#pp_fun (cmode em) f fmt ts)
+	| Apply(e,es) -> self#with_mode Mterm (fun em -> self#pp_apply (cmode em) e fmt es)
+	| Fun(f,ts) -> self#with_mode Mterm (fun em -> self#pp_fun (cmode em) f fmt ts)
 	| Bind _ -> self#local (fun () -> self#pp_binders fmt e)
 	    
     (* -------------------------------------------------------------------------- *)

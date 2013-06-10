@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -32,7 +32,7 @@ type t =
       append : event -> unit;
       clear : unit -> unit;}
 
-let make ~packing ~callback =
+let _make ~packing ~callback =
   let module MODEL =  Gtk_helper.MAKE_CUSTOM_LIST(struct type t = event end) in
   let model = MODEL.custom_list () in
   let append m = model#insert m in
@@ -92,10 +92,10 @@ let make ~packing ~callback =
    append = append;
    clear = clear}
 
-let append t message =
+let _append t message =
   t.append message
 
-let clear t = t.clear ()
+let _clear t = t.clear ()
 end
 
 module New=struct
@@ -120,7 +120,7 @@ let make ~packing ~callback =
     method index i = Data.index i m
     method get i = Data.get i m
     method add i = age<-age+1; m <- Data.add (age,i) m;age,i
-    method clear () = age<-0; m <- Data.empty
+    method reload = age<-0; m <- Data.empty
     method coerce = (self:> (int*w) Gtk_helper.Custom.List.model)
   end
   in
@@ -133,8 +133,7 @@ let make ~packing ~callback =
     (* Post a reload request before clearing.
        The current model is used to know how many rows
        must be deleted. *)
-    w#reload;
-    model#clear ();
+    w#reload ;
   in    
   let _ = w#add_column_pixbuf ~title:"Kind" [`YALIGN 0.0;`XALIGN 0.5]
     (fun (_,e) -> match e with

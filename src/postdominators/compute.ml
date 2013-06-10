@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -81,7 +81,7 @@ end
 (*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
 
 module Dom =
-  State_builder.Int_hashtbl
+  Cil_state_builder.Stmt_hashtbl
     (DomSet)
     (struct
        let name = "dominator"
@@ -115,12 +115,12 @@ module DomComputer = struct
   let doGuard _ _ _ = Dataflow.GDefault, Dataflow.GDefault
   let doEdge _ _ d = d
 end
-module DomCompute = Dataflow.ForwardsDataFlow(DomComputer)
+module DomCompute = Dataflow.Forwards(DomComputer)
 
 let compute_dom kf =
   let start = Kernel_function.find_first_stmt kf in
   try
-    let _ = Dom.find start.sid in
+    let _ = Dom.find start in
     DomKernel.feedback ~level:2 "computed for function %a"
       Kernel_function.pretty kf;
   with Not_found ->
@@ -133,14 +133,14 @@ let compute_dom kf =
       DomKernel.fatal "cannot compute for a leaf function %a"
         Kernel_function.pretty kf
     in
-    List.iter (fun s -> Dom.add s.sid DomSet.Top) stmts;
-    Dom.replace start.sid (DomSet.Value (Stmt.Hptset.singleton start));
+    List.iter (fun s -> Dom.add s DomSet.Top) stmts;
+    Dom.replace start (DomSet.Value (Stmt.Hptset.singleton start));
     DomCompute.compute [start];
     DomKernel.feedback ~level:2 "done for function %a"
       Kernel_function.pretty kf
 
 let get_stmt_dominators f stmt =
-  let do_it () = Dom.find stmt.sid in
+  let do_it () = Dom.find stmt in
   try do_it ()
   with Not_found -> compute_dom f; do_it ()
 
@@ -155,7 +155,7 @@ let is_dominator f ~opening ~closing =
 
 let display_dom () =
   Dom.iter
-    (fun k v -> DomKernel.result "Stmt:%d@\n%a@\n======" k DomSet.pretty v)
+    (fun k v -> DomKernel.result "Stmt:%d@\n%a@\n======" k.sid DomSet.pretty v)
 
 (*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
 

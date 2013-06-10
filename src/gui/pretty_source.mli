@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -31,8 +31,9 @@ type localizable =
   | PLval of (kernel_function option * kinstr * lval)
   | PTermLval of (kernel_function option * kinstr * term_lval)
   | PVDecl of (kernel_function option * varinfo)
-
-  | PGlobal of global (* all globals but variable declarations and function
+      (** Declaration and definition of variables and function. Check the type
+          of the varinfo to distinguish between the various possibilities. *)
+  | PGlobal of global (** all globals but variable declarations and function
                          definitions. *)
   | PIP of Property.t
 

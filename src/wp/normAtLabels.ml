@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -33,7 +33,7 @@ type label_mapping = Cil_types.logic_label -> Cil_types.logic_label
   * - remove Old because its meaning depend on where it comes from.
 * *)
 class norm_at label_map = object(self)
-  inherit Visitor.generic_frama_c_visitor (Project.current()) (Cil.copy_visit())
+  inherit Visitor.generic_frama_c_visitor (Cil.copy_visit (Project.current ()))
 
   val mutable current_label = None
 

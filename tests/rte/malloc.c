@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -rte -rte-all -rte-print -rte-precond -journal-disable
+   OPT: -rte -warn-signed-overflow -rte-all -print -rte-precond
 */
 
 /*@ allocates \result;

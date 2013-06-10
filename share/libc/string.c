@@ -2,21 +2,12 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2012                                               */
-/*    CEA (Commissariat à l'énergie atomique et aux énergies              */
+/*  Copyright (C) 2007-2013                                               */
+/*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
-/*  you can redistribute it and/or modify it under the terms of the GNU   */
-/*  Lesser General Public License as published by the Free Software       */
-/*  Foundation, version 2.1.                                              */
-/*                                                                        */
-/*  It is distributed in the hope that it will be useful,                 */
-/*  but WITHOUT ANY WARRANTY; without even the implied warranty of        */
-/*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         */
-/*  GNU Lesser General Public License for more details.                   */
-/*                                                                        */
-/*  See the GNU Lesser General Public License version 2.1                 */
-/*  for more details (enclosed in the file licenses/LGPLv2.1).            */
+/*  All rights reserved.                                                  */
+/*  Contact CEA LIST for licensing.                                       */
 /*                                                                        */
 /**************************************************************************/
 
@@ -53,8 +44,6 @@ void* memset (void* dest, int val, size_t len)
 
 int strcmp(const char *s1, const char *s2)
 {
-  if (s1 == s2)
-    return (0);
   while (*s1 == *s2++)
     if (*s1++ == '\0')
       return (0);
@@ -137,4 +126,26 @@ memcmp(const void *s1, const void *s2, size_t n)
     } while (--n != 0);
   }
   return 0;
+}
+
+char *strchr(const char *s, int c)
+{ const char ch = c;
+  for ( ; *s != ch; s++)
+    if (*s == '\0') return 0;
+  return (char *)s;
+}
+
+char *strrchr(const char *s, int c)
+{
+    char* ret=0;
+    do {
+        if( *s == (char)c )
+            ret=s;
+    } while(*s++);
+    return ret;
+}
+
+char *strerror(int errnum)
+{
+  return "strerror message by Frama-C";
 }

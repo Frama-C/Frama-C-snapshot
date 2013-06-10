@@ -2,11 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
-(*           alternatives)                                                *)
-(*    INRIA (Institut National de Recherche en Informatique et en         *)
-(*           Automatique)                                                 *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -30,24 +28,24 @@
 open PdgTypes
 open PdgIndex
 
-type t_select_elem =
+type select_elem =
   | SelNode of PdgTypes.Node.t * Locations.Zone.t option
                                      (** zone is [Some z] only for nodes that
                                      * represent call output in case we want to
                                      * select less than the whole OutCall *)
   | SelIn of Locations.Zone.t
 
-type 'tm t_select = (t_select_elem * 'tm) list
+type 'tm select = (select_elem * 'tm) list
 
-type 'tm t_pdg_select_info = SelList of  'tm t_select | SelTopMarks of 'tm list
-type 'tm t_pdg_select = (PdgTypes.Pdg.t * 'tm t_pdg_select_info) list
+type 'tm pdg_select_info = SelList of  'tm select | SelTopMarks of 'tm list
+type 'tm pdg_select = (PdgTypes.Pdg.t * 'tm pdg_select_info) list
 
-type 'tm t_info_caller_inputs = (Signature.in_key * 'tm) list
+type 'tm info_caller_inputs = (Signature.in_key * 'tm) list
 
-type 'tm t_info_called_outputs =
+type 'tm info_called_outputs =
     (Cil_types.stmt * (Signature.out_key * 'tm) list) list
 
-type 'tm t_info_inter = 'tm t_info_caller_inputs * 'tm t_info_called_outputs
+type 'tm info_inter = 'tm info_caller_inputs * 'tm info_called_outputs
 
 let mk_select_node ?(z_opt=None) node = SelNode (node, z_opt)
 let mk_select_undef_zone zone = SelIn zone
@@ -65,9 +63,9 @@ let add_undef_in_to_select select undef m =
         else add_to_select select (mk_select_undef_zone loc) m
 
 (** Type of the module that the user has to provide to describe the marks.  *)
-module type T_Mark = sig
+module type Mark = sig
   type t
-  type t_call_info
+  type call_info
 
   val is_bottom : t -> bool
 
@@ -79,26 +77,26 @@ module type T_Mark = sig
 end
 
 
-module type T_Fct = sig
+module type Fct = sig
 
-  type t_mark
-  type t_call_info
-  type t_fi = (t_mark, t_call_info) PdgIndex.FctIndex.t
-  type t = PdgTypes.Pdg.t * t_fi
+  type mark
+  type call_info
+  type fi = (mark, call_info) PdgIndex.FctIndex.t
+  type t = PdgTypes.Pdg.t * fi
 
   val create : PdgTypes.Pdg.t -> t
-  val get_idx : t -> t_fi
+  val get_idx : t -> fi
 
-  type t_mark_info_inter = t_mark t_info_inter
+  type mark_info_inter = mark info_inter
 
-  val empty_to_prop : t_mark_info_inter
+  val empty_to_prop : mark_info_inter
 
   val mark_and_propagate :
-    t -> ?to_prop:t_mark_info_inter -> t_mark t_select -> t_mark_info_inter
+    t -> ?to_prop:mark_info_inter -> mark select -> mark_info_inter
 end
 
 
-(** If the marks provided by the user respect some constraints (see [T_Mark]),
+(** If the marks provided by the user respect some constraints (see [Mark]),
 * we have that, after the marks propagation,
 * the mark of a node are always smaller than the sum of the marks of its
 * dependencies. It means that the mark of the statement [x = a + b;]
@@ -109,18 +107,18 @@ end
 * so must be the computation of [a] and [b], but [a] and/or [b] can be
 * visible while [x] is not.
 *)
-module F_Fct (M : T_Mark)
-  : T_Fct with type t_mark = M.t
-           and type t_call_info = M.t_call_info
+module F_Fct (M : Mark)
+  : Fct with type mark = M.t
+           and type call_info = M.call_info
 
 = struct
 
-  type t_mark = M.t
-  type t_call_info = M.t_call_info
-  type t_fi = (t_mark, t_call_info) PdgIndex.FctIndex.t
-  type t = Pdg.t * t_fi
+  type mark = M.t
+  type call_info = M.call_info
+  type fi = (mark, call_info) PdgIndex.FctIndex.t
+  type t = Pdg.t * fi
 
-  type t_mark_info_inter = t_mark t_info_inter
+  type mark_info_inter = mark info_inter
 
   let empty_to_prop = ([], [])
 
@@ -272,29 +270,25 @@ module F_Fct (M : T_Mark)
 
 end
 
-module type T_Proj = sig
+module type Proj = sig
   type t
 
-  type t_mark
-  type t_call_info
-  type t_fct = (t_mark, t_call_info) PdgIndex.FctIndex.t
+  type mark
+  type call_info
+  type fct = (mark, call_info) PdgIndex.FctIndex.t
 
   val empty : unit -> t
-  val find_marks : t -> Cil_types.varinfo -> t_fct option
-  val mark_and_propagate :
-             t -> PdgTypes.Pdg.t -> t_mark t_select -> unit
+  val find_marks : t -> Cil_types.varinfo -> fct option
+  val mark_and_propagate : t -> PdgTypes.Pdg.t -> mark select -> unit
 end
 
-type 't_mark t_m2m =  t_select_elem -> 't_mark -> 't_mark option
-type 't_mark t_call_m2m =
-    Cil_types.stmt option -> PdgTypes.Pdg.t -> 't_mark t_m2m
+type 'mark m2m = select_elem -> 'mark -> 'mark option
+type 'mark call_m2m = Cil_types.stmt option -> PdgTypes.Pdg.t -> 'mark m2m
 
-module type T_Config = sig
-  module M : sig
-    include T_Mark
-  end
-  val mark_to_prop_to_caller_input : M.t t_call_m2m
-  val mark_to_prop_to_called_output : M.t t_call_m2m
+module type Config = sig
+  module M : Mark
+  val mark_to_prop_to_caller_input : M.t call_m2m
+  val mark_to_prop_to_called_output : M.t call_m2m
 end
 
 (*

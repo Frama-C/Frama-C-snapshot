@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -203,8 +203,7 @@ let filetree_selector
             =
           if l <> [] then
             main_ui#pretty_information "@[%s @[<hov>%a@]@]@." head
-              (Cilutil.pretty_list (Cilutil.space_sep "") f)
-            l
+              (Pretty_utils.pp_list ~sep:",@ " f) l
         in
           printing
             "Functions:"
@@ -302,27 +301,15 @@ let to_do_on_select
           current_statement_msg (Some kf) (Kstmt stmt);
           (* Code annotations for this statement *)
           Annotations.iter_code_annot
-            (fun _ a ->
+            (fun e a ->
               let pos, a = "Before", a in
-              let user, s, status = match a with
-                | User a ->
-                  "user",
-                  (fun fmt ->
-                    !Ast_printer.d_code_annotation fmt a),
-                  (fun fmt ->
-                    let ip = Property.ip_of_code_annot kf stmt a in
-                    Pretty_utils.pp_list ~sep:"@\n"
-                      pretty_predicate_status fmt ip)
-                | AI (_,a) ->
-                  "alarm",
-                  (fun fmt -> !Ast_printer.d_code_annotation fmt a),
-                  (fun fmt ->
-                    let ip = Property.ip_of_code_annot kf stmt a in
-                    Pretty_utils.pp_list ~sep:"@\n"
-                      pretty_predicate_status fmt ip)
+              let user =
+                if Emitter.equal e Emitter.end_user then "user" else "alarm"
               in
-              main_ui#pretty_information "@[%s(%s): @[<hov>%t@]@]@.%t@."
-                pos user s status)
+              main_ui#pretty_information "@[%s(%s): @[<hov>%a@]@]@.%a@."
+                pos user Printer.pp_code_annotation a 
+                (Pretty_utils.pp_list ~sep:"@\n" pretty_predicate_status)
+                (Property.ip_of_code_annot kf stmt a))
             stmt)
     | PIP (Property.IPCodeAnnot (kf,stmt,ca) as ip) ->
         current_statement_msg
@@ -396,26 +383,27 @@ let to_do_on_select
           let ty = typeOfLval lv in
           if isFunctionType ty
           then
-            main_ui#pretty_information "This is a C function@."
+            main_ui#pretty_information "This is a C function of type %a@."
+	      Printer.pp_typ ty
           else begin
             current_statement_msg kf ki;
-            let vars = extract_varinfos_from_lval lv in
-            Varinfo.Set.iter
-              (fun vi ->
-                 main_ui#pretty_information
-                   "Variable %a has type \"%a\".@\nIt is a %s variable.@\n\
+	    match lv with 
+	    | Var vi,NoOffset -> 
+              main_ui#pretty_information
+                "Variable %a has type \"%a\".@\nIt is a %s variable.@\n\
                    %tIt is %sreferenced and its address is %staken.@."
-                   Varinfo.pretty_vname vi
-                   !Ast_printer.d_type vi.vtype
-                   (if vi.vglob then "global" else "local")
-                   (fun fmt ->
-                      match vi.vdescr with None -> ()
-                      | Some s ->
-                           Format.fprintf fmt
-                             "This is a temporary variable for \"%s\".@\n" s)
-                      (if vi.vreferenced then "" else "not ")
-                      (if vi.vaddrof then "" else "not "))
-              vars
+                Varinfo.pretty_vname vi
+                Printer.pp_typ vi.vtype
+                (if vi.vglob then "global" else "local")
+                (fun fmt ->
+                  match vi.vdescr with None -> ()
+                    | Some s ->
+                      Format.fprintf fmt
+                        "This is a temporary variable for \"%s\".@\n" s)
+                (if vi.vreferenced then "" else "not ")
+                (if vi.vaddrof then "" else "not ")
+	    | _ -> main_ui#pretty_information "This is an lvalue of type %a@."
+	      Printer.pp_typ (typeOfLval lv)
           end
         with Not_found ->
           main_ui#error "Error in lval Db.KernelFunction.find"
@@ -427,8 +415,10 @@ let to_do_on_select
         if vi.vglob
         then
           main_ui#pretty_information
-            "This is the declaration of global %a@\nIt is %sreferenced and \
+            "This is the declaration of %s %a.@\nIt is %sreferenced and \
              its address is %staken.@."
+            (if Cil.isFunctionType vi.vtype
+             then "function" else "global variable")
             Varinfo.pretty_vname vi
             (if vi.vreferenced then "" else "not ")
             (if vi.vaddrof then "" else "not ")
@@ -504,7 +494,8 @@ class reactive_buffer_cl (main_ui:main_window_extension_points)
   ?(parent_window=main_ui#main_window)
   globs :reactive_buffer  =
 object(self)
-  inherit error_manager (parent_window:>GWindow.window_skel)
+  inherit error_manager
+    ~reset:main_ui#reset (parent_window:>GWindow.window_skel)
   val buffer = Source_viewer.buffer ()
   val mutable locs = None
   method buffer = buffer
@@ -1080,8 +1071,8 @@ object (self:#main_window_extension_points)
       source_viewer#buffer#set_text
         "Please select a file in the left panel\nor start a new project."
 
-
   initializer
+    self#set_reset self#reset;
     let menu_manager = self#menu_manager () (* create the menu_manager *) in
     main_window#add_accel_group menu_manager#factory#accel_group;
 

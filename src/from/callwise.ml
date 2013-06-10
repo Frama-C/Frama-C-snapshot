@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -143,7 +143,7 @@ let compute_call_from_value_states current_function states =
 let record_for_individual_froms (call_stack, value_res) =
   if From_parameters.ForceCallDeps.get () then begin
     let froms = match value_res with
-      | Value_aux.Normal states | Value_aux.NormalStore (states, _) ->
+      | Value_types.Normal states | Value_types.NormalStore (states, _) ->
           let cur_kf, _ = List.hd call_stack in
           let froms =
             if !Db.Value.no_results (Kernel_function.get_definition cur_kf) then
@@ -152,12 +152,12 @@ let record_for_individual_froms (call_stack, value_res) =
               compute_call_from_value_states cur_kf (Lazy.force states)
           in
           (match value_res with
-             | Value_aux.NormalStore (_, memexec_counter) ->
+             | Value_types.NormalStore (_, memexec_counter) ->
                  MemExec.replace memexec_counter froms
              | _ -> ());
           froms
 
-      | Value_aux.Reuse counter ->
+      | Value_types.Reuse counter ->
           MemExec.find counter
     in
     end_record call_stack froms
@@ -166,7 +166,7 @@ let record_for_individual_froms (call_stack, value_res) =
 
 
 (* Register our callbacks inside the value analysis *)
-let () = From_parameters.ForceCallDeps.add_set_hook
+let () = From_parameters.ForceCallDeps.add_update_hook
   (fun _bold bnew ->
     if bnew then begin
       Db.Value.Call_Value_Callbacks.extend_once call_for_individual_froms;

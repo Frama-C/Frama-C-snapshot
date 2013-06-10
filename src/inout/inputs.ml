@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -54,7 +54,7 @@ class virtual do_it_ = object(self)
         self#current_kinstr
         lv
     in
-    let bits_loc = valid_enumerate_bits ~for_writing:false loc in
+    let bits_loc = enumerate_valid_bits ~for_writing:false loc in
     self#join deps;
     self#join bits_loc;
     Cil.SkipChildren
@@ -146,12 +146,14 @@ let get_external =
   Externals.memo
     (fun kf ->
       Zone.filter_base
-        (Value_aux.accept_base ~with_formals:false ~with_locals:false kf)
+        (!Db.Semantic_Callgraph.accept_base
+           ~with_formals:false ~with_locals:false kf)
         (get_internal kf))
 
 let get_with_formals kf =
   Zone.filter_base
-    (Value_aux.accept_base ~with_formals:true ~with_locals:false kf)
+    (!Db.Semantic_Callgraph.accept_base
+       ~with_formals:true ~with_locals:false kf)
     (get_internal kf)
 
 let compute_external kf = ignore (get_external kf)

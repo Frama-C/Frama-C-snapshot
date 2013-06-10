@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -25,6 +25,7 @@ open Cil
 open Locations
 open Abstract_interp
 open Bit_utils
+open Cvalue
 
 module Retres =
   Kernel_function.Make_Table
@@ -37,8 +38,7 @@ module Retres =
 let () = Ast.add_monotonic_state Retres.self
 
 let () =
-  State_dependency_graph.Static.add_dependencies
-    ~from:Retres.self [ Db.Value.self ]
+  State_dependency_graph.add_dependencies ~from:Retres.self [ Db.Value.self ]
 
 let get = Retres.memo
   (fun kf ->
@@ -80,7 +80,6 @@ let register_new_var v typ =
   else
     Globals.Vars.add_decl v
 
-
 let returned_value kf state =
   (* Process return of function *)
   let return_type = unrollType (Kernel_function.get_return_type kf) in
@@ -88,6 +87,7 @@ let returned_value kf state =
   | TComp _ when is_fully_arithmetic return_type ->
       Cvalue.V.top_int, state
   | TPtr(typ,_) | (TComp _ as typ) -> begin
+      let size = max_bit_size () in
       let new_base =
         Returned_Val.memo
           (fun kf ->
@@ -96,69 +96,56 @@ let returned_value kf state =
                 Kernel_function.pretty kf; *)
              let new_varinfo =
                makeGlobalVar
-                 ~logic:true
+                 ~logic:true ~generated:false
                  (Cabs2cil.fresh_global
                     ("alloced_return_" ^ Kernel_function.get_name kf))
                  typ
              in
              register_new_var new_varinfo typ;
-	     let validity = Base.Known (Int.zero, max_bit_address ()) in
-	     ignore (Base.create_logic new_varinfo validity);
-             let new_offsetmap =
-               Cvalue.V_Offsetmap.sized_isotropic 
-		 Cvalue.V_Or_Uninitialized.singleton_zero
-		 (memory_size ())
-             in
-             Cvalue.Default_offsetmap.create_initialized_var
-               new_varinfo
-	       validity
-               new_offsetmap)
-          kf
+	     let validity = Base.Known (Int.zero, Int.pred size) in
+             Base.create_logic new_varinfo validity
+          ) kf
       in
       let initial_value =
-        if isIntegralType typ
-        then Cvalue.V.top_int
-        else if isFloatingType typ
-        then Cvalue.V.top_float
-        else
-          Cvalue.V.inject_top_origin
-            (Origin.Leaf (LocationSetLattice.currentloc_singleton()))
-            (Cvalue.V.Top_Param.O.singleton new_base)
-            (*top_leaf_origin ()*)
+        match Cil.unrollType typ with
+          | TInt _ | TEnum _ -> V.top_int
+          | TFloat (FFloat, _) -> V.top_single_precision_float
+          | TFloat ((FDouble | FLongDouble), _) -> V.top_float
+          | _ ->
+              let origin = Origin.current Origin.K_Leaf in
+              V.inject_top_origin origin (Base.Hptset.singleton new_base)
       in
-      let modu = try
-        if isVoidType typ then Int.one else Int_Base.project (osizeof typ)
-      with Int_Base.Error_Top ->
-        assert (Cvalue.V.is_isotropic initial_value);
-        Int.one
-      in
-      let returned_loc =
+      (* top_float is not isotropic, we need a size to initialize the
+         offsetmap bound to [base] *)
+      let size_v =
         try
-          Location_Bytes.inject
-            new_base
-            (Ival.filter_ge_int (Some Int.zero)
-               (Ival.create_all_values
-                   ~signed:true
-                   ~modu
-                   ~size:(sizeofpointer ())))
+          if isVoidType typ then Int.one else Int_Base.project (sizeof typ)
         with Int_Base.Error_Top ->
-          Location_Bytes.inject
-            new_base
-            Ival.top
+          assert (Cvalue.V.is_isotropic initial_value);
+          Int.one
       in
-      let state =
-        Cvalue.Model.create_initial
-          ~base:new_base
-          ~v:initial_value ~modu:(Int.mul Int.eight modu) ~state
+      let returned_value =
+        Location_Bytes.inject
+          new_base
+          (Ival.filter_ge_int (Some Int.zero)
+             (Ival.create_all_values
+                ~signed:true
+                ~modu:size_v
+                ~size:(sizeofpointer ())))
       in
-      returned_loc, state
+      let v = Cvalue.V_Or_Uninitialized.initialized initial_value in
+      let offsm = Cvalue.V_Offsetmap.create ~size v ~size_v in
+      (* TODO: this overwrites the entire previous states *)
+      let state = Cvalue.Model.add_base new_base offsm state in
+      returned_value, state
     end
   | TInt _ | TEnum _ ->  Cvalue.V.top_int, state
   | TFloat _ ->  Cvalue.V.top_float, state
   | TBuiltin_va_list _ ->
-      Cvalue.V.top_leaf_origin()
-        (* Only some builtins may return this type *),
-      state
+      Value_parameters.error ~current:true ~once:true
+        "functions returning variadic arguments must be stubbed%t"
+        Value_util.pp_callstack;
+      V.top_int, state
   | TVoid _ -> Cvalue.V.top (* this value will never be used *), state
   | TFun _ | TNamed _ | TArray _ -> assert false
 

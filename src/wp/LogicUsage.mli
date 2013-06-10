@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -64,6 +64,7 @@ val section_of_lemma : string -> logic_section
 val section_of_type : logic_type_info -> logic_section
 val section_of_logic : logic_info -> logic_section
 val proof_context : unit -> logic_lemma list
+  (** Lemmas that are not in an axiomatic. *)
 
 val is_recursive : logic_info -> bool
 val get_induction_labels : logic_info -> string -> LabelSet.t LabelMap.t

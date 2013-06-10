@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -32,13 +32,12 @@ exception Initialization_failed
 
 let typeHasAttribute attr typ = Cil.hasAttribute attr (Cil.typeAttrs typ)
 
-(* If [full] is true, bind the contents of hidden_base to a well of itself.
+(* If [filled] is true, bind the contents of hidden_base to a well of itself.
    If not, do not bind it (typically for function pointers) *)
-let make_well ~full hidden_base state loc =
+let make_well ~filled hidden_base state loc =
   let size = Bit_utils.max_bit_size () in
-  let well = Cvalue.V.inject_top_origin
-    Origin.Well
-    (Cvalue.V.Top_Param.O.singleton hidden_base)
+  let well =
+    Cvalue.V.inject_top_origin Origin.Well (Base.Hptset.singleton hidden_base)
   in
   let well_loc =
     Locations.make_loc
@@ -47,11 +46,27 @@ let make_well ~full hidden_base state loc =
   in
   let with_alarms = CilE.warn_none_mode in
   let state =
-    if full
+    if filled
     then Cvalue.Model.add_binding ~with_alarms ~exact:true state well_loc well
     else state
   in
   Cvalue.Model.add_binding ~with_alarms ~exact:true state loc well
+
+
+let warn_unknown_size_aux pp v (messt, t) =
+  Value_parameters.warning ~once:true ~current:true
+    "@[during initialization@ of %a,@ size of@ type '%a'@ cannot be@ computed@ \
+    (%s)@]" pp v Printer.pp_typ t messt
+
+let warn_unknown_size =
+  warn_unknown_size_aux
+    (fun fmt v -> Format.fprintf fmt "variable '%a'" Printer.pp_varinfo v)
+
+type validity_hidden_base =
+  | Invalid (* Base is completely invalid *)
+  | Unknown (* Base is maybe invalid on its entire validity *)
+  | KnownUnknown of Integer.t (* Base is valid on i bits, then maybe invalid on
+                                 the remainder of its validity *)
 
 let create_hidden_base ~valid ~hidden_var_name ~name_desc pointed_typ =
   let hidden_var =
@@ -60,19 +75,29 @@ let create_hidden_base ~valid ~hidden_var_name ~name_desc pointed_typ =
   Library_functions.register_new_var hidden_var pointed_typ;
   hidden_var.vdescr <- Some name_desc;
   let validity =
-    if valid
-    then begin
-        match Base.validity_from_type hidden_var with
+    match valid with
+    | Invalid -> Base.Invalid
+    | _ ->
+      (* Add a special case for void* pointers: we do not want to compute the
+         size of void *)
+      let validity = match Cil.unrollType pointed_typ with
+        | TVoid _ -> Base.Unknown (Int.zero, None, Bit_utils.max_bit_address ())
+        | _ -> Base.validity_from_type hidden_var
+      in
+      match validity with
         | Base.Known (a,b)
             when not (Value_parameters.AllocatedContextValid.get ()) ->
-            Base.Unknown (a,b)
-        | (Base.All |  Base.Unknown _ | Base.Known _)  as s -> s
+            (match valid with
+               | KnownUnknown size ->
+                   let size = Integer.pred size in
+                   assert (Integer.le size b);
+                   Base.Unknown (a, Some size, b)
+               | _ -> Base.Unknown (a, None, b)
+            )
+        | Base.Unknown _ | Base.Known _ | Base.Invalid as s -> s
         | Base.Periodic _ -> assert false
-      end
-    else Base.Known(Int.one, Int.zero) (* Base.invalid *)
   in
-  let hidden_base = Base.create_logic hidden_var validity in
-  hidden_base
+  Base.create_logic hidden_var validity
 
 (** [initialize_var_using_type varinfo state] uses the type of [varinfo]
     to create an initial value in [state]. *)
@@ -98,8 +123,7 @@ let initialize_var_using_type varinfo state =
       | TFloat (FFloat, _) ->
           bind_entire_loc Cvalue.V.top_single_precision_float
 
-      | TFun _ ->
-          bind_entire_loc (Cvalue.V.top_leaf_origin ())
+      | TFun _ -> state
 
       | TPtr (typ, _) as full_typ
           when depth <= Value_parameters.AutomaticContextMaxDepth.get () ->
@@ -111,7 +135,7 @@ let initialize_var_using_type varinfo state =
             let i =
               match Cil.findAttribute "arraylen" attr with
               | [AInt i] -> i
-              | _ -> My_bigint.of_int context_max_width
+              | _ -> Integer.of_int context_max_width
             in
             let arr_pointed_typ =
               TArray(typ,
@@ -123,12 +147,15 @@ let initialize_var_using_type varinfo state =
               Cabs2cil.fresh_global ("S_" ^ name)
             in
             let name_desc = "*"^name_desc in
+            (* Make first cell of the array valid. The NULL pointer takes
+               care of a potential invalid pointer. *)
+            let valid =
+              try KnownUnknown (Integer.of_int (Cil.bitsSizeOf typ))
+              with Cil.SizeOfError _ -> Unknown
+            in
             let hidden_base =
               create_hidden_base
-                ~valid:true
-                ~hidden_var_name
-                ~name_desc
-                arr_pointed_typ
+                ~valid ~hidden_var_name ~name_desc arr_pointed_typ
             in
             let state =
               add_offsetmap
@@ -151,18 +178,19 @@ let initialize_var_using_type varinfo state =
           else
             let hidden_var_name = Cabs2cil.fresh_global ("S_" ^ name) in
             let name_desc = "*"^name_desc in
+            let valid, filled =
+              if Cil.isFunctionType typ then Invalid, false
+              else Unknown, true
+            in   
             let hidden_base =
-              create_hidden_base
-                ~valid:false
-                ~hidden_var_name
-                ~name_desc
-                typ
+              create_hidden_base ~valid ~hidden_var_name ~name_desc typ
             in
-            make_well ~full:false hidden_base state loc
+            make_well ~filled hidden_base state loc
 
       | TArray (typ, len, _, _) ->
           begin try
             let size = Cil.lenOfArray len in
+            let size_elt = Int.of_int (Cil.bitsSizeOf typ) in
             let psize = pred size in
             let state = ref state in
             let typ = Cil.unrollType typ in
@@ -198,28 +226,29 @@ let initialize_var_using_type varinfo state =
               let offsm_joined = List.fold_left
                 (fun offsm loc ->
                    let offsm' = offsm_of_loc loc in
-                   Cvalue.V_Offsetmap_ext.join offsm offsm'
+                   Cvalue.V_Offsetmap.join offsm offsm'
                 ) (offsm_of_loc last_loc) locs
               in
-              let nb_fields = Cvalue.V_Offsetmap_ext.fold_internal
+              let nb_fields = Cvalue.V_Offsetmap.fold
                 (fun _itv _ -> succ) offsm_joined 0
               in
-              let size_elt = Int.of_int (Cil.bitsSizeOf typ) in
               if nb_fields = 1 then
                 (* offsm_joined is very regular (typically Top_int, or some
                   pointers). We read its contents and copy it everywhere else.
                   The periodicity of the contents may be smaller than the size
                    of a cell; take this into account. *)
-                let offset, modu, v =
-                  Extlib.the (Cvalue.V_Offsetmap_ext.fold_internal
+                let v, modu, offset =
+                  Extlib.the (Cvalue.V_Offsetmap.fold
                                 (fun _itv v _ -> Some v) offsm_joined None)
                 in
-                assert (Int.equal offset Int.zero);
-                let offsm_repeat = V_Offsetmap_ext.create_initial v modu in
-                let loc = Location_Bits.location_shift
+                assert (Rel.equal offset Rel.zero);
+                let ncells = size - max_precise_size in
+                let total_size = Int.mul size_elt (Int.of_int ncells) in
+                let offsm_repeat = V_Offsetmap.create
+                  ~size_v:modu ~size:total_size v in
+                let loc = Location_Bits.shift
                   (Ival.inject_singleton size_elt) last_loc.loc;
                 in
-                let ncells = size - max_precise_size in
                 (* paste [size - max_precise_size] elements, starting from
                    the last location initialized + 1 *)
                 state :=
@@ -227,7 +256,7 @@ let initialize_var_using_type varinfo state =
                     ~from:offsm_repeat
                     ~dst_loc:loc
                     ~start:Int.zero
-                    ~size:(Int.mul size_elt (Int.of_int ncells))
+                    ~size:total_size
                     ~exact:true
                     !state
               else (
@@ -239,23 +268,27 @@ let initialize_var_using_type varinfo state =
                        take some time" size;
                 let loc = ref last_loc.loc in
                 for _i = max_precise_size to psize do
-                loc := Location_Bits.location_shift
-                  (Ival.inject_singleton size_elt) !loc;
-                state :=
-                  Cvalue.Model.paste_offsetmap ~with_alarms
-                    ~from:offsm_joined
-                    ~dst_loc:!loc
-                    ~start:Int.zero
-                    ~size:size_elt
-                    ~exact:true
-                    !state
+                  loc := Location_Bits.shift
+                    (Ival.inject_singleton size_elt) !loc;
+                  state :=
+                    Cvalue.Model.paste_offsetmap ~with_alarms
+                      ~from:offsm_joined
+                      ~dst_loc:!loc
+                      ~start:Int.zero
+                      ~size:size_elt
+                      ~exact:true
+                      !state
                 done);
             end;
             !state
-          with Cil.LenOfArray ->
-            Value_parameters.result ~once:true ~current:true
-              "could not find a size for array";
-            state
+          with
+            | Cil.LenOfArray ->
+                Value_parameters.result ~once:true ~current:true
+                  "could not find a size for array";
+                state (* TODOBY: use same strategy as for pointer *)
+            | Cil.SizeOfError (s, t) ->
+                warn_unknown_size varinfo (s, t);
+                bind_entire_loc Cvalue.V.top_int;
           end
 
       | TComp ({cstruct=true;} as compinfo, _, _) -> (* Struct *)
@@ -297,10 +330,9 @@ let initialize_var_using_type varinfo state =
               in
               Cvalue.Model.add_binding_not_initialized state loc
             else state
-          with Cil.SizeOfError _ ->
-            Value_parameters.warning ~once:true ~current:true
-              "size of struct '%s' cannot be computed@." compinfo.corig_name;
-            state
+          with Cil.SizeOfError (s, t) ->
+            warn_unknown_size varinfo (s, t);
+            bind_entire_loc Cvalue.V.top_int;
           end
 
       | TComp ({cstruct=false}, _, _) when Cil.is_fully_arithmetic typ ->
@@ -324,18 +356,32 @@ let initialize_var_using_type varinfo state =
             Cil.makeGlobalVar ~logic:true hidden_var_name Cil.charType
           in
           hidden_var.vdescr <- Some (name_desc^"_WELL");
-          let hidden_base =
-            Base.create_logic
-              hidden_var
-              (Base.Known (Int.zero,Bit_utils.max_bit_address ()))
-          in
-          make_well ~full:true hidden_base state loc
+          let validity = Base.Known (Int.zero, Bit_utils.max_bit_address ()) in
+          let hidden_base = Base.create_logic hidden_var validity in
+          make_well ~filled:true hidden_base state loc
       | TNamed (_, _)  -> assert false
   in
   add_offsetmap
     0
     (Base.create_varinfo varinfo)
     varinfo.vname varinfo.vname varinfo.vtype NoOffset varinfo.vtype state
+
+
+let init_var_zero vi state =
+  let loc = Locations.loc_of_varinfo vi in
+  let v =
+    if typeHasAttribute "volatile" vi.vtype
+    then V.top_int
+    else V.singleton_zero
+  in
+  (try
+     ignore (Cil.bitsSizeOf vi.vtype)
+   with Cil.SizeOfError (s, t)->
+     warn_unknown_size vi (s, t);
+  );
+  Cvalue.Model.add_binding ~with_alarms:CilE.warn_none_mode
+    ~exact:true state loc v
+    
 
 let initialized_padding () =
   Value_parameters.InitializedPaddingGlobals.get ()
@@ -376,17 +422,17 @@ let init_trailing_padding state ~last_bitsoffset ~abs_offset typ lval =
       else
         Cvalue.Model.add_binding_not_initialized state loc
     else state
-  with Cil.SizeOfError _ ->
-    Value_parameters.result ~once:true ~current:true
-      "cannot provide a default initializer: size is unknown";
+  with Cil.SizeOfError (s,t) ->
+    warn_unknown_size_aux Printer.pp_lval lval  (s, t);
     state
 
 (* Evaluation of a [SingleInit] in Cil parlance *)
 let eval_single_initializer state lval exp =
   let with_alarms = CilE.warn_none_mode in
-  let typ_lval = Cil.typeOfLval lval in
   (* Eval in Top state. We do not want the location to depend on other globals*)
-  let loc = Eval_exprs.lval_to_loc ~with_alarms Cvalue.Model.top lval in
+  let _, loc, typ_lval =
+    Eval_exprs.lval_to_loc_state ~with_alarms Cvalue.Model.top lval
+  in
   if not (cardinal_zero_or_one loc) then
     Value_parameters.fatal ~current:true
      "In global initialisation, the location can not be represented. Aborting.";
@@ -395,12 +441,10 @@ let eval_single_initializer state lval exp =
   let v =
     if typeHasAttribute "volatile" typ_lval
     then V.top_int
-    else if Int_Base.equal loc.Locations.size
-              (Int_Base.inject (Int.of_int ((Cil.bitsSizeOf (Cil.typeOf exp)))))
-    then value
-    else (* bit-field *)
-      let size = Int_Base.project loc.Locations.size in
-      Eval_exprs.cast_lval_bitfield lval size value
+    else
+      if Eval_op.is_bitfield typ_lval
+      then Eval_op.cast_lval_bitfield typ_lval loc.Locations.size value
+      else value
   in
   Cvalue.Model.add_binding ~with_alarms ~exact:true state loc v
 
@@ -496,15 +540,17 @@ let rec eval_const_initializer state lval init =
           ~initl:l
           ~acc:state
 
-(** Compute the initial values for globals and NULL *)
+(** Initial value for globals and NULL in no-lib-entry mode (everything
+    initialized to 0). *)
 let initial_state_only_globals =
   let module S =
     State_builder.Option_ref
       (Cvalue.Model)
       (struct
-        let name = "only_globals"
+        let name = "Value.Initial_state.Not_context_free"
         let dependencies =
-          [ Ast.self; Kernel.LibEntry.self; Kernel.MainFunction.self ]
+          [ Ast.self; Kernel.AbsoluteValidRange.self;
+            Value_parameters.InitializedPaddingGlobals.self ]
       end)
   in
   function () ->
@@ -530,11 +576,9 @@ let initial_state_only_globals =
                   then
                     (* Must not assume zero when the storage is extern. *)
                     update_state (initialize_var_using_type varinfo !state)
-                  else if initialized_padding ()
-		  then
-		    update_state (
-                      init_trailing_padding !state ~last_bitsoffset:0
-                        ~abs_offset:0 varinfo.vtype (Var varinfo,NoOffset))
+                  else
+                  if initialized_padding () then
+		    update_state (init_var_zero varinfo !state)
 		  else
 		    let typ = varinfo.vtype in
 		    let loc = Cil_datatype.Location.unknown in
@@ -546,32 +590,25 @@ let initial_state_only_globals =
                     (eval_initializer !state (Var varinfo,NoOffset) i)
             end);
 
-      (** Bind the declared range for NULL to uninitialized *)
+      (** Bind the declared range for NULL to top int *)
       let min_valid = Base.min_valid_absolute_address () in
       let max_valid = Base.max_valid_absolute_address () in
       if Int.le min_valid max_valid
       then begin
-          let loc_bits =
-            Location_Bits.inject_ival (Ival.inject_singleton min_valid)
-          in
-          let loc_size =
-            Int_Base.inject (Int.length min_valid max_valid)
-          in
-          if true (* TODO: command line option *)
-          then
-            update_state
-              (Cvalue.Model.add_binding
-                ~with_alarms:CilE.warn_none_mode
-                ~exact:true
-                !state
-                (make_loc loc_bits loc_size)
-                Cvalue.V.top_int)
-          else
-            update_state
-              (Cvalue.Model.add_binding_not_initialized
-                !state
-                (make_loc loc_bits loc_size))
-        end;
+        (* Bind everything between [0..max] to bottom. Offsetmaps cannot
+           contain holes, which would happend if min > 0 holds. *)
+        let bot = V_Offsetmap.create_isotropic
+          ~size:max_valid (V_Or_Uninitialized.initialized V.bottom)
+        in
+        let v = if true (* TODO: command line option *)
+        then V_Or_Uninitialized.initialized V.top_int
+        else V_Or_Uninitialized.uninitialized
+        in
+        let offsm =
+          V_Offsetmap.add (min_valid, max_valid) (v, Int.one, Rel.zero) bot
+        in
+        state := Cvalue.Model.add_base Base.null offsm !state
+      end;
       let result = !state in
       result
     in
@@ -585,8 +622,12 @@ module ContextfreeGlobals =
     (Cvalue.Model)
     (struct
       let name = "Value.Initial_state.ContextfreeGlobals"
+      open Value_parameters
       let dependencies =
-        [ Ast.self; Kernel.LibEntry.self; Kernel.MainFunction.self ]
+        [ Ast.self; Kernel.AbsoluteValidRange.self;
+          InitializedPaddingGlobals.self; AllocatedContextValid.self;
+          AutomaticContextMaxWidth.self; AutomaticContextMaxDepth.self;
+        ]
      end)
 
 let () = Ast.add_monotonic_state ContextfreeGlobals.self
@@ -598,7 +639,8 @@ let initial_state_contextfree_only_globals () =
       let state = initialize_var_using_type vi state in
       (* We may do a second phase to initialize const fields again. In the
          first phase, they have been set to generic values *)
-      if Cil.typeHasAttributeDeep "const" vi.vtype then
+      if Cil.typeHasAttributeDeep "const" vi.vtype && not (vi.vstorage = Extern)
+      then
         let init = match (Globals.Vars.find vi).init with
           | None -> Cil.makeZeroInit ~loc:vi.vdecl vi.vtype
           | Some init -> init

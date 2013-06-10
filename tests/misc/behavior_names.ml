@@ -2,8 +2,7 @@ let run () =
   let _ = Ast.get () in
   let kf = Globals.Functions.find_by_name "f" in
   let pretty_list fmt l =
-    Pretty_utils.pp_list
-      ~sep:Pretty_utils.space_sep Format.pp_print_string fmt l
+    Pretty_utils.pp_list ~sep:"@ " Format.pp_print_string fmt l
   in
   Format.printf
     "@[stmt: %a@\nnew1: %s@\nnew2: %s@]@."

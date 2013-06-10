@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -564,23 +564,3 @@ let rec subset phi s t =
 	  false
 
 (* -------------------------------------------------------------------------- *)
-
-(* DEBUG *)
-
-let debug = ref false
-
-let merge phi a b =
-  if !debug then
-    begin
-      Format.eprintf "---------MERGE-A-------------------------@\n" ;
-      Format.eprintf "%a@." (pp_tree "A:") a ;
-      Format.eprintf "---------MERGE-B-------------------------@\n" ;
-      Format.eprintf "%a@." (pp_tree "B:") b ;
-      Format.eprintf "---------MERGE-RESULT--------------------@\n" ;
-      let c = merge phi a b in
-      Format.eprintf "%a@." (pp_tree "R:") c ;
-      Format.eprintf "-----------------------------------------@\n" ;
-      c
-    end
-  else merge phi a b
-  

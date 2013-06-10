@@ -12,7 +12,9 @@ let main _ =
     let mark = !S.Mark.make ~data:true ~addr:false ~ctrl:false in
     let select = S.Select.empty_selects in
     let select = !S.Select.select_func_annots select mark
-      ~spare:true ~ai:false ~user_assert:false ~slicing_pragma:true ~loop_inv:true  ~loop_var:true kf in
+      ~spare:true ~threat:false ~user_assert:false ~slicing_pragma:true
+      ~loop_inv:true ~loop_var:true kf
+    in
     !Db.Slicing.Request.add_persistent_selection project select
       (*!S.Request.read_annotations project kf_main ;;*)
   in

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -152,7 +152,8 @@ class type main_window_extension_points = object
     (** register an action to perform when button is released on a given
         localizable.
         If the button 3 is released, the first argument is popped as a
-        contextual menu. *)
+        contextual menu. 
+	@plugin development guide *)
 
   method register_source_highlighter :
     (GSourceView2.source_buffer -> Pretty_source.localizable ->

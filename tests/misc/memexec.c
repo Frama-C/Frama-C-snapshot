@@ -1,8 +1,8 @@
 /* run.config
-   STDOPT:  +"-memexec-all"
+   STDOPT:  +"-rte-select fbug -rte -memexec-all"
 */
 
-int x1, y1, z1;
+int x1, y1, z1; volatile int c;
 
 void f11() {
   x1 = 1;
@@ -27,10 +27,24 @@ void f2 () {
 void f3 () {
 }
 
+int *p;
+
+int fbug() {
+  return *p;
+}
+
+void bug() {
+  p = 0;
+  int x;
+  if (c)
+    fbug();
+  p = &x;
+  fbug();
+}
 
 void main () {
   f1 ();
   f2 ();
   f3 ();
+  bug();
 }
-

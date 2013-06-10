@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -122,6 +122,27 @@ let print_file file job =
        with err ->
 	 Format.pp_print_flush fmt () ;
 	 raise err)
+
+(* -------------------------------------------------------------------------- *)
+(* --- Timing                                                             --- *)
+(* -------------------------------------------------------------------------- *)
+
+type timer = float ref
+type 'a result = Result of 'a | Error of exn
+let dt_max tm dt = match tm with Some r when dt > !r -> r := dt | _ -> ()
+let dt_add tm dt = match tm with Some r -> r := !r +. dt | _ -> ()
+let return = function Result x -> x | Error e -> raise e
+let catch f x = try Result(f x) with e -> Error e
+let time ?rmax ?radd job data =
+  begin
+    let t0 = Sys.time () in
+    let re = catch job data in
+    let t1 = Sys.time () in
+    let dt = t1 -. t0 in
+    dt_max rmax dt ; 
+    dt_add radd dt ; 
+    return re ;
+  end
 
 (* -------------------------------------------------------------------------- *)
 (* --- Process                                                            --- *)

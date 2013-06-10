@@ -2,13 +2,26 @@
 (* register functions using abstract types "t" and "u" *)
 module A : sig end = struct
   type t = A of int | B of bool
+  type tt = t
   let mk () = 1.05
   let _ = B false
   let f = function A n -> n | B false -> min_int | B true -> max_int
-  let t =
-    Type.register ~name:"A.t" ~ml_name:None Structural_descr.Unknown [ A 1 ]
-  let u =
-    Type.register ~ml_name:None ~name:"A.u" Structural_descr.Unknown [ 1.0 ]
+  module T = 
+    Datatype.Make(struct
+      type t = tt
+      let name = "A.t"
+      let reprs = [ A 1 ]
+      include Datatype.Undefined
+    end)
+  let t = T.ty
+  module U = 
+    Datatype.Make(struct
+      type t = float
+      let name = "A.u"
+      let reprs = [ 1.0 ]
+      include Datatype.Undefined
+    end)
+  let u = U.ty
   let mk =
     Dynamic.register ~plugin:"A" ~journalize:false "mk"
       (Datatype.func Datatype.unit u)
@@ -18,7 +31,8 @@ module A : sig end = struct
       (Datatype.func t Datatype.int)
       f
   let _ =
-    Dynamic.register ~plugin:"A" ~journalize:false "g" (Datatype.func u Datatype.int)
+    Dynamic.register ~plugin:"A" ~journalize:false "g" 
+      (Datatype.func u Datatype.int)
       (fun x -> Format.printf "%f@." x; int_of_float x)
   let v1 = Dynamic.register ~plugin:"A" ~journalize:false "v1" t (A 1)
   let _ = Dynamic.register ~plugin:"A" ~journalize:false "v2" t (A 2)
@@ -47,9 +61,9 @@ module A : sig end = struct
   let _ = 
     ignore (Dynamic.get ~plugin:"A" "mk" (Datatype.func Datatype.unit u) ())
 
-  module U = Type.Abstract(struct let name = "A.u" end)
-  let __ : U.t =
-    Dynamic.get ~plugin:"A" "mk" (Datatype.func Datatype.unit U.ty) ()
+  module UA = Type.Abstract(struct let name = "A.u" end)
+  let __ : UA.t =
+    Dynamic.get ~plugin:"A" "mk" (Datatype.func Datatype.unit UA.ty) ()
 
   let _ =
     Dynamic.register ~journalize:false ~plugin:"A" "poly"

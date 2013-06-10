@@ -2,11 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
-(*           alternatives)                                                *)
-(*    INRIA (Institut National de Recherche en Informatique et en         *)
-(*           Automatique)                                                 *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -26,7 +24,6 @@
 
 (**/**)
 
-
 open Cil_types
 
 (**/**)
@@ -39,32 +36,33 @@ let find_sub_stmts st = match st.skind with
 | Continue _|Break _|Goto (_, _)|Return (_, _)|Instr _  -> []
 
 let str_call_sig ff call fmt =
-    try
-      let _, ff_marks = ff.SlicingInternals.ff_marks in
-      let called, sgn = PdgIndex.FctIndex.find_call ff_marks call in
-      let print_called fmt = match called with
-        | None
-        | Some (None) -> Format.fprintf fmt "/* undetermined call */@."
-        | Some (Some (SlicingInternals.CallSlice ff)) ->
-            Format.fprintf fmt "/* call to %a */@."
-              Fct_slice.print_ff_sig ff
-        | Some (Some(SlicingInternals.CallSrc _)) ->
-            Format.fprintf fmt "/* call to source function */@."
-      in
-        Format.fprintf fmt "/* sig call : %a */@\n%t"
-                           SlicingMarks.pretty_sig sgn print_called
-    with Not_found -> Format.fprintf fmt "/* invisible call */@."
+  try
+    let _, ff_marks = ff.SlicingInternals.ff_marks in
+    let called, sgn = PdgIndex.FctIndex.find_call ff_marks call in
+    let print_called fmt = match called with
+      | None
+      | Some (None) -> Format.fprintf fmt "@[/* undetermined call */@]"
+      | Some (Some (SlicingInternals.CallSlice ff)) ->
+        Format.fprintf fmt "@[/* call to@ %a */@]"
+          Fct_slice.print_ff_sig ff
+      | Some (Some(SlicingInternals.CallSrc _)) ->
+        Format.fprintf fmt "@[/* call to source function */@]"
+    in
+    Format.fprintf fmt "@[<v>@[/* sig call:@ %a */@]@ %t@]"
+      SlicingMarks.pretty_sig sgn print_called
+  with Not_found -> 
+    Format.fprintf fmt "@[/* invisible call */@]"
 
 class printerClass optional_ff = object(self)
-  inherit Printer.print () as super
+  inherit Printer.extensible_printer () as super
   val opt_ff = optional_ff
 
-  method pVDecl fmt var =
+  method vdecl fmt var =
     match opt_ff with
-    | None -> super#pVDecl fmt var
+    | None -> super#vdecl fmt var
     | Some ff ->
         if var.vglob  then
-          Format.fprintf fmt "/**/%a" super#pVDecl var
+          Format.fprintf fmt "@[/**/%a@]" super#vdecl var
         else
           let str_m =
             try
@@ -72,51 +70,46 @@ class printerClass optional_ff = object(self)
                 SlicingMarks.mark_to_string m
             with Not_found -> "[---]"
           in
-          Format.fprintf fmt "/* %s */ %a"
+          Format.fprintf fmt "@[<hv>/* %s */@ %a@]"
             str_m
-            super#pVDecl var
+            super#vdecl var
 
-  method pStmtKind next fmt kind =
+  method stmtkind next fmt kind =
     let stmt_info fmt stmt = match opt_ff with
-      | None -> Format.fprintf fmt "/* %d */" stmt.Cil_types.sid
+      | None -> Format.fprintf fmt "@[/* %d */@]" stmt.Cil_types.sid
       | Some ff ->
           let str_m = try
             let m = Fct_slice.get_stmt_mark ff stmt in
             SlicingMarks.mark_to_string m
           with Not_found -> "[---]"
           in
-          if (SlicingMacros.is_call_stmt stmt)
-          then Format.fprintf fmt "%t/* %s */" (str_call_sig ff stmt) str_m
-          else Format.fprintf fmt "/* %s */" str_m
+          if (SlicingMacros.is_call_stmt stmt)then 
+	    Format.fprintf fmt "@[<hv>%t@ /* %s */@]" 
+	      (str_call_sig ff stmt) str_m
+          else
+	    Format.fprintf fmt "@[/* %s */@]" str_m
     in
-    match self#current_stmt with
-    | None -> assert false
-    | Some s ->
-        try
-          Format.fprintf fmt "%a%a"
-            stmt_info s
-            (fun fmt -> super#pStmtKind next fmt) kind
-        with Not_found -> (* some sub statements may be visible *)
-          let sub_stmts = find_sub_stmts s in
-          List.iter
-            (fun st ->self#pStmtNext Cil.dummyStmt fmt st)
-            sub_stmts
+    let s = Extlib.the self#current_stmt in
+    try
+      Format.fprintf fmt "@[<v>%a@ %a@]"
+        stmt_info s
+        (fun fmt -> super#stmtkind next fmt) kind
+    with Not_found -> 
+      (* some sub statements may be visible *)
+      let sub_stmts = find_sub_stmts s in
+      List.iter (self#stmt fmt) sub_stmts
 
-  method pLabel fmt l =
+  method label fmt l =
     let label_info = match opt_ff with
       | None -> "label"
       | Some ff ->
-          let stmt = match self#current_stmt with None -> assert false
-            | Some stmt -> stmt
-          in
-          let m = Fct_slice.get_label_mark ff stmt l in
-            SlicingMarks.mark_to_string m
-    in Format.fprintf fmt "/* %s */%a"
-         label_info
-         super#pLabel l
+        let m = Fct_slice.get_label_mark ff (Extlib.the self#current_stmt) l in
+        SlicingMarks.mark_to_string m
+    in
+    Format.fprintf fmt "@[<hv>/* %s */@ %a@]"
+      label_info
+      super#label l
 end
-
-
 
 let print_fct_from_pdg fmt ?ff pdg  =
   let kf = PdgTypes.Pdg.get_kf pdg in
@@ -124,28 +117,32 @@ let print_fct_from_pdg fmt ?ff pdg  =
   let loc = Lexing.dummy_pos,Lexing.dummy_pos in
   let glob = Cil_types.GFun (fct, loc) in (* TODO : make it cleaner *)
   let printer = new printerClass ff in
-  Cil.printGlobal printer fmt glob
+  printer#global fmt glob
 
 let print_marked_ff fmt ff =
-  Format.fprintf fmt "Print slice = %a@." Fct_slice.print_ff_sig ff;
-  let pdg = SlicingMacros.get_ff_pdg ff in print_fct_from_pdg fmt pdg ?ff:(Some ff)
+  let pdg = SlicingMacros.get_ff_pdg ff in 
+  Format.fprintf fmt "@[<v>@[<hv>Print slice =@ %a@]@ @ %a@]" 
+    Fct_slice.print_ff_sig ff
+    (print_fct_from_pdg ~ff) pdg
 
 let print_original_glob fmt glob =
   let printer = new printerClass None in
-  Cil.printGlobal printer fmt glob
+  printer#global fmt glob
 
 (*----------------------------------------------------------------------------*)
 module PrintProject = struct
-  type t = string * SlicingInternals.t_project
-  type t_node =
-      Src of SlicingInternals.fct_info | Slice of SlicingInternals.t_fct_slice |
-      OptSlicingLevel of SlicingInternals.t_level_option | OptSliceCallers of bool |
-      Action of (int * SlicingInternals.t_criterion)
+  type t = string * SlicingInternals.project
+  type node =
+    | Src of SlicingInternals.fct_info
+    | Slice of SlicingInternals.fct_slice
+    | OptSlicingLevel of SlicingInternals.level_option
+    | OptSliceCallers of bool
+    | Action of (int * SlicingInternals.criterion)
   module V = struct
-    type t = t_node
+    type t = node
   end
   module E = struct
-    type t = (t_node * t_node) * Cil_types.stmt option
+    type t = (node * node) * Cil_types.stmt option
     let src (e, _) = fst e
     let dst (e, _) = snd e
   end
@@ -217,13 +214,13 @@ module PrintProject = struct
 
   let color_soft_green = (0x7FFFD4)
   let color_medium_green = (0x00E598)
-  let color_soft_blue = (0x7FAAFF)
+  let _color_soft_blue = (0x7FAAFF)
   let color_soft_orange = (0xFFD57F)
   let color_medium_orange = (0xFFB57F)
-  let color_green_yellow = (0xAAFF7F)
+  let _color_green_yellow = (0xAAFF7F)
   let color_soft_yellow = (0xFFFFC3)
   let color_medium_yellow = (0xFFFF5D)
-  let color_pale_orange = (0xFFE1C3)
+  let _color_pale_orange = (0xFFE1C3)
   let color_soft_pink = (0xFACDEF)
   let color_medium_pink = (0xF070D1)
   let color_soft_purple = (0xE2CDFA)
@@ -326,6 +323,14 @@ let build_dot_project filename title project =
   let file = open_out filename in
     PrintProjGraph.output_graph file (title, project);
     close_out file
+
+let print_fct_stmts fmt (_proj, kf) =
+  try
+    let pdg = !Db.Pdg.get kf in
+    print_fct_from_pdg fmt pdg;
+    Format.pp_print_flush fmt ()
+  with Not_found -> ()
+
 
 (*
 Local Variables:

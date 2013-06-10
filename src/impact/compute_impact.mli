@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -29,9 +29,12 @@ val initial_nodes:
   skip:Locations.Zone.t -> kernel_function -> stmt -> PdgTypes.Node.t list
 
 val impacted_nodes:
-  ?skip:Locations.Zone.t -> kernel_function -> stmt list -> result
+  ?skip:Locations.Zone.t -> ?reason:bool ->
+  kernel_function -> stmt list ->
+  result * (** Initial *) nodes Kernel_function.Map.t * Reason_graph.reason
 val impacted_stmts:
-  ?skip:Locations.Zone.t -> kernel_function -> stmt list -> stmt list
+  ?skip:Locations.Zone.t -> reason:bool ->
+  kernel_function -> stmt list -> stmt list
 
 val result_to_nodes: result -> PdgTypes.NodeSet.t
 val nodes_to_stmts: nodes -> stmt list

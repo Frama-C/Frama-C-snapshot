@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -24,6 +24,7 @@ module type S =
 sig
   include Set.S
   val map : (elt -> elt) -> t -> t
+  val mapf : (elt -> elt option) -> t -> t
   val intersect : t -> t -> bool
 end
 
@@ -205,6 +206,7 @@ struct
     | Branch (_,_,t0,t1) -> fold f t0 (fold f t1 accu)
 
   let map f s = fold (fun e s -> add (f e) s) s Empty
+  let mapf f s = fold (fun e s -> match f e with None -> s | Some e -> add e s) s Empty
 
   let rec for_all p = function
     | Empty -> true
@@ -555,6 +557,7 @@ struct
     | Branch (_,_,t0,t1) -> fold f t0 (fold f t1 accu)
 
   let map f s = fold (fun e s -> add (f e) s) s Empty
+  let mapf f s = fold (fun e s -> match f e with None -> s | Some e -> add e s) s Empty
 
   let rec for_all p = function
     | Empty -> true

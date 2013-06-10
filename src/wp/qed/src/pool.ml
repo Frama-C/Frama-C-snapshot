@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -30,6 +30,7 @@ open Logic
 module type Type =
 sig
   type t
+  val dummy : t
   val equal : t -> t -> bool
 end
 
@@ -72,16 +73,23 @@ struct
       let k = let i = !kid in (assert (i <> -1) ; incr kid ; i) in
       let x = { x0 with vid = k } in W.add hmap x ; x
 
+  let dummy = insert "" 0 T.dummy
+
   let hash x = x.vid
   let equal = (==)
   let compare x y = 
     let cmp = String.compare x.vbase y.vbase in
-    if cmp <> 0 then cmp else Pervasives.compare x.vid y.vid
+    if cmp <> 0 then cmp else 
+      let cmp = Pervasives.compare x.vrank y.vrank in
+      if cmp <> 0 then cmp else
+	Pervasives.compare x.vid y.vid
 
   (* POOL *)
 
   type pool = (string,int ref) Hashtbl.t
-  let create () = Hashtbl.create 131
+  let create ?copy () = match copy with
+    | None -> Hashtbl.create 131
+    | Some pool -> Hashtbl.copy pool
 
   let counter pool base = 
     try Hashtbl.find pool base

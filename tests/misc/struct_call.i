@@ -26,11 +26,23 @@ struct A create_A() {
   return r;
 }
 
-int main(void)
+int main1(void)
 {
   int i = 2 - 1;
   t[1].y = G;
   GG = g(tt[i]);
   struct A init = create_A();
   return g(t[i]);
+}
+
+struct CC { short c1; char * c2; };
+extern struct CC C;
+
+void h(struct CC c) {
+  Frama_C_show_each(c.c1, c.c2);
+}
+
+void main() {
+  main1();
+  h(C);
 }

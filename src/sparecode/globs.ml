@@ -2,11 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
-(*           alternatives)                                                *)
-(*    INRIA (Institut National de Recherche en Informatique et en         *)
-(*           Automatique)                                                 *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -25,7 +23,7 @@
 open Cil_types
 open Cil
 
-let dkey = "globs"
+let dkey = Sparecode_params.register_category "globs"
 
 let debug format = Sparecode_params.debug ~dkey ~level:2 format
 let debug' format = Sparecode_params.debug ~dkey ~level:3 format
@@ -110,9 +108,9 @@ class collect_visitor = object (self)
 
 end
 
-class filter_visitor  prj = object
+class filter_visitor prj = object
 
-  inherit Visitor.generic_frama_c_visitor prj (Cil.copy_visit())
+  inherit Visitor.generic_frama_c_visitor (Cil.copy_visit prj)
 
   method vglob_aux g =
     match g with
@@ -161,7 +159,7 @@ module Result =
 let () =
   Cmdline.run_after_extended_stage
     (fun () ->
-       State_dependency_graph.Static.add_codependencies
+       State_dependency_graph.add_codependencies
          ~onto:Result.self
          [ !Db.Pdg.self; !Db.Outputs.self_external ])
 

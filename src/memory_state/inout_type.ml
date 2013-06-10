@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -65,13 +65,8 @@ include Datatype.Make
       Format.fprintf fmt "@]"
 
     let structural_descr =
-      Structural_descr.t_record
-        [| Locations.Zone.packed_descr;
-           Locations.Zone.packed_descr;
-           Locations.Zone.packed_descr;
-           Locations.Zone.packed_descr;
-           Locations.Zone.packed_descr;
-        |]
+      let z = Locations.Zone.packed_descr in
+      Structural_descr.t_record [| z; z; z; z; z |]
     let reprs =
       List.map
         (fun z ->
@@ -89,7 +84,7 @@ include Datatype.Make
           over_outputs = d;
           over_outputs_if_termination = e;
         } =
-      Zone.tag a + 17 * Zone.tag b + 587 * Zone.tag c + 1077 * Zone.tag d + 13119 * Zone.tag e
+      Zone.hash a + 17 * Zone.hash b + 587 * Zone.hash c + 1077 * Zone.hash d + 13119 * Zone.hash e
     let equal
         { over_inputs_if_termination = a;
           under_outputs_if_termination = b;

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -63,9 +63,8 @@ let search_security_requirements () =
     Security_slicing_parameters.feedback
       ~level:3 "searching security annotations";
     (* TODO: chercher dans les GlobalAnnotations *)
-    let is_security_annotation = function
-      | User a ->
-          (match a.annot_content with
+    let is_security_annotation a =
+         (match a.annot_content with
            | AAssert (_behav,p,_) -> is_security_predicate p
            | AStmtSpec { spec_requires = l } ->
                List.exists
@@ -75,8 +74,6 @@ let search_security_requirements () =
                (* [JS 2008/02/26] may contain a security predicate *)
            | AVariant _ | AAssigns _
                -> false)
-      | AI _ ->
-          false
     in
     Annotations.iter
       (fun s annotations ->
@@ -792,9 +789,7 @@ end = struct
   let () =
     Cmdline.run_after_extended_stage
       (fun () ->
-        State_dependency_graph.Static.add_codependencies
-          ~onto:S.self
-          [ !Db.Pdg.self ])
+        State_dependency_graph.add_codependencies ~onto:S.self [ !Db.Pdg.self ])
 (*
   let add c =
     let l = S.memo (fun _ -> ref []) c in

@@ -5,6 +5,8 @@
   (* --- Time Utilities                                                     --- *)
   (* -------------------------------------------------------------------------- *)
 
+  let epsilon = 0.0005
+
   let get_time ladder t =
     let rec dicho ladder t i j =
       let k = (i+j)/2 in
@@ -24,7 +26,7 @@
     d , r
     
   let pp_time fmt t =
-    if t < 1.0 then Format.fprintf fmt "%dms" (truncate (t *. 1000.0)) else
+    if t < 1.0 then Format.fprintf fmt "%dms" (truncate (t *. 1000.0 +. 0.5)) else
       if t < 60.0 then 
 	let dt = t -. floor t in
 	if dt < 0.1 
@@ -94,7 +96,7 @@
   let env console cmd arg = spaces console ; console.env console.fline cmd arg
 
 
-# 98 "src/wp/rformat.ml"
+# 100 "src/wp/rformat.ml"
 let __ocaml_lex_tables = {
   Lexing.lex_base = 
    "\000\000\247\255\002\000\088\000\253\255\254\255\255\255\098\000\
@@ -680,74 +682,74 @@ let rec word console lexbuf =
 and __ocaml_lex_word_rec console lexbuf __ocaml_lex_state =
   match Lexing.new_engine __ocaml_lex_tables __ocaml_lex_state lexbuf with
       | 0 ->
-# 130 "src/wp/rformat.mll"
+# 132 "src/wp/rformat.mll"
    ( flush console )
-# 686 "src/wp/rformat.ml"
+# 688 "src/wp/rformat.ml"
 
   | 1 ->
-# 133 "src/wp/rformat.mll"
+# 135 "src/wp/rformat.mll"
    ( flush console ; Format.pp_print_newline console.foutput () ; word console lexbuf )
-# 691 "src/wp/rformat.ml"
+# 693 "src/wp/rformat.ml"
 
   | 2 ->
-# 136 "src/wp/rformat.mll"
+# 138 "src/wp/rformat.mll"
           ( console.spaces <- succ console.spaces ; word console lexbuf )
-# 696 "src/wp/rformat.ml"
+# 698 "src/wp/rformat.ml"
 
   | 3 ->
-# 138 "src/wp/rformat.mll"
+# 140 "src/wp/rformat.mll"
              ( write console "&" ; word console lexbuf )
-# 701 "src/wp/rformat.ml"
+# 703 "src/wp/rformat.ml"
 
   | 4 ->
-# 139 "src/wp/rformat.mll"
+# 141 "src/wp/rformat.mll"
              ( write console "%" ; word console lexbuf )
-# 706 "src/wp/rformat.ml"
+# 708 "src/wp/rformat.ml"
 
   | 5 ->
 let
-# 141 "src/wp/rformat.mll"
+# 143 "src/wp/rformat.mll"
                        arg
-# 712 "src/wp/rformat.ml"
+# 714 "src/wp/rformat.ml"
 = Lexing.sub_lexeme lexbuf (lexbuf.Lexing.lex_start_pos + 1) (lexbuf.Lexing.lex_curr_pos + -1) in
-# 142 "src/wp/rformat.mll"
+# 144 "src/wp/rformat.mll"
    (
 	    Format.pp_print_flush console.fline () ;
 	    add_spaces console.line (int_of_string arg - Buffer.length console.line) ;
 	    console.spaces <- 0 ;
 	    word console lexbuf
 	  )
-# 721 "src/wp/rformat.ml"
+# 723 "src/wp/rformat.ml"
 
   | 6 ->
 let
-# 149 "src/wp/rformat.mll"
+# 151 "src/wp/rformat.mll"
                        cmd
-# 727 "src/wp/rformat.ml"
+# 729 "src/wp/rformat.ml"
 = Lexing.sub_lexeme lexbuf lexbuf.Lexing.lex_mem.(3) lexbuf.Lexing.lex_mem.(2)
 and
-# 149 "src/wp/rformat.mll"
+# 151 "src/wp/rformat.mll"
                                           arg
-# 732 "src/wp/rformat.ml"
+# 734 "src/wp/rformat.ml"
 = Lexing.sub_lexeme lexbuf lexbuf.Lexing.lex_mem.(1) lexbuf.Lexing.lex_mem.(0) in
-# 152 "src/wp/rformat.mll"
+# 154 "src/wp/rformat.mll"
    ( env console cmd arg ; word console lexbuf )
-# 736 "src/wp/rformat.ml"
+# 738 "src/wp/rformat.ml"
 
   | 7 ->
 let
-# 154 "src/wp/rformat.mll"
+# 156 "src/wp/rformat.mll"
                        cmd
-# 742 "src/wp/rformat.ml"
+# 744 "src/wp/rformat.ml"
 = Lexing.sub_lexeme lexbuf lexbuf.Lexing.lex_mem.(1) lexbuf.Lexing.lex_mem.(0) in
-# 157 "src/wp/rformat.mll"
+# 159 "src/wp/rformat.mll"
    ( env console cmd "" ; word console lexbuf )
-# 746 "src/wp/rformat.ml"
+# 748 "src/wp/rformat.ml"
 
   | 8 ->
-# 159 "src/wp/rformat.mll"
+# 161 "src/wp/rformat.mll"
           ( write console (Lexing.lexeme lexbuf) ; word console lexbuf )
-# 751 "src/wp/rformat.ml"
+# 753 "src/wp/rformat.ml"
 
   | __ocaml_lex_state -> lexbuf.Lexing.refill_buff lexbuf; __ocaml_lex_word_rec console lexbuf __ocaml_lex_state
 
@@ -757,39 +759,39 @@ and __ocaml_lex_command_rec lexbuf __ocaml_lex_state =
   match Lexing.new_engine __ocaml_lex_tables __ocaml_lex_state lexbuf with
       | 0 ->
 let
-# 162 "src/wp/rformat.mll"
+# 164 "src/wp/rformat.mll"
                          cmd
-# 763 "src/wp/rformat.ml"
+# 765 "src/wp/rformat.ml"
 = Lexing.sub_lexeme lexbuf lexbuf.Lexing.lex_mem.(0) lexbuf.Lexing.lex_mem.(1) in
-# 162 "src/wp/rformat.mll"
+# 164 "src/wp/rformat.mll"
                                      ( CMD cmd )
-# 767 "src/wp/rformat.ml"
+# 769 "src/wp/rformat.ml"
 
   | 1 ->
 let
-# 163 "src/wp/rformat.mll"
+# 165 "src/wp/rformat.mll"
                          cmd
-# 773 "src/wp/rformat.ml"
+# 775 "src/wp/rformat.ml"
 = Lexing.sub_lexeme lexbuf lexbuf.Lexing.lex_mem.(0) lexbuf.Lexing.lex_mem.(1)
 and
-# 163 "src/wp/rformat.mll"
+# 165 "src/wp/rformat.mll"
                                                       arg
-# 778 "src/wp/rformat.ml"
+# 780 "src/wp/rformat.ml"
 = Lexing.sub_lexeme lexbuf lexbuf.Lexing.lex_mem.(2) lexbuf.Lexing.lex_mem.(3) in
-# 163 "src/wp/rformat.mll"
+# 165 "src/wp/rformat.mll"
                                                                       ( ARG(cmd,arg) )
-# 782 "src/wp/rformat.ml"
+# 784 "src/wp/rformat.ml"
 
   | 2 ->
-# 164 "src/wp/rformat.mll"
+# 166 "src/wp/rformat.mll"
       ( TEXT )
-# 787 "src/wp/rformat.ml"
+# 789 "src/wp/rformat.ml"
 
   | __ocaml_lex_state -> lexbuf.Lexing.refill_buff lexbuf; __ocaml_lex_command_rec lexbuf __ocaml_lex_state
 
 ;;
 
-# 166 "src/wp/rformat.mll"
+# 168 "src/wp/rformat.mll"
  
 
   let pretty env fmt msg =
@@ -808,4 +810,4 @@ and
     command lexbuf
 
 
-# 812 "src/wp/rformat.ml"
+# 814 "src/wp/rformat.ml"

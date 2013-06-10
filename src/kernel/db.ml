@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -64,29 +64,22 @@ end
 (** {2 Inouts} *)
 (* ************************************************************************* *)
 
-module type INOUT = sig
-
+module type INOUTKF = sig
   type t
-
   val self_internal: State.t ref
   val self_external: State.t ref
-
   val compute : (kernel_function -> unit) ref
 
   val get_internal : (kernel_function -> t) ref
-    (** Inputs/Outputs with local variables *)
-
   val get_external : (kernel_function -> t) ref
-    (** Inputs/Outputs without local variables *)
-
-  val statement : (stmt -> t) ref
-
-  val kinstr : kinstr -> t option
-    (** Effects of the given statement or of the englobing statement *)
 
   val display : (Format.formatter -> kernel_function -> unit) ref
   val pretty : Format.formatter -> t -> unit
-
+end
+module type INOUT = sig
+  include INOUTKF
+  val statement : (stmt -> t) ref
+  val kinstr : kinstr -> t option
 end
 
 (** State_builder.of outputs
@@ -145,14 +138,9 @@ module Operational_inputs = struct
   let get_internal_precise = ref (fun ?stmt:_ _ ->
     failwith ("Db.Operational_inputs.get_internal_precise not implemented"))
   let get_external = mk_fun "Operational_inputs.get_external"
-  let statement = mk_fun "Operational_inputs.statement"
-  let kinstr ki = match ki with
-    | Kstmt s -> Some (!statement s)
-    | Kglobal -> None
 
   module Record_Inout_Callbacks =
-    Hook.Build (struct type t = Value_aux.callstack * Inout_type.t end)
-
+    Hook.Build (struct type t = Value_types.callstack * Inout_type.t end)
 
   let pretty fmt x =
     Format.fprintf fmt "@[<v>";
@@ -288,14 +276,37 @@ module Value = struct
       VGlobals.self ]
 
   let size = 1789
-  module Table =
-    Cil_state_builder.Stmt_hashtbl
-      (Cvalue.Model)
+
+  module States_by_callstack =
+    Value_types.Callstack.Hashtbl.Make(Cvalue.Model)
+
+  module Table_By_Callstack = 
+    Cil_state_builder.Stmt_hashtbl(States_by_callstack)
       (struct
-         let name = "Value analysis results"
-         let size = size
-         let dependencies = dependencies
+        let name = "Value analysis results by callstack"
+        let size = size
+        let dependencies = dependencies
        end)
+  module Table =
+    Cil_state_builder.Stmt_hashtbl(Cvalue.Model)
+      (struct
+        let name = "Value analysis results"
+        let size = size
+        let dependencies = dependencies
+       end)
+  (* Clear Value's various caches each time [Db.Value.is_computed] is updated,
+     including when it is set, reset, or during project change. Some operations
+     of Value depend on -ilevel, -plevel, etc, so clearing those caches when
+     Value ends ensures that those options will have an effect between two runs
+     of Value. *)
+  let () = Table.add_hook_on_update
+    (fun _ ->
+       Cvalue.V_Offsetmap.clear_caches ();
+       Cvalue.Model.clear_caches ();
+       Locations.Location_Bytes.clear_caches ();
+       Locations.Zone.clear_caches ();
+       Lmap_bitwise.From_Model.clear_caches ();
+    )
 
 
   module AfterTable =
@@ -305,6 +316,13 @@ module Value = struct
        let dependencies = [Table.self]
        let size = size
      end)
+  module AfterTable_By_Callstack = 
+    Cil_state_builder.Stmt_hashtbl(States_by_callstack)
+      (struct
+        let name = "Value analysis results after states by callstack"
+        let size = size
+        let dependencies = dependencies
+       end)
 
 
   let self = Table.self
@@ -398,7 +416,7 @@ module Value = struct
     Hook.Build
       (struct
          type t = (kernel_function * kinstr) list *
-                  (state Stmt.Hashtbl.t) Lazy.t Value_aux.callback_result
+                  (state Stmt.Hashtbl.t) Lazy.t Value_types.callback_result
        end)
 
   module Record_Value_After_Callbacks =
@@ -419,15 +437,33 @@ module Value = struct
 
   let no_results = mk_fun "Value.no_results"
 
-  let update_table s v =
+  let update_callstack_table ~after stmt callstack v =
+    let open Value_types in 
+    let find,add =
+      if after
+      then AfterTable_By_Callstack.find, AfterTable_By_Callstack.add
+      else Table_By_Callstack.find, Table_By_Callstack.add
+    in
     try
-      let old = Table.find s in
-(*      Hptmap.debug := true;  *)
-      let joined = Cvalue.Model.join old v in
-(*      Hptmap.debug := false; *)
-      Table.replace s joined;
+      let by_callstack = find stmt in
+      begin try 
+	let o = Callstack.Hashtbl.find by_callstack callstack in
+	Callstack.Hashtbl.replace by_callstack callstack(Cvalue.Model.join o v)
+	with Not_found -> 
+	  Callstack.Hashtbl.add by_callstack callstack v
+      end;
+    with Not_found ->
+      let r = Callstack.Hashtbl.create 7 in
+      Callstack.Hashtbl.add r callstack v;
+      add stmt r
+	    
+  let update_table stmt v =
+    try
+      let old = Table.find stmt in
+      let joined_global = Cvalue.Model.join old v in
+      Table.replace stmt joined_global;
     with
-      Not_found -> Table.add s v
+      Not_found -> Table.add stmt v
 
   let merge_initial_state kf state =
     let vi = Kernel_function.get_vi kf in
@@ -463,6 +499,13 @@ module Value = struct
     assert (is_computed ()); (* this assertion fails during value analysis *)
     noassert_get_state k
 
+  let get_stmt_state_callstack ~after stmt =
+    assert (is_computed ()); (* this assertion fails during value analysis *)
+    try
+      Some (if after then AfterTable_By_Callstack.find stmt else
+	  Table_By_Callstack.find stmt)
+    with Not_found -> None
+
   let is_reachable = Cvalue.Model.is_reachable
 
   let is_accessible ki =
@@ -491,15 +534,10 @@ module Value = struct
 
   (** Type for a Value builtin function *)
 
-  type builtin_result = {
-    builtin_values: (Cvalue.V_Offsetmap.t option * state) list;
-    builtin_clobbered: Locations.Location_Bits.Top_Param.t
-  }
-
   type builtin_sig =
       state ->
       (Cil_types.exp * Cvalue.V.t * Cvalue.V_Offsetmap.t) list ->
-      builtin_result
+      Value_types.call_result
 
   exception Outside_builtin_possibilities
   let register_builtin = mk_fun "Value.record_builtin"
@@ -542,15 +580,15 @@ module Value = struct
       if Cvalue.Model.is_reachable fst_values
         && not (Cvalue.Model.is_top fst_values)
       then begin
-        Format.fprintf fmt "@[<hov 2>Values at end of function %s:@\n"
-          (Kernel_function.get_name kf);
-            if Cvalue.Model.is_top values
-            then Format.fprintf fmt "NO INFORMATION"
-            else
-              let outs = !Outputs.get_internal kf in
-              Cvalue.Model.pretty_filter fmt values outs refilter;
-              Format.fprintf fmt "@]@\n"
-        end
+        Format.fprintf fmt "@[<hov 2>Values at end of function %a:@\n"
+          Kernel_function.pretty kf;
+        if Cvalue.Model.is_top values
+        then Format.fprintf fmt "NO INFORMATION"
+        else
+          let outs = !Outputs.get_internal kf in
+          Cvalue.Model.pretty_filter fmt values outs refilter;
+          Format.fprintf fmt "@]@\n"
+      end
     with Kernel_function.No_Statement -> ()
 
   let display_globals fmt () =
@@ -841,9 +879,9 @@ module Slicing = struct
   module Select = struct
     type t = SlicingTypes.sl_select
     let dyn_t = SlicingTypes.Sl_select.ty
-    type t_set = SlicingTypes.Fct_user_crit.t Cil_datatype.Varinfo.Map.t
+    type set = SlicingTypes.Fct_user_crit.t Cil_datatype.Varinfo.Map.t
     module S = Cil_datatype.Varinfo.Map.Make(SlicingTypes.Fct_user_crit)
-    let dyn_t_set = S.ty
+    let dyn_set = S.ty
 
     let get_function = mk_fun "Slicing.Select.get_function"
     let select_stmt = mk_fun "Slicing.Select.select_stmt"
@@ -867,7 +905,7 @@ module Slicing = struct
     let empty_selects =
       Journal.register
         "Db.Slicing.Select.empty_selects"
-        dyn_t_set
+        dyn_set
         Cil_datatype.Varinfo.Map.empty
     let add_to_selects_internal =
       mk_fun "Slicing.Select.add_to_selects_internal"
@@ -965,38 +1003,14 @@ module Properties = struct
   let mk_resultfun s =
     ref (fun ~result:_ -> failwith (Printf.sprintf "Function '%s' not registered yet" s))
 
-  (** Interpretation and conversions of of formulas *)
   module Interp = struct
+
+  (** Interpretation and conversions of of formulas *)
     let code_annot = mk_fun "Properties.Interp.code_annot"
     let lval = mk_fun "Properties.Interp.lval"
     let expr = mk_fun "Properties.Interp.expr"
     let term_lval_to_lval = mk_resultfun "Properties.Interp.term_lval_to_lval"
     let term_to_exp = mk_resultfun "Properties.Interp.term_to_exp"
-    let force_term_to_exp = mk_fun "Properties.Interp.force_term_to_exp"
-    let force_back_exp_to_term =
-      mk_fun "Properties.Interp.force_back_exp_to_term"
-    let force_term_lval_to_lval =
-      mk_fun "Properties.Interp.force_term_lval_to_lval"
-    let force_back_lval_to_term_lval =
-      mk_fun "Properties.Interp.force_back_lval_to_term_lval"
-    let force_term_offset_to_offset =
-      mk_fun "Properties.Interp.force_term_offset_to_offset"
-    let force_back_offset_to_term_offset =
-      mk_fun "Properties.Interp.force_back_offset_to_term_offset"
-    let force_exp_to_term =
-      mk_fun "Properties.Interp.force_exp_to_term"
-    let force_lval_to_term_lval =
-      mk_fun "Properties.Interp.force_lval_to_term_lval"
-    let force_exp_to_predicate =
-      mk_fun "Properties.Interp.force_exp_to_predicate"
-    let force_exp_to_assertion =
-      mk_fun "Properties.Interp.force_exp_to_assertion"
-    let from_range_to_comprehension =
-      mk_fun "Properties.Interp.from_range_to_comprehension"
-    let range_to_comprehension =
-      mk_fun "Properties.Interp.range_to_comprehension"
-    let from_comprehension_to_range =
-      mk_fun "Properties.Interp.from_comprehension_to_range"
     let term_to_lval = mk_resultfun "Properties.Interp.term_to_lval"
     let loc_to_lval = mk_resultfun "Properties.Interp.loc_to_lval"
     (* loc_to_loc and loc_to_locs are defined in Value/Eval_logic, not
@@ -1045,7 +1059,7 @@ module Properties = struct
   let add_assert emitter kf kinstr prop =
     Kernel.deprecated "Db.Properties.add_assert" ~now:"ACSL_importer plug-in" 
       (fun () ->
-	let interp_prop = User (!Interp.code_annot kf kinstr prop) in
+	let interp_prop = !Interp.code_annot kf kinstr prop in
 	Annotations.add_code_annot emitter kinstr interp_prop)
       ()
 
@@ -1078,7 +1092,7 @@ end
 
 module RteGen = struct
   type status_accessor = 
-      Emitter.t * (kernel_function -> bool -> unit) * (kernel_function -> bool)
+      string * (kernel_function -> bool -> unit) * (kernel_function -> bool)
   let compute = mk_fun "RteGen.compute"
   let annotate_kf = mk_fun "RteGen.annotate_kf"
   let self = ref State.dummy
@@ -1166,6 +1180,9 @@ module Semantic_Callgraph = struct
     mk_fun "Semantic_Callgraph.topologically_iter_on_functions"
   let iter_on_callers =
     mk_fun "Semantic_Callgraph.iter_on_callers"
+  let accept_base =
+    ref (fun ~with_formals:_ ~with_locals:_ _ _ ->
+           raise (Extlib.Unregistered_function "Semantic_Callgraph.accept_base"))
 end
 
 

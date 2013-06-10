@@ -6,6 +6,11 @@
 float f = 3.14;
 double d = 2.71;
 
+double stdtod_bug = 1.8254370818746402660437411213933955878019332885742187;
+/*
+http://www.exploringbinary.com/a-bug-in-the-bigcomp-function-of-david-gays-strtod/
+*/
+
 int fr[4];
 int dr[8];
 

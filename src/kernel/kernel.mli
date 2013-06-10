@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -151,6 +151,9 @@ module UnrollingLevel: Plugin.Int
     called for well preparing the AST. *)
 module Machdep: Plugin.String
 
+(** Behavior of option "-enums" *)
+module Enums: Plugin.String
+
 module CppCommand: Plugin.String
   (** Behavior of option "-cpp-command" *)
 
@@ -271,12 +274,21 @@ end
 module UnspecifiedAccess: Plugin.Bool
   (** Behavior of option "-unspecified-access" *)
 
-module Overflow: Plugin.Bool
-  (** Behavior of option "-overflow" *)
-
 module SafeArrays: Plugin.Bool
   (** Behavior of option "-safe-arrays".
       @plugin development guide *)
+
+module SignedOverflow: Plugin.Bool
+  (** Behavior of option "-warn-signed-overflow" *)
+
+module UnsignedOverflow: Plugin.Bool
+  (** Behavior of option "-warn-unsigned-overflow" *)
+
+module SignedDowncast: Plugin.Bool
+  (** Behavior of option "-warn-signed-downcast" *)
+
+module UnsignedDowncast: Plugin.Bool
+  (** Behavior of option "-warn-unsigned-downcast" *)
 
 module AbsoluteValidRange: Plugin.String
   (** Behavior of option "-absolute-valid-range" *)

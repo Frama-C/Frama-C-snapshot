@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -255,7 +255,7 @@ let get_file_type filename =
          "File %s has no suffix. Cannot produce output.@." filename
 ;;
 
-(** Common utilities *)
+(** Map of varinfos sorted by name (and not by ids) *)
 module VInfoMap = struct
   include Map.Make (
     struct

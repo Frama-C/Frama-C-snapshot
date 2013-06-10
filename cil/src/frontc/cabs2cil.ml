@@ -1,43 +1,45 @@
-(**************************************************************************)
-(*                                                                        *)
-(*  Copyright (C) 2001-2003                                               *)
-(*   George C. Necula    <necula@cs.berkeley.edu>                         *)
-(*   Scott McPeak        <smcpeak@cs.berkeley.edu>                        *)
-(*   Wes Weimer          <weimer@cs.berkeley.edu>                         *)
-(*   Ben Liblit          <liblit@cs.berkeley.edu>                         *)
-(*  All rights reserved.                                                  *)
-(*                                                                        *)
-(*  Redistribution and use in source and binary forms, with or without    *)
-(*  modification, are permitted provided that the following conditions    *)
-(*  are met:                                                              *)
-(*                                                                        *)
-(*  1. Redistributions of source code must retain the above copyright     *)
-(*  notice, this list of conditions and the following disclaimer.         *)
-(*                                                                        *)
-(*  2. Redistributions in binary form must reproduce the above copyright  *)
-(*  notice, this list of conditions and the following disclaimer in the   *)
-(*  documentation and/or other materials provided with the distribution.  *)
-(*                                                                        *)
-(*  3. The names of the contributors may not be used to endorse or        *)
-(*  promote products derived from this software without specific prior    *)
-(*  written permission.                                                   *)
-(*                                                                        *)
-(*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS   *)
-(*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT     *)
-(*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS     *)
-(*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE        *)
-(*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,   *)
-(*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,  *)
-(*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;      *)
-(*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER      *)
-(*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT    *)
-(*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN     *)
-(*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE       *)
-(*  POSSIBILITY OF SUCH DAMAGE.                                           *)
-(*                                                                        *)
-(*  File modified by CEA (Commissariat à l'énergie atomique et aux        *)
-(*                        énergies alternatives).                         *)
-(**************************************************************************)
+(****************************************************************************)
+(*                                                                          *)
+(*  Copyright (C) 2001-2003                                                 *)
+(*   George C. Necula    <necula@cs.berkeley.edu>                           *)
+(*   Scott McPeak        <smcpeak@cs.berkeley.edu>                          *)
+(*   Wes Weimer          <weimer@cs.berkeley.edu>                           *)
+(*   Ben Liblit          <liblit@cs.berkeley.edu>                           *)
+(*  All rights reserved.                                                    *)
+(*                                                                          *)
+(*  Redistribution and use in source and binary forms, with or without      *)
+(*  modification, are permitted provided that the following conditions      *)
+(*  are met:                                                                *)
+(*                                                                          *)
+(*  1. Redistributions of source code must retain the above copyright       *)
+(*  notice, this list of conditions and the following disclaimer.           *)
+(*                                                                          *)
+(*  2. Redistributions in binary form must reproduce the above copyright    *)
+(*  notice, this list of conditions and the following disclaimer in the     *)
+(*  documentation and/or other materials provided with the distribution.    *)
+(*                                                                          *)
+(*  3. The names of the contributors may not be used to endorse or          *)
+(*  promote products derived from this software without specific prior      *)
+(*  written permission.                                                     *)
+(*                                                                          *)
+(*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS     *)
+(*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT       *)
+(*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS       *)
+(*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE          *)
+(*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,     *)
+(*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,    *)
+(*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;        *)
+(*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER        *)
+(*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT      *)
+(*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN       *)
+(*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE         *)
+(*  POSSIBILITY OF SUCH DAMAGE.                                             *)
+(*                                                                          *)
+(*  File modified by CEA (Commissariat à l'énergie atomique et aux          *)
+(*                        énergies alternatives)                            *)
+(*               and INRIA (Institut National de Recherche en Informatique  *)
+(*                          et Automatique).                                *)
+(****************************************************************************)
 
 (* Type check and elaborate ABS to CIL *)
 
@@ -48,7 +50,6 @@ module V = Cabsvisit
 module H = Hashtbl
 module IH = Datatype.Int.Hashtbl
 module AL = Alpha
-module Global_machdep = Machdep
 
 open Pretty_utils
 open Cabs
@@ -64,9 +65,6 @@ let continueOnError = false
 
 let frama_c_keep_block = "FRAMA_C_KEEP_BLOCK"
 let () = Cil.register_shallow_attribute frama_c_keep_block
-
-(** Leave a certain global alone. Use a negative number to disable. *)
-let nocil: int ref = ref (-1)
 
 (** A hook into the code that creates temporary local vars.  By default this
   is the identity function, but you can overwrite it if you need to change the
@@ -171,7 +169,7 @@ class check_no_locals = object
       if not v.vglob then
         Kernel.error ~once:true ~current:true
 	  "Forbidden access to local variable %a in static initializer"
-          d_var v
+          Cil_printer.pp_varinfo v
     | _ -> ());
     DoChildren
 end
@@ -303,7 +301,7 @@ let add_packing_attributes s a =
             | [Attr("aligned",[AInt local])]
                 (* The largest aligned wins with GCC. Don't know
                    with other compilers. *) ->
-                addAttribute (Attr("aligned",[AInt (max local n)]))
+                addAttribute (Attr("aligned",[AInt (Integer.max local n)]))
                   (dropAttribute "aligned" a)
             | [Attr("aligned",[])] -> (* This one always wins as it is the
                                          biggest available on the plateform. *)
@@ -320,7 +318,7 @@ let add_packing_attributes s a =
     | None, Some false ->
         force_packed_attribute
           (addAttribute 
-	     (Attr("aligned",[AInt My_bigint.one])) 
+	     (Attr("aligned",[AInt Integer.one])) 
 	     (dropAttribute "aligned" a))
 
 
@@ -383,43 +381,53 @@ let isOldStyleVarArgTypeName n =
 (* We collect here the program *)
 let theFile : global list ref = ref []
 let theFileTypes : global list ref = ref []
+(* This hashtbl contains the varinfo-indexed globals of theFile.
+   They are duplicated here for faster lookup *)
+let theFileVars : global Cil_datatype.Varinfo.Hashtbl.t =
+  Cil_datatype.Varinfo.Hashtbl.create 13
 
-let update_global_fundec_in_theFile vi (f:global -> unit) =
-  let rec do_it glob =  match glob with
-  | [] -> assert false
-  | (GVarDecl (_,old_vi,_) as h):: _r when vi.vid = old_vi.vid ->
-      f h
-  | _h::r -> do_it r
+let findVarInTheFile vi =
+  try  List.rev (Cil_datatype.Varinfo.Hashtbl.find_all theFileVars vi)
+  with Not_found -> []
+
+let update_fundec_in_theFile vi (f:global -> unit) =
+  let rec aux = function
+    | [] -> assert false
+    | (GVarDecl _ as g) :: _ -> f g
+    | _ :: tl -> aux tl
   in
-  do_it !theFile
+  aux (findVarInTheFile vi)
 
 let update_funspec_in_theFile vi spec =
-  let rec do_it = function
-      | [] -> assert false
-      | GFun (f,_)::_ when f.svar.vid = vi.vid ->
-          Cil.CurrentLoc.set vi.vdecl;
-          Logic_utils.merge_funspec f.sspec spec
-      | _ :: tl -> do_it tl
-  in do_it !theFile
+  let rec aux = function
+    | [] -> assert false
+    | GFun (f,_) :: _ ->
+        Cil.CurrentLoc.set vi.vdecl;
+        Logic_utils.merge_funspec f.sspec spec
+    | _ :: tl -> aux tl
+  in
+  aux (findVarInTheFile vi)
 
 let find_existing_behaviors vi =
   let behaviors spec = List.map (fun x -> x.b_name) spec.spec_behavior in
-  let one_global acc = function
-      GFun(f,_) when f.svar.vid = vi.vid ->
-        (behaviors f.sspec) @ acc
-    | GVarDecl (spec,f,_) when f.vid = vi.vid ->
-        behaviors spec @ acc
+  let aux acc = function
+    | GFun(f,_) -> (behaviors f.sspec) @ acc
+    | GVarDecl (spec,_,_)  -> behaviors spec @ acc
     | _ -> acc
-  in List.fold_left one_global [] !theFile
+  in List.fold_left aux [] (findVarInTheFile vi)
 
 let get_formals vi =
-  let rec do_it = function
-      | [] -> assert false
-      | GFun(f,_)::_ when f.svar.vid = vi.vid -> f.sformals
-      | _ :: tl -> do_it tl
-  in do_it !theFile
+  let rec aux = function
+    | [] -> assert false
+    | GFun(f,_)::_ -> f.sformals
+    | _ :: tl -> aux tl
+  in aux (findVarInTheFile vi)
 
-let initGlobals () = theFile := []; theFileTypes := []
+let initGlobals () =
+  theFile := [];
+  theFileTypes := [];
+  Cil_datatype.Varinfo.Hashtbl.clear theFileVars;
+;;
 
 let required_builtins = [ "Frama_C_bzero"; "Frama_C_copy_block" ]
 
@@ -429,7 +437,16 @@ let cabsPushGlobal (g: global) =
         when List.mem v.vname required_builtins ->
       ignore (Cil.Frama_c_builtins.memo (fun _ -> v) v.vname)
     | _ -> ());
-  pushGlobal g ~types:theFileTypes ~variables:theFile
+  pushGlobal g ~types:theFileTypes ~variables:theFile;
+  (match g with
+     | GVar (vi, _, _) | GVarDecl (_, vi, _) | GFun ({svar = vi}, _) ->
+         (* Do 'add' and not 'replace' here, as we may store both
+            declarations and definitions for the same varinfo *)
+         Cil_datatype.Varinfo.Hashtbl.add theFileVars vi g
+     | _ -> ()
+  );
+;;
+  
 
 (* Keep track of some variable ids that must be turned into definitions. We
  * do this when we encounter what appears a definition of a global but
@@ -453,7 +470,7 @@ let staticLocals: (string, varinfo) H.t = H.create 13
  * file *)
 let typedefs: (string, typeinfo) H.t = H.create 13
 
-let popGlobals () =
+let fileGlobals () =
   let rec revonto (tail: global list) = function
       [] -> tail
 
@@ -630,8 +647,8 @@ let _docEnv () =
    let doone fmt = function
       EnvVar vi, l ->
         Format.fprintf fmt "Var(%s,global=%b) (at %a)"
-          vi.vname vi.vglob d_loc l
-    | EnvEnum (_item), l -> Format.fprintf fmt "Enum (at %a)" d_loc l
+          vi.vname vi.vglob Cil_printer.pp_location l
+    | EnvEnum (_item), l -> Format.fprintf fmt "Enum (at %a)" Cil_printer.pp_location l
     | EnvTyp _t, _l -> Format.fprintf fmt "typ"
     | EnvLabel l, _ -> Format.fprintf fmt "label %s" l
   in
@@ -680,7 +697,7 @@ let alphaConvertVarAndAddToEnv (addtoenv: bool) (vi: varinfo) : varinfo =
             Kernel.abort ~current:true
 	      "It seems that we would need to rename global %s (to %s) \
 because of previous occurrence at %a"
-              vi.vname newname d_loc oldloc;
+              vi.vname newname Cil_printer.pp_location oldloc;
         end
       end else begin
         (* We have changed the name of a local variable. Can we try to detect
@@ -883,7 +900,7 @@ let rec is_boolean_result e =
     | Const _ ->
       (match Cil.isInteger e with
         | Some i ->
-          My_bigint.equal i My_bigint.zero || My_bigint.equal i My_bigint.one
+          Integer.equal i Integer.zero || Integer.equal i Integer.one
         | None -> false)
     | CastE (_,e) -> is_boolean_result e
     | BinOp((Lt | Gt | Le | Ge | Eq | Ne | LAnd | LOr),_,_,_) -> true
@@ -897,34 +914,29 @@ let rec is_boolean_result e =
 (* Specify whether the cast is from the source code *)
 let rec castTo ?(fromsource=false)
                 (ot : typ) (nt : typ) (e : exp) : (typ * exp ) =
-  let debugCast = true in
-  if debugCast then
-    Kernel.debug "@[%t: castTo:%s %a->%a@\n@]"
-      d_thisloc (if fromsource then "(source)" else "")
-      d_type ot d_type nt;
-
+  let dkey = Kernel.register_category "typecheck:cast" in
+  Kernel.debug ~dkey "@[%t: castTo:%s %a->%a@\n@]"
+    Cil.pp_thisloc (if fromsource then "(source)" else "")
+    Cil_printer.pp_typ ot Cil_printer.pp_typ nt;
   let ot' = unrollType ot in
   let nt' = unrollType nt in
-  if not fromsource && not (need_cast ot' nt') then
+  if not fromsource && not (need_cast ot' nt') then begin
     (* Do not put the cast if it is not necessary, unless it is from the
      * source. *)
-    (if debugCast then Kernel.debug "no cast to perform";
-    (ot, e))
-  else begin
+    Kernel.debug ~dkey "no cast to perform";
+    (ot, e)
+  end else begin
     let nt' = if fromsource then nt' else !typeForInsertedCast e ot' nt' in
     let result = (nt', if theMachine.insertImplicitCasts || fromsource then
-                    Cil.mkCastT e ot nt' else e)
+                    Cil.mkCastT ~force:true ~e ~oldt:ot ~newt:nt' else e)
     in
     let error s =
       (if fromsource then Kernel.abort else Kernel.fatal) ~current:true s
     in
 (*  [BM] uncomment the following line to enable attributes static typing
     ignore (check_strict_attributes true ot nt  && check_strict_attributes false nt ot);*)
-    if debugCast then
-      Kernel.debug "@[castTo: ot=%a nt=%a\n  result is %a@\n@]"
-        d_type ot d_type nt'
-        d_plainexp (snd result);
-
+    Kernel.debug ~dkey "@[castTo: ot=%a nt=%a\n  result is %a@\n@]"
+      Cil_printer.pp_typ ot Cil_printer.pp_typ nt' Cil_printer.pp_exp (snd result);
     (* Now see if we can have a cast here *)
     match ot', nt' with
       TNamed _, _
@@ -950,10 +962,11 @@ let rec castTo ?(fromsource=false)
 
     | TArray _, TPtr _ -> result
 
-    | TArray(t1,_,_,_), TArray(t2,None,_,_) when Cil_datatype.Typ.equal t1 t2 -> (nt', e)
+    | TArray(t1,_,_,_), TArray(t2,None,_,_)
+      when Cil_datatype.Typ.equal t1 t2 -> (nt', e)
 
     | TPtr _, TArray(_,_,_,_) ->
-      error "Cast over a non-scalar type %a" Cil.d_type nt';
+      error "Cast over a non-scalar type %a" Cil_printer.pp_typ nt';
 
     | TEnum _, TInt _ -> result
     | TFloat _, (TInt _|TEnum _) -> result
@@ -962,8 +975,7 @@ let rec castTo ?(fromsource=false)
     | TInt (ik,_), TEnum (ei,_) ->
       (match e.enode with
         | Const (CEnum { eihost = ei'})
-            when
-              ei.ename = ei'.ename &&
+            when ei.ename = ei'.ename && not fromsource && 
               Cil.bytesSizeOfInt ik = Cil.bytesSizeOfInt ei'.ekind
             -> (nt',e)
         | _ -> result)
@@ -974,11 +986,11 @@ let rec castTo ?(fromsource=false)
         result
 
     | (TInt _ | TPtr _), TBuiltin_va_list _ ->
-      Kernel.debug ~level:3 "Casting %a to __builtin_va_list" d_type ot ;
+      Kernel.debug ~dkey "Casting %a to __builtin_va_list" Cil_printer.pp_typ ot ;
       result
 
     | TPtr _, TEnum _ ->
-      Kernel.debug ~level:3 "Casting a pointer into an enumeration type" ;
+      Kernel.debug ~dkey "Casting a pointer into an enumeration type" ;
       result
 
     (* The expression is evaluated for its effects *)
@@ -1000,7 +1012,8 @@ let rec castTo ?(fromsource=false)
     | TComp(_, _, _), _ -> begin
         match isTransparentUnion ot with
         | None ->
-	  Kernel.fatal ~current:true "castTo %a -> %a" d_type ot d_type nt'
+	  Kernel.fatal ~current:true "castTo %a -> %a" 
+	    Cil_printer.pp_typ ot Cil_printer.pp_typ nt'
         | Some fstfield -> begin
             (* We do it now only if the expression is an lval *)
             let e' =
@@ -1011,13 +1024,14 @@ let rec castTo ?(fromsource=false)
               | _ ->
 		Kernel.fatal ~current:true
 		  "castTo: transparent union expression is not an lval: %a\n"
-		  d_exp e
+		  Cil_printer.pp_exp e
             in
             (* Continue casting *)
             castTo ~fromsource:fromsource fstfield.ftype nt' e'
         end
     end
-    | _ -> error "cannot cast from %a to %a@\n" d_type ot d_type nt'
+    | _ -> 
+      error "cannot cast from %a to %a@\n" Cil_printer.pp_typ ot Cil_printer.pp_typ nt'
   end
 
 (* Like Cil.mkCastT, but it calls typeForInsertedCast *)
@@ -1037,13 +1051,13 @@ let checkBool (ot : typ) (_ : exp) =
   | TPtr _
   | TEnum _
   | TFloat _ -> ()
-  |  _ -> Kernel.fatal ~current:true "castToBool %a" d_type ot
+  |  _ -> Kernel.fatal ~current:true "castToBool %a" Cil_printer.pp_typ ot
 
 (* Given an expression that is being coerced to bool,
    is it a nonzero constant? *)
 let rec isConstTrue (e:exp): bool =
   match e.enode with
-  | Const(CInt64 (n,_,_)) -> not (My_bigint.equal n My_bigint.zero)
+  | Const(CInt64 (n,_,_)) -> not (Integer.equal n Integer.zero)
   | Const(CChr c) -> 0 <> Char.code c
   | Const(CStr _ | CWStr _) -> true
   | Const(CReal(f, _, _)) -> f <> 0.0;
@@ -1055,12 +1069,20 @@ let rec isConstTrue (e:exp): bool =
    On constant expressions, either isConstTrue or isConstFalse will hold. *)
 let rec isConstFalse (e:exp): bool =
   match e.enode with
-  | Const(CInt64 (n,_,_)) -> My_bigint.equal n My_bigint.zero
+  | Const(CInt64 (n,_,_)) -> Integer.equal n Integer.zero
   | Const(CChr c) -> 0 = Char.code c
   | Const(CReal(f, _, _)) -> f = 0.0;
   | CastE(_, e) -> isConstFalse e
   | _ -> false
 
+let rec isCabsZeroExp e = match e.expr_node with
+  | CAST (_, ie) ->
+      (match ie with
+         | SINGLE_INIT e -> isCabsZeroExp e
+         | NO_INIT | COMPOUND_INIT _ -> false)
+  | CONSTANT (CONST_INT i) ->
+      Integer.is_zero (Cil.parseInt i)
+  | _ -> false
 
 module BlockChunk =
   struct
@@ -1095,19 +1117,18 @@ module BlockChunk =
 
     let d_stmt_chunk fmt (s,modified,write,reads,calls) =
       Format.fprintf fmt "@[<v 0>/*@[(%a) %a@ <-@ %a@]@;Calls:@;%a@;*/@;%a@]"
-        (Cilutil.pretty_list (Cilutil.space_sep ",") d_lval) modified
-        (Cilutil.pretty_list (Cilutil.space_sep ",") d_lval) write
-        (Cilutil.pretty_list (Cilutil.space_sep ",") d_lval) reads
-        (Cilutil.pretty_list (Cilutil.space_sep ",")
-           (fun fmt x -> d_stmt fmt !x))
-        calls
-        d_stmt s
+        (Pretty_utils.pp_list ~sep:",@ " Cil_printer.pp_lval) modified
+        (Pretty_utils.pp_list ~sep:",@ " Cil_printer.pp_lval) write
+        (Pretty_utils.pp_list ~sep:",@ " Cil_printer.pp_lval) reads
+        (Pretty_utils.pp_list ~sep:",@ " 
+	   (fun fmt x -> Cil_printer.pp_stmt fmt !x)) calls
+        Cil_printer.pp_stmt s
 
     let d_chunk fmt (c: chunk) =
       Format.fprintf fmt "@[<v 0>@[%a%a@]@;@[<v 2>{%a@]}@]"
         (fun fmt b -> if b then Format.fprintf fmt "/* UNDEFINED ORDER */@\n")
         c.unspecified_order
-        (Pretty_utils.pp_list ~sep:";" defaultCilPrinter#pVar) c.locals
+        (Pretty_utils.pp_list ~sep:";" Cil_printer.pp_varinfo) c.locals
         (Pretty_utils.pp_list ~sep:";@\n" d_stmt_chunk)
         (List.rev c.stmts)
 
@@ -1208,12 +1229,12 @@ module BlockChunk =
        If the chunk consists in a single block, this block will get returned
        directly, unless collapse_block is set to false.
      *)
-    let c2block ?(collapse_block=true) (c: chunk) : block =
+    let c2block ~ghost ?(collapse_block=true) (c: chunk) : block =
       if c.unspecified_order then
         { battrs = [];
           blocals = c.locals;
           bstmts =
-            [mkStmt (UnspecifiedSequence (List.rev c.stmts))]; }
+            [mkStmt ~ghost (UnspecifiedSequence (List.rev c.stmts))]; }
       else
         match c.stmts with
           | [{ skind = Block b } as s,_,_,_,_] when
@@ -1228,17 +1249,18 @@ module BlockChunk =
             }
 
     (* converts a chunk into a statement. *)
-    let c2stmt c =
+    let c2stmt ~ghost c =
       let kind =
         if c.unspecified_order then
           let kind = UnspecifiedSequence (List.rev c.stmts) in
           if c.locals <> [] then
-            Block { battrs = []; blocals = c.locals; bstmts = [ mkStmt kind] }
+            Block { battrs = []; blocals = c.locals; 
+                    bstmts = [mkStmt ~ghost kind] }
           else kind
         else
-          let block = c2block c in Block block
+          let block = c2block ~ghost c in Block block
       in
-      mkStmt kind
+      mkStmt ~ghost kind
 
     let merge_effects (m1,w1,r1,c1) (m2,w2,r2,c2) =
       let add_uniq l x =
@@ -1253,9 +1275,9 @@ module BlockChunk =
       List.fold_left
         (fun c (_,x,y,z,t) -> merge_effects c (x,y,z,t)) ([],[],[],[]) c.stmts
 
-    let c2stmt_effect c =
+    let c2stmt_effect ~ghost c =
       let modified, writes, reads, calls = get_chunk_effects c
-      in (c2stmt c, modified, writes, reads, calls)
+      in (c2stmt ~ghost c, modified, writes, reads, calls)
 
     let unspecified_chunk c = (* c *)
       (* to restore previous behavior (where unspecified evaluation order
@@ -1277,7 +1299,7 @@ module BlockChunk =
 
     (* Append two chunks. Never refer to the original chunks after you call
      * this. And especially never share c2 with somebody else *)
-    let (@@) (c1: chunk) (c2: chunk) =
+    let (@@) (c1: chunk) (c2, ghost) =
       let r =
         if (c1.unspecified_order && c2.unspecified_order) ||
           (not c1.unspecified_order && not c2.unspecified_order)
@@ -1302,7 +1324,7 @@ module BlockChunk =
                in a block at this point.
              *)
             let c2 = { c2 with locals = [] } in
-            { stmts = c2stmt_effect c2 :: c1.stmts;
+            { stmts = c2stmt_effect ~ghost c2 :: c1.stmts;
               cases = c1.cases @ c2.cases;
               locals = locals;
               unspecified_order = c1.unspecified_order;
@@ -1339,25 +1361,28 @@ module BlockChunk =
 
     let skipChunk = empty
 
-    let returnChunk e (l: location) : chunk =
-      { stmts = [ mkStmt (Return(e, l)),[],[],[],[] ];
+    (* return can be ghost but only in ghost functions *)
+    let returnChunk ~ghost e (l: location) : chunk =
+      { stmts = [ mkStmt ~ghost (Return(e, l)),[],[],[],[] ];
         cases = [];
         locals = [];
         unspecified_order = false;
       }
 
-    let ifChunk be (l: location) (t: chunk) (e: chunk) : chunk =
+    let ifChunk ~ghost be (l: location) (t: chunk) (e: chunk) : chunk =
       let effects_t = get_chunk_effects t in
       let effects_e = get_chunk_effects e in
       let (m,r,w,c) = merge_effects effects_t effects_e in
-      let stmt = mkStmt(If(be, c2block t, c2block e, l)) in
+      let stmt =
+        mkStmt ~ghost (If(be, c2block ~ghost t, c2block ~ghost e, l))
+      in
       { stmts = [ stmt ,m,r,w,c ];
         cases = t.cases @ e.cases;
         locals = [];
         unspecified_order = false;
       }
 
-    let keepPureExpr e l = ifChunk e l skipChunk skipChunk
+    let keepPureExpr ~ghost e l = ifChunk ~ghost e l skipChunk skipChunk
 
         (* We can duplicate a chunk if it has a few simple statements, and if
          * it does not have cases *)
@@ -1403,10 +1428,11 @@ module BlockChunk =
     let canDrop (c: chunk) =
       List.for_all (fun (s,_,_,_,_) -> canDropStatement s) c.stmts
 
-    let loopChunk a (body: chunk) : chunk =
+    let loopChunk ~ghost a (body: chunk) : chunk =
       (* Make the statement *)
       let loop =
-	mkStmt (Loop (a,c2block body, CurrentLoc.get (), None, None))
+	mkStmt ~ghost 
+          (Loop (a,c2block ~ghost body, CurrentLoc.get (), None, None))
       in
       { stmts = [ loop,[],[],[],[] ];
         cases = body.cases;
@@ -1414,15 +1440,17 @@ module BlockChunk =
         locals = [];
       }
 
-    let breakChunk (l: location) : chunk =
-      { stmts = [ mkStmt (Break l),[],[],[],[] ];
+    (* can be ghost inside a ghost loop *)
+    let breakChunk ~ghost (l: location) : chunk =
+      { stmts = [ mkStmt ~ghost (Break l),[],[],[],[] ];
         cases = [];
         unspecified_order = false;
         locals = [];
       }
 
-    let continueChunk (l: location) : chunk =
-      { stmts = [ mkStmt (Continue l),[],[],[],[] ];
+    (* can be ghost inside a ghost loop *)
+    let continueChunk ~ghost (l: location) : chunk =
+      { stmts = [ mkStmt ~ghost (Continue l),[],[],[],[] ];
         cases = [];
         unspecified_order = false;
         locals = [];
@@ -1430,11 +1458,11 @@ module BlockChunk =
 
         (* Get the first statement in a chunk. Might need to change the
          * statements in the chunk *)
-    let getFirstInChunk ~loc c =
+    let getFirstInChunk ~ghost ~loc c =
       (* Get the first statement and add the label to it *)
       match c.stmts with
         | [] -> (* Add a statement *)
-            let n = mkEmptyStmt ~loc () in
+            let n = mkEmptyStmt ~ghost ~loc () in
             n, [n,[],[],[],[]]
         | s -> let (st,_,_,_,_) = Extlib.last s in st,s
 
@@ -1448,32 +1476,32 @@ module BlockChunk =
         locals = [];
       }
 
-    let gotoChunk (ln: string) (l: location) : chunk =
+    let gotoChunk ~ghost (ln: string) (l: location) : chunk =
       let gref = ref dummyStmt in
       addGoto ln gref;
-      { stmts = [ mkStmt (Goto (gref, l)),[],[],[],[] ];
+      { stmts = [ mkStmt ~ghost (Goto (gref, l)),[],[],[],[] ];
         cases = [];
         locals = [];
         unspecified_order = false;
       }
 
-    let caseRangeChunk el (l: location) (next: chunk) =
-      let fst, stmts' = getFirstInChunk ~loc:l next in
-      let labels = List.map (fun e -> Case (e, l)) el in
+    let caseRangeChunk ~ghost el loc (next: chunk) =
+      let fst, stmts' = getFirstInChunk ~ghost ~loc next in
+      let labels = List.map (fun e -> Case (e, loc)) el in
       fst.labels <- labels @ fst.labels;
       { next with stmts = stmts'; cases = fst :: next.cases;
         unspecified_order = false
       }
 
-    let defaultChunk (l: location) (next: chunk) =
-      let fst, stmts' = getFirstInChunk ~loc:l next in
-      let lb = Default l in
+    let defaultChunk ~ghost loc (next: chunk) =
+      let fst, stmts' = getFirstInChunk ~ghost ~loc next in
+      let lb = Default loc in
       fst.labels <- lb :: fst.labels;
       { next with stmts = stmts'; cases = fst :: next.cases;
         unspecified_order = false
       }
 
-    let switchChunk (e: exp) (body: chunk) (l: location) =
+    let switchChunk ~ghost (e: exp) (body: chunk) (l: location) =
       (* Make the statement *)
       let defaultSeen = ref false in
       let t = typeOf e in
@@ -1483,7 +1511,7 @@ module BlockChunk =
 	    if !defaultSeen then
               Kernel.error ~once:true ~current:true
 		"Switch statement at %a has duplicate default entries."
-                d_loc l;
+                Cil_printer.pp_location l;
             defaultSeen := true;
             d
         | Label _ as l -> l
@@ -1495,14 +1523,15 @@ module BlockChunk =
           let e'' = if theMachine.lowerConstants then constFold e' else e' in
           (match (constFold e).enode, (constFold e'').enode with
             | Const(CInt64(i1, _, _)), Const(CInt64(i2, _, _))
-                when not (My_bigint.equal i1 i2) ->
+                when not (Integer.equal i1 i2) ->
                 Kernel.warning ~source:(fst e.eloc)
-	          "Case label %a exceeds range for switch expression" d_exp e;
+	          "Case label %a exceeds range for switch expression" 
+		  Cil_printer.pp_exp e;
             | _ -> ()
           );
           Case (e'', loc)
       in
-      let block = c2block body in
+      let block = c2block ~ghost body in
       let cases = (* eliminate duplicate entries from body.cases. A statement
                      is added to body.cases for each case label it has. *)
         List.fold_right
@@ -1515,7 +1544,7 @@ module BlockChunk =
           body.cases
           []
       in
-      let switch = mkStmt (Switch (e, block, cases, l)) in
+      let switch = mkStmt ~ghost (Switch (e, block, cases, l)) in
       { stmts = [ switch,[],[],[],[] ];
         cases = [];
         locals = [];
@@ -1537,7 +1566,7 @@ module BlockChunk =
         ignore (visitCilBlock find b);
         Kernel.warning ~current:true
 	  "Inconsistent AST: Statement %a,@ with label %s is not in the AST"
-          d_stmt s l;
+          Cil_printer.pp_stmt s l;
       with Found -> ()
 
     class cleanUnspecified = object(self)
@@ -1616,14 +1645,14 @@ module BlockChunk =
         | Continue _ -> DoChildren
     end
 
-    let mkFunctionBody (c: chunk) : block =
+    let mkFunctionBody ~ghost (c: chunk) : block =
       if c.cases <> [] then
         Kernel.error ~once:true ~current:true
 	  "Switch cases not inside a switch statement\n";
       (* cleanup empty blocks and unspecified sequences.
          This can change some labels (the one attached to removed blocks),
          so it has to be done before resolveGotos. *)
-      let res = visitCilBlock (new cleanUnspecified) (c2block c) in
+      let res = visitCilBlock (new cleanUnspecified) (c2block ~ghost c) in
       H.iter (find_stmt res) labelStmt; resolveGotos (); initLabels (); res
 
     let add_reads loc r c = match r with
@@ -1661,7 +1690,7 @@ let continues : loopstate list ref = ref []
 (* Sometimes we need to create new label names *)
 let newLabelName (base: string) = fst (newAlphaName false "label" base)
 
-let continueOrLabelChunk (l: location) : chunk =
+let continueOrLabelChunk ~ghost (l: location) : chunk =
   match !continues with
   | [] -> Kernel.abort ~current:true "continue not in a loop"
   | While lr :: _ ->
@@ -1670,24 +1699,24 @@ let continueOrLabelChunk (l: location) : chunk =
 	  if !lr = "" then begin
             lr := newLabelName "__Cont"
 	  end;
-	  gotoChunk !lr l
+	  gotoChunk ~ghost !lr l
 	end
-      else continueChunk l
+      else continueChunk ~ghost l
   | NotWhile lr :: _ ->
       if !lr = "" then begin
         lr := newLabelName "__Cont"
       end;
-      gotoChunk !lr l
+      gotoChunk ~ghost !lr l
 
 (* stack of statements inside which break instruction can be found. *)
 let break_env = Stack.create ()
 
 let enter_break_env () = Stack.push () break_env
 
-let breakChunk l =
+let breakChunk ~ghost l =
   if Stack.is_empty break_env then
     Kernel.abort ~current:true "break outside of a loop or switch";
-  breakChunk l
+  breakChunk ~ghost l
 
 let exit_break_env () =
   if Stack.is_empty break_env then
@@ -1751,7 +1780,7 @@ class gatherLabelsClass : V.cabsVisitor = object (self)
              | Some oldloc ->
                Kernel.error ~once:true ~current:true
 		 "Duplicate local label '%s' (previous definition was at %a)"
-		 lbl d_loc oldloc
+		 lbl Cil_printer.pp_location oldloc
              | None ->
                  (* Mark this label as defined *)
                  H.replace localLabels lbl (Some (CurrentLoc.get())))
@@ -1760,7 +1789,7 @@ class gatherLabelsClass : V.cabsVisitor = object (self)
             if newname <> lbl then
 	      Kernel.error ~once:true ~current:true
 		"Duplicate label '%s' (previous definition was at %a)"
-		lbl d_loc oldloc)
+		lbl Cil_printer.pp_location oldloc)
      | _ -> ());
     DoChildren
 end
@@ -1861,7 +1890,7 @@ let cabsAddAttributes al0 (al: attributes) : attributes =
           else begin
             Kernel.debug ~level:3
               "Duplicate attribute %a along with %a"
-              d_attr a d_attr a' ;
+              Cil_printer.pp_attribute a Cil_printer.pp_attribute a' ;
             (* let acc' = dropAttribute an acc in *)
             (** Keep both attributes *)
             addAttribute a acc
@@ -2093,7 +2122,7 @@ let rec combineTypes (what: combineWhat) (oldt: typ) (t: typ) : typ =
              Kernel.warning ~current:true
 	       "Array type comparison succeeds only based on machine-dependent \
 constant evaluation: %a and %a\n"
-                d_exp oldsz' d_exp sz' ;
+                Cil_printer.pp_exp oldsz' Cil_printer.pp_exp sz' ;
               oldsz
            end else
               raise (Failure "different array lengths")
@@ -2130,7 +2159,7 @@ constant evaluation: %a and %a\n"
               oldargslist argslist;
           (* Go over the arguments and update the old ones with the
            * adjusted types *)
-            (* Format.printf "new type is %a@." Cil.d_type t; *)
+            (* Format.printf "new type is %a@." Cil_printer.pp_typ t; *)
             let what =
               match what with
                   CombineFundef b -> CombineFunarg b
@@ -2224,7 +2253,7 @@ let makeGlobalVarinfo (isadef: bool) (vi: varinfo) : varinfo * bool =
     (* This may throw an exception Not_found *)
     let oldvi, oldloc = lookupGlobalVar lookupname in
     Kernel.debug "  %s(%d) already in the env at loc %a"
-      vi.vname oldvi.vid d_loc oldloc;
+      vi.vname oldvi.vid Cil_printer.pp_location oldloc;
     (* It was already defined. We must reuse the varinfo. But clean up the
      * storage.  *)
     let newstorage = (** See 6.2.2 *)
@@ -2242,7 +2271,7 @@ let makeGlobalVarinfo (isadef: bool) (vi: varinfo) : varinfo * bool =
           Kernel.warning ~current:true
 	    "Inconsistent storage specification for %s. \
 Previous declaration: %a"
-	    vi.vname d_loc oldloc;
+	    vi.vname Cil_printer.pp_location oldloc;
         vi.vstorage
     in
     oldvi.vinline <- oldvi.vinline || vi.vinline;
@@ -2267,11 +2296,11 @@ Previous declaration: %a"
         oldvi.vtype <- mytype
       with Failure reason ->
         Kernel.debug "old type = %a\nnew type = %a\n"
-	  d_plaintype oldvi.vtype
-          d_plaintype vi.vtype ;
+	  Cil_printer.pp_typ oldvi.vtype
+          Cil_printer.pp_typ vi.vtype ;
         Kernel.error ~once:true ~current:true
 	  "Declaration of %s does not match previous declaration from %a (%s)."
-          vi.vname d_loc oldloc reason;
+          vi.vname Cil_printer.pp_location oldloc reason;
         IncompatibleDeclHook.apply (oldvi,vi,reason)
     end;
 
@@ -2348,13 +2377,13 @@ let conditionalConversion (t2: typ) (t3: typ) : typ =
         try combineTypes CombineOther t2' t3'
         with Failure msg -> begin
           Kernel.warning ~current:true "A.QUESTION: %a does not match %a (%s)"
-            d_type (unrollType t2) d_type (unrollType t3) msg;
+            Cil_printer.pp_typ (unrollType t2) Cil_printer.pp_typ (unrollType t3) msg;
           t2 (* Just pick one *)
         end
     end
     | _, _ ->
       Kernel.fatal ~current:true "invalid implicit conversion from %a to %a"
-          Cil.d_type t2 Cil.d_type t3
+          Cil_printer.pp_typ t2 Cil_printer.pp_typ t3
   in
   tresult
 
@@ -2362,7 +2391,7 @@ let logicConditionalConversion t1 t2 =
   match unrollType t1, unrollType t2 with
   | TPtr _ , TInt _ | TInt _, TPtr _ ->
     Kernel.fatal ~current:true "invalid implicit conversion from %a to %a"
-      Cil.d_type t2 Cil.d_type t1
+      Cil_printer.pp_typ t2 Cil_printer.pp_typ t1
   | _ -> conditionalConversion t1 t2
 
 (* Some utilitites for doing initializers *)
@@ -2385,7 +2414,7 @@ let rec setOneInit (this: preInit)
       let idx, (* Index in the current comp *)
           restoff (* Rest offset *) =
         match o with
-        | Index({enode = Const(CInt64(i,_,_))}, off) -> My_bigint.to_int i, off
+        | Index({enode = Const(CInt64(i,_,_))}, off) -> Integer.to_int i, off
         | Field (f, off) ->
             (* Find the index of the field *)
             let rec loop (idx: int) = function
@@ -2441,12 +2470,12 @@ let rec collectInitializer
           match leno with
             Some len -> begin
               match (constFold true len).enode with
-              | Const(CInt64(ni, _, _)) when My_bigint.ge ni My_bigint.zero ->
-                  (My_bigint.to_int ni), false
+              | Const(CInt64(ni, _, _)) when Integer.ge ni Integer.zero ->
+                  (Integer.to_int ni), false
               | _ ->
                 Kernel.fatal ~current:true
                   "Array length is not a constant expression %a"
-                  d_exp len
+                  Cil_printer.pp_exp len
             end
           | _ ->
               (* unsized array case, length comes from initializers *)
@@ -2696,7 +2725,7 @@ let integerArrayLength (leno: exp option) : int =
     with LenOfArray ->
       Kernel.fatal ~current:true
 	"Initializing non-constant-length array with length=%a"
-        d_exp len
+        Cil_printer.pp_exp len
 
 let anonCompFieldNameId = ref 0
 let anonCompFieldName = "__anonCompField"
@@ -2777,7 +2806,7 @@ let allow_return_collapse ~tlv ~tf =
     )
 
 
-let afterConversion (c: chunk) : chunk =
+let afterConversion ~ghost (c: chunk) : chunk =
   (* Now scan the statements and find Instr blocks *)
   (** We want to collapse sequences of the form "tmp = f(); v = tmp". This
       * will help significantly with the handling of calls to malloc, where it
@@ -2824,7 +2853,7 @@ let afterConversion (c: chunk) : chunk =
       end else None
   | _ -> None
   in
-  let block = c2block ~collapse_block:false c in
+  let block = c2block ~ghost ~collapse_block:false c in
   let sl =
     if Kernel.DoCollapseCallCast.get () then
       peepHole2 ~agressive:false collapseCallCast block.bstmts
@@ -2858,7 +2887,7 @@ let integral_cast ty t =
   raise
     (Failure
        (Pretty_utils.sfprintf "term %a has type %a, but %a is expected."
-          Cil.d_term t Cil.d_logic_type Linteger Cil.d_type ty))
+          Cil_printer.pp_term t Cil_printer.pp_logic_type Linteger Cil_printer.pp_typ ty))
 
 module C_logic_env =
 struct
@@ -2930,26 +2959,32 @@ let exitScope () =
   loop !this;
   C_logic_env.exit_scope ()
 
-let consLabel (l: string) (c: chunk) (loc: location)
+let consLabel ~ghost (l: string) (c: chunk) (loc: location)
     (in_original_program_text : bool) : chunk =
   (* Get the first statement and add the label to it *)
-  let labstmt, stmts' = getFirstInChunk ~loc c in
+  let labstmt, stmts' = getFirstInChunk ~ghost ~loc c in
   (* Add the label *)
   add_label l labstmt;
   labstmt.labels <- Label (l, loc, in_original_program_text) ::
     labstmt.labels;
   if c.stmts == stmts' then c else {c with stmts = stmts'}
 
-let consLabContinue (c: chunk) =
+let consLabContinue ~ghost (c: chunk) =
   match !continues with
   | [] -> Kernel.fatal ~current:true "labContinue not in a loop"
   | While lr :: _ ->
       begin
 	assert (!doTransformWhile);
-	if !lr = "" then c else consLabel !lr c (CurrentLoc.get ()) false
+	if !lr = "" then c else consLabel ~ghost !lr c (CurrentLoc.get ()) false
       end
   | NotWhile lr :: _ ->
-      if !lr = "" then c else consLabel !lr c (CurrentLoc.get ()) false
+      if !lr = "" then c else consLabel ~ghost !lr c (CurrentLoc.get ()) false
+
+(* Was a continue instruction used inside the current loop *)
+let continueUsed () =
+  match !continues with
+  | [] -> Kernel.fatal ~current:true "not in a loop"
+  | (While lr | NotWhile lr) :: _ -> !lr <> ""
 
 
 (****** TYPE SPECIFIERS *******)
@@ -2991,7 +3026,7 @@ let rec compute_from_root f = function
       (* We have a label, perhaps we can jump here *)
   | s :: rest when s.labels <> [] ->
       Kernel.debug ~level:4 "computeFromRoot call f from stmt %a"
-        Cil.d_loc (Stmt.loc s);
+        Cil_printer.pp_location (Stmt.loc s);
       f (s :: rest)
 
   | _ :: rest -> compute_from_root f rest
@@ -3010,7 +3045,7 @@ let instrFallsThrough (i : instr) = match i with
 
 let rec stmtFallsThrough (s: stmt) : bool =
   Kernel.debug ~level:4 "stmtFallsThrough stmt %a"
-    Cil.d_loc (Stmt.loc s);
+    Cil_printer.pp_location (Stmt.loc s);
   match s.skind with
       Instr(il) ->
         instrFallsThrough il
@@ -3057,7 +3092,7 @@ and blockFallsThrough b =
 (* will we leave this statement or block with a break command? *)
 and stmtCanBreak (s: stmt) : bool =
   Kernel.debug ~level:4 "stmtCanBreak stmt %a"
-    Cil.d_loc (Stmt.loc s);
+    Cil_printer.pp_location (Stmt.loc s);
   match s.skind with
       Instr _ | Return _ | Continue _ | Goto _ -> false
     | Break _ -> true
@@ -3076,7 +3111,7 @@ and blockCanBreak b =
       [] -> false
     | s::tl ->
         Kernel.debug ~level:4 "blockCanBreak from stmt %a"
-          Cil.d_loc (Stmt.loc s);
+          Cil_printer.pp_location (Stmt.loc s);
         stmtCanBreak s ||
           (if stmtFallsThrough s then aux tl
            else compute_from_root aux tl)
@@ -3087,21 +3122,21 @@ let chunkFallsThrough c =
   let stmts = List.rev_map get_stmt c.stmts in
   stmtListFallsThrough stmts
 
-let append_chunk_to_annot annot_chunk current_chunk =
+let append_chunk_to_annot ~ghost annot_chunk current_chunk =
   match current_chunk.stmts with
-    | [] -> annot_chunk @@ current_chunk
+    | [] -> annot_chunk @@ (current_chunk, ghost)
     (* don't forget locals of current_chunk *)
 
     (* if we have a single statement,
        we can avoid enclosing it into a block. *)
     | [ (_s,_,_,_,_) ] ->
 (*     Format.eprintf "Statement is: %a@." d_stmt _s;  *)
-      annot_chunk @@ current_chunk
+      annot_chunk @@ (current_chunk, ghost)
                          (* Make a block, and put labels of the first statement
                             on the block itself, so as to respect scoping rules
                             for \at in further annotations. *)
     | _ ->
-      let b = c2block current_chunk in
+      let b = c2block ~ghost current_chunk in
       (* The statement may contain some local variable
          declarations coming from userland. We have to shift
          them from the inner block, otherwise they will not
@@ -3111,10 +3146,11 @@ let append_chunk_to_annot annot_chunk current_chunk =
       b.blocals <- [];
       b.battrs <-
         addAttributes [Attr(frama_c_keep_block,[])] b.battrs;
-      let block = mkStmt (Block b) in
+      let block = mkStmt ~ghost (Block b) in
       let chunk = s2c block in
       let chunk = { chunk with cases = current_chunk.cases } in
-      annot_chunk @@ (List.fold_left local_var_chunk chunk (List.rev locals))
+      annot_chunk @@ (List.fold_left
+                        local_var_chunk chunk (List.rev locals), ghost)
 
 let ensures_init vi off ini =
   let cast = false in
@@ -3133,7 +3169,7 @@ let zero_enum ~loc e =
   with Not_found -> Cil.kinteger ~loc e.ekind 0
 
 (* memset to 0 an entire array. *)
-let set_to_zero vi off typ =
+let set_to_zero ~ghost vi off typ =
   let loc = vi.vdecl in
   let bzero =
     try
@@ -3152,7 +3188,7 @@ let set_to_zero vi off typ =
       (CastE (TInt(IULong,[]),
               Cil.new_exp ~loc (SizeOf typ)))
   in
-  Cil.mkStmt
+  Cil.mkStmt ~ghost
     (Instr
        (Call
           (None,Cil.evar ~loc bzero,
@@ -3162,7 +3198,7 @@ let set_to_zero vi off typ =
    propagate this initialization to the rest of the array.
    Array is located at vi.off, of length len, and cells are of type base_type.
 *)
-let rec zero_init vi off len base_typ =
+let rec zero_init ~ghost vi off len base_typ =
   let loc = vi.vdecl in
   let copy =
     try
@@ -3183,31 +3219,31 @@ let rec zero_init vi off len base_typ =
   in
   let len = Cil.kinteger ~loc IULong len in
   let off = Cil.addOffset (Index (Cil.integer ~loc 0, NoOffset)) off in
-  let zero_init = zero_init_cell vi off base_typ in
+  let zero_init = zero_init_cell ~ghost vi off base_typ in
   zero_init +++
-    (Cil.mkStmt
+    (Cil.mkStmt ~ghost
        (Instr
           (Call
              (None, Cil.evar ~loc copy, [zone; size; len], loc))),
      [],[], [(Var vi,off)])
 
-and zero_init_cell vi off typ =
+and zero_init_cell ~ghost vi off typ =
   let loc = vi.vdecl in
   match Cil.unrollType typ with
     | TVoid _ -> empty
     | TInt(ikind,_) ->
       let lv = (Var vi,off) in
       s2c
-        (Cil.mkStmt (Instr (Set (lv, (Cil.kinteger ~loc ikind 0),loc))))
+        (Cil.mkStmt ~ghost (Instr (Set (lv, (Cil.kinteger ~loc ikind 0),loc))))
 
     | TFloat (fkind,_) ->
       let lv = (Var vi,off) in
-      s2c (Cil.mkStmt (Instr (Set (lv, (Cil.kfloat ~loc fkind 0.),loc))))
+      s2c (Cil.mkStmt ~ghost (Instr (Set (lv, (Cil.kfloat ~loc fkind 0.),loc))))
 
     | TPtr _ ->
       let lv = (Var vi,off) in
       let exp = Cil.new_exp ~loc (CastE(typ,Cil.zero ~loc)) in
-      s2c (Cil.mkStmt (Instr (Set (lv, exp,loc))))
+      s2c (Cil.mkStmt ~ghost (Instr (Set (lv, exp,loc))))
 
     | TArray(_,None,_,_) ->
       Kernel.fatal ~source:(fst loc)
@@ -3216,12 +3252,12 @@ and zero_init_cell vi off typ =
     | TArray(typ,Some e,_,_) ->
       let len =
         match Cil.constFold true e with
-          | { enode = Const (CInt64 (i,_,_)) } -> My_bigint.to_int i
+          | { enode = Const (CInt64 (i,_,_)) } -> Integer.to_int i
           | _ ->
             Kernel.fatal ~source:(fst loc)
               "Trying to zero-initialize variable with incomplete type"
       in
-      zero_init vi off len typ
+      zero_init ~ghost vi off len typ
 
     | TFun _ -> Kernel.fatal "Trying to zero-initialize a function"
 
@@ -3231,7 +3267,7 @@ and zero_init_cell vi off typ =
       let treat_one_field acc fi =
         let off = Cil.addOffset (Field (fi,NoOffset)) off in
         acc @@
-          (zero_init_cell vi off fi.ftype)
+          (zero_init_cell ~ghost vi off fi.ftype, ghost)
       in
       if ci.cstruct then
         List.fold_left treat_one_field empty ci.cfields
@@ -3247,14 +3283,14 @@ and zero_init_cell vi off typ =
     | TEnum (ei,_) ->
       let lv = (Var vi,off) in
       let zero = zero_enum ~loc ei in
-      s2c (mkStmt (Instr (Set (lv,zero,loc))))
+      s2c (mkStmt ~ghost (Instr (Set (lv,zero,loc))))
     
     | TBuiltin_va_list _ ->
       Kernel.fatal "Found builtin varargs in zero-initialization"
 
 let get_implicit_indexes loc vi len known_idx =
   let split_itv i itvs =
-    let i = My_bigint.to_int i in
+    let i = Integer.to_int i in
     let rec aux processed remaining =
       match remaining with
         | [] ->
@@ -3313,7 +3349,7 @@ let ensures_is_zero_offset loc term typ =
         Logic_const.prel (Req, mk_term (), Logic_const.term ~loc Tnull (Ctype typ))
       | TArray (t,e,_,_) ->
         let name = "__i" ^ string_of_int nb_idx in
-        let vi = Cil_const.make_logic_var name Linteger in
+        let vi = Cil_const.make_logic_var_quant name Linteger in
         let idx = Logic_const.tvar ~loc vi in
         let max =
           match e with
@@ -3360,7 +3396,7 @@ let ensures_is_zero_offset loc term typ =
 *)
 let make_implicit_ensures vi off base_typ len known_idx =
   let loc = vi.vdecl in
-  let i = Cil_const.make_logic_var "__i" Linteger in
+  let i = Cil_const.make_logic_var_quant "__i" Linteger in
   let pre = get_implicit_indexes loc i len known_idx in
   let lv = Cil.cvar_to_lvar vi in
   let lo = Logic_utils.offset_to_term_offset ~cast:false off in
@@ -3557,7 +3593,7 @@ let rec doSpecList ghost (suggestedAnonName: string)
     (* Now the other type specifiers *)
     | [A.Tnamed n] ->
       if n = "__builtin_va_list" &&
-        Global_machdep.state.Global_machdep.gccHas__builtin_va_list
+        Cil.theMachine.theMachine.has__builtin_va_list
       then
         TBuiltin_va_list []
       else
@@ -3605,9 +3641,8 @@ let rec doSpecList ghost (suggestedAnonName: string)
       let a = extraAttrs @ (getTypeAttrs ()) in
       enum.eattr <- doAttributes ghost a;
       let res = TEnum (enum, []) in
-      let smallest = ref My_bigint.zero in
-      let largest = ref My_bigint.zero in
-
+      let smallest = ref Integer.zero in
+      let largest = ref Integer.zero in
 	(* Life is fun here. ANSI says: enum constants are ints,
 	   and there's an implementation-dependent underlying integer
 	   type for the enum, which must be capable of holding all the
@@ -3624,18 +3659,24 @@ let rec doSpecList ghost (suggestedAnonName: string)
 	   - otherwise EI = int if T is signed and unsigned int otherwise
 	   Note that these rules make the enum unsigned if possible *)
 	let updateEnum i : ikind =
-	  if My_bigint.lt i !smallest then
+	  if Integer.lt i !smallest then
 	    smallest := i;
-	  if My_bigint.gt i !largest then
+	  if Integer.gt i !largest then
 	    largest := i;
 	  if theMachine.msvcMode then
 	    IInt
-	  else
-	    (* This matches gcc's behaviour *)
-	    if fitsInInt IInt i then IInt
-	    else if fitsInInt IUInt i then IUInt
-	    else if fitsInInt ILongLong i then ILongLong
-	    else IULongLong
+	  else begin
+            match Kernel.Enums.get () with
+              (* gcc-short-enum will try to pack the enum _type_, not the enum
+                 constant... *)
+              | "" | "help" | "gcc-enums" | "gcc-short-enums" ->
+	          if fitsInInt IInt i then IInt
+	          else if fitsInInt IUInt i then IUInt
+	          else if fitsInInt ILongLong i then ILongLong
+	          else IULongLong
+              | "int" -> IInt
+              | s -> Kernel.fatal "Unknown enums representations '%s'" s
+          end
 	in
       (* as each name,value pair is determined, this is called *)
       let rec processName kname (i: exp) loc rest = begin
@@ -3669,7 +3710,7 @@ let rec doSpecList ghost (suggestedAnonName: string)
             | None ->
 	      Kernel.fatal ~current:true
                 "Constant initializer %a not an integer"
-                d_exp e'
+                Cil_printer.pp_exp e'
             | Some i ->
               let ik = updateEnum i in
 	      if theMachine.lowerConstants then
@@ -3685,23 +3726,27 @@ let rec doSpecList ghost (suggestedAnonName: string)
       enum.eitems <- List.map (fun (_, x) -> x) fields;
       (* Pick the enum's kind - see discussion above *)
 	if not theMachine.msvcMode then begin
-	  let unsigned = My_bigint.ge !smallest My_bigint.zero in
+	  let unsigned = Integer.ge !smallest Integer.zero in
 	  let smallKind = intKindForValue !smallest unsigned in
 	  let largeKind = intKindForValue !largest unsigned in
-	  let ekind =
+	  let real_kind =
 	    if (bytesSizeOfInt smallKind) > (bytesSizeOfInt largeKind) then
 	      smallKind
 	    else
 	      largeKind
 	  in
-	  enum.ekind <-
-	    if bytesSizeOfInt ekind < bytesSizeOfInt IInt then
-	      if hasAttribute "packed" enum.eattr then
-		ekind
-	      else
-		if unsigned then IUInt else IInt
-	    else
-	      ekind
+          let ekind =
+            match Kernel.Enums.get () with
+              | "" | "help" | "gcc-enums" ->
+                  if hasAttribute "packed" enum.eattr || 
+                    bytesSizeOfInt real_kind >= bytesSizeOfInt IInt
+                  then real_kind
+                  else if unsigned then IUInt else IInt
+              | "int" -> IInt
+              | "gcc-short-enums" -> real_kind
+              | s -> Kernel.fatal "Unknown enum representation '%s'" s
+          in
+	  enum.ekind <- ekind;
 	end;
       (* Record the enum name in the environment *)
       addLocalToEnv (kindPlusName "enum" n'') (EnvTyp res);
@@ -3729,7 +3774,7 @@ let rec doSpecList ghost (suggestedAnonName: string)
         | _ -> t
       in
       (*
-        ignore (E.log "typeof(%a) = %a\n" d_exp e' d_plaintype t');
+        ignore (E.log "typeof(%a) = %a\n" d_exp e' d_type t');
        *)
       t'
 
@@ -3907,7 +3952,7 @@ and doAttr ghost (a: A.attribute) : attribute list =
       | a ->
         Kernel.fatal ~current:true
 	  "Invalid form of attribute: %a"
-          d_attrparam a;
+          Cil_printer.pp_attrparam a;
     in
     if s = "__attribute__" then (* Just a wrapper for many attributes*)
       List.map (fun e -> arg2attr (attrOfExp true ~foldenum:false e)) el
@@ -4000,11 +4045,11 @@ and doType (ghost:bool) isFuncArg
           if a1f <> [] && not a1fadded then
             Kernel.error ~once:true ~current:true
 	      "Invalid position for (prefix) function type attributes:%a"
-              d_attrlist a1f;
+              Cil_printer.pp_attributes a1f;
           if a2f <> [] then
             Kernel.error ~once:true ~current:true
 	      "Invalid position for (post) function type attributes:%a"
-              d_attrlist a2f;
+              Cil_printer.pp_attributes a2f;
           restyp
       in
       (*        log "restyp' = %a@." d_type restyp';*)
@@ -4027,7 +4072,7 @@ and doType (ghost:bool) isFuncArg
           if af <> [] then
             Kernel.error ~once:true ~current:true
 	      "Invalid position for function type attributes:%a"
-              d_attrlist af;
+              Cil_printer.pp_attributes af;
           restyp
       in
       (* Now add the name attributes and return *)
@@ -4045,16 +4090,16 @@ and doType (ghost:bool) isFuncArg
           if not (isIntegralType (typeOf len')) then
             Kernel.error ~once:true ~current:true
 	      "Array length %a does not have an integral type."
-              d_exp len';
+              Cil_printer.pp_exp len';
           if not allowVarSizeArrays then begin
             (* Assert that len' is a constant *)
             let cst = constFold true len' in
             (match cst.enode with
             | Const(CInt64(i, _, _)) ->
-              if My_bigint.lt i My_bigint.zero then
+              if Integer.lt i Integer.zero then
                 Kernel.error ~once:true ~current:true 
 		  "Length of array is negative"
-             else if My_bigint.equal i My_bigint.zero then
+             else if Integer.equal i Integer.zero then
                 Kernel.error ~once:true ~source:(fst len'.eloc)
 		  "Length of array is zero. This extension is unsupported";
 
@@ -4066,11 +4111,11 @@ and doType (ghost:bool) isFuncArg
                 Kernel.warning ~current:true
 		  "Unable to do constant-folding on array length %a. \
  Some CIL operations on this array may fail."
-                  d_exp cst
+                  Cil_printer.pp_exp cst
               else
                 Kernel.error ~once:true ~current:true
 		  "Length of array is not a constant: %a"
-                  d_exp cst)
+                  Cil_printer.pp_exp cst)
           end;
           Some len'
       in
@@ -4149,7 +4194,7 @@ and doType (ghost:bool) isFuncArg
             with NotAnAttrParam _ -> begin
               Kernel.warning ~once:true ~current:true
 		"Cannot represent the length '%a'of array as an attribute"
-		Cil.d_exp l
+		Cil_printer.pp_exp l
 	      ;
               static (* Leave unchanged *)
             end
@@ -4229,7 +4274,7 @@ and doOnlyType ghost (specs: A.spec_elem list) (dt: A.decl_type) : typ =
     doType ghost false AttrType bt' (A.PARENTYPE(attrs, dt, [])) in
   if nattr <> [] then
     Kernel.error ~once:true ~current:true
-      "Name attributes in only_type: %a" d_attrlist nattr;
+      "Name attributes in only_type: %a" Cil_printer.pp_attributes nattr;
   tres
 
 
@@ -4269,9 +4314,9 @@ and makeCompType ghost (isstruct: bool)
       | TComp (ci',_,_) when not ci'.cdefined ->
 	Kernel.error ~once:true ~current:true "Type of field %s is an undefined struct" n
       | _ -> ());
-      let width =
+      let width, ftype =
         match widtho with
-	  None -> None
+	  None -> None, ftype
         | Some w -> begin
 	  (match unrollType ftype with
 	  | TInt (_, _) -> ()
@@ -4283,7 +4328,13 @@ and makeCompType ghost (isstruct: bool)
 	  | None ->
 	    Kernel.fatal ~current:true
 	      "bitfield width is not an integer constant"
-          | Some n -> Some n
+          | Some s as w ->
+              let ftype =
+		typeAddAttributes 
+		  [Attr (bitfield_attribute_name, [AInt (Integer.of_int s)])]
+		  ftype
+              in
+              w, ftype
 	end
       in
       (* If the field is unnamed and its type is a structure of union type
@@ -4389,7 +4440,8 @@ and getIntConstExp ghost (aexp) : exp =
   let loc = aexp.expr_loc in
   let _, c, e, _ = doExp (ghost_local_env ghost) true aexp (AExp None) in
   if not (isEmpty c) then
-    Kernel.error ~once:true ~current:true "Constant expression %a has effects" d_exp e;
+    Kernel.error ~once:true ~current:true "Constant expression %a has effects" 
+      Cil_printer.pp_exp e;
   match e.enode with
   (* first, filter for those Const exps that are integers *)
   | Const (CInt64 _ ) -> e
@@ -4398,7 +4450,8 @@ and getIntConstExp ghost (aexp) : exp =
 
   (* other Const expressions are not ok *)
   | Const _ ->
-    Kernel.fatal ~current:true "Expected integer constant and got %a" d_exp e
+    Kernel.fatal ~current:true "Expected integer constant and got %a" 
+      Cil_printer.pp_exp e
 
   (* now, anything else that 'doExp true' returned is ok (provided
      that it didn't yield side effects); this includes, in particular,
@@ -4416,7 +4469,7 @@ and isIntegerConstant ghost (aexp) : int option =
   match doExp (ghost_local_env ghost) true aexp (AExp None) with
     (_, c, e, _) when isEmpty c -> begin
       match isInteger (Cil.constFold true e) with
-        Some i64 -> Some (My_bigint.to_int i64)
+        Some i64 -> Some (Integer.to_int i64)
       | _ -> None
     end
   | _ -> None
@@ -4434,6 +4487,7 @@ and doExp local_env
     (e: A.expression)
     (what: expAction)
     =
+  let ghost = local_env.is_ghost in
   let loc = e.expr_loc in
   (* will be reset at the end of the compilation of current expression. *)
   let oldLoc = CurrentLoc.get() in
@@ -4441,7 +4495,7 @@ and doExp local_env
   let checkVoidLval e t =
     if (match e.enode with Lval _ -> true | _ -> false) && isVoidType t then
       Kernel.fatal ~current:true
-        "lvalue of type void: %a@\n" d_plainexp e
+        "lvalue of type void: %a@\n" Cil_printer.pp_exp e
   in
   (* A subexpression of array type is automatically turned into StartOf(e).
    * Similarly an expression of function type is turned into AddrOf. So
@@ -4456,7 +4510,7 @@ and doExp local_env
     | _, (TArray _ | TFun _) ->
       Kernel.fatal ~current:true
 	"Array or function expression is not lval: %a@\n"
-        d_plainexp e
+        Cil_printer.pp_exp e
     | _ -> e, t
   in
   (* Before we return we call finishExp *)
@@ -4475,7 +4529,7 @@ and doExp local_env
       checkVoidLval e' t';
       (*
         ignore (E.log "finishExp: e'=%a, t'=%a\n"
-        d_exp e' d_type t');
+        Cil_printer.pp_exp e' d_type t');
        *)
       (reads, se, e', t')
 
@@ -4489,13 +4543,12 @@ and doExp local_env
         let (e', t') = processArrayFun e t in
         let (t'', e'') = castTo t' lvt e' in
         checkVoidLval e'' t'';
-        (*Kernel.debug "finishExp: e = %a\n  e'' = %a\n" d_exp e d_exp e'';*)
+        (*Kernel.debug "finishExp: e = %a\n  e'' = %a\n" Cil_printer.pp_exp e Cil_printer.pp_exp e'';*)
         let writes = if is_real_write then [lv] else [] in
         ([], (* the reads are incorporated in the chunk. *)
-         ((unspecified_chunk empty) @@ (remove_reads lv se)) 
+         ((unspecified_chunk empty) @@ (remove_reads lv se, ghost)) 
          +++
-           (mkStmtOneInstr ~ghost:local_env.is_ghost
-	      (Set(lv, e'', CurrentLoc.get ())),
+           (mkStmtOneInstr ~ghost (Set(lv, e'', CurrentLoc.get ())),
             writes,writes,
             List.filter (fun x -> not (Cil.compareLval x lv)) r @ reads),
          e'', t'')
@@ -4534,7 +4587,7 @@ and doExp local_env
 	  | EnvEnum item, _ ->
 	    let typ = Cil.typeOf item.eival in
             Kernel.debug "Looking for %s got enum %s : %a of type %a"
-              n item.einame d_exp item.eival d_type typ;
+              n item.einame Cil_printer.pp_exp item.eival Cil_printer.pp_typ typ;
 	    if Cil.theMachine.Cil.lowerConstants then
 	      finishExp [] (unspecified_chunk empty) item.eival typ
 	    else
@@ -4560,7 +4613,7 @@ functions"
 	  doExp local_env false e1 (AExp None) in
 	let (r2,se2, e2', t2) =
 	  doExp local_env false e2 (AExp None) in
-	let se = se1 @@ se2 in
+	let se = se1 @@ (se2, ghost) in
 	let (e1'', t1, e2'', tresult) =
 	  (* Either e1 or e2 can be the pointer *)
 	  match unrollType t1, unrollType t2 with
@@ -4569,7 +4622,7 @@ functions"
 	  | _ ->
 	    Kernel.fatal ~current:true
 	      "Expecting a pointer type in index:@\n t1=%a@\nt2=%a"
-	      d_plaintype t1 d_plaintype t2
+	      Cil_printer.pp_typ t1 Cil_printer.pp_typ t2
 	in
 	(* We have to distinguish the construction based on the type of e1'' *)
 	let res =
@@ -4600,7 +4653,7 @@ functions"
 	  | _ ->
 	    Kernel.fatal ~current:true
 	      "Expecting a pointer type in *. Got %a."
-	      d_plaintype t
+	      Cil_printer.pp_typ t
 	in
 	let res = mkMem e' NoOffset in
 	let reads =
@@ -4658,7 +4711,7 @@ functions"
 	  | x ->
 	    Kernel.fatal ~current:true
 	      "expecting a struct with field %s. Found %a. t1 is %a"
-	      str d_type x d_type t'
+	      str Cil_printer.pp_typ x Cil_printer.pp_typ t'
 	in
 	let lv' = mkMem e' field_offset in
 	let field_type = typeOf (dummy_exp (Lval lv')) in
@@ -4723,7 +4776,7 @@ functions"
 		      * I'm missing some architecture dependent behavior. *)
 	  let value = reduce_multichar theMachine.wcharType char_list in
 	  let result = kinteger64 ~loc theMachine.wcharKind
-            (My_bigint.of_int64 value)
+            (Integer.of_int64 value)
           in
 	  finishExp [] (unspecified_chunk empty) result (typeOf result)
 
@@ -4742,40 +4795,34 @@ functions"
 	      str, FDouble
 	  in
 	  try
-	    let convert =
-	      match kind with
-		FFloat ->
-		  Floating_point.single_precision_of_string
-	      | FDouble | FLongDouble ->
-		  Floating_point.double_precision_of_string
-	    in
 	    Floating_point.set_round_nearest_even ();
-	    let converted =
-	      match convert baseint with
-	      | Floating_point.Inexact f
-		  when Kernel.WarnDecimalFloat.get() <> "none" ->
-		  let s =
-		    if Kernel.WarnDecimalFloat.get() = "once"
-		    then begin
-			Kernel.WarnDecimalFloat.set "none";
-			". See documentation for option " ^
-			  Kernel.WarnDecimalFloat.name
-		      end
-		    else (* all *) ""
-		  in
-		  Kernel.warning ~current:true
-		    "Floating-point constant %s is not represented exactly. Will use %a%s"
-		    str
-		    (Floating_point.pretty_normal ~use_hex:true) f
-		    s;
-		  f
-	      |	Floating_point.Exact f | Floating_point.Inexact f ->
-		  f
+	    let basefloat = 
+	      match kind with
+		| FFloat -> 
+		    Floating_point.single_precision_of_string baseint
+		| FDouble | FLongDouble ->
+		    Floating_point.double_precision_of_string baseint
 	    in
-	    finishExp [] (unspecified_chunk empty)
-	      (new_exp ~loc
-		 (Const(CReal(converted, kind, Some str))))
-	      (TFloat(kind,[]))
+	    let open Floating_point in
+	    begin
+	      if basefloat.f_lower <> basefloat.f_upper 
+		&& Kernel.WarnDecimalFloat.get() <> "none"
+	      then
+		let msg =
+		  if Kernel.WarnDecimalFloat.get() = "once"
+		  then begin
+		    Kernel.WarnDecimalFloat.set "none";
+		    ". See documentation for option " ^ Kernel.WarnDecimalFloat.name
+		  end
+		  else (* all *) ""
+		in
+		Kernel.warning ~current:true
+		  "Floating-point constant %s is not represented exactly. Will use %a%s"
+		  str (Floating_point.pretty_normal ~use_hex:true) basefloat.f_nearest
+		  msg ;
+	    end ;
+	    let node = Const(CReal(basefloat.f_nearest, kind, Some str)) in
+	    finishExp [] (unspecified_chunk empty) (new_exp ~loc node) (TFloat(kind,[]))
 	  with Failure s -> begin
 	    Kernel.error ~once:true ~current:true "float_of_string %s (%s)\n" str s;
 	    let res = new_exp ~loc (Const(CStr "booo CONS_FLOAT")) in
@@ -4808,7 +4855,7 @@ functions"
 	  doExp local_env false e AExpLeaveArrayFun in
         (*
           ignore (E.log "sizeof: %a e'=%a, t=%a\n"
-          d_loc !currentLoc d_plainexp e' d_type t);
+          Cil_printer.pp_location !currentLoc Cil_printer.pp_exp e' Cil_printer.pp_typ t);
         *)
         (* !!!! The book says that the expression is not evaluated, so we
          * drop the potential side-effects *)
@@ -4924,7 +4971,7 @@ functions"
                * type of the expression e2, so we do not need a cast. We have
                * to worry about this because otherwise, we might need to cast
                * between arrays or structures. *)
-              (r, se1 @@ se, e2, t2), false
+              (r, se1 @@ (se, ghost), e2, t2), false
             end
         in
         let (t'', e'') =
@@ -5041,8 +5088,8 @@ arguments"
         | A.CAST (_, A.COMPOUND_INIT _) ->
           begin
             let (r, se, e', t) = doExp local_env false e (AExp None) in
-            (* ignore (E.log "ADDROF on %a : %a\n" d_plainexp e'
-               d_plaintype t); *)
+            (* ignore (E.log "ADDROF on %a : %a\n" Cil_printer.pp_exp e'
+               Cil_printer.pp_typ t); *)
             match e'.enode with
               (Lval x | CastE(_, {enode = Lval x})) ->
                 let reads =
@@ -5080,7 +5127,7 @@ arguments"
 
             | _ ->
 	      Kernel.fatal ~current:true "Expected lval for ADDROF. Got %a"
-                d_plainexp e'
+                Cil_printer.pp_exp e'
           end
         | _ -> Kernel.fatal ~current:true "Unexpected operand for addrof"
       end
@@ -5188,7 +5235,7 @@ arguments"
               if what <> ADrop && what <> AType then
                 let descr =
                   Pretty_utils.sfprintf "%a%s"
-                    dd_exp  e'
+                    Cil_descriptive_printer.pp_exp  e'
                     (if uop = A.POSINCR then "++" else "--") in
                 let tmp = newTempVar (Some descr) true t in
                 ([var tmp],
@@ -5263,7 +5310,7 @@ arguments"
             | _ ->
 	      Kernel.fatal ~current:true
 		"Expected lval for assignment. Got %a"
-		d_plainexp e1'
+		Cil_printer.pp_exp e1'
           in
           let se1' = remove_reads lv se1 in
           let r1' = List.filter (fun x -> not (Lval.equal x lv)) r1 in
@@ -5289,7 +5336,10 @@ arguments"
           in
             let r1, tmplv, se3 =
               if needsTemp then
-                let descr = Some (Pretty_utils.sfprintf "%a" dd_lval lv) in
+                let descr = 
+		  Some (Pretty_utils.sfprintf "%a" 
+			  Cil_descriptive_printer.pp_lval lv)
+		in
                 let tmp = newTempVar descr true lvt in
                 let chunk =
                   i2c
@@ -5303,6 +5353,7 @@ arguments"
             let (r2,se2, _, _) =
               doExp local_env false e2 (ASet(not needsTemp,tmplv, r1, lvt))
             in
+            let (@@) s1 s2 = s1 @@ (s2, ghost) in
             (* Format.eprintf "chunk for assigns is %a@." d_chunk se2; *)
             (* r1 is read in the assignment part itself *)
             finishExp r2  ((empty @@ ((se0 @@ se1') @@ se2)) @@ se3)
@@ -5320,6 +5371,7 @@ arguments"
         let (r2,se2, e2', t2) =
           doExp local_env asconst e2 (AExp None) in
         let tresult, result = doBinOp loc bop' e1' t1 e2' t2 in
+        let (@@) s1 s2 = s1 @@ (s2, ghost) in
         finishExp (r1 @ r2) ((se0 @@ se1) @@ se2) result tresult
 
     (* assignment operators *)
@@ -5388,6 +5440,7 @@ arguments"
              * different than t1 if lv1 was a Cast *)
             let _, result' = castTo tresult (typeOfLval lv1) result in
             (* The type of the result is the type of the left-hand side  *)
+            let (@@) s1 s2 = s1 @@ (s2, ghost) in
             finishExp []
               (se0 @@
                  (empty @@ (se1' @@ se2) +++
@@ -5425,12 +5478,12 @@ arguments"
               newTempVar (Some "<boolean expression>") true intType
             in
             let condChunk =
-              compileCondExp false ce
+              compileCondExp ~ghost false ce
                 (empty +++
-                   (mkStmtOneInstr ~ghost:local_env.is_ghost
+                   (mkStmtOneInstr ~ghost
                       (Set(var tmp, integer ~loc 1,loc)),[],[],[]))
                 (empty +++
-                   (mkStmtOneInstr ~ghost:local_env.is_ghost
+                   (mkStmtOneInstr ~ghost
                       (Set(var tmp, integer ~loc 0,loc)),[],[],[]))
             in
             finishExp []
@@ -5502,12 +5555,12 @@ arguments"
               | x ->
                 Kernel.fatal ~current:true
 		  "Unexpected type of the called function %a: %a"
-                  d_exp f' d_type x
+                  Cil_printer.pp_exp f' Cil_printer.pp_typ x
             end
           | x ->
             Kernel.fatal ~current:true
 	      "Unexpected type of the called function %a: %a"
-              d_exp f' d_type x
+              Cil_printer.pp_exp f' Cil_printer.pp_typ x
         in
         let argTypesList = argsToList argTypes in
         (* Drop certain qualifiers from the result type *)
@@ -5532,7 +5585,10 @@ arguments"
 	    (* create a temporary *)
 	    let tmp =
               newTempVar
-                (Some (Pretty_utils.sfprintf "%a" dd_exp e)) true t
+                (Some (Pretty_utils.sfprintf "%a"
+			 Cil_descriptive_printer.pp_exp e)) 
+		true
+		t
             in
             let c = local_var_chunk c tmp in
 	    (* create an instruction to give the e to the temporary *)
@@ -5555,7 +5611,7 @@ arguments"
           | _, [] ->
             if not isSpecialBuiltin then
               Kernel.error ~once:true ~current:true
-		"Too few arguments in call to %a." d_exp f' ;
+		"Too few arguments in call to %a." Cil_printer.pp_exp f' ;
 	    (init_chunk, [])
 
           | ((_, at, _) :: atypes, a :: args) ->
@@ -5567,13 +5623,13 @@ arguments"
               let (sa, a', att) = force_right_to_left_evaluation
                 (doExp local_env false a (AExp None)) in
               let (_, a'') = castTo att at a' in
-              (ss @@ sa, a'' :: args')
+              (ss @@ (sa, ghost), a'' :: args')
 
           | ([], args) -> (* No more types *)
               if not isvar && argTypes != None && not isSpecialBuiltin then
                 (* Do not give a warning for functions without a prototype*)
                 Kernel.error ~once:true ~current:true
-		  "Too many arguments in call to %a" d_exp f';
+		  "Too many arguments in call to %a" Cil_printer.pp_exp f';
               let rec loop = function
                   [] -> (init_chunk, [])
                 | a :: args ->
@@ -5582,7 +5638,7 @@ arguments"
                       force_right_to_left_evaluation
                         (doExp local_env false a (AExp None))
                     in
-                    (ss @@ sa, a' :: args')
+                    (ss @@ (sa, ghost), a' :: args')
               in
               let (chunk,args as res) = loop args in
               (match argTypes, f''.enode with
@@ -5618,7 +5674,7 @@ arguments"
            The call must thus be in the unspecified chunk
         *)
         let sargs = if isEmpty sargs then empty else sargs in
-        let prechunk: chunk ref = ref ((s0 @@ sf) @@ sargs) in
+        let prechunk = ref ((s0 @@ (sf, ghost)) @@ (sargs, ghost)) in
         (* Do we actually have a call, or an expression? *)
         let piscall: bool ref = ref true in
 
@@ -5760,7 +5816,7 @@ arguments"
               | Some _ -> []
             in
             prechunk :=
-              (empty @@ !prechunk) +++
+              (empty @@ (!prechunk, ghost)) +++
                 (mkStmtOneInstr ~ghost:local_env.is_ghost
                    (Call(calldest,!pf,!pargs,loc)),
                  [],my_write, rf);
@@ -5796,8 +5852,10 @@ arguments"
               in
               let descr =
                 Pretty_utils.sfprintf "%a(%a)"
-                  dd_exp !pf
-                  (Pretty_utils.pp_list ~sep:", " dd_exp) !pargs
+                  Cil_descriptive_printer.pp_exp !pf
+                  (Pretty_utils.pp_list ~sep:", " 
+		     Cil_descriptive_printer.pp_exp) 
+		  !pargs
               in
               let tmp = newTempVar (Some descr) false restype'' in
               locals:=tmp::!locals;
@@ -5821,16 +5879,17 @@ arguments"
       [e] ->
         let (r, se, e', t') = doExp local_env false e what
         in (* Pass on the action *)
-        (r, sofar @@ se, e', t')
+        (r, sofar @@ (se, ghost), e', t')
         | e :: rest ->
           let (_, se, _, _) = doExp local_env false e ADrop in
-          loop (sofar @@ se) rest
+          loop (sofar @@ (se, ghost)) rest
         | [] -> Kernel.fatal ~current:true "empty COMMA expression"
       in
       loop empty el
 
     | A.QUESTION (e1, e2, e3) -> begin
         (* Compile the conditional expression *)
+        let ghost = local_env.is_ghost in
         let ce1 = doCondExp local_env asconst e1 in
         let what' = match what with
           | ADrop -> ADrop
@@ -5861,18 +5920,18 @@ arguments"
           ConditionalSideEffectHook.apply (e,e3);
         match ce1 with
           CEExp (se1, e1') when isConstFalse e1' && canDrop se2 ->
-            finishExp r3 ((empty @@ se1) @@ se3)
+            finishExp r3 ((empty @@ (se1, ghost)) @@ (se3, ghost))
               (snd (castTo t3 tresult e3')) tresult
         | CEExp (se1, e1') when isConstTrue e1' && canDrop se3 ->
             begin
               match e2'o with
                 None -> (* use e1' *)
                   finishExp r2
-                    ((empty @@ se1) @@ se2)
+                    ((empty @@ (se1, ghost)) @@ (se2, ghost))
                     (snd (castTo t2 tresult e1')) tresult
               | Some e2' ->
                   finishExp r2
-                    ((empty @@ se1) @@ se2)
+                    ((empty @@ (se1, ghost)) @@ (se2, ghost))
                     (snd (castTo t2 tresult e2')) tresult
             end
         | _ when what = ADrop ->
@@ -5889,40 +5948,52 @@ arguments"
               in
               let se1 = local_var_chunk se1 tmp in
               let dangerous =
-                if is_dangerous e3' then keepPureExpr e3' loc else skipChunk
+                if is_dangerous e3' then
+                  keepPureExpr ~ghost e3' loc
+                else skipChunk
               in
               finishExp (r1@r3)
-                ((empty @@ se1) @@
-                    ifChunk tmp_lval loc skipChunk (se3 @@ dangerous))
+                ((empty @@ (se1, ghost)) @@
+                    (ifChunk ~ghost tmp_lval loc skipChunk
+                       (se3 @@ (dangerous, ghost)), ghost))
                 res
                 Cil.voidType
             | None ->
               (* we can drop e3, just keep e1 in case it is dangerous *)
               let (r1,se1,e1,_) = doExp local_env asconst e1 ADrop in
               let dangerous =
-                if is_dangerous e1 then keepPureExpr e1 loc else skipChunk
+                if is_dangerous e1 then
+                  keepPureExpr ~ghost e1 loc
+                else skipChunk
               in
-              finishExp (r1@r3) (se1 @@ dangerous) res Cil.voidType
+              finishExp (r1@r3) (se1 @@ (dangerous, ghost)) res Cil.voidType
             | Some e2'
                 when is_dangerous e2' || is_dangerous e3'
                   || not (isEmpty se2) || not (isEmpty se3) ->
               (* we have to keep e1 in order to know which dangerous expression
                  is to be evaluated *)
               let se2 =
-                if is_dangerous e2' then se2 @@ keepPureExpr e2' loc else se2
+                if is_dangerous e2' then
+                  se2 @@ 
+                    (keepPureExpr ~ghost e2' loc, ghost)
+                else se2
               in
               let se3 =
-                if is_dangerous e3' then se3 @@ keepPureExpr e3' loc else se3
+                if is_dangerous e3' then
+                  se3 @@ (keepPureExpr ~ghost e3' loc, ghost)
+                else se3
               in
-              let cond = compileCondExp false ce1 se2 se3 in
+              let cond = compileCondExp ~ghost false ce1 se2 se3 in
               finishExp (r2@r3) cond res Cil.voidType
             | Some _ -> (* we just keep e1 in case it is dangerous. everything
                            else can be dropped *)
               let (r1,se1,e1,_) = doExp local_env asconst e1 ADrop in
               let dangerous =
-                if is_dangerous e1 then keepPureExpr e1 loc else skipChunk
+                if is_dangerous e1 then
+                  keepPureExpr ~ghost e1 loc
+                else skipChunk
               in
-              finishExp (r1@r2@r3) (se1 @@ dangerous) res Cil.voidType)
+              finishExp (r1@r2@r3) (se1 @@ (dangerous, ghost)) res Cil.voidType)
         | _ -> (* Use a conditional *) begin
             match e2'o with
             | None -> (* has form "e1 ? : e3"  *)
@@ -5939,8 +6010,8 @@ arguments"
                 in
                 finishExp
                   (r1@r3)
-                  ((empty @@ se1) @@
-                     ifChunk tmp_lval loc skipChunk se3)
+                  ((empty @@ (se1, ghost)) @@
+                     (ifChunk ~ghost tmp_lval loc skipChunk se3, ghost))
                   tmp_lval
                   tresult
             | Some e2' ->
@@ -5960,9 +6031,11 @@ arguments"
                   finishExp ~newWhat:(ASet(is_real,lv, r, lvt))
                     r3 se3 e3' t3
                 in
-                let cond = compileCondExp false ce1 se2 se3 in
+                let cond = compileCondExp ~ghost false ce1 se2 se3 in
                 finishExp
-                  (r2@r3) (scope_chunk @@ cond) (new_exp ~loc (Lval lv)) tresult
+                  (r2@r3)
+                  (scope_chunk @@ (cond, ghost))
+                  (new_exp ~loc (Lval lv)) tresult
           end
       end
 
@@ -6052,7 +6125,8 @@ arguments"
       Kernel.error ~once:true ~current:true "ignoring expression";
       ([],
        i2c (mkStmtOneInstr ~ghost:local_env.is_ghost
-              (dInstr (Pretty_utils.sfprintf "booo_exp(%t)" d_thisloc) loc),
+              (dInstr
+		 (Pretty_utils.sfprintf "booo_exp(%t)" Cil.pp_thisloc) loc),
             [],[],[]),
        integer ~loc 0, intType)
     end
@@ -6090,7 +6164,8 @@ and doBinOp loc (bop: binop) (e1: exp) (t1: typ) (e2: exp) (t2: typ) =
         optConstFoldBinOp loc false bop
           (makeCastT e1 t1 tres) (makeCastT e2 t2 tres) tres
     | _ ->
-      Kernel.fatal ~current:true "%a operator on a non-integer type" d_binop bop
+      Kernel.fatal ~current:true "%a operator on a non-integer type" 
+	Cil_printer.pp_binop bop
   in
   let pointerComparison e1 t1 e2 t2 =
     (* Cast both sides to an integer *)
@@ -6175,7 +6250,7 @@ and doBinOp loc (bop: binop) (e1: exp) (t1: typ) (e2: exp) (t2: typ) =
   | _ ->
     Kernel.fatal ~current:true
       "doBinOp: %a"
-      d_plainexp (dummy_exp(BinOp(bop,e1,e2,intType)))
+      Cil_printer.pp_exp (dummy_exp(BinOp(bop,e1,e2,intType)))
 
 (* Constant fold a conditional. This is because we want to avoid having
  * conditionals in the initializers. So, we try very hard to avoid creating
@@ -6188,10 +6263,11 @@ and doCondExp local_env (asconst: bool)
              the conditional side effects hook (see above)
              and should not appear (i.e. be None) in toplevel calls. *)
     (e: A.expression) : condExpRes =
+  let ghost = local_env.is_ghost in
   let rec addChunkBeforeCE (c0: chunk) ce =
     let c0 = remove_effects c0 in
     match ce with
-      CEExp (c, e) -> CEExp ((empty @@ c0) @@ c, e)
+      CEExp (c, e) -> CEExp ((empty @@ (c0, ghost)) @@ (c, ghost), e)
     | CEAnd (ce1, ce2) -> CEAnd (addChunkBeforeCE c0 ce1, ce2)
     | CEOr (ce1, ce2) -> CEOr (addChunkBeforeCE c0 ce1, ce2)
     | CENot ce1 -> CENot (addChunkBeforeCE c0 ce1)
@@ -6285,7 +6361,7 @@ and doCondExp local_env (asconst: bool)
 
  (* If cabscond is true, then CIL-atomic expressions must be bound with Cabscond. *)
 
-and compileCondExp cabscond (ce: condExpRes) (st: chunk) (sf: chunk) : chunk =
+and compileCondExp ~ghost cabscond ce st sf =
   match ce with
 
   | CEAnd (ce1, ce2) ->
@@ -6295,9 +6371,9 @@ and compileCondExp cabscond (ce: condExpRes) (st: chunk) (sf: chunk) : chunk =
         try (true, sf, duplicateChunk sf)
         with Failure _ ->
           let lab = newLabelName "_LAND" in
-          (false, gotoChunk lab loc, consLabel lab sf loc false)
+          (false, gotoChunk ~ghost lab loc, consLabel ~ghost lab sf loc false)
       in
-      let st' = compileCondExp cabscond ce2 st sf1 in
+      let st' = compileCondExp ~ghost cabscond ce2 st sf1 in
       if not duplicable && !doAlternateConditional then
         let st_fall_through = chunkFallsThrough st' in
         (* if st does not fall through, we do not need to add a goto
@@ -6305,15 +6381,20 @@ and compileCondExp cabscond (ce: condExpRes) (st: chunk) (sf: chunk) : chunk =
            afterwards. *)
 	let sf' = duplicateChunk sf1 in
 	let lab = newLabelName "_LAND" in
-	let gotostmt = if st_fall_through then gotoChunk lab loc else skipChunk
+	let gotostmt =
+          if st_fall_through then gotoChunk ~ghost lab loc else skipChunk
         in
 	let labstmt =
-          if st_fall_through then consLabel lab empty loc false else skipChunk
+          if st_fall_through then
+            consLabel ~ghost lab empty loc false
+          else skipChunk
         in
-	(compileCondExp cabscond ce1 st' sf') @@ gotostmt @@ sf2 @@ labstmt
+        let (@@) s1 s2 = s1 @@ (s2, ghost) in
+	(compileCondExp ~ghost cabscond ce1 st' sf')
+        @@ gotostmt @@ sf2 @@ labstmt
       else
 	let sf' = sf2 in
-	compileCondExp cabscond ce1 st' sf'
+	compileCondExp ~ghost cabscond ce1 st' sf'
 
   | CEOr (ce1, ce2) ->
       let loc = CurrentLoc.get () in
@@ -6322,40 +6403,45 @@ and compileCondExp cabscond (ce: condExpRes) (st: chunk) (sf: chunk) : chunk =
         try (true, st, duplicateChunk st)
         with Failure _ ->
           let lab = newLabelName "_LOR" in
-          (false, gotoChunk lab loc, consLabel lab st loc false)
+          (false, gotoChunk ~ghost lab loc, consLabel ~ghost lab st loc false)
       in
       if not duplicable && !doAlternateConditional then
 	let st' = duplicateChunk st1 in
-	let sf' = compileCondExp cabscond ce2 st1 sf in
+	let sf' = compileCondExp ~ghost cabscond ce2 st1 sf in
         let sf_fall_through = chunkFallsThrough sf' in
 	let lab = newLabelName "_LOR" in
-	let gotostmt = if sf_fall_through then gotoChunk lab loc else skipChunk
+	let gotostmt =
+          if sf_fall_through then
+            gotoChunk ~ghost lab loc
+          else skipChunk
         in
 	let labstmt =
           if sf_fall_through then
-            consLabel lab empty (CurrentLoc.get ()) false
+            consLabel ~ghost lab empty (CurrentLoc.get ()) false
           else skipChunk
         in
-	(compileCondExp cabscond ce1 st' sf')  @@ gotostmt @@ st2 @@ labstmt
+        let (@@) s1 s2 = s1 @@ (s2, ghost) in
+	(compileCondExp ~ghost cabscond ce1 st' sf')
+        @@ gotostmt @@ st2 @@ labstmt
       else
 	let st' = st1 in
-	let sf' = compileCondExp cabscond ce2 st2 sf in
+	let sf' = compileCondExp ~ghost cabscond ce2 st2 sf in
         (*Format.eprintf
           "result:@\nchunk then:@\n  @[%a@]@\nchunk else:  @[%a@]@."
           d_chunk st d_chunk sf;*)
-	compileCondExp cabscond ce1 st' sf'
+	compileCondExp ~ghost cabscond ce1 st' sf'
 
-  | CENot ce1 -> compileCondExp cabscond ce1 sf st
+  | CENot ce1 -> compileCondExp ~ghost cabscond ce1 sf st
 
   | CEExp (se, e) -> begin
       match e.enode with
       | Const(CInt64(i,_,_))
-          when (not (My_bigint.equal i My_bigint.zero)) && canDrop sf ->
-        se @@ st
+          when (not (Integer.equal i Integer.zero)) && canDrop sf ->
+        se @@ (st, ghost)
       | Const(CInt64(z,_,_))
-          when (My_bigint.equal z My_bigint.zero) && canDrop st ->
-        se @@ sf
-      | _ -> (empty @@ se) @@ ifChunk e e.eloc st sf
+          when (Integer.equal z Integer.zero) && canDrop st ->
+        se @@ (sf, ghost)
+      | _ -> (empty @@ (se, ghost)) @@ (ifChunk ~ghost e e.eloc st sf, ghost)
     end
 
 
@@ -6374,7 +6460,7 @@ and doCondition ?info local_env (isconst: bool)
   else
     let ce = doCondExp local_env isconst e in
     if cabscond then Cabscond.pop_condition () ;
-    let chunk = compileCondExp cabscond ce st sf in
+    let chunk = compileCondExp ~ghost:local_env.is_ghost cabscond ce st sf in
   chunk
 
 
@@ -6388,7 +6474,7 @@ and doFullExp local_env const e what =
   let (r, se,e,t) = doExp local_env const e what in
   let se' = add_reads e.eloc r se in
   (* there is a sequence point after a full exp *)
-  empty @@ se',e,t
+  empty @@ (se', local_env.is_ghost),e,t
 
 and doInitializer local_env (vi: varinfo) (inite: A.init_expression)
     (* Return the accumulated chunk, the initializer and the new type (might be
@@ -6398,10 +6484,11 @@ and doInitializer local_env (vi: varinfo) (inite: A.init_expression)
   (* Setup the pre-initializer *)
   let topPreInit = ref NoInitPre in
   if debugInit then
-    Kernel.debug "@\nStarting a new initializer for %s : %a@\n" vi.vname d_type vi.vtype;
+    Kernel.debug "@\nStarting a new initializer for %s : %a@\n" vi.vname Cil_printer.pp_typ vi.vtype;
   let topSetupInit (o: offset) (e: exp) =
     if debugInit then
-      Kernel.debug " set %a := %a@\n"  d_lval (Var vi, o) d_exp e;
+      Kernel.debug " set %a := %a@\n"  
+	Cil_printer.pp_lval (Var vi, o) Cil_printer.pp_exp e;
     let newinit = setOneInit !topPreInit o e in
     if newinit != !topPreInit then topPreInit := newinit
   in
@@ -6421,11 +6508,12 @@ and doInitializer local_env (vi: varinfo) (inite: A.init_expression)
   let (init, typ'') = collectInitializer !topPreInit typ' in
   if debugInit then
     Kernel.debug "Finished the initializer for %s@\n  init=%a@\n  typ=%a@\n  acc=%a@\n"
-      vi.vname d_init init d_type typ' d_chunk acc;
-  empty @@ acc, init, typ''
+      vi.vname Cil_printer.pp_init init Cil_printer.pp_typ typ' d_chunk acc;
+  empty @@ (acc, local_env.is_ghost), init, typ''
 
 and blockInitializer local_env vi inite =
-  let c,init,ty = doInitializer local_env vi inite in c2block c, init, ty
+  let ghost = local_env.is_ghost in
+  let c,init,ty = doInitializer local_env vi inite in c2block ~ghost c, init, ty
 
 (* [VP-2012-03-01] As a matter of fact, this function is not tail-rec, but it seems
    that it's not an issue in practice. *)
@@ -6447,7 +6535,7 @@ and doInit
     (* Return the resulting chunk along with some unused initializers *)
     : chunk * (A.initwhat * A.init_expression) list =
 
-  let whoami fmt = d_lval fmt (Var so.host, so.soOff) in
+  let whoami fmt = Cil_printer.pp_lval fmt (Var so.host, so.soOff) in
 
   let initl1 =
     match initl with
@@ -6487,7 +6575,7 @@ and doInit
   if debugInit then begin
     Kernel.debug "doInit for %t %s (current %a). Looking at: %t" whoami
       (if so.eof then "(eof)" else "")
-      d_lval (Var so.host, so.curOff)
+      Cil_printer.pp_lval (Var so.host, so.curOff)
     (fun fmt ->
        match allinitl with
            [] -> Format.fprintf fmt "[]@."
@@ -6664,7 +6752,8 @@ and doInit
         setone so.soOff oneinit';
         (* Advance to the next subobject *)
         advanceSubobj so;
-        doInit local_env isconst add_implicit_ensures setone so (acc @@ se) restil
+        let se = acc @@ (se, local_env.is_ghost) in
+        doInit local_env isconst add_implicit_ensures setone so se restil
       end else begin (* Try to initialize fields *)
         let toinit = fieldsToInit comp None in
         so.stack <- InComp(so.soOff, comp, toinit) :: so.stack;
@@ -6678,13 +6767,14 @@ and doInit
         doExp local_env isconst oneinit (AExp(Some so.soTyp)) in
       let se = add_reads oneinit'.eloc r se in
       Kernel.debug "oneinit'=%a, t'=%a, so.soTyp=%a"
-         d_exp oneinit' d_type t' d_type so.soTyp;
+         Cil_printer.pp_exp oneinit' Cil_printer.pp_typ t' Cil_printer.pp_typ so.soTyp;
       setone so.soOff (if theMachine.insertImplicitCasts then
                          snd (castTo t' so.soTyp oneinit')
                        else oneinit');
       (* Move on *)
       advanceSubobj so;
-      doInit local_env isconst add_implicit_ensures setone so (acc @@ se) restil
+      let se = acc @@ (se,local_env.is_ghost) in
+      doInit local_env isconst add_implicit_ensures setone so se restil
 
 
   (* An array with a compound initializer. The initializer is for the
@@ -6775,10 +6865,11 @@ and doInit
           setone so.soOff (makeCastT oneinit' t' so.soTyp);
           (* Move on *)
           advanceSubobj so;
-          doInit local_env isconst add_implicit_ensures setone so (acc @@ se) restil
+          let se = acc @@ (se, local_env.is_ghost) in
+          doInit local_env isconst add_implicit_ensures setone so se restil
 	with Not_found ->
 	  Kernel.fatal ~current:true
-	    "doInit: unexpected NEXT_INIT for %a\n" d_type t
+	    "doInit: unexpected NEXT_INIT for %a\n" Cil_printer.pp_typ t
       end
 
   (* We have a designator *)
@@ -6816,7 +6907,7 @@ and doInit
                     in
                     let doidx = add_reads idxe'.eloc r doidx in
                     match (constFold true idxe').enode, isNotEmpty doidx with
-                      Const(CInt64(x, _, _)), false -> My_bigint.to_int x, doidx
+                      Const(CInt64(x, _, _)), false -> Integer.to_int x, doidx
                     | _ ->
 		      Kernel.abort ~current:true
                         "INDEX initialization designator is not a constant"
@@ -6827,7 +6918,7 @@ and doInit
                   so.stack <-
                     InArray(so.soOff, bt, ilen, ref nextidx') :: so.stack;
                   normalSubobj so;
-                  address whatnext (acc @@ doidx)
+                  address whatnext (acc @@ (doidx, local_env.is_ghost))
 
               | _ ->
 		Kernel.abort ~current:true "INDEX designator for a non-array"
@@ -6859,7 +6950,7 @@ and doInit
               with
                 Const(CInt64(s, _, _)),
                 Const(CInt64(e, _, _)) ->
-                  My_bigint.to_int s, My_bigint.to_int e
+                  Integer.to_int s, Integer.to_int e
               | _ ->
 		Kernel.fatal ~current:true
                   "INDEX_RANGE initialization designator is not a constant"
@@ -6886,7 +6977,7 @@ and doInit
       expandRange (fun x -> x) what
 
   | t, (_what, _ie) :: _ ->
-    Kernel.abort ~current:true "doInit: cases for t=%a" d_type t
+    Kernel.abort ~current:true "doInit: cases for t=%a" Cil_printer.pp_typ t
 
 
 (* Create and add to the file (if not already added) a global. Return the
@@ -6942,7 +7033,7 @@ and createGlobal ghost logic_spec ((t,s,b,attr_list) : (typ * storage * bool * A
       if init != None then begin
         (* function redefinition is taken care of elsewhere. *)
         Kernel.error ~once:true ~current:true
-	  "Global %s was already defined at %a" vi.vname d_loc oldloc;
+	  "Global %s was already defined at %a" vi.vname Cil_printer.pp_location oldloc;
       end;
       if debugGlobal then
         Kernel.debug " global %s was already defined" vi.vname;
@@ -7051,7 +7142,7 @@ and createGlobal ghost logic_spec ((t,s,b,attr_list) : (typ * storage * bool * A
                      Logic_utils.merge_funspec old_spec spec
                  | _ -> assert false
                in
-               update_global_fundec_in_theFile vi merge_spec
+               update_fundec_in_theFile vi merge_spec
           );
           vi
         end
@@ -7061,7 +7152,7 @@ and createGlobal ghost logic_spec ((t,s,b,attr_list) : (typ * storage * bool * A
     Kernel.error ~once:true ~current:true "skipping global %s" n;
     cabsPushGlobal
       (dGlobal (Pretty_utils.sfprintf "booo - error in global %s (%t)"
-                  n d_thisloc) (CurrentLoc.get ()));
+                  n Cil.pp_thisloc) (CurrentLoc.get ()));
     dummy_function.svar
   end
     (*
@@ -7219,7 +7310,8 @@ and createLocal ghost ((_, sto, _, _) as specs)
             let rt, _, _, _ = splitFunctionType alloca.vtype in
             let tmp =
               newTempVar
-                (Some (Pretty_utils.sfprintf "alloca(%a)" d_exp sizeof))
+                (Some 
+		   (Pretty_utils.sfprintf "alloca(%a)" Cil_printer.pp_exp sizeof))
                 false rt
             in
             (local_var_chunk setlen tmp)
@@ -7253,7 +7345,8 @@ and createLocal ghost ((_, sto, _, _) as specs)
          | _, _, _ -> ());
 
         (* Now create assignments instead of the initialization *)
-        se1 @@ se4 @@ (assignInit (Var vi, NoOffset) ie' et empty)
+        (se1 @@ (se4, ghost))
+        @@ (assignInit ~ghost (Var vi, NoOffset) ie' et empty, ghost)
       end
 
 and doAliasFun vtype (thisname:string) (othername:string)
@@ -7261,7 +7354,7 @@ and doAliasFun vtype (thisname:string) (othername:string)
   (* This prototype declares that name is an alias for
      othername, which must be defined in this file *)
   (*   E.log "%s is alias for %s at %a\n" thisname othername  *)
-  (*     d_loc !currentLoc; *)
+  (*     Cil_printer.pp_location !currentLoc; *)
   let rt, formals, isva, _ = splitFunctionType vtype in
   if isva then Kernel.error ~once:true ~current:true "alias unsupported with varargs";
   let args = List.map
@@ -7295,6 +7388,7 @@ and doDecl local_env (isglobal: bool) : A.definition -> chunk = function
           [] -> ""
         | ((n, _, _, _), _) :: _ -> n
       in
+      let ghost = local_env.is_ghost in
       let spec_res = doSpecList local_env.is_ghost sugg s in
       (* Do all the variables and concatenate the resulting statements *)
       let doOneDeclarator (acc: chunk) (name: init_name) =
@@ -7312,17 +7406,16 @@ and doDecl local_env (isglobal: bool) : A.definition -> chunk = function
                if not (isFunctionType vtype) || local_env.is_ghost then begin
                  Kernel.warning ~current:true
                    "%a: CIL only supports attribute((alias)) for C functions."
-                   d_loc (CurrentLoc.get ());
-                 ignore
-                   (createGlobal local_env.is_ghost logic_spec spec_res name)
+                   Cil_printer.pp_location (CurrentLoc.get ());
+                 ignore (createGlobal ghost logic_spec spec_res name)
                end else
                  doAliasFun vtype n othername (s, (n,ndt,a,l)) loc
            | _ ->
 	     Kernel.error ~once:true ~current:true
-	       "Bad alias attribute at %a" d_loc (CurrentLoc.get()));
+	       "Bad alias attribute at %a" Cil_printer.pp_location (CurrentLoc.get()));
           acc
         end else
-          acc @@ createLocal local_env.is_ghost spec_res name
+          acc @@ (createLocal local_env.is_ghost spec_res name, ghost)
       in
      let res = List.fold_left doOneDeclarator empty nl in
      if isglobal then res
@@ -7338,13 +7431,13 @@ and doDecl local_env (isglobal: bool) : A.definition -> chunk = function
                    Ltyping.code_annot loc' local_env.known_behaviors
                      (Ctype !currentReturnType) (AStmtSpec ([],spec))
                  in
-                 append_chunk_to_annot
+                 append_chunk_to_annot ~ghost
                    (s2c
                       (mkStmtOneInstr
                          ~ghost:local_env.is_ghost (Code_annot (spec,loc'))))
                    res
                )
-	       (fun () -> res)
+               (fun () -> res)
 	       "Ignoring logic code specification" ;
            end
      end
@@ -7409,11 +7502,12 @@ and doDecl local_env (isglobal: bool) : A.definition -> chunk = function
   | A.FUNDEF (spec,((specs,(n,dt,a, _)) : A.single_name),
               (body : A.block), loc1, loc2) when isglobal ->
       begin
+        let ghost = local_env.is_ghost in
         let idloc = loc1 in
         let funloc = fst loc1, snd loc2 in
         let endloc = loc2 in
         if debugGlobal then
-          Kernel.debug "Definition of %s at %a\n" n d_loc idloc;
+          Kernel.debug "Definition of %s at %a\n" n Cil_printer.pp_location idloc;
         CurrentLoc.set idloc;
         try
           IH.clear callTempVars;
@@ -7524,7 +7618,7 @@ and doDecl local_env (isglobal: bool) : A.definition -> chunk = function
 
           (*
             ignore (E.log "makefunvar:%s@\n type=%a@\n vattr=%a@\n"
-            n d_type thisFunctionVI.vtype
+            n Cil_printer.pp_typ thisFunctionVI.vtype
             d_attrlist thisFunctionVI.vattr);
           *)
 
@@ -7576,7 +7670,7 @@ and doDecl local_env (isglobal: bool) : A.definition -> chunk = function
                                                 f.vattr)) formals),
                              isvararg, funta) in
 
-            (*log "Funtype of %s: %a\n" n d_type ftype;*)
+            (*log "Funtype of %s: %a\n" n Cil_printer.pp_typ ftype;*)
 
             (* Now fix the names of the formals in the type of the function
              * as well *)
@@ -7650,8 +7744,7 @@ and doDecl local_env (isglobal: bool) : A.definition -> chunk = function
                 end
               | _ -> assert false
             in
-            update_global_fundec_in_theFile
-              !currentFunctionFDEC.svar merge_spec
+            update_fundec_in_theFile !currentFunctionFDEC.svar merge_spec
           end;
           (********** Now do the BODY *************)
           let _ =
@@ -7680,7 +7773,7 @@ and doDecl local_env (isglobal: bool) : A.definition -> chunk = function
                  in
                  (* Build a default chunk that segfaults *)
                  let default =
-                   defaultChunk
+                   defaultChunk ~ghost
                      loc
                      (i2c (mkStmtOneInstr ~ghost:local_env.is_ghost
                              (Set ((Mem (makeCast (integer ~loc 0) intPtrType),
@@ -7688,14 +7781,15 @@ and doDecl local_env (isglobal: bool) : A.definition -> chunk = function
                                    integer ~loc 0, loc)),[],[],[]))
                  in
                  let bodychunk = ref default in
-                 H.iter (fun lname laddr ->
-                           bodychunk :=
-                             caseRangeChunk
-                               [integer ~loc laddr] loc
-                               (gotoChunk lname loc @@ !bodychunk))
+                 H.iter
+                   (fun lname laddr ->
+                     bodychunk :=
+                       caseRangeChunk ~ghost
+                       [integer ~loc laddr] loc
+                       (gotoChunk ~ghost lname loc @@ (!bodychunk, ghost)))
                    gotoTargetHash;
                  (* Now recreate the switch *)
-                 let newswitch = switchChunk switche !bodychunk loc in
+                 let newswitch = switchChunk ~ghost switche !bodychunk loc in
                  (* We must still share the old switch statement since we
                   * have already inserted the goto's *)
                  let newswitchkind =
@@ -7709,12 +7803,12 @@ and doDecl local_env (isglobal: bool) : A.definition -> chunk = function
 
              | None -> ());
             (* Now finish the body and store it *)
-            let body = mkFunctionBody stmts in
+            let body = mkFunctionBody ~ghost stmts in
             (* need to add temporary variables created at sbody level. *)
             body.blocals <- !currentFunctionFDEC.sbody.blocals @ body.blocals;
             (*Format.eprintf "Function %a: Temp variables created: %a@."
-              Cil.d_var !currentFunctionFDEC.svar
-              (Pretty_utils.pp_list ~sep:Pretty_utils.space_sep Cil.d_var)
+              Cil_printer.pp_varinfo !currentFunctionFDEC.svar
+              (Pretty_utils.pp_list ~sep:Pretty_utils.space_sep Cil_printer.pp_varinfo)
               !currentFunctionFDEC.sbody.blocals; *)
             !currentFunctionFDEC.sbody <- body;
             (* Reset the global parameters *)
@@ -7781,7 +7875,8 @@ and doDecl local_env (isglobal: bool) : A.definition -> chunk = function
                 let annot = Logic_const.new_code_annotation
                   (AAssert ([], Logic_const.unamed ~loc:endloc Pfalse))
                 in
-                Cil.mkStmt (Instr (Code_annot (annot, endloc)))
+                Cil.mkStmt ~ghost:local_env.is_ghost
+                  (Instr (Code_annot (annot, endloc)))
               in
               match unrollType !currentReturnType with
                 | TVoid _ -> [], None
@@ -7807,7 +7902,8 @@ and doDecl local_env (isglobal: bool) : A.definition -> chunk = function
             then
               !currentFunctionFDEC.sbody.bstmts <-
                 !currentFunctionFDEC.sbody.bstmts
-              @ protect_return @ [mkStmt (Return(retval, endloc))]
+              @ protect_return @ 
+                [mkStmt ~ghost:local_env.is_ghost (Return(retval, endloc))]
           end;
 
           (* ignore (E.log "The env after finishing the body of %s:\n%t\n"
@@ -7967,7 +8063,7 @@ enumeration type"
     cabsPushGlobal (GAsm ("booo_typedef", CurrentLoc.get ()))
   end
 
-and assignInit (lv: lval)
+and assignInit ~ghost (lv: lval)
     ?(has_implicit_init=false)
     ?(explicit_init=(fun _ _ -> ()))
     ?(add_implicit_ensures=(fun _ -> ()))
@@ -7978,7 +8074,7 @@ and assignInit (lv: lval)
     SingleInit e ->
       let (_, e'') = castTo iet (typeOfLval lv) e in
       explicit_init lv e'';
-      acc +++ (mkStmtOneInstr (*TODO:~ghost:local_env.is_ghost*)
+      acc +++ (mkStmtOneInstr ~ghost
                  (Set(lv, e'', CurrentLoc.get ())),[],[lv],[])
   | CompoundInit (t, initl) ->
     (match t with
@@ -8024,7 +8120,7 @@ and assignInit (lv: lval)
                             Kernel.abort ~current:true
                               "Non constant index in designator for array \
                                initialization: %a"
-                              Cil.d_exp i)
+                              Cil_printer.pp_exp i)
                   | NoOffset | Field _ ->
                       assert false
                   (* We are supposed to have an array here. *)
@@ -8047,7 +8143,7 @@ and assignInit (lv: lval)
             foldLeftCompound
               ~implicit:false
               ~doinit:(fun off i it acc ->
-                assignInit (addOffsetLval off lv)
+                assignInit ~ghost (addOffsetLval off lv)
                   ~has_implicit_init:true
                   ~explicit_init
                   ~add_implicit_ensures
@@ -8062,14 +8158,14 @@ and assignInit (lv: lval)
               (* this location has already been zero-initialized by
                  toplevel implicit init. *)
             else if Kernel.InitializedPaddingLocals.get () then
-              s2c (set_to_zero vi curr_off t)
+              s2c (set_to_zero ~ghost vi curr_off t)
               (* use bzero to clear whole region*)
             else
-              zero_init vi curr_off l bt
+              zero_init ~ghost vi curr_off l bt
               (* zero-init each field, so as to leave padding bits
                  uninitialized. *)
           in
-          let init_block = base_init @@ my_init in
+          let init_block = base_init @@ (my_init, ghost) in
           (* lift at toplevel contract implicit zero-initialization. *)
           let my_ensures =
             make_implicit_ensures vi curr_off bt l !known_idx
@@ -8126,19 +8222,21 @@ and assignInit (lv: lval)
               let code_annot =
                 Logic_const.new_code_annotation (AStmtSpec ([],contract))
               in
-              s2c (Cil.mkStmt
+              s2c (Cil.mkStmt ~ghost
                      (Instr
                         (Code_annot (code_annot,Cabshelper.currentLoc()))))
             end
           in
-          let init_chunk = append_chunk_to_annot annot_chunk init_block in
-          acc @@ init_chunk
+          let init_chunk =
+            append_chunk_to_annot ~ghost annot_chunk init_block
+          in
+          acc @@ (init_chunk, ghost)
         end else begin
           foldLeftCompound
             ~implicit:false
             ~doinit:
             (fun off i it acc ->
-              assignInit (addOffsetLval off lv)
+              assignInit ~ghost (addOffsetLval off lv)
                 ~has_implicit_init
                 ~explicit_init
                 ~add_implicit_ensures
@@ -8152,7 +8250,7 @@ and assignInit (lv: lval)
           ~implicit:false
           ~doinit:
           (fun off i it acc ->
-            assignInit (addOffsetLval off lv)
+            assignInit ~ghost (addOffsetLval off lv)
               ~has_implicit_init
               ~explicit_init
               ~add_implicit_ensures
@@ -8161,19 +8259,20 @@ and assignInit (lv: lval)
           ~initl:initl
           ~acc:acc)
 
-and blockInit (lv: lval) (ie: init) (iet: typ) : block =
-  c2block (assignInit lv ie iet empty)
+and blockInit ~ghost (lv: lval) (ie: init) (iet: typ) : block =
+  c2block ~ghost (assignInit ~ghost lv ie iet empty)
 
 (* Now define the processors for body and statement *)
 and doBody local_env (blk: A.block) : chunk =
+  let ghost = local_env.is_ghost in
   enterScope ();
   (* Rename the labels and add them to the environment *)
   List.iter (fun l -> ignore (genNewLocalLabel l)) blk.blabels;
   (* See if we have some attributes *)
-  let battrs = doAttributes local_env.is_ghost blk.A.battrs in
+  let battrs = doAttributes ghost blk.A.battrs in
 
   let bodychunk =
-    afterConversion
+    afterConversion ~ghost
       (snd
          (List.fold_left   (* !!! @ evaluates its arguments backwards *)
             (fun ((new_behaviors,keep_block),prev) s ->
@@ -8203,8 +8302,8 @@ and doBody local_env (blk: A.block) : chunk =
 (*               Format.eprintf "Done statement %a@." d_chunk res; *)
                let chunk =
                  if keep_block then
-                   append_chunk_to_annot prev res
-                 else prev @@ res
+                   append_chunk_to_annot ~ghost prev res
+                 else prev @@ (res, ghost)
                in ((new_behaviors, keep_next), chunk))
             (([],false),empty)
             blk.A.bstmts))
@@ -8218,9 +8317,9 @@ and doBody local_env (blk: A.block) : chunk =
     bodychunk
   end
   else begin
-    let b = c2block bodychunk in
+    let b = c2block ~ghost bodychunk in
     b.battrs <- battrs;
-    let res = s2c (mkStmt (Block b)) in
+    let res = s2c (mkStmt ~ghost (Block b)) in
     { res with cases = bodychunk.cases }
   end
 
@@ -8233,14 +8332,12 @@ and doStatement local_env (s : A.statement) : chunk =
       (fun () -> [])
       "Ignoring all logic loop annotations"
   in
-  let local_env = { local_env with is_ghost = s.stmt_ghost } in
+  let ghost = s.stmt_ghost in
+  let local_env = { local_env with is_ghost = ghost } in
   try
     match s.stmt_node with
       A.NOP loc -> { empty
-                     with stmts = [
-                       {(mkEmptyStmt ~loc ()) with ghost=local_env.is_ghost},
-                       [],[],[],[]
-                     ]}
+                     with stmts = [mkEmptyStmt ~ghost ~loc (), [],[],[],[]]}
     | A.COMPUTATION (e, loc) ->
         CurrentLoc.set (convLoc loc);
         let (lasts, data) = !gnu_body_result in
@@ -8255,7 +8352,7 @@ and doStatement local_env (s : A.statement) : chunk =
           *)
           if isEmpty s' && is_dangerous e'
           then
-	    s' @@ (keepPureExpr e' loc)
+	    s' @@ (keepPureExpr ~ghost e' loc, ghost)
           else
 	    begin
 	      if (isEmpty s') then begin
@@ -8268,15 +8365,15 @@ and doStatement local_env (s : A.statement) : chunk =
     | A.BLOCK (b, loc,_) ->
         CurrentLoc.set (convLoc loc);
         let c = doBody local_env b in
-        let b = c2block c in
+        let b = c2block ~ghost c in
         b.battrs <- addAttributes [Attr(frama_c_keep_block,[])] b.battrs;
-        let res = s2c (mkStmt (Block b)) in
+        let res = s2c (mkStmt ~ghost (Block b)) in
         { res with cases = c.cases }
 
     | A.SEQUENCE (s1, s2, _) ->
         let c1 = doStatement local_env s1 in
         let c2 = doStatement local_env s2 in
-        c1 @@ c2
+        c1 @@ (c2, ghost)
 
     | A.IF(e,st,sf,loc) ->
         let st' = doStatement local_env st in
@@ -8289,16 +8386,18 @@ and doStatement local_env (s : A.statement) : chunk =
         startLoop true;
         let s' = doStatement local_env s in
 	let s' =
-	  if !doTransformWhile then s' @@ (consLabContinue skipChunk) else s'
+	  if !doTransformWhile then
+            s' @@ (consLabContinue ~ghost skipChunk, ghost)
+          else s'
 	in
         let loc' = convLoc loc in
-        let break_cond = breakChunk loc' in
+        let break_cond = breakChunk ~ghost loc' in
         exitLoop ();
         CurrentLoc.set loc';
-        loopChunk a
+        loopChunk ~ghost a
           ((doCondition
 	      ~info:(Cabscond.WHILE,loc) local_env false e skipChunk break_cond)
-           @@ s')
+           @@ (s', ghost))
 
     | A.DOWHILE(a, e,s,loc) ->
         let a = mk_loop_annot a loc in
@@ -8306,15 +8405,32 @@ and doStatement local_env (s : A.statement) : chunk =
         let s' = doStatement local_env s in
         let loc' = convLoc loc in
         CurrentLoc.set loc';
-        let s'' =
-          consLabContinue
-            (doCondition
-	       ~info:(Cabscond.DOWHILE,loc)
-	       local_env
-               false e skipChunk (breakChunk loc'))
+        (* No 'break' instruction can exit the chunk *)
+        let no_break chunk =
+          List.for_all (fun (s, _, _, _, _) -> not (stmtCanBreak s)) chunk.stmts
         in
-        exitLoop ();
-        loopChunk a (s' @@ s'')
+        (* Check if we are translating 'do { <s> } while (0)'. If so, translate
+           it sito '<s>' instead. Not active for now as it can impact plugins
+           that compare the shape of the Cabs and of the Cil files. *)
+        if false &&
+          isCabsZeroExp e (* exp is 0 or something equivalent *) &&
+          a = [] (* No loop annot *) &&
+          not (continueUsed ()) (* no 'continue' inside s *) &&
+          no_break s' (* no break that exists s *)
+        then (
+          exitLoop ();
+          s'
+        )
+        else
+          let s'' =
+            consLabContinue ~ghost
+              (doCondition
+	         ~info:(Cabscond.DOWHILE,loc)
+	         local_env
+                 false e skipChunk (breakChunk ~ghost loc'))
+          in
+          exitLoop ();
+          loopChunk ~ghost a (s' @@ (s'', ghost))
 
     | A.FOR(a,fc1,e2,e3,s,loc) -> begin
         let loc' = convLoc loc in
@@ -8333,24 +8449,24 @@ and doStatement local_env (s : A.statement) : chunk =
         let s' = doStatement local_env s in
         (*Kernel.debug "Loop body : %a" d_chunk s';*)
         CurrentLoc.set loc';
-        let s'' = consLabContinue se3 in
-        let break_cond = breakChunk loc' in
+        let s'' = consLabContinue ~ghost se3 in
+        let break_cond = breakChunk ~ghost loc' in
         exitLoop ();
         let res =
           match e2.expr_node with
             A.NOTHING -> (* This means true *)
-              se1 @@ loopChunk a (s' @@ s'')
+              se1 @@ (loopChunk ~ghost a (s' @@ (s'', ghost)), ghost)
           | _ ->
               se1 @@
-                loopChunk a
-                ((doCondition
-		    ~info:(Cabscond.FOR,loc)
-		    local_env false e2 skipChunk break_cond)
-                 @@ s' @@ s'')
+                (loopChunk ~ghost a
+                   (((doCondition
+		        ~info:(Cabscond.FOR,loc)
+		        local_env false e2 skipChunk break_cond)
+                     @@ (s', ghost)) @@ (s'', ghost)), ghost)
         in
         exitScope ();
         if has_decl then begin
-          let chunk = s2c (mkStmt (Block (c2block res)))
+          let chunk = s2c (mkStmt ~ghost (Block (c2block ~ghost res)))
           in
           { chunk with cases = res.cases }
         end else res
@@ -8359,12 +8475,12 @@ and doStatement local_env (s : A.statement) : chunk =
     | A.BREAK loc ->
         let loc' = convLoc loc in
         CurrentLoc.set loc';
-        breakChunk loc'
+        breakChunk ~ghost loc'
 
     | A.CONTINUE loc ->
         let loc' = convLoc loc in
         CurrentLoc.set loc';
-        continueOrLabelChunk loc'
+        continueOrLabelChunk ~ghost loc'
 
     | A.RETURN ({ expr_node = A.NOTHING}, loc) ->
         let loc' = convLoc loc in
@@ -8372,8 +8488,8 @@ and doStatement local_env (s : A.statement) : chunk =
         if not (isVoidType !currentReturnType) then
           Kernel.warning ~current:true
             "Return statement without a value in function returning %a\n"
-            d_type !currentReturnType;
-        returnChunk None loc'
+            Cil_printer.pp_typ !currentReturnType;
+        returnChunk ~ghost None loc'
 
     | A.RETURN (e, loc) ->
         let loc' = convLoc loc in
@@ -8383,7 +8499,7 @@ and doStatement local_env (s : A.statement) : chunk =
           Kernel.warning ~current:true
 	    "Return statement with a value in function returning void";
           let (se, _, _) = doFullExp local_env false e ADrop in
-          se @@ returnChunk None loc'
+          se @@ (returnChunk ~ghost None loc', ghost)
         end else begin
 	  let rt =
 	    typeRemoveAttributes ["warn_unused_result"] !currentReturnType
@@ -8391,7 +8507,7 @@ and doStatement local_env (s : A.statement) : chunk =
           let (se, e', et) =
             doFullExp local_env false e (AExp (Some rt)) in
           let (_, e'') = castTo et rt e' in
-          se @@ (returnChunk (Some e'') loc')
+          se @@ (returnChunk ~ghost (Some e'') loc', ghost)
         end
 
     | A.SWITCH (e, s, loc) ->
@@ -8405,7 +8521,7 @@ and doStatement local_env (s : A.statement) : chunk =
         enter_break_env ();
         let s' = doStatement local_env s in
         exit_break_env ();
-        se @@ (switchChunk e' s' loc')
+        se @@ (switchChunk ~ghost e' s' loc', ghost)
 
     | A.CASE (e, s, loc) ->
         let loc' = convLoc loc in
@@ -8413,7 +8529,7 @@ and doStatement local_env (s : A.statement) : chunk =
         let (se, e', _) = doFullExp local_env true e (AExp None) in
         if isNotEmpty se || not (Cil.isIntegerConstant e') then
           Kernel.error ~once:true ~current:true "Case statement with a non-constant";
-        caseRangeChunk
+        caseRangeChunk ~ghost
 	  [if theMachine.lowerConstants then constFold false e' else e']
           loc' (doStatement local_env s)
 
@@ -8427,7 +8543,7 @@ and doStatement local_env (s : A.statement) : chunk =
         let il, ih =
           match (constFold true el').enode, (constFold true eh').enode with
             Const(CInt64(il, _, _)), Const(CInt64(ih, _, _)) ->
-              My_bigint.to_int il, My_bigint.to_int ih
+              Integer.to_int il, Integer.to_int ih
           | _ ->
 	    Kernel.fatal ~current:true
 	      "Cannot understand the constants in case range"
@@ -8436,19 +8552,19 @@ and doStatement local_env (s : A.statement) : chunk =
         let rec mkAll (i: int) =
           if i > ih then [] else integer ~loc i :: mkAll (i + 1)
         in
-        caseRangeChunk (mkAll il) loc' (doStatement local_env s)
+        caseRangeChunk ~ghost (mkAll il) loc' (doStatement local_env s)
 
     | A.DEFAULT (s, loc) ->
         let loc' = convLoc loc in
         CurrentLoc.set loc';
-        defaultChunk loc' (doStatement local_env s)
+        defaultChunk ~ghost loc' (doStatement local_env s)
     | A.LABEL (l, s, loc) ->
         let loc' = convLoc loc in
         CurrentLoc.set loc';
         C_logic_env.add_current_label l;
         (* Lookup the label because it might have been locally defined *)
         let chunk =
-          consLabel (lookupLabel l) (doStatement local_env s) loc' true
+          consLabel ~ghost (lookupLabel l) (doStatement local_env s) loc' true
         in
         C_logic_env.reset_current_label (); chunk
 
@@ -8456,7 +8572,7 @@ and doStatement local_env (s : A.statement) : chunk =
         let loc' = convLoc loc in
         CurrentLoc.set loc';
         (* Maybe we need to rename this label *)
-        gotoChunk (lookupLabel l) loc'
+        gotoChunk ~ghost (lookupLabel l) loc'
 
     | A.COMPGOTO (e, loc) -> begin
         let loc' = convLoc loc in
@@ -8466,11 +8582,11 @@ and doStatement local_env (s : A.statement) : chunk =
           doFullExp local_env false e (AExp (Some voidPtrType)) in
         match !gotoTargetData with
           Some (switchv, switch) -> (* We have already generated this one  *)
-            se
-            @@ i2c(mkStmtOneInstr ~ghost:local_env.is_ghost
-                     (Set (var switchv, makeCast e' intType, loc')),
-                   [],[],[])
-            @@ s2c(mkStmt(Goto (ref switch, loc')))
+            (se
+             @@ (i2c(mkStmtOneInstr ~ghost
+                       (Set (var switchv, makeCast e' intType, loc')),
+                     [],[],[]), ghost))
+            @@ (s2c(mkStmt ~ghost (Goto (ref switch, loc'))), ghost)
 
         | None -> begin
             (* Make a temporary variable *)
@@ -8489,23 +8605,27 @@ and doStatement local_env (s : A.statement) : chunk =
             in
             (* Make a switch statement. We'll fill in the statements at the
              * end of the function *)
-            let switch = mkStmt (Switch (new_exp ~loc (Lval(var switchv)),
-                                         mkBlock [], [], loc')) in
+            let switch =
+              mkStmt ~ghost
+                (Switch (new_exp ~loc (Lval(var switchv)),
+                         mkBlock [], [], loc'))
+            in
             (* And make a label for it since we'll goto it *)
             switch.labels <- [Label ("__docompgoto", loc', false)];
             gotoTargetData := Some (switchv, switch);
-            se @@
-              i2c
-              (mkStmtOneInstr ~ghost:local_env.is_ghost
-                 (Set(var switchv, makeCast e' intType, loc')),[],[],[])
-            @@ s2c switch
+            (se @@
+               (i2c
+                  (mkStmtOneInstr ~ghost
+                     (Set (var switchv, makeCast e' intType, loc')),[],[],[]),
+                ghost))
+            @@ (s2c switch, ghost)
           end
       end
 
     | A.DEFINITION d ->
         let s = doDecl local_env false d  in
         (*
-          Kernel.debug "Def at %a: %a\n" d_loc (currentLoc()) d_chunk s;
+          Kernel.debug "Def at %a: %a\n" Cil_printer.pp_location (currentLoc()) d_chunk s;
         *)
         s
 
@@ -8541,7 +8661,7 @@ and doStatement local_env (s : A.statement) : chunk =
 			 Kernel.fatal ~current:true
 			   "Expected lval for ASM outputs"
 		     in
-		     stmts := !stmts @@ se;
+		     stmts := !stmts @@ (se, ghost);
 		     (id, c, lv)) outs
               in
 	      (* Get the side-effects out of expressions *)
@@ -8552,7 +8672,7 @@ and doStatement local_env (s : A.statement) : chunk =
                        doExp local_env false e (AExp None)
                      in
                      let se = add_reads e'.eloc r se in
-		     stmts := !stmts @@ se;
+		     stmts := !stmts @@ (se, ghost);
 		     (id, c, e'))
 		  ins
               in
@@ -8560,7 +8680,8 @@ and doStatement local_env (s : A.statement) : chunk =
 	in
         !stmts @@
           (i2c(mkStmtOneInstr ~ghost:local_env.is_ghost
-                 (Asm(attr', tmpls', outs', ins', clobs', loc')),[],[],[]))
+                 (Asm(attr', tmpls', outs', ins', clobs', loc')),[],[],[]),
+          ghost)
 
     | TRY_FINALLY (b, h, loc) ->
         let loc' = convLoc loc in
@@ -8570,7 +8691,8 @@ and doStatement local_env (s : A.statement) : chunk =
         if b'.cases <> [] || h'.cases <> [] then
           Kernel.error ~once:true ~current:true
 	    "Try statements cannot contain switch cases";
-        s2c (mkStmt (TryFinally (c2block b', c2block h', loc')))
+        s2c (mkStmt ~ghost 
+               (TryFinally (c2block ~ghost b', c2block ~ghost h', loc')))
 
     | TRY_EXCEPT (b, e, h, loc) ->
         let loc' = convLoc loc in
@@ -8595,7 +8717,9 @@ and doStatement local_env (s : A.statement) : chunk =
             s
         in
         let il' = stmt_to_instrs se.stmts in
-        s2c (mkStmt (TryExcept (c2block b', (il', e'), c2block h', loc')))
+        s2c (mkStmt ~ghost
+               (TryExcept
+                  (c2block ~ghost b',(il', e'), c2block ~ghost h', loc')))
     | CODE_ANNOT (a, loc) ->
         let loc' = convLoc loc in
         begin
@@ -8605,7 +8729,7 @@ and doStatement local_env (s : A.statement) : chunk =
                  Ltyping.code_annot
                    loc' local_env.known_behaviors (Ctype !currentReturnType) a
                in
-               s2c (mkStmtOneInstr ~ghost:local_env.is_ghost (Code_annot (typed_annot,loc'))))
+               s2c (mkStmtOneInstr ~ghost (Code_annot (typed_annot,loc'))))
 	    (fun () -> BlockChunk.empty)
 	    "Ignoring logic code annotation" ;
         end
@@ -8619,13 +8743,14 @@ and doStatement local_env (s : A.statement) : chunk =
                  Ltyping.code_annot loc' local_env.known_behaviors
                    (Ctype !currentReturnType) (AStmtSpec ([],a))
                in
-               s2c (mkStmtOneInstr ~ghost:local_env.is_ghost (Code_annot (spec,loc'))))
+               s2c (mkStmtOneInstr ~ghost (Code_annot (spec,loc'))))
 	    (fun () -> BlockChunk.empty)
 	    "Ignoring logic code specification" ;
         end
   with _ when Cilmsg.had_errors () && continueOnError -> begin
     Kernel.error "Ignoring statement" ;
-    consLabel "booo_statement" empty (convLoc (C.get_statementloc s)) false
+    consLabel
+      ~ghost "booo_statement" empty (convLoc (C.get_statementloc s)) false
   end
 
 
@@ -8690,36 +8815,9 @@ let convFile (f : A.file) : Cil_types.file =
     if isNotEmpty s then
       Kernel.abort ~current:true
 	"doDecl returns non-empty statement for global";
-    (* See if this is one of the globals which we can leave alone. Increment
-     * globalidx and see if we must leave this alone. *)
-    if
-      (match d with
-        A.DECDEF _ -> true
-      | A.FUNDEF _ -> true
-      | _ -> false) && (incr globalidx; !globalidx = !nocil) then begin
-          (* Create a file where we put the CABS output *)
-          let temp_cabs_name = "__temp_cabs" in
-          let temp_cabs = open_out temp_cabs_name in
-          (* Now print the CABS in there *)
-          Cprint.print_def (Format.formatter_of_out_channel temp_cabs) d;
-          close_out temp_cabs;
-          (* Now read everything in and create a GText from it *)
-          let temp_cabs = open_in temp_cabs_name in
-          let buff = Buffer.create 1024 in
-          Buffer.add_string buff "// Start of CABS form\n";
-          Buffer.add_channel buff temp_cabs (in_channel_length temp_cabs);
-          Buffer.add_string buff "// End of CABS form\n";
-          close_in temp_cabs;
-          (* Try to pop the last thing in the file *)
-          (match !theFile with
-            _ :: rest -> theFile := rest
-          | _ -> ());
-          (* Insert in the file a GText *)
-          cabsPushGlobal (GText(Buffer.contents buff))
-    end
   in
   List.iter doOneGlobal dl;
-  let globals = ref (popGlobals ()) in
+  let globals = ref (fileGlobals ()) in
 
   List.iter rename_spec !globals;
   Logic_env.prepare_tables ();

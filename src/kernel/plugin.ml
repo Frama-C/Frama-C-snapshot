@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,9 +20,9 @@
 (*                                                                        *)
 (**************************************************************************)
 
-let positive_debug_ref = ref 0
-
 let empty_string = ""
+
+let positive_debug_ref = ref 0
 
 let dummy_deprecated = fun _ ~now:_ _ -> assert false
 let deprecated_ref = ref dummy_deprecated
@@ -196,7 +196,7 @@ module type S = sig
   module Help: Bool
   module Verbose: Int
   module Debug: Int
-  module Debug_category: String_list
+  module Debug_category: String_set
   module Share: sig
     exception No_dir
     val dir: ?error:bool -> unit -> string
@@ -293,6 +293,12 @@ let set_negative_option_name s = negative_option_name_ref := Some s
 let negative_option_help_ref = ref empty_string
 let set_negative_option_help s = negative_option_help_ref := s
 
+let unset_option_name_ref = ref empty_string
+let set_unset_option_name s = unset_option_name_ref := s
+
+let unset_option_help_ref = ref empty_string
+let set_unset_option_help s = unset_option_help_ref := s
+
 let must_save_ref = ref true
 let do_not_save () = must_save_ref := false
 
@@ -334,6 +340,8 @@ let reset () =
   journalize_ref := true;
   negative_option_name_ref := None;
   negative_option_help_ref := empty_string;
+  unset_option_name_ref:= empty_string;
+  unset_option_help_ref:= empty_string;
   optional_help_ref := empty_format;
   projectify_ref := true;
   must_save_ref := true;
@@ -391,7 +399,7 @@ module Build
    end) =
 struct
 
-  let is_dynamic = not !kernel_ongoing
+  let is_dynamic = (*not !kernel_ongoing*)true
   let projectify = !projectify_ref
   let must_save = !must_save_ref
   let is_visible = !is_visible_ref
@@ -474,7 +482,7 @@ struct
          let default () = false
        end)
   let () =
-    State_dependency_graph.Static.add_dependencies ~from:Is_set.self [ self ];
+    State_dependency_graph.add_dependencies ~from:Is_set.self [ self ];
     extend_selection true Is_set.self
 
   module Set_hook = Hook.Build(struct type t = X.t * X.t end)
@@ -500,6 +508,7 @@ struct
     else
       set
 
+  (* like set, but do not clear the dependencies *)
   let unsafe_set =
     let set x =
       Is_set.set true;
@@ -526,14 +535,11 @@ struct
     Internal_state.set x;
     Set_hook.apply (old, x)
 
-  let unjournalized_set x =
+  let journalized_force_set = gen_journalized "set" X.ty force_set
+
+  let set x = 
     Is_set.set true;
-    if not (X.equal x (Internal_state.get ())) then force_set x
-
-  let unguarded_set = gen_journalized "set" X.ty unjournalized_set
-
-  (* [TODO] not very efficient since the test of modification is done twice. *)
-  let set x = if not (X.equal x (Internal_state.get ())) then unguarded_set x
+    if not (X.equal x (Internal_state.get ())) then journalized_force_set x
 
   let unguarded_clear =
     gen_journalized "clear" D.unit
@@ -667,7 +673,7 @@ struct
         ~visible
         ~ext_help:!optional_help_ref
         stage
-        (Cmdline.Unit (fun () -> unguarded_set value))
+        (Cmdline.Unit (fun () -> set value))
 
     let negative_option_name name =
       let s = !negative_option_name_ref in
@@ -713,8 +719,9 @@ struct
       let neg_help, neg_visible =
         match !negative_option_name_ref, !negative_option_help_ref with
         | None, "" -> (* no user-specific config: no help *) "", false
-        | Some _, "" -> mk_help ("opposite of option \"" ^ name ^ "\""), true
-        | _, s -> assert (s <> empty_string); mk_help s, true
+        | Some _, "" -> 
+	  mk_help ("opposite of option \"" ^ name ^ "\""), is_visible
+        | _, s -> assert (s <> empty_string); mk_help s, is_visible
       in
       generic_add_option neg_name neg_help neg_visible false;
       neg_name
@@ -821,7 +828,7 @@ struct
         ~plugin:P.shortname
         ~group
         stage
-        (Cmdline.Int unguarded_set)
+        (Cmdline.Int set)
 
     let add_aliases =
       Cmdline.add_aliases X.option_name ~plugin:P.shortname ~group stage
@@ -899,7 +906,7 @@ struct
         ~plugin:P.shortname
         ~group
         stage
-        (Cmdline.String unguarded_set)
+        (Cmdline.String set)
 
     let add_aliases =
       Cmdline.add_aliases X.option_name ~plugin:P.shortname ~group stage
@@ -980,12 +987,12 @@ struct
        end)
 
     let add =
-      let add x = unguarded_set (S.add x (get ())) in
+      let add x = set (S.add x (get ())) in
       let add = gen_journalized "add" D.string add in
       register_dynamic "add" D.string D.unit add
 
     let remove =
-      let remove x = unguarded_set (S.remove x (get ())) in
+      let remove x = set (S.remove x (get ())) in
       let remove = gen_journalized "remove" D.string remove in
       register_dynamic "remove" D.string D.unit remove
 
@@ -1002,7 +1009,7 @@ struct
     let guarded_set_set x =
       match split_set x with
       | [] when not (S.is_empty (get ())) ->
-          unguarded_set S.empty
+          set S.empty
       | l ->
         List.iter
           (fun s ->
@@ -1013,7 +1020,7 @@ struct
         if not (List.for_all (fun s -> S.mem s (get ())) l) ||
           not (S.for_all (fun s -> List.mem s l) (get ()))
         then
-          unguarded_set (List.fold_right S.add l S.empty)
+          set (List.fold_right S.add l S.empty)
 
     let get_set ?(sep=", ") () =
       S.fold
@@ -1036,17 +1043,21 @@ struct
       let exists f = S.exists f (get()) in
       register_dynamic "exists" (D.func D.string D.bool) D.bool exists
 
-    let add_option name =
+    let add_generic_option name help f =
       Cmdline.add_option
         name
         ~plugin:P.shortname
         ~group
         ~argname:X.arg_name
-        ~help:X.help
+        ~help
         ~visible:is_visible
         ~ext_help:!optional_help_ref
         stage
-        (Cmdline.String_list (List.iter add))
+        (Cmdline.String_list (List.iter f))
+        
+    let add_option name help = add_generic_option name help add
+
+    let add_option_unset name help = add_generic_option name help remove
 
     let add_aliases =
       Cmdline.add_aliases X.option_name ~plugin:P.shortname ~group stage
@@ -1090,7 +1101,15 @@ struct
           ~is_set
       in
       add_parameter !group_ref stage p;
-      add_option X.option_name;
+      add_option X.option_name X.help;
+      if !unset_option_name_ref <> "" then begin
+        let help =
+          if !unset_option_help_ref = "" then
+            "opposite of option " ^ X.option_name
+          else !unset_option_help_ref
+        in
+        add_option_unset !unset_option_name_ref help
+      end;
       reset ();
       if is_dynamic then
         Dynamic.register
@@ -1142,7 +1161,7 @@ struct
           ~is_set
       in
       add_parameter !group_ref stage p;
-      add_option X.option_name;
+      add_option X.option_name X.help;
       reset ();
       if is_dynamic then
         Dynamic.register
@@ -1366,9 +1385,7 @@ Option is unchanged.\n" s V.option_name
     let () = Output.add_set_hook (fun _ v -> if v then ShouldOutput.set true)
 
     let set_output_dependencies deps =
-      State_dependency_graph.Static.add_codependencies
-        ~onto:ShouldOutput.self
-        deps
+      State_dependency_graph.add_codependencies ~onto:ShouldOutput.self deps
 
     let output f =
       (* Output only if our two booleans are at true *)
@@ -1405,7 +1422,7 @@ Option is unchanged.\n" s V.option_name
 
     let get_and_check_dir ?(error=true) f =
       if (try Sys.is_directory f with Sys_error _ -> false) then
-        f
+        Filepath.normalize f
       else
         if error then abort "no share directory %s for plug-in %s." f P.name
         else raise No_dir
@@ -1467,14 +1484,17 @@ Option is unchanged.\n" s V.option_name
             let help =
               (if is_kernel () then "level of verbosity for the Frama-C kernel"
                else "level of verbosity for plug-in " ^ P.name)
-              ^ " (defaults to " ^ string_of_int default ^ ")"
+              ^ " (default to " ^ string_of_int default ^ ")"
           end)
-    let get () = if is_set () then get () else !Cmdline.verbose_level_ref
+    let get () = if is_set () then get () else Cmdline.Verbose_level.get ()
     let () =
       verbose_level := get;
       (* line order below matters *)
       set_range ~min:0 ~max:max_int;
-      if is_kernel () then set Cmdline.kernel_verbose_level
+      if is_kernel () then 
+	match !Cmdline.Kernel_verbose_level.value_if_set with
+	| None -> ()
+	| Some n -> set n
   end
 
   let debug_optname = output_mode "Debug" "debug"
@@ -1487,29 +1507,85 @@ Option is unchanged.\n" s V.option_name
             let help =
               (if is_kernel () then "level of debug for the Frama-C kernel"
                else "level of debug for plug-in " ^ P.name)
-              ^ " (defaults to " ^ string_of_int default ^ ")"
+              ^ " (default to " ^ string_of_int default ^ ")"
           end)
-    let get () = if is_set () then get () else !Cmdline.debug_level_ref
+    let get () = if is_set () then get () else Cmdline.Debug_level.get ()
     let () =
       debug_level := get;
       (* line order below matters *)
       set_range ~min:0 ~max:max_int;
       add_set_hook
         (fun old n ->
-           if n = 0 then Pervasives.decr positive_debug_ref
-           else if old = 0 then Pervasives.incr positive_debug_ref);
-      if is_kernel () then set Cmdline.kernel_debug_level
+	  (* the level of verbose is at least the level of debug *)
+	  if n > Verbose.get () then Verbose.set n;
+          if n = 0 then Pervasives.decr positive_debug_ref
+          else if old = 0 then Pervasives.incr positive_debug_ref);
+      if is_kernel () then
+	match !Cmdline.Kernel_debug_level.value_if_set with
+	| None -> ()
+	| Some n -> set n
   end
 
-  let debug_category_optname = output_mode "Debug_category" "debug-category"
+  let debug_category_optname = output_mode "Msg_key" "msg-key"
+  let () = set_unset_option_name (output_mode "Msg_key" "msg-key-unset")
+  let () =
+    set_unset_option_help
+      "disables message display for categories <k1>,...,<kn>"
   module Debug_category = struct
     include
-      StringList(struct
+      StringSet(struct
         let option_name = debug_category_optname
         let arg_name="k1[,...,kn]"
-        let help = "enables debugging for category of message <k1>,...,<kn>"
+        let help =
+          "enables message display for categories <k1>,...,<kn>. Use "
+          ^ debug_category_optname
+          ^ " help to get a list of available categories, and * to enable \
+              all categories"
       end)
-      let () = add_set_hook (fun _ n -> set_debug_keys n)
+      let () = add_set_hook
+        (fun before after ->
+          if not (D.String.Set.mem "help" before)
+            && D.String.Set.mem "help" after then
+            begin
+              (* level 0 just in case user ask to display all categories
+                 in an otherwise quiet run *)
+              feedback ~level:0 "@[<v 2>Available message categories are:%a@]"
+                (fun fmt set ->
+                  Category_set.iter
+                    (fun s -> 
+                      let s = (s:category:>string) in
+                      if s <> "" then Format.fprintf fmt "@;%s" s)
+                    set)
+                (get_all_categories ())
+            end;
+          let add_category c s = D.String.Set.add (c:category:>string) s in
+          let subcategory_closure s =
+            D.String.Set.fold
+              (fun s acc -> Category_set.union (get_category s) acc)
+              s Category_set.empty
+          in
+          let string_of_cat_set s =
+            Category_set.fold add_category s D.String.Set.empty
+          in
+          let remove = D.String.Set.diff before after in
+          let added = D.String.Set.diff after before in
+          let added = subcategory_closure added in
+          let remove = subcategory_closure remove in
+          add_debug_keys added;
+          del_debug_keys remove;
+          (* we add the subcategories to ourselves *)
+          let after = 
+            D.String.Set.union after (string_of_cat_set added)
+          in
+          let after =
+            D.String.Set.diff after (string_of_cat_set remove)
+          in
+          Internal_state.set after;
+          (* implicitly set debugging to 1 if at least one category is
+             enabled. *)
+          if Debug.get () < 1 && not (D.String.Set.is_empty after) then
+            Debug.set 1
+        )
   end
 
   let () = reset_plugin ()

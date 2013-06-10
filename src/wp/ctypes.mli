@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -41,11 +41,8 @@ val c_int_all : c_int list
 
 (** Runtime floats. *)
 type c_float =
-  | Float16
   | Float32
   | Float64
-  | Float96
-  | Float128
 
 (** Array objects, with both the head view and the flatten view. *)
 type arrayflat = {
@@ -78,6 +75,7 @@ val object_of_logic_pointed : logic_type -> c_object
 val imemo : (c_int -> 'a) -> c_int -> 'a
 val fmemo : (c_float -> 'a) -> c_float -> 'a
 
+val is_char : c_int -> bool
 val c_char : unit -> c_int     (** Returns the type of [char] *)
 val c_bool : unit -> c_int     (** Returns the type of [int] *)
 val c_ptr  : unit -> c_int     (** Returns the type of pointers *)
@@ -94,13 +92,9 @@ val constant : exp -> int64
 val get_int : exp -> int64 option
 
 val signed : c_int -> bool  (** true if ikind is signed *)
-val c_int_bounds: c_int -> Big_int.big_int * Big_int.big_int
+val c_int_bounds: c_int -> Qed.Z.t * Qed.Z.t
 
 (** All sizes are in bits *)
-
-val i_sizeof  : c_int -> int
-
-val f_sizeof : c_float -> int
 
 val sub_c_int: c_int -> c_int -> bool
 
@@ -141,9 +135,3 @@ sig
   val equal : t -> t -> bool
   val hash : t -> int
 end
-
-(*
-Local Variables:
-compile-command: "make -C ../.."
-End:
-*)

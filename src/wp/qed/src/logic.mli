@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -33,9 +33,10 @@ type 'a element =
 
 (** Algebraic properties for user operators. *)
 type 'a operator = {
+  inversible : bool ; (* x+y = x+z <-> y=z (on both side) *)
   associative : bool ; (* x+(y+z)=(x+y)+z *)
   commutative : bool ; (* x+y=y+x *)
-  stable : bool ;      (* x+x = x *)
+  idempotent : bool ; (* x+x = x *)
   neutral : 'a element ;
   absorbant : 'a element ;
 }
@@ -45,6 +46,7 @@ type 'a category =
   | Function      (** no reduction rule *)
   | Constructor   (** [f xs = g ys] iff [f=g && xi=yi] *)
   | Injection     (** [f xs = f ys] iff [xi=yi] *)
+  | Constant of Z.t
   | Operator of 'a operator
 
 (** Quantifiers and Binders *)
@@ -103,7 +105,8 @@ module type Function =
 sig
   include Symbol 
   val category : t -> t category
-  val sort : t -> sort (** of result *)
+  val params : t -> sort list (** params ; exceeding params use Sdata *)
+  val sort : t -> sort (** result *)
 end
 
 (** {2 Bound Variables} *)
@@ -112,6 +115,7 @@ sig
   include Symbol
   val sort : t -> sort
   val basename : t -> string
+  val dummy : t
 end
 
 (** {2 Representation of Patterns, Functions and Terms} *)
@@ -169,9 +173,10 @@ sig
   type signature = (Field.t,ADT.t) funtype
 
   module Vars : Idxset.S with type elt = var
+  module Vmap : Idxmap.S with type key = var
 
   type pool
-  val pool : unit -> pool
+  val pool : ?copy:pool -> unit -> pool
 
   val add_var : pool -> var -> unit
   val add_vars : pool -> Vars.t -> unit
@@ -185,7 +190,9 @@ sig
 
   (** {3 Terms} *)
 
-  type repr = (Field.t,Fun.t,var,term) term_repr
+  type 'a symbol = (Field.t,Fun.t,var,'a) term_repr
+
+  type repr = term symbol
   type path = int list (** position of a subterm in a term. *)
   type record = (Field.t * term) list
 
@@ -198,7 +205,7 @@ sig
 
   val are_equal : term -> term -> maybe (** Computes equality *)
 
-  val repr : term -> repr   (** Constant time *)
+  val repr : term -> repr  (** Constant time *)
   val sort : term -> sort   (** Constant time *)
   val vars : term -> Vars.t (** Constant time *)
 
@@ -209,6 +216,8 @@ sig
 
   val e_true : term
   val e_false : term
+  val e_bool : bool -> term
+  val e_literal : bool -> term -> term
   val e_int : int -> term
   val e_zint : Z.t -> term
   val e_real : R.t -> term
@@ -249,14 +258,57 @@ sig
 
   (** {3 Recursion Scheme} *)
 
+  val e_repr : repr -> term
+
   val e_map  : (term -> term) -> term -> term
     (** @raise Invalid_argument on Bind constructor *)
 
   val e_iter : (term -> unit) -> term -> unit
     (** Also goes into Bind constructor *)
 
+  val f_map  : (Vars.t -> term -> term) -> Vars.t -> term -> term
+    (** Pass the bound variables in context *)
+
+  val f_iter  : (Vars.t -> term -> unit) -> Vars.t -> term -> unit
+    (** Pass the bound variables in context *)
+
+  (** {3 Support for Builtins} *)
+
+  val add_builtin : Fun.t -> (term list -> term) -> unit
+    (** Register a simplifier for function [f]. The computation code
+	may raise [Not_found], in which case the symbol is not interpreted. 
+
+	If [f] is an operator with algebraic rules (see type
+	[operator]), the children are normalized {i before} builtin
+	call. 
+
+	Circularity can be broken using [e_funop] and [e_funraw].  By
+	the way, it is the responsability of the normalization
+	function to returns a properly normalized term.
+    *)
+
+  val add_builtin_eq : Fun.t -> (term -> term -> term) -> unit
+    (** Register a builtin equality for comparing any term with head-symbol. 
+	{b Must} only need comparison for strictly smaller terms. *)
+
+  val e_funop : Fun.t -> term list -> term
+    (** Variant of [e_fun] that do not invoke builtins. 
+	Operator are still normalized, though.
+
+	{b warning:} should not be used outside a builtin normalization function. *)
+
+  val e_funraw : Fun.t -> term list -> term
+    (** Variant of [e_fun] that do not invoke builtins, 
+	{i nor} operator normalization rules.
+	{b warning:} should not be used outside a builtin normalization function. *)
+
   (** {3 Specific Patterns} *)
 
+  val literal : term -> bool * term
+  val congruence_eq : term -> term -> (term * term) list option
+    (** If [congruence_eq a b] returns [[ai,bi]], [a=b] is equivalent to [And{ai=bi}]. *)
+  val congruence_neq : term -> term -> (term * term) list option
+    (** If [congruence_eq a b] returns [[ai,bi]], [a<>b] is equivalent to [Or{ai<>bi}]. *)
   val flattenable : term -> bool
   val flattens : term -> term -> bool (** The comparison flattens *)
   val flatten : term -> term list (** Returns an equivalent conjunction *)
@@ -271,6 +323,7 @@ sig
   val equal : t -> t -> bool (** physical equality *)
   val compare : t -> t -> int (** atoms are lower than complex terms ; otherwise, sorted by id. *)
   val pretty : Format.formatter -> t -> unit
+  val weigth : t -> int (** Informal size *)
 
   (** {3 Utilities} *)
 
@@ -278,9 +331,16 @@ sig
   val is_simple : t -> bool (** Constants, variables, functions of arity 0 *)
   val is_atomic : t -> bool (** Constants and variables *)
   val is_primitive : t -> bool (** Constants only *)
+  val is_neutral : Fun.t -> t -> bool
+  val is_absorbant : Fun.t -> t -> bool
+
+  val size : t -> int
+  val basename : t -> string
 
   val debug : Format.formatter -> t -> unit
-  val state : Format.formatter -> ( string * t ) list -> unit
+  val pp_id : Format.formatter -> t -> unit (** internal id *)
+  val pp_rid : Format.formatter -> t -> unit (** head symbol with children id's *)
+  val pp_repr : Format.formatter -> repr -> unit (** head symbol with children id's *)
 
   module Tset : Idxset.S with type elt = term
   module Tmap : Idxmap.S with type key = term
@@ -288,7 +348,7 @@ sig
   (** {2 Shared sub-terms} *)
 
   val shared : 
-    ?atomic:(term -> bool) -> 
+    ?shared:(term -> bool) -> 
     ?shareable:(term -> bool) -> 
     ?closed:Vars.t -> 
     term list -> term list
@@ -303,5 +363,19 @@ sig
 	- [shareable] those terms that can be shared (all by default)
 	- [closed] free variables of [t] authorized in sub-terms
     *)
+
+  (** Low-level shared primitives: [shared] is actually a combination of
+      building marks, marking terms, and extracting definitions:
+
+      {[ let m = marks ?... () in List.iter (mark m) es ; defs m ]} *)
+
+  type marks
+  val marks :
+    ?shared:(term -> bool) -> 
+    ?shareable:(term -> bool) -> 
+    ?closed:Vars.t -> 
+    unit -> marks
+  val mark : marks -> term -> unit
+  val defs : marks -> term list
 
 end

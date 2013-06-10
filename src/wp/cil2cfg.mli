@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -167,12 +167,3 @@ module HE (I : sig type t end) : HEsig with type ti = I.t
 
 (** type of functions to print things related to edges *)
 type pp_edge_fun = Format.formatter -> edge -> unit
-
-(** Output the graph in a dot file and return its name **)
-val dot_cfg : t -> string
-
-(** [dot_annots cfg bhv_name pp_annots] *)
-val dot_annots : t -> string option -> pp_edge_fun -> string
-
-(** [dot_wp_res cfg model pp_wp_res] *)
-val dot_wp_res : t -> string -> pp_edge_fun -> string

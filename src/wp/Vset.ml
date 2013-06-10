@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -121,7 +121,7 @@ let theory = "vset"
 
 let adt_set = Lang.datatype ~link:"set" ~theory
 let tau_of_set te = Logic.Data( adt_set , [te] )
-let p_member = Lang.extern_p ~theory ~prop:"member" ~bool:"member_bool"
+let p_member = Lang.extern_p ~theory ~prop:"member" ~bool:"member_bool" ()
 let f_empty = Lang.extern_f ~theory "empty"
 let f_union = Lang.extern_f ~theory "union"
 let f_inter = Lang.extern_f ~theory "inter"
@@ -145,20 +145,17 @@ let sub_range x y a b =
     | Some z -> p_and (p_equal x z) (p_equal y z)
     | None -> test_range x y a b
 
+let in_size x n = p_and (p_leq e_zero x) (p_lt x (e_int64 n))
+
 let in_range x a b = 
   match single a b with
     | Some y -> p_equal x y
     | None -> test_range x x a b
 
-let ordered a b =
+let ordered ~limit ~strict a b =
   match a , b with
-    | Some x , Some y -> p_leq x y
-    | _ -> p_true
-
-let strictly_ordered a b =
-  match a , b with
-    | Some x , Some y -> p_lt x y
-    | _ -> p_false
+    | Some x , Some y -> if strict then p_lt x y else p_leq x y
+    | _ -> if limit then p_true else p_false
 
 let member x xs = p_all
   (function
@@ -357,6 +354,15 @@ let lift f xs ys =
 	 | Singleton a , Singleton b -> Singleton (f a b)
 	 | _ -> lift_vset f x y
     ) xs ys
+
+let pp_bound fmt = function
+  | None -> ()
+  | Some e -> F.pp_term fmt e
+
+let bound_shift a k =
+  match a with
+    | None -> None
+    | Some x -> Some (e_add x k)
 
 let bound_add a b =
   match a,b with

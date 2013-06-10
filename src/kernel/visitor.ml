@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -34,10 +34,6 @@ class type frama_c_visitor = object
   method frama_c_plain_copy: frama_c_visitor
   method vstmt_aux: Cil_types.stmt -> Cil_types.stmt visitAction
   method vglob_aux: Cil_types.global -> Cil_types.global list visitAction
-  method vrooted_code_annotation:
-    rooted_code_annotation ->
-    rooted_code_annotation list visitAction
-  method is_annot_before: bool
   method current_kf: kernel_function option
   (** @plugin development guide *)
 
@@ -50,44 +46,24 @@ end
     redefined in inherited classes, while the corresponding ones from
     {!Cil.cilVisitor} {b must} retain their values as defined here. Otherwise,
     annotations may not be visited properly. *)
-class internal_generic_frama_c_visitor
-  current_kf prj behavior: frama_c_visitor =
+class internal_generic_frama_c_visitor fundec queue current_kf behavior: frama_c_visitor =
 
-  let childrenRooted_code_annotation (vis:frama_c_visitor) rca =
-    match rca with
-      User ca ->
-        let ca' = visitCilCodeAnnotation (vis:> cilVisitor) ca in
-        if ca != ca' then User ca' else rca
-    | AI (cause,ca) ->
-      let ca' = visitCilCodeAnnotation (vis:> cilVisitor) ca in
-      if ca != ca' then AI(cause,ca') else rca
-  in
-  let visitRooted_code_annotation (vis: frama_c_visitor) ca =
-    doVisitList vis vis#frama_c_plain_copy
-      (fun x -> x)
-      vis#vrooted_code_annotation childrenRooted_code_annotation ca
-  in
 object(self)
-  inherit genericCilVisitor ~prj behavior
-  (* top of the stack indicates if we are before or after the current
-     statement. *)
-  val before = Stack.create ()
+  inherit internal_genericCilVisitor fundec behavior queue
 
   method frama_c_plain_copy =
-    new internal_generic_frama_c_visitor current_kf prj behavior
+    new internal_generic_frama_c_visitor fundec queue current_kf behavior
 
-  method plain_copy_visitor = (self#frama_c_plain_copy :> Cil.cilVisitor)
+  method plain_copy_visitor =
+    assert (self#frama_c_plain_copy#get_filling_actions == 
+              self#get_filling_actions);
+    (self#frama_c_plain_copy :> Cil.cilVisitor)
 
   method set_current_kf kf = current_kf := Some kf
 
   method reset_current_kf () = current_kf := None
 
   method current_kf = !current_kf
-
-  method is_annot_before =
-    Stack.is_empty before (* global annotation *) || Stack.top before
-
-  method vrooted_code_annotation _ = DoChildren
 
   method private vstmt stmt =
     let annots =
@@ -96,19 +72,17 @@ object(self)
     let res = self#vstmt_aux stmt in
     (* Annotations will be visited and more importantly added in the
        same order as they were in the original AST.  *)
-    let compare_rooted (_, x) (_, y) =
-      let id1 = match x with User ca | AI(_,ca) -> ca.annot_id in
-      let id2 = match y with User ca | AI(_,ca) -> ca.annot_id in
-      if id1 < id2 then -1 else if id2 < id1 then 1 else 0
+    let abefore =
+      List.sort 
+        (fun (_,a) (_,b) -> Cil_datatype.Code_annotation.compare a b)
+        annots
     in
-    let abefore = List.sort compare_rooted annots in
     let make_children_annot vis =
-      Stack.push true before;
       let res_before, remove_before =
         List.fold_left
           (fun (res,remove) (e, x) ->
             let curr_res, keep_curr =
-               (* only keeps non-trivial non-already existing annotations *)
+              (* only keeps non-trivial non-already existing annotations *)
               List.fold_left
                 (fun (res,keep) y ->
                   let current = x == y in
@@ -116,21 +90,22 @@ object(self)
                     if
                       (* if x is trivial, keep all annotations, including
                          trivial ones. *)
-                      (not (Ast_info.is_trivial_rooted_assertion y)
-                       || (Ast_info.is_trivial_rooted_assertion x))
+                      (not (Ast_info.is_trivial_annotation y)
+                       || (Ast_info.is_trivial_annotation x))
                       &&
                       (not current || Cil.is_copy_behavior vis#behavior)
                     then (e, y) :: res else res
                   in (res, keep || current))
                 ([],false)
-                (visitRooted_code_annotation (vis:>frama_c_visitor) x)
+                (* TODO: make visitCilCodeAnnotation return a list of 
+                   annotations? *)
+                [visitCilCodeAnnotation (vis:>cilVisitor) x]
             in
             (res @ curr_res, if keep_curr then remove else (e, x) :: remove)
           )
           ([],[])
           abefore
       in
-      ignore (Stack.pop before);
       (res_before, remove_before)
     in
     let change_stmt stmt (res_before, remove) =
@@ -525,8 +500,8 @@ object(self)
                  inconsistent terminates clauses@\n\
                  Registered @[%a@]@\nReturned @[%a@]"
                 Kernel_function.pretty new_kf
-                Cil.d_identified_predicate p1
-                Cil.d_identified_predicate p2);
+                Printer.pp_identified_predicate p1
+                Printer.pp_identified_predicate p2);
         let new_decreases = Annotations.decreases ~populate new_kf in
         (match new_decreases, new_spec.spec_variant with
           | None, None -> ()
@@ -541,9 +516,9 @@ object(self)
                  Registered %d@\n%a@\nReturned %d@\n%a"
                 Kernel_function.pretty new_kf
                 (Obj.magic p1)
-                Cil.d_decreases p1
+                Printer.pp_decreases p1
                 (Obj.magic p2)
-                Cil.d_decreases p2)
+                Printer.pp_decreases p2)
       in
       List.iter
         (fun (e,c) ->
@@ -615,7 +590,6 @@ object(self)
   method vglob g =
     let fundec, has_kf = match g with
       | GVarDecl(_,v,_) when isFunctionType v.vtype ->
-        let v = Cil.get_original_varinfo self#behavior v in
         let kf = try Globals.Functions.get v with Not_found ->
           Kernel.fatal "No kernel function for %s(%d)" v.vname v.vid
         in
@@ -627,7 +601,13 @@ object(self)
         None, true
       | GFun(f,_) ->
         let v = Cil.get_original_varinfo self#behavior f.svar in
-        let kf = Globals.Functions.get v in
+        let kf = 
+	  try Globals.Functions.get v 
+	  with Not_found ->
+	    Kernel.fatal "Visitor does not found function %s in %a"
+	      v.vname
+	      Project.pretty (Project.current ())
+	in
         let new_kf = Cil.memo_kernel_function self#behavior kf in
         if Cil.is_copy_behavior self#behavior then
           new_kf.spec <- Cil.empty_funspec ();
@@ -680,41 +660,45 @@ object(self)
                       Cil_datatype.Varinfo.pretty vi)
                 self#get_filling_actions
         | GVarDecl(_,v,l) when isFunctionType v.vtype ->
-            let kf = Extlib.the self#current_kf in
-            let new_kf = Cil.get_kernel_function self#behavior kf in
-            if cond then begin
-              Queue.add
-                (fun () ->
-		(* NB: we can't really know whether v is associated to new_kf,
-                   but if this is not the case, it is the responsibility of the
-                   child visitor to properly update kf table while doing its
-                   own transformations. *)
-                  if Cil.hasAttribute "FC_BUILTIN" v.vattr then
-                    Cil.Frama_c_builtins.add v.vname v;
-                  if Cil_datatype.Varinfo.equal v
-                       (Kernel_function.get_vi new_kf)
-                  then begin
-                    let dft = Annotations.funspec ~populate:false new_kf in
-                    let dft = { dft with spec_behavior = dft.spec_behavior } in
-                    let spec = Extlib.may_map Extlib.id ~dft spec in
-                    Globals.Functions.register new_kf;
-                    Globals.Functions.replace_by_declaration spec v l;
-                  (* Format.printf "registered spec:@\n%a@." Cil.d_funspec
-                     (Annotations.funspec ~populate:false new_kf) *)
-                  end else begin
-                    Globals.Functions.replace_by_declaration
-                      (Cil.empty_funspec()) v l
-                  end)
-                self#get_filling_actions;
-              if
-                Cil_datatype.Varinfo.equal v
-                  (Kernel_function.get_vi new_kf) && Extlib.has_some spec
-              then
-                Queue.add
-                  (fun () -> Annotations.register_funspec ~force:true new_kf)
-                  self#get_filling_actions;
-            end
-
+            (match self#current_kf with
+              | Some kf ->
+                  let new_kf = Cil.get_kernel_function self#behavior kf in
+                  if cond then begin
+                    Queue.add
+                      (fun () ->
+                        if Cil.hasAttribute "FC_BUILTIN" v.vattr then
+                          Cil.Frama_c_builtins.add v.vname v;
+                        if Cil_datatype.Varinfo.equal v
+                          (Kernel_function.get_vi new_kf)
+                        then begin
+                          let dft =
+                            Annotations.funspec ~populate:false new_kf
+                          in
+                          let dft =
+                            { dft with spec_behavior = dft.spec_behavior }
+                          in
+                          let spec = Extlib.opt_conv dft spec in
+                          Globals.Functions.register new_kf;
+                          Globals.Functions.replace_by_declaration spec v l;
+                      (* Format.printf "registered spec:@\n%a@." Printer.pp_funspec
+                         (Annotations.funspec ~populate:false new_kf) *)
+                        end else begin
+                          Globals.Functions.replace_by_declaration
+                            (Cil.empty_funspec()) v l
+                        end)
+                      self#get_filling_actions;
+                    if
+                      Cil_datatype.Varinfo.equal v
+                        (Kernel_function.get_vi new_kf) && Extlib.has_some spec
+                    then
+                      Queue.add
+                        (fun () ->
+                          Annotations.register_funspec ~force:true new_kf)
+                        self#get_filling_actions;
+                  end
+              | None -> ()
+              (* User is responsible for registering the new function *)
+            )
       | GVarDecl (_,({vstorage=Extern} as v),_) (* when not (isFunctionType
                                                    v.vtype) *) ->
         if cond then
@@ -730,39 +714,41 @@ object(self)
             self#get_filling_actions
       | GFun(f,l) ->
         if cond then begin
-          let new_kf =
-           Cil.get_kernel_function self#behavior (Extlib.the self#current_kf)
-         in
-         Queue.add
-           (fun () ->
-             Kernel.debug
-               "@[Adding definition %s (vid: %d) for project %s@\n\
-                      body: %a@\n@]@."
-               f.svar.vname f.svar.vid
-               (Project.get_name (Project.current()))
-               !Ast_printer.d_block f.sbody;
-             if cond && Cil.hasAttribute "FC_BUILTIN" f.svar.vattr then
-               Cil.Frama_c_builtins.add f.svar.vname f.svar;
-             if  Cil_datatype.Varinfo.equal f.svar
-               (Kernel_function.get_vi new_kf)
-             then begin
-               Globals.Functions.register new_kf;
-               let spec =
-                 Extlib.may_map Extlib.id
-                   ~dft:(Annotations.funspec ~populate:false new_kf) spec
-               in
-               Globals.Functions.replace_by_definition spec f l
-             end else
-               Globals.Functions.replace_by_definition
-                 (Cil.empty_funspec ()) f l
-           )
-           self#get_filling_actions;
-          if Cil_datatype.Varinfo.equal f.svar (Kernel_function.get_vi new_kf)
-            && Extlib.has_some spec
-          then
-            Queue.add
-              (fun () -> Annotations.register_funspec ~force:true new_kf)
-              self#get_filling_actions;
+          match self#current_kf with
+            | Some kf ->
+                let new_kf = Cil.get_kernel_function self#behavior kf in
+                Queue.add
+                  (fun () ->
+                    Kernel.debug
+                      "@[Adding definition %s (vid: %d) for project %s@\n\
+                         body: %a@\n@]@."
+                      f.svar.vname f.svar.vid
+                      (Project.get_name (Project.current()))
+                      Printer.pp_block f.sbody;
+                    if cond && Cil.hasAttribute "FC_BUILTIN" f.svar.vattr then
+                      Cil.Frama_c_builtins.add f.svar.vname f.svar;
+                    if  Cil_datatype.Varinfo.equal f.svar
+                      (Kernel_function.get_vi new_kf)
+                    then begin
+                      Globals.Functions.register new_kf;
+                      let spec =
+                        Extlib.opt_conv
+                          (Annotations.funspec ~populate:false new_kf) spec
+                      in
+                      Globals.Functions.replace_by_definition spec f l
+                    end else
+                      Globals.Functions.replace_by_definition
+                        (Cil.empty_funspec ()) f l
+                  )
+                  self#get_filling_actions;
+                if Cil_datatype.Varinfo.equal f.svar
+                  (Kernel_function.get_vi new_kf)
+                  && Extlib.has_some spec
+                then
+                  Queue.add
+                    (fun () -> Annotations.register_funspec ~force:true new_kf)
+                    self#get_filling_actions;
+            | None -> () (* User has to register the new function *)
         end
       | GAnnot (na,_) when cond ->
 	let e = match g with
@@ -816,14 +802,16 @@ object(self)
     | ChangeDoChildrenPost (l,f) -> ChangeDoChildrenPost (l, post_do_children f)
 end
 
-class generic_frama_c_visitor prj bhv =
+class generic_frama_c_visitor bhv =
   let current_kf = ref None in
-  internal_generic_frama_c_visitor current_kf prj bhv
+  let current_fundec = ref None in
+  let queue = Queue.create () in
+  internal_generic_frama_c_visitor current_fundec queue current_kf bhv
 
-class frama_c_copy prj = generic_frama_c_visitor prj (copy_visit ())
+class frama_c_copy prj = generic_frama_c_visitor (copy_visit prj)
 
 class frama_c_inplace =
-  generic_frama_c_visitor (Project.current()) (inplace_visit())
+  generic_frama_c_visitor (inplace_visit())
 
 let visitFramacFileCopy vis f = visitCilFileCopy (vis:>cilVisitor) f
 

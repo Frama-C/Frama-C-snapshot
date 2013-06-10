@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat � l'�nergie atomique et aux �nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -23,12 +23,15 @@
 let show main_ui =
   let authors =
     [ "Patrick Baudin" ;
+      "François Bobot" ;
       "Richard Bonichon";
       "Loïc Correnson";
       "Pascal Cuoq";
       "Zaynah Dargaye";
       "Jean-Christophe Filliâtre";
       "Philippe Herrmann";
+      "Florent Kirchner";
+      "Matthieu Lemerre";
       "Claude Marché";
       "Benjamin Monate";
       "Yannick Moy";
@@ -38,11 +41,10 @@ let show main_ui =
       "Boris Yakobowski" ]
   in
   let copyright (* should be automatically generated *) =
-    "\t © CEA and INRIA for the Frama-C kernel and plug-ins pdg, scope, \
-slicing and sparecode\n\
+    "\t © CEA and INRIA for the Frama-C kernel\n\
 \t © CEA for the GUI and plug-ins constant propagation, from, inout, impact, \
-metrics, occurrence postdominators, security_slicing, semantic callgraph, \
-syntactic callgraph, users and value.\n\
+metrics, occurrence pdg, postdominators, scope, security_slicing, \
+semantic callgraph, slicing, sparecode, syntactic callgraph, users and value.\n\
 \n\
 See the particular header of each source file for details."
   in

@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -60,12 +60,10 @@ let pp_logic_label fmt label =
 
 let pp_assigns fmt asgns =
   match asgns with
-      WritesAny -> Format.fprintf fmt "<undef>"
-    | _ ->
-      Format.fprintf fmt "@[<hov 2>%a@]"
-        (Cil.defaultCilPrinter#pAssigns "") asgns
+  | WritesAny -> Format.fprintf fmt "<undef>"
+  | _ -> Format.fprintf fmt "@[<hov 2>%a@]" (Printer.pp_full_assigns "") asgns
 
-let pp_string_list ?(sep=Pretty_utils.space_sep) ~empty fmt l =
+let pp_string_list ?(sep=format_of_string "@ ") ~empty fmt l =
   match l with [] ->  Format.fprintf fmt "%s" empty
   | _ -> Format.fprintf fmt "%a"
            (Pretty_utils.pp_list ~sep Format.pp_print_string) l

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,13 +27,10 @@
     to refer to it later *)
 val new_counter : unit -> int
 
-(** Results retourned by the value analysis after it analyzed one call*)
-module ValueOutputs: Datatype.S
-  with type t =
-  (Cvalue.V_Offsetmap.t option (** Return value *) *
-   Cvalue.Model.t (** Memory state *))
-  list *
-  Locations.Location_Bits.Top_Param.t (** cloberred set for local variables *)
+(** Subtype of {!Value_types.call_res} *)
+module ValueOutputs: Datatype.S with type t =
+  (Cvalue.V_Offsetmap.t option * Cvalue.Model.t) list (** states *) *
+  Base.SetLattice.t (** cloberred set for local variables *)
 
 
 (** [store_computed_call (kf, ki) init_state outputs] memoizes the fact
@@ -41,9 +38,9 @@ module ValueOutputs: Datatype.S
     resulted in the states [outputs]. Those information are intended to
     be reused in subsequent calls *)
 val store_computed_call :
-  Value_aux.call_site ->
+  Value_types.call_site ->
   Cvalue.Model.t ->
-  ValueOutputs.t ->
+  Value_types.call_result ->
   unit
 
 (** [reuse_previous_call (kf, ki) init_state] searches amongst the previous
@@ -53,9 +50,9 @@ val store_computed_call :
     information is intended to be used by the plugins that have registered
     Value callbacks.) *)
 val reuse_previous_call :
-  Value_aux.call_site ->
+  Value_types.call_site ->
   Cvalue.Model.t ->
-  (ValueOutputs.t * int) option
+  (Value_types.call_result * int) option
 
 (** Clean all previously stored results *)
 val cleanup_results: unit -> unit

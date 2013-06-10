@@ -2,8 +2,8 @@
 #                                                                        #
 #  This file is part of WP plug-in of Frama-C.                           #
 #                                                                        #
-#  Copyright (C) 2007-2012                                               #
-#    CEA (Commissariat a l'énergie atomique et aux énergies              #
+#  Copyright (C) 2007-2013                                               #
+#    CEA (Commissariat a l'energie atomique et aux energies              #
 #         alternatives)                                                  #
 #                                                                        #
 #  you can redistribute it and/or modify it under the terms of the GNU   #
@@ -54,13 +54,15 @@ sinclude .depend
 
 #OPTC=$(shell if which ocamlc.opt > /dev/null; then echo -n .opt; else echo -n ""; fi)
 OPTC?=.opt
-OCAMLC=$(OCAMLROOT)ocamlc$(OPTC)
-OCAMLOPT=$(OCAMLROOT)ocamlopt$(OPTC)
-OCAMLLEX=$(OCAMLROOT)ocamllex$(OPTC)
-OCAMLYACC=$(OCAMLROOT)ocamlyacc
-OCAMLDOC=$(OCAMLROOT)ocamldoc
-OCAMLDEP=$(OCAMLROOT)ocamldep
-OCAMLMKLIB=$(OCAMLROOT)ocamlmklib
-OCAMLLIB=$(shell $(OCAMLC) -where)
+OCAMLC?=$(OCAMLROOT)ocamlc$(OPTC)
+OCAMLOPT?=$(OCAMLROOT)ocamlopt$(OPTC)
+# [JS 2013/04/17] fix bug #1385
+#OCAMLLEX?=$(OCAMLROOT)ocamllex$(OPTC)
+OCAMLLEX?=$(OCAMLROOT)ocamllex
+OCAMLYACC?=$(OCAMLROOT)ocamlyacc
+OCAMLDOC?=$(OCAMLROOT)ocamldoc
+OCAMLDEP?=$(OCAMLROOT)ocamldep
+OCAMLMKLIB?=$(OCAMLROOT)ocamlmklib
+#OCAMLLIB=$(shell $(OCAMLC) -where)
 
 #######################################################

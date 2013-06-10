@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -92,26 +92,6 @@ let pretty fmt = function
   | CallAt sid -> Format.fprintf fmt "Call sid:%d" sid
   | At(label::_,_) -> Format.fprintf fmt "Stmt '%s'" label
   | At([],sid) -> Format.fprintf fmt "Stmt sid:%d" sid
-
-let label f a x =
-  if Wp_parameters.Trace.get () then
-    match a with
-      | Here | Pre | Post | Exit -> x
-      | LabelParam label ->
-          (*TODO [LC] see mk_logic_label and loop_head_label *)
-          if has_prefix "wp!" label
-          then x
-          else f label x
-      | CallAt sid ->
-          if Wp_parameters.debug_atleast 1
-          then f (Printf.sprintf "Call%d" sid) x else x
-      | At(labels,sid) ->
-          List.fold_left
-            (fun x label -> f label x)
-            (if Wp_parameters.debug_atleast 1
-             then f (Printf.sprintf "Stmt%d" sid) x else x)
-            labels
-  else x
 
 let lookup_name = function
   | Pre  -> "Pre"

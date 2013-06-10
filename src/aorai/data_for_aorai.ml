@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Aorai plug-in of Frama-C.                        *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -666,7 +666,7 @@ struct
   let integral_cast ty t =
     Aorai_option.abort
       "term %a has type %a, but %a is expected."
-      Cil.d_term t Cil.d_logic_type Linteger Cil.d_type ty
+      Printer.pp_term t Printer.pp_logic_type Linteger Printer.pp_typ ty
 end
 
 module LTyping = Logic_typing.Make(C_logic_env)
@@ -683,46 +683,8 @@ let type_expr env ?tr ?current e =
         let e = Cil.parseIntLogic ~loc s in
         env, e, cond
       | PCst (Logic_ptree.FloatConstant str) ->
-        let e,t =
-          let hasSuffix str =
-            let l = String.length str in
-            fun s ->
-              let ls = String.length s in
-              l >= ls && s = String.uppercase (String.sub str (l - ls) ls)
-          in
-          (* Maybe it ends in F or L. Strip those *)
-          let l = String.length str in
-          let hasSuffix = hasSuffix str in
-          let baseint, kind =
-            if  hasSuffix "L" or hasSuffix "l" then
-              String.sub str 0 (l - 1), FLongDouble
-            else if hasSuffix "F" or hasSuffix "f" then
-              String.sub str 0 (l - 1), FFloat
-            else if hasSuffix "D" or hasSuffix "d" then
-              String.sub str 0 (l - 1), FDouble
-            else
-              str, FDouble
-          in
-          begin
-	    try
-              let convert =
-                match kind with
-                    FFloat ->
-                      Floating_point.single_precision_of_string
-                  | FDouble | FLongDouble ->
-		      Floating_point.double_precision_of_string
-              in
-              Floating_point.set_round_nearest_even ();
-	      let f = match convert baseint with
-		Floating_point.Exact f | Floating_point.Inexact f -> f
-	      in
-	      TConst(LReal(f,str)),
-	      Lreal
-	    with Failure _ as e ->
-	      Aorai_option.abort ~current:true
-		"float_of_string %s (%s)" str (Printexc.to_string e)
-          end
-        in env,Logic_const.term e t,cond
+          let c = Logic_utils.string_to_float_lconstant str in
+          env, Logic_const.term (TConst c) Lreal, cond
       | PCst (Logic_ptree.StringConstant s) ->
         let t =
           Logic_const.term
@@ -782,9 +744,9 @@ let type_expr env ?tr ?current e =
                 Aorai_option.abort
                   "Invalid operands for binary operator %a: \
                    unexpected %a and %a"
-                !Ast_printer.d_binop op
-                !Ast_printer.d_term e1
-                !Ast_printer.d_term e2)
+                Printer.pp_binop op
+                Printer.pp_term e1
+                Printer.pp_term e2)
         in
         env, t, cond
       | PUnop(Logic_ptree.Uminus,e) ->
@@ -792,26 +754,26 @@ let type_expr env ?tr ?current e =
         if Logic_typing.is_arithmetic_type t.term_type then
           env,Logic_const.term (TUnOp (Neg,t)) Linteger,cond
         else Aorai_option.abort
-          "Invalid operand for unary -: unexpected %a" !Ast_printer.d_term t
+          "Invalid operand for unary -: unexpected %a" Printer.pp_term t
       | PUnop(Logic_ptree.Ubw_not,e) ->
         let env,t,cond = aux env cond e in
         if Logic_typing.is_arithmetic_type t.term_type then
           env,Logic_const.term (TUnOp (BNot,t)) Linteger,cond
         else Aorai_option.abort
-          "Invalid operand for bitwise not: unexpected %a" !Ast_printer.d_term t
+          "Invalid operand for bitwise not: unexpected %a" Printer.pp_term t
       | PUnop(Logic_ptree.Uamp,e) ->
         let env, t, cond = aux env cond e in
         let ptr =
           try Ctype (TPtr (Logic_utils.logicCType t.term_type,[]))
           with Failure _ ->
             Aorai_option.abort "Cannot take address: not a C type(%a): %a"
-              !Ast_printer.d_logic_type t.term_type !Ast_printer.d_term t
+              Printer.pp_logic_type t.term_type Printer.pp_term t
         in
         (match t.term_node with
           | TLval v | TStartOf v -> env, Logic_const.taddrof v ptr, cond
           | _ ->
             Aorai_option.abort "Cannot take address: not an lvalue %a"
-              !Ast_printer.d_term t
+              Printer.pp_term t
         )
       | PUnop (Logic_ptree.Ustar,e) ->
         let env, t, cond = aux env cond e in
@@ -822,7 +784,7 @@ let type_expr env ?tr ?current e =
             (Logic_typing.type_of_pointed t.term_type),
           cond
         else
-          Aorai_option.abort "Cannot dereference term %a" !Ast_printer.d_term t
+          Aorai_option.abort "Cannot dereference term %a" Printer.pp_term t
       | PArrget(e1,e2) ->
         let env, t1, cond = aux env cond e1 in
         let env, t2, cond = aux env cond e2 in
@@ -851,7 +813,7 @@ let type_expr env ?tr ?current e =
               | _ ->
                 Aorai_option.fatal
                   "Unsupported operation: %a[%a]"
-                  !Ast_printer.d_term t1 !Ast_printer.d_term t2)
+                  Printer.pp_term t1 Printer.pp_term t2)
           else if Logic_utils.isLogicArrayType t2.term_type
               && Logic_typing.is_integral_type t1.term_type
           then
@@ -864,11 +826,11 @@ let type_expr env ?tr ?current e =
               | _ ->
                 Aorai_option.fatal
                   "Unsupported operation: %a[%a]"
-                  !Ast_printer.d_term t1 !Ast_printer.d_term t2)
+                  Printer.pp_term t1 Printer.pp_term t2)
           else
             Aorai_option.abort
               "Subscripted value is neither array nor pointer: %a[%a]"
-              !Ast_printer.d_term t1 !Ast_printer.d_term t2
+              Printer.pp_term t1 Printer.pp_term t2
         in
         env, t, cond
       | PField(e,s) ->
@@ -880,7 +842,7 @@ let type_expr env ?tr ?current e =
             env, Logic_const.term (TLval lv) ty, cond
           | _ ->
             Aorai_option.fatal
-              "Unsupported operation: %a.%s" !Ast_printer.d_term t s)
+              "Unsupported operation: %a.%s" Printer.pp_term t s)
       | PArrow(e,s) ->
         let env, t, cond = aux env cond e in
         if Logic_utils.isLogicPointerType t.term_type then begin
@@ -892,7 +854,7 @@ let type_expr env ?tr ?current e =
           env, Logic_const.term (TLval lv) ty, cond
         end else
           Aorai_option.abort "base term is not a pointer in %a -> %s"
-          !Ast_printer.d_term t s
+          Printer.pp_term t s
   in
   aux env TTrue e
 
@@ -1708,7 +1670,7 @@ let absolute_range loc min =
   let max = find_max_value loc in
   match max with
     | Some { term_node = TConst(Integer (t,_)) } ->
-      Interval(min,My_bigint.to_int t)
+      Interval(min,Integer.to_int t)
     | Some x ->
       Bounded (min, Logic_const.term x.term_node x.term_type)
     | None -> Unbounded min
@@ -1912,8 +1874,10 @@ let set_kf_init_state kf state =
   let set _ = state in
   ignore (Pre_state.memo ~change set kf)
 
+let dkey = Aorai_option.register_category "dataflow"
+
 let replace_kf_init_state kf state = 
-  Aorai_option.debug ~dkey:"dataflow" 
+  Aorai_option.debug ~dkey
     "Replacing pre-state of %a:@\n  @[%a@]"
     Kernel_function.pretty kf pretty_state state;
   Pre_state.replace kf state
@@ -2020,7 +1984,7 @@ let pretty_loop_invariant fmt =
         Kernel_function.pretty kf stmt.sid pretty_state state)
 
 let debug_computed_state () =
-  Aorai_option.debug ~dkey:"dataflow" 
+  Aorai_option.debug ~dkey 
     "Computed state:@\nPre-states:@\n  @[%t@]@\nPost-states:@\n  @[%t@]@\n\
      Loop init:@\n  @[%t@]@\nLoop invariants:@\n  @[%t@]"
     pretty_pre_state pretty_post_state pretty_loop_init pretty_loop_invariant

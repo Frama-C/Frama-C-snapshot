@@ -2,11 +2,13 @@
    STDOPT: +"-metrics-by-function" +"-metrics-value-cover"
 **/
 
-void (*bar) (int);
+void (*bar) (int); void (*t[2])(int);
 
 void baz (int j) { return; }
 
-void (*t[2])(int)= {baz, 0};
+void (*t[2])(int)= {
+  baz,
+  0};
 
 void foo (int k) {
   int i = 0;

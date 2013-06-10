@@ -2,11 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
-(*           alternatives)                                                *)
-(*    INRIA (Institut National de Recherche en Informatique et en         *)
-(*           Automatique)                                                 *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -28,7 +26,8 @@ open Logic_const
 
 let emitter = Emitter.create "Inferred annotations" [Emitter.Funspec] [] []
 
-let assigns_from_prototype vi =
+let assigns_from_prototype kf =
+  let vi = Kernel_function.get_vi kf in
   let formals = try let formals = getFormalsDecl vi in
   (* Do ignore anonymous names *)
   List.filter (fun vi -> vi.vname <> "") formals
@@ -55,7 +54,7 @@ let assigns_from_prototype vi =
     match get_length typ with
         [AInt length] ->
           let low = Logic_const.tinteger ~loc 0 in
-          let high = Logic_const.tint ~loc (My_bigint.pred length) 
+          let high = Logic_const.tint ~loc (Integer.pred length) 
 	  in
           let range = Logic_const.trange ~loc (Some low,Some high) in
           let shift = Logic_const.term ~loc
@@ -105,27 +104,21 @@ let assigns_from_prototype vi =
   match rtyp with
   | TVoid _ ->
     (* assigns all pointer args from basic args and content of pointer args *)
-    Writes arguments
+      arguments
   | _ -> 
     (* assigns result from basic args and content of pointer args *)
     let loc = vi.vdecl in
-    Writes
-      ((Logic_const.new_identified_term
-          (Logic_const.tat ~loc
-             (Logic_const.tresult ~loc rtyp,
-	      Logic_const.post_label)),From inputs):: arguments)
+    ((Logic_const.new_identified_term
+        (Logic_const.tat ~loc
+           (Logic_const.tresult ~loc rtyp,
+	    Logic_const.post_label)),From inputs):: arguments)
 
-(* [JS 2012/05/15] Frama-C Kernel should never depend on a Plug-in, even
-   Value. *)
 let is_frama_c_builtin name =
-  Ast_info.is_frama_c_builtin name || !Db.Value.mem_builtin name
+  Ast_info.is_frama_c_builtin name
 
 let populate_funspec kf spec =
   assert (not (Kernel_function.is_definition kf));
   let name = Kernel_function.get_name kf in
-  let generated_assigns () = 
-    assigns_from_prototype (Kernel_function.get_vi kf)
-  in
   match spec.spec_behavior with
   | [] -> 
     (* case 1: there is no initial specification -> use generated_behavior *)
@@ -135,7 +128,7 @@ let populate_funspec kf spec =
 generating default assigns from the prototype"
         Kernel_function.pretty kf;
     end;
-    let assigns = generated_assigns () in
+    let assigns = Writes (assigns_from_prototype kf) in
     let bhv = Cil.mk_behavior ~assigns () in
     Annotations.add_behaviors emitter kf [ bhv ]
 
@@ -145,15 +138,11 @@ generating default assigns from the prototype"
       | None -> Cil.mk_behavior ()
       | Some bhv -> bhv
     in
-    match bhv with 
-    | { b_assigns = Writes _} -> 
-      (* case 2.1: nothing more has to be done *)
-      ()
-    | _ -> 
+    if bhv.b_assigns = WritesAny then
       (* case 2.2 : some assigns have to be generated *)
       (* step 2.1: looks at ungarded behaviors and then at complete
 	 behaviors *)
-      let warn_if_builtin explicit_name name orig_name =
+      let warn_if_not_builtin explicit_name name orig_name =
 	if not (is_frama_c_builtin name) then
 	  Kernel.warning ~once:true
 	    "No code nor %s assigns clause for function %a, \
@@ -164,7 +153,7 @@ generating default assigns from the %s"
       let assigns = 
 	if assigns <> WritesAny then begin
 	  (* case 2.2.1. A correct assigns clause has been found *)  
-	  warn_if_builtin "explicit" name "specification";
+	  warn_if_not_builtin "explicit" name "specification";
 	  assigns
 	end else begin 
 	  (* case 2.2.1. No correct assigns clause can be found *)
@@ -186,11 +175,11 @@ generating default assigns from the %s"
 	      WritesAny
 	  in
 	  if assigns <> WritesAny then begin
-	    warn_if_builtin "implicit" name "specification" ;
+	    warn_if_not_builtin "implicit" name "specification" ;
 	    assigns 
 	  end else begin (* The union gave WritesAny, so use the prototype *)
-	    warn_if_builtin "implicit" name "prototype";
-	    generated_assigns ()
+	    warn_if_not_builtin "implicit" name "prototype";
+            Writes (assigns_from_prototype kf);
 	  end
 	end
       in

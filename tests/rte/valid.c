@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -rte -rte-print -machdep x86_32 -journal-disable -then -unsafe-arrays
+   OPT: -rte -warn-signed-overflow -print -machdep x86_32 -then -unsafe-arrays
 */
 
 struct R {
@@ -86,7 +86,6 @@ int main() {
   v = pp->val;
   v = p.val;
   v = p.tq[i0][i1].v;
-
 
   return v;
 }

@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -86,7 +86,17 @@ let rec pp_fold_call ~e ~f pp fmt = function
 let rec pp_fold_apply ~e ~f pp fmt = function
   | [] -> pp_print_string fmt e
   | [x] -> pp fmt x
-  | x::xs -> fprintf fmt "(%s@ %a@ %a)" f pp x (pp_fold_call ~e ~f pp) xs
+  | x::xs -> fprintf fmt "(%s@ %a@ %a)" f pp x (pp_fold_apply ~e ~f pp) xs
+
+let rec pp_fold_call_rev ~e ~f pp fmt = function
+  | [] -> pp_print_string fmt e
+  | [x] -> pp fmt x
+  | x::xs -> fprintf fmt "%s(%a,@ %a)" f (pp_fold_call_rev ~e ~f pp) xs pp x
+
+let rec pp_fold_apply_rev ~e ~f pp fmt = function
+  | [] -> pp_print_string fmt e
+  | [x] -> pp fmt x
+  | x::xs -> fprintf fmt "(%s@ %a@ %a)" f pp x (pp_fold_apply_rev ~e ~f pp) xs
 
 let pp_listcompact ~sep pp fmt = function
   | [] -> ()

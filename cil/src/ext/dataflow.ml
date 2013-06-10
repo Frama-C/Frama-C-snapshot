@@ -1,43 +1,45 @@
-(**************************************************************************)
-(*                                                                        *)
-(*  Copyright (C) 2001-2003                                               *)
-(*   George C. Necula    <necula@cs.berkeley.edu>                         *)
-(*   Scott McPeak        <smcpeak@cs.berkeley.edu>                        *)
-(*   Wes Weimer          <weimer@cs.berkeley.edu>                         *)
-(*   Ben Liblit          <liblit@cs.berkeley.edu>                         *)
-(*  All rights reserved.                                                  *)
-(*                                                                        *)
-(*  Redistribution and use in source and binary forms, with or without    *)
-(*  modification, are permitted provided that the following conditions    *)
-(*  are met:                                                              *)
-(*                                                                        *)
-(*  1. Redistributions of source code must retain the above copyright     *)
-(*  notice, this list of conditions and the following disclaimer.         *)
-(*                                                                        *)
-(*  2. Redistributions in binary form must reproduce the above copyright  *)
-(*  notice, this list of conditions and the following disclaimer in the   *)
-(*  documentation and/or other materials provided with the distribution.  *)
-(*                                                                        *)
-(*  3. The names of the contributors may not be used to endorse or        *)
-(*  promote products derived from this software without specific prior    *)
-(*  written permission.                                                   *)
-(*                                                                        *)
-(*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS   *)
-(*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT     *)
-(*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS     *)
-(*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE        *)
-(*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,   *)
-(*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,  *)
-(*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;      *)
-(*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER      *)
-(*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT    *)
-(*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN     *)
-(*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE       *)
-(*  POSSIBILITY OF SUCH DAMAGE.                                           *)
-(*                                                                        *)
-(*  File modified by CEA (Commissariat à l'énergie atomique et aux        *)
-(*                        énergies alternatives).                         *)
-(**************************************************************************)
+(****************************************************************************)
+(*                                                                          *)
+(*  Copyright (C) 2001-2003                                                 *)
+(*   George C. Necula    <necula@cs.berkeley.edu>                           *)
+(*   Scott McPeak        <smcpeak@cs.berkeley.edu>                          *)
+(*   Wes Weimer          <weimer@cs.berkeley.edu>                           *)
+(*   Ben Liblit          <liblit@cs.berkeley.edu>                           *)
+(*  All rights reserved.                                                    *)
+(*                                                                          *)
+(*  Redistribution and use in source and binary forms, with or without      *)
+(*  modification, are permitted provided that the following conditions      *)
+(*  are met:                                                                *)
+(*                                                                          *)
+(*  1. Redistributions of source code must retain the above copyright       *)
+(*  notice, this list of conditions and the following disclaimer.           *)
+(*                                                                          *)
+(*  2. Redistributions in binary form must reproduce the above copyright    *)
+(*  notice, this list of conditions and the following disclaimer in the     *)
+(*  documentation and/or other materials provided with the distribution.    *)
+(*                                                                          *)
+(*  3. The names of the contributors may not be used to endorse or          *)
+(*  promote products derived from this software without specific prior      *)
+(*  written permission.                                                     *)
+(*                                                                          *)
+(*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS     *)
+(*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT       *)
+(*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS       *)
+(*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE          *)
+(*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,     *)
+(*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,    *)
+(*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;        *)
+(*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER        *)
+(*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT      *)
+(*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN       *)
+(*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE         *)
+(*  POSSIBILITY OF SUCH DAMAGE.                                             *)
+(*                                                                          *)
+(*  File modified by CEA (Commissariat à l'énergie atomique et aux          *)
+(*                        énergies alternatives)                            *)
+(*               and INRIA (Institut National de Recherche en Informatique  *)
+(*                          et Automatique).                                *)
+(****************************************************************************)
 
 (*module E = Errormsg*)
 open Cil_types
@@ -69,33 +71,17 @@ type 't guardaction =
 
 module type StmtStartData = sig
   type data
-  type key
   val clear: unit -> unit
-  val mem: key -> bool
-  val find: key -> data
-  val replace: key -> data -> unit
-  val add: key -> data -> unit
-  val iter: (key -> data -> unit) -> unit
+  val mem: Cil_types.stmt -> bool
+  val find: Cil_types.stmt -> data
+  val replace: Cil_types.stmt -> data -> unit
+  val add: Cil_types.stmt -> data -> unit
+  val iter: (Cil_types.stmt -> data -> unit) -> unit
   val length: unit -> int
-end
-
-module StmtStartData(X: sig type t val size: int end) = struct
-  type data = X.t
-  type key = int
-  open Datatype.Int.Hashtbl
-  let stmtStartData = create X.size
-  let clear () = clear stmtStartData
-  let mem = mem stmtStartData
-  let find = find stmtStartData
-  let replace = replace stmtStartData
-  let add = add stmtStartData
-  let iter f = iter f stmtStartData
-  let length () = length stmtStartData
 end
 
 module StartData(X: sig type t val size: int end) = struct
   type data = X.t
-  type key = stmt
   open Cil_datatype.Stmt.Hashtbl
   let stmtStartData = create X.size
   let clear () = clear stmtStartData
@@ -107,25 +93,6 @@ module StartData(X: sig type t val size: int end) = struct
   let length () = length stmtStartData
 end
 
-let stmt_of_sid = Extlib.mk_fun "Dataflow.stmt_of_sid"
-
-(* Conversion from an initial state indexed by statements sids to
-   an initial state indexed by statements. Not used in code called
-   with the current dataflows *)
-module ConvertStartData(SSD: StmtStartData with type key = int) :
-  StmtStartData with type data = SSD.data and type key = stmt =
-struct
-  type data = SSD.data
-  type key = stmt
-  let stmt_of_sid sid = !stmt_of_sid sid
-  let clear () = SSD.clear ()
-  let mem stmt = SSD.mem stmt.sid
-  let find stmt = SSD.find stmt.sid
-  let replace stmt data = SSD.replace stmt.sid data
-  let add stmt data = SSD.add stmt.sid data
-  let iter f = SSD.iter (fun sid -> f (stmt_of_sid sid))
-  let length () = SSD.length ()
-end
 
 exception True
 let qexists f q =
@@ -209,7 +176,7 @@ module type ForwardsTransfer = sig
 
 end
 
-module Forwards(T : ForwardsTransfer with type StmtStartData.key = stmt) = struct
+module Forwards(T : ForwardsTransfer) = struct
 
     (** Keep a worklist of statements to process. It is best to keep a queue,
      * because this way it is more likely that we are going to process all
@@ -298,7 +265,7 @@ module Forwards(T : ForwardsTransfer with type StmtStartData.key = stmt) = struc
     let processStmt (s: stmt) : unit =
       CurrentLoc.set (Cil_datatype.Stmt.loc s);
       if !T.debug then
-        Kernel.debug "FF(%s).stmt %d at %t@\n" T.name s.sid d_thisloc;
+        Kernel.debug "FF(%s).stmt %d at %t@\n" T.name s.sid Cil.pp_thisloc;
 
       (* It must be the case that the block has some data *)
       let init: T.t =
@@ -381,7 +348,7 @@ module Forwards(T : ForwardsTransfer with type StmtStartData.key = stmt) = struc
                 let explore_succ before succ exp_case =
                   let exp = match exp_case.enode with
 		    | Const (CInt64 (z,_,_)) 
-                      when My_bigint.equal z My_bigint.zero ->
+                      when Integer.equal z Integer.zero ->
 		        new_exp ~loc:exp_sw.eloc (UnOp(LNot,exp_sw,intType))
                     | _ ->
                         Cil.new_exp exp_case.eloc
@@ -502,17 +469,6 @@ module Forwards(T : ForwardsTransfer with type StmtStartData.key = stmt) = struc
 
   end
 
-(* Old interface, deprecated *)
-module ForwardsDataFlow
-  (T : ForwardsTransfer with type StmtStartData.key = int) =
-struct
-  include Forwards(
-    struct
-      include (T : ForwardsTransferAux with type t = T.t)
-      module StmtStartData = ConvertStartData(T.StmtStartData)
-    end)
-end
-
 
 (******************************************************************
  **********
@@ -579,7 +535,7 @@ module type BackwardsTransfer = sig
    * initialized with the initial data for each block *)
 end
 
-module Backwards(T : BackwardsTransfer with type StmtStartData.key = stmt) =
+module Backwards(T : BackwardsTransfer) =
 struct
 
     let getStmtStartData (s: stmt) : T.t =
@@ -720,18 +676,6 @@ struct
         if !T.debug then
           (Kernel.debug "BF(%s): done\n\n" T.name)
   end
-
-(* Old interface, deprecated *)
-module BackwardsDataFlow
-  (T : BackwardsTransfer with type StmtStartData.key = int) =
-struct
-  include Backwards(
-    struct
-      include (T: BackwardsTransferAux with type t = T.t)
-      module StmtStartData = ConvertStartData(T.StmtStartData)
-    end)
-end
-
 
 
 (** Helper utility that finds all of the statements of a function.

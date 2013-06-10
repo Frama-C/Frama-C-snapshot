@@ -2,8 +2,8 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2012                                               */
-/*    CEA (Commissariat à l'énergie atomique et aux énergies              */
+/*  Copyright (C) 2007-2013                                               */
+/*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
 /*  you can redistribute it and/or modify it under the terms of the GNU   */
@@ -83,24 +83,44 @@ typedef __INT_MAX_T intmax_t;
 typedef __UINT_MAX_T uintmax_t;
 
 /* ISO C: 7.18.2.1 */
-#define INT8_MIN __FC_INT8_MIN
-#define INT8_MAX __FC_INT8_MAX
-#define UINT8_MAX __FC_UINT8_MAX
-#define INT16_MIN __FC_INT16_MIN
-#define INT16_MAX __FC_INT16_MAX
-#define UINT16_MAX __FC_UINT16_MAX
-#define INT32_MIN __FC_INT32_MIN
-#define INT32_MAX __FC_INT32_MAX
-#define UINT32_MAX __FC_UINT32_MAX
-#define INT64_MIN __FC_INT64_MIN
-#define INT64_MAX __FC_INT64_MAX
-#define UINT64_MAX __FC_UINT64_MAX
+#define INT8_MIN (-128)
+#define INT8_MAX 127
+#define UINT8_MAX 255
+#define INT16_MIN (-32768)
+#define INT16_MAX 32767
+#define UINT16_MAX 65535
+#define INT32_MIN (-INT32_MAX - 1)
+#define INT32_MAX 2147483647
+#define UINT32_MAX 4294967295U
+#define INT64_MIN (-INT64_MAX -1LL)
+#define INT64_MAX 9223372036854775807LL
+#define UINT64_MAX 18446744073709551615ULL
 
 /* ISO C: 7.18.2.3-5 : TODO */
 
-/* ISO C: 7.18.3 : TODO */
+/* ISO C: 7.18.3 */
 
-/* ISO C: 7.18.4 : TODO */
+#define PTRDIFF_MIN __FC_PTRDIFF_MIN
+#define PTRDIFF_MAX __FC_PTRDIFF_MAX
+#define SIG_ATOMIC_MIN __FC_SIG_ATOMIC_MIN
+#define SIG_ATOMIC_MAX __FC_SIG_ATOMIC_MAX
+#define SIZE_MAX __FC_SIZE_MAX
+#define WCHAR_MIN __FC_WCHAR_MIN
+#define WCHAR_MAX __FC_WCHAR_MAX
+#define WINT_MIN __FC_WINT_MIN
+#define WINT_MAX __FC_WINT_MAX
 
+/* ISO C: 7.18.4 */
+#define INT8_C(c) c
+#define UINT8_C(c) c
+#define INT16_C(c) c
+#define UINT16_C(c) c
+#define INT32_C(c) (c ## L)
+#define UINT32_C(c) (c ## UL)
+#define INT64_C(c) (c ## LL)
+#define UINT64_C(c) (c ## ULL)
+
+#define INTMAX_C(c) (c ## LL)
+#define UINTMAX_C(c) (c ## ULL)
 
 #endif

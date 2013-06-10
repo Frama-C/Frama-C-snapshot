@@ -2,11 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
-(*           alternatives)                                                *)
-(*    INRIA (Institut National de Recherche en Informatique et en         *)
-(*           Automatique)                                                 *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -28,16 +26,12 @@
     was last defined.
   *)
 
-let dkey = "state"
+let dkey = Pdg_parameters.register_category "state"
 
 module P = Pdg_parameters
 open PdgTypes
 
 exception Cannot_fold
-
-type t_loc = Locations.Zone.t
-type t_node = Node.t
-type t = PdgTypes.t_data_state
 
 let make loc_info under_outputs =
   { loc_info = loc_info; under_outputs = under_outputs }
@@ -152,11 +146,17 @@ let get_loc_nodes state loc =
     in
     nodes, undef_zone
 
-type t_states = t Datatype.Int.Hashtbl.t
+open Cil_datatype
 
-let store_init_state states state = Datatype.Int.Hashtbl.add states (-1) state
-let store_last_state states state = Datatype.Int.Hashtbl.add states 0 state
+type states = PdgTypes.data_state Stmt.Hashtbl.t
 
-let get_init_state states = Datatype.Int.Hashtbl.find states (-1)
-let get_last_state states = Datatype.Int.Hashtbl.find states 0
-let get_stmt_state states stmt = Datatype.Int.Hashtbl.find states stmt.Cil_types.sid
+(* Slightly ugly, but should not be a problem unless the sid counter wraps *)
+let stmt_init = List.hd Stmt.reprs
+let stmt_last = { stmt_init with Cil_types.sid = stmt_init.Cil_types.sid - 1 }
+
+let store_init_state states state = Stmt.Hashtbl.add states stmt_init state
+let store_last_state states state = Stmt.Hashtbl.add states stmt_last state
+
+let get_init_state states = Stmt.Hashtbl.find states stmt_init
+let get_last_state states = Stmt.Hashtbl.find states stmt_last
+let get_stmt_state states stmt = Stmt.Hashtbl.find states stmt

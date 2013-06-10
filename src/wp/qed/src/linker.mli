@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -30,7 +30,7 @@ open Plib
 
 (** {2 Identifiers} *)
 
-val is_identop : string -> bool (** Operators is an identifier *)
+val is_ident : string -> bool (** Operators is an identifier *)
 val ident : string -> string (** Filter out non-letter characters *)
 
 (** {2 Allocators} *)
@@ -44,10 +44,12 @@ val copy : allocator -> allocator
 
 (** {2 Linkers} *)
 
-class type ['a] linker = 
+class type ['a,'idx] linker = 
 object
   method lock  : unit
   method clear : unit
+  method push  : 'idx
+  method pop   : 'idx -> unit
   method mem   : 'a -> bool
   method find  : 'a -> string
   method link  : 'a -> string -> unit
@@ -60,7 +62,8 @@ end
 
 module Link(A : Symbol) :
 sig
-  val linker : unit -> A.t linker
+  type index
+  val linker : unit -> (A.t,index) linker
 end
 
 module Record(T : Logic.Term) :

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -37,8 +37,8 @@ module NoResultsFunctions: Plugin.String_set
 module NoResultsAll: Plugin.Bool
 
 module ResultsAfter: Plugin.Bool
+module ResultsCallstack: Plugin.Bool
 
-module SignedOverflow: Plugin.Bool
 module LeftShiftNegative: Plugin.Bool
 
 module IgnoreRecursiveCalls: Plugin.Bool
@@ -67,7 +67,7 @@ module SplitReturnAuto: Plugin.Bool
 
 module ValShowProgress: Plugin.Bool
 module FloatTimingStep: State_builder.Ref with type data = float
-module ShowSlevel: Plugin.Bool
+module ShowSlevel: Plugin.Int
 module PrintCallstacks: Plugin.Bool
 
 module MemExecAll: Plugin.Bool
@@ -76,7 +76,7 @@ module MemExecAll: Plugin.Bool
 module InterpreterMode: Plugin.Bool
 module ObviouslyTerminatesAll: Plugin.Bool
 module ObviouslyTerminatesFunctions: Plugin.String_set
-module StopAtFirstAlarm: Plugin.Bool
+module StopAtNthAlarm: Plugin.Int
 
 
 val parameters_correctness: Parameter.t list

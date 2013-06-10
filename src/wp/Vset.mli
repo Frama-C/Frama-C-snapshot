@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -43,10 +43,12 @@ val union : set -> set -> set
 val inter : term -> term -> term
 
 val member : term -> set -> pred
+val in_size : term -> int64 -> pred
 val in_range : term -> term option -> term option -> pred
 val sub_range : term -> term -> term option -> term option -> pred
-val ordered : term option -> term option -> pred
-val strictly_ordered : term option -> term option -> pred
+val ordered : limit:bool -> strict:bool -> term option -> term option -> pred
+  (** - [limit]: result when either parameter is [None]
+      - [strict]: if [true], comparison is [<] instead of [<=] *)
 
 val equal : set -> set -> pred
 val subset : set -> set -> pred
@@ -54,7 +56,10 @@ val disjoint : set -> set -> pred
 
 val concretize : set -> term
 
+val pp_bound : Format.formatter -> term option -> unit
+val bound_shift : term option -> term -> term option
 val bound_add : term option -> term option -> term option
+val bound_sub : term option -> term option -> term option
 
 (** {3 Maping}
     These operations computes different kinds of [{f x y with x in A, y in B}].

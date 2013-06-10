@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -71,6 +71,11 @@ end
 
 class group text =
 object
+  method search re pos =
+    ignore (Str.search_forward re text pos)
+
+  method next = Str.match_end ()
+    
   method get_after ?(offset=0) k = 
     try
       let n = String.length text in
@@ -86,14 +91,17 @@ object
     with Not_found | Failure _ -> 0.0
 end
 
+let rec validate_pattern ((re,all,job) as p) group pos =
+  group#search re pos ; 
+  job (group :> pattern) ;
+  if all then validate_pattern p group group#next
+
 let validate_buffer buffer validers =
   let text = Buffer.contents buffer in
   let group = new group text in
   List.iter
-    (fun (re,phi) -> 
-       try
-	 ignore (Str.search_forward re text 0) ;
-	 phi group
+    (fun pattern -> 
+       try validate_pattern pattern group 0
        with Not_found -> ()
     ) validers
 
@@ -103,8 +111,17 @@ let dump_buffer buffer = function
       let n = Buffer.length buffer in
       if n > 0 then 
 	Command.write_file log (fun out -> Buffer.output_buffer out buffer)
+      else if Wp_parameters.is_out () then
+	Extlib.safe_remove log
 
-let _st_unit = Task.map (fun _ -> ())
+let echo_buffer buffer =
+  let n = Buffer.length buffer in
+  if n > 0 then
+    Log.print_on_output 
+      (fun fmt ->
+	 Format.pp_print_string fmt (Buffer.contents buffer) ;
+	 Format.pp_print_flush fmt () ;
+      )
 
 let location file line = {
   Lexing.pos_fname = file ;
@@ -133,8 +150,12 @@ let p_group p = Printf.sprintf "\\(%s\\)" p
 let p_int = "\\([0-9]+\\)" 
 let p_float = "\\([0-9.]+\\)" 
 let p_string = "\"\\([^\"]*\\)\"" 
+let p_until_space = "\\([^ \t\n]*\\)" 
 
-type logs = OUT | ERR | BOTH
+type logs = [ `OUT | `ERR | `BOTH ]
+
+let is_out = function `OUT | `BOTH -> true | `ERR -> false
+let is_err = function `ERR | `BOTH -> true | `OUT -> false
 
 class command name =
 object
@@ -146,7 +167,6 @@ object
   val mutable validout = []
   val mutable validerr = []
   val mutable timers = []
-  val mutable debug = false
   val stdout = Buffer.create 256
   val stderr = Buffer.create 256
 
@@ -170,18 +190,17 @@ object
 
   method timeout t = timeout <- t
 
-  method validate_pattern ?(logs=BOTH) regexp (handler : pattern -> unit) = 
+  method validate_pattern ?(logs=`BOTH) ?(repeat=false) 
+    regexp (handler : pattern -> unit) = 
     begin
-      let v = [regexp,handler] in
-      if logs = BOTH || logs = OUT then validout <- validout @ v ; 
-      if logs = BOTH || logs = ERR then validerr <- validerr @ v ;
+      let v = [regexp,repeat,handler] in
+      if is_out (logs:logs) then validout <- validout @ v ; 
+      if is_out (logs:logs) then validerr <- validerr @ v ;
     end
 
   method validate_time phi = timers <- timers @ [phi]
 
-  method debug = debug <- true
-
-  method run ?logout ?logerr () : int Task.task =
+  method run ?(echo=false) ?logout ?logerr () : int Task.task =
     assert once ; once <- false ;
     let time = ref 0.0 in
     let args = Array.of_list param in
@@ -190,7 +209,7 @@ object
     Task.command ~timeout ~time ~stdout ~stderr cmd args
     >>?
       begin fun st -> (* finally *)
-	if debug then
+	if Wp_parameters.has_dkey "prover" then
 	  Log.print_on_output
 	    begin fun fmt ->
 	      Format.fprintf fmt "@[<hov 2>RUN '%s" cmd ;
@@ -202,6 +221,18 @@ object
 	    end ;
 	dump_buffer stdout logout ;
 	dump_buffer stderr logerr ;
+	if echo then
+	  begin match st with
+	    | Task.Result 0 | Task.Canceled | Task.Timeout -> ()
+	    | Task.Result s ->
+		Wp_parameters.error "%s exit with status [%d]@." cmd s ;
+		echo_buffer stdout ;
+		echo_buffer stderr ;
+	    | Task.Failed exn ->
+		Wp_parameters.error "%s fails: %s@." cmd (Task.error exn) ;
+		echo_buffer stdout ;
+		echo_buffer stderr ;
+	  end ;
 	let t = !time in
 	List.iter (fun phi -> phi t) timers ;
 	validate_buffer stderr validerr ;
@@ -243,4 +274,3 @@ let spawn jobs =
   let server = server () in
   pool := List.map (fun t -> t >>= Task.call callback) jobs ;
   List.iter (Task.spawn server) !pool
-  

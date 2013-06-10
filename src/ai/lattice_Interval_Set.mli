@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -31,6 +31,8 @@ type itv = Int.t * Int.t
 
 module Int_Intervals : sig
   include Lattice_With_Diff
+
+  val id: t -> int
 
   val is_top: t -> bool
 

@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -99,18 +99,7 @@ struct
 	| Aget _ | Aset _ | Rget _ | Rdef _ -> true
 	| And _ | Or _ | Not _ | Imply _ | If _ -> false
 	| Fun _ -> not (T.is_prop e)
-	| Var _ -> true
-	| Apply _ | Bind _ -> false
-
-    method pp_let fmt x e =
-      fprintf fmt "@[<hov 4>let %s = %a in@]@ " x self#pp_flow e
-
-    (* -------------------------------------------------------------------------- *)
-    (* --- Arithmetics                                                        --- *)
-    (* -------------------------------------------------------------------------- *)
-
-    method pp_int = Z.pretty
-    method pp_real = R.pretty
+	| Var _	| Apply _ | Bind _ -> false
 		  
     (* -------------------------------------------------------------------------- *)
     (* --- Arrays                                                             --- *)
@@ -213,12 +202,12 @@ struct
 	| Cterm -> fprintf fmt "function %s" (self#link_name Cterm f)
 
     method virtual pp_trigger : trigger printer
-    method virtual pp_intros : tau -> var list printer (* forall with no separator *)
+    method virtual pp_intros : tau -> var list printer (* forall with no separatyor *)
 
-    method declare_axiom fmt lemma xs tgs (p : term) =
+    method declare_prop ~kind fmt lemma xs tgs (p : term) =
       self#global
 	begin fun () ->
-	  fprintf fmt "@[<hv 2>axiom %s:" lemma ;
+	  fprintf fmt "@[<hv 2>%s %s:" kind lemma ;
 	  let groups = List.fold_left
 	    (fun groups x ->
 	       self#bind x ;
@@ -248,6 +237,8 @@ struct
 	    ) order ;
 	  fprintf fmt "@ @[<hov 2>%a@]@]@\n" self#pp_prop p
 	end
+
+    method declare_axiom = self#declare_prop ~kind:"axiom"
 
   end
 

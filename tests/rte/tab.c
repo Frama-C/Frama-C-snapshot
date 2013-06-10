@@ -1,5 +1,5 @@
 /* run.config 
-   OPT: -rte -rte-print -journal-disable
+   OPT: -rte -warn-signed-overflow -print
 */
 
 typedef double typetab[2];

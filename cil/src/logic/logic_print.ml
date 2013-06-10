@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -48,8 +48,8 @@ let rec print_logic_type name fmt typ =
         fprintf fmt "%s%t"
 	  (if Kernel.Unicode.get () then Utf8_logic.real else "real")
 	  pname
-    | LTint i -> fprintf fmt "%a%t" Cil.d_ikind i pname
-    | LTfloat f -> fprintf fmt "%a%t" Cil.d_fkind f pname
+    | LTint i -> fprintf fmt "%a%t" Cil_printer.pp_ikind i pname
+    | LTfloat f -> fprintf fmt "%a%t" Cil_printer.pp_fkind f pname
     | LTarray (t,c) ->
         let pname fmt =
           fprintf fmt "%t[@[%a@]]" pname (pp_opt print_constant) c
@@ -333,7 +333,7 @@ let rec print_decl fmt d =
           (pp_list ~pre:"{@[" ~sep:",@ " ~suf:"@]}" pp_print_string) labels
           (pp_list ~pre:"<@[" ~sep:",@ " ~suf:"@>}" pp_print_string) tvar
           (pp_list ~sep:",@ " print_typed_ident) prms
-          (pp_list ~sep:nl_sep print_case) cases
+          (pp_list ~sep:"@\n" print_case) cases
     | LDlemma(name,is_axiom,labels,tvar,body) ->
         fprintf fmt "@[<2>%a@ %s%a%a:@ %a;@]"
           (pp_cond ~pr_false:"lemma" is_axiom) "axiom" name
@@ -342,7 +342,7 @@ let rec print_decl fmt d =
           print_lexpr body
     | LDaxiomatic (s,d) ->
         fprintf fmt "@[<2>axiomatic@ %s@ {@\n%a@]@\n}" s
-          (pp_list ~sep:nl_sep print_decl) d
+          (pp_list ~sep:"@\n" print_decl) d
     | LDinvariant (s,e) ->
         fprintf fmt "@[<2>invariant@ %s:@ %a;@]" s print_lexpr e
     | LDtype_annot ty -> print_type_annot fmt ty
@@ -386,7 +386,8 @@ let print_allocation ~isloop fmt fa =
 
 let print_clause name fmt e = fprintf fmt "@\n%s@ %a;" name print_lexpr e
 
-let print_post fmt (k,e) = print_clause (Cil.get_termination_kind_name k) fmt e
+let print_post fmt (k,e) = 
+  print_clause (Cil_printer.get_termination_kind_name k) fmt e
 
 let print_behavior fmt bhv =
   fprintf fmt "@[<2>behavior@ %s:%a%a%a%a%a@]"

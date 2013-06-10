@@ -11,15 +11,15 @@ object(self)
     (match self#current_func with
       | Some f ->
           if  f.svar.vname ="f" then (
-	    Format.printf "Funspec of f is '%a' through visitor@."
-              Cil.d_funspec sp;
-	    Format.printf "It is '%a' through get_spec@."
-              Cil.d_funspec
+	    Format.printf "@[Funspec of f is@ @['%a'@]@ through visitor@]@."
+              Printer.pp_funspec sp;
+	    Format.printf "@[It is@ @['%a'@]@ through get_spec@]@."
+              Printer.pp_funspec
               (Annotations.funspec (Globals.Functions.get f.svar));
           )
       | None -> 
-        Format.printf "Function prototype; Funspec is '%a'@."
-          Cil.d_funspec sp;
+        Format.printf "@[Function prototype;@ Funspec is@ @['%a'@]@]@."
+          Printer.pp_funspec sp;
     );
     DoChildren
 end

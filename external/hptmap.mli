@@ -14,24 +14,18 @@
 (*                                                                        *)
 (**************************************************************************)
 
+(** Undocumented. *)
 
 exception Found_inter
 
-module type Tagged_type = sig
-  include Datatype.S
-  val tag : t -> int
-end
-
-module Tag_comp : 
-sig
+module Tag_comp : sig
   type t
   val get_tag : t -> int
   val get_comp : t -> bool
   val encode : int -> bool -> t
 end
 
-module Comp_unused :
-sig 
+module Comp_unused : sig 
   val e : bool
   val f : 'a -> 'b -> bool
   val compose : bool -> bool -> bool
@@ -41,13 +35,23 @@ end
 type prefix
 val sentinel_prefix : prefix
 
+type ('k, 'v, 't) tree = private
+    | Empty
+    | Leaf of 'k * 'v * bool
+    | Branch of int * int * ('k, 'v, 't) tree * ('k, 'v, 't) tree * 't
+
 module Make
   (Key:sig
     include Datatype.S
     val id: t -> int
   end)
-  (V : Tagged_type)
-  (Comp : sig val e: bool val f : Key.t -> V.t -> bool val compose : bool -> bool -> bool val default:bool end)
+  (V : Datatype.S)
+  (Comp : sig
+     val e: bool
+     val f : Key.t -> V.t -> bool
+     val compose : bool -> bool -> bool
+     val default:bool
+   end)
   (Initial_Values : sig val v : (Key.t*V.t) list list end) 
   (Datatype_deps: sig val l : State.t list end)
   :
@@ -57,10 +61,7 @@ sig
   type leaf_annot = bool
   type branch_annot = Tag_comp.t
 
-  type tt = private
-	    | Empty
-	    | Leaf of key * V.t * bool
-	    | Branch of int * int * tt * tt * Tag_comp.t
+  type tt = (Key.t, V.t, Tag_comp.t) tree
 
   include Datatype.S_with_collections with type t = tt
 
@@ -160,6 +161,11 @@ this function will be renamed "hash" in the future *)
   val max_binding: t -> key * V.t
 
   val split: key -> t -> t * V.t option * t
+
+  (** Clear all the caches used internally by the functions of this module.
+      Those caches are not project-aware, so this function must be called
+      at least each a project switch occurs. *)
+  val clear_caches: unit -> unit
 end
 
 (*

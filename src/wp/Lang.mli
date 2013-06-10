@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -58,10 +58,25 @@ and tau = (field,adt) Logic.datatype
 
 type scope = External of theory | Generated
 type lfun =
-  | Function of scope * Engine.link * lfun category * sort 
-  | Predicate of scope * string * string (* prop / bool *)
+  | Function of lfunction 
+  | Predicate of lpredicate
   | ACSL of logic_info
   | CTOR of logic_ctor_info
+      
+and lfunction = {
+  f_scope : scope ;
+  f_link : Engine.link ;
+  f_category : lfun category ;
+  f_params : sort list ;
+  f_result : sort ;
+}
+
+and lpredicate = {
+  p_scope : scope ;
+  p_params : sort list ;
+  p_prop : string ;
+  p_bool : string ;
+}
 
 val builtin : name:string -> link:string -> theory:string -> unit
 val datatype : link:string -> theory:string -> adt
@@ -71,19 +86,33 @@ val comp : compinfo -> adt
 val field : adt -> string -> field
 val fields_of_tau : tau -> field list
 val fields_of_field : field -> field list
-val tau_of_field : field -> tau
 
-val extern_s : theory:theory -> ?category:lfun category -> ?sort:sort -> string -> lfun
-val extern_f : theory:theory -> ?category:lfun category -> ?sort:sort -> 
-  ('a,Format.formatter,unit,lfun) format4 -> 'a
-val extern_p : theory:theory -> prop:string -> bool:string -> lfun
-val extern_fp : theory:theory -> string -> lfun
+type balance = Nary | Left | Right
 
-val generated_f : ?category:lfun category -> ?sort:sort -> 
+val extern_s : 
+  theory:theory -> ?balance:balance -> 
+  ?category:lfun category -> ?params:sort list -> ?result:sort ->
+  string -> lfun
+
+val extern_f : 
+  theory:theory -> ?balance:balance -> 
+  ?category:lfun category -> ?params:sort list -> ?result:sort ->
   ('a,Format.formatter,unit,lfun) format4 -> 'a
+
+val extern_p : 
+  theory:theory -> prop:string -> bool:string -> 
+  ?params:sort list -> unit -> lfun
+
+val extern_fp : theory:theory -> ?params:sort list -> string -> lfun
+
+val generated_f : ?category:lfun category -> 
+  ?params:sort list -> ?result:sort -> 
+  ('a,Format.formatter,unit,lfun) format4 -> 'a
+
 val generated_p : string -> lfun
 
 val link : Engine.cmode -> lfun -> Engine.link
+val theory : lfun -> string
 
 (** {2 Sorting and Typing} *)
 
@@ -91,6 +120,10 @@ val tau_of_comp : compinfo -> tau
 val tau_of_object : c_object -> tau
 val tau_of_ctype : typ -> tau
 val tau_of_ltype : logic_type -> tau
+val tau_of_return : logic_info -> tau
+val tau_of_lfun : lfun -> tau
+val tau_of_field : field -> tau
+val tau_of_record : field -> tau
 
 val array : tau -> tau
 val farray : tau -> tau -> tau
@@ -119,11 +152,13 @@ sig
   val e_zero : term
   val e_one : term
   val e_minus_one : term
+  val e_zero_real : term
 
   val e_int64 : int64 -> term
   val e_fact : int64 -> term -> term
-  val e_bigint : My_bigint.t -> term
-  val e_float : float -> term
+  val e_bigint : Integer.t -> term
+  val e_mthfloat : float -> term
+  val e_hexfloat : float -> term
   val e_setfield : term -> field -> term -> term
   val e_range : term -> term -> term (** e_range a b = b+1-a *)
   val is_zero : term -> bool
@@ -172,6 +207,7 @@ sig
 
   val p_forall : var list -> pred -> pred
   val p_exists : var list -> pred -> pred
+  val p_bind : binder -> var -> pred -> pred
 
   val p_subst : ?pool:pool -> var -> term -> pred -> pred
 
@@ -185,14 +221,32 @@ sig
   val intersectp : pred -> pred -> bool
 
   val pp_var : Format.formatter -> var -> unit
+  val pp_vars : Format.formatter -> Vars.t -> unit
   val pp_term : Format.formatter -> term -> unit
   val pp_pred : Format.formatter -> pred -> unit
   val debugp : Format.formatter -> pred -> unit
-    
+
+  type env
+  val empty : env
+  val closed : Vars.t -> env
+  val marker : env -> marks
+  val mark_e : marks -> term -> unit
+  val mark_p : marks -> pred -> unit
+  val define : (env -> string -> term -> unit) -> env -> marks -> env
+  val pp_eterm : env -> Format.formatter -> term -> unit
+  val pp_epred : env -> Format.formatter -> pred -> unit
+
   val pred : pred -> (field,lfun,var,pred) Logic.term_repr
 
   module Pmap : Qed.Idxmap.S with type key = pred
   module Pset : Qed.Idxset.S with type elt = pred
+
+  type pattern = Fun.t Qed.Pattern.fpattern
+  val rewrite : name:string -> vars:tau array -> pattern -> (term array -> term) -> unit
+
+  val add_builtin_1 : lfun -> (term -> term) -> unit
+  val add_builtin_2 : lfun -> (term -> term -> term) -> unit
+  val add_builtin_peq : lfun -> (term -> term -> pred) -> unit
 
 end
 
@@ -201,14 +255,15 @@ end
 open F
   
 type gamma
-val new_pool : unit -> pool
-val new_gamma : unit -> gamma
+val new_pool : ?copy:pool -> unit -> pool
+val new_gamma : ?copy:gamma -> unit -> gamma
 
 val local : ?pool:pool -> ?gamma:gamma -> ('a -> 'b) -> 'a -> 'b 
 
 val freshvar : ?basename:string -> tau -> var
 val freshen : var -> var
 val assume : pred -> unit  
+val without_assume : ('a -> 'b) -> 'a -> 'b
 val epsilon : ?basename:string -> tau -> (term -> pred) -> term
 val hypotheses : gamma -> pred list
 val variables : gamma -> var list
@@ -217,7 +272,6 @@ val get_pool : unit -> pool
 val get_gamma : unit -> gamma
 val get_hypotheses : unit -> pred list
 val get_variables : unit -> var list
-
 
 (** {2 Alpha Conversion} *)
 

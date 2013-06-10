@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -42,7 +42,7 @@ let rec stmt_labels = function
   | Label _ :: ls -> stmt_labels ls
   | Case(e,_) :: ls -> 
       let cvalue = (Cil.constFold true e) in
-      Pretty_utils.sfprintf "case %a" !Ast_printer.d_exp cvalue
+      Pretty_utils.sfprintf "case %a" Printer.pp_exp cvalue
       :: stmt_labels ls
   | Default _ :: ls ->
       "default" :: stmt_labels ls
@@ -281,6 +281,100 @@ type kf = [ `Always | `Never | `Context of kernel_function ]
 
 let pp_property = pp_prop `Always true true
 let pp_localized ~kf ~ki ~kloc = pp_prop kf ki kloc
+let pp_local = pp_prop `Never false false
+
+(* -------------------------------------------------------------------------- *)
+(* --- Property Comparison                                                --- *)
+(* -------------------------------------------------------------------------- *)
+
+type order =
+  | I of int
+  | S of string
+  | F of Kernel_function.t
+  | K of kinstr
+  | B of funbehavior
+
+let cmp_order a b = match a , b with
+  | I a , I b -> Pervasives.compare a b
+  | I _ , _ -> (-1)
+  | _ , I _ -> 1
+  | S a , S b -> String.compare a b
+  | S _ , _ -> (-1)
+  | _ , S _ -> 1
+  | F f , F g -> Kernel_function.compare f g
+  | F _ , _ -> (-1)
+  | _ , F _ -> 1
+  | B a , B b ->
+      begin
+	match Cil.is_default_behavior a , Cil.is_default_behavior b with
+	  | true , true -> 0
+	  | true , false -> (-1)
+	  | false , true -> 1
+	  | false , false -> String.compare a.b_name b.b_name
+      end
+  | B _ , _ -> (-1)
+  | _ , B _ -> 1
+  | K a , K b -> Cil_datatype.Kinstr.compare a b
+
+let rec cmp xs ys = match xs,ys with
+  | [],[] -> 0
+  | [],_ -> (-1)
+  | _,[] -> 1
+  | x::xs,y::ys ->
+      let c = cmp_order x y in
+      if c<>0 then c else cmp xs ys
+
+let kind_order = function
+  | PKRequires bhv -> [B bhv;I 1]
+  | PKAssumes bhv -> [B bhv; I 2]
+  | PKEnsures(bhv,Normal) -> [B bhv;I 3]
+  | PKEnsures(bhv,Breaks) -> [B bhv;I 4]
+  | PKEnsures(bhv,Continues) -> [B bhv;I 5]
+  | PKEnsures(bhv,Returns) -> [B bhv;I 6]
+  | PKEnsures(bhv,Exits) -> [B bhv;I 7]
+  | PKTerminates -> [I 8]
+
+let named_order xs = List.map (fun x -> S x) xs
+let for_order k = function 
+  | [] -> [I k] 
+  | bs -> I (succ k) :: named_order bs
+let annot_order = function
+  | {annot_content=AAssert(bs,np)} -> for_order 0 bs @ named_order np.name
+  | {annot_content=AInvariant(bs,_,np)} -> for_order 2 bs @ named_order np.name
+  | _ -> [I 4]
+let loop_order = function
+  | Id_behavior b -> [B b]
+  | Id_code_annot _ -> []
+      
+let ip_order = function
+  | IPAxiomatic(a,_) -> [I 0;S a]
+  | IPAxiom(a,_,_,_,_) | IPLemma(a,_,_,_,_) -> [I 1;S a]
+  | IPOther(s,None,ki) -> [I 3;K ki;S s]
+  | IPOther(s,Some kf,ki) -> [I 4;F kf;K ki;S s]
+  | IPBehavior(kf,ki,bhv) -> [I 5;F kf;K ki;B bhv]
+  | IPComplete(kf,ki,bs) -> [I 6;F kf;K ki] @ for_order 0 bs
+  | IPDisjoint(kf,ki,bs) -> [I 7;F kf;K ki] @ for_order 0 bs
+  | IPPredicate(kind,kf,ki,_) -> [I 8;F kf;K ki] @ kind_order kind
+  | IPCodeAnnot(kf,st,a) -> [I 9;F kf;K(Kstmt st)] @ annot_order a
+  | IPAllocation(kf,ki,ib,_) -> [I 10;F kf;K ki] @ loop_order ib
+  | IPAssigns(kf,ki,ib,_) -> [I 11;F kf;K ki] @ loop_order ib
+  | IPFrom (kf,ki,ib,_) -> [I 12;F kf;K ki] @ loop_order ib
+  | IPDecrease(kf,ki,None,_) -> [I 13;F kf;K ki]
+  | IPDecrease(kf,ki,Some a,_) -> [I 14;F kf;K ki] @ annot_order a
+  | IPReachable(None,_,_) -> [I 15]
+  | IPReachable(Some kf,ki,_) -> [I 16;F kf;K ki]
+
+let pp_compare p q = cmp (ip_order p) (ip_order q)
+
+let full_compare p q =
+  let cmp = pp_compare p q in
+  if cmp<>0 then cmp else Property.compare p q
+
+
+
+
+
+
 
 (*
 Local Variables:

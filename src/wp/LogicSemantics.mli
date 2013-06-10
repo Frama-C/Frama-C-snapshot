@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -50,10 +50,14 @@ sig
   (** {3 Frames} *)
 
   type frame
+  val pp_frame : Format.formatter -> frame -> unit
+  val get_frame : unit -> frame
   val in_frame : frame -> ('a -> 'b) -> 'a -> 'b
   val mem_frame : c_label -> sigma
+  val mem_at_frame : frame -> c_label -> sigma
 
   val frame : kernel_function -> frame
+  val frame_copy : frame -> frame
   val call_pre   : kernel_function -> value list -> sigma -> frame
   val call_post  : kernel_function -> value list -> sigma sequence -> frame
 
@@ -67,7 +71,7 @@ sig
 
   type env
     
-  val env : logic_var list -> env
+  val new_env : logic_var list -> env
   val move : env -> sigma -> env
   val sigma : env -> sigma
   val mem_at : env -> c_label -> sigma
@@ -88,7 +92,7 @@ sig
 
   val vars : region -> Vars.t
   val occurs : var -> region -> bool
-  val valid : sigma -> c_object -> region -> pred
+  val valid : sigma -> acs -> c_object -> region -> pred
   val included : c_object -> region -> c_object -> region -> pred
   val separated : (c_object * region) list -> pred
     

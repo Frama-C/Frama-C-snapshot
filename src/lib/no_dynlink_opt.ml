@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,8 +20,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* Implementation of [Dynlink_common_interface] compatible with
-   ocamlopt < 3.11 *)
+(* Implementation of [Dynlink_common_interface] when no dynlink
+   is available *)
 
 module type OldDynlink = sig
   val loadfile : string -> unit

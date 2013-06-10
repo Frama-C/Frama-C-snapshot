@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -20,7 +20,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-let dkey = "strategy" (* debugging key *)
+let dkey = Wp_parameters.register_category "strategy" (* debugging key *)
 let debug fmt = Wp_parameters.debug ~dkey fmt
 
 open Cil_types
@@ -83,7 +83,7 @@ let add_prop acc kind labels id p =
       let p = NormAtLabels.preproc_annot labels p in
       let _ =
         debug "take as %s (@[%a:@ %a@])@." debug_txt
-	  WpPropId.pretty id !Ast_printer.d_predicate_named p
+	  WpPropId.pretty id Printer.pp_predicate_named p
       in Some (WpPropId.mk_pred_info id p)
     with e -> NormAtLabels.catch_label_error e 
       (WpPropId.get_propid id) "annotation"; None
@@ -218,7 +218,7 @@ let fold_bhv_post_cond ~warn f_normal f_exits acc b =
             if warn then
               Wp_parameters.warning
                 "Abrupt statement termination property ignored:@, %a"
-                (Cil.defaultCilPrinter)#pPost_cond e;
+                Printer.pp_post_cond e;
             p_acc, e_acc
           end
   in List.fold_left add acc b.b_post_cond
@@ -545,6 +545,9 @@ type strategy = {
 let get_kf s = Cil2cfg.cfg_kf s.cfg
 let get_bhv s = s.behavior_name
 
+let is_default_behavior s = 
+  match s.behavior_name with None -> true | Some _ -> false
+
 let mk_strategy desc cfg bhv_name new_loops kind tbl = {
   desc = desc; cfg = cfg; behavior_name = bhv_name; new_loops = new_loops; 
   strategy_kind = kind; annots = tbl;
@@ -579,10 +582,6 @@ let is_main_init kf =
       Kernel_function.pretty kf (if is_main then "" else "NOT ");
     is_main
 
-let get_called_kf fct = match fct.enode with
-  | Lval (Var vkf, NoOffset) -> Some (Globals.Functions.get vkf)
-  | _ -> None
-
 let mk_variant_properties kf s ca v =
   let vpos_id = WpPropId.mk_var_pos_id kf s ca in
   let vdecr_id = WpPropId.mk_var_decr_id kf s ca in
@@ -595,9 +594,3 @@ let mk_variant_properties kf s ca v =
   (vpos_id, vpos), (vdecr_id, vdecr)
 
 (* -------------------------------------------------------------------------- *)
-
-(*
-Local Variables:
-compile-command: "make -C ../.."
-End:
-*)

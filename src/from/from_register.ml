@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -21,8 +21,6 @@
 (**************************************************************************)
 
 open Cil_types
-open Cil
-
 
 let display_aux pp =
   !Db.Semantic_Callgraph.topologically_iter_on_functions
@@ -110,13 +108,14 @@ These dependencies hold at termination for the executions that terminate:";
                    with Not_found ->
                      From_parameters.fatal
                        ~source:(fst (Cil_datatype.Stmt.loc s))
-                       "Invalid call %a@." Cil.d_stmt s
+                       "Invalid call %a@." Printer.pp_stmt s
                  in
                  let id =
                    Pretty_utils.sfprintf "%a at %a (by %a)%t"
                      Kernel_function.pretty f
-                     pretty_loc_simply (Kstmt s)
-                     Kernel_function.pretty (Kernel_function.find_englobing_kf s)
+                     Cil_datatype.Location.pretty (Cil_datatype.Stmt.loc s)
+                     Kernel_function.pretty
+		     (Kernel_function.find_englobing_kf s)
                      (fun fmt ->
                         if From_parameters.debug_atleast 1 then
                           Format.fprintf fmt " <sid %d>" s.Cil_types.sid)
@@ -133,10 +132,25 @@ These dependencies hold at termination for the executions that terminate:";
 
 let () = Db.Main.extend main
 
+
+let update_from loc new_v mem =
+  let exact =
+    Locations.valid_cardinal_zero_or_one ~for_writing:true loc
+  in
+  let z = Locations.enumerate_valid_bits ~for_writing:true loc in
+  Lmap_bitwise.From_Model.add_binding exact mem z new_v
+
+let access_from looking_for mem =
+  Lmap_bitwise.From_Model.find mem looking_for
+
+
 (* Registration for most Db.From functions is done at the end of the
-   Functionwise dans Callwise modules *)
+   Functionwise and Callwise modules *)
 let () =
-  Db.From.display := display
+  Db.From.display := display;
+  Db.From.update := update_from;
+  Db.From.access := access_from;
+
 
 
 (*

@@ -2,11 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
-(*           alternatives)                                                *)
-(*    INRIA (Institut National de Recherche en Informatique et en         *)
-(*           Automatique)                                                 *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -190,7 +188,6 @@ module Computer (Param:sig val states : Ctx.t end) = struct
 
   module StmtStartData = struct
     type data = t
-    type key = stmt
     let clear () = Stmt.Hashtbl.clear Param.states
     let mem = Stmt.Hashtbl.mem Param.states
     let find = Stmt.Hashtbl.find Param.states
@@ -311,7 +308,7 @@ let get stmt_zones stmt =
 let pretty fmt stmt_zones =
   let pp s d = Format.fprintf fmt "Stmt:%d -> %a@." s.sid Data.pretty d in
   (* Sort output so that it does not depend on the OCaml hash function.
-     Can be removed when OCaml 3.13 is mandatory *)
+     Can be removed when OCaml 4.01 is mandatory *)
   let sorted = Stmt.Hashtbl.fold Stmt.Map.add stmt_zones Stmt.Map.empty in
   Stmt.Map.iter pp sorted
 

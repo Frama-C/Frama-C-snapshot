@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -30,7 +30,7 @@ open Cil_types
 open Cil_datatype
 
 module WpMain = Wp_parameters
-let dkey = "vardebug"
+let dkey = Wp_parameters.register_category "vardebug"
 
 (* -------------------------------------------------------------------------- *)
 (* --- Dimension Utilities                                                --- *)
@@ -58,7 +58,7 @@ let size e =
     | Const(CChr c) -> size_of_char c
     | _ -> raise NoSize
 
-let size_int e = My_bigint.to_int (size e)
+let size_int e = Integer.to_int (size e)
 
 let _merge_dim ds1 ds2 = (* Unused *)
   if ds1=[] then ds2 else
@@ -108,9 +108,9 @@ let rec dim_of_type typ =
 
 let rec cells_in_type typ =
   match Cil.unrollType typ with
-    | TArray(te,Some d,_,_) -> My_bigint.mul (size d) (cells_in_type te)
+    | TArray(te,Some d,_,_) -> Integer.mul (size d) (cells_in_type te)
     | TArray(_,None,_,_) -> raise NoSize
-    | _ -> My_bigint.one
+    | _ -> Integer.one
 
 let rec type_of_cells typ =
   match Cil.unrollType typ with
@@ -547,12 +547,8 @@ let rec funcall_params kf xs es =
 	expr (Context.function_param kf x) e ; 
 	funcall_params kf xs es
 
-let get_called_kf fct = match fct.enode with
-  | Lval (Var vkf, NoOffset) -> Some (Globals.Functions.get vkf)
-  | _ -> None
-
 let funcall (ef:Cil_types.exp) (es:Cil_types.exp list) =
-  match get_called_kf ef with
+  match Kernel_function.get_called ef with
     | None -> 
 	expr Context.epsilon ef ; 
 	List.iter (expr Context.epsilon) es
@@ -615,6 +611,7 @@ let rec term (context:Context.t) (t:term) =
     | Tlet( phi , a ) ->
 	logic_body phi.l_body ;
 	term context a
+     | TLogic_coerce (_,t) -> term context t
 
 and term_option context = function None -> () | Some e -> term context e
 

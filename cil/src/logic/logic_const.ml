@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -205,20 +205,28 @@ let trange ?(loc=Lexing.dummy_pos, Lexing.dummy_pos) (low,high) =
 
 (** An integer constant (of type integer). *)
 let tinteger ?(loc=Cil_datatype.Location.unknown) i =
-  term ~loc (TConst (Integer (My_bigint.of_int i,None))) Linteger
+  term ~loc (TConst (Integer (Integer.of_int i,None))) Linteger
 
 (** An integer constant (of type integer) from an int64 . *)
 let tinteger_s64
     ?(loc=Cil_datatype.Location.unknown) i64 =
-  term ~loc (TConst (Integer (My_bigint.of_int64 i64,None))) Linteger
+  term ~loc (TConst (Integer (Integer.of_int64 i64,None))) Linteger
 
 let tint ?(loc=Cil_datatype.Location.unknown) i =
   term ~loc (TConst (Integer (i,None))) Linteger
 
 (** A real constant (of type real) from a Caml float . *)
 let treal ?(loc=Cil_datatype.Location.unknown) f =
-  term ~loc 
-    (TConst (LReal (f,Pretty_utils.to_string Floating_point.pretty f))) Lreal
+  let s = Pretty_utils.to_string Floating_point.pretty f in
+  let r = {
+    r_literal = s ;
+    r_upper = f ; r_lower = f ; r_nearest = f ; 
+  } in
+  term ~loc (TConst (LReal r)) Lreal
+
+let treal_zero ?(loc=Cil_datatype.Location.unknown) ?(ltyp=Lreal) () = 
+  let zero = { r_nearest = 0.0 ; r_upper = 0.0 ; r_lower = 0.0 ; r_literal = "0." } in
+  term ~loc (TConst (LReal zero)) ltyp
 
 let tat ?(loc=Cil_datatype.Location.unknown) (t,label) =
   term ~loc (Tat(t,label)) t.term_type
@@ -362,7 +370,6 @@ let psubtype ?(loc=Cil_datatype.Location.unknown) (p,q) =
 
 let pseparated  ?(loc=Cil_datatype.Location.unknown) seps =
   unamed ~loc (Pseparated seps)
-
 
 (*
 Local Variables:

@@ -1,7 +1,7 @@
 int G;
 int main (int u) {
-  int * p = &G;
-  char *c = &G;
+  int *p;
+L:  p = &G; char *c = &G;
 
   switch (u) {
   case 0:
@@ -52,6 +52,16 @@ int main (int u) {
   case 15:
   //@ assert p != \null;
     break;
+  case 16:
+  //@ assert \valid{L}(p);
+  //@ assert !\at(\valid(p), L);
+    break;
+  case 17: {
+    int x;
+    p = &x;
+    //@ assert !\valid{L}(p); // Incorrect
+    break;
+  }
   }
 
   return 0;

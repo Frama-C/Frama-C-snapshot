@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,8 +24,14 @@ open Abstract_interp
 
 type kind =
   | K_Misalign_read
+  | K_Leaf
   | K_Merge
   | K_Arith
+
+module LocationSetLattice = struct
+  include Abstract_interp.Make_Lattice_Set(Cil_datatype.Location)
+  let currentloc_singleton () = inject_singleton (Cil.CurrentLoc.get ())
+end
 
 type origin =
   | Misalign_read of LocationSetLattice.t
@@ -35,8 +41,10 @@ type origin =
   | Well
   | Unknown
 
-let current_origin = function
+
+let current = function
   | K_Misalign_read -> Misalign_read (LocationSetLattice.currentloc_singleton())
+  | K_Leaf -> Leaf (LocationSetLattice.currentloc_singleton())
   | K_Merge -> Merge (LocationSetLattice.currentloc_singleton())
   | K_Arith -> Arith (LocationSetLattice.currentloc_singleton())
 
@@ -181,13 +189,15 @@ let meet o1 o2 =
       | Well,m | m, Well -> m
       | Unknown, Unknown -> Unknown
 
+let narrow x _y = x (* TODO *)
+
+
 let is_included o1 o2 =
   (equal o1 (meet o1 o2))
 
 let is_included_exn v1 v2 =
   if not (is_included v1 v2) then raise Is_not_included
 
-let narrow x _y = x (* TODO *)
 
 (*
 Local Variables:

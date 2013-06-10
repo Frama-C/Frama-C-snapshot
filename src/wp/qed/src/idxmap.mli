@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -26,13 +26,18 @@ module type S =
 sig
   type key
   type 'a t
+  val is_empty : 'a t -> bool
   val empty : 'a t
   val add : key -> 'a -> 'a t -> 'a t
   val mem : key -> 'a t -> bool
   val find : key -> 'a t -> 'a
   val remove : key -> 'a t -> 'a t
+  val compare : ('a -> 'a -> int) -> 'a t -> 'a t -> int
+  val equal : ('a -> 'a -> bool) -> 'a t -> 'a t -> bool
   val iter : (key -> 'a -> unit) -> 'a t -> unit
   val map : (key -> 'a -> 'b) -> 'a t -> 'b t
+  val mapf : (key -> 'a -> 'b option) -> 'a t -> 'b t
+  val filter : (key -> 'a -> bool) -> 'a t -> 'a t
   val fold : (key -> 'a -> 'b -> 'b) -> 'a t -> 'b -> 'b
   val union : (key -> 'a -> 'a -> 'a) -> 'a t -> 'a t -> 'a t
   val inter : (key -> 'a -> 'a -> 'a) -> 'a t -> 'a t -> 'a t

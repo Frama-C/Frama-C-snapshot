@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -51,25 +51,26 @@ end
 
 module Recording_To_Do =
 struct
-  let accept_base_in_lmap =
-    Value_aux.accept_base ~with_formals:false ~with_locals:false
+  let accept_base_in_lmap kf = (* Eta-expansion required *)
+    !Db.Semantic_Callgraph.accept_base ~with_formals:false ~with_locals:false kf
   let final_cleanup kf froms =
     if Lmap_bitwise.From_Model.is_bottom froms.Function_Froms.deps_table
     then froms
     else
-    let f k intervs =
-      if Value_aux.accept_base ~with_formals:true ~with_locals:false kf k
-      then Zone.inject k intervs
+    let f b intervs =
+      if !Db.Semantic_Callgraph.accept_base
+        ~with_formals:true ~with_locals:false kf b
+      then Zone.inject b intervs
       else Zone.bottom
     in
     let joiner = Zone.join in
     let projection base =
       match Base.validity base with
+      | Base.Invalid -> Lattice_Interval_Set.Int_Intervals.bottom
       | Base.Periodic (min_valid, max_valid, _)
       | Base.Known (min_valid,max_valid)
-      | Base.Unknown (min_valid,max_valid)->
+      | Base.Unknown (min_valid,_,max_valid)->
           Lattice_Interval_Set.Int_Intervals.inject_bounds min_valid max_valid
-      | Base.All -> assert false(*TODO*)
     in
     let zone_substitution =
       Zone.cached_fold ~cache:("from cleanup", 331) ~temporary:true

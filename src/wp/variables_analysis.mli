@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -82,9 +82,3 @@ val brackets_typ : Cil_types.typ -> int
     of (one or more) ACSL builtin predicate(s) or function : 
       valid and family, separated, block_length, initialized*)
 val is_user_formal_in_builtin : Cil_types.logic_var -> bool
-
-(*
-Local Variables:
-compile-command: "make -C ../.."
-End:
-*)

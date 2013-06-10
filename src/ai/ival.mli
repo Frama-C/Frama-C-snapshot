@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -39,7 +39,6 @@ exception Can_not_subdiv
 
 module Float_abstract : sig
   type t
-  type integer = Abstract_interp.Int.t
   exception Nan_or_infinite
   exception Bottom
   type rounding_mode = Any | Nearest_Even
@@ -130,83 +129,8 @@ type tt = private
       Abstract_interp.Int.t * Abstract_interp.Int.t
 
 module Widen_Hints : sig
-  module V : sig
-    include Datatype.S with type t = Abstract_interp.Int.t
-    val gt : t -> t -> bool
-    val le : t -> t -> bool
-    val ge : t -> t -> bool
-    val lt : t -> t -> bool
-    val add : t -> t -> t
-    val sub : t -> t -> t
-    val mul : t -> t -> t
-    val native_div : t -> t -> t
-    val rem : t -> t -> t
-    val pos_div : t -> t -> t
-    val c_div : t -> t -> t
-    val c_rem : t -> t -> t
-    val cast : size:t -> signed:bool -> value:t -> t
-    val abs : t -> t
-    val zero : t
-    val one : t
-    val two : t
-    val four : t
-    val minus_one : t
-    val is_zero : t -> bool
-    val is_one : t -> bool
-    val pgcd : t -> t -> t
-    val ppcm : t -> t -> t
-    val min : t -> t -> t
-    val max : t -> t -> t
-    val length : t -> t -> t
-    val of_int : int -> t
-    val of_float : float -> t
-    val of_int64 : Int64.t -> t
-    val to_int : t -> int
-    val to_float : t -> float
-    val neg : t -> t
-    val succ : t -> t
-    val pred : t -> t
-    val round_up_to_r : min:t -> r:t -> modu:t -> t
-    val round_down_to_r : max:t -> r:t -> modu:t -> t
-    val pos_rem : t -> t -> t
-    val shift_left : t -> t -> t
-    val shift_right : t -> t -> t
-    val fold : (t -> 'a -> 'a) -> inf:t -> sup:t -> step:t -> 'a -> 'a
-    val logand : t -> t -> t
-    val logor : t -> t -> t
-    val logxor : t -> t -> t
-    val lognot : t -> t
-    val power_two : int -> t
-    val two_power : t -> t
-    val extract_bits : start:t -> stop:t -> t -> t
-  end
-  type elt = V.t
-  include Datatype.S
-  val empty : t
-  val is_empty : t -> bool
-  val mem : elt -> t -> bool
-  val add : elt -> t -> t
-  val singleton : elt -> t
-  val remove : elt -> t -> t
-  val union : t -> t -> t
-  val inter : t -> t -> t
-  val diff : t -> t -> t
-  val subset : t -> t -> bool
-  val iter : (elt -> unit) -> t -> unit
-  val fold : (elt -> 'a -> 'a) -> t -> 'a -> 'a
-  val for_all : (elt -> bool) -> t -> bool
-  val exists : (elt -> bool) -> t -> bool
-  val filter : (elt -> bool) -> t -> t
-  val partition : (elt -> bool) -> t -> t * t
-  val cardinal : t -> int
-  val elements : t -> elt list
-  val min_elt : t -> elt
-  val max_elt : t -> elt
-  val choose : t -> elt
-  val split : elt -> t -> t * bool * t
-  val nearest_elt_le : elt -> t -> elt
-  val nearest_elt_ge : elt -> t -> elt
-  val default_widen_hints : t
+  include SetWithNearest.S with type elt = Integer.t
+  val default_widen_hints: t
 end
 
 exception Error_Top
@@ -245,6 +169,7 @@ val min_and_max :
   t -> Abstract_interp.Int.t option * Abstract_interp.Int.t option
 val bitwise_and : size:int -> signed:bool -> t -> t -> t
 val bitwise_or : size:int -> t -> t -> t
+val bitwise_xor : t -> t -> t
 
 val min_and_max_float : t -> F.t * F.t
 val inject_range :
@@ -263,6 +188,7 @@ val compare_max_int : t -> t -> int
 val is_zero : t -> bool
 val is_one : t -> bool
 val inject_float : Float_abstract.t -> t
+val inject_float_interval : float -> float -> t
 val top_float : t
 val top_single_precision_float : t
 val project_float : t -> Float_abstract.t
@@ -324,6 +250,8 @@ val interp_boolean : contains_zero:bool -> contains_non_zero:bool -> t
 
 val set_of_array : Abstract_interp.Int.t array -> O.t
 
+(** Extract bits from [start] to [stop] from the given Ival, [start]
+    and [stop] being included. [size]  is the size of the entire ival. *)
 val extract_bits :
   start:Abstract_interp.Int.t -> stop:Abstract_interp.Int.t ->
   size:Abstract_interp.Int.t -> t -> t
@@ -350,18 +278,19 @@ val compare_C :
 val max_max :
   Abstract_interp.Int.t option ->
   Abstract_interp.Int.t option -> Abstract_interp.Int.t option
-val scale_int64base : Int_Base.tt -> t -> t
+val scale_int64base : Int_Base.t -> t -> t
 val cast_float_to_int :
-    signed:bool -> size:int -> t -> bool * bool * t
+    signed:bool -> size:int -> t -> (** Top *) bool * (** Overflow *) bool * t
 val cast_float_to_int_inverse : single_precision:bool -> tt -> tt
 val of_int : int -> t
 val of_int64 : int64 -> t
 val cast_int_to_float : Float_abstract.rounding_mode -> t -> bool * t
 val cast : size:Abstract_interp.Int.t -> signed:bool -> value:t -> t
 val cast_float : rounding_mode:Float_abstract.rounding_mode -> t -> bool * t
-val tag : t -> int
+val cast_double : t -> bool * t
 val pretty_debug : Format.formatter -> t -> unit
 
+val get_small_cardinal: unit -> int
 
 (**/**) (* This is automatically set by the Value plugin. Do not use. *)
 val set_small_cardinal: int -> unit

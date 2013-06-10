@@ -1,43 +1,45 @@
-(**************************************************************************)
-(*                                                                        *)
-(*  Copyright (C) 2001-2003                                               *)
-(*   George C. Necula    <necula@cs.berkeley.edu>                         *)
-(*   Scott McPeak        <smcpeak@cs.berkeley.edu>                        *)
-(*   Wes Weimer          <weimer@cs.berkeley.edu>                         *)
-(*   Ben Liblit          <liblit@cs.berkeley.edu>                         *)
-(*  All rights reserved.                                                  *)
-(*                                                                        *)
-(*  Redistribution and use in source and binary forms, with or without    *)
-(*  modification, are permitted provided that the following conditions    *)
-(*  are met:                                                              *)
-(*                                                                        *)
-(*  1. Redistributions of source code must retain the above copyright     *)
-(*  notice, this list of conditions and the following disclaimer.         *)
-(*                                                                        *)
-(*  2. Redistributions in binary form must reproduce the above copyright  *)
-(*  notice, this list of conditions and the following disclaimer in the   *)
-(*  documentation and/or other materials provided with the distribution.  *)
-(*                                                                        *)
-(*  3. The names of the contributors may not be used to endorse or        *)
-(*  promote products derived from this software without specific prior    *)
-(*  written permission.                                                   *)
-(*                                                                        *)
-(*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS   *)
-(*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT     *)
-(*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS     *)
-(*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE        *)
-(*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,   *)
-(*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,  *)
-(*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;      *)
-(*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER      *)
-(*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT    *)
-(*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN     *)
-(*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE       *)
-(*  POSSIBILITY OF SUCH DAMAGE.                                           *)
-(*                                                                        *)
-(*  File modified by CEA (Commissariat à l'énergie atomique et aux        *)
-(*                        énergies alternatives).                         *)
-(**************************************************************************)
+(****************************************************************************)
+(*                                                                          *)
+(*  Copyright (C) 2001-2003                                                 *)
+(*   George C. Necula    <necula@cs.berkeley.edu>                           *)
+(*   Scott McPeak        <smcpeak@cs.berkeley.edu>                          *)
+(*   Wes Weimer          <weimer@cs.berkeley.edu>                           *)
+(*   Ben Liblit          <liblit@cs.berkeley.edu>                           *)
+(*  All rights reserved.                                                    *)
+(*                                                                          *)
+(*  Redistribution and use in source and binary forms, with or without      *)
+(*  modification, are permitted provided that the following conditions      *)
+(*  are met:                                                                *)
+(*                                                                          *)
+(*  1. Redistributions of source code must retain the above copyright       *)
+(*  notice, this list of conditions and the following disclaimer.           *)
+(*                                                                          *)
+(*  2. Redistributions in binary form must reproduce the above copyright    *)
+(*  notice, this list of conditions and the following disclaimer in the     *)
+(*  documentation and/or other materials provided with the distribution.    *)
+(*                                                                          *)
+(*  3. The names of the contributors may not be used to endorse or          *)
+(*  promote products derived from this software without specific prior      *)
+(*  written permission.                                                     *)
+(*                                                                          *)
+(*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS     *)
+(*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT       *)
+(*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS       *)
+(*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE          *)
+(*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,     *)
+(*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,    *)
+(*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;        *)
+(*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER        *)
+(*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT      *)
+(*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN       *)
+(*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE         *)
+(*  POSSIBILITY OF SUCH DAMAGE.                                             *)
+(*                                                                          *)
+(*  File modified by CEA (Commissariat à l'énergie atomique et aux          *)
+(*                        énergies alternatives)                            *)
+(*               and INRIA (Institut National de Recherche en Informatique  *)
+(*                          et Automatique).                                *)
+(****************************************************************************)
 
 (* These are functions etc. for removing CIL generated
    temporary variables. Some can be removed immediately,
@@ -51,18 +53,8 @@ module AELV = Availexpslv
 module UD = Usedef
 module IH = Datatype.Int.Hashtbl
 module IS = Datatype.Int.Set
-module S = (*Stats*) struct
-  let time _ f c = f c
-end
 
 let debug = RD.debug
-
-let doTime = ref false
-
-let time s f a =
-  if !doTime then
-    S.time s f a
-  else f a
 
 
 (* Type for the form of temporary variable names *)
@@ -111,8 +103,9 @@ let memReadOrAddrOfFinder = new memReadOrAddrOfFinderClass
 
 (* exp -> bool *)
 let exp_is_ok_replacement e =
-  if !debug then Kernel.debug "exp_is_ok_replacement: in exp_is_ok_replacement with %a\n"
-    d_exp e;
+  if !debug then 
+    Kernel.debug "exp_is_ok_replacement: in exp_is_ok_replacement with %a\n" 
+      Cil_printer.pp_exp e;
   exp_ok := true;
   ignore(visitCilExpr memReadOrAddrOfFinder e);
   !exp_ok
@@ -152,19 +145,24 @@ let writes_between f dsid sid =
      instruction that writes to memory? Do a dfs *)
   let visited_sid_isr = ref IS.empty in
   let rec dfs goal b start =
-    if !debug then Kernel.debug "writes_between: dfs visiting %a\n" d_stmt start;
+    if !debug then 
+      Kernel.debug "writes_between: dfs visiting %a\n" Cil_printer.pp_stmt start;
     if start.sid = goal.sid then
       let wh = find_write start in
-      (if !debug && b then (Kernel.debug "writes_between: start=goal and found a write\n");
-       if !debug && (not b) then (Kernel.debug "writes_between: start=goal and no write\n");
-       if !debug && wh then (Kernel.debug "writes_between: start=goal and write here\n");
-       if !debug && (not wh) then (Kernel.debug "writes_between: start=goal and no write here\n");
+      (if !debug && b then 
+	  Kernel.debug "writes_between: start=goal and found a write\n";
+       if !debug && (not b) then 
+	 Kernel.debug "writes_between: start=goal and no write\n";
+       if !debug && wh then 
+	 Kernel.debug "writes_between: start=goal and write here\n";
+       if !debug && (not wh) then 
+	 Kernel.debug "writes_between: start=goal and no write here\n";
        b || (find_write start))
     else
-    (* if time "List.mem1" (List.mem start.sid) (!visited_sid_lr) then false else *)
     if IS.mem start.sid (!visited_sid_isr) then false else
     let w = find_write start in
-    if !debug && w then Kernel.debug "writes_between: found write %a" d_stmt start;
+    if !debug && w then 
+      Kernel.debug "writes_between: found write %a" Cil_printer.pp_stmt start;
     visited_sid_isr := IS.add start.sid (!visited_sid_isr);
     let rec proc_succs sl = match sl with [] -> false
     | s::rest -> if dfs goal (w || b) s then true else proc_succs rest
@@ -267,7 +265,7 @@ let ok_to_replace vi curiosh sid defiosh dsid f r =
     true)
   else (if !debug then (Kernel.debug "ok_to_replace: target %s does not have its address taken" vi.vname);
         false) in
-  let writes = if safe && not(target_addrof) then false else (time "writes_between" (writes_between f dsid) sid) in
+  let writes = if safe && not(target_addrof) then false else (writes_between f dsid sid) in
   if (not safe || target_addrof) && writes
   then
     (if !debug then (Kernel.debug "ok_to_replace: replacement not safe because of pointers or addrOf");
@@ -324,16 +322,16 @@ let ok_to_replace_with_incdec curiosh defiosh f id vi r =
       BinOp((PlusA|PlusPI|IndexPI),
             {enode = Lval(Var vi', NoOffset)},
             {enode = Const(CInt64(one,_,_))},_) ->
-              if vi.vid = vi'.vid && My_bigint.equal one My_bigint.one
+              if vi.vid = vi'.vid && Integer.equal one Integer.one
               then Some(PlusA)
               else if vi.vid = vi'.vid && 
-                     My_bigint.equal one My_bigint.minus_one
+                     Integer.equal one Integer.minus_one
               then Some(MinusA)
               else None
     | BinOp((MinusA|MinusPI),
             {enode = Lval(Var vi', NoOffset)},
             {enode = Const(CInt64(one,_,_))},_) ->
-              if vi.vid = vi'.vid && My_bigint.equal one My_bigint.one
+              if vi.vid = vi'.vid && Integer.equal one Integer.one
               then Some(MinusA)
               else None
     | _ -> None
@@ -473,7 +471,7 @@ let varXformClass action data sid fd nofrm = object
         None -> DoChildren
       | Some e' ->
           (* Cast e' to the correct type. *)
-          let e'' = mkCast ~e:e' ~newt:vi.vtype in
+          let e'' = mkCast e' vi.vtype in
           ChangeTo e'')
   | Lval(Mem e', off) ->
       (* don't substitute constants in memory lvals *)
@@ -515,7 +513,7 @@ let lvalXformClass action data sid fd nofrm = object
             ChangeDoChildrenPost(new_exp ~loc:e.eloc (Lval(Mem e', off)), post)
         | Some e ->
             let newt = typeOf(new_exp ~loc:e.eloc (Lval lv)) in
-            let e'' = mkCast ~e ~newt in
+            let e'' = mkCast e newt in
             ChangeDoChildrenPost(e'', castrm)
     end
     | Lval lv -> begin
@@ -523,7 +521,7 @@ let lvalXformClass action data sid fd nofrm = object
         | None -> DoChildren
         | Some e' -> begin
             (* Cast e' to the correct type. *)
-            let e'' = mkCast ~e:e' ~newt:(typeOf(dummy_exp(Lval lv))) in
+            let e'' = mkCast e' (typeOf(dummy_exp(Lval lv))) in
             ChangeDoChildrenPost(e'', castrm)
         end
     end
@@ -539,7 +537,7 @@ let iosh_get_useful_def iosh vi =
     let ios = IH.find iosh vi.vid in
     let ios' = RD.IOS.filter (fun ido  ->
       match ido with None -> true | Some(id) ->
-        match time "getDefRhs" getDefRhs id with
+        match getDefRhs id with
             Some(RD.RDExp({enode = Lval(Var vi',NoOffset)}),_,_)
         | Some(RD.RDExp
                  ({enode = CastE(_,{enode = Lval(Var vi',NoOffset)})}),_,_) ->
@@ -559,8 +557,8 @@ let ae_tmp_to_exp eh _sid vi _fd nofrm =
   if nofrm || (check_forms vi.vname forms)
   then try begin
     let e = IH.find eh vi.vid in
-    if !debug then Kernel.debug "tmp_to_exp: changing %s to %a"
-      vi.vname d_plainexp e;
+    if !debug then 
+      Kernel.debug "tmp_to_exp: changing %s to %a" vi.vname Cil_printer.pp_exp e;
     match e.enode with
     | Const(CStr _)
     | Const(CWStr _) -> None (* don't fwd subst str lits *)
@@ -585,8 +583,9 @@ let ae_lval_to_exp lvh _sid lv _fd nofrm =
           | Const(CWStr _) -> None
           | _ -> begin
               ae_lval_to_exp_change := true;
-              if !debug then Kernel.debug "ae: replacing %a with %a"
-                d_lval lv d_exp e;
+              if !debug then 
+		Kernel.debug "ae: replacing %a with %a"
+                  Cil_printer.pp_lval lv Cil_printer.pp_exp e;
               Some e
           end
         with Not_found -> None
@@ -601,7 +600,7 @@ let ae_lval_to_exp lvh _sid lv _fd nofrm =
         | _ -> begin
             ae_lval_to_exp_change := true;
             Kernel.debug "ae: replacing %a with %a"
-              d_lval lv d_exp e;
+              Cil_printer.pp_lval lv Cil_printer.pp_exp e;
             Some e
         end
       with Not_found -> None
@@ -622,16 +621,17 @@ let rd_tmp_to_exp iosh sid vi fd nofrm =
     if !debug then (Kernel.debug "tmp_to_exp: non-single def: %s"
                             vi.vname);
     None
-  | Some(id) -> let defrhs = time "getDefRhs" getDefRhs id in
+  | Some(id) -> let defrhs = getDefRhs id in
     match defrhs with None ->
       if !debug then
         (Kernel.debug "tmp_to_exp: no def of %s" vi.vname);
       None
     | Some(RD.RDExp(e) as r, dsid , defiosh) ->
-        if time "ok_to_replace" (ok_to_replace vi iosh sid defiosh dsid fd) r
+        if ok_to_replace vi iosh sid defiosh dsid fd r
         then
-          (if !debug then Kernel.debug "tmp_to_exp: changing %s to %a"
-             vi.vname d_plainexp e;
+          (if !debug then
+	      Kernel.debug "tmp_to_exp: changing %s to %a"
+		vi.vname Cil_printer.pp_exp e;
            match e.enode with
            | Const(CStr _)
            | Const(CWStr _) -> None
@@ -691,7 +691,7 @@ let tmp_to_const iosh sid vi fd nofrm =
           try RD.IOS.choose ios
           with Not_found -> None in
         match defido with None -> None | Some defid ->
-          match time "getDefRhs" getDefRhs defid with
+          match getDefRhs defid with
             None -> None
           | Some(RD.RDExp({enode = Const c;eloc=loc}), _, defiosh) ->
               (match RD.getDefIdStmt defid with
@@ -702,7 +702,7 @@ let tmp_to_const iosh sid vi fd nofrm =
                   then
                   let same = RD.IOS.for_all (fun defido ->
                     match defido with None -> false | Some defid ->
-                      match time "getDefRhs" getDefRhs defid with
+                      match getDefRhs defid with
                         None -> false
                       | Some(RD.RDExp({enode = Const c'}),_,defiosh) ->
                           if Cil_datatype.Constant.equal c c' then
@@ -744,8 +744,9 @@ class expTempElimClass (fd:fundec) = object (self)
           let riviho = getDefRhs id in
           (match riviho with
             Some(RD.RDExp(e) as r, dsid, defiosh) ->
-              if !debug then Kernel.debug "Can I replace %s with %a?"
-                vi.vname d_exp e;
+              if !debug then 
+		Kernel.debug "Can I replace %s with %a?"
+		  vi.vname Cil_printer.pp_exp e;
               if ok_to_replace
                 vi iosh (Extlib.the self#current_stmt).sid defiosh dsid fd r
               then
@@ -851,7 +852,9 @@ class callTempElimClass (fd:fundec) = object (self)
           let riviho = getDefRhs id in
           (match riviho with
                Some(RD.RDCall(i) as r, dsid, defiosh) ->
-		 if !debug then Kernel.debug "Can I replace %s with %a?" vi.vname d_instr i;
+		 if !debug then 
+		   Kernel.debug "Can I replace %s with %a?" 
+		     vi.vname Cil_printer.pp_instr i;
 		 if ok_to_replace
                    vi iosh (Extlib.the self#current_stmt).sid defiosh dsid fd r
 		 then (if !debug then (Kernel.debug "Yes.");
@@ -889,8 +892,9 @@ class callTempElimClass (fd:fundec) = object (self)
        code elimination is performed before printing. *)
   method vinst i =
     (* Need to copy this from rdVisitorClass because we are overriding *)
-    if !debug then Kernel.debug "rdVis: before %a, rd_dat_lst is %d long"
-      d_instr i (List.length rd_dat_lst);
+    if !debug then 
+      Kernel.debug "rdVis: before %a, rd_dat_lst is %d long"
+	Cil_printer.pp_instr i (List.length rd_dat_lst);
     (try
       cur_rd_dat <- Some(List.hd rd_dat_lst);
       rd_dat_lst <- List.tl rd_dat_lst
@@ -1015,14 +1019,20 @@ class unusedRemoverClass : cilVisitor = object(self)
                                 false)
               | RD.RDExp e' ->
                   if compareExp e e' then true
-                  else (if !debug then Kernel.debug "check_incdec: rhs of %d: %a, and needed redef %a not equal"
-                          redefid d_plainexp e' d_plainexp e;
+                  else (if !debug then 
+		      Kernel.debug
+			"check_incdec: rhs of %d: %a, and needed redef %a \
+                          not equal"
+                        redefid Cil_printer.pp_exp e' Cil_printer.pp_exp e;
                         false)))
-        | [] -> (if !debug then Kernel.debug "check_incdec: current statement not in list: %d. %s = %a"
-                                            stm.sid
-                                            vi.vname
-                                            d_exp e;
-                   false)
+        | [] -> 
+	  (if !debug then
+	      Kernel.debug "check_incdec: current statement not in list: %d. \
+%s = %a"
+		stm.sid
+		vi.vname
+		Cil_printer.pp_exp e;
+           false)
       else (if !debug then Kernel.debug "check_incdec: %s not in idDefHash"
               vi.vname;
             false)

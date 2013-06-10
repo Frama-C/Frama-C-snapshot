@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -26,6 +26,7 @@ module type S = sig
   val graph: G.t
   val add_dependencies: from:State.t -> State.t list -> unit
   val add_codependencies: onto:State.t -> State.t list -> unit
+  val remove_dependencies: from:State.t -> State.t list -> unit
   val remove_codependencies: onto:State.t -> State.t list -> unit
 end
 
@@ -52,6 +53,9 @@ module Static = struct
 
   let add_codependencies ~onto codeps =
     List.iter (fun c -> Dependency_graph.add_edge graph c onto) codeps
+
+  let remove_dependencies ~from deps =
+    List.iter (Dependency_graph.remove_edge graph from) deps
 
   let remove_codependencies ~onto codeps =
     List.iter (fun c -> Dependency_graph.remove_edge graph c onto) codeps

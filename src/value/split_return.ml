@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -101,7 +101,7 @@ module ReturnUsage = struct
           let funs = Kernel_function.Hptset.add kf u.ret_callees in
           let u = { u with ret_callees = funs } in
           if debug then Format.printf
-            "[Usage] %a returns %a@." Kernel_function.pretty kf Cil.d_lval lv;
+            "[Usage] %a returns %a@." Kernel_function.pretty kf Printer.pp_lval lv;
           MapLval.add lv u uf
       | _ -> uf
 
@@ -126,7 +126,7 @@ module ReturnUsage = struct
         let v = Datatype.Big_int.Set.add i u.ret_compared in
         let u = { u with ret_compared = v } in
         if debug then Format.printf
-          "[Usage] Comparing %a to %a@." Cil.d_lval lv Int.pretty i;
+          "[Usage] Comparing %a to %a@." Printer.pp_lval lv Int.pretty i;
         MapLval.add lv u uf
       else
         uf
@@ -267,9 +267,9 @@ let default states =
   let joined = State_set.join states in
   if Model.is_reachable joined then [joined] else []
 
-let split_eq_aux kf lv_return i states =
+let split_eq_aux kf return_lv i states =
   let with_alarms = CilE.warn_none_mode in
-  let loc = Eval_exprs.lval_to_loc ~with_alarms Model.top lv_return in
+  let loc = Eval_exprs.lval_to_loc ~with_alarms Model.top return_lv in
   let v_i = V.inject_int i in
   let (eq, neq, mess) = List.fold_left
     (fun (eq, neq, mess) state ->
@@ -295,23 +295,23 @@ let split_eq_aux kf lv_return i states =
       Kernel_function.pretty kf Abstract_interp.Int.pretty i;
   (eq, neq)
 
-let split_eq_multiple kf_name lv_return li states =
+let split_eq_multiple kf_name return_lv li states =
   let rec aux states li = match li with
     | [] ->
       (match states with
         | [] -> []
         | e :: q -> [List.fold_left Model.join e q])
     | i :: qli ->
-        let eq, neq = split_eq_aux kf_name lv_return i states in
+        let eq, neq = split_eq_aux kf_name return_lv i states in
         let rq = aux neq qli in
         if Model.is_reachable eq then eq :: rq else rq
   in
   aux (State_set.to_list states) li
 
 
-let join_final_states kf ~lv_return states =
+let join_final_states kf ~return_lv states =
   let split i =
-    match lv_return with
+    match return_lv with
       | None -> default states
       | Some (Var v, NoOffset as lv) ->
           if Cil.isIntegralType v.vtype then

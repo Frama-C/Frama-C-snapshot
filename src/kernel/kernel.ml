@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -34,6 +34,21 @@ module P = Plugin.Register
    end)
 
 include (P: Plugin.S)
+
+let () = 
+  Cmdline.run_after_early_stage
+    (fun () ->
+      (* Project uses an alias for [Log.Register], but debug keys cannot be
+	 shared automatically *)
+        Project_skeleton.Output.add_debug_keys
+        (Category_set.fold
+           (fun s acc ->
+             Project_skeleton.Output.Category_set.union
+               (Project_skeleton.Output.get_category
+                  (s:category:>string))
+               acc)
+           (get_debug_keys())
+           Project_skeleton.Output.Category_set.empty))
 
 (* ************************************************************************* *)
 (** {2 Specialised functors for building kernel parameters} *)
@@ -183,8 +198,10 @@ module GeneralVerbose =
 let () =
   (* line order below matters *)
   GeneralVerbose.set_range ~min:0 ~max:max_int;
-  GeneralVerbose.add_set_hook (fun _ n -> Cmdline.verbose_level_ref := n);
-  GeneralVerbose.set !Cmdline.verbose_level_ref
+  GeneralVerbose.add_set_hook (fun _ n -> Cmdline.Verbose_level.set n);
+  match !Cmdline.Verbose_level.value_if_set with
+  | None -> ()
+  | Some n -> GeneralVerbose.set n
 
 let () = Plugin.set_group messages
 let () = Plugin.do_not_projectify ()
@@ -206,8 +223,10 @@ let () =
     (fun old n ->
        if n = 0 then decr Plugin.positive_debug_ref
        else if old = 0 then incr Plugin.positive_debug_ref;
-       Cmdline.debug_level_ref := n);
-  GeneralDebug.set !Cmdline.debug_level_ref
+       Cmdline.Debug_level.set n);
+  match !Cmdline.Debug_level.value_if_set with
+  | None -> ()
+  | Some n -> GeneralDebug.set n
 
 let () = Plugin.set_group messages
 let () = Plugin.set_negative_option_name ""
@@ -264,7 +283,7 @@ module Time =
        let module_name = "Time"
        let option_name = "-time"
        let arg_name = "filename"
-       let help = "append user time and date to <filename> at exit"
+       let help = "append process time and timestamp to <filename> at exit"
      end)
 
 let () = Plugin.set_group messages
@@ -523,19 +542,44 @@ module UnrollingLevel =
        let module_name = "UnrollingLevel"
        let option_name = "-ulevel"
        let arg_name = "l"
-       let help = "unroll loops n times (defaults to 0) before analyzes. A negative value hides UNROLL loop pragmas."
+       let help =
+         "unroll loops n times (defaults to 0) before analyzes. \
+          A negative value hides UNROLL loop pragmas."
 
      end)
 
 let () = Plugin.set_group normalisation
 module Machdep =
-  EmptyString
+  String
     (struct
        let module_name = "Machdep"
        let option_name = "-machdep"
+       let default = "x86_32"
        let arg_name = "machine"
-       let help = "use <machine> as the current machine dependent configuration. Use -machdep help to see the list of available machines"
+       let help =
+         "use <machine> as the current machine dependent configuration. \
+          See \"-machdep help\" for a list"
      end)
+
+let () = Plugin.set_group normalisation
+module Enums =
+  EmptyString
+    (struct
+      let module_name = "Enums"
+      let option_name = "-enums"
+      let arg_name = "repr"
+      let help = 
+        "use <repr> to decide how enumerated types should be represented. \
+         -enums help gives the list of available representations"
+     end)
+let enum_reprs = ["gcc-enums"; "gcc-short-enums"; "int";]
+let () = Enums.set_possible_values ("help"::enum_reprs)
+let () =
+  Enums.add_set_hook
+    (fun _ o -> if o = "help" then
+        feedback "Possible enums representation are: %a"
+          (Pretty_utils.pp_list ~sep:", " Format.pp_print_string)
+          enum_reprs)
 
 let () = Plugin.set_group normalisation
 module ReadAnnot =
@@ -593,8 +637,8 @@ module ContinueOnAnnotError =
   False(struct
           let module_name = "ContinueOnAnnotError"
           let option_name = "-continue-annot-error"
-          let help = "When an annotation fails to type-check, just emits \
-                         a warning and discards the annotation instead of \
+          let help = "When an annotation fails to type-check, emit \
+                         a warning and discard the annotation instead of \
                          generating an error (errors in C are still fatal)"
         end)
 
@@ -605,7 +649,7 @@ module SimplifyCfg =
        let module_name = "SimplifyCfg"
        let option_name = "-simplify-cfg"
        let help =
-         "remove break, continue and switch statement before analyzes"
+         "remove break, continue and switch statements before analyses"
      end)
 
 let () = Plugin.set_group normalisation
@@ -640,8 +684,8 @@ module InitializedPaddingLocals =
     (struct
        let option_name = "-initialized-padding-locals"
        let module_name = "InitializedPaddingLocals"
-       let help = "Implicit initialization of locals sets padding bits to 0 \
-                   If false, padding bits will be left uninitialized. \
+       let help = "Implicit initialization of locals sets padding bits to 0. \
+                   If false, padding bits are left uninitialized. \
                    Defaults to true."
      end)
 
@@ -662,7 +706,8 @@ module Files = struct
     False(struct
             let option_name = "-check"
             let module_name = "Files.Check"
-            let help = "performs consistency checks over cil files"
+            let help = "performs consistency checks over the Abstract Syntax \
+                        Tree"
           end)
 
   let () = Plugin.set_group normalisation
@@ -700,7 +745,7 @@ module DoCollapseCallCast =
     let module_name = "DoCollapseCallCast"
     let help =
       "Allow some implicit casts between returned value of a function \
-                   and the lval it is assigned to."
+                   and the lvalue it is assigned to."
   end)
 
 let () = Plugin.set_group normalisation
@@ -761,7 +806,7 @@ module MainFunction =
        let default = "main"
        let option_name = "-main"
        let arg_name = "f"
-       let help = "set to name the entry point for analysis. Use -lib-entry \
+       let help = "use <f> as entry point for analysis. See \"-lib-entry\" \
 if this is not for a complete application. Defaults to main"
      end)
 
@@ -771,7 +816,7 @@ module LibEntry =
     (struct
        let module_name = "LibEntry"
        let option_name = "-lib-entry"
-       let help ="run analysis for an incomplete application e.g. an API call. See the -main option to set the entry point name"
+       let help ="run analysis for an incomplete application e.g. an API call. See the -main option to set the entry point"
      end)
 
 let () = Plugin.set_group analysis_options
@@ -779,16 +824,8 @@ module UnspecifiedAccess =
   False(struct
          let module_name = "UnspecifiedAccess"
          let option_name = "-unspecified-access"
-         let help = "assume that all read/write accesses occuring in \
-unspecified order are not separated"
-       end)
-
-let () = Plugin.set_group analysis_options
-module Overflow =
-  True(struct
-         let module_name = "Overflow"
-         let option_name = "-overflow"
-         let help = "assume that arithmetic operations overflow"
+         let help = "do not assume that read/write accesses occuring \
+between sequence points are separated"
        end)
 
 let () = Plugin.set_negative_option_name "-unsafe-arrays"
@@ -798,8 +835,8 @@ module SafeArrays =
     (struct
        let module_name = "SafeArrays"
        let option_name = "-safe-arrays"
-       let help = "for arrays that are fields inside structs, assume that \
-accesses are in bounds"
+       let help = "for multidimensional arrays or arrays that are fields \
+                   inside structs, assume that accesses are in bounds"
      end)
 
 let () = Plugin.set_group analysis_options
@@ -812,11 +849,51 @@ module AbsoluteValidRange = struct
     let module_name = "AbsoluteValidRange"
   end
   include String(Info)
-(* [JS 2012/05/10] the following line cannot be correct. Ask me if you have any
-   doubt ;-). *)
-(*  let is_set _x = assert false*)
 end
 
+(* Signed overflows are undefined behaviors. *)
+let () = Plugin.set_group analysis_options
+module SignedOverflow =
+  True
+    (struct
+      let module_name = "SignedOverflow"
+      let option_name = "-warn-signed-overflow"
+      let help = "generate alarms for signed operations that overflow."
+     end)
+
+(* Unsigned overflows are ok, but might not always be a behavior the programmer
+   wants. *)
+let () = Plugin.set_group analysis_options
+module UnsignedOverflow =
+  False
+    (struct
+      let module_name = "UnsignedOverflow"
+      let option_name = "-warn-unsigned-overflow"
+      let help = "generate alarms for unsigned operations that overflow"
+     end)
+
+(* Signed downcast are implementation-defined behaviors. *)
+let () = Plugin.set_group analysis_options
+module SignedDowncast =
+  False
+    (struct
+      let module_name = "SignedDowncast"
+      let option_name = "-warn-signed-downcast"
+      let help = "generate alarms when signed downcasts may exceed the \
+destination range"
+     end)
+
+(* Unsigned downcasts are ok, but might not always be a behavior the programmer
+   wants. *)
+let () = Plugin.set_group analysis_options
+module UnsignedDowncast =
+  False
+    (struct
+      let module_name = "UnsignedDowncast"
+      let option_name = "-warn-unsigned-downcast"
+      let help = "generate alarms when unsigned downcasts may exceed the \
+destination range"
+     end)
 
 (* ************************************************************************* *)
 (** {2 Others options} *)

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -31,14 +31,14 @@ let compute_sub_function kf
   (* FIXME [SCM] Strict mode only support *)
   assert(Cil_datatype.Stmt.Hptset.cardinal current_merges = 1);
   let module Computer =
-    Eval_stmts.Computer
+    Eval_slevel.Computer
       (struct
         let kf = kf
         let slevel =
             match info.slevel with Some level -> level | None -> get_slevel kf
         let initial_states = initial_states (* for future reference *)
         let active_behaviors =
-          Eval_annots.ActiveBehaviors.create initial_states kf
+          Eval_annots.ActiveBehaviors.create (State_set.join initial_states) kf
         let local_slevel_info = info
        end)
   in
@@ -60,8 +60,8 @@ let compute_sub_function kf
    * stmtstartdata
    * OR this is probably a map or hashtbl already - why double the work*)
   let state = Computer.getStateSet merge in
-  Computer.merge_current ~degenerate:false;
-  State_set.join state, !Computer.bases_containing_locals
+  Computer.merge_results ~inform:false;
+  State_set.join state, Computer.clob.Locals_scoping.clob
 
 let () = Local_slevel.compute_sub_function_ref := compute_sub_function
 

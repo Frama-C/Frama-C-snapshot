@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -68,9 +68,3 @@ module Indexed2
   (Key2:Datatype.S_with_collections)
   (Info:Info with type key = Key1.t * Key2.t) :
   Indexed2 with type key1 = Key1.t and type key2 = Key2.t
-
-(*
-Local Variables:
-compile-command: "make -C ../.."
-End:
-*)

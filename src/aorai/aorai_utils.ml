@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Aorai plug-in of Frama-C.                        *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -112,7 +112,7 @@ let isCrossableAtInit tr func =
     if Kernel.LibEntry.get() then t
     else begin
       let bool_res test =
-        if test then Cil.lconstant My_bigint.one else Cil.lzero ()
+        if test then Cil.lconstant Integer.one else Cil.lzero ()
       in
       let bool3_res dft test =
         match test with
@@ -123,9 +123,9 @@ let isCrossableAtInit tr func =
       let is_true t =
         match t with
           | TConst(Integer(i,_)) ->
-            Bool3.bool3_of_bool (not (My_bigint.is_zero i))
+            Bool3.bool3_of_bool (not (Integer.is_zero i))
           | TConst(LChr c) -> Bool3.bool3_of_bool (not (Char.code c <> 0))
-          | TConst(LReal (f,_)) -> Bool3.bool3_of_bool (not (f <> 0.))
+          | TConst(LReal r) -> Bool3.bool3_of_bool (not (r.r_nearest <> 0.))
           | TConst(LStr _ | LWStr _) -> Bool3.True
           | _ -> Bool3.Undefined
       in
@@ -140,12 +140,18 @@ let isCrossableAtInit tr func =
           | TUnOp(op,t1) ->
             let t1 = aux t1 in
             (match op,t1.term_node with
-              | Neg, TConst(Integer(i,_)) ->
-                { t with term_node = TConst(Integer(My_bigint.neg i,None)) }
-              | Neg, TConst(LReal(f,_)) ->
-		let f = ~-. f in
-                { t with term_node = TConst(LReal(f,string_of_float f)) }
-              | LNot, t1 ->  bool3_res t (is_true t1)
+               | Neg, TConst(Integer(i,_)) ->
+                   { t with term_node = TConst(Integer(Integer.neg i,None)) }
+               | Neg, TConst(LReal r) ->
+		   let f = ~-. (r.r_nearest) in
+		   let r = { 
+		     r_literal = string_of_float f ;
+		     r_nearest = f ;
+		     r_upper = ~-. (r.r_lower) ;
+		     r_lower = ~-. (r.r_upper) ;
+		   } in
+		   { t with term_node = TConst(LReal r) }
+               | LNot, t1 ->  bool3_res t (is_true t1)
               | _ -> t)
           | TBinOp(op,t1,t2) ->
             let t1 = aux t1 in
@@ -153,11 +159,11 @@ let isCrossableAtInit tr func =
             let rec comparison comp t1 t2 =
               match t1.term_node,t2.term_node with
                 | TConst (Integer(i1,_)), TConst (Integer(i2,_)) ->
-                  bool_res (comp (My_bigint.compare i1 i2))
+                  bool_res (comp (Integer.compare i1 i2))
                 | TConst (LChr c1), TConst (LChr c2) ->
                   bool_res (comp (Char.compare c1 c2))
-                | TConst(LReal (f1,_)), TConst (LReal(f2,_)) ->
-                  bool_res (comp (compare f1 f2))
+                | TConst(LReal r1), TConst (LReal r2) ->
+                  bool_res (comp (compare r1.r_nearest r2.r_nearest))
                 | TCastE(ty1,t1), TCastE(ty2,t2)
                   when Cil_datatype.Typ.equal ty1 ty2 ->
                   comparison comp t1 t2
@@ -167,29 +173,29 @@ let isCrossableAtInit tr func =
 
               | PlusA, TConst(Integer(i1,_)), TConst(Integer(i2,_)) ->
                 { t with term_node =
-                    TConst(Integer(My_bigint.add i1 i2,None))}
+                    TConst(Integer(Integer.add i1 i2,None))}
               | MinusA, TConst(Integer(i1,_)), TConst(Integer(i2,_)) ->
                 { t with term_node =
-                    TConst(Integer(My_bigint.sub i1 i2,None)) }
+                    TConst(Integer(Integer.sub i1 i2,None)) }
               | Mult, TConst(Integer(i1,_)), TConst(Integer(i2,_)) ->
                 { t with term_node =
-                    TConst(Integer(My_bigint.mul i1 i2,None)) }
+                    TConst(Integer(Integer.mul i1 i2,None)) }
               | Div, TConst(Integer(i1,_)), TConst(Integer(i2,_)) ->
                 (try
                    { t with term_node =
-                       TConst(Integer(My_bigint.c_div i1 i2,None)) }
+                       TConst(Integer(Integer.c_div i1 i2,None)) }
                  with Division_by_zero -> t)
               | Mod, TConst(Integer(i1,_)), TConst(Integer(i2,_)) ->
                 (try
                    { t with term_node =
-                       TConst(Integer(My_bigint.c_rem i1 i2,None)) }
+                       TConst(Integer(Integer.c_rem i1 i2,None)) }
                  with Division_by_zero -> t)
               | Shiftlt, TConst(Integer(i1,_)), TConst(Integer(i2,_)) ->
                 { t with term_node =
-                    TConst(Integer(My_bigint.shift_left i1 i2,None)) }
+                    TConst(Integer(Integer.shift_left i1 i2,None)) }
               | Shiftrt, TConst(Integer(i1,_)), TConst(Integer(i2,_)) ->
                 { t with term_node =
-                    TConst(Integer(My_bigint.shift_right i1 i2,None)) }
+                    TConst(Integer(Integer.shift_right i1 i2,None)) }
               | Lt, _, _ -> comparison ((<) 0) t1 t2
               | Gt, _, _ -> comparison ((>) 0) t1 t2
               | Le, _, _ -> comparison ((<=) 0) t1 t2
@@ -238,7 +244,7 @@ let isCrossableAtInit tr func =
                   (fun o i _ t ->
                     match o with
                       | Index({ enode = Const(CInt64(i2,_,_))},_)
-                          when My_bigint.equal i1 i2 -> aux_init oth i
+                          when Integer.equal i1 i2 -> aux_init oth i
                       | _ -> t)
                   ~ct ~initl ~acc:None
               | _ -> None)
@@ -271,11 +277,11 @@ let isCrossableAtInit tr func =
     let rec comparison t1 t2 =
       match t1.term_node,t2.term_node with
         | TConst (Integer(i1,_)), TConst (Integer(i2,_)) ->
-          Bool3.bool3_of_bool (comp (My_bigint.compare i1 i2))
+          Bool3.bool3_of_bool (comp (Integer.compare i1 i2))
         | TConst (LChr c1), TConst (LChr c2) ->
           Bool3.bool3_of_bool (comp (Char.compare c1 c2))
-        | TConst(LReal (f1,_)), TConst (LReal(f2,_)) ->
-          Bool3.bool3_of_bool (comp (compare f1 f2))
+        | TConst(LReal r1), TConst (LReal r2) ->
+          Bool3.bool3_of_bool (comp (compare r1.r_nearest r2.r_nearest))
         | TCastE(ty1,t1), TCastE(ty2,t2) when Cil_datatype.Typ.equal ty1 ty2 ->
           comparison t1 t2
         | _ -> Bool3.Undefined
@@ -306,7 +312,7 @@ let isCrossableAtInit tr func =
 (** Returns an int constant expression which represents the given int value. *)
 let mk_int_exp value =
   new_exp ~loc:Cil_datatype.Location.unknown
-    (Const(CInt64(My_bigint.of_int value,IInt,Some(string_of_int value))))
+    (Const(CInt64(Integer.of_int value,IInt,Some(string_of_int value))))
 
 
 (** This function rewrites a cross condition into an ACSL expression.
@@ -480,7 +486,7 @@ let mk_int_const value =
     ~loc:(CurrentLoc.get())
     (Const(
        CInt64(
-         My_bigint.of_int (value),
+         Integer.of_int (value),
          IInt,
          Some(string_of_int(value))
        )))
@@ -528,14 +534,14 @@ let mk_global_c_initialized_enum name name_enuminfo ini =
 (** {b Terms management / computation} *)
 
 (** Return an integer constant term from the given value. *)
-let mk_int_term value = Cil.lconstant (My_bigint.of_int value)
+let mk_int_term value = Cil.lconstant (Integer.of_int value)
 
 (** Return an integer constant term with the 0 value.
     @deprecated use directly Cil.lzero
 *)
 let zero_term() = Cil.lzero ()
 
-let one_term () = Cil.lconstant My_bigint.one
+let one_term () = Cil.lconstant Integer.one
 
 (** Returns a term representing the variable associated to the given varinfo *)
 let mk_term_from_vi vi =
@@ -677,7 +683,7 @@ let change_vars subst subst_res kf label pred =
                  ChangeTo (TVar (Kernel_function.Hashtbl.find subst_res kf))
                with Not_found ->
                  let new_lv =
-                   Cil_const.make_logic_var
+                   Cil_const.make_logic_var_quant
                      ("__retres_" ^ (Kernel_function.get_name kf)) (Ctype ty)
                  in
                  Kernel_function.Hashtbl.add subst_res kf new_lv;
@@ -690,7 +696,9 @@ let change_vars subst subst_res kf label pred =
             (try
                ChangeTo (Cil_datatype.Logic_var.Hashtbl.find subst lv)
              with Not_found ->
-               let new_lv = Cil_const.make_logic_var lv.lv_name lv.lv_type in
+               let new_lv =
+                 Cil_const.make_logic_var_quant lv.lv_name lv.lv_type
+               in
                Cil_datatype.Logic_var.Hashtbl.add subst lv new_lv;
                ChangeTo new_lv)
           | Some _ | None -> DoChildren
@@ -1148,13 +1156,13 @@ let mk_sub ~loc pebble_set v =
       pebble_set])
 
 let pebble_guard ~loc pebble_set aux_var guard =
-  let v = Cil_const.make_logic_var aux_var.lv_name aux_var.lv_type in
+  let v = Cil_const.make_logic_var_quant aux_var.lv_name aux_var.lv_type in
   let g = rename_pred aux_var v guard in
   let g = Logic_const.pand ~loc (mk_sub ~loc pebble_set v, g) in
   Logic_const.pexists ~loc ([v], g)
 
 let pebble_guard_neg ~loc pebble_set aux_var guard =
-  let v = Cil_const.make_logic_var aux_var.lv_name aux_var.lv_type in
+  let v = Cil_const.make_logic_var_quant aux_var.lv_name aux_var.lv_type in
   let g = rename_pred aux_var v guard in
   let g =
     Logic_const.pimplies ~loc
@@ -1163,7 +1171,7 @@ let pebble_guard_neg ~loc pebble_set aux_var guard =
   Logic_const.pforall ~loc ([v], g)
 
 let pebble_post ~loc pebble_set aux_var guard =
-  let v = Cil_const.make_logic_var aux_var.lv_name aux_var.lv_type in
+  let v = Cil_const.make_logic_var_quant aux_var.lv_name aux_var.lv_type in
   let g = rename_pred aux_var v guard in
   let g = Logic_const.pimplies ~loc (mk_sub ~loc pebble_set v, g) in
   Logic_const.pforall ~loc ([v], g)
@@ -1191,7 +1199,7 @@ let add_behavior_pebble_actions ~loc f st behaviors state trans =
         match action with
           | Copy_value _ | Counter_incr _ | Counter_init _ -> res
           | Pebble_init (_,_,v) ->
-            let a = Cil_const.make_logic_var aux.lv_name aux.lv_type in
+            let a = Cil_const.make_logic_var_quant aux.lv_name aux.lv_type in
             let guard = rename_pred aux a guard in
             let guard =
               Logic_const.pand ~loc
@@ -1204,7 +1212,7 @@ let add_behavior_pebble_actions ~loc f st behaviors state trans =
               set.term_type
             :: res
           | Pebble_move(_,_,s1,_) ->
-            let a = Cil_const.make_logic_var aux.lv_name aux.lv_type in
+            let a = Cil_const.make_logic_var_quant aux.lv_name aux.lv_type in
             let guard = rename_pred aux a guard in
             let in_s =
               mk_sub ~loc
@@ -1576,6 +1584,8 @@ let get_preds_post_bc_wrt_params f =
   let post = Data_for_aorai.get_kf_return_state f in
   get_preds_wrt_params_reachable_states post f Promelaast.Return
 
+let dkey = Aorai_option.register_category "action"
+
 let treat_val loc base range pred =
   let add term =
     if Cil.isLogicZero base then term
@@ -1597,8 +1607,8 @@ let treat_val loc base range pred =
         Logic_const.pand (min,max)
       | Unbounded min -> Logic_const.prel (Rle, add_cst min, loc)
   in
-  Aorai_option.debug ~dkey:"action" "Action predicate: %a"
-    !Ast_printer.d_predicate_named res;
+  Aorai_option.debug ~dkey "Action predicate: %a"
+    Printer.pp_predicate_named res;
   Logic_const.por(pred,res)
 
 let possible_states_preds state =

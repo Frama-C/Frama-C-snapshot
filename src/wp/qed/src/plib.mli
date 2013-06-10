@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -51,6 +51,8 @@ val pp_binop : op:string -> 'a printer -> 'a printer2
 val pp_fold_binop : e:string -> op:string -> 'a printer -> 'a list printer
 val pp_fold_call  : e:string -> f:string -> 'a printer -> 'a list printer
 val pp_fold_apply : e:string -> f:string -> 'a printer -> 'a list printer
+val pp_fold_call_rev  : e:string -> f:string -> 'a printer -> 'a list printer
+val pp_fold_apply_rev : e:string -> f:string -> 'a printer -> 'a list printer
 
 (** Iterations *)
 

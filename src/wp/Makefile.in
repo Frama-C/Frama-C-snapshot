@@ -2,8 +2,8 @@
 #                                                                        #
 #  This file is part of WP plug-in of Frama-C.                           #
 #                                                                        #
-#  Copyright (C) 2007-2012                                               #
-#    CEA (Commissariat a l'énergie atomique et aux énergies              #
+#  Copyright (C) 2007-2013                                               #
+#    CEA (Commissariat a l'energie atomique et aux energies              #
 #         alternatives)                                                  #
 #                                                                        #
 #  you can redistribute it and/or modify it under the terms of the GNU   #
@@ -20,12 +20,6 @@
 #                                                                        #
 ##########################################################################
 
-## TODO: bug in Makefile.in with generated wp_version.ml
-.PHONY: version
-
-## WP_KERNEL=Carbon-20110201+dev
-## WP_VERSION=0.3+dev
-
 # Do not use ?= to initialize both below variables
 # (fixed efficiency issue, see GNU Make manual, Section 8.11)
 ifndef FRAMAC_SHARE
@@ -36,44 +30,55 @@ FRAMAC_LIBDIR :=$(shell frama-c -journal-disable -print-libpath)
 endif
 PLUGIN_DIR ?=.
 
-ALTERGO_VERSION=@ALTERGO_VERSION@
-WHY=@WHY@
-COQ=@COQ@
-ALTERGO=@ALTERGO@
-WHYDP=@WHYDP@
-
 include $(FRAMAC_SHARE)/Makefile.config
 
-MODELS:= share/wp.v \
-	share/hoare_model.v \
-	share/hoare_model.why \
-	share/hoare_ergo.why \
-	share/store_model.v \
-	share/store_model.why \
-	share/store_ergo.why \
-	share/runtime_model.v \
-	share/runtime_model.why \
-	share/runtime_ergo.why \
-	share/qed.mlw \
-	share/cint.mlw \
-	share/cfloat.mlw \
-	share/cmath.mlw \
-	share/vset.mlw \
-	share/memory.mlw \
+COQLIBS:= \
 	share/Qedlib.v \
+	share/Bits.v \
+	share/Cbits.v \
 	share/Cint.v \
 	share/Cfloat.v \
 	share/Cmath.v \
 	share/Vset.v \
-	share/Memory.v \
+	share/Memory.v
+
+ERGOLIBS:= \
+        share/qed.mlw \
+	share/cbits.mlw \
+	share/cint0.mlw \
+	share/cint.mlw \
+	share/cfloat.mlw \
+	share/cmath.mlw \
+	share/vset.mlw \
+	share/memory.mlw
+
+WHY3LIBS:= \
+	share/qed.why \
+	share/cint.why \
+	share/cfloat.why \
+	share/cmath.why \
+	share/memory.why \
+	share/vset.why
+
+MODELS:= $(WHY3LIBS) $(COQLIBS) $(ERGOLIBS)
+
+ifeq (@COQC@,yes)
+RESOURCES:= $(MODELS) $(addsuffix o,$(COQLIBS))
+else
+RESOURCES:= $(MODELS)
+endif
+
 
 # Extension of the GUI for wp is compilable
 # only if gnomecanvas is available
 ifeq ($(HAS_GNOMECANVAS),yes)
-PLUGIN_GUI_CMO:= po_navigator wp_gui
-PLUGIN_UNDOC:=
-else
-PLUGIN_UNDOC:= po_navigator.ml wp_gui.ml
+PLUGIN_GUI_CMO:= \
+	GuiConfig \
+	GuiList \
+	GuiGoal \
+	GuiSource \
+	GuiPanel \
+	GuiNavigator
 endif
 
 PLUGIN_ENABLE:=@ENABLE_WP@
@@ -83,53 +88,53 @@ PLUGIN_CMO:= \
 	rformat wprop \
 	wp_parameters wp_error \
 	ctypes clabels \
-	LogicUsage VarUsage variables_analysis \
+	LogicUsage VarUsage RefUsage variables_analysis \
 	cil2cfg normAtLabels \
 	wpPropId wpStrategy wpFroms wpAnnot \
 	Context Warning Model Lang Matrix Passive Splitter \
-	Hypotheses \
-	Definitions Cint Cfloat Vset Region Cvalues \
+	Letify Cleaning Partitioning Conditions \
+	LogicBuiltins Definitions \
+	Cint Cfloat Vset Region Cstring Cvalues \
 	CodeSemantics \
-	LogicCompiler LogicBuiltins \
+	LogicCompiler \
 	LogicSemantics LogicAssigns  \
 	Sigma MemEmpty MemVar MemTyped \
 	VCS script proof wpo wpReport \
-	ProverTask ProverErgo ProverCoq \
-	ProverVCD prover \
-	datalib fol fol_let fol_decl fol_pretty \
-	data_mem \
-	mint_natural mfloat_natural \
-	logic_mem funvar_mem runtime_mem store_mem hoare_mem heap_mem \
-	fol_cc fol_eqs fol_eval fol_norm \
-	fol_split fol_why fol_ergo kreal fol_coq \
-	fol_formula \
-	translate_expr \
-	translate_prop \
-	calculus cfgpropid \
-	cfgWeakestPrecondition \
-	cfgProof cfgDump cfgWP \
-	Generator \
+	ProverTask ProverErgo ProverCoq ProverWhy3 \
+	why3_xml why3_session \
+	driver prover \
+	calculus \
+	cfgDump cfgWP \
+	Generator Factory \
 	register
 
-PLUGIN_CMI:= \
-	mcfg Memory \
-	formula mint mfloat mvalues mlogic mwp
+PLUGIN_CMI:= mcfg Memory \
 
-PLUGIN_GENERATED:= $(PLUGIN_DIR)/script.ml $(PLUGIN_DIR)/rformat.ml
-# $(PLUGIN_DIR)/wp_version.ml
+PLUGIN_GENERATED:= \
+   $(PLUGIN_DIR)/script.ml \
+   $(PLUGIN_DIR)/rformat.ml \
+   $(PLUGIN_DIR)/driver.ml \
+   $(PLUGIN_DIR)/why3_xml.ml
 
 PLUGIN_UNDOC+=
-PLUGIN_DOCFLAGS+= -I $(PLUGIN_DIR)/qed/bin -I $(PLUGIN_DIR)/qed/src
+PLUGIN_DOCFLAGS+= -I $(PLUGIN_DIR)/qed/bin
 PLUGIN_INTRO:=$(FRAMAC_SRC)/doc/code/intro_wp.txt
 PLUGIN_HAS_MLI:=yes
 PLUGIN_DISTRIBUTED:=$(PLUGIN_ENABLE)
-PLUGIN_DISTRIB_EXTERNAL:=Makefile.in configure.ac configure $(MODELS)
+PLUGIN_DISTRIB_EXTERNAL:= \
+	Makefile.in \
+	configure.ac \
+	configure \
+	share/Makefile \
+	$(MODELS)
 
-CEA_WP+= $(addprefix $(PLUGIN_DIR)/, \
-             $(filter-out configure,$(PLUGIN_DISTRIB_EXTERNAL))) \
-	 $(addprefix $(PLUGIN_DIR)/, script.mll rformat.mll) \
+CEA_WP+= $(addprefix $(PLUGIN_DIR)/, Makefile.in configure.ac) \
+	 $(addprefix $(PLUGIN_DIR)/, share/Makefile) \
+	 $(addprefix $(PLUGIN_DIR)/, $(MODELS)) \
+	 $(addprefix $(PLUGIN_DIR)/, script.mll rformat.mll driver.mll) \
          $(addprefix $(PLUGIN_DIR)/, *.ml) \
 	 $(addprefix $(PLUGIN_DIR)/, *.mli) \
+	 $(PLUGIN_DIR)/why3_xml.mll \
 
 ifeq ("$(OCAMLGRAPH_LOCAL)","")
 OFLAGS+=-I +ocamlgraph
@@ -140,28 +145,19 @@ endif
 # --- Qed Dependencies                                                   ---
 # --------------------------------------------------------------------------
 
-QED_LIB = $(PLUGIN_DIR)/qed/bin
+QED_LIB := $(PLUGIN_DIR)/qed/bin
 QED_CMO = $(QED_LIB)/Qed.cmo
 QED_CMX = $(QED_LIB)/Qed.cmx
 
-QED_LIB_ML = z r range intmap intset idxset idxmap \
-	 listset listmap mergeset mergemap collection \
-         hcons plib topology
-
-QED_SRC_ML = kind pool term pretty depends \
-	 linker export export_coq export_whycore export_why3 export_altergo \
-	 input ast parser \
-	 unify typechecker compiler \
-	 simplifier \
-
-QED_SRC_MLI = logic engine syntax
-
-# removed lexer -> lexer.mll only
-
 QED_SRC = $(PLUGIN_DIR)/qed/src
-QED_FILES = Makefile MakeOcaml ocamldoc.css lexer.mll \
+
+include $(QED_SRC)/Makefile.src
+
+QED_FILES = Makefile.src Makefile MakeOcaml ocamldoc.css lexer.mll numbers.mll \
   $(addsuffix .mli,$(QED_LIB_ML) $(QED_SRC_ML) $(QED_SRC_MLI)) \
-  $(addsuffix .ml,$(QED_LIB_ML) $(QED_SRC_ML))
+  $(addsuffix .ml, \
+	$(filter-out $(QED_GENERATED), \
+		$(QED_LIB_ML) $(QED_SRC_ML)))
 QED_SOURCES:= $(addprefix $(QED_SRC)/,$(QED_FILES))
 
 PLUGIN_BFLAGS:= -I $(QED_LIB)
@@ -180,16 +176,16 @@ PLUGIN_DISTRIB_EXTERNAL+= $(QED_DISTRIB_SRC)
 # --------------------------------------------------------------------------
 
 PLUGIN_TESTS_DIRS:= \
-  wp wp_plugin wp_acsl wp_bts wp_engine \
-  wp_store wp_hoare wp_runtime wp_typed
-
-#Do not add wp_typed to this list: require provers
-#PLUGIN_NO_TESTS:=no
-#PLUGIN_NO_DEFAULT_TEST:=yes
+  wp wp_plugin wp_acsl wp_bts \
+  wp_store wp_hoare wp_typed
 
 # --------------------------------------------------------------------------
 # --- Dynamic Plugin                                                     ---
 # --------------------------------------------------------------------------
+
+# Hide warnings that are bothersome during development
+PLUGIN_BFLAGS+=-w -32..39
+PLUGIN_OFLAGS+=-w -32..39
 
 include $(FRAMAC_SHARE)/Makefile.dynamic
 
@@ -201,20 +197,13 @@ else
 CONFIG_STATUS_DIR=.
 endif
 
-## Bug with Makefile.in : the wp_version.ml is systematically re-generated
-## [BM] 04/22/2011 seems to be fixed
-# $(Wp_DIR)/wp_version.ml: $(Wp_DIR)/Makefile.in
-# 	@echo "Generate wp_version.ml"
-# 	@echo 'let kernel = "$(WP_KERNEL)"' > $@
-# 	@echo 'let version = "$(WP_VERSION)"' >> $@
-# 	@headache -c headers/headache_config.txt -h headers/CEA_LGPL $@
-
-## Removing dependency to headache.
-#	@headache -c headers/headache_config.txt -h headers/CEA_LGPL $@
-
-$(Wp_DIR)/Makefile: $(Wp_DIR)/Makefile.in $(CONFIG_STATUS_DIR)/config.status
+$(Wp_DIR)/Makefile: $(Wp_DIR)/Makefile.in $(QED_SRC)/Makefile.src $(CONFIG_STATUS_DIR)/config.status
 	@cd $(CONFIG_STATUS_DIR) && ./config.status
-	@make depend
+	$(QUIET_MAKE) depend
+
+# --------------------------------------------------------------------------
+# --- Qed Dependencies                                                   ---
+# --------------------------------------------------------------------------
 
 .PHONY: qed
 
@@ -229,8 +218,13 @@ clean::
 	@rm -f $(QED_LIB)/*
 	$(QUIET_MAKE) -C $(Wp_DIR)/qed/src clean
 
-
 $(Wp_DIR)/Memory.cmi: $(QED_CMO)
+$(Wp_DIR)/ctypes.cmi: $(QED_CMO)
+$(Wp_DIR)/ctypes.cmo: $(QED_CMO)
+$(Wp_DIR)/ctypes.cmx: $(QED_CMX)
+$(Wp_DIR)/RefUsage.cmi: $(QED_CMO)
+$(Wp_DIR)/RefUsage.cmo: $(QED_CMO)
+$(Wp_DIR)/RefUsage.cmx: $(QED_CMX)
 $(Wp_DIR)/Splitter.cmi: $(QED_CMO)
 $(Wp_DIR)/Splitter.cmo: $(QED_CMO)
 $(Wp_DIR)/Splitter.cmx: $(QED_CMX)
@@ -240,6 +234,11 @@ $(Wp_DIR)/Lang.cmx:   $(QED_CMX)
 $(Wp_DIR)/Vset.cmo:   $(QED_CMO)
 $(Wp_DIR)/Vset.cmx:   $(QED_CMX)
 
+ifeq (@COQC@,yes)
+byte:: .make-wpcoqc
+opt:: .make-wpcoqc
+endif
+
 ifeq ($(OCAMLOPT),ocamlopt.opt)
 QEDOPT=.opt
 else
@@ -248,19 +247,69 @@ endif
 
 $(QED_CMO): $(QED_SOURCES)
 	@echo "Compiling    Qed (byte$(QEDOPT))"
-	$(QUIET_MAKE) -C $(Wp_DIR)/qed/src depend
-	$(QUIET_MAKE) OPT=$(QEDOPT) -C $(Wp_DIR)/qed/src byte
+	$(QUIET_MAKE) -C $(Wp_DIR)/qed/src depend OCAMLDEP=$(OCAMLDEP)
+	$(QUIET_MAKE) OPT=$(QEDOPT) -C $(Wp_DIR)/qed/src byte \
+		OCAMLC=$(OCAMLC) \
+		OCAMLLEX=$(OCAMLLEX)
 
 $(QED_CMX): $(QED_CMO) #- To avoid parallel invocation of Qed makefile
 	@echo "Compiling    Qed (opt$(QEDOPT))"
-	$(QUIET_MAKE) OPT=$(QEDOPT) -C $(Wp_DIR)/qed/src opt
+	$(QUIET_MAKE) OPT=$(QEDOPT) -C $(Wp_DIR)/qed/src opt \
+		OCAMLOPT=$(OCAMLOPT) \
+		OCAMLLEX=$(OCAMLLEX)
 
+# --------------------------------------------------------------------------
+# --- Pre-Compiled Coq Libraries                                         ---
+# --------------------------------------------------------------------------
+
+.PHONY: wpcoqc
+
+wpcoq: .make-wpcoqc
+	@echo "Run 'make install-wpcoq' to install the precompiled libraries"
+
+install-wpcoq:
+	$(PRINT_CP) Precompiled Coq Libraries
+	$(CP) $(addprefix $(Wp_DIR)/,$(addsuffix o,$(COQLIBS))) $(FRAMAC_DATADIR)/wp
+	@echo "Run 'make uninstall-wpcoq' to uninstall the precompiled libraries"
+
+uninstall-wpcoq:
+	$(PRINT_RM) Precompiled Coq Libraries
+	$(RM) -f $(FRAMAC_DATADIR)/wp/*.vo
+
+.make-wpcoqc: .make-wpcoqs
+	@echo "Compiling    Wp-Coq Library"
+	$(MAKE) -C $(Wp_DIR)/share coq #Don't use QUIET_MAKE because too long!
+	@touch .make-wpcoqc
+
+.make-wpcoqs: $(addprefix $(Wp_DIR)/,$(COQLIBS))
+	@echo "Preparing    Wp-Coq Sources"
+	$(QUIET_MAKE) -C $(Wp_DIR)/share depend
+	@touch .make-wpcoqs
+
+clean::
+	@echo "Cleaning     Wp-Coq Libraries"
+	@rm -f .make-wpcoqs .make-wpcoqc
+	$(QUIET_MAKE) -C $(Wp_DIR)/share clean
+
+# --------------------------------------------------------------------------
+# --- Installation                                                       ---
+# --------------------------------------------------------------------------
+
+# note: installation and uninstallation do not use environment variable FRAMA_SHARE!
 install::
+	$(PRINT_CP) WP shared files
 	$(MKDIR) $(FRAMAC_DATADIR)/wp
-	$(CP) $(addprefix $(Wp_DIR)/,$(MODELS)) $(FRAMAC_DATADIR)/wp
+	$(CP) $(addprefix $(Wp_DIR)/,$(RESOURCES)) $(FRAMAC_DATADIR)/wp
+
+uninstall::
+	$(PRINT_RM) WP shared files
+	$(RM) -r $(FRAMAC_DATADIR)/wp
 
 # --------------------------------------------------------------------------
 # --- WP Release Stuff (CEA-LIST Only)
 # --------------------------------------------------------------------------
 sinclude MakeDistrib
 # --------------------------------------------------------------------------
+
+$(Wp_DIR)/.depend: $(Wp_DIR)/driver.mll
+$(Wp_DIR)/driver.mll: $(Wp_DIR)/Makefile.in $(Wp_DIR)/Makefile

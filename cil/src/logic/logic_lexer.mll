@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -247,7 +247,7 @@ let rL = ['a'-'z' 'A'-'Z' '_']
 let rH = ['a'-'f' 'A'-'F' '0'-'9']
 let rE = ['E''e']['+''-']? rD+
 let rP = ['P''p']['+''-']? rD+
-let rFS	= ('f'|'F'|'l'|'L')
+let rFS	= ('f'|'F'|'l'|'L'|'d'|'D')
 let rIS = ('u'|'U'|'l'|'L')*
 let comment_line = "//" [^'\n']*
 
@@ -448,6 +448,10 @@ and endline = parse
     pos.Lexing.pos_cnum - pos.Lexing.pos_bol
 
   let parse_from_location f (loc, s : Lexing.position * string) =
+    let output = 
+      if Kernel.ContinueOnAnnotError.get() then Kernel.warning ~once:true
+      else Kernel.error ~once:false
+    in
     let lb = from_string s in
     copy_lexbuf lb loc;
     try
@@ -455,21 +459,21 @@ and endline = parse
       lb.Lexing.lex_curr_p, res
     with
       | Parsing.Parse_error as _e ->
-        Kernel.error
+        output
 	  ~source:lb.lex_curr_p
           "unexpected token '%s'" (Lexing.lexeme lb);
         Logic_utils.exit_kw_c_mode ();
         raise Parsing.Parse_error
       | Error (_, m) ->
-        Kernel.error ~source:lb.lex_curr_p "%s" m;
+        output ~source:lb.lex_curr_p "%s" m;
         Logic_utils.exit_kw_c_mode ();
         raise Parsing.Parse_error
       | Logic_utils.Not_well_formed (loc, m) ->
-        Kernel.error ~source:(fst loc) "%s" m;
+        output ~source:(fst loc) "%s" m;
         Logic_utils.exit_kw_c_mode ();
         raise Parsing.Parse_error
      | exn ->
-        Kernel.error ~source:lb.lex_curr_p "Unknown error (%s)"
+        output ~source:lb.lex_curr_p "Unknown error (%s)"
           (Printexc.to_string exn);
         Logic_utils.exit_kw_c_mode ();
         raise exn

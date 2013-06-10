@@ -23,3 +23,7 @@ int main () {
   f(&s);
   return 0;
 }
+
+int g(int x);
+
+int g(int x) { return 0; }

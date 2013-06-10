@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,8 +27,12 @@
 (** {2 Logging machinery} *)
 (* ************************************************************************** *)
 
-module Output : Log.Messages
 (** @since Carbon-20101201 *)
+module Output : sig
+  include Log.Messages
+  val dkey: category
+(** @since Oxygen-20121001+dev *)
+end
 
 (* ************************************************************************** *)
 (** {2 Type declaration} *)

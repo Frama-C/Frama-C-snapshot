@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -28,11 +28,6 @@ open Cil_datatype
 (** {2 Utilities} *)
 (**************************************************************************)
 
-let code_annotation_of_rooted = function User ca | AI (_,ca) -> ca
-
-let properties_of_code_annot kf stmt a =
-  Property.ip_of_code_annot kf stmt (code_annotation_of_rooted a)
-
 let exists_in_funspec f tbl =
   try
     Emitter.Usable_emitter.Hashtbl.iter (fun _ s -> if f s then raise Exit) tbl;
@@ -47,8 +42,10 @@ let exists_in_funspec f tbl =
 module Usable_emitter = struct
   include Emitter.Usable_emitter
   let local_clear _ h = Hashtbl.clear h
-  let get e = e
+  let usable_get e = e
 end
+
+module Real_globals = Globals
 
 module Globals =
   Emitter.Make_table
@@ -58,14 +55,29 @@ module Globals =
     (struct
       let dependencies = [ Ast.self ]
       let name = "Annotations.Globals"
-      let remove_binding a () =
-	List.iter Property_status.remove (Property.ip_of_global_annotation a)
+      let kinds = [ Emitter.Global_annot ]
+      let size = 17
      end)
 let global_state = Globals.self
 let () =
-  Emitter.global_annot_state := global_state;
   Logic_env.init_dependencies global_state;
-  Ast.add_linked_state global_state
+  Ast.add_linked_state global_state;
+  Globals.add_hook_on_remove
+    (fun _ a () -> 
+      List.iter Property_status.remove (Property.ip_of_global_annotation a))
+
+module Model_fields =
+  Emitter.Make_table
+    (Cil_datatype.TypNoUnroll.Hashtbl)
+    (Usable_emitter)
+    (Datatype.List(Cil_datatype.Model_info))
+    (struct
+      let dependencies = [ Globals.self ]
+      let name = "Annotations.Model_fields"
+      let kinds = [ Emitter.Global_annot ]
+      let size = 7
+     end)
+let () = Ast.add_linked_state Model_fields.self
 
 module Funspecs =
   Emitter.Make_table
@@ -73,16 +85,18 @@ module Funspecs =
     (Usable_emitter)
     (Funspec)
     (struct
-      let dependencies = [ Ast.self; Kernel_function.self ]
+      let dependencies = [ Ast.self; Real_globals.Functions.self ]
       let name = "Annotations.Funspec"
-      let remove_binding kf spec =
-	let ppts = Property.ip_of_spec kf Kglobal spec in
-	List.iter Property_status.remove ppts
+      let kinds = [ Emitter.Funspec ]
+      let size = 97
      end)
 let funspec_state = Funspecs.self
-let () =
-  Emitter.funspec_state := funspec_state;
-  Ast.add_linked_state funspec_state
+let () = 
+  Ast.add_linked_state funspec_state;
+  Funspecs.add_hook_on_remove
+    (fun _ kf spec ->
+      let ppts = Property.ip_of_spec kf Kglobal spec in
+      List.iter Property_status.remove ppts)
 
 module Is_populate =
   State_builder.Hashtbl
@@ -100,22 +114,36 @@ module Code_annots =
   Emitter.Make_table
     (Stmt.Hashtbl)
     (Usable_emitter)
-    (Datatype.Ref(Datatype.List(Rooted_code_annotation)))
+    (Datatype.Ref(Datatype.List(Code_annotation)))
     (struct
       let dependencies = [ Ast.self ]
       let name = "Annotations.Code_annots"
-      let remove_binding stmt l =
-	let kf = Kernel_function.find_englobing_kf stmt in
-	List.iter
-	  (fun a ->
-	    let ppts = properties_of_code_annot kf stmt a in
-	    List.iter Property_status.remove ppts)
-	  !l
+      let kinds = [ Emitter.Code_annot; Emitter.Alarm ]
+      let size = 97
      end)
 let code_annot_state = Code_annots.self
-let () =
+
+let remove_alarm_ref = Extlib.mk_fun "Annotations.remove_alarm_ref"
+let kf_ref = ref None
+let () = 
   Ast.add_linked_state code_annot_state;
-  Emitter.code_annot_state := code_annot_state
+  Code_annots.add_hook_on_remove
+    (fun e stmt l ->
+      let kf = match !kf_ref with
+	| None ->
+	  (try Kernel_function.find_englobing_kf stmt 
+	   with Not_found ->
+	     Kernel.fatal "[Annotations] no function for stmt %a (%d)" 
+	       Cil_printer.pp_stmt stmt stmt.sid)
+	| Some kf -> 
+	  kf
+      in
+      List.iter
+	(fun a ->
+	  !remove_alarm_ref e stmt a;
+	  let ppts = Property.ip_of_code_annot kf stmt a in
+	  List.iter Property_status.remove ppts)
+	!l)
 
 (**************************************************************************)
 (** {2 Getting annotations} *)
@@ -141,6 +169,24 @@ let code_annot ?emitter ?filter stmt =
       match filter with
       | None -> l
       | Some f -> List.filter f l
+  with Not_found ->
+    []
+
+let code_annot_emitter ?filter stmt =
+  try
+    let tbl = Code_annots.find stmt in
+    let filter e l acc =
+      let e = Emitter.Usable_emitter.get e in
+      match filter with
+      | None -> List.map (fun a -> a, e) l @ acc
+      | Some f ->
+	let rec aux acc = function
+	  | [] -> acc
+	  | x :: l -> aux (if f e x then (x, e) :: acc else acc) l
+	in
+	aux acc l
+    in
+    Emitter.Usable_emitter.Hashtbl.fold (fun e l acc -> filter e !l acc) tbl []
   with Not_found ->
     []
 
@@ -238,15 +284,6 @@ let pre_register_funspec ?tbl ?(emitter=Emitter.end_user) ?(force=false) kf =
   let do_it = match tbl with
     | None ->
       if force then begin
-	(try
-	   let tbl = Funspecs.find kf in
-	   Emitter.Usable_emitter.Hashtbl.iter
-	     (fun _ s ->
-	       let ppts = Property.ip_of_spec kf Kglobal s in
-	       List.iter Property_status.remove ppts)
-	     tbl
-	 with Not_found ->
-	   ());
 	Funspecs.remove kf;
 	true
       end else
@@ -262,10 +299,10 @@ let pre_register_funspec ?tbl ?(emitter=Emitter.end_user) ?(force=false) kf =
     Emitter.Usable_emitter.Hashtbl.add
       tbl (Emitter.get emitter) spec;
 (*    Kernel.feedback "Registering contract of function %a (%a)" Kf.pretty kf
-      Cil.d_funspec kf.spec;*)
+      Cil_printer.pp_funspec kf.spec;*)
     Funspecs.add kf tbl;
 (*    Emitter.Usable_emitter.Hashtbl.iter
-      (fun e spec -> Format.printf "Register for function %a, Emitter %a, spec %a@." Kf.pretty kf Emitter.Usable_emitter.pretty e !Ast_printer.d_funspec spec)
+      (fun e spec -> Format.printf "Register for function %a, Emitter %a, spec %a@." Kf.pretty kf Emitter.Usable_emitter.pretty e Cil_printer.pp_funspec spec)
       tbl;
 *)
     List.iter Property_status.register (Property.ip_of_spec kf Kglobal spec)
@@ -285,7 +322,7 @@ let generic_funspec merge get ?emitter ?(populate=true) kf =
 	Emitter.Usable_emitter.Hashtbl.iter
           (fun _e s ->
             (*Format.printf "emitter %a(%d):@\n%a@."
-              Emitter.Usable_emitter.pretty _e (Obj.magic s) Cil.d_funspec s; *)
+              Emitter.Usable_emitter.pretty _e (Obj.magic s) Cil_printer.pp_funspec s; *)
             merge spec s) tbl;
 	spec
       in
@@ -324,6 +361,26 @@ let complete =
 
 let disjoint =
   generic_funspec merge_disjoint (fun x -> x.spec_disjoint_behaviors)
+
+let model_fields ?emitter t =
+  let rec aux acc t =
+    let self_fields =
+      try
+        let h = Model_fields.find t in
+        match emitter with
+          | None ->
+              Emitter.Usable_emitter.Hashtbl.fold (fun _ m acc-> m @ acc) h acc
+          | Some e ->
+              let e = Emitter.get e in
+              try Emitter.Usable_emitter.Hashtbl.find h e @ acc
+              with Not_found -> acc
+      with Not_found -> acc
+    in
+    match t with
+      | TNamed (ty,_) -> aux self_fields ty.ttype
+      | _ -> self_fields
+  in
+  aux [] t
 
 (**************************************************************************)
 (** {2 Iterating over annotations} *)
@@ -382,6 +439,49 @@ let fold_global f =
 	h
 	acc)
 
+let iter_spec_gen get iter f kf =
+ try
+    let tbl = Funspecs.find kf in
+    let treat_one_emitter e spec =
+      try
+        let e = Emitter.Usable_emitter.get e in
+        let orig = get spec in
+        iter (f e) orig
+      with Not_found -> 
+	()
+    in
+    Usable_emitter.Hashtbl.iter treat_one_emitter tbl
+ with Not_found ->
+   ()
+
+let iter_behaviors f =
+  iter_spec_gen
+    (fun s -> s.spec_behavior)
+    (fun f l -> List.iter (fun b -> f { b with b_name = b.b_name}) l)
+    f
+
+let iter_complete f =
+  iter_spec_gen (fun s -> s.spec_complete_behaviors) List.iter f
+
+let iter_disjoint f =
+  iter_spec_gen (fun s -> s.spec_disjoint_behaviors) List.iter f
+
+let iter_terminates f = iter_spec_gen (fun s -> s.spec_terminates) Extlib.may f
+let iter_decreases f = iter_spec_gen (fun s -> s.spec_variant) Extlib.may f
+
+let iter_bhv_gen get iter f kf b =
+  let get spec =
+    let bhv = List.find (fun x -> x.b_name = b) spec.spec_behavior in
+    get bhv
+  in
+  iter_spec_gen get iter f kf
+
+let iter_requires f = iter_bhv_gen (fun b -> b.b_requires) List.iter f
+let iter_assumes f = iter_bhv_gen (fun b -> b.b_assumes) List.iter f
+let iter_ensures f = iter_bhv_gen (fun b -> b.b_post_cond) List.iter f
+let iter_assigns f = iter_bhv_gen (fun b -> b.b_assigns) (fun f a -> f a) f
+let iter_allocates f = iter_bhv_gen (fun b -> b.b_allocation) (fun f a -> f a) f
+
 let fold_spec_gen get fold f kf acc =
  try
     let tbl = Funspecs.find kf in
@@ -390,10 +490,12 @@ let fold_spec_gen get fold f kf acc =
         let e = Emitter.Usable_emitter.get e in
         let orig = get spec in
         fold (f e) orig acc
-      with Not_found -> acc
+      with Not_found -> 
+	acc
     in
     Usable_emitter.Hashtbl.fold treat_one_emitter tbl acc
- with Not_found -> acc
+ with Not_found -> 
+   acc
 
 let fold_behaviors f =
   fold_spec_gen
@@ -450,20 +552,41 @@ let fold_allocates f =
 (** {2 Adding annotations} *)
 (**************************************************************************)
 
+let extend_name e pred = 
+  if Emitter.equal e Emitter.end_user || Emitter.equal e Emitter.kernel 
+  then pred
+  else
+    let names = pred.name in
+    let s = Emitter.get_name e in
+   if (List.mem s names) ||
+     let acsl_identifier_regexp = 
+       Str.regexp "^\\([\\][_a-zA-Z]\\|[_a-zA-Z]\\)[0-9_a-zA-Z]*$"
+     in not (Str.string_match acsl_identifier_regexp s 0)
+   then pred else { pred with name = s :: names }
+
 (** {3 Adding code annotations} *)
 
 let add_code_annot e ?kf stmt ca =
-(*  Kernel.feedback "Project %a: adding code annot %a with stmt %a (%d)"
+(*  Kernel.feedback "%a: adding code annot %a with stmt %a (%d)"
     Project.pretty (Project.current ())
-    Rooted_code_annotation.pretty ca
+    Code_annotation.pretty ca
     Stmt.pretty stmt
     stmt.sid;*)
+  let convert a = 
+    let c = a.annot_content in
+    { a with annot_content = match c with
+    | AAssert(l, p) -> AAssert(l, extend_name e p)
+    | AInvariant(l, b, p) ->
+      AInvariant(l, b, extend_name e p)
+    | AStmtSpec _ | AVariant _ | AAssigns _ | AAllocation _ | APragma _ -> c }
+  in
+  let ca = convert ca in
   let e = Emitter.get e in
   let kf = match kf with 
     | None -> Kernel_function.find_englobing_kf stmt
     | Some kf -> kf 
   in
-  let ppts = properties_of_code_annot kf stmt ca in
+  let ppts = Property.ip_of_code_annot kf stmt ca in
   List.iter Property_status.register ppts;
   let add_emitter tbl = Emitter.Usable_emitter.Hashtbl.add tbl e (ref [ ca ]) in
   try
@@ -479,7 +602,7 @@ let add_code_annot e ?kf stmt ca =
     Code_annots.add stmt tbl
 
 let add_assert e ?kf stmt a =
-  let a = User (Logic_const.new_code_annotation (AAssert ([],a))) in
+  let a = Logic_const.new_code_annotation (AAssert ([],a)) in
   add_code_annot e ?kf stmt a
 
 (** {3 Adding globals} *)
@@ -550,12 +673,29 @@ let insert_global_in_ast annot =
   let globs = insert_after deps [] file.globals in
   file.globals <- globs
 
+let add_model_field e m =
+  let e = Emitter.get e in
+  let h =
+    try Model_fields.find m.mi_base_type
+    with Not_found ->
+      let res = Emitter.Usable_emitter.Hashtbl.create 13 in
+      Model_fields.add m.mi_base_type res; res
+  in
+  let l =
+    try Emitter.Usable_emitter.Hashtbl.find h e
+    with Not_found -> []
+  in
+  Emitter.Usable_emitter.Hashtbl.replace h e (m::l)
+
 let unsafe_add_global e a =
 (*  Kernel.feedback "adding global %a in project %a"
-    Cil.d_annotation a Project.pretty (Project.current ());*)
+    Cil_printer.pp_annotation a Project.pretty (Project.current ());*)
   let h = Usable_emitter.Hashtbl.create 17 in
   Usable_emitter.Hashtbl.add h (Emitter.get e) ();
   Globals.add a h;
+  (match a with
+    | Dmodel_annot (m,_) -> add_model_field e m
+    | _ -> ());
   List.iter Property_status.register (Property.ip_of_global_annotation a)
 
 let add_global e a =
@@ -575,7 +715,7 @@ let extend_funspec e kf mk_spec set_spec =
   let e = Emitter.get e in
   let add_emitter tbl =
     let spec = mk_spec () in
-(*    Kernel.feedback "Creating spec %a" Cil.d_funspec spec;*)
+(*    Kernel.feedback "Creating spec %a" Cil_printer.pp_funspec spec;*)
     Emitter.Usable_emitter.Hashtbl.add tbl e spec
   in
   try
@@ -606,8 +746,7 @@ let add_behaviors ?(register_children=true) e kf bhvs =
   extend_funspec e kf mk_spec_all set_spec;
   (* update ip in property_status: the kernel relies on the behavior stored
      in the ip to determine the validity. If we change something in our
-     own tables, this must be reflected there.
-  *)
+     own tables, this must be reflected there. *)
   List.iter
     (fun b ->
       if List.exists (fun b' -> b'.b_name = b.b_name) bhvs then
@@ -707,8 +846,7 @@ let extend_behavior e kf bhv_name set_bhv =
       (behaviors ~populate:false kf)
   in
   (* Property_status uses bhv to determine the validity of [ip]. We
-     must update that accordingly...
-  *)
+     must update that accordingly... *)
   let ip = Property.ip_of_behavior kf Kglobal bhv in
   Property_status.remove ip;
   Property_status.register ip;
@@ -790,16 +928,12 @@ let add_allocates e kf bhv_name a =
 (** {2 Removing annotations} *)
 (**************************************************************************)
 
-(* [TODO] when removing an annotation, one of the corresponding properties may
-   be used to prove some other property. Thus the table of properties statuses
-   must be cleared accordingly. *)
-
 (* use unicity: more efficient than using [List.filter ((!=) x)] *)
-let filterq x l =
+let filterq ?(eq = ( == )) x l =
   let rec aux acc = function
     | [] -> List.rev acc
     | y :: l ->
-      if x == y then
+      if eq x y then
 	(* equivalent but more efficient than List.rev acc @ l *)
 	List.fold_left (fun l x -> x :: l) l acc
       else aux (y :: acc) l
@@ -807,26 +941,39 @@ let filterq x l =
   aux [] l
 
 let remove_code_annot e ?kf stmt ca =
-(*  Kernel.feedback "Project %a: removing code annot %a of stmt %a (%d)"
+  (*  Kernel.feedback "%a: removing code annot %a of stmt %a (%d)"
       Project.pretty (Project.current ())
-      Rooted_code_annotation.pretty ca
+      Code_annotation.pretty ca
       Stmt.pretty stmt
       stmt.sid;*)
-  let kf = match kf with 
-    | None -> Kernel_function.find_englobing_kf stmt
-    | Some kf -> kf 
-  in
-  let ppts = properties_of_code_annot kf stmt ca in
-  List.iter Property_status.remove ppts;
+  kf_ref := kf;
+  let e = Emitter.get e in
+  Code_annots.apply_hooks_on_remove e stmt (ref [ ca ]);
+  kf_ref := None;
   try
     let tbl = Code_annots.find stmt in
-    let e = Emitter.get e in
     try
       let l = Emitter.Usable_emitter.Hashtbl.find tbl e in
-      l := filterq ca !l;
+      (* [JS 2012/11/08] (==) is not compatible with the equality over code
+	 annot *)
+      l := filterq ~eq:Code_annotation.equal ca !l;
     with Not_found ->
       ()
   with Not_found ->
+    ()
+
+(* If this function gets exported, please turn e into an Emitter.t *)
+let remove_model_field (e:Usable_emitter.t) m =
+  try
+    let ty = m.mi_base_type in
+    let h = Model_fields.find ty in
+    let l = Usable_emitter.Hashtbl.find h e in
+    let l' =
+      List.filter (fun x -> not (Cil_datatype.Model_info.equal x m)) l
+    in
+    Usable_emitter.Hashtbl.replace h e l';
+    Model_fields.apply_hooks_on_remove e ty l'
+  with Not_found -> 
     ()
 
 let remove_global e a =
@@ -837,15 +984,17 @@ let remove_global e a =
       (fun e' () ->
 	if Emitter.Usable_emitter.equal e e' then begin
 	  Globals.remove a;
-	  let file = Ast.get () in
+	  (match a with
+            | Dmodel_annot (m,_) -> remove_model_field e m
+            | _ -> ()); 
+          let file = Ast.get () in
 	  file.globals <-
 	    List.filter
 	    (fun a' ->
 	      not (Global.equal (GAnnot(a, Global_annotation.loc a)) a'))
 	    file.globals;
-	  List.iter Property_status.remove (Property.ip_of_global_annotation a)
-	end else
-	  ())
+	  Globals.apply_hooks_on_remove e a ()
+	end)
       h;
   with Not_found ->
     ()
@@ -861,7 +1010,7 @@ let remove_in_funspec e kf set_spec =
         (fun e spec ->
           Format.printf "For emitter %a: %a@."
             Emitter.Usable_emitter.pretty e
-            !Ast_printer.d_funspec spec) tbl; *)
+            Cil_printer.pp_funspec spec) tbl; *)
       set_spec spec tbl
     with Not_found -> ()
   with Not_found ->
@@ -869,7 +1018,7 @@ let remove_in_funspec e kf set_spec =
 
 let remove_behavior e kf bhv =
   let set_spec spec tbl =
-    (* Kernel.feedback "Current spec is %a@." !Ast_printer.d_funspec spec; *)
+    (* Kernel.feedback "Current spec is %a@." Cil_printer.pp_funspec spec; *)
     spec.spec_behavior <- filterq bhv spec.spec_behavior;
     let name = bhv.b_name in
     let check get =
@@ -884,7 +1033,7 @@ let remove_behavior e kf bhv =
     check (fun s -> s.spec_complete_behaviors);
     check (fun s -> s.spec_disjoint_behaviors);
     (* Kernel.feedback "Removing behavior %s@." bhv.b_name; *)
-    (* Kernel.feedback "New spec is %a@." !Ast_printer.d_funspec spec; *)
+    (* Kernel.feedback "New spec is %a@." Cil_printer.pp_funspec spec; *)
     List.iter Property_status.remove
       (Property.ip_all_of_behavior kf Kglobal bhv)
   in
@@ -1045,8 +1194,7 @@ let behavior_names_of_stmt_in_kf kf = match kf.fundec with
           (fun known_names (_bhv,spec) ->
             (List.map (fun x -> x.b_name) spec.spec_behavior) @ known_names)
           known_names
-          (Logic_utils.extract_contract
-             (List.map code_annotation_of_rooted (code_annot stmt))))
+          (Logic_utils.extract_contract (code_annot stmt)))
       []
       def.sallstmts
   | Declaration _ ->

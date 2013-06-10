@@ -1,6 +1,5 @@
 /* run.config
-
-OPT: -load-script tests/rte/my_annotation/my_annotation.ml -journal-disable
+OPT: -load-script tests/rte/my_annotation/my_annotation.ml
 */
 
 

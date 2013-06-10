@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -37,8 +37,6 @@ module type Location_map_bitwise = sig
 
   module LOffset : sig
     include Datatype.S
-    val find_intervs : (Int.t -> Int.t -> y) ->
-      Int_Intervals.t -> t -> y
     val map: ((bool * y) -> (bool * y)) -> t -> t
     val fold :
       (Int_Intervals.t -> bool * y -> 'a -> 'a) -> t -> 'a -> 'a
@@ -52,7 +50,6 @@ module type Location_map_bitwise = sig
     val degenerate: y -> t
     val is_empty: t->bool
     val add_iset : exact:bool -> Int_Intervals.t -> y -> t -> t
-    val tag : t -> int
   end
 
   val empty : t
@@ -74,7 +71,7 @@ module type Location_map_bitwise = sig
 
   exception Cannot_fold
 
-  val uninitialize_locals: Cil_types.varinfo list -> t -> t
+  val uninitialize: Cil_types.varinfo list -> t -> t
     (** binds the given variables to bottom, keeps the other unchanged. *)
 
   val fold : (Zone.t -> bool * y -> 'a -> 'a) -> t -> 'a -> 'a
@@ -110,12 +107,12 @@ module type Location_map_bitwise = sig
       [Bitwise_cannot_copy].
       Precondition : the two locations must have the same size *)
 
-  exception Zone_unchanged
-  val find_or_unchanged : t -> Zone.t -> y
-
+  (** Clear the caches local to this module. Beware that they are not
+      project-aware, and that you must call them at every project switch. *)
+  val clear_caches: unit -> unit
 end
 
-(** Lattice with default values on a range or on an entire base *)
+(** Lattice with default values on a range or on an entire base. *)
 module type With_default = sig
   include Abstract_interp.Lattice
   val default : Base.t -> Int.t -> Int.t -> t

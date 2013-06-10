@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,14 +24,11 @@
 
 open Cil_types
 
-val sizeofchar: unit -> My_bigint.t
+val sizeofchar: unit -> Integer.t
   (** [sizeof(char)] in bits *)
 
 val sizeofpointer: unit -> int
   (** [sizeof(char* )] in bits *)
-
-val memory_size: unit -> My_bigint.t
-  (** Size of the addressable memory with pointers of size [sizeofpointer()] *)
 
 val sizeof: typ -> Int_Base.t
   (** [sizeof ty] is the size of [ty] in bits. This function may return
@@ -81,10 +78,10 @@ val max_bit_size : unit -> Abstract_interp.Int.t
 val pretty_bits:
   typ ->
   use_align:bool ->
-  align:My_bigint.t ->
-  rh_size:My_bigint.t ->
-  start:My_bigint.t ->
-  stop:My_bigint.t -> Format.formatter -> bool * typ option
+  align:Abstract_interp.Rel.t ->
+  rh_size:Integer.t ->
+  start:Integer.t ->
+  stop:Integer.t -> Format.formatter -> bool * typ option
   (** Pretty prints a range of bits in a type for the user.
       Tries to find field names and array indexes, whenever possible. *)
 

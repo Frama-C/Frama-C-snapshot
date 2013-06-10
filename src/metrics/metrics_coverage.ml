@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -23,8 +23,8 @@
 open Cil_types
 open Cil_datatype
 
-class coverageAuxVisitor prj = object(self)
-  inherit Visitor.generic_frama_c_visitor prj (Cil.inplace_visit ())
+class coverageAuxVisitor = object(self)
+  inherit Visitor.frama_c_inplace
 
   (* Visit the body and the spec of a function *)
   method private visit_function vi =
@@ -58,8 +58,8 @@ end
 
 (* Reachability metrics: from a given compute a conservative estimation
    of the functions that can be transitively called *)
-class callableFunctionsVisitor prj = object(self)
-  inherit coverageAuxVisitor prj as super
+class callableFunctionsVisitor = object(self)
+  inherit coverageAuxVisitor as super
 
   (* Functions reachable syntactically *)
   val mutable callable = Varinfo.Set.empty
@@ -116,10 +116,10 @@ class callableFunctionsVisitor prj = object(self)
 
 end
 
-class deadCallsVisitor fmt ~syntactic ~semantic initializers prj =
+class deadCallsVisitor fmt ~syntactic ~semantic initializers =
   let unseen = Varinfo.Set.diff syntactic semantic in
 object(self)
-  inherit coverageAuxVisitor prj
+  inherit coverageAuxVisitor
 
   val mutable current_initializer = None
 
@@ -133,8 +133,8 @@ object(self)
              | None -> assert false
              | Some vinit ->
                  Format.fprintf fmt
-                   "@[<h>Initializer of %s references %s (at %a)@]@ "
-                   vinit.vname vi.vname Location.pretty vi.vdecl
+                   "@[<h>Initializer of %s references %s (at %t)@]@ "
+                   vinit.vname vi.vname Cil.pp_thisloc
           )
       | Some f ->
         if Varinfo.Set.mem (Kernel_function.get_vi f) semantic then
@@ -171,8 +171,8 @@ object(self)
 
 end
 
-class coverageByFun prj = object
-  inherit Visitor.generic_frama_c_visitor prj (Cil.inplace_visit ())
+class coverageByFun = object
+  inherit Visitor.frama_c_inplace
 
   val mutable total = 0
   val mutable value = 0
@@ -190,7 +190,7 @@ let compute_coverage_by_fun semantic =
     try
       let kf = Globals.Functions.get vi in
       let dec = Kernel_function.get_definition kf in
-      let vis = new coverageByFun (Project.current ()) in
+      let vis = new coverageByFun in
       ignore (Visitor.visitFramacFunction (vis :> Visitor.frama_c_visitor) dec);
       let (total, value) = vis#result in
       let percent = (float_of_int value) /. (float_of_int total) *. 100. in
@@ -202,13 +202,12 @@ let compute_coverage_by_fun semantic =
 
 
 let pp_unreached_calls fmt ~syntactic ~semantic initializers =
-  let v = new deadCallsVisitor fmt ~syntactic ~semantic initializers
-    (Project.current ()) in
+  let v = new deadCallsVisitor fmt ~syntactic ~semantic initializers in
   v#compute_and_print
 ;;
 
 let compute_syntactic kf =
-  let vis = new callableFunctionsVisitor (Project.current ()) in
+  let vis = new callableFunctionsVisitor in
   let res = vis#compute (Kernel_function.get_vi kf) in
   res, vis#initializers
 ;;
@@ -249,8 +248,7 @@ let pp_fun_set_by_file fmt set =
       Format.fprintf fmt "@[<hov 2><%s>:@ %a@]@ " fname
         (fun fmt vinfoset ->
           Varinfo.Set.iter
-            (fun vinfo ->
-              Format.fprintf fmt "%a;@ " !Ast_printer.d_var vinfo)
+            (fun vinfo -> Format.fprintf fmt "%a;@ " Printer.pp_varinfo vinfo)
             vinfoset)
         fvinfoset
     ) map;

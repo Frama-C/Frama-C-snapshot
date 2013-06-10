@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,28 +20,27 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Undocumented. 
-    Do not use this module if you don't know what you are doing. *)
-
-(* [JS 2011/10/03] To the authors/users of this module: please write a .mli and
-   document it. *)
-
-(* In this kind of Map, absent keys are implicitly bound to V.bottom *)
+(** Maps from abstract keys to abstract values, that are equipped with
+    the natural lattice interpretation. Keys must be mappable to integers
+    in an unique way. *)
 
 open Abstract_interp
 
-module type Lattice_with_rehash = Lattice_With_Diff
+module type Key = sig
+  include Datatype.S
+  val is_null : t -> bool
+  val null : t
+  val id : t -> int
+end
 
 module Make
   (K : Key)
   (Top_Param : Lattice_Set with type O.elt=K.t)
-  (V : Lattice_with_rehash)
+  (V : Lattice_With_Diff)
   (L: sig val v : (K.t * V.t) list list end)
   (Null_Behavior: sig val zone: bool end)
   =
 struct
-
-(*  module Top_Param = Make_Hashconsed_Lattice_Set(K) *)
 
   module M =
     Hptmap.Make
@@ -74,8 +73,6 @@ struct
         M.tag m
     | Top (bases, orig) ->
         Origin.hash orig + (299 * (Top_Param.hash bases))
-
-  let tag = hash
 
   let add_or_bottom k v m =
     if V.equal v V.bottom
@@ -248,38 +245,6 @@ struct
     | Top _ -> raise Error_Top
     | Map m -> Map (M.map f m)
 
-  exception Not_exclusive
-
-  (** [find_exclusive k m] returns [v] if [m] contains only the binding [k] ->
-      [v]
-      @raise Not_exclusive otherwise. *)
-  let find_exclusive k m =
-    match m with
-    | Top _ -> raise Not_exclusive
-    | Map m ->
-        let v = find_or_bottom k m in
-        let map_without = M.remove k m in
-        if M.is_empty map_without
-        then v
-        else raise Not_exclusive
-
-  exception Not_all_keys
-
-  (** If all keys are bound to [v0] in [m], [get_keys_exclusive v0 m] returns
-      the list of keys in [m].
-      @raise Not_all_keys otherwise. *)
-  let get_keys_exclusive v0 m =
-    match m with
-    | Top _ -> raise Not_all_keys
-    | Map m ->
-        M.fold
-          (fun k v acc ->
-             if not (V.equal v v0)
-             then raise Not_all_keys
-             else k::acc)
-          m
-          []
-
   (** Over-approximation of the filter (in the case [Top Top])*)
   let filter_base f m =
     match m with
@@ -311,32 +276,20 @@ struct
           in
           Map (M.fold merge_key m1 M.empty)
 
-(*
+
   let narrow m1 m2 =
-    if m1 == m2 then m1 else
-      match m1, m2 with
-      | Top (x1, a1), Top (x2, a2) ->
-          Top (Top_Param.narrow x1 x2, Origin.narrow a1 a2)
-      | Top (Top_Param.Top, _), (Map _ as x)
-      | (Map _ as x),Top (Top_Param.Top, _) -> x
-      | Top (Top_Param.Set set, _), (Map _ as x)
-      | (Map _ as x), Top (Top_Param.Set set, _) ->
-          filter_base (fun v -> is_in_set ~set v) x
-      | Map m1, Map m2 ->
-          let merge_key k v acc =
-            add_or_bottom k (V.narrow v (find_or_bottom k m2)) acc
-          in
-          Map (M.fold merge_key m1 M.empty)
-*)
-
-
-let narrow =
-    let intersect f origin m1 m2 =
+    let compute_origin_narrow x1 a1 x2 a2 =
+      if Top_Param.equal x1 x2 then Origin.narrow a1 a2 (* equals a1 currently*)
+      else if Top_Param.is_included x1 x2 then a1
+      else if Top_Param.is_included x2 x1 then a2
+      else Origin.top
+    in
+    let r =
       if m1 == m2 then m1 else
         match m1, m2 with
         | Top (x1, a1), Top (x2, a2) ->
-            let meet_topparam = Top_Param.meet x1 x2 in
-            Top (meet_topparam, origin x1 a1 x2 a2)
+            Top (Top_Param.narrow x1 x2,
+                 compute_origin_narrow x1 a1 x2 a2)
         | Top (Top_Param.Top, _), (Map _ as x)
         | (Map _ as x),Top (Top_Param.Top, _) -> x
         | Top (Top_Param.Set set, _), (Map _ as x)
@@ -344,25 +297,12 @@ let narrow =
             filter_base (fun v -> is_in_set ~set v) x
         | Map m1, Map m2 ->
             let merge_key k v acc =
-              add_or_bottom k (f v (find_or_bottom k m2)) acc in
+              add_or_bottom k (V.narrow v (find_or_bottom k m2)) acc in
             Map (M.fold merge_key m1 M.empty)
     in
-    let compute_origin_narrow x1 a1 x2 a2 =
-      if Top_Param.equal x1 x2 then
-        Origin.narrow a1 a2
-      else if Top_Param.is_included x1 x2
-      then a1
-      else if Top_Param.is_included x2 x1
-      then a2
-      else Origin.top
-    in
-    (fun x y -> let r = intersect V.narrow compute_origin_narrow x y in
 (*     Format.printf "Map_Lattice.narrow %a and %a ===> %a@\n"
        pretty x pretty y pretty r;  *)
-     r)
-
-
-
+    r
 
   let widen wh =
     let (_, wh_k_v) = wh in
@@ -646,9 +586,6 @@ let narrow =
             acc
         with V.Error_Top -> raise Error_Top
 
-  let fold_enum_by_base f m acc =
-    fold_i (fun k v acc -> f (inject k v) acc) m acc
-
   include Datatype.Make_with_collections
       (struct
         type t = tt
@@ -669,6 +606,8 @@ let narrow =
         let mem_project = Datatype.never_any_project
         let varname = Datatype.undefined
        end)
+
+  let clear_caches = M.clear_caches
 
 end
 

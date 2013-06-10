@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -140,6 +140,11 @@ module type S = sig
     val intersects: t -> t -> bool
     (** [intersects s1 s2] returns [true] if and only if [s1] and [s2]
         have an element in common *)
+
+    (** Clear all the caches used internally by the functions of this module.
+        Those caches are not project-aware, so this function must be called
+        at least each a project switch occurs. *)
+    val clear_caches: unit -> unit
 end
 
 module Make(X: Id_Datatype)

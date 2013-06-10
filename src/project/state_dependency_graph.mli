@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -43,6 +43,10 @@ module type S = sig
   (** Add an edge in [graph] from each state of the list to the state [onto].
       @since Carbon-20101201 *)
 
+  val remove_dependencies: from:State.t -> State.t list -> unit
+  (** Remove an edge in [graph] from the given state to each state of the list.
+      @since Fluorine-20130401 *)
+
   val remove_codependencies: onto:State.t -> State.t list -> unit
   (** Remove an edge in [graph] from each state of the list to the state [onto].
       @since Oxygen-20120901 *)
@@ -61,19 +65,6 @@ module type Attributes = sig
   val default_edge_attributes: 'a -> DotAttributes.edge list
   val edge_attributes: State.t * State.t -> DotAttributes.edge list
   val get_subgraph : State.t -> DotAttributes.subgraph option
-end
-
-(** The Static State Dependency Graph.
-    This graph only contains the static states and the dependencies between
-    them. Thus that is a subgraph of the Dynamic State Dependency Graph.
-    @since Carbon-20101201
-    @deprecated Oxygen-20120901 directly use equivalent top-level function
-    instead. *)
-module Static: sig
-  include S
-  val add_state: State.t -> State.t list -> unit
-(** Add a new static state.
-    @since Carbon-20101201 *)
 end
 
 include S

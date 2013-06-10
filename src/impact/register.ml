@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -28,17 +28,23 @@ open Visitor
 open Options
 
 let print_results fmt a =
-  List.iter (fun s -> Format.fprintf fmt "@\nsid %d: %a" s.sid Cil.d_stmt s) a
+  List.iter
+    (fun s -> 
+      Format.fprintf fmt "@\nsid %d: %a" 
+	s.sid (Printer.without_annot Printer.pp_stmt) s) 
+    a
 
 let compute_from_stmt stmt =
   let kf = Kernel_function.find_englobing_kf stmt in
   let skip = Compute_impact.skip () in
-  Compute_impact.impacted_stmts ~skip kf [stmt]
+  let reason = Options.Reason.get () in
+  Compute_impact.impacted_stmts ~skip ~reason kf [stmt]
 
 let compute_multiple_stmts skip kf ls =
   debug "computing impact of statement(s) %a" 
     (Pretty_utils.pp_list ~sep:",@ " Stmt.pretty_sid) ls;
-  let res = Compute_impact.impacted_nodes ~skip kf ls in
+  let reason = Options.Reason.get () in
+  let res, _, _ = Compute_impact.impacted_nodes ~skip ~reason kf ls in
   let res_nodes = Compute_impact.result_to_nodes res in
   let res_stmts = Compute_impact.nodes_to_stmts res_nodes in
   if Print.get () then begin
@@ -70,18 +76,12 @@ let slice (stmts:stmt list) =
 let all_pragmas_kf _kf l =
   List.fold_left
     (fun acc (s, a) ->
-       match a with
-         | User a ->
-             (match a.annot_content with
-                | APragma (Impact_pragma IPstmt) -> s :: acc
-                | APragma (Impact_pragma (IPexpr _)) ->
-                    Options.not_yet_implemented "impact pragmas: expr"
-                | _ -> assert false)
-         | _ -> assert false
-    ) [] l
-
-let is_impact_pragma a =
-  Logic_utils.is_impact_pragma (Annotations.code_annotation_of_rooted a)
+      match a.annot_content with
+        | APragma (Impact_pragma IPstmt) -> s :: acc
+        | APragma (Impact_pragma (IPexpr _)) ->
+            Options.not_yet_implemented "impact pragmas: expr"
+        | _ -> assert false)
+    [] l
 
 let compute_pragmas () =
   Ast.compute ();
@@ -97,7 +97,7 @@ let compute_pragmas () =
       pragmas :=
         List.map
           (fun a -> s, a)
-        (Annotations.code_annot ~filter:is_impact_pragma s)
+        (Annotations.code_annot ~filter:Logic_utils.is_impact_pragma s)
       @ !pragmas;
       DoChildren
   end
@@ -126,13 +126,15 @@ let compute_pragmas () =
     ) PdgTypes.NodeSet.empty pragmas
   in
   let stmts = Compute_impact.nodes_to_stmts nodes in
-  if Options.Slicing.get () then ignore (slice stmts)
+  if Options.Slicing.get () then ignore (slice stmts);
+  stmts;
+;;
 
 let main () =
   if is_on () then begin
     feedback "beginning analysis";
     assert (not (Pragma.is_empty ()));
-    !Impact.compute_pragmas ();
+    ignore (!Impact.compute_pragmas ());
     feedback "analysis done"
   end
 let () = Db.Main.extend main
@@ -141,16 +143,16 @@ let () =
   (* compute_pragmas *)
   Db.register
     (Db.Journalize
-       ("Impact.compute_pragmas", Datatype.func Datatype.unit Datatype.unit))
+       ("Impact.compute_pragmas",
+        Datatype.func Datatype.unit (Datatype.list Stmt.ty)))
     Impact.compute_pragmas
     compute_pragmas;
   (* from_stmt *)
-  if not !Config.is_gui then
-    Db.register
-      (Db.Journalize
-         ("Impact.from_stmt", Datatype.func Stmt.ty (Datatype.list Stmt.ty)))
-      Impact.from_stmt
-      compute_from_stmt;
+  Db.register
+    (Db.Journalize
+       ("Impact.from_stmt", Datatype.func Stmt.ty (Datatype.list Stmt.ty)))
+    Impact.from_stmt
+    compute_from_stmt;
   (* slice *)
   Db.register
     (Db.Journalize

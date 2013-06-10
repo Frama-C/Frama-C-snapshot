@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -28,7 +28,7 @@ module type S = sig
 
   (** Are the bits independent? *)
   val is_isotropic : t -> bool
-  val cast : with_alarms:CilE.warn_mode -> size:Int.t -> signed:bool -> t -> t
+  val cast: size:Int.t -> signed:bool -> t -> t * bool
   val extract_bits :
     topify:Origin.kind ->
     start:Int.t -> stop:Int.t -> size:Int.t ->
@@ -61,10 +61,6 @@ module type S = sig
   val singleton_zero : t
   val of_char : char -> t
   val of_int64 : Int64.t -> t
-
-  val project : t -> Locations.Location_Bytes.t
-
-  val pretty_c_assert : (unit -> unit) -> string -> int -> Format.formatter -> t -> unit
 
 end
 

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -28,18 +28,17 @@ let run_plugins () =
     if Kernel.Files.get () <> [] || Kernel.TypeCheck.is_set () then begin
       Ast.compute ();
       (* Printing files before anything else (in debug mode only) *)
-      if Kernel.debug_atleast 1 then File.pretty_ast ()
+      if Kernel.debug_atleast 1 &&
+        Kernel.Debug_category.exists (fun s -> s = "ast")
+      then File.pretty_ast ()
     end;
-  (* Syntactic constant folding before analysing files if required *)
-  if Kernel.Constfold.get () then
-    Cil.visitCilFileSameGlobals (Cil.constFoldVisitor true) (Ast.get ());
   try
     Dynamic.Main.apply (); (* for Helium-compatibility purpose only *)
     Db.Main.apply ();
     (* Printing code if required, have to be done at end *)
     if Kernel.PrintCode.get () then File.pretty_ast ();
   with Globals.No_such_entry_point msg ->
-    Kernel.error "%s" msg
+    Kernel.abort "%s" msg
 
 let on_from_name name f = match name with
   | None -> f ()
@@ -53,11 +52,12 @@ let () = Db.Main.play := run_plugins
 (** Booting Frama-C *)
 (* ************************************************************************* *)
 
-(* Customisation of non-projectified CIL parameters.
-   (projectified CIL parameters must be initialised with {!Cil.initCIL}). *)
+(* Customisation of pretty-printers' parameters. *)
 let boot_cil () =
   Cil.miscState.Cil.lineDirectiveStyle <- None;
-  Cil.miscState.Cil.printCilAsIs <- Kernel.debug_atleast 1;;
+  Cil.miscState.Cil.printCilAsIs <- Kernel.debug_atleast 1;
+  Cil_printer.state.Printer_api.line_directive_style <- None;
+  Cil_printer.state.Printer_api.print_cil_as_is <- Kernel.debug_atleast 1
 
 (* Main: let's go! *)
 let () =

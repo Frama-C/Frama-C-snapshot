@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -45,10 +45,11 @@ class virtual do_it_ = object(self)
             Value.get_state
               (Kstmt (Extlib.the self#current_stmt))
           in
-          let r = !Value.eval_expr  ~with_alarms:CilE.warn_none_mode state e in
+          let r = !Value.eval_expr ~with_alarms:CilE.warn_none_mode state e in
+          let loc = loc_bytes_to_loc_bits r in
+          let size = Bit_utils.sizeof_lval lv in
           self#join
-            (valid_enumerate_bits ~for_writing:false
-                (loc_without_size_to_loc lv r))
+            (enumerate_valid_bits ~for_writing:false (make_loc loc size))
     end;
     DoChildren
 

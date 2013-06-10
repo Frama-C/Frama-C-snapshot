@@ -2,11 +2,9 @@
 .\"                                                                        
 .\"  This file is part of Frama-C.                                         
 .\"                                                                        
-.\"  Copyright (C) 2007-2012                                               
-.\"    CEA   (Commissariat à l'énergie atomique et aux énergies            
-.\"           alternatives)                                                
-.\"    INRIA (Institut National de Recherche en Informatique et en         
-.\"           Automatique)                                                 
+.\"  Copyright (C) 2007-2013                                               
+.\"    CEA (Commissariat à l'énergie atomique et aux énergies              
+.\"         alternatives)                                                  
 .\"                                                                        
 .\"  you can redistribute it and/or modify it under the terms of the GNU   
 .\"  Lesser General Public License as published by the Free Software       
@@ -22,7 +20,7 @@
 .\"                                                                        
 .\"                                                                        
 
-.TH FRAMA-C 1 2011-02-22
+.TH FRAMA-C 1 2013-04-17
 
 .SH NAME
 frama-c[.byte] \- a static analyzer for C programs
@@ -143,7 +141,7 @@ are displayed in hexadecimal (by default, all integers are displayed in decimal)
 performs integrity checks on the internal AST (for developers only).
 .TP
 .B [-no]-collapse-call-cast
-allows implicit cast between the value returned by a function and the lval
+allows implicit cast between the value returned by a function and the lvalue
 it is assigned to. Otherwise, a temporary variable is used and the cast is
 made explicit. Defaults to yes.
 .TP
@@ -171,7 +169,7 @@ gcc \-C \-E \-I.
 .IP
 if it is not set. In order to preserve ACSL annotations, the preprocessor must
 keep comments (the
-.B -E
+.B -C
 option for gcc). 
 .IR %1 \ and\  %2
 can be used in
@@ -199,6 +197,12 @@ requested by
 .B -load-modules
 will be loaded. Default behavior is on.
 .TP
+.BI -enums\  repr
+Choose the way the representation of enumerated types is determined.
+.B frama-c -enums help
+gives the list of available options. Default is
+.B gcc-enums
+.TP
 .BI -float-digits\  n
 When outputting floating-point numbers, display
 .I n
@@ -219,7 +223,8 @@ display float interval as [
 .TP
 .B [-no]-force-rl-arg-eval
 forces right to left evaluation order for arguments of function calls. Otherwise
-the evaluation order is left unspecified, as in C standard. Defaults to no.
+the evaluation order is left unspecified, as in C standard. Defaults
+to no.
 .TP
 .B -journal-disable
 Do not output a journal of the current session. See
@@ -237,6 +242,10 @@ option.
 Set the name of the journal file (without the
 .I .ml
 extension). Defaults to frama_c_journal.
+.TP
+.B -initialized-padding-locals
+Implicit initialization of locals sets padding bits to 0. If false,
+padding bits are left uninitialized (default to yes).
 .TP
 .B [-no]-keep-comments
 Tries to preserve comments when pretty-printing the source code (defaults to
@@ -323,11 +332,19 @@ variable with the same name can co-exist (e.g. a global variable and a formal
 parameter). When this option is on, a message is printed each time this occurs.
 Defaults to no.
 .TP
-.B [-no]-overflow
-arithmetic operations may overflow (this is the default option). The
-.B -no-overflow
-version assumes that the result of all arithmetic operations is within the
-bounds of the associated type.
+.B [-no]-warn-signed-downcast
+generate alarms when signed downcasts may exceed the destination range
+(default to no).
+.TP
+.B [-no]-warn-signed-overflow
+generate alarms for signed operations that overflow (default to yes).
+.TP
+.B [-no]-warn-unsigned-downcast
+generate alarms when unsigned downcasts may exceed the destination
+range (default to no).
+.TP
+.B [-no]-warn-unsigned-overflow
+generate alarms for unsigned operations that overflow (default to no).
 .TP
 .B [-no]-pp-annot
 pre-process annotations. This is currently only possible when using gcc (or
@@ -363,8 +380,9 @@ in the code. This is the default. Functions having the attribute
 are always kept.
 .TP
 .B -safe-arrays
-For structure fields that are arrays, assumes that all accesses must be in bound
-(set by default). The opposite option is
+For multidimensional arrays or arrays that are fields inside structs ,
+assumes that all accesses must be in bound (set by default). The
+opposite option is
 .B -unsafe-arrays
 .TP
 .BI -save\  file
@@ -424,7 +442,7 @@ see
 .B -safe-arrays
 .TP
 .B [-no]-unspecified-access
-checks the that read/write accesses occuring in unspecified order (according to
+checks that read/write accesses occuring in unspecified order (according to
 the C standard's notion of sequence point) are performed on separate locations.
 With
 .BR -no-unspecified-access ,
@@ -467,14 +485,8 @@ User interruption (kill or equivalent)
 .B 3
 Unimplemented feature
 .TP
-.B 4
+.B 4 5 6
 Internal error
-.TP
-.B 5
-Error while exiting normally
-.TP
-.B 6
-Error while exiting abnormally
 .TP
 .B 125
 Unknown error

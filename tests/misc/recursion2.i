@@ -11,10 +11,10 @@ void h1 (int i) {
   if (i)
     h2 (i);
 }
-void h2 (int i) {
-  int r = y;
-  if (!i)
-    h1 (i);
+void h2 (int j) {
+  int q = y;
+  if (!j)
+    h1 (j);
 }
 
 void main() {

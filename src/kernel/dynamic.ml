@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -69,8 +69,8 @@ let catch_sysreaddir s =
   | [] | [ _ ] | _ :: _ :: _ :: _ ->
       raise (Sys_error s)
 
-(* To determine if we have a OCaml version lower than 3.11 or not *)
-let is_lower_than_311 =
+(* To determine if Dynlink works on this OCaml version  *)
+let too_old_for_dynlink =
   try
     ignore (Dynlink_common_interface.init ());
     false
@@ -78,7 +78,7 @@ let is_lower_than_311 =
     true
 
 let is_dynlink_available =
-  not (is_lower_than_311 && Dynlink_common_interface.is_native)
+  not (too_old_for_dynlink && Dynlink_common_interface.is_native)
 
 (* apply [f] to [x] iff dynlink is available *)
 let dynlink_available f x = if is_dynlink_available then f x
@@ -287,7 +287,8 @@ let dynlink_file path module_name =
     fatal "unexpected exception %S" (Printexc.to_string e)
 
 let load_module_from_unknown_path name =
-  if Modules.register_once name then
+  if Modules.register_once name then begin
+    Modules.unregister name;
     let regexp =
       Str.regexp_case_fold (name ^ "\\" ^ object_file_extension ^ "$")
     in
@@ -301,7 +302,7 @@ let load_module_from_unknown_path name =
       (fun p -> 
 	if check_path p then begin 
 	  tried := true;
-	  dynlink_file p name
+	  if Modules.register_once name then dynlink_file p name
 	end) 
       paths;
     if not !tried then begin
@@ -318,12 +319,14 @@ let load_module_from_unknown_path name =
 	    (Pretty_utils.pp_list Format.pp_print_string)
 	    paths);
     end;
-    Loading_error_messages.print ()
+    Loading_error_messages.print ();
+  end
 
 let extract_filename f =
   try Filename.chop_extension f with Invalid_argument _ -> f
 
 let load_module f =
+  init_paths ();
   let load f =
     let name = String.capitalize (Filename.basename (extract_filename f)) in
     let dir = Filename.dirname f in
@@ -446,7 +449,8 @@ let get ~plugin name ty =
     if plugin <> "" then load_module_from_unknown_path plugin;
     Tbl.find dynamic_values (plugin ^ "." ^ name) ty
   end else
-    abort "cannot access value %s in the 'no obj' mode" name
+    failwith 
+      (Pretty_utils.sfprintf "cannot access value %s in the 'no obj' mode" name)
 
 let iter f = Tbl.iter f dynamic_values
 let iter_comment f = Hashtbl.iter f comments_fordoc 

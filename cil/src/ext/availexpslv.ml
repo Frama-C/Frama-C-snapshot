@@ -1,43 +1,45 @@
-(**************************************************************************)
-(*                                                                        *)
-(*  Copyright (C) 2001-2003                                               *)
-(*   George C. Necula    <necula@cs.berkeley.edu>                         *)
-(*   Scott McPeak        <smcpeak@cs.berkeley.edu>                        *)
-(*   Wes Weimer          <weimer@cs.berkeley.edu>                         *)
-(*   Ben Liblit          <liblit@cs.berkeley.edu>                         *)
-(*  All rights reserved.                                                  *)
-(*                                                                        *)
-(*  Redistribution and use in source and binary forms, with or without    *)
-(*  modification, are permitted provided that the following conditions    *)
-(*  are met:                                                              *)
-(*                                                                        *)
-(*  1. Redistributions of source code must retain the above copyright     *)
-(*  notice, this list of conditions and the following disclaimer.         *)
-(*                                                                        *)
-(*  2. Redistributions in binary form must reproduce the above copyright  *)
-(*  notice, this list of conditions and the following disclaimer in the   *)
-(*  documentation and/or other materials provided with the distribution.  *)
-(*                                                                        *)
-(*  3. The names of the contributors may not be used to endorse or        *)
-(*  promote products derived from this software without specific prior    *)
-(*  written permission.                                                   *)
-(*                                                                        *)
-(*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS   *)
-(*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT     *)
-(*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS     *)
-(*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE        *)
-(*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,   *)
-(*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,  *)
-(*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;      *)
-(*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER      *)
-(*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT    *)
-(*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN     *)
-(*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE       *)
-(*  POSSIBILITY OF SUCH DAMAGE.                                           *)
-(*                                                                        *)
-(*  File modified by CEA (Commissariat à l'énergie atomique et aux        *)
-(*                        énergies alternatives).                         *)
-(**************************************************************************)
+(****************************************************************************)
+(*                                                                          *)
+(*  Copyright (C) 2001-2003                                                 *)
+(*   George C. Necula    <necula@cs.berkeley.edu>                           *)
+(*   Scott McPeak        <smcpeak@cs.berkeley.edu>                          *)
+(*   Wes Weimer          <weimer@cs.berkeley.edu>                           *)
+(*   Ben Liblit          <liblit@cs.berkeley.edu>                           *)
+(*  All rights reserved.                                                    *)
+(*                                                                          *)
+(*  Redistribution and use in source and binary forms, with or without      *)
+(*  modification, are permitted provided that the following conditions      *)
+(*  are met:                                                                *)
+(*                                                                          *)
+(*  1. Redistributions of source code must retain the above copyright       *)
+(*  notice, this list of conditions and the following disclaimer.           *)
+(*                                                                          *)
+(*  2. Redistributions in binary form must reproduce the above copyright    *)
+(*  notice, this list of conditions and the following disclaimer in the     *)
+(*  documentation and/or other materials provided with the distribution.    *)
+(*                                                                          *)
+(*  3. The names of the contributors may not be used to endorse or          *)
+(*  promote products derived from this software without specific prior      *)
+(*  written permission.                                                     *)
+(*                                                                          *)
+(*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS     *)
+(*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT       *)
+(*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS       *)
+(*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE          *)
+(*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,     *)
+(*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,    *)
+(*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;        *)
+(*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER        *)
+(*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT      *)
+(*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN       *)
+(*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE         *)
+(*  POSSIBILITY OF SUCH DAMAGE.                                             *)
+(*                                                                          *)
+(*  File modified by CEA (Commissariat à l'énergie atomique et aux          *)
+(*                        énergies alternatives)                            *)
+(*               and INRIA (Institut National de Recherche en Informatique  *)
+(*                          et Automatique).                                *)
+(****************************************************************************)
 
 (* compute available expressions, although in a somewhat
    non-traditional way. the abstract state is a mapping from
@@ -47,22 +49,8 @@
 open Cil_types
 open Cil
 
-module DF = Dataflow
-module UD = Usedef
-module IH = Datatype.Int.Hashtbl
-module H = Hashtbl
-module S = (*Stats*) struct
-  let time _ f c = f c
-end (*Stats*)
-
 let debug = ref (Kernel.debug_atleast 2)
-let doTime = ref false
 
-
-let time s f a =
-  if !doTime then
-    S.time s f a
-  else f a
 
 (*
  * When ignore_inst returns true, then
@@ -102,11 +90,11 @@ let lvh_equals lvh1 lvh2 =
 let lvh_pretty fmt lvh =
   LvExpHash.iter
     (fun lv e ->
-       Format.fprintf fmt "@\n%a -> %a" d_lval lv d_exp e)
+      Format.fprintf fmt "@\n%a -> %a" 
+	Cil_printer.pp_lval lv Cil_printer.pp_exp e)
     lvh
 
 (* the result must be the intersection of eh1 and eh2 *)
-(* exp IH.t -> exp IH.t -> exp IH.t *)
 let lvh_combine lvh1 lvh2 =
   if !debug then Kernel.debug ~level:2 "lvh_combine: combining %a\n and\n %a"
     lvh_pretty lvh1 lvh_pretty lvh2;
@@ -246,8 +234,6 @@ let exp_is_volatile e : bool =
   ignore(visitCilExpr vis e);
   !br
 
-(* let varHash = IH.create 32 *)
-
 class addrOfOrGlobalFinderClass br = object
   inherit nopCilVisitor
 
@@ -293,8 +279,9 @@ let lvh_handle_inst i lvh =
       end
       | _ -> begin (* e is volatile *)
 	  (* must remove mapping for lv *)
-	  if !debug then Kernel.debug "lvh_handle_inst: %a is volatile. killing %a"
-            d_exp e d_lval lv;
+	  if !debug then 
+	    Kernel.debug "lvh_handle_inst: %a is volatile. killing %a"
+              Cil_printer.pp_exp e Cil_printer.pp_lval lv;
 	  LvExpHash.remove lvh lv;
 	  lvh_kill_lval lvh lv;
 	  lvh
@@ -317,8 +304,8 @@ let lvh_handle_inst i lvh =
       lvh
   end
   | Asm(_,_,_,_,_,_) -> begin
-      let _,d = UD.computeUseDefInstr i in
-      UD.VS.iter (fun vi ->
+      let _,d = Usedef.computeUseDefInstr i in
+      Cil_datatype.Varinfo.Set.iter (fun vi ->
 	lvh_kill_vi lvh vi) d;
       lvh
   end
@@ -344,16 +331,16 @@ module AvailableExps =
     let computeFirstPredecessor _stm lvh = lvh
 
     let combinePredecessors (_stm:stmt) ~(old:t) (lvh:t) =
-      if time "lvh_equals" (lvh_equals old) lvh then None else
-      Some(time "lvh_combine" (lvh_combine old) lvh)
+      if lvh_equals old lvh then None else
+      Some(lvh_combine old lvh)
 
     let doInstr _ i _lvh =
       let action = lvh_handle_inst i in
-      DF.Post(action)
+      Dataflow.Post(action)
 
-    let doStmt _stm _astate = DF.SDefault
+    let doStmt _stm _astate = Dataflow.SDefault
 
-    let doGuard _ _c _astate = DF.GDefault, DF.GDefault
+    let doGuard _ _c _astate = Dataflow.GDefault, Dataflow.GDefault
 
     let filterStmt _stm = true
 
@@ -374,10 +361,9 @@ module AE = Dataflow.Forwards(AvailableExps)
 let computeAEs fd =
   try let slst = fd.sbody.bstmts in
   let first_stm = List.hd slst in
-  (*time "make_var_hash" make_var_hash fd;*)
   AvailableExps.StmtStartData.clear ();
   AvailableExps.StmtStartData.add first_stm (LvExpHash.create 4);
-  time "compute" AE.compute [first_stm]
+  AE.compute [first_stm]
   with Failure "hd" -> if !debug then Kernel.debug "fn w/ no stmts?"
   | Not_found -> if !debug then Kernel.debug "no data for first_stm?"
 
@@ -421,7 +407,7 @@ class aeVisitorClass = object (self)
 	match stm.skind with
 	  Instr il ->
 	    if !debug then Kernel.debug "aeVist: visit il" ;
-	    ae_dat_lst <- time "instrAEs" (instrAEs [il] stm.sid eh) false;
+	    ae_dat_lst <- instrAEs [il] stm.sid eh false;
 	    DoChildren
 	| _ ->
 	    if !debug then Kernel.debug "aeVisit: visit non-il" ;
@@ -429,8 +415,9 @@ class aeVisitorClass = object (self)
 	    DoChildren
 
   method vinst i =
-    if !debug then Kernel.debug "aeVist: before %a, ae_dat_lst is %d long"
-      d_instr i (List.length ae_dat_lst);
+    if !debug then 
+      Kernel.debug "aeVist: before %a, ae_dat_lst is %d long"
+	Cil_printer.pp_instr i (List.length ae_dat_lst);
     try
       let data = List.hd ae_dat_lst in
       cur_ae_dat <- Some(data);

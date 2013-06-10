@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2012                                               #
+#  Copyright (C) 2007-2013                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -97,10 +97,10 @@
 #
 # Kernel developers only
 # ----------------------
-# PLUGIN_RESET Set it to no in order to don't reset plug-in variable.
+# PLUGIN_RESET Set it to no in order to NOT reset plug-in variable.
 #	Default to yes
 #
-# Except their initialisations, these variables should not be use outside of
+# Except for their initialisation, these variables should not be used outside of
 # Makefile.plugin.
 # Instead, you can safely use the corresponding following variables
 # in which $(PLUGIN_NAME) is the name of your plugin:
@@ -122,7 +122,7 @@
 #
 ###############################################################################
 #
-# Note for the Makefile.plugin developpers:
+# Note for the Makefile.plugin developers:
 # If you add a new option to communicate with the main Makefile,
 # don't forget to reset it at the end of this file.
 #
@@ -219,10 +219,12 @@ PLUGIN_CMO:= $(patsubst %, $(PLUGIN_DIR)/%.cmo, $(PLUGIN_CMO))
 PLUGIN_CMX:= $(PLUGIN_CMO:.cmo=.cmx)
 PLUGIN_CMI:= $(patsubst %, $(PLUGIN_DIR)/%.cmi, $(PLUGIN_CMI)) \
 	$(PLUGIN_CMO:.cmo=.cmi)
+PLUGIN_INFERRED_MLI:= $(PLUGIN_CMO:.cmo=.inferred.mli)
 
 $(PLUGIN_NAME)_CMO:=$(PLUGIN_CMO)
 $(PLUGIN_NAME)_CMX:=$(PLUGIN_CMX)
 $(PLUGIN_NAME)_CMI:=$(PLUGIN_CMI)
+$(PLUGIN_NAME)_INFERRED_MLI:=$(PLUGIN_INFERRED_MLI)
 
 HAS_GUI:=no
 ifneq  ($(ENABLE_GUI),no)
@@ -329,7 +331,7 @@ $(NAME_DEPFLAGS):= -I $(PLUGIN_DIR) $(PLUGIN_DEPFLAGS)
 $(PLUGIN_CMX): $(PLUGIN_DEPENDS:%=$(PLUGIN_LIB_DIR)/%.cmx)
 
 # Add the flags to the compilation line of the plugin source files
-$(PLUGIN_CMO) $(PLUGIN_CMI): BFLAGS:=$($(NAME_BFLAGS))
+$(PLUGIN_CMO) $(PLUGIN_CMI) $(PLUGIN_INFERRED_MLI): BFLAGS:=$($(NAME_BFLAGS))
 $(PLUGIN_CMX): OFLAGS:=$($(NAME_OFLAGS)) -for-pack $(PLUGIN_NAME)
 
 ifeq ($(HAS_GUI),yes)

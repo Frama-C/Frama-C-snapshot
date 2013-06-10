@@ -2,11 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
-(*           alternatives)                                                *)
-(*    INRIA (Institut National de Recherche en Informatique et en         *)
-(*           Automatique)                                                 *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -71,8 +69,9 @@ end
         type t = tt
         let name = "PdgTypes.Elem"
         let reprs = [ { id = -1; key = PdgIndex.Key.top_input } ]
-        let structural_descr = Structural_descr.t_record
-          [| Structural_descr.p_int; PdgIndex.Key.packed_descr |]
+        let structural_descr = 
+	  Structural_descr.t_record
+            [| Structural_descr.p_int; PdgIndex.Key.packed_descr |]
         let compare e1 e2 = Datatype.Int.compare e1.id e2.id
         let hash e = e.id
         let equal e1 e2 = e1.id = e2.id
@@ -102,17 +101,21 @@ end
 module NodeSet = Hptset.Make(Node)
                    (struct let v = [ [ ] ] end)
                    (struct let l = [ Ast.self ] end)
+(* Clear the (non-project compliant) internal caches each time the ast
+   is updated, which includes every time we switch project. *)
+let () = Ast.add_hook_on_update NodeSet.clear_caches
 let () = Ast.add_monotonic_state NodeSet.self
 
 (** set of nodes of the graph *)
 module NodeSetLattice = struct
   include Abstract_interp.Make_Lattice_Set(Node)
-  let tag = hash
   let default _v _a _b : t = empty
   let defaultall _v : t = empty
 end
 
 module LocInfo = Lmap_bitwise.Make_bitwise (NodeSetLattice)
+let () = Ast.add_hook_on_update LocInfo.clear_caches
+    (* See comment on previous call to Ast.add_hook_on_update *)
 
 
 (** Edges label for the Program Dependence Graph.
@@ -219,8 +222,6 @@ module DpdZone : sig
   val dpd_zone : t -> Locations.Zone.t option
 
   val pretty : Format.formatter -> t -> unit
-
-  val tag: t -> int
 end = struct
 
   include Datatype.Pair(Dpd)(Datatype.Option(Locations.Zone))
@@ -255,8 +256,6 @@ end = struct
     match (dpd_zone dpd) with None -> ()
       | Some z ->
           Format.fprintf fmt "@[<h 1>(%a)@]" Locations.Zone.pretty z
-
-  let tag = hash
 end
 
 (** The graph itself. *)
@@ -274,6 +273,9 @@ module G = struct
 
   module To = Hptmap.Make(Node)(DpdZone)(Hptmap.Comp_unused)
     (struct let v = [[]] end)(struct let l = [Ast.self] end)
+  let () = Ast.add_hook_on_update (fun _ -> To.clear_caches ())
+      (* See comment on previous call to Ast.add_hook_on_update *)
+
   let () = Ast.add_monotonic_state To.self
 
   module OneDir = Node.Hashtbl.Make(To)
@@ -295,7 +297,7 @@ module G = struct
     with Not_found -> ()
 
   let aux_iter_one_dir ?(rev=false) f v =
-    To.iter (fun v' lbl -> f (if rev then (v', lbl, v) else (v, lbl, v' : E.t)))
+    To.iter (fun v' lbl -> if rev then f v' lbl v else f v lbl v')
   let iter_e_one_dir ?(rev=false) f g v =
     let to_ = Node.Hashtbl.find g v in
     aux_iter_one_dir ~rev f v to_
@@ -303,14 +305,12 @@ module G = struct
   let fold_e_one_dir ?(rev=false) f g v =
     let to_ = Node.Hashtbl.find g v in
     To.fold (fun v' lbl acc ->
-      f (if rev then (v', lbl, v) else (v, lbl, v' : E.t)) acc) to_
-
+               if rev then f v' lbl v acc else f v lbl v' acc) to_
   let fold_one_dir f g v =
     let to_ = Node.Hashtbl.find g v in
     To.fold (fun v' _ acc -> f v' acc) to_
 
   (* Bi-directional graphs *)
-
   type g = {
     d_graph: OneDir.t;
     co_graph: OneDir.t;
@@ -327,7 +327,7 @@ module G = struct
     let rehash = Datatype.identity
     open Structural_descr
     let structural_descr =
-      t_record [| OneDir.packed_descr; OneDir.packed_descr;|]
+      t_record [| OneDir.packed_descr; OneDir.packed_descr |]
    end)
 
   let add_node g v =
@@ -356,14 +356,9 @@ module G = struct
     Node.Hashtbl.iter (fun v _to -> aux_iter_one_dir f v _to) g.d_graph
 
   let iter_succ_e f g = iter_e_one_dir           f  g.d_graph
-  let fold_succ   f g = fold_one_dir             f  g.d_graph
-  let fold_pred   f g = fold_one_dir             f g.co_graph
   let fold_succ_e f g = fold_e_one_dir           f  g.d_graph
   let fold_pred_e f g = fold_e_one_dir ~rev:true f g.co_graph
   let iter_pred_e f g = iter_e_one_dir ~rev:true f g.co_graph
-
-  let succ g v = fold_succ (fun n l -> n :: l) g v []
-  let pred g v = fold_pred (fun n l -> n :: l) g v []
 
   let create () =
     { d_graph = Node.Hashtbl.create 17;
@@ -406,14 +401,14 @@ end
     was last defined.
     Managed in src/pdg/state.ml
   *)
-type t_data_state =
+type data_state =
   { loc_info : LocInfo.t ; under_outputs : Locations.Zone.t }
 
 module Data_state =
   Datatype.Make
     (struct
       include Datatype.Serializable_undefined
-      type t = t_data_state
+      type t = data_state
       let name = "PdgTypes.Data_state"
       let reprs =
         List.fold_left
@@ -441,23 +436,24 @@ module Pdg = struct
   (** The nodes associated to each element.
       There is only one node for simple statements,
       but there are several for a call for instance. *)
-  let fi_descr =
-    PdgIndex.FctIndex.t_descr ~ni:(Descr.str Node.descr) ~ci:Structural_descr.t_unit
 
+  let fi_descr =
+    PdgIndex.FctIndex.t_descr
+      ~ni:(Descr.str Node.descr) ~ci:Structural_descr.t_unit
 
   type def = {
     graph : G.t ;
-    states : t_data_state Datatype.Int.Hashtbl.t ;
+    states : data_state Cil_datatype.Stmt.Hashtbl.t ;
     index : fi ;
   }
 
-  type t_body = PdgDef of def | PdgTop | PdgBottom
+  type body = PdgDef of def | PdgTop | PdgBottom
 
   module Body_datatype =
     Datatype.Make
       (struct
         include Datatype.Undefined(*Serializable_undefined*)
-        type t = t_body
+        type t = body
         let reprs = [ PdgTop; PdgBottom ]
         let rehash = Datatype.identity
         open Structural_descr
@@ -465,15 +461,17 @@ module Pdg = struct
           Structure
             (Sum [| [|
               pack
-                (t_record [|
-                   G.packed_descr;
-                   (let module H = Datatype.Int.Hashtbl.Make(Data_state) in
-                    H.packed_descr);
-                   pack fi_descr;
-                 |])
-            |] |])
+                (t_record
+		   [| G.packed_descr;
+                      (let module H =
+                             Cil_datatype.Stmt.Hashtbl.Make(Data_state)
+                       in
+                       H.packed_descr);
+                      pack fi_descr; 
+		   |])
+		    |] |])
 
-        let name = "t_body"
+        let name = "body"
         let mem_project = Datatype.never_any_project
        end)
   let () = Type.set_ml_name Body_datatype.ty None
@@ -517,46 +515,40 @@ module Pdg = struct
 
   type dpd_info = (Node.t * Locations.Zone.t option)
 
-  (** gives the list of nodes that depend to the given node
-      with a given kind of dependency.
-    *)
-  let get_x_direct_edges ~co dpd_type_opt pdg node =
+  (** gives the list of nodes that depend to the given node, with a given
+      kind of dependency if [dpd_type] is not [None]. The dependency kind is
+      dropped *)
+  let get_x_direct_edges ~co ?dpd_type pdg node : dpd_info list =
     let pdg = get_pdg_body pdg in
-    let is_dpd_ok e = match dpd_type_opt with None -> true
-      | Some k -> DpdZone.is_dpd k (G.E.label e)
+    let is_dpd_ok dpd = match dpd_type with None -> true
+      | Some k -> DpdZone.is_dpd k dpd
     in
-    let filter edge nodes =
-      if is_dpd_ok edge then edge :: nodes else nodes
+    let filter n dpd n' nodes =
+      if is_dpd_ok dpd then
+        let n = if co then n else n' in
+        let z = DpdZone.dpd_zone dpd in
+        (n, z) :: nodes
+      else nodes
     in
-    let fold = if co then G.fold_pred_e else G.fold_succ_e  in
-    let nodes = fold filter pdg.graph node [] in
-      nodes
-
-  let edge_end co = if co then G.E.src else G.E.dst
+    let fold = if co then G.fold_pred_e else G.fold_succ_e in
+    fold filter pdg.graph node []
 
   let get_x_direct ~co dpd_type pdg node =
-    let edges = get_x_direct_edges ~co (Some dpd_type) pdg node in
-    List.map
-      (fun e -> (edge_end co e, DpdZone.dpd_zone (G.E.label e)))
-      edges
+    get_x_direct_edges ~co ~dpd_type pdg node
 
   let get_x_direct_dpds k = get_x_direct ~co:false k
   let get_x_direct_codpds k = get_x_direct ~co:true k
 
   let get_all_direct ~co pdg node =
-    let edges = get_x_direct_edges ~co None pdg node in
-    List.map
-      (fun e -> (edge_end co e, DpdZone.dpd_zone (G.E.label e)))
-      edges
+    get_x_direct_edges ~co pdg node
 
   let get_all_direct_dpds pdg node = get_all_direct ~co:false pdg node
   let get_all_direct_codpds pdg node = get_all_direct ~co:true pdg node
 
-  let fold_direct ~co pdg f acc node =
-    let do_e e acc =
-      let k, z = G.edge_dpd e in
-      let n = edge_end co e in
-        f acc (k, z) n
+  let fold_direct ~co (pdg:t) f acc node =
+    let do_e n1 dpd n2 acc =
+      let n = if co then n1 else n2 in
+      f acc (DpdZone.kind_and_zone dpd) n
     in
     let fold = if co then G.fold_pred_e else G.fold_succ_e  in
       fold do_e (get_graph pdg) node acc
@@ -572,12 +564,11 @@ module Pdg = struct
     in
     let iter = if bw then G.iter_pred_e else G.iter_succ_e in
     let print_node n =  Format.fprintf fmt "%a@." Node.pretty_node n in
-    let print_dpd d =
-      let dpd_kind = G.E.label d in
+    let print_dpd src dpd_kind dst =
       if bw then Format.fprintf fmt "  <-%a- %d@." G.pretty_edge_label dpd_kind
-        (Node.id (G.E.src d))
+        (Node.id src)
       else Format.fprintf fmt "  -%a-> %d@." G.pretty_edge_label dpd_kind
-        (Node.id (G.E.dst d))
+        (Node.id dst)
     in
     let print_node_and_dpds n =
       print_node n;
@@ -597,6 +588,7 @@ module Pdg = struct
 
   (*-----------------------------------------------------------------------*)
   module Printer = struct
+    open PdgIndex
 
     type parent_t = t
     type t = parent_t
@@ -607,16 +599,26 @@ module Pdg = struct
       let dst (e, _d) = G.E.src e (* to get graphs with a correct orientation*)
     end
 
+    (* Skip InCtrl nodes, that hinder readability *)
+    let print_node n =
+      match Node.elem_key n with
+        | Key.SigKey (Signature.In Signature.InCtrl)
+        | Key.SigCallKey (_, Signature.In Signature.InCtrl) -> false
+        | _ -> true
+
     let iter_vertex f pdg =
       try
         let graph = get_graph pdg in
+        let f n = if print_node n then f n in
         G.iter_vertex f graph
       with Top | Bottom -> ()
 
     let iter_edges_e f pdg =
       try
         let graph = get_graph pdg in
-        let f_static e = f (e, false) in
+        let f_static n1 lbl n2 =
+          if print_node n1 && print_node n2 then f ((n1, lbl, n2), false)
+        in
         G.iter_edges_e f_static graph;
       with Top | Bottom -> ()
 
@@ -636,49 +638,52 @@ module Pdg = struct
       let sh_box = (`Shape `Box) in
       let key = Node.elem_key v in
       let sh, col, txt = match key with
-        | PdgIndex.Key.VarDecl v ->
-          let txt =
-            Pretty_utils.sfprintf "@[Decl %a@]" !Ast_printer.d_ident v.vname
-          in
-          (`Shape `Box) , color_decl , txt
-        | PdgIndex.Key.SigKey k ->
-          let txt = Pretty_utils.sfprintf "%a"
-            PdgIndex.Signature.pretty_key k
-          in
-          let color = match k with | PdgIndex.Signature.Out _ -> color_out | _ ->  color_in in
-          (`Shape `Box), color, txt
-        | PdgIndex.Key.Stmt s ->
+        | Key.VarDecl v ->
+          let txt = Pretty_utils.sfprintf "@[Decl %s@]" v.vname in
+          `Shape `Box, color_decl, txt
+        | Key.SigKey k ->
+          let txt = Pretty_utils.sfprintf "%a" Signature.pretty_key k in
+          let color = 
+	    match k with | Signature.Out _ -> color_out | _ ->  color_in 
+	  in
+          `Shape `Box, color, txt
+        | Key.Stmt s ->
           let sh, txt = match s.skind with
             | Switch (exp,_,_,_) | If (exp,_,_,_) ->
-              let txt = Pretty_utils.sfprintf "%a" !Ast_printer.d_exp exp in
-              (`Shape `Diamond), txt
+              let txt = Pretty_utils.to_string Printer.pp_exp exp in
+              `Shape `Diamond, txt
             | Loop _ ->
-              (`Shape `Doublecircle), "while"
+              `Shape `Doublecircle, "while"
             | Block _ | UnspecifiedSequence _ ->
-              (`Shape `Doublecircle), "{}"
+              `Shape `Doublecircle, "{}"
             | Goto _ | Break _ | Continue _ ->
-              let txt = Pretty_utils.sfprintf "%a"
-                (Cil.defaultCilPrinter#pStmtKind s) s.skind
-              in (`Shape `Doublecircle), txt
+              let txt = 
+		Pretty_utils.to_string
+		  (Printer.without_annot Printer.pp_stmt) s 
+	      in
+	      (`Shape `Doublecircle), txt
             | Return _ | Instr _ ->
-              let txt = Pretty_utils.sfprintf "%a"
-                (Cil.defaultCilPrinter#pStmtKind s) s.skind in
+              let txt = 
+		Pretty_utils.to_string
+		  (Printer.without_annot Printer.pp_stmt) s 
+	      in
               sh_box, txt
             | _ -> sh_box, "???"
           in sh, color_stmt, txt
-        | PdgIndex.Key.CallStmt call ->
-          let call_stmt = PdgIndex.Key.call_from_id call in
-          let txt = Pretty_utils.sfprintf "%a"
-            (Cil.defaultCilPrinter#pStmtKind call_stmt)
-            call_stmt.skind
-          in sh_box, color_call, txt
-        | PdgIndex.Key.SigCallKey (_call, sgn) ->
+        | Key.CallStmt call ->
+          let call_stmt = Key.call_from_id call in
+          let txt = 
+	    Pretty_utils.to_string
+	      (Printer.without_annot Printer.pp_stmt) call_stmt 
+	  in
+	  sh_box, color_call, txt
+        | Key.SigCallKey (_call, sgn) ->
           let txt =
-            Pretty_utils.sfprintf "%a" PdgIndex.Signature.pretty_key sgn
+            Pretty_utils.to_string Signature.pretty_key sgn
           in
           sh_box, color_elem_call, txt
-        | PdgIndex.Key.Label _ ->
-          let txt = Pretty_utils.sfprintf "%a" PdgIndex.Key.pretty key in
+        | Key.Label _ ->
+          let txt = Pretty_utils.to_string Key.pretty key in
           sh_box, color_stmt, txt
       in sh :: col :: [`Label ( String.escaped txt)]
 
@@ -701,7 +706,7 @@ module Pdg = struct
         in (`Color color) :: attrib
       in
       let attrib =
-        if Dpd.is_ctrl d then (`Arrowhead `Odot)::attrib else attrib
+        if Dpd.is_ctrl d then (`Arrowtail `Odot)::attrib else attrib
       in
       let attrib =
         if Dpd.is_addr d then (`Style `Dotted)::attrib else attrib
@@ -715,24 +720,19 @@ module Pdg = struct
                Graph.Graphviz.DotAttributes.sg_attributes = attrib }
       in
       match Node.elem_key v with
-      | PdgIndex.Key.CallStmt call | PdgIndex.Key.SigCallKey (call, _) ->
-        let call_stmt = PdgIndex.Key.call_from_id call in
+      | Key.CallStmt call | Key.SigCallKey (call, _) ->
+        let call_stmt = Key.call_from_id call in
         let name = "Call"^(string_of_int call_stmt.sid) in
-        let call_txt =
-          Pretty_utils.sfprintf "%a"
-            (fun fmt ->
-              Cil.defaultCilPrinter#pStmtKind call_stmt fmt
-            )
-            call_stmt.skind  in
+        let call_txt = Pretty_utils.sfprintf "%a" Printer.pp_stmt call_stmt in
         let call_txt = String.escaped call_txt in
         let attrib = [(`Label (name^" : "^call_txt))] in
         let attrib = (`Fillcolor 0xB38B4D) :: attrib in
         mk_subgraph name attrib
-      | PdgIndex.Key.SigKey k ->
+      | Key.SigKey k ->
         let pack_inputs_outputs = false in
         if pack_inputs_outputs then
           begin
-            let is_in =  match k with PdgIndex.Signature.In _ -> true | _ -> false in
+            let is_in =  match k with Signature.In _ -> true | _ -> false in
             let name = if is_in then "Inputs" else "Outputs" in
             let color = if is_in then 0x90EE90 else 0x6495ED in
             let attrib = [] in

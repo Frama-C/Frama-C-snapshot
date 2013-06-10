@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -29,6 +29,9 @@ val one : t
 val minus_one : t
 
 (** {2 Operations} *)
+
+val succ : t -> t
+val pred : t -> t
 
 val int : int -> t
 val add : t -> t -> t
@@ -60,8 +63,24 @@ val gt_zero : t -> bool
 val min : t -> t -> t
 val max : t -> t -> t
 
+type sign = Null | Positive | Negative
+val sign : t -> sign
+
+val two_power : t -> t
+val cast_size: size:t -> signed:bool -> value:t -> t
+val cast_max: max:t -> signed:bool -> value:t -> t
+
+(** {2 Bitwise operations } *)
+val bitwise_shift_left : t -> t -> t
+val bitwise_shift_right : t -> t -> t
+val bitwise_and : t -> t -> t
+val bitwise_or : t -> t -> t
+val bitwise_xor : t -> t -> t
+val bitwise_not : t -> t
+
 (** {2 Conversions} *)
 
+val of_int : int -> t
 val to_int : t -> int option
 val to_big_int : t -> Big_int.big_int
 val of_big_int : Big_int.big_int -> t

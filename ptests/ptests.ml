@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -110,14 +110,17 @@ let opt_to_byte toplevel =
 let opt_to_byte_options options =
   Str.global_replace regex_cmxs "\\1.cmo\\2" options
 
-let needs_byte options =
-  Ptests_config.no_native_dynlink &&
-    (Str.string_match (Str.regexp ".*-load-script") options 0 ||
-    Str.string_match (Str.regexp ".*-load-module") options 0)
+let needs_byte =
+  let load_something = Str.regexp ".*-load-\\(\\(script\\)\\|\\(module\\)\\)" in
+  fun options ->
+    Ptests_config.no_native_dynlink &&
+      (Str.string_match load_something options 0)
 
-let execnow_needs_byte cmd =
-  Ptests_config.no_native_dynlink &&
-    Str.string_match (Str.regexp ".*make.*[.]cmxs") cmd 0
+let execnow_needs_byte =
+  let make_cmxs = Str.regexp ".*make.*[.]cmxs" in
+  fun cmd ->
+    Ptests_config.no_native_dynlink &&
+      Str.string_match make_cmxs cmd 0
 
 let execnow_opt_to_byte cmd =
   let cmd = opt_to_byte cmd in
@@ -339,7 +342,7 @@ let launch command_string =
   match result with
   | Unix.WEXITED 127 ->
       lock_printf "%% Couldn't execute command. Retrying once.@.";
-      Thread.delay 0.1;
+      Thread.delay 0.125;
       ( match system command_string with
         Unix.WEXITED r when r <> 127 -> r
       | _ -> lock_printf "%% Retry failed with command:@\n%s@\nStopping@."
@@ -391,33 +394,35 @@ let scan_execnow dir (s:string) =
 let current_default_toplevel = ref !Ptests_config.toplevel_path
 let current_default_cmds = ref [!Ptests_config.toplevel_path,default_options]
 
-let make_custom_opts stdopts s =
-  let rec aux opts s =
-    try
-      Scanf.sscanf s "%_[ ]%1[+#\\-]%_[ ]%S%_[ ]%s@\n"
-        (fun c opt rem ->
-	  let opt = replace_toplevel opt in
-	  match c with
-          | "+" -> aux (opt :: opts) rem
-          | "#" -> aux (opts @ [ opt ]) rem
-          | "-" -> aux (List.filter (fun x -> x <> opt) opts) rem
-          | _ -> assert false (* format of scanned string disallow it *))
-    with
-    | Scanf.Scan_failure _ ->
-      if s <> "" then
-	lock_eprintf "unknown STDOPT configuration string: %s\n%!" s;
-      opts
-    | End_of_file -> opts
-  in
-  (* NB: current settings does not allow to remove a multiple-argument
-     option (e.g. -verbose 2).
-   *)
-  (* revert the initial list, as it will be reverted back in the end. *)
-  let opts =
-    aux (List.rev (Str.split (Str.regexp " ") stdopts)) s
-  in
-  (* preserve options ordering *)
-  List.fold_right (fun x s -> s ^ " " ^ x) opts ""
+let make_custom_opts =
+  let space = Str.regexp " " in
+  fun stdopts s ->
+    let rec aux opts s =
+      try
+	Scanf.sscanf s "%_[ ]%1[+#\\-]%_[ ]%S%_[ ]%s@\n"
+          (fun c opt rem ->
+	    let opt = replace_toplevel opt in
+	    match c with
+            | "+" -> aux (opt :: opts) rem
+            | "#" -> aux (opts @ [ opt ]) rem
+            | "-" -> aux (List.filter (fun x -> x <> opt) opts) rem
+            | _ -> assert false (* format of scanned string disallow it *))
+      with
+      | Scanf.Scan_failure _ ->
+	  if s <> "" then
+	    lock_eprintf "unknown STDOPT configuration string: %s\n%!" s;
+	  opts
+      | End_of_file -> opts
+    in
+    (* NB: current settings does not allow to remove a multiple-argument
+       option (e.g. -verbose 2).
+    *)
+    (* revert the initial list, as it will be reverted back in the end. *)
+    let opts =
+      aux (List.rev (Str.split space stdopts)) s
+    in
+    (* preserve options ordering *)
+    List.fold_right (fun x s -> s ^ " " ^ x) opts ""
 
 (* how to process options *)
 let config_options =
@@ -509,7 +514,7 @@ let scan_test_file default dir f =
     with Unix.Unix_error _ | Sys_error _ -> false
   in
     if exists_as_file then begin
-        let scan_buffer = Scanf.Scanning.from_file f in
+        let scan_buffer = Scanf.Scanning.open_in f in
         let rec scan_config () =
           (* space in format string matches any number of whitespace *)
           Scanf.bscanf scan_buffer " /* run.config%s "
@@ -523,8 +528,12 @@ let scan_test_file default dir f =
         in
         try
           scan_config ();
-          scan_options dir scan_buffer default
-        with End_of_file | Scanf.Scan_failure _ -> default
+	  let options = scan_options dir scan_buffer default in
+	  Scanf.Scanning.close_in scan_buffer;
+	  options
+        with End_of_file | Scanf.Scan_failure _ -> 
+	  Scanf.Scanning.close_in scan_buffer;
+	  default
       end else
       (* if the file has disappeared, don't try to run it... *)
       { default with dc_dont_run = true }
@@ -613,40 +622,46 @@ let gen_prefix s cmd =
 let log_prefix = gen_prefix result_dirname
 let oracle_prefix = gen_prefix oracle_dirname
 
-let basic_command_string command =
+let basic_command_string =
   let ptest_file_token = "@PTEST_FILE@" in
   let ptest_file_rexp = Str.regexp ptest_file_token in
-  let ptest_file = Filename.concat command.directory command.file in
-  let basic_command = 
-    let make_command s =
-      command.toplevel ^ " " ^ s ^ " " ^ command.options
-    in 
-    let basic_command = make_command "" in
-      if Str.string_match (Str.regexp (".*" ^ ptest_file_token ^ ".*")) basic_command 0
+  let contains_ptest_file = Str.regexp (".*" ^ ptest_file_token ^ ".*") in
+  let contains_toplevel_or_frama_c = 
+    Str.regexp ".*\\(\\(toplevel\\)\\|\\(frama-c\\)\\).*" 
+  in
+  let ptest_name_rexp = Str.regexp "@PTEST_NAME@" in
+  let ptest_number_rexp = Str.regexp "@PTEST_NUMBER@" in
+  fun command ->
+    let ptest_file = Filename.concat command.directory command.file in
+    let basic_command = 
+      let make_command s =
+	Printf.sprintf "%s %s %s" command.toplevel s command.options
+      in 
+      let basic_command = make_command "" in
+      if Str.string_match contains_ptest_file basic_command 0
       then (* At least one occurence for the test file is specified. *)
 	Str.global_replace ptest_file_rexp ptest_file basic_command
       else (* Using default position for the test file (between CMD: and OPT:). *)
 	make_command ptest_file
-  in
-  let basic_command = (* Additional options... *)
-    let is_framac_toplevel =
-      Str.string_match (Str.regexp ".*toplevel.*") command.toplevel 0
-      || Str.string_match (Str.regexp ".*frama-c.*") command.toplevel 0
-    in basic_command ^
-	 (if is_framac_toplevel then " " ^ 
-	    (Str.global_replace ptest_file_rexp ptest_file !additional_options)
-	  else "")
-  in
-  let basic_command = 
-    let ptest_name =
-      let ptest_name = Filename.basename command.file
-      in
+    in
+    let basic_command = (* Additional options... *)
+      let is_framac_toplevel =
+	Str.string_match contains_toplevel_or_frama_c command.toplevel 0
+      in basic_command ^
+      (if is_framac_toplevel then " " ^ 
+	  (Str.global_replace ptest_file_rexp ptest_file !additional_options)
+	else "")
+    in
+    let basic_command = 
+      let ptest_name =
+	let ptest_name = Filename.basename command.file
+	in
 	try 
 	  Filename.chop_extension ptest_name 
 	with _ -> ptest_name
-    in Str.global_replace (Str.regexp "@PTEST_NAME@") ptest_name basic_command
-  in 
-    Str.global_replace (Str.regexp "@PTEST_NUMBER@") (string_of_int command.n) basic_command
+      in Str.global_replace ptest_name_rexp ptest_name basic_command
+    in 
+    Str.global_replace ptest_number_rexp (string_of_int command.n) basic_command
 
 let command_string command =
   let log_prefix = log_prefix command in

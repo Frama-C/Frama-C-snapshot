@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -26,49 +26,49 @@ module FC_file = File (* overwritten by Cil_datatype *)
 open Cil_datatype
 open Extlib
 
-let dkey = "filter"
+let dkey = Kernel.register_category "filter"
 
-let debug1 fmt = Kernel.debug ~dkey fmt
-let debug2 fmt = Kernel.debug ~dkey ~level:2 fmt
+let debug1 fmt = Kernel.debug ~current:true ~dkey fmt
+let debug2 fmt = Kernel.debug ~current:true ~dkey ~level:2 fmt
 
-module type T_RemoveInfo = sig
-  type t_proj
-  type t_fct
+module type RemoveInfo = sig
+  type proj
+  type fct
 
   exception EraseAssigns
   exception EraseAllocation
 
-  val fct_info : t_proj -> kernel_function -> t_fct list
+  val fct_info : proj -> kernel_function -> fct list
 
-  val fct_name :  varinfo -> t_fct -> string
+  val fct_name :  varinfo -> fct -> string
 
-  val param_visible : t_fct -> int -> bool
-  val body_visible : t_fct -> bool
-  val loc_var_visible : t_fct -> varinfo -> bool
-  val inst_visible : t_fct -> stmt -> bool
-  val label_visible : t_fct -> stmt -> label -> bool
+  val param_visible : fct -> int -> bool
+  val body_visible : fct -> bool
+  val loc_var_visible : fct -> varinfo -> bool
+  val inst_visible : fct -> stmt -> bool
+  val label_visible : fct -> stmt -> label -> bool
 
-  val annotation_visible: t_fct -> stmt -> code_annotation -> bool
+  val annotation_visible: fct -> stmt -> code_annotation -> bool
 
-  val fun_precond_visible : t_fct -> predicate -> bool
-  val fun_postcond_visible : t_fct -> predicate -> bool
-  val fun_variant_visible : t_fct -> term -> bool
+  val fun_precond_visible : fct -> predicate -> bool
+  val fun_postcond_visible : fct -> predicate -> bool
+  val fun_variant_visible : fct -> term -> bool
 
-  val fun_frees_visible : t_fct -> identified_term -> bool
-  val fun_allocates_visible : t_fct -> identified_term -> bool
-  val fun_assign_visible : t_fct -> identified_term from -> bool
-  val fun_deps_visible : t_fct -> identified_term -> bool
+  val fun_frees_visible : fct -> identified_term -> bool
+  val fun_allocates_visible : fct -> identified_term -> bool
+  val fun_assign_visible : fct -> identified_term from -> bool
+  val fun_deps_visible : fct -> identified_term -> bool
 
-  val called_info : (t_proj * t_fct) -> stmt ->
-    (kernel_function * t_fct) option
-  val res_call_visible : t_fct -> stmt -> bool
-  val result_visible : kernel_function -> t_fct -> bool
-  val cond_edge_visible: t_fct -> stmt -> bool * bool
+  val called_info : (proj * fct) -> stmt ->
+    (kernel_function * fct) option
+  val res_call_visible : fct -> stmt -> bool
+  val result_visible : kernel_function -> fct -> bool
+  val cond_edge_visible: fct -> stmt -> bool * bool
 end
 
-module F (Info : T_RemoveInfo) : sig
+module F (Info : RemoveInfo) : sig
 
-  val build_cil_file : string ->  Info.t_proj -> Project.t
+  val build_cil_file : string ->  Info.proj -> Project.t
 
 end = struct
 
@@ -160,7 +160,7 @@ end = struct
       | Some _ -> None
       | None -> 
           let label = mk_label (Cil_datatype.Stmt.loc s) in
-            debug2 "add label to sid:%d : %a" s.sid Cil.d_label label;
+            debug2 "add label to sid:%d : %a" s.sid Printer.pp_label label;
             s.labels <- label::s.labels;
             Some label
 
@@ -170,7 +170,7 @@ end = struct
       let new_l = add_label_if_needed mk_label finfo dest in
         mk_new_stmt s (Goto (ref dest, loc));
         debug2 "changed break/continue into @[%a@]@."
-          !Ast_printer.d_stmt s;
+          Printer.pp_stmt s;
         new_l
     in
     let rec rm_aux cont break s =
@@ -295,8 +295,7 @@ end = struct
 
   let visible_lval vars_visible lval =
     let visitor = object
-      inherit Visitor.generic_frama_c_visitor
-        (Project.current ()) (Cil.inplace_visit ())
+      inherit Visitor.frama_c_inplace
       method vvrbl v =
         if not v.vglob then
           ignore (Varinfo.Hashtbl.find vars_visible v);
@@ -323,7 +322,7 @@ end = struct
   * *)
   class filter_visitor pinfo prj = object(self)
 
-    inherit Visitor.generic_frama_c_visitor prj (Cil.copy_visit())
+    inherit Visitor.generic_frama_c_visitor (Cil.copy_visit prj)
 
     val mutable keep_stmts = Stmt.Set.empty
     val mutable fi = None
@@ -421,14 +420,14 @@ end = struct
         Cil.get_original_stmt self#behavior (Extlib.the self#current_stmt)
       in
       debug1 "[annotation] stmt %d : %a @."
-        stmt.sid !Ast_printer.d_code_annotation v;
+        stmt.sid Printer.pp_code_annotation v;
       if Info.annotation_visible (self#get_finfo ()) stmt v
       then begin
         self#add_stmt_keep stmt;
         ChangeDoChildrenPost (v,Logic_const.refresh_code_annotation)
       end else begin
         debug1 "\t-> ignoring annotation: %a@."
-          !Ast_printer.d_code_annotation v;
+          Printer.pp_code_annotation v;
         ChangeTo
           (Logic_const.new_code_annotation
              (AAssert ([],
@@ -520,7 +519,7 @@ end = struct
         | Return (_,l) -> mk_new_stmt s (Return (None,l))
         | _ -> mk_new_stmt s (mk_stmt_skip s));
         debug2 "@[<hov 10>[process_invisible_stmt] gives sid:%d@ @[%a@]@]@." 
-          s.sid !Ast_printer.d_stmt s;
+          s.sid Printer.pp_stmt s;
         s
       in
       s.skind <- mk_stmt_skip s;
@@ -587,7 +586,7 @@ end = struct
             self#get_filling_actions
         | _ -> ());
         debug2 "@[<hov 10>[process_visible_stmt] gives sid:%d@ @[%a@]@]@."
-          s'.sid !Ast_printer.d_stmt s';
+          s'.sid Printer.pp_stmt s';
         s'
       in
       Cil.ChangeDoChildrenPost (s, do_after)
@@ -599,7 +598,7 @@ end = struct
         | l :: labs ->
           let keep = Info.label_visible finfo s l || self#is_our_label l in
           debug2 "[filter_labels] %svisible %a@." 
-            (if keep then "" else "in") Cil.d_label l;
+            (if keep then "" else "in") Printer.pp_label l;
           if keep then l::(filter_labels labs) else filter_labels labs
       in
       let labels = filter_labels s.labels in

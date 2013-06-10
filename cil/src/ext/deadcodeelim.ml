@@ -1,43 +1,45 @@
-(**************************************************************************)
-(*                                                                        *)
-(*  Copyright (C) 2001-2003                                               *)
-(*   George C. Necula    <necula@cs.berkeley.edu>                         *)
-(*   Scott McPeak        <smcpeak@cs.berkeley.edu>                        *)
-(*   Wes Weimer          <weimer@cs.berkeley.edu>                         *)
-(*   Ben Liblit          <liblit@cs.berkeley.edu>                         *)
-(*  All rights reserved.                                                  *)
-(*                                                                        *)
-(*  Redistribution and use in source and binary forms, with or without    *)
-(*  modification, are permitted provided that the following conditions    *)
-(*  are met:                                                              *)
-(*                                                                        *)
-(*  1. Redistributions of source code must retain the above copyright     *)
-(*  notice, this list of conditions and the following disclaimer.         *)
-(*                                                                        *)
-(*  2. Redistributions in binary form must reproduce the above copyright  *)
-(*  notice, this list of conditions and the following disclaimer in the   *)
-(*  documentation and/or other materials provided with the distribution.  *)
-(*                                                                        *)
-(*  3. The names of the contributors may not be used to endorse or        *)
-(*  promote products derived from this software without specific prior    *)
-(*  written permission.                                                   *)
-(*                                                                        *)
-(*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS   *)
-(*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT     *)
-(*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS     *)
-(*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE        *)
-(*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,   *)
-(*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,  *)
-(*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;      *)
-(*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER      *)
-(*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT    *)
-(*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN     *)
-(*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE       *)
-(*  POSSIBILITY OF SUCH DAMAGE.                                           *)
-(*                                                                        *)
-(*  File modified by CEA (Commissariat à l'énergie atomique et aux        *)
-(*                        énergies alternatives).                         *)
-(**************************************************************************)
+(****************************************************************************)
+(*                                                                          *)
+(*  Copyright (C) 2001-2003                                                 *)
+(*   George C. Necula    <necula@cs.berkeley.edu>                           *)
+(*   Scott McPeak        <smcpeak@cs.berkeley.edu>                          *)
+(*   Wes Weimer          <weimer@cs.berkeley.edu>                           *)
+(*   Ben Liblit          <liblit@cs.berkeley.edu>                           *)
+(*  All rights reserved.                                                    *)
+(*                                                                          *)
+(*  Redistribution and use in source and binary forms, with or without      *)
+(*  modification, are permitted provided that the following conditions      *)
+(*  are met:                                                                *)
+(*                                                                          *)
+(*  1. Redistributions of source code must retain the above copyright       *)
+(*  notice, this list of conditions and the following disclaimer.           *)
+(*                                                                          *)
+(*  2. Redistributions in binary form must reproduce the above copyright    *)
+(*  notice, this list of conditions and the following disclaimer in the     *)
+(*  documentation and/or other materials provided with the distribution.    *)
+(*                                                                          *)
+(*  3. The names of the contributors may not be used to endorse or          *)
+(*  promote products derived from this software without specific prior      *)
+(*  written permission.                                                     *)
+(*                                                                          *)
+(*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS     *)
+(*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT       *)
+(*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS       *)
+(*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE          *)
+(*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,     *)
+(*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,    *)
+(*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;        *)
+(*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER        *)
+(*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT      *)
+(*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN       *)
+(*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE         *)
+(*  POSSIBILITY OF SUCH DAMAGE.                                             *)
+(*                                                                          *)
+(*  File modified by CEA (Commissariat à l'énergie atomique et aux          *)
+(*                        énergies alternatives)                            *)
+(*               and INRIA (Institut National de Recherche en Informatique  *)
+(*                          et Automatique).                                *)
+(****************************************************************************)
 
 (* Eliminate assignment instructions whose results are not
    used *)
@@ -88,30 +90,36 @@ class usedDefsCollectorClass = object(self)
     inherit RD.rdVisitorClass as super
 
   method add_defids iosh e u =
-    UD.VS.iter (fun vi ->
-      if IH.mem iosh vi.vid then
+    UD.VS.iter 
+      (fun vi ->
+	if IH.mem iosh vi.vid then
 	let ios = IH.find iosh vi.vid in
-	if !debug then (Kernel.debug "DCE: IOS size for vname=%s at stmt=%d: %d\n"
-				vi.vname
-                                (Extlib.the self#current_stmt).sid
-                                (RD.IOS.cardinal ios));
-	RD.IOS.iter (function
-	    Some(i) ->
-	      if !debug then Kernel.debug "DCE: def %d used: %a\n" i d_plainexp e;
-	      usedDefsSet := IS.add i (!usedDefsSet)
+	if !debug then
+	  Kernel.debug "DCE: IOS size for vname=%s at stmt=%d: %d\n"
+	    vi.vname
+            (Extlib.the self#current_stmt).sid
+            (RD.IOS.cardinal ios);
+	RD.IOS.iter
+	  (function
+	  | Some(i) ->
+	    if !debug then 
+	      Kernel.debug "DCE: def %d used: %a\n" i Cil_printer.pp_exp e;
+	    usedDefsSet := IS.add i (!usedDefsSet)
 	  | None -> ()) ios
-      else if !debug then Kernel.debug "DCE: vid %d:%s not in stm:%d iosh at %a\n"
-				   vi.vid vi.vname
-                                   (Extlib.the self#current_stmt).sid
-                                   d_plainexp e
-               ) u
+	else if !debug then 
+	  Kernel.debug "DCE: vid %d:%s not in stm:%d iosh at %a\n"
+	    vi.vid vi.vname
+            (Extlib.the self#current_stmt).sid
+            Cil_printer.pp_exp e) 
+      u
 
   method vexpr e =
     let u = UD.computeUseExp e in
     match self#get_cur_iosh() with
       Some(iosh) -> self#add_defids iosh e u; DoChildren
     | None ->
-	if !debug then Kernel.debug "DCE: use but no rd data: %a\n" d_plainexp e;
+	if !debug then 
+	  Kernel.debug "DCE: use but no rd data: %a\n" Cil_printer.pp_exp e;
 	DoChildren
 
   method vstmt s =
@@ -303,7 +311,8 @@ class uselessInstrElim : cilVisitor = object
 	let defuses = IH.find defUseSetHash defid in
 	(*let siduses = IH.find sidUseSetHash defid in*)
 	if IH.mem sidUseSetHash defid then begin
-	  if !debug then Kernel.debug "siduses not empty: %a\n" d_instr i;
+	  if !debug then 
+	    Kernel.debug "siduses not empty: %a\n" Cil_printer.pp_instr i;
 	  true
 	end else begin
 	  (* true if there is something in defuses not in instruses or when
@@ -311,7 +320,8 @@ class uselessInstrElim : cilVisitor = object
 	  let instruses = viSetToDefIdSet iosh instruses in
 	  IS.fold (fun i' b ->
 	    if not(IS.mem i' instruses) then begin
-	      if !debug then Kernel.debug "i not in instruses: %a\n" d_instr i;
+	      if !debug then 
+		Kernel.debug "i not in instruses: %a\n" Cil_printer.pp_instr i;
 	      true
 	    end else
 	      (* can only use the definition i' at the definition defid *)
@@ -321,10 +331,10 @@ class uselessInstrElim : cilVisitor = object
 		IS.iter (fun iu -> match RD.getSimpRhs iu with
 		| Some(RD.RDExp e) ->
 		    if !debug then Kernel.debug "i' had other than one use: %d: %a\n"
-		      (IS.cardinal i'_uses) d_exp e
+		      (IS.cardinal i'_uses) Cil_printer.pp_exp e
 		| Some(RD.RDCall i) ->
 		    if !debug then Kernel.debug "i' had other than one use: %d: %a\n"
-			     (IS.cardinal i'_uses) d_instr i
+			     (IS.cardinal i'_uses) Cil_printer.pp_instr i
 		| None -> ()) i'_uses;
 		true
 	      end else b) defuses false
@@ -336,10 +346,14 @@ class uselessInstrElim : cilVisitor = object
       match i with
       | Call(Some(Var vi,NoOffset),{enode = Lval(Var _vf,NoOffset)},el,_l) ->
 	  if not(!callHasNoSideEffects i) then begin
-	    if !debug then Kernel.debug "found call w/ side effects: %a\n" d_instr i;
+	    if !debug then 
+	      Kernel.debug "found call w/ side effects: %a\n" 
+		Cil_printer.pp_instr i;
 	    true
 	  end else begin
-	    if !debug then Kernel.debug "found call w/o side effects: %a\n" d_instr i;
+	    if !debug then 
+	      Kernel.debug "found call w/o side effects: %a\n" 
+		Cil_printer.pp_instr i;
 	    (vi.vglob || (is_volatile_vi vi) || (el_has_volatile el) ||
 	    let uses, defd = UD.computeUseDefInstr i in
 	    let rec loop n =

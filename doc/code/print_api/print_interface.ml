@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -161,7 +161,10 @@ let analyse_type name l =
 	  add_type type_to_add name module_name typ_n 
   in
   List.iter analyse_type_aux (List.rev l) 
-  
+
+let is_option key = 
+  String.length key > 1 && String.rcontains_from key 1 '-'
+
 (** It fills [function_tbl] with the content of
     [dynamic_values] which is a  Hashtable
     recorded in the module Dynamic. 
@@ -171,7 +174,7 @@ let analyse_type name l =
     and the module named "Dynamic"
     and fills the table with the suitable names. *)
 let fill_tbl key typ _ =
-  if not (String.rcontains_from key 1 '-' || get_name 0 key = "Dynamic") then
+  if not (is_option key || get_name 0 key = "Dynamic") then
     let type_list = Type.get_embedded_type_names typ in
     let func_elem = 
       { name = function_name key ; 

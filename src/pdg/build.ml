@@ -2,11 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
-(*           alternatives)                                                *)
-(*    INRIA (Institut National de Recherche en Informatique et en         *)
-(*           Automatique)                                                 *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -33,26 +31,20 @@
     {!module: Build.Computer} below).
  *)
 
-let dkey = "build"
+let dkey = Pdg_parameters.register_category "build"
 let debug fmt = Pdg_parameters.debug ~dkey fmt
 let debug2 fmt = Pdg_parameters.debug ~dkey fmt ~level:2
 
 open Cil_types
-module IH = Datatype.Int.Hashtbl
 open Cil_datatype
-
-module G = PdgTypes.G
-module Dpd = PdgTypes.Dpd
-module FI = PdgIndex.FctIndex
-module Key = PdgIndex.Key
+open PdgTypes
+open PdgIndex
 
 (* exception Err_Top of string *)
 exception Err_Bot of string
 
 (** set of nodes of the graph *)
 module BoolNodeSet = Set.Make(Datatype.Pair(Datatype.Bool)(PdgTypes.Node))
-
-(* for mk_list_zones see Locations.Zone.fold_enum_by_base *)
 
 let pretty_node ?(key=false) fmt n = 
   PdgTypes.Node.pretty fmt n;
@@ -78,6 +70,8 @@ let add_dpd_in_g graph v1 dpd_kind part_opt v2 =
 
 (** Module to build the PDG. *)
 module BuildPdg : sig
+  open PdgTypes (* Export type data_state *)
+
   (** type of the whole PDG representation during its building process *)
   type t
 
@@ -86,28 +80,21 @@ module BuildPdg : sig
 
   val get_kf : t -> kernel_function
 
-  (** type of the state that is propagated by the forward dataflow analysis *)
-  type t_state
+  type arg_nodes
 
-  type t_arg_nodes
+  val get_states : t -> data_state Stmt.Hashtbl.t
 
-  val get_states : t -> t_state IH.t
+  val print_state : Format.formatter -> PdgTypes.data_state -> unit
 
-  val print_state : Format.formatter -> t_state -> unit
-
-  val empty_state : t_state
-  val bottom_state: t_state
-
-  (** type to describe the data locations (to store information in [t_state]) *)
-  type t_loc = Locations.Zone.t
+  val empty_state : data_state
+  val bottom_state: data_state
 
   (** gives the first state of a function with declaration information
    * and begin to build the pdg.
    * [process_declarations pdg formals locals]
    *)
-  val process_declarations : t -> formals:Cil_types.varinfo list ->
-                             locals:Cil_types.varinfo list ->
-                             t_state
+  val process_declarations :
+    t -> formals:varinfo list -> locals:varinfo list -> data_state
 
 
   (** for assign statement.
@@ -116,22 +103,28 @@ module BuildPdg : sig
    * @param r_dpds dependencies of the right hand side of the statement,
    * @param exact true if the location is surely modified.
   *)
-  val process_asgn : t -> t_state -> Cil_types.stmt ->
-              l_loc:t_loc -> exact:bool ->
-              l_dpds:t_loc -> l_decl: Varinfo.Set.t ->
-              r_dpds:t_loc -> r_decl: Varinfo.Set.t ->
-              t_state
+  val process_asgn : t -> data_state -> Cil_types.stmt ->
+              l_loc:Locations.Zone.t -> exact:bool ->
+              l_dpds:Locations.Zone.t -> l_decl: Varinfo.Set.t ->
+              r_dpds:Locations.Zone.t -> r_decl: Varinfo.Set.t ->
+              data_state
 
   (** for skip statement : we want to add a node in the PDG in ordrer to be able
    * to store information (like marks) about this statement later on *)
-  val process_skip : t ->  t_state -> Cil_types.stmt -> t_state option
+  val process_skip :
+    t ->  data_state -> Cil_types.stmt -> data_state option
+
+  (** similar to [process_skip], except that we emit a warning *)
+  val process_asm :
+    t ->  data_state -> Cil_types.stmt -> data_state option
 
   (** similar to [process_skip] but returns an empty state (bottom)*)
-  val process_unreachable : t ->  t_state -> Cil_types.stmt -> t_state option
+  val process_unreachable :
+    t ->  data_state -> Cil_types.stmt -> data_state option
 
   (** similar to [process_unreachable] but for call stmt *)
   val process_unreachable_call : 
-    t ->  t_state -> Cil_types.stmt -> t_state option
+    t ->  data_state -> Cil_types.stmt -> data_state option
 
   (** Add a node for the stmt which is a jump.
       Add control dependencies from this node
@@ -155,7 +148,7 @@ module BuildPdg : sig
    *)
   val process_jump_with_exp :
       t -> Cil_types.stmt -> (bool * Cil_datatype.Stmt.Hptset.t) ->
-                          t_state -> t_loc -> Varinfo.Set.t ->
+                          data_state -> Locations.Zone.t -> Varinfo.Set.t ->
                           unit
 
   (** Kind of 'join' of the two states
@@ -163,35 +156,36 @@ module BuildPdg : sig
    *  @return (true, old U new) if the result is a new state,
    *                     (false, old) if new is included in old.
    *)
-  val test_and_merge_states : old:t_state -> t_state -> bool * t_state
+  val test_and_merge_states : old:data_state -> data_state -> bool * data_state
 
   (** add a simple node for each call in order to have something in the PDG
    * for this statement even if there are no input/output *)
   val process_call_node : t ->  Cil_types.stmt -> unit
 
-  val process_call_args : t -> t_state -> Cil_types.stmt ->
-                          (t_loc * Varinfo.Set.t) list ->
-                          (t_arg_nodes)
-  val process_call_params : t -> t_state -> Cil_types.stmt ->
-                            kernel_function -> t_arg_nodes ->
-                            t_state
+  val process_call_args : t -> data_state -> Cil_types.stmt ->
+                          (Locations.Zone.t * Varinfo.Set.t) list -> arg_nodes
+  val process_call_params : t -> data_state -> Cil_types.stmt ->
+                            kernel_function -> arg_nodes ->
+                            data_state
 
-  val process_call_ouput : t -> t_state -> t_state -> Cil_types.stmt ->
-                            int -> t_loc -> bool -> t_loc -> t_loc -> t_state
+  val process_call_ouput :
+    t -> data_state -> data_state -> Cil_types.stmt ->
+    int -> Locations.Zone.t -> bool -> Locations.Zone.t -> Locations.Zone.t ->
+    data_state
 
-  val process_call_return : t -> t_state -> t_state -> Cil_types.stmt ->
-                            l_loc:t_loc -> exact:bool ->
-                            l_dpds:t_loc -> l_decl:Varinfo.Set.t ->
-                            r_dpds:t_loc -> t_loc ->
-                            t_state
+  val process_call_return : t -> data_state -> data_state -> Cil_types.stmt ->
+                            l_loc:Locations.Zone.t -> exact:bool ->
+                            l_dpds:Locations.Zone.t -> l_decl:Varinfo.Set.t ->
+                            r_dpds:Locations.Zone.t -> Locations.Zone.t ->
+                            data_state
 
   (** add a node corresponding to the returned value. *)
-  val add_retres :  t -> t_state ->  Cil_types.stmt ->
-                       t_loc -> Varinfo.Set.t -> t_state
+  val add_retres :  t -> data_state ->  Cil_types.stmt ->
+                       Locations.Zone.t -> Varinfo.Set.t -> data_state
 
   (** store the state as the final state. Will be used in finalize_pdg to add
     * the output nodes. *)
-  val store_last_state : t -> t_state -> unit
+  val store_last_state : t -> data_state -> unit
 
   (** to call then the building process is over :
       add the control dependencies in the graph.
@@ -202,11 +196,7 @@ module BuildPdg : sig
   end
 = struct
 
-  type t_node = PdgTypes.Node.t
-  (** mapping between the statements and the PDG nodes *)
-  type t_state = Pdg_state.t
-  type t_loc = Locations.Zone.t
-  type t_arg_nodes = t_node list
+  type arg_nodes = Node.t list
 
   (** The PDG used during its computation.
     *)
@@ -215,13 +205,13 @@ module BuildPdg : sig
              mutable other_inputs :
                (PdgTypes.Node.t * Dpd.td * Locations.Zone.t) list;
              graph : G.t;
-             states : Pdg_state.t_states;
+             states : Pdg_state.states;
              index : PdgTypes.Pdg.fi;
 
              ctrl_dpds : BoolNodeSet.t Stmt.Hashtbl.t ;
                        (** The nodes to which each stmt control-depend on.
                          * The links will be added in the graph at the end. *)
-             decl_nodes : t_node Varinfo.Hashtbl.t ;
+             decl_nodes : Node.t Varinfo.Hashtbl.t ;
                        (** map between declaration nodes and the variables
                            to build the dependencies. *)
             }
@@ -234,8 +224,8 @@ module BuildPdg : sig
       if !Db.Value.use_spec_instead_of_definition kf then 17
       else List.length (Kernel_function.get_definition kf).sallstmts
     in
-    let index = FI.create nb_stmts in
-    let states = IH.create nb_stmts in
+    let index = FctIndex.create nb_stmts in
+    let states = Stmt.Hashtbl.create nb_stmts in
     let graph = G.create () in
     { fct = kf; graph = graph; states = states; index = index;
       topinput = None; other_inputs = [];
@@ -267,17 +257,17 @@ module BuildPdg : sig
       try
         match key with
           | Key.CallStmt _ -> assert false
-              (*FI.find_info_call index (Key.call_from_id call_id)*)
-          | _ -> FI.find_info index key
+              (*FctIndex.find_info_call index (Key.call_from_id call_id)*)
+          | _ -> FctIndex.find_info index key
       with Not_found ->
         let new_node = add_new_node key in
         let _ = match key with
           | Key.CallStmt _call_id -> assert false
                                       (*
-              FI.add_info_call index (Key.call_from_id call_id) new_node
+              FctIndex.add_info_call index (Key.call_from_id call_id) new_node
               ~replace:false
               *)
-          | _ -> FI.add index key new_node in
+          | _ -> FctIndex.add index key new_node in
           new_node
 
   let decl_var pdg var =
@@ -372,12 +362,12 @@ module BuildPdg : sig
     let add_stmt_ctrl_dpd stmt ctrl_node_set =
       let index = nodes_index pdg in
       let stmt_nodes =
-        try FI.find_all index (Key.stmt_key stmt)
+        try FctIndex.find_all index (Key.stmt_key stmt)
         with Not_found -> []
              (* some stmts have no node if they are dead code for instance*)
       in
       let label_nodes acc label =
-        try acc @ FI.find_all index (Key.label_key stmt label)
+        try acc @ FctIndex.find_all index (Key.label_key stmt label)
         with Not_found -> acc
       in
       let stmt_nodes = List.fold_left label_nodes stmt_nodes stmt.labels in
@@ -426,7 +416,7 @@ module BuildPdg : sig
     ignore (add_elem pdg (Key.call_ctrl_key call_stmt))
 
   let ctrl_call_node pdg call_stmt =
-    try FI.find_info (nodes_index pdg) (Key.call_ctrl_key call_stmt)
+    try FctIndex.find_info (nodes_index pdg) (Key.call_ctrl_key call_stmt)
     with Not_found -> assert false
 
   let process_call_args pdg d_state stmt args_dpds =
@@ -528,6 +518,13 @@ module BuildPdg : sig
     let _new_node = add_elem pdg (Key.stmt_key stmt) in
       None (* keep previous state *)
 
+  (* Copied from [process_skip] above: we cannot treat asm for the moment *)
+  let process_asm pdg _state stmt =
+    Pdg_parameters.warning ~once:true ~current:true
+      "Ignoring inline assembly code";
+    let _new_node = add_elem pdg (Key.stmt_key stmt) in
+    None (* keep previous state *)
+
   let process_unreachable _pdg _state _stmt =
     (* let key = Key.stmt_key stmt in
     let _new_node = add_elem pdg key in *)
@@ -540,7 +537,7 @@ module BuildPdg : sig
 
   let add_label pdg label label_stmt =
     let key = Key.label_key label_stmt label in
-      try FI.find_info (nodes_index pdg) key
+      try FctIndex.find_info (nodes_index pdg) key
       with Not_found -> add_elem pdg key
 
   let process_stmt_labels pdg stmt =
@@ -640,7 +637,7 @@ module BuildPdg : sig
     let return_node = add_elem pdg key_return in
     let retres_loc = Db.Value.find_return_loc (get_kf pdg) in
     let retres =
-      Locations.valid_enumerate_bits ~for_writing:false
+      Locations.enumerate_valid_bits ~for_writing:false
         retres_loc
     in
     let _ = add_dpds pdg return_node  Dpd.Data state retres_loc_dpds in
@@ -695,8 +692,11 @@ module BuildPdg : sig
         let acc = match z with
           | Locations.Zone.Top (_,_) ->  add n dpd_kind acc z
           | _ ->
-              let do_z z acc = add n dpd_kind acc z in
-                Locations.Zone.fold_enum_by_base do_z z acc
+              let aux b intervs acc =
+                let z = Locations.Zone.inject b intervs in
+                add n dpd_kind acc z
+              in
+              Locations.Zone.fold_i aux z acc
         in acc
       else begin
         debug2 "might use uninitialized : %a" Locations.Zone.pretty z;
@@ -773,7 +773,7 @@ let get_lval_infos lval stmt =
       (Kstmt stmt)
       ~deps:Locations.Zone.bottom lval
   in
-  let l_loc = Locations.valid_enumerate_bits ~for_writing:true loc in
+  let l_loc = Locations.enumerate_valid_bits ~for_writing:true loc in
   let exact =  Locations.valid_cardinal_zero_or_one ~for_writing:true loc in
   (l_loc, exact, dpds, decl)
 
@@ -887,7 +887,7 @@ let process_call pdg state stmt lvaloption funcexp argl =
   let new_state =
     match state_for_each_call with
     | [] ->
-       let stmt_str = Pretty_utils.sfprintf "%a" !Ast_printer.d_stmt stmt in
+       let stmt_str = Pretty_utils.sfprintf "%a" Printer.pp_stmt stmt in
        Pdg_parameters.not_yet_implemented
          "pdg with an unknown function call: %s" stmt_str
     | st :: [] -> st
@@ -976,7 +976,7 @@ let process_return _current_function pdg state stmt ret_exp =
     if Db.Value.is_reachable_stmt stmt then
       BuildPdg.store_last_state pdg last_state
 
-(** Computer is a ForwardsTransfer to use ForwardsDataFlow *)
+(** Computer is a ForwardsTransfer to use [Datatflow.Forwards] *)
 module Computer (Param:sig
                    val current_pdg : BuildPdg.t
                    val ctrl_dpds_infos : CtrlDpds.t
@@ -985,7 +985,7 @@ module Computer (Param:sig
   let pdg_debug fmt = debug fmt
   let debug = ref false
 
-  type t = BuildPdg.t_state
+  type t = PdgTypes.data_state
 
   let current_pdg = Param.current_pdg
   let current_function = BuildPdg.get_kf current_pdg
@@ -994,16 +994,15 @@ module Computer (Param:sig
 
   (** place to store information at each point of the program during analysis *)
   module StmtStartData = struct
-    type data = BuildPdg.t_state
-    type key = int
+    type data = PdgTypes.data_state
     let states = BuildPdg.get_states current_pdg
-    let clear () = IH.clear states
-    let mem = IH.mem states
-    let find = IH.find states
-    let replace = IH.replace states
-    let add = IH.add states
-    let iter f = IH.iter f states
-    let length () = IH.length states
+    let clear () = Stmt.Hashtbl.clear states
+    let mem = Stmt.Hashtbl.mem states
+    let find = Stmt.Hashtbl.find states
+    let replace = Stmt.Hashtbl.replace states
+    let add = Stmt.Hashtbl.add states
+    let iter f = Stmt.Hashtbl.iter f states
+    let length () = Stmt.Hashtbl.length states
   end
 
   let copy (d: t) = d
@@ -1031,7 +1030,7 @@ module Computer (Param:sig
     *)
   let doInstr stmt instr state =
     !Db.progress ();
-    pdg_debug "doInstr sid:%d : %a" stmt.sid !Ast_printer.d_instr instr;
+    pdg_debug "doInstr sid:%d : %a" stmt.sid Printer.pp_instr instr;
     let state = match instr with
       | Call _ when not (Db.Value.is_reachable_stmt stmt) ->
           pdg_debug "call sid:%d is unreachable : skip.@." stmt.sid ;
@@ -1045,8 +1044,7 @@ module Computer (Param:sig
           process_call current_pdg state stmt lvaloption funcexp argl
       | Code_annot _
       | Skip _ -> BuildPdg.process_skip current_pdg state stmt
-      | Asm  _ -> 
-	Pdg_parameters.not_yet_implemented "inline assembly instruction"
+      | Asm  _ -> BuildPdg.process_asm current_pdg state stmt
     in 
     match state with
     | None -> Dataflow.Default
@@ -1156,14 +1154,14 @@ let compute_pdg_for_f kf =
                                         let ctrl_dpds_infos = ctrl_dpds_infos
                                       end)
       in
-      let module Compute = Dataflow.ForwardsDataFlow(Computer) in
+      let module Compute = Dataflow.Forwards(Computer) in
       if Db.Value.is_reachable_stmt start then
         begin
           let init_state = Computer.computeFirstPredecessor start init_state in
-          Computer.StmtStartData.add start.sid init_state ;
+          Computer.StmtStartData.add start init_state ;
           let rec add acc l = match l with [] -> acc
             | s::tl -> 
-                Computer.StmtStartData.add s.sid BuildPdg.empty_state;
+                Computer.StmtStartData.add s BuildPdg.empty_state;
                 add (s::acc) tl
           in 
           let starts = add [start] (ctrl_no_preds stmts) in 

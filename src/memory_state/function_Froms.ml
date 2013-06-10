@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -91,7 +91,7 @@ let pretty_with_type typ fmt { deps_return = r; deps_table = t } =
         (Lmap_bitwise.From_Model.LOffset.pretty_with_type (Some rt_typ)) r
 
 let hash { deps_return = dr ; deps_table = dt } =
-  Lmap_bitwise.From_Model.hash dt + 197*Lmap_bitwise.From_Model.LOffset.tag dr
+  Lmap_bitwise.From_Model.hash dt + 197*Lmap_bitwise.From_Model.LOffset.hash dr
 
 let equal
     { deps_return = dr ; deps_table = dt }

@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -25,7 +25,8 @@
 
 open Cil_types
 
-let dkey = "cil2cfg" (* debugging key *)
+let dkey = Wp_parameters.register_category "cil2cfg" (* debugging key *)
+
 let debug fmt = Wp_parameters.debug ~dkey fmt
 let debug2 fmt = Wp_parameters.debug ~dkey ~level:2 fmt
 
@@ -123,7 +124,7 @@ let same_node v v' =
 module VL = struct
   type t = node
 
-  let hash v = Hashtbl.hash (node_id v)
+  let hash v = let (a,b) = (node_id v) in a*17 + b
 
   let equal v v' = same_node v v'
 
@@ -205,7 +206,7 @@ module EL = struct
       | Eback -> "back" | EbackThen -> "then-back" | EbackElse -> "else-back"
       | Ecase [] -> "default"
       | Ecase l -> Pretty_utils.sfprintf "case(%a)"
-                     (Pretty_utils.pp_list ~sep:", " !Ast_printer.d_exp) l
+                     (Pretty_utils.pp_list ~sep:", " Printer.pp_exp) l
       | Enext -> "(next)"
     in Format.fprintf fmt "%s" txt
 end
@@ -213,66 +214,46 @@ end
 (*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
 (** {2 Graph} *)
 
-module OCamlgraph_hashtbl(X: Graph.Sig.COMPARABLE) = struct
+module PMAP(X: Graph.Sig.COMPARABLE) = struct
 
-  module H = Hashtbl.Make(X)
-  module Keys = Set.Make(X)
-  type 'a t = 'a H.t * Keys.t ref
-
+  module M = Map.Make(X)
+  type 'a t = 'a M.t ref
   type key = X.t
-
   type 'a return = unit
+
   let empty = ()
     (* never called and not visible for the user thanks to signature
        constraints *)
 
-  let create ?(size=97) () = H.create size, ref Keys.empty
+  let create ?size () = ignore size ; ref M.empty
 
-  let create_from (h, _) = create ~size:(H.length h) ()
+  let create_from h = ignore h ; ref M.empty
 
-  let is_empty (_,k) = Keys.is_empty !k
+  let is_empty h = M.is_empty !h
 
-  let clear (h,k) = H.clear h; k:= Keys.empty
+  let clear h = h := M.empty
 
-  let add k v (h,keys as tbl) =
-    H.replace h k v;
-    keys:=Keys.add k !keys;
-    tbl
-
-  let remove k (h,keys as tbl) =
-    H.remove h k;
-    keys:=Keys.remove k !keys;
-    tbl
-
-  let find k (h,_) = H.find h k
-
-  let mem k (h,_) = H.mem h k
+  let add k v h = h := M.add k v !h ; h
+  let remove k h = h := M.remove k !h ; h
+  let find k h = M.find k !h
+  let mem k h = M.mem k !h
 
   let find_and_raise k t s = try find k t with Not_found -> invalid_arg s
 
-  let fold f (h,k) init =
-    let apply k acc =
-      (* Not_found indicates an issue between X.compare and X.hash/X.equal *)
-      let v = try H.find h k with Not_found -> assert false in f k v acc
-    in
-    Keys.fold apply !k init
+  let fold f h init = M.fold f !h init
 
-  let map f t =
-    let init = create_from t in
-    let change k v acc = let (k',v') = f k v in add k' v' acc in
-    fold change t init
+  let map f h = 
+    ref (M.fold (fun k v m -> let (k,v) = f k v in M.add k v m) !h M.empty)
 
-  let iter f t =
-    let apply k v () = f k v in
-    fold apply t ()
+  let iter f h = M.iter f !h
 
-  let copy t = map (fun k v -> (k,v)) t
+  let copy h = ref !h
 
 end
 
 (** the CFG is an ocamlgraph, but be careful to use it through the cfg function
  * because some edges don't have the same meaning as some others... *)
-module MyGraph = Graph.Blocks.Make(OCamlgraph_hashtbl)
+module MyGraph = Graph.Blocks.Make(PMAP)
 module CFG: 
   Graph.Sig.I 
   with type V.t = VL.t
@@ -281,7 +262,7 @@ module CFG:
   and  type E.label = EL.t
   = 
   struct
-    include MyGraph.Digraph.ConcreteLabeled(VL)(EL)
+    include MyGraph.Digraph.ConcreteBidirectionalLabeled(VL)(EL)
     let add_vertex g v = ignore (add_vertex g v)
     let add_edge g v1 v2 = ignore (add_edge g v1 v2)
     let remove_edge g v1 v2 = ignore (remove_edge g v1 v2)
@@ -291,7 +272,8 @@ module CFG:
       if HM.mem v g then begin
         ignore (HM.remove v g);
         let remove v = S.filter (fun (v2,_) -> not (V.equal v v2)) in
-        HM.iter (fun k s -> ignore (HM.add k (remove v s) g)) g
+        HM.iter (fun k (s1, s2) ->
+                   ignore (HM.add k (remove v s1, remove v s2) g)) g
       end
   end
 
@@ -641,7 +623,8 @@ let blocks_closed_by_edge cfg e =
           debug
             "[blocks_closed_by_edge] found sid:%d -> sid:%d@."
             s.sid s'.sid;
-          Kernel_function.blocks_closed_by_edge s s'
+            try Kernel_function.blocks_closed_by_edge s s'
+	    with Invalid_argument _ -> []
       end
     | _ -> (* TODO ? *) []
   in
@@ -1237,7 +1220,7 @@ module Printer (PE : sig val edge_txt : edge -> string end) = struct
   let graph_attributes _t = []
 
   let pretty_raw_stmt s =
-    let s = Pretty_utils.sfprintf "%a" !Ast_printer.d_stmt s in
+    let s = Pretty_utils.sfprintf "%a" Printer.pp_stmt s in
     let s' = if String.length s >= 50 then (String.sub s 0 49) ^ "..." else s in
     String.escaped s'
 
@@ -1253,7 +1236,7 @@ module Printer (PE : sig val edge_txt : edge -> string end) = struct
       | VblkOut (bk,_) -> Pretty_utils.sfprintf "BLOCKout <%a>" pp_bkind bk
       | Vcall _ -> Format.sprintf "CALL"
       | Vtest (true, s, e) ->
-           Pretty_utils.sfprintf "IF <%d>\n%a" s.sid !Ast_printer.d_exp e
+           Pretty_utils.sfprintf "IF <%d>\n%a" s.sid Printer.pp_exp e
       | Vtest (false, s, _e) -> Pretty_utils.sfprintf "IFout <%d>" s.sid
       | Vstmt s | Vloop (_, s) | Vswitch (s, _) ->
           begin match s.skind with
@@ -1346,37 +1329,6 @@ let export ~file ?pp_edge_fun cfg =
       close_out oc
     ) ()
 
-let cfg_dot msg dotname ?pp_edge_fun cfg =
-  let dir = Wp_parameters.get_output () in
-  let file = Printf.sprintf "%s/wp_%s.dot" dir dotname in
-  Wp_parameters.result "export %s in %s@." msg file ;
-  export ~file ?pp_edge_fun cfg ;
-  file
-
-let dot_cfg cfg =
-  let kf = cfg_kf cfg in
-  let kf_name = Kernel_function.get_name kf in
-  let dotname = kf_name^".cfg" in
-  cfg_dot "cfg" dotname cfg
-
-let dot_annots cfg bhv_name pp_edge_fun =
-  let kf = cfg_kf cfg in
-  let kf_name = Kernel_function.get_name kf in
-  let name = match bhv_name with
-    | None ->
-        Printf.sprintf "%s.wp_annot_cfg" kf_name
-    | Some bhv ->
-        Printf.sprintf "%s_%s.wp_annot_cfg" kf_name bhv
-  in
-    cfg_dot "cfg" name cfg ~pp_edge_fun
-
-let dot_wp_res cfg model pp_edge_fun =
-  let kf = cfg_kf cfg in
-  let f = Kernel_function.get_name kf in
-  let msg = (model^" results") in
-  let dotname = (f^".wp_"^model) in
-    cfg_dot msg dotname cfg ~pp_edge_fun
-
 (* ------------------------------------------------------------------------ *)
 (** {2 CFG management} *)
 
@@ -1390,7 +1342,6 @@ let create kf =
     with Kernel_function.No_Definition ->
       cfg_from_proto kf
   in debug "done for %s@." kf_name;
-     if Wp_parameters.Dot.get () then ignore (dot_cfg cfg);
      !Db.progress ();
      cfg
 
@@ -1430,9 +1381,3 @@ module KfCfg =
 let get kf = KfCfg.memo create kf
 
 (* ------------------------------------------------------------------------ *)
-
-(*
-Local Variables:
-compile-command: "make -C ../.."
-End:
-*)

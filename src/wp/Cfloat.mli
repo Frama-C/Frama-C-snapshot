@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -27,23 +27,26 @@
 open Ctypes
 open Lang.F
 
-val of_int : c_float -> unop
-val fconvert : c_float -> unop
-
 type model = Real | Float
 val model : model Context.value
 
-val real : Model.tuning
-val machine : Model.tuning
+val code_lit : float -> term
+val acsl_lit : Cil_types.logic_real -> term
+
+val real_of_int : unop
+val float_of_int : c_float -> unop
+val fconvert : c_float -> unop
+val frange : c_float -> term -> pred
+
+val ropp : unop
+val radd : binop
+val rsub : binop
+val rmul : binop
+val rdiv : binop
 
 val fopp : c_float -> unop
 val fadd : c_float -> binop
 val fsub : c_float -> binop
 val fmul : c_float -> binop
 val fdiv : c_float -> binop
-
-val feq : binop
-val flt : binop
-val fneq : binop
-val fleq : binop
 

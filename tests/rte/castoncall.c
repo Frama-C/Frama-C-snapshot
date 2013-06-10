@@ -1,6 +1,6 @@
 /* run.config
-  OPT: -rte -rte-precond -rte-print -journal-disable 
-  OPT: -rte -rte-precond -no-collapse-call-cast -rte-print -journal-disable 
+  OPT: -rte -warn-signed-overflow  -warn-signed-downcast -rte-precond -print
+  OPT: -rte -warn-signed-overflow  -warn-signed-downcast -rte-precond -no-collapse-call-cast -print
 */
 
 /*@ 

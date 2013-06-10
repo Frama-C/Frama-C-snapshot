@@ -1,43 +1,45 @@
-(**************************************************************************)
-(*                                                                        *)
-(*  Copyright (C) 2001-2003                                               *)
-(*   George C. Necula    <necula@cs.berkeley.edu>                         *)
-(*   Scott McPeak        <smcpeak@cs.berkeley.edu>                        *)
-(*   Wes Weimer          <weimer@cs.berkeley.edu>                         *)
-(*   Ben Liblit          <liblit@cs.berkeley.edu>                         *)
-(*  All rights reserved.                                                  *)
-(*                                                                        *)
-(*  Redistribution and use in source and binary forms, with or without    *)
-(*  modification, are permitted provided that the following conditions    *)
-(*  are met:                                                              *)
-(*                                                                        *)
-(*  1. Redistributions of source code must retain the above copyright     *)
-(*  notice, this list of conditions and the following disclaimer.         *)
-(*                                                                        *)
-(*  2. Redistributions in binary form must reproduce the above copyright  *)
-(*  notice, this list of conditions and the following disclaimer in the   *)
-(*  documentation and/or other materials provided with the distribution.  *)
-(*                                                                        *)
-(*  3. The names of the contributors may not be used to endorse or        *)
-(*  promote products derived from this software without specific prior    *)
-(*  written permission.                                                   *)
-(*                                                                        *)
-(*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS   *)
-(*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT     *)
-(*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS     *)
-(*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE        *)
-(*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,   *)
-(*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,  *)
-(*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;      *)
-(*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER      *)
-(*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT    *)
-(*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN     *)
-(*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE       *)
-(*  POSSIBILITY OF SUCH DAMAGE.                                           *)
-(*                                                                        *)
-(*  File modified by CEA (Commissariat à l'énergie atomique et aux        *)
-(*                        énergies alternatives).                         *)
-(**************************************************************************)
+(****************************************************************************)
+(*                                                                          *)
+(*  Copyright (C) 2001-2003                                                 *)
+(*   George C. Necula    <necula@cs.berkeley.edu>                           *)
+(*   Scott McPeak        <smcpeak@cs.berkeley.edu>                          *)
+(*   Wes Weimer          <weimer@cs.berkeley.edu>                           *)
+(*   Ben Liblit          <liblit@cs.berkeley.edu>                           *)
+(*  All rights reserved.                                                    *)
+(*                                                                          *)
+(*  Redistribution and use in source and binary forms, with or without      *)
+(*  modification, are permitted provided that the following conditions      *)
+(*  are met:                                                                *)
+(*                                                                          *)
+(*  1. Redistributions of source code must retain the above copyright       *)
+(*  notice, this list of conditions and the following disclaimer.           *)
+(*                                                                          *)
+(*  2. Redistributions in binary form must reproduce the above copyright    *)
+(*  notice, this list of conditions and the following disclaimer in the     *)
+(*  documentation and/or other materials provided with the distribution.    *)
+(*                                                                          *)
+(*  3. The names of the contributors may not be used to endorse or          *)
+(*  promote products derived from this software without specific prior      *)
+(*  written permission.                                                     *)
+(*                                                                          *)
+(*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS     *)
+(*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT       *)
+(*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS       *)
+(*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE          *)
+(*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,     *)
+(*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,    *)
+(*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;        *)
+(*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER        *)
+(*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT      *)
+(*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN       *)
+(*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE         *)
+(*  POSSIBILITY OF SUCH DAMAGE.                                             *)
+(*                                                                          *)
+(*  File modified by CEA (Commissariat à l'énergie atomique et aux          *)
+(*                        énergies alternatives)                            *)
+(*               and INRIA (Institut National de Recherche en Informatique  *)
+(*                          et Automatique).                                *)
+(****************************************************************************)
 
 (** CIL main API.
 
@@ -46,31 +48,38 @@
 
     @plugin development guide *)
 
+open Cil_types
+open Cil_datatype
+
 (* ************************************************************************* *)
 (** {2 Builtins management} *)
 (* ************************************************************************* *)
 
-(** This module associates the name of a built-in function that
-    might be used during elaboration with the corresponding varinfo.
-    This is done when parsing ${FRAMAC_SHARE}/libc/__fc_builtins.h, which is always
-    performed before processing the actual list of files provided on the command
-    line (see {!File.init_from_c_files}).
-    Actual list of such built-ins is managed in {!Cabs2cil}
-*)
+(** This module associates the name of a built-in function that might be used
+    during elaboration with the corresponding varinfo.  This is done when
+    parsing ${FRAMAC_SHARE}/libc/__fc_builtins.h, which is always performed
+    before processing the actual list of files provided on the command line (see
+    {!File.init_from_c_files}).  Actual list of such built-ins is managed in
+    {!Cabs2cil}. *)
 module Frama_c_builtins: 
   State_builder.Hashtbl with type key = string and type data = Cil_types.varinfo
 
-(** returns [true] if the given variable refers to a Frama-C builtin that
+val is_builtin: Cil_types.varinfo -> bool
+(** @return true if the given variable refers to a Frama-C builtin that
+    is not used in the current program. Plugins may (and in fact should)
+    hide this builtin from their outputs
+    @since Fluorine-20130401 *)
+
+val is_unused_builtin: Cil_types.varinfo -> bool
+(** @return true if the given variable refers to a Frama-C builtin that
     is not used in the current program. Plugins may (and in fact should)
     hide this builtin from their outputs *)
-val is_unused_builtin: Cil_types.varinfo -> bool
 
-(** returns [true] if the given name refers to a special built-in function.
+val is_special_builtin: string -> bool
+(** @return [true] if the given name refers to a special built-in function.
     A special built-in function can have any number of arguments. It is up to
     the plug-ins to know what to do with it.
-    @since Boron-20100401-dev
-*)
-val is_special_builtin: string -> bool
+    @since Boron-20100401-dev *)
 
 (** register a new special built-in function *)
 val add_special_builtin: string -> unit
@@ -84,24 +93,21 @@ val add_special_builtin_family: (string -> bool) -> unit
     machine has been set. *)
 val init_builtins: unit -> unit
 
-(** Call this function to perform some initialization. Call if after you have
-  * set [Cil.msvcMode].
-  *  the argument is the function to call to init logic builtins
-  *)
-val initCIL: (unit -> unit) -> unit
+(** Description of the machine as seen in GCC and MSVC modes. *)
+module type Machdeps = sig
+  val gcc : Cil_types.mach 
+  val msvc : Cil_types.mach  
+end
 
-(** This module defines the abstract syntax of CIL. It also provides utility
- * functions for traversing the CIL data structures, and pretty-printing
- * them. The parser for both the GCC and MSVC front-ends can be invoked as
- * [Frontc.parse: string -> unit ->] {!Cil_types.file}. This function must be given
- * the name of a preprocessed C file and will return the top-level data
- * structure that describes a whole source file. By default the parsing and
- * elaboration into CIL is done as for GCC source. If you want to use MSVC
- * source you must set the [Cil.msvcMode] to [true] and must also invoke the
- * function [Frontc.setMSVCMode: unit -> unit]. *)
+(** Call this function to perform some initialization, and only after you have
+    set [Cil.msvcMode]. [initLogicBuiltins] is the function to call to init
+    logic builtins. The [Machdeps] argument is a description of the hardware
+    platform and of the compiler used. *)
+val initCIL: initLogicBuiltins:(unit -> unit) -> (module Machdeps) -> unit
 
-open Cil_types
-open Cil_datatype
+(* ************************************************************************* *)
+(** {2 Customization} *)
+(* ************************************************************************* *)
 
 type theMachine = private
     { (** Whether the pretty printer should print output for the MS VC
@@ -115,17 +121,13 @@ type theMachine = private
       mutable lowerConstants: bool; (** Do lower constants (default true) *)
       mutable insertImplicitCasts: bool; (** Do insert implicit casts
 					     (default true) *)
-      (** Whether the machine is little endian. *)
-      mutable little_endian: bool;
-      (** Whether "char" is unsigned. *)
-      mutable char_is_unsigned: bool;
       (** Whether the compiler generates assembly labels by prepending "_" to
 	  the identifier. That is, will function foo() have the label "foo", or
 	  "_foo"? *)
       mutable underscore_name: bool;
       mutable stringLiteralType: typ;
-      (** An unsigned integer type that fits pointers. Depends on
-	  [Cil.msvcMode] *)
+      mutable upointKind: ikind (** An unsigned integer type that fits
+                                    pointers. *);
       mutable upointType: typ;
       mutable wcharKind: ikind; (** An integer type that fits wchar_t. *)
       mutable wcharType: typ;
@@ -184,7 +186,7 @@ type miscState =
 val miscState: miscState
 
 (** To be able to add/remove features easily, each feature should be package
-   * as an interface with the following interface. These features should be *)
+    as an interface with the following interface. *)
 type featureDescr = {
     fd_enabled: bool ref;
     (** The enable flag. Set to default value  *)
@@ -208,15 +210,12 @@ type featureDescr = {
      * your feature makes any changes for the program. *)
 }
 
-(** Comparison function for tsets.
- ** Compares first by filename, then line, then byte *)
-val compareLoc: location -> location -> int
-
-(** {b Values for manipulating globals} *)
+(* ************************************************************************* *)
+(** {2 Values for manipulating globals} *)
+(* ************************************************************************* *)
 
 (** Make an empty function from an existing global varinfo.
-    @since Nitrogen-20111001
-*)
+    @since Nitrogen-20111001 *)
 val emptyFunctionFromVI: varinfo -> fundec
 
 (** Make an empty function *)
@@ -373,7 +372,9 @@ val builtinLoc: location
 (** Returns a location that ranges over the two locations in arguments. *)
 val range_loc: location -> location -> location
 
-(** {b Values for manipulating initializers} *)
+(* ************************************************************************* *)
+(** {2 Values for manipulating initializers} *)
+(* ************************************************************************* *)
 
 (** Make a initializer for zero-ing a data type *)
 val makeZeroInit: loc:location -> typ -> init
@@ -408,7 +409,9 @@ val foldLeftCompound:
     initl: (offset * init) list ->
     acc: 'a -> 'a
 
+(* ************************************************************************* *)
 (** {2 Values for manipulating types} *)
+(* ************************************************************************* *)
 
 (** void *)
 val voidType: typ
@@ -629,7 +632,7 @@ exception LenOfArray
   * integer. Raises {!Cil.LenOfArray} if not able to compute the length, such
   * as when there is no length or the length is not a constant. *)
 val lenOfArray: exp option -> int
-val lenOfArray64: exp option -> My_bigint.t
+val lenOfArray64: exp option -> Integer.t
 
 (** Return a named fieldinfo in compinfo, or raise Not_found *)
 val getCompField: compinfo -> string -> fieldinfo
@@ -785,10 +788,9 @@ val typeTermOffset: logic_type -> term_offset -> logic_type
 (** Compute the type of an initializer *)
 val typeOfInit: init -> typ
 
-
-(*******************************************************)
-(** {b Values for manipulating expressions} *)
-
+(* ************************************************************************* *)
+(** {2 Values for manipulating expressions} *)
+(* ************************************************************************* *)
 
 (* Construct integer constants *)
 
@@ -805,10 +807,10 @@ val mone: loc:Location.t -> exp
 (** Construct an integer of a given kind, using OCaml's int64 type. If needed
   * it will truncate the integer to be within the representable range for the
   * given kind. The integer can have an optional literal representation. *)
-val kinteger64_repr: loc:location -> ikind -> My_bigint.t -> string option -> exp
+val kinteger64_repr: loc:location -> ikind -> Integer.t -> string option -> exp
 
 (** Construct an integer of a given kind without literal representation. *)
-val kinteger64: loc:location -> ikind -> My_bigint.t -> exp
+val kinteger64: loc:location -> ikind -> Integer.t -> exp
 
 (** Construct an integer of a given kind. Converts the integer to int64 and
   * then uses kinteger64. This might truncate the value if you use a kind
@@ -827,7 +829,7 @@ val kfloat: loc:location -> fkind -> float -> exp
 
 (** True if the given expression is a (possibly cast'ed)
     character or an integer constant *)
-val isInteger: exp -> My_bigint.t option
+val isInteger: exp -> Integer.t option
 
 (** Convert a 64-bit int to an OCaml int, or raise an exception if that
     can't be done. *)
@@ -868,7 +870,7 @@ val charConstToInt: char -> constant
 (** Do constant folding on an expression. If the first argument is [true] then
     will also compute compiler-dependent expressions such as sizeof.
     See also {!Cil.constFoldVisitor}, which will run constFold on all
-    expressions in a given AST node.*)
+    expressions in a given AST node. *)
 val constFold: bool -> exp -> exp
 
 (** Do constant folding on an term at toplevel only.
@@ -911,7 +913,7 @@ val compareOffset: offset -> offset -> bool
 val increm: exp -> int -> exp
 
 (** Increment an expression. Can be arithmetic or pointer type *)
-val increm64: exp -> My_bigint.t -> exp
+val increm64: exp -> Integer.t -> exp
 
 (** Makes an lvalue out of a given variable *)
 val var: varinfo -> lval
@@ -953,15 +955,24 @@ val mkTermMem: addr:term -> off:term_offset -> term_lval
 (** Make an expression that is a string constant (of pointer type) *)
 val mkString: loc:location -> string -> exp
 
-(** [true] if both types are not equivalent. *)
-val need_cast: typ -> typ -> bool
+(** [true] if both types are not equivalent. 
+    if [force] is [true], returns [true] whenever both types are not equal
+    (modulo typedefs). If [force] is [false] (the default), other equivalences
+    are considered, in particular between an enum and its representative
+    integer type.
+    @modify Fluorine-20130401 added [force] argument
+*)
+val need_cast: ?force:bool -> typ -> typ -> bool
 
 (** Construct a cast when having the old type of the expression. If the new
-  * type is the same as the old type, then no cast is added. *)
-val mkCastT: e:exp -> oldt:typ -> newt:typ -> exp
+    type is the same as the old type, then no cast is added, unless [force]
+    is [true] (default is [false])
+    @modify Fluorine-20130401 add [force] argument
+ *)
+val mkCastT: ?force:bool -> e:exp -> oldt:typ -> newt:typ -> exp
 
 (** Like {!Cil.mkCastT} but uses typeOf to get [oldt] *)
-val mkCast: e:exp -> newt:typ -> exp
+val mkCast: ?force:bool -> e:exp -> newt:typ -> exp
 
 (** Equivalent to [stripCasts] for terms. *)
 val stripTermCasts: term -> term
@@ -1009,6 +1020,7 @@ val is_fully_arithmetic: typ -> bool
 (** Convert a string representing a C integer literal to an expression.
     Handles the prefixes 0x and 0 and the suffixes L, U, UL, LL, ULL.
 *)
+val parseInt: string -> Integer.t
 val parseIntExp: loc:location -> string -> exp
 val parseIntLogic: loc:location -> string -> term
 
@@ -1076,8 +1088,9 @@ val mkFor: start:stmt list -> guard:exp -> next: stmt list ->
 val block_from_unspecified_sequence:
   (stmt * lval list * lval list * lval list * stmt ref list) list -> block
 
-(**************************************************)
-(** {b Values for manipulating attributes} *)
+(* ************************************************************************* *)
+(** {2 Values for manipulating attributes} *)
+(* ************************************************************************* *)
 
 (** Various classes of attributes *)
 type attributeClass =
@@ -1205,6 +1218,9 @@ val filter_qualifier_attributes: attributes -> attributes
     @since Oxygen-20120901 *)
 val splitArrayAttributes: attributes -> attributes * attributes
 
+val bitfield_attribute_name: string
+(** Name of the attribute that is automatically inserted (with an [AINT size]
+    argument when querying the type of a field that is a bitfield *)
 
 (** Convert an expression into an attrparam, if possible. Otherwise raise
     NotAnAttrParam with the offending subexpression *)
@@ -1212,10 +1228,9 @@ val expToAttrParam: exp -> attrparam
 
 exception NotAnAttrParam of exp
 
-(******************
- ******************  VISITOR
- ******************)
-(** {b The visitor} *)
+(* ************************************************************************* *)
+(** {2 The visitor} *)
+(* ************************************************************************* *)
 
 (** Different visiting actions. 'a will be instantiated with [exp], [instr],
     etc.
@@ -1272,7 +1287,9 @@ val find_default_behavior: funspec -> funbehavior option
 val find_default_requires: ('a, 'b) behavior list -> 'a list
   (** @since Carbon-20101201  *)
 
+(* ************************************************************************* *)
 (** {2 Visitor mechanism} *)
+(* ************************************************************************* *)
 
 (** {3 Visitor behavior} *)
 type visitor_behavior
@@ -1285,7 +1302,7 @@ val inplace_visit: unit -> visitor_behavior
   (** In-place modification. Behavior of the original cil visitor.
       @plugin development guide *)
 
-val copy_visit: unit -> visitor_behavior
+val copy_visit: Project.t -> visitor_behavior
   (** Makes fresh copies of the mutable structures.
       - preserves sharing for varinfo.
       - makes fresh copy of varinfo only for declarations. Variables that are
@@ -1630,6 +1647,7 @@ class type cilVisitor = object
 
   method vlogic_type: logic_type -> logic_type visitAction
   method vmodel_info: model_info -> model_info visitAction
+  method videntified_term: identified_term -> identified_term visitAction
   method vterm: term -> term visitAction
   method vterm_node: term_node -> term_node visitAction
   method vterm_lval: term_lval -> term_lval visitAction
@@ -1662,6 +1680,16 @@ class type cilVisitor = object
   (** @plugin development guide *)
 
   method vquantifiers: quantifiers -> quantifiers visitAction
+
+  method videntified_predicate:
+    identified_predicate -> identified_predicate visitAction
+  (**
+     @since Fluorine-20130401 
+     the child of an identified predicate is treated as a predicate named:
+     if you wish to modify names, you only have to override vpredicate_named,
+     not both videntified_predicate and vpredicate_named.
+  *)
+
   method vpredicate: predicate -> predicate visitAction
   method vpredicate_named: predicate named -> predicate named visitAction
   method vbehavior: funbehavior -> funbehavior visitAction
@@ -1701,9 +1729,14 @@ class type cilVisitor = object
 
 end
 
+(**/**)
+class internal_genericCilVisitor:
+  fundec option ref -> visitor_behavior -> (unit->unit) Queue.t -> cilVisitor
+(**/**)
+
 (** generic visitor, parameterized by its copying behavior.
     Traverses the CIL tree without modifying anything *)
-class genericCilVisitor: ?prj:(Project.t) -> visitor_behavior -> cilVisitor
+class genericCilVisitor: visitor_behavior -> cilVisitor
 
 (** Default in place visitor doing nothing and operating on current project. *)
 class nopCilVisitor: cilVisitor
@@ -1846,12 +1879,12 @@ val visitCilModelInfo: cilVisitor -> model_info -> model_info
 
 val visitCilLogicType: cilVisitor -> logic_type -> logic_type
 
+val visitCilIdPredicate:
+  cilVisitor -> identified_predicate -> identified_predicate
+
 val visitCilPredicate: cilVisitor -> predicate -> predicate
 
 val visitCilPredicateNamed: cilVisitor -> predicate named -> predicate named
-
-val visitCilIdPredicate:
-  cilVisitor -> identified_predicate -> identified_predicate
 
 val visitCilPredicates:
   cilVisitor -> identified_predicate list -> identified_predicate list
@@ -1884,8 +1917,9 @@ val childrenBehavior: cilVisitor -> funbehavior -> funbehavior
 
 (* And some generic visitors. The above are built with these *)
 
-
+(* ************************************************************************* *)
 (** {2 Utility functions} *)
+(* ************************************************************************* *)
 
 val is_skip: stmtkind -> bool
 
@@ -1899,33 +1933,20 @@ val constFoldVisitor: bool -> cilVisitor
  *  to do lossless transformations when CIL is the consumer *)
 val forgcc: string -> string
 
+(* ************************************************************************* *)
 (** {2 Debugging support} *)
+(* ************************************************************************* *)
 
 (** A reference to the current location. If you are careful to set this to
  * the current location then you can use some built-in logging functions that
  * will print the location. *)
 module CurrentLoc: State_builder.Ref with type data = location
 
+(** Pretty-print the [(Cil.CurrentLoc.get ())] *)
+val pp_thisloc: Format.formatter -> unit
+
 (** A reference to the current global being visited *)
 val currentGlobal: global ref
-
-(** Pretty-print a location *)
-val d_loc: Format.formatter -> location -> unit
-
-(** Pretty-print the [(Cil.CurrentLoc.get ())] *)
-val d_thisloc: Format.formatter -> unit
-
-(** Pretty-print an integer of a given kind *)
-val d_ikind: Format.formatter -> ikind -> unit
-
-(** Pretty-print a floating-point kind *)
-val d_fkind: Format.formatter -> fkind -> unit
-
-(** Pretty-print storage-class information *)
-val d_storage: Format.formatter -> storage -> unit
-
-(** Pretty-print a constant *)
-val d_const: Format.formatter -> constant -> unit
 
 (** @return a dummy specification *)
 val empty_funspec : unit -> funspec
@@ -1936,508 +1957,43 @@ val is_empty_funspec: funspec -> bool
 (** @return true if the given behavior is empty. *)
 val is_empty_behavior: funbehavior -> bool
 
-val derefStarLevel: int
-val indexLevel: int
-val arrowLevel: int
-val addrOfLevel: int
-val additiveLevel: int
-val comparativeLevel: int
-val bitwiseLevel: int
-
-(** Parentheses level. An expression "a op b" is printed parenthesized if its
- * parentheses level is >= that that of its context. Identifiers have the
- * lowest level and weakly binding operators (e.g. |) have the largest level.
- * The correctness criterion is that a smaller level MUST correspond to a
- * stronger precedence!
- *)
-val getParenthLevel: exp -> int
-
-val getParenthLevelLogic:term_node -> int
-
-(** keyword corresponding to a given termination kind. *)
-val get_termination_kind_name: termination_kind -> string
-
-(** A printer interface for CIL trees. Create instantiations of
- * this type by specializing the class {!defaultCilPrinterClass}. *)
-(** A printer interface for CIL trees. Create instantiations of
- * this type by specializing the class {!Cil.defaultCilPrinter}. *)
-class type cilPrinter = object
-
-  (** Local logical annotation (function specifications and code annotations
-      are printed only if [logic_printer_enabled] is set to true
-   *)
-  val mutable logic_printer_enabled : bool
-
-  (** more info is displayed when on verbose mode. *)
-  val mutable verbose: bool
-
-  method current_function: varinfo option
-    (** Returns the [varinfo] corresponding to the function being printed *)
-
-  method current_behavior: funbehavior option
-    (** Returns the [funbehavior] being pretty-printed. *)
-
-  method has_annot: bool
-    (** true if [current_stmt] has some annotations attached to it. *)
-
-  method current_stmt: stmt option
-    (** Returns the stmt being printed *)
-
-  method may_be_skipped: stmt -> bool
-    (** This is called to check that a given statement may be
-        compacted with another one.
-        For example this is called whenever a [while(1)] followed by a conditional
-        [if (cond) break;] may be compacted into [while(cond)]. *)
-
-
-  method setPrintInstrTerminator : string -> unit
-  method getPrintInstrTerminator : unit -> string
-
-  method pVarName: Format.formatter -> string -> unit
-    (** Invoked each time an identifier name is to be printed. Allows for
-        various manipulation of the name, such as unmangling. *)
-
-  method pVDecl: Format.formatter -> varinfo -> unit
-    (** Invoked for each variable declaration. Note that variable
-     * declarations are all the [GVar], [GVarDecl], [GFun], all the [varinfo]
-     * in formals of function types, and the formals and locals for function
-     * definitions. *)
-
-  method pVar: Format.formatter -> varinfo -> unit
-    (** Invoked on each variable use. *)
-
-  method pLval: Format.formatter -> lval -> unit
-    (** Invoked on each lvalue occurence *)
-
-  method pOffset: Format.formatter -> offset -> unit
-    (** Invoked on each offset occurence. The second argument is the base. *)
-
-  method pInstr: Format.formatter -> instr -> unit
-    (** Invoked on each instruction occurrence. *)
-
-  method pStmt: Format.formatter -> stmt -> unit
-    (** Control-flow statement. *)
-
-  method pStmtNext : stmt -> Format.formatter -> stmt -> unit
-
-  method requireBraces: block -> bool
-
-  method pBlock: ?nobrace:bool -> ?forcenewline:bool ->
-    Format.formatter -> block -> unit
-    (** Prints a block.
-        @param nobrace defaults to true and indicates
-        that no braces will be put around the block.
-        @param forcenewline defaults to false and indicates that each
-        statement should be put on its own line. *)
-
-  method pGlobal: Format.formatter -> global -> unit
-    (** Global (vars, types, etc.). This can be slow. *)
-
-  method pFieldDecl: Format.formatter -> fieldinfo -> unit
-    (** A field declaration *)
-
-  method pType: ?fundecl:varinfo ->
-    (Format.formatter -> unit) option -> Format.formatter -> typ -> unit
-  (** Use of some type in some declaration.
-    [fundecl] is the name of the function which is declared with the
-      corresponding type.
-    The second argument is used to print
-    the declared element, or is None if we are just printing a type with no
-    name being declared.
-    If [fundecl] is not None, second argument must also have a value.
-   *)
-
-  method pAttr: Format.formatter -> attribute -> bool
-    (** Attribute. Also return an indication whether this attribute must be
-      * printed inside the __attribute__ list or not. *)
-
-  method pAttrParam:  Format.formatter -> attrparam -> unit
-    (** Attribute paramter *)
-
-  method pAttrs:  Format.formatter -> attributes -> unit
-    (** Attribute lists *)
-
-  method pLabel:  Format.formatter -> label -> unit
-    (** Label *)
-
-  method pLineDirective: ?forcefile:bool ->  Format.formatter -> location -> unit
-    (** Print a line-number. This is assumed to come always on an empty line.
-     * If the forcefile argument is present and is true then the file name
-     * will be printed always. Otherwise the file name is printed only if it
-     * is different from the last time time this function is called. The last
-     * file name is stored in a private field inside the cilPrinter object. *)
-
-  method pStmtLabels : Format.formatter -> stmt -> unit
-    (** Print only the labels of the statement. Used by [pAnnotatedStmt]. *)
-
-  method pAnnotatedStmt : stmt ->  Format.formatter -> stmt -> unit
-    (** Print an annotated statement. The code to be printed is given in the
-     * last {!Cil_types.stmt} argument.  The initial {!Cil_types.stmt} argument
-     * records the statement which follows the one being printed;
-     * {!defaultCilPrinterClass} uses this information to prettify
-     * statement printing in certain special cases. *)
-
-  method pStmtKind : stmt ->  Format.formatter -> stmtkind -> unit
-    (** Print a statement kind. The code to be printed is given in the
-     * {!Cil_types.stmtkind} argument.  The initial {!Cil_types.stmt} argument
-     * records the statement which follows the one being printed;
-     * {!defaultCilPrinterClass} uses this information to prettify
-     * statement printing in certain special cases.
-     * The boolean flag indicated whether the statement has labels
-     * (which have already been printed)
-     *)
-
-  method pExp:  Format.formatter -> exp -> unit
-    (** Print expressions *)
-
-  method pInit:  Format.formatter -> init -> unit
-    (** Print initializers. This can be slow. *)
-
-    (** Pretty-printing of annotations. *)
-
-  method pLogic_type:
-    (Format.formatter -> unit) option ->
-    Format.formatter -> logic_type -> unit
-
-  method pLogic_type_def:
-    Format.formatter -> logic_type_def -> unit
-
-  method pModel_info: Format.formatter -> model_info -> unit
-
-  method pTerm: Format.formatter -> term -> unit
-
-  method pTerm_node: Format.formatter -> term -> unit
-
-  method pTerm_lval: Format.formatter -> term_lval -> unit
-
-  method pTerm_offset: Format.formatter -> term_offset -> unit
-
-  method pLogic_info_use: Format.formatter -> logic_info -> unit
-
-  method pLogic_var: Format.formatter -> logic_var -> unit
-
-  method pQuantifiers: Format.formatter -> quantifiers -> unit
-
-  method pPredicate: Format.formatter -> predicate -> unit
-
-  method pPredicate_named: Format.formatter -> predicate named -> unit
-
-  method pIdentified_predicate:
-    Format.formatter -> identified_predicate -> unit
-
-  method pBehavior: Format.formatter -> funbehavior -> unit
-
-  method pRequires: Format.formatter -> identified_predicate -> unit
-
-  method pComplete_behaviors: Format.formatter -> string list -> unit
-
-  method pDisjoint_behaviors: Format.formatter -> string list -> unit
-
-  method pTerminates: Format.formatter -> identified_predicate -> unit
-
-  (** pretty prints a post condition according to the exit kind it represents
-      @modify Boron-20100401 replaces [pEnsures]
-   *)
-  method pPost_cond: Format.formatter ->
-    (termination_kind * identified_predicate) -> unit
-
-  method pAssumes: Format.formatter -> identified_predicate -> unit
-
-  method pSpec: Format.formatter -> funspec -> unit
-
-    (** pAssigns is parameterized by its introducing keyword
-        (i.e. loop_assigns or assigns)
-     *)
-   method pAssigns:
-     string -> Format.formatter -> identified_term assigns -> unit
-
-    (** pAllocation is parameterized by its introducing keyword
-        (i.e. loop_allocates, loop_frees, allocates or free)
-	@since Oxygen-20120901
-     *)
-   method pAllocation:
-     isloop:bool -> Format.formatter -> identified_term allocation -> unit
-
-  (** prints an assignment with its dependencies. *)
-   method pFrom:
-     string -> Format.formatter -> identified_term from -> unit
-
-  method pCode_annot: Format.formatter -> code_annotation -> unit
-
-  method pAnnotation: Format.formatter -> global_annotation -> unit
-
-  method pDecreases: Format.formatter -> term variant -> unit
-
-  method pLoop_variant: Format.formatter -> term variant -> unit
-
-  method pFile: Format.formatter -> file -> unit
-end
-
-class defaultCilPrinterClass: cilPrinter
-val defaultCilPrinter: cilPrinter
-
-class type descriptiveCilPrinter = object
-  inherit cilPrinter
-
-  method startTemps: unit -> unit
-  method stopTemps: unit -> unit
-  method pTemps: Format.formatter -> unit
-end
-
-class descriptiveCilPrinterClass : descriptiveCilPrinter
-  (** Like defaultCilPrinterClass, but instead of temporary variable
-      names it prints the description that was provided when the temp was
-      created.  This is usually better for messages that are printed for end
-      users, although you may want the temporary names for debugging.  *)
-val descriptiveCilPrinter: descriptiveCilPrinter
-
-
-(* Top-level printing functions *)
-(** Print a type given a pretty printer *)
-val printType: cilPrinter -> Format.formatter -> typ -> unit
-
-(** Print an expression given a pretty printer *)
-val printExp: cilPrinter -> Format.formatter -> exp -> unit
-
-(** pretty-prints a variable *)
-val printVar: #cilPrinter -> Format.formatter -> varinfo -> unit
-
-(** Print an lvalue given a pretty printer *)
-val printLval: cilPrinter -> Format.formatter -> lval -> unit
-
-(** Print a global given a pretty printer *)
-val printGlobal: cilPrinter -> Format.formatter -> global -> unit
-
-(** Print an attribute given a pretty printer *)
-val printAttr: cilPrinter -> Format.formatter -> attribute -> unit
-
-(** Print a set of attributes given a pretty printer *)
-val printAttrs: cilPrinter -> Format.formatter -> attributes -> unit
-
-(** Print an instruction given a pretty printer *)
-val printInstr: cilPrinter -> Format.formatter -> instr -> unit
-
-(** Print a statement given a pretty printer. This can take very long
- * (or even overflow the stack) for huge statements. *)
-val printStmt: cilPrinter -> Format.formatter -> stmt -> unit
-
-(** Print a block given a pretty printer. This can take very long
- * (or even overflow the stack) for huge block. *)
-val printBlock: cilPrinter -> Format.formatter -> block -> unit
-
-(** Print an initializer given a pretty printer. This can take very long
- * (or even overflow the stack) for huge initializers. *)
-val printInit: cilPrinter -> Format.formatter -> init -> unit
-
-val printFile: cilPrinter -> Format.formatter -> file -> unit
-
-(** @since Oxygen-20120901 *)
-val printModel_info: cilPrinter -> Format.formatter -> model_info -> unit
-
-val printTerm_lval: cilPrinter -> Format.formatter -> term_lval -> unit
-val printLogic_var: cilPrinter -> Format.formatter -> logic_var -> unit
-val printLogic_type: cilPrinter -> Format.formatter -> logic_type -> unit
-val printTerm: cilPrinter -> Format.formatter -> term -> unit
-val printTerm_offset: cilPrinter -> Format.formatter -> term_offset -> unit
-val printPredicate_named:
-  cilPrinter -> Format.formatter -> predicate named -> unit
-val printCode_annotation:
-  cilPrinter -> Format.formatter -> code_annotation -> unit
-val printFunspec: cilPrinter -> Format.formatter -> funspec -> unit
-val printBehavior: cilPrinter -> Format.formatter -> funbehavior ->unit 
-val printAnnotation: cilPrinter -> Format.formatter -> global_annotation -> unit
-
-(** pretty prints an assigns clause. The string is the keyword used ([assigns]
-    or [loop assigns])
-*)
-val printAssigns:
-  cilPrinter -> string -> Format.formatter -> identified_term assigns -> unit
-
-(** pretty prints an allocation clause. ([allocates/frees] or 
-    [loop frees/loop allocates])
-	@since Oxygen-20120901
-*)
-val printAllocation:
-  cilPrinter -> isloop:bool -> Format.formatter -> identified_term allocation -> unit
-
-(** pretty prints a functional dependencies clause.
-    The string is the keyword used ([assigns] or [loop assigns])
-*)
-val printFrom:
-  cilPrinter -> string -> Format.formatter -> identified_term from -> unit
-
-(** Pretty-print a type using {!Cil.defaultCilPrinter} *)
-val d_type: Format.formatter -> typ -> unit
-
-(** Pretty-print an expression using {!Cil.defaultCilPrinter}  *)
-val d_exp: Format.formatter -> exp -> unit
-
-val d_var: Format.formatter -> varinfo -> unit
-
-(** Pretty-print an lvalue using {!Cil.defaultCilPrinter}   *)
-val d_lval: Format.formatter -> lval -> unit
-
-(** Pretty-print an offset using {!Cil.defaultCilPrinter}, given the pretty
- * printing for the base.   *)
-val d_offset: Format.formatter -> offset -> unit
-
-(** Pretty-print an initializer using {!Cil.defaultCilPrinter}.  This can be
- * extremely slow (or even overflow the stack) for huge initializers. *)
-val d_init: Format.formatter -> init -> unit
-
-(** Pretty-print a binary operator *)
-val d_binop: Format.formatter -> binop -> unit
-
-(** Pretty-print a unary operator *)
-val d_unop: Format.formatter -> unop -> unit
-
-(** Pretty-print an attribute using {!Cil.defaultCilPrinter}  *)
-val d_attr: Format.formatter -> attribute -> unit
-
-(** Pretty-print an argument of an attribute using {!Cil.defaultCilPrinter}  *)
-val d_attrparam: Format.formatter -> attrparam -> unit
-
-(** Pretty-print a list of attributes using {!Cil.defaultCilPrinter}  *)
-val d_attrlist: Format.formatter -> attributes -> unit
-
-(** Pretty-print an instruction using {!Cil.defaultCilPrinter}   *)
-val d_instr: Format.formatter -> instr -> unit
-
-(** Pretty-print a label using {!Cil.defaultCilPrinter} *)
-val d_label: Format.formatter -> label -> unit
-
-(** Pretty-print a statement using {!Cil.defaultCilPrinter}. This can be
- * extremely slow (or even overflow the stack) for huge statements. *)
-val d_stmt: Format.formatter -> stmt -> unit
-
-(** Pretty-print a block using {!Cil.defaultCilPrinter}. This can be
- * extremely slow (or even overflow the stack) for huge blocks. *)
-val d_block: Format.formatter -> block -> unit
-
-(** Pretty-print the internal representation of a global using
- * {!Cil.defaultCilPrinter}. This can be extremely slow (or even overflow the
- * stack) for huge globals (such as arrays with lots of initializers). *)
-val d_global: Format.formatter -> global -> unit
-
-val d_file: Format.formatter -> file -> unit
-
-val d_relation: Format.formatter -> relation -> unit
-
-(** @since Oxygen-20120901 *)
-val d_model_info: Format.formatter -> model_info -> unit
-
-val d_term_lval: Format.formatter -> term_lval -> unit
-val d_logic_var: Format.formatter -> logic_var -> unit
-val d_logic_type: Format.formatter -> logic_type -> unit
-val d_term:  Format.formatter -> term -> unit
-val d_term_offset: Format.formatter -> term_offset -> unit
-
-val d_predicate_named: Format.formatter -> predicate named -> unit
-val d_identified_predicate: Format.formatter -> identified_predicate -> unit
-val d_code_annotation: Format.formatter -> code_annotation -> unit
-val d_funspec: Format.formatter -> funspec -> unit
-val d_behavior: Format.formatter -> funbehavior -> unit
-val d_annotation: Format.formatter -> global_annotation -> unit
-val d_decreases: Format.formatter -> term variant -> unit
-val d_loop_variant: Format.formatter -> term variant -> unit
-val d_from: Format.formatter -> identified_term from -> unit
-val d_assigns: Format.formatter -> identified_term assigns -> unit
-
-(**	@since Oxygen-20120901 *)
-val d_allocation: Format.formatter -> identified_term allocation -> unit
-
-val d_loop_from: Format.formatter -> identified_term from -> unit
-val d_loop_assigns: Format.formatter -> identified_term assigns -> unit
-
-(**	@since Oxygen-20120901 *)
-val d_loop_allocation: Format.formatter -> identified_term allocation -> unit
-
-(** Versions of the above pretty printers, that don't print #line directives *)
-val dn_exp       : Format.formatter -> exp -> unit
-val dn_lval      : Format.formatter -> lval -> unit
-(* dn_offset is missing because it has a different interface *)
-val dn_init      : Format.formatter -> init -> unit
-val dn_type      : Format.formatter -> typ -> unit
-val dn_global    : Format.formatter -> global -> unit
-val dn_attrlist  : Format.formatter -> attributes -> unit
-val dn_attr      : Format.formatter -> attribute -> unit
-val dn_attrparam : Format.formatter -> attrparam -> unit
-val dn_stmt      : Format.formatter -> stmt -> unit
-val dn_instr     : Format.formatter -> instr -> unit
-
-
-(** Pretty-print an entire file. Here you give the channel where the printout
- * should be sent. *)
-val dumpFile: cilPrinter -> out_channel -> string -> file -> unit
-
-(** Sometimes you do not want to see the syntactic sugar that the above
- * pretty-printing functions add. In that case you can use the following
- * pretty-printing functions. But note that the output of these functions is
- * not valid C *)
-
-(** Sometimes you do not want to see the syntactic sugar that the above
- * pretty-printing functions add. In that case you can use the following
- * pretty-printing functions. But note that the output of these functions is
- * not valid C *)
-
-(** Pretty-print the internal representation of an expression *)
-val d_plainexp: Format.formatter -> exp -> unit
-
-(** Pretty-print the internal representation of an initializer *)
-val d_plaininit: Format.formatter -> init -> unit
-
-(** Pretty-print the internal representation of an lvalue *)
-val d_plainlval: Format.formatter -> lval -> unit
-
-(** Pretty-print the internal representation of an lvalue offset
-val d_plainoffset: Format.formatter -> offset -> Pretty.doc *)
-
-(** Pretty-print the internal representation of a type *)
-val d_plaintype: Format.formatter -> typ -> unit
-
-(** Pretty-print an expression while printing descriptions rather than names
-  of temporaries. *)
-val dd_exp: Format.formatter -> exp -> unit
-
-(** Pretty-print an lvalue on the left side of an assignment.
-    If there is an offset or memory dereference, temporaries will
-    be replaced by descriptions as in dd_exp.  If the lval is a temp var,
-    that var will not be replaced by a description; use "dd_exp () (Lval lv)"
-    if that's what you want. *)
-val dd_lval: Format.formatter -> lval -> unit
-
-(** {b ALPHA conversion} has been moved to the Alpha module. *)
+(* ************************************************************************* *)
+(** {2 ALPHA conversion} has been moved to the Alpha module. *)
+(* ************************************************************************* *)
 
 (** Assign unique names to local variables. This might be necessary after you
- * transformed the code and added or renamed some new variables. Names are
- * not used by CIL internally, but once you print the file out the compiler
- * downstream might be confused. You might
- * have added a new global that happens to have the same name as a local in
- * some function. Rename the local to ensure that there would never be
- * confusioin. Or, viceversa, you might have added a local with a name that
- * conflicts with a global *)
+    transformed the code and added or renamed some new variables. Names are not
+    used by CIL internally, but once you print the file out the compiler
+    downstream might be confused. You might have added a new global that happens
+    to have the same name as a local in some function. Rename the local to
+    ensure that there would never be confusioin. Or, viceversa, you might have
+    added a local with a name that conflicts with a global *)
 val uniqueVarNames: file -> unit
 
-(** {b Optimization Passes} *)
+(* ************************************************************************* *)
+(** {2 Optimization Passes} *)
+(* ************************************************************************* *)
 
 (** A peephole optimizer that processes two adjacent statements and possibly
-    replaces them both. If some replacement happens and [agressive] is true, then
-    the new statements are themselves subject to optimization.
-    Each statement in the list is optimized independently. *)
-val peepHole2: agressive:bool -> (stmt * stmt -> stmt list option) -> stmt list -> stmt list
+    replaces them both. If some replacement happens and [agressive] is true,
+    then the new statements are themselves subject to optimization.  Each
+    statement in the list is optimized independently. *)
+val peepHole2: 
+  agressive:bool -> (stmt * stmt -> stmt list option) -> stmt list -> stmt list
 
 (** Similar to [peepHole2] except that the optimization window consists of
     one statement, not two *)
 val peepHole1: (instr -> instr list option) -> stmt list -> unit
 
-(** {b Machine dependency} *)
-
+(* ************************************************************************* *)
+(** {2 Machine dependency} *)
+(* ************************************************************************* *)
 
 (** Raised when one of the bitsSizeOf functions cannot compute the size of a
- * type. This can happen because the type contains array-length expressions
- * that we don't know how to compute or because it is a type whose size is
- * not defined (e.g. TFun or an undefined compinfo). The string is an
- * explanation of the error *)
+    type. This can happen because the type contains array-length expressions
+    that we don't know how to compute or because it is a type whose size is not
+    defined (e.g. TFun or an undefined compinfo). The string is an explanation
+    of the error *)
 exception SizeOfError of string * typ
 
 (** Create a fresh size cache with [Not_Computed] *)
@@ -2460,9 +2016,10 @@ val floatKindForSize : int-> fkind
  * call {!Cil.initCIL}. Remember that on GCC sizeof(void) is 1! *)
 val bitsSizeOf: typ -> int
 
-(** Returns the number of bytes to represent the given integer kind depending
-   on the current machdep. *)
+(** Returns the number of bytes (resp. bits) to represent the given integer
+    kind depending on the current machdep. *)
 val bytesSizeOfInt: ikind -> int
+val bitsSizeOfInt: ikind -> int
 
 (** Returns the signedness of the given integer kind depending
    on the current machdep. *)
@@ -2483,30 +2040,30 @@ val frank: fkind -> int
 (** Represents an integer as for a given kind. 
  * Returns a flag saying whether the value was changed
  * during truncation (because it was too large to fit in k). *)
-val truncateInteger64: ikind -> My_bigint.t -> My_bigint.t * bool
+val truncateInteger64: ikind -> Integer.t -> Integer.t * bool
 
 (** Returns the maximal value representable in a signed integer type of the
     given size (in bits)
  *)
-val max_signed_number: int -> My_bigint.t
+val max_signed_number: int -> Integer.t
 
 (** Returns the smallest value representable in a signed integer type of the
     given size (in bits)
  *)
-val min_signed_number: int -> My_bigint.t
+val min_signed_number: int -> Integer.t
 
 (** Returns the maximal value representable in a unsigned integer type of the
     given size (in bits)
  *)
-val max_unsigned_number: int -> My_bigint.t
+val max_unsigned_number: int -> Integer.t
 
 (** True if the integer fits within the kind's range *)
-val fitsInInt: ikind -> My_bigint.t -> bool
+val fitsInInt: ikind -> Integer.t -> bool
 
 (** Return the smallest kind that will hold the integer's value.
     The kind will be unsigned if the 2nd argument is true.
     @raise Not_found if the bigint is not representable. *)
-val intKindForValue: My_bigint.t -> bool -> ikind
+val intKindForValue: Integer.t -> bool -> ikind
 
 (** The size of a type, in bytes. Returns a constant expression or a "sizeof"
  * expression if it cannot compute the size. This function is architecture
@@ -2524,7 +2081,7 @@ val sizeOf_int: typ -> int
 (** The minimum alignment (in bytes) for a type. This function is
  * architecture dependent, so you should only call this after you call
  * {!Cil.initCIL}. *)
-val alignOf_int: typ -> int
+val bytesAlignOf: typ -> int
 
 (** Give a type of a base and an offset, returns the number of bits from the
  * base address and the width (also expressed in bits) for the subobject
@@ -2555,8 +2112,9 @@ val mapNoCopyList: ('a -> 'a list) -> 'a list -> 'a list
 (** sm: return true if the first is a prefix of the second string *)
 val startsWith: string -> string -> bool
 
-
-(** {b An Interpreter for constructing CIL constructs} *)
+(* ************************************************************************* *)
+(** {2 An Interpreter for constructing CIL constructs} *)
+(* ************************************************************************* *)
 
 (** The type of argument for the interpreter *)
 type formatArg =
@@ -2592,17 +2150,14 @@ type formatArg =
 
 val d_formatarg : Format.formatter -> formatArg -> unit
 
-(** {b Misc} *)
+(* ************************************************************************* *)
+(** {2 Misc} *)
+(* ************************************************************************* *)
 
 val stmt_of_instr_list : ?loc:location -> instr list -> stmtkind
 
-val pretty_loc : Format.formatter -> kinstr -> unit
-val pretty_loc_simply : Format.formatter -> kinstr -> unit
-
-
 (** Convert a C variable into the corresponding logic variable.
-    The returned logic variable is unique for a given C variable.
- *)
+    The returned logic variable is unique for a given C variable. *)
 val cvar_to_lvar : varinfo -> logic_var
 
 (** Make a temporary variable to use in annotations *)
@@ -2619,7 +2174,7 @@ val lone : ?loc:location -> unit -> term
 val lmone : ?loc:location -> unit -> term
 
 (** The given constant logic term *)
-val lconstant : ?loc:location -> My_bigint.t -> term
+val lconstant : ?loc:location -> Integer.t -> term
 
 (** Bind all free variables with an universal quantifier *)
 val close_predicate : predicate named -> predicate named
@@ -2657,13 +2212,11 @@ val extract_stmts_from_labels:
     @raise Invalid_argument if the lists have different lengths. *)
 val create_alpha_renaming: varinfo list -> varinfo list -> cilVisitor
 
-
 (** Provided [s] is a switch, [separate_switch_succs s] returns the
     subset of [s.succs] that correspond to the labels of [s], and an
     optional statement that is [None] if the switch has a default label,
     or [Some s'] where [s'] is the syntactic successor of [s] otherwise *)
 val separate_switch_succs: stmt -> stmt list * stmt option
-
 
 (**/**)
 
@@ -2671,7 +2224,13 @@ val register_ast_dependencies : State.t -> unit
   (** Used to postpone some dependencies on [Ast.self], which is initialized
       afterwards. *)
 
-
+val pp_typ_ref: (Format.formatter -> typ -> unit) ref
+val pp_global_ref: (Format.formatter -> global -> unit) ref
+val pp_exp_ref: (Format.formatter -> exp -> unit) ref
+val pp_lval_ref: (Format.formatter -> lval -> unit) ref
+val pp_ikind_ref: (Format.formatter -> ikind -> unit) ref
+val pp_attribute_ref: (Format.formatter -> attribute -> unit) ref
+val pp_attributes_ref: (Format.formatter -> attribute list -> unit) ref
 
 (*
 Local Variables:

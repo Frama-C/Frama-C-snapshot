@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -57,7 +57,6 @@ let rec unroll_type ?(unroll_typedef=true) = function
   | Ctype ty when unroll_typedef -> Ctype (Cil.unrollType ty)
   | Linteger | Lreal | Lvar _ | Larrow _ | Ctype _ as ty  -> ty
 
-
 (* ************************************************************************* *)
 (** {1 From C to logic}*)
 (* ************************************************************************* *)
@@ -95,10 +94,10 @@ let plain_array_to_ptr ty =
                   Kernel.fatal
                     "Inconsistent information: I know the length of \
                        array type %a, but not of its elements."
-                    Cil.d_type tarr
+                    Cil_printer.pp_typ tarr
               in
               (* Normally, overflow is checked in bitsSizeOf itself *)
-              let la = AInt (My_bigint.of_int len) in
+              let la = AInt (Integer.of_int len) in
               [ Attr("arraylen",[la])]
             with Cil.SizeOfError _ ->
               Kernel.warning ~current:true
@@ -110,11 +109,11 @@ let plain_array_to_ptr ty =
 
 let array_to_ptr = plain_or_set plain_array_to_ptr
 
-let typ_to_logic_type e_typ =
-  match Cil.unrollType e_typ with
-    | TFloat (_,_) ->  Lreal
-    | TInt   (_,_) -> Linteger
-    | _ -> Ctype (e_typ)
+let typ_to_logic_type e_typ = 
+  let ty = Cil.unrollType e_typ in
+  if Cil.isIntegralType ty then Linteger
+  else if Cil.isFloatingType ty then Lreal
+  else Ctype e_typ
 
 let named_of_identified_predicate ip =
   { name = ip.ip_name;
@@ -193,8 +192,9 @@ let isLogicPointer t =
 let mk_logic_pointer_or_StartOf t =
   if isLogicPointer t then
     if is_C_array t then mk_logic_StartOf t else t
-  else Kernel.fatal ~source:(fst t.term_loc)
-    "%a is neither a pointer nor a C array" d_term t
+  else
+    Kernel.fatal ~source:(fst t.term_loc)
+      "%a is neither a pointer nor a C array" Cil_printer.pp_term t
 
 let need_logic_cast oldt newt =
   not (Cil_datatype.Logic_type.equal (Ctype oldt) (Ctype newt))
@@ -226,40 +226,77 @@ let mk_cast ?(loc=Cil_datatype.Location.unknown) newt t =
       end
   | _ -> mk_cast t
 
+let real_of_float s f =
+  { r_literal = s ; r_nearest = f ; r_upper = f ; r_lower = f }
+
 let constant_to_lconstant c = match c with
   | CInt64(i,_,s) -> Integer (i,s)
   | CStr s -> LStr s
   | CWStr s -> LWStr s
   | CChr s -> LChr s
-  | CReal (f,_,Some s) -> LReal (f,s)
-  | CReal (f,_,None) -> LReal (f,string_of_float f)
+  | CReal (f,_,Some s) -> LReal (real_of_float s f)
   | CEnum e -> LEnum e
+  | CReal (f,fkind,None) ->
+      let s = match fkind with
+        | FFloat -> Format.sprintf "%.8ef" f
+        | FDouble | FLongDouble -> Format.sprintf "%.16ed" f
+      in
+      LReal (real_of_float s f)
 
 let lconstant_to_constant c = match c with
   | Integer (i,s) -> CInt64(i,Cil.intKindForValue i false,s)
   | LStr s -> CStr s
   | LWStr s -> CWStr s
   | LChr s -> CChr s
-  | LReal (f,s) -> CReal (f,FDouble,Some s)
+  | LReal r -> CReal (r.r_nearest,FDouble,Some r.r_literal)
   | LEnum e -> CEnum e
 
-let rec expr_to_term ~cast:cast e =
+
+let string_to_float_lconstant str =
+    let l = String.length str in
+  let hasSuffix s =
+    let ls = String.length s in
+    l >= ls && s = String.uppercase (String.sub str (l - ls) ls)
+  in
+  (* Maybe it ends in U or UL. Strip those *)
+  let baseint, kind =
+    if  hasSuffix "L" or hasSuffix "l" then
+      String.sub str 0 (l - 1), Some FLongDouble
+    else if hasSuffix "F" or hasSuffix "f" then
+      String.sub str 0 (l - 1), Some FFloat
+    else if hasSuffix "D" or hasSuffix "d" then
+      String.sub str 0 (l - 1), Some FDouble
+    else
+      str, None
+  in
+  match kind with 
+    | Some FDouble | Some FLongDouble ->
+        (* Hope that the architecture is such that [long double = double] *)
+        let f = Floating_point.double_precision_of_string baseint in
+        LReal(real_of_float str f.Floating_point.f_nearest)
+
+    | Some FFloat ->
+        let f = Floating_point.single_precision_of_string baseint in
+        LReal(real_of_float str f.Floating_point.f_nearest)
+            
+    | None -> (* parse as double precision interval, because we
+                 do not have better *)
+        let f = Floating_point.double_precision_of_string baseint in
+	let open Floating_point in
+	LReal { r_nearest = f.f_nearest ; r_upper = f.f_upper ; r_lower = f.f_lower ;
+		r_literal = str }
+
+let rec expr_to_term ~cast e =
   let e_typ = unrollType (Cil.typeOf e) in
   let loc = e.eloc in
   let result = match e.enode with
-    | Const c ->
-	(* a constant should be translated into a logic constant,
-	   but logic constants do not exist yet => keep C constant *)
-	(* may be a problem for big constants, also type of a C constant
-	   is a C type (ikind) i.e. architecture dependant *)
-	let tc = TConst (constant_to_lconstant c) in tc
+    | Const c -> TConst (constant_to_lconstant c)
     | SizeOf t -> TSizeOf t
     | SizeOfE e -> TSizeOfE (expr_to_term ~cast e)
     | SizeOfStr s -> TSizeOfStr s
     | StartOf lv -> TStartOf (lval_to_term_lval ~cast lv)
     | AddrOf lv -> TAddrOf (lval_to_term_lval ~cast lv)
-    | CastE (ty,e) -> 
-        (mk_cast (unrollType ty) (expr_to_term ~cast e)).term_node
+    | CastE (ty,e) -> (mk_cast (unrollType ty) (expr_to_term ~cast e)).term_node
     | BinOp (op, l, r, _) ->
       let is_arith_cmp_op op =
 	match op with 
@@ -270,7 +307,7 @@ let rec expr_to_term ~cast:cast e =
       in
       let nnode = TBinOp (op,expr_to_term ~cast l,expr_to_term ~cast r) in
       if (cast && (Cil.isIntegralType e_typ || Cil.isFloatingType e_typ))
-	|| (is_arith_cmp_op op) (* BTS 1175 *)
+	|| is_arith_cmp_op op (* BTS 1175 *)
       then
 	(mk_cast e_typ (Logic_const.term nnode (typ_to_logic_type e_typ))).term_node
       else nnode
@@ -289,13 +326,14 @@ let rec expr_to_term ~cast:cast e =
   if cast then Logic_const.term ~loc result (Ctype e_typ)
   else
     match e.enode with
-    | Const _ -> Logic_const.term ~loc result (Ctype e_typ)
-    | _       -> Logic_const.term ~loc result (typ_to_logic_type e_typ)
+    | Const(CStr _ | CWStr _ | CChr _ | CEnum _) | Lval(Var _, NoOffset) -> 
+      Logic_const.term ~loc result (Ctype e_typ)
+    | _ -> Logic_const.term ~loc result (typ_to_logic_type e_typ)
 
-and lval_to_term_lval ~cast:cast (host,offset) =
-  host_to_term_host ~cast host,offset_to_term_offset ~cast offset
+and lval_to_term_lval ~cast (host,offset) =
+  host_to_term_host ~cast host, offset_to_term_offset ~cast offset
 
-and host_to_term_host ~cast:cast = function
+and host_to_term_host ~cast = function
   | Var s -> TVar (Cil.cvar_to_lvar s)
   | Mem e -> TMem (expr_to_term ~cast e)
 
@@ -318,13 +356,17 @@ let array_with_range arr size =
     else mk_cast ~loc Cil.charPtrType arr
   and range_end =
     Logic_const.term ~loc:size.term_loc
-      (TBinOp (MinusA, size, Cil.lconstant My_bigint.one))
+      (TBinOp (MinusA, size, Cil.lconstant Integer.one))
       size.term_type
   in
-  let range = Logic_const.trange (Some (Cil.lconstant My_bigint.zero),
+  let range = Logic_const.trange (Some (Cil.lconstant Integer.zero),
                                   Some (range_end)) in
   Logic_const.term ~loc(TBinOp (PlusPI, arr, range)) char_ptr
 
+let remove_logic_coerce t =
+  match t.term_node with
+    | TLogic_coerce(_,t) -> t
+    | _ -> t
 
 (* ************************************************************************* *)
 (** {1 Various utilities} *)
@@ -367,7 +409,6 @@ let get_pred_body pi =
   match pi.l_body with LBpred p -> p | _ -> raise Not_found
 
 let is_result = Logic_const.is_result
-
 
 let is_trivially_false p =
   match p.content with
@@ -485,10 +526,10 @@ let _compare_c c1 c2 =
            isInteger (constFold true e1.eival),
            isInteger (constFold true e2.eival)
         with
-          | Some i1, Some i2 -> My_bigint.equal i1 i2
+          | Some i1, Some i2 -> Integer.equal i1 i2
           | _ -> false)
      | CInt64 (i1,k1,_), CInt64(i2,k2,_) -> 
-       k1 = k2 && My_bigint.equal i1 i2
+       k1 = k2 && Integer.equal i1 i2
      | CStr s1, CStr s2 -> s1 = s2
      | CWStr l1, CWStr l2 ->
        (try List.for_all2 (fun x y -> Int64.compare x y = 0) l1 l2
@@ -552,13 +593,15 @@ let rec is_same_term t1 t2 =
         is_same_opt is_same_term l1 l2 && is_same_opt is_same_term h1 h2
     | Tlet(d1,b1), Tlet(d2,b2) ->
         is_same_logic_info d1 d2 && is_same_term b1 b2
+    | TLogic_coerce(ty1,t1), TLogic_coerce(ty2,t2) ->
+        is_same_type ty1 ty2 && is_same_term t1 t2
     | (TConst _ | TLval _ | TSizeOf _ | TSizeOfE _ | TSizeOfStr _
       | TAlignOf _ | TAlignOfE _ | TUnOp _ | TBinOp _ | TCastE _
       | TAddrOf _ | TStartOf _ | Tapp _ | Tlambda _ | TDataCons _
       | Tif _ | Tat _ | Tbase_addr _ | Tblock_length _ | Toffset _ | Tnull
       | TCoerce _ | TCoerceE _ | TUpdate _ | Ttypeof _ | Ttype _
       | Tcomprehension _ | Tempty_set | Tunion _ | Tinter _ | Trange _
-      | Tlet _
+      | Tlet _ | TLogic_coerce _
       ),_ -> false
 
 and is_same_logic_info l1 l2 =
@@ -1084,6 +1127,8 @@ let rec hash_term (acc,depth,tot) t =
         hash_term 
           (acc + 570 + Hashtbl.hash li.l_var_info.lv_name, depth-1, tot-1)
           t
+      | TLogic_coerce(_,t) ->
+          hash_term (acc + 587, depth - 1, tot - 1) t
   end
 
 and hash_term_lval (acc,depth,tot) (h,o) =
@@ -1133,8 +1178,8 @@ let merge_allocation fa1 fa2 =
     | FreeAlloc([],a),FreeAlloc(f,[]) 
     | FreeAlloc(f,[]),FreeAlloc([],a) -> FreeAlloc(f,a);
     | _ ->
-      Kernel.warning ~current:true
-	"incompatible allocations clauses. Keeping only one.";
+      Kernel.warning ~once:true ~current:true
+	"incompatible allocations clauses. Keeping only the first one.";
       fa1
 
 let concat_allocation fa1 fa2 =
@@ -1145,20 +1190,62 @@ let concat_allocation fa1 fa2 =
     | _, FreeAllocAny -> fa1
     | FreeAlloc(f1,a1),FreeAlloc(f2,a2) -> FreeAlloc(f1@f2,a1@a2) 
 
+(* Merge two from clauses (arguments of constructor Writes). For each assigned
+   location, find the From clauses and verify that they are equal. This avoids
+   duplicates. Beware: this is quadratic in case of mismatch between the two
+   assigns lists. However, in most cases the lists are the same *)
+let merge_assigns_list l1 l2 =
+  (* Find [asgn] in the list of from clauses given as second argument *)
+  let rec matches asgn = function
+    | [] -> None, []
+    | (asgn', _ as hd) :: q ->
+        if is_same_identified_term asgn asgn' then
+          Some hd, q  (* Return matching from clause *)
+        else
+          let r, l = matches asgn q in (* Search further on *)
+          r, hd :: l
+  in
+  let rec aux l1 l2 = match l1, l2 with
+    | [], [] -> [] (* Merge finished *)
+    | [], _ :: _ -> aux l2 l1 (* to get the warnings on the elements of l2 *)
+    | (asgn1, from1 as cl1) :: q1, l2 ->
+        match matches asgn1 l2 with
+          | None, l2 -> (* asgn1 is only in l1 *)
+              (* Warn only if asgn1 is not \result, as \result is only
+                 useful to specify a \from clause (and is removed without one)*)
+              if not (Logic_const.is_result asgn1.it_content) then begin
+                let loc = asgn1.it_content.term_loc in
+                Kernel.warning ~once:true ~source:(fst loc)
+                  "location %a is not present in all assigns clauses"
+                  Cil_printer.pp_identified_term asgn1;
+              end;
+              (asgn1, from1) :: aux q1 l2
+          | Some (asgn2, from2 as cl2), q2 ->
+              (* asgn1 is in l1 and l2. Check the from clauses *)
+              if is_same_deps from1 from2 || from2 = FromAny then
+                cl1 :: aux q1 q2
+              else if from1 = FromAny then
+                cl2 :: aux q1 q2
+              else begin
+                let loc1 = asgn1.it_content.term_loc in
+                let loc2 = asgn2.it_content.term_loc in
+                Kernel.warning ~once:true ~source:(fst loc1)
+                  "@[incompatible@ from@ clauses (%a:'%a'@ and@ %a:'%a').@ \
+                    Keeping@ only@ the first@ one.@]"
+                  Cil_printer.pp_location loc1 Cil_printer.pp_from cl1 
+		  Cil_printer.pp_location loc2 Cil_printer.pp_from cl2;
+                cl1 :: aux q1 q2
+              end
+  in
+  aux l1 l2
+
 let merge_assigns a1 a2 =
   if is_same_assigns a1 a2 then a1
   else
     match (a1,a2) with
     | WritesAny, _ -> a2
     | _, WritesAny -> a1
-    | Writes l1, Writes l2 ->
-      let loc = match l1, l2 with
-        | [], [] -> Cil.CurrentLoc.get ()
-        | (t, _) :: _, _ | _, (t, _) :: _ -> t.it_content.term_loc
-      in
-      Kernel.warning ~source:(fst loc)
-	"incompatible assigns clauses. Keeping only one.";
-      a1
+    | Writes l1, Writes l2 -> Writes (merge_assigns_list l1 l2)
 
 let concat_assigns a1 a2 =
   match a1,a2 with
@@ -1179,7 +1266,7 @@ let merge_behaviors ~silent old_behaviors fresh_behaviors =
                  (fun fmt ->
                     if Kernel.debug_atleast 1 then
                       Format.fprintf fmt ":@ @[%a@] vs. @[%a@]"
-                        Cil.d_behavior b Cil.d_behavior old_b)
+                        Cil_printer.pp_behavior b Cil_printer.pp_behavior old_b)
              ;
 	     old_b.b_assumes <- old_b.b_assumes @ b.b_assumes;
 	     old_b.b_requires <- old_b.b_requires @ b.b_requires;
@@ -1210,18 +1297,27 @@ let merge_funspec ?(silent_about_merging_behav=false) old_spec fresh_spec =
       | None, Some _ -> old_spec.spec_variant <- fresh_spec.spec_variant
       | Some _old, Some _fresh ->
         Kernel.warning ~current:true
-          "found two variants for function specification. Keeping only one.");
+          "found two variants for function specification. Keeping only the first one.");
       (match old_spec.spec_terminates, fresh_spec.spec_terminates with
       | None, None -> ()
       | Some p1, Some p2 when is_same_identified_predicate p1 p2 -> ()
       | _ ->
         Kernel.warning ~current:true
           "found two different terminates clause for function specification. \
-           keeping only one");
+           keeping only the fist one");
       old_spec.spec_complete_behaviors <-
-	old_spec.spec_complete_behaviors @ fresh_spec.spec_complete_behaviors;
+	List.fold_left (fun acc b -> 
+	  if List.mem b old_spec.spec_complete_behaviors then acc
+	  else b::acc)
+	old_spec.spec_complete_behaviors
+	fresh_spec.spec_complete_behaviors ;
       old_spec.spec_disjoint_behaviors <-
-	old_spec.spec_disjoint_behaviors @ fresh_spec.spec_disjoint_behaviors
+	List.fold_left (fun acc b -> 
+	  if List.mem b old_spec.spec_disjoint_behaviors then acc
+	  else b::acc)
+	old_spec.spec_disjoint_behaviors
+	fresh_spec.spec_disjoint_behaviors
+
     end
 
 let clear_funspec spec =
@@ -1307,6 +1403,13 @@ let extract_contract l =
     lexer depends on the parser rule. See logic_lexer.mll and
     logic_parser.mly for more details. *)
 
+let extensions = ref Datatype.String.Set.empty
+
+let register_extension s =
+  extensions := Datatype.String.Set.add s !extensions
+
+let is_extension s = Datatype.String.Set.mem s !extensions
+
 (**
   - false => keywords are all ACSL keywords
   - true => only C keywords are recognized as such.
@@ -1330,6 +1433,42 @@ let enter_rt_type_mode () = rt_type_mode:=true
 let exit_rt_type_mode () = rt_type_mode:=false
 
 let is_rt_type_mode () = !rt_type_mode
+
+let pointer_comparable ?loc t1 t2 =
+  let preds = Logic_env.find_all_logic_functions "\\pointer_comparable" in
+  let cfct_ptr = TPtr (TFun(Cil.voidType,None,false,[]),[]) in
+  let fct_ptr = Ctype cfct_ptr in
+  let obj_ptr = Ctype Cil.voidPtrType in
+  let discriminate t =
+    let loc = t.term_loc in
+    match t.term_type with
+      | Ctype ty ->
+          (match Cil.unrollType ty with
+             | TPtr(TFun _,_) ->
+                 Logic_const.term ~loc (TCastE(cfct_ptr,t)) fct_ptr, fct_ptr
+             | TPtr _  -> t, obj_ptr
+             | TInt _ when Cil.isLogicZero t -> t, obj_ptr
+             | TVoid _ | TInt _ | TFloat _ | TFun _ | TNamed _
+             | TComp _ | TEnum _ | TBuiltin_va_list _
+             | TArray _ ->
+                 Logic_const.term ~loc (TCastE(voidPtrType,t)) obj_ptr, obj_ptr
+          )
+      | _ -> Logic_const.term ~loc (TCastE(voidPtrType,t)) obj_ptr, obj_ptr
+  in
+  let t1, ty1 = discriminate t1 in
+  let t2, ty2 = discriminate t2 in
+  let pi =
+    try
+      List.find
+        (function
+           | { l_profile = [v1; v2] } ->
+               is_same_type v1.lv_type ty1 &&
+               is_same_type v2.lv_type ty2
+           | _ -> false) preds
+    with Not_found ->
+      Kernel.fatal "built-in predicate \\pointer_comparable not found"
+  in
+  Logic_const.unamed ?loc (Papp (pi, [], [t1;t2]))
 
 (*
 Local Variables:

@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2012                                               */
+/*  Copyright (C) 2007-2013                                               */
 /*    CEA   (Commissariat à l'énergie atomique et aux énergies            */
 /*           alternatives)                                                */
 /*    INRIA (Institut National de Recherche en Informatique et en         */
@@ -193,9 +193,19 @@
       "parsing obsolete ACSL construct '%s'. '%s' should be used instead."
       name now
 
+  let check_registered kw =
+    if Logic_utils.is_extension kw then kw else raise Parsing.Parse_error
+
 %}
 
-%token MODULE FUNCTION CONTRACT INCLUDE EXT_AT EXT_LET /* ACSL extension for external spec  file */
+/*****************************************************************************/
+/* IMPORTANT NOTE: When you add a new token, be sure that it will be         */
+/* recognized by the any: rule at the end of this file.                      */
+/* Otherwise, the token will not be usable inside a contract.                */
+/*****************************************************************************/
+
+%token MODULE FUNCTION CONTRACT INCLUDE EXT_AT EXT_LET 
+/* ACSL extension for external spec  file */
 %token <string> IDENTIFIER TYPENAME
 %token <bool*string> STRING_LITERAL
 %token <Logic_ptree.constant> CONSTANT
@@ -322,6 +332,14 @@ lexpr:
     { info (PLif ($1, $3, $5)) }
 /* both terms and predicates */
 | any_identifier COLON lexpr %prec prec_named { info (PLnamed ($1, $3)) }
+| string COLON lexpr %prec prec_named 
+      { let (iswide,str) = $1 in
+        if iswide then begin 
+           let l = loc () in
+           raise (Not_well_formed(l, "Wide strings are not allowed as labels."))
+         end;
+         info (PLnamed (("\"" ^ str ^ "\""), $3))
+       }
 | lexpr_rel %prec prec_rel_list { $1 }
 ;
 
@@ -1664,6 +1682,7 @@ c_keyword:
 | SHORT { "short" }
 | SIGNED { "signed" }
 | SIZEOF { "sizeof" }
+| STATIC { "static" }
 | STRUCT { "struct" }
 | UNION { "union" }
 | UNSIGNED { "unsigned" }
@@ -1710,7 +1729,9 @@ is_acsl_decl_or_code_annot:
 | SLICE     { "slice" }
 | TYPE      { "type" }
 | MODEL     { "model" }
-| AXIOM { "axiom" }
+| AXIOM     { "axiom" }
+| VARIANT   { "variant" }
+| AXIOMATIC { "axiomatic" }
 ;
 
 is_acsl_other:
@@ -1720,6 +1741,7 @@ is_acsl_other:
 | READS { "reads" }
 | REAL { "real" }
 | WRITES { "writes" }
+| CUSTOM { "custom" }
 ;
 
 is_ext_spec:
@@ -1744,11 +1766,11 @@ non_logic_keyword:
 | is_acsl_other  { $1 }
 ;
 
-
+/* ACSL extension language */
 grammar_extension_name:
-| full_identifier_or_typename { $1 } /* ACSL extension language */
-| is_acsl_other { $1 }
-| c_keyword     { $1 }
+| full_identifier_or_typename { check_registered $1 } 
+| is_acsl_other { check_registered $1 }
+| c_keyword     { check_registered $1 }
 ;
 
 /* Spec are parsed after the function prototype itself. This rule distinguishes
@@ -1780,6 +1802,7 @@ bs_keyword:
 | NOTHING { () }
 | NULL { () }
 | OLD { () }
+| OFFSET { () }
 | REGISTER { () }
 | RESULT { () }
 | SEPARATED { () }
@@ -1802,6 +1825,8 @@ wildcard:
 | AMP { () }
 | AND { () }
 | ARROW { () }
+| BIFF { () }
+| BIMPLIES { () }
 | COLON { () }
 | COLON2 { () }
 | COLONCOLON { () }

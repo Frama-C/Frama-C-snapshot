@@ -2,11 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
-(*           alternatives)                                                *)
-(*    INRIA (Institut National de Recherche en Informatique et en         *)
-(*           Automatique)                                                 *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -41,7 +39,7 @@ open Cil_datatype
 * specialized. This is only a hint used when the tool has to make a choice,
 * but it doesn't forbid to the user to do whatever he wants
 * (like building slices for a [DontSlice] function). *)
-type t_level_option =
+type level_option =
   | DontSlice (** don't build slice for the function :
                   ie. always call the source function. *)
   | DontSliceButComputeMarks
@@ -84,73 +82,73 @@ let compare_pdg_mark p1 p2 =
 type fct_info = {
   fi_kf : Cil_types.kernel_function;
   fi_def : Cil_types.fundec option;
-  fi_project : t_project;
+  fi_project : project;
   mutable fi_top : pdg_mark option;
           (** indicates if the function is maked top (=> src visible) *)
-  mutable fi_level_option : t_level_option;
+  mutable fi_level_option : level_option;
           (** level of specialisation for this function *)
-  mutable fi_init_marks : t_ff_marks option;
+  mutable fi_init_marks : ff_marks option;
           (** the marks that must be in every slices of that function *)
-  mutable fi_slices : t_fct_slice list ;
+  mutable fi_slices : fct_slice list ;
           (** the list of the slices already computed for this function. *)
   mutable fi_next_ff_num : int;
           (** the number to assign to the next slice. *)
-  mutable f_called_by : t_called_by;
+  mutable f_called_by : called_by;
           (** calls in slices that call source fct *)
 }
 
 and
   (** to represent where a function is called. *)
-  t_called_by = (t_fct_slice * Cil_types.stmt) list
+  called_by = (fct_slice * Cil_types.stmt) list
 
 and
 (** Function slice :
     created as soon as there is a criterion to compute it,
     even if the slice itself hasn't been computed yet.
   *)
- t_fct_slice  = {
+ fct_slice  = {
     ff_fct : fct_info ;
     ff_id : int ;
-    mutable ff_marks : t_ff_marks;
-    mutable ff_called_by : t_called_by
+    mutable ff_marks : ff_marks;
+    mutable ff_called_by : called_by
     }
 
 and
-(** [t_fct_id] is used to identify either a source function or a sliced one.*)
-  t_fct_id =
+(** [fct_id] is used to identify either a source function or a sliced one.*)
+  fct_id =
   | FctSrc of fct_info  (** source function *)
-  | FctSliced of t_fct_slice (** sliced function *)
+  | FctSliced of fct_slice (** sliced function *)
 
 and
-  t_called_fct =
+  called_fct =
   | CallSrc of fct_info option
     (** call the source function (might be unknown if the call uses pointer) *)
-  | CallSlice of t_fct_slice
+  | CallSlice of fct_slice
 
 and
   (** information about a call in a slice which gives the function to call *)
-  t_call_info = t_called_fct option
+  call_info = called_fct option
 
 and
 (** main part of a slice = mapping between the function elements
   * and information about them in the slice. *)
-  marks_index = (pdg_mark, t_call_info) PdgIndex.FctIndex.t
+  marks_index = (pdg_mark, call_info) PdgIndex.FctIndex.t
 
 and
-  t_ff_marks = PdgTypes.Pdg.t * marks_index
+  ff_marks = PdgTypes.Pdg.t * marks_index
 
 and
-  t_project = { name : string ;
+  project = { name : string ;
                 application : Project.t ;
                 functions : fct_info Varinfo.Hashtbl.t;
-                mutable actions : t_criterion list;
+                mutable actions : criterion list;
               }
 
 and
 (** Slicing criterion at the application level.
-    When applied, they are translated into [t_fct_criterion]
+    When applied, they are translated into [fct_criterion]
 *)
- t_appli_criterion =
+ appli_criterion =
   | CaGlobalData of Locations.Zone.t
     (** select all that is necessary to compute the given location. *)
   | CaCall of fct_info
@@ -166,56 +164,56 @@ and
     Note that to build such a base criterion, the PDG has to be already
     computed.
 *)
-  t_fct_base_criterion = pdg_mark PdgMarks.t_select
+  fct_base_criterion = pdg_mark PdgMarks.select
 
 and
   (** Used to identify a location (zone) at a given program point.
       * The boolean tell if the point is before (true) or after the statement *)
-  t_loc_point = Cil_types.stmt * Locations.Zone.t * bool
+  loc_point = Cil_types.stmt * Locations.Zone.t * bool
 
-(** List of pdg nodes to be selected (see {!t_fct_user_crit})*)
-(*type t_nodes = t_pdg_node list*)
+(** List of pdg nodes to be selected (see {!fct_user_crit})*)
+(*type nodes = pdg_node list*)
 
 and
-  (** [t_node_or_dpds] tells how we want to select nodes,
-      * or some of their dependencies (see {!t_fct_user_crit}). *)
-  t_node_or_dpds = CwNode | CwAddrDpds | CwDataDpds | CwCtrlDpds
+  (** [node_or_dpds] tells how we want to select nodes,
+      * or some of their dependencies (see {!fct_user_crit}). *)
+  node_or_dpds = CwNode | CwAddrDpds | CwDataDpds | CwCtrlDpds
 
 and
 (** Tells which marks we want to put in the slice of a function *)
- t_fct_user_crit =
-  (* | CuNodes of (t_pdg_node list * (t_node_or_dpds * pdg_mark) list) list *)
-  | CuSelect of pdg_mark PdgMarks.t_select
+ fct_user_crit =
+  (* | CuNodes of (pdg_node list * (node_or_dpds * pdg_mark) list) list *)
+  | CuSelect of pdg_mark PdgMarks.select
   | CuTop of pdg_mark (** the function has probably no PDG,
                             but we nonetheless give a mark to propagate *)
 and
 (** kinds of actions that can be apply to a function *)
-  t_fct_crit =
-  | CcUserMark of t_fct_user_crit
+  fct_crit =
+  | CcUserMark of fct_user_crit
       (** add marks to a slice *)
   | CcChooseCall of Cil_types.stmt
       (** have to choose what function to call here. *)
-  | CcChangeCall of Cil_types.stmt * t_called_fct
-      (** call the [t_called_fct] for the given call [Cil_types.stmt] *)
-  | CcMissingOutputs of Cil_types.stmt * (pdg_mark PdgMarks.t_select) * bool
+  | CcChangeCall of Cil_types.stmt * called_fct
+      (** call the [called_fct] for the given call [Cil_types.stmt] *)
+  | CcMissingOutputs of Cil_types.stmt * (pdg_mark PdgMarks.select) * bool
       (** this call is affected to a function that doesn't compute enough
       * outputs : we will have to choose between adding outputs to that slice,
       * or call another one. The boolean tells if the modifications would
       * change the visibility of some outputs. *)
-  | CcMissingInputs of Cil_types.stmt * (pdg_mark PdgMarks.t_select) * bool
+  | CcMissingInputs of Cil_types.stmt * (pdg_mark PdgMarks.select) * bool
       (** the function calls a slice that has been modified :
       * and doesn't compute not enough inputs.
       * We will have to choose between adding marks to this function,
       * and call another slice.
       * The boolean tells if the modifications would
       * change the visibility of some inputs. *)
-  | CcPropagate of (pdg_mark PdgMarks.t_select)
+  | CcPropagate of (pdg_mark PdgMarks.select)
      (** simply propagate the given marks *)
-  | CcExamineCalls of pdg_mark PdgMarks.t_info_called_outputs
+  | CcExamineCalls of pdg_mark PdgMarks.info_called_outputs
 and
 (** Slicing criterion for a function.  *)
-  t_fct_criterion =  {
-  cf_fct : t_fct_id ;
+  fct_criterion =  {
+  cf_fct : fct_id ;
     (** Identification of the {b RESULT} of this filter.
      * When it a a slice, it might be an existing slice that will be modified,
       * or a new one will be created during application.
@@ -223,13 +221,13 @@ and
       * applied on each existing slice, and stored into the inititial marks of
       * the function.
       *)
-  cf_info : t_fct_crit
+  cf_info : fct_crit
 }
 and
 (** A slicing criterion is either an application level criterion,
   * or a function level one.  *)
-  t_criterion =
-  CrAppli of t_appli_criterion | CrFct of t_fct_criterion
+  criterion =
+  CrAppli of appli_criterion | CrFct of fct_criterion
 
 (** {2 Internals values} *)
 
@@ -237,7 +235,7 @@ and
 let dummy_pdg_mark = {m1 = Spare ; m2 = Spare }
 
 (** The whole project. *)
-let dummy_t_project =
+let dummy_project =
   { name = "";
     application = Project_skeleton.dummy;
     functions = Varinfo.Hashtbl.create 0;
@@ -246,7 +244,7 @@ let dummy_t_project =
 let dummy_fct_info = {
   fi_kf = Kernel_function.dummy () ;
   fi_def = None;
-  fi_project = dummy_t_project;
+  fi_project = dummy_project;
   fi_top = None;
   fi_level_option = DontSlice;
   fi_init_marks = None;
@@ -257,17 +255,17 @@ let dummy_fct_info = {
 
 let dummy_marks_index = PdgIndex.FctIndex.create 0
 
-let dummy_t_ff_marks = (PdgTypes.Pdg.top (Kernel_function.dummy ()),
+let dummy_ff_marks = (PdgTypes.Pdg.top (Kernel_function.dummy ()),
                         dummy_marks_index)
 
-let dummy_t_fct_slice = {
+let dummy_fct_slice = {
   ff_fct = dummy_fct_info ;
   ff_id = 0 ;
-  ff_marks = dummy_t_ff_marks ;
+  ff_marks = dummy_ff_marks ;
   ff_called_by = []
 }
 
-let dummy_t_fct_user_crit = CuTop dummy_pdg_mark
+let dummy_fct_user_crit = CuTop dummy_pdg_mark
 
 (*
 Local Variables:

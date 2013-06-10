@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -46,7 +46,6 @@ module Make
      val iter_succ : (V.t -> unit) -> t -> V.t -> unit
      val iter_pred : (V.t -> unit) -> t -> V.t -> unit
      val fold_pred : (V.t -> 'a -> 'a) -> t -> V.t -> 'a -> 'a
-     val in_degree: t -> V.t -> int
      val datatype_name: string
    end) :
 sig

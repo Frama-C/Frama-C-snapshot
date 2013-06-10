@@ -22,3 +22,6 @@
 /*@ predicate foo{L}(int* a,int* b, int length) = 
    ! \forall integer k; 0 <= k < length ==> a[k] == b[k]; 
 */
+
+/* Cf bug 1358 */
+struct foo { /*@ private bla */ int x; };

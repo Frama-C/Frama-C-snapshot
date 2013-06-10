@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -61,7 +61,7 @@ class propagate project fnames ~cast_intro = object(self)
       DoChildren
       (fun ki ->
         PropagationParameters.debug ~level:2
-          "Replacing %a ?" !Ast_printer.d_exp expr;
+          "Replacing %a?" Printer.pp_exp expr;
         let type_of_expr = typeOf expr in
         try
           begin match unrollType type_of_expr with
@@ -111,7 +111,7 @@ class propagate project fnames ~cast_intro = object(self)
             end; (* This is a pointer coming for C code *)
                   PropagationParameters.debug
                     "Trying replacing %a from a pointer value {&%a + %a}"
-                    !Ast_printer.d_exp expr
+                    Printer.pp_exp expr
                     Base.pretty k
                     Ival.pretty m;
                   let base =  mkAddrOrStartOf ~loc:expr.eloc (var vi) in
@@ -127,8 +127,7 @@ class propagate project fnames ~cast_intro = object(self)
                                   Bit_utils.osizeof_pointed vi.vtype
                                else Bit_utils.osizeof vi.vtype)
                           with
-                          | Int_Base.Error_Top
-                          | Int_Base.Error_Bottom -> raise Cannot_expand
+                          | Int_Base.Error_Top -> raise Cannot_expand
                         in
                         (Abstract_interp.Int.pos_div offset sizeof_pointed),
                         (Abstract_interp.Int.pos_rem offset sizeof_pointed)
@@ -156,8 +155,8 @@ class propagate project fnames ~cast_intro = object(self)
                     mkCast ~e:shifted ~newt:type_of_expr
                   in
                   PropagationParameters.debug "Replacing %a with %a"
-                    !Ast_printer.d_exp expr
-                    !Ast_printer.d_exp change_to;
+                    Printer.pp_exp expr
+                    Printer.pp_exp change_to;
                   ChangeDoChildrenPost (change_to, fun x -> x)
           | Base.Null ->
             let e =
@@ -167,7 +166,7 @@ class propagate project fnames ~cast_intro = object(self)
                   let v = Ival.project_int m in
                   PropagationParameters.debug
                     "Trying to replace %a with a numeric value: %a"
-                    !Ast_printer.d_exp expr
+                    Printer.pp_exp expr
                     Abstract_interp.Int.pretty v;
                   try
                     let v1 = Abstract_interp.Int.cast
@@ -191,9 +190,9 @@ class propagate project fnames ~cast_intro = object(self)
                  mkCast ~e ~newt:(type_of_expr)
                in
                PropagationParameters.debug "Replacing %a with %a (was %a)"
-                 !Ast_printer.d_exp expr
-                 !Ast_printer.d_exp change_to
-                 !Ast_printer.d_exp e;
+                 Printer.pp_exp expr
+                 Printer.pp_exp change_to
+                 Printer.pp_exp e;
                ChangeDoChildrenPost(change_to,fun x -> x)
           | Base.String _ | Base.Var _ | Base.Initialized_Var _ -> DoChildren
           end
@@ -209,7 +208,7 @@ class propagate project fnames ~cast_intro = object(self)
       Varinfo.Set.fold
         (fun x l ->
           PropagationParameters.feedback ~level:2
-            "Adding declaration of global %a" !Ast_printer.d_var x;
+            "Adding declaration of global %a" Printer.pp_varinfo x;
           GVarDecl(Cil.empty_funspec(),x,x.vdecl)::l)
         must_add_decl l
     in DoChildrenPost add_decl

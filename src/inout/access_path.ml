@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -22,6 +22,8 @@
 
 open Locations
 open Abstract_interp
+open Lattice_Interval_Set
+open Cvalue
 
 let pretty =
   let module M =
@@ -37,13 +39,62 @@ let pretty =
   fun fmt m ->
     Format.fprintf fmt "Access_path:@\n%a@\n=============@\n" M.pretty m
 
+
+(** [reciprocal_image b m] is the set of bits in the offsetmap [m]
+      that may lead to Top([b]) and  the set of offsets in [m]
+      where one can read an address [b]+_ *)
+let reciprocal_image_offsm base m =
+  let treat_binding (bi,ei as itv) (v, modu, r) (acc1,acc2) =
+    let r = Integer.c_rem (Rel.add_abs bi r) modu in
+    let v = Cvalue.V_Or_Uninitialized.get_v v in
+    let acc1 = if Locations.Location_Bytes.may_reach base v
+      then Int_Intervals.join acc1 (Int_Intervals.inject [itv])
+      else acc1
+    in
+    let acc2 =
+      if (Locations.Location_Bytes.intersects
+            (Locations.Location_Bytes.inject base Ival.top)
+            v)
+        && Int.compare modu (Integer.of_int (Bit_utils.sizeofpointer ())) = 0
+      then
+        let first = Int.round_up_to_r ~min:bi ~r ~modu in
+        let last =
+          Integer.mul
+            (Integer.pred (Integer.div (Integer.succ (Integer.sub ei first)) modu))
+            modu
+        in
+        if Integer.lt last Integer.zero then acc2
+        else
+          Ival.join
+            acc2
+            (Ival.inject_top (Some first) (Some (Integer.add first last)) r modu)
+      else acc2
+    in
+    acc1,acc2
+  in
+  Cvalue.V_Offsetmap.fold treat_binding m (Int_Intervals.bottom, Ival.bottom)
+
+(** [reciprocal_image m b] is the set of bits in the map [m] that may lead
+    to Top([b]) and  the location in [m] where one may read an address [b]+_ *)
+
+let reciprocal_image base m : Zone.t*Location_Bits.t =
+  if Base.is_null base then Zone.top,Location_Bits.top
+  else
+    Model.fold_base_offsetmap
+      (fun b offsm (acc1,acc2) ->
+        let interv_set,ival = reciprocal_image_offsm base offsm in
+        let acc1 = Zone.join acc1 (Zone.inject b interv_set) in
+        let acc2 = Location_Bits.join acc2 (Location_Bits.inject b ival) in
+        acc1,acc2
+      ) m (Zone.bottom,Location_Bits.bottom)
+
 let compute state base_set =
   let q = Queue.create () in
   let result = ref Base.Map.empty in
   Base.Set.iter (fun elt -> Queue.add elt q) base_set;
   while not (Queue.is_empty q) do
     let current_base = Queue.take q in
-    let recip = Cvalue.Model.reciprocal_image current_base state in
+    let recip = reciprocal_image current_base state in
     result := Base.Map.add current_base recip !result ;
     try
       Zone.fold_bases

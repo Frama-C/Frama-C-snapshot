@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -34,21 +34,18 @@ let sizeofchar () = Int.of_int (bitsSizeOf charType)
 (** [sizeof(char* )] in bits *)
 let sizeofpointer () =  bitsSizeOf theMachine.upointType
 
-let memory_size () =
-  Int.pred
-    (Int.shift_left
-       Int.one
-       (Int.of_int
-          (8+sizeofpointer ())))
+let max_bit_size () =
+  Int.mul
+  (sizeofchar())
+  (Int.shift_left Int.one (Int.of_int (sizeofpointer())))
 
-let max_bit_size () = Int.power_two (7+(sizeofpointer ()))
 let max_bit_address () = Int.pred (max_bit_size())
 
 let warn_if_zero ty r =
   if r = 0 then
     Kernel.abort
       "size of '%a' is zero. Check target code or Frama-C -machdep option."
-      !Ast_printer.d_type ty;
+      Printer.pp_typ ty;
   r
 
 (** [sizeof ty] is the size of [ty] in bits. This function may return
@@ -117,8 +114,8 @@ let sizeof_pointed typ =
     | TArray(typ,_,_,_) -> sizeof typ
     | _ ->
         Kernel.abort "TYPE IS: %a (unrolled as %a)"
-          !Ast_printer.d_type typ
-          !Ast_printer.d_type (unrollType typ)
+          Printer.pp_typ typ
+          Printer.pp_typ (unrollType typ)
 
 (** Returns the size of the type pointed by a pointer type in bytes.
     Never call it on a non pointer type. *)
@@ -128,7 +125,7 @@ let osizeof_pointed typ =
     | TArray(typ,_,_,_) -> osizeof typ
     | _ ->
         assert false (*
-        Format.printf "TYPE IS: %a\n" !Ast_printer.d_type typ;
+        Format.printf "TYPE IS: %a\n" Printer.pp_typ typ;
         Int_Base.top*)
 
 (** Returns the size of the type pointed by a pointer type of the [lval] in
@@ -189,10 +186,17 @@ let rec pretty_bits_internal env bfinfo typ ~align ~start ~stop =
       env.use_align && ((not (Int.equal (Int.pos_rem start env.rh_size) align))
                          || (not (Int.equal req_size env.rh_size)))
     in
-    Format.fprintf env.fmt "[%sbits %a to %a]%s"
+    Format.fprintf env.fmt "[%s%t]%s"
       (if Kernel.debug_atleast 1 then String.make 1 c else "")
-      Int.pretty start
-      Int.pretty stop
+      (fun fmt ->
+         if Int.equal stop (max_bit_address ()) then
+           if Int.equal start Int.zero then
+             Format.pp_print_string fmt "..."
+           else
+             Format.fprintf fmt "bits %a to ..." Int.pretty start
+         else
+           Format.fprintf fmt "bits %a to %a" Int.pretty start Int.pretty stop
+      )
       (if cond then (env.misaligned <- true ; "#") else "")
   in
   assert (if (Int.le req_size Int.zero
@@ -257,9 +261,11 @@ let rec pretty_bits_internal env bfinfo typ ~align ~start ~stop =
                  | None -> Other
                  | Some i -> Bitfield (Int.to_int64 (Int.of_int i))
                in
-               let new_align = Int.pos_rem (Int.sub align start_o) env.rh_size in
+               let new_align = Int.pos_rem (Int.sub align start_o) env.rh_size
+               in
                if Int.le new_start new_stop then
-                 NamedField( field.fname ,
+                 let name = Pretty_utils.sfprintf "%a" Printer.pp_field field in
+                 NamedField( name ,
                              new_bfinfo , field.ftype ,
                              new_align , new_start , new_stop ) :: acc
                else
@@ -298,7 +304,7 @@ let rec pretty_bits_internal env bfinfo typ ~align ~start ~stop =
           in
           let pretty_one_field = function
             | NamedField(name,bf,ftyp,align,start,stop) ->
-                Format.fprintf env.fmt ".%a" !Ast_printer.d_ident name ;
+                Format.fprintf env.fmt ".%s" name ;
                 pretty_bits_internal env bf ftyp ~align ~start ~stop
             | RawField(c,start,stop) ->
                 env.types <- Mixed;
@@ -307,10 +313,11 @@ let rec pretty_bits_internal env bfinfo typ ~align ~start ~stop =
           in
           let rec pretty_all_fields = function
             | [] -> ()
+            | [f] -> pretty_one_field f
             | f::fs ->
                 pretty_all_fields fs ;
+                Format.pp_print_string env.fmt "; ";
                 pretty_one_field f ;
-                Format.pp_print_string env.fmt "; "
           in
           match overflowing with
             | [] -> Format.pp_print_string env.fmt "{}"
@@ -322,7 +329,10 @@ let rec pretty_bits_internal env bfinfo typ ~align ~start ~stop =
         end
 
       | TArray (typ, _, _, _) ->
-          let size = Int.of_int (bitsSizeOf typ) in
+          let size =
+            try Int.of_int (bitsSizeOf typ)
+            with Cil.SizeOfError _ -> Int.zero
+          in
           if Int.is_zero size then
             raw_bits 'z' start stop
           else
@@ -383,6 +393,7 @@ let rec pretty_bits_internal env bfinfo typ ~align ~start ~stop =
                 in
                 let rec do_all_parts = function
                   | [] -> ()
+                  | [p] -> do_part p
                   | p::ps ->
                       do_part p ;
                       Format.pp_print_string env.fmt "; " ;
@@ -400,6 +411,10 @@ let rec pretty_bits_internal env bfinfo typ ~align ~start ~stop =
 
 
 let pretty_bits typ ~use_align ~align ~rh_size ~start ~stop fmt =
+  (* It is simpler to perform all computation using an absolute offset:
+     Cil easily gives offset information in terms of offset since the start,
+     but not easily the offset between two fields (with padding) *)
+  let align = Int.pos_rem (Rel.add_abs start align) rh_size in
   assert (Int.le Int.zero align
           && Int.lt align rh_size);
   if Int.lt start Int.zero then

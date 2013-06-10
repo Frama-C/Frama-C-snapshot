@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -35,7 +35,7 @@ open Cil_types
 
 include Datatype.S_with_collections with type t = kernel_function
 val id: t -> int
-val self: State.t
+val auxiliary_kf_stmt_state: State.t
 
 (* ************************************************************************* *)
 (** {2 Searching} *)
@@ -73,7 +73,8 @@ val find_from_sid : int -> stmt * t
 
 val find_englobing_kf : stmt -> t
   (** @return the function to which the statement belongs. Same
-      complexity as [find_from_sid] *)
+      complexity as [find_from_sid] 
+      @raise Not_found if the given statement is not correctly registered *)
 
 val find_enclosing_block: stmt -> block
   (** @return the innermost block to which the given statement belongs. *)
@@ -134,7 +135,8 @@ val get_locals : t -> varinfo list
 
 exception No_Definition
 val get_definition : t -> fundec
-  (** @raise No_Definition if the given function is not a definition. *)
+  (** @raise No_Definition if the given function is not a definition.
+      @plugin development guide *)
 
 (* ************************************************************************* *)
 (** {2 Membership of variables} *)
@@ -159,6 +161,10 @@ val is_formal_or_local: varinfo -> t -> bool
       variable of the given function.
       If possible, use this function instead of
       {!Ast_info.Function.is_formal_or_local}. *)
+
+val get_called : exp -> t option
+  (** Returns the static call to function [expr], if any.
+      [None] means a dynamic call through function pointer. *)
 
 (* ************************************************************************* *)
 (** {2 Collections} *)

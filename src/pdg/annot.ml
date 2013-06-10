@@ -2,11 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
-(*           alternatives)                                                *)
-(*    INRIA (Institut National de Recherche en Informatique et en         *)
-(*           Automatique)                                                 *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -111,7 +109,7 @@ let find_fun_variant_nodes pdg t =
 let find_code_annot_nodes pdg stmt annot =
   Pdg_parameters.debug "[pdg:annotation] CodeAnnot-%d stmt %d : %a @."
     annot.annot_id stmt.sid
-    !Ast_printer.d_code_annotation annot;
+    Printer.pp_code_annotation annot;
   if Db.Value.is_reachable_stmt stmt then
     try
       begin

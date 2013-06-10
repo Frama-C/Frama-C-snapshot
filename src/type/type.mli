@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -331,6 +331,9 @@ module type Heterogeneous_table = sig
 
   val iter: (key -> 'a ty -> 'a info -> unit) -> t -> unit
 (** @since Oxygen-20120901 *)
+
+  val fold: (key -> 'a ty -> 'a info -> 'b -> 'b) -> t -> 'b -> 'b
+(** @since Fluorine-20130401 *)
 
 end
 

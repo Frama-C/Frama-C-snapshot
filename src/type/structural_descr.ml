@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -280,8 +280,15 @@ and  are_consistent_unmarshal d1 d2 = match d1, d2 with
        let d2' = Unmarshal_tbl.find unmarshal_consistent_visited d1 in
        d2 == d2'
      with Not_found ->
+       (* Keep already visited terms in order to prevent looping when visiting
+	  recursive terms. However, remove them from the table after visiting in
+	  order to not pollute it when visiting cousins: fixed bts #1277.
+	  Would be better to use a persistent table instead of a mutable one,
+	  but not possible to provide a (terminating) comparison. *)
        Unmarshal_tbl.add unmarshal_consistent_visited d1 d2;
-       are_consistent_unmarshal_structures s1 s2)
+       let b = are_consistent_unmarshal_structures s1 s2 in
+       Unmarshal_tbl.remove unmarshal_consistent_visited d1;
+       b)
   | _, _ ->
     false
 
@@ -331,4 +338,4 @@ let are_consistent d1 d2 =
   Local Variables:
   compile-command: "make -C ../.."
   End:
-*)
+ *)

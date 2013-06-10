@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2012                                               #
+#  Copyright (C) 2007-2013                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -34,7 +34,7 @@ include $(MAKECONFIG_DIR)/Makefile.config
 
 # Frama-C kernel directories
 UNPACKED_DIRS= misc ai memory_state toplevel slicing_types pdg_types \
-	       kernel logic lib type project buckx gui
+	       kernel logic lib printer project type buckx gui
 UNPACKED_DIRS:= $(addprefix src/, $(UNPACKED_DIRS))
 UNPACKED_DIRS+= external
 
@@ -166,7 +166,7 @@ ISED	= sh -c \
 sed "$$@" > $$new_temp; \
 eval last=\$${$$\#}; \
 mv $$new_temp $$last' sed_inplace
-SED	= sed
+SED	= LC_ALL=C sed
 RM	= rm -f
 TAR	= tar
 TOUCH	= touch
@@ -186,6 +186,7 @@ PRINT_OCAMLCP  	=$(PRINT) 'Profiling   '#
 PRINT_CAMLP4   	=$(PRINT) 'Camlp4      '#
 PRINT_PACKING  	=$(PRINT) 'Packing     '#
 PRINT_LINKING  	=$(PRINT) 'Linking     '#
+PRINT_INFERRING	=$(PRINT) 'Inferring   '#
 
 PRINT_MAKING   	=$(PRINT) 'Generating  '#
 PRINT_MV       	=$(PRINT) 'Moving to   '#
@@ -322,6 +323,10 @@ endif
 .ml.cmo:
 	$(PRINT_OCAMLC) $@
 	$(OCAMLC) -c $(BFLAGS) $<
+
+%.inferred.mli: %.ml
+	$(PRINT_INFERRING) $@
+	$(OCAMLC) -i $(BFLAGS) $< > $@
 
 %.cmx: %.ml
 	$(PRINT_OCAMLOPT) $@

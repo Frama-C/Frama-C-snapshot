@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -195,8 +195,11 @@ let ml_name ty = sfprintf "%t" (ty.pp_ml_name Basic)
 
 let unsafe_reprs ty = (Hashtbl.find types ty.name).reprs
 let reprs ty =
-  let l = try unsafe_reprs ty with Not_found -> assert false in
-  List.map Obj.obj l
+  if !use_obj then
+    let l = try unsafe_reprs ty with Not_found -> assert false in
+    List.map Obj.obj l
+  else
+    []
 
 let set_ml_name ty ml_name =
   let pp = mk_dyn_pp ty.name ml_name in
@@ -690,7 +693,7 @@ end = struct
           if tag = 0 then
             0
           else if tag = Obj.closure_tag then
-            (* Buggy code with OCaml 3.13, deactivated for now 
+            (* Buggy code with OCaml 4.01, deactivated for now 
             (* assumes that the first word of a closure does not change in
                any way (even by Gc.compact invokation). *)
                Obj.magic (Obj.field x 0)*)
@@ -745,6 +748,7 @@ module type Heterogeneous_table = sig
   exception Incompatible_type of string
   val find: t -> key -> 'a ty -> 'a info
   val iter: (key -> 'a ty -> 'a info -> unit) -> t -> unit
+  val fold: (key -> 'a ty -> 'a info -> 'b -> 'b) -> t -> 'b -> 'b
 end
 
 module Make_tbl
@@ -791,6 +795,10 @@ struct
   let iter f tbl =
     if !use_obj then H.iter (fun k v -> f k v.ty (Obj.obj v.o)) tbl
     else invalid_arg "cannot call function 'iter' in the 'no obj' mode"
+
+  let fold f tbl acc =
+    if !use_obj then H.fold (fun k v acc -> f k v.ty (Obj.obj v.o) acc) tbl acc
+    else invalid_arg "cannot call function 'fold' in the 'no obj' mode"
 
 end
 

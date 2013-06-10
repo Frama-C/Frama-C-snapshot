@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -58,17 +58,6 @@
     
   let word keymap m =
     try Hashtbl.find keymap m with Not_found -> IDENT m
-
-  (* [VP]: can be dropped when support for 3.10.2 ends *)
-  let new_line lexbuf =
-    let pos = lexbuf.lex_curr_p in
-    let pos = 
-      { pos with 
-        pos_bol = pos.pos_cnum;
-        pos_lnum = pos.pos_lnum + 1;
-      }
-    in
-    lexbuf.lex_curr_p <- pos
 }
 
 let digit = ['0'-'9']
@@ -77,7 +66,7 @@ let letter = ['a'-'z' 'A'-'Z' '_']
 rule token keymap = parse
 
     '\n' { new_line lexbuf ; token keymap lexbuf }
-  | '.' [' ' '\t' '\r']* '\n' { new_line lexbuf ; END }
+  | '.' [' ' '\t' '\r']* '\n' { Lexing.new_line lexbuf ; END }
   | ['\t' '\r' ' '] { token keymap lexbuf }
   | "(*" { comment 0 lexbuf ; token keymap lexbuf }
 
@@ -105,7 +94,7 @@ rule token keymap = parse
 and comment n = parse
   | "*)" { if n > 0 then comment (n-1) lexbuf }
   | "(*" { comment (n+1) lexbuf }
-  | '\n' { new_line lexbuf ; comment n lexbuf }
+  | '\n' { Lexing.new_line lexbuf ; comment n lexbuf }
   | eof  { failwith "unexpected end-of-line inside comments" }
   | _    { comment n lexbuf }
 

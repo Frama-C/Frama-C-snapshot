@@ -1,6 +1,7 @@
 /* run.config
-   OPT: -memory-footprint 1 -val -journal-disable -val-signed-overflow-alarms -cpp-command "gcc -C -E -nostdinc -I. -Ishare/libc" 
+   OPT: -memory-footprint 1 -val -warn-signed-overflow -cpp-command "gcc -C -E -nostdinc -I. -Ishare/libc" 
 */
+
 #include <limits.h>
 
 int cl, cu, ucu;
@@ -27,5 +28,4 @@ main()
   lll = LLONG_MIN;
   llu = LLONG_MAX;
   ullu = ULLONG_MAX;
-  
 }

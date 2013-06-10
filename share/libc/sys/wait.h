@@ -2,8 +2,8 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2012                                               */
-/*    CEA (Commissariat à l'énergie atomique et aux énergies              */
+/*  Copyright (C) 2007-2013                                               */
+/*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
 /*  you can redistribute it and/or modify it under the terms of the GNU   */
@@ -31,16 +31,16 @@
 #define WNOWAIT 5
 
 #include "../__fc_define_pid_t.h"
+#include "../__fc_define_uid_and_gid.h"
+#include "../signal.h"
+#include "resource.h"
 
-enum idtype_t { P_ALL, P_PID, P_PGID };
+typedef enum __FC_IDTYPE_T { P_ALL, P_PID, P_PGID } idtype_t;
 
-pid_t  wait(int *);
-
-#if 0 //TODO
+pid_t wait(int *stat_loc);
 pid_t  wait3(int *, int, struct rusage *);
-int    waitid(idtype_t, id_t, siginfo_t *, int);
-pid_t  waitpid(pid_t, int *, int);
-#endif
+int waitid(idtype_t idt, id_t id, siginfo_t * sig, int options);
+pid_t waitpid(pid_t pid, int *stat_loc, int options);
 
 #endif
 

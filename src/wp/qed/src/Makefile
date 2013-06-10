@@ -2,8 +2,8 @@
 #                                                                        #
 #  This file is part of WP plug-in of Frama-C.                           #
 #                                                                        #
-#  Copyright (C) 2007-2012                                               #
-#    CEA (Commissariat a l'énergie atomique et aux énergies              #
+#  Copyright (C) 2007-2013                                               #
+#    CEA (Commissariat a l'energie atomique et aux energies              #
 #         alternatives)                                                  #
 #                                                                        #
 #  you can redistribute it and/or modify it under the terms of the GNU   #
@@ -26,17 +26,11 @@
 
 PACK?=no
 
-LIB_ML = z r range hcons intmap intset idxset idxmap \
-	 listset listmap mergeset mergemap collection \
-         plib topology
+include Makefile.src
 
-SRC_ML = kind pool term pretty depends \
-	 linker export export_coq export_whycore export_why3 export_altergo \
-	 input ast lexer parser \
-	 unify typechecker compiler \
-	 simplifier \
-
-SRC_MLI = logic engine syntax
+LIB_ML:=$(QED_LIB_ML)
+SRC_ML:=$(QED_SRC_ML)
+SRC_MLI:=$(QED_SRC_MLI)
 
 LBO= $(addsuffix .cmo,$(LIB_ML))
 LBX= $(addsuffix .cmx,$(LIB_ML))
@@ -49,8 +43,8 @@ DOC= $(addsuffix .mli,$(LIB_ML) $(SRC_MLI) $(SRC_ML))
 .PHONY: all byte opt doc
 
 all:  byte opt
-byte: ../bin/Qed.cmo
-opt:  ../bin/Qed.cmx
+byte: ../bin/Qed.cmo Makefile Makefile.src
+opt:  ../bin/Qed.cmx Makefile Makefile.src
 doc:  ../html/index.html
 
 Qed.cmo: $(LBO) $(CMO) $(CML)
@@ -79,17 +73,20 @@ endif
 	$(OCAMLDOC) -html -d ../html -t "Qed Library" -stars $(DOC)
 	@cp -f ocamldoc.css ../html/style.css
 
-depend: lexer.ml
+depend: lexer.ml numbers.ml
 
 depend.pdf: depend.dot
 	dot -T pdf -Grotate=180 -o $@ $<
 
 depend.dot: .depend
-	ocamldoc -dot-reduce -o $@ -dot $(addsuffix .mli,$(SRC_MLI)) $(addsuffix .ml,$(LIB_ML) $(SRC_ML))
+	$(OCAMLDOC) -dot-reduce -o $@ -dot $(addsuffix .mli,$(SRC_MLI)) $(addsuffix .ml,$(LIB_ML) $(SRC_ML))
 
 clean::
 	rm -fr ../html
 	rm -f lexer.ml depend.dot depend.pdf
+
+distclean::
+	rm -f ../bin/Qed.*
 
 INCLUDES=
 OPTCMI=

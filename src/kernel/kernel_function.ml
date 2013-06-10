@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -80,9 +80,10 @@ module Kf =
        let dependencies = [ Ast.self ]
      end)
 
-let self = Kf.self
+let auxiliary_kf_stmt_state = Kf.self
 
 let clear_sid_info () = Kf.clear ()
+let () = Cfg.clear_sid_info_ref := clear_sid_info
 
 let compute () =
   Kf.memo
@@ -124,8 +125,6 @@ let find_from_sid sid =
   let kf, s, _ = Datatype.Int.Hashtbl.find table sid in
   s, kf
 
-let () = Dataflow.stmt_of_sid := (fun sid -> fst (find_from_sid sid))
-
 let find_englobing_kf stmt = snd (find_from_sid stmt.sid)
 
 let blocks_closed_by_edge s1 s2 =
@@ -137,10 +136,10 @@ let blocks_closed_by_edge s1 s2 =
   let _,_,b2 = Datatype.Int.Hashtbl.find table s2.sid in
 (*  Kernel.debug ~level:2
     "Blocks opened for stmt %a@\n%a@\nblocks opened for stmt %a@\n%a"
-    !Ast_printer.d_stmt s1 
-    (Pretty_utils.pp_list ~sep:Pretty_utils.nl_sep !Ast_printer.d_block) b1 
-    !Ast_printer.d_stmt s2 
-    (Pretty_utils.pp_list ~sep:Pretty_utils.nl_sep !Ast_printer.d_block) b2;*)
+    Printer.pp_stmt s1 
+    (Pretty_utils.pp_list ~sep:Pretty_utils.nl_sep Printer.pp_block) b1 
+    Printer.pp_stmt s2 
+    (Pretty_utils.pp_list ~sep:Pretty_utils.nl_sep Printer.pp_block) b2;*)
   let rec aux acc = function
       [] -> acc
     | inner_block::others ->
@@ -149,7 +148,7 @@ let blocks_closed_by_edge s1 s2 =
   in aux [] b1
   with Not_found ->
     Format.eprintf "Unknown statements:@\n%d: %a@\n%d: %a@."
-      s1.sid !Ast_printer.d_stmt s1 s2.sid !Ast_printer.d_stmt s2;
+      s1.sid Cil_printer.pp_stmt s1 s2.sid Cil_printer.pp_stmt s2;
     raise Not_found
 
 let find_enclosing_block s =
@@ -281,6 +280,12 @@ let find_label kf label =
         raise Not_found
       with Found_label s -> s
 
+let get_called fct = match fct.enode with
+  | Lval (Var vkf, NoOffset) -> 
+      (try Some (Globals.Functions.get vkf)
+       with Not_found -> None)
+  | _ -> None
+
 (* ************************************************************************* *)
 (** {2 CallSites} *)
 (* ************************************************************************* *)
@@ -380,10 +385,6 @@ let is_formal_or_local v kf =
   (not v.vglob) && (is_formal v kf || is_local v kf)
 
 (* ************************************************************************* *)
-(** {2 Specifications} *)
-(* ************************************************************************* *)
-
-(* ************************************************************************* *)
 (** {2 Pretty printer} *)
 (* ************************************************************************* *)
 
@@ -403,10 +404,11 @@ module Hptset = struct
   let pretty_kf = pretty
 
   include Hptset.Make
-  (Cil_datatype.Kf)
-  (struct let v = [ [ ] ] end)
-  (struct let l = [ Ast.self ] end)
+    (Cil_datatype.Kf)
+    (struct let v = [ [ ] ] end)
+    (struct let l = [ Ast.self ] end)
   let () = Ast.add_monotonic_state self
+  let () = Ast.add_hook_on_update clear_caches
 
   let pretty fmt = Pretty_utils.pp_iter iter pretty_kf fmt
 end

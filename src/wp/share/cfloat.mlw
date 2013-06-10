@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -26,39 +26,51 @@
 
 (* C-Float Conversion *)
 
-logic to_float16  : real -> real 
-logic to_float32  : real -> real 
-logic to_float64  : real -> real 
-logic to_float96  : real -> real 
-logic to_float128 : real -> real 
+logic to_float32 : real -> real
+logic to_float64 : real -> real
+predicate is_float32(x : real) = to_float32(x)=x
+predicate is_float64(x : real) = to_float64(x)=x
 
-(* C-Float Conversions are projections *)
+(* C-Float Rounding Modes *)
 
-axiom proj_float16 : forall x:real [ to_float16(to_float16(x)) ]. to_float16(to_float16(x))=to_float16(x) 
-axiom proj_float32 : forall x:real [ to_float32(to_float32(x)) ]. to_float32(to_float32(x))=to_float32(x) 
-axiom proj_float64 : forall x:real [ to_float64(to_float64(x)) ]. to_float64(to_float64(x))=to_float64(x) 
-axiom proj_float96 : forall x:real [ to_float96(to_float96(x)) ]. to_float96(to_float96(x))=to_float96(x) 
-axiom proj_float128 : forall x:real [ to_float128(to_float128(x)) ]. to_float128(to_float128(x))=to_float128(x) 
-
-(* C-Float Comparisons as Integers *)
-
-logic feq : real,real -> int
-logic flt : real,real -> int
-logic fneq : real,real -> int
-logic fleq : real,real -> int
-
-axiom feq : forall x,y:real [feq(x,y)]. (x=y and feq(x,y)=1) or (x<>y and feq(x,y)=0)
-axiom flt : forall x,y:real [flt(x,y)]. (x<y and flt(x,y)=1) or (x>=y and flt(x,y)=0)
-axiom fneq : forall x,y:real [fneq(x,y)]. (x=y and fneq(x,y)=0) or (x<>y and fneq(x,y)=1)
-axiom fleq : forall x,y:real [fleq(x,y)]. (x<=y and fleq(x,y)=1) or (x>y and fleq(x,y)=0)
-
-type float32
-type float64
-type float_format = Single | Double | Quad
-type rounding_mode = Up | Down | ToZero | NearestAway | NearestEven
-type sign = Positive | Negative
+type rounding_mode = Up | Down | ToZero | NearestTiesToAway | NearestTiesToEven
 logic round_double : rounding_mode,real -> real
 logic round_float : rounding_mode,real -> real
-logic is_finite32 : float32 -> prop
-logic is_finite64 : float64 -> prop
+logic is_finite32 : real -> prop
+logic is_finite64 : real -> prop
 
+axiom float_32:
+  forall x:real [ round_float( NearestTiesToEven , x ) ].
+  to_float32(x) = round_float( NearestTiesToEven , x )
+
+axiom float_64:
+  forall x:real [ round_double( NearestTiesToEven , x ) ].
+  to_float64(x) = round_double( NearestTiesToEven , x )
+
+axiom is_finite_to_float_32 : 
+  forall x:real [is_finite32(to_float32(x))]. is_finite32(to_float32(x))
+
+axiom is_finite_to_float_64 :
+  forall x:real [is_finite64(to_float64(x))]. is_finite64(to_float64(x))
+
+(* C-Float Rounded Arithmetics *)
+
+function add_float32(x:real,y:real):real = to_float32(x+y)
+function add_float64(x:real,y:real):real = to_float64(x+y)
+
+function sub_float32(x:real,y:real):real = to_float32(x-y)
+function sub_float64(x:real,y:real):real = to_float64(x-y)
+
+function mul_float32(x:real,y:real):real = to_float32(x*y)
+function mul_float64(x:real,y:real):real = to_float64(x*y)
+
+function div_float32(x:real,y:real):real = to_float32(x/y)
+function div_float64(x:real,y:real):real = to_float64(x/y)
+
+(* Real Arithmetics *)
+
+function ropp(x:real):real = -x
+function radd(x:real,y:real):real = x+y
+function rsub(x:real,y:real):real = x-y
+function rmul(x:real,y:real):real = x*y
+function rdiv(x:real,y:real):real = x/y

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -130,35 +130,24 @@ let services_view model =
   ignore $ view#set_center_scroll_region true;
   view
 
-let graph_window (main_window: Design.main_window_extension_points) =
-  let graph = Register.get () in
-  try
-    let parent = main_window#main_window in
-    let height = int_of_float (float parent#default_height *. 3. /. 4.) in
-    let width = int_of_float (float parent#default_width *. 3. /. 4.) in
-    let window =
-      GWindow.window
-        ~position:`CENTER
-        ~height ~width ~title:"Syntactic Callgraph"
-        ~allow_shrink:true ~allow_grow:true ()
-    in
-    Service_graph.frama_c_display true;
-    let _, view =
-      View.from_graph_with_commands
-        ~packing:window#add
-        ?root:(Service.entry_point ())
-        ~mk_global_view:services_view
-        graph
-    in
-    window#show ();
-    view#adapt_zoom ()
-  with DGraphModel.DotError cmd -> main_window#error "%s\n" cmd
+let make_graph_view ~packing () = 
+  let _, view = 
+    View.from_graph_with_commands
+      ~packing
+      ?root:(Service.entry_point ())
+      ~mk_global_view:services_view
+      (Register.get ())
+  in view
 
 let main (window: Design.main_window_extension_points) =
   ignore
     ((window#menu_manager ())#add_plugin
        [ Menu_manager.menubar "Show callgraph"
-           (Menu_manager.Unit_callback (fun () -> graph_window window));
+           (Menu_manager.Unit_callback (fun () -> 
+	     Service_graph.frama_c_display true;
+	     Gtk_helper.graph_window
+	       ~parent:window#main_window ~title:"Syntactic Callgraph"
+	       make_graph_view))
        ])
 
 let () = Design.register_extension main

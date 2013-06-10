@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -28,7 +28,7 @@ exception NoSize
 
 val degree_of_type : typ -> int (** Dimensions in the type (0 for non-array) *)
 val alloc_for_type : typ -> int list (** Size of dimensions in the type (0 for unknown size) *)
-val cells_in_type  : typ -> My_bigint.t (** Number of cells in the type (raise NoSize for unknown size) *)
+val cells_in_type  : typ -> Integer.t (** Number of cells in the type (raise NoSize for unknown size) *)
 val type_of_cells  : typ -> typ (** Type of multi-dimensional array cells *)
 
 type usage =

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -28,7 +28,7 @@
 val nop: 'a -> unit
   (** Do nothing. *)
 
-val id: 'a -> 'a
+external id: 'a -> 'a = "%identity"
   (** identity function.
       @since Oxygen-20120901
    *)
@@ -51,19 +51,17 @@ val number_to_color: int -> int
 (* ************************************************************************* *)
 
 exception Unregistered_function of string
-(** Do never catch it yourself: let the kernel do the job.
-    @since Oxygen-20120901 
-    @plugin development guide *)
+(** Never catch it yourself: let the kernel do the job.
+    @since Oxygen-20120901 *)
 
 val mk_labeled_fun: string -> 'a
-(** to be used to initialized a reference over a labeled function.
+(** To be used to initialized a reference over a labeled function.
     @since Oxygen-20120901
     @raise Unregistered_function when not properly initialized *)
 
 val mk_fun: string -> ('a -> 'b) ref
-  (** build a reference to an unitialized function
-      @raise Unregistered_function when not properly initialized
-      @plugin development guide *)
+  (** Build a reference to an unitialized function
+      @raise Unregistered_function when not properly initialized *)
 
 (* ************************************************************************* *)
 (** {2 Function combinators} *)
@@ -152,6 +150,10 @@ val has_some: 'a option -> bool
 
 val may: ('a -> unit) -> 'a option -> unit
 
+val opt_conv: 'a -> 'a option -> 'a
+  (** [opt_conv default v] returns [default] if [v] is [None] and [a] if
+      [v] is [Some a] *)
+
 val may_map: ('a -> 'b) -> ?dft:'b -> 'a option -> 'b
   (** [may_map f ?dft x] applies [f] to the value of [x] if exists. Otherwise
       returns the default value [dft].
@@ -171,10 +173,9 @@ val opt_fold: ('a -> 'b -> 'b) -> 'a option -> 'b -> 'b
     It is mainly intended to be used with Map.merge
     
     @since Oxygen-20120901
-
 *)
-val merge_opt: ('a -> 'b -> 'b -> 'b) -> 'a -> 
-  'b option -> 'b option -> 'b option
+val merge_opt:
+  ('a -> 'b -> 'b -> 'b) -> 'a -> 'b option -> 'b option -> 'b option
 
 (** [opt_bind f x] returns [None] if [x] is [None] and [f y] if is [Some y]
     (monadic bind)

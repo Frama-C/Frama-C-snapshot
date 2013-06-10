@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -32,16 +32,22 @@ type 'a sequence = { pre : 'a ; post : 'a }
 
 (** Memory Values *)
 
+type acs = 
+  | RW (** Read-Write Access *)
+  | RD (** Read-Only Access *)
+
 type 'a value =
   | Val of term
   | Loc of 'a
 
 type 'a rloc =
   | Rloc of c_object * 'a
+  | Rarray of 'a * c_object * int64
   | Rrange of 'a * c_object * term option * term option
 
 type 'a sloc = 
   | Sloc of 'a
+  | Sarray of 'a * c_object * int64 (** full sized-array range *)
   | Srange of 'a * c_object * term option * term option
   | Sdescr of var list * 'a * pred
 
@@ -76,8 +82,10 @@ sig
   type t
 
   val create : unit -> t
+  val copy : t -> t
   val merge : t -> t -> t * Passive.t * Passive.t
-  val join : t -> t -> Passive.t
+  val join : t -> t -> Passive.t (** pairwise equal *)
+  val assigned : t -> t -> domain -> pred Bag.t (** equal chunks outside domain *)
 
   val mem : t -> chunk -> bool
   val get : t -> chunk -> var
@@ -98,8 +106,8 @@ end
 module type Model =
 sig
 
-  val datatype : string
-  val register : Model.registry 
+  val configure : Model.tuning
+  val datatype : string (** for projectification *)
 
   module Chunk : Chunk
 
@@ -120,6 +128,7 @@ sig
   val occurs : var -> loc -> bool
 
   val null : loc
+  val literal : eid:int -> Cstring.cst -> loc
   val cvar : varinfo -> loc
   val pointer_loc : term -> loc
   val pointer_val : loc -> term
@@ -144,9 +153,9 @@ sig
   val loc_lt : loc -> loc -> pred
   val loc_neq : loc -> loc -> pred
   val loc_leq : loc -> loc -> pred
-  val loc_offset : c_object -> loc -> loc -> term
+  val loc_diff : c_object -> loc -> loc -> term
 
-  val valid : sigma -> segment -> pred
+  val valid : sigma -> acs -> segment -> pred
   val scope : sigma -> Mcfg.scope -> varinfo list -> sigma * pred list
 
   val included : segment -> segment -> pred

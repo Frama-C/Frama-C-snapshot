@@ -2,8 +2,8 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2012                                               */
-/*    CEA (Commissariat à l'énergie atomique et aux énergies              */
+/*  Copyright (C) 2007-2013                                               */
+/*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
 /*  you can redistribute it and/or modify it under the terms of the GNU   */
@@ -25,6 +25,14 @@
 #include "__fc_define_null.h"
 #include "__fc_define_size_t.h"
 #include "__fc_define_restrict.h"
+
+/*
+ * Names of the interval timers, and structure
+ * defining a timer setting:
+ */
+#define	ITIMER_REAL		0
+#define	ITIMER_VIRTUAL		1
+#define	ITIMER_PROF		2
 
 
 typedef unsigned int clock_t;
@@ -50,6 +58,8 @@ struct itimerspec {
   struct timespec  it_value;
 };
 
+
+
 #define CLOCK_REALTIME 666
 #define TIMER_ABSTIME 0
 
@@ -69,8 +79,19 @@ char *asctime(const struct tm *timeptr);
 
 char *ctime(const time_t *timer);
 
+struct tm __fc_time_tm;
+struct tm * const  __fc_time_tm_ptr=&__fc_time_tm;
+
+/*@ assigns \result \from __fc_time_tm_ptr;
+  assigns __fc_time_tm \from *timer;
+  ensures \result == &__fc_time_tm || \result == \null ;
+*/
 struct tm *gmtime(const time_t *timer);
 
+/*@ assigns \result \from __fc_time_tm_ptr;
+  assigns __fc_time_tm \from *timer;
+  ensures \result == &__fc_time_tm || \result == \null;
+*/
 struct tm *localtime(const time_t *timer);
 
 size_t strftime(char * restrict s,
@@ -81,5 +102,10 @@ size_t strftime(char * restrict s,
 /* POSIX */
 int nanosleep(const struct timespec *, struct timespec *);
 
+extern int daylight;
+extern long timezone;
+extern char *tzname[2];
+/* assigns tzname[0..1][0..] \from \nothing ;*/
+void tzset(void); 
 
 #endif

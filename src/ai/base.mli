@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -21,20 +21,26 @@
 (**************************************************************************)
 
 (** Validity of variables seen as memory bases. The validity is expressed in
-    bytes *)
+    bytes. *)
 
 open Abstract_interp
 
 type validity =
-  | Known of Int.t * Int.t (** Valid between those two bytes *)
-  | Unknown of Int.t * Int.t (** Potentially valid between those two bytes.
-                  Accesses will not succeed, but will also raise an alarm *)
+  | Known of Int.t * Int.t (** Valid between those two bits *)
+  | Unknown of Int.t * Int.t option * Int.t 
+      (** Unknown(b,k,e) indicates:
+          If k is [None], potentially valid between b and e
+          If k is [Some k], then b <= k <= e, and the base is
+           - valid between b and k;
+  	   - potentially valid between k+1 and e:
+          Accesses on potentially valid parts will succeed, but will also
+          raise an alarm. *)
   | Periodic of Int.t * Int.t (** min-max bounds*) * Int.t (** Period *)
       (** Valid between the two bounds, and considered as a repetition
           of the given period. Only one period is stored; consequently,
           strong updates are impossible. *)
-  | All (** Always valid. Do not use unless you know very well what you are
-            doing *)
+  | Invalid (** Valid nowhere. Typically used for the NULL base *)
+
 
 type string_id
 
@@ -47,6 +53,7 @@ type base = private
 
 include Datatype.S_with_collections with type t = base
 module Hptset: Hptset.S with type elt = t
+module SetLattice: Lattice_Set with module O = Hptset
 
 val pretty_validity : Format.formatter -> validity -> unit
 
@@ -82,18 +89,18 @@ val is_hidden_variable : t -> bool
 val validity_from_type : Cil_types.varinfo -> validity
 
 val create_varinfo : Cil_types.varinfo -> t
-  (** Return the base corresponding to a program variable. This function's name
-      is short for "create_from_varinfo". The validity of the base is inferred
-      from the type of the variable. *)
+(** @return the base corresponding to a program variable. This function's name
+    is short for "create_from_varinfo". The validity of the base is inferred
+    from the type of the variable. *)
 
 exception Not_a_variable
 val get_varinfo: t -> Cil_types.varinfo
-  (** If the base corresponds to a variable, return the variable's varinfo.
-      @raise Not_a_variable if the base is not a variable. *)
+(** @return the variable's varinfo if the base corresponds to a variable.
+    @raise Not_a_variable if the base is not a variable. *)
 
 val create_logic :  Cil_types.varinfo -> validity -> t
-  (** Return the base corresponding to a logic variable. This function's name
-      is short for "create_from_logic". *)
+(** @return the base corresponding to a logic variable. This function's name
+    is short for "create_from_logic". *)
 
 val find: Cil_types.varinfo -> t
   (** Return the base corresponding to a variable. *)

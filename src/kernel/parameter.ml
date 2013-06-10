@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -55,10 +55,10 @@ include
             help = "dummy bool option";
             accessor = 
             Bool 
-              ({get=(fun () -> false); 
-                set = (fun _ -> ()); 
-                add_set_hook = (fun _ -> ());
-		add_update_hook = (fun _ -> ()) },
+              ({ get = (fun () -> false); 
+                 set = (fun _ -> ()); 
+                 add_set_hook = (fun _ -> ());
+		 add_update_hook = (fun _ -> ()) },
                None);
             is_set = fun () -> false }
         ]
@@ -87,7 +87,7 @@ let get = Datatype.String.Hashtbl.find parameters
 let pretty_value fmt p = match p.accessor with
   | Bool(a, _) -> Format.fprintf fmt "%b" (a.get ())
   | Int(a, _) -> Format.fprintf fmt "%d" (a.get ())
-  (* factorisation requires GADT (will be in OCaml 3.13?) *)
+  (* factorisation requires GADT (OCaml 4.01) *)
   | String(a, _) -> Format.fprintf fmt "%s" (a.get ())
   | String_set a -> Format.fprintf fmt "%s" (a.get ())
   | String_list a -> Format.fprintf fmt "%s" (a.get ())

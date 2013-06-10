@@ -1,43 +1,45 @@
-(**************************************************************************)
-(*                                                                        *)
-(*  Copyright (C) 2001-2003                                               *)
-(*   George C. Necula    <necula@cs.berkeley.edu>                         *)
-(*   Scott McPeak        <smcpeak@cs.berkeley.edu>                        *)
-(*   Wes Weimer          <weimer@cs.berkeley.edu>                         *)
-(*   Ben Liblit          <liblit@cs.berkeley.edu>                         *)
-(*  All rights reserved.                                                  *)
-(*                                                                        *)
-(*  Redistribution and use in source and binary forms, with or without    *)
-(*  modification, are permitted provided that the following conditions    *)
-(*  are met:                                                              *)
-(*                                                                        *)
-(*  1. Redistributions of source code must retain the above copyright     *)
-(*  notice, this list of conditions and the following disclaimer.         *)
-(*                                                                        *)
-(*  2. Redistributions in binary form must reproduce the above copyright  *)
-(*  notice, this list of conditions and the following disclaimer in the   *)
-(*  documentation and/or other materials provided with the distribution.  *)
-(*                                                                        *)
-(*  3. The names of the contributors may not be used to endorse or        *)
-(*  promote products derived from this software without specific prior    *)
-(*  written permission.                                                   *)
-(*                                                                        *)
-(*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS   *)
-(*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT     *)
-(*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS     *)
-(*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE        *)
-(*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,   *)
-(*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,  *)
-(*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;      *)
-(*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER      *)
-(*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT    *)
-(*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN     *)
-(*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE       *)
-(*  POSSIBILITY OF SUCH DAMAGE.                                           *)
-(*                                                                        *)
-(*  File modified by CEA (Commissariat à l'énergie atomique et aux        *)
-(*                        énergies alternatives).                         *)
-(**************************************************************************)
+(****************************************************************************)
+(*                                                                          *)
+(*  Copyright (C) 2001-2003                                                 *)
+(*   George C. Necula    <necula@cs.berkeley.edu>                           *)
+(*   Scott McPeak        <smcpeak@cs.berkeley.edu>                          *)
+(*   Wes Weimer          <weimer@cs.berkeley.edu>                           *)
+(*   Ben Liblit          <liblit@cs.berkeley.edu>                           *)
+(*  All rights reserved.                                                    *)
+(*                                                                          *)
+(*  Redistribution and use in source and binary forms, with or without      *)
+(*  modification, are permitted provided that the following conditions      *)
+(*  are met:                                                                *)
+(*                                                                          *)
+(*  1. Redistributions of source code must retain the above copyright       *)
+(*  notice, this list of conditions and the following disclaimer.           *)
+(*                                                                          *)
+(*  2. Redistributions in binary form must reproduce the above copyright    *)
+(*  notice, this list of conditions and the following disclaimer in the     *)
+(*  documentation and/or other materials provided with the distribution.    *)
+(*                                                                          *)
+(*  3. The names of the contributors may not be used to endorse or          *)
+(*  promote products derived from this software without specific prior      *)
+(*  written permission.                                                     *)
+(*                                                                          *)
+(*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS     *)
+(*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT       *)
+(*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS       *)
+(*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE          *)
+(*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,     *)
+(*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,    *)
+(*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;        *)
+(*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER        *)
+(*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT      *)
+(*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN       *)
+(*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE         *)
+(*  POSSIBILITY OF SUCH DAMAGE.                                             *)
+(*                                                                          *)
+(*  File modified by CEA (Commissariat à l'énergie atomique et aux          *)
+(*                        énergies alternatives)                            *)
+(*               and INRIA (Institut National de Recherche en Informatique  *)
+(*                          et Automatique).                                *)
+(****************************************************************************)
 
 (** The Abstract Syntax of CIL.
     @plugin development guide *)
@@ -51,13 +53,6 @@
 (* In addition, it is a good idea to add some invariant checks in the       *)
 (* check_file class in frama-c/src/file.ml (before lauching the tests)      *)
 (****************************************************************************)
-
-(** This is used to cache the computation of the size of types in bits. *)
-type bitsSizeofTyp = Not_Computed | Not_Computable of exn | Computed of int
-type bitsSizeofTypCache = { mutable scache : bitsSizeofTyp}
-
-(** kind of termination a post-condition applies to. See ACSL manual. *)
-type termination_kind = Normal | Exits | Breaks | Continues | Returns
 
 (* ************************************************************************* *)
 (** {2 Root of the AST} *)
@@ -263,6 +258,14 @@ and fkind =
   | FDouble     (** [double] *)
   | FLongDouble (** [long double] *)
 
+(** This is used to cache the computation of the size of types in bits. *)
+and bitsSizeofTyp =
+  | Not_Computed
+  | Computed of int
+  | Not_Computable of (string * typ) (** Explanation of the error *)
+
+and bitsSizeofTypCache = { mutable scache : bitsSizeofTyp}
+
 (* ************************************************************************* *)
 (** {2 Attributes} *)
 (* ************************************************************************* *)
@@ -284,7 +287,7 @@ and attributes = attribute list
 
 (** The type of parameters of attributes *)
 and attrparam =
-  | AInt of My_bigint.t                  (** An integer constant *)
+  | AInt of Integer.t                  (** An integer constant *)
   | AStr of string                       (** A string constant *)
   | ACons of string * attrparam list 
   (** Constructed attributes. These are printed [foo(a1,a2,...,an)]. The list
@@ -387,7 +390,8 @@ and fieldinfo = {
       participate in initialization *)
 
   mutable ftype: typ;
-  (** The type *)
+  (** The type. If the field is a bitfield, a special attribute
+      [FRAMA_C_BITFIELD_SIZE] indicating the width of the bitfield is added. *)
 
   mutable fbitfield: int option;
   (** If a bitfield then ftype should be an integer type and the width of the
@@ -687,7 +691,7 @@ and exp_info = {
 
 (** Literal constants *)
 and constant =
-  | CInt64 of My_bigint.t * ikind * string option
+  | CInt64 of Integer.t * ikind * string option
   (** Integer constant. Give the ikind (see ISO9899 6.1.3.2) and the
       textual representation. Textual representation is always set to Some s
       when it comes from user code. This allows us to print a
@@ -1033,10 +1037,13 @@ and stmtkind =
       branches fall-through to the successor of the If statement. *)
 
   | Switch of exp * block * (stmt list) * location
-  (** A switch statement. The statements that implement the cases can be reached
-      through the provided list. For each such target you can find among its
-      labels what cases it implements. The statements that implement the cases
-      are somewhere within the provided [block]. *)
+  (** A switch statement. [exp] is the index of the switch. [block] is
+      the body of the switch. [stmt list] contains the set of
+      statements whose [labels] are cases of the switch (i.e. for each
+      case, the corresponding statement is in [stmt list], a statement
+      cannot appear more than once in the list, and statements in
+      [stmt list] can have several labels corresponding to several
+      cases. *)
 
   | Loop of 
       code_annotation list * block * location * (stmt option) * (stmt option)
@@ -1109,12 +1116,12 @@ and instr =
 
   | Call of lval option * exp * exp list * location
   (** optional: result is an lval. A cast might be necessary if the declared
-      result type of the function is not the same as that of the destination. If
-      the function is declared then casts are inserted for those arguments that
-      correspond to declared formals. (The actual number of arguments might be
-      smaller or larger than the declared number of arguments. C allows this.)
+      result type of the function is not the same as that of the destination.
+      Actual arguments must have a type equivalent (i.e. {!Cil.need_cast} must
+      return [false]) to the one of the formals of the function.
       If the type of the result variable is not the same as the declared type of
-      the function result then an implicit cast exists. *)
+      the function result then an implicit cast exists. 
+  *)
 
   (* See the GCC specification for the meaning of ASM.
     If the source is MS VC then only the templates
@@ -1153,15 +1160,21 @@ and location = Lexing.position * Lexing.position
 (** {1 Abstract syntax trees for annotations} *)
 
 and logic_constant =
-  | Integer of My_bigint.t * string option 
+  | Integer of Integer.t * string option 
   (** Integer constant with a textual representation.  *)
   | LStr of string (** String constant. *)
   | LWStr of int64 list (** Wide character string constant. *)
   | LChr of char (** Character constant. *)
-  | LReal of float * string
-  (** Real constants. Only a textual representation should be available.
-      The floating point constant is an approximation of this representation. *)
+  | LReal of logic_real
   | LEnum of enumitem (** An enumeration constant.*)
+
+(** Real constants. *)
+and logic_real = {
+  r_literal : string ; (** Initial string representation [s]. *)
+  r_nearest : float ;  (** Nearest approximation of [s] in double precision. *)
+  r_upper : float ;    (** Smallest double [u] such that [s <= u]. *)
+  r_lower : float ;    (** Greatest double [l] such that [l <= s]. *)
+}
 
 (** Types of logic terms. *)
 and logic_type =
@@ -1231,6 +1244,11 @@ and term_node =
   | Toffset of logic_label * term (** offset from the base address of a pointer. *)
   | Tblock_length of logic_label * term (** length of the block pointed to by the term. *)
   | Tnull (** the null pointer. *)
+  | TLogic_coerce of logic_type * term
+  (** implicit conversion from a C type to a logic type. 
+      The logic type must not be a Ctype. In particular, used to denote
+      lifting to Linteger and Lreal.
+  *)
   | TCoerce of term * typ (** coercion to a given C type. *)
   | TCoerceE of term * term (** coercion to the type of a given term. *)
   | TUpdate of term * term_offset * term
@@ -1323,12 +1341,21 @@ and logic_type_def =
   | LTsum of logic_ctor_info list (** sum type with its constructors. *)
   | LTsyn of logic_type (** Synonym of another type. *)
 
+(** origin of a logic variable. *)
+and logic_var_kind = 
+  | LVGlobal (** global logic function or predicate. *)
+  | LVC (** Logic counterpart of a C variable. *)
+  | LVFormal (** formal parameter of a logic function / predicate *)
+  | LVQuant (** Bound by a quantifier or a Lambda abstraction. *)
+  | LVLocal (** local \let *)
+
 (** description of a logic variable
 @plugin development guide *)
 and logic_var = {
   mutable lv_name : string; (** name of the variable. *)
   mutable lv_id : int; (** unique identifier *)
   mutable lv_type : logic_type; (** type of the variable. *)
+  mutable lv_kind: logic_var_kind; (** kind of the variable *)
   mutable lv_origin : varinfo option
 (** when the logic variable stems from a C variable, set to the original C
     variable.  *)
@@ -1474,6 +1501,9 @@ and ('pred,'locs) behavior = {
 (** Grammar extensions *)
 }
 
+(** kind of termination a post-condition applies to. See ACSL manual. *)
+and termination_kind = Normal | Exits | Breaks | Continues | Returns
+
 (** Pragmas for the value analysis plugin of Frama-C.
     Type shared with Logic_ptree.*)
 and 'term loop_pragma =
@@ -1503,10 +1533,7 @@ and 'term pragma =
 and ('term, 'pred, 'spec_pred, 'locs) code_annot =
   | AAssert of string list * 'pred
   (** assertion to be checked. The list of strings is the list of
-      behaviors to which this assertion applies.
-      @deprecated since Beryllium-20090902, the annot_status
-      field is no longer updated by anyone. Use {!Db.Annotations.Status}
-      functions to access the true status. *)
+      behaviors to which this assertion applies. *)
 
   | AStmtSpec of string list * ('term, 'spec_pred, 'locs) spec
   (** statement contract eventualy for some behaviors. *)
@@ -1525,7 +1552,8 @@ and ('term, 'pred, 'spec_pred, 'locs) code_annot =
       most one clause associated to a given (statement, behavior) couple.  *)
 
   | AAllocation of string list * 'locs allocation
-  (** loop allocation clause.  (see [b_allocation] in the behaviors for other allocation clauses).
+  (** loop allocation clause.  (see [b_allocation] in the behaviors for other
+      allocation clauses).
       At most one clause associated to a given (statement, behavior) couple.
       @since Oxygen-20120901 when [b_allocation] has been added.  *)
 
@@ -1591,23 +1619,6 @@ type cil_function =
           optional, to distinguish [void f()] ([None]) from
           [void f(void)] ([Some []]). *)
 
-type alarm =
-  | Division_alarm
-  | Memory_alarm
-  | Index_alarm
-  | Shift_alarm
-  | Pointer_compare_alarm
-  | Signed_overflow_alarm
-  | Float_overflow_alarm
-  | Using_nan_or_infinite_alarm
-  | Result_is_nan_or_infinite_alarm
-  | Separation_alarm
-  | Other_alarm
-
-type rooted_code_annotation =
-  | User of code_annotation
-  | AI of alarm*code_annotation
-
 (** Except field [fundec], do not use the other fields directly.
     Prefer to use {!Kernel_function.find_return}, {!Annotations.funspec},
     [Annotations.add_*] or [Annotations.remove_*]. *)
@@ -1652,11 +1663,12 @@ type mach = {
   alignof_longdouble: int;  (* Alignment of "long double" *)
   alignof_str: int;       (* Alignment of strings *)
   alignof_fun: int;       (* Alignment of function *)
-  alignof_char_array: int;       (* Alignment of arrays of char *)
   char_is_unsigned: bool; (* Whether "char" is unsigned *)
   const_string_literals: bool; (* Whether string literals have const chars *)
   little_endian: bool; (* whether the machine is little endian *)
-  alignof_aligned: int (* Alignment of a type with aligned attribute *)
+  alignof_aligned: int (* Alignment of a type with aligned attribute *);
+  has__builtin_va_list: bool (* Whether [__builtin_va_list] is a known type *);
+  __thread_is_keyword: bool (* Whether [__thread] is a keyword *);
 }
 
 (*

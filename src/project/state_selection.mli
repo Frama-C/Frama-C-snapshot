@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -50,7 +50,7 @@ val full: t
     @since Carbon-20101201 *)
 
 val singleton: State.t -> t
-(** The selection containing only the given states.
+(** The selection containing only the given state.
     @since Carbon-20101201 *)
 
 val of_list: State.t list -> t
@@ -86,7 +86,8 @@ module type S = sig
 
   val with_dependencies: State.t -> t
   (** The selection containing the given state and all its dependencies.
-      @since Carbon-20101201 *)
+      @since Carbon-20101201 
+      @plugin development guide *)
 
   val only_dependencies: State.t -> t
   (** The selection containing all the dependencies of the given state (but not
@@ -133,6 +134,10 @@ module type S = sig
   (** Size of a selection.
       @since Carbon-20101201 *)
 
+  val to_list: t -> State.t list
+  (** Convert a selection into a list of states.
+      @since Fluorine-20130401 *)
+
   val pretty: Format.formatter -> t -> unit
   (** Display a selection iff kernel debug mode is on.
       @since Carbon-20101201 *)
@@ -170,7 +175,7 @@ module type S = sig
 end
 
 (** Operations over selections which depend on
-    {!State_dependency_graph.Static.graph}.
+    {!State_dependency_graph.graph}.
     @since Carbon-20101201
     @deprecated Oxygen-20120901 directly use equivalent top-level function
     instead. *)

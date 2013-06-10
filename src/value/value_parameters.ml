@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -25,7 +25,6 @@ let kernel_parameters_correctness = [
   Kernel.MainFunction.parameter;
   Kernel.LibEntry.parameter;
   Kernel.AbsoluteValidRange.parameter;
-  Kernel.Overflow.parameter;
   Kernel.SafeArrays.parameter;
   Kernel.UnspecifiedAccess.parameter;
 ]
@@ -33,22 +32,17 @@ let kernel_parameters_correctness = [
 let parameters_correctness = ref []
 let parameters_tuning = ref []
 let add_dep p =
-  State_dependency_graph.Static.add_codependencies
-    ~onto:Db.Value.self [State.get p.Parameter.name]
+  State_dependency_graph.add_codependencies
+    ~onto:Db.Value.self 
+    [State.get p.Parameter.name]
 let add_correctness_dep p =
   add_dep p;
   parameters_correctness := p :: !parameters_correctness
 let add_precision_dep p =
   add_dep p;
   parameters_tuning := p :: !parameters_tuning
-let () =
-  List.iter add_correctness_dep kernel_parameters_correctness;
-;;
 
-let () = State_dependency_graph.Static.add_codependencies
-  ~onto:Alarms.self [Db.Value.self] (* Buggy, but this is the best
-                                       we can do right now *)
-
+let () = List.iter add_correctness_dep kernel_parameters_correctness
 
 include Plugin.Register
     (struct
@@ -72,6 +66,14 @@ let performance = add_group "Results memoization vs. time"
 let interpreter = add_group "Deterministic programs"
 let alarms = add_group "Propagation and alarms "
 
+(* -------------------------------------------------------------------------- *)
+(* --- Aux                                                                --- *)
+(* -------------------------------------------------------------------------- *)
+
+let check_c_function_exists ~f ~option ~arg =
+  try ignore (Globals.Functions.find_by_name f)
+  with Not_found ->
+    warning "option '%s %s': function '%s' does not exist" option arg f
 
 (* -------------------------------------------------------------------------- *)
 (* --- Performance options                                                --- *)
@@ -90,9 +92,7 @@ function f"
 let () = add_dep NoResultsFunctions.parameter
 
 let () = Plugin.set_group performance
-(* [JS 2012/05/12] btw an option -no-no-results does exist.
-   Either should call Plugin.set_negative_option_name or should change the
-   option name to "-results". *)
+let () = Plugin.set_negative_option_name "-val-store-results"
 module NoResultsAll =
   False
     (struct
@@ -113,6 +113,16 @@ module ResultsAfter =
 let () = add_dep ResultsAfter.parameter
 
 let () = Plugin.set_group performance
+module ResultsCallstack =
+  Bool
+    (struct
+       let option_name = "-val-callstack-results"
+       let help = "record precisely the values obtained for each callstack leading to each statement"
+       let default = false
+     end)
+let () = add_dep ResultsCallstack.parameter
+
+let () = Plugin.set_group performance
 module MemoryFootprint =
   Int
     (struct
@@ -126,15 +136,14 @@ let () =
     (fun _ x ->
        Binary_cache.MemoryFootprint.set x;
        Buckx.MemoryFootprint.set x);
-  State_dependency_graph.Static.add_dependencies
+  State_dependency_graph.add_dependencies
     ~from:MemoryFootprint.self
     [ Binary_cache.MemoryFootprint.self; Buckx.MemoryFootprint.self ]
-
 
 (* ------------------------------------------------------------------------- *)
 (* --- Non-standard alarms                                               --- *)
 (* ------------------------------------------------------------------------- *)
-
+    
 let () = Plugin.set_group alarms
 module AllRoundingModes =
   False
@@ -152,16 +161,6 @@ module UndefinedPointerComparisonPropagateAll =
        let help = "if the target program appears to contain undefined pointer comparisons, propagate both outcomes {0; 1} in addition to the emission of an alarm"
      end)
 let () = add_correctness_dep UndefinedPointerComparisonPropagateAll.parameter
-
-let () = Plugin.set_group alarms
-module SignedOverflow =
-  False
-    (struct
-       let option_name = "-val-signed-overflow-alarms"
-       let help =
-         "Emit alarms for overflows in signed arithmetic"
-     end)
-let () = add_correctness_dep SignedOverflow.parameter
 
 let () = Plugin.set_group alarms
 module LeftShiftNegative =
@@ -182,7 +181,6 @@ module IgnoreRecursiveCalls =
          "Pretend function calls that would be recursive do not happen. Causes unsoundness"
      end)
 let () = add_correctness_dep IgnoreRecursiveCalls.parameter
-
 
 (* ------------------------------------------------------------------------- *)
 (* --- Initial context                                                   --- *)
@@ -212,40 +210,6 @@ let () = AutomaticContextMaxWidth.set_range ~min:1 ~max:max_int
 let () = add_correctness_dep AutomaticContextMaxWidth.parameter
 
 let () = Plugin.set_group initial_context
-module SeparateStmtStart =
-  StringSet
-    (struct
-       let option_name = "-separate-stmts"
-       let arg_name = "n1,..,nk"
-       let help = ""
-     end)
-let () = add_correctness_dep SeparateStmtStart.parameter
-
-let () = Plugin.set_group initial_context
-module SeparateStmtWord =
-  Int
-    (struct
-       let option_name = "-separate-n"
-       let default = 0
-       let arg_name = "n"
-       let help = ""
-     end)
-let () = SeparateStmtWord.set_range ~min:0 ~max:1073741823
-let () = add_correctness_dep SeparateStmtWord.parameter
-
-let () = Plugin.set_group initial_context
-module SeparateStmtOf =
-  Int
-    (struct
-       let option_name = "-separate-of"
-       let default = 0
-       let arg_name = "n"
-       let help = ""
-     end)
-let () = SeparateStmtOf.set_range ~min:0 ~max:1073741823
-let () = add_correctness_dep SeparateStmtOf.parameter
-
-let () = Plugin.set_group initial_context
 module AllocatedContextValid =
   False
     (struct
@@ -255,6 +219,7 @@ module AllocatedContextValid =
 let () = add_correctness_dep AllocatedContextValid.parameter
 
 let () = Plugin.set_group initial_context
+let () = Plugin.set_negative_option_name "-uninitialized-padding-globals"
 module InitializedPaddingGlobals =
   True
     (struct
@@ -295,7 +260,6 @@ let () = add_precision_dep ILevel.parameter
 let () = ILevel.add_update_hook (fun _ i -> Ival.set_small_cardinal i)
 let () = ILevel.set_range 4 64
 
-
 let () = Plugin.set_group precision_tuning
 module SemanticUnrollingLevel =
   Zero
@@ -303,7 +267,7 @@ module SemanticUnrollingLevel =
        let option_name = "-slevel"
        let arg_name = "n"
        let help =
-         "use <n> as number of path to explore in parallel (defaults to 0)"
+         "superpose up to <n> states when unrolling control flow. The larger n, the more precise and expensive the analysis (defaults to 0)"
      end)
 let () = add_precision_dep SemanticUnrollingLevel.parameter
 
@@ -330,6 +294,7 @@ module SlevelFunction =
       let parse s =
         try
           let f, n =  split_option s in
+          check_c_function_exists ~f:f ~option:"-slevel-function" ~arg:s;
           let n = int_of_string n in
           f, n
         with
@@ -339,7 +304,6 @@ module SlevelFunction =
     end)
 let () = add_precision_dep SlevelFunction.parameter
 
-
 let split_option_multiple =
   let rx = Str.regexp_string ":" in
   fun s ->
@@ -348,7 +312,6 @@ let split_option_multiple =
         | f :: q -> f, q
         | _ -> failwith ""
     with _ -> failwith "split_option"
-
 
 let () = Plugin.set_group precision_tuning
 module SplitReturnFunction =
@@ -364,6 +327,8 @@ module SplitReturnFunction =
       let parse s =
         try
           let f, l =  split_option_multiple s in
+          check_c_function_exists
+            ~f:f ~option:"-val-split-return-function" ~arg:s;
           let l = List.map int_of_string l in
           f, l
         with Failure _ -> 
@@ -383,7 +348,6 @@ module SplitReturnAuto =
      end)
 let () = add_precision_dep SplitReturnAuto.parameter
 
-
 let () = Plugin.set_group precision_tuning
 module BuiltinsOverrides =
   StringHashtbl
@@ -395,7 +359,13 @@ module BuiltinsOverrides =
     (struct
         include Datatype.String
         let parse s =
-          try split_option s
+          try
+            let (fc, focaml) as r = split_option s in
+            if not (!Db.Value.mem_builtin focaml) then
+              abort "option '-val-builtin %s': undeclared builtin '%s'"
+                s focaml;
+            check_c_function_exists ~f:fc ~option:"-val-builtin" ~arg:s;
+            r
           with Failure _ -> abort "Could not parse option \"-val-builtin %s\"" s
         let redefine_binding _k ~old:_ new_v = new_v
         let no_binding _ = raise Not_found
@@ -433,7 +403,6 @@ module RmAssert =
     end)
 let () = add_precision_dep RmAssert.parameter
 
-
 let () = Plugin.set_group precision_tuning
 module MemExecAll =
   False
@@ -451,18 +420,6 @@ let () =
           abort "Cannot set option -memexec-all. Is plugin Inout registered?"
     )
 
-
-let () = Plugin.set_group precision_tuning
-module PreciseUnions =
-  False
-    (struct
-       let option_name = "-precise-unions"
-       let help = ""
-     end)
-let () = add_precision_dep PreciseUnions.parameter
-let () = PreciseUnions.add_update_hook
-  (fun _ v -> Offsetmap.precise_unions := v)
-
 let () = Plugin.set_group precision_tuning
 module ArrayPrecisionLevel =
   Int
@@ -478,7 +435,39 @@ let () = add_precision_dep ArrayPrecisionLevel.parameter
 let () = ArrayPrecisionLevel.add_update_hook
   (fun _ v -> Lattice_Interval_Set.plevel := v)
 
+let () = Plugin.set_group precision_tuning
+module SeparateStmtStart =
+  StringSet
+    (struct
+       let option_name = "-separate-stmts"
+       let arg_name = "n1,..,nk"
+       let help = ""
+     end)
+let () = add_correctness_dep SeparateStmtStart.parameter
 
+let () = Plugin.set_group precision_tuning
+module SeparateStmtWord =
+  Int
+    (struct
+       let option_name = "-separate-n"
+       let default = 0
+       let arg_name = "n"
+       let help = ""
+     end)
+let () = SeparateStmtWord.set_range ~min:0 ~max:1073741823
+let () = add_correctness_dep SeparateStmtWord.parameter
+
+let () = Plugin.set_group precision_tuning
+module SeparateStmtOf =
+  Int
+    (struct
+       let option_name = "-separate-of"
+       let default = 0
+       let arg_name = "n"
+       let help = ""
+     end)
+let () = SeparateStmtOf.set_range ~min:0 ~max:1073741823
+let () = add_correctness_dep SeparateStmtOf.parameter
 
 (* ------------------------------------------------------------------------- *)
 (* --- Messages                                                          --- *)
@@ -512,10 +501,12 @@ let () = TimingStep.add_set_hook (fun _ x -> FloatTimingStep.set (float x))
 
 let () = Plugin.set_group messages
 module ShowSlevel =
-  True
+  Int
     (struct
        let option_name = "-val-show-slevel"
-       let help = "Show consumption of the alloted slevel during analysis"
+       let default = 100
+       let arg_name = "n"
+       let help = "Period for showing consumption of the alloted slevel during analysis"
      end)
 
 let () = Plugin.set_group messages
@@ -561,14 +552,16 @@ effects as -no-results"
 let () = add_dep ObviouslyTerminatesAll.parameter
 
 let () = Plugin.set_group interpreter
-module StopAtFirstAlarm =
-  False(struct
-         let option_name = "-val-stop-at-first-alarm"
+module StopAtNthAlarm =
+  Int(struct
+         let option_name = "-val-stop-at-nth-alarm"
+	 let default = max_int
+	 let arg_name = "n"
          let help = ""
        end)
 
 (* -------------------------------------------------------------------------- *)
-(* --- Uglyness required for correction                                   --- *)
+(* --- Ugliness required for correctness                                  --- *)
 (* -------------------------------------------------------------------------- *)
 
 let () = Plugin.is_invisible ()
@@ -588,12 +581,9 @@ let () =
   add_correctness_dep InitialStateChanged.parameter;
   Db.Value.initial_state_changed :=
     (fun () -> InitialStateChanged.set (InitialStateChanged.get () + 1))
-;;
   
-
 let parameters_correctness = !parameters_correctness
 let parameters_tuning = !parameters_tuning
-
 
 (*
 Local Variables:

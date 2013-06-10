@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Aorai plug-in of Frama-C.                        */
 /*                                                                        */
-/*  Copyright (C) 2007-2012                                               */
+/*  Copyright (C) 2007-2013                                               */
 /*    CEA (Commissariat a l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*    INRIA (Institut National de Recherche en Informatique et en         */

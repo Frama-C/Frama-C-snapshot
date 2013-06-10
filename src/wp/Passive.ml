@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -57,9 +57,9 @@ let pretty fmt =
   List.iter
     begin function
       | B1(x,p) -> 
-	  Format.fprintf fmt "@ @[<hov 2>([%a] %a)@]"
+	  Format.fprintf fmt "@ @[([%a] %a)@]"
 	    F.pp_var x F.pp_pred p
       | B2(x,y,p) ->
-	  Format.fprintf fmt "@ @[<hov 2>([%a,%a] %a)@]"
+	  Format.fprintf fmt "@ @[([%a,%a] %a)@]"
 	    F.pp_var x F.pp_var y F.pp_pred p
     end

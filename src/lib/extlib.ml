@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -22,7 +22,7 @@
 
 let nop _ = ()
 
-let id x = x
+external id: 'a -> 'a = "%identity"
 
 let adapt_filename f =
   let change_suffix ext =
@@ -170,6 +170,10 @@ let may_map f ?dft x =
 let opt_map f = function
   | None -> None
   | Some x -> Some (f x)
+
+let opt_conv default = function
+  | None -> default
+  | Some x -> x
 
 let opt_fold f o b =
   match o with

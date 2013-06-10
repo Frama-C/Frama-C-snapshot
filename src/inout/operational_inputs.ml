@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -68,6 +68,11 @@ let bottom = {
   over_outputs_d = Zone.bottom;
 }
 
+let equal ct1 ct2 =
+  Zone.equal ct1.over_inputs_d ct2.over_inputs_d &&
+  Zone.equal ct1.under_outputs_d ct2.under_outputs_d &&
+  Zone.equal ct1.over_outputs_d ct2.over_outputs_d
+
 let join c1 c2 = {
   over_inputs_d = Zone.join c1.over_inputs_d c2.over_inputs_d;
   under_outputs_d = Zone.meet c1.under_outputs_d c2.under_outputs_d;
@@ -89,7 +94,7 @@ let catenate c1 c2 = {
 
 let externalize_zone ~with_formals kf =
   Zone.filter_base
-    (Value_aux.accept_base ~with_formals ~with_locals:false kf)
+    (!Db.Semantic_Callgraph.accept_base ~with_formals ~with_locals:false kf)
 
 (* This code evaluates an assigns, computing in particular a sound approximation
    of sure outputs. For an assigns [locs_out \from locs_from], the process
@@ -103,28 +108,35 @@ let externalize_zone ~with_formals kf =
    (Note: large parts of this code are inspired/redundant with
    [assigns_to_zone_foobar_state] in Value/register.ml)
 *)
-let eval_assigns state assigns =
+let eval_assigns kf state assigns =
   let treat_one_zone acc (out, froms as asgn) = (* treat a single assign *)
     (* Return a list of independent output zones, plus a zone indicating
        that the zone has been overwritten in a sure way *)
-    let outputs =
+    let clean_deps =
+      Locations.Zone.filter_base
+        (function
+           | Base.Var (v, _) | Base.Initialized_Var (v, _) ->
+               not (Kernel_function.is_formal v kf)
+           | Base.Null | Base.String _ -> true)
+    in
+    let outputs, deps =
       try
         if Logic_utils.is_result out.it_content
-        then []
+        then [], Zone.bottom
         else
-          let locs_out = !Db.Properties.Interp.loc_to_locs ~result:None
+          let locs_out, deps = !Db.Properties.Interp.loc_to_locs ~result:None
             state out.it_content
           in
           let conv loc =
-            let z = valid_enumerate_bits ~for_writing:true loc in
+            let z = enumerate_valid_bits ~for_writing:true loc in
             let sure = Locations.cardinal_zero_or_one loc in
             z, sure
           in
-          List.map conv locs_out
+          List.map conv locs_out, clean_deps deps
       with Invalid_argument _ ->
         Inout_parameters.warning ~current:true ~once:true
-          "Failed to interpret assigns clause '%a'" Cil.d_term out.it_content;
-        [Locations.Zone.top, false]
+          "Failed to interpret assigns clause '%a'" Printer.pp_term out.it_content;
+        [Locations.Zone.top, false], Locations.Zone.top
     in
     (* Compute all inputs as a zone *)
     let inputs =
@@ -133,15 +145,20 @@ let eval_assigns state assigns =
           | FromAny -> Zone.top
           | From l ->
               let aux acc { it_content = from } =
-                let loc = !Db.Properties.Interp.loc_to_loc None state from in
-                let z = valid_enumerate_bits ~for_writing:false loc in
-                Zone.join z acc
+                let locs, deps =
+                  !Db.Properties.Interp.loc_to_locs None state from in
+                let acc = Zone.join (clean_deps deps) acc in
+                List.fold_left
+                  (fun acc loc ->
+                     let z = enumerate_valid_bits ~for_writing:false loc in
+                     Zone.join z acc
+                  ) acc locs
               in
-              List.fold_left aux Zone.bottom l
+              List.fold_left aux deps l
       with Invalid_argument _ ->
         Inout_parameters.warning ~current:true ~once:true
           "Failed to interpret inputs in assigns clause '%a'"
-          Cil.d_from asgn;
+          Printer.pp_from asgn;
         Zone.top
     in
     (* Fuse all outputs. An output is sure if it was certainly overwritten,
@@ -179,7 +196,7 @@ let eval_assigns state assigns =
 let compute_using_prototype_state state kf =
   let behaviors = !Value.valid_behaviors kf state in
   let assigns = Ast_info.merge_assigns behaviors in
-  eval_assigns state assigns
+  eval_assigns kf state assigns
 
 let compute_using_prototype ?stmt kf =
   let state = Cumulative_analysis.specialize_state_on_call ?stmt kf in
@@ -195,7 +212,7 @@ module Internals =
        let size = 17
      end)
 
-module CallsiteHash = Value_aux.Callsite.Hashtbl
+module CallsiteHash = Value_types.Callsite.Hashtbl
 
 (* Results of an an entire call, represented by a pair (stmt, kernel_function]).
    This table is filled by the [-inout-callwise] option, or for functions for
@@ -265,7 +282,7 @@ end) = struct
     let add_out lv deps data =
       let deps, loclv = !Value.lval_to_loc_with_deps_state ~deps state lv in
       let new_inputs = Zone.diff deps data.under_outputs_d in
-      let new_outs = Locations.valid_enumerate_bits ~for_writing:true loclv in
+      let new_outs = Locations.enumerate_valid_bits ~for_writing:true loclv in
       let new_sure_outs =
         if Locations.valid_cardinal_zero_or_one ~for_writing:true loclv then
           (* There is only one modified zone. So, this is an exact output.
@@ -346,8 +363,11 @@ end) = struct
           )
     | _ -> Dataflow.Default
 
-  let doStmt (_s: stmt) (_d: t) =
-    Dataflow.SDefault
+  let doStmt s d =
+      if Db.Value.is_reachable (X.stmt_state s) &&
+        not (equal bottom d)
+      then Dataflow.SDefault
+      else Dataflow.SDone
 
   let filterStmt stmt =
     let state = X.stmt_state stmt in
@@ -552,7 +572,7 @@ module Callwise = struct
   let record_for_callwise_inout ((call_stack: Db.Value.callstack), value_res) =
     if compute_callwise () then
       let inout = match value_res with
-        | Value_aux.Normal states | Value_aux.NormalStore (states, _) ->
+        | Value_types.Normal states | Value_types.NormalStore (states, _) ->
             let kf = fst (List.hd call_stack) in
             let inout =
               if !Db.Value.no_results (Kernel_function.get_definition kf) then
@@ -563,12 +583,12 @@ module Callwise = struct
             Db.Operational_inputs.Record_Inout_Callbacks.apply
               (call_stack, inout);
             (match value_res with
-               | Value_aux.NormalStore (_, memexec_counter) ->
+               | Value_types.NormalStore (_, memexec_counter) ->
                    MemExec.replace memexec_counter inout
                | _ -> ());
             inout
 
-        | Value_aux.Reuse counter ->
+        | Value_types.Reuse counter ->
             MemExec.find counter
       in
       end_record call_stack inout
@@ -580,9 +600,11 @@ module Callwise = struct
     Db.Value.Record_Value_Callbacks_New.extend_once record_for_callwise_inout;
     Db.Value.Call_Value_Callbacks.extend_once call_for_callwise_inout
 
+  let () = Inout_parameters.ForceCallwiseInout.add_update_hook
+    (fun _bold bnew -> if bnew then add_hooks ())
+
   let () = Inout_parameters.ForceCallwiseInout.add_set_hook
     (fun bold bnew ->
-      if bnew then add_hooks ();
       if bold = false && bnew then
         Project.clear
           ~selection:(State_selection.with_dependencies Db.Value.self) ();

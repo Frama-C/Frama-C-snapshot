@@ -2,8 +2,8 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2012                                               */
-/*    CEA (Commissariat à l'énergie atomique et aux énergies              */
+/*  Copyright (C) 2007-2013                                               */
+/*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
 /*  you can redistribute it and/or modify it under the terms of the GNU   */
@@ -30,18 +30,18 @@
 
 // Query memory
 
-/*@ requires \valid(((char*)s1)+(0..n - 1))
-  @          && \valid(((char*)s2)+(0..n - 1));
-  @ assigns \nothing;
+/*@ requires \valid(((char*)s1)+(0..n - 1));
+  @ requires \valid(((char*)s2)+(0..n - 1));
+  @ assigns \result \from ((char*)s1)[0.. n-1], ((char*)s2)[0.. n-1];
   @ ensures \result == memcmp((char*)s1,(char*)s2,n);
   @*/
 extern int memcmp (const void *s1, const void *s2, size_t n);
 
 /*@ requires \valid(((char*)s)+(0..n - 1));
-  @ assigns \nothing;
+  @ assigns \result \from s, c, ((char*)s)[0..n-1];
   @ behavior found:
   @   assumes memchr((char*)s,c,n);
-  @   ensures \base_addr((char*)\result) == \base_addr((char*)s);
+  @   ensures \base_addr(\result) == \base_addr(s);
   @   ensures *(char*)\result == c;
   @ behavior not_found:
   @   assumes ! memchr((char*)s,c,n);
@@ -51,49 +51,54 @@ extern void *memchr(const void *s, int c, size_t n);
 
 // Copy memory
 
-/*@ requires \valid(((char*)dest)+(0..n - 1))
-  @          && \valid(((char*)src)+(0..n - 1));
+/*@ requires \valid(((char*)dest)+(0..n - 1));
+  @ requires \valid(((char*)src)+(0..n - 1));
   @ requires \separated(((char *)dest)+(0..n-1),((char *)src)+(0..n-1));
   @ assigns ((char*)dest)[0..n - 1] \from ((char*)src)[0..n-1];
-  @ ensures memcmp((char*)dest,(char*)src,n) == 0 && \result == dest;
-  @ ensures \base_addr((char*)\result) == \base_addr((char*)dest);
+  @ assigns \result \from dest;
+  @ ensures memcmp((char*)dest,(char*)src,n) == 0;
+  @ ensures \result == dest;
   @*/
 extern void *memcpy(void *restrict dest,
 		    const void *restrict src, size_t n);
 
 /*@ requires \valid(((char*)dest)+(0..n - 1))
   @          && \valid(((char*)src)+(0..n - 1));
-  @ assigns ((char*)dest)[0..n - 1];
-  @ ensures memcmp((char*)dest,(char*)src,n) == 0 && \result == dest;
-  @ ensures \base_addr((char*)\result) == \base_addr((char*)dest);
+  @ assigns ((char*)dest)[0..n - 1] \from ((char*)src)[0..n-1];
+  @ assigns \result \from dest;
+  @ ensures memcmp((char*)dest,(char*)src,n) == 0;
+  @ ensures \result == dest;
   @*/
 extern void *memmove(void *dest, const void *src, size_t n);
 
 // Set memory
 
 /*@ requires \valid(((char*)s)+(0..n - 1));
-  @ assigns ((char*)s)[0..n - 1];
-  @ ensures memset((char*)s,c,n) && \result == s;
-  @ ensures \base_addr((char*)\result) == \base_addr((char*)s);
+  @ assigns ((char*)s)[0..n - 1] \from c;
+  @ assigns \result \from s;
+  @ ensures memset((char*)s,c,n);
+  @ ensures \result == s;
   @*/
 extern void *memset(void *s, int c, size_t n);
 
 // Query strings
 
 /*@ requires valid_string(s);
-  @ assigns \nothing;
+  @ assigns \result \from s[0..];
   @ ensures \result == strlen(s);
   @*/
 extern size_t strlen (const char *s);
 
-/*@ requires valid_string(s1) && valid_string(s2);
-  @ assigns \nothing;
+/*@ requires valid_string(s1);
+  @ requires valid_string(s2);
+  @ assigns \result \from s1[0..], s2[0..];
   @ ensures \result == strcmp(s1,s2);
   @*/
 extern int strcmp (const char *s1, const char *s2);
 
-/*@ requires valid_string(s1) && valid_string(s2);
-  @ assigns \nothing;
+/*@ requires valid_string(s1);
+  @ requires valid_string(s2);
+  @ assigns \result \from s1[0 .. n-1], s2[0 ..n-1];
   @ ensures \result == strncmp(s1,s2,n);
   @*/
 extern int strncmp (const char *s1, const char *s2, size_t n);
@@ -104,26 +109,34 @@ extern int strncmp (const char *s1, const char *s2, size_t n);
 extern int strcoll (const char *s1, const char *s2);
 
 /*@ requires valid_string(s);
-  @ assigns \nothing;
+  @ assigns \result \from s, s[0..],c;
   @ behavior found:
   @   assumes strchr(s,c);
-  @   ensures *\result == c && \base_addr(\result) == \base_addr(s);
+  @   ensures *\result == c;
+  @   ensures \base_addr(\result) == \base_addr(s);
+  @   ensures s <= \result < s + strlen(s);
   @   ensures valid_string(\result);
+  @   ensures \forall char* p; s<=p<\result ==> *p != c;
   @ behavior not_found:
   @   assumes ! strchr(s,c);
   @   ensures \result == \null;
+  @ behavior default:
+  @ ensures \result == \null || \base_addr(\result) == \base_addr(s);
   @*/
 extern char *strchr(const char *s, int c);
 
 /*@ requires valid_string(s);
-  @ assigns \nothing;
+  @ assigns \result \from s, s[0..],c;
   @ behavior found:
   @   assumes strchr(s,c);
-  @   ensures *\result == c && \base_addr(\result) == \base_addr(s);
+  @   ensures *\result == c;
+  @   ensures \base_addr(\result) == \base_addr(s);
   @   ensures valid_string(\result);
   @ behavior not_found:
   @   assumes ! strchr(s,c);
   @   ensures \result == \null;
+  @ behavior default:
+  @ ensures \result == \null || \base_addr(\result) == \base_addr(s);
   @*/
 extern char *strrchr(const char *s, int c);
 
@@ -158,17 +171,26 @@ extern char *strstr(const char *haystack, const char *needle);
   @*/
 extern char *strtok(char *restrict s, const char *restrict delim);
 
-/*@ assigns \nothing;
+/*@ requires \valid(stringp) && valid_string(*stringp) && valid_string(delim);
+  @ assigns *stringp \from delim[..], *stringp[..];
+  @ assigns \result \from delim[..], *stringp[..];
+  @*/
+extern char *strsep (char **stringp, const char *delim);
+
+
+/*@ assigns \result \from errnum;
   @ ensures valid_string(\result);
   @*/
 extern char *strerror(int errnum);
 
 // Copy strings
 
-/*@ requires \valid(dest+(0..strlen(src))) && valid_string(src);
-  @ assigns dest[0..strlen(src)];
-  @ ensures strcmp(dest,src) == 0 && \result == dest;
-  @ ensures \base_addr(\result) == \base_addr(dest);
+/*@ requires \valid(dest+(0..strlen(src)));
+  @ requires valid_string(src);
+  @ assigns dest[0..strlen(src)] \from src[0..strlen(src)];
+  @ assigns \result \from dest;
+  @ ensures strcmp(dest,src) == 0;
+  @ ensures \result == dest;
   @*/
 extern char *strcpy(char *restrict dest, const char *restrict src);
 
@@ -179,7 +201,6 @@ extern char *strcpy(char *restrict dest, const char *restrict src);
   @   assumes strlen(src) < n;
   @   assigns dest[0..n - 1];
   @   ensures strcmp(dest,src) == 0;
-  @   ensures \base_addr(\result) == \base_addr(dest);
   @ behavior partial:
   @   assumes n <= strlen(src);
   @   assigns dest[0..n - 1];
@@ -188,27 +209,29 @@ extern char *strcpy(char *restrict dest, const char *restrict src);
 extern char *strncpy(char *restrict dest,
 		     const char *restrict src, size_t n);
 
-/*@ requires \valid(dest+(0..strlen(dest) + strlen(src)))
-  @          && valid_string(dest) && valid_string(src);
-  @ assigns dest[0..strlen(dest) + strlen(src)];
-  @ ensures strlen(dest) == \old(strlen(dest) + strlen(src))
-  @         && \result == dest;
-  @ ensures \base_addr(\result) == \base_addr(dest);
+/*@ requires \valid(dest+(0..strlen(dest) + strlen(src)));
+  @ requires valid_string(src);
+  @ requires valid_string(dest);
+  @ assigns dest[strlen(dest)..strlen(dest) + strlen(src)]
+  @   \from src[0..strlen(src)];
+  @ ensures strlen(dest) == \old(strlen(dest) + strlen(src));
+  @ assigns \result \from dest;
+  @ ensures \result == dest;
   @*/
 extern char *strcat(char *restrict dest, const char *restrict src);
 
-/*@ requires \valid(dest+(0..n - 1))
-  @          && valid_string(dest) && valid_string(src);
-  @ assigns dest[0..strlen(dest) + n - 1];
+/*@ requires \valid(dest+(0..n));
+  @ requires valid_string(src);
+  @ requires valid_string(dest);
+  @ assigns dest[strlen(dest) .. strlen(dest) + n] \from src[0..n];
   @ ensures \result == dest;
-  @ ensures \base_addr(\result) == \base_addr(dest);
   @ behavior complete:
   @   assumes strlen(src) <= n;
-  @   assigns dest[0..strlen(dest) + strlen(src)];
+  @   assigns dest[strlen(dest)..strlen(dest) + strlen(src)]
+  @   \from src[0..strlen(src)];
   @   ensures strlen(dest) == \old(strlen(dest) + strlen(src));
   @ behavior partial:
   @   assumes n < strlen(src);
-  @   assigns dest[0..strlen(dest) + n];
   @   ensures strlen(dest) == \old(strlen(dest)) + n;
   @*/
 extern char *strncat(char *restrict dest, const char *restrict src, size_t n);

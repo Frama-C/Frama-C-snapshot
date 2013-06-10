@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -48,7 +48,6 @@
 
 open Cil_types
 open Cil
-open Cilutil
 open Cil_datatype
 
 (* ************************************************************************* *)
@@ -122,12 +121,24 @@ end
 module Semantic_Callgraph : sig
   val dump: (unit -> unit) ref
     (** Dump the semantic callgraph in stdout or in a file. *)
+
   val topologically_iter_on_functions : ((kernel_function -> unit) -> unit) ref
     (** Compute values if required. *)
+
   val iter_on_callers :
     ((kernel_function -> unit) -> kernel_function -> unit) ref
     (** Compute values if required. *)
 
+  val accept_base :
+    (with_formals:bool ->
+     with_locals:bool ->
+     kernel_function -> Base.t -> bool
+     (** [accept_base formals locals kf b] returns [true] if and only [b] is
+         - a global
+         - a formal or local of one of the callers of [kf]
+         - a formal or local of [kf] and the corresponding argument is [true]
+     *)
+    ) ref
 end
 
 (* ************************************************************************* *)
@@ -135,7 +146,8 @@ end
 (* ************************************************************************* *)
 
 (** The Value analysis itself.
-    @see <../value/index.html> internal documentation. *)
+    @see <../value/index.html> internal documentation. 
+    @plugin development guide *)
 module Value : sig
 
   type state = Cvalue.Model.t
@@ -194,18 +206,7 @@ module Value : sig
   (** {3 Parameterization} *)
 
   exception Outside_builtin_possibilities
-
-  type builtin_result = {
-    builtin_values:
-      ( Cvalue.V_Offsetmap.t option (** the value returned (ie. what is after
-					the 'return' C keyword). *)
-	* state (** the memory state after the function has been executed *))
-      list ;
-    builtin_clobbered: Locations.Location_Bits.Top_Param.t
-      (** An over-approximation of the zones in which local variables might
-          have been written *)
-  }
-
+ 
   (** Type for a Value builtin function *)
   type builtin_sig =
       (** Memory state at the beginning of the function *)
@@ -215,7 +216,7 @@ module Value : sig
           and a more precise view of those formals using offsetmaps (for eg.
           structs)  *)
       (Cil_types.exp * Cvalue.V.t * Cvalue.V_Offsetmap.t) list ->
-    builtin_result
+    Value_types.call_result
 
   val register_builtin: (string -> builtin_sig -> unit) ref
     (** [!record_builtin name ?override f] registers an abstract function [f]
@@ -284,7 +285,13 @@ module Value : sig
 
   val get_initial_state : kernel_function -> state
   val get_state : kinstr -> state
+
+    
+  val get_stmt_state_callstack: 
+    after:bool -> stmt -> state Value_types.Callstack.Hashtbl.t option
+
   val get_stmt_state : stmt -> state
+  (** @plugin development guide *)
 
   val find : state -> Locations.location ->  t
 
@@ -341,6 +348,8 @@ module Value : sig
 
   val is_accessible : kinstr -> bool
   val is_reachable : state -> bool
+  (** @plugin development guide *)
+
   val is_reachable_stmt : stmt -> bool
 
   (** {3 About kernel functions} *)
@@ -435,7 +444,7 @@ module Value : sig
 
   (** {3 Callbacks} *)
 
-  type callstack = Value_aux.callstack
+  type callstack = Value_types.callstack
 
   (** Actions to perform at end of each function analysis. Not compatible with
       option [-memexec-all] *)
@@ -454,7 +463,7 @@ module Value : sig
   module Record_Value_Callbacks_New: Hook.Iter_hook
     with type param =
       callstack *
-      (state Stmt.Hashtbl.t) Lazy.t Value_aux.callback_result
+      (state Stmt.Hashtbl.t) Lazy.t Value_types.callback_result
   (**/**)
 
   val no_results: (fundec -> bool) ref
@@ -493,7 +502,14 @@ module Value : sig
   val mask_else: int
 
   val initial_state_only_globals : (unit -> state) ref
+
   val update_table : stmt -> state -> unit
+  (* Merge the given state with others associated to the given stmt. *)
+
+  val update_callstack_table: after:bool -> stmt -> callstack -> state -> unit
+  (* Merge a new state in the table indexed by callstacks. *)
+
+
   val memoize : (kernel_function -> unit) ref
 (*  val compute_call :
     (kernel_function -> call_kinstr:kinstr -> state ->  (exp*t) list
@@ -608,13 +624,17 @@ module Properties : sig
           @raise Invalid_argument if the argument is not a valid set of
           left values. *)
 
-    val identified_term_zone_to_loc:
-      (result: Cil_types.varinfo option -> Value.state ->
-       Cil_types.identified_term -> Locations.location) ref
-      (** @raise Invalid_argument in some cases.
-          @deprecated Carbon-20110201
-          use [loc_to_loc (...) x.it_content] instead
-       *)
+    val term_offset_to_offset:
+      (result: Cil_types.varinfo option -> term_offset -> offset) ref
+      (** @raise Invalid_argument if the argument is not a valid offset. *)
+
+    val loc_to_offset:
+      (result: Cil_types.varinfo option -> term -> Cil_types.offset list) ref
+      (** @return a list of C offset provided the term denotes location who
+          have all the same base address.  *)
+
+
+    (** {3 From logic terms to Locations.location} *)
 
     val loc_to_loc:
       (result: Cil_types.varinfo option -> Value.state -> term -> 
@@ -623,38 +643,21 @@ module Properties : sig
 
     val loc_to_locs:
       (result: Cil_types.varinfo option -> Value.state -> term -> 
-       Locations.location list) ref
+       Locations.location list * Locations.Zone.t) ref
       (** Translate a term more precisely than [loc_to_loc] if the term
-          evaluates to an ACSL tset
+          evaluates to an ACSL tset. The zone returned is the locations
+          that have been read during evaluation.
+          Warning: This API is not stabilized, and is likely to change in
+          the future.
           @raise Invalid_argument in some cases. *)
 
-    val loc_to_offset:
-      (result: Cil_types.varinfo option -> term -> Cil_types.offset list) ref
-      (** @return a list of C offset provided the term denotes location who
-          have all the same base address.  *)
-
-    val force_term_to_exp: (term -> exp * opaque_term_env) ref
-    val force_back_exp_to_term: (opaque_term_env -> exp -> term) ref
-    val force_exp_to_term: (exp -> term) ref
-    val force_lval_to_term_lval: (lval -> term_lval) ref
-    val force_term_offset_to_offset:
-      (term_offset -> offset * opaque_term_env) ref
-    val force_back_offset_to_term_offset:
-      (opaque_term_env -> offset -> term_offset) ref
-    val force_exp_to_predicate: (exp -> predicate named) ref
-    val force_exp_to_assertion: (exp -> code_annotation) ref
-    val force_term_lval_to_lval:
-      (term_lval -> lval * opaque_term_env) ref
-    val force_back_lval_to_term_lval:
-      (opaque_term_env -> lval -> term_lval) ref
-    val from_range_to_comprehension:
-      (visitor_behavior -> Project.t -> file -> unit) ref
-    val range_to_comprehension: (term -> term) ref
-    val from_comprehension_to_range:
-      (visitor_behavior -> Project.t -> file -> unit) ref
-    val term_offset_to_offset:
-      (result: Cil_types.varinfo option -> term_offset -> offset) ref
-      (** @raise Invalid_argument if the argument is not a valid offset. *)
+    val identified_term_zone_to_loc:
+      (result: Cil_types.varinfo option -> Value.state ->
+       Cil_types.identified_term -> Locations.location) ref
+      (** @raise Invalid_argument in some cases.
+          @deprecated Carbon-20110201
+          use [loc_to_loc (...) x.it_content] instead
+       *)
 
     (** {3 From logic terms to Zone.t} *)
 
@@ -729,21 +732,21 @@ module Properties : sig
          *)
 
       val from_stmt_annots:
-        ((rooted_code_annotation -> bool) option ->
+        ((code_annotation -> bool) option ->
            stmt * kernel_function -> (t_zone_info * t_decl) * t_pragmas) ref
         (** Entry point to get zones needed to evaluate annotations of this
             [stmt]. *)
 
       val from_func_annots:
         (((stmt -> unit) -> kernel_function -> unit) ->
-           (rooted_code_annotation -> bool) option ->
+           (code_annotation -> bool) option ->
              kernel_function -> (t_zone_info * t_decl) * t_pragmas) ref
         (** Entry point to get zones
             needed to evaluate annotations of this [kf]. *)
 
       val code_annot_filter:
-        (rooted_code_annotation ->
-           ai:bool -> user_assert:bool -> slicing_pragma:bool ->
+        (code_annotation ->
+           threat:bool -> user_assert:bool -> slicing_pragma:bool ->
           loop_inv:bool -> loop_var:bool -> others:bool -> bool) ref
         (** To quickly build an annotation filter *)
 
@@ -855,7 +858,7 @@ module RteGen : sig
   val do_all_rte : (kernel_function -> unit) ref
   val do_rte : (kernel_function -> unit) ref
   type status_accessor = 
-      Emitter.t (* emitter *)
+      string (* name *)
       * (kernel_function -> bool -> unit) (* for each kf and each kind of
 					     annotation, set/unset the fact
 					     that there has been generated *)
@@ -896,10 +899,11 @@ end
 (** Impact analysis.
     @see <../impact/index.html> internal documentation. *)
 module Impact : sig
-  val compute_pragmas: (unit -> unit) ref
+  val compute_pragmas: (unit -> stmt list) ref
     (** Compute the impact analysis from the impact pragma in the program.
         Print and slice the results according to the parameters -impact-print
-        and -impact-slice. *)
+        and -impact-slice.
+        @return the impacted statements *)
   val from_stmt: (stmt -> stmt list) ref
     (** Compute the impact analysis of the given statement.
         @return the impacted statements *)
@@ -1387,11 +1391,11 @@ module Slicing : sig
     val mk_project : (string -> t) ref
       (** To use to start a new slicing project.
           Several projects from a same current project can be managed.
-          Raises [Existing_Project] if an axisting project has the same name.*)
+          @raise Existing_Project if an axisting project has the same name.*)
 
     val from_unique_name : (string -> t) ref
-      (** Find a slcing project from its name.
-          Raise [No_Project] when no project is found. *)
+      (** Find a slicing project from its name.
+          @raise No_Project when no project is found. *)
 
     val get_all : (unit -> t list) ref
       (** Get all slicing projects. *)
@@ -1520,32 +1524,32 @@ module Slicing : sig
     val dyn_t : t Type.t
         (** For dynamic type checking and journalization. *)
 
-    type t_set = SlicingTypes.Fct_user_crit.t Cil_datatype.Varinfo.Map.t
+    type set = SlicingTypes.Fct_user_crit.t Cil_datatype.Varinfo.Map.t
         (** Set of colored selections. *)
-    val dyn_t_set : t_set Type.t
+    val dyn_set : set Type.t
         (** For dynamic type checking and journalization. *)
 
-    val empty_selects : t_set
+    val empty_selects : set
       (** Empty selection. *)
 
     val select_stmt :
-      (t_set -> spare:bool -> stmt -> kernel_function -> t_set) ref
+      (set -> spare:bool -> stmt -> kernel_function -> set) ref
       (** To select a statement. *)
 
     val select_stmt_ctrl :
-      (t_set -> spare:bool -> stmt -> kernel_function -> t_set) ref
+      (set -> spare:bool -> stmt -> kernel_function -> set) ref
       (** To select a statement reachability.
           Note: add also a transparent selection on the whole statement. *)
 
     val select_stmt_lval_rw :
-      (t_set ->
+      (set ->
        Mark.t ->
        rd:Datatype.String.Set.t ->
        wr:Datatype.String.Set.t ->
        stmt ->
        scope:stmt ->
        eval:stmt ->
-       kernel_function -> t_set) ref
+       kernel_function -> set) ref
       (** To select rw accesses to lvalues (given as string) related to a statement.
           Variables of [~rd] and [~wr] string are bounded
           relatively to the scope of the statement [~scope].
@@ -1555,8 +1559,8 @@ module Slicing : sig
           Note: add also a transparent selection on the whole statement. *)
 
     val select_stmt_lval :
-      (t_set -> Mark.t -> Datatype.String.Set.t -> before:bool -> stmt ->
-        scope:stmt -> eval:stmt -> kernel_function -> t_set) ref
+      (set -> Mark.t -> Datatype.String.Set.t -> before:bool -> stmt ->
+        scope:stmt -> eval:stmt -> kernel_function -> set) ref
       (** To select lvalues (given as string) related to a statement.
           Variables of [lval_str] string are bounded
           relatively to the scope of the statement [~scope].
@@ -1567,39 +1571,39 @@ module Slicing : sig
           Note: add also a transparent selection on the whole statement. *)
 
     val select_stmt_zone :
-      (t_set -> Mark.t -> Locations.Zone.t -> before:bool -> stmt ->
-       kernel_function -> t_set) ref
+      (set -> Mark.t -> Locations.Zone.t -> before:bool -> stmt ->
+       kernel_function -> set) ref
       (** To select a zone value related to a statement.
           Note: add also a transparent selection on the whole statement. *)
 
     val select_stmt_term :
-      (t_set -> Mark.t -> term -> stmt ->
-        kernel_function -> t_set) ref
+      (set -> Mark.t -> term -> stmt ->
+        kernel_function -> set) ref
       (** To select a predicate value related to a statement.
           Note: add also a transparent selection on the whole statement. *)
 
     val select_stmt_pred :
-      (t_set -> Mark.t -> predicate named -> stmt ->
-        kernel_function -> t_set) ref
+      (set -> Mark.t -> predicate named -> stmt ->
+        kernel_function -> set) ref
       (** To select a predicate value related to a statement.
           Note: add also a transparent selection on the whole statement. *)
 
     val select_stmt_annot :
-      (t_set -> Mark.t -> spare:bool -> code_annotation ->  stmt ->
-       kernel_function -> t_set) ref
+      (set -> Mark.t -> spare:bool -> code_annotation ->  stmt ->
+       kernel_function -> set) ref
       (** To select the annotations related to a statement.
           Note: add also a transparent selection on the whole statement. *)
 
     val select_stmt_annots :
-      (t_set -> Mark.t -> spare:bool -> ai:bool -> user_assert:bool ->
+      (set -> Mark.t -> spare:bool -> threat:bool -> user_assert:bool ->
         slicing_pragma:bool -> loop_inv:bool -> loop_var:bool ->
-        stmt -> kernel_function -> t_set) ref
+        stmt -> kernel_function -> set) ref
       (** To select the annotations related to a statement.
           Note: add also a transparent selection on the whole statement. *)
 
     val select_func_lval_rw :
-      (t_set -> Mark.t -> rd:Datatype.String.Set.t -> wr:Datatype.String.Set.t ->
-        scope:stmt -> eval:stmt -> kernel_function -> t_set) ref
+      (set -> Mark.t -> rd:Datatype.String.Set.t -> wr:Datatype.String.Set.t ->
+        scope:stmt -> eval:stmt -> kernel_function -> set) ref
       (** To select rw accesses to lvalues (given as a string) related to a function.
           Variables of [~rd] and [~wr] string are bounded
           relatively to the scope of the statement [~scope].
@@ -1608,7 +1612,7 @@ module Slicing : sig
           The selection preserve the value of these lvalues into the whole project. *)
 
     val select_func_lval :
-      (t_set -> Mark.t -> Datatype.String.Set.t -> kernel_function -> t_set) ref
+      (set -> Mark.t -> Datatype.String.Set.t -> kernel_function -> set) ref
       (** To select lvalues (given as a string) related to a function.
           Variables of [lval_str] string are bounded
           relatively to the scope of the first statement of [kf].
@@ -1618,27 +1622,27 @@ module Slicing : sig
           execution of the return statement. *)
 
     val select_func_zone :
-      (t_set -> Mark.t -> Locations.Zone.t -> kernel_function -> t_set) ref
+      (set -> Mark.t -> Locations.Zone.t -> kernel_function -> set) ref
       (** To select an output zone related to a function. *)
 
     val select_func_return :
-      (t_set -> spare:bool -> kernel_function -> t_set) ref
+      (set -> spare:bool -> kernel_function -> set) ref
       (** To select the function result (returned value). *)
 
     val select_func_calls_to :
-      (t_set -> spare:bool -> kernel_function -> t_set) ref
+      (set -> spare:bool -> kernel_function -> set) ref
       (** To select every calls to the given function, i.e. the call keeps
           its semantics in the slice. *)
 
     val select_func_calls_into :
-      (t_set -> spare:bool -> kernel_function -> t_set) ref
+      (set -> spare:bool -> kernel_function -> set) ref
       (** To select every calls to the given function without the selection of
           its inputs/outputs. *)
 
     val select_func_annots :
-      (t_set -> Mark.t -> spare:bool -> ai:bool -> user_assert:bool ->
+      (set -> Mark.t -> spare:bool -> threat:bool -> user_assert:bool ->
         slicing_pragma:bool -> loop_inv:bool -> loop_var:bool ->
-        kernel_function -> t_set) ref
+        kernel_function -> set) ref
       (** To select the annotations related to a function. *)
 
     (** {3 Internal use only} *)
@@ -1652,9 +1656,9 @@ module Slicing : sig
     val merge_internal : (t -> t -> t) ref
       (** The function related to an internal selection. *)
 
-    val add_to_selects_internal : (t -> t_set -> t_set) ref
-    val iter_selects_internal : ((t -> unit) -> t_set -> unit) ref
-    val fold_selects_internal : (('a -> t -> 'a) -> 'a -> t_set -> 'a)
+    val add_to_selects_internal : (t -> set -> set) ref
+    val iter_selects_internal : ((t -> unit) -> set -> unit) ref
+    val fold_selects_internal : (('a -> t -> 'a) -> 'a -> set -> 'a)
 
     val select_stmt_internal : (kernel_function -> ?select:t ->
                                   stmt -> Mark.t -> t) ref
@@ -1748,7 +1752,7 @@ module Slicing : sig
     val select_decl_var_internal :
                  (kernel_function -> ?select:t ->  Cil_types.varinfo -> Mark.t -> t) ref
     val select_pdg_nodes :
-      (t_set -> Mark.t  -> PdgTypes.Node.t list -> kernel_function -> t_set) ref
+      (set -> Mark.t  -> PdgTypes.Node.t list -> kernel_function -> set) ref
   end
 
   (** Function slice. *)
@@ -1829,11 +1833,11 @@ module Slicing : sig
 
     (** {3 Adding a request} *)
 
-    val add_selection: (Project.t -> Select.t_set -> unit) ref
+    val add_selection: (Project.t -> Select.set -> unit) ref
       (** Add a selection request to all slices (existing)
           of a function to the project requests. *)
 
-    val add_persistent_selection: (Project.t -> Select.t_set -> unit) ref
+    val add_persistent_selection: (Project.t -> Select.set -> unit) ref
       (** Add a persistent selection request to all slices (already existing or
           created later) of a function to the project requests. *)
 
@@ -1919,8 +1923,9 @@ module Slicing : sig
 end
 
 
-(** Signature common to inputs and outputs computations. *)
-module type INOUT = sig
+(** Signature common to some Inout plugin options. The results of
+    the computations are available on a per function basis. *)
+module type INOUTKF = sig
 
   type t
 
@@ -1935,16 +1940,19 @@ module type INOUT = sig
   val get_external : (kernel_function -> t) ref
     (** Inputs/Outputs without either local or formal variables *)
 
-  val statement : (stmt -> t) ref
-
-  val kinstr : kinstr -> t option
-    (** Effects of the given statement or of the englobing statement *)
-
   (** {3 Pretty printing} *)
 
   val display : (Format.formatter -> kernel_function -> unit) ref
   val pretty : Format.formatter -> t -> unit
 
+end
+(** Signature common to inputs and outputs computations. The results
+    are also available on a per-statement basis. *)
+module type INOUT = sig
+  include INOUTKF
+
+  val statement : (stmt -> t) ref
+  val kinstr : kinstr -> t option
 end
 
 (** State_builder.of read inputs.
@@ -1980,7 +1988,7 @@ end
     - under-approximation of zones written by each function.
     @see <../inout/Context.html> internal documentation. *)
 module Operational_inputs : sig
-  include INOUT with type t = Inout_type.t
+  include INOUTKF with type t = Inout_type.t
   val get_internal_precise: (?stmt:stmt -> kernel_function -> Inout_type.t) ref
     (** More precise version of [get_internal] function. If [stmt] is
         specified, and is a possible call to the given kernel_function,
@@ -1990,7 +1998,7 @@ module Operational_inputs : sig
 (**/**)
     (* Internal use *)
   module Record_Inout_Callbacks:
-    Hook.Iter_hook with type param = Value_aux.callstack * Inout_type.t
+    Hook.Iter_hook with type param = Value_types.callstack * Inout_type.t
 (**/**)
 end
 

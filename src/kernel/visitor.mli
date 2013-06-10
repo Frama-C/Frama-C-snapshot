@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -66,16 +66,6 @@ class type frama_c_visitor = object
     (** Replacement of vglob.
         @plugin development guide*)
 
-  method vrooted_code_annotation:
-    rooted_code_annotation ->
-    rooted_code_annotation list Cil.visitAction
-      (** visiting a rooted code annotation. *)
-
-  method is_annot_before: bool
-    (** Used to tell if we're visiting an annotation placed
-        before current statement.
-        @raise Error if not called while visiting a statement. *)
-
   method current_kf: kernel_function option
     (** link to the kernel function currently being visited.
         {b NB:} for copy visitors, the link is to the original kf (anyway,
@@ -90,7 +80,8 @@ class type frama_c_visitor = object
 end
 
 class frama_c_inplace: frama_c_visitor
-  (** in-place visitor; always act in the current project. *)
+  (** in-place visitor; always act in the current project. 
+      @plugin development guide *)
 
 class frama_c_copy: Project.t -> frama_c_visitor
   (** Copying visitor. The [Project.t] argument specifies in which project the
@@ -100,7 +91,7 @@ class frama_c_copy: Project.t -> frama_c_visitor
       for possible uses. *)
 
 class generic_frama_c_visitor:
-  Project.t -> Cil.visitor_behavior ->  frama_c_visitor
+  Cil.visitor_behavior ->  frama_c_visitor
   (** Generic class that abstracts over [frama_c_inplace] and [frama_c_copy]. 
       @plugin development guide *)
 
@@ -116,13 +107,15 @@ val visitFramacFile: frama_c_visitor -> file -> unit
 (** A visitor for the whole file that does not change the globals (but maybe
     changes things inside the globals). Use this function instead of
     {!Visitor.visitFramacFile} whenever appropriate because it is more
-    efficient for long files. *)
+    efficient for long files. 
+    @plugin development guide *)
 val visitFramacFileSameGlobals: frama_c_visitor -> file -> unit
 
-(** Visit a global *)
+(** Visit a global. *)
 val visitFramacGlobal: frama_c_visitor -> global -> global list
 
-(** Visit a function definition *)
+(** Visit a function definition.
+    @plugin development guide  *)
 val visitFramacFunction: frama_c_visitor -> fundec -> fundec
 
 (** Visit an expression *)

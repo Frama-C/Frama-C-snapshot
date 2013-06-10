@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -173,18 +173,18 @@ let compare_kind k1 k2 = match k1, k2 with
         if cmp <> 0 then cmp
         else
 	  Property.compare p1 p2
-  | _,_ -> Pervasives.compare (kind_order k1)  (kind_order k2)
+  | _,_ -> Pervasives.compare (kind_order k1) (kind_order k2)
 
 let compare_prop_id pid1 pid2 =
   (* This order of comparison groups together prop_pids with same properties *)
   let p1 = property_of_id pid1 in
   let p2 = property_of_id pid2 in
-  let cmp = Property.compare p1 p2 in
+  let cmp = Description.full_compare p1 p2 in
   if cmp <> 0 then cmp
   else
     let cmp = compare_kind pid2.p_kind pid1.p_kind in
     if cmp <> 0 then cmp
-    else
+    else 
       Pervasives.compare pid1.p_part pid2.p_part
 
 module PropId =
@@ -224,7 +224,7 @@ module Names = struct
 	 let dependencies = 
 	   [ Ast.self; 
 	     NamesTbl.self; 
-	     Kernel_function.self;
+	     Globals.Functions.self;
 	     Annotations.code_annot_state; 
 	     Annotations.funspec_state;
 	     Annotations.global_state ] 
@@ -274,7 +274,11 @@ module Names = struct
     let basename = normalize_basename (basename_of_prop_id p)
     in match p.p_part with
       | None -> basename
-      | Some(k,_) -> Printf.sprintf "%s_part%d" basename (succ k)
+      | Some(k,n) -> 
+	  if n < 10 then Printf.sprintf "%s_part%d" basename (succ k) else
+	    if n < 100 then Printf.sprintf "%s_part%02d" basename (succ k) else
+	      if n < 1000 then Printf.sprintf "%s_part%03d" basename (succ k) else
+		Printf.sprintf "%s_part%06d" basename (succ k)
 	  
   (** returns a unique name identifying the property.
       This name is built from the basename of the property. *)
@@ -297,10 +301,14 @@ let pp_names fmt l =  match l with [] -> ()
   | _ ->
       Format.fprintf fmt "_%a" (Wp_error.pp_string_list ~empty:"" ~sep:"_") l
 
+let ident_names names =
+  List.filter (function "" -> true
+		 | _ as n -> '\"' <> (String.get n 0) ) names
+
 let code_annot_names ca = match ca.annot_content with
-  | AAssert (_, named_pred)  -> "@assert"::named_pred.name
-  | AInvariant (_,_,named_pred) -> "@invariant"::named_pred.name
-  | AVariant (term, _) -> "@variant"::term.term_name
+  | AAssert (_, named_pred)  -> "@assert"::(ident_names named_pred.name)
+  | AInvariant (_,_,named_pred) -> "@invariant"::(ident_names named_pred.name)
+  | AVariant (term, _) -> "@variant"::(ident_names term.term_name)
   | _ -> [] (* TODO : add some more names ? *)
 
 (** This is used to give the name of the property that the user can give
@@ -323,7 +331,7 @@ let user_prop_names p = match p with
     | Property.IPAssigns (_, _, _, l) ->
         let kind_name = "@assigns" in
 	  List.fold_left
-            (fun acc (t,_) -> t.it_content.term_name @ acc) [kind_name] l
+            (fun acc (t,_) -> (ident_names t.it_content.term_name) @ acc) [kind_name] l
     | Property.IPFrom _ -> ["@from"] (* TODO: steal term names from assigns? *)
     | Property.IPDecrease (_,_, Some ca,_) -> 
 	let kind_name = "@decreases" 
@@ -331,12 +339,13 @@ let user_prop_names p = match p with
     | Property.IPDecrease _ -> 
 	let kind_name = "@decreases"
 	in kind_name::[] (*TODO: add more names ? *)
-    | Property.IPLemma (a,_,_,_,_) -> 
-	begin
+    | Property.IPLemma (a,_,_,l,_) -> 
+        let names = "@lemma"::a::(ident_names l.name)
+	in begin
 	  match LogicUsage.section_of_lemma a with
-	    | LogicUsage.Toplevel _ -> ["@lemma";a]
-	    | LogicUsage.Axiomatic ax -> [ax.LogicUsage.ax_name;"@lemma";a] 
-	end
+	    | LogicUsage.Toplevel _ -> names
+	    | LogicUsage.Axiomatic ax -> ax.LogicUsage.ax_name::names
+	  end
     | Property.IPAllocation _ (* TODO *)
     | Property.IPAxiomatic _
     | Property.IPAxiom _
@@ -368,6 +377,33 @@ let label_of_prop_id p =
     | None -> label_of_kind p.p_kind
     | Some(k,n) ->
         Printf.sprintf "%s (%d/%d)" (label_of_kind p.p_kind) (succ k) n
+
+module Pretty =
+struct
+  open Format
+  let pp_part fmt p = match p.p_part with
+    | None -> ()
+    | Some(k,n) -> fprintf fmt " (%d/%d)" (succ k) n
+  let pp_subprop fmt p = match p.p_kind with
+    | PKProp | PKPropLoop -> ()
+    | PKEstablished -> pp_print_string fmt " (established)"
+    | PKPreserved -> pp_print_string fmt " (preserved)"
+    | PKVarDecr -> pp_print_string fmt " (decrease)"
+    | PKVarPos -> pp_print_string fmt " (positive)"
+    | PKAFctOut -> pp_print_string fmt " (return)"
+    | PKAFctExit -> pp_print_string fmt " (exit)"
+    | PKPre(kf,_,_) -> fprintf fmt " (call '%s')" (Kernel_function.get_name kf)
+  let pp_prop fmt p = 
+    Description.pp_localized ~kf:`Never ~ki:false ~kloc:false fmt p.p_prop
+  let pp_local fmt p =
+    begin
+      pp_prop fmt p ;
+      pp_subprop fmt p ;
+      pp_part fmt p ;
+    end
+end
+
+let pretty_local = Pretty.pp_local
 
 (* -------------------------------------------------------------------------- *)
 (* --- Hints                                                              --- *)
@@ -435,7 +471,7 @@ let assigns_hints hs froms =
 
 let annot_hints hs = function
   | AAssert(bs,ipred) | AInvariant(bs,_,ipred) -> 
-      List.iter (add_hint hs) ipred.name ;
+      List.iter (add_hint hs) (ident_names ipred.name) ;
       List.iter (add_hint hs) bs 
   | AAssigns(bs,Writes froms) -> 
       List.iter (add_hint hs) bs ;
@@ -443,8 +479,8 @@ let annot_hints hs = function
   | AAllocation _ | AAssigns(_,WritesAny) | AStmtSpec _ | AVariant _ | APragma _ -> ()
 
 let property_hints hs = function
-  | Property.IPAxiom (s,_,_,_,_)
-  | Property.IPLemma (s,_,_,_,_) -> add_required hs s
+  | Property.IPAxiom (s,_,_,p,_)
+  | Property.IPLemma (s,_,_,p,_) -> List.iter (add_required hs) (s::p.name)
   | Property.IPBehavior _ -> ()
   | Property.IPComplete(_,_,ps) | Property.IPDisjoint(_,_,ps) -> 
       List.iter (add_required hs) ps
@@ -569,6 +605,8 @@ let select_call_pre s_call asked_pre pid =
 (*----------------------------------------------------------------------------*)
 
 type a_kind = LoopAssigns | StmtAssigns
+  
+type effect_source = FromCode | FromCall | FromReturn
 
 type assigns_desc = {
   a_label : Cil_types.logic_label ;
@@ -632,9 +670,9 @@ type pred_info = prop_id * Cil_types.predicate named
 
 let mk_pred_info id p = (id, p)
 let pred_info_id (id, _) = id
-let pp_pred_of_pred_info fmt (_id, p) = !Ast_printer.d_predicate_named fmt p
+let pp_pred_of_pred_info fmt (_id, p) = Printer.pp_predicate_named fmt p
 let pp_pred_info fmt (id, p) =
-  Format.fprintf fmt "(@[%a:@ %a@])" pp_propid id !Ast_printer.d_predicate_named p
+  Format.fprintf fmt "(@[%a:@ %a@])" pp_propid id Printer.pp_predicate_named p
 
 type assigns_info = prop_id * assigns_desc
 
@@ -705,7 +743,7 @@ let mk_axiom_info lemma =
 
 let pp_axiom_info fmt (id,thm) = 
   Format.fprintf fmt "(@[%a:@ %a@])" pp_propid id 
-    !Ast_printer.d_predicate_named thm.LogicUsage.lem_property
+    Printer.pp_predicate_named thm.LogicUsage.lem_property
 
 (* -------------------------------------------------------------------------- *)
 (* --- Prop Splitter                                                      --- *)
@@ -804,9 +842,3 @@ let get_induction p =
     | PKEstablished|PKVarDecr|PKVarPos|PKPreserved ->
         (match get_stmt (property_of_id p) with 
            | None -> None | Some (_, s) -> Some s)
-
-(*
-Local Variables:
-compile-command: "make -C ../.."
-End:
-*)

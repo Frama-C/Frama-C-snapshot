@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -45,6 +45,8 @@ module Vars: sig
   val fold: (varinfo -> initinfo -> 'a -> 'a) -> 'a -> 'a
 
   val iter_in_file_order: (varinfo -> initinfo -> unit) -> unit
+  val fold_in_file_order: (varinfo -> initinfo -> 'a -> 'a) -> 'a -> 'a
+  (** @since Fluorine-20130401 *)
 
   (** {2 Setters}
 
@@ -74,7 +76,8 @@ module Functions: sig
   val get: varinfo -> kernel_function
     (** @raise Not_found if the given varinfo has no associated kernel function
         and is not a built-in.
-    *)
+	@plugin development guide *)
+
   val get_params: kernel_function -> varinfo list
   val get_vi: kernel_function -> varinfo
 

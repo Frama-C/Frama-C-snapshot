@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -61,6 +61,7 @@ val get: plugin:string -> string -> 'a Type.t -> 'a
       @raise Unbound_value if the name is not registered
       @raise Incompatible_type if the name is not registered
       with a compatible type
+      @raise Failure _ in the -no-obj mode
       @plugin development guide *)
 
 val iter: (string -> 'a Type.t -> 'a -> unit) -> unit

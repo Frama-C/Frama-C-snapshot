@@ -24,4 +24,9 @@ const int t4[12] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 ss t5[7] = {{1, 2}, {3}, 5, 6, 7, 8, 9, 10};
 ss2 t6[6] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 
-void main(){}
+extern const t7[5]; // Do not initialize to 0
+extern const t8[5] = {1, 2}; // Ignore extern (done by Cil)
+
+void main(){
+  int *x = t7;
+}

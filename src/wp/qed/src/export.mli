@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -38,7 +38,6 @@ val pmode : mode -> pmode
 val tmode : ('a,'f) Logic.datatype -> mode
 val ctau  : ('a,'f) Logic.datatype -> cmode
 
-val link_compare : link -> link -> int
 val link_name : link -> string
 
 module Make(T : Term) :
@@ -56,7 +55,10 @@ sig
 
     method virtual datatype : ADT.t -> string
     method virtual field : Field.t -> string
+    method basename : string -> string
+    (** Allows to sanitize the basename used for every name except function. *)
     method virtual link : cmode -> Fun.t -> link
+
     method link_name : cmode -> Fun.t -> string
 
     method declare : string -> unit
@@ -81,10 +83,12 @@ sig
 
     method virtual e_true : cmode -> string
     method virtual e_false : cmode -> string
-    method virtual pp_int : Z.t printer
-    method virtual pp_real : R.t printer
-    method virtual is_atomic : term -> bool
+    method virtual pp_int : amode -> Z.t printer
+    method virtual pp_cst : Numbers.cst printer
+    method pp_real : R.t printer
 
+    method virtual is_atomic : term -> bool
+    method virtual op_spaced : string -> bool
     method virtual callstyle : callstyle
     method virtual pp_apply : cmode -> term -> term list printer
     method pp_fun : cmode -> Fun.t -> term list printer
@@ -92,6 +96,7 @@ sig
     method virtual op_scope : amode -> string option
     method virtual op_real_of_int : op
     method virtual op_add : amode -> op
+    method virtual op_sub : amode -> op
     method virtual op_mul : amode -> op
     method virtual op_div : amode -> op
     method virtual op_mod : amode -> op

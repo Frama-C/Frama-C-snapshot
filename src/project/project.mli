@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -90,10 +90,10 @@ val clear_all: unit -> unit
 (* ************************************************************************* *)
 (** {2 Operations on one project}
 
-    Most operations have one additional selection as argument. If it is
-    specified, the operation is only applied on the state of the given
-    selection on the. Be aware that the  resulting project may become
-    unconsistent if your selection is incorrect. *)
+    Most operations have one additional selection as argument. If it
+    is specified, the operation is only applied on the states of the
+    given selection on the given project. Beware that the project may
+    become inconsistent if your selection is incorrect. *)
 (* ************************************************************************* *)
 
 val get_name: t -> string

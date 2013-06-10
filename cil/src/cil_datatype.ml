@@ -1,48 +1,53 @@
-(**************************************************************************)
-(*                                                                        *)
-(*  Copyright (C) 2001-2003                                               *)
-(*   George C. Necula    <necula@cs.berkeley.edu>                         *)
-(*   Scott McPeak        <smcpeak@cs.berkeley.edu>                        *)
-(*   Wes Weimer          <weimer@cs.berkeley.edu>                         *)
-(*   Ben Liblit          <liblit@cs.berkeley.edu>                         *)
-(*  All rights reserved.                                                  *)
-(*                                                                        *)
-(*  Redistribution and use in source and binary forms, with or without    *)
-(*  modification, are permitted provided that the following conditions    *)
-(*  are met:                                                              *)
-(*                                                                        *)
-(*  1. Redistributions of source code must retain the above copyright     *)
-(*  notice, this list of conditions and the following disclaimer.         *)
-(*                                                                        *)
-(*  2. Redistributions in binary form must reproduce the above copyright  *)
-(*  notice, this list of conditions and the following disclaimer in the   *)
-(*  documentation and/or other materials provided with the distribution.  *)
-(*                                                                        *)
-(*  3. The names of the contributors may not be used to endorse or        *)
-(*  promote products derived from this software without specific prior    *)
-(*  written permission.                                                   *)
-(*                                                                        *)
-(*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS   *)
-(*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT     *)
-(*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS     *)
-(*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE        *)
-(*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,   *)
-(*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,  *)
-(*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;      *)
-(*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER      *)
-(*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT    *)
-(*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN     *)
-(*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE       *)
-(*  POSSIBILITY OF SUCH DAMAGE.                                           *)
-(*                                                                        *)
-(*  File modified by CEA (Commissariat à l'énergie atomique et aux        *)
-(*                        énergies alternatives).                         *)
-(**************************************************************************)
+(****************************************************************************)
+(*                                                                          *)
+(*  Copyright (C) 2001-2003                                                 *)
+(*   George C. Necula    <necula@cs.berkeley.edu>                           *)
+(*   Scott McPeak        <smcpeak@cs.berkeley.edu>                          *)
+(*   Wes Weimer          <weimer@cs.berkeley.edu>                           *)
+(*   Ben Liblit          <liblit@cs.berkeley.edu>                           *)
+(*  All rights reserved.                                                    *)
+(*                                                                          *)
+(*  Redistribution and use in source and binary forms, with or without      *)
+(*  modification, are permitted provided that the following conditions      *)
+(*  are met:                                                                *)
+(*                                                                          *)
+(*  1. Redistributions of source code must retain the above copyright       *)
+(*  notice, this list of conditions and the following disclaimer.           *)
+(*                                                                          *)
+(*  2. Redistributions in binary form must reproduce the above copyright    *)
+(*  notice, this list of conditions and the following disclaimer in the     *)
+(*  documentation and/or other materials provided with the distribution.    *)
+(*                                                                          *)
+(*  3. The names of the contributors may not be used to endorse or          *)
+(*  promote products derived from this software without specific prior      *)
+(*  written permission.                                                     *)
+(*                                                                          *)
+(*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS     *)
+(*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT       *)
+(*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS       *)
+(*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE          *)
+(*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,     *)
+(*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,    *)
+(*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;        *)
+(*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER        *)
+(*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT      *)
+(*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN       *)
+(*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE         *)
+(*  POSSIBILITY OF SUCH DAMAGE.                                             *)
+(*                                                                          *)
+(*  File modified by CEA (Commissariat à l'énergie atomique et aux          *)
+(*                        énergies alternatives)                            *)
+(*               and INRIA (Institut National de Recherche en Informatique  *)
+(*                          et Automatique).                                *)
+(****************************************************************************)
 
 open Cil_types
 let (=?=) = Extlib.compare_basic
 let compare_list = Extlib.list_compare
 let hash_list f = List.fold_left (fun acc d -> 65537 * acc + f d) 1
+
+(* Functions that will clear internal, non-project compliant, caches *)
+let clear_caches = ref []
 
 (**************************************************************************)
 (** {3 Generic builders for Cil datatypes} *)
@@ -125,6 +130,7 @@ let rank_term = function
   | Tlet _ -> 29
   | Tcomprehension _ -> 30
   | Toffset _ -> 31
+  | TLogic_coerce _ -> 32
 
 
 (**************************************************************************)
@@ -166,7 +172,6 @@ module Position =
 
 module Location = struct
   let unknown = Lexing.dummy_pos, Lexing.dummy_pos
-  let pretty_ref = ref (fun _ _ -> assert false)
   include Make_with_collections
     (struct
       type t = location
@@ -177,7 +182,9 @@ module Location = struct
       let copy = Datatype.identity (* immutable strings *)
       let equal : t -> t -> bool = ( = )
       let internal_pretty_code = Datatype.undefined
-      let pretty fmt x = !pretty_ref fmt x
+      let pretty fmt loc = 
+	let loc = (fst loc) in
+	Format.fprintf fmt "%s:%d" loc.Lexing.pos_fname loc.Lexing.pos_lnum
       let varname _ = "loc"
      end)
 
@@ -278,6 +285,7 @@ module Stmt = struct
       (struct let l = [ ] (* This should be [Ast.self], but cannot be done
                              here *) end)
   end
+  let () = clear_caches := Hptset.clear_caches :: !clear_caches
 
   let rec loc_skind = function
     | Return(_, l) | Goto(_, l) | Break(l) | Continue l | If(_, _, _, l)
@@ -291,18 +299,6 @@ module Stmt = struct
   and loc s = loc_skind s.skind
 
 end
-
-module Label =
-  Make
-    (struct
-      type t = label
-      let name = "Label"
-      let reprs =
-	[ Label("", Location.unknown, false); Default Location.unknown ]
-      let internal_pretty_code = Datatype.undefined
-      let pretty = Datatype.undefined
-      let varname = Datatype.undefined
-     end)
 
 module Kinstr = struct
 
@@ -378,135 +374,168 @@ let punrollType =
 
 let drop_non_logic_attributes = ref (fun a -> a)
 
-let rec compare_attribute ~by_name ~logic_type a1 a2 = match a1, a2 with
+type type_compare_config =
+    { by_name : bool;
+      logic_type: bool;
+      unroll: bool }
+
+let rec compare_attribute config a1 a2 = match a1, a2 with
     | Attr (s1, l1), Attr (s2, l2) ->
-	compare_chain (=?=) s1 s2 (compare_attrparam_list ~by_name ~logic_type) l1 l2
+	compare_chain (=?=) s1 s2 (compare_attrparam_list config) l1 l2
     | AttrAnnot s1, AttrAnnot s2 -> s1 =?= s2
     | Attr _, AttrAnnot _ -> -1
     | AttrAnnot _, Attr _ -> 1
-and compare_attributes ~by_name ~logic_type  l1 l2 = 
-  let l1, l2 = if logic_type
+and compare_attributes config  l1 l2 = 
+  let l1, l2 = if config.logic_type
     then !drop_non_logic_attributes l1, !drop_non_logic_attributes l2
     else l1,l2
-  in compare_list (compare_attribute ~by_name ~logic_type) l1 l2
-and compare_attrparam_list ~by_name ~logic_type l1 l2 =
-  compare_list (compare_attrparam ~by_name ~logic_type) l1 l2
-and compare_attrparam ~by_name ~logic_type a1 a2 = match a1, a2 with
-  | AInt i1, AInt i2 -> My_bigint.compare i1 i2
+  in compare_list (compare_attribute config) l1 l2
+and compare_attrparam_list config l1 l2 =
+  compare_list (compare_attrparam config) l1 l2
+and compare_attrparam config a1 a2 = match a1, a2 with
+  | AInt i1, AInt i2 -> Integer.compare i1 i2
   | AStr s1, AStr s2 -> s1 =?= s2
   | ACons ((s1: string), l1), ACons (s2, l2) ->
       let r1 = (=?=) s1 s2 in
       if r1 <> 0 then r1
       else
-        compare_attrparam_list ~by_name ~logic_type l1 l2
-  | ASizeOf t1, ASizeOf t2 -> compare_type ~by_name ~logic_type t1 t2
-  | ASizeOfE p1, ASizeOfE p2 -> compare_attrparam ~by_name ~logic_type p1 p2
-  | AAlignOf t1, AAlignOf t2 -> compare_type ~by_name ~logic_type t1 t2
-  | AAlignOfE p1, AAlignOfE p2 -> compare_attrparam ~by_name ~logic_type p1 p2
+        compare_attrparam_list config l1 l2
+  | ASizeOf t1, ASizeOf t2 -> compare_type config t1 t2
+  | ASizeOfE p1, ASizeOfE p2 -> compare_attrparam config p1 p2
+  | AAlignOf t1, AAlignOf t2 -> compare_type config t1 t2
+  | AAlignOfE p1, AAlignOfE p2 -> compare_attrparam config p1 p2
   | AUnOp (op1, a1), AUnOp (op2, a2) ->
-     compare_chain (=?=) op1 op2 (compare_attrparam ~by_name ~logic_type) a1 a2
+     compare_chain (=?=) op1 op2 (compare_attrparam config) a1 a2
   | ABinOp (op1, a1, a1'), ABinOp (op2, a2, a2') ->
      compare_chain (=?=) op1 op2
-       (compare_chain (compare_attrparam ~by_name ~logic_type) a1 a2 (compare_attrparam ~by_name ~logic_type)) a1' a2'
+       (compare_chain
+          (compare_attrparam config) a1 a2 (compare_attrparam config))
+       a1' a2'
   | ADot (a1, s1), ADot (a2, s2) ->
-      compare_chain (=?=) s1 s2 (compare_attrparam ~by_name ~logic_type) a1 a2
+      compare_chain (=?=) s1 s2 (compare_attrparam config) a1 a2
   | AStar a1, AStar a2
-  | AAddrOf a1, AAddrOf a2 -> compare_attrparam ~by_name ~logic_type a1 a2
+  | AAddrOf a1, AAddrOf a2 -> compare_attrparam config a1 a2
   | AIndex (a1, a1'), AIndex (a2, a2') ->
-      compare_chain (compare_attrparam ~by_name ~logic_type) a1 a2 (compare_attrparam ~by_name ~logic_type) a1' a2'
+      compare_chain
+        (compare_attrparam config) a1 a2
+        (compare_attrparam config) a1' a2'
   | AQuestion (a1, a1', a1''), AQuestion (a2, a2', a2'') ->
-      compare_chain (compare_attrparam ~by_name ~logic_type) a1 a2
-        (compare_chain (compare_attrparam ~by_name ~logic_type) a1' a2' (compare_attrparam  ~by_name ~logic_type)) a1'' a2''
+      compare_chain
+        (compare_attrparam config) a1 a2
+        (compare_chain (compare_attrparam config) a1' a2'
+           (compare_attrparam  config))
+        a1'' a2''
   | (AInt _ | AStr _ | ACons _ | ASizeOf _ | ASizeOfE _ | 
         AAlignOf _ | AAlignOfE _ | AUnOp _ | ABinOp _ | ADot _ |
         AStar _ | AAddrOf _ | AIndex _ | AQuestion _ as a1), a2 ->
       index_attrparam a1 - index_attrparam a2
-and compare_type ~by_name ~logic_type t1 t2 =
+and compare_type config t1 t2 =
   if t1 == t2 then 0
   else
-    match !punrollType t1, !punrollType t2 with
-      | TVoid l1, TVoid l2 -> compare_attributes ~by_name ~logic_type l1 l2
+    let typs =
+      if config.unroll then !punrollType t1, !punrollType t2
+      else t1,t2
+    in
+    match typs with
+      | TVoid l1, TVoid l2 -> compare_attributes config l1 l2
       | TInt (i1, l1), TInt (i2, l2) ->
-          compare_chain (=?=) i1 i2 (compare_attributes ~by_name ~logic_type) l1 l2
+          compare_chain (=?=) i1 i2 (compare_attributes config) l1 l2
       | TFloat (f1, l1), TFloat (f2, l2) ->
-          compare_chain (=?=) f1 f2 (compare_attributes ~by_name ~logic_type) l1 l2
+          compare_chain (=?=) f1 f2 (compare_attributes config) l1 l2
       | TPtr (t1, l1), TPtr (t2, l2) ->
-          compare_chain (compare_type ~by_name ~logic_type) t1 t2 (compare_attributes ~by_name ~logic_type) l1 l2
+          compare_chain
+            (compare_type config) t1 t2
+            (compare_attributes config) l1 l2
       | TArray (t1', _, _, l1), TArray (t2', _, _, l2) ->
-          compare_chain (=?=) (!pbitsSizeOf t1) (!pbitsSizeOf t2)
-            (compare_chain (compare_type ~by_name ~logic_type) t1' t2' (compare_attributes ~by_name ~logic_type)) l1 l2
+          (* bitsSizeOf is here to compare the size of the arrays *)
+          compare_chain (=?=)
+            (!pbitsSizeOf t1) (!pbitsSizeOf t2)
+          (compare_chain
+            (compare_type config) t1' t2'
+            (compare_attributes config)) l1 l2
       | TFun (r1, a1, v1, l1), TFun (r2, a2, v2, l2) ->
-          compare_chain (compare_type ~by_name ~logic_type) r1 r2
+          compare_chain (compare_type config) r1 r2
             (compare_chain (=?=) v1 v2
-               (compare_chain (compare_arg_list ~by_name ~logic_type) a1 a2
-                  (compare_attributes ~by_name ~logic_type))) l1 l2
-      | TNamed _, TNamed _ -> assert false
+               (compare_chain (compare_arg_list config) a1 a2
+                  (compare_attributes config))) l1 l2
+      | TNamed (t1,a1), TNamed (t2,a2) ->
+          assert (not config.unroll);
+          compare_chain (=?=) t1.tname t2.tname
+            (compare_attributes config) a1 a2
       | TComp (c1, _, l1), TComp (c2, _, l2) ->
           let res =
-            if by_name
+            if config.by_name
             then (=?=) c1.cname c2.cname
             else (=?=) c1.ckey c2.ckey
           in
           if res <> 0 then res
-          else compare_attributes ~by_name ~logic_type l1 l2
+          else compare_attributes config l1 l2
       | TEnum (e1, l1), TEnum (e2, l2) ->
-          compare_chain (=?=) e1.ename e2.ename (compare_attributes ~by_name ~logic_type) l1 l2
-      | TBuiltin_va_list l1, TBuiltin_va_list l2 -> compare_attributes ~by_name ~logic_type l1 l2
+          compare_chain
+            (=?=) e1.ename e2.ename
+            (compare_attributes config) l1 l2
+      | TBuiltin_va_list l1, TBuiltin_va_list l2 ->
+          compare_attributes config l1 l2
       | (TVoid _ | TInt _ | TFloat _ | TPtr _ | TArray _ | TFun _ | TNamed _ |
              TComp _ | TEnum _ | TBuiltin_va_list _ as a1), a2 ->
           index_typ a1 - index_typ a2
 
-and compare_arg_list  ~by_name ~logic_type l1 l2 =
+and compare_arg_list  config l1 l2 =
   Extlib.opt_compare
     (compare_list
        (fun (_n1, t1, l1) (_n2, t2, l2) ->
-           (compare_chain (compare_type ~by_name ~logic_type) t1 t2 (compare_attributes ~by_name ~logic_type)) l1 l2
+           (compare_chain (compare_type config) t1 t2
+              (compare_attributes config)) l1 l2
        )) l1 l2
 
-let hash_attribute _by_name = function
+let hash_attribute _config = function
   | AttrAnnot s -> Hashtbl.hash s
   | Attr (s, _) -> (* We do not hash attrparams. There is a recursivity problem
        with typ, and the equal function will be complicated enough in itself *)
       3 * Hashtbl.hash s + 117
-let hash_attributes ~by_name ~logic_type l =
-  let attrs = if logic_type then !drop_non_logic_attributes l else l in
-  hash_list (hash_attribute by_name) attrs
+let hash_attributes config l =
+  let attrs = if config.logic_type then !drop_non_logic_attributes l else l in
+  hash_list (hash_attribute config) attrs
 
-let rec hash_type ~by_name ~logic_type = function
-  | TVoid l -> Hashtbl.hash (hash_attributes ~by_name ~logic_type l, 1)
-  | TInt (i, l) -> Hashtbl.hash (i, 2, hash_attributes ~by_name ~logic_type l)
-  | TFloat (f, l) -> Hashtbl.hash (f, 3, hash_attributes ~by_name ~logic_type l)
-  | TPtr (t, l) ->
-      Hashtbl.hash (hash_type ~by_name ~logic_type t, 4, hash_attributes ~by_name ~logic_type l)
-  | TArray (t, _, _, l) ->
-      Hashtbl.hash (hash_type ~by_name ~logic_type t, 5, hash_attributes ~by_name ~logic_type l)
+let rec hash_type config t =
+  let t = if config.unroll then !punrollType t else t in
+  match t with
+    | TVoid l -> Hashtbl.hash (hash_attributes config l, 1)
+    | TInt (i, l) -> Hashtbl.hash (i, 2, hash_attributes config l)
+    | TFloat (f, l) -> Hashtbl.hash (f, 3, hash_attributes config l)
+    | TPtr (t, l) ->
+        Hashtbl.hash (hash_type config t, 4, hash_attributes config l)
+    | TArray (t, _, _, l) ->
+        Hashtbl.hash (hash_type config t, 5, hash_attributes config l)
   | TFun (r, a, v, l) ->
-      Hashtbl.hash 
-        (hash_type ~by_name ~logic_type r, 6, hash_args ~by_name ~logic_type a, v,
-         hash_attributes ~by_name ~logic_type l)
-  | TNamed (ti, l) -> Hashtbl.hash (ti.tname, 7, hash_attributes ~by_name ~logic_type l)
+      Hashtbl.hash
+        (hash_type config r, 6, hash_args config a, v, hash_attributes config l)
+  | TNamed (ti, l) ->
+      Hashtbl.hash (ti.tname, 7, hash_attributes config l)
   | TComp (c, _, l) -> 
       Hashtbl.hash 
-        ((if by_name then Hashtbl.hash c.cname else c.ckey), 8, 
-         hash_attributes ~by_name ~logic_type l)
-  | TEnum (e, l) -> Hashtbl.hash (e.ename, 9, hash_attributes ~by_name ~logic_type l)
-  | TBuiltin_va_list l -> Hashtbl.hash (hash_attributes ~by_name ~logic_type l, 10)
-and hash_args ~by_name ~logic_type = function
+        ((if config.by_name then Hashtbl.hash c.cname else c.ckey), 8, 
+         hash_attributes config l)
+  | TEnum (e, l) ->
+      Hashtbl.hash (e.ename, 9, hash_attributes config l)
+  | TBuiltin_va_list l -> Hashtbl.hash (hash_attributes config l, 10)
+and hash_args config = function
   | None -> 11713
   | Some l ->
       hash_list
         (fun (_, t, l) ->
-          Hashtbl.hash (17, hash_type ~by_name ~logic_type t, hash_attributes l)) l
+          Hashtbl.hash (17, hash_type config t, hash_attributes config l)) l
 
 module Attribute=struct
   let pretty_ref = ref (fun _ _ -> assert false)
   include Make_with_collections
     (struct
       type t = attribute
+      let config = { by_name = false; logic_type = false; unroll = true }
       let name = "Attribute"
       let reprs = [ AttrAnnot "" ]
-      let compare = compare_attribute ~by_name:false ~logic_type:false
-      let hash = hash_attribute false
+      let compare = compare_attribute config
+      let hash = hash_attribute config
       let equal = Datatype.from_compare
       let copy = Datatype.undefined
       let internal_pretty_code = Datatype.undefined
@@ -516,38 +545,44 @@ module Attribute=struct
 end
 
 let pretty_typ_ref = ref (fun _ _ -> assert false)
-module Typ = struct
+
+module MakeTyp(M:sig val config: type_compare_config val name: string end) =
+struct
   include Make_with_collections
     (struct
       type t = typ
+      let name = M.name
+      let reprs = [ TVoid [] ]
+      let compare = compare_type M.config
+      let hash = hash_type M.config
+      let equal = Datatype.from_compare
+      let copy = Datatype.undefined
+      let internal_pretty_code = Datatype.undefined
+      let pretty fmt t = !pretty_typ_ref fmt t
+      let varname = Datatype.undefined
+     end)
+end
+
+module Typ=
+  MakeTyp
+    (struct
+      let config = { by_name = false; logic_type = false; unroll = true; }
       let name = "Typ"
-      let reprs = [ TVoid [] ]
-      let compare = compare_type ~by_name:false ~logic_type:false
-      let hash = hash_type ~by_name:false ~logic_type:false
-      let equal = Datatype.from_compare
-      let copy = Datatype.undefined
-      let internal_pretty_code = Datatype.undefined
-      let pretty fmt t = !pretty_typ_ref fmt t
-      let varname = Datatype.undefined
      end)
-end
 
-module TypByName = struct
-  include Make_with_collections
+module TypByName =
+  MakeTyp
     (struct
-      type t = typ
+      let config = { by_name = true; logic_type = false; unroll = false; }
       let name = "TypByName"
-      let reprs = [ TVoid [] ]
-      let compare = compare_type ~by_name:true ~logic_type:false
-      let hash = hash_type ~by_name:true ~logic_type:false
-      let equal = Datatype.from_compare
-      let copy = Datatype.undefined
-      let internal_pretty_code = Datatype.undefined
-      let pretty fmt t = !pretty_typ_ref fmt t
-      let varname = Datatype.undefined
      end)
-end
 
+module TypNoUnroll =
+  MakeTyp
+    (struct
+      let config = { by_name = false; logic_type = false; unroll = false; }
+      let name = "TypNoUnroll"
+     end)
 
 module Typeinfo =
   Make_with_collections
@@ -581,6 +616,41 @@ module Exp = struct
       let pretty fmt t = !pretty_ref fmt t
      end)
 end
+
+module Label =
+  Make_with_collections
+    (struct
+      type t = label
+      let name = "Label"
+      let reprs =
+	[ Label("", Location.unknown, false); Default Location.unknown ]
+      let internal_pretty_code = Datatype.undefined
+      let pretty = Datatype.undefined
+      let varname = Datatype.undefined
+      let hash = function
+        | Default _ -> 7
+        | Case (e, _) -> Exp.hash e
+        | Label (s, _, b) -> Hashtbl.hash s + (if b then 13 else 59)
+      let compare l1 l2 = match l1, l2 with
+        | Default loc1, Default loc2 -> Location.compare loc1 loc2
+        | Case (e1, loc1), Case (e2, loc2) ->
+            let c = Exp.compare e1 e2 in
+            if c = 0 then Location.compare loc1 loc2
+            else c
+        | Label (s1, loc1, b1), Label (s2, loc2, b2) ->
+            let c = s1 =?= s2 in
+            if c = 0 then
+              let c = b1 =?= b2 in
+              if c = 0 then Location.compare loc1 loc2
+              else c
+            else c
+        | Label _, (Case _ | Default _)
+        | Case _, Default _ -> -1
+        | Case _, Label _
+        | Default _, (Label _ | Case _) -> 1
+      let equal = Datatype.from_compare
+      let copy = Datatype.undefined
+     end)
 
 module Varinfo = struct
   let pretty_ref = ref (fun _ _ -> assert false)
@@ -633,7 +703,7 @@ module Varinfo = struct
       (struct let v = [ [ ] ] end)
       (struct let l = [ ] (* Should morally be [Ast.self] *) end)
   end
-
+  let () = clear_caches := Hptset.clear_caches :: !clear_caches
 end
 
 module Compinfo =
@@ -740,7 +810,7 @@ module Enumitem =
 
 let compare_constant c1 c2 = match c1, c2 with
   | CInt64(v1,k1,_), CInt64(v2,k2,_) ->
-    compare_chain My_bigint.compare v1 v2 Extlib.compare_basic k1 k2
+    compare_chain Integer.compare v1 v2 Extlib.compare_basic k1 k2
   | CStr s1, CStr s2 -> Datatype.String.compare s1 s2
   | CWStr s1, CWStr s2 -> compare_list Datatype.Int64.compare s1 s2
   | CChr c1, CChr c2 -> Datatype.Char.compare c1 c2
@@ -879,6 +949,10 @@ module StructEq =
       | Field(f,o) -> hash_offset ((prime * acc) lxor Hashtbl.hash f.fname) o
   end
 
+module Wide_string =
+  Datatype.List_with_collections(Datatype.Int64)
+    (struct let module_name = "Cil_datatype.Wide_string" end)
+
 module Constant =
   struct
     let pretty_ref = Extlib.mk_fun "Cil_datatype.Constant.pretty_ref"
@@ -887,7 +961,7 @@ module Constant =
       include Datatype.Undefined
       type t = constant
       let name = "Constant"
-      let reprs = [ CInt64(My_bigint.zero, IInt, Some "0") ]
+      let reprs = [ CInt64(Integer.zero, IInt, Some "0") ]
       let compare = compare_constant
       let hash = hash_const
       let equal = Datatype.from_compare
@@ -1050,7 +1124,9 @@ module Logic_var = struct
       let name = "Logic_var"
       let reprs =
 	let dummy v =
+          let kind = match v with None -> LVQuant | Some _ -> LVC in
 	  { lv_name = "";
+            lv_kind = kind;
 	    lv_id = -1;
 	    lv_type = Linteger;
 	    lv_origin = v }
@@ -1158,7 +1234,7 @@ module Logic_info =
      end)
 
 
-let rec compare_logic_type ~by_name v1 v2 =
+let rec compare_logic_type config v1 v2 =
   let rank = function
     | Linteger -> 0
     | Lreal -> 1
@@ -1172,57 +1248,74 @@ let rec compare_logic_type ~by_name v1 v2 =
   if k1 <> k2 then k1-k2
   else
     match v1,v2 with
-      | Ctype t1 , Ctype t2 -> compare_type ~by_name ~logic_type:true t1 t2
-      | Ltype (a,ts1), Ltype (b,ts2) ->
+      | Ctype t1 , Ctype t2 -> compare_type config t1 t2
+      | Ltype ({lt_def = Some (LTsyn t1)},ts1),
+        Ltype ({lt_def = Some (LTsyn t2)},ts2) when config.unroll ->
+          let c = compare_logic_type config t1 t2 in
+          if c <> 0 then c
+          else compare_list (compare_logic_type config) ts1 ts2
+      | Ltype(a,ts1), Ltype(b,ts2) ->
   	  let c = Logic_type_info.compare a b in
           if c <> 0 then c
-          else compare_list (compare_logic_type ~by_name) ts1 ts2
+          else compare_list (compare_logic_type config) ts1 ts2
       | Lvar x1, Lvar x2 -> Datatype.String.compare x1 x2
       | Linteger, Linteger -> 0
       | Lreal, Lreal -> 0
       | Larrow(l1, t1), Larrow(l2, t2) ->
-          let c = compare_logic_type ~by_name t1 t2 in
-          if c <> 0 then c else compare_list (compare_logic_type ~by_name) l1 l2
+          let c = compare_logic_type config t1 t2 in
+          if c <> 0 then c else compare_list (compare_logic_type config) l1 l2
       | _ -> assert false
 
-let rec hash_logic_type ~by_name = function
+let rec hash_logic_type config = function
   | Linteger -> 0
   | Lreal -> 1
-  | Ctype ty -> hash_type ~by_name ~logic_type:true ty
-  | Ltype(t,_) -> Logic_type_info.hash t
+  | Ctype ty -> hash_type config ty
+  | Ltype({ lt_def = Some (LTsyn t)},_) when config.unroll ->
+      hash_logic_type config t
+  | Ltype(t,_) ->
+      Logic_type_info.hash t
   | Lvar x -> Datatype.String.hash x
-  | Larrow (_,t) -> 41 * hash_logic_type ~by_name t
+  | Larrow (_,t) -> 41 * hash_logic_type config t
 
 
 let pretty_logic_type_ref = ref (fun _ _ -> assert false)
-module Logic_type = Make_with_collections(
+module Make_Logic_type
+  (M: sig val config: type_compare_config val name: string end) =
+  Make_with_collections(
+    struct
+      include Datatype.Undefined
+      type t = logic_type
+      let name = M.name
+      let reprs = List.map (fun t -> Ctype t) Typ.reprs
+        
+      let compare = compare_logic_type M.config
+      let equal = Datatype.from_compare
+      let hash = hash_logic_type M.config
+        
+      let pretty fmt t = !pretty_logic_type_ref fmt t
+        
+    end)
+
+module Logic_type =
+  Make_Logic_type(
+    struct
+      let config = { by_name = false; logic_type = true; unroll = true }
+      let name = "Logic_type"
+    end)
+
+module Logic_type_ByName =
+  Make_Logic_type(
   struct
-    include Datatype.Undefined
-    type t = logic_type
-    let name = "Logic_type"
-    let reprs = List.map (fun t -> Ctype t) Typ.reprs
-
-    let compare = compare_logic_type ~by_name:false
-    let equal = Datatype.from_compare
-    let hash = hash_logic_type ~by_name:false
-
-    let pretty fmt t = !pretty_logic_type_ref fmt t
-
-  end)
-module Logic_type_ByName = Make_with_collections(
-  struct
-    include Datatype.Undefined
-    type t = logic_type
     let name = "Logic_type_ByName"
-    let reprs = List.map (fun t -> Ctype t) Typ.reprs
-
-    let compare = compare_logic_type ~by_name:true
-    let equal = Datatype.from_compare
-    let hash = hash_logic_type ~by_name:true
-
-    let pretty fmt t = !pretty_logic_type_ref fmt t
-
+    let config = { by_name = true; logic_type = true; unroll = false }
   end)
+
+module Logic_type_NoUnroll =
+  Make_Logic_type(
+    struct
+      let name = "Logic_type_NoUnroll"
+      let config = { by_name = false; logic_type = false; unroll = false }
+    end)
 
 module Model_info = struct
   let pretty_ref = ref (fun _ _ -> assert false)
@@ -1264,11 +1357,11 @@ end
 (* -------------------------------------------------------------------------- *)
 
 let compare_logic_constant c1 c2 = match c1,c2 with
-  | Integer (i1,_), Integer(i2,_) -> My_bigint.compare i1 i2
+  | Integer (i1,_), Integer(i2,_) -> Integer.compare i1 i2
   | LStr s1, LStr s2 -> Datatype.String.compare s1 s2
   | LWStr s1, LWStr s2 -> compare_list Datatype.Int64.compare s1 s2
   | LChr c1, LChr c2 -> Datatype.Char.compare c1 c2
-  | LReal (_,r1), LReal(_,r2) -> Datatype.String.compare r1 r2
+  | LReal r1, LReal r2 -> Datatype.String.compare r1.r_literal r2.r_literal
   | LEnum e1, LEnum e2 -> Enumitem.compare e1 e2
   | Integer _,(LStr _|LWStr _ |LChr _|LReal _|LEnum _) -> 1
   | LStr _ ,(LWStr _ |LChr _|LReal _|LEnum _) -> 1
@@ -1351,14 +1444,18 @@ let rec compare_term t1 t2 =
         else
           let cq = compare_list Logic_var.compare q1 q2 in
           if cq <> 0 then cq else assert false (* TODO !*)
+    | TLogic_coerce(ty1,e1), TLogic_coerce(ty2,e2) ->
+        let ct = Logic_type.compare ty1 ty2 in
+        if ct <> 0 then ct
+        else compare_term e1 e2
     | (TConst _ | TLval _ | TSizeOf _ | TSizeOfE _ | TSizeOfStr _ | TAlignOf _
       | TAlignOfE _ | TUnOp _ | TBinOp _ | TCastE _ | TAddrOf _ | TStartOf _
       | Tapp _ | Tlambda _ | TDataCons _ | Tif _ | Tat _
       | Tbase_addr _ | Tblock_length _ | Toffset _
       | Tnull | TCoerce _ | TCoerceE _ | TUpdate _ | Ttypeof _
       | Ttype _ | Tempty_set | Tunion _ | Tinter _  | Tcomprehension _
-      | Trange _
-      | Tlet _), _ -> assert false
+      | Trange _ | Tlet _ 
+      | TLogic_coerce _), _ -> assert false
 
 and compare_tlval (h1,off1) (h2,off2) =
   let ch = compare_tlhost h1 h2 in
@@ -1532,6 +1629,7 @@ let rec hash_term (acc,depth,tot) t =
         hash_term
           (acc + 570 + Hashtbl.hash li.l_var_info.lv_name, depth-1, tot-1)
           t
+      | TLogic_coerce(_,e) -> hash_term (acc + 587, depth - 1, tot - 1) e
   end
 
 and hash_tlval (acc,depth,tot) (h,o) =
@@ -1948,25 +2046,6 @@ module Code_annotation = struct
 
 end
 
-module Rooted_code_annotation =
-  Datatype.Make
-    (struct
-       include Datatype.Serializable_undefined
-       type t = rooted_code_annotation
-       let name = "rooted_code_annotation"
-       let reprs = List.map (fun c -> User c) Code_annotation.reprs
-       let hash = function User a | AI(_, a) -> Code_annotation.hash a
-       let compare x y = match x, y with
-	 | User a, User b
-	 | AI(_, a), AI(_, b) -> Code_annotation.compare a b
-	 | User _, AI _ -> -1
-	 | AI _, User _ -> 1
-       let equal = Datatype.from_compare
-       let mem_project = Datatype.never_any_project
-       let pretty fmt = function
-         | AI (_, ca) | User ca -> Code_annotation.pretty fmt ca
-     end)
-
 module Funspec =
   Datatype.Make
     (struct
@@ -1980,6 +2059,54 @@ module Funspec =
 	    spec_complete_behaviors = [];
 	    spec_disjoint_behaviors = [] } ]
       let mem_project = Datatype.never_any_project
+     end)
+
+module Fundec = struct 
+
+  let make_dummy vi fs = { 
+    svar = vi; 
+    sformals = [];
+    slocals = [];
+    smaxid = 0;
+    sbody = { battrs = [] ; blocals = []; bstmts = [] };
+    smaxstmtid = None;
+    sallstmts = [];
+    sspec = fs ;
+  }
+
+  let reprs = List.fold_left (fun list vi ->
+    List.fold_left (fun list fs ->
+      ((make_dummy vi fs)::list)) list Funspec.reprs)
+    [] Varinfo.reprs;;
+
+  include Datatype.Make_with_collections
+  (struct
+    type t = fundec
+    let name = "fundec"
+    let varname v = "fd_" ^ v.svar.vorig_name
+    let reprs = reprs
+    let structural_descr = Structural_descr.Abstract
+    let compare v1 v2 = Datatype.Int.compare v1.svar.vid v2.svar.vid
+    let hash v = v.svar.vid
+    let equal v1 v2 = v1.svar.vid = v2.svar.vid
+    let rehash = Datatype.identity
+    let copy = Datatype.undefined
+    let pretty = Datatype.undefined
+    let internal_pretty_code = Datatype.undefined
+    let mem_project = Datatype.never_any_project
+   end)
+end
+
+module Predicate_named = 
+  Make
+    (struct
+      type t = predicate named
+      let name = "predicate_named"
+      let reprs = 
+	[ { name = [ "" ]; loc = Location.unknown; content = Pfalse } ]
+      let internal_pretty_code = Datatype.undefined
+      let pretty = Datatype.undefined
+      let varname _ = "p"
      end)
 
 (**************************************************************************)
@@ -2026,20 +2153,11 @@ module Localisation =
       let mem_project = Datatype.never_any_project
      end)
 
-module Alarm =
-  Make_with_collections
-    (struct
-      type t = alarm
-      let name = "Alarm"
-      let reprs = [ Division_alarm ]
-      let compare = (Extlib.compare_basic : t -> t -> int)
-      let equal = ((=) : t -> t -> bool)
-      let hash = (Hashtbl.hash : t -> int)
-      let copy = Datatype.identity
-      let pretty = Datatype.undefined
-      let internal_pretty_code = Datatype.undefined
-      let varname = Datatype.undefined
-     end)
+(* -------------------------------------------------------------------------- *)
+(* --- Internal                                                           --- *)
+(* -------------------------------------------------------------------------- *)
+
+let clear_caches () = List.iter (fun f -> f ()) !clear_caches
 
 (*
 Local Variables:

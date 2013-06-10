@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -55,6 +55,19 @@ val write_file : string -> (out_channel -> 'a) -> 'a
   (** Properly close the channel and re-raise exceptions *)
 val print_file : string -> (Format.formatter -> 'a) -> 'a
   (** Properly flush and close the channel and re-raise exceptions *)
+
+(* ************************************************************************* *)
+(** {2 Timing Utility} *)
+(* ************************************************************************* *)
+
+type timer = float ref
+type 'a result = Result of 'a | Error of exn
+val catch : ('a -> 'b) -> 'a -> 'b result
+val return : 'a result -> 'a
+val time : ?rmax:timer -> ?radd:timer -> ('a -> 'b) -> 'a -> 'b
+  (** Compute the ellapsed time with [Sys.time].
+      The [rmax] timer is maximized and the [radd] timer is cumulated.
+      Computed result is returned, or exception is re-raised. *)
 
 (* ************************************************************************* *)
 (** {2 System commands} *)

@@ -2,11 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
-(*           alternatives)                                                *)
-(*    INRIA (Institut National de Recherche en Informatique et en         *)
-(*           Automatique)                                                 *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -65,9 +63,9 @@ module Visibility (SliceName : sig
   exception EraseAssigns
   exception EraseAllocation
 
-  type t_proj = SlicingInternals.t_project
-  type t_fct =
-      Iff of (SlicingInternals.t_fct_slice * bool)
+  type proj = SlicingInternals.project
+  type fct =
+    | Iff of (SlicingInternals.fct_slice * bool)
                  (* the boolean says if the src function of the slice is visible
                  * and can be used to give names *)
     | Isrc
@@ -124,7 +122,7 @@ module Visibility (SliceName : sig
         let v = visible_mark m in
           SlicingParameters.debug ~level:2
             "[SlicingTransform.Visibility.label_visible] label %a is %svisible"
-            !Ast_printer.d_label label (if v then "" else "in");
+            Printer.pp_label label (if v then "" else "in");
           v
 
   let data_in_visible ff data_in = match data_in with
@@ -244,6 +242,8 @@ module Visibility (SliceName : sig
     SlicingParameters.debug ~level:2
       "[SlicingTransform.Visibility.annotation_visible] ?";
     Db.Value.is_reachable_stmt stmt &&
+    Alarms.find annot = None && (* Always drop alarms: the alarms table
+                                   in the new project is not synchronized *)
     match ff_opt with
     | Isrc -> true
     | Iproto -> false
@@ -277,7 +277,7 @@ module Visibility (SliceName : sig
   let fun_precond_visible ff_opt p =
     SlicingParameters.debug ~level:2
       "[SlicingTransform.Visibility.fun_precond_visible] %a ?"
-      !Ast_printer.d_predicate_named
+      Printer.pp_predicate_named
       { name = []; loc = Cil_datatype.Location.unknown; content = p };
     let visible = match ff_opt with
       | Isrc -> true
@@ -298,7 +298,7 @@ module Visibility (SliceName : sig
   let fun_postcond_visible ff_opt p =
     SlicingParameters.debug ~level:2
       "[SlicingTransform.Visibility.fun_postcond_visible] %a ?"
-      !Ast_printer.d_predicate_named
+      Printer.pp_predicate_named
       { name = []; loc = Cil_datatype.Location.unknown; content = p };
     let visible = match ff_opt with
       | Isrc -> true
@@ -317,8 +317,9 @@ module Visibility (SliceName : sig
        visible
 
   let fun_variant_visible ff_opt v =
-    SlicingParameters.debug ~level:2 "[SlicingTransform.Visibility.fun_variant_visible] %a ?"
-      !Ast_printer.d_term v ;
+    SlicingParameters.debug ~level:2
+      "[SlicingTransform.Visibility.fun_variant_visible] %a ?"
+      Printer.pp_term v ;
     let visible = match ff_opt with
       | Isrc -> true
       | Iproto -> true

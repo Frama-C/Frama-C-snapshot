@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -67,8 +67,6 @@ include Datatype.Make
   let mem_project = Datatype.never_any_project
   let varname = Datatype.undefined
  end)
-
-let sentinel = Int.zero, Int.zero
 
 let shift s (b,e) = Int.add b s, Int.add e s
 

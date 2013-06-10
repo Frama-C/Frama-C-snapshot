@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -26,29 +26,15 @@
 open Cil_types
 
 (* ************************************************************************** *)
-(** {2 Annotations} *)
-(* ************************************************************************** *)
-
-val lift_annot_func:
-  (code_annotation -> 'a) -> rooted_code_annotation -> 'a
-  (** lifts a function that operates on code_annotation up to the
-      annotations used in Db. *)
-
-val lift_annot_list_func:
-  (code_annotation list -> 'a) -> rooted_code_annotation list -> 'a
-  (** lifts a function taking lists of code_annotation up to the annotations
-      lists in Db. Ignores WP annotations. *)
-
-(* ************************************************************************** *)
 (** {2 Expressions} *)
 (* ************************************************************************** *)
 
 val is_integral_const: constant -> bool
-val possible_value_of_integral_const: constant -> My_bigint.t option
-val possible_value_of_integral_expr: exp -> My_bigint.t option
-val value_of_integral_const: constant -> My_bigint.t
-val value_of_integral_expr: exp -> My_bigint.t
-val constant_expr: loc:location -> My_bigint.t -> exp
+val possible_value_of_integral_const: constant -> Integer.t option
+val possible_value_of_integral_expr: exp -> Integer.t option
+val value_of_integral_const: constant -> Integer.t
+val value_of_integral_expr: exp -> Integer.t
+val constant_expr: loc:location -> Integer.t -> exp
 val is_null_expr: exp -> bool
 val is_non_null_expr: exp -> bool
 
@@ -61,17 +47,17 @@ val is_integral_logic_const: logic_constant -> bool
     enum)]. [false] otherwise.
     @since Oxygen-20120901 *)
 
-val possible_value_of_integral_logic_const: logic_constant -> My_bigint.t option
+val possible_value_of_integral_logic_const: logic_constant -> Integer.t option
 (** @return [Some n] if the constant has integral type [(integer, char,
     enum)]. [None] otherwise.
     @since Oxygen-20120901 *)
 
-val value_of_integral_logic_const: logic_constant -> My_bigint.t
+val value_of_integral_logic_const: logic_constant -> Integer.t
 (** @return the value of the constant.
     Assume the argument is an integral constant.
     @since Oxygen-20120901 *)
 
-val possible_value_of_integral_term: term -> My_bigint.t option
+val possible_value_of_integral_term: term -> Integer.t option
 (** @return [Some n] if the term has integral type [(integer, char,
     enum)]. [None] Otherwise.
     @since Oxygen-20120901 *)
@@ -81,8 +67,9 @@ val term_lvals_of_term: term -> term_lval list
       Purely syntactic function. *)
 
 val is_trivial_predicate: predicate -> bool
-val is_trivial_rooted_assertion: rooted_code_annotation -> bool
 val is_trivial_named_predicate: predicate named -> bool
+
+val is_trivial_annotation: code_annotation -> bool
 
 val precondition : funspec -> predicate named
   (** Builds the precondition from [b_assumes] and [b_requires] clauses. 
@@ -133,7 +120,7 @@ val merge_assigns: ?warn:bool -> funbehavior list -> identified_term assigns
     force emmiting or cancelation of warnings. *) 
 
 val variable_term: location -> logic_var -> term
-val constant_term: location -> My_bigint.t -> term
+val constant_term: location -> Integer.t -> term
 val is_null_term: term -> bool
 
 (* ************************************************************************** *)
@@ -161,8 +148,8 @@ val is_block_local: varinfo -> block -> bool
 
 val array_type: ?length:exp -> ?attr:attributes -> typ -> typ
 
-val direct_array_size: typ -> My_bigint.t
-val array_size: typ -> My_bigint.t
+val direct_array_size: typ -> Integer.t
+val array_size: typ -> Integer.t
 val direct_element_type: typ -> typ
 val element_type: typ -> typ
 val direct_pointed_type: typ -> typ

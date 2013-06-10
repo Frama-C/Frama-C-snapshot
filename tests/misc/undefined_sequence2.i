@@ -3,7 +3,7 @@
 */
 /* based on an example from J. Regehr on the why list */
 /* precondition: false */
-int a[2];
+int a[2]; volatile int foo;
 
 int
 multiple_update_wrong_1 (int *x, int *y)
@@ -53,19 +53,19 @@ int main () {
   b = 0;
   c = 0;
 
-  multiple_update_wrong_1(&b, &c);
+  if (foo) { multiple_update_wrong_1(&b, &c); Frama_C_show_each_passed1(); }
 
-  multiple_update_wrong_2(b);
+  if (foo) { multiple_update_wrong_2(b); Frama_C_show_each_passed2(); }
 
-  multiple_update_wrong_3(c);
+  if (foo) { multiple_update_wrong_3(c); Frama_C_show_each_passed3(); }
 
-  multiple_update_unsafe(&b,&c); // does not lead to an alarm
+  if (foo) { multiple_update_unsafe(&b,&c); /* does not lead to an alarm */ Frama_C_show_each_passed4(); }
 
-  multiple_update_unsafe(&b, &b);
+  if (foo) { multiple_update_unsafe(&b, &b); Frama_C_show_each_passed5(); }
 
-  multiple_update_safe(&b,&c); // does not lead to an alarm
+  if (foo) { multiple_update_safe(&b,&c); /* does not lead to an alarm */ Frama_C_show_each_passed6(); }
 
-  multiple_update_safe(&c,&c); // does not lead to an alarm
+  if (foo) { multiple_update_safe(&c,&c); /* does not lead to an alarm */ Frama_C_show_each_passed7(); }
 
   return 0;
 }

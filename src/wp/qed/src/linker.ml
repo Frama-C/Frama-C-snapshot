@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -36,7 +36,7 @@ let is_letter c = c = '_'
   || ('a' <= c && c <= 'z') 
   || ('0' <= c && c <= '9')
 
-let is_identop op = is_letter op.[String.length op - 1]
+let is_ident op = is_letter op.[String.length op - 1]
 
 let ident base =
   let p = Buffer.create 32 in
@@ -75,10 +75,12 @@ let copy m = { domain = m.domain ; base = m.base }
 (* --- Linker                                                             --- *)
 (* -------------------------------------------------------------------------- *)
 
-class type ['a] linker = 
+class type ['a,'idx] linker = 
 object
   method lock  : unit
   method clear : unit
+  method push  : 'idx
+  method pop   : 'idx -> unit
   method mem   : 'a -> bool
   method find  : 'a -> string
   method link  : 'a -> string -> unit
@@ -93,10 +95,15 @@ module Link(A : Symbol) =
 struct
   module I = Map.Make(A)
 
+  type index = string I.t
+
   class alinker =
   object(self)
     val mutable alloc : allocator option = None
-    val mutable index : string I.t = I.empty
+    val mutable index : index = I.empty
+      
+    method push = index
+    method pop idx = index <- idx
       
     method lock = alloc <- None
     method alloc_with allocator = alloc <- Some allocator
@@ -122,7 +129,7 @@ struct
     method bind_reserved a s = index <- I.add a s index
   end
 
-  let linker () = (new alinker :> A.t linker)
+  let linker () = (new alinker :> (A.t,index) linker)
 end
 
 (* -------------------------------------------------------------------------- *)

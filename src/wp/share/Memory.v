@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -95,8 +95,9 @@ Qed.
 
 (** ** Pointer Arithmetic *)
 
-Definition shift (p:addr) (k:Z) := 
-  {| base := base p ; offset := offset p + k |}.
+Definition null := {| base := 0 ; offset := 0 |}.
+Definition global b := {| base := b ; offset := 0 |}.
+Definition shift p k := {| base := base p ; offset := offset p + k |}.
 
 Lemma shift_shift : forall p k1 k2, shift (shift p k1) k2 = shift p (k1+k2).
 Proof. 
@@ -110,12 +111,52 @@ Proof.
   intros. unfold shift ; apply addr_eq ; simpl ; auto with zarith.
 Qed.
 
+Definition in_range q p a := exists i, 0 <= i < a /\ q = shift p i.
+
 Definition included p a q b := 
   (a > 0)%Z ->
     ( (b >= 0)%Z /\
       base p = base q /\
       (offset q <= offset p)%Z /\ 
       (offset p + a <= offset q + b )%Z ).
+
+Lemma included_correct : forall p a q b,
+  included p a q b <-> (forall r, in_range r p a -> in_range r q b).
+Proof.
+  (* ==> *)
+  intros. split.
+  intros INC r [i [ri rsi]].
+  unfold included in INC.
+  exists (offset p + i - offset q).
+  unfold shift. rewrite rsi. unfold shift ; simpl. 
+  split ; try apply addr_eq ; simpl ; auto with zarith.
+  (* <== *)
+  intro Range.
+  unfold included.
+  intros apos.
+  generalize (Range p). intro RP.
+  pose (r := shift p (a-1)).
+  generalize (Range r). intro RR.
+  assert (PA: in_range p p a). 
+    exists 0 ; split ; auto with zarith. 
+      unfold shift. apply addr_eq ; simpl ; auto with zarith.
+  assert (PB: in_range p q b). by (apply RP).
+  assert (RA: in_range r p a).
+    unfold r. exists (a-1) ; split ; auto with zarith.
+  assert (RB: in_range r q b). by (apply RR).
+  destruct RA as [i [Ir Iaddr]].
+  destruct RB as [j [Jr Jaddr]].
+  destruct PB as [k [Kr Kaddr]].
+  rewrite Iaddr in Jaddr.
+  assert (BASE: base p = base q). by (rewrite Kaddr).
+  assert (OFF1: offset p = offset q + k). by (rewrite Kaddr).
+  assert (OFF2: offset (shift p i) = offset (shift q j)). by (rewrite Jaddr).
+  assert (OFF3: offset r = offset (shift p i)). by (rewrite Iaddr).
+  unfold r in OFF3. simpl in OFF3.
+  assert (OFF4: i = a-1) by omega.
+  simpl in OFF2.
+  intuition auto with zarith.
+Qed.
 
 Definition separated p a q b :=
   (a <= 0)%Z \/ (b <= 0)%Z \/ 
@@ -213,8 +254,29 @@ Ltac pointer_arith :=
 (** ** Validity *)
 
 Definition malloc := farray Z Z.
-Definition valid ( m : malloc ) p n :=
-  (n > 0)%Z -> let k := offset p in (0 <= k)%Z /\ (k + n <= m (base p))%Z.
+
+Definition valid_rd ( m : malloc ) p n :=
+  (n > 0)%Z -> ( 0 <= offset p /\ offset p + n <= m (base p))%Z.
+
+Definition valid_rw ( m : malloc ) p n :=
+  (n > 0)%Z -> ( 0 < base p /\ 0 <= offset p /\ offset p + n <= m (base p))%Z.
+
+Lemma valid_rw_rd : forall m p n, valid_rw m p n -> valid_rd m p n.
+Proof.
+  intros m p n.
+  unfold valid_rw. unfold valid_rd.
+  intuition (auto with zarith).
+Qed.
+
+Lemma valid_string : forall (m : malloc) p,
+  ( base p < 0 )%Z ->
+  ( 0 <= offset p < m (base p) )%Z ->
+  ( valid_rd m p 1 /\ ~(valid_rw m p 1) ).
+Proof.
+  intros m p.
+  unfold valid_rd. unfold valid_rw.
+  intuition (auto with zarith).
+Qed.
 
 (** ** Memories *)
 
@@ -296,7 +358,8 @@ Qed.
 
 Parameter region : Z -> Z.
 Parameter linked : malloc -> Prop.
-Definition framed (m : mem addr) := forall p, region (base (m p)) = 0%Z.
+Parameter sconst : mem Z -> Prop.
+Definition framed (m : mem addr) := forall p, region (base (m p)) <= 0%Z.
 
 Lemma separated_region : forall p a q b, 
   region (base p) <> region (base q) -> separated p a q b.

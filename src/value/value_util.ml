@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,50 +24,38 @@ open Cil_types
 
 (** Callstacks related types and functions *)
 
-type called_function =
-    { called_kf : kernel_function;
-      call_site : kinstr;
-      mutable called_merge_current : degenerate:bool -> unit}
+type call_site = (kernel_function * kinstr)
+type callstack =  call_site list
 
-let call_stack : called_function list ref = ref []
-let call_stack_for_callbacks : (kernel_function * kinstr) list ref = ref []
+let call_stack : callstack ref = ref []
+(* let call_stack_for_callbacks : (kernel_function * kinstr) list ref = ref [] *)
 
 let clear_call_stack () =
-  call_stack := [];
-  call_stack_for_callbacks := []
+  call_stack := []
 
 let pop_call_stack () =
-  call_stack := List.tl !call_stack;
-  call_stack_for_callbacks := List.tl !call_stack_for_callbacks
-
-let push_call_stack cf =
-  call_stack := cf :: !call_stack;
-  call_stack_for_callbacks :=
-    (cf.called_kf, cf.call_site) :: !call_stack_for_callbacks
+  call_stack := List.tl !call_stack
 
 let push_call_stack kf ki =
-  let cf = { called_kf = kf; call_site = ki;
-             called_merge_current = fun ~degenerate:_ -> () }
-  in
-  push_call_stack cf
+  call_stack := (kf,ki) :: !call_stack
 
-let call_stack_set_merge_current mc =
-  (List.hd !call_stack).called_merge_current <- mc
-
-let current_kf () = (List.hd !call_stack).called_kf
+let current_kf () = 
+  let (kf,_) = (List.hd !call_stack) in kf;;
 
 let call_stack () = !call_stack
-let for_callbacks_stack () = !call_stack_for_callbacks
 
-let pretty_call_stack fmt callstack =
+
+
+
+let pretty_call_stack_short fmt callstack =
   Pretty_utils.pp_flowlist ~left:"" ~sep:" <- " ~right:""
-     (fun fmt {called_kf = kf} -> Kernel_function.pretty fmt kf)
+     (fun fmt (kf,_) -> Kernel_function.pretty fmt kf)
     fmt
     callstack
 
-let pretty_callbacks_call_stack fmt callstack =
+let pretty_call_stack fmt callstack =
   Format.fprintf fmt "@[<hv>";
-  List.iter (fun (kf, ki) ->
+  List.iter (fun (kf,ki) ->
     Kernel_function.pretty fmt kf;
     match ki with
       | Kglobal -> ()
@@ -79,7 +67,7 @@ let pretty_callbacks_call_stack fmt callstack =
 let pp_callstack fmt =
   if Value_parameters.PrintCallstacks.get () then
     Format.fprintf fmt "@ stack: %a"
-      pretty_callbacks_call_stack !call_stack_for_callbacks
+      pretty_call_stack (call_stack())
 ;;
 
 (** Misc *)
@@ -90,45 +78,56 @@ let get_rounding_mode () =
   else Ival.Float_abstract.Nearest_Even
 
 let do_degenerate lv =
-  List.iter
-    (fun {called_merge_current = merge_current } ->
-      merge_current ~degenerate:true)
-    (call_stack ());
   !Db.Value.degeneration_occurred (CilE.current_stmt ()) lv
+
+let stop_if_stop_at_first_alarm_mode () =
+  if Stop_at_nth.incr()
+  then begin
+      Value_parameters.log "Stopping at nth alarm" ;
+      do_degenerate None;
+      raise Db.Value.Aborted
+    end
 
 (** Assertions emitted during the analysis *)
 
-let emitter_value = 
+let emitter = 
   Emitter.create
-    "value analysis"
-    [ Emitter.Property_status; Emitter.Code_annot ] 
+    "Value"
+    [ Emitter.Property_status; Emitter.Alarm ] 
     ~correctness:Value_parameters.parameters_correctness
     ~tuning:Value_parameters.parameters_tuning
 
-let warn_all_mode = CilE.warn_all_mode emitter_value pp_callstack
-
-let stop_at_first_alarm () =
-  exit 0 (* TODO: same mechanism as do_degenerate *)
-
-let stop_if_stop_at_first_alarm_mode () =
-  if Value_parameters.StopAtFirstAlarm.get ()
-  then stop_at_first_alarm ()
+let warn_all_mode = CilE.warn_all_mode emitter pp_callstack
 
 let with_alarm_stop_at_first =
-  let stop = CilE.Acall stop_at_first_alarm in {
-    CilE.imprecision_tracing = CilE.Aignore;
+  let stop = 
+    {warn_all_mode.CilE.others with CilE.a_call = stop_if_stop_at_first_alarm_mode}
+  in
+  {
+    CilE.imprecision_tracing = CilE.a_ignore;
     defined_logic = stop;
     unspecified =   stop;
     others =        stop;
-}
+  }
+
+let with_alarms_raise_exn exn =
+  let raise_exn () = raise exn in
+  let stop = { CilE.a_log = None; CilE.a_call = raise_exn } in
+  { CilE.imprecision_tracing = CilE.a_ignore;
+    defined_logic = stop;
+    unspecified =   stop;
+    others =        stop;
+  }
+  
 
 let warn_all_quiet_mode () =
-  if Value_parameters.StopAtFirstAlarm.get () then with_alarm_stop_at_first
+  if Value_parameters.StopAtNthAlarm.get () <> max_int 
+  then with_alarm_stop_at_first
   else
     if Value_parameters.verbose_atleast 1 then
       warn_all_mode
     else
-      { warn_all_mode with CilE.imprecision_tracing = CilE.Aignore }
+      { warn_all_mode with CilE.imprecision_tracing = CilE.a_ignore }
 
 let get_slevel kf =
   let name = Kernel_function.get_name kf in
@@ -191,7 +190,7 @@ let debug_result kf (last_ret,_,last_clob) =
       match last_ret with
         | None -> ()
         | Some v -> Cvalue.V_Offsetmap.pretty fmt v)
-    Locations.Location_Bits.Top_Param.pretty last_clob
+    Base.SetLattice.pretty last_clob
 
 
 let map_outputs f =

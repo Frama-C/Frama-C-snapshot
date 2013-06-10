@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -27,6 +27,7 @@
 module type Elt =
 sig
   type t
+  val equal : t -> t -> bool
   val compare : t -> t -> int
 end
 
@@ -36,6 +37,7 @@ sig
   type elt = E.t
 
   type t = elt list
+  val equal : t -> t -> bool
   val compare : t -> t -> int
 
   val empty : t
@@ -54,5 +56,9 @@ sig
   val subset : t -> t -> bool
   val intersect : t -> t -> bool
   val factorize : t -> t -> t * t * t
+    (** Returns (left,common,right) *)
+
+  val big_union : t list -> t
+  val big_inter : t list -> t
 
 end

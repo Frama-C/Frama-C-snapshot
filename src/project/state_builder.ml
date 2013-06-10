@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -44,7 +44,6 @@ module type S = sig
   module Datatype: Datatype.S
   val add_hook_on_update: (Datatype.t -> unit) -> unit
   val howto_marshal: (Datatype.t -> 'a) -> ('a -> Datatype.t) -> unit
-  val set_descr: 'a Type.t -> 'a Descr.t -> unit
 end
 
 (* ************************************************************************* *)
@@ -110,6 +109,20 @@ end
 (** {3 Register} *)
 (* ************************************************************************* *)
 
+module States = struct
+  module S = Type.String_tbl(struct type 'a t = Project.t -> 'a * bool end)
+  let states = S.create 997
+  let add k ty v = S.add states k ty v
+  let find ?(prj=Project.current ()) k ty = S.find states k ty prj
+  let iter ?(prj=Project.current ()) f = 
+    S.iter (fun name ty get -> let s, b = get prj in f name ty s b) states
+  let fold ?(prj=Project.current ()) f acc = 
+    S.fold
+      (fun name ty get acc -> let s, b = get prj in f name ty s b acc) 
+      states
+      acc
+end
+
 module Register
   (D: Datatype.S)
   (Local_state: State.Local with type t = D.t)
@@ -119,6 +132,12 @@ module Register
 struct
 
   let internal_name = ref ""
+
+  let debug ~level op_name p =
+    debug ~dkey ~level "%s %S (project %s)" 
+      op_name
+      !internal_name
+      (Project.get_unique_name p)
 
   module Datatype = D
   module Tbl = Hashtbl.Make(Project)
@@ -154,8 +173,7 @@ struct
 
   let update_with ~force p s =
     if Project.is_current p || force then begin
-      debug ~level:4 "update state %S of project %S"
-        !internal_name (Project.get_unique_name p);
+      debug ~level:8 "updating" p;
       Update_hook.apply s;
       Local_state.set s
     end
@@ -184,8 +202,7 @@ struct
           first := false;
           Local_state.get ()
         end else begin
-          debug ~level:4 "creating state %S for project %S"
-            !internal_name (Project.get_unique_name p);
+          debug ~level:4 "creating" p;
           let s = Local_state.create () in
           update_with ~force:false p s;
           s
@@ -195,25 +212,21 @@ struct
       add p s
 
   let clear p =
-    debug ~level:4 "clearing state %S for project %S"
-      !internal_name (Project.get_unique_name p);
+    debug ~level:4 "clearing" p;
     let v = find p in
     Local_state.clear v.state;
     v.computed <- false;
     update_with ~force:false p v.state
 
   let clear_some_projects f p =
-    debug ~level:4
-      "clearing dangling project pointers in state %S for project %S"
-      !internal_name (Project.get_unique_name p);
     assert (not (f p));
-    Local_state.clear_some_projects f (find p).state
+    let has_cleared = Local_state.clear_some_projects f (find p).state in
+    if has_cleared then
+      debug ~level:4 "erasing dangling project pointers" p;
+    has_cleared
 
   let copy src dst =
-    debug ~level:4 "copying state %S from %S to %S"
-      !internal_name 
-      (Project.get_unique_name src) 
-      (Project.get_unique_name dst);
+    debug ~level:4 ("copying to " ^ Project.get_unique_name dst) src;
     let v = find src in
     change ~force:false dst { v with state = Datatype.copy v.state }
 
@@ -231,11 +244,15 @@ struct
 
   let serialize p =
     assert Cmdline.use_obj;
-    debug ~level:4 "serializing state %S for project %S: %b"
-      !internal_name (Project.get_unique_name p) !must_save;
     commit p;
     let v = find p in
-    let obj = if !must_save then !marshal v.state else Obj.repr () in
+    let obj = 
+      if !must_save then begin 
+	debug ~level:4 "serializing" p;
+	!marshal v.state 
+      end else
+	Obj.repr () 
+    in
     { State.on_disk_value = obj;
       on_disk_computed = v.computed;
       on_disk_saved = !must_save;
@@ -244,13 +261,11 @@ struct
   let unserialize p new_s =
     assert Cmdline.use_obj;
     if Type.digest Datatype.ty = new_s.State.on_disk_digest then begin
-      debug ~level:4 "unserializing state %S for project %S"
-        !internal_name (Project.get_unique_name p);
-(*      Format.printf "UNSERIALIZING %s / %s: %b@." !internal_name Datatype.name !must_save;*)
       let s, computed =
-        if !must_save && new_s.State.on_disk_saved then
+        if !must_save && new_s.State.on_disk_saved then begin
+	  debug ~level:4 "unserializing" p;
           !unmarshal new_s.State.on_disk_value, new_s.State.on_disk_computed
-        else
+        end else
           (* invariant: the found state is equal to the default one since it
              has been just created.
              Do not call Local_state.create to don't break sharing *)
@@ -271,8 +286,7 @@ struct
 
   let self =
     let descr =
-      if !must_save then Descr.pack Datatype.descr
-      else Structural_descr.p_unit
+      if !must_save then Descr.pack Datatype.descr else Structural_descr.p_unit
     in
     State.create
       (* we will marshal the value [()] if the state is unmarshable *)
@@ -287,10 +301,11 @@ struct
     internal_name := State.get_unique_name self;
     (* register this state in the static graph and in projects *)
     State_dependency_graph.add_state self dependencies;
+    States.add
+      Info.name 
+      D.ty
+      (fun p -> let s = Tbl.find tbl p in s.state, s.computed);
     Project.iter_on_projects create
-
-  let set_descr _ty (* [ty] is for safety only *) d =
-    State.set_descr self (Descr.pack d)
 
 end
 
@@ -675,6 +690,16 @@ struct
 
 end
 
+(* ************************************************************************* *)
+(** {3 Counters} *)
+(* ************************************************************************* *)
+
+module type Counter = sig
+  val next : unit -> int
+  val get: unit -> int
+  val self: State.t
+end
+
 (* Create a fresh, shared reference among projects.
    The projectification is only required for correct marshalling. *)
 module SharedCounter(Info : sig val name : string end) = struct
@@ -706,6 +731,7 @@ module SharedCounter(Info : sig val name : string end) = struct
        end)
 
   let next () = incr cpt ; !cpt
+  let get () = !cpt
   let self = Cpt.self
 
 end
@@ -744,6 +770,7 @@ module Counter(Info : sig val name : string end) = struct
        end)
 
   let next () = incr !cpt ; !(!cpt)
+  let get () = !(!cpt)
   let self = Cpt.self
 
 end

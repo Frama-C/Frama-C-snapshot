@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,7 +20,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Very early initialisation step requiered by any GUI.
+(** Very early initialisation step required by any GUI.
     This interface should be empty. 
     @plugin development guide *)
 

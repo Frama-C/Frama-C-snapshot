@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -35,18 +35,18 @@ open Definitions
 (* -------------------------------------------------------------------------- *)
 (* --- C Constants                                                        --- *)
 (* -------------------------------------------------------------------------- *)
-
+	  
 let rec constant = function
   | CInt64(z,_,_) -> e_bigint z
   | CChr c -> e_int64 (Ctypes.char c)
-  | CReal(f,_,_) -> e_float f
+  | CReal(f,_,_) -> Cfloat.code_lit f
   | CEnum e -> constant_exp e.eival
   | CStr _ | CWStr _ -> Warning.error "String constants not yet implemented"
 
 and logic_constant = function
   | Integer(z,_) -> e_bigint z
   | LChr c -> e_int64 (Ctypes.char c)
-  | LReal(f,_) -> e_float f
+  | LReal r -> Cfloat.acsl_lit r
   | LEnum e -> constant_exp e.eival
   | LStr _ | LWStr _ -> Warning.error "String constants not yet implemented"
       
@@ -54,13 +54,13 @@ and constant_exp e =
   let e = Cil.constFold true e in
   match e.enode with
     | Const c -> constant c
-    | _ -> Warning.error "constant(%a)" !Ast_printer.d_exp e
+    | _ -> Warning.error "constant(%a)" Printer.pp_exp e
 
 and constant_term t =
   let e = Cil.constFoldTerm true t in
   match e.term_node with
     | TConst c -> logic_constant c
-    | _ -> Warning.error "constant(%a)" !Ast_printer.d_term t
+    | _ -> Warning.error "constant(%a)" Printer.pp_term t
 
 (* -------------------------------------------------------------------------- *)
 
@@ -81,16 +81,16 @@ sig
   val prefix : string
   val model : Cint.model
     (* Natural : all types are constrained, but only with their natural values *)
-    (* Machine : only c-int types are constrained *)
+    (* Machine : only atomic types are constrained *)
   val is_int : c_int -> term -> pred
-  val is_real : term -> pred
+  val is_float : c_float -> term -> pred
   val is_pointer : term -> pred
 end
 
 module STRUCTURAL(C : CASES) =
 struct
 
-  let constrained ty = match C.model with
+  let constrained_elt ty = match C.model with
     | Cint.Natural -> true
     | Cint.Machine -> is_constrained ty
 
@@ -119,12 +119,12 @@ struct
   let rec is_obj obj t = 
     match obj with
       | C_int i -> C.is_int i t
-      | C_float _f -> C.is_real t
+      | C_float f -> C.is_float f t
       | C_pointer _ty -> C.is_pointer t
       | C_comp c -> 
 	  if constrained_comp c then is_record c t else p_true
       | C_array a ->
-	  if constrained a.arr_element 
+	  if constrained_elt a.arr_element 
 	  then
 	    let te,ds = Ctypes.array_dimensions a in
 	    is_array te ds t
@@ -175,7 +175,7 @@ module NULL = STRUCTURAL
      let prefix = "Null"
      let model = Cint.Natural
      let is_int _i = p_equal e_zero
-     let is_real = p_equal (e_float 0.0)
+     let is_float _f = p_equal e_zero_real
      let is_pointer p = Context.get null p
    end)
 
@@ -186,7 +186,7 @@ module TYPE = STRUCTURAL
      let prefix = "Is"
      let model = Cint.Machine
      let is_int = Cint.irange
-     let is_real _ = p_true
+     let is_float = Cfloat.frange
      let is_pointer _ = p_true
    end)
 
@@ -296,7 +296,10 @@ and equal_comp c a b =
        }
     ) [a;b]
 
-and equal_array m a b = p_call (EQARRAY.get m) (Matrix.size m @ [a;b])
+and equal_array m a b = 
+  match m with
+    | _obj , [None] -> p_equal a b
+    | _ -> p_call (EQARRAY.get m) (Matrix.size m @ [a;b])
 
 let () = s_eq := equal_object
 
@@ -310,6 +313,7 @@ let map_value f = function
 
 let map_sloc f = function
   | Sloc l -> Sloc (f l)
+  | Sarray(l,obj,s) -> Sarray(f l,obj,s)
   | Srange(l,obj,a,b) -> Srange(f l,obj,a,b)
   | Sdescr(xs,l,p) -> Sdescr(xs,f l,p)
 
@@ -361,6 +365,10 @@ struct
   let rdescr = function
     | Sloc l -> [],l,p_true
     | Sdescr(xs,l,p) -> xs,l,p
+    | Sarray(l,obj,s) ->
+	let x = Lang.freshvar ~basename:"k" Logic.Int in
+	let k = e_var x in
+	[x],M.shift l obj k,Vset.in_size k s
     | Srange(l,obj,a,b) ->
 	let x = Lang.freshvar ~basename:"k" Logic.Int in
 	let k = e_var x in
@@ -461,28 +469,31 @@ struct
 	  | Vset.Singleton _ | Vset.Set _ -> kset
 	  | Vset.Range(a,b) -> 
 	      let cap l = function None -> Some l | u -> u in
-	      let s = Int64.sub s Int64.one in
+	      let s = Int64.pred s in
 	      Vset.Range(cap e_zero a,cap (e_int64 s) b)
 	  | Vset.Descr(xs,k,p) ->
 	      let a = e_zero in
 	      let b = e_int64 s in
 	      Vset.Descr(xs,k,p_conj [p_leq a k;p_lt k b;p])
 
-  let shift_set sloc obj kset =
-    match sloc , kset with
-      | Sloc l , Vset.Singleton k -> Sloc(M.shift l obj k)
-      | Sloc l , Vset.Range(a,b) -> Srange(l,obj,a,b)
-      | Srange(l,obj0,a0,b0) , Vset.Singleton k 
-	  when Ctypes.equal obj0 obj ->
-	  Srange(l,obj0, Vset.bound_add a0 (Some k), Vset.bound_add b0 (Some k))
-      | Srange(l,obj0,a0,b0) , Vset.Range(a1,b1) 
-	  when Ctypes.equal obj0 obj ->
-	  Srange(l,obj0, Vset.bound_add a0 a1, Vset.bound_add b0 b1)
+  let shift_set sloc obj size kset =
+    match sloc , kset , size with
+      | Sloc l , Vset.Range(None,None) , Some s -> Sarray(l,obj,s)
       | _ ->
-	  let xs,l,p = rdescr sloc in
-	  let ys,k,q = Vset.descr kset in
-	  Sdescr( xs @ ys , M.shift l obj k , p_and p q )
-
+	  match sloc , restrict kset size with
+	    | Sloc l , Vset.Singleton k -> Sloc(M.shift l obj k)
+	    | Sloc l , Vset.Range(a,b) -> Srange(l,obj,a,b)
+	    | Srange(l,obj0,a0,b0) , Vset.Singleton k 
+		when Ctypes.equal obj0 obj ->
+		Srange(l,obj0, Vset.bound_add a0 (Some k), Vset.bound_add b0 (Some k))
+	    | Srange(l,obj0,a0,b0) , Vset.Range(a1,b1) 
+		when Ctypes.equal obj0 obj ->
+		Srange(l,obj0, Vset.bound_add a0 a1, Vset.bound_add b0 b1)
+	    | _ ->
+		let xs,l,p = rdescr sloc in
+		let ys,k,q = Vset.descr kset in
+		Sdescr( xs @ ys , M.shift l obj k , p_and p q )
+		  
   let shift lv obj ?size kv =
     if is_single kv then
       let k = value kv in map_loc (fun l -> M.shift l obj k) lv
@@ -492,7 +503,7 @@ struct
 	     (fun s sloc ->
 		List.fold_left
 		  (fun s kset ->
-		     shift_set sloc obj (restrict kset size) :: s
+		     shift_set sloc obj size kset :: s
 		  ) s ks
 	     ) [] (sloc lv))
 
@@ -521,7 +532,7 @@ struct
 	    | Val t -> a.vset <- Vset.Singleton t :: a.vset
 	    | Loc l -> a.sloc <- Sloc l :: a.sloc
 	end
-    | (Srange _ | Sdescr _) as s ->
+    | (Sarray _ | Srange _ | Sdescr _) as s ->
 	let xs , l , p = rdescr s in
 	begin
 	  match M.load sigma obj l with
@@ -568,6 +579,7 @@ struct
 
   let rloc obj = function 
     | Sloc l -> Rloc(obj,l)
+    | Sarray(l,t,s) -> Rarray(l,t,s)
     | Srange(l,t,a,b) -> Rrange(l,t,a,b)
     | Sdescr _ -> raise Exit
 
@@ -625,11 +637,12 @@ struct
   (* --- Valid                                                              --- *)
   (* -------------------------------------------------------------------------- *)
 
-  let valid_sloc sigma obj = function
-    | Sloc l -> M.valid sigma (Rloc(obj,l))
-    | Srange(l,t,a,b) -> M.valid sigma (Rrange(l,t,a,b))
-    | Sdescr(xs,l,p) -> p_forall xs (p_imply p (M.valid sigma (Rloc(obj,l))))
+  let valid_sloc sigma acs obj = function
+    | Sloc l -> M.valid sigma acs (Rloc(obj,l))
+    | Sarray(l,t,s) -> M.valid sigma acs (Rarray(l,t,s))
+    | Srange(l,t,a,b) -> M.valid sigma acs (Rrange(l,t,a,b))
+    | Sdescr(xs,l,p) -> p_forall xs (p_imply p (M.valid sigma acs (Rloc(obj,l))))
 
-  let valid sigma obj = p_all (valid_sloc sigma obj) 
+  let valid sigma acs obj = p_all (valid_sloc sigma acs obj) 
 
 end

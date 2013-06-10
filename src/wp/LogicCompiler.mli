@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -46,11 +46,10 @@ sig
   (** {3 Frames} *)
 
   type frame
-
-  val in_frame : frame -> ('a -> 'b) -> 'a -> 'b
-  val mem_frame : c_label -> sigma
+  val pp_frame : Format.formatter -> frame -> unit
 
   val frame : kernel_function -> frame
+  val frame_copy : frame -> frame
   val call_pre   : kernel_function -> value list -> sigma -> frame
   val call_post  : kernel_function -> value list -> sigma sequence -> frame
 
@@ -61,12 +60,17 @@ sig
   val trigger : trigger -> unit
 
   val guards : frame -> pred list
+  val mem_frame : c_label -> sigma
+  val mem_at_frame : frame -> c_label -> sigma
+
+  val in_frame : frame -> ('a -> 'b) -> 'a -> 'b
+  val get_frame : unit -> frame
 
   (** {3 Environment} *)
 
   type env
 
-  val env : Logic_var.t list -> env
+  val new_env : Logic_var.t list -> env
   val move : env -> sigma -> env
   val sigma : env -> sigma
   val env_at : env -> c_label -> env
@@ -88,10 +92,13 @@ sig
 
   (** {3 Application} *)
 
-  val call : env -> logic_info
+  val call_fun : env -> logic_info
     -> (logic_label * logic_label) list
-    -> F.term list 
-    -> F.term list
+    -> F.term list -> F.term
+
+  val call_pred : env -> logic_info
+    -> (logic_label * logic_label) list
+    -> F.term list -> F.pred
 
   (** {3 Logic Variable and ACSL Constants} *)
 

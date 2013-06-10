@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -38,27 +38,23 @@ include
            Kernel.ReadAnnot.self;
            Kernel.PreprocessAnnot.self;
            Kernel.Files.self;
-           Cil.selfFormalsDecl;
-         ]
+           Cil.selfFormalsDecl ]
      end)
 
 let mark_as_computed () = mark_as_computed () (* eta-expansion required *)
 
 let linked_states = 
   ref
-    [ 
-      Logic_env.Logic_info.self;
+    [ Logic_env.Logic_info.self;
       Logic_env.Logic_type_info.self;
       Logic_env.Logic_ctor_info.self;
       Logic_env.Model_info.self;
       Logic_env.Lemmas.self;
-      Cil.selfFormalsDecl;
-    ]
+      Cil.selfFormalsDecl ]
 
 let add_linked_state state = linked_states := state :: !linked_states
 
 let monotonic_states = ref []
-
 let add_monotonic_state state = monotonic_states := state :: !monotonic_states
 
 let mark_as_changed () =
@@ -78,7 +74,7 @@ let mark_as_grown () =
   Project.clear ~selection ()
 
 let () =
-  State_dependency_graph.Static.add_dependencies
+  State_dependency_graph.add_dependencies
     ~from:self [ Cil_datatype.Stmt.Hptset.self;
                  Cil_datatype.Varinfo.Hptset.self ];
   add_monotonic_state Cil_datatype.Stmt.Hptset.self;
@@ -99,10 +95,15 @@ let default_initialization =
 
 let set_default_initialization f = default_initialization := f
 
+let syntactic_constant_folding ast =
+  Cil.visitCilFileSameGlobals (Cil.constFoldVisitor true) ast
+
 let force_compute () =
   Kernel.feedback ~level:2 "computing the AST";
   !default_initialization ();
   let s = get () in
+  (* Syntactic constant folding before analysing files if required *)
+  if Kernel.Constfold.get () then syntactic_constant_folding s;
   After_building.apply s;
   s
 
@@ -181,6 +182,10 @@ let is_last_decl g =
 let clear_last_decl () =
   let selection = State_selection.Static.with_dependencies LastDecl.self in
   Project.clear ~selection ()
+
+let add_hook_on_update f =
+  add_hook_on_update (fun _ -> f ())
+let () = add_hook_on_update Cil_datatype.clear_caches
 
 (*
 Local Variables:

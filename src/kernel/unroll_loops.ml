@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,11 +27,11 @@ open Cil
 open Cil_datatype
 open Visitor
 
+let dkey = Kernel.register_category "ulevel"
+
 let extract_from_pragmas s times =
   let annot = Annotations.code_annot s in
-  let pragmas =
-    Ast_info.lift_annot_list_func Logic_utils.extract_loop_pragma annot
-  in
+  let pragmas = Logic_utils.extract_loop_pragma annot in
     
   let get_nb_times (found_times,_ as elt) p =
     let get_nb_times _ spec = match spec with
@@ -45,7 +45,7 @@ let extract_from_pragmas s times =
 	       begin
 		 match isInteger (Cil.constFold true (!Db.Properties.Interp.term_to_exp None spec)) with
 		   | Some i -> 
-		       Some (My_bigint.to_int i)
+		       Some (Integer.to_int i)
 		   | None -> Kernel.warning ~once:true ~current:true
 		       "ignoring unrolling directive (not a constant expression)";
 		       raise Not_found
@@ -184,15 +184,13 @@ let copy_annotations kf assoc labelled_stmt_tbl (stmt_src,stmt_dst) =
     end
     in visitCilCodeAnnotation (visitor:>cilVisitor) (Logic_const.refresh_code_annotation a) 
   in
-  let new_annots = 
+  let new_annots =
     Annotations.fold_code_annot
       (fun emitter annot acc ->
-         Kernel.debug ~dkey:"ulevel" "Copying an annotation to stmt %d from stmt %d@." stmt_dst.sid stmt_src.sid;
-         let new_annot =
-           match annot with
-           | User a -> User(fresh_annotation a)
-           | AI(c, a) -> AI(c, fresh_annotation a)
-         in
+         Kernel.debug ~dkey
+           "Copying an annotation to stmt %d from stmt %d@."
+           stmt_dst.sid stmt_src.sid;
+         let new_annot = fresh_annotation annot in
          (emitter, new_annot) :: acc)
       stmt_src
       []
@@ -283,7 +281,9 @@ let copy_block kf break_continue_must_change bl =
     result.skind <- new_stmkind;
     if Annotations.has_code_annot stmt then 
       begin
-	Kernel.debug ~dkey:"ulevel" "Found an annotation to copy for stmt %d from stmt %d@." result.sid stmt.sid;
+	Kernel.debug ~dkey 
+          "Found an annotation to copy for stmt %d from stmt %d@."
+          result.sid stmt.sid;
 	annotated_stmts := (stmt,result) :: !annotated_stmts;
       end;
     result, new_labelled_stmt_tbl, new_calls_tbl
@@ -387,8 +387,7 @@ let copy_block kf break_continue_must_change bl =
 
 (* Update to take into account annotations*)
 class do_it (emitter,(times:int)) = object(self)
-  inherit Visitor.generic_frama_c_visitor
-    (Project.current()) (Cil.inplace_visit())
+  inherit Visitor.frama_c_inplace
 
   (* We sometimes need to move labels between statements. This table
      maps the old statement to the new one *)
@@ -444,7 +443,8 @@ class do_it (emitter,(times:int)) = object(self)
     let number, is_total_unrolling = extract_from_pragmas s times 
     in
     let f sloop = 
-      Kernel.debug ~dkey:"ulevel" "Unrolling loop stmt %d (%d times) inside function %a@." 
+      Kernel.debug ~dkey
+        "Unrolling loop stmt %d (%d times) inside function %a@." 
 	sloop.sid number Kernel_function.pretty (Extlib.the self#current_kf);
       file_has_unrolled_loop <- true ;
       has_unrolled_loop <- true ;
@@ -507,7 +507,7 @@ class do_it (emitter,(times:int)) = object(self)
     let g sloop new_stmts =
       let annot = Logic_const.new_code_annotation (AInvariant ([],true,Logic_const.pfalse))
       in Annotations.add_code_annot
-	   emitter ~kf:(Extlib.the self#current_kf) sloop (User annot);
+	   emitter ~kf:(Extlib.the self#current_kf) sloop annot;
 	new_stmts
     in
     let f = if number > 0 then f else (fun s -> s) in
@@ -526,18 +526,19 @@ let apply_transformation nb emitter (file,recompute_cfg) =
      are ignored. *)
   if nb >= 0 then
     let visitor = new do_it (emitter, nb) in
-      Kernel.debug ~dkey:"ulevel" "Using -ulevel %d option and UNROLL loop pragmas@." nb;
+      Kernel.debug ~dkey "Using -ulevel %d option and UNROLL loop pragmas@." nb;
       visitFramacFileSameGlobals (visitor:>Visitor.frama_c_visitor) file ;
       file,(recompute_cfg || (visitor#get_file_has_unrolled_loop ()))
   else begin
-    Kernel.debug ~dkey:"ulevel" "No unrolling is done; all UNROLL loop pragmas are ignored@.";
+    Kernel.debug ~dkey
+      "No unrolling is done; all UNROLL loop pragmas are ignored@.";
     file, recompute_cfg
   end
 
 let transformations_closure (file,recompute_cfg) =
   if recompute_cfg then
     begin (* The CFG has be to recomputed *)
-      Kernel.debug ~dkey:"ulevel" "Cloture: recomputing CFG@.";
+      Kernel.debug ~dkey "Closure: recomputing CFG@.";
       Cfg.clearFileCFG ~clear_id:false file;
       Cfg.computeFileCFG file;
       Ast.mark_as_changed ()

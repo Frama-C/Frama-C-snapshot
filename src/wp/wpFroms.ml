@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -20,7 +20,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-let dkey = "froms" (* debugging key *)
+let dkey = Wp_parameters.register_category "froms" (* debugging key *)
 
 (** This file groups functions needed to check the fonctional dependencies *)
 
@@ -64,8 +64,8 @@ let mk_linfo_type (out_type, in_types) =
 * TODO: should be [Cil_const.make_logic_info] when it be finished. *)
 let make_logic_info fname (out_type, in_types) =
   let ltype = mk_linfo_type (out_type, in_types) in
-  let lvar = Cil_const.make_logic_var fname ltype in
-  let mk_in_lvar t = Cil_const.make_logic_var "x" t in
+  let lvar = Cil_const.make_logic_var_global fname ltype in
+  let mk_in_lvar t = Cil_const.make_logic_var_formal "x" t in
   let in_vars = List.map mk_in_lvar in_types in
   let linfo = {
     l_var_info = lvar;
@@ -146,7 +146,7 @@ let build_elem_opt ~addrlab ~mlab elem =
         Some (elem')
   | _ ->
       Wp_parameters.not_yet_implemented
-        "assigns left part is not a lvalue: %a" Cil.d_term elem
+        "assigns left part is not a lvalue: %a" Printer.pp_term elem
 
 (** see [build_elem_opt] above. *)
 let build_elem ~addrlab ~mlab elem =
@@ -192,10 +192,10 @@ module Vars = struct
       vars
 
   let mk_new name ty =
-    (** Notice that [make_logic_var] create a frech variable.
+    (** Notice that [make_logic_var] create a fresh variable.
     * This is intended since several calls shouldn't share the same variable ! 
     **)
-    let v = Cil_const.make_logic_var name ty in
+    let v = Cil_const.make_logic_var_quant name ty in
       new_vars := v::!new_vars;
       v
 end
@@ -324,10 +324,10 @@ let annot_for_asked_bhv b_list asked_bhv =
 
 let get_loop_assigns_for_froms asked_bhv s =
   let do_annot _ a acc =
-    let ca = match a with User ca | AI (_, ca) -> ca in
-    match ca.annot_content with
-      | AAssigns (b_list, Writes a) when annot_for_asked_bhv b_list asked_bhv ->
-          Some (ca,a)
+    match a.annot_content with
+      | AAssigns (b_list, Writes assigns)
+          when annot_for_asked_bhv b_list asked_bhv ->
+          Some (a,assigns)
       | _ -> acc
   in 
   Annotations.fold_code_annot do_annot s None
@@ -385,8 +385,7 @@ let add_spec_annots kf s l_post spec (b_acc, (p_acc, e_acc)) =
 
 let get_stmt_hyp kf asked_bhv s l_post =
   let do_annot _ a acc =
-    let ca = Annotations.code_annotation_of_rooted a in
-    match ca.annot_content with
+    match a.annot_content with
     | AStmtSpec (b_list, spec) when annot_for_asked_bhv b_list asked_bhv ->
       (try add_spec_annots kf s l_post spec acc
        with NoFromForBhv -> (* TODO: not sure this is correct!*) acc)
@@ -416,7 +415,7 @@ let get_called_post kf termination_kind =
   List.fold_left mk_prop WpStrategy.empty_acc posts
 
 let get_call_hyp kf_caller s l_post fct =
-  match WpStrategy.get_called_kf fct with
+  match Kernel_function.get_called fct with
     | Some kf ->
         let spec = Annotations.funspec kf in
         let before_annots = WpStrategy.empty_acc in
@@ -525,7 +524,7 @@ let mk_strategy_for_fct_from cfg bhv pre ((out,from) as assign) =
 let pp_err fmt e = 
   let no_from = "no \\from information" in
   let pp_stmt_loc fmt s =
-    Format.fprintf fmt "@[%a@]" Cil.d_loc (Cil_datatype.Stmt.loc s)
+    Format.fprintf fmt "@[%a@]" Printer.pp_location (Cil_datatype.Stmt.loc s)
   in
   match e with
     | NoFromForCall s -> 
@@ -596,9 +595,3 @@ let get_strategies_for_froms kf =
                   Kernel_function.pretty kf pp_err e;
                 acc
     in List.fold_left add_bhv [] spec.spec_behavior
-
-(*
-  Local Variables:
-  compile-command: "make -C ../.."
-  End:
-*)

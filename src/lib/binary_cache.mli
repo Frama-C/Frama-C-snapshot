@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,10 +20,9 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Undocumented. 
-    Do not use this module if you don't know what you are doing. *)
-
-(* [JS 2011/10/03] To the authors/users of this module: please document it. *)
+(** Very low-level abstract functorial caches. Do not use them unless
+    you understand what happens in this module, and do not forget that
+    those caches are not aware of projects. *)
 
 module MemoryFootprint : State_builder.Ref with type data = int
 

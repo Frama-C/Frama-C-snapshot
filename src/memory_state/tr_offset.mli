@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,26 +20,28 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Undocumented. 
-    Do not use this module if you don't know what you are doing. *)
-
-(* [JS 2011/10/03] To the authors/users of this module: please document it. *)
+(** Reduction of a location (expressed as an Ival.t plus a size)
+    by a base validity. Only the locations in the trailed result are valid. *)
 
 type t =
-    Set of Ival.O.t
-  | Interval of Abstract_interp.Int.t * Abstract_interp.Int.t *
-      Abstract_interp.Int.t
-  | Imprecise of Abstract_interp.Int.t * Abstract_interp.Int.t
+  | Set of Ival.O.t (** Limited number of locations *)
+  | Interval of (** min *) Integer.t *
+                (** max *) Integer.t *
+                (** modu *)Integer.t 
+  | Imprecise of (** min *) Integer.t *
+                 (** max *) Integer.t  (** This case only happens with
+                                           infinite or periodic validities *)
+
 exception Unbounded
-val empty : t
-val reduce_ival_by_bound :
-  Ival.tt -> My_bigint.t -> Base.validity -> bool * (bool * t)
+
 val filter_by_bound_for_reading :
-  with_alarms:CilE.warn_mode -> Ival.tt -> My_bigint.t -> Base.validity -> t
-val filter_by_bound_for_writing :
-  exact:bool ->
   with_alarms:CilE.warn_mode ->
-  Ival.tt -> My_bigint.t -> Base.validity -> bool * t
+    Ival.t -> Integer.t -> Base.validity -> t
+
+val filter_by_bound_for_writing :
+  with_alarms:CilE.warn_mode ->
+  exact:bool ->
+  Ival.t -> Integer.t -> Base.validity -> bool * t
 
 (*
 Local Variables:

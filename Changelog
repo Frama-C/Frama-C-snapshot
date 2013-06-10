@@ -12,6 +12,286 @@
 # '#?nnn'  : OLD-BTS entry #nnn                                               #
 ###############################################################################
 
+#####################################
+Open Source Release Fluorine-20130601
+#####################################
+
+-* Value      [2013/06/11] Add missing C library files.
+
+#####################################
+Open Source Release Fluorine-20130501
+#####################################
+
+-  Value      [2013/05/22] Better precision for ^ (bitwise xor) operator
+	      when applied on intervals of positive integers
+-* RTE        [2013/05/22] Fix off-by-one error in alarms on overflowing
+	      unsigned unary minuses.
+-* Value      [2013/05/21] Catch evaluation errors when selecting a logic
+	      l-value in the GUI.
+o* Kernel     [2013/05/06] Fixed Type.pp_ml_name for polymorphic types
+	      with 3 and 4 type variables (bug #1127).
+-* Makefile   [2013/05/06] Fixed installation directory of the doc in
+	      plug-in's Makefile (bug #1278).
+
+#####################################
+Open Source Release Fluorine-20130401
+#####################################
+
+o! Cil        [2013/04/11] Remove Cil pretty-printer. Use module Printer
+	      instead. The script bin/oxygen2fluorine.sh may be used to
+	      automatically convert your code.
+-  Cil	      [2013/04/09] Handles interpretation of linemarker ending by //
+	      and cleanup file paths.
+-  Value      [2013/03/26] Highlight non-terminating calls.
+-  Value      [2013/03/26] The location in which the result of a call is stored
+	      is now evaluated before the call. A warning is emitted if this
+	      location has changed after the call.
+-  Logic      [2013/03/26] Improved merge strategy for assigns and report
+	      in presence of different assigns clauses between two files.
+-  Value      [2013/03/23] Better precision for postconditions in functions
+	      with multiple return analyzed without slevel.
+-* Value      [2013/03/20] Fix incorrect interpretation of \valid{L}(P) when
+	      L is not Here label.
+-! Value      [2013/03/20] The first element of a -lib-entry allocated array,
+	      or of an array passed as an argument to main, is now valid
+	      regardless of option -valid-context-pointers.
+-* Slicing    [2013/03/18] Fix incorrectness in presence of assertions involving
+	      \initialized predicate. User predicates are no longer treated.
+-* Value      [2013/03/15] Fix incorrectness of option -remove-redundant-alarms
+	      in presence of '\initialized(...)' alarms.
+-  Value      [2013/03/15] Optionally warn against unsigned overflows according
+	      to option -warn-unsigned-overflow.
+-  Cil        [2013/03/14] The type of fields that are bit-fields now carry an
+	      informative attribute FRAMA_C_BITFIELD_SIZE.
+-* Value      [2013/03/09] Fixed misleading "after statement" state on
+	      statements followed by an assertion.
+-* Value      [2013/03/09] Option -memexec is now correct in presence of RTE
+	      alarms.
+-! Value      [2013/03/09] Consolidated states are now stored before 'assert'
+	      clauses are evaluatued.
+-* Slicing    [2013/03/03] Fix options -slice-assert and -slice-threat
+	      (-threat did nothing, -assert selected all alarms).
+-! Sparecode  [2013/03/03] Alarms are now ignored during the analysis.
+-* Value      [2013/03/03] Fix incorrect reduction in integers containing
+	      pointers address when option -warn-signed-overflow is set.
+-! Value      [2013/03/03] Signed overflows now cause an alarm. Option
+	      -no-warn-signed-overflow can be used to get 2's complement.
+-! Kernel     [2013/03/03] Signed overflow alarms are now emitted by default.
+-! Kernel     [2013/03/03] Signed downcast alarms are no longer emitted by
+	      default. Use option -warn-signed-downcast to activate them.
+-  Kernel     [2013/03/02] Print signed downcast alarms as 'signed_downcast'
+-! Value      [2013/03/02] Removed option -val-signed-overflow-alarms.
+	      Use -warn-signed-overflow instead.
+-! Rte        [2013/03/02] Removed options -rte-signed, rte-unsigned-ov,
+	      -rte-downcast and -rte-unsigned-downcast. They are replaced
+	      by -warn-signed-overflow, -warn-unsigned-overflow,
+	      -warn-signed-downcast and -warn-unsigned-downcast respectively.
+-* Rte        [2013/03/02] Added missing alarm for casts from overly large
+	      floating-point numbers to integer. Fixes #!1318.
+-  Cil        [2013/03/02] 'do {...} while(0);' are now translated as '{...}'.
+-* Value      [2013/02/28] Initial state of Value does not depend on -main
+	      option, but depends on -context-<...>.
+-  Value      [2013/02/27] Emit proper alarms for completely imprecise
+	      floating-point values, and for casts from float to int.
+-* Impact     [2013/02/23] Prevent crash when a caller or callee function has
+	      been imprecisely analyzed.
+-  PDG        [2013/02/23] Ignore inline asm statements (previous behavior was
+	      to generate Top Pdgs).
+-* Value      [2013/02/23] In -lib-entry mode, void* fields or pointers now
+	      point to something potentially valid.
+-  Value      [2013/02/22] Option -val-ignore-recursive-calls now uses the
+	      assigns clauses of the recursive function to treat the call.
+-  Value      [2013/02/17] Improved support for va_arg variadic macro.
+-! Value      [2013/02/17] Renamed options -initialized-padding-globals
+	      and -no-no-results into -uninitialized-padding-globals and
+	      -val-store-results respectively.
+-* Value      [2013/02/17] Improved again support for abstract structs.
+o! Value      [2013/02/15] Generic types of Value are now in Value_types
+	      (previously Value_aux). Implies a signature change for
+	      Db.Value.register_builtin. Value_aux.accept_base is now in
+	      Db.Semantic_Callgraph.
+-  Value      [2013/02/13] Offsets in misaligned values that repeat themselves
+	      are now always printed relatively to the beginning of the binding.
+-  Value      [2013/02/12] Suppress superfluous warning when passing as
+              argument a struct that contains pointers.
+-* Metrics    [2013/02/12] Global variables both declared and defined were
+              counted twice.
+-* Metrics    [2013/02/11] Option -value-metrics now report a correct location
+	      for function referenced by an initializer. Fixes #!1361.
+o! Value      [2013/02/08] Renamed Locations.valid_enumerate_bits into
+	      Locations.enumerate_valid_bits.
+o*! Kernel    [2013/02/08] Must register keywords introducing new clauses of
+	      ACSL contracts. Fixes issue #!1358.
+o! Kernel     [2013/02/08] redesign of message categories.
+	      See detailed changelog for more information.
+o! Cil        [2013/02/07] Clean up registering of new machdeps. Some machdep
+	      options have been integrated into Cil_types.mach, or removed from
+	      Cil.theMachine (as they were already in Cil_types.mach).
+-  Value      [2013/02/06] Improve reduction by conditions that involve '&'
+	      and '|' operators.
+-* Value      [2013/02/06] Fix validities of degenerate variables that were
+	      too big considering the size of the memory.
+-* Impact     [2013/02/06] Prevent crash when considering a function with an
+	      unreachable first statement.
+o! Logic      [2013/02/04] Change Property_status.Consolidation_graph.dump
+	      now takes a formatter instead of a file name.
+-  Value      [2013/02/02] Improved support for abstract structs.
+o! Value      [2013/02/02] Removed Base.All validity. Use big validities
+	      with unknown flag instead. Improved signature of Base.Unknown.
+o! Cil        [2013/02/02] Renamed function Cil.alignOf_int into bytesAlignOf.
+o! Cil        [2013/02/02] Remove unused 'alignof_char_array' machdep field.
+-* Value      [2013/02/01] Fix erroneous casting operating when interpreting
+	      logic casts.
+-* Kernel     [2013/02/01] Ghost status is appropriately propagated in
+	      statements (instead of only instructions) and pretty-printed
+	      accordingly. Fixes issue #1328.
+-  Value      [2013/02/01] Value more agressive evaluation of construct
+	      '//@ for b: assert p' when b is guaranteed to be active.
+	      Harmonize behaviors-related messages.
+-  Kernel     [2013/01/29] The level of verbose is at least the level of debug.
+-* Value      [2013/01/28] Ignore 'const' qualifier on extern globals in
+	      lib-entry mode (previously, those globals were initialized to 0).
+-  Obfuscator [2013/01/28] Hide variables that do not appear in the output
+	      from the dictionary.
+-* From       [2013/01/28] Fix rare bug in presence of involved control-flow
+	      graphs and non-terminating calls.
+o! Slicing    [2013/01/21] Remove no longer used ~ai argument.
+-!*Value      [2013/01/21] Various changes in the way undefined functions
+	      returning pointers are handled.
+-  Value      [2013/01/20] Alarms emitted by Value are no longer evaluated
+	      during analysis (unlike user assertions).
+-  Value      [2013/01/20] More aggressive reduction in presence of write
+	      through partially invalid pointers. Warn if the pointer is
+	      completely invalid.
+-* Value      [2013/01/20] Option -absolute-valid-range can now be changed
+	      between two executions of Value.
+-! Slicing    [2013/01/19] Alarms are now removed in the generated project
+	      (regardless of option -slicing-keep-annotations).
+-! Sparecode  [2013/01/19] RTE or Value-generated alarms are now removed
+	      in the generated project.
+o! Value      [2013/01/17] Builtins must now warn if their results should not
+	      be cached  (signature change in Db.Value.builtin_result).
+o* Kernel     [2013/01/16] Visitor no longer crashes when a non-function global
+	      is replaced by a list containing at least one function or
+	      prototype (fixes bug #!1349).
+!* Kernel     [2013/01/10] Add lv_kind field to trace origin of logic variables
+	      Cil_const.make_logic_var is deprecated in favor of specialized.
+-* Kernel     [2013/01/10] Fixed bug #!1347 about accessing to a consolidated
+	      status of a property which depends on removed hypotheses.
+o! Kernel     [2013/01/10] Remove method is_annot_before from visitors
+	      (it was returning only true).
+-* Makefile   [2013/01/08] Compile OcamlGraph less often: fixes issue #1343.
+-  Value      [2013/01/08] More agressive analysis of statements with improperly
+	      sequenced accesses when option -unspecified-access is used.
+o  Kernel     [2013/01/04] New methods videntified_term and
+	      videntified_predicate for the visitor.
+-* Kernel     [2013/01/04] Fixed discrepancy between compare_type and hash_type.
+	      Added new datatype TypNoUnroll.
+o  Kernel     [2013/01/03] Added pp_field and pp_model_field in Printer_api.
+o  Kernel     [2013/01/03] Added type modules
+	      Cil_datatype.Wide_string and Datatype.List_with_collections.
+-* Logic      [2013/01/03] Fixes various type-checking issues in presence of
+	      polymorphism and implicit conversions (including #1146).
+o! Kernel     [2012/12/21] Module Cilutil has been removed. Previously used
+	      list functions can now be found in Extlib (use script
+	      oxygen2fluorine.sh for migration). Functions related to
+	      configuration files are now Cilconfig.
+o! Impact     [2012/12/21] Function Db.Impact.compute_pragmas now returns
+	      a list of statements.
+-* From       [2012/12/21] Fix absence of effect of option -calldeps after
+	      a save/load cycle.
+-* Inout      [2012/12/21] Fix absence of effect option -inout-callwise after
+	      a save/load cycle.
+o! Kernel     [2012/12/13] Reorganize AST's pretty-printers. You must now use
+	      module Printer. Use the script oxygen2fluorine.sh to upgrade
+	      your plug-in.
+o! Kernel     [2012/12/13] Remove Cilutil's pretty printing helpers. Use
+	      Pretty_utils' ones instead.
+-  Inout      [2012/12/12] Indirect reads (for example 'p' for '*p') are now
+	      automatically added to inputs when evaluating assigns.
+-  Value      [2012/12/12] Evaluation of assigns now include indirect reads
+	      (ie 'assigns *p' depends on p) automatically.
+-  Value      [2012/12/07] Improve handling of conditionals when option
+	      -val-ilevel is used.
+-  PDG        [2012/11/28] InCtrl nodes are no longer displayed in Dot graphs.
+o! Kernel     [2012/11/24] Various types whose names started by t_ in
+	      PDG/slicing related modules are now unprefixed.
+o  Rte        [2012/11/23] Export function "exp_annotations" to get RTEs of a C
+	      expression as annotations.
+o*!Kernel     [2012/11/23] Added TLogic_coerce constructor to mark
+	      explicitely a conversion from a C type to a logical one
+	      (in particular floating point -> real and integral -> integer).
+	      Fixes issue #1309.
+o! Kernel     [2012/11/22] Remove unintuitive ?prj argument from Cil visitors,
+	      and first argument of Visitor.generic_frama_c_visitor. Information
+	      is now stored inside the type Cil.visitor_behavior.
+-* Value      [2012/11/20] Fix evaluation of logic constant characters
+	      above 127.
+-* Value      [2012/11/20] Fix soundness bugs for comparisons with logic
+	      constants that are not representable as 64 bits double.
+o! Kernel     [2012/11/20] Signature change for constructor LReal.
+-  Rte        [2012/11/16] Generate Value-compatible alarms and annotations.
+-  Kernel     [2012/11/16] Syntactic constant folding is done once by AST
+	      (fixed bug #!1306).
+-  Value      [2012/11/13] More precise line numbers for statuses of assertions
+	      and loop invariants.
+-  Value      [2012/11/09] New option -val-callstack-results to record and
+		display in GUI the results splitted by callstacks.
+o  Kernel     [2012/11/08] New function Annotations.model_fields.
+-! Rte        [2012/11/06] Remove option -rte-print. Use -print instead.
+-* Kernel     [2012/11/06] Do not print help of negative options when the
+	      positive one is invisible (fixed #1295).
+o! Kernel     [2012/11/05] Get rid of useless rooted_code_annotation datatype.
+-* Aorai      [2012/10/31] Adds locations modified by Aorai to existing
+	      loop assigns (fixes issue #1290).
+o  Kernel     [2012/10/31] Renamed Kernel_function.self to
+	      Kernel_function.auxiliary_kf_stmt_state to avoid confusion.
+o  Kernel     [2012/10/31] New function 'get' for projectified counters.
+-  Kernel     [2012/10/29] Better frama-c.top (fixed issue #1287).
+-* Kernel     [2012/10/26] Do not attempt to merge unrelated anonymous enum
+	      that have been given the same name by Cil (fixes #1283).
+-  Logic      [2012/10/26] Extended syntax for naming terms and predicates
+	      ("string":pred and "string":term are now allowed).
+o! Kernel     [2012/10/18] New API for module Alarm's.
+-  Kernel     [2012/10/18] When printing the AST, display the emitter name
+	      of generated annotations and also the origin of
+	      annotations corresponding to an alarm.
+o* Kernel     [2012/10/18] Fixes incorrect visitor behavior with JustCopy
+	      (issue #1282).
+-  Value      [2012/10/16] Reduce more agressively on accesses *p where p is
+	      imprecise but contains only one valid value.
+-* Value      [2012/10/16] Correct potentially incorrect reduction on l-values
+	      of the form *(p+off) or *(p-off).
+-* Kernel     [2012/10/16] Fixed bug with Type.pp_ml_name for pairs,
+	      triples and quadruples which can lead to incorrect journal
+	      generation (new occurrence of bts #1127).
+o  Kernel     [2012/10/12] Optional argument 'reorder' to File.* functions
+	      creating an AST in a new project from a visitor.
+-* Value      [2012/10/12] A bug causing the number of superposed states to be
+	      slightly underestimated has been fixed. As a result, it may be
+	      necessary to up the -slevel argument a little bit for existing
+	      proof scripts.
+-  Kernel     [2012/10/11] Option -enums for choosing representation of enums.
+-* Scope      [2012/10/10] Prevent crash in defs computation when a lvalue is
+	      a formal.
+o* Makefile   [2012/10/01] Fix installation directory of API documentation
+	      (fixed bts #1278).
+-  Kernel     [2012/10/01] Assumptions and axioms now get consilodated status
+	      "Considered valid" instead of "Valid".
+-* Value      [2012/10/01] Fix "Semantic level unrolling superposing up to"
+	      messages. The number displayed was sometimes lower than
+	      the actual number of superposed states.
+-* Gui        [2012/10/01] In some cases, after a crash of an analyzer,
+	      the GUI was not fully restored, became inconsistent and could
+	      crash.
+o! Value      [2012/09/30] Remove various instances of Top_Param, which were
+	      all equal to Base.SetLattice.
+o  Pdg        [2012/09/30] Fix display for control dependencies in PDG graphs.
+o  Kernel     [2012/09/20] Provide Datatype.triple and Datatype.quadruple
+	      (bts wish #1277).
+o* Kernel     [2012/09/20] Fixed consistency check of descriptor when
+	      building polymorphic datatypes (fixed bts #1277).
+
 ###################################
 Open Source Release Oxygen-20120901
 ###################################
@@ -24,7 +304,7 @@ Open Source Release Oxygen-20120901
 -  Value      [2012/09/13] Print misaligned values in a simpler way. Fixes
 	      wish #!1271.
 o!* Cil       [2012/09/12] Split constants of logic and C (fixes bts #745).
-o! Cil        [2012/09/12] Remove type Cil_type.typsig. Use the functions in
+o! Cil        [2012/09/12] Remove type Cil_type.typeSig. Use the functions in
 	      Cil_datatype.Typ and Cil_datatype.Logic_typ to compare types.
 -* Kernel     [2012/09/07] Identical messages emitted in two different projects
 	      will now be visible in both projects. Fix bug #1104.
@@ -746,7 +1026,7 @@ o! Kernel     [2011/03/11] Remove several kernel functions:
 	      Ast_info.pretty_vname: use Cil_datatype.Varinfo.pretty_vname
 	      Cil.print_utf8: use module Parameters.UseUnicode-
 	      Clexer.keep_comment: use module Parameters.PrintComments
-	      Cabshelper.continue_annot_error_set: 
+	      Cabshelper.continue_annot_error_set:
 	      Cabshelper.continue_annot_error_set: use
 	      Parameters.ContinueOnAnnotError.off
 	      all Cil, Cilmsg and CilE functions for pretty printing: use Kernel

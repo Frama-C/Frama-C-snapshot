@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -40,9 +40,7 @@ module Non_linear_assignments =
 module Loc_hashtbl = Hashtbl.Make (Location_Bits)
 
 class do_non_linear_assignments = object(self)
-  inherit
-    Visitor.generic_frama_c_visitor (Project.current ()) (Cil.inplace_visit ())
-    as super
+  inherit Visitor.frama_c_inplace as super
   val mutable current_locs = None
   val mutable assigns_table =
     (Ki.Hashtbl.create 17 : Location_list.t Ki.Hashtbl.t)

@@ -1,6 +1,6 @@
 /* run.config
    GCC:
-   OPT: -float-normal -val -deps -out -input tests/idct/idct.c share/libc/stdio.c share/math.c -journal-disable -remove-redundant-alarms -memexec-all -then -report -report-print-properties
+   OPT: -float-normal -no-warn-signed-overflow -val -deps -out -input tests/idct/idct.c share/libc/stdio.c share/math.c -journal-disable -remove-redundant-alarms -memexec-all -then -report -report-print-properties
 */
 /* IEEE_1180_1990: a testbed for IDCT accuracy
  * Copyright (C) 2001  Renaud Pacalet

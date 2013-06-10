@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -20,11 +20,11 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* -------------------------------------------------------------------------- *)
-(* --- Patricia Trees by L. Correnson                                     --- *)
-(* --- From the paper of Chris Okasaki and Andrew Gill:                   --- *)
-(* ---   'Fast Mergeable Integer Maps'                                    --- *)
-(* -------------------------------------------------------------------------- *)
+(** Maps with integers keys using Patricia Trees.
+
+    From the paper of Chris Okasaki and Andrew Gill: 
+    'Fast Mergeable Integer Maps'.
+*)
 
 type 'a t
 
@@ -67,5 +67,3 @@ val iterk : (int -> 'a -> 'b -> unit) -> 'a t -> 'b t -> unit
 
 val pp_bits : Format.formatter -> int -> unit
 val pp_tree : string -> Format.formatter -> 'a t -> unit
-
-val debug : bool ref

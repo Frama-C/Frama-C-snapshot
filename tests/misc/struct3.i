@@ -22,6 +22,8 @@ struct st2 tab_s4[2];
 struct st2 s1,s2,s4,s5,s6;
 struct st1 s8,s7;
 
+volatile int v;
+
 void main () {
   s1.a=2;
   s1.c = &s1;
@@ -33,10 +35,5 @@ void main () {
   s1.d[8] = 2;
   s1.d[9] = 2;
 
-  s1.d[10] = 2;
-
-
-
-
-
+  if (v) s1.d[10] = 2;
 }

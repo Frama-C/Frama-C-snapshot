@@ -2,11 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
-(*           alternatives)                                                *)
-(*    INRIA (Institut National de Recherche en Informatique et en         *)
-(*           Automatique)                                                 *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -49,29 +47,29 @@ open Cil_types
 * It is composed of the called function if it has been established yet,
 * and the call signature. Also deals with the [called_by] information. *)
 module CallInfo : sig
-  type call_id =  SlicingInternals.t_fct_slice * Cil_types.stmt
+  type call_id =  SlicingInternals.fct_slice * Cil_types.stmt
   type t
 
   val get_info_call : call_id -> t
   val fold_calls : (Cil_types.stmt -> t -> 'a -> 'a) ->
-    SlicingInternals.t_fct_slice -> SlicingInternals.marks_index -> 'a -> 'a
+    SlicingInternals.fct_slice -> SlicingInternals.marks_index -> 'a -> 'a
 
-  val get_call_f_called : call_id -> SlicingInternals.t_called_fct option
-  val get_call_sig : t ->  SlicingMarks.t_sig_marks
+  val get_call_f_called : call_id -> SlicingInternals.called_fct option
+  val get_call_sig : t ->  SlicingMarks.sig_marks
 
-  val get_f_called : t -> SlicingInternals.t_called_fct option
+  val get_f_called : t -> SlicingInternals.called_fct option
 
   val something_visible : t -> bool
 
-  val remove_called_by : SlicingInternals.t_project -> call_id -> t -> unit
-  val is_call_to_change : t -> SlicingInternals.t_called_fct option -> bool
-  val change_call :  SlicingInternals.t_project -> SlicingInternals.marks_index -> call_id ->
-                     SlicingInternals.t_called_fct option -> unit
+  val remove_called_by : SlicingInternals.project -> call_id -> t -> unit
+  val is_call_to_change : t -> SlicingInternals.called_fct option -> bool
+  val change_call :  SlicingInternals.project -> SlicingInternals.marks_index -> call_id ->
+                     SlicingInternals.called_fct option -> unit
 
 end = struct
 
-  type call_id =  SlicingInternals.t_fct_slice * Cil_types.stmt
-  type t = call_id * SlicingInternals.t_called_fct option * SlicingMarks.t_sig_marks
+  type call_id =  SlicingInternals.fct_slice * Cil_types.stmt
+  type t = call_id * SlicingInternals.called_fct option * SlicingMarks.sig_marks
 
   let empty = (None, SlicingMarks.empty_sig)
 
@@ -197,13 +195,13 @@ end
 module FctMarks : sig
   type t (* =  SlicingInternals.marks_index *)
 
-  type t_to_prop
+  type to_prop
 
-  val empty_to_prop : t_to_prop
+  val empty_to_prop : to_prop
 
   (** build a new, empty, slice for the function *)
-  val new_empty_slice : SlicingInternals.fct_info -> SlicingInternals.t_fct_slice
-  val new_copied_slice : SlicingInternals.t_fct_slice -> SlicingInternals.t_fct_slice
+  val new_empty_slice : SlicingInternals.fct_info -> SlicingInternals.fct_slice
+  val new_copied_slice : SlicingInternals.fct_slice -> SlicingInternals.fct_slice
 
   val new_empty_fi_marks : SlicingInternals.fct_info -> t
   val fi_marks :  SlicingInternals.fct_info -> t option
@@ -212,31 +210,31 @@ module FctMarks : sig
 
   (** build a new, slice for the function with some initial marks (they will be
   * copied)*)
-  val new_init_slice : SlicingInternals.fct_info -> SlicingInternals.t_ff_marks -> SlicingInternals.t_fct_slice
+  val new_init_slice : SlicingInternals.fct_info -> SlicingInternals.ff_marks -> SlicingInternals.fct_slice
 
-  val get_ff_marks : SlicingInternals.t_fct_slice -> t
+  val get_ff_marks : SlicingInternals.fct_slice -> t
 
   (** merge the marks and clear all the calls :
   * they will have to be processed by examine_calls.  *)
-  val merge : SlicingInternals.t_fct_slice -> SlicingInternals.t_fct_slice -> SlicingInternals.t_ff_marks
+  val merge : SlicingInternals.fct_slice -> SlicingInternals.fct_slice -> SlicingInternals.ff_marks
 
-  val get_node_mark : SlicingInternals.t_fct_slice -> PdgIndex.Key.t -> SlicingTypes.sl_mark
-  val get_node_marks : SlicingInternals.t_fct_slice -> PdgIndex.Key.t -> SlicingTypes.sl_mark list
+  val get_node_mark : SlicingInternals.fct_slice -> PdgIndex.Key.t -> SlicingTypes.sl_mark
+  val get_node_marks : SlicingInternals.fct_slice -> PdgIndex.Key.t -> SlicingTypes.sl_mark list
 
-  val get_sgn : SlicingInternals.t_fct_slice -> SlicingMarks.t_sig_marks option
+  val get_sgn : SlicingInternals.fct_slice -> SlicingMarks.sig_marks option
 
-  val get_new_marks: SlicingInternals.t_fct_slice -> SlicingTypes.sl_mark PdgMarks.t_select ->
-                                    SlicingTypes.sl_mark PdgMarks.t_select
+  val get_new_marks: SlicingInternals.fct_slice -> SlicingTypes.sl_mark PdgMarks.select ->
+                                    SlicingTypes.sl_mark PdgMarks.select
 
-  val get_all_input_marks : t -> t_to_prop
-  val get_matching_input_marks : t -> Locations.Zone.t -> t_to_prop
+  val get_all_input_marks : t -> to_prop
+  val get_matching_input_marks : t -> Locations.Zone.t -> to_prop
 
   (** add the given mark to the node, and propagate to its dependencies *)
-  val mark_and_propagate     : t -> ?to_prop:t_to_prop ->
-      SlicingTypes.sl_mark PdgMarks.t_select -> t_to_prop
+  val mark_and_propagate     : t -> ?to_prop:to_prop ->
+      SlicingTypes.sl_mark PdgMarks.select -> to_prop
 
   (** add a [Spare] mark to all the input nodes of the call and propagate *)
-  val mark_spare_call_nodes       : SlicingInternals.t_fct_slice -> Cil_types.stmt -> t_to_prop
+  val mark_spare_call_nodes       : SlicingInternals.fct_slice -> Cil_types.stmt -> to_prop
 
   (** Mark the output nodes can be made visible due to marks in their
    * dependencies. This can occurs if, for instance,
@@ -246,21 +244,21 @@ module FctMarks : sig
   (** Some inputs must be visible when a parameter is used as a local variable.
   * ie. its input value is not used.
   * TODO : handle the difference between input value/decl in [Signature] *)
-  val mark_visible_inputs : t -> t_to_prop -> t_to_prop
+  val mark_visible_inputs : t -> to_prop -> to_prop
 
   val marks_for_caller_inputs :
-    PdgTypes.Pdg.t -> t -> Cil_types.stmt -> t_to_prop -> SlicingInternals.fct_info
-     -> (SlicingTypes.sl_mark PdgMarks.t_select) * bool
+    PdgTypes.Pdg.t -> t -> Cil_types.stmt -> to_prop -> SlicingInternals.fct_info
+     -> (SlicingTypes.sl_mark PdgMarks.select) * bool
 
-  val marks_for_call_outputs : t_to_prop ->
+  val marks_for_call_outputs : to_prop ->
     (Cil_types.stmt * (PdgIndex.Signature.out_key * SlicingTypes.sl_mark) list) list
 
   val get_call_output_marks :
       ?spare_info:CallInfo.call_id  option ->
       CallInfo.t -> (PdgIndex.Signature.out_key * SlicingTypes.sl_mark) list
 
-  val persistant_in_marks_to_prop : SlicingInternals.fct_info -> t_to_prop ->
-    SlicingTypes.sl_mark PdgMarks.t_pdg_select
+  val persistant_in_marks_to_prop : SlicingInternals.fct_info -> to_prop ->
+    SlicingTypes.sl_mark PdgMarks.pdg_select
 
   (** [f] calls [g] and the call marks have been modified in [f].
   * Compute the marks that should be propagated in [g].
@@ -270,23 +268,23 @@ module FctMarks : sig
   * that can be given by [get_call_output_marks].
   * *)
   val check_called_marks :
-      (PdgIndex.Signature.out_key * SlicingTypes.sl_mark) list -> SlicingInternals.t_fct_slice ->
-    (SlicingTypes.sl_mark PdgMarks.t_select) * bool
+      (PdgIndex.Signature.out_key * SlicingTypes.sl_mark) list -> SlicingInternals.fct_slice ->
+    (SlicingTypes.sl_mark PdgMarks.select) * bool
 
 
   val fold_calls : (Cil_types.stmt -> CallInfo.t -> 'a -> 'a) ->
-                   SlicingInternals.t_fct_slice -> 'a -> 'a
+                   SlicingInternals.fct_slice -> 'a -> 'a
 
-  val change_call :  SlicingInternals.t_project -> SlicingInternals.t_fct_slice -> Cil_types.stmt ->
-                     SlicingInternals.t_called_fct option -> unit
+  val change_call :  SlicingInternals.project -> SlicingInternals.fct_slice -> Cil_types.stmt ->
+                     SlicingInternals.called_fct option -> unit
 
-  val debug_marked_ff : Format.formatter -> SlicingInternals.t_fct_slice -> unit
+  val debug_marked_ff : Format.formatter -> SlicingInternals.fct_slice -> unit
 
 end = struct
 
   module Marks4Pdg = struct
     type t = SlicingTypes.sl_mark
-    type t_call_info = SlicingInternals.t_call_info
+    type call_info = SlicingInternals.call_info
     let is_bottom = SlicingMarks.is_bottom_mark
     let merge m1 m2 = SlicingMarks.merge_marks [m1; m2]
     let combine = SlicingMarks.combine_marks
@@ -294,9 +292,9 @@ end = struct
   end
   module PropMark = PdgMarks.F_Fct (Marks4Pdg)
 
-  type t = PropMark.t (* = SlicingInternals.t_ff_marks*)
+  type t = PropMark.t (* = SlicingInternals.ff_marks*)
 
-  type t_to_prop = PropMark.t_mark_info_inter
+  type to_prop = PropMark.mark_info_inter
 
   let empty_to_prop = PropMark.empty_to_prop
 
@@ -616,13 +614,13 @@ end = struct
           with PdgIndex.CallStatement -> assert false
         with Not_found -> SlicingMarks.bottom_mark
       in
-      Format.fprintf fmt "%a : %a@." (!Db.Pdg.pretty_node true) node
+      Format.fprintf fmt "%a : %a" (!Db.Pdg.pretty_node true) node
         SlicingMarks.pretty_mark m
     in
     !Db.Pdg.iter_nodes print_node pdg
 
   let debug_marked_ff fmt ff =
-    Format.fprintf fmt "Print slice = %s@." (SlicingMacros.ff_name ff);
+    Format.fprintf fmt "@[<hv>Print slice =@ %s@]" (SlicingMacros.ff_name ff);
     let ff_marks =  ff.SlicingInternals.ff_marks in
     debug_ff_marks fmt ff_marks
 
@@ -788,24 +786,23 @@ let add_missing_inputs_actions ff calls to_prop actions =
       match missing_inputs with
         | ([], false) ->
             SlicingParameters.debug ~level:2
-              "[Fct_Slice.add_missing_inputs_actions] call %t, \
+              "[Fct_Slice.add_missing_inputs_actions] call %a, \
                   no missing inputs@."
-              (fun fmt -> Cil.d_loc fmt (Cil_datatype.Stmt.loc call));
+              Printer.pp_location (Cil_datatype.Stmt.loc call);
             actions
         | _ ->
             SlicingParameters.debug ~level:2
-              "[Fct_Slice.add_missing_inputs_actions] call %t, \
+              "[Fct_Slice.add_missing_inputs_actions] call %a, \
                   missing inputs@."
-                (fun fmt -> Cil.d_loc fmt (Cil_datatype.Stmt.loc call));
+	      Printer.pp_location (Cil_datatype.Stmt.loc call);
             let new_action = SlicingActions.mk_crit_missing_inputs
               ff_call call missing_inputs in
             new_action :: actions
   in
   SlicingParameters.debug ~level:2
-    "[Fct_Slice.add_missing_inputs_actions] Called, calls %a@."
+    "[Fct_Slice.add_missing_inputs_actions] Called, calls %a"
     (Pretty_utils.pp_list
-       (fun fmt (_, s) ->
-          Format.fprintf fmt "%a" Cil.d_loc (Cil_datatype.Stmt.loc s)))
+       (fun fmt (_, s) -> Printer.pp_location fmt (Cil_datatype.Stmt.loc s)))
     calls;
   let actions = List.fold_left check_call actions calls in
     SlicingParameters.debug ~level:2 "[Fct_Slice.add_missing_inputs_actions] %s"
@@ -970,7 +967,7 @@ let get_call_in_nodes called_kf call_info called_in_zone =
   let param_list = Kernel_function.get_formals called_kf in
   let check_param (n, nodes, called_in_zone) param =
     let param_loc = Locations.loc_of_varinfo param in
-    let param_zone = Locations.valid_enumerate_bits param_loc in
+    let param_zone = Locations.enumerate_valid_bits param_loc in
     let nodes, called_in_zone =
       if Locations.Zone.valid_intersects param_zone called_in_zone then
         let node = PdgIndex.Signature.find_input pdg_sig_call n in
@@ -1469,10 +1466,10 @@ let get_mark_from_src_fun proj kf =
 (** {2 Printing} (see also {!PrintSlice}) *)
 
 let print_ff_sig fmt ff =
-  Format.fprintf fmt "%s : " (SlicingMacros.ff_name ff);
+  Format.fprintf fmt "@[<hv>%s:@ " (SlicingMacros.ff_name ff);
   match FctMarks.get_sgn ff with
-    | None -> Format.fprintf fmt "<not computed>@."
-    | Some s -> Format.fprintf fmt "%a@." SlicingMarks.pretty_sig s
+    | None -> Format.fprintf fmt "<not computed>@]"
+    | Some s -> Format.fprintf fmt "%a@]" SlicingMarks.pretty_sig s
 (*-----------------------------------------------------------------------*)
 
 (*

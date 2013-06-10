@@ -2,21 +2,12 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2012                                               */
-/*    CEA (Commissariat à l'énergie atomique et aux énergies              */
+/*  Copyright (C) 2007-2013                                               */
+/*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
-/*  you can redistribute it and/or modify it under the terms of the GNU   */
-/*  Lesser General Public License as published by the Free Software       */
-/*  Foundation, version 2.1.                                              */
-/*                                                                        */
-/*  It is distributed in the hope that it will be useful,                 */
-/*  but WITHOUT ANY WARRANTY; without even the implied warranty of        */
-/*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         */
-/*  GNU Lesser General Public License for more details.                   */
-/*                                                                        */
-/*  See the GNU Lesser General Public License version 2.1                 */
-/*  for more details (enclosed in the file licenses/LGPLv2.1).            */
+/*  All rights reserved.                                                  */
+/*  Contact CEA LIST for licensing.                                       */
 /*                                                                        */
 /**************************************************************************/
 
@@ -27,6 +18,7 @@
 /* This file is part of the Frama-C framework.
    It must be included in all files calling malloc of free as it defines macros.
    4 different implementation are available: you should define one of these:
+   FRAMA_C_MALLOC_STACK
    FRAMA_C_MALLOC_HEAP
    FRAMA_C_MALLOC_CHUNKS
    FRAMA_C_MALLOC_INDIVIDUAL
@@ -39,7 +31,9 @@
 #ifndef FRAMA_C_MALLOC_CHUNKS
 #ifndef FRAMA_C_MALLOC_INDIVIDUAL
 #ifndef FRAMA_C_MALLOC_POSITION
-#define FRAMA_C_MALLOC_HEAP
+#ifndef FRAMA_C_MALLOC_HEAP
+#define FRAMA_C_MALLOC_STACK
+#endif
 #endif
 #endif
 #endif
@@ -48,7 +42,7 @@
 /* Size of mallocable memory in bytes.
    Some implementations may not limit the memory size. */
 #ifndef MEMORY_SIZE
-# define MEMORY_SIZE 100000000
+# define MEMORY_SIZE (1<<10)
 #endif
 
 #ifdef FRAMA_C_MALLOC_POSITION
@@ -60,6 +54,7 @@
 */
 #define FRAMA_C_VALID 1
 #define FRAMA_C_FREED 2
+void * Frama_C_alloc_infinite(void*base,...);
 
  void *__Frama_C_malloc_at_pos(size_t size,const char* file) {
    static counter = 0;
@@ -135,6 +130,8 @@ void free(void*) {
 #else
 #ifdef FRAMA_C_MALLOC_CHUNKS
 #define FRAMA_C_CHUNK_LENGTH 2000
+void * Frama_C_alloc_infinite(void*base,...);
+
 /*
    This malloc must not be used if the analyzer cannot determine
    that there is only a finite number of calls to malloc.
@@ -164,6 +161,8 @@ void free(void*) {
 }
 #else
 #ifdef FRAMA_C_MALLOC_INFINITE
+
+void * Frama_C_alloc_infinite(void*base,...);
 /*
    This malloc must not be used if the analyzer cannot determine that
    there is only a finite number of calls to malloc.
@@ -184,10 +183,63 @@ void free(void*) {
   return;
 }
 #else
+#ifdef FRAMA_C_MALLOC_STACK
+/*
+   malloc is always safe and may return NULL.
+   free() problems are checked heuristically.
+   Two calls from different call stacks return separated zones.
+   Drawback : successive malloc with the exact same call stack 
+   are not separated.
+*/
+#define FRAMA_C_VALID 1
+#define FRAMA_C_FREED 2
+
+void * Frama_C_alloc_by_stack(size_t size);
+void * Frama_C_alloc_infinite(void*base,...);
+void Frama_C_free(void*base);
+void * Frama_C_alloc_infinite_zero(void*base,...);
+
+void *malloc(size_t size) {
+   char *base = Frama_C_alloc_by_stack(MEMORY_SIZE);
+   char *tag = Frama_C_alloc_infinite_zero(base,MEMORY_SIZE);
+   size_t *next_free = Frama_C_alloc_infinite_zero(tag,sizeof(size_t));
+   size_t index = *next_free;
+   if (index+(unsigned long long)size>(unsigned long long)MEMORY_SIZE) 
+     { Frama_C_show_each_malloc("Cannot allocate memory at '", base,
+				"'. Next free is '", *next_free,
+				"' . Required size was '", size,"'."); 
+       return NULL;}
+   *next_free += size;
+   tag[index] = FRAMA_C_VALID;
+   return base+index;
+}
+
+void free(void *p) {
+  if (p==NULL) {
+    Frama_C_show_each_warning("potential free of NULL");
+    return;}
+  char *tag = Frama_C_alloc_infinite(p);
+  tag += Frama_C_offset(p);
+  if (*tag != FRAMA_C_VALID)
+    if (*tag == FRAMA_C_FREED)
+      {
+        Frama_C_show_each_warning("potential double free");
+        Frama_C_abort();
+        }
+    else
+      {
+        Frama_C_show_each_warning("potential free of invalid adress");
+        Frama_C_abort();
+        }
+  else { *tag = FRAMA_C_FREED; /*Frama_C_free(p,size);*/ }
+}
+
+#else
 #error Please define one of: FRAMA_C_MALLOC_HEAP FRAMA_C_MALLOC_INFINITE\
  FRAMA_C_MALLOC_CHUNKS\
  FRAMA_C_MALLOC_INDIVIDUAL\
  FRAMA_C_MALLOC_POSITION.
+#endif // FRAMA_C_MALLOC_STACK
 #endif // FRAMA_C_MALLOC_INFINITE
 #endif // FRAMA_C_MALLOC_CHUNKS
 #endif // FRAMA_C_MALLOC_INDIVIDUAL

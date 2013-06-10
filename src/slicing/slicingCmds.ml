@@ -2,11 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
-(*           alternatives)                                                *)
-(*    INRIA (Institut National de Recherche en Informatique et en         *)
-(*           Automatique)                                                 *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -23,11 +21,10 @@
 (**************************************************************************)
 
 (** Those functions were previously outside the slicing module to show how to
- * use the slicing API. So, there are supposed to use the slicing module through
+ * use the slicing API. So, they are supposed to use the slicing module through
  * Db.Slicing only. There are mainly high level functions which make easier
  * to achieve simple tasks. *)
 
-exception Unknown_data of string
 open Cil
 open Cil_types
 open Db
@@ -36,8 +33,6 @@ open Db
 module Kinstr: sig
   val iter_from_func : (stmt -> unit) -> kernel_function -> unit
   val fold_from_func : ('a -> stmt -> 'a) -> 'a -> kernel_function -> 'a
-  val filter_from_func : (stmt -> bool) -> kernel_function -> stmt list
-  val get_called_funcs : stmt -> kernel_function list
   val is_call_to : stmt -> kernel_function -> bool
   val is_rw_zone : (Locations.Zone.t option * Locations.Zone.t option) -> stmt -> Locations.Zone.t option * Locations.Zone.t option
   end
@@ -90,10 +85,6 @@ struct
     let fold ki = ignore (ac := f (!ac) ki)
     in iter_from_func fold kf ; !ac
 
-  (** Filter statements of a kernel function *)
-  let filter_from_func f kf =
-    fold_from_func (fun a ki -> if f ki then ki::a else a) [] kf
-
   (** Functions that may be called (directly or indirectly via pointer) by the statement.*)
   let get_called_funcs ki =
     match ki.skind with
@@ -125,7 +116,7 @@ struct
           ~deps:read_zone
           (Kstmt stmt)
           lv
-      in deps, Locations.valid_enumerate_bits ~for_writing:true looking_for
+      in deps, Locations.enumerate_valid_bits ~for_writing:true looking_for
     in match stmt.skind with
       | Switch (exp,_,_,_)
       | If (exp,_,_,_) ->
@@ -164,37 +155,6 @@ struct
             else None
     in inter_zone rd_zone_opt rd_zone, inter_zone wr_zone_opt wr_zone
 end
-
-(** build recursively all the change_call for all the callers to kf in
- * order to call ff instead. *)
-let prop_to_callers project (kf, ff) =
-  let rec prop kf ff =
-    let callers = !Db.Value.callers kf in
-    let process_caller (kf_caller,_) =
-      let ff_callers = match !Slicing.Slice.get_all project kf_caller with
-      | [] -> [!Slicing.Slice.create project kf_caller]
-      | l -> l
-      in
-      List.iter
-        (fun caller ->
-           !Slicing.Request.add_call_slice project ~caller ~to_call:ff;
-           prop kf_caller caller)
-        ff_callers;
-    in
-      List.iter process_caller callers
-  in prop kf ff
-
-let has_user_marks slice =
-  let inputs_user_mark = !Slicing.Slice.get_user_mark_from_inputs slice in
-  not (!Slicing.Mark.is_bottom inputs_user_mark)
-
-(** Propagate each slice containing a user mark to all callers *)
-let propagate_user_marks_to_callers project kf =
-  let slices = !Slicing.Slice.get_all project kf in
-  List.iter
-    (fun slice ->
-       if has_user_marks slice then prop_to_callers project (kf,slice))
-    slices
 
 (** Topologically propagate user marks to callers in whole project *)
 let topologic_propagation project =
@@ -375,7 +335,7 @@ let select_stmt_lval set mark lval_str ~before ki ~scope ~eval kf =
                (Kstmt eval)
                lval
            in
-           let zone = Locations.valid_enumerate_bits ~for_writing:false loc in
+           let zone = Locations.enumerate_valid_bits ~for_writing:false loc in
            Locations.Zone.join zone acc)
         lval_str
         Locations.Zone.bottom
@@ -405,7 +365,7 @@ let select_lval_rw set mark ~rd ~wr ~scope ~eval kf ki_opt=
              let lval_term = !Db.Properties.Interp.lval kf scope lval_str in
              let lval = !Db.Properties.Interp.term_lval_to_lval ~result:None lval_term in
              let loc = !Db.Value.lval_to_loc ~with_alarms:CilE.warn_none_mode (Kstmt eval) lval in
-             let zone = Locations.valid_enumerate_bits ~for_writing loc
+             let zone = Locations.enumerate_valid_bits ~for_writing loc
              in Locations.Zone.join zone acc)
           lval_str Locations.Zone.bottom
       in SlicingParameters.debug ~level:3
@@ -561,25 +521,24 @@ let select_stmt_annot set mark ~spare annot ki kf =
 (** Registered as a slicing selection function:
     Add selection of the annotations related to a statement.
     Note: add also a transparent selection on the whole statement. *)
-let select_stmt_annots set mark ~spare ~ai ~user_assert
-    ~slicing_pragma ~loop_inv ~loop_var ki kf =
+let select_stmt_annots set mark ~spare  ~threat ~user_assert ~slicing_pragma ~loop_inv ~loop_var ki kf =
   let zones_decl_vars,pragmas =
     !Properties.Interp.To_zone.from_stmt_annots
       (Some (!Properties.Interp.To_zone.code_annot_filter
-               ~ai ~user_assert ~slicing_pragma
-              ~loop_inv ~loop_var ~others:false))
+               ~threat ~user_assert ~slicing_pragma
+               ~loop_inv ~loop_var ~others:false))
       (ki, kf)
   in let set = select_ZoneAnnot_pragmas set ~spare pragmas kf
   in select_ZoneAnnot_zones_decl_vars set mark (get_or_raise zones_decl_vars) kf
 
 (** Registered as a slicing selection function:
     Add a selection of the annotations related to a function. *)
-let select_func_annots set mark ~spare ~ai ~user_assert ~slicing_pragma ~loop_inv ~loop_var kf =
+let select_func_annots set mark ~spare ~threat ~user_assert ~slicing_pragma ~loop_inv ~loop_var kf =
   let zones_decl_vars,pragmas =
     !Properties.Interp.To_zone.from_func_annots Kinstr.iter_from_func
          (Some
             (!Properties.Interp.To_zone.code_annot_filter
-               ~ai ~user_assert ~slicing_pragma ~loop_inv
+               ~threat ~user_assert ~slicing_pragma ~loop_inv
                ~loop_var ~others:false))
       kf
   in let set = select_ZoneAnnot_pragmas set ~spare pragmas kf
@@ -683,27 +642,27 @@ let add_persistent_cmdline project =
              add_selection
                SlicingParameters.Select.Pragma.get
                (fun s -> !Db.Slicing.Select.select_func_annots s top_mark
-                  ~ai:false ~user_assert:false ~slicing_pragma:true
+                  ~threat:false ~user_assert:false ~slicing_pragma:true
                   ~loop_inv:false ~loop_var:false);
              add_selection
                SlicingParameters.Select.Threat.get
                (fun s -> !Db.Slicing.Select.select_func_annots s top_mark
-                  ~ai:true ~user_assert:false ~slicing_pragma:false
+                  ~threat:true ~user_assert:false ~slicing_pragma:false
                   ~loop_inv:false ~loop_var:false);
              add_selection
                SlicingParameters.Select.Assert.get
                (fun s -> !Db.Slicing.Select.select_func_annots s top_mark
-                  ~ai:false ~user_assert:true ~slicing_pragma:false
+                  ~threat:false ~user_assert:true ~slicing_pragma:false
                   ~loop_inv:false ~loop_var:false);
              add_selection
                SlicingParameters.Select.LoopInv.get
                (fun s -> !Db.Slicing.Select.select_func_annots s top_mark
-                  ~ai:false ~user_assert:false ~slicing_pragma:false
+                  ~threat:false ~user_assert:false ~slicing_pragma:false
                   ~loop_inv:true ~loop_var:false);
              add_selection
                SlicingParameters.Select.LoopVar.get
                (fun s -> !Db.Slicing.Select.select_func_annots s top_mark
-                  ~ai:false ~user_assert:false ~slicing_pragma:false
+                  ~threat:false ~user_assert:false ~slicing_pragma:false
                   ~loop_inv:false ~loop_var:true);
         );
       if not (Datatype.String.Set.is_empty

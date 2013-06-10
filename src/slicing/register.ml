@@ -2,11 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
-(*           alternatives)                                                *)
-(*    INRIA (Institut National de Recherche en Informatique et en         *)
-(*           Automatique)                                                 *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -41,7 +39,7 @@ let _pretty_list pretty fmt l = List.iter (pretty fmt) l
 
 let print_select fmt db_select =
   let db_fvar, select = db_select in
-    Format.fprintf fmt "In %a : %a@."
+    Format.fprintf fmt "In %a : %a"
       Varinfo.pretty_vname db_fvar SlicingActions.print_f_crit select
 
 let get_select_kf (fvar, _select) = Globals.Functions.get fvar
@@ -311,9 +309,6 @@ let merge_db_select db_select1 db_select2 =
 
 module Selections = struct
 
-  type _t = Db.Slicing.Select.t
-  type _t_set = Db.Slicing.Select.t_set
-
   let add_to_selects db_select set =
     let vf, select = db_select in
     let select =
@@ -326,13 +321,6 @@ module Selections = struct
     Cil_datatype.Varinfo.Map.iter (fun v sel -> f (v, sel)) set
 
 end
-
-let print_fct_stmts fmt (_proj, kf) =
-  try
-    let pdg = !Db.Pdg.get kf in
-    PrintSlice.print_fct_from_pdg fmt pdg;
-    Format.pp_print_flush fmt ()
-  with Not_found -> ()
 
 let add_crit_ff_change_call proj ff_caller call f_to_call =
   let crit = SlicingActions.mk_crit_change_call ff_caller call f_to_call in
@@ -581,11 +569,11 @@ let higher_select_stmt =
   Journal.register
     "!Db.Slicing.Select.select_stmt"
     (Datatype.func4
-       Db.Slicing.Select.dyn_t_set
+       Db.Slicing.Select.dyn_set
        ~label2:("spare", None) Datatype.bool
        Stmt.ty
        Kernel_function.ty
-       Db.Slicing.Select.dyn_t_set)
+       Db.Slicing.Select.dyn_set)
     higher_select_stmt
 let higher_select_stmt set ~spare =
   higher_select_stmt set spare
@@ -595,11 +583,11 @@ let higher_select_stmt_ctrl =
   Journal.register
     "!Db.Slicing.Select.select_stmt_ctrl"
     (Datatype.func4
-       Db.Slicing.Select.dyn_t_set
+       Db.Slicing.Select.dyn_set
        ~label2:("spare", None) Datatype.bool
        Stmt.ty
        Kernel_function.ty
-       Db.Slicing.Select.dyn_t_set)
+       Db.Slicing.Select.dyn_set)
     higher_select_stmt_ctrl
 let higher_select_stmt_ctrl set ~spare =
   higher_select_stmt_ctrl set spare
@@ -610,7 +598,7 @@ let higher_select_stmt_lval_rw =
   Journal.register
     "!Db.Slicing.Select.select_stmt_lval_rw"
     (Datatype.func4
-       Db.Slicing.Select.dyn_t_set
+       Db.Slicing.Select.dyn_set
        Db.Slicing.Mark.dyn_t
        ~label3:("rd", None) Datatype.String.Set.ty
        ~label4:("wr", None) Datatype.String.Set.ty
@@ -619,7 +607,7 @@ let higher_select_stmt_lval_rw =
           ~label2:("scope", None) Stmt.ty
           ~label3:("eval", None) Stmt.ty
           Kernel_function.ty
-          Db.Slicing.Select.dyn_t_set))
+          Db.Slicing.Select.dyn_set))
     higher_select_stmt_lval_rw
 let higher_select_stmt_lval_rw set mark ~rd ~wr stmt ~scope ~eval =
   higher_select_stmt_lval_rw set mark rd wr stmt scope eval
@@ -630,7 +618,7 @@ let higher_select_stmt_lval =
   Journal.register
     "!Db.Slicing.Select.select_stmt_lval"
     (Datatype.func4
-       Db.Slicing.Select.dyn_t_set
+       Db.Slicing.Select.dyn_set
        Db.Slicing.Mark.dyn_t
        Datatype.String.Set.ty
        ~label4:("before", None) Datatype.bool
@@ -639,21 +627,21 @@ let higher_select_stmt_lval =
           ~label2:("scope", None) Stmt.ty
           ~label3:("eval", None) Stmt.ty
           Kernel_function.ty
-          Db.Slicing.Select.dyn_t_set))
+          Db.Slicing.Select.dyn_set))
     higher_select_stmt_lval
 let higher_select_stmt_lval set mark lval ~before stmt ~scope ~eval =
   higher_select_stmt_lval set mark lval before stmt scope eval
 
-let higher_select_stmt_annots set mark spare ai user_assert slicing_pragma loop_inv loop_var =
-  SlicingCmds.select_stmt_annots set mark ~spare ~ai ~user_assert ~slicing_pragma ~loop_inv ~loop_var
+let higher_select_stmt_annots set mark spare threat user_assert slicing_pragma loop_inv loop_var =
+  SlicingCmds.select_stmt_annots set mark ~spare ~threat ~user_assert ~slicing_pragma ~loop_inv ~loop_var
 let higher_select_stmt_annots =
   Journal.register
     "!Db.Slicing.Select.select_stmt_annots"
     (Datatype.func4
-       Db.Slicing.Select.dyn_t_set
+       Db.Slicing.Select.dyn_set
        Db.Slicing.Mark.dyn_t
        ~label3:("spare", None) Datatype.bool
-       ~label4:("ai", None) Datatype.bool
+       ~label4:("threat", None) Datatype.bool
        (Datatype.func4
           ~label1:("user_assert", None) Datatype.bool
           ~label2:("slicing_pragma", None) Datatype.bool
@@ -662,10 +650,10 @@ let higher_select_stmt_annots =
           (Datatype.func2
              Stmt.ty
              Kernel_function.ty
-             Db.Slicing.Select.dyn_t_set)))
+             Db.Slicing.Select.dyn_set)))
     higher_select_stmt_annots
-let higher_select_stmt_annots set mark ~spare ~ai ~user_assert ~slicing_pragma ~loop_inv ~loop_var =
-    higher_select_stmt_annots set mark spare ai user_assert slicing_pragma loop_inv loop_var
+let higher_select_stmt_annots set mark ~spare ~threat ~user_assert ~slicing_pragma ~loop_inv ~loop_var =
+    higher_select_stmt_annots set mark spare threat user_assert slicing_pragma loop_inv loop_var
 
 let higher_select_func_lval_rw set mark rd wr scope eval =
   SlicingCmds.select_func_lval_rw set mark ~rd ~wr ~scope ~eval
@@ -673,7 +661,7 @@ let higher_select_func_lval_rw =
   Journal.register
     "!Db.Slicing.Select.select_func_lval_rw"
     (Datatype.func4
-       Db.Slicing.Select.dyn_t_set
+       Db.Slicing.Select.dyn_set
        Db.Slicing.Mark.dyn_t
        ~label3:("rd", None) Datatype.String.Set.ty
        ~label4:("wr", None) Datatype.String.Set.ty
@@ -681,7 +669,7 @@ let higher_select_func_lval_rw =
           ~label1:("scope", None) Stmt.ty
           ~label2:("eval", None) Stmt.ty
           Kernel_function.ty
-          Db.Slicing.Select.dyn_t_set))
+          Db.Slicing.Select.dyn_set))
     higher_select_func_lval_rw
 let higher_select_func_lval_rw set mark ~rd ~wr ~scope ~eval =
   higher_select_func_lval_rw set mark rd wr scope eval
@@ -692,10 +680,10 @@ let higher_select_func_return =
   Journal.register
     "!Db.Slicing.Select.select_func_return"
     (Datatype.func3
-       Db.Slicing.Select.dyn_t_set
+       Db.Slicing.Select.dyn_set
        ~label2:("spare", None) Datatype.bool
        Kernel_function.ty
-       Db.Slicing.Select.dyn_t_set)
+       Db.Slicing.Select.dyn_set)
     higher_select_func_return
 let higher_select_func_return set ~spare = higher_select_func_return set spare
 
@@ -705,10 +693,10 @@ let higher_select_func_calls_to =
   Journal.register
     "!Db.Slicing.Select.select_func_calls_to"
     (Datatype.func3
-       Db.Slicing.Select.dyn_t_set
+       Db.Slicing.Select.dyn_set
        ~label2:("spare", None) Datatype.bool
        Kernel_function.ty
-       Db.Slicing.Select.dyn_t_set)
+       Db.Slicing.Select.dyn_set)
     higher_select_func_calls_to
 let higher_select_func_calls_to set ~spare =
     higher_select_func_calls_to set spare
@@ -719,33 +707,33 @@ let higher_select_func_calls_into =
   Journal.register
     "!Db.Slicing.Select.select_func_calls_into"
     (Datatype.func3
-       Db.Slicing.Select.dyn_t_set
+       Db.Slicing.Select.dyn_set
        ~label2:("spare", None) Datatype.bool
        Kernel_function.ty
-       Db.Slicing.Select.dyn_t_set)
+       Db.Slicing.Select.dyn_set)
     higher_select_func_calls_into
 let higher_select_func_calls_into set ~spare =
   higher_select_func_calls_into set spare
 
-let higher_select_func_annots set mark spare ai user_assert slicing_pragma loop_inv loop_var =
-  SlicingCmds.select_func_annots set mark ~spare ~ai ~user_assert ~slicing_pragma ~loop_inv ~loop_var
+let higher_select_func_annots set mark spare threat user_assert slicing_pragma loop_inv loop_var =
+  SlicingCmds.select_func_annots set mark ~spare ~threat ~user_assert ~slicing_pragma ~loop_inv ~loop_var
 let higher_select_func_annots =
   Journal.register
     "!Db.Slicing.Select.select_func_annots"
     (Datatype.func4
-       Db.Slicing.Select.dyn_t_set
+       Db.Slicing.Select.dyn_set
        Db.Slicing.Mark.dyn_t
        ~label3:("spare", None) Datatype.bool
-       ~label4:("ai", None) Datatype.bool
+       ~label4:("threat", None) Datatype.bool
        (Datatype.func4
           ~label1:("user_assert", None) Datatype.bool
           ~label2:("slicing_pragma", None) Datatype.bool
           ~label3:("loop_inv", None) Datatype.bool
           ~label4:("loop_var", None) Datatype.bool
-          (Datatype.func Kernel_function.ty Db.Slicing.Select.dyn_t_set)))
+          (Datatype.func Kernel_function.ty Db.Slicing.Select.dyn_set)))
     higher_select_func_annots
-let higher_select_func_annots set mark ~spare ~ai ~user_assert ~slicing_pragma ~loop_inv ~loop_var =
-  higher_select_func_annots set mark spare ai user_assert slicing_pragma loop_inv loop_var
+let higher_select_func_annots set mark ~spare ~threat ~user_assert ~slicing_pragma ~loop_inv ~loop_var =
+  higher_select_func_annots set mark spare threat user_assert slicing_pragma loop_inv loop_var
 
 (** {3 For the journalization of the Db.Slicing.Request.functions} *)
 let apply_all project propagate_to_callers =
@@ -854,7 +842,7 @@ let set_modes ?(calls=SlicingParameters.Mode.Calls.get ())
 let () =
   Cmdline.run_after_extended_stage
     (fun () ->
-       State_dependency_graph.Static.add_codependencies
+       State_dependency_graph.add_codependencies
          ~onto:P.self
          [ !Db.Pdg.self; !Db.Inputs.self_external; !Db.Outputs.self_external ])
 
@@ -938,7 +926,7 @@ let () =
 
   (* No needs of Journalization for low-level Db.Slicing.Select.functions.
    * [Note:] They can be Journalized. In that case, functions computing [Db.Slicing.Select.t]
-   *         [Pdg.t_node] values have to be Journalized
+   *         [Pdg.node] values have to be Journalized
    *)
   Db.register (Db.Journalization_must_not_happen "Slicing.Select.select_pdg_nodes_internal")
     Db.Slicing.Select.select_pdg_nodes_internal select_pdg_nodes;
@@ -967,7 +955,7 @@ let () =
     (* [Note] Can be Journalized -> Functions computing [code_annotation] values have to be Journalized *)
     Db.Slicing.Select.select_stmt_annot SlicingCmds.select_stmt_annot ;
   Db.register (Db.Journalization_must_not_happen "Slicing.Select.select_pdg_nodes")
-    (* [Note] Can be Journalized -> Functions computing [Pdg.t_node] values have to be Journalized *)
+    (* [Note] Can be Journalized -> Functions computing [Pdg.node] values have to be Journalized *)
     Db.Slicing.Select.select_pdg_nodes SlicingCmds.select_pdg_nodes ;
   Db.register (Db.Journalization_must_not_happen "Slicing.Select.select_stmt_zone")
     (* [Note] Can be Journalized -> Functions computing [Locations.Zone.t] values have to be Journalized *)
@@ -987,11 +975,11 @@ let () =
     (Db.Journalize
        ("Slicing.Select.select_func_lval",
         Datatype.func4
-          Db.Slicing.Select.dyn_t_set
+          Db.Slicing.Select.dyn_set
           Db.Slicing.Mark.dyn_t
           Datatype.String.Set.ty
           Kernel_function.ty
-          Db.Slicing.Select.dyn_t_set))
+          Db.Slicing.Select.dyn_set))
     Db.Slicing.Select.select_func_lval
     SlicingCmds.select_func_lval ;
   Db.Slicing.Select.select_func_return := higher_select_func_return ; (* Journalized *)
@@ -1088,14 +1076,14 @@ let () =
     (Db.Journalize
        ("Slicing.Request.add_selection",
         Datatype.func2
-          Db.Slicing.Project.dyn_t Db.Slicing.Select.dyn_t_set Datatype.unit))
+          Db.Slicing.Project.dyn_t Db.Slicing.Select.dyn_set Datatype.unit))
     Db.Slicing.Request.add_selection
     SlicingCmds.add_selection ;
   Db.register
     (Db.Journalize
        ("Slicing.Request.add_persistent_selection",
         Datatype.func2
-          Db.Slicing.Project.dyn_t Db.Slicing.Select.dyn_t_set Datatype.unit))
+          Db.Slicing.Project.dyn_t Db.Slicing.Select.dyn_set Datatype.unit))
     Db.Slicing.Request.add_persistent_selection
     SlicingCmds.add_persistent_selection ;
   Db.register
@@ -1214,7 +1202,7 @@ let main () =
       Project.on sliced_project SlicingParameters.clear ();
     if SlicingParameters.Print.get () then begin
       FC_file.pretty_ast ~prj:sliced_project ();
-      SlicingParameters.result ~level:2 "Results :@. %a@."
+      SlicingParameters.result ~level:2 "Results :@ %a@."
         !Db.Slicing.Project.pretty project
     end;
     SlicingParameters.feedback ~level:2 "done (slicing requests in progress).";

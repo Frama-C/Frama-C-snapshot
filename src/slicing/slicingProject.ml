@@ -2,11 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
-(*           alternatives)                                                *)
-(*    INRIA (Institut National de Recherche en Informatique et en         *)
-(*           Automatique)                                                 *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -138,10 +136,6 @@ let get_slices proj kf = M.fi_slices (M.get_kf_fi proj kf)
 
 let get_slice_callers ff = List.map (fun (ff, _) -> ff) ff.T.ff_called_by
 
-(** @raise Not_found if there is no slice with this number in this function.*)
-let find_ff fi num =
-  List.find (fun ff -> ff.T.ff_id = num) fi.T.fi_slices
-
 (*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
 (** {2 Adding requests } *)
 
@@ -193,7 +187,7 @@ let add_fct_ff_filter proj ff to_select =
 (*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
 (** {2 Print} *)
 
-let print_project och proj =
+let print_project fmt proj =
   let get_slices var_fct =
     let kf = Globals.Functions.get var_fct in
     let fct_info = M.get_kf_fi proj kf in
@@ -203,40 +197,25 @@ let print_project och proj =
     (* TODO: print the spec also *)
     match var.Cil_types.vtype with
     | Cil_types.TFun _ -> (* function prototype TODO *)
-                              PrintSlice.print_original_glob och glob
-    | _ -> PrintSlice.print_original_glob och glob
+      PrintSlice.print_original_glob fmt glob
+    | _ -> PrintSlice.print_original_glob fmt glob
            (* TODO use global marks *)
   in
   let print glob =
     match glob with
-    | Cil_types.GVarDecl (spec, var, _) -> print_var_decl glob var spec
+    | Cil_types.GVarDecl (spec, var, _) -> 
+      print_var_decl glob var spec
     | Cil_types.GFun (func, _) -> (* function definition *)
       let slices = get_slices func.Cil_types.svar in
-      let rec print_slices slices =
-        match slices with [] -> ()
-        | s :: others -> PrintSlice.print_marked_ff och s;
-                         print_slices others
-      in print_slices slices
+      List.iter (PrintSlice.print_marked_ff fmt) slices
       (* TODO see if we have to print the original function *)
-
-    | _ ->  PrintSlice.print_original_glob och glob
-  in
-  let rec print_globs globs =
-    match globs with
-    | [] -> ()
-    | glob :: tail -> print glob ; print_globs tail
+    | _ ->  
+      PrintSlice.print_original_glob fmt glob
   in
   let source = Ast.get () in
   let global_decls = source.Cil_types.globals in
-  print_globs global_decls
+  List.iter print global_decls
 
-let print_final_project proj filename =
-  match proj.T.actions with [] ->
-    let file = open_out filename in
-    let fmt = Format.formatter_of_out_channel file in
-    Format.fprintf fmt "%a@." print_project proj
-  | _ -> raise (Invalid_argument ("Impossible to produce the final project "^
-                  "because the worklist is not empty"))
 
 let print_proj_worklist fmt proj =
   Format.fprintf fmt "Slicing project worklist [%s/%s] =@\n%a@.@."
@@ -250,7 +229,7 @@ let print_project_and_worklist fmt proj =
 
 let pretty_slice fmt ff =
   PrintSlice.print_marked_ff fmt ff;
-  Format.pp_print_flush fmt ()
+  Format.pp_print_newline fmt ()
 
 (*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
 (** {2 Managing (and applying) requests} *)
@@ -287,7 +266,7 @@ let apply_appli_crit proj appli_crit =
 * If it is a propagation, no need to create a new slice
 * because it will be created when the call will be selected anyway.
 * *)
-let add_persistante_marks proj fi node_marks orig propagate actions =
+let add_persistant_marks proj fi node_marks orig propagate actions =
   let new_fi_marks, actions =
     Fct_slice.add_marks_to_fi proj fi node_marks propagate actions
   in
@@ -345,7 +324,7 @@ let apply_fct_action proj fct_crit =
     let propagate = SlicingParameters.Mode.Callers.get () in
     match fct_crit.T.cf_info with
     | T.CcUserMark (T.CuSelect to_select) ->
-      add_persistante_marks proj fi to_select true propagate []
+      add_persistant_marks proj fi to_select true propagate []
     | T.CcUserMark (T.CuTop m) ->
       SlicingParameters.result ~level:1 "unable to slice %s (-> TOP)"
         (M.fi_name fi);
@@ -356,7 +335,7 @@ let apply_fct_action proj fct_crit =
         "[apply_fct_action] nothing to propagate";
       []
     | T.CcPropagate node_marks ->
-      add_persistante_marks proj fi node_marks false propagate []
+      add_persistant_marks proj fi node_marks false propagate []
     | T.CcExamineCalls _
     | _ ->
       SlicingParameters.not_yet_implemented

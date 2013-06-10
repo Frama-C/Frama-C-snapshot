@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,8 +20,6 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* types of values *)
-open Cil
 open Abstract_interp
 open Locations
 open CilE
@@ -46,110 +44,8 @@ module V = struct
       Ival.min_and_max_float i
     with Not_based_on_null -> assert false
 
-  let types = Hashtbl.create 7;;
-
-  let pretty_int_range fmt print_ampamp typname lv v =
-    let v = project_ival v in
-    ( match Ival.min_and_max v with
-      Some mn, Some mx ->
-	let mn_repr = 
-	  if Int.equal mn (Int.of_string "-2147483648")
-	  then "-2147483648LL"
-	  else Int.to_string mn
-	in
-        if Int.equal mn mx
-        then begin
-            print_ampamp();
-            Format.fprintf fmt "*(%s*)%s == %s"
-              typname
-              lv
-              mn_repr
-          end
-        else begin
-	    let mx_repr = 
-	      if Int.equal mx (Int.of_string "-2147483648")
-	      then "-2147483648LL"
-	      else Int.to_string mx
-	    in
-            print_ampamp();
-            Format.fprintf fmt "%s <= *(%s*)%s && *(%s*)%s <= %s"
-              mn_repr
-              typname
-              lv
-              typname
-              lv
-              mx_repr
-          end
-    | _ -> ())
-
-  let pretty_float_range fmt print_ampamp typname lv v =
-    let use_hex = true in
-    let mn, mx = min_and_max_float v in
-        if Ival.F.equal mn mx
-        then begin
-            print_ampamp();
-            Format.fprintf fmt "*(%s*)%s == %a"
-              typname
-              lv
-              (Ival.F.pretty_normal ~use_hex) mn
-          end
-        else begin
-            print_ampamp();
-            Format.fprintf fmt "%a <= *(%s*)%s && *(%s*)%s <= %a"
-              (Ival.F.pretty_normal ~use_hex) mn
-              typname
-              lv
-              typname
-              lv
-              (Ival.F.pretty_normal ~use_hex) mx;
-          end
-
-  let () =
-    Hashtbl.add types 1
-      [inject_ival (Ival.inject_range
-                       (Some Int.zero) (Some (Int.of_int 255))),
-      "unsigned char", pretty_int_range;
-       inject_ival (Ival.inject_range
-                       (Some (Int.of_int (-128))) (Some (Int.of_int 127))),
-      "char", pretty_int_range];
-    Hashtbl.add types 2
-      [inject_ival (Ival.inject_range
-                       (Some Int.zero) (Some (Int.of_int 65535))),
-      "unsigned short", pretty_int_range;
-       inject_ival (Ival.inject_range
-                       (Some (Int.of_int (-32768))) (Some (Int.of_int 32767))),
-      "short", pretty_int_range];
-    Hashtbl.add types 4
-      [ top_float,
-      "float", pretty_float_range;
-        inject_ival (Ival.inject_range
-                        (Some Int.zero) (Some (Int.of_string "4294967295"))),
-      "unsigned int", pretty_int_range;
-        inject_ival (Ival.inject_range
-                        (Some (Int.of_string "-2147483648"))
-                        (Some (Int.of_string  "2147483647"))),
-      "int", pretty_int_range];
-    Hashtbl.add types 8
-      [ top_float,
-      "double", pretty_float_range];
-    ()
-
-  let pretty_c_assert print_ampamp lv s_bytes fmt v =
-    try
-      let candidate_types = Hashtbl.find types s_bytes in
-      let rec find_typ l =
-        match l with
-          [] -> ()
-        | (range, _, _) :: t when not (is_included v range) ->
-            find_typ t
-        | (_range, typname, pr) :: _ ->
-            pr fmt print_ampamp typname lv v
-
-      in
-      find_typ candidate_types
-    with Not_based_on_null -> ()
-
-  let force_float kind v =
+  (* [JS 2013/01/09] unused right now *)
+  let _force_float kind v =
     try
       let i = project_ival v in
       let f, fi = Ival.force_float kind i in
@@ -172,9 +68,6 @@ module V = struct
       | Top _ -> true
       | Map _ -> is_topint v || is_bottom v || is_zero v
 
-  let cardinal_zero_or_one_or_isotropic v =
-    is_isotropic v || cardinal_zero_or_one v
-
   let contains_zero loc =
     try
       let is_valid_offset base offset =
@@ -191,7 +84,6 @@ module V = struct
           Location_Bytes.M.iter is_valid_offset m;
           false
     with
-    | Int_Base.Error_Top | Int_Base.Error_Bottom
     | Base.Not_valid_offset -> true
 
   let contains_non_zero v =
@@ -283,12 +175,12 @@ module V = struct
         Format.fprintf fmt "@ @[(origin: %a)@]" Origin.pretty org
     in
     match v with
-      | Top (Top_Param.Top, a) ->
+      | Top (Base.SetLattice.Top, a) ->
           Format.fprintf fmt "{{ ANYTHING%a }}"
             pretty_org a
       | Top (t, a) ->
           Format.fprintf fmt "{{ garbled mix of &%a%a }}"
-            Top_Param.pretty t
+            Base.SetLattice.pretty t
             pretty_org a
       | Map m ->
           try
@@ -308,22 +200,6 @@ module V = struct
                   (fun fmt (k, v) -> print_binding fmt k v)
                   fmt m
 
-(* Returns the list of non NULL Base.t that have a null offset in the map.
-   The boolean is true iff the result is exact. Otherwise it is
-   under-approximated. *)
-  let find_exact_base_without_offset v = match v with
-    | Top _ -> [],false
-    | Map m ->
-        let exact = ref true in
-        let result = ref [] in
-        let get_binding k v =
-          if Ival.equal Ival.singleton_zero v
-          then result := k::!result
-          else exact := false
-        in
-        M.iter get_binding m;
-        !result,!exact
-
   let inject_int (v:Int.t) =
     inject_ival (Ival.inject_singleton v)
 
@@ -336,10 +212,10 @@ module V = struct
 
   let add v1 v2 =
     try
-      Location_Bytes.location_shift (project_ival v1) v2
+      Location_Bytes.shift (project_ival v1) v2
     with Not_based_on_null  ->
       try
-        Location_Bytes.location_shift (project_ival v2) v1
+        Location_Bytes.shift (project_ival v2) v1
       with
           Not_based_on_null  ->
             join
@@ -368,22 +244,9 @@ module V = struct
          addition is to convert e2 to an integer *)
       try
         let right = Ival.scale_int64base factor (project_ival e2)
-        in Location_Bytes.location_shift right e1
+        in Location_Bytes.shift right e1
       with Not_based_on_null  -> (* from [project_ival] *)
         join (topify_arith_origin e1) (topify_arith_origin e2)
-
-  let check_equal positive e1 e2 =
-    let one,zero =
-      if positive then Ival.singleton_one, Ival.singleton_zero else
-        Ival.singleton_zero, Ival.singleton_one
-    in
-    inject_ival
-      (if (equal e1 e2) && (cardinal_zero_or_one e1)
-       then one
-       else
-         if intersects e1 e2
-         then Ival.zero_or_one
-         else zero)
 
   let compare_min_max min max =
     match min, max with
@@ -413,7 +276,7 @@ module V = struct
   let do_gt min1 max1 min2 max2 =
     do_lt min2 max2 min1 max1
 
-  let comparisons _info ~signed f e1 e2 =
+  let _comparisons _info ~signed f e1 e2 =
     let r =
     try
       let k1,v1 = find_lonely_key e1 in
@@ -442,6 +305,61 @@ module V = struct
       pretty e1 pretty e2 pretty r; *)
     r
 
+  let asym_rel ~signed op e1 e2 = 
+    let open Cil_types in
+    try
+      let k1,v1 = find_lonely_key e1 in
+      let k2,v2 = find_lonely_key e2 in
+      if Base.equal k1 k2 then begin
+        let f = match op with
+          | Ge -> do_ge
+          | Le -> do_le
+          | Gt -> do_gt
+          | Lt -> do_lt
+          | _ -> assert false
+        in
+        Ival.compare_C f v1 v2
+      end else begin
+        if signed then
+          zero_or_one
+        else begin
+          let e1_zero = equal e1 singleton_zero in
+          let e2_zero = equal e2 singleton_zero in
+          if (e1_zero && (op = Le || op = Lt))
+          || (e2_zero && (op = Ge || op = Gt))
+          then singleton_one
+          else
+            if (e2_zero && (op = Le || op = Lt))
+            || (e1_zero && (op = Ge || op = Gt))
+            then singleton_zero
+            else zero_or_one
+        end
+      end
+    with Not_found -> zero_or_one
+
+
+  let check_equal positive e1 e2 =
+    let one,zero =
+      if positive
+      then Ival.singleton_one,  Ival.singleton_zero
+      else Ival.singleton_zero, Ival.singleton_one
+    in
+    inject_ival
+      (if (equal e1 e2) && (cardinal_zero_or_one e1)
+       then one
+       else
+         if intersects e1 e2
+         then Ival.zero_or_one
+         else zero)
+
+  let eval_comp ~signed op v1 v2 =
+    let open Cil_types in
+    match op with
+      | Eq -> check_equal true v1 v2
+      | Ne -> check_equal false v1 v2
+      | Le | Ge | Lt | Gt -> asym_rel ~signed op v1 v2
+      | _ -> assert false
+
 
   let cast_float ~rounding_mode v =
     try
@@ -454,29 +372,27 @@ module V = struct
 	then false, false, bottom
 	else true, true, topify_arith_origin v
 
-  let cast ~with_alarms ~size ~signed expr =
+  let cast_double v =
+    try
+      let i = project_ival v in
+      let b, i = Ival.cast_double i in
+      false, b, inject_ival i
+    with
+      Not_based_on_null ->
+	if is_bottom v
+	then false, false, bottom
+	else true, true, topify_arith_origin v
+
+  let cast ~size ~signed expr =
     try
       let i = project_ival expr in
-        inject_ival (Ival.cast ~size ~signed ~value:i)
+      inject_ival (Ival.cast ~size ~signed ~value:i), true
     with
       | Not_based_on_null ->
-          if Int.compare size (Int.of_int (Bit_utils.sizeofpointer ())) >= 0
-            || (match expr with Top _ -> true | _ -> false)
-          then expr
-          else begin
-             if is_bottom expr || is_imprecise expr then expr
-             else begin
-                (match with_alarms.imprecision_tracing with
-                 | Aignore -> ()
-                 | Acall f -> f ()
-                 | Alog _ ->
-                   Kernel.warning ~once:true ~current:true
-                     "casting address to a type smaller than sizeof(void*): \
-@[%a@]"
-                       Location_Bytes.pretty expr);
-               topify_arith_origin expr
-             end
-          end
+          if Int.ge size (Int.of_int (Bit_utils.sizeofpointer ())) ||
+            is_bottom expr || is_imprecise expr
+          then expr, true
+          else topify_arith_origin expr, false
 
   let import_function ~topify ~with_alarms info f e1 e2 =
     try
@@ -487,18 +403,16 @@ module V = struct
       if is_bottom e1 || is_bottom e2 
       then bottom
       else begin
-	  (match with_alarms.imprecision_tracing with
-	  | Aignore -> ()
-	  | Acall f -> f ()
-	  | Alog _ ->
-              match e1,e2 with
-              | Map _, Map _ ->
-		  Kernel.warning ~once:true ~current:true
-		    "Operation %a %s %a incurs a loss of precision"
-		    pretty e1
-		    info
-		    pretty e2
-              | _ -> ());
+	(do_warn with_alarms.imprecision_tracing
+	   (fun _ ->
+             match e1,e2 with
+               | Map _, Map _ ->
+		 Kernel.warning ~once:true ~current:true
+		   "Operation %a %s %a incurs a loss of precision"
+		   pretty e1
+		   info
+		   pretty e2
+               | _ -> ()));
 	  join
             (topify_with_origin_kind topify e1)
             (topify_with_origin_kind topify e2)
@@ -506,31 +420,15 @@ module V = struct
 
   let arithmetic_function = import_function ~topify:Origin.K_Arith
 
-  let unary_arithmetic_function  ~with_alarms info f e1 =
-    try
-      let v1 = project_ival e1 in
-      inject_ival (f v1)
-    with Not_based_on_null  ->
-      (match with_alarms.imprecision_tracing with
-       | Aignore -> ()
-       | Acall f -> f ()
-       | Alog _ -> match e1 with
-         | Map _ ->
-           Kernel.warning ~once:true ~current:true
-             "Operation %s %a incurs a loss of precision"
-             info pretty e1
-         | _ -> ());
-      topify_arith_origin e1
-
  let cast_float_to_int ~signed ~size v =
    try
      let v1 = project_ival v in
      let alarm_use_as_float, alarm_overflow, r =
        Ival.cast_float_to_int ~signed ~size v1
      in
-     alarm_use_as_float, alarm_overflow, inject_ival r
+     false, alarm_use_as_float, alarm_overflow, inject_ival r
    with Not_based_on_null ->
-     true, true, topify_arith_origin v
+     true, true, true, topify_arith_origin v
 
  let cast_float_to_int_inverse ~single_precision i =
    try
@@ -540,27 +438,29 @@ module V = struct
      inject_ival r
    with Not_based_on_null -> assert false
 
- let cast_int_to_float ~with_alarms rounding_mode v =
-   unary_arithmetic_function ~with_alarms "integer conversion to float"
-     (fun i ->
-       let ok, r = Ival.cast_int_to_float rounding_mode i in
-       if not ok then
-         Kernel.warning ~current:true ~once:true
-           "TODO: overflow in integer conversion to float";
-       r)
-     v
+ let cast_int_to_float rounding_mode v =
+   try
+     let i = project_ival v in
+     let ok, r = Ival.cast_int_to_float rounding_mode i in
+     inject_ival r, ok
+   with Not_based_on_null -> v, false
 
   let div ~with_alarms e1 e2 =
     if equal e2 singleton_one
     then e1
     else begin
-      if (with_alarms.others <> Aignore) && contains_zero e2 then CilE.warn_div with_alarms;
+      if (with_alarms.others.a_log <> None) && contains_zero e2 then
+	CilE.warn_div with_alarms;
       arithmetic_function ~with_alarms "/" Ival.div e1 e2
     end
 
   let c_rem ~with_alarms e1 e2 =
-    if (with_alarms.others <> Aignore) && contains_zero e2 then CilE.warn_div with_alarms;
+    if (with_alarms.others.a_log <> None) && contains_zero e2 then
+      warn_div with_alarms;
     arithmetic_function ~with_alarms "%" Ival.c_rem e1 e2
+
+  let mul ~with_alarms e1 e2 =
+    arithmetic_function ~with_alarms "*" Ival.mul e1 e2
 
   (** Warn about overflow iff [size] is not [None]. Beware when calling
       this function *)
@@ -594,7 +494,7 @@ module V = struct
 		  (Some Int.zero)
                   (Some (Int.pred size_int))) 
 	  in
-          if (with_alarms.others <> Aignore)
+          if (with_alarms.others.a_log <> None)
 	  then begin
               if not (is_included e2 valid_range_rhs)
               then warn_shift with_alarms size;
@@ -617,8 +517,8 @@ module V = struct
 	  in
 	  default e1 e2
 
-  let oper_on_values ~with_alarms info f v1 v2 =
-    arithmetic_function with_alarms info (Ival.apply_set f) v1 v2
+  let bitwise_xor ~with_alarms v1 v2 =
+    arithmetic_function ~with_alarms "^" Ival.bitwise_xor v1 v2
 
   let shift_right ~with_alarms ~size e1 e2 =
     let default () = 
@@ -641,7 +541,7 @@ module V = struct
           in
           if not (intersects e2 valid_range) then begin
             warn_shift  with_alarms size;
-            if with_alarms.others <> Aignore then
+            if with_alarms.others.a_log <> None then
               Kernel.warning ~once:true ~current:true
                 "invalid shift of %a-bit value by %a. \
 This path is assumed to be dead."
@@ -649,7 +549,7 @@ This path is assumed to be dead."
                 pretty e2;
             bottom
           end else begin
-            if (with_alarms.others <> Aignore)
+            if (with_alarms.others.a_log <> None)
               && not (is_included e2 valid_range)
             then warn_shift with_alarms size;
             default ()
@@ -771,11 +671,11 @@ This path is assumed to be dead."
     result
 
   let all_values ~size v =
-    (Kernel.Overflow.get ()) &&
-      try
-        let i = project_ival v in
-          Ival.all_values ~size i
-      with Not_based_on_null -> false
+    try
+      let i = project_ival v in
+      Ival.all_values ~size i
+    with Not_based_on_null -> 
+      false
 
   let anisotropic_cast ~size v =
     if all_values ~size v then top_int else v
@@ -822,8 +722,6 @@ module V_Or_Uninitialized = struct
     | 2 -> C_init_esc v
     | 3 -> C_init_noesc v
     | _ -> assert false
-
-  let project x = get_v x
 
 (* let (==>) = (fun x y -> (not x) || y) *)
 
@@ -935,7 +833,7 @@ module V_Or_Uninitialized = struct
       C_init_noesc v -> V.cardinal_less_than v b
     | _ -> raise Abstract_interp.Not_less_than
 
-  let tag t = (get_flags t) * 4513 + (V.tag (get_v t))
+  let hash t = (get_flags t) * 4513 + (V.hash (get_v t))
 
   include Datatype.Make
       (struct
@@ -945,12 +843,9 @@ module V_Or_Uninitialized = struct
                        | C_init_noesc of V.t *)
         let name = "Cvalue.V_Or_Uninitialized"
         let structural_descr =
+	  let v = V.packed_descr in
            Structural_descr.Structure
-             (Structural_descr.Sum
-                [| [| V.packed_descr |];
-                   [| V.packed_descr |];
-                   [| V.packed_descr |];
-                   [| V.packed_descr |] |])
+             (Structural_descr.Sum [| [| v |]; [| v |]; [| v |]; [| v |] |])
         let reprs =
           List.fold_left
             (fun acc v ->
@@ -964,7 +859,7 @@ module V_Or_Uninitialized = struct
                 V.reprs)
             (List.map (fun v -> C_init_esc v) V.reprs)
             V.reprs
-        let hash = tag
+        let hash = hash
         let equal = equal
         let compare = Datatype.undefined
         let copy = Datatype.undefined
@@ -975,15 +870,16 @@ module V_Or_Uninitialized = struct
         let mem_project = Datatype.never_any_project
        end)
 
-  module Top_Param = V.Top_Param
+  module Top_Param = Base.SetLattice
 
   let is_isotropic t = V.is_isotropic (get_v t)
 
   let cardinal_zero_or_one_or_isotropic t =
     cardinal_zero_or_one t || is_isotropic t
 
-  let cast ~with_alarms ~size ~signed t =
-    create (get_flags t) (V.cast ~with_alarms ~size ~signed (get_v t))
+  let cast ~size ~signed t =
+    let v, ok = V.cast ~size ~signed (get_v t) in
+    create (get_flags t) v, ok
 
   let extract_bits ~topify ~start ~stop ~size t =
     let inform_extract_pointer_bits, v =
@@ -1069,12 +965,6 @@ module V_Or_Uninitialized = struct
     | false, C_init_noesc v -> C_uninit_noesc v
     | false, _ -> v
 
-  let pretty_c_assert prampamp lv s fmt v =
-    match v with
-      C_init_noesc v ->
-	V.pretty_c_assert prampamp lv s fmt v
-    | _ -> ()
-
   let project_with_alarms ~with_alarms ~conflate_bottom loc v =
     let v_v = get_v v in
     let bottom = V.is_bottom v_v in
@@ -1087,25 +977,22 @@ module V_Or_Uninitialized = struct
         then warn_escapingaddr with_alarms;
       end;
 
-    if with_alarms.unspecified <> Aignore &&
+    if with_alarms.unspecified.a_log <> None &&
       bottom &&
       not (is_initialized flags &&
              is_noesc flags )
     then begin
-      match with_alarms.unspecified with
-      | Aignore -> assert false
-      | Acall f -> f ()
-      | Alog _ ->
-        Kernel.warning ~current:true ~once:true
+      do_warn with_alarms.unspecified
+	(fun _ ->
+          Kernel.warning ~current:true ~once:true
           "completely indeterminate value %a."
-          Locations.pretty_english loc;
-      end;
+            (Locations.pretty_english ~prefix:true) loc)
+    end;
     v_v
 
 end
 
 module V_Offsetmap = Offsetmap.Make(V_Or_Uninitialized)
-module V_Offsetmap_ext = V_Offsetmap
 
 module Default_offsetmap = struct
 
@@ -1130,29 +1017,15 @@ module Default_offsetmap = struct
   | Base.Var _ ->
       begin
         match Base.validity base with
-          Base.All ->
-            let upb = Bit_utils.max_bit_address () in
-            V_Offsetmap.add_internal
-              (Int.zero, upb)
-              (Int.zero, Int.one, V_Or_Uninitialized.uninitialized)
-              V_Offsetmap.empty
-        | Base.Known (mn, mx) | Base.Unknown (mn, mx) ->
-            if Int.ge mx mn
-            then
-              V_Offsetmap.add_internal
-                (mn, mx)
-                (Int.zero, Int.one, V_Or_Uninitialized.uninitialized)
-                V_Offsetmap.empty
-            else
-              V_Offsetmap.empty
+        | Base.Invalid -> V_Offsetmap.empty
+        | Base.Known (mn, mx) | Base.Unknown (mn, _, mx) ->
+            assert (Int.ge mx mn && Int.equal mn Int.zero);
+            V_Offsetmap.create_isotropic ~size:(Int.succ mx)
+              V_Or_Uninitialized.uninitialized
         | Base.Periodic (mn, mx, p) ->
-            assert (Int.is_zero mn);
-            let upb = Int.pred p in
-            assert (Int.ge mx upb);
-            V_Offsetmap.add_internal
-              (Int.zero, upb)
-              (Int.zero, Int.one, V_Or_Uninitialized.bottom)
-              V_Offsetmap.empty
+            assert (Int.is_zero mn && Int.gt mx p);
+            V_Offsetmap.create_isotropic ~size:p
+              V_Or_Uninitialized.bottom
       end
   | Base.Null -> V_Offsetmap.empty
   | Base.String (_,e) -> V_Offsetmap.from_cstring (Base.get_string e)
@@ -1161,37 +1034,7 @@ end
 module Model = struct
 
   include
-    Lmap.Make_LOffset(V_Or_Uninitialized)(V_Offsetmap_ext)(Default_offsetmap)
-
-  let join x y = snd (join x y)
-
-  let reduce_equality state _l _r = state
-
-  let pretty_c_assert fmt m =
-    Format.fprintf fmt "@[";
-    (match m with
-      Bottom -> Format.fprintf fmt "0"
-    | Map m ->
-        let first = ref true in
-        let print_ampamp () =
-          if !first
-          then
-            first := false
-          else
-            Format.fprintf fmt "@\n&& ";
-        in
-        LBase.iter
-          (fun base offs ->
-            match base with
-              Base.Var(v,_) ->
-                let typ = unrollType v.Cil_types.vtype in
-                let name = v.Cil_types.vname in
-		if name <> "crc32_tab"
-		then V_Offsetmap.pretty_c_assert_typ name typ print_ampamp fmt offs
-            | _ -> ())
-          m
-    | Top -> Format.fprintf fmt "1");
-    Format.fprintf fmt "@]"
+    Lmap.Make_LOffset(V_Or_Uninitialized)(V_Offsetmap)(Default_offsetmap)
 
   let find_orig = find
 
@@ -1199,8 +1042,7 @@ module Model = struct
 
   let find ~conflate_bottom ~with_alarms state loc =
     let v = find_orig ~conflate_bottom ~with_alarms state loc in
-    V_Or_Uninitialized.project_with_alarms
-      ~with_alarms ~conflate_bottom loc v
+    V_Or_Uninitialized.project_with_alarms ~with_alarms ~conflate_bottom loc v
 
 let reduce_by_initialized_defined_loc f loc_bits size state =
   try
@@ -1208,32 +1050,34 @@ let reduce_by_initialized_defined_loc f loc_bits size state =
     let ll = Ival.project_int offset in
     let lh = Int.pred (Int.add ll size) in
     let offsm = find_base base state in
-    let aux (offl, offh) (shift, modu, v) acc =
-      if Int.lt lh offl || Int.gt ll offh then acc
-      else (* Some intersection; is there something to reduce? *)
-        let v' = f v in
-        if v' != v then begin
-          if V_Or_Uninitialized.is_bottom v'
-	  then raise Exit;
-          let il = Int.max offl ll and ih = Int.min offh lh in
-          (* il and ih are the bounds of the interval to reduce.
-             We change the initialized flags in the following cases:
-             - either we overwrite entire values, or the partly overwritten
-             value is a the end or at the end of the subrange
-             - or we do not lose information on misaligned or partial values:
-             the result is a singleton *)
-          if V_Or_Uninitialized.cardinal_zero_or_one_or_isotropic v' ||
-	    (((Int.equal offl il) ||
-                Int.equal (Int.pos_rem ll modu) shift) &&
-             ((Int.equal offh ih) ||
-                Int.equal (Int.pos_rem (Int.succ lh) modu) shift))
-          then V_Offsetmap_ext.add_internal (il, ih) (shift, modu, v') acc
-          else acc
-        end
+    let aux (offl, offh) (v, modu, shift) acc =
+      let v' = f v in
+      if v' != v then begin
+        if V_Or_Uninitialized.is_bottom v' then raise Exit;
+        let il = Int.max offl ll and ih = Int.min offh lh in
+        let abs_shift = Integer.pos_rem (Rel.add_abs offl shift) modu in
+        (* il and ih are the bounds of the interval to reduce.
+           We change the initialized flags in the following cases:
+           - either we overwrite entire values, or the partly overwritten
+           value is at the beginning or at the end of the subrange
+           - or we do not lose information on misaligned or partial values:
+           the result is a singleton *)
+        if V_Or_Uninitialized.cardinal_zero_or_one_or_isotropic v' ||
+	  ((Int.equal offl il || Int.equal (Int.pos_rem ll modu) abs_shift) &&
+           (Int.equal offh ih || Int.equal
+                                   (Int.pos_rem (Int.succ lh) modu) abs_shift))
+        then
+          let diff = Rel.sub_abs il offl in
+          let shift_il = Rel.pos_rem (Rel.sub shift diff) modu in
+          V_Offsetmap.add (il, ih) (v', modu, shift_il) acc
         else acc
+      end
+      else acc
      in
-     let noffsm = V_Offsetmap_ext.fold_internal aux offsm offsm in
-     add_offsetmap base noffsm state
+     let noffsm =
+       V_Offsetmap.fold_between ~entire:true (ll, lh) aux offsm offsm
+     in
+     add_base base noffsm state
    with
      | Exit -> bottom
      | Not_found (* from find_lonely_key *)
@@ -1244,16 +1088,16 @@ let reduce_by_initialized_defined_loc f loc_bits size state =
     let conflate_bottom = true in
     let v = find_orig ~conflate_bottom ~with_alarms state loc in
     let v_v = 
-      V_Or_Uninitialized.project_with_alarms
-	~with_alarms ~conflate_bottom loc v
+      V_Or_Uninitialized.project_with_alarms ~with_alarms ~conflate_bottom loc v
     in
     let loc_bits = loc.loc in
     let state = 
       match v with
-	( V_Or_Uninitialized.C_uninit_esc _ | 
-	    V_Or_Uninitialized.C_uninit_noesc _ | 
-		V_Or_Uninitialized.C_init_esc _) when
-	  Location_Bits.cardinal_zero_or_one loc_bits ->
+	| V_Or_Uninitialized.C_uninit_esc _
+        | V_Or_Uninitialized.C_uninit_noesc _
+        | V_Or_Uninitialized.C_init_esc _
+            when Locations.cardinal_zero_or_one loc
+          ->
 	    let size = 
 	      try
 		Int_Base.project loc.size
@@ -1264,15 +1108,9 @@ let reduce_by_initialized_defined_loc f loc_bits size state =
 	      loc_bits
 	      size
 	      state
-    | _ -> state
+        | _ -> state
     in
     state, v_v
-
-  let has_been_initialized base state =
-    try
-      let o = find_base base state in
-      V_Offsetmap.is o V_Or_Uninitialized.uninitialized
-    with Not_found -> true
 
   let add_binding_not_initialized acc loc =
     add_binding ~with_alarms:warn_none_mode ~exact:true acc loc 
@@ -1292,10 +1130,11 @@ let reduce_by_initialized_defined_loc f loc_bits size state =
     reduce_previous_binding ~with_alarms
       acc loc (V_Or_Uninitialized.initialized value)
 
-  let create_initial ~base ~v ~modu ~state  =
-    create_initial ~base ~v:(V_Or_Uninitialized.initialized v) ~modu ~state
+  let add_new_base base ~size v ~size_v state  =
+    let v = V_Or_Uninitialized.initialized v in
+    add_new_base base ~size v ~size_v state
 
-  let uninitialize_locals blocks state =
+  let uninitialize_blocks_locals blocks state =
     List.fold_left
       (fun acc block ->
         List.fold_left
@@ -1307,7 +1146,7 @@ let reduce_by_initialized_defined_loc f loc_bits size state =
       state
       blocks
 
- let clear_state_from_locals fundec state =
+ let uninitialize_formals_locals fundec state =
     let locals = List.map Base.create_varinfo fundec.Cil_types.slocals in
     let formals = List.map Base.create_varinfo fundec.Cil_types.sformals in
     let cleanup acc v = remove_base v acc in

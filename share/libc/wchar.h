@@ -2,8 +2,8 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2012                                               */
-/*    CEA (Commissariat à l'énergie atomique et aux énergies              */
+/*  Copyright (C) 2007-2013                                               */
+/*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
 /*  you can redistribute it and/or modify it under the terms of the GNU   */
@@ -21,6 +21,7 @@
 /**************************************************************************/
 
 /* ISO C: 7.25 */
-#ifndef __FC_REG_TEST
-#error "Frama-C: unsupported wchar.h"
+#ifndef __FC_WCHAR_H
+#define __FC_WCHAR_H
+
 #endif

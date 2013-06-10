@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -28,6 +28,7 @@ module type Key =
 sig
   type t
   val hash : t -> int
+  val equal : t -> t -> bool
   val compare : t -> t -> int
 end
 
@@ -38,10 +39,13 @@ sig
 
   type 'a t = (key * 'a) list Intmap.t
 
+  val is_empty : 'a t -> bool
+
   val empty : 'a t
   val add : key -> 'a -> 'a t -> 'a t
   val mem : key -> 'a t -> bool
   val find : key -> 'a t -> 'a
+  val findk : key -> 'a t -> key * 'a
   val remove : key -> 'a t -> 'a t
   val filter : (key -> 'a -> bool) -> 'a t -> 'a t
 
@@ -56,6 +60,7 @@ sig
   val union : (key -> 'a -> 'a -> 'a) -> 'a t -> 'a t -> 'a t
   val inter : (key -> 'a -> 'a -> 'a) -> 'a t -> 'a t -> 'a t
   val subset : (key -> 'a -> 'b -> bool) -> 'a t -> 'b t -> bool
+  val equal : ('a -> 'a -> bool) -> 'a t -> 'a t -> bool
 
   val iterk : (key -> 'a -> 'b -> unit) -> 'a t -> 'b t -> unit
   val iter2 : (key -> 'a option -> 'b option -> unit) -> 'a t -> 'b t -> unit

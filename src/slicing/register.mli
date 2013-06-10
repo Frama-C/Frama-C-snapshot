@@ -2,11 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
-(*           alternatives)                                                *)
-(*    INRIA (Institut National de Recherche en Informatique et en         *)
-(*           Automatique)                                                 *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -27,9 +25,5 @@
 * should be registered in {!Db.Slicing}.
 
 If you are more interested in the internal point of view of this module,
-please look {{:../code_slicing/index.html}here}.
+please look at {{:../code_slicing/index.html}here}.
 *)
-
-
-val print_fct_stmts :
-  Format.formatter -> (SlicingTypes.sl_project * Cil_types.kernel_function) -> unit

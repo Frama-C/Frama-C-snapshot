@@ -28,6 +28,13 @@ union uni_arith { int u1 ; struct str_arith u2 ; float u3 ; } uuu ;
 
 const int c_int = 34;
 
+extern struct {
+  int f1;
+  void *p; // void* field: valid, size unknown
+} svoid;
+
+extern void *qvoid; // void* pointer: valid, size unknown
+
 
 int f(int x, float y, int **p, int (*g)(char *), void *vv, void **vvv, int ta[5])
 {
@@ -48,6 +55,10 @@ int f(int x, float y, int **p, int (*g)(char *), void *vv, void **vvv, int ta[5]
   uuu.u1 = uuu.u1;
   ta[1]=3;
   ta=ta;
+  char* pvoid = svoid.p;
+  *pvoid = 1;
+  pvoid = qvoid;
+  *pvoid = &pvoid;
   return g("toto");
 
 }

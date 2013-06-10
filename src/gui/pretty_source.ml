@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -22,33 +22,18 @@
 
 open Format
 open Cil_types
-open Db
 open Gtk_helper
 open Cil_datatype
 
 (** The kind of object that can be selected in the source viewer *)
-(* [VP] TODO: unify all annotations related constructor into
-   a PAnnotation of Property_status.identified_property
- *)
 type localizable =
   | PStmt of (kernel_function * stmt)
   | PLval of (kernel_function option * kinstr * lval)
   | PTermLval of (kernel_function option * kinstr * term_lval)
   | PVDecl of (kernel_function option * varinfo)
-
-  | PGlobal of global (* all globals but variable declarations and function
-                         definitions. *)
+  | PGlobal of global
   | PIP of Property.t
 
-(*let localizable_to_locations l =
-  match l with
-  | PStmt (_,s) | PLval (_,Kstmt s,_)
-  | PTermLval (_,Kstmt s,_)
-    -> Stmt.loc s
-  | PVDecl (_,v) -> v.vdecl
-  | PGlobal g -> Global.loc g
-  | PIP p -> Property.loc p
-*)
 module Localizable =
   Datatype.Make
     (struct
@@ -71,16 +56,19 @@ module Localizable =
       let mem_project = Datatype.never_any_project
       let pretty fmt = function
         | PStmt (_, s) -> Format.fprintf fmt "LocalizableStmt %d (%a)"
-            s.sid Cil.d_loc (Cil_datatype.Stmt.loc s)
-        | PLval (_, ki, lv) -> Format.fprintf fmt "LocalizableLval %a (%a)"
-            Cil.d_lval lv Cil.pretty_loc_simply ki
+            s.sid Printer.pp_location (Cil_datatype.Stmt.loc s)
+        | PLval (_, ki, lv) -> 
+	  Format.fprintf fmt "LocalizableLval %a (%a)"
+            Printer.pp_lval lv 
+	    Cil_datatype.Location.pretty (Cil_datatype.Kinstr.loc ki)
         | PTermLval (_, ki, tlv) ->
             Format.fprintf fmt "LocalizableTermLval %a (%a)"
-            Cil.d_term_lval tlv Cil.pretty_loc_simply ki
+            Printer.pp_term_lval tlv
+	    Cil_datatype.Location.pretty (Cil_datatype.Kinstr.loc ki)
         | PVDecl (_, vi) ->
-            Format.fprintf fmt "LocalizableVDecl %a" Cil.d_var vi
+            Format.fprintf fmt "LocalizableVDecl %a" Printer.pp_varinfo vi
         | PGlobal g ->
-            Format.fprintf fmt "LocalizableGlobal %a" Cil.d_global g
+            Format.fprintf fmt "LocalizableGlobal %a" Printer.pp_global g
         | PIP ip ->
             Format.fprintf fmt "LocalizableIP %a" Description.pp_property ip
      end)
@@ -291,8 +279,10 @@ module Tag = struct
       assert false
 end
 
-class tagPrinterClass = object(self)
-  inherit Printer.print () as super
+class tagPrinterClass : Printer.extensible_printer = object(self)
+
+  inherit Printer.extensible_printer () as super
+
   method private current_kinstr =
     match self#current_stmt with
     | None -> Kglobal
@@ -317,65 +307,54 @@ class tagPrinterClass = object(self)
         None -> Property.Id_behavior (Extlib.the self#current_behavior)
       | Some ca -> Property.Id_code_annot ca
 
-  method pStmtNext next fmt current =
+  method next_stmt next fmt current =
     Format.fprintf fmt "@{<%s>%a@}"
       (Tag.create (PStmt (Extlib.the self#current_kf,current)))
-      (super#pStmtNext next) current
+      (super#next_stmt next) current
 
-
-  method pLval fmt lv =
+  method lval fmt lv =
     match self#current_kinstr with
-    | Kglobal -> super#pLval fmt lv
+    | Kglobal -> super#lval fmt lv
         (* Do not highlight the lvals in initializers. *)
-    | Kstmt stmt as ki ->
-        let alive =
-          not (Value.is_computed ())
-          || Db.Value.is_reachable_stmt stmt
-        in
-        if alive then
-          Format.fprintf fmt "@{<%s>"
-            (Tag.create (PLval (self#current_kf,ki,lv)));
+    | Kstmt _ as ki ->
+        Format.fprintf fmt "@{<%s>"
+          (Tag.create (PLval (self#current_kf,ki,lv)));
         (match lv with
            | Var vi, (Field _| Index _ as o) ->
                (* Small hack to be able to click on the arrays themselves
                   in the easy cases *)
-               self#pLval fmt (Var vi, NoOffset);
-               self#pOffset fmt o
-           | _ -> super#pLval fmt lv
+               self#lval fmt (Var vi, NoOffset);
+               self#offset fmt o
+           | _ -> super#lval fmt lv
         );
-        if alive then Format.fprintf fmt "@}"
+        Format.fprintf fmt "@}"
 
-  method pTerm_lval fmt lv =
+  method term_lval fmt lv =
     (* similar to pLval *)
     match self#current_kinstr with
-    | Kglobal -> super#pTerm_lval fmt lv
+    | Kglobal -> super#term_lval fmt lv
         (* Do not highlight the lvals in initializers. *)
-    | Kstmt stmt as ki ->
-        let alive =
-          not (Value.is_computed ())
-          || Db.Value.is_reachable_stmt stmt
-        in
-        if alive then
-          Format.fprintf fmt "@{<%s>"
-            (Tag.create (PTermLval (self#current_kf,ki,lv)));
+    | Kstmt _ as ki ->
+        Format.fprintf fmt "@{<%s>"
+          (Tag.create (PTermLval (self#current_kf,ki,lv)));
         (match lv with
            | TVar vi, (TField _| TIndex _ as o) ->
-               self#pTerm_lval fmt (TVar vi, TNoOffset);
-               self#pTerm_offset fmt o
-           | _ -> super#pTerm_lval fmt lv
+               self#term_lval fmt (TVar vi, TNoOffset);
+               self#term_offset fmt o
+           | _ -> super#term_lval fmt lv
         );
-        if alive then Format.fprintf fmt "@}"
+        Format.fprintf fmt "@}"
 
-  method pVDecl fmt vi =
+  method vdecl fmt vi =
     Format.fprintf fmt "@{<%s>%a@}"
       (Tag.create (PVDecl (self#current_kf,vi)))
-      super#pVDecl vi
+      super#vdecl vi
 
-  method pCode_annot fmt ca =
+  method code_annotation fmt ca =
     match ca.annot_content with
       | APragma p when not (Logic_utils.is_property_pragma p) ->
         (* Not currently localizable. Will be linked to the next stmt *)
-        super#pCode_annot fmt ca
+        super#code_annotation fmt ca
       | AAssert _ | AInvariant _ | APragma _ | AVariant _ ->
           let ip =
             Property.ip_of_code_annot_single
@@ -386,29 +365,29 @@ class tagPrinterClass = object(self)
           localize_predicate <- false;
           Format.fprintf fmt "@{<%s>%a@}"
             (Tag.create (PIP ip))
-            super#pCode_annot ca;
+            super#code_annotation ca;
           localize_predicate <- true
       | AStmtSpec _ ->
         (* tags will be set in the inner nodes. *)
-        super#pCode_annot fmt ca
+        super#code_annotation fmt ca
       | AAllocation _ 
       | AAssigns _  ->
         (* tags will be set in the inner nodes. *)
         current_ca <- Some ca;
-        super#pCode_annot fmt ca;
+        super#code_annotation fmt ca;
         current_ca <- None
 
-  method pGlobal fmt g =
+  method global fmt g =
     match g with
       (* these globals are already covered by PVDecl *)
-    | GVarDecl _ | GVar _ | GFun _ -> super#pGlobal fmt g
+    | GVarDecl _ | GVar _ | GFun _ -> super#global fmt g
     | _ ->
         Format.fprintf fmt "@{<%s>%a@}"
           (Tag.create (PGlobal g))
-          super#pGlobal
+          super#global
           g
 
-  method pRequires fmt p =
+  method requires fmt p =
     localize_predicate <- false;
     let b = Extlib.the self#current_behavior in
     Format.fprintf fmt "@{<%s>%a@}"
@@ -416,54 +395,54 @@ class tagPrinterClass = object(self)
          (PIP
             (Property.ip_of_requires
                (Extlib.the self#current_kf) self#current_kinstr b p)))
-      super#pRequires p;
+      super#requires p;
     localize_predicate <- true
 
-  method pBehavior fmt b =
+  method behavior fmt b =
     Format.fprintf fmt "@{<%s>%a@}"
       (Tag.create
          (PIP
             (Property.ip_of_behavior
                (Extlib.the self#current_kf) self#current_kinstr b)))
-      super#pBehavior b
+      super#behavior b
 
-  method pDecreases fmt t =
+  method decreases fmt t =
     localize_predicate <- false;
     Format.fprintf fmt "@{<%s>%a@}"
       (Tag.create
          (PIP
             (Property.ip_of_decreases
                (Extlib.the self#current_kf) self#current_kinstr t)))
-      super#pDecreases t;
+      super#decreases t;
     localize_predicate <- true
 
-  method pTerminates fmt t =
+  method terminates fmt t =
     localize_predicate <- false;
     Format.fprintf fmt "@{<%s>%a@}"
       (Tag.create
          (PIP
             (Property.ip_of_terminates
                (Extlib.the self#current_kf) self#current_kinstr t)))
-      super#pTerminates t;
+      super#terminates t;
     localize_predicate <- true
 
-  method pComplete_behaviors fmt t =
+  method complete_behaviors fmt t =
     Format.fprintf fmt "@{<%s>%a@}"
       (Tag.create
          (PIP
             (Property.ip_of_complete
                (Extlib.the self#current_kf) self#current_kinstr t)))
-      super#pComplete_behaviors t
+      super#complete_behaviors t
 
-  method pDisjoint_behaviors fmt t =
+  method disjoint_behaviors fmt t =
     Format.fprintf fmt "@{<%s>%a@}"
       (Tag.create
          (PIP
             (Property.ip_of_disjoint
                (Extlib.the self#current_kf) self#current_kinstr t)))
-      super#pDisjoint_behaviors t
+      super#disjoint_behaviors t
 
-  method pAssumes fmt p =
+  method assumes fmt p =
     localize_predicate <- false;
     let b = Extlib.the self#current_behavior in
     Format.fprintf fmt "@{<%s>%a@}"
@@ -471,10 +450,10 @@ class tagPrinterClass = object(self)
          (PIP
             (Property.ip_of_assumes
                (Extlib.the self#current_kf) self#current_kinstr b p)))
-      super#pAssumes p;
+      super#assumes p;
     localize_predicate <- true
 
-  method pPost_cond fmt pc =
+  method post_cond fmt pc =
     localize_predicate <- false;
     let b = Extlib.the self#current_behavior in
     Format.fprintf fmt "@{<%s>%a@}"
@@ -482,48 +461,50 @@ class tagPrinterClass = object(self)
          (PIP
             (Property.ip_of_ensures
                (Extlib.the self#current_kf) self#current_kinstr b pc)))
-      super#pPost_cond pc;
+      super#post_cond pc;
     localize_predicate <- true
 
-  method pAssigns s fmt a =
+  method assigns s fmt a =
     match
       Property.ip_of_assigns (Extlib.the self#current_kf) self#current_kinstr
         self#current_behavior_or_loop a
     with
-        None -> super#pAssigns s fmt a
+        None -> super#assigns s fmt a
       | Some ip ->
         Format.fprintf fmt "@{<%s>%a@}"
-          (Tag.create (PIP ip)) (super#pAssigns s) a
+          (Tag.create (PIP ip)) (super#assigns s) a
 
-  method pFrom s fmt ((_, f) as from) =
+  method from s fmt ((_, f) as from) =
     match f with
-      | FromAny -> super#pFrom s fmt from
+      | FromAny -> super#from s fmt from
       | From _ ->
           let ip =
             Property.ip_of_from (Extlib.the self#current_kf) self#current_kinstr
               self#current_behavior_or_loop from
           in
               Format.fprintf fmt "@{<%s>%a@}"
-              (Tag.create (PIP ip)) (super#pFrom s) from
+              (Tag.create (PIP ip)) (super#from s) from
 
-  method pAnnotation fmt a = 
+  method global_annotation fmt a = 
     match Property.ip_of_global_annotation_single a with
-    | None -> super#pAnnotation fmt a
+    | None -> super#global_annotation fmt a
     | Some ip ->
-      Format.fprintf fmt "@{<%s>%a@}" (Tag.create (PIP ip)) super#pAnnotation a
+      Format.fprintf fmt "@{<%s>%a@}" 
+	(Tag.create (PIP ip)) super#global_annotation a
 
-  method pAllocation ~isloop fmt a =
+  method allocation ~isloop fmt a =
     match
       Property.ip_of_allocation (Extlib.the self#current_kf) self#current_kinstr
         self#current_behavior_or_loop a
     with
-        None -> super#pAllocation ~isloop fmt a
+        None -> super#allocation ~isloop fmt a
       | Some ip ->
           localize_predicate <- true;
           Format.fprintf fmt "@{<%s>%a@}"
-            (Tag.create (PIP ip)) (super#pAllocation ~isloop) a;
+            (Tag.create (PIP ip)) (super#allocation ~isloop) a;
           localize_predicate <- false;
 
+  initializer force_brace <- true
 
 (* Not used anymore: all identified predicates are selectable somewhere up
     - assert and loop invariants are PCodeAnnot
@@ -533,8 +514,8 @@ class tagPrinterClass = object(self)
     if localize_predicate then
       Format.fprintf fmt "@{<%s>%a@}"
         (Tag.create (PPredicate (self#current_kf,self#current_kinstr,ip)))
-        super#pIdentified_predicate ip
-    else super#pIdentified_predicate fmt ip
+        super#identified_predicate ip
+    else super#identified_predicate fmt ip
   *)
 end
 
@@ -687,7 +668,7 @@ let display_source globals
        let tagPrinter = new tagPrinterClass in
        let display_global g =
          Gtk_helper.refresh_gui  ();
-         tagPrinter#pGlobal gtk_fmt g;
+         tagPrinter#global gtk_fmt g;
          Format.pp_print_flush gtk_fmt ()
        in
        (*  Kernel.debug "Before Display globals %d" (List.length globals);*)
@@ -793,7 +774,7 @@ object (self)
     Cil.DoChildren
 
   method vglob_aux g =
-    Gui_parameters.debug ~level:3 "Locs for global %a" Cil.d_global g;
+    Gui_parameters.debug ~level:3 "Locs for global %a" Printer.pp_global g;
     (match g with
       | GFun ({ svar = vi }, loc) ->
           self#add_range loc (PVDecl (Some (Globals.Functions.get vi), vi))

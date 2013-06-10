@@ -1,43 +1,45 @@
-(**************************************************************************)
-(*                                                                        *)
-(*  Copyright (C) 2001-2003                                               *)
-(*   George C. Necula    <necula@cs.berkeley.edu>                         *)
-(*   Scott McPeak        <smcpeak@cs.berkeley.edu>                        *)
-(*   Wes Weimer          <weimer@cs.berkeley.edu>                         *)
-(*   Ben Liblit          <liblit@cs.berkeley.edu>                         *)
-(*  All rights reserved.                                                  *)
-(*                                                                        *)
-(*  Redistribution and use in source and binary forms, with or without    *)
-(*  modification, are permitted provided that the following conditions    *)
-(*  are met:                                                              *)
-(*                                                                        *)
-(*  1. Redistributions of source code must retain the above copyright     *)
-(*  notice, this list of conditions and the following disclaimer.         *)
-(*                                                                        *)
-(*  2. Redistributions in binary form must reproduce the above copyright  *)
-(*  notice, this list of conditions and the following disclaimer in the   *)
-(*  documentation and/or other materials provided with the distribution.  *)
-(*                                                                        *)
-(*  3. The names of the contributors may not be used to endorse or        *)
-(*  promote products derived from this software without specific prior    *)
-(*  written permission.                                                   *)
-(*                                                                        *)
-(*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS   *)
-(*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT     *)
-(*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS     *)
-(*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE        *)
-(*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,   *)
-(*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,  *)
-(*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;      *)
-(*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER      *)
-(*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT    *)
-(*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN     *)
-(*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE       *)
-(*  POSSIBILITY OF SUCH DAMAGE.                                           *)
-(*                                                                        *)
-(*  File modified by CEA (Commissariat à l'énergie atomique et aux        *)
-(*                        énergies alternatives).                         *)
-(**************************************************************************)
+(****************************************************************************)
+(*                                                                          *)
+(*  Copyright (C) 2001-2003                                                 *)
+(*   George C. Necula    <necula@cs.berkeley.edu>                           *)
+(*   Scott McPeak        <smcpeak@cs.berkeley.edu>                          *)
+(*   Wes Weimer          <weimer@cs.berkeley.edu>                           *)
+(*   Ben Liblit          <liblit@cs.berkeley.edu>                           *)
+(*  All rights reserved.                                                    *)
+(*                                                                          *)
+(*  Redistribution and use in source and binary forms, with or without      *)
+(*  modification, are permitted provided that the following conditions      *)
+(*  are met:                                                                *)
+(*                                                                          *)
+(*  1. Redistributions of source code must retain the above copyright       *)
+(*  notice, this list of conditions and the following disclaimer.           *)
+(*                                                                          *)
+(*  2. Redistributions in binary form must reproduce the above copyright    *)
+(*  notice, this list of conditions and the following disclaimer in the     *)
+(*  documentation and/or other materials provided with the distribution.    *)
+(*                                                                          *)
+(*  3. The names of the contributors may not be used to endorse or          *)
+(*  promote products derived from this software without specific prior      *)
+(*  written permission.                                                     *)
+(*                                                                          *)
+(*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS     *)
+(*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT       *)
+(*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS       *)
+(*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE          *)
+(*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,     *)
+(*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,    *)
+(*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;        *)
+(*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER        *)
+(*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT      *)
+(*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN       *)
+(*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE         *)
+(*  POSSIBILITY OF SUCH DAMAGE.                                             *)
+(*                                                                          *)
+(*  File modified by CEA (Commissariat à l'énergie atomique et aux          *)
+(*                        énergies alternatives)                            *)
+(*               and INRIA (Institut National de Recherche en Informatique  *)
+(*                          et Automatique).                                *)
+(****************************************************************************)
 
 (* mergecil.ml *)
 (* This module is responsible for merging multiple CIL source trees into
@@ -62,7 +64,7 @@ let mergeSynonyms = true
 
 
 (** Whether to use path compression *)
-let usePathCompression = false
+let usePathCompression = true
 
 (* Try to merge definitions of inline functions. They can appear in multiple
  * files and we would like them all to be the same. This can slow down the
@@ -92,7 +94,8 @@ let prefix p s =
 let d_nloc fmt (lo: (location * int) option) =
   match lo with
     None -> Format.fprintf fmt "None"
-  | Some (l, idx) -> Format.fprintf fmt "Some(%d at %a)" idx d_loc l
+  | Some (l, idx) -> 
+    Format.fprintf fmt "Some(%d at %a)" idx Cil_printer.pp_location l
 
 type ('a, 'b) node =
     { nname: 'a;   (* The actual name *)
@@ -200,10 +203,10 @@ let mkSelfNode eq syn fidx name data l =
 
 (* Find the representative with or without path compression *)
 let rec find pathcomp nd =
-  let dkey = "merge:find" in
-  Kernel.debug ~level:5 ~dkey "find %a(%d)" H.output nd.nname nd.nfidx ;
+  let dkey = Kernel.register_category "merge:find" in
+  Kernel.debug ~dkey "find %a(%d)" H.output nd.nname nd.nfidx ;
   if nd.nrep == nd then begin
-    Kernel.debug ~level:5 ~dkey "= %a(%d)" H.output nd.nname nd.nfidx ;
+    Kernel.debug ~dkey "= %a(%d)" H.output nd.nname nd.nfidx ;
     nd
   end else begin
     let res = find pathcomp nd.nrep in
@@ -273,21 +276,21 @@ let union nd1 nd2 =
   end
 
 let findReplacement pathcomp eq fidx name =
-  let dkey = "merge:find" in
-    Kernel.debug ~level:5 ~dkey "findReplacement for %a(%d)" H.output name fidx;
+  let dkey = Kernel.register_category "merge:find" in
+    Kernel.debug ~dkey "findReplacement for %a(%d)" H.output name fidx;
   try
     let nd = Heq.find eq (fidx, name) in
     if nd.nrep == nd then begin
-      Kernel.debug ~level:5 ~dkey "is a representative";
+      Kernel.debug ~dkey "is a representative";
       None (* No replacement if this is the representative of its class *)
     end else
       let rep = find pathcomp nd in
       if rep != rep.nrep then
         Kernel.abort "find does not return the representative" ;
-      Kernel.debug ~level:5 ~dkey "RES = %a(%d)" H.output rep.nname rep.nfidx;
+      Kernel.debug ~dkey "RES = %a(%d)" H.output rep.nname rep.nfidx;
       Some (rep.ndata, rep.nfidx)
   with Not_found -> begin
-    Kernel.debug ~level:5 ~dkey "not found in the map";
+    Kernel.debug ~dkey "not found in the map";
     None
   end
 
@@ -307,7 +310,9 @@ let getNode eq syn fidx name data l =
         if old_idx != idx  then
 	  Kernel.warning ~current:true
 	    "Duplicate definition of node %a(%d) at indices %d(%a) and %d(%a)"
-            H.output name fidx old_idx d_loc old_l idx d_loc l
+            H.output name fidx old_idx 
+	    Cil_printer.pp_location old_l idx 
+	    Cil_printer.pp_location l
     | _, _ -> ());
     if debugGetNode then Kernel.debug "  node already found";
     find false res (* No path compression *)
@@ -362,6 +367,23 @@ let dumpGraph what eq : unit =
 
 end
 
+(** A number of alpha conversion tables. We ought to keep one table for each
+ * name space. Unfortunately, because of the way the C lexer works, type
+ * names must be different from variable names!! We one alpha table both for
+ * variables and types. *)
+let vtAlpha : (string, location A.alphaTableData ref) H.t
+    = H.create 57 (* Variables and
+                   * types *)
+let sAlpha : (string, location A.alphaTableData ref) H.t
+    = H.create 57 (* Structures and
+                   * unions have
+                   * the same name
+                   * space *)
+let eAlpha : (string, location A.alphaTableData ref) H.t
+    = H.create 57 (* Enumerations *)
+
+let aeAlpha = H.create 57 (* Anonymous enums. *)
+
 (* The original mergecil uses plain old Hashtbl for everything. *)
 module PlainMerging = 
   Merging
@@ -369,8 +391,7 @@ module PlainMerging =
       type t = string
       let hash = Hashtbl.hash
       let equal = (=)
-      let merge_synonym name =
-        not (prefix "__anon" name) || prefix "__anonenum" name
+      let merge_synonym name = not (prefix "__anon" name)
       let output = Format.pp_print_string
      end)
 
@@ -378,37 +399,32 @@ module VolatileMerging =
   Merging
     (struct
         type t = identified_term list
-        let hash x =
-          match x with
-              [] -> 0
-            | h::_ -> Logic_utils.hash_term h.it_content
+        let hash = function
+	  | [] -> 0
+          | h::_ -> Logic_utils.hash_term h.it_content
         let equal = Logic_utils.is_same_list Logic_utils.is_same_identified_term
         let merge_synonym _ = true
         let output fmt x = 
-          Pretty_utils.pp_list 
-            ~sep:("," ^^ Pretty_utils.space_sep)
-            (fun fmt x -> Cil.d_term fmt x.it_content)
-            fmt x
+	  Pretty_utils.pp_list ~sep:",@ " Cil_printer.pp_identified_term fmt x
      end)
 
 let hash_type t =
-  let rec aux acc depth =
-    function
-      | TVoid _ -> acc
-      | TInt (ikind,_) -> 3 * acc + Hashtbl.hash ikind
-      | TFloat (fkind,_) -> 5 * acc + Hashtbl.hash fkind
-      | TPtr(t,_) when depth < 5 -> aux (7*acc) (depth+1) t
-      | TPtr _ -> 7 * acc
-      | TArray (t,_,_,_) when depth < 5 -> aux (9*acc) (depth+1) t
-      | TArray _ -> 9 * acc
-      | TFun (r,_,_,_) when depth < 5 -> aux (11*acc) (depth+1) r
-      | TFun _ -> 11 * acc
-      | TNamed (t,_) -> 13 * acc + Hashtbl.hash t.tname
-      | TComp(c,_,_) ->
-          let mul = if c.cstruct then 17 else 19 in
-          mul * acc + Hashtbl.hash c.cname
-      | TEnum (e,_) -> 23 * acc + Hashtbl.hash e.ename
-      | TBuiltin_va_list _ -> 29 * acc
+  let rec aux acc depth = function
+    | TVoid _ -> acc
+    | TInt (ikind,_) -> 3 * acc + Hashtbl.hash ikind
+    | TFloat (fkind,_) -> 5 * acc + Hashtbl.hash fkind
+    | TPtr(t,_) when depth < 5 -> aux (7*acc) (depth+1) t
+    | TPtr _ -> 7 * acc
+    | TArray (t,_,_,_) when depth < 5 -> aux (9*acc) (depth+1) t
+    | TArray _ -> 9 * acc
+    | TFun (r,_,_,_) when depth < 5 -> aux (11*acc) (depth+1) r
+    | TFun _ -> 11 * acc
+    | TNamed (t,_) -> 13 * acc + Hashtbl.hash t.tname
+    | TComp(c,_,_) ->
+      let mul = if c.cstruct then 17 else 19 in
+      mul * acc + Hashtbl.hash c.cname
+    | TEnum (e,_) -> 23 * acc + Hashtbl.hash e.ename
+    | TBuiltin_va_list _ -> 29 * acc
   in
   aux 117 0 t
 
@@ -422,7 +438,54 @@ module ModelMerging =
         s1 = s2 && Cil_datatype.TypByName.equal t1 t2
       let merge_synonym _ = true
       let output fmt (s,t) =
-        Format.fprintf fmt "model@ %a@ { %s }" Cil.d_type t s
+        Format.fprintf fmt "model@ %a@ { %s }" Cil_printer.pp_typ t s
+     end)
+
+let same_int64 e1 e2 =
+  match (constFold true e1).enode, (constFold true e2).enode with
+    | Const(CInt64(i, _, _)), Const(CInt64(i', _, _)) -> 
+      Integer.equal i i'
+    | _ -> false
+
+let have_same_enum_items oldei ei =
+  if List.length oldei.eitems <> List.length ei.eitems then
+    raise (Failure "different number of enumeration elements");
+  (* We check that they are defined in the same way. This is a fairly
+   * conservative check. *)
+  List.iter2
+    (fun old_item item ->
+      if old_item.einame <> item.einame then
+        raise (Failure 
+                 "different names for enumeration items");
+      if not (same_int64 old_item.eival item.eival) then
+        raise (Failure "different values for enumeration items"))
+    oldei.eitems ei.eitems
+
+let same_enum_items oldei ei =
+  try have_same_enum_items oldei ei; true
+  with Failure _ -> false
+
+let is_anonymous_enum e = prefix "__anonenum" e.ename
+
+module EnumMerging =
+  Merging
+    (struct
+      type t = enuminfo
+      let hash s = Datatype.String.hash s.ename
+      let equal e1 e2 =
+        (is_anonymous_enum e1 && is_anonymous_enum e2 &&
+           (same_enum_items e1 e2 || 
+              (e1.ename = e2.ename &&
+                  (e2.ename <- 
+                    fst 
+                    (A.newAlphaName
+                       aeAlpha None e2.ename Cil_datatype.Location.unknown);
+                   false))
+           ))
+        || e1.ename = e2.ename
+      let merge_synonym _ = true
+      let output fmt e =
+        Cil_printer.pp_global fmt (GEnumTag (e, Cil_datatype.Location.unknown))
      end)
 
 open PlainMerging
@@ -430,7 +493,7 @@ open PlainMerging
 (* For each name space we define a set of equivalence classes *)
 let vEq = PlainMerging.create_eq_table 111 (* Vars *)
 let sEq = PlainMerging.create_eq_table 111 (* Struct + union *)
-let eEq = PlainMerging.create_eq_table 111 (* Enums *)
+let eEq = EnumMerging.create_eq_table 111 (* Enums *)
 let tEq = PlainMerging.create_eq_table 111 (* Type names*)
 let iEq = PlainMerging.create_eq_table 111 (* Inlines *)
 
@@ -450,7 +513,7 @@ let mfEq = ModelMerging.create_eq_table 111
 let vSyn = PlainMerging.create_syn_table 111
 let iSyn = PlainMerging.create_syn_table 111
 let sSyn = PlainMerging.create_syn_table 111
-let eSyn = PlainMerging.create_syn_table 111
+let eSyn = EnumMerging.create_syn_table 111
 let tSyn = PlainMerging.create_syn_table 111
 let lfSyn = PlainMerging.create_syn_table 111
 let ltSyn = PlainMerging.create_syn_table 111
@@ -468,22 +531,6 @@ let vEnv : (string, (string, varinfo) node) H.t = H.create 111
 (* A set of inline functions indexed by their printout ! *)
 let inlineBodies : (string, (string, varinfo) node) H.t = H.create 111
 
-(** A number of alpha conversion tables. We ought to keep one table for each
- * name space. Unfortunately, because of the way the C lexer works, type
- * names must be different from variable names!! We one alpha table both for
- * variables and types. *)
-let vtAlpha : (string, location A.alphaTableData ref) H.t
-    = H.create 57 (* Variables and
-                   * types *)
-let sAlpha : (string, location A.alphaTableData ref) H.t
-    = H.create 57 (* Structures and
-                   * unions have
-                   * the same name
-                   * space *)
-let eAlpha : (string, location A.alphaTableData ref) H.t
-    = H.create 57 (* Enumerations *)
-
-
 (** Keep track, for all global function definitions, of the names of the formal
  * arguments. They might change during merging of function types if the
  * prototype occurs after the function definition and uses different names.
@@ -499,12 +546,12 @@ let theFile      = ref []
     discarded, but we need to merge their spec. This is done at the end
     of the 2nd pass, to avoid going through theFile too many times.
  *)
-let spec_to_merge = Hashtbl.create 59;;
+let spec_to_merge = Cil_datatype.Varinfo.Hashtbl.create 59;;
 
 (* renaming to be performed in spec found in declarations when there is
    a definition for the given function. Similar to spec_to_merge table.
  *)
-let formals_renaming = Hashtbl.create 59;;
+let formals_renaming = Cil_datatype.Varinfo.Hashtbl.create 59;;
 
 (* add 'g' to the merged file *)
 let mergePushGlobal (g: global) : unit =
@@ -514,15 +561,13 @@ let mergePushGlobals gl = List.iter mergePushGlobal gl
 
 let add_to_merge_spec vi spec =
   let l =
-    try Hashtbl.find spec_to_merge vi.vid
+    try Cil_datatype.Varinfo.Hashtbl.find spec_to_merge vi
     with Not_found -> []
-  in Hashtbl.replace spec_to_merge vi.vid (spec::l)
+  in Cil_datatype.Varinfo.Hashtbl.replace spec_to_merge vi (spec::l)
 
 let add_alpha_renaming old_vi old_args new_args =
   try
-    Hashtbl.add
-      formals_renaming
-      old_vi.vid
+    Cil_datatype.Varinfo.Hashtbl.add formals_renaming old_vi
       (Cil.create_alpha_renaming old_args new_args)
   with Invalid_argument _ ->
     (* [old_args] and [new_args] haven't the same length.
@@ -546,23 +591,23 @@ let mergeSpec vi_ref vi_disc spec =
           Kernel.debug
             "Renaming spec of function %a" Cil_datatype.Varinfo.pretty vi_disc;
           Kernel.debug
-            "original spec is %a" Cil.d_funspec spec;
+            "original spec is %a" Cil_printer.pp_funspec spec;
         );
 	try
           let res = Cil.visitCilFunspec alpha spec in
           if debugMerge then
-            Kernel.debug "renamed spec is %a" Cil.d_funspec spec;
+            Kernel.debug "renamed spec is %a" Cil_printer.pp_funspec spec;
           res
         with Not_found -> assert false
       with Not_found -> spec
     in
     let spec =
       try 
-        let alpha = Hashtbl.find formals_renaming vi_ref.vid in
+        let alpha = Cil_datatype.Varinfo.Hashtbl.find formals_renaming vi_ref in
         let res = Cil.visitCilFunspec alpha spec in
         if debugMerge then
           Kernel.debug "renamed spec with definition's formals is %a"
-            Cil.d_funspec res;
+            Cil_printer.pp_funspec res;
         res
       with Not_found -> spec
     in
@@ -606,7 +651,7 @@ let init ?(all=true) () =
   if all then PlainMerging.clear_eq vEq;
 
   PlainMerging.clear_eq sEq;
-  PlainMerging.clear_eq eEq;
+  EnumMerging.clear_eq eEq;
   PlainMerging.clear_eq tEq;
   PlainMerging.clear_eq iEq;
 
@@ -620,7 +665,7 @@ let init ?(all=true) () =
 
   PlainMerging.clear_syn vSyn;
   PlainMerging.clear_syn sSyn;
-  PlainMerging.clear_syn eSyn;
+  EnumMerging.clear_syn eSyn;
   PlainMerging.clear_syn tSyn;
   PlainMerging.clear_syn iSyn;
 
@@ -721,7 +766,7 @@ let intEnumInfo =
   }
 (* And add it to the equivalence graph *)
 let intEnumInfoNode =
-  PlainMerging.getNode eEq eSyn 0 intEnumInfo.ename intEnumInfo
+  EnumMerging.getNode eEq eSyn 0 intEnumInfo intEnumInfo
     (Some (Cil_datatype.Location.unknown, 0))
 
     (* Combine the types. Raises the Failure exception with an error message.
@@ -734,12 +779,6 @@ type combineWhat =
   | CombineFunret (* Comparing the return of a function with that from an old
                    * prototype *)
   | CombineOther
-
-let same_int64 e1 e2 =
-  match (constFold true e1).enode, (constFold true e2).enode with
-    | Const(CInt64(i, _, _)), Const(CInt64(i', _, _)) -> 
-      My_bigint.equal i i'
-    | _ -> false
 
 let rec combineTypes (what: combineWhat)
     (oldfidx: int)  (oldt: typ)
@@ -767,7 +806,7 @@ let rec combineTypes (what: combineWhat)
             let msg =
               Pretty_utils.sfprintf
 		"different integer types %a and %a"
-		d_type oldt d_type t
+		Cil_printer.pp_typ oldt Cil_printer.pp_typ t
             in
             raise (Failure msg))
     in
@@ -892,7 +931,7 @@ let rec combineTypes (what: combineWhat)
     let msg:string =
       Pretty_utils.sfprintf
         "different type constructors: %a vs. %a"
-        d_type oldt  d_type t
+        Cil_printer.pp_typ oldt Cil_printer.pp_typ t
     in
     raise (Failure msg))
 
@@ -900,7 +939,8 @@ let rec combineTypes (what: combineWhat)
 (* Match two compinfos and throw a Failure if they do not match *)
 and matchCompInfo (oldfidx: int) (oldci: compinfo)
     (fidx: int)    (ci: compinfo) : unit =
-  if oldci.cstruct <> ci.cstruct then
+  let cstruct = oldci.cstruct in
+  if cstruct <> ci.cstruct then
     raise (Failure "different struct/union types");
   (* See if we have a mapping already *)
   (* Make the nodes if not already made. Actually return the
@@ -929,9 +969,12 @@ and matchCompInfo (oldfidx: int) (oldci: compinfo)
     if len <> 0 && old_len <> 0 && old_len <> len then begin
       let curLoc = CurrentLoc.get () in     (* d_global blows this away.. *)
       CurrentLoc.set curLoc;
+      let aggregate_name = if cstruct then "struct" else "union" in
       let msg = Printf.sprintf
-	"different number of fields in %s and %s: %d != %d."
-	oldci.cname ci.cname old_len len in
+	"different number of fields in %s %s and %s %s: %d != %d."
+	aggregate_name oldci.cname aggregate_name ci.cname 
+	old_len len 
+      in
       raise (Failure msg)
     end;
     (* We check that they are defined in the same way. While doing this there
@@ -961,12 +1004,42 @@ and matchCompInfo (oldfidx: int) (oldci: compinfo)
       with Failure reason ->
         (* Our assumption was wrong. Forget the isomorphism *)
         undo ();
+        let fields_old = 
+          Pretty_utils.sfprintf "%a"
+	    Cil_printer.pp_global
+	    (GCompTag(oldci, Cil_datatype.Location.unknown)) 
+	in
+	let fields =
+          Pretty_utils.sfprintf "%a"
+            Cil_printer.pp_global (GCompTag(ci, Cil_datatype.Location.unknown))
+	in
+	let fullname_old = compFullName oldci in 
+	let fullname = compFullName ci in
         let msg =
-          Pretty_utils.sfprintf
-            "Failed assumption that %s and %s are isomorphic %s@?%a@?%a"
-            (compFullName oldci) (compFullName ci) reason
-            dn_global (GCompTag(oldci, Cil_datatype.Location.unknown))
-            dn_global (GCompTag(ci, Cil_datatype.Location.unknown))
+	  match fullname_old = fullname,
+	    fields_old = fields (* Could also use a special comparison *)
+	  with
+	    true, true ->
+	      Pretty_utils.sfprintf
+		"Definitions of %s are not isomorphic. Reason follows:@\n@?%s"
+		fullname_old reason
+	  | false, true ->
+	      Pretty_utils.sfprintf
+		"%s and %s are not isomorphic. Reason follows:@\n@?%s"
+		fullname_old fullname reason
+	  | true, false ->
+	      Pretty_utils.sfprintf
+		"Definitions of %s are not isomorphic. \
+                 Reason follows:@\n@?%s@\n@?%s@?%s"
+		fullname_old reason
+		fields_old fields
+	  | false, false ->
+	      Pretty_utils.sfprintf
+		"%s and %s are not isomorphic. Reason follows:@\n@?%s@\n@?%s@?%s"
+		fullname_old fullname reason
+		fields_old fields
+
+
         in
         raise (Failure msg)
     end else begin
@@ -985,9 +1058,9 @@ and matchCompInfo (oldfidx: int) (oldci: compinfo)
 and matchEnumInfo (oldfidx: int) (oldei: enuminfo)
     (fidx: int)    (ei: enuminfo) : unit =
   (* Find the node for this enum, no path compression. *)
-  let oldeinode = PlainMerging.getNode eEq eSyn oldfidx oldei.ename oldei None 
+  let oldeinode = EnumMerging.getNode eEq eSyn oldfidx oldei oldei None 
   in
-  let einode = PlainMerging.getNode eEq eSyn fidx ei.ename ei None in
+  let einode = EnumMerging.getNode eEq eSyn fidx ei ei None in
   if oldeinode == einode then (* We already know they are the same *)
     ()
   else begin
@@ -996,39 +1069,29 @@ and matchEnumInfo (oldfidx: int) (oldei: enuminfo)
     let ei = einode.ndata in
     (* Try to match them. But if you cannot just make them both integers *)
     try
-      (* We do not have a mapping. They better be defined in the same way *)
-      if List.length oldei.eitems <> List.length ei.eitems then
-        raise (Failure "different number of enumeration elements");
-      (* We check that they are defined in the same way. This is a fairly
-       * conservative check. *)
-      List.iter2
-        (fun old_item item ->
-          if old_item.einame <> item.einame then
-            raise (Failure 
-                     "different names for enumeration items");
-          if not (same_int64 old_item.eival item.eival) then
-            raise (Failure "different values for enumeration items"))
-        oldei.eitems ei.eitems;
+      have_same_enum_items oldei ei;
       (* Set the representative *)
-      let newrep, _ = union oldeinode einode in
+      let newrep, _ = EnumMerging.union oldeinode einode in
       (* We get here if the enumerations match *)
       newrep.ndata.eattr <- addAttributes oldei.eattr ei.eattr;
       ()
     with Failure msg -> begin
       let pp_items = Pretty_utils.pp_list ~pre:"{" ~suf:"}" ~sep:",@ "
-        (fun fmt item -> Format.fprintf fmt "%s=%a"
-           item.eiorig_name d_exp item.eival) in
+        (fun fmt item -> 
+	  Format.fprintf fmt "%s=%a" item.eiorig_name 
+	    Cil_printer.pp_exp item.eival)
+      in
       if oldeinode != intEnumInfoNode && einode != intEnumInfoNode then
-        Kernel.warning ~current:true
+        Kernel.warning
           "@[merging definitions of enum %s using int type@ (%s);@ items %a and@ %a@]" 
           oldei.ename msg
           pp_items oldei.eitems pp_items ei.eitems;
       (* Get here if you cannot merge two enumeration nodes *)
       if oldeinode != intEnumInfoNode then begin
-        let _ = union oldeinode intEnumInfoNode in ()
+        let _ = EnumMerging.union oldeinode intEnumInfoNode in ()
       end;
       if einode != intEnumInfoNode then begin
-        let _ = union einode intEnumInfoNode in ()
+        let _ = EnumMerging.union einode intEnumInfoNode in ()
       end;
     end
   end
@@ -1055,9 +1118,18 @@ and matchTypeInfo (oldfidx: int) (oldti: typeinfo)
        ignore (combineTypes CombineOther oldfidx oldti.ttype fidx ti.ttype);
      with Failure reason -> begin
        let msg =
-         Format.sprintf
-           "Failed assumption that %s and %s are isomorphic %s"
-           oldti.tname ti.tname reason
+	 let oldname = oldti.tname in
+	 let name = ti.tname in
+	 if oldname = name
+	 then
+           Format.sprintf
+             "Definitions of type %s are not isomorphic. \
+              Reason follows:@\n@?%s"
+             oldname reason
+	 else
+	   Format.sprintf
+             "Types %s and %s are not isomorphic. Reason follows:@\n@?%s"
+             oldname name reason
        in
        raise (Failure msg)
      end);
@@ -1199,10 +1271,7 @@ let matchVolatileClause oldfidx (oldid,_ as oldnode) fidx (id,_ as node) =
     end else
       Kernel.error ~current:true
         "invalid multiple volatile clauses for locations %a"
-        (Pretty_utils.pp_list 
-           ~sep:("," ^^ Pretty_utils.space_sep)
-           (fun fmt x -> Cil.d_term fmt x.it_content))
-        id
+        (Pretty_utils.pp_list ~sep:",@ " Cil_printer.pp_identified_term) id
   end
 
 let matchModelField 
@@ -1229,8 +1298,9 @@ let matchModelField
       Kernel.error ~current:true 
         "Model field %s of type %a is declared with different logic type: \
          %a and %a"
-        mf.mi_name Cil.d_type mf.mi_base_type
-        Cil.d_logic_type mf.mi_field_type Cil.d_logic_type oldmf.mi_field_type
+        mf.mi_name Cil_printer.pp_typ mf.mi_base_type
+        Cil_printer.pp_logic_type mf.mi_field_type 
+	Cil_printer.pp_logic_type oldmf.mi_field_type
   end
 
 (* Scan all files and do two things *)
@@ -1280,8 +1350,8 @@ let oneFilePass1 (f:file) : unit =
              First declaration was at  %a@\n\
              Current declaration is at %a"
             vi.vname reason
-            d_loc oldloc
-            d_loc loc
+            Cil_printer.pp_location oldloc
+            Cil_printer.pp_location loc
         end
       in
       let newrep, _ = union oldvinode vinode in
@@ -1306,8 +1376,9 @@ let oneFilePass1 (f:file) : unit =
 	    "Inconsistent storage specification for %s. \
 Now is %a and previous was %a at %a"
             vi.vname
-            d_storage vi.vstorage d_storage oldvi.vstorage
-            d_loc oldloc ;
+            Cil_printer.pp_storage vi.vstorage 
+	    Cil_printer.pp_storage oldvi.vstorage
+            Cil_printer.pp_location oldloc ;
 	  vi.vstorage
         end
       in
@@ -1370,8 +1441,7 @@ Now is %a and previous was %a at %a"
              | TEnum (ei, _) ->
                  ei.ereferenced <- false;
                  ignore 
-                   (PlainMerging.getNode 
-                      eEq eSyn !currentFidx ei.ename ei None)
+                   (EnumMerging.getNode eEq eSyn !currentFidx ei ei None)
 
              | _ ->  (Kernel.fatal "Anonymous Gtype is not TComp")
            end
@@ -1385,10 +1455,11 @@ Now is %a and previous was %a at %a"
        | GEnumTagDecl (ei,_) -> ei.ereferenced <- false
        | GEnumTag (ei, l) ->
            incr currentDeclIdx;
+           ignore (A.newAlphaName aeAlpha None ei.ename l);
            ei.ereferenced <- false;
-           ignore (PlainMerging.getNode eEq eSyn !currentFidx ei.ename ei
-                     (Some (l, !currentDeclIdx)))
-
+           ignore 
+             (EnumMerging.getNode eEq eSyn !currentFidx ei ei
+                (Some (l, !currentDeclIdx)))
        | GAnnot (gannot,l) ->
            CurrentLoc.set l;
            incr currentDeclIdx;
@@ -1432,6 +1503,11 @@ let matchInlines (oldfidx: int) (oldi: varinfo)
   * already; a bad style anyway *)
 let varUsedAlready: (string, unit) H.t = H.create 111
 
+let pp_profiles fmt li =
+  Pretty_utils.pp_list ~sep:",@ " Cil_printer.pp_logic_type
+    fmt
+    (List.map (fun v -> v.lv_type) li.l_profile)
+
 (** A visitor that renames uses of variables and types *)
 class renameVisitorClass =
 let rename_associated_logic_var lv =
@@ -1462,7 +1538,7 @@ let rename_associated_logic_var lv =
           end
 in
 let find_enumitem_replacement ei =
-  match PlainMerging.findReplacement true eEq !currentFidx ei.eihost.ename with
+  match EnumMerging.findReplacement true eEq !currentFidx ei.eihost with
       None -> None
     | Some (enum,_) ->
         if enum == intEnumInfo then begin
@@ -1518,22 +1594,21 @@ object (self)
         None -> if debugMerge then
           (Kernel.debug "Using logic function %s(%a)(%d)"
              li.l_var_info.lv_name
-	     (Pretty_utils.pp_list ~sep:",@ " d_logic_type)
+	     (Pretty_utils.pp_list ~sep:",@ " Cil_printer.pp_logic_type)
 	     (List.map (fun v -> v.lv_type) li.l_profile)
              !currentFidx);
           DoChildren
       | Some(li',oldfidx) ->
-          if debugMerge then
-            (Kernel.debug "Renaming use of logic function %s(%a)(%d) to %s(%a)(%d)"
-                      li.l_var_info.lv_name
-		      (Pretty_utils.pp_list ~sep:",@ " d_logic_type)
-		      (List.map (fun v -> v.lv_type) li.l_profile)
-                      !currentFidx
-		      li'.l_var_info.lv_name
-		      (Pretty_utils.pp_list ~sep:",@ " d_logic_type)
-		      (List.map (fun v -> v.lv_type) li'.l_profile)
-		      oldfidx);
-          ChangeTo li'
+        if debugMerge then
+          Kernel.debug
+	    "Renaming use of logic function %s(%a)(%d) to %s(%a)(%d)"
+            li.l_var_info.lv_name
+	    pp_profiles li
+            !currentFidx
+	    li'.l_var_info.lv_name
+	    pp_profiles li'
+	    oldfidx;
+        ChangeTo li'
 
   method vlogic_info_decl li =
     match 
@@ -1543,22 +1618,20 @@ object (self)
         None ->
           if debugMerge then
             (Kernel.debug "Using logic function %s(%a)(%d)"
-                      li.l_var_info.lv_name
-		      (Pretty_utils.pp_list ~sep:",@ " d_logic_type)
-		      (List.map (fun v -> v.lv_type) li.l_profile)
-                      !currentFidx);
+               li.l_var_info.lv_name
+	       pp_profiles li
+               !currentFidx);
           DoChildren
       | Some(li',oldfidx) ->
           if debugMerge then
-            (Kernel.debug "Renaming use of logic function %s(%a)(%d) to %s(%a)(%d)"
-                      li.l_var_info.lv_name
-                      (Pretty_utils.pp_list ~sep:",@ " d_logic_type)
-		      (List.map (fun v -> v.lv_type) li.l_profile)
-                      !currentFidx
-		      li'.l_var_info.lv_name
-		      (Pretty_utils.pp_list ~sep:",@ " d_logic_type)
-		      (List.map (fun v -> v.lv_type) li'.l_profile)
-                      oldfidx);
+            (Kernel.debug
+	       "Renaming use of logic function %s(%a)(%d) to %s(%a)(%d)"
+               li.l_var_info.lv_name
+	       pp_profiles li
+               !currentFidx
+	       li'.l_var_info.lv_name
+	       pp_profiles li'
+	       oldfidx);
           ChangeTo li'
 
   method vlogic_type_info_use lt =
@@ -1639,7 +1712,7 @@ object (self)
           (Kernel.debug "%s(%d) referenced. No change" ci.cname !currentFidx);
         DoChildren
     | TEnum (ei, a) when not ei.ereferenced -> begin
-        match PlainMerging.findReplacement true eEq !currentFidx ei.ename with
+        match EnumMerging.findReplacement true eEq !currentFidx ei with
           None -> DoChildren
         | Some (ei', _) ->
             if ei' == intEnumInfo then
@@ -1684,18 +1757,9 @@ object (self)
                None -> DoChildren
              | Some c ->
                  let t = visitCilLogicType (self:>cilVisitor) e.term_type in
-		 let constant_to_lconstant c = match c with
-		   | CStr s -> LStr s 
-		   | CInt64 (i, _, s) -> Integer (i,s)
-		   | CWStr l -> LWStr l 
-		   | CChr c -> LChr c
-		   | CReal (f, _, Some s) -> LReal (f,s)
-		   | CReal (f, _, None) -> LReal (f,string_of_float f)
-		   | CEnum e -> LEnum e 
-		 in
                  ChangeTo
                    { e with
-                       term_node = TConst (constant_to_lconstant c);
+                       term_node = TConst (Logic_utils.constant_to_lconstant c);
                        term_type = t
                    })
       | _ -> DoChildren
@@ -2058,9 +2122,9 @@ begin
     ((* CIL changes (unsigned)0 into 0U during printing.. *)
       match xc,yc with
       | CInt64(xv,_,_),CInt64(yv,_,_) ->
-          (My_bigint.equal xv My_bigint.zero) 
+          (Integer.equal xv Integer.zero) 
         && (* ok if they're both 0 *)
-            (My_bigint.equal yv My_bigint.zero) 
+            (Integer.equal yv Integer.zero) 
       | _,_ -> false
     )
   | Lval(xl), Lval(yl) ->          (equalLvals xl yl)
@@ -2158,7 +2222,7 @@ let oneFilePass2 (f: file) =
 	  (* Remember the original name *)
           H.add originalVarNames newName vi.vname;
           if debugMerge then
-            Kernel.debug "renaming %s at %a to %s" vi.vname d_loc vloc newName;
+            Kernel.debug "renaming %s at %a to %s" vi.vname Cil_printer.pp_location vloc newName;
           vi.vname <- newName;
           vi.vreferenced <- true;
           Cil_const.set_vid vi;
@@ -2175,7 +2239,7 @@ let oneFilePass2 (f: file) =
               if Extlib.xor vi'.vghost vi.vghost then
                 Kernel.abort
                   "Cannot merge: Global %a has both ghost and non-ghost status"
-                  Cil.d_var vi';
+                  Cil_printer.pp_varinfo vi';
               (* If vi has a logic binding, add one to
                  the representative if needed. *)
               (match vi'.vlogic_var_assoc, vi.vlogic_var_assoc with
@@ -2248,7 +2312,7 @@ let oneFilePass2 (f: file) =
                 Kernel.error ~current:true
 		  "global var %s at %a has different initializer than %a"
                   vi'.vname
-                  d_loc l d_loc prevLoc;
+                  Cil_printer.pp_location l Cil_printer.pp_location prevLoc;
                 false
               )
             with Not_found -> begin
@@ -2341,7 +2405,7 @@ let oneFilePass2 (f: file) =
                 List.iter renameOne fdec'.slocals
               end;
               (* Now print it *)
-              let res = Pretty_utils.sfprintf "%a" d_global g' in
+              let res = Pretty_utils.sfprintf "%a" Cil_printer.pp_global g' in
               miscState.lineDirectiveStyle <- oldprintln;
               fdec'.svar.vname <- newname;
               if mergeInlinesWithAlphaConvert then begin
@@ -2419,7 +2483,7 @@ let oneFilePass2 (f: file) =
                     "dropping duplicate def'n of func %s at %a in favor of \
  that at %a"
                     fdec'.svar.vname
-                    d_loc l  d_loc prevLoc
+                    Cil_printer.pp_location l Cil_printer.pp_location prevLoc
                 else begin
                   (* the checksums differ, so print a warning but keep the
                    * older one to avoid a link error later.  I think this is
@@ -2428,8 +2492,10 @@ let oneFilePass2 (f: file) =
 		    "def'n of func %s at %a (sum %d) conflicts with the one \
  at %a (sum %d); keeping the one at %a."
                     fdec'.svar.vname
-                    d_loc l  curSum  d_loc prevLoc
-		    prevSum d_loc prevLoc
+                    Cil_printer.pp_location l 
+		    curSum
+		    Cil_printer.pp_location prevLoc
+		    prevSum Cil_printer.pp_location prevLoc
                 end
               with Not_found -> begin
                 (* there was no previous definition *)
@@ -2464,8 +2530,8 @@ let oneFilePass2 (f: file) =
                          not root!"
                        ci.cname;
                  with Not_found -> begin
-                   Kernel.fatal "Setting creferenced for struct %s which is not \
-                       in the sEq!"
+                   Kernel.fatal "Setting creferenced for struct %s which \
+                                 is not in the sEq!"
                      ci.cname;
                  end);
                 let newname, _ =
@@ -2490,7 +2556,7 @@ let oneFilePass2 (f: file) =
             ()
           else begin
             match 
-              PlainMerging.findReplacement true eEq !currentFidx ei.ename 
+              EnumMerging.findReplacement true eEq !currentFidx ei
             with
               None -> (* We must rename it *)
                 let newname, _ =
@@ -2623,48 +2689,48 @@ let merge_specs orig to_merge =
   List.iter merge_one_spec to_merge
 
 let global_merge_spec g =
-  Kernel.debug "Merging global %a" d_global g;
+  Kernel.debug "Merging global %a" Cil_printer.pp_global g;
   match g with
   | GFun(fdec,loc) ->
     (try
-       Kernel.debug "Merging global definition %a" d_global g;
-       let specs =
-         Hashtbl.find spec_to_merge fdec.svar.vid
-       in
-       List.iter (fun s -> Kernel.debug "Found spec to merge %a" d_funspec s)
+       Kernel.debug "Merging global definition %a" Cil_printer.pp_global g;
+       let specs = Cil_datatype.Varinfo.Hashtbl.find spec_to_merge fdec.svar in
+       List.iter
+	 (fun s -> 
+	   Kernel.debug "Found spec to merge %a" Cil_printer.pp_funspec s)
          specs;
-       Kernel.debug "Merging with %a" d_funspec fdec.sspec ;
+       Kernel.debug "Merging with %a" Cil_printer.pp_funspec fdec.sspec ;
        Cil.CurrentLoc.set loc;
        merge_specs fdec.sspec specs
      with Not_found -> 
        Kernel.debug "No spec_to_merge")
   | GVarDecl(spec,v,loc) ->
-    Kernel.debug "Merging global declaration %a" d_global g;
+    Kernel.debug "Merging global declaration %a" Cil_printer.pp_global g;
     let rename spec =
       try
-        let alpha = Hashtbl.find formals_renaming v.vid in
+        let alpha = Cil_datatype.Varinfo.Hashtbl.find formals_renaming v in
         ignore (visitCilFunspec alpha spec)
       with Not_found -> ()
     in
     (try
-       let specs =
-         Hashtbl.find spec_to_merge v.vid
-       in
-       List.iter (fun s -> Kernel.debug "Found spec to merge %a" d_funspec s)
+       let specs = Cil_datatype.Varinfo.Hashtbl.find spec_to_merge v in
+       List.iter
+	 (fun s -> 
+	   Kernel.debug "Found spec to merge %a" Cil_printer.pp_funspec s)
          specs;
-       Kernel.debug "Renaming %a" d_funspec spec ;
+       Kernel.debug "Renaming %a" Cil_printer.pp_funspec spec ;
        rename spec;
        (* The registered specs might also need renaming up to 
           definition's formals instead of declaration's ones. *)
        List.iter rename specs;
-       Kernel.debug "Renamed to %a" d_funspec spec;
+       Kernel.debug "Renamed to %a" Cil_printer.pp_funspec spec;
        Cil.CurrentLoc.set loc;
        merge_specs spec specs;
-       Kernel.debug "Merged into %a" d_funspec spec ;
+       Kernel.debug "Merged into %a" Cil_printer.pp_funspec spec ;
      with Not_found -> 
        Kernel.debug "No spec_to_merge for declaration" ;
        rename spec;
-       Kernel.debug "Renamed to %a" d_funspec spec ;
+       Kernel.debug "Renamed to %a" Cil_printer.pp_funspec spec ;
     )
   | _ -> ()
 
@@ -2713,11 +2779,11 @@ let used_vars g =
 let print_missing fmt to_declare =
   let print_one_binding fmt s =
     Cil_datatype.Logic_var.Set.iter 
-      (fun x -> Format.fprintf fmt "%a;@ " Cil.d_logic_var x) s
+      (fun x -> Format.fprintf fmt "%a;@ " Cil_printer.pp_logic_var x) s
   in
   let print_entry fmt v (_,s) =
     Format.fprintf fmt "@[%a:@[%a@]@]@\n" 
-      Cil.d_var v print_one_binding s
+      Cil_printer.pp_varinfo v print_one_binding s
   in
   Cil_datatype.Varinfo.Map.iter (print_entry fmt) to_declare
       
@@ -2790,7 +2856,7 @@ let merge (files: file list) (newname: string) : file =
   (* Now maybe try to force synonyms to be equal *)
   if mergeSynonyms then begin
     doMergeSynonyms sSyn matchCompInfo;
-    doMergeSynonyms eSyn matchEnumInfo;
+    EnumMerging.doMergeSynonyms eSyn matchEnumInfo;
     doMergeSynonyms tSyn matchTypeInfo;
 
     doMergeSynonyms lfSyn matchLogicInfo;
@@ -2813,7 +2879,7 @@ let merge (files: file list) (newname: string) : file =
   if debugMerge then begin
     dumpGraph "type" tEq;
     dumpGraph "struct and union" sEq;
-    dumpGraph "enum" eEq;
+    EnumMerging.dumpGraph "enum" eEq;
     dumpGraph "variable" vEq;
     if mergeInlines then dumpGraph "inline" iEq;
   end;

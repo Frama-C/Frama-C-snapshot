@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,21 +20,19 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Statuses of preconditions specialized at a given call-point *)
+(** Statuses of preconditions specialized at a given call-point. *)
 
 open Cil_types
-
 
 val setup_precondition_proxy: kernel_function -> Property.t -> unit
 (** [setup_precondition_proxy kf p] creates a new property for [p]
     at each syntactic call site of [kf], representing the status
-    of [p] at this particlar call. [p] is considered proven if and
+    of [p] at this particular call. [p] is considered proven if and
     only if all its instances are themselves proven. *)
 
 val setup_all_preconditions_proxies: kernel_function -> unit
 (** [setup_all_preconditions_proxies kf] is equivalent to calling
     [setup_precondition_proxy] on all the requires of [kf]. *)
-
 
 val precondition_at_call:
   kernel_function -> Property.t -> stmt -> Property.t
@@ -57,7 +55,6 @@ val replace_call_precondition: Property.t -> stmt -> Property.t -> unit
     is the property corresponding to the status of [pre] at call [stmt].
     The previous property, if any, is removed. Beware that this may also
     remove some already proved statuses *)
-
 
 (*
 Local Variables:

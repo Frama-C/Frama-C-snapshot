@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,7 +24,7 @@ open Abstract_interp
 
 module V = Int
 
-module Interval = Make_Pair(V)(V)
+module Interval = Datatype.Pair(V)(V)
 type itv = Interval.t
 
 
@@ -74,11 +74,11 @@ module Unhashconsed_Int_Intervals = struct
     match v with
       | Top -> raise Not_less_than
       | Set l ->
+	  let nn = V.of_int n in
           let rec aux l card = match l with
             | [] -> card
             | (x,y)::t ->
-                let nn = V.of_int n in
-                let card = V.add card ((V.succ (V.sub y x))) in
+                let card = V.add card (V.length x y) in
                 if V.gt card nn
                 then raise Not_less_than
                 else aux t card
@@ -253,7 +253,7 @@ module Unhashconsed_Int_Intervals = struct
        Structural_descr.Structure
          (Structural_descr.Sum
             [| [| Structural_descr.pack
-                    (Structural_descr.t_list (Descr.str Interval.descr)) |] |])
+                   (Structural_descr.t_list (Descr.str Interval.descr)) |] |])
      let reprs = Top :: List.map (fun o -> Set [ o ]) Interval.reprs
      let equal = equal
      let compare = compare
@@ -267,11 +267,7 @@ module Unhashconsed_Int_Intervals = struct
    end)
   let () = Type.set_ml_name ty None
 
-  let fold_enum ~split_non_enumerable f v acc =
-    ignore (split_non_enumerable);
-    ignore (f);
-    ignore (v);
-    ignore (acc);
+  let fold_enum ~split_non_enumerable:_ _f _v _acc =
     assert false
 
   let pretty_typ typ fmt i =
@@ -284,7 +280,7 @@ module Unhashconsed_Int_Intervals = struct
              Some (Cil.kinteger64
                      ~loc:(Cil.CurrentLoc.get ())
                      Cil_types.IULongLong
-                     (My_bigint.of_int64 922337203685477580L)
+                     (Integer.of_int64 922337203685477580L)
                      (* See Cuoq for rational *)),
              Cil.empty_size_cache (),
              [])
@@ -298,7 +294,7 @@ module Unhashconsed_Int_Intervals = struct
             assert (Int.le b e) ;
             ignore (Bit_utils.pretty_bits typ
                       ~use_align:false
-                      ~align:Int.zero
+                      ~align:Rel.zero
                       ~rh_size:Int.one
                       ~start:b ~stop:e fmt) in
           let pp_stmt fmt r = Format.fprintf fmt "%a;@ " pp_one r in
@@ -311,26 +307,26 @@ module Unhashconsed_Int_Intervals = struct
                 Format.fprintf fmt "}@]" ;
         end
 
-  let from_ival_int ival int =
+  let from_ival_size_aux ival size =
     let max_elt_int = !plevel in
     let max_elt = Int.of_int max_elt_int in
-    let add_offset x acc = join (inject_one ~value:x  ~size:int) acc in
+    let add_offset x acc = join (inject_one ~value:x ~size) acc in
     match ival with
     | Ival.Top(None, _, _, _)
     | Ival.Top(_, None, _, _) | Ival.Float _ -> top
     | Ival.Top(Some mn, Some mx, _r, m) ->
-        if Int.le m int
-        then inject_one ~value:mn ~size:(Int.add (Int.sub mx mn) int)
+        if Int.le m size
+        then inject_one ~value:mn ~size:(Int.add (Int.sub mx mn) size)
         else
           let elts = Int.native_div (Int.sub mx mn) m in
           if Int.gt elts max_elt then begin
             (* too many elements to enumerate *)
             Kernel.result ~once:true ~current:true
               "more than %d(%a) elements to enumerate. Approximating."
-              max_elt_int
-              Int.pretty elts;
-           top
-          end else Int.fold add_offset ~inf:mn ~sup:mx ~step:m bottom
+              max_elt_int Int.pretty elts;
+            inject_bounds mn (Int.pred (Int.add mx size))
+          end
+          else Int.fold add_offset ~inf:mn ~sup:mx ~step:m bottom
     | Ival.Set(s) ->
         Array.fold_right
           add_offset
@@ -340,9 +336,7 @@ module Unhashconsed_Int_Intervals = struct
   let from_ival_size ival size =
     match size with
     | Int_Base.Top -> top
-    | Int_Base.Bottom -> assert false
-    | Int_Base.Value int ->
-        from_ival_int ival int
+    | Int_Base.Value int -> from_ival_size_aux ival int
 
   let diff x y =
     if x == y 
@@ -395,7 +389,7 @@ module Int_Intervals = struct
   exception Error_Bottom = Unhashconsed_Int_Intervals.Error_Bottom
   exception Error_Top = Unhashconsed_Int_Intervals.Error_Top
 
-  let tag { tag=tag } = tag
+  let id { tag=id } = id
 
   let pretty_debug fmt x = Unhashconsed_Int_Intervals.pretty fmt x.v
   let pretty = pretty_debug

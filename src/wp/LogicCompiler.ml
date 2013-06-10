@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -25,6 +25,7 @@
 (* -------------------------------------------------------------------------- *)
 
 open LogicUsage
+open LogicBuiltins
 open Cil_types
 open Cil_datatype
 open Clabels
@@ -48,7 +49,9 @@ struct
   type sigma = M.Sigma.t
   type chunk = M.Chunk.t
 
-  type signature = sig_param list
+  type signature = 
+    | CST of Qed.Z.t
+    | SIG of sig_param list
   and sig_param =
     | Sig_value of logic_var (* to be replaced by the value *)
     | Sig_chunk of chunk * c_label (* to be replaced by the chunk variable *)
@@ -96,6 +99,16 @@ struct
     mutable result : var option ;
     mutable status : var option ;
   }
+
+  let pp_frame fmt f =
+    begin
+      Format.fprintf fmt "Frame '%s':@\n" f.name ;
+      LabelMap.iter
+	(fun l m ->
+	   Format.fprintf fmt "@[<hov 4>Label '%a': %a@]@\n"
+	     Clabels.pretty l Sigma.pretty m
+	) f.labels ;
+    end
 
   (* -------------------------------------------------------------------------- *)
   (* --- Frames Builders                                                    --- *)
@@ -157,24 +170,34 @@ struct
       labels = wrap_mem [ Clabels.Pre , seq.pre ; Clabels.Post , seq.post ] ;
     }
 
+  let frame_copy f =
+    { f with
+	pool = Lang.new_pool ~copy:f.pool () ;
+	gamma = Lang.new_gamma ~copy:f.gamma () ;
+	labels = LabelMap.map Sigma.copy f.labels ;
+    }
+
   (* -------------------------------------------------------------------------- *)
   (* --- Current Frame                                                      --- *)
   (* -------------------------------------------------------------------------- *)
 
   let cframe : frame Context.value = Context.create "LogicSemantics.frame"
       
+  let get_frame () = Context.get cframe
+
   let in_frame f cc =
     Context.bind Lang.poly f.types
       (Context.bind cframe f 
 	 (Lang.local ~pool:f.pool ~gamma:f.gamma cc))
 
-  let mem_frame label =
+  let mem_at_frame frame label =
     assert (label <> Clabels.Here) ;
-    let frame = Context.get cframe in
     try LabelMap.find label frame.labels
     with Not_found ->
       let s = M.Sigma.create () in
       frame.labels <- LabelMap.add label s frame.labels ; s
+
+  let mem_frame label = mem_at_frame (Context.get cframe) label
 
   let formal x =
     let f = Context.get cframe in
@@ -237,7 +260,7 @@ struct
     else
       Vexp e
 
-  let env lvars =
+  let new_env lvars =
     let lvars = List.fold_left
       (fun lvars lv ->
 	 let x = fresh_lvar ~basename:lv.lv_name lv.lv_type in
@@ -294,7 +317,7 @@ struct
       (cc : env -> 'a -> 'b)
       (filter : 'b -> var -> bool) 
       (data : 'a) 
-      : var list * trigger list * 'b * signature =
+      : var list * trigger list * 'b * sig_param list =
     let frame = logic_frame name types in
     in_frame frame
       begin fun () ->
@@ -391,10 +414,6 @@ struct
   (* --- Type Signature of Logic Function                                   --- *)
   (* -------------------------------------------------------------------------- *)
 
-  let tau_of_return = function
-    | None -> Qed.Logic.Prop
-    | Some t -> Lang.tau_of_ltype t
-
   let type_for_signature l ldef sigp =
     match l.l_type with
       | None -> ()
@@ -408,7 +427,7 @@ struct
 		  match vs , sigp with
 		    | v::vs , Sig_value lv :: sigp ->
 			let cond = Cvalues.has_ltype lv.lv_type v in
-		      cond :: conditions vs sigp
+			cond :: conditions vs sigp
 		    | _ -> [] in
 		let result = F.e_fun ldef.d_lfun vs in
 		let lemma = p_hyps (conditions vs sigp) (p result) in
@@ -429,7 +448,7 @@ struct
 
   let compile_lbpure cluster l =
     let lfun = ACSL l in
-    let tau = tau_of_return l.l_type in
+    let tau = Lang.tau_of_return l in
     let parp = Lang.local (List.map param_of_lv) l.l_profile in
     let sigp = List.map (fun lv -> Sig_value lv) l.l_profile in
     let ldef = {
@@ -440,7 +459,7 @@ struct
       d_definition = Logic tau ;
     } in
     Definitions.update_symbol ldef ;
-    Signature.update l sigp ;
+    Signature.update l (SIG sigp) ;
     parp,sigp
 
   (* -------------------------------------------------------------------------- *)
@@ -449,7 +468,7 @@ struct
 
   let compile_lbnone cluster l vars =
     let lfun = ACSL l in
-    let tau = tau_of_return l.l_type in
+    let tau = Lang.tau_of_return l in
     let parp = Lang.local (List.map param_of_lv) l.l_profile in
     let sigp = List.map (fun lv -> Sig_value lv) l.l_profile in
     let (parm,sigm) = 
@@ -480,7 +499,7 @@ struct
       d_definition = Logic tau ;
     } in
     Definitions.define_symbol ldef ;
-    type_for_signature l ldef sigp ; sigm
+    type_for_signature l ldef sigp ; SIG sigm
 
   (* -------------------------------------------------------------------------- *)
   (* --- Compiling Logic Function with Reads                                --- *)
@@ -489,7 +508,7 @@ struct
   let compile_lbreads cluster l ts = 
     let lfun = ACSL l in
     let name = l.l_var_info.lv_name in
-    let tau = tau_of_return l.l_type in
+    let tau = Lang.tau_of_return l in
     let xs,_,(),s = 
       compile_step name l.l_tparams l.l_profile l.l_labels 
 	reads in_reads ts 
@@ -502,7 +521,7 @@ struct
       d_definition = Logic tau ;
     } in
     Definitions.define_symbol ldef ; 
-    type_for_signature l ldef s ; s
+    type_for_signature l ldef s ; SIG s
 
   (* -------------------------------------------------------------------------- *)
   (* --- Compiling Recursive Logic Body                                     --- *)
@@ -516,7 +535,7 @@ struct
     if LogicUsage.is_recursive l then
       begin
 	let (_,_,_,s) = result in
-	Signature.update l s ; 
+	Signature.update l (SIG s) ; 
 	compile_step name types profile labels cc filter data
       end
     else result
@@ -526,19 +545,21 @@ struct
   (* -------------------------------------------------------------------------- *)
 
   let compile_lbterm cluster l t =
-    let lfun = ACSL l in
     let name = l.l_var_info.lv_name in
-    let tau = tau_of_return l.l_type in
+    let tau = Lang.tau_of_return l in
     let xs,_,r,s = compile_rec name l term in_term t in
-    let ldef = {
-      d_lfun = lfun ;
-      d_types = List.length l.l_tparams ;
-      d_params = xs ;
-      d_cluster = cluster ;
-      d_definition = Value(tau,is_recursive l,r) ;
-    } in
-    Definitions.define_symbol ldef ; 
-    type_for_signature l ldef s ; s
+    match F.repr r with
+      | Qed.Logic.Kint c -> CST c
+      | _ ->
+	  let ldef = {
+	    d_lfun = ACSL l ;
+	    d_types = List.length l.l_tparams ;
+	    d_params = xs ;
+	    d_cluster = cluster ;
+	    d_definition = Value(tau,is_recursive l,r) ;
+	  } in
+	  Definitions.define_symbol ldef ;
+	  type_for_signature l ldef s ; SIG s
 
   (* -------------------------------------------------------------------------- *)
   (* --- Compiling Logic Predicate with Definition                          --- *)
@@ -555,7 +576,7 @@ struct
       d_cluster = cluster ;
       d_definition = Predicate(is_recursive l,r) ;
     } in
-    Definitions.define_symbol ldef ; s
+    Definitions.define_symbol ldef ; SIG s
 
   let heap_case labels_used support = function
     | Sig_value _ -> support
@@ -611,9 +632,11 @@ struct
 	 compile_lemma cluster ~assumed:true case types labels lemma) 
       cases in
     Definitions.update_symbol { ldef with d_definition = Inductive cases } ;
-    type_for_signature l ldef sigp (* sufficient *) ; sigm
+    type_for_signature l ldef sigp (* sufficient *) ; SIG sigm
     
   let compile_logic cluster section l = 
+    let s_rec = List.map (fun x -> Sig_value x) l.l_profile in
+    Signature.update l (SIG s_rec) ;
     match l.l_body with
       | LBnone -> 
 	  let vars = match section with
@@ -636,7 +659,7 @@ struct
   let define_type = Definitions.define_type
   let define_logic c a = Signature.compile (compile_logic c a)
   let define_lemma c l = 
-    if l.lem_labels <> [] then
+    if l.lem_labels <> [] && Wp_parameters.has_dkey "lemma" then
       Wp_parameters.warning ~source:l.lem_position 
 	"Lemma '%s' has labels, consider using global invariant instead." 
 	l.lem_name ;
@@ -678,7 +701,7 @@ struct
 	    with Not_found -> 
 	      Wp_parameters.fatal ~current:true
 		"Axiomatic '%s' compiled, but '%a' not" 
-		ax.ax_name !Ast_printer.d_logic_var phi.l_var_info
+		ax.ax_name Printer.pp_logic_var phi.l_var_info
 
   (* -------------------------------------------------------------------------- *)
   (* --- Binding Formal with Actual w.r.t Signature                         --- *)
@@ -692,19 +715,39 @@ struct
 	  let l2 = Clabels.c_label l2 in
 	  LabelMap.add l1 (mem_at env l2) (bind_labels env labels)
     
-  let call env
+  let call_params env
       (phi:logic_info)
       (labels:(logic_label * logic_label) list)
+      (sparam : sig_param list)
       (parameters:F.term list) 
       : F.term list =
-    let signature = signature phi in
     let mparams = wrap_lvar phi.l_profile parameters in
     let mlabels = bind_labels env labels in
     List.map
       (function
 	 | Sig_value lv -> Logic_var.Map.find lv mparams
 	 | Sig_chunk(c,l) -> M.Sigma.value (LabelMap.find l mlabels) c
-      ) signature
+      ) sparam
+      
+  let call_fun env 
+      (phi:logic_info) 
+      (labels:(logic_label * logic_label) list)
+      (parameters:F.term list) : F.term =
+    match signature phi with
+      | CST c -> e_zint c
+      | SIG sparam -> 
+	  let es = call_params env phi labels sparam parameters in
+	  F.e_fun (ACSL phi) es
+
+  let call_pred env 
+      (phi:logic_info) 
+      (labels:(logic_label * logic_label) list)
+      (parameters:F.term list) : F.pred =
+    match signature phi with
+      | CST _ -> assert false
+      | SIG sparam -> 
+	  let es = call_params env phi labels sparam parameters in
+	  F.p_call (ACSL phi) es
 
   (* -------------------------------------------------------------------------- *)
   (* --- Variable Bindings                                                  --- *)
@@ -715,10 +758,14 @@ struct
     with Not_found -> 
       try
 	let cst = Logic_env.find_logic_cons x in
-	ignore (signature cst) ;
-	plain_of_exp x.lv_type (e_fun (ACSL cst) [])
+	let v = 
+	  match LogicBuiltins.logic cst with
+	    | ACSLDEF -> call_fun env cst [] []
+	    | LFUN phi -> e_fun phi []
+	    | CONST e -> e
+	in plain_of_exp x.lv_type v
       with Not_found ->
 	Wp_parameters.fatal "Unbound logic variable '%a'"
-	  !Ast_printer.d_logic_var x
+	  Printer.pp_logic_var x
       
 end

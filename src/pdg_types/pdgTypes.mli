@@ -2,11 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
-(*           alternatives)                                                *)
-(*    INRIA (Institut National de Recherche en Informatique et en         *)
-(*           Automatique)                                                 *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -82,10 +80,11 @@ end
 module NodeSet : Hptset.S with type elt = Node.t
 
 (** Program dependence graph main part : the nodes of the graph represent
- * computations, and the edges represent the dependencies between these
- * computations. *)
+   computations, and the edges represent the dependencies between these
+   computations. Only a few functions are exported, to build the graph
+    in [pdg/build.ml]. Iterating over the PDG should be done using the
+    functions in module [Pdg] below *)
 module G : sig
-(*  include Datatype.S*)
   type t
   module E : sig
     type t
@@ -100,23 +99,6 @@ module G : sig
   val add_elem : t -> PdgIndex.Key.t -> Node.t
   val add_dpd : 
     t -> Node.t -> Dpd.td -> Locations.Zone.t option -> Node.t -> unit
-
-  (* val replace_dpd : t -> E.t -> Dpd.t -> unit *)
-  (* val find_dpd : t -> Node.t -> Node.t -> E.t * Dpd.t *)
-
-  val succ : t -> Node.t -> Node.t list
-  val pred : t -> Node.t -> Node.t list
-
-  val iter_vertex : (Node.t -> unit) -> t -> unit
-  val iter_edges_e : (E.t -> unit) -> t -> unit
-  val iter_succ_e : (E.t -> unit) -> t -> Node.t -> unit
-  val fold_succ_e : (E.t -> 'a -> 'a) -> t -> Node.t -> 'a -> 'a
-  val fold_succ : (Node.t -> 'a -> 'a) -> t -> Node.t -> 'a -> 'a
-  val iter_pred_e : (E.t -> unit) -> t -> Node.t -> unit
-  val fold_pred : (Node.t -> 'a -> 'a) -> t -> Node.t -> 'a -> 'a
-    
-  val edge_dpd : E.t -> Dpd.t * Locations.Zone.t option
-  val pretty_edge_label : Format.formatter -> E.label -> unit
 end
 
 module NodeSetLattice : sig
@@ -128,10 +110,10 @@ end
 module LocInfo :
   Lmap_bitwise.Location_map_bitwise with type y = NodeSetLattice.t
 
-(** a [DataState] object is associated with a program point
- * and provides a mapping between a location and some nodes in the PDG
- * that are used to compute the location value at that point. *)
-type t_data_state =
+(** a [data_state] object is associated with a program point
+    and provides a mapping between a location and some nodes in the PDG
+    that are used to compute the location value at that point. *)
+type data_state =
   { loc_info : LocInfo.t ; under_outputs : Locations.Zone.t }
 
 module Pdg : sig
@@ -142,9 +124,10 @@ module Pdg : sig
         function. *)
 
   exception Bottom
+    (** exception raised when requiring the PDG of a function that is never
+        called. *)
 
   include Datatype.S
-  (** @plugin development guide *)
 
   (** @param name of the function associated with that PDG *)
   val top : Kernel_function.t -> t
@@ -190,8 +173,8 @@ module Pdg : sig
 
   (** [make fundec graph states index] *)
   val make :
-    Kernel_function.t -> G.t -> t_data_state Datatype.Int.Hashtbl.t -> fi -> t
-  val get_states : t -> t_data_state Datatype.Int.Hashtbl.t
+    Kernel_function.t -> G.t -> data_state Cil_datatype.Stmt.Hashtbl.t -> fi -> t
+  val get_states : t -> data_state Cil_datatype.Stmt.Hashtbl.t
 
   (** build the PDG .dot file and put it in [filename].  *)
   val build_dot: string -> t -> unit

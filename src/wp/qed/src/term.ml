@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -39,17 +39,19 @@ struct
   module POOL = Pool.Make
     (struct
        type t = tau
+       let dummy = Prop
        let equal = Kind.eq_tau Field.equal ADT.equal
      end)
 
   open POOL
   type var = POOL.var
   
-  module Vars = Idxset.Positive
-    (struct
-       type t = var
-       let id x = x.vid
-     end)
+  module VID = struct type t = var let id x = x.vid end
+  module Vars = Idxset.Positive(VID)
+  module Vmap = Idxmap.Make(VID)
+  module Builtins = Map.Make(Fun)
+
+  type 'a symbol = (Field.t,Fun.t,var,'a) term_repr
 
   type term = {
     id : int ;
@@ -59,7 +61,7 @@ struct
     sort : sort ;
     repr : repr ;
   }
-  and repr = (Field.t,Fun.t,var,term) term_repr
+  and repr = term symbol
 
   module ADT = ADT
   module Field = Field
@@ -74,6 +76,7 @@ struct
     let id x = Printf.sprintf "%s_%d" x.vbase x.vid
     let basename x = x.vbase
     let sort x = Kind.of_tau x.vtau
+    let dummy = POOL.dummy
   end
 
   let tau_of_var x = x.vtau
@@ -111,6 +114,12 @@ struct
 
   let alpha pool x = POOL.alpha pool x
 
+  let rec basename t = match t.repr with
+    | Kint _ -> "x"
+    | Kreal _ -> "r"
+    | Aset(a,_,_) -> basename a
+    | _ -> Kind.basename t.sort
+
   (* -------------------------------------------------------------------------- *)
   (* ---  Representation                                                    --- *)
   (* -------------------------------------------------------------------------- *)
@@ -118,7 +127,6 @@ struct
   let repr e = e.repr
   let hash e = e.hash
   let id e = e.id
-  let sort e = e.sort
   let vars e = e.vars
 
   let hash_subterms = function
@@ -205,6 +213,9 @@ struct
       | _ -> 
 	  assert (hash_head a <> hash_head b) ; false
 
+  let sort x = x.sort
+  let vars x = x.vars
+
   let vars_repr = function
     | True | False | Kint _ | Kreal _ -> Vars.empty
     | Times(_,x) | Not x | Rget(x,_) -> x.vars
@@ -213,7 +224,7 @@ struct
     | Div(x,y) | Mod(x,y) | Eq(x,y) | Neq(x,y) | Leq(x,y) | Lt(x,y) | Aget(x,y) ->
 	Vars.union x.vars y.vars
     | Imply(xs,a) | Apply(a,xs) ->
-	Hcons.fold_list Vars.union (fun x -> x.vars) a.vars xs
+	Hcons.fold_list Vars.union vars a.vars xs
     | If(e,a,b) | Aset(e,a,b) -> Vars.union e.vars (Vars.union a.vars b.vars)
     | Var x -> Vars.singleton x
     | Bind(_,x,e) -> Vars.remove x e.vars
@@ -224,12 +235,9 @@ struct
     | Kint _ -> Sint
     | Kreal _ -> Sreal
     | Times(_,x) -> Kind.merge Sint x.sort
-    | Add xs | Mul xs ->
-	Kind.merge_list (fun x -> x.sort) Sint xs
-    | And xs | Or xs ->
-	Kind.merge_list (fun x -> x.sort) Sbool xs
-    | Imply(hs,p) -> 
-	Kind.merge_list (fun x -> x.sort) p.sort hs
+    | Add xs | Mul xs -> Kind.merge_list sort Sint xs
+    | And xs | Or xs ->  Kind.merge_list sort Sbool xs
+    | Imply(hs,p) -> Kind.merge_list sort p.sort hs
     | Not x -> x.sort
     | Fun(f,_) -> Fun.sort f
     | Aget(m,_) -> Kind.image m.sort
@@ -254,7 +262,7 @@ struct
 
   let size_repr = function
     | True | False | Kint _ -> 0
-    | Var _ | Kreal _ -> 2
+    | Var _ | Kreal _ -> 1
     | Times(_,x) -> succ x.size
     | Add xs | Mul xs | And xs | Or xs -> size_list 1 0 xs
     | Imply(hs,p) -> size_list 1 p.size hs
@@ -346,6 +354,23 @@ struct
 	| _ , Var _ -> 1
 
 
+	| Eq(a1,b1) , Eq(a2,b2)
+	| Neq(a1,b1) , Neq(a2,b2)
+	| Lt(a1,b1) , Lt(a2,b2)
+	| Leq(a1,b1) , Leq(a2,b2)
+	| Div(a1,b1) , Div(a2,b2)
+	| Mod(a1,b1) , Mod(a2,b2) -> 
+	    let cmp = phi a1 a2 in
+	    if cmp <> 0 then cmp else phi b1 b2
+	| Eq _ , _ -> (-1)
+	|  _ , Eq _ -> 1
+	| Neq _ , _ -> (-1)
+	|  _ , Neq _ -> 1
+	| Lt _ , _ -> (-1)
+	|  _ , Lt _ -> 1
+	| Leq _ , _ -> (-1)
+	|  _ , Leq _ -> 1
+
 	| Fun(f,xs) , Fun(g,ys) ->
 	    let cmp = Fun.compare f g in
 	    if cmp <> 0 then cmp else 
@@ -372,6 +397,7 @@ struct
 	| Mul xs , Mul ys 
 	| And xs , And ys 
 	| Or xs , Or ys -> Hcons.compare_list phi xs ys
+
 	| Add _ , _ -> (-1)
 	| _ , Add _ -> 1
 	| Mul _ , _ -> (-1)
@@ -380,28 +406,10 @@ struct
 	| _ , And _ -> 1
 	| Or _ , _ -> (-1)
 	| _ , Or _ -> 1
-
-	| Eq(a1,b1) , Eq(a2,b2)
-	| Neq(a1,b1) , Neq(a2,b2)
-	| Lt(a1,b1) , Lt(a2,b2)
-	| Leq(a1,b1) , Leq(a2,b2)
-	| Div(a1,b1) , Div(a2,b2)
-	| Mod(a1,b1) , Mod(a2,b2) -> 
-	    let cmp = phi a1 a2 in
-	    if cmp <> 0 then cmp else phi b1 b2
-	| Eq _ , _ -> (-1)
-	|  _ , Eq _ -> 1
-	| Neq _ , _ -> (-1)
-	|  _ , Neq _ -> 1
-	| Lt _ , _ -> (-1)
-	|  _ , Lt _ -> 1
-	| Leq _ , _ -> (-1)
-	|  _ , Leq _ -> 1
 	| Div _ , _ -> (-1)
 	|  _ , Div _ -> 1
 	| Mod _ , _ -> (-1)
 	|  _ , Mod _ -> 1
-
 
 	| If(a1,b1,c1) , If(a2,b2,c2) ->
 	    let cmp = phi a1 a2 in
@@ -455,6 +463,7 @@ struct
 
   end
 
+  let weigth e = e.size
   let compare = COMPARE.compare
 
   (* -------------------------------------------------------------------------- *)
@@ -559,6 +568,26 @@ struct
         in subterm (List.nth children n) l
 
   (* -------------------------------------------------------------------------- *)
+  (* --- Builtin Computation Support                                        --- *)
+  (* -------------------------------------------------------------------------- *)
+
+  let builtins = ref Builtins.empty
+  let add_builtin (f:Fun.t) (compute:term list -> term) =
+    let cs = 
+      try Builtins.find f !builtins 
+      with Not_found -> []
+    in
+    builtins := Builtins.add f (cs @ [compute]) !builtins
+
+  let rec eval_builtins xs = function
+    | [] -> raise Not_found
+    | c::cs -> try c xs with Not_found -> eval_builtins xs cs
+
+  let c_builtin f xs = 
+    try eval_builtins xs (Builtins.find f !builtins)
+    with Not_found -> c_fun f xs
+
+  (* -------------------------------------------------------------------------- *)
   (* --- User Operators                                                     --- *)
   (* -------------------------------------------------------------------------- *)
 
@@ -570,10 +599,21 @@ struct
 	      op_revassoc phi (op_revassoc f xs ts) es 
 	  | _ -> op_revassoc phi (e::xs) es
 
-  let rec op_stable = function
+  let rec op_idempotent = function
     | [] -> []
     | [_] as l -> l
-    | x::( (y::_) as w ) -> if x==y then op_stable w else x :: op_stable w
+    | x::( (y::_) as w ) -> if x==y then op_idempotent w else x :: op_idempotent w
+
+  let op_inversible xs ys =
+    let rec simpl modified turn xs ys = match xs , ys with
+      | x::xs , y::ys when x==y -> simpl true turn xs ys
+      | _ -> 
+	  let xs = List.rev xs in
+	  let ys = List.rev ys in
+	  if turn 
+	  then simpl modified false xs ys
+	  else modified,xs,ys
+    in simpl false true xs ys
 
   let element = function
     | E_none -> assert false
@@ -591,7 +631,17 @@ struct
 
   let isnot_element e x = not (is_element e x)
 
-  let op_fun f op xs =
+  let is_neutral f e =
+    match Fun.category f with
+      | Operator op -> is_element op.neutral e
+      | _ -> false
+
+  let is_absorbant f e =
+    match Fun.category f with
+      | Operator op -> is_element op.absorbant e
+      | _ -> false
+
+  let op_fun builtin f op xs =
     let xs =
       if op.associative then
 	let xs = op_revassoc f [] xs in
@@ -611,16 +661,60 @@ struct
 	if op.neutral <> E_none 
 	then List.filter (isnot_element op.neutral) xs 
 	else xs in
-      let xs = if op.stable then op_stable xs else xs in
+      let xs = if op.idempotent then op_idempotent xs else xs in
       match xs with
 	| [] when op.neutral <> E_none -> element op.neutral
-	| [x] when op.stable -> x
-	| _ -> c_fun f xs
+	| [x] when op.associative -> x
+	| _ -> if builtin then c_builtin f xs else c_fun f xs
 
-  let e_fun f xs = 
+  let e_fungen builtin f xs =
     match Fun.category f with
-      | Logic.Operator op -> op_fun f op xs
-      | _ -> c_fun f xs
+      | Logic.Operator op -> op_fun builtin f op xs
+      | _ -> if builtin then c_builtin f xs else c_fun f xs
+
+  let e_fun = e_fungen true
+  let e_funop = e_fungen false
+  let e_funraw = c_fun
+
+  (* -------------------------------------------------------------------------- *)
+  (* --- Symbols                                                            --- *)
+  (* -------------------------------------------------------------------------- *)
+
+  type t = term
+  let equal = (==)
+
+  let is_primitive e =
+    match e.repr with
+      | True | False | Kint _ | Kreal _ -> true
+      | _ -> false
+
+  let is_atomic e =
+    match e.repr with
+      | True | False | Kint _ | Kreal _ | Var _ -> true
+      | _ -> false
+
+  let is_simple e =
+    match e.repr with
+      | True | False | Kint _ | Kreal _ | Var _ | Fun(_,[]) -> true
+      | _ -> false
+
+  let is_closed e = Vars.is_empty e.vars
+
+  let is_prop e = match e.sort with
+    | Sprop | Sbool -> true
+    | _ -> false
+
+  let is_int e = match e.sort with
+    | Sint -> true
+    | _ -> false
+
+  let is_real e = match e.sort with
+    | Sreal -> true
+    | _ -> false
+
+  let is_arith e = match e.sort with
+    | Sreal | Sint -> true
+    | _ -> false
 
   (* -------------------------------------------------------------------------- *)
   (* --- Ground & Arithmetics                                               --- *)
@@ -631,15 +725,37 @@ struct
       | Kint z , Kint z' -> e_zint (f z z')
       | _ -> c x y
 
-  let z_rel c f x y =
-    match x.repr , y.repr with
-      | Kint z , Kint z' -> if f z z' then e_true else e_false
-      | _ -> c x y
+  let z_rel fc fe c xs ys = 
+    match xs , ys with
+      | [] , [] -> if fc c Z.zero then e_true else e_false
+      | [] , _ -> fe (e_zint c) (c_add ys) (* c+0 R ys <-> c R ys *)
+      | _ , [] -> fe (c_add xs) (e_zint (Z.opp c)) (* c+xs R 0 <-> xs R -c *)
+      | _ -> 
+	  match Z.sign c with
+	    | Z.Null -> fe (c_add xs) (c_add ys)
+		(* 0+xs R ys <-> xs R ys *)
+	    | Z.Negative -> fe (c_add xs) (c_add (e_zint (Z.opp c) :: ys))
+		(* c+xs R ys <-> xs R (-c+ys) *)
+	    | Z.Positive -> fe (c_add (e_zint c :: xs)) (c_add ys)
+		(* c+xs R ys <-> (c+xs) R ys *)
 
-  let rec ground f e xs = function
-    | {repr=Kint n}::ts -> ground f (f e n) xs ts
-    | x::ts -> ground f e (x::xs) ts
-    | [] -> e , xs
+  let z_eq = z_rel Z.equal c_eq
+  let z_neq = z_rel Z.not_equal c_neq
+
+  let z_leq c xs ys = 
+    if Z.equal c Z.one && List.for_all is_int xs && List.for_all is_int ys
+    then c_lt (c_add xs) (c_add ys)
+    else z_rel Z.leq c_leq c xs ys
+
+  let z_lt c xs ys =
+    if not (Z.null c) && List.for_all is_int xs && List.for_all is_int ys 
+    then z_leq (Z.succ c) xs ys
+    else z_rel Z.lt c_lt c xs ys
+
+  let rec ground f c xs = function
+    | {repr=Kint n}::ts -> ground f (f c n) xs ts
+    | x::ts -> ground f c (x::xs) ts
+    | [] -> c , xs
 
   (* --- Times --- *)
 
@@ -648,6 +764,7 @@ struct
       if Z.equal z Z.zero then e_zint Z.zero else
 	match e.repr with
 	  | Kint z' -> e_zint (Z.mul z z')
+	  | Kreal r when Z.equal z Z.minus_one -> e_real (R.opp r)
 	  | Times(z',t) -> times (Z.mul z z') t
 	  | _ -> c_times z e
 
@@ -699,20 +816,22 @@ struct
     | Kint _ | Times _ | Add _ -> true
     | _ -> false
 
-  let rec partition_monoms xs ys = function
-    | [] -> c_add xs , c_add ys
+  let rec partition_monoms phi c xs ys = function
+    | [] -> phi c xs ys
     | (k,t) :: kts ->
-	if Z.positive k
-	then partition_monoms (fold_monom xs k t) ys kts
-	else partition_monoms xs (fold_monom ys (Z.opp k) t) kts
-
+	if t == e_one 
+	then partition_monoms phi (Z.add k c) xs ys kts
+	else
+	  if Z.positive k
+	  then partition_monoms phi c (fold_monom xs k t) ys kts
+	  else partition_monoms phi c xs (fold_monom ys (Z.opp k) t) kts
+	    
   let relation cmp zcmp x y =
     if is_affine x || is_affine y then
       let kts = unfold_affine1 (unfold_affine1 [] Z.one x) Z.minus_one y in
       let kts = List.sort compare_monoms kts in
       let kts = fold_affine (fun ts k t -> (k,t)::ts) [] kts in
-      let x , y = partition_monoms [] [] kts in
-      z_rel cmp zcmp x y
+      partition_monoms zcmp Z.zero [] [] kts
     else cmp x y
 
   (* --- Multiplications --- *)
@@ -745,8 +864,8 @@ struct
 
   (* --- Comparisons --- *)
 
-  let e_lt x y = if x==y then e_false else relation c_lt Z.lt x y
-  let e_leq x y = if x==y then e_true else relation c_leq Z.leq x y
+  let e_lt x y = if x==y then e_false else relation c_lt z_lt x y
+  let e_leq x y = if x==y then e_true else relation c_leq z_leq x y
 
   (* -------------------------------------------------------------------------- *)
   (* --- Logical                                                            --- *)
@@ -830,18 +949,25 @@ struct
 	      c_imply [a] b
 
   type structural =
+    | S_equal        (* equal constants or constructors *)
+    | S_disequal     (* different constants or constructors *)
     | S_injection    (* same function, injective or constructor *)
+    | S_inversible   (* same function, inversible on both side *)
     | S_disjunction  (* both constructors, but different ones *)
     | S_functions    (* general functions *)
 
   let structural f g =
     if Fun.equal f g then
       match Fun.category f with
-	| Logic.Injection | Logic.Constructor -> S_injection
+	| Logic.Injection -> S_injection
+	| Logic.Operator { inversible=true } -> S_inversible
+	| Logic.Constructor | Logic.Constant _ -> S_equal
 	| Logic.Function | Logic.Operator _ -> S_functions
     else
       match Fun.category f , Fun.category g with
-	| Logic.Constructor , Logic.Constructor -> S_disjunction
+	| Logic.Constructor , Logic.Constructor -> S_disequal
+	| Logic.Constant a , Logic.Constant b -> 
+	    if Z.equal a b then S_equal else S_disequal
 	| _ -> S_functions
 
   let rec eq_all phi p_not xs ys =
@@ -868,9 +994,21 @@ struct
 		| Yes -> Yes
 		| No | Maybe -> Maybe
 
+  let eqbuiltins = ref Builtins.empty
+  let add_builtin_eq f r = eqbuiltins := Builtins.add f r !eqbuiltins
+  let get_builtin_eq x y = 
+    let fetch x = match x.repr with 
+      | Fun(f,_) -> Builtins.find f !eqbuiltins
+      | _ -> raise Not_found
+    in try fetch x x y with Not_found -> fetch y x y
+      
   let rec equality p_not x y =
-    if x == y then e_true else relation (eq_symb p_not) Z.equal x y
+    if x == y then e_true else relation (eq_builtin p_not) z_eq x y
 
+  and eq_builtin p_not x y =
+    try get_builtin_eq x y
+    with Not_found -> eq_symb p_not x y
+      
   and eq_symb p_not x y =
     match x.repr , y.repr with
       | Kint z , Kint z' -> if Z.equal z z' then e_true else e_false
@@ -882,9 +1020,20 @@ struct
       | Fun(f,xs) , Fun(g,ys) ->
 	  begin
 	    match structural f g with
+	      | S_equal -> e_true
+	      | S_disequal -> e_false
 	      | S_injection -> eq_maybe x y (eq_all equality p_not xs ys)
 	      | S_disjunction -> e_false
 	      | S_functions -> c_eq x y
+	      | S_inversible ->
+		  let m,xs,ys = op_inversible xs ys in
+		  if m then c_eq (e_fun f xs) (e_fun g ys) else c_eq x y
+	  end
+      | Fun(f,[]) , Kint z | Kint z , Fun(f,[]) ->
+	  begin
+	    match Fun.category f with
+	      | Logic.Constant k -> if Z.equal k z then e_true else e_false
+	      | _ -> c_eq x y
 	  end
       | Rdef fxs , Rdef gys ->
 	  begin
@@ -899,7 +1048,11 @@ struct
     if Field.equal f g then equality p_not x y else raise Exit
 
   let rec disequality p_not x y =
-    if x == y then e_false else relation (neq_symb p_not) Z.not_equal x y
+    if x == y then e_false else relation (neq_builtin p_not) z_neq x y
+
+  and neq_builtin p_not x y =
+    try p_not (get_builtin_eq x y)
+    with Not_found -> neq_symb p_not x y
 
   and neq_symb p_not x y =
     match x.repr , y.repr with
@@ -912,9 +1065,20 @@ struct
       | Fun(f,xs) , Fun(g,ys) ->
 	  begin
 	    match structural f g with
+	      | S_equal -> e_false
+	      | S_disequal -> e_true
 	      | S_injection -> neq_maybe x y (neq_any disequality p_not xs ys)
 	      | S_disjunction -> e_true
 	      | S_functions -> c_neq x y
+	      | S_inversible ->
+		  let m,xs,ys = op_inversible xs ys in
+		  if m then c_neq (e_fun f xs) (e_fun g ys) else c_neq x y
+	  end
+      | Fun(f,[]) , Kint z | Kint z , Fun(f,[]) ->
+	  begin
+	    match Fun.category f with
+	      | Logic.Constant k -> if Z.equal k z then e_false else e_true
+	      | _ -> c_neq x y
 	  end
       | Rdef fxs , Rdef gys ->
 	  begin
@@ -932,9 +1096,10 @@ struct
   (* --- Boolean Simplifications                                            --- *)
   (* -------------------------------------------------------------------------- *)
 
-  let cache = Array.create 2048 (e_true,e_false)
-  let getcache p = cache.(p.id mod (Array.length cache))
-  let setcache p q = cache.(p.id mod (Array.length cache)) <- (p,q)
+  let cache = Array.create 0x800 (e_true,e_false)
+  let cacheid p = p.id land 0x7FF
+  let getcache p = cache.(cacheid p)
+  let setcache p q = cache.(cacheid p) <- (p,q)
 
   let rec e_not x =
     match x.repr with
@@ -994,6 +1159,13 @@ struct
 		    | Neq(u,v) -> c_if (e_eq u v) b a
 		    | _ -> c_if e a b
 
+  let e_bool = function true -> e_true | false -> e_false 
+  let e_literal v p = if v then p else e_not p
+  let literal p = match p.repr with
+    | Neq(a,b) -> false , c_eq a b
+    | Lt(x,y) -> false , c_leq y x
+    | Not q -> false , q
+    | _ -> true , p
   let are_equal a b = is_true (e_eq a b)
 
   (* -------------------------------------------------------------------------- *)
@@ -1205,6 +1377,58 @@ struct
 	times k x
 
   (* -------------------------------------------------------------------------- *)
+  (* --- Congruence                                                         --- *)
+  (* -------------------------------------------------------------------------- *)
+
+  exception NO_CONGRUENCE
+  exception FIELD_NEQ
+
+  let rec concat2 f xs ys = match xs,ys with
+    | [],[] -> []
+    | x::xs , y::ys -> f x y @ (concat2 f xs ys)
+    | _ -> raise NO_CONGRUENCE
+
+  let rec congr_eq a b =
+    match a.repr , b.repr with
+      | Fun(f,xs) , Fun(g,ys) ->
+	  begin
+	    match structural f g with
+	      | S_equal | S_disequal | S_disjunction | S_inversible -> []
+	      | S_injection -> concat2 congr_argeq xs ys
+	      | S_functions -> raise NO_CONGRUENCE
+	  end
+      | Rdef fxs , Rdef gys -> concat2 congr_fieldeq fxs gys
+      | _ -> raise NO_CONGRUENCE
+
+  and congr_argeq a b = try congr_eq a b with NO_CONGRUENCE -> [a,b]
+  and congr_fieldeq (f,a) (g,b) =
+    if Field.equal f g then congr_argeq a b else raise NO_CONGRUENCE
+
+  let congruence_eq a b = try Some (congr_eq a b) with NO_CONGRUENCE -> None
+
+  let rec congr_neq a b =
+    match a.repr , b.repr with
+      | Fun(f,xs) , Fun(g,ys) ->
+	  begin
+	    match structural f g with
+	      | S_equal | S_disequal | S_disjunction | S_inversible -> []
+	      | S_injection -> concat2 congr_argneq xs ys
+	      | S_functions -> raise NO_CONGRUENCE
+	  end
+      | Rdef fxs , Rdef gys -> 
+	  begin
+	    try concat2 congr_fieldneq fxs gys
+	    with FIELD_NEQ -> []
+	  end
+      | _ -> raise NO_CONGRUENCE
+
+  and congr_argneq a b = try congr_neq a b with NO_CONGRUENCE -> [a,b]
+  and congr_fieldneq (f,a) (g,b) =
+    if Field.equal f g then congr_argneq a b else raise FIELD_NEQ
+
+  let congruence_neq a b = try Some(congr_neq a b) with NO_CONGRUENCE -> None
+
+  (* -------------------------------------------------------------------------- *)
   (* --- List All2/Any2                                                     --- *)
   (* -------------------------------------------------------------------------- *)
 
@@ -1227,9 +1451,11 @@ struct
       | Fun(f,xs) , Fun(g,ys) ->
 	  begin
 	    match structural f g with
+	      | S_equal -> e_true
+	      | S_disequal -> e_false
 	      | S_injection -> e_all2 flat_eq xs ys
 	      | S_disjunction -> e_false
-	      | S_functions -> e_eq a b
+	      | S_functions | S_inversible -> e_eq a b
 	  end
       | Rdef fxs , Rdef gys ->
 	  begin
@@ -1245,9 +1471,11 @@ struct
       | Fun(f,xs) , Fun(g,ys) ->
 	  begin
 	    match structural f g with
+	      | S_equal -> e_false
+	      | S_disequal -> e_true
 	      | S_injection -> e_any2 flat_neq xs ys
 	      | S_disjunction -> e_true
-	      | S_functions -> e_neq a b
+	      | S_functions | S_inversible -> e_neq a b
 	  end
       | Rdef fxs , Rdef gys ->
 	  begin
@@ -1314,6 +1542,13 @@ struct
       | Bind _ -> raise (Invalid_argument "Qed.Term.e_map")
       | _ -> r_map f e
 
+  let f_map f xs e =
+    match e.repr with
+      | Var _ -> e
+      | Apply(a,ps) -> e_apply (f xs a) (List.map (f xs) ps)
+      | Bind(q,x,p) -> e_bind q x (f (Vars.add x xs) p)
+      | _ -> r_map (f xs) e
+
   let e_iter f e =
     match e.repr with
       | True | False | Kint _ | Kreal _ | Var _ -> ()
@@ -1326,6 +1561,11 @@ struct
       | Imply(xs,x) -> List.iter f xs ; f x
       | Apply(x,xs) -> f x ; List.iter f xs
       | Fun(_,xs) -> List.iter f xs
+
+  let f_iter f xs e =
+    match e.repr with
+      | Bind(_,x,e) -> f (Vars.add x xs) e
+      | _ -> e_iter (f xs) e
 
   (* -------------------------------------------------------------------------- *)
   (* --- Sub-terms                                                          --- *)
@@ -1409,103 +1649,61 @@ struct
     in aux e pos
 
   (* -------------------------------------------------------------------------- *)
-  (* --- Symbols                                                            --- *)
-  (* -------------------------------------------------------------------------- *)
-
-  type t = term
-  let equal = (==)
-
-  let is_primitive e =
-    match e.repr with
-      | True | False | Kint _ | Kreal _ -> true
-      | _ -> false
-
-  let is_atomic e =
-    match e.repr with
-      | True | False | Kint _ | Kreal _ | Var _ -> true
-      | _ -> false
-
-  let is_simple e =
-    match e.repr with
-      | True | False | Kint _ | Kreal _ | Var _ | Fun(_,[]) -> true
-      | _ -> false
-
-  let is_closed e = Vars.is_empty e.vars
-
-  let is_prop e = match e.sort with
-    | Sprop | Sbool -> true
-    | _ -> false
-
-  let is_int e = match e.sort with
-    | Sint -> true
-    | _ -> false
-
-  let is_real e = match e.sort with
-    | Sreal -> true
-    | _ -> false
-
-  let is_arith e = match e.sort with
-    | Sreal | Sint -> true
-    | _ -> false
-
-  (* -------------------------------------------------------------------------- *)
   (* --- DEBUG                                                              --- *)
   (* -------------------------------------------------------------------------- *)
 
-  let rec pp_rdebug fmt = function
-    | Kint z -> Format.fprintf fmt "constant %s" (Z.to_string z)
-    | Kreal z -> Format.fprintf fmt "real constant %s" (R.to_string z)
-    | True  -> Format.pp_print_string fmt "true"
-    | False -> Format.pp_print_string fmt "false"
-    | Times(z,x) -> Format.fprintf fmt "times %s%a" (Z.to_string z) pp_x x
-    | Add xs -> Format.fprintf fmt "add%a" pp_xs xs
-    | Mul xs -> Format.fprintf fmt "mul%a" pp_xs xs
-    | And xs -> Format.fprintf fmt "and%a" pp_xs xs
-    | Or xs -> Format.fprintf fmt "or%a" pp_xs xs
-    | If(e,a,b) -> Format.fprintf fmt "if%a%a%a" pp_x e pp_x a pp_x b
-    | Imply(hs,p) -> Format.fprintf fmt "imply%a =>%a" pp_xs hs pp_x p
-    | Neq(a,b) -> Format.fprintf fmt "neq%a%a" pp_x a pp_x b
-    | Eq(a,b) -> Format.fprintf fmt "eq%a%a" pp_x a pp_x b
-    | Leq(a,b) -> Format.fprintf fmt "leq%a%a" pp_x a pp_x b
-    | Lt(a,b) -> Format.fprintf fmt "lt%a%a" pp_x a pp_x b
-    | Not e -> Format.fprintf fmt "not%a" pp_x e
-    | Fun(f,es) -> Format.fprintf fmt "fun %a%a" Fun.pretty f pp_xs es
-    | Apply(phi,es) -> Format.fprintf fmt "apply%a%a" pp_x phi pp_xs es
-    | Var x -> Format.fprintf fmt "var %a" pp_var x
-    | Bind(q,x,e) -> Format.fprintf fmt "bind %a %a. %a" pp_bind q pp_var x pp_x e
-    | _ -> Format.fprintf fmt "<blob>"
-
-  and pp_bind fmt = function
+  let pp_bind fmt = function
     | Forall -> Format.pp_print_string fmt "Forall"
     | Exists -> Format.pp_print_string fmt "Exists"
     | Lambda -> Format.pp_print_string fmt "Lambda"
 
-  and pp_var fmt x = Format.fprintf fmt "X%03d(%s:%d)" x.vid x.vbase x.vrank
-
-  and pp_xs fmt xs = List.iter (pp_x fmt) xs
-  and pp_x fmt x = Format.fprintf fmt " #%03d" x.id
+  let pp_var fmt x = Format.fprintf fmt "X%03d(%s:%d)" x.vid x.vbase x.vrank
+  let pp_id fmt x = Format.fprintf fmt " #%03d" x.id
+  let pp_ids fmt xs = List.iter (pp_id fmt) xs
+  let pp_field fmt (f,x) = Format.fprintf fmt "@ %a:%a;" Field.pretty f pp_id x
+  let pp_record fmt fxs = List.iter (pp_field fmt) fxs
+  let pp_repr fmt = function
+    | Kint z -> Format.fprintf fmt "constant %s" (Z.to_string z)
+    | Kreal z -> Format.fprintf fmt "real constant %s" (R.to_string z)
+    | True  -> Format.pp_print_string fmt "true"
+    | False -> Format.pp_print_string fmt "false"
+    | Times(z,x) -> Format.fprintf fmt "times %s%a" (Z.to_string z) pp_id x
+    | Add xs -> Format.fprintf fmt "add%a" pp_ids xs
+    | Mul xs -> Format.fprintf fmt "mul%a" pp_ids xs
+    | And xs -> Format.fprintf fmt "and%a" pp_ids xs
+    | Div(a,b) -> Format.fprintf fmt "div%a%a" pp_id a pp_id b
+    | Mod(a,b) -> Format.fprintf fmt "mod%a%a" pp_id a pp_id b
+    | Or xs -> Format.fprintf fmt "or%a" pp_ids xs
+    | If(e,a,b) -> Format.fprintf fmt "if%a%a%a" pp_id e pp_id a pp_id b
+    | Imply(hs,p) -> Format.fprintf fmt "imply%a =>%a" pp_ids hs pp_id p
+    | Neq(a,b) -> Format.fprintf fmt "neq%a%a" pp_id a pp_id b
+    | Eq(a,b) -> Format.fprintf fmt "eq%a%a" pp_id a pp_id b
+    | Leq(a,b) -> Format.fprintf fmt "leq%a%a" pp_id a pp_id b
+    | Lt(a,b) -> Format.fprintf fmt "lt%a%a" pp_id a pp_id b
+    | Not e -> Format.fprintf fmt "not%a" pp_id e
+    | Fun(f,es) -> Format.fprintf fmt "fun %a%a" Fun.pretty f pp_ids es
+    | Apply(phi,es) -> Format.fprintf fmt "apply%a%a" pp_id phi pp_ids es
+    | Var x -> Format.fprintf fmt "var %a" pp_var x
+    | Bind(q,x,e) -> Format.fprintf fmt "bind %a %a. %a" pp_bind q pp_var x pp_id e
+    | Rdef fxs -> Format.fprintf fmt "@[<hov 2>record {%a }@]" pp_record fxs
+    | Rget(e,f) -> Format.fprintf fmt "field %a.%a" pp_id e Field.pretty f
+    | Aset(m,k,v) -> Format.fprintf fmt "array%a[%a :=%a ]" pp_id m pp_id k pp_id v
+    | Aget(m,k) -> Format.fprintf fmt "array%a[%a ]" pp_id m pp_id k
+  let pp_rid fmt e = pp_repr fmt e.repr
 
   let rec pp_debug disp fmt e =
     if not (Intset.mem e.id !disp) then
       begin
+	Format.fprintf fmt "%a = %a@." pp_id e pp_repr e.repr ;
 	disp := Intset.add e.id !disp ;
 	pp_children disp fmt e ;
-	Format.fprintf fmt "%a = %a@." pp_x e pp_rdebug e.repr ;
       end
 
   and pp_children disp fmt e = e_iter (pp_debug disp fmt) e
-      
-  let state fmt tags =
-    begin
-      let disp = ref Intset.empty in
-      List.iter (fun (_,e) -> pp_children disp fmt e) tags ;
-      List.iter 
-	(fun (tag,e) -> 
-	   Format.fprintf fmt "%-6s = %a@." tag pp_rdebug e.repr
-	) tags ;
-    end
 
-  let debug fmt e = pp_debug (ref Intset.empty) fmt e
+  let debug fmt e = 
+    Format.fprintf fmt "%a with:@." pp_id e ;
+    pp_debug (ref Intset.empty) fmt e
 
   let pretty = debug
 
@@ -1552,6 +1750,21 @@ struct
 	  Some ( base , fothers )
 
   (* ------------------------------------------------------------------------ *)
+  (* ---  Sizing Terms                                                    --- *)
+  (* ------------------------------------------------------------------------ *)
+
+  let rec count k m e =
+    if not (Tset.mem e !m) then 
+      begin
+	incr k ;
+	m := Tset.add e !m ;
+	e_iter (count k m) e ;
+      end
+
+  let size e = 
+    let k = ref 0 in count k (ref Tset.empty) e ; !k
+
+  (* ------------------------------------------------------------------------ *)
   (* ---  Shared Sub-Terms                                                --- *)
   (* ------------------------------------------------------------------------ *)
 
@@ -1560,68 +1773,82 @@ struct
     | FirstMark (* second traversal *)
     | Marked    (* finished *)
 
-  type env = {
+  type marks = {
     closed : Vars.t ;            (* context-declared variables *)
     marked : (term -> bool) ;    (* context-letified terms *)
-    shareable : (term -> bool) ;  (* terms that can be shared *)
+    shareable : (term -> bool) ; (* terms that can be shared *)
     mutable mark : mark Tmap.t ; (* current marks during traversal *)
-    mutable shared : Tset.t ;
+    mutable shared : Tset.t ;    (* marked several times *)
+    mutable roots : term list ;  (* added as marked roots *)
   }
 
-  let get_mark env e =
-    try Tmap.find e env.mark 
+  let get_mark m e =
+    try Tmap.find e m.mark 
     with Not_found -> Unmarked
       
-  let set_mark env e m =
-    env.mark <- Tmap.add e m env.mark
-      
-  let rec walk env e =
+  let set_mark m e t =
+    m.mark <- Tmap.add e t m.mark
+
+  let rec walk m xs e =
     if not (is_simple e) then
-      match get_mark env e with
-	| Unmarked ->
-	    if env.marked e then 
-	      set_mark env e Marked
-	    else 
-	      begin
-		set_mark env e FirstMark ;
-		e_iter (walk env) e ;
-	      end
-	| FirstMark ->
-	    if env.shareable e && Vars.subset e.vars env.closed 
-	    then env.shared <- Tset.add e env.shared 
-	    else e_iter (walk env) e ;
-	    set_mark env e Marked
-	| Marked ->
-	    ()
+      begin
+	match get_mark m e with
+	  | Unmarked ->
+	      if m.marked e then 
+		set_mark m e Marked
+	      else 
+		begin
+		  set_mark m e FirstMark ;
+		  f_iter (walk m) xs e ;
+		end
+	  | FirstMark ->
+	      if m.shareable e 
+		&& Vars.subset e.vars m.closed 
+		&& not (Vars.intersect e.vars xs)
+	      then m.shared <- Tset.add e m.shared 
+	      else f_iter (walk m) xs e ;
+	      set_mark m e Marked
+	  | Marked ->
+	      ()
+      end
+
+  let mark m e = m.roots <- e :: m.roots ; walk m Vars.empty e
 
   type defs = {
     mutable stack : term list ;
     mutable defined : Tset.t ; 
   }
-
+      
   let rec collect shared defs e =
     if not (Tset.mem e defs.defined) then
       begin
 	e_iter (collect shared defs) e ;
 	if Tset.mem e shared then 
-	  ( defs.stack <- e :: defs.stack ;
-	    defs.defined <- Tset.add e defs.defined )
+	  defs.stack <- e :: defs.stack ;
+	defs.defined <- Tset.add e defs.defined ;
       end
 
-  let shared 
-      ?(atomic=fun _ -> false)
+  let marks
+      ?(shared=fun _ -> false)
       ?(shareable=fun _ -> true)
-      ?(closed=Vars.empty) es =
-    let env = {
-      closed = closed ;
-      marked = atomic ;
-      shareable = shareable ;
-      shared = Tset.empty ;
-      mark = Tmap.empty ;
-    } in
-    List.iter (walk env) es ; 
+      ?(closed=Vars.empty) 
+      () = {
+	closed = closed ;
+	marked = shared ;
+	shareable = shareable ;
+	shared = Tset.empty ;
+	mark = Tmap.empty ;
+	roots = [] ;
+      }
+
+  let defs m =
     let defines = { stack=[] ; defined=Tset.empty } in
-    List.iter (collect env.shared defines) es ; 
+    List.iter (collect m.shared defines) m.roots ; 
     List.rev defines.stack
+    
+  let shared ?shared ?shareable ?closed es =
+    let m = marks ?shared ?shareable ?closed () in
+    List.iter (mark m) es ; 
+    defs m
 
 end

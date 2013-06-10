@@ -7,7 +7,7 @@ include Plugin.Register
 
 let print_warning e ot nt =
   result "Inserting cast for expression %a of type %a to type %a@."
-    !Ast_printer.d_exp e !Ast_printer.d_type ot !Ast_printer.d_type nt;
+    Printer.pp_exp e Printer.pp_typ ot Printer.pp_typ nt;
   nt
 ;;
 

@@ -40,6 +40,7 @@ type token =
   | PROMELA_FUNC
 
 open Parsing;;
+let _ = parse_error;;
 # 30 "src/aorai/promelaparser_withexps.mly"
 open Logic_ptree
 open Promelaast
@@ -53,7 +54,7 @@ let to_seq c =
     min_rep = Some (PCst (IntConstant "1"));
     max_rep = Some (PCst (IntConstant "1"));
    }]
-# 57 "src/aorai/promelaparser_withexps.ml"
+# 58 "src/aorai/promelaparser_withexps.ml"
 let yytransl_const = [|
   257 (* PROMELA_OR *);
   258 (* PROMELA_AND *);
@@ -295,7 +296,7 @@ let yyact = [|
 	    in
 	    (states , _3)
 	)
-# 299 "src/aorai/promelaparser_withexps.ml"
+# 300 "src/aorai/promelaparser_withexps.ml"
                : Promelaast.parsed_automaton))
 ; (fun __caml_parser_env ->
     let _3 = (Parsing.peek_val __caml_parser_env 3 : 'states) in
@@ -313,7 +314,7 @@ let yyact = [|
 	      ) observed_states []
 	    in
 	    (states , _3) )
-# 317 "src/aorai/promelaparser_withexps.ml"
+# 318 "src/aorai/promelaparser_withexps.ml"
                : Promelaast.parsed_automaton))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'states) in
@@ -321,14 +322,14 @@ let yyact = [|
     Obj.repr(
 # 109 "src/aorai/promelaparser_withexps.mly"
                                          ( _1@_3 )
-# 325 "src/aorai/promelaparser_withexps.ml"
+# 326 "src/aorai/promelaparser_withexps.ml"
                : 'states))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'state) in
     Obj.repr(
 # 110 "src/aorai/promelaparser_withexps.mly"
          ( _1 )
-# 332 "src/aorai/promelaparser_withexps.ml"
+# 333 "src/aorai/promelaparser_withexps.ml"
                : 'states))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : 'state_labels) in
@@ -360,7 +361,7 @@ let yyact = [|
 	      in
 	      (List.rev tr_list)@trans
 	)
-# 364 "src/aorai/promelaparser_withexps.ml"
+# 365 "src/aorai/promelaparser_withexps.ml"
                : 'state))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : 'label) in
@@ -372,14 +373,14 @@ let yyact = [|
 	    let (stl2,trl2)=_2 in
 	      (stl1@stl2,trl1@trl2) 
 	)
-# 376 "src/aorai/promelaparser_withexps.ml"
+# 377 "src/aorai/promelaparser_withexps.ml"
                : 'state_labels))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'label) in
     Obj.repr(
 # 147 "src/aorai/promelaparser_withexps.mly"
          ( _1 )
-# 383 "src/aorai/promelaparser_withexps.ml"
+# 384 "src/aorai/promelaparser_withexps.ml"
                : 'state_labels))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : string) in
@@ -438,32 +439,32 @@ let yyact = [|
 	    ([old],!trans)
 	  end
 	)
-# 442 "src/aorai/promelaparser_withexps.ml"
+# 443 "src/aorai/promelaparser_withexps.ml"
                : 'label))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 1 : 'transitions) in
     Obj.repr(
 # 208 "src/aorai/promelaparser_withexps.mly"
                                             ( (_2,false) )
-# 449 "src/aorai/promelaparser_withexps.ml"
+# 450 "src/aorai/promelaparser_withexps.ml"
                : 'state_body))
 ; (fun __caml_parser_env ->
     Obj.repr(
 # 209 "src/aorai/promelaparser_withexps.mly"
                 ( ([],false) )
-# 455 "src/aorai/promelaparser_withexps.ml"
+# 456 "src/aorai/promelaparser_withexps.ml"
                : 'state_body))
 ; (fun __caml_parser_env ->
     Obj.repr(
 # 210 "src/aorai/promelaparser_withexps.mly"
                  ( ([],true) )
-# 461 "src/aorai/promelaparser_withexps.ml"
+# 462 "src/aorai/promelaparser_withexps.ml"
                : 'state_body))
 ; (fun __caml_parser_env ->
     Obj.repr(
 # 211 "src/aorai/promelaparser_withexps.mly"
                                                             ( ([],true) )
-# 467 "src/aorai/promelaparser_withexps.ml"
+# 468 "src/aorai/promelaparser_withexps.ml"
                : 'state_body))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 1 : 'transitions) in
@@ -471,14 +472,14 @@ let yyact = [|
     Obj.repr(
 # 216 "src/aorai/promelaparser_withexps.mly"
                                  ( _1@[_2] )
-# 475 "src/aorai/promelaparser_withexps.ml"
+# 476 "src/aorai/promelaparser_withexps.ml"
                : 'transitions))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'transition) in
     Obj.repr(
 # 217 "src/aorai/promelaparser_withexps.mly"
               ( [_1] )
-# 482 "src/aorai/promelaparser_withexps.ml"
+# 483 "src/aorai/promelaparser_withexps.ml"
                : 'transitions))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 3 : 'guard) in
@@ -497,47 +498,47 @@ let yyact = [|
 	  in
 	  (_2,s)
 	)
-# 501 "src/aorai/promelaparser_withexps.ml"
+# 502 "src/aorai/promelaparser_withexps.ml"
                : 'transition))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : string) in
     Obj.repr(
 # 237 "src/aorai/promelaparser_withexps.mly"
                           ( POr(PCall (_1,None), PReturn _1) )
-# 508 "src/aorai/promelaparser_withexps.ml"
+# 509 "src/aorai/promelaparser_withexps.ml"
                : 'guard))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : string) in
     Obj.repr(
 # 238 "src/aorai/promelaparser_withexps.mly"
                          ( PCall (_1,None) )
-# 515 "src/aorai/promelaparser_withexps.ml"
+# 516 "src/aorai/promelaparser_withexps.ml"
                : 'guard))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : string) in
     Obj.repr(
 # 239 "src/aorai/promelaparser_withexps.mly"
                            ( PReturn _1 )
-# 522 "src/aorai/promelaparser_withexps.ml"
+# 523 "src/aorai/promelaparser_withexps.ml"
                : 'guard))
 ; (fun __caml_parser_env ->
     Obj.repr(
 # 240 "src/aorai/promelaparser_withexps.mly"
                 ( PTrue )
-# 528 "src/aorai/promelaparser_withexps.ml"
+# 529 "src/aorai/promelaparser_withexps.ml"
                : 'guard))
 ; (fun __caml_parser_env ->
     Obj.repr(
 # 241 "src/aorai/promelaparser_withexps.mly"
                  ( PFalse )
-# 534 "src/aorai/promelaparser_withexps.ml"
+# 535 "src/aorai/promelaparser_withexps.ml"
                : 'guard))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'guard) in
     Obj.repr(
 # 242 "src/aorai/promelaparser_withexps.mly"
                      ( PNot _2 )
-# 541 "src/aorai/promelaparser_withexps.ml"
+# 542 "src/aorai/promelaparser_withexps.ml"
                : 'guard))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'guard) in
@@ -545,7 +546,7 @@ let yyact = [|
     Obj.repr(
 # 243 "src/aorai/promelaparser_withexps.mly"
                            ( PAnd (_1,_3) )
-# 549 "src/aorai/promelaparser_withexps.ml"
+# 550 "src/aorai/promelaparser_withexps.ml"
                : 'guard))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'guard) in
@@ -553,21 +554,21 @@ let yyact = [|
     Obj.repr(
 # 244 "src/aorai/promelaparser_withexps.mly"
                           ( POr (_1,_3) )
-# 557 "src/aorai/promelaparser_withexps.ml"
+# 558 "src/aorai/promelaparser_withexps.ml"
                : 'guard))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 1 : 'guard) in
     Obj.repr(
 # 245 "src/aorai/promelaparser_withexps.mly"
                                        ( _2 )
-# 564 "src/aorai/promelaparser_withexps.ml"
+# 565 "src/aorai/promelaparser_withexps.ml"
                : 'guard))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'logic_relation) in
     Obj.repr(
 # 246 "src/aorai/promelaparser_withexps.mly"
                          ( _1 )
-# 571 "src/aorai/promelaparser_withexps.ml"
+# 572 "src/aorai/promelaparser_withexps.ml"
                : 'guard))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'arith_relation) in
@@ -575,7 +576,7 @@ let yyact = [|
     Obj.repr(
 # 250 "src/aorai/promelaparser_withexps.mly"
                                              ( PRel(Eq, _1, _3) )
-# 579 "src/aorai/promelaparser_withexps.ml"
+# 580 "src/aorai/promelaparser_withexps.ml"
                : 'logic_relation))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'arith_relation) in
@@ -583,7 +584,7 @@ let yyact = [|
     Obj.repr(
 # 251 "src/aorai/promelaparser_withexps.mly"
                                              ( PRel(Lt, _1, _3) )
-# 587 "src/aorai/promelaparser_withexps.ml"
+# 588 "src/aorai/promelaparser_withexps.ml"
                : 'logic_relation))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'arith_relation) in
@@ -591,7 +592,7 @@ let yyact = [|
     Obj.repr(
 # 252 "src/aorai/promelaparser_withexps.mly"
                                              ( PRel(Gt, _1, _3) )
-# 595 "src/aorai/promelaparser_withexps.ml"
+# 596 "src/aorai/promelaparser_withexps.ml"
                : 'logic_relation))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'arith_relation) in
@@ -599,7 +600,7 @@ let yyact = [|
     Obj.repr(
 # 253 "src/aorai/promelaparser_withexps.mly"
                                              ( PRel(Le, _1, _3) )
-# 603 "src/aorai/promelaparser_withexps.ml"
+# 604 "src/aorai/promelaparser_withexps.ml"
                : 'logic_relation))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'arith_relation) in
@@ -607,7 +608,7 @@ let yyact = [|
     Obj.repr(
 # 254 "src/aorai/promelaparser_withexps.mly"
                                              ( PRel(Ge, _1, _3) )
-# 611 "src/aorai/promelaparser_withexps.ml"
+# 612 "src/aorai/promelaparser_withexps.ml"
                : 'logic_relation))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'arith_relation) in
@@ -615,14 +616,14 @@ let yyact = [|
     Obj.repr(
 # 255 "src/aorai/promelaparser_withexps.mly"
                                              ( PRel(Neq,_1, _3) )
-# 619 "src/aorai/promelaparser_withexps.ml"
+# 620 "src/aorai/promelaparser_withexps.ml"
                : 'logic_relation))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'arith_relation) in
     Obj.repr(
 # 256 "src/aorai/promelaparser_withexps.mly"
                   ( PRel(Neq,_1, PCst(IntConstant "0")) )
-# 626 "src/aorai/promelaparser_withexps.ml"
+# 627 "src/aorai/promelaparser_withexps.ml"
                : 'logic_relation))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'arith_relation_mul) in
@@ -630,7 +631,7 @@ let yyact = [|
     Obj.repr(
 # 262 "src/aorai/promelaparser_withexps.mly"
             ( PBinop(Badd, _1 , _3))
-# 634 "src/aorai/promelaparser_withexps.ml"
+# 635 "src/aorai/promelaparser_withexps.ml"
                : 'arith_relation))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'arith_relation_mul) in
@@ -638,14 +639,14 @@ let yyact = [|
     Obj.repr(
 # 264 "src/aorai/promelaparser_withexps.mly"
             ( PBinop(Bsub,_1,_3) )
-# 642 "src/aorai/promelaparser_withexps.ml"
+# 643 "src/aorai/promelaparser_withexps.ml"
                : 'arith_relation))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'arith_relation_mul) in
     Obj.repr(
 # 265 "src/aorai/promelaparser_withexps.mly"
                       ( _1 )
-# 649 "src/aorai/promelaparser_withexps.ml"
+# 650 "src/aorai/promelaparser_withexps.ml"
                : 'arith_relation))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'arith_relation_mul) in
@@ -653,7 +654,7 @@ let yyact = [|
     Obj.repr(
 # 271 "src/aorai/promelaparser_withexps.mly"
             ( PBinop(Bdiv,_1,_3) )
-# 657 "src/aorai/promelaparser_withexps.ml"
+# 658 "src/aorai/promelaparser_withexps.ml"
                : 'arith_relation_mul))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'arith_relation_mul) in
@@ -661,7 +662,7 @@ let yyact = [|
     Obj.repr(
 # 273 "src/aorai/promelaparser_withexps.mly"
             ( PBinop(Bmul,_1,_3) )
-# 665 "src/aorai/promelaparser_withexps.ml"
+# 666 "src/aorai/promelaparser_withexps.ml"
                : 'arith_relation_mul))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'arith_relation_mul) in
@@ -669,42 +670,42 @@ let yyact = [|
     Obj.repr(
 # 275 "src/aorai/promelaparser_withexps.mly"
             ( PBinop(Bmod,_1,_3) )
-# 673 "src/aorai/promelaparser_withexps.ml"
+# 674 "src/aorai/promelaparser_withexps.ml"
                : 'arith_relation_mul))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'access_or_const) in
     Obj.repr(
 # 276 "src/aorai/promelaparser_withexps.mly"
                    ( _1 )
-# 680 "src/aorai/promelaparser_withexps.ml"
+# 681 "src/aorai/promelaparser_withexps.ml"
                : 'arith_relation_mul))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : string) in
     Obj.repr(
 # 280 "src/aorai/promelaparser_withexps.mly"
                       ( PCst(IntConstant _1) )
-# 687 "src/aorai/promelaparser_withexps.ml"
+# 688 "src/aorai/promelaparser_withexps.ml"
                : 'access_or_const))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 0 : string) in
     Obj.repr(
 # 282 "src/aorai/promelaparser_withexps.mly"
             ( PUnop (Uminus, PCst (IntConstant _2)) )
-# 694 "src/aorai/promelaparser_withexps.ml"
+# 695 "src/aorai/promelaparser_withexps.ml"
                : 'access_or_const))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'access) in
     Obj.repr(
 # 283 "src/aorai/promelaparser_withexps.mly"
           ( _1 )
-# 701 "src/aorai/promelaparser_withexps.ml"
+# 702 "src/aorai/promelaparser_withexps.ml"
                : 'access_or_const))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 1 : 'arith_relation) in
     Obj.repr(
 # 284 "src/aorai/promelaparser_withexps.mly"
                                                 ( _2 )
-# 708 "src/aorai/promelaparser_withexps.ml"
+# 709 "src/aorai/promelaparser_withexps.ml"
                : 'access_or_const))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 2 : 'access) in
@@ -712,14 +713,14 @@ let yyact = [|
     Obj.repr(
 # 288 "src/aorai/promelaparser_withexps.mly"
                                     ( PField (_1,_3) )
-# 716 "src/aorai/promelaparser_withexps.ml"
+# 717 "src/aorai/promelaparser_withexps.ml"
                : 'access))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'access_array) in
     Obj.repr(
 # 289 "src/aorai/promelaparser_withexps.mly"
                 (_1)
-# 723 "src/aorai/promelaparser_withexps.ml"
+# 724 "src/aorai/promelaparser_withexps.ml"
                : 'access))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 3 : 'access_array) in
@@ -727,21 +728,21 @@ let yyact = [|
     Obj.repr(
 # 293 "src/aorai/promelaparser_withexps.mly"
      ( PArrget(_1,_3) )
-# 731 "src/aorai/promelaparser_withexps.ml"
+# 732 "src/aorai/promelaparser_withexps.ml"
                : 'access_array))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : 'access_leaf) in
     Obj.repr(
 # 294 "src/aorai/promelaparser_withexps.mly"
                    (_1)
-# 738 "src/aorai/promelaparser_withexps.ml"
+# 739 "src/aorai/promelaparser_withexps.ml"
                : 'access_array))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 0 : 'access) in
     Obj.repr(
 # 297 "src/aorai/promelaparser_withexps.mly"
                               ( PUnop(Ustar,_2) )
-# 745 "src/aorai/promelaparser_withexps.ml"
+# 746 "src/aorai/promelaparser_withexps.ml"
                : 'access_leaf))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 3 : string) in
@@ -749,21 +750,21 @@ let yyact = [|
     Obj.repr(
 # 298 "src/aorai/promelaparser_withexps.mly"
                                                         ( PPrm(_1,_4) )
-# 753 "src/aorai/promelaparser_withexps.ml"
+# 754 "src/aorai/promelaparser_withexps.ml"
                : 'access_leaf))
 ; (fun __caml_parser_env ->
     let _1 = (Parsing.peek_val __caml_parser_env 0 : string) in
     Obj.repr(
 # 299 "src/aorai/promelaparser_withexps.mly"
                  ( PVar _1 )
-# 760 "src/aorai/promelaparser_withexps.ml"
+# 761 "src/aorai/promelaparser_withexps.ml"
                : 'access_leaf))
 ; (fun __caml_parser_env ->
     let _2 = (Parsing.peek_val __caml_parser_env 1 : 'access) in
     Obj.repr(
 # 300 "src/aorai/promelaparser_withexps.mly"
                                         ( _2 )
-# 767 "src/aorai/promelaparser_withexps.ml"
+# 768 "src/aorai/promelaparser_withexps.ml"
                : 'access_leaf))
 (* Entry promela *)
 ; (fun __caml_parser_env -> raise (Parsing.YYexit (Parsing.peek_val __caml_parser_env 0)))

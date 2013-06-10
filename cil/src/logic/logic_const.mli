@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -229,10 +229,13 @@ val tinteger_s64: ?loc:Location.t -> int64 -> term
 
 (** integer constant 
     @since Oxygen-20120901 *)
-val tint: ?loc:Location.t -> My_bigint.t -> term
+val tint: ?loc:Location.t -> Integer.t -> term
 
 (** real constant *)
 val treal: ?loc:Location.t -> float -> term
+
+(** real zero *)
+val treal_zero: ?loc:Location.t -> ?ltyp:logic_type -> unit -> term
 
 (** \at *)
 val tat: ?loc:Location.t -> term * logic_label -> term

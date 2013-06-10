@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -104,16 +104,14 @@ module Icon = struct
 end
 
 module Configuration = struct
-  include Cilutil
+  include Cilconfig
   let configuration_file =(* This is the user home directory *)
     Filename.concat (try Sys.getenv "USERPROFILE" (*Win32*) with Not_found ->
                        try Sys.getenv "HOME" (*Unix like*) with Not_found ->
                          ".")
       ".frama-c-gui.config"
-  let load () =
-    Cilutil.loadConfiguration configuration_file
-  let save () =
-    Cilutil.saveConfiguration configuration_file
+  let load () = loadConfiguration configuration_file
+  let save () = saveConfiguration configuration_file
   let () = Cmdline.at_normal_exit save
   let set = setConfiguration
   let find = findConfiguration
@@ -156,6 +154,20 @@ module Configuration = struct
   let use_list = useConfigurationList
 
 end
+
+let to_utf8 s =
+  try
+    if Glib.Utf8.validate s then s else Glib.Convert.locale_to_utf8 s
+  with Glib.Convert.Error _ ->
+    try
+      Glib.Convert.convert_with_fallback
+        ~fallback:"#neither UTF-8 nor locale nor ISO-8859-15#"
+        ~to_codeset:"UTF-8"
+        ~from_codeset:"ISO_8859-15"
+        s
+    with Glib.Convert.Error _ as e -> Printexc.to_string e
+
+
 let apply_tag b tag pb pe =
   let b = (b:>GText.buffer) in
   let start = b#get_iter (`OFFSET pb) in
@@ -602,37 +614,37 @@ struct
 
     method custom_iter_next (row:custom_list) : custom_list option =
       let nidx = succ row.fidx in
-        self#find_opt nidx
-
+      self#find_opt nidx
+	
     method custom_iter_children (rowopt:custom_list option):custom_list option =
       match rowopt with
-      | None -> self#find_opt 0
-      | Some _ -> None
-
+	| None -> self#find_opt 0
+	| Some _ -> None
+	    
     method custom_iter_has_child (_:custom_list) : bool = false
-
+      
     method custom_iter_n_children (rowopt:custom_list option) : int =
       match rowopt with
-      | None -> H.length roots
-      | Some _ -> assert false
-
+	| None -> H.length roots
+	| Some _ -> assert false
+	    
     method custom_iter_nth_child (rowopt:custom_list option) (n:int)
       : custom_list option =
       match rowopt with
-      | None -> self#find_opt n
-      | _ -> None
-
+	| None -> self#find_opt n
+	| _ -> None
+	    
     method custom_iter_parent (_:custom_list) : custom_list option = None
-
+      
     method insert (t:A.t) =
       let e = {finfo=t; fidx= last_idx } in
       self#custom_row_inserted (GTree.Path.create [last_idx]) e;
       H.add roots last_idx e;
       last_idx <- last_idx+1;
-
+      
     method clear () =
       for i=last_idx-1 downto 0 do
-      self#custom_row_deleted (GTree.Path.create [i]);
+	self#custom_row_deleted (GTree.Path.create [i]);
       done;
       last_idx <- 0;
       H.clear roots;
@@ -655,6 +667,10 @@ struct
     cview
 end
 
+(* ************************************************************************** *)
+(** {2 Error manager} *)
+(* ************************************************************************** *)
+
 (**  A utility class to catch exceptions and report proper error messages. *)
 class type host = object
   method error:
@@ -664,15 +680,23 @@ class type host = object
     'a option
   method protect :
     cancelable:bool -> ?parent:GWindow.window_skel -> (unit -> unit) -> unit
+  method private set_reset: (unit -> unit) -> unit
 end
 
-class error_manager (o_parent:GWindow.window_skel) : host = object (self: #host)
+class error_manager ?reset (o_parent:GWindow.window_skel) : host = 
+object (self: #host)
+
+  val mutable reset = match reset with 
+  | None -> fun () -> ()
+  | Some f -> f
+
+  method private set_reset f = reset <- f
 
   method private error_string ?parent message =
     let w = GWindow.message_dialog
       ~message
       ~message_type:`ERROR
-      ~parent:(Extlib.may_map Extlib.id ~dft:o_parent parent)
+      ~parent:(Extlib.opt_conv o_parent parent)
       ~buttons:GWindow.Buttons.ok
       ~title:"Error"
       ~position:`CENTER_ALWAYS
@@ -682,7 +706,8 @@ class error_manager (o_parent:GWindow.window_skel) : host = object (self: #host)
     w#show ();
     w#present ();
     ignore (w#run ());
-    w#destroy ()
+    w#destroy ();
+    reset ()
 
   method error ?parent fmt =
     let b = Buffer.create 80 in
@@ -743,8 +768,13 @@ class error_manager (o_parent:GWindow.window_skel) : host = object (self: #host)
       self#display_toplevel_error ?parent ~cancelable e;
       None
     | e ->
-      Cmdline.error_occured ();
-      raise e
+      if Kernel.debug_atleast 1 then begin
+	Cmdline.error_occured ();
+	raise e
+      end else begin
+	self#display_toplevel_error ?parent ~cancelable e;
+	None
+      end
 
 end
 
@@ -860,6 +890,11 @@ let source_files_chooser (main_ui: source_files_chooser_host) defaults f =
       (Configuration.ConfString f)) filechooser#current_folder;
   dialog#destroy ()
 
+let later f =
+  let for_idle () = f () ; false in
+  let prio = Glib.int_of_priority `LOW in
+  ignore (Glib.Idle.add ~prio for_idle)
+
 let spawn_command ?(timeout=0) ?stdout ?stderr s args f =
   let check_result = Command.command_async s ?stdout ?stderr args in
   let has_timeout = timeout > 0 in
@@ -886,7 +921,7 @@ module Custom =struct
   type ('a,'b) column = 
       ?title:string -> 'b list -> ('a -> 'b list) -> GTree.view_column
       
-  let add_column view data ?title renderer render =
+  let add_column view empty data ?title renderer render =
   begin
     let column = GTree.view_column ?title ~renderer:(renderer,[]) () in
     column#set_resizable true ;
@@ -897,22 +932,67 @@ module Custom =struct
 	   | None -> []
 	   | Some e -> render e in
 	 renderer#set_properties props) ;
-    view#append_column column ; column
+    view#append_column column ; 
+    begin
+      match empty with
+	| None -> ()
+	| Some e -> ignore (view#move_column e ~after:column)
+    end ;
+    column
   end
 
-  class type virtual ['a] custom = ['a,'a,unit,unit] GTree.custom_tree_model
+  class type virtual ['a] custom = 
+  object
+    inherit ['a,'a,unit,unit] GTree.custom_tree_model
+    method reload : unit
+  end
 
-  class ['a] columns ?packing (view:GTree.view) 
+  class type ['a] columns =
+  object
+    method view : GTree.view (** the tree *)
+    method scroll : GBin.scrolled_window (** scrolled tree (build on demand) *)
+    method coerce : GObj.widget (** widget of the scroll *)
+    method pack : (GObj.widget -> unit) -> unit (** packs the scroll *)
+    method reload : unit (** Structure has changed *)
+    method update_all : unit (** (only) Content of rows has changed *)
+    method update_row : 'a -> unit
+    method insert_row : 'a -> unit
+    method set_focus : 'a -> GTree.view_column -> unit
+    method on_click : ('a -> GTree.view_column -> unit) -> unit
+    method on_right_click : ('a -> GTree.view_column -> unit) -> unit
+    method on_double_click : ('a -> GTree.view_column -> unit) -> unit
+    method set_selection_mode : Gtk.Tags.selection_mode -> unit
+    method on_selection : (unit -> unit) -> unit
+    method count_selected : int
+    method iter_selected : ('a -> unit) -> unit
+    method is_selected : 'a -> bool
+    method add_column_text   : ('a,GTree.cell_properties_text) column
+    method add_column_pixbuf : ('a,GTree.cell_properties_pixbuf) column
+    method add_column_toggle : ('a,GTree.cell_properties_toggle) column
+    method add_column_empty : unit
+  end
+
+  class ['a] makecolumns ?packing ?width ?height (view:GTree.view) 
     (model : 'a #custom) 
     =
-  object
+  object(self)
+
+    val mutable scroll = None
+
     initializer match packing with 
-      | Some packing ->
-	let scroll = GBin.scrolled_window ~packing () in
-	scroll#add view#coerce
+      | Some packing -> self#pack packing
       | None -> ()
 
+    method scroll =
+      match scroll with
+	| None ->
+	    let s = GBin.scrolled_window ?width ?height () in
+	    s#add view#coerce ; scroll <- Some s ; s
+	| Some s -> s
+
+    method pack packing = packing self#scroll#coerce
     method view = view
+    method coerce = self#scroll#coerce
 	
     method update_all = GtkBase.Widget.queue_draw view#as_tree_view
       
@@ -927,14 +1007,39 @@ module Custom =struct
       model#custom_row_inserted path x
 
     method reload =
-      (* Delete all nodes.*)
-      let root = GTree.Path.create [0] in
-      model#foreach (fun _p _i -> 
-	(* Do not use p as the path is changed by the call 
-	   to custom_row_deleted*)
-	model#custom_row_deleted root;
-	false)
+      begin
+	(* Delete all nodes in view *)
+	let root = GTree.Path.create [0] in
+	model#foreach 
+	  (fun _p _i -> 
+	     (* Do not use p since the path is changed by the call 
+		to custom_row_deleted*)
+	     model#custom_row_deleted root;
+	     false) ;
+	(* Then call model *)
+	model#reload ;
+      end
 
+    method on_right_click f =
+      let callback evt =
+	let open GdkEvent in
+	if Button.button evt = 3 then
+	  begin
+	    let x = int_of_float (Button.x evt) in
+	    let y = int_of_float (Button.y evt) in
+	    match view#get_path_at_pos ~x ~y with
+	      | Some (path,col,_,_) ->
+		  begin
+		    match model#custom_get_iter path with
+		      | None -> false
+		      | Some item -> 
+			  let () = f item col in false
+		  end
+	      | _ -> false
+	  end
+	else false
+      in ignore (view#event#connect#button_release ~callback)
+	
     method on_click f =
       let callback () =
 	match view#get_cursor () with
@@ -945,40 +1050,66 @@ module Custom =struct
 		| Some item -> f item col
 	    end
 	  | _ -> ()
-      in
-      ignore (view#connect#cursor_changed ~callback)
+      in ignore (view#connect#cursor_changed ~callback)
 
     method on_double_click f =
       let callback path col = 
 	match model#custom_get_iter path with
 	  | None -> ()
 	  | Some item -> f item col
-      in
-      ignore (view#connect#row_activated ~callback)
+      in ignore (view#connect#row_activated ~callback)
 
+    method is_selected item =
+      view#selection#path_is_selected (model#custom_get_path item)
+
+    method on_selection f = 
+      ignore (view#selection#connect#changed ~callback:f)
+
+    method set_selection_mode = view#selection#set_mode
+
+    method count_selected = view#selection#count_selected_rows
+
+    method iter_selected f =
+      List.iter 
+	(fun p -> 
+	   match model#custom_get_iter p with
+	     | None -> ()
+	     | Some item -> f item)
+	view#selection#get_selected_rows
+	
     method set_focus item col =
-      let path = model#custom_get_path item in
-      view#scroll_to_cell path col
+      begin
+	let path = model#custom_get_path item in
+	view#scroll_to_cell path col ;
+	view#selection#select_path path ;
+      end
+
+    val mutable empty : GTree.view_column option = None
 
     method add_column_text ?title props render = 
       let cell = GTree.cell_renderer_text props in
-      add_column view model#custom_get_iter ?title cell render
+      add_column view empty model#custom_get_iter ?title cell render
 
     method add_column_pixbuf ?title props render =
       let cell = GTree.cell_renderer_pixbuf props in
-      add_column view model#custom_get_iter ?title cell render
+      add_column view empty model#custom_get_iter ?title cell render
 
     method add_column_toggle ?title props render =
       let cell = GTree.cell_renderer_toggle props in
-      add_column view model#custom_get_iter ?title cell render
+      add_column view empty model#custom_get_iter ?title cell render
+
+    method add_column_empty =
+      let column = GTree.view_column ~title:"" () in
+      empty <- Some column ;
+      ignore (view#append_column column)
 
   end
-
 
   (* Helper for GTK Lists *)
   module List = struct
     class type ['a] model =
     object
+      method reload : unit
       method size : int
       method index : 'a -> int
       method get : int -> 'a
@@ -986,6 +1117,7 @@ module Custom =struct
       
     class ['a] list_model (m : 'a model) =
     object
+      method reload = m#reload
       inherit ['a,'a,unit,unit] GTree.custom_tree_model (new GTree.column_list)
       method custom_flags = [`LIST_ONLY]
       method custom_decode_iter a () () = a
@@ -1036,7 +1168,10 @@ module Custom =struct
 	r
     end
 
-    class ['a] view ?packing ?(headers=true) ?(rules=true) (m : 'a model) =
+    class ['a] view 
+      ?packing ?width ?height
+      ?(headers=true) ?(rules=true)
+      (m : 'a model) =
       let model = new list_model m in
       let view = GTree.view ~model 
 	~headers_visible:headers 
@@ -1044,13 +1179,14 @@ module Custom =struct
 	~show:true () 
       in
     object
-      inherit ['a] columns ?packing view model
+      inherit ['a] makecolumns ?packing ?width ?height view model
     end
   end 
-
+    
   module Tree=struct
     class type ['a] model =
     object
+      method reload : unit
       method has_child : 'a -> bool
       method children : 'a option -> int
       method child_at : 'a option -> int -> 'a
@@ -1064,13 +1200,14 @@ module Custom =struct
 	get_iter m (Some a) idx (succ k)
 
     let rec get_path ks m a =
-  let ks = m#index a :: ks in
-  match m#parent a with
-    | None -> ks 
-    | Some b -> get_path ks m b
-
+      let ks = m#index a :: ks in
+      match m#parent a with
+	| None -> ks 
+	| Some b -> get_path ks m b
+	    
     class ['a] tree_model (m : 'a model) =
     object
+      method reload = m#reload
       inherit ['a,'a,unit,unit] GTree.custom_tree_model (new GTree.column_list)
       method custom_decode_iter a () () = a
       method custom_encode_iter a = (a,(),())
@@ -1105,19 +1242,55 @@ module Custom =struct
 
     end
 
-class ['a] view ?(headers=true) ?(rules=true) (m : 'a model) =
-  let model = new tree_model m in
-  let view = GTree.view ~model
-    ~headers_visible:headers
-    ~rules_hint:rules
-    ~show:true () 
-  in
-object
-  inherit ['a] columns view model
-end
+    class ['a] view 
+      ?packing ?width ?height
+      ?(headers=true) ?(rules=true) (m : 'a model) =
+      let model = new tree_model m in
+      let view = GTree.view ~model
+	~headers_visible:headers
+	~rules_hint:rules
+	~show:true () 
+      in
+    object
+      inherit ['a] makecolumns ?packing ?width ?height view model
+    end
 
   end
 end
+
+let graph_window ~parent ~title make_view =
+  let height = int_of_float (float parent#default_height *. 3. /. 4.) in
+  let width = int_of_float (float parent#default_width *. 3. /. 4.) in
+  let graph_window =
+    GWindow.window
+      ~width ~height ~title ~allow_shrink:true ~allow_grow:true
+      ~position:`CENTER () in
+  let view = make_view ~packing:graph_window#add () in
+  graph_window#show();
+  view#adapt_zoom();
+  ()
+;;
+
+let graph_window_through_dot ~parent ~title dot_formatter =
+  let make_view ~packing () =
+    let temp_file =
+      try
+        Extlib.temp_file_cleanup_at_exit
+          "framac_property_status_navigator_graph" "dot"
+      with Extlib.Temp_file_error s ->
+        Gui_parameters.abort "cannot create temporary file: %s" s in
+    let fmt = Format.formatter_of_out_channel (open_out temp_file) in
+    dot_formatter fmt;
+    Format.pp_print_flush fmt ();
+    let view = 	snd (Dgraph.DGraphContainer.Dot.from_dot_with_commands ~packing temp_file) in
+    view in
+  try
+    graph_window ~parent ~title make_view
+  with Dgraph.DGraphModel.DotError _ as exn ->
+    Gui_parameters.error
+      "@[cannot display dot graph:@ %s@]"
+      (Printexc.to_string exn)
+;;
 
 (*
 Local Variables:

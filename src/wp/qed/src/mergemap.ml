@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -28,6 +28,7 @@ module type Key =
 sig
   type t
   val hash : t -> int
+  val equal : t -> t -> bool
   val compare : t -> t -> int
 end
 
@@ -40,6 +41,9 @@ struct
 
   type 'a t = 'a Lmap.t Intmap.t (* sorted collisions *)
 
+  let is_empty m = 
+    try Intmap.iteri (fun _ m -> if m<>[] then raise Exit) m ; true
+    with Exit -> false
   let empty = Intmap.empty
 	    
   let add k v m =
@@ -48,6 +52,7 @@ struct
     Intmap.add h w m
 
   let find k m = Lmap.find k (Intmap.find (K.hash k) m)
+  let findk k m = Lmap.findk k (Intmap.find (K.hash k) m)
 
   let mem k m = try ignore (find k m) ; true with Not_found -> false
 
@@ -82,6 +87,7 @@ struct
   let union f = Intmap.union (fun _h -> Lmap.union f)
   let inter f = Intmap.inter (fun _h -> Lmap.inter f)
   let subset f = Intmap.subset (fun _h -> Lmap.subset f)
+  let equal eq m1 m2 = Intmap.equal (Lmap.equal eq) m1 m2
 
   let iterk f = Intmap.iterk (fun _h -> Lmap.iterk f)
 

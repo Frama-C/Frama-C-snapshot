@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -81,14 +81,16 @@ open Cil_datatype
      record.widening <- wcounter;
      record.widening_state <- wstate
 
-  let merge_db_table hash_states =
+  let merge_db_table hash_states callstack =
    let treat_stmt k sum =
       let current_state = Db.Value.noassert_get_stmt_state k in
       let is_top_already =
         Cvalue.Model.is_top current_state
       in
       if not is_top_already
-      then Db.Value.update_table k sum
+      then Db.Value.update_table k sum;
+      if Value_parameters.ResultsCallstack.get () then 
+	Db.Value.update_callstack_table ~after:false k callstack sum
    in
    if Mark_noresults.should_memorize_function
      (Kernel_function.get_definition (Value_util.current_kf()))

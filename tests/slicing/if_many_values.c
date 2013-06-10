@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -check -slice-value r -journal-disable -slevel 100 -then-on 'Slicing export' -print
+   OPT: -check -slice-value r -journal-disable -slevel 101 -then-on 'Slicing export' -print
  **/
 
 int r=1;

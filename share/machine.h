@@ -20,6 +20,8 @@
 /*                                                                        */
 /**************************************************************************/
 
+#include "libc/__fc_machdep.h"
+
 #ifdef FRAMA_C_LYNX
 typedef unsigned int size_t;
 typedef int ssize_t;
@@ -59,8 +61,8 @@ typedef struct __iobuf {
 
 #else
 // This is the default for regression tests
-typedef unsigned long int size_t;
-typedef long int ssize_t;
+typedef __SIZE_T size_t;
+typedef __SSIZE_T ssize_t;
 //typedef  FILE;
 typedef long time_t;
 #ifdef FRAMA_CXX

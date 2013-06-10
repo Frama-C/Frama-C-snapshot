@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -27,6 +27,7 @@
 module type Elt =
 sig
   type t
+  val equal : t -> t -> bool
   val compare : t -> t -> int
 end
 
@@ -38,6 +39,7 @@ struct
   type t = E.t list
 
   let compare = Hcons.compare_list E.compare
+  let equal = Hcons.equal_list E.equal
 
   let empty = []
       
@@ -91,7 +93,8 @@ struct
 
   let rec diff xs ys =
     match xs , ys with
-      | [] , _ | _ , [] -> []
+      | [] , _ -> []
+      | _ , [] -> xs
       | (x::xtail) , (y::ytail) ->
 	  let c = E.compare x y in
 	  if c < 0 then x :: diff xtail ys else
@@ -118,5 +121,14 @@ struct
 	      fact rxs (x::cxs) rys xtail ytail
 
   let factorize xs ys = fact [] [] [] xs ys
+
+  let rec big_union = function
+    | [] -> []
+    | e::es -> union e (big_union es)
+
+  let rec big_inter = function
+    | [] -> []
+    | [e] -> e
+    | e::es -> inter e (big_inter es)
 
 end

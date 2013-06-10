@@ -9,9 +9,9 @@
 /*****************************************************************************/
 
 //#include <stdlib.h>
-#include "../../share/libc.h"
+//#include "../../share/libc.h"
 #define FRAMA_C_MALLOC_POSITION
-#include "../../share/malloc.c"
+#include "share/libc/stdlib.c"
 
 #define DEFAULT_BLOCK_SIZE 1000
 

@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -28,15 +28,15 @@ open VCS
 
 val prove : Wpo.t ->
   ?interactive:bool -> 
+  ?callin:(Wpo.t -> prover -> unit) ->
   ?callback:(Wpo.t -> prover -> result -> unit) ->
   prover -> bool Task.task
 
 val spawn : Wpo.t ->
+  ?callin:(Wpo.t -> prover -> unit) ->
   ?callback:(Wpo.t -> prover -> result -> unit) ->
   (bool * prover) list -> unit
 
-(*
-Local Variables:
-compile-command: "make -C ../.."
-End:
-*)
+val wp_why3ide:
+  ?callback:(Wpo.S.Hashtbl.key -> VCS.prover -> VCS.result -> unit) ->
+  ((Wpo.t -> unit) -> unit) -> unit Task.task

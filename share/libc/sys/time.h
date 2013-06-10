@@ -2,8 +2,8 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2012                                               */
-/*    CEA (Commissariat à l'énergie atomique et aux énergies              */
+/*  Copyright (C) 2007-2013                                               */
+/*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
 /*  you can redistribute it and/or modify it under the terms of the GNU   */
@@ -37,8 +37,45 @@ struct timezone {
   int tz_dsttime;
 };
 
+/* Abstract representation of the current time. */
+extern volatile int __fc_time;
+extern int __fc_tz;
+
+/*@ assigns \result \from path[0..],times[0..1]; */
 int utimes(const char *path, const struct timeval times[2]);
+
+/*@ behavior tv_and_tz_null:
+  @   assumes tv == \null && tz == \null;
+  @   assigns \nothing;
+  @
+  @ behavior tv_not_null:
+  @   assumes tv != \null && tz == \null;
+  @   assigns tv->tv_sec \from __fc_time;
+  @   assigns tv->tv_usec \from __fc_time;
+  @   ensures \initialized(tv);
+  @
+  @ behavior tz_not_null:
+  @   assumes tv == \null && tz != \null;
+  @   assigns tz[0..] \from __fc_tz;
+  @   ensures \initialized(tz);
+  @
+  @ behavior tv_and_tz_not_null:
+  @   assumes tv != \null && tz != \null;
+  @   assigns tv->tv_sec \from __fc_time;
+  @   assigns tv->tv_usec \from __fc_time;
+  @   assigns tz[0..] \from __fc_tz;
+  @   ensures \initialized(tv);
+  @   ensures \initialized(tz);
+  @
+  @ complete behaviors;
+  @ disjoint behaviors;
+  @*/
 int gettimeofday(struct timeval *tv, struct timezone *tz);
+
+/*@ assigns \result,__fc_time,__fc_tz 
+  @            \from      tv->tv_sec, tv->tv_usec,
+  @                       tz->tz_dsttime, tz->tz_minuteswest; 
+  @*/
 int settimeofday(const struct timeval *tv, const struct timezone *tz);
 
 #endif

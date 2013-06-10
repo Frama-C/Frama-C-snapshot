@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -63,7 +63,7 @@ let hints_from_key (forced_hints, default_hints, var_map) var_key =
   in (* Format.printf "WIDEN_HInt widen a var_key %a -> %a @\n"
         Base.pretty var_key
         Ival.Widen_Hints.pretty widen_hints; *)
-  Cvalue.V.Top_Param.O.empty, fun _ -> widen_hints
+  Base.Hptset.empty, fun _ -> widen_hints
 
 let hints_from_keys
     stmt_key

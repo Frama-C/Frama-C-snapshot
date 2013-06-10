@@ -1,6 +1,6 @@
 /* run.config
-   OPT: -rte -rte-print -machdep x86_32 -journal-disable
-   OPT: -rte -rte-unsigned-ov -rte-print -machdep x86_32 -journal-disable 
+   OPT: -rte -warn-signed-overflow -print -machdep x86_32
+   OPT: -rte -warn-signed-overflow -warn-unsigned-overflow -print -machdep x86_32 
 */
 
 typedef unsigned int uint;

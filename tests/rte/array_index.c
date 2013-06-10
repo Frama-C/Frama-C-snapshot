@@ -1,6 +1,6 @@
 /* run.config
-   OPT: -rte -print -journal-disable -then -rte-trivial-annotations
-   OPT: -rte -print -unsafe-arrays -journal-disable
+   OPT: -rte -warn-signed-overflow -print -then -rte-trivial-annotations
+   OPT: -rte -warn-signed-overflow -print -unsafe-arrays
 */
 
 int t[10];

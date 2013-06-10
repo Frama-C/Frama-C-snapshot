@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -27,7 +27,6 @@
 open Logic
 open Format
 open Plib
-open Linker
 open Export
 open Engine
 
@@ -55,7 +54,7 @@ struct
   class virtual engine =
   object(self)
 
-    inherit E.engine
+    inherit E.engine as super
 
     initializer
       begin
@@ -68,10 +67,23 @@ struct
 	] ;
       end
 
+    method basename s =
+      (** TODO: better uncapitalization of the first letter? utf8? *)
+      let lower0 = Char.lowercase s.[0] in
+      if String.length s > 0 &&  lower0 <> s.[0] then
+        let s = String.copy s in
+        s.[0] <- lower0;
+        s
+      else s
+
     (* -------------------------------------------------------------------------- *)
     (* --- Types                                                              --- *)
     (* -------------------------------------------------------------------------- *)
-      
+
+    method pp_tau fmt = function
+    | Prop -> assert false (* prop should never be printed *)
+    | x -> super#pp_tau fmt x
+
     method t_atomic = function
       | Int | Real | Bool | Prop | Tvar _ -> true
       | Array _ -> false
@@ -94,14 +106,30 @@ struct
     (* -------------------------------------------------------------------------- *)
 	  
     method callstyle = CallApply
-
+    method op_spaced (_:string) = true
+      
     (* -------------------------------------------------------------------------- *)
     (* --- Arithmetics                                                        --- *)
     (* -------------------------------------------------------------------------- *)
+      
+    method pp_int amode fmt k = match amode with
+      | Aint -> Z.pretty fmt k
+      | Areal -> fprintf fmt "%a.0" Z.pretty k
 
-    method op_real_of_int = Call "from_int"
+    method pp_cst fmt cst = 
+      let open Numbers in
+      let man = if cst.man = "" then "0" else cst.man in
+      let com = if cst.com = "" then "0" else cst.com in
+      match cst.sign , cst.base with
+	| Pos,Dec -> fprintf fmt "%s.%se%d" man com cst.exp
+	| Neg,Dec -> fprintf fmt "(-.%s.%se%d)" man com cst.exp
+	| Pos,Hex -> fprintf fmt "0x%s.%sp%d" man com cst.exp
+	| Neg,Hex -> fprintf fmt "(-.0x%s.%sp%d)" man com cst.exp
+
+    method op_real_of_int = Call "real_of_int"
 
     method op_add = function Aint -> Assoc "+"  | Areal -> Assoc "+."
+    method op_sub = function Aint -> Assoc "-"  | Areal -> Assoc "-."
     method op_mul = function Aint -> Assoc "*"  | Areal -> Assoc "*."
     method op_div = function Aint -> Call "div" | Areal -> Op "/."
     method op_mod = function Aint -> Call "mod" | Areal -> Call "rmod"
@@ -151,8 +179,8 @@ struct
       begin
 	fprintf fmt "@[<hov 0>if " ;
 	self#with_mode Mpositive (fun _ -> self#pp_atom fmt a) ;
-	fprintf fmt "@ then %a" self#pp_flow b ;
-	fprintf fmt "@ else %a" self#pp_flow c ;
+	fprintf fmt "@ then %a" self#pp_atom b ;
+	fprintf fmt "@ else %a" self#pp_atom c ;
 	fprintf fmt "@]" ;
       end
 
@@ -172,11 +200,14 @@ struct
     (* --- Records                                                            --- *)
     (* -------------------------------------------------------------------------- *)
 
-    method op_record = "{|" , "|}"
+    method op_record = "{" , "}"
 
     (* -------------------------------------------------------------------------- *)
     (* --- Binders                                                            --- *)
     (* -------------------------------------------------------------------------- *)
+
+    method pp_let fmt x e =
+      fprintf fmt "@[<hov 4>let %s = %a in@]@ " x self#pp_flow e
 
     method pp_forall tau fmt = function
       | [] -> ()
@@ -199,7 +230,6 @@ struct
 	  List.iter (fun x -> fprintf fmt "@ %a" self#pp_var x) xs ;
 	  fprintf fmt "@ : %a.@]" self#pp_tau tau ;
 
-
     method pp_trigger fmt t = 
       let rec pretty fmt = function
 	| TgAny -> assert false
@@ -211,7 +241,8 @@ struct
       and call mode f fmt ts =
 	match self#link mode f with 
 	  | F_call f -> Plib.pp_call_apply ~f pretty fmt ts
-	  | F_call2 f -> Plib.pp_fold_apply ~e:"?" ~f pretty fmt ts
+	  | F_left(e,f) -> Plib.pp_fold_apply ~e ~f pretty fmt ts
+	  | F_right(e,f) -> Plib.pp_fold_apply_rev ~e ~f pretty fmt (List.rev ts)
 	  | F_assoc op -> Plib.pp_assoc ~e:"?" ~op pretty fmt ts
       in fprintf fmt "@[<hov 2>%a@]" pretty t
 
@@ -249,7 +280,9 @@ struct
 	let cmode = Export.ctau t in
 	fprintf fmt "@[<hov 4>%a" (self#pp_declare_symbol cmode) f ;
 	List.iter (fun t -> fprintf fmt "@ %a" self#pp_subtau t) ts ;
-	fprintf fmt "@ : %a@]@\n" self#pp_tau t ;
+        match t with
+          | Prop -> ()
+          | _ -> fprintf fmt "@ : %a@]@\n" self#pp_tau t ;
       end
 
     method declare_definition fmt f xs t e =
@@ -271,6 +304,13 @@ struct
 		fprintf fmt " : %a =@ @[<hov 0>%a@]@]@\n" 
 		  self#pp_tau t (self#pp_expr t) e
 	end
+
+    method declare_fixpoint ~prefix fmt f xs t e =
+      begin
+	self#declare_signature fmt f (List.map tau_of_var xs) t ;
+	let fix = prefix ^ self#link_name (ctau t) f in 
+	self#declare_axiom fmt fix xs [] (e_eq (e_fun f (List.map e_var xs)) e) ;
+      end
 
   end
 

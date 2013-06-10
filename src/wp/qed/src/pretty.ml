@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -66,7 +66,53 @@ struct
     mutable closed : Vars.t ;
   }
 
-  let fresh env term ?id base =
+  (* -------------------------------------------------------------------------- *)
+  (* --- Environment                                                        --- *)
+  (* -------------------------------------------------------------------------- *)
+      
+  let empty = {
+    named=Tmap.empty ; 
+    index=Idx.empty ; 
+    known=Ids.empty ; 
+    closed=Vars.empty ;
+  }    
+
+  let closed vars = 
+    { 
+      named=Tmap.empty ; 
+      index=Idx.empty ; 
+      known=Vars.fold
+	(fun x s -> Ids.add (Plib.to_string Var.pretty x) s)
+	vars Ids.empty ;
+      closed=vars ;
+    }
+
+  let copy env = {
+    named = env.named ;
+    index = env.index ;
+    known = env.known ;
+    closed = env.closed ;
+  }
+    
+  let bind x t env =
+    let env = copy env in
+    env.named <- Tmap.add t x env.named ;
+    env.known <- Ids.add x env.known ;
+    env
+
+  (* -------------------------------------------------------------------------- *)
+  (* --- Shareable                                                          --- *)
+  (* -------------------------------------------------------------------------- *)
+
+  let shareable e = match T.repr e with
+    | And _ | Or _ | Not _ | Imply _ | Eq _ | Neq _ | Leq _ | Lt _ -> false
+    | _ -> true
+
+  (* -------------------------------------------------------------------------- *)
+  (* --- Fresh                                                              --- *)
+  (* -------------------------------------------------------------------------- *)
+
+  let freshid env term ?id base =
     let rec scan env base k =
       let a = Printf.sprintf "%s_%d" base k in
       if Ids.mem a env.known 
@@ -82,29 +128,14 @@ struct
     env.known <- Ids.add x env.known ;
     env.named <- Tmap.add term x env.named ; x
 
-  (* -------------------------------------------------------------------------- *)
-  (* --- Environment                                                        --- *)
-  (* -------------------------------------------------------------------------- *)
-      
-  let closed = { 
-    named=Tmap.empty ; 
-    index=Idx.empty ; 
-    known=Ids.empty ; 
-    closed=Vars.empty ;
-  }
+  let marks env = T.marks ~shareable
+    ~shared:(fun t -> Tmap.mem t env.named) 
+    ~closed:env.closed ()
 
-  let copy env =  {
-    named = env.named ;
-    index = env.index ;
-    known = env.known ;
-    closed = env.closed ;
-  }
-    
-  let bind x t env =
+  let fresh env t = 
     let env = copy env in
-    env.named <- Tmap.add t x env.named ;
-    env.known <- Ids.add x env.known ;
-    env
+    let x = freshid env t (T.basename t) in
+    x , env
 
   (* -------------------------------------------------------------------------- *)
   (* --- Bunch of Quantifier                                                --- *)
@@ -161,57 +192,61 @@ struct
     | [f,v] -> [Last(f,v)]
     | (f,v)::fvs -> Field(f,v)::fields fvs
 
-  let rec out env e =
-    try Atom(Tmap.find e env.named)
-    with Not_found ->
-      match T.repr e with
-	| Var x -> Atom( Plib.to_string Var.pretty x )
-	| True -> Atom "true"
-	| False -> Atom "false"
-	| Kint z -> Atom (Z.to_string z)
-	| Kreal r -> Atom (R.to_string r)
-	| Times(z,e) when Z.equal z Z.minus_one -> Unop("-",e)
-	| Times(z,e) -> Hbox("*",[e_zint z;e])
-	| Add es -> Hbox("+",es)
-	| Mul es -> Hbox("*",es)
-	| Div(a,b) -> Binop(a,"div",b)
-	| Mod(a,b) -> Binop(a,"mod",b)
-	| And es -> Vbox("/\\",es)
-	| Or  es -> Vbox("\\/",es)
-	| Not e -> Unop("not ",e)
-	| Imply(hs,p) ->Vbox("->",hs@[p])
-	| Eq(a,b) -> 
-	    if T.sort e = Sprop 
-	    then Vbox("<->",[a;b])
-	    else Hbox("=",[a;b])
-	| Lt(a,b) -> Hbox("<",[a;b])
-	| Neq(a,b) -> Hbox("â‰ ",[a;b])
-	| Leq(a,b) -> Hbox("â‰¤",[a;b])
-	| Fun(a,es) -> Call(a,es)
-	| Apply(e,es) -> Closure(e,es)
-	| If(c,a,b) -> Cond(c,a,b)
-	| Aget(a,b) -> Access(a,b)
-	| Aset(a,b,c) -> Update(a,b,c)
-	| Bind(q,x,t) -> abstraction [q,x] t
-	| Rget(e,f) -> GetField(e,f)
-	| Rdef fvs -> Record 
-	    begin
-	      match T.record_with fvs with
-		| None -> fields fvs
-		| Some(base,fothers) -> With base :: fields fothers
-	    end
-
-  and abstraction qxs e =
+  let rec abstraction qxs e =
     match T.repr e with
       | Bind(q,x,t) -> abstraction ((q,x)::qxs) t
       | _ -> Abstraction( List.rev qxs , e )
+
+  let out e =
+    match T.repr e with
+      | Var x -> Atom( Plib.to_string Var.pretty x )
+      | True -> Atom "true"
+      | False -> Atom "false"
+      | Kint z -> Atom (Z.to_string z)
+      | Kreal r -> Atom (R.to_string r)
+      | Times(z,e) when Z.equal z Z.minus_one -> Unop("-",e)
+      | Times(z,e) -> Hbox("*",[e_zint z;e])
+      | Add es -> Hbox("+",es)
+      | Mul es -> Hbox("*",es)
+      | Div(a,b) -> Binop(a,"div",b)
+      | Mod(a,b) -> Binop(a,"mod",b)
+      | And es -> Vbox("/\\",es)
+      | Or  es -> Vbox("\\/",es)
+      | Not e -> Unop("not ",e)
+      | Imply(hs,p) ->Vbox("->",hs@[p])
+      | Eq(a,b) -> 
+	  if T.sort e = Sprop 
+	  then Vbox("<->",[a;b])
+	  else Hbox("=",[a;b])
+      | Lt(a,b) -> Hbox("<",[a;b])
+      | Neq(a,b) -> Hbox("!=",[a;b])
+      | Leq(a,b) -> Hbox("<=",[a;b])
+      | Fun(a,es) -> Call(a,es)
+      | Apply(e,es) -> Closure(e,es)
+      | If(c,a,b) -> Cond(c,a,b)
+      | Aget(a,b) -> Access(a,b)
+      | Aset(a,b,c) -> Update(a,b,c)
+      | Bind(q,x,t) -> abstraction [q,x] t
+      | Rget(e,f) -> GetField(e,f)
+      | Rdef fvs -> Record 
+	  begin
+	    match T.record_with fvs with
+	      | None -> fields fvs
+	      | Some(base,fothers) -> With base :: fields fothers
+	    end
+
+  let named_out env e =
+    try Atom(Tmap.find e env.named)
+    with Not_found -> out e 
 
   (* -------------------------------------------------------------------------- *)
   (* --- Atom printer                                                       --- *)
   (* -------------------------------------------------------------------------- *)
 
-  let rec pp_atom (env:env) (fmt:formatter) e =
-    match out env e with
+  let rec pp_atom (env:env) (fmt:formatter) e = 
+    pp_atom_out env fmt (named_out env e)
+
+  and pp_atom_out env fmt = function
       | Atom x -> pp_print_string fmt x
       | Call(f,es) -> pp_call env fmt f es
       | Hbox(op,es) -> fprintf fmt "@[<hov 1>(%a)@]" (pp_hbox env op) es
@@ -227,6 +262,18 @@ struct
 	  (pp_atom env) a (pp_atom env) b (pp_free env) c
       | GetField(e,f) -> fprintf fmt "%a.%a" (pp_atom env) e Field.pretty f
       | Record fs -> pp_fields env fmt fs
+
+  and pp_free_out env fmt = function
+    | Atom x -> pp_print_string fmt x
+    | Call(f,es) -> pp_call env fmt f es
+    | Hbox(op,es) -> fprintf fmt "@[<hov 0>%a@]" (pp_hbox env op) es
+    | Vbox(op,es) -> fprintf fmt "@[<hov 0>%a@]" (pp_vbox env op) es
+    | Unop(op,e) -> fprintf fmt "@[<hov 2>%s%a@]" op (pp_atom env) e
+    | Binop op -> fprintf fmt "@[<hov 2>%a@]" (pp_binop env) op
+    | Cond c -> fprintf fmt "@[<hv 0>%a@]" (pp_cond env) c
+    | Closure(e,es) -> pp_closure env fmt e es
+    | Abstraction abs -> fprintf fmt "@[<hv 0>%a@]" (pp_abstraction env) abs
+    | (Access _ | Update _ | Record _ | GetField _) as a -> pp_atom_out env fmt a
 
   and pp_fields (env:env) (fmt:formatter) fs =
     fprintf fmt "@[<hv 0>{@[<hv 2>" ;
@@ -245,18 +292,8 @@ struct
   (* --- Free printer                                                       --- *)
   (* -------------------------------------------------------------------------- *)
 
-  and pp_free (env:env) (fmt:formatter) e =
-    match out env e with
-      | Atom x -> pp_print_string fmt x
-      | Call(f,es) -> pp_call env fmt f es
-      | Hbox(op,es) -> fprintf fmt "@[<hov 0>%a@]" (pp_hbox env op) es
-      | Vbox(op,es) -> fprintf fmt "@[<hov 0>%a@]" (pp_vbox env op) es
-      | Unop(op,e) -> fprintf fmt "@[<hov 2>%s%a@]" op (pp_atom env) e
-      | Binop op -> fprintf fmt "@[<hov 2>%a@]" (pp_binop env) op
-      | Cond c -> fprintf fmt "@[<hv 0>%a@]" (pp_cond env) c
-      | Closure(e,es) -> pp_closure env fmt e es
-      | Abstraction abs -> fprintf fmt "@[<hv 0>%a@]" (pp_abstraction env) abs
-      | Access _ | Update _ | Record _ | GetField _ -> pp_atom env fmt e
+  and pp_free (env:env) (fmt:formatter) e = pp_free_out env fmt (named_out env e)
+  and pp_freedef (env:env) (fmt:formatter) e = pp_free_out env fmt (out e)
 
   (* -------------------------------------------------------------------------- *)
   (* --- Call printer                                                       --- *)
@@ -265,7 +302,7 @@ struct
   and pp_call (env:env) (fmt:formatter) f = function
     | [] -> Fun.pretty fmt f
     | es -> 
-	fprintf fmt "@[<hv 2>(%a" Fun.pretty f ;
+	fprintf fmt "@[<hov 2>(%a" Fun.pretty f ;
 	List.iter (fun e -> fprintf fmt "@ %a" (pp_atom env) e) es ;
 	fprintf fmt ")@]"
 
@@ -330,7 +367,7 @@ struct
 	 Plib.iteri
 	   (fun idx x ->
 	      let id = Plib.to_string Var.pretty x in
-	      let a = fresh env (T.e_var x) ~id (Var.basename x) in
+	      let a = freshid env (T.e_var x) ~id (Var.basename x) in
 	      env.closed <- Vars.add x env.closed ;
 	      match idx with
 		| Isingle | Ifirst -> pp_print_string fmt a
@@ -347,14 +384,14 @@ struct
   and pp_share (env:env) (fmt:formatter) t =
     begin
       fprintf fmt "@[<hv 0>" ;
-      let ts = T.shared 
-	~atomic:(fun t -> Tmap.mem t env.named) 
+      let ts = T.shared ~shareable
+	~shared:(fun t -> Tmap.mem t env.named) 
 	~closed:env.closed [t] 
       in
       List.iter
 	(fun t ->
 	   let e0 = copy env in
-	   let x = fresh env t (Kind.basename (T.sort t)) in
+	   let x = freshid env t (Kind.basename (T.sort t)) in
 	   fprintf fmt "@[<hov 4>let %s =@ %a in@]@ " x (pp_atom e0) t
 	) ts ;
       pp_free env fmt t ;
@@ -366,5 +403,6 @@ struct
   (* -------------------------------------------------------------------------- *)
 
   let pp_term (env:env) (fmt:formatter) t = pp_share (copy env) fmt t
+  let pp_def (env:env) (fmt:formatter) t = pp_freedef (copy env) fmt t
 
 end

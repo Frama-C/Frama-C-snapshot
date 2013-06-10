@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -38,6 +38,8 @@ type 'a running =
   | Waiting
   | Running of (unit -> unit)
   | Finished of 'a status
+
+val error  : exn -> string (** Extract error message form exception *)
 
 val start  : 'a task -> unit
 val cancel : 'a task -> unit
@@ -162,6 +164,10 @@ val share : 'a shared -> 'a task
 (** {2 Task Server} *)
 (* ************************************************************************* *)
 
+val run : unit task -> unit
+(** Runs one single task in the background. 
+    Typically using [on_idle]. *)
+
 type server
 
 val server :
@@ -207,3 +213,4 @@ val on_idle : ((unit -> bool) -> unit) ref
       [!on_idle f] should repeatedly calls [f] until it returns [false].
       Default implementation rely on [Unix.sleep 1] and [Db.progress].
       See also [Gtk_helper] module implementation. *)
+

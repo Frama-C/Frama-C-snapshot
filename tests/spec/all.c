@@ -34,6 +34,7 @@
 /*@ lemma hex_oct : 0xFFFFUl != 06666uL ; */             // OK
 
 /*@
+  requires \offset(p) == 0;                              // OK
   behavior b :
    assumes \true;
    requires \valid(p);

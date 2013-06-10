@@ -2,11 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
-(*           alternatives)                                                *)
-(*    INRIA (Institut National de Recherche en Informatique et en         *)
-(*           Automatique)                                                 *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -221,26 +219,26 @@ module OptionModified =
      end)
 
 let () =
-  State_dependency_graph.Static.add_codependencies
+  State_dependency_graph.add_codependencies
     ~onto:OptionModified.self
-    [Select.Calls.self ;
-     Select.Return.self ;
-     Select.Threat.self ;
-     Select.Assert.self ;
-     Select.LoopInv.self ;
-     Select.LoopVar.self ;
-     Select.Pragma.self ;
-     Select.RdAccess.self ;
-     Select.WrAccess.self ;
-     Select.Value.self ;
-     Mode.Callers.self ;
-     Mode.Calls.self ;
-     Mode.SliceUndef.self ;
-     Mode.KeepAnnotations.self ;
-     Print.self ]
+    [ Select.Calls.self;
+      Select.Return.self;
+      Select.Threat.self;
+      Select.Assert.self;
+      Select.LoopInv.self;
+      Select.LoopVar.self;
+      Select.Pragma.self;
+      Select.RdAccess.self;
+      Select.WrAccess.self;
+      Select.Value.self;
+      Mode.Callers.self;
+      Mode.Calls.self;
+      Mode.SliceUndef.self;
+      Mode.KeepAnnotations.self;
+      Print.self ]
 
 let is_on () =
-  ((Force.get ()) || (OptionModified.get ()))
+  (Force.get () || OptionModified.get ())
   &&
     (not (Select.Calls.is_empty ()
           && Select.Return.is_empty ()

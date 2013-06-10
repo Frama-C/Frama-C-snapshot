@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -26,15 +26,17 @@ open Abstract_interp
 
 type validity =
   | Known of Int.t * Int.t
-  | Unknown of Int.t * Int.t
+  | Unknown of Int.t * Int.t option * Int.t (* begining, known end, unknown end *)
   | Periodic of Int.t * Int.t * Int.t
-  | All
+  | Invalid
 
 let pretty_validity fmt v =
   match v with
-  | All -> Format.fprintf fmt "All"
-  | Unknown (b,e)  -> Format.fprintf fmt "Unknown %a-%a" Int.pretty b Int.pretty e
+  | Unknown (b,k,e)  -> 
+      Format.fprintf fmt "Unknown %a/%a/%a"
+	Int.pretty b (Pretty_utils.pp_opt Int.pretty) k Int.pretty e
   | Known (b,e)  -> Format.fprintf fmt "Known %a-%a" Int.pretty b Int.pretty e
+  | Invalid -> Format.fprintf fmt "Invalid"
   | Periodic (b,e,p)  ->
       Format.fprintf fmt "Periodic %a-%a (%a)"
         Int.pretty b Int.pretty e
@@ -45,7 +47,7 @@ module Validity = Datatype.Make
     type t = validity
     let name = "Base.validity"
     let structural_descr = Structural_descr.Abstract
-    let reprs = [ All; Known (Int.zero, Int.one) ]
+    let reprs = [ Known (Int.zero, Int.one) ]
     let equal = Datatype.undefined
     let compare = Datatype.undefined
     let hash = Datatype.undefined
@@ -65,8 +67,6 @@ type base =
       (** base that is implicitly initialized. *)
   | Null (** base for addresses like [(int* )0x123] *)
   | String of int * string_id (** String constants *)
-
-let invalid = Known(Int.one, Int.zero)
 
 let id = function
   | Var (vi,_) | Initialized_Var (vi,_) -> vi.vid
@@ -93,16 +93,13 @@ let get_string exp =
   | _ -> assert false
 
 let pretty fmt t = 
-  Format.fprintf fmt "%s"
-  (match t with
-   | String (_,{enode=Const (CStr s)}) -> 
-       Format.sprintf "%S" s
-   | String (_,{enode=Const (CWStr s)}) -> 
-       Format.sprintf "L\"%s\"" (Escape.escape_wstring s)
-   | String _ -> assert false
-   | Var (t,_) | Initialized_Var (t,_) ->
-       Pretty_utils.sfprintf "@[%a@]" !Ast_printer.d_ident t.vname
-   | Null -> "NULL")
+  match t with
+    | String (_,{enode=Const (CStr s)}) -> Format.fprintf fmt "%S" s
+    | String (_,{enode=Const (CWStr s)}) -> 
+        Format.fprintf fmt "L\"%s\"" (Escape.escape_wstring s)
+    | String _ -> assert false
+    | Var (t,_) | Initialized_Var (t,_) -> Printer.pp_varinfo fmt t
+    | Null -> Format.pp_print_string fmt "NULL"
 
 let pretty_addr fmt t =
   ( match t with
@@ -178,17 +175,22 @@ let max_valid_absolute_address = MaxValidAbsoluteAddress.get
 
 let validity v =
   match v with
-  | Null -> Known (min_valid_absolute_address (), max_valid_absolute_address ())
+  | Null ->
+      let mn = min_valid_absolute_address ()in
+      let mx = max_valid_absolute_address () in
+      if Integer.gt mx mn then
+        Known (mn, mx)
+      else
+        Invalid
   | Var (_,v) | Initialized_Var (_,v) -> v
   | String _ ->
       let max_valid = bits_sizeof v in
       match max_valid with
-      | Int_Base.Bottom -> assert false
-      | Int_Base.Top -> All
       | Int_Base.Value size ->
-          (*Format.printf "Got %a for %a@\n" Int.pretty size pretty v;*)
+          (* all start to be valid at offset 0 *)
           Known (Int.zero,Int.pred size)
-            (* they all start to be valid at offset 0 *)
+      | Int_Base.Top ->
+          Unknown (Int.zero, None, Bit_utils.max_bit_address ())
 
 exception Not_valid_offset
 
@@ -201,36 +203,33 @@ let is_valid_offset ~for_writing size base offset =
   if for_writing && (is_read_only base)
   then raise Not_valid_offset;
   match validity base with
+  | Invalid -> raise Not_valid_offset
   | Known (min_valid,max_valid)
-  | Periodic (min_valid, max_valid, _)->
+  | Periodic (min_valid, max_valid, _)
+  | Unknown (min_valid, Some max_valid, _) ->
       let min = Ival.min_int offset in
       begin match min with
       | None -> raise Not_valid_offset
-      | Some v -> if Int.lt v min_valid then raise Not_valid_offset
+      | Some min -> 
+(*	  Format.printf "111 %a %a@." Int.pretty min_valid Int.pretty min; *)
+	  if Int.lt min min_valid then raise Not_valid_offset
       end;
       let max = Ival.max_int offset in
       begin match max with
       | None -> raise Not_valid_offset
-      | Some v ->
-          if Int.gt (Int.pred (Int.add v size)) max_valid then
+      | Some max ->
+	  (*Format.printf "222 %a: mb %a, m %a, size %a@."
+            pretty base Int.pretty  max_valid Int.pretty max Int.pretty size;*)
+          if Int.gt (Int.pred (Int.add max size)) max_valid then
             raise Not_valid_offset
       end
-  | Unknown _ -> raise Not_valid_offset
-  | All -> ()
+  | Unknown (_, None, _) -> raise Not_valid_offset
 
 let is_function base =
   match base with
     String _ | Null | Initialized_Var _ -> false
   | Var(v,_) ->
       isFunctionType v.vtype
-
-(*
-  let is_volatile v =
-  match v with
-  | String _ | Null -> false
-  | Var vv ->
-  hasAttribute "volatile" (typeAttrs vv.vtype)
-*)
 
 let equal v w = (id v) = (id w)
 
@@ -240,7 +239,7 @@ let is_aligned_by b alignment =
   else
     match b with
       Var (v,_) | Initialized_Var (v,_) ->
-        Int.is_zero (Int.rem (Int.of_int (Cil.alignOf_int(v.vtype))) alignment)
+        Int.is_zero (Int.rem (Int.of_int (Cil.bytesAlignOf v.vtype)) alignment)
     | Null -> true
     | String _ -> Int.is_one alignment
 
@@ -288,23 +287,18 @@ let is_block_local v block =
   | Null | String _ -> false
 
 let validity_from_type v =
-  if isFunctionType v.vtype then invalid
+  if isFunctionType v.vtype then Invalid
   else
   let max_valid = Bit_utils.sizeof_vid v in
   match max_valid with
-  | Int_Base.Bottom -> assert false
   | Int_Base.Top ->
-      (* TODO:
-         if (some configuration option)
-         then Unknown (Int.zero, Bit_utils.max_bit_address ())
-         else *)
-      invalid
+      Unknown (Int.zero, None, Bit_utils.max_bit_address ())
   | Int_Base.Value size when Int.gt size Int.zero ->
       (*Format.printf "Got %a for %s@\n" Int.pretty size v.vname;*)
       Known (Int.zero,Int.pred size)
   | Int_Base.Value size ->
       assert (Int.equal size Int.zero);
-      Unknown (Int.zero, Bit_utils.max_bit_address ())
+      Unknown (Int.zero, None, Bit_utils.max_bit_address ())
 
 exception Not_a_variable
 
@@ -335,6 +329,7 @@ module Hptset = Hptset.Make
   (struct let v = [ [ ] ] end)
   (struct let l = [ Ast.self ] end)
 let () = Ast.add_monotonic_state Hptset.self
+let () = Ast.add_hook_on_update Hptset.clear_caches
 
 module VarinfoLogic =
   Cil_state_builder.Varinfo_hashtbl
@@ -389,6 +384,8 @@ module Validities =
     (struct
        let name = "Base.Validities"
        let dependencies = [ Ast.self ]
+         (* No dependency on Kernel.AbsoluteValidRange.self needed:
+            the null base is not present in this table (not a varinfo) *)
        let size = 117
      end)
 let () = Ast.add_monotonic_state Validities.self
@@ -404,7 +401,9 @@ let create_logic varinfo validity =
 
 let create_initialized varinfo validity =
   assert varinfo.vlogic;
-  Initialized_Var (varinfo,validity)
+  let base = Initialized_Var (varinfo,validity) in
+  VarinfoLogic.add varinfo base;
+  base
 
 let find varinfo =
   if varinfo.vlogic then VarinfoLogic.find varinfo
@@ -423,6 +422,9 @@ let () = Ast.add_monotonic_state LiteralStrings.self
 
 let create_string e =
   LiteralStrings.memo (fun _ -> String (Cil_const.new_raw_id (), e)) e.eid
+
+module SetLattice = Make_Hashconsed_Lattice_Set(BaseDatatype)(Hptset)
+
 
 (*
 Local Variables:

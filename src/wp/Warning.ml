@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -28,24 +28,24 @@ module SELF =
 struct
 
   type t = {
-    wrn_loc : Lexing.position ;
-    wrn_severe : bool ;
-    wrn_source : string ;
-    wrn_reason : string ;
-    wrn_effect : string ;
+    loc : Lexing.position ;
+    severe : bool ;
+    source : string ;
+    reason : string ;
+    effect : string ;
   }
       
   let compare w1 w2 =
     if w1 == w2 then 0 else
-      let f1 = w1.wrn_loc.Lexing.pos_fname in
-      let f2 = w2.wrn_loc.Lexing.pos_fname in
+      let f1 = w1.loc.Lexing.pos_fname in
+      let f2 = w2.loc.Lexing.pos_fname in
       let fc = String.compare f1 f2 in
       if fc <> 0 then fc else
-	let l1 = w1.wrn_loc.Lexing.pos_lnum in
-	let l2 = w2.wrn_loc.Lexing.pos_lnum in
+	let l1 = w1.loc.Lexing.pos_lnum in
+	let l2 = w2.loc.Lexing.pos_lnum in
 	let lc = l1 - l2 in
 	if lc <> 0 then lc else
-	  match w1.wrn_severe , w2.wrn_severe with
+	  match w1.severe , w2.severe with
 	    | true , false -> (-1)
 	    | false , true -> 1
 	    | _ -> Pervasives.compare w1 w2
@@ -56,21 +56,21 @@ include SELF
 module Map = Map.Make(SELF)
 module Set = Set.Make(SELF)	      
 
-let severe s = Set.exists (fun w -> w.wrn_severe) s
+let severe s = Set.exists (fun w -> w.severe) s
 
 let pretty fmt w =
   begin
     Format.fprintf fmt
       "@[<v 0>%s:%d: warning from %s:@\n"
-      w.wrn_loc.Lexing.pos_fname
-      w.wrn_loc.Lexing.pos_lnum
-      w.wrn_source ;
-    if w.wrn_severe then
+      w.loc.Lexing.pos_fname
+      w.loc.Lexing.pos_lnum
+      w.source ;
+    if w.severe then
       Format.fprintf fmt " - Warning: %s, looking for context inconsistency"
-        w.wrn_effect
+        w.effect
     else
-      Format.fprintf fmt " - Warning: %s" w.wrn_effect ;
-    Format.fprintf fmt "@\n   Reason: %s@]" w.wrn_reason ;
+      Format.fprintf fmt " - Warning: %s" w.effect ;
+    Format.fprintf fmt "@\n   Reason: %s@]" w.reason ;
   end
 
 type collector = {
@@ -96,7 +96,7 @@ let error ?(source="wp") text =
        if Context.defined collector then
 	 raise (Error (source,text))
        else
-	 Wp_parameters.fatal ~current:true "%s" text
+	 Wp_parameters.abort ~current:true "%s" text
     ) (Format.formatter_of_buffer buffer) text
 
 
@@ -113,7 +113,7 @@ let flush old =
   Context.pop collector old ; c.warnings
 
 let add w =
-  Wp_parameters.warning ~source:w.wrn_loc "%s" w.wrn_reason ~once:true ;
+  Wp_parameters.warning ~source:w.loc "%s" w.reason ~once:true ;
   let c = Context.get collector in
   c.warnings <- Set.add w c.warnings
 
@@ -126,11 +126,11 @@ let emit ?(severe=false) ?source ~effect message =
        let text = Buffer.contents buffer in
        let loc = Cil_const.CurrentLoc.get () in
        add { 
-	 wrn_loc = fst loc ; 
-	 wrn_severe = severe ; 
-	 wrn_source = source ;
-	 wrn_effect = effect ; 
-	 wrn_reason = text ;
+	 loc = fst loc ; 
+	 severe = severe ; 
+	 source = source ;
+	 effect = effect ; 
+	 reason = text ;
        })
     (Format.formatter_of_buffer buffer)
     message

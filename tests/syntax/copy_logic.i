@@ -7,6 +7,10 @@
 /*@ logic int f (int y); */
 /*@ logic integer g (int x) = x + 42; */
 
+
+/*@ frees x; */
+void f(int *x);
+
 int main (int x) {
   int y = 42;
   /*@ assert q(y) && p(x); */

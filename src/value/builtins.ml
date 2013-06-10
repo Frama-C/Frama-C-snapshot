@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -25,7 +25,6 @@ open Abstract_interp
 open Cil
 open Locations
 open Value_util
-open Cvalue_convert
 
 let table = Hashtbl.create 17
 
@@ -61,8 +60,9 @@ let double_double_fun name caml_fun state actuals =
               ("Builtin " ^ name ^ " applied to address");
             Cvalue.V.topify_arith_origin arg
         in
-        { Db.Value.builtin_values = [ (wrap_double r), state ];
-	  Db.Value.builtin_clobbered = Location_Bits.Top_Param.bottom }
+        { Value_types.c_values = [ Eval_op.wrap_double r, state ];
+	  c_clobbered = Base.SetLattice.bottom;
+          c_cacheable = Value_types.Cacheable; }
       end
   | _ ->
       Value_parameters.error "%s"
@@ -135,8 +135,10 @@ let frama_C_compare_cos state actuals =
                 larg uarg
                 lres ures
                 lref uref;
-            { Db.Value.builtin_values = [ None, state ];
-	      builtin_clobbered = Location_Bits.Top_Param.bottom }
+            { Value_types.c_values = [ None, state ];
+	      c_clobbered = Base.SetLattice.bottom;
+              c_cacheable = Value_types.Cacheable;
+            }
           with _ -> Value_parameters.error
             "Invalid argument for Frama_C_compare_cos function";
             do_degenerate None;
@@ -161,8 +163,6 @@ let frama_C_sqrt state actuals =
             in
             if result_alarm
             then
-(*            CilE.warn_result_nan_infinite
-                (warn_all_quiet_mode ()) ; *)
               Value_parameters.result ~once:true ~current:true
                 "float sqrt: assert (Ook)";
             Cvalue.V.inject_ival (Ival.inject_float f)
@@ -174,11 +174,13 @@ let frama_C_sqrt state actuals =
               Cvalue.V.topify_arith_origin arg
           | Ival.Float_abstract.Bottom ->
             Value_parameters.warning ~once:true ~current:true
-              "sqrt: TODO -- a proper alarm";
+              "invalid float sqrt: assert(Ook)";
             V.bottom
         in
-	{ Db.Value.builtin_values = [ wrap_double r, state] ; 
-	  builtin_clobbered = Location_Bits.Top_Param.bottom }
+	{ Value_types.c_values = [ Eval_op.wrap_double r, state] ; 
+	  c_clobbered = Base.SetLattice.bottom;
+          c_cacheable = Value_types.Cacheable;
+        }
       end
   | _ -> Value_parameters.error
       "Invalid argument for Frama_C_sqrt function";
@@ -201,9 +203,7 @@ let frama_C_assert state actuals =
 	  then begin
 	      try
 		let state =
-		  Eval_exprs.reduce_by_cond 
-		    ~with_alarms:CilE.warn_none_mode
-		    state
+		  Eval_exprs.reduce_by_cond state
 		    { Eval_exprs.exp = arg_exp ; positive = true }
 		in
 		warning_once_current "Frama_C_assert: unknown";
@@ -216,8 +216,10 @@ let frama_C_assert state actuals =
 	      state
 	    end
         in
-	{ Db.Value.builtin_values = [ None, state ] ;
-	  builtin_clobbered = Location_Bits.Top_Param.bottom }
+	{ Value_types.c_values = [ None, state ] ;
+	  c_clobbered = Base.SetLattice.bottom;
+          c_cacheable = Value_types.NoCache;
+        }
       end
   | _ -> Value_parameters.error
       "Invalid argument for Frama_C_assert function";
@@ -228,19 +230,25 @@ let () = register_builtin "Frama_C_assert" frama_C_assert
 
 let frama_c_dump_assert state _actuals =
   Value_parameters.result ~current:true "Frama_C_dump_assert_each called:@\n(%a)@\nEnd of Frama_C_dump_assert_each output"
-    Cvalue.Model.pretty_c_assert state;
-  { Db.Value.builtin_values = [None, state];
-    builtin_clobbered = Location_Bits.Top_Param.bottom }
+    C_assert.pretty_state_as_c_assert state;
+  { Value_types.c_values = [None, state];
+    c_clobbered = Base.SetLattice.bottom;
+    c_cacheable = Value_types.NoCache;
+  }
 
 let () = register_builtin "Frama_C_dump_assert_each" frama_c_dump_assert
 
 let found_split state _ = 
- { Db.Value.builtin_values = [None, state];
-    builtin_clobbered = Location_Bits.Top_Param.bottom }
+ { Value_types.c_values = [None, state];
+   c_clobbered = Base.SetLattice.bottom;
+   c_cacheable = Value_types.NoCache;
+ }
 let () = register_builtin "Frama_C_split" found_split
 let found_merge state _ = 
- { Db.Value.builtin_values = [None, state];
-    builtin_clobbered = Location_Bits.Top_Param.bottom }
+ { Value_types.c_values = [None, state];
+   c_clobbered = Base.SetLattice.bottom;
+   c_cacheable = Value_types.NoCache;
+ }
 let () = register_builtin "Frama_C_merge" found_merge
 
 
@@ -265,9 +273,8 @@ let frama_c_bzero state actuals =
         then raise Db.Value.Outside_builtin_possibilities;
         let left = loc_bytes_to_loc_bits dst
         and offsm_repeat =
-          V_Offsetmap.create_initial
-            ~v:(V_Or_Uninitialized.initialized Cvalue.V.singleton_zero)
-            ~modu:Int.eight
+          V_Offsetmap.create_isotropic ~size
+            (V_Or_Uninitialized.initialized Cvalue.V.singleton_zero)
         in
         let state =
           if Int.gt size Int.zero then
@@ -276,8 +283,10 @@ let frama_c_bzero state actuals =
               ~exact:true state
           else state
         in
-        { Db.Value.builtin_values = [ None, state ] ;
-	  builtin_clobbered = Location_Bits.Top_Param.bottom }
+        { Value_types.c_values = [ None, state ] ;
+	  c_clobbered = Base.SetLattice.bottom;
+          c_cacheable = Value_types.Cacheable;
+        }
     | _ ->
         raise Db.Value.Outside_builtin_possibilities
 
@@ -294,8 +303,10 @@ let dump_state initial_state _ =
     "DUMPING STATE of file %s line %d@\n%a=END OF DUMP=="
     l.Lexing.pos_fname l.Lexing.pos_lnum
     Cvalue.Model.pretty initial_state;
-       { Db.Value.builtin_values = [None, initial_state];
-	 builtin_clobbered = Location_Bits.Top_Param.bottom}
+       { Value_types.c_values = [None, initial_state];
+	 c_clobbered = Base.SetLattice.bottom;
+         c_cacheable = Value_types.NoCache;
+       }
 
 module DumpFileCounters =
   State_builder.Hashtbl (Datatype.String.Hashtbl)(Datatype.Int)
@@ -331,8 +342,10 @@ let dump_state_file name initial_state args =
        "Error during, or invalid call to Frama_C_dump_each_file (%s). Ignoring"
        (Printexc.to_string e)
   );
-  { Db.Value.builtin_values = [None, initial_state];
-    builtin_clobbered = Location_Bits.Top_Param.bottom}
+  { Value_types.c_values = [None, initial_state];
+    c_clobbered = Base.SetLattice.bottom;
+    c_cacheable = Value_types.NoCache;
+  }
 
 
 let dump_args name initial_state actuals =
@@ -340,9 +353,10 @@ let dump_args name initial_state actuals =
     name
     pretty_actuals actuals
     Value_util.pp_callstack;
-     { Db.Value.builtin_values = [ None, initial_state] ;
-       builtin_clobbered = Location_Bits.Top_Param.bottom }
-
+     { Value_types.c_values = [ None, initial_state] ;
+       c_clobbered = Base.SetLattice.bottom;
+       c_cacheable = Value_types.Cacheable;
+     }
 
 
 (*

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -29,7 +29,7 @@
   let buf = Buffer.create 1024
   let macros = Buffer.create 1024
   let beg_of_line = Buffer.create 8
-  let blacklisted_macros = [ "__STDC__"; "__STDC_HOSTED__"]
+  let blacklisted_macros = [ "__STDC__"; "__STDC_HOSTED__"; "assert"]
   let is_newline = ref CHAR
   let curr_file = ref ""
   let curr_line = ref 1

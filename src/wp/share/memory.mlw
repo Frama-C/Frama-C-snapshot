@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -28,13 +28,30 @@
 
 type addr = { base : int ; offset : int }
 
-predicate addr_le (p:addr,q:addr) = p.base = q.base and p.offset <= q.offset
-predicate addr_lt (p:addr,q:addr) = p.base = q.base and p.offset <  q.offset
-function addr_le_bool (p:addr,q:addr) : bool = andb(eqb(p.base,q.base),zleq(p.offset,q.offset))
-function addr_lt_bool (p:addr,q:addr) : bool = andb(eqb(p.base,q.base),zlt(p.offset,q.offset))
+logic addr_le : addr,addr -> prop
+logic addr_lt : addr,addr -> prop
+
+axiom addr_le_def : forall p,q:addr [ addr_le(p,q) ].
+  p.base = q.base -> (addr_le(p,q) <-> p.offset <= q.offset)
+
+axiom addr_lt_def : forall p,q:addr [ addr_lt(p,q) ].
+  p.base = q.base -> (addr_lt(p,q) <-> p.offset < q.offset)
+
+logic addr_le_bool : addr,addr -> bool
+logic addr_lt_bool : addr,addr -> bool
+
+axiom addr_le_bool_def: forall p,q:addr [ addr_le_bool(p,q) ].
+  addr_le(p,q) <-> addr_le_bool(p,q) = true
+
+axiom addr_lt_bool_def: forall p,q:addr [ addr_lt_bool(p,q) ].
+  addr_lt(p,q) <-> addr_lt_bool(p,q) = true
 
 (* Pointer Arithmetic *)
 
+function null () : addr = { base = 0 ; offset = 0 }
+function global( b:int ) : addr = { base = b ; offset = 0 }
+function base( p:addr ) : int = p.base
+function offset( p:addr ) : int = p.offset
 function shift( p:addr , k:int ) : addr = { p with offset = p.offset + k }
 
 predicate included (p:addr,a:int,q:addr,b:int) =
@@ -54,13 +71,25 @@ predicate eqmem (m1:(addr,'a)farray, m2:(addr,'a)farray, p:addr, a:int) =
 predicate havoc (m1:(addr,'a)farray, m2:(addr,'a)farray, p:addr, a:int) =
   forall q:addr [m1[q]|m2[q]]. separated(q,1,p,a) -> m1[q] = m2[q]
 
-predicate valid (m : int farray , p : addr , n : int) =
+predicate valid_rd (m : int farray , p : addr , n : int) =
   (n > 0) -> ( 0 <= p.offset and p.offset + n <= m[p.base] )
+
+predicate valid_rw (m : int farray , p : addr , n : int) =
+  (n > 0) -> ( 0 < p.base and 0 <= p.offset and p.offset + n <= m[p.base] )
+
+axiom separated_1 : forall p,q:addr. separated(p,1,q,1) -> p<>q
+axiom separated_k : forall p,q:addr. forall a,b,i,j:int
+  [ separated(p,a,q,b) , {base=p.base;offset=i} , {base=q.base;offset=j} ].
+  separated(p,a,q,b) -> 
+  p.offset <= i < p.offset + a ->
+  q.offset <= j < q.offset + b ->
+  {base=p.base;offset=i} <> {base=q.base;offset=j}
 
 (* Regions *)
 
 logic region : int -> int
-logic linked : int farray -> prop
+logic linked : (int,int) farray -> prop (* Allocation Table *)
+logic sconst : (addr,int) farray -> prop (* Chars Memory *)
 predicate framed( m : (addr,addr) farray ) = 
   forall p:addr [m[p]]. region(m[p].base) = 0
 
@@ -73,6 +102,7 @@ axiom cast_injective :
 (* Physical Addresses *)
 
 logic hardware : int -> int (* returns the offset in base NULL *)
+axiom hardnull : hardware(0) = 0
 
 (* To be discussed:
 logic hardware_injective :

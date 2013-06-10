@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,7 +20,12 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* Implementation of [Dynlink_common_interface] compatible with OCaml 3.11
+(* Should not be in this module, but must happen very early in the boot
+   process *)
+let () = Printexc.record_backtrace true
+
+
+(* Implementation of [Dynlink_common_interface] compatible with OCaml >=3.11
    whenever [Dynlink] does correctly work. *)
 
 module type OldDynlink = sig

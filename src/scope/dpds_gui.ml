@@ -2,11 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
-(*           alternatives)                                                *)
-(*    INRIA (Institut National de Recherche en Informatique et en         *)
-(*           Automatique)                                                 *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -80,7 +78,7 @@ let get_annot_opt localizable = match localizable with
 let get_lval_opt main_ui kf_stmt_opt localizable =
   match localizable with
     | Pretty_source.PLval (Some _kf, (Kstmt _stmt), lv) ->
-        let lv_txt = Pretty_utils.sfprintf "%a" Cil.d_lval lv in
+        let lv_txt = Pretty_utils.sfprintf "%a" Printer.pp_lval lv in
         Some (lv_txt, lv)
     | _ ->
        ( match kf_stmt_opt with
@@ -238,7 +236,7 @@ module Pscope (* : (DpdCmdSig with type t_in = code_annotation) *) = struct
     "[prop_scope] computed"
 
   let tag_stmt stmt =
-    (*if Cilutil.StmtSet.mem stmt (Pscope_warn.get()) then scope_p_warn_tag
+    (*if Stmt.Set.mem stmt (Pscope_warn.get()) then scope_p_warn_tag
     else*) if Stmt.Set.mem stmt (Pscope.get()) then scope_p_tag
     else empty_tag
 
@@ -385,7 +383,7 @@ let help (main_ui:Design.main_window_extension_points) =
 
 module DpdsState =
   State_builder.Option_ref
-    (Datatype.Triple(Kernel_function)(Stmt)(Datatype.String))
+    (Stmt)
     (struct
        let name = "Dpds_gui.Highlighter.DpdsState"
        let dependencies = [ Db.Value.self ]
@@ -400,27 +398,6 @@ let reset () =
   Kf_containing_highlighted_stmt.clear ();
   !update_column `Contents
 
-
-let print_info main_ui kf_stmt_opt =
-  try
-    let kf_dpds, _s, txt = DpdsState.get () in
-      add_msg main_ui txt;
-      match kf_stmt_opt with
-        | None -> ()
-        | Some (kf, _s) ->
-            if Kernel_function.equal kf kf_dpds then
-              begin
-              let get f =
-                let msg = f kf_stmt_opt in
-                  if msg <> "" then add_msg main_ui msg
-              in
-                get ShowDef.get_info;
-                get Zones.get_info;
-                get DataScope.get_info;
-                get Pscope.get_info
-              end
-  with Not_found -> ()
-
 let callbacks ?(defs=false) ?(zones=false) ?(scope=false) ?(pscope=false)
     main_ui (kf, stmt, localizable) =
   let compute f arg =
@@ -434,7 +411,7 @@ let callbacks ?(defs=false) ?(zones=false) ?(scope=false) ?(pscope=false)
       "[dependencies] for %s before stmt %d in %a"
       x stmt.sid Kernel_function.pretty kf
     in
-    DpdsState.set (kf, stmt, txt);
+    DpdsState.set stmt;
     add_msg main_ui txt
   in
   let _ =
@@ -464,7 +441,7 @@ let callbacks ?(defs=false) ?(zones=false) ?(scope=false) ?(pscope=false)
 
 let highlighter (buffer:GSourceView2.source_buffer) localizable ~start ~stop =
   try
-    let _kf, start_s, _txt = DpdsState.get () in
+    let start_s = DpdsState.get () in
     let put_tag tag = match tag with ("",[]) -> ()
       | _ -> add_tag buffer tag start stop
     in
@@ -551,8 +528,6 @@ let selector (popup_factory:GMenu.menu GMenu.factory)
         add_item main_ui ~use_values:false submenu_factory "Reset All" (Some())
                         (fun _ -> reset () ; main_ui#rehighlight ())
     end
-  else if button = 1 then
-      print_info main_ui (get_kf_stmt_opt localizable)
 
 let filetree_decorate main_ui = 
   main_ui#file_tree#append_pixbuf_column

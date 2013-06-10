@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -91,7 +91,7 @@ and find_deps_lval_no_transitivity state lv =
   let deps, loc =
     !Db.Value.lval_to_loc_with_deps_state state ~deps:Zone.bottom lv
   in
-  let direct_deps = valid_enumerate_bits ~for_writing:false loc in
+  let direct_deps = enumerate_valid_bits ~for_writing:false loc in
   let result = Zone.join deps direct_deps in
   From_parameters.debug "find_deps_lval_no_trs:@\n deps:%a@\n direct_deps:%a"
     Zone.pretty deps Zone.pretty direct_deps;
@@ -116,14 +116,14 @@ let compute_using_prototype_for_state state kf =
           in
           let treat_assign acc (out, ins) =
             try
-              let output_locs =
+              let output_locs, _deps =
                 !Properties.Interp.loc_to_locs ~result:None state out.it_content
               in
               let input_zone = input_zone out ins in
               let treat_one_output acc out_loc =
 		let exact = Location_Bits.cardinal_zero_or_one out_loc.loc in
                 let output_zone =
-                  Locations.valid_enumerate_bits ~for_writing:true out_loc
+                  Locations.enumerate_valid_bits ~for_writing:true out_loc
                 in
                 Lmap_bitwise.From_Model.add_binding ~exact
                   acc output_zone input_zone
@@ -252,12 +252,12 @@ struct
       let joiner = Zone.join in
       let projection base =
         match Base.validity base with
+          | Base.Invalid -> Lattice_Interval_Set.Int_Intervals.bottom
           | Base.Periodic (min_valid, max_valid, _)
           | Base.Known (min_valid,max_valid)
-          | Base.Unknown (min_valid,max_valid)->
+          | Base.Unknown (min_valid,_,max_valid)->
               Lattice_Interval_Set.Int_Intervals.inject_bounds
                 min_valid max_valid
-          | Base.All -> assert false(*TODO*)
       in
       let zone_substitution =
         Zone.cached_fold ~cache:("from substitution", 331) ~temporary:true
@@ -561,10 +561,11 @@ struct
             )
         | _ -> Dataflow.Default
 
-    let doStmt (s: stmt) (_d: t) =
-      if not (Db.Value.is_reachable (Values_To_Use.get_stmt_state s))
-      then Dataflow.SDone
-      else Dataflow.SDefault
+    let doStmt s d =
+      if Db.Value.is_reachable (Values_To_Use.get_stmt_state s) &&
+        not (Lmap_bitwise.From_Model.is_bottom d.deps_table)
+      then Dataflow.SDefault
+      else Dataflow.SDone
 
     let filterStmt stmt =
       Db.Value.is_reachable (Values_To_Use.get_stmt_state stmt)
@@ -585,7 +586,7 @@ struct
                  state.deps_table deps)
               (Lmap_bitwise.From_Model.find_base
                  state.deps_table
-                 (valid_enumerate_bits ~for_writing:false target))
+                 (enumerate_valid_bits ~for_writing:false target))
           | Return (None,_) ->
             Lmap_bitwise.From_Model.LOffset.empty
           | _ -> assert false)
@@ -619,7 +620,7 @@ struct
         | [] -> d
         | closed_blocks ->
           let deps_table =
-            Lmap_bitwise.From_Model.uninitialize_locals
+            Lmap_bitwise.From_Model.uninitialize
               (List.fold_left (fun x y -> y.blocals @ x) [] closed_blocks)
               d.deps_table
           in { d with deps_table = deps_table }
@@ -652,7 +653,7 @@ struct
           let state =
             { Computer.empty_from with
               deps_table =
-                Lmap_bitwise.From_Model.uninitialize_locals
+                Lmap_bitwise.From_Model.uninitialize
                   f.slocals Computer.empty_from.deps_table }
           in
           match f.sbody.bstmts with
@@ -692,8 +693,9 @@ struct
                   else
                     raise Not_found
                 with Not_found -> begin
-                  From_parameters.result ~current:true
-                    "Non terminating function (no dependencies)";
+                  From_parameters.result
+                    "Non-terminating function %a (no dependencies)"
+                    Kernel_function.pretty kf;
                   { Function_Froms.deps_return =
                       Lmap_bitwise.From_Model.LOffset.empty;
                     deps_table = Lmap_bitwise.From_Model.bottom }

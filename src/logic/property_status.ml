@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -148,7 +148,7 @@ include L
 let register_as_kernel_logical_consequence_ref = 
   Extlib.mk_fun "register_as_kernel_logical_consequence_ref"
 
-(* property -> emitter -> emitted_t *)
+(* property -> emitter -> emitted_status *)
 
 module Status =
   Emitter.Make_table
@@ -158,23 +158,48 @@ module Status =
       let local_clear p h =
 	Hashtbl.clear h;
 	!register_as_kernel_logical_consequence_ref p
-      let get e = e.emitter
+      let usable_get e = e.emitter
+      let get e = Emitter.Usable_emitter.get e.emitter
      end)
     (Emitted_status)
     (struct 
       let name = "Property_status" 
-      let dependencies = [ Ast.self; Emitter.self ]
-      let remove_binding _ _ = ()
+      let dependencies = [ Ast.self ]
+      let kinds = [ Emitter.Property_status ]
+      let size = 97
      end)
 
 let self = Status.self
-let () = Emitter.property_status_state := self
 
 let iter f = Status.iter (fun p _ -> f p)
 let fold f = Status.fold (fun p _ -> f p)
 
 (* ok to be computed once right now since there is no parameter dependency *)
 let usable_kernel_emitter = Emitter.get Emitter.kernel
+
+module Hypotheses =
+  State_builder.Hashtbl
+    (Property.Hashtbl)
+    (Datatype.Ref
+       (Datatype.List(Datatype.Pair(Property)(Emitter_with_properties))))
+    (struct
+      let name = "Property_status.Hypotheses"
+      let dependencies = [ self ]
+      let size = 97
+     end)
+
+let () =
+  Status.add_hook_on_remove
+    (fun e ppt _ ->
+      (* remove the property from the hypotheses table *)
+      let remove h =
+	try
+	  let l = Hypotheses.find h in
+	  l := List.filter (fun (ppt', _) -> not (Property.equal ppt ppt')) !l
+	with Not_found ->
+	  ()
+      in
+      List.iter remove e.properties)
 
 (**************************************************************************)
 (** {3 Unconsolidated property status} *)
@@ -261,8 +286,8 @@ let merge_distinct_emitted x y = match x, y with
     raise Unmergeable
 
 let rec register ppt =
-(*  Kernel.feedback "REGISTERING %a in %a" Property.pretty ppt
-    Project.pretty (Project.current ());*)
+  Kernel.debug ~level:22 "REGISTERING %a in %a" Property.pretty ppt
+    Project.pretty (Project.current ());
   if Status.mem ppt then
     Kernel.fatal "trying to register twice property `%a'.\n\
 That is forbidden (kernel invariant broken)."
@@ -275,8 +300,9 @@ That is forbidden (kernel invariant broken)."
 and register_as_kernel_logical_consequence ppt = match ppt with
   | Property.IPAxiom _ 
   | Property.IPPredicate(Property.PKAssumes _, _, _, _) ->
-    (* always valid: logical consequence of the empty conjunction *)
-    logical_consequence Emitter.kernel ppt []
+    (* always valid, but must be verifiable by the end-user,
+       see [is_not_verifiable_but_valid] *)
+    ()
   | Property.IPAxiomatic(_, l) -> logical_consequence Emitter.kernel ppt l
   | Property.IPBehavior(kf, ki, b) ->
     (* logical consequence of its postconditions *)
@@ -284,16 +310,16 @@ and register_as_kernel_logical_consequence ppt = match ppt with
       Emitter.kernel ppt (Property.ip_post_cond_of_behavior kf ki b)
   | Property.IPReachable(None, Cil_types.Kglobal, Property.Before) ->
       (* valid: global properties are always reachable *)
-      emit_valid ppt
+    emit_valid ppt
   | Property.IPReachable(None, Cil_types.Kglobal, Property.After) -> 
     assert false
   | Property.IPReachable(None, Cil_types.Kstmt _, _) ->
     Kernel.fatal "reachability of a stmt without function"
   | Property.IPReachable(Some kf, Cil_types.Kglobal, Property.Before) ->
-      let f = kf.Cil_types.fundec in
-      if Ast_info.Function.get_name f = Kernel.MainFunction.get ()
+    let f = kf.Cil_types.fundec in
+    if Ast_info.Function.get_name f = Kernel.MainFunction.get ()
       (* main is always reachable *)
-      then emit_valid ppt
+    then emit_valid ppt
   | Property.IPOther _  | Property.IPReachable _
   | Property.IPPredicate _ | Property.IPCodeAnnot _ | Property.IPComplete _ 
   | Property.IPDisjoint _ | Property.IPAssigns _ | Property.IPFrom _ 
@@ -302,8 +328,6 @@ and register_as_kernel_logical_consequence ppt = match ppt with
 
 (* the functions above and below MUST be synchronized *)
 and is_kernel_logical_consequence ppt = match ppt with
-  | Property.IPAxiom _
-  | Property.IPAxiomatic _
   | Property.IPPredicate(Property.PKAssumes _, _, _, _)
   | Property.IPBehavior(_, _, _)
   | Property.IPReachable(None, Cil_types.Kglobal, Property.Before) ->
@@ -315,6 +339,8 @@ and is_kernel_logical_consequence ppt = match ppt with
   | Property.IPReachable(Some kf, Cil_types.Kglobal, Property.Before) ->
     let f = kf.Cil_types.fundec in (* main is always reachable *)
     Ast_info.Function.get_name f = Kernel.MainFunction.get ()
+  | Property.IPAxiom _
+  | Property.IPAxiomatic _
   | Property.IPOther _  | Property.IPReachable _
   | Property.IPPredicate _ | Property.IPCodeAnnot _ | Property.IPComplete _
   | Property.IPDisjoint _ | Property.IPAssigns _ | Property.IPFrom _ 
@@ -334,7 +360,20 @@ and unsafe_emit_and_get e ~hyps ~auto ppt ?(distinct=false) s =
       Emitter_with_properties.Hashtbl.remove by_emitter emitter;
       let selection = State_selection.only_dependencies Status.self in
       Project.clear ~selection ();
-      let add e s = Emitter_with_properties.Hashtbl.add by_emitter e s in
+      let add e s = 
+	Emitter_with_properties.Hashtbl.add by_emitter e s;
+	List.iter
+	  (function 
+	  | Property.IPOther _ -> ()
+	  | h ->
+	    let pair = ppt, e in
+	    try
+	      let l = Hypotheses.find h in
+	      l := pair :: !l
+	    with Not_found ->
+	      Hypotheses.add h (ref [ pair ])) 
+	  e.properties
+      in
       (match s with
       | True -> add emitter s
       | Dont_know ->
@@ -417,9 +456,37 @@ let emit_and_get e ~hyps ppt ?distinct s =
 
 let emit e ~hyps ppt ?distinct s = ignore (emit_and_get e ~hyps ppt ?distinct s)
 
+(* remove each status that used [hyp] as hypothesis *)
+let remove_when_used_as_hypothesis hyp =
+  try
+    let l = Hypotheses.find hyp in
+    let remove (ppt, e) =
+      if e.logical_consequence then
+	(* only remove [hyp] from hypotheses without killing the status *)
+	e.properties <- List.filter (fun ppt' -> ppt' != hyp) e.properties
+      else
+	let by_emitter = try Status.find ppt with Not_found -> assert false in
+	Emitter_with_properties.Hashtbl.remove by_emitter e
+    in
+    List.iter remove !l
+  with Not_found ->
+    ()
+
+(* remove each hypothese of [ppt] from the hypotheses table *)
+let remove_hyps_from_hypotheses ppt =
+  try
+    let by_emitter = Status.find ppt in
+    Emitter_with_properties.Hashtbl.iter
+      (fun e s -> Status.apply_hooks_on_remove e ppt s)
+      by_emitter
+  with Not_found ->
+    ()  
+
 let remove ppt =
 (*  Kernel.feedback "REMOVING %a in %a" Property.pretty ppt
     Project.pretty (Project.current ());*)
+  remove_when_used_as_hypothesis ppt;
+  remove_hyps_from_hypotheses ppt;
   Status.remove ppt
 
 let merge ~old l =
@@ -452,7 +519,7 @@ let merge ~old l =
   (* remove the properties which are not in the new list *)
   Property.Hashtbl.iter
     (fun p () ->
-      (* Kernel.feedback "REMOVE %a" Property.pretty p; *)
+(*      Kernel.feedback "REMOVE BY MERGE %a" Property.pretty p;*)
       remove p) 
     old_h
 
@@ -470,6 +537,7 @@ let is_not_verifiable_but_valid ppt status = match status with
       (* Non-ACSL properties are not verifiable *) 
       false
     | Property.IPReachable _ -> false
+    | Property.IPAxiom _ | Property.IPAxiomatic _ -> true
     | _ ->
       match Property.get_kf ppt with
       | None -> false
@@ -1142,7 +1210,7 @@ broken:@ status %a not allowed when simplifying hypothesis status@]"
     let tmp = Property.ip_other "$Feedback.tmp$" None Cil_types.Kglobal in
     logical_consequence Emitter.kernel tmp ppts ;
     let s = get tmp in
-    Status.remove tmp ;
+    remove tmp ;
     Consolidated_status.remove tmp ;
     s
 
@@ -1319,7 +1387,7 @@ module Consolidation_graph = struct
     Property.Hashtbl.clear already_done;
     g
 
-  let dump graph dot_file =
+  let dump graph formatter =
     let module Dot = Graph.Graphviz.Dot
 	  (struct
 
@@ -1334,7 +1402,7 @@ module Consolidation_graph = struct
 	      if is_not_verifiable_but_valid p s then
 		0x00ff00 (* green *)
 	      else match s with
-	      | Never_tried -> 0x00ffff (* cyan *)
+	      | Never_tried -> 0x0011ff (* dark blue, only for border *)
               | Best(s, _) -> emitted_status_color s
 	      | Inconsistent _ -> 0x808080 (* gray *)
 
@@ -1356,8 +1424,13 @@ module Consolidation_graph = struct
 
             let vertex_attributes = function
               | Property p as v ->
-		let color = status_color p (get_status p) in
-		[ label v; `Color color; `Shape `Box; `Style `Filled ]
+                let s = get_status p in
+		let color = status_color p s in
+                let style = match s with
+                  | Never_tried -> [`Style `Bold; `Width 0.8 ]
+                  | _ -> [`Style `Filled]
+                in
+		style @ [ label v; `Color color; `Shape `Box ]
               | Emitter _ as v -> 
 		[ label v; `Shape `Diamond; `Color 0xb0c4de; `Style `Filled ]
               | Tuning_parameter _ as v ->
@@ -1376,9 +1449,7 @@ module Consolidation_graph = struct
        end)
     in
     try
-      let cout = open_out dot_file in
-      Kernel.Unicode.without_unicode (Dot.output_graph cout) graph;
-      close_out cout
+      Kernel.Unicode.without_unicode (Dot.fprint_graph formatter) graph;
     with Sys_error _ as exn ->
       Kernel.error
 	"issue when generating consolidation graph: %s" 

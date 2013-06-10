@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -21,7 +21,6 @@
 (**************************************************************************)
 
 open Cil_types
-open Cilutil
 open Cil
 
 (* ************************************************************************** *)
@@ -35,7 +34,7 @@ let is_integral_const = function
 let rec possible_value_of_integral_const = function
   | CInt64 (i,_,_) -> Some i
   | CEnum {eival = e} -> possible_value_of_integral_expr e
-  | CChr c -> Some (My_bigint.of_int (Char.code c)) 
+  | CChr c -> Some (Integer.of_int (Char.code c)) 
   (* This is against the ISO C norm! See Cil.charConstToInt  *)
   | _ -> None
 
@@ -58,13 +57,13 @@ let constant_expr ~loc i = new_exp ~loc (Const(CInt64(i,IInt,None)))
 
 let rec is_null_expr e = match (stripInfo e).enode with
   | Const c when is_integral_const c ->
-      My_bigint.equal (value_of_integral_const c) My_bigint.zero
+      Integer.equal (value_of_integral_const c) Integer.zero
   | CastE(_,e) -> is_null_expr e
   | _ -> false
 
 let rec is_non_null_expr e = match (stripInfo e).enode with
   | Const c when is_integral_const c ->
-      not (My_bigint.equal (value_of_integral_const c) My_bigint.zero)
+      not (Integer.equal (value_of_integral_const c) Integer.zero)
   | CastE(_,e) -> is_non_null_expr e
   | _ -> false
 
@@ -79,7 +78,7 @@ let is_integral_logic_const = function
 let possible_value_of_integral_logic_const = function
   | Integer(i,_) -> Some i
   | LEnum {eival = e} -> possible_value_of_integral_expr e
-  | LChr c -> Some (My_bigint.of_int (Char.code c))
+  | LChr c -> Some (Integer.of_int (Char.code c))
   (* This is against the ISO C norm! See Cil.charConstToInt  *)
   | _ -> None
 
@@ -110,15 +109,12 @@ let is_trivial_predicate = function Ptrue -> true | _ -> false
 
 let is_trivial_named_predicate p = is_trivial_predicate p.content
 
-let is_trivial_annotation = function
-  | AAssert (_,a) -> is_trivial_named_predicate a
-  | APragma _ | AStmtSpec _ | AInvariant _ | AVariant _
-  | AAssigns _| AAllocation _
-(* | ALoopBehavior _ *)
-    -> false
-
-let is_trivial_rooted_assertion = function
-  | User ca | AI(_, ca) -> is_trivial_annotation ca.annot_content
+let is_trivial_annotation a =
+  match a.annot_content with
+    | AAssert (_,a) -> is_trivial_named_predicate a
+    | APragma _ | AStmtSpec _ | AInvariant _ | AVariant _
+    | AAssigns _| AAllocation _
+      -> false
 
 let behavior_assumes b =
   Logic_const.pands (List.map Logic_const.pred_of_id_pred b.b_assumes)
@@ -128,7 +124,7 @@ let behavior_postcondition b k =
   let postcondition =
     Logic_const.pands
       (Extlib.filter_map (fun (x,_) -> x = k)
-         (Logic_const.pred_of_id_pred $ snd) b.b_post_cond)
+         (Extlib.($) Logic_const.pred_of_id_pred snd) b.b_post_cond)
   in
   Logic_const.pimplies (assumes,postcondition)
 
@@ -202,21 +198,29 @@ let merge_assigns_internal (get:'b -> 'c assigns) (origin:'b -> string list)
        cmp_assigns acc bhvs
 
 (** Returns the assigns from complete behaviors and ungarded behaviors. *)
-let merge_assigns_from_complete_bhvs ?warn ?(ungarded=true) (bhvs: funbehavior list) (complete_bhvs: string list list) =
+let merge_assigns_from_complete_bhvs ?warn ?(ungarded=true) bhvs complete_bhvs =
   let merge_assigns_from_complete_bhvs bhv_names =
     try (* For merging assigns of a "complete" set of behaviors *)
-      let behaviors = match bhv_names with (* Extract behaviors from their names. *)
+      let behaviors = match bhv_names with
+	(* Extract behaviors from their names. *)
 	| [] -> (* All behaviors should be taken except the default behavior *) 
-	    List.filter (fun b -> not (Cil.is_default_behavior b)) bhvs 
+	  List.filter (fun b -> not (Cil.is_default_behavior b)) bhvs 
 	| _ -> (* Finds the corresponding behaviors from the set *)
-	    List.map (fun b_name -> List.find (fun b -> b.b_name = b_name) bhvs) bhv_names
-      in (* Merges the assigns of the complete behaviors.
-	    Once one of them as no assumes, that means the merge 
-	    of the ungarded behavior did already the job *)
-	Writes (List.fold_left (fun acc b -> match b.b_assigns with
-				  | Writes l when b.b_assumes <> [] -> l @ acc 
-			          | _ -> raise Not_found) [] behaviors)
-    with Not_found -> WritesAny (* One of these behaviors is not found or has no assumes *)
+	  List.map
+	    (fun b_name -> 
+	      List.find (fun b -> b.b_name = b_name) bhvs) bhv_names
+      in
+	(* Merges the assigns of the complete behaviors.
+	   Once one of them as no assumes, that means the merge 
+	   of the ungarded behavior did already the job *)
+      Writes
+	(List.fold_left
+	   (fun acc b -> match b.b_assigns with
+	   | Writes l when b.b_assumes <> [] -> l @ acc 
+	   | _ -> raise Not_found) [] behaviors)
+    with Not_found -> 
+      (* One of these behaviors is not found or has no assumes *)
+      WritesAny
   in
   let acc =
     if ungarded then (* Looks first at unguarded behaviors. *)
@@ -227,58 +231,58 @@ let merge_assigns_from_complete_bhvs ?warn ?(ungarded=true) (bhvs: funbehavior l
     else None
   in
   let acc = match acc with
-    | Some (((Writes _),_),_) -> acc (* Does not look further since one has been found *)
-    | _ -> (* Look at complete behaviors *)
-	merge_assigns_internal (* Chooses the smalest one *)
-	  (merge_assigns_from_complete_bhvs:string list -> 'a assigns) (fun bhvnames -> bhvnames)
-	  acc complete_bhvs in 
-  let unguarded_assigns = match acc with
-    | None -> WritesAny (* No unguarded behavior -> assigns everything *)
-    | Some ((a,(w,orig)),_) -> (* The smallest one *)
-	let warn = match warn with 
-	    None -> w
-	  | Some warn -> warn 
-	in if warn then
-	    begin
-	      let orig = if orig = [] then List.map (fun b -> b.b_name) bhvs else orig 
-	      in
-		Kernel.warning ~once:true ~current:true
-		  "keeping only assigns from behaviors: %a" 
-		  (Cilutil.pretty_list_del
-		     ignore
-		     ignore
-		     (Cilutil.space_sep ",")
-		     Format.pp_print_string) orig
-	    end;
-	  a
-  in unguarded_assigns
+    | Some (((Writes _),_),_) ->
+      (* Does not look further since one has been found *)
+      acc
+    | _ ->
+      (* Look at complete behaviors *)
+      merge_assigns_internal (* Chooses the smalest one *)
+	merge_assigns_from_complete_bhvs
+	(fun bhvnames -> bhvnames)
+	acc
+	complete_bhvs 
+  in 
+  match acc with
+  | None -> WritesAny (* No unguarded behavior -> assigns everything *)
+  | Some ((a,(w,orig)),_) -> (* The smallest one *)
+    let warn = match warn with 
+      | None -> w
+      | Some warn -> warn 
+    in 
+    if warn then begin
+      let orig = 
+	if orig = [] then List.map (fun b -> b.b_name) bhvs else orig 
+      in
+      Kernel.warning ~once:true ~current:true
+	"keeping only assigns from behaviors: %a" 
+	(Pretty_utils.pp_list ~sep:",@ " Format.pp_print_string) orig
+    end;
+    a
        
 (** Returns the assigns from complete behaviors and ungarded behaviors. *)
 let merge_assigns_from_spec ?warn (spec :funspec) =
-  merge_assigns_from_complete_bhvs ?warn spec.spec_behavior spec.spec_complete_behaviors
+  merge_assigns_from_complete_bhvs
+    ?warn spec.spec_behavior spec.spec_complete_behaviors
 
 (** Returns the assigns of an unguarded behavior. *)
 let merge_assigns ?warn (bhvs : funbehavior list) =
   let unguarded_bhvs = List.filter (fun b -> b.b_assumes = []) bhvs in
   let acc = merge_assigns_internal 
     (fun b -> b.b_assigns) (fun b -> [b.b_name])
-    None unguarded_bhvs in
-  let unguarded_assigns = match acc with
-    | None -> WritesAny (* No unguarded behavior -> assigns everything *)
-    | Some((a,(w,orig)),_) -> (* The smallest one *)
-	let warn = match warn with 
-	    None -> w
-	  | Some warn -> warn 
-	in if warn then
-	  Kernel.warning ~once:true ~current:true
-	    "keeping only assigns from behaviors: %a" 
-	    (Cilutil.pretty_list_del
-	       ignore
-	       ignore
-	       (Cilutil.space_sep ",")
-	       Format.pp_print_string) orig;
-	a
-  in unguarded_assigns
+    None unguarded_bhvs 
+  in
+  match acc with
+  | None -> WritesAny (* No unguarded behavior -> assigns everything *)
+  | Some((a,(w,orig)),_) -> (* The smallest one *)
+    let warn = match warn with 
+      | None -> w
+      | Some warn -> warn 
+    in 
+    if warn then
+      Kernel.warning ~once:true ~current:true
+	"keeping only assigns from behaviors: %a" 
+	(Pretty_utils.pp_list ~sep:",@ " Format.pp_print_string) orig;
+    a
 
 let variable_term loc v =
   {
@@ -298,7 +302,7 @@ let constant_term loc i =
 
 let rec is_null_term t = match t.term_node with
   | TConst c when is_integral_logic_const c ->
-      My_bigint.equal (value_of_integral_logic_const c) My_bigint.zero
+      Integer.equal (value_of_integral_logic_const c) Integer.zero
   | TCastE(_,t) -> is_null_term t
   | _ -> false
 
@@ -312,20 +316,6 @@ let predicate loc p =
     loc = loc;
     content = p;
   }
-
-(* ************************************************************************** *)
-(** {2 Annotations} *)
-(* ************************************************************************** *)
-
-let lift_annot_func f a = match a with
-  | User p | AI (_,p) -> f p
-
-let lift_annot_list_func f l =
-  let add l x = match x with
-    | User p | AI(_,p) -> p :: l
-  in
-  let l' = List.fold_left add [] l in
-  f (List.rev l')
 
 (* ************************************************************************** *)
 (** {2 Statements} *)
@@ -392,16 +382,16 @@ let array_type ?length ?(attr=[]) ty = TArray(ty,length,empty_size_cache (),attr
 let direct_array_size ty =
   match unrollType ty with
     | TArray(_ty,Some size,_,_) -> value_of_integral_expr size
-    | TArray(_ty,None,_,_) -> My_bigint.zero
+    | TArray(_ty,None,_,_) -> Integer.zero
     | _ -> assert false
 
 let rec array_size ty =
   match unrollType ty with
     | TArray(elemty,Some _,_,_) ->
         if isArrayType elemty then
-          My_bigint.mul (direct_array_size ty) (array_size elemty)
+          Integer.mul (direct_array_size ty) (array_size elemty)
         else direct_array_size ty
-    | TArray(_,None,_,_) -> My_bigint.zero
+    | TArray(_,None,_,_) -> Integer.zero
     | _ -> assert false
 
 let direct_element_type ty = match unrollType ty with

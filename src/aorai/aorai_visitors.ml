@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Aorai plug-in of Frama-C.                        *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -30,6 +30,8 @@ open Cil_types
 open Cil
 
 (**************************************************************************)
+
+let dkey = Aorai_option.register_category "action"
 
 let get_acceptance_pred () =
   let (st,_) = Data_for_aorai.getAutomata () in
@@ -94,6 +96,7 @@ object (self)
       let vi = Kernel_function.get_vi kf in
       let vi_pre = Cil_const.copy_with_new_vid vi in
       vi_pre.vname <- Data_for_aorai.get_fresh (vi_pre.vname ^ "_pre_func");
+      vi_pre.vdefined <- false;
       Cil_datatype.Varinfo.Hashtbl.add func_orig_table vi_pre (Pre_func kf);
         (* TODO:
            - what about protos that have no specified args
@@ -193,6 +196,24 @@ end
 
 let post_treatment_loops = Hashtbl.create 97
 
+let update_loop_assigns kf stmt vi code_annot =
+  let loc = Cil_datatype.Stmt.loc stmt in
+  let assigns = Aorai_utils.aorai_assigns loc in
+  let assigns =
+    Logic_utils.concat_assigns 
+      (Writes
+         [Logic_const.new_identified_term (Logic_const.tvar ~loc vi), From []])
+      assigns
+  in
+  let new_assigns =
+    match code_annot.annot_content with
+      | AAssigns (bhvs,old_assigns) ->
+          Logic_const.new_code_annotation
+            (AAssigns (bhvs, Logic_utils.concat_assigns old_assigns assigns))
+      | _ -> Aorai_option.fatal "Expecting an assigns clause here"
+  in
+  Annotations.add_code_annot Aorai_option.emitter ~kf stmt new_assigns
+
 let get_action_post_cond kf ?init_trans return_states =
   let to_consider pre_state int_states =
     match init_trans with
@@ -212,12 +233,11 @@ let get_action_post_cond kf ?init_trans return_states =
       let post_conds =
         Aorai_utils.action_to_pred ~pre_state ~post_state bindings
       in
-      Aorai_option.debug ~dkey:"action"
+      Aorai_option.debug ~dkey
         "Getting action post-conditions for %a, from state %s to state %s@\n%a"
         Kernel_function.pretty kf
         pre_state.Promelaast.name post_state.Promelaast.name
-        (Pretty_utils.pp_list ~sep:Pretty_utils.nl_sep
-           !Ast_printer.d_predicate_named)
+        (Pretty_utils.pp_list ~sep:"@\n" Printer.pp_predicate_named)
         post_conds;
       post_conds @ acc
     end
@@ -379,12 +399,11 @@ let get_unchanged_aux_var loc current_state =
 class visit_adding_pre_post_from_buch treatloops =
 
   let predicate_to_invariant kf stmt pred =
-    (* 4) Add new annotation *)
     Annotations.add_code_annot
       Aorai_option.emitter
       ~kf
       stmt
-      (User (Logic_const.new_code_annotation (AInvariant([],true,pred))));
+      (Logic_const.new_code_annotation (AInvariant([],true,pred)));
   in
   let all_possible_states state =
     let treat_one_state _ = Data_for_aorai.merge_end_state in
@@ -840,6 +859,9 @@ object(self)
       let glob_state = Data_for_aorai.merge_state init_state inv_state in
       let possible_states = all_possible_states glob_state in
 
+      let loop_assigns =
+        Annotations.code_annot ~filter:Logic_utils.is_assigns stmt
+      in
       (* varinfo of the init_var associated to this loop *)
       let vi_init =
         Data_for_aorai.get_varinfo
@@ -927,6 +949,10 @@ object(self)
 
       let action_inv_preds = Aorai_utils.all_actions_preds glob_state in
       List.iter (predicate_to_invariant kf new_loop) action_inv_preds;
+      
+      List.iter
+        (update_loop_assigns kf new_loop (Cil.cvar_to_lvar vi_init))
+        loop_assigns;
 
       (*    4) Keeping in mind to preserve old annotations after visitor end *)
       Hashtbl.add post_treatment_loops (ref stmt) (ref new_loop);
@@ -938,7 +964,6 @@ object(self)
     let after s =
       if self#leave_block () then
         let annots = Annotations.code_annot stmt in
-        let annots = List.map Annotations.code_annotation_of_rooted annots in
         let _, specs = List.split (Logic_utils.extract_contract annots) in
         List.iter (update_assigns (Cil_datatype.Stmt.loc stmt) None) specs;
         s
@@ -1013,7 +1038,7 @@ let add_pre_post_from_buch file treatloops  =
 	Annotations.fold_code_annot
 	  (fun e a acc -> 
 	    Annotations.remove_code_annot e ~kf old_s a;
-	    (e, a) :: acc)
+            if (Logic_utils.is_assigns a) then acc else (e, a) :: acc)
 	  old_s
 	  [];
       in

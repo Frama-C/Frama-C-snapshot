@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -104,14 +104,10 @@ end
 
 class occurrence = object (self)
 
-  inherit Visitor.generic_frama_c_visitor
-    (Project.current ()) (inplace_visit ()) as super
-
-  method private current_ki =
-    match self#current_stmt with None -> Kglobal | Some s -> Kstmt s
+  inherit Visitor.frama_c_inplace as super
 
   method vlval lv =
-    let ki = self#current_ki in
+    let ki = self#current_kinstr in
     if Db.Value.is_accessible ki then begin
       let z = !Db.Value.lval_to_zone ki ~with_alarms:CilE.warn_none_mode lv in
       try
@@ -124,7 +120,7 @@ class occurrence = object (self)
           ) z ()
       with Locations.Zone.Error_Top ->
         error ~current:true "Found completely imprecise value (%a). Ignoring@."
-          d_lval lv
+          Printer.pp_lval lv
     end;
     DoChildren
 
@@ -158,7 +154,7 @@ end
 
 (** Occurrence has found the given [lv] somewhere inside [ki]. We try to find
     whether this was inside a read or a write operation. This is difficult to
-    do directly inside the {!occurrence} class, as the [vlval] method cannot
+    do directly inside the {!occurrence} class, as the [vlval] method
     has no information about the origin of the lval it was called on *)
 let classify_accesses (_kf, ki, lv) =
   let vis = new is_sub_lval lv in
@@ -226,7 +222,7 @@ let print_one fmt v l =
 	else "local of " ^ kf_name);
   List.iter
     (fun (kf, ki, lv) ->
-       Format.fprintf fmt "  %a: %a@\n" d_ki (kf,ki) d_lval lv) l
+      Format.fprintf fmt "  %a: %a@\n" d_ki (kf,ki) Printer.pp_lval lv) l
 
 let print_all () =
   compute ();

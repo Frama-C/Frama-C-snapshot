@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,7 +20,18 @@
 (*                                                                        *)
 (**************************************************************************)
 
-let dkey = "task"
+let dkey = Kernel.register_category "task"
+
+(* -------------------------------------------------------------------------- *)
+(* --- Error Messages                                                     --- *)
+(* -------------------------------------------------------------------------- *)
+
+let error = function
+  | Failure msg -> msg
+  | Sys_error msg -> msg
+  | Unix.Unix_error(e,_,"") -> Unix.error_message e
+  | Unix.Unix_error(e,_,p) -> Printf.sprintf "%s (%s)" (Unix.error_message e) p
+  | exn -> Printexc.to_string exn
 
 (* ------------------------------------------------------------------------ *)
 (* ---  High Level Interface to Command                                 --- *)
@@ -48,11 +59,10 @@ let pretty pp fmt = function
 let protect f arg on_fail =
   try f arg 
   with e ->
-    if Printexc_common_interface.has_backtrace && Kernel.debug_atleast 1 then
+    if Kernel.debug_atleast 1 then
       begin
         Kernel.debug ~dkey "Current task raised an exception:@\n%s@\n%s"
-          (Printexc_common_interface.to_string e)
-          (Printexc_common_interface.get_backtrace ())
+          (Printexc.to_string e) (Printexc.get_backtrace ())
       end;
     on_fail (Failed e)
 
@@ -469,7 +479,7 @@ let schedule server q =
     done
   with Queue.Empty -> ()
 
-let rec run server () =
+let rec run_server server () =
   begin
     server.running <- List.filter
       (fun task ->
@@ -491,9 +501,12 @@ let rec run server () =
         end
     with _ -> (* Db.Cancel ... *)
       cancel_all server ;
-      run server ()
+      run_server server ()
   end
 
 let launch server =
   if server.scheduled > server.terminated
-  then ( fire server.start ; !on_idle (run server) )
+  then ( fire server.start ; !on_idle (run_server server) )
+
+let run t = !on_idle (fun () -> running t)
+

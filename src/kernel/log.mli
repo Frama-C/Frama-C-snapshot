@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -93,6 +93,31 @@ exception FeatureRequest of string * string
 (** @since Beryllium-20090601-beta1
     @plugin development guide *)
 module type Messages = sig
+  type category = private string
+  (** category for debugging/verbose messages. Must be registered before
+      any use. 
+      Each column in the string defines a sub-category, e.g.
+      a:b:c defines a subcategory c of b, which is itself a subcategory of a.
+      Enabling a category (via -plugin-msg-category) will enable all its
+      subcategories.
+      @since Fluorine-20130401 
+   *)
+
+  val register_category: string -> category
+  (** register a new debugging/verbose category.
+      @since Fluorine-20130401
+   *)
+
+  module Category_set: Set.S with type elt = category
+
+  val get_category: string -> Category_set.t
+    (** returns all registered categories (including sub-categories)
+        corresponding to a given string
+        @since Fluorine-20130401 
+     *)
+  
+  val get_all_categories: unit -> Category_set.t
+    (** returns all registered categories. *)
 
   val verbose_atleast : int -> bool
     (** @since Beryllium-20090601-beta1 *)
@@ -100,26 +125,46 @@ module type Messages = sig
   val debug_atleast : int -> bool
     (** @since Beryllium-20090601-beta1 *)
 
-  val set_debug_keys : string list -> unit
-    (** Keys for which debugging messages are printed by [debug] 
-	with optional parameter [dkey]. 
-	@since Nitrogen-20111001 *)
-  val get_debug_keyset : unit -> string list
-    (** Returns the registered debugging keys.
-	Only activated if ["?"] is member of the current debugging keys. 
-	@since Nitrogen-20111001 *)
+  val add_debug_keys : Category_set.t -> unit
+    (** adds categories corresponding to string (including potential
+        subcategories) to the set of categories for which messages are
+        to be displayed.
+	@since Fluorine-20130401 use categories instead of plain string
+     *)
 
-  val result  : ?level:int -> 'a pretty_printer
+  val del_debug_keys: Category_set.t -> unit
+  (** removes the given categories from the set for which messages are printed.
+     @since Fluorine-20130401 
+   *)
+ 
+  val get_debug_keys: unit -> Category_set.t
+    (** Returns currently active keys
+        @since Fluorine-20130401
+     *)
+  
+  val is_debug_key_enabled: category -> bool
+    (** Returns [true] if the given category is currently active
+        @since Fluorine-20130401
+     *)
+
+  val get_debug_keyset : unit -> category list
+    (** Returns currently active keys
+	@since Nitrogen-20111001
+        @deprecated Fluorine-20130401 use get_debug_keys instead
+     *)
+
+  val result  : ?level:int -> ?dkey:category -> 'a pretty_printer
     (** Results of analysis. Default level is 1.
         @since Beryllium-20090601-beta1
 	@plugin development guide *)
 
-  val feedback : ?level:int -> 'a pretty_printer
-    (** Progress and feedback. Level is tested against the verbose.
+  val feedback : ?level:int -> ?dkey:category -> 'a pretty_printer
+    (** Progress and feedback. Level is tested against the verbosity level.
         @since Beryllium-20090601-beta1
+        @modify Fluorine-20130401 added dkey argument
 	@plugin development guide *)
 
-  val debug   : ?level:int -> ?dkey:string -> 'a pretty_printer
+  val debug   : ?level:int -> ?dkey:category -> 'a pretty_printer
     (** Debugging information dedicated to Plugin developpers.
         Default level is 1. The debugging key is used in message headers.
 	See also [set_debug_keys] and [set_debug_keyset].
@@ -163,7 +208,7 @@ module type Messages = sig
 	@plugin development guide *)
 
   val not_yet_implemented : ('a,formatter,unit,'b) format4 -> 'a
-    (** raises [FeatureRequest] but {i do not} send any message.
+    (** raises [FeatureRequest] but {i does not} send any message.
         If the exception is not catched, Frama-C displays a feature-request
         message to the user.
         @since Beryllium-20090901 *)

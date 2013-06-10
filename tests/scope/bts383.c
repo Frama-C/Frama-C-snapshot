@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -val -print -journal-disable -scope-verbose 1 -scope-debug 1 -remove-redundant-alarms
+   OPT: -val -print -journal-disable -scope-verbose 1 -remove-redundant-alarms -context-width 3
 */
 /* 
    echo '!Db.Scope.check_asserts();;' \
@@ -53,13 +53,13 @@ int fstruct (Tstruct * ps) {
 }
 int main (int * p, Tstruct * ps) {
   int x;
-  x = *p;
-  v = *p;
-  if1(p);
-  if2(x,p);
-  loop1(p);
-  loop2(x,p);
-  out_string(p);
-  x += fstruct (ps);
+  x = *(p+1);
+  v = *(p+1);
+  if1(p+1);
+  if2(x,p+1);
+  loop1(p+1);
+  loop2(x,p+1);
+  out_string(p+1);
+  x += fstruct (ps+1);
   return x;
 }

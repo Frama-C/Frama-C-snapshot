@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -47,6 +47,7 @@ module type S = sig
   val choose: t -> elt
   val split: elt -> t -> t * bool * t
   val intersects: t -> t -> bool
+  val clear_caches: unit -> unit
 end
 
 module type Id_Datatype = sig
@@ -62,7 +63,7 @@ module Make(X: Id_Datatype)
   include
     Hptmap.Make
     (X)
-    (struct include Datatype.Unit let tag () = 0 end)
+    (Datatype.Unit)
     (Hptmap.Comp_unused)
     (struct let v = List.map (List.map (fun k -> k, ())) Initial_Values.v end)
     (Datatype_deps)

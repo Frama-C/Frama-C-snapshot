@@ -1,5 +1,5 @@
 /* run.config 
-   OPT: -rte -rte-no-all -rte-mem -print -journal-disable
+   OPT: -rte -warn-signed-overflow -rte-no-all -rte-mem -print
 */
 struct ArrayStruct {
   int data[10];

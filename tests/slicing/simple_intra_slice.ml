@@ -10,7 +10,8 @@ let main _ =
   let pretty_pdg fmt kf = !Db.Pdg.pretty fmt (!Db.Pdg.get kf) in
   let apply_all_actions = !S.Request.apply_all_internal in
   let print_slice = !S.Slice.pretty in
-  let print_fct_stmts kf = Slicing.Register.print_fct_stmts fmt (project, kf) in
+  let print_fct_stmts kf =
+    Slicing.PrintSlice.print_fct_stmts fmt (project, kf) in
   let get_fct name =
     let kf = Globals.Functions.find_def_by_name name in
     kf

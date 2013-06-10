@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,7 +27,7 @@ open Cil_types
 let add_allocates_loop stmt =
   let _behav = Cil.default_behavior_name in
   let all_default _ rca r =
-    match (Annotations.code_annotation_of_rooted rca).annot_content with
+    match rca.annot_content with
       | AAllocation (b, alloc) ->
           r && (b <> [] || alloc = FreeAllocAny)
       | _ -> r
@@ -36,7 +36,7 @@ let add_allocates_loop stmt =
   if all_default then
     let ca = AAllocation ([], FreeAlloc ([], [])) in
     Annotations.add_code_annot Emitter.kernel stmt
-      (User (Logic_const.new_code_annotation ca))
+      (Logic_const.new_code_annotation ca)
 
 let add_allocates_nothing_funspec kf =
   let behav = Cil.default_behavior_name in

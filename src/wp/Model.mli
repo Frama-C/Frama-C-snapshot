@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -22,29 +22,26 @@
 
 (** Model Registration *)
 
-type t 
-type model = t
+module S : Datatype.S_with_collections
+type t = S.t
+type model = S.t
+type tuning = (unit -> unit)
 
-type tuning = (model -> unit)
-
-type registry = name:string -> 
-  ?id:string -> ?descr:string -> 
+val repr : model
+val register : id:string -> 
+  ?descr:string -> 
   ?tuning:tuning list ->
   unit -> model
 
-val register : registry
-val set_parameter : model -> 'a Context.value -> 'a -> string -> unit
-
 val get_id : model -> string
-val get_name : model -> string
-val get_descr : model -> string option
+val get_descr : model -> string 
 val get_emitter : model -> Emitter.t
 
 val find : id:string -> model
 val iter : (model -> unit) -> unit
 
-val on_model : model -> (unit -> unit) -> unit
 val with_model : model -> ('a -> 'b) -> 'a -> 'b
+val on_model : model -> (unit -> unit) -> unit
 val get_model : unit -> model (** Current model *)
 
 val directory : unit -> string (** Current model in ["-wp-out"] directory *)

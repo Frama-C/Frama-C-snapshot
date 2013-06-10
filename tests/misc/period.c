@@ -1,7 +1,7 @@
 #define t Frama_C_periodic_t_320
 
 
-
+int g[10] __attribute__ ((Frama_C_periodic)); // garbled
 
 typedef struct {
   short s1;
@@ -14,10 +14,11 @@ int (u __attribute__ ((Frama_C_periodic)))[60]= {-1,-2,-3};
 int v[3] __attribute__ ((Frama_C_periodic)) = {-1,-2,-3};
 ts w[10] __attribute__ ((Frama_C_periodic));
 
+
 int Au,Bu,Cu,Du,Eu,Fu,Gu = 12, Hu;
 int At,Bt,Ct,Dt,Et,Ft,Gt = 12, Ht;
 
-int main()
+void main()
 {
   At = t[0];
   Bt = t[11];
@@ -47,5 +48,8 @@ int main()
 
   Frama_C_dump_each();
 
-  return 0;
+  int *p = &g + (int)&g;
+  *p = 1;
+  int vg = *p;
+  *p = &vg;
 }

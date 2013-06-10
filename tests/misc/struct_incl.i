@@ -22,7 +22,7 @@ struct st2 tab_s4[2];
 struct st2 s1,s2,s4,s5,s6;
 struct st1 s8,s7;
 
-long x,y,z,t;
+long x,y,z,t; volatile int v;
 
 void main () {
   x = &s1.d[9];
@@ -45,6 +45,6 @@ void main () {
   s1.d[8] = 8;
   s1.d[9] = 8;
 
-  s1.d[10] = 777;
+  if (v) s1.d[10] = 777;
 
 }

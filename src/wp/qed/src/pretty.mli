@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -29,13 +29,18 @@ open Format
 
 module Make(T : Term) :
 sig
+  open T
 
-  type env (* naming environment *)
+  type env
 
-  val closed : env
-  val bind : string -> T.term -> env -> env
+  val empty : env
+  val closed : Vars.t -> env
+  val marks : env -> marks
+  val bind : string -> term -> env -> env
+  val fresh : env -> term -> string * env
 
-  val pp_tau : formatter -> T.tau -> unit
-  val pp_term : env -> formatter -> T.term -> unit
+  val pp_tau : formatter -> tau -> unit
+  val pp_term : env -> formatter -> term -> unit
+  val pp_def : env -> formatter -> term -> unit
 
 end

@@ -2,8 +2,8 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2012                                               */
-/*    CEA (Commissariat à l'énergie atomique et aux énergies              */
+/*  Copyright (C) 2007-2013                                               */
+/*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
 /*  you can redistribute it and/or modify it under the terms of the GNU   */
@@ -99,8 +99,8 @@ int __fc_random_counter __attribute__((unused));
 const unsigned long __fc_rand_max = __FC_RAND_MAX;
 /* ISO C: 7.20.2 */
 /*@ assigns \result \from __fc_random_counter ;
-  assigns __fc_random_counter ;
-  ensures 0 <= \result <= __fc_rand_max ;
+  @ assigns __fc_random_counter ;
+  @ ensures 0 <= \result <= __fc_rand_max ;
 */
 int rand(void);
 
@@ -110,8 +110,46 @@ void srand(unsigned int seed);
 /* ISO C: 7.20.3.1 */
 void *calloc(size_t nmemb, size_t size);
 
+/*@ ghost extern int __fc_heap_status; */
+/*@ axiomatic dynamic_allocation {
+  @ predicate is_allocable(size_t n) // Can a block of n bytes be allocated?
+  @ reads __fc_heap_status; 
+  @ }
+*/
+ 
+/*@ allocates \result;
+  @ assigns __fc_heap_status \from size, __fc_heap_status;
+  @ assigns \result \from size, __fc_heap_status;
+  @ behavior allocation:
+  @   assumes is_allocable(size);
+  @   assigns __fc_heap_status \from size, __fc_heap_status;
+  @   assigns \result \from size, __fc_heap_status;
+  @   ensures \fresh(\result,size);
+  @ behavior no_allocation:
+  @   assumes !is_allocable(size);
+  @   assigns \result \from \nothing;
+  @   allocates \nothing;
+  @   ensures \result==\null;
+  @ complete behaviors;
+  @ disjoint behaviors;
+  @*/
 void *malloc(size_t size);
-void free(void *ptr);
+
+/*@ frees p;
+  @ assigns  __fc_heap_status \from __fc_heap_status;
+  @ behavior deallocation:
+  @   assumes  p!=\null;
+  @   requires \freeable(p);
+  @   assigns  __fc_heap_status \from __fc_heap_status;
+  @   ensures  \allocable(p);
+  @ behavior no_deallocation:
+  @   assumes  p==\null;
+  @   assigns  \nothing;
+  @   frees    \nothing;
+  @ complete behaviors;
+  @ disjoint behaviors;
+  @*/
+void free(void *p);
 
 #ifdef FRAMA_C_MALLOC_POSITION
 #define __FRAMA_C_STRINGIFY(x) #x
@@ -127,7 +165,8 @@ void *realloc(void *ptr, size_t size);
 
 /* ISO C: 7.20.4 */
 
-/*@ terminates \false; */
+/*@ assigns \nothing;
+  @ ensures \false; */
 void abort(void);
 
 /*@ assigns \result \from \nothing ;*/
@@ -137,14 +176,12 @@ int atexit(void (*func)(void));
 int at_quick_exit(void (*func)(void));
 
 /*@
-  terminates \false;
   assigns \nothing;
   ensures \false;
 */
 void exit(int status);
 
 /*@
-  terminates \false;
   assigns \nothing;
   ensures \false;
 */
@@ -156,7 +193,6 @@ void _Exit(int status);
 char *getenv(const char *name);
 
 /*@
-  terminates \false;
   assigns \nothing;
   ensures \false; */
 void quick_exit(int status);

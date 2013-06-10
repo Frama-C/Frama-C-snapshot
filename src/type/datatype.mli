@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -199,7 +199,7 @@ module type Make_input = sig
       other datatype name. *)
 
   val rehash: t -> t
-  (** How to rehashconsed values. Must be {!identity} if you does not use
+  (** How to rehashconsed values. Must be {!identity} if you do not use
       hashconsing. Only useful for unmarshaling (use {!undefined} for
       unmarshable type). *)
 
@@ -250,7 +250,7 @@ end
 (** A standard OCaml map signature extended with datatype operations. *)
 module type Map = sig
 
-  include Map_common_interface.S
+  include Map.S
 
   module Key: S with type t = key
   (** Datatype for the keys of the map. *)
@@ -271,6 +271,9 @@ end
 module type Hashtbl = sig
 
   include Hashtbl_with_descr
+
+  val make_type: 'a Type.t -> 'a t Type.t
+  (** @since Fluorine-20130401 *)
 
   val memo: 'a t -> key -> (key -> 'a) -> 'a
   (** [memo tbl k f] returns the binding of [k] in [tbl]. If there is
@@ -348,7 +351,7 @@ val string: string Type.t
 module Formatter: S with type t = Format.formatter
 val formatter: Format.formatter Type.t
 
-module Big_int: S_with_collections with type t = My_bigint.t
+module Big_int: S_with_collections with type t = Integer.t
 val big_int: Big_int.t Type.t
 
 (* ****************************************************************************)
@@ -543,6 +546,11 @@ module Poly_list: Polymorphic with type 'a poly = 'a list
 
 (** @plugin development guide *)
 module List(T: S) : S with type t = T.t list
+
+module List_with_collections(T:S)(Info:Functor_info):
+  S_with_collections with type t = T.t list
+(** @since Fluorine-20130401 *)
+
 val list: 'a Type.t -> 'a list Type.t
 (** @plugin development guide *)
 
@@ -551,12 +559,19 @@ val queue: 'a Type.t -> 'a Queue.t Type.t
 module Queue(T: S) : S with type t = T.t Queue.t
 
 module Triple(T1: S)(T2: S)(T3: S): S with type t = T1.t * T2.t * T3.t
+val triple: 'a Type.t -> 'b Type.t -> 'c Type.t -> ('a * 'b * 'c) Type.t
+(** @since Fluorine-20130401 *)
+
 module Triple_with_collections(T1: S)(T2: S)(T3: S)(Info: Functor_info):
   S_with_collections with type t = T1.t * T2.t * T3.t
 
 (** @since Nitrogen-20111001 *)
 module Quadruple(T1: S)(T2: S)(T3: S)(T4:S): 
   S with type t = T1.t * T2.t * T3.t * T4.t
+val quadruple: 
+  'a Type.t -> 'b Type.t -> 'c Type.t -> 'd Type.t -> ('a * 'b * 'c * 'd) Type.t
+(** @since Fluorine-20130401 *)
+
 (** @since Nitrogen-20111001 *)
 module Quadruple_with_collections
   (T1: S)(T2: S)(T3: S)(T4:S)(Info: Functor_info):
@@ -606,7 +621,7 @@ module Set(S: Set.S)(E: S with type t = S.elt)(Info : Functor_info):
   Set with type t = S.t and type elt = E.t
 
 module Map
-  (M: Map_common_interface.S)(Key: S with type t = M.key)(Info: Functor_info) :
+  (M: Map.S)(Key: S with type t = M.key)(Info: Functor_info) :
   Map with type 'a t = 'a M.t and type key = M.key and module Key = Key
 
 module Hashtbl

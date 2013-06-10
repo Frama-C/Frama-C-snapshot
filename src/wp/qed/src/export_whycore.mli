@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -44,6 +44,7 @@ sig
 
     method virtual datatype : ADT.t -> string
     method virtual field : Field.t -> string
+    method basename : string -> string
     method virtual link : cmode -> Fun.t -> link
     method link_name : cmode -> Fun.t -> string
 
@@ -70,9 +71,12 @@ sig
 
     method virtual e_true : cmode -> string
     method virtual e_false : cmode -> string
-    method pp_int : Z.t printer
+    method virtual pp_int : amode -> Z.t printer
+    method virtual pp_cst : Numbers.cst printer
     method pp_real : R.t printer
+
     method virtual is_atomic : term -> bool
+    method virtual op_spaced : string -> bool
 
     method virtual callstyle : callstyle
     method pp_apply : cmode -> term -> term list printer
@@ -81,6 +85,7 @@ sig
     method op_scope : amode -> string option
     method virtual op_real_of_int : op
     method virtual op_add : amode -> op
+    method virtual op_sub : amode -> op
     method virtual op_mul : amode -> op
     method virtual op_div : amode -> op
     method virtual op_mod : amode -> op
@@ -120,7 +125,7 @@ sig
     method pp_lambda : var list printer
 
     method bind : var -> unit
-    method pp_let : formatter -> string -> term -> unit
+    method virtual pp_let : formatter -> string -> term -> unit
 
     method is_shareable : term -> bool
     method pp_atom : term printer
@@ -141,6 +146,7 @@ sig
     method pp_declare_symbol : cmode -> formatter -> Fun.t -> unit
     method declare_type : formatter -> ADT.t -> int -> typedef -> unit
     method declare_axiom : formatter -> string -> T.var list -> trigger list list -> term -> unit
+    method declare_prop : kind:string -> formatter -> string -> T.var list -> trigger list list -> term -> unit
 
   end
 

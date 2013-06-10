@@ -2,11 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
-(*           alternatives)                                                *)
-(*    INRIA (Institut National de Recherche en Informatique et en         *)
-(*           Automatique)                                                 *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -22,20 +20,20 @@
 (*                                                                        *)
 (**************************************************************************)
 
-type t_proj
+open Cil_types
 
-type t_fct
+type proj
+type fct
 
 val select_useful_things :
-  select_annot:bool -> select_slice_pragma:bool -> Cil_types.kernel_function
-  -> t_proj
+  select_annot:bool -> select_slice_pragma:bool -> kernel_function -> proj
 
-val get_marks : t_proj -> Cil_types.kernel_function -> t_fct option
+val get_marks : proj -> kernel_function -> fct option
 
-val key_visible : t_fct -> PdgIndex.Key.t -> bool
+val key_visible : fct -> PdgIndex.Key.t -> bool
 
 (** Useful mainly if there has been some Pdg.Top *)
-val kf_visible : t_proj -> Cil_types.kernel_function -> bool
+val kf_visible : proj -> kernel_function -> bool
 
 (*
 Local Variables:

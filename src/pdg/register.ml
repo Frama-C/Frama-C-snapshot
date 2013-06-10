@@ -2,11 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
-(*           alternatives)                                                *)
-(*    INRIA (Institut National de Recherche en Informatique et en         *)
-(*           Automatique)                                                 *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -42,14 +40,14 @@ module Tbl =
     (PdgTypes.Pdg)
     (struct
        let name = "Pdg.State"
-       let dependencies = [] (* postponed *)
-       let size = 97
+       let dependencies = [] (* postponed because !Db.From.self may
+                                not exist yet *)
+       let size = 17
     end)
-
 let () =
   Cmdline.run_after_extended_stage
     (fun () ->
-       State_dependency_graph.Static.add_codependencies
+       State_dependency_graph.add_codependencies
          ~onto:Tbl.self
          [ !Db.From.self ])
 
@@ -120,7 +118,7 @@ let call_out_marks_to_called = Marks.call_out_marks_to_called
 let in_marks_to_caller = Marks.in_marks_to_caller
 let translate_in_marks = Marks.translate_in_marks
 
-module F_Proj (C : PdgMarks.T_Config) = Marks.F_Proj (C)
+module F_Proj = Marks.F_Proj
 
 
 let deps =
@@ -140,11 +138,8 @@ let compute () =
         !Db.Pdg.extract pdg (dot_basename ^ "." ^ fname ^ ".dot")
   in
   !Db.Semantic_Callgraph.topologically_iter_on_functions do_kf_pdg;
-  let ks = Pdg_parameters.get_debug_keyset () in
-  let pp_keys =
-    Pretty_utils.pp_flowlist ~left:"" ~sep:", " ~right:"."
-      Format.pp_print_string
-  in Pdg_parameters.debug ~level:1 "Logging keys : %a" pp_keys ks ;
+  Pdg_parameters.debug "Logging keys : %s" 
+    (Pdg_parameters.Debug_category.get_set()) ;
   if Pdg_parameters.BuildAll.get () then
     Pdg_parameters.feedback "====== PDG GRAPH COMPUTED ======"
 
@@ -163,18 +158,14 @@ let output () =
   in
   !Db.Semantic_Callgraph.topologically_iter_on_functions do_kf_pdg
 
-
 let something_to_do () =
   Pdg_parameters.BuildAll.get ()
   || not (Datatype.String.Set.is_empty (Pdg_parameters.BuildFct.get ()))
-
 
 let main () =
   if something_to_do () then
     (compute_once ();
      Pdg_parameters.BuildAll.output output)
-
-let () = Pdg_parameters.set_debug_keys ["?"]
 
 let () = Db.Main.extend main
 

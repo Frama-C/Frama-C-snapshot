@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -23,7 +23,6 @@
 
 open Cil_types
 
-(* TODO: maybe use kernel emitter? *)
 let preconditions_emitter =
   Emitter.create
     "Call Preconditions"
@@ -31,12 +30,12 @@ let preconditions_emitter =
     ~correctness:[]
     ~tuning:[]
 
-
+(* Map from a requires to the its specializations at all call sites. *)
 module PreCondProxyGenerated =
   State_builder.Hashtbl(Property.Hashtbl)(Datatype.List(Property))
     (struct
        let name = "Call Preconditions Generated"
-       let dependencies = [Ast.self]
+       let dependencies = [Ast.self; Property_status.self]
        let size = 97
      end)
 
@@ -45,59 +44,57 @@ module PropStmt =
   Datatype.Pair_with_collections(Property)(Cil_datatype.Stmt)
     (struct let module_name = "Statuses_by_call.PropStmt" end)
 
-module PreCondAt = struct
-  include State_builder.Hashtbl(PropStmt.Hashtbl)(Property)
+(* Map from [requires * stmt] to the specialization of the requires
+   at the statement. Only present if the kernel function that contains
+   the requires can be called at the statement. *)
+module PreCondAt = 
+  State_builder.Hashtbl(PropStmt.Hashtbl)(Property)
     (struct
       let size = 37
       let dependencies = [ Ast.self ]
       let name = "Statuses_by_call.PreCondAt"
      end)
 
-end
-
-
 let rec precondition_at_call kf pid stmt =
   try PreCondAt.find (pid, stmt)
   with Not_found ->
     let loc = (Cil_datatype.Stmt.loc stmt) in
     let kf_call = Kernel_function.find_englobing_kf stmt in
-    let name = Pretty_utils.sfprintf
-      "%a, for call by '%a' at %a"
-      (Description.pp_localized ~kf:`Always ~ki:false ~kloc:true) pid
-      Kernel_function.pretty kf_call Cil_datatype.Location.pretty_line loc
+    let name = Pretty_utils.sfprintf "%s: %a"
+      (Property.Names.get_prop_name_id pid)
+      (Description.pp_localized ~kf:`Never ~ki:false ~kloc:true) pid
     in
     let p = Property.ip_other name (Some kf_call) (Kstmt stmt) in
     PreCondAt.add (pid, stmt) p;
     (match stmt.skind with
-      | Instr(Call(_, e, _, _)) ->
-        (match e.enode with
-          | Lval (Var vkf, NoOffset) ->
-              assert
-                (Cil_datatype.Varinfo.equal vkf (Kernel_function.get_vi kf))
-          | _ ->
-              Kernel.debug ~source:(fst loc)
-                "Adding precondition for call to %a through pointer"
-                Kernel_function.pretty kf;
-              add_call_precondition pid p
-        )
-      | _ -> assert false (* meaningless on a non-call statement *)
+    | Instr(Call(_, e, _, _)) ->
+      (match e.enode with
+      | Lval (Var vkf, NoOffset) ->
+        assert
+          (Cil_datatype.Varinfo.equal vkf (Kernel_function.get_vi kf))
+      | _ ->
+        Kernel.debug ~source:(fst loc)
+          "Adding precondition for call to %a through pointer"
+          Kernel_function.pretty kf;
+        add_call_precondition pid p
+      )
+    | _ -> assert false (* meaningless on a non-call statement *)
     );
     p
 
 and setup_precondition_proxy called_kf precondition =
-  if not (PreCondProxyGenerated.mem precondition) then
+  if not (PreCondProxyGenerated.mem precondition) then begin
     Kernel.debug "Setting up syntactic call-preconditions for precondition \
       of %a" Kernel_function.pretty called_kf;
-    begin
-      let call_preconditions =
-        List.map
-          (fun (_,stmt) -> precondition_at_call called_kf precondition stmt)
-          (Kernel_function.find_syntactic_callsites called_kf)
-      in
-      Property_status.logical_consequence
-	preconditions_emitter precondition call_preconditions;
-      PreCondProxyGenerated.add precondition call_preconditions
-    end
+    let call_preconditions =
+      List.map
+        (fun (_,stmt) -> precondition_at_call called_kf precondition stmt)
+        (Kernel_function.find_syntactic_callsites called_kf)
+    in
+    Property_status.logical_consequence
+      preconditions_emitter precondition call_preconditions;
+    PreCondProxyGenerated.add precondition call_preconditions
+  end
 
 and add_call_precondition precondition call_precondition =
   let prev = try PreCondProxyGenerated.find precondition with Not_found -> [] in
@@ -123,7 +120,7 @@ let all_call_preconditions_at ~warn_missing kf stmt =
       if warn_missing then
         Kernel.fatal ~source:(fst (Cil_datatype.Stmt.loc stmt))
           "Preconditions %a for %a not yet registered at this statement"
-          Cil.d_identified_predicate precond Kernel_function.pretty kf;      
+          Printer.pp_identified_predicate precond Kernel_function.pretty kf;      
       properties)
   in
   fold_requires aux kf []

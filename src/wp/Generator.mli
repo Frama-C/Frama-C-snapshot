@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -32,23 +32,21 @@ object
   method compute : Wpo.t Bag.t
 end
 
-type model =
-  | Generic of computer
-  | NonAssigns of computer
-  | TwoPasses of computer * computer (* non-assigns / assigns *)
+type functions =
+  | F_All
+  | F_List of string list
+  | F_Skip of string list
 
-val compute_ip : model -> Property.t -> Wpo.t Bag.t
-val compute_call : model -> Cil_types.stmt -> Wpo.t Bag.t
-val compute_kf : model -> 
+val compute_ip : computer -> Property.t -> Wpo.t Bag.t
+val compute_call : computer -> Cil_types.stmt -> Wpo.t Bag.t
+val compute_kf : computer -> 
   ?kf:Kernel_function.t ->
   ?bhv:string list ->
   ?prop:string list ->
   unit -> Wpo.t Bag.t
-val compute_selection : model -> 
-  ?fct:string list ->
+val compute_selection : computer -> 
+  ?fct:functions ->
   ?bhv:string list ->
   ?prop:string list ->
   unit -> Wpo.t Bag.t
-val compute_froms : model -> 
-  ?fct:string list ->
-  unit -> Wpo.t Bag.t
+val compute_froms : computer -> ?fct:functions -> unit -> Wpo.t Bag.t

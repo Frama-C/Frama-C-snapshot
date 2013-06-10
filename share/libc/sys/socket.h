@@ -2,8 +2,8 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2012                                               */
-/*    CEA (Commissariat à l'énergie atomique et aux énergies              */
+/*  Copyright (C) 2007-2013                                               */
+/*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
 /*  you can redistribute it and/or modify it under the terms of the GNU   */
@@ -27,6 +27,8 @@
 typedef __UINT_LEAST32_T socklen_t;
 #include "../__fc_define_sa_family_t.h"
 #include "../__fc_define_sockaddr.h"
+/* Not POSIX compliant but seems needed for some functions... */
+#include "__fc_define_ssize_t.h"
 
 struct sockaddr_storage {
   sa_family_t   ss_family;
@@ -139,7 +141,15 @@ int     listen(int, int);
 ssize_t recv(int, void *, size_t, int);
 ssize_t recvfrom(int, void *, size_t, int,
         struct sockaddr *, socklen_t *);
-ssize_t recvmsg(int, struct msghdr *, int);
+
+/*@ requires \valid(&((char *)hdr->msg_control)[0..hdr->msg_controllen-1]);
+  @ requires \valid(&(hdr->msg_iov[0..hdr->msg_iovlen-1]));
+  @ assigns ((char *) hdr->msg_iov[0..hdr->msg_iovlen-1].iov_base)[0..];
+  @ assigns ((char *) hdr->msg_control)[0..];
+  @ assigns hdr->msg_controllen;
+  @ assigns hdr->msg_flags;
+*/
+ssize_t recvmsg(int sockfd, struct msghdr *hdr, int flags);
 ssize_t send(int, const void *, size_t, int);
 ssize_t sendmsg(int, const struct msghdr *, int);
 ssize_t sendto(int, const void *, size_t, int, const struct sockaddr *,
@@ -148,5 +158,14 @@ int     setsockopt(int, int, int, const void *, socklen_t);
 int     shutdown(int, int);
 int     socket(int, int, int);
 int     sockatmark(int);
-int     socketpair(int, int, int, int[2]);
+
+
+/* Represents the creation of new file descriptors for sockets. */
+extern int __fc_socket_counter;
+
+/*@ requires \valid(&socket_vector[0..1]);
+  @ assigns __fc_socket_counter, socket_vector[0..1] \from __fc_socket_counter;
+  @ ensures \initialized(&socket_vector[0..1]);
+  @*/
+int socketpair(int domain, int type, int protocol, int socket_vector[2]);
 #endif

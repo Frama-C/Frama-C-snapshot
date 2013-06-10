@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -209,7 +209,7 @@ let listview_plugins ~(packing:?from:Gtk.Tags.pack_type ->
     method index i = Data.index i m
     method get i = Data.get i m
     method add i = m <- Data.add i m; i
-    method clear () = m <- Data.empty
+    method reload = m <- Data.empty
     method coerce = (self:> plugin_options Gtk_helper.Custom.List.model)
   end in
 

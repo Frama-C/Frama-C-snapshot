@@ -2,11 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
-(*           alternatives)                                                *)
-(*    INRIA (Institut National de Recherche en Informatique et en         *)
-(*           Automatique)                                                 *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -166,18 +164,8 @@ let user_mark m = Mark.merge m.SlicingInternals.m1 m.SlicingInternals.m2
 let is_bottom_mark m = (Mark.is_bottom (user_mark m))
 
 module MarkPair = struct
-
-
-
-
   let mk_m1_spare = mk_m1 Mark.spare
-
   let mk_gen_spare = mk_m2 Mark.spare
-
-
-
-
-
 
   let is_top m = (Mark.is_top m.SlicingInternals.m1) && (Mark.is_top m.SlicingInternals.m2)
 
@@ -191,11 +179,12 @@ module MarkPair = struct
   let compare = SlicingInternals.compare_pdg_mark
 
   let _is_included ma mb =
-    (Mark.is_included ma.SlicingInternals.m1 mb.SlicingInternals.m1) && (Mark.is_included ma.SlicingInternals.m2 mb.SlicingInternals.m2)
+    Mark.is_included ma.SlicingInternals.m1 mb.SlicingInternals.m1
+    && Mark.is_included ma.SlicingInternals.m2 mb.SlicingInternals.m2
 
   let pretty fmt m =
-    let pm fmt m = Format.fprintf fmt "%a" Mark.pretty m
-    in Format.fprintf fmt "<%a,%a>" pm m.SlicingInternals.m1 pm m.SlicingInternals.m2
+    Format.fprintf fmt "@[<hv><%a,@ %a>@]" 
+      Mark.pretty m.SlicingInternals.m1 Mark.pretty m.SlicingInternals.m2
 
   let to_string m =
     Pretty_utils.sfprintf "%a" pretty m
@@ -355,7 +344,7 @@ module SigMarks = struct
   *)
   let get_input_loc_under_mark cm loc =
     if debug then
-      Format.printf "get_input_loc_under_mark of %a@."
+      Format.printf "get_input_loc_under_mark of %a"
         Locations.Zone.pretty loc;
     assert (not (Locations.Zone.equal Locations.Zone.bottom loc));
     let do_in (marked_inputs, marks) (in_loc, m) =
@@ -377,7 +366,7 @@ module SigMarks = struct
       else bottom_mark
     in
       if debug then
-        Format.printf "get_input_loc_under_mark : m = %a@."
+        Format.printf "get_input_loc_under_mark : m = %a"
           MarkPair.pretty m;
       m
 
@@ -430,7 +419,7 @@ let missing_output_mark = MarkPair.missing_output
 
 (** {3 on signatures} *)
 
-type t_sig_marks = SigMarks.t
+type sig_marks = SigMarks.t
 
 let empty_sig = PdgIndex.Signature.empty
 let get_input_mark = SigMarks.get_input_mark
@@ -445,3 +434,9 @@ let some_visible_out = SigMarks.some_visible_out
 let is_topin_visible = SigMarks.is_topin_visible
 let get_marked_out_zone = SigMarks.get_marked_out_zone
 let pretty_sig = SigMarks.pretty
+
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

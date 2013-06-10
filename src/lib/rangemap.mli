@@ -192,10 +192,20 @@ end
 
 type fuzzy_order = Above | Below | Match
 
+(** Datatype with a function that approximately equality in a constant-time
+    way. *)
+module type Value = sig
+  include Datatype.S
+
+  (** [fast_equal] is used to reduce memory allocation in some cases. It is
+      valid to always return [false]; the only constraint is that [true] must
+      not be returned if [equal] returns [false]. *)
+  val fast_equal: t -> t -> bool
+end
 
 (** Extension of the above signature, with specific functions acting
     on range of values *)
-module Make (Ord : Datatype.S) (Value : Datatype.S): sig
+module Make (Ord : Datatype.S) (Value : Value): sig
 
   include S with type key = Ord.t and type value = Value.t
 

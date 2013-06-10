@@ -1,6 +1,6 @@
 /* run.config
-   STDOPT: 
-   STDOPT: +"-val-signed-overflow-alarms"
+   STDOPT: +"-no-warn-signed-overflow"
+   STDOPT: +"-warn-signed-overflow"
 */
 
 long long int LL_ABS(long long int a) {

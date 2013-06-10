@@ -25,6 +25,11 @@ predicate test1(set<int> s1,set<int> s2) =
 \subset(s1,\union(s2,{k + 1 | int k ; constraint: 0 <= k < 10}));
 @*/
 
+/*@
+predicate test2(set<int> s1,set<int> s2) =
+\subset(\union({k + 1 | int k ; constraint: 0 <= k < 10},s2),s1);
+@*/
+
 /*@ ensures \subset(\result,\union(x,x+1,x-1)); */
 int h(int x, int c) { return c>0 ? x+1 : c<0 ? x-1: x; }
 

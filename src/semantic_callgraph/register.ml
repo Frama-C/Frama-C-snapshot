@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -113,7 +113,6 @@ module Service =
        let iter_succ = SGraph.iter_succ
        let iter_pred = SGraph.iter_pred
        let fold_pred = SGraph.fold_pred
-       let in_degree = SGraph.in_degree
      end)
 
 module ServiceState =
@@ -193,15 +192,14 @@ let topologically_iter_on_functions =
 
 let iter_on_callers f kf =
   let cg = callgraph () in
-  let module V = Hashtbl.Make(Kernel_function) in
-  let visited = V.create 17 in
+  let visited = Kernel_function.Hashtbl.create 17 in
   let rec aux kf =
     if SGraph.mem_vertex cg kf then
       SGraph.iter_succ
         (fun caller ->
-          if not (V.mem visited caller) then begin
+          if not (Kernel_function.Hashtbl.mem visited caller) then begin
             f caller;
-            V.add visited caller ();
+            Kernel_function.Hashtbl.add visited caller ();
             aux caller
           end)
         cg
@@ -213,6 +211,35 @@ let iter_on_callers f kf =
   in
   aux kf
 
+
+let is_local_or_formal_of_caller v kf =
+  try
+    iter_on_callers
+      (fun caller ->
+         let formal_or_local =
+           (Base.is_formal_or_local v (Kernel_function.get_definition caller))
+         in
+         if formal_or_local then raise Exit)
+      kf;
+    false
+  with Exit -> true
+
+
+let accept_base ~with_formals ~with_locals kf v =
+  let open Cil_types in
+  Base.is_global v
+  ||
+  (match with_formals, with_locals, kf.fundec with
+     | false, false, _ -> false
+     | true,  false, Definition (fundec,_) -> Base.is_formal v fundec
+     | false, true, Definition (fundec, _) -> Base.is_local v fundec
+     | true,  true, Definition (fundec, _) -> Base.is_formal_or_local v fundec
+     | false, _, Declaration _ -> false
+     | true , _, Declaration (_, vd, _, _) -> Base.is_formal_of_prototype v vd
+  )
+  || is_local_or_formal_of_caller v kf
+
+
 let () =
   Db.Semantic_Callgraph.topologically_iter_on_functions :=
     topologically_iter_on_functions;
@@ -222,6 +249,7 @@ let () =
     Dynamic.register ~plugin:"Semantic_callgraph" "iter_on_callers"
       (Datatype.func tf tf) ~journalize:false iter_on_callers;
 
+  Db.Semantic_Callgraph.accept_base := accept_base;
 
 (*
 Local Variables:

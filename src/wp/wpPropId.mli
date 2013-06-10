@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -69,6 +69,7 @@ val pp_propid : Format.formatter -> prop_id -> unit (** Print unique id of [prop
 
 val pretty : Format.formatter -> prop_id -> unit
 val pretty_context : Description.kf -> Format.formatter -> prop_id -> unit
+val pretty_local : Format.formatter -> prop_id -> unit
 
 (** Short description of the kind of PO *)
 val label_of_prop_id: prop_id -> string
@@ -153,7 +154,8 @@ type assigns_desc = private {
   a_assigns : Cil_types.identified_term Cil_types.assigns ;
 }
 val pp_assigns_desc : Format.formatter -> assigns_desc -> unit
-
+  
+type effect_source = FromCode | FromCall | FromReturn
 type assigns_info = prop_id * assigns_desc
 val assigns_info_id : assigns_info -> prop_id
 

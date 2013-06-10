@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,7 +20,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Module for Describing items of Source and Properties. 
+(** Describe items of Source and Properties. 
     @since Nitrogen-20111001 *)
 
 open Cil_types
@@ -51,6 +51,16 @@ type kf = [ `Always | `Never | `Context of kernel_function ]
 
 val pp_localized : kf:kf -> ki:bool -> kloc:bool -> Format.formatter -> Property.t -> unit
 (** prints more-or-less localized property *)
+
+val pp_local : Format.formatter -> Property.t -> unit
+(** completely local printer *)
+
+val pp_compare : Property.t -> Property.t -> int
+(** Computes a partial order compatible with pretty printing *)
+
+val full_compare : Property.t -> Property.t -> int
+(** Completes [pp_compare] with [Property.compare] *)
+
 
 (*
 Local Variables:

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -50,10 +50,15 @@ module Users =
      end)
 
 let call_for_users (_state, call_stack) =
-  Users.mark_as_computed ();
   match call_stack with
   | [] -> assert false
   | (current_function, _call_site) :: tail ->
+      if tail = [] then begin
+        (* End of Value analysis, we record that Users has run. We should not
+           do this after the explicit call to Db.Value.compute later in this
+           file, as Value can run on its own and execute Users while doing so.*)
+         Users.mark_as_computed ()
+      end;
       let treat_element (user, _call_site) =
         ignore
           (Users.memo

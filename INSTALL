@@ -33,7 +33,7 @@ Download the auto-installer corresponding to your system from
 
 Then just run it!
 
-Note: this auto-installer is **not** provided for each Frama-C version.
+Note: these auto-installers are **not** provided for each Frama-C version.
 
 ----------------------------------------------------
 Debian >= Squeeze 6.0 and Ubuntu >= Lucid Lynx 10.04
@@ -86,9 +86,7 @@ See below for more detailed and specific instructions.
 ===============================================================================
 
 - GNU make version >= 3.81
-- Objective Caml >= 3.10.2;
-  OCaml >= 3.11 is required for using easily some plug-ins in the most
-  efficient mode.
+- Objective Caml >= 3.12.1;
 
 The Frama-C GUI also requires:
 - Gtk (>= 2.4)
@@ -96,7 +94,7 @@ The Frama-C GUI also requires:
 - GnomeCanvas 2.x
 - LablGtk >= 2.14.0
 
-If OcamlGraph 1.8.2 [1] is already installed, then it will be used by Frama-C.
+If OcamlGraph 1.8.3 [1] is already installed, then it will be used by Frama-C.
 Otherwise the distributed local copy (directory ocamlgraph) will be used.
 
 If Zarith [2] is installed, it will be used by Frama-C. Otherwise another 
@@ -155,7 +153,7 @@ Use "./configure --prefix C:/windows/path/with/direct/slash".
 
 Type "make".
 
-Makefile targets of interest are:
+Some Makefile targets of interest are:
 - doc	   generates the API documentation
 - top	   generates an OCaml toplevel embedding Frama-C as a library.
 - ptests   generates the executable that takes care of running Frama-C's tests
@@ -254,7 +252,7 @@ Consult their specific documentations for details.
 
 For plug-in developers, the API documentation of the Frama-C kernel and
 distributed plug-ins is available in the file frama-c-api.tar.gz, after running
-"make doc".
+"make doc-distrib".
 
 ===============================================================================
 				 UNINSTALLATION

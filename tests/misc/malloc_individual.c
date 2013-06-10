@@ -1,5 +1,5 @@
 #define FRAMA_C_MALLOC_INDIVIDUAL
-#include "../../share/malloc.c"
+#include "share/libc/stdlib.c"
 
 int *p;
 int A,B,C;

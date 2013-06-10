@@ -1,7 +1,7 @@
-int t[2];
+int t[2], u[2];
 int *p,*q,*r, A, offs;
 
-void main(int c, int d, int e, int f, int g)
+void main(int c, int d, int e, int f, int g, unsigned short h)
 {
 
 
@@ -23,4 +23,5 @@ void main(int c, int d, int e, int f, int g)
   offs = g ? 1 : 2;
   A = r[offs];
   Frama_C_show_each_r(r);
+  u[h+1] = 1;
 }

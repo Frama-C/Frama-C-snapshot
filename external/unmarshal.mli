@@ -38,7 +38,7 @@
 
 (* Version 3.11.2.0 *)
 
-(** This module provides a function [input_val], similar in
+(** Provides a function [input_val], similar in
 functionality to the standard library function [Marshal.from_channel].
 The main difference with [Marshal.from_channel] is that
 [input_val] is able to apply transformation functions on the

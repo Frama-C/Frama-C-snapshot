@@ -2,11 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
-(*           alternatives)                                                *)
-(*    INRIA (Institut National de Recherche en Informatique et en         *)
-(*           Automatique)                                                 *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -22,7 +20,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-let dkey = "ctrl-dpds"
+let dkey = Pdg_parameters.register_category "ctrl-dpds"
 
 open Cil_types
 open Cil_datatype
@@ -57,7 +55,7 @@ module Lexical_successors : sig
   val find : t -> Cil_types.stmt -> Cil_types.stmt
 end = struct
 
-  let dkey = "lex-succs"
+  let dkey = Pdg_parameters.register_category "lex-succs"
 
   (** Type of the graph *)
   type t = Cil_types.stmt Stmt.Hashtbl.t

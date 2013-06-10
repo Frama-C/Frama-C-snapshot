@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,27 +20,46 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Undocumented. 
-    Do not use this module if you don't know what you are doing. *)
+(** The datastructures of this module can be used to track the origin
+    of a major imprecision in the values of an abstract domain. *)
 
-(* [JS 2011/10/03] To the authors/users of this module: please document it. *)
+(** This module is generic, although currently used only by the plugin Value.
+    Within Value, values that have an imprecision origin are "garbled mix",
+    ie. a numeric value that contains bits extracted from at least one
+    pointer, and that are not the result of a translation *)
+
+
+(** Sets of source locations *)
+module LocationSetLattice : sig
+  include Abstract_interp.Lattice_Set with type O.elt = Cil_types.location
+  val currentloc_singleton : unit -> t
+    val compare:t -> t -> int
+end
+
+(** List of possible origins. Most of them also include the set of
+    source locations where the operation took place. *)
+type origin =
+  | Misalign_read of LocationSetLattice.t (** Read of not all the bits of a
+                                   pointer, typicaller through a pointer cast *)
+  | Leaf of LocationSetLattice.t (** Result of a function without a body *)
+  | Merge of LocationSetLattice.t (** Join between two control-flows *)
+  | Arith of LocationSetLattice.t (** Arithmetic operation that cannot be
+                                      represented, eg. ['&x * 2'] *)
+  | Well (** Imprecise variables of the intial state *)
+  | Unknown
+
+include Datatype.S with type t = origin
+
 
 type kind =
   | K_Misalign_read
+  | K_Leaf
   | K_Merge
   | K_Arith
 
-type origin =
-  | Misalign_read of Abstract_interp.LocationSetLattice.t
-  | Leaf of Abstract_interp.LocationSetLattice.t
-  | Merge of Abstract_interp.LocationSetLattice.t
-  | Arith of Abstract_interp.LocationSetLattice.t
-  | Well
-  | Unknown
+val current: kind -> origin
+(** This is automatically extracted from [Cil.CurrentLoc] *)
 
-val current_origin: kind -> origin
-
-include Datatype.S with type t = origin
 val pretty_as_reason: Format.formatter -> t -> unit
 (** Pretty-print [because of <origin>] if the origin is not {!Unknown}, or
     nothing otherwise *)

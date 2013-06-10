@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,7 +27,7 @@
     the name of the function. *)
 val join_final_states:
   Cil_types.kernel_function ->
-  lv_return:Cil_types.lval option ->
+  return_lv:Cil_types.lval option ->
   State_set.t ->
   Cvalue.Model.t list
 

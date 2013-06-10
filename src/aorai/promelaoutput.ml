@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Aorai plug-in of Frama-C.                        *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -45,7 +45,7 @@ let rec print_parsed_expression fmt = function
   | PCst (WStringConstant s) -> Format.fprintf fmt "%S" s
   | PBinop(bop,e1,e2) ->
     Format.fprintf fmt "(@[%a@])@ %a@ (@[%a@])"
-      print_parsed_expression e1 Cil.d_binop (Logic_typing.type_binop bop)
+      print_parsed_expression e1 Printer.pp_binop (Logic_typing.type_binop bop)
       print_parsed_expression e2
   | PUnop(uop,e) -> Format.fprintf fmt "%s@;(@[%a@])"
     (string_of_unop uop)
@@ -59,7 +59,7 @@ let rec print_parsed_condition fmt = function
   | PRel(rel,e1,e2) ->
     Format.fprintf fmt "%a %a@ %a"
       print_parsed_expression e1
-      Cil.d_relation (Logic_typing.type_rel rel)
+      Printer.pp_relation (Logic_typing.type_rel rel)
       print_parsed_expression e2
   | PTrue -> Format.pp_print_string fmt "true"
   | PFalse -> Format.pp_print_string fmt "false"
@@ -107,25 +107,25 @@ let rec print_condition fmt = function
   | TRel(rel,exp1,exp2) -> 
     (* \result will be printed as such, not as f().return *)
     Format.fprintf fmt "@[(%a)@]@ %a@ @[(%a)@]"
-      !Ast_printer.d_term exp1 !Ast_printer.d_relation rel 
-      !Ast_printer.d_term exp2
+      Printer.pp_term exp1
+      Printer.pp_relation rel 
+      Printer.pp_term exp2
 
 let print_one_action fmt = function
   | Counter_init lv ->
-    Format.fprintf fmt "@[%a <- 1@]" !Ast_printer.d_term_lval lv
+    Format.fprintf fmt "@[%a <- 1@]" Printer.pp_term_lval lv
   | Counter_incr lv ->
     Format.fprintf fmt "@[%a <- @[%a@ +@ 1@]@]" 
-      !Ast_printer.d_term_lval lv !Ast_printer.d_term_lval lv
+      Printer.pp_term_lval lv Printer.pp_term_lval lv
   | Pebble_init (set,_,v) ->
     Format.fprintf fmt "@[%a <- {@[ %a @]}@]"
-      !Ast_printer.d_logic_var set.l_var_info !Ast_printer.d_logic_var v
+      Printer.pp_logic_var set.l_var_info Printer.pp_logic_var v
   | Pebble_move(s1,_,s2,_) ->
     Format.fprintf fmt "@[%a <- %a@]"
-      !Ast_printer.d_logic_var s1.l_var_info  
-      !Ast_printer.d_logic_var s2.l_var_info
+      Printer.pp_logic_var s1.l_var_info  
+      Printer.pp_logic_var s2.l_var_info
   | Copy_value(lv,v) ->
-    Format.fprintf fmt "@[%a <- %a@]"
-      !Ast_printer.d_term_lval lv !Ast_printer.d_term v
+    Format.fprintf fmt "@[%a <- %a@]" Printer.pp_term_lval lv Printer.pp_term v
 
 let print_action fmt l =
   Pretty_utils.pp_list ~sep:"@\n" print_one_action fmt l

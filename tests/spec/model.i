@@ -1,3 +1,6 @@
+/* run.config
+STDOPT: +"-load-script tests/spec/model.ml"
+*/
 struct S { int x; int y; };
 
 typedef struct S T;

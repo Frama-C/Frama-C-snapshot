@@ -11,7 +11,7 @@ let run () =
        List.iter
          (fun ip ->
             let bname = match Property.get_behavior ip with
-              | None -> "Ook"
+              | None -> "?"
               | Some b -> b.b_name
             in
             let function_name = kf_name ^ ": behavior " ^ bname in

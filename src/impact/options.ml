@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -40,6 +40,14 @@ module Print =
     (struct
        let option_name = "-impact-print"
        let help = "print the impacted stmt"
+     end)
+
+module Reason =
+  False
+    (struct
+       let option_name = "-impact-graph"
+       let help = "build a graph that explains why a statement is in the set \
+                   of impacted nodes"
      end)
 
 module Slicing =

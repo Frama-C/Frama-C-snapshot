@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -21,8 +21,7 @@
 (**************************************************************************)
 
 open Cil_types
-open Cil
-open Eval_exprs
+open Cil_datatype
 open Locations
 open Abstract_interp
 open Cvalue
@@ -71,14 +70,17 @@ let fold_join_predicate fold f s =
 type logic_evaluation_error =
     | Unsupported of string
     | AstError of string
-    | NoEnv of string
+    | NoEnv of logic_label
     | NoResult
     | CAlarm
 
 let pretty_logic_evaluation_error fmt = function
   | Unsupported s -> Format.fprintf fmt "unsupported ACSL construct: %s" s
   | AstError s -> Format.fprintf fmt "error in AST: %s; please report" s
-  | NoEnv s -> Format.fprintf fmt "no environment to evaluate \\at(%s,_)" s
+  | NoEnv (LogicLabel (_, s)) ->
+      Format.fprintf fmt "no environment to evaluate \\at(%s,_)" s
+  | NoEnv (StmtLabel _) ->
+      Format.fprintf fmt "\\at() on a C label is unsupported"
   | NoResult -> Format.fprintf fmt "meaning of \\result not specified"
   | CAlarm -> Format.fprintf fmt "alarm during evaluation"
 
@@ -86,7 +88,7 @@ exception LogicEvalError of logic_evaluation_error
 
 let unsupported s = raise (LogicEvalError (Unsupported s))
 let ast_error s = raise (LogicEvalError (AstError s))
-let no_env env = raise (LogicEvalError (NoEnv env))
+let no_env lbl = raise (LogicEvalError (NoEnv lbl))
 let no_result () = raise (LogicEvalError NoResult)
 let c_alarm () = raise (LogicEvalError CAlarm)
 
@@ -97,17 +99,13 @@ let display_evaluation_error = function
       "cannot evaluate ACSL term, %a" pretty_logic_evaluation_error pa
 
 
-let singleton = function
-  | [e] -> e
-  | [] | _ :: _ :: _ -> Value_parameters.fatal "Found set instead of singleton"
-
 let warn_raise_mode =
-  { CilE.imprecision_tracing = CilE.Aignore ;
-    defined_logic = CilE.Aignore;
+  { CilE.imprecision_tracing = CilE.a_ignore ;
+    defined_logic = CilE.a_ignore;
 
-    unspecified = CilE.Acall c_alarm;
-    others = CilE.Acall c_alarm ;
- }
+    unspecified = {CilE.a_ignore with CilE.a_call=c_alarm};
+    others = {CilE.a_ignore with CilE.a_call=c_alarm};
+  }
 
 
 (** Evaluation environments. Used to evaluate predicate on \at nodes *)
@@ -141,77 +139,76 @@ let warn_raise_mode =
 *)
 
 
-type label = Pre | Here | Old | Post
+type labels_states = Cvalue.Model.t Logic_label.Map.t
+
+let join_label_states m1 m2 =
+  let aux _ s1 s2 = match s1, s2 with
+    | None, None -> None
+    | Some s, None | None, Some s -> Some s
+    | Some s1, Some s2 -> Some (Cvalue.Model.join s1 s2)
+  in
+  if m1 == m2 then m1
+  else Logic_label.Map.merge aux m1 m2
+
 
 type eval_env = {
-  e_cur: label;
-  e_pre:  Cvalue.Model.t;
-  e_here: Cvalue.Model.t;
-  e_old:  Cvalue.Model.t option;
-  e_post: Cvalue.Model.t option;
+  e_cur: logic_label;
+  e_states: labels_states;
+  result: varinfo option; (* Variable in which \tresult values are taken *)
 }
 
-let join_env e1 e2 =
-  let join_opt v1 v2 = match v1, v2 with
-    | None, None -> None
-    | Some v, None | None, Some v -> Some v
-    | Some v1, Some v2 -> Some (Cvalue.Model.join v1 v2)
-  in {
-    e_cur = (assert (e1.e_cur = e2.e_cur); e1.e_cur);
-    e_pre =  Cvalue.Model.join e1.e_pre  e2.e_pre;
-    e_here = Cvalue.Model.join e1.e_here e2.e_here;
-    e_old = join_opt e1.e_old e2.e_old;
-    e_post = join_opt e1.e_post e2.e_post;
-  }
+let join_env e1 e2 = {
+  e_cur = (assert (Logic_label.equal e1.e_cur e2.e_cur); e1.e_cur);
+  e_states = join_label_states e1.e_states e2.e_states;
+  result = (assert (e1.result == e2.result); e1.result);
+}
 
-let extract_opt_env env = function
-  | Some v -> v
-  | None -> no_env env
-
-let convert_label = function
-  | StmtLabel _ -> unsupported "\\at() on a C label"
-  | LogicLabel (_, "Pre")  -> Pre
-  | LogicLabel (_, "Here") -> Here
-  | LogicLabel (_, "Old")  -> Old
-  | LogicLabel (_, "Post") -> Post
-  | LogicLabel _ -> unsupported "\\at() on an unsupported logic label"
-
-let env_state env = function
-  | Pre  -> env.e_pre
-  | Here -> env.e_here
-  | Old  -> extract_opt_env "Pre" env.e_old
-  | Post -> extract_opt_env "Post" env.e_post
+let env_state env lbl =
+  try Logic_label.Map.find lbl env.e_states
+  with Not_found -> no_env lbl
 
 let env_current_state e = env_state e e.e_cur
 
-let overwrite_state env state = function
-  | Pre -> { env with e_pre = state }
-  | Here -> { env with e_here = state }
-  | Old -> { env with e_old = Some state }
-  | Post -> { env with e_post = Some state }
+let overwrite_state env state lbl =
+  { env with e_states = Logic_label.Map.add lbl state env.e_states }
 
 let overwrite_current_state env state = overwrite_state env state env.e_cur
 
-let env_pre_f ~init = {
-  e_cur = Here;
-  e_pre = init; e_here = init;
-  e_post = None; e_old = None;
+let lbl_here = LogicLabel (None, "Here")
+
+let add_logic ll state states =
+  Logic_label.Map.add (LogicLabel (None, ll)) state states
+let add_here = add_logic "Here"
+let add_pre = add_logic "Pre"
+let add_post = add_logic "Post"
+let add_old = add_logic "Old"
+
+let env_pre_f ?(c_labels=Logic_label.Map.empty) ~init () = {
+  e_cur = lbl_here;
+  e_states = add_here init (add_pre init c_labels);
+  result = None (* Never useful in a pre *);
 }
 
-let env_post_f ~pre ~post = {
-  e_cur = Here;
-  e_pre =  pre; e_old = Some pre;
-  e_post = Some post; e_here = post;
+let env_post_f ?(c_labels=Logic_label.Map.empty) ~pre ~post ~result () = {
+  e_cur = lbl_here;
+  e_states =
+    add_post post (add_here post (add_pre pre (add_old pre c_labels))); 
+  result = result;
 }
 
-let env_annot ~pre ~here = {
-  e_cur = Here;
-  e_pre = pre; e_here = here;
-  e_post = None; e_old = None;
+let env_annot ?(c_labels=Logic_label.Map.empty) ~pre ~here () = {
+  e_cur = lbl_here;
+  e_states = add_here here (add_pre pre c_labels);
+  result = None (* Never useful in a 'assert' *) (* TODO: will be needed for stmt contracts *);
 }
 
+let env_assigns ~init = {
+  e_cur = lbl_here;
+  (* YYY: is missing, but is too difficult in the current evaluation scheme *)
+  e_states = add_old init (add_here init (add_pre init Logic_label.Map.empty));
+  result = None (* Treated in a special way in callers *)
+}
 
-let (!!) = Lazy.force
 
 let lop_to_cop op =
   match op with
@@ -238,163 +235,186 @@ let rec isLogicNonCompositeType t =
         | TInt _ | TEnum _ | TFloat _ | TPtr _ -> true
         | _ -> false
 
-let rec eval_term ~with_alarms env result t =
+let rec infer_type = function
+  | Ctype t ->
+      (match t with
+        | TInt _ -> Cil.intType
+        | TFloat _ -> Cil.doubleType
+        | _ -> t)
+  | Lvar _ -> Cil.voidPtrType (* For polymorphic empty sets *)
+  | Linteger -> Cil.intType
+  | Lreal -> Cil.doubleType
+  | Ltype _ | Larrow _ as t ->
+      if Logic_const.is_plain_type t then
+        unsupported (Pretty_utils.to_string Cil_datatype.Logic_type.pretty t)
+      else Logic_const.plain_or_set infer_type t
+
+(* Best effort for compring the types currently understood by Value: ignore
+   differences in integer and floating-point sizes, that are meaningless
+   in the logic *)
+let same_etype t1 t2 =
+  match Cil.unrollType t1, Cil.unrollType t2 with
+    | (TInt _ | TEnum _), (TInt _ | TEnum _) -> true
+    | TFloat _, TFloat _ -> true
+    | TPtr (p1, _), TPtr (p2, _) -> Cil_datatype.Typ.equal p1 p2
+    | _, _ -> Cil_datatype.Typ.equal t1 t2
+
+let real_mode = Ival.Float_abstract.Any
+
+let infer_binop_res_type op targ =
+  match op with
+    | PlusA | MinusA | Mult | Div -> targ
+    | PlusPI | MinusPI | IndexPI ->
+        assert (Cil.isPointerType targ); targ
+    | MinusPP -> Cil.intType
+    | Mod | Shiftlt | Shiftrt | BAnd | BXor | BOr ->
+        (* can only be applied on integral arguments *)
+        assert (Cil.isIntegralType targ); Cil.intType
+    | Lt | Gt | Le | Ge | Eq | Ne | LAnd | LOr ->
+        Cil.intType (* those operators always return a boolean *)
+
+type edeps = Zone.t Logic_label.Map.t
+
+let deps_at lbl (ed:edeps) =
+  try Logic_label.Map.find lbl ed
+  with Not_found -> Zone.bottom
+
+let add_deps lbl edeps deps =
+  let prev_deps = deps_at lbl edeps in
+  let deps = Zone.join prev_deps deps in
+  let edeps : edeps = Logic_label.Map.add lbl deps edeps in
+  edeps
+
+let join_edeps (ed1:edeps) (ed2: edeps) : edeps =
+  let aux _ d1 d2 = match d1, d2 with
+    | None as d, None | (Some _ as d), None | None, (Some _ as d) -> d
+    | Some d1, Some d2 -> Some (Zone.join d1 d2)
+  in
+  Logic_label.Map.merge aux ed1 ed2
+
+let empty_edeps = Logic_label.Map.empty
+
+
+(* Type holding the result of an evaluation. Currently, 'a is either
+   [Location_Bytes.t] for eval_term, and [Location_Bits.t] for
+   [eval_tlval_as_loc] *)
+type 'a eval_result = {
+  etype: Cil_types.typ;
+  evalue: 'a list;
+  edeps: edeps;
+}
+
+let einteger v = { etype = Cil.intType; evalue = [v]; edeps = empty_edeps}
+let ereal v = { etype = Cil.doubleType; evalue = [v]; edeps = empty_edeps}
+
+let rec eval_term ~with_alarms env t =
   match t.term_node with
-    | Tat (t, lab) -> begin
-        let lab = convert_label lab in
-        eval_term ~with_alarms { env with e_cur = lab } result t
-      end
+    | Tat (t, lab) ->
+        eval_term ~with_alarms { env with e_cur = lab } t
 
-    | TConst (Integer (v, _)) -> [intType, Cvalue.V.inject_int v]
+    | TConst (Integer (v, _)) -> einteger (Cvalue.V.inject_int v)
     | TConst (LEnum e) ->
-        (match (constFold true e.eival).enode with
-           | Const (CInt64 (v, _, _)) -> [intType, Cvalue.V.inject_int v]
+        (match (Cil.constFold true e.eival).enode with
+           | Const (CInt64 (v, _, _)) -> einteger (Cvalue.V.inject_int v)
            | _ -> ast_error "non-evaluable constant")
-    | TConst (LChr c) -> 
-      [intType, Cvalue.V.inject_int (Int.of_int (int_of_char c))]
-	(* TODO : not compatible with ISO C interpretation of chars 
-	   along Cil.interpret_character_constant *)
-    | TConst (LReal (f, _)) ->
-        let f = Ival.F.of_float f in
-        let _, f = Ival.Float_abstract.inject_r f f in
-	(* TODO : check that the float injection is compatible 
-	   with the real number represente din the string. *)
-        [floatType, Cvalue.V.inject_ival (Ival.inject_float f)]
-(*  | TConst ((CStr | CWstr) Missing cases *)
+    | TConst (LChr c) ->
+        let i = match Cil.charConstToInt c with
+          | CInt64 (i,_,_) -> i
+          | _ -> assert false
+        in
+        einteger (Cvalue.V.inject_int i)
+    | TConst (LReal { r_lower ; r_upper }) ->
+        let f = Ival.inject_float_interval r_lower r_upper in
+        ereal (Cvalue.V.inject_ival f)
 
-    | TAddrOf _
-    | TStartOf _ ->
-        let conv (typ, loc) = (typ, loc_bits_to_loc_bytes loc) in
-        List.map conv (eval_tlval ~with_alarms env result t)
+    (*  | TConst ((CStr | CWstr) Missing cases *)
+
+    | TAddrOf (thost, toffs) ->
+        let r = eval_thost_toffset ~with_alarms env thost toffs in
+        { etype = TPtr (r.etype, []);
+          edeps = r.edeps;
+          evalue = List.map loc_bits_to_loc_bytes r.evalue }
+
+    | TStartOf (thost, toffs) ->
+        let r = eval_thost_toffset ~with_alarms env thost toffs in
+        { etype = TPtr (Cil.typeOf_array_elem r.etype, []);
+          edeps = r.edeps;
+          evalue = List.map loc_bits_to_loc_bytes r.evalue }
 
     | TLval _ ->
-        let lvals = eval_tlval ~with_alarms env result t in
-        let eval_lval (typ, loc) =
+        let lvals = eval_tlval ~with_alarms env t in
+        let typ = lvals.etype in
+        let size = Bit_utils.sizeof typ in
+        let eval_lval (l, deps) loc =
+          let loc = make_loc loc size in
           let v = Cvalue.Model.find ~conflate_bottom:true
-            ~with_alarms (env_current_state env)
-            (make_loc loc (Bit_utils.sizeof typ))
+            ~with_alarms (env_current_state env) loc
           in
-          let v = do_cast ~with_alarms typ v in
-          (typ, v)
+          Eval_op.reinterpret ~with_alarms typ v :: l,
+          add_deps env.e_cur deps (enumerate_valid_bits ~for_writing:false loc)
         in
-        List.map eval_lval lvals
+        let l, deps = List.fold_left eval_lval ([], lvals.edeps) lvals.evalue in
+        { etype = typ;
+          edeps = deps;
+          evalue = l }
 
     (* TBinOp ((LOr | LAnd), _t1, _t2) -> TODO: a special case would be useful.
        But this requires reducing the state after having evaluated t1 by
        a term that is in fact a predicate *)       
-    | TBinOp (op,t1,t2) -> begin
-      if isLogicNonCompositeType t1.term_type then
-        let typ_bool = Cil.intType (* No special representation in Value *) in
-        let l1 = eval_term ~with_alarms env result t1 in
-        let l2 = eval_term ~with_alarms env result t2 in
-        let aux (te1, v1)  (_te2, v2) =
-          (* Format.printf "T1 %a %a:%a, T2 %a %a:%a@."
-               d_term t1 Cvalue.V.pretty  v1 d_type te1
-               d_term t2 Cvalue.V.pretty v2 d_type _te2; *)
-          let te1 = unrollType te1 in
-          (* We use the type of t1 to determine whether we are performing
-             an int or float operation. Hopefully this is correct *)
-          let v = match te1 with
-            | TInt _ | TPtr _ | TEnum _ ->
-              (* Do not pass ~typ here. We want the operations to be
-                 performed on unbounded integers mode *)
-                eval_binop_int ~with_alarms ~te1 v1 op v2
-            | TFloat _ ->
-                eval_binop_float ~with_alarms v1 op v2
-            | _ -> ast_error (Pretty_utils.sfprintf
-                                "binop on incorrect type %a" Cil.d_type te1)
-          in
-          let check_types = false in
-          let typ_res = match op with
-            | PlusA | MinusA | Mult | Div -> te1
-            | PlusPI | MinusPI | IndexPI ->
-                if check_types then assert (Cil.isPointerType te1);
-                te1
-            | MinusPP -> Cil.intType
-            | Mod | Shiftlt | Shiftrt | BAnd | BXor | BOr ->
-                (* can only be applied on integral arguments *)
-                if check_types then
-                  assert (Cil.isLogicIntegralType t1.term_type &&
-                          Cil.isLogicIntegralType t2.term_type);
-                Cil.intType
-            | Lt | Gt | Le | Ge | Eq | Ne | LAnd | LOr ->
-                typ_bool (* those operators always return a boolean *)
-          in
-          (typ_res, v)
-        in
-        match op, l1, l2 with
-          | (PlusA | PlusPI | IndexPI | MinusA | MinusPI), _, _ ->
-              List.fold_left (fun acc e1 ->
-                List.fold_left (fun acc e2 -> aux e1 e2 :: acc) acc l2) [] l1
-
-          | (Eq | Ne), _ , _ -> begin(*TODO: could be improved, but worth it?*)
-              match l1, l2 with
-              | [], [] ->
-                  [typ_bool, Cvalue.V.singleton_one]
-              | [], _ :: _ | _ :: _, [] ->
-                  [typ_bool, Cvalue.V.singleton_zero]
-              | h1 :: q1, h2 :: q2 ->
-                let join (t1, v1) (t2, v2) =
-                  if Cil_datatype.Typ.equal t1 t2 then
-                    (t1, V.join v1 v2)
-                  else ast_error (Pretty_utils.sfprintf
-                       "non-homogeneous set %a-%a" Cil.d_type t1 Cil.d_type t2)
-                in
-                let e1 = List.fold_left join h1 q1 in
-                let e2 = List.fold_left join h2 q2 in
-                let _, r = aux e1 e2 in
-                let contains_zero, contains_non_zero =
-                  V.contains_zero r, V.contains_non_zero r
-                in
-                [typ_bool, V.interp_boolean ~contains_zero ~contains_non_zero]
-            end
-  
-          | _, [e1], [e2] -> [aux e1 e2]
-          | _ -> ast_error "meaningless binop"
-      else
-        unsupported (Pretty_utils.sfprintf
-                       "%a operation on non-supported type %a" Cil.d_binop op
-                       Cil.d_logic_type t1.term_type)
-      end
+    | TBinOp (op,t1,t2) -> eval_binop ~with_alarms env op t1 t2
 
     | TUnOp (op, t) ->
-        let l = eval_term ~with_alarms env result t in
-        let typ' t = match op with
-          | Neg -> t
-          | BNot -> t (* can only be used on an integer type *)
-          | LNot -> intType
+        let r = eval_term ~with_alarms env t in
+        let typ' = match op with
+          | Neg -> r.etype
+          | BNot -> r.etype (* can only be used on an integer type *)
+          | LNot -> Cil.intType
         in
-        let eval typ v =
-          eval_unop ~check_overflow:false ~with_alarms v typ op
+        let eval v =
+          Eval_op.eval_unop ~check_overflow:false ~with_alarms v r.etype op
         in
-        List.map (fun (typ, v) -> typ' typ, eval typ v) l
+        { etype = typ';
+          edeps = r.edeps;
+          evalue = List.map eval r.evalue }
 
     | Trange (otlow, othigh) ->
         (* Eval one bound. `SureInf corresponds to an ACSL 'omitted bound',
            `MayInf to a value analysis approximation. There are subtle
            differences between, that are not completely exploited for now. *)
+        let deps = ref empty_edeps in
         let eval = function
           | None -> `SureInf
           | Some t ->
-              let (typ, v) = singleton (eval_term ~with_alarms env result t) in
-              if not (isIntegralType typ)
+            try
+              let r = eval_term ~with_alarms env t in
+              let v = match r.evalue with
+                | [e] -> e
+                | _ -> ast_error "found set in range bound"
+              in
+              if not (Cil.isIntegralType r.etype)
               then ast_error "non-integer range bound";
+              deps := join_edeps !deps r.edeps;
               try (match Ival.min_and_max (Cvalue.V.project_ival v) with
                 | None, _ | _, None -> `MayInf
                 | Some l, Some h -> `Finite (l, h)
               )
               with Cvalue.V.Not_based_on_null -> `MayInf
+            with LogicEvalError e ->
+              if e <> CAlarm then
+                Value_parameters.result ~current:true ~once:true
+                  "Cannot evaluate@ range bound %a@ (%a). Approximating"
+                  Printer.pp_term t pretty_logic_evaluation_error e;
+              `MayInf
         in
         let range low high =
-          (intType, Cvalue.V.inject_ival (Ival.inject_range low high)) in
-        let inj_int i = (intType, Cvalue.V.inject_int i) in
+          V.inject_ival (Ival.inject_range low high) in
         let r = match eval otlow, eval othigh with
           | `Finite (ilowlow, ilow), `Finite (ihigh, ihighhigh) ->
               if Int.gt ilowlow ihighhigh then []
               else
                 if Int.equal ilowlow ihighhigh then
                   if Int.equal ilowlow ilow && Int.equal ihigh ihighhigh
-                  then [inj_int ilow]
+                  then [V.inject_int ilow]
                   else (* complicated case. Due to the imprecisions, the range
                      might be empty, but the intersection is a single integer,
                      which is considered precise by all the other functions *)
@@ -404,12 +424,12 @@ let rec eval_term ~with_alarms env result t =
                                   be in the range, if possible one by one *)
                     if Int.ge ihigh ilow then
                       let plevel = Value_parameters.ArrayPrecisionLevel.get ()in
-                      if Int.equal ilow ihigh then [inj_int ilow]
+                      if Int.equal ilow ihigh then [V.inject_int ilow]
                       else
                         if Int.le (Int.sub ihigh ilow) (Int.of_int plevel) then
                           let rec enum i acc =
                             if Int.lt i ilow then acc
-                            else enum (Int.sub i Int.one) (inj_int i :: acc)
+                            else enum (Int.sub i Int.one) (V.inject_int i ::acc)
                           in enum ihigh []
                         else [range (Some ilow) (Some ihigh)]
                     else []
@@ -430,41 +450,109 @@ let rec eval_term ~with_alarms env result t =
           | (`MayInf | `SureInf), (`MayInf | `SureInf) -> [range None None]
         in
         (*Value_parameters.debug "Range %a: %a@."
-          d_term t (Pretty_utils.pp_list Cvalue.V.pretty) (List.map snd r);*)
-        r
+          d_term t (Pretty_utils.pp_list V.pretty) (List.map snd r);*)
+        { etype = Cil.intType;
+          edeps = !deps;
+          evalue = r }
 
     | TCastE (typ, t) ->
-        let l = eval_term ~with_alarms env result t in
-        List.map (fun (_, v) -> typ, do_cast ~with_alarms typ v) l
+        let r = eval_term ~with_alarms env t in
+        let conv v =
+          let msg fmt =
+            Format.fprintf fmt "%a (%a)" Printer.pp_term t V.pretty v
+          in
+          Eval_op.do_promotion ~with_alarms
+            Ival.Float_abstract.Any ~src_typ:r.etype ~dst_typ:typ v msg
+        in
+        { etype = typ;
+          edeps = r.edeps;
+          evalue = List.map conv r.evalue }
 
     | Tif (tcond, ttrue, tfalse) ->
-        let l = eval_term ~with_alarms env result tcond in
-        let vtrue =  List.exists (fun (_, v) -> Cvalue.V.contains_non_zero v) l
-        and vfalse = List.exists (fun (_, v) -> Cvalue.V.contains_zero v) l  in
-        (if vtrue then eval_term ~with_alarms env result ttrue else [])
-        @ (if vfalse then eval_term ~with_alarms env result tfalse else [])
+        let r = eval_term ~with_alarms env tcond in
+        let ctrue =  List.exists (Cvalue.V.contains_non_zero) r.evalue
+        and cfalse = List.exists (Cvalue.V.contains_zero) r.evalue in
+        (match ctrue, cfalse with
+          | true, true ->
+              let vtrue = eval_term ~with_alarms env ttrue in
+              let vfalse = eval_term ~with_alarms env tfalse in
+              if not (same_etype vtrue.etype vfalse.etype) then
+                Value_parameters.failure ~current:true
+                  "Incoherent types in conditional '%a': %a vs. %a. \
+                  Please report"
+                  Printer.pp_term t Printer.pp_typ vtrue.etype Printer.pp_typ vfalse.etype;
+              let lr = vtrue.evalue @ vfalse.evalue in
+              let r =
+                if Logic_const.is_plain_type t.term_type
+                then [List.fold_left V.join V.bottom lr]
+                else lr
+              in
+              { etype = vtrue.etype;
+                edeps = join_edeps vtrue.edeps vfalse.edeps;
+                evalue = r }
+          | true, false -> eval_term ~with_alarms env ttrue
+          | false, true -> eval_term ~with_alarms env tfalse
+          | false, false ->
+              assert false (* a logic alarm would have been raised*)
+        )
 
     | TSizeOf _ | TSizeOfE _ | TSizeOfStr _ | TAlignOf _ | TAlignOfE _ ->
         let e = Cil.constFoldTerm true t in
-        let r = match e.term_node with
+        let v = match e.term_node with
           | TConst (Integer (v, _)) -> Cvalue.V.inject_int v
           | _ -> V.top_int
         in
-        [intType, r]
+        einteger v
 
     | Tunion l ->
-        List.fold_left (fun r t -> eval_term ~with_alarms env result t @ r) [] l
+        let tres = infer_type t.term_type in
+        let l, deps = List.fold_left
+          (fun (accv, accdeps) t ->
+                  let r = eval_term ~with_alarms env t in
+                  r.evalue @ accv, join_edeps accdeps r.edeps)
+             ([], empty_edeps) l
+        in
+        { etype = tres;
+          edeps = deps;
+          evalue = l }
 
-    | Tempty_set -> []
+    | Tempty_set ->
+        { etype = infer_type t.term_type; evalue = []; edeps = empty_edeps }
 
-    | Tnull -> [Cil.voidPtrType, Cvalue.V.singleton_zero]
+    | Tnull ->
+        { etype = Cil.voidPtrType;
+          edeps = empty_edeps;
+          evalue = [Cvalue.V.singleton_zero] }
+
+    | TLogic_coerce(typ, t) ->
+        let r = eval_term ~with_alarms env t in
+        (match typ with
+           | Linteger ->
+               assert (Logic_typing.is_integral_type t.term_type);
+               r
+           | Lreal ->
+               if Logic_typing.is_integral_type t.term_type
+               then (* Needs to be converted to reals *)
+                 let conv v =
+                   let v, ok = V.cast_int_to_float real_mode v in
+                   if not ok then c_alarm ();
+                   v
+                 in
+                 { etype = Cil.doubleType;
+                   edeps = r.edeps;
+                   evalue = List.map conv r.evalue }
+               else r (* already a floating-point number (hopefully) *)
+
+           | _ -> unsupported
+               (Pretty_utils.sfprintf "logic coercion %a -> %a@."
+                  Printer.pp_logic_type t.term_type Printer.pp_logic_type typ)
+        )
 
     (* TODO *)
     | Toffset _ -> unsupported "\\offset function"
     | Tbase_addr _ -> unsupported "\\base_addr function"
     | Tblock_length _ -> unsupported "\\block_length function"
-
-    | Tinter _ -> unsupported "set intersection" (* TODO *)
+    | Tinter _ -> unsupported "set intersection"
 
     | Tapp _ | Tlambda _ -> unsupported "logic functions or predicates"
     | TDataCons _ -> unsupported "logic inductive types"
@@ -477,140 +565,249 @@ let rec eval_term ~with_alarms env result t =
     | TConst (LStr _) -> unsupported "constant strings"
     | TConst (LWStr _) -> unsupported "wide constant strings"
 
+and eval_binop ~with_alarms env op t1 t2 =
+  if isLogicNonCompositeType t1.term_type then
+    let r1 = eval_term ~with_alarms env t1 in
+    let r2 = eval_term ~with_alarms env t2 in
+    let te1 = Cil.unrollType r1.etype in
+    (* We use the type of t1 to determine whether we are performing an int or
+       float operation.*)
+    let kop = match te1 with
+      | TInt _ | TPtr _ | TEnum _ ->
+          (* Do not pass ~typ here. We want the operations to be performed on
+             unbounded integers mode *)
+          Eval_op.eval_binop_int ~with_alarms ~te1 ?typ:None
+      | TFloat _ -> Eval_op.eval_binop_float ~with_alarms real_mode None
+      | _ -> ast_error (Pretty_utils.sfprintf
+                          "binop on incorrect type %a" Printer.pp_typ te1)
+    in
+    let kop v1 v2 = kop v1 op v2 in
+    let typ_res = infer_binop_res_type op te1 in
+    let l1 = r1.evalue and l2 = r2.evalue in
+    let r = match op, l1, l2 with
+      | (PlusA | PlusPI | IndexPI | MinusA | MinusPI), _, _ ->
+        List.fold_left (fun acc e1 ->
+          List.fold_left (fun acc e2 -> kop e1 e2 :: acc) acc l2) [] l1
 
-and eval_tlhost ~with_alarms env result lv =
+      (* Sets are compared by joining all their elements. This is correct,
+         although imprecise *)
+      | (Eq | Ne), _ , _ ->
+        (match l1, l2 with
+          | [], [] ->
+              [if op = Eq then V.singleton_one else V.singleton_zero]
+          | [], _ :: _ | _ :: _, [] ->
+              [if op = Eq then V.singleton_zero else V.singleton_one]
+          | h1 :: q1, h2 :: q2 ->
+              let e1 = List.fold_left V.join h1 q1 in
+              let e2 = List.fold_left V.join h2 q2 in
+              let r = kop e1 e2 in
+              let contains_zero = V.contains_zero r in
+              let contains_non_zero = V.contains_non_zero r in
+              [V.interp_boolean ~contains_zero ~contains_non_zero]
+        )
+      | _, [e1], [e2] -> [kop e1 e2]
+      | _ -> ast_error "meaningless binop"
+    in
+    { etype = typ_res;
+      edeps = join_edeps r1.edeps r2.edeps;
+      evalue = r }
+  else
+    unsupported (Pretty_utils.sfprintf
+                   "%a operation on non-supported type %a" Printer.pp_binop op
+                   Printer.pp_logic_type t1.term_type)
+
+and eval_tlhost ~with_alarms env lv =
   match lv with
     | TVar { lv_origin = Some v } ->
         let loc = Location_Bits.inject (Base.find v) Ival.zero in
-        [v.vtype, loc]
+        { etype = v.vtype;
+          edeps = empty_edeps;
+          evalue = [loc] }
     | TResult typ ->
-        (match result with
+        (match env.result with
           | Some v ->
               let loc = Location_Bits.inject (Base.find v) Ival.zero in
-              [typ, loc]
+              { etype = typ;
+                edeps = empty_edeps;
+                evalue = [loc] }
           | None -> no_result ())
     | TVar { lv_origin = None } -> (* TODO: add an env for logic vars *)
         unsupported "evaluation of logic vars"
     | TMem t ->
-        let l = eval_term ~with_alarms env result t in
-        List.map (fun (t, loc) ->
-          match Cil.unrollType t with
-            | TPtr (t, _) -> t, loc_bytes_to_loc_bits loc
-            | _ -> ast_error "*p where p is not a pointer"
-        ) l
+        let r = eval_term ~with_alarms env t in
+        let tres = match Cil.unrollType r.etype with
+          | TPtr (t, _) -> t
+          | _ -> ast_error "*p where p is not a pointer"
+        in
+        { etype = tres;
+          edeps = r.edeps;
+          evalue = List.map loc_bytes_to_loc_bits r.evalue }
 
-and eval_toffset ~with_alarms env result typ toffset =
+and eval_toffset ~with_alarms env typ toffset =
   match toffset with
   | TNoOffset ->
-      [typ, Ival.singleton_zero]
-  | TIndex (trm, remaining) ->
-      let typ_pointed = match unrollType typ with
+      { etype = typ;
+        edeps = empty_edeps;
+        evalue = [Ival.singleton_zero] }
+  | TIndex (idx, remaining) ->
+      let typ_pointed = match Cil.unrollType typ with
         | TArray (t, _, _, _) -> t
         | TPtr(t,_) ->
-            (match unrollType t with
+            (match Cil.unrollType t with
               | TArray (t, _,_,_) -> t
               | _ -> ast_error "index on a non-array")
         | _ -> ast_error "index on a non-array"
       in
-      let lloctrm = eval_term ~with_alarms env result trm in
-      let aux (_typ, current) =
+      let idxs = eval_term ~with_alarms env idx in
+      let offsrem = eval_toffset ~with_alarms env typ_pointed remaining in
+      let aux idx =
         let offset =
-          try Cvalue.V.project_ival current
+          try Cvalue.V.project_ival idx
           with Cvalue.V.Not_based_on_null -> Ival.top
         in
-        let loffsrem =
-          eval_toffset ~with_alarms env result typ_pointed remaining in
-        let aux (typ, r) =
+        let shift v =
           let offset = Ival.scale_int64base (sizeof typ_pointed) offset in
-          typ, Ival.add_int offset r
+          Ival.add_int offset v
         in
-        List.map aux loffsrem
+        List.map shift offsrem.evalue
       in
-      List.fold_left (fun acc trm -> aux trm @ acc) [] lloctrm
+      { etype = offsrem.etype;
+        edeps = join_edeps idxs.edeps offsrem.edeps;
+        evalue = List.fold_left (fun r trm -> aux trm @ r) [] idxs.evalue; }
 
-  | TField (fi,remaining) ->
-      let current,_ = bitsOffset typ (Field(fi,NoOffset)) in
-      let loffs = eval_toffset ~with_alarms env result fi.ftype remaining in
-      List.map (fun (typ, r) -> typ, Ival.add_int (Ival.of_int current) r) loffs
+  | TField (fi, remaining) ->
+      let current,_ = Cil.bitsOffset typ (Field(fi, NoOffset)) in
+      let offsrem = eval_toffset ~with_alarms env fi.ftype remaining in
+      { etype = offsrem.etype;
+        edeps = offsrem.edeps;
+        evalue =  List.map (Ival.add_int (Ival.of_int current)) offsrem.evalue }
 
   | TModel _ -> unsupported "model fields"
 
-and eval_tlval ~with_alarms env result t =
-  let process ftyp tlval toffs =
-    let lvals = eval_tlhost ~with_alarms env result tlval in
-    let aux acc (typ, loc) =
-      let loffset = eval_toffset ~with_alarms env result typ toffs in
-      let aux acc (typ_offs, offs) =
-        let loc = Location_Bits.location_shift offs loc in
-        (ftyp typ_offs, loc) :: acc
-      in
-      List.fold_left aux acc loffset
-    in
-    List.fold_left aux [] lvals
+and eval_thost_toffset ~with_alarms env thost toffs =
+  let rhost = eval_tlhost ~with_alarms env thost in
+  let roffset = eval_toffset ~with_alarms env rhost.etype toffs in
+  let shift l lochost =
+    let shift offs = Location_Bits.shift offs lochost in
+    List.map shift roffset.evalue @ l
   in
+  { etype = roffset.etype;
+    edeps = join_edeps rhost.edeps roffset.edeps;
+    evalue = List.fold_left shift [] rhost.evalue }
+
+and eval_tlval ~with_alarms env t =
   match t.term_node with
-  | TAddrOf (tlval, toffs) ->
-      process (fun typ -> TPtr (typ, [])) tlval toffs
-  | TStartOf (tlval, toffs) ->
-      process (fun typ -> TPtr (Cil.typeOf_array_elem typ, [])) tlval toffs
-  | TLval (tlval, toffs) ->
-      process (fun typ -> typ) tlval toffs
-  | Tunion l -> List.concat (List.map (eval_tlval ~with_alarms env result) l)
-  | Tempty_set -> []
-  (* TODO: add support for TcastE, by adapting what is done for pass_cast
-     in eval_exprs.ml *)
+  | TLval (thost, toffs) ->
+      eval_thost_toffset ~with_alarms env thost toffs
+  | Tunion l ->
+      let aux (lr, deps) t =
+        let r = eval_tlval ~with_alarms env t in
+        r.evalue :: lr, join_edeps deps r.edeps
+      in
+      let l, deps = List.fold_left aux ([], empty_edeps) l in
+      { etype = infer_type t.term_type;
+        edeps = deps;
+        evalue = List.concat l }
+  | Tempty_set ->
+      { etype = infer_type t.term_type; evalue = []; edeps = empty_edeps }
+  | Tat (t, lab) ->
+      eval_tlval ~with_alarms { env with e_cur = lab } t
   | _ -> ast_error "non-lval term"
 
-let eval_tlval_as_location ~with_alarms env result t =
-  let l = eval_tlval ~with_alarms env result t in
-  let aux acc (typ, loc) =
-    let s = Bit_utils.sizeof typ in
+let eval_tlval_as_location ~with_alarms env t =
+  let r = eval_tlval ~with_alarms env t in
+  let s = Bit_utils.sizeof r.etype in
+  let aux acc loc =
     assert (loc_equal acc loc_bottom || Int_Base.equal s acc.size);
     make_loc (Location_Bits.join loc acc.loc) s
   in
-  List.fold_left aux loc_bottom l
+  List.fold_left aux loc_bottom r.evalue
 
-let eval_tlval_as_locations ~with_alarms env result t =
-  let l = eval_tlval ~with_alarms env result t in
-  let aux acc (typ, loc) =
-    let s = Bit_utils.sizeof typ in
-    let loc = make_loc loc s in
-    loc :: acc
-  in
-  List.fold_left aux [] l
+let eval_tlval_as_locations ~with_alarms env t =
+  let r = eval_tlval ~with_alarms env t in
+  let s = Bit_utils.sizeof r.etype in
+  List.map (fun loc -> make_loc loc s) r.evalue, r.edeps
 
-let eval_tlval_as_zone ~with_alarms ~for_writing env result t =
-  let l = eval_tlval ~with_alarms env result t in
-  let aux acc (typ, loc) =
-    let s = Bit_utils.sizeof typ in
+let eval_tlval_as_zone ~with_alarms ~for_writing env t =
+  let r = eval_tlval ~with_alarms env t in
+  let s = Bit_utils.sizeof r.etype in
+  let aux acc loc =
     let loc = make_loc loc s in
-    let z = valid_enumerate_bits ~for_writing loc in
+    let z = enumerate_valid_bits ~for_writing loc in
     Zone.join acc z
   in
-  List.fold_left aux Zone.bottom l
+  List.fold_left aux Zone.bottom r.evalue
+
+
+(* If casting [trm] to [typ] has no effect in terms of the values contained
+   in [trm], do nothing. Otherwise, raise [exn]. Adapted from [pass_cast] *)
+let pass_logic_cast exn typ trm =
+  (* TODOBY: add checks for volatile? *)
+  match Logic_utils.unroll_type typ, Logic_utils.unroll_type trm.term_type with
+    | Linteger, Ctype (TInt _ | TEnum _) -> () (* Always inclusion *)
+    | Ctype (TInt _ | TEnum _ as typ), Ctype (TInt _ | TEnum _ as typeoftrm) ->
+        let sztyp = sizeof typ in
+        let szexpr = sizeof typeoftrm in
+        let styp, sexpr =
+          match sztyp, szexpr with
+            | Int_Base.Value styp, Int_Base.Value sexpr -> styp, sexpr
+            | _ -> raise exn
+        in
+        let sityp = is_signed_int_enum_pointer typ in
+        let sisexpr = is_signed_int_enum_pointer typeoftrm in
+        if (Int.ge styp sexpr && sityp = sisexpr) (* larger, same signedness *)
+          || (Int.gt styp sexpr && sityp) (* strictly larger and signed *)	
+        then ()
+        else raise exn
+
+    | Lreal,  Ctype (TFloat _) -> () (* Always inclusion *)
+    | Ctype (TFloat (f1,_)), Ctype (TFloat (f2, _)) ->
+        if Cil.frank f1 < Cil.frank f2
+        then raise exn
+
+    | _ -> raise exn (* Not a scalar type *)
+
 
 exception Not_an_exact_loc
 
-let eval_term_as_exact_loc ~with_alarms env result t =
-  match t.term_node with
-    | TLval _ ->
-        (match eval_tlval ~with_alarms env result t with
+let rec eval_term_as_exact_loc ~with_alarms env t =
+  match t with
+    | { term_node = TLval _ } ->
+        let locs = eval_tlval ~with_alarms env t in
+        let typ = locs.etype in
+        (match locs.evalue with
            | [] | _ :: _ :: _ -> raise Not_an_exact_loc
-           | [typ, loc] ->
+           | [loc] ->
                let loc = Locations.make_loc loc (Bit_utils.sizeof typ) in
                if not (valid_cardinal_zero_or_one ~for_writing:false loc)
                then raise Not_an_exact_loc;
                typ, loc
         )
+    | { term_node = TLogic_coerce(_, t)} ->
+        (* It is always ok to pass through a TLogic_coerce, as the destination
+           type is always a supertype *)
+        eval_term_as_exact_loc ~with_alarms env t
+
+    | { term_node = TCastE (ctype, t') } ->
+        pass_logic_cast Not_an_exact_loc (Ctype ctype) t';
+        eval_term_as_exact_loc ~with_alarms env t'
+
     | _ -> raise Not_an_exact_loc
 
 
 exception DoNotReduce
 
-let rec reduce_by_predicate ~result env positive p =
-  reduce_by_predicate_content ~result env positive p.content
+let is_same_term_coerce t1 t2 =
+  match t1.term_node, t2.term_node with
+    | TLogic_coerce _, TLogic_coerce _ -> Logic_utils.is_same_term t1 t2
+    | TLogic_coerce (_,t1), _ -> Logic_utils.is_same_term t1 t2
+    | _, TLogic_coerce(_,t2) -> Logic_utils.is_same_term t1 t2
+    | _ -> Logic_utils.is_same_term t1 t2
 
-and reduce_by_predicate_content ~result env positive p_content =
+let rec reduce_by_predicate env positive p =
+  reduce_by_predicate_content env positive p.content
+
+and reduce_by_predicate_content env positive p_content =
     let with_alarms = warn_raise_mode in
     match positive,p_content with
     | true,Ptrue | false,Pfalse -> env
@@ -626,10 +823,10 @@ and reduce_by_predicate_content ~result env positive p_content =
           {content=Prel (op'',tc',_td) as p3})})
         when
 	  op = op' && op' = op'' &&
-	  Logic_utils.is_same_term tb tb' &&
-	  Logic_utils.is_same_term tc tc'
+	  is_same_term_coerce tb tb' &&
+	  is_same_term_coerce tc tc'
         ->
-        let red env p = reduce_by_predicate_content ~result env positive p in
+        let red env p = reduce_by_predicate_content env positive p in
         let env = red env p1 in
         let env = red env p3 in
         let env = red env p2 in
@@ -639,94 +836,99 @@ and reduce_by_predicate_content ~result env positive p_content =
         env
 
     | true,Pand (p1,p2) | false,Por(p1,p2)->
-        let r1 = reduce_by_predicate ~result env positive p1 in
-        reduce_by_predicate ~result r1 positive p2
+        let r1 = reduce_by_predicate env positive p1 in
+        reduce_by_predicate r1 positive p2
 
     | true,Por (p1,p2 ) | false,Pand (p1, p2) ->
         join_env
-          (reduce_by_predicate ~result env positive p1)
-          (reduce_by_predicate ~result env positive p2)
+          (reduce_by_predicate env positive p1)
+          (reduce_by_predicate env positive p2)
 
     | true,Pimplies (p1,p2) ->
         join_env
-          (reduce_by_predicate ~result env false p1)
-          (reduce_by_predicate ~result env true p2)
+          (reduce_by_predicate env false p1)
+          (reduce_by_predicate env true p2)
 
     | false,Pimplies (p1,p2) ->
-        reduce_by_predicate ~result
-          (reduce_by_predicate ~result env true p1)
+        reduce_by_predicate
+          (reduce_by_predicate env true p1)
           false
           p2
 
-    | _,Pnot p -> reduce_by_predicate ~result env (not positive) p
+    | _,Pnot p -> reduce_by_predicate env (not positive) p
 
     | true,Piff (p1, p2) ->
         let red1 =
-          reduce_by_predicate_content ~result env true (Pand (p1, p2)) in
+          reduce_by_predicate_content env true (Pand (p1, p2)) in
         let red2 =
-          reduce_by_predicate_content ~result env false (Por (p1, p2)) in
+          reduce_by_predicate_content env false (Por (p1, p2)) in
         join_env red1 red2
 
     | false,Piff (p1, p2) ->
-        reduce_by_predicate ~result env true
+        reduce_by_predicate env true
           (Logic_const.por
              (Logic_const.pand (p1, Logic_const.pnot p2),
               Logic_const.pand (Logic_const.pnot p1, p2)))
 
     | _,Pxor(p1,p2) ->
-        reduce_by_predicate ~result env
+        reduce_by_predicate env
           (not positive) (Logic_const.piff(p1, p2))
 
     | _,Prel (op,t1,t2) ->
       begin
         try
           let eval = match t1.term_type with
-            | t when isLogicRealOrFloatType t ->
-                reduce_rel_float (Value_parameters.AllRoundingModes.get ())
-            | t when isLogicIntegralType t -> reduce_rel_int
-            | Ctype ct when isPtrType ct -> reduce_rel_int
+            | t when Cil.isLogicRealOrFloatType t ->
+                Eval_op.reduce_rel_float
+                  (Value_parameters.AllRoundingModes.get ())
+            | t when Cil.isLogicIntegralType t -> Eval_op.reduce_rel_int
+            | Ctype ct when Cil.isPtrType ct -> Eval_op.reduce_rel_int
             | _ -> raise DoNotReduce
           in
-          reduce_by_relation eval ~result env positive t1 op t2
+          reduce_by_relation eval env positive t1 op t2
         with
           | DoNotReduce -> env
           | LogicEvalError ee -> display_evaluation_error ee; env
-          | Reduce_to_bottom ->
+          | Eval_exprs.Reduce_to_bottom ->
               overwrite_current_state env Cvalue.Model.bottom
               (* if the exception was obtained without an alarm emitted,
                  it is correct to return the bottom state *)
       end
 
     | _,Pvalid (_label,tsets) ->
-        (* Value's validity does not depend on the program point. the implicit
-           label is intentionally ignored. This is however problematic for
-           dynamic allocation. TODO *)
-	reduce_by_valid ~result env positive ~for_writing:true  tsets
+        (* TODO: label should not be ignored. Instead, we should clear
+           variables that are not in scope at the label. *)
+	reduce_by_valid env positive ~for_writing:true  tsets
     | _,Pvalid_read (_label,tsets) ->
-	reduce_by_valid ~result env positive ~for_writing:false tsets
+	reduce_by_valid env positive ~for_writing:false tsets
 
     | _,Pinitialized (lbl_initialized,tsets) ->
         begin try
-          let locb = eval_term ~with_alarms env result tsets in
-          let lbl = convert_label lbl_initialized in
-          let state = env_state env lbl in
+          let rlocb = eval_term ~with_alarms env tsets in
+          let size = Bit_utils.sizeof_pointed rlocb.etype in
+          let size =
+            try Int_Base.project size
+            with _ -> c_alarm () (* Not really an alarm, an imprecision *)
+          in
+          let state = env_state env lbl_initialized in
           let state_reduced =
             List.fold_left
-              (fun state (e, loc) ->
-                 reduce_by_initialized_defined
+              (fun state loc ->
+                let loc_bits = loc_bytes_to_loc_bits loc in
+                Model.reduce_by_initialized_defined_loc
                    (Cvalue.V_Or_Uninitialized.change_initialized positive)
-                   (e, loc) state
-              ) state locb
+                   loc_bits size state
+              ) state rlocb.evalue
           in
-          overwrite_state env state_reduced lbl 
+          overwrite_state env state_reduced lbl_initialized
           with
             | LogicEvalError ee -> display_evaluation_error ee; env
         end
 
     | _,Pat (p, lbl) ->
         (try
-           let env_at = { env with e_cur = convert_label lbl } in
-           let env' = reduce_by_predicate ~result env_at positive p in
+           let env_at = { env with e_cur = lbl } in
+           let env' = reduce_by_predicate env_at positive p in
            { env' with e_cur = env.e_cur }
          with LogicEvalError ee -> display_evaluation_error ee; env)
 
@@ -738,7 +940,7 @@ and reduce_by_predicate_content ~result env positive p_content =
     | _, Pseparated _
         -> env
 
-and reduce_by_valid ~result env positive ~for_writing (tset: term) =
+and reduce_by_valid env positive ~for_writing (tset: term) =
   let with_alarms = warn_raise_mode in
   (* Auxiliary function that reduces \valid(lvloc+offs), where lvloc is atomic
      (no more tsets), and offs is a bits-expressed constant offset.
@@ -755,7 +957,7 @@ and reduce_by_valid ~result env positive ~for_writing (tset: term) =
       (* [p] is the range that we attempt to reduce *)
       let p_orig = Model.find ~with_alarms ~conflate_bottom:true state lvloc in
       let pb = Locations.loc_bytes_to_loc_bits p_orig in
-      let shifted_p = Location_Bits.location_shift offs pb in
+      let shifted_p = Location_Bits.shift offs pb in
       let lshifted_p = make_loc shifted_p (Bit_utils.sizeof offs_typ) in
       let valid = (* reduce the shifted pointer to the wanted part *)
         if positive
@@ -768,7 +970,7 @@ and reduce_by_valid ~result env positive ~for_writing (tset: term) =
       else
 	(* Shift back *)
 	let shift = Ival.neg offs in
-	let pb = Location_Bits.location_shift shift valid in
+	let pb = Location_Bits.shift shift valid in
 	let p = Locations.loc_bits_to_loc_bytes pb in
 	(* Store the result *)
 	let state = Model.reduce_previous_binding ~with_alarms state lvloc p in
@@ -783,12 +985,12 @@ and reduce_by_valid ~result env positive ~for_writing (tset: term) =
           List.fold_left do_one env l
 
       | TLval _ -> 
-          let aux env (typ, lval) =
+          let aux typ env lval =
             try
               let loc = make_loc lval (Bit_utils.sizeof typ) in
               if valid_cardinal_zero_or_one ~for_writing loc then
                 let state =
-                  reduce_by_valid_loc ~positive ~for_writing
+                  Eval_exprs.reduce_by_valid_loc ~positive ~for_writing
                     loc typ (env_current_state env)
                 in
                 overwrite_current_state env state
@@ -796,79 +998,96 @@ and reduce_by_valid ~result env positive ~for_writing (tset: term) =
             with LogicEvalError ee -> display_evaluation_error ee; env
           in
           (try 
-             let l = eval_tlval ~with_alarms env result t in
-             List.fold_left aux env l
+             let r = eval_tlval ~with_alarms env t in
+             List.fold_left (aux r.etype) env r.evalue
            with LogicEvalError ee -> display_evaluation_error ee; env)
 
       | TAddrOf (TMem ({term_node = TLval _} as t), offs) ->
           (try
-             let lt = eval_tlval ~with_alarms env result t in
+             let lt = eval_tlval ~with_alarms env t in
+             let typ = lt.etype in
              List.fold_left
-               (fun env (typ, _ as lv) ->
+               (fun env lv ->
                   (* Compute the offsets, that depend on the type of the lval.
                      The computed list is exactly what [aux] requires *)
-                  let loffs = eval_toffset ~with_alarms env result typ offs in
-                  List.fold_left (aux lv) env loffs) env lt
+                  let roffs =
+                    eval_toffset ~with_alarms env (Cil.typeOf_pointed typ) offs
+                  in
+                  List.fold_left
+                    (fun env offs -> aux (typ, lv) env (roffs.etype, offs))
+                    env roffs.evalue
+               ) env lt.evalue
            with LogicEvalError ee -> display_evaluation_error ee; env)
 
       | TBinOp ((PlusPI | MinusPI) as op, ({term_node = TLval _} as tlv), i) ->
           (try
-             let ltlv = eval_tlval ~with_alarms env result tlv in
-             let li = eval_term ~with_alarms env result i in
+             let rtlv = eval_tlval ~with_alarms env tlv in
+             let ri = eval_term ~with_alarms env i in
              (* Convert offsets to a simpler form if [op] is [MinusPI] *)
              let li =
                List.fold_left
-                 (fun acc (typ, offs) ->
+                 (fun acc offs ->
                     try
                       let i = V.project_ival offs in
                       let i = if op = PlusPI then i else Ival.neg i in
-                      (typ, i) :: acc
+                      (ri.etype, i) :: acc
                     with V.Not_based_on_null -> acc
-                 ) [] li
+                 ) [] ri.evalue
              in
+             let typ_p = Cil.typeOf_pointed rtlv.etype in
+             let sbits = Int.of_int (Cil.bitsSizeOf typ_p) in
              List.fold_left
-               (fun env (typ, _ as elv) ->
+               (fun env elv ->
                   (* Compute the offsets expected by [aux], which are
                      [i * 8 * sizeof( *tlv)] *)
-                  let typ_p = Cil.typeOf_pointed typ in
-                  let sbits = Int.of_int (Cil.bitsSizeOf typ_p) in
                   let li = List.map
                     (fun (_, offs) -> typ_p, Ival.scale sbits offs) li
                   in
-                  List.fold_left (aux elv) env li) env ltlv
+                  List.fold_left (aux (typ_p, elv)) env li
+               ) env rtlv.evalue
            with LogicEvalError ee -> display_evaluation_error ee; env)
       | _ -> env
   in
   do_one env tset
 
-and reduce_by_relation eval ~result env positive t1 rel t2 =
-  let env = reduce_by_left_relation eval ~result env positive t1 rel t2 in
+and reduce_by_relation eval env positive t1 rel t2 =
+  let env = reduce_by_left_relation eval env positive t1 rel t2 in
   let inv_binop = match rel with
     | Rgt -> Rlt | Rlt -> Rgt | Rle -> Rge | Rge -> Rle
-    | _ -> rel
+    | Req -> Req | Rneq -> Rneq
   in
-  reduce_by_left_relation eval ~result env positive t2 inv_binop t1
+  reduce_by_left_relation eval env positive t2 inv_binop t1
 
-and reduce_by_left_relation eval ~result env positive tl rel tr =
+and reduce_by_left_relation eval env positive tl rel tr =
   let with_alarms = warn_raise_mode in
   try
+    let debug = false in
     let state = env_current_state env in
-    let typ_loc, loc = eval_term_as_exact_loc ~with_alarms env result tl in
-    let value_for_loc =
-      Cvalue.Model.find ~conflate_bottom:true ~with_alarms state loc in
-    let value_for_loc = do_cast ~with_alarms typ_loc value_for_loc in
+    if debug then Format.printf "#Left term %a@." Printer.pp_term tl;
+    let typ_loc, loc = eval_term_as_exact_loc ~with_alarms env tl in
+    if debug then Format.printf "#Left term as lv loc %a, typ %a@."
+      Locations.pretty loc Printer.pp_typ typ_loc;
+    let v = Cvalue.Model.find ~conflate_bottom:true ~with_alarms state loc in
+    if debug then Format.printf "#Val left lval %a@." V.pretty v;
+    let v = Eval_op.reinterpret ~with_alarms typ_loc v in
+    if debug then Format.printf "#Cast left lval %a@." V.pretty v;
+    let rtl = eval_term ~with_alarms env tr in
     let cond_v =
-      List.fold_left  (fun v (_, v') -> Location_Bytes.join v v')
-        Location_Bytes.bottom (eval_term ~with_alarms env result tr)
+      List.fold_left Location_Bytes.join Location_Bytes.bottom rtl.evalue
     in
+    if debug then Format.printf "#Val right term %a@." V.pretty cond_v;
     let op = lop_to_cop rel in
-    let warn_comp, _, _ = check_comparable op value_for_loc cond_v in
-    if warn_comp then CilE.warn_pointer_comparison with_alarms;
-    let v_sym = eval.reduce_rel_symetric positive op cond_v value_for_loc in
-    let v_asym = eval.reduce_rel_antisymetric ~typ_loc positive op cond_v v_sym in
-    if V.is_bottom v_asym then raise Reduce_to_bottom;
-    if V.equal v_asym value_for_loc
-    then env
+    let v_sym =
+      eval.Eval_op.reduce_rel_symetric positive op cond_v v in
+    let v_asym =
+      eval.Eval_op.reduce_rel_antisymetric ~typ_loc positive op cond_v v_sym in
+    if debug then Format.printf "#Val reduced %a@." V.pretty v_asym;
+    (* TODOBY: if loc is an int that has been silently cast to real, we end up
+       reducing an int according to a float. Instead, we should convert v to
+       real, then cast back v_asym to the good range *)
+    if V.is_bottom v_asym then raise Eval_exprs.Reduce_to_bottom;
+    if V.equal v_asym v then
+      env
     else 
       let state' = 
 	Cvalue.Model.reduce_previous_binding ~with_alarms state loc v_asym
@@ -879,7 +1098,7 @@ and reduce_by_left_relation eval ~result env positive tl rel tr =
     | LogicEvalError ee -> display_evaluation_error ee; env
 
 
-let eval_predicate ~result env pred =
+let eval_predicate env pred =
   let with_alarms = warn_raise_mode in
   let rec do_eval env p =
     match p.content with
@@ -890,7 +1109,7 @@ let eval_predicate ~result env pred =
         | True -> do_eval env p2
         | False -> False
         | Unknown ->
-          let reduced = reduce_by_predicate ~result env true p1 in
+          let reduced = reduce_by_predicate env true p1 in
           match do_eval reduced p2 with
             | False -> False
             | _ -> Unknown
@@ -899,15 +1118,15 @@ let eval_predicate ~result env pred =
         let val_p1 = do_eval env p1 in
         (*Format.printf "Disjunction: state %a p1:%a@."
             Cvalue.Model.pretty (env_current_state env)
-            Cil.d_predicate_named p1; *)
+            Printer.pp_predicate_named p1; *)
         begin match val_p1 with
         | True -> True
         | False -> do_eval env p2
         | Unknown -> begin
-          let reduced_state = reduce_by_predicate ~result env false p1 in
+          let reduced_state = reduce_by_predicate env false p1 in
           (* Format.printf "Disjunction: reduced to %a to eval %a@."
              Cvalue.Model.pretty (env_current_state reduced_state)
-             Cil.d_predicate_named p2; *)
+             Printer.pp_predicate_named p2; *)
           match do_eval reduced_state p2 with
             | True -> True
             | _ -> Unknown
@@ -927,16 +1146,16 @@ let eval_predicate ~result env pred =
         | _ -> False
         end
     | Pat (p, lbl) -> begin
-        try do_eval { env with e_cur = convert_label lbl } p
+        try do_eval { env with e_cur = lbl } p
         with LogicEvalError ee -> display_evaluation_error ee; Unknown
       end
 
-    | Pvalid (label, tsets)
-    | Pvalid_read (label, tsets) -> begin
+    | Pvalid (_label, tsets) | Pvalid_read (_label, tsets) -> begin
+      (* TODO: see same constructor in reduce_by_predicate *)
         try
           let for_writing =
             (match p.content with Pvalid_read _ -> false | _ -> true) in
-          let state = env_state env (convert_label label) in
+          let state = env_current_state env in
           let size = match Logic_utils.unroll_type tsets.term_type with
             | Ctype (TPtr _ |  TArray _ as t)
             | Ltype ({lt_name = "set"},[Ctype t]) -> sizeof_pointed t
@@ -970,10 +1189,9 @@ let eval_predicate ~result env pred =
                       valid v;
                       if not ok then raise DoNotReduce
                    )
-                   (eval_tlval_as_locations ~with_alarms env result tsets)
+                   (fst (eval_tlval_as_locations ~with_alarms env tsets))
              | _ ->
-                 List.iter (fun (_, loc) -> valid loc)
-                   (eval_term ~with_alarms env result tsets)
+               List.iter valid (eval_term ~with_alarms env tsets).evalue
           );
           True
         with
@@ -984,46 +1202,43 @@ let eval_predicate ~result env pred =
 
     | Pinitialized (label,tsets) -> begin
         try
-          let locb = eval_term ~with_alarms env result tsets in
-          let state = env_state env (convert_label label) in
+          let locb = eval_term ~with_alarms env tsets in
+          let state = env_state env label in
+          let typ = locb.etype in
+          if not (Cil.isPointerType typ) then
+            ast_error "initialized on incorrect location";
           fold_join_predicate List.fold_left
-            (fun (typ, loc) ->
+            (fun loc ->
                let locbi = loc_bytes_to_loc_bits loc in
-               if not (isPointerType typ) then
-                 ast_error "initialized on incorrect location";
                let loc = make_loc locbi (sizeof_pointed typ) in
                let value = Model.find_unspecified ~with_alarms state loc in
                match value with
-                 | Cvalue.V_Or_Uninitialized.C_uninit_esc v
-                 | Cvalue.V_Or_Uninitialized.C_uninit_noesc v ->
+                 | V_Or_Uninitialized.C_uninit_esc v
+                 | V_Or_Uninitialized.C_uninit_noesc v ->
                      if Location_Bytes.is_bottom v then False else Unknown
-                 | Cvalue.V_Or_Uninitialized.C_init_esc _
-                 | Cvalue.V_Or_Uninitialized.C_init_noesc _ -> True
-            ) locb
+                 | V_Or_Uninitialized.C_init_esc _
+                 | V_Or_Uninitialized.C_init_noesc _ -> True
+            ) locb.evalue
         with
-          | Cannot_find_lv -> Unknown
+          | Eval_exprs.Cannot_find_lv -> Unknown
           | LogicEvalError ee -> display_evaluation_error ee; Unknown
       end
     | Prel (op,t1,t2) -> begin
         try
-          let t = t1.term_type in (* TODO: t1.term_type and t2.term_type are
-            sometimes different (Z vs. int, double vs. R, attribute const added,
-            etc). I think it is always correct to use any of the two types,
-            but I am not 100% sure *)
-          let trm = Logic_const.term (TBinOp (lop_to_cop op, t1, t2)) t in
-          let l = List.map snd (eval_term ~with_alarms env result trm) in
-          if List.for_all
-            (Location_Bytes.equal Location_Bytes.singleton_zero) l
+          let r = eval_binop ~with_alarms env (lop_to_cop op) t1 t2 in
+(*          if lop_to_cop op = Eq then
+            Format.printf "## Logic deps for %a: @[%a@]@."
+              Printer.pp_predicate_named p Zone.pretty r.edeps; *)
+          if List.for_all (V.equal V.singleton_zero) r.evalue
           then False
-          else if List.for_all
-            (Location_Bytes.equal Location_Bytes.singleton_one) l
+          else if List.for_all (V.equal V.singleton_one) r.evalue
           then True
           else Unknown
         with
           | LogicEvalError ee -> display_evaluation_error ee; Unknown
         end
     | Pexists (varl, p1) | Pforall (varl, p1) ->
-        let result =
+        let r =
           begin try
           let env = List.fold_left
             (fun acc var ->
@@ -1045,8 +1260,8 @@ let eval_predicate ~result env pred =
         end
         in
         begin match p.content with
-        | Pexists _ -> if result = False then False else Unknown
-        | Pforall _ -> if result = True then True else Unknown
+        | Pexists _ -> if r = False then False else Unknown
+        | Pforall _ -> if r = True then True else Unknown
         | _ -> assert false
         end
 
@@ -1061,14 +1276,16 @@ let eval_predicate ~result env pred =
     | Pseparated ltsets ->
         (try
            let to_locs tset =
+             let rtset = eval_term ~with_alarms env tset in
+             let typ = rtset.etype in
+             if not (Cil.isPointerType typ)
+             then ast_error "separated on non-pointers";
+             let size = sizeof_pointed typ in
              List.map
-               (fun (typ, loc) ->
-                 if not (isPointerType typ)
-                 then ast_error "separated on non-pointers";
-                 let size = sizeof_pointed typ in
+               (fun loc ->
                  let loc = loc_bytes_to_loc_bits loc in
                  Locations.make_loc loc size
-               ) (eval_term ~with_alarms env result tset)
+               ) rtset.evalue
            in
            let locs = List.map to_locs ltsets in
            let to_zone = Locations.enumerate_bits in
@@ -1106,6 +1323,60 @@ let eval_predicate ~result env pred =
   in
   do_eval env pred
 
+(* [JS 2013/04/11] unused, but only maintainers of this module could know if we
+   have to keep this code ;-). *)
+(*let predicate_deps env pred =
+  let with_alarms = CilE.warn_none_mode in
+  let rec do_eval env p =
+    match p.content with
+    | Ptrue | Pfalse -> empty_edeps
+
+    | Pand (p1, p2) | Por (p1, p2 ) | Pxor (p1, p2) | Piff (p1, p2 )
+    | Pimplies (p1, p2) ->
+        join_edeps (do_eval env p1) (do_eval env p2)
+
+    | Prel (_, t1, t2) ->
+        join_edeps (eval_term ~with_alarms env t1).edeps
+                   (eval_term ~with_alarms env t2).edeps
+
+    | Pif (c, p1, p2) ->
+        join_edeps (eval_term ~with_alarms env c).edeps
+          (join_edeps (do_eval env p1) (do_eval env p2))
+
+    | Pat (p, lbl) ->
+        do_eval { env with e_cur = lbl } p
+
+    | Pvalid (_, tsets)
+    | Pvalid_read (_, tsets) ->
+        (eval_tlval ~with_alarms env tsets).edeps
+
+    | Pinitialized (lbl, tsets) ->
+        let loc, deploc = eval_tlval_as_locations ~with_alarms env tsets in
+        let zones =
+          List.fold_left
+            (fun z loc ->
+               Zone.join (enumerate_valid_bits ~for_writing:false loc) z)
+            Zone.bottom loc
+        in
+        Logic_label.Map.add lbl zones deploc
+
+    | Pnot p -> do_eval env p
+
+    | Pseparated ltsets ->
+        let evaled = List.map (eval_tlval ~with_alarms env) ltsets in
+        List.fold_left (fun acc e -> join_edeps acc e.edeps) empty_edeps evaled
+
+    | Pexists (_, p) | Pforall (_, p) | Plet (_, p) -> do_eval env p
+
+    | Pfresh (_,_,_,_)
+    | Papp _
+    | Pallocable _ | Pfreeable _
+    | Psubtype _
+        -> assert false
+  in
+  do_eval env pred
+ *)
+
 exception Does_not_improve
 
 let rec fold_on_disjunction f p acc =
@@ -1120,20 +1391,20 @@ let count_disjunction p = fold_on_disjunction (fun _pred -> succ) p 0
 (* TODO: if would be great to have split [states] into those Valid (no reduction
    if not a disjunction) and the others (always reduce). This must be done in
    the callers, though *)
-let reduce_by_disjunction ~always ~result ~env states n p =
+let reduce_by_disjunction ~always ~env states slevel p =
   if State_set.is_empty states then states
   else
     let nb = count_disjunction p in
     if nb <= 1 && not always then states (* nothing to reduce *)
-    else if (State_set.length states) * nb <= n
+    else if (State_set.length states) * nb <= slevel
     then begin
       let treat_state acc state =
         let env = overwrite_current_state env state in
         let treat_pred pred acc =
-          let result = reduce_by_predicate ~result env true pred in
-          if Cvalue.Model.equal (env_current_state result) state
+          let r = reduce_by_predicate env true pred in
+          if Cvalue.Model.equal (env_current_state r) state
           then raise Does_not_improve
-          else State_set.add (env_current_state result) acc
+          else State_set.add (env_current_state r) acc
         in
         try
           fold_on_disjunction treat_pred p acc
@@ -1147,7 +1418,7 @@ let reduce_by_disjunction ~always ~result ~env states n p =
     State_set.fold
       (fun acc state ->
         let env = overwrite_current_state env state in
-        let reduced = reduce_by_predicate ~result env true p in
+        let reduced = reduce_by_predicate env true p in
         State_set.add (env_current_state reduced) acc)
       State_set.empty
       states
@@ -1156,14 +1427,18 @@ let () =
 (* TODO: deprecate loc_to_loc, move loc_to_locs into Value *)
   Db.Properties.Interp.loc_to_loc :=
     (fun ~result state t ->
-      try eval_tlval_as_location
-            ~with_alarms:warn_raise_mode (env_pre_f state) result t
+      let env = env_post_f ~pre:state ~post:state ~result () in
+      try eval_tlval_as_location ~with_alarms:CilE.warn_none_mode env t
       with LogicEvalError _ -> raise (Invalid_argument "not an lvalue")
     );
+(* TODO: specify better evaluation environment *)
   Db.Properties.Interp.loc_to_locs :=
     (fun ~result state t ->
-      try eval_tlval_as_locations
-            ~with_alarms:CilE.warn_none_mode (env_pre_f state) result t
+      let env = env_post_f ~pre:state ~post:state ~result () in
+      let with_alarms = CilE.warn_none_mode in
+      try
+        let r, deps = eval_tlval_as_locations ~with_alarms env t in
+        r, deps_at lbl_here deps
       with LogicEvalError _ -> raise (Invalid_argument "not an lvalue")
     );
 

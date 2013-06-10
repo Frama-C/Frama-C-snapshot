@@ -13,7 +13,7 @@ let main _ =
 
   (* Uncomment to retrieve sid *)
   (*Kernel.Debug.set 1;;
-    Format.eprintf "@[%a@]@." !Ast_printer.d_global (Kernel_function.get_global f);;
+    Format.eprintf "@[%a@]@." Printer.pp_global (Kernel_function.get_global f);;
   *)
   (*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
   let stmt_1 = fst (Kernel_function.find_from_sid 1) in (* y = 0 *)
@@ -31,7 +31,7 @@ let main _ =
   in
 
   let y_zone = 
-    Locations.valid_enumerate_bits
+    Locations.enumerate_valid_bits
       ~for_writing:false 
       (Locations.loc_of_varinfo y) 
   in

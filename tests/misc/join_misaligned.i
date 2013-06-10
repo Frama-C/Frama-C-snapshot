@@ -8,6 +8,9 @@ int v[7]={0x22222222,0x22222222,0x22222222,1,1,1,1};
 int w[7]={0};
 char x[5]={0};
 int y[7]={0x22222222,0x22222222,0x22222222,1,1,1,1};
+unsigned char z[5] = {0xFF,0xFF,0xFF,0xFF,0xFF};
+unsigned int a;
+volatile unsigned short va;
 
 void main(int c)
 {
@@ -18,6 +21,9 @@ void main(int c)
       *((short*)((char*)v+6))=0x44444444;
       *((short*)((char*)w+6))=57;
       *((int*)((char*)y+6))=&t;
+      *((short*)(&z[3])) = 0x1111;
+      *((short*) &a) = 0xFFFF;
+      *((short*) &a+1) = 0xFFFF;
     }
   else
     {
@@ -29,5 +35,8 @@ void main(int c)
       x[1]=0;
       x[2]=1;
       *((int*)((char*)y+7))=&u;
+      a = va;
+      a <<= 12;
+      a--;
     }
 }

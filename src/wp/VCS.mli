@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -27,13 +27,14 @@
 (** {2 Prover} *)
 
 type prover =
-  | Why of string (* Prover via WHY *)
+  | Why3 of string (* Prover via WHY *)
+  | Why3ide
   | AltErgo       (* Alt-Ergo *)
   | Coq           (* Coq and Coqide *)
-  | WP            (* Simplifier *)
+  | Qed           (* Qed Solver *)
 
 type language =
-  | L_why
+  | L_why3
   | L_coq
   | L_altergo
 
@@ -44,13 +45,15 @@ type language =
 val language_of_prover : prover -> language
 val language_of_name : string -> language option
 val name_of_prover : prover -> string
+val filename_for_prover : prover -> string
 val prover_of_name : string -> prover option
 val language_of_prover_name: string -> language option
 val is_interactive : string -> bool
-val gui_provers : prover list
 
 val pp_prover : Format.formatter -> prover -> unit
 val pp_language : Format.formatter -> language -> unit
+
+val cmp_prover : prover -> prover -> int
 
 (** {2 Results} *)
 
@@ -60,12 +63,13 @@ type verdict =
   | Unknown
   | Timeout
   | Stepout
-  | Computing
+  | Computing of (unit -> unit) (* kill function *)
   | Valid
   | Failed
 
 type result = {
   verdict : verdict ; 
+  solver_time : float ;
   prover_time : float ; 
   prover_steps : int ;
   prover_errpos : Lexing.position option ;
@@ -78,8 +82,8 @@ val invalid : result
 val unknown : result
 val timeout : result
 val stepout : result
-val computing : result
+val computing : (unit -> unit) -> result
 val failed : ?pos:Lexing.position -> string -> result
-val result : ?time:float -> ?steps:int -> verdict -> result
+val result : ?solver:float -> ?time:float -> ?steps:int -> verdict -> result
 
 val pp_result : Format.formatter -> result -> unit

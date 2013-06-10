@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -33,9 +33,6 @@ val irange : c_int -> term -> pred
 
 type model = Natural | Machine
 val model : model Context.value
-
-val natural : Model.tuning
-val modulo : Model.tuning
 
 val iopp : c_int -> unop
 val iadd : c_int -> binop

@@ -2,11 +2,9 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
-(*           alternatives)                                                *)
-(*    INRIA (Institut National de Recherche en Informatique et en         *)
-(*           Automatique)                                                 *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
 (*  Lesser General Public License as published by the Free Software       *)
@@ -34,7 +32,7 @@ let fatal fmt = Sparecode_params.fatal fmt
 module BoolMark = struct
   type prop_mode = Glob | Loc
   type t = bool * prop_mode
-  type t_call_info = unit
+  type call_info = unit
 
   let bottom = false,Loc
   let top = true,Glob
@@ -125,8 +123,8 @@ end
 
 module ProjBoolMarks = Pdg.Register.F_Proj (Config)
 
-type t_proj = ProjBoolMarks.t * unit KfTopVisi.t
-type t_fct = ProjBoolMarks.t_fct
+type proj = ProjBoolMarks.t * unit KfTopVisi.t
+type fct = ProjBoolMarks.fct
 
 let new_project () = (ProjBoolMarks.empty (), KfTopVisi.create 10)
 
@@ -295,8 +293,7 @@ let select_all_outputs proj kf pdg =
  * can be visible *)
 class annot_visitor ~filter pdg = object (self)
 
-  inherit Visitor.generic_frama_c_visitor
-    (Project.current ()) (Cil.inplace_visit ())
+  inherit Visitor.frama_c_inplace
 
   val mutable to_select = []
   method get_select = to_select
@@ -307,7 +304,7 @@ class annot_visitor ~filter pdg = object (self)
       try
         let stmt = Extlib.the self#current_stmt in
         debug 1 "selecting annotation : %a @."
-          !Ast_printer.d_code_annotation annot;
+          Printer.pp_code_annotation annot;
         let info = !Db.Pdg.find_code_annot_nodes pdg stmt annot in
           to_select <- add_nodes_and_undef_to_select true info to_select
       with Not_found -> () (* unreachable *)
@@ -324,6 +321,10 @@ let select_annotations ~select_annot ~select_slice_pragma proj =
       else begin
         let filter annot = match annot.Cil_types.annot_content with
           | Cil_types.APragma (Cil_types.Slice_pragma _) -> select_slice_pragma
+          | Cil_types.AAssert _-> (* Never select alarms, they are not useful *)
+              (match Alarms.find annot with
+                 | None -> select_annot
+                 | Some _ -> false)
           | _ -> select_annot 
         in
           try

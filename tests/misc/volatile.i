@@ -13,7 +13,23 @@ volatile struct sv sv1, sv2={1,1};
 struct sv sv3 = {3};
 struct sv sv4 = {4, 5};
 
+int fn2(int, int);
+
+int fn1(int x, int y)
+{
+  Frama_C_show_each_1(x);
+  Frama_C_show_each_2(y);
+  return x + y;
+}
+
+int R1, R2;
+
 int main () {
+  /* passing volatile things to functions */
+  R1 = fn1(G, G|0);
+  R2 = fn2(G, G|0);
+  Frama_C_show_each_d(G);
+
   G = G;
   k = G;
 

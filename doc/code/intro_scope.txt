@@ -2,11 +2,9 @@
 @ignore                                                                        
 @ignore  This file is part of Frama-C.                                         
 @ignore                                                                        
-@ignore  Copyright (C) 2007-2012                                               
-@ignore    CEA   (Commissariat à l'énergie atomique et aux énergies            
-@ignore           alternatives)                                                
-@ignore    INRIA (Institut National de Recherche en Informatique et en         
-@ignore           Automatique)                                                 
+@ignore  Copyright (C) 2007-2013                                               
+@ignore    CEA (Commissariat à l'énergie atomique et aux énergies              
+@ignore         alternatives)                                                  
 @ignore                                                                        
 @ignore  you can redistribute it and/or modify it under the terms of the GNU   
 @ignore  Lesser General Public License as published by the Free Software       

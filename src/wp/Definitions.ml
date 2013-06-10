@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -228,9 +228,9 @@ let axiomatic ax =
     (Printf.sprintf "A_%s" ax.ax_name)
 
 let section = function
-  | Toplevel 0 -> cluster ~id:"Axiomatics" ~title:"Global Definitions" ()
+  | Toplevel 0 -> cluster ~id:"Axiomatic" ~title:"Global Definitions" ()
   | Toplevel n -> 
-      let id = "Axiomatics" ^ string_of_int n in
+      let id = "Axiomatic" ^ string_of_int n in
       let title = Printf.sprintf "Global Definitions (continued #%d)" n in
       cluster ~id ~title ()
   | Axiomatic ax -> axiomatic ax
@@ -288,6 +288,7 @@ object(self)
   val mutable types    = DT.empty
   val mutable comps    = DR.empty
   val mutable symbols  = DF.empty
+  val mutable dlemmas  = DS.empty
   val mutable lemmas   = DS.empty
   val mutable clusters = DC.empty
   val mutable theories = DS.empty
@@ -319,7 +320,8 @@ object(self)
 	      | Some (LTsum cs) -> 
 		  let cases = List.map
 		    (fun ct ->
-		       CTOR ct , List.map Lang.tau_of_ltype ct.ctor_params
+		       Lang.CTOR ct , 
+		       List.map Lang.tau_of_ltype ct.ctor_params
 		    ) cs in
 		  Qed.Engine.Tsum cases
 	    in self#on_type t def ;
@@ -382,6 +384,10 @@ object(self)
     | Logic t -> self#vtau t
     | Value(t,_,e) -> self#vtau t ; self#vterm e
     | Predicate(_,p) -> self#vpred p
+    | Inductive _ -> ()
+
+  method private vproperties = function
+    | Logic _ | Value _ | Predicate _ -> ()
     | Inductive cases -> List.iter self#vdlemma cases
 
   method private vdfun d =
@@ -389,6 +395,7 @@ object(self)
       List.iter self#vparam d.d_params ;
       self#vdefinition d.d_definition ;
       self#on_dfun d ;
+      self#vproperties d.d_definition ;
     end
 
   method private vlfun f =
@@ -404,9 +411,10 @@ object(self)
       begin
 	symbols <- DF.add f symbols ;
 	match f with
-	  | Lang.Function(link,_,_,_) | Lang.Predicate(link,_,_) ->
+	  | Lang.Function { f_scope = s }
+	  | Lang.Predicate { p_scope = s } ->
 	      begin
-		match link with
+		match s with
 		  | External thy -> self#vtheory thy
 		  | Generated -> self#vlfun f
 	      end
@@ -433,12 +441,14 @@ object(self)
 	self#vsymbol f ; List.iter self#vtrigger tgs
 
   method private vdlemma a =
-    begin
-      List.iter self#vparam a.l_forall ;
-      List.iter (List.iter self#vtrigger) a.l_triggers ;
-      self#vpred a.l_lemma ;
-      self#on_dlemma a ;
-    end
+    if not (DS.mem a.l_name dlemmas) then
+      begin
+	dlemmas <- DS.add a.l_name dlemmas ;
+	List.iter self#vparam a.l_forall ;
+	List.iter (List.iter self#vtrigger) a.l_triggers ;
+	self#vpred a.l_lemma ;
+	self#on_dlemma a ;
+      end
 
   method vlemma lem =
     let l = lem.lem_name in
@@ -463,7 +473,12 @@ object(self)
     if not (DS.mem thy theories) then
       begin
 	theories <- DS.add thy theories ;
-	self#on_theory thy ;
+	try
+	  let deps = LogicBuiltins.dependencies thy in
+	  List.iter self#vtheory deps ;
+	  self#on_library thy ;
+	with Not_found ->
+	  self#on_theory thy
       end
 
   method vgoal (axioms : axioms option) prop =
@@ -492,6 +507,7 @@ object(self)
 
   method virtual section : string -> unit
   method virtual on_theory : string -> unit
+  method virtual on_library : string -> unit
   method virtual on_cluster : cluster -> unit
   method virtual on_type : logic_type_info -> typedef -> unit
   method virtual on_comp : compinfo -> (field * tau) list -> unit

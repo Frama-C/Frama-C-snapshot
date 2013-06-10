@@ -3,6 +3,6 @@ let run () =
   let prj = Project.create "foo" in
   File.init_project_from_cil_file prj a;
   Project.set_current prj;
-  !Ast_printer.d_file Format.std_formatter (Ast.get())
+  Printer.pp_file Format.std_formatter (Ast.get())
 
 let () = Db.Main.extend run

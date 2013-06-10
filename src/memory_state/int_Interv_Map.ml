@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -25,7 +25,7 @@
 
 open Abstract_interp
 
-module Make(Value: Datatype.S) = struct
+module Make(Value: Rangemap.Value) = struct
 
   include Rangemap.Make(Int_Interv)(Value)
 

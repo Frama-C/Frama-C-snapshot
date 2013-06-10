@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -24,26 +24,45 @@
 (* --- Model Registry                                                     --- *)
 (* -------------------------------------------------------------------------- *)
 
-type parameter = {
-  context : string ;
-  param : string ;
-  binder : (unit -> unit) -> unit -> unit ;
-}
-
-type t = {
+type model = {
   id : string ; (* Identifier Basename for Model (unique) *)
-  name : string ; (* Title of the Model (for pretty) *)
-  descr : string option ;
+  descr : string ; (* Title of the Model (for pretty) *)
   emitter : Emitter.t ;
-  mutable params : parameter list ;
+  mutable params : tuning list ;
 }
 
-type model = t
-type tuning = (model -> unit)
+and tuning = unit -> unit
 
-type registry = 
-    name:string -> ?id:string -> ?descr:string -> ?tuning:tuning list -> 
-  unit -> model
+let repr = { 
+  id = "?model" ; descr = "?model" ; 
+  emitter = Emitter.kernel ; 
+  params = [] ;
+}
+
+module D = Datatype.Make_with_collections(struct
+  type t = model
+  let name = "WP.Model"
+
+  let rehash = Datatype.identity (** TODO: register and find below? *)
+  let structural_descr =
+    let open Structural_descr in
+    let parameter_descr = t_record [| p_string; p_string; (pack Unknown) |] in
+    t_record [| p_string; p_string; pack (t_option t_string) ;
+                Emitter.packed_descr; pack (t_list parameter_descr)  |]
+
+
+  let reprs = [repr]
+
+  let equal x y = Datatype.String.equal x.id y.id
+  let compare x y = Datatype.String.compare x.id y.id
+  let hash x = Datatype.String.hash x.id
+  let copy = Datatype.identity
+  let internal_pretty_code _ fmt x = Format.pp_print_string fmt x.id
+  let pretty fmt x = Format.pp_print_string fmt x.descr
+  let mem_project = Datatype.never_any_project
+  let varname _ = "m"
+end)
+
 
 module MODELS =
 struct
@@ -63,8 +82,7 @@ end
 let find ~id = MODELS.find id
 let iter f = MODELS.iter f
 
-let register ~name ?id ?descr ?(tuning=[]) () =
-  let id = match id with None -> name | Some id -> id in
+let register ~id ?(descr=id) ?(tuning=[]) () =
   if MODELS.mem id then
     Wp_parameters.fatal "Duplicate model '%s'" id ;
   let emitter = 
@@ -75,45 +93,30 @@ let register ~name ?id ?descr ?(tuning=[]) () =
   in
   let model = {
     id = id ;
-    name = name ;
     descr = descr ;
     emitter = emitter ;
-    params = [] ;
+    params = tuning ;
   } in
-  MODELS.add model ; 
-  List.iter (fun p -> p model) tuning ;
-  model
+  MODELS.add model ; model
 
 let get_id m = m.id
-let get_name m = m.name
 let get_descr m = m.descr    
-(* let get_parameters m = List.map (fun p -> p.param) m.params *)
-
-let set_parameter model context v descr =
-  let cname = Context.name context in
-  if List.exists (fun p -> p.context = cname) model.params then
-    Wp_parameters.fatal "Duplicate parameter '%s' on model '%s'" cname model.id ;
-  model.params <- model.params @ 
-    [{
-       context = cname ;
-       param = descr ;
-       binder = Context.bind context v ;
-     }]
-
+    
 let model = Context.create "Wp.Model"
 
-let rec bind_params f = function
-  | [] -> f
-  | p::ps -> p.binder (bind_params f ps)
-
-let on_model m f = Context.bind model m (bind_params f m.params) ()
-
+let rec bind = function [] -> () | f::fs -> f () ; bind fs
+let back = function None -> () | Some c -> bind c.params
 let with_model m f x = 
-  let result = ref None in
-  on_model m (fun () -> result := Some (f x)) ;
-  match !result with
-    | None -> assert false
-    | Some y -> y
+  let current = Context.push model m in
+  try
+    bind m.params ; 
+    let result = f x in
+    Context.pop model current ;
+    back current ; result
+  with err ->
+    Context.pop model current ;
+    back current ; raise err
+let on_model m f = with_model m f ()
 
 let get_model () = Context.get model
 let get_emitter model = model.emitter
@@ -159,6 +162,7 @@ struct
   let demon = ref []
 
   type entries = {
+    mutable ident : int ;
     mutable index : E.data MAP.t ;
     mutable lock : SET.t ;
   }
@@ -168,7 +172,7 @@ struct
       (struct
 	 type t = entries
 	 include Datatype.Serializable_undefined
-	 let reprs = [{index=MAP.empty;lock=SET.empty}]
+	 let reprs = [{ident=0;index=MAP.empty;lock=SET.empty}]
 	 let name = "Wp.Model.Index." ^ E.name
        end)
 
@@ -186,7 +190,7 @@ struct
     let mid = (Context.get model).id in
     try REGISTRY.find mid
     with Not_found ->
-      let e = { index=MAP.empty ; lock=SET.empty } in
+      let e = { ident=0 ; index=MAP.empty ; lock=SET.empty } in
       REGISTRY.add mid e ; e
 
   let mem k = let e = entries () in MAP.mem k e.index || SET.mem k e.lock
@@ -277,3 +281,6 @@ struct
   let get = G.memoize D.compile
 
 end
+
+module S = D
+type t = S.t

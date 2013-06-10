@@ -86,8 +86,8 @@ void k(void) {
   //@ for b: assert \false;
 }
 
-void main(void) {
-  f();
+void main(int v) {
+  if (v) f();
   g();
   h2();
   k();

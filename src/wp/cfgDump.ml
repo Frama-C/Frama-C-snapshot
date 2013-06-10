@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -126,7 +126,7 @@ struct
   let assign _env _stmt x e k =
     let u = node () in
     Format.fprintf !out "  %a [ color=orange , label=\"%a := %a\" ] ;@." pretty u
-      !Ast_printer.d_lval x !Ast_printer.d_exp e ;
+      Printer.pp_lval x Printer.pp_exp e ;
     link u k ; u
 
   let return _env _stmt r k =
@@ -137,18 +137,18 @@ struct
 	    Format.fprintf !out "  %a [ color=orange , label=\"Return\" ] ;@." pretty u
 	| Some e -> 
 	    Format.fprintf !out "  %a [ color=orange , label=\"Return %a\" ] ;@." pretty u
-	      !Ast_printer.d_exp e
+	      Printer.pp_exp e
     end ;
     link u k ; u
 
   let test _env _stmt e k1 k2 =
     let u = node () in
-    Format.fprintf !out "  %a [ color=cyan , label=\"If %a\" ] ;@." pretty u !Ast_printer.d_exp e ;
+    Format.fprintf !out "  %a [ color=cyan , label=\"If %a\" ] ;@." pretty u Printer.pp_exp e ;
     link u k1 ; link u k2 ; u
 
   let switch _env _stmt e cases def =
     let u = node () in
-    Format.fprintf !out "  %a [ color=cyan , label=\"Switch %a\" ] ;@." pretty u !Ast_printer.d_exp e ;
+    Format.fprintf !out "  %a [ color=cyan , label=\"Switch %a\" ] ;@." pretty u Printer.pp_exp e ;
     List.iter (fun (_,k) -> link u k) cases ;
     link u def ; u
 
@@ -186,7 +186,7 @@ struct
       | Mcfg.SC_Block_out -> "B-out"
     in begin
       Format.fprintf fmt "%s {" title ;
-      List.iter (fun x -> Format.fprintf fmt " %a" !Ast_printer.d_var x) xs ;
+      List.iter (fun x -> Format.fprintf fmt " %a" Printer.pp_varinfo x) xs ;
       Format.fprintf fmt " }" ;
     end
 

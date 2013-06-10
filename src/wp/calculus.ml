@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -27,7 +27,7 @@ open Cil_datatype
 
 module Cfg (W : Mcfg.S) = struct
 
-  let dkey = "calculus" (* Debugging key *)
+  let dkey = Wp_parameters.register_category "calculus" (* Debugging key *)
   let debug fmt = Wp_parameters.debug ~dkey fmt
 
   (** Before storing something at a program point, we have to process the label
@@ -128,7 +128,7 @@ module Cfg (W : Mcfg.S) = struct
   * *)
   module R : sig
     type t
-    val empty : keep:bool -> Cil2cfg.t -> t
+    val empty : Cil2cfg.t -> t
     val is_pass1 : t -> bool
     val change_mode_if_needed : t -> unit
     val find : t -> Cil2cfg.edge -> W.t_prop
@@ -193,16 +193,15 @@ module Cfg (W : Mcfg.S) = struct
 
     type t = {
       mutable mode : t_mode ;
-      keep_res : bool ; (* whether to keep intermediate results or not *)
       cfg: Cil2cfg.t;
       tbl : HE.t ;
       mutable memo : LabObligs.t;
       mutable obligs : LabObligs.t;
     }
 
-    let empty ~keep cfg =
+    let empty cfg =
       debug "start computing (pass 1)@.";
-      { mode = Pass1; keep_res = keep; cfg = cfg; tbl = HE.create 97 ;
+      { mode = Pass1; cfg = cfg; tbl = HE.create 97 ;
         obligs = LabObligs.empty ; memo = LabObligs.empty ;}
 
     let is_pass1 res = (res.mode = Pass1)
@@ -224,17 +223,16 @@ module Cfg (W : Mcfg.S) = struct
             Cil2cfg.pp_edge e;
           raise Not_found
           | Some obj ->
-              if (not res.keep_res)
-              && (res.mode = Pass2)
-              && (List.length
-                    (Cil2cfg.pred_e res.cfg (Cil2cfg.edge_src e)) < 2) then
-                begin
-                  (* it should be used once only : can free it *)
-                  HE.replace res.tbl e None;
-                  debug "clear edge %a@." Cil2cfg.pp_edge e
-                end;
+              if (res.mode = Pass2)
+		&& (List.length
+                      (Cil2cfg.pred_e res.cfg (Cil2cfg.edge_src e)) < 2) then
+                  begin
+                    (* it should be used once only : can free it *)
+                    HE.replace res.tbl e None;
+                    debug "clear edge %a@." Cil2cfg.pp_edge e
+                  end;
               obj
-
+		
     (** If needed, clear wp table to compute Pass2.
     * If nothing has been stored in res.memo, there is nothing to do. *)
     let change_mode_if_needed res =
@@ -411,14 +409,14 @@ module Cfg (W : Mcfg.S) = struct
   let wp_call ((_, cfg, strategy, _, wenv)) res v stmt 
       lval fct args p_post p_exit 
       =
-    debug "[wp_call] %a@." !Ast_printer.d_exp fct;
+    debug "[wp_call] %a@." Printer.pp_exp fct;
     let eb = match Cil2cfg.pred_e cfg v with e::_ -> e | _ -> assert false in
     let en, ee = Cil2cfg.get_call_out_edges cfg v in
     let eb_annot = WpStrategy.get_annots strategy eb in
     let en_annot = WpStrategy.get_annots strategy en in
     let ee_annot = WpStrategy.get_annots strategy ee in
     let call_asgn = WpStrategy.get_call_asgn en_annot in
-      match WpStrategy.get_called_kf fct with
+      match Kernel_function.get_called fct with
         | None ->
             let obj = W.merge wenv p_post p_exit in
             let lab, obj = add_assigns_hyp wenv obj call_asgn in
@@ -434,13 +432,14 @@ module Cfg (W : Mcfg.S) = struct
               | WpPropId.NoAssignsInfo -> assert false (* see above *)
             in
             let pre_hyp, pre_goals = WpStrategy.get_call_pre eb_annot in
-	    let pre_goals = if R.is_pass1 res then pre_goals else [] in
             let obj = W.call wenv stmt lval kf args
                         ~pre:(pre_hyp)
                         ~post:((WpStrategy.get_call_hyp en_annot))
                         ~pexit:((WpStrategy.get_call_hyp ee_annot))
-                        ~assigns ~p_post ~p_exit
-            in W.call_goal_precond wenv stmt kf args ~pre:(pre_goals) obj
+                        ~assigns ~p_post ~p_exit in
+	    if WpStrategy.is_default_behavior strategy && R.is_pass1 res 
+	    then W.call_goal_precond wenv stmt kf args ~pre:(pre_goals) obj
+	    else obj
 
   let wp_stmt wenv s obj = match s.skind with
   | Return (r, _) -> W.return wenv s r obj
@@ -472,7 +471,7 @@ module Cfg (W : Mcfg.S) = struct
          | Mcfg.SC_Function_in -> "function in"
          | Mcfg.SC_Function_frame -> "function frame"
          | Mcfg.SC_Function_out -> "function out" )
-      (Pretty_utils.pp_list  ~sep:", " !Ast_printer.d_var) vars;
+      (Pretty_utils.pp_list  ~sep:", " Printer.pp_varinfo) vars;
     W.scope wenv vars scope obj
 
 
@@ -603,10 +602,10 @@ module Cfg (W : Mcfg.S) = struct
           let implicit_defaults =
             match ct with
               | TArray (ty,Some {enode = (Const CInt64 (size,_,_))},_,_)
-                  when My_bigint.lt (My_bigint.of_int len) size  ->
+                  when Integer.lt (Integer.of_int len) size  ->
 
                   W.init_range wenv lv ty
-                    (Int64.of_int len) (My_bigint.to_int64 size) obj
+                    (Int64.of_int len) (Integer.to_int64 size) obj
 
               | TComp (cp,_,_) when len < (List.length cp.cfields) ->
 
@@ -699,8 +698,7 @@ module Cfg (W : Mcfg.S) = struct
           | _ -> []
         in
         let wenv = W.new_env ~lvars kf in
-        let keep = if Wp_parameters.Dot.get () then true else false in
-        let res = R.empty ~keep cfg in
+        let res = R.empty cfg in
         let env = (kf, cfg, strategy, res, wenv) in
           List.iter 
 	    (fun (pid,thm) -> W.add_axiom pid thm) 

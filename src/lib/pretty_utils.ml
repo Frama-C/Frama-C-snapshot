@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -32,10 +32,6 @@ let to_string pp x =
   Format.pp_print_flush f () ;
   Buffer.contents b
 
-let no_sep = format_of_string ""
-let space_sep = format_of_string "@ "
-let nl_sep = format_of_string "@\n"
-
 let rec pp_print_string_fill out s =
   if String.contains s ' ' then begin
     let i = String.index s ' ' in
@@ -45,16 +41,13 @@ let rec pp_print_string_fill out s =
       Format.fprintf out "%s@ %a" s1 pp_print_string_fill s2
   end else Format.pp_print_string out s
 
-let open_box = format_of_string "@["
-let close_box = format_of_string "@]"
-
 type sformat = (unit,Format.formatter,unit) Pervasives.format
 type 'a formatter = Format.formatter -> 'a -> unit
 type ('a,'b) formatter2 = Format.formatter -> 'a -> 'b -> unit
 
 let pp_list
     ?(pre=format_of_string "@[")
-    ?(sep=format_of_string "")
+    ?(sep=format_of_string "@,")
     ?(last=sep)
     ?(suf=format_of_string "@]")
     pp_elt f l =
@@ -100,11 +93,10 @@ let pp_iter
   Format.fprintf fmt suf;
 ;;
 
-let pp_opt
-    ?(pre=format_of_string "")  ?(suf=format_of_string "") pp_elt f o =
-  match o with
-      None -> ()
-    | Some v ->  Format.fprintf f "%(%)%a%(%)" pre pp_elt v suf
+let pp_opt ?(pre=format_of_string "@[")  ?(suf=format_of_string "@]") pp_elt f =
+  function
+  | None -> ()
+  | Some v ->  Format.fprintf f "%(%)%a%(%)" pre pp_elt v suf
 
 let pp_cond ?(pr_false=format_of_string "") cond f pr_true =
   Format.fprintf f "%(%)" (if cond then pr_true else pr_false)
@@ -131,6 +123,7 @@ let pp_blocklist ?(left=format_of_string "{") ?(right=format_of_string "}") f ou
 
 let pp_open_block out msg =
   Format.fprintf out ("@[<hv 0>@[<hv 2>" ^^ msg)
+
 let pp_close_block out msg = Format.fprintf out ("@]@ " ^^ msg ^^ "@]")
 
 let pp_trail pp fmt x =

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -280,9 +280,11 @@ module type S = sig
 
   module Verbose: Int
   module Debug: Int
-  module Debug_category: String_list
+  module Debug_category: String_set
    (** prints debug messages having the corresponding key.
-       @since Oxygen-20120901 *)
+       @since Oxygen-20120901
+       @modify Fluorine-20130401 Set instead of list
+    *)
 
   (** Handle the specific `share' directory of the plug-in.
       @since Oxygen-20120901 *)
@@ -398,7 +400,9 @@ module type General_services = sig
 
   module IndexedVal (V:Indexed_val_input) : Indexed_val with type value = V.t
 
-  (** Should not be used by casual users 
+  (** Should not be used by casual users. Build an option as a
+      hashtable whose keys are string. The provided [parse] function
+      tells how to parser the (key,value) pair.
       @since Boron-20100401 *)
   module StringHashtbl
     (X: Parameter_input_with_arg)
@@ -453,6 +457,21 @@ val set_negative_option_help: string -> unit
       option generating automatically.
       Assume that the given string is non empty.
       @since Beryllium-20090601-beta1 *)
+
+val set_unset_option_name: string -> unit
+  (** For string collection parameters, set the name of an option that
+      will remove elements from the set. There is no default value: if
+      the this function is not called (or if it is the empty string),
+      it will only be possible to add elements from the command line.
+      @since Fluorine-20130401 
+   *)
+
+val set_unset_option_help: string -> unit
+  (** For string collection parameters, gives the help message for
+      the corresponding unset option. Useless if [set_unset_option_name]
+      has not been called before. No default.
+      @since Fluorine-20130401
+   *)
 
 val set_optional_help: (unit, Format.formatter, unit) format -> unit
   (** Concatenate an additional description just after the default one.
@@ -548,10 +567,6 @@ val get_selection_context: ?is_set:bool -> unit -> State_selection.t
 (** Selection of all the parameters which may have an impact on some
     analysis. *)
 
-val positive_debug_ref: int ref
-  (** Not for casual users.
-      @since Boron-20100401 *)
-
 (* ************************************************************************* *)
 (** {2 Deprecated API} *)
 (* ************************************************************************* *)
@@ -570,6 +585,9 @@ val run_normal_exit_hook: unit -> unit
 (* ************************************************************************* *)
 (** {2 Internal kernel stuff} *)
 (* ************************************************************************* *)
+
+val positive_debug_ref: int ref
+  (** @since Boron-20100401 *)
 
 val set_function_names: (unit -> string list) -> unit
 (** @since Oxygen-20120901 *)

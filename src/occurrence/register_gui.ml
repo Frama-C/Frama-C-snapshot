@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -153,16 +153,6 @@ let occurrence_panel main_ui =
   in
   e#set_use_markup true;
   old_gtk_compat e#set_single_line_mode true;
-  let set_selected = GButton.button ~label:"Set selected"
-    ~packing:selected_var_box#pack ()
-  in
-  let do_select localizable =
-    apply_on_vi
-      (fun vi -> find_occurrence main_ui vi ())
-      localizable
-  in
-  ignore (set_selected#connect#pressed
-            (fun () -> History.apply_on_selected do_select));
   (* check_button enabled *)
   let refresh_enabled_button = on_bool
     w
@@ -198,10 +188,6 @@ let occurrence_panel main_ui =
        refresh_write ();
        refresh_followFocus ();
        refresh_enabled_button ();
-       let sensitive_set_selected_button = ref false in
-       History.apply_on_selected
-         (apply_on_vi (fun _ -> sensitive_set_selected_button:=true));
-       set_selected#misc#set_sensitive !sensitive_set_selected_button;
        let new_result = !Db.Occurrence.get_last_result () in
        (match new_result with
         | None when !old_vi<> -1 ->

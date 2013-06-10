@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,8 +20,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Extension of the GUI in order to support project switching.
-    No function is exported. *)
+(** No function is exported. 
+    Extension of the GUI in order to support project switching. *)
 
 (*
 Local Variables:

@@ -2,8 +2,8 @@
 #                                                                        #
 #  This file is part of WP plug-in of Frama-C.                           #
 #                                                                        #
-#  Copyright (C) 2007-2012                                               #
-#    CEA (Commissariat a l'énergie atomique et aux énergies              #
+#  Copyright (C) 2007-2013                                               #
+#    CEA (Commissariat a l'energie atomique et aux energies              #
 #         alternatives)                                                  #
 #                                                                        #
 #  you can redistribute it and/or modify it under the terms of the GNU   #
@@ -33,40 +33,43 @@ m4_ifndef([FRAMAC_M4_MACROS],
          [m4_include(FRAMAC_SHARE/configure.ac)]
         )
 
-check_plugin(wp,PLUGIN_RELATIVE_PATH(plugin_file),[support for wp plug-in],yes,yes)
+check_plugin(wp,PLUGIN_RELATIVE_PATH(plugin_file),[WP plug-in],yes,yes)
+
+AC_ARG_ENABLE(
+  wpcoq,
+  [  --enable-wpcoq          Wp precompiled coq libraries (default: yes)],
+  WPCOQ=$enableval,
+  WPCOQ=yes
+)
 
 if test "$ENABLE_WP" != "no"; then
   plugin_use(wp,gui)
   plugin_use(wp,rte_annotation)
-  plugin_use_external(wp,altergo)
-  plugin_use_external(wp,coq)
-  plugin_use_external(wp,why)
-  plugin_use_external(wp,dot)
-  plugin_use_external(wp,whydp)
 
-  # Why
-  configure_tool([WHY],[why],[why not found],no)
-  
-  # Why-dp 
-  configure_tool([WHYDP],[why-dp],[why-dp not found],no)
-
-  # alt-ergo
-  configure_tool([ALTERGO],[alt-ergo],[alt-ergo not found],no)
-
-  ALTERGO_VERSION=`alt-ergo -version | sed -e 's/Alt-Ergo \(.*\)/\1/' `
-  AC_MSG_NOTICE([alt-ergo version is $ALTERGO_VERSION.])
-  case $ALTERGO_VERSION in
-    0.92.2) AC_MSG_NOTICE([good.]);;
-    *) AC_MSG_NOTICE([alt-ergo's array theory unsupported.]);;
-  esac
-
-
- # coq
-  configure_tool([COQ],[coqc],[coq not found],no)
+  if test "$WPCOQ" = "yes" ; then
+    ## coq
+    AC_CHECK_PROG(COQC,coqc,yes,no)
+    if test "$COQC" = "yes" ; then
+      COQVERSION=`coqc -v | sed -n -e 's|.*version* *\([[^ ]]*\) .*$|\1|p' `
+      case $COQVERSION in
+        8.4*|trunk) 
+          AC_MSG_RESULT(coqc version $COQVERSION found)
+          ;;
+        *) 
+          AC_MSG_RESULT(wp needs coq 8.4, found $COQVERSION) 
+          COQC="no"
+          ;;
+      esac
+    else
+      AC_MSG_NOTICE(rerun configure to make wp using coq 8.4)
+    fi
+  else
+    COQC="no"
+  fi
+  AC_SUBST(COQC)
 
   check_plugin_dependencies
 fi
 
 write_plugin_config(Makefile)
 
-AC_SUBST(ALTERGO_VERSION)

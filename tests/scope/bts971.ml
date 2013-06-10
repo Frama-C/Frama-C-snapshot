@@ -5,7 +5,6 @@ let find_pp kf_name =
       Format.printf "Current program point = first one in function '%s'@\n" 
         kf_name;
       stmt, kf
-;;
 
 let compute_and_print pp str_data =
   let stmt, kf = pp in
@@ -21,10 +20,12 @@ let compute_and_print pp str_data =
       | Some (defs, _undef) ->
           Cil_datatype.Stmt.Set.iter 
             (fun s ->
-               Format.printf "%a: %a@\n" Cil.d_loc (Cil_datatype.Stmt.loc s)
-                 Cil_datatype.Stmt.pretty s) defs
-  in Format.printf "@]@]@.@."
-;;
+               Format.printf "%a: %a@\n" 
+		 Printer.pp_location (Cil_datatype.Stmt.loc s)
+                 (Printer.without_annot Printer.pp_stmt) s) 
+	    defs
+  in 
+  Format.printf "@]@]@."
 
 open Cil_types
 

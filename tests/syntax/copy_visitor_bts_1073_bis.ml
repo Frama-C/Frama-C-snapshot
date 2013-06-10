@@ -15,8 +15,8 @@ module Visi = struct
   exception EraseAssigns
   exception EraseAllocation
 
-  type t_fct = unit
-  type t_proj = unit
+  type fct = unit
+  type proj = unit
 
   let fct_name vf _fi = vf.Cil_types.vname
   let fct_info () _ = [ () ]

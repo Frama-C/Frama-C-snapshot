@@ -5,7 +5,7 @@
 ;  Copyright (C) 2008-2011                                               ;
 ;    Pierre Roux                                                         ;
 ;                                                                        ;
-;  Copyright (C) 2009-2012                                               ;
+;  Copyright (C) 2009-2013                                               ;
 ;    CEA LIST                                                            ;
 ;                                                                        ;
 ;  you can redistribute it and/or modify it under the terms of the GNU   ;
@@ -53,6 +53,7 @@
   '("assert"
     "assigns"
     "assumes"
+    "allocates"
     "axiom"
     "axiomatic"
     "behavior"
@@ -71,6 +72,7 @@
     "exits"
     "float"
     "for"
+    "frees"
     "if"
     "inductive"
     "int"

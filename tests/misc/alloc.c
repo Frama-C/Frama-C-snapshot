@@ -5,12 +5,13 @@
 */
 
 #define FRAMA_C_MALLOC_INDIVIDUAL
-#include "../../share/malloc.c"
+#include "share/libc/stdlib.c"
 
-int *p,*q,*r,a,b,c;
-char *t;
+int *p,*q,*r,a,b;
+char *t,*u,*v;
+char ch = 44;
 
-void main(int c)
+void main(int c, int d, int e)
 {
   p = malloc(4);
   t = malloc (10);
@@ -27,6 +28,19 @@ void main(int c)
 
   (*q)++;
   a = *q; /* it is incorrect to find 1 here */
+  
+  u = malloc(!d);
+  v = malloc(1 + !d);
+  *u = ch;
+  *u=33;
+  if (e & 1) u[1] = ch;
+  if (e & 2) u[1] = 34;
+  *v = ch;
+  *v=35;
+  v[1] = ch;
+  v[1]=36;
+  if (e & 4) v[2] = ch;
+  if (e & 8) v[2] = 37;
 }
 
 

@@ -38,9 +38,7 @@
 
 (* Version 3.11.1.8 *)
 
-
-(** This module extends {!Unmarshal} to deal with the data types of
-    the [Nums] library.
+(** Extends {!Unmarshal} to deal with the data types of the [Nums] library.
 
     You must make sure that this module is linked with your program,
     by using one of the values declared below.  If you don't need
@@ -48,9 +46,7 @@
     [Unmarshal.Abstract] for all your BigNums), you should add the
     following line to one of your source files.
 
--  [ignore Unmarshal_nums.t_num;;]
-
-*)
+    -  [ignore Unmarshal_nums.t_num;;] *)
 
 val t_nat : Unmarshal.t;;
 val t_big_int : Unmarshal.t;;

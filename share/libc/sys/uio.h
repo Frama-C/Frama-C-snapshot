@@ -2,8 +2,8 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2012                                               */
-/*    CEA (Commissariat à l'énergie atomique et aux énergies              */
+/*  Copyright (C) 2007-2013                                               */
+/*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
 /*  you can redistribute it and/or modify it under the terms of the GNU   */
@@ -27,7 +27,12 @@
 #include "../__fc_define_size_t.h"
 #include "../__fc_define_iovec.h"
 
-ssize_t readv(int, const struct iovec *, int);
-ssize_t writev(int, const struct iovec *, int);
+/*@ requires \valid( &iov[0..iovcnt-1] );
+// Value cannot yet interpret the precise assigns clause; we use the weaker one as a fallback.
+//@ assigns { ((char *) iov[i].iov_base)[0..iov[i].iov_len - 1] | integer i; 0 <= i < iovcnt };
+  @ assigns   ((char *) iov[0..iovcnt -1].iov_base)[0..];
+ */
+ssize_t readv(int fd, const struct iovec *iov, int iovcnt);
+ssize_t writev(int fd, const struct iovec *iov, int iovcnt);
 
 #endif

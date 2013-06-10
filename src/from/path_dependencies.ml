@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -82,7 +82,7 @@ object(self)
         (Kstmt (Extlib.the self#current_stmt))
         lv
     in
-    let bits_loc = valid_enumerate_bits ~for_writing:false loc in
+    let bits_loc = enumerate_valid_bits ~for_writing:false loc in
     let all = Zone.join bits_loc deps in
     let froms = self#stmt_froms in
     let all_f = Lmap_bitwise.From_Model.find froms all in

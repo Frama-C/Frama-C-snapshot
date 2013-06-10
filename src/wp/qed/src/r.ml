@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -39,3 +39,13 @@ let lt _a _b = Unknown
 let leq a b = if a = b then Sure_true else Unknown
 
 let pretty = Format.pp_print_string
+
+let positive a = String.length a <= 0 || a.[0] <> '-'
+let negative a = String.length a > 0 && a.[0] = '-'
+let opp a =
+  if String.length a <= 0 then a else
+    if a.[0] = '-' then
+      String.sub a 1 (String.length a - 1)
+    else
+      ("-" ^ a)
+

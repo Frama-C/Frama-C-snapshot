@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -45,11 +45,17 @@ let signed  = function
   | UInt8 | UInt16 | UInt32 | UInt64 -> false
   | SInt8 | SInt16 | SInt32 | SInt64 -> true
 
-let i_sizeof = function
+let i_bits = function
   | UInt8  | SInt8  -> 8
   | UInt16 | SInt16 -> 16
   | UInt32 | SInt32 -> 32
   | UInt64 | SInt64 -> 64
+
+let i_bytes = function
+  | UInt8  | SInt8  -> 1
+  | UInt16 | SInt16 -> 2
+  | UInt32 | SInt32 -> 4
+  | UInt64 | SInt64 -> 8
 
 let make_c_int signed = function
   | 1 -> if signed then SInt8 else UInt8
@@ -57,6 +63,13 @@ let make_c_int signed = function
   | 4 -> if signed then SInt32 else UInt32
   | 8 -> if signed then SInt64 else UInt64
   | size -> WpLog.not_yet_implemented "%d-bits integers" size
+
+let is_char = function
+  | UInt8 -> Cil.theMachine.Cil.theMachine.char_is_unsigned 
+  | SInt8 -> not Cil.theMachine.Cil.theMachine.char_is_unsigned 
+  | UInt16 | SInt16
+  | UInt32 | SInt32
+  | UInt64 | SInt64 -> false
 
 let c_int ikind =
   let mach = Cil.theMachine.Cil.theMachine in
@@ -78,21 +91,14 @@ let c_int ikind =
    An integer i : i \in [c_int_bounds ti] if
     [c_int_bounds ti] = (min,max) then min <=i<max.*)
 let c_int_bounds = function
-  | UInt8 -> (Big_int.zero_big_int,Big_int.big_int_of_string "256")
-  | SInt8 -> (Big_int.big_int_of_string "-128",
-              Big_int.big_int_of_string "128")
-  | UInt16 -> (Big_int.zero_big_int,
-               Big_int.big_int_of_string "65536")
-  | SInt16 -> (Big_int.big_int_of_string "-32768",
-               Big_int.big_int_of_string "32768")
-  | UInt32 -> (Big_int.zero_big_int,
-               Big_int.big_int_of_string "4294967296")
-  | SInt32 -> (Big_int.big_int_of_string "-2147483648" ,
-               Big_int.big_int_of_string "2147483648" )
-  | UInt64 -> (Big_int.zero_big_int ,
-               Big_int.big_int_of_string "18446744073709551616" )
-  | SInt64 -> (Big_int.big_int_of_string  "-9223372036854775808" ,
-               Big_int.big_int_of_string "9223372036854775808" )
+  | UInt8 -> Qed.Z.zero, Qed.Z.of_string "256"
+  | SInt8 -> Qed.Z.of_string "-128", Qed.Z.of_string "128"
+  | UInt16 -> Qed.Z.zero, Qed.Z.of_string "65536"
+  | SInt16 -> Qed.Z.of_string "-32768", Qed.Z.of_string "32768"
+  | UInt32 -> Qed.Z.zero, Qed.Z.of_string "4294967296"
+  | SInt32 -> Qed.Z.of_string "-2147483648", Qed.Z.of_string "2147483648"
+  | UInt64 -> Qed.Z.zero, Qed.Z.of_string "18446744073709551616"
+  | SInt64 -> Qed.Z.of_string "-9223372036854775808", Qed.Z.of_string "9223372036854775808"
 
 let c_int_all =   
   [ UInt8 ; SInt8 ; UInt16 ; SInt16 ; UInt32 ; SInt32 ; UInt64 ; SInt64 ]
@@ -103,32 +109,27 @@ let c_ptr () =
   make_c_int false Cil.theMachine.Cil.theMachine.sizeof_ptr
 
 let sub_c_int t1 t2 =
-  if (signed t1 = signed t2) then i_sizeof t1 <= i_sizeof t2
- else (not(signed t1) && (i_sizeof t1 < i_sizeof t2))
+  if (signed t1 = signed t2) then i_bits t1 <= i_bits t2
+ else (not(signed t1) && (i_bits t1 < i_bits t2))
 
 type c_float =
-  | Float16
   | Float32
   | Float64
-  | Float96
-  | Float128
 
 let compare_c_float : c_float -> c_float -> _ = Extlib.compare_basic
 
-let f_sizeof = function
-  | Float16 -> 16
+let f_bytes = function
+  | Float32 -> 4
+  | Float64 -> 8
+
+let f_bits = function
   | Float32 -> 32
   | Float64 -> 64
-  | Float96 -> 96
-  | Float128 -> 128
 
 let make_c_float = function
-  | 2 -> Float16
   | 4 -> Float32
   | 8 -> Float64
-  | 12 -> Float96
-  | 16 -> Float128
-  | size -> WpLog.not_yet_implemented "%d-bits floats" size
+  | size -> WpLog.not_yet_implemented "%d-bits floats" (8*size)
 
 let c_float fkind =
   let mach = Cil.theMachine.Cil.theMachine in
@@ -137,7 +138,7 @@ let c_float fkind =
     | FDouble -> make_c_float mach.sizeof_double
     | FLongDouble -> make_c_float mach.sizeof_longdouble
 
-let sub_c_float f1 f2 = f_sizeof f1 <= f_sizeof f2
+let sub_c_float f1 f2 = f_bits f1 <= f_bits f2
 
 (* Array objects, with both the head view and the flatten view. *)
 
@@ -181,33 +182,28 @@ let imemo f =
     let k = idx i in
     match m.(k) with
       | Some r -> r
-      | None ->
-          let r = f i in m.(k) <- Some r ; r
+      | None -> let r = f i in m.(k) <- Some r ; r
 
 let fdx = function
-  | Float16 -> 0
-  | Float32 -> 1
-  | Float64 -> 2
-  | Float96 -> 3
-  | Float128 -> 4
+  | Float32 -> 0
+  | Float64 -> 1
 
 let fmemo f =
-  let m = Array.create 8 None in
+  let m = Array.create 2 None in
   fun z ->
     let k = fdx z in
     match m.(k) with
       | Some r -> r
-      | None ->
-          let r = f z in m.(k) <- Some r ; r
+      | None -> let r = f z in m.(k) <- Some r ; r
 
 (* -------------------------------------------------------------------------- *)
 (* --- Pretty Printers                                                    --- *)
 (* -------------------------------------------------------------------------- *)
 
 let pp_int fmt i = Format.fprintf fmt "%cint%d"
-  (if signed i then 's' else 'u') (i_sizeof i)
+  (if signed i then 's' else 'u') (i_bits i)
 
-let pp_float fmt f = Format.fprintf fmt "float%d" (f_sizeof f)
+let pp_float fmt f = Format.fprintf fmt "float%d" (f_bits f)
 
 let pp_object fmt = function
   | C_int i -> pp_int fmt i
@@ -222,18 +218,18 @@ let pp_object fmt = function
 
 let char c =
   match Cil.charConstToInt c with
-    | CInt64(k,_,_) -> My_bigint.to_int64 k
+    | CInt64(k,_,_) -> Integer.to_int64 k
     | _ -> WpLog.fatal "char-const-to-int"
 
 let constant e =
   match (Cil.constFold true e).enode with
-    | Const(CInt64(k,_,_)) -> My_bigint.to_int64 k
+    | Const(CInt64(k,_,_)) -> Integer.to_int64 k
     | Const(CChr c) -> char c
-    | _ -> WpLog.fatal "Non-constant expression (%a)" !Ast_printer.d_exp e
+    | _ -> WpLog.fatal "Non-constant expression (%a)" Printer.pp_exp e
 
 let get_int e =
   match (Cil.constFold true e).enode with
-    | Const(CInt64(k,_,_)) -> Some (My_bigint.to_int64 k)
+    | Const(CInt64(k,_,_)) -> Some (Integer.to_int64 k)
     | Const(CChr c) -> Some (char c)
     | _ -> None
 
@@ -268,7 +264,7 @@ let object_of typ =
             | TVoid _ -> C_pointer (TInt (IChar,[]))
             | _ -> C_pointer typ
         end
-    | TFun _ as t -> C_pointer t
+    | TFun _ -> C_pointer (TVoid [])
     | TEnum ({ekind=i},_) -> C_int (c_int i)
     | TComp (comp,_,_) -> C_comp comp
     | TArray (typ_elt,e_opt,_,_) ->
@@ -296,9 +292,9 @@ let object_of typ =
         WpLog.not_yet_implemented "valiadyc type"
     | TVoid _ ->
         WpLog.warning ~current:true "void object" ;
-	C_int (c_int IChar)
+	C_int (c_int IInt)
     | TNamed _  ->
-        WpLog.fatal "non-unrolled named type (%a)" !Ast_printer.d_type typ
+        WpLog.fatal "non-unrolled named type (%a)" Printer.pp_typ typ
 
 let object_of_pointed = function
     C_int _ | C_float _ | C_comp _ as o ->
@@ -319,7 +315,7 @@ let rec object_of_logic_type t =
     | Ltype({lt_name="set"},[t]) -> object_of_logic_type t
     | t -> Wp_parameters.fatal ~current:true 
 	"@[<hov 2>c-object of logic type@ (%a)@]"
-	  !Ast_printer.d_logic_type t
+	  Printer.pp_logic_type t
 	  
 let rec object_of_logic_pointed t = 
   match Logic_utils.unroll_type t with
@@ -327,7 +323,7 @@ let rec object_of_logic_pointed t =
     | Ltype({lt_name="set"},[t]) -> object_of_logic_pointed t
     | t -> Wp_parameters.fatal ~current:true 
 	"@[<hov 2>pointed of logic type@ (%a)@]"
-	  !Ast_printer.d_logic_type t
+	  Printer.pp_logic_type t
 	
 let no_infinite_array = function 
     | C_array {arr_flat = None} -> false 
@@ -363,9 +359,9 @@ let int64_max a b =
   if Int64.compare a b < 0 then b else a
 
 let rec sizeof_object = function
- | C_int i -> Int64.of_int (i_sizeof i)
- | C_float f -> Int64.of_int (f_sizeof f)
- | C_pointer _ty -> Int64.of_int (i_sizeof (c_ptr()))
+ | C_int i -> Int64.of_int (i_bytes i)
+ | C_float f -> Int64.of_int (f_bytes f)
+ | C_pointer _ty -> Int64.of_int (i_bytes (c_ptr()))
  | C_comp cinfo ->
      let merge = if cinfo.cstruct then Int64.add else int64_max in
      List.fold_left
@@ -412,8 +408,8 @@ let field_offset f =
 (* with greater rank, whatever      *)
 (* their sign.                      *)
 
-let i_convert t1 t2 = if i_sizeof t1 < i_sizeof t2 then t2 else t1
-let f_convert t1 t2 = if f_sizeof t1 < f_sizeof t2 then t2 else t1
+let i_convert t1 t2 = if i_bits t1 < i_bits t2 then t2 else t1
+let f_convert t1 t2 = if f_bits t1 < f_bits t2 then t2 else t1
 
 let promote a1 a2 =
   match a1 , a2 with
@@ -513,7 +509,7 @@ let rec basename = function
 let rec pretty fmt = function
   | C_int i -> pp_int fmt i
   | C_float f -> pp_float fmt f
-  | C_pointer ty -> Format.fprintf fmt "%a*" !Ast_printer.d_type ty
+  | C_pointer ty -> Format.fprintf fmt "%a*" Printer.pp_typ ty
   | C_comp c -> Format.pp_print_string fmt c.cname
   | C_array a ->
       let te = object_of a.arr_element in
@@ -521,9 +517,3 @@ let rec pretty fmt = function
         | None -> Format.fprintf fmt "%a[]" pretty te
         | Some f -> Format.fprintf fmt "%a[%s]" pretty te
             (Int64.to_string f.arr_size)
-
-(*
-Local Variables:
-compile-command: "make -C ../.."
-End:
-*)

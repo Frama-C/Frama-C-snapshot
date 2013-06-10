@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -51,7 +51,6 @@ module Service =
        let iter_succ f _g v = Datatype.Int.Hashtbl.iter (fun _ -> f) v.cnCallees
        let iter_pred f _g v = Datatype.Int.Hashtbl.iter (fun _ -> f) v.cnCallers
        let fold_pred f _g v = Datatype.Int.Hashtbl.fold (fun _ -> f) v.cnCallers
-       let in_degree g v = fold_pred (fun _ -> succ) g v 0
      end)
 
 module CG =

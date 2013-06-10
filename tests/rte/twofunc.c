@@ -1,5 +1,5 @@
 /* run.config
-OPT: -load-script tests/rte/my_annot_proxy/my_annot_proxy.ml -journal-disable
+OPT: -load-script tests/rte/my_annot_proxy/my_annot_proxy.ml
 */
 
 

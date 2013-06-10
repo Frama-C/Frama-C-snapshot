@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2013                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -20,7 +20,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-let dkey = "annot" (* debugging key *)
+let dkey = Wp_parameters.register_category "annot" (* debugging key *)
 let debug fmt = Wp_parameters.debug ~dkey fmt
 
 (* This file groups functions that extract some annotations
@@ -51,72 +51,28 @@ let rte_unsignedOv_status = rte_find Db.RteGen.get_unsignedOv_status
 
 let rte_wp =
   [
-    "valid pointer dereferencing" , rte_memAccess_status , "-rte-mem" ;
-    "division by zero" , rte_divMod_status , "-rte-div" ;
-    "signed overflow" , rte_signedOv_status , "-rte-signed" ; (* Too strong for Runtime model. *)
-    "unsigned overflow" , rte_unsignedOv_status , "-rte-unsigned-ov" ; (* Too strong for Runtime model. *)
+    "valid pointer dereferencing" , rte_memAccess_status , "-rte-mem";
+    "division by zero" , rte_divMod_status , "-rte-div";
+    (* both below are too strong for Runtime model. *)
+    "signed overflow" , rte_signedOv_status , "-warn-signed-overflow"; 
+    "unsigned overflow" , rte_unsignedOv_status , "-warn-unsigned-overflow";
   ]
 
 let missing_rte kf =
   List.map
-    (fun (name,_,_) -> name)
-    (List.filter (fun (_,rte,_) -> not (rte kf)) rte_wp)
+    (fun (name, _, _) -> name)
+    (List.filter (fun (_, rte, _) -> not (rte kf)) rte_wp)
 
 let compute_rte_for kf =
-  begin
-    Dynamic.Parameter.Bool.set "-rte" true ;
-    (* RTE is using the kernel option "-safe-arrays".
-       Its default value leeds to generation of stronger properties for the model runtime.
-       These stronger properties are necessary conditions for application of Hoare and Typed model.
-       So, the default value of this option is not modified.
-       Dynamic.Parameter.Bool.set "-safe-arrays" false ; (* Weakest RTE for Runtime model. *)
-    *)
-    List.iter (fun (_,_,opt) -> Dynamic.Parameter.Bool.set opt true) rte_wp ;
-    !Db.RteGen.annotate_kf kf ;
-  end
-
-(*
-(* -------------------------------------------------------------------------- *)
-(* --- Contract for functions                                             --- *)
-(* -------------------------------------------------------------------------- *)
-
-let wp_contract = 
-  Emitter.create "WP Function" ~correctness:[] ~tuning:[]
-
-let wp_external = 
-  Emitter.create "WP External Function" ~correctness:[] ~tuning:[]
-
-let ip_contract f =
-  let ip_rte =
-    if not (rte_generated f) then
-      Wp_parameters.warning ~current:false ~once:true
-        "Missing RTE guards" ;
-    [ (*TODO: these dependencies should be put on the emitter at Wpo level *) ]
-  in
-  ip_complete f @ ip_disjoint f @ ip_rte
-
-let ip_external f =
-  ip_complete f @ ip_disjoint f
-
-module FunctionContracts = Wprop.Indexed2(Kernel_function)(Datatype.String)
-  (struct
-     let name = "WP Function Contracts"
-     type key = kernel_function * string
-     let size = 81
-     let dependencies = [ Kernel_function.self ]
-     let property (kf,model) =
-       let name = Printf.sprintf
-         "Function '%s' is consistent with %s"
-         (Kernel_function.get_name kf) model
-       in
-       let ip = Property.ip_other name (Some kf) Kglobal in
-       match kf.fundec with
-         | Definition _ -> 
-	     Wprop.Proxy( ip , wp_contract , ip_contract kf )
-	 | Declaration _ -> 
-	     Wprop.Proxy( ip , wp_external , ip_external kf )
-   end)
-*)
+  Dynamic.Parameter.Bool.set "-rte" true ;
+  (* RTE is using the kernel option "-safe-arrays". Its default value leads
+     to generation of stronger properties for the model runtime.  These
+     stronger properties are necessary conditions for application of Hoare and
+     Typed model.  So, the default value of this option is not modified.
+     Dynamic.Parameter.Bool.set "-safe-arrays" false ; (* Weakest RTE for
+     Runtime model. *) *)
+  List.iter (fun (_, _, opt) -> Dynamic.Parameter.Bool.set opt true) rte_wp ;
+  !Db.RteGen.annotate_kf kf
 
 (* -------------------------------------------------------------------------- *)
 (* --- Selection of relevant assigns and postconditions                   --- *)
@@ -385,16 +341,15 @@ let filter_speconly config pid =
 let filter_status pid =
   Wp_parameters.StatusAll.get () ||
     begin
-      match Property_status.get (WpPropId.property_of_id pid) with
-	| Property_status.Best(Property_status.True, _) -> 
-	    Wp_parameters.StatusTrue.get ()
-	| Property_status.Best(Property_status.Dont_know, _) -> 
-	    Wp_parameters.StatusMaybe.get ()
-	| Property_status.Best((Property_status.False_if_reachable
-			       | Property_status.False_and_reachable), _) -> 
-	    Wp_parameters.StatusFalse.get ()
-	| Property_status.Never_tried -> true
-	| Property_status.Inconsistent _ -> false
+      let module C = Property_status.Consolidation in
+      match C.get (WpPropId.property_of_id pid) with
+      | C.Never_tried -> true
+      | C.Considered_valid | C.Inconsistent _ -> false
+      | C.Valid _ | C.Valid_under_hyp _ 
+      | C.Invalid_but_dead _ | C.Valid_but_dead _ | C.Unknown_but_dead _ -> 
+	Wp_parameters.StatusTrue.get ()
+      | C.Unknown _ -> Wp_parameters.StatusMaybe.get ()
+      | C.Invalid _ | C.Invalid_under_hyp _ -> Wp_parameters.StatusFalse.get ()
     end
 
 let filter_configstatus config pid =
@@ -412,6 +367,7 @@ let rec filter config pid = function
   | [] -> None
   | (f,name)::fs -> if f config pid then filter config pid fs else Some name
 
+let dkey = Wp_parameters.register_category "select"
 let goal_to_select config pid =
   let result =
     filter config pid [ 
@@ -422,10 +378,10 @@ let goal_to_select config pid =
     ] in
   match result with
     | None -> 
-	Wp_parameters.debug ~dkey:"select" "Goal '%a' selected" WpPropId.pp_propid pid ;
+	Wp_parameters.debug ~dkey "Goal '%a' selected" WpPropId.pp_propid pid ;
 	true
     | Some f -> 
-	Wp_parameters.debug ~dkey:"select" "Goal '%a' skipped (%s)" WpPropId.pp_propid pid f ;
+	Wp_parameters.debug ~dkey "Goal '%a' skipped (%s)" WpPropId.pp_propid pid f ;
 	false
     
 (*----------------------------------------------------------------------------*)
@@ -628,15 +584,15 @@ let add_fct_pre config acc spec =
 let add_variant acc spec = (* TODO *)
   let _ = match spec.spec_variant with None -> ()
     | Some v ->
-        Wp_parameters.warning "Ignored 'decrease' specification:@, %a@."
-                   Cil.d_decreases v
+        Wp_parameters.warning ~once:true "Ignored 'decrease' specification:@, %a@."
+                   Printer.pp_decreases v
   in acc
 
 let add_terminates acc spec = (* TODO *)
   let _ = match spec.spec_terminates with None -> ()
-    | Some p ->  Wp_parameters.warning
-                   "Ignored 'terminates' specification:@, %a@."
-                   !Ast_printer.d_predicate_named
+    | Some p ->  
+	Wp_parameters.warning ~once:true "Ignored 'terminates' specification:@, %a@."
+                   Printer.pp_predicate_named
                    (Logic_const.pred_of_id_pred p)
   in acc
 
@@ -738,29 +694,43 @@ let add_stmt_bhv_as_goal config v s b (b_acc, (p_acc, e_acc)) =
                           add_stmt_assigns config s e_acc b l_post in *)
     b_acc, (p_acc, e_acc)
 
-let add_stmt_spec_annots config v s spec ((b_acc, (p_acc, e_acc)) as acc) =
-  let acc = add_variant acc spec in
-  let acc = add_terminates acc spec in
-  match config.cur_bhv with
-    | StmtBhv (_n, cur_s, b) when s.sid = cur_s.sid ->
-        (*
-        begin match get_behav config (Kstmt s) spec.spec_behavior with
-          | None -> (* in some cases, it seems that we can have several spec
-                       for the same statement -> not an error *) acc
-          | Some b ->
-              *)
-              let b_acc, a_acc = add_stmt_bhv_as_goal config v s b acc in
-              let b_acc = add_behaviors_props config (Kstmt s) spec b_acc in
-                b_acc, a_acc
-    | _ -> (* in all other cases, use the specification as hypothesis *)
-        let kind = WpStrategy.Aboth false in
-        let b_acc = 
-          WpStrategy.add_prop_stmt_spec_pre b_acc kind config.kf s spec 
-        in
-        let p_acc, e_acc = 
-          add_stmt_spec_post_as_hyp config v s spec (p_acc, e_acc) 
-        in b_acc, (p_acc, e_acc)
+let is_empty_behavior bhv =
+  bhv.b_requires = [] &&
+  bhv.b_assumes = [] &&
+  bhv.b_post_cond = [] &&
+  bhv.b_assigns = WritesAny &&
+  bhv.b_allocation = FreeAllocAny
 
+let is_empty_spec s =
+  s.spec_variant = None &&
+  s.spec_terminates = None &&
+  List.for_all is_empty_behavior s.spec_behavior
+
+let add_stmt_spec_annots config v s spec ((b_acc, (p_acc, e_acc)) as acc) =
+  if is_empty_spec spec then acc
+  else
+    let acc = add_variant acc spec in
+    let acc = add_terminates acc spec in
+    match config.cur_bhv with
+      | StmtBhv (_n, cur_s, b) when s.sid = cur_s.sid ->
+          (*
+            begin match get_behav config (Kstmt s) spec.spec_behavior with
+            | None -> (* in some cases, it seems that we can have several spec
+            for the same statement -> not an error *) acc
+            | Some b ->
+          *)
+          let b_acc, a_acc = add_stmt_bhv_as_goal config v s b acc in
+          let b_acc = add_behaviors_props config (Kstmt s) spec b_acc in
+          b_acc, a_acc
+      | _ -> (* in all other cases, use the specification as hypothesis *)
+          let kind = WpStrategy.Aboth false in
+          let b_acc = 
+            WpStrategy.add_prop_stmt_spec_pre b_acc kind config.kf s spec 
+          in
+          let p_acc, e_acc = 
+            add_stmt_spec_post_as_hyp config v s spec (p_acc, e_acc) 
+          in b_acc, (p_acc, e_acc)
+	    
 (*----------------------------------------------------------------------------*)
 (* Call annotations                                                           *)
 (*----------------------------------------------------------------------------*)
@@ -808,7 +778,7 @@ let add_called_post called_kf termination_kind =
 
 let get_call_annots config v s fct =
   let l_post = Cil2cfg.get_post_logic_label config.cfg v in
-  match WpStrategy.get_called_kf fct with
+  match Kernel_function.get_called fct with
     | Some kf ->
         let spec = Annotations.funspec kf in
         let before_annots =
@@ -824,9 +794,10 @@ let get_call_annots config v s fct =
         before_annots, (post_annots, exits_annots)
 
     | None ->
-        Wp_parameters.warning
-          "call through function pointer not implemented yet: \
-                                   ignore called function properties.";
+        Wp_parameters.warning ~once:true ~source:(fst (Stmt.loc s))
+          "Call through function pointer in function '%a' not implemented yet: \
+           ignore called function properties." 
+	  Kernel_function.pretty config.kf;
         let assigns_annots = 
           WpStrategy.add_call_assigns_hyp WpStrategy.empty_acc config.kf s 
             l_post None
@@ -895,7 +866,7 @@ let add_loop_invariant_annot config vloop s ca b_list inv acc =
 let add_stmt_invariant_annot config v s ca b_list inv ((b_acc, a_acc) as acc) =
   let add_to_acc k =
     let b_acc = add_prop_inv_fixpoint config b_acc k s ca inv in
-      (b_acc, a_acc)
+    (b_acc, a_acc)
   in
   let acc =
     match is_annot_for_config config v s b_list with
@@ -903,7 +874,7 @@ let add_stmt_invariant_annot config v s ca b_list inv ((b_acc, a_acc) as acc) =
       | TBRhyp -> add_to_acc (WpStrategy.AcutB false)
       | TBRno -> acc
   in acc
-
+       
 (** Returns the annotations for the three edges of the loop node:
  * - loop_entry : goals for the edge entering in the loop
  * - loop_back  : goals for the edge looping to the entry point
@@ -911,20 +882,19 @@ let add_stmt_invariant_annot config v s ca b_list inv ((b_acc, a_acc) as acc) =
  *)
 let get_loop_annots config vloop s =
   let do_annot _ a (assigns, loop_entry, loop_back , loop_core as acc) =
-    let ca = match a with User ca | AI (_, ca) -> ca in
-    match ca.annot_content with
+    match a.annot_content with
       | AInvariant (b_list, true, inv) ->
-          add_loop_invariant_annot config vloop s ca b_list inv acc
+          add_loop_invariant_annot config vloop s a b_list inv acc
       | AVariant (var_exp, None) ->
           let loop_entry, loop_back = 
-            add_variant_annot config s ca var_exp loop_entry loop_back 
+            add_variant_annot config s a var_exp loop_entry loop_back 
           in assigns, loop_entry , loop_back , loop_core
       | AVariant (_v, _rel) ->
-            Wp_parameters.warning "Ignoring loop variant with measure : %a"
-              !Ast_printer.d_code_annotation ca;
+            Wp_parameters.warning ~once:true "Ignored 'loop variant' specification with measure : %a"
+              Printer.pp_code_annotation a;
             acc
       | AAssigns (_,WritesAny) -> assert false
-      | AAssigns (b_list, Writes a) -> (* loop assigns *)
+      | AAssigns (b_list, Writes w) -> (* loop assigns *)
           let h_assigns, g_assigns = assigns in
           let check_assigns old cur =
             match old with
@@ -936,9 +906,10 @@ let get_loop_annots config vloop s =
           let assigns =
             match is_annot_for_config config vloop s b_list with
             | TBRok | TBRpart ->
-              check_assigns h_assigns (ca,a), check_assigns g_assigns (ca,a)
+              check_assigns h_assigns (a,w), 
+              check_assigns g_assigns (a,w)
             | TBRhyp ->
-              check_assigns h_assigns (ca,a), g_assigns
+              check_assigns h_assigns (a,w), g_assigns
             | TBRno -> assigns
           in (assigns, loop_entry , loop_back , loop_core)
       | _ -> acc (* see get_stmt_annots *)
@@ -960,16 +931,15 @@ let get_loop_annots config vloop s =
 
 let get_stmt_annots config v s =
   let do_annot _ a ((b_acc, (a_acc, e_acc)) as acc) =
-    let ca = Annotations.code_annotation_of_rooted a in
-    match ca.annot_content with
+    match a.annot_content with
       | AInvariant (b_list, loop_inv, inv) ->
           if loop_inv then (* see get_loop_annots *) acc
           else if Wp_parameters.Invariants.get() then
-            add_stmt_invariant_annot config v s ca b_list inv acc
+            add_stmt_invariant_annot config v s a b_list inv acc
           else begin
-              Wp_parameters.warning
-                "ignored 'invariant' (use -wp-invariants option) : %a"
-                 !Ast_printer.d_code_annotation ca;
+              Wp_parameters.warning ~once:true 
+                "Ignored 'invariant' specification (use -wp-invariants option):@,  %a"
+                 Printer.pp_code_annotation a;
               acc
           end
       | AAssert (b_list,p) ->
@@ -978,12 +948,12 @@ let get_stmt_annots config v s =
             | TBRno -> acc
             | TBRhyp ->
                 let b_acc = 
-                  WpStrategy.add_prop_assert b_acc WpStrategy.Ahyp kf s ca p
+                  WpStrategy.add_prop_assert b_acc WpStrategy.Ahyp kf s a p
                 in (b_acc, (a_acc, e_acc))
             | TBRok | TBRpart -> 
-                let id = WpPropId.mk_assert_id config.kf s ca in
+                let id = WpPropId.mk_assert_id config.kf s a in
                 let kind = WpStrategy.Aboth (goal_to_select config id) in
-                let b_acc = WpStrategy.add_prop_assert b_acc kind kf s ca p in
+                let b_acc = WpStrategy.add_prop_assert b_acc kind kf s a p in
                   (b_acc, (a_acc, e_acc))
           in acc
       | AAllocation (_b_list, _frees_allocates) -> 
@@ -992,13 +962,13 @@ let get_stmt_annots config v s =
         (* loop assigns: see get_loop_annots *) acc
       | AVariant (_v, _rel) -> (* see get_loop_annots *) acc
       | APragma _ ->
-          Wp_parameters.warning "Ignored annotation:@ %a"
-            !Ast_printer.d_code_annotation ca;
+          Wp_parameters.warning ~once:true "Ignored 'pragma' specification:@, %a"
+            Printer.pp_code_annotation a;
           acc
       | AStmtSpec (b_list, spec) ->
           if b_list <> [] then (* TODO ! *)
-            Wp_parameters.warning 
-              "Ignored 'for %a' (generalize to all behavior)"
+            Wp_parameters.warning ~once:true 
+              "Ignored specification 'for %a' (generalize to all behavior)"
               (Pretty_utils.pp_list ~sep:", " Format.pp_print_string)
               b_list;
           add_stmt_spec_annots config v s spec acc
@@ -1130,21 +1100,21 @@ let add_global_annotations annots =
     | Dtype _ ->
         (* will be processed while translation is needed *) ()
     | Dtype_annot (linfo,_) ->
-        Wp_parameters.warning ~source
+        Wp_parameters.warning ~source ~once:true 
           "Type invariant not handled yet ('%s' ignored)"
           linfo.l_var_info.lv_name;
         ()
     | Dmodel_annot (mf,_) ->
-        Wp_parameters.warning ~source
+        Wp_parameters.warning ~source ~once:true 
           "Model fields not handled yet (model field '%s' ignored)"
           mf.mi_name;
         ()
     | Dcustom_annot (_c,_n,_) ->
-        Wp_parameters.warning ~source
+        Wp_parameters.warning ~source ~once:true 
           "Custom annotation not handled (ignored)";
         ()
     | Dinvariant (linfo,_) ->
-        Wp_parameters.warning ~source
+        Wp_parameters.warning ~source ~once:true
           "Global invariant not handled yet ('%s' ignored)"
           linfo.l_var_info.lv_name;
         ()
@@ -1208,11 +1178,7 @@ let internal_function_behaviors cfg =
           List.fold_left add_bhv_info acc spec.spec_behavior
       | _ -> Wp_parameters.fatal "filter on is_contract didn't work ?"
     in
-    let is_contract a = 
-      Logic_utils.is_contract (Annotations.code_annotation_of_rooted a)
-    in
-    let annots = Annotations.code_annot ~filter:is_contract stmt in
-    let annots = List.map Annotations.code_annotation_of_rooted annots in
+    let annots = Annotations.code_annot ~filter:Logic_utils.is_contract stmt in
     List.fold_left spec_bhv_names acc annots
   in
   let get_bhv n ((seen_stmts, bhvs) as l) =
@@ -1289,8 +1255,7 @@ let process_unreached_annots cfg =
   in
   let do_bhv termk acc b = List.fold_left (do_post b termk) acc b.b_post_cond in
   let do_annot s _ a acc =
-    let ca = match a with User ca | AI (_, ca) -> ca in
-      List.fold_left add_id acc (WpPropId.mk_code_annot_ids kf s ca)
+    List.fold_left add_id acc (WpPropId.mk_code_annot_ids kf s a)
   in
   let do_node acc n =
      debug
@@ -1325,9 +1290,7 @@ let get_cfg kf =
   if Wp_parameters.RTE.get () then compute_rte_for kf ;
   let cfg = Cil2cfg.get kf in
   let _ = process_unreached_annots cfg in
-  let do_dot = Wp_parameters.Dot.get () in
-  let _dot = if do_dot then Some (Cil2cfg.dot_cfg cfg) else None in
-    cfg
+  cfg
 
 let build_configs assigns kf behaviors ki property =
   debug "[get_strategies] for behaviors names: %a@."
@@ -1344,11 +1307,7 @@ let build_configs assigns kf behaviors ki property =
   in
   let cfg = get_cfg kf in
   let def_annot_bhv, bhvs = find_behaviors kf cfg ki behaviors in
-  if bhvs = [] then
-    Wp_parameters.warning "[get_strategies] no behaviors found"
-  else
-    debug "[get_strategies] %d behaviors"
-      (List.length bhvs);
+  if bhvs <> [] then debug "[get_strategies] %d behaviors" (List.length bhvs);
   let mk_bhv_config bhv = { kf = kf;
                      cfg = cfg;
                      cur_bhv = bhv;
@@ -1407,8 +1366,8 @@ let get_precond_strategies p =
             strategies @ acc
         in
           if call_sites = [] then
-            (Wp_parameters.warning
-              "no direct call sites for '%a': cannot check pre-conditions"
+            (Wp_parameters.warning ~once:true
+              "No direct call sites for function '%a': cannot check pre-conditions"
               Kernel_function.pretty kf;
              strategies)
           else List.fold_left add_call_pre_stategy strategies call_sites
@@ -1420,10 +1379,10 @@ let get_call_pre_strategies stmt =
     "[get_call_pre_strategies] on statement %a@." Stmt.pretty_sid stmt;
   match stmt.skind with
     | Instr(Call(_,f,_,_)) ->
-        let strategies = match WpStrategy.get_called_kf f with
+        let strategies = match Kernel_function.get_called f with
           | None ->
               Wp_parameters.warning
-                "call through function pointer not implemented yet: \
+                "Call through function pointer not implemented yet: \
                  cannot check pre-conditions for statement %a"
                 Stmt.pretty_sid stmt;
               []
@@ -1471,11 +1430,3 @@ let get_id_prop_strategies ?(assigns=WithAssigns) p =
 let get_function_strategies ?(assigns=WithAssigns) ?(bhv=[]) ?(prop=[]) kf =
   let prop = match prop with [] -> AllProps | _ -> NamedProp prop in
   get_strategies assigns kf bhv None prop
-
-(*----------------------------------------------------------------------------*)
-(*
-Local Variables:
-compile-command: "make -C ../.."
-End:
-*)
-(*----------------------------------------------------------------------------*)

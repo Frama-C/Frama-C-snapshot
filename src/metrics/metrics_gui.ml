@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2012                                               *)
+(*  Copyright (C) 2007-2013                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -54,8 +54,8 @@ let display_as_table table_contents (parent:GPack.box) =
     ~rows:(List.length table_contents)
     ~homogeneous:true
     ~packing:parent#pack () in
-  Cilutil.list_iteri (fun i row ->
-    Cilutil.list_iteri (fun j text ->
+  Extlib.iteri (fun i row ->
+    Extlib.iteri (fun j text ->
       table#attach ~left:j ~top:i
         ((GMisc.label ~justify:`LEFT ~text:text ()):>GObj.widget)) row)
     table_contents ;
