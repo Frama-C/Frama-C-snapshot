@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -20,23 +20,20 @@
 (*                                                                        *)
 (**************************************************************************)
 
+(** Mark the analysis as aborted. It will be stopped at the next safe point *)
+val signal_abort: unit -> unit
+
 module Computer 
   (AnalysisParam : sig
      val kf : Cil_types.kernel_function
-     val slevel : int
      val initial_states : State_set.t
      val active_behaviors : Eval_annots.ActiveBehaviors.t
-     val local_slevel_info : Local_slevel_types.local_slevel_info
    end) :
 sig
-  type u = { counter_unroll : int; mutable value : State_set.t; }
-  include Dataflow.ForwardsTransfer with type t = u
+  type u = { mutable to_propagate : State_set.t; }
+  include Dataflow2.ForwardsTransfer with type t = u
 
-  val merge_results : inform:bool -> unit
+  val merge_results : unit -> unit
+  val mark_degeneration : unit -> unit
   val results: unit -> Value_types.call_result
-
-  (* For local_slevel_compute: to be removed eventually *)
-  val clob : Locals_scoping.clobbered_set
-  val add_to_worklist : (Cil_datatype.Stmt.Hptset.elt -> unit) ref
-  val getStateSet : Cil_types.stmt -> State_set.t
 end

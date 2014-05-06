@@ -1,0 +1,150 @@
+(**************************************************************************)
+(*                                                                        *)
+(*  This file is part of WP plug-in of Frama-C.                           *)
+(*                                                                        *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
+(*         alternatives)                                                  *)
+(*                                                                        *)
+(*  you can redistribute it and/or modify it under the terms of the GNU   *)
+(*  Lesser General Public License as published by the Free Software       *)
+(*  Foundation, version 2.1.                                              *)
+(*                                                                        *)
+(*  It is distributed in the hope that it will be useful,                 *)
+(*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
+(*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
+(*  GNU Lesser General Public License for more details.                   *)
+(*                                                                        *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
+(*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
+(*                                                                        *)
+(**************************************************************************)
+
+theory Cint
+use bool.Bool as Bool
+use int.Int as Int
+
+predicate is_uint8 int
+
+axiom is_uint8_def : forall x:int [is_uint8 x]. is_uint8 x <->
+  (Int.(<=) (0) (x)) /\ (Int.(<) (x) (256))
+
+predicate is_sint8 int
+
+axiom is_sint8_def : forall x:int [is_sint8 x]. is_sint8 x <->
+  (Int.(<=) ((Int.(-_) (128))) (x)) /\ (Int.(<) (x) (128))
+
+predicate is_uint16 int
+
+axiom is_uint16_def : forall x:int [is_uint16 x]. is_uint16 x <->
+  (Int.(<=) (0) (x)) /\ (Int.(<) (x) (65536))
+
+predicate is_sint16 (x:int) = (Int.(<=) ((Int.(-_) (32768))) (x)) /\
+  (Int.(<) (x) (32768))
+
+predicate is_uint32 int
+
+axiom is_uint32_def : forall x:int [is_uint32 x]. is_uint32 x <->
+  (Int.(<=) (0) (x)) /\ (Int.(<) (x) (4294967296))
+
+predicate is_sint32 int
+
+axiom is_sint32_def : forall x:int [is_sint32 x]. is_sint32 x <->
+  (Int.(<=) ((Int.(-_) (2147483648))) (x)) /\ (Int.(<) (x) (2147483648))
+
+predicate is_uint64 int
+
+axiom is_uint64_def : forall x:int [is_uint64 x]. is_uint64 x <->
+  (Int.(<=) (0) (x)) /\ (Int.(<) (x) (18446744073709551616))
+
+predicate is_sint64 int
+
+axiom is_sint64_def : forall x:int [is_sint64 x]. is_sint64 x <->
+  (Int.(<=) ((Int.(-_) (9223372036854775808))) (x)) /\
+  (Int.(<) (x) (9223372036854775808))
+
+function to_uint8 int : int
+
+function to_sint8 int : int
+
+function to_uint16 int : int
+
+function to_sint16 int : int
+
+function to_uint32 int : int
+
+function to_sint32 int : int
+
+function to_uint64 int : int
+
+function to_sint64 int : int
+
+axiom is_to_uint8 : forall x:int [is_uint8 (to_uint8 x)]. is_uint8 (to_uint8
+  x)
+
+axiom is_to_sint8 : forall x:int [is_sint8 (to_sint8 x)]. is_sint8 (to_sint8
+  x)
+
+axiom is_to_uint16 : forall x:int [is_uint16 (to_uint16 x)]. is_uint16
+  (to_uint16 x)
+
+axiom is_to_sint16 : forall x:int [is_sint16 (to_sint16 x)]. is_sint16
+  (to_sint16 x)
+
+axiom is_to_uint32 : forall x:int [is_uint32 (to_uint32 x)]. is_uint32
+  (to_uint32 x)
+
+axiom is_to_sint32 : forall x:int [is_sint32 (to_sint32 x)]. is_sint32
+  (to_sint32 x)
+
+axiom is_to_uint64 : forall x:int [is_uint64 (to_uint64 x)]. is_uint64
+  (to_uint64 x)
+
+axiom is_to_sint64 : forall x:int [is_sint64 (to_sint64 x)]. is_sint64
+  (to_sint64 x)
+
+axiom id_uint8 : forall x:int [to_uint8 x]. (Int.(<=) (0) (x)) /\
+  (Int.(<) (x) (256)) -> ((to_uint8 x) = (x))
+
+axiom id_sint8 : forall x:int [to_sint8 x].
+  (Int.(<=) ((Int.(-_) (128))) (x)) /\ (Int.(<) (x) (128)) -> ((to_sint8
+  x) = (x))
+
+axiom id_uint16 : forall x:int [to_uint16 x]. (Int.(<=) (0) (x)) /\
+  (Int.(<) (x) (65536)) -> ((to_uint16 x) = (x))
+
+axiom id_sint16 : forall x:int [to_sint16 x].
+  (Int.(<=) ((Int.(-_) (32768))) (x)) /\ (Int.(<) (x) (32768)) -> ((to_sint16
+  x) = (x))
+
+axiom id_uint32 : forall x:int [to_uint32 x]. (Int.(<=) (0) (x)) /\
+  (Int.(<) (x) (4294967296)) -> ((to_uint32 x) = (x))
+
+axiom id_sint32 : forall x:int [to_sint32 x].
+  (Int.(<=) ((Int.(-_) (2147483648))) (x)) /\ (Int.(<) (x) (2147483648)) ->
+  ((to_sint32 x) = (x))
+
+axiom id_uint64 : forall x:int [to_uint64 x]. (Int.(<=) (0) (x)) /\
+  (Int.(<) (x) (18446744073709551616)) -> ((to_uint64 x) = (x))
+
+axiom id_sint64 : forall x:int [to_sint64 x].
+  (Int.(<=) ((Int.(-_) (9223372036854775808))) (x)) /\
+  (Int.(<) (x) (9223372036854775808)) -> ((to_sint64 x) = (x))
+
+function lnot int : int
+
+function land int int : int
+
+function lxor int int : int
+
+function lor int int : int
+
+function lsl int int : int
+
+function lsr int int : int
+
+function bit_testb int int : Bool.bool
+
+predicate bit_test int int
+
+end

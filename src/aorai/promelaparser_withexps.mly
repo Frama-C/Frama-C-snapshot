@@ -2,8 +2,8 @@
 /*                                                                        */
 /*  This file is part of Aorai plug-in of Frama-C.                        */
 /*                                                                        */
-/*  Copyright (C) 2007-2013                                               */
-/*    CEA (Commissariat a l'énergie atomique et aux énergies              */
+/*  Copyright (C) 2007-2014                                               */
+/*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              */
 /*         alternatives)                                                  */
 /*    INRIA (Institut National de Recherche en Informatique et en         */
 /*           Automatique)                                                 */
@@ -80,7 +80,7 @@ promela
         : PROMELA_NEVER PROMELA_LBRACE states PROMELA_RBRACE EOF { 
 	    let states=
 	      Hashtbl.fold (fun _ st l -> 
-		if st.acceptation=Undefined or st.init=Undefined then
+		if st.acceptation=Undefined || st.init=Undefined then
 		  begin
 		    Format.print_string ("Error: the state '"^(st.name)^"' is used but never defined.\n");
 		    exit 1
@@ -94,7 +94,7 @@ promela
             PROMELA_SEMICOLON PROMELA_RBRACE EOF {
 	    let states=
 	      Hashtbl.fold (fun _ st l -> 
-		if st.acceptation=Undefined or st.init=Undefined then
+		if st.acceptation=Undefined || st.init=Undefined then
 		  begin
                     Aorai_option.abort 
                       "Error: state %s is used bug never defined" st.name

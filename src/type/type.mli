@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -128,6 +128,8 @@ val get_embedded_type_names: 'a t -> string list
 val ml_name: 'a t -> string
 val pp_ml_name: 'a t -> precedence -> Format.formatter -> unit
 val set_ml_name: 'a t -> string option -> unit
+val set_name: 'a t -> string -> unit
+(** @since Neon-20130301 *)
 
 (* ****************************************************************************)
 (** {2 Type values are comparable} *)
@@ -223,7 +225,7 @@ module Polymorphic2(T:Polymorphic2_input)
     {!Polymorphic2} with possibility to specify a label for the function
     parameter. *)
 module Function : sig
-  type ('a, 'b) poly
+  type ('a, 'b) poly = 'a -> 'b
   val instantiate:
     ?label:(string * (unit -> 'a) option) -> 'a t -> 'b t -> ('a -> 'b) t * bool
     (** Possibility to add a label for the parameter.
@@ -231,8 +233,8 @@ module Function : sig
          - [~label:(p,Some f)] for an optional labelized parameter [p],
            with default value [f ()]. *)
   val is_instance_of: 'a t -> bool
-  val get_instance: ('a, 'b) poly t -> 'a t * 'b t * string option
-  val get_optional_argument: ('a, 'b) poly t ->  (unit -> 'a) option
+  val get_instance: ('a -> 'b) t -> 'a t * 'b t * string option
+  val get_optional_argument: ('a -> 'b) t ->  (unit -> 'a) option
 end
 
 (** See module {!Polymorphic_input}: very same functions with two additional

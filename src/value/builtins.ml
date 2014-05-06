@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -20,9 +20,9 @@
 (*                                                                        *)
 (**************************************************************************)
 
+open Cil_types
 open Cvalue
 open Abstract_interp
-open Cil
 open Locations
 open Value_util
 
@@ -67,7 +67,6 @@ let double_double_fun name caml_fun state actuals =
   | _ ->
       Value_parameters.error "%s"
         ("Invalid argument for " ^ name ^ " function");
-      do_degenerate None;
       raise Db.Value.Aborted
 
 
@@ -141,12 +140,10 @@ let frama_C_compare_cos state actuals =
             }
           with _ -> Value_parameters.error
             "Invalid argument for Frama_C_compare_cos function";
-            do_degenerate None;
             raise Db.Value.Aborted
       end
   | _ -> Value_parameters.error
             "Invalid argument for Frama_C_compare_cos function";
-            do_degenerate None;
             raise Db.Value.Aborted
 
 let () = register_builtin "Frama_C_compare_cos" frama_C_compare_cos
@@ -184,7 +181,6 @@ let frama_C_sqrt state actuals =
       end
   | _ -> Value_parameters.error
       "Invalid argument for Frama_C_sqrt function";
-      do_degenerate None;
       raise Db.Value.Aborted
 
 let () = register_builtin "Frama_C_sqrt" frama_C_sqrt
@@ -223,33 +219,9 @@ let frama_C_assert state actuals =
       end
   | _ -> Value_parameters.error
       "Invalid argument for Frama_C_assert function";
-      do_degenerate None;
       raise Db.Value.Aborted
 
 let () = register_builtin "Frama_C_assert" frama_C_assert
-
-let frama_c_dump_assert state _actuals =
-  Value_parameters.result ~current:true "Frama_C_dump_assert_each called:@\n(%a)@\nEnd of Frama_C_dump_assert_each output"
-    C_assert.pretty_state_as_c_assert state;
-  { Value_types.c_values = [None, state];
-    c_clobbered = Base.SetLattice.bottom;
-    c_cacheable = Value_types.NoCache;
-  }
-
-let () = register_builtin "Frama_C_dump_assert_each" frama_c_dump_assert
-
-let found_split state _ = 
- { Value_types.c_values = [None, state];
-   c_clobbered = Base.SetLattice.bottom;
-   c_cacheable = Value_types.NoCache;
- }
-let () = register_builtin "Frama_C_split" found_split
-let found_merge state _ = 
- { Value_types.c_values = [None, state];
-   c_clobbered = Base.SetLattice.bottom;
-   c_cacheable = Value_types.NoCache;
- }
-let () = register_builtin "Frama_C_merge" found_merge
 
 
 let frama_c_bzero state actuals =
@@ -298,10 +270,10 @@ let () = register_builtin "Frama_C_bzero" frama_c_bzero
 (* -------------------------------------------------------------------------- *)
 
 let dump_state initial_state _ =
-  let l = fst (CurrentLoc.get ()) in
+  let l = fst (Cil.CurrentLoc.get ()) in
   Value_parameters.result
-    "DUMPING STATE of file %s line %d@\n%a=END OF DUMP=="
-    l.Lexing.pos_fname l.Lexing.pos_lnum
+    "DUMPING STATE of file %s line %d@\n%a\n=END OF DUMP=="
+    (Filepath.pretty l.Lexing.pos_fname) l.Lexing.pos_lnum
     Cvalue.Model.pretty initial_state;
        { Value_types.c_values = [None, initial_state];
 	 c_clobbered = Base.SetLattice.bottom;
@@ -329,11 +301,11 @@ let dump_state_file name initial_state args =
      let file = Format.sprintf "%s_%d" name n in
      let ch = open_out file in
      let fmt = Format.formatter_of_out_channel ch in
-     let l = fst (CurrentLoc.get ()) in
+     let l = fst (Cil.CurrentLoc.get ()) in
      Value_parameters.feedback ~current:true "Dumping state in file '%s'%t"
        file Value_util.pp_callstack;
      Format.fprintf fmt "DUMPING STATE at file %s line %d@."
-       l.Lexing.pos_fname l.Lexing.pos_lnum;
+       (Filepath.pretty l.Lexing.pos_fname) l.Lexing.pos_lnum;
      if args <> [] then Format.fprintf fmt "Args: %a@." pretty_actuals args;
      Cvalue.Model.pretty fmt initial_state;
      close_out ch
@@ -348,10 +320,22 @@ let dump_state_file name initial_state args =
   }
 
 
+(* Builtin for Frama_C_show_each family of functions *)
 let dump_args name initial_state actuals =
-  Value_parameters.result "Called %s%a%t"
-    name
-    pretty_actuals actuals
+  (* Print one argument *)
+  let pp_one fmt (actual, v, offsm) =
+    (* YYY: catch pointers to arrays, and print the contents of the array *)
+    Format.fprintf fmt "@[";
+    let card = Cvalue.V_Offsetmap.fold_on_values (fun _ _ -> succ) offsm 0 in
+    (match Cil.unrollType (Cil.typeOf actual) with
+      | TComp _  as typ when card > 1 ->
+        V_Offsetmap.pretty_typ (Some typ) fmt offsm
+      | _ -> V.pretty fmt v
+    );
+    Format.fprintf fmt "@]";
+  in
+  let pp = Pretty_utils.pp_list ~pre:"@[<hv>" ~sep:",@ " ~suf:"@]" pp_one in
+  Value_parameters.result "Called %s(%a)%t" name pp actuals
     Value_util.pp_callstack;
      { Value_types.c_values = [ None, initial_state] ;
        c_clobbered = Base.SetLattice.bottom;

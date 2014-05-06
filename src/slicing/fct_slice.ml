@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -948,12 +948,12 @@ let get_called_needed_input called_kf need_out0 needed_out_zone =
       in_zones
   in
   let in_zones =
-    Lmap_bitwise.From_Model.fold acc_in_zones from_table Locations.Zone.bottom
+    Function_Froms.Memory.fold acc_in_zones from_table Locations.Zone.bottom
   in
   let in_zones =
     if need_out0 then
       let from0 = froms.Function_Froms.deps_return in
-      let z_return = Lmap_bitwise.From_Model.LOffset.collapse from0 in
+      let z_return = Function_Froms.Memory.LOffset.collapse from0 in
         Locations.Zone.join in_zones z_return
     else in_zones
   in in_zones

@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -58,6 +58,23 @@ module Filename = struct
       fun a b -> temp_file a b
 end
 
+let str_mutex = Mutex.create()
+
+let str_global_replace regex repl s =
+  Mutex.lock str_mutex;
+  let res = Str.global_replace regex repl s in
+  Mutex.unlock str_mutex; res
+
+let str_string_match regex s n =
+  Mutex.lock str_mutex;
+  let res = Str.string_match regex s n in
+  Mutex.unlock str_mutex; res
+
+let str_split regex s =
+  Mutex.lock str_mutex;
+  let res = Str.split regex s in
+  Mutex.unlock str_mutex; res
+
 let default_env = ref []
 
 let add_default_env x y = default_env:=(x,y)::!default_env
@@ -105,22 +122,22 @@ let regex_cmxs = Str.regexp ("\\([^/]+\\)[.]cmxs\\($\\|[ \t]\\)")
 
 let opt_to_byte toplevel =
   if toplevel = "frama-c" then "frama-c.byte"
-  else Str.global_replace regex_opt "\\1.byte\\2" toplevel
+  else str_global_replace regex_opt "\\1.byte\\2" toplevel
 
 let opt_to_byte_options options =
-  Str.global_replace regex_cmxs "\\1.cmo\\2" options
+  str_global_replace regex_cmxs "\\1.cmo\\2" options
 
 let needs_byte =
   let load_something = Str.regexp ".*-load-\\(\\(script\\)\\|\\(module\\)\\)" in
   fun options ->
     Ptests_config.no_native_dynlink &&
-      (Str.string_match load_something options 0)
+      str_string_match load_something options 0
 
 let execnow_needs_byte =
   let make_cmxs = Str.regexp ".*make.*[.]cmxs" in
   fun cmd ->
     Ptests_config.no_native_dynlink &&
-      Str.string_match make_cmxs cmd 0
+      str_string_match make_cmxs cmd 0
 
 let execnow_opt_to_byte cmd =
   let cmd = opt_to_byte cmd in
@@ -132,7 +149,9 @@ let base_path = Filename.current_dir_name
         Filename.parent_dir_name)
 *)
 
-let ptests_config = "ptests_local_config.cmo"
+let ptests_config = 
+  "ptests_local_config." 
+  ^ if Ptests_config.no_native_dynlink then "cmo" else "cmxs"
 
 (** Command-line flags *)
 
@@ -182,6 +201,7 @@ let () =
 ;;
 
 let () =
+  default_env "FRAMAC_SESSION" !Ptests_config.framac_session;
   default_env "FRAMAC_SHARE" !Ptests_config.framac_share;
   default_env "FRAMAC_PLUGIN" !Ptests_config.framac_plugin;
   default_env "FRAMAC_LIB" !Ptests_config.framac_lib;
@@ -199,6 +219,18 @@ let example_msg =
     A test suite can be the name of a directory in ./tests or \
     the path to a file.@ @ \
     @[<v 1>\
+    Some variables can be used in test command:@ \
+     @@PTEST_CONFIG@@    \
+     # test configuration suffix@ \
+     @@PTEST_FILE@@   \
+     # substitued by the test filename@ \
+     @@PTEST_DIR@@    \
+     # dirname of the test file@ \
+     @@PTEST_NAME@@   \
+     # basename of the test file@ \
+     @@PTEST_NUMBER@@ \
+     # test command number@] @ \
+    @[<v 1>\
     Examples:@ \
      ptests@ \
      ptests -diff \"echo diff\" -examine        \
@@ -211,7 +243,7 @@ let example_msg =
      # to see the differences again@ \
      ptests -v -j 1                           \
      # to check the time taken by each test\
-    @]@ @]"
+     @]@ @]"
 ;;
 
 let umsg = "Usage: ptests [options] [names of test suites]";;
@@ -250,11 +282,11 @@ let rec argspec =
   "-opt", Arg.Clear use_byte,
   " Use native toplevel (default)";
   "-config", Arg.Set_string special_config,
-  " Use special configuration and oracles";
+  " <name> Use special configuration and oracles";
   "-add-options", Arg.Set_string additional_options,
-  " Add additional options to be passed to the toplevels that will be launched";
+  "<options> Add additional options to be passed to the toplevels that will be launched";
   "-exclude", Arg.String exclude,
-  " Exclude a test or a suite from the run";
+  "<name> Exclude a test or a suite from the run";
   "-xunit", Arg.Set xunit,
   " Create a xUnit file named xunit.xml collecting results";
   "-error-code", Arg.Set do_error_code,
@@ -273,40 +305,67 @@ let () =
     make_test_suite umsg
 ;;
 
-(* redefine config file if special configuration expected *)
-let dir_config_file =
-  if !special_config = "" then dir_config_file else
-    dir_config_file ^ "_" ^ !special_config
+(* redefine name if special configuration expected *)
+let redefine_name name =
+  if !special_config = "" then name else
+    name ^ "_" ^ !special_config
 
-let make_toplevel_path exec = exec
-(*  if Filename.is_relative exec then
-    Filename.concat (Filename.concat base_path "bin") exec
-  else exec
-*)
+let dir_config_file = redefine_name dir_config_file
 
-(* redefine oracle directory if special configuration expected *)
-let oracle_dirname =
-  if !special_config = "" then "oracle" else
-    "oracle_" ^ !special_config
+let gen_make_file s dir file =
+  Filename.concat (Filename.concat dir s) file
 
-(* redefine result directory if special configuration expected *)
-let result_dirname =
-  if !special_config = "" then "result" else
-    "result_" ^ !special_config
+module SubDir: sig
+  type t
 
-let gen_make_file s dir file = Filename.concat (Filename.concat dir s) file
-let make_result_file = gen_make_file result_dirname
-let make_oracle_file = gen_make_file oracle_dirname
+  val get: t -> string
 
-let toplevel_regex = Str.regexp "\\(.*\\)@frama-c@\\(.*\\)"
+  val create: string (** dirname *) -> t
+  (** create the needed subdirectories if absent.
+      Fail if the given dirname doesn't exists *)
+
+  val make_oracle_file: t -> string -> string
+  val make_result_file: t -> string -> string
+  val make_file: t -> string -> string
+end = struct
+  type t = string
+
+  let get s = s
+
+  let create_if_absent dir =
+    if not (Sys.file_exists dir)
+    then Unix.mkdir dir 0o750 (** rwxr-w--- *)
+    else if not (Sys.is_directory dir)
+    then failwith (Printf.sprintf "The file %s exists but is not a directory" dir)
+
+
+  let oracle_dirname = redefine_name "oracle"
+  let result_dirname = redefine_name "result"
+
+  let make_result_file = gen_make_file result_dirname
+  let make_oracle_file = gen_make_file oracle_dirname
+  let make_file = Filename.concat
+
+  let create dir =
+    if not (Sys.file_exists dir && Sys.is_directory dir)
+    then failwith (Printf.sprintf "The directory %s must be an existing directory" dir);
+    create_if_absent (Filename.concat dir result_dirname);
+    create_if_absent (Filename.concat dir oracle_dirname);
+    dir
+
+end
+
+let macro_regex = Str.regexp "\\([^@]*\\)@\\([^@]+\\)@\\(.*\\)"
 
 type execnow =
     {
       ex_cmd: string;      (** command to launch *)
       ex_log: string list; (** log files *)
       ex_bin: string list; (** bin files *)
-      ex_dir: string;      (** directory of test suite *)
+      ex_dir: SubDir.t;    (** directory of test suite *)
     }
+
+module StringMap = Map.Make(String)
 
 (** configuration of a directory/test. *)
 type config =
@@ -315,6 +374,7 @@ type config =
       dc_execnow    : execnow list; (** command to be launched before
                                          the toplevel(s)
                                      *)
+      dc_macros: string StringMap.t; (** existing macros. *)
       dc_default_toplevel   : string;
       (** full path of the default toplevel. *)
       dc_filter     : string option; (** optional filter to apply to
@@ -327,8 +387,12 @@ type config =
             mentioned on the command line. Overrides dc_dont_run. *)
     }
 
-let default_config =
+let default_macros () =
+  StringMap.add "frama-c" !Ptests_config.toplevel_path StringMap.empty
+
+let default_config () =
   { dc_test_regexp = test_file_regexp ;
+    dc_macros = default_macros ();
     dc_execnow = [];
     dc_filter = None ;
     dc_default_toplevel = !Ptests_config.toplevel_path;
@@ -360,29 +424,52 @@ let launch command_string =
         s command_string;
       exit 1
 
-let replace_toplevel s =
-  if Str.string_match toplevel_regex s 0 then
-    Str.replace_matched ("\\1" ^ !Ptests_config.toplevel_path ^ "\\2") s
-  else s
+let replace_macros macros s =
+  if !verbosity >=2 then begin
+    lock_printf "looking for macros in string %s\n%!" s;
+    lock_printf "Existing macros:\n%!";
+    StringMap.iter (fun s1 s2 -> lock_printf "%s => %s\n%!" s1 s2) macros;
+    lock_printf "End macros\n%!";
+  end;
+  let rec aux n (ptest_file_matched,s as acc) =
+    Mutex.lock str_mutex;
+    if Str.string_match macro_regex s n then begin
+      let macro = Str.matched_group 2 s in
+      if !verbosity >= 2 then lock_printf "macro is %s\n%!" macro;
+      let ptest_file_matched = ptest_file_matched || macro = "PTEST_FILE" in
+      let n, new_s =
+        try
+          let replacement = StringMap.find macro macros in
+          if !verbosity >= 1 then
+            lock_printf "replacement for %s is %s\n%!" macro replacement;
+          Str.group_end 1,
+          String.sub s 0 n ^ 
+            Str.replace_matched ("\\1" ^ replacement ^ "\\3") s
+        with
+          | Not_found -> Str.group_end 2 + 1, s
+      in
+      Mutex.unlock str_mutex;
+      if !verbosity >= 2 then lock_printf "new string is %s\n%!" new_s;
+      let new_acc = ptest_file_matched, new_s in
+      if n <= String.length new_s then aux n new_acc else new_acc
+    end else begin Mutex.unlock str_mutex; acc end
+  in aux 0 (false,s)
 
 let scan_execnow dir (s:string) =
   let rec aux (s:execnow) =
     try
-      Scanf.sscanf s.ex_cmd "%_[ ]LOG%_[ ]%[A-Za-z0-9_',+=:.\\-]%_[ ]%s@\n"
+      Scanf.sscanf s.ex_cmd "%_[ ]LOG%_[ ]%[A-Za-z0-9_',+=:.\\-@@]%_[ ]%s@\n"
         (fun name cmd ->
-          let cmd = replace_toplevel cmd in
           aux { s with ex_cmd = cmd; ex_log = name :: s.ex_log })
     with Scanf.Scan_failure _ ->
       try
-        Scanf.sscanf s.ex_cmd "%_[ ]BIN%_[ ]%[A-Za-z0-9_.\\-]%_[ ]%s@\n"
+        Scanf.sscanf s.ex_cmd "%_[ ]BIN%_[ ]%[A-Za-z0-9_.\\-@@]%_[ ]%s@\n"
           (fun name cmd ->
-            let cmd = replace_toplevel cmd in
             aux { s with ex_cmd = cmd; ex_bin = name :: s.ex_bin })
       with Scanf.Scan_failure _ ->
         try
           Scanf.sscanf s.ex_cmd "%_[ ]make%_[ ]%s@\n"
             (fun cmd ->
-              let cmd = replace_toplevel cmd in
               let s = aux ({ s with ex_cmd = cmd; }) in
               { s with ex_cmd = !do_make^" "^cmd; } )
         with Scanf.Scan_failure _ ->
@@ -401,7 +488,6 @@ let make_custom_opts =
       try
 	Scanf.sscanf s "%_[ ]%1[+#\\-]%_[ ]%S%_[ ]%s@\n"
           (fun c opt rem ->
-	    let opt = replace_toplevel opt in
 	    match c with
             | "+" -> aux (opt :: opts) rem
             | "#" -> aux (opts @ [ opt ]) rem
@@ -419,23 +505,32 @@ let make_custom_opts =
     *)
     (* revert the initial list, as it will be reverted back in the end. *)
     let opts =
-      aux (List.rev (Str.split space stdopts)) s
+      aux (List.rev (str_split space stdopts)) s
     in
     (* preserve options ordering *)
     List.fold_right (fun x s -> s ^ " " ^ x) opts ""
 
+let add_macro s macros =
+  let regex = Str.regexp "[ \t]*\\([^ \t@]+\\)[ \t]+\\(.*\\)" in
+  Mutex.lock str_mutex;
+  if Str.string_match regex s 0 then begin
+    let name = Str.matched_group 1 s in
+    let def = Str.matched_group 2 s in
+    Mutex.unlock str_mutex;
+    if !verbosity >= 1 then
+      lock_printf "new macro %s with definition %s\n%!" name def;
+    StringMap.add name (snd (replace_macros macros def)) macros
+  end else begin
+    Mutex.unlock str_mutex;
+    lock_eprintf "cannot understand MACRO definition: %s\n%!" s;
+    macros
+  end
+
 (* how to process options *)
 let config_options =
   [ "CMD",
-    (fun _ s current ->
-
-       let toplevel =
-         if Str.string_match toplevel_regex s 0 then
-           Str.replace_matched ("\\1" ^ !Ptests_config.toplevel_path ^ "\\2") s
-       else
-         make_toplevel_path s
-       in
-       { current with dc_default_toplevel = toplevel});
+    (fun _ s current -> 
+       { current with dc_default_toplevel = s});
 
     "OPT",
     (fun _ s current ->
@@ -447,7 +542,8 @@ let config_options =
     "STDOPT",
     (fun _ s current ->
        let new_top =
-         List.map (fun (cmd,opts) -> cmd, make_custom_opts opts s)
+         List.map
+           (fun (cmd,opts) -> cmd, make_custom_opts opts s)
            !current_default_cmds
        in
        { current with dc_toplevels =
@@ -474,6 +570,8 @@ let config_options =
     (fun dir s current ->
        let execnow = scan_execnow dir s in
        { current with dc_execnow = execnow::current.dc_execnow  });
+    "MACRO", (fun _ s current ->
+      { current with dc_macros = add_macro s current.dc_macros })
   ]
 
 let scan_options dir scan_buffer default =
@@ -491,7 +589,7 @@ let scan_options dir scan_buffer default =
           with Not_found ->
             lock_eprintf "@[unknown configuration option: %s@\n%!@]" name)
     with Scanf.Scan_failure _ ->
-      if Str.string_match end_comment s 0
+      if str_string_match end_comment s 0
       then raise End_of_file
       else ()
   in
@@ -507,7 +605,7 @@ let scan_options dir scan_buffer default =
         | l -> { !r with dc_toplevels = List.rev l })
 
 let scan_test_file default dir f =
-  let f = Filename.concat dir f in
+  let f = SubDir.make_file dir f in
   let exists_as_file =
     try
       (Unix.lstat f).Unix.st_kind = Unix.S_REG
@@ -539,12 +637,15 @@ let scan_test_file default dir f =
       { default with dc_dont_run = true }
 
 type toplevel_command =
-    { file : string ;
+    { macros: string StringMap.t;
+      file : string ;
       options : string ;
       toplevel: string ;
       filter : string option ;
-      directory : string ;
-      n : int }
+      directory : SubDir.t ;
+      n : int;
+      execnow:bool
+    }
 
 type command =
   | Toplevel of toplevel_command
@@ -555,11 +656,11 @@ type log = Err | Res
 type diff =
   | Command_error of toplevel_command * log
   | Target_error of execnow
-  | Log_error of string (** directory *) * string (** file *)
+  | Log_error of SubDir.t (** directory *) * string (** file *)
 
 type cmps =
   | Cmp_Toplevel of toplevel_command
-  | Cmp_Log of string (** directory *) * string (** file *)
+  | Cmp_Log of SubDir.t (** directory *) * string (** file *)
 
 type shared =
     { lock : Mutex.t ;
@@ -615,53 +716,53 @@ let name_without_extension command =
       failwith ("This test file does not have any extension: " ^
                    command.file)
 
-let gen_prefix s cmd =
-  let prefix = gen_make_file s cmd.directory (name_without_extension cmd) in
+let gen_prefix gen_file cmd =
+  let prefix = gen_file cmd.directory (name_without_extension cmd) in
   catenate_number prefix cmd.n
 
-let log_prefix = gen_prefix result_dirname
-let oracle_prefix = gen_prefix oracle_dirname
+let log_prefix = gen_prefix SubDir.make_result_file
+let oracle_prefix = gen_prefix SubDir.make_oracle_file
 
 let basic_command_string =
-  let ptest_file_token = "@PTEST_FILE@" in
-  let ptest_file_rexp = Str.regexp ptest_file_token in
-  let contains_ptest_file = Str.regexp (".*" ^ ptest_file_token ^ ".*") in
   let contains_toplevel_or_frama_c = 
     Str.regexp ".*\\(\\(toplevel\\)\\|\\(frama-c\\)\\).*" 
   in
-  let ptest_name_rexp = Str.regexp "@PTEST_NAME@" in
-  let ptest_number_rexp = Str.regexp "@PTEST_NUMBER@" in
   fun command ->
-    let ptest_file = Filename.concat command.directory command.file in
-    let basic_command = 
-      let make_command s =
-	Printf.sprintf "%s %s %s" command.toplevel s command.options
-      in 
-      let basic_command = make_command "" in
-      if Str.string_match contains_ptest_file basic_command 0
-      then (* At least one occurence for the test file is specified. *)
-	Str.global_replace ptest_file_rexp ptest_file basic_command
-      else (* Using default position for the test file (between CMD: and OPT:). *)
-	make_command ptest_file
+    let ptest_config =
+      if !special_config = "" then "" else "_" ^ !special_config
     in
-    let basic_command = (* Additional options... *)
-      let is_framac_toplevel =
-	Str.string_match contains_toplevel_or_frama_c command.toplevel 0
-      in basic_command ^
-      (if is_framac_toplevel then " " ^ 
-	  (Str.global_replace ptest_file_rexp ptest_file !additional_options)
-	else "")
+    let ptest_file = SubDir.make_file command.directory command.file in
+    let ptest_name =
+      try Filename.chop_extension command.file
+      with Invalid_argument _ -> command.file
     in
-    let basic_command = 
-      let ptest_name =
-	let ptest_name = Filename.basename command.file
-	in
-	try 
-	  Filename.chop_extension ptest_name 
-	with _ -> ptest_name
-      in Str.global_replace ptest_name_rexp ptest_name basic_command
-    in 
-    Str.global_replace ptest_number_rexp (string_of_int command.n) basic_command
+    let macros =
+      [ "PTEST_CONFIG", ptest_config;
+        "PTEST_DIR", SubDir.get command.directory;
+        "PTEST_FILE", ptest_file;
+        "PTEST_NAME", ptest_name;
+        "PTEST_NUMBER", string_of_int command.n;
+      ]
+    in
+    let macros =
+      List.fold_left
+        (fun acc (macro,replace) -> StringMap.add macro replace acc)
+        command.macros macros
+    in
+    let has_ptest_file_t, toplevel = replace_macros macros command.toplevel in
+    let has_ptest_file_o, options = replace_macros macros command.options in
+    let needs_byte = !use_byte || needs_byte options in
+    let toplevel = if needs_byte then opt_to_byte toplevel else toplevel in
+    let options = if needs_byte then opt_to_byte_options options else options in
+    let basic_command =
+      if has_ptest_file_t || has_ptest_file_o || command.execnow then
+        toplevel ^ " " ^ options
+      else
+        toplevel ^ " " ^ ptest_file ^ " " ^ options
+    in
+    if str_string_match contains_toplevel_or_frama_c command.toplevel 0 then
+      basic_command ^ " " ^ (snd (replace_macros macros !additional_options))
+    else basic_command
 
 let command_string command =
   let log_prefix = log_prefix command in
@@ -736,7 +837,7 @@ let update_toplevel_command command =
 
 let update_log_files dir file =
   let command_string =
-    "mv " ^ make_result_file dir file ^ " " ^ make_oracle_file dir file
+    "mv " ^ SubDir.make_result_file dir file ^ " " ^ SubDir.make_oracle_file dir file
   in
   ignore (launch command_string)
 
@@ -749,7 +850,7 @@ let rec update_command = function
 let remove_execnow_results execnow =
   List.iter
     (fun f ->
-       try Unix.unlink (make_result_file execnow.ex_dir f)
+       try Unix.unlink (SubDir.make_result_file execnow.ex_dir f)
        with Unix.Unix_error _ -> ())
     (execnow.ex_bin @ execnow.ex_log)
 
@@ -790,7 +891,7 @@ let pretty_report fmt =
     (fun test (_run_result,time_result) ->
       Format.fprintf fmt
         "<testcase classname=%S name=%S time=\"%f\">%s</testcase>@."
-        (Filename.basename test.directory) test.file time_result
+        (Filename.basename (SubDir.get test.directory)) test.file time_result
         (let res,err = Report_cmp.find test in
          Report_cmp.remove test;
          (if res=0 && err=0 then "" else
@@ -805,7 +906,7 @@ let pretty_report fmt =
     (fun test (res,err) ->
       Format.fprintf fmt
         "<testcase classname=%S name=%S>%s</testcase>@."
-        (Filename.basename test.directory) test.file
+        (Filename.basename (SubDir.get test.directory)) test.file
         (if res=0 && err=0 then "" else
             Format.sprintf "<failure type=\"Regression\">%s</failure>"
               (if res=1 then "Stdout oracle difference"
@@ -974,10 +1075,10 @@ let compare_one_log_file dir file =
     Condition.signal shared.diff_available;
     unlock()
   end else
-    let log_file = make_result_file dir file in
-    let oracle_file = make_oracle_file dir file in
+    let log_file = SubDir.make_result_file dir file in
+    let oracle_file = SubDir.make_oracle_file dir file in
     let cmp_string = !do_cmp ^ " " ^ log_file ^ " " ^ oracle_file ^ " > /dev/null 2> /dev/null" in
-    if !verbosity >= 2 then lock_printf "%% cmplog: %s / %s@." dir file;
+    if !verbosity >= 2 then lock_printf "%% cmplog: %s / %s@." (SubDir.get dir) file;
     shared.summary_log <- succ shared.summary_log;
     match launch cmp_string with
       0 ->
@@ -1082,13 +1183,13 @@ let do_diff = function
   | Target_error execnow ->
       lock_printf "Custom command failed: %s@\n" execnow.ex_cmd
   | Log_error(dir, file) ->
-      let result_file = make_result_file dir file in
+      let result_file = SubDir.make_result_file dir file in
       lock_printf "Log of %s:@." result_file;
       if !behavior = Show
       then ignore (launch ("cat " ^ result_file))
       else
         let diff_string =
-          !do_diffs ^ " " ^ make_oracle_file dir file ^ " " ^ result_file
+          !do_diffs ^ " " ^ SubDir.make_oracle_file dir file ^ " " ^ result_file
         in
         ignore (launch diff_string)
 
@@ -1111,20 +1212,19 @@ let diff_thread () =
 
 let test_pattern config =
   let regexp = Str.regexp config.dc_test_regexp in
-  fun file ->
-    Str.string_match regexp file 0
+  fun file -> str_string_match regexp file 0
 
 let files = Queue.create ()
 
 (* test for a possible toplevel configuration. *)
-let default_config =
+let default_config () =
   let general_config_file = Filename.concat test_path dir_config_file in
-    if Sys.file_exists general_config_file
-    then begin
-      let scan_buffer = Scanf.Scanning.from_file general_config_file in
-      scan_options Filename.current_dir_name scan_buffer default_config
-    end
-    else default_config
+  if Sys.file_exists general_config_file
+  then begin
+    let scan_buffer = Scanf.Scanning.from_file general_config_file in
+    scan_options (SubDir.create Filename.current_dir_name) scan_buffer (default_config ())
+  end
+  else default_config ()
 
 let () =
   (* enqueue the test files *)
@@ -1156,20 +1256,20 @@ let () =
       (* the "suite" may be a directory in [test_path] or a single file *)
        let interpret_as_file = interpret_as_file suite in
        let directory =
-         if interpret_as_file
-         then
-           Filename.dirname suite
-         else
-           Filename.concat test_path suite
+         SubDir.create (if interpret_as_file
+                        then
+                          Filename.dirname suite
+                        else
+                          Filename.concat test_path suite)
        in
-       let config = Filename.concat directory dir_config_file in
+       let config = SubDir.make_file directory dir_config_file in
        let dir_config =
          if Sys.file_exists config
          then begin
            let scan_buffer = Scanf.Scanning.from_file config in
-           scan_options directory scan_buffer default_config
+           scan_options directory scan_buffer (default_config ())
          end
-         else default_config
+         else default_config ()
        in
        if interpret_as_file
        then begin
@@ -1179,12 +1279,12 @@ let () =
        end
        else begin
          if not (List.mem suite exclude_suite) then begin
-           let dir_files = Sys.readdir directory in
+           let dir_files = Sys.readdir (SubDir.get directory) in
            for i = 0 to pred (Array.length dir_files) do
              let file = dir_files.(i) in
              assert (Filename.is_relative file);
              if test_pattern dir_config file &&
-               (not (List.mem (Filename.concat directory file) exclude_file))
+               (not (List.mem (SubDir.make_file directory file) exclude_file))
              then Queue.push (file, directory, dir_config) files;
            done
          end
@@ -1205,15 +1305,35 @@ let dispatcher () =
       let config =
         scan_test_file config directory file in
       let i = ref 0 in
+      let e = ref 0 in
       let make_toplevel_cmd (toplevel, options) =
-        let toplevel, options =
-          if !use_byte || needs_byte options
-          then opt_to_byte toplevel, opt_to_byte_options options
-          else toplevel,options
-        in
         {file=file; options = options; toplevel = toplevel;
          n = !i; directory = directory;
-         filter = config.dc_filter}
+         filter = config.dc_filter; macros = config.dc_macros;
+         execnow=false;
+        }
+      in
+      let process_macros s =
+        basic_command_string
+          { file = file;
+            options = "";
+            toplevel = s;
+            n = !e;
+            directory = directory;
+            filter = config.dc_filter;
+            macros = config.dc_macros;
+            execnow = true; }
+      in
+      let make_execnow_cmd execnow =
+        let res =
+          {
+            ex_cmd = process_macros execnow.ex_cmd;
+            ex_log = List.map process_macros execnow.ex_log;
+            ex_bin = List.map process_macros execnow.ex_bin;
+            ex_dir = execnow.ex_dir
+          }
+        in
+        incr e; res
       in
       let treat_option q option =
         Queue.push
@@ -1232,8 +1352,8 @@ let dispatcher () =
                  (fun current_target execnow ->
                     let subworkqueue = Queue.create () in
                     Queue.add current_target subworkqueue;
-                    Target(execnow,subworkqueue))
-                 (Target(hd,subworkqueue)) tl
+                    Target(make_execnow_cmd execnow,subworkqueue))
+                 (Target(make_execnow_cmd hd,subworkqueue)) tl
              in
              Queue.push target shared.commands
          | [] ->

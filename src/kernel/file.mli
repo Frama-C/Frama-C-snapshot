@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -39,7 +39,9 @@ include Datatype.S with type t = file
 val new_file_type:
   string -> (string -> Cil_types.file * Cabs.file) -> unit
   (** [new_file_type suffix func funcname] registers a new type of files (with
-      corresponding suffix) as recognized by Frama-C through [func]. *)
+      corresponding suffix) as recognized by Frama-C through [func]. 
+      @plugin development guide
+   *)
 
 val new_machdep: string -> (module Cil.Machdeps) -> unit
 (** [new_machdep name module] registers a new machdep name as recognized by
@@ -51,6 +53,62 @@ val new_machdep: string -> (module Cil.Machdeps) -> unit
     @since Nitrogen-20111001
     @modify Fluorine-20130401 Receives the machdep (as a module) as argument
     @raise Invalid_argument if the given name already exists *)
+
+type code_transformation_category
+(** type of registered code transformations
+   @since Neon-20130301 
+*)
+
+val register_code_transformation_category:
+  string -> code_transformation_category
+(** Adds a new category of code transformation *)
+
+val add_code_transformation_before_cleanup: 
+  ?deps:(module Parameter_sig.S) list ->
+  ?before:code_transformation_category list ->
+  ?after:code_transformation_category list ->
+  code_transformation_category -> (Cil_types.file -> unit) -> unit
+  (** [add_code_transformation_before_cleanup name hook] 
+      adds an hook in the corresponding category
+      that will be called during the normalization of a linked
+      file, before clean up and removal of temps and unused declarations.
+      If this transformation involves changing statements of a function [f],
+      [f] must be flagged with {!File.must_recompute_cfg}.
+      The optional [before] (resp [after]) categories indicates that current
+      transformation must be executed before (resp after)
+      the corresponding ones, if they exist. In case of dependencies cycle,
+      an arbitrary order will be chosen for the transformations involved in
+      the cycle.
+      The optional [deps] argument gives the list of options whose change
+      (e.g. after a [-then]) will trigger the transformation over the already
+      computed AST. If several transformations are triggered by the same
+      option, their relative order is preserved.
+      Note that it is the responsibility of the hook to use
+      {!Ast.mark_as_changed} or {!Ast.mark_as_grown} whenever it is the case.
+
+      At this level, globals and ACSL annotations have not been registered.
+     
+      @since Neon-20130301 
+      @plugin development guide *)
+
+val add_code_transformation_after_cleanup:
+  ?deps:(module Parameter_sig.S) list ->
+  ?before:code_transformation_category list ->
+  ?after:code_transformation_category list ->
+  code_transformation_category -> (Cil_types.file -> unit) -> unit
+  (** Same as above, but the hook is applied after clean up.
+      At this level, globals and ACSL annotations have been registered. If
+      the hook adds some new globals or annotations, it must take care of
+      adding them in the appropriate tables.
+      @since Neon-20130301 
+      @plugin development guide *)
+
+val must_recompute_cfg: Cil_types.fundec -> unit
+  (** [must_recompute_cfg f] must be called by code transformation hooks
+      when they modify statements in function [f]. This will trigger a 
+      recomputation of the cfg of [f] after the transformation.
+      @since Neon-20130301 
+      @plugin development guide *)
 
 val get_suffixes: unit -> string list
   (** @return the list of accepted suffixes of input source files
@@ -133,7 +191,7 @@ val create_rebuilt_project_from_visitor:
     by Frama-C in the returned project. For instance, use this function if the
     new cil file contains a constructor {!GText} as global.
 
-    Not that the generation of a preprocessed C file may fail in some cases
+    Note that the generation of a preprocessed C file may fail in some cases
     (e.g. if it includes headers already included). Thus the generated file is
     NOT preprocessed by default.
 
@@ -154,6 +212,9 @@ val reorder_ast: unit -> unit
      declaration. This may introduce new declarations in the AST.
      @since Oxygen-20120901
  *)
+
+val reorder_custom_ast: Cil_types.file -> unit
+(** @since Neon-20130301 *)
 
 (* ************************************************************************* *)
 (** {2 Pretty printing} *)

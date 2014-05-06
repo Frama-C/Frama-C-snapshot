@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -48,6 +48,7 @@ struct
   let pretty _fmt () = ()
   let tau_of_chunk () = Logic.Int
   let basename_of_chunk () = "u"
+  let is_framed () = true
 end
 
 module Heap = Qed.Collection.Make(Chunk)
@@ -100,4 +101,3 @@ let scope sigma _s _xs = sigma , []
 
 let included _s1 _s2 = no_pointer ()
 let separated _s1 _s2 = no_pointer ()
-

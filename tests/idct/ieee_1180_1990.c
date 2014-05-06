@@ -39,7 +39,7 @@
 
 
 
-
+//@ assigns \nothing;
 void exit (int x);
 
 #ifndef M_PI

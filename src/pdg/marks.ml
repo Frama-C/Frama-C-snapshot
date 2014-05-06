@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -20,7 +20,6 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open PdgTypes
 open PdgIndex
 open Cil_datatype
 
@@ -60,7 +59,7 @@ let in_marks_to_caller pdg call m2m ?(rqs=[]) in_marks =
  * *)
 let translate_in_marks pdg_called in_new_marks
        ?(m2m=fun _ _ _ m -> Some m) other_rqs =
-    let kf_called = Pdg.get_kf pdg_called in
+    let kf_called = PdgTypes.Pdg.get_kf pdg_called in
     let translate pdg rqs call =
       in_marks_to_caller pdg call (m2m (Some call) pdg) ~rqs in_new_marks
     in

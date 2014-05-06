@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -26,29 +26,31 @@ open Logic
 (* --- Pattern Matching                                                   --- *)
 (* -------------------------------------------------------------------------- *)
 
-type 'f fpattern =
+type ('z,'f,'e) fpattern =
+  | Ptrue
+  | Pfalse
+  | Pint of 'z
   | Pvar of int
-  | Pint of Z.t
-  | Pfun of 'f * 'f fpattern list
+  | Pguard of int * ('e -> bool)
+  | Pfun of 'f * ('z,'f,'e) fpattern list
 
-val size : 'a fpattern -> int (** Number of pattern variables. *)
-val size_all : 'a fpattern list -> int (** Number of all patterns variables. *)
+val size : ('z,'f,'e) fpattern -> int (** Number of pattern variables. *)
+val size_list : ('z,'f,'e) fpattern list -> int (** Number of all patterns variables. *)
 
 module Make(T : Term) :
 sig
   open T
-  type pattern = Fun.t fpattern
+  type pattern = (Z.t,Fun.t,T.t) fpattern
 
   val pmatch : pattern -> term -> term array
-    (** Raise [Not_found] or returns the substitution as an array
-	indexed by pattern variable number. *)
+  (** Raise [Not_found] or returns the substitution as an array
+      	indexed by pattern variable number. *)
 
   val pmatch_all : pattern list -> term list -> term array
-    (** Raise [Not_found] or returns the substitution as an array
-	indexed by pattern variable number. *)
+  (** Raise [Not_found] or returns the substitution as an array
+      	indexed by pattern variable number. *)
 
-  val instance : term array -> pattern -> term
-    (** Compute the term matched by the pattern and the substitution. *)
+  val pretty : pattern Plib.printer
 
 end
 

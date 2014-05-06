@@ -2,8 +2,8 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2013                                               #
-#    CEA (Commissariat à l'énergie atomique et aux énergies              #
+#  Copyright (C) 2007-2014                                               #
+#    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              #
 #         alternatives)                                                  #
 #                                                                        #
 #  you can redistribute it and/or modify it under the terms of the GNU   #
@@ -57,7 +57,8 @@
 # PLUGIN_DEPFLAGS Additional options for ocamldep
 # PLUGIN_GENERATED ML files that must be generated in order to compute
 # 	dependencies
-# PLUGIN_DEPENDS Plugins the current plugin depends upon
+# PLUGIN_DEPENDS Plugins the current plugin depends upon (deprecated)
+# PLUGIN_DEPENDENCIES Dynamic plugins the current dynamic plugin depends upon
 #
 # Documentation
 # -------------
@@ -278,6 +279,19 @@ TARGET_GUI_CMA:=
 TARGET_GUI_CMXA:=
 endif
 
+# The file containing the plug-in dependencies
+ifeq ($(PLUGIN_DYNAMIC),yes)
+$(PLUGIN_DIR)/dependencies/$(PLUGIN_NAME)_dependencies.ml: \
+		$($(PLUGIN_NAME)_DIR)/Makefile
+	$(PRINT_MAKING) $@
+	$(MKDIR) $(PLUGIN_DIR)/dependencies
+	$(RM) $@
+	for f in \
+	  $($(patsubst dependencies/%_dependencies.ml,%_DEPENDENCIES,$@)); do \
+	  echo "let () = Dynamic.add_dependencies ~from:\"$$f\" \"$(patsubst dependencies/%_dependencies.ml,%,$@)\"" >> $@; \
+	done
+endif
+
 # Some meta-variables for compilation flags
 NAME_BFLAGS :=$(PLUGIN_NAME)_BFLAGS
 NAME_OFLAGS :=$(PLUGIN_NAME)_OFLAGS
@@ -301,6 +315,7 @@ $(PLUGIN_NAME)_TARGET_BFLAGS:=$(PLUGIN_LINK_BFLAGS)
 $(PLUGIN_NAME)_TARGET_OFLAGS:=$(PLUGIN_LINK_OFLAGS)
 $(PLUGIN_NAME)_EXTRA_BYTE:=$(PLUGIN_EXTRA_BYTE)
 $(PLUGIN_NAME)_EXTRA_OPT:=$(PLUGIN_EXTRA_OPT)
+$(PLUGIN_NAME)_DEPENDENCIES:=$(PLUGIN_DEPENDENCIES)
 
 ifeq ($(HAS_GUI),yes)
 # gui variable
@@ -312,8 +327,14 @@ $(PLUGIN_NAME)_gui_TARGET_GUI_OFLAGS:=$(PLUGIN_LINK_GUI_OFLAGS)
 endif
 
 # Set the compilation flags for the plugin
-$(NAME_BFLAGS):=$(BFLAGS) -I $(PLUGIN_DIR) $(PLUGIN_BFLAGS)
-$(NAME_OFLAGS):=$(OFLAGS) -I $(PLUGIN_DIR) $(PLUGIN_OFLAGS)
+INCLUDE_FLAGS:=-I $(PLUGIN_DIR)
+ifdef PLUGIN_INSTALL_DIR
+INCLUDE_FLAGS:=-I $(PLUGIN_INSTALL_DIR) $(INCLUDE_FLAGS)
+endif
+
+$(NAME_BFLAGS):=$(BFLAGS) $(INCLUDE_FLAGS) $(PLUGIN_BFLAGS)
+$(NAME_OFLAGS):=$(OFLAGS) $(INCLUDE_FLAGS) $(PLUGIN_OFLAGS)
+
 $(TARGET_BFLAGS):= $(PLUGIN_LINK_BFLAGS)
 $(TARGET_OFLAGS):= $(PLUGIN_LINK_OFLAGS)
 $(NAME_DOCFLAGS):= $(DOC_FLAGS) $(PLUGIN_DOCFLAGS) \
@@ -348,6 +369,7 @@ ifeq ("$(PLUGIN_HAS_MLI)","yes")
 PLUGIN_MLI:= $(PLUGIN_DIR)/$(PLUGIN_NAME).mli
 TARGET_MLI:= $(PLUGIN_LIB_DIR)/$(PLUGIN_NAME).mli
 TARGET_CMI:= $(TARGET_MLI:.mli=.cmi)
+$(TARGET_CMI): BFLAGS:=$($(NAME_BFLAGS))
 
 ifneq ($(TARGET_MLI),$(PLUGIN_MLI))
 # Copy the plugin interface in the plugins directory
@@ -364,25 +386,44 @@ endif
 
 $(PLUGIN_NAME)_MLI:=$(TARGET_MLI)
 
-$(TARGET_CMO): $(PLUGIN_CMO) $(TARGET_CMI) \
+ifeq ($(PLUGIN_DYNAMIC),yes)
+ifdef PLUGIN_DEPENDENCIES
+EXTRA_CMO_DEP:=$(patsubst %.ml,%.cmo,\
+		  $(PLUGIN_DIR)/dependencies/$(PLUGIN_NAME)_dependencies.ml)
+EXTRA_CMX_DEP:=$(EXTRA_CMO_DEP:.cmo=.cmxs)
+
+$(EXTRA_CMO_DEP): BFLAGS:=$($(NAME_BFLAGS)) -I $(PLUGIN_DIR)/dependencies
+$(EXTRA_CMX_DEP) $(EXTRA_CMO_DEP): \
+	$(PLUGIN_DIR)/dependencies/$(PLUGIN_NAME)_dependencies.ml
+$(EXTRA_CMX_DEP): OFLAGS:=$($(NAME_BFLAGS)) -I $(PLUGIN_DIR)/dependencies
+else
+EXTRA_DEP:=
+endif
+else
+EXTRA_DEP:=
+endif
+
+$(TARGET_CMI): $(EXTRA_CMO_DEP) $(PLUGIN_CMO)
+
+$(TARGET_CMO): $(EXTRA_CMO_DEP) $(PLUGIN_CMO) $(TARGET_CMI) \
                $(PLUGIN_DEPENDS:%=$(PLUGIN_LIB_DIR)/%.cmi)
 	$(PRINT_PACKING) $@
-	$(OCAMLC) -o $@ $($(basename $(notdir $@))_BFLAGS) -pack \
+	$(OCAMLC) -o $(call winpath,$@) $($(basename $(notdir $@))_BFLAGS) -pack \
 	  $($(basename $(notdir $@))_TARGET_BFLAGS) \
 	  $($(basename $(notdir $@))_CMO)
 
-$(TARGET_CMX): $(PLUGIN_CMX) $(TARGET_CMI) \
+$(TARGET_CMX): $(EXTRA_CMX_DEP) $(PLUGIN_CMX) $(TARGET_CMI) \
                $(PLUGIN_DEPENDS:%=$(PLUGIN_LIB_DIR)/%.cmi) \
                $(PLUGIN_DEPENDS:%=$(PLUGIN_LIB_DIR)/%.cmx)
 	$(PRINT_PACKING) $@
-	$(OCAMLOPT) -o $@ $($(basename $(notdir $@))_OFLAGS) -pack \
+	$(OCAMLOPT) -o $(call winpath,$@) $($(basename $(notdir $@))_OFLAGS) -pack \
 	  $($(basename $(notdir $@))_TARGET_OFLAGS) \
 	  $($(basename $(notdir $@))_CMX)
 
 ifeq ("$(USABLE_NATIVE_DYNLINK) $(PLUGIN_DYNAMIC)","yes yes")
 $(TARGET_CMXS): $(TARGET_CMX) $(PLUGIN_EXTRA_OPT)
 	$(PRINT_PACKING) $@
-	$(OCAMLOPT) -o $@ -shared \
+	$(OCAMLOPT) -o $(call winpath,$@) -shared \
 	  $($(basename $(notdir $@))_OFLAGS) \
 	  $($(basename $(notdir $@))_EXTRA_OPT) \
           $(@:.cmxs=.cmx)
@@ -399,7 +440,7 @@ TARGET_CMI:=
 $(TARGET_CMO): $(PLUGIN_CMO) \
                $(PLUGIN_DEPENDS:%=$(PLUGIN_LIB_DIR)/%.cmi)
 	$(PRINT_PACKING) $@
-	$(OCAMLC) -o $@ $($(basename $(notdir $@))_BFLAGS) -pack \
+	$(OCAMLC) -o $(call winpath,$@) $($(basename $(notdir $@))_BFLAGS) -pack \
 	  $($(basename $(notdir $@))_TARGET_BFLAGS) \
 	  $($(basename $(notdir $@))_CMO)
 
@@ -407,14 +448,14 @@ $(TARGET_CMX): $(PLUGIN_CMX) \
                $(PLUGIN_DEPENDS:%=$(PLUGIN_LIB_DIR)/%.cmi) \
                $(PLUGIN_DEPENDS:%=$(PLUGIN_LIB_DIR)/%.cmx)
 	$(PRINT_PACKING) $@
-	$(OCAMLOPT) -o $@ $($(basename $(notdir $@))_OFLAGS) -pack \
+	$(OCAMLOPT) -o $(call winpath,$@) $($(basename $(notdir $@))_OFLAGS) -pack \
 	  $($(basename $(notdir $@))_TARGET_OFLAGS) \
 	  $($(basename $(notdir $@))_CMX)
 
 ifeq ("$(USABLE_NATIVE_DYNLINK) $(PLUGIN_DYNAMIC)","yes yes")
 $(TARGET_CMXS): $(TARGET_CMX) $(PLUGIN_EXTRA_OPT)
 	$(PRINT_PACKING) $@
-	$(OCAMLOPT) -o $@ -shared \
+	$(OCAMLOPT) -o $(call winpath,$@) -shared \
 	  $($(basename $(notdir $@))_OFLAGS) \
 	  $($(basename $(notdir $@))_EXTRA_OPT) \
           $(@:.cmxs=.cmx)
@@ -425,7 +466,7 @@ endif # PLUGIN_HAS_MLI
 ifdef PLUGIN_EXTRA_BYTE
 $(TARGET_CMA): $(PLUGIN_EXTRA_BYTE) $(TARGET_CMO)
 	$(PRINT_PACKING) $@
-	$(OCAMLC) -o $@ $($(basename $(notdir $@))_BFLAGS) \
+	$(OCAMLC) -o $(call winpath,$@) $($(basename $(notdir $@))_BFLAGS) \
 	  $($(basename $(notdir $@))_TARGET_BFLAGS) \
 	  -a $($(basename $(notdir $@))_EXTRA_BYTE) $(@:.cma=.cmo)
 endif
@@ -433,7 +474,7 @@ endif
 ifdef PLUGIN_EXTRA_OPT
 $(TARGET_CMXA): $(PLUGIN_EXTRA_OPT) $(TARGET_CMX)
 	$(PRINT_PACKING) $@
-	$(OCAMLOPT) -o $@ -a $($(basename $(notdir $@))_EXTRA_OPT) \
+	$(OCAMLOPT) -o $(call winpath,$@) -a $($(basename $(notdir $@))_EXTRA_OPT) \
 	  $(@:.cmxa=.cmx)
 endif
 
@@ -462,7 +503,7 @@ $(TARGET_GUI_CMO): $(PLUGIN_GUI_CMO) $(TARGET_GUI_CMI) \
                $(PLUGIN_DEPENDS:%=$(PLUGIN_LIB_DIR)/%.cmi)
 	$(PRINT_PACKING) $@
 	$(MKDIR) $(PLUGIN_LIB_DIR)/gui
-	$(OCAMLC) -o $@ $($(basename $(notdir $@))_BFLAGS) -pack \
+	$(OCAMLC) -o $(call winpath,$@) $($(basename $(notdir $@))_BFLAGS) -pack \
 	  $($(basename $(notdir $@))_TARGET_GUI_BFLAGS) \
 	  $($(basename $(notdir $@))_gui_CMO)
 
@@ -471,7 +512,7 @@ $(TARGET_GUI_CMX): $(PLUGIN_GUI_CMX) $(TARGET_GUI_CMI) \
 	       $(PLUGIN_DEPENDS:%=$(PLUGIN_LIB_DIR)/%.cmx)
 	$(PRINT_PACKING) $@
 	$(MKDIR) $(PLUGIN_LIB_DIR)/gui
-	$(OCAMLOPT) -o $@ $($(basename $(notdir $@))_OFLAGS) -pack \
+	$(OCAMLOPT) -o $(call winpath,$@) $($(basename $(notdir $@))_OFLAGS) -pack \
 	  $($(basename $(notdir $@))_TARGET_OFLAGS) \
 	  $($(basename $(notdir $@))_gui_CMX)
 
@@ -479,7 +520,7 @@ ifeq ("$(USABLE_NATIVE_DYNLINK) $(PLUGIN_DYNAMIC)","yes yes")
 $(TARGET_GUI_CMXS): $(TARGET_GUI_CMX)
 	$(PRINT_PACKING) $@
 	$(MKDIR) $(PLUGIN_LIB_DIR)/gui
-	$(OCAMLOPT) -o $@ -shared \
+	$(OCAMLOPT) -o $(call winpath,$@) -shared \
 	  $($(basename $(notdir $@))_OFLAGS) \
           $($(basename $(notdir $@))_TARGET_OFLAGS) \
           $($(basename $(notdir $@))_EXTRA_OPT) \
@@ -497,7 +538,7 @@ $(TARGET_GUI_CMO): $(PLUGIN_GUI_CMO) \
                $(PLUGIN_DEPENDS:%=$(PLUGIN_LIB_DIR)/%.cmi)
 	$(PRINT_PACKING) $@
 	$(MKDIR) $(PLUGIN_LIB_DIR)/gui
-	$(OCAMLC) -o $@ $($(basename $(notdir $@))_BFLAGS) -pack \
+	$(OCAMLC) -o $(call winpath,$@) $($(basename $(notdir $@))_BFLAGS) -pack \
 	  $($(basename $(notdir $@))_TARGET_GUI_BFLAGS) \
 	  $($(basename $(notdir $@))_gui_CMO)
 
@@ -506,7 +547,7 @@ $(TARGET_GUI_CMX): $(PLUGIN_GUI_CMX) \
 	       $(PLUGIN_DEPENDS:%=$(PLUGIN_LIB_DIR)/%.cmx)
 	$(PRINT_PACKING) $@
 	$(MKDIR) $(PLUGIN_LIB_DIR)/gui
-	$(OCAMLOPT) -o $@ $($(basename $(notdir $@))_OFLAGS) -pack \
+	$(OCAMLOPT) -o $(call winpath,$@) $($(basename $(notdir $@))_OFLAGS) -pack \
 	  $($(basename $(notdir $@))_TARGET_OFLAGS) \
 	  $($(basename $(notdir $@))_gui_CMX)
 
@@ -514,7 +555,7 @@ ifeq ("$(USABLE_NATIVE_DYNLINK) $(PLUGIN_DYNAMIC)","yes yes")
 $(TARGET_GUI_CMXS): $(TARGET_GUI_CMX)
 	$(PRINT_PACKING) $@
 	$(MKDIR) $(PLUGIN_LIB_DIR)/gui
-	$(OCAMLOPT) -o $@ -shared \
+	$(OCAMLOPT) -o $(call winpath,$@) -shared \
 	  $($(basename $(notdir $@))_OFLAGS) \
           $($(basename $(notdir $@))_TARGET_OFLAGS) \
 	  $($(basename $(notdir $@))_EXTRA_OPT) \
@@ -525,7 +566,7 @@ endif # PLUGIN_HAS_MLI
 ifdef PLUGIN_EXTRA_BYTE
 $(TARGET_GUI_CMA): $(PLUGIN_EXTRA_BYTE) $(TARGET_GUI_CMO)
 	$(PRINT_PACKING) $@
-	$(OCAMLC) -o $@ $($(basename $(notdir $@))_BFLAGS) \
+	$(OCAMLC) -o $(call winpath,$@) $($(basename $(notdir $@))_BFLAGS) \
 	  $($(basename $(notdir $@))_TARGET_BFLAGS) \
 	  -a $($(basename $(notdir $@))_EXTRA_BYTE) $(@:.cma=.cmo)
 endif
@@ -533,7 +574,7 @@ endif
 ifdef PLUGIN_EXTRA_OPT
 $(TARGET_GUI_CMXA): $(PLUGIN_EXTRA_OPT) $(TARGET_GUI_CMX)
 	$(PRINT_PACKING) $@
-	$(OCAMLOPT) -o $@ -a $($(basename $(notdir $@))_EXTRA_OPT) \
+	$(OCAMLOPT) -o $(call winpath,$@) -a $($(basename $(notdir $@))_EXTRA_OPT) \
 	  $(@:.cmxa=.cmx)
 endif
 else
@@ -607,12 +648,12 @@ ifneq ($(FRAMAC_MAKE),yes)
 
 $(DOC_DIR)/docgen.cmo: $(DOC_DIR)/docgen.ml
 	$(PRINT_OCAMLC) $@
-	$(OCAMLC) -c -I +ocamldoc $(DOC_DIR)/docgen.ml
+	$(OCAMLC) -c -I +ocamldoc $(call winpath,$(DOC_DIR))/docgen.ml
 
 $(DOC_DIR)/docgen.cmxs: $(DOC_DIR)/docgen.ml
 	$(PRINT_PACKING) $@
-	$(OCAMLOPT) -o $@ -shared -I +ocamldoc \
-	  $(DOC_DIR)/docgen.ml
+	$(OCAMLOPT) -o $(call winpath,$@) -shared -I +ocamldoc \
+	  $(call winpath,$(DOC_DIR))/docgen.ml
 else
 OCAMLDOC_GEN+=$(DOC_DIR)/kernel-doc.ocamldoc
 endif
@@ -773,7 +814,7 @@ $(PLUGIN_DIR)/$(PLUGIN_NAME)_DEP: $(PLUGIN_GENERATED) $(TARGET_MLI) $(TARGET_GUI
 	    $(foreach d, $($(basename $(notdir $@))FLAGS_TEST), -I $d $d/*.ml $d/*.mli) \
               > $(dir $@).depend
 	$(TOUCH) $@
-	$(CHMOD_RW) $(dir $@).depend
+	$(CHMOD_RO) $(dir $@).depend
 # touch above = Do not recompute dependances each times
 
 ############
@@ -786,7 +827,8 @@ $(PLUGIN_DIR)/$(PLUGIN_NAME)_CLEAN:
 	if test "$(FRAMAC_MAKE)" = "yes"; then \
           $(RM) $(dir $@).depend; \
         fi
-	$(RM) $(PLUGIN_GENERATED)
+	$(RM) $(PLUGIN_GENERATED) 
+	$(RM) -r $(PLUGIN_DIR)/dependencies
 	$(RM) $(@:%CLEAN=%DEP) $(@:%CLEAN=%DEP_REDO)
 	$(RM) $(patsubst %.cmo,%.cm*,$($(patsubst %_CLEAN,%_CMO,$(notdir $@))))
 	$(RM) $(patsubst %.cmi,%.cm*,$($(patsubst %_CLEAN,%_CMI,$(notdir $@))))
@@ -928,6 +970,7 @@ PLUGIN_NO_TEST:=
 PLUGIN_TESTS_LIB:=
 PLUGIN_TESTS_DIRS:=
 PLUGIN_DEPENDS:=
+PLUGIN_DEPENDENCIES:=
 PLUGIN_DISTRIBUTED:=
 PLUGIN_DISTRIB_BIN:=
 PLUGIN_DISTRIB_EXTERNAL:=

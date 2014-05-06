@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -43,24 +43,24 @@ struct
     vrank : int ;
     vtau : T.t ;
   }
-  
+
   let hash_var x = Hcons.hash_pair x.vrank (Hashtbl.hash x.vbase)
 
   let pretty fmt x = Format.fprintf fmt "%s_%d" x.vbase x.vrank
-    
+
   (* HASHCONSING *)
-    
+
   module W = Weak.Make
-    (struct
-       type t = var
-       let hash = hash_var
-       let equal x y = 
-	 x.vbase = y.vbase && x.vrank = y.vrank && T.equal x.vtau y.vtau
-     end)
-    
+      (struct
+        type t = var
+        let hash = hash_var
+        let equal x y = 
+          x.vbase = y.vbase && x.vrank = y.vrank && T.equal x.vtau y.vtau
+      end)
+
   let kid = ref 0
   let hmap = W.create 32993 (* 3-th Leyland Prime number *)
-    
+
   let insert base rank tau =
     let x0 = {
       vid = 0 ;
@@ -70,8 +70,8 @@ struct
     } in
     try W.find hmap x0
     with Not_found ->
-      let k = let i = !kid in (assert (i <> -1) ; incr kid ; i) in
-      let x = { x0 with vid = k } in W.add hmap x ; x
+        let k = let i = !kid in (assert (i <> -1) ; incr kid ; i) in
+        let x = { x0 with vid = k } in W.add hmap x ; x
 
   let dummy = insert "" 0 T.dummy
 
@@ -82,7 +82,7 @@ struct
     if cmp <> 0 then cmp else 
       let cmp = Pervasives.compare x.vrank y.vrank in
       if cmp <> 0 then cmp else
-	Pervasives.compare x.vid y.vid
+        Pervasives.compare x.vid y.vid
 
   (* POOL *)
 
@@ -94,7 +94,7 @@ struct
   let counter pool base = 
     try Hashtbl.find pool base
     with Not_found ->
-      let c = ref 0 in Hashtbl.add pool base c ; c
+        let c = ref 0 in Hashtbl.add pool base c ; c
 
   let add pool x =
     let c = counter pool x.vbase in

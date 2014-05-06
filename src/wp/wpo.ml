@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -43,17 +43,23 @@ let pp_index fmt = function
   | Function(f,None) -> Kernel_function.pretty fmt f
   | Function(f,Some b) -> Format.fprintf fmt "%a for %s:" Kernel_function.pretty f b
 
+let pp_axiomatics fmt ax =
+  flow := true ;
+  match ax with
+  | None -> Format.fprintf fmt "%s@\n  Global@\n%s@\n@\n" bar bar
+  | Some a -> Format.fprintf fmt "%s@\n  Axiomatic '%s'@\n%s@\n@\n" bar a bar
+
 let pp_function fmt kf bhv =
   flow := true ;
   match bhv with
-    | None ->
-        Format.fprintf fmt
-          "%s@\n  Function %s@\n%s@\n@\n"
-          bar (Kernel_function.get_name kf) bar
-    | Some bhv ->
-        Format.fprintf fmt
-          "%s@\n  Function %s with behavior %s@\n%s@\n@\n"
-          bar (Kernel_function.get_name kf) bhv bar
+  | None ->
+      Format.fprintf fmt
+        "%s@\n  Function %s@\n%s@\n@\n"
+        bar (Kernel_function.get_name kf) bar
+  | Some bhv ->
+      Format.fprintf fmt
+        "%s@\n  Function %s with behavior %s@\n%s@\n@\n"
+        bar (Kernel_function.get_name kf) bhv bar
 
 let pp_warnings fmt ws =
   List.iter (fun w -> Format.fprintf fmt "%a@\n" Warning.pretty w) ws
@@ -66,11 +72,11 @@ let pp_dependency context fmt d =
 
 let pp_dependencies context fmt ds = 
   List.iter (fun d -> Format.fprintf fmt "%a@\n" (pp_dependency context) d) ds
-    
+
 let pp_depend fmt d =
   Format.fprintf fmt " - Assumes %a" 
     (Description.pp_localized ~kf:`Always ~ki:false ~kloc:true) d
-  
+
 (* ------------------------------------------------------------------------ *)
 (* ---  Proof Obligations Definition                                    --- *)
 (* ------------------------------------------------------------------------ *)
@@ -85,9 +91,9 @@ struct
     let fmt = Format.formatter_of_buffer buffer in
     Format.fprintf fmt "%s/%s/%s" dir mid id ;
     (match prover with None -> () | Some p -> 
-       Format.fprintf fmt "_%s" (filename_for_prover p)) ;
+      Format.fprintf fmt "_%s" (filename_for_prover p)) ;
     (match suffix with None -> () | Some s ->
-       Format.fprintf fmt "_%s" s) ;
+      Format.fprintf fmt "_%s" s) ;
     Format.fprintf fmt ".%s" ext ;
     Format.pp_print_flush fmt ();
     Buffer.contents buffer
@@ -123,14 +129,14 @@ struct
   let dump_file fmt title file =
     if Sys.file_exists file then 
       begin
-	Format.fprintf fmt "--- %s ---------------------------------@\n" title ;
-	Command.pp_from_file fmt file
+        Format.fprintf fmt "--- %s ---------------------------------@\n" title ;
+        Command.pp_from_file fmt file
       end
 
   let pretty ~pid ~model ~prover ~result fmt =
     begin
       Format.fprintf fmt "[%a] Goal %a : %a@\n" 
-	pp_prover prover WpPropId.pp_propid pid pp_result result ;
+        pp_prover prover WpPropId.pp_propid pid pp_result result ;
       dump_file fmt "StdOut" (file_logout ~pid ~model ~prover) ;
       dump_file fmt "StdErr" (file_logerr ~pid ~model ~prover) ;
     end
@@ -154,71 +160,68 @@ module GOAL =
 struct
 
   type t = {
-    mutable simplified : bool ;
     mutable time : float ;
-    mutable hyps : Conditions.t ;
-    mutable goal : F.pred ;
+    mutable simplified : bool ;
+    mutable sequent : Conditions.sequent ;
     mutable obligation : F.pred ;
   }
 
+  let empty = Conditions.hypotheses Conditions.empty
+
   let dummy = {
-    simplified = false ;
     time = 0.0 ;
-    hyps = Conditions.freeze Conditions.empty ;
-    goal = F.p_false ;
+    simplified = false ;
+    sequent = empty , F.p_false ;
     obligation = F.p_false ;
   }
 
   let trivial = {
-    simplified = true ;
     time = 0.0 ;
-    hyps = Conditions.freeze Conditions.empty ;
-    goal = F.p_true ;
+    simplified = true ;
+    sequent = empty , F.p_true ;
     obligation = F.p_true ;
   }
 
-  let make hyps goal = {
-    simplified = false ;
+  let make sequent = {
     time = 0.0 ;
-    hyps = hyps ;
-    goal = goal ;
+    simplified = false ;
+    sequent = sequent ;
     obligation = F.p_false ;
   }
 
-  let is_trivial g = g.goal == F.p_true
-      
-  let apply phi g =
-    let (hs,p) = phi g.hyps g.goal in
-    g.hyps <- hs ; g.goal <- p
+  let is_trivial g = snd g.sequent == F.p_true
+
+  let apply phi g = g.sequent <- phi g.sequent
 
   let preprocess g =
     if Wp_parameters.Let.get () then 
       begin
-	apply Conditions.letify g ;
-	if Wp_parameters.Prune.get () 
-	then apply Conditions.pruning g ;
+        let solvers = [] in
+        apply (Conditions.letify ~solvers) g ;
+        if Wp_parameters.Prune.get () 
+        then apply (Conditions.pruning ~solvers) g ;
       end
     else 
-      if Wp_parameters.Clean.get () 
-      then apply Conditions.clean g ;
-    g.obligation <- Conditions.close g.hyps g.goal
+    if Wp_parameters.Clean.get () 
+    then apply Conditions.clean g ;
+    g.obligation <- Conditions.close g.sequent
 
   let dkey = Wp_parameters.register_category "prover"
   let compute g =
     if not g.simplified then
       begin
-	g.simplified <- true ; 
-	let timer = ref 0.0 in
-	Wp_parameters.debug ~dkey "Simplify goal" ;
-	Command.time ~rmax:timer preprocess g ;
-	Wp_parameters.debug ~dkey "Simplification time: %a" 
-	  Rformat.pp_time !timer ;
-	g.time <- !timer ;
+        g.simplified <- true ; 
+        let timer = ref 0.0 in
+        Wp_parameters.debug ~dkey "Simplify goal" ;
+        Command.time ~rmax:timer preprocess g ;
+        Wp_parameters.debug ~dkey "Simplification time: %a" 
+          Rformat.pp_time !timer ;
+        g.time <- !timer ;
       end
-	    
+
   let compute_proof g = compute g ; g.obligation
-  let compute_descr g = compute g ; g.hyps , g.goal
-  let get_descr g = g.hyps , g.goal
+  let compute_descr g = compute g ; g.sequent
+  let get_descr g = g.sequent
   let qed_time g = g.time
 
 end
@@ -226,9 +229,8 @@ end
 module VC_Lemma =
 struct
 
-  open Lang
   open Definitions
-  
+
   type t = {
     lemma : Definitions.dlemma ;
     depends : logic_lemma list ;
@@ -240,23 +242,23 @@ struct
     begin
       Format.fprintf fmt "Lemma %s:@\n" vc.lemma.l_name ;
       if vc.depends <> [] then
-	begin
-	  Format.fprintf fmt "@[<hov 2>@{<bf>Assume@}:" ;
-	  List.iter
-	    (fun a -> Format.fprintf fmt "@ '%s'" a.lem_name)
-	    vc.depends ;
-	  Format.fprintf fmt "@]@." ;
-	end ;
+        begin
+          Format.fprintf fmt "@[<hov 2>@{<bf>Assume@}:" ;
+          List.iter
+            (fun a -> Format.fprintf fmt "@ '%s'" a.lem_name)
+            vc.depends ;
+          Format.fprintf fmt "@]@." ;
+        end ;
       Format.fprintf fmt "@{<bf>Prove@}: @[<hov 2>%a@]@." F.pp_pred vc.lemma.l_lemma ;
       List.iter
-	(fun (prover,result) ->
-	   if result.verdict <> NoResult then
-	     Format.fprintf fmt "Prover %a returns %a@\n"
-	       pp_prover prover
-	       pp_result result
-	) results ;
+        (fun (prover,result) ->
+           if result.verdict <> NoResult then
+             Format.fprintf fmt "Prover %a returns %a@\n"
+               pp_prover prover
+               pp_result result
+        ) results ;
     end
- 
+
   let cache_descr vc results =
     DISK.cache_descr (fun fmt -> pretty fmt vc results)
 
@@ -273,7 +275,7 @@ struct
     path : Stmt.Set.t ;
     effect : (stmt * WpPropId.effect_source) option ;
   }
-      
+
   let repr = { 
     goal = GOAL.dummy ;
     tags = [] ;
@@ -289,40 +291,53 @@ struct
   let pp_effect fmt = function
     | None -> ()
     | Some(s,e) -> 
-	let loc = fst (Stmt.loc s) in
-	let line = loc.Lexing.pos_lnum in
-	let desc = match e with 
-	  | WpPropId.FromCode -> "Effect"
-	  | WpPropId.FromCall -> "Call Effect"
-	  | WpPropId.FromReturn -> "Call Result"
-	in
-	Format.fprintf fmt "%s at line %d@\n" desc line
+        let loc = fst (Stmt.loc s) in
+        let line = loc.Lexing.pos_lnum in
+        let desc = match e with 
+          | WpPropId.FromCode -> "Effect"
+          | WpPropId.FromCall -> "Call Effect"
+          | WpPropId.FromReturn -> "Call Result"
+        in
+        Format.fprintf fmt "%s at line %d@\n" desc line
 
   let pretty fmt pid vc results =
     begin
       Format.fprintf fmt "@{<bf>Goal@} %a:@\n" WpPropId.pretty pid ;
       pp_effect fmt vc.effect ;
       if vc.tags <> [] then
-	begin
-	  Format.fprintf fmt "@[<hov 2>@{<bf>Tags@}:" ;
-	  List.iter (fun tg -> Format.fprintf fmt "@ %a" Splitter.pretty tg) vc.tags ;
-	  Format.fprintf fmt "@].@\n" ;
-	end ;
+        begin
+          Format.fprintf fmt "@[<hov 2>@{<bf>Tags@}:" ;
+          List.iter (fun tg -> Format.fprintf fmt "@ %a" Splitter.pretty tg) vc.tags ;
+          Format.fprintf fmt "@].@\n" ;
+        end ;
       pp_warnings fmt vc.warn ;
-      let hyps,goal = GOAL.compute_descr vc.goal in
-      Conditions.pretty fmt hyps goal ;
+      Conditions.pretty fmt (GOAL.compute_descr vc.goal) ;
       List.iter
-	(fun (prover,result) ->
-	   if result.verdict <> NoResult then
-	     Format.fprintf fmt "Prover %a returns %a@\n"
-	       pp_prover prover
-	       pp_result result
-	) results ;
+        (fun (prover,result) ->
+           if result.verdict <> NoResult then
+             Format.fprintf fmt "Prover %a returns %a@\n"
+               pp_prover prover
+               pp_result result
+        ) results ;
     end
- 
+
   let cache_descr ~pid vc results =
     DISK.cache_descr (fun fmt -> pretty fmt pid vc results)
 
+end
+
+(* ------------------------------------------------------------------------ *)
+(* ---  VC-Check                                                        --- *)
+(* ------------------------------------------------------------------------ *)
+
+module VC_Check =
+struct
+  type t = { qed : F.term ; raw : F.term ; goal : F.pred }
+  let pretty fmt v =
+    Format.fprintf fmt "Class %d - instance %d@\n" 
+      (F.id v.qed) (F.id v.raw) ;
+    Format.fprintf fmt "@[<hov 2>Prove %a@]@."
+      F.pp_pred v.goal
 end
 
 (* ------------------------------------------------------------------------ *)
@@ -332,6 +347,7 @@ end
 type formula = 
   | GoalLemma of VC_Lemma.t
   | GoalAnnot of VC_Annot.t
+  | GoalCheck of VC_Check.t
 
 type po = t and t = {
   po_gid   : string ;  (* goal identifier *)
@@ -353,6 +369,7 @@ let get_depend = function
       Property.Set.elements ips
   | { po_formula = GoalLemma { VC_Lemma.depends = ips } } -> 
       List.map LogicUsage.ip_lemma ips
+  | { po_formula = GoalCheck _ } -> []
 
 let get_file_logout w prover = 
   DISK.file_logout ~pid:w.po_pid ~model:(get_model w) ~prover
@@ -365,56 +382,56 @@ struct
   type t = index
   let cmpopt a b = 
     match a,b with
-      | Some a,Some b -> String.compare a b
-      | None,Some _ -> (-1)
-      | Some _,None -> 1
-      | None,None -> 0
+    | Some a,Some b -> String.compare a b
+    | None,Some _ -> (-1)
+    | Some _,None -> 1
+    | None,None -> 0
   let compare a b =
     match a,b with
-      | Axiomatic a , Axiomatic b -> cmpopt a b
-      | Axiomatic _ , Function _ -> (-1)
-      | Function _ , Axiomatic _ -> 1
-      | Function(f,a) , Function(g,b) -> 
-	  let c = 
-            if Kernel_function.equal f g then 0 else
-	      String.compare 
-		(Kernel_function.get_name f) 
-		(Kernel_function.get_name g)
-	  in
-	  if c=0 then cmpopt a b else c
+    | Axiomatic a , Axiomatic b -> cmpopt a b
+    | Axiomatic _ , Function _ -> (-1)
+    | Function _ , Axiomatic _ -> 1
+    | Function(f,a) , Function(g,b) -> 
+        let c = 
+          if Kernel_function.equal f g then 0 else
+            String.compare 
+              (Kernel_function.get_name f) 
+              (Kernel_function.get_name g)
+        in
+        if c=0 then cmpopt a b else c
 end
 
 module PODatatype =
   Datatype.Make_with_collections
     (struct
-       type t = po
-       include Datatype.Undefined
-       let hash a = Hashtbl.hash a.po_gid
-       let equal a b = (a.po_gid = b.po_gid)
-       let compare a b =
-         let c = Index.compare a.po_idx b.po_idx in
-         if c<>0 then c else
-           let c = WpPropId.compare_prop_id a.po_pid b.po_pid in
-           if c<>0 then c else
-	     let ma = get_model_name a in
-	     let mb = get_model_name b in
-	     let c = String.compare ma mb in
-	     if c<>0 then c else
-	       String.compare a.po_gid b.po_gid
-       let pretty fmt wpo = Format.pp_print_string fmt wpo.po_name
-       let name = "Wpo.po"
-       let reprs =
-	 [{
-	    po_idx = Function(List.hd Kernel_function.reprs,Some "default") ;
-	    po_pid = List.hd WpPropId.PropId.reprs;
-	    po_gid = "xxx";
-            po_model = Model.repr ;
-	    po_updater = List.hd Emitter.reprs;
-            po_name = "dummy";
-	    po_formula = GoalAnnot VC_Annot.repr ;
-	  }]
-     end)
-    
+      type t = po
+      include Datatype.Undefined
+      let hash a = Hashtbl.hash a.po_gid
+      let equal a b = (a.po_gid = b.po_gid)
+      let compare a b =
+        let c = Index.compare a.po_idx b.po_idx in
+        if c<>0 then c else
+          let c = WpPropId.compare_prop_id a.po_pid b.po_pid in
+          if c<>0 then c else
+            let ma = get_model_name a in
+            let mb = get_model_name b in
+            let c = String.compare ma mb in
+            if c<>0 then c else
+              String.compare a.po_gid b.po_gid
+      let pretty fmt wpo = Format.pp_print_string fmt wpo.po_name
+      let name = "Wpo.po"
+      let reprs =
+        [{
+          po_idx = Function(List.hd Kernel_function.reprs,Some "default") ;
+          po_pid = List.hd WpPropId.PropId.reprs;
+          po_gid = "xxx";
+          po_model = Model.repr ;
+          po_updater = List.hd Emitter.reprs;
+          po_name = "dummy";
+          po_formula = GoalAnnot VC_Annot.repr ;
+        }]
+    end)
+
 module ProverType =
   Datatype.Make
     (struct
@@ -422,18 +439,18 @@ module ProverType =
       include Datatype.Undefined
       let name = "Wpo.prover"
       let reprs = [ AltErgo; Coq; Qed; Why3 "z3" ]
-     end)
+    end)
 
 module ResultType =
   Datatype.Make
     (struct
-        type t = result
-        include Datatype.Undefined
-        let name = "Wpo.result"
-        let reprs =
-	  List.map VCS.result
-	    [ Valid ; Invalid ; Unknown ; Timeout ; Failed ]
-     end)
+      type t = result
+      include Datatype.Undefined
+      let name = "Wpo.result"
+      let reprs =
+        List.map VCS.result
+          [ Valid ; Invalid ; Unknown ; Timeout ; Failed ]
+    end)
 
 (* -------------------------------------------------------------------------- *)
 (* --- Getters                                                            --- *)
@@ -451,17 +468,20 @@ let get_property =
     (Datatype.func PODatatype.ty Property.ty)
     (fun g -> WpPropId.property_of_id g.po_pid)
 
-
 (* -------------------------------------------------------------------------- *)
 (* --- Proof Collector                                                    --- *)
 (* -------------------------------------------------------------------------- *)
+
+let is_check t = match t.po_formula with
+  | GoalCheck _ -> true
+  | _ -> false
 
 let is_verdict r = match r.verdict with
   | Valid | Unknown | Invalid | Timeout | Stepout | Failed -> true
   | NoResult | Computing _ -> false
 
 module Hproof = Hashtbl.Make(Datatype.Pair(Datatype.String)(Property))
-  (* Table indexed by ( Model name , Property proved ) *)
+(* Table indexed by ( Model name , Property proved ) *)
 
 module Results =
 struct
@@ -493,7 +513,7 @@ end
 
 module WPOset = PODatatype.Set
 module WPOmap = PODatatype.Map
-module Gmap = Map.Make(Index)
+module Gmap = FCMap.Make(Index)
 module Fmap = Kernel_function.Map
 module Pmap = Property.Map
 
@@ -538,19 +558,19 @@ let clear_system system =
   end
 
 module SYSTEM = State_builder.Ref
-  (Datatype.Make
-     (struct
-        include Datatype.Undefined
-        type t = system
+    (Datatype.Make
+       (struct
+         include Datatype.Undefined
+         type t = system
          let name = "Wpo.SYSTEM.Datatype"
          let reprs = [ create_system () ]
          let mem_project = Datatype.never_any_project
-        end))
+       end))
     (struct
-       let name = "Wpo.SYSTEM.System"
-       let dependencies = [ Ast.self ]
-       let default = create_system
-     end)
+      let name = "Wpo.SYSTEM.System"
+      let dependencies = [ Ast.self ]
+      let default = create_system
+    end)
 
 let clear () = clear_system (SYSTEM.get ())
 
@@ -594,20 +614,20 @@ let add g =
     system.wpo_ip <- index_wpo Pmap.add Pmap.find ip g system.wpo_ip ;
     begin
       match g.po_idx with
-	| Function(kf,_) ->
-	    system.wpo_kf <- index_wpo Fmap.add Fmap.find kf g system.wpo_kf
-	| _ -> ()
+      | Function(kf,_) ->
+          system.wpo_kf <- index_wpo Fmap.add Fmap.find kf g system.wpo_kf
+      | _ -> ()
     end ;
     incr added ;
     if !added >= 100 then
       begin
-	added := 0 ;
-	Gmap.iter 
-	  (fun _ ws -> WPOset.iter (fun _ -> incr added) ws)
-	  system.wpo_idx ;
-	if not (Wp_parameters.has_dkey "no-goals-info") then
-	  Wp_parameters.feedback "Computing [%d goals...]" !added ;
-	added := 0 ;
+        added := 0 ;
+        Gmap.iter 
+          (fun _ ws -> WPOset.iter (fun _ -> incr added) ws)
+          system.wpo_idx ;
+        if not (Wp_parameters.has_dkey "no-goals-info") then
+          Wp_parameters.feedback "Computing [%d goals...]" !added ;
+        added := 0 ;
       end ;
   end
 
@@ -619,9 +639,9 @@ let remove g =
     system.wpo_ip <- unindex_wpo Pmap.add Pmap.find ip g system.wpo_ip ;
     begin
       match g.po_idx with
-	| Function(kf,_) ->
-	    system.wpo_kf <- unindex_wpo Fmap.add Fmap.find kf g system.wpo_kf
-	| Axiomatic _ -> ()
+      | Function(kf,_) ->
+          system.wpo_kf <- unindex_wpo Fmap.add Fmap.find kf g system.wpo_kf
+      | Axiomatic _ -> ()
     end ;
     system.results <- WPOmap.remove g system.results ;
     Hproof.remove system.proofs (get_model_id g , ip ) ;
@@ -630,6 +650,7 @@ let remove g =
 let warnings = function
   | { po_formula = GoalAnnot vcq } -> vcq.VC_Annot.warn
   | { po_formula = GoalLemma _ } -> []
+  | { po_formula = GoalCheck _ } -> []
 
 let is_valid = function { verdict=Valid } -> true | _ -> false
 let get_time = function { prover_time=t } -> t
@@ -646,7 +667,7 @@ let get_proof g =
     with Not_found -> false
   in status , target
 
-let set_po_result g r =
+let update_property_status g r =
   let system = SYSTEM.get () in
   try
     let pi = ( get_model_id g , WpPropId.property_of_id g.po_pid ) in
@@ -667,7 +688,7 @@ let set_po_result g r =
   with err ->
     Wp_parameters.failure "Update-status failed (%s)" (Printexc.to_string err) ;
     raise err
-      
+
 let set_result g p r =
   let system = SYSTEM.get () in
   begin
@@ -678,7 +699,8 @@ let set_result g p r =
         system.results <- WPOmap.add g rs system.results ; rs
     in
     Results.replace rs p r ;
-    set_po_result g r ;
+    if not (WpPropId.is_check g.po_pid) then
+      update_property_status g r ;
   end
 
 let get_result g p : VCS.result =
@@ -688,8 +710,15 @@ let get_result g p : VCS.result =
 
 let is_trivial g =
   match g.po_formula with
-    | GoalLemma g -> VC_Lemma.is_trivial g
-    | GoalAnnot g -> VC_Annot.is_trivial g
+  | GoalLemma g -> VC_Lemma.is_trivial g
+  | GoalAnnot g -> VC_Annot.is_trivial g
+  | GoalCheck _ -> false
+
+let resolve g =
+  match g.po_formula with
+  | GoalAnnot g -> VC_Annot.resolve g
+  | GoalLemma g -> VC_Lemma.is_trivial g
+  | GoalCheck _ -> false
 
 let get_result =
   Dynamic.register ~plugin:"Wp" "Wpo.get_result" ~journalize:false
@@ -714,10 +743,12 @@ let pp_title fmt w = WpPropId.pretty_local fmt w.po_pid
 let pp_goal fmt w =
   begin
     match w.po_formula with
-      | GoalAnnot vcq -> 
-	  VC_Annot.pretty fmt w.po_pid vcq (get_results w)
-      | GoalLemma vca -> 
-	  VC_Lemma.pretty fmt vca (get_results w)
+    | GoalAnnot vcq -> 
+        VC_Annot.pretty fmt w.po_pid vcq (get_results w)
+    | GoalLemma vca -> 
+        VC_Lemma.pretty fmt vca (get_results w)
+    | GoalCheck vck ->
+        VC_Check.pretty fmt vck
   end
 
 let pp_goal_flow fmt g =
@@ -747,43 +778,43 @@ let iter ?ip ?index ?on_axiomatics ?on_behavior ?on_goal () =
     match on_behavior with None -> () | Some phi -> phi f bhv in
   let on_part idx =
     match !current , idx with
-      | Paxiomatic a , Axiomatic b when a=b -> ()
-      | _ , Axiomatic b -> apply_lemma b ; current := Paxiomatic b
-      | Pbehavior(f,None) , Function(g,None) when Kernel_function.equal f g -> ()
-      | Pbehavior(f,Some a) , Function(g,Some b) when Kernel_function.equal f g && a=b -> ()
-      | _ , Function(g,bhv) -> apply_behavior g bhv ; current := Pbehavior(g,bhv)
+    | Paxiomatic a , Axiomatic b when a=b -> ()
+    | _ , Axiomatic b -> apply_lemma b ; current := Paxiomatic b
+    | Pbehavior(f,None) , Function(g,None) when Kernel_function.equal f g -> ()
+    | Pbehavior(f,Some a) , Function(g,Some b) when Kernel_function.equal f g && a=b -> ()
+    | _ , Function(g,bhv) -> apply_behavior g bhv ; current := Pbehavior(g,bhv)
   in
   let on_goals poset =
     if not (WPOset.is_empty poset) then
       begin
-	match on_goal with
-	  | None -> ()
-	  | Some phi -> WPOset.iter phi poset
+        match on_goal with
+        | None -> ()
+        | Some phi -> WPOset.iter phi poset
       end
   in
   match index,ip with
-    | None,None -> 
-	Gmap.iter (fun idx ws -> on_part idx ; on_goals ws) system.wpo_idx
-    | _,Some ip ->
-	begin
-	  match on_goal with
-	    | None -> ()
-	    | Some phi ->
-		let poset = 
-		  try Pmap.find ip system.wpo_ip 
-		  with Not_found -> WPOset.empty in
-		WPOset.iter phi poset
-	end
-    | Some (Function(kf,None)),None ->
-	begin
-	  try on_goals (Fmap.find kf system.wpo_kf)
-	  with Not_found -> ()
-	end
-    | Some idx,None ->
-	begin
-	  try on_goals (Gmap.find idx system.wpo_idx)
-	  with Not_found -> ()
-	end
+  | None,None -> 
+      Gmap.iter (fun idx ws -> on_part idx ; on_goals ws) system.wpo_idx
+  | _,Some ip ->
+      begin
+        match on_goal with
+        | None -> ()
+        | Some phi ->
+            let poset = 
+              try Pmap.find ip system.wpo_ip 
+              with Not_found -> WPOset.empty in
+            WPOset.iter phi poset
+      end
+  | Some (Function(kf,None)),None ->
+      begin
+        try on_goals (Fmap.find kf system.wpo_kf)
+        with Not_found -> ()
+      end
+  | Some idx,None ->
+      begin
+        try on_goals (Gmap.find idx system.wpo_idx)
+        with Not_found -> ()
+      end
 
 let iter_on_goals =
   Dynamic.register ~plugin:"Wp" "Wpo.iter_on_goals"
@@ -826,8 +857,8 @@ let _ =
        PODatatype.ty ProverType.ty
        (Datatype.pair Datatype.string Datatype.string))
     (fun w p -> 
-      (DISK.file_logout w.po_pid (get_model w) p,
-       DISK.file_logerr w.po_pid (get_model w) p))
+       (DISK.file_logout w.po_pid (get_model w) p,
+        DISK.file_logerr w.po_pid (get_model w) p))
 
 let pp_logfile fmt w prover =
   let model = get_model w in
@@ -840,20 +871,21 @@ let get_files w =
   let results = get_results w in
   let descr_files = match w.po_formula with
     | GoalAnnot vcq -> 
-	[ "Goal" , VC_Annot.cache_descr ~pid:w.po_pid vcq results ] 
+        [ "Goal" , VC_Annot.cache_descr ~pid:w.po_pid vcq results ] 
     | GoalLemma vca -> 
-	[ "Lemma" , VC_Lemma.cache_descr vca results ] 
+        [ "Lemma" , VC_Lemma.cache_descr vca results ] 
+    | GoalCheck _ -> []
   in
   let result_files = 
     List.fold_right
       (fun (prover,result) files ->
-	 if prover <> VCS.Qed && not (is_computing result.verdict) then
-	   let filename = get_logfile w prover result in
-	   if filename <> "" && Sys.file_exists filename then
-	     let title = name_of_prover prover in
-	     (title,filename) :: files
-	   else files
-	 else files
+         if prover <> VCS.Qed && not (is_computing result.verdict) then
+           let filename = get_logfile w prover result in
+           if filename <> "" && Sys.file_exists filename then
+             let title = name_of_prover prover in
+             (title,filename) :: files
+           else files
+         else files
       ) results []
   in
   descr_files @ result_files

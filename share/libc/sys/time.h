@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2013                                               */
+/*  Copyright (C) 2007-2014                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -52,20 +52,20 @@ int utimes(const char *path, const struct timeval times[2]);
   @   assumes tv != \null && tz == \null;
   @   assigns tv->tv_sec \from __fc_time;
   @   assigns tv->tv_usec \from __fc_time;
-  @   ensures \initialized(tv);
+  @   ensures \initialized(&tv->tv_sec) && \initialized(&tv->tv_usec);
   @
   @ behavior tz_not_null:
   @   assumes tv == \null && tz != \null;
-  @   assigns tz[0..] \from __fc_tz;
+  @   assigns *tz \from __fc_tz;
   @   ensures \initialized(tz);
   @
   @ behavior tv_and_tz_not_null:
   @   assumes tv != \null && tz != \null;
   @   assigns tv->tv_sec \from __fc_time;
   @   assigns tv->tv_usec \from __fc_time;
-  @   assigns tz[0..] \from __fc_tz;
-  @   ensures \initialized(tv);
-  @   ensures \initialized(tz);
+  @   assigns *tz \from __fc_tz;
+  @   ensures \initialized(&tv->tv_sec) && \initialized(&tv->tv_usec);
+  @   ensures \initialized(&tz);
   @
   @ complete behaviors;
   @ disjoint behaviors;

@@ -1,10 +1,10 @@
 /* run.config
    GCC:
-   OPT: -memory-footprint 1 -val -deps -out -input -journal-disable
-   OPT: -memory-footprint 1 -val -deps -out -input -main semantique_const_1 -journal-disable
-   OPT: -memory-footprint 1 -val -deps -out -input -main semantique_const_2 -journal-disable
-   OPT: -memory-footprint 1 -val -deps -out -input -lib-entry -main semantique_const_1 -journal-disable
-   OPT: -memory-footprint 1 -val -deps -out -input -lib-entry -main semantique_const_2 -journal-disable
+   OPT: -val -deps -out -input -journal-disable
+   OPT: -val -deps -out -input -main semantique_const_1 -journal-disable
+   OPT: -val -deps -out -input -main semantique_const_2 -journal-disable
+   OPT: -val -deps -out -input -lib-entry -main semantique_const_1 -journal-disable
+   OPT: -val -deps -out -input -lib-entry -main semantique_const_2 -journal-disable
 */
 extern const int G;
 extern int H;

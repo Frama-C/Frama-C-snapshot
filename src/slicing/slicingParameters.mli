@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -26,33 +26,39 @@ include Plugin.S
 
 (* modules related to the command line options *)
 module Select : sig
-  module Calls: Plugin.String_set
-  module Return: Plugin.String_set
-  module Threat: Plugin.String_set
-  module Assert: Plugin.String_set
-  module Pragma: Plugin.String_set
-  module LoopInv: Plugin.String_set
-  module LoopVar: Plugin.String_set
-  module RdAccess: Plugin.String_set
-  module WrAccess: Plugin.String_set
-  module Value: Plugin.String_set
+  module Calls: Parameter_sig.String_set
+  module Return: Parameter_sig.String_set
+  module Threat: Parameter_sig.String_set
+  module Assert: Parameter_sig.String_set
+  module Pragma: Parameter_sig.String_set
+  module LoopInv: Parameter_sig.String_set
+  module LoopVar: Parameter_sig.String_set
+  module RdAccess: Parameter_sig.String_set
+  module WrAccess: Parameter_sig.String_set
+  module Value: Parameter_sig.String_set
 end
 
 module Mode : sig
-  module Callers: Plugin.Bool
-  module Calls: Plugin.Int
-  module SliceUndef: Plugin.Bool
-  module KeepAnnotations: Plugin.Bool
+  module Callers: Parameter_sig.Bool
+  module Calls: Parameter_sig.Int
+  module SliceUndef: Parameter_sig.Bool
+  module KeepAnnotations: Parameter_sig.Bool
 end
 
 (** @since Carbon-20110201 *)
-module ProjectName: Plugin.String
+module ProjectName: Parameter_sig.String
 
 (** @since Carbon-20110201 *)
-module ExportedProjectPostfix: Plugin.String
+module ExportedProjectPostfix: Parameter_sig.String
 
-module Print: Plugin.Bool
+module Print: Parameter_sig.Bool
 
 val is_on: unit -> bool
 val set_off: unit -> unit
 val clear: unit -> unit
+
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -29,19 +29,19 @@ open VCS
 open Task
 open Wpo
 
-let dispatch wpo ~interactive prover =
+let dispatch wpo mode prover =
   begin
     match prover with
-      | AltErgo -> ProverErgo.prove wpo ~interactive
-      | Coq -> ProverCoq.prove wpo ~interactive
+      | AltErgo -> ProverErgo.prove mode wpo 
+      | Coq -> ProverCoq.prove mode wpo
       | Why3 prover -> ProverWhy3.prove ~prover wpo
-      | _ -> Task.failed "Prover '%a' not available"
-	  VCS.pp_prover prover
+      | Qed -> Task.return VCS.unknown
+      | _ -> Task.failed "Prover '%a' not available" VCS.pp_prover prover
   end
 
 let qed_time wpo =
   match wpo.po_formula with
-    | GoalLemma _ -> 0.0
+    | GoalCheck _ | GoalLemma _ -> 0.0
     | GoalAnnot vcq -> GOAL.qed_time vcq.VC_Annot.goal
 
 let signal ?callin wpo prover =
@@ -55,8 +55,8 @@ let update ?callback wpo prover result =
     | None -> ()
     | Some f -> f wpo prover result
 
-let run_prover wpo ~interactive ?callback prover =
-  dispatch wpo ~interactive prover >>>
+let run_prover wpo ?(mode=BatchMode) ?callback prover =
+  dispatch wpo mode prover >>>
     fun status ->
       let result = match status with
 	| Task.Result r -> r
@@ -72,6 +72,7 @@ let resolve wpo =
   match wpo.po_formula with
     | GoalAnnot vcq -> VC_Annot.resolve vcq 
     | GoalLemma vca -> VC_Lemma.is_trivial vca
+    | GoalCheck _ -> false
 
 let simplify ?callin ?callback wpo prover =
   Task.call
@@ -84,18 +85,18 @@ let simplify ?callin ?callback wpo prover =
        else false)
     wpo
 
-let prove wpo ?(interactive=false) ?callin ?callback prover =
+let prove wpo ?mode ?callin ?callback prover =
   simplify ?callin ?callback wpo prover >>= fun succeed -> 
     if succeed 
     then Task.return true
-    else (run_prover wpo ~interactive ?callback prover)
+    else (run_prover wpo ?mode ?callback prover)
       
 let spawn wpo ?callin ?callback provers =
   ProverTask.spawn 
     begin
       List.map
-	(fun (interactive,prover) ->
-	   prove wpo ~interactive ?callin ?callback prover)
+	(fun (mode,prover) ->
+	   prove wpo ~mode ?callin ?callback prover)
 	provers
     end
 

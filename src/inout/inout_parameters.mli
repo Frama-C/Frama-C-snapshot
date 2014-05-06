@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -22,20 +22,20 @@
 
 include Plugin.S
 
-module ForceAccessPath: Plugin.Bool
-module ForceOut: Plugin.Bool
-module ForceExternalOut: Plugin.Bool
-module ForceInput: Plugin.Bool
-module ForceInputWithFormals: Plugin.Bool
-module ForceInout: Plugin.Bool
-module ForceCallwiseInout: Plugin.Bool
-module ForceInoutExternalWithFormals: Plugin.Bool
-module ForceDeref: Plugin.Bool
+module ForceAccessPath: Parameter_sig.Bool
+module ForceOut: Parameter_sig.Bool
+module ForceExternalOut: Parameter_sig.Bool
+module ForceInput: Parameter_sig.Bool
+module ForceInputWithFormals: Parameter_sig.Bool
+module ForceInout: Parameter_sig.Bool
+module ForceCallwiseInout: Parameter_sig.Bool
+module ForceInoutExternalWithFormals: Parameter_sig.Bool
+module ForceDeref: Parameter_sig.Bool
 
-module Output: Plugin.Bool
+module Output: Parameter_sig.Bool
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -29,11 +29,13 @@ include
     (Cil_datatype.File)
     (struct
        let name = "AST"
+       
+       (* Kernel.UnrollingLevel.self is not a real dependency: the AST will
+          get recomputed whenever this parameter changes. See unroll.ml *)
        let dependencies =
          [ Cil.selfMachine;
            Kernel.SimplifyCfg.self;
            Kernel.KeepSwitch.self;
-           Kernel.UnrollingLevel.self;
            Kernel.Constfold.self;
            Kernel.ReadAnnot.self;
            Kernel.PreprocessAnnot.self;
@@ -57,11 +59,17 @@ let add_linked_state state = linked_states := state :: !linked_states
 let monotonic_states = ref []
 let add_monotonic_state state = monotonic_states := state :: !monotonic_states
 
+module After_building = Hook.Build(struct type t = Cil_types.file end)
+let apply_after_computed = After_building.extend
+let () = Parameter_customize.set_ast_hook apply_after_computed
+let () = List.iter apply_after_computed !Parameter_customize.init_ast_hooks
+
 let mark_as_changed () =
   let depends = State_selection.only_dependencies self in
   let no_remove = State_selection.list_state_union !linked_states in
   let selection = State_selection.diff depends no_remove in
-  Project.clear ~selection ()
+  Project.clear ~selection ();
+  After_building.apply (get())
 
 let mark_as_grown () =
   let depends = State_selection.only_dependencies self in
@@ -82,11 +90,6 @@ let () =
   Cil.register_ast_dependencies self;
   Logic_env.init_dependencies self;
 
-module After_building = Hook.Build(struct type t = Cil_types.file end)
-let apply_after_computed = After_building.extend
-let () = Plugin.set_ast_hook apply_after_computed
-let () = List.iter apply_after_computed !Plugin.init_ast_hooks
-
 exception Bad_Initialization of string
 exception NoUntypedAst
 
@@ -98,9 +101,17 @@ let set_default_initialization f = default_initialization := f
 let syntactic_constant_folding ast =
   Cil.visitCilFileSameGlobals (Cil.constFoldVisitor true) ast
 
+module Computing =
+  State_builder.False_ref(
+    struct let name = "Ast.computing" let dependencies = [] end)
+
 let force_compute () =
+  if Computing.get () then
+    Kernel.fatal "attempting to get the AST during its initialization";
+  Computing.set true;
   Kernel.feedback ~level:2 "computing the AST";
   !default_initialization ();
+  Computing.set false;
   let s = get () in
   (* Syntactic constant folding before analysing files if required *)
   if Kernel.Constfold.get () then syntactic_constant_folding s;

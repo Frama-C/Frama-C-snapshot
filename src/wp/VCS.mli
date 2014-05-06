@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -33,6 +33,11 @@ type prover =
   | Coq           (* Coq and Coqide *)
   | Qed           (* Qed Solver *)
 
+type mode =
+  | BatchMode (* Only check scripts *)
+  | EditMode  (* Edit then check scripts *)
+  | FixMode   (* Try check script, then edit script on non-success *)
+
 type language =
   | L_why3
   | L_coq
@@ -48,10 +53,12 @@ val name_of_prover : prover -> string
 val filename_for_prover : prover -> string
 val prover_of_name : string -> prover option
 val language_of_prover_name: string -> language option
-val is_interactive : string -> bool
+val mode_of_prover_name : string -> mode
+val name_of_mode : mode -> string
 
 val pp_prover : Format.formatter -> prover -> unit
 val pp_language : Format.formatter -> language -> unit
+val pp_mode : Format.formatter -> mode -> unit
 
 val cmp_prover : prover -> prover -> int
 

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -46,4 +46,4 @@ sig
 end
 
 module Rel(E:Elt) : S with type elt = E.t (** General relation. *)
-module Sym(E:Elt) : S with type elt = E.t (** Symetrical relation. *)
+module Sym(E:Elt) : S with type elt = E.t (** Symmetrical relation. *)

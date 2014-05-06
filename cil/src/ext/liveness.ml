@@ -35,8 +35,8 @@
 (*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE         *)
 (*  POSSIBILITY OF SUCH DAMAGE.                                             *)
 (*                                                                          *)
-(*  File modified by CEA (Commissariat à l'énergie atomique et aux          *)
-(*                        énergies alternatives)                            *)
+(*  File modified by CEA (Commissariat Ã  l'Ã©nergie atomique et aux          *)
+(*                        Ã©nergies alternatives)                            *)
 (*               and INRIA (Institut National de Recherche en Informatique  *)
 (*                          et Automatique).                                *)
 (****************************************************************************)
@@ -77,10 +77,10 @@ let printer = ref debug_print
 
 module LiveFlow = struct
   let name = "Liveness"
-  let debug = debug
+  let debug = false
   type t = VS.t
   module StmtStartData =
-    Dataflow.StartData(struct type t = VS.t let size = 32 end)
+    Dataflow2.StartData(struct type t = VS.t let size = 32 end)
 
   let pretty fmt vs =
     let fn = !printer in
@@ -90,39 +90,36 @@ module LiveFlow = struct
 
   let combineStmtStartData (_stm:stmt) ~(old:t) (now:t) =
     if not(VS.compare old now = 0)
-    then Some(VS.union old now)
+    then Some now
     else None
 
   let combineSuccessors = VS.union
 
   let doStmt stmt =
-    if !debug then Kernel.debug "looking at: %a\n" Cil_printer.pp_stmt stmt;
+    if debug then Kernel.debug "looking at: %a\n" Cil_printer.pp_stmt stmt;
     match stmt.succs with
       [] -> let u,_d = UD.computeUseDefStmtKind stmt.skind in
-      if !debug then (Kernel.debug "doStmt: no succs %d\n" stmt.sid);
-      Dataflow.Done u
+      if debug then (Kernel.debug "doStmt: no succs %d\n" stmt.sid);
+      Dataflow2.Done u
     | _ ->
 	let handle_stm vs = match stmt.skind with
 	  Instr _ -> vs
 	| s -> let u, d = UD.computeUseDefStmtKind s in
 	  VS.union u (VS.diff vs d)
 	in
-	Dataflow.Post handle_stm
+	Dataflow2.Post handle_stm
 
   let doInstr _ i _vs =
     let transform vs' =
       let u,d = UD.computeUseDefInstr i in
       VS.union u (VS.diff vs' d)
     in
-    Dataflow.Post transform
+    Dataflow2.Post transform
 
   let filterStmt _stm1 _stm2 = true
-
-  let stmt_can_reach _ _ = true
-
 end
 
-module L = Dataflow.Backwards(LiveFlow)
+module L = Dataflow2.Backwards(LiveFlow)
 
 (* XXX: This does not compute the best ordering to
  * give to the work-list algorithm.
@@ -131,7 +128,7 @@ let all_stmts = ref []
 class nullAdderClass = object
   inherit nopCilVisitor
 
-  method vstmt s =
+  method! vstmt s =
     all_stmts := s :: (!all_stmts);
     LiveFlow.StmtStartData.add s VS.empty;
     DoChildren
@@ -166,7 +163,7 @@ let match_label lbl = match lbl with
 class doFeatureClass = object
   inherit nopCilVisitor
 
-  method vfunc fd =
+  method! vfunc fd =
     if String.compare fd.svar.vname (!live_func) = 0 then
       (Cfg.clearCFGinfo fd;
        ignore(Cfg.cfgFun fd);
@@ -178,7 +175,7 @@ class doFeatureClass = object
        else DoChildren)
     else SkipChildren
 
-  method vstmt s =
+  method! vstmt s =
     if List.exists match_label s.labels then try
       let vs = LiveFlow.StmtStartData.find s in
       (printer := min_print;

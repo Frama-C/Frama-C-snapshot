@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -28,7 +28,7 @@ module DomKernel =
     (struct
       let name = "dominators"
       let shortname = "dominators"
-      let help = "Compute dominators and postdominators of statements"
+      let help = "Compute postdominators of statements"
     end)
 
 module DomSet = struct
@@ -59,8 +59,7 @@ module DomSet = struct
         let name = "dominator_set"
         let reprs = Top :: List.map (fun s -> Value s) Stmt.Hptset.reprs
         let structural_descr =
-          Structural_descr.Structure
-            (Structural_descr.Sum [| [| Stmt.Hptset.packed_descr |] |])
+          Structural_descr.t_sum [| [| Stmt.Hptset.packed_descr |] |]
         let pretty fmt = function
           | Top -> Format.fprintf fmt "Top"
           | Value d ->
@@ -77,85 +76,6 @@ module DomSet = struct
        end)
 
 end
-
-(*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
-
-module Dom =
-  Cil_state_builder.Stmt_hashtbl
-    (DomSet)
-    (struct
-       let name = "dominator"
-       let dependencies = [ Ast.self ]
-       let size = 503
-     end)
-
-module DomComputer = struct
-
-  let name = "dominators"
-  let debug = ref false
-  type t = DomSet.t
-  module StmtStartData = Dom
-  let pretty = DomSet.pretty
-  let copy (s:t) = s
-
-  let computeFirstPredecessor _stmt _set = assert false
-
-  let combinePredecessors stmt ~old new_ =
-    let new_ = DomSet.add stmt new_ in
-    let set = DomSet.inter old new_ in
-    if DomSet.equal set old then None else Some set
-
-  let doStmt _stmt _set =  Dataflow.SDefault
-
-  let doInstr stmt _instr set =
-    Dataflow.Done (DomSet.add stmt set)
-
-  let stmt_can_reach _ _ = true
-  let filterStmt _stmt = true
-  let doGuard _ _ _ = Dataflow.GDefault, Dataflow.GDefault
-  let doEdge _ _ d = d
-end
-module DomCompute = Dataflow.Forwards(DomComputer)
-
-let compute_dom kf =
-  let start = Kernel_function.find_first_stmt kf in
-  try
-    let _ = Dom.find start in
-    DomKernel.feedback ~level:2 "computed for function %a"
-      Kernel_function.pretty kf;
-  with Not_found ->
-    DomKernel.feedback ~level:2 "computing for function %a"
-      Kernel_function.pretty kf;
-    let f = kf.fundec in
-    let stmts = match f with
-    | Definition (f,_) -> f.sallstmts
-    | Declaration _ ->
-      DomKernel.fatal "cannot compute for a leaf function %a"
-        Kernel_function.pretty kf
-    in
-    List.iter (fun s -> Dom.add s DomSet.Top) stmts;
-    Dom.replace start (DomSet.Value (Stmt.Hptset.singleton start));
-    DomCompute.compute [start];
-    DomKernel.feedback ~level:2 "done for function %a"
-      Kernel_function.pretty kf
-
-let get_stmt_dominators f stmt =
-  let do_it () = Dom.find stmt in
-  try do_it ()
-  with Not_found -> compute_dom f; do_it ()
-
-let stmt_dominators f stmt =
-    match get_stmt_dominators f stmt with
-    | DomSet.Value s -> s
-    | DomSet.Top -> raise Db.Dominators.Top
-
-let is_dominator f ~opening ~closing =
-  let dominators = get_stmt_dominators f closing in
-  DomSet.mem opening dominators
-
-let display_dom () =
-  Dom.iter
-    (fun k v -> DomKernel.result "Stmt:%d@\n%a@\n======" k.sid DomSet.pretty v)
 
 (*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
 
@@ -185,7 +105,7 @@ struct
   module PostComputer = struct
 
     let name = "postdominator"
-    let debug = ref false
+    let debug = false
 
     type t = DomSet.t
     module StmtStartData = PostDom
@@ -193,10 +113,7 @@ struct
     let pretty = DomSet.pretty
 
     let combineStmtStartData _stmt ~old new_ =
-      (* No need to compute the intersection: the results can only decrease
-         (except on Top, but Top \inter Set = Set *)
-      let result = (* DomSet.inter old *) new_ in
-      if DomSet.equal result old then None else Some result
+      if DomSet.equal old new_ then None else Some new_
 
     let combineSuccessors = DomSet.inter
 
@@ -204,11 +121,11 @@ struct
       !Db.progress ();
       Postdominators_parameters.debug ~level:2 "doStmt: %d" stmt.sid;
       match stmt.skind with
-        | Return _ -> Dataflow.Done (DomSet.Value (Stmt.Hptset.singleton stmt))
-        | _ -> Dataflow.Post (fun data -> DomSet.add stmt data)
+        | Return _ -> Dataflow2.Done (DomSet.Value (Stmt.Hptset.singleton stmt))
+        | _ -> Dataflow2.Post (fun data -> DomSet.add stmt data)
 
 
-    let doInstr _ _ _ = Dataflow.Default
+    let doInstr _ _ _ = Dataflow2.Default
 
     (* We make special tests for 'if' statements without a 'then' or
        'else' branch.  It can lead to better precision if we can evaluate
@@ -235,10 +152,8 @@ struct
 
     let funcExitData = DomSet.Value Stmt.Hptset.empty
 
-    let stmt_can_reach _ _ = true
-
   end
-  module PostCompute = Dataflow.Backwards(PostComputer)
+  module PostCompute = Dataflow2.Backwards(PostComputer)
 
   let compute_postdom kf =
     let return =
@@ -256,17 +171,14 @@ struct
       Postdominators_parameters.feedback ~level:2 "computing for function %a"
         Kernel_function.pretty kf;
       let f = kf.fundec in
-      let stmts = match f with
-        | Definition (f,_) -> f.sallstmts
-        | Declaration _ ->
-            Postdominators_parameters.fatal
-              "cannot compute postdominators for leaf function %a"
-              Kernel_function.pretty kf
-      in
-        List.iter (fun s -> PostDom.add s DomSet.Top) stmts;
-        PostCompute.compute [return];
-        Postdominators_parameters.feedback ~level:2 "done for function %a"
-          Kernel_function.pretty kf
+      match f with
+        | Definition (f,_) ->
+          let stmts = f.sallstmts in
+          List.iter (fun s -> PostDom.add s DomSet.Top) stmts;
+          PostCompute.compute [return];
+          Postdominators_parameters.feedback ~level:2 "done for function %a"
+            Kernel_function.pretty kf
+        | Declaration _ -> ()
 
   let get_stmt_postdominators f stmt =
     let do_it () = PostDom.find stmt in
@@ -329,7 +241,9 @@ let output () =
   let dot_postdom = Postdominators_parameters.DotPostdomBasename.get () in
   if dot_postdom <> "" then (
     Ast.compute ();
-    Globals.Functions.iter (!Db.Postdominators.print_dot dot_postdom)
+    Globals.Functions.iter (fun kf ->
+      if Kernel_function.is_definition kf then
+        !Db.Postdominators.print_dot dot_postdom kf)
   )
 
 let output, _ = State_builder.apply_once "Postdominators.Compute.output"
@@ -349,12 +263,6 @@ module PostDomVal =
 
     end)
     (Db.PostdominatorsValue)
-
-
-let () = Db.Dominators.compute := compute_dom
-let () = Db.Dominators.is_dominator := is_dominator
-let () = Db.Dominators.stmt_dominators := stmt_dominators
-let () = Db.Dominators.display := display_dom
 
 (*
 Local Variables:

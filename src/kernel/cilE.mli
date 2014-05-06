@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -106,6 +106,8 @@ val warn_index : warn_mode -> positive:bool -> range:string -> unit
     and [e < upper_bound].
 *)
 val warn_pointer_comparison : warn_mode -> unit
+val warn_valid_string : warn_mode -> unit
+val warn_pointer_subtraction : warn_mode -> unit
 val warn_nan_infinite:
   warn_mode -> Cil_types.fkind option -> (Format.formatter -> unit) -> unit
 val warn_uninitialized : warn_mode -> unit

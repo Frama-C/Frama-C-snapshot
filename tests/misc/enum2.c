@@ -1,11 +1,11 @@
 /* run.config
   GCC:
-  OPT: -check -cpp-command "gcc -C -E -I. %1 -o %2" -memory-footprint 1 -val -deps -out -input -journal-disable share/libc/stdio.c
+  OPT: -check -cpp-command "gcc -C -E -I. %1 -o %2" -val -deps -out -input -journal-disable
 */
 
 /* This test of enums doubles with a test of the % syntax in -cpp-command */
-
-#include "share/libc/stdio.h"
+//@ assigns \result \from \nothing;
+int printf(const char*, ...);
 
 #define BIT_DE_SIGNE_1 (0x98765432)
 #define BIT_DE_SIGNE_0 (0x12345678)

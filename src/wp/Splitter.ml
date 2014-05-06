@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -31,6 +31,7 @@ type tag =
   | MARK of stmt
   | THEN of stmt
   | ELSE of stmt
+  | CALL of stmt * kernel_function
   | CASE of stmt * int64 list
   | DEFAULT of stmt
   | ASSERT of identified_predicate * int * int (* part *)
@@ -45,11 +46,12 @@ let pretty fmt = function
       Format.fprintf fmt "@[Cases %s" (Int64.to_string k) ;
       List.iter (fun k -> Format.fprintf fmt ",@,%s" (Int64.to_string k)) ks ;
       Format.fprintf fmt "@]"
+  | CALL(_,kf) -> Format.fprintf fmt "Call %a" Kernel_function.pretty kf
   | DEFAULT _ -> Format.fprintf fmt "Default"
   | ASSERT(_,k,n) -> Format.fprintf fmt "Disjunction (%d/%d)" k n
 
 let loc = function
-  | THEN s | ELSE s | MARK s | CASE(s,_) | DEFAULT s -> Stmt.loc s
+  | THEN s | ELSE s | MARK s | CASE(s,_) | CALL(s,_) | DEFAULT s -> Stmt.loc s
   | ASSERT(p,_,_) -> p.ip_loc
 
 let compare p q =
@@ -72,6 +74,11 @@ let compare p q =
       | DEFAULT s , DEFAULT t -> Stmt.compare s t
       | DEFAULT _ , _ -> (-1)
       | _ , DEFAULT _ -> 1
+      | CALL(s1,f1) , CALL(s2,f2) ->
+	  let c = Stmt.compare s1 s2 in
+	  if c = 0 then Kernel_function.compare f1 f2 else c
+      | CALL _ , _ -> (-1)
+      | _ , CALL _ -> 1
       | ASSERT(ip1,k1,_) , ASSERT(ip2,k2,_) -> 
 	  let c = Pervasives.compare ip1.ip_id ip2.ip_id in
 	  if c = 0 then k1 - k2 else c
@@ -123,6 +130,7 @@ let switch_default stmt = DEFAULT stmt
 let if_then stmt = THEN stmt
 let if_else stmt = ELSE stmt
 let mark stmt = MARK stmt
+let call stmt kf = CALL(stmt,kf)
 
 (* -------------------------------------------------------------------------- *)
 (* --- Switch Cases                                                       --- *)
@@ -135,7 +143,7 @@ module Tags = Qed.Listset.Make
      let equal x y = (compare x y = 0)
    end)
 module M = Qed.Listmap.Make(Tags)
-module I = Map.Make(Tags)
+module I = FCMap.Make(Tags)
 
 type 'a t = 'a M.t
 

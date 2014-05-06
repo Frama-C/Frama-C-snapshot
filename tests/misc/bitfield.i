@@ -36,6 +36,41 @@ union U1 {
    int f1 : 15 ;
 };
 
+struct impr {
+  int i1: 5;
+  int i2:1;
+  int i3:6;
+};
+
+// Bug 1671
+
+struct B {
+  struct foo *next;
+  struct foo **prev;
+};
+
+struct A {
+  struct B next;
+  int bitf:1;
+} *b, *c, ee;
+
+void leaf (struct A *p1);
+
+volatile foo;
+
+void imprecise_bts_1671 ()
+{
+    ee.next.prev = &b;
+    c = &ee;
+    while (foo)  {
+      leaf (c);
+      Frama_C_show_each(ee);
+      c->bitf = 0;
+      Frama_C_show_each(ee);
+      c = c->next.next;
+    }
+}
+
 int main (int a, int b){
   struct t1 v,w;
 
@@ -65,4 +100,6 @@ int main (int a, int b){
 
   ll.b = q4;
   G=g();
+
+  imprecise_bts_1671();
 }

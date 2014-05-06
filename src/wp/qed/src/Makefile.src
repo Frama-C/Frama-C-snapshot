@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of WP plug-in of Frama-C.                           #
 #                                                                        #
-#  Copyright (C) 2007-2013                                               #
+#  Copyright (C) 2007-2014                                               #
 #    CEA (Commissariat a l'energie atomique et aux energies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -23,17 +23,14 @@
 # Shared with WP's Makefile in order to facilitate recompilation of Qed
 # from Frama-C
 
-QED_LIB_ML = z r numbers hcons intmap intset idxset idxmap \
+QED_LIB_ML = r numbers hcons cache intmap intset idxset idxmap \
 	 listset listmap mergeset mergemap collection \
-	 partition relation sigma \
-         plib topology
+	 partition relation sigma plib topology
 
-QED_SRC_ML = kind pool term pretty depends \
+QED_SRC_ML = kind pool term pretty \
 	 linker export export_coq export_whycore export_why3 export_altergo \
-	 input ast lexer parser \
-	 unify typechecker compiler \
-	 pattern \
+	 pattern simplify
 
-QED_SRC_MLI = logic engine syntax
+QED_SRC_MLI = arith logic engine
 
 QED_GENERATED=lexer

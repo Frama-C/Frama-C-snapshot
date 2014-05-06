@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -20,7 +20,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-module Metrics = Plugin.Register
+include Plugin.Register
     (struct
        let name = "metrics"
        let shortname = "metrics"
@@ -28,7 +28,7 @@ module Metrics = Plugin.Register
      end)
 
 module Enabled =
-  Metrics.WithOutput
+  WithOutput
     (struct
       let option_name = "-metrics"
       let help = "activate metrics computation"
@@ -36,7 +36,7 @@ module Enabled =
      end)
 
 module ByFunction =
-  Metrics.WithOutput
+  WithOutput
     (struct
       let option_name = "-metrics-by-function"
       let help = "also compute metrics on a per-function basis"
@@ -44,7 +44,7 @@ module ByFunction =
      end)
 
 module OutputFile =
-  Metrics.EmptyString
+  EmptyString
     (struct
       let option_name = "-metrics-output"
       let arg_name = "filename"
@@ -53,7 +53,7 @@ module OutputFile =
      end)
 
 module ValueCoverage =
-  Metrics.WithOutput (
+  WithOutput (
     struct
       let option_name = "-metrics-value-cover"
       let help = "estimate value analysis coverage w.r.t. \
@@ -62,19 +62,19 @@ module ValueCoverage =
     end)
 
 module AstType =
-  Metrics.String
+  String
     (struct
       let option_name = "-metrics-ast"
-      let arg_name = "[cabs | cil]"
-      let help = "apply metrics to Cabs or CIL AST."
+      let arg_name = "[cabs | cil | acsl]"
+      let help = "apply metrics to Cabs or CIL AST, or to ACSL specs"
       let default = "cil"
      end
     )
 
-let () = AstType.set_possible_values ["cil"; "cabs"]
+let () = AstType.set_possible_values ["cil"; "cabs"; "acsl"]
 
 module SyntacticallyReachable =
-  Metrics.StringSet
+  StringSet
     (struct
       let option_name = "-metrics-cover"
       let arg_name = "f1,..,fn"

@@ -35,8 +35,8 @@
 (*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE         *)
 (*  POSSIBILITY OF SUCH DAMAGE.                                             *)
 (*                                                                          *)
-(*  File modified by CEA (Commissariat à l'énergie atomique et aux          *)
-(*                        énergies alternatives)                            *)
+(*  File modified by CEA (Commissariat Ã  l'Ã©nergie atomique et aux          *)
+(*                        Ã©nergies alternatives)                            *)
 (*               and INRIA (Institut National de Recherche en Informatique  *)
 (*                          et Automatique).                                *)
 (****************************************************************************)
@@ -326,22 +326,22 @@ module Forwards(T : ForwardsTransfer) = struct
                 end
 
             | Switch (exp_sw, _, _, _) ->
-                let cases, next_sw = Cil.separate_switch_succs s in
+                let cases, default = Cil.separate_switch_succs s in
                 (* Auxiliary function that iters on all the labels of
                    the switch. The accumulator is the state after the
                    evaluation of the label, and the default case *)
                 let iter_all_labels f =
                   List.fold_left
-                    (fun (rem_state, _default as acc) succ ->
-                      if rem_state = None then acc
+                    (fun rem_state succ ->
+                      if rem_state = None then None
                       else
                         List.fold_left
-                          (fun (rem_state, default as acc) label ->
+                          (fun rem_state label ->
                             match rem_state with
-                              | None -> acc
-                              | Some state -> f succ label state default
-                          ) acc succ.labels
-                    ) (Some curr, next_sw) cases
+                              | None -> rem_state
+                              | Some state -> f succ label state
+                          ) rem_state succ.labels
+                    ) (Some curr) cases
                 in
                 (* Compute a successor of the switch, starting with the state
                    [before], supposing we are considering the label [exp] *)
@@ -372,36 +372,23 @@ module Forwards(T : ForwardsTransfer) = struct
                 in
                 (* Evaluate all of the labels one after the other, refining
                    the state after each case *)
-                let after, default = iter_all_labels
-                  (fun succ label before default ->
+                let after = iter_all_labels
+                  (fun succ label before ->
                     match label with
-                      | Label _ -> (* Label not related to the switch *)
-                        (Some before, default)
-
-                      | Cil_types.Default _loc ->
-                        if default <> None then
-                          Kernel.fatal ~current:true
-			    "Bad CFG: switch with multiple \
-                                successors or default cases.";
-                        (Some before, Some succ)
+                      | Label _ (* Label not related to the switch *)
+		      | Cil_types.Default _ -> 	(* The default case is handled at the end *)
+                        (Some before)
 
                       | Case (exp_case, _) ->
-                        let after = explore_succ before succ exp_case in
-                        (after, default)
+                        let after = explore_succ before succ exp_case in after
+
                   ) in
                 (* If [after] is different from [None], we must evaluate
                    the default case, be it a default label, or the
                    successor of the switch *)
                 (match after with
                   | None -> ()
-                  | Some state ->
-                    match default with
-                    | None ->
-		      Kernel.fatal ~current:true
-			"Bad CFG: switch without \
-                                        successor or default case."
-                    | Some succ -> reachedStatement s succ state)
-
+                  | Some state -> reachedStatement s default state)
       end
 
     exception Good of stmt
@@ -575,19 +562,15 @@ struct
              (* Now do the instructions *)
              let res' =
                match s.skind with
-                 Instr il ->
-                   (* Now scan the instructions in reverse order. This may
-                    * Stack_overflow on very long blocks ! *)
-                   let handleInstruction (i: instr) (state: T.t) : T.t =
+                 | Instr i ->
+                   begin
                      CurrentLoc.set (Cil_datatype.Instr.loc i);
-                     (* First handle the instruction itself *)
-                     let action = T.doInstr s i state in
+                     let action = T.doInstr s i res in
                      match action with
                      | Done s' -> s'
-                     | Default -> state (* do nothing *)
-                     | Post f -> f state
-                   in
-                   handleInstruction il res
+                     | Default -> res (* do nothing *)
+                     | Post f -> f res
+                   end
                | _ -> res
              in
              match action with
@@ -685,7 +668,7 @@ struct
 let sinkFinder sink_stmts all_stmts = object
   inherit nopCilVisitor
 
-  method vstmt s =
+  method! vstmt s =
     all_stmts := s ::(!all_stmts);
     match s.succs with
       [] -> (sink_stmts := s :: (!sink_stmts);

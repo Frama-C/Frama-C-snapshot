@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -99,7 +99,10 @@ let spinner ?(lower=0) ?(upper=max_int) ?width ?tooltip ~packing get set demon =
   let spin = GEdit.spin_button ~digits:0 ?width ~packing () in
   spin#adjustment#set_bounds
     ~lower:(float lower) ~upper:(float upper) ~step_incr:1. () ;
-  let callback () = set (spin#value_as_int) in
+  let callback () = 
+    let a = spin#value_as_int in
+    let b = get () in
+    if a<>b then set a in
   let update () = spin#adjustment#set_value (float (get ())) in
   ignore (spin#connect#value_changed ~callback) ;
   mk_tooltip ?tooltip spin ;

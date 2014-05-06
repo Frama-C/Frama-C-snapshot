@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -41,6 +41,13 @@ module ForceCallDeps =
        let option_name = "-calldeps"
        let help = "force callsite-wise dependencies"
        let output_by_default = true
+     end)
+
+module ShowIndirectDeps =
+False
+    (struct
+       let option_name = "-show-indirect-deps"
+       let help = "experimental"
      end)
 
 module PathDeps =

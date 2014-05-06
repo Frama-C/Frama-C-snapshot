@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -24,18 +24,55 @@ open Cil_types
 open Locations
 open Eval_exprs
 
-(** Main function of the value plugin for the kernel *)
+(** Function of the value plugin registered in the kernel *)
+
+let display ?fmt kf =
+  (* Do not pretty Cil-generated variables or out-of scope local variables *)
+  let filter_generated_and_locals base =
+    match base with
+      | Base.Var (v, _) ->
+        if v.vgenerated then v.vname = "__retres"
+        else
+          ((not (Kernel_function.is_local v kf))
+          (* only locals of outermost block *)
+           || List.exists (fun x -> x.vid = v.vid)
+             (Kernel_function.get_definition kf).sbody.blocals )
+      | _ -> true
+  in
+  try
+    let values = Db.Value.get_stmt_state (Kernel_function.find_return kf) in
+    let fst_values =
+      Db.Value.get_stmt_state (Kernel_function.find_first_stmt kf)
+    in
+    if Cvalue.Model.is_reachable fst_values
+      && not (Cvalue.Model.is_top fst_values)
+    then begin
+      let outs = !Db.Outputs.get_internal kf in
+      let outs = Zone.filter_base filter_generated_and_locals outs in
+      let header fmt =
+        Format.fprintf fmt "Values at end of function %a:"
+          Kernel_function.pretty kf
+      in
+      let body fmt =
+        Format.fprintf fmt "@[%t@]@[  %t@]"
+          (fun fmt ->
+            match outs with
+            | Zone.Top (Base.SetLattice.Top, _) ->
+              Format.fprintf fmt "@[Cannot filter: dumping raw memory \
+                  (including unchanged variables)@]@\n"
+            | _ -> ())
+          (fun fmt -> Cvalue.Model.pretty_filter fmt values outs) in
+      match fmt with
+      | None -> Value_parameters.printf ~header "%t" body
+      | Some fmt -> Format.fprintf fmt "%t@.%t" header body
+    end
+  with Kernel_function.No_Statement -> ()
 
 let display_results () =
   if Db.Value.is_computed () && Value_parameters.verbose_atleast 1 then begin
     Value_parameters.result "====== VALUES COMPUTED ======";
-    (* Val display and Inout compute/display *)
-    !Db.Semantic_Callgraph.topologically_iter_on_functions
-      (fun kf ->
-         if Kernel_function.is_definition kf then
-           begin
-             Value_parameters.result "%a" Db.Value.display kf ;
-           end)
+    !Db.Semantic_Callgraph.topologically_iter_on_functions display;
+    Value_parameters.result "%t" Value_perf.display
   end
 
 let () = Value_parameters.ForceValues.set_output_dependencies [Db.Value.self]
@@ -74,21 +111,43 @@ let lval_to_loc_with_deps kinstr ~with_alarms ~deps lv =
 let lval_to_loc_kinstr kinstr ~with_alarms lv =
   CilE.start_stmt kinstr;
   let state = Db.Value.noassert_get_state kinstr in
-  (*    Format.printf "@\ngot state when lval_to_loc:%a@."
-        Cvalue.Model.pretty state; *)
   let r = lval_to_loc ~with_alarms state lv in
   CilE.end_stmt ();
   r
 
+let lval_to_precise_loc_with_deps_state ~with_alarms state ~deps lv =
+  let _state, deps, r, _ =
+    lval_to_precise_loc_deps_state ~with_alarms
+      ~deps ~reduce_valid_index:(Kernel.SafeArrays.get ()) state lv
+  in
+  Extlib.opt_conv Zone.bottom deps, r
+
+
 let lval_to_zone kinstr ~with_alarms lv =
-  Locations.enumerate_valid_bits
-    ~for_writing:false
-    (lval_to_loc_kinstr ~with_alarms kinstr lv)
+  CilE.start_stmt kinstr;
+  let state = Db.Value.noassert_get_state kinstr in
+  let _, r =
+    lval_to_precise_loc_with_deps_state ~with_alarms state ~deps:None lv 
+  in
+  CilE.end_stmt ();
+  Precise_locs.enumerate_valid_bits ~for_writing:false r
 
 let lval_to_zone_state state lv =
-  Locations.enumerate_valid_bits
-    ~for_writing:false
-    (lval_to_loc ~with_alarms:CilE.warn_none_mode state lv)
+  let _, r =
+    lval_to_precise_loc_with_deps_state ~with_alarms:CilE.warn_none_mode
+      state ~deps:None lv 
+  in
+  Precise_locs.enumerate_valid_bits ~for_writing:false r
+
+let lval_to_zone_with_deps_state state ~for_writing ~deps lv =
+  let deps, r =
+    lval_to_precise_loc_with_deps_state ~with_alarms:CilE.warn_none_mode
+      state ~deps lv 
+  in
+  let zone = Precise_locs.enumerate_valid_bits ~for_writing r in
+  let exact = Precise_locs.cardinal_zero_or_one ~for_writing r in
+  deps, zone, exact
+
 
 let expr_to_kernel_function_state ~with_alarms state ~deps exp =
   let r, deps = resolv_func_vinfo ~with_alarms deps state exp in
@@ -190,7 +249,7 @@ let lval_to_offsetmap_state state lv =
   Cvalue.Model.copy_offsetmap ~with_alarms loc state
 
 
-(* "access" functions (before and after evaluation) in Db.Value *)
+(* "access" functions before evaluation, registered in Db.Value *)
 let access_value_of_lval kinstr lv =
   let state = Db.Value.get_state kinstr in
   snd (!Db.Value.eval_lval ~with_alarms:CilE.warn_none_mode None state lv)
@@ -203,60 +262,13 @@ let access_value_of_location kinstr loc =
   let state = Db.Value.get_state kinstr in
   Db.Value.find state loc
 
-let access_value_of_lval_after ki lv =
-  match ki with
-  | Cil_types.Kstmt {Cil_types.succs = (_::_ ) as l} ->
-      let result =
-        List.fold_left
-          (fun acc s ->
-             let ks = Cil_types.Kstmt s in
-             Cvalue.V.join (access_value_of_lval ks lv) acc)
-          Cvalue.V.bottom
-          l
-      in
-      begin match Bit_utils.sizeof_lval lv with
-      | Int_Base.Top -> result
-      | Int_Base.Value size ->
-          Cvalue.V.anisotropic_cast ~size result
-      end
-  | _ -> raise Not_found
-
-let access_offsetmap_of_lval_after ki lv =
-  match ki with
-  | Cil_types.Kstmt {Cil_types.succs = (_::_ ) as l} ->
-      let result =
-        List.fold_left
-          (fun acc s ->
-             let ks = Cil_types.Kstmt s in
-             let state = Db.Value.get_state ks in
-             let loc =
-               Locations.valid_part ~for_writing:false
-               (!Db.Value.lval_to_loc_state state lv)
-             in
-             let offsetmap =
-               Cvalue.Model.copy_offsetmap
-                 ~with_alarms:CilE.warn_none_mode loc state
-             in
-             match acc, offsetmap with
-             | None, x | x , None -> x
-             | Some acc, Some offsetmap ->
-                 Some ((Cvalue.V_Offsetmap.join acc offsetmap)))
-          None
-          l
-      in
-      result
-  | _ -> raise Not_found
-
-let access_value_of_location_after ki loc =
-  match ki with
-    | Cil_types.Kstmt {Cil_types.succs=(_::_ ) as l} ->
-        List.fold_left
-          (fun acc s ->
-             let ks = Cil_types.Kstmt s in
-             Cvalue.V.join (access_value_of_location ks loc) acc)
-          Cvalue.V.bottom
-          l
-    | _ -> raise Not_found
+let find_deps_term_no_transitivity_state state t =
+  try
+    let env = Eval_terms.env_here state in
+    let r = Eval_terms.eval_term ~with_alarms:CilE.warn_none_mode env t in
+    r.Eval_terms.ldeps
+  with Eval_terms.LogicEvalError _ ->
+    invalid_arg "not an lvalue"
 
 
 (* If the function is a builtin, or if the user has requested it, use
@@ -268,7 +280,17 @@ let use_spec_instead_of_definition kf =
      Datatype.String.Set.mem name (Value_parameters.UsePrototype.get ())
     )
 
+let eval_predicate ~pre ~here p =
+  let open Eval_terms in
+  let env = env_annot ~pre ~here () in
+  match eval_predicate env p with
+  | True -> Property_status.True
+  | False -> Property_status.False_if_reachable
+  | Unknown -> Property_status.Dont_know
+
 let () =
+(* Pretty-printing *)
+  Db.Value.display := (fun fmt kf -> display ~fmt kf);
   Db.Value.use_spec_instead_of_definition := use_spec_instead_of_definition;
   Db.Value.lval_to_loc_with_deps := lval_to_loc_with_deps;
   Db.Value.lval_to_loc_with_deps_state :=
@@ -279,6 +301,7 @@ let () =
   Db.Value.lval_to_loc_state := lval_to_loc ~with_alarms:CilE.warn_none_mode ;
   Db.Value.lval_to_zone_state := lval_to_zone_state;
   Db.Value.lval_to_zone := lval_to_zone;
+  Db.Value.lval_to_zone_with_deps_state := lval_to_zone_with_deps_state;
   Db.Value.lval_to_offsetmap := lval_to_offsetmap;
   Db.Value.lval_to_offsetmap_state := lval_to_offsetmap_state;
   Db.Value.assigns_outputs_to_zone := assigns_outputs_to_zone;
@@ -296,11 +319,11 @@ let () =
       in
       deps, r);
   Db.Value.access := access_value_of_lval;
-  Db.Value.access_after := access_value_of_lval_after;
-  Db.Value.access_location_after := access_value_of_location_after;
   Db.Value.access_location := access_value_of_location;
   Db.Value.access_expr := access_value_of_expr;
-  Db.Value.lval_to_offsetmap_after := access_offsetmap_of_lval_after
+  Db.Value.Logic.eval_predicate := eval_predicate;
+  Db.From.find_deps_term_no_transitivity_state :=
+    find_deps_term_no_transitivity_state;
 
 
 

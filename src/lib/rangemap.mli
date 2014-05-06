@@ -29,8 +29,8 @@
 (*  invalidate any other reasons why the executable file might be         *)
 (*  covered by the GNU Library General Public License.                    *)
 (*                                                                        *)
-(*  File modified by CEA (Commissariat à l'énergie atomique et aux        *)
-(*                        énergies alternatives).                         *)
+(*  File modified by CEA (Commissariat Ã  l'Ã©nergie atomique et aux        *)
+(*                        Ã©nergies alternatives).                         *)
 (*                                                                        *)
 (**************************************************************************)
 
@@ -215,8 +215,11 @@ module Make (Ord : Datatype.S) (Value : Value): sig
 
   val height: t -> int
 
-  val concerned_intervals: (key -> key -> fuzzy_order) ->
+  val concerned_intervals:
+    (key -> key -> fuzzy_order) ->
     key -> t -> (key*Value.t) list
+    (** Intervals that match the given key. The resulting list is sorted in
+        decreasing order. *)
 
    exception Empty_rangemap
    val lowest_binding : t -> key * Value.t

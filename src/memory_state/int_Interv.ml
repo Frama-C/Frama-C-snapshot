@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -70,18 +70,20 @@ include Datatype.Make
 
 let shift s (b,e) = Int.add b s, Int.add e s
 
+exception Not_fully_included
+
 let check_coverage (bi,ei) concerned =
   ( match concerned with
-        [] -> raise Is_not_included
+        [] -> raise Not_fully_included
       | ((_bj,ej),_) :: _ ->
-          if Int.gt ei ej then raise Is_not_included);
+          if Int.gt ei ej then raise Not_fully_included);
   let rec check_joint concerned =
     match concerned with
         [] -> assert false
       | [(bj,_ej),_] ->
-          if Int.lt bi bj then raise Is_not_included
+          if Int.lt bi bj then raise Not_fully_included
       | ((bj,_ej),_) :: ((((_bk,ek),_)::_) as tail) ->
-          if not (Int.equal bj (Int.succ ek)) then raise Is_not_included;
+          if not (Int.equal bj (Int.succ ek)) then raise Not_fully_included;
           check_joint tail
   in
   check_joint concerned

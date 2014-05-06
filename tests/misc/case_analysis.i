@@ -1,6 +1,6 @@
 /* run.config
-   OPT: -memory-footprint 1 -val -slevel 30 -journal-disable -float-normal
-   OPT: -memory-footprint 1 -val -slevel 30 -journal-disable -float-normal -all-rounding-modes
+   OPT: -val -slevel 30 -journal-disable -float-normal
+   OPT: -val -slevel 30 -journal-disable -float-normal -all-rounding-modes
 */
 
 int sq,s;

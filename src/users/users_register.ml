@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -38,15 +38,13 @@ module ForceUsers =
        let help = "compute function callees"
      end)
 
-open Db
-
 module Users =
   Kernel_function.Make_Table
     (Kernel_function.Hptset)
     (struct
        let name = "Users"
        let size = 17
-       let dependencies = [ Value.self; ForceUsers.self ]
+       let dependencies = [ Db.Value.self; ForceUsers.self ]
      end)
 
 let call_for_users (_state, call_stack) =

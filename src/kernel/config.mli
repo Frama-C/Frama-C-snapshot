@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -70,6 +70,12 @@ val preprocessor: string
       else use the built-in default from autoconf. Usually this is
       "gcc -C -E -I."
       @since Oxygen-20120901 *)
+
+val preprocessor_keep_comments: bool
+  (** [true] if the default preprocessor selected during compilation is
+      able to keep comments (hence ACSL annotations) in its output.
+      @since Neon-rc3 
+   *)
   
 val dot: string option
 (** Dot command name.

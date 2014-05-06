@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -21,6 +21,9 @@
 (**************************************************************************)
 
 open Cil_types
+
+let debug_vid = Kernel.register_category "printer:vid"
+let debug_sid = Kernel.register_category "printer:sid"
 
 let cabsbranches_pp_comment = Extlib.mk_fun "Printer.debug_cabs"
 
@@ -91,16 +94,11 @@ class printer_with_annot () = object (self)
   val mutable declared_globs = Cil_datatype.Varinfo.Set.empty
   val mutable print_spec = false
 
-  method reset () =
+  method! reset () =
     super#reset ();
     verbose <- Kernel.debug_atleast 1;
     declared_globs <- Cil_datatype.Varinfo.Set.empty;
     print_spec <- false
-
-  (* Are we printing ghost code? If yes, specifications are introduced by
-     /@ and closed by @/. Not really tested currently, as this is not
-     parseable yet.*)
-  val mutable is_ghost = false
 
   method private current_kf = match self#current_function with
   | None -> assert false
@@ -114,21 +112,20 @@ class printer_with_annot () = object (self)
   | None -> assert false
   | Some st -> st.sid
 
-  method private may_be_skipped s = 
+  method! private may_be_skipped s = 
     super#may_be_skipped s && not (Annotations.has_code_annot s)
 
   method private pretty_funspec fmt kf =
     let spec = Annotations.funspec ~populate:false kf in
-    if logic_printer_enabled && not (Cil.is_empty_funspec spec) then
-      Format.fprintf fmt "@[<hv 1>/*@@ %a@ */@]@\n" self#funspec spec;
+    self#opt_funspec fmt spec
 
-  method private has_annot =
+  method! private has_annot =
     super#has_annot
   || match self#current_stmt with 
     | None -> false
     | Some s -> Annotations.has_code_annot s
 
-  method private inline_block ?has_annot blk =
+  method! private inline_block ?has_annot blk =
     super#inline_block ?has_annot blk
   && (match blk.bstmts with
   | [] -> true
@@ -139,25 +136,28 @@ class printer_with_annot () = object (self)
     | _ -> true)
   | _ :: _ -> false)
 
-  method varinfo fmt v =
-    super#varinfo fmt v;
-    if Kernel.debug_atleast 4 then begin
-      Format.fprintf fmt "/*vid:%d*/" v.vid;
+  method! varinfo fmt v =
+    if Kernel.is_debug_key_enabled debug_vid then begin
+      Format.fprintf fmt "/* vid:%d" v.vid;
       (match v.vlogic_var_assoc with
          None -> ()
-       | Some v -> Format.fprintf fmt "/*lvid:%d*/" v.lv_id);
-    end
+       | Some v -> Format.fprintf fmt ", lvid:%d" v.lv_id
+      );
+      Format.fprintf fmt " */"
+    end;
+    super#varinfo fmt v;
 
-  method logic_var fmt v =
-    super#logic_var fmt v;
-    if Kernel.debug_atleast 4 then begin
+  method! logic_var fmt v =
+    if Kernel.is_debug_key_enabled debug_vid then begin
+      Format.fprintf fmt "/* ";
       (match v.lv_origin with
          None -> ()
-       | Some v -> Format.fprintf fmt "/*vid:%d*/" v.vid);
-      Format.fprintf fmt "/*lv_id:%d*/" v.lv_id
-    end
+       | Some v -> Format.fprintf fmt "vid:%d, " v.vid);
+      Format.fprintf fmt "lvid:%d */" v.lv_id
+    end;
+    super#logic_var fmt v;
 
-  method vdecl fmt vi =
+  method! vdecl fmt vi =
     Format.open_vbox 0;
     (try
        let kf = Globals.Functions.get vi in
@@ -174,7 +174,7 @@ class printer_with_annot () = object (self)
     super#vdecl fmt vi;
     Format.close_box ()
 
-  method global fmt glob =
+  method! global fmt glob =
     if Kernel.PrintComments.get () then begin
       let comments = Globals.get_comments_global glob in
       Pretty_utils.pp_list 
@@ -192,7 +192,8 @@ class printer_with_annot () = object (self)
     if is_ghost then Format.fprintf fmt "/@@" else Format.fprintf fmt "/*@@"
 
   method private end_annotation fmt =
-    if is_ghost then Format.fprintf fmt "@@/" else Format.fprintf fmt "*/"
+    if is_ghost then Format.fprintf fmt "@@/" 
+    else Format.fprintf fmt "*/"
 
   method private loop_annotations fmt annots =
     if annots <> [] then
@@ -211,7 +212,7 @@ class printer_with_annot () = object (self)
       fmt
       annots
 
-  method annotated_stmt next fmt s =
+  method! annotated_stmt next fmt s =
     (* To debug location setting:
        (let loc = fst (Cil_datatype.Stmt.loc s.skind) in
        Format.fprintf fmt "/*Loc=%s:%d*/" loc.Lexing.pos_fname
@@ -231,7 +232,8 @@ class printer_with_annot () = object (self)
 	  (fun fmt s -> Format.fprintf fmt "@[/* %s */@]" s)
           fmt comments
     end;
-    if verbose then Format.fprintf fmt "@[/*sid:%d*/@]@ " s.sid ;
+    if verbose || Kernel.is_debug_key_enabled debug_sid then
+      Format.fprintf fmt "@[/* sid:%d */@]@\n" s.sid ;
     (* print the annotations *)
     if logic_printer_enabled then begin
       let all_annot =
@@ -288,6 +290,8 @@ let () = Cil_datatype.Logic_var.pretty_ref := pp_logic_var
 let () = Cil_datatype.Model_info.pretty_ref := pp_model_info
 let () = Cil_datatype.pretty_logic_type_ref := pp_logic_type
 let () = Cil_datatype.Term.pretty_ref := pp_term
+let () = Cil_datatype.Term_lval.pretty_ref := pp_term_lval
+let () = Cil_datatype.Term_offset.pretty_ref := pp_term_offset
 let () = Cil_datatype.Code_annotation.pretty_ref := pp_code_annotation
 
 (*

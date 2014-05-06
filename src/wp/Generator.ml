@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -58,14 +58,14 @@ let compute_ip cc ip =
     | Property.IPCodeAnnot _
     | Property.IPAllocation _
     | Property.IPAssigns _
-    | Property.IPFrom _
     | Property.IPDecrease _
     | Property.IPPredicate _ 
       ->
 	List.iter cc#add_strategy 
 	  (WpAnnot.get_id_prop_strategies ~assigns:WpAnnot.WithAssigns ip) ;
 	cc#compute
-	
+
+    | Property.IPFrom _
     | Property.IPAxiom _
     | Property.IPReachable _
     | Property.IPOther _
@@ -139,15 +139,4 @@ let compute_selection cc ?(fct=F_All) ?bhv ?prop () =
 
 let compute_call cc stmt =
   List.iter cc#add_strategy (WpAnnot.get_call_pre_strategies stmt) ;
-  cc#compute
-
-(* -------------------------------------------------------------------------- *)
-(* --- Froms Entry Point                                                  --- *)
-(* -------------------------------------------------------------------------- *)
-  
-let compute_froms cc ?(fct=F_All) () =
-  iter_fct 
-    (fun kf ->
-       List.iter cc#add_strategy (WpFroms.get_strategies_for_froms kf)
-    ) fct ;
   cc#compute

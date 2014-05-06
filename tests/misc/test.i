@@ -1,7 +1,7 @@
 /* run.config
   GCC:
-  OPT: -memory-footprint 1 -val -deps -out -input  -main inst_F6 -absolute-valid-range 0x200-0x199
-  OPT: -memory-footprint 1 -val -deps -out -input  -main f
+  OPT: -val -deps -out -input  -main inst_F6 -absolute-valid-range 0x200-0x199
+  OPT: -val -deps -out -input  -main f
 */
 void inst_F6(int *v,int n){ int t[3]; t[1] = 4;
  int i,j,ecart,tmp;
@@ -15,8 +15,8 @@ void inst_F6(int *v,int n){ int t[3]; t[1] = 4;
        }
 }
 
-void f() {
+void f(int c) {
   int t[88888];
   t[0] = 99;
-  t[1] = t[100];
+  if (c) t[1] = t[100];
 }

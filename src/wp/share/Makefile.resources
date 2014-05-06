@@ -1,0 +1,130 @@
+##########################################################################
+#                                                                        #
+#  This file is part of WP plug-in of Frama-C.                           #
+#                                                                        #
+#  Copyright (C) 2007-2014                                               #
+#    CEA (Commissariat a l'energie atomique et aux energies              #
+#         alternatives)                                                  #
+#                                                                        #
+#  you can redistribute it and/or modify it under the terms of the GNU   #
+#  Lesser General Public License as published by the Free Software       #
+#  Foundation, version 2.1.                                              #
+#                                                                        #
+#  It is distributed in the hope that it will be useful,                 #
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of        #
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         #
+#  GNU Lesser General Public License for more details.                   #
+#                                                                        #
+#  See the GNU Lesser General Public License version 2.1                 #
+#  for more details (enclosed in the file licenses/LGPLv2.1).            #
+#                                                                        #
+##########################################################################
+
+# --------------------------------------------------------------------------
+# ---  Why-3 Libraries
+# --------------------------------------------------------------------------
+
+# See also COQ_LIBS_CEA
+
+## Used in share/why3
+WHY3_LIBS_CEA:=	\
+ Cbits.why 	\
+ Cint.why 	\
+ Cfloat.why 	\
+ Cmath.why 	\
+ Memory.why 	\
+ Qed.why 	\
+ Vset.why
+
+# --------------------------------------------------------------------------
+# ---  Coq Libraries
+# --------------------------------------------------------------------------
+
+## Used in share/coqwp and share/why3
+COQ_LIBS_CEA:=	\
+ Bits.v 	\
+ Cbits.v 	\
+ Cfloat.v 	\
+ Cint.v 	\
+ Cmath.v 	\
+ Memory.v 	\
+ Qed.v 		\
+ Qedlib.v 	\
+ Vset.v 	\
+ Zbits.v
+
+## Used in share/coqwp only
+COQ_LIBS_INRIA:=\
+ BuiltIn.v 	\
+ bool/Bool.v 	\
+ int/Abs.v 	\
+ int/ComputerDivision.v	\
+ int/Int.v 	\
+ int/MinMax.v 	\
+ map/Map.v 	\
+ real/Abs.v 	\
+ real/FromInt.v \
+ real/MinMax.v 	\
+ real/Real.v 	\
+ real/RealInfix.v \
+ real/Square.v
+
+# --------------------------------------------------------------------------
+# ---  Alt-Ergo Libraries
+# --------------------------------------------------------------------------
+
+# Used in share/ergo
+ERGO_LIBS_CEA:= \
+ Cbits.mlw 	\
+ Cfloat.mlw 	\
+ Cint.mlw 	\
+ Cmath.mlw 	\
+ Memory.mlw 	\
+ Qed.mlw 	\
+ Vset.mlw
+
+# Used in share/ergo
+ERGO_LIBS_INRIA:= \
+ bool.Bool.mlw 	\
+ int.Abs.mlw 	\
+ int.ComputerDivision.mlw \
+ int.Int.mlw 	\
+ int.MinMax.mlw \
+ map.Map.mlw 	\
+ real.Abs.mlw 	\
+ real.FromInt.mlw \
+ real.MinMax.mlw \
+ real.Real.mlw 	\
+ real.RealInfix.mlw \
+ real.Square.mlw
+
+# Resource classes for license header files
+# These files are relatives to this directory
+ALL_CEA_RESOURCES+= \
+	wp.driver \
+	why3/coq.drv \
+	install.ml \
+	Makefile.resources \
+	Makefile.coq \
+	why3/Makefile \
+	coqwp/Makefile \
+	$(addprefix why3/,  $(WHY3_LIBS_CEA)) \
+	$(addprefix why3/,  $(COQ_LIBS_CEA)) \
+	$(addprefix coqwp/, $(COQ_LIBS_CEA)) \
+	$(addprefix ergo/,  $(ERGO_LIBS_CEA))
+
+ALL_UNMODIFIED_WHY3_RESOURCES:= \
+	$(addprefix coqwp/, $(COQ_LIBS_INRIA))
+
+ALL_MODIFIED_WHY3_RESOURCES:= \
+	$(addprefix ergo/,  $(ERGO_LIBS_INRIA))
+
+
+# End of file
+
+
+
+##########################################################################
+# Local Variables:
+# mode: makefile
+# End:

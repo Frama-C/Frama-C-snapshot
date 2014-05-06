@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -191,8 +191,8 @@ class button ?label ?icon ?tooltip () =
   let button = GButton.button ?label ~show:true () in
 object(self)
   inherit [unit] signal as s
-  inherit button_skel ?icon ?tooltip (button :> GButton.button_skel) as b
-  method set_enabled e = s#set_enabled e ; b#set_enabled e
+  inherit! button_skel ?icon ?tooltip (button :> GButton.button_skel) as b
+  method! set_enabled e = s#set_enabled e ; b#set_enabled e
   method default = button#grab_default
   initializer
     ignore (button#connect#clicked self#fire)
@@ -206,9 +206,9 @@ class checkbox ~label ?tooltip () =
   let button = GButton.check_button ~label ~show:true () in
 object
   inherit [bool] selector false as s
-  inherit widget_skel button as b
-  method set_enabled e = s#set_enabled e ; b#set_enabled e
-  method set a = s#set a ; button#set_active a
+  inherit! widget_skel button as b
+  method! set_enabled e = s#set_enabled e ; b#set_enabled e
+  method! set a = s#set a ; button#set_active a
   initializer 
     begin
       set_tooltip button tooltip ;
@@ -220,9 +220,9 @@ class toggle ?label ?icon ?tooltip () =
   let button = GButton.button ?label ~show:true ~relief:`NONE () in
 object
   inherit [bool] selector false as s
-  inherit button_skel ?icon ?tooltip (button :> GButton.button_skel) as b
-  method set_enabled e = s#set_enabled e ; b#set_enabled e
-  method set a = s#set a ; button#set_relief (if a then `NORMAL else `NONE)
+  inherit! button_skel ?icon ?tooltip (button :> GButton.button_skel) as b
+  method! set_enabled e = s#set_enabled e ; b#set_enabled e
+  method! set a = s#set a ; button#set_relief (if a then `NORMAL else `NONE)
   initializer ignore (button#connect#clicked (fun () -> s#set (not s#get)))
 end
   
@@ -230,8 +230,8 @@ class radio ~label ?tooltip () =
   let button = GButton.radio_button ~label ~show:true () in
 object
   inherit [bool] selector false as s
-  inherit widget_skel button
-  method set e = s#set e ; if e then button#set_active true
+  inherit! widget_skel button
+  method! set e = s#set e ; if e then button#set_active true
   method group = function
     | None -> Some button#group 
     | (Some g) as sg -> button#set_group g ; sg
@@ -249,9 +249,9 @@ class switchbox ?tooltip () =
   let img = GMisc.image ~pixbuf:pix_on ~packing:evt#add () in
 object(self)
   inherit [bool] selector false as s
-  inherit widget_skel evt as b
-  method set_enabled e = s#set_enabled e ; b#set_enabled e
-  method set a = s#set a ; img#set_pixbuf (if a then pix_on else pix_off)
+  inherit! widget_skel evt as b
+  method! set_enabled e = s#set_enabled e ; b#set_enabled e
+  method! set a = s#set a ; img#set_pixbuf (if a then pix_on else pix_off)
   initializer 
     begin
       set_tooltip evt tooltip ;
@@ -268,9 +268,9 @@ class spinner ?min ?max ?(step=1) ~value ?tooltip () =
   let b = GEdit.spin_button ~digits:0 () in
 object
   inherit [int] selector value as s
-  inherit widget_skel b
-  method set_enabled e = s#set_enabled e ; b#misc#set_sensitive e
-  method set a = s#set a ; b#set_value (float value)
+  inherit! widget_skel b
+  method! set_enabled e = s#set_enabled e ; b#misc#set_sensitive e
+  method! set a = s#set a ; b#set_value (float value)
   initializer
     begin
       set_tooltip b tooltip ;
@@ -315,7 +315,7 @@ object(self)
     group <- radio#group group ;
     (radio :> widget)
 
-  method set_enabled e = 
+  method! set_enabled e = 
     List.iter (fun (w,_) -> w#set_enabled e) cases
 
 end
@@ -330,11 +330,11 @@ class ['a] menulist ~default ~render ?(items=[]) () =
 object(self)
 
   inherit widget_skel cmb as widget
-  inherit ['a] selector default as select
+  inherit! ['a] selector default as select
 
   val mutable items = Array.of_list items
 
-  method set_enabled e = 
+  method! set_enabled e = 
     select#set_enabled e ; widget#set_enabled e
 
   method get_items = Array.to_list items
@@ -356,7 +356,7 @@ object(self)
     try if not lock then select#set items.(cmb#active)
     with _ -> ()
 
-  method set x =
+  method! set x =
     begin
       select#set x ; 
       Array.iteri (fun i e -> if x=e then cmb#set_active i) items ;
@@ -472,7 +472,7 @@ class filechooser_button ?kind ?title ?select ?tooltip ?parent () =
 object(self)
 
   inherit widget_skel button
-  inherit [string] selector "" as current
+  inherit! [string] selector "" as current
 
   val mutable disptip = fun f ->
     match tooltip , f with
@@ -825,7 +825,7 @@ object(self)
     pages <- pages @ [page] ;
     ignore (view#append_page ?tab_label content) ;
     self#set default
-  method set page =
+  method! set page =
     let rec scan i p = function
       | q::qs -> if p=q then view#goto_page i else scan (succ i) p qs
       | [] -> ()
@@ -840,7 +840,7 @@ object(self)
       on tabs (fun p -> view#set_show_tabs true ; view#set_tab_pos p) ;
     end
   method coerce = view#coerce
-  method set_enabled = view#misc#set_sensitive
+  method! set_enabled = view#misc#set_sensitive
 end
 
 (* -------------------------------------------------------------------------- *)
@@ -1087,7 +1087,7 @@ object(self)
 	  
   initializer 
     begin
-      view#misc#modify_font_by_name "Monospace 10" ;
+      view#misc#modify_font_by_name "Monospace" ;
       scroll#add view#coerce
     end
       

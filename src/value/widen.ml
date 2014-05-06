@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -32,7 +32,7 @@ class widen_visitor kf init_widen_hints init_enclosing_loop_info = object
   val widen_hints = init_widen_hints
   val enclosing_loop_info = init_enclosing_loop_info
 
-  method vstmt (s:stmt) =
+  method! vstmt (s:stmt) =
     begin
       let infer_widen_variables bl enclosing_loop_info =
         (* Look at the if-goto and if-break statements.
@@ -61,22 +61,16 @@ class widen_visitor kf init_widen_hints init_enclosing_loop_info = object
                 let f (lv, lt) t =
                   match t with
                   | { term_node= TLval (TVar {lv_origin = Some vi}, _)} ->
-                      let vid = Base.create_varinfo vi in
+                      let b = Base.of_varinfo vi in
                       (* Format.printf "Reading user pragma for widening variable: %a.\n"
                          Base.pretty (Base.Var vi); *)
-                      (vid::lv, lt)
+                      (Base.Set.add b lv, lt)
                   | _ -> (lv, t::lt)
                 in
-                begin match List.fold_left f ([], []) l with
-                | (lv, []) ->
+                begin match List.fold_left f (Base.Set.empty, []) l with
+                | (var_hints, []) ->
                     (* the annotation is empty or else,
                        there are only variables *)
-                    let var_hints =
-                      List.fold_left
-                        (fun s x -> Base.Set.add x s)
-                        Base.Set.empty
-                        lv
-                    in
                     List.iter
                       (fun widening_stmt ->
                          widen_hints :=
@@ -97,25 +91,31 @@ class widen_visitor kf init_widen_hints init_enclosing_loop_info = object
                   match t with
                   | { term_node=
                         TLval (TVar { lv_origin = Some vi}, _)} ->
-                      let vid = Base.create_varinfo vi in
-                      (vid::lv, lnum, lt)
+                      let b = Base.of_varinfo vi in
+                      (b::lv, lnum, lt)
                   | { term_node= TConst (Integer(v,_))} ->
-                      (lv, v::lnum, lt)
+                      (lv, Ival.Widen_Hints.add v lnum, lt)
                   | _ -> (lv, lnum, t::lt)
-                in begin match List.fold_left f ([], [], []) l with
-                | (lv, lnum, []) ->
-                    (* the annotation is empty or else, there are only variables *)
-                    let hints =
-                      List.fold_right Ival.Widen_Hints.add lnum Ival.Widen_Hints.empty
-                    in
+                in begin
+                match List.fold_left f ([], Ival.Widen_Hints.empty, []) l with
+                | (vars, hints, []) ->
+                    (* the annotation is empty or there are only variables *)
+                  if vars = [] then
+                    List.iter
+                      (fun widening_stmt ->
+                        widen_hints :=
+                          Widen_type.add_num_hints
+                          (Some widening_stmt) None hints !widen_hints
+                      ) widening_stmts
+                  else
                     List.iter
                       (fun key ->
                          List.iter
                            (fun widening_stmt -> widen_hints :=
                               Widen_type.add_num_hints (Some(widening_stmt))
-                                (Widen_type.VarKey(key)) hints !widen_hints)
+                                (Some key) hints !widen_hints)
                            widening_stmts)
-                      lv
+                      vars
                 | _ ->
                   Kernel.warning ~once:true ~current:true
                     "could not interpret loop pragma relative to widening hint"
@@ -123,12 +123,12 @@ class widen_visitor kf init_widen_hints init_enclosing_loop_info = object
             | _ -> ()
           in List.iter f l_pragma ;
           if not !is_pragma_widen_variables then
-            let loop =
-              try Loop.get_loop_stmts kf s
-              with Loop.No_such_while -> assert false
-            in
+            (* ZZZ: this function does not handle loops that are created
+               using gotos. We could improve this by finding the relevants
+               statements using a traversal of the CFG. *)
+            let loop_stmts = Stmts_graph.get_stmt_stmts s in
             (* There is no Widen_variables pragma for this loop. *)
-            infer_widen_variables bl (Some (widening_stmts, loop))
+            infer_widen_variables bl (Some (widening_stmts, loop_stmts))
           else
             Cil.DoChildren
       | If (exp, bl_then, bl_else, _) ->
@@ -149,7 +149,7 @@ class widen_visitor kf init_widen_hints init_enclosing_loop_info = object
                            Varinfo.Set.fold
                              (fun vi lv ->
                                 (*Format.printf "Inferring pragma for widening variable: %a.\n" Base.pretty (Base.Var vi);*)
-                               Base.Set.add (Base.create_varinfo vi) lv)
+                               Base.Set.add (Base.of_varinfo vi) lv)
                              varinfos
                              Base.Set.empty
                          in
@@ -169,7 +169,7 @@ class widen_visitor kf init_widen_hints init_enclosing_loop_info = object
 	Cil.DoChildren
       end ;
     end
-  method vexpr (e:exp) = begin
+  method! vexpr (e:exp) = begin
     let with_succ v = [v ; Integer.succ v]
     and with_pred v = [Integer.pred v ; v ]
     and with_s_p_ v = [Integer.pred v; v; Integer.succ v]
@@ -183,6 +183,16 @@ class widen_visitor kf init_widen_hints init_enclosing_loop_info = object
           Cil.SkipChildren
       | _ -> 
 	Cil.DoChildren
+    and unop_visit e =
+      match e with
+      | {enode=(CastE(_, { enode=Lval (Var varinfo, _)})
+		   | Lval (Var varinfo, _))} ->
+        let hints = Ival.Widen_Hints.singleton Integer.zero in
+        let base = Base.of_varinfo varinfo in
+        widen_hints :=
+          Widen_type.add_num_hints None (Some base) hints !widen_hints;
+        Cil.SkipChildren
+      | _ -> Cil.DoChildren
     and comparison_visit add1 add2 e1 e2 =
       let add key set =
         let hints =
@@ -194,8 +204,7 @@ class widen_visitor kf init_widen_hints init_enclosing_loop_info = object
         (*Format.printf "Adding widen hint %a for base %a@\n" Ival.Widen_Hints.pretty hints
           Base.pretty key;*)
         widen_hints := 
-	  Widen_type.add_num_hints
-	  None (Widen_type.VarKey key) hints !widen_hints
+	  Widen_type.add_num_hints None (Some key) hints !widen_hints
       in
       begin
         let e1,e2 = Cil.constFold true e1, Cil.constFold true e2 in
@@ -203,16 +212,12 @@ class widen_visitor kf init_widen_hints init_enclosing_loop_info = object
         | Some int64, _,
           _, {enode=(CastE(_, { enode=Lval (Var varinfo, _)})
 			| Lval (Var varinfo, _))}->
-            add
-              (Base.create_varinfo varinfo)
-              (add1 int64);
+            add (Base.of_varinfo varinfo) (add1 int64);
             Cil.SkipChildren
         | _, Some int64,
           {enode=(CastE(_, { enode=Lval (Var varinfo, _)})
 		     | Lval (Var varinfo, _))}, _ ->
-            add
-              (Base.create_varinfo varinfo)
-              (add2 int64);
+            add (Base.of_varinfo varinfo) (add2 int64);
             Cil.SkipChildren
         | _ -> 
 	  Cil.DoChildren
@@ -227,11 +232,15 @@ class widen_visitor kf init_widen_hints init_enclosing_loop_info = object
     | BinOp (Eq, e1, e2, _)
     | BinOp (Ne, e1, e2, _) ->
         comparison_visit with_s_p_ with_s_p_ e1 e2
+    | UnOp (Neg, e, _) ->
+        unop_visit e
+    | Lval _ ->
+        unop_visit e
     | _ -> default_visit e
   end
 end
 
-let compute_widen_hints kf _s default_widen_hints = (* [s] isn't used yet *)
+let compute_widen_hints kf default_widen_hints =
   let widen_hints =
     begin
       match kf.fundec with
@@ -258,7 +267,7 @@ let () = Ast.add_monotonic_state Hints.self
 
 let getWidenHints (kf:kernel_function) (s:stmt) =
   let widen_hints_map =
-    Hints.memo (fun kf -> compute_widen_hints kf s Widen_type.default) kf
+    Hints.memo (fun kf -> compute_widen_hints kf (Widen_type.default ())) kf
   in
   Widen_type.hints_from_keys s widen_hints_map
 

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -33,7 +33,7 @@ end
 
 module Make(E : Element) =
 struct
-  
+
   module H = Hashtbl.Make(E)
 
   type succ = (E.t -> unit) -> E.t -> unit
@@ -56,11 +56,11 @@ struct
     ndfs = 0 ;
     ncomp = 0 ;
   }
-  
+
   let rec pop g n = function
     | (k, w) :: l when k > n -> 
-	H.add g.comp w g.ncomp ;
-	pop g n l
+        H.add g.comp w g.ncomp ;
+        pop g n l
     | l -> l
 
   let push g v n = g.stack <- (n,v) :: g.stack
@@ -68,25 +68,25 @@ struct
   let rec visit g v =
     if not (H.mem g.root v) then
       begin
-	let n = g.ndfs in 
-	g.ndfs <- succ n ; 
-	H.add g.root v n ;
-	g.succ 
-	  (fun w -> 
-	     visit g w ;
-	     if not (H.mem g.comp w) then 
-	       let r_v = H.find g.root v in
-	       let r_w = H.find g.root w in
-	       H.replace g.root v (min r_v r_w)
-	  ) v ;
-	if H.find g.root v = n then 
-	  begin
-	    H.add g.comp v g.ncomp ;
-	    g.stack <- pop g n g.stack ;
-	    g.ncomp <- succ g.ncomp ;
-	  end
-	else 
-	  push g v n
+        let n = g.ndfs in 
+        g.ndfs <- succ n ; 
+        H.add g.root v n ;
+        g.succ 
+          (fun w -> 
+             visit g w ;
+             if not (H.mem g.comp w) then 
+               let r_v = H.find g.root v in
+               let r_w = H.find g.root w in
+               H.replace g.root v (min r_v r_w)
+          ) v ;
+        if H.find g.root v = n then 
+          begin
+            H.add g.comp v g.ncomp ;
+            g.stack <- pop g n g.stack ;
+            g.ncomp <- succ g.ncomp ;
+          end
+        else 
+          push g v n
       end
 
   let components ~succ ~root ?(size=997) () =

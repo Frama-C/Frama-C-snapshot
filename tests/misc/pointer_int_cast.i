@@ -1,6 +1,6 @@
 /* run.config
   GCC:
-  OPT: -memory-footprint 1 -val -deps -out -input  -main g -journal-disable
+  OPT: -val -deps -out -input  -main g -journal-disable
 */
 int * q;
 int x,y=0;

@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -memory-footprint 1 -val -journal-disable -float-normal -lib-entry
+   OPT:  -val -journal-disable -float-normal -lib-entry
 */
 
 typedef struct S { float y; } S;

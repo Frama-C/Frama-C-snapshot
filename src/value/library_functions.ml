@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -48,7 +48,7 @@ let get = Retres.memo
 
 let add_retres_to_state ~with_alarms kf offsetmap state =
   let retres_vi = get kf in
-  let retres_base = Base.create_varinfo retres_vi in
+  let retres_base = Base.of_varinfo retres_vi in
   let loc = Location_Bits.inject retres_base Ival.zero in
   let size =
     try  Int.of_int (bitsSizeOf retres_vi.vtype)
@@ -103,7 +103,7 @@ let returned_value kf state =
              in
              register_new_var new_varinfo typ;
 	     let validity = Base.Known (Int.zero, Int.pred size) in
-             Base.create_logic new_varinfo validity
+             Base.register_memory_var new_varinfo validity
           ) kf
       in
       let initial_value =
@@ -124,7 +124,7 @@ let returned_value kf state =
           assert (Cvalue.V.is_isotropic initial_value);
           Int.one
       in
-      let returned_value =
+      let returned_base =
         Location_Bytes.inject
           new_base
           (Ival.filter_ge_int (Some Int.zero)
@@ -133,6 +133,7 @@ let returned_value kf state =
                 ~modu:size_v
                 ~size:(sizeofpointer ())))
       in
+      let returned_value = V.join V.top_int returned_base in
       let v = Cvalue.V_Or_Uninitialized.initialized initial_value in
       let offsm = Cvalue.V_Offsetmap.create ~size v ~size_v in
       (* TODO: this overwrites the entire previous states *)

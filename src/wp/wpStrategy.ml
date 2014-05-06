@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -29,27 +29,31 @@ open LogicUsage
 (* -------------------------------------------------------------------------- *)
 (** An annotation can be used for different purpose. *)
 type annot_kind =
-  | Ahyp  (** annotation is an hypothesis,
+  | Ahyp  (* annotation is an hypothesis,
              but not a goal (see Aboth) : A => ...*)
-  | Agoal (** annotation is a goal,
+  | Agoal (* annotation is a goal,
              but not an hypothesis (see Aboth): A /\ ...*)
-  | Aboth of bool (** annotation can be used as both hypothesis and goal :
-    - with true : considerer as both : A /\ A=>..
-    - with false : we just want to use it as hyp right now. *)
-  | AcutB of bool (** annotation is use as a cut :
-    - with true (A is also a goal) -> A (+ proof obligation A => ...)
-    - with false (A is an hyp only) -> True (+ proof obligation A => ...) *)
-  | AcallHyp
-       (** annotation is a called function property to consider as an Hyp.
+  | Aboth of bool 
+      (* annotation can be used as both hypothesis and goal :
+	 - with true : considerer as both : A /\ A=>..
+	 - with false : we just want to use it as hyp right now. *)
+  | AcutB of bool 
+      (* annotation is use as a cut :
+	 - with true (A is also a goal) -> A (+ proof obligation A => ...)
+	 - with false (A is an hyp only) -> True (+ proof obligation A => ...) *)
+  | AcallHyp of kernel_function
+      (* annotation is a called function property to consider as an Hyp.
        * The pre are not here but in AcallPre since they can also
        * be considered as goals. *)
-  | AcallPre of bool
-       (** annotation is a called function precondition :
-           to be considered as hyp, and goal if bool=true *)
+  | AcallPre of bool * kernel_function
+      (* annotation is a called function precondition :
+         to be considered as hyp, and goal if bool=true *)
 
 (* -------------------------------------------------------------------------- *)
 (* --- Annotations for one program point.                                 --- *)
 (* -------------------------------------------------------------------------- *)
+
+module ForCall = Kernel_function.Map
 
 (** Some elements can be used as both Hyp and Goal : because of the selection
  * mecanism, we need to add a boolean [as_goal] to tell if the element is to be
@@ -60,11 +64,12 @@ type annots = {
   p_goal : WpPropId.pred_info list;
   p_both : (bool * WpPropId.pred_info) list;
   p_cut : (bool * WpPropId.pred_info) list;
-  call_hyp : WpPropId.pred_info list; (* post and pre *)
-  call_pre : (bool * WpPropId.pred_info) list; (* goal only *)
+  call_hyp : WpPropId.pred_info list ForCall.t; (* post and pre *)
+  call_pre : (bool * WpPropId.pred_info) list ForCall.t; (* goal only *)
+  call_asgn : WpPropId.assigns_full_info ForCall.t;
   a_goal : WpPropId.assigns_full_info;
   a_hyp : WpPropId.assigns_full_info;
-  a_call : WpPropId.assigns_full_info;
+  a_call : WpPropId.assigns_full_info; (* dynamic calls *)
 }
 
 type t_annots = { has_asgn_goal : bool; has_prop_goal : bool; info: annots }
@@ -72,10 +77,16 @@ type t_annots = { has_asgn_goal : bool; has_prop_goal : bool; info: annots }
 (* --- Add annotations --- *)
 
 let empty_acc =
-  let a = { p_hyp = []; p_goal = []; p_both = []; p_cut = [];
-    call_hyp = []; call_pre = []; a_call = WpPropId.empty_assigns_info;
-    a_goal = WpPropId.empty_assigns_info; a_hyp = WpPropId.empty_assigns_info; }
-  in { has_asgn_goal = false; has_prop_goal = false; info = a; }
+  let a = { 
+    p_hyp = []; p_goal = []; p_both = []; p_cut = [];
+    call_hyp = ForCall.empty; 
+    call_pre = ForCall.empty; 
+    call_asgn = ForCall.empty;
+    a_goal = WpPropId.empty_assigns_info; 
+    a_hyp = WpPropId.empty_assigns_info;
+    a_call = WpPropId.empty_assigns_info;
+  } in
+  { has_asgn_goal = false; has_prop_goal = false; info = a; }
 
 let add_prop acc kind labels id p =
   let get_p debug_txt =
@@ -102,6 +113,12 @@ let add_prop acc kind labels id p =
             (* if goal then has_prop_goal := true;*)
             (goal, p)::l
   in
+  let add_hyp_call fct calls =
+    let l = try ForCall.find fct calls with Not_found -> [] in
+    ForCall.add fct (add_hyp l) calls in
+  let add_both_call fct goal calls =
+    let l = try ForCall.find fct calls with Not_found -> [] in
+    ForCall.add fct (add_both goal l) calls in
   let info = acc.info in
   let goal, info = match kind with
       | Ahyp -> 
@@ -112,10 +129,10 @@ let add_prop acc kind labels id p =
           goal, { info with p_both = add_both goal info.p_both }
       | AcutB goal ->
           goal, { info with p_cut = add_both goal info.p_cut }
-      | AcallHyp -> 
-          false, { info with call_hyp = add_hyp info.call_hyp }
-      | AcallPre goal ->
-          goal, { info with call_pre = add_both goal info.call_pre }
+      | AcallHyp fct -> 
+          false, { info with call_hyp = add_hyp_call fct info.call_hyp }
+      | AcallPre (goal,fct) ->
+          goal, { info with call_pre = add_both_call fct goal info.call_pre }
   in let acc = { acc with info = info } in
     if goal then { acc with has_prop_goal = true} else acc
 
@@ -230,22 +247,27 @@ let add_assigns acc kind id a_desc =
     debug "take %a %a" WpPropId.pp_propid id WpPropId.pp_assigns_desc a_desc;
     WpPropId.mk_assigns_info id a_desc
   in
+  let take_assigns_call fct info =
+    let asgn = take_assigns () in
+    { info with call_asgn = ForCall.add fct asgn info.call_asgn }
+  in
   let info = acc.info in
   let goal, info = match kind with
     | Ahyp -> false, {info with a_hyp = take_assigns ()}
-    | AcallHyp -> false, {info with a_call = take_assigns ()}
+    | AcallHyp fct -> false, take_assigns_call fct info
     | Agoal -> true, {info with a_goal = take_assigns ()}
     | _ -> Wp_parameters.fatal "Assigns prop can only be Hyp or Goal"
   in let acc = { acc with info = info } in
     if goal then { acc with has_asgn_goal = true} else acc
 
 let add_assigns_any acc kind asgn =
-  let take () = debug "take %a" (WpPropId.pp_assign_info "") asgn; asgn in 
-    match kind with
-      | Ahyp ->  {acc with info = { acc.info with a_hyp = take ()}}
-      | AcallHyp -> {acc with info = { acc.info with a_call = take ()}}
-      | _ -> Wp_parameters.fatal "Assigns Any prop can only be Hyp"
-
+  let take_call fct asgn info =
+    { info with call_asgn = ForCall.add fct asgn info.call_asgn } in
+  match kind with
+    | Ahyp ->  {acc with info = { acc.info with a_hyp = asgn}}
+    | AcallHyp fct -> {acc with info = take_call fct asgn acc.info}
+    | _ -> Wp_parameters.fatal "Assigns Any prop can only be Hyp"
+	
 let assigns_upper_bound spec =
   let bhvs = spec.spec_behavior in
   let upper a b =
@@ -291,36 +313,40 @@ let add_stmt_spec_assigns_hyp acc kf s l_post spec =
     | Some(bhv, assigns) ->
         let id = WpPropId.mk_stmt_assigns_id kf s bhv assigns in
         match id with
-            | None -> add_assigns_any acc Ahyp
+          | None -> add_assigns_any acc Ahyp
               (WpPropId.mk_stmt_any_assigns_info s)
-            | Some id ->
+          | Some id ->
               let labels = NormAtLabels.labels_stmt_assigns s l_post in
               let assigns = NormAtLabels.preproc_assigns labels assigns in
               let a_desc = WpPropId.mk_stmt_assigns_desc s assigns in
               add_assigns acc Ahyp id a_desc
+		
+let add_call_assigns_any acc s =
+  let asgn = WpPropId.mk_stmt_any_assigns_info s in
+  {acc with info = { acc.info with a_call = asgn }}
 
-let add_call_assigns_hyp acc kf_caller s l_post spec_opt =
+let add_call_assigns_hyp acc kf_caller s ~called_kf l_post spec_opt =
   match spec_opt with
     | None ->
-        let asgn = WpPropId.mk_stmt_any_assigns_info s in
-          add_assigns_any acc AcallHyp asgn
+        let pid = WpPropId.mk_stmt_any_assigns_info s in
+        add_assigns_any acc (AcallHyp called_kf) pid
     | Some spec ->
-      match assigns_upper_bound spec with
-        | None ->
-            let asgn = WpPropId.mk_stmt_any_assigns_info s in
-              add_assigns_any acc AcallHyp asgn
-        | Some(bhv, assigns) ->
-            let id = WpPropId.mk_stmt_assigns_id kf_caller s bhv assigns in
-            match id with
+	match assigns_upper_bound spec with
+          | None ->
+              let asgn = WpPropId.mk_stmt_any_assigns_info s in
+              add_assigns_any acc (AcallHyp called_kf) asgn
+          | Some(bhv, assigns) ->
+              let id = WpPropId.mk_stmt_assigns_id kf_caller s bhv assigns in
+              match id with
                 | None ->
-                   let asgn = WpPropId.mk_stmt_any_assigns_info s in
-                   add_assigns_any acc AcallHyp asgn
-                | Some id ->
-                  let labels = NormAtLabels.labels_stmt_assigns s l_post in
-                  let assigns = NormAtLabels.preproc_assigns labels assigns in
-                  let a_desc = WpPropId.mk_stmt_assigns_desc s assigns in
-                  add_assigns acc AcallHyp id a_desc
-
+                    let asgn = WpPropId.mk_stmt_any_assigns_info s in
+                    add_assigns_any acc (AcallHyp called_kf) asgn
+                | Some pid ->
+                    let labels = NormAtLabels.labels_stmt_assigns s l_post in
+                    let assigns = NormAtLabels.preproc_assigns labels assigns in
+                    let a_desc = WpPropId.mk_stmt_assigns_desc s assigns in
+                    add_assigns acc (AcallHyp called_kf) pid a_desc
+		      
 (* [VP 2011-01-28] following old behavior, not sure it is correct:
    why should we give to add_assigns the assigns with unnormalized labels?
    [AP 2011-03-11] to answer VP question, the source assigns are only used to
@@ -372,16 +398,25 @@ let filter_both l =
 
 let get_both_hyp_goals annots = filter_both annots.info.p_both
 
-let get_call_hyp annots = annots.info.call_hyp
-let get_call_pre annots = filter_both annots.info.call_pre
+let get_call_hyp annots fct = 
+  try ForCall.find fct annots.info.call_hyp
+  with Not_found -> []
+
+let get_call_pre annots fct = 
+  try filter_both (ForCall.find fct annots.info.call_pre)
+  with Not_found -> [],[]
+
+let get_call_asgn annots = function
+  | None -> annots.info.a_call
+  | Some fct -> 
+      try ForCall.find fct annots.info.call_asgn
+      with Not_found -> WpPropId.empty_assigns_info
 
 let get_cut annots = annots.info.p_cut
 
 let get_asgn_hyp annots = annots.info.a_hyp
 
 let get_asgn_goal annots = annots.info.a_goal
-
-let get_call_asgn annots = annots.info.a_call
 
 (* --- Print annotations --- *)
 
@@ -393,15 +428,37 @@ let pp_annots fmt acc =
   in
   let pp_pred_list k l = List.iter (fun p -> pp_pred k true p) l in
   let pp_pred_b_list k l = List.iter (fun (b, p) -> pp_pred k b p) l in
+  begin
      pp_pred_list "H" acc.p_hyp;
      pp_pred_list "G" acc.p_goal;
      pp_pred_b_list "H+G" acc.p_both;
      pp_pred_b_list "C" acc.p_cut;
-     pp_pred_list "CallHyp" acc.call_hyp;
-     pp_pred_b_list "CallPre" acc.call_pre;
+     ForCall.iter
+       (fun kf hs -> 
+	  let name = "CallHyp:" ^ (Kernel_function.get_name kf) in
+	  pp_pred_list name hs)
+       acc.call_hyp;
+     ForCall.iter
+       (fun kf bhs ->
+	  let name = "CallPre:" ^ (Kernel_function.get_name kf) in
+	  pp_pred_b_list name bhs)
+       acc.call_pre;
+     ForCall.iter
+       (fun kf asgn ->
+	  let name = "CallAsgn:" ^ (Kernel_function.get_name kf) in
+	  WpPropId.pp_assign_info name fmt asgn)
+       acc.call_asgn;
+     WpPropId.pp_assign_info "DC" fmt acc.a_call;
      WpPropId.pp_assign_info "HA" fmt acc.a_hyp;
      WpPropId.pp_assign_info "GA" fmt acc.a_goal;
-     WpPropId.pp_assign_info "CallA" fmt acc.a_call
+  end
+
+let merge_calls f call1 call2 =
+  ForCall.merge
+    (fun _fct a b -> match a,b with
+       | None,c | c,None -> c
+       | Some a,Some b -> Some (f a b)
+    ) call1 call2
 
 (* TODO: it should be possible to do without this, but needs a big refactoring*)
 let merge_acc acc1 acc2 =
@@ -410,8 +467,9 @@ let merge_acc acc1 acc2 =
   p_goal = acc1.p_goal @ acc2.p_goal;
   p_both = acc1.p_both @ acc2.p_both;
   p_cut = acc1.p_cut @ acc2.p_cut;
-  call_hyp = acc1.call_hyp @ acc2.call_hyp;
-  call_pre = acc1.call_pre @ acc2.call_pre;
+  call_hyp = merge_calls (@) acc1.call_hyp acc2.call_hyp;
+  call_pre = merge_calls (@) acc1.call_pre acc2.call_pre;
+  call_asgn = merge_calls WpPropId.merge_assign_info acc1.call_asgn acc2.call_asgn;
   a_goal = WpPropId.merge_assign_info acc1.a_goal acc2.a_goal;
   a_hyp = WpPropId.merge_assign_info acc1.a_hyp acc2.a_hyp;
   a_call = WpPropId.merge_assign_info acc1.a_call acc2.a_call;

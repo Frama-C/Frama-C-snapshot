@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -20,28 +20,14 @@
 (*                                                                        *)
 (**************************************************************************)
 
-include Plugin.Register
-  (struct
-     let name = "obfuscator"
-     let shortname = "obfuscator"
-     let help = "objuscator for confidential code"
-   end)
-
-module Run =
-  False
-    (struct
-       let option_name = "-obfuscate"
-       let help = "print an obfuscated version of the input files and exit.\n\
-Disable any other Frama-C analysis."
-     end)
-
 let disable_other_analyzers () =
-  if Run.get () then
+  if Options.Run.get () then
     let selection =
       State_selection.Static.diff
-        (Plugin.get_selection ())
+        (Parameter_state.get_selection ())
         (State_selection.Static.union
-           (State_selection.singleton Run.self)
+           (State_selection.of_list
+	      (Kernel.CodeOutput.self :: Options.states))
            (* The command-line options that govern the creation of the AST
               must be preserved *)
            (State_selection.Static.with_codependencies Ast.self))
@@ -50,19 +36,26 @@ let disable_other_analyzers () =
 
 let () = Cmdline.run_after_configuring_stage disable_other_analyzers
 
-let obfuscate_code code_fmt =
-  let ast = Ast.get () in
-  let dictionary = Obfuscate.obfuscate ast in
-  Format.fprintf code_fmt "// Start of dictionary for obfuscation:@\n";
-  let sorted_dictionary = Hashtbl.fold Datatype.String.Map.add
-    dictionary Datatype.String.Map.empty in
-  Datatype.String.Map.iter
-    (fun k v -> Format.fprintf code_fmt "#define %s %s@\n" k v)
-    sorted_dictionary;
-  Format.fprintf code_fmt "// End of dictionary for obfuscation.@\n";
-  Format.fprintf code_fmt "@[%a@]" Printer.pp_file ast
-
-let force_run () = Kernel.CodeOutput.output obfuscate_code
+let force_run () =
+  if not (Dictionary.is_computed ()) then begin
+    let old_printer = Printer.printer () in
+    Obfuscate.obfuscate ();
+    if Options.Dictionary.is_default () then Log.print_delayed Dictionary.pretty
+    else begin
+      let file = Options.Dictionary.get () in
+      try
+	let cout = open_out file in
+	let fmt = Format.formatter_of_out_channel cout in
+	Dictionary.pretty fmt
+      with Sys_error _ as exn ->
+	Options.error
+	  "@[cannot generate the dictionary into file `%s':@ %s@]" 
+	  file
+	  (Printexc.to_string exn)
+    end;
+    File.pretty_ast ();
+    Printer.change_printer (fun () -> old_printer)
+  end
 
 let force_run =
   Dynamic.register
@@ -72,10 +65,11 @@ let force_run =
     ~journalize:true
     force_run
 
-let run () =
-  if Run.get () then begin
+let run () = 
+  if Options.Run.get () then begin 
     force_run ();
-    raise Cmdline.Exit
+    Options.Run.off () (* de-activate yourself to allow the other analyzers to
+			  run from now *)
   end
 
 let () = Db.Main.extend run

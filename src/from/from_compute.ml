@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -23,7 +23,6 @@
 open Cil_types
 open Cil
 open Cil_datatype
-open Db
 open Abstract_interp
 open Locations
 
@@ -34,11 +33,12 @@ module type Froms_To_Use_Sig = sig
 end
 
 module type Values_To_Use_Sig = sig
-  val lval_to_loc_with_deps :
+  val lval_to_zone_with_deps :
     stmt ->
-    deps:Locations.Zone.t ->
+    deps:Locations.Zone.t option ->
+    for_writing:bool ->
     Cil_types.lval ->
-    Locations.Zone.t * Locations.location
+    Locations.Zone.t * Locations.Zone.t * bool
 
   val expr_to_kernel_function :
     stmt ->
@@ -62,62 +62,55 @@ let rec find_deps_no_transitivity state expr =
   match expr.enode with
     | Info (e, _) -> find_deps_no_transitivity state e
     | AlignOfE _| AlignOf _| SizeOfStr _ |SizeOfE _| SizeOf _ | Const _
-        -> Zone.bottom
+        -> Function_Froms.Deps.bottom
     | AddrOf lv  | StartOf lv ->
-        let deps, _ = !Db.Value.lval_to_loc_with_deps_state
+        let deps, _ = !Db.Value.lval_to_loc_with_deps_state (* loc ignored *)
           state
           ~deps:Zone.bottom
           lv
-        in deps
+        in
+        Function_Froms.Deps.data_deps deps
     | CastE (_, e)|UnOp (_, e, _) ->
         find_deps_no_transitivity state e
     | BinOp (_, e1, e2, _) ->
-        Zone.join
+        Function_Froms.Deps.join
           (find_deps_no_transitivity state e1)
           (find_deps_no_transitivity state e2)
     | Lval v ->
         find_deps_lval_no_transitivity state v
 
-and find_deps_offset_no_transitivity state o =
-  match o with
-    | NoOffset -> Zone.bottom
-    | Field (_,o) -> find_deps_offset_no_transitivity state o
-    | Index (e,o) ->
-        Zone.join
-          (find_deps_no_transitivity state e)
-          (find_deps_offset_no_transitivity state o)
-
 and find_deps_lval_no_transitivity state lv =
-  let deps, loc =
-    !Db.Value.lval_to_loc_with_deps_state state ~deps:Zone.bottom lv
+  let ind_deps, direct_deps, _exact =
+    !Db.Value.lval_to_zone_with_deps_state
+      state ~for_writing:false ~deps:(Some Zone.bottom) lv
   in
-  let direct_deps = enumerate_valid_bits ~for_writing:false loc in
-  let result = Zone.join deps direct_deps in
   From_parameters.debug "find_deps_lval_no_trs:@\n deps:%a@\n direct_deps:%a"
-    Zone.pretty deps Zone.pretty direct_deps;
-  result
+    Zone.pretty ind_deps Zone.pretty direct_deps;
+  { Function_Froms.Deps.data = direct_deps; indirect = ind_deps }
 
+let update z exact new_v memory =
+  Function_Froms.Memory.add_binding exact memory z new_v
 
 
 let compute_using_prototype_for_state state kf =
   let varinfo = Kernel_function.get_vi kf in
-  let behaviors = !Value.valid_behaviors kf state in
+  let behaviors = !Db.Value.valid_behaviors kf state in
   let assigns = Ast_info.merge_assigns behaviors in
   let return_deps,deps =
     match assigns with
       | WritesAny ->
-          Lmap_bitwise.From_Model.LOffset.degenerate Zone.top,
-          Lmap_bitwise.From_Model.top
+          Function_Froms.(Memory.LOffset.degenerate Deps.top, Memory.top)
       | Writes assigns ->
           let (rt_typ,_,_,_) = splitFunctionTypeVI varinfo in
           let input_zone out ins =
             (* Technically out is unused, but there is a signature problem *)
-            !Db.Value.assigns_inputs_to_zone state (Writes [out, ins])
+              !Db.Value.assigns_inputs_to_zone state (Writes [out, ins])
           in
           let treat_assign acc (out, ins) =
             try
               let output_locs, _deps =
-                !Properties.Interp.loc_to_locs ~result:None state out.it_content
+                !Db.Properties.Interp.loc_to_locs
+		  ~result:None state out.it_content
               in
               let input_zone = input_zone out ins in
               let treat_one_output acc out_loc =
@@ -125,8 +118,14 @@ let compute_using_prototype_for_state state kf =
                 let output_zone =
                   Locations.enumerate_valid_bits ~for_writing:true out_loc
                 in
-                Lmap_bitwise.From_Model.add_binding ~exact
-                  acc output_zone input_zone
+                let overlap = Zone.intersects output_zone input_zone in
+                let exact = exact && not overlap in
+                (* assign clauses do not let us specify address
+                   dependencies for now, so we assume it is all
+                   data dependencies *)
+                let input_deps = Function_Froms.Deps.data_deps input_zone in
+                Function_Froms.Memory.add_binding ~exact
+                  acc output_zone input_deps
               in
               List.fold_left treat_one_output acc output_locs
             with Invalid_argument "not an lvalue" ->
@@ -135,29 +134,34 @@ let compute_using_prototype_for_state state kf =
                 Kernel_function.pretty kf;
               acc
           in
-          let treat_ret_assign acc (out,ins) =
+          let treat_ret_assign acc (out, from) =
+            let zone_from = input_zone out from in
+            (* assign clauses do not let us specify address dependencies for
+               now, so we assume it is all data dependencies *)
+            let inputs_deps = Function_Froms.Deps.data_deps zone_from in
             try
               let coffs =
-                !Properties.Interp.loc_to_offset ~result:None out.it_content
+                !Db.Properties.Interp.loc_to_offset ~result:None out.it_content
               in
               List.fold_left
                 (fun acc coff ->
                   let (base,width) = bitsOffset rt_typ coff in
-                  Lmap_bitwise.From_Model.LOffset.add_iset
+                  Function_Froms.Memory.LOffset.add_iset
                     ~exact:true
                     (Lattice_Interval_Set.Int_Intervals.from_ival_size
                        (Ival.of_int base)
                        (Int_Base.inject (Int.of_int width)))
-                    (input_zone out ins) acc)
+                    inputs_deps
+                    acc)
                 acc coffs
             with Invalid_argument "not an lvalue" | SizeOfError _ ->
               From_parameters.result  ~once:true ~current:true
                 "Unable to extract a proper offset. \
                  Using FROM for the whole \\result";
-              Lmap_bitwise.From_Model.LOffset.add_iset ~exact:false
+              Function_Froms.Memory.LOffset.add_iset ~exact:false
                 (Lattice_Interval_Set.Int_Intervals.from_ival_size
                    (Ival.of_int 0) (Bit_utils.sizeof rt_typ))
-                (input_zone out ins) acc
+                inputs_deps acc
           in
           let return_assigns, other_assigns =
             List.fold_left
@@ -169,22 +173,36 @@ let compute_using_prototype_for_state state kf =
           let return_assigns =
             match return_assigns with
               | [] when Cil.isVoidType rt_typ ->
-                  Lmap_bitwise.From_Model.LOffset.empty
+                  Function_Froms.Memory.LOffset.empty
               | [] -> (* \from unspecified. *)
-                  Lmap_bitwise.From_Model.LOffset.add_iset ~exact:true
-                    (Lattice_Interval_Set.Int_Intervals.from_ival_size
-                       (Ival.of_int 0) (Bit_utils.sizeof rt_typ))
-                    Zone.top
-                    Lmap_bitwise.From_Model.LOffset.empty
+                  Function_Froms.(
+                    Memory.LOffset.add_iset ~exact:true
+                      (Lattice_Interval_Set.Int_Intervals.from_ival_size
+                         (Ival.of_int 0) (Bit_utils.sizeof rt_typ))
+                      Deps.top
+                      Memory.LOffset.empty)
               | _ ->
                   List.fold_left treat_ret_assign
-                    Lmap_bitwise.From_Model.LOffset.empty return_assigns
+                    Function_Froms.Memory.LOffset.empty return_assigns
           in
           return_assigns,
           List.fold_left
-            treat_assign Lmap_bitwise.From_Model.empty other_assigns
+            treat_assign Function_Froms.Memory.empty other_assigns
   in
   { deps_return = return_deps; Function_Froms.deps_table = deps }
+
+module ZoneStmtMap = struct
+  include
+    Hptmap.Make(Stmt_Id)(Zone)(Hptmap.Comp_unused)
+    (struct let v = [[]] end)
+    (struct let l = [Ast.self] end)
+
+  let join =
+    let decide_none _base z = z in
+    let decide_some z1 z2 = Zone.join z1 z2 in
+    symmetric_merge ~cache:("From_compute.ZoneStmtMap.join", ())
+      ~decide_none ~decide_some
+end
 
 module Make
   (Values_To_Use:Values_To_Use_Sig)
@@ -192,220 +210,162 @@ module Make
   (Recording_To_Do: Recording_Sig) =
 struct
   type t' =
-      { additional_deps_table : Zone.t Stmt.Map.t;
-        (** Additional dependencies to add to all modified variables.
-            Example: variables in the condition of an IF. *)
+      { additional_deps_table : ZoneStmtMap.t;
+        (** Additional control dependencies to add to all modified variables,
+            coming from the control statements encountered so far (If, Switch).
+            The statement information is used to remove the dependencies that
+            are no longer useful, when we reach a statement that post-dominates
+            the statement that gave rise to the dependency. *)
         additional_deps : Zone.t;
-        (** Union of the sets in StmtMap.t *)
-        deps_table : Lmap_bitwise.From_Model.t
-          (** dependency table *)
+        (** Union of the sets in {!additional_deps_table} *)
+        deps_table : Function_Froms.Memory.t
+        (** dependency table *)
       }
 
   let call_stack : kernel_function Stack.t = Stack.create ()
   (** Stack of function being processed *)
 
-  let find_deps stmt deps_tbl expr =
+  (** Recreate the [additional_deps] field from [additional_deps_table] *)
+  let rebuild_additional_deps map =
+    ZoneStmtMap.fold (fun _ z accz -> Zone.join z accz) map Zone.bottom
+
+  (** given a [Function_Froms.Deps.t], apply [f] on both components and merge
+      the result:
+        depending directly on an indirect dependency -> indirect,
+        depending indirectly on a direct dependency  -> indirect *)
+  let merge_deps f deps =
+    let open Function_Froms.Deps in
+    let ind = f deps.indirect in
+    let data = f deps.data in
+    let ind = Zone.join data.indirect (to_zone ind) in
+    let data = data.data in
+    { data = data; indirect = ind }
+
+
+  let find stmt deps_tbl expr =
     let state = Values_To_Use.get_stmt_state stmt in
-    let deps_no_trans = find_deps_no_transitivity state expr in
-    !Db.From.access deps_no_trans deps_tbl
+    let pre_trans = find_deps_no_transitivity state expr in
+    merge_deps
+      (fun d -> Function_Froms.Memory.find_precise deps_tbl d) pre_trans
 
-  module Computer(REACH:sig
-                    val stmt_can_reach : stmt -> stmt -> bool
-                    val blocks_closed_by_edge: stmt -> stmt -> block list
-                  end) =
-  struct
+  let empty_from =
+    { additional_deps_table = ZoneStmtMap.empty;
+      additional_deps = Zone.bottom;
+      deps_table = Function_Froms.Memory.empty }
 
-    let empty_from =
-      { additional_deps_table = Stmt.Map.empty;
-        additional_deps = Zone.bottom;
-        deps_table = Lmap_bitwise.From_Model.empty }
+  let bottom_from =
+    { additional_deps_table = ZoneStmtMap.empty;
+      additional_deps = Zone.bottom;
+      deps_table = Function_Froms.Memory.bottom }
 
-    let bottom_from =
-      { additional_deps_table = Stmt.Map.empty;
-        additional_deps = Zone.bottom;
-        deps_table = Lmap_bitwise.From_Model.bottom }
-
-    let name = "from"
-
-    let debug = ref false
-
-    let stmt_can_reach = REACH.stmt_can_reach
+  module Computer = struct
 
     type t = t'
-
-    module StmtStartData =
-      Dataflow.StartData(struct type t = t' let size = 107 end)
+    let bottom = bottom_from;;
 
     let callwise_states_with_formals = Stmt.Hashtbl.create 7
 
     type substit = 
-        Froms of Zone.t
-      (* VP: Unused constructor *)
-      (* | Lvalue of Lmap_bitwise.From_Model.LOffset.t *)
+        Froms of Function_Froms.Deps.t
 
     let cached_substitute call_site_froms extra_loc =
       let f k intervs =
-        Lmap_bitwise.From_Model.find
-          call_site_froms
-          (Zone.inject k intervs)
+          Function_Froms.Memory.find_precise
+            call_site_froms
+            (Zone.inject k intervs)
       in
-      let joiner = Zone.join in
-      let projection base =
-        match Base.validity base with
-          | Base.Invalid -> Lattice_Interval_Set.Int_Intervals.bottom
-          | Base.Periodic (min_valid, max_valid, _)
-          | Base.Known (min_valid,max_valid)
-          | Base.Unknown (min_valid,_,max_valid)->
-              Lattice_Interval_Set.Int_Intervals.inject_bounds
-                min_valid max_valid
-      in
+      let joiner = Function_Froms.Deps.join in
+      let projection base = Base.valid_range (Base.validity base) in
       let zone_substitution =
-        Zone.cached_fold ~cache:("from substitution", 331) ~temporary:true
-          ~f ~joiner ~empty:Zone.bottom ~projection
+        Zone.cached_fold ~cache_name:"from substitution" ~temporary:true
+          ~f ~joiner ~empty:Function_Froms.Deps.bottom ~projection
       in
       let zone_substitution x =
         try zone_substitution x
-        with Zone.Error_Top -> Zone.top
+        with Zone.Error_Top -> Function_Froms.Deps.top
       in
-      fun z -> Zone.join extra_loc (zone_substitution z)
-
+      let open Function_Froms.Deps in
+      fun { data; indirect } ->
+	let dirdeps = zone_substitution data in
+        let inddeps = zone_substitution indirect in
+        (* depending directly on an indirect dependency -> indirect,
+           depending indirectly on a direct dependency  -> indirect *)
+	let ind =
+          Zone.(join dirdeps.indirect (join (to_zone inddeps) extra_loc))
+        in
+        let dir = dirdeps.data in
+        { data = dir; indirect = ind }
 
     let display_one_from fmt v =
-      Lmap_bitwise.From_Model.pretty fmt v.deps_table;
+      Function_Froms.Memory.pretty fmt v.deps_table;
       Format.fprintf fmt "Additional Variable Map : %a@\n"
-        (let module M = Stmt.Map.Make(Zone) in M.pretty)
-        v.additional_deps_table;
+        ZoneStmtMap.pretty v.additional_deps_table;
       Format.fprintf fmt
         "Additional Variable Map Set : %a@\n"
         Zone.pretty
         v.additional_deps
 
-    let copy (d: t) = d
-
     let pretty fmt (v: t) =
       display_one_from fmt v
 
-    let eliminate_additional table s =
-      let current_function = Stack.top call_stack in
-      (* Eliminate additional variables originating
-         from a branch closing at this statement. *)
-      Stmt.Map.fold
-        (fun k v (acc_set,acc_map,nb) ->
-          if !Postdominators.is_postdominator
-            current_function
-            ~opening:k
-            ~closing:s
-          then acc_set,acc_map,nb
-          else
-            (Zone.join v acc_set),
-            (Stmt.Map.add k v acc_map),nb+1
-        )
-        table
-        (Zone.bottom, Stmt.Map.empty, 0)
+    let transfer_conditional_exp s exp state = 
+      let additional = find s state.deps_table exp in
+      let additional = Function_Froms.Deps.to_zone additional in
+      {state with
+        additional_deps_table =
+          ZoneStmtMap.add s additional state.additional_deps_table;
+        additional_deps =
+          Zone.join additional state.additional_deps }
 
-    let computeFirstPredecessor (s: stmt) data =
-      let new_additional_deps, new_additional_deps_table, _ =
-        eliminate_additional data.additional_deps_table s
-      in
-      let data =
-        {data with
-          additional_deps = new_additional_deps;
-          additional_deps_table = new_additional_deps_table}
-      in
-      match s.skind with
-        | Switch (exp,_,_,_)
-        | If (exp,_,_,_) ->
-          let additional_vars = find_deps s data.deps_table exp in
-          {data with
-            additional_deps_table =
-              Stmt.Map.add
-                s
-                additional_vars
-                data.additional_deps_table;
-            additional_deps =
-              Zone.join
-                additional_vars
-                data.additional_deps }
-        | _ -> data
 
-    let combinePredecessors (s: stmt)
-        ~old:({deps_table = old_table} as old)
-             ({deps_table = new_table } as new_) =
-      let new_ = computeFirstPredecessor s new_ in
-      let changed = ref false in
-      let merged =
-        Stmt.Map.fold
-          (fun k v acc ->
-            try
-              let current_val = Stmt.Map.find k acc.additional_deps_table in
-              if Zone.is_included v current_val then acc
-              else begin
-                changed := true;
-                {acc with
-                  additional_deps_table =
-                    Stmt.Map.add
-                      k
-                      (Zone.join current_val v)
-                      acc.additional_deps_table;
-                  additional_deps = Zone.join v acc.additional_deps}
-              end
-            with Not_found ->
-              changed := true;
-              {acc with
-                additional_deps_table =
-                  Stmt.Map.add
-                    k
-                    v
-                    acc.additional_deps_table;
-                additional_deps = Zone.join v acc.additional_deps
-              }
-          )
-          new_.additional_deps_table
-          old
+    let join_and_is_included smaller larger =
+      let old = larger and new_ = smaller in
+      let additional_map, additional_zone, included =
+        let mold = old.additional_deps_table in
+        let mnew = new_.additional_deps_table in
+        let zold = old.additional_deps in
+        let m = ZoneStmtMap.join mnew mold in
+        if ZoneStmtMap.equal m mold then
+          mold, zold, true
+        else
+          let new_z = Zone.join old.additional_deps new_.additional_deps in
+          m, new_z, false
       in
-      let result = Lmap_bitwise.From_Model.join old_table new_table in
-      if (not !changed) && Lmap_bitwise.From_Model.is_included result old_table
-      then None
-      else Some ({merged with deps_table = result })
+      let map = Function_Froms.Memory.join old.deps_table new_.deps_table in
+      let included' = Function_Froms.Memory.equal map old.deps_table in
+      { deps_table = map;
+        additional_deps_table = additional_map;
+        additional_deps = additional_zone; },
+      included && included'
+
+    let join old new_ = fst (join_and_is_included old new_)
 
     let resolv_func_vinfo ?deps stmt funcexp =
-      Values_To_Use.expr_to_kernel_function ?deps stmt funcexp
+      Values_To_Use.expr_to_kernel_function ~deps stmt funcexp
 
-    let doInstr stmt (i: instr) (d: t) =
+    let transfer_instr stmt (i: instr) (state: t) =
       !Db.progress ();
-      let add_with_additional_var lv v d =
-        let deps, target =
+      let add_set_with_additional_var lv v d =
+        let deps, target, exact =
           (* The modified location is [target],
              whose address is computed from [deps]. *)
-          Values_To_Use.lval_to_loc_with_deps
-            ~deps:Zone.bottom
-            stmt
-            lv
+          Values_To_Use.lval_to_zone_with_deps
+            stmt ~deps:(Some Zone.bottom) ~for_writing:true lv
         in
-        let deps = Zone.join
-          v
-          (Lmap_bitwise.From_Model.find d.deps_table deps)
-        in
-        let r = !Db.From.update
-          target
-          (Zone.join
-             d.additional_deps
-             deps)
-          d.deps_table
-        in
+        let deps_of_deps = Function_Froms.Memory.find d.deps_table deps in
+        let deps = 
+	  Function_Froms.Deps.add_indirect_dep
+	    (Function_Froms.Deps.add_indirect_dep v deps_of_deps)
+	    d.additional_deps
+	in
+        let r = update target exact deps d.deps_table in
         {d with deps_table=r; }
       in
       match i with
         | Set (lv, exp, _) ->
-          Dataflow.Post
-            (fun state ->
-              let comp_vars = find_deps stmt state.deps_table exp in
-              let result = add_with_additional_var lv comp_vars state in
-              result
-            )
+              let comp_vars = find stmt state.deps_table exp in
+              add_set_with_additional_var lv comp_vars state
         | Call (lvaloption,funcexp,argl,_) ->
-          Dataflow.Post
-            (fun state ->
               !Db.progress ();
               let funcexp_deps, called_vinfos =
                 resolv_func_vinfo
@@ -413,23 +373,21 @@ struct
                   stmt
                   funcexp
               in
+              (* dependencies for the evaluation of [funcexp] *)
               let funcexp_deps =
-                (* dependencies for the evaluation of [funcexp] *)
-                !Db.From.access funcexp_deps state.deps_table in
+                Function_Froms.Memory.find state.deps_table funcexp_deps
+              in
               let additional_deps =
-                Zone.join d.additional_deps funcexp_deps
+		Zone.join
+		  state.additional_deps
+		  funcexp_deps
               in
               let args_froms =
                 List.map
                   (fun arg ->
-                    match arg with
-                     (* TODO : optimize the dependencies on subfields
-                      | Lval lv ->
-                         Lvalue
-                          (From_Model.LBase.find
-                           (Interp_loc.lval_to_loc_with_deps kinstr lv)) *)
-                      | _ ->
-                        Froms (find_deps stmt d.deps_table arg))
+                    (* TODO : optimize the dependencies on subfields for structs
+                    *)
+                    Froms (find stmt state.deps_table arg))
                   argl
               in
               let states_with_formals = ref [] in
@@ -442,7 +400,7 @@ struct
                         deps_table = called_func_froms } =
                     Froms_To_Use.get kernel_function (Kstmt stmt)
                   in
-                  if Lmap_bitwise.From_Model.is_bottom called_func_froms then
+                  if Function_Froms.Memory.is_bottom called_func_froms then
                     bottom_from
                   else
                   let formal_args =
@@ -456,7 +414,7 @@ struct
                          | Froms from ->
                              let zvi = Locations.zone_of_varinfo vi in
                              state_with_formals :=
-                               Lmap_bitwise.From_Model.add_binding
+                               Function_Froms.Memory.add_binding
                                ~exact:true
                                !state_with_formals
                                zvi
@@ -487,7 +445,7 @@ struct
                        but before the result assigment *)
                     {state with
                       deps_table =
-                        Lmap_bitwise.From_Model.map_and_merge substitute
+                        Function_Froms.Memory.map_and_merge substitute
                           called_func_froms
                           state.deps_table}
                   in
@@ -498,7 +456,7 @@ struct
                   | Some lv ->
                     let first = ref true in
                     (try
-                       Lmap_bitwise.From_Model.LOffset.fold
+                       Function_Froms.Memory.LOffset.fold
                          (fun _itv (_,x) acc ->
                            if not !first
                            then (*treatment below only compatible with imprecise
@@ -506,30 +464,37 @@ struct
                              raise Not_found;
                            first := false;
                            let res = substitute x in
-                           let deps, loc =
-                             Values_To_Use.lval_to_loc_with_deps
-                               ~deps:Zone.bottom
+                           let deps, loczone, exact =
+                             Values_To_Use.lval_to_zone_with_deps
                                stmt
+                               ~deps:(Some Zone.bottom)
+                               ~for_writing:true
                                lv
                            in
                            let deps =
-                             Lmap_bitwise.From_Model.find acc.deps_table deps in
-                           let deps = Zone.join res deps in
-                           let deps = Zone.join deps acc.additional_deps in
+                             Function_Froms.Memory.find_precise
+                               acc.deps_table deps 
+			   in
+                           let deps = Function_Froms.Deps.join res deps in
+                           let deps = 
+			     Function_Froms.Deps.add_indirect_dep  
+			       deps 
+			       acc.additional_deps
+			   in
                            { acc with deps_table =
-                               !Db.From.update loc deps acc.deps_table}
+                               update loczone exact deps acc.deps_table}
                          )
                          return_from
                          new_state
                      with Not_found -> (* from find_lonely_binding *)
                        let vars =
-                         Lmap_bitwise.From_Model.LOffset.map
+                         Function_Froms.Memory.LOffset.map
                            (fun (b,x) -> (b,substitute x))
                            return_from
                        in
-                       add_with_additional_var
+                       add_set_with_additional_var
                          lv
-                         (Lmap_bitwise.From_Model.LOffset.collapse vars)
+                         (Function_Froms.Memory.LOffset.collapse vars)
                          new_state
                     ))
               in
@@ -540,7 +505,7 @@ struct
                   | Some acc_memory ->
                     Some
                       {state with
-                        deps_table = Lmap_bitwise.From_Model.join
+                        deps_table = Function_Froms.Memory.join
                           p.deps_table
                           acc_memory.deps_table}
               in
@@ -558,48 +523,10 @@ struct
                   stmt
                   !states_with_formals;
               result
-            )
-        | _ -> Dataflow.Default
+        | _ -> state
 
-    let doStmt s d =
-      if Db.Value.is_reachable (Values_To_Use.get_stmt_state s) &&
-        not (Lmap_bitwise.From_Model.is_bottom d.deps_table)
-      then Dataflow.SDefault
-      else Dataflow.SDone
 
-    let filterStmt stmt =
-      Db.Value.is_reachable (Values_To_Use.get_stmt_state stmt)
-
-    (* Remove all local variables and formals from table *)
-    let externalize return kf state =
-      let deps_return =
-        (match return.skind with
-          | Return (Some ({enode = Lval v}),_) ->
-            let deps, target =
-              Values_To_Use.lval_to_loc_with_deps
-                ~deps:Zone.bottom
-                return
-                v
-            in
-            Lmap_bitwise.From_Model.LOffset.join
-              (Lmap_bitwise.From_Model.find_base
-                 state.deps_table deps)
-              (Lmap_bitwise.From_Model.find_base
-                 state.deps_table
-                 (enumerate_valid_bits ~for_writing:false target))
-          | Return (None,_) ->
-            Lmap_bitwise.From_Model.LOffset.empty
-          | _ -> assert false)
-      in
-      let deps_table =
-        Lmap_bitwise.From_Model.filter_base
-          (Recording_To_Do.accept_base_in_lmap kf)
-          state.deps_table
-      in
-      { deps_return = deps_return;
-        Function_Froms.deps_table = deps_table }
-
-    let doGuard s e _t =
+    let transfer_guard s e d =
       let interpreted_e = Values_To_Use.access_expr s e in
       let t1 = unrollType (typeOf e) in
       let do_then, do_else =
@@ -608,36 +535,116 @@ struct
           Cvalue.V.contains_zero interpreted_e
         else true, true (* TODO: a float condition is true iff != 0.0 *)
       in
-      (if do_then
-       then Dataflow.GDefault
-       else Dataflow.GUnreachable),
-      (if do_else
-       then Dataflow.GDefault
-       else Dataflow.GUnreachable)
+      (if do_then then d else bottom),
+      (if do_else then d else bottom)
+    ;;
+
+    (* Eliminate additional variables originating from a control-flow branching
+       statement closing at [s]. *)
+    let eliminate_additional s data =
+      let kf = Stack.top call_stack in
+      let map = data.additional_deps_table in
+      let map' =
+        ZoneStmtMap.fold
+          (fun k _v acc_map ->
+            if !Db.Postdominators.is_postdominator kf ~opening:k ~closing:s
+            then ZoneStmtMap.remove k acc_map
+            else acc_map
+          ) map map
+      in
+      if not (map == map') then
+        { data with
+          additional_deps_table = map';
+          additional_deps = rebuild_additional_deps map';
+        }
+      else data
+
+    let transfer_stmt s data =
+      let data = eliminate_additional s data in
+      let map_on_all_succs new_data = List.map (fun x -> (x,new_data)) s.succs in
+      match s.skind with
+      | Instr i -> map_on_all_succs (transfer_instr s i data)
+
+      | If(exp,_,_,_) ->
+      	let data = transfer_conditional_exp s exp data in
+      	Dataflows.transfer_if_from_guard transfer_guard s data
+      | Switch(exp,_,_,_) ->
+      	let data = transfer_conditional_exp s exp data in
+      	Dataflows.transfer_switch_from_guard transfer_guard s data
+
+      | Return _ -> []
+
+      | UnspecifiedSequence _ | Loop _ | Block _
+      | Goto _ | Break _ | Continue _
+      | TryExcept _ | TryFinally _
+	-> map_on_all_succs data
+    ;;
+
+    (* Filter out unreachable values. *)
+    let transfer_stmt s d = 
+      if Db.Value.is_reachable (Values_To_Use.get_stmt_state s) &&
+        not (Function_Froms.Memory.is_bottom d.deps_table)
+      then transfer_stmt s d
+      else []
 
     let doEdge s succ d =
-      match REACH.blocks_closed_by_edge s succ with
-        | [] -> d
-        | closed_blocks ->
-          let deps_table =
-            Lmap_bitwise.From_Model.uninitialize
-              (List.fold_left (fun x y -> y.blocals @ x) [] closed_blocks)
-              d.deps_table
-          in { d with deps_table = deps_table }
+      if Db.Value.is_reachable (Values_To_Use.get_stmt_state succ) 
+      then
+	let d = match Kernel_function.blocks_closed_by_edge s succ with
+          | [] -> d
+          | closed_blocks ->
+            let deps_table =
+              Function_Froms.Memory.uninitialize
+		(List.fold_left (fun x y -> y.blocals @ x) [] closed_blocks)
+		d.deps_table
+            in { d with deps_table = deps_table }
+	in d
+      else 
+	bottom_from
+
+    (* Filter the outgoing data using doEdge. *)
+    let transfer_stmt s d = 
+      let ds = transfer_stmt s d in 
+      List.map (fun (succ, d) -> (succ, doEdge s succ d)) ds
+    ;;
+
   end
+
+
+  (* Remove all local variables and formals from table *)
+  let externalize return kf state =
+    let deps_return =
+      (match return.skind with
+      | Return (Some ({enode = Lval v}),_) ->
+        let deps, target, _exact =
+          Values_To_Use.lval_to_zone_with_deps
+            ~deps:(Some Zone.bottom)
+            ~for_writing:false
+            return
+            v
+        in
+        Function_Froms.Memory.LOffset.join
+          (Function_Froms.Memory.find_base state.deps_table deps)
+          (Function_Froms.Memory.find_base state.deps_table target)
+      | Return (None,_) ->
+        Function_Froms.Memory.LOffset.empty
+      | _ -> assert false)
+    in
+    let deps_table =
+      Function_Froms.Memory.filter_base
+        (Recording_To_Do.accept_base_in_lmap kf)
+        state.deps_table
+    in
+    { deps_return = deps_return;
+      Function_Froms.deps_table = deps_table }
 
   let compute_using_cfg kf =
     match kf.fundec with
-      | Declaration _ -> assert false
-      | Definition (f,_) ->
+    | Declaration _ -> assert false
+    | Definition (f,_) ->
+      if !Db.Value.no_results f then Function_Froms.top
+      else
         try
-          let module Computer = Computer
-             (struct
-               let stmt_can_reach = Stmts_graph.stmt_can_reach kf
-               let blocks_closed_by_edge = Kernel_function.blocks_closed_by_edge
-              end)
-          in
-          let module Compute = Dataflow.Forwards(Computer) in
           Stack.iter
             (fun g ->
               if kf == g then begin
@@ -651,64 +658,61 @@ struct
             call_stack;
           Stack.push kf call_stack;
           let state =
-            { Computer.empty_from with
+            { empty_from with
               deps_table =
-                Lmap_bitwise.From_Model.uninitialize
-                  f.slocals Computer.empty_from.deps_table }
+                Function_Froms.Memory.uninitialize
+                  f.slocals empty_from.deps_table }
           in
-          match f.sbody.bstmts with
-            | [] -> assert false
-            | start :: _ ->
-              let ret_id =
-                try Kernel_function.find_return kf
-                with Kernel_function.No_Statement -> assert false
-              in
-              (* We start with only the start block *)
-              Computer.StmtStartData.add
-                start
-                (Computer.computeFirstPredecessor start state);
-              Compute.compute [start];
-              if not (Db.From.Record_From_Callbacks.is_empty ())
-              then begin
-                From_parameters.feedback "Now calling From callbacks";
-                let states =
-                  Stmt.Hashtbl.create (Computer.StmtStartData.length ())
-                in
-                Computer.StmtStartData.iter
-                  (fun k record ->
-                    Stmt.Hashtbl.add states k record.deps_table);
-                Db.From.Record_From_Callbacks.apply
-                  (call_stack, states, Computer.callwise_states_with_formals)
-              end;
-              let _poped = Stack.pop call_stack in
-              let last_from =
-                try
-                  if Db.Value.is_reachable
-                    (Values_To_Use.get_stmt_state ret_id)
-                  then
-                    Computer.externalize
-                      ret_id
-                      kf
-                      (Computer.StmtStartData.find ret_id)
-                  else
-                    raise Not_found
-                with Not_found -> begin
-                  From_parameters.result
-                    "Non-terminating function %a (no dependencies)"
-                    Kernel_function.pretty kf;
-                  { Function_Froms.deps_return =
-                      Lmap_bitwise.From_Model.LOffset.empty;
-                    deps_table = Lmap_bitwise.From_Model.bottom }
-                end
-              in
-              last_from
+	  let module Fenv =
+                (val Dataflows.function_env kf: Dataflows.FUNCTION_ENV)
+          in
+	  let module Dataflow_arg = struct
+            include Computer
+            let init = [(Kernel_function.find_first_stmt kf, state)]
+          end
+          in
+          let module Compute = Dataflows.Simple_forward(Fenv)(Dataflow_arg) in
+          let ret_id = Kernel_function.find_return kf in
+          if not (Db.From.Record_From_Callbacks.is_empty ())
+          then begin
+            From_parameters.feedback "Now calling From callbacks";
+            let states =
+              Stmt.Hashtbl.create Fenv.nb_stmts
+            in
+	    Compute.iter_on_result (fun k record ->
+              Stmt.Hashtbl.add states k record.deps_table);
+            Db.From.Record_From_Callbacks.apply
+              (call_stack, states, Dataflow_arg.callwise_states_with_formals)
+          end;
+          let _poped = Stack.pop call_stack in
+          let last_from =
+            try
+              if Db.Value.is_reachable
+                (Values_To_Use.get_stmt_state ret_id)
+              then
+                externalize
+                  ret_id
+                  kf
+		  Compute.before.(Fenv.to_ordered ret_id)
+              else
+                raise Not_found
+            with Not_found -> begin
+              From_parameters.result
+                "Non-terminating function %a (no dependencies)"
+                Kernel_function.pretty kf;
+              { Function_Froms.deps_return =
+                  Function_Froms.Memory.LOffset.empty;
+                deps_table = Function_Froms.Memory.bottom }
+            end
+          in
+          last_from
 
         with Exit (* Recursive call *) ->
-          { Function_Froms.deps_return = Lmap_bitwise.From_Model.LOffset.empty;
-            deps_table = Lmap_bitwise.From_Model.empty }
+          { Function_Froms.deps_return = Function_Froms.Memory.LOffset.empty;
+            deps_table = Function_Froms.Memory.empty }
 
   let compute_using_prototype kf =
-    let state = Value.get_initial_state kf in
+    let state = Db.Value.get_initial_state kf in
     compute_using_prototype_for_state state kf
 
   let compute_and_return kf =
@@ -742,3 +746,9 @@ struct
     ignore (compute_and_return kf)
 
 end
+
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

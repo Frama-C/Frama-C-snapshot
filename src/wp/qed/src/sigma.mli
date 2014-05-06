@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -33,22 +33,22 @@ sig
   val empty : t
 
   val assume : ?explain:explain -> term -> t -> t 
-    (** Raises [Contradiction]. *)
+  (** Raises [Contradiction]. *)
 
   val rewrite : ?explain:explain -> term -> term -> t -> t
-    (** Raises [Contradiction]. *)
+  (** Raises [Contradiction]. *)
 
   val reduce : t -> term -> term * explain
-    (** Produces a normalized form, with its explanation. *)
+  (** Produces a normalized form, with its explanation. *)
 
   val is_true : t -> term -> explain option
-    (** Checks whether [reduce] returns [e_true] and returns the explanation. *)
+  (** Checks whether [reduce] returns [e_true] and returns the explanation. *)
 
   val is_false : t -> term -> explain option
-    (** Checks whether [reduce] returns [e_false] and returns the explanation. *)
+  (** Checks whether [reduce] returns [e_false] and returns the explanation. *)
 
   val iter : (term -> term -> explain -> unit) -> t -> unit
-    (** Iterates over all core equalities. *)
+  (** Iterates over all core equalities. *)
 
 end
 

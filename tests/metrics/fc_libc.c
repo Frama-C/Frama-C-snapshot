@@ -1,5 +1,5 @@
 /* run.config
-   STDOPT: +"-check"
+   STDOPT: +"-check" +"-cpp-extra-args='-nostdinc -Ishare/libc'"
 **/
 
 #include "share/libc/assert.c"

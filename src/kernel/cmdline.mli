@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -98,19 +98,22 @@ val protect: exn -> string
       @since Boron-20100401 *)
 
 val catch_at_toplevel: exn -> bool
-  (** @since Boron-20100401 *)
+(** @return true iff the given exception is caught by the Frama-C toplevel.
+    @since Boron-20100401 *)
 
 val catch_toplevel_run:
   f:(unit -> unit) ->
   quit:bool ->
   at_normal_exit:(unit -> unit) ->
-  on_error:(unit -> unit) ->
+  on_error:(exn -> unit) ->
   unit
     (** Run [f]. When done, either call [at_normal_exit] if running [f] was ok;
         or call [on_error] in other cases.
         Set [quit] to [true] iff Frama-C must stop after running [f].
         @modify Boron-20100401  additional arguments. They are now
-        labelled *)
+        labelled
+	@modify Fluorine-20130601+Dev add the exception as argument of
+	[on_error]. *)
 
 val at_normal_exit: (unit -> unit) -> unit
   (** Register a hook executed whenever Frama-C exits without error (the exit
@@ -121,19 +124,25 @@ val run_normal_exit_hook: unit -> unit
   (** Run all the hooks registered by {!at_normal_exit}.
       @since Boron-20100401 *)
 
-val at_error_exit: (unit -> unit) -> unit
+val at_error_exit: (exn -> unit) -> unit
   (** Register a hook executed whenever Frama-C exits with error (the exit
-      code is greater than 0).
-      @since Boron-20100401 *)
+      code is greater than 0). The argument of the hook is the exception at the
+      origin of the error.
+      @since Boron-20100401
+      @modify Neon-20130301 add the exception as argument of the
+      hook. *)
 
-val run_error_exit_hook: unit -> unit
+val run_error_exit_hook: exn -> unit
   (** Run all the hooks registered by {!at_normal_exit}.
-      @since Boron-20100401 *)
+      @since Boron-20100401
+      @modify Neon-20130301 add the exception as argument. *)
 
-val error_occured: unit -> unit
-  (** Remember that an error occured.
+val error_occurred: exn -> unit
+  (** Remember that an error occurred.
       So {!run_error_exit_hook} will be called when Frama-C will exit.
-      @since Boron-20100401 *)
+      @since Boron-20100401
+      @modify Neon-20130301 add the exception as argument, 
+      fix spelling. *)
 
 val bail_out: unit -> 'a
   (** Stop Frama-C with exit 0.
@@ -267,6 +276,9 @@ val add_aliases:
 
     They should not be used directly by a standard plug-in developer. *)
 
+module Kernel_log: Log.Messages
+(** @since Neon-20130301 *)
+
 (** @since Fluorine-20130401 *)
 module type Level = sig
   val value_if_set: int option ref
@@ -298,9 +310,6 @@ val journal_enable: bool
 val journal_isset: bool
   (** -journal-enable/disable explicitly set on the command line.
       @since Boron-20100401 *)
-
-val journal_name: string
-  (** @since Beryllium-20090601-beta1 *)
 
 val use_obj: bool
   (** @since Beryllium-20090601-beta1 *)

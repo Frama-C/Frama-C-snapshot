@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA   (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -179,6 +179,10 @@ val pseparated: ?loc:location -> term list -> predicate named
 (** {2 Logic types} *)
 (* ************************************************************************** *)
 
+(** returns [true] if the type is a set<t>.
+    @since Neon-20130301 *)
+val is_set_type: logic_type -> bool
+
 (** [set_conversion ty1 ty2] returns a set type as soon as [ty1] and/or [ty2]
     is a set. Elements have type [ty1], or the type of the elements of [ty1] if
     it is itself a set-type ({i.e.} we do not build set of sets that way). *)
@@ -215,7 +219,8 @@ val is_boolean_type: logic_type -> bool
 (** returns a anonymous term of the given type. *)
 val term : ?loc:Location.t -> term_node -> logic_type -> term
 
-(** & *)
+(** &
+ @deprecated Neon-20130301 {!Logic_utils.mk_AddrOf} is easier to use.*)
 val taddrof: ?loc:Location.t -> term_lval -> logic_type -> term
 
 (** [..] of integers *)

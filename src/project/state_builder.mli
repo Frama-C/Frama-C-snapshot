@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -70,8 +70,8 @@ module type S = sig
 
   val howto_marshal: (Datatype.t -> 'a) -> ('a -> Datatype.t) -> unit
   (** [howto_marshal marshal unmarshal] registers a custom couple of
-      countions [(marshal, unmarshal)] to be used for serialization.
-      Default functions are identities. In particular, calling this
+      functions [(marshal, unmarshal)] to be used for serialization.
+      Default functions are identities. In particular, this
       function must be used if [Datatype.t] is not marshallable and
       [do_not_save] is not called.
       @since Boron-20100401 *)
@@ -121,7 +121,10 @@ module Ref
   end)
   : Ref with type data = Data.t
 
-(** Output signature of [OptionRef]. *)
+(** Output signature of [OptionRef]. Note that [get] will raise [Not_found]
+    if the stored data is [None]. Use [get_option] if you want to have
+    access to the option.
+ *)
 module type Option_ref = sig
   include Ref
   val memo: ?change:(data -> data) -> (unit -> data) -> data
@@ -337,6 +340,7 @@ module type Set_ref = sig
   include Ref
   type elt
   val add: elt -> unit
+  val remove: elt -> unit (** @since Neon-20130301 *)
   val is_empty: unit -> bool
   val mem: elt -> bool
   val fold: (elt -> 'a -> 'a) -> 'a -> 'a

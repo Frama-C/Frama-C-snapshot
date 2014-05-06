@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Aorai plug-in of Frama-C.                        *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -105,7 +105,7 @@ module AbstractInterpretationOff  =
           let help = "does not use abstract interpretation"
         end)
 
-let () = Plugin.set_negative_option_name "-aorai-spec-off"
+let () = Parameter_customize.set_negative_option_name "-aorai-spec-off"
 module Axiomatization =
   True(struct
          let option_name = "-aorai-spec-on"
@@ -118,7 +118,7 @@ module ConsiderAcceptance =
          let help = "if set, considers acceptation states"
        end)
 
-let () = Plugin.set_negative_option_name "-aorai-raw-auto"
+let () = Parameter_customize.set_negative_option_name "-aorai-raw-auto"
 module AutomataSimplification=
   True
     (struct

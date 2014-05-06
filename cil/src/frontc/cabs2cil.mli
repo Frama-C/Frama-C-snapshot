@@ -35,8 +35,8 @@
 (*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE         *)
 (*  POSSIBILITY OF SUCH DAMAGE.                                             *)
 (*                                                                          *)
-(*  File modified by CEA (Commissariat à l'énergie atomique et aux          *)
-(*                        énergies alternatives)                            *)
+(*  File modified by CEA (Commissariat Ã  l'Ã©nergie atomique et aux          *)
+(*                        Ã©nergies alternatives)                            *)
 (*               and INRIA (Institut National de Recherche en Informatique  *)
 (*                          et Automatique).                                *)
 (****************************************************************************)
@@ -129,6 +129,7 @@ val register_for_loop_body_hook: (Cabs.statement -> unit) -> unit
 *)
 val register_for_loop_incr_hook: (Cabs.expression -> unit) -> unit
 
+(** @plugin development guide *)
 val convFile: Cabs.file -> Cil_types.file
 
 
@@ -249,10 +250,17 @@ val allow_return_collapse: tlv:Cil_types.typ -> tf:Cil_types.typ -> bool
 
 val compatibleTypes: Cil_types.typ -> Cil_types.typ -> Cil_types.typ
 (** Check that the two given types are compatible (C99, 6.2.7), and
-    return their composite type. Raise [Failure] with an explantion
+    return their composite type. Raise [Failure] with an explanation
     if the two types are not compatible
 
     @since Oxygen-20120901
+*)
+
+val compatibleTypesp: Cil_types.typ -> Cil_types.typ -> bool
+(** Check that the two given types are compatible (C99, 6.2.7), and
+    return a boolean.
+
+    @since Neon-20130301
 *)
 
 (*

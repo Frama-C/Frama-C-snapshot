@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -33,6 +33,7 @@ val compute_call_ref :
 
 val do_assign :
   with_alarms:CilE.warn_mode ->
+  kernel_function ->
   Locals_scoping.clobbered_set ->
   Model.t -> lval -> exp -> Model.t
 
@@ -56,7 +57,8 @@ val check_unspecified_sequence :
   unit
 
 val externalize :
-  fundec ->
+  with_alarms:CilE.warn_mode ->
+  kernel_function ->
   return_lv:lval option ->
   Locals_scoping.clobbered_set ->
   Model.t ->

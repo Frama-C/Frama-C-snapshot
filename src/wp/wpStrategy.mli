@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -50,11 +50,11 @@ type annot_kind =
   | AcutB of bool (** annotation is use as a cut :
     - with true (A is also a goal) -> A (+ proof obligation A => ...)
     - with false (A is an hyp only) -> True (+ proof obligation A => ...) *)
-  | AcallHyp
+  | AcallHyp of kernel_function
        (** annotation is a called function property to consider as an Hyp.
        * The pre are not here but in AcallPre since they can also
        * be considered as goals. *)
-  | AcallPre of bool
+  | AcallPre of bool * kernel_function
        (** annotation is a called function precondition :
            to be considered as hyp, and goal if bool=true *)
 
@@ -134,8 +134,12 @@ val add_assigns_any : t_annots -> annot_kind ->
 val add_stmt_spec_assigns_hyp : t_annots -> kernel_function -> stmt ->
   logic_label option -> funspec -> t_annots
 
+(** short cut to add a dynamic call *)
+val add_call_assigns_any : t_annots -> stmt -> t_annots
+
 (** shortcut to add a call assigns property as an hypothesis. *)
 val add_call_assigns_hyp : t_annots -> kernel_function -> stmt ->
+  called_kf:kernel_function ->
   logic_label option -> funspec option -> t_annots
 
 (** shortcut to add a loop assigns property as an hypothesis. *)
@@ -161,15 +165,17 @@ val get_cut : t_annots -> (bool * WpPropId.pred_info) list
 
 (** To be used as hypotheses arround a call, (the pre are in
  * [get_call_pre_goal]) *)
-val get_call_hyp : t_annots -> WpPropId.pred_info list
+val get_call_hyp : t_annots -> kernel_function -> WpPropId.pred_info list
 
 (** Preconditions of a called function to be considered as hyp and goal
 * (similar to [get_both_hyp_goals]). *)
-val get_call_pre : t_annots -> WpPropId.pred_info list * WpPropId.pred_info list
+val get_call_pre : t_annots -> kernel_function -> WpPropId.pred_info list * WpPropId.pred_info list
+
+val get_call_asgn : t_annots -> kernel_function option -> WpPropId.assigns_full_info
+
 
 val get_asgn_hyp : t_annots -> WpPropId.assigns_full_info
 val get_asgn_goal : t_annots -> WpPropId.assigns_full_info
-val get_call_asgn : t_annots -> WpPropId.assigns_full_info
 
 (** {3 Printing} *)
 

@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2013                                               */
+/*  Copyright (C) 2007-2014                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -22,6 +22,6 @@
 
 #ifndef __FC_DEFINE_SA_FAMILY_T
 #define __FC_DEFINE_SA_FAMILY_T
+#include "__fc_machdep.h"
 typedef __UINT_LEAST16_T sa_family_t;
 #endif
-

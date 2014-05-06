@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -289,7 +289,7 @@ Src root:%s in %s (is_root:%b) Dst:%s in %s (is_root:%b) [2d case]"
         color e
       else
         match CallG.E.label e with
-        | Inter_services -> [ `Style `Invis ]
+        | Inter_services -> [ `Style [`Invis] ]
         | Inter_functions | Both -> color e
 
     let default_edge_attributes _ = []
@@ -299,10 +299,11 @@ Src root:%s in %s (is_root:%b) Dst:%s in %s (is_root:%b) [2d case]"
       let cs = string_of_int id in
       Some
         { Graph.Graphviz.DotAttributes.sg_name = cs;
+          sg_parent = None;
           sg_attributes =
             [ `Label ("S " ^ cs);
               `Color (Extlib.number_to_color id);
-              `Style `Bold ] }
+              `Style [`Bold] ] }
 
   end
 

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -48,6 +48,7 @@ sig
   val cond : sigma -> exp -> pred
   val lval : sigma -> lval -> loc
 
+  val call : sigma -> exp -> loc
   val loc_of_exp : sigma -> exp -> loc
   val val_of_exp : sigma -> exp -> term
 
@@ -55,5 +56,7 @@ sig
 
   val is_zero : sigma -> c_object -> loc -> pred
   val is_zero_range : sigma -> loc -> c_object -> term -> term -> pred
+
+  val instance_of : loc -> kernel_function -> pred
 
 end

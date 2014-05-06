@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,7 +24,7 @@
 
 type base = Dec | Hex
 type sign = Pos | Neg
-    
+
 type cst = {
   base : base ;
   sign : sign ;
@@ -52,14 +52,14 @@ val pretty : Format.formatter -> cst -> unit
 val is_zero : cst -> bool
 
 val big_int_of_hex : string -> Big_int.big_int
-  (** Returns [0] on empty string *)
+(** Returns [0] on empty string *)
 val dec_of_hex : string -> string
-  (** Returns empty string on empty string *)
+(** Returns empty string on empty string *)
 val power_of_two : int -> string
-  (** Returns a decimal. Only positive powers. *)
+(** Returns a decimal. Only positive powers. *)
 val power_of_ten : int -> string
-  (** Returns a decimal. Only positive powers. *)
+(** Returns a decimal. Only positive powers. *)
 val significant : cst -> string * int
-  (** Returns all significant digits with a shifted exponent. *)
+(** Returns all significant digits with a shifted exponent. *)
 
 

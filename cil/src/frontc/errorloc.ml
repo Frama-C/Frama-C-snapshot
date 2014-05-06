@@ -35,8 +35,8 @@
 (*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE         *)
 (*  POSSIBILITY OF SUCH DAMAGE.                                             *)
 (*                                                                          *)
-(*  File modified by CEA (Commissariat à l'énergie atomique et aux          *)
-(*                        énergies alternatives)                            *)
+(*  File modified by CEA (Commissariat Ã  l'Ã©nergie atomique et aux          *)
+(*                        Ã©nergies alternatives)                            *)
 (*               and INRIA (Institut National de Recherche en Informatique  *)
 (*                          et Automatique).                                *)
 (****************************************************************************)
@@ -129,7 +129,8 @@ You want to open %S and %S is still open"
   let i =
     { linenum = 1; linestart = 0;
       fileName =
-	(if useBasename then Filename.basename fname else Filepath.normalize fname);
+	(if useBasename then Filename.basename fname
+         else Filepath.normalize fname);
       lexbuf = lexbuf; inchan = Some inchan;
       num_errors = 0 } in
   (* Initialize lexer buffer. *)
@@ -186,12 +187,11 @@ let setCurrentWorkingDirectory s =
 let setCurrentFile ?(normalize=true) (n: string) =
   let n =
     if not normalize then n
-    else Filepath.normalize (match !current_working_directory with
-      | None -> n
-      | Some(s) ->
-	if Filename.is_relative n
-	then Filename.concat s n
-	else n) in
+    else
+      (match !current_working_directory with
+        | None -> Filepath.normalize n
+        | Some(s) -> Sysutil.absolutize_filename s n)
+  in
   (* Update lexer buffer. *)
   let update_file_loc lexbuf file =
     let pos = lexbuf.Lexing.lex_curr_p in

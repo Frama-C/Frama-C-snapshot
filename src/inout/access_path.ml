@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -28,7 +28,6 @@ open Cvalue
 let pretty =
   let module M =
         Base.Map.Make(struct
-        open Locations
         include Datatype.Pair(Zone)(Location_Bits)
         let pretty fmt (z, loc) =
           Format.fprintf fmt "@[<hov 1>[Zone:%a@ Loc_bits:%a]@]"

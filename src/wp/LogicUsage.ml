@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -337,28 +337,28 @@ object(self)
 
   (* --- LVALUES --- *)
 
-  method vlval = function
+  method! vlval = function
     | (Var x,_) -> self#do_var x ; DoChildren
     | _ -> DoChildren
 
-  method vterm_lval = function
+  method! vterm_lval = function
     | (TVar { lv_origin=Some x } , _ ) -> self#do_var x ; DoChildren
     | (TVar x , _ ) -> self#do_lvar x ; DoChildren 
     | _ -> DoChildren
 
   (* --- TERMS --- *)
 
-  method vterm_node = function
+  method! vterm_node = function
     | Tapp(l,labels,_) -> self#do_call l labels ; DoChildren
     | _ -> DoChildren
 
   (* --- PREDICATE --- *)
 
-  method vpredicate = function
+  method! vpredicate = function
     | Papp(l,labels,_) -> self#do_call l labels ; DoChildren
     | _ -> DoChildren
 
-  method vannotation global =
+  method! vannotation global =
     match global with
 
       (* --- AXIOMATICS --- *)
@@ -416,7 +416,7 @@ object(self)
       | Dcustom_annot _ 
 	-> SkipChildren
 
-  method vfunc _ = SkipChildren
+  method! vfunc _ = SkipChildren
 	  
 end
 

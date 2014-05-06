@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -33,16 +33,16 @@ let syntactic () =
       | "cil" -> Metrics_cilast.compute_on_cilast ()
       (* Cabs metrics are experimental. unregistered, unjournalized *)
       | "cabs" -> Metrics_cabs.compute_on_cabs ()
+      | "acsl" -> Metrics_acsl.dump()
       | _ -> assert false (* the possible values are checked by the kernel*)
   end;
 
   SyntacticallyReachable.iter
     (fun s ->
       try let kf = Globals.Functions.find_by_name s in
-          Metrics.result "%a" Metrics_coverage.pp_reached_from_function kf
-      with Not_found -> Metrics.error "Unknown function %s" s
-    );
-;;
+          Metrics_parameters.result
+	    "%a" Metrics_coverage.pp_reached_from_function kf
+      with Not_found -> Metrics_parameters.error "Unknown function %s" s)
 
 let () = ValueCoverage.set_output_dependencies [Db.Value.self]
 
@@ -50,9 +50,10 @@ let value () =
   !Db.Value.compute ();
   if Db.Value.is_computed () then begin
     let f1, f2 = Metrics_coverage.pp_value_coverage () in
-    Metrics.result "%t" f1;
-    Metrics.result "%t" f2;
-    Metrics.result "%t" Metrics_coverage.pp_stmts_reached_by_function;
+    Metrics_parameters.result "%t" f1;
+    Metrics_parameters.result "%t" f2;
+    Metrics_parameters.result "%t" 
+      Metrics_coverage.pp_stmts_reached_by_function;
   end
 ;;
 

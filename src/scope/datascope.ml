@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -34,6 +34,11 @@ module R =
        let help = "data dependencies higher level functions"
      end)
 
+let cat_rm_asserts_name = "rm_asserts"
+let cat_rm_asserts = R.register_category cat_rm_asserts_name
+let () = R.add_debug_keys (R.get_category cat_rm_asserts_name)
+
+
 (** {2 Computing a mapping between zones and modifying statements}
 We first go through all the function statements in other to build
 a mapping between each zone and the statements that are modifying it.
@@ -43,24 +48,20 @@ a mapping between each zone and the statements that are modifying it.
 module StmtDefault = struct
   include Cil_datatype.Stmt
   let default = Cil.dummyStmt
+  let id s = s.sid
 end
 
 (** set of values to store for each data *)
 module StmtSetLattice = struct
 
-  include Abstract_interp.Make_Lattice_Set(StmtDefault)
+  include Abstract_interp.Make_Hashconsed_Lattice_Set(StmtDefault)(Cil_datatype.Stmt.Hptset)
 
-  let default _v _a _b : t = inject_singleton StmtDefault.default
-  let defaultall _v : t = inject_singleton StmtDefault.default
+  let default _v _a _b : t = empty
+  let defaultall _v : t = empty
 
   let empty = bottom
   let cardinal set = fold (fun _ n -> n+1) set 0
   let single s = inject_singleton s
-
-  let to_list ~keep_default set =
-    fold
-      (fun n l -> if (n = StmtDefault.default) && not keep_default then l else n::l)
-      set []
 
   let add s set = join set (single s)
 end
@@ -92,59 +93,49 @@ module InitSid = struct
 end
 
 let get_lval_zones ~for_writing stmt lval =
-  let dpds, loc = !Db.Value.lval_to_loc_with_deps
-                    ~with_alarms:CilE.warn_none_mode
-                    (Kstmt stmt)
-                    ~deps:Locations.Zone.bottom lval
+  let state = Db.Value.get_stmt_state stmt in
+  let dpds, zone, exact =
+    !Db.Value.lval_to_zone_with_deps_state
+      state ~deps:(Some Locations.Zone.bottom) ~for_writing lval
   in
-  let zone = Locations.enumerate_valid_bits ~for_writing loc in
-  let exact =  Locations.valid_cardinal_zero_or_one ~for_writing loc in
-    dpds, exact, zone
+  dpds, exact, zone
 
 (** Add to [stmt] to [lmap] for all the locations modified by the statement.
 * Something to do only for calls and assignments.
 * *)
-let register_modified_zones lmap stmt inst =
+let register_modified_zones lmap stmt =
   let register lmap zone =
     (* [exact] should always be false because we want to store all the stmts *)
     InitSid.add_zone ~exact:false lmap zone stmt
   in
-  let process_froms lmap froms =
-    let from_table = froms.Function_Froms.deps_table in
-      try Lmap_bitwise.From_Model.fold
-            (fun out _ lmap -> register lmap out) from_table lmap
-      with Lmap_bitwise.From_Model.Cannot_fold ->
-        (R.debug ~level:1 "register_modified_zones : top on stmt(%d) : %a@."
-          stmt.sid Printer.pp_stmt stmt;
-        register lmap Locations.Zone.top)
-  in
-    match inst with
-      | Set (lval, _, _) ->
+    match stmt.skind with
+      | Instr (Set (lval, _, _)) ->
           let _dpds, _, zone =
             get_lval_zones ~for_writing:true  stmt lval
           in
           register lmap zone
-      | Call (lvaloption,funcexp,_args,_) ->
+      | Instr (Call (dst,funcexp,_args,_)) ->
           begin
-            let lmap = match lvaloption with None -> lmap
+            let lmap = match dst with
+              | None -> lmap
               | Some lval ->
-                  let _dpds, _, zone =
-                    get_lval_zones ~for_writing:true stmt lval in
-                    register lmap zone
-            in
-              try
-                let froms = !Db.From.Callwise.find (Kstmt stmt) in
-                  process_froms lmap froms
-              with Not_found -> (* don't have callwise (-calldeps option) *)
-                let _funcexp_dpds, called_functions =
-                  !Db.Value.expr_to_kernel_function
-                    ~with_alarms:CilE.warn_none_mode
-                    (Kstmt stmt) ~deps:(Some Locations.Zone.bottom) funcexp
+                let _dpds, _, zone =
+                  get_lval_zones ~for_writing:true stmt lval
                 in
-                  Kernel_function.Hptset.fold
-                    (fun kf lmap -> process_froms lmap (!Db.From.get kf))
-                    called_functions
-                    lmap
+                register lmap zone
+            in
+            let _, kfs =
+              !Db.Value.expr_to_kernel_function
+                ~with_alarms:CilE.warn_none_mode ~deps:None (Kstmt stmt) funcexp
+            in
+            let aux_out kf out =
+              let inout= !Db.Operational_inputs.get_internal_precise ~stmt kf in
+              Locations.Zone.join out inout.Inout_type.over_outputs
+            in
+            let out =
+              Kernel_function.Hptset.fold aux_out kfs Locations.Zone.bottom
+            in
+            register lmap out
           end
       | _ -> lmap
 
@@ -156,10 +147,8 @@ let compute kf =
    R.debug ~level:1 "computing for function %a" Kernel_function.pretty kf;
   let f = Kernel_function.get_definition kf in
   let do_stmt lmap s =
-    if Db.Value.is_reachable_stmt s then
-      match s.skind with
-        | Instr i -> register_modified_zones lmap s i
-        | _ -> lmap
+    if Db.Value.is_reachable_stmt s
+    then register_modified_zones lmap s
     else lmap
   in
   let f_datas = List.fold_left do_stmt InitSid.empty f.sallstmts in
@@ -169,6 +158,51 @@ let compute kf =
 (** {2 Computing Scopes} *)
 
 module State = struct
+
+  (* The algorithm starts by defining the "modified" function, that
+     tells for each statement if it changes the lvalue under
+     consideration. We want to add a "temporal" information on top of
+     modified, i.e. we want to know for each statement s', whether for
+     each path from the starting statement s to s', the lvalue has
+     been modified. To make this computable, we overapproximate, and
+     the dataflow computes if the statement may have been modified
+     (Modif) or has not been modified in any case (SameVal).
+
+     The simple boolean lattice with Modif and SameVal does not
+     suffice: if we initialized the dataflow with "SameVal" for all
+     statements, "join_and_is_included" would return true and the
+     dataflow could stop before having visited all statements. This
+     explains why a value of Bottom is needed, to distinguish
+     statements not yet visited (or unreachable) from the others.
+
+     Now another problem in the dataflow is the representation of
+     loop. In a program such has:
+
+     while(1) {
+     s1;
+     s2;
+     s3;
+     s4;
+     }
+
+     Where "modified" is false except for s4. We start the forward
+     dataflow on s2. We would compute that s2 is not modified, then s3
+     is not modified, then s4 is modified, then s1 is modified... but
+     then we would compute that s3 and s4 are modified (and indeed,
+     they are in further iterations of the loop). To cope with this
+     problem, s2 is initialized to the Start state. The Start state is
+     not propagated (transfer Start = SameVal), and cannot be removed
+     from s2 (Start = Top). Thus the Hasse diagram of the lattice is simply:
+
+     :  Start = Top
+     :    |
+     :  Modif
+     :    |
+     :  SameVal
+     :    |
+     :  NotSeen = Bottom
+  *)
+
   type t = Start | NotSeen | Modif | SameVal
 
   let pretty fmt b = Format.fprintf fmt "%s" (match b with
@@ -176,6 +210,10 @@ module State = struct
                                                 | NotSeen -> "NotSeen"
                                                 | Modif -> "Modif"
                                                 | SameVal -> "SameVal")
+
+  let bottom = NotSeen
+
+  (* Just compute the "max" between elements of the lattice. *)
   let merge b1 b2 =
     let b = match b1, b2 with
     | Start, _ | _, Start -> Start
@@ -183,12 +221,19 @@ module State = struct
     | Modif, _ | _, Modif -> Modif
     | SameVal, SameVal -> SameVal
     in b
+  let join = merge;;
 
   let equal (b1 : t) b2 = (b1 = b2)
 
   let test_and_merge ~old new_ =
     let result = merge new_ old in
     if equal result old then None else Some result
+
+  let join_and_is_included smaller larger =
+    let result = join smaller larger in
+    (result, equal result larger)
+  let is_included smaller larger = snd (join_and_is_included smaller larger)
+
 
   let transfer modif m =
     if modif then Modif else if m = Start then SameVal else m
@@ -226,27 +271,26 @@ module States = GenStates (State)
 
 module BackwardScope (X : sig val modified : stmt -> bool end ) = struct
   let name = "scope(back)"
-  let debug = ref false
+  let debug = false
 
   module StmtStartData = States
 
   type t = StmtStartData.data
   let pretty = State.pretty
 
-  let combineStmtStartData _stmt ~old new_ = State.test_and_merge ~old new_
+  let combineStmtStartData _stmt ~old new_ =
+    if State.equal new_ old then None else Some new_
 
   let combineSuccessors s1 s2 = State.merge s1 s2
 
-  let doStmt _stmt = Dataflow.Default
+  let doStmt _stmt = Dataflow2.Default
 
   let doInstr stmt _instr m_after =
-    Dataflow.Done (State.transfer (X.modified stmt) m_after)
+    Dataflow2.Done (State.transfer (X.modified stmt) m_after)
 
   let filterStmt _stmt _next = true
 
   let funcExitData = State.NotSeen
-
-  let stmt_can_reach _ _ = true
 end
 
 let backward_data_scope allstmts modif_stmts s =
@@ -256,58 +300,50 @@ let backward_data_scope allstmts modif_stmts s =
   States.replace s State.Start;
   let stmts = s.preds in
   let module Computer = BackwardScope (struct let modified = modified end) in
-  let module Compute = Dataflow.Backwards(Computer) in
+  let module Compute = Dataflow2.Backwards(Computer) in
   Compute.compute stmts
 
 module ForwardScope (X : sig val modified : stmt -> bool end ) = struct
-  let name = "scope(forward)"
-  let debug = ref false
+  include State;;
 
-  module StmtStartData = States
+  let transfer_stmt s state =
+    let map_on_all_succs new_state = List.map (fun x -> (x,new_state)) s.succs in
+    match s.skind with
+    | Instr _ -> map_on_all_succs (State.transfer (X.modified s) state)
+    | If _ | Switch _ -> map_on_all_succs (State.transfer false state)
 
-  type t = StmtStartData.data
-  let pretty = State.pretty
-  let copy (s:t) = s
+    | Return _ -> []
 
-  (* BY: the two functions below treat State.Start as a special value, and do
-     not propagate it. See tests/scope/no-effect.i for an example where it is
-     useful in [combinePredecessors]. It is not clear if this a limitation
-     of the dataflow API, or if it could be simulated using the transfer
-     function. *)
-  let computeFirstPredecessor _stmt state =
-    if state = State.Start then State.SameVal else state
+    | UnspecifiedSequence _ | Loop _ | Block _
+    | Goto _ | Break _ | Continue _
+    | TryExcept _ | TryFinally _
+      -> map_on_all_succs state
+  ;;
 
-  let combinePredecessors _stmt ~old new_ =
-    let new_ = if new_ = State.Start then State.SameVal else new_ in
-    State.test_and_merge ~old new_
-
-  let doStmt _stmt _state = Dataflow.SDefault
-
-  let doInstr stmt _ m_before =
-    Dataflow.Done (State.transfer (X.modified stmt) m_before)
-
-  let stmt_can_reach _ _ = true
-  let filterStmt _stmt = true
-
-  let doGuard _ _ _ = Dataflow.GDefault, Dataflow.GDefault
-
-  let doEdge _ _ d = d
 end
 
-let forward_data_scope modif_stmts s =
-  States.clear ();
-  let modified s = StmtSetLattice.mem s modif_stmts in
-  let module Computer = ForwardScope (struct let modified = modified end) in
-  let module Compute = Dataflow.Forwards(Computer) in
-    States.replace s State.Start;
-    Compute.compute [s]
+let forward_data_scope modif_stmts s kf =
+  let _modified s = (* the undescore is for ocaml3.12.1. Otherwise:
+File "src/scope/datascope.ml", line 326, characters 6-14:
+Warning 26: unused variable modified.
+Error: Error-enabled warnings (1 occurrences) *) 
+    StmtSetLattice.mem s modif_stmts in 
+  let module Fenv = (val Dataflows.function_env kf: Dataflows.FUNCTION_ENV) in
+  let module Arg = struct
+      include ForwardScope(struct let modified = _modified end)
+      let init = [(s,State.Start)];;
+  end in
+  let module Compute = Dataflows.Simple_forward(Fenv)(Arg) in
+  Compute.fold_on_result
+;;
+
 
 (* XXX *)
 let add_s s acc =
   (* we add only 'simple' statements *)
   match s.skind with
     | Instr _ | Return _ | Continue _ | Break _ | Goto _
-        -> Cil_datatype.Stmt.Set.add s acc
+        -> Cil_datatype.Stmt.Hptset.add s acc
     | Block _ | Switch _ | If _ | UnspecifiedSequence _ | Loop _
     | TryExcept _ | TryFinally _
         -> acc
@@ -317,7 +353,7 @@ let add_s s acc =
 * - forward and backward,
 * - backward only.
 *)
-let find_scope allstmts modif_stmts s =
+let find_scope allstmts modif_stmts s kf =
   let add fw s' x acc =
     match x with
       | State.Start ->
@@ -332,14 +368,14 @@ let find_scope allstmts modif_stmts s =
       | _ -> acc
   in
   let _ = backward_data_scope allstmts modif_stmts s in
-  let bw = States.fold (add false) Cil_datatype.Stmt.Set.empty in
+  let bw = States.fold (add false) Cil_datatype.Stmt.Hptset.empty in
 
-  let _ = forward_data_scope modif_stmts s in
-  let fw = States.fold (add true) Cil_datatype.Stmt.Set.empty in
+  let fold = forward_data_scope modif_stmts s kf in
+  let fw = fold (fun acc s' x -> add true s' x acc) Cil_datatype.Stmt.Hptset.empty in
 
-  let fb = Cil_datatype.Stmt.Set.inter bw fw in
-  let fw = Cil_datatype.Stmt.Set.diff fw fb in
-  let bw = Cil_datatype.Stmt.Set.diff bw fb in
+  let fb = Cil_datatype.Stmt.Hptset.inter bw fw in
+  let fw = Cil_datatype.Stmt.Hptset.diff fw fb in
+  let bw = Cil_datatype.Stmt.Hptset.diff bw fb in
     fw, fb, bw
 
 (** Try to find the statement set where [data] has the same value than
@@ -352,7 +388,7 @@ let get_data_scope_at_stmt kf stmt lval =
   let zone = Locations.Zone.join dpds zone in
   let allstmts, info = compute kf in
   let modif_stmts = InitSid.find info zone in
-  let (f_scope, fb_scope, b_scope) = find_scope allstmts modif_stmts stmt in
+  let (f_scope, fb_scope, b_scope) = find_scope allstmts modif_stmts stmt kf in
   R.debug
     "@[<hv 4>get_data_scope_at_stmt %a at %d @\n\
                    modified by = %a@\n\
@@ -360,12 +396,13 @@ let get_data_scope_at_stmt kf stmt lval =
       (* stmt at *)
     Locations.Zone.pretty zone stmt.sid
       (* modified by *)
-    (Pretty_utils.pp_list ~sep:",@ " Cil_datatype.Stmt.pretty_sid)
-    (StmtSetLattice.to_list ~keep_default:false modif_stmts)
+    (Pretty_utils.pp_iter
+       StmtSetLattice.iter ~sep:",@ " Cil_datatype.Stmt.pretty_sid)
+    modif_stmts
       (* scope *)
-    Cil_datatype.Stmt.Set.pretty f_scope
-    Cil_datatype.Stmt.Set.pretty fb_scope
-    Cil_datatype.Stmt.Set.pretty b_scope;
+    Cil_datatype.Stmt.Hptset.pretty f_scope
+    Cil_datatype.Stmt.Hptset.pretty fb_scope
+    Cil_datatype.Stmt.Hptset.pretty b_scope;
   (f_scope, (fb_scope, b_scope))
 
 exception ToDo
@@ -433,21 +470,21 @@ let get_prop_scope_at_stmt kf stmt ?(to_be_removed=[]) annot =
     stmt.sid Kernel_function.pretty kf
     Printer.pp_code_annotation annot;
 
-  let sets = (Cil_datatype.Stmt.Set.empty, to_be_removed) in
+  let sets = (Cil_datatype.Stmt.Hptset.empty, to_be_removed) in
     try
       let zone =  get_annot_zone kf stmt annot in
 
       let _allstmts, info = compute kf in
       let modif_stmts = InitSid.find info zone in
-      let _ = forward_data_scope modif_stmts stmt in
+      let fold = forward_data_scope modif_stmts stmt kf in
       let pred = match annot.annot_content with
         | AAssert (_, p) -> p
         | _ -> R.abort "only 'assert' are handled here"
       in
-      let add s x ((acc_scope, acc_to_be_rm) as acc) = match x with
+      let add ((acc_scope, acc_to_be_rm) as acc) s x  = match x with
         | State.Start -> (add_s s acc_scope, acc_to_be_rm)
         | State.SameVal ->
-          if !Db.Dominators.is_dominator kf ~opening:stmt ~closing:s
+          if Dominators.dominates stmt s
           then begin
             let acc_scope = add_s s acc_scope in
             let acc_to_be_rm = check_stmt_annots pred s acc_to_be_rm in
@@ -456,7 +493,7 @@ let get_prop_scope_at_stmt kf stmt ?(to_be_removed=[]) annot =
           else acc
         | _ -> acc
       in
-      let sets = States.fold add sets in
+      let sets = fold add sets in
       sets
     with ToDo ->
       R.warning
@@ -472,7 +509,7 @@ class check_annot_visitor = object(self)
 
   method get_to_be_removed () = to_be_removed
 
-  method vcode_annot annot =
+  method! vcode_annot annot =
     let kf = Extlib.the self#current_kf in
     let stmt =
       Cil.get_original_stmt self#behavior (Extlib.the self#current_stmt)
@@ -493,12 +530,15 @@ class check_annot_visitor = object(self)
         | _ -> ()
     in Cil.SkipChildren
 
-  method vglob_aux g = match g with
-    | GFun (_, _loc) when !Db.Value.is_called (Extlib.the self#current_kf) ->
-        Cil.DoChildren
+  method! vglob_aux g = match g with
+    | GFun (fdec, _loc) when
+        !Db.Value.is_called (Extlib.the self#current_kf) &&
+        not (!Db.Value.no_results fdec)
+        ->
+      Cil.DoChildren
     | _ -> Cil.SkipChildren
 
-  method vexpr _ = Cil.SkipChildren
+  method! vexpr _ = Cil.SkipChildren
 
 end (* class check_annot_visitor *)
 
@@ -526,14 +566,14 @@ class rm_annot_visitor to_be_removed = object
 
   inherit Visitor.frama_c_inplace
 
-  method vcode_annot annot =
+  method! vcode_annot annot =
     let _, not_in = add_annot annot to_be_removed in
     if not_in then (* not to be removed *)  Cil.SkipChildren
     else (* is to be removed *)
       match annot.annot_content with
       | AAssert (_, p) ->
-          R.debug ~level:2 
-            "[rm_asserts] removing redundant %a@." Printer.pp_code_annotation annot;
+          R.result ~dkey:cat_rm_asserts ~level:2
+            "removing redundant %a@." Printer.pp_code_annotation annot;
           let p = { p with content = Ptrue } in
           let aassert = AAssert ([], p) in
           let annot = { annot with annot_content = aassert } in
@@ -547,7 +587,7 @@ let rm_asserts () =
   let to_be_removed = f_check_asserts () in
   let n = List.length to_be_removed in
     (if n > 0 then
-      R.feedback "[rm_asserts] removing %d assertion(s)@." n);
+      R.feedback ~dkey:cat_rm_asserts "removing %d assertion(s)@." n);
   let visitor = new rm_annot_visitor to_be_removed in
   Visitor.visitFramacFileSameGlobals visitor (Ast.get ())
 
@@ -566,13 +606,13 @@ let () =
           Cil_datatype.Stmt.ty
           Cil_datatype.Lval.ty
           (Datatype.pair 
-             Cil_datatype.Stmt.Set.ty 
-             (Datatype.pair Cil_datatype.Stmt.Set.ty 
-                            Cil_datatype.Stmt.Set.ty))))
+             Cil_datatype.Stmt.Hptset.ty 
+             (Datatype.pair Cil_datatype.Stmt.Hptset.ty 
+                            Cil_datatype.Stmt.Hptset.ty))))
   Db.Scope.get_data_scope_at_stmt get_data_scope_at_stmt;
 
    Db.register (* (kernel_function -> stmt -> code_annotation ->
-       Cil_datatype.Stmt.Set.t * code_annotation list *)
+       Cil_datatype.Stmt.Hptset.t * code_annotation list *)
       Db.Journalization_not_required (* TODO *)
      (* (Db.Journalize("Scope.get_prop_scope_at_stmt",
                     Datatype.func Kernel_type.kernel_function

@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -memory-footprint 1 -val -deps -out -input -journal-disable 
+   OPT: -val -deps -out -input -journal-disable
 */
 typedef enum {
     BDP_BITE_NORMAL, BDP_BITE_ANORMAL, BDP_BITE_TRUC

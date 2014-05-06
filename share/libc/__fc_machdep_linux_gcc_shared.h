@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2013                                               */
+/*  Copyright (C) 2007-2014                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -21,10 +21,10 @@
 /**************************************************************************/
 
 #ifndef __FC_FORCE_INCLUDE_MACHDEP__
-#error "This file shall not be directly included"
+#error "Frama-C: This file shall not be directly included"
 #endif
 /* This file contains common machine specific values between 
- Linux/GCC x86 and AMD64.*/
+ Linux/GCC x86 32-bit, AMD64 and x86 16-bit.*/
 
 #ifndef __FC_MACHDEP_LINUX_SHARED
 #define __FC_MACHDEP_LINUX_SHARED
@@ -34,18 +34,12 @@
 #define __UINT8_T unsigned char
 #define __INT16_T signed short
 #define __UINT16_T unsigned short
-#define __INT32_T signed int
-#define __UINT32_T unsigned int
-#define __INT64_T signed long long
-#define __UINT64_T unsigned long long
 
 /* Required */
 #define __INT_LEAST8_T signed char
 #define __UINT_LEAST8_T unsigned char
 #define __INT_LEAST16_T signed short
 #define __UINT_LEAST16_T unsigned short
-#define __INT_LEAST32_T signed int
-#define __UINT_LEAST32_T unsigned int
 #define __INT_LEAST64_T signed long long
 #define __UINT_LEAST64_T unsigned long long
 
@@ -54,8 +48,6 @@
 #define __UINT_FAST8_T unsigned char
 #define __INT_FAST16_T signed int
 #define __UINT_FAST16_T unsigned int
-#define __INT_FAST32_T signed int
-#define __UINT_FAST32_T unsigned int
 #define __INT_FAST64_T signed long long
 #define __UINT_FAST64_T unsigned long long
 
@@ -95,6 +87,9 @@
 #define __WCHAR_T int
 #define __FC_WINT_MIN __FC_INT_MIN
 #define __FC_WINT_MAX __FC_INT_MAX
+// 7.25 mandates that WINT_T can handle at least one character in addition
+// to those that are in the extended character set (to account for EOF)
+#define __WINT_T long long int
 
 /* stdio.h */
 #define __FC_BUFSIZ 8192

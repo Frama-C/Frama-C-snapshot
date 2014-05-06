@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -23,7 +23,6 @@
 open Cil_types
 open Abstract_interp
 open Locations
-open Cvalue
 
 exception Actual_is_bottom
 exception WrongFunctionType (* at a call through a pointer *)
@@ -33,8 +32,10 @@ exception WrongFunctionType (* at a call through a pointer *)
    the end of tests/misc/fun_ptr.i). Thus, we make additional checks  here:
    the arguments size are correct, and the number of arguments is sufficient.*)
 let check_arg_size expr formal =
-  if Cil.bitsSizeOf (Cil.typeOf expr) <> Cil.bitsSizeOf (formal.vtype)
-  then raise WrongFunctionType
+  try
+    if Cil.bitsSizeOf (Cil.typeOf expr) <> Cil.bitsSizeOf (formal.vtype)
+    then raise WrongFunctionType
+  with Cil.SizeOfError _ -> raise WrongFunctionType
 
 let rec fold_left2_best_effort f acc l1 l2 =
   match l1,l2 with
@@ -47,7 +48,7 @@ let actualize_formals ?(check = fun _ _ -> ()) ?(exact = fun _ -> true) kf state
   let treat_one_formal acc (expr, actual_o) formal =
     (check expr formal: unit);
     let loc_without_size =
-      Location_Bits.inject (Base.create_varinfo formal) (Ival.zero)
+      Location_Bits.inject (Base.of_varinfo formal) (Ival.zero)
     in
     Cvalue.Model.paste_offsetmap ~with_alarms:CilE.warn_none_mode
       ~from:actual_o
@@ -75,39 +76,36 @@ let main_initial_state_with_formals kf (state:Cvalue.Model.t) =
           l
           state
 
-let offsetmap_contains_indeterminate offs =
-  V_Offsetmap.fold_on_values
-    (fun v _ (allbot, init, noesc) ->
-       let allbot = allbot && V.is_bottom (V_Or_Uninitialized.get_v v) in
-       let flags = V_Or_Uninitialized.get_flags v in
-       let init  = init  && V_Or_Uninitialized.is_initialized flags in
-       let noesc = noesc && V_Or_Uninitialized.is_noesc flags in
-       (allbot, init, noesc)
-    ) offs (true, true, true)
 
-
-let compute_actual ~with_alarms one_library_fun state e =
+let compute_actual ~with_alarms ~warn_indeterminate state e =
   let offsm = match e with
   | { enode = Lval lv } when not (Eval_op.is_bitfield (Cil.typeOfLval lv)) ->
-      let loc, _, o = Eval_exprs.offsetmap_of_lv ~with_alarms state lv in
+      let ploc, _, o = Eval_exprs.offsetmap_of_lv ~with_alarms state lv in
       (match o with
       | Some o ->
+        let warn () =
+          if with_alarms.CilE.imprecision_tracing.CilE.a_log != None then
+            Value_parameters.result ~current:true ~once:true
+              "completely invalid@ value in evaluation of@ argument %a"
+              Printer.pp_lval lv;
+          raise Actual_is_bottom
+        in
+        let typ_lv = Cil.typeOfLval lv in
+        let o =
+          if warn_indeterminate
+          then Warn.warn_indeterminate_offsetmap ~with_alarms typ_lv o
+          else Some o
+        in
+        begin match o with
+        | None -> warn ()
+        | Some o ->
           (match Warn.offsetmap_contains_imprecision o with
-             | Some v -> Warn.warn_imprecise_lval_read ~with_alarms lv loc v
+             | Some v ->
+               let loc = Precise_locs.imprecise_location ploc in
+               Warn.warn_imprecise_lval_read ~with_alarms lv loc v
              | None -> ());
-          let allbot, init, noesc = offsetmap_contains_indeterminate o in
-          if one_library_fun || allbot then (
-            CilE.set_syntactic_context (CilE.SyMem lv);
-            if not init then CilE.warn_uninitialized with_alarms;
-            if not noesc then CilE.warn_escapingaddr with_alarms;
-          );
-          if allbot then (
-            if with_alarms.CilE.imprecision_tracing.CilE.a_log != None then
-              Value_parameters.result ~current:true ~once:true
-                "completely invalid@ value in evaluation of@ argument %a"
-                Printer.pp_lval lv;
-	    raise Actual_is_bottom);
           o
+        end
       | None ->
           if with_alarms.CilE.imprecision_tracing.CilE.a_log != None then
             Value_parameters.result ~current:true ~once:true
@@ -134,7 +132,7 @@ let () =
     (fun state kf exps ->
        try
          let compute_actual =
-           compute_actual ~with_alarms:CilE.warn_none_mode false
+           compute_actual ~with_alarms:CilE.warn_none_mode ~warn_indeterminate:false
          in
          let actuals = List.map (compute_actual state) exps in
          actualize_formals kf state actuals

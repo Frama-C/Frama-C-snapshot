@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -45,20 +45,20 @@ val copy : allocator -> allocator
 (** {2 Linkers} *)
 
 class type ['a,'idx] linker = 
-object
-  method lock  : unit
-  method clear : unit
-  method push  : 'idx
-  method pop   : 'idx -> unit
-  method mem   : 'a -> bool
-  method find  : 'a -> string
-  method link  : 'a -> string -> unit
-  method print : 'a printer
-  method alloc : basename:string -> 'a -> string
-  method reserve : basename:string -> string
-  method bind_reserved : 'a -> string -> unit
-  method alloc_with : allocator -> unit
-end
+  object
+    method lock  : unit
+    method clear : unit
+    method push  : 'idx
+    method pop   : 'idx -> unit
+    method mem   : 'a -> bool
+    method find  : 'a -> string
+    method link  : 'a -> string -> unit
+    method print : 'a printer
+    method alloc : basename:string -> 'a -> string
+    method reserve : basename:string -> string
+    method bind_reserved : 'a -> string -> unit
+    method alloc_with : allocator -> unit
+  end
 
 module Link(A : Symbol) :
 sig

@@ -1,6 +1,6 @@
 /* run.config
   GCC:
-  OPT: -memory-footprint 1 -float-normal -val -deps -out -input  -main F2 -journal-disable
+  OPT: -float-normal -val -deps -out -input  -main F2 -journal-disable
 */
 
 struct T1 {

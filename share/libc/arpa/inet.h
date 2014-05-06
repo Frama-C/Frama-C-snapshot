@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2013                                               */
+/*  Copyright (C) 2007-2014                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -39,7 +39,7 @@ in_addr_t    inet_addr(const char * arg);
 char        *inet_ntoa(struct in_addr arg);
 
 /*@ assigns \result \from dst,af,((char*)src)[0..];
-  assigns dst[0..size] \from af,((char*)src)[0..] ; */
+  assigns dst[0..size-1] \from af,((char*)src)[0..] ; */
 const char  *inet_ntop(int af, const void *src, char *dst,
                  socklen_t size);
 

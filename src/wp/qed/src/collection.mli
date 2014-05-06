@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -44,11 +44,19 @@ sig
   val mem : key -> 'a t -> bool
   val find : key -> 'a t -> 'a
   val findk : key -> 'a t -> key * 'a
+  val size : 'a t -> int
+
+  (** [insert (fun key v old -> ...) key v map] *)
+  val insert : (key -> 'a -> 'a -> 'a) -> key -> 'a -> 'a t -> 'a t
+
+  val change : (key -> 'b -> 'a option -> 'a option) -> key -> 'b -> 'a t -> 'a t
 
   val map  : ('a -> 'b) -> 'a t -> 'b t
   val mapi : (key -> 'a -> 'b) -> 'a t -> 'b t
   val mapf : (key -> 'a -> 'b option) -> 'a t -> 'b t
+  val mapq : (key -> 'a -> 'a option) -> 'a t -> 'a t
   val filter : (key -> 'a -> bool) -> 'a t -> 'a t
+  val partition : (key -> 'a -> bool) -> 'a t -> 'a t * 'a t
   val iter : (key -> 'a -> unit) -> 'a t -> unit
   val fold : (key -> 'a -> 'b -> 'b) -> 'a t -> 'b -> 'b
 
@@ -56,7 +64,10 @@ sig
   val fold_sorted : (key -> 'a -> 'b -> 'b) -> 'a t -> 'b -> 'b
 
   val union : (key -> 'a -> 'a -> 'a) -> 'a t -> 'a t -> 'a t
-  val inter : (key -> 'a -> 'a -> 'a) -> 'a t -> 'a t -> 'a t
+  val inter : (key -> 'a -> 'b -> 'c) -> 'a t -> 'b t -> 'c t
+  val interf : (key -> 'a -> 'b -> 'c option) -> 'a t -> 'b t -> 'c t
+  val interq : (key -> 'a -> 'a -> 'a option) -> 'a t -> 'a t -> 'a t
+  val diffq : (key -> 'a -> 'a -> 'a option) -> 'a t -> 'a t -> 'a t
   val subset : (key -> 'a -> 'b -> bool) -> 'a t -> 'b t -> bool
   val equal : ('a -> 'a -> bool) -> 'a t -> 'a t -> bool
 
@@ -71,7 +82,7 @@ end
 
 module type Set = 
 sig
-  
+
   type elt
 
   type t
@@ -117,12 +128,12 @@ sig
 
   module Map : Map 
     with type 'a t = 'a map
-    and type key = t
-    and type domain = set
+     and type key = t
+     and type domain = set
   module Set : Set 
     with type t = set
-    and type elt = t
-    and type 'a mapping = 'a map
+     and type elt = t
+     and type 'a mapping = 'a map
 
 end
 

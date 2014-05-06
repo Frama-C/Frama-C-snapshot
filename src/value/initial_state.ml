@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -32,6 +32,12 @@ exception Initialization_failed
 
 let typeHasAttribute attr typ = Cil.hasAttribute attr (Cil.typeAttrs typ)
 
+let add_initialized state loc v =
+  Cvalue.Model.add_initial_binding state loc (V_Or_Uninitialized.initialized v)
+let add_unitialized state loc =
+  Cvalue.Model.add_initial_binding state loc V_Or_Uninitialized.uninitialized
+
+
 (* If [filled] is true, bind the contents of hidden_base to a well of itself.
    If not, do not bind it (typically for function pointers) *)
 let make_well ~filled hidden_base state loc =
@@ -44,13 +50,12 @@ let make_well ~filled hidden_base state loc =
       (Location_Bits.inject hidden_base Ival.zero)
       (Int_Base.inject size)
   in
-  let with_alarms = CilE.warn_none_mode in
   let state =
     if filled
-    then Cvalue.Model.add_binding ~with_alarms ~exact:true state well_loc well
+    then add_initialized state well_loc well
     else state
   in
-  Cvalue.Model.add_binding ~with_alarms ~exact:true state loc well
+  add_initialized state loc well
 
 
 let warn_unknown_size_aux pp v (messt, t) =
@@ -64,9 +69,9 @@ let warn_unknown_size =
 
 type validity_hidden_base =
   | Invalid (* Base is completely invalid *)
-  | Unknown (* Base is maybe invalid on its entire validity *)
-  | KnownUnknown of Integer.t (* Base is valid on i bits, then maybe invalid on
-                                 the remainder of its validity *)
+  | UnknownValidity (* Base is maybe invalid on its entire validity *)
+  | KnownThenUnknownValidity of Integer.t (* Base is valid on i bits, then
+                              maybe invalid on the remainder of its validity *)
 
 let create_hidden_base ~valid ~hidden_var_name ~name_desc pointed_typ =
   let hidden_var =
@@ -88,7 +93,7 @@ let create_hidden_base ~valid ~hidden_var_name ~name_desc pointed_typ =
         | Base.Known (a,b)
             when not (Value_parameters.AllocatedContextValid.get ()) ->
             (match valid with
-               | KnownUnknown size ->
+               | KnownThenUnknownValidity size ->
                    let size = Integer.pred size in
                    assert (Integer.le size b);
                    Base.Unknown (a, Some size, b)
@@ -97,7 +102,7 @@ let create_hidden_base ~valid ~hidden_var_name ~name_desc pointed_typ =
         | Base.Unknown _ | Base.Known _ | Base.Invalid as s -> s
         | Base.Periodic _ -> assert false
   in
-  Base.create_logic hidden_var validity
+  Base.register_memory_var hidden_var validity
 
 (** [initialize_var_using_type varinfo state] uses the type of [varinfo]
     to create an initial value in [state]. *)
@@ -108,7 +113,7 @@ let initialize_var_using_type varinfo state =
     let typ = Cil.unrollType typ in
     let loc = loc_of_typoffset v typ_orig offset_orig in
     let bind_entire_loc ?(state=state) v = (* Shortcut *)
-      Cvalue.Model.add_binding ~with_alarms ~exact:true state loc v
+      add_initialized state loc v
     in
       match typ with
       | TInt _ | TEnum (_, _)->
@@ -150,8 +155,8 @@ let initialize_var_using_type varinfo state =
             (* Make first cell of the array valid. The NULL pointer takes
                care of a potential invalid pointer. *)
             let valid =
-              try KnownUnknown (Integer.of_int (Cil.bitsSizeOf typ))
-              with Cil.SizeOfError _ -> Unknown
+              try KnownThenUnknownValidity (Integer.of_int (Cil.bitsSizeOf typ))
+              with Cil.SizeOfError _ -> UnknownValidity
             in
             let hidden_base =
               create_hidden_base
@@ -180,7 +185,7 @@ let initialize_var_using_type varinfo state =
             let name_desc = "*"^name_desc in
             let valid, filled =
               if Cil.isFunctionType typ then Invalid, false
-              else Unknown, true
+              else UnknownValidity, true
             in   
             let hidden_base =
               create_hidden_base ~valid ~hidden_var_name ~name_desc typ
@@ -210,7 +215,17 @@ let initialize_var_using_type varinfo state =
               let name_desc = name_desc ^ "[" ^ string_of_int i ^ "]" in
               state :=
                 add_offsetmap depth v name_desc name typ offset typ_orig !state;
-              locs := loc_of_typoffset v typ_orig offset :: !locs;
+	      let loc = loc_of_typoffset v typ_orig offset in
+	      if Locations.loc_size loc = Int_Base.Top
+	      then begin
+		Value_parameters.warning "During initialization of variable %a (of type %a), an array of type %a of unknown size was encountered. It's impossible to represent this array without knowning the size of %a. Bailing out"
+		  Base.pretty v
+		  Printer.pp_typ typ_orig
+		  Printer.pp_typ typ
+		  Printer.pp_typ typ;
+		raise Initialization_failed;
+	      end;
+              locs := loc :: !locs;
             done;
             if max_precise_size < size then begin
               (* Some elements remain to be initialized *)
@@ -222,15 +237,23 @@ let initialize_var_using_type varinfo state =
                 | [] -> assert false (* AutomaticContextMaxWidth is at least 1*)
                 | l :: ll -> l, ll
               in
+	      let last_offsm = offsm_of_loc last_loc in
               (* Join of the contents of the first elements *)
-              let offsm_joined = List.fold_left
-                (fun offsm loc ->
-                   let offsm' = offsm_of_loc loc in
-                   Cvalue.V_Offsetmap.join offsm offsm'
-                ) (offsm_of_loc last_loc) locs
+              let offsm_joined = 
+		List.fold_left
+                  (fun offsm loc ->
+                    let offsm' = offsm_of_loc loc in
+                    Cvalue.V_Offsetmap.join offsm offsm') 
+		  last_offsm
+		  locs
               in
-              let nb_fields = Cvalue.V_Offsetmap.fold
-                (fun _itv _ -> succ) offsm_joined 0
+              (* TODO: add Offsetmap.paste_repeated_slices to Offsetmap, and
+                 replace everything below by a call to it. *)
+              let nb_fields =
+		  Cvalue.V_Offsetmap.fold 
+                    (fun _itv _ -> succ)
+		    offsm_joined 
+		    0
               in
               if nb_fields = 1 then
                 (* offsm_joined is very regular (typically Top_int, or some
@@ -302,7 +325,7 @@ let initialize_var_using_type varinfo state =
                   (Location_Bits.inject v (Ival.of_int next_offset))
                   (Int_Base.inject (Int.of_int (field_offset-next_offset)))
                 in
-                Cvalue.Model.add_binding_not_initialized state loc
+                add_unitialized state loc
               else state
             in
             field_offset+field_width,
@@ -328,7 +351,7 @@ let initialize_var_using_type varinfo state =
                 (Location_Bits.inject v (Ival.of_int last_offset))
                 (Int_Base.inject (Int.of_int (boff+bwidth-last_offset)))
               in
-              Cvalue.Model.add_binding_not_initialized state loc
+              add_unitialized state loc
             else state
           with Cil.SizeOfError (s, t) ->
             warn_unknown_size varinfo (s, t);
@@ -357,13 +380,13 @@ let initialize_var_using_type varinfo state =
           in
           hidden_var.vdescr <- Some (name_desc^"_WELL");
           let validity = Base.Known (Int.zero, Bit_utils.max_bit_address ()) in
-          let hidden_base = Base.create_logic hidden_var validity in
+          let hidden_base = Base.register_memory_var hidden_var validity in
           make_well ~filled:true hidden_base state loc
       | TNamed (_, _)  -> assert false
   in
   add_offsetmap
     0
-    (Base.create_varinfo varinfo)
+    (Base.of_varinfo varinfo)
     varinfo.vname varinfo.vname varinfo.vtype NoOffset varinfo.vtype state
 
 
@@ -379,9 +402,8 @@ let init_var_zero vi state =
    with Cil.SizeOfError (s, t)->
      warn_unknown_size vi (s, t);
   );
-  Cvalue.Model.add_binding ~with_alarms:CilE.warn_none_mode
-    ~exact:true state loc v
-    
+  add_initialized state loc v
+
 
 let initialized_padding () =
   Value_parameters.InitializedPaddingGlobals.get ()
@@ -398,7 +420,7 @@ let init_trailing_padding state ~last_bitsoffset ~abs_offset typ lval =
       let loc =
         match lval with
           | Var vinfo, _  ->
-            let base = Base.create_varinfo vinfo in
+            let base = Base.of_varinfo vinfo in
             let size_to_add = Int.of_int size_to_add in
             let offset, size =
               match Base.validity base with
@@ -417,10 +439,9 @@ let init_trailing_padding state ~last_bitsoffset ~abs_offset typ lval =
           then V.top_int
           else V.singleton_zero
 	in
-        Cvalue.Model.add_binding ~with_alarms:CilE.warn_none_mode
-          ~exact:true state loc v
+        add_initialized state loc v
       else
-        Cvalue.Model.add_binding_not_initialized state loc
+        add_unitialized state loc
     else state
   with Cil.SizeOfError (s,t) ->
     warn_unknown_size_aux Printer.pp_lval lval  (s, t);
@@ -435,9 +456,14 @@ let eval_single_initializer state lval exp =
   in
   if not (cardinal_zero_or_one loc) then
     Value_parameters.fatal ~current:true
-     "In global initialisation, the location can not be represented. Aborting.";
+     "In global initialisation, the location cannot be represented. Aborting.";
   let value =
-    Eval_exprs.eval_expr ~with_alarms:(warn_all_quiet_mode ()) state exp in
+    Eval_exprs.eval_expr ~with_alarms:(warn_all_quiet_mode ()) state exp
+  in
+  if Cvalue.V.equal value V.bottom then (
+    Value_parameters.result ~source:(fst exp.eloc)
+      "Evaluation of initializer '%a' failed@." Printer.pp_exp exp;
+    raise Initialization_failed);
   let v =
     if typeHasAttribute "volatile" typ_lval
     then V.top_int
@@ -446,7 +472,7 @@ let eval_single_initializer state lval exp =
       then Eval_op.cast_lval_bitfield typ_lval loc.Locations.size value
       else value
   in
-  Cvalue.Model.add_binding ~with_alarms ~exact:true state loc v
+  add_initialized state loc v
 
 
 let rec eval_initializer state lval init =
@@ -477,13 +503,13 @@ let rec eval_initializer state lval init =
                   in
                   let loc_bits =
                     Location_Bits.inject
-                      (Base.create_varinfo vi)
+                      (Base.of_varinfo vi)
                       (Ival.inject_singleton (Int.of_int (base_off+acc)))
                   in
                   let loc_size = Int_Base.inject (Int.of_int (o-acc)) in
                   let loc = make_loc loc_bits loc_size in
                   (* Format.printf "loc:%a@." Locations.pretty loc; *)
-                  Cvalue.Model.add_binding_not_initialized state loc
+                  add_unitialized state loc
                 end
                 else (assert (acc=o); state)
               in

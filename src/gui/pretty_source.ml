@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -283,6 +283,8 @@ class tagPrinterClass : Printer.extensible_printer = object(self)
 
   inherit Printer.extensible_printer () as super
 
+  method! varname fmt x = Printer.pp_varname fmt x
+
   method private current_kinstr =
     match self#current_stmt with
     | None -> Kglobal
@@ -307,12 +309,12 @@ class tagPrinterClass : Printer.extensible_printer = object(self)
         None -> Property.Id_behavior (Extlib.the self#current_behavior)
       | Some ca -> Property.Id_code_annot ca
 
-  method next_stmt next fmt current =
+  method! next_stmt next fmt current =
     Format.fprintf fmt "@{<%s>%a@}"
       (Tag.create (PStmt (Extlib.the self#current_kf,current)))
       (super#next_stmt next) current
 
-  method lval fmt lv =
+  method! lval fmt lv =
     match self#current_kinstr with
     | Kglobal -> super#lval fmt lv
         (* Do not highlight the lvals in initializers. *)
@@ -329,7 +331,7 @@ class tagPrinterClass : Printer.extensible_printer = object(self)
         );
         Format.fprintf fmt "@}"
 
-  method term_lval fmt lv =
+  method! term_lval fmt lv =
     (* similar to pLval *)
     match self#current_kinstr with
     | Kglobal -> super#term_lval fmt lv
@@ -345,12 +347,12 @@ class tagPrinterClass : Printer.extensible_printer = object(self)
         );
         Format.fprintf fmt "@}"
 
-  method vdecl fmt vi =
+  method! vdecl fmt vi =
     Format.fprintf fmt "@{<%s>%a@}"
       (Tag.create (PVDecl (self#current_kf,vi)))
       super#vdecl vi
 
-  method code_annotation fmt ca =
+  method! code_annotation fmt ca =
     match ca.annot_content with
       | APragma p when not (Logic_utils.is_property_pragma p) ->
         (* Not currently localizable. Will be linked to the next stmt *)
@@ -377,7 +379,7 @@ class tagPrinterClass : Printer.extensible_printer = object(self)
         super#code_annotation fmt ca;
         current_ca <- None
 
-  method global fmt g =
+  method! global fmt g =
     match g with
       (* these globals are already covered by PVDecl *)
     | GVarDecl _ | GVar _ | GFun _ -> super#global fmt g
@@ -387,7 +389,7 @@ class tagPrinterClass : Printer.extensible_printer = object(self)
           super#global
           g
 
-  method requires fmt p =
+  method! requires fmt p =
     localize_predicate <- false;
     let b = Extlib.the self#current_behavior in
     Format.fprintf fmt "@{<%s>%a@}"
@@ -398,7 +400,7 @@ class tagPrinterClass : Printer.extensible_printer = object(self)
       super#requires p;
     localize_predicate <- true
 
-  method behavior fmt b =
+  method! behavior fmt b =
     Format.fprintf fmt "@{<%s>%a@}"
       (Tag.create
          (PIP
@@ -406,7 +408,7 @@ class tagPrinterClass : Printer.extensible_printer = object(self)
                (Extlib.the self#current_kf) self#current_kinstr b)))
       super#behavior b
 
-  method decreases fmt t =
+  method! decreases fmt t =
     localize_predicate <- false;
     Format.fprintf fmt "@{<%s>%a@}"
       (Tag.create
@@ -416,7 +418,7 @@ class tagPrinterClass : Printer.extensible_printer = object(self)
       super#decreases t;
     localize_predicate <- true
 
-  method terminates fmt t =
+  method! terminates fmt t =
     localize_predicate <- false;
     Format.fprintf fmt "@{<%s>%a@}"
       (Tag.create
@@ -426,7 +428,7 @@ class tagPrinterClass : Printer.extensible_printer = object(self)
       super#terminates t;
     localize_predicate <- true
 
-  method complete_behaviors fmt t =
+  method! complete_behaviors fmt t =
     Format.fprintf fmt "@{<%s>%a@}"
       (Tag.create
          (PIP
@@ -434,7 +436,7 @@ class tagPrinterClass : Printer.extensible_printer = object(self)
                (Extlib.the self#current_kf) self#current_kinstr t)))
       super#complete_behaviors t
 
-  method disjoint_behaviors fmt t =
+  method! disjoint_behaviors fmt t =
     Format.fprintf fmt "@{<%s>%a@}"
       (Tag.create
          (PIP
@@ -442,7 +444,7 @@ class tagPrinterClass : Printer.extensible_printer = object(self)
                (Extlib.the self#current_kf) self#current_kinstr t)))
       super#disjoint_behaviors t
 
-  method assumes fmt p =
+  method! assumes fmt p =
     localize_predicate <- false;
     let b = Extlib.the self#current_behavior in
     Format.fprintf fmt "@{<%s>%a@}"
@@ -453,7 +455,7 @@ class tagPrinterClass : Printer.extensible_printer = object(self)
       super#assumes p;
     localize_predicate <- true
 
-  method post_cond fmt pc =
+  method! post_cond fmt pc =
     localize_predicate <- false;
     let b = Extlib.the self#current_behavior in
     Format.fprintf fmt "@{<%s>%a@}"
@@ -464,7 +466,7 @@ class tagPrinterClass : Printer.extensible_printer = object(self)
       super#post_cond pc;
     localize_predicate <- true
 
-  method assigns s fmt a =
+  method! assigns s fmt a =
     match
       Property.ip_of_assigns (Extlib.the self#current_kf) self#current_kinstr
         self#current_behavior_or_loop a
@@ -474,7 +476,7 @@ class tagPrinterClass : Printer.extensible_printer = object(self)
         Format.fprintf fmt "@{<%s>%a@}"
           (Tag.create (PIP ip)) (super#assigns s) a
 
-  method from s fmt ((_, f) as from) =
+  method! from s fmt ((_, f) as from) =
     match f with
       | FromAny -> super#from s fmt from
       | From _ ->
@@ -485,14 +487,14 @@ class tagPrinterClass : Printer.extensible_printer = object(self)
               Format.fprintf fmt "@{<%s>%a@}"
               (Tag.create (PIP ip)) (super#from s) from
 
-  method global_annotation fmt a = 
+  method! global_annotation fmt a = 
     match Property.ip_of_global_annotation_single a with
     | None -> super#global_annotation fmt a
     | Some ip ->
       Format.fprintf fmt "@{<%s>%a@}" 
 	(Tag.create (PIP ip)) super#global_annotation a
 
-  method allocation ~isloop fmt a =
+  method! allocation ~isloop fmt a =
     match
       Property.ip_of_allocation (Extlib.the self#current_kf) self#current_kinstr
         self#current_behavior_or_loop a
@@ -768,12 +770,12 @@ object (self)
       done
     );
 
-  method vstmt_aux s =
+  method! vstmt_aux s =
     Gui_parameters.debug ~level:3 "Locs for Stmt %d" s.sid;
     self#add_range (Stmt.loc s) (PStmt (Extlib.the self#current_kf, s));
     Cil.DoChildren
 
-  method vglob_aux g =
+  method! vglob_aux g =
     Gui_parameters.debug ~level:3 "Locs for global %a" Printer.pp_global g;
     (match g with
       | GFun ({ svar = vi }, loc) ->

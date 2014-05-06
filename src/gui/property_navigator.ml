@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -131,11 +131,9 @@ struct
   let refreshers = ref []
   let add_refresher f = refreshers := f::!refreshers
 
-  module Add (X: sig val name: string val hint: string end) =
-  struct
+  module Add (X: sig val name: string val hint: string end) = struct
     open Gtk_helper
     let key_name =
-      Configuration.load ();
       let s = String.copy X.name in
       for i = 0 to String.length s - 1 do
         let c = s.[i] in
@@ -149,14 +147,35 @@ struct
       (struct
         let name = "show " ^ X.name
         let dependencies = []
-        let default () =
-          let v = Configuration.find_bool ~default:true key_name in
-          v
+        let default () = true
        end)
-    let set v = Configuration.set key_name (Configuration.ConfBool v);
+
+    (* setting the configuration must be delayed until the session directory
+       has been set *)
+    let first_extended_ref = ref true
+    let first_exiting_ref = ref true
+    let () =
+      Cmdline.run_after_extended_stage 
+	(fun () -> 
+	  if !first_extended_ref then begin
+	    first_extended_ref := false;
+	    Configuration.load ()
+	  end);
+      Cmdline.run_after_loading_stage 
+	(fun () -> 
+	  if !first_exiting_ref then begin
+	    first_exiting_ref := false;
+	    let v = Configuration.find_bool ~default:true key_name in
+            set v
+	  end)
+
+    let set v = 
+      Configuration.set key_name (Configuration.ConfBool v);
       set v
+
     let add hb = add_refresher
       (Gtk_helper.on_bool ~tooltip:X.hint hb X.name get set)
+
   end
 
   let apply () = List.iter (fun f -> f ()) !refreshers
@@ -329,7 +348,7 @@ let make_panel (main_ui:main_window_extension_points) =
   let model = MODEL.custom_list () in
   let append m = if m.visible then model#insert m in
   let clear () = model#clear () in
-  (* TOOD: this avoids some problems when changing projects, where
+  (* TODO: this avoids some problems when changing projects, where
      the property navigator displays outdated information. A better solution
      would be to projectify what is being displayed *)
   Design.register_reset_extension (fun _ -> clear ());
@@ -541,39 +560,21 @@ let highlighter (buffer:GSourceView2.source_buffer) localizable ~start ~stop =
     ()
   | Pretty_source.PIP ppt ->
       Design.Feedback.mark buffer ~start ~stop (Property_status.Feedback.get ppt)
-  | Pretty_source.PStmt(_,({ skind=Instr(Call(_,e,_,_)) } as stmt)) ->
-    let display ips =
-      if ips <> [] then
-        let ips = List.map snd ips in
-	let validity = Property_status.Feedback.get_conjunction ips in
-        (* Use [start=stop] for a call with a statement contract. Without this,
-           the bullet is put at the beginning of the spec, instead of in front
-           of the call itself *)
-	Design.Feedback.mark buffer ~start:stop ~stop validity
+  | Pretty_source.PStmt(_,({ skind=Instr(Call _) } as stmt)) ->
+    let kfs = Statuses_by_call.all_functions_with_preconditions stmt in
+    let ips = Kernel_function.Hptset.fold
+      (fun kf ips ->
+        Statuses_by_call.all_call_preconditions_at
+          ~warn_missing:false kf stmt @ ips)
+      kfs []
     in
-    (match e.enode with
-      | Lval (Var vkf, NoOffset) ->
-          let kf = Globals.Functions.get vkf in
-	  let ips = Statuses_by_call.all_call_preconditions_at
-            ~warn_missing:false kf stmt in
-          display ips
-
-      | _ ->
-          (* Try to resolve which functions were called through Value. *)
-          if Db.Value.is_computed () then
-            let _, fs = !Db.Value.expr_to_kernel_function (Kstmt stmt)
-              ~with_alarms:CilE.warn_none_mode ~deps:None e
-            in
-            let ips = Kernel_function.Hptset.fold
-              (fun kf ips ->
-                Statuses_by_call.all_call_preconditions_at
-                  ~warn_missing:false kf stmt @ ips)
-              fs []
-            in
-            display ips
-          else
-            ()
-    )
+    if ips <> [] then
+      let ips = List.map snd ips in
+      let validity = Property_status.Feedback.get_conjunction ips in
+      (* Use [start=stop] for a call with a statement contract. Without this,
+         the bullet is put at the beginning of the spec, instead of in front
+         of the call itself *)
+      Design.Feedback.mark buffer ~start:stop ~stop validity
 
   | Pretty_source.PStmt _
   | Pretty_source.PGlobal _| Pretty_source.PVDecl _

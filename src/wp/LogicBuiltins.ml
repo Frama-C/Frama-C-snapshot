@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -92,21 +92,36 @@ let pp_link fmt = function
   | LFUN f -> Fun.pretty fmt f
 
 (* -------------------------------------------------------------------------- *)
-(* --- Lookup & Registry                                                  --- *)
+(* --- Driver & Lookup & Registry                                         --- *)
 (* -------------------------------------------------------------------------- *)
 
 type sigfun = kind list * builtin
 
-let hlogic : (string , sigfun list) Hashtbl.t = Hashtbl.create 131
-let symbol : (string , lfun) Hashtbl.t = Hashtbl.create 131
-let hlibs = Hashtbl.create 31
+type driver = {
+  driverid : string;
+  description : string;
+  includes : string list;
+  hlogic : (string , sigfun list) Hashtbl.t;
+  hdeps : (string, string list) Hashtbl.t;
+  hoptions :
+    (string (* library *) * string (* group *) * string (* name *), string list)
+      Hashtbl.t
+}
+
+let id d = d.driverid
+let descr d = d.description
+let is_default d = (d.driverid = "")
+let compare d d' = String.compare d.driverid d'.driverid
+
+let driver = Context.create "driver"
+let cdriver () = Context.get driver
 
 let chop_backslash name =
   if name.[0] == '\\' then String.sub name 1 (String.length name - 1) else name
 
 let lookup name kinds =
   try 
-    let sigs = Hashtbl.find hlogic name in
+    let sigs = Hashtbl.find (cdriver ()).hlogic name in
     try List.assoc kinds sigs
     with Not_found ->
       Wp_parameters.feedback ~once:true 
@@ -122,7 +137,7 @@ let lookup name kinds =
     ACSLDEF
 
 let register name kinds link =
-  let sigs = try Hashtbl.find hlogic name with Not_found -> [] in
+  let sigs = try Hashtbl.find (cdriver ()).hlogic name with Not_found -> [] in
   begin
     if List.exists (fun (s,_) -> s = kinds) sigs then
       let msg = Pretty_utils.sfprintf "Builtin %s%a already defined" name 
@@ -130,23 +145,20 @@ let register name kinds link =
       in failwith msg ;
   end ;
   let entry = (kinds,link) in
-  Hashtbl.add hlogic name (entry::sigs) ;
-  match link with LFUN f -> Hashtbl.add symbol (Fun.id f) f | _ -> ()
-
-let symbol = Hashtbl.find symbol
+  Hashtbl.add (cdriver ()).hlogic name (entry::sigs)
 
 let iter_table f =
   let items = ref [] in
   Hashtbl.iter
     (fun a sigs -> List.iter (fun (ks,lnk) -> items := (a,ks,lnk)::!items) sigs)
-    hlogic ;
+    (cdriver ()).hlogic ;
   List.iter f (List.sort Pervasives.compare !items)
 
 let iter_libs f =
   let items = ref [] in
   Hashtbl.iter
     (fun a libs -> items := (a,libs) :: !items)
-    hlibs ;
+    (cdriver ()).hdeps ;
   List.iter f (List.sort Pervasives.compare !items)
 
 let dump () =
@@ -171,84 +183,121 @@ let logic phi =
 
 let ctor phi = 
   lookup phi.ctor_name (List.map lkind phi.ctor_params)
-  
+
+let constant name =
+  lookup name []
+
 (* -------------------------------------------------------------------------- *)
 (* --- Declaration of Builtins                                            --- *)
 (* -------------------------------------------------------------------------- *)
 
-let dependencies lib = Hashtbl.find hlibs lib
+let dependencies lib = Hashtbl.find (cdriver ()).hdeps lib
 
 let add_library lib deps = 
-  Hashtbl.add hlibs lib deps
+  Hashtbl.add (cdriver ()).hdeps lib deps
 
-let add_logic result name kinds ~theory ?category ?balance 
-    ?(link=chop_backslash name) () =
-  let result = skind result in
+let add_alias name kinds ~alias () = 
+  register name kinds (lookup alias kinds)
+
+let add_logic result name kinds ~library ?category ~link () =
+  let sort = skind result in
   let params = List.map skind kinds in
-  let lfun = Lang.extern_s ~theory ?category ?balance ~result ~params link in
+  let lfun = Lang.extern_s ~library ?category ~sort ~params ~link name in
   register name kinds (LFUN lfun)
     
-let add_predicate name kinds ~theory ?(link=chop_backslash name) () =
+let add_predicate name kinds ~library ~link () =
   let params = List.map skind kinds in
-  let lfun = Lang.extern_fp ~theory ~params link in
+  let lfun = Lang.extern_fp ~library ~params ~link name in
   register name kinds (LFUN lfun)
 
-let add_ctor name kinds ~theory ?(link=name) () =
+let add_ctor name kinds ~library ~link () =
   let category = Logic.Constructor in
   let params = List.map skind kinds in
-  let lfun = Lang.extern_s ~theory ~category ~params ~result:Logic.Sdata link in
+  let lfun = Lang.extern_s ~library ~category ~params ~link name in
   register name kinds (LFUN lfun)
 
 let add_const name value =
   register name [] (CONST value)
 
-let add_type name ~theory ?(link=name) () =
-  Lang.builtin ~name ~theory ~link
+let add_type name ~library ?(link=Lang.infoprover name) () =
+  Lang.builtin_type ~name ~library ~link
 
-(* -------------------------------------------------------------------------- *)
-(* --- Abs,Min,Max algebraic properties                                   --- *)
-(* -------------------------------------------------------------------------- *)
+let sanitizers = Hashtbl.create 10
 
-open Qed.Logic
+exception Unknown_option of string * string
 
-let minmax = 
-  Operator {
-    inversible = false ;
-    commutative = true ;
-    associative = true ;
-    idempotent = true ;
-    neutral = E_none ;
-    absorbant = E_none ;
-  }
+let sanitize ~driver_dir group name v =
+  try
+    (Hashtbl.find sanitizers (group,name)) ~driver_dir v
+  with Not_found -> raise (Unknown_option(group,name))
+
+type doption = string * string
+
+let create_option f group name =
+  let option = (group,name) in
+  Hashtbl.replace sanitizers option f;
+  option
+
+let get_option (group,name) ~library =
+  try Hashtbl.find (cdriver ()).hoptions (library,group,name)
+  with Not_found -> []
+
+let set_option ~driver_dir group name ~library value =
+  let value = sanitize ~driver_dir group name value in
+  Hashtbl.replace (cdriver ()).hoptions (library,group,name) [value]
+
+let add_option ~driver_dir group name ~library value =
+  let value = sanitize ~driver_dir group name value in
+  let l = get_option (group,name) ~library in
+  Hashtbl.replace (cdriver ()).hoptions (library,group,name) (l @ [value])
+
+
+(** Includes *)
+
+let find_lib file =
+  if Sys.file_exists file then file else
+    let rec lookup file = function
+      | [] -> Wp_parameters.abort "File '%s' not found (see -wp-include)" file
+      | dir::dirs ->
+	  let path = Printf.sprintf "%s/%s" dir file in
+	  if Sys.file_exists path then path else lookup file dirs
+    in
+    lookup file (cdriver ()).includes
 
 (* -------------------------------------------------------------------------- *)
 (* --- Implemented Builtins                                               --- *)
 (* -------------------------------------------------------------------------- *)
 
+let builtin_driver = {
+  driverid = "builtin driver";
+  description = "builtin driver";
+  includes = [];
+  hlogic = Hashtbl.create 131;
+  hdeps  = Hashtbl.create 31;
+  hoptions = Hashtbl.create 131;
+}
+
 let () =
   begin
-
+    Context.set driver builtin_driver;
     add_const "\\true" F.e_true ;
     add_const "\\false" F.e_false ;
-
-    let theory = "cmath" in
-    add_logic Z "\\abs" [ Z ] ~theory ~link:"abs_int" () ;
-    add_logic R "\\abs" [ R ] ~theory ~link:"abs_real" () ;
-    add_logic Z "\\max" [ Z;Z ] ~theory ~link:"max_int" ~category:minmax () ;
-    add_logic Z "\\min" [ Z;Z ] ~theory ~link:"min_int" ~category:minmax () ;
-    add_logic R "\\max" [ R;R ] ~theory ~link:"max_real" () ;
-    add_logic R "\\min" [ R;R ] ~theory ~link:"min_real" () ;
-
-    let theory = "cfloat" in
-    add_type "rounding_mode" ~theory () ;
-    add_ctor "Up" [] ~theory () ;
-    add_ctor "Down" [] ~theory () ;
-    add_ctor "ToZero" [] ~theory () ;
-    add_ctor "NearestAway" [] ~theory ~link:"NearestTiesToAway" () ;
-    add_ctor "NearestEven" [] ~theory ~link:"NearestTiesToEven" () ;
-    add_predicate "\\is_finite" [ F Float32 ] ~theory ~link:"is_finite32" () ;
-    add_predicate "\\is_finite" [ F Float64 ] ~theory ~link:"is_finite64" () ;
-    add_logic A "\\round_float" [ A; R ] ~theory () ;
-    add_logic A "\\round_double" [ A ; R ] ~theory () ;
-
+    Context.clear driver;
   end
+
+let add_builtin name kinds lfun = 
+  begin
+    Context.set driver builtin_driver;
+    register name kinds (LFUN lfun);
+    Context.clear driver;
+  end
+
+let new_driver ?(includes=[]) ~id ~descr =
+  Context.set driver {
+    driverid = id;
+    description = descr;
+    includes;
+    hlogic = Hashtbl.copy builtin_driver.hlogic;
+    hdeps  = Hashtbl.copy builtin_driver.hdeps;
+    hoptions = Hashtbl.copy builtin_driver.hoptions;
+  }

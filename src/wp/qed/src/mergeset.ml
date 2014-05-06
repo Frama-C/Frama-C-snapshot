@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -41,6 +41,8 @@ struct
 
   type t = E.t list Intmap.t
 
+  let _nonempty = function [] -> None | l -> Some l
+
   let is_empty es = 
     try 
       Intmap.iteri (fun _ s -> if s <> [] then raise Exit) es ; 
@@ -70,16 +72,22 @@ struct
   let fold_sorted f m a =
     List.fold_left (fun acc x -> f x acc) a (elements m)
 
-  let nonempty = function [] -> None | l -> Some l
-
+  (* good sharing *) 
   let filter f m = 
-    Intmap.mapf (fun _ l -> nonempty (Lset.filter f l)) m
+    Intmap.mapq (fun _ l -> _nonempty (Lset.filter f l)) m
 
-  let partition f m =
-    let m0 = Intmap.map (Lset.partition f) m in
-    Intmap.mapf (fun _ (p,_) -> nonempty p) m0 ,
-    Intmap.mapf (fun _ (_,q) -> nonempty q) m0
-      
+  (* good sharing *) 
+  let remove k m = 
+    let h = E.hash k in
+    Intmap.change (fun _h k -> function
+        | None -> None
+        | Some old -> _nonempty (Lset.remove k old)) h k m
+  (* good sharing *) 
+  let partition f =
+    Intmap.partition_split (fun _k w -> 
+        let u,v = Lset.partition f w in
+        (_nonempty u), (_nonempty v))
+
   exception BREAK
 
   let iter f = Intmap.iter (Lset.iter f)
@@ -93,18 +101,23 @@ struct
     try iter (fun x -> if f x then raise BREAK) m ; false
     with BREAK -> true
 
+  (* good sharing *) 
   let union = Intmap.union (fun _h -> Lset.union)
-  let inter = Intmap.inter (fun _h -> Lset.union)
+
+  (* good sharing *) 
+  let inter = Intmap.inter (fun _h -> Lset.inter)
+
+  (* good sharing *) 
   let subset = Intmap.subset (fun _h -> Lset.subset)
 
   let intersect m1 m2 =
     try
       Intmap.iter2
-	(fun _h xs ys ->
-	   match xs , ys with
-	     | None , _ | _ , None -> ()
-	     | Some w1 , Some w2 -> if Lset.intersect w1 w2 then raise Exit
-	) m1 m2 ; false
+        (fun _h xs ys ->
+           match xs , ys with
+           | None , _ | _ , None -> ()
+           | Some w1 , Some w2 -> if Lset.intersect w1 w2 then raise Exit
+        ) m1 m2 ; false
     with Exit -> true
 
   let equal = Intmap.equal E.equal

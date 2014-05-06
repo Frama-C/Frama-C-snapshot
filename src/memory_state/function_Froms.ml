@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -22,82 +22,222 @@
 
 open Locations
 
+module Deps = 
+struct
+
+  type from_deps = {
+    data: Zone.t;
+    indirect: Zone.t;
+  }
+
+  let subst_from_deps f fd = {
+    data = f fd.data;
+    indirect = f fd.indirect;
+  }
+
+  module DatatypeFromDeps = Datatype.Make(struct
+    type t = from_deps
+
+    let name = "Function_Froms.Deps.deps_assigned"
+
+    let pretty fmt {data; indirect} = 
+      let bottom_data = Zone.is_bottom data in
+      let bottom_indirect = Zone.is_bottom indirect in
+      match bottom_indirect, bottom_data with
+      | true, true ->
+        Format.fprintf fmt "\\nothing"
+      | true, false ->
+        Format.fprintf fmt "direct: %a"
+	  Zone.pretty data
+      | false, true ->
+        Format.fprintf fmt "indirect: %a"
+	  Zone.pretty indirect
+      | false, false ->
+        Format.fprintf fmt "indirect: %a; direct: %a"
+	  Zone.pretty indirect
+	  Zone.pretty data
+
+    let hash fd =
+      Zone.hash fd.data + 37 * Zone.hash fd.indirect
+
+    let compare fd1 fd2 =
+      let c = Zone.compare fd1.data fd2.data in
+      if c <> 0 then c
+      else Zone.compare fd1.indirect fd2.indirect
+
+    let equal = Datatype.from_compare
+
+    let reprs =
+      List.map (fun z -> {data = z; indirect = z}) Zone.reprs
+
+    let structural_descr =
+      Structural_descr.t_record [| Zone.packed_descr; Zone.packed_descr; |]
+    let rehash = Datatype.identity
+
+    let mem_project = Datatype.never_any_project
+    let varname _ = "da"
+
+    let internal_pretty_code = Datatype.undefined
+    let copy = Datatype.undefined
+  end)
+
+  let data_deps z = { data = z; indirect = Zone.bottom }
+  let indirect_deps z = { data = Zone.bottom; indirect = z }
+
+  include DatatypeFromDeps
+
+  let bottom = {
+    data = Zone.bottom;
+    indirect = Zone.bottom;
+  }
+
+  let top = {
+    data = Zone.top;
+    indirect = Zone.top;
+  }
+
+  let is_included fd1 fd2 =
+    Zone.is_included fd1.data fd2.data &&
+    Zone.is_included fd1.indirect fd2.indirect
+
+  let join fd1 fd2 = {
+    data = Zone.join fd1.data fd2.data;
+    indirect = Zone.join fd1.indirect fd2.indirect
+  }
+
+  let join_and_is_included fd1 fd2 =
+    let fd12 = join fd1 fd2 in
+    (fd12, equal fd12 fd2)
+
+  let defaultall base = {
+    data = Zone.defaultall base;
+    indirect = Zone.bottom
+  }
+
+  let default zone x y = {
+    data = Zone.default zone x y;
+    indirect = Zone.bottom
+  }
+
+  let add_data_dep fd data =
+    { fd with data = Zone.join fd.data data }
+
+  let add_indirect_dep fd indirect =
+    { fd with indirect = Zone.join fd.indirect indirect }
+
+  let to_zone {data; indirect} = Zone.join data indirect
+
+  let subst = subst_from_deps
+
+  let pretty_precise = pretty
+
+  (* for backwards compatibility *)
+  let pretty fmt fd =
+    Zone.pretty fmt (to_zone fd)
+end
+
+module Memory = struct 
+  include Lmap_bitwise.Make_bitwise(Deps)
+
+  let pretty_ind_data =
+    pretty_generic_printer Deps.pretty_precise "FROM"
+
+  let find_precise = find
+
+  let find m z =
+    Deps.to_zone (find_precise m z)
+
+end
+
 type froms =
-    { deps_return : Lmap_bitwise.From_Model.LOffset.t;
-      deps_table : Lmap_bitwise.From_Model.t }
+    { deps_return : Memory.LOffset.t;
+      deps_table : Memory.t }
 
 let top = {
-  deps_return = Lmap_bitwise.From_Model.LOffset.degenerate Zone.top;
-  deps_table = Lmap_bitwise.From_Model.top;
+  deps_return = Memory.LOffset.degenerate Deps.top;
+  deps_table = Memory.top;
 }
 
 let join x y =
-  { deps_return =
-      Lmap_bitwise.From_Model.LOffset.join x.deps_return y.deps_return ;
-    deps_table = Lmap_bitwise.From_Model.join x.deps_table y.deps_table }
+  { deps_return = Memory.LOffset.join x.deps_return y.deps_return ;
+    deps_table = Memory.join x.deps_table y.deps_table }
 
 let outputs { deps_table = t } =
-  Lmap_bitwise.From_Model.fold
+  Memory.fold
     (fun z _ acc -> Locations.Zone.join z acc) t Locations.Zone.bottom
 
-let inputs ?(include_self=false) t =
+let addr_data_inputs ?(include_self=false) t =
   let aux b offm acc =
-    Lmap_bitwise.From_Model.LOffset.fold
+    Memory.LOffset.fold
       (fun itvs (self, z) acc ->
-        let acc = Locations.Zone.join z acc in
+        let acc = Deps.join z acc in
         match include_self, self, b with
           | true, true, Some b ->
-              Locations.Zone.join acc (Zone.inject b itvs)
+            Deps.add_data_dep acc (Zone.inject b itvs)
           | _ -> acc
       )
       offm
       acc
   in
   try
-    let return = aux None t.deps_return Locations.Zone.bottom in
+    let return = aux None t.deps_return Deps.bottom in
     let aux_table b = aux (Some b) in
-    Lmap_bitwise.From_Model.fold_base aux_table t.deps_table return
-  with Lmap_bitwise.From_Model.Cannot_fold -> Locations.Zone.top
+    Memory.fold_base aux_table t.deps_table return
+  with Memory.Cannot_fold -> Deps.top
+
+let inputs ?(include_self=false) t = 
+  let deps = addr_data_inputs ~include_self t in
+  Deps.to_zone deps
 
 let pretty fmt { deps_return = r ; deps_table = t } =
   Format.fprintf fmt "%a@\n\\result %a@\n"
-    Lmap_bitwise.From_Model.pretty t
-    Lmap_bitwise.From_Model.LOffset.pretty r
+    Memory.pretty t
+    Memory.LOffset.pretty r
 
 (** same as pretty, but uses the type of the function to output more
-    precise informations.
+    precise information.
     @raise Error if the given type is not a function type
  *)
-let pretty_with_type typ fmt { deps_return = r; deps_table = t } =
+let pretty_with_type ~indirect typ fmt { deps_return = r; deps_table = t } =
   let (rt_typ,_,_,_) = Cil.splitFunctionType typ in
-  if Lmap_bitwise.From_Model.is_bottom t
+  if Memory.is_bottom t
   then Format.fprintf fmt
-    "@[<v>@[@;<2 0>@[NON TERMINATING - NO EFFECTS@]@]@]"
+    "@[NON TERMINATING - NO EFFECTS@]"
   else
+    let map_pretty =
+      if indirect 
+      then Memory.pretty_ind_data
+      else Memory.pretty 
+    in
     if Cil.isVoidType rt_typ 
     then begin
-      if Lmap_bitwise.From_Model.is_empty t
-      then Format.fprintf fmt "@[<v>@[@;<2 0>@[NO EFFECTS@]@]@]"
-      else
-	Format.fprintf fmt "@[<v>@[@;<2 0>@[%a@]@]@]"
-	  Lmap_bitwise.From_Model.pretty t
+      if Memory.is_empty t
+      then Format.fprintf fmt "@[NO EFFECTS@]"
+      else map_pretty fmt t
     end
-    else if Lmap_bitwise.From_Model.LOffset.is_empty r then
-      Format.fprintf fmt "@[<v>@[@;<2 0>@[%a@]\\result FROM \\nothing@]@]"
-        Lmap_bitwise.From_Model.pretty t
     else
-      Format.fprintf fmt "@[<v>@[@;<2 0>@[%a@]\\result%a@]@]"
-        Lmap_bitwise.From_Model.pretty t
-        (Lmap_bitwise.From_Model.LOffset.pretty_with_type (Some rt_typ)) r
+      let pp_space fmt =
+        if not (Memory.is_empty t) then
+          Format.fprintf fmt "@ "
+      in
+      if Memory.LOffset.is_empty r then
+        Format.fprintf fmt "@[<v>%a%t@[\\result FROM \\nothing@]@]"
+          map_pretty t pp_space
+      else
+        Format.fprintf fmt "@[<v>%a%t@[\\result%a@]@]"
+          map_pretty t pp_space
+          (Memory.LOffset.pretty_with_type (Some rt_typ)) r
+
+let pretty_with_type_indirect = pretty_with_type ~indirect:true
+let pretty_with_type = pretty_with_type ~indirect:false
 
 let hash { deps_return = dr ; deps_table = dt } =
-  Lmap_bitwise.From_Model.hash dt + 197*Lmap_bitwise.From_Model.LOffset.hash dr
+  Memory.hash dt + 197 * Memory.LOffset.hash dr
 
 let equal
     { deps_return = dr ; deps_table = dt }
     { deps_return = dr' ; deps_table = dt' } =
-  Lmap_bitwise.From_Model.equal dt dt'
-  && Lmap_bitwise.From_Model.LOffset.equal dr dr'
+  Memory.equal dt dt'&& Memory.LOffset.equal dr dr'
 
 include Datatype.Make
     (struct
@@ -108,13 +248,13 @@ include Datatype.Make
             List.fold_left
               (fun acc m -> { deps_return = o; deps_table = m } :: acc)
               acc
-              Lmap_bitwise.From_Model.reprs)
+              Memory.reprs)
           []
-          Lmap_bitwise.From_Model.LOffset.reprs
+          Memory.LOffset.reprs
       let structural_descr =
         Structural_descr.t_record
-          [| Lmap_bitwise.From_Model.LOffset.packed_descr;
-             Lmap_bitwise.From_Model.packed_descr |]
+          [| Memory.LOffset.packed_descr;
+             Memory.packed_descr |]
        let name = "Function_Froms"
        let hash = hash
        let compare = Datatype.undefined

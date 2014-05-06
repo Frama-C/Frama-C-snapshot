@@ -1,6 +1,6 @@
 /* run.config
    GCC:
-   OPT: -memory-footprint 1 -val -deps -out -input -absolute-valid-range 0x20000-0x3FFFF -journal-disable
+   OPT: -val -deps -out -input -absolute-valid-range 0x20000-0x3FFFF -journal-disable
 */
 
 unsigned short AutoTest[1000]={0};

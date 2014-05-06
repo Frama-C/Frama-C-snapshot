@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -176,7 +176,10 @@ module Make_Table(Data: Datatype.S)(Info: State_builder.Info_with_size):
   State_builder.Hashtbl with type key = t and type data = Data.t
 
 (** Set of kernel functions. *)
-module Hptset : Hptset.S with type elt = t
+module Hptset : Hptset.S
+  with type elt = kernel_function
+  and type 'a shape = 'a Hptmap.Shape(Cil_datatype.Kf).t
+
 
 (* ************************************************************************* *)
 (** {2 Setters}
@@ -187,14 +190,6 @@ module Hptset : Hptset.S with type elt = t
 val register_stmt: t -> stmt -> block list -> unit
   (** Register a new statement in a kernel function, with the list of
       blocks that contain the statement (innermost first). *)
-
-(* ************************************************************************* *)
-(** {2 Pretty printer} *)
-(* ************************************************************************* *)
-
-val pretty_name : Format.formatter -> t -> unit
-  (** Print the name of a kernel function.
-      @deprecated since Nitrogen-20111001 Use {!pretty} instead. *)
 
 (*
 Local Variables:

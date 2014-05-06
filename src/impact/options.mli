@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -22,22 +22,22 @@
 
 include Plugin.S
 
-module Pragma: Plugin.String_set
+module Pragma: Parameter_sig.String_set
   (** Use pragmas of given function. *)
 
-module Print: Plugin.Bool
+module Print: Parameter_sig.Bool
   (** Print the impacted stmt on stdout. *)
 
-module Reason: Plugin.Bool
+module Reason: Parameter_sig.Bool
   (** Build the graphs that explains why a node is impacted. *)
 
-module Slicing: Plugin.Bool
+module Slicing: Parameter_sig.Bool
   (** Slicing from the impacted stmt. *)
 
-module Skip: Plugin.String_set
+module Skip: Parameter_sig.String_set
   (** Consider that the variables in the string are not impacted *)
 
-module Upward: Plugin.Bool
+module Upward: Parameter_sig.Bool
   (** Also compute impact within callers *)
 
 val is_on: unit -> bool

@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -23,7 +23,6 @@
 open Cil_datatype
 open Cil_types
 open Metrics_base
-open Metrics_parameters
 ;;
 
 
@@ -102,7 +101,7 @@ class slocVisitor : sloc_visitor = object(self)
     try Datatype.String.Map.find filename metrics_map
     with
       | Not_found ->
-        Metrics.fatal "Metrics for file %s not_found@." filename
+        Metrics_parameters.fatal "Metrics for file %s not_found@." filename
 
   method pp_file_metrics fmt filename =
     Format.fprintf fmt "@[<v 0>%a@]"
@@ -125,7 +124,7 @@ class slocVisitor : sloc_visitor = object(self)
       Format.fprintf fmt "@{<th>%s@}" hdr_name in
     Datatype.String.Map.iter
       (fun filename func_tbl ->
-        Metrics.result ~level:2 "%a" self#pp_file_metrics filename;
+        Metrics_parameters.result ~level:2 "%a" self#pp_file_metrics filename;
         if func_tbl <> Datatype.String.Map.empty then
           begin
             Format.fprintf fmt
@@ -151,7 +150,9 @@ class slocVisitor : sloc_visitor = object(self)
                   ) fun_tbl
               ) func_tbl;
           end
-        else Metrics.warning "Filename <%s> has no functions@." filename)
+        else 
+	  Metrics_parameters.warning
+	    "Filename <%s> has no functions@." filename)
       metrics_map
 
 (* Save the local metrics currently computed.
@@ -175,7 +176,7 @@ class slocVisitor : sloc_visitor = object(self)
     );
     local_metrics := empty_metrics;
 
-  method vvdec vi =
+  method! vvdec vi =
     if not (Varinfo.Set.mem vi seen_vars) then (
       if Cil.isFunctionType vi.vtype then (
         if consider_function vi then
@@ -190,7 +191,7 @@ class slocVisitor : sloc_visitor = object(self)
     );
     Cil.SkipChildren
       
-  method vfunc fdec =
+  method! vfunc fdec =
     if consider_function fdec.svar then
       begin
         (* Here, we get to a fundec definition.this function has a body,
@@ -217,7 +218,7 @@ class slocVisitor : sloc_visitor = object(self)
       end
     else Cil.SkipChildren
 
-  method vlval (host, _) =
+  method! vlval (host, _) =
     begin
       match host with
         | Mem _ -> self#incr_both_metrics incr_ptrs;
@@ -225,7 +226,7 @@ class slocVisitor : sloc_visitor = object(self)
     end;
     Cil.DoChildren
 
-  method vstmt s =
+  method! vstmt s =
     self#incr_both_metrics incr_slocs;
     let do_children =
       match s.skind with
@@ -261,7 +262,7 @@ class slocVisitor : sloc_visitor = object(self)
     in has_case_label s.labels;
     if do_children then Cil.DoChildren else Cil.SkipChildren
 
-  method vexpr e =
+  method! vexpr e =
     begin
       (* Logical ands and ors are lazy and generate two different paths *)
       match e.enode with
@@ -300,7 +301,7 @@ class slocVisitor : sloc_visitor = object(self)
     let les_images = List.map self#image globs in
     String.concat "," les_images
 
-  method vinst i =
+  method! vinst i =
     begin match i with
       | Call(_, e, _, _) ->
         self#incr_both_metrics incr_calls;
@@ -360,9 +361,9 @@ let dump_html fmt cil_visitor =
         @{<span>Potential entry point(s)@} (%d):@ <br/>@ \
         @[&nbsp; %a@]@ <br/>@ <br/>@ \
         @}@]"
-      (VInfoMap.map_cardinal cil_visitor#fundef_calls)
+      (VInfoMap.cardinal cil_visitor#fundef_calls)
       (Metrics_base.pretty_set VInfoMap.iter) cil_visitor#fundef_calls
-      (VInfoMap.map_cardinal cil_visitor#fundecl_calls)
+      (VInfoMap.cardinal cil_visitor#fundecl_calls)
       (Metrics_base.pretty_set VInfoMap.iter) cil_visitor#fundecl_calls
       (Metrics_base.number_entry_points VInfoMap.fold
          cil_visitor#fundef_calls)
@@ -446,10 +447,11 @@ let compute_on_cilast () =
   Visitor.visitFramacFileSameGlobals
     (cil_visitor:>Visitor.frama_c_visitor) file;
   if Metrics_parameters.ByFunction.get () then
-    Metrics.result "@[<v 0>Cil AST@ %t@]" cil_visitor#pp_detailed_text_metrics;
+    Metrics_parameters.result
+      "@[<v 0>Cil AST@ %t@]" cil_visitor#pp_detailed_text_metrics;
 (*  let r =  metrics_to_result cil_visitor in *)
   (* Print the result to file if required *)
-  let out_fname = OutputFile.get () in
+  let out_fname = Metrics_parameters.OutputFile.get () in
   begin
     if out_fname <> "" then
       try
@@ -461,10 +463,9 @@ let compute_on_cilast () =
         );
         close_out oc;
       with Sys_error _ ->
-        Metrics.failure "Cannot open file %s.@." out_fname
-    else Metrics.result "%a" pp_with_funinfo cil_visitor
+        Metrics_parameters.failure "Cannot open file %s.@." out_fname
+    else Metrics_parameters.result "%a" pp_with_funinfo cil_visitor
   end
-;;
 
 (*
 Local Variables:

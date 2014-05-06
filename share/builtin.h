@@ -2,8 +2,8 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2012                                               */
-/*    CEA (Commissariat à l'énergie atomique et aux énergies              */
+/*  Copyright (C) 2007-2014                                               */
+/*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
 /*  you can redistribute it and/or modify it under the terms of the GNU   */
@@ -52,7 +52,7 @@ int Frama_C_interval(int min, int max);
 
 /*@
   requires min <= max;
-  ensures min <= \result <= max;
+  ensures \is_finite(\result) && min <= \result <= max;
   assigns \result \from min, max, Frama_C_entropy_source;
   assigns Frama_C_entropy_source \from Frama_C_entropy_source;
  */
@@ -60,7 +60,7 @@ float Frama_C_float_interval(float min, float max);
 
 /*@
   requires min <= max;
-  ensures min <= \result <= max;
+  ensures \is_finite(\result) && min <= \result <= max;
   assigns \result \from min, max, Frama_C_entropy_source;
   assigns Frama_C_entropy_source \from Frama_C_entropy_source;
  */

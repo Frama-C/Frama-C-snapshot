@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -170,6 +170,7 @@ end
     type t = ...
     let reprs = ...
     let name = ...
+    let mem_project = ... (* Usually, Datatype.never_any_project *)
 (* define only useful functions for this datatype *)
     end] *)
 module Undefined: Undefined
@@ -232,25 +233,14 @@ end
 
 (** A standard OCaml set signature extended with datatype operations. *)
 module type Set = sig
-  include Set.S
-  val ty: t Type.t
-  val name: string
-  val descr: t Descr.t
-  val packed_descr: Structural_descr.pack
-  val reprs: t list
-  val hash: t -> int
-  val internal_pretty_code: Type.precedence -> Format.formatter -> t -> unit
-  val pretty_code: Format.formatter -> t -> unit
-  val pretty: Format.formatter -> t -> unit
-  val varname: t -> string
-  val mem_project: (Project_skeleton.t -> bool) -> t -> bool
-  val copy: t -> t
+  include FCSet.S
+  include S with type t := t
 end
 
 (** A standard OCaml map signature extended with datatype operations. *)
 module type Map = sig
 
-  include Map.S
+  include FCMap.S
 
   module Key: S with type t = key
   (** Datatype for the keys of the map. *)
@@ -263,7 +253,7 @@ end
 
 (** Marshallable collectors with hashtbl-like interface. *)
 module type Hashtbl_with_descr = sig
-  include Hashtbl_common_interface.S
+  include FCHashtbl.S
   val structural_descr: Structural_descr.t -> Structural_descr.t
 end
 
@@ -318,6 +308,7 @@ module Unit: S_with_collections with type t = unit
 val unit: unit Type.t
 (** @plugin development guide *)
 
+(** @plugin development guide *)
 module Bool: S_with_collections with type t = bool
 val bool: bool Type.t
 (** @plugin development guide *)
@@ -554,6 +545,20 @@ module List_with_collections(T:S)(Info:Functor_info):
 val list: 'a Type.t -> 'a list Type.t
 (** @plugin development guide *)
 
+module Poly_array: Polymorphic with type 'a poly = 'a array
+(** @since Neon-20130301 *)
+
+module Array(T: S) : S with type t = T.t array
+(** @since Neon-20130301 *)
+
+module Array_with_collections(T:S)(Info:Functor_info):
+  S_with_collections with type t = T.t array
+(** @since Neon-20130301 *)
+
+val array: 'a Type.t -> 'a array Type.t
+(** @since Neon-20130301 *)
+
+
 module Poly_queue: Polymorphic with type 'a poly = 'a Queue.t
 val queue: 'a Type.t -> 'a Queue.t Type.t
 module Queue(T: S) : S with type t = T.t Queue.t
@@ -617,11 +622,12 @@ val func4:
   'e Type.t ->
   ('a -> 'b -> 'c -> 'd -> 'e) Type.t
 
-module Set(S: Set.S)(E: S with type t = S.elt)(Info : Functor_info):
+module Set
+  (S: FCSet.S)(E: S with type t = S.elt)(Info : Functor_info):
   Set with type t = S.t and type elt = E.t
 
 module Map
-  (M: Map.S)(Key: S with type t = M.key)(Info: Functor_info) :
+  (M: FCMap.S)(Key: S with type t = M.key)(Info: Functor_info) :
   Map with type 'a t = 'a M.t and type key = M.key and module Key = Key
 
 module Hashtbl

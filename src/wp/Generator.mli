@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -49,4 +49,4 @@ val compute_selection : computer ->
   ?bhv:string list ->
   ?prop:string list ->
   unit -> Wpo.t Bag.t
-val compute_froms : computer -> ?fct:functions -> unit -> Wpo.t Bag.t
+

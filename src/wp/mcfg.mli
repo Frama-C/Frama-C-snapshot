@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -95,6 +95,9 @@ module type S = sig
   (* -------------------------------------------------------------------------- *)
   (* --- Call Rules                                                         --- *)
   (* -------------------------------------------------------------------------- *)
+
+  val call_dynamic : t_env -> stmt -> 
+    WpPropId.prop_id -> exp -> (kernel_function * t_prop) list -> t_prop
 
   val call_goal_precond : t_env -> stmt ->
     kernel_function -> exp list ->

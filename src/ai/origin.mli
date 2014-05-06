@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -31,7 +31,7 @@
 
 (** Sets of source locations *)
 module LocationSetLattice : sig
-  include Abstract_interp.Lattice_Set with type O.elt = Cil_types.location
+  include Lattice_type.Lattice_Set with type O.elt = Cil_types.location
   val currentloc_singleton : unit -> t
     val compare:t -> t -> int
 end
@@ -74,7 +74,6 @@ val meet: t -> t -> t
 val narrow: t -> t -> t
 
 val is_included: t -> t -> bool
-val is_included_exn: t -> t -> unit
 
 (*
 Local Variables:

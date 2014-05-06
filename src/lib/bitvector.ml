@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -78,7 +78,58 @@ let mem s k =
   if p >= String.length s then
     raise (Invalid_argument "Bitvector.mem") ;
   let r = k land 7 in
-  int_of_char s.[p] land (1 lsl r) > 0
+  int_of_char s.[p] land (1 lsl r) <> 0
+
+let once s k =
+  let p = k lsr 3 in
+  if p >= String.length s then
+    raise (Invalid_argument "Bitvector.once") ;
+  let r = k land 7 in
+  let b0 = int_of_char s.[p] in
+  let b1 = b0 lor (1 lsl r) in
+  if b0 = b1 then false else (s.[p] <- char_of_int b1 ; true)
+
+let iter_true f s =
+  for p = 0 to String.length s - 1 do
+    let x = int_of_char s.[p] in
+    if x <> 0 then
+      let q = p lsl 3 in
+      for r = 0 to 7 do
+	if x land (1 lsl r) <> 0 then f (q+r)
+      done
+  done
+
+let fold_true f init s =
+  let r = ref init in
+  iter_true (fun i -> r := f !r i) s;
+  !r
+
+exception Result of int
+
+let find_next_true s k =
+  let p = k lsr 3 in
+  if p >= String.length s then
+    raise Not_found;
+  let x = int_of_char s.[p] in
+  let r = k land 7 in
+  try
+    begin
+      for r' = r to 7 do
+	if x land (1 lsl r') <> 0
+	then raise (Result ((p lsl 3) lor r'))
+      done;
+      for p' = (p+1) to (String.length s - 1) do
+	let x = int_of_char s.[p'] in
+	if x <> 0 then
+	  for r' = 0 to 7 do
+	    if x land (1 lsl r') <> 0
+	    then raise (Result ((p' lsl 3) lor r'))
+	  done
+      done;
+      raise Not_found
+    end
+  with Result res -> res
+;;
 
 let low = [|
   0b00000001 ; (* 0: bits 0..0 *)

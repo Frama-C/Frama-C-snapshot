@@ -2,8 +2,8 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2013                                               #
-#    CEA   (Commissariat à l'énergie atomique et aux énergies            #
+#  Copyright (C) 2007-2014                                               #
+#    CEA   (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies            #
 #           alternatives)                                                #
 #    INRIA (Institut National de Recherche en Informatique et en         #
 #           Automatique)                                                 #
@@ -57,17 +57,16 @@ AC_SUBST([FRAMAC_VERSION],[`cat VERSION`])
 new_section "configure make"
 
 AC_CHECK_PROG(MAKE,make,make,)
+AC_MSG_CHECKING([version of make])
 MAKE_DISTRIB=`sh -c "$MAKE -v | sed -n -e 's/\(.*\) Make.*$/\1/p'"`
 MAKE_MAJOR=`sh -c "$MAKE -v | sed -n  -f bin/sed_get_make_major"`
 MAKE_MINOR=`sh -c "$MAKE -v | sed -n -f bin/sed_get_make_minor"`
-echo $ECHO_N "make version is $MAKE_DISTRIB Make $MAKE_MAJOR.$MAKE_MINOR: $ECHO_C"
-if test "$MAKE_DISTRIB" != GNU -o "$MAKE_MAJOR" -lt 3 -o "$MAKE_MINOR" -lt 81;
+AC_MSG_RESULT($MAKE_MAJOR.$MAKE_MINOR)
+if test "$MAKE_DISTRIB" != GNU -o "$MAKE_MAJOR" -lt 3 \
+   -o "$MAKE_MAJOR" = 3 -a "$MAKE_MINOR" -lt 81
 then
-   echo "${ECHO_T}"
    AC_MSG_ERROR([unsupported version; GNU Make version 3.81
                  or higher is required.]);
-else
-   echo "${ECHO_T}Good!"
 fi
 
 # verbosemake feature
@@ -82,7 +81,7 @@ if test "$VERBOSEMAKE" = yes ; then
   AC_MSG_RESULT(Make will be verbose.)
 fi
 
-############################# 
+#############################
 # Check for Ocaml compilers #
 #############################
 
@@ -99,10 +98,8 @@ new_section "configure ocaml compilers"
 # we first look for ocamlc in the path; if not present, we fail
 AC_CHECK_PROG(OCAMLC,ocamlc,ocamlc,no)
 if test "$OCAMLC" = no ; then
-	AC_MSG_ERROR(Cannot find ocamlc.)
+        AC_MSG_ERROR(Cannot find ocamlc.)
 fi
-
-OCAML_ANNOT_OPTION="-dtypes"
 
 # Let user shoot himself in the foot if he so wishes
 warn_or_die () {
@@ -117,27 +114,27 @@ fi
 
 # we extract Ocaml version number and library path
 # "sed -n" is the posix version of "sed --quiet"
+AC_MSG_CHECKING([version of OCaml])
 OCAMLVERSION=`$OCAMLC -v | sed -n -e 's|.*version *\(.*\)$|\1|p' `
-echo $ECHO_N "OCaml version is $OCAMLVERSION: $ECHO_C"
+AC_MSG_RESULT($OCAMLVERSION)
 case $OCAMLVERSION in
-  3.12.1*) echo "${ECHO_T}good!"; 
-	   OCAML_ANNOT_OPTION="-annot";;
-  3.0*) echo "${ECHO_T}Incompatible version! Use at least OCaml 3.12.1."; 
-        exit 2;; 
-  3.10*) echo "${ECHO_T}Incompatible version! Use at least OCaml 3.12.1."; 
+  3.12.1*) OCAML_ANNOT_OPTION="-annot";;
+  3.0*) echo "${ECHO_T}Incompatible version! Use at least OCaml 3.12.1.";
+        exit 2;;
+  3.10*) echo "${ECHO_T}Incompatible version! Use at least OCaml 3.12.1.";
          exit 2;;
-  3.11*) echo "${ECHO_T}Incompatible version! Use at least OCaml 3.12.1."; 
+  3.11*) echo "${ECHO_T}Incompatible version! Use at least OCaml 3.12.1.";
          exit 2;;
-  3.12.0*) echo "${ECHO_T}Incompatible version! Use at least OCaml 3.12.1."; 
+  3.12.0*) echo "${ECHO_T}Incompatible version! Use at least OCaml 3.12.1.";
            exit 2;;
-  4.*) echo "${ECHO_T}good!";
-       OCAML_ANNOT_OPTION="-annot";;
+  4.*) OCAML_ANNOT_OPTION="-annot -bin-annot";;
   *) echo "${ECHO_T}Incompatible version!"; exit 2;;
 esac
 
 # Ocaml library path
+AC_MSG_CHECKING(OCaml library path)
 OCAMLLIB=`$OCAMLC -where | tr -d '\\r'`
-echo "ocaml library path is $OCAMLLIB"
+AC_MSG_RESULT($OCAMLLIB)
 
 # then we look for ocamlopt; if not present, we issue a warning
 # if the version or the stdlib directory is not the same, we also discard it
@@ -145,18 +142,18 @@ echo "ocaml library path is $OCAMLLIB"
 AC_CHECK_PROG(OCAMLOPT,ocamlopt,ocamlopt,no)
 OCAMLBEST=byte
 if test "$OCAMLOPT" = no ; then
-	AC_MSG_WARN(Cannot find ocamlopt; bytecode compilation only.)
+        AC_MSG_WARN(Cannot find ocamlopt; bytecode compilation only.)
 else
-	AC_MSG_CHECKING(ocamlopt version and standard library)
-	TMPVERSION=`$OCAMLOPT -v | sed -n -e 's|.*version *\(.*\)$|\1|p'`
-	if test "$TMPVERSION" != "$OCAMLVERSION" \
-	   	-o `$OCAMLOPT -where | tr -d '\\r'` != "$OCAMLLIB"; then
-	    AC_MSG_RESULT(differs from ocamlc; ocamlopt discarded.)
-	    OCAMLOPT=no
-	else
-	    AC_MSG_RESULT(ok)
-	    OCAMLBEST=opt
-	fi
+        AC_MSG_CHECKING(ocamlopt version and standard library)
+        TMPVERSION=`$OCAMLOPT -v | sed -n -e 's|.*version *\(.*\)$|\1|p'`
+        if test "$TMPVERSION" != "$OCAMLVERSION" \
+                -o `$OCAMLOPT -where | tr -d '\\r'` != "$OCAMLLIB"; then
+            AC_MSG_RESULT(differs from ocamlc; ocamlopt discarded.)
+            OCAMLOPT=no
+        else
+            AC_MSG_RESULT(ok)
+            OCAMLBEST=opt
+        fi
 fi
 
 if test "$OCAMLBEST" = "opt"; then
@@ -170,30 +167,30 @@ fi
 # checking for ocamlc.opt
 AC_CHECK_PROG(OCAMLCDOTOPT,ocamlc.opt,ocamlc.opt,no)
 if test "$OCAMLCDOTOPT" != no ; then
-	AC_MSG_CHECKING(ocamlc.opt version and standard library)
-	TMPVERSION=`$OCAMLCDOTOPT -v | sed -n -e 's|.*version *\(.*\)$|\1|p' `
-	if test "$TMPVERSION" != "$OCAMLVERSION" \
-	   	-o `$OCAMLCDOTOPT -where | tr -d '\\r'` != "$OCAMLLIB"; then
-	    AC_MSG_RESULT(differs from ocamlc; ocamlc.opt discarded.)
-	else
-	    AC_MSG_RESULT(ok)
-	    OCAMLC=$OCAMLCDOTOPT
-	fi
+        AC_MSG_CHECKING(ocamlc.opt version and standard library)
+        TMPVERSION=`$OCAMLCDOTOPT -v | sed -n -e 's|.*version *\(.*\)$|\1|p' `
+        if test "$TMPVERSION" != "$OCAMLVERSION" \
+                -o `$OCAMLCDOTOPT -where | tr -d '\\r'` != "$OCAMLLIB"; then
+            AC_MSG_RESULT(differs from ocamlc; ocamlc.opt discarded.)
+        else
+            AC_MSG_RESULT(ok)
+            OCAMLC=$OCAMLCDOTOPT
+        fi
 fi
 
 # checking for ocamlopt.opt
 if test "$OCAMLOPT" != no ; then
     AC_CHECK_PROG(OCAMLOPTDOTOPT,ocamlopt.opt,ocamlopt.opt,no)
     if test "$OCAMLOPTDOTOPT" != no ; then
-	AC_MSG_CHECKING(ocamlc.opt version and standard library)
-	TMPVER=`$OCAMLOPTDOTOPT -v | sed -n -e 's|.*version *\(.*\)$|\1|p' `
-	if test "$TMPVER" != "$OCAMLVERSION" \
-	   	-o `$OCAMLOPTDOTOPT -where | tr -d '\\r'` != "$OCAMLLIB"; then
-	    AC_MSG_RESULT(differs from ocamlc; ocamlopt.opt discarded.)
-	else
-	    AC_MSG_RESULT(ok)
-	    OCAMLOPT=$OCAMLOPTDOTOPT
-	fi
+        AC_MSG_CHECKING(ocamlc.opt version and standard library)
+        TMPVER=`$OCAMLOPTDOTOPT -v | sed -n -e 's|.*version *\(.*\)$|\1|p' `
+        if test "$TMPVER" != "$OCAMLVERSION" \
+                -o `$OCAMLOPTDOTOPT -where | tr -d '\\r'` != "$OCAMLLIB"; then
+            AC_MSG_RESULT(differs from ocamlc; ocamlopt.opt discarded.)
+        else
+            AC_MSG_RESULT(ok)
+            OCAMLOPT=$OCAMLOPTDOTOPT
+        fi
     fi
 fi
 
@@ -206,11 +203,11 @@ new_section "configure mandatory tools and libraries"
 # ocamldep
 AC_CHECK_PROG(OCAMLDEP,ocamldep,ocamldep,no)
 if test "$OCAMLDEP" = no ; then
-	AC_MSG_ERROR(Cannot find ocamldep.)
+        AC_MSG_ERROR(Cannot find ocamldep.)
 else
     AC_CHECK_PROG(OCAMLDEPDOTOPT,ocamldep.opt,ocamldep.opt,no)
     if test "$OCAMLDEPDOTOPT" != no ; then
-	OCAMLDEP=$OCAMLDEPDOTOPT
+        OCAMLDEP=$OCAMLDEPDOTOPT
     fi
 fi
 
@@ -221,96 +218,16 @@ if test "$OCAMLLEX" = no ; then
 else
     AC_CHECK_PROG(OCAMLLEXDOTOPT,ocamllex.opt,ocamllex.opt,no)
     if test "$OCAMLLEXDOTOPT" != no ; then
-	OCAMLLEX=$OCAMLLEXDOTOPT
+        OCAMLLEX=$OCAMLLEXDOTOPT
     fi
 fi
 
 # ocamlyacc
 AC_CHECK_PROG(OCAMLYACC,ocamlyacc,ocamlyacc,no)
 if test "$OCAMLYACC" = no ; then
-	AC_MSG_ERROR(Cannot find ocamlyacc.)
+        AC_MSG_ERROR(Cannot find ocamlyacc.)
 fi
 
-##############
-# ocamlgraph #
-##############
-
-OCAMLGRAPH_LOCAL=""
-OCAMLGRAPH_HOME=$OCAMLLIB/ocamlgraph
-OCAMLGRAPH_EXISTS=no
-OCAMLGRAPH_INCLUDE=
-
-# check if any ocamlgraph is installed in the right place
-AC_CHECK_FILE($OCAMLGRAPH_HOME/graph.$OBJ_SUFFIX,
-              OCAMLGRAPH_EXISTS="yes" OCAMLGRAPH_INCLUDE="-I +ocamlgraph")
-
-ocamlgraph_error() {
-  AC_MSG_NOTICE([OcamlGraph $OCAMLGRAPH_VERSION is incompatible with Frama-C.])
-  OCAMLGRAPH_EXISTS=no
-  OCAMLGRAPH_INCLUDE=
-}
-
-# if any, check if it is a compatible version
-if test "$OCAMLGRAPH_EXISTS" = "yes"; then
-  test_ocamlgraph_version='print_string Graph.Version.version;;'
-  echo $test_ocamlgraph_version > test_ocamlgraph.ml
-  if ocamlc -o test_ocamlgraph $OCAMLGRAPH_INCLUDE graph.cmo \
-       test_ocamlgraph.ml 2> /dev/null; \
-  then
-    OCAMLGRAPH_VERSION=`./test_ocamlgraph`
-    case $OCAMLGRAPH_VERSION in
-    1.8.1) ocamlgraph_error;;
-    1.8.2) ocamlgraph_error;;
-    1.8.3) AC_MSG_NOTICE([OcamlGraph $OCAMLGRAPH_VERSION found: great!]);;
-    1.8.*) AC_MSG_NOTICE([OcamlGraph $OCAMLGRAPH_VERSION > 1.8.2 found: should be compatible!]);;
-    *) ocamlgraph_error;;
-    esac
-  else
-    ocamlgraph_error
-  fi
-  rm -f test_ocamlgraph test_ocamlgraph.ml test_ocamlgraph.cm*
-fi
-
-# revert back to local version of ocamlgraph
-if test "$OCAMLGRAPH_EXISTS" = "no"; then
-  AC_MSG_NOTICE([switching to OcamlGraph provided by Frama-C])
-  OCAMLGRAPH_LOCAL=ocamlgraph
-  OCAMLGRAPH_HOME=
-
-  AC_CHECK_FILE($OCAMLGRAPH_LOCAL,OCAMLGRAPH_EXISTS=yes)
-  if test "$OCAMLGRAPH_EXISTS" = "no"; then
-    AC_CHECK_FILE(ocamlgraph.tar.gz,OCAMLGRAPH_EXISTS=yes)
-    if test "$OCAMLGRAPH_EXISTS" = "yes"; then
-      # ocamlgraph.tar.gz exists, but no directory ocamlgraph
-      AC_MSG_NOTICE([unarchiving ocamlgraph.tar.gz])
-      tar zxf ocamlgraph.tar.gz
-    else
-      # neither directory ocamlgraph, nor ocamlgraph.tar.gz exists
-      # broken distrib indeed
-      AC_MSG_ERROR([cannot find OcamlGraph in the current directory.
-   Quite strange: would your Frama-C distribution be corrupted?
-   Anyway:
-   1. download the latest version from http://ocamlgraph.lri.fr/download
-   2. install it by './configure && make && make install'
-   3. rerun ./configure here])
-    fi
-  else
-    AC_CHECK_FILE(ocamlgraph.tar.gz,OCAMLGRAPH_TAR=yes)
-    if test "$OCAMLGRAPH_TAR" = "yes"; then
-      # both directory ocamlgraph and ocamlgraph.tar.gz exist at the same time
-      # untar only if the tar is newer than the directory
-      if test ocamlgraph.tar.gz -nt ocamlgraph; then
-        AC_MSG_NOTICE([find a newer OcamlGraph version: OcamlGraph updated!])
-        rm -rf ocamlgraph
-        tar zxf ocamlgraph.tar.gz
-      fi
-    fi
-  fi
-
-  # Anyway reconfigure OcamlGraph while reconfiguring Frama-C
-  AC_MSG_NOTICE([configuring ocamlgraph...])
-  (cd $OCAMLGRAPH_LOCAL && ./configure > /dev/null)
-fi
 
 #################################################
 # Check for other (optional) tools/libraries    #
@@ -346,13 +263,165 @@ AC_CHECK_PROG(OCAMLFIND,ocamlfind,ocamlfind,no)
 if test "$OCAMLFIND" = "no" ; then
    echo "No ocamlfind detected"
 else
-   OCAMLLIB_BY_FINDLIB=`ocamlfind query stdlib | tr -d '\\r'`
+   OCAMLLIB_BY_FINDLIB=`ocamlfind printconf stdlib | tr -d '\\r'`
    if test "$OCAMLLIB_BY_FINDLIB" = "$OCAMLLIB" ; then
       echo "OCamlfind detected and enabled"
    else
-      echo "OCamlfind detected but disabled. Standard libraries differ."
-      OCAMLFIND=no
+      echo "OCamlfind detected but disabled. Standard libraries differ:"
+      echo "  ocamlc: '$OCAMLLIB'"
+      echo "  ocamlfind: '$OCAMLLIB_BY_FINDLIB'"
+      OCAMLFIND="no"
    fi
+fi
+
+##############
+# ocamlgraph #
+##############
+
+OCAMLGRAPH_LOCAL=""
+OCAMLGRAPH_HOME=$OCAMLLIB/ocamlgraph
+OCAMLGRAPH_EXISTS=no
+OCAMLGRAPH_INCLUDE=
+OCAMLGRAPH_CUSTOM=no
+
+AC_ARG_WITH(
+        ocamlgraph,
+        AC_HELP_STRING(
+        [--with-ocamlgraph],
+        [set the directory where ocamlgraph library is to be found
+         (default: search through ocamlfind or in OCaml standard library)]),
+        [OCAMLGRAPH_HOME=$withval
+         OCAMLGRAPH_CUSTOM=yes],
+        [])
+
+if test "$OCAMLFIND" = "no" -o "$OCAMLGRAPH_CUSTOM" = "yes"; then
+
+# check if any ocamlgraph is installed in the right place
+  AC_CHECK_FILE($OCAMLGRAPH_HOME/graph.$OBJ_SUFFIX,
+              OCAMLGRAPH_EXISTS="yes" OCAMLGRAPH_INCLUDE="-I +ocamlgraph")
+
+  if test "$OCAMLGRAPH_EXISTS"="no" -a "$OCAMLGRAPH_CUSTOM" = "yes"; then
+    AC_MSG_ERROR(
+     [unable to find OCamlGraph in custom location $OCAMLGRAPH_HOME.
+      Please give an appropriate value, or use default OCamlGraph library]);
+  fi
+else
+  OCAMLGRAPH_HOME=$($OCAMLFIND query ocamlgraph 2>/dev/null \
+                          | tr -d '\r\n');
+  if test "$OCAMLGRAPH_HOME" != ""; then
+     OCAMLGRAPH_INCLUDE="-I $OCAMLGRAPH_HOME";
+     OCAMLGRAPH_EXISTS="yes";
+  else
+     AC_MSG_NOTICE(no package ocamlgraph in ocamlfind)
+  fi;
+fi
+
+ocamlgraph_error() {
+  if test "$OCAMLGRAPH_CUSTOM" = "yes"; then
+  AC_MSG_ERROR(
+   [Custom OCamlGraph library version $OCAMLGRAPH_VERSION is incompatible with
+    Frama-C. Please provide another location or use default OCamlGraph]);
+  else
+  AC_MSG_NOTICE([OcamlGraph $OCAMLGRAPH_VERSION is incompatible with Frama-C.])
+  OCAMLGRAPH_EXISTS=no
+  OCAMLGRAPH_INCLUDE=
+  :;
+  fi
+}
+
+# if any, check if it is a compatible version
+if test "$OCAMLGRAPH_EXISTS" = "yes"; then
+  test_ocamlgraph_version='print_string Graph.Version.version;;'
+  echo $test_ocamlgraph_version > test_ocamlgraph.ml
+  if $OCAMLC -o test_ocamlgraph $OCAMLGRAPH_INCLUDE graph.cmo \
+       test_ocamlgraph.ml 2> /dev/null; \
+  then
+    OCAMLGRAPH_VERSION=`./test_ocamlgraph`
+    case $OCAMLGRAPH_VERSION in
+    1.8.1) ocamlgraph_error;;
+    1.8.2) ocamlgraph_error;;
+    1.8.3) ocamlgraph_error;;
+    1.8.4) AC_MSG_NOTICE([OcamlGraph $OCAMLGRAPH_VERSION found: great!]);;
+    1.8.*) AC_MSG_NOTICE(
+      [OcamlGraph $OCAMLGRAPH_VERSION > 1.8.4 found: should be compatible, but no warranty. Use it at your own risk!]);;
+    *) ocamlgraph_error;;
+    esac
+    if test "$OCAMLGRAPH_EXISTS" = "yes"; then # current version is ok
+      if test "$OCAMLBEST" = "opt"; then 
+        if $OCAMLOPT -o test_ocamlgraph $OCAMLGRAPH_INCLUDE graph.cmxa \
+          test_ocamlgraph.ml 2> /dev/null; \
+        then
+          AC_MSG_NOTICE([OcamlGraph native version is ok])
+        else
+          AC_MSG_NOTICE([OcamlGraph native version is not ok])
+          ocamlgraph_error
+        fi
+      else
+        ocamlgraph_error
+      fi
+    fi
+  else
+    ocamlgraph_error
+  fi
+  rm -f test_ocamlgraph test_ocamlgraph.ml test_ocamlgraph.cm*
+fi
+
+# allow local ocamlgraph
+AC_ARG_ENABLE(
+  local-ocamlgraph,
+  [  --enable-local-ocamlgraph    allow the user to use the local OcamlGraph version],
+  ENABLE_LOCAL_OCAMLGRAPH=$enableval,
+  ENABLE_LOCAL_OCAMLGRAPH=yes, # default value
+)
+
+# revert back to local version of ocamlgraph
+if test "$OCAMLGRAPH_EXISTS" = "no"; then
+  if test "$ENABLE_LOCAL_OCAMLGRAPH" = "yes"; then
+    AC_MSG_NOTICE([switching to OcamlGraph provided by Frama-C])
+    OCAMLGRAPH_LOCAL=ocamlgraph
+    OCAMLGRAPH_HOME=
+
+    AC_CHECK_FILE($OCAMLGRAPH_LOCAL,OCAMLGRAPH_EXISTS=yes)
+    if test "$OCAMLGRAPH_EXISTS" = "no"; then
+      AC_CHECK_FILE(ocamlgraph.tar.gz,OCAMLGRAPH_EXISTS=yes)
+      if test "$OCAMLGRAPH_EXISTS" = "yes"; then
+        # ocamlgraph.tar.gz exists, but no directory ocamlgraph
+        AC_MSG_NOTICE([unarchiving ocamlgraph.tar.gz])
+        tar zxf ocamlgraph.tar.gz
+      else
+        # neither directory ocamlgraph, nor ocamlgraph.tar.gz exists
+        # broken distrib indeed
+        AC_MSG_ERROR([cannot find OcamlGraph in the current directory.
+   Quite strange: would your Frama-C distribution be corrupted?
+   Anyway:
+   1. download the latest version from http://ocamlgraph.lri.fr/download
+   2. install it by './configure && make && make install'
+   3. rerun ./configure here])
+      fi
+    else
+      AC_CHECK_FILE(ocamlgraph.tar.gz,OCAMLGRAPH_TAR=yes)
+      if test "$OCAMLGRAPH_TAR" = "yes"; then
+        # both directory ocamlgraph and ocamlgraph.tar.gz exist at the same time
+        # untar only if the tar is newer than the directory
+        if test ocamlgraph.tar.gz -nt ocamlgraph; then
+          AC_MSG_NOTICE([find a newer OcamlGraph version: OcamlGraph updated!])
+          rm -rf ocamlgraph
+          tar zxf ocamlgraph.tar.gz
+        fi
+      fi
+    fi
+
+    # Anyway reconfigure OcamlGraph while reconfiguring Frama-C
+    AC_MSG_NOTICE([configuring ocamlgraph...])
+    (cd $OCAMLGRAPH_LOCAL && ./configure > /dev/null)
+  else # --disable-local-ocamlgraph
+    AC_MSG_ERROR([cannot find a compatible OCamlGraph version on your system \
+and usage of local version explicitely prohibited by \
+--disable-local-ocamlgraph option.
+Please consider allowing local compilation of ocamlgraph \
+or use --with-ocamlgraph to explicitely \
+point to an appropriate installation directory.])
+  fi
 fi
 
 # zarith
@@ -364,18 +433,23 @@ AC_ARG_ENABLE(
   ZARITH_PATH=$enableval,)
 
 if test -z "$ZARITH_PATH"; then
-  # standard installation procedure of zarith diverges according to 
+  # standard installation procedure of zarith diverges according to
   # ocamlfind installation (see zarith's README)
   if test "$OCAMLFIND" = no ; then
-  ZARITH_PATH=$OCAMLLIB
+    ZARITH_PATH=$OCAMLLIB
+    AC_CHECK_FILE($ZARITH_PATH/zarith.$LIB_SUFFIX,HAS_ZARITH=yes,HAS_ZARITH=no)
   else
-  ZARITH_PATH=`ocamlfind printconf destdir | tr -d '\\r\\n'`/zarith
+    ZARITH_PATH=$($OCAMLFIND query zarith 2>/dev/null | tr -d '\r\n')
+    if test -z "$ZARITH_PATH"; then
+      HAS_ZARITH="no";
+    else
+      HAS_ZARITH="yes";
+    fi;
   fi
-  AC_CHECK_FILE($ZARITH_PATH/zarith.$LIB_SUFFIX,HAS_ZARITH=yes,HAS_ZARITH=no)
   if test "$HAS_ZARITH" = "no"; then
     AC_MSG_WARN(Zarith not found: will use the default less efficient library instead)
   fi
-else 
+else
   AC_CHECK_FILE($ZARITH_PATH/zarith.$LIB_SUFFIX,HAS_ZARITH=yes,HAS_ZARITH=no)
   if test "$HAS_ZARITH" = "no"; then
     AC_MSG_ERROR(Zarith: file $ZARITH_PATH/zarith.$LIB_SUFFIX not found.)
@@ -389,29 +463,66 @@ fi
 new_section "configure platform"
 
 AC_MSG_CHECKING(platform)
-if echo "let _ = Sys.os_type;;" | ocaml | grep -q Win32; then
-    AC_MSG_RESULT(Win32)
-    OCAMLWIN32=yes
-    EXE=.exe
+# get Sys.os_type as OCAML_OS_TYPE
+echo "let () = print_string Sys.os_type;;" > test_os_type.ml
+$OCAMLC -o test_os_type test_os_type.ml
+OCAML_OS_TYPE=$(./test_os_type)
+rm -f test_os_type.cmi  test_os_type.cmo  test_os_type.ml test_os_type
+
+if test "$OCAML_OS_TYPE" = "Win32"; then
+  AC_MSG_RESULT(Win32)
+  AC_CHECK_PROG(CYGPATH,cygpath,cygpath,no)
+  OCAMLWIN32=yes
+  EXE=.exe
+  # OCaml on Win32 does not support vmthreads, use native ones.
+  HAS_NATIVE_THREADS=yes
 else
-    OCAMLWIN32=no
-    if echo "let _ = Sys.os_type;;" | ocaml | grep -q Cygwin; then
-       AC_MSG_RESULT(Cygwin)
-       EXE=.exe
-    else
-       AC_MSG_RESULT(Unix)
-       EXE=
-    fi
+  OCAMLWIN32=no
+  if test "$OCAML_OS_TYPE" = "Cygwin"; then
+    AC_MSG_RESULT(Cygwin)
+    EXE=.exe
+  else
+    AC_MSG_RESULT(Unix)
+    EXE=
+  fi
+
+  # OCaml native threads
+  AC_MSG_CHECKING([OCaml native threads])
+  echo "let f = Thread.create (fun () -> ())" > test_native_threads.ml
+  if ($OCAMLOPT -thread -o test_native_threads unix.cmxa threads.cmxa \
+      test_native_threads.ml) 2> /dev/null ; \
+  then
+    HAS_NATIVE_THREADS=yes
+    AC_MSG_RESULT([ok.])
+  else
+    HAS_NATIVE_THREADS=no
+    AC_MSG_WARN([unsupported.])
+  fi
+  rm -f test_native_threads*
 fi
+
+# C and POSIX standard headers used by C bindings.
+AC_LANG([C])
+
+AC_ARG_WITH(cc,[specifies a custom C compiler and pre-processor],[CC=$withval])
+
+AC_PROG_CC
+
+AC_CHECK_HEADERS(stdlib.h)
+AC_CHECK_HEADERS(assert.h)
+AC_CHECK_HEADERS(float.h)
+AC_CHECK_HEADERS(math.h)
+
+AC_CHECK_HEADERS(signal.h)
+
+AC_CHECK_HEADERS(unistd.h)
 
 # Local machdep feature (to generate new platforms)
 
 if test "$LOCAL_MACHDEP" = yes ; then
 
 AC_CONFIG_HEADER(config.h)
-AC_CHECK_HEADERS(stdlib.h)
 AC_CHECK_HEADERS(wchar.h)
-
 
 # Find out the true definitions of some integer types
 # checkIntegerype(size_t) will echo "int" or "long"
@@ -465,7 +576,7 @@ AC_CHECK_TYPE(__builtin_va_list,
               HAVE_BUILTIN_VA_LIST=true,
               HAVE_BUILTIN_VA_LIST=false)
 AC_MSG_CHECKING([if __thread is a keyword])
-AC_COMPILE_IFELSE([int main(int __thread) { return 0; }],
+AC_COMPILE_IFELSE([AC_LANG_SOURCE([int main(int __thread) { return 0; }])],
                   THREAD_IS_KEYWORD=false,
                   THREAD_IS_KEYWORD=true)
 AC_MSG_RESULT($THREAD_IS_KEYWORD)
@@ -473,25 +584,26 @@ AC_MSG_RESULT($THREAD_IS_KEYWORD)
 # Does gcc add underscores to identifiers to make assembly labels?
 # (I think MSVC always does)
 AC_MSG_CHECKING([if gcc adds underscores to assembly labels.])
-AC_LINK_IFELSE([int main() { __asm__("jmp _main"); }],
+AC_LINK_IFELSE([AC_LANG_SOURCE([int main() { __asm__("jmp _main"); }])],
                   UNDERSCORE_NAME=true,
                   UNDERSCORE_NAME=false)
 AC_MSG_RESULT($UNDERSCORE_NAME)
 
 fi # local machdep configuration
 
-##########################
-# Frama-C's mcpp support #
-##########################
+###################################
+# Frama-C's pre-processor support #
+###################################
+
+# mcpp support. Very experimental
 
 AC_ARG_ENABLE(
   mcpp,
   [  --enable-mcpp           use Frama-C's mcpp], #' making emacs mode happy
   FC_MCPP=$enableval,
   FC_MCPP=no)
-if test "$FC_MCPP" = no ; then 
-FRAMAC_DEFAULT_CPP="gcc -C -E -I." ;
-else
+
+if test "$FC_MCPP" = yes ; then
 new_section "configure Frama-C-mcpp"
 (cd mcpp ; ./configure --prefix=$prefix --datarootdir=$datarootdir \
         --exec_prefix=$exec_prefix --bindir=$bindir --libdir=$datadir/frama-c \
@@ -503,12 +615,48 @@ fi
 
 # Specific preprocessor support
 AC_ARG_WITH(
-	cpp,
-	[  --with-cpp		  customize defaut preprocessor for Frama-C],
-	[FRAMAC_DEFAULT_CPP=$withval],
-  	[])
+        cpp,
+        [  --with-cpp             customize defaut preprocessor for Frama-C],
+        [FRAMAC_DEFAULT_CPP=$withval],
+        [FRAMAC_DEFAULT_CPP=])
 
-AC_MSG_RESULT(Default preprocessor is $FRAMAC_DEFAULT_CPP.)
+if test "$FC_MCPP" = no; then
+# if no specific pre-processor has been given, check whether we can use
+# $CC. Note that we want to keep comments in the output, so that AC_PROG_CPP
+# alone is not sufficient.
+  if test -z "$FRAMAC_DEFAULT_CPP"; then
+# We should use AC_CHECK_PROG_CPP, but then we would end up with a slightly
+# different command line than before for pre-processing (swapping -C and -E)
+# and since we have the brilliant idea to put this command line in our 
+# test oracles, changing that would be painful.
+    CPP=$CC
+    CPPFLAGS="-C -E -I.";
+  else
+    CPP=$FRAMAC_DEFAULT_CPP;
+    CPPFLAGS=
+  fi
+  AC_PREPROC_IFELSE(
+    [AC_LANG_SOURCE([/* Check whether comments are kept in output */])],
+    [if grep -e kept conftest.i; then
+      FRAMAC_DEFAULT_CPP="$CPP $CPPFLAGS";
+      DEFAULT_CPP_KEEP_COMMENTS=true;
+     else
+      AC_MSG_WARN([Default pre-processing command '$CPP' do not preserve
+                   comments. Please use define an appropriate pre-processor 
+                   with --with-cpp, or you will only be able to use ACSL
+                   annotations in already pre-processed files])
+      FRAMAC_DEFAULT_CPP=$CPP;
+      DEFAULT_CPP_KEEP_COMMENTS=false;
+     fi],
+     [AC_MSG_WARN([Unable to find a working pre-processor.
+                   Please define one with --with-cpp, or you will be able
+                   to launch Frama-C only on pre-processed files])];
+      FRAMAC_DEFAULT_CPP="";
+      DEFAULT_CPP_KEEP_COMMENTS=false;
+    )
+fi # test FC_MCPP
+
+AC_MSG_RESULT(Default preprocessor is '$FRAMAC_DEFAULT_CPP'.)
 
 #################
 # Plugin wished #
@@ -737,7 +885,7 @@ AC_ARG_ENABLE(external,
 
 define([KNOWN_SRC_DIRS],
        KNOWN_SRC_DIRS src/kernel src/project src/logic src/dummy src/toplevel \
-       src/lib src/misc src/qed src/type)
+       src/lib src/misc src/qed src/type src/printer)
 
 AC_FOREACH([__plugin],m4_esyscmd([ls src]),
   [ m4_if(m4_index(KNOWN_SRC_DIRS,__plugin),[-1],
@@ -759,7 +907,7 @@ AC_FOREACH([__plugin],m4_esyscmd([ls src]),
           [ m4_define([plugin_prefix],src/__plugin)
             m4_include(config_file)
             m4_syscmd(cd src/__plugin && [FRAMAC_SHARE]=../../share autoconf)
-	    ])
+            ])
       ])
   ])
 
@@ -776,17 +924,17 @@ REQUIRE_LABLGTK="$REQUIRE_LABLGTK$REQUIRE_GNOMECANVAS"
 USE_LABLGTK="$USE_LABLGTK$USE_GNOMECANVAS"
 
 if test "$OCAMLFIND" = "no" ; then
-  echo "No Ocamlfind. Using +lablgtk2." 
+  echo "No Ocamlfind. Using +lablgtk2."
   LABLGTK_PATH=+lablgtk2
   LABLGTKPATH_FOR_CONFIGURE=$OCAMLLIB/lablgtk2
 else
   LABLGTK_PATH=`ocamlfind query lablgtk2 | tr -d '\\r\\n'`
   if test "$LABLGTK_PATH" = "" -o "$LABLGTK_PATH" -ef "$OCAMLLIB/lablgtk2" ; then
-     echo "Ocamlfind -> using +lablgtk2.($LABLGTK_PATH,$OCAMLLIB/lablgtk2)" 
+     echo "Ocamlfind -> using +lablgtk2.($LABLGTK_PATH,$OCAMLLIB/lablgtk2)"
      LABLGTK_PATH=+lablgtk2
      LABLGTKPATH_FOR_CONFIGURE=$OCAMLLIB/lablgtk2
   else
-     echo "Ocamlfind -> using $LABLGTK_PATH" 
+     echo "Ocamlfind -> using $LABLGTK_PATH"
      LABLGTKPATH_FOR_CONFIGURE=$LABLGTK_PATH
   fi
 fi
@@ -816,13 +964,13 @@ if test "$HAS_LABLGTK" = "yes"; then
   configure_library([GTKSOURCEVIEW],
                     [$LABLGTKPATH_FOR_CONFIGURE/lablgtksourceview2.$LIB_SUFFIX],
                     [lablgtksourceview2.$LIB_SUFFIX not found],
-		    no)
+                    no)
 
   # Gnomecanvas
   #############
   configure_library([GNOMECANVAS],[$LABLGTKPATH_FOR_CONFIGURE/lablgnomecanvas.$LIB_SUFFIX],
                     [lablgnomecanvas.$LIB_SUFFIX not found],
-	  	    no)
+                    no)
 
 fi # $HAS_LABLGTK=yes
 
@@ -857,10 +1005,10 @@ define([force_static_plugins],
    done])
 
 configure_library([NATIVE_DYNLINK],
-		  [$OCAMLLIB/dynlink.cmxa],
-                  [native dynlink unavailable (ocaml 3.11 or higher required)],
-		  yes,
-		  [force_static_plugins])
+                  [$OCAMLLIB/dynlink.cmxa],
+                  [native dynlink unavailable],
+                  yes,
+                  [force_static_plugins])
 
 # Checking some other things which cannot be done too early
 ###########################################################
@@ -889,12 +1037,26 @@ if test "$HAS_NATIVE_DYNLINK" != "no" ; then
 #   configure a dummy library "dynlink" in order to
 #   configure plug-ins depending on dynlink in a proper way
     configure_library([USABLE_NATIVE_DYNLINK],
-		      [dynlink],
+                      [dynlink],
                       [native dynlink unsupported on this platform],
-		      yes,
-		      [force_static_plugins])
+                      yes,
+                      [force_static_plugins])
   fi
   rm -f test_dynlink.*
+fi
+
+# Native version of ptests can be used only if
+# - a native compiler exists
+# - native dynlink is usable
+# - native threads are usable
+
+PTESTSBEST=byte
+if test \
+     "$OCAMLBEST" = "opt" -a \
+     "$HAS_USABLE_NATIVE_DYNLINK" = "yes" -a \
+     "$HAS_NATIVE_THREADS" = "yes"; \
+then
+   PTESTSBEST=opt;
 fi
 
 ########################
@@ -936,19 +1098,22 @@ AC_SUBST(CYCLES_PER_USEC)
 AC_SUBST(LOCAL_MACHDEP)
 AC_SUBST(datarootdir)
 AC_SUBST(FRAMAC_DEFAULT_CPP)
+AC_SUBST(DEFAULT_CPP_KEEP_COMMENTS)
 AC_SUBST(FC_MCPP)
 
 AC_SUBST(EXTERNAL_PLUGINS)
 
 AC_SUBST(HAS_USABLE_NATIVE_DYNLINK)
+AC_SUBST(HAS_NATIVE_THREADS)
+AC_SUBST(PTESTSBEST)
 AC_SUBST(LABLGTK_PATH)
 
 # m4_foreach_w is not supported in some old autoconf versions.
 # Sadly AC_FOREACH is deprecated now...
 AC_FOREACH([p],PLUGINS_LIST,
-	[AC_SUBST([ENABLE_]p)
-	AC_SUBST([DYNAMIC_]p)
-	])
+        [AC_SUBST([ENABLE_]p)
+        AC_SUBST([DYNAMIC_]p)
+        ])
 
 ################################################
 # Finally create the Makefile from Makefile.in #

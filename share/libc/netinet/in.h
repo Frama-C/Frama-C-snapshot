@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2013                                               */
+/*  Copyright (C) 2007-2014                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -67,6 +67,14 @@ struct ipv6_mreq {
   struct in6_addr  ipv6mr_multiaddr;
   unsigned         ipv6mr_interface;
 };
+
+
+struct in6_pktinfo
+  {
+    struct in6_addr ipi6_addr;
+    int ipi6_ifindex;
+  };
+
 
 /* Standard well-defined IP protocols.  */
 enum

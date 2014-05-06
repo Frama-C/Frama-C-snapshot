@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -25,22 +25,15 @@ open Cil_types
 exception TooImprecise
 
 (* Extract all the bases from a zone *)
-let bases z =
-  try
-    Locations.Zone.fold_bases
-      (fun b acc -> Base.Hptset.add b acc)
-      z Base.Hptset.empty
-  with Locations.Zone.Error_Top -> raise TooImprecise
+let bases = function
+  | Locations.Zone.Top (Base.SetLattice.Top, _) -> raise TooImprecise
+  | Locations.Zone.Top (Base.SetLattice.Set s, _) -> s
+  | Locations.Zone.Map m -> Base.Hptset.from_shape (Locations.Zone.shape m)
 
 
 (* Auxiliary function that keeps only some bases inside a memory state *)
 let filter_state bases state =
-  if Cvalue.Model.is_reachable state then
-    let keep_base base = Base.Hptset.mem base bases in
-    let keep = Cvalue.Model.filter_base keep_base in
-    keep state
-  else state
-
+  Cvalue.Model.filter_by_shape (Base.Hptset.shape bases) state
 
 
 module ValueOutputs = Datatype.Pair
@@ -63,6 +56,15 @@ module PreviousState =
     (ValueOutputs (* Outputs *))
     (Datatype.Int(* Call number, for plugins *))
  
+module Actuals = struct
+  include Datatype.Pair(Cil_datatype.Exp)(Cvalue.V_Offsetmap)
+  let compare (_, o1 : t) (_, o2 : t) = Cvalue.V_Offsetmap.compare o1 o2
+end
+
+module ActualsList =
+  Datatype.List_with_collections(Actuals)
+    (struct let module_name = "Mem_exec.ActualsList" end)
+
 (* Map input states filtered on relevant bases to the relevant data *)
 module MapInputsPrevious =
   Cvalue.Model.Hashtbl.Make(PreviousState)
@@ -71,8 +73,12 @@ module MapInputsPrevious =
 module MapBasesInputsPrevious =
   Base.Hptset.Hashtbl.Make(MapInputsPrevious)
 
+(* Map from actuals to useful inputs to stored previous results *)
+module MapActualsBasesInputsPrevious =
+  ActualsList.Map.Make(MapBasesInputsPrevious)
+
 module PreviousStates =
-  State_builder.Hashtbl(Kernel_function.Hashtbl)(MapBasesInputsPrevious)
+  State_builder.Hashtbl(Kernel_function.Hashtbl)(MapActualsBasesInputsPrevious)
     (struct
       let size = 17
       let dependencies = [Db.Value.self]
@@ -113,7 +119,7 @@ let new_counter, current_counter =
   (fun () -> cur := SaveCounter.next (); !cur),
   (fun () -> !cur)
 
-let store_computed_call (callsite: Value_types.call_site) input_state callres =
+let store_computed_call (callsite: Value_types.call_site) input_state actuals callres =
   if callres.Value_types.c_cacheable = Value_types.Cacheable then
   match ResultFromCallback.get_option () with
     | None -> ()
@@ -130,11 +136,16 @@ let store_computed_call (callsite: Value_types.call_site) input_state callres =
           Value_util.map_outputs clear callres.Value_types.c_values
         in
         let call_number = current_counter () in
-        let hkf =
+        let map_a =
           try PreviousStates.find kf
+          with Not_found -> ActualsList.Map.empty
+        in
+        let hkf =
+          try ActualsList.Map.find actuals map_a
           with Not_found ->
             let h = Base.Hptset.Hashtbl.create 11 in
-            PreviousStates.add kf h;
+            let map_a = ActualsList.Map.add actuals h map_a in
+            PreviousStates.replace kf map_a;
             h
         in
         let hkb =
@@ -174,9 +185,10 @@ let previous_matches st (map_inputs: MapBasesInputsPrevious.t) =
   Base.Hptset.Hashtbl.iter aux map_inputs
 
 
-let reuse_previous_call (kf, _ as _callsite: Value_types.call_site) state =
+let reuse_previous_call (kf, _ as _callsite: Value_types.call_site) state actuals =
   try
-    let previous = PreviousStates.find kf in
+    let previous_kf = PreviousStates.find kf in
+    let previous = ActualsList.Map.find actuals previous_kf in
     previous_matches state previous;
     None
   with

@@ -35,8 +35,8 @@
 (*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE         *)
 (*  POSSIBILITY OF SUCH DAMAGE.                                             *)
 (*                                                                          *)
-(*  File modified by CEA (Commissariat à l'énergie atomique et aux          *)
-(*                        énergies alternatives)                            *)
+(*  File modified by CEA (Commissariat Ã  l'Ã©nergie atomique et aux          *)
+(*                        Ã©nergies alternatives)                            *)
 (*               and INRIA (Institut National de Recherche en Informatique  *)
 (*                          et Automatique).                                *)
 (****************************************************************************)
@@ -423,7 +423,7 @@ and print_statement fmt stat =
     | SEQUENCE (s1, s2,_) ->
         fprintf fmt "%a;@ %a" print_statement s1 print_statement s2
     | IF (exp, s1, s2, _) ->
-        fprintf fmt "@[<hov 2>if@ (@[%a@])@ %a"
+        fprintf fmt "@[<hov 2>if@ (@[%a@])@ %a@."
           print_expression exp print_substatement s1;
         (match s2.stmt_node with
            | NOP(_) -> fprintf fmt "@]"
@@ -470,7 +470,7 @@ and print_statement fmt stat =
     | DEFAULT (stat,_) ->
         fprintf fmt "@[<2>default:@ %a@]" print_substatement stat
     | LABEL (name, stat, _) ->
-        fprintf fmt "@[<2>%s:@ %a@]" name print_substatement stat
+        fprintf fmt "@.@[<2>%s:@ %a@]" name print_substatement stat
     | GOTO (name, _) -> fprintf fmt "goto %s;" name
     | COMPGOTO (exp, _) ->
         fprintf fmt "goto@ @[*%a@];" print_expression exp
@@ -567,7 +567,7 @@ and print_defs fmt defs =
 and print_def fmt def =
   Cil_const.CurrentLoc.set (Cabshelper.get_definitionloc def);
   match def with
-    FUNDEF (_spec, proto, body, loc, _) ->
+    FUNDEF (spec, proto, body, loc, _) ->
       if !printCounters then begin
         try
           let fname =
@@ -580,11 +580,18 @@ and print_def fmt def =
         with Not_found ->
           pp_print_string fmt "/* can't print the counter */"
       end;
-      fprintf fmt "@[%a@\n%a@]@\n"
+      fprintf fmt "@[%a%a@\n%a@]@\n"
+        (Pretty_utils.pp_opt ~pre:"/*@@ @[" ~suf:"@]@\n */@\n"
+           (fun fmt (spec,_) -> Logic_print.print_spec fmt spec))
+        spec
         print_single_name proto print_block body
 
-  | DECDEF (_,names, _) ->
-      fprintf fmt "@[%a;@\n@]" print_init_name_group names
+  | DECDEF (spec,names, _) ->
+      fprintf fmt "@[%a%a;@\n@]"
+        (Pretty_utils.pp_opt ~pre:"/*@@ @[" ~suf:"@]@\n */@\n"
+           (fun fmt (spec,_) -> Logic_print.print_spec fmt spec))
+        spec
+        print_init_name_group names
 
   | TYPEDEF (names, _) ->
       fprintf fmt "@[%a;@\n@]" print_name_group names

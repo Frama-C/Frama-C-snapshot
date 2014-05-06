@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -45,7 +45,7 @@ class collect_visitor = object (self)
 
   inherit Visitor.frama_c_inplace
 
-  method vtype t = match t with
+  method! vtype t = match t with
     | TNamed(ti,_) ->
         (* we use the type name because directe typeinfo comparision
         * doesn't wok. Anyway, CIL renames types if several type have the same
@@ -75,7 +75,7 @@ class collect_visitor = object (self)
         end
     | _ -> DoChildren
 
-  method vvrbl v =
+  method! vvrbl v =
     if v.vglob && not (Hashtbl.mem used_variables v) then begin
       debug "add used var %s@." v.vname;
       Hashtbl.add used_variables v ();
@@ -87,7 +87,7 @@ class collect_visitor = object (self)
     end;
     DoChildren
 
-  method vglob_aux g = match g with
+  method! vglob_aux g = match g with
     | GFun (f, _) ->
         debug "add function %s@." f.svar.vname;
         Hashtbl.add used_variables f.svar ();
@@ -112,7 +112,7 @@ class filter_visitor prj = object
 
   inherit Visitor.generic_frama_c_visitor (Cil.copy_visit prj)
 
-  method vglob_aux g =
+  method! vglob_aux g =
     match g with
       | GFun (_f, _loc) (* function definition *)
         -> Cil.DoChildren (* keep everything *)
@@ -172,7 +172,7 @@ let rm_unused_decl =
        debug "filtering done@.";
        let visitor = new filter_visitor in
        let new_prj = File.create_project_from_visitor new_proj_name visitor in
-       let ctx = Plugin.get_selection_context () in
+       let ctx = Parameter_state.get_selection_context () in
        Project.copy ~selection:ctx new_prj;
        new_prj)
 

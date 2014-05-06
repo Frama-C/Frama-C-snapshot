@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -35,7 +35,7 @@ let projects_list () =
    is not possible with an hashtbl.
    So we use a reference over a set of couple *)
 module PrjRadiosSet =
-  Set.Make
+  FCSet.Make
     (struct
        type t = (Project.t * string) * GMenu.radio_menu_item
        let compare (p1, _) (p2, _) = compare_prj p1 p2

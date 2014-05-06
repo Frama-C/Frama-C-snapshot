@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -135,13 +135,9 @@ let get_kf = function
   | IPReachable (kf, _, _)
   | IPOther(_,kf,_) -> kf
 
-(* avoid dependency cycle property -> globals -> kernel_function. *)
-let kernel_function_location = Extlib.mk_fun "Property.kernel_function_location"
-
-let loc_of_kf_ki kf ki =
-  match ki with
-    | Kstmt s -> Cil_datatype.Stmt.loc s
-    | Kglobal -> !kernel_function_location kf
+let loc_of_kf_ki kf = function
+  | Kstmt s -> Cil_datatype.Stmt.loc s
+  | Kglobal -> Kernel_function.get_location kf
 
 let rec location = function
   | IPPredicate (_,_,_,ip) -> ip.ip_loc
@@ -422,7 +418,43 @@ include Datatype.Make_with_collections
 	  Datatype.Int.compare (nb x) (nb y)
 
      end)
- 
+
+let short_pretty fmt p =
+match p with
+  | IPPredicate (_,_,_,{ ip_name = name :: _ }) ->
+    Format.pp_print_string fmt name
+  | IPPredicate _ -> pretty fmt p
+  | IPAxiom (name,_,_,_,_) | IPLemma(name,_,_,_,_) ->
+    Format.pp_print_string fmt name
+  | IPAxiomatic (name,_) -> Format.pp_print_string fmt name
+  | IPBehavior(kf,_,{b_name = name }) ->
+    Format.fprintf fmt "behavior %s in function %a"
+      name Kernel_function.pretty kf
+  | IPComplete (kf,_,_) ->
+    Format.fprintf fmt "complete clause in function %a"
+      Kernel_function.pretty kf
+  | IPDisjoint (kf,_,_) ->
+    Format.fprintf fmt "disjoint clause in function %a"
+      Kernel_function.pretty kf
+  | IPCodeAnnot (_,_,{ annot_content = AAssert (_, { name = name :: _ })}) ->
+    Format.pp_print_string fmt name
+  | IPCodeAnnot(_,_,{annot_content = AInvariant (_,_, { name = name :: _ })})->
+    Format.pp_print_string fmt name
+  | IPCodeAnnot _ -> pretty fmt p
+  | IPAllocation (kf,_,_,_) ->
+    Format.fprintf fmt "allocates/frees clause in function %a"
+      Kernel_function.pretty kf
+  | IPAssigns (kf,_,_,_) ->
+    Format.fprintf fmt "assigns clause in function %a"
+      Kernel_function.pretty kf
+  | IPFrom (kf,_,_,(t,_)) ->
+    Format.fprintf fmt "from clause of term %a in function %a"
+      Cil_datatype.Identified_term.pretty t Kernel_function.pretty kf
+  | IPDecrease(kf,_,_,_) ->
+    Format.fprintf fmt "decrease clause in function %a"
+      Kernel_function.pretty kf
+  | IPReachable _ | IPOther _ -> pretty fmt p
+
 module Names = struct
   module NamesTbl = 
     State_builder.Hashtbl(Datatype.String.Hashtbl)(Datatype.Int)
@@ -599,11 +631,12 @@ let ip_reachable_ppt p =
     | IPPredicate((PKRequires _ | PKAssumes _ | PKTerminates), _, _, _)
     | IPAxiom _ | IPAxiomatic _ | IPLemma _ | IPComplete _ 
     | IPDisjoint _ | IPCodeAnnot _ | IPAllocation _
-    | IPDecrease _ | IPReachable _ | IPOther _
+    | IPDecrease _ | IPOther _
       -> Before
     | IPPredicate(PKEnsures _, _, _, _) | IPAssigns _ | IPFrom _ 
     | IPBehavior _ 
       -> After
+    | IPReachable _ -> Kernel.fatal "IPReachable(IPReachable _) is not possible"
   in
   IPReachable(kf, ki, ba)
 

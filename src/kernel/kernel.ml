@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -24,6 +24,9 @@
 (** {2 Kernel as an almost standard plug-in} *)
 (* ************************************************************************* *)
 
+module CamlString = String
+module Fc_config = Config
+
 let () = Plugin.register_kernel ()
 
 module P = Plugin.Register
@@ -34,75 +37,94 @@ module P = Plugin.Register
    end)
 
 include (P: Plugin.S)
-
-let () = 
-  Cmdline.run_after_early_stage
-    (fun () ->
-      (* Project uses an alias for [Log.Register], but debug keys cannot be
-	 shared automatically *)
-        Project_skeleton.Output.add_debug_keys
-        (Category_set.fold
-           (fun s acc ->
-             Project_skeleton.Output.Category_set.union
-               (Project_skeleton.Output.get_category
-                  (s:category:>string))
-               acc)
-           (get_debug_keys())
-           Project_skeleton.Output.Category_set.empty))
+include Cmdline.Kernel_log
 
 (* ************************************************************************* *)
 (** {2 Specialised functors for building kernel parameters} *)
 (* ************************************************************************* *)
 
-module type Parameter_input = sig
-  include Plugin.Parameter_input
+module type Input = sig
+  include Parameter_sig.Input
   val module_name: string
 end
 
-module type Parameter_input_with_arg = sig
-  include Plugin.Parameter_input_with_arg
+module type Input_with_arg = sig
+  include Parameter_sig.Input_with_arg
   val module_name: string
 end
 
-module Bool(X:sig include Parameter_input val default: bool end) =
-  P.Bool(struct let () = Plugin.set_module_name X.module_name include X end)
+module Bool(X:sig include Input val default: bool end) =
+  P.Bool
+    (struct 
+      let () = Parameter_customize.set_module_name X.module_name 
+      include X 
+     end)
 
-module False(X: Parameter_input) =
-  P.False(struct let () = Plugin.set_module_name X.module_name include X end)
+module False(X: Input) =
+  P.False
+    (struct
+      let () = Parameter_customize.set_module_name X.module_name 
+      include X 
+     end)
 
-module True(X: Parameter_input) =
-  P.True(struct let () = Plugin.set_module_name X.module_name include X end)
+module True(X: Input) =
+  P.True
+    (struct
+      let () = Parameter_customize.set_module_name X.module_name 
+      include X 
+     end)
 
-module Int (X: sig val default: int include Parameter_input_with_arg end) =
-  P.Int(struct let () = Plugin.set_module_name X.module_name include X end)
+module Int (X: sig val default: int include Input_with_arg end) =
+  P.Int
+    (struct 
+      let () = Parameter_customize.set_module_name X.module_name 
+      include X 
+     end)
 
-module Zero(X:Parameter_input_with_arg) =
-  P.Zero(struct let () = Plugin.set_module_name X.module_name include X end)
+module Zero(X:Input_with_arg) =
+  P.Zero
+    (struct
+      let () = Parameter_customize.set_module_name X.module_name 
+      include X 
+     end)
 
 module String
-  (X: sig include Parameter_input_with_arg val default: string end) =
-  P.String(struct let () = Plugin.set_module_name X.module_name include X end)
+  (X: sig include Input_with_arg val default: string end) =
+  P.String
+    (struct 
+      let () = Parameter_customize.set_module_name X.module_name 
+      include X 
+     end)
 
-module EmptyString(X: Parameter_input_with_arg) =
+module EmptyString(X: Input_with_arg) =
   P.EmptyString
-    (struct let () = Plugin.set_module_name X.module_name include X end)
+    (struct
+      let () = Parameter_customize.set_module_name X.module_name 
+      include X 
+     end)
 
-module StringSet(X: Parameter_input_with_arg) =
+module StringSet(X: Input_with_arg) =
   P.StringSet
-    (struct let () = Plugin.set_module_name X.module_name include X end)
+    (struct
+      let () = Parameter_customize.set_module_name X.module_name 
+      include X 
+     end)
 
-module StringList(X: Parameter_input_with_arg) =
+module StringList(X: Input_with_arg) =
   P.StringList
-    (struct let () = Plugin.set_module_name X.module_name include X end)
+    (struct
+      let () = Parameter_customize.set_module_name X.module_name 
+      include X 
+     end)
 
 (* ************************************************************************* *)
 (** {2 Installation Information} *)
 (* ************************************************************************* *)
 
-let () = Plugin.set_group help
-let () = Plugin.set_cmdline_stage Cmdline.Exiting
-let () = Plugin.do_not_journalize ()
-let () = Plugin.set_negative_option_name ""
+let () = Parameter_customize.set_group help
+let () = Parameter_customize.set_cmdline_stage Cmdline.Exiting
+let () = Parameter_customize.do_not_journalize ()
+let () = Parameter_customize.set_negative_option_name ""
 module GeneralHelp =
   False
     (struct
@@ -115,9 +137,9 @@ let run_help () = if GeneralHelp.get () then Cmdline.help () else Cmdline.nop
 let () = Cmdline.run_after_exiting_stage run_help
 let () = GeneralHelp.add_aliases [ "--help"; "-h" ]
 
-let () = Plugin.set_group help
-let () = Plugin.set_cmdline_stage Cmdline.Early
-let () = Plugin.set_negative_option_name ""
+let () = Parameter_customize.set_group help
+let () = Parameter_customize.set_cmdline_stage Cmdline.Early
+let () = Parameter_customize.set_negative_option_name ""
 module PrintVersion =
   False
     (struct
@@ -127,9 +149,9 @@ module PrintVersion =
      end)
 let () = PrintVersion.add_aliases [ "-v"; "--version" ]
 
-let () = Plugin.set_group help
-let () = Plugin.set_cmdline_stage Cmdline.Early
-let () = Plugin.set_negative_option_name ""
+let () = Parameter_customize.set_group help
+let () = Parameter_customize.set_cmdline_stage Cmdline.Early
+let () = Parameter_customize.set_negative_option_name ""
 module PrintShare =
   False(struct
           let option_name = "-print-share-path"
@@ -138,9 +160,9 @@ module PrintShare =
         end)
 let () = PrintShare.add_aliases [ "-print-path" ]
 
-let () = Plugin.set_group help
-let () = Plugin.set_cmdline_stage Cmdline.Early
-let () = Plugin.set_negative_option_name ""
+let () = Parameter_customize.set_group help
+let () = Parameter_customize.set_cmdline_stage Cmdline.Early
+let () = Parameter_customize.set_negative_option_name ""
 module PrintLib =
   False(struct
           let option_name = "-print-lib-path"
@@ -149,9 +171,9 @@ module PrintLib =
         end)
 let () = PrintLib.add_aliases [ "-print-libpath" ]
 
-let () = Plugin.set_group help
-let () = Plugin.set_cmdline_stage Cmdline.Early
-let () = Plugin.set_negative_option_name ""
+let () = Parameter_customize.set_group help
+let () = Parameter_customize.set_cmdline_stage Cmdline.Early
+let () = Parameter_customize.set_negative_option_name ""
 module PrintPluginPath =
   False
     (struct
@@ -161,8 +183,8 @@ module PrintPluginPath =
          "print the path where the Frama-C dynamic plug-ins are searched into"
      end)
 
-let () = Plugin.set_group help
-let () = Plugin.set_negative_option_name ""
+let () = Parameter_customize.set_group help
+let () = Parameter_customize.set_negative_option_name ""
 module DumpDependencies =
   EmptyString
     (struct
@@ -181,11 +203,11 @@ let () =
 (** {2 Output Messages} *)
 (* ************************************************************************* *)
 
-let () = Plugin.set_group messages
-let () = Plugin.do_not_projectify ()
-let () = Plugin.do_not_journalize ()
-let () = Plugin.set_cmdline_stage Cmdline.Early
-let () = Plugin.do_iterate ()
+let () = Parameter_customize.set_group messages
+let () = Parameter_customize.do_not_projectify ()
+let () = Parameter_customize.do_not_journalize ()
+let () = Parameter_customize.set_cmdline_stage Cmdline.Early
+let () = Parameter_customize.do_iterate ()
 module GeneralVerbose =
     Int
       (struct
@@ -203,11 +225,11 @@ let () =
   | None -> ()
   | Some n -> GeneralVerbose.set n
 
-let () = Plugin.set_group messages
-let () = Plugin.do_not_projectify ()
-let () = Plugin.do_not_journalize ()
-let () = Plugin.set_cmdline_stage Cmdline.Early
-let () = Plugin.do_iterate ()
+let () = Parameter_customize.set_group messages
+let () = Parameter_customize.do_not_projectify ()
+let () = Parameter_customize.do_not_journalize ()
+let () = Parameter_customize.set_cmdline_stage Cmdline.Early
+let () = Parameter_customize.do_iterate ()
 module GeneralDebug =
   Zero
     (struct
@@ -228,12 +250,12 @@ let () =
   | None -> ()
   | Some n -> GeneralDebug.set n
 
-let () = Plugin.set_group messages
-let () = Plugin.set_negative_option_name ""
-let () = Plugin.set_cmdline_stage Cmdline.Early
-let () = Plugin.do_iterate ()
-let () = Plugin.do_not_projectify ()
-let () = Plugin.do_not_journalize ()
+let () = Parameter_customize.set_group messages
+let () = Parameter_customize.set_negative_option_name ""
+let () = Parameter_customize.set_cmdline_stage Cmdline.Early
+let () = Parameter_customize.do_iterate ()
+let () = Parameter_customize.do_not_projectify ()
+let () = Parameter_customize.do_not_journalize ()
 module Quiet =
   Bool
     (struct
@@ -246,9 +268,10 @@ let () =
   Quiet.add_set_hook
     (fun _ b -> assert b; GeneralVerbose.set 0; GeneralDebug.set 0)
 
-let () = Plugin.set_group messages
-let () = Plugin.do_not_journalize ()
-let () = Plugin.do_not_projectify ()
+let () = Parameter_customize.set_group messages
+let () = Parameter_customize.set_cmdline_stage Cmdline.Extended
+let () = Parameter_customize.do_not_journalize ()
+let () = Parameter_customize.do_not_projectify ()
 module Unicode = struct
   include True
     (struct
@@ -276,7 +299,8 @@ module UseUnicode = struct
   let get = deprecated "UseUnicode.get" ~now:"Unicode.get" get
 end
 
-let () = Plugin.set_group messages
+let () = Parameter_customize.set_group messages
+let () = Parameter_customize.do_not_projectify ()
 module Time =
   EmptyString
     (struct
@@ -286,10 +310,10 @@ module Time =
        let help = "append process time and timestamp to <filename> at exit"
      end)
 
-let () = Plugin.set_group messages
-let () = Plugin.set_negative_option_name "-do-not-collect-messages"
-let () = Plugin.do_not_projectify ()
-let () = Plugin.set_cmdline_stage Cmdline.Early
+let () = Parameter_customize.set_group messages
+let () = Parameter_customize.set_negative_option_name "-do-not-collect-messages"
+let () = Parameter_customize.do_not_projectify ()
+let () = Parameter_customize.set_cmdline_stage Cmdline.Early
 module Collect_messages =
   Bool
     (struct
@@ -297,7 +321,7 @@ module Collect_messages =
       let option_name = "-collect-messages"
       let help = "collect warning and error messages for displaying them in \
 the GUI (set by default iff the GUI is launched)"
-      let default = !Config.is_gui
+      let default = !Fc_config.is_gui
      (* ok: Config.is_gui already initialised by Gui_init *)
      end)
 
@@ -307,7 +331,7 @@ the GUI (set by default iff the GUI is launched)"
 
 let inout_source = add_group "Input/Output Source Code"
 
-let () = Plugin.set_group inout_source
+let () = Parameter_customize.set_group inout_source
 module PrintCode =
   False
     (struct
@@ -316,8 +340,8 @@ module PrintCode =
       let help = "pretty print original code with its comments"
      end)
 
-let () = Plugin.set_group inout_source
-let () = Plugin.do_not_projectify ()
+let () = Parameter_customize.set_group inout_source
+let () = Parameter_customize.do_not_projectify ()
 module PrintComments =
   False
     (struct
@@ -328,7 +352,7 @@ module PrintComments =
 
 module CodeOutput = struct
 
-  let () = Plugin.set_group inout_source
+  let () = Parameter_customize.set_group inout_source
   include EmptyString
     (struct
        let module_name = "CodeOutput"
@@ -376,7 +400,37 @@ module CodeOutput = struct
 
 end
 
-let () = Plugin.set_group inout_source
+let () = Parameter_customize.set_group inout_source
+let () = Parameter_customize.do_not_projectify ()
+module SymbolicPath =
+  StringSet
+    (struct
+       let option_name = "-add-symbolic-path"
+       let module_name = "SymbolicPath"
+       let arg_name = "name_1:path_1,...,name_n:path_n"
+       let help =
+         "When displaying file locations, replace (absolute) path by the \
+          corresponding symbolic name"
+     end)
+
+let add_path s =
+  try
+    let n = CamlString.index s ':' in
+    let name = CamlString.sub s 0 n in
+    let path = CamlString.sub s (n+1) (CamlString.length s - (n+1)) in
+    Filepath.add_symbolic_dir name path
+  with Not_found ->
+    warning "%s is not a valid option argument for -add-symbolic-path. \
+             It will be ignored" s
+
+let () =
+  SymbolicPath.add_set_hook 
+    (fun o n ->
+      let d = Datatype.String.Set.diff n o in
+      Datatype.String.Set.iter add_path d)
+
+let () = Parameter_customize.set_group inout_source
+let () = Parameter_customize.do_not_projectify ()
 module FloatNormal =
   False
     (struct
@@ -385,7 +439,8 @@ module FloatNormal =
        let help = "display floats with internal routine"
      end)
 
-let () = Plugin.set_group inout_source
+let () = Parameter_customize.set_group inout_source
+let () = Parameter_customize.do_not_projectify ()
 module FloatRelative =
   False
     (struct
@@ -394,7 +449,8 @@ module FloatRelative =
        let help = "display float intervals as [lower_bound ++ width]"
      end)
 
-let () = Plugin.set_group inout_source
+let () = Parameter_customize.set_group inout_source
+let () = Parameter_customize.do_not_projectify ()
 module FloatHex =
   False
     (struct
@@ -403,7 +459,8 @@ module FloatHex =
        let help = "display floats as hexadecimal"
      end)
 
-let () = Plugin.set_group inout_source
+let () = Parameter_customize.set_group inout_source
+let () = Parameter_customize.do_not_projectify ()
 module BigIntsHex =
   Int(struct
          let module_name = "BigIntsHex"
@@ -420,8 +477,8 @@ notation"
 
 let saveload = add_group "Saving or Loading Data"
 
-let () = Plugin.set_group saveload
-let () = Plugin.do_not_projectify ()
+let () = Parameter_customize.set_group saveload
+let () = Parameter_customize.do_not_projectify ()
 module SaveState =
   EmptyString
     (struct
@@ -431,11 +488,11 @@ module SaveState =
        let help = "at exit, save the session into file <filename>"
      end)
 
-let () = Plugin.set_group saveload
-let () = Plugin.set_cmdline_stage Cmdline.Loading
+let () = Parameter_customize.set_group saveload
+let () = Parameter_customize.set_cmdline_stage Cmdline.Loading
 (* must be projectified: when loading, this option will be automatically 
    reset *) 
-(*let () = Plugin.do_not_projectify ()*)
+(*let () = Parameter_customize.do_not_projectify ()*)
 module LoadState =
   EmptyString
     (struct
@@ -445,9 +502,9 @@ module LoadState =
        let help = "load a previously-saved session from file <filename>"
      end)
 
-let () = Plugin.set_group saveload
-let () = Plugin.set_cmdline_stage Cmdline.Extending
-let () = Plugin.do_not_projectify ()
+let () = Parameter_customize.set_group saveload
+let () = Parameter_customize.set_cmdline_stage Cmdline.Extending
+let () = Parameter_customize.do_not_projectify ()
 module AddPath =
   StringList
     (struct
@@ -460,9 +517,9 @@ let () =
   AddPath.add_set_hook
     (fun _ _ -> AddPath.iter (fun s -> ignore (Dynamic.add_path s)))
 
-let () = Plugin.set_group saveload
-let () = Plugin.set_cmdline_stage Cmdline.Extending
-let () = Plugin.do_not_projectify ()
+let () = Parameter_customize.set_group saveload
+let () = Parameter_customize.set_cmdline_stage Cmdline.Extending
+let () = Parameter_customize.do_not_projectify ()
 module LoadModule =
   StringSet
     (struct
@@ -474,9 +531,9 @@ module LoadModule =
 let () =
   LoadModule.add_set_hook (fun _ _ -> LoadModule.iter Dynamic.load_module)
 
-let () = Plugin.set_group saveload
-let () = Plugin.set_cmdline_stage Cmdline.Extending
-let () = Plugin.do_not_projectify ()
+let () = Parameter_customize.set_group saveload
+let () = Parameter_customize.set_cmdline_stage Cmdline.Extending
+let () = Parameter_customize.do_not_projectify ()
 module Dynlink =
   True
     (struct
@@ -486,9 +543,9 @@ module Dynlink =
      end)
 let () = Dynlink.add_set_hook (fun _ -> Dynamic.set_default)
 
-let () = Plugin.set_group saveload
-let () = Plugin.set_cmdline_stage Cmdline.Extending
-let () = Plugin.do_not_projectify ()
+let () = Parameter_customize.set_group saveload
+let () = Parameter_customize.set_cmdline_stage Cmdline.Extending
+let () = Parameter_customize.do_not_projectify ()
 module LoadScript =
   StringSet
     (struct
@@ -501,10 +558,10 @@ let () =
   LoadScript.add_set_hook (fun _ _ -> LoadScript.iter Dynamic.load_script)
 
 module Journal = struct
-  let () = Plugin.set_negative_option_name "-journal-disable"
-  let () = Plugin.set_cmdline_stage Cmdline.Early
-  let () = Plugin.set_group saveload
-  let () = Plugin.do_not_projectify ()
+  let () = Parameter_customize.set_negative_option_name "-journal-disable"
+  let () = Parameter_customize.set_cmdline_stage Cmdline.Early
+  let () = Parameter_customize.set_group saveload
+  let () = Parameter_customize.do_not_projectify ()
   module Enable = struct
     include Bool
       (struct
@@ -515,19 +572,55 @@ module Journal = struct
        end)
     let is_set () = Cmdline.journal_isset
   end
-  let () = Plugin.set_group saveload
-  let () = Plugin.do_not_projectify ()
+  let () = Parameter_customize.set_group saveload
+  let () = Parameter_customize.do_not_projectify ()
   module Name =
     String
       (struct
          let module_name = "Journal.Name"
          let option_name = "-journal-name"
-         let default = Journal.get_name ()
+         let default = 
+	   let dir =
+	     (* duplicate code from Plugin.Session *)
+	     if Session.Dir_name.is_set () then Session.Dir_name.get ()
+	     else
+	       try Sys.getenv "FRAMAC_SESSION"
+	       with Not_found -> "./.frama-c"
+	   in
+	   dir ^ "/frama_c_journal.ml"
          let arg_name = "s"
-         let help =
-           "set the filename of the journal (do not write any extension)"
+         let help = "set the filename of the journal"
        end)
+  let () = Name.add_set_hook (fun _ s -> Journal.set_name s);
 end
+
+let () = Parameter_customize.set_cmdline_stage Cmdline.Extending
+let () = Parameter_customize.set_group saveload
+let () = Parameter_customize.do_not_projectify ()
+module Session_dir =
+  EmptyString
+    (struct
+      let module_name = "Session_dir"
+      let option_name = "-session"
+      let arg_name = ""
+      let help = "directory in which session files are searched"
+     end)
+let () = Plugin.session_is_set_ref := Session_dir.is_set
+let () = Plugin.session_ref := Session_dir.get
+
+let () = Parameter_customize.set_cmdline_stage Cmdline.Extending
+let () = Parameter_customize.set_group saveload
+let () = Parameter_customize.do_not_projectify ()
+module Config_dir =
+  EmptyString
+    (struct
+      let module_name = "Config_dir"
+      let option_name = "-config"
+      let arg_name = ""
+      let help = "directory in which configuration files are searched"
+     end)
+let () = Plugin.config_is_set_ref := Config_dir.is_set
+let () = Plugin.config_ref := Config_dir.get
 
 (* ************************************************************************* *)
 (** {2 Customizing Normalization} *)
@@ -535,7 +628,7 @@ end
 
 let normalisation = add_group "Customizing Normalization"
 
-let () = Plugin.set_group normalisation
+let () = Parameter_customize.set_group normalisation
 module UnrollingLevel =
   Zero
     (struct
@@ -545,10 +638,22 @@ module UnrollingLevel =
        let help =
          "unroll loops n times (defaults to 0) before analyzes. \
           A negative value hides UNROLL loop pragmas."
-
      end)
 
-let () = Plugin.set_group normalisation
+let () = Parameter_customize.set_group normalisation
+module UnrollingForce =
+  Bool
+    (struct
+       let module_name = "UnrollingForce"
+       let default = false
+       let option_name = "-ulevel-force"
+       let help =
+         "ignore UNROLL loop pragmas disabling unrolling."
+     end)
+
+let () = Parameter_customize.set_group normalisation
+let () = Parameter_customize.do_not_reset_on_copy ()
+let () = Parameter_customize.set_cmdline_stage Cmdline.Extended
 module Machdep =
   String
     (struct
@@ -561,7 +666,8 @@ module Machdep =
           See \"-machdep help\" for a list"
      end)
 
-let () = Plugin.set_group normalisation
+let () = Parameter_customize.set_group normalisation
+let () = Parameter_customize.do_not_reset_on_copy ()
 module Enums =
   EmptyString
     (struct
@@ -581,7 +687,8 @@ let () =
           (Pretty_utils.pp_list ~sep:", " Format.pp_print_string)
           enum_reprs)
 
-let () = Plugin.set_group normalisation
+let () = Parameter_customize.set_group normalisation
+let () = Parameter_customize.do_not_reset_on_copy ()
 module ReadAnnot =
   True(struct
          let module_name = "ReadAnnot"
@@ -589,7 +696,8 @@ module ReadAnnot =
          let help = "read annotation"
        end)
 
-let () = Plugin.set_group normalisation
+let () = Parameter_customize.set_group normalisation
+let () = Parameter_customize.do_not_reset_on_copy ()
 module PreprocessAnnot =
   False(struct
           let module_name = "PreprocessAnnot"
@@ -597,7 +705,8 @@ module PreprocessAnnot =
           let help = "pre-process annotations (if they are read)"
         end)
 
-let () = Plugin.set_group normalisation
+let () = Parameter_customize.set_group normalisation
+let () = Parameter_customize.do_not_reset_on_copy ()
 module CppCommand =
   EmptyString
     (struct
@@ -612,7 +721,8 @@ If unset, the command is built as follow:\n\
 and <preprocessed file> respectively"
      end)
 
-let () = Plugin.set_group normalisation
+let () = Parameter_customize.set_group normalisation
+let () = Parameter_customize.do_not_reset_on_copy ()
 module CppExtraArgs =
   StringList
     (struct
@@ -623,16 +733,17 @@ module CppExtraArgs =
 preprocessing the C code but not while preprocessing annotations"
      end)
 
-let () = Plugin.set_group normalisation
-let () = Plugin.set_negative_option_name ""
+let () = Parameter_customize.set_group normalisation
+let () = Parameter_customize.set_negative_option_name ""
 module TypeCheck =
   True(struct
           let module_name = "TypeCheck"
           let option_name = "-typecheck"
-          let help = "only typechecks the source files"
+          let help = "forces typechecking of the source files"
         end)
 
-let () = Plugin.set_group normalisation
+let () = Parameter_customize.set_group normalisation
+let () = Parameter_customize.do_not_reset_on_copy ()
 module ContinueOnAnnotError =
   False(struct
           let module_name = "ContinueOnAnnotError"
@@ -642,7 +753,7 @@ module ContinueOnAnnotError =
                          generating an error (errors in C are still fatal)"
         end)
 
-let () = Plugin.set_group normalisation
+let () = Parameter_customize.set_group normalisation
 module SimplifyCfg =
   False
     (struct
@@ -652,7 +763,7 @@ module SimplifyCfg =
          "remove break, continue and switch statements before analyses"
      end)
 
-let () = Plugin.set_group normalisation
+let () = Parameter_customize.set_group normalisation
 module KeepSwitch =
   False(struct
           let option_name = "-keep-switch"
@@ -660,8 +771,8 @@ module KeepSwitch =
           let help = "keep switch statements despite -simplify-cfg"
         end)
 
-let () = Plugin.set_group normalisation
-let () = Plugin.set_negative_option_name "-remove-unused-specified-functions"
+let () = Parameter_customize.set_group normalisation
+let () = Parameter_customize.set_negative_option_name "-remove-unused-specified-functions"
 module Keep_unused_specified_functions =
   True(struct
           let option_name = "-keep-unused-specified-functions"
@@ -669,7 +780,15 @@ module Keep_unused_specified_functions =
           let help = "keep specified-but-unused functions"
         end)
 
-let () = Plugin.set_group normalisation
+let () = Parameter_customize.set_group normalisation
+module SimplifyTrivialLoops =
+  True(struct
+          let option_name = "-simplify-trivial-loops"
+          let module_name = "SimplifyTrivialLoops"
+          let help = "simplify trivial loops, such as do ... while(0) loops"
+       end)
+
+let () = Parameter_customize.set_group normalisation
 module Constfold =
   False
     (struct
@@ -678,7 +797,8 @@ module Constfold =
        let help = "fold all constant expressions in the code before analysis"
      end)
 
-let () = Plugin.set_group normalisation
+let () = Parameter_customize.set_group normalisation
+let () = Parameter_customize.do_not_reset_on_copy ()
 module InitializedPaddingLocals =
   True
     (struct
@@ -689,9 +809,18 @@ module InitializedPaddingLocals =
                    Defaults to true."
      end)
 
+let () = Parameter_customize.set_group normalisation
+module AgressiveMerging =
+  False
+    (struct
+       let option_name = "-agressive-merging"
+       let module_name = "AgressiveMerging"
+       let help = "merge function definitions modulo renaming"
+     end)
+
 module Files = struct
 
-  let () = Plugin.is_invisible ()
+  let () = Parameter_customize.is_invisible ()
   include StringList
     (struct
        let option_name = ""
@@ -701,7 +830,8 @@ module Files = struct
      end)
   let () = Cmdline.use_cmdline_files set
 
-  let () = Plugin.set_group normalisation
+  let () = Parameter_customize.set_group normalisation
+  let () = Parameter_customize.do_not_reset_on_copy ()
   module Check =
     False(struct
             let option_name = "-check"
@@ -710,7 +840,7 @@ module Files = struct
                         Tree"
           end)
 
-  let () = Plugin.set_group normalisation
+  let () = Parameter_customize.set_group normalisation
   module Copy =
     False(struct
             let option_name = "-copy"
@@ -719,7 +849,7 @@ module Files = struct
               "always perform a copy of the original AST before analysis begin"
           end)
 
-  let () = Plugin.set_group normalisation
+  let () = Parameter_customize.set_group normalisation
   module Orig_name =
     False(struct
             let option_name = "-orig-name"
@@ -729,7 +859,7 @@ module Files = struct
 
 end
 
-let () = Plugin.set_group normalisation
+let () = Parameter_customize.set_group normalisation
 module AllowDuplication =
   True(struct
     let option_name = "-allow-duplication"
@@ -738,7 +868,7 @@ module AllowDuplication =
       "allow duplication of small blocks during normalization"
   end)
 
-let () = Plugin.set_group normalisation
+let () = Parameter_customize.set_group normalisation
 module DoCollapseCallCast =
   True(struct
     let option_name = "-collapse-call-cast"
@@ -748,7 +878,7 @@ module DoCollapseCallCast =
                    and the lvalue it is assigned to."
   end)
 
-let () = Plugin.set_group normalisation
+let () = Parameter_customize.set_group normalisation
 module ForceRLArgEval =
   False(struct
     let option_name = "-force-rl-arg-eval"
@@ -757,7 +887,8 @@ module ForceRLArgEval =
                               arguments of function calls"
   end)
 
-let () = Plugin.set_group normalisation
+let () = Parameter_customize.set_group normalisation
+let () = Parameter_customize.do_not_reset_on_copy ()
 module WarnUndeclared =
   True(struct
     let option_name = "-warn-undeclared-callee"
@@ -765,8 +896,9 @@ module WarnUndeclared =
     let module_name = "WarnUndeclared"
   end)
 
-let () = Plugin.set_group normalisation
-module WarnDecimalFloat = 
+let () = Parameter_customize.set_group normalisation
+let () = Parameter_customize.do_not_reset_on_copy ()
+module WarnDecimalFloat =
   String(struct
     let option_name = "-warn-decimal-float"
     let arg_name = "freq"
@@ -797,8 +929,8 @@ let normalization_parameters = [
 
 let analysis_options = add_group "Analysis Options"
 
-let () = Plugin.set_group analysis_options
-let () = Plugin.argument_is_function_name ()
+let () = Parameter_customize.set_group analysis_options
+let () = Parameter_customize.argument_is_function_name ()
 module MainFunction =
   String
     (struct
@@ -810,7 +942,7 @@ module MainFunction =
 if this is not for a complete application. Defaults to main"
      end)
 
-let () = Plugin.set_group analysis_options
+let () = Parameter_customize.set_group analysis_options
 module LibEntry =
   False
     (struct
@@ -819,7 +951,7 @@ module LibEntry =
        let help ="run analysis for an incomplete application e.g. an API call. See the -main option to set the entry point"
      end)
 
-let () = Plugin.set_group analysis_options
+let () = Parameter_customize.set_group analysis_options
 module UnspecifiedAccess =
   False(struct
          let module_name = "UnspecifiedAccess"
@@ -828,8 +960,8 @@ module UnspecifiedAccess =
 between sequence points are separated"
        end)
 
-let () = Plugin.set_negative_option_name "-unsafe-arrays"
-let () = Plugin.set_group analysis_options
+let () = Parameter_customize.set_negative_option_name "-unsafe-arrays"
+let () = Parameter_customize.set_group analysis_options
 module SafeArrays =
   True
     (struct
@@ -839,7 +971,8 @@ module SafeArrays =
                    inside structs, assume that accesses are in bounds"
      end)
 
-let () = Plugin.set_group analysis_options
+let () = Parameter_customize.set_group analysis_options
+let () = Parameter_customize.do_not_reset_on_copy ()
 module AbsoluteValidRange = struct
   module Info = struct
     let option_name = "-absolute-valid-range"
@@ -852,7 +985,8 @@ module AbsoluteValidRange = struct
 end
 
 (* Signed overflows are undefined behaviors. *)
-let () = Plugin.set_group analysis_options
+let () = Parameter_customize.set_group analysis_options
+let () = Parameter_customize.do_not_reset_on_copy ()
 module SignedOverflow =
   True
     (struct
@@ -863,7 +997,8 @@ module SignedOverflow =
 
 (* Unsigned overflows are ok, but might not always be a behavior the programmer
    wants. *)
-let () = Plugin.set_group analysis_options
+let () = Parameter_customize.set_group analysis_options
+let () = Parameter_customize.do_not_reset_on_copy ()
 module UnsignedOverflow =
   False
     (struct
@@ -873,7 +1008,8 @@ module UnsignedOverflow =
      end)
 
 (* Signed downcast are implementation-defined behaviors. *)
-let () = Plugin.set_group analysis_options
+let () = Parameter_customize.set_group analysis_options
+let () = Parameter_customize.do_not_reset_on_copy ()
 module SignedDowncast =
   False
     (struct
@@ -885,7 +1021,8 @@ destination range"
 
 (* Unsigned downcasts are ok, but might not always be a behavior the programmer
    wants. *)
-let () = Plugin.set_group analysis_options
+let () = Parameter_customize.set_group analysis_options
+let () = Parameter_customize.do_not_reset_on_copy ()
 module UnsignedDowncast =
   False
     (struct
@@ -924,9 +1061,9 @@ on project <p>"
     ~ext_help:""
     ()
 
-let () = Plugin.set_group misc
-let () = Plugin.set_negative_option_name ""
-let () = Plugin.set_cmdline_stage Cmdline.Early
+let () = Parameter_customize.set_group misc
+let () = Parameter_customize.set_negative_option_name ""
+let () = Parameter_customize.set_cmdline_stage Cmdline.Early
 module NoType =
   Bool
     (struct
@@ -936,9 +1073,9 @@ module NoType =
        let help = ""
      end)
 
-let () = Plugin.set_group misc
-let () = Plugin.set_negative_option_name ""
-let () = Plugin.set_cmdline_stage Cmdline.Early
+let () = Parameter_customize.set_group misc
+let () = Parameter_customize.set_negative_option_name ""
+let () = Parameter_customize.set_cmdline_stage Cmdline.Early
 module NoObj =
   Bool
     (struct

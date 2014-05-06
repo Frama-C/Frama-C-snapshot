@@ -1,6 +1,6 @@
 /* run.config
   GCC:
-  OPT: -memory-footprint 1 -val -deps -out -input  -main loop -journal-disable
+  OPT: -val -deps -out -input  -main loop -journal-disable
 */
 int X;
 

@@ -15,10 +15,10 @@ let compute_and_print pp str_data =
       str_data;
   let _ = match defs with
       | None -> Format.printf "computation problem.@."
-      | Some (defs, _undef) when Cil_datatype.Stmt.Set.is_empty defs ->
+      | Some (defs, _undef) when Cil_datatype.Stmt.Hptset.is_empty defs ->
           Format.printf "no Defs found@."
       | Some (defs, _undef) ->
-          Cil_datatype.Stmt.Set.iter 
+          Cil_datatype.Stmt.Hptset.iter 
             (fun s ->
                Format.printf "%a: %a@\n" 
 		 Printer.pp_location (Cil_datatype.Stmt.loc s)

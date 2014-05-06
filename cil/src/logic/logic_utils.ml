@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA   (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -28,8 +28,6 @@ open Cil_types
 open Logic_ptree
 
 exception Not_well_formed of Cil_types.location * string
-
-let mk_dummy_term e ctyp = Logic_const.term e (Ctype ctyp)
 
 let rec instantiate subst = function
   | Ltype(ty,prms) -> Ltype(ty, List.map (instantiate subst) prms)
@@ -141,11 +139,11 @@ let translate_old_label s p =
   in
   let vis = object
       inherit Cil.nopCilVisitor
-      method vpredicate = function
+      method! vpredicate = function
         | Pat(p,lab) when lab = Logic_const.old_label ->
           ChangeDoChildrenPost(make_new_at_predicate p, fun x -> x)
         | _ -> DoChildren
-      method vterm_node = function
+      method! vterm_node = function
         | Tat(t,lab) when lab = Logic_const.old_label ->
           ChangeDoChildrenPost(make_new_at_term t, fun x->x)
         | _ -> DoChildren
@@ -185,6 +183,17 @@ let rec mk_logic_StartOf t =
         { t with term_node = Tlet(body, mk_logic_StartOf t);
             term_type = my_type }
     | _ -> Kernel.fatal "mk_logic_StartOf given a non-C-array term"
+
+(* Make an AddrOf. Given an lval of type T will give back an expression of
+ * type ptr(T)  *)
+let mk_logic_AddrOf ?(loc=Cil_datatype.Location.unknown) lval typ =
+  match lval with
+    | TMem e, TNoOffset -> Logic_const.term ~loc e.term_node e.term_type
+    | b, TIndex(z, TNoOffset) when isLogicZero z ->
+      Logic_const.term ~loc (TStartOf (b, TNoOffset))
+        (Ctype (TPtr (logicCType typ,[]))) (* array *)
+    | _ ->
+      Logic_const.term ~loc (TAddrOf lval) (Ctype (TPtr (logicCType typ,[])))
 
 let isLogicPointer t =
   isLogicPointerType t.term_type || (is_C_array t)
@@ -260,25 +269,20 @@ let string_to_float_lconstant str =
   in
   (* Maybe it ends in U or UL. Strip those *)
   let baseint, kind =
-    if  hasSuffix "L" or hasSuffix "l" then
+    if  hasSuffix "L" || hasSuffix "l" then
       String.sub str 0 (l - 1), Some FLongDouble
-    else if hasSuffix "F" or hasSuffix "f" then
+    else if hasSuffix "F" || hasSuffix "f" then
       String.sub str 0 (l - 1), Some FFloat
-    else if hasSuffix "D" or hasSuffix "d" then
+    else if hasSuffix "D" || hasSuffix "d" then
       String.sub str 0 (l - 1), Some FDouble
     else
       str, None
   in
   match kind with 
-    | Some FDouble | Some FLongDouble ->
-        (* Hope that the architecture is such that [long double = double] *)
-        let f = Floating_point.double_precision_of_string baseint in
+    | Some k -> 
+        let f = Floating_point.parse_kind k baseint in
         LReal(real_of_float str f.Floating_point.f_nearest)
 
-    | Some FFloat ->
-        let f = Floating_point.single_precision_of_string baseint in
-        LReal(real_of_float str f.Floating_point.f_nearest)
-            
     | None -> (* parse as double precision interval, because we
                  do not have better *)
         let f = Floating_point.double_precision_of_string baseint in
@@ -435,11 +439,26 @@ let is_same_logic_label l1 l2 =
        the hypothetical statement it is referring to. *)
   | LogicLabel (_, l1), LogicLabel (_, l2)  -> l1 = l2
 
+(* same remark as above *)
+let compare_logic_label l1 l2 =
+  match l1, l2 with
+  | StmtLabel s1, StmtLabel s2 -> Cil_datatype.Stmt.compare !s1 !s2
+  | StmtLabel _, LogicLabel _ -> 1
+  | LogicLabel _, StmtLabel _ -> -1
+  | LogicLabel (_,l1), LogicLabel(_,l2) -> String.compare l1 l2
+
 let is_same_opt f x1 x2 =
   match x1,x2 with
       None, None -> true
     | Some x1, Some x2 -> f x1 x2
     | None, _ | _, None -> false
+
+let compare_opt f x1 x2 =
+  match x1, x2 with
+  | None, None -> 0
+  | Some _, None -> 1
+  | None, Some _ -> -1
+  | Some x1, Some x2 -> f x1 x2
 
 let is_same_c_type t1 t2 =
   Cil_datatype.Logic_type_ByName.equal (Ctype t1) (Ctype t2)
@@ -450,6 +469,12 @@ let is_same_var v1 v2 =
   v1.lv_name = v2.lv_name &&
   is_same_type v1.lv_type v2.lv_type
 
+let compare_var v1 v2 =
+  let res = String.compare v1.lv_name v2.lv_name in
+  if res = 0 then
+    Cil_datatype.Logic_type_ByName.compare v1.lv_type v2.lv_type
+  else res
+
 let is_same_string (s1: string) s2  = s1 = s2
 
 let is_same_logic_signature l1 l2 =
@@ -458,6 +483,23 @@ let is_same_logic_signature l1 l2 =
   is_same_list is_same_string l1.l_tparams l2.l_tparams &&
   is_same_list is_same_var l1.l_profile l2.l_profile &&
   is_same_list is_same_logic_label l1.l_labels l2.l_labels
+
+let compare_logic_signature l1 l2 =
+  let res = String.compare l1.l_var_info.lv_name l2.l_var_info.lv_name in
+  if res = 0 then
+    let res =
+      compare_opt Cil_datatype.Logic_type_ByName.compare l1.l_type l2.l_type
+    in
+    if res = 0 then
+      let res = Extlib.list_compare String.compare l1.l_tparams l2.l_tparams in
+      if res = 0 then
+        let res = Extlib.list_compare compare_var l1.l_profile l2.l_profile in
+        if res = 0 then
+          Extlib.list_compare compare_logic_label l1.l_labels l2.l_labels
+        else res
+      else res
+    else res
+  else res
 
 let is_same_logic_profile l1 l2 =
   l1.l_var_info.lv_name = l2.l_var_info.lv_name &&
@@ -475,6 +517,16 @@ let is_same_logic_ctor_info ci1 ci2 =
   ci1.ctor_name = ci2.ctor_name &&
   ci1.ctor_type.lt_name =  ci2.ctor_type.lt_name &&
   is_same_list is_same_type ci1.ctor_params ci2.ctor_params
+
+let compare_logic_ctor_info ci1 ci2 =
+  let res = String.compare ci1.ctor_name ci2.ctor_name in
+  if res = 0 then
+    let res = String.compare ci1.ctor_type.lt_name ci2.ctor_type.lt_name in
+    if res = 0 then
+      Extlib.list_compare
+        Cil_datatype.Logic_type_ByName.compare ci1.ctor_params ci2.ctor_params
+    else res
+  else res
 
 let is_same_constant = Cil.compareConstant
 
@@ -640,7 +692,7 @@ and is_same_offset o1 o2 =
     | TField (f1,o1), TField(f2,o2) ->
         f1.fname = f2.fname && is_same_offset o1 o2
     | TModel(f1,o1), TModel(f2,o2) ->
-        f1.mi_name == f2.mi_name && is_same_offset o1 o2
+        f1.mi_name = f2.mi_name && is_same_offset o1 o2
     | TIndex(t1,o1), TIndex(t2,o2) ->
         is_same_term t1 t2 && is_same_offset o1 o2
     | (TNoOffset| TField _| TIndex _ | TModel _),_ -> false
@@ -699,10 +751,11 @@ and is_same_predicate p1 p2 =
       ), _ -> false
 
 and is_same_named_predicate pred1 pred2 =
-  pred1.name = pred2.name && is_same_predicate pred1.content pred2.content
+  is_same_list Datatype.String.equal pred1.name pred2.name &&
+    is_same_predicate pred1.content pred2.content
 
 and is_same_identified_predicate p1 p2 =
-  is_same_list (=) p1.ip_name p2.ip_name &&
+  is_same_list Datatype.String.equal p1.ip_name p2.ip_name &&
     is_same_predicate p1.ip_content p2.ip_content
 
 and is_same_identified_term l1 l2 =
@@ -1160,11 +1213,345 @@ and hash_term_offset (acc,depth,tot) o =
       | TIndex (t,o) ->
         let hash, tot = hash_term (acc+37,depth-1,tot-1) t in
         hash_term_offset (hash,depth-1,tot) o
-end
+  end
 
 let hash_term t = 
   try fst (hash_term (0,10,100) t)
   with StopRecursion h -> h
+
+let rec compare_term t1 t2 =
+  match t1.term_node, t2.term_node with
+    TConst c1, TConst c2 -> Cil_datatype.Logic_constant.compare c1 c2
+  | TConst _, _ -> 1
+  | _,TConst _ -> -1
+  | TLval l1, TLval l2 -> compare_tlval l1 l2
+  | TLval _, _ -> 1
+  | _, TLval _ -> -1
+  | TSizeOf t1, TSizeOf t2 -> Cil_datatype.TypByName.compare t1 t2
+  | TSizeOf _, _ -> 1
+  | _, TSizeOf _ -> -1
+  | TSizeOfE t1, TSizeOfE t2 -> compare_term t1 t2
+  | TSizeOfE _, _ -> 1
+  | _, TSizeOfE _ -> -1
+  | TSizeOfStr s1, TSizeOfStr s2 -> String.compare s1 s2
+  | TSizeOfStr _, _ -> 1
+  | _, TSizeOfStr _ -> -1
+  | TAlignOf t1, TAlignOf t2 -> Cil_datatype.TypByName.compare t1 t2
+  | TAlignOf _, _ -> 1
+  | _, TAlignOf _ -> -1
+  | TAlignOfE t1, TAlignOfE t2 -> compare_term t1 t2
+  | TAlignOfE _, _ -> 1
+  | _, TAlignOfE _ -> -1
+  | TUnOp (o1,t1), TUnOp(o2,t2) -> 
+    let res = Pervasives.compare o1 o2 in
+    if res = 0 then compare_term t1 t2 else res
+  | TUnOp _, _ -> 1
+  | _, TUnOp _ -> -1
+  | TBinOp(o1,l1,r1), TBinOp(o2,l2,r2) ->
+    let res = Pervasives.compare o1 o2 in
+    if res = 0 then
+      let res = compare_term l1 l2 in
+      if res = 0 then compare_term r1 r2 else res
+    else res
+  | TBinOp _, _ -> 1
+  | _, TBinOp _ -> -1
+  | TCastE(typ1,t1), TCastE(typ2,t2) ->
+    let res = Cil_datatype.TypByName.compare typ1 typ2 in
+    if res = 0 then compare_term t1 t2 else res
+  | TCastE _, _ -> 1
+  | _, TCastE _ -> -1
+  | TAddrOf l1, TAddrOf l2 -> compare_tlval l1 l2
+  | TAddrOf _, _ -> 1
+  | _, TAddrOf _ -> -1
+  | TStartOf l1, TStartOf l2 -> compare_tlval l1 l2
+  | TStartOf _, _ -> 1
+  | _, TStartOf _ -> -1
+  | Tapp(f1,labels1, args1), Tapp(f2, labels2, args2) ->
+    let res = compare_logic_signature f1 f2 in
+    if res = 0 then
+      let compare_labels (x,y) (t,z) =
+        let res = compare_logic_label x t in
+        if res = 0 then compare_logic_label y z else res
+      in
+      let res = Extlib.list_compare compare_labels labels1 labels2 in
+      if res = 0 then Extlib.list_compare compare_term args1 args2 else res
+    else res
+  | Tapp _, _ -> 1
+  | _, Tapp _ -> -1
+  | Tif(c1,t1,e1), Tif(c2,t2,e2) ->
+    let res = compare_term c1 c2 in
+    if res = 0 then
+      let res = compare_term t1 t2 in
+      if res = 0 then compare_term e1 e2 else res
+    else res
+  | Tif _, _ -> 1
+  | _, Tif _ -> -1
+  | Tbase_addr (l1,t1), Tbase_addr (l2,t2)
+  | Tblock_length (l1,t1), Tblock_length (l2,t2)
+  | Toffset (l1,t1), Toffset (l2,t2)
+  | Tat(t1,l1), Tat(t2,l2) -> 
+    let res = compare_logic_label l1 l2 in
+    if res = 0 then compare_term t1 t2 else res
+  | Tbase_addr _, _ -> 1
+  | _, Tbase_addr _ -> -1
+  | Tblock_length _, _ -> 1
+  | _, Tblock_length _ -> -1
+  | Toffset _, _ -> 1
+  | _, Toffset _ -> -1
+  | Tat _, _ -> 1
+  | _, Tat _ -> -1
+  | Tnull, Tnull -> 0
+  | Tnull, _ -> 1
+  | _, Tnull -> -1
+  | TCoerce(t1,typ1), TCoerce(t2,typ2) ->
+    let res = compare_term t1 t2 in
+    if res = 0 then Cil_datatype.TypByName.compare typ1 typ2 else res
+  | TCoerce _, _ -> 1
+  | _, TCoerce _ -> -1
+  | TCoerceE(t1,tt1), TCoerceE(t2,tt2) ->
+    let res = compare_term t1 t2 in
+    if res = 0 then compare_term tt1 tt2 else res
+  | TCoerceE _, _ -> 1
+  | _, TCoerceE _ -> -1
+  | Tlambda (v1,t1), Tlambda(v2,t2) ->
+    let res = Extlib.list_compare compare_var v1 v2 in
+    if res = 0 then compare_term t1 t2 else res
+  | Tlambda _, _ -> 1
+  | _, Tlambda _ -> -1
+  | TUpdate(t1,i1,nt1), TUpdate(t2,i2,nt2) ->
+    let res = compare_term t1 t2 in
+    if res = 0 then 
+      let res = compare_offset i1 i2 in
+      if res = 0 then compare_term nt1 nt2 else res
+    else res
+  | TUpdate _, _ -> 1
+  | _, TUpdate _ -> -1
+  | Ttypeof t1, Ttypeof t2 -> compare_term t1 t2
+  | Ttypeof _, _ -> 1
+  | _, Ttypeof _ -> -1
+  | Ttype ty1, Ttype ty2 -> Cil_datatype.TypByName.compare ty1 ty2
+  | Ttype _, _ -> 1
+  | _, Ttype _ -> -1
+  | TDataCons(ci1,prms1), TDataCons(ci2,prms2) ->
+    let res = compare_logic_ctor_info ci1 ci2 in
+    if res = 0 then Extlib.list_compare compare_term prms1 prms2 else res
+  | TDataCons _, _ -> 1
+  | _, TDataCons _ -> -1
+  | Tempty_set, Tempty_set -> 0
+  | Tempty_set, _ -> 1
+  | _, Tempty_set -> -1
+  | (Tunion l1, Tunion l2) | (Tinter l1, Tinter l2) ->
+    Extlib.list_compare compare_term l1 l2
+  | Tunion _, _ -> 1
+  | _, Tunion _ -> -1
+  | Tinter _, _ -> 1
+  | _, Tinter _ -> -1
+  | Tcomprehension(e1,q1,p1), Tcomprehension(e2,q2,p2) ->
+    let res = compare_term e1 e2 in
+    if res = 0 then 
+      let res = Extlib.list_compare compare_var q1 q2 in
+      if res = 0 then compare_opt compare_named_predicate p1 p2 else res
+    else res
+  | Tcomprehension _, _ -> 1
+  | _, Tcomprehension _ -> -1
+  | Trange(l1,h1), Trange(l2,h2) ->
+    let res = compare_opt compare_term l1 l2 in
+    if res = 0 then compare_opt compare_term h1 h2 else res
+  | Trange _, _ -> 1
+  | _, Trange _ -> -1
+  | Tlet(d1,b1), Tlet(d2,b2) ->
+    let res = compare_logic_info d1 d2 in
+    if res = 0 then compare_term b1 b2 else res
+  | Tlet _, _ -> 1
+  | _, Tlet _ -> -1
+  | TLogic_coerce(ty1,t1), TLogic_coerce(ty2,t2) ->
+    let res = Cil_datatype.Logic_type_ByName.compare ty1 ty2 in
+    if res = 0 then compare_term t1 t2 else res
+
+and compare_logic_info l1 l2 =
+  let res = compare_logic_signature l1 l2 in
+  if res = 0 then compare_logic_body l1.l_body l2.l_body else res
+
+and compare_logic_body b1 b2 =
+  match b1,b2 with
+    | LBnone, LBnone -> 0
+    | LBnone, _ -> 1
+    | _, LBnone -> -1
+    | LBreads l1, LBreads l2 ->
+      Extlib.list_compare compare_identified_term l1 l2
+    | LBreads _, _ -> 1
+    | _, LBreads _ -> -1
+    | LBterm t1, LBterm t2 -> compare_term t1 t2
+    | LBterm _, _ -> 1
+    | _, LBterm _ -> -1
+    | LBpred p1, LBpred p2 -> compare_named_predicate p1 p2
+    | LBpred _, _ -> 1
+    | _, LBpred _ -> -1
+    | LBinductive l1, LBinductive l2 ->
+      Extlib.list_compare compare_indcase l1 l2
+
+and compare_indcase (id1,labs1,typs1,p1) (id2,labs2,typs2,p2) =
+  let res = String.compare id1 id2 in
+  if res = 0 then
+    let res = Extlib.list_compare compare_logic_label labs1 labs2 in
+    if res = 0 then
+      let res =
+        Extlib.list_compare String.compare typs1 typs2
+      in
+      if res = 0 then compare_named_predicate p1 p2 else res
+    else res
+  else res
+
+and compare_tlval (h1,o1) (h2,o2) =
+  let res = compare_lhost h1 h2 in
+  if res = 0 then compare_offset o1 o2 else res
+
+and compare_lhost h1 h2 =
+  match h1, h2 with
+  | TVar v1, TVar v2 -> compare_var v1 v2
+  | TVar _, _ -> 1
+  | _, TVar _ -> -1
+  | TMem t1, TMem t2 -> compare_term t1 t2
+  | TMem _, _ -> 1
+  | _, TMem _ -> -1
+  | TResult t1, TResult t2 -> Cil_datatype.TypByName.compare t1 t2
+
+and compare_offset o1 o2 =
+  match o1, o2 with
+  | TNoOffset, TNoOffset -> 0
+  | TNoOffset, _ -> 1
+  | _, TNoOffset -> -1
+  | TField (f1,o1), TField(f2,o2) ->
+    let res = String.compare f1.fname f2.fname in
+    if res = 0 then compare_offset o1 o2 else res
+  | TField _, _ -> 1
+  | _, TField _ -> -1
+  | TModel(f1,o1), TModel(f2,o2) ->
+    let res = String.compare f1.mi_name f2.mi_name in
+    if res = 0 then compare_offset o1 o2 else res
+  | TModel _, _ -> 1
+  | _, TModel _ -> -1
+  | TIndex(t1,o1), TIndex(t2,o2) ->
+    let res = compare_term t1 t2 in
+    if res = 0 then compare_offset o1 o2 else res
+
+and compare_predicate p1 p2 =
+  match p1, p2 with
+  | Pfalse, Pfalse -> 0
+  | Pfalse, _ -> 1
+  | _, Pfalse -> -1
+  | Ptrue, Ptrue -> 0
+  | Ptrue, _ -> 1
+  | _, Ptrue -> -1
+  | Papp(i1,labels1,args1), Papp(i2,labels2,args2) ->
+    let res = compare_logic_signature i1 i2 in
+    if res = 0 then
+      let compare_labels (x,y) (z,t) =
+	let res = compare_logic_label x z in
+        if res = 0 then compare_logic_label y t else res
+      in
+      let res = Extlib.list_compare compare_labels labels1 labels2 in
+      if res = 0 then Extlib.list_compare compare_term args1 args2 else res
+    else res
+  | Papp _, _ -> 1
+  | _, Papp _ -> -1
+  | Prel(r1,lt1,rt1), Prel(r2,lt2,rt2) ->
+    let res = Pervasives.compare r1 r2 in
+    if res = 0 then
+      let res = compare_term lt1 lt2 in
+      if res = 0 then compare_term rt1 rt2 else res
+    else res
+  | Prel _, _ -> 1
+  | _, Prel _ -> -1
+  | Pand(lp1,rp1), Pand(lp2,rp2) | Por(lp1,rp1), Por(lp2,rp2)
+  | Pxor (lp1,rp1), Pxor(lp2,rp2) | Pimplies(lp1,rp1), Pimplies(lp2,rp2)
+  | Piff(lp1,rp1), Piff(lp2,rp2) ->
+    let res = compare_named_predicate lp1 lp2 in
+    if res = 0 then compare_named_predicate rp1 rp2 else res
+  | Pand _, _ -> 1
+  | _, Pand _ -> -1
+  | Por _, _ -> 1
+  | _, Por _ -> -1
+  | Pxor _, _ -> 1
+  | _, Pxor _ -> -1
+  | Pimplies _, _ -> 1
+  | _, Pimplies _ -> -1
+  | Piff _, _ -> 1
+  | _, Piff _ -> -1
+  | Pnot p1, Pnot p2 -> compare_named_predicate p1 p2
+  | Pnot _, _ -> 1
+  | _, Pnot _ -> -1
+  | Pif (c1,t1,e1), Pif(c2,t2,e2) ->
+    let res = compare_term c1 c2 in
+    if res = 0 then
+      let res = compare_named_predicate t1 t2 in
+      if res = 0 then compare_named_predicate e1 e2 else res
+    else res
+  | Pif _, _ -> 1
+  | _, Pif _ -> -1
+  | Plet (d1,p1), Plet(d2,p2) ->
+    let res = compare_logic_info d1 d2 in
+    if res = 0 then compare_named_predicate p1 p2 else res
+  | Plet _, _ -> 1
+  | _, Plet _ -> -1
+  | Pforall(q1,p1), Pforall(q2,p2) | Pexists(q1,p1), Pexists(q2,p2) ->
+    let res = Extlib.list_compare compare_var q1 q2 in
+    if res = 0 then compare_named_predicate p1 p2 else res
+  | Pforall _, _ -> 1
+  | _, Pforall _ -> -1
+  | Pexists _, _ -> 1
+  | _, Pexists _ -> -1
+  | Pat(p1,l1), Pat(p2,l2) ->
+    let res = compare_logic_label l1 l2 in
+    if res = 0 then compare_named_predicate p1 p2 else res
+  | Pat _, _ -> 1
+  | _, Pat _ -> -1
+  | Pallocable (l1,t1), Pallocable (l2,t2)
+  | Pfreeable (l1,t1), Pfreeable (l2,t2)
+  | Pvalid (l1,t1), Pvalid (l2,t2)
+  | Pvalid_read (l1,t1), Pvalid_read (l2,t2)
+  | Pinitialized (l1,t1), Pinitialized (l2,t2) -> 
+    let res = compare_logic_label l1 l2 in
+    if res = 0 then compare_term t1 t2 else res
+  | Pallocable _, _ -> 1
+  | _, Pallocable _ -> -1
+  | Pfreeable _, _ -> 1
+  | _, Pfreeable _ -> -1
+  | Pvalid _, _ -> 1
+  | _, Pvalid _ -> -1
+  | Pvalid_read _, _ -> 1
+  | _, Pvalid_read _ -> -1
+  | Pinitialized _, _ -> 1
+  | _, Pinitialized _ -> -1
+  | Pfresh (l1,m1,t1,n1), Pfresh (l2,m2,t2,n2) -> 
+    let res = compare_logic_label l1 l2 in
+    if res = 0 then
+      let res = compare_logic_label m1 m2 in
+      if res = 0 then
+	let res = compare_term t1 t2 in
+        if res = 0 then compare_term n1 n2 else res
+      else res
+    else res
+  | Pfresh _, _ -> 1
+  | _, Pfresh _ -> -1
+  | Psubtype(lt1,rt1), Psubtype(lt2,rt2) ->
+    let res = compare_term lt1 lt2 in
+    if res = 0 then compare_term rt1 rt2 else res
+  | Psubtype _, _ -> 1
+  | _, Psubtype _ -> -1
+  | Pseparated(seps1), Pseparated(seps2) ->
+    Extlib.list_compare compare_term seps1 seps2
+ 
+and compare_named_predicate pred1 pred2 =
+  let res = Extlib.list_compare String.compare pred1.name pred2.name in
+  if res = 0 then compare_predicate pred1.content pred2.content else res
+
+(* unused for now *)
+(* and compare_identified_predicate p1 p2 =
+  let res = Extlib.list_compare String.compare p1.ip_name p2.ip_name in
+  if res = 0 then compare_predicate p1.ip_content p2.ip_content else res
+*)
+and compare_identified_term l1 l2 = compare_term l1.it_content l2.it_content
 
 let get_behavior_names spec =
   List.fold_left (fun acc b ->  b.b_name::acc) [] spec.spec_behavior
@@ -1252,6 +1639,23 @@ let concat_assigns a1 a2 =
       | WritesAny, _ | _, WritesAny -> WritesAny
       | Writes l1, Writes l2 -> Writes (l1 @ l2)
 
+let merge_ip_list l1 l2 =
+  List.fold_right
+    (fun p acc ->
+      if List.exists (fun x -> is_same_identified_predicate p x) acc then acc
+      else p::acc)
+    l1 l2
+
+let merge_post_cond l1 l2 =
+  List.fold_right
+    (fun (k1,p1 as pc) acc ->
+      if
+        List.exists
+          (fun (k2,p2) -> k1 = k2 && is_same_identified_predicate p1 p2) acc
+      then acc
+      else pc::acc)
+    l1 l2
+
 let merge_behaviors ~silent old_behaviors fresh_behaviors =
   old_behaviors @
     (List.filter
@@ -1268,9 +1672,10 @@ let merge_behaviors ~silent old_behaviors fresh_behaviors =
                       Format.fprintf fmt ":@ @[%a@] vs. @[%a@]"
                         Cil_printer.pp_behavior b Cil_printer.pp_behavior old_b)
              ;
-	     old_b.b_assumes <- old_b.b_assumes @ b.b_assumes;
-	     old_b.b_requires <- old_b.b_requires @ b.b_requires;
-	     old_b.b_post_cond <- old_b.b_post_cond @ b.b_post_cond;
+	     old_b.b_assumes <- merge_ip_list old_b.b_assumes b.b_assumes;
+	     old_b.b_requires <- merge_ip_list old_b.b_requires b.b_requires;
+	     old_b.b_post_cond <-
+               merge_post_cond old_b.b_post_cond b.b_post_cond;
 	     old_b.b_assigns <- merge_assigns old_b.b_assigns b.b_assigns;
 	     old_b.b_allocation <- merge_allocation old_b.b_allocation b.b_allocation;
 	   end ;
@@ -1377,6 +1782,13 @@ let is_impact_pragma ca =
 let is_loop_annot s =
   is_loop_invariant s || is_assigns s || is_allocation s || is_variant s || is_loop_pragma s
 
+let is_trivial_annotation a =
+  match a.annot_content with
+    | AAssert (_,a) -> is_trivially_true a
+    | APragma _ | AStmtSpec _ | AInvariant _ | AVariant _
+    | AAssigns _| AAllocation _
+      -> false
+
 let is_property_pragma = function
   | Loop_pragma (Unroll_specs _ | Widen_hints _ | Widen_variables _)
   | Slice_pragma (SPexpr _ | SPctrl | SPstmt)
@@ -1394,6 +1806,20 @@ let extract_contract l =
   List.fold_right
     (fun ca l -> match ca.annot_content with
          AStmtSpec (l1,spec) -> (l1,spec) :: l | _ -> l) l []
+
+class complete_types =
+  object
+    inherit Cil.nopCilVisitor
+    method! vterm t =
+      match t.term_node with
+        | TLval (TVar v, TNoOffset) 
+            when isLogicType Cil.isCompleteType v.lv_type &&
+              not (isLogicType Cil.isCompleteType t.term_type) ->
+          ChangeDoChildrenPost({ t with term_type = v.lv_type }, fun x -> x)
+        | _ -> DoChildren
+  end
+
+let complete_types f = Cil.visitCilFileSameGlobals (new complete_types) f
 
 (* ************************************************************************* *)
 (** {2 Parsing utilities} *)
@@ -1447,7 +1873,6 @@ let pointer_comparable ?loc t1 t2 =
              | TPtr(TFun _,_) ->
                  Logic_const.term ~loc (TCastE(cfct_ptr,t)) fct_ptr, fct_ptr
              | TPtr _  -> t, obj_ptr
-             | TInt _ when Cil.isLogicZero t -> t, obj_ptr
              | TVoid _ | TInt _ | TFloat _ | TFun _ | TNamed _
              | TComp _ | TEnum _ | TBuiltin_va_list _
              | TArray _ ->
@@ -1469,6 +1894,12 @@ let pointer_comparable ?loc t1 t2 =
       Kernel.fatal "built-in predicate \\pointer_comparable not found"
   in
   Logic_const.unamed ?loc (Papp (pi, [], [t1;t2]))
+
+let points_to_valid_string ?loc s =
+  match Logic_env.find_all_logic_functions "\\points_to_valid_string" with
+    [ pi ] ->
+      Logic_const.unamed ?loc (Papp (pi, [], [s]))
+  | _ -> assert false
 
 (*
 Local Variables:

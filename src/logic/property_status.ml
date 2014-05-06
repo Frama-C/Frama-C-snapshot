@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -23,6 +23,8 @@
 (**************************************************************************)
 (** {3 Datatypes} *)
 (**************************************************************************)
+
+let dkey = Kernel.register_category "property_status"
 
 module Caml_hashtbl = Hashtbl
 open Emitter
@@ -63,7 +65,7 @@ module Emitter_with_properties =
       type t = emitter_with_properties
       let name = "Property_status.emitter"
       let rehash = Datatype.identity
-      let structural_descr = Structural_descr.Abstract
+      let structural_descr = Structural_descr.t_abstract
       let reprs = 
 	List.fold_left
 	  (fun acc e -> 
@@ -191,7 +193,7 @@ module Hypotheses =
 let () =
   Status.add_hook_on_remove
     (fun e ppt _ ->
-      (* remove the property from the hypotheses table *)
+      (* remove the properties from the hypotheses table *)
       let remove h =
 	try
 	  let l = Hypotheses.find h in
@@ -285,8 +287,12 @@ let merge_distinct_emitted x y = match x, y with
   | False_if_reachable, True | True, False_if_reachable ->
     raise Unmergeable
 
+module Register_hook = Hook.Build (struct type t = Property.t end)
+
+let register_property_add_hook = Register_hook.extend
+
 let rec register ppt =
-  Kernel.debug ~level:22 "REGISTERING %a in %a" Property.pretty ppt
+  Kernel.debug ~dkey ~level:5 "REGISTERING %a in %a" Property.pretty ppt
     Project.pretty (Project.current ());
   if Status.mem ppt then
     Kernel.fatal "trying to register twice property `%a'.\n\
@@ -294,6 +300,7 @@ That is forbidden (kernel invariant broken)."
       Property.pretty ppt;
   let h = Emitter_with_properties.Hashtbl.create 7 in
   Status.add ppt h;
+  Register_hook.apply ppt;
   register_as_kernel_logical_consequence ppt
 
 (* the functions below and this one MUST be synchronized *)
@@ -348,15 +355,21 @@ and is_kernel_logical_consequence ppt = match ppt with
     false
 
 and unsafe_emit_and_get e ~hyps ~auto ppt ?(distinct=false) s =
+  Kernel.feedback ~dkey ~level:3 "@[%a emits status@ %a for property@ %a@ \
+under %d hypothesis@]"
+    Emitter.pretty e
+    Emitted_status.pretty s
+    Property.pretty ppt
+    (List.length hyps);
   try
     let by_emitter = Status.find ppt in
     let emitter = 
       { emitter = Emitter.get e; 
 	properties = hyps; 
-	logical_consequence = auto } 
+	logical_consequence = auto }
     in
     let emit s = 
-      (* do not use Hashtbl.replace, see OCaml BTS #5349 *)
+      (* do not use Hashtbl.replace, see OCaml BTS #5349 (fixed in OCaml 4.0) *)
       Emitter_with_properties.Hashtbl.remove by_emitter emitter;
       let selection = State_selection.only_dependencies Status.self in
       Project.clear ~selection ();
@@ -371,7 +384,7 @@ and unsafe_emit_and_get e ~hyps ~auto ppt ?(distinct=false) s =
 	      let l = Hypotheses.find h in
 	      l := pair :: !l
 	    with Not_found ->
-	      Hypotheses.add h (ref [ pair ])) 
+	      Hypotheses.add h (ref [ pair ]))
 	  e.properties
       in
       (match s with
@@ -480,14 +493,20 @@ let remove_hyps_from_hypotheses ppt =
       (fun e s -> Status.apply_hooks_on_remove e ppt s)
       by_emitter
   with Not_found ->
-    ()  
+    ()
+
+module Remove_hook = Hook.Build(struct type t = Property.t end)
+
+let register_property_remove_hook = Remove_hook.extend
 
 let remove ppt =
-(*  Kernel.feedback "REMOVING %a in %a" Property.pretty ppt
-    Project.pretty (Project.current ());*)
+  Kernel.debug ~dkey ~level:5 "REMOVING %a in %a" 
+    Property.pretty ppt
+    Project.pretty (Project.current ());
   remove_when_used_as_hypothesis ppt;
   remove_hyps_from_hypotheses ppt;
-  Status.remove ppt
+  Status.remove ppt;
+  Remove_hook.apply ppt
 
 let merge ~old l =
   let property_id fmt p = 
@@ -498,8 +517,9 @@ let merge ~old l =
     (Pretty_utils.pp_list ~sep:"\n###" property_id) l; *)
   let old_h = Property.Hashtbl.create 17 in
   List.iter
-    (fun p -> 
-      assert (Kernel.verify (Status.mem p) "Unknown property %a" property_id p);
+    (fun p ->
+      if not (Status.mem p) then
+        Kernel.fatal "Unknown property %a" property_id p;
       Property.Hashtbl.add old_h p ()) 
     old;
   List.iter 
@@ -531,7 +551,7 @@ let conjunction s1 s2 = match s1, s2 with
   | True, True -> True
 
 let is_not_verifiable_but_valid ppt status = match status with
-  | Never_tried | Best(Dont_know, _) ->
+  | Never_tried ->
     (match ppt with
     | Property.IPOther _ -> 
       (* Non-ACSL properties are not verifiable *) 
@@ -554,20 +574,18 @@ let is_not_verifiable_but_valid ppt status = match status with
 	  | Property.IPAssigns _ | Property.IPAllocation _ 
 	  | Property.IPFrom _ -> true
 	  | _ -> false)
-  | Best((True | False_if_reachable | False_and_reachable), _) 
+  | Best((True | False_if_reachable | False_and_reachable | Dont_know), _)
   | Inconsistent _ ->
     false
 
 let rec compute_automatic_status _e properties = 
   let local_get p = 
-    let s = match get_status p with
+    let status = get_status p in
+    let emitted_status = match status with
       | Never_tried | Inconsistent _ -> Dont_know
       | Best(s, _) -> s
     in
-    if is_not_verifiable_but_valid p (Best(s, [])) then 
-      True 
-    else 
-      s
+    if is_not_verifiable_but_valid p status then True else emitted_status
   in
   List.fold_left (fun s p -> conjunction s (local_get p)) True properties
 
@@ -807,10 +825,7 @@ Check your axiomatics and implicit hypotheses."
   let reduce_hypothesis_status ppt = function
     | Never_tried | Inconsistent _ ->
       let singleton_map v = 
-	Usable_emitter.Map.add 
-	  usable_kernel_emitter 
-	  v
-	  Usable_emitter.Map.empty
+	Usable_emitter.Map.singleton usable_kernel_emitter v
       in
       Unknown (singleton_map (singleton_map (Property.Set.singleton ppt)))
     | Invalid_under_hyp m -> Unknown m
@@ -873,8 +888,6 @@ Check your axiomatics and implicit hypotheses."
       assert (Usable_emitter.Map.is_empty issues);
       Valid Usable_emitter.Set.empty, issues
 
-  let singleton_map e m = Usable_emitter.Map.add e m Usable_emitter.Map.empty
-
   (* compute the best status [s] and add the emitter [e] if it computes [s] *)
   let choose_best_emitter old_status e (status, issues) = 
     match old_status, status with
@@ -897,8 +910,9 @@ either status %a or %a not allowed when choosing the best emitter@]"
 
     (* first status encountered: keep it *)
     | Never_tried, Valid _ -> Valid (Usable_emitter.Set.singleton e)
-    | Never_tried, Invalid _ -> Invalid_but_dead (singleton_map e issues)
-    | Never_tried, Unknown _ -> Unknown (singleton_map e issues)
+    | Never_tried, Invalid _ -> 
+      Invalid_but_dead (Usable_emitter.Map.singleton e issues)
+    | Never_tried, Unknown _ -> Unknown (Usable_emitter.Map.singleton e issues)
 
     (* the old computed status remains the best one *)
     | (Valid _ | Invalid_but_dead _), Unknown _ -> 
@@ -906,7 +920,8 @@ either status %a or %a not allowed when choosing the best emitter@]"
 
     (* [e] is the best *)
     | Unknown _, Valid _ -> Valid (Usable_emitter.Set.singleton e)
-    | Unknown _, Invalid _ -> Invalid_but_dead (singleton_map e issues)
+    | Unknown _, Invalid _ -> 
+      Invalid_but_dead (Usable_emitter.Map.singleton e issues)
 
     (* [e] is as good as the previous best emitter *)
     | Valid set, Valid _ -> Valid (Usable_emitter.Set.add e set)
@@ -937,10 +952,7 @@ Invalid for: %a (at least).@]"
 	   e)
 
   let mk_issue e ppt = 
-    Usable_emitter.Map.add
-      e
-      (Property.Set.singleton ppt) 
-      Usable_emitter.Map.empty
+    Usable_emitter.Map.singleton e (Property.Set.singleton ppt) 
 
   let issues_without_emitter issues = 
     Usable_emitter.Map.fold
@@ -993,10 +1005,9 @@ either status %a or %a not allowed when merging status@]"
     | Valid set, (Local.Inconsistent i as s) ->
       let mk = 
 	let internal_map = 
-	  Usable_emitter.Map.add 
+	  Usable_emitter.Map.singleton
 	    usable_kernel_emitter
 	    (Property.Set.singleton ppt)
-	    Usable_emitter.Map.empty
 	in
 	List.fold_left
 	  (fun acc ep -> 
@@ -1043,26 +1054,46 @@ either status %a or %a not allowed when merging status@]"
 
   let visited_ppt = Property.Hashtbl.create 97
 
+  (* convert a local status into a consolidated one,
+     but ignore hypotheses *)
+  let consolidate_of_local_when_cycle ppt = 
+    match get_status ~must_register:false ppt with
+    | Local.Never_tried -> Never_tried
+    | Best(True, _) -> Considered_valid
+    | Best((False_if_reachable | False_and_reachable), _) -> 
+      (* no cycle is possible *)
+      Kernel.fatal "invalid cycle for invalid property %a" Property.pretty ppt
+    | Best(Dont_know, _) | Local.Inconsistent _ -> 
+      Unknown 
+	(Emitter.Usable_emitter.Map.singleton
+	   usable_kernel_emitter
+	   (Emitter.Usable_emitter.Map.singleton
+	      usable_kernel_emitter
+	      (Property.Set.singleton ppt)))
+
   let consolidate_reachable ppt = 
-    let reach_ppt = Property.ip_reachable_ppt ppt in
-    match get_status ~must_register:false reach_ppt with
-    | Best(False_and_reachable, _) -> 
+    match ppt with
+    | Property.IPReachable _ -> ()
+    | _ ->
+      let reach_ppt = Property.ip_reachable_ppt ppt in
+      match get_status ~must_register:false reach_ppt with
+      | Best(False_and_reachable, _) -> 
       (* someone proves unreachability of [ppt] *)
-      (try
-	 let by_emitter = Status.find ppt in
+	(try
+	   let by_emitter = Status.find ppt in
 	 (* someone emits a status for [ppt]: add (reachable ppt) to
 	    hypotheses of [ppt] if that is not already the case *)
-	 Emitter_with_properties.Hashtbl.iter
-	   (fun e _ -> 
-	     if List.for_all
-	       (fun p -> not (Property.equal p reach_ppt)) 
-	       e.properties
-	     then
-	       e.properties <- reach_ppt :: e.properties)
-	   by_emitter
-       with Not_found ->
+	   Emitter_with_properties.Hashtbl.iter
+	     (fun e _ -> 
+	       if List.for_all
+		 (fun p -> not (Property.equal p reach_ppt)) 
+		 e.properties
+	       then
+		 e.properties <- reach_ppt :: e.properties)
+	     by_emitter
+	 with Not_found ->
 	(* no-one emits a status for [ppt]: add an unknown status *)
-	())
+	   ())
       | Local.Never_tried
       | Local.Best((True | Dont_know), _)
       | Local.Inconsistent _ -> 
@@ -1080,13 +1111,13 @@ either status %a or %a not allowed when merging status@]"
       | Local.Never_tried -> Never_tried
       | Best(_, l) as local -> 
 	let status = compute_deps_status l in
-	  (*	      Kernel.feedback "status of hypotheses of %a: %a" 
-		      Property.pretty ppt
-		      pretty hyps_status;*)
+(*	Kernel.feedback "status of hypotheses of %a: %a" 
+	  Property.pretty ppt
+	  pretty status;*)
 	let s = merge_hypotheses_and_local_status ppt status local in
-	  (*	      Kernel.feedback "consolidated status of %a: %a" 
-		      Property.pretty ppt
-		      pretty s;*)
+(*	Kernel.feedback "consolidated status of %a: %a" 
+	  Property.pretty ppt
+	  pretty s;*)
 	s
       | Local.Inconsistent { valid = valid; invalid = invalid } as local -> 
 	let hyps_status = compute_deps_status (valid @ invalid) in
@@ -1098,17 +1129,17 @@ either status %a or %a not allowed when merging status@]"
     | Several
     
   let rec memo_consolidated e path ppt =
-    Consolidated_status.memo 
+    Consolidated_status.memo
       (fun ppt ->
 	if Property.Hashtbl.mem visited_ppt ppt then begin
-	  Considered_valid
+	  consolidate_of_local_when_cycle ppt
 (* [JS 2011/11/04] use the following code (to be tested) as soon as WP uses the
    new function [legal_dependency_cycle] *)
 (*	  match e with
 	  | Not_yet -> assert false
 	  | Single e -> 
 	    if Valid_cycles.mem e path then 
-	      Considered_valid
+	      consolidate_of_local_when_cycle ppt
 	    else 
 	      Kernel.fatal
 		"illegal dependency cycle for emitter %a"
@@ -1208,7 +1239,7 @@ broken:@ status %a not allowed when simplifying hypothesis status@]"
 
   let get_conjunction ppts =
     let tmp = Property.ip_other "$Feedback.tmp$" None Cil_types.Kglobal in
-    logical_consequence Emitter.kernel tmp ppts ;
+    logical_consequence Emitter.kernel tmp ppts;
     let s = get tmp in
     remove tmp ;
     Consolidated_status.remove tmp ;
@@ -1259,7 +1290,7 @@ module Consolidation_graph = struct
     | Property of Property.t
     | Emitter of string
     | Tuning_parameter of string
-    | Correctness_parameter of string
+(*    | Correctness_parameter of string*)
 
   module Vertex = struct
 
@@ -1269,11 +1300,11 @@ module Consolidation_graph = struct
       | Property p1, Property p2 -> Property.compare p1 p2
       | Emitter s1, Emitter s2 -> String.compare s1 s2
       | Tuning_parameter s1, Tuning_parameter s2
-      | Correctness_parameter s1, Correctness_parameter s2 ->
+(*      | Correctness_parameter s1, Correctness_parameter s2*) ->
 	String.compare s1 s2
       | Property _, _ 
-      | Emitter _, (Tuning_parameter _ | Correctness_parameter _)
-      | Tuning_parameter _, Correctness_parameter _ -> 1
+      | Emitter _, (Tuning_parameter _ (*| Correctness_parameter _*))
+(*      | Tuning_parameter _, Correctness_parameter _*) -> 1
       | _, _ -> -1
 
     let equal v1 v2 = compare v1 v2 = 0
@@ -1282,7 +1313,7 @@ module Consolidation_graph = struct
       | Property p -> Caml_hashtbl.hash (0, Property.hash p)
       | Emitter s -> Caml_hashtbl.hash (1, s)
       | Tuning_parameter s -> Caml_hashtbl.hash (2, s)
-      | Correctness_parameter s -> Caml_hashtbl.hash (3, s)
+(*      | Correctness_parameter s -> Caml_hashtbl.hash (3, s)*)
 
   end
 
@@ -1302,13 +1333,15 @@ module Consolidation_graph = struct
   module Graph_by_property =
     State_builder.Hashtbl
       (Property.Hashtbl)
-      (Datatype.Make
-	 (struct
-	   type t = G.t
-	   let name = "consolidation graph"
-	   let reprs = [ G.empty ]
-	   include Datatype.Serializable_undefined
-	  end))
+      (Datatype.Pair
+	 (Datatype.Make
+	    (struct
+	      type t = G.t
+	      let name = "consolidation graph"
+	      let reprs = [ G.empty ]
+	      include Datatype.Serializable_undefined
+	     end))
+	 (Datatype.Bool) (* is the graph truncated? *))
       (struct
 	let name = "Consolidation graph"
 	let size = 97
@@ -1325,34 +1358,48 @@ module Consolidation_graph = struct
   let already_done = Property.Hashtbl.create 17
 
   let rec get ppt =
-    Graph_by_property.memo
-      (fun ppt ->
-	(* [JS 2011/07/21] Only the better proof is added on the graph.  For
+    let compute ppt =
+      Kernel.feedback "BUILDING GRAPH of %a" Property.pretty ppt;
+	(* [JS 2011/07/21] Only the better proof is added on the graph. For
 	   instance, if the consolidated status is valid thanks to WP, it does
 	   not show the dont_know proof tried by Value. *)
-	if Property.Hashtbl.mem already_done ppt then G.empty
-	else begin
-	  Property.Hashtbl.add already_done ppt ();
-	  let v_ppt = Property ppt in
+      if Property.Hashtbl.mem already_done ppt then
+	G.empty, true
+      else begin
+	Kernel.feedback "MARK %a" Property.pretty ppt;
+	Property.Hashtbl.add already_done ppt ();
+	let v_ppt = Property ppt in
 	  (* adding the property *)
-	  let g = G.add_vertex G.empty v_ppt in
-	  match get_status ppt with
-	  | Never_tried -> g
-	  | Best(s, emitters) -> 
-	    get_emitters g v_ppt s emitters
-	  | Inconsistent i ->
-	    let g = get_emitters g v_ppt True i.valid in
+	let g = G.add_vertex G.empty v_ppt in
+	match get_status ppt with
+	| Never_tried -> g, false
+	| Best(s, emitters) -> 
+	  get_emitters g v_ppt s emitters
+	| Inconsistent i ->
+	  let g, truncated1 = get_emitters g v_ppt True i.valid in
+	  let g, truncated2 = 
 	    get_emitters g v_ppt False_and_reachable i.invalid
-	end)
-      ppt
+	  in
+	  g, truncated1 || truncated2
+      end
+    in
+    let change (_, truncated as data) = 
+      if truncated then compute ppt else data 
+    in
+    Graph_by_property.memo ~change compute ppt
 
   and get_emitters g v_ppt s l =
+    assert (l <> []);
     List.fold_left
-      (fun g e -> 
+      (fun (g, b) e -> 
 	let emitter = e.emitter in
 	let v_e = Emitter (Usable_emitter.get_unique_name emitter) in
 	(* adding the emitter with its computed status *)
 	let g = G.add_edge_e g (v_ppt, Some s, v_e) in
+	Kernel.feedback "%a --> %a (%a)" 
+	  Property.pretty (match v_ppt with Property p -> p | _ -> assert false)
+	  Usable_emitter.pretty emitter
+	  Emitted_status.pretty s;
 	let g = 
 	  (* adding the tuning parameters *)
 	  Datatype.String.Set.fold
@@ -1362,28 +1409,33 @@ module Consolidation_graph = struct
 	    (distinct_tuning_parameters emitter)
 	    g
 	in
-	let g =
+(*	let g =
 	  (* adding the correctness parameters *)
 	  Datatype.String.Set.fold
 	    (fun p g -> 
 	      let s = get_parameter_string ~tuning:false emitter p in
-	      (* G.add_edge g v_e *)ignore (Correctness_parameter s); g)
+	      G.add_edge g v_e (Correctness_parameter s); g)
 	    (distinct_correctness_parameters emitter)
 	    g
-	in
+	in*)
 	(* adding the hypotheses *)
-	List.fold_left
-	  (fun g h -> 
-	    let g' = get h in
-	    let union = G.fold_edges_e (fun e g -> G.add_edge_e g e) g g' in
-	    G.add_edge union v_ppt (Property h))
-	  g
-	  e.properties)
-      g
+	let g, truncated =
+	  List.fold_left
+	    (fun (g, b) h -> 
+	      let g', truncated = get h in
+	      let union = G.fold_edges_e (fun e g -> G.add_edge_e g e) g g' in
+	      G.add_edge union v_ppt (Property h), b || truncated)
+	    (g, false)
+	    e.properties
+	in
+	g, b || truncated)
+      (g, false)
       l
 
   let get ppt =
-    let g = get ppt in
+    Kernel.feedback "GET %a" Property.pretty ppt;
+    let g, truncated = get ppt in
+    if truncated then Graph_by_property.replace ppt (g, false);
     Property.Hashtbl.clear already_done;
     g
 
@@ -1411,14 +1463,16 @@ module Consolidation_graph = struct
             let vertex_name v = 
 	      let s = match v with
 		| Property p -> Property.Names.get_prop_name_id p
-		| Emitter s | Tuning_parameter s | Correctness_parameter s -> s
+		| Emitter s | Tuning_parameter s (*| Correctness_parameter s*)
+		  -> s
 	      in 
 	      Pretty_utils.sfprintf "\"%s\"" s
 
 	    let label v =
 	      let s = match v with
 		| Property p -> Pretty_utils.sfprintf "%a" Property.pretty p
-		| Emitter s | Tuning_parameter s | Correctness_parameter s -> s
+		| Emitter s | Tuning_parameter s (*| Correctness_parameter s*)
+		  -> s
 	      in 
 	      `Label (String.escaped s)
 
@@ -1427,21 +1481,21 @@ module Consolidation_graph = struct
                 let s = get_status p in
 		let color = status_color p s in
                 let style = match s with
-                  | Never_tried -> [`Style `Bold; `Width 0.8 ]
-                  | _ -> [`Style `Filled]
+                  | Never_tried -> [`Style [`Bold]; `Width 0.8 ]
+                  | _ -> [`Style [`Filled]]
                 in
 		style @ [ label v; `Color color; `Shape `Box ]
               | Emitter _ as v -> 
-		[ label v; `Shape `Diamond; `Color 0xb0c4de; `Style `Filled ]
+		[ label v; `Shape `Diamond; `Color 0xb0c4de; `Style [`Filled] ]
               | Tuning_parameter _ as v ->
 		[ label v; (*`Style `Dotted;*) `Color 0xb0c4de;  ]
-	      | Correctness_parameter _ (*as v*) -> assert false (*[ label v; `Color 0xb0c4de ]*)
+	      (*| Correctness_parameter _ (*as v*) -> assert false (*[ label v; `Color 0xb0c4de ]*)*)
 
 	    let edge_attributes e = match E.label e with
 	      | None -> []
 	      | Some s ->
 		let c = emitted_status_color s in
-		[ `Color c; `Fontcolor c; `Style `Bold ]
+		[ `Color c; `Fontcolor c; `Style [`Bold] ]
 
         let default_vertex_attributes _ = []
         let default_edge_attributes _ = []

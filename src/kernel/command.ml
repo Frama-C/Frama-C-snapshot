@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -20,7 +20,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
-let safe_close_out outc = try close_out outc with _ -> ()
+let safe_close_out outc = try close_out outc with Sys_error _ -> ()
+let safe_close_in inc = try close_in inc with Sys_error _ -> ()
 
 (* -------------------------------------------------------------------------- *)
 (* --- File Utilities                                                     --- *)
@@ -68,13 +69,13 @@ let rec bincopy buffer cin cout =
 
 let on_inc file job =
   let inc = open_in file in
-  try job inc ; close_in inc
-  with e -> close_in inc ; raise e
+  let finally () = safe_close_in inc in
+  Extlib.try_finally ~finally job inc
 
 let on_out file job =
   let out = open_out file in
-  try job out ; safe_close_out out
-  with e -> safe_close_out out ; raise e
+  let finally () = safe_close_out out in
+  Extlib.try_finally ~finally job out
 
 let copy src tgt =
   on_inc src
@@ -85,12 +86,8 @@ let copy src tgt =
 
 let read_file file job =
   let inc = open_in file in
-  try
-    let r = job inc in
-    close_in inc ; r
-  with err ->
-    close_in inc ;
-    raise err
+  let finally () = safe_close_in inc in
+  Extlib.try_finally ~finally job inc
 
 let read_lines file job =
   read_file file 
@@ -104,24 +101,15 @@ let read_lines file job =
 let write_file file job =
   assert (file <> "");
   let out = open_out file in
-  try 
-    let r = job out in
-    flush out ;
-    close_out out ; r
-  with err ->
-    close_out out ;
-    raise err
+  let finally () = flush out; safe_close_out out in
+  Extlib.try_finally ~finally job out
 
 let print_file file job =
   write_file file
     (fun out ->
        let fmt = Format.formatter_of_out_channel out in
-       try 
-	 let r = job fmt in
-	 Format.pp_print_flush fmt () ; r
-       with err ->
-	 Format.pp_print_flush fmt () ;
-	 raise err)
+       let finally () = Format.pp_print_flush fmt () in
+       Extlib.try_finally ~finally job fmt)
 
 (* -------------------------------------------------------------------------- *)
 (* --- Timing                                                             --- *)

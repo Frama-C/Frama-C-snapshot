@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -52,6 +52,9 @@ val unmarshable: 'a t
 
 val is_unmarshable: 'a t -> bool
 (** @since Carbon-20101201 *)
+
+val is_abstract: 'a t -> bool
+(** @since Neon-20130301 *)
 
 (* ********************************************************************** *)
 (** {2 Type descriptor builders} *)

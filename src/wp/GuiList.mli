@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -29,6 +29,7 @@ object
 
   method show : Wpo.t -> unit
   method on_click : (Wpo.t -> VCS.prover option -> unit) -> unit
+  method on_right_click : (Wpo.t -> VCS.prover option -> unit) -> unit
   method on_double_click : (Wpo.t -> VCS.prover option -> unit) -> unit
   method reload : unit
   method update : Wpo.t -> unit

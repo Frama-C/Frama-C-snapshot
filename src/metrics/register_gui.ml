@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -162,7 +162,7 @@ module CyclomaticMetricsGUI = struct
         match localizable with
           | PVDecl (Some kf, _) ->
             let callback1 () =
-              Metrics_parameters.Metrics.debug "cyclo_selector - callback";
+              Metrics_parameters.debug "cyclo_selector - callback";
               self#display_localizable localizable  ()
             in
 	    let callback2 () =

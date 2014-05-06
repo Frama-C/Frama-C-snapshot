@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -22,7 +22,6 @@
 
 open Cil_types
 open Cil
-open Db
 open Locations
 
 
@@ -37,15 +36,16 @@ class virtual do_it_ = object(self)
   method join new_ =
     derefs <- Zone.join new_ derefs;
 
-  method vlval (base,_ as lv) =
+  method! vlval (base,_ as lv) =
     begin match base with
       | Var _ -> ()
       | Mem e ->
           let state =
-            Value.get_state
-              (Kstmt (Extlib.the self#current_stmt))
+            Db.Value.get_state (Kstmt (Extlib.the self#current_stmt))
           in
-          let r = !Value.eval_expr ~with_alarms:CilE.warn_none_mode state e in
+          let r = 
+	    !Db.Value.eval_expr ~with_alarms:CilE.warn_none_mode state e 
+	  in
           let loc = loc_bytes_to_loc_bits r in
           let size = Bit_utils.sizeof_lval lv in
           self#join
@@ -88,7 +88,7 @@ module Externals =
 let get_external =
   Externals.memo
     (fun kf ->
-       !Value.compute ();
+       !Db.Value.compute ();
        if Kernel_function.is_definition kf then
          try
            externalize

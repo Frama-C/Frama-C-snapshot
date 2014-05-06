@@ -35,3 +35,15 @@ int h(int x, int c) { return c>0 ? x+1 : c<0 ? x-1: x; }
 
 /*@ requires \valid((\union(a,b))[0..1]);*/
 int foo(int **a, int **b) { return 0; }
+
+/*@ predicate reject1{L}(char *a) = a[0..1] < 10; */
+/*@ predicate reject2{L}(char *a) = a[0..1] > 10; */
+/*@ predicate reject3{L}(char *a) = 10 < a[0..1]; */
+/*@ predicate reject4{L}(char *a) = 10 > a[0..1]; */
+
+/*@ predicate test_singleton_1(int* a, int x) = x == a[0..1]; */ 
+/*@ predicate test_singleton_2(int *a) = a[0..1] == 0; */
+
+int A[100];
+/*@ ensures \subset(\result,&A[0..]) ; */
+int *AA(void);

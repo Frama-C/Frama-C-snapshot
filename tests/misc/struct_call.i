@@ -1,6 +1,6 @@
 /* run.config
-   OPT: -memory-footprint 1 -val -deps -out -input -journal-disable
-   OPT: -memory-footprint 1 -val -deps -out -input -journal-disable -machdep ppc_32
+   OPT: -val -deps -out -input -journal-disable
+   OPT: -val -deps -out -input -journal-disable -machdep ppc_32
 */
 int G= 77;
 int GG;

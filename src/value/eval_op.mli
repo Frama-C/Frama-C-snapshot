@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -33,8 +33,14 @@ val wrap_int: V.t -> V_Offsetmap.t option
 val wrap_ptr: V.t -> V_Offsetmap.t option
 val wrap_double: V.t -> V_Offsetmap.t option
 
-(** Reads the contents of the offsetmap (assuming it contains) [sizeof(typ)]
-    bytes as a value of type V.t, then convert the result to type [typ] *)
+(** Reads the contents of the offsetmap (assuming it contains [sizeof(typ)]
+    bytes), and return them as an uninterpreted value. *)
+val v_uninit_of_offsetmap:
+  with_alarms:CilE.warn_mode ->
+  typ:Cil_types.typ -> V_Offsetmap.t -> V_Or_Uninitialized.t
+
+(** Reads the contents of the offsetmap (assuming it contains [sizeof(typ)]
+    bytes) as a value of type V.t, then convert the result to type [typ] *)
 val v_of_offsetmap:
   with_alarms:CilE.warn_mode ->
   typ:Cil_types.typ -> V_Offsetmap.t -> V.t
@@ -83,7 +89,8 @@ val eval_unop:
   Cil_types.unop -> Cvalue.V.t
 
 val handle_overflow:
-  with_alarms:CilE.warn_mode -> Cil_types.typ -> Cvalue.V.t -> Cvalue.V.t
+  with_alarms:CilE.warn_mode ->
+  warn_unsigned:bool -> Cil_types.typ -> Cvalue.V.t -> Cvalue.V.t
 
 val do_promotion:
   with_alarms:CilE.warn_mode ->
@@ -93,9 +100,9 @@ val do_promotion:
   Cvalue.V.t -> (Format.formatter -> unit) -> Cvalue.V.t
 
 type reduce_rel_int_float = {
-  reduce_rel_symetric :
+  reduce_rel_symmetric :
     bool -> binop -> Cvalue.V.t -> Cvalue.V.t -> Cvalue.V.t;
-  reduce_rel_antisymetric :
+  reduce_rel_antisymmetric :
     typ_loc:typ ->
     bool -> binop -> Cvalue.V.t -> Cvalue.V.t -> Cvalue.V.t;
 }
@@ -103,8 +110,17 @@ val reduce_rel_int : reduce_rel_int_float
 val reduce_rel_float : bool -> reduce_rel_int_float
 
 val eval_float_constant:
-  with_alarms:CilE.warn_mode -> float -> fkind -> Cvalue.V.t
+  with_alarms:CilE.warn_mode -> float -> fkind -> string option -> Cvalue.V.t
+(** The arguments are the approximate float value computed during parsing, the
+    size of the floating-point type, and the string representing the initial
+    constant if available. Return an abstract value that may be bottom if the
+    constant is outside of the representable range, or that may be imprecise
+    if it is not exactly representable. *)
 
+
+(** Change all offsets to top_int. Currently used to approximate volatile
+    values. *)
+val light_topify: Cvalue.V.t -> Cvalue.V.t
 
 (*
 Local Variables:

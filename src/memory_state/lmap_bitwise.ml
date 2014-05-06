@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -30,6 +30,8 @@ module type Location_map_bitwise = sig
 
   type y
   include Datatype.S
+  include Lattice_type.Bounded_Join_Semi_Lattice with type t := t
+  include Lattice_type.With_Top with type t := t
 
   module LOffset: sig
     include Datatype.S
@@ -49,13 +51,12 @@ module type Location_map_bitwise = sig
   end
 
   val empty : t
-  val bottom: t
   val is_empty : t -> bool
   val is_bottom : t -> bool
-  val top : t
-  val join : t -> t -> t
 
-  val is_included : t -> t -> bool
+  val pretty_generic_printer:
+    y Pretty_utils.formatter -> string -> t Pretty_utils.formatter
+
   val add_binding : exact:bool -> t -> Zone.t -> y -> t
   val map_and_merge : (y -> y) -> t -> t -> t
   val filter_base : (Base.t -> bool) -> t -> t
@@ -72,7 +73,6 @@ module type Location_map_bitwise = sig
   val map2 : ((bool * y) option -> (bool * y) option -> bool * y)
       -> t -> t -> t
   val copy_paste :
-    with_alarms:CilE.warn_mode ->
     f:(bool * y -> bool * y) ->
     location -> location -> t -> t
 
@@ -80,7 +80,8 @@ module type Location_map_bitwise = sig
 end
 
 module type With_default = sig
-  include Lattice
+  include Lattice_type.Bounded_Join_Semi_Lattice
+  include Lattice_type.With_Top with type t := t
   val default : Base.t -> Int.t -> Int.t -> t
   val defaultall : Base.t ->  t
 end
@@ -124,29 +125,28 @@ module Make_bitwise (V:With_default) = struct
 
   let top = Top
 
-  let pretty fmt m =
+  let pretty_generic_printer printer sep fmt m =
     match m with
-    | Top -> Format.fprintf fmt "@[<v>FROMTOP@]"
-    | Bottom -> Format.fprintf fmt "@[<v>UNREACHABLE_B@]"
+    | Top -> Format.fprintf fmt "@[%sTOP@]" sep
+    | Bottom -> Format.fprintf fmt "@[%sUNREACHABLE@]" sep
     | Map m ->
-        Format.fprintf fmt "@[<v>";
-        (LBase.iter
-          (fun base offs ->
-             Format.fprintf fmt "%a@[<v>%a@]@,"
-               Base.pretty base
-               (LOffset.pretty_with_type (Base.typeof base))
-               offs
-          )
-          m);
-        Format.fprintf fmt "@]"
+      let pp_one fmt (base, offs) =
+        Format.fprintf fmt "@[%a@[<v>%a@]@]"
+          Base.pretty base
+          (LOffset.pretty_with_type_generic_printer
+             (Base.typeof base) printer sep) offs
+      in
+      Pretty_utils.pp_iter ~pre:"@[<v>" ~sep:"@ " ~suf:"@]"
+        (Extlib.iter_uncurry2 LBase.iter) pp_one fmt m
+
+  let pretty = pretty_generic_printer V.pretty "FROM"
 
   include Datatype.Make
       (struct
         type t = tt
         let reprs = Top :: List.map (fun b -> Map b) LBase.reprs
         let structural_descr =
-          Structural_descr.Structure
-            (Structural_descr.Sum [| [| LBase.packed_descr |] |])
+	  Structural_descr.t_sum [| [| LBase.packed_descr |] |]
          let name = LOffset.name ^ " lmap_bitwise"
         let hash = hash
         let equal = equal
@@ -225,37 +225,17 @@ module Make_bitwise (V:With_default) = struct
        in Map result
    | _, Bottom -> assert false
 
+ let join_on_map =
+   let decide_none _ m = LOffset.joindefault m in
+   let decide_some = LOffset.join in
+   LBase.symmetric_merge
+     ~cache:("lmap_bitwise.join", ()) ~decide_none ~decide_some
+
  let join m1 m2 =
    let result = match m1, m2 with
    | Top, _ | _, Top -> Top
    | Bottom, m | m, Bottom -> m
-   | Map m1, Map m2 ->
-       let treat_base varid offsmap1 acc =
-         let offsmap =
-         try
-           let offsmap2 = LBase.find varid m2 in
-           LOffset.join offsmap1 offsmap2
-         with Not_found ->
-           LOffset.joindefault offsmap1
-         in
-         LBase.add varid offsmap acc
-       in
-       let all_m1 = LBase.fold treat_base m1 LBase.empty in
-       let result =
-         LBase.fold
-           (fun varid offsmap2 acc ->
-              try
-                ignore (LBase.find varid m1);
-                acc
-              with Not_found ->
-                LBase.add
-                  varid
-                  (LOffset.joindefault offsmap2)
-                  acc)
-           m2
-           all_m1
-       in
-       Map result
+   | Map m1, Map m2 -> Map (join_on_map m1 m2)
    in
    (*Format.printf "JoinBitWise: m1=%a@\nm2=%a@\nRESULT=%a@\n"
      pretty m1
@@ -263,53 +243,32 @@ module Make_bitwise (V:With_default) = struct
      pretty result;*)
    result
 
+
+ let map2_on_map f =
+   let decide _b om1 om2 = match om1, om2 with
+     | None, None -> assert false (* decide is never called in this case *)
+     | Some m1, None -> LOffset.map (fun x -> f (Some x) None) m1
+     | None, Some m2 -> LOffset.map (fun x -> f None (Some x)) m2
+     | Some m1, Some m2 -> LOffset.map2 f m1 m2
+   in
+   LBase.generic_merge ~cache:("", false) ~idempotent:false ~decide
+
   let map2 f m1 m2 =
     match m1, m2 with
-      | Top, _ | _, Top ->
-          Top
-      | Map m1, Map m2 ->
-         let treat_base varid offsmap1 acc =
-           let offsmap_result =
-             try
-               let offsmap2 = LBase.find varid m2 in
-                 LOffset.map2 f offsmap1 offsmap2
-             with Not_found ->
-               LOffset.map (fun x -> f (Some x) None) offsmap1
-
-           in
-             LBase.add varid offsmap_result acc
-         in
-         let all_m1 = LBase.fold treat_base m1 LBase.empty in
-         let result =
-           LBase.fold
-             (fun varid offsmap2 acc ->
-                try
-                  ignore (LBase.find varid m1);
-                  acc
-                with Not_found ->
-                  let offsetmap =
-                    LOffset.map (fun x -> f None (Some x)) offsmap2
-                  in
-                    LBase.add varid offsetmap acc)
-             m2
-             all_m1
-         in
-         Map result
+      | Top, _ | _, Top -> Top
       | Bottom, Bottom -> Bottom
-      | Bottom, Map m ->
-          Map (LBase.fold
-                 (fun base offs acc ->
-                    let offs = LOffset.map (fun x -> f None (Some x)) offs in
-                    LBase.add base offs acc)
-                 m LBase.empty)
-      | Map m, Bottom ->
-          Map (LBase.fold
-                 (fun base offs acc ->
-                    let offs = LOffset.map (fun x -> f (Some x) None) offs in
-                    LBase.add base offs acc)
-                 m LBase.empty)
+      | Map m1, Map m2 -> Map (map2_on_map f m1 m2)
+      | Bottom, Map m -> Map (map2_on_map f LBase.empty m)
+      | Map m, Bottom -> Map (map2_on_map f m LBase.empty)
 
-          
+ let is_included_map =
+   let name = Pretty_utils.sfprintf "Lmap_bitwise(%s).is_included" V.name in
+   let decide_fst _b offs1 = LOffset.is_included offs1 LOffset.empty in
+   let decide_snd _b offs2 = LOffset.is_included LOffset.empty offs2 in
+   let decide_both _ offs1 offs2 = LOffset.is_included offs1 offs2 in
+   LBase.binary_predicate (LBase.PersistentCache name) LBase.UniversalPredicate
+     ~decide_fast:LBase.decide_fast_inclusion
+     ~decide_fst ~decide_snd ~decide_both
 
  let is_included m1 m2 =
    match m1, m2 with
@@ -317,82 +276,36 @@ module Make_bitwise (V:With_default) = struct
     | Top ,_ -> false
     | Bottom, _ -> true
     | _, Bottom -> false
-    | Map m1, Map m2 ->
-        let treat_offset1 varid offs1  =
-        let offs2 =
-          try
-            LBase.find varid m2
-          with Not_found -> LOffset.empty
-        in
-        LOffset.is_included_exn offs1 offs2
-        in
-       let treat_offset2 varid offs2  =
-        try
-          ignore (LBase.find varid m1); ()
-        with Not_found ->
-          LOffset.is_included_exn LOffset.empty offs2
-       in
-         try
-           LBase.iter treat_offset1 m1;
-           LBase.iter treat_offset2 m2;
-           true
-         with
-             Is_not_included -> false
-(*
-  let join x y =
-    let r1 = join x y in
-    let r2 =
-      map2
-        (fun x y ->
-           match x,y with
-             | Some (bx, x), Some (by, y) -> bx || by, V.join x y
-             | Some (_, x), None | None, Some (_, x) -> true, x
-             | None, None -> assert false)
-        x y
-    in
-    if not (is_included r1 r2 && is_included r2 r1)
-    then begin
-      Format.printf "Warning: Joining '%a' and '%a' to '%a' /// '%a'@."
-        pretty x pretty y pretty r1 pretty r2;
-    end;
-    r1
-*)
+    | Map m1, Map m2 -> is_included_map m1 m2
+
+ let join_and_is_included m1 m2 = match (m1,m2) with
+   | _, Top -> (Top, true)
+   | Top, _ -> (Top, false)
+   | Bottom, m2 -> (m2, true)
+   | m1, Bottom -> (m1, false)
+   | Map mm1, Map mm2 ->
+     let m = join_on_map mm1 mm2 in
+     if LBase.equal m mm2 then m2, true else Map m, false
+
+
+ let map_and_merge_on_map f =
+   let decide _b om1 om2 = match om1, om2 with
+     | None, None -> assert false (* decide is never called in this case *)
+     | Some m1, None -> LOffset.map (fun (b, v) -> b, f v) m1
+     | None, Some m2 -> m2
+     | Some m1, Some m2 -> LOffset.map_and_merge f m1 m2
+   in
+   LBase.generic_merge
+     ~cache:("lmap_bitwise.map_and_merge", false) ~idempotent:false ~decide
 
  let map_and_merge f (m_1:t) (m_2:t) =
    match m_1,m_2 with
    | Top,_ | _, Top -> Top
    | Bottom, Bottom -> Bottom
    | Bottom, Map _ -> m_2
-   | Map m, Bottom ->
-       Map
-         (LBase.fold
-            (fun b m acc ->
-               let m = LOffset.map (fun (b, v) -> b, f v) m in
-               LBase.add b m acc
-            ) m LBase.empty)
-   | Map m1, Map m2 ->
-       let result = LBase.fold
-         (fun k1 v1 acc ->
-(*            Format.printf "HERE :%a %a@\n" Base.pretty k1 (LOffset.pretty) v1; *)
-            let new_v = try
-              let v2 = LBase.find k1 m2 in
-              LOffset.map_and_merge f v1 v2
-            with Not_found ->
-              let result = LOffset.map (fun (d,v) -> d,f v) v1 in
-              result
-            in
-(*            Format.printf "RESULT:%a %a@\n" Base.pretty k1 (LOffset.pretty) new_v; *)
-            LBase.add k1 new_v acc)
-         m1
-         m2
-       in
-       let result = Map result in
-(*       Format.printf "map_and_merge %a and %a RESULT:%a @."
-         pretty m_1
-         pretty m_2
-         pretty result;
-*)
-       result
+   | Map m, Bottom -> Map (map_and_merge_on_map f m LBase.empty)
+   | Map m1, Map m2 -> Map (map_and_merge_on_map f m1 m2)
+
 
  let filter_base f m =
    match m with
@@ -414,7 +327,7 @@ module Make_bitwise (V:With_default) = struct
          let result =
            List.fold_left
              (fun acc v ->
-                let base = Base.create_varinfo v in
+                let base = Base.of_varinfo v in
                 let (i1,i2) =
                   match Base.validity base with
                   | Base.Invalid -> assert false (* map should be empty *)
@@ -484,7 +397,7 @@ module Make_bitwise (V:With_default) = struct
                     Base.pretty k_src
                     Ival.pretty i_src;*)
                   ignore (Ival.cardinal_less_than i_src 100);
-                  Ival.fold
+                  Ival.fold_int
                     (fun start acc ->
                       let stop = Int.pred (Int.add start size) in
                       match validity with
@@ -530,7 +443,7 @@ module Make_bitwise (V:With_default) = struct
           | Location_Bits.Error_Top (* from Location_Bits.fold *)
           | Not_less_than (* from Ival.cardinal_less_than *)
           | Int_Base.Error_Top  (* from Int_Base.project *)
-          | Ival.Error_Top (* from Ival.fold *) ->
+          | Ival.Error_Top (* from Ival.fold_int *) ->
               LOffset.empty
 
         end
@@ -543,7 +456,7 @@ module Make_bitwise (V:With_default) = struct
     result
 
 
-  let paste_offsetmap ~with_alarms map_to_copy dst_loc start size m =
+  let paste_offsetmap map_to_copy dst_loc start size m =
     let dst_is_exact =
       Locations.valid_cardinal_zero_or_one ~for_writing:true
         (Locations.make_loc dst_loc (Int_Base.inject size))
@@ -561,7 +474,7 @@ module Make_bitwise (V:With_default) = struct
           try
             ignore
               (Ival.cardinal_less_than i_dst plevel);
-            Ival.fold
+            Ival.fold_int
               (fun start_to acc ->
                 let stop_to = Int.pred (Int.add start_to size) in
                 match validity with
@@ -569,19 +482,11 @@ module Make_bitwise (V:With_default) = struct
                     raise Bitwise_cannot_copy
                 | Base.Known (b,e) | Base.Unknown (b,_,e) 
 		      when Int.lt start_to b || Int.gt stop_to e ->
-                    CilE.warn_mem_write with_alarms;
                     acc
                 | Base.Invalid ->
-                    CilE.warn_mem_write with_alarms;
                     acc
                 | Base.Known _ | Base.Unknown _ ->
                     had_non_bottom := true;
-		    (match validity with
-		      | Base.Unknown (_, None, _) ->
-                          CilE.warn_mem_write with_alarms
-                      | Base.Unknown (_, Some k, _) when Int.gt stop_to k ->
-                          CilE.warn_mem_write with_alarms
-		    | _ -> ());
                     (if dst_is_exact
                       then LOffset.copy_paste ~f:None
                       else LOffset.copy_merge)
@@ -627,12 +532,12 @@ module Make_bitwise (V:With_default) = struct
     | Int_Base.Error_Top  (* from Int_Base.project *) ->
         raise Bitwise_cannot_copy
 
-  let copy_paste ~with_alarms ~f src_loc dst_loc mm =
+  let copy_paste ~f src_loc dst_loc mm =
     let res =
       match mm with
       | Top -> Top
       | Bottom -> Bottom
-      | Map mm -> Map (copy_paste_map ~with_alarms ~f src_loc dst_loc mm)
+      | Map mm -> Map (copy_paste_map ~f src_loc dst_loc mm)
     in
 (*    Format.printf "Lmap.copy_paste orig: %a from src:%a to dst:%a result:%a@\n"
       pretty mm
@@ -640,11 +545,6 @@ module Make_bitwise (V:With_default) = struct
       Locations.pretty dst_loc
       pretty res;*)
     res
-
-end
-
-module From_Model = struct 
-  include Make_bitwise(Locations.Zone)
 
 end
 

@@ -1,0 +1,48 @@
+(**************************************************************************)
+(*                                                                        *)
+(*  The Why3 Verification Platform   /   The Why3 Development Team        *)
+(*  Copyright 2010-2013   --   INRIA - CNRS - Paris-Sud University        *)
+(*                                                                        *)
+(*  This software is distributed under the terms of the GNU Lesser        *)
+(*  General Public License version 2.1, with the special exception        *)
+(*  on linking described in file LICENSE.                                 *)
+(*                                                                        *)
+(*  File modified by CEA (Commissariat à l'énergie atomique et aux        *)
+(*                        énergies alternatives).                         *)
+(*                                                                        *)
+(**************************************************************************)
+
+(* this is a prelude for Alt-Ergo*)
+(** The theory BuiltIn_ must be appended to this file*)
+(** The theory Bool_ must be appended to this file*)
+(** The theory real_Real_ must be appended to this file*)
+logic abs_real : real -> real
+
+axiom abs_def : (forall x:real. ((0.0 <= x) -> (abs_real(x) = x)))
+
+axiom abs_def1 : (forall x:real. ((not (0.0 <= x)) -> (abs_real(x) = (-x))))
+
+axiom Abs_le :
+  (forall x:real. forall y:real. ((abs_real(x) <= y) -> ((-y) <= x)))
+
+axiom Abs_le1 :
+  (forall x:real. forall y:real. ((abs_real(x) <= y) -> (x <= y)))
+
+axiom Abs_le2 :
+  (forall x:real. forall y:real. ((((-y) <= x) and (x <= y)) ->
+  (abs_real(x) <= y)))
+
+axiom Abs_pos : (forall x:real. (0.0 <= abs_real(x)))
+
+axiom Abs_sum :
+  (forall x:real. forall y:real.
+  (abs_real((x + y)) <= (abs_real(x) + abs_real(y))))
+
+axiom Abs_prod :
+  (forall x:real. forall y:real.
+  (abs_real((x * y)) = (abs_real(x) * abs_real(y))))
+
+axiom triangular_inequality :
+  (forall x:real. forall y:real. forall z:real.
+  (abs_real((x - z)) <= (abs_real((x - y)) + abs_real((y - z)))))
+

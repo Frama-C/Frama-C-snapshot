@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -21,7 +21,8 @@
 (**************************************************************************)
 
 (** Type of AST's extensible printers. 
-    @since Fluorine-20130401 *)
+    @since Fluorine-20130401
+    @plugin development guide *)
 
 open Cil_types
 
@@ -45,7 +46,11 @@ class type extensible_printer_type = object
       printed. *)
 
   val mutable verbose: bool
-  (** more info is displayed when on verbose mode. *)
+  (** more info is displayed when on verbose mode. This flag is synchronized
+      with Frama-C's kernel being on debug mode. *)
+
+  val mutable is_ghost: bool
+  (**  are we printing ghost code? *)
 
   method reset: unit -> unit
 
@@ -84,6 +89,8 @@ class type extensible_printer_type = object
       print sequences of instructions separated by comma *)
 
   method private set_instr_terminator: string -> unit
+    
+  method private opt_funspec: Format.formatter -> funspec -> unit
 
   (* ******************************************************************* *)
   (** {3 Pretty-printing of C code} *)
@@ -321,6 +328,8 @@ type state =
 
 module type S = sig
 
+  val pp_varname: Format.formatter -> string -> unit
+
   (* ********************************************************************* *)
   (** {3 Printer for C constructs} *)
   (* ********************************************************************* *)
@@ -334,11 +343,7 @@ module type S = sig
 
   val pp_typ: Format.formatter -> typ -> unit
   val pp_exp: Format.formatter -> exp -> unit
-  (** @plugin development guide *)
-
   val pp_varinfo: Format.formatter -> varinfo -> unit
-  (** @plugin development guide *)
-
   val pp_lval: Format.formatter -> lval -> unit
   val pp_field: Format.formatter -> fieldinfo -> unit
   val pp_offset: Format.formatter -> offset -> unit
@@ -349,15 +354,10 @@ module type S = sig
   val pp_attrparam: Format.formatter -> attrparam -> unit
   val pp_attributes: Format.formatter -> attributes -> unit
   val pp_instr: Format.formatter -> instr -> unit
-  (** @plugin development guide *)
-
   val pp_label: Format.formatter -> label -> unit
   val pp_stmt: Format.formatter -> stmt -> unit
-  (** @plugin development guide *)
-
   val pp_block: Format.formatter -> block -> unit
   val pp_global: Format.formatter -> global -> unit
-
   val pp_file: Format.formatter -> file -> unit
 
   (* ********************************************************************* *)
@@ -432,12 +432,17 @@ module type S = sig
   (* ********************************************************************* *)
 
   class extensible_printer: unit -> extensible_printer_type
-(** Extend this class if you want to modify the default behavior of the
-    printer. *)
+  (** Extend this class if you want to modify the default behavior of the
+      printer. *)
 
   val change_printer: (unit -> extensible_printer) -> unit
   (** [change_printer extension] let the pp_* function use 
       [extension] as printer *)
+
+  val printer: unit -> extensible_printer
+(** @return the current printer.
+    @since Neon-20130301 *)
+
 end
 
 (*

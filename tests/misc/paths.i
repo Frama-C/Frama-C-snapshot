@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -memory-footprint 1 -experimental-path-deps -deps -journal-disable
+   OPT: -experimental-path-deps -deps -journal-disable
 */
 int a,b,c,d,e,i,d1,d2,d3,d4,X1,X2,X3,X4,X5,X;
 

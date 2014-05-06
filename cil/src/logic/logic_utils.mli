@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA   (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -38,11 +38,6 @@ exception Not_well_formed of Cil_types.location * string
 (** add a logic function in the environment.
     See {!Logic_env.add_logic_function_gen}*)
 val add_logic_function : logic_info -> unit
-
-(** creates a new term
-    @deprecated since Carbon-20101201 Use {!Logic_const.term} instead.
-*)
-val mk_dummy_term: term_node -> typ -> term
 
 (** {2 Types} *)
 
@@ -96,6 +91,11 @@ val is_C_array : term -> bool
 (** creates a TStartOf from an TLval. *)
 val mk_logic_StartOf : term -> term
 
+(** creates an AddrOf from a TLval. The given logic type is the
+    type of the lval.
+    @since Neon-20130301 *)
+val mk_logic_AddrOf: ?loc:Cil_types.location -> term_lval -> logic_type -> term
+
 (** [true] if the term is a pointer. *)
 val isLogicPointer : term -> bool
 
@@ -125,6 +125,10 @@ val remove_logic_coerce: term -> term
 val pointer_comparable: ?loc:location -> term -> term -> predicate named
 (** \pointer_comparable
     @since Fluorine-20130401 *)
+
+val points_to_valid_string: ?loc:location -> term -> predicate named
+(** \points_to_valid_string
+    @since Neon-20130301 *)
 
 (** {3 Conversion from exp to term}*)
 (** translates a C expression into an "equivalent" logical term.
@@ -167,8 +171,7 @@ val contains_result : term -> bool
 val get_pred_body :
   logic_info -> predicate named
 
-(** true if the term is \result or an offset of \result.
-    @deprecated since Carbon-20101201 use Logic_const².is_result instead *)
+(** true if the term is \result or an offset of \result. *)
 val is_result : term -> bool
 
 val lhost_c_type : term_lhost -> typ
@@ -267,6 +270,9 @@ val is_same_lexpr: Logic_ptree.lexpr -> Logic_ptree.lexpr -> bool
 (** hash function compatible with is_same_term *)
 val hash_term: term -> int
 
+(** comparison compatible with is_same_term *)
+val compare_term: term -> term -> int
+
 (** {2 Merging contracts} *)
 
 val get_behavior_names : ('a, 'b, 'c) spec -> string list
@@ -330,6 +336,8 @@ val is_slice_pragma : code_annotation -> bool
 val is_impact_pragma : code_annotation -> bool
 val is_loop_annot : code_annotation -> bool
 
+val is_trivial_annotation : code_annotation -> bool
+
 val is_property_pragma : term pragma -> bool
 (** Should this pragma be proved by plugins *)
 
@@ -337,6 +345,13 @@ val extract_loop_pragma :
   code_annotation list -> term loop_pragma list
 val extract_contract :
   code_annotation list -> (string list * funspec) list
+
+(** {2 Type-checking hackery} *)
+
+(** give complete types to terms that refer to a variable whose type
+    has been completed after its use in an annotation. Internal use only.
+    @since Neon-20130301 *)
+val complete_types: file -> unit
 
 (** {2 Parsing hackery} *)
 (** Values that control the various modes of the parser and lexer for logic.

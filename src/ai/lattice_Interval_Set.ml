@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -33,11 +33,8 @@ let plevel = ref 200
 module Unhashconsed_Int_Intervals = struct
 
   exception Error_Top
-  exception Error_Bottom
 
   type tt = Top | Set of itv list
-
-  type widen_hint = unit
 
   let bottom = Set []
   let top = Top
@@ -64,6 +61,7 @@ module Unhashconsed_Int_Intervals = struct
           443
           l
 
+(*
   let cardinal_zero_or_one v =
     match v with
       | Top -> false
@@ -84,9 +82,7 @@ module Unhashconsed_Int_Intervals = struct
                 else aux t card
           in
           V.to_int (aux l V.zero)
-
-  let splitting_cardinal_less_than ~split_non_enumerable:_ _v _n =
-    assert false (* not implemented *)
+*)
 
   let compare e1 e2 =
     if e1 == e2 then 0
@@ -111,8 +107,6 @@ module Unhashconsed_Int_Intervals = struct
               (fun fmt (b,e) ->
                  Format.fprintf fmt "[%a..%a]" V.pretty b V.pretty e)
               fmt s
-
-  let widen () t1 t2 = if equal t1 t2 then t1 else top
 
   let meet v1 v2 =
     if v1 == v2 then v1
@@ -230,9 +224,6 @@ module Unhashconsed_Int_Intervals = struct
 
   let link t1 t2 = join t1 t2 (* join is in fact an exact union *)
 
-  let is_included_exn v1 v2 =
-    if not (is_included v1 v2) then raise Is_not_included
-
   let intersects t1 t2 =
     let m = meet t1 t2 in
     not (equal m bottom)
@@ -250,10 +241,9 @@ module Unhashconsed_Int_Intervals = struct
      type t = tt
      let name = Interval.name ^ " lattice_interval_set"
      let structural_descr =
-       Structural_descr.Structure
-         (Structural_descr.Sum
-            [| [| Structural_descr.pack
-                   (Structural_descr.t_list (Descr.str Interval.descr)) |] |])
+       Structural_descr.t_sum
+         [| [| Structural_descr.pack
+                (Structural_descr.t_list (Descr.str Interval.descr)) |] |]
      let reprs = Top :: List.map (fun o -> Set [ o ]) Interval.reprs
      let equal = equal
      let compare = compare
@@ -266,9 +256,6 @@ module Unhashconsed_Int_Intervals = struct
      let mem_project = Datatype.never_any_project
    end)
   let () = Type.set_ml_name ty None
-
-  let fold_enum ~split_non_enumerable:_ _f _v _acc =
-    assert false
 
   let pretty_typ typ fmt i =
     let typ =
@@ -384,9 +371,6 @@ module Int_Intervals = struct
       v: Unhashconsed_Int_Intervals.t;
       tag:int }
 
-  type widen_hint = Unhashconsed_Int_Intervals.widen_hint
-
-  exception Error_Bottom = Unhashconsed_Int_Intervals.Error_Bottom
   exception Error_Top = Unhashconsed_Int_Intervals.Error_Top
 
   let id { tag=id } = id
@@ -432,7 +416,6 @@ module Int_Intervals = struct
 
   let compare_itvs i1 i2 = Unhashconsed_Int_Intervals.compare i1.v i2.v
 
-
   (* Purely for implementation purposes, nothing to do with the ordering
      induced by the underlying lattice *)
   let compare i1 i2 = Datatype.Int.compare i1.tag i2.tag
@@ -459,33 +442,17 @@ module Int_Intervals = struct
          let mem_project = Datatype.never_any_project
        end)
 
-  let fold_enum ~split_non_enumerable f v acc =
-    Unhashconsed_Int_Intervals.fold_enum ~split_non_enumerable f v.v acc
-
-  let diff_if_one _ = assert false
-
   let diff x y = wrap (Unhashconsed_Int_Intervals.diff x.v y.v)
-
-  let cardinal_less_than x n =
-    Unhashconsed_Int_Intervals.cardinal_less_than x.v n
-
-  let splitting_cardinal_less_than ~split_non_enumerable x n =
-    Unhashconsed_Int_Intervals.splitting_cardinal_less_than
-      ~split_non_enumerable x.v n
 
   let meet x y = wrap (Unhashconsed_Int_Intervals.meet x.v y.v)
   let link x y = wrap (Unhashconsed_Int_Intervals.link x.v y.v)
   let join x y = wrap (Unhashconsed_Int_Intervals.join x.v y.v)
   let narrow x y = wrap (Unhashconsed_Int_Intervals.narrow x.v y.v)
-  let widen wh x y = wrap (Unhashconsed_Int_Intervals.widen wh x.v y.v)
 
 (*
  THERE IS ONLY ONE HASHCONSING TABLE FOR Int_intervals.
    IT IS SHARED BETWEEN PROJECTS
 *)
-
-  let cardinal_zero_or_one x =
-    Unhashconsed_Int_Intervals.cardinal_zero_or_one x.v
 
   let intersects x y =
     Unhashconsed_Int_Intervals.intersects x.v y.v
@@ -493,8 +460,8 @@ module Int_Intervals = struct
   let is_included x y =
     Unhashconsed_Int_Intervals.is_included x.v y.v
 
-  let is_included_exn x y =
-    Unhashconsed_Int_Intervals.is_included_exn x.v y.v
+  let join_and_is_included a b =
+    let ab = join a b in (ab, equal a b)
 
   let inject i =
     wrap (Unhashconsed_Int_Intervals.inject i)

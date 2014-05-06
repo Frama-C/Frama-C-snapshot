@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -55,15 +55,14 @@ let cmdline () : setup =
   end
 
 let set_model (s:setup) =
-  Wp_parameters.Model.set [Factory.id s]
+  Wp_parameters.Model.set [Factory.ident s]
 
 (* --------- WP Computer -------------------- *)
 
 let computer () =
-  Driver.load_drivers () ;
   if Wp_parameters.Model.get () = ["Dump"] 
   then CfgDump.create ()
-  else Factory.computer (cmdline ())
+  else Factory.computer (cmdline ()) (Driver.load_driver ())
 
 (* ------------------------------------------------------------------------ *)
 (* ---  Printing informations                                           --- *)
@@ -79,6 +78,7 @@ let do_wp_print () =
       Log.print_on_output
         (fun fmt ->
            Wpo.iter
+	     ~on_axiomatics:(Wpo.pp_axiomatics fmt)
              ~on_behavior:(Wpo.pp_function fmt)
              ~on_goal:(Wpo.pp_goal_flow fmt) ())
 
@@ -105,7 +105,10 @@ let already_valid goal =
   List.exists (fun (_,r) -> Wpo.is_valid r) (Wpo.get_results goal)
 
 let pp_result wpo fmt r =
-  VCS.pp_result fmt r ;
+  if r.VCS.verdict = VCS.NoResult && Wp_parameters.Check.get () then
+    Format.pp_print_string fmt "Typechecked"
+  else
+    VCS.pp_result fmt r ;
   match r.VCS.verdict with
     | VCS.Unknown | VCS.Timeout | VCS.Stepout ->
 	let ws = Wpo.warnings wpo in
@@ -126,21 +129,12 @@ let do_wpo_start goal prover =
     Wp_parameters.feedback "[%a] Goal %s preprocessing" 
       VCS.pp_prover prover (Wpo.get_gid goal)
   
-let do_wpo_feedback goal prover result =
-  if Wpo.is_verdict result then
-    begin
-      Wp_parameters.feedback "[%a] Goal %s : %a"
-	VCS.pp_prover prover (Wpo.get_gid goal) (pp_result goal) result;
-      if Wp_parameters.ProofTrace.get () || Wp_parameters.UnsatModel.get () then
-	Log.print_on_output
-	  begin fun fmt ->
-	    let logout = Wpo.get_file_logout goal prover in
-	    let logerr = Wpo.get_file_logerr goal prover in
-	    if Sys.file_exists logout then Command.pp_from_file fmt logout ;
-	    if Sys.file_exists logerr then Command.pp_from_file fmt logerr ;
-	  end
-    end
+let auto_check_valid goal result = match goal with
+  | { Wpo.po_formula = Wpo.GoalCheck _ } -> result.VCS.verdict = VCS.Valid
+  | _ -> false
 
+let is_verdict result = Wpo.is_verdict result || Wp_parameters.Check.get ()
+      
 let wp_why3ide_launch task =
   let server = ProverTask.server () in
   (** Do on_server_stop save why3 session *)
@@ -151,11 +145,13 @@ let wp_why3ide_launch task =
 (* ---  Checking prover printing                                        --- *)
 (* ------------------------------------------------------------------------ *)
 
-let do_wp_check_iter iter_on_goals =
-  let provers = [VCS.Coq; VCS.AltErgo; VCS.Why3 "altergo"] in
-  let provers = List.map (fun p -> (false,p)) provers in
-  Wp_parameters.WhyFlags.add     "--type-only";
-  Wp_parameters.AltErgoFlags.add "-type-only";
+let do_wp_check_iter provers iter_on_goals =
+  let provers =
+    List.map (function
+        | `Coq -> VCS.Coq
+        | `Altergo -> VCS.AltErgo
+        | `Why3 -> VCS.Why3 "altergo") provers in
+  let provers = List.map (fun p -> VCS.BatchMode,p) provers in
   let server = ProverTask.server () in
   ignore (Wp_parameters.Share.dir ()); (* To prevent further errors *)
   let do_wpo_feedback goal prover result =
@@ -178,38 +174,161 @@ let do_wp_check_iter iter_on_goals =
     ) ;
   Task.launch server
 
-
 let do_wp_check () =
-  if Wp_parameters.wpcheck () then
-    do_wp_check_iter (fun f -> Wpo.iter ~on_goal:f ())
+  match Wp_parameters.wpcheck_provers () with
+  | [] -> ()
+  | l ->
+    do_wp_check_iter l (fun f -> Wpo.iter ~on_goal:f ())
 
 let do_wp_check_for goals =
-  if Wp_parameters.wpcheck () then
-    do_wp_check_iter (fun f -> Bag.iter f goals)
-
-
+  match Wp_parameters.wpcheck_provers () with
+  | [] -> ()
+  | l ->
+    do_wp_check_iter l (fun f -> Bag.iter f goals)
 	
 (* ------------------------------------------------------------------------ *)
-(* ---  Proving                                                         --- *)
+(* ---  Feedback                                                        --- *)
 (* ------------------------------------------------------------------------ *)
 
 let do_wpo_display goal =
   let result = if Wpo.is_trivial goal then "trivial" else "not tried" in
   Wp_parameters.feedback "Goal %s : %s" (Wpo.get_gid goal) result
-    
-let do_wp_proofs_iter ~provers iter_on_goals =
+
+module PM =
+  FCMap.Make(struct
+    type t = VCS.prover
+    let compare = VCS.cmp_prover
+  end)
+
+type pstat = { 
+  mutable proved : int ;
+  mutable unknown : int ;
+  mutable interruped : int ;
+  mutable failed : int ;
+  mutable uptime : float ;
+  mutable dntime : float ;
+  mutable steps : int ;
+}
+
+module GOALS = Wpo.S.Set
+
+let scheduled = ref 0
+let spy = ref false
+let session = ref GOALS.empty
+let proved = ref GOALS.empty
+let provers = ref PM.empty
+
+let begin_session () = session := GOALS.empty ; spy := true
+let clear_session () = session := GOALS.empty
+let end_session   () = session := GOALS.empty ; spy := false
+let iter_session f  = GOALS.iter f !session
+
+let clear_scheduled () =
+  begin
+    scheduled := 0 ;
+    proved := GOALS.empty ;
+    provers := PM.empty ;
+  end
+
+let get_pstat p = 
+  try PM.find p !provers with Not_found ->
+    let s = { 
+      proved = 0 ; 
+      unknown = 0 ;
+      interruped = 0 ; 
+      failed = 0 ;
+      steps = 0 ;
+      uptime = 0.0 ;
+      dntime = 1e6 ;
+    } in provers := PM.add p s !provers ; s
+
+let add_step s n =
+  if n > s.steps then s.steps <- n
+
+let add_time s t =
+  begin
+    if t > s.uptime then s.uptime <- t ;
+    if t > 0.0 && t < s.dntime then s.dntime <- t ;
+  end
+
+let do_list_scheduled iter_on_goals =
+  if not (Wp_parameters.has_dkey "no-goals-info") then
+    begin
+      clear_scheduled () ;
+      iter_on_goals 
+	(fun goal -> if not (already_valid goal) then 
+	    begin
+	      incr scheduled ;
+	      if !spy then session := GOALS.add goal !session ;
+	    end) ;
+      let n = !scheduled in
+      if n > 1
+      then Wp_parameters.feedback "%d goals scheduled" n 
+      else Wp_parameters.feedback "%d goal scheduled" n ;
+    end
+
+let do_wpo_feedback goal prover res =
+  if is_verdict res && not (auto_check_valid goal res) then
+    begin
+      Wp_parameters.feedback "[%a] Goal %s : %a"
+	VCS.pp_prover prover (Wpo.get_gid goal) (pp_result goal) res;
+      let s = get_pstat prover in
+      let open VCS in
+      match res.verdict with
+	| NoResult | Computing _ | Invalid | Unknown -> s.unknown <- succ s.unknown
+	| Stepout | Timeout -> s.interruped <- succ s.interruped
+	| Failed -> s.failed <- succ s.failed
+	| Valid ->
+	    proved := GOALS.add goal !proved ;
+	    s.proved <- succ s.proved ;
+	    add_step s res.prover_steps ;
+	    add_time s res.prover_time ;
+	    if prover <> Qed then add_time (get_pstat Qed) res.solver_time
+    end
+
+let do_list_scheduled_result () =
+  if not (Wp_parameters.has_dkey "no-goals-info") then
+    begin
+      let proved = GOALS.cardinal !proved in
+      Wp_parameters.result "%t"
+	(fun fmt ->
+	   Format.fprintf fmt "Proved goals: %4d / %d@\n" proved !scheduled ;
+	   let ptab p = String.length (VCS.name_of_prover p) in
+	   let ntab = PM.fold (fun p _ s -> max (ptab p) s) !provers 12 in
+	   PM.iter
+	     (fun p s ->
+		let name = VCS.name_of_prover p in
+		Format.fprintf fmt "%s:%s %4d " 
+		  name (String.make (ntab - String.length name) ' ') s.proved ;
+		if s.uptime > Rformat.epsilon && 
+		  not (Wp_parameters.has_dkey "no-time-info") 
+		then 
+		  Format.fprintf fmt " (%a-%a)" 
+		    Rformat.pp_time s.dntime 
+		    Rformat.pp_time s.uptime ;
+		if s.steps > 0  && not (Wp_parameters.has_dkey "no-step-info") then 
+		  Format.fprintf fmt " (%d)" s.steps ;
+		if s.interruped > 0 then 
+		  Format.fprintf fmt " (interruped: %d)" s.interruped ;
+		if s.unknown > 0 then 
+		  Format.fprintf fmt " (unknown: %d)" s.unknown ;
+		if s.failed > 0 then 
+		  Format.fprintf fmt " (failed: %d)" s.failed ;
+		Format.fprintf fmt "@\n" ;
+	     ) !provers
+	) ;
+      clear_scheduled () ;
+    end
+
+(* ------------------------------------------------------------------------ *)
+(* ---  Proving                                                         --- *)
+(* ------------------------------------------------------------------------ *)
+
+let spwan_wp_proofs_iter ~provers iter_on_goals =
   if provers <> [] then
     begin
       let server = ProverTask.server () in
       ignore (Wp_parameters.Share.dir ()); (* To prevent further errors *)
-      if not (Wp_parameters.has_dkey "no-goals-info") then
-	begin
-	  let n = ref 0 in
-	  iter_on_goals (fun goal -> if not (already_valid goal) then incr n) ;
-	  if !n > 1
-	  then Wp_parameters.feedback "%d goals scheduled" !n 
-	  else Wp_parameters.feedback "%d goal scheduled" !n ;
-	end ;
       iter_on_goals
 	(fun goal ->
 	   if not (already_valid goal) then
@@ -224,23 +343,30 @@ let do_wp_proofs_iter ~provers iter_on_goals =
 	 if not (already_valid goal) then
 	   do_wpo_display goal)
 
+let get_prover_names () =
+  match Wp_parameters.Provers.get () with [] -> [ "alt-ergo" ] | pnames -> pnames
+
+let compute_provers why3ide () =
+  List.fold_right
+    (fun pname prvs ->
+       match Wpo.prover_of_name pname with
+	 | None -> prvs
+         | Some VCS.Why3ide -> why3ide := true; prvs
+	 | Some prover -> (VCS.mode_of_prover_name pname , prover) :: prvs)
+    (get_prover_names ()) []
+
 let do_wp_proofs_iter iter =
   let do_why3_ide = ref false in
-  let provers = 
-    List.fold_right
-      (fun pname pvs ->
-	 match Wpo.prover_of_name pname with
-	   | None -> pvs
-           | Some VCS.Why3ide -> do_why3_ide := true; pvs
-	   | Some prover -> (VCS.is_interactive pname , prover) :: pvs)
-      (match Wp_parameters.Provers.get () 
-       with [] -> [ "alt-ergo" ] | pvs -> pvs) [] in 
+  let provers = compute_provers do_why3_ide () in
+  let spawned = !do_why3_ide || provers <> [] in
   begin
+    if spawned then do_list_scheduled iter ;
     if !do_why3_ide
     then wp_why3ide_launch (Prover.wp_why3ide ~callback:do_wpo_feedback iter) ;
-    do_wp_proofs_iter ~provers iter ;
+    spwan_wp_proofs_iter ~provers iter ;
+    if spawned then do_list_scheduled_result () ;
   end
-    
+
 let do_wp_proofs () = do_wp_proofs_iter (fun f -> Wpo.iter ~on_goal:f ())
 
 let do_wp_proofs_for goals = do_wp_proofs_iter (fun f -> Bag.iter f goals)
@@ -281,6 +407,7 @@ let cmdline_run () =
   let wp_main fct =
     Wp_parameters.feedback "Running WP plugin...";
     Ast.compute ();
+    Dyncall.compute ();
     if Wp_parameters.has_dkey "logicusage" then 
       begin
 	LogicUsage.compute ();
@@ -299,9 +426,7 @@ let cmdline_run () =
     let bhv = Wp_parameters.Behaviors.get () in
     let prop = Wp_parameters.Properties.get () in
     let computer = computer () in
-    if Wp_parameters.Froms.get () 
-    then Generator.compute_froms computer ~fct ()
-    else Generator.compute_selection computer ~fct ~bhv ~prop ()
+    Generator.compute_selection computer ~fct ~bhv ~prop ()
   in
   match Wp_parameters.job () with
     | Wp_parameters.WP_None -> ()
@@ -374,6 +499,20 @@ let run = Dynamic.register ~plugin:"Wp" "run"
   (Datatype.func Datatype.unit Datatype.unit)
   ~journalize:true
   cmdline_run
+
+let () =
+  let open Datatype in
+  begin
+    let t_job = func Unit.ty Unit.ty in
+    let t_iter = func (func Wpo.S.ty Unit.ty) Unit.ty in
+    let register name ty f = 
+      ignore (Dynamic.register name ty ~plugin:"Wp" ~journalize:false f) 
+    in
+    register "wp_begin_session" t_job  begin_session ;
+    register "wp_end_session"   t_job  end_session   ;
+    register "wp_clear_session" t_job  clear_session ;
+    register "wp_iter_session"  t_iter iter_session  ;
+  end
 
 (* ------------------------------------------------------------------------ *)
 (* ---  Tracing WP Invocation                                           --- *)

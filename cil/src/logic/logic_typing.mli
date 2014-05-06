@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA   (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -55,6 +55,9 @@ val type_of_set_elem: logic_type -> logic_type
 val ctype_of_pointed: logic_type -> typ
 val ctype_of_array_elem: logic_type -> typ
 
+(**
+   @deprecated Neon-20130301 use Logic_const.addTermOffsetLval instead
+*)
 val add_offset_lval: term_offset -> term_lval -> term_lval
 
 val arithmetic_conversion:
@@ -99,7 +102,7 @@ type typing_context = {
  error: 'a. location -> ('a,Format.formatter,unit) format -> 'a;
 }
 
-(** [register_behavior_bextension name f] registers a typing function [f] to 
+(** [register_behavior_extension name f] registers a typing function [f] to 
     be used to type clause with name [name]. 
     This function may change the funbehavior in place. 
     Here is a basic example:

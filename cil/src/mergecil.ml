@@ -35,8 +35,8 @@
 (*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE         *)
 (*  POSSIBILITY OF SUCH DAMAGE.                                             *)
 (*                                                                          *)
-(*  File modified by CEA (Commissariat à l'énergie atomique et aux          *)
-(*                        énergies alternatives)                            *)
+(*  File modified by CEA (Commissariat Ã  l'Ã©nergie atomique et aux          *)
+(*                        Ã©nergies alternatives)                            *)
 (*               and INRIA (Institut National de Recherche en Informatique  *)
 (*                          et Automatique).                                *)
 (****************************************************************************)
@@ -55,7 +55,8 @@ module A = Alpha
 
 open Logic_utils
 
-let debugMerge = true
+let dkey = Kernel.register_category "mergecil"
+
 let debugInlines = false
 
 (* Try to merge structure with the same name. However, do not complain if
@@ -73,10 +74,10 @@ let mergeInlines = true
 
 let mergeInlinesRepeat = mergeInlines && true
 
-(* This may become an option of Frama-C. The default value has been changed
-   to false after Boron to fix bts#524.
-*)
-let mergeInlinesWithAlphaConvert = mergeInlines && false
+(* The default value has been changed to false after Boron to fix bts#524.
+   But this behavior is very convenient to parse the Linux kernel. *)
+let mergeInlinesWithAlphaConvert () = 
+  mergeInlines && Kernel.AgressiveMerging.get ()
 
 
 (* when true, merge duplicate definitions of externally-visible functions;
@@ -129,6 +130,7 @@ module Merging
       val merge_synonym: t -> bool (* whether this name should be considered
                                       for merging or not.
                                     *)
+      val compare: t -> t -> int
       val output: Format.formatter -> t -> unit
     end
     ): 
@@ -160,14 +162,20 @@ val dumpGraph: string -> 'a eq_table -> unit
 end
 =
 struct
-(* Find the representative for a node and compress the paths in the process *)
-module Heq = 
-  Hashtbl.Make
-    (struct
+  module Elts =
+    struct
       type t = int * H.t
       let hash (d,x) = 19 * d + H.hash x
       let equal (d1,x1) (d2,x2) = d1 = d2 && H.equal x1 x2
-     end)
+      let compare (d1,x1) (d2,x2) =
+        let res = compare d1 d2 in
+        if res = 0 then H.compare x1 x2 else res
+    end
+
+(* Find the representative for a node and compress the paths in the process *)
+module Heq = Hashtbl.Make (Elts)
+
+module Iter_sorted = FCMap.Make(Elts)
 
 module Hsyn = Hashtbl.Make(H)
 
@@ -184,7 +192,9 @@ let find_eq_table = Heq.find
 
 let add_eq_table = Heq.add
 
-let iter_eq_table = Heq.iter
+let iter_eq_table f t =
+  let sorted = Heq.fold Iter_sorted.add t Iter_sorted.empty in
+  Iter_sorted.iter f sorted
 
 (* Make a node with a self loop. This is quite tricky. *)
 let mkSelfNode eq syn fidx name data l =
@@ -203,7 +213,7 @@ let mkSelfNode eq syn fidx name data l =
 
 (* Find the representative with or without path compression *)
 let rec find pathcomp nd =
-  let dkey = Kernel.register_category "merge:find" in
+  let dkey = Kernel.register_category "mergecil:find" in
   Kernel.debug ~dkey "find %a(%d)" H.output nd.nname nd.nfidx ;
   if nd.nrep == nd then begin
     Kernel.debug ~dkey "= %a(%d)" H.output nd.nname nd.nfidx ;
@@ -276,7 +286,7 @@ let union nd1 nd2 =
   end
 
 let findReplacement pathcomp eq fidx name =
-  let dkey = Kernel.register_category "merge:find" in
+  let dkey = Kernel.register_category "mergecil:find" in
     Kernel.debug ~dkey "findReplacement for %a(%d)" H.output name fidx;
   try
     let nd = Heq.find eq (fidx, name) in
@@ -297,9 +307,9 @@ let findReplacement pathcomp eq fidx name =
 (* Make a node if one does not already exist. Otherwise return the
  * representative *)
 let getNode eq syn fidx name data l =
-  let debugGetNode = false in
-   if debugGetNode then
-    Kernel.debug ~level:5 "getNode(%a(%d), %a)" H.output name fidx d_nloc l;
+  let dkey = Kernel.register_category "mergecil:getNode" in
+  let level = 2 in
+  Kernel.debug ~dkey ~level "getNode(%a(%d), %a)" H.output name fidx d_nloc l;
   try
     let res = Heq.find eq (fidx, name) in
 
@@ -314,11 +324,11 @@ let getNode eq syn fidx name data l =
 	    Cil_printer.pp_location old_l idx 
 	    Cil_printer.pp_location l
     | _, _ -> ());
-    if debugGetNode then Kernel.debug "  node already found";
+    Kernel.debug ~dkey ~level "  node already found";
     find false res (* No path compression *)
   with Not_found -> begin
     let res = mkSelfNode eq syn fidx name data l in
-    if debugGetNode then Kernel.debug "   made a new one";
+    Kernel.debug ~dkey ~level "   made a new one";
     res
   end
 
@@ -352,10 +362,11 @@ let doMergeSynonyms syn compare =
       end)
     syn
 
-(* Dump a graph *)
+(* Dump a graph. No need to use ~dkey, this function is never called unless
+   we are in proper debug mode. *)
 let dumpGraph what eq : unit =
   Kernel.debug "Equivalence graph for %s is:" what;
-  Heq.iter 
+  iter_eq_table
     (fun (fidx, name) nd ->
       Kernel.debug "  %a(%d) %s-> "
         H.output name fidx (if nd.nloc = None then "(undef)" else "");
@@ -391,6 +402,7 @@ module PlainMerging =
       type t = string
       let hash = Hashtbl.hash
       let equal = (=)
+      let compare = compare
       let merge_synonym name = not (prefix "__anon" name)
       let output = Format.pp_print_string
      end)
@@ -403,6 +415,10 @@ module VolatileMerging =
 	  | [] -> 0
           | h::_ -> Logic_utils.hash_term h.it_content
         let equal = Logic_utils.is_same_list Logic_utils.is_same_identified_term
+        let compare =
+          Extlib.list_compare 
+            (fun t1 t2 -> Logic_utils.compare_term t1.it_content t2.it_content)
+
         let merge_synonym _ = true
         let output fmt x = 
 	  Pretty_utils.pp_list ~sep:",@ " Cil_printer.pp_identified_term fmt x
@@ -436,6 +452,9 @@ module ModelMerging =
         Datatype.String.hash s + 3 * hash_type t
       let equal (s1,t1 : t) (s2,t2) =
         s1 = s2 && Cil_datatype.TypByName.equal t1 t2
+      let compare (s1,t1) (s2, t2) =
+        let res = String.compare s1 s2 in
+        if res = 0 then Cil_datatype.TypByName.compare t1 t2 else res
       let merge_synonym _ = true
       let output fmt (s,t) =
         Format.fprintf fmt "model@ %a@ { %s }" Cil_printer.pp_typ t s
@@ -446,6 +465,13 @@ let same_int64 e1 e2 =
     | Const(CInt64(i, _, _)), Const(CInt64(i', _, _)) -> 
       Integer.equal i i'
     | _ -> false
+
+let compare_int e1 e2 =
+  match (constFold true e1), (constFold true e2) with
+  | {enode = Const(CInt64(i, _, _))}, {enode = Const(CInt64(i', _, _))} -> 
+      Integer.compare i i'
+  | e1,e2 -> Cil_datatype.Exp.compare e1 e2
+    (* not strictly accurate, but should do the trick anyway *)
 
 let have_same_enum_items oldei ei =
   if List.length oldei.eitems <> List.length ei.eitems then
@@ -460,6 +486,10 @@ let have_same_enum_items oldei ei =
       if not (same_int64 old_item.eival item.eival) then
         raise (Failure "different values for enumeration items"))
     oldei.eitems ei.eitems
+
+let compare_enum_item e1 e2 =
+  let res = String.compare e1.einame e2.einame in
+  if res = 0 then compare_int e1.eival e2.eival else res
 
 let same_enum_items oldei ei =
   try have_same_enum_items oldei ei; true
@@ -479,10 +509,17 @@ module EnumMerging =
                   (e2.ename <- 
                     fst 
                     (A.newAlphaName
-                       aeAlpha None e2.ename Cil_datatype.Location.unknown);
+                       aeAlpha e2.ename Cil_datatype.Location.unknown);
                    false))
            ))
         || e1.ename = e2.ename
+      let compare e1 e2 =
+        if is_anonymous_enum e1 then
+          if is_anonymous_enum e2 then
+            Extlib.list_compare compare_enum_item e1.eitems e2.eitems
+          else -1
+        else if is_anonymous_enum e2 then 1
+        else String.compare e1.ename e2.ename
       let merge_synonym _ = true
       let output fmt e =
         Cil_printer.pp_global fmt (GEnumTag (e, Cil_datatype.Location.unknown))
@@ -580,23 +617,19 @@ let mergeSpec vi_ref vi_disc spec =
       try
         let my_vars = Cil.getFormalsDecl vi_disc in
         let to_rename = Cil.getFormalsDecl vi_ref in
-        if debugMerge then
-          Kernel.debug "Renaming arguments: %a -> %a"
-            (Pretty_utils.pp_list ~sep:",@ " Cil_datatype.Varinfo.pretty)
-            my_vars
-            (Pretty_utils.pp_list ~sep:",@ " Cil_datatype.Varinfo.pretty)
+        Kernel.debug ~dkey "Renaming arguments: %a -> %a"
+          (Pretty_utils.pp_list ~sep:",@ " Cil_datatype.Varinfo.pretty)
+          my_vars
+          (Pretty_utils.pp_list ~sep:",@ " Cil_datatype.Varinfo.pretty)
           to_rename;
 	let alpha = Cil.create_alpha_renaming my_vars to_rename in
-        if debugMerge then (
-          Kernel.debug
-            "Renaming spec of function %a" Cil_datatype.Varinfo.pretty vi_disc;
-          Kernel.debug
-            "original spec is %a" Cil_printer.pp_funspec spec;
-        );
+        Kernel.debug ~dkey
+          "Renaming spec of function %a" Cil_datatype.Varinfo.pretty vi_disc;
+        Kernel.debug  ~dkey
+          "original spec is %a" Cil_printer.pp_funspec spec;
 	try
           let res = Cil.visitCilFunspec alpha spec in
-          if debugMerge then
-            Kernel.debug "renamed spec is %a" Cil_printer.pp_funspec spec;
+          Kernel.debug ~dkey "renamed spec is %a" Cil_printer.pp_funspec spec;
           res
         with Not_found -> assert false
       with Not_found -> spec
@@ -605,9 +638,8 @@ let mergeSpec vi_ref vi_disc spec =
       try 
         let alpha = Cil_datatype.Varinfo.Hashtbl.find formals_renaming vi_ref in
         let res = Cil.visitCilFunspec alpha spec in
-        if debugMerge then
-          Kernel.debug "renamed spec with definition's formals is %a"
-            Cil_printer.pp_funspec res;
+        Kernel.debug ~dkey "renamed spec with definition's formals is %a"
+          Cil_printer.pp_funspec res;
         res
       with Not_found -> spec
     in
@@ -992,7 +1024,7 @@ and matchCompInfo (oldfidx: int) (oldci: compinfo)
           (fun oldf f ->
             if oldf.fbitfield <> f.fbitfield then
 	      raise (Failure "different bitfield info");
-            if oldf.fattr <> f.fattr then
+            if not (Cil_datatype.Attributes.equal oldf.fattr f.fattr) then
 	      raise (Failure "different field attributes");
              (* Make sure the types are compatible *)
             let newtype =
@@ -1139,7 +1171,7 @@ and matchTypeInfo (oldfidx: int) (oldti: typeinfo)
 
 let static_var_visitor = object
     inherit Cil.nopCilVisitor
-    method vvrbl vi = if vi.vstorage = Static then raise Exit; DoChildren
+    method! vvrbl vi = if vi.vstorage = Static then raise Exit; DoChildren
   end
 
 (*
@@ -1324,7 +1356,7 @@ let oneFilePass1 (f:file) : unit =
    * with the same name have been encountered before and we merge those types
    * *)
   let matchVarinfo (vi: varinfo) (loc, _ as l) =
-    ignore (Alpha.registerAlphaName vtAlpha None vi.vname (CurrentLoc.get ()));
+    ignore (Alpha.registerAlphaName vtAlpha vi.vname (CurrentLoc.get ()));
     (* Make a node for it and put it in vEq *)
     let vinode = 
       PlainMerging.mkSelfNode vEq vSyn !currentFidx vi.vname vi (Some l) 
@@ -1360,8 +1392,9 @@ let oneFilePass1 (f:file) : unit =
        * others declare it as "const". *)
       if hasAttribute "const" (typeAttrs vi.vtype) !=
         hasAttribute "const" (typeAttrs oldvi.vtype) then begin
-          newrep.ndata.vtype <- typeRemoveAttributes ["const"] newtype;
-        end else newrep.ndata.vtype <- newtype;
+          Cil.update_var_type
+            newrep.ndata (typeRemoveAttributes ["const"] newtype);
+        end else Cil.update_var_type newrep.ndata newtype;
       (* clean up the storage.  *)
       let newstorage =
         if vi.vstorage = oldvi.vstorage || vi.vstorage = Extern then
@@ -1455,7 +1488,7 @@ Now is %a and previous was %a at %a"
        | GEnumTagDecl (ei,_) -> ei.ereferenced <- false
        | GEnumTag (ei, l) ->
            incr currentDeclIdx;
-           ignore (A.newAlphaName aeAlpha None ei.ename l);
+           ignore (A.newAlphaName aeAlpha ei.ename l);
            ei.ereferenced <- false;
            ignore 
              (EnumMerging.getNode eEq eSyn !currentFidx ei ei
@@ -1479,9 +1512,8 @@ let matchInlines (oldfidx: int) (oldi: varinfo)
     let fidx = inode.nfidx in
     (* There is an old definition. We must combine the types. Do this first
      * because it might fail *)
-    oldi.vtype <-
-       combineTypes CombineOther
-         oldfidx oldi.vtype fidx i.vtype;
+    Cil.update_var_type
+      oldi (combineTypes CombineOther oldfidx oldi.vtype fidx i.vtype);
     (* We get here if we have success *)
     (* Combine the attributes as well *)
     oldi.vattr <- addAttributes oldi.vattr i.vattr
@@ -1562,10 +1594,10 @@ object (self)
 
       (* This is either a global variable which we took care of, or a local
        * variable. Must do its type and attributes. *)
-  method vvdec (_vi: varinfo) = DoChildren
+  method! vvdec (_vi: varinfo) = DoChildren
 
       (* This is a variable use. See if we must change it *)
-  method vvrbl (vi: varinfo) : varinfo visitAction =
+  method! vvrbl (vi: varinfo) : varinfo visitAction =
     if not vi.vglob then DoChildren else
     if vi.vreferenced then begin
       H.add varUsedAlready vi.vname ();
@@ -1574,142 +1606,115 @@ object (self)
       match PlainMerging.findReplacement true vEq !currentFidx vi.vname with
         None -> DoChildren
       | Some (vi', oldfidx) ->
-          if debugMerge then
-              (Kernel.debug "Renaming use of var %s(%d) to %s(%d)"
-                        vi.vname
-                        !currentFidx vi'.vname oldfidx);
+          Kernel.debug ~dkey "Renaming use of var %s(%d) to %s(%d)"
+            vi.vname !currentFidx vi'.vname oldfidx;
           vi'.vreferenced <- true;
           H.add varUsedAlready vi'.vname ();
           ChangeTo vi'
     end
 
-  method vlogic_var_decl lv = rename_associated_logic_var lv
+  method! vlogic_var_decl lv = rename_associated_logic_var lv
 
-  method vlogic_var_use lv = rename_associated_logic_var lv
+  method! vlogic_var_use lv = rename_associated_logic_var lv
 
-  method vlogic_info_use li =
+  method! vlogic_info_use li =
     match 
       PlainMerging.findReplacement true lfEq !currentFidx li.l_var_info.lv_name
     with
-        None -> if debugMerge then
-          (Kernel.debug "Using logic function %s(%a)(%d)"
+        None ->
+          Kernel.debug ~level:2 ~dkey "Using logic function %s(%a)(%d)"
              li.l_var_info.lv_name
 	     (Pretty_utils.pp_list ~sep:",@ " Cil_printer.pp_logic_type)
 	     (List.map (fun v -> v.lv_type) li.l_profile)
-             !currentFidx);
+             !currentFidx;
           DoChildren
       | Some(li',oldfidx) ->
-        if debugMerge then
-          Kernel.debug
-	    "Renaming use of logic function %s(%a)(%d) to %s(%a)(%d)"
-            li.l_var_info.lv_name
-	    pp_profiles li
-            !currentFidx
-	    li'.l_var_info.lv_name
-	    pp_profiles li'
-	    oldfidx;
+          Kernel.debug ~dkey 
+            "Renaming use of logic function %s(%a)(%d) to %s(%a)(%d)"
+            li.l_var_info.lv_name pp_profiles li !currentFidx 
+            li'.l_var_info.lv_name pp_profiles li' oldfidx;
         ChangeTo li'
 
-  method vlogic_info_decl li =
+  method! vlogic_info_decl li =
     match 
       PlainMerging.findReplacement 
         true lfEq !currentFidx li.l_var_info.lv_name 
     with
         None ->
-          if debugMerge then
-            (Kernel.debug "Using logic function %s(%a)(%d)"
-               li.l_var_info.lv_name
-	       pp_profiles li
-               !currentFidx);
+          Kernel.debug ~level:2 ~dkey "Using logic function %s(%a)(%d)"
+            li.l_var_info.lv_name pp_profiles li !currentFidx;
           DoChildren
       | Some(li',oldfidx) ->
-          if debugMerge then
-            (Kernel.debug
-	       "Renaming use of logic function %s(%a)(%d) to %s(%a)(%d)"
-               li.l_var_info.lv_name
-	       pp_profiles li
-               !currentFidx
-	       li'.l_var_info.lv_name
-	       pp_profiles li'
-	       oldfidx);
+          Kernel.debug ~level:2 ~dkey 
+            "Renaming use of logic function %s(%a)(%d) to %s(%a)(%d)"
+            li.l_var_info.lv_name pp_profiles li !currentFidx
+            li'.l_var_info.lv_name pp_profiles li' oldfidx;
           ChangeTo li'
 
-  method vlogic_type_info_use lt =
-    match PlainMerging.findReplacement true ltEq !currentFidx lt.lt_name with
-        None -> if debugMerge then
-            (Kernel.debug "Using logic type %s(%d)"
-                      lt.lt_name
-                      !currentFidx);
-          DoChildren
-      | Some(lt',oldfidx) ->
-          if debugMerge then
-            (Kernel.debug "Renaming use of logic type %s(%d) to %s(%d)"
-                      lt.lt_name
-                      !currentFidx lt'.lt_name oldfidx);
-          ChangeTo lt'
-
-  method vlogic_type_info_decl lt =
+  method! vlogic_type_info_use lt =
     match PlainMerging.findReplacement true ltEq !currentFidx lt.lt_name with
         None ->
-          if debugMerge then
-            (Kernel.debug "Using logic type %s(%d)"
-                      lt.lt_name
-                      !currentFidx);
+          Kernel.debug ~level:2 ~dkey
+            "Using logic type %s(%d)" lt.lt_name !currentFidx;
           DoChildren
       | Some(lt',oldfidx) ->
-          if debugMerge then
-            (Kernel.debug "Renaming use of logic function %s(%d) to %s(%d)"
-                      lt.lt_name
-                      !currentFidx lt'.lt_name oldfidx);
+        Kernel.debug ~dkey "Renaming use of logic type %s(%d) to %s(%d)"
+          lt.lt_name !currentFidx lt'.lt_name oldfidx;
+        ChangeTo lt'
+
+  method! vlogic_type_info_decl lt =
+    match PlainMerging.findReplacement true ltEq !currentFidx lt.lt_name with
+      | None ->
+          Kernel.debug ~level:2 ~dkey
+            "Using logic type %s(%d)" lt.lt_name !currentFidx;
+          DoChildren
+      | Some(lt',oldfidx) ->
+          Kernel.debug ~dkey "Renaming use of logic function %s(%d) to %s(%d)"
+            lt.lt_name !currentFidx lt'.lt_name oldfidx;
           ChangeTo lt'
 
-  method vlogic_ctor_info_use lc =
+  method! vlogic_ctor_info_use lc =
     match PlainMerging.findReplacement true lcEq !currentFidx lc.ctor_name with
-        None -> if debugMerge then
-            (Kernel.debug "Using logic constructor %s(%d)"
-                      lc.ctor_name
-                      !currentFidx);
+        None ->
+          Kernel.debug ~level:2 ~dkey "Using logic constructor %s(%d)"
+            lc.ctor_name !currentFidx;
           DoChildren
       | Some(lc',oldfidx) ->
-          if debugMerge then
-            (Kernel.debug "Renaming use of logic type %s(%d) to %s(%d)"
-                      lc.ctor_name
-                      !currentFidx lc'.ctor_name oldfidx);
+          Kernel.debug ~dkey "Renaming use of logic type %s(%d) to %s(%d)"
+            lc.ctor_name !currentFidx lc'.ctor_name oldfidx;
           ChangeTo lc'
 
-  method vlogic_ctor_info_decl lc =
+  method! vlogic_ctor_info_decl lc =
     match PlainMerging.findReplacement true lcEq !currentFidx lc.ctor_name with
         None ->
-          if debugMerge then
-            (Kernel.debug "Using logic constructor %s(%d)"
-                      lc.ctor_name
-                      !currentFidx);
+          Kernel.debug ~dkey ~level:2 "Using logic constructor %s(%d)"
+            lc.ctor_name !currentFidx;
           DoChildren
       | Some(lc',oldfidx) ->
-          if debugMerge then
-            (Kernel.debug "Renaming use of logic function %s(%d) to %s(%d)"
-                      lc.ctor_name
-                      !currentFidx lc'.ctor_name oldfidx);
+          Kernel.debug ~dkey ~level:2
+            "Renaming use of logic function %s(%d) to %s(%d)"
+            lc.ctor_name !currentFidx lc'.ctor_name oldfidx;
           ChangeTo lc'
 
         (* The use of a type. Change only those types whose underlying info
          * is not a root. *)
-  method vtype (t: typ) =
+  method! vtype (t: typ) =
     match t with
       TComp (ci, _, a) when not ci.creferenced -> begin
         match PlainMerging.findReplacement true sEq !currentFidx ci.cname with
-          None -> if debugMerge then 
-              (Kernel.debug "No renaming needed %s(%d)" ci.cname !currentFidx);
+          None ->
+             Kernel.debug ~dkey "No renaming needed %s(%d)"
+               ci.cname !currentFidx;
             DoChildren
         | Some (ci', oldfidx) ->
-            if debugMerge then
-              (Kernel.debug "Renaming use of %s(%d) to %s(%d)"
-                        ci.cname !currentFidx ci'.cname oldfidx);
-            ChangeTo (TComp (ci', empty_size_cache (), visitCilAttributes (self :> cilVisitor) a))
+            Kernel.debug ~dkey "Renaming use of %s(%d) to %s(%d)"
+              ci.cname !currentFidx ci'.cname oldfidx;
+            ChangeTo (TComp (ci',
+                             empty_size_cache (),
+                             visitCilAttributes (self :> cilVisitor) a))
       end
       | TComp(ci,_,_) -> 
-        if debugMerge then
-          (Kernel.debug "%s(%d) referenced. No change" ci.cname !currentFidx);
+        Kernel.debug ~dkey "%s(%d) referenced. No change" ci.cname !currentFidx;
         DoChildren
     | TEnum (ei, a) when not ei.ereferenced -> begin
         match EnumMerging.findReplacement true eEq !currentFidx ei with
@@ -1731,7 +1736,7 @@ object (self)
 
     | _ -> DoChildren
 
-  method vexpr e =
+  method! vexpr e =
     match e.enode with
       | Const (CEnum ei) ->
           (match find_enumitem_replacement ei with
@@ -1750,7 +1755,7 @@ object (self)
         ChangeDoChildrenPost (e,post_action)
       | _ -> DoChildren
 
-  method vterm e =
+  method! vterm e =
     match e.term_node with
       | TConst(LEnum ei) ->
           (match find_enumitem_replacement ei with
@@ -1765,7 +1770,7 @@ object (self)
       | _ -> DoChildren
 
   (* The Field offset might need to be changed to use new compinfo *)
-  method voffs = function
+  method! voffs = function
       Field (f, o) -> begin
         (* See if the compinfo was changed *)
         if f.fcomp.creferenced then
@@ -1795,7 +1800,7 @@ object (self)
       end
     | _ -> DoChildren
 
-  method vterm_offset = function
+  method! vterm_offset = function
       TField (f, o) -> begin
         (* See if the compinfo was changed *)
         if f.fcomp.creferenced then
@@ -1842,7 +1847,7 @@ object (self)
 
     | _ -> DoChildren
 
-  method vinitoffs o =
+  method! vinitoffs o =
     (self#voffs o)      (* treat initializer offsets same as lvalue offsets *)
 
 end
@@ -1859,7 +1864,7 @@ class renameInlineVisitorClass = object
   inherit nopCilVisitor
 
       (* This is a variable use. See if we must change it *)
-  method vvrbl (vi: varinfo) : varinfo visitAction =
+  method! vvrbl (vi: varinfo) : varinfo visitAction =
     if not vi.vglob then DoChildren else
     if vi.vreferenced then begin (* Already renamed *)
       DoChildren
@@ -1867,17 +1872,15 @@ class renameInlineVisitorClass = object
       match PlainMerging.findReplacement true vEq !currentFidx vi.vname with
         None -> DoChildren
       | Some (vi', oldfidx) ->
-          if debugMerge then
-              Kernel.debug "Renaming var %s(%d) to %s(%d)"
-                vi.vname
-                !currentFidx vi'.vname oldfidx;
+          Kernel.debug ~dkey "Renaming var %s(%d) to %s(%d)"
+            vi.vname !currentFidx vi'.vname oldfidx;
           vi'.vreferenced <- true;
           ChangeTo vi'
     end
 
   (* And rename some declarations of inlines to remove. We cannot drop this
    * declaration (see small1/combineinline6) *)
-  method vglob = function
+  method! vglob = function
       GVarDecl(spec,vi, l) when vi.vinline -> begin
         (* Get the original name *)
         let origname =
@@ -2213,20 +2216,22 @@ let oneFilePass2 (f: file) =
         (* Maybe it is static. Rename it then *)
         if vi.vstorage = Static then begin
           let newName, _ =
-	    A.newAlphaName vtAlpha None vi.vname (CurrentLoc.get ())
+	    A.newAlphaName vtAlpha vi.vname (CurrentLoc.get ())
 	  in
           let formals_decl =
-            try ignore (Cil.getFormalsDecl vi); true
-            with Not_found -> false
+            try Some (Cil.getFormalsDecl vi)
+            with Not_found -> None
           in
 	  (* Remember the original name *)
           H.add originalVarNames newName vi.vname;
-          if debugMerge then
-            Kernel.debug "renaming %s at %a to %s" vi.vname Cil_printer.pp_location vloc newName;
+          Kernel.debug ~dkey "renaming %s at %a to %s"
+            vi.vname Cil_printer.pp_location vloc newName;
           vi.vname <- newName;
           vi.vreferenced <- true;
           Cil_const.set_vid vi;
-          if formals_decl then Cil.setFormalsDecl vi vi.vtype;
+          (match formals_decl with
+            | Some formals -> Cil.unsafeSetFormalsDecl vi formals
+            | None -> ());
 	  vi
         end else begin
           (* Find the representative *)
@@ -2352,7 +2357,6 @@ let oneFilePass2 (f: file) =
           let oldnames, foundthem =
             try H.find formalNames (!currentFidx, origname), true
             with Not_found -> begin
-              Kernel.debug ~level:3 "Cannot find %s in formalNames" origname;
               [], false
             end
           in
@@ -2369,6 +2373,8 @@ let oneFilePass2 (f: file) =
           end;
           (** See if we can remove this inline function *)
           if fdec'.svar.vinline && mergeInlines then begin
+	    let mergeInlinesWithAlphaConvert = mergeInlinesWithAlphaConvert () 
+	    in
             let printout =
               (* Temporarily turn of printing of lines *)
               let oldprintln = miscState.lineDirectiveStyle in
@@ -2414,7 +2420,7 @@ let oneFilePass2 (f: file) =
                 (* Do the formals in reverse order *)
                 List.iter undoRenameOne (List.rev fdec'.sformals);
                 (* Restore the type *)
-                fdec'.svar.vtype <- origType;
+                Cil.update_var_type fdec'.svar origType;
               end;
               res
             in
@@ -2535,7 +2541,7 @@ let oneFilePass2 (f: file) =
                      ci.cname;
                  end);
                 let newname, _ =
-                  A.newAlphaName sAlpha None ci.cname (CurrentLoc.get ()) in
+                  A.newAlphaName sAlpha ci.cname (CurrentLoc.get ()) in
                 ci.cname <- newname;
                 ci.creferenced <- true;
                 (* Now we should visit the fields as well *)
@@ -2560,16 +2566,18 @@ let oneFilePass2 (f: file) =
             with
               None -> (* We must rename it *)
                 let newname, _ =
-                  A.newAlphaName eAlpha None ei.ename (CurrentLoc.get ()) in
+                  A.newAlphaName eAlpha ei.ename (CurrentLoc.get ())
+                in
                 ei.ename <- newname;
                 ei.ereferenced <- true;
                 (* And we must rename the items to using the same name space
                  * as the variables *)
                 List.iter
                   (fun item ->
-                     let newname,_= A.newAlphaName vtAlpha None item.einame
-                       item.eiloc
-                     in item.einame <- newname)
+                     let newname,_ =
+                       A.newAlphaName vtAlpha item.einame item.eiloc
+                     in
+                     item.einame <- newname)
                   ei.eitems;
                 mergePushGlobals (visitCilGlobal renameVisitor g);
             | Some (_ei', _) -> (* Drop this since we are reusing it from
@@ -2611,7 +2619,8 @@ let oneFilePass2 (f: file) =
             with
               None -> (* We must rename it and keep it *)
                 let newname, _ =
-                  A.newAlphaName vtAlpha None ti.tname (CurrentLoc.get ()) in
+                  A.newAlphaName vtAlpha ti.tname (CurrentLoc.get ())
+                in
                 ti.tname <- newname;
                 ti.treferenced <- true;
                 mergePushGlobals (visitCilGlobal renameVisitor g);
@@ -2689,23 +2698,24 @@ let merge_specs orig to_merge =
   List.iter merge_one_spec to_merge
 
 let global_merge_spec g =
-  Kernel.debug "Merging global %a" Cil_printer.pp_global g;
+  Kernel.debug ~dkey "Merging global %a" Cil_printer.pp_global g;
   match g with
   | GFun(fdec,loc) ->
     (try
-       Kernel.debug "Merging global definition %a" Cil_printer.pp_global g;
+       Kernel.debug ~dkey
+         "Merging global definition %a" Cil_printer.pp_global g;
        let specs = Cil_datatype.Varinfo.Hashtbl.find spec_to_merge fdec.svar in
        List.iter
 	 (fun s -> 
-	   Kernel.debug "Found spec to merge %a" Cil_printer.pp_funspec s)
+	   Kernel.debug ~dkey "Found spec to merge %a" Cil_printer.pp_funspec s)
          specs;
-       Kernel.debug "Merging with %a" Cil_printer.pp_funspec fdec.sspec ;
+       Kernel.debug ~dkey "Merging with %a" Cil_printer.pp_funspec fdec.sspec ;
        Cil.CurrentLoc.set loc;
        merge_specs fdec.sspec specs
      with Not_found -> 
-       Kernel.debug "No spec_to_merge")
+       Kernel.debug ~dkey "No spec_to_merge")
   | GVarDecl(spec,v,loc) ->
-    Kernel.debug "Merging global declaration %a" Cil_printer.pp_global g;
+    Kernel.debug ~dkey "Merging global declaration %a" Cil_printer.pp_global g;
     let rename spec =
       try
         let alpha = Cil_datatype.Varinfo.Hashtbl.find formals_renaming v in
@@ -2716,21 +2726,21 @@ let global_merge_spec g =
        let specs = Cil_datatype.Varinfo.Hashtbl.find spec_to_merge v in
        List.iter
 	 (fun s -> 
-	   Kernel.debug "Found spec to merge %a" Cil_printer.pp_funspec s)
+	   Kernel.debug ~dkey "Found spec to merge %a" Cil_printer.pp_funspec s)
          specs;
        Kernel.debug "Renaming %a" Cil_printer.pp_funspec spec ;
        rename spec;
        (* The registered specs might also need renaming up to 
           definition's formals instead of declaration's ones. *)
        List.iter rename specs;
-       Kernel.debug "Renamed to %a" Cil_printer.pp_funspec spec;
+       Kernel.debug ~dkey "Renamed to %a" Cil_printer.pp_funspec spec;
        Cil.CurrentLoc.set loc;
        merge_specs spec specs;
-       Kernel.debug "Merged into %a" Cil_printer.pp_funspec spec ;
+       Kernel.debug ~dkey "Merged into %a" Cil_printer.pp_funspec spec ;
      with Not_found -> 
-       Kernel.debug "No spec_to_merge for declaration" ;
+       Kernel.debug ~dkey "No spec_to_merge for declaration" ;
        rename spec;
-       Kernel.debug "Renamed to %a" Cil_printer.pp_funspec spec ;
+       Kernel.debug ~dkey "Renamed to %a" Cil_printer.pp_funspec spec ;
     )
   | _ -> ()
 
@@ -2740,13 +2750,13 @@ let find_decls g =
   let visit =
 object(self)
       inherit Cil.nopCilVisitor
-      method vvdec v =
+      method! vvdec v =
         c_res:=Cil_datatype.Varinfo.Set.add v !c_res; DoChildren
-      method vlogic_var_decl lv =
+      method! vlogic_var_decl lv =
         res := Cil_datatype.Logic_var.Set.add lv !res;
         SkipChildren
-      method vspec _ = SkipChildren
-      method vfunc f = 
+      method! vspec _ = SkipChildren
+      method! vfunc f = 
         ignore (self#vvdec f.svar);
         Extlib.may (ignore $ self#vlogic_var_decl) f.svar.vlogic_var_assoc;
         SkipChildren
@@ -2760,10 +2770,10 @@ let used_vars g =
   let visit =
     object
       inherit Cil.nopCilVisitor
-      method vlogic_var_decl lv =
+      method! vlogic_var_decl lv =
         locals := Cil_datatype.Logic_var.Set.add lv !locals;
         SkipChildren
-      method vlogic_var_use lv =
+      method! vlogic_var_use lv =
         if not (Cil_datatype.Logic_var.Set.mem lv !locals) 
           && not (Logic_env.is_builtin_logic_function lv.lv_name)
           && not (lv.lv_name = "\\exit_status")
@@ -2841,7 +2851,8 @@ let move_spec globals =
   in 
   assert
     (Kernel.verify (Cil_datatype.Varinfo.Map.is_empty to_declare)
-       "Some globals contain dangling references after link:@\n%a" print_missing to_declare);
+       "Some globals contain dangling references after link:@\n%a"
+       print_missing to_declare);
   List.rev res
 
 let merge (files: file list) (newname: string) : file =
@@ -2876,7 +2887,7 @@ let merge (files: file list) (newname: string) : file =
   end;
 
   (* Now maybe dump the graph *)
-  if debugMerge then begin
+  if false then begin
     dumpGraph "type" tEq;
     dumpGraph "struct and union" sEq;
     EnumMerging.dumpGraph "enum" eEq;

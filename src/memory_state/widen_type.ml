@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -22,142 +22,161 @@
 
 open Cil_datatype
 
-module Widen_hint_bases = Base.Map.Make(Ival.Widen_Hints)
-module Widen_hint_stmts = Stmt.Map.Make(Widen_hint_bases)
-module Bases_stmts = Stmt.Map.Make(Base.Set)
+module Num_hints_stmt = Stmt.Map.Make(Ival.Widen_Hints)
+module Num_hints_bases = Base.Map.Make(Ival.Widen_Hints)
+module Num_hints_bases_stmt = Stmt.Map.Make(Num_hints_bases)
+module Priority_bases_stmt = Stmt.Map.Make(Base.Set)
 
-include Datatype.Pair
-(Bases_stmts)
-(Datatype.Make
-   (struct
-     include Datatype.Serializable_undefined
-     type t =
-         Ival.Widen_Hints.t
-         * Ival.Widen_Hints.t
-         * Widen_hint_bases.t
-         * Widen_hint_stmts.t
-     let name = "widen types"
-     let structural_descr =
-       Structural_descr.t_tuple
-         [| Ival.Widen_Hints.packed_descr;
-            Ival.Widen_Hints.packed_descr;
-            Widen_hint_bases.packed_descr;
-            Widen_hint_stmts.packed_descr |]
-     let reprs =
-       List.map
-         (fun wh -> wh, wh, Base.Map.empty, Stmt.Map.empty)
-         Ival.Widen_Hints.reprs
-     let mem_project = Datatype.never_any_project
-    end))
+type widen_hints = {
+  priority_bases: Base.Set.t Stmt.Map.t;
+  default_hints: Ival.Widen_Hints.t;
+  default_hints_by_stmt: Ival.Widen_Hints.t Stmt.Map.t;
+  hints_by_addr: Ival.Widen_Hints.t Base.Map.t;
+  hints_by_addr_by_stmt: Ival.Widen_Hints.t Base.Map.t Stmt.Map.t;
+}
 
-(* map from Base.t to Ival.Widen_Hints.t *)
-type var_key = Default | All | VarKey of Cvalue.V.M.key
+include Datatype.Make(struct
+  include Datatype.Serializable_undefined
+  type t = widen_hints
+  let name = "Widen_type.widen_hints"
+  let structural_descr =
+    Structural_descr.t_tuple
+      [| Priority_bases_stmt.packed_descr;
+         Ival.Widen_Hints.packed_descr;
+         Num_hints_stmt.packed_descr;
+         Num_hints_bases.packed_descr;
+         Num_hints_bases_stmt.packed_descr |]
+  let reprs =
+    List.map
+      (fun wh ->
+        { priority_bases = Stmt.Map.empty;
+          default_hints = wh;
+          default_hints_by_stmt = Stmt.Map.empty;
+          hints_by_addr = Base.Map.empty;
+          hints_by_addr_by_stmt = Stmt.Map.empty})
+      Ival.Widen_Hints.reprs
+  let mem_project = Datatype.never_any_project
+end)
 
-let hints_from_key (forced_hints, default_hints, var_map) var_key =
-  let widen_hints =
-    let hints =
-      try Ival.Widen_Hints.union (Base.Map.find var_key var_map) default_hints
-      with Not_found -> default_hints
-    in
-    Ival.Widen_Hints.union forced_hints hints
-  in (* Format.printf "WIDEN_HInt widen a var_key %a -> %a @\n"
-        Base.pretty var_key
-        Ival.Widen_Hints.pretty widen_hints; *)
-  Base.Hptset.empty, fun _ -> widen_hints
 
-let hints_from_keys
-    stmt_key
-    (stmt_map1, (forced_hints, default_hints, var_map, stmt_map))
-    =
-  let var_map =
-    try Stmt.Map.find stmt_key stmt_map
-    with Not_found -> var_map
+let hints_for_base default_hints hints_by_base b =
+  let widen_hints_null =
+    try Ival.Widen_Hints.union (Base.Map.find b hints_by_base) default_hints
+    with Not_found -> default_hints
   in
-  let var_set =
-    try Stmt.Map.find stmt_key stmt_map1
+  let widen_zero = Ival.Widen_Hints.singleton Integer.zero in
+  (function
+    | Base.Null -> widen_hints_null
+    | b ->
+      let validity = Base.validity b in
+      match validity with
+        | Base.Known (_, m)
+        | Base.Unknown (_, _, m) 
+        | Base.Periodic (_, m, _) ->
+          (* Try the frontier of the block: further accesses are invalid
+             anyway. This also works great for constant strings (this computes
+             the offset of the null terminator). *)
+          let bound =
+            Integer.pred (Integer.div (Integer.succ m) Integer.eight)
+          in
+          Ival.Widen_Hints.add bound widen_zero
+        | Base.Invalid -> widen_zero
+  )
+
+let hints_from_keys stmt h =
+  let hints_by_base =
+    try Stmt.Map.find stmt h.hints_by_addr_by_stmt
+    with Not_found -> h.hints_by_addr (* TODO: we should merge *)
+  in
+  let prio =
+    try Stmt.Map.find stmt h.priority_bases
     with Not_found -> Base.Set.empty
   in
-  var_set, hints_from_key (forced_hints, default_hints, var_map)
+  let default =
+    try
+      let at_stmt = Stmt.Map.find stmt h.default_hints_by_stmt in
+      Ival.Widen_Hints.union h.default_hints at_stmt
+    with Not_found -> h.default_hints
+  in
+  prio, (fun b -> hints_for_base default hints_by_base b)
 
-let add_var_hints stmt var_hints (stmt_map1, map2) =
+let add_var_hints stmt prio_bases h =
   let new_hints =
-    let previous_hints =
-      try Stmt.Map.find stmt stmt_map1
-      with Not_found -> Base.Set.empty
-    in
-    Base.Set.union var_hints previous_hints
+    try
+      let previous = Stmt.Map.find stmt h.priority_bases in
+      Base.Set.union prio_bases previous
+    with Not_found -> prio_bases
   in
-  Stmt.Map.add stmt new_hints stmt_map1, map2
+  { h with priority_bases = Stmt.Map.add stmt new_hints h.priority_bases }
 
-let add_num_hints
-    stmt_key
-    var_key
-    hints
-    (stmt_map1, (forced_hints, default_hints, var_map, stmt_map))
-    =
-  let add_merge var_key hints var_map =
+let add_num_hints stmto baseo hints h =
+  let add_merge b hints hints_by_base =
     let new_hints =
-      let previous_hints =
-        try Base.Map.find var_key var_map
-        with Not_found -> Ival.Widen_Hints.empty
-      in
-      Ival.Widen_Hints.union hints previous_hints
+      try
+        let previous_hints = Base.Map.find b hints_by_base in
+        Ival.Widen_Hints.union hints previous_hints        
+      with Not_found -> hints
     in
-    Base.Map.add var_key new_hints var_map
+    Base.Map.add b new_hints hints_by_base
   in
-  let map2 = match (stmt_key, var_key) with
-    | (None, VarKey (var_key)) ->
-         (* add a set of [hints] for a [var_key] *)
+  match stmto, baseo with
+    | None, Some b -> (* Hints for a base at all statements *)
       let new_hints =
         let previous_hints =
-          try Base.Map.find var_key var_map
+          try Base.Map.find b h.hints_by_addr
           with Not_found -> Ival.Widen_Hints.empty
         in
         Ival.Widen_Hints.union hints previous_hints
       in
-      forced_hints,
-      default_hints,
-      add_merge var_key new_hints var_map,
-      stmt_map
-    | (Some(stmt_key), VarKey (var_key)) ->
-         (* add a set of [hints] for a [stmt_key, var_key] *)
-      let new_var_map =
+      { h with hints_by_addr = add_merge b new_hints h.hints_by_addr }
+
+    | Some stmt, Some b -> (* Hints for a base at a statement *)
+      let hints_addr_for_stmt =
         let previous_var_map =
-          try Stmt.Map.find stmt_key stmt_map
+          try Stmt.Map.find stmt h.hints_by_addr_by_stmt
           with Not_found -> Base.Map.empty
         in
-        add_merge var_key hints previous_var_map
+        add_merge b hints previous_var_map
       in
-      forced_hints,
-      default_hints,
-      var_map,
-      Stmt.Map.add stmt_key new_var_map stmt_map
-    | (_, All) ->
-         (* add a set of [hints] for all var_keys *)
-      Ival.Widen_Hints.union hints forced_hints,
-      default_hints,
-      var_map,
-      stmt_map
-    | (_, Default) ->
-         (* add a set of default [hint] *)
-      forced_hints,
-      Ival.Widen_Hints.union hints default_hints,
-      var_map,
-      stmt_map
-  in
-  stmt_map1, map2
+      let hints_addr_stmt =
+        Stmt.Map.add stmt hints_addr_for_stmt h.hints_by_addr_by_stmt
+      in
+      { h with hints_by_addr_by_stmt = hints_addr_stmt }
+
+    | Some stmt, None -> (* Hints for all bases and a given statement *)
+      let new_default_for_stmt =
+        try
+          let previous = Stmt.Map.find stmt h.default_hints_by_stmt in
+          Ival.Widen_Hints.union hints previous
+        with Not_found -> hints
+      in
+      { h with default_hints_by_stmt =
+          Stmt.Map.add stmt new_default_for_stmt h.default_hints_by_stmt }
+
+    | None, None -> (* Hints for all bases and all statements *)
+      { h with default_hints = Ival.Widen_Hints.union hints h.default_hints }
 
 (* an [empty] set of hints *)
-let empty =
-  Stmt.Map.empty,
-  (Ival.Widen_Hints.empty,
-   Ival.Widen_Hints.empty,
-   Base.Map.empty,
-   Stmt.Map.empty)
+let empty = {
+  priority_bases = Stmt.Map.empty;
+  default_hints = Ival.Widen_Hints.empty;
+  default_hints_by_stmt = Stmt.Map.empty;
+  hints_by_addr = Base.Map.empty;
+  hints_by_addr_by_stmt = Stmt.Map.empty;
+}
 
-(* a [default] set of hints *)
-let default =
-  add_num_hints None Default Ival.Widen_Hints.default_widen_hints empty
+(* default set of hints. Depends on the machdep *)
+let default () =
+  (* Add signed types frontiers, but only if signed overflow active. Otherwise,
+     the computation will just overflow one iteration later. *)
+  let int_types =
+    if Kernel.SignedOverflow.get () then
+      Ival.Widen_Hints.hints_for_signed_int_types ()
+    else
+      Ival.Widen_Hints.empty
+  in
+  let default = Ival.Widen_Hints.(union default_widen_hints int_types) in
+  add_num_hints None None default empty
 
 (*
 Local Variables:

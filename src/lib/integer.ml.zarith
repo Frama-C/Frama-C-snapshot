@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -34,7 +34,7 @@ let shift_left_big_int x y =
 let shift_right_big_int x y = 
     Z.shift_right x (Z.to_int y)
 
-let power_two k =
+let two_power_of_int k =
   Z.shift_left Z.one k
 (*
   let h = Hashtbl.create 7 in
@@ -50,7 +50,7 @@ let power_two k =
 let two_power y =
     try
       let k = Z.to_int y in
-      power_two k
+      two_power_of_int k
     with Z.Overflow -> assert false
 
 let log_shift_right_big_int x y = (* no meaning for negative value of x *)
@@ -70,11 +70,13 @@ let popcount = Z.popcount
   let two = Z.of_int 2
   let four = Z.of_int 4
   let eight = Z.of_int 8
+  let sixteen = Z.of_int 16
   let thirtytwo = Z.of_int 32
   let onethousand = Z.of_int 1000
   let billion_one = Z.of_int 1_000_000_001
-  let two_power_60 = power_two 60
-  let two_power_64 = power_two 64
+  let two_power_32 = two_power_of_int 32
+  let two_power_60 = two_power_of_int 60
+  let two_power_64 = two_power_of_int 64
 
   let is_zero v = (sign_big_int v) = 0
 
@@ -128,6 +130,7 @@ let popcount = Z.popcount
   let to_float = float_of_big_int
 
   let add_2_64 x = add two_power_64 x
+  let add_2_32 x = add two_power_32 x
 
   let pretty ?(hexa=false) fmt v =
     let rec aux v =

@@ -35,8 +35,8 @@
 (*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE         *)
 (*  POSSIBILITY OF SUCH DAMAGE.                                             *)
 (*                                                                          *)
-(*  File modified by CEA (Commissariat à l'énergie atomique et aux          *)
-(*                        énergies alternatives)                            *)
+(*  File modified by CEA (Commissariat Ã  l'Ã©nergie atomique et aux          *)
+(*                        Ã©nergies alternatives)                            *)
 (*               and INRIA (Institut National de Recherche en Informatique  *)
 (*                          et Automatique).                                *)
 (****************************************************************************)
@@ -78,11 +78,16 @@ let voidType = Cil_const.voidType
 let intType = TInt(IInt,[])
 let uintType = TInt(IUInt,[])
 let longType = TInt(ILong,[])
+let longLongType = TInt(ILongLong,[])
 let ulongType = TInt(IULong,[])
 let ulongLongType = TInt(IULongLong, [])
 let charType = TInt(IChar, [])
+let ucharType = TInt(IUChar, [])
+let scharType = TInt(ISChar, [])
 
 let charPtrType = TPtr(charType,[])
+let ucharPtrType = TPtr(ucharType,[])
+let scharPtrType = TPtr(scharType,[])
 let charConstPtrType = TPtr(TInt(IChar, [Attr("const", [])]),[])
 
 let voidPtrType = TPtr(voidType, [])
@@ -482,10 +487,6 @@ let mkStmt ?(ghost=false) ?(valid_sid=false) (sk: stmtkind) : stmt =
 (* JS: build an attribute annotation from [s]. *)
 let mkAttrAnnot s = "/*@ " ^ s ^ " */"
 
-(* Internal attributes. Won't be pretty-printed *)
-let reserved_attributes = ref []
-let register_shallow_attribute s = reserved_attributes:=s::!reserved_attributes
-
   
 let type_remove_qualifier_attributes = 
   typeRemoveAttributes qualifier_attributes
@@ -660,8 +661,20 @@ type attributeClass =
      spec_complete_behaviors = [];
      spec_disjoint_behaviors = [] }
 
+ let no_behavior l =
+   match l with
+     | [] -> true
+     | [ b ] ->
+       b.b_name = default_behavior_name &&
+       b.b_requires = [] && 
+       b.b_post_cond = [] &&
+       b.b_assigns = WritesAny &&
+       b.b_allocation = FreeAllocAny &&
+       b.b_extended = []
+     | _ -> false
+ 
  let is_empty_funspec (spec : funspec) =
-   spec.spec_behavior = [] &&
+   (no_behavior spec.spec_behavior) &&
    spec.spec_variant = None && spec.spec_terminates = None &&
    spec.spec_complete_behaviors = [] && spec.spec_disjoint_behaviors = []
 
@@ -1661,8 +1674,6 @@ class type cilVisitor = object
   method get_filling_actions: (unit -> unit) Queue.t
 end
 
-(* the default visitor does nothing at each node, but does *)
- (* not stop; hence they return true *)
  class internal_genericCilVisitor current_func behavior queue: cilVisitor =
  object(self)
    method behavior = behavior
@@ -2852,7 +2863,7 @@ and childrenExp (vis: cilVisitor) (e: exp) : exp =
        if lv' != lv || fn' != fn || args' != args
        then Call(Some lv', fn', args', l) else i
 
-   | Asm(sl,isvol,outs,ins,clobs,l) ->
+   | Asm(sl,isvol,outs,ins,clobs,labels,l) ->
        let outs' = mapNoCopy (fun ((id,s,lv) as pair) ->
 				let lv' = fLval lv in
 				if lv' != lv then (id,s,lv') else pair) outs in
@@ -2860,7 +2871,7 @@ and childrenExp (vis: cilVisitor) (e: exp) : exp =
 				let e' = fExp e in
 				if e' != e then (id,s,e') else pair) ins in
        if outs' != outs || ins' != ins then
-	 Asm(sl,isvol,outs',ins',clobs,l) else i
+	 Asm(sl,isvol,outs',ins',clobs,labels,l) else i
    | Code_annot (a,l) ->
        let a' = visitCilCodeAnnotation vis a in 
 	 if a != a' then Code_annot(a',l) else i
@@ -3352,8 +3363,8 @@ let nextCompinfoKey =
 
 let bytesSizeOfInt (ik: ikind): int =
   match ik with
-  | IChar | ISChar | IUChar -> 1
-  | IBool | IInt | IUInt -> theMachine.theMachine.sizeof_int
+  | IChar | ISChar | IUChar | IBool -> 1
+  | IInt | IUInt -> theMachine.theMachine.sizeof_int
   | IShort | IUShort -> theMachine.theMachine.sizeof_short
   | ILong | IULong -> theMachine.theMachine.sizeof_long
   | ILongLong | IULongLong -> theMachine.theMachine.sizeof_longlong
@@ -3384,6 +3395,8 @@ let floatKindForSize (s:int) =
   else if s = theMachine.theMachine.sizeof_longdouble then FLongDouble
   else raise Not_found
 
+let int32Type () = TInt (intKindForSize 4 false,[])
+let int64Type () = TInt (intKindForSize 4 false,[])
 
 (** Returns true if and only if the given integer type is signed. *)
 let isSigned = function
@@ -3468,21 +3481,22 @@ let truncateInteger64 (k: ikind) i =
     end,
       true
 
-(* Return the smallest kind that will hold the integer's value.
-   The kind will be unsigned if the 2nd argument is true *)
+exception Not_representable
 let intKindForValue i (unsigned: bool) = 
   if unsigned then
     if fitsInInt IUChar i then IUChar
     else if fitsInInt IUShort i then IUShort
     else if fitsInInt IUInt i then IUInt
     else if fitsInInt IULong i then IULong
-    else IULongLong
+    else if fitsInInt IULongLong i then IULongLong
+    else raise Not_representable
   else
     if fitsInInt ISChar i then ISChar
     else if fitsInInt IShort i then IShort
     else if fitsInInt IInt i then IInt
     else if fitsInInt ILong i then ILong
-    else ILongLong
+    else if fitsInInt ILongLong i then ILongLong
+    else raise Not_representable
 
 (* Construct an integer constant with possible truncation *)
 let kinteger64_repr ~loc (k: ikind) i repr =
@@ -3543,13 +3557,6 @@ let rec isInteger e = match e.enode with
 | CastE(_, e) -> isInteger e
 | _ -> None
 
- (** Convert a 64-bit int to an OCaml int, or raise an exception if that
-     can't be done. *)
-let i64_to_int (i: int64) : int =
-  let i': int = Int64.to_int i in (* i.e. i' = i mod 2^31 *)
-  if i = Int64.of_int i' then i'
-  else Kernel.abort "Int constant too large: %Ld\n" i
-
 let isZero (e: exp) : bool = 
   match isInteger e with 
   | None -> false
@@ -3577,8 +3584,8 @@ let parseIntAux (str:string) =
       l >= ls && s = String.uppercase (String.sub str (l - ls) ls)
   in
   let l = String.length str in
-  (* See if it is octal or hex *)
-  let octalhex = (l >= 1 && String.get str 0 = '0') in
+  (* See if it is octal or hex or binary *)
+  let octalhexbin = l >= 1 && str.[0] = '0' in
   (* The length of the suffix and a list of possible kinds. See ISO
    * 6.4.4.1 *)
   let hasSuffix = hasSuffix str in
@@ -3586,16 +3593,16 @@ let parseIntAux (str:string) =
     if hasSuffix "ULL" || hasSuffix "LLU" then
       3, [IULongLong]
     else if hasSuffix "LL" then
-      2, if octalhex then [ILongLong; IULongLong] else [ILongLong]
+      2, if octalhexbin then [ILongLong; IULongLong] else [ILongLong]
     else if hasSuffix "UL" || hasSuffix "LU" then
       2, [IULong; IULongLong]
     else if hasSuffix "L" then
-      1, if octalhex then [ILong; IULong; ILongLong; IULongLong]
+      1, if octalhexbin then [ILong; IULong; ILongLong; IULongLong]
         else [ILong; ILongLong]
     else if hasSuffix "U" then
       1, [IUInt; IULong; IULongLong]
     else
-      0, if octalhex || true (* !!! This is against the ISO but it
+      0, if octalhexbin || true (* !!! This is against the ISO but it
                               * is what GCC and MSVC do !!! *)
         then [IInt; IUInt; ILong; IULong; ILongLong; IULongLong]
         else [IInt; ILong; IUInt; ILongLong]
@@ -3603,8 +3610,7 @@ let parseIntAux (str:string) =
   (* Convert to integer. To prevent overflow we do the arithmetic
    * on Big_int and we take care of overflow. We work only with
    * positive integers since the lexer takes care of the sign *)
-  let rec toInt base (acc: Integer.t) (idx: int) : 
-      Integer.t =
+  let rec toInt base (acc: Integer.t) (idx: int) : Integer.t =
     let doAcc what =
       let acc' =
         Integer.add what (Integer.mul base acc) in
@@ -3624,12 +3630,14 @@ let parseIntAux (str:string) =
         Kernel.fatal ~current:true "Invalid integer constant: %s" str
   in
   let i =
-    if octalhex then
-      if l >= 2 &&
-        (let c = String.get str 1 in c = 'x' || c = 'X') then
+    if octalhexbin && l >= 2 then 
+      (match String.get str 1 with 
+      | 'x' | 'X' (* Hexadecimal number *) -> 
         toInt Integer.small_nums.(16) Integer.zero 2
-      else
-        toInt Integer.small_nums.(8) Integer.zero 1
+      | 'b' | 'B' ->  (* Binary number *)
+        toInt Integer.small_nums.(2) Integer.zero 2
+      | _ -> (* Octal number *)
+	toInt Integer.small_nums.(8) Integer.zero 1)
     else
       toInt Integer.small_nums.(10) Integer.zero 0
   in
@@ -3715,10 +3723,12 @@ let parseIntExp ~loc (str: string) : exp =
 	   old_preds;
 	 n
 
- let mkEmptyStmt ?ghost ?(loc=Location.unknown) () = mkStmt ?ghost (Instr (Skip loc))
+ let mkEmptyStmt ?ghost ?valid_sid ?(loc=Location.unknown) () =
+   mkStmt ?ghost ?valid_sid (Instr (Skip loc))
+
  let mkStmtOneInstr ?ghost ?valid_sid i = mkStmt ?ghost ?valid_sid (Instr i)
 
- let dummyInstr = Asm([], ["dummy statement!!"], [], [], [], Location.unknown)
+ let dummyInstr = Asm([], ["dummy statement!!"], [], [], [], [], Location.unknown)
  let dummyStmt = mkStmt (Instr dummyInstr)
 
 
@@ -3803,20 +3813,6 @@ let parseIntExp ~loc (str: string) : exp =
      | x -> typeAddAttributes al x
    in
    withAttrs [] t
-
- let isVoidType t =
-   match unrollTypeSkel t with
-     TVoid _ -> true
-   | _ -> false
- let isVoidPtrType t =
-   match unrollTypeSkel t with
-     TPtr(tau,_) when isVoidType tau -> true
-   | _ -> false
-
-let isPtrType ct =
-  match unrollTypeSkel ct with
-    TPtr _ -> true
-  | _ -> false
 
  let isSignedInteger ty =
    match unrollTypeSkel ty with
@@ -3934,6 +3930,14 @@ let map_under_info f e = match e.enode with
        in
        stom', rest
 
+ let isVoidType t =
+   match unrollTypeSkel t with
+     TVoid _ -> true
+   | _ -> false
+ let isVoidPtrType t =
+   match unrollTypeSkel t with
+     TPtr(tau,_) when isVoidType tau -> true
+   | _ -> false
 
  let isCharType t =
    match unrollTypeSkel t with
@@ -3991,6 +3995,11 @@ let isCharPtrType t =
  let isArithmeticType t =
    match unrollTypeSkel t with
      (TInt _ | TEnum _ | TFloat _) -> true
+   | _ -> false
+
+ let isArithmeticOrPointerType t= 
+   match unrollTypeSkel t with
+   | TInt _ | TEnum _ | TFloat _ | TPtr _ -> true
    | _ -> false
 
  let isLogicArithmeticType t =
@@ -4326,19 +4335,6 @@ let isCharPtrType t =
 (* Hack to prevent infinite recursion in alignments *)
 let ignoreAlignmentAttrs = ref false
 
-module CoupleTypOffset =
-  Datatype.Pair_with_collections(Typ)(Offset)
-    (struct let module_name = "Cil.CoupleTypOffset" end)
-
-module CacheBitsOffset =
-  State_builder.Hashtbl
-    (CoupleTypOffset.Hashtbl)
-    (Datatype.Pair(Datatype.Int)(Datatype.Int))
-    (struct let size = 17
-            let dependencies = []
-            let name = "Cil.CacheBitsOffset"
-     end) 
-
  (* Get the minimum aligment in bytes for a given type *)
 let rec bytesAlignOf t = 
   let alignOfType () = match t with 
@@ -4589,8 +4585,6 @@ and offsetOfFieldAcc_GCC (fi: fieldinfo) (sofar: offsetAcc) : offsetAcc =
  (* The size of a type, in bits. If struct or array then trailing padding is
   * added *)
  and bitsSizeOf t =
-   if not (TheMachine.is_computed ()) then
-     Kernel.fatal ~current:true "You did not call Cil.initCIL before using the CIL library" ;
    match t with
    | TInt (ik,_) -> 8 * (bytesSizeOfInt ik)
    | TFloat(FDouble, _) -> 8 * theMachine.theMachine.sizeof_double
@@ -4692,16 +4686,14 @@ and offsetOfFieldAcc_GCC (fi: fieldinfo) (sofar: offsetAcc) : offsetAcc =
  and addTrailing nrbits roundto =
    (nrbits + roundto - 1) land (lnot (roundto - 1))
 
- and sizeOf_int t = (bitsSizeOf t) lsr 3
+and bytesSizeOf t = (bitsSizeOf t) lsr 3
 
 and sizeOf ~loc t =
   try
     integer ~loc ((bitsSizeOf t) lsr 3)
-  with SizeOfError _ -> new_exp ?loc (SizeOf(t))
+  with SizeOfError _ -> new_exp ~loc (SizeOf(t))
 
  and bitsOffset (baset: typ) (off: offset) : int * int =
-  CacheBitsOffset.memo
-  (fun (baset, off) ->
    let rec loopOff (baset: typ) (width: int) (start: int) = function
        NoOffset -> start, width
      | Index(e, off) -> begin
@@ -4732,34 +4724,28 @@ and sizeOf ~loc t =
            assert (match unrollType baset with
                      | TComp (ci, _, _) -> ci == f.fcomp
                      | _ -> false);
-	 (* Construct a list of fields preceeding and including this one *)
-	 let prevflds =
-	   let rec loop = function
-	     | [] ->
-		 Kernel.abort
-		   "bitsOffset: Cannot find field %s in %s"
-		   f.fname
-		   f.fcomp.cname
-	     | fi' :: _ when fi' == f -> [ fi' ]
-	     | fi' :: rest -> fi' :: loop rest
-	   in
-	   loop f.fcomp.cfields
-	 in
-	 let lastoff =
-	   List.fold_left (fun acc fi' -> offsetOfFieldAcc ~fi:fi' ~sofar:acc)
-	     { oaFirstFree      = 0; (* Start at 0 because each struct is done
-				      * separately *)
-	       oaLastFieldStart = 0;
-	       oaLastFieldWidth = 0;
-	       oaPrevBitPack    = None } prevflds
-	 in
-	 (* ignore (E.log "Field %s of %s: start=%d, lastFieldStart=%d\n"
-	    f.fname f.fcomp.cname start lastoff.oaLastFieldStart); *)
-	 loopOff f.ftype lastoff.oaLastFieldWidth
-	   (start + lastoff.oaLastFieldStart) off
+         if f.foffset_in_bits = None then begin
+           let aux acc fi =
+             let acc' = offsetOfFieldAcc ~fi ~sofar:acc in
+             fi.fsize_in_bits <- Some acc'.oaLastFieldWidth;
+             fi.foffset_in_bits <- Some acc'.oaLastFieldStart;
+             acc'
+           in
+           ignore (
+	     List.fold_left aux
+	       { oaFirstFree      = 0;
+	         oaLastFieldStart = 0;
+	         oaLastFieldWidth = 0;
+	         oaPrevBitPack    = None }
+               f.fcomp.cfields
+           );
+         end;
+         let offsbits, size =
+           Extlib.the f.foffset_in_bits, Extlib.the f.fsize_in_bits
+         in
+         loopOff f.ftype size (start + offsbits) off
    in
    loopOff baset (bitsSizeOf baset) 0 off
-  ) (baset, off)
 
 (** Do constant folding on an expression. If the first argument is true then
     will also compute compiler-dependent expressions such as sizeof.
@@ -4926,9 +4912,9 @@ and constFoldBinOp ~loc (machdep: bool) bop e1 e2 tres =
           kinteger64 ~loc tk (Integer.add i1 i2)
       | MinusA, Const(CInt64(i1,ik1,_)),Const(CInt64(i2,ik2,_))
           when ik1 = ik2 ->
-          kinteger64 ?loc tk (Integer.sub i1 i2)
+          kinteger64 ~loc tk (Integer.sub i1 i2)
       | Mult, Const(CInt64(i1,ik1,_)), Const(CInt64(i2,ik2,_)) when ik1 = ik2 ->
-          kinteger64 ?loc tk (Integer.mul i1 i2)
+          kinteger64 ~loc tk (Integer.mul i1 i2)
       | Mult, Const(CInt64(z,_,_)), _
         when Integer.equal z Integer.zero -> zero ~loc
       | Mult, Const(CInt64(one,_,_)), _ 
@@ -4939,36 +4925,36 @@ and constFoldBinOp ~loc (machdep: bool) bop e1 e2 tres =
         when Integer.equal one Integer.one -> e1''
       | Div, Const(CInt64(i1,ik1,_)),Const(CInt64(i2,ik2,_)) when ik1 = ik2 ->
           begin
-            try kinteger64 ?loc tk (Integer.div i1 i2)
-            with Division_by_zero -> new_exp ?loc (BinOp(bop, e1', e2', tres))
+            try kinteger64 ~loc tk (Integer.div i1 i2)
+            with Division_by_zero -> new_exp ~loc (BinOp(bop, e1', e2', tres))
           end
       | Div, Const(CInt64(i1,ik1,_)),Const(CInt64(i2,ik2,_))
           when bytesSizeOfInt ik1 = bytesSizeOfInt ik2 -> begin
-            try kinteger64 ?loc tk (Integer.div i1 i2)
-            with Division_by_zero -> new_exp ?loc (BinOp(bop, e1', e2', tres))
+            try kinteger64 ~loc tk (Integer.div i1 i2)
+            with Division_by_zero -> new_exp ~loc (BinOp(bop, e1', e2', tres))
           end
       | Div, _, Const(CInt64(one,_,_)) 
          when Integer.equal one Integer.one -> e1''
       | Mod, Const(CInt64(i1,ik1,_)),Const(CInt64(i2,ik2,_)) when ik1 = ik2 ->
           begin
-            try kinteger64 ?loc tk (Integer.rem i1 i2)
-            with Division_by_zero -> new_exp ?loc (BinOp(bop, e1', e2', tres))
+            try kinteger64 ~loc tk (Integer.rem i1 i2)
+            with Division_by_zero -> new_exp ~loc (BinOp(bop, e1', e2', tres))
           end
       | BAnd, Const(CInt64(i1,ik1,_)),Const(CInt64(i2,ik2,_)) when ik1 = ik2 ->
-          kinteger64 ?loc tk (Integer.logand i1 i2)
+          kinteger64 ~loc tk (Integer.logand i1 i2)
       | BAnd, Const(CInt64(z,_,_)), _ 
         when Integer.equal z Integer.zero -> zero ~loc
       | BAnd, _, Const(CInt64(z,_,_)) 
         when Integer.equal z Integer.zero -> zero ~loc
       | BOr, Const(CInt64(i1,ik1,_)),Const(CInt64(i2,ik2,_)) when ik1 = ik2 ->
-          kinteger64 ?loc tk (Integer.logor i1 i2)
+          kinteger64 ~loc tk (Integer.logor i1 i2)
       | BOr, _, _ when isZero e1' -> e2'
       | BOr, _, _ when isZero e2' -> e1'
       | BXor, Const(CInt64(i1,ik1,_)),Const(CInt64(i2,ik2,_)) when ik1 = ik2 ->
-          kinteger64 ?loc tk (Integer.logxor i1 i2)
+          kinteger64 ~loc tk (Integer.logxor i1 i2)
       | Shiftlt, Const(CInt64(i1,_ik1,_)),Const(CInt64(i2,_,_))
           when shiftInBounds i2 ->
-          kinteger64 ?loc tk (Integer.shift_left i1 i2)
+          kinteger64 ~loc tk (Integer.shift_left i1 i2)
       | Shiftlt, Const(CInt64(z,_,_)), _ 
         when Integer.equal z Integer.zero -> zero ~loc
       | Shiftlt, _, Const(CInt64(z,_,_)) 
@@ -4976,10 +4962,10 @@ and constFoldBinOp ~loc (machdep: bool) bop e1 e2 tres =
       | Shiftrt, Const(CInt64(i1,ik1,_)),Const(CInt64(i2,_,_))
           when shiftInBounds i2 ->
           if isunsigned ik1 then
-            kinteger64 ?loc tk 
+            kinteger64 ~loc tk 
               (Integer.shift_right_logical i1 i2)
           else
-            kinteger64 ?loc tk (Integer.shift_right i1 i2)
+            kinteger64 ~loc tk (Integer.shift_right i1 i2)
       | Shiftrt, Const(CInt64(z,_,_)), _ 
         when Integer.equal z Integer.zero -> zero ~loc
       | Shiftrt, _, Const(CInt64(z,_,_)) 
@@ -5013,15 +4999,15 @@ and constFoldBinOp ~loc (machdep: bool) bop e1 e2 tres =
       | LOr, _, _ when isInteger e1' <> None || isInteger e2' <> None ->
           (* One of e1' or e2' is a nonzero constant *)
           one ~loc
-      | _ -> new_exp ?loc (BinOp(bop, e1', e2', tres))
+      | _ -> new_exp ~loc (BinOp(bop, e1', e2', tres))
     in
     if debugConstFold then
       Format.printf "Folded %a to %a@."
-        !pp_exp_ref (new_exp ?loc (BinOp(bop, e1', e2', tres)))
+        !pp_exp_ref (new_exp ~loc (BinOp(bop, e1', e2', tres)))
         !pp_exp_ref newe;
     newe
   end else
-    new_exp ?loc (BinOp(bop, e1', e2', tres))
+    new_exp ~loc (BinOp(bop, e1', e2', tres))
 
 let () = pbitsSizeOf := bitsSizeOf
 
@@ -5190,6 +5176,12 @@ let uint16_t () = TInt(smallest_kind ~signed:false ~bits_size:16,[])
    add "atan2l" longDoubleType [ longDoubleType;
 						 longDoubleType ] false;
 
+   let int32t = int32Type () in
+   add "bswap32" int32t [int32t] false;
+
+   let int64t = int64Type () in
+   add "bswap64" int64t [int64t] false;
+
    add "ceil" doubleType [ doubleType ] false;
    add "ceilf" floatType [ floatType ] false;
    add "ceill" longDoubleType [ longDoubleType ] false;
@@ -5325,6 +5317,7 @@ let uint16_t () = TInt(smallest_kind ~signed:false ~bits_size:16,[])
    add "tanhf" floatType [ floatType ] false;
    add "tanhl" longDoubleType [ longDoubleType ] false;
 
+   add "unreachable" voidType [ ] false;
 
    if hasbva then begin
      add "va_end" voidType [ TBuiltin_va_list [] ] false;
@@ -5479,21 +5472,14 @@ let type_remove_attributes_for_logic_type =
 let () = Cil_datatype.drop_non_logic_attributes :=
   dropAttributes spare_attributes_for_logic_cast
 
-let rec same_attributes l1 l2 =
-  match l1,l2 with
-    | [],[] -> true
-    | [],_ | _,[] -> false
-    | a1::l1, a2::l2 ->
-        Cil_datatype.Attribute.equal a1 a2 && same_attributes l1 l2
-
 let need_cast ?(force=false) oldt newt =
   let oldt = type_remove_attributes_for_c_cast (unrollType oldt) in
   let newt = type_remove_attributes_for_c_cast (unrollType newt) in
   not (Cil_datatype.Typ.equal oldt newt) &&
     (force ||
-       match (oldt, newt) with
-         | TInt(ik,ai), TEnum(e,ae)
-         | TEnum(e,ae), TInt(ik,ai) when same_attributes ai ae ->
+       match oldt, newt with
+         | TInt(ik,ai),TEnum(e,ae)
+         | TEnum(e,ae),TInt(ik,ai) when Attributes.equal ai ae ->
              ik <> e.ekind
          | _ -> true)
 
@@ -5776,7 +5762,7 @@ let need_cast ?(force=false) oldt newt =
 
  class copyVisitExpr = object
      inherit genericCilVisitor (copy_visit (Project.current ()))
-     method vexpr e = 
+     method! vexpr e = 
        ChangeDoChildrenPost ({e with eid = Eid.next ()}, fun x -> x)
  end
 
@@ -5787,7 +5773,7 @@ let need_cast ?(force=false) oldt newt =
  class constFoldVisitorClass (machdep: bool) : cilVisitor = object
    inherit nopCilVisitor
 
-   method vinst i =
+   method! vinst i =
      match i with
        (* Skip two functions to which we add Sizeof to the type arguments.
 	  See the comments for these above. *)
@@ -5796,7 +5782,7 @@ let need_cast ?(force=false) oldt newt =
 	       || (vi.vname = "__builtin_types_compatible_p")) ->
 	   SkipChildren
      | _ -> DoChildren
-   method vexpr (e: exp) =
+   method! vexpr (e: exp) =
      (* Do it bottom up *)
      ChangeDoChildrenPost (e, constFold machdep)
 
@@ -5805,7 +5791,7 @@ let need_cast ?(force=false) oldt newt =
 
  let rec constFoldTermNodeAtTop = function
    | TSizeOf typ as t ->
-     (try integer_lconstant (sizeOf_int typ)
+     (try integer_lconstant (bytesSizeOf typ)
       with SizeOfError _ -> t)
    | TSizeOfStr str -> integer_lconstant (String.length str + 1)
    | TAlignOf typ -> integer_lconstant (bytesAlignOf typ)
@@ -5820,7 +5806,7 @@ let need_cast ?(force=false) oldt newt =
  let constFoldTerm machdep t =
    let visitor = object
      inherit nopCilVisitor
-     method vterm_node t =
+     method! vterm_node t =
        if machdep then ChangeToPost (t,constFoldTermNodeAtTop)
        else DoChildren
    end
@@ -5923,7 +5909,7 @@ let childrenFileSameGlobals vis f =
    let module M = struct exception Found end in
    let vis = object
      inherit nopCilVisitor
-     method vvrbl v' =
+     method! vvrbl v' =
        if Cil_datatype.Varinfo.equal v v' then raise M.Found;
        SkipChildren
    end
@@ -6123,7 +6109,7 @@ let childrenFileSameGlobals vis f =
    fun d -> new_exp ~loc:Cil_datatype.Location.unknown (Const(CStr(d)))
 
  let dInstr: string -> location -> instr =
-   fun d l -> Asm([], [d], [], [], [], l)
+   fun d l -> Asm([], [d], [], [], [], [], l)
 
  let dGlobal: string -> location -> global =
    fun d l -> GAsm(d, l)
@@ -6139,7 +6125,7 @@ let childrenFileSameGlobals vis f =
      Mem e, NoOffset -> e
    | b, Index(z, NoOffset) when isZero z -> new_exp ~loc (StartOf (b, NoOffset))
   (* array *)
-   | _ -> new_exp ?loc (AddrOf lval)
+   | _ -> new_exp ~loc (AddrOf lval)
 
  let mkAddrOfVi vi = mkAddrOf vi.vdecl (var vi)
 
@@ -6186,7 +6172,7 @@ let childrenFileSameGlobals vis f =
      TFun (rt, args, isva, a) -> rt, args, isva, a
    | _ -> Kernel.abort "Function %s invoked on a non function type" fvi.vname
 
- let rec integralPromotion (t : typ) : typ = (* c.f. ISO 6.3.1.1 *)
+ let rec integralPromotion ?(forComparison=false) (t : typ) : typ = (* c.f. ISO 6.3.1.1 *)
    match unrollType t with
    | TInt ((IShort|ISChar|IBool), a) -> TInt(IInt, a)
    | TInt (IChar,a) when isSigned IChar -> TInt(IInt, a)
@@ -6213,11 +6199,18 @@ let childrenFileSameGlobals vis f =
      | [] -> t
      | _ -> assert false
      end
-   | TEnum (ei, a) -> integralPromotion (TInt(ei.ekind, a))
+   | TEnum (ei, a) -> let r = integralPromotion (TInt(ei.ekind, a)) in
+	 if forComparison then
+	   (match r with
+	     | TInt(kind,_) -> if kind <> ei.ekind then r else t
+	     | t -> Kernel.fatal ~current:true "integralPromotion: not expecting %a" !pp_typ_ref t)  
+	 else r
    (* gcc packed enums can be < int *)
    | t -> Kernel.fatal ~current:true "integralPromotion: not expecting %a" !pp_typ_ref t
 
- let arithmeticConversion  t1 t2 = (* c.f. ISO 6.3.1.8 *)
+ let integralPromotion (t : typ) : typ = integralPromotion t
+
+ let arithmeticConversion t1 t2 = (* c.f. ISO 6.3.1.8 *)
   let checkToInt _ = () in  (* dummies for now *)
   let checkToFloat _ = () in
   match unrollTypeSkel t1, unrollTypeSkel t2 with
@@ -6318,6 +6311,12 @@ let getCompField cinfo fieldName =
 
 let mkCastT ?(force=false) ~(e: exp) ~(oldt: typ) ~(newt: typ) =
   let loc = e.eloc in
+(* Issue #!1546
+   let force = force || 
+    (* see warning of need_cast function:
+       [false] as default value for that option is not safe... *) 
+    (match e.enode with | Const(CEnum _) -> false | _ -> true)
+  in *)
   if need_cast ~force oldt newt then begin
     let mk_cast exp = (* to new type [newt] *)
       new_exp
@@ -6610,6 +6609,14 @@ let rec makeZeroInit ~loc (t: typ) : init =
    | _ -> true
 
 
+ (* makes sure that the type of a C variable and the type of its associated
+   logic variable -if any- stay synchronized. See bts 1538 *)
+ let update_var_type v t =
+   v.vtype <- t;
+   match v.vlogic_var_assoc with
+     | None -> ()
+     | Some lv -> lv.lv_type <- Ctype t
+
  module A = Alpha
 
  (** Uniquefy the variable names *)
@@ -6639,7 +6646,7 @@ let rec makeZeroInit ~loc (t: typ) : init =
 	     (* Here if this is the first time we define a name *)
 	     Hashtbl.add globalNames vi.vname vi.vid;
 	     (* And register it *)
-	     A.registerAlphaName gAlphaTable None vi.vname (CurrentLoc.get ())
+	     A.registerAlphaName gAlphaTable vi.vname (CurrentLoc.get ())
 	   end)
        | _ -> ());
 
@@ -6653,14 +6660,16 @@ let rec makeZeroInit ~loc (t: typ) : init =
 	   let undolist = ref [] in
 	   (* Process one local variable *)
 	   let processLocal (v: varinfo) =
+             let lookupname = v.vname in
+             let data = CurrentLoc.get () in
 	     let newname, oldloc =
-	       A.newAlphaName gAlphaTable (Some undolist) v.vname
-		 (CurrentLoc.get ())
+	       A.newAlphaName 
+                 ~alphaTable:gAlphaTable ~undolist ~lookupname ~data
 	     in
 	     if false && newname <> v.vname then (* Disable this warning *)
 	       Kernel.warning
 		 "Changing the name of local %s in %s to %s \
-(due to duplicate at %a)"
+                  (due to duplicate at %a)"
 		 v.vname
 		 fdec.svar.vname
 		 newname Location.pretty oldloc ;
@@ -6782,11 +6791,11 @@ let pullTypesForward = true
     (* Scan a type and collect the variables that are refered *)
 class getVarsInGlobalClass (pacc: varinfo list ref) = object
   inherit nopCilVisitor
-  method vvrbl (vi: varinfo) =
+  method! vvrbl (vi: varinfo) =
     pacc := vi :: !pacc;
     SkipChildren
 
-  method vglob = function
+  method! vglob = function
       GType _ | GCompTag _ -> DoChildren
     | _ -> SkipChildren
 
@@ -6900,7 +6909,7 @@ let extract_varinfos_from_exp vexp =
     inherit nopCilVisitor
     val mutable varinfos = Varinfo.Set.empty;
     method varinfos = varinfos
-    method vvrbl (symb:varinfo) =
+    method! vvrbl (symb:varinfo) =
       varinfos <- Varinfo.Set.add symb varinfos;
       SkipChildren
   end
@@ -6912,7 +6921,7 @@ let extract_varinfos_from_lval vlval =
     inherit nopCilVisitor
     val mutable varinfos = Varinfo.Set.empty;
     method varinfos = varinfos
-    method vvrbl (symb:varinfo) =
+    method! vvrbl (symb:varinfo) =
       varinfos <- Varinfo.Set.add symb varinfos;
       SkipChildren
   end
@@ -7102,7 +7111,7 @@ let extract_labels_from_annot annot =
     inherit nopCilVisitor
     val mutable labels = Logic_label.Set.empty;
     method labels = labels
-    method vlogic_label (label:logic_label) =
+    method! vlogic_label (label:logic_label) =
       labels <- Logic_label.Set.add label labels;
       SkipChildren
   end
@@ -7114,7 +7123,7 @@ let extract_labels_from_term term =
     inherit nopCilVisitor
     val mutable labels = Logic_label.Set.empty;
     method labels = labels
-    method vlogic_label (label:logic_label) =
+    method! vlogic_label (label:logic_label) =
       labels <- Logic_label.Set.add label labels;
       SkipChildren
   end
@@ -7126,7 +7135,7 @@ let extract_labels_from_pred pred =
     inherit nopCilVisitor
     val mutable labels = Logic_label.Set.empty;
     method labels = labels
-    method vlogic_label (label:logic_label) =
+    method! vlogic_label (label:logic_label) =
       labels <- Logic_label.Set.add label labels;
       SkipChildren
   end
@@ -7154,10 +7163,10 @@ let close_predicate p =
 class alpha_conv tbl ltbl =
 object
   inherit nopCilVisitor
-  method vvrbl v =
+  method! vvrbl v =
     try let v' = Hashtbl.find tbl v.vid in ChangeTo v'
     with Not_found -> DoChildren
-  method vlogic_var_use v =
+  method! vlogic_var_use v =
     try let v' = Hashtbl.find ltbl v.lv_id in ChangeTo v'
     with Not_found -> DoChildren
 end
@@ -7188,52 +7197,113 @@ let is_fully_arithmetic ty =
             | TEnum _ |TFloat _ | TInt _ ->  ExistsFalse)
          ty)
 
-
-(** Provided [s] is a switch, [separate_switch_succs s] returns the
-    subset of [s.succs] that correspond to the labels of [s], and an
-    optional statement that is [None] if the switch has a default label,
-    or [Some s'] where [s'] is the syntactic successor of [s] otherwise *)
+(* Note: The implementation preserves the order of s.succs in the returned list. *)
 let separate_switch_succs s =
-  match s.skind with
-    | Switch (_, _, cases, _) ->
-        let to_set =
-          List.fold_left (fun s stmt -> Stmt.Set.add stmt s) Stmt.Set.empty in
-        let s_succs = to_set s.succs in
-        let s_cases = to_set cases in
-        let diff = Stmt.Set.diff s_succs s_cases in
-        let cases = Stmt.Set.elements (Stmt.Set.inter s_succs s_cases) in
-        (match Stmt.Set.elements diff with
-           | [] -> cases, None
-           | [s] -> cases, Some s
-           | _ :: _ :: _ ->
-               Kernel.fatal ~current:true "Bad CFG: switch with multiple non-case successors."
-        )
+  let cases = match s.skind with
+    | Switch (_, _, cases, _) -> cases
     | _ -> raise (Invalid_argument "separate_switch_succs")
+  in
+  let cases_set =
+    List.fold_left (fun s stmt -> Stmt.Set.add stmt s) Stmt.Set.empty cases
+  in
+  let is_in_cases stmt = Stmt.Set.mem stmt cases_set in
+  let contains_default_label stmt =
+    let is_default_label = function
+      | Default _ -> true
+      | _ -> false
+    in List.exists is_default_label stmt.labels
+  in
+  let contains_case_label stmt =
+    let is_case_label = function
+      | Case _ -> true
+      | _ -> false
+    in List.exists is_case_label stmt.labels
+  in
+  let default = ref None in
+  let set_default s =
+    if !default != None
+    then Kernel.fatal ~current:true "Bad CFG: switch with multiple non-case successors.";
+    default := Some s
+  in
+  let cases_non_default = ref [] in
+  List.iter (fun stmt ->
+    if not (is_in_cases stmt)
+    then set_default stmt
+    else
+      if contains_default_label stmt
+      then
+	(set_default stmt;
+	if contains_case_label stmt
+	then cases_non_default := stmt::!cases_non_default)
+      else
+	(assert (contains_case_label stmt);
+	 cases_non_default := stmt::!cases_non_default)) s.succs;
+  match !default with
+  | None ->
+    Kernel.fatal ~current:true "Bad CFG: switch with no non-case successors."
+  | Some(d) -> (List.rev cases, d)
+;;
+
+(** Get the two successors of an If statement *)
+let separate_if_succs (s:stmt) : stmt * stmt =
+  let fstStmt blk = match blk.bstmts with
+      [] -> dummyStmt
+    | fst::_ -> fst
+  in
+  match s.skind with
+    If(_e, b1, b2, _) ->
+      let thenSucc = fstStmt b1 in
+      let elseSucc = fstStmt b2 in
+      let oneFallthrough () =
+        let fallthrough =
+          List.filter
+            (fun s' -> thenSucc != s' && elseSucc != s')
+            s.succs
+        in
+        match fallthrough with
+          [] ->
+	    Kernel.fatal ~current:true
+	      "Bad CFG: missing fallthrough for If."
+        | [s'] -> s'
+        | _ ->
+	  Kernel.fatal ~current:true "Bad CFG: multiple fallthrough for If."
+      in
+      (* If thenSucc or elseSucc is dummyStmt, it's an empty block.
+         So the successor is the statement after the if *)
+      let stmtOrFallthrough s' =
+        if s' == dummyStmt then
+          oneFallthrough ()
+        else
+          s'
+      in
+      (stmtOrFallthrough thenSucc,
+       stmtOrFallthrough elseSucc)
+
+  | _-> Kernel.fatal ~current:true "ifSuccs on a non-If Statement."
 
 
 module Switch_cases =
   State_builder.Hashtbl
     (Stmt.Hashtbl)
-    (Datatype.Pair(Datatype.List(Stmt))(Datatype.Option(Stmt)))
+    (Datatype.Pair(Datatype.List(Stmt))(Stmt))
     (struct
        let name = "Switch_cases"
        let dependencies = []
        let size = 49
      end)
 let () = add_ast_dependency Switch_cases.self
-let () = add_ast_dependency CacheBitsOffset.self
 let separate_switch_succs = Switch_cases.memo separate_switch_succs
 
 class dropAttributes ?select () = object
   inherit genericCilVisitor (copy_visit (Project.current ()))
-  method vattr a = 
+  method! vattr a = 
     match select with
       | None -> ChangeTo []
       | Some l ->
           (match a with
             | (Attr (s,_) | AttrAnnot s) when List.mem s l -> ChangeTo []
             | Attr _ | AttrAnnot _ -> DoChildren)
-  method vtype ty =
+  method! vtype ty =
     match ty with
       | TNamed (ty, attrs) ->
           ChangeDoChildrenPost (typeAddAttributes attrs ty.ttype, fun x -> x)

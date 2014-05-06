@@ -1,7 +1,7 @@
 /* run.config
-   OPT: -memory-footprint 1 -calldeps -users -val -journal-disable -input
+   OPT: -calldeps -users -val -journal-disable -input
+   OPT: -deps -show-indirect-deps -journal-disable
 */
-
 int a,b,c,d;
 int x,y,z,t;
 

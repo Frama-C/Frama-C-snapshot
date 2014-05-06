@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -25,14 +25,18 @@
 (* -------------------------------------------------------------------------- *)
 
 open Ctypes
+open Lang
 open Lang.F
 
 val of_real : c_int -> unop
 val iconvert : c_int -> unop
 val irange : c_int -> term -> pred
 
+val to_cint : lfun -> c_int (** Raises [Not_found] if not. *)
+val is_cint : lfun -> c_int (** Raises [Not_found] if not. *)
+
 type model = Natural | Machine
-val model : model Context.value
+val configure : model -> unit
 
 val iopp : c_int -> unop
 val iadd : c_int -> binop
@@ -54,4 +58,12 @@ val l_xor : binop
 val l_or  : binop  
 val l_lsl : binop
 val l_lsr : binop
+
+val f_lnot : lfun
+val f_land : lfun
+val f_lxor : lfun
+val f_lor  : lfun
+val f_lsl  : lfun
+val f_lsr  : lfun
+val f_bit  : lfun
 

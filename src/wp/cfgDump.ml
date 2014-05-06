@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -162,6 +162,12 @@ struct
     
   let loop_entry w = tag "BeforeLoop" w
   let loop_step w = tag "InLoop" w
+ 
+  let call_dynamic _env _stmt _pid fct calls =
+    let u = node () in
+    Format.fprintf !out "  %a [ color=red , label \"CallPtr %a\" ];@." pretty u 
+      Printer.pp_exp fct ;
+    List.iter (fun (_,k) -> link u k) calls ; u
 
   let call_goal_precond env _stmt kf _es ~pre k =
     let u = node () in

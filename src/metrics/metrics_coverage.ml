@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -56,7 +56,8 @@ class coverageAuxVisitor = object(self)
 
 end
 
-(* Reachability metrics: from a given compute a conservative estimation
+(* Reachability metrics: from a given entry point
+   compute a conservative estimation
    of the functions that can be transitively called *)
 class callableFunctionsVisitor = object(self)
   inherit coverageAuxVisitor as super
@@ -78,7 +79,7 @@ class callableFunctionsVisitor = object(self)
 
   (* Each time we see a variable, mark it as to be visited. If it is a function,
      consider it is called *)
-  method vvrbl vi =
+  method! vvrbl vi =
     if not (self#already_seen vi) then begin
       if Cil.isFunctionType vi.vtype then
         callable <- Varinfo.Set.add vi callable;
@@ -86,7 +87,7 @@ class callableFunctionsVisitor = object(self)
     end;
     Cil.SkipChildren (* no children anyway *)
 
-  method visit_non_function_var vi =
+  method! visit_non_function_var vi =
     let r = super#visit_non_function_var vi in
     (match r with
        | None -> ()
@@ -105,7 +106,7 @@ class callableFunctionsVisitor = object(self)
       let vi = Stack.pop todo in
       if not (self#already_seen vi) then
         begin
-          Metrics_parameters.Metrics.debug "Coverage: visiting %s" vi.vname;
+          Metrics_parameters.debug "Coverage: visiting %s" vi.vname;
           Varinfo.Hashtbl.add visited vi ();
           if Cil.isFunctionType vi.vtype
           then self#visit_function vi
@@ -149,7 +150,7 @@ object(self)
             Kernel_function.pretty f mess vi.vname
             Location.pretty (Cil.CurrentLoc.get ())
 
-  method vvrbl vi =
+  method! vvrbl vi =
     if Cil.isFunctionType vi.vtype then self#reached_vi vi;
     Cil.SkipChildren (* no children anyway *)
 
@@ -177,7 +178,7 @@ class coverageByFun = object
   val mutable total = 0
   val mutable value = 0
 
-  method vstmt s =
+  method! vstmt s =
     total <- total + 1;
     if Db.Value.is_reachable_stmt s then value <- value + 1;
     Cil.DoChildren
@@ -245,7 +246,8 @@ let pp_fun_set_by_file fmt set =
   Format.fprintf fmt "@[<v 0>";
   Datatype.String.Map.iter
     (fun fname fvinfoset ->
-      Format.fprintf fmt "@[<hov 2><%s>:@ %a@]@ " fname
+      Format.fprintf fmt "@[<hov 2><%s>:@ %a@]@ "
+        (Filepath.pretty fname)
         (fun fmt vinfoset ->
           Varinfo.Set.iter
             (fun vinfo -> Format.fprintf fmt "%a;@ " Printer.pp_varinfo vinfo)
@@ -297,7 +299,7 @@ let pp_value_coverage () =
   let nall = Varinfo.Set.cardinal all in
   let nsyn = Varinfo.Set.cardinal syntactic
   and nsem = Varinfo.Set.cardinal semantic in
-  let percent = (float_of_int nsem) /. (float_of_int nsyn) *. 100.0 in
+  let percent = (float_of_int nsem) *. 100.0 /. (float_of_int nsyn) in
   (fun fmt ->
      Format.fprintf fmt "@[<v 0>\
        %a@ \
@@ -345,9 +347,9 @@ let pp_stmts_reached_by_function fmt =
     %d stmts in analyzed functions, %d stmts analyzed (%.1f%%)@ "
     (Metrics_base.mk_hdr 2) "Statements analyzed by Value"
     sum_total sum_value percent;
-  List.iter (fun (kf, total, _, percent) ->
-    Format.fprintf fmt "%a: %.1f%% (%d stmts)@ "
-      Kernel_function.pretty kf percent total
+  List.iter (fun (kf, total, visited, percent) ->
+    Format.fprintf fmt "%a: %d stmts out of %d (%.1f%%)@ "
+      Kernel_function.pretty kf visited total percent
   ) l;
   Format.fprintf fmt "@]"
 

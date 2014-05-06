@@ -1,0 +1,94 @@
+(**************************************************************************)
+(*                                                                        *)
+(*  This file is part of WP plug-in of Frama-C.                           *)
+(*                                                                        *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
+(*         alternatives)                                                  *)
+(*                                                                        *)
+(*  you can redistribute it and/or modify it under the terms of the GNU   *)
+(*  Lesser General Public License as published by the Free Software       *)
+(*  Foundation, version 2.1.                                              *)
+(*                                                                        *)
+(*  It is distributed in the hope that it will be useful,                 *)
+(*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
+(*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
+(*  GNU Lesser General Public License for more details.                   *)
+(*                                                                        *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
+(*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
+(*                                                                        *)
+(**************************************************************************)
+
+theory Vset
+use bool.Bool as Bool
+use int.Int as Int
+
+type set 'a
+
+function empty : set 'a
+
+function singleton 'a : set 'a
+
+function union (set 'a) (set 'a) : set 'a
+
+function inter (set 'a) (set 'a) : set 'a
+
+predicate member 'a (set 'a)
+
+function member_bool 'a (set 'a) : Bool.bool
+
+function range int int : set int
+
+function range_sup int : set int
+
+function range_inf int : set int
+
+function range_all : set int
+
+predicate eqset (a:set 'a) (b:set 'a) = forall x:'a. member x a <-> member x
+  b
+
+predicate subset (a:set 'a) (b:set 'a) = forall x:'a. member x a -> member x
+  b
+
+predicate disjoint (a:set 'a) (b:set 'a) = forall x:'a. member x a -> member
+  x b -> false
+
+axiom member_bool1 : forall x:'a. forall s:set 'a [member_bool x s].
+  if member x s then ((member_bool x s) = (Bool.True)) else ((member_bool x
+  s) = (Bool.False))
+
+axiom member_empty : forall x:'a [member x (empty:set 'a)]. not member x
+  (empty:set 'a)
+
+axiom member_singleton : forall x:'a, y:'a [member x (singleton y)]. member x
+  (singleton y) <-> ((x) = (y))
+
+axiom member_union : forall x:'a. forall a:set 'a, b:set 'a [member x (union
+  a b)]. member x (union a b) <-> member x a \/ member x b
+
+axiom member_inter : forall x:'a. forall a:set 'a, b:set 'a [member x (inter
+  a b)]. member x (inter a b) <-> member x a /\ member x b
+
+axiom union_empty : forall a:set 'a [union a (empty:set 'a)| union (empty:set
+  'a) a]. ((union a (empty:set 'a)) = (a)) /\ ((union (empty:set 'a)
+  a) = (a))
+
+axiom inter_empty : forall a:set 'a [inter a (empty:set 'a)| inter (empty:set
+  'a) a]. ((inter a (empty:set 'a)) = (empty:set 'a)) /\ ((inter (empty:set
+  'a) a) = (empty:set 'a))
+
+axiom member_range : forall x:int, a:int, b:int [member x (range a b)].
+  member x (range a b) <-> (Int.(<=) (a) (x)) /\ (Int.(<=) (x) (b))
+
+axiom member_range_sup : forall x:int, a:int [member x (range_sup a)]. member
+  x (range_sup a) <-> (Int.(<=) (a) (x))
+
+axiom member_range_inf : forall x:int, b:int [member x (range_inf b)]. member
+  x (range_inf b) <-> (Int.(<=) (x) (b))
+
+axiom member_range_all : forall x:int [member x range_all]. member x
+  range_all
+
+end

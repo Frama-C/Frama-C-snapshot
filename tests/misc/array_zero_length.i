@@ -1,6 +1,6 @@
 /* run.config
-   OPT: -memory-footprint 1 -val -journal-disable
-   OPT: -memory-footprint 1 -val -lib-entry -journal-disable
+   OPT: -val -journal-disable
+   OPT: -val -lib-entry -journal-disable
 */
 
 char T[];

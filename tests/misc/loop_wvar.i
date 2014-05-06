@@ -1,9 +1,9 @@
 /* run.config
    GCC:
-   OPT: -memory-footprint 1 -no-annot -val -journal-disable
-   OPT: -memory-footprint 1 -val -journal-disable
-   OPT: -memory-footprint 1 -val -main main_err1 -journal-disable
-   OPT: -memory-footprint 1 -val -main main_err2 -journal-disable
+   OPT: -no-annot -val -journal-disable
+   OPT: -val -journal-disable
+   OPT: -val -main main_err1 -journal-disable
+   OPT: -val -main main_err2 -journal-disable
 */
 
 int i,j;

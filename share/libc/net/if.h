@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2013                                               */
+/*  Copyright (C) 2007-2014                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -22,6 +22,9 @@
 
 #ifndef FC_NET_IF
 #define FC_NET_IF
+
+#include "sys/socket.h"
+
 struct if_nameidx {unsigned if_index; char *if_name;};
 #define IF_NAMESIZE 255
 unsigned              if_nametoindex(const char * name);
@@ -145,6 +148,16 @@ struct ifreq {
 # define _IOT_ifreq_short _IOT(_IOTS(char),IFNAMSIZ,_IOTS(short),1,0,0)
 # define _IOT_ifreq_int	_IOT(_IOTS(char),IFNAMSIZ,_IOTS(int),1,0,0)
 
-
+struct ifconf
+  {
+    int	ifc_len;			/* Size of buffer.  */
+    union
+      {
+	char *ifcu_buf;
+	struct ifreq *ifcu_req;
+      } ifc_ifcu;
+  };
+# define ifc_buf	ifc_ifcu.ifcu_buf	/* Buffer address.  */
+# define ifc_req	ifc_ifcu.ifcu_req	/* Array of structures.  */
 
 #endif

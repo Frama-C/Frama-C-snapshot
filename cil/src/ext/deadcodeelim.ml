@@ -35,8 +35,8 @@
 (*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE         *)
 (*  POSSIBILITY OF SUCH DAMAGE.                                             *)
 (*                                                                          *)
-(*  File modified by CEA (Commissariat à l'énergie atomique et aux          *)
-(*                        énergies alternatives)                            *)
+(*  File modified by CEA (Commissariat Ã  l'Ã©nergie atomique et aux          *)
+(*                        Ã©nergies alternatives)                            *)
 (*               and INRIA (Institut National de Recherche en Informatique  *)
 (*                          et Automatique).                                *)
 (****************************************************************************)
@@ -53,7 +53,7 @@ module UD = Usedef
 module IH = Datatype.Int.Hashtbl
 
 
-module IS = Set.Make(
+module IS = FCSet.Make(
   struct
     type t = int
     let compare = Datatype.Int.compare
@@ -113,7 +113,7 @@ class usedDefsCollectorClass = object(self)
             Cil_printer.pp_exp e) 
       u
 
-  method vexpr e =
+  method! vexpr e =
     let u = UD.computeUseExp e in
     match self#get_cur_iosh() with
       Some(iosh) -> self#add_defids iosh e u; DoChildren
@@ -122,7 +122,7 @@ class usedDefsCollectorClass = object(self)
 	  Kernel.debug "DCE: use but no rd data: %a\n" Cil_printer.pp_exp e;
 	DoChildren
 
-  method vstmt s =
+  method! vstmt s =
     ignore(super#vstmt s);
     match s.skind with
     | Instr _ -> DoChildren
@@ -146,10 +146,10 @@ class usedDefsCollectorClass = object(self)
 	| None -> DoChildren
     end
 
-  method vinst i =
+  method! vinst i =
     let cstmt = Extlib.the self#current_stmt in
     let handle_inst iosh i = match i with
-    | Asm(_,_,slvl,_,_,_) -> List.iter (fun (_,s,lv) ->
+    | Asm(_,_,slvl,_,_,_,_) -> List.iter (fun (_,s,lv) ->
 	match lv with (Var v, off) ->
 	  if s.[0] = '+' then
 	    self#add_defids iosh (dummy_exp(Lval(Var v, off)))
@@ -245,11 +245,11 @@ let is_volatile_vi vi =
  ***************************************************)
 class hasVolatile flag = object
   inherit nopCilVisitor
-  method vlval l =
+  method! vlval l =
     let tp = typeOfLval l in
     if (is_volatile_tp tp) then flag := true;
     DoChildren
-  method vexpr _e =
+  method! vexpr _e =
     DoChildren
 end
 
@@ -290,7 +290,7 @@ let removedCount = ref 0
 class uselessInstrElim : cilVisitor = object
   inherit nopCilVisitor
 
-  method vstmt stm =
+  method! vstmt stm =
 
     (* give a set of varinfos and an iosh and get
      * the set of definition ids definining the vars *)
@@ -431,7 +431,7 @@ let elim_dead_code (fd : fundec) :  fundec =
 class deadCodeElimClass full : cilVisitor = object
     inherit nopCilVisitor
 
-  method vfunc fd =
+  method! vfunc fd =
     let fd' = (if full then elim_dead_code_fp else elim_dead_code) fd in
     ChangeTo(fd')
 

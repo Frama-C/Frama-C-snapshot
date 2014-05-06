@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -81,43 +81,30 @@ exception AbortFatal of string (** Plug-in name *)
       @since Beryllium-20090601-beta1 *)
 
 exception FeatureRequest of string * string
-  (** Raise by [not_yet_implemented].
+  (** Raised by [not_yet_implemented].
       You may catch [FeatureRequest(p,r)] to support degenerated behavior.
       The responsible plugin is 'p' and the feature request is 'r'. *)
 
 (* -------------------------------------------------------------------------- *)
-(** {2 Plugin Interface}
+(** {2 Option_signature.Interface}
     @since Beryllium-20090601-beta1 *)
 (* -------------------------------------------------------------------------- *)
+
+type category = private string
+(** category for debugging/verbose messages. Must be registered before
+    any use. 
+    Each column in the string defines a sub-category, e.g.
+    a:b:c defines a subcategory c of b, which is itself a subcategory of a.
+    Enabling a category (via -plugin-msg-category) will enable all its
+    subcategories.
+    @since Fluorine-20130401 *)
+
+module Category_set: FCSet.S with type elt = category
+(** sets of category keywords *)
 
 (** @since Beryllium-20090601-beta1
     @plugin development guide *)
 module type Messages = sig
-  type category = private string
-  (** category for debugging/verbose messages. Must be registered before
-      any use. 
-      Each column in the string defines a sub-category, e.g.
-      a:b:c defines a subcategory c of b, which is itself a subcategory of a.
-      Enabling a category (via -plugin-msg-category) will enable all its
-      subcategories.
-      @since Fluorine-20130401 
-   *)
-
-  val register_category: string -> category
-  (** register a new debugging/verbose category.
-      @since Fluorine-20130401
-   *)
-
-  module Category_set: Set.S with type elt = category
-
-  val get_category: string -> Category_set.t
-    (** returns all registered categories (including sub-categories)
-        corresponding to a given string
-        @since Fluorine-20130401 
-     *)
-  
-  val get_all_categories: unit -> Category_set.t
-    (** returns all registered categories. *)
 
   val verbose_atleast : int -> bool
     (** @since Beryllium-20090601-beta1 *)
@@ -125,35 +112,21 @@ module type Messages = sig
   val debug_atleast : int -> bool
     (** @since Beryllium-20090601-beta1 *)
 
-  val add_debug_keys : Category_set.t -> unit
-    (** adds categories corresponding to string (including potential
-        subcategories) to the set of categories for which messages are
-        to be displayed.
-	@since Fluorine-20130401 use categories instead of plain string
-     *)
+  val printf : ?level:int -> ?dkey:category -> 
+    ?current:bool -> ?source:Lexing.position ->
+    ?append:(Format.formatter -> unit) ->
+    ?header:(Format.formatter -> unit) ->
+    ?prefix:string ->
+    ?suffix:string ->
+    ('a,formatter,unit) format -> 'a
+    (** Outputs the formatted message on [stdout]. Levels and
+	key-categories are taken into account like event messages.
+	The header formatted message is emitted as a regular [result]
+	message.  Prefix and suffix strings, if provided, are emitted
+	on [stdout] as is, at the beginning of an empty line and with
+	a terminal newline character. *)
 
-  val del_debug_keys: Category_set.t -> unit
-  (** removes the given categories from the set for which messages are printed.
-     @since Fluorine-20130401 
-   *)
- 
-  val get_debug_keys: unit -> Category_set.t
-    (** Returns currently active keys
-        @since Fluorine-20130401
-     *)
-  
-  val is_debug_key_enabled: category -> bool
-    (** Returns [true] if the given category is currently active
-        @since Fluorine-20130401
-     *)
-
-  val get_debug_keyset : unit -> category list
-    (** Returns currently active keys
-	@since Nitrogen-20111001
-        @deprecated Fluorine-20130401 use get_debug_keys instead
-     *)
-
-  val result  : ?level:int -> ?dkey:category -> 'a pretty_printer
+  val result : ?level:int -> ?dkey:category -> 'a pretty_printer
     (** Results of analysis. Default level is 1.
         @since Beryllium-20090601-beta1
 	@plugin development guide *)
@@ -172,10 +145,32 @@ module type Messages = sig
 	@modify Nitrogen-20111001 Optional parameter [dkey]
 	@plugin development guide *)
 
+  val debug0   : ?level:int -> ?dkey:category ->
+    unit pretty_printer
+  val debug1   : ?level:int -> ?dkey:category ->
+    ('a -> unit) pretty_printer
+  val debug2   : ?level:int -> ?dkey:category ->
+    ('a -> 'b -> unit) pretty_printer
+  val debug3   : ?level:int -> ?dkey:category ->
+    ('a -> 'b -> 'c -> unit) pretty_printer
+  val debug4   : ?level:int -> ?dkey:category ->
+    ('a -> 'b -> 'c -> 'd -> unit) pretty_printer
+  val debug5   : ?level:int -> ?dkey:category ->
+    ('a -> 'b -> 'c -> 'd -> 'e -> unit) pretty_printer
+  val debug6   : ?level:int -> ?dkey:category ->
+    ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> unit) pretty_printer
+  val debug7   : ?level:int -> ?dkey:category ->
+    ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g -> unit) pretty_printer
+  val debug8   : ?level:int -> ?dkey:category ->
+    ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g -> 'h -> unit) pretty_printer
+  (** Specific versions of {!debug} with fixed arity that are a lot
+      faster than the generic version when debbuging is not
+      activated. *)
+
   val warning : 'a pretty_printer
-    (** Hypothesis and restrictions.
-        @since Beryllium-20090601-beta1
-	@plugin development guide *)
+  (** Hypothesis and restrictions.
+      @since Beryllium-20090601-beta1
+      @plugin development guide *)
 
   val error   : 'a pretty_printer
     (** user error: syntax/typing error, bad expected input, etc.
@@ -252,6 +247,50 @@ module type Messages = sig
     (** Local registry for listeners. *)
 
   val register_tag_handlers : (string -> string) * (string -> string) -> unit
+
+  (** {3 Category management} *)
+
+  val register_category: string -> category
+  (** register a new debugging/verbose category.
+      @since Fluorine-20130401
+   *)
+
+  val get_category: string -> Category_set.t
+    (** returns all registered categories (including sub-categories)
+        corresponding to a given string
+        @since Fluorine-20130401 
+     *)
+  
+  val get_all_categories: unit -> Category_set.t
+    (** returns all registered categories. *)
+
+  val add_debug_keys : Category_set.t -> unit
+    (** adds categories corresponding to string (including potential
+        subcategories) to the set of categories for which messages are
+        to be displayed.
+	@since Fluorine-20130401 use categories instead of plain string
+     *)
+
+  val del_debug_keys: Category_set.t -> unit
+  (** removes the given categories from the set for which messages are printed.
+     @since Fluorine-20130401 
+   *)
+ 
+  val get_debug_keys: unit -> Category_set.t
+    (** Returns currently active keys
+        @since Fluorine-20130401
+     *)
+  
+  val is_debug_key_enabled: category -> bool
+    (** Returns [true] if the given category is currently active
+        @since Fluorine-20130401
+     *)
+
+  val get_debug_keyset : unit -> category list
+    (** Returns currently active keys
+	@since Nitrogen-20111001
+        @deprecated Fluorine-20130401 use get_debug_keys instead
+     *)
 
 end
 

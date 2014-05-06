@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -38,10 +38,6 @@ val length : t -> int
 (** Adding elements. *)
 exception Unchanged (** The three next functions raise [Unchanged] if the
                         element(s) was already present. *)
-val add : Cvalue.Model.t -> t -> unit
-val merge_into : t -> t -> unit
-val merge_set_into : State_set.t -> t -> unit
-
 val merge_set_return_new : State_set.t -> t -> State_set.t
 
 (** Iterators *)

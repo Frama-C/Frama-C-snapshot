@@ -1,6 +1,6 @@
 /* run.config
-   OPT: -memory-footprint 1 -val -deps -out -input -semantic-const-folding -journal-disable
-   OPT: -memory-footprint 1 -semantic-const-folding -cast-from-constant -semantic-const-fold add3 -main init -journal-disable
+   OPT: -val -deps -out -input -semantic-const-folding -journal-disable
+   OPT: -semantic-const-folding -cast-from-constant -semantic-const-fold add3 -main init -journal-disable
 */
 int x,y,z;
 int TAB[10];

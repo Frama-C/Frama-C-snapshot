@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -54,7 +54,7 @@ object(self)
   method frama_c_plain_copy =
     new internal_generic_frama_c_visitor fundec queue current_kf behavior
 
-  method plain_copy_visitor =
+  method! plain_copy_visitor =
     assert (self#frama_c_plain_copy#get_filling_actions == 
               self#get_filling_actions);
     (self#frama_c_plain_copy :> Cil.cilVisitor)
@@ -65,7 +65,7 @@ object(self)
 
   method current_kf = !current_kf
 
-  method private vstmt stmt =
+  method! private vstmt stmt =
     let annots =
       Annotations.fold_code_annot (fun e a acc -> (e, a) :: acc) stmt []
     in
@@ -90,8 +90,8 @@ object(self)
                     if
                       (* if x is trivial, keep all annotations, including
                          trivial ones. *)
-                      (not (Ast_info.is_trivial_annotation y)
-                       || (Ast_info.is_trivial_annotation x))
+                      (not (Logic_utils.is_trivial_annotation y)
+                       || (Logic_utils.is_trivial_annotation x))
                       &&
                       (not current || Cil.is_copy_behavior vis#behavior)
                     then (e, y) :: res else res
@@ -587,7 +587,7 @@ object(self)
           register_new_components res;
           ignore (f res)
 
-  method vglob g =
+  method! vglob g =
     let fundec, has_kf = match g with
       | GVarDecl(_,v,_) when isFunctionType v.vtype ->
         let kf = try Globals.Functions.get v with Not_found ->
@@ -604,7 +604,7 @@ object(self)
         let kf = 
 	  try Globals.Functions.get v 
 	  with Not_found ->
-	    Kernel.fatal "Visitor does not found function %s in %a"
+	    Kernel.fatal "Visitor does not find function %s in %a"
 	      v.vname
 	      Project.pretty (Project.current ())
 	in
@@ -761,7 +761,8 @@ object(self)
               (* Annotations might have already been added by the user. *)
               ignore (Annotations.emitter_of_global na)
             with Not_found ->
-              Annotations.unsafe_add_global e na)
+              Annotations.unsafe_add_global e na;
+          )
           self#get_filling_actions
       | _ -> ()
     in
@@ -794,11 +795,11 @@ object(self)
         if has_kf then self#reset_current_kf();
         res
     | JustCopy -> JustCopyPost post_action
-    | JustCopyPost f -> JustCopyPost (f $ post_action)
+    | JustCopyPost f -> JustCopyPost (post_action $ f)
     | DoChildren -> DoChildrenPost (post_do_children Extlib.id)
     | DoChildrenPost f -> DoChildrenPost (post_do_children f)
     | ChangeTo l -> ChangeToPost (l,post_change_to)
-    | ChangeToPost (l,f) -> ChangeToPost (l, f $ post_change_to)
+    | ChangeToPost (l,f) -> ChangeToPost (l, post_change_to $ f)
     | ChangeDoChildrenPost (l,f) -> ChangeDoChildrenPost (l, post_do_children f)
 end
 

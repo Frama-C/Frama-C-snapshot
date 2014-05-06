@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -60,7 +60,7 @@ module LIT = Model.Generator(STR)
        then lookup (succ id)
        else (Hashtbl.add hid id () ; id)
 
-     let export_literal lfun str = 
+     let export_literal prefix lfun str = 
        let chars = ref [] in
        let array = F.e_fun lfun [] in
        let n = String.length str in
@@ -74,7 +74,7 @@ module LIT = Model.Generator(STR)
 	 chars := (F.p_equal a c) :: !chars ;
        done ;
        define_lemma {
-	 l_name = Lang.Fun.id lfun ^ "_literal" ;
+	 l_name = prefix ^ "_literal" ;
 	 l_cluster = cluster () ;
 	 l_assumed = true ;
 	 l_types = 0 ;
@@ -85,7 +85,9 @@ module LIT = Model.Generator(STR)
 
      let compile s =
        let id = lookup (STR.hash s) in
-       let lfun = Lang.generated_f ~result:(Sarray Sint) "Lit_%04X" id in
+       let lfun = Lang.generated_f ~result:(Array(Int,Int)) "Lit_%04X" id in
+       (** Since its a generated it is the unique name given ["Lit_%04X" id] *)
+       let prefix = Lang.Fun.debug lfun in
        define_symbol {
 	 d_lfun = lfun ;
 	 d_cluster = cluster () ;
@@ -95,7 +97,7 @@ module LIT = Model.Generator(STR)
        } ;
        if Wp_parameters.Literals.get () then
 	 begin match s with
-	   | C_str str -> export_literal lfun str
+	   | C_str str -> export_literal prefix lfun str
 	   | W_str _ -> 
 	       Wp_parameters.warning ~current:false ~once:true
 		 "Content of wide string literals not exported."

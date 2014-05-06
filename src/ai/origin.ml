@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -19,8 +19,6 @@
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
-
-open Abstract_interp
 
 type kind =
   | K_Misalign_read
@@ -128,7 +126,7 @@ include Datatype.Make
     (struct
       type t = origin
       let name = "Origin"
-      let structural_descr = Structural_descr.Unknown
+      let structural_descr = Structural_descr.t_unknown
       let reprs = [ Well; Unknown ]
       let compare = compare
       let equal = equal
@@ -194,9 +192,6 @@ let narrow x _y = x (* TODO *)
 
 let is_included o1 o2 =
   (equal o1 (meet o1 o2))
-
-let is_included_exn v1 v2 =
-  if not (is_included v1 v2) then raise Is_not_included
 
 
 (*

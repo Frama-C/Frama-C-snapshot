@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -24,23 +24,23 @@
 
 include Datatype.S
 
-(** Key for the first map : from Base.t to Ival.Widen_Hints.t *)
-type var_key = Default | All | VarKey of Base.t
 
-(** an [empty] set of hints *)
+(** An empty set of hints *)
 val empty : t
 
-(** a [default] set of hints *)
-val default : t
+(** A default set of hints *)
+val default : unit -> t
 
-(** add a set of hints for a [stmt, var], [Default] or [All] (stmts, keys) *)
+(** Add numeric hints for one or all variables ([None]),
+    for a a certain stmt or for all statements ([None]).  *)
 val add_num_hints:
-  Cil_types.stmt option -> var_key -> Ival.Widen_Hints.t -> t -> t
+  Cil_types.stmt option -> Base.t option -> Ival.Widen_Hints.t -> t -> t
 
-(** add a set of Base for a [stmt] *)
+(** Add a set of bases to widen in priority for a given statement. *)
 val add_var_hints : Cil_types.stmt -> Base.Set.t -> t -> t
 
-(** widen hints from a [Cil_types.stmt, Base] *)
+(** Widen hints for a given statement, suitable for function
+    {!Cvalue.Model.widen}. *)
 val hints_from_keys :
   Cil_types.stmt -> t ->
   Base.Set.t * (Base.t -> Locations.Location_Bytes.widen_hint)

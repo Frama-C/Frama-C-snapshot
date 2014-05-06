@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -22,21 +22,32 @@
 
 open Cil_types
 
-type nodes = PdgTypes.NodeSet.t
+type nodes = Pdg_aux.NS.t
 type result = nodes Kernel_function.Map.t
 
 val initial_nodes:
   skip:Locations.Zone.t -> kernel_function -> stmt -> PdgTypes.Node.t list
 
-val impacted_nodes:
-  ?skip:Locations.Zone.t -> ?reason:bool ->
+val nodes_impacted_by_stmts:
+  ?skip:Locations.Zone.t -> ?restrict:Locations.Zone.t -> ?reason:bool ->
   kernel_function -> stmt list ->
   result * (** Initial *) nodes Kernel_function.Map.t * Reason_graph.reason
-val impacted_stmts:
+
+val nodes_impacted_by_nodes:
+  ?skip:Locations.Zone.t -> ?restrict:Locations.Zone.t -> ?reason:bool ->
+  kernel_function -> PdgTypes.Node.t list ->
+  result * (** Initial *) nodes Kernel_function.Map.t * Reason_graph.reason
+
+val stmts_impacted:
   ?skip:Locations.Zone.t -> reason:bool ->
   kernel_function -> stmt list -> stmt list
 
-val result_to_nodes: result -> PdgTypes.NodeSet.t
+val nodes_impacted:
+  ?skip:Locations.Zone.t -> reason:bool ->
+  kernel_function -> PdgTypes.Node.t list -> nodes
+
+
+val result_to_nodes: result -> nodes
 val nodes_to_stmts: nodes -> stmt list
 val impact_in_kf: result -> Cil_types.kernel_function -> nodes
 

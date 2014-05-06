@@ -79,6 +79,8 @@ void fd(char *x) {
   return;
 }
 
+/*@ ensures \result==0; */ // should be rejected: not a function
+int x = 0;
 
 /*@ logic integer x = 1 ; */                              // OK
 /*@ axiomatic Test2 {logic integer y ;} */                // OK

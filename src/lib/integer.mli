@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -76,13 +76,15 @@ val logand : t -> t -> t
 val logor : t -> t -> t
 val logxor : t -> t -> t
 val lognot : t -> t
-val power_two : int -> t
-val two_power : t -> t
+val two_power : t -> t			(* [two_power x] computes 2^x. *)
+val two_power_of_int : int -> t	        (* Similar to [two_power x], but x is an OCaml int. *)
+
 val extract_bits : start:t -> stop:t -> t -> t
 
 val small_nums : t array
 val zero : t
 val eight : t
+val sixteen : t
 val thirtytwo : t
 val div : t -> t -> t
 
@@ -90,6 +92,7 @@ val billion_one : t
 val hash : t -> int
 val shift_right_logical : t -> t -> t
 
+val two_power_64 : t
 val max_int64 : t
 val min_int64 : t
 val bits_of_max_float : t
@@ -97,6 +100,7 @@ val bits_of_most_negative_float : t
 val of_string : string -> t
 val to_string : t -> string
 val add_2_64 : t -> t
+val add_2_32 : t -> t
 val is_even : t -> bool
 val round_down_to_zero : t -> t -> t
 val power_int_positive_int: int -> int -> t

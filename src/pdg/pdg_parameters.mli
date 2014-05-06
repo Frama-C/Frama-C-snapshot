@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -22,10 +22,10 @@
 
 include Plugin.S
 
-module BuildAll: Plugin.WithOutput
+module BuildAll: Parameter_sig.With_output
 
-module BuildFct: Plugin.String_set
+module BuildFct: Parameter_sig.String_set
 
-module PrintBw: Plugin.Bool
+module PrintBw: Parameter_sig.Bool
 
-module DotBasename: Plugin.String
+module DotBasename: Parameter_sig.String

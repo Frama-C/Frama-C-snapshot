@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -37,22 +37,101 @@ let cluster_file c =
   Printf.sprintf "%s/%s.v" dir base
 
 (* -------------------------------------------------------------------------- *)
-(* --- Exporting Formulae to Coq                                          --- *)
+(* --- External Coq Libraries                                             --- *)
+(* -------------------------------------------------------------------------- *)
+
+(* Applies to both WP resources from the Share, and User-defined libraries *)
+let option_file = LogicBuiltins.create_option
+                    (fun ~driver_dir x -> driver_dir ^ "/" ^ x)
+                    "coq" "file"
+
+type coqlib = {
+  c_id : string ; (* Identifies the very original file. *)
+  c_source : string ;  (* Original file directory. *)
+  c_file : string ;    (* Relative Coq source file. *)
+  c_path : string ;    (* Relative Coq source directory. *)
+  c_name : string ;    (* Module package. *)
+  c_module : string ;  (* Full module name. *)
+}
+
+(* example: 
+
+   { 
+   c_id="/mydir/foobar:a/b/User.v" ;
+   c_source="/mydir/foobar" ;
+   c_file= "a/b/User.v" ;
+   c_path = "a/b" ;
+   c_name = "a.b" ;
+   c_module  = "a.b.User" ;
+   } 
+
+*)
+
+(* Take the directory name and changes all '/' into '.' *)
+let name_of_path path =
+  if path = "." then "" else
+    begin
+      let name = String.copy path in
+      for i = 0 to String.length name - 1 do
+        if name.[i] = '/' then name.[i] <- '.'
+	else if name.[i] = '\\' then name.[i] <- '.' 
+      done ; name
+    end
+
+let find_nonwin_column opt =
+  let p = String.rindex opt ':' in
+  if String.length opt >= 3 &&
+    opt.[1] = ':' && (opt.[2] = '/' || opt.[2] = '\\') && p = 1 then
+    (* windows absolute path, not <source>:<dir>/<file.v> format. *)
+    raise Not_found
+  else p
+
+(* Parses the coq.file option from the driver. *)
+let parse_c_option opt =
+  try
+    (* Format "<source>:<dir>/<file.v>" *)
+    let p = find_nonwin_column opt in
+    let c_source = String.sub opt 0 p in
+    let c_file = String.sub opt (p+1) (String.length opt - p - 1) in
+    let c_path = Filename.dirname c_file in
+    let c_name = name_of_path c_path in
+    let coqid = Filename.chop_extension (Filename.basename c_file) in
+    let c_module = Printf.sprintf "%s.%s" c_name (String.capitalize coqid) in 
+    { c_id = opt ; c_source ; c_file ; c_path ; c_name ; c_module }
+  with Not_found ->
+    (* Format "<source>/<file.v>" *)
+    let c_source = Filename.dirname opt in
+    let c_file = Filename.basename opt in
+    let c_module = String.capitalize (Filename.chop_extension c_file) in
+    { c_id = opt ; c_source ; c_file ; c_path = "." ; c_name = "" ; c_module }
+
+let coqlibs = Hashtbl.create 128 (*[LC] Not Projectified. *)
+let c_option opt = 
+  try Hashtbl.find coqlibs opt
+  with Not_found ->
+    let clib = parse_c_option opt in
+    Hashtbl.add coqlibs opt clib ; clib
+(* -------------------------------------------------------------------------- *)
+(* --- Dependencies                                                       --- *)
 (* -------------------------------------------------------------------------- *)
 
 type depend =
-  | D_module of string   (* D_module A : <share>/A.v copied in <out>/wp/A.v *)
-  | D_cluster of cluster (* D_cluster A : Generated in <out>/<model>/A.v *)
-  | D_file of string * string (* D_file(F,A) : File F copied in <out>/<model>/A.v *)
+  | D_cluster of cluster (* Generated in <out>/<model>/A.v *)
+  | D_coqlib of coqlib   (* From <source>/ or <out>/coqwp/ *)
+
+(* -------------------------------------------------------------------------- *)
+(* --- Exporting Formulae to Coq                                          --- *)
+(* -------------------------------------------------------------------------- *)
 
 let engine = 
   let module E = Qed.Export_coq.Make(Lang.F) in
 object
   inherit E.engine
-  method datatype = ADT.id
-  method field = Field.id
-  method link = Lang.link
+  inherit Lang.idprinting
+
+  method infoprover p = p.coq
 end
+
 
 class visitor fmt c =
 object(self)
@@ -60,7 +139,7 @@ object(self)
   inherit Definitions.visitor c 
   inherit ProverTask.printer fmt (cluster_title c)
 
-  val mutable deps = []
+    val mutable deps : depend list = []
 
   (* --- Managing Formatter --- *)
 
@@ -72,45 +151,21 @@ object(self)
 
   (* --- Files, Theories and Clusters --- *)
 
-  method add_module f = 
-    let dm = D_module f in
-    if not (List.mem dm deps) then
-      begin
-	self#lines ;
-	Format.fprintf fmt "Require Import %s.@\n" f ;
-	deps <- dm :: deps
-      end
+    method add_coqfile opt =
+      let clib = c_option opt in
+      Format.fprintf fmt "Require Import %s.@\n" clib.c_module ;
+      deps <- (D_coqlib clib) :: deps
 
-  method add_library file lib =
-    self#lines ;
-    Format.fprintf fmt "Require Import %s.@\n" lib ;
-    deps <- (D_file(file,lib)) :: deps
-
-  method add_extlib name =
-    let file = Wp_parameters.find_lib name in
-    let lib = Filename.chop_extension (Filename.basename file) in
-    self#add_library file lib
+    method on_library thy =
+      let files = LogicBuiltins.get_option option_file ~library:thy in
+      List.iter self#add_coqfile files
 	  
   method on_cluster c = 
     self#lines ;
     Format.fprintf fmt "Require Import %s.@\n" (cluster_id c) ;
     deps <- (D_cluster c) :: deps
 
-  method on_theory = function
-    | "qed" | "driver" -> ()
-    | "cint"   -> self#add_module "Cint"
-    | "cbits"  -> List.iter self#add_module [ "Cint" ; "Bits" ; "Cbits" ]
-    | "cfloat" -> self#add_module "Cfloat"
-    | "vset"   -> self#add_module "Vset"
-    | "memory" -> self#add_module "Memory"
-    | "cmath" -> self#add_module "Cmath"
-    | thy -> Wp_parameters.fatal 
-	~current:false "No builtin theory '%s' for Coq" thy
 
-  method on_library thy = 
-    let lib = String.capitalize thy in
-    let file = Wp_parameters.find_lib (lib ^ ".v") in
-    self#add_library file lib
 
   method on_type lt def =
     begin
@@ -120,7 +175,6 @@ object(self)
 
   method on_comp c fts =
     begin
-      (*TODO:NUPW: manage UNIONS *)
       self#paragraph ;
       engine#declare_type fmt (Lang.comp c) 0 (Qed.Engine.Trec fts) ;
     end
@@ -167,11 +221,16 @@ let write_cluster c =
       v#lines ;
       v#printf "Require Import ZArith.@\n" ;
       v#printf "Require Import Reals.@\n" ;
-      v#add_module "Qedlib" ;
+      v#on_library "qed" ;
       v#vself ;
       v#flush ;
     end
 
+(* -------------------------------------------------------------------------- *)
+(* --- Assembling Goal                                                    --- *)
+(* -------------------------------------------------------------------------- *)
+
+(* Returns whether source was modified after target *)
 let need_recompile ~source ~target =
   try
     let t_src = (Unix.stat source).Unix.st_mtime in
@@ -179,14 +238,7 @@ let need_recompile ~source ~target =
     t_src >= t_tgt
   with Unix.Unix_error _ -> true
   
-(* -------------------------------------------------------------------------- *)
-(* --- Assembling Goal                                                    --- *)
-(* -------------------------------------------------------------------------- *)
-
-(** theories -> needed directory to include *)
-let compiled_theories : string option Datatype.String.Hashtbl.t
-    = Datatype.String.Hashtbl.create 10
-(*[LC] Shared : not projectified. *)
+(* Used to mark version of clusters already available *)
 
 module CLUSTERS = Model.Index
   (struct
@@ -197,10 +249,24 @@ module CLUSTERS = Model.Index
      let pretty = pp_cluster
    end)
 
+(* Used to mark coqlib versions to use *)
+module Marked = Set.Make
+    (struct
+      type t = depend
+      let compare d1 d2 =
+        match d1 , d2 with
+        | D_coqlib _ , D_cluster _ -> (-1)
+        | D_cluster _ , D_coqlib _ -> 1
+        | D_cluster c1 , D_cluster c2 -> Definitions.cluster_compare c1 c2
+        | D_coqlib c1 , D_coqlib c2 -> String.compare c1.c_id c2.c_id
+    end)
+
+type included = string * string 
+(* -I <path> -as <name>, name possibly empty *)
 type coqcc = {
-  (* in reverse order: *)
-  mutable includes : string list ; (* directories where .vo are found *)
-  mutable sources : string list ; (* file .v to recompile *)
+  mutable marked : Marked.t ;
+  mutable includes : included list ; (* (reversed) includes with as *)
+  mutable sources : string list ;    (* (reversed) file .v to recompile *)
 }
 
 let add_include coqcc dir =
@@ -209,10 +275,16 @@ let add_include coqcc dir =
 let add_source coqcc file =
   if not (List.mem file coqcc.sources) then coqcc.sources <- file :: coqcc.sources
 
-let rec assemble coqcc = function
-  | D_module thy -> assemble_theory coqcc thy
-  | D_cluster c -> assemble_cluster coqcc c
-  | D_file(path,_) -> assemble_userlib coqcc path
+(* Recursive assembly: some file need further dependencies *)
+
+let rec assemble coqcc d = 
+  if not (Marked.mem d coqcc.marked) then
+    begin
+      coqcc.marked <- Marked.add d coqcc.marked ;
+      match d with
+      | D_cluster cluster -> assemble_cluster coqcc cluster
+      | D_coqlib clib -> assemble_coqlib coqcc clib
+    end
 
 and assemble_cluster coqcc c =
   let (age,deps) = try CLUSTERS.find c with Not_found -> (-1,[]) in
@@ -224,39 +296,26 @@ and assemble_cluster coqcc c =
   List.iter (assemble coqcc) deps ;
   add_source coqcc (cluster_file c)
 
-and assemble_theory coqcc thy =
-  try
-    let dirinclude = Datatype.String.Hashtbl.find compiled_theories thy in
-    match dirinclude with
-    | None -> ()
-    | Some dirinclude -> add_include coqcc dirinclude
-  with Not_found ->
-    let source = Wp_parameters.Share.file ~error:true (thy ^ ".v") in
-    if Sys.file_exists (source ^ "o") then
-      begin
-        let dirinclude = (Filename.dirname source) in
-	add_include coqcc dirinclude;
-        Datatype.String.Hashtbl.add compiled_theories thy (Some dirinclude)
-      end
+and assemble_coqlib coqcc c =
+  let compiled = Printf.sprintf "%s/%so" c.c_source c.c_file in
+  if Sys.file_exists compiled then
+    let dir = Printf.sprintf "%s/%s" c.c_source c.c_path in
+    add_include coqcc (dir,c.c_name)
     else
       begin
-	let tgtdir = Wp_parameters.get_output_dir "wp" in
-	let target = Printf.sprintf "%s/%s.v" tgtdir thy in
+      let tgtdir = Wp_parameters.get_output_dir "coqwp" in
+      let source = Printf.sprintf "%s/%s" c.c_source c.c_file in
+      let target = Printf.sprintf "%s/%s" tgtdir c.c_file in
+      let dir = Printf.sprintf "%s/%s" tgtdir c.c_path in 
+      Format.printf "tgtdir:%s@\nsource:%s@\ntarget:%s@\ndir:%s@." 
+	tgtdir source target dir;
+      if need_recompile ~source ~target then 
+        begin
+          Wp_parameters.make_output_dir dir ;
 	Command.copy source target ;
+        end ;
+      add_include coqcc (dir,c.c_name) ;
 	add_source coqcc target;
-        Datatype.String.Hashtbl.add compiled_theories thy None
-      end
-
-and assemble_userlib coqcc source =
-  if Sys.file_exists (source ^ "o") then
-    add_include coqcc (Filename.dirname source)
-  else
-    begin
-      let tgtdir = Model.directory () in
-      let coqsrc = Filename.basename source in
-      let target = Printf.sprintf "%s/%s" tgtdir coqsrc in
-      if need_recompile ~source ~target then Command.copy source target ;
-      add_source coqcc target
     end
 
 (* -------------------------------------------------------------------------- *)
@@ -265,23 +324,22 @@ and assemble_userlib coqcc source =
 
 let assemble_goal ~pid axioms prop =
   let title = Pretty_utils.to_string WpPropId.pretty pid in
-  let wpd = Wp_parameters.get_output_dir "wp" in
-  let dir = Model.directory () in
+  let model = Model.directory () in
   let id = WpPropId.get_propid pid in
-  let file = Printf.sprintf "%s/%s.coq" dir id in
+  let file = Printf.sprintf "%s/%s.coq" model id in
   let goal = cluster ~id ~title () in
   let deps = Command.print_file file
     begin fun fmt ->
       let v = new visitor fmt goal in
       v#printf "Require Import ZArith.@\n" ;
       v#printf "Require Import Reals.@\n" ;
-      v#add_module "Qedlib" ;
+      v#on_library "qed" ;
       v#vgoal axioms prop ;
       let libs = Wp_parameters.CoqLibs.get () in
       if libs <> [] then
 	begin
 	  v#section "Additional Libraries" ;
-	  List.iter v#add_extlib libs ;
+            List.iter v#add_coqfile libs ;
 	  v#hline ;
 	end ;
       v#paragraph ;
@@ -292,9 +350,9 @@ let assemble_goal ~pid axioms prop =
 	end ;
       v#flush
     end in
-  let coqcc = { includes = [] ; sources = [] } in
+  let coqcc = { marked = Marked.empty ; includes = [] ; sources = [] } in
   List.iter (assemble coqcc) deps ;
-  let includes = wpd :: List.rev (dir :: coqcc.includes) in
+  let includes = (model , "") :: List.rev coqcc.includes in
   let sources = List.rev coqcc.sources in
   includes , sources , file
 
@@ -322,7 +380,11 @@ object(coq)
     
   initializer
     begin
-      coq#add_list ~name:"-I" includes ;
+        List.iter
+          (fun (dir,name) ->
+             coq#add ["-I";dir] ;
+             if name <> "" then coq#add ["-as";name]
+          ) includes ;
       coq#add [ "-noglob" ] ;
     end
 
@@ -344,7 +406,7 @@ object(coq)
     coq#timeout (coq_timeout ()) ;
     Task.call 
       (fun () ->
-        if not (Wp_parameters.wpcheck ()) then
+        if not (Wp_parameters.Check.get ()) then
 	  let name = Filename.basename source in
 	  Wp_parameters.feedback "[Coq] Compiling '%s'." name) ()
     >>= coq#run ~logout ~logerr 
@@ -361,12 +423,11 @@ object(coq)
       | 1 -> Task.return false
       | _ -> coq#failed
 
-  method coqide headers =
+    method coqide =
     coq#set_command "coqide" ;
     coq#add [ source ] ;
     let script = Wp_parameters.Script.get () in
     if Sys.file_exists script then coq#add [ script ] ;
-    coq#add headers ;
     Task.sync coqidelock (coq#run ~logout ~logerr)
 
 end
@@ -415,7 +476,7 @@ type coq_wpo = {
   cw_goal : string ; (* filename for goal without proof *)
   cw_script : string ; (* filename for goal with proof script *)
   cw_headers : string list ; (* filename for libraries *)
-  cw_includes : string list ; (* -I ... *)
+  cw_includes : included list ; (* -I ... -as ... *)
 }
 
 let make_script ?(admitted=false) w script =
@@ -429,7 +490,8 @@ let make_script ?(admitted=false) w script =
     end
 
 let try_script ?admitted w script =
-  make_script ?admitted w script ; (new runcoq w.cw_includes w.cw_script)#check
+  make_script ?admitted w script ; 
+  (new runcoq w.cw_includes w.cw_script)#check
 
 let rec try_hints w = function
   | [] -> Task.return false
@@ -444,7 +506,7 @@ let rec try_hints w = function
 	else
 	  try_hints w hints
 	    
-let try_prove w () =
+let try_prove w =
   begin
     match Proof.script_for ~pid:w.cw_pid ~gid:w.cw_gid with
       | Some script -> 
@@ -461,7 +523,7 @@ let try_prove w () =
 let try_coqide w =
   let script = Proof.script_for_ide ~pid:w.cw_pid ~gid:w.cw_gid in
   make_script w script ;
-  (new runcoq w.cw_includes w.cw_script)#coqide w.cw_headers >>= fun st ->
+  (new runcoq w.cw_includes w.cw_script)#coqide >>= fun st ->
     if st = 0 then
       match Proof.parse_coqproof w.cw_script with
         | None ->
@@ -484,14 +546,21 @@ let try_coqide w =
     else 
       Task.failed "[Coq] coqide exit with status %d" st
 
-let prove_session ~interactive w =
+let prove_session ~mode w =
   begin
-    compile_headers w.cw_includes false w.cw_headers >>= try_prove w >>> function
+    compile_headers w.cw_includes false w.cw_headers >>= 
+    begin fun () ->
+      match mode with
+      | BatchMode -> try_prove w
+      | EditMode -> try_coqide w
+      | FixMode ->
+          begin
+            try_prove w >>> function
       | Task.Result true -> Task.return true
       | Task.Failed e -> Task.raised e
-      | Task.Canceled | Task.Timeout | Task.Result false ->
-	  if interactive then try_coqide w
-	  else Task.return false
+            | Task.Canceled | Task.Timeout | Task.Result false -> try_coqide w
+          end
+    end
   end
   >>= Task.call (fun r -> if r then VCS.valid else VCS.unknown)
 
@@ -505,12 +574,12 @@ let check_session w =
     | Task.Canceled | Task.Timeout | Task.Result false ->
       Task.raised Admitted_not_proved
 
-let prove_session ~interactive w =
-  if Wp_parameters.wpcheck ()
+let prove_session ~mode w =
+  if Wp_parameters.Check.get ()
   then check_session w
-  else prove_session ~interactive w
+  else prove_session ~mode w
 
-let prove_prop wpo ~interactive ~axioms ~prop =
+let prove_prop wpo ~mode ~axioms ~prop =
   let pid = wpo.po_pid in
   let gid = wpo.po_gid in
   let model = wpo.po_model in
@@ -520,7 +589,7 @@ let prove_prop wpo ~interactive ~axioms ~prop =
   in 
   if Wp_parameters.Generate.get () 
   then Task.return VCS.no_result
-  else prove_session ~interactive {
+  else prove_session ~mode {
     cw_pid = pid ;
     cw_gid = gid ;
     cw_goal = goal ;
@@ -529,24 +598,33 @@ let prove_prop wpo ~interactive ~axioms ~prop =
     cw_includes = includes ;
   }
     
-let prove_annot wpo vcq ~interactive = 
+let prove_annot wpo vcq ~mode = 
   Task.todo
     begin fun () ->
       let prop = GOAL.compute_proof vcq.VC_Annot.goal in
-      prove_prop wpo ~interactive ~axioms:None ~prop
+      prove_prop wpo ~mode ~axioms:None ~prop
     end
     
-let prove_lemma wpo vca ~interactive = 
+let prove_lemma wpo vca ~mode = 
   Task.todo
     begin fun () ->
       let lemma = vca.VC_Lemma.lemma in
       let depends = vca.VC_Lemma.depends in
       let prop = F.p_forall lemma.l_forall lemma.l_lemma in
       let axioms = Some(lemma.l_cluster,depends) in
-      prove_prop wpo ~interactive ~axioms ~prop
+      prove_prop wpo ~mode ~axioms ~prop
+    end
+    
+let prove_check wpo vck ~mode = 
+  Task.todo
+    begin fun () ->
+      let axioms = None in
+      let prop = vck.VC_Check.goal in
+      prove_prop wpo ~mode ~axioms ~prop
     end
 
-let prove wpo ~interactive =
+let prove mode wpo =
   match wpo.Wpo.po_formula with
-    | GoalAnnot vcq -> prove_annot wpo vcq ~interactive
-    | GoalLemma vca -> prove_lemma wpo vca ~interactive
+    | GoalAnnot vcq -> prove_annot wpo vcq ~mode
+    | GoalLemma vca -> prove_lemma wpo vca ~mode
+    | GoalCheck vck -> prove_check wpo vck ~mode

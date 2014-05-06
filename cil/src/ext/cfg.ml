@@ -35,8 +35,8 @@
 (*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE         *)
 (*  POSSIBILITY OF SUCH DAMAGE.                                             *)
 (*                                                                          *)
-(*  File modified by CEA (Commissariat à l'énergie atomique et aux          *)
-(*                        énergies alternatives)                            *)
+(*  File modified by CEA (Commissariat Ã  l'Ã©nergie atomique et aux          *)
+(*                        Ã©nergies alternatives)                            *)
 (*               and INRIA (Institut National de Recherche en Informatique  *)
 (*                          et Automatique).                                *)
 (****************************************************************************)
@@ -84,7 +84,7 @@ let nodeList : stmt list ref = ref [] (* All the nodes in a flat list *) (* ab: 
 class caseLabeledStmtFinder slr = object
     inherit nopCilVisitor
 
-    method vstmt s =
+    method! vstmt s =
         if List.exists (fun l ->
             match l with | Case(_, _) | Default _ -> true | _ -> false)
             s.labels
@@ -195,15 +195,16 @@ and cfgStmt (s: stmt) (next:stmt option) (break:stmt option) (cont:stmt option) 
 
   | Switch(_,blk,_l,_) ->
       let bl = findCaseLabeledStmts blk in
-      List.iter addSucc (List.rev bl(*l*)); (* Add successors in order *)
-      (* sfg: if there's no default, need to connect s->next *)
+      (* if there's no default, need to connect s->next *)
       if not (List.exists
                 (fun stmt -> List.exists
                    (function Default _ -> true | _ -> false)
                    stmt.labels)
                 bl)
-      then
-        addOptionSucc next;
+      then addOptionSucc next;
+      (* Then add cases, that will come first in final 'succs' list. bl
+         is already reversed, so the order is ok. *)
+      List.iter addSucc bl;
       cfgBlock blk next next cont
   | Loop(_,blk,_,_,_) ->
       addBlockSuccFull s blk;
@@ -222,7 +223,7 @@ and cfgStmt (s: stmt) (next:stmt option) (break:stmt option) (cont:stmt option) 
 let forallStmts todo (fd : fundec) =
   let vis = object
     inherit nopCilVisitor
-    method vstmt stmt = ignore (todo stmt); DoChildren
+    method! vstmt stmt = ignore (todo stmt); DoChildren
   end
   in
   ignore (visitCilFunction vis fd)
@@ -310,25 +311,23 @@ let computeFileCFG (f : file) =
 
 (* Cfg computation *)
 
-open Cil_types
 open Logic_const
-open Cil
 
 let statements : stmt list ref = ref []
 (* Clear all info about the CFG in statements *)
 
 class clear : cilVisitor = object
   inherit nopCilVisitor
-  method vstmt s = begin
+  method! vstmt s = begin
     s.sid <- Sid.next ();
     statements := s :: !statements;
     s.succs <- [] ;
     s.preds <- [] ;
     DoChildren
   end
-  method vexpr _ = SkipChildren
-  method vtype _ = SkipChildren
-  method vinst _ = SkipChildren
+  method! vexpr _ = SkipChildren
+  method! vtype _ = SkipChildren
+  method! vinst _ = SkipChildren
 end
 
 let link source dest = begin
@@ -401,7 +400,7 @@ let labelAlphaTable : (string, unit Alpha.alphaTableData ref) Hashtbl.t =
   Hashtbl.create 11
 
 let freshLabel (base:string) =
-  fst (Alpha.newAlphaName labelAlphaTable None base ())
+  fst (Alpha.newAlphaName labelAlphaTable base ())
 
 
 let xform_switch_block ?(keepSwitch=false) b =
@@ -771,18 +770,18 @@ let xform_switch_block ?(keepSwitch=false) b =
    statements. *)
 class registerLabelsVisitor : cilVisitor = object
   inherit nopCilVisitor
-  method vstmt { labels = labels } = begin
+  method! vstmt { labels = labels } = begin
     List.iter
       (function
         | Label (name,_,_) ->
-          Alpha.registerAlphaName labelAlphaTable None name ()
+          Alpha.registerAlphaName labelAlphaTable name ()
         | _ -> ())
       labels;
     DoChildren
   end
-  method vexpr _ = SkipChildren
-  method vtype _ = SkipChildren
-  method vinst _ = SkipChildren
+  method! vexpr _ = SkipChildren
+  method! vtype _ = SkipChildren
+  method! vinst _ = SkipChildren
 end
 
 (* prepare a function for computeCFGInfo by removing break, continue,

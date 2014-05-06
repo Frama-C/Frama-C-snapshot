@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -35,6 +35,10 @@ val add_init_state_input :
   data_state -> Locations.Zone.t -> Node.t -> data_state
 
 
+(** Kind of 'join' of the two states
+    but test before if the new state is included in ~old.
+   @return (true, old U new) if the result is a new state,
+           (false, old) if new is included in old. *)
 val test_and_merge :
   old:data_state -> data_state -> bool * data_state
 

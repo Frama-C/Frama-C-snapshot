@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -26,13 +26,13 @@ val reset : unit -> unit
 
 (** {2 Goal Selection} *)
 
-module WP          : Plugin.Bool
-module Behaviors   : Plugin.String_list
-module Properties  : Plugin.String_list
-module StatusAll   : Plugin.Bool
-module StatusTrue  : Plugin.Bool
-module StatusFalse : Plugin.Bool
-module StatusMaybe : Plugin.Bool
+module WP          : Parameter_sig.Bool
+module Behaviors   : Parameter_sig.String_list
+module Properties  : Parameter_sig.String_list
+module StatusAll   : Parameter_sig.Bool
+module StatusTrue  : Parameter_sig.Bool
+module StatusFalse : Parameter_sig.Bool
+module StatusMaybe : Parameter_sig.Bool
 
 type job =
   | WP_None
@@ -46,58 +46,54 @@ val job : unit -> job
 
 val has_dkey : string -> bool
 
-module Model : Plugin.String_list
-module ExternArrays: Plugin.Bool
-module ExtEqual : Plugin.Bool
-module Literals : Plugin.Bool
+module Model : Parameter_sig.String_list
+module ExternArrays: Parameter_sig.Bool
+module ExtEqual : Parameter_sig.Bool
+module Literals : Parameter_sig.Bool
 
 (** {2 Computation Strategies} *)
 
-module RTE: Plugin.Bool
-module Simpl: Plugin.Bool
-module Let: Plugin.Bool
-module Prune: Plugin.Bool
-module Clean: Plugin.Bool
-module Split: Plugin.Bool
-module Invariants: Plugin.Bool
+module RTE: Parameter_sig.Bool
+module Simpl: Parameter_sig.Bool
+module Let: Parameter_sig.Bool
+module Prune: Parameter_sig.Bool
+module Clean: Parameter_sig.Bool
+module Bits: Parameter_sig.Bool
+module QedChecks : Parameter_sig.Bool
+module Split: Parameter_sig.Bool
+module Invariants: Parameter_sig.Bool
+module DynCall : Parameter_sig.Bool
 
 (** {2 Prover Interface} *)
 
-module Detect: Plugin.Bool
-module Generate:Plugin.Bool
-module Provers: Plugin.String_list
-module Drivers: Plugin.String_list
-module Includes: Plugin.String_list
-module Script: Plugin.String
-module UpdateScript: Plugin.Bool
-module Timeout: Plugin.Int
-module CoqTimeout: Plugin.Int
-module Depth: Plugin.Int
-module Steps: Plugin.Int
-module Procs: Plugin.Int
-module ProofTrace: Plugin.Bool
-module UnsatModel: Plugin.Bool
-module CoqLibs: Plugin.String_list
-module CoqTactic: Plugin.String
-module Hints: Plugin.Int
-module TryHints: Plugin.Bool
-module WhyLibs: Plugin.String_list
-module WhyFlags: Plugin.String_list
-module AltErgoLibs: Plugin.String_list
-module AltErgoLightInt: Plugin.Bool
-module AltErgoFlags: Plugin.String_list
+module Detect: Parameter_sig.Bool
+module Generate:Parameter_sig.Bool
+module Provers: Parameter_sig.String_list
+module Drivers: Parameter_sig.String_list
+module Script: Parameter_sig.String
+module UpdateScript: Parameter_sig.Bool
+module Timeout: Parameter_sig.Int
+module CoqTimeout: Parameter_sig.Int
+module Depth: Parameter_sig.Int
+module Steps: Parameter_sig.Int
+module Procs: Parameter_sig.Int
+module ProofTrace: Parameter_sig.Bool
+module CoqLibs: Parameter_sig.String_list
+module CoqTactic: Parameter_sig.String
+module Hints: Parameter_sig.Int
+module TryHints: Parameter_sig.Bool
+module WhyLibs: Parameter_sig.String_list
+module WhyFlags: Parameter_sig.String_list
+module AltErgoLibs: Parameter_sig.String_list
+module AltErgoFlags: Parameter_sig.String_list
 
 (** {2 Proof Obligations} *)
 
-module Print: Plugin.Bool
-module Report: Plugin.String_list
-module ReportName: Plugin.String
-module Check: Plugin.Bool
-val wpcheck: unit -> bool
-
-(** {2 Experimental} *)
-
-module Froms: Plugin.Bool
+module Print: Parameter_sig.Bool
+module Report: Parameter_sig.String_list
+module ReportName: Parameter_sig.String
+module Check: Parameter_sig.Bool
+val wpcheck_provers: unit -> [`Coq|`Why3|`Altergo] list
 
 (** {2 Environment Variables} *)
 
@@ -105,4 +101,11 @@ val get_env : ?default:string -> string -> string
 val is_out : unit -> bool (* -wp-out <dir> positionned *)
 val get_output : unit -> string
 val get_output_dir : string -> string
-val find_lib : string -> string
+val get_includes: unit -> string list
+val make_output_dir: string -> unit
+
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

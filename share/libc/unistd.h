@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2013                                               */
+/*  Copyright (C) 2007-2014                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -31,6 +31,9 @@
 #include "__fc_define_pid_t.h"
 #include "__fc_define_useconds_t.h"
 #include "__fc_define_intptr_t.h"
+#include "__fc_select.h"
+
+#include <getopt.h>
 
 /* Values for the second argument to access.
    These may be OR'd together.  */
@@ -742,10 +745,6 @@ long         gethostid(void);
 int gethostname(char *, size_t);
 char        *getlogin(void);
 int          getlogin_r(char *, size_t);
-extern char *optarg;
-extern int optind, opterr, optopt;
-/*@ assigns \result \from argc, *argv[0..argc],options[0..]; */
-int          getopt(int argc, char * const argv[], const char *options);
 int          getpagesize(void);
 char        *getpass(const char *);
 pid_t        getpgid(pid_t);

@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -24,6 +24,7 @@ open Cil_types
 
 (** Callstacks related types and functions *)
 
+(* Function called, and calling instruction. *)
 type call_site = (kernel_function * kinstr)
 type callstack =  call_site list
 
@@ -34,10 +35,15 @@ let clear_call_stack () =
   call_stack := []
 
 let pop_call_stack () =
+  Value_perf.stop_doing !call_stack;
   call_stack := List.tl !call_stack
+;;
 
 let push_call_stack kf ki =
-  call_stack := (kf,ki) :: !call_stack
+  call_stack := (kf,ki) :: !call_stack;
+  Value_perf.start_doing !call_stack
+;;
+
 
 let current_kf () = 
   let (kf,_) = (List.hd !call_stack) in kf;;
@@ -77,14 +83,10 @@ let get_rounding_mode () =
   then Ival.Float_abstract.Any
   else Ival.Float_abstract.Nearest_Even
 
-let do_degenerate lv =
-  !Db.Value.degeneration_occurred (CilE.current_stmt ()) lv
-
 let stop_if_stop_at_first_alarm_mode () =
   if Stop_at_nth.incr()
   then begin
       Value_parameters.log "Stopping at nth alarm" ;
-      do_degenerate None;
       raise Db.Value.Aborted
     end
 
@@ -157,30 +159,6 @@ let pretty_current_cfunction_name fmt =
 let warning_once_current fmt =
   Value_parameters.warning ~current:true ~once:true fmt
 
-
-(* Cached versions of [Stmts_graph.stmt_can_reach] *)
-
-module StmtCanReachCache =
-  Kernel_function.Make_Table
-    (Datatype.Function
-       (struct include Cil_datatype.Stmt let label = None end)
-       (Datatype.Function
-          (struct include Cil_datatype.Stmt let label = None end)
-          (Datatype.Bool)))
-    (struct
-      let name = "Eval_funs.StmtCanReachCache"
-      let size = 17
-      let dependencies = [ Ast.self ]
-     end)
-
-let stmt_can_reach_memo = StmtCanReachCache.memo Stmts_graph.stmt_can_reach
-let stmt_can_reach kf =
-  if Value_parameters.MemoryFootprint.get () >= 3
-  then stmt_can_reach_memo kf
-  else Stmts_graph.stmt_can_reach kf
-
-
-
 let debug_result kf (last_ret,_,last_clob) =
   Value_parameters.debug
     "@[RESULT FOR %a <-%a:@\n\\result -> %t@\nClobered set:%a@]"
@@ -199,12 +177,28 @@ let map_outputs f =
 
 
 let remove_formals_from_state formals state =
-  if formals != [] then
-    let formals = List.map Base.create_varinfo formals in
+  if formals <> [] then
+    let formals = List.map Base.of_varinfo formals in
     let cleanup acc v = Cvalue.Model.remove_base v acc in
     List.fold_left cleanup state formals
   else state
 
+
+module DegenerationPoints =
+  Cil_state_builder.Stmt_hashtbl
+    (Datatype.Bool)
+    (struct
+      let name = "Value_util.Degeneration"
+      let size = 17
+      let dependencies = [ Db.Value.self ]
+    end)
+
+let warn_indeterminate kf =
+  let params = Value_parameters.WarnCopyIndeterminate.get () in
+  if Datatype.String.Set.mem "@all" params then
+    not (Datatype.String.Set.mem ("-" ^ Kernel_function.get_name kf) params)
+  else
+    Datatype.String.Set.mem (Kernel_function.get_name kf) params
 
 (*
 Local Variables:

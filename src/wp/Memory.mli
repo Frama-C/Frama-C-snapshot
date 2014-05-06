@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -42,12 +42,12 @@ type 'a value =
 
 type 'a rloc =
   | Rloc of c_object * 'a
-  | Rarray of 'a * c_object * int64
+  | Rarray of 'a * c_object * int
   | Rrange of 'a * c_object * term option * term option
 
 type 'a sloc = 
   | Sloc of 'a
-  | Sarray of 'a * c_object * int64 (** full sized-array range *)
+  | Sarray of 'a * c_object * int (** full sized-array range *)
   | Srange of 'a * c_object * term option * term option
   | Sdescr of var list * 'a * pred
 
@@ -69,7 +69,10 @@ sig
   val pretty : Format.formatter -> t -> unit
   val tau_of_chunk : t -> tau
   val basename_of_chunk : t -> string
-
+  val is_framed : t -> bool
+  (** Whether the Chunk is local to a function.
+      Means the chunk is separated from any call side-effect. *)
+    
 end
 
 (** Memory Environment *)
@@ -94,7 +97,7 @@ sig
   val iter2 : (chunk -> var option -> var option -> unit) -> t -> t -> unit
   val havoc : t -> domain -> t
   val havoc_chunk : t -> chunk -> t
-  val havoc_any : t -> t
+  val havoc_any : call:bool -> t -> t
   val domain : t -> domain
 
   val pretty : Format.formatter -> t -> unit

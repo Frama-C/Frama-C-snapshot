@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -105,7 +105,17 @@ let select_stmt_zone kf ?(select=empty_db_select kf) stmt ~before loc mark =
       Locations.Zone.pretty loc
       (if before then "before" else "after") stmt.sid
        SlicingMarks.pretty_mark mark;
-  let fvar, sel = check_kf_db_select kf select in
+   if not (Db.Value.is_reachable_stmt stmt) then
+    begin
+      SlicingParameters.feedback
+	"@[Nothing to select for @[%a@]@ %s unreachable stmt of %a@]"
+        Locations.Zone.pretty loc
+        (if before then "before" else "after")
+	Kernel_function.pretty kf;
+      select
+    end
+  else
+ let fvar, sel = check_kf_db_select kf select in
   match sel with
     | SlicingInternals.CuTop _ -> select
     | SlicingInternals.CuSelect sel ->
@@ -117,10 +127,16 @@ let select_stmt_zone kf ?(select=empty_db_select kf) stmt ~before loc mark =
             (fvar, sel)
         with
           | Not_found -> (* stmt probably unreachable *)
-              SlicingParameters.debug
-                "@[Nothing to select for @[%a@]@ %s stmt %d@]"
+              SlicingParameters.feedback
+                "@[Nothing to select for @[%a@]@ %s required stmt in %a@]"
                 Locations.Zone.pretty loc
-                (if before then "before" else "after") stmt.sid ;
+                (if before then "before" else "after")
+		Kernel_function.pretty kf;
+              SlicingParameters.debug
+                "@[Nothing to select for @[%a@]@ %s stmt %d in %a@]"
+                Locations.Zone.pretty loc
+                (if before then "before" else "after") stmt.sid  
+		Kernel_function.pretty kf;
               select
           | Db.Pdg.Top -> top_db_select kf mark
           | Db.Pdg.Bottom -> bottom_msg kf; select
@@ -147,9 +163,14 @@ let select_in_out_zone ~at_end ~use_undef kf select loc mark =
           let sel = mk_select pdg sel nodes undef mark in
             (fvar, sel)
         with
-          | Not_found -> assert false
-          | Db.Pdg.Top -> top_db_select kf mark
-          | Db.Pdg.Bottom -> bottom_msg kf; select
+        | Not_found -> (* in or out unreachable ? *)
+	    SlicingParameters.feedback
+	      "@[Nothing to select for zone %a (m=%a) at %s of %a@]"
+	      Locations.Zone.pretty loc SlicingMarks.pretty_mark mark
+	      (if at_end then "end" else "begin") Kernel_function.pretty kf;
+            select
+        | Db.Pdg.Top -> top_db_select kf mark
+        | Db.Pdg.Bottom -> bottom_msg kf; select
 
 let select_zone_at_end kf  ?(select=empty_db_select kf) loc mark =
   select_in_out_zone ~at_end:true ~use_undef:true kf select loc mark
@@ -161,36 +182,26 @@ let select_zone_at_entry kf  ?(select=empty_db_select kf) loc mark =
   select_in_out_zone ~at_end:false ~use_undef:true kf select loc mark
 
 let stmt_nodes_to_select pdg stmt =
-  let stmt_nodes =
-    try !Db.Pdg.find_stmt_and_blocks_nodes pdg stmt with Not_found -> []
-  in
-    (* TODO : add this when visibility of anotations are ok
-let stmt_nodes =
-  if List.length stmt_nodes > 1 then
-    begin (* this is surely a call statement *)
-      let out_and_ctrl node =
-        let key = PdgTypes.Node.elem_key node in
-    match key with
-      | PdgIndex.Key.SigCallKey (_, (PdgIndex.Signature.In _))
-        -> false
-            | PdgIndex.Key.SigCallKey (_, (PdgIndex.Signature.InCtrl))
-                | PdgIndex.Key.SigCallKey (_, (PdgIndex.Signature.Out _))
-                  -> true
-            | _ -> assert false
-  in
-    List.filter out_and_ctrl stmt_nodes
-      end
-          else
-            stmt_nodes
-  in
-        *)
+  try
+    let stmt_nodes = !Db.Pdg.find_stmt_and_blocks_nodes pdg stmt in
     SlicingParameters.debug ~level:2 "[Register.stmt_nodes_to_select] results on stmt %d (%a)" stmt.sid
       (fun fmt l -> List.iter (!Db.Pdg.pretty_node true fmt) l)
       stmt_nodes;
     stmt_nodes
+  with Not_found ->
+    SlicingParameters.debug ~level:2 "[Register.stmt_nodes_to_select] no results for stmt %d, probably unreachable" stmt.sid;
+    []
 
 let select_stmt_computation kf ?(select=empty_db_select kf) stmt mark =
   SlicingParameters.debug ~level:1 "[Register.select_stmt_computation] on stmt %d" stmt.sid;
+  if not (Db.Value.is_reachable_stmt stmt) then
+    begin
+      SlicingParameters.feedback
+	"@[Nothing to select for an unreachable stmt of %a@]"
+	Kernel_function.pretty kf;
+      select
+    end
+  else
     try
       let pdg = !Db.Pdg.get kf in
       let stmt_nodes = stmt_nodes_to_select pdg stmt in
@@ -273,7 +284,11 @@ let select_return kf ?(select=empty_db_select kf) mark =
     let nd_marks = SlicingActions.build_simple_node_selection mark in
       basic_add_select kf select [node] nd_marks
   with
-    | Not_found -> (* unreachable ? *) select
+    | Not_found -> (* unreachable ? *)
+        SlicingParameters.feedback
+          "@[Nothing to select for return stmt of %a@]"
+	  Kernel_function.pretty kf;
+        select
     | Db.Pdg.Top -> top_db_select kf mark
     | Db.Pdg.Bottom -> bottom_msg kf; empty_db_select kf
 
@@ -288,7 +303,11 @@ let select_decl_var kf ?(select=empty_db_select kf) vi mark =
     let nd_marks = SlicingActions.build_simple_node_selection mark in
       basic_add_select kf select [node] nd_marks
   with
-    | Not_found -> (* unreachable ? *) select
+    | Not_found ->
+        SlicingParameters.feedback
+          "@[Nothing to select for %s declarationin %a@]"
+	  vi.Cil_types.vname Kernel_function.pretty kf;
+        select
     | Db.Pdg.Top -> top_db_select kf mark
     | Db.Pdg.Bottom -> bottom_msg kf; empty_db_select kf
 
@@ -496,8 +515,8 @@ module P =
        let default () = [], None
      end)
 
-let get_all () = let all,_current = P.get () in all
-let get_project () = let _all,current = P.get () in current
+let get_all () = fst (P.get ())
+let get_project () = snd (P.get ())
 let set_project proj_opt = P.set (get_all (),  proj_opt)
 
 let from_unique_name name =
@@ -1208,7 +1227,11 @@ let main () =
     SlicingParameters.feedback ~level:2 "done (slicing requests in progress).";
   end
 
-
 (** Register the function [main] as a main entry point. *)
-let () =
-  Db.Main.extend main
+let () = Db.Main.extend main
+
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

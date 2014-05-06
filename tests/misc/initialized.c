@@ -98,9 +98,46 @@ void g3() {
   f(b6, &t1, 4);
   f(b6, &t2, 250);
 }
+
+void g4() {
+  int x, y, z;
+  x = y + z; // Do not continue evaluating z after y (or the converse)
+             // without checking for bottom.
+}
+
+struct s {
+  char a;
+  int b;
+};
+
+/*@ assigns p->a, p->b \from \nothing;
+  ensures \initialized(p); */ // Wrong because of padding
+void wrong_assigns(struct s *p);
+
+struct v {
+  char a;
+  char b;
+};
+
+struct v v1;
+
+void g5() {
+  struct s v;
+  if (rand)
+    wrong_assigns(&v);
+  struct v v2;
+
+  //@ assert \initialized(&v1);
+  //@ assert !\initialized(&v2);
+  struct v *p = rand ? &v1 : &v2;
+  //@ assert \initialized(p);
+}
+
 int main () {
   g1();
   g2();
   g3();
+  if (rand) g4();
+  g5();
   return 0;
 }

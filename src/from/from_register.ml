@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -22,17 +22,30 @@
 
 open Cil_types
 
-let display_aux pp =
-  !Db.Semantic_Callgraph.topologically_iter_on_functions
-    (fun k ->
-      if !Db.Value.is_called k then
-        pp ("Function %a:@\n%a@." : (_, _, _, _, _, _) format6)
-          Kernel_function.pretty k !Db.From.pretty k)
+let pretty_with_indirect fmt v =
+  let deps = !Db.From.get v in
+  Function_Froms.pretty_with_type_indirect (Kernel_function.get_type v) fmt deps
 
-let display fmt =
-  Format.fprintf fmt "@[<v>";
-  display_aux (Format.fprintf fmt);
-  Format.fprintf fmt "@]"
+let display fmtopt =
+  Extlib.may (fun fmt -> Format.fprintf fmt "@[<v>") fmtopt;
+  !Db.Semantic_Callgraph.topologically_iter_on_functions
+    (fun kf ->
+      if !Db.Value.is_called kf then
+        let header fmt =
+          Format.fprintf fmt "Function %a:" Kernel_function.pretty kf
+        in
+	let pretty =
+	  if From_parameters.ShowIndirectDeps.get ()
+	  then pretty_with_indirect
+	  else !Db.From.pretty 
+	in
+        match fmtopt with
+          | None ->
+            From_parameters.printf ~header "@[  %a@]" pretty kf
+          | Some fmt ->
+            Format.fprintf fmt "@[%t@]@ @[  %a]" header pretty kf
+    );
+  Extlib.may (fun fmt -> Format.fprintf fmt "@]") fmtopt
 
 module SortCalls = struct
   type t = stmt
@@ -45,7 +58,7 @@ module SortCalls = struct
                                             good criterion is left *)
     else r
 end
-module MapStmtCalls = Map.Make(SortCalls)
+module MapStmtCalls = FCMap.Make(SortCalls)
 
 let iter_callwise_calls_sorted f =
   let hkf = Kernel_function.Hashtbl.create 17 in  
@@ -85,7 +98,7 @@ let main () =
       (fun () ->
         From_parameters.feedback "====== DEPENDENCIES COMPUTED ======@\n\
 These dependencies hold at termination for the executions that terminate:";
-        display_aux (fun fm -> From_parameters.result fm);
+        display None;
         From_parameters.feedback "====== END OF DEPENDENCIES ======"
       )
   end;
@@ -96,59 +109,59 @@ These dependencies hold at termination for the executions that terminate:";
         From_parameters.feedback "====== DISPLAYING CALLWISE DEPENDENCIES ======";
         iter_callwise_calls_sorted
          (fun ki d ->
-         let id,typ =
+         let header, typ =
            match ki with
              | Cil_types.Kglobal ->
-                 "entry point",
+                 (fun fmt -> Format.fprintf fmt "@[entry point:@]"),
                  Kernel_function.get_type (fst (Globals.entry_point ()))
-             | Cil_types.Kstmt s ->
-                 let set = Db.Value.call_to_kernel_function s in
-                 let f =
-                   try Kernel_function.Hptset.min_elt set
-                   with Not_found ->
+             | Cil_types.Kstmt ({skind = Instr (Call (_, ekf, _, _))} as s) ->
+               let caller = Kernel_function.find_englobing_kf s in
+               let f, typ_f =
+                 if !Db.Value.no_results (Kernel_function.get_definition caller)
+                 then
+                   "<unknown>", (Cil.typeOf ekf)
+                 else                     
+                   try
+                     let set = Db.Value.call_to_kernel_function s in
+                     let kf = Kernel_function.Hptset.choose set in
+                     Pretty_utils.to_string Kernel_function.pretty kf,
+                     Kernel_function.get_type kf
+                   with
+                   | Not_found ->
                      From_parameters.fatal
                        ~source:(fst (Cil_datatype.Stmt.loc s))
                        "Invalid call %a@." Printer.pp_stmt s
                  in
-                 let id =
-                   Pretty_utils.sfprintf "%a at %a (by %a)%t"
-                     Kernel_function.pretty f
+                 (fun fmt ->
+                   Format.fprintf fmt "@[call to %s at %a (by %a)%t:@]"
+                     f
                      Cil_datatype.Location.pretty (Cil_datatype.Stmt.loc s)
-                     Kernel_function.pretty
-		     (Kernel_function.find_englobing_kf s)
+                     Kernel_function.pretty caller
                      (fun fmt ->
                         if From_parameters.debug_atleast 1 then
                           Format.fprintf fmt " <sid %d>" s.Cil_types.sid)
-                 in
-                 id,
-                 Kernel_function.get_type f
+                 ),
+                 typ_f
+             | _ -> assert false (* Not a call *)
          in
-         From_parameters.result
-           "@[call %s:@\n%a@\n@]@ "
-           id (Function_Froms.pretty_with_type typ) d);
+         From_parameters.printf ~header
+           "@[  %a@]" 
+           ((if From_parameters.ShowIndirectDeps.get () 
+             then Function_Froms.pretty_with_type_indirect
+             else Function_Froms.pretty_with_type) typ)
+           d);
     From_parameters.feedback "====== END OF CALLWISE DEPENDENCIES ======";
       )
   end
 
 let () = Db.Main.extend main
 
-
-let update_from loc new_v mem =
-  let exact =
-    Locations.valid_cardinal_zero_or_one ~for_writing:true loc
-  in
-  let z = Locations.enumerate_valid_bits ~for_writing:true loc in
-  Lmap_bitwise.From_Model.add_binding exact mem z new_v
-
-let access_from looking_for mem =
-  Lmap_bitwise.From_Model.find mem looking_for
-
+let access_from zone mem = Function_Froms.Memory.find mem zone
 
 (* Registration for most Db.From functions is done at the end of the
    Functionwise and Callwise modules *)
 let () =
-  Db.From.display := display;
-  Db.From.update := update_from;
+  Db.From.display := (fun fmt -> display (Some fmt));
   Db.From.access := access_from;
 
 

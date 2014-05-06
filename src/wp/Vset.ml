@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -117,19 +117,19 @@ let pp_vset fmt = function
 (* --- Set Operations                                                     --- *)
 (* -------------------------------------------------------------------------- *)
 
-let theory = "vset"
+let library = "vset"
 
-let adt_set = Lang.datatype ~link:"set" ~theory
+let adt_set = Lang.datatype ~library "set"
 let tau_of_set te = Logic.Data( adt_set , [te] )
-let p_member = Lang.extern_p ~theory ~prop:"member" ~bool:"member_bool" ()
-let f_empty = Lang.extern_f ~theory "empty"
-let f_union = Lang.extern_f ~theory "union"
-let f_inter = Lang.extern_f ~theory "inter"
-let f_range = Lang.extern_f ~theory "range"
-let f_range_sup = Lang.extern_f ~theory "range_sup"
-let f_range_inf = Lang.extern_f ~theory "range_inf"
-let f_range_all = Lang.extern_f ~theory "range_all"
-let f_singleton = Lang.extern_f ~theory "singleton"
+let p_member = Lang.extern_p ~library ~bool:"member_bool" ~prop:"member" ()
+let f_empty = Lang.extern_f ~library "empty"
+let f_union = Lang.extern_f ~library "union"
+let f_inter = Lang.extern_f ~library "inter"
+let f_range = Lang.extern_f ~library "range"
+let f_range_sup = Lang.extern_f ~library "range_sup"
+let f_range_inf = Lang.extern_f ~library "range_inf"
+let f_range_all = Lang.extern_f ~library "range_all"
+let f_singleton = Lang.extern_f ~library "singleton"
 
 let single a b = match a,b with
   | Some x , Some y when F.equal x y -> a
@@ -145,7 +145,7 @@ let sub_range x y a b =
     | Some z -> p_and (p_equal x z) (p_equal y z)
     | None -> test_range x y a b
 
-let in_size x n = p_and (p_leq e_zero x) (p_lt x (e_int64 n))
+let in_size x n = p_and (p_leq e_zero x) (p_lt x (e_int n))
 
 let in_range x a b = 
   match single a b with

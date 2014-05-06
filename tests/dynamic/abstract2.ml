@@ -2,7 +2,7 @@
 module AA : sig end = struct
   type _t = string
   let ty =
-    Type.register ~name:"AA.t" ~ml_name:None Structural_descr.Unknown [ "" ]
+    Type.register ~name:"AA.t" ~ml_name:None Structural_descr.t_unknown [ "" ]
   let _mk =
     Dynamic.register ~plugin:"AA" ~journalize:false "mk"
       (Datatype.func Datatype.unit ty)
@@ -12,7 +12,7 @@ end
 module BB : sig end = struct
   type _t = float
   let ty =
-    Type.register ~name:"BB.t" ~ml_name:None Structural_descr.Unknown [ 1.0 ]
+    Type.register ~name:"BB.t" ~ml_name:None Structural_descr.t_unknown [ 1.0 ]
   let _print =
     Dynamic.register ~plugin:"BB" ~journalize:false "print"
       (Datatype.func ty Datatype.unit)

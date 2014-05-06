@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2013                                               */
+/*  Copyright (C) 2007-2014                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -26,7 +26,7 @@
 #ifndef __STDC_VERSION__
 #define restrict 
 #else
-# if __STDC_VERSION__ >= 199901L
+# if __STDC_VERSION__ >= 199901L && defined (FRAMA_C_C99)
 #define restrict restrict
 #  else
 #define restrict

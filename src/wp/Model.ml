@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -36,7 +36,7 @@ and tuning = unit -> unit
 let repr = { 
   id = "?model" ; descr = "?model" ; 
   emitter = Emitter.kernel ; 
-  params = [] ;
+  params = [ fun () -> () ] ;
 }
 
 module D = Datatype.Make_with_collections(struct
@@ -44,12 +44,10 @@ module D = Datatype.Make_with_collections(struct
   let name = "WP.Model"
 
   let rehash = Datatype.identity (** TODO: register and find below? *)
-  let structural_descr =
+  let structural_descr = 
     let open Structural_descr in
-    let parameter_descr = t_record [| p_string; p_string; (pack Unknown) |] in
     t_record [| p_string; p_string; pack (t_option t_string) ;
-                Emitter.packed_descr; pack (t_list parameter_descr)  |]
-
+                Emitter.packed_descr; pack (t_list t_unknown)  |]
 
   let reprs = [repr]
 
@@ -134,8 +132,9 @@ end
 
 module type Registry =
 sig
-  type key
-  type data
+  module E : Entries
+  type key = E.key
+  type data = E.data
 
   val mem : key -> bool
   val find : key -> data
@@ -152,12 +151,14 @@ end
 module Index(E : Entries) =
 struct
 
+  module E = E
+  
   type key = E.key
   type data = E.data
 
   module KEY = struct type t = E.key let compare = E.compare end
-  module MAP = Map.Make(KEY)
-  module SET = Set.Make(KEY)
+  module MAP = FCMap.Make(KEY)
+  module SET = FCSet.Make(KEY)
 
   let demon = ref []
 
@@ -284,3 +285,9 @@ end
 
 module S = D
 type t = S.t
+
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

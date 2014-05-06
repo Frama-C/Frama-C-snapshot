@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -30,7 +30,11 @@ open Lang
 open Definitions
 
 let dkey = Wp_parameters.register_category "prover"
-  
+
+let option_file = LogicBuiltins.create_option
+                    (fun ~driver_dir x -> Filename.concat driver_dir x)
+                    "altergo" "file"
+
 (* -------------------------------------------------------------------------- *)
 (* --- Making Goal File                                                   --- *)
 (* -------------------------------------------------------------------------- *)
@@ -41,7 +45,7 @@ let altergo_gui =
       let x = Command.command "altgr-ergo" [| "-version" |] in 
       match x with
 	| Unix.WEXITED 0 ->  true
-	| _ ->  false 
+	| _ -> Wp_parameters.error ~current:false "Command 'altgr-ergo' does not work." ; false 
     end
 
 let append_file out file =
@@ -74,6 +78,11 @@ type depend =
   | D_file of string
   | D_cluster of cluster
 
+let pp_depend fmt = function
+  | D_file file -> Format.fprintf fmt "File %s" file
+  | D_cluster cluster -> Format.fprintf fmt "Cluster %a"
+    Definitions.pp_cluster cluster
+
 module TYPES = Model.Index
   (struct
      type key = adt
@@ -87,17 +96,17 @@ let engine =
   let module E = Qed.Export_altergo.Make(Lang.F) in
 object
   inherit E.engine as super
-  method datatype = ADT.id
-  method field = Field.id
-  method link = Lang.link
+  inherit Lang.idprinting
+
+  method infoprover p = p.altergo
   method set_typedef = TYPES.define
   method get_typedef = TYPES.get
-  method typeof_call = Lang.tau_of_lfun
-  method typeof_getfield = Lang.tau_of_field
-  method typeof_setfield = Lang.tau_of_record 
+  method! typeof_call = Lang.tau_of_lfun
+  method! typeof_getfield = Lang.tau_of_field
+  method! typeof_setfield = Lang.tau_of_record 
   val mutable share = true
-  method is_shareable e = share && super#is_shareable e
-  method declare_axiom fmt a xs tgs phi =
+  method! is_shareable e = share && super#is_shareable e
+  method! declare_axiom fmt a xs tgs phi =
     try share <- false ; super#declare_axiom fmt a xs tgs phi ; share <- true
     with err -> share <- true ; raise err
 end
@@ -125,25 +134,14 @@ object(self)
     if not (List.mem df deps) then deps <- df :: deps
 
   method add_shared f = self#add_dfile (Wp_parameters.Share.file ~error:true f)
-  method add_library f = self#add_dfile (Wp_parameters.find_lib f)
+  method add_library f = self#add_dfile f
 	  
   method on_cluster c = deps <- (D_cluster c) :: deps
 
-  method private cintlib = 
-    if Wp_parameters.AltErgoLightInt.get () then "cint0.mlw" else "cint.mlw"
-
-  method on_theory = function
-    | "qed" | "driver" -> ()
-    | "cint" -> self#add_shared self#cintlib
-    | "cbits"  -> List.iter self#add_shared [ self#cintlib ; "cbits.mlw" ]
-    | "cfloat" -> self#add_shared "cfloat.mlw"
-    | "vset"   -> self#add_shared "vset.mlw"
-    | "memory" -> self#add_shared "memory.mlw"
-    | "cmath" -> self#add_shared "cmath.mlw"
-    | thy -> Wp_parameters.fatal 
-	~current:false "No builtin theory '%s' for alt-ergo" thy
-
-  method on_library thy = self#add_library (thy ^ ".mlw")
+  method on_library thy =
+    let iter file = self#add_library file in
+    List.iter iter
+      (LogicBuiltins.get_option option_file ~library:thy)
 
   method on_type lt def =
     begin
@@ -153,7 +151,6 @@ object(self)
 
   method on_comp c fts =
     begin
-      (*TODO:NUPW: manage UNIONS *)
       self#lines ;
       engine#declare_type fmt (Lang.comp c) 0 (Qed.Engine.Trec fts) ;
     end
@@ -241,12 +238,13 @@ and assemble_cluster export c =
       let deps = write_cluster c (fun v -> v#vself) in
       CLUSTERS.update c (cluster_age c , deps) ; deps
     else deps
-  in List.iter (assemble export) deps ; 
+  in
+  List.iter (assemble export) deps ; 
   let file = cluster_file c in
   assemble_file export file
 
 and assemble_lib export lib = 
-  assemble_file export (Wp_parameters.find_lib lib)
+  assemble_file export (LogicBuiltins.find_lib lib)
 
 (* -------------------------------------------------------------------------- *)
 (* --- Assembling Goal                                                    --- *)
@@ -254,22 +252,29 @@ and assemble_lib export lib =
 
 let assemble_goal ~file ~id ~title ~axioms prop =
   let goal = cluster ~id ~title () in
-  let model = if Wp_parameters.UnsatModel.get () then 1 else 0 in
+  let model = if Wp_parameters.ProofTrace.get () then 1 else 0 in
   let deps = write_cluster goal
     begin fun v ->
+      v#on_library "qed";
       v#vgoal axioms prop ;
       v#paragraph ;
+      try
+	let qlet = List.mem "qlet" (Wp_parameters.AltErgoFlags.get ()) in
+	engine#set_quantify_let qlet ;
       engine#global 
 	begin fun () ->
 	  v#printf "@[<hv 2>goal %s:@ %a@]@." id 
-	    (engine#pp_goal ~model) 
+	    (engine#pp_goal ~model)
 	    (F.e_prop prop) ;
 	end ;
+	engine#set_quantify_let false ;
+      with error ->
+	engine#set_quantify_let false ;
+	raise error
     end in
   Command.write_file file
     begin fun out ->
       let export = { files = [] ; out = out } in
-      assemble_file export (Wp_parameters.Share.file ~error:true "qed.mlw") ;
       List.iter (assemble export) deps ;
       let libs = Wp_parameters.AltErgoLibs.get () in
       List.iter (assemble_lib export) libs ;
@@ -299,6 +304,8 @@ let re_unsat = Str.regexp p_unsat
 class altergo ~pid ~gui ~file ~lines ~logout ~logerr =
 object(ergo)
   
+  initializer ignore pid
+
   inherit ProverTask.command "alt-ergo"
 
   val mutable files = []
@@ -335,11 +342,6 @@ object(ergo)
     end
 
   method result r =
-    if unsat && Wp_parameters.UnsatModel.get () then 
-      begin
-	let message = Pretty_utils.sfprintf "Model for %a" WpPropId.pretty pid in
-	ProverTask.pp_file ~message ~file:logout ;
-      end ;
     match error with
       | Some(pos,message) -> 
 	  Wp_parameters.error ~source:pos "Alt-Ergo error:@\n%s" message ;
@@ -353,7 +355,7 @@ object(ergo)
 		    raise Not_found in
 	    VCS.result ~time:(if gui then 0.0 else time) ~steps verdict
 	  with
-          | Not_found when Wp_parameters.wpcheck () ->
+          | Not_found when Wp_parameters.Check.get () ->
             if r = 0 then VCS.no_result
             else
               begin
@@ -377,12 +379,20 @@ object(ergo)
     let time = Wp_parameters.Timeout.get () in
     files <- lines ;
     if gui then ergo#set_command "altgr-ergo" ;
-    ergo#add_positive ~name:"-age-limite" ~value:depth ;
-    ergo#add_positive ~name:"-stop" ~value:depth ;
-    ergo#add_positive ~name:"-steps" ~value:steps ;
-    ergo#add_parameter ~name:"-proof" Wp_parameters.ProofTrace.get ;
-    ergo#add_parameter ~name:"-model" Wp_parameters.UnsatModel.get ;
-    ergo#add (Wp_parameters.AltErgoFlags.get ()) ;
+    if Wp_parameters.Check.get () then
+      ergo#add ["-type-only"]
+    else
+      begin
+	ergo#add_positive ~name:"-age-bound" ~value:depth ;
+	ergo#add_positive ~name:"-stop-bound" ~value:depth ;
+	ergo#add_positive ~name:"-steps-bound" ~value:steps ;
+	ergo#add_parameter ~name:"-proof" Wp_parameters.ProofTrace.get ;
+	ergo#add_parameter ~name:"-model" Wp_parameters.ProofTrace.get ;
+      end ;
+    let flags = List.filter 
+      (fun p -> p <> "qlet") 
+      (Wp_parameters.AltErgoFlags.get ()) in
+    ergo#add flags ;
     ergo#add [ file ] ;
     if not gui then ergo#timeout time ;
     ergo#validate_time ergo#time ;
@@ -405,14 +415,17 @@ let try_prove ~pid ~gui ~file ~lines ~logout ~logerr =
     | Task.Result r -> Task.call ergo#result r
     | st -> Task.status (Task.map (fun _ -> assert false) st)
 
-let prove_file ~pid ~interactive ~file ~lines ~logout ~logerr =
-  try_prove ~pid ~gui:false ~file ~lines ~logout ~logerr >>= function
+let prove_file ~pid ~mode ~file ~lines ~logout ~logerr =
+  let gui = match mode with
+    | EditMode -> Lazy.force altergo_gui
+    | BatchMode | FixMode -> false in
+  try_prove ~pid ~gui ~file ~lines ~logout ~logerr >>= function
     | { verdict=(VCS.Unknown|VCS.Timeout|VCS.Stepout) } 
-	when interactive && Lazy.force altergo_gui ->
+    when mode = FixMode && Lazy.force altergo_gui ->
 	try_prove ~pid ~gui:true ~file ~lines ~logout ~logerr
     | r -> Task.return r
     
-let prove_prop ~pid ~interactive ~model ~axioms ~prop =
+let prove_prop ~pid ~mode ~model ~axioms ~prop =
   let prover = AltErgo in
   let file = DISK.file_goal ~pid ~model ~prover in
   let logout = DISK.file_logout ~pid ~model ~prover in
@@ -423,30 +436,39 @@ let prove_prop ~pid ~interactive ~model ~axioms ~prop =
     (assemble_goal ~file ~id ~title ~axioms) prop in
   if Wp_parameters.Generate.get ()
   then Task.return VCS.no_result
-  else prove_file ~pid ~interactive ~file ~lines ~logout ~logerr
+  else prove_file ~pid ~mode ~file ~lines ~logout ~logerr
 
-let prove_annot model pid vcq ~interactive =
+let prove_annot model pid vcq ~mode =
   Task.todo
     begin fun () ->
       let axioms = None in
       let prop = GOAL.compute_proof vcq.VC_Annot.goal in
-      prove_prop ~pid ~interactive ~model ~axioms ~prop
+      prove_prop ~pid ~mode ~model ~axioms ~prop
     end
 
-let prove_lemma model pid vca ~interactive =
+let prove_lemma model pid vca ~mode =
   Task.todo
     begin fun () ->
       let lemma = vca.Wpo.VC_Lemma.lemma in
       let depends = vca.Wpo.VC_Lemma.depends in
       let prop = F.p_forall lemma.l_forall lemma.l_lemma in
       let axioms = Some(lemma.l_cluster,depends) in
-      prove_prop ~pid ~interactive ~model ~axioms ~prop
+      prove_prop ~pid ~mode ~model ~axioms ~prop
     end
 
-let prove wpo ~interactive =
+let prove_check model pid vck ~mode =
+  Task.todo 
+    begin fun () ->
+      let axioms = None in
+      let prop = vck.VC_Check.goal in
+      prove_prop ~pid ~mode ~model ~axioms ~prop
+    end
+
+let prove mode wpo =
   let pid = wpo.Wpo.po_pid in
   let model = wpo.Wpo.po_model in
   match wpo.Wpo.po_formula with
-    | Wpo.GoalAnnot vcq -> prove_annot model pid vcq ~interactive
-    | Wpo.GoalLemma vca -> prove_lemma model pid vca ~interactive
+    | Wpo.GoalAnnot vcq -> prove_annot model pid vcq ~mode
+    | Wpo.GoalLemma vca -> prove_lemma model pid vca ~mode
+    | Wpo.GoalCheck vck -> prove_check model pid vck ~mode
 

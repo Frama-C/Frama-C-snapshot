@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -236,10 +236,6 @@ val register_extension : (main_window_extension_points -> unit) -> unit
 val register_reset_extension : (main_window_extension_points -> unit) -> unit
   (** Register a function to be called whenever the main GUI reset method is
       called. *)
-
-val apply_on_selected : (Pretty_source.localizable -> unit) -> unit
-  (** @deprecated Nitrogen-20111001
-      Use History.apply_on_selected instead *)
 
 val reactive_buffer : main_window_extension_points ->
   ?parent_window:GWindow.window -> global list -> reactive_buffer

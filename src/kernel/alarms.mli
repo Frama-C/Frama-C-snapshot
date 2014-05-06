@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -42,10 +42,12 @@ type alarm =
   | Index_out_of_bound of
       exp (** index *) 
     * exp option (** None = lower bound is zero; Some up = upper bound *) 
-  | Invalid_shift of exp * int option (* strict upper bound, if any *)
+  | Invalid_shift of exp * int option (** strict upper bound, if any *)
   | Pointer_comparison of 
       exp option (** [None] when implicit comparison to NULL pointer *) 
     * exp
+  | Differing_blocks of exp * exp (** The two expressions (which evaluate to
+                     pointers) must point to the same allocated block *)
   | Overflow of
       overflow_kind
     * exp
@@ -61,6 +63,7 @@ type alarm =
                                separated or equal *)
   | Uninitialized of lval
   | Is_nan_or_infinite of exp * fkind
+  | Valid_string of exp
 
 include Datatype.S_with_collections with type t = alarm
 
@@ -73,7 +76,8 @@ val register:
 (** Register the given alarm on the given statement. By default, no status is
     generated. If [save] is [false] (default is [true]), the annotation
     corresponding to the alarm is built, but neither it nor the alarm is
-    registered.
+    registered. [kf] must be given only if the [kinstr] is a statement, and
+    must be the function enclosing this statement.
     @return true if the given alarm has never been emitted before on the
     same kinstr (without taking into consideration the status or
     the emitter). 

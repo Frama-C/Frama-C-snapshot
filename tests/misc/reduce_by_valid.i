@@ -85,10 +85,29 @@ void j() {
 
 }
 
+struct s {
+  int *f1;
+};
+
+extern struct s *vs;
+
+/*@ requires \valid(p->f1);
+  requires \valid(p->f1);
+  requires \valid(p);
+  requires \valid(p);
+  requires \valid(p->f1);
+  requires \valid(p->f1);
+*/
+void k(struct s *p) {
+  *(p->f1)=1;
+}
+
+
 void main () {
   f();
   g();
   h(v,v);
   i(v,v,v,v);
   j();
+  k(vs);
 }

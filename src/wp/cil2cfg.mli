@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -44,7 +44,7 @@ val same_edge : edge -> edge -> bool
 val start_edge : t -> edge
 
 (** set of edges *)
-module Eset : Set.S with type elt = edge
+module Eset : FCSet.S with type elt = edge
 
 (** node and edges relations *)
 val edge_src : edge -> node
@@ -61,13 +61,20 @@ val iter_edges : (edge -> unit) -> t -> unit
 type block_type = private
   | Bstmt of stmt | Bthen of stmt | Belse of stmt | Bloop of stmt | Bfct
 
+type call_type =
+  | Dynamic of exp
+  | Static of kernel_function
+
+val pp_call_type : Format.formatter -> call_type -> unit
+val get_call_type : exp -> call_type
+
 type node_type = private
   | Vstart | Vend | Vexit
   | VfctIn | VfctOut
   | VblkIn of block_type * block
   | VblkOut of block_type * block
   | Vstmt of stmt
-  | Vcall of stmt * lval option * exp * exp list
+  | Vcall of stmt * lval option * call_type * exp list
   | Vtest of bool * stmt * exp
   | Vswitch of stmt * exp
   | Vloop of bool option * stmt 

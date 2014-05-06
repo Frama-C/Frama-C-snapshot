@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -57,7 +57,7 @@ end
 
 module MakeExplain(A : Map.OrderedType)(E : Explain) =
 struct
-  
+
   module M = Map.Make(A)
   type elt = A.t
   type explain = E.t
@@ -71,13 +71,13 @@ struct
 
   let rec union ca cb = 
     match ca , cb with
-      | [] , r | r , [] -> r
-      | a :: ra , b :: rb ->
-	  let cmp = A.compare a b in
-	  if cmp < 0 then a :: union ra cb else
-	    if cmp > 0 then b :: union ca rb else
-	      a :: union ra rb
-    
+    | [] , r | r , [] -> r
+    | a :: ra , b :: rb ->
+        let cmp = A.compare a b in
+        if cmp < 0 then a :: union ra cb else
+        if cmp > 0 then b :: union ca rb else
+          a :: union ra rb
+
   let rec lookup p a =
     let ((a0,e0) as w0) = M.find a p.color in
     try 
@@ -115,13 +115,13 @@ struct
     if cmp = 0 then p else
       let c = union (k_members p a) (k_members p b) in
       if cmp < 0 then {
-	color = M.add b (a,explain) p.color ; 
-	members = M.add a c (M.remove b p.members) ;
+        color = M.add b (a,explain) p.color ; 
+        members = M.add a c (M.remove b p.members) ;
       } else {
-	color = M.add a (b,explain) p.color ;
-	members = M.add b c (M.remove a p.members) ;
+        color = M.add a (b,explain) p.color ;
+        members = M.add b c (M.remove a p.members) ;
       }
-	
+
   let iter f p = M.iter f p.members
 
   let map f p = 

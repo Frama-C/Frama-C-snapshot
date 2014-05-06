@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -102,7 +102,7 @@ module G : sig
 end
 
 module NodeSetLattice : sig
-  include Abstract_interp.Lattice_Set with type O.elt=Node.t
+  include Lattice_type.Lattice_Set with type O.elt=Node.t
   val default : Base.t -> Abstract_interp.Int.t -> Abstract_interp.Int.t -> t
   val defaultall : Base.t -> t
 end

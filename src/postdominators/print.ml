@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -63,7 +63,7 @@ module Printer = struct
 
   let graph_attributes (title, _) = [`Label title]
 
-  let default_vertex_attributes _g = [`Style `Filled]
+  let default_vertex_attributes _g = [`Style [`Filled]]
   let default_edge_attributes _g = []
 
   let vertex_attributes (s, has_postdom) =
@@ -128,19 +128,19 @@ let build_reduced_graph kf graph stmts =
   List.iter (reduce kf graph) stmts
 
 let build_dot filename kf =
-  let stmts = match kf.fundec with
-    | Definition (fct, _) -> fct.sallstmts
+  match kf.fundec with
+    | Definition (fct, _) ->
+      let stmts = fct.sallstmts in
+      let graph = Kinstr.Hashtbl.create (List.length stmts) in
+      let _ = build_reduced_graph kf graph stmts in
+      let name = Kernel_function.get_name kf in
+      let title = "Postdominators for function " ^ name in
+      let file = open_out filename in
+      PostdomGraph.output_graph file (title, graph);
+      close_out file
     | Declaration _ ->
-        Kernel.abort "cannot compute for a function without body %a"
+        Kernel.error "cannot compute for a function without body %a"
           Kernel_function.pretty kf
-  in
-  let graph = Kinstr.Hashtbl.create (List.length stmts) in
-  let _ = build_reduced_graph kf graph stmts in
-  let name = Kernel_function.get_name kf in
-  let title = "Postdominators for function " ^ name in
-  let file = open_out filename in
-  PostdomGraph.output_graph file (title, graph);
-  close_out file
 
 (*
 Local Variables:

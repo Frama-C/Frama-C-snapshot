@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -35,13 +35,7 @@
 (* ****************************************************************************)
 (* ****************************************************************************)
 
-include Log.Register
-  (struct
-     let channel = Log.kernel_channel_name
-     let label = Log.kernel_label_name
-     let verbose_atleast n = !Cmdline.kernel_verbose_atleast_ref n
-     let debug_atleast n = !Cmdline.kernel_debug_atleast_ref n
-   end)
+open Cmdline.Kernel_log
 
 (** Journalization of functions *)
 
@@ -116,8 +110,13 @@ let restore () =
 
 let now () = Unix.localtime (Unix.time ())
 
-let filename = ref Cmdline.journal_name
-let get_name () = !filename
+let default_filename = "frama_c_journal.ml"
+let filename = ref default_filename
+let get_session_file = ref (fun _ -> assert false)
+let get_name () = 
+  let f = !filename in
+  if f == default_filename then !get_session_file f else f
+
 let set_name s = filename := s
 
 let print_header fmt =
@@ -139,12 +138,12 @@ let print_trailer fmt =
   Format.fprintf fmt "@[(* Main *)@]@\n";
   Format.fprintf fmt "@[<hv 2>let main () =@;";
   Format.fprintf fmt
-    "@[<hv 0>@[<hv 2>Journal.keep_file@;\"%s.ml\";@]@;"
-    !filename;
+    "@[<hv 0>@[<hv 2>Journal.keep_file@;\"%s\";@]@;"
+    (get_name  ());
   Format.fprintf fmt "try run ()@;";
   Format.fprintf fmt "@[<v>with@;@[<hv 2>| Unreachable ->@ ";
   Format.fprintf fmt
-    "@[<hv 2>Kernel.fatal@;\"Journal reachs an assumed dead code\"@;@]@]@;";
+    "@[<hv 2>Kernel.fatal@;\"Journal reaches an assumed dead code\"@;@]@]@;";
   Format.fprintf fmt "@[<hv 2>| Exception s ->@ ";
   Format.fprintf fmt
     "@[<hv 2>Kernel.log@;\"Journal re-raised the exception %%S\"@;s@]@]@;";
@@ -173,22 +172,21 @@ let keep_file s = preserved_files := s :: !preserved_files
 let get_filename =
   let cpt = ref 0 in
   let rec get_filename first =
-    let name = !filename ^ ".ml" in
-    if (not first && Sys.file_exists name)
-      || List.mem name !preserved_files
+    let name = get_name () in
+    if (not first && Sys.file_exists name) || List.mem name !preserved_files
     then begin
       incr cpt;
       let suf = "_" ^ string_of_int !cpt in
       (try
          let n =
            Str.search_backward
-             (Str.regexp "_[0-9]+")
-             !filename
-             (String.length !filename - 1)
+	     (Str.regexp "_[0-9]+") 
+	     name
+	     (String.length name - 1)
          in
-         filename := Str.string_before !filename n ^ suf
+         filename := Str.string_before name n ^ suf
        with Not_found ->
-         filename := !filename ^ suf);
+         filename := name ^ suf);
       get_filename false
     end else
       name
@@ -206,7 +204,7 @@ let write () =
   in
   let error msg s = error "cannot %s journal (%s)." msg s in
   let filename = get_filename () in
-  feedback ~level:2 "writing journal in file \"%s\"" filename;
+  feedback "writing journal in file `%s'." filename;
   try
     let cout = open_out filename in
     let fmt = Format.formatter_of_out_channel cout in
@@ -221,7 +219,7 @@ let () =
      - either an error occurs;
      - or the user explicitly wanted it. *)
   if Cmdline.journal_enable then begin
-    Cmdline.at_error_exit write;
+    Cmdline.at_error_exit (fun _ -> write ());
     if Cmdline.journal_isset then Cmdline.at_normal_exit write
   end
 
@@ -303,9 +301,8 @@ let never_write name f =
   else
     f
 
-let pp ty fmt (o:Obj.t) =
+let pp (type t) (ty: t Type.t) fmt (x:t) =
   assert Cmdline.use_type;
-  let x = Obj.obj o in
   try Format.fprintf fmt "%s" (Binding.find ty x);
   with Not_found ->
     let pp_error msg =
@@ -370,9 +367,8 @@ let print_sentence f_acc is_dyn comment ?value ty fmt =
                "__" (* no binding nor value: ignore the result *)
            | false, Some value ->
                (* bind to a fresh variable name *)
-               let v = Obj.obj value in
-               let b = gen_binding (varname v) in
-               Binding.add ty v b;
+               let b = gen_binding (varname value) in
+               Binding.add ty value b;
                b
          in
          Format.fprintf fmt "%s" binding;
@@ -409,45 +405,50 @@ let catch_exn f_acc is_dyn comment ret_ty exn =
   in
   Sentences.add print true
 
-let rec journalize_function f_acc ty is_dyn comment (x:Obj.t) =
+let rec journalize_function: 't. 
+    (Format.formatter -> unit) -> 't Type.t -> bool -> 
+  (Format.formatter -> unit) option -> 't -> 't =
+  fun (type t) (type a) (type b) f_acc (ty: t Type.t) is_dyn comment (x:t)
+  ->
   assert Cmdline.use_type;
   if Type.Function.is_instance_of ty then begin
     (* [ty] is a function type value:
-       there exists [a] and [b] such than [ty = a -> b] *)
-    let ty : ('a,'b) Type.Function.poly Type.t = Obj.magic (ty:'ty Type.t) in
-    let (a:'a Type.t), (b:'b Type.t), opt_label =
+       there exists [a] and [b] such than [t = a -> b] *)
+    let ty: (a -> b) Type.t = Obj.magic (ty: t Type.t) in
+    let f: a -> b = Obj.magic (x: t) in
+    let (a: a Type.t), (b: b Type.t), opt_label =
       Type.Function.get_instance ty
     in
     let opt_arg = Type.Function.get_optional_argument ty in
-    Obj.repr
-      (fun (y:'a) ->
-        if !started then
-          (* prevent journalisation if you're journalizing another function *)
-          Obj.repr (Obj.obj x y)
-        else begin
-          let old_started = !started in
-          try
-            (* [started] prevents journalization of function call
-               inside another one *)
-            started := true;
-            (* apply the closure [x] to its argument [y] *)
-            let xy = Obj.obj x y in
-            started := old_started;
-            (* extend the continuation and continue *)
-            let f_acc = extend_continuation f_acc (pp a) opt_label opt_arg y in
-            journalize_function f_acc b is_dyn comment xy
-          with
-          | Not_writable name ->
-            started := old_started;
-            fatal
-              "a call to the function %S cannot be written in the journal"
-              name
-          | exn as e ->
-            let f_acc = extend_continuation f_acc (pp a) opt_label opt_arg y in
-            catch_exn f_acc is_dyn comment b exn;
-            started := old_started;
-            raise e
-        end)
+    let f (y: a) : b =
+      if !started then
+        (* prevent journalisation if you're journalizing another function *)
+        f y
+      else begin
+        try
+          (* [started] prevents journalization of function call
+             inside another one *)
+          started := true;
+          (* apply the closure [x] to its argument [y] *)
+          let xy = f y in
+          started := false;
+          (* extend the continuation and continue *)
+          let f_acc = extend_continuation f_acc (pp a) opt_label opt_arg y in
+          journalize_function f_acc b is_dyn comment xy
+        with
+        | Not_writable name ->
+          started := false;
+          fatal
+            "a call to the function %S cannot be written in the journal"
+            name
+        | exn as e ->
+          let f_acc = extend_continuation f_acc (pp a) opt_label opt_arg y in
+          catch_exn f_acc is_dyn comment b exn;
+          started := false;
+          raise e
+      end in
+   (* cast back the closure of type [a -> b] into [t] *)
+   (Obj.magic (f: a -> b): t)
   end else begin
     if not !started then add_sentence f_acc is_dyn comment ~value:x ty;
     x
@@ -460,10 +461,8 @@ let register s ty ?comment ?(is_dyn=false) x =
       abort "[Journal.register] the given name should not be \"\"";
     Binding.add_once ty x s;
     if Type.Function.is_instance_of ty then begin
-      let x' = Obj.repr x in
-      let f_acc fmt = pp ty fmt x' in
-      let res : Obj.t = journalize_function f_acc ty is_dyn comment x' in
-      Obj.obj res
+      let f_acc fmt = pp ty fmt x in
+      journalize_function f_acc ty is_dyn comment x
     end else
       x
   end else

@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Aorai plug-in of Frama-C.                        *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -23,6 +23,6 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Compute the set of possible set at each function call and return. *)
+(** Compute the set of possible state at each function call and return. *)
 val compute: unit -> unit
 

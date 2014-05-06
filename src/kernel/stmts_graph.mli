@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -84,9 +84,9 @@ val get_all_stmt_out_edges : stmt -> (stmt * stmt) list
 val get_all_block_out_edges : block -> (stmt * stmt) list
 
 (** Split the loop predecessors into:
-    - the entry point : coming for outside the loop
+    - the entry point : coming from outside the loop
     - the back edges.
-    Notice that there might be nothing in the entry point when the loop if the
+    Notice that there might be nothing in the entry point when the loop is the
     first statement.
     @raise Invalid_argument if the statement is not a loop. *)
 val loop_preds : stmt -> stmt list * stmt list

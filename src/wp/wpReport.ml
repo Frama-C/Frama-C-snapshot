@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -163,7 +163,7 @@ let decode_chapter= function
   | Axiom _ -> "axiomatic"
   | Fun _   -> "function"
 
-module Smap = Map.Make
+module Smap = FCMap.Make
   (struct
      type t = entry
      let compare s1 s2 =
@@ -606,9 +606,6 @@ let export gstat specfile =
   let axio = Buffer.create 64 in (* section *)
   let func = Buffer.create 64 in (* section *)
   let sect_prop = Buffer.create 64 in (* default sub-section *)
-  let _glob_prop = Buffer.create 64 in (* sub-section *)
-  let _axio_prop = Buffer.create 64 in (* sub-section *)
-  let _func_prop = Buffer.create 64 in (* sub-section *)
   let file = ref None in
   let section = ref HEAD in
   begin
@@ -619,7 +616,8 @@ let export gstat specfile =
 	match Rformat.command line with
 	  | Rformat.ARG("AXIOMATIC_PREFIX",f) -> config.axiomatic_prefix <- f
 	  | Rformat.ARG("FUNCTION_PREFIX",f) -> config.function_prefix <- f 
-	  | Rformat.ARG("PROPERTY_PREFIX",f) -> config.property_prefix <- f	     | Rformat.ARG("LEMMA_PREFIX",f) -> config.lemma_prefix <- f 
+	  | Rformat.ARG("PROPERTY_PREFIX",f) -> config.property_prefix <- f	     
+	  | Rformat.ARG("LEMMA_PREFIX",f) -> config.lemma_prefix <- f 
  
 	  | Rformat.ARG("GLOBAL_SECTION",f) -> config.global_section <- f
 	  | Rformat.ARG("AXIOMATIC_SECTION",f) -> config.axiomatic_section <- f

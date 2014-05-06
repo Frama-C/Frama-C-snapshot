@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -76,11 +76,10 @@ let run select_annot select_slice_pragma =
   P.feedback "remove unused code...";
   (*let initial_file = Ast.get () in*)
   let kf_entry, _library = Globals.entry_point () in
-
   let proj =
-    Marks.select_useful_things ~select_annot ~select_slice_pragma kf_entry 
+    Spare_marks.select_useful_things
+      ~select_annot ~select_slice_pragma kf_entry
   in
-
   let old_proj_name = Project.get_name (Project.current ()) in
   let new_proj_name = (old_proj_name^" without sparecode") in
 
@@ -90,7 +89,7 @@ let run select_annot select_slice_pragma =
 
   P.result "result in new project '%s'." (Project.get_name new_prj);
   Project.remove ~project:tmp_prj ();
-  let ctx = Plugin.get_selection_context () in
+  let ctx = Parameter_state.get_selection_context () in
   Project.copy ~selection:ctx new_prj;
   new_prj
 

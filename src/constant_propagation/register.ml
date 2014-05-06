@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -24,7 +24,6 @@ open Cil
 open Cil_types
 module FC_file = File
 open Cil_datatype
-open Db
 
 exception Cannot_expand
 
@@ -44,7 +43,7 @@ class propagate project fnames ~cast_intro = object(self)
     | Some _ when not operate -> nothing
     | Some stmt -> f (Kstmt stmt)
 
-  method vfunc fundec =
+  method! vfunc fundec =
     let name = fundec.svar.vname in
     operate <-
       Datatype.String.Set.is_empty fnames
@@ -56,7 +55,7 @@ class propagate project fnames ~cast_intro = object(self)
         (fundec.svar.vname);
     DoChildren
 
-  method vexpr expr =
+  method! vexpr expr =
     self#on_current_stmt
       DoChildren
       (fun ki ->
@@ -90,7 +89,7 @@ class propagate project fnames ~cast_intro = object(self)
                  does not introduce a new cast. *)
               exp
           in
-          let evaled = !Value.access_expr ki expr in
+          let evaled = !Db.Value.access_expr ki expr in
           let k,m = Cvalue.V.find_lonely_binding evaled in
           let can_replace vi =
             vi.vglob ||
@@ -104,10 +103,16 @@ class propagate project fnames ~cast_intro = object(self)
                     || not vi.vlogic)
                 && can_replace vi ->
             if vi.vglob && not (Varinfo.Set.mem vi known_globals) then begin
-              let vi =
+              let vi' =
                 Visitor.visitFramacVarDecl (self :> Visitor.frama_c_visitor) vi
               in
-              must_add_decl <- Varinfo.Set.add vi must_add_decl
+              must_add_decl <- Varinfo.Set.add vi' must_add_decl;
+              if Cil.isFunctionType vi.vtype then begin
+                let kf = Globals.Functions.get vi in
+                let new_kf = Cil.memo_kernel_function self#behavior kf in
+                Queue.add (fun () -> Globals.Functions.register new_kf)
+                  self#get_filling_actions;
+              end;
             end; (* This is a pointer coming for C code *)
                   PropagationParameters.debug
                     "Trying replacing %a from a pointer value {&%a + %a}"
@@ -194,15 +199,18 @@ class propagate project fnames ~cast_intro = object(self)
                  Printer.pp_exp change_to
                  Printer.pp_exp e;
                ChangeDoChildrenPost(change_to,fun x -> x)
-          | Base.String _ | Base.Var _ | Base.Initialized_Var _ -> DoChildren
+          | Base.String _ | Base.Var _ | Base.Initialized_Var _
+          | Base.CLogic_Var _ -> DoChildren
           end
         with Not_found | Cannot_expand -> DoChildren)
 
-  method vvdec v =
-    if v.vglob then known_globals <- Varinfo.Set.add v known_globals;
+  method! vvdec v =
+    if v.vglob then begin
+      known_globals <- Varinfo.Set.add v known_globals;
+    end;
     DoChildren
 
-  method vglob_aux _ =
+  method! vglob_aux _ =
     must_add_decl <- Varinfo.Set.empty;
     let add_decl l =
       Varinfo.Set.fold
@@ -213,7 +221,7 @@ class propagate project fnames ~cast_intro = object(self)
         must_add_decl l
     in DoChildrenPost add_decl
 
-  method vlval lv =
+  method! vlval lv =
     let simplify (host,offs as lv) = match host with
     | Mem e -> mkMem e offs (* canonicalize *)
     | Var _ -> lv
@@ -235,20 +243,20 @@ module Result =
        let size = 7
        let name = "Semantical constant propagation"
        let dependencies =
-         [ Value.self; PropagationParameters.CastIntro.self ]
+         [ Db.Value.self; PropagationParameters.CastIntro.self ]
      end)
 
 let journalized_get =
   let get fnames cast_intro =
     Result.memo
       (fun _ ->
-         !Value.compute ();
+         !Db.Value.compute ();
          let fresh_project =
            FC_file.create_project_from_visitor
              "propagated"
              (fun prj -> new propagate prj fnames cast_intro)
          in
-         let ctx = Plugin.get_selection_context () in
+         let ctx = Parameter_state.get_selection_context () in
          Project.copy ~selection:ctx fresh_project;
          fresh_project)
       (fnames, cast_intro)

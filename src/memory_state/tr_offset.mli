@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -20,19 +20,17 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Reduction of a location (expressed as an Ival.t plus a size)
-    by a base validity. Only the locations in the trailed result are valid. *)
+(** Reduction of a location (expressed as an Ival.t and a size)
+    by a base validity. Only the locations in the trimmed result are valid. *)
 
 type t =
-  | Set of Ival.O.t (** Limited number of locations *)
+  | Invalid (** No location is valid *)
+  | Set of Integer.t list (** Limited number of locations *)
   | Interval of (** min *) Integer.t *
                 (** max *) Integer.t *
                 (** modu *)Integer.t 
   | Imprecise of (** min *) Integer.t *
-                 (** max *) Integer.t  (** This case only happens with
-                                           infinite or periodic validities *)
-
-exception Unbounded
+                 (** max *) Integer.t
 
 val filter_by_bound_for_reading :
   with_alarms:CilE.warn_mode ->

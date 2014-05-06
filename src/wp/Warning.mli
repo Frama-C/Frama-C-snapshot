@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -39,8 +39,8 @@ type t = {
 val compare : t -> t -> int
 val pretty : Format.formatter -> t -> unit
 
-module Set : Set.S with type elt = t
-module Map : Map.S with type key = t
+module Set : FCSet.S with type elt = t
+module Map : FCMap.S with type key = t
 
 val severe : Set.t -> bool
 

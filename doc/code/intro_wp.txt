@@ -2,7 +2,7 @@
 @ignore                                                                        
 @ignore  This file is part of WP plug-in of Frama-C.                           
 @ignore                                                                        
-@ignore  Copyright (C) 2007-2013                                               
+@ignore  Copyright (C) 2007-2014                                               
 @ignore    CEA (Commissariat a l'energie atomique et aux energies              
 @ignore         alternatives)                                                  
 @ignore                                                                        

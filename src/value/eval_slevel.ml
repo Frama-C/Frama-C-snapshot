@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -31,17 +31,23 @@ open Eval_exprs
 
 let dkey_callbacks = Value_parameters.register_category "callbacks"
 
+let check_signals, signal_abort =
+  let signal_emitted = ref false in
+  (fun () ->
+    if !signal_emitted then begin
+      signal_emitted := false;
+      raise Db.Value.Aborted
+    end),
+  (fun () -> signal_emitted := true)
+
  module Computer
    (AnalysisParam:sig
      val kf: kernel_function
-     val slevel: int
      val initial_states : State_set.t
      val active_behaviors: Eval_annots.ActiveBehaviors.t
-     val local_slevel_info : Local_slevel_types.local_slevel_info
      end) =
-
  struct
-   let debug = ref false
+   let debug = false
    let name = "Values analysis"
 
    let current_kf = AnalysisParam.kf
@@ -53,19 +59,32 @@ let dkey_callbacks = Value_parameters.register_category "callbacks"
        | Return (None,_) -> None
        | _ -> assert false (* Cil invariant *)
 
-   let stmt_can_reach = Value_util.stmt_can_reach current_kf
    let is_natural_loop = Loop.is_natural current_kf
+   let is_basic_loop s = match s.skind with Loop _ -> true | _ -> false
+   (* Widening will be performed the statements verifying this predicate. *)
+   let is_loop =
+     let non_natural = Loop.get_non_naturals current_kf in
+     if Stmt.Set.is_empty non_natural then
+       (fun s -> is_natural_loop s || is_basic_loop s)
+     else
+       (fun s ->
+         is_natural_loop s || is_basic_loop s || Stmt.Set.mem s non_natural)
+
+   let slevel_merge_after_loop = Value_parameters.SlevelMergeAfterLoop.get ()
 
    let obviously_terminates = 
      Value_parameters.ObviouslyTerminatesAll.get() (* TODO: by function *)      
 
    let slevel = 
      if obviously_terminates
-     then max_int
-     else
-       AnalysisParam.slevel
+     then Per_stmt_slevel.Global max_int
+     else Per_stmt_slevel.for_kf current_kf
 
-   let initial_state = State_set.join AnalysisParam.initial_states
+   let slevel stmt = match slevel with
+     | Per_stmt_slevel.Global i -> i
+     | Per_stmt_slevel.PerStmt f -> f stmt
+
+   let (initial_state,_) = State_set.join AnalysisParam.initial_states
 
    let current_table = Current_table.create ()
 
@@ -135,18 +154,16 @@ let dkey_callbacks = Value_parameters.register_category "callbacks"
       to true or false *)
    let conditions_table = Cil_datatype.Stmt.Hashtbl.create 5
 
-   let merge_results ~inform =
-     if inform && Value_parameters.ValShowProgress.get() then
-       Value_parameters.feedback "Recording results for %a"
-         Kernel_function.pretty current_kf;
+   let merge_results () =
      let superposed = lazy (Current_table.states current_table) in
      let after_full = local_after_states superposed in
      let stack_for_callbacks = call_stack () in
-     Current_table.merge_db_table superposed stack_for_callbacks;
-     Db.Value.merge_conditions conditions_table;
-     if Value_parameters.ResultsAfter.get () then 
-       merge_after after_full stack_for_callbacks;
-
+     if Mark_noresults.should_memorize_function current_fundec then begin
+       Current_table.merge_db_table superposed stack_for_callbacks;
+       Db.Value.merge_conditions conditions_table;
+       if Value_parameters.ResultsAfter.get () then 
+         merge_after after_full stack_for_callbacks;
+     end;
      if not (Db.Value.Record_Value_Superposition_Callbacks.is_empty ())
      then begin
        let current_superpositions =
@@ -189,76 +206,110 @@ let dkey_callbacks = Value_parameters.register_category "callbacks"
    ;;
 
    type u =
-       { counter_unroll : int; (* how many times this state has been crossed *)
-	 mutable value : State_set.t ; }
+       { mutable to_propagate : State_set.t ; (* This mutable field is there to
+         avoid re-propagating previously seens states. It contains only the
+         new states that must be propagated on this statement, not all the
+         states that have been seen so far (that are stored through module
+         Current_table). *)
+       } 
 
    module StmtStartData =
-     Dataflow.StartData(struct type t = u let size = 107 end)
+     Dataflow2.StartData(struct type t = u let size = 107 end)
+
+   (* Walk through all the statements for which [to_propagate] is not empty.
+      Those statements are marked as "not fully propagated", for ulterior
+      display in the gui. Also mark the current statement as root if relevant.*)
+   let mark_degeneration () =
+     StmtStartData.iter
+       (fun stmt v ->
+         if not (State_set.is_empty v.to_propagate) then
+           Value_util.DegenerationPoints.replace stmt false);
+     match CilE.current_stmt () with
+       | Kglobal -> ()
+       | Kstmt s ->
+         let kf = Kernel_function.find_englobing_kf s in
+         if Kernel_function.equal kf current_kf then (
+           Value_util.DegenerationPoints.replace s true;
+           CilE.end_stmt ())
 
    type t = u
 
    let copy (d: t) = d
 
    let display_one fmt v =
-     State_set.iter (fun value ->
-       if not (Cvalue.Model.is_reachable value) then
-	 Format.fprintf fmt "Statement (x%d): UNREACHABLE@\n" v.counter_unroll
+     State_set.iter (fun (values, trace) ->
+       if not (Cvalue.Model.is_reachable values) then
+	 Format.fprintf fmt "Statement (x) with trace %a : UNREACHABLE@\n"
+	   Trace.pretty trace
        else
-	 Format.fprintf fmt "Statement (x%d)@\n%a"
-	   v.counter_unroll
-	   Cvalue.Model.pretty
-	   value)
-       v.value
+	 Format.fprintf fmt "Statement (x) with trace %a : @\n%a"
+	   Trace.pretty trace Cvalue.Model.pretty values
+     ) v.to_propagate
 
    let pretty fmt (d: t) = display_one fmt d
 
-   let computeFirstPredecessor (_s: stmt) state =
-     let v = state.value in
-     { counter_unroll = State_set.length v;
-       value = v;}
+   let computeFirstPredecessor (s: stmt) states =
+     let v = states.to_propagate in
+     let v = State_set.add_statement v s in
+     (* Create an impure state for this statement. It will be mutated by
+        the other functions *)
+     { to_propagate = v;}
 
    let counter_unroll_target = ref (Value_parameters.ShowSlevel.get())
 
    let is_return s = match s.skind with Return _ -> true | _ -> false
 
    let combinePredecessors (s: stmt) ~old new_ =
-     let new_v = new_.value in
+     let new_v = new_.to_propagate in
      if State_set.is_empty new_v
      then None
      else begin
-	 let old_counter = old.counter_unroll in
-         (* Do not perform merge on return instructions. This needelessly
-            degrades precision for postconditions and option -split-return.*)
-	 if old_counter >= slevel && not (is_return s)
+       (* Update loc, which can appear in garbled mix origins. *)
+       let old_loc = Cil.CurrentLoc.get () in
+       Cil.CurrentLoc.set (Cil_datatype.Stmt.loc s);
+       (* Note: When we join traces, they must lead to the same statement;
+	  thus we need to add the statement here (instead of e.g. in doStmt,
+	  which would be too late). *)
+       let new_v = State_set.add_statement new_v s in
+       let current_info = Current_table.find_current current_table s in
+       let old_counter = current_info.Current_table.counter_unroll in
+       (* Check whether there is enough slevel available. If not, merge all
+          states together. However, do not perform merge on return
+          instructions. This needelessly degrades precision for
+          postconditions and option -split-return. *)
+       let r =
+         if old_counter >= slevel s && not (is_return s)
 	 then
-	   let sum =
-	     Cvalue.Model.join
-	       (State_set.join new_v)
-	       (State_set.join old.value)
-	   in
-	   Some {counter_unroll = old_counter ;
-		 value = State_set.singleton sum;}
-	 else begin try
-	   let merged = State_set.merge_into new_v old.value in
-	   let length_new = State_set.length new_v in
-	   let new_counter_unroll = old_counter + length_new in
-	   if new_counter_unroll >= !counter_unroll_target
-	   then begin
+           let new_state, new_trace = State_set.join new_v in
+           let old_state, old_trace = State_set.join old.to_propagate in
+           let join =
+             Model.join new_state old_state,
+             Trace.join new_trace old_trace
+           in
+           old.to_propagate <- State_set.singleton join;
+	   Some old
+	 else begin
+           try
+	     let merged = State_set.merge_into new_v ~into:old.to_propagate in
+	     let length_new = State_set.length new_v in
+	     let new_counter_unroll = old_counter + length_new in
+	     if new_counter_unroll >= !counter_unroll_target
+	     then begin
 	       let period = Value_parameters.ShowSlevel.get() in
 	       let reached = new_counter_unroll / period * period in
 	       Value_parameters.result ~once:true
 		 "Semantic level unrolling superposing up to %d states"
 		 reached;
 	     counter_unroll_target := reached + period;
-	   end;
-	   let result =
-	     Some
-	       { value =  merged ;
-		 counter_unroll = new_counter_unroll }
-	   in
-	   result
-	 with State_set.Unchanged -> None
+	     end;
+	     current_info.Current_table.counter_unroll <- new_counter_unroll;
+             old.to_propagate <- merged;
+	     Some old
+	   with State_set.Unchanged -> None
 	 end
+       in
+       Cil.CurrentLoc.set old_loc;
+       r
      end
 
   (** Clobbered list for bases containing addresses of local variables. *)
@@ -272,40 +323,45 @@ let dkey_callbacks = Value_parameters.register_category "callbacks"
       Eval_stmt.interp_call ~with_alarms clob stmt lval_to_assign funcexp argl
     in
     State_set.fold
-      (fun acc state ->
-        let results, call_cacheable = aux state in
+      (fun acc (state, trace) ->
+        let results, call_cacheable = aux state (* xxx: add trace argument. *) in
         if call_cacheable = Value_types.NoCacheCallers then
           (* Propagate info that the current call cannot be cached either *)
           cacheable := Value_types.NoCacheCallers;
-        List.fold_left (fun acc state -> State_set.add state acc) acc results)
-      State_set.empty
-      d_value
+        List.fold_left
+          (fun acc state -> State_set.add (state, trace) acc) acc results
+      ) State_set.empty d_value
 
   let doInstr stmt (i: instr) (d: t) =
     !Db.progress ();
     CilE.start_stmt (Kstmt stmt);
-    let d_states = d.value in
+    let d_states = d.to_propagate in
     let unreachable = State_set.is_empty d_states in
     let result =
-      if unreachable then
-        Dataflow.Done d
+      if unreachable then d
       else begin
           let with_alarms = warn_all_quiet_mode () in
+          let propagate states =
+            (* Create a transient propagation result, that will be passed
+               to the successors of stmt by the dataflow module *)
+            { to_propagate = states }
+          in
           let apply_each_state f =
-            let modified_states =
+            let states_after_i =
               State_set.fold
-                (fun acc state_value -> State_set.add (f state_value) acc)
-                State_set.empty
-                d_states
+                (fun acc (state, trace) ->
+                  State_set.add (f state, trace) acc
+                ) State_set.empty d_states
             in
-            Dataflow.Done { counter_unroll = 0; value =  modified_states }
+            propagate states_after_i
           in
           (* update current statement *)
           match i with
           | Set (lv,exp,_loc) ->
               apply_each_state
                 (fun state_value ->
-                   Eval_stmt.do_assign ~with_alarms clob state_value lv exp)
+                   Eval_stmt.do_assign ~with_alarms
+                     current_kf clob state_value lv exp)
           (* TODOBY: this should be transferred as a builtin. However, this
              is not possible for va_arg currently *)
           | Call (_,
@@ -341,93 +397,79 @@ let dkey_callbacks = Value_parameters.register_category "callbacks"
                      ~exact:true state loc V.top_int
                 )
           | Call (lval_to_assign,funcexp,argl,_loc) ->
-              Dataflow.Done
-                { counter_unroll = 0;
-                  value = interp_call stmt lval_to_assign funcexp argl d_states}
+            propagate (interp_call stmt lval_to_assign funcexp argl d_states)
           | Asm _ ->
               warning_once_current
                 "assuming assembly code has no effects in function %t"
                 pretty_current_cfunction_name;
-              Dataflow.Default
-          | Skip _ ->
-              Dataflow.Default
-          | Code_annot (_,_) -> (* processed in dostmt from Db *)
-              Dataflow.Default
+              d
+          | Skip _ -> d
+          | Code_annot (_,_) -> d (* processed direcly in doStmt from the
+                                     annotation table *)
         end
     in
     CilE.end_stmt ();
     result
 
-
-  (* This function is later used to insert a stmt to the worklist manually.
-   * Needed for manual split/merge zones
-   * Will be filled by Local_slevel_compute.compute_sub_function
-   * after Dataflow.Forwards initialization
-   *)
-  let add_to_worklist = ((ref (fun _ -> assert false)) : (stmt -> unit) ref)
-
-  let doStmtSpecific s d states =
+  let doStmtSpecific s _d states =
     match s.skind with
       | Loop _ ->
-        if d.counter_unroll >= slevel then
-          Value_parameters.result ~level:1 ~once:true ~current:true
-            "entering loop for the first time";
-        states
+	  let current_info = Current_table.find_current current_table s in
+	  let counter = current_info.Current_table.counter_unroll in
+          if counter >= slevel s then
+            Value_parameters.result ~level:1 ~once:true ~current:true
+              "entering loop for the first time";
+          states
 
       | UnspecifiedSequence seq ->
         (try
 	   if Kernel.UnspecifiedAccess.get () 
 	   then begin
              State_set.iter
-               (fun state ->
-                 Eval_stmt.check_unspecified_sequence state seq) states;
+               (fun (state, _trace) ->
+                 Eval_stmt.check_unspecified_sequence state seq
+               ) states;
 	   end;
            states
          with Eval_stmt.AlwaysOverlap -> State_set.empty
         )
       | _ -> states
 
-  (* This is an auxiliary function to handle local_slevel, to be enabled below*)
-  let ret_local_slevel s states dataflow_result =
-    match Local_slevel.determine_mode current_kf
-      s AnalysisParam.local_slevel_info
-    with
-      | Local_slevel_types.Normal -> dataflow_result
-      | Local_slevel_types.Merge ->  Dataflow.SDone
-        (* FIXME [SCM] strict mode only - will have to work in split mode as
-         * well f.e. while(1) { foo() } as split and merge stmt *)
-      | Local_slevel_types.MergeSplit _ -> assert false
-      | Local_slevel_types.Split info ->
-        let new_state, clobbered_set =
-          Local_slevel.compute_sub_function current_kf s info states
-        in
-        Locals_scoping.remember_bases_with_locals clob clobbered_set;
-        (* FIXME [SCM] strict mode *)
-        List.iter
-          (fun stmt ->
-            StmtStartData.add stmt { counter_unroll = 0;
-                                     value = State_set.singleton new_state };
-            !add_to_worklist stmt)
-          (Cil_datatype.Stmt.Hptset.elements info.Local_slevel_types.merges);
-        Dataflow.SDone
+  (* Ideally, we would like this function to merge only the states propagated
+     along the back edges of the loop. Since this is not currently easy, we
+     use an approximation that consists in merging all the states on the
+     loop node. *)
+  let merge_if_loop s (d: t) =
+    match s.skind with
+    | Loop _ ->
+      d.to_propagate <-
+        State_set.singleton (State_set.join d.to_propagate)
+    | _ -> ()
+
 
   let doStmt (s: stmt) (d: t) =
-    let states = d.value in
-    d.value <- State_set.empty;
+    check_signals ();
+    if slevel_merge_after_loop then merge_if_loop s d;
+    let states = d.to_propagate in
+    Db.Value.Compute_Statement_Callbacks.apply (s, call_stack(), 
+						State_set.to_list states);
     CilE.start_stmt (Kstmt s);
+    (* Cleanup function, to be called on all exit paths *)
     let ret result =
+      (* Do this as late as possible, as a non-empty to_propagate field
+         is shown in a special way in case of degeneration *)
+      d.to_propagate <- State_set.empty;
       CilE.end_stmt ();
-      if false (* set to true for local slevel *) then result
-      else ret_local_slevel s states result
+      result
     in
-    if State_set.is_empty states then ret Dataflow.SDefault
+    if State_set.is_empty states then ret Dataflow2.SDefault
     else
     let states = (* Remove states already present *)
       if obviously_terminates
       then states
       else Current_table.update_and_tell_if_changed current_table s states
     in
-    if State_set.is_empty states then ret Dataflow.SDefault
+    if State_set.is_empty states then ret Dataflow2.SDefault
     else
     (* We do not interpret annotations that come from statement contracts
        and everything previously emitted by Value (currently, alarms) *)
@@ -438,23 +480,29 @@ let dkey_callbacks = Value_parameters.register_category "callbacks"
         else ca :: acc
       ) s []
     in
+    let slevel = slevel s in
     let interp_annot record states annot =
       Eval_annots.interp_annot
         current_kf AnalysisParam.active_behaviors initial_state slevel
         states s annot record
     in
     let states = List.fold_left (interp_annot true) states annots in
-    if State_set.is_empty states then ret Dataflow.SDefault
+    if State_set.is_empty states then ret Dataflow2.SDefault
     else
     let is_return = is_return s in
+    let current_info = Current_table.find_current current_table s in
+    let old_counter = current_info.Current_table.counter_unroll in
     let new_states =
-      if (d.counter_unroll >= slevel && not is_return)
+      if (old_counter >= slevel && not is_return)
         || (is_return && obviously_terminates)
       then (* No slevel left, perform some join and/or widening *)
         let curr_wcounter, curr_wstate =
           Current_table.find_widening_info current_table s
 	in
-        let state = State_set.join states in
+	(* Note: curr_wstate is the previous widening state, so there is no
+	   need to attach any trace to it: it would just be a prefix of the
+	   currently propagated trace. *)
+        let (state,trace) = State_set.join states in
         let joined = Cvalue.Model.join curr_wstate state in
         if Model.equal joined curr_wstate then
           State_set.empty (* [state] is included in the last propagated state.
@@ -467,20 +515,16 @@ let dkey_callbacks = Value_parameters.register_category "callbacks"
 	  end
 	  else
             let r =
-	      if is_natural_loop s && curr_wcounter = 0 then
-                let wh_key_set, wh_hints = Widen.getWidenHints current_kf s in
-                let widen_hints =
-                  true, wh_key_set(* no longer used thanks to 0/1 widening*),
-                  wh_hints
-                in
-                snd (Cvalue.Model.widen widen_hints curr_wstate joined)
+	      if is_loop s && curr_wcounter = 0 then
+                let widen_hints = Widen.getWidenHints current_kf s in
+                Cvalue.Model.widen widen_hints curr_wstate joined
 	      else
                 joined
             in
             let new_wcounter =
               if curr_wcounter = 0 then 1 else pred curr_wcounter
             in
-            let new_state = State_set.singleton r in
+            let new_state = State_set.singleton (r, trace) in
             if Cvalue.Model.equal r joined then (
 	      Current_table.update_widening_info current_table s new_wcounter r;
 	      new_state)
@@ -492,19 +536,21 @@ let dkey_callbacks = Value_parameters.register_category "callbacks"
                  in this function. *)
                 List.fold_left (interp_annot false) new_state annots
               in
-              let new_joined = State_set.join new_states in
+              let (new_joined,tr) = State_set.join new_states in
               Current_table.update_widening_info
                 current_table s new_wcounter new_joined;
-              State_set.singleton new_joined
+              State_set.singleton (new_joined,tr)
             end
       else states
     in
     let states = doStmtSpecific s d new_states in
-    ret (Dataflow.SUse { d with value = states })
+    (* This temporary propagation value will be passed on to the successors
+       of [s] *)
+    ret (Dataflow2.SUse { to_propagate = states })
 
   let doEdge s succ d =
     let kinstr = Kstmt s in
-    let states = d.value in
+    let states = d.to_propagate in
     CilE.start_stmt kinstr;
     (* We store the state after the execution of [s] for the callback
        {Value.Record_Value_After_Callbacks}. This is done here
@@ -517,10 +563,10 @@ let dkey_callbacks = Value_parameters.register_category "callbacks"
         try Cil_datatype.Stmt.Hashtbl.find states_after s
         with Not_found -> Cvalue.Model.bottom
       in
-      let updated = State_set.fold Cvalue.Model.join old states in
+      let updated = State_set.fold
+	(fun acc (state, _trace) -> Cvalue.Model.join acc state) old states in
       Cil_datatype.Stmt.Hashtbl.replace states_after s updated
     );
-
     let states =
       match Kernel_function.blocks_closed_by_edge s succ with
       | [] -> states
@@ -531,29 +577,25 @@ let dkey_callbacks = Value_parameters.register_category "callbacks"
               current_fundec clob closed_blocks
           in
             State_set.fold
-              (fun set state ->
+              (fun set (state, trace) ->
                 let state =
                   Cvalue.Model.uninitialize_blocks_locals closed_blocks state
                 in
-                State_set.add (block_top state) set)
+                State_set.add (block_top state, trace) set)
               State_set.empty
               states;
     in
     CilE.end_stmt ();
-    { d with value =  states }
-
-  let filterStmt _stmt = true
-
-  (* Get access to current_table in case of split/merge zone.
-   * Without explicit merging, this is done via externalize
-   *)
-  let getStateSet stmt = Current_table.find_superposition current_table stmt
+    d.to_propagate <- states;
+    d
 
   (* Check that the dataflow is indeed finished *)
   let checkConvergence () =
     StmtStartData.iter (fun k v ->
-      if not (State_set.is_empty (v.value)) then
-        Value_parameters.fatal "sid:%d@\n%a@\n" k.sid State_set.pretty v.value)
+      if not (State_set.is_empty (v.to_propagate)) then
+        Value_parameters.fatal "sid:%d@\n%a@\n"
+          k.sid State_set.pretty v.to_propagate
+    )
 
   (* Final states of the function, reduced by the post-condition *)
   let final_states () =
@@ -572,14 +614,20 @@ let dkey_callbacks = Value_parameters.register_category "callbacks"
       Normal (* termination kind*)
 
   let externalize states =
+    CilE.start_stmt (Kstmt return);
+    let with_alarms = warn_all_quiet_mode () in
     (* Partial application is useful, do not inline *)
-    let externalize = Eval_stmt.externalize current_fundec ~return_lv clob in
+    let externalize =
+      Eval_stmt.externalize ~with_alarms current_kf ~return_lv clob
+    in
     let states =
       Split_return.join_final_states current_kf ~return_lv states in
-    List.map externalize states
+    let r = List.map externalize states in
+    CilE.end_stmt ();
+    r
 
   let results () =
-    if !debug then checkConvergence ();
+    if debug then checkConvergence ();
     let final_states = final_states () in
     let externalized = externalize final_states in {
       Value_types.c_values = externalized;
@@ -588,14 +636,14 @@ let dkey_callbacks = Value_parameters.register_category "callbacks"
     }
 
   let doGuardOneCond stmt context exp t =
-    if State_set.is_empty (t.value)
-    then Dataflow.GUnreachable
+    if State_set.is_empty (t.to_propagate)
+    then Dataflow2.GUnreachable
     else begin
         CilE.start_stmt (Kstmt stmt);
         let with_alarms = warn_all_quiet_mode () in
         let new_values =
           State_set.fold
-            (fun acc state ->
+            (fun acc (state, trace) ->
               let state, _, test =
                 eval_expr_with_deps_state None ~with_alarms state exp
               in
@@ -611,20 +659,19 @@ let dkey_callbacks = Value_parameters.register_category "callbacks"
               if do_it then
                 try
                   State_set.add
-                    (reduce_by_cond state {positive = true; exp = exp})
+                    (reduce_by_cond state {positive = true; exp = exp}, trace)
                     acc
                 with Reduce_to_bottom -> acc
               else acc)
             State_set.empty
-            t.value
+            t.to_propagate
         in
         let result =
-          if State_set.is_empty new_values then Dataflow.GUnreachable
-          else Dataflow.GUse {t with value =  new_values}
+          if State_set.is_empty new_values then Dataflow2.GUnreachable
+          else Dataflow2.GUse { to_propagate = new_values}
         in
         CilE.end_stmt ();
         result
-
       end
 
   let mask_then = Db.Value.mask_then
@@ -639,13 +686,13 @@ let dkey_callbacks = Value_parameters.register_category "callbacks"
     in
     let th_reachable =
       match th with
-        Dataflow.GUse _ | Dataflow.GDefault -> mask_then
-      | Dataflow.GUnreachable -> 0
+        Dataflow2.GUse _ | Dataflow2.GDefault -> mask_then
+      | Dataflow2.GUnreachable -> 0
     in
     let el_reachable =
       match el with
-        Dataflow.GUse _ | Dataflow.GDefault -> mask_else
-      | Dataflow.GUnreachable -> 0
+        Dataflow2.GUse _ | Dataflow2.GDefault -> mask_else
+      | Dataflow2.GUnreachable -> 0
     in
     let reachable = th_reachable lor el_reachable in
     if Value_parameters.InterpreterMode.get() && (reachable = mask_both)

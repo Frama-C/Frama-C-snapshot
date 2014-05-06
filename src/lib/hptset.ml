@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -21,44 +21,30 @@
 (**************************************************************************)
 
 module type S = sig
-  type elt
   include Datatype.S_with_collections
-  val empty: t
-  val is_empty: t -> bool
-  val mem: elt -> t -> bool
-  val add: elt -> t -> t
-  val singleton: elt -> t
-  val remove: elt -> t -> t
-  val elements: t -> elt list
-  val union: t -> t -> t
-  val inter: t -> t -> t
-  val diff: t -> t -> t
-  val subset: t -> t -> bool
-  val iter: (elt -> unit) -> t -> unit
-  val fold: (elt -> 'a -> 'a) -> t -> 'a -> 'a
-  val for_all: (elt -> bool) -> t -> bool
-  val exists: (elt -> bool) -> t -> bool
-  val filter: (elt -> bool) -> t -> t
-  val partition: (elt -> bool) -> t -> t * t
-  val cardinal: t -> int
-  val min_elt: t -> elt
-  val max_elt: t -> elt
-  val contains_single_elt: t -> elt option
-  val choose: t -> elt
-  val split: elt -> t -> t * bool * t
-  val intersects: t -> t -> bool
-  val clear_caches: unit -> unit
+  include FCSet.S_Basic_Compare with type t := t
+
+    val contains_single_elt: t -> elt option
+    val intersects: t -> t -> bool
+
+    type 'a shape
+    val shape: t -> unit shape
+    val from_shape: 'a shape -> t
+
+    val clear_caches: unit -> unit
 end
 
-module type Id_Datatype = sig
-  include Datatype.S
-  val id: t -> int
-end
-
-module Make(X: Id_Datatype)
+module Make(X: Hptmap.Id_Datatype)
   (Initial_Values : sig val v : X.t list list end)
-  (Datatype_deps: sig val l : State.t list end)
+  (Datatype_deps: sig val l : State.t list end) :   sig
+    include S with type elt = X.t
+              and type 'a shape = 'a Hptmap.Shape(X).t
+    val self : State.t
+  end
   = struct
+
+  type elt = X.t
+  type 'a shape = 'a Hptmap.Shape(X).t
 
   include
     Hptmap.Make
@@ -68,11 +54,9 @@ module Make(X: Id_Datatype)
     (struct let v = List.map (List.map (fun k -> k, ())) Initial_Values.v end)
     (Datatype_deps)
 
-  type elt = X.t
-
-  let add k = add k ()
-  let iter f = iter (fun x () -> f x)
-  let fold f = fold (fun x () -> f x)
+  let add k s = add k () s
+  let iter f s = iter (fun x () -> f x) s
+  let fold f s = fold (fun x () -> f x) s
 
   let elements s = fold (fun h t -> h::t) s []
 
@@ -81,13 +65,7 @@ module Make(X: Id_Datatype)
       Some (k, _v) -> Some k
     | None -> None
 
-  let min_elt s =
-    fst (min_binding s)
-
-  let max_elt s =
-    fst (max_binding s)
-
-  let choose = min_elt
+  let choose s = fst (min_binding s)
 
   let filter f s = fold (fun x acc -> if f x then add x acc else acc) s empty
 
@@ -97,55 +75,50 @@ module Make(X: Id_Datatype)
 
   let mem x s = try find x s; true with Not_found -> false
 
+  let find x s = find_key x s
+
   let diff s1 s2 =
     fold (fun x acc -> if mem x s2 then acc else add x acc) s1 empty
 
-  let inter s1 s2 =
-    fold (fun x acc -> if mem x s1 then add x acc else acc) s2 empty
-(*  let inter = time2 "inter" inter *)
+  let inter =
+    let name = Format.sprintf "Hptset(%s).inter" X.name in
+    let res = Some () in
+    let aux =
+      symmetric_inter ~cache:(name, ()) ~decide_some:(fun _ () () -> res)
+    in
+    fun m1 m2 -> aux m1 m2
 
-  let binary_unit _ _ = ()
+  (* Test that implementation of function inter in Hptmap is correct *)
+  let _test_inter s1 s2 =
+    let i1 =
+      fold (fun x acc -> if mem x s1 then add x acc else acc) s2 empty
+    in
+    let i2 = inter s1 s2 in
+    if not (i1 == i2) then
+      Kernel.error "%a@./@.%a@.->@.%a@./@.%a"
+        pretty_debug s1 pretty_debug s2 pretty_debug i1 pretty_debug i2;
+    i1
 
   let union =
-    symetric_merge
-      ~cache:("Hptset.union", 12)
-      ~decide_none:binary_unit
-      ~decide_some:binary_unit
-(*  let union = time2 "union" union *)
+    let name = Format.sprintf "Hptset(%s).union" X.name in
+    symmetric_merge
+      ~cache:(name, ())
+      ~decide_none:(fun _k () -> ())
+      ~decide_some:(fun () () -> ())
 
   let singleton x = add x empty
 
-  exception Elt_found
+  let exists f s = exists (fun k () -> f k) s
 
-  let exists f s =
-    try
-      iter (fun x -> if f x then raise Elt_found) s;
-      false
-    with Elt_found ->
-      true
-
-  let for_all f s =
-    try
-      iter (fun x -> if not (f x) then raise Elt_found) s;
-      true
-    with Elt_found ->
-      false
-
-  exception Not_incl
+  let for_all f s = for_all (fun k () -> f k) s
 
   let subset =
-    generic_is_included
-      Not_incl
-      ~cache:("Hptset.subset", 12)
-      ~decide_fst:(fun _ () -> raise Not_incl)
-      ~decide_snd:binary_unit
-      ~decide_both:binary_unit
-
-  let subset s1 s2 = try subset s1 s2 ; true with Not_incl -> false
-    (*  let subset = time2 "subset" subset *)
-
-  let cardinal s = fold (fun _ acc -> acc + 1) s 0
-    (*  let cardinal = time "cardinal" cardinal *)
+    let name = Format.sprintf "Hptset(%s).subset" X.name in
+    binary_predicate (PersistentCache name) UniversalPredicate
+      ~decide_fast:decide_fast_inclusion
+      ~decide_fst:(fun _ () -> false)
+      ~decide_snd:(fun _ () -> true)
+      ~decide_both:(fun _ () () -> true)
 
   let pretty =
     if X.pretty == Datatype.undefined then
@@ -159,17 +132,15 @@ module Make(X: Id_Datatype)
     l, pres <> None, r
 
   let intersects =
-    let aux =
-      generic_symetric_existential_predicate
-	Hptmap.Found_inter
-	do_it_intersect
-	~decide_one:(fun _ _ -> ())
-	~decide_both:(fun _ _ -> raise Hptmap.Found_inter)
-    in
-    fun s1 s2 ->
-      try  aux s1 s2;  false
-      with Hptmap.Found_inter -> true
+    let name = Pretty_utils.sfprintf "Hptset(%s).intersects" X.name in
+    symmetric_binary_predicate (PersistentCache name) ExistentialPredicate
+      ~decide_fast:decide_fast_intersection
+      ~decide_one:(fun _ () -> false)
+      ~decide_both:(fun _ () () -> true)
 
+  let of_list l = List.fold_left (fun acc key -> add key acc) empty l
+
+  let from_shape m = from_shape (fun _ _ -> ()) m
 
 end
 

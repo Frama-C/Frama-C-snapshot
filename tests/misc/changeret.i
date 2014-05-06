@@ -1,4 +1,4 @@
-// Test a change in [lv] during a call [lv = f()]
+// Test a change in [lv] during a call [lv = f()]. Currently inactive
 
 int x, y;
 int *p;

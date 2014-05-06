@@ -35,13 +35,13 @@
 (*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE         *)
 (*  POSSIBILITY OF SUCH DAMAGE.                                             *)
 (*                                                                          *)
-(*  File modified by CEA (Commissariat à l'énergie atomique et aux          *)
-(*                        énergies alternatives)                            *)
+(*  File modified by CEA (Commissariat Ã  l'Ã©nergie atomique et aux          *)
+(*                        Ã©nergies alternatives)                            *)
 (*               and INRIA (Institut National de Recherche en Informatique  *)
 (*                          et Automatique).                                *)
 (****************************************************************************)
 
-let level=666
+let dkey = Kernel.register_category "parse:rmtmps"
 
 open Extlib
 open Cil_types
@@ -69,7 +69,7 @@ let clearReferencedBits file =
 
     | GEnumTag (info, _)
     | GEnumTagDecl (info, _) ->
-	Kernel.debug ~level "clearing mark: %a" Cil_printer.pp_global global;
+	Kernel.debug ~dkey "clearing mark: %a" Cil_printer.pp_global global;
 	info.ereferenced <- false
 
     | GCompTag (info, _)
@@ -315,8 +315,10 @@ let hasExportingAttribute funvar =
 
 let isExportedRoot global =
   let result, _reason = match global with
-  | GVar ({vstorage = Static}, _, _) ->
-    false, "static variable"
+  | GVar ({vstorage = Static} as v, _, _) when
+      Cil.hasAttribute "FC_BUILTIN" v.vattr ->
+    true, "FC_BUILTIN attribute"
+  | GVar ({vstorage = Static}, _, _) -> false, "static variable"
   | GVar _ ->
     true, "non-static variable"
   | GFun ({svar = v}, _) -> begin
@@ -332,7 +334,18 @@ let isExportedRoot global =
   end
   | GVarDecl(_,v,_) when hasAttribute "alias" v.vattr ->
     true, "has GCC alias attribute"
+  | GVarDecl(_,v,_) when hasAttribute "FC_BUILTIN" v.vattr ->
+    true, "has FC_BUILTIN attribute"
   | GAnnot _ -> true, "global annotation"
+  | GType (t, _) when
+    Cil.hasAttribute "FC_BUILTIN" (Cil.typeAttr t.ttype) ->
+    true, "has FC_BUILTIN attribute"
+  | GCompTag (c,_) | GCompTagDecl (c,_) when
+      Cil.hasAttribute "FC_BUILTIN" c.cattr ->
+    true, "has FC_BUILTIN attribute"
+  | GEnumTag (e, _) | GEnumTagDecl (e,_) when
+      Cil.hasAttribute "FC_BUILTIN" e.eattr ->
+    true, "has FC_BUILTIN attribute"
   | _ ->
     false, "neither function nor variable nor annotation"
   in
@@ -381,7 +394,7 @@ class markReachableVisitor
      (currentFunc: Cil_types.fundec option ref)) = object (self)
   inherit nopCilVisitor
 
-  method vglob = function
+  method! vglob = function
     | GType (typeinfo, _) ->
 	typeinfo.treferenced <- true;
 	DoChildren
@@ -403,8 +416,8 @@ class markReachableVisitor
     | _ ->
 	SkipChildren
 
-  method vinst = function
-      Asm (_, tmpls, _, _, _, _) when theMachine.msvcMode ->
+  method! vinst = function
+      Asm (_, tmpls, _, _, _, _,_) when theMachine.msvcMode ->
           (* If we have inline assembly on MSVC, we cannot tell which locals
            * are referenced. Keep thsem all *)
         (match !currentFunc with
@@ -429,27 +442,27 @@ class markReachableVisitor
                 ->
                   if false then
                   ChangeTo
-                    [Asm ([],["nop"],[],List.map (fun e -> None,"q",e) args ,[],loc)]
+                    [Asm ([],["nop"],[],List.map (fun e -> None,"q",e) args ,[],[],loc)]
                   else ChangeTo []
             | _ -> DoChildren
         end
     | _ -> DoChildren
 
-  method vvrbl v =
+  method! vvrbl v =
     if not v.vreferenced then
       begin
 	let name = v.vname in
 	if v.vglob then
-	  Kernel.debug ~level "marking transitive use: global %s" name
+	  Kernel.debug ~dkey "marking transitive use: global %s" name
 	else
-	  Kernel.debug ~level "marking transitive use: local %s" name;
+	  Kernel.debug ~dkey "marking transitive use: local %s" name;
 
         (* If this is a global, we need to keep everything used in its
 	 * definition and declarations. *)
         v.vreferenced <- true;
 	if v.vglob then
 	  begin
-	    Kernel.debug ~level "descending: global %s" name;
+	    Kernel.debug ~dkey "descending: global %s" name;
 	    let descend global =
 	      ignore (visitCilGlobal (self :> cilVisitor) global)
 	    in
@@ -462,21 +475,21 @@ class markReachableVisitor
   method private mark_enum e =
     if not e.ereferenced then
       begin
-	Kernel.debug ~level "marking transitive use: enum %s\n" e.ename;
+	Kernel.debug ~dkey "marking transitive use: enum %s\n" e.ename;
 	e.ereferenced <- true;
 	self#visitAttrs e.eattr;
         (* Must visit the value attributed to the enum constants *)
         ignore (visitCilEnumInfo (self:>cilVisitor) e);
       end
     else 
-      Kernel.debug ~level "not marking transitive use: enum %s\n" e.ename;
+      Kernel.debug ~dkey "not marking transitive use: enum %s\n" e.ename;
 
-  method vexpr e =
+  method! vexpr e =
     match e.enode with
       Const (CEnum {eihost = ei}) -> self#mark_enum ei; DoChildren
     | _ -> DoChildren
       
-  method vterm_node t =
+  method! vterm_node t =
     match t with
       TConst (LEnum {eihost = ei}) -> self#mark_enum ei; DoChildren
     | _ -> DoChildren
@@ -484,7 +497,7 @@ class markReachableVisitor
   method private visitAttrs attrs =
     ignore (visitCilAttributes (self :> cilVisitor) attrs)
       
-  method vtype typ =
+  method! vtype typ =
     (match typ with
       | TEnum(e, attrs) ->
 	  self#visitAttrs attrs;
@@ -494,7 +507,7 @@ class markReachableVisitor
 	  let old = c.creferenced in
           if not old then
             begin
-	      Kernel.debug ~level "marking transitive use: compound %s\n" 
+	      Kernel.debug ~dkey "marking transitive use: compound %s\n" 
                 c.cname;
 	      c.creferenced <- true;
 
@@ -509,7 +522,7 @@ class markReachableVisitor
 	  let old = ti.treferenced in
           if not old then
 	    begin
-	      Kernel.debug ~level "marking transitive use: typedef %s\n" 
+	      Kernel.debug ~dkey "marking transitive use: typedef %s\n" 
                 ti.tname;
 	      ti.treferenced <- true;
 
@@ -617,12 +630,12 @@ in
 object
   inherit nopCilVisitor
 
-  method vstmt (s: stmt) =
+  method! vstmt (s: stmt) =
     match s.skind with
       Goto (dest, _) -> keep_label dest; DoChildren
     | _ -> DoChildren
 
-  method vterm_node t =
+  method! vterm_node t =
     begin
       match t with
       | Tat (_,lab) -> keep_label_logic lab
@@ -632,7 +645,7 @@ object
     end;
     DoChildren
 
-  method vpredicate t =
+  method! vpredicate t =
     begin
       match t with
       | Pat (_,lab) -> keep_label_logic lab
@@ -643,14 +656,14 @@ object
     DoChildren
 
    (* No need to go into expressions or types *)
-  method vexpr _ = SkipChildren
-  method vtype _ = SkipChildren
+  method! vexpr _ = SkipChildren
+  method! vtype _ = SkipChildren
                                                         end
 
 class removeUnusedLabels is_removable (labelMap: (string, unit) H.t) = object
   inherit nopCilVisitor
 
-  method vstmt (s: stmt) =
+  method! vstmt (s: stmt) =
     let (ln, lab), lrest = labelsToKeep is_removable s.labels in
     s.labels <-
        (if ln <> "" &&
@@ -663,9 +676,9 @@ class removeUnusedLabels is_removable (labelMap: (string, unit) H.t) = object
     DoChildren
 
    (* No need to go into expressions or instructions *)
-  method vexpr _ = SkipChildren
-  method vinst _ = SkipChildren
-  method vtype _ = SkipChildren
+  method! vexpr _ = SkipChildren
+  method! vinst _ = SkipChildren
+  method! vtype _ = SkipChildren
 end
 
 (***********************************************************************
@@ -750,7 +763,7 @@ let removeUnmarked isRoot file =
 	       begin
 	         (* along the way, record the interesting locals that were removed *)
 	         let name = local.vname in
-	         (Kernel.debug ~level "removing local: %s\n" name);
+	         (Kernel.debug ~dkey "removing local: %s\n" name);
 	         if not (Str.string_match uninteresting name 0) then
 		   removedLocals := (func.svar.vname ^ "::" ^ name) :: !removedLocals;
 	       end;
@@ -759,7 +772,7 @@ let removeUnmarked isRoot file =
 	   func.slocals <- List.filter filterLocal func.slocals;
            let remove_blocals = object
              inherit Cil.nopCilVisitor
-             method vblock b =
+             method! vblock b =
                b.blocals <- List.filter filterLocal b.blocals;
                DoChildren
            end
@@ -792,7 +805,7 @@ let isDefaultRoot = isExportedRoot
 let removeUnusedTemps ?(isRoot : rootsFilter = isDefaultRoot) file =
   if not !keepUnused then
     begin
-      Kernel.debug ~level "Removing unused temporaries" ;
+      Kernel.debug ~dkey "Removing unused temporaries" ;
 
       (* digest any pragmas that would create additional roots *)
       let keepers = categorizePragmas file in

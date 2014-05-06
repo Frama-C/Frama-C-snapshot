@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -25,14 +25,14 @@
     @plugin development guide *)
 
 module Make_LOffset
-  (V:Lattice_With_Isotropy.S)
+  (V: module type of Offsetmap_lattice_with_isotropy)
   (Offsetmap: module type of Offsetmap_sig
               with type v = V.t
               and type widen_hint = V.widen_hint)
   (Default_offsetmap: sig val default_offsetmap : Base.t -> Offsetmap.t end):
   module type of Lmap_sig
     with type v = V.t
-    and type widen_hint_y = V.widen_hint
+    and type widen_hint_base = V.widen_hint
     and type offsetmap = Offsetmap.t
 
 (*

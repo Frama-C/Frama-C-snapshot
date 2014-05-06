@@ -35,8 +35,8 @@
 (*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE         *)
 (*  POSSIBILITY OF SUCH DAMAGE.                                             *)
 (*                                                                          *)
-(*  File modified by CEA (Commissariat à l'énergie atomique et aux          *)
-(*                        énergies alternatives)                            *)
+(*  File modified by CEA (Commissariat Ã  l'Ã©nergie atomique et aux          *)
+(*                        Ã©nergies alternatives)                            *)
 (*               and INRIA (Institut National de Recherche en Informatique  *)
 (*                          et Automatique).                                *)
 (****************************************************************************)
@@ -421,6 +421,7 @@ let make_annot ~one_line lexbuf s =
 let decdigit = ['0'-'9']
 let octdigit = ['0'-'7']
 let hexdigit = ['0'-'9' 'a'-'f' 'A'-'F']
+let binarydigit = ['0' '1']
 let letter = ['a'- 'z' 'A'-'Z']
 
 
@@ -431,10 +432,12 @@ let intsuffix = lsuffix | usuffix | usuffix lsuffix | lsuffix usuffix
 
 
 let hexprefix = '0' ['x' 'X']
+let binaryprefix = '0' ['b' 'B']
 
 let intnum = decdigit+ intsuffix?
 let octnum = '0' octdigit+ intsuffix?
 let hexnum = hexprefix hexdigit+ intsuffix?
+let binarynum = binaryprefix binarydigit+ intsuffix?
 
 let exponent = ['e' 'E']['+' '-']? decdigit+
 let fraction  = '.' decdigit+
@@ -571,6 +574,8 @@ rule initial =
                                                      ("wide string: " ^
                                                       Printexc.to_string e))}
 |		floatnum		{CST_FLOAT (Lexing.lexeme lexbuf, currentLoc ())}
+|		binarynum               { (* GCC Extension for binary numbers *) 
+                                          CST_INT (Lexing.lexeme lexbuf, currentLoc ())}
 |		hexnum			{CST_INT (Lexing.lexeme lexbuf, currentLoc ())}
 |		octnum			{CST_INT (Lexing.lexeme lexbuf, currentLoc ())}
 |		intnum			{CST_INT (Lexing.lexeme lexbuf, currentLoc ())}

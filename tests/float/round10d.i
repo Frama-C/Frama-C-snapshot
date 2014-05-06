@@ -1,6 +1,6 @@
 /* run.config
-   OPT: -memory-footprint 1 -val -float-normal -journal-disable -no-results
-   OPT: -memory-footprint 1 -val -float-normal -all-rounding-modes -journal-disable -no-results
+   OPT: -val -float-normal -journal-disable -no-results
+   OPT: -val -float-normal -all-rounding-modes -journal-disable -no-results
 */
 int main()
 {

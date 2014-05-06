@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -87,8 +87,7 @@ val get_name: unit -> string
   (** @return the filename which the journal will be written into. *)
 
 val set_name: string -> unit
-  (** [set_journal_name name] changes the filename into the journal will be
-      written. The new filename is [name ^ ".ml"]. *)
+  (** [set_name name] changes the filename into the journal is generated. *)
 
 val write: unit -> unit
   (** [write ()] writes the content of the journal into the file set by
@@ -110,6 +109,8 @@ val restore: unit -> unit
 val keep_file: string -> unit
   (** This function has not to be used explictely. Only offers functions
       retrieving when running a journal file. *)
+
+val get_session_file: (string -> string) ref
 
 (*
 Local Variables:

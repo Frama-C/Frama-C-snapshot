@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -20,7 +20,6 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open Db
 open Cil_datatype
 
 (* ************************************************************************* *)
@@ -32,14 +31,14 @@ module Is_Called =
     (Datatype.Bool)
     (struct
        let name = "is_called"
-       let dependencies = [ Value.self ]
+       let dependencies = [ Db.Value.self ]
        let size = 17
      end)
 
 let is_called =
   Is_Called.memo
     (fun kf ->
-       try Value.is_reachable_stmt (Kernel_function.find_first_stmt kf)
+       try Db.Value.is_reachable_stmt (Kernel_function.find_first_stmt kf)
        with Kernel_function.No_Statement -> false)
 
 let mark_as_called kf =
@@ -54,7 +53,7 @@ module Callers =
     (Kernel_function.Map.Make(Stmt.Set))
     (struct
        let name = "Callers"
-       let dependencies = [ Value.self ]
+       let dependencies = [ Db.Value.self ]
        let size = 17
      end)
 
@@ -86,8 +85,8 @@ let callers kf =
 (* ************************************************************************* *)
 
 let () =
-  Value.is_called := is_called;
-  Value.callers := callers;
+  Db.Value.is_called := is_called;
+  Db.Value.callers := callers;
 
 
 (*

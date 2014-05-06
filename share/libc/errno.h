@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2013                                               */
+/*  Copyright (C) 2007-2014                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -152,5 +152,9 @@
 extern int __FC_errno;
 
 #define errno __FC_errno
+
+/* _GNU_SOURCE */
+extern char *program_invocation_name;
+extern char *program_invocation_short_name;
 
 #endif

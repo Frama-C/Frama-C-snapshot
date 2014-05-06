@@ -35,8 +35,8 @@
 (*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE         *)
 (*  POSSIBILITY OF SUCH DAMAGE.                                             *)
 (*                                                                          *)
-(*  File modified by CEA (Commissariat à l'énergie atomique et aux          *)
-(*                        énergies alternatives)                            *)
+(*  File modified by CEA (Commissariat Ã  l'Ã©nergie atomique et aux          *)
+(*                        Ã©nergies alternatives)                            *)
 (*               and INRIA (Institut National de Recherche en Informatique  *)
 (*                          et Automatique).                                *)
 (****************************************************************************)
@@ -61,7 +61,7 @@
 open Cil_types
 open Cil
 
-module DF = Dataflow
+module DF = Dataflow2
 module UD = Usedef
 module L = Liveness
 module IH = Datatype.Int.Hashtbl
@@ -72,7 +72,7 @@ module IH = Datatype.Int.Hashtbl
 let debug_fn = ref ""
 
 module IOS =
-  Set.Make(struct
+  FCSet.Make(struct
     type t = int option
     let compare io1 io2 =
       match io1, io2 with
@@ -279,7 +279,7 @@ module ReachingDef =
 
     let name = "Reaching Definitions"
 
-    let debug = debug
+    let debug = false
 
     (* Should the analysis calculate may-reach
        or must-reach *)
@@ -294,7 +294,7 @@ module ReachingDef =
     type t = (unit * int * IOS.t IH.t)
 
     module StmtStartData =
-      Dataflow.StartData
+      Dataflow2.StartData
 	(struct type t = (unit * int * IOS.t IH.t) let size = 32 end)
     (* entries for starting statements must
        be added before calling compute *)
@@ -356,19 +356,16 @@ module ReachingDef =
 
     (* return an action that removes things that
        are redefinied and adds the generated defs *)
-    let doInstr _ inst (_, _s, _iosh) =
-      let transform (_, s', iosh') =
-	let _, defd = UD.computeUseDefInstr inst in
-	proc_defs defd iosh' (idMaker () s');
-	((), s' + UD.VS.cardinal defd, iosh')
-      in
-      DF.Post transform
+    let doInstr _ inst (_, s, iosh) =
+      let _, defd = UD.computeUseDefInstr inst in
+      proc_defs defd iosh (idMaker () s);
+      ((), s + UD.VS.cardinal defd, iosh)
 
     (* all the work gets done at the instruction level *)
     let doStmt stm (_, _s, iosh) =
       if not(Datatype.Int.Hashtbl.mem sidStmtHash stm.sid) then
 	Datatype.Int.Hashtbl.add sidStmtHash stm.sid stm;
-      if !debug then Kernel.debug "RD: looking at %a\n" Cil_printer.pp_stmt stm;
+      if debug then Kernel.debug "RD: looking at %a\n" Cil_printer.pp_stmt stm;
       match L.getLiveSet stm with
       | None -> DF.SDefault
       | Some vs -> begin
@@ -379,15 +376,11 @@ module ReachingDef =
 
     let doGuard _ _condition _ = DF.GDefault, DF.GDefault
 
-    let filterStmt _stm = true
-
-    let stmt_can_reach _ _ = true
-
     let doEdge _ _ d = d
 
 end
 
-module RD = Dataflow.Forwards(ReachingDef)
+module RD = Dataflow2.Forwards(ReachingDef)
 
 (* take the id number of a definition and return
    the rhs of the definition if there is one.
@@ -416,7 +409,7 @@ let getDefRhs didstmh defId =
 		Set((Var vi',NoOffset),_,_) -> vi'.vid = vid (* _ -> NoOffset *)
 	      | Call(Some(Var vi',NoOffset),_,_,_) -> vi'.vid = vid (* _ -> NoOffset *)
 	      | Call(None,_,_,_) -> false
-	      | Asm(_,_,sll,_,_,_) -> List.exists
+	      | Asm(_,_,sll,_,_,_,_) -> List.exists
 		    (function (_,_,(Var vi',NoOffset)) -> vi'.vid = vid | _ -> false) sll
 	      | _ -> false)
 	  | None -> false) iihl in
@@ -431,7 +424,7 @@ let getDefRhs didstmh defId =
 	    (IH.add rhsHtbl defId (Some(RDCall(i),stm.sid,iosh_in));
 	     Some(RDCall(i), stm.sid, iosh_in))
         | Skip _ | Code_annot _ -> None
-	| Asm(_a,_sl,_slvl,_sel,_sl',_) -> None) (* ? *)
+	| Asm(_a,_sl,_slvl,_sel,_sl',_,_) -> None) (* ? *)
 	with Not_found ->
 	  (if !debug then (Kernel.debug "getDefRhs: No instruction defines %d" defId);
 	   IH.add rhsHtbl defId None;
@@ -553,7 +546,7 @@ class rdVisitorClass = object (self)
      instruction if there is one *)
   val mutable cur_rd_dat = None
 
-  method vstmt stm =
+  method! vstmt stm =
     match getRDs stm with
     | None ->
 	if !debug then (Kernel.debug "rdVis: stm %d had no data\n" stm.sid);
@@ -570,7 +563,7 @@ class rdVisitorClass = object (self)
 	    cur_rd_dat <- None;
 	    DoChildren
 
-  method vinst i =
+  method! vinst i =
     if !debug then Kernel.debug "rdVis: before %a, rd_dat_lst is %d long\n"
       Cil_printer.pp_instr i (List.length rd_dat_lst);
     try

@@ -1,3 +1,7 @@
+/* run.config
+   STDOPT: +"-print"
+*/
+
 int G;
 
 //@ assigns s[..] \from s[..];
@@ -37,7 +41,7 @@ int k = 53;
 */
 void assigns_post(int i);
 
-void main(void)
+void main1(void)
 {
   F1(T);
 
@@ -50,4 +54,45 @@ void main(void)
   j(T+9);
 
   assigns_post(18);
+}
+
+//@ assigns \result;
+int ff1();
+
+int* ff2();
+//@ assigns \nothing;
+int* ff2_bis();
+
+int y1, y2, y3;
+
+/*@ assigns y1, y2, y3; assigns y2 \from y2;*/
+void ff3();
+
+void ff4();
+
+int ff5();
+
+int main2() {
+  int l = ff1();
+
+  ff3(); // warn for absence of \from for y1 and y3
+  ff4(); // No warning, result has type void
+  ff5(); // No warning, result is unused
+
+  int *p = ff2(); // warn on missing assigns \result
+  int *q = ff2_bis(); // make sure to return NULL in the result
+  if (p != &x)
+    return 1;
+  return 0;
+}
+
+int t_main3_1[7][8];
+int t_main3_2[3][4][5];
+
+int main3(int a[][8], int b[3][4][5]);
+
+void main() {
+  main1();
+  main2();
+  main3(t_main3_1, t_main3_2);
 }

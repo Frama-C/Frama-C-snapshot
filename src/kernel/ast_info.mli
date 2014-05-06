@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -66,11 +66,6 @@ val term_lvals_of_term: term -> term_lval list
   (** @return the list of all the term lvals of a given term.
       Purely syntactic function. *)
 
-val is_trivial_predicate: predicate -> bool
-val is_trivial_named_predicate: predicate named -> bool
-
-val is_trivial_annotation: code_annotation -> bool
-
 val precondition : funspec -> predicate named
   (** Builds the precondition from [b_assumes] and [b_requires] clauses. 
       @since Carbon-20101201 *)
@@ -123,11 +118,6 @@ val variable_term: location -> logic_var -> term
 val constant_term: location -> Integer.t -> term
 val is_null_term: term -> bool
 
-(* ************************************************************************** *)
-(** {2 Predicates} *)
-(* ************************************************************************** *)
-
-val predicate: location -> predicate -> predicate named
 
 (* ************************************************************************** *)
 (** {2 Statements} *)

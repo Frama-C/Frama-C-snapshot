@@ -35,8 +35,8 @@
 (*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE         *)
 (*  POSSIBILITY OF SUCH DAMAGE.                                             *)
 (*                                                                          *)
-(*  File modified by CEA (Commissariat à l'énergie atomique et aux          *)
-(*                        énergies alternatives)                            *)
+(*  File modified by CEA (Commissariat Ã  l'Ã©nergie atomique et aux          *)
+(*                        Ã©nergies alternatives)                            *)
 (*               and INRIA (Institut National de Recherche en Informatique  *)
 (*                          et Automatique).                                *)
 (****************************************************************************)
@@ -48,7 +48,8 @@ val setMSVCMode: unit -> unit
 exception CabsOnly
 
 (** add a syntactic transformation that will be applied to all freshly parsed
-    C files. *)
+    C files. 
+      @plugin development guide *)
 val add_syntactic_transformation: (Cabs.file -> Cabs.file) -> unit
 
 (** the main command to parse a file. Return a thunk that can be used to

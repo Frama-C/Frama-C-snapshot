@@ -35,8 +35,8 @@
 (*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE         *)
 (*  POSSIBILITY OF SUCH DAMAGE.                                             *)
 (*                                                                          *)
-(*  File modified by CEA (Commissariat à l'énergie atomique et aux          *)
-(*                        énergies alternatives)                            *)
+(*  File modified by CEA (Commissariat Ã  l'Ã©nergie atomique et aux          *)
+(*                        Ã©nergies alternatives)                            *)
 (*               and INRIA (Institut National de Recherche en Informatique  *)
 (*                          et Automatique).                                *)
 (****************************************************************************)
@@ -161,21 +161,21 @@ object
 
   inherit Visitor.frama_c_inplace
 
-  method vinit _ _ _ = Cil.SkipChildren
-  method vtype _ = Cil.SkipChildren
-  method vattr _ = Cil.SkipChildren
-  method vinst _ = Cil.SkipChildren
-  method vexpr _ = Cil.SkipChildren
-  method vlval _ = Cil.SkipChildren
-  method vlogic_type _ = Cil.SkipChildren
-  method vterm _ = Cil.SkipChildren
-  method vpredicate _ = Cil.SkipChildren
-  method vpredicate_named _ = Cil.SkipChildren
-  method vbehavior _ = Cil.SkipChildren
-  method vspec _ = Cil.SkipChildren
-  method vcode_annot _ = Cil.SkipChildren
-  method vannotation _ = Cil.SkipChildren
-  method vstmt_aux stmt = link_stmt stmt ; Cil.DoChildren
+  method! vinit _ _ _ = Cil.SkipChildren
+  method! vtype _ = Cil.SkipChildren
+  method! vattr _ = Cil.SkipChildren
+  method! vinst _ = Cil.SkipChildren
+  method! vexpr _ = Cil.SkipChildren
+  method! vlval _ = Cil.SkipChildren
+  method! vlogic_type _ = Cil.SkipChildren
+  method! vterm _ = Cil.SkipChildren
+  method! vpredicate _ = Cil.SkipChildren
+  method! vpredicate_named _ = Cil.SkipChildren
+  method! vbehavior _ = Cil.SkipChildren
+  method! vspec _ = Cil.SkipChildren
+  method! vcode_annot _ = Cil.SkipChildren
+  method! vannotation _ = Cil.SkipChildren
+  method! vstmt_aux stmt = link_stmt stmt ; Cil.DoChildren
 
 end
 

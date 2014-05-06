@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -58,7 +58,7 @@ rule token = parse
         proof buffer 0 lexbuf ;
         Proof (Buffer.contents buffer)
       }
-  | [ 'a'-'z' 'A'-'Z' '0'-'9' '_' '-' ]+
+  | [ 'a'-'z' 'A'-'Z' '0'-'9' '_' '-' '*' ]+
       {
         Id (Lexing.lexeme lexbuf)
       }
@@ -124,7 +124,6 @@ and skip n = parse
     | Eof -> Format.fprintf fmt "end-of-file"
     | Word -> Format.fprintf fmt "start of '%s'" (Lexing.lexeme lexbuf)
 
-
   let skip input =
     if input.token <> Eof then
       ( input.tik <- 0 ; input.token <- token input.lexbuf )
@@ -163,6 +162,9 @@ and skip n = parse
       | Id a ->
           skip input ;
           if key input "," then a :: idents input else [a]
+      | Word ->
+          skip input ;
+          if key input "," then idents input else []
       | _ -> []
 
 }

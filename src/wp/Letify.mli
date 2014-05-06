@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -61,6 +61,7 @@ val add_definitions : Sigma.t -> Defs.t -> Vars.t -> pred list -> pred list
       definitions of variables [xs] from [sigma] that comes from [defs].
       They are added to [ps]. *)
 
+(** Pruning strategy ; selects most occuring literals to split cases. *)
 module Split :
 sig
 	

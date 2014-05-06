@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -32,8 +32,11 @@ include Datatype.S with type t = Integer.t * Integer.t
 val fuzzy_order: t -> t -> Rangemap.fuzzy_order
 
 val shift: Integer.t -> t -> t
-val check_coverage: t -> (t * 'a) list -> unit
 val clip_itv: t -> t -> t
+
+exception Not_fully_included
+val check_coverage: t -> (t * 'a) list -> unit
+
 
 (*
 Local Variables:

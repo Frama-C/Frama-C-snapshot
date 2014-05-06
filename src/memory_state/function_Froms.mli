@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -20,12 +20,50 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Information computed by the From plugin for each function. *)
+(** Datastructures and common operations for the results of the From plugin. *)
+
+module Deps : sig
+
+  type from_deps = {
+    data: Locations.Zone.t;
+    indirect: Locations.Zone.t;
+  }
+
+  include Lmap_bitwise.With_default with type t = from_deps
+
+  val add_data_dep : t -> Locations.Zone.t -> t
+  val add_indirect_dep : t -> Locations.Zone.t -> t
+  val subst : (Locations.Zone.t -> Locations.Zone.t) -> t -> t
+
+  val data_deps: Locations.Zone.t -> t
+  val indirect_deps: Locations.Zone.t -> t
+
+  val pretty_precise : Format.formatter -> t -> unit
+
+  val to_zone: t -> Locations.Zone.t
+end
+
+module Memory : sig
+  include Lmap_bitwise.Location_map_bitwise with type y = Deps.t
+
+(* to print the detail of address and data dependencies, as opposed to [pretty]
+   that prints the backwards-compatible union of them *)
+  val pretty_ind_data : Format.formatter -> t -> unit
+
+  val find: t -> Locations.Zone.t -> Locations.Zone.t
+  (** Imprecise version of find, in which data and indirect dependencies are
+      not distinguished *)
+
+  val find_precise: t -> Locations.Zone.t -> Deps.t
+  (** Precise version of find *)
+end
+
+
 
 type froms = {
-  deps_return : Lmap_bitwise.From_Model.LOffset.t
+  deps_return : Memory.LOffset.t
        (** Dependencies for the returned value *);
-  deps_table : Lmap_bitwise.From_Model.t
+  deps_table : Memory.t
     (** Dependencies on all the zones modified by the function *);
 }
 
@@ -34,8 +72,12 @@ include Datatype.S with type t = froms
 val join: froms -> froms -> froms
 
 val top: froms
-
+(** Display dependencies of a function, using the function's type to improve
+readability *)
 val pretty_with_type: Cil_types.typ -> froms Pretty_utils.formatter
+(** Display dependencies of a function, using the function's type to improve
+readability, separating direct and indirect dependencies *)
+val pretty_with_type_indirect: Cil_types.typ -> froms Pretty_utils.formatter
 
 (** Extract the left part of a from result, ie. the zones that are written *)
 val outputs: froms -> Locations.Zone.t

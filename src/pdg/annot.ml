@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -22,16 +22,14 @@
 
 open Cil_types
 open Cil_datatype
-
-open PdgTypes
 open PdgIndex
 
-type data_info = ((Node.t * Locations.Zone.t option) list
+type data_info = ((PdgTypes.Node.t * Locations.Zone.t option) list
                    * Locations.Zone.t option) option
 
-type ctrl_info = Node.t list
+type ctrl_info = PdgTypes.Node.t list
 
-type decl_info =  Node.t list
+type decl_info = PdgTypes.Node.t list
 
 let zone_info_nodes pdg data_info =
   let add_info_nodes pdg (nodes_acc, undef_acc) info =
@@ -66,7 +64,7 @@ let get_decl_nodes pdg decl_info =
   Varinfo.Set.fold add_decl_nodes decl_info []
 
 let find_nodes_for_function_contract pdg f_interpret =
-  let kf =  Pdg.get_kf pdg in
+  let kf =  PdgTypes.Pdg.get_kf pdg in
   let (data_info, decl_label_info) = f_interpret kf in
   let data_dpds = zone_info_nodes pdg data_info in
   let decl_nodes = (* No way to get stmt from labels of at construct into function contracts *)
@@ -74,7 +72,7 @@ let find_nodes_for_function_contract pdg f_interpret =
   in
     decl_nodes, data_dpds
 
-let find_fun_precond_nodes (pdg:Pdg.t) p =
+let find_fun_precond_nodes (pdg:PdgTypes.Pdg.t) p =
   let named_p = { name = []; loc = Location.unknown; content = p } in
   let f_interpret kf =
     let f_ctx = !Db.Properties.Interp.To_zone.mk_ctx_func_contrat
@@ -111,9 +109,8 @@ let find_code_annot_nodes pdg stmt annot =
     annot.annot_id stmt.sid
     Printer.pp_code_annotation annot;
   if Db.Value.is_reachable_stmt stmt then
-    try
       begin
-        let kf =  Pdg.get_kf pdg in
+        let kf =  PdgTypes.Pdg.get_kf pdg in
         let (data_info, decl_label_info), pragmas =
           !Db.Properties.Interp.To_zone.from_stmt_annot annot (stmt, kf)
         in
@@ -128,7 +125,9 @@ let find_code_annot_nodes pdg stmt annot =
         in
         let ctrl_dpds = !Db.Pdg.direct_ctrl_dpds pdg stmt_node in
         let add_stmt_nodes s acc =
-          (!Db.Pdg.find_stmt_and_blocks_nodes pdg s) @ acc in
+	  try !Db.Pdg.find_stmt_and_blocks_nodes pdg s @ acc
+	  with Not_found -> acc
+	in
         (* can safely ignore pragmas.ctrl
          * because we already have the ctrl dpds from the stmt node. *)
         let stmt_pragmas = pragmas.Db.Properties.Interp.To_zone.stmt in
@@ -153,15 +152,15 @@ let find_code_annot_nodes pdg stmt annot =
         let ctrl_dpds = Logic_label.Set.fold add_label_nodes labels ctrl_dpds in
         if Pdg_parameters.debug_atleast 2 then begin
           let p fmt (n,z) = match z with
-            | None -> Node.pretty fmt n
+            | None -> PdgTypes.Node.pretty fmt n
             | Some z -> Format.fprintf fmt "%a(%a)"
-                Node.pretty n Locations.Zone.pretty z
+                PdgTypes.Node.pretty n Locations.Zone.pretty z
           in
           let pl fmt l = List.iter (fun n -> Format.fprintf fmt " %a" p n) l in
           Pdg_parameters.debug " ctrl nodes = %a"
-            Node.pretty_list ctrl_dpds;
+            PdgTypes.Node.pretty_list ctrl_dpds;
           Pdg_parameters.debug " decl nodes = %a"
-            Node.pretty_list decl_nodes;
+            PdgTypes.Node.pretty_list decl_nodes;
           match data_dpds with
             | None ->
                 Pdg_parameters.debug " data nodes = None (failed to compute)"
@@ -177,9 +176,6 @@ let find_code_annot_nodes pdg stmt annot =
         end;
         ctrl_dpds, decl_nodes, data_dpds
       end
-    with Logic_interp.To_zone.NYI msg ->
-      raise (Logic_interp.To_zone.NYI
-               ("[pdg:find_code_annot_nodes] to_zone : "^msg))
   else begin
     Pdg_parameters.debug ~level:2
       "[pdg:annotation] CodeAnnot-%d : unreachable stmt ! @."

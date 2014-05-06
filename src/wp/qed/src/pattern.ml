@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -26,24 +26,27 @@ open Logic
 (* --- Pattern Matching                                                   --- *)
 (* -------------------------------------------------------------------------- *)
 
-type 'f fpattern =
-  | Pvar of int
-  | Pint of Z.t
-  | Pfun of 'f * 'f fpattern list
+type ('z,'f,'e) fpattern =
+  | Ptrue
+  | Pfalse
+  | Pint   of 'z
+  | Pvar   of int
+  | Pguard of int * ('e -> bool)
+  | Pfun   of 'f * ('z,'f,'e) fpattern list
 
 let rec alloc n = function
-  | Pvar x -> max n (succ x)
-  | Pint _ -> n
-  | Pfun(_,ps) -> alloc_all n ps
-and alloc_all n ps = List.fold_left alloc n ps
+  | Pvar x | Pguard(x,_) -> max n (succ x)
+  | Pint _ | Ptrue | Pfalse -> n
+  | Pfun(_,ps) -> alloc_list n ps
+and alloc_list n ps = List.fold_left alloc n ps
 
 let size p = alloc 0 p
-let size_all ps = alloc_all 0 ps
+let size_list ps = alloc_list 0 ps
 
 module Make(T : Term) =
 struct
 
-  type pattern = T.Fun.t fpattern
+  type pattern = (T.Z.t,T.Fun.t,T.t) fpattern
 
   let assign s i e = match s.(i) with
     | None -> s.(i) <- Some e
@@ -56,10 +59,13 @@ struct
 
   and unify s p e = 
     match p , T.repr e with
-      | Pvar k , _ -> assign s k e
-      | Pint z , Kint c when Z.equal z c -> ()
-      | Pfun(f,ps) , Fun(g,es) when T.Fun.equal f g -> unify_all s ps es
-      | _ -> raise Not_found
+    | Pvar k , _ -> assign s k e
+    | Pguard(k,f) , _ when f e -> assign s k e
+    | Pint z , Kint c when T.Z.equal z c -> ()
+    | Ptrue , True -> ()
+    | Pfalse , False -> ()
+    | Pfun(f,ps) , Fun(g,es) when T.Fun.equal f g -> unify_all s ps es
+    | _ -> raise Not_found
 
   let extract = function Some e -> e | None -> raise Not_found
 
@@ -68,13 +74,15 @@ struct
     unify s p e ; Array.map extract s
 
   let pmatch_all ps es =
-    let s = Array.create (size_all ps) None in
+    let s = Array.create (size_list ps) None in
     unify_all s ps es ; Array.map extract s
 
-  let rec instance s = function
-    | Pvar x -> s.(x)
-    | Pint n -> T.e_zint n
-    | Pfun(f,ps) -> T.e_funraw f (List.map (instance s) ps)
+  let rec pretty fmt = function
+    | Pvar k -> Format.fprintf fmt "#%d" k
+    | Pguard(k,_) -> Format.fprintf fmt "#%d?" k
+    | Pint z -> T.Z.pretty fmt z
+    | Ptrue -> Format.fprintf fmt "true"
+    | Pfalse -> Format.fprintf fmt "false"
+    | Pfun(f,ps) -> Plib.pp_call_var (T.Fun.debug f) pretty fmt ps
 
 end
-

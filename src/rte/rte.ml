@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -40,7 +40,7 @@ let register_alarm e kf ki ?status alarm =
    which does not display labels of generated assertions. *)
 let local_printer: Printer.extensible_printer = object (self)
   inherit Printer.extensible_printer ()
-  method code_annotation fmt ca = match ca.annot_content with
+  method! code_annotation fmt ca = match ca.annot_content with
   | AAssert(_, p) ->  
     (* ignore the name *) 
     Format.fprintf fmt "%a" self#predicate p.content
@@ -176,47 +176,42 @@ let mult_sub_add_assertion
      is strictly more than TYPE_MAX or strictly less than TYPE_MIN *)
   let t = Cil.unrollType (Cil.typeOf exp) in
   let size = Cil.bitsSizeOf t in
-  if (not signed && size > 32) || size > 64 then
-    (* should never happen *)
-    Options.warn "bitsSize of %a > %d: not treated"
-      Printer.pp_exp exp (if signed then 64 else 32)
-  else
-    let min_ty, max_ty = 
-      if signed then Cil.min_signed_number size, Cil.max_signed_number size
-      else Integer.zero, Cil.max_unsigned_number size 
+  let min_ty, max_ty = 
+    if signed then Cil.min_signed_number size, Cil.max_signed_number size
+    else Integer.zero, Cil.max_unsigned_number size 
+  in
+  let assertion ?status up = 
+    let bound, b = 
+      if up then max_ty, Alarms.Upper_bound else min_ty, Alarms.Lower_bound 
     in
-    let assertion ?status up = 
-      let bound, b = 
-	if up then max_ty, Alarms.Upper_bound else min_ty, Alarms.Lower_bound 
-      in
-      register_alarm
-	Generator.emitter ?status kf kinstr
-	(Alarms.Overflow
-	   ((if signed then Alarms.Signed else Alarms.Unsigned), exp, bound, b))
-    in
-    let full_assertion () = 
-      ignore (assertion false);
-      ignore (assertion true)
-    in
-    if remove_trivial then
-      match get_expr_val lexp, get_expr_val rexp with
+    register_alarm
+      Generator.emitter ?status kf kinstr
+      (Alarms.Overflow
+	 ((if signed then Alarms.Signed else Alarms.Unsigned), exp, bound, b))
+  in
+  let full_assertion () = 
+    ignore (assertion false);
+    ignore (assertion true)
+  in
+  if remove_trivial then
+    match get_expr_val lexp, get_expr_val rexp with
       | None, None -> full_assertion ()
       | Some a64, None | None, Some a64 ->  
 	(* one operand is constant *)
 	(match op with
-	| MinusA -> ignore (assertion false)
-	| PlusA -> ignore (assertion true)
-	| Mult ->
+	  | MinusA -> ignore (assertion false)
+	  | PlusA -> ignore (assertion true)
+	  | Mult ->
           (* multiplying by 1 or 0 is not dangerous *)
-          if not (Integer.equal a64 Integer.zero ||
-		    Integer.equal a64 Integer.one)
-          then
+            if not (Integer.equal a64 Integer.zero ||
+		      Integer.equal a64 Integer.one)
+            then
             (* multiplying by -1 is dangerous (albeit seldom) *)
-            if Integer.equal a64 Integer.minus_one then
-	      ignore (assertion false)
-            else 
-	      full_assertion ()
-	| _ -> assert false)
+              if Integer.equal a64 Integer.minus_one then
+		ignore (assertion false)
+              else 
+		full_assertion ()
+	  | _ -> assert false)
       | Some big_a64, Some big_b64 -> 
 	let warn up =
 	  let status = Property_status.False_if_reachable in
@@ -228,19 +223,19 @@ let mult_sub_add_assertion
 	in
 	(* both operands are constant *)
         (match op with
-	| MinusA ->
-          let big_diff = Integer.sub big_a64 big_b64 in
-	  if Integer.lt big_diff min_ty then warn false
-	| PlusA ->
-          let big_add = Integer.add big_a64 big_b64 in
-	  if Integer.gt big_add max_ty then warn true
-	| Mult ->
-          let big_mult = Integer.mul big_a64 big_b64 in
-          if Integer.gt big_mult max_ty then warn true
-          else if Integer.lt big_mult min_ty then warn false
-	| _ -> assert false)
-    else
-      full_assertion ()
+	  | MinusA ->
+            let big_diff = Integer.sub big_a64 big_b64 in
+	    if Integer.lt big_diff min_ty then warn false
+	  | PlusA ->
+            let big_add = Integer.add big_a64 big_b64 in
+	    if Integer.gt big_add max_ty then warn true
+	  | Mult ->
+            let big_mult = Integer.mul big_a64 big_b64 in
+            if Integer.gt big_mult max_ty then warn true
+            else if Integer.lt big_mult min_ty then warn false
+	  | _ -> assert false)
+  else
+    full_assertion ()
 
 (* assertions for division and modulo (divisor is 0) *)
 let divmod_assertion ~remove_trivial ~warning kf kinstr divisor =
@@ -279,36 +274,32 @@ let signed_div_assertion ~remove_trivial ~warning kf kinstr (exp, lexp, rexp) =
   let t = Cil.unrollType (Cil.typeOf rexp) in
   let size = Cil.bitsSizeOf t in
   (* check dividend_expr / divisor_expr : if constants ... *)
-  if size > 64 then
-    (* should never happen *)
-    Options.warn "bitsSize of %a > 64: not treated" Printer.pp_exp exp
-  else
-    (* compute smallest representable "size bits" (signed) integer *)
-    let max_ty = Cil.max_signed_number size in
-    let emit ?status () =
-      register_alarm ?status Generator.emitter kf kinstr
-	(Alarms.Overflow(Alarms.Signed, exp, max_ty, Alarms.Upper_bound))
-    in
-    if remove_trivial then
-      let min = Cil.min_signed_number size in
-      match get_expr_val lexp, get_expr_val rexp with
-      | Some e1, _ when not (Integer.equal e1 min) ->
+  (* compute smallest representable "size bits" (signed) integer *)
+  let max_ty = Cil.max_signed_number size in
+  let emit ?status () =
+    register_alarm ?status Generator.emitter kf kinstr
+      (Alarms.Overflow(Alarms.Signed, exp, max_ty, Alarms.Upper_bound))
+  in
+  if remove_trivial then
+    let min = Cil.min_signed_number size in
+    match get_expr_val lexp, get_expr_val rexp with
+    | Some e1, _ when not (Integer.equal e1 min) ->
 	(* divident is constant, with an unproblematic value *)
-	()
-      | _, Some e2 when not (Integer.equal e2 Integer.minus_one) ->
+      ()
+    | _, Some e2 when not (Integer.equal e2 Integer.minus_one) ->
 	(* divisor is constant, with an unproblematic value *)
-	()
-      | Some _, Some _ ->
+      ()
+    | Some _, Some _ ->
 	(* invalid constant division *)
-	let a = emit ~status:Property_status.False_if_reachable () in
-        if warning then
-	  Options.warn "signed overflow assert broken: %a" 
-	    local_printer#code_annotation a;
-      | None, Some _ | Some _, None | None, None -> 
+      let a = emit ~status:Property_status.False_if_reachable () in
+      if warning then
+	Options.warn "signed overflow assert broken: %a" 
+	  local_printer#code_annotation a;
+    | None, Some _ | Some _, None | None, None -> 
 	(* at least one is not constant: cannot conclude *)
-	ignore (emit ())
-    else 
       ignore (emit ())
+  else 
+    ignore (emit ())
 
 let shift_alarm ~remove_trivial ~warning kf kinstr (exp, upper_bound) =
   let alarm ?status () =
@@ -347,7 +338,7 @@ let signed_shift_assertion
      type *)
   let t = Cil.unrollType (Cil.typeOf exp) in
   let size = Cil.bitsSizeOf t in
-  if size <> Cil.bitsSizeOf (Cil.typeOf lexp) || size > 64 then
+  if size <> Cil.bitsSizeOf (Cil.typeOf lexp) then
     (* size of result type should be size of left (promoted) operand *)
     Options.warn "problem with bitsSize of %a: not treated" Printer.pp_exp exp;
   shift_alarm remove_trivial warning kf kinstr (lexp, None);
@@ -375,39 +366,6 @@ let signed_shift_assertion
 	      local_printer#code_annotation a)
     else
       ignore (overflow_alarm ())
-
-(* Assertions for bitwise left shift unsigned overflow.
-   this is allowed by C and NOT a runtime-error *)
-let unsigned_shift_assertion
-    ~remove_trivial ~warning kf kinstr (exp, lexp, rexp) =
-  (* result should be representable in result type *)
-  let t = Cil.unrollType (Cil.typeOf exp) in
-  let size = Cil.bitsSizeOf t in
-  (* compute greatest reprensentable "size bits" unsigned integer *)
-  let maxValResult = Cil.max_unsigned_number size in
-  let alarm ?status () =
-    (* unsigned result is representable in result type if loperand times
-       2^roperand (where loperand and roperand are nonnegative),
-       which should be equal to term (obtained with a shift),
-       is less than the maximal value for the result type *)
-    register_alarm Generator.emitter kf kinstr ?status
-      (Alarms.Overflow(Alarms.Unsigned, exp, maxValResult, Alarms.Upper_bound))
-  in
-  if remove_trivial then
-    (match get_expr_val lexp, get_expr_val rexp with
-    | None,_ | _, None -> ignore (alarm ())
-    | Some lval64, Some rval64 ->
-      (* both operands are constant: check result is representable in result
-         type *)
-      if Integer.ge rval64 Integer.zero &&
-	Integer.gt (Integer.shift_left lval64 rval64) maxValResult then
-	(* constant operators and assertion does not hold *)
-	let a = alarm ~status:Property_status.False_if_reachable () in
-	if warning then
-	  Options.warn "shift assert broken (unsigned overflow): %a"
-	    local_printer#code_annotation a)
-  else 
-    ignore (alarm ())
 
 (* assertion for downcasting an integer to an unsigned integer type
    without requiring modification of value to reach target domain
@@ -579,11 +537,12 @@ let float_to_int_assertion ~remove_trivial ~warning kf kinstr (ty, exp) =
             else false
           with Floating_point.Float_Non_representable_as_Int64 ->
             (* One of the alarms is False, but which one? ... *)
-            full_alarms (); true
+            full_alarms (); 
+	    true
         end
-
-      | _ -> full_alarms (); true
-    )
+      | _ -> 
+	full_alarms (); 
+	true)
   | _ ->
     false
 

@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -20,6 +20,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
+let () = Plugin.is_config_visible ()
 include Plugin.Register
   (struct
      let name = "GUI"
@@ -27,10 +28,8 @@ include Plugin.Register
      let help = "Graphical User Interface"
    end)
 
-
 (* Used mainly for debugging purposes. No need to show it to the user *)
-let () = Plugin.is_invisible ()
-
+let () = Parameter_customize.is_invisible ()
 module Undo =
   True
     (struct

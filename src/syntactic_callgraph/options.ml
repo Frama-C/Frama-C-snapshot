@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -47,15 +47,8 @@ module InitFunc =
        let help = "use the given functions as a root service for the callgraph (you can add as many comma-separated functions as you want; if no function is declared, then root services are initialized with functions with no callers)"
      end)
 
-module ServicesOnly =
-  False
-    (struct
-       let option_name = "-cg-services-only"
-       let help = "only computes the graph of services"
-     end)
-
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.."
+compile-command: "make -C ../.."
 End:
 *)

@@ -1,8 +1,8 @@
 /* run.config
-   OPT: -memory-footprint 1 -val -cpp-command "gcc -C -E -DPTEST" -journal-disable
+   OPT: -val -cpp-command "gcc -C -E -DPTEST" -journal-disable
 */
 
-// removed :    OPT: -memory-footprint 1 -machdep ppc_32_diab -val -cpp-command "gcc -C -E -DPTEST" -journal-disable
+// removed :    OPT: -machdep ppc_32_diab -val -cpp-command "gcc -C -E -DPTEST" -journal-disable
 
 #ifndef PTEST
 #include <stdio.h>

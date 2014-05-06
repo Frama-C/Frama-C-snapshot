@@ -1,5 +1,5 @@
 /* run.config
-   STDOPT: +"-val"
+   STDOPT: +"-val -warn-unsigned-overflow"
    STDOPT: +"-val -no-val-left-shift-negative-alarms"
 */
 
@@ -44,5 +44,8 @@ int main(int c, int z, int zz) {
     int r = (unsigned long)t << 8;
     r += (long)t << 8;
   }
+
+  unsigned int shl = 2U << 31; // "Unsigned overflow."
+
   return b;
 }

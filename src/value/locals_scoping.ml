@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -134,10 +134,10 @@ let state_top_addresses_of_locals ~exact fwarn_escape (topify_offsetmap:topify_o
 
 (* Topifies all references to the locals and formals of [fdec]*)
 let top_addresses_of_locals fdec clob =
-  let entry_point = Globals.entry_point () in
-  if snd entry_point (* lib *) ||
-    not (Cil_datatype.Varinfo.equal fdec.svar
-           (Kernel_function.get_vi (fst entry_point)) (* not entry point *))
+  let entry_point, lib = Kernel.MainFunction.get (), Kernel.LibEntry.get () in
+  (* Do nothing for main, except in lib-entry mode (no sense to warn for
+     a variable escaping the main function) *)
+  if lib || not (fdec.svar.vname = entry_point)
   then
     let offsetmap_top_addresses_of_locals =
       offsetmap_top_addresses_of_locals

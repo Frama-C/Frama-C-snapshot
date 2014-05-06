@@ -1,6 +1,6 @@
 /* run.config
-   OPT: -memory-footprint 1 -val -journal-disable -machdep x86_64
-   OPT: -memory-footprint 1 -val -journal-disable 
+   OPT: -val -journal-disable -machdep x86_64
+   OPT: -val -journal-disable
 */
 
 int x;

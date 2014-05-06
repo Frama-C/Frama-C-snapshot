@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -21,7 +21,6 @@
 (**************************************************************************)
 
 open Cil_types
-open Db
 open Locations
 open Visitor
 
@@ -36,7 +35,7 @@ class virtual do_it_ = object(self)
   method join new_ =
     inputs <- Zone.join new_ inputs;
 
-  method vstmt_aux s =
+  method! vstmt_aux s =
     match s.skind with
       | UnspecifiedSequence seq ->
           List.iter
@@ -46,22 +45,19 @@ class virtual do_it_ = object(self)
           Cil.SkipChildren (* do not visit the additional lvals *)
       | _ -> super#vstmt_aux s
 
-  method vlval lv =
-    let deps,loc =
-      !Value.lval_to_loc_with_deps
-        ~with_alarms:CilE.warn_none_mode
-        ~deps:Zone.bottom
-        self#current_kinstr
-        lv
+  method! vlval lv =
+    let state = Db.Value.get_state self#current_kinstr in
+    let deps, bits_loc, _exact =
+      !Db.Value.lval_to_zone_with_deps_state
+        state ~deps:(Some Zone.bottom) ~for_writing:false lv
     in
-    let bits_loc = enumerate_valid_bits ~for_writing:false loc in
     self#join deps;
     self#join bits_loc;
     Cil.SkipChildren
 
   method private do_assign lv =
     let deps,_loc =
-      !Value.lval_to_loc_with_deps
+      !Db.Value.lval_to_loc_with_deps (* loc ignored *)
         ~with_alarms:CilE.warn_none_mode
         ~deps:Zone.bottom
         self#current_kinstr
@@ -71,8 +67,8 @@ class virtual do_it_ = object(self)
             Zone.pretty deps; *)
     self#join deps;
 
-  method vinst i =
-    if Value.is_reachable (Value.get_state self#current_kinstr) then begin
+  method! vinst i =
+    if Db.Value.is_reachable (Db.Value.get_state self#current_kinstr) then begin
       match i with
       | Set (lv,exp,_) ->
           self#do_assign lv;
@@ -80,17 +76,21 @@ class virtual do_it_ = object(self)
           Cil.SkipChildren
 
       | Call (lv_opt,exp,args,_) ->
-          (match lv_opt with None -> ()
-           | Some lv -> self#do_assign lv);
-          let deps_callees, callees =
-            !Value.expr_to_kernel_function
-              ~with_alarms:CilE.warn_none_mode
-              ~deps:(Some Zone.bottom)
-              self#current_kinstr exp
-          in
-          self#join deps_callees;
-          Kernel_function.Hptset.iter
-            (fun kf -> self#join (self#compute_kf kf)) callees;
+        (match lv_opt with None -> ()
+        | Some lv -> self#do_assign lv);
+          let state = Db.Value.get_state self#current_kinstr in
+          (if Cvalue.Model.is_top state then
+              self#join Zone.top
+           else
+              let deps_callees, callees =
+                !Db.Value.expr_to_kernel_function_state
+                  ~deps:(Some Zone.bottom)
+                  state exp
+              in
+              self#join deps_callees;
+              Kernel_function.Hptset.iter
+                (fun kf -> self#join (self#compute_kf kf)) callees;
+          );
           List.iter
             (fun exp -> ignore (visitFramacExpr (self:>frama_c_visitor) exp))
             args;
@@ -99,11 +99,11 @@ class virtual do_it_ = object(self)
     end
     else Cil.SkipChildren
 
-  method vexpr exp =
+  method! vexpr exp =
     match exp.enode with
     | AddrOf lv | StartOf lv ->
         let deps,_loc =
-          !Value.lval_to_loc_with_deps
+          !Db.Value.lval_to_loc_with_deps (* loc ignored *)
             ~with_alarms:CilE.warn_none_mode
             ~deps:Zone.bottom
             self#current_kinstr lv
@@ -114,9 +114,9 @@ class virtual do_it_ = object(self)
 
   method compute_funspec kf =
     let state = self#specialize_state_on_call kf in
-    let behaviors = !Value.valid_behaviors kf state in
+    let behaviors = !Db.Value.valid_behaviors kf state in
     let assigns = Ast_info.merge_assigns behaviors in
-    !Value.assigns_inputs_to_zone state assigns
+    !Db.Value.assigns_inputs_to_zone state assigns
 
   method clean_kf_result (_ : kernel_function) (r: Locations.Zone.t) = r
 end

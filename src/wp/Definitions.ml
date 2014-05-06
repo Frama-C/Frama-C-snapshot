@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -40,7 +40,6 @@ type cluster = {
   c_title : string ;
   c_position : Lexing.position option ;
   mutable c_age : int ;
-  mutable c_sorted : bool ;
   mutable c_records : compinfo list ;
   mutable c_types : logic_type_info list ;
   mutable c_symbols : dfun list ;
@@ -66,7 +65,7 @@ and dfun = {
 }
 
 and definition =
-  | Logic of tau
+  | Logic of tau (** return type of an abstract function *)
   | Value of tau * recursion * term
   | Predicate of recursion * pred
   | Inductive of dlemma list
@@ -153,18 +152,9 @@ module Lemma = Model.Index
      let pretty = Format.pp_print_string
    end)
 
-let touch c = c.c_age <- succ c.c_age ; c.c_sorted <- false
+let touch c = c.c_age <- succ c.c_age
 let compare_symbol f g = Fun.compare f.d_lfun g.d_lfun
 let compare_lemma a b = String.compare a.l_name b.l_name
-let _sort c =
-  if not c.c_sorted then
-    begin
-      c.c_records <- List.sort Compinfo.compare c.c_records ;
-      c.c_types <- List.sort Logic_type_info.compare c.c_types ;
-      c.c_symbols <- List.sort compare_symbol c.c_symbols ;
-      c.c_lemmas <- List.sort compare_lemma c.c_lemmas ;
-      c.c_sorted <- true ;
-    end
 
 let () =
   begin
@@ -208,7 +198,6 @@ let newcluster ~id ?title ?position () =
     c_title = (match title with Some t -> t | None -> id) ;
     c_position = position ;
     c_age = 0 ;
-    c_sorted = true ;
     c_types = [] ;
     c_records = [] ;
     c_symbols = [] ;
@@ -268,8 +257,8 @@ let call_pred lfun cc es =
 module DT = Logic_type_info.Set
 module DR = Compinfo.Set
 module DS = Datatype.String.Set
-module DF = Set.Make(Lang.Fun)
-module DC = Set.Make
+module DF = FCSet.Make(Lang.Fun)
+module DC = FCSet.Make
   (struct
      type t = cluster
      let compare = cluster_compare
@@ -345,11 +334,11 @@ object(self)
       end
 
   method vfield = function
-    | Mfield(a,_,_,_) -> self#vtheory a.mdt_theory
+    | Mfield(a,_,_,_) -> self#vlibrary a.ext_library
     | Cfield f -> self#vcomp f.fcomp
 
   method vadt = function
-    | Mtype a | Mrecord(a,_) -> self#vtheory a.mdt_theory
+    | Mtype a | Mrecord(a,_) -> self#vlibrary a.ext_library
     | Comp r -> self#vcomp r
     | Atype t -> self#vtype t
 
@@ -411,14 +400,8 @@ object(self)
       begin
 	symbols <- DF.add f symbols ;
 	match f with
-	  | Lang.Function { f_scope = s }
-	  | Lang.Predicate { p_scope = s } ->
-	      begin
-		match s with
-		  | External thy -> self#vtheory thy
-		  | Generated -> self#vlfun f
-	      end
-	  | ACSL _ -> self#vlfun f
+	  | Model { m_source = Extern e  } -> self#vlibrary e.ext_library
+	  | Model { m_source = Generated _ } | ACSL _ -> self#vlfun f
 	  | CTOR c -> self#vadt (Lang.atype c.ctor_type)
       end
 
@@ -469,27 +452,30 @@ object(self)
 	self#on_cluster c ;
       end
 
-  method vtheory thy =
+  method vlibrary thy =
     if not (DS.mem thy theories) then
       begin
 	theories <- DS.add thy theories ;
 	try
 	  let deps = LogicBuiltins.dependencies thy in
-	  List.iter self#vtheory deps ;
+	  List.iter self#vlibrary deps ;
 	  self#on_library thy ;
 	with Not_found ->
-	  self#on_theory thy
+          Wp_parameters.fatal
+	    ~current:false "Unknown library '%s'" thy
       end
 
   method vgoal (axioms : axioms option) prop =
     match axioms with
-      | None -> 
+      | None ->
+        (** Print a goal *)
 	  begin
 	    let hs = LogicUsage.proof_context () in
 	    List.iter self#vlemma hs ;
 	    self#vpred prop ;
 	  end
-      | Some(cluster,hs) -> 
+      | Some(cluster,hs) ->
+        (** Print the goal corresponding to a lemma *)
 	  begin
 	    self#section (cluster_title cluster) ;
 	    self#set_local cluster ;
@@ -497,7 +483,7 @@ object(self)
 	    self#vpred prop ;
 	  end
 
-  method vself =
+  method vself = (** Print a cluster *)
     begin
       List.iter self#vcomp main.c_records ;
       List.iter self#vtype main.c_types ;
@@ -506,7 +492,6 @@ object(self)
     end
 
   method virtual section : string -> unit
-  method virtual on_theory : string -> unit
   method virtual on_library : string -> unit
   method virtual on_cluster : cluster -> unit
   method virtual on_type : logic_type_info -> typedef -> unit

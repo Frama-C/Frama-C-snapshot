@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,7 +27,7 @@ open VCS
 (* -------------------------------------------------------------------------- *)
 
 val prove : Wpo.t ->
-  ?interactive:bool -> 
+  ?mode:mode -> 
   ?callin:(Wpo.t -> prover -> unit) ->
   ?callback:(Wpo.t -> prover -> result -> unit) ->
   prover -> bool Task.task
@@ -35,7 +35,7 @@ val prove : Wpo.t ->
 val spawn : Wpo.t ->
   ?callin:(Wpo.t -> prover -> unit) ->
   ?callback:(Wpo.t -> prover -> result -> unit) ->
-  (bool * prover) list -> unit
+  (mode * prover) list -> unit
 
 val wp_why3ide:
   ?callback:(Wpo.S.Hashtbl.key -> VCS.prover -> VCS.result -> unit) ->

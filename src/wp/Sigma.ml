@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -102,8 +102,12 @@ struct
     let x = newchunk c in
     build (H.Map.add c x w.map)
 
-  let havoc_any _w = 
-    build H.Map.empty
+  let havoc_any ~call w = 
+    let frame = 
+      if call 
+      then H.Map.filter (fun c _ -> C.is_framed c) w.map
+      else H.Map.empty
+    in build frame
       
   let domain w = H.Map.domain w.map
 

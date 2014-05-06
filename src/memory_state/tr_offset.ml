@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -24,19 +24,18 @@ open Abstract_interp
 open CilE
 
 type t =
-    Set of Ival.O.t
-    | Interval of Int.t * Int.t * Int.t
-    | Imprecise of Int.t * Int.t
+  | Invalid
+  | Set of Int.t list
+  | Interval of Int.t * Int.t * Int.t
+  | Imprecise of Int.t * Int.t
 
-exception Unbounded
-
-let empty = Set (Ival.O.empty)
+exception OverlyLongForPeriodic
 
 (* Returns [still_exact_flag, (alarm, reduce_ival)] *)
 let reduce_ival_by_bound ival size validity =
   let pred_size = Int.pred size in
   match validity with
-  | Base.Invalid -> true, (true, Set Ival.O.empty)
+  | Base.Invalid -> true, (true, Invalid)
   | Base.Known (bound_min, bound_max) | Base.Unknown (bound_min, _, bound_max)
   | Base.Periodic (bound_min, bound_max, _) ->
       let max_in_bound = Int.sub bound_max pred_size in
@@ -66,7 +65,7 @@ let reduce_ival_by_bound ival size validity =
                 then Imprecise(new_mn, Int.add new_mx pred_size)
                 else Interval(new_mn, new_mx, modu)
               end
-            else empty
+            else Invalid
           in
           out, itv_or_set
       in
@@ -87,13 +86,13 @@ let reduce_ival_by_bound ival size validity =
 		      Integer.one
 		  in
                   out || out_acc,
-		  if reduced != empty
-		  then Ival.O.add offset reduced_acc
+		  if reduced != Invalid
+		  then offset :: reduced_acc
 		  else reduced_acc)
 		s
-                (false, Ival.O.empty)
+                (false, [])
             in
-            (out, Set set)
+            if set = [] then (out, Invalid) else (out, Set set)
         end
       in
       match validity with
@@ -101,31 +100,32 @@ let reduce_ival_by_bound ival size validity =
           assert (Int.is_zero bound_min);
           let reduced_bounds =
             match reduced_bounds with
+            | Invalid -> Invalid
             | Imprecise (mn, mx) ->
                 if Int.equal (Int.pos_div mn p) (Int.pos_div mx p)
                 then Imprecise (Int.pos_rem mn p, Int.pos_rem mx p)
                 else Imprecise (bound_min, Int.pred p)
             | Set s ->
-                let treat_offset offset acc =
+                let treat_offset acc offset =
                   let new_offset = Int.pos_rem offset p in
                   if Int.gt (Int.add new_offset size) p
-                  then raise Unbounded
+                  then raise OverlyLongForPeriodic
                   else
-                    (*                    Format.printf "old offset: %a mx: %a period: %a new: %a@."
-                                          Int.pretty offset
-                                          Int.pretty bound_max
-                                          Int.pretty p
-                                          Int.pretty new_offset;     *)
-                    Ival.O.add new_offset acc
+                    (*Format.printf "old offset: %a mx: %a period: %a new: %a@."
+                      Int.pretty offset Int.pretty bound_max
+                      Int.pretty p Int.pretty new_offset;     *)
+                    new_offset :: acc
                 in
                 begin
                   try
-                    Set (Ival.O.fold treat_offset s Ival.O.empty)
-                  with Unbounded -> Imprecise (bound_min, Int.pred p)
+                    let trimmed = List.fold_left treat_offset [] s in
+                    Set (List.sort Integer.compare trimmed)
+                  with OverlyLongForPeriodic ->
+                    Imprecise (bound_min, Int.pred p)
                 end
             | Interval(lb, _ub, mo) ->
                 if Int.is_zero (Int.pos_rem mo p)
-                then Set (Ival.O.singleton (Int.pos_rem lb p))
+                then Set [Int.pos_rem lb p]
                 else begin
 (*                    Format.printf "Interval %a %a %a / %a@."
                       Int.pretty lb

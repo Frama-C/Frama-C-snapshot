@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -memory-footprint 1 -val -absolute-valid-range 32-36
+   OPT: -val -absolute-valid-range 32-36
 */
 
 char t[5];

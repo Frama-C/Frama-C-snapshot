@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -90,15 +90,24 @@ let c_int ikind =
 (* Bounds of an integer according to c_int ti :
    An integer i : i \in [c_int_bounds ti] if
     [c_int_bounds ti] = (min,max) then min <=i<max.*)
-let c_int_bounds = function
-  | UInt8 -> Qed.Z.zero, Qed.Z.of_string "256"
-  | SInt8 -> Qed.Z.of_string "-128", Qed.Z.of_string "128"
-  | UInt16 -> Qed.Z.zero, Qed.Z.of_string "65536"
-  | SInt16 -> Qed.Z.of_string "-32768", Qed.Z.of_string "32768"
-  | UInt32 -> Qed.Z.zero, Qed.Z.of_string "4294967296"
-  | SInt32 -> Qed.Z.of_string "-2147483648", Qed.Z.of_string "2147483648"
-  | UInt64 -> Qed.Z.zero, Qed.Z.of_string "18446744073709551616"
-  | SInt64 -> Qed.Z.of_string "-9223372036854775808", Qed.Z.of_string "9223372036854775808"
+let c_int_bounds =
+  let uint8  = Integer.zero, Integer.of_string "256"
+  and sint8  = Integer.of_string "-128", Integer.of_string "128"
+  and uint16 = Integer.zero, Integer.of_string "65536"
+  and sint16 = Integer.of_string "-32768", Integer.of_string "32768"
+  and uint32 = Integer.zero, Integer.of_string "4294967296"
+  and sint32 = Integer.of_string "-2147483648", Integer.of_string "2147483648"
+  and uint64 = Integer.zero, Integer.of_string "18446744073709551616"
+  and sint64 = Integer.of_string "-9223372036854775808", Integer.of_string "9223372036854775808"
+  in function
+  | UInt8  -> uint8
+  | SInt8  -> sint8
+  | UInt16 -> uint16
+  | SInt16 -> sint16
+  | UInt32 -> uint32
+  | SInt32 -> sint32
+  | UInt64 -> uint64
+  | SInt64 -> sint64
 
 let c_int_all =   
   [ UInt8 ; SInt8 ; UInt16 ; SInt16 ; UInt32 ; SInt32 ; UInt64 ; SInt64 ]
@@ -143,10 +152,10 @@ let sub_c_float f1 f2 = f_bits f1 <= f_bits f2
 (* Array objects, with both the head view and the flatten view. *)
 
 type arrayflat = {
-  arr_size     : int64;  (* number of elements in the array *)
+  arr_size     : int ;  (* number of elements in the array *)
   arr_dim      : int ;   (* number of dimensions in the array *)
   arr_cell     : typ ;   (* type of elementary cells of the flatten array *)
-  arr_cell_nbr : int64 ; (* number of elementary cells in the flatten array *)
+  arr_cell_nbr : int ; (* number of elementary cells in the flatten array *)
 }
 
 type arrayinfo = {
@@ -281,15 +290,16 @@ let object_of typ =
                 C_array {
                   arr_element = typ_elt ;
                   arr_flat = Some {
-                    arr_size = constant e ;
+                    arr_size = Int64.to_int (constant e) ;
                     arr_dim = dim ;
                     arr_cell = ty_cell ;
-                    arr_cell_nbr = ncells ;
+                    arr_cell_nbr = Int64.to_int (ncells) ;
                   }
                 }
         end
     | TBuiltin_va_list _ ->
-        WpLog.not_yet_implemented "valiadyc type"
+        WpLog.warning ~current:true ~once:true "variadyc type (considered as void*)" ;
+        C_pointer (TVoid [])
     | TVoid _ ->
         WpLog.warning ~current:true "void object" ;
 	C_int (c_int IInt)
@@ -359,35 +369,31 @@ let int64_max a b =
   if Int64.compare a b < 0 then b else a
 
 let rec sizeof_object = function
- | C_int i -> Int64.of_int (i_bytes i)
- | C_float f -> Int64.of_int (f_bytes f)
- | C_pointer _ty -> Int64.of_int (i_bytes (c_ptr()))
+ | C_int i -> i_bytes i
+ | C_float f -> f_bytes f
+ | C_pointer _ty -> i_bytes (c_ptr())
  | C_comp cinfo ->
-     let merge = if cinfo.cstruct then Int64.add else int64_max in
-     List.fold_left
-       (fun sz f -> merge sz (sizeof_typ f.ftype))
-       Int64.zero cinfo.cfields
+     let ctype = TComp(cinfo,Cil.empty_size_cache(),[]) in
+     (Cil.bitsSizeOf ctype / 8)
  | C_array ainfo ->
-     begin
-       match ainfo.arr_flat with
-         | Some a -> Int64.mul (sizeof_typ a.arr_cell)  a.arr_cell_nbr
-         | None -> 
-	     if WpLog.ExternArrays.get () then
-	       Int64.max_int
-	     else
-	       WpLog.fatal ~current:true "Sizeof unknown-size array"
-     end
+     match ainfo.arr_flat with
+       | Some a -> 
+	   let csize = Cil.integer ~loc:Cil.builtinLoc a.arr_cell_nbr in
+	   let ctype = TArray(a.arr_cell,Some csize,Cil.empty_size_cache(),[]) in
+	   (Cil.bitsSizeOf ctype / 8)
+       | None -> 
+	   if WpLog.ExternArrays.get () then
+	     max_int
+	   else
+	     WpLog.fatal ~current:true "Sizeof unknown-size array"
 
-and sizeof_typ t = sizeof_object (object_of t)
+let sizeof_typ t = Cil.bitsSizeOf t / 8
 
-let field_offset f =
-  let rec acc ofs f = function
-    | [] -> Wp_parameters.fatal "[field_offset] not found field %s" f.fname ; 
-    | fi::m ->
-        if Cil_datatype.Fieldinfo.equal f fi then ofs else
-          let sf = sizeof_typ fi.ftype in
-          acc (Int64.add ofs sf) f m
-  in acc Int64.zero f f.fcomp.cfields
+let field_offset fd = 
+  let ctype = TComp(fd.fcomp,Cil.empty_size_cache(),[]) in
+  let offset = Field(fd,NoOffset) in
+  fst (Cil.bitsOffset ctype offset) / 8
+
 
 (* Conforms to @ C-ISO § 6.3.1.8    *)
 (* If same sign => greater rank.    *)
@@ -435,7 +441,7 @@ module AinfoComparable = struct
     let obj_b = object_of b.arr_element in
     (!cmp obj_a obj_b = 0) && 
       (match a.arr_flat , b.arr_flat with
-         | Some a , Some b -> Int64.compare a.arr_size b.arr_size = 0
+         | Some a , Some b -> a.arr_size = b.arr_size
          | None , None -> true
          | _ -> false)
   let compare a b =
@@ -444,7 +450,7 @@ module AinfoComparable = struct
     let c = !cmp obj_a obj_b in
     if c <> 0 then c
     else match a.arr_flat , b.arr_flat with
-      | Some a , Some b -> Int64.compare a.arr_size b.arr_size
+      | Some a , Some b -> Pervasives.compare a.arr_size b.arr_size
       | None , Some _ -> (-1)
       | Some _ , None -> 1
       | None , None -> 0
@@ -504,7 +510,7 @@ let rec basename = function
       let te = basename (object_of a.arr_element) in
       match a.arr_flat with
         | None -> te ^ "_array"
-        | Some f -> te ^ "_" ^ Int64.to_string f.arr_size
+        | Some f -> te ^ "_" ^ string_of_int f.arr_size
 
 let rec pretty fmt = function
   | C_int i -> pp_int fmt i
@@ -515,5 +521,4 @@ let rec pretty fmt = function
       let te = object_of a.arr_element in
       match a.arr_flat with
         | None -> Format.fprintf fmt "%a[]" pretty te
-        | Some f -> Format.fprintf fmt "%a[%s]" pretty te
-            (Int64.to_string f.arr_size)
+        | Some f -> Format.fprintf fmt "%a[%d]" pretty te f.arr_size

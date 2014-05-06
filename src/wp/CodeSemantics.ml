@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -77,7 +77,7 @@ struct
 	  let obj = Ctypes.object_of a.arr_element in
 	  let range = match a.arr_flat with
 	    | None -> []
-	    | Some f -> [ p_leq e_zero k ; p_lt k (e_int64 f.arr_size) ] in
+	    | Some f -> [ p_leq e_zero k ; p_lt k (e_int f.arr_size) ] in
 	  let init = is_zero sigma obj (M.shift l obj k) in
 	  p_forall [x] (p_hyps range init)
 	    
@@ -97,7 +97,7 @@ struct
 
   let val_of_exp env e = cval (!s_exp env e)
   let loc_of_exp env e = cloc (!s_exp env e)
-    
+
   (* -------------------------------------------------------------------------- *)
   (* --- L-Values                                                           --- *)
   (* -------------------------------------------------------------------------- *)
@@ -251,7 +251,9 @@ struct
 	  let loc = lval env lv in
 	  let typ = Cil.typeOfLval lv in
 	  let obj = Ctypes.object_of typ in
-	  M.load env obj loc
+	  let data = M.load env obj loc in
+	  Lang.assume (Cvalues.is_object obj data) ;
+	  data
 
       | AddrOf lv | StartOf lv -> Loc (lval env lv)
 
@@ -264,7 +266,13 @@ struct
       | SizeOfE _ | SizeOf _ | SizeOfStr _ -> Val (Cvalues.constant_exp e)
 
       | CastE(tr,e) -> cast tr (Cil.typeOf e) (!s_exp env e)
-
+    
+  let rec call_node env e = 
+    match e.enode with
+      | CastE(_,e) -> call_node env e
+      | AddrOf lv | StartOf lv | Lval lv -> lval env lv
+      | _ -> Warning.error ~source:"call" "Unsupported function pointer"
+	
   (* -------------------------------------------------------------------------- *)
   (* --- Exp with Error                                                     --- *)
   (* -------------------------------------------------------------------------- *)
@@ -339,9 +347,13 @@ struct
 
   let exp env e = Context.with_current_loc e.eloc (exp_protected env) e
   let cond env e = Context.with_current_loc e.eloc (cond_node env) e
+  let call env e = Context.with_current_loc e.eloc (call_node env) e
   let return env tr e = cval (cast tr (Cil.typeOf e) (exp env e))
 
   let () = s_exp := exp
   let () = s_cond := cond
-
+    
+  let instance_of floc kf =
+    M.loc_eq floc (M.cvar (Kernel_function.get_vi kf))
+      
 end

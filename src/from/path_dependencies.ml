@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -23,7 +23,6 @@
 open Cil_types
 open Cil
 open Cil_datatype
-open Db
 open Locations
 
 module Functionwise_Pathdeps =
@@ -32,7 +31,7 @@ module Functionwise_Pathdeps =
     (struct
        let name = "Functionwise pathdeps"
        let size = 17
-       let dependencies = [ Value.self ]
+       let dependencies = [ Db.Value.self ]
      end)
 
 class do_pathdeps froms callwise_states_with_formals =
@@ -45,9 +44,9 @@ object(self)
   method join new_ =
     inputs <- Zone.join new_ inputs;
 
-  method vstmt s =
-    if Value.is_reachable
-      (Value.get_stmt_state (Extlib.the self#current_stmt))
+  method! vstmt s =
+    if Db.Value.is_reachable
+      (Db.Value.get_stmt_state (Extlib.the self#current_stmt))
     then begin
       match s.skind with
       | UnspecifiedSequence seq ->
@@ -74,87 +73,94 @@ object(self)
     let stmt = Extlib.the (self#current_stmt) in
     Stmt.Hashtbl.find froms stmt
 
-  method vlval lv =
-    let deps,loc =
-      !Value.lval_to_loc_with_deps
-        ~with_alarms:CilE.warn_none_mode
-        ~deps:Zone.bottom
-        (Kstmt (Extlib.the self#current_stmt))
+  method! vlval lv =
+    let state = Db.Value.get_stmt_state (Extlib.the self#current_stmt) in
+    let deps, z, _exact =
+      !Db.Value.lval_to_zone_with_deps_state
+        ~for_writing:false
+        ~deps:(Some Zone.bottom)
+        state
         lv
     in
-    let bits_loc = enumerate_valid_bits ~for_writing:false loc in
-    let all = Zone.join bits_loc deps in
-    let froms = self#stmt_froms in
-    let all_f = Lmap_bitwise.From_Model.find froms all in
-    self#join all_f;
-    (*    Format.printf "lval: all %a all_f %a@."
-          Zone.pretty all
-          Zone.pretty all_f; *)
+    let all = Zone.join z deps in
+    begin try
+	let froms = self#stmt_froms in
+	let all_f = Function_Froms.Memory.find froms all in
+	self#join all_f;
+	(*    Format.printf "lval: all %a all_f %a@."
+              Zone.pretty all
+              Zone.pretty all_f; *)
+      with Not_found ->
+	()
+    end;
     SkipChildren
 
-  method vinst i =
+  method! vinst i =
     let current_stmt = Extlib.the self#current_stmt in
-    if Value.is_reachable (Value.get_stmt_state current_stmt)
+    if Db.Value.is_reachable (Db.Value.get_stmt_state current_stmt)
     then begin
       match i with
       | Call (_lv_opt,exp,_args,_) ->
         let current_stmt = Extlib.the self#current_stmt in
 
         let deps_callees, _callees =
-          !Value.expr_to_kernel_function
+          !Db.Value.expr_to_kernel_function
             ~with_alarms:CilE.warn_none_mode
             ~deps:(Some Zone.bottom)
             (Kstmt current_stmt) exp
         in
-
-        let states_with_formals =
-          try Stmt.Hashtbl.find callwise_states_with_formals current_stmt
-          with Not_found -> assert false
-        in
-        let all_f =
-          List.fold_left
-            (fun acc (kf, state_with_formals) ->
-              if not (!Db.Value.use_spec_instead_of_definition kf)
-              then
-                let deps =
-                  try
-                    Functionwise_Pathdeps.find kf
-                  with Not_found ->
-                    Format.printf "pathdeps dependencies not found for %a@."
-                      Kernel_function.pretty kf;
-                    assert false
-                in
-                let deps_f = Lmap_bitwise.From_Model.find
-                  state_with_formals
-                  deps
-                in
-                Zone.join acc deps_f
-              else begin
-                Format.printf "Assuming library function %a has no path dependencies@."
-                  Kernel_function.pretty kf;
-                acc
-              end)
-            deps_callees
-            states_with_formals
-        in
-        self#join all_f;
+	begin try 
+            let states_with_formals =
+              Stmt.Hashtbl.find callwise_states_with_formals current_stmt
+            in
+            let all_f =
+              List.fold_left
+		(fun acc (kf, state_with_formals) ->
+		  if not (!Db.Value.use_spec_instead_of_definition kf)
+		  then
+                    let deps =
+                      try
+			Functionwise_Pathdeps.find kf
+                      with Not_found ->
+			Format.printf "pathdeps dependencies not found for %a@."
+			  Kernel_function.pretty kf;
+			assert false
+                    in
+                    let deps_f = Function_Froms.Memory.find
+                      state_with_formals
+                      deps
+                    in
+                    Zone.join acc deps_f
+		  else begin
+                      Format.printf "Assuming library function %a has no path dependencies@."
+			Kernel_function.pretty kf;
+                      acc
+		    end)
+		deps_callees
+		states_with_formals
+            in
+            self#join all_f;
+          with Not_found 
+	    (* from Stmt.Hashtbl.find callwise_states_with_formals current_stmt *)
+	    -> ()
+	end;
         SkipChildren
       | _ -> SkipChildren
     end
     else SkipChildren
 
-  method vexpr exp =
+  method! vexpr exp =
     match exp.enode with
     | AddrOf lv | StartOf lv ->
       let deps,_loc =
-        !Value.lval_to_loc_with_deps
+        !Db.Value.lval_to_loc_with_deps (* loc ignored *)
           ~with_alarms:CilE.warn_none_mode
           ~deps:Zone.bottom
           (Kstmt (Extlib.the self#current_stmt))
           lv
       in
       let froms = self#stmt_froms in
-      let deps_f = Lmap_bitwise.From_Model.find froms deps in
+      let deps_f = Function_Froms.Memory.find froms deps in
       self#join deps_f;
         (*      Format.printf "AddrOf: deps %a deps_f %a@."
                 Zone.pretty deps
@@ -163,7 +169,6 @@ object(self)
     | _ -> DoChildren
 
 end
-
 
 let compute_pathdeps (stack, froms, callwise_states_with_formals) =
   let kf = Stack.top stack in
@@ -178,8 +183,8 @@ let compute_pathdeps (stack, froms, callwise_states_with_formals) =
         name
         Zone.pretty result;
       try
-        ignore (Functionwise_Pathdeps.find kf);
-        assert false
+	let old = Functionwise_Pathdeps.find kf in
+	Functionwise_Pathdeps.replace kf (Zone.join old result)
       with Not_found ->
         Functionwise_Pathdeps.add kf result
       end
@@ -191,3 +196,4 @@ let () =
     (fun () ->
       if From_parameters.PathDeps.get ()
       then Db.From.Record_From_Callbacks.extend_once compute_pathdeps)
+

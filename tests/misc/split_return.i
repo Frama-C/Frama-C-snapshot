@@ -117,10 +117,24 @@ void main5() {
   }
 }
 
+volatile v;
+
+int f6() {
+  int i = v;
+  //@ assert -5 <= i <= 5;
+  return i;
+}
+
+void main6() {
+  if ((short)(f6())) {
+  }
+}
+
 void main() {
   main1();
   main2();
   main3(); // not enough slevel in f3. One warning
   main4(); // not enough slevel in main4. No warning
   main5(); // no need for slevel, because we do not fuse on return instr
+  main6();
 }

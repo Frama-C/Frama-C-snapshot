@@ -35,8 +35,8 @@
 /*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE         */
 /*  POSSIBILITY OF SUCH DAMAGE.                                             */
 /*                                                                          */
-/*  File modified by CEA (Commissariat à l'énergie atomique et aux          */
-/*                        énergies alternatives)                            */
+/*  File modified by CEA (Commissariat Ã  l'Ã©nergie atomique et aux          */
+/*                        Ã©nergies alternatives)                            */
 /*               and INRIA (Institut National de Recherche en Informatique  */
 /*                          et Automatique).                                */
 /****************************************************************************/
@@ -256,7 +256,7 @@ let no_ghost = List.map no_ghost_stmt
 let in_ghost =
   let ghost_me = object
     inherit Cabsvisit.nopCabsVisitor
-    method vstmt s =
+    method! vstmt s =
       s.stmt_ghost <- true;
       Cil.DoChildren
   end
@@ -992,6 +992,10 @@ statement:
       let loc = Parsing.symbol_start_pos (), Parsing.symbol_end_pos () in
       no_ghost [COMPGOTO (smooth_expression $3, loc) ]
     }
+|   ASM GOTO asmattr LPAREN asmtemplate asmoutputs RPAREN SEMICOLON {
+      let loc = Parsing.symbol_start_pos (), Parsing.symbol_end_pos () in
+      no_ghost [ASM ($3, $5, $6, loc)]
+    }
 |   ASM asmattr LPAREN asmtemplate asmoutputs RPAREN SEMICOLON {
       let loc = Parsing.symbol_start_pos (), Parsing.symbol_end_pos () in
       no_ghost [ASM ($2, $4, $5, loc)]
@@ -1064,20 +1068,27 @@ init_declarator:                             /* ISO 6.7 */
                                         { ($1, $3) }
 ;
 
-decl_spec_list:                         /* ISO 6.7 */
+decl_spec_wo_type:                         /* ISO 6.7 */
                                         /* ISO 6.7.1 */
-|   TYPEDEF decl_spec_list_opt          { SpecTypedef :: $2, $1  }
-|   EXTERN decl_spec_list_opt           { SpecStorage EXTERN :: $2, $1 }
-|   STATIC  decl_spec_list_opt          { SpecStorage STATIC :: $2, $1 }
-|   AUTO   decl_spec_list_opt           { SpecStorage AUTO :: $2, $1 }
-|   REGISTER decl_spec_list_opt         { SpecStorage REGISTER :: $2, $1}
-                                        /* ISO 6.7.2 */
-|   type_spec decl_spec_list_opt_no_named { SpecType (fst $1) :: $2, snd $1 }
+|   TYPEDEF          { SpecTypedef, $1  }
+|   EXTERN           { SpecStorage EXTERN, $1 }
+|   STATIC           { SpecStorage STATIC, $1 }
+|   AUTO             { SpecStorage AUTO, $1 }
+|   REGISTER         { SpecStorage REGISTER, $1}
                                         /* ISO 6.7.4 */
-|   INLINE decl_spec_list_opt           { SpecInline :: $2, $1 }
-|   cvspec decl_spec_list_opt           { (fst $1) :: $2, snd $1 }
-|   attribute_nocv decl_spec_list_opt   { SpecAttr (fst $1) :: $2, snd $1 }
+|   INLINE           { SpecInline, $1 }
+|   cvspec           { $1 }
+|   attribute_nocv   { SpecAttr (fst $1), snd $1 }
 ;
+
+decl_spec_list:
+| decl_spec_wo_type decl_spec_list_opt { fst $1 :: $2, snd $1 }
+| type_spec decl_spec_list_opt_no_named { SpecType(fst $1) :: $2, snd $1 }
+
+decl_spec_list_no_named:
+| decl_spec_wo_type decl_spec_list_opt_no_named { fst $1 :: $2, snd $1 }
+| type_spec decl_spec_list_opt_no_named { SpecType(fst $1) :: $2, snd $1 }
+
 /* (* In most cases if we see a NAMED_TYPE we must shift it. Thus we declare
     * NAMED_TYPE to have right associativity  *) */
 decl_spec_list_opt:
@@ -1090,7 +1101,7 @@ decl_spec_list_opt:
  */
 decl_spec_list_opt_no_named:
     /* empty */                         { [] } %prec IDENT
-|   decl_spec_list                      { fst $1 }
+|   decl_spec_list_no_named                      { fst $1 }
 ;
 type_spec:   /* ISO 6.7.2 */
     VOID            { Tvoid, $1}
@@ -1699,8 +1710,9 @@ asmtemplate:
 asmoutputs:
   /* empty */           { None }
 | COLON asmoperands asminputs
-                        { let (ins, clobs) = $3 in
-                          Some {aoutputs = $2; ainputs = ins; aclobbers = clobs} }
+                        { let (ins, (clobs,labels)) = $3 in
+                          Some {aoutputs = $2; ainputs = ins; aclobbers = clobs;
+				alabels = labels } }
 ;
 asmoperands:
      /* empty */                        { [] }
@@ -1718,7 +1730,7 @@ asmoperand:
      }
 ;
 asminputs:
-  /* empty */                { ([], []) }
+  /* empty */           { ([], ([],[])) }
 | COLON asmoperands asmclobber
                         { ($2, $3) }
 ;
@@ -1728,12 +1740,15 @@ asmopname:
 ;
 
 asmclobber:
-    /* empty */                         { [] }
-| COLON asmcloberlst_ne                 { $2 }
+    /* empty */                         { [],[] }
+| COLON asmlabels                       { [],$2 }
+| COLON asmcloberlst_ne asmlabels       { $2,$3 }
 ;
 asmcloberlst_ne:
-   one_string_constant                           { [$1] }
+   one_string_constant                  { [$1] }
 |  one_string_constant COMMA asmcloberlst_ne     { $1 :: $3 }
 ;
-
+asmlabels:
+| /* empty */                          { [] }
+| COLON local_label_names              { $2 } 
 %%

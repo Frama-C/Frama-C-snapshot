@@ -3,10 +3,10 @@
 */
 
 int x;
-
+//@ requires ReqTrue: \true; ensures PostTrue: \true; // Test printing of ACSL names
 void f(unsigned int c, unsigned int d) {
-  //@ assert c != 1 || d != 2;
-  //@ assert d/2-c !=0;
+  //@ assert A1: c != 1 || d != 2;
+  //@ assert A2: d/2-c !=0;
   x = 1/(d/2-c);
 }
 

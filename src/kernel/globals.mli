@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -48,6 +48,12 @@ module Vars: sig
   val fold_in_file_order: (varinfo -> initinfo -> 'a -> 'a) -> 'a -> 'a
   (** @since Fluorine-20130401 *)
 
+  val iter_in_file_rev_order: (varinfo -> initinfo -> unit) -> unit
+  (** @since Neon-20130301 *)
+
+  val fold_in_file_rev_order: (varinfo -> initinfo -> 'a -> 'a) -> 'a -> 'a
+  (** @since Neon-20130301 *)
+
   (** {2 Setters}
 
       Functions of this section should not be called by casual users. *)
@@ -88,10 +94,6 @@ module Functions: sig
 
   val find_def_by_name : string -> kernel_function
     (** @raise Not_found if there is no function definition of this name. *)
-
-  val find_englobing_kf: kinstr -> kernel_function option
-    (** @deprecated since Carbon-20101201
-        Use [Kernel_function.find_englobing_kf] instead *)
 
   (** {2 Iterators} *)
 
@@ -178,7 +180,7 @@ val entry_point : unit -> kernel_function * bool
 
 val set_entry_point : string -> bool -> unit
 (** [set_entry_point name lib] sets [Kernel.MainFunction] to [name] and 
-    [Kernel.LibEntry] to [lib] is [true].
+    [Kernel.LibEntry] to [lib].
     Moreover, clear the results of all the analysis which depend on
     [Kernel.MainFunction] or [Kernel.LibEntry].
     @plugin development guide *)

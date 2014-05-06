@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -24,7 +24,11 @@
     you understand what happens in this module, and do not forget that
     those caches are not aware of projects. *)
 
-module MemoryFootprint : State_builder.Ref with type data = int
+val memory_footprint_var_name: string
+
+val cache_size: int
+(** Size of the caches. Controlled by environment variable
+    [memory_footprint_var_name]. *)
 
 module type Cacheable = sig
   type t
@@ -38,12 +42,12 @@ module type Result = sig
   val sentinel : t
 end
 
-module Make_Symetric(H : Cacheable)(R : Result): sig
+module Make_Symmetric(H : Cacheable)(R : Result): sig
   val clear : unit -> unit
   val merge : (H.t -> H.t -> R.t) -> H.t -> H.t -> R.t
 end
 
-module Make_Asymetric(H : Cacheable)(R : Result): sig
+module Make_Asymmetric(H : Cacheable)(R : Result): sig
   val clear : unit -> unit
   val merge : (H.t -> H.t -> R.t) -> H.t -> H.t -> R.t
 end
@@ -53,7 +57,7 @@ module Make_Binary(H0 : Cacheable)(H1 : Cacheable): sig
   val merge : (H0.t -> H1.t -> bool) -> H0.t -> H1.t -> bool
 end
 
-module Make_Symetric_Binary(H0 : Cacheable): sig
+module Make_Symmetric_Binary(H0 : Cacheable): sig
   val clear : unit -> unit
   val merge : (H0.t -> H0.t -> bool) -> H0.t -> H0.t -> bool
 end

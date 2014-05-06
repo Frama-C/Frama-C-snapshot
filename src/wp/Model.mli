@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -57,8 +57,10 @@ end
 
 module type Registry =
 sig
-  type key
-  type data
+
+  module E : Entries
+  type key = E.key
+  type data = E.data
 
   val mem : key -> bool
   val find : key -> data
@@ -78,9 +80,7 @@ sig
   val iter_sorted : (key -> data -> unit) -> unit
 end    
 
-module Index(E : Entries) : Registry 
-  with type key = E.key 
-  and type data = E.data
+module Index(E : Entries) : Registry with module E = E
 
 module type Key =
 sig

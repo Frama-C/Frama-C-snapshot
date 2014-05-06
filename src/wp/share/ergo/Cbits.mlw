@@ -1,0 +1,440 @@
+(**************************************************************************)
+(*                                                                        *)
+(*  This file is part of WP plug-in of Frama-C.                           *)
+(*                                                                        *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
+(*         alternatives)                                                  *)
+(*                                                                        *)
+(*  you can redistribute it and/or modify it under the terms of the GNU   *)
+(*  Lesser General Public License as published by the Free Software       *)
+(*  Foundation, version 2.1.                                              *)
+(*                                                                        *)
+(*  It is distributed in the hope that it will be useful,                 *)
+(*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
+(*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
+(*  GNU Lesser General Public License for more details.                   *)
+(*                                                                        *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
+(*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
+(*                                                                        *)
+(**************************************************************************)
+
+(* this is a prelude for Alt-Ergo*)
+(** The theory BuiltIn_ must be appended to this file*)
+(** The theory Bool_ must be appended to this file*)
+(** The theory Qed_ must be appended to this file*)
+(** The theory bool_Bool_ must be appended to this file*)
+(** The theory int_Int_ must be appended to this file*)
+(** The theory int_Abs_ must be appended to this file*)
+(** The theory int_ComputerDivision_ must be appended to this file*)
+(** The theory real_Real_ must be appended to this file*)
+(** The theory real_RealInfix_ must be appended to this file*)
+(** The theory real_FromInt_ must be appended to this file*)
+(** The theory Cint_ must be appended to this file*)
+axiom bit_test_def :
+  (forall x:int. forall k:int [bit_testb(x, k)]. ((bit_testb(x, k) = true) ->
+  bit_test(x, k)))
+
+axiom bit_test_def1 :
+  (forall x:int. forall k:int [bit_testb(x, k)]. (bit_test(x, k) ->
+  (bit_testb(x, k) = true)))
+
+axiom bit_test_extraction :
+  (forall x:int. forall k:int [land(x, lsl(1, k))| land(lsl(1, k), x)].
+  ((0 <= k) -> ((not (land(x, lsl(1, k)) = 0)) -> bit_test(x, k))))
+
+axiom bit_test_extraction1 :
+  (forall x:int. forall k:int [land(x, lsl(1, k))| land(lsl(1, k), x)].
+  ((0 <= k) -> (bit_test(x, k) -> (not (land(x, lsl(1, k)) = 0)))))
+
+axiom lnot_extraction :
+  (forall x:int. forall i:int [bit_test(lnot(x), i)]. ((0 <= i) ->
+  (bit_test(lnot(x), i) -> (not bit_test(x, i)))))
+
+axiom lnot_extraction1 :
+  (forall x:int. forall i:int [bit_test(lnot(x), i)]. ((0 <= i) ->
+  ((not bit_test(x, i)) -> bit_test(lnot(x), i))))
+
+axiom land_extraction :
+  (forall x:int. forall y:int. forall i:int [bit_test(land(x, y), i)].
+  ((0 <= i) -> (bit_test(land(x, y), i) -> bit_test(x, i))))
+
+axiom land_extraction1 :
+  (forall x:int. forall y:int. forall i:int [bit_test(land(x, y), i)].
+  ((0 <= i) -> (bit_test(land(x, y), i) -> bit_test(y, i))))
+
+axiom land_extraction2 :
+  (forall x:int. forall y:int. forall i:int [bit_test(land(x, y), i)].
+  ((0 <= i) -> ((bit_test(x, i) and bit_test(y, i)) -> bit_test(land(x, y),
+  i))))
+
+axiom lor_extraction :
+  (forall x:int. forall y:int. forall i:int [bit_test(lor(x, y), i)].
+  ((0 <= i) -> (bit_test(lor(x, y), i) -> (bit_test(x, i) or bit_test(y,
+  i)))))
+
+axiom lor_extraction1 :
+  (forall x:int. forall y:int. forall i:int [bit_test(lor(x, y), i)].
+  ((0 <= i) -> ((bit_test(x, i) or bit_test(y, i)) -> bit_test(lor(x, y),
+  i))))
+
+axiom lxor_extraction :
+  (forall x:int. forall y:int. forall i:int [bit_test(lxor(x, y), i)].
+  ((0 <= i) -> (bit_test(lxor(x, y), i) -> (bit_test(x, i) ->
+  (not bit_test(y, i))))))
+
+axiom lxor_extraction1 :
+  (forall x:int. forall y:int. forall i:int [bit_test(lxor(x, y), i)].
+  ((0 <= i) -> (bit_test(lxor(x, y), i) -> ((not bit_test(y, i)) ->
+  bit_test(x, i)))))
+
+axiom lxor_extraction2 :
+  (forall x:int. forall y:int. forall i:int [bit_test(lxor(x, y), i)].
+  ((0 <= i) -> ((bit_test(x, i) <-> (not bit_test(y, i))) -> bit_test(lxor(x,
+  y), i))))
+
+axiom lsl_extraction_sup :
+  (forall x:int. forall n:int. forall m:int [bit_test(lsl(x, n), m)].
+  ((0 <= n) -> ((0 <= m) -> ((n <= m) -> (bit_test(lsl(x, n), m) ->
+  bit_test(x, (m - n)))))))
+
+axiom lsl_extraction_sup1 :
+  (forall x:int. forall n:int. forall m:int [bit_test(lsl(x, n), m)].
+  ((0 <= n) -> ((0 <= m) -> ((n <= m) -> (bit_test(x, (m - n)) ->
+  bit_test(lsl(x, n), m))))))
+
+axiom lsl_extraction_inf :
+  (forall x:int. forall n:int. forall m:int [bit_test(lsl(x, n), m)].
+  ((0 <= n) -> ((0 <= m) -> ((m <  n) -> (not bit_test(lsl(x, n), m))))))
+
+axiom lsr_extractionl :
+  (forall x:int. forall n:int. forall m:int [bit_test(lsr(x, n), m)].
+  ((0 <= n) -> ((0 <= m) -> (bit_test(lsr(x, n), m) -> bit_test(x,
+  (m + n))))))
+
+axiom lsr_extractionl1 :
+  (forall x:int. forall n:int. forall m:int [bit_test(lsr(x, n), m)].
+  ((0 <= n) -> ((0 <= m) -> (bit_test(x, (m + n)) -> bit_test(lsr(x, n),
+  m)))))
+
+axiom lsl1_extraction :
+  (forall i:int. forall j:int [bit_test(lsl(1, i), j)]. ((0 <= i) ->
+  ((0 <= j) -> (bit_test(lsl(1, i), j) -> (i = j)))))
+
+axiom lsl1_extraction1 :
+  (forall i:int. forall j:int [bit_test(lsl(1, i), j)]. ((0 <= i) ->
+  ((0 <= j) -> ((i = j) -> bit_test(lsl(1, i), j)))))
+
+axiom to_uint8_extraction_sup :
+  (forall x:int. forall i:int [is_uint8(x), bit_test(x, i)]. ((8 <= i) ->
+  (is_uint8(x) -> (not bit_test(x, i)))))
+
+axiom to_uint8_extraction_inf :
+  (forall x:int. forall i:int [bit_test(to_uint8(x), i)]. (((0 <= i) and
+  (i <  8)) -> (bit_test(to_uint8(x), i) -> bit_test(x, i))))
+
+axiom to_uint8_extraction_inf1 :
+  (forall x:int. forall i:int [bit_test(to_uint8(x), i)]. (((0 <= i) and
+  (i <  8)) -> (bit_test(x, i) -> bit_test(to_uint8(x), i))))
+
+axiom to_uint16_extraction_sup :
+  (forall x:int. forall i:int [is_uint16(x), bit_test(x, i)]. ((16 <= i) ->
+  (is_uint16(x) -> (not bit_test(x, i)))))
+
+axiom to_uint16_extraction_inf :
+  (forall x:int. forall i:int [bit_test(to_uint16(x), i)]. (((0 <= i) and
+  (i <  16)) -> (bit_test(to_uint16(x), i) -> bit_test(x, i))))
+
+axiom to_uint16_extraction_inf1 :
+  (forall x:int. forall i:int [bit_test(to_uint16(x), i)]. (((0 <= i) and
+  (i <  16)) -> (bit_test(x, i) -> bit_test(to_uint16(x), i))))
+
+axiom to_uint32_extraction_sup :
+  (forall x:int. forall i:int [is_uint32(x), bit_test(x, i)]. ((32 <= i) ->
+  (is_uint32(x) -> (not bit_test(x, i)))))
+
+axiom to_uint32_extraction_inf :
+  (forall x:int. forall i:int [bit_test(to_uint32(x), i)]. (((0 <= i) and
+  (i <  32)) -> (bit_test(to_uint32(x), i) -> bit_test(x, i))))
+
+axiom to_uint32_extraction_inf1 :
+  (forall x:int. forall i:int [bit_test(to_uint32(x), i)]. (((0 <= i) and
+  (i <  32)) -> (bit_test(x, i) -> bit_test(to_uint32(x), i))))
+
+axiom to_uint64_extraction_sup :
+  (forall x:int. forall i:int [is_uint64(x), bit_test(x, i)]. ((64 <= i) ->
+  (is_uint64(x) -> (not bit_test(x, i)))))
+
+axiom to_uint64_extraction_inf :
+  (forall x:int. forall i:int [bit_test(to_uint64(x), i)]. (((0 <= i) and
+  (i <  64)) -> (bit_test(to_uint64(x), i) -> bit_test(x, i))))
+
+axiom to_uint64_extraction_inf1 :
+  (forall x:int. forall i:int [bit_test(to_uint64(x), i)]. (((0 <= i) and
+  (i <  64)) -> (bit_test(x, i) -> bit_test(to_uint64(x), i))))
+
+axiom to_sint8_extraction_sup :
+  (forall x:int. forall i:int [is_sint8(x), bit_test(x, i)]. ((7 <= i) ->
+  (is_sint8(x) -> (bit_test(x, i) -> (x <  0)))))
+
+axiom to_sint8_extraction_sup1 :
+  (forall x:int. forall i:int [is_sint8(x), bit_test(x, i)]. ((7 <= i) ->
+  (is_sint8(x) -> ((x <  0) -> bit_test(x, i)))))
+
+axiom to_sint8_extraction_inf :
+  (forall x:int. forall i:int [bit_test(to_sint8(x), i)]. (((0 <= i) and
+  (i <  7)) -> (bit_test(to_sint8(x), i) -> bit_test(x, i))))
+
+axiom to_sint8_extraction_inf1 :
+  (forall x:int. forall i:int [bit_test(to_sint8(x), i)]. (((0 <= i) and
+  (i <  7)) -> (bit_test(x, i) -> bit_test(to_sint8(x), i))))
+
+axiom to_sint16_extraction_sup :
+  (forall x:int. forall i:int [is_sint16(x), bit_test(x, i)]. ((15 <= i) ->
+  (is_sint16(x) -> (bit_test(x, i) -> (x <  0)))))
+
+axiom to_sint16_extraction_sup1 :
+  (forall x:int. forall i:int [is_sint16(x), bit_test(x, i)]. ((15 <= i) ->
+  (is_sint16(x) -> ((x <  0) -> bit_test(x, i)))))
+
+axiom to_sint16_extraction_inf :
+  (forall x:int. forall i:int [bit_test(to_sint16(x), i)]. (((0 <= i) and
+  (i <  15)) -> (bit_test(to_sint16(x), i) -> bit_test(x, i))))
+
+axiom to_sint16_extraction_inf1 :
+  (forall x:int. forall i:int [bit_test(to_sint16(x), i)]. (((0 <= i) and
+  (i <  15)) -> (bit_test(x, i) -> bit_test(to_sint16(x), i))))
+
+axiom to_sint32_extraction_sup :
+  (forall x:int. forall i:int [is_sint32(x), bit_test(x, i)]. ((31 <= i) ->
+  (is_sint32(x) -> (bit_test(x, i) -> (x <  0)))))
+
+axiom to_sint32_extraction_sup1 :
+  (forall x:int. forall i:int [is_sint32(x), bit_test(x, i)]. ((31 <= i) ->
+  (is_sint32(x) -> ((x <  0) -> bit_test(x, i)))))
+
+axiom to_sint32_extraction_inf :
+  (forall x:int. forall i:int [bit_test(to_sint32(x), i)]. (((0 <= i) and
+  (i <  31)) -> (bit_test(to_sint32(x), i) -> bit_test(x, i))))
+
+axiom to_sint32_extraction_inf1 :
+  (forall x:int. forall i:int [bit_test(to_sint32(x), i)]. (((0 <= i) and
+  (i <  31)) -> (bit_test(x, i) -> bit_test(to_sint32(x), i))))
+
+axiom to_sint64_extraction_sup :
+  (forall x:int. forall i:int [is_sint64(x), bit_test(x, i)]. ((63 <= i) ->
+  (is_sint64(x) -> (bit_test(x, i) -> (x <  0)))))
+
+axiom to_sint64_extraction_sup1 :
+  (forall x:int. forall i:int [is_sint64(x), bit_test(x, i)]. ((63 <= i) ->
+  (is_sint64(x) -> ((x <  0) -> bit_test(x, i)))))
+
+axiom to_sint64_extraction_inf :
+  (forall x:int. forall i:int [bit_test(to_sint64(x), i)]. (((0 <= i) and
+  (i <  63)) -> (bit_test(to_sint64(x), i) -> bit_test(x, i))))
+
+axiom to_sint64_extraction_inf1 :
+  (forall x:int. forall i:int [bit_test(to_sint64(x), i)]. (((0 <= i) and
+  (i <  63)) -> (bit_test(x, i) -> bit_test(to_sint64(x), i))))
+
+axiom is_uint8_lor :
+  (forall x:int. forall y:int [to_uint8(lor(x, y))]. (is_uint8(x) ->
+  (is_uint8(y) -> (to_uint8(lor(x, y)) = lor(x, y)))))
+
+axiom is_uint8_land :
+  (forall x:int. forall y:int [to_uint8(land(x, y))]. (is_uint8(x) ->
+  (is_uint8(y) -> (to_uint8(land(x, y)) = land(x, y)))))
+
+axiom is_uint8_lsr :
+  (forall x:int. forall y:int [to_uint8(lsr(x, y))]. ((0 <= y) ->
+  (is_uint8(x) -> (to_uint8(lsr(x, y)) = lsr(x, y)))))
+
+axiom is_uint8_lsl1_inf :
+  (forall y:int [to_uint8(lsl(1, y))]. (((0 <= y) and (y <  8)) ->
+  (to_uint8(lsl(1, y)) = lsl(1, y))))
+
+axiom is_uint8_lsl1_sup :
+  (forall y:int [to_uint8(lsl(1, y))]. ((8 <= y) -> (to_uint8(lsl(1,
+  y)) = 0)))
+
+axiom is_uint16_lor :
+  (forall x:int. forall y:int [to_uint16(lor(x, y))]. (is_uint16(x) ->
+  (is_uint16(y) -> (to_uint16(lor(x, y)) = lor(x, y)))))
+
+axiom is_uint16_land :
+  (forall x:int. forall y:int [to_uint16(land(x, y))]. (is_uint16(x) ->
+  (is_uint16(y) -> (to_uint16(land(x, y)) = land(x, y)))))
+
+axiom is_uint16_lsr :
+  (forall x:int. forall y:int [to_uint16(lsr(x, y))]. ((0 <= y) ->
+  (is_uint16(x) -> (to_uint16(lsr(x, y)) = lsr(x, y)))))
+
+axiom is_uint16_lsl1_inf :
+  (forall y:int [to_uint16(lsl(1, y))]. (((0 <= y) and (y <  16)) -> (lsl(1,
+  y) = to_uint16(lsl(1, y)))))
+
+axiom is_uint16_lsl1_sup :
+  (forall y:int [to_uint16(lsl(1, y))]. ((16 <= y) -> (to_uint16(lsl(1,
+  y)) = 0)))
+
+axiom is_uint32_lor :
+  (forall x:int. forall y:int [to_uint32(lor(x, y))]. (is_uint32(x) ->
+  (is_uint32(y) -> (to_uint32(lor(x, y)) = lor(x, y)))))
+
+axiom is_uint32_land :
+  (forall x:int. forall y:int [to_uint32(land(x, y))]. (is_uint32(x) ->
+  (is_uint32(y) -> (to_uint32(land(x, y)) = land(x, y)))))
+
+axiom is_uint32_lsr :
+  (forall x:int. forall y:int [to_uint32(lsr(x, y))]. ((0 <= y) ->
+  (is_uint32(x) -> (to_uint32(lsr(x, y)) = lsr(x, y)))))
+
+axiom is_uint32_lsl1_inf :
+  (forall y:int [to_uint32(lsl(1, y))]. (((0 <= y) and (y <  32)) -> (lsl(1,
+  y) = to_uint32(lsl(1, y)))))
+
+axiom is_uint32_lsl1_sup :
+  (forall y:int [to_uint32(lsl(1, y))]. ((32 <= y) -> (to_uint32(lsl(1,
+  y)) = 0)))
+
+axiom is_uint64_lor :
+  (forall x:int. forall y:int [to_uint64(lor(x, y))]. (is_uint64(x) ->
+  (is_uint64(y) -> (to_uint64(lor(x, y)) = lor(x, y)))))
+
+axiom is_uint64_land :
+  (forall x:int. forall y:int [to_uint64(land(x, y))]. (is_uint64(x) ->
+  (is_uint64(y) -> (to_uint64(land(x, y)) = land(x, y)))))
+
+axiom is_uint64_lsr :
+  (forall x:int. forall y:int [to_uint64(lsr(x, y))]. ((0 <= y) ->
+  (is_uint64(x) -> (to_uint64(lsr(x, y)) = lsr(x, y)))))
+
+axiom is_uint64_lsl1_inf :
+  (forall y:int [to_uint64(lsl(1, y))]. (((0 <= y) and (y <  64)) ->
+  (to_uint64(lsl(1, y)) = lsl(1, y))))
+
+axiom is_uint64_lsl1_sup :
+  (forall y:int [to_uint64(lsl(1, y))]. ((64 <= y) -> (to_uint64(lsl(1,
+  y)) = 0)))
+
+axiom is_sint8_lnot :
+  (forall x:int [to_sint8(lnot(x))]. (is_sint8(x) ->
+  (to_sint8(lnot(x)) = lnot(x))))
+
+axiom is_sint8_lxor :
+  (forall x:int. forall y:int [to_sint8(lxor(x, y))]. (is_sint8(x) ->
+  (is_sint8(y) -> (to_sint8(lxor(x, y)) = lxor(x, y)))))
+
+axiom is_sint8_lor :
+  (forall x:int. forall y:int [to_sint8(lor(x, y))]. (is_sint8(x) ->
+  (is_sint8(y) -> (to_sint8(lor(x, y)) = lor(x, y)))))
+
+axiom is_sint8_land :
+  (forall x:int. forall y:int [to_sint8(land(x, y))]. (is_sint8(x) ->
+  (is_sint8(y) -> (to_sint8(land(x, y)) = land(x, y)))))
+
+axiom is_sint8_lsr :
+  (forall x:int. forall y:int [to_sint8(lsr(x, y))]. ((0 <= y) ->
+  (is_sint8(x) -> (to_sint8(lsr(x, y)) = lsr(x, y)))))
+
+axiom is_sint8_lsl1 : (lsl(1, 7) = 128)
+
+axiom is_sint8_lsl1_inf :
+  (forall y:int [lsl(1, y)]. (((0 <= y) and (y <  7)) -> is_sint8(lsl(1,
+  y))))
+
+axiom is_sint8_lsl1_sup :
+  (forall y:int [to_sint8(lsl(1, y))]. ((8 <= y) -> (to_sint8(lsl(1,
+  y)) = 0)))
+
+axiom is_sint16_lnot :
+  (forall x:int [to_sint16(lnot(x))]. (is_sint16(x) ->
+  (to_sint16(lnot(x)) = lnot(x))))
+
+axiom is_sint16_lxor :
+  (forall x:int. forall y:int [to_sint16(lxor(x, y))]. (is_sint16(x) ->
+  (is_sint16(y) -> (to_sint16(lxor(x, y)) = lxor(x, y)))))
+
+axiom is_sint16_lor :
+  (forall x:int. forall y:int [to_sint16(lor(x, y))]. (is_sint16(x) ->
+  (is_sint16(y) -> (to_sint16(lor(x, y)) = lor(x, y)))))
+
+axiom is_sint16_land :
+  (forall x:int. forall y:int [to_sint16(land(x, y))]. (is_sint16(x) ->
+  (is_sint16(y) -> (to_sint16(land(x, y)) = land(x, y)))))
+
+axiom is_sint16_lsr :
+  (forall x:int. forall y:int [to_sint16(lsr(x, y))]. ((0 <= y) ->
+  (is_sint16(x) -> (to_sint16(lsr(x, y)) = lsr(x, y)))))
+
+axiom is_sint16_lsl1 : (lsl(1, 15) = 32768)
+
+axiom is_sint16_lsl1_inf :
+  (forall y:int [lsl(1, y)]. (((0 <= y) and (y <  15)) -> is_sint16(lsl(1,
+  y))))
+
+axiom is_sint16_lsl1_sup :
+  (forall y:int [to_sint16(lsl(1, y))]. ((16 <= y) -> (to_sint16(lsl(1,
+  y)) = 0)))
+
+axiom is_sint32_lnot :
+  (forall x:int [to_sint32(lnot(x))]. (is_sint32(x) ->
+  (to_sint32(lnot(x)) = lnot(x))))
+
+axiom is_sint32_lxor :
+  (forall x:int. forall y:int [to_sint32(lxor(x, y))]. (is_sint32(x) ->
+  (is_sint32(y) -> (to_sint32(lxor(x, y)) = lxor(x, y)))))
+
+axiom is_sint32_lor :
+  (forall x:int. forall y:int [to_sint32(lor(x, y))]. (is_sint32(x) ->
+  (is_sint32(y) -> (to_sint32(lor(x, y)) = lor(x, y)))))
+
+axiom is_sint32_land :
+  (forall x:int. forall y:int [to_sint32(land(x, y))]. (is_sint32(x) ->
+  (is_sint32(y) -> (to_sint32(land(x, y)) = land(x, y)))))
+
+axiom is_sint32_lsr :
+  (forall x:int. forall y:int [to_sint32(lsr(x, y))]. ((0 <= y) ->
+  (is_sint32(x) -> (to_sint32(lsr(x, y)) = lsr(x, y)))))
+
+axiom is_sint32_lsl1 : (lsl(1, 31) = 2147483648)
+
+axiom is_sint32_lsl1_inf :
+  (forall y:int [lsl(1, y)]. (((0 <= y) and (y <  31)) -> is_sint32(lsl(1,
+  y))))
+
+axiom is_sint32_lsl1_sup :
+  (forall y:int [to_sint32(lsl(1, y))]. ((32 <= y) -> (to_sint32(lsl(1,
+  y)) = 0)))
+
+axiom is_sint64_lnot :
+  (forall x:int [to_sint64(lnot(x))]. (is_sint64(x) ->
+  (to_sint64(lnot(x)) = lnot(x))))
+
+axiom is_sint64_lxor :
+  (forall x:int. forall y:int [to_sint64(lxor(x, y))]. (is_sint64(x) ->
+  (is_sint64(y) -> (to_sint64(lxor(x, y)) = lxor(x, y)))))
+
+axiom is_sint64_lor :
+  (forall x:int. forall y:int [to_sint64(lor(x, y))]. (is_sint64(x) ->
+  (is_sint64(y) -> (to_sint64(lor(x, y)) = lor(x, y)))))
+
+axiom is_sint64_land :
+  (forall x:int. forall y:int [to_sint64(land(x, y))]. (is_sint64(x) ->
+  (is_sint64(y) -> (to_sint64(land(x, y)) = land(x, y)))))
+
+axiom is_sint64_lsr :
+  (forall x:int. forall y:int [to_sint64(lsr(x, y))]. ((0 <= y) ->
+  (is_sint64(x) -> (to_sint64(lsr(x, y)) = lsr(x, y)))))
+
+axiom is_sint64_lsl1 : (lsl(1, 63) = 9223372036854775808)
+
+axiom is_sint64_lsl1_inf :
+  (forall y:int [lsl(1, y)]. (((0 <= y) and (y <  63)) -> is_sint64(lsl(1,
+  y))))
+
+axiom is_sint64_lsl1_sup :
+  (forall y:int [to_sint64(lsl(1, y))]. ((64 <= y) -> (to_sint64(lsl(1,
+  y)) = 0)))
+

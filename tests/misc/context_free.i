@@ -1,6 +1,6 @@
 /* run.config
    GCC:
-   OPT: -memory-footprint 1 -val -lib-entry -main f -absolute-valid-range 0x200-0x199 -journal-disable
+   OPT: -val -lib-entry -main f -absolute-valid-range 0x200-0x199 -journal-disable
 */
 
 

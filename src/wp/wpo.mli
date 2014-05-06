@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -53,10 +53,10 @@ sig
   val dummy : t
   val trivial : t
   val is_trivial : t -> bool
-  val make : Conditions.t -> F.pred -> t
+  val make : Conditions.sequent -> t
   val compute_proof : t -> F.pred
-  val compute_descr : t -> Conditions.t * F.pred
-  val get_descr : t -> Conditions.t * F.pred
+  val compute_descr : t -> Conditions.sequent
+  val get_descr : t -> Conditions.sequent
   val compute : t -> unit
   val qed_time : t -> float
 end
@@ -93,6 +93,17 @@ sig
 
 end
 
+module VC_Check :
+sig
+
+  type t = {
+    qed : Lang.F.term ;
+    raw : Lang.F.term ;
+    goal : Lang.F.pred ;
+  }
+
+end
+
 (* ------------------------------------------------------------------------ *)
 (**{1 Proof Obligations}                                                    *)
 (* ------------------------------------------------------------------------ *)
@@ -100,6 +111,7 @@ end
 type formula = 
   | GoalLemma of VC_Lemma.t
   | GoalAnnot of VC_Annot.t
+  | GoalCheck of VC_Check.t
 
 (** Dynamically exported as ["Wpo.po"] *)
 type po = t and t = {
@@ -136,6 +148,7 @@ val get_files : t -> (string * string) list
 
 val clear : unit -> unit
 val remove : t -> unit
+val resolve : t -> bool
 
 val gid : model:string -> propid:WpPropId.prop_id -> string
 val add : t -> unit
@@ -159,6 +172,8 @@ val is_verdict: result -> bool
 
 val get_time: result -> float
 val get_steps: result -> int
+
+val is_check : t -> bool
 
 val iter :
   ?ip:Property.t ->
@@ -190,6 +205,7 @@ val pp_goal : Format.formatter -> t -> unit
 val pp_title : Format.formatter -> t -> unit
 val pp_logfile : Format.formatter -> t -> prover -> unit
 
+val pp_axiomatics : Format.formatter -> string option -> unit
 val pp_function : Format.formatter -> Kernel_function.t -> string option -> unit
 val pp_goal_flow : Format.formatter -> t -> unit
 

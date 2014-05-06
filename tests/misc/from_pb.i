@@ -1,13 +1,13 @@
 /* run.config
   GCC:
-  OPT: -memory-footprint 1 -val -deps -out -input  -main main0 -journal-disable
-  OPT: -memory-footprint 1 -val -deps -out -input  -main main1 -journal-disable
-  OPT: -memory-footprint 1 -val -deps -out -input  -main main2 -journal-disable
-  OPT: -memory-footprint 1 -val -deps -out -input  -main main3 -journal-disable
-  OPT: -memory-footprint 1 -val -deps -out -input  -main main4 -journal-disable
-  OPT: -memory-footprint 1 -val -deps -out -input  -main main4bis -journal-disable
-  OPT: -memory-footprint 1 -val -deps -out -input  -main main5 -journal-disable
-  OPT: -memory-footprint 1 -val -deps -out -input  -main main5bis -journal-disable
+  OPT: -val -deps -out -input  -main main0 -journal-disable
+  OPT: -val -deps -out -input  -main main1 -journal-disable
+  OPT: -val -deps -out -input  -main main2 -journal-disable
+  OPT: -val -deps -out -input  -main main3 -journal-disable
+  OPT: -val -deps -out -input  -main main4 -journal-disable
+  OPT: -val -deps -out -input  -main main4bis -journal-disable
+  OPT: -val -deps -out -input  -main main5 -journal-disable
+  OPT: -val -deps -out -input  -main main5bis -journal-disable
 */
 
 int k,i,j,x,c,d,T[10];

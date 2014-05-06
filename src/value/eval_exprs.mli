@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -60,9 +60,19 @@ val lval_to_loc :
   with_alarms:CilE.warn_mode ->
   Cvalue.Model.t -> lval -> location
 
+val lval_to_precise_loc :
+  with_alarms:CilE.warn_mode ->
+  Cvalue.Model.t -> lval -> Precise_locs.precise_location
+
+
 val lval_to_loc_state :
   with_alarms:CilE.warn_mode ->
   Cvalue.Model.t -> lval -> Cvalue.Model.t * location * typ
+
+val lval_to_precise_loc_state :
+  with_alarms:CilE.warn_mode ->
+  Cvalue.Model.t -> lval -> Cvalue.Model.t * Precise_locs.precise_location * typ
+
 
 val lval_to_loc_deps_state :
   with_alarms:CilE.warn_mode ->
@@ -71,6 +81,14 @@ val lval_to_loc_deps_state :
   reduce_valid_index:Kernel.SafeArrays.t ->
   lval ->
   Cvalue.Model.t * Zone.t option * location * typ
+
+val lval_to_precise_loc_deps_state :
+  with_alarms:CilE.warn_mode ->
+  deps:Zone.t option ->
+  Cvalue.Model.t ->
+  reduce_valid_index:Kernel.SafeArrays.t ->
+  lval ->
+  Cvalue.Model.t * Zone.t option * Precise_locs.precise_location * typ
 
 
 (* -------------------------------------------------------------------------- *)
@@ -139,7 +157,7 @@ val resolv_func_vinfo :
 val offsetmap_of_lv:
   with_alarms:CilE.warn_mode ->
   Cvalue.Model.t -> lval ->
-  Location.t * Cvalue.Model.t * Cvalue.V_Offsetmap.t option
+  Precise_locs.precise_location * Cvalue.Model.t * Cvalue.V_Offsetmap.t option
 
 
 (*

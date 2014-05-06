@@ -173,7 +173,7 @@ let yyact = [|
                                                                  ( 
 	    let states=
 	      Hashtbl.fold (fun _ st l -> 
-		if st.acceptation=Undefined or st.init=Undefined then
+		if st.acceptation=Undefined || st.init=Undefined then
 		  begin
                     Aorai_option.abort 
                       "Error: the state %s is used but never defined" st.name;
@@ -192,7 +192,7 @@ let yyact = [|
                                (
 	      let states=
 	        Hashtbl.fold (fun _ st l -> 
-		  if st.acceptation=Undefined or st.init=Undefined then
+		  if st.acceptation=Undefined || st.init=Undefined then
 		    begin
                       Aorai_option.abort 
                         "Error: the state %s is used but never defined" st.name;

@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -24,16 +24,16 @@
     @plugin development guide *)
 
 let run_plugins () =
-  if Kernel.TypeCheck.get () then
+  if Kernel.TypeCheck.get () then begin
     if Kernel.Files.get () <> [] || Kernel.TypeCheck.is_set () then begin
       Ast.compute ();
       (* Printing files before anything else (in debug mode only) *)
       if Kernel.debug_atleast 1 &&
         Kernel.Debug_category.exists (fun s -> s = "ast")
       then File.pretty_ast ()
-    end;
+    end
+  end;
   try
-    Dynamic.Main.apply (); (* for Helium-compatibility purpose only *)
     Db.Main.apply ();
     (* Printing code if required, have to be done at end *)
     if Kernel.PrintCode.get () then File.pretty_ast ();
@@ -65,7 +65,6 @@ let () =
   Sys.catch_break true;
   Cmdline.catch_toplevel_run
     ~f:(fun () ->
-          Journal.set_name (Kernel.Journal.Name.get ());
           ignore (Project.create "default");
           Cmdline.parse_and_boot
             on_from_name (fun () -> !Db.Toplevel.run) run_plugins)

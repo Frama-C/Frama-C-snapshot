@@ -1,7 +1,7 @@
 /* run.config
    GCC:
-   OPT: -memory-footprint 1 -val -deps -out -input  -journal-disable
-   OPT: -memory-footprint 1 -val -deps -out -input -ulevel 15 -journal-disable
+   OPT: -val -deps -out -input  -journal-disable
+   OPT: -val -deps -out -input -ulevel 15 -journal-disable
 */
 int main(int argc, char *argv[])
 {

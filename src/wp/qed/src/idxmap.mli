@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -37,11 +37,22 @@ sig
   val iter : (key -> 'a -> unit) -> 'a t -> unit
   val map : (key -> 'a -> 'b) -> 'a t -> 'b t
   val mapf : (key -> 'a -> 'b option) -> 'a t -> 'b t
+  val mapq : (key -> 'a -> 'a option) -> 'a t -> 'a t
   val filter : (key -> 'a -> bool) -> 'a t -> 'a t
+  val partition : (key -> 'a -> bool) -> 'a t -> 'a t * 'a t
   val fold : (key -> 'a -> 'b -> 'b) -> 'a t -> 'b -> 'b
   val union : (key -> 'a -> 'a -> 'a) -> 'a t -> 'a t -> 'a t
-  val inter : (key -> 'a -> 'a -> 'a) -> 'a t -> 'a t -> 'a t
+  val inter : (key -> 'a -> 'b -> 'c) -> 'a t -> 'b t -> 'c t
+  val interf : (key -> 'a -> 'b -> 'c option) -> 'a t -> 'b t -> 'c t
+  val interq : (key -> 'a -> 'a -> 'a option) -> 'a t -> 'a t -> 'a t
+  val diffq : (key -> 'a -> 'a -> 'a option) -> 'a t -> 'a t -> 'a t
   val merge : (key -> 'a option -> 'b option -> 'c option) -> 'a t -> 'b t -> 'c t 
+
+  (** [insert (fun key v old -> ...) key v map] *)
+  val insert : (key -> 'a -> 'a -> 'a) -> key -> 'a -> 'a t -> 'a t
+
+  val change : (key -> 'b -> 'a option -> 'a option) -> key -> 'b -> 'a t -> 'a t
+
 end
 
 module type IndexedKey =

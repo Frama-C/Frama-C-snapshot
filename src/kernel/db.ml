@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -305,7 +305,7 @@ module Value = struct
        Cvalue.Model.clear_caches ();
        Locations.Location_Bytes.clear_caches ();
        Locations.Zone.clear_caches ();
-       Lmap_bitwise.From_Model.clear_caches ();
+       Function_Froms.Memory.clear_caches ();
     )
 
 
@@ -435,6 +435,10 @@ module Value = struct
     Hook.Build
       (struct type t = state * (kernel_function * kinstr) list end)
 
+  module Compute_Statement_Callbacks =
+    Hook.Build
+      (struct type t = stmt * callstack * state list end)
+
   let no_results = mk_fun "Value.no_results"
 
   let update_callstack_table ~after stmt callstack v =
@@ -528,9 +532,6 @@ module Value = struct
 
   let access =  mk_fun "Value.access"
   let access_expr =  mk_fun "Value.access_expr"
-  let access_after = mk_fun "Value.access_after"
-  let lval_to_offsetmap_after = mk_fun "Value.lval_to_offsetmap_after"
-  let access_location_after = mk_fun "Value.access_location_after"
 
   (** Type for a Value builtin function *)
 
@@ -558,47 +559,8 @@ module Value = struct
     ref (fun ~with_alarms:_ _ -> mk_labeled_fun "Value.find_lv_plus")
 
   let pretty_state = Cvalue.Model.pretty
-  let pretty_state_without_null = Cvalue.Model.pretty_without_null
 
   let pretty = Cvalue.V.pretty
-
-  let display fmt kf =
-    let refilter base =
-     match base with
-        Base.Var (v, _) ->
-          if v.vgenerated
-          then v.vname = "__retres"
-          else
-            ((not (Kernel_function.is_local v kf))
-              || List.exists (fun x -> x.vid = v.vid)
-              (Kernel_function.get_definition kf).sbody.blocals )
-      | _ -> true
-    in
-    try
-      let values = get_stmt_state (Kernel_function.find_return kf) in
-      let fst_values = get_stmt_state (Kernel_function.find_first_stmt kf) in
-      if Cvalue.Model.is_reachable fst_values
-        && not (Cvalue.Model.is_top fst_values)
-      then begin
-        Format.fprintf fmt "@[<hov 2>Values at end of function %a:@\n"
-          Kernel_function.pretty kf;
-        if Cvalue.Model.is_top values
-        then Format.fprintf fmt "NO INFORMATION"
-        else
-          let outs = !Outputs.get_internal kf in
-          Cvalue.Model.pretty_filter fmt values outs refilter;
-          Format.fprintf fmt "@]@\n"
-      end
-    with Kernel_function.No_Statement -> ()
-
-  let display_globals fmt () =
-    let values = globals_state () in
-    if Cvalue.Model.is_reachable values
-    then begin
-      Format.fprintf fmt "@[<hov 0>Values of globals at initialization @\n";
-      Cvalue.Model.pretty_without_null fmt values;
-      Format.fprintf fmt "@]@\n"
-    end
 
   let compute = mk_fun "Value.compute"
 
@@ -627,9 +589,19 @@ module Value = struct
   let lval_to_loc_state = mk_fun "Value.lval_to_loc_state"
   let lval_to_zone = mk_fun "Value.lval_to_zone"
   let lval_to_zone_state = mk_fun "Value.lval_to_zone_state"
+  let lval_to_zone_with_deps_state = mk_fun "Value.lval_to_zone_with_deps_state"
   let assigns_inputs_to_zone = mk_fun "Value.assigns_inputs_to_zone"
   let assigns_outputs_to_zone = mk_fun "Value.assigns_outputs_to_zone"
   let assigns_outputs_to_locations = mk_fun "Value.assigns_outputs_to_locations"
+
+  module Logic = struct
+    let eval_predicate =
+      ref (fun ~pre:_ ~here:_ _ ->
+        raise
+          (Extlib.Unregistered_function
+             "Function 'Value.Logic.eval_predicate' not registered yet"))
+
+  end
 
   exception Void_Function
 
@@ -653,17 +625,17 @@ module Value = struct
 
   exception Aborted
 
-  let degeneration_occurred =
-    ref (fun _kf _lv -> raise Aborted)
+  let display = mk_fun "Value.display"
 
 end
 
 module From = struct
   let access = mk_fun "From.access"
-  let update = mk_fun "From.update"
   let find_deps_no_transitivity = mk_fun "From.find_deps_no_transitivity"
   let find_deps_no_transitivity_state =
     mk_fun "From.find_deps_no_transitivity_state"
+  let find_deps_term_no_transitivity_state =
+    mk_fun "From.find_deps_term_no_transitivity_state"
   let compute = mk_fun "From.compute"
   let compute_all = mk_fun "From.compute_all"
   let compute_all_calldeps = mk_fun "From.compute_all_calldeps"
@@ -678,8 +650,8 @@ module From = struct
       (struct
         type t =
             (Kernel_function.t Stack.t) *
-              Lmap_bitwise.From_Model.t Stmt.Hashtbl.t *
-              (Kernel_function.t * Lmap_bitwise.From_Model.t) list
+              Function_Froms.Memory.t Stmt.Hashtbl.t *
+              (Kernel_function.t * Function_Froms.Memory.t) list
               Stmt.Hashtbl.t
        end)
 
@@ -777,9 +749,6 @@ module Pdg = struct
   let pretty = ref (fun ?bw:_ _ _ -> mk_labeled_fun "Pdg.pretty")
   let pretty_node = mk_fun "Pdg.pretty_node"
   let pretty_key = mk_fun "Pdg.pretty_key"
-
-(*  module F_FctMarks = PdgMarks.F_Fct *)
-  (* module F_ProjMarks = PdgMarks.F_Proj *)
 
 end
 
@@ -1017,8 +986,6 @@ module Properties = struct
        in Logic_interp *)
     let loc_to_loc = mk_resultfun "Properties.Interp.loc_to_loc"
     let loc_to_locs = mk_resultfun "Properties.Interp.loc_to_locs"
-    let identified_term_zone_to_loc =
-      mk_resultfun "Properties.Interp.identified_term_to_loc"
     let loc_to_offset = mk_resultfun "Properties.Interp.loc_to_offset"
     let loc_to_exp = mk_resultfun "Properties.Interp.loc_to_exp"
     let term_offset_to_offset =
@@ -1045,7 +1012,6 @@ module Properties = struct
       let from_pred = mk_fun "Interp.To_zone.from_pred"
       let from_preds= mk_fun "Interp.To_zone.from_preds"
       let from_zone = mk_fun "Interp.To_zone.from_zone"
-      let from_zones= mk_fun "Interp.To_zone.from_zones"
       let from_stmt_annot= mk_fun "Interp.To_zone.from_stmt_annot"
       let from_stmt_annots= mk_fun "Interp.To_zone.from_stmt_annots"
       let from_func_annots= mk_fun "Interp.To_zone.from_func_annots"
@@ -1072,6 +1038,7 @@ end
 module Impact = struct
   let compute_pragmas = mk_fun "Impact.compute_pragmas"
   let from_stmt = mk_fun "Impact.from_stmt"
+  let from_nodes = mk_fun "Impact.from_nodes"
   let slice = mk_fun "Impact.slice"
 end
 
@@ -1157,18 +1124,6 @@ module PostdominatorsValue = struct
   let display = mk_fun "PostdominatorsValue.display"
   let print_dot = mk_fun "PostdominatorsValue.print_dot"
 end
-
-module Dominators = struct
-  let compute = mk_fun "Dominators.compute"
-  let is_dominator
-      : (kernel_function -> opening:stmt -> closing:stmt -> bool) ref
-      = mk_fun "Dominators.is_dominator"
-  exception Top
-  let stmt_dominators = mk_fun "Dominators.stmt_dominators"
-  let display = mk_fun "Dominators.display"
-  let print_dot = mk_fun "Dominators.print_dot"
-end
-
 
 (* ************************************************************************* *)
 (** {2 Graphs} *)

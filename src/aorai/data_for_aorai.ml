@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Aorai plug-in of Frama-C.                        *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -33,16 +33,16 @@ module Aorai_state =
   Datatype.Make_with_collections(
     struct
       type t = Promelaast.state
-      let structural_descr = Structural_descr.Abstract
+      let structural_descr = Structural_descr.t_abstract
       let reprs = [ { nums = -1; name = ""; multi_state = None;
                       acceptation = Bool3.False; init = Bool3.False
                     } ]
       let name = "Aorai_state"
       let equal x y = Datatype.Int.equal x.nums y.nums
       let hash x = x.nums
-      let rehash x = x
+      let rehash = Datatype.identity
       let compare x y = Datatype.Int.compare x.nums y.nums
-      let copy x = x
+      let copy = Datatype.identity
       let internal_pretty_code = Datatype.undefined
       let pretty fmt x = Format.fprintf fmt "state_%d" x.nums
       let varname _ =
@@ -57,15 +57,15 @@ module Aorai_typed_trans =
       let name = "Aorai_typed_trans"
       type t =
           (Promelaast.typed_condition * Promelaast.action) Promelaast.trans
-      let structural_descr = Structural_descr.Abstract
+      let structural_descr = Structural_descr.t_abstract
       let reprs = [ { numt = -1; start = List.hd (Aorai_state.reprs);
                       stop = List.hd (Aorai_state.reprs);
                       cross = (TTrue,[]); } ]
       let equal x y = Datatype.Int.equal x.numt y.numt
       let hash x = x.numt
-      let rehash = Extlib.id
+      let rehash = Datatype.identity
       let compare x y = Datatype.Int.compare x.numt y.numt
-      let copy = Extlib.id
+      let copy = Datatype.identity
       let internal_pretty_code = Datatype.undefined
       let pretty = Promelaoutput.print_transition
       let varname _ = assert false
@@ -151,7 +151,8 @@ let add_logic name log_info = Hashtbl.replace declared_logics name log_info
 
 let get_logic name =
   try Hashtbl.find declared_logics name
-  with _ -> raise_error ("Logic function '"^name^"' not declared in hashtbl")
+  with Not_found ->
+    raise_error ("Logic function '"^name^"' not declared in hashtbl")
 
 let declared_predicates = Hashtbl.create 97
 
@@ -160,7 +161,7 @@ let add_predicate name pred_info =
 
 let get_predicate name =
   try Hashtbl.find declared_predicates name
-  with _ -> raise_error ("Predicate '"^name^"' not declared in hashtbl")
+  with Not_found -> raise_error ("Predicate '"^name^"' not declared in hashtbl")
 
 (* ************************************************************************* *)
 (* Some constant names used for generation *)
@@ -271,7 +272,7 @@ module AbstractLogicInfo =
 class change_var vi1 vi2 =
   object
     inherit Visitor.frama_c_copy (Project.current ())
-    method vlogic_var_use vi =
+    method! vlogic_var_use vi =
       if Cil_datatype.Logic_var.equal vi1 vi then ChangeTo vi2 else SkipChildren
   end
 
@@ -808,7 +809,8 @@ let type_expr env ?tr ?current e =
               | TStartOf lv | TLval lv ->
                 Logic_const.term
                   (TLval
-                     (Logic_typing.add_offset_lval (TIndex (t2, TNoOffset)) lv))
+                     (Logic_const.addTermOffsetLval
+                        (TIndex (t2, TNoOffset)) lv))
                   (Logic_typing.type_of_array_elem t1.term_type)
               | _ ->
                 Aorai_option.fatal
@@ -821,7 +823,7 @@ let type_expr env ?tr ?current e =
               | TStartOf lv | TLval lv ->
                 Logic_const.term
                   (TLval
-                     (Logic_typing.add_offset_lval (TIndex (t1, TNoOffset)) lv))
+                     (Logic_const.addTermOffsetLval (TIndex (t1, TNoOffset)) lv))
                   (Logic_typing.type_of_array_elem t2.term_type)
               | _ ->
                 Aorai_option.fatal
@@ -838,7 +840,7 @@ let type_expr env ?tr ?current e =
         (match t.term_node with
           | TLval lv ->
             let off, ty = LTyping.type_of_field loc s t.term_type in
-            let lv = Logic_typing.add_offset_lval off lv in
+            let lv = Logic_const.addTermOffsetLval off lv in
             env, Logic_const.term (TLval lv) ty, cond
           | _ ->
             Aorai_option.fatal
@@ -850,7 +852,7 @@ let type_expr env ?tr ?current e =
             LTyping.type_of_field loc s
               (Logic_typing.type_of_pointed t.term_type)
           in
-          let lv = Logic_typing.add_offset_lval off (TMem t,TNoOffset) in
+          let lv = Logic_const.addTermOffsetLval off (TMem t,TNoOffset) in
           env, Logic_const.term (TLval lv) ty, cond
         end else
           Aorai_option.abort "base term is not a pointer in %a -> %s"
@@ -1561,7 +1563,7 @@ let set_varinfo name vi =
 let get_varinfo name =
   try
     Hashtbl.find varinfos name
-  with _ -> raise_error ("Variable not declared ("^name^")")
+  with Not_found -> raise_error ("Variable not declared ("^name^")")
 
 let get_logic_var name =
   let vi = get_varinfo name in Cil.cvar_to_lvar vi
@@ -1572,7 +1574,7 @@ let get_varinfo_option name =
   try
     Some(Hashtbl.find varinfos name)
   with
-    | _ -> None
+    | Not_found -> None
 
 (* Add a new param into the association table (funcname,paramname) -> varinfo *)
 let set_paraminfo funcname paramname vi =
@@ -1584,7 +1586,9 @@ let set_paraminfo funcname paramname vi =
 let get_paraminfo funcname paramname =
   try
     Hashtbl.find paraminfos (funcname,paramname)
-  with _ -> raise_error ("Parameter '"^paramname^"' not declared for function '"^funcname^"'.")
+  with Not_found ->
+    raise_error
+      ("Parameter '"^paramname^"' not declared for function '"^funcname^"'.")
 
 (* Add a new param into the association table funcname -> varinfo *)
 let set_returninfo funcname vi =
@@ -1596,7 +1600,8 @@ let set_returninfo funcname vi =
 let get_returninfo funcname =
   try
     Hashtbl.find paraminfos (funcname,"\\return")
-  with _ -> raise_error ("Return varinfo not declared for function '"^funcname^"'.")
+  with Not_found ->
+    raise_error ("Return varinfo not declared for function '"^funcname^"'.")
 
 type range =
   | Fixed of int (** constant value *)
@@ -1612,7 +1617,7 @@ module Range = Datatype.Make_with_collections
       type t = range
       let name = "Data_for_aorai.Range"
       let rehash = Datatype.identity
-      let structural_descr = Structural_descr.Abstract
+      let structural_descr = Structural_descr.t_abstract
       let reprs =
         Fixed 0 :: Interval (0,1) ::  Unbounded 0 ::
           List.map (fun x -> Bounded (0,x)) Cil_datatype.Term.reprs
@@ -1783,39 +1788,39 @@ module Case_state = Aorai_state.Map.Make(End_state)
 
 type state = Case_state.t
 
-let pretty_state fmt cases =
+let pretty_end_state start fmt tbl =
   Aorai_state.Map.iter
-    (fun start tbl ->
-      Aorai_state.Map.iter
-        (fun stop (fst,last, actions) ->
-          Format.fprintf fmt
-            "Possible path from %s to %s@\n  Initial trans:@\n"
-            start.Promelaast.name stop.Promelaast.name;
-          Aorai_state.Set.iter
-            (fun state ->
-              Format.fprintf fmt "    %s -> %s@\n" 
-                start.Promelaast.name
-                state.Promelaast.name)
-            fst;
-          Format.fprintf fmt "  Final trans:@\n";
-          Aorai_state.Set.iter
-            (fun state ->
-              Format.fprintf fmt "    %s -> %s@\n"
-                state.Promelaast.name stop.Promelaast.name)
-          last;
-          Format.fprintf fmt "  Related actions:@\n";
+    (fun stop (fst,last, actions) ->
+      Format.fprintf fmt
+        "Possible path from %s to %s@\n  Initial trans:@\n"
+        start.Promelaast.name stop.Promelaast.name;
+      Aorai_state.Set.iter
+        (fun state ->
+          Format.fprintf fmt "    %s -> %s@\n" 
+            start.Promelaast.name
+            state.Promelaast.name)
+        fst;
+      Format.fprintf fmt "  Final trans:@\n";
+      Aorai_state.Set.iter
+        (fun state ->
+          Format.fprintf fmt "    %s -> %s@\n"
+            state.Promelaast.name stop.Promelaast.name)
+        last;
+      Format.fprintf fmt "  Related actions:@\n";
+      Cil_datatype.Term.Map.iter
+        (fun loc tbl ->
           Cil_datatype.Term.Map.iter
-            (fun loc tbl ->
-              Cil_datatype.Term.Map.iter
-                (fun base itv ->
-                  Format.fprintf fmt "  %a <- %a + %a@\n"
-                    Cil_datatype.Term.pretty loc
-                    Cil_datatype.Term.pretty base
-                    Range.pretty itv)
-                tbl)
-            actions)
-        tbl)
-    cases
+            (fun base itv ->
+              Format.fprintf fmt "  %a <- %a + %a@\n"
+                Cil_datatype.Term.pretty loc
+                Cil_datatype.Term.pretty base
+                Range.pretty itv)
+            tbl)
+        actions)
+    tbl
+
+let pretty_state fmt cases =
+  Aorai_state.Map.iter (fun start tbl -> pretty_end_state start fmt tbl) cases
 
 let included_state tbl1 tbl2 =
   try
@@ -1983,8 +1988,8 @@ let pretty_loop_invariant fmt =
       Format.fprintf fmt "Function %a, sid %d:@\n  @[%a@]@\n"
         Kernel_function.pretty kf stmt.sid pretty_state state)
 
-let debug_computed_state () =
-  Aorai_option.debug ~dkey 
+let debug_computed_state ?(dkey=dkey) () =
+  Aorai_option.debug ~dkey
     "Computed state:@\nPre-states:@\n  @[%t@]@\nPost-states:@\n  @[%t@]@\n\
      Loop init:@\n  @[%t@]@\nLoop invariants:@\n  @[%t@]"
     pretty_pre_state pretty_post_state pretty_loop_init pretty_loop_invariant
@@ -2083,7 +2088,7 @@ let set_usedinfo name einfo =
 
 let get_usedinfo name =
   try Hashtbl.find used_enuminfo name
-  with _ -> raise_error ("Incomplete enum information.")
+  with Not_found -> raise_error ("Incomplete enum information.")
 
 let get_cenum_option name =
   let opnamed = func_to_op_func name in
@@ -2118,7 +2123,7 @@ let func_to_cenum func =
     in
       search ei.eitems
       (*    CEnum(ex,s,ei)*)
-  with _ -> raise_error ("Operation not found")
+  with Not_found -> raise_error ("Operation not found")
 
 let op_status_to_cenum status =
   try
@@ -2130,7 +2135,7 @@ let op_status_to_cenum status =
       | [] -> raise_error ("Status not found")
     in
       search ei.eitems
-  with _ -> raise_error ("Status not found")
+  with Not_found -> raise_error ("Status not found")
 
 
 (*

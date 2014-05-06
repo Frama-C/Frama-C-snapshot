@@ -35,8 +35,8 @@
 (*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE         *)
 (*  POSSIBILITY OF SUCH DAMAGE.                                             *)
 (*                                                                          *)
-(*  File modified by CEA (Commissariat à l'énergie atomique et aux          *)
-(*                        énergies alternatives)                            *)
+(*  File modified by CEA (Commissariat Ã  l'Ã©nergie atomique et aux          *)
+(*                        Ã©nergies alternatives)                            *)
 (*               and INRIA (Institut National de Recherche en Informatique  *)
 (*                          et Automatique).                                *)
 (****************************************************************************)
@@ -178,7 +178,8 @@ and definition =
      (** Logical declaration (axiom, logic, etc.)*)
  | CUSTOM of Logic_ptree.custom_tree * string * cabsloc
 
-(* the string is a file name, and then the list of toplevel forms *)
+(** the string is a file name, and then the list of toplevel forms.
+    @plugin development guide *)
 and file = string * (bool * definition) list
 
 
@@ -198,7 +199,8 @@ and block =
 and asm_details =
     { aoutputs: (string option * string * expression) list; (* optional name, constraints and expressions for outputs *)
       ainputs: (string option * string * expression) list; (* optional name, constraints and expressions for inputs *)
-      aclobbers: string list (* clobbered registers *)
+      aclobbers: string list; (* clobbered registers *)
+      alabels: string list (* the labels for "asm goto" statements in gcc >= 4.6 *) 
     }
 
 and raw_statement =

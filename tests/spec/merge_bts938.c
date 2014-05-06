@@ -3,3 +3,6 @@
 */
 
 #include "tests/spec/merge_bts938.h"
+
+//@ ensures test:\true;
+int main(void) { }

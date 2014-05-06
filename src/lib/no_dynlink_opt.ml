@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -27,6 +27,7 @@ module type OldDynlink = sig
   val loadfile : string -> unit
   val allow_unsafe_modules : bool -> unit
   val init : unit -> unit
+  val add_interfaces: string list -> string list -> unit
   val digest_interface : string -> string list -> Digest.t
 end
 
@@ -39,6 +40,7 @@ let adapt_filename = fail "adapt_filename"
 let loadfile = fail "loadfile"
 let allow_unsafe_modules = fail "allow_unsafe_modules"
 let init = fail "init"
+let add_interfaces = fail "add_interfaces"
 
 type linking_error =
     Undefined_global of string

@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -81,24 +81,24 @@ end = struct
 end
 
 module ImpactedNodes =
-  State_builder.Ref(Kernel_function.Map.Make(PdgTypes.NodeSet))(struct
+  State_builder.Ref(Kernel_function.Map.Make(Pdg_aux.NS))(struct
     let name = "Impact.Register_gui.ImpactedNodes"
     let dependencies = [SelectedStmt.self]
     let default () = Kernel_function.Map.empty
   end)
 
 module ReasonGraph =
-  State_builder.Ref(Reason_graph.Reason.Set)(struct
+  State_builder.Ref(Reason_graph.DatatypeReason)(struct
     let name = "Impact.Register_gui.ReasonGraph"
     let dependencies = [SelectedStmt.self]
     let default () = Reason_graph.empty
   end)
 
 module InitialNodes =
-  State_builder.Ref(PdgTypes.NodeSet)(struct
+  State_builder.Ref(Pdg_aux.NS)(struct
     let name = "Impact.Register_gui.InitialNodes"
     let dependencies = [SelectedStmt.self]
-    let default () = PdgTypes.NodeSet.empty
+    let default () = Pdg_aux.NS.empty
   end)
 
 let impact_in_kf kf = Compute_impact.impact_in_kf (ImpactedNodes.get ()) kf
@@ -157,9 +157,9 @@ let impact_highlighter buffer loc ~start ~stop =
     in
     apply_on_stmt hilight loc
 
-let reason_graph_window main_window reason =
+let reason_graph_window main_window ?in_kf reason =
   try
-    let dot_file = Reason_graph.to_dot_file ~temp:true reason in
+    let dot_file = Reason_graph.to_dot_file ~temp:true ?in_kf reason in
     let reason_graph ~packing =
       snd (Dgraph.DGraphContainer.Dot.from_dot_with_commands ~packing dot_file)
     in
@@ -182,12 +182,12 @@ let reason_graph_window main_window reason =
           (Printexc.to_string exn)
 
 
-let impact_statement s =
+let impact_statement restrict s =
   let kf = Kernel_function.find_englobing_kf s in
   let skip = Compute_impact.skip () in
   let reason = Options.Reason.get () in
   let impact, initial, reason =
-    Compute_impact.impacted_nodes ~skip ~reason kf [s]
+    Compute_impact.nodes_impacted_by_stmts ~skip ~restrict ~reason kf [s]
   in
   SelectedStmt.set s;
   ImpactedNodes.set impact;
@@ -211,27 +211,102 @@ let impact_statement =
     ~comment:"Compute the impact of the statement in the Gui"
     ~plugin:"impact"
     "impact_statement_gui"
-    (Datatype.func Cil_datatype.Stmt.ty (Datatype.list Cil_datatype.Stmt.ty))
+    (Datatype.func ~label:("restrict", Some (fun () -> Locations.Zone.top))
+       Locations.Zone.ty
+       (Datatype.func
+          Cil_datatype.Stmt.ty
+          (Datatype.list Cil_datatype.Stmt.ty)))
     ~journalize:true
     impact_statement
 
 
 let impact_statement_ui (main_ui:Design.main_window_extension_points) s =
   let val_computed = Db.Value.is_computed () in
-  ignore (impact_statement s);
+  ignore (impact_statement (*restriction*)Locations.Zone.top s);
   if not val_computed then
     main_ui#reset ()
   else (
     !update_column `Contents;
     main_ui#rehighlight ()
   );
-  if Options.Reason.get () then
+  if false && Options.Reason.get () then
     let g = ReasonGraph.get () in
-    if not (Reason_graph.Reason.Set.is_empty g) then
+    let open Reason_graph in 
+    if not (Reason.Set.is_empty g.reason_graph) then
       reason_graph_window main_ui#main_window g
-    
 
-let pretty_info = ref false
+let impact_graph_of_function (main_ui:Design.main_window_extension_points) kf =
+  let g = ReasonGraph.get () in
+  let open Reason_graph in 
+  if not (Reason.Set.is_empty g.reason_graph) then
+    reason_graph_window main_ui#main_window ~in_kf:kf g
+
+let pretty_info = ref true
+
+let pp_impact_on_inputs (main_ui:Design.main_window_extension_points) kf =
+  let nodes = impact_in_kf kf in
+  if !pretty_info && not (Pdg_aux.NS.is_empty nodes) then
+    let open PdgIndex.Signature in
+    let open PdgIndex.Key in
+    let call, formals, zones =
+      Pdg_aux.NS.fold
+        (fun (node, z) (call, formals, zones as acc) ->
+          match !Pdg.node_key node with
+          | SigCallKey _ | CallStmt _ | Stmt _ | Label _ ->
+            acc (* Related to one stmt: skip *)
+          | VarDecl _ -> acc (* skip *)
+          | SigKey (Out _) -> acc (* probably impossible *)
+          | SigKey (In InCtrl) -> (true, formals, zones)
+          | SigKey (In (InNum i)) -> (call, i :: formals, zones)
+          | SigKey (In (InImpl z')) ->
+            let z = Locations.Zone.narrow z z' in
+            (call, formals, Locations.Zone.join zones z)
+        ) nodes (false, [], Locations.Zone.bottom)
+    in
+    if call = true || formals <> [] || not (Locations.Zone.is_bottom zones) then
+      let formals = List.sort Datatype.Int.compare formals in
+      main_ui#pretty_information
+        "@[<hov 2>Impacted inputs of the function:@ %t%t@]@."
+        (fun fmt ->
+          if call then
+            Format.fprintf fmt "call@ may@ be@ entirely@ skipped; ")
+        (fun fmt ->
+          if formals <> [] then
+            Pretty_utils.pp_list ~pre:"argument(s)@ " ~sep:"@ " ~suf:",@ "
+              Datatype.Int.pretty fmt formals;
+          if not (Locations.Zone.is_bottom zones) then
+            Locations.Zone.pretty fmt zones
+        )
+
+let pp_impacted_call_outputs (main_ui:Design.main_window_extension_points) kf call_stmt =
+  let nodes = impact_in_kf kf in
+  if !pretty_info && not (Pdg_aux.NS.is_empty nodes) then
+    let open PdgIndex.Signature in
+    let open PdgIndex.Key in
+    let ret, zones =
+      Pdg_aux.NS.fold
+        (fun (node, z) (ret, zones as acc) ->
+          match !Pdg.node_key node with
+          | SigCallKey (stmt', key)
+              when Cil_datatype.Stmt.equal call_stmt stmt' ->
+            (match key with
+            | In _ -> acc (* impossible *)
+            | Out OutRet -> (true, zones)
+            | Out (OutLoc z') ->
+              let z = Locations.Zone.narrow z z' in
+              (ret, Locations.Zone.join zones z)
+            )
+          | _ -> acc
+        ) nodes (false, Locations.Zone.bottom)
+    in
+    if ret = true || not (Locations.Zone.is_bottom zones) then
+      main_ui#pretty_information
+        "@[<hov 2>Memory impacted by this call:@ %t%t@]@."
+        (fun fmt -> if ret then Format.fprintf fmt "return code; ")
+        (fun fmt ->
+          if not (Locations.Zone.is_bottom zones) then
+            Locations.Zone.pretty fmt zones
+        )
 
 let impact_selector
     (popup_factory:GMenu.menu GMenu.factory) main_ui ~button localizable =
@@ -243,46 +318,34 @@ let impact_selector
          if FollowFocus.get () then
            ignore (Glib.Idle.add (fun () -> callback (); false))
        );
-      if button = 1 then
+      if button = 1 then begin
         (* Initial nodes, at the source of the impact *)
         (match SelectedStmt.get_option () with
           | Some s' when Cil_datatype.Stmt.equal s s' ->
             if !pretty_info then
             main_ui#pretty_information "@[Impact initial nodes:@ %a@]@."
-              (Pretty_utils.pp_iter PdgTypes.NodeSet.iter
-                 ~sep:",@ " (!Db.Pdg.pretty_node false))
+              (Pretty_utils.pp_iter Pdg_aux.NS.iter'
+                 ~sep:",@ " Pdg_aux.pretty_node)
               (InitialNodes.get ());
-          | _ -> ());
-        let nodes = impact_in_kf kf in
-        let nodes = PdgTypes.NodeSet.filter
-          (fun node ->
-            match PdgIndex.Key.stmt (!Pdg.node_key node) with
-              | None -> false
-              | Some s' -> Cil_datatype.Stmt.equal s s')
-          nodes
-        in
-        if not (PdgTypes.NodeSet.is_empty nodes) then
-          if !pretty_info then
-          main_ui#pretty_information "@[Impact:@ %a@]@."
-            (Pretty_utils.pp_iter ~sep:",@ " PdgTypes.NodeSet.iter
-               (!Db.Pdg.pretty_node false)) nodes;
+          | _ -> ()
+        );
+        pp_impacted_call_outputs main_ui kf s
+      end
+
     | PVDecl (_, vi) | PGlobal (GFun ({ svar = vi }, _))
         when Cil.isFunctionType vi.vtype ->
-       if button = 1 then
+       if button = 1 then begin
          let kf = Globals.Functions.get vi in
-         let nodes = impact_in_kf kf in
-         let nodes = PdgTypes.NodeSet.filter
-          (fun node ->
-            match PdgIndex.Key.stmt (!Pdg.node_key node) with
-              | None -> true
-              | Some _ -> false
-          ) nodes
-         in
-         if not (PdgTypes.NodeSet.is_empty nodes) then
-           if !pretty_info then
-           main_ui#pretty_information "@[Function global impact:@ %a@]@."
-             (Pretty_utils.pp_iter ~sep:",@ " PdgTypes.NodeSet.iter
-                (!Db.Pdg.pretty_node false)) nodes
+         pp_impact_on_inputs main_ui kf;
+       end;
+       if button = 3 then begin
+           let g = ReasonGraph.get () in
+           let open Reason_graph in 
+           if not (Reason.Set.is_empty g.reason_graph) then
+             let kf = Globals.Functions.get vi in
+             let callback () = impact_graph_of_function main_ui kf in
+             ignore (popup_factory#add_item "_Impact graph" ~callback);
+       end
     | _ -> ()
 
 let impact_panel main_ui =

@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -23,9 +23,10 @@
 (** Floating-point operations.
     @plugin development guide *)
 
-external set_round_downward : unit -> unit = "set_round_downward"
-external set_round_upward : unit -> unit = "set_round_upward"
-external set_round_nearest_even : unit -> unit = "set_round_nearest_even"
+external set_round_downward : unit -> unit = "set_round_downward" "noalloc"
+external set_round_upward : unit -> unit = "set_round_upward" "noalloc"
+external set_round_nearest_even : unit -> unit = 
+    "set_round_nearest_even" "noalloc"
 
 external round_to_single_precision_float: float -> float = "round_to_float"
 
@@ -49,6 +50,7 @@ type parsed_float = {
 
 val single_precision_of_string: string -> parsed_float
 val double_precision_of_string: string -> parsed_float
+val parse_kind: Cil_types.fkind -> string -> parsed_float
 
 val pretty_normal : use_hex : bool -> Format.formatter -> float -> unit
 val pretty : Format.formatter -> float -> unit

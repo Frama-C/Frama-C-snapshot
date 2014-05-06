@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -220,7 +220,7 @@ struct
 
   (* --- Pretty --- *)
       
-  module Xmap = Map.Make(Var)
+  module Xmap = FCMap.Make(Var)
     
   let pretty title fmt sigma =
     let def = Vmap.fold Xmap.add sigma.def Xmap.empty in
@@ -322,7 +322,7 @@ end
 (* --- Substitution Extraction                                            --- *)
 (* -------------------------------------------------------------------------- *)
 
-module XS = Set.Make(Var)
+module XS = FCSet.Make(Var)
 
 let elements xs = Vars.fold XS.add xs XS.empty
 let iter f xs = XS.iter f (elements xs)

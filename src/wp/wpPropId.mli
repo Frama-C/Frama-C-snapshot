@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -47,6 +47,7 @@ module PropId : Datatype.S with type t = prop_id
 
 val compare_prop_id : prop_id -> prop_id -> int
 
+val is_check : prop_id -> bool
 val is_assigns : prop_id -> bool
 val is_requires : Property.t -> bool
 val is_loop_preservation : prop_id -> stmt option
@@ -144,6 +145,10 @@ val mk_fct_post_id : kernel_function -> funbehavior ->
 val mk_call_pre_id : kernel_function -> stmt -> 
     Property.t -> Property.t -> prop_id
 
+val mk_property : Property.t -> prop_id
+
+val mk_check : Property.t -> prop_id
+
 (*----------------------------------------------------------------------------*)
 
 type a_kind = LoopAssigns | StmtAssigns
@@ -179,6 +184,8 @@ val mk_loop_assigns_desc : stmt -> identified_term from list -> assigns_desc
 val mk_stmt_assigns_desc : stmt -> identified_term from list -> assigns_desc
 
 val mk_kf_assigns_desc : identified_term from list -> assigns_desc
+
+val is_call_assigns : assigns_desc -> bool
 
 (*----------------------------------------------------------------------------*)
 

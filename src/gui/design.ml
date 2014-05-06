@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -28,11 +28,6 @@ open Pretty_source
 open Gtk_helper
 
 let use_external_viewer = false
-
-let apply_on_selected =
-  Gui_parameters.deprecated
-    "Design.apply_on_selected"
-    ~now:"History.apply_on_selected" History.apply_on_selected
 
 class type reactive_buffer = object
   inherit error_manager
@@ -287,10 +282,14 @@ let to_do_on_select
             skind
             ki.sid
             (fst loc).Lexing.pos_lnum
-            (fst loc).Lexing.pos_fname
+            (Filepath.pretty (fst loc).Lexing.pos_fname)
   in
   History.push (History.Localizable selected);
   let annot = main_ui#annot_window#buffer in
+  let formal_or_local kf vi =
+    if Kernel_function.is_formal vi kf
+    then "formal parameter" else "local variable"
+  in
   if button = 1 then begin
     annot#set_text "";
     match selected with
@@ -390,11 +389,12 @@ let to_do_on_select
 	    match lv with 
 	    | Var vi,NoOffset -> 
               main_ui#pretty_information
-                "Variable %a has type \"%a\".@\nIt is a %s variable.@\n\
+                "Variable %a has type \"%a\".@\nIt is a %s.@\n\
                    %tIt is %sreferenced and its address is %staken.@."
                 Varinfo.pretty_vname vi
                 Printer.pp_typ vi.vtype
-                (if vi.vglob then "global" else "local")
+                (if vi.vglob then "global variable"
+                 else formal_or_local (Extlib.the kf) vi)
                 (fun fmt ->
                   match vi.vdescr with None -> ()
                     | Some s ->
@@ -423,10 +423,11 @@ let to_do_on_select
             (if vi.vreferenced then "" else "not ")
             (if vi.vaddrof then "" else "not ")
         else
+          let kf = Extlib.the kf in
           main_ui#pretty_information
-            "This is the declaration of local %a in function %a%t@."
-            Varinfo.pretty_vname vi
-            Kernel_function.pretty (Extlib.the kf)
+            "This is the declaration of %s %a in function %a%t@."
+            (formal_or_local kf vi) Varinfo.pretty_vname vi
+            Kernel_function.pretty kf
             (fun fmt -> match vi.vdescr with None -> ()
              | Some s ->  Format.fprintf fmt
                  "@\nThis is a temporary variable for \"%s\".@." s)
@@ -471,7 +472,7 @@ let (selector: (GMenu.menu GMenu.factory ->
 class protected_menu_factory (host:Gtk_helper.host) (menu:GMenu.menu) = object
   inherit [GMenu.menu] GMenu.factory menu as super
 
-  method add_item ?key ?callback ?submenu string =
+  method! add_item ?key ?callback ?submenu string =
     let callback = match callback with
       None -> None
       | Some cb ->
@@ -479,7 +480,7 @@ class protected_menu_factory (host:Gtk_helper.host) (menu:GMenu.menu) = object
     in
     super#add_item ?key ?callback ?submenu string
 
-  method add_check_item ?active ?key ?callback string =
+  method! add_check_item ?active ?key ?callback string =
     let callback = match callback with
       None -> None
     | Some cb ->
@@ -1241,7 +1242,8 @@ let toplevel play =
       new Gtk_helper.error_manager (splash_w:>GWindow.window_skel)
     in
     let init_crashed = ref true in
-    error_manager#protect ~cancelable:true ~parent:(splash_w:>GWindow.window_skel)
+    error_manager#protect 
+      ~cancelable:true ~parent:(splash_w:>GWindow.window_skel)
       (fun () ->
 	(try 
            play ();
@@ -1251,7 +1253,7 @@ let toplevel play =
            Task.on_idle :=
              (fun f -> ignore (Glib.Timeout.add ~ms:50 ~callback:f));
            Ast.compute ()
-         with e -> (* An error occured: we need to enforce the splash screen
+         with e -> (* An error occurred: we need to enforce the splash screen
 		      realization before we create the error dialog widget.*)
 	   force_s (); raise e);
         init_crashed := false);

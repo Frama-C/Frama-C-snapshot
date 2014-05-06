@@ -1,0 +1,189 @@
+(**************************************************************************)
+(*                                                                        *)
+(*  This file is part of WP plug-in of Frama-C.                           *)
+(*                                                                        *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
+(*         alternatives)                                                  *)
+(*                                                                        *)
+(*  you can redistribute it and/or modify it under the terms of the GNU   *)
+(*  Lesser General Public License as published by the Free Software       *)
+(*  Foundation, version 2.1.                                              *)
+(*                                                                        *)
+(*  It is distributed in the hope that it will be useful,                 *)
+(*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
+(*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
+(*  GNU Lesser General Public License for more details.                   *)
+(*                                                                        *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
+(*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
+(*                                                                        *)
+(**************************************************************************)
+
+(* this is a prelude for Alt-Ergo*)
+(** The theory BuiltIn_ must be appended to this file*)
+(** The theory Bool_ must be appended to this file*)
+(** The theory bool_Bool_ must be appended to this file*)
+(** The theory int_Int_ must be appended to this file*)
+(** The theory map_Map_ must be appended to this file*)
+type addr = { base : int; offset : int
+}
+
+logic addr_le : addr, addr -> prop
+
+logic addr_lt : addr, addr -> prop
+
+logic addr_le_bool : addr, addr -> bool
+
+logic addr_lt_bool : addr, addr -> bool
+
+axiom addr_le_def :
+  (forall p:addr. forall q:addr [addr_le(p, q)]. (((p).base = (q).base) ->
+  (addr_le(p, q) -> ((p).offset <= (q).offset))))
+
+axiom addr_le_def1 :
+  (forall p:addr. forall q:addr [addr_le(p, q)]. (((p).base = (q).base) ->
+  (((p).offset <= (q).offset) -> addr_le(p, q))))
+
+axiom addr_lt_def :
+  (forall p:addr. forall q:addr [addr_lt(p, q)]. (((p).base = (q).base) ->
+  (addr_lt(p, q) -> ((p).offset <  (q).offset))))
+
+axiom addr_lt_def1 :
+  (forall p:addr. forall q:addr [addr_lt(p, q)]. (((p).base = (q).base) ->
+  (((p).offset <  (q).offset) -> addr_lt(p, q))))
+
+axiom addr_le_bool_def :
+  (forall p:addr. forall q:addr [addr_le_bool(p, q)]. (addr_le(p, q) ->
+  (addr_le_bool(p, q) = true)))
+
+axiom addr_le_bool_def1 :
+  (forall p:addr. forall q:addr [addr_le_bool(p, q)]. ((addr_le_bool(p,
+  q) = true) -> addr_le(p, q)))
+
+axiom addr_lt_bool_def :
+  (forall p:addr. forall q:addr [addr_lt_bool(p, q)]. (addr_lt(p, q) ->
+  (addr_lt_bool(p, q) = true)))
+
+axiom addr_lt_bool_def1 :
+  (forall p:addr. forall q:addr [addr_lt_bool(p, q)]. ((addr_lt_bool(p,
+  q) = true) -> addr_lt(p, q)))
+
+function null() : addr = { base = 0; offset = 0 }
+
+function global(b: int) : addr = { base = b; offset = 0 }
+
+function shift(p: addr, k: int) : addr = { base = (p).base; offset =
+  ((p).offset + k) }
+
+predicate included(p: addr, a: int, q: addr, b: int) = ((0 <  a) ->
+  ((0 <= b) and (((p).base = (q).base) and (((q).offset <= (p).offset) and
+  (((p).offset + a) <= ((q).offset + b))))))
+
+predicate separated(p: addr, a: int, q: addr, b: int) = ((a <= 0) or
+  ((b <= 0) or ((not ((p).base = (q).base)) or
+  ((((q).offset + b) <= (p).offset) or (((p).offset + a) <= (q).offset)))))
+
+predicate eqmem(m1: (addr,'a) farray, m2: (addr,'a) farray, p: addr,
+  a1: int) =
+  (forall q:addr [(m1[p])| (m2[q])]. (included(q, 1, p, a1) ->
+  ((m1[q]) = (m2[q]))))
+
+predicate havoc(m1: (addr,'a) farray, m2: (addr,'a) farray, p: addr,
+  a1: int) =
+  (forall q:addr [(m1[p])| (m2[q])]. (separated(q, 1, p, a1) ->
+  ((m1[q]) = (m2[q]))))
+
+predicate valid_rd(m: (int,int) farray, p: addr, n: int) = ((0 <  n) ->
+  ((0 <= (p).offset) and (((p).offset + n) <= (m[(p).base]))))
+
+predicate valid_rw(m: (int,int) farray, p: addr, n: int) = ((0 <  n) ->
+  ((0 <  (p).base) and ((0 <= (p).offset) and
+  (((p).offset + n) <= (m[(p).base])))))
+
+axiom valid_rw_rd :
+  (forall m:(int,int) farray.
+  (forall p:addr. (forall n:int. (valid_rw(m, p, n) -> valid_rd(m, p, n)))))
+
+axiom valid_string :
+  (forall m:(int,int) farray.
+  (forall p:addr. (((p).base <  0) -> (((0 <= (p).offset) and
+  ((p).offset <  (m[(p).base]))) -> valid_rd(m, p, 1)))))
+
+axiom valid_string1 :
+  (forall m:(int,int) farray.
+  (forall p:addr. (((p).base <  0) -> (((0 <= (p).offset) and
+  ((p).offset <  (m[(p).base]))) -> (not valid_rw(m, p, 1))))))
+
+axiom separated_1 :
+  (forall p:addr. forall q:addr.
+  (forall a:int. forall b:int. forall i:int. forall j:int [separated(p, a, q,
+  b), { base = (p).base; offset = i }, { base = (q).base; offset = j }].
+  (separated(p, a, q, b) -> ((((p).offset <= i) and
+  (i <  ((p).offset + a))) -> ((((q).offset <= j) and
+  (j <  ((q).offset + b))) -> (not ({ base = (p).base; offset = i } = {
+  base = (q).base; offset = j })))))))
+
+logic region : int -> int
+
+logic linked : (int,int) farray -> prop
+
+logic sconst : (addr,int) farray -> prop
+
+predicate framed(m: (addr,addr) farray) =
+  (forall p:addr [(m[p])]. (region(((m[p])).base) <= 0))
+
+axiom separated_included :
+  (forall p:addr. forall q:addr.
+  (forall a:int. forall b:int [separated(p, a, q, b), included(p, a, q, b)].
+  ((0 <  a) -> ((0 <  b) -> (separated(p, a, q, b) -> (not included(p, a, q,
+  b)))))))
+
+axiom included_trans :
+  (forall p:addr. forall q:addr. forall r:addr.
+  (forall a:int. forall b:int. forall c:int [included(p, a, q, b),
+  included(q, b, r, c)]. (included(p, a, q, b) -> (included(q, b, r, c) ->
+  included(p, a, r, c)))))
+
+axiom separated_trans :
+  (forall p:addr. forall q:addr. forall r:addr.
+  (forall a:int. forall b:int. forall c:int [included(p, a, q, b),
+  separated(q, b, r, c)]. (included(p, a, q, b) -> (separated(q, b, r, c) ->
+  separated(p, a, r, c)))))
+
+axiom separated_sym :
+  (forall p:addr. forall q:addr.
+  (forall a:int. forall b:int [separated(p, a, q, b)]. (separated(p, a, q,
+  b) -> separated(q, b, p, a))))
+
+axiom separated_sym1 :
+  (forall p:addr. forall q:addr.
+  (forall a:int. forall b:int [separated(p, a, q, b)]. (separated(q, b, p,
+  a) -> separated(p, a, q, b))))
+
+axiom eqmem_included :
+  (forall m1:(addr,'a) farray. forall m2:(addr,'a) farray.
+  (forall p:addr. forall q:addr.
+  (forall a1:int. forall b:int [eqmem(m1, m2, p, a1), eqmem(m1, m2, q, b)].
+  (included(p, a1, q, b) -> (eqmem(m1, m2, q, b) -> eqmem(m1, m2, p, a1))))))
+
+axiom eqmem_sym :
+  (forall m1:(addr,'a) farray. forall m2:(addr,'a) farray.
+  (forall p:addr.
+  (forall a1:int. (eqmem(m1, m2, p, a1) -> eqmem(m2, m1, p, a1)))))
+
+axiom havoc_sym :
+  (forall m1:(addr,'a) farray. forall m2:(addr,'a) farray.
+  (forall p:addr.
+  (forall a1:int. (havoc(m1, m2, p, a1) -> havoc(m2, m1, p, a1)))))
+
+logic cast : addr -> int
+
+axiom cast_injective :
+  (forall p:addr. forall q:addr [cast(p), cast(q)]. ((cast(p) = cast(q)) ->
+  (p = q)))
+
+logic hardware : int -> int
+
+axiom hardnull : (hardware(0) = 0)
+

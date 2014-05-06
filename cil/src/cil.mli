@@ -35,8 +35,8 @@
 (*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE         *)
 (*  POSSIBILITY OF SUCH DAMAGE.                                             *)
 (*                                                                          *)
-(*  File modified by CEA (Commissariat à l'énergie atomique et aux          *)
-(*                        énergies alternatives)                            *)
+(*  File modified by CEA (Commissariat Ã  l'Ã©nergie atomique et aux          *)
+(*                        Ã©nergies alternatives)                            *)
 (*               and INRIA (Institut National de Recherche en Informatique  *)
 (*                          et Automatique).                                *)
 (****************************************************************************)
@@ -65,9 +65,7 @@ module Frama_c_builtins:
   State_builder.Hashtbl with type key = string and type data = Cil_types.varinfo
 
 val is_builtin: Cil_types.varinfo -> bool
-(** @return true if the given variable refers to a Frama-C builtin that
-    is not used in the current program. Plugins may (and in fact should)
-    hide this builtin from their outputs
+(** @return true if the given variable refers to a Frama-C builtin.
     @since Fluorine-20130401 *)
 
 val is_unused_builtin: Cil_types.varinfo -> bool
@@ -431,6 +429,9 @@ val uintType: typ
 (** long *)
 val longType: typ
 
+(** long long *)
+val longLongType: typ
+
 (** unsigned long *)
 val ulongType: typ
 
@@ -463,9 +464,13 @@ val uint64_t: unit -> typ
 
 (** char *)
 val charType: typ
+val scharType: typ
+val ucharType: typ
 
 (** char * *)
 val charPtrType: typ
+val scharPtrType: typ
+val ucharPtrType: typ
 
 (** char const * *)
 val charConstPtrType: typ
@@ -491,15 +496,12 @@ val doubleType: typ
 (** long double *)
 val longDoubleType: typ
 
-(** Returns true if and only if the given type is a signed integer type. *)
+(** @return true if and only if the given type is a signed integer type. *)
 val isSignedInteger: typ -> bool
-(** Returns true if and only if the given type is an unsigned integer type.
+
+(** @return true if and only if the given type is an unsigned integer type.
     @since Oxygen-20120901 *)
 val isUnsignedInteger: typ -> bool
-
-(** Returns true if and only if the given type is a pointer to another type
-    @since Oxygen-20120901 *)
-val isPtrType: typ -> bool
 
 
 (** Creates a a (potentially recursive) composite type. The arguments are:
@@ -596,6 +598,10 @@ val isLogicRealType: logic_type -> bool
 (** True if the argument is an arithmetic type (i.e. integer, enum or
     floating point *)
 val isArithmeticType: typ -> bool
+
+(** True if the argument is an arithmetic or pointer type (i.e. integer, enum,
+    floating point or pointer *)
+val isArithmeticOrPointerType: typ -> bool
 
 (** True if the argument is a logic arithmetic type (i.e. integer, enum or
     floating point, either C or mathematical one *)
@@ -735,6 +741,10 @@ val makeGlobalVar: ?logic:bool -> ?generated:bool -> string -> typ -> varinfo
  *)
 val copyVarinfo: varinfo -> string -> varinfo
 
+(** Changes the type of a varinfo and of its associated logic var if any.
+    @since Neon-20130301 *)
+val update_var_type: varinfo -> typ -> unit
+
 (** Is an lvalue a bitfield? *)
 val isBitfield: lval -> bool
 
@@ -830,10 +840,6 @@ val kfloat: loc:location -> fkind -> float -> exp
 (** True if the given expression is a (possibly cast'ed)
     character or an integer constant *)
 val isInteger: exp -> Integer.t option
-
-(** Convert a 64-bit int to an OCaml int, or raise an exception if that
-    can't be done. *)
-val i64_to_int: int64 -> int
 
 (** True if the expression is a compile-time constant *)
 val isConstant: exp -> bool
@@ -1059,8 +1065,10 @@ val mkStmtOneInstr: ?ghost:bool -> ?valid_sid:bool -> instr -> stmt
  * use this instead of List.@ because you get fewer basic blocks *)
 (*val compactStmts: stmt list -> stmt list*)
 
-(** Returns an empty statement (of kind [Instr]) *)
-val mkEmptyStmt: ?ghost:bool -> ?loc:location -> unit -> stmt
+(** Returns an empty statement (of kind [Instr]). See [mkStmt] for [ghost] and
+    [valid_sid] arguments.
+    @modify Neon-20130301 adds the [valid_sid] optional argument. *)
+val mkEmptyStmt: ?ghost:bool -> ?valid_sid:bool -> ?loc:location -> unit -> stmt
 
 (** A instr to serve as a placeholder *)
 val dummyInstr: instr
@@ -1102,9 +1110,6 @@ type attributeClass =
         (** Attribute of a function type. If argument is true and we are on
             MSVC then the attribute is printed just before the function name *)
   | AttrType  (** Attribute of a type *)
-
-val register_shallow_attribute: string -> unit
-  (** Register an attribute that will never be pretty printed. *)
 
 val registerAttribute: string -> attributeClass -> unit
   (** Add a new attribute with a specified class *)
@@ -1626,8 +1631,7 @@ class type cilVisitor = object
   (** link to the current statement being visited.
 
       {b NB:} for copy visitor, the stmt is the original one (use
-      [get_stmt] to obtain the corresponding copy)
-      @deprecated Carbon-20101201 use current_kinstr instead *)
+      [get_stmt] to obtain the corresponding copy) *)
 
   method current_kinstr: kinstr
     (** [Kstmt stmt] when visiting statement stmt, [Kglobal] when called outside
@@ -1942,7 +1946,7 @@ val forgcc: string -> string
  * will print the location. *)
 module CurrentLoc: State_builder.Ref with type data = location
 
-(** Pretty-print the [(Cil.CurrentLoc.get ())] *)
+(** Pretty-print [(Cil.CurrentLoc.get ())] *)
 val pp_thisloc: Format.formatter -> unit
 
 (** A reference to the current global being visited *)
@@ -1989,7 +1993,7 @@ val peepHole1: (instr -> instr list option) -> stmt list -> unit
 (** {2 Machine dependency} *)
 (* ************************************************************************* *)
 
-(** Raised when one of the bitsSizeOf functions cannot compute the size of a
+(** Raised when one of the SizeOf/AlignOf functions cannot compute the size of a
     type. This can happen because the type contains array-length expressions
     that we don't know how to compute or because it is a type whose size is not
     defined (e.g. TFun or an undefined compinfo). The string is an explanation
@@ -2015,6 +2019,10 @@ val floatKindForSize : int-> fkind
  * function is architecture dependent, so you should only call this after you
  * call {!Cil.initCIL}. Remember that on GCC sizeof(void) is 1! *)
 val bitsSizeOf: typ -> int
+
+(** The size of a type, in bytes. Raises {!Cil.SizeOfError} when it cannot
+    compute the size. *)
+val bytesSizeOf: typ -> int
 
 (** Returns the number of bytes (resp. bits) to represent the given integer
     kind depending on the current machdep. *)
@@ -2060,23 +2068,19 @@ val max_unsigned_number: int -> Integer.t
 (** True if the integer fits within the kind's range *)
 val fitsInInt: ikind -> Integer.t -> bool
 
-(** Return the smallest kind that will hold the integer's value.
+exception Not_representable
+(** raised by {!intKindForValue}. *)
+
+(** @return the smallest kind that will hold the integer's value.
     The kind will be unsigned if the 2nd argument is true.
-    @raise Not_found if the bigint is not representable. *)
+    @raise Not_representable if the bigint is not representable. 
+    @modify Neon-20130301 may raise Not_representable. *)
 val intKindForValue: Integer.t -> bool -> ikind
 
 (** The size of a type, in bytes. Returns a constant expression or a "sizeof"
  * expression if it cannot compute the size. This function is architecture
  * dependent, so you should only call this after you call {!Cil.initCIL}.  *)
 val sizeOf: loc:location -> typ -> exp
-
-exception SizeOfError of string * typ
-(** [SizeOfError(reason, typ)] is raised when the size of [typ] for some
-    [reason] *)
-
-(** The size of a type, in bytes. Raises {!Cil.SizeOfError} when it cannot
-    compute the size. *)
-val sizeOf_int: typ -> int
 
 (** The minimum alignment (in bytes) for a type. This function is
  * architecture dependent, so you should only call this after you call
@@ -2213,10 +2217,17 @@ val extract_stmts_from_labels:
 val create_alpha_renaming: varinfo list -> varinfo list -> cilVisitor
 
 (** Provided [s] is a switch, [separate_switch_succs s] returns the
-    subset of [s.succs] that correspond to the labels of [s], and an
-    optional statement that is [None] if the switch has a default label,
-    or [Some s'] where [s'] is the syntactic successor of [s] otherwise *)
-val separate_switch_succs: stmt -> stmt list * stmt option
+    subset of [s.succs] that correspond to the Case labels of [s], and a
+    "default statement" that either corresponds to the Default label, or to the
+    syntactic successor of [s] if there is no default label. Note that this "default
+    statement" can thus appear in the returned list. *)
+val separate_switch_succs: stmt -> stmt list * stmt
+
+(** Provided [s] is a if, [separate_if_succs s] splits the successors
+    of s according to the truth value of the condition. The first
+    element of the pair is the successor statement if the condition is
+    true, and the second if the condition is false. *)
+val separate_if_succs: stmt -> stmt * stmt
 
 (**/**)
 

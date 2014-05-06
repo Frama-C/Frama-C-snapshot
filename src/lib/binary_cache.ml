@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -20,19 +20,24 @@
 (*                                                                        *)
 (**************************************************************************)
 
-module MemoryFootprint =
-  State_builder.Int_ref
-    (struct
-       let name = "Binary_cache.MemoryFootprint"
-       let dependencies = []
-       let default () = 2
-     end)
+let memory_footprint_var_name = "FRAMA_C_MEMORY_FOOTPRINT"
 
-let get_size () =
-  match MemoryFootprint.get () with
-    1 -> 512
-  | 2 -> 1024
-  | _ -> 2048
+let memory_footprint =
+  let error () =
+    Kernel.error "@[Bad value for environment variable@ %s.@ Expected value: \
+     integer between@ 1 and 10.@ Using@ default value@ of 2.@]"
+      memory_footprint_var_name;
+    2
+  in
+  try
+    let i = int_of_string (Sys.getenv memory_footprint_var_name) in
+    if i <= 0 || i > 10 then error ()
+    else i
+  with
+  | Not_found -> 2
+  | Failure "int_of_string" -> error ()
+
+let cache_size = 1 lsl (8 + memory_footprint)
 
 module type Cacheable =
 sig
@@ -244,9 +249,9 @@ struct
 
 end
 
-module Make_Symetric (H: Cacheable) (R: Result) =
+module Make_Symmetric (H: Cacheable) (R: Result) =
 struct
-  let size = get_size ()
+  let size = cache_size
   let cache = Array_3.make size H.sentinel H.sentinel R.sentinel
 
   let mask = pred size
@@ -282,9 +287,9 @@ struct
 end
 
 
-module Make_Asymetric (H: Cacheable) (R: Result) =
+module Make_Asymmetric (H: Cacheable) (R: Result) =
 struct
-  let size = 1024 (*get_size ()*)
+  let size = cache_size
   let cache = Array_3.make size H.sentinel H.sentinel R.sentinel
 
   let mask = pred size
@@ -343,7 +348,7 @@ end
 
 module Make_Binary (H0: Cacheable) (H1: Cacheable) =
 struct
-  let size = get_size()
+  let size = cache_size
   let cache = Array_2.make size H0.sentinel H1.sentinel
   let result = Array_Bit.make size
   let mask = pred size
@@ -374,9 +379,9 @@ struct
       r
 end
 
-module Make_Symetric_Binary (H0: Cacheable) =
+module Make_Symmetric_Binary (H0: Cacheable) =
 struct
-  let size = get_size()
+  let size = cache_size
   let cache = Array_2.make size H0.sentinel H0.sentinel 
   let result = Array_Bit.make size
   let mask = pred size
@@ -415,7 +420,7 @@ end
 
 module Make_Het1_1_4 (H0: Cacheable) (H1: Cacheable) (H2: Cacheable) (R: Result) =
 struct
-  let size = get_size ()
+  let size = cache_size
   let cache =
     Array_7.make size
       H0.sentinel H1.sentinel

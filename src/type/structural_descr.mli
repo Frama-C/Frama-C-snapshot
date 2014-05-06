@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -48,7 +48,7 @@ type pack = private
     Example: the structural descriptor of [A | B of int * bool | C of string]
     is [Structure (Sum [| [| p_int; p_bool |]; [| p_string |] |])]. Ok, in
     this case, just [Abstract] is valid too. *)
-type t =
+type t = private
   | Unknown
   (** Use it either for unmarshable types or if you don't know its internal
       representation. In any case, values of types with this descriptor
@@ -66,7 +66,7 @@ type t =
                               Do not use it outside the library *)
 
 (** Description with details. *)
-and structure =
+and structure = private
   | Sum of pack array array
   (** [Sum c] describes a non-array type where [c] is an array describing
       the non-constant constructors of the type being described (in the order
@@ -108,6 +108,12 @@ end
 (** {2 Predefined descriptors} *)
 (* ********************************************************************** *)
 
+val t_unknown: t
+(** @since Neon-20130301 *)
+
+val t_abstract: t
+(** @since Neon-20130301 *)
+
 val t_unit : t
 val t_int : t
 val t_string : t
@@ -124,6 +130,8 @@ val t_ref : t -> t
 val t_option : t -> t
 val t_array : t -> t
 val t_queue: t -> t
+val t_sum: pack array array -> t
+(** @since Neon-20130301 *)
 
 (** Use the functions below only if the compare/hash functions cannot change by
     marshalling. *)
@@ -158,8 +166,12 @@ exception Cannot_pack
 val unsafe_pack: Unmarshal.t -> pack
 (** @raise Cannot_pack if packing failed. *)
 
+val of_pack: single_pack -> t
+
 val cleanup: t -> t
 val are_consistent: t -> t -> bool
+(** Not symmetrical: check that the second argument is a correct refinement of
+    the first one. *)
 
 (*
   Local Variables:

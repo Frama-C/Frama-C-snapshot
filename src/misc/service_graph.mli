@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -74,27 +74,6 @@ sig
     and type E.t = CallG.E.t
 (** @since Beryllium-20090902 *)
 
-(*
-(** Graph of services *)
-
-  module SS: Set.S with type elt = G.V.t
-  type service_vertex = private
-  { service: int; mutable root: G.V.t; mutable nodes: SS.t }
-(** @since Beryllium-20090901 *)
-
-(** @since Beryllium-20090901 *)
-  module SG : sig
-  include Graph.Sig.G with type V.t = service_vertex
-  type tt = t
-  module Datatype: Project.Datatype.S with type t = tt
-  end
-
-  val compute_services: CallG.t -> SG.t
-(** @since Beryllium-20090901 *)
-
-  val output_services: out_channel -> SG.t -> unit
-(** @since Beryllium-20090901 *)
- *)
 end
 
 (*

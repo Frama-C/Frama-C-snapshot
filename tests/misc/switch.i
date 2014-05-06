@@ -1,6 +1,6 @@
 /* run.config
-   OPT: -float-normal -memory-footprint 1 -val -deps -out -input -journal-disable
-   OPT: -float-normal -memory-footprint 1 -val -deps -out -input -journal-disable -simplify-cfg
+   OPT: -float-normal -val -deps -out -input -journal-disable
+   OPT: -float-normal -val -deps -out -input -journal-disable -simplify-cfg
 */
 
 int result1, result3, result4;

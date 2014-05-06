@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -28,14 +28,14 @@ let no_default = ref false
 
 let set_default b = no_default := not b
 
+let plugin_dirs = Str.split (Str.regexp ",[ ]*") Config.plugin_dir
+
 let default_path () =
   match !no_default, !Config.is_gui with
   | true, _ -> []
   | false, true ->
-      (* The order is relevant: plugins are loaded
-         in reverse order of this list. *)
-      [ Config.plugin_dir ; Filename.concat Config.plugin_dir "gui"]
-  | false, false -> [ Config.plugin_dir ]
+    List.fold_left (fun acc d -> d :: (d ^ "/gui") :: acc) [] plugin_dirs
+  | false, false -> plugin_dirs
 
 let all_path = ref []
 let bad_path : string list ref = ref []
@@ -44,13 +44,8 @@ let bad_path : string list ref = ref []
 (** {2 Debugging} *)
 (* ************************************************************************* *)
 
-include Log.Register
-  (struct
-     let channel = Log.kernel_channel_name
-     let label = Log.kernel_label_name
-     let verbose_atleast n = !Cmdline.kernel_verbose_atleast_ref n
-     let debug_atleast n = !Cmdline.kernel_debug_atleast_ref n
-   end)
+open Cmdline.Kernel_log
+let dkey = register_category "dynamic_loading"
 
 (* Try to display an error message from the argument of a [Sys_error] exception
    raised whenever a path is incorrect.  Don't display any error for default
@@ -84,13 +79,38 @@ let is_dynlink_available =
 let dynlink_available f x = if is_dynlink_available then f x
 
 (* ************************************************************************* *)
+(** {2 Dependency graph} *)
+(* ************************************************************************* *)
+
+module Dep_graph = Graph.Imperative.Digraph.Concrete(Datatype.String)
+let plugin_dependencies = Dep_graph.create ()
+let add_dependencies ~from p = Dep_graph.add_edge plugin_dependencies from p
+
+(* debugging purpose only *)
+let print_graph fmt =
+  let module G = 
+	Graph.Graphviz.Dot
+	  (struct
+	    include Dep_graph
+	    let graph_attributes _ = []
+	    let default_vertex_attributes _ = []
+	    let vertex_name s = s
+	    let vertex_attributes _ = []
+	    let get_subgraph _ = None
+	    let default_edge_attributes _ = []
+	    let edge_attributes _ = []
+	   end)
+  in
+  G.fprint_graph fmt plugin_dependencies
+
+(* ************************************************************************* *)
 (** {2 Paths} *)
 (* ************************************************************************* *)
 
 (** @return true iff [path] is a readable directory *)
-let check_path path =
+let check_path ?(error=true) path =
   try ignore (Sys.readdir path); true
-  with Sys_error s -> catch_sysreaddir s; false
+  with Sys_error s -> if error then catch_sysreaddir s; false
 
 let rec init_paths =
   let todo = ref true in
@@ -102,8 +122,8 @@ let rec init_paths =
 
 (** Display debug message and add a path to list of search path *)
 and add_path_list path =
-  feedback ~level:2
-    "dynamic plug-ins are now also searched inside directory `%s'" path;
+  feedback ~dkey
+    "dynamic plug-ins are now searched inside directory `%s'." path;
   init_paths ();
   all_path := path :: !all_path
 
@@ -114,13 +134,14 @@ and add_path path =
     && check_path path
   then begin
     add_path_list path;
+    (* in GUI mode, try to load the GUI plug-ins before the standard ones *)
+    if !Config.is_gui then begin
+      let gui = path ^ "/gui" in
+      if check_path gui then add_path_list gui
+    end;
     true
   end else
     false
-
-let remove_last_path () = match !all_path with
-  | [] -> invalid_arg "Dynamic.remove_last_path"
-  | _ :: l -> all_path := l
 
 (* read_path is very similar to check_path but to check a path you must use
    Sys.readdir and use Sys.readdir after. To prevent two use of Sys.readdir, I
@@ -258,7 +279,7 @@ let dynlink_file path module_name =
     end
   in
   try
-    feedback ~level:2 "loading plug-in %s" (String.capitalize module_name);
+    feedback ~dkey "loading plug-in `%s'." (String.capitalize module_name);
     Dynlink_common_interface.loadfile file
   with
   | Dynlink_common_interface.Error e ->
@@ -362,15 +383,19 @@ let load_script =
         dir
         ml_name
     in
-    feedback ~level:2 "executing command `%s'" cmd;
+    feedback ~dkey "executing command `%s'." cmd;
     let code = Sys.command cmd in
-    if code <> 0 then abort "command `%s' failed" cmd
+    if code <> 0 then abort "command `%s' failed." cmd
     else begin
       let extended = add_path "." in
       load_module name;
-      if extended then remove_last_path ();
+      if extended then begin
+	match !all_path with
+	| [] -> assert false (* contains at least '.', see def of [extended] *)
+	| _ :: l -> all_path := l
+      end;
       let cleanup () =
-        feedback ~level:2 "Removing files generated when compiling %S" ml_name;
+        feedback ~dkey "removing files generated when compiling `%s'." ml_name;
         Extlib.safe_remove gen_name (* .cmo or .cmxs *);
         Extlib.safe_remove (mk_name ".cmi");
         if Dynlink_common_interface.is_native then begin
@@ -383,25 +408,44 @@ let load_script =
   in
   dynlink_available load
 
-let load_all_modules =
+let plugins_of_dir d =
   let filter f =
     Str.string_match (Str.regexp (".+\\" ^ object_file_extension ^ "$")) f 0
   in
-  let load_dir d =
-    let files = read_path d in
-    let files = List.filter filter files in
-    let modules = List.map Filename.chop_extension files in
-    let load f = if Modules.register_once f then dynlink_file d f in
-    (* order of loading inside a directory remains system-independent *)
-    List.iter load (List.sort String.compare modules)
+  let files = read_path d in
+  let files = List.filter filter files in
+  List.map Filename.chop_extension files
+
+let load_dir d =
+  let load f = if Modules.register_once f then dynlink_file d f in
+  let modules = plugins_of_dir d in
+  (* order of loading inside a directory remains system-independent *)
+  List.iter load (List.sort String.compare modules)
+
+let build_dependency_graph () =
+  List.iter
+    (fun d ->
+      let dir = d ^ "/dependencies" in
+      if Sys.file_exists dir && Sys.is_directory dir then begin
+	load_dir dir;
+	Loading_error_messages.print ()
+      end)
+    plugin_dirs
+
+let load_all_modules () =
+  init_paths ();
+  (* build the plug-in dependency graph *)
+  let add_vertex dir = 
+    let modules = plugins_of_dir dir in
+    List.iter (Dep_graph.add_vertex plugin_dependencies) modules
   in
-  let load_all () =
-    init_paths ();
-    (* order of directory matters for the GUI *)
-    List.iter load_dir !all_path;
-    Loading_error_messages.print ()
-  in
-  dynlink_available load_all
+  List.iter add_vertex !all_path;
+  if not !no_default then build_dependency_graph ();
+  debug ~level:2 ~dkey "@[plug-in dependency graph:@ %t@]" print_graph;
+  (* load the plug-ins by following the dependencies *)
+  let module T = Graph.Topological.Make_stable(Dep_graph) in
+  T.iter load_module_from_unknown_path plugin_dependencies;
+  Loading_error_messages.print ()
 
 (* ************************************************************************* *)
 (** {2 Registering and accessing dynamic values} *)
@@ -475,11 +519,11 @@ module Parameter = struct
       functor_name fct_name option_name
 
   let get_parameter option_name = 
-    get ~plugin:"" option_name Parameter.ty
+    get ~plugin:"" option_name Typed_parameter.ty
 
   let get_state option_name =
-    let prm = get ~plugin:"" option_name Parameter.ty in
-    State.get prm.Parameter.name
+    let prm = get ~plugin:"" option_name Typed_parameter.ty in
+    State.get prm.Typed_parameter.name
 
   let apply modname name s ty1 ty2 =
     get ~plugin:""  (get_name modname s name) (Datatype.func ty1 ty2)
@@ -536,6 +580,10 @@ module Parameter = struct
         let modname = "StringList"
        end)
     let add name = apply "StringList" name "add" Datatype.string Datatype.unit
+    let append_before name = apply "StringList" name "append_before"
+      (Datatype.list Datatype.string) Datatype.unit
+    let append_after name = apply "StringList" name "append_after"
+      (Datatype.list Datatype.string) Datatype.unit
     let remove name =
       apply "StringList" name "remove" Datatype.string Datatype.unit
     let is_empty name =
@@ -569,13 +617,6 @@ let () =
     Dynlink_common_interface.allow_unsafe_modules true;
     Cmdline.run_during_extending_stage load_all_modules
   end;
-
-module Main = struct
-  module Old = Hook.Make(struct end)
-  let extend =
-    deprecated "Dynamic.Main.extend" ~now:"Db.Main.extend" Old.extend
-  let apply =  Old.apply
-end
 
 (*
 Local Variables:

@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -230,9 +230,17 @@ val fold: (Property.t -> 'a -> 'a) -> 'a -> 'a
 val register: Property.t -> unit
 (** Register the given property. It must not be already registered. *)
 
+val register_property_add_hook: (Property.t -> unit) -> unit
+(** add an hook that will be called for any newly registred property
+    @since Neon-20130301 *)
+
 val remove: Property.t -> unit
 (** Remove the property deeply. Must be called only when removing the
     corresponding annotation. *)
+
+val register_property_remove_hook: (Property.t -> unit) -> unit
+(** Add and hook that will be called each time a property is removed.
+    @since Neon-20130301 *)
 
 val merge: old:Property.t list  -> Property.t list -> unit
 (** [merge old new] registers properties in [new] which are not in [old] and

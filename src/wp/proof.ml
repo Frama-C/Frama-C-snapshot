@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -39,9 +39,21 @@ let clear () =
     needsave := false ;
   end
 
+let sanitize hint =
+  try
+    let n = String.length hint in
+    if n <= 0 then raise Exit ;
+    for i = 0 to n - 1 do
+      match hint.[i] with
+      | 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' | '_' | '-' | '*' -> ()
+      | _ -> raise Exit
+    done ; true
+  with Exit -> false
+    
 let register_script goal hints proof =
-  Hashtbl.replace scriptbase goal (List.sort String.compare hints,proof)
-
+  let hints = List.sort String.compare (List.filter sanitize hints) in
+  Hashtbl.replace scriptbase goal (hints,proof)
+    
 let delete_script goal =
   Hashtbl.remove scriptbase goal
 

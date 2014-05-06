@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Aorai plug-in of Frama-C.                        *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -75,10 +75,14 @@ val is_state_pred: state -> Cil_types.predicate Cil_types.named
     in corresponding state. *)
 val is_out_of_state_pred: state -> Cil_types.predicate Cil_types.named
 
-(** returns assigns clause corresponding to updating automaton's state.
+(** returns assigns clause corresponding to updating automaton's state, and
+    assigning auxiliary variable depending on the possible transitions made
+    in the function.
     @since Nitrogen-20111001
+    @since Neon-20130301 adds kf argument
  *)
 val aorai_assigns:
+  Data_for_aorai.state ->
   Cil_types.location -> Cil_types.identified_term Cil_types.assigns
 
 (** returns the list of predicates expressing that for each current state
@@ -116,22 +120,33 @@ val get_preds_post_bc_wrt_params :
 val possible_states_preds:
   Data_for_aorai.state -> Cil_types.predicate Cil_types.named list
 
-(** Possible values of the given auxiliary variable under the current path. *)
+(** Possible values of the given auxiliary variable under the current path,
+    [start]ing from the given point
+    @since Neon-20130301 add logic_label argument
+ *)
 val update_to_pred:
+  start: Cil_types.logic_label ->
   pre_state:Promelaast.state -> post_state:Promelaast.state ->
   Cil_types.term -> Data_for_aorai.Intervals.t -> predicate named
 
 (** for a given starting and ending state, returns the post-conditions
-    related to the possible values of the auxiliary variables at the exit of
-    the function, guarded by the fact that we have followed this path.
+    related to the possible values of the auxiliary variables at current point
+    the function, guarded by the fact that we have followed this path, from
+    the given program point
+    @modify Neon-20130301 add logic_label argument
  *)
 val action_to_pred:
+  start:Cil_types.logic_label ->
   pre_state:Promelaast.state -> post_state:Promelaast.state ->
   Data_for_aorai.Vals.t -> predicate named list
 
 (** All actions that might have been performed on aux variables from the
-    start of the function, guarded by the path followed. *)
-val all_actions_preds: Data_for_aorai.state -> predicate named list
+    given program point, guarded by the path followed.
+    @modify Neon-20130301 add logic_label argument
+ *)
+val all_actions_preds: 
+  Cil_types.logic_label ->
+  Data_for_aorai.state -> predicate named list
 
 (** Return an integer constant term with the 0 value. *)
 val zero_term : unit -> Cil_types.term

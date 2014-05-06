@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -22,27 +22,52 @@
 
 open Cil_types
 open Cil_datatype
-open Cil
 
-let name = "natural_loops"
+let dkey = Kernel.register_category "natural_loops"
 
 module Natural_Loops =
   Kernel_function.Make_Table
-    (Datatype.List
-       (Datatype.Pair(Stmt)(Datatype.List(Stmt))))
+    (Stmt.Map.Make(Datatype.List(Stmt)))
     (struct
-       let name = name
+       let name = "natural_loops"
        let size = 97
        let dependencies = [ Ast.self ]
      end)
 
 let pretty_natural_loops fmt loops =
-  List.iter
-    (fun (start,members) ->
-       Format.fprintf fmt "Loop start: %d ( " start.sid;
+  Stmt.Map.iter
+    (fun start members ->
+       Format.fprintf fmt "Loop start: %d <- ( " start.sid;
        List.iter (fun d -> Format.fprintf fmt "%d " d.sid) members;
        Format.fprintf fmt ")@\n";)
     loops
+
+(** Compute the start of the natural loops of the fonction. For each start,
+    we also return the origins of the back edges. *)
+let findNaturalLoops (f: fundec) =
+  let loops =
+    List.fold_left
+      (fun acc b ->
+        (* Iterate over all successors, and see if they are among the
+           dominators for this block. Such a successor [s] is a natural loop,
+           and [b -> s] is a back-edge. *)
+        List.fold_left
+          (fun acc s ->
+            if Dominators.dominates s b then
+              let cur =
+                try Stmt.Map.find s acc
+                with Not_found -> []
+              in
+              Stmt.Map.add s (b :: cur) acc
+            else
+              acc)
+          acc
+          b.succs)
+      Stmt.Map.empty
+      f.sallstmts
+  in
+  Kernel.debug ~dkey "Natural loops:\n%a" pretty_natural_loops loops;
+  loops
 
 let get_naturals kf =
   let loops =
@@ -50,16 +75,12 @@ let get_naturals kf =
       (fun kf ->
          match kf.fundec with
          | Declaration _ ->
-             []
+             Stmt.Map.empty
          | Definition (cilfundec,_) ->
-             Kernel.debug "Compute natural loops for '%a'"
+             Kernel.debug ~dkey "Compute natural loops for '%a'"
                Kernel_function.pretty kf;
-             let dominators = Dominators.computeIDom cilfundec in
-             (*if dbg then
-               Format.printf "DONE COMPUTE NATURAL LOOPS IDOM FOR %S@."
-                 (Kernel_function.get_name kf);*)
-             let naturals = Dominators.findNaturalLoops cilfundec dominators in
-             Kernel.debug
+             let naturals = findNaturalLoops cilfundec  in
+             Kernel.debug ~dkey
                "Done computing natural loops for '%a':@.%a"
                Kernel_function.pretty kf
                pretty_natural_loops naturals;
@@ -70,104 +91,48 @@ let get_naturals kf =
   loops
 
 let is_natural kf =
-  let natural_loops =
-    List.fold_left
-      (fun acc (n, _) -> Stmt.Set.add n acc)
-      Stmt.Set.empty
-      (get_naturals kf)
-  in
-(* non natural loop over-approximation try:
-  let can_reach = !stmt_can_reach kf in *)
-  fun stmt ->
-    let nat_loop = Stmt.Set.mem stmt natural_loops in
-    nat_loop
-(*  if nat_loop then nat_loop
-  else
-    if can_reach stmt stmt
-    then true (* this is non natural loop or an imbricated loop... *)
-    else false
-*)
+  let loops = get_naturals kf in
+  fun s -> Stmt.Map.mem s loops
+
 let back_edges kf stmt =
-  if is_natural kf stmt then
-    let rec lookup = function
-      | [] -> assert false
-      | (s, pred_s) :: sl -> if s.sid = stmt.sid then pred_s else lookup sl
-    in
-    lookup (get_naturals kf)
-  else
-    []
+  try Stmt.Map.find stmt (get_naturals kf)
+  with Not_found -> []
 
-let while_for_natural_loop kf stmt =
-  match stmt.skind with
-  | Loop _ -> stmt
-  | _ -> (* the while stmt is probably the non looping predecessor *)
-      let be = back_edges kf stmt in
-      Format.printf "Stmt:%d " stmt.sid;
-      List.iter (fun x -> Format.printf "B_edge:%d " x.sid) be;
-      List.iter (fun x -> Format.printf "Preds:%d " x.sid) stmt.preds;
-      let non_looping_pred =
-        List.filter (fun pred -> not (List.mem pred be)) stmt.preds
-      in
-      match non_looping_pred with
-      | [x] -> x
-      | _ ->
-          Format.eprintf "@.Lexical non natural loop detected !@.";
-          assert false
 
-let compute_allstmt_block block =
-  let visitor = object
-    val mutable allstmts = Stmt.Set.empty
-    method allstmts = allstmts
-    inherit nopCilVisitor
-    method vstmt s =
-      allstmts <- Stmt.Set.add s allstmts;
-      DoChildren
-  end
+let get_non_naturals kf =
+  let visited = Stmt.Hashtbl.create 17 in
+  let current = Stmt.Hashtbl.create 17 in
+  let res = ref Stmt.Set.empty in
+  let is_natural = is_natural kf in
+  let rec aux s =
+    if Stmt.Hashtbl.mem visited s then begin
+      if Stmt.Hashtbl.mem current s &&  not (is_natural s) then begin
+        res := Stmt.Set.add s !res;
+        Kernel.warning ~once:true ~source:(fst (Cil_datatype.Stmt.loc s))
+          "Non-natural loop detected."
+      end
+    end
+    else begin
+      Stmt.Hashtbl.add visited s ();
+      Stmt.Hashtbl.add current s ();
+      List.iter aux s.Cil_types.succs;
+      Stmt.Hashtbl.remove current s;
+    end
   in
-  ignore (visitCilBlock (visitor:>cilVisitor) block);
-  visitor#allstmts
+  aux (Kernel_function.find_first_stmt kf);
+  !res
 
-module Result = Kinstr.Hashtbl
+module Non_Natural_Loops =
+  Kernel_function.Make_Table
+    (Stmt.Set)
+    (struct
+       let name = "Loop.non_natural_loops"
+       let size = 37
+       let dependencies = [ Ast.self ]
+     end)
+let get_non_naturals = Non_Natural_Loops.memo get_non_naturals
 
-let compute_loops_stmts kf =
-  let tbl = Result.create 17 in
-  let visitor = object
-    inherit nopCilVisitor
-    method vstmt s =
-      (match s.skind with
-       | Loop (_,block,_,_,_) ->
-           Result.add tbl (Kstmt s) (compute_allstmt_block block)
-       |  _ -> ());
-      DoChildren
-  end
-  in
-  (try
-     ignore
-       (visitCilFunction
-          (visitor :> cilVisitor) (Kernel_function.get_definition kf));
-   with Kernel_function.No_Definition ->
-     ());
-  tbl
-
-exception No_such_while
-
-(** @raise No_such_while if [stmt.skind] is not a [While]. *)
-let get_loop_stmts =
-  let module S =
-    Kernel_function.Make_Table
-      (Result.Make(Stmt.Set))
-      (struct
-         let name = "LoopStmts"
-         let size = 97
-         let dependencies = [ Ast.self ]
-       end)
-  in
-  fun kf loop_stmt ->
-    (match loop_stmt.skind with
-     | Loop _ -> ()
-     | _ -> raise No_such_while);
-    let tbl = S.memo compute_loops_stmts kf in
-    try Result.find tbl (Kstmt loop_stmt) with Not_found -> assert false
+let is_non_natural kf s = Stmt.Set.mem s (get_non_naturals kf)
 
 (*
 Local Variables:

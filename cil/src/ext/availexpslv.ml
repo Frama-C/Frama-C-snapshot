@@ -35,8 +35,8 @@
 (*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE         *)
 (*  POSSIBILITY OF SUCH DAMAGE.                                             *)
 (*                                                                          *)
-(*  File modified by CEA (Commissariat à l'énergie atomique et aux          *)
-(*                        énergies alternatives)                            *)
+(*  File modified by CEA (Commissariat Ã  l'Ã©nergie atomique et aux          *)
+(*                        Ã©nergies alternatives)                            *)
 (*               and INRIA (Institut National de Recherche en Informatique  *)
 (*                          et Automatique).                                *)
 (****************************************************************************)
@@ -49,7 +49,7 @@
 open Cil_types
 open Cil
 
-let debug = ref (Kernel.debug_atleast 2)
+let debug = ref false
 
 
 (*
@@ -120,7 +120,7 @@ let lvh_combine lvh1 lvh2 =
 class memReadOrAddrOfFinderClass br = object
   inherit nopCilVisitor
 
-  method vexpr e = match e.enode with
+  method! vexpr e = match e.enode with
   | Lval(Mem _, _) -> begin
       br := true;
       SkipChildren
@@ -130,7 +130,7 @@ class memReadOrAddrOfFinderClass br = object
       SkipChildren
   | _ -> DoChildren
 
-  method vvrbl vi =
+  method! vvrbl vi =
     if vi.vaddrof || vi.vglob then
       (br := true;
        SkipChildren)
@@ -161,7 +161,7 @@ let lvh_kill_mem lvh =
 class viFinderClass vi br = object
   inherit nopCilVisitor
 
-  method vvrbl vi' =
+  method! vvrbl vi' =
     if vi.vid = vi'.vid
     then (br := true; SkipChildren)
     else DoChildren
@@ -190,7 +190,7 @@ let lvh_kill_vi lvh vi =
 class lvalFinderClass lv br = object
   inherit nopCilVisitor
 
-  method vlval l =
+  method! vlval l =
     if compareLval l lv
     then (br := true; SkipChildren)
     else DoChildren
@@ -222,7 +222,7 @@ let lvh_kill_lval lvh lv =
 class volatileFinderClass br = object
   inherit nopCilVisitor
 
-  method vexpr e =
+  method! vexpr e =
     if (hasAttribute "volatile" (typeAttrs (typeOf e)))
     then (br := true; SkipChildren)
     else DoChildren
@@ -237,7 +237,7 @@ let exp_is_volatile e : bool =
 class addrOfOrGlobalFinderClass br = object
   inherit nopCilVisitor
 
-  method vvrbl vi =
+  method! vvrbl vi =
     if vi.vaddrof || vi.vglob
     then (br := true; SkipChildren)
     else DoChildren
@@ -303,7 +303,7 @@ let lvh_handle_inst i lvh =
       end;
       lvh
   end
-  | Asm(_,_,_,_,_,_) -> begin
+  | Asm(_,_,_,_,_,_,_) -> begin
       let _,d = Usedef.computeUseDefInstr i in
       Cil_datatype.Varinfo.Set.iter (fun vi ->
 	lvh_kill_vi lvh vi) d;
@@ -316,13 +316,13 @@ module AvailableExps =
 
     let name = "Available Expressions"
 
-    let debug = debug
+    let debug = false
 
     (* mapping from var id to expression *)
     type t = exp LvExpHash.t
 
     module StmtStartData =
-      Dataflow.StartData(struct type t = exp LvExpHash.t let size = 64 end)
+      Dataflow2.StartData(struct type t = exp LvExpHash.t let size = 64 end)
 
     let copy = LvExpHash.copy
 
@@ -334,23 +334,17 @@ module AvailableExps =
       if lvh_equals old lvh then None else
       Some(lvh_combine old lvh)
 
-    let doInstr _ i _lvh =
-      let action = lvh_handle_inst i in
-      Dataflow.Post(action)
+    let doInstr _ i lvh = lvh_handle_inst i lvh
 
-    let doStmt _stm _astate = Dataflow.SDefault
+    let doStmt _stm _astate = Dataflow2.SDefault
 
-    let doGuard _ _c _astate = Dataflow.GDefault, Dataflow.GDefault
-
-    let filterStmt _stm = true
-
-    let stmt_can_reach _ _ = true
+    let doGuard _ _c _astate = Dataflow2.GDefault, Dataflow2.GDefault
 
     let doEdge _ _ d = d
 
   end
 
-module AE = Dataflow.Forwards(AvailableExps)
+module AE = Dataflow2.Forwards(AvailableExps)
 
 
 (*
@@ -397,7 +391,7 @@ class aeVisitorClass = object (self)
 
   val mutable cur_ae_dat = None
 
-  method vstmt stm =
+  method! vstmt stm =
     match getAEs stm with
     | None ->
 	if !debug then Kernel.debug "aeVis: stm %d has no data" stm.sid ;
@@ -414,7 +408,7 @@ class aeVisitorClass = object (self)
 	    cur_ae_dat <- None;
 	    DoChildren
 
-  method vinst i =
+  method! vinst i =
     if !debug then 
       Kernel.debug "aeVist: before %a, ae_dat_lst is %d long"
 	Cil_printer.pp_instr i (List.length ae_dat_lst);

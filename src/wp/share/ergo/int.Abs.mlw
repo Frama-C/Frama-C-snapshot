@@ -1,0 +1,35 @@
+(**************************************************************************)
+(*                                                                        *)
+(*  The Why3 Verification Platform   /   The Why3 Development Team        *)
+(*  Copyright 2010-2013   --   INRIA - CNRS - Paris-Sud University        *)
+(*                                                                        *)
+(*  This software is distributed under the terms of the GNU Lesser        *)
+(*  General Public License version 2.1, with the special exception        *)
+(*  on linking described in file LICENSE.                                 *)
+(*                                                                        *)
+(*  File modified by CEA (Commissariat à l'énergie atomique et aux        *)
+(*                        énergies alternatives).                         *)
+(*                                                                        *)
+(**************************************************************************)
+
+(* this is a prelude for Alt-Ergo*)
+(** The theory BuiltIn_ must be appended to this file*)
+(** The theory Bool_ must be appended to this file*)
+(** The theory int_Int_ must be appended to this file*)
+logic abs_int : int -> int
+
+axiom abs_def : (forall x:int. ((0 <= x) -> (abs_int(x) = x)))
+
+axiom abs_def1 : (forall x:int. ((not (0 <= x)) -> (abs_int(x) = (-x))))
+
+axiom Abs_le :
+  (forall x:int. forall y:int. ((abs_int(x) <= y) -> ((-y) <= x)))
+
+axiom Abs_le1 : (forall x:int. forall y:int. ((abs_int(x) <= y) -> (x <= y)))
+
+axiom Abs_le2 :
+  (forall x:int. forall y:int. ((((-y) <= x) and (x <= y)) ->
+  (abs_int(x) <= y)))
+
+axiom Abs_pos : (forall x:int. (0 <= abs_int(x)))
+

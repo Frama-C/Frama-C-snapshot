@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -53,8 +53,8 @@ struct
 end
 
 include SELF
-module Map = Map.Make(SELF)
-module Set = Set.Make(SELF)	      
+module Map = FCMap.Make(SELF)
+module Set = FCSet.Make(SELF)	      
 
 let severe s = Set.exists (fun w -> w.severe) s
 
@@ -62,7 +62,7 @@ let pretty fmt w =
   begin
     Format.fprintf fmt
       "@[<v 0>%s:%d: warning from %s:@\n"
-      w.loc.Lexing.pos_fname
+      (Filepath.pretty w.loc.Lexing.pos_fname)
       w.loc.Lexing.pos_lnum
       w.source ;
     if w.severe then
@@ -122,16 +122,16 @@ let emit ?(severe=false) ?source ~effect message =
   let buffer = Buffer.create 80 in
   Format.kfprintf 
     (fun fmt ->
-       Format.pp_print_flush fmt () ;
-       let text = Buffer.contents buffer in
-       let loc = Cil_const.CurrentLoc.get () in
-       add { 
-	 loc = fst loc ; 
-	 severe = severe ; 
-	 source = source ;
-	 effect = effect ; 
-	 reason = text ;
-       })
+      Format.pp_print_flush fmt () ;
+      let text = Buffer.contents buffer in
+      let loc = Cil_const.CurrentLoc.get () in
+      add { 
+	loc = fst loc ; 
+	severe = severe ; 
+	source = source ;
+	effect = effect ; 
+	reason = text ;
+      })
     (Format.formatter_of_buffer buffer)
     message
 

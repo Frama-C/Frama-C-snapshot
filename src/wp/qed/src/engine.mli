@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -38,9 +38,11 @@ type op =
 
 type link =
   | F_call  of string (** n-ary function *)
-  | F_left  of string * string (** 2-ary function left-to-right (0,+) *)
-  | F_right of string * string (** 2-ary function right-to-left (0,+) *)
+  | F_subst of string (** n-ary function with substitution "foo(%1,%2)" *)
+  | F_left  of string (** 2-ary function left-to-right + *)
+  | F_right of string (** 2-ary function right-to-left + *)
   | F_assoc of string (** associative infix operator *)
+  | F_bool_prop of string * string (** Has a bool and prop version *)
 
 type callstyle =
   | CallVar  (** Call is [f(x,...)] ; [f()] can be written [f] *)
@@ -78,187 +80,186 @@ type ('t,'f,'c) ftypedef =
 
 (** Generic Engine Signature *)
 
-class type virtual ['adt,'field,'logic,'tau,'var,'term] engine =
-object
-  
-  (** {3 Linking} *)
-  
-  method virtual datatype : 'adt -> string
-  method virtual field : 'field -> string
-  method basename : string -> string
-  (** Allows to sanitize the basename used for every name except function. *)
-  method virtual link : cmode -> 'logic -> link
-  method link_name : cmode -> 'logic -> string
-    
-  (** {3 Global and Local Environment} *)
-    
-  method declare : string -> unit
-  method declare_all : string list -> unit
-    
-  method local : (unit -> unit) -> unit
+class type virtual ['z,'adt,'field,'logic,'tau,'var,'term] engine =
+  object
+
+    (** {3 Linking} *)
+
+    method virtual datatype : 'adt -> string
+    method virtual field : 'field -> string
+    method basename : string -> string
+    (** Allows to sanitize the basename used for every name except function. *)
+    method virtual link : 'logic -> link
+
+    (** {3 Global and Local Environment} *)
+
+    method declare : string -> unit
+    method declare_all : string list -> unit
+
+    method local : (unit -> unit) -> unit
     (** Calls the continuation in a local copy of the environment.
-	Previous environment is restored after return, but allocators
-	are left unchanged to enforce on-the-fly alpha-conversion. *)
-    
-  method global : (unit -> unit) -> unit
+        	Previous environment is restored after return, but allocators
+        	are left unchanged to enforce on-the-fly alpha-conversion. *)
+
+    method global : (unit -> unit) -> unit
     (** Calls the continuation in a fresh local environment.
-	Previous environment is restored after return. *)
-    
-  (** {3 Types} *)
-    
-  method t_int  : string
-  method t_real : string
-  method t_bool : string
-  method t_prop : string
-  method t_atomic : 'tau -> bool
-    
-  method pp_array : 'tau printer (** For [Z->a] arrays *)
-  method pp_farray : 'tau printer2 (** For [k->a] arrays *)
-    
-  method pp_tvar : int printer (** Type variables. *)
-  method pp_datatype : 'adt -> 'tau list printer 
-    
-  method pp_tau : 'tau printer (** Without parentheses. *)
-  method pp_subtau : 'tau printer (** With parentheses if non-atomic. *)
-    
-  (** {3 Current Mode} 
-      
-      The mode represents the expected type for a
-      term to printed.  A requirement for all term printers in the
-      engine is that current mode must be correctly set before call.
-      Each term printer is then responsible for setting appropriate
-      modes for its sub-terms.
-  *)
-    
-  method mode : mode
-  method with_mode : mode -> (mode -> unit) -> unit
+        	Previous environment is restored after return. *)
+
+    (** {3 Types} *)
+
+    method t_int  : string
+    method t_real : string
+    method t_bool : string
+    method t_prop : string
+    method t_atomic : 'tau -> bool
+
+    method pp_array : 'tau printer (** For [Z->a] arrays *)
+    method pp_farray : 'tau printer2 (** For [k->a] arrays *)
+
+    method pp_tvar : int printer (** Type variables. *)
+    method pp_datatype : 'adt -> 'tau list printer 
+
+    method pp_tau : 'tau printer (** Without parentheses. *)
+    method pp_subtau : 'tau printer (** With parentheses if non-atomic. *)
+
+    (** {3 Current Mode} 
+
+        The mode represents the expected type for a
+        term to printed.  A requirement for all term printers in the
+        engine is that current mode must be correctly set before call.
+        Each term printer is then responsible for setting appropriate
+        modes for its sub-terms.
+    *)
+
+    method mode : mode
+    method with_mode : mode -> (mode -> unit) -> unit
     (** Calls the continuation with given mode for sub-terms.
-	The englobing mode is passed to continuation and then restored. *)
-    
-  method op_scope : amode -> string option
+        	The englobing mode is passed to continuation and then restored. *)
+
+    method op_scope : amode -> string option
     (** Optional scoping post-fix operator when entering arithmetic mode. *)
-    
-  (** {3 Primitives} *)
-    
-  method e_true : cmode -> string (** ["true"] *)
-  method e_false : cmode -> string (** ["false"] *)
-    
-  method pp_int : amode -> Z.t printer
-  method pp_real : R.t printer
-  method pp_cst : Numbers.cst printer (** Non-zero reals *)
-    
-  (** {3 Variables} *)
-    
-  method pp_var : 'var printer (** Default to local env *)
-    
-  (** {3 Calls} 
-      
-      These printers only applies to connective, operators and
-      functions that are morphisms {i w.r.t} current mode.
-  *)
-    
-  method callstyle : callstyle
-  method pp_fun : cmode -> 'logic -> 'term list printer
-  method pp_apply : cmode -> 'term -> 'term list printer
-    
-  (** {3 Arithmetics Operators} *) 
-    
-  method op_real_of_int : op
-  method op_add : amode -> op
-  method op_sub : amode -> op
-  method op_mul : amode -> op
-  method op_div : amode -> op
-  method op_mod : amode -> op
-  method op_minus : amode -> op
-    
-  method pp_times : formatter -> Z.t -> 'term -> unit
+
+    (** {3 Primitives} *)
+
+    method e_true : cmode -> string (** ["true"] *)
+    method e_false : cmode -> string (** ["false"] *)
+
+    method pp_int : amode -> 'z printer
+    method pp_real : R.t printer
+    method pp_cst : Numbers.cst printer (** Non-zero reals *)
+
+    (** {3 Variables} *)
+
+    method pp_var : 'var printer (** Default to local env *)
+
+    (** {3 Calls} 
+
+        These printers only applies to connective, operators and
+        functions that are morphisms {i w.r.t} current mode.
+    *)
+
+    method callstyle : callstyle
+    method pp_fun : cmode -> 'logic -> 'term list printer
+    method pp_apply : cmode -> 'term -> 'term list printer
+
+    (** {3 Arithmetics Operators} *) 
+
+    method op_real_of_int : op
+    method op_add : amode -> op
+    method op_sub : amode -> op
+    method op_mul : amode -> op
+    method op_div : amode -> op
+    method op_mod : amode -> op
+    method op_minus : amode -> op
+
+    method pp_times : formatter -> 'z -> 'term -> unit
     (** Defaults to [self#op_minus] or [self#op_mul] *)
-    
-  (** {3 Comparison Operators} *) 
-    
-  method op_equal : cmode -> op
-  method op_noteq : cmode -> op
-  method op_eq  : cmode -> amode -> op
-  method op_neq : cmode -> amode -> op
-  method op_lt  : cmode -> amode -> op
-  method op_leq : cmode -> amode -> op
-    
-  method pp_equal : 'term printer2
-  method pp_noteq : 'term printer2
-    
-  (** {3 Arrays} *)
-    
-  method pp_array_get : formatter -> 'term -> 'term -> unit
+
+    (** {3 Comparison Operators} *) 
+
+    method op_equal : cmode -> op
+    method op_noteq : cmode -> op
+    method op_eq  : cmode -> amode -> op
+    method op_neq : cmode -> amode -> op
+    method op_lt  : cmode -> amode -> op
+    method op_leq : cmode -> amode -> op
+
+    method pp_equal : 'term printer2
+    method pp_noteq : 'term printer2
+
+    (** {3 Arrays} *)
+
+    method pp_array_get : formatter -> 'term -> 'term -> unit
     (** Access ["a[k]"]. *)
-    
-  method pp_array_set : formatter -> 'term -> 'term -> 'term -> unit
+
+    method pp_array_set : formatter -> 'term -> 'term -> 'term -> unit
     (** Update ["a[k <- v]"]. *)
-    
-  (** {3 Records} *)
-    
-  method pp_get_field : formatter -> 'term -> 'field -> unit
+
+    (** {3 Records} *)
+
+    method pp_get_field : formatter -> 'term -> 'field -> unit
     (** Field access. *)
-    
-  method pp_def_fields : ('field * 'term) list printer
+
+    method pp_def_fields : ('field * 'term) list printer
     (** Record construction. *)
-    
-  (** {3 Logical Connectives} *)
-    
-  method op_not   : cmode -> op
-  method op_and   : cmode -> op
-  method op_or    : cmode -> op
-  method op_imply : cmode -> op
-  method op_equiv : cmode -> op
-    
-  (** {3 Conditionals} *)
-    
-  method pp_not : 'term printer
-  method pp_imply : formatter -> 'term list -> 'term -> unit
-    
-  method pp_conditional : formatter -> 'term -> 'term -> 'term -> unit
-    
-  (** {3 Binders} *)
-    
-  method pp_forall : 'tau -> 'var list printer (** with separator *)
-  method pp_exists : 'tau -> 'var list printer (** with separator *)
-  method pp_lambda : 'var list printer
-    
-  (** {3 Bindings} *)
-    
-  method is_shareable : 'term -> bool    
-  method bind : 'var -> unit
-  method pp_let : formatter -> string -> 'term -> unit
-    
-  (** {3 Terms} *)
-    
-  method is_atomic : 'term -> bool
+
+    (** {3 Logical Connectives} *)
+
+    method op_not   : cmode -> op
+    method op_and   : cmode -> op
+    method op_or    : cmode -> op
+    method op_imply : cmode -> op
+    method op_equiv : cmode -> op
+
+    (** {3 Conditionals} *)
+
+    method pp_not : 'term printer
+    method pp_imply : formatter -> 'term list -> 'term -> unit
+
+    method pp_conditional : formatter -> 'term -> 'term -> 'term -> unit
+
+    (** {3 Binders} *)
+
+    method pp_forall : 'tau -> 'var list printer (** with separator *)
+    method pp_exists : 'tau -> 'var list printer (** with separator *)
+    method pp_lambda : 'var list printer
+
+    (** {3 Bindings} *)
+
+    method is_shareable : 'term -> bool    
+    method bind : 'var -> unit
+    method pp_let : formatter -> pmode -> string -> 'term -> unit
+
+    (** {3 Terms} *)
+
+    method is_atomic : 'term -> bool
     (** Sub-terms that require parentheses.
-	Shared sub-terms are detected on behalf of this method. *)
-    
-  method pp_flow : 'term printer
+        	Shared sub-terms are detected on behalf of this method. *)
+
+    method pp_flow : 'term printer
     (** Printer with shared sub-terms and without parentheses. *)
-    
-  method pp_atom : 'term printer
+
+    method pp_atom : 'term printer
     (** Printer with shared sun-terms and parentheses for non-atomic expressions. *)
-    
-  (** {3 Top Level} *)
-    
-  method pp_term : 'term printer
+
+    (** {3 Top Level} *)
+
+    method pp_term : 'term printer
     (** Prints in {i term} mode. 
-	Default uses [self#pp_shared] with mode [Mterm] inside an [<hov>] box. *)
-    
-  method pp_prop : 'term printer
+        	Default uses [self#pp_shared] with mode [Mterm] inside an [<hov>] box. *)
+
+    method pp_prop : 'term printer
     (** Prints in {i prop} mode. 
-	Default uses [self#pp_shared] with mode [Mprop] inside an [<hv>] box. *)
-    
-  method pp_expr : 'tau -> 'term printer
+        	Default uses [self#pp_shared] with mode [Mprop] inside an [<hv>] box. *)
+
+    method pp_expr : 'tau -> 'term printer
     (** Prints in {i term}, {i arithemtic} or {i prop} mode with 
-	respect to provided type. *)
-    
-  method declare_type : formatter -> 'adt -> int -> ('tau,'field,'logic) ftypedef -> unit
-  method declare_axiom :
-    formatter -> string -> 'var list -> ('var,'logic) ftrigger list list -> 'term -> unit
-  method declare_signature : formatter -> 'logic -> 'tau list -> 'tau -> unit
-  method declare_definition : formatter -> 'logic -> 'var list -> 'tau -> 'term -> unit
-    
-end
+        	respect to provided type. *)
+
+    method declare_type : formatter -> 'adt -> int -> ('tau,'field,'logic) ftypedef -> unit
+    method declare_axiom :
+      formatter -> string -> 'var list -> ('var,'logic) ftrigger list list -> 'term -> unit
+    method declare_signature : formatter -> 'logic -> 'tau list -> 'tau -> unit
+    method declare_definition : formatter -> 'logic -> 'var list -> 'tau -> 'term -> unit
+
+  end

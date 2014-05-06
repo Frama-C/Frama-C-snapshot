@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -50,18 +50,16 @@ let mk_selection_all fselect =
 (* for slicing callback *)
 let mk_slice selection =
   let n = string_of_int (1 + List.length (!Db.Slicing.Project.get_all ())) in
-  let project_name = (SlicingParameters.ProjectName.get ()) ^ n in
+  let project_name = SlicingParameters.ProjectName.get () ^ n in
   let project = !Db.Slicing.Project.mk_project project_name in
   !Db.Slicing.Request.add_persistent_selection project selection ;
   !Db.Slicing.Request.apply_all_internal project;
   if SlicingParameters.Mode.Callers.get () then
     !Db.Slicing.Slice.remove_uncalled project;
   let sliced_project_name =
-    project_name ^ (SlicingParameters.ExportedProjectPostfix.get ())
+    project_name ^ SlicingParameters.ExportedProjectPostfix.get ()
   in
-  let new_project =
-    !Db.Slicing.Project.extract sliced_project_name project
-  in
+  let new_project = !Db.Slicing.Project.extract sliced_project_name project in
   !Db.Slicing.Project.set_project (Some project);
   new_project
 

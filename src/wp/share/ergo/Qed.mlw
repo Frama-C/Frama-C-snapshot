@@ -1,0 +1,159 @@
+(**************************************************************************)
+(*                                                                        *)
+(*  This file is part of WP plug-in of Frama-C.                           *)
+(*                                                                        *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
+(*         alternatives)                                                  *)
+(*                                                                        *)
+(*  you can redistribute it and/or modify it under the terms of the GNU   *)
+(*  Lesser General Public License as published by the Free Software       *)
+(*  Foundation, version 2.1.                                              *)
+(*                                                                        *)
+(*  It is distributed in the hope that it will be useful,                 *)
+(*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
+(*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
+(*  GNU Lesser General Public License for more details.                   *)
+(*                                                                        *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
+(*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
+(*                                                                        *)
+(**************************************************************************)
+
+(* this is a prelude for Alt-Ergo*)
+(** The theory BuiltIn_ must be appended to this file*)
+(** The theory Bool_ must be appended to this file*)
+(** The theory bool_Bool_ must be appended to this file*)
+(** The theory int_Int_ must be appended to this file*)
+(** The theory int_Abs_ must be appended to this file*)
+(** The theory int_ComputerDivision_ must be appended to this file*)
+(** The theory real_Real_ must be appended to this file*)
+(** The theory real_RealInfix_ must be appended to this file*)
+(** The theory real_FromInt_ must be appended to this file*)
+logic ite : bool, 'a, 'a -> 'a
+
+axiom ite1 :
+  (forall p:bool. forall x:'a. forall y:'a [ite(p, x, y)]. (((p = true) and
+  (ite(p, x, y) = x)) or ((p = false) and (ite(p, x, y) = y))))
+
+logic eqb : 'a, 'a -> bool
+
+axiom eqb1 : (forall x:'a. forall y:'a. ((eqb(x, y) = true) -> (x = y)))
+
+axiom eqb2 : (forall x:'a. forall y:'a. ((x = y) -> (eqb(x, y) = true)))
+
+logic neqb : 'a, 'a -> bool
+
+axiom neqb1 :
+  (forall x:'a. forall y:'a. ((neqb(x, y) = true) -> (not (x = y))))
+
+axiom neqb2 :
+  (forall x:'a. forall y:'a. ((not (x = y)) -> (neqb(x, y) = true)))
+
+logic zlt : int, int -> bool
+
+logic zleq : int, int -> bool
+
+axiom zlt1 : (forall x:int. forall y:int. ((zlt(x, y) = true) -> (x <  y)))
+
+axiom zlt2 : (forall x:int. forall y:int. ((x <  y) -> (zlt(x, y) = true)))
+
+axiom zleq1 : (forall x:int. forall y:int. ((zleq(x, y) = true) -> (x <= y)))
+
+axiom zleq2 : (forall x:int. forall y:int. ((x <= y) -> (zleq(x, y) = true)))
+
+logic rlt : real, real -> bool
+
+logic rleq : real, real -> bool
+
+axiom rlt1 : (forall x:real. forall y:real. ((rlt(x, y) = true) -> (x <  y)))
+
+axiom rlt2 : (forall x:real. forall y:real. ((x <  y) -> (rlt(x, y) = true)))
+
+axiom rleq1 :
+  (forall x:real. forall y:real. ((rleq(x, y) = true) -> (x <= y)))
+
+axiom rleq2 :
+  (forall x:real. forall y:real. ((x <= y) -> (rleq(x, y) = true)))
+
+logic truncate : real -> int
+
+function real_of_int(x: int) : real = from_int(x)
+
+axiom truncate_of_int : (forall x:int. (truncate(real_of_int(x)) = x))
+
+axiom c_euclidian :
+  (forall n:int. forall d:int [safe_comp_div(n,d), safe_comp_mod(n,d)].
+  ((not (d = 0)) -> (n = ((safe_comp_div(n,d) * d) + safe_comp_mod(n,d)))))
+
+axiom cdiv_cases :
+  (forall n:int. forall d:int [safe_comp_div(n,d)]. ((0 <= n) -> ((0 <  d) ->
+  (safe_comp_div(n,d) = (n / d)))))
+
+axiom cdiv_cases1 :
+  (forall n:int. forall d:int [safe_comp_div(n,d)]. ((n <= 0) -> ((0 <  d) ->
+  (safe_comp_div(n,d) = (-((-n) / d))))))
+
+axiom cdiv_cases2 :
+  (forall n:int. forall d:int [safe_comp_div(n,d)]. ((0 <= n) -> ((d <  0) ->
+  (safe_comp_div(n,d) = (-(n / (-d)))))))
+
+axiom cdiv_cases3 :
+  (forall n:int. forall d:int [safe_comp_div(n,d)]. ((n <= 0) -> ((d <  0) ->
+  (safe_comp_div(n,d) = ((-n) / (-d))))))
+
+axiom cmod_cases :
+  (forall n:int. forall d:int [safe_comp_mod(n,d)]. ((0 <= n) -> ((0 <  d) ->
+  (safe_comp_mod(n,d) = (n % d)))))
+
+axiom cmod_cases1 :
+  (forall n:int. forall d:int [safe_comp_mod(n,d)]. ((n <= 0) -> ((0 <  d) ->
+  (safe_comp_mod(n,d) = (-((-n) % d))))))
+
+axiom cmod_cases2 :
+  (forall n:int. forall d:int [safe_comp_mod(n,d)]. ((0 <= n) -> ((d <  0) ->
+  (safe_comp_mod(n,d) = (n % (-d))))))
+
+axiom cmod_cases3 :
+  (forall n:int. forall d:int [safe_comp_mod(n,d)]. ((n <= 0) -> ((d <  0) ->
+  (safe_comp_mod(n,d) = (-((-n) % (-d)))))))
+
+axiom cmod_remainder :
+  (forall n:int. forall d:int [safe_comp_mod(n,d)]. ((0 <= n) -> ((0 <  d) ->
+  (0 <= safe_comp_mod(n,d)))))
+
+axiom cmod_remainder1 :
+  (forall n:int. forall d:int [safe_comp_mod(n,d)]. ((0 <= n) -> ((0 <  d) ->
+  (safe_comp_mod(n,d) <  d))))
+
+axiom cmod_remainder2 :
+  (forall n:int. forall d:int [safe_comp_mod(n,d)]. ((n <= 0) -> ((0 <  d) ->
+  ((-d) <  safe_comp_mod(n,d)))))
+
+axiom cmod_remainder3 :
+  (forall n:int. forall d:int [safe_comp_mod(n,d)]. ((n <= 0) -> ((0 <  d) ->
+  (safe_comp_mod(n,d) <= 0))))
+
+axiom cmod_remainder4 :
+  (forall n:int. forall d:int [safe_comp_mod(n,d)]. ((0 <= n) -> ((d <  0) ->
+  (0 <= safe_comp_mod(n,d)))))
+
+axiom cmod_remainder5 :
+  (forall n:int. forall d:int [safe_comp_mod(n,d)]. ((0 <= n) -> ((d <  0) ->
+  (safe_comp_mod(n,d) <  (-d)))))
+
+axiom cmod_remainder6 :
+  (forall n:int. forall d:int [safe_comp_mod(n,d)]. ((n <= 0) -> ((d <  0) ->
+  (d <  safe_comp_mod(n,d)))))
+
+axiom cmod_remainder7 :
+  (forall n:int. forall d:int [safe_comp_mod(n,d)]. ((n <= 0) -> ((d <  0) ->
+  (safe_comp_mod(n,d) <= 0))))
+
+axiom cdiv_neutral :
+  (forall a:int [safe_comp_div(a,1)]. (safe_comp_div(a,1) = a))
+
+axiom cdiv_inv :
+  (forall a:int [safe_comp_div(a,a)]. ((not (a = 0)) ->
+  (safe_comp_div(a,a) = 1)))
+

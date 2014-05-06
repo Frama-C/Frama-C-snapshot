@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -26,6 +26,11 @@ open Visitor
 open Pretty_utils
 open Cil_datatype
 
+let dkey_check = Kernel.register_category "check"
+let dkey_print_one = Kernel.register_category "file"
+let dkey_transform = Kernel.register_category "file:transformation"
+let dkey_annot = Kernel.register_category "file:annotation"
+
 type file =
   | NeedCPP of
       string (* filename of the [.c] to preprocess *)
@@ -42,7 +47,7 @@ module D =
       type t = file
       let name = "File"
       let reprs = [ NeedCPP("", ""); NoCPP ""; External("", "") ]
-      let structural_descr = Structural_descr.Abstract
+      let structural_descr = Structural_descr.t_abstract
       let mem_project = Datatype.never_any_project
       let copy = Datatype.identity (* immutable strings *)
       let internal_pretty_code p_caller fmt t =
@@ -92,7 +97,15 @@ let from_filename ?(cpp=get_preprocessor_command ()) f =
         ""
     in
     if Hashtbl.mem check_suffixes suf then External (f, suf)
-    else NeedCPP (f, cpp)
+    else if cpp <> "" then begin
+      if not Config.preprocessor_keep_comments then
+        Kernel.warning ~once:true
+          "Default pre-processor does not keep comments. Any ACSL annotation \
+           on non-pre-processed file will be discarded.";
+      NeedCPP (f, cpp)
+    end else
+      Kernel.abort "No working pre-processor found. You can only analyze \
+                    pre-processed .i files."
 
 (* ************************************************************************* *)
 (** {2 Internal states} *)
@@ -195,6 +208,13 @@ let is_admissible_conversion e ot nt =
       | Const(CEnum { eihost = ei }), TEnum(ei',_) -> ei.ename = ei'.ename
       | _ -> false)
 
+let pretty_logic_var_kind fmt = function
+  | LVGlobal -> Format.pp_print_string fmt "global logic declaration"
+  | LVC -> Format.pp_print_string fmt "C variable"
+  | LVFormal -> Format.pp_print_string fmt "formal parameter"
+  | LVQuant -> Format.pp_print_string fmt "quantified variable"
+  | LVLocal -> Format.pp_print_string fmt "local parameter"
+
 (* performs various consistency checks over a cil file.
    Code may vary depending on current development of the kernel and/or
    identified bugs.
@@ -235,17 +255,19 @@ object(self)
   val mutable globals_functions = Varinfo.Set.empty
   val mutable globals_vars = Varinfo.Set.empty
 
+  val quant_orig = Stack.create ()
+
   method private remove_globals_function vi =
     globals_functions <- Varinfo.Set.remove vi globals_functions
 
   method private remove_globals_var vi =
     globals_vars <- Varinfo.Set.remove vi globals_vars
 
-  method venuminfo ei =
+  method! venuminfo ei =
     Enuminfo.Hashtbl.add known_enuminfos ei ei;
     DoChildren
 
-  method venumitem ei =
+  method! venumitem ei =
     let orig =
       try Enuminfo.Hashtbl.find known_enuminfos ei.eihost
       with Not_found -> check_abort "Unknown enuminfo %s" ei.eihost.ename
@@ -262,8 +284,8 @@ object(self)
       (fun calls -> calls:= Stmt.Set.remove s !calls)
       unspecified_sequence_calls
 
-  method vvdec v =
-    Kernel.debug "Declaration of %s(%d)" v.vname v.vid;
+  method! vvdec v =
+    Kernel.debug ~dkey:dkey_check "Declaration of %s(%d)" v.vname v.vid;
     if Varinfo.Hashtbl.mem known_vars v then
       (let v' = Varinfo.Hashtbl.find known_vars v in
        if v != v' then (* we can see the declaration twice
@@ -275,15 +297,29 @@ object(self)
     match v.vlogic_var_assoc with
         None -> DoChildren
       | Some ({ lv_origin = Some v'} as lv) when v == v' ->
-          Kernel.debug "var %s(%d) has an associated %s(%d)" v.vname v.vid
-            lv.lv_name lv.lv_id;
+          Kernel.debug ~dkey:dkey_check 
+            "var %s(%d) has an associated %s(%d)"
+            v.vname v.vid lv.lv_name lv.lv_id;
+          (match lv.lv_type with
+            | Ctype t ->
+              if not (Cil_datatype.TypNoUnroll.equal t v.vtype) then
+                check_abort
+                  "C variable %s and its associated variable do not have the \
+                   same type:@\nC     type is %a@\nLogic type is %a"
+                  v.vname Cil_datatype.Typ.pretty v.vtype
+                  Cil_datatype.Typ.pretty t
+            | lt ->
+              check_abort 
+                "Logic variable %s is associated to a C variable but has \
+                 a purely logic type, %a@."
+                lv.lv_name Cil_datatype.Logic_type.pretty lt);
           DoChildren
       | Some lv ->
           (check_abort "C variable %s is not properly referenced by its \
                           associated logic variable %s"
              v.vname lv.lv_name)
 
-  method vvrbl v =
+  method! vvrbl v =
     let not_shared () =
       check_abort "variable %s is not shared between definition and use" v.vname
     in
@@ -294,17 +330,25 @@ object(self)
     );
     DoChildren
 
-  method vquantifiers l =
+  method! vquantifiers l =
+    let orig =
+      try Stack.top quant_orig
+      with Stack.Empty ->
+        check_abort
+          "Internal error of check visitor: don't know which origin a logic \
+           variable should be checked against"
+    in
     List.iter
       (fun lv ->
-        if lv.lv_kind <> LVQuant then
-          check_abort 
-            "logic variable %a is declared under a quantifier but is \
-             flagged with wrong origin" Printer.pp_logic_var lv)
+        if lv.lv_kind <> orig then
+          check_abort
+            "logic variable %a is flagged as %a but declared as a %a"
+            Printer.pp_logic_var lv
+            pretty_logic_var_kind lv.lv_kind pretty_logic_var_kind lv.lv_kind)
       l;
     DoChildren
 
-  method vlogic_var_decl lv =
+  method! vlogic_var_decl lv =
     Logic_var.Hashtbl.add known_logic_vars lv lv;
     match lv.lv_origin with
     (* lvkind for purely logical variables is checked at the parent level. *)
@@ -321,19 +365,7 @@ object(self)
          C variable %a"
 	Printer.pp_logic_var lv Printer.pp_varinfo v
 
-  method vlogic_info_decl li =
-    List.iter
-      (fun lv ->
-        if lv.lv_kind <> LVFormal then
-          check_abort 
-            "Formal parameter %a of logic function/predicate is \
-             flagged with wrong origin"
-            Printer.pp_logic_var lv)
-      li.l_profile;
-    DoChildren
-
-
-  method vlogic_var_use v =
+  method! vlogic_var_use v =
     if v.lv_name <> "\\exit_status" then begin
       if Logic_env.is_builtin_logic_function v.lv_name then begin
         if not
@@ -360,7 +392,7 @@ object(self)
     end;
     DoChildren
 
-  method vfunc f =
+  method! vfunc f =
     (* Initial AST does not have kf *)
     if is_normalized then begin
       let kf = Extlib.the self#current_kf in
@@ -484,7 +516,7 @@ object(self)
     in
     ChangeDoChildrenPost(f,check)
 
-  method vstmt_aux s =
+  method! vstmt_aux s =
     Stmt.Hashtbl.add known_stmts s s;
     Stmt.Hashtbl.remove switch_cases s;
     self#remove_unspecified_sequence_calls s;
@@ -516,7 +548,7 @@ object(self)
            in ChangeDoChildrenPost(s,f)
        | _ -> DoChildren);
 
-  method vblock b =
+  method! vblock b =
     (* ensures that the blocals are part of the locals of the function. *)
     List.iter
       (fun v ->
@@ -532,12 +564,12 @@ object(self)
       b.blocals;
     DoChildren
 
-  method vcode_annot ca =
+  method! vcode_annot ca =
     if Hashtbl.mem known_code_annot_id ca.annot_id then
       (check_abort "duplicated code annotation")
     else Hashtbl.add known_code_annot_id ca.annot_id (); DoChildren
 
-  method voffs = function
+  method! voffs = function
       NoOffset -> SkipChildren
     | Index _ -> DoChildren
     | Field(fi,_) ->
@@ -555,7 +587,7 @@ object(self)
         end;
         DoChildren
 
-  method vterm_offset = function
+  method! vterm_offset = function
       TNoOffset -> SkipChildren
     | TIndex _ -> DoChildren
     | TModel(mi,_) ->
@@ -598,7 +630,7 @@ object(self)
         check_abort "enumitem %s is used but not declared"
 	  ei.einame
 
-  method vterm t =
+  method! vterm t =
     match t.term_node with
       | TLval _ ->
           begin match t.term_type with
@@ -628,18 +660,25 @@ object(self)
               "Local logic variable %a is flagged with wrong origin"
               Printer.pp_logic_var li.l_var_info;
           DoChildren
+      | Tlambda _ ->
+        Stack.push LVFormal quant_orig; 
+        DoChildrenPost (fun t -> ignore (Stack.pop quant_orig); t)
+      | Tcomprehension _ ->
+        Stack.push LVQuant quant_orig;
+        DoChildrenPost (fun t -> ignore (Stack.pop quant_orig); t)
       | _ -> DoChildren
 
-  method vinitoffs = self#voffs
+  method! vinitoffs = self#voffs
 
   (* In non-normalized mode, we can't rely on the Globals tables used by
      the normal Frama-C's vglob: jump directly to vglob_aux. *)
-  method vglob g = if is_normalized then plain#vglob g else self#vglob_aux g
+  method! vglob g = if is_normalized then plain#vglob g else self#vglob_aux g
 
-  method vglob_aux g =
+  method! vglob_aux g =
     match g with
       GCompTag(c,_) ->
-        Kernel.debug "Adding fields for type %s(%d)" c.cname c.ckey;
+        Kernel.debug ~dkey:dkey_check 
+          "Adding fields for type %s(%d)" c.cname c.ckey;
         List.iter
           (fun x -> Fieldinfo.Hashtbl.add known_fields x x) c.cfields;
         DoChildren
@@ -706,7 +745,7 @@ object(self)
         self#remove_globals_function f.svar; DoChildren
     | _ -> DoChildren
 
-  method vfile _ =
+  method! vfile _ =
     let check_end f =
       if not (Cil_datatype.Varinfo.Set.is_empty globals_functions) 
         || not (Cil_datatype.Varinfo.Set.is_empty globals_vars)
@@ -726,7 +765,7 @@ object(self)
     in
     DoChildrenPost check_end
 
-  method vannotation a =
+  method! vannotation a =
     match a with
         Dfun_or_pred (li,_) | Dinvariant (li,_) | Dtype_annot (li,_) ->
           if
@@ -757,7 +796,7 @@ object(self)
           DoChildren
       | _ -> DoChildren
 
-  method vpredicate = function
+  method! vpredicate = function
       Pat(_,StmtLabel l) ->
         check_label !l;
         labelled_stmt <- !l::labelled_stmt; DoChildren
@@ -767,13 +806,24 @@ object(self)
             "Local logic variable %a is flagged with wrong origin"
             Printer.pp_logic_var li.l_var_info;
         DoChildren
+    | Pforall _ | Pexists _ ->
+      Stack.push LVQuant quant_orig;
+      DoChildrenPost (fun p -> ignore (Stack.pop quant_orig); p)
     | _ -> DoChildren
 
-  method vlogic_info_decl li =
+  method! vlogic_info_decl li =
     Logic_var.Hashtbl.add known_logic_info li.l_var_info li;
+    List.iter
+      (fun lv ->
+        if lv.lv_kind <> LVFormal then
+          check_abort 
+            "Formal parameter %a of logic function/predicate %a is \
+             flagged with wrong origin"
+            Printer.pp_logic_var lv Printer.pp_logic_var li.l_var_info)
+      li.l_profile;
     DoChildren
 
-  method vlogic_info_use li =
+  method! vlogic_info_use li =
     let unknown () =
       check_abort "logic function %s has no information" li.l_var_info.lv_name
     in
@@ -808,14 +858,14 @@ object(self)
       | SizeOfE _ | AlignOfE _ | CastE _ -> true
       | _ -> false
 
-  method vexpr e =
+  method! vexpr e =
     match e.enode with
       | Const (CEnum ei) -> self#check_ei ei
       | Lval lv when
           Cil.isArrayType (Cil.typeOfLval lv)
-          && not (Stack.top accept_array) ->
-          check_abort "%a is an array, but used as an lval"
-            Printer.pp_lval lv
+          && (Stack.is_empty accept_array || not (Stack.top accept_array)) ->
+        check_abort "%a is an array, but used as an lval"
+          Printer.pp_lval lv
       | StartOf lv when not (Cil.isArrayType (Cil.typeOfLval lv)) ->
           check_abort "%a is supposed to be an array, but has type %a"
             Printer.pp_lval lv Printer.pp_typ (Cil.typeOfLval lv)
@@ -824,7 +874,7 @@ object(self)
           ChangeDoChildrenPost (e,fun e -> ignore (Stack.pop accept_array); e)
 
 
-  method vinst i =
+  method! vinst i =
     match i with
       | Call(lvopt,{ enode = Lval(Var f, NoOffset)},args,_) ->
         let (treturn,targs,is_variadic,_) = Cil.splitFunctionTypeVI f in
@@ -868,7 +918,7 @@ object(self)
           | Some targs -> aux targs args)
       | _ -> DoChildren
 
-  method vtype ty =
+  method! vtype ty =
     (match ty with
        | TArray (_, _, _, la) ->
            let elt, _ = Cil.splitArrayAttributes la in
@@ -903,11 +953,8 @@ class check_file what = object inherit check_file_aux true what end
 (* ************************************************************************* *)
 
 let safe_remove_file f =
-  if Kernel.debug_atleast 3 then
-    Kernel.debug ~level:3 "File %s generated" f
-  else
-    try Extlib.safe_remove f
-    with Sys_error _ -> Kernel.warning "cannot remove temporary file %s" f
+  if not (Kernel.Debug_category.exists (fun x -> x = "parser")) then
+    Extlib.safe_remove f
 
 let parse = function
   | NoCPP f ->
@@ -976,7 +1023,10 @@ let parse = function
           (if Kernel.ReadAnnot.get() && Kernel.PreprocessAnnot.get()
            then " -dD" else "")
       in
-      Kernel.feedback "@{<i>preprocessing@} with \"%s %s %s\"" cmdl supp_args f;
+      Kernel.feedback "@{<i>preprocessing@} with \"%s %s %s\"" 
+	cmdl 
+	supp_args 
+	(Filepath.pretty f);
       if Sys.command (cmd supp_args f ppf) <> 0 then begin
         Extlib.safe_remove ppf;
         Kernel.abort "failed to run: %s@\n\
@@ -988,7 +1038,7 @@ preprocessor command or use the option \"-cpp-command\"."
         if Kernel.ReadAnnot.get() && Kernel.PreprocessAnnot.get()
         then begin
           let ppf' =
-            try Logic_preprocess.file ".c" (cmd "") ppf
+            try Logic_preprocess.file ".c" (cmd "-nostdinc") ppf
             with Sys_error _ as e ->
               Extlib.safe_remove ppf;
               Kernel.abort "preprocessing of annotations failed (%s)"
@@ -1050,8 +1100,8 @@ let files_to_cil files =
         (fun (acca,accc) f ->
            try
              let a,c = parse f in
-	     Kernel.debug "result of parsing %s:@\n%a"
-	       (get_name f) Printer.pp_file a;
+	     Kernel.debug ~dkey:dkey_print_one "result of parsing %s:@\n%a"
+	       (get_name f) Cil_printer.pp_file a;
 	     if Cilmsg.had_errors () then raise Exit;
              a::acca, c::accc
            with exn when Cilmsg.had_errors () ->
@@ -1084,6 +1134,8 @@ let files_to_cil files =
   if Cilmsg.had_errors () then
     Kernel.abort "Target code cannot be parsed; aborting analysis.";
   debug_globals [merged_file];
+
+  Logic_utils.complete_types merged_file;
 
   Rmtmps.removeUnusedTemps ~isRoot:keep_entry_point merged_file;
   if Kernel.UnspecifiedAccess.get()
@@ -1123,13 +1175,13 @@ let files_to_cil files =
     in
     let check_unspec = object
       inherit Cil.nopCilVisitor
-      method vstmt s =
+      method! vstmt s =
         (match s.skind with
              UnspecifiedSequence [] | UnspecifiedSequence [ _ ] -> ()
            | UnspecifiedSequence seq ->
                let my_stmt_print = object(self)
                  inherit Cil_printer.extensible_printer () as super
-                 method stmt fmt = function
+                 method! stmt fmt = function
                  | {skind = UnspecifiedSequence seq } ->
                    Pretty_utils.pp_list ~sep:"@\n"
                      (fun fmt (s,m,w,r,_) ->
@@ -1184,21 +1236,46 @@ let files_to_cil files =
   end;
   merged_file
 
+module Implicit_annotations =
+  State_builder.Set_ref
+    (Property.Set)
+    (struct
+        let name = "File.Implicit_annotations"
+        let dependencies = [Annotations.code_annot_state]
+     end)
+
+let () = Ast.add_linked_state Implicit_annotations.self
+
+let () =
+  Property_status.register_property_remove_hook
+    (fun p -> 
+      Kernel.debug ~dkey:dkey_annot "Removing implicit property %a"
+        Property.pretty p;
+      Implicit_annotations.remove p)
+
+let emit_status p =
+  Kernel.debug
+    ~dkey:dkey_annot "Marking implicit property %a as true"
+    Property.pretty p;
+  Property_status.emit Emitter.kernel ~hyps:[] p Property_status.True
+
+let emit_all_statuses _ = 
+  Kernel.debug ~dkey:dkey_annot "Marking properties";
+  Implicit_annotations.iter emit_status
+
+let () = Ast.apply_after_computed emit_all_statuses
+
 let add_annotation kf st a =
   Annotations.add_code_annot Emitter.end_user ~kf st a;
   (* Now check if the annotation is valid by construction
      (provided normalization is correct). *)
   match a.annot_content with
-    | AStmtSpec
-        ([],
-         ({ spec_behavior = [ { b_name = "Frama_C_implicit_init" } as bhv]}))
-      ->
-        let props = Property.ip_post_cond_of_behavior kf (Kstmt st) bhv in
-        List.iter
-          (fun p ->
-            Property_status.emit Emitter.kernel ~hyps:[] p Property_status.True)
-          props
-    | _ -> ()
+  | AStmtSpec
+      ([],
+       ({ spec_behavior = [ { b_name = "Frama_C_implicit_init" } as bhv]})) ->
+    let props = Property.ip_post_cond_of_behavior kf (Kstmt st) bhv in
+    List.iter Implicit_annotations.add props
+  | _ -> ()
 
 let synchronize_source_annot has_new_stmt kf =
   match kf.fundec with
@@ -1207,7 +1284,7 @@ let synchronize_source_annot has_new_stmt kf =
       inherit nopCilVisitor as super
       val block_with_user_annots = ref None
       val user_annots_for_next_stmt = ref []
-      method vstmt st =
+      method! vstmt st =
         let stmt, father = match super#current_kinstr with
           | Kstmt stmt ->
             super#pop_stmt stmt;
@@ -1227,9 +1304,9 @@ let synchronize_source_annot has_new_stmt kf =
             if is_in_same_block () then begin
               let my_annots = !user_annots_for_next_stmt in
               let post_action st =
-                let treat_annot (has_contract,st as acc) annot =
+                let treat_annot (has_annot,st) annot =
                   if Logic_utils.is_contract annot then begin
-                    if has_contract then begin
+                    if has_annot then begin
                       let new_stmt =
                         Cil.mkStmt ~valid_sid:true (Block (Cil.mkBlock [st]))
                       in
@@ -1243,10 +1320,12 @@ let synchronize_source_annot has_new_stmt kf =
                     end
                   end else begin
                     add_annotation kf st annot;
-                    acc
+                    (true, st)
                   end
                 in
-                let (_,st) = List.fold_left treat_annot (false,st) my_annots in
+                let (_,st) =
+                  List.fold_left treat_annot (false,st) my_annots
+                in
                 st
               in
               block_with_user_annots:=None;
@@ -1289,19 +1368,21 @@ effects";
           (* Code annotation isn't considered as a real stmt.
              So, previous annotations should be relative to the next stmt.
              Only this [annot] may be synchronised to that stmt *)
-          (if match annot.annot_content with
-          | AStmtSpec _
-          | APragma (Slice_pragma SPstmt | Impact_pragma IPstmt) ->
-            (* Annotation relative to the effect of next statement *)
-            true
-          | APragma _ | AAssert _ | AAssigns _ | AAllocation _
-          | AInvariant _ | AVariant _ (* | ALoopBehavior _ *) ->
-            (* Annotation relative to the current control point *)
-            false
-            then (* To synchronize on the next statement *)
+          (match annot.annot_content with
+            | AStmtSpec _
+            | APragma (Slice_pragma SPstmt | Impact_pragma IPstmt) ->
+              (* Annotation relative to the effect of next statement *)
               add_user_annot_for_next_stmt annot
-            else (* Synchronize this annotation on that statement *)
-              synchronize_user_annot annot);
+            | APragma _ | AAssert _ | AAssigns _ | AAllocation _
+            | AInvariant _ | AVariant _ ->
+              (* Annotation relative to the current control point *)
+              (match !user_annots_for_next_stmt with
+                | [] -> synchronize_user_annot annot
+                | _ ->
+                  (* we have an annotation relative to the next
+                     real C statement somewhere above, and we have
+                     not reached it yet. Just stack the current annotation.*)
+                  add_user_annot_for_next_stmt annot));
           super#vstmt st
         | Loop (annot, _, _, _, _) ->
           (* Synchronize previous annotations on that statement *)
@@ -1369,7 +1450,7 @@ let cleanup file =
             stmt.skind <- Loop ([], b1, l1, s1, s2)
         | _ -> ()
 
-    method vstmt_aux st =
+    method! vstmt_aux st =
       self#remove_lexical_annotations st;
       let loc = Stmt.loc st in
       if Annotations.has_code_annot st || st.labels <> [] then
@@ -1384,10 +1465,9 @@ let cleanup file =
                    st.skind <- (Instr (Skip loc));
                    SkipChildren
                | _ -> if b != b' then st.skind <- Block b'; SkipChildren)
-        | Instr _ -> SkipChildren (* No annotation below that level *)
         | _ -> DoChildren
 
-    method vblock b =
+    method! vblock b =
       let optim b =
         b.bstmts <-
           List.filter
@@ -1410,7 +1490,7 @@ let cleanup file =
       (* b.blocals <- [];*)
       ChangeDoChildrenPost(b,optim)
 
-    method vglob_aux = function
+    method! vglob_aux = function
     | GFun (f,_) ->
       f.sspec <- Cil.empty_funspec ();
       (* uncomment if you dont want to treat scope of locals (see above)*)
@@ -1424,7 +1504,7 @@ let cleanup file =
     | GAnnot _  -> 
         SkipChildren
 
-    method vfile f =
+    method! vfile f =
       ChangeDoChildrenPost
         (f,fun f -> if changed then begin
            Cfg.clearFileCFG ~clear_id:false f;
@@ -1435,13 +1515,128 @@ let cleanup file =
 
 let print_renaming: Cil.cilVisitor = object
   inherit Cil.nopCilVisitor
-  method vvdec v =
+  method! vvdec v =
     if v.vname <> v.vorig_name then begin
       Kernel.result ~current:true
         "Variable %s has been renamed to %s" v.vorig_name v.vname
     end;
     DoChildren
 end
+
+module Transform_before_cleanup =
+  Hook.Build_ordered
+    (struct module Id = Datatype.String type t = Cil_types.file end)
+module Transform_after_cleanup =
+  Hook.Build_ordered
+    (struct module Id = Datatype.String type t = Cil_types.file end)
+module Transform_after_parameter_change =
+  Hook.Build_ordered
+    (struct module Id = Datatype.String type t = State.t end)
+let transform_parameters = ref State.Set.empty
+
+type code_transformation_category =
+  { name: string;
+    before_id: Transform_before_cleanup.id;
+    after_id: Transform_after_cleanup.id;
+    prm_id: Transform_after_parameter_change.id }
+
+let register_code_transformation_category s =
+  { name = s;
+    before_id = Transform_before_cleanup.register_key s;
+    after_id = Transform_after_cleanup.register_key s;
+    prm_id = Transform_after_parameter_change.register_key s }
+
+let add_transform_parameter
+    ~before ~after name f (p:(module Parameter_sig.S)) =
+  let module P = (val p: Parameter_sig.S) in
+  let hook self =
+    (* hook is launched if AST already exists and the apply was triggered by
+       the corresponding option change *)
+    if State.equal self P.self && Ast.is_computed () then begin
+      Kernel.feedback ~dkey:dkey_transform
+        "applying %s to current AST, after option %s changed"
+        name.name P.option_name;
+      f (Ast.get());
+      if Kernel.Files.Check.get () then begin
+        Cil.visitCilFileSameGlobals
+          (new check_file
+             ("after code transformation: " ^ name.name ^ 
+                 " triggered by " ^ P.option_name)
+           :> Cil.cilVisitor) (Ast.get());
+      end
+    end
+  in
+  (* P.add_set_hook must be done only once. *)
+  if not (State.Set.mem P.self !transform_parameters) then begin
+    transform_parameters:=State.Set.add P.self !transform_parameters;
+    P.add_set_hook (fun _ _ -> Transform_after_parameter_change.apply P.self)
+  end;
+  Transform_after_parameter_change.extend name.prm_id hook;
+  List.iter
+    (fun b ->
+      Transform_after_parameter_change.add_dependency name.prm_id b.prm_id)
+    before;
+  List.iter
+    (fun a ->
+      Transform_after_parameter_change.add_dependency a.prm_id name.prm_id)
+    after
+
+module Cfg_recomputation_queue =
+  State_builder.Set_ref(Cil_datatype.Fundec.Set)
+    (struct
+      let name = "File.Cfg_recomputation_queue"
+      let dependencies = [Ast.self]
+     end)
+
+let () = Ast.add_linked_state Cfg_recomputation_queue.self
+
+let must_recompute_cfg f = Cfg_recomputation_queue.add f
+
+let recompute_cfg _ =
+  (* just in case f happens to modify the CFG *)
+  Cfg_recomputation_queue.iter
+    (fun f -> Cfg.clearCFGinfo ~clear_id:false f; Cfg.cfgFun f);
+  Cfg_recomputation_queue.clear ()
+
+let () = Ast.apply_after_computed recompute_cfg
+
+let transform_and_check name normalized f file =
+  Kernel.feedback ~dkey:dkey_transform "applying %s to file" name;
+  f file;
+  recompute_cfg ();
+  if Kernel.Files.Check.get () then begin
+    Cil.visitCilFileSameGlobals
+      (new check_file_aux normalized ("after code transformation: " ^ name)
+       :> Cil.cilVisitor) file;
+  end
+
+let add_code_transformation_before_cleanup 
+    ?(deps:(module Parameter_sig.S) list = [])
+    ?(before=[]) ?(after=[]) name f =
+  Transform_before_cleanup.extend
+    name.before_id (transform_and_check name.name false f);
+  List.iter
+    (fun b ->
+      Transform_before_cleanup.add_dependency name.before_id b.before_id)
+    before;
+  List.iter
+    (fun a ->
+      Transform_before_cleanup.add_dependency a.before_id name.before_id)
+    after;
+  List.iter (add_transform_parameter ~before ~after name f) deps
+
+let add_code_transformation_after_cleanup 
+    ?(deps:(module Parameter_sig.S) list = [])  ?(before=[]) ?(after=[])
+    name f =
+  Transform_after_cleanup.extend name.after_id
+    (transform_and_check name.name true f);
+  List.iter
+    (fun b ->
+      Transform_after_cleanup.add_dependency name.after_id b.after_id) before;
+  List.iter
+    (fun a ->
+      Transform_after_cleanup.add_dependency a.after_id name.after_id) after;
+  List.iter (add_transform_parameter ~before ~after name f) deps
 
 let prepare_cil_file file =
   Kernel.feedback ~level:2 "preparing the AST";
@@ -1454,12 +1649,14 @@ let prepare_cil_file file =
   if Kernel.Files.Orig_name.get () then begin
     Cil.visitCilFileSameGlobals print_renaming file
   end;
+  Transform_before_cleanup.apply file;
   (* Compute the list of functions and their CFG *)
   (try
      List.iter register_global file.globals
    with Globals.Vars.AlreadyExists(vi,_) ->
      Kernel.fatal
-       "Trying to add the same varinfo twice: %a (vid:%d)" Printer.pp_varinfo vi vi.vid);
+       "Trying to add the same varinfo twice: %a (vid:%d)"
+       Printer.pp_varinfo vi vi.vid);
   Kernel.feedback ~level:2 "register globals done";
   Rmtmps.removeUnusedTemps ~isRoot:keep_entry_point file;
   (* NB: register_global also calls oneret, which might introduce new
@@ -1475,24 +1672,21 @@ let prepare_cil_file file =
     Cfg.computeFileCFG file;
   end;
   cleanup file;
+  Ast.set_file file;
   (* Check that normalization is correct. *)
   if Kernel.Files.Check.get() then begin
    Cil.visitCilFileSameGlobals
      (new check_file "AST after normalization" :> Cil.cilVisitor) file;
   end;
-  (* Unroll loops in file *)
-  Unroll_loops.compute file;
-  (* Annotate functions from declspec. *)
-  Translate_lightweight.interprate file;
   Globals.Functions.iter Annotations.register_funspec;
-  (* Check that we start with a correct file. *)
-  if Kernel.Files.Check.get() then begin
-   Cil.visitCilFileSameGlobals
-     (new check_file
-        "Ast as set in Frama-C's original state" :> Cil.cilVisitor) file;
-  end;
+  Transform_after_cleanup.apply file;
+  (* reset tables depending on AST in case they have been computed during
+     the transformation. *)
   Ast.set_file file
 
+(* ************************************************************************* *)
+(** {2 Machdep} *)
+(* ************************************************************************* *)
 
 let default_machdeps =
   [ "x86_16", (module Machdep_x86_16: Cil.Machdeps);
@@ -1515,13 +1709,24 @@ let new_machdep s f =
 let pretty_machdeps fmt =
   Datatype.String.Hashtbl.iter (fun x _ -> Format.fprintf fmt "@ %s" x) machdeps
 
+let machdep_help () =
+  let m = Kernel.Machdep.get () in
+  if m = "help" then begin
+    Kernel.feedback 
+      "@[supported machines are%t@ (default is x86_32).@]" 
+      pretty_machdeps;
+    raise Cmdline.Exit
+  end else
+    Cmdline.nop
+
+let () = Cmdline.run_after_exiting_stage machdep_help
+
 let set_machdep () =
   let m = Kernel.Machdep.get () in
   if not (Datatype.String.Hashtbl.mem machdeps m) then
-    if m = "help" then
-      Kernel.feedback "supported machines are%t." pretty_machdeps
-    else
-      Kernel.abort "unsupported machine %s. Try one of%t." m pretty_machdeps
+    Kernel.abort "@[unsupported machine %s.@ Try one of%t.@]" m pretty_machdeps
+
+let () = Cmdline.run_after_configuring_stage set_machdep
 
 (* Local to this module. Use Cil.theMachine.theMachine outside *)
 let get_machdep () =
@@ -1531,8 +1736,9 @@ let get_machdep () =
   with Not_found -> (* Should not happen given the checks above *)
     Kernel.fatal "Machdep %s not registered" m
 
-let () = Cmdline.run_after_configuring_stage set_machdep
-
+(* ************************************************************************* *)
+(** End of machdep *)
+(* ************************************************************************* *)
 
 let fill_built_ins () =
   if Cil.selfMachine_is_computed () then begin
@@ -1729,7 +1935,7 @@ object(self)
      Don't forget to check for cycles for TNamed and logic_info.
   *)
 
-  method vtype ty =
+  method! vtype ty =
     (match ty with
       | TVoid _ | TInt _ | TFloat _ | TPtr _ 
       | TFun _ | TBuiltin_va_list _ | TArray _ -> ()
@@ -1765,7 +1971,7 @@ object(self)
           end);
     DoChildren
 
-  method vvrbl vi =
+  method! vvrbl vi =
     if vi.vglob && not (Varinfo.Set.mem vi known_var) then begin
       self#add_needed_decl (GVarDecl (Cil.empty_funspec(),vi,vi.vdecl));
       self#add_known_var vi;
@@ -1797,7 +2003,7 @@ object(self)
   method private is_local_logic_info li =
     Logic_info.Set.mem li local_logic_info
 
-  method vlogic_var_use lv =
+  method! vlogic_var_use lv =
     let logic_infos = Annotations.logic_info_of_global lv.lv_name in
     (try
        self#logic_info_occurrence 
@@ -1807,23 +2013,23 @@ object(self)
      with Not_found -> ());
     DoChildren
 
-  method vterm t =
+  method! vterm t =
     match t.term_node with
       | Tlet(li,_) -> self#add_local_logic_info li; 
           DoChildrenPost (fun t -> self#remove_local_logic_info li; t)
       | _ -> DoChildren
 
-  method vpredicate p =
+  method! vpredicate p =
     match p with
       | Plet(li,_) -> self#add_local_logic_info li;
           DoChildrenPost (fun t -> self#remove_local_logic_info li; t)
       | _ -> DoChildren
 
-  method vlogic_info_use lv =
+  method! vlogic_info_use lv =
     if not (self#is_local_logic_info lv) then self#logic_info_occurrence lv;
     DoChildren
 
-  method vglob_aux g =
+  method! vglob_aux g =
     let is_subvisit = try Stack.top subvisit with Stack.Empty -> false in
     (match g with
       | GType (ty,_) -> self#add_known_type ty; self#add_needed_decl g
@@ -1920,9 +2126,11 @@ let process file =
 
 end
 
-let reorder_ast () =
-  Visitor.visitFramacFile (new reorder_ast) (Ast.get ());
-  Remove_spurious.process (Ast.get ())
+let reorder_custom_ast ast =
+  Visitor.visitFramacFile (new reorder_ast) ast;
+  Remove_spurious.process ast
+
+let reorder_ast () = reorder_custom_ast (Ast.get())
 
 let init_cil () =
   Cil.initCIL (Logic_builtin.init()) (get_machdep ());
@@ -1960,7 +2168,7 @@ let init_project_from_visitor ?(reorder=false) prj
       (* eta-expansion required because of operations on the current project in
          the class construtor *)
       (fun f ->
-        Cil.visitCilFile
+         Cil.visitCilFile
           (new check_file ("AST of " ^ prj.Project.name) :> Cil.cilVisitor) f)
       file';
     assert (Kernel.verify (file == Ast.get())
@@ -1986,7 +2194,8 @@ let create_project_from_visitor ?reorder prj_name visitor =
   let prj = Project.create_by_copy ~selection prj_name in
   (* reset projectified parameters to their default values *)
   let temp = Project.create "File.temp" in
-  Project.copy ~selection:(Plugin.get_selection ()) ~src:temp prj;
+  Project.copy
+    ~selection:(Parameter_state.get_reset_selection ()) ~src:temp prj;
   Project.remove ~project:temp ();
   Project.on prj init_cil ();
   prepare_from_visitor ?reorder prj visitor;

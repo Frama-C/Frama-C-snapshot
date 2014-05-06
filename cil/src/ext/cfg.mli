@@ -35,8 +35,8 @@
 (*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE         *)
 (*  POSSIBILITY OF SUCH DAMAGE.                                             *)
 (*                                                                          *)
-(*  File modified by CEA (Commissariat à l'énergie atomique et aux          *)
-(*                        énergies alternatives)                            *)
+(*  File modified by CEA (Commissariat Ã  l'Ã©nergie atomique et aux          *)
+(*                        Ã©nergies alternatives)                            *)
 (*               and INRIA (Institut National de Recherche en Informatique  *)
 (*                          et Automatique).                                *)
 (****************************************************************************)
@@ -44,7 +44,7 @@
 (** Code to compute the control-flow graph of a function or file.
     This will fill in the [preds] and [succs] fields of {!Cil.stmt}
 
-    This is required for several other extensions, such as {!Dataflow}.
+    This is required for several other extensions, such as {!Dataflow2}.
     @plugin development guide *)
 
 open Cil_types

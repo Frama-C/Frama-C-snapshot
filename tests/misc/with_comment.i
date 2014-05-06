@@ -1,6 +1,6 @@
 /* run.config
   GCC:
-  OPT: -memory-footprint 1 -val -deps -out -input  -main main2 -journal-disable
+  OPT: -val -deps -out -input  -main main2 -journal-disable
 */
 /* Commentaire avant G comment*/ /* Commentaire avant G2 comment*/
 static int G;

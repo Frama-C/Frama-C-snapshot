@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -62,7 +62,7 @@ let par p_caller p_callee fmt pp =
   else Format.fprintf fmt "%t" pp
 
 type concrete_repr =
-    { name: string;
+    { mutable name: string;
       digest: Digest.t;
       structural_descr: Structural_descr.t;
       mutable abstract: bool;
@@ -98,7 +98,7 @@ let embedded_types: concrete_repr Tbl.t = Tbl.create 7
 let dummy =
   { name = "";
     digest = "";
-    structural_descr = Structural_descr.Unknown;
+    structural_descr = Structural_descr.t_unknown;
     abstract = false;
     pp_ml_name = fun _ _ -> assert false }
 
@@ -205,6 +205,12 @@ let set_ml_name ty ml_name =
   let pp = mk_dyn_pp ty.name ml_name in
   ty.pp_ml_name <- pp
 
+let set_name ty name =
+  let full_ty = try Hashtbl.find types ty.name with Not_found -> assert false in
+  Hashtbl.remove types ty.name;
+  ty.name <- name;
+  Hashtbl.add types name full_ty
+
 let rec get_embedded_type_names ty =
   let sub_ty = try Tbl.find_all embedded_types ty with Not_found -> [] in
   let sub_ty_names =
@@ -274,7 +280,7 @@ module Polymorphic(T: Polymorphic_input) = struct
 
   let is_instance_of = Tbl.mem_instance
 
-  let get_instance (ty:'a poly t) =
+  let get_instance (type a) (ty:a poly t) =
     try
       Tbl.find_instance ty
     with Not_found ->
@@ -354,7 +360,7 @@ module Polymorphic2(T: Polymorphic2_input) = struct
 
   let is_instance_of ty = Tbl.mem instances ty
 
-  let get_instance (ty:('a, 'b) poly t) =
+  let get_instance (type a) (type b) (ty:(a, b) poly t) =
     try
       Tbl.find instances ty
     with Not_found ->
@@ -394,7 +400,7 @@ module Function = struct
 
   let is_instance_of ty = Tbl.mem instances ty
 
-  let get_instance (ty:('a, 'b) poly t) =
+  let get_instance (type a) (type b) (ty:(a, b) poly t) =
     try
       let instance, _ = Tbl.find instances ty in
       instance.arg, instance.ret, instance.label
@@ -402,7 +408,7 @@ module Function = struct
       (* static typing ensures than [ty] has already been instantiated. *)
       assert false
 
-  let get_optional_argument (ty:('a, 'b) poly t) =
+  let get_optional_argument (type a) (type b) (ty:(a, b) poly t) =
     if !use_obj then
       try
         match Tbl.find instances ty with
@@ -424,7 +430,7 @@ module Function = struct
       (match label with None -> "" | Some l -> " ~label:(" ^ l ^ ", None)")
       (ty1.pp_ml_name Call) (ty2.pp_ml_name Call)
 
-  let instantiate ?label (a:'a) (b:'b t) =
+  let instantiate ?label (a:'a) (b:'b t): ('a, 'b) poly t * bool =
     if !use_obj then
       let l, o = match label with
         | None -> None, None
@@ -444,7 +450,7 @@ module Function = struct
             ~closure:true
             ~name:(name l a b)
             ~ml_name:(Some (ml_name l a b))
-            Structural_descr.Unknown
+            Structural_descr.t_unknown
             (List.map (fun r _ -> r) (unsafe_reprs b))
         in
         Memo.add memo_tbl key ty;
@@ -545,7 +551,7 @@ module Polymorphic3(T:Polymorphic3_input) = struct
 
   let is_instance_of ty = Tbl.mem instances ty
 
-  let get_instance (ty:('a, 'b, 'c) poly t) =
+  let get_instance (type a) (type b) (type c) (ty:(a, b, c) poly t) =
     try
       Tbl.find instances ty
     with Not_found ->
@@ -653,7 +659,8 @@ module Polymorphic4(T:Polymorphic4_input) = struct
 
   let is_instance_of ty = Tbl.mem instances ty
 
-  let get_instance (ty:('a, 'b, 'c, 'd) poly t) =
+  let get_instance
+      (type a) (type b) (type c) (type d) (ty:(a, b, c, d) poly t) =
     try
       Tbl.find instances ty
     with Not_found ->
@@ -669,8 +676,8 @@ end
 module Ty_tbl(Info: sig type 'a t end) = struct
   type t = Obj.t Tbl.t
   let create x = Tbl.create x
-  let add tbl (ty:'a ty) (x:'a Info.t) = Tbl.add tbl ty (Obj.repr x)
-  let find tbl (ty:'a ty) = (Obj.obj (Tbl.find tbl ty) : 'a Info.t)
+  let add (type a) tbl (ty:a ty) (x:a Info.t) = Tbl.add tbl ty (Obj.repr x)
+  let find (type a) tbl (ty:a ty) = (Obj.obj (Tbl.find tbl ty) : a Info.t)
 end
 
 module Obj_tbl: sig

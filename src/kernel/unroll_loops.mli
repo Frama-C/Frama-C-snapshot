@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -20,26 +20,14 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Syntactic loop unrolling. *)
-(** Performs and closes all syntactic transformations, including syntactic
-   loop unrolling. *)
-val compute : Cil_types.file -> unit
+(** Syntactic loop unrolling. 
+    Uses code transformation hook mechanism (after-cleanup phase)
+    of {!File} and exports nothing.
 
-(** Hook for transformation to be applied just before unrolling loops.
-    The boolean value indicates if the CFG has to be recomputed.
-    @since Oxygen-20120901 *)
-val add_syntactic_transformation : (Cil_types.file * bool -> Cil_types.file * bool) -> unit
+    Name of the transformation is "loop unrolling"
+*)
 
-(** Performs only unrolling transformation without using -ulevel option.
-    Loop invariant \false can be emmitted on total unrolling request.
-    Do not forget to apply  [transformations_closure] afterwards. 
-    @since Oxygen-20120901 *)
-val apply_transformation: int -> Emitter.t -> (Cil_types.file * bool) ->
-  (Cil_types.file * bool)
-    
-(** Close syntactic transformations. 
-    @since Oxygen-20120901 *)
-val transformations_closure: (Cil_types.file * bool) -> (Cil_types.file * bool)
+val unroll_transform: File.code_transformation_category
 
 (*
 Local Variables:

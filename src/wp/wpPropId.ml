@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -34,6 +34,7 @@ open Cil_datatype
  *)
 
 type prop_kind =
+  | PKCheck       (** internal check *)
   | PKProp        (** normal property *)
   | PKEstablished (** computation related to a loop property before the loop. *)
   | PKPreserved   (** computation related to a loop property inside the loop. *)
@@ -79,6 +80,8 @@ let num_of_bhv_from bhv (out, _) =
 (*----------------------------------------------------------------------------*)
 
 let mk_prop kind prop = { p_kind=kind ; p_prop=prop ; p_part=None }
+let mk_check prop = { p_kind=PKCheck ; p_prop=prop ; p_part=None }
+let mk_property prop = { p_kind=PKProp ; p_prop=prop ; p_part=None }
 
 let mk_annot_id kf stmt ca = Property.ip_of_code_annot_single kf stmt ca
 let mk_annot_ids kf stmt ca = Property.ip_of_code_annot kf stmt ca
@@ -163,6 +166,7 @@ let kind_order = function
   | PKPropLoop -> 6
   | PKAFctOut -> 7
   | PKAFctExit -> 8
+  | PKCheck -> 9
 
 let compare_kind k1 k2 = match k1, k2 with
     PKPre (kf1, ki1, p1), PKPre (kf2, ki2, p2) -> 
@@ -235,6 +239,7 @@ module Names = struct
     
   let basename_of_prop_id p = 
       match p.p_kind , p.p_prop with
+	| PKCheck , p -> base_id_prop_txt p
 	| PKProp , p -> base_id_prop_txt p
 	| PKPropLoop , p -> base_id_prop_txt p
 	| PKEstablished , p -> base_id_prop_txt p ^ "_established"
@@ -332,7 +337,6 @@ let user_prop_names p = match p with
         let kind_name = "@assigns" in
 	  List.fold_left
             (fun acc (t,_) -> (ident_names t.it_content.term_name) @ acc) [kind_name] l
-    | Property.IPFrom _ -> ["@from"] (* TODO: steal term names from assigns? *)
     | Property.IPDecrease (_,_, Some ca,_) -> 
 	let kind_name = "@decreases" 
 	in kind_name::code_annot_names ca
@@ -345,8 +349,10 @@ let user_prop_names p = match p with
 	  match LogicUsage.section_of_lemma a with
 	    | LogicUsage.Toplevel _ -> names
 	    | LogicUsage.Axiomatic ax -> ax.LogicUsage.ax_name::names
-	  end
-    | Property.IPAllocation _ (* TODO *)
+	end
+    (* TODO *)
+    | Property.IPFrom _
+    | Property.IPAllocation _
     | Property.IPAxiomatic _
     | Property.IPAxiom _
     | Property.IPBehavior _
@@ -361,6 +367,7 @@ let string_of_termination_kind = function
   | Returns -> "returns"
 
 let label_of_kind = function
+  | PKCheck -> "Check"
   | PKProp -> "Property"
   | PKPropLoop -> "Invariant" (* should be assert false ??? *)
   | PKEstablished -> "Establishment"
@@ -385,7 +392,7 @@ struct
     | None -> ()
     | Some(k,n) -> fprintf fmt " (%d/%d)" (succ k) n
   let pp_subprop fmt p = match p.p_kind with
-    | PKProp | PKPropLoop -> ()
+    | PKProp | PKCheck | PKPropLoop -> ()
     | PKEstablished -> pp_print_string fmt " (established)"
     | PKPreserved -> pp_print_string fmt " (preserved)"
     | PKVarDecr -> pp_print_string fmt " (decrease)"
@@ -436,6 +443,7 @@ let kinstr_hints hs = function
 
 let propid_hints hs p =
   match p.p_kind , p.p_prop with
+    | PKCheck , _ -> ()
     | PKProp , Property.IPAssigns (_ , Kstmt _, _, _) -> add_required hs "stmt-assigns"
     | PKProp , Property.IPAssigns (_ , Kglobal, _, _) -> add_required hs "fct-assigns"
     | PKPropLoop , Property.IPAssigns _ -> add_required hs "loop-assigns"
@@ -516,6 +524,7 @@ let prop_id_keys p =
 (*----------------------------------------------------------------------------*)
 
 let pp_goal_kind fmt = function
+  | PKCheck
   | PKProp
   | PKPropLoop
   | PKAFctOut
@@ -547,6 +556,8 @@ let pretty_context kf fmt pid =
 (*----------------------------------------------------------------------------*)
 (* Comparison *)
 (*----------------------------------------------------------------------------*)
+
+let is_check p = p.p_kind = PKCheck
 
 let is_assigns p =
   match property_of_id p with
@@ -653,6 +664,10 @@ let mk_kf_assigns_desc assigns = {
   a_kind = StmtAssigns ;
   a_assigns = Writes assigns ;
 }
+
+let is_call_assigns = function
+  | { a_stmt = Some { skind = Instr(Call _) } } -> true
+  | _ -> false
 
 let pp_assigns_desc fmt a = Wp_error.pp_assigns fmt a.a_assigns
 (*----------------------------------------------------------------------------*)
@@ -766,12 +781,14 @@ let _split job pid goals =
 (*----------------------------------------------------------------------------*)
 
 let subproofs id = match id.p_kind with
+  | PKCheck -> 0
   | PKProp | PKPre _ | PKPropLoop -> 1
   | PKEstablished | PKPreserved
   | PKVarDecr | PKVarPos
   | PKAFctExit | PKAFctOut -> 2
 
 let subproof_idx id = match id.p_kind with
+  | PKCheck -> (-1) (* 0/0 *)
   | PKProp | PKPre _ | PKPropLoop -> 0 (* 1/1 *)
   | PKPreserved  -> 0 (* 1/2 *)
   | PKEstablished-> 1 (* 2/2 *)
@@ -822,7 +839,7 @@ let get_induction p =
     | Property.IPAssigns(kf,Kstmt stmt,_,_) -> Some (kf, stmt)
     | _ -> None
   in match p.p_kind with
-    | PKAFctOut|PKAFctExit|PKPre _ -> None
+    | PKCheck | PKAFctOut|PKAFctExit|PKPre _ -> None
     | PKProp ->
         let loop_stmt_opt = match get_stmt (property_of_id p) with
           | None -> None

@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -35,7 +35,7 @@ let same_node n1 n2 = match n1, n2 with
   | _ -> false
 
 let _pretty_node fmt = function
-  | File (s, _) -> Format.pp_print_string fmt s
+  | File (s, _) -> Format.pp_print_string fmt (Filepath.pretty s)
   | Global (GFun ({svar = vi},_) | GVar(vi,_,_) | GVarDecl(_, vi,_)) ->
     Format.fprintf fmt "%s" vi.vname
   | _ -> ()
@@ -88,7 +88,7 @@ struct
 
     method custom_encode_iter cr = cr, (), ()
     method custom_decode_iter cr () () = cr
-    method custom_flags = [`ITERS_PERSIST]
+    method! custom_flags = [`ITERS_PERSIST]
     val mutable num_roots : int = 0
     val mutable roots :  custom_tree array = [||]
 
@@ -240,6 +240,23 @@ module MYTREE = struct
     | GVarDecl (_, {vattr=attrs}, _) -> Cil.hasAttribute "FC_BUILTIN" attrs
     | _ -> false
 
+  let comes_from_share filename =
+    Extlib.string_prefix ~strict:true Config.datadir filename
+
+  let is_stdlib_global = function
+    | GFun (_,(loc,_))
+    | GAsm (_,(loc,_))
+    | GPragma (_,(loc,_))
+    | GAnnot (_,(loc,_))
+    | GVarDecl (_,_,(loc,_)) 
+    | GVar (_,_,(loc,_)) 
+    | GType (_,(loc,_)) 
+    | GCompTag (_,(loc,_)) 
+    | GCompTagDecl (_,(loc,_)) 
+    | GEnumTag (_,(loc,_)) 
+    | GEnumTagDecl (_,(loc,_)) -> comes_from_share loc.Lexing.pos_fname 
+    | GText _ -> false
+
   let is_function t = match t with
   | MFile _ -> false
   | MGlobal {globals = [| g |]} -> is_function_global g
@@ -252,15 +269,18 @@ module MYTREE = struct
       strikethrough = false;
     }
 
+  let global_name s = Pretty_utils.to_string Printer.pp_varname s
+
   let ga_name = function
-    | Dfun_or_pred (li, _) -> Some li.l_var_info.lv_name
+    | Dfun_or_pred (li, _) ->
+      Some (global_name li.l_var_info.lv_name)
     | Dvolatile _ -> Some "volatile clause"
-    | Daxiomatic (s, _, _) -> Some s
-    | Dtype (lti, _) -> Some lti.lt_name
-    | Dlemma (s, _, _, _, _, _) -> Some s
-    | Dinvariant (li, _) -> Some li.l_var_info.lv_name
-    | Dtype_annot (li, _) -> Some li.l_var_info.lv_name
-    | Dmodel_annot (mf, _) -> Some mf.mi_name
+    | Daxiomatic (s, _, _) -> Some (global_name s)
+    | Dtype (lti, _) -> Some (global_name lti.lt_name)
+    | Dlemma (s, _, _, _, _, _) -> Some (global_name s)
+    | Dinvariant (li, _) -> Some (global_name li.l_var_info.lv_name)
+    | Dtype_annot (li, _) -> Some (global_name li.l_var_info.lv_name)
+    | Dmodel_annot (mf, _) -> Some (global_name mf.mi_name)
     | Dcustom_annot _ -> Some "custom clause"
 
 
@@ -273,7 +293,7 @@ module MYTREE = struct
           | GFun ({svar={vname=name}},_)
           | GVar({vname=name},_,_) ->
               if hide glob then acc
-              else MGlobal(default_storage name [|glob|]) :: acc
+              else MGlobal(default_storage (global_name name) [|glob|]) :: acc
 
           | GVarDecl(_, vi,_) ->
              (* we have a found the prototype, but there is a definition
@@ -282,7 +302,8 @@ module MYTREE = struct
                 (Cil.isFunctionType vi.vtype &&
                  Kernel_function.is_definition (Globals.Functions.get vi))
               then acc
-              else MGlobal(default_storage vi.vname [|glob|]) :: acc
+              else
+                MGlobal(default_storage (global_name vi.vname) [|glob|]) :: acc
 
           | GAnnot (ga, _) ->
             if hide glob
@@ -328,6 +349,9 @@ end
 
 let key_flat_mode = "filetree_flat_mode"
 let flat_mode = MenusHide.hide key_flat_mode
+
+let key_hide_stdlib = "filetree_hide_stdlib"
+let hide_stdlib = MenusHide.hide key_hide_stdlib
 
 module State = struct
 
@@ -435,7 +459,10 @@ module State = struct
       List.iter
         (fun v ->
            let name, globals = MYTREE.make_file hide v in
-           model#append_tree (MYTREE.MFile (name, globals)))
+	   if not ((hide_stdlib ()) 
+		   && (MYTREE.comes_from_share name.MYTREE.name))
+	   then 
+             model#append_tree (MYTREE.MFile (name, globals)))
         (List.sort (fun (s1, _) (s2, _) -> String.compare s1 s2) files);
     (* Let's build the table from globals to rows in the model *)
     model#custom_foreach
@@ -468,17 +495,23 @@ let make (tree_view:GTree.view) =
     match g with
       | GFun _ | GVarDecl _ when MYTREE.is_function_global g ->
           hide_functions () ||
-            (if MYTREE.is_builtin_global g then hide_builtins () else false)
+            (if MYTREE.is_builtin_global g then hide_builtins () else false) ||
+	    (if MYTREE.is_stdlib_global g then hide_stdlib () else false)
       | GVar _ | GVarDecl _ ->
           hide_variables () ||
-            (if MYTREE.is_builtin_global g then hide_builtins () else false)
-      | GAnnot _ -> hide_annotations ()
-      | _ -> false
+            (if MYTREE.is_builtin_global g then hide_builtins () else false) ||
+	    (if MYTREE.is_stdlib_global g then hide_stdlib () else false)
+      | GAnnot _ -> hide_annotations () ||
+	(if MYTREE.is_stdlib_global g then hide_stdlib () else false)
+      | _ -> if MYTREE.is_stdlib_global g then hide_stdlib () else false
+
   in
   let mhide_variables = MenusHide.menu_item menu
     ~label:"Hide variables" ~key:key_hide_variables in
   let mhide_functions = MenusHide.menu_item menu
     ~label:"Hide functions" ~key:key_hide_functions in
+  let mhide_stdlib = MenusHide.menu_item menu
+    ~label:"Hide stdlib" ~key:key_hide_stdlib in
   let mhide_builtins = MenusHide.menu_item menu
     ~label:"Hide built-ins" ~key:key_hide_builtins in
   let mhide_annotations = MenusHide.menu_item menu
@@ -729,7 +762,7 @@ let make (tree_view:GTree.view) =
               if m = "" (* Unknown location *) then
                 true, "Unknown file", strike, false
               else
-                false, m, strike, false
+                false, Filepath.pretty m, strike, false
             | MYTREE.MGlobal ({MYTREE.name=m; strikethrough=strike}) as s ->
               false, m, strike, MYTREE.is_function s
           in
@@ -764,6 +797,8 @@ let make (tree_view:GTree.view) =
     ignore (MenusHide.mi_set_callback
               mhide_variables key_hide_variables self#reset_internal);
     ignore (MenusHide.mi_set_callback
+              mhide_stdlib key_hide_stdlib self#reset_internal);
+    ignore (MenusHide.mi_set_callback
               mhide_builtins key_hide_builtins self#reset_internal);
     ignore (MenusHide.mi_set_callback
               mhide_annotations key_hide_annotations self#reset_internal);
@@ -778,7 +813,6 @@ let make (tree_view:GTree.view) =
   end
   in
   (myself:>t)
-
 
 (*
   Local Variables:

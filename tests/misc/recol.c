@@ -1,6 +1,6 @@
 /* run.config
-   OPT: -val -slevel 100 -memory-footprint 1 -cpp-command "gcc -C -E -DPTEST " -journal-disable -no-warn-signed-overflow
-   OPT: -val -slevel 100 -memory-footprint 1 -cpp-command "gcc -C -E -DPTEST " -journal-disable -machdep ppc_32 -no-warn-signed-overflow
+   OPT: -val -slevel 100 -cpp-command "gcc -C -E -DPTEST " -journal-disable -no-warn-signed-overflow
+   OPT: -val -slevel 100 -cpp-command "gcc -C -E -DPTEST " -journal-disable -machdep ppc_32 -no-warn-signed-overflow
 */
 
 #ifndef PTEST

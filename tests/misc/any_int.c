@@ -1,6 +1,6 @@
 /* run.config
    GCC:
-   OPT: -memory-footprint 1 -val -deps -out -input  -main any_int -journal-disable
+   OPT: -val -deps -out -input  -main any_int -journal-disable
 */
 int any_int() {
   volatile int y=0;

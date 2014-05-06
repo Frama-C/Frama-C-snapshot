@@ -2,8 +2,8 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2013                                               #
-#    CEA (Commissariat à l'énergie atomique et aux énergies              #
+#  Copyright (C) 2007-2014                                               #
+#    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              #
 #         alternatives)                                                  #
 #                                                                        #
 #  you can redistribute it and/or modify it under the terms of the GNU   #
@@ -21,13 +21,18 @@
 ##########################################################################
 
 export FRAMAC_INTERNAL=yes
-#export FRAMAC_SHARE=$(abspath $(FRAMAC_SRC)/share)
-export FRAMAC_PLUGIN_TEST=$(abspath $(FRAMAC_SRC)/lib/plugins)
-export FRAMAC_PLUGIN_GUI_TEST=$(abspath $(FRAMAC_SRC)/lib/plugins/gui)
-export FRAMAC_OPT=$(abspath $(FRAMAC_SRC)/bin/toplevel.opt$(EXE))
+export FRAMAC_PLUGIN_TEST=$(FRAMAC_TOP_SRCDIR)/lib/plugins
+export FRAMAC_PLUGIN_GUI_TEST=$(FRAMAC_TOP_SRCDIR)/lib/plugins/gui
+export FRAMAC_OPT=$(FRAMAC_TOP_SRCDIR)/bin/toplevel.opt$(EXE)
 #export FRAMAC_BYTE=$(FRAMAC_SRC)/bin/toplevel.byte$(EXE)
-export FRAMAC_INCLUDES=$(addprefix -I $(FRAMAC_SRC)/, $(FRAMAC_SRC_DIRS) lib)
-export PTESTS=$(abspath $(FRAMAC_SRC)/bin/ptests.byte$(EXE))
-export PLUGIN_LIB_DIR=$(abspath $(FRAMAC_SRC)/lib/plugins)
-export FRAMAC_LIB=$(abspath $(FRAMAC_SRC)/lib/fc)
-export DOC_DIR=$(abspath $(FRAMAC_SRC)/doc/code)
+export FRAMAC_INCLUDES=$(addprefix -I $(call winpath,$(FRAMAC_TOP_SRCDIR))/,$(FRAMAC_SRC_DIRS) lib)
+export PTESTS=$(FRAMAC_TOP_SRCDIR)/bin/ptests.$(PTESTSBEST)$(EXE)
+export PLUGIN_LIB_DIR=$(FRAMAC_TOP_SRCDIR)/lib/plugins
+export FRAMAC_LIB=$(FRAMAC_TOP_SRCDIR)/lib/fc
+export DOC_DIR=$(FRAMAC_TOP_SRCDIR)/doc/code
+
+
+##########################################################################
+# Local Variables:
+# mode: makefile
+# End:

@@ -1,5 +1,5 @@
 /* run.config 
-OPT: -load-module lib/plugins/Report  -pp-annot -val -then -report
+OPT: -load-module lib/plugins/Report -slevel-function main2:20 -pp-annot -val -then -report
 */
 
 /*@ requires \valid(&t[0..s-1]);
@@ -14,7 +14,7 @@ void init (int *t, int c, int s) {
 }
 
 
-void main (int c) {
+void main1 (int c) {
   int t1[72];
   int t2[11];
 
@@ -24,4 +24,31 @@ void main (int c) {
     if (c < 8)
       init(t2, c, 11);
   }
+}
+
+void main2() {
+  int i = 0;
+  int j = 0;
+  /*@ loop invariant i < 10;
+    loop invariant i == j; */
+  while (1) {
+    i++;
+    j++;
+  }
+}
+
+void main3() {  // Widening is completely inactivated on this example
+  int j = 0;
+  //@ loop invariant i == 2*j || i == 2*j+1;
+  for (int i=0; i<100; i++) {
+    if (i%2==1)
+      j++;
+    Frama_C_show_each(i,j);
+  }
+}
+
+void main(int c) {
+  main1(c);
+  if (c) main2();
+  main3();
 }

@@ -1,6 +1,6 @@
 /* run.config
-   OPT: -memory-footprint 1 -val -deps -out -input -journal-disable 
-   OPT: -memory-footprint 1 -val -deps -out -input -journal-disable -undefined-pointer-comparison-propagate-all
+   OPT: -val -deps -out -input -journal-disable
+   OPT: -val -deps -out -input -journal-disable -undefined-pointer-comparison-propagate-all
 */
 int x,y,*p;
 main(){

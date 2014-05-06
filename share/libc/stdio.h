@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2013                                               */
+/*  Copyright (C) 2007-2014                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -29,20 +29,10 @@
 #include "__fc_define_stat.h"
 #include "__fc_define_size_t.h"
 #include "__fc_define_restrict.h"
+#include "__fc_define_file.h"
 
 struct __fc_pos_t { unsigned long __fc_stdio_position; };
 typedef struct __fc_pos_t fpos_t;
-
-struct __fc_FILE {
-  unsigned int __fc_stdio_id;
-  unsigned int 	__fc_maxsz;
-  unsigned int 	__fc_writepos;
-  unsigned int 	__fc_readpos;
-  int 		__fc_is_a_socket;
-  int		mode; // O_RDONLY 1 | O_RDWR 2 | O_WRONLY 3
-  struct stat* 	__fc_inode;
-};
-typedef struct __fc_FILE FILE;
 
 #include "__fc_define_null.h"
 
@@ -98,8 +88,13 @@ int fclose(FILE *stream);
  */
 int fflush(FILE *stream);
 
-/*@ assigns \result \from filename[..],mode[..]; 
-  ensures \result==\null || (\valid(\result) && \fresh(\result,sizeof(FILE))) ;
+FILE __fc_fopen[2]; /* TODO: use __FC_FOPEN_MAX for size. Currently not
+                       possible because it is not possible to say that fopen
+                       returns one of the elements of __fc_fopen. */
+const FILE* _p__fc_fopen = __fc_fopen;
+
+/*@ assigns \result \from filename[..],mode[..], _p__fc_fopen; 
+  ensures \result==\null || ((\result == &__fc_fopen[0] || \result == &__fc_fopen[1]) && \fresh(\result,sizeof(FILE))) ;
 */ 
 FILE *fopen(const char * restrict filename,
      const char * restrict mode);
@@ -144,7 +139,7 @@ int printf(const char * restrict format, ...);
  */
 int scanf(const char * restrict format, ...);
 
-/*@ assigns s[0..n]; 
+/*@ assigns s[0..n-1]; 
 // unsupported...
  */
 int snprintf(char * restrict s, size_t n,
@@ -156,7 +151,6 @@ int snprintf(char * restrict s, size_t n,
 int sprintf(char * restrict s,
      const char * restrict format, ...);
 
-/*@ assigns \nothing ; */
 int sscanf(const char * restrict s,
      const char * restrict format, ...);
 
@@ -180,7 +174,7 @@ int vprintf(const char * restrict format,
 int vscanf(const char * restrict format,
      va_list arg);
 
-/*@ assigns s[0..n] \from format[..], arg; 
+/*@ assigns s[0..n-1] \from format[..], arg; 
  */
 int vsnprintf(char * restrict s, size_t n,
      const char * restrict format,
@@ -201,7 +195,7 @@ int vsscanf(const char * restrict s,
  */
 int fgetc(FILE *stream);
 
-/*@ assigns s[0..n],*stream \from *stream;
+/*@ assigns s[0..n-1],*stream \from *stream;
   assigns \result \from s,n,*stream;
   ensures \result == \null || \result==s;
  */
@@ -222,6 +216,7 @@ int getc(FILE *stream);
 int getchar(void);
 
 /*@ assigns s[..] \from *__fc_stdin ;
+  assigns \result \from s, __fc_stdin;
   ensures \result == s || \result == \null;
  */
 char *gets(char *s);
@@ -238,12 +233,12 @@ int puts(const char *s);
 /*@ assigns *stream \from c; */
 int ungetc(int c, FILE *stream);
 
-/*@ assigns ((char*)ptr)[0..(nmemb*size)] \from *stream; */
+/*@ assigns ((char*)ptr)[0..(nmemb*size)-1] \from *stream; */
 size_t fread(void * restrict ptr,
      size_t size, size_t nmemb,
      FILE * restrict stream);
 
-/*@ assigns *stream \from ((char*)ptr)[0..(nmemb*size)]; */
+/*@ assigns *stream \from ((char*)ptr)[0..(nmemb*size)-1]; */
 size_t fwrite(const void * restrict ptr,
      size_t size, size_t nmemb,
      FILE * restrict stream);

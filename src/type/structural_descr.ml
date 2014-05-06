@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -96,6 +96,8 @@ let pack d = try Pack (to_unmarshal d) with Cannot_pack -> Nopack
 let pack_from_unmarshal d = Pack d
 let unsafe_pack = pack_from_unmarshal
 
+let of_pack p = T_pack p
+
 let structure_from_unmarshal = function
   | Unmarshal.Sum arr -> Sum (Array.map (Array.map pack_from_unmarshal) arr)
   | Unmarshal.Dependent_pair _ -> assert false (* not structural *)
@@ -124,6 +126,9 @@ let p_int32 = unsafe_pack Unmarshal.t_int32
 let p_int64 = unsafe_pack Unmarshal.t_int64
 let p_nativeint = unsafe_pack Unmarshal.t_nativeint
 
+let t_abstract = Abstract
+let t_unknown = Unknown
+
 let t_unit = from_unmarshal Unmarshal.t_unit
 let t_int = from_unmarshal Unmarshal.t_int
 let t_string = from_unmarshal Unmarshal.t_string
@@ -133,15 +138,31 @@ let t_int32 = from_unmarshal Unmarshal.t_int32
 let t_int64 = from_unmarshal Unmarshal.t_int64
 let t_nativeint = from_unmarshal Unmarshal.t_nativeint
 
-let poly f a =
-  try from_unmarshal (f (to_unmarshal a)) with Cannot_pack -> Unknown
+let poly f = function
+  | Abstract -> Abstract
+  | Unknown -> Unknown
+  | Structure _ | T_pack _ as a ->
+    try from_unmarshal (f (to_unmarshal a)) with Cannot_pack -> Unknown
 
-let poly_arr f a =
+(* would be better to put it in Extlib, but no access to this library here *)
+let array_for_all f a =
   try
-    let d = f (Array.mapi (pack_to_unmarshal 0) a) in
-    from_unmarshal d
-  with Cannot_pack ->
-    Unknown
+    Array.iter (fun x -> if not (f x) then raise Exit) a;
+    true
+  with Exit ->
+    false
+
+let is_abstract_array a = 
+  array_for_all (fun x -> x = Pack Unmarshal.Abstract) a
+
+let poly_arr f a = 
+  if is_abstract_array a then Abstract
+  else
+    try
+      let d = f (Array.mapi (pack_to_unmarshal 0) a) in
+      from_unmarshal d
+    with Cannot_pack ->
+      Unknown
 
 let t_record = poly_arr Unmarshal.t_record
 let t_tuple = poly_arr Unmarshal.t_tuple
@@ -152,12 +173,20 @@ let t_array = poly Unmarshal.t_array
 let t_queue = poly Unmarshal.t_queue
 let t_set_unchanged_compares = poly Unmarshal.t_set_unchangedcompares
 
-let poly2 f a b =
-  try from_unmarshal (f (to_unmarshal a) (to_unmarshal b))
-  with Cannot_pack -> Unknown
+let poly2 f a b = match a, b with
+  | Abstract, Abstract -> Abstract
+  | _, _ ->
+    (* no special case for [Unknown]: sometimes, even if one part of the
+       container is unknown, it can be unmarshaled. *)
+    try from_unmarshal (f (to_unmarshal a) (to_unmarshal b))
+    with Cannot_pack -> Unknown
 
 let t_map_unchanged_compares = poly2 Unmarshal.t_map_unchangedcompares
 let t_hashtbl_unchanged_hashs = poly2 (Unmarshal.t_hashtbl_unchangedhashs)
+
+let t_sum a = 
+  if array_for_all (is_abstract_array) a then Abstract 
+  else Structure (Sum a)
 
 (* ********************************************************************** *)
 (** {2 Internals} *)
@@ -289,6 +318,8 @@ and  are_consistent_unmarshal d1 d2 = match d1, d2 with
        let b = are_consistent_unmarshal_structures s1 s2 in
        Unmarshal_tbl.remove unmarshal_consistent_visited d1;
        b)
+  | Unmarshal.Abstract, Unmarshal.Structure _ -> 
+    true (* we provide a more precise version: accept it *)
   | _, _ ->
     false
 
@@ -324,6 +355,9 @@ and are_consistent_aux d1 d2 = match d1, d2 with
        Tbl.add consistent_visited d1 d2;
        are_consistent_structures s1 s2)
   | d, T_pack s | T_pack s, d -> are_consistent_unmarshal (to_unmarshal d) s
+  | Abstract, Structure _ -> 
+    true  (* we provide a more precise version: accept it *)
+  | Structure _, Abstract -> false
   | _, _ -> false
 
 let are_consistent d1 d2 =

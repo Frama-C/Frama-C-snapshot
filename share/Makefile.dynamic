@@ -2,8 +2,8 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2013                                               #
-#    CEA (Commissariat à l'énergie atomique et aux énergies              #
+#  Copyright (C) 2007-2014                                               #
+#    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              #
 #         alternatives)                                                  #
 #                                                                        #
 #  you can redistribute it and/or modify it under the terms of the GNU   #
@@ -24,6 +24,7 @@ PLUGIN_ENABLE	?=yes
 PLUGIN_DIR	?=.
 
 FRAMAC_SRC 	?=$(PLUGIN_DIR)/../..
+
 FRAMAC_MAKE	?=no
 
 ifndef MAKECONFIG_DIR
@@ -103,24 +104,39 @@ endif
 
 $(PLUGIN_NAME)_INSTALL_DOC: plugin-doc/$(PLUGIN_NAME)
 	$(PRINT_CP) $(patsubst %_INSTALL_DOC,%,$@) Documentation
-	$(MKDIR) $(FRAMAC_SHARE)/doc/code/$(@:%_INSTALL_DOC=%)
+	$(MKDIR) $(DOC_DIR)/$(@:%_INSTALL_DOC=%)
 	$(CP) $(patsubst %,"%", \
 	         $(wildcard $($(@:%_INSTALL_DOC=%_DOC_DIR))/*.css \
 	                    $($(@:%_INSTALL_DOC=%_DOC_DIR))/*.html \
                             $($(@:%_INSTALL_DOC=%_DOC_DIR))/*.png)) \
-              $(FRAMAC_SHARE)/doc/code/$(@:%_INSTALL_DOC=%)
+              $(DOC_DIR)/$(@:%_INSTALL_DOC=%)
 
 
 ifndef PLUGIN_INTERNAL_TEST
 ifndef PLUGIN_NO_TEST
 PTESTS_DEP=$(PLUGIN_DIR)/Makefile
+
 ifeq ($(FRAMAC_INTERNAL),yes)
-$(PLUGIN_DIR)/ptests_local_config.cmo: BFLAGS=-I $(FRAMAC_SRC)/ptests -g
+$(PLUGIN_DIR)/ptests_local_config.cmo: BFLAGS="-I $(call winpath,$(FRAMAC_SRC))/ptests" -g
 $(PLUGIN_DIR)/ptests_local_config.cmo: $(FRAMAC_SRC)/bin/ptests.byte
+
+# do not use the default rule: this file mustn't be compiled with -c
+# (incompatible with -shared)
+$(PLUGIN_DIR)/ptests_local_config.cmxs: $(PLUGIN_DIR)/ptests_local_config.ml \
+					$(FRAMAC_SRC)/bin/ptests.opt
+	$(OCAMLOPT) -I $(call winpath,$(FRAMAC_SRC))/ptests -g -shared -o $@ $<
+
 PTESTS_DEP+=$(FRAMAC_SHARE)/Makefile.dynamic \
 	    $(FRAMAC_SHARE)/Makefile.dynamic_config
 else
 $(PLUGIN_DIR)/ptests_local_config.cmo: BFLAGS=$(FRAMAC_INCLUDES)
+
+# do not use the default rule: this file mustn't be compiled with -c
+# (incompatible with -shared)
+$(PLUGIN_DIR)/ptests_local_config.cmxs: $(PLUGIN_DIR)/ptests_local_config.ml
+	$(OCAMLOPT) $(FRAMAC_INCLUDES) -shared -o $@ \
+		$(call winpath,$(FRAMAC_LIBDIR))/ptests_config.cmx \
+		$<
 endif #FRAMAC_INTERNAL
 
 $(PLUGIN_DIR)/ptests_local_config.ml: $(PTESTS_DEP)
@@ -149,9 +165,16 @@ $(PLUGIN_DIR)/ptests_local_config.ml: $(PTESTS_DEP)
 
 $(PLUGIN_NAME)_PTESTS_OPTS:=$(PLUGIN_PTESTS_OPTS)
 
+ifeq ($(PTESTSBEST),opt)
+PLC_EXT=.cmxs
+else
+PLC_EXT=.cmo
+endif
+PTESTS_LOCAL_CONFIG:=$(PLUGIN_DIR)/ptests_local_config$(PLC_EXT)
+
 .PHONY: plugin-test/$(PLUGIN_NAME)
 plugin-test/$(PLUGIN_NAME): $(TARGETS) $(TARGETS_GUI) \
-                            $(PLUGIN_DIR)/ptests_local_config.cmo
+                            $(PTESTS_LOCAL_CONFIG)
 	$(PRINT) TESTING PLUG-IN $(notdir $@)
 	cd $($(notdir $@)_DIR) && \
         time -p $(PTESTS) $(PTESTS_OPTS) $($(notdir $@)_PTESTS_OPTS)
@@ -262,6 +285,23 @@ install::
 	  $(CP) frama-c-$(PLUGIN_NAME).$(OCAMLBEST)$(EXE) \
 		$(BINDIR)/frama-c-$(PLUGIN_NAME)$(EXE); \
 	fi
+	$(PRINT_CP) $(PLUGIN_INSTALL_DIR)/dependencies
+	$(MKDIR) $(PLUGIN_INSTALL_DIR)/dependencies
+	if [ -f $(PLUGIN_DIR)/dependencies/$(PLUGIN_NAME)_dependencies.cmo ]; \
+	then \
+	  $(CP) $(PLUGIN_DIR)/dependencies/$(PLUGIN_NAME)_dependencies.cmo \
+	        $(PLUGIN_INSTALL_DIR)/dependencies; \
+	fi
+	if [ -f $(PLUGIN_DIR)/dependencies/$(PLUGIN_NAME)_dependencies.cmxs ]; \
+	then \
+	  $(CP) $(PLUGIN_DIR)/dependencies/$(PLUGIN_NAME)_dependencies.cmxs \
+	        $(PLUGIN_INSTALL_DIR)/dependencies; \
+	fi
+	if [ -f $(PLUGIN_DIR)/dependencies/$(PLUGIN_NAME)_dependencies.cmi ]; \
+	then \
+	  $(CP) $(PLUGIN_DIR)/dependencies/$(PLUGIN_NAME)_dependencies.cmi \
+	        $(PLUGIN_INSTALL_DIR)/dependencies; \
+	fi
 ifeq ($(HAS_GUI),yes)
 	$(PRINT_CP) $(PLUGIN_INSTALL_DIR)/gui
 	$(MKDIR) $(PLUGIN_INSTALL_DIR)/gui
@@ -271,6 +311,8 @@ endif
 uninstall::
 	$(PRINT_RM) installed $(PLUGIN_NAME) libraries
 	$(RM) $(PLUGIN_INSTALL_DIR)/$(PLUGIN_NAME).*
+	$(PRINT_RM) installed $(PLUGIN_NAME) dependencies
+	$(RM) $(PLUGIN_INSTALL_DIR)/dependencies/$(PLUGIN_NAME)_dependencies.*	
 	$(PRINT_RM) installed $(PLUGIN_NAME) binaries
 	$(RM) $(BINDIR)/frama-c-$(PLUGIN_NAME).opt$(EXE) \
 		$(BINDIR)/frama-c-$(PLUGIN_NAME).byte$(EXE)
@@ -281,11 +323,13 @@ endif
 endif # PLUGIN_ENABLE <> no
 
 clean:: $(PLUGIN_DIR)/$(PLUGIN_NAME)_CLEAN;
-$(PLUGIN_DIR)/.depend: $(PLUGIN_DIR)/$(PLUGIN_NAME)_DEP
+$(PLUGIN_DIR)/.depend: $(PLUGIN_DIR)/$(PLUGIN_NAME)_DEP ;
 depend:: $(PLUGIN_DIR)/$(PLUGIN_NAME)_DEP_REDO
 
 .PRECIOUS: $(PLUGIN_DIR)/.depend
 include $(PLUGIN_DIR)/.depend
+
+include $(MAKECONFIG_DIR)/Makefile.generic
 
 endif # FRAMAC_MAKE <> yes
 

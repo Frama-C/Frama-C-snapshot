@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA   (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -128,6 +128,10 @@ let loop_entry_label = LogicLabel (None, "LoopEntry")
 
 (** {2 Types} *)
 
+let is_set_type = function
+  | Ltype ({lt_name = "set"},[_]) -> true
+  | _ -> false
+
 (** [set_conversion ty1 ty2] returns a set type as soon as [ty1] and/or [ty2]
     is a set. Elements have type [ty1], or the type of the elements of [ty1] if
     it is itself a set-type ({i.e.} we do not build set of sets that way).*)
@@ -185,21 +189,20 @@ let addTermOffsetLval toadd (b, off) : term_lval =
 (** {2 Terms} *)
 (* empty line for ocamldoc *)
 
-
 (** @plugin development guide *)
-let term ?(loc=Lexing.dummy_pos, Lexing.dummy_pos) term typ =
+let term ?(loc=Cil_datatype.Location.unknown) term typ =
   { term_node = term;
     term_type = typ;
     term_name = [];
     term_loc = loc }
 
-let taddrof ?(loc=Lexing.dummy_pos, Lexing.dummy_pos) lv typ =
+let taddrof ?(loc=Cil_datatype.Location.unknown) lv typ =
   match lv with
-  | TMem h, TNoOffset -> h
-  | _ -> term ~loc (TAddrOf lv) typ
+    | TMem h, TNoOffset -> h
+    | _ -> term ~loc (TAddrOf lv) typ
 
 (** range of integers *)
-let trange ?(loc=Lexing.dummy_pos, Lexing.dummy_pos) (low,high) =
+let trange ?(loc=Cil_datatype.Location.unknown) (low,high) =
   term ~loc (Trange(low,high))
     (Ltype(Logic_env.find_logic_type "set",[Linteger]))
 

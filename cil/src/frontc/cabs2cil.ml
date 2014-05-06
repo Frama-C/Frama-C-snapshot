@@ -35,8 +35,8 @@
 (*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE         *)
 (*  POSSIBILITY OF SUCH DAMAGE.                                             *)
 (*                                                                          *)
-(*  File modified by CEA (Commissariat à l'énergie atomique et aux          *)
-(*                        énergies alternatives)                            *)
+(*  File modified by CEA (Commissariat Ã  l'Ã©nergie atomique et aux          *)
+(*                        Ã©nergies alternatives)                            *)
 (*               and INRIA (Institut National de Recherche en Informatique  *)
 (*                          et Automatique).                                *)
 (****************************************************************************)
@@ -59,12 +59,16 @@ open Cil_types
 open Cil_datatype
 open Lexing
 
-let debugGlobal = true
+
+let category_global = Kernel.register_category "cabs2cil:createGlobal"
+let category_initializer = Kernel.register_category "cabs2cil:initializers"
+let category_chunk = Kernel.register_category "cabs2cil:chunk"
+let category_cast = Kernel.register_category "cabs2cil:cast"
 
 let continueOnError = false
 
 let frama_c_keep_block = "FRAMA_C_KEEP_BLOCK"
-let () = Cil.register_shallow_attribute frama_c_keep_block
+let () = Cil_printer.register_shallow_attribute frama_c_keep_block
 
 (** A hook into the code that creates temporary local vars.  By default this
   is the identity function, but you can overwrite it if you need to change the
@@ -141,9 +145,12 @@ let register_for_loop_body_hook f =
 let register_conditional_side_effect_hook f =
   ConditionalSideEffectHook.extend (fun (y,z) -> f y z)
 
-let rec is_dangerous_offset = function
+let rec is_dangerous_offset t = function
     NoOffset -> false
-  | Field (_,o) -> is_dangerous_offset o
+  | Field (_,o) as off ->
+    let t_offset = Cil.unrollType (Cil.typeOffset t off) in
+    Cil.hasAttribute "volatile" (Cil.typeAttr t_offset) ||
+    is_dangerous_offset t_offset o
   | Index _ -> true
 
 let rec is_dangerous e = match e.enode with
@@ -153,17 +160,21 @@ let rec is_dangerous e = match e.enode with
     | Const _ | SizeOf _ | SizeOfE _ | SizeOfStr _ | AlignOf _ | AlignOfE _ ->
       false
 and is_dangerous_lval = function
-  | Var v,_ when not v.vglob && not v.vformal && not v.vgenerated -> true
+  | Var v,_ when 
+      (not v.vglob && not v.vformal && not v.vgenerated) 
+      || Cil.hasAttribute "volatile" v.vattr
+      || Cil.hasAttribute "volatile" (Cil.typeAttr (Cil.unrollType v.vtype))
+      -> true
   (* Local might be uninitialized, which will trigger UB,
      but we assume that the variables we generate are correctly initialized.
    *)
-  | Var _, o -> is_dangerous_offset o
+  | Var v, o -> is_dangerous_offset (Cil.unrollType v.vtype) o
   | Mem _,_ -> true
 
 
 class check_no_locals = object
   inherit nopCilVisitor
-  method vlval (h,_) =
+  method! vlval (h,_) =
     (match h with
     | Var v ->
       if not v.vglob then
@@ -535,7 +546,8 @@ let addLocalToEnv (n: string) (d: envdata) =
       | EnvVar _ ->
         Kernel.fatal ~current:true
 	  "addLocalToEnv: not in a scope when adding %s!" n
-      | _ -> () (* We might add types *)
+      | _ ->
+        H.add genv n (d,CurrentLoc.get()) (* We might add types *)
     end
   | s :: _ ->
       s := (UndoRemoveFromEnv n) :: !s)
@@ -557,7 +569,7 @@ let alphaTable : (string, location AL.alphaTableData ref) H.t = H.create 307
          * foo" or "union bar" *)
 
 let fresh_global lookupname =
-  fst (AL.newAlphaName alphaTable None lookupname (CurrentLoc.get ()))
+  fst (AL.newAlphaName alphaTable lookupname (CurrentLoc.get ()))
 
 (* To keep different name scopes different, we add prefixes to names
  * specifying the kind of name: the kind can be one of "" for variables or
@@ -565,16 +577,33 @@ let fresh_global lookupname =
  * "enum" for enumerations, or "type" for types *)
 let kindPlusName (kind: string)
                  (origname: string) : string =
-  if kind = "" then origname else
-  kind ^ " " ^ origname
-
+  (* typedefs live in the same namespace as normal identifiers. *) 
+  if kind = "" || kind = "type" then origname
+  else kind ^ " " ^ origname
 
 let stripKind (kind: string) (kindplusname: string) : string =
+  let kind = if kind = "type" then "" else kind in
   let l = 1 + String.length kind in
   if l > 1 then
     String.sub kindplusname l (String.length kindplusname - l)
   else
     kindplusname
+
+let is_same_kind kind info =
+  match kind, info with
+    | "", EnvEnum _
+    | "enum", EnvTyp _
+    | "type", EnvTyp _
+    | "struct", EnvTyp _
+    | "union", EnvTyp _
+    | "label", EnvLabel _
+    | "", EnvVar _ -> true
+    | _, _ -> false
+
+let find_identifier_decl name info =
+  match info with
+    | UndoRemoveFromEnv name' -> name = name'
+    | _ -> false
 
 let newAlphaName (globalscope: bool) (* The name should have global scope *)
                  (kind: string)
@@ -597,8 +626,29 @@ let newAlphaName (globalscope: bool) (* The name should have global scope *)
   in
   if not globalscope then findEnclosingFun !scopes;
   let newname, oldloc =
-    AL.newAlphaName alphaTable None lookupname (CurrentLoc.get ())
+    AL.newAlphaName alphaTable lookupname (CurrentLoc.get ())
   in
+  if newname <> lookupname then begin
+    try
+      let info =
+        if !scopes = [] then begin
+          fst (H.find genv lookupname)
+        end else
+          if List.exists (find_identifier_decl lookupname) !(List.hd !scopes)
+          then fst (H.find env lookupname)
+          else raise Not_found
+      in
+      Kernel.error ~current:true 
+        "redefinition of '%s'%s in the same scope. \
+         Previous declaration was at %a"
+        origname (if is_same_kind kind info then "" else " with different kind")
+        Cil_datatype.Location.pretty oldloc
+    with 
+      | Not_found -> () (* no clash of identifiers *)
+      | Failure _ ->
+        Kernel.fatal
+          "finding a fresh identifier in local scope with empty scopes stack"
+  end;
   stripKind kind newname, oldloc
 
 (*** In order to process GNU_BODY expressions we must record that a given
@@ -726,7 +776,7 @@ because of previous occurrence at %a"
 
 let constFoldTypeVisitor = object
   inherit nopCilVisitor
-  method vtype t: typ visitAction =
+  method! vtype t: typ visitAction =
     match t with
       TArray(bt, Some len, _, a) ->
         let len' = constFold true len in
@@ -741,6 +791,14 @@ end
 let constFoldType (t:typ) : typ =
   visitCilType constFoldTypeVisitor t
 
+let get_temp_name () =
+  let undolist = ref [] in
+  let data = CurrentLoc.get() in
+  let name,_ = AL.newAlphaName ~alphaTable ~undolist ~lookupname:"tmp" ~data in
+  let undolist = !undolist in
+  AL.undoAlphaChanges ~alphaTable ~undolist;
+  name
+
 (* Create a new temporary variable *)
 let newTempVar descr (descrpure:bool) typ =
   (* physical equality used on purpose here *)
@@ -748,9 +806,9 @@ let newTempVar descr (descrpure:bool) typ =
     Kernel.fatal ~current:true "newTempVar called outside a function" ;
   (*  ignore (E.log "stripConstLocalType(%a) for temporary\n" d_type typ); *)
   let t' = (!typeForInsertedVar) (Cil.stripConstLocalType typ) in
-  (* Start with the name "tmp". The alpha converter will fix it *)
-  let vi = makeVarinfo false false "tmp" t' in
-  vi.vdescr <- descr;
+  let name = get_temp_name () in 
+  let vi = makeVarinfo false false name t' in
+  vi.vdescr <- Some descr;
   vi.vdescrpure <- descrpure;
   (* Rename if clash, but do not add to the environment *)
   let vi = alphaConvertVarAndAddToEnv false vi in
@@ -871,14 +929,14 @@ let findCompType (kind: string) (n: string) (a: attributes) =
 class canDropStmtClass pRes = object
   inherit nopCilVisitor
 
-  method vstmt s =
+  method! vstmt s =
     if s.labels != [] then
       (pRes := false; SkipChildren)
     else
       if !pRes then DoChildren else SkipChildren
 
-  method vinst _ = SkipChildren
-  method vexpr _ = SkipChildren
+  method! vinst _ = SkipChildren
+  method! vexpr _ = SkipChildren
 
 end
 let canDropStatement (s: stmt) : bool =
@@ -914,8 +972,7 @@ let rec is_boolean_result e =
 (* Specify whether the cast is from the source code *)
 let rec castTo ?(fromsource=false)
                 (ot : typ) (nt : typ) (e : exp) : (typ * exp ) =
-  let dkey = Kernel.register_category "typecheck:cast" in
-  Kernel.debug ~dkey "@[%t: castTo:%s %a->%a@\n@]"
+  Kernel.debug ~dkey:category_cast "@[%t: castTo:%s %a->%a@\n@]"
     Cil.pp_thisloc (if fromsource then "(source)" else "")
     Cil_printer.pp_typ ot Cil_printer.pp_typ nt;
   let ot' = unrollType ot in
@@ -923,7 +980,7 @@ let rec castTo ?(fromsource=false)
   if not fromsource && not (need_cast ot' nt') then begin
     (* Do not put the cast if it is not necessary, unless it is from the
      * source. *)
-    Kernel.debug ~dkey "no cast to perform";
+    Kernel.debug ~dkey:category_cast "no cast to perform";
     (ot, e)
   end else begin
     let nt' = if fromsource then nt' else !typeForInsertedCast e ot' nt' in
@@ -935,8 +992,10 @@ let rec castTo ?(fromsource=false)
     in
 (*  [BM] uncomment the following line to enable attributes static typing
     ignore (check_strict_attributes true ot nt  && check_strict_attributes false nt ot);*)
-    Kernel.debug ~dkey "@[castTo: ot=%a nt=%a\n  result is %a@\n@]"
-      Cil_printer.pp_typ ot Cil_printer.pp_typ nt' Cil_printer.pp_exp (snd result);
+    Kernel.debug ~dkey:category_cast 
+      "@[castTo: ot=%a nt=%a\n  result is %a@\n@]"
+      Cil_printer.pp_typ ot Cil_printer.pp_typ nt'
+      Cil_printer.pp_exp (snd result);
     (* Now see if we can have a cast here *)
     match ot', nt' with
       TNamed _, _
@@ -986,11 +1045,13 @@ let rec castTo ?(fromsource=false)
         result
 
     | (TInt _ | TPtr _), TBuiltin_va_list _ ->
-      Kernel.debug ~dkey "Casting %a to __builtin_va_list" Cil_printer.pp_typ ot ;
+      Kernel.debug ~dkey:category_cast
+        "Casting %a to __builtin_va_list" Cil_printer.pp_typ ot ;
       result
 
     | TPtr _, TEnum _ ->
-      Kernel.debug ~dkey "Casting a pointer into an enumeration type" ;
+      Kernel.debug ~dkey:category_cast
+        "Casting a pointer into an enumeration type" ;
       result
 
     (* The expression is evaluated for its effects *)
@@ -1139,7 +1200,7 @@ module BlockChunk =
     let empty_stmts l =
       let rec is_empty_stmt s =
         match s.skind with
-            Instr (Skip _) -> true
+            Instr (Skip _) -> s.labels = []
           | Block b -> b.battrs = [] && List.for_all is_empty_stmt b.bstmts
           | UnspecifiedSequence seq ->
             List.for_all is_empty_stmt (List.map (fun (x,_,_,_,_) -> x) seq)
@@ -1195,13 +1256,16 @@ module BlockChunk =
          obeys block scope rules. We keep track of these scopes here.
        *)
       let labels: (string, stmt) H.t = H.create 7
-        (* label held by the current statement*)
+      (* label held by the current statement. *)
       let label_current = ref []
-      let add_current_label s = label_current:= s :: !label_current
-      let reset_current_label () = label_current := []
+      let add_current_label s = label_current := s::!label_current
+      (* Don't remove all current label at once, as there might be some
+         labels on nested statements. See bts 1536. *)
+      let reset_current_label () =
+        label_current:= List.tl !label_current
+
       let scope = Stack.create ()
       let enter_scope () = Stack.push (ref []) scope
-
       let exit_scope () =
         let scope_labels = Stack.pop scope in
         List.iter (H.remove labels) !scope_labels
@@ -1311,7 +1375,16 @@ module BlockChunk =
         }
       else
         match c2.stmts with
-            [] -> c1
+            [] ->
+              (match c2.locals with
+                | [] -> c1
+                | l -> { c1 with locals = c1.locals @ l })
+          | [{skind = UnspecifiedSequence l},_,_,_,_]
+            when c1.unspecified_order ->
+            { stmts = List.rev_append l c1.stmts;
+              cases = c1.cases @ c2.cases;
+              locals = c1.locals @ c2.locals;
+              unspecified_order = c1.unspecified_order; }
           | [s] ->
               { stmts = s :: c1.stmts;
                 cases = c1.cases @ c2.cases;
@@ -1330,14 +1403,15 @@ module BlockChunk =
               unspecified_order = c1.unspecified_order;
             }
       in
-(*      Format.eprintf "Concat:@\n%a@\nWITH@\n%a@\nLEADS TO@\n%a@."
+      Kernel.debug ~dkey:category_chunk
+        "Concat:@\n%a@\nWITH@\n%a@\nLEADS TO@\n%a@."
         d_chunk c1 d_chunk c2 d_chunk r;
-*)
       r
 
     let remove_reads lv c =
-      (* Format.eprintf "Removing %a from chunk@\n%a@."
-        d_lval lv d_chunk c; *)
+      Kernel.debug ~dkey:category_chunk
+        "Removing %a from chunk@\n%a@."
+        Cil_printer.pp_lval lv d_chunk c;
       let remove_list =
         List.filter (fun x -> not (Cil.compareLval lv x))
       in
@@ -1524,9 +1598,10 @@ module BlockChunk =
           (match (constFold e).enode, (constFold e'').enode with
             | Const(CInt64(i1, _, _)), Const(CInt64(i2, _, _))
                 when not (Integer.equal i1 i2) ->
-                Kernel.warning ~source:(fst e.eloc)
-	          "Case label %a exceeds range for switch expression" 
-		  Cil_printer.pp_exp e;
+                Kernel.feedback ~once:true ~source:(fst e.eloc)
+	          "Case label %a exceeds range of %a for switch expression. \
+                   Nothing to worry." 
+		  Cil_printer.pp_exp e Cil_printer.pp_typ t;
             | _ -> ()
           );
           Case (e'', loc)
@@ -1556,7 +1631,7 @@ module BlockChunk =
     let find_stmt b l s =
       let find = object
         inherit Cil.nopCilVisitor
-        method vstmt s' =
+        method! vstmt s' =
           if s == s' then begin
             (*Format.eprintf "Label %s is in the AST@." l;*)
             raise Found
@@ -1585,7 +1660,7 @@ module BlockChunk =
             (x,fun x -> ignore(Stack.pop unspecified_stack); x)
 
 
-      method vblock b =
+      method! vblock b =
         b.bstmts <-
           List.rev
           (List.fold_left(
@@ -1600,7 +1675,7 @@ module BlockChunk =
              [] b.bstmts);
         DoChildren
 
-      method vstmt s =
+      method! vstmt s =
         let change_label_stmt s s' =
           List.iter
             (function
@@ -1766,12 +1841,12 @@ class gatherLabelsClass : V.cabsVisitor = object (self)
          H.remove localLabels lbl)
       blk.blabels
 
-  method vblock blk =
+  method! vblock blk =
     (* Add the local labels, process the block, then remove the local labels *)
     self#addLocalLabels blk;
     ChangeDoChildrenPost (blk, fun _ -> (self#removeLocalLabels blk; blk))
 
-  method vstmt s =
+  method! vstmt s =
     CurrentLoc.set (get_statementloc s);
     (match s.stmt_node with
      | LABEL (lbl,_,_) ->
@@ -1801,11 +1876,11 @@ end
 class registerLabelsVisitor = object
   inherit V.nopCabsVisitor
 
-  method vstmt s =
+  method! vstmt s =
     let currentLoc = convLoc (C.get_statementloc s) in
     (match s.stmt_node with
        | A.LABEL (lbl,_,_) ->
-           AL.registerAlphaName alphaTable None (kindPlusName "label" lbl) currentLoc
+           AL.registerAlphaName alphaTable (kindPlusName "label" lbl) currentLoc
        | _ -> ());
     DoChildren
 end
@@ -1816,9 +1891,9 @@ let allocaFun () =
   if theMachine.msvcMode then begin
     let name = "alloca" in
     let fdec = emptyFunction name in
-    fdec.svar.vtype <-
-      TFun(voidPtrType,
-	   Some [ ("len", theMachine.typeOfSizeOf, []) ], false, []);
+    Cil.update_var_type fdec.svar
+      (TFun(voidPtrType,
+	    Some [ ("len", theMachine.typeOfSizeOf, []) ], false, []));
     fdec.svar
   end
   else
@@ -2010,7 +2085,7 @@ let rec combineTypes (what: combineWhat) (oldt: typ) (t: typ) : typ =
           (match what with
             | CombineFunarg b when
                 not theMachine.msvcMode && oldk = IInt
-                && sizeOf_int t <= (bytesSizeOfInt IInt)
+                && bytesSizeOf t <= (bytesSizeOfInt IInt)
                 && b ->
               (* GCC allows a function definition to have a more precise integer
                * type than a prototype that says "int" *)
@@ -2090,7 +2165,8 @@ let rec combineTypes (what: combineWhat) (oldt: typ) (t: typ) : typ =
                 ) oldci.cfields ci.cfields
             with Failure _ as e -> begin
               (* Our assumption was wrong. Forget the isomorphism *)
-	      Kernel.debug "Failed in our assumption that %s and %s are isomorphic"
+	      Kernel.debug ~level:2
+                "Failed in our assumption that %s and %s are isomorphic"
                 oldci.cname ci.cname ;
               H.remove isomorphicStructs (oldci.cname, ci.cname);
               H.remove isomorphicStructs (ci.cname, oldci.cname);
@@ -2210,16 +2286,25 @@ constant evaluation: %a and %a\n"
 
   | _ -> raise (Failure "different type constructors")
 
+let cleanup_isomorphicStructs () = H.clear isomorphicStructs
 
 let compatibleTypes t1 t2 =
-  let cleanup () = H.clear isomorphicStructs in
   try
     let r = combineTypes CombineOther t1 t2 in
-    cleanup ();
+    cleanup_isomorphicStructs ();
     r
   with Failure _ as e ->
-    cleanup ();
+    cleanup_isomorphicStructs ();
     raise e
+
+let compatibleTypesp t1 t2 =
+  try
+    ignore (combineTypes CombineOther t1 t2);
+    cleanup_isomorphicStructs ();
+    true
+  with Failure _ ->
+    cleanup_isomorphicStructs ();
+    false
 
 let extInlineSuffRe = Str.regexp "\\(.+\\)__extinline"
 
@@ -2246,13 +2331,12 @@ let makeGlobalVarinfo (isadef: bool) (vi: varinfo) : varinfo * bool =
       else
         vi.vname
     in
-    Kernel.debug
+    Kernel.debug ~dkey:category_global
       "makeGlobalVarinfo isadef=%b vi.vname=%s (lookup = %s)"
       isadef vi.vname lookupname;
-
     (* This may throw an exception Not_found *)
     let oldvi, oldloc = lookupGlobalVar lookupname in
-    Kernel.debug "  %s(%d) already in the env at loc %a"
+    Kernel.debug ~dkey:category_global "  %s(%d) already in the env at loc %a"
       vi.vname oldvi.vid Cil_printer.pp_location oldloc;
     (* It was already defined. We must reuse the varinfo. But clean up the
      * storage.  *)
@@ -2270,7 +2354,7 @@ let makeGlobalVarinfo (isadef: bool) (vi: varinfo) : varinfo * bool =
 	if vi.vstorage != oldvi.vstorage then
           Kernel.warning ~current:true
 	    "Inconsistent storage specification for %s. \
-Previous declaration: %a"
+             Previous declaration: %a"
 	    vi.vname Cil_printer.pp_location oldloc;
         vi.vstorage
     in
@@ -2293,9 +2377,9 @@ Previous declaration: %a"
         let mytype = combineTypes what oldvi.vtype vi.vtype in
         if not (Cil_datatype.Typ.equal oldvi.vtype vi.vtype)
         then DifferentDeclHook.apply (oldvi,vi);
-        oldvi.vtype <- mytype
+        Cil.update_var_type oldvi mytype;
       with Failure reason ->
-        Kernel.debug "old type = %a\nnew type = %a\n"
+        Kernel.debug ~dkey:category_global "old type = %a\nnew type = %a\n"
 	  Cil_printer.pp_typ oldvi.vtype
           Cil_printer.pp_typ vi.vtype ;
         Kernel.error ~once:true ~current:true
@@ -2319,15 +2403,14 @@ Previous declaration: %a"
              List.iter2
                (fun old (name,typ,attr) ->
                   if name <> "" then begin
-                    Kernel.debug "replacing formal %s with %s" old.vname name;
+                    Kernel.debug ~dkey:category_global
+                      "replacing formal %s with %s" old.vname name;
                     old.vname <- name;
-                    old.vtype <- typ;
+                    Cil.update_var_type old typ;
                     old.vattr <- attr;
                     (match old.vlogic_var_assoc with
                          None -> ()
-                       | Some old_lv ->
-                           old_lv.lv_name <- name;
-                           old_lv.lv_type <- Ctype typ;)
+                       | Some old_lv -> old_lv.lv_name <- name)
                   end)
                old_formals_env
                formals;
@@ -2345,7 +2428,8 @@ Previous declaration: %a"
        translated into variables with vgenerated fields at [true]. *)
     oldvi, true
   with Not_found -> begin (* A new one.  *)
-    Kernel.debug "  %s not in the env already" vi.vname;
+    Kernel.debug ~level:2 ~dkey:category_global
+      "  %s not in the env already" vi.vname;
     (* Announce the name to the alpha conversion table. This will not
      * actually change the name of the vi. See the definition of
      * alphaConvertVarAndAddToEnv *)
@@ -2395,8 +2479,6 @@ let logicConditionalConversion t1 t2 =
   | _ -> conditionalConversion t1 t2
 
 (* Some utilitites for doing initializers *)
-
-let debugInit = true
 
 type preInit =
   | NoInitPre
@@ -2642,7 +2724,7 @@ and normalSubobj (so: subobj) : unit =
         (* The array is over *)
   | InArray (parOff, bt, leno, current) :: rest ->
       if leno = !current then begin (* The array is over *)
-        if debugInit then Kernel.debug "Past the end of array";
+        Kernel.debug ~dkey:category_initializer "Past the end of array";
         so.stack <- rest;
         advanceSubobj so
       end else begin
@@ -2656,7 +2738,7 @@ and normalSubobj (so: subobj) : unit =
         (* The fields are over *)
   | InComp (parOff, _, nextflds) :: rest ->
       if nextflds == [] then begin (* No more fields here *)
-        if debugInit then Kernel.debug "Past the end of structure";
+        Kernel.debug ~dkey:category_initializer "Past the end of structure";
         so.stack <- rest;
         advanceSubobj so
       end else begin
@@ -2669,18 +2751,20 @@ and normalSubobj (so: subobj) : unit =
 and advanceSubobj (so: subobj) : unit =
   if so.eof then Kernel.abort ~current:true "advanceSubobj past end";
   match so.stack with
-  | [] -> if debugInit then Kernel.debug "Setting eof to true";
-          so.eof <- true
+  | [] ->
+      Kernel.debug ~dkey:category_initializer "Setting eof to true";
+      so.eof <- true
   | InArray (_, _, _, current) :: _ ->
-      if debugInit then Kernel.debug "  Advancing to [%d]" (!current + 1);
+      Kernel.debug ~dkey:category_initializer
+        "  Advancing to [%d]" (!current + 1);
       (* so.stack <- InArray (parOff, bt, leno, current + 1) :: rest; *)
       incr current;
       normalSubobj so
 
         (* The fields are over *)
   | InComp (parOff, comp, nextflds) :: rest ->
-      if debugInit then
-        Kernel.debug "Advancing past .%s" (List.hd nextflds).fname;
+      Kernel.debug ~dkey:category_initializer
+        "Advancing past .%s" (List.hd nextflds).fname;
       let flds' =
 	try List.tl nextflds
 	with Failure _ -> Kernel.abort ~current:true "advanceSubobj"
@@ -3194,6 +3278,9 @@ let set_to_zero ~ghost vi off typ =
           (None,Cil.evar ~loc bzero,
            [zone; size], loc)))
 
+
+exception ChangeSize of Cil_types.exp
+
 (* Initialize the first cell of an array, and call Frama_C_copy_block to
    propagate this initialization to the rest of the array.
    Array is located at vi.off, of length len, and cells are of type base_type.
@@ -3413,10 +3500,13 @@ let default_argument_promotion idx exp =
   let arg_type = Cil.typeOf exp in
   let typ =
     match Cil.unrollType arg_type with
-      | TVoid _ -> TVoid []
-      | TInt(k,_) when Cil.rank k <= Cil.rank IInt -> TInt(IInt,[])
+      | TVoid _ -> voidType
+      | TInt(k,_) when Cil.rank k < Cil.rank IInt ->
+        if intTypeIncluded k IInt then intType
+        else (* This may happen when char or short have the same size as int *) 
+          uintType
       | TInt(k,_) -> TInt(k,[])
-      | TFloat(FFloat,_) -> TFloat(FDouble,[])
+      | TFloat(FFloat,_) -> doubleType
       | TFloat(k,_) -> TFloat(k,[])
       | TPtr(t,_) | TArray(t,_,_,_) -> TPtr(t,[])
       | (TFun _) as t -> TPtr(t,[])
@@ -3431,6 +3521,15 @@ let default_argument_promotion idx exp =
      into account in the argument itself *)
   let (_,e) = castTo arg_type typ exp in
   (name,typ,[]), e
+
+(* Promote variadic arguments with standard argument promotions.*)
+let promote_variadic_arguments (chunk,args) = 
+  let args =
+    Extlib.mapi 
+      (fun i arg -> snd (default_argument_promotion i arg))
+      args
+  in
+  (chunk,args)
 
 let rec doSpecList ghost (suggestedAnonName: string)
     (* This string will be part of
@@ -3749,16 +3848,15 @@ let rec doSpecList ghost (suggestedAnonName: string)
 	  enum.ekind <- ekind;
 	end;
       (* Record the enum name in the environment *)
-      addLocalToEnv (kindPlusName "enum" n'') (EnvTyp res);
+      addLocalToEnv (kindPlusName "enum" n') (EnvTyp res);
       (* And define the tag *)
       cabsPushGlobal (GEnumTag (enum, CurrentLoc.get ()));
       res
 
     | [A.TtypeofE e] ->
-      let (_, _, e', t) = doExp (ghost_local_env ghost) false e AType in
+      let (_, _, e', t) = doExp (ghost_local_env ghost) false e AExpLeaveArrayFun in
       let t' =
         match e'.enode with
-          StartOf(lv) -> typeOfLval lv
         (* If this is a string literal, then we treat it as in sizeof*)
         | Const (CStr s) -> begin
           match typeOf e' with
@@ -4081,43 +4179,47 @@ and doType (ghost:bool) isFuncArg
     | A.ARRAY (d, al, len) ->
       let lo =
         match len.expr_node with
-          A.NOTHING -> None
-        | _ ->
-          (* Check that len is a constant expression.
-             We used to also cast the length to int here, but that's
-             theoretically too restrictive on 64-bit machines. *)
-          let len' = doPureExp (ghost_local_env ghost) len in
-          if not (isIntegralType (typeOf len')) then
-            Kernel.error ~once:true ~current:true
-	      "Array length %a does not have an integral type."
-              Cil_printer.pp_exp len';
-          if not allowVarSizeArrays then begin
-            (* Assert that len' is a constant *)
-            let cst = constFold true len' in
-            (match cst.enode with
-            | Const(CInt64(i, _, _)) ->
-              if Integer.lt i Integer.zero then
-                Kernel.error ~once:true ~current:true 
-		  "Length of array is negative"
-             else if Integer.equal i Integer.zero then
-                Kernel.error ~once:true ~source:(fst len'.eloc)
-		  "Length of array is zero. This extension is unsupported";
-
-            | _ ->
-              if isConstant cst then
+          | A.NOTHING -> None
+          | _ -> 
+	    try
+		   (* Check that len is a constant expression.
+		      We used to also cast the length to int here, but that's
+		      theoretically too restrictive on 64-bit machines. *)
+	      let len' = doPureExp (ghost_local_env ghost) len in
+	      if not (isIntegralType (typeOf len')) then
+		Kernel.error ~once:true ~current:true
+		  "Array length %a does not have an integral type."
+		  Cil_printer.pp_exp len';
+	      if not allowVarSizeArrays then begin
+		     (* Assert that len' is a constant *)
+		let cst = constFold true len' in
+		(match cst.enode with
+		  | Const(CInt64(i, _, _)) ->
+		    if Integer.lt i Integer.zero then
+                      Kernel.error ~once:true ~current:true 
+			"Length of array is negative"
+		    else if Integer.equal i Integer.zero then
+		      begin 
+			Kernel.warning ~once:true ~source:(fst len'.eloc)
+			  "Length of array is zero. This GCC extension is unsupported. Assuming length is 1.";
+			raise (ChangeSize (Cil.zero ~loc:len'.eloc))
+		      end
+		  | _ ->
+		    if isConstant cst then
                 (* e.g., there may be a float constant involved.
                  * We'll leave it to the user to ensure the length is
                  * non-negative, etc.*)
-                Kernel.warning ~current:true
-		  "Unable to do constant-folding on array length %a. \
+                      Kernel.warning ~current:true
+			"Unable to do constant-folding on array length %a. \
  Some CIL operations on this array may fail."
-                  Cil_printer.pp_exp cst
-              else
-                Kernel.error ~once:true ~current:true
-		  "Length of array is not a constant: %a"
-                  Cil_printer.pp_exp cst)
-          end;
-          Some len'
+			Cil_printer.pp_exp cst
+		    else
+                      Kernel.error ~once:true ~current:true
+			"Length of array is not a constant: %a"
+			Cil_printer.pp_exp cst)
+              end;
+              Some len'
+	    with ChangeSize fixed_len -> Some fixed_len
       in
       let al' = doAttributes ghost al in
       if not isFuncArg && hasAttribute "static" al' then
@@ -4210,15 +4312,16 @@ and doType (ghost:bool) isFuncArg
             TArray(bt,lo,_,attr) ->
               (* Note that for multi-dimensional arrays we strip off only
                  the first TArray and leave bt alone. *)
-              a.vtype <- turnArrayIntoPointer bt lo attr
-          | TFun _ -> a.vtype <- TPtr(a.vtype, [])
+              let real_type = turnArrayIntoPointer bt lo attr in
+              Cil.update_var_type a real_type
+          | TFun _ -> Cil.update_var_type a (TPtr(a.vtype, []))
           | TComp (_, _,_) -> begin
             match isTransparentUnion a.vtype with
               None ->  ()
             | Some fstfield ->
               transparentUnionArgs :=
                 (argidx, a.vtype) :: !transparentUnionArgs;
-              a.vtype <- fstfield.ftype;
+              Cil.update_var_type a fstfield.ftype;
           end
           | _ -> ());
           fixupArgumentTypes (argidx + 1) args'
@@ -4573,7 +4676,12 @@ and doExp local_env
 	    EnvVar vi, _ ->
 	      let lval = var vi in
 	      let reads =
-		if Lval.Set.mem lval local_env.authorized_reads
+		if
+                  (* Always allow to read the address of an
+                     array, as it will never be written to:
+                     no read/write interference is possible. *)
+                  Cil.isArrayType vi.vtype ||
+                  Lval.Set.mem lval local_env.authorized_reads
 		then []
 		else [ lval ]
 	      in
@@ -4586,8 +4694,9 @@ and doExp local_env
 		(new_exp ~loc (Lval lval)) vi.vtype
 	  | EnvEnum item, _ ->
 	    let typ = Cil.typeOf item.eival in
-            Kernel.debug "Looking for %s got enum %s : %a of type %a"
-              n item.einame Cil_printer.pp_exp item.eival Cil_printer.pp_typ typ;
+            (*Kernel.debug "Looking for %s got enum %s : %a of type %a"
+              n item.einame Cil_printer.pp_exp item.eival
+              Cil_printer.pp_typ typ; *)
 	    if Cil.theMachine.Cil.lowerConstants then
 	      finishExp [] (unspecified_chunk empty) item.eival typ
 	    else
@@ -4781,7 +4890,7 @@ functions"
 	  finishExp [] (unspecified_chunk empty) result (typeOf result)
 
 	| A.CONST_FLOAT str -> begin
-		     (* Maybe it ends in U or UL. Strip those *)
+		     (* Maybe it ends in F or L. Strip those *)
 	  let l = String.length str in
 	  let hasSuffix = hasSuffix str in
 	  let baseint, kind =
@@ -4796,14 +4905,8 @@ functions"
 	  in
 	  try
 	    Floating_point.set_round_nearest_even ();
-	    let basefloat = 
-	      match kind with
-		| FFloat -> 
-		    Floating_point.single_precision_of_string baseint
-		| FDouble | FLongDouble ->
-		    Floating_point.double_precision_of_string baseint
-	    in
 	    let open Floating_point in
+            let basefloat = parse_kind kind baseint in
 	    begin
 	      if basefloat.f_lower <> basefloat.f_upper 
 		&& Kernel.WarnDecimalFloat.get() <> "none"
@@ -4861,8 +4964,9 @@ functions"
          * drop the potential side-effects *)
         let scope_chunk =
           if isNotEmpty se then begin
-            Kernel.warning ~current:true
-	      "Warning: Dropping side-effect in sizeof";
+            Kernel.feedback ~once:true ~current:true
+	      "Dropping side-effect in sizeof. \
+               Nothing to worry, this is by the book.";
             IgnoreSideEffectHook.apply (e, e');
             let vars =
               List.filter (fun x -> Cil.appears_in_expr x e') se.locals
@@ -5237,7 +5341,7 @@ arguments"
                   Pretty_utils.sfprintf "%a%s"
                     Cil_descriptive_printer.pp_exp  e'
                     (if uop = A.POSINCR then "++" else "--") in
-                let tmp = newTempVar (Some descr) true t in
+                let tmp = newTempVar descr true t in
                 ([var tmp],
                  local_var_chunk se' tmp +++
                    (mkStmtOneInstr ~ghost:local_env.is_ghost
@@ -5337,8 +5441,7 @@ arguments"
             let r1, tmplv, se3 =
               if needsTemp then
                 let descr = 
-		  Some (Pretty_utils.sfprintf "%a" 
-			  Cil_descriptive_printer.pp_lval lv)
+		  Pretty_utils.sfprintf "%a" Cil_descriptive_printer.pp_lval lv
 		in
                 let tmp = newTempVar descr true lvt in
                 let chunk =
@@ -5475,7 +5578,7 @@ arguments"
             finishExp [] se e' intType
         | _ ->
             let tmp =
-              newTempVar (Some "<boolean expression>") true intType
+              newTempVar "<boolean expression>" true intType
             in
             let condChunk =
               compileCondExp ~ghost false ce
@@ -5493,12 +5596,11 @@ arguments"
       end
 
     | A.CALL(f, args) ->
-      if asconst then Kernel.warning ~current:true "CALL in constant";
-        let (rf,sf, f', ft') =
-          match f.expr_node with
-              (* Treat the VARIABLE case separate because we might be calling a
-               * function that does not have a prototype. In that case assume it
-               * takes INTs as arguments  *)
+      let (rf,sf, f', ft') =
+        match f.expr_node with
+            (* Treat the VARIABLE case separate because we might be calling a
+             * function that does not have a prototype. In that case assume it
+             * takes INTs as arguments  *)
             A.VARIABLE n -> begin
               try
                 let vi, _ = lookupVar n in
@@ -5512,7 +5614,7 @@ arguments"
                 in
                 (reads, unspecified_chunk empty,
                  new_exp ~loc:f.expr_loc (Lval(var vi)), vi.vtype)
-                  (* Found. Do not use finishExp. Simulate what = AExp None  *)
+              (* Found. Do not use finishExp. Simulate what = AExp None  *)
               with Not_found -> begin
                 Kernel.debug ~level:3
 		  "Calling function %s without prototype." n ;
@@ -5535,19 +5637,19 @@ arguments"
               end
             end
           | _ -> doExp local_env false f (AExp None)
-        in
+      in
         (* Get the result type and the argument types *)
-        let (resType, argTypes, isvar, f'',attrs) =
-          match unrollType ft' with
+      let (resType, argTypes, isvar, f'',attrs) =
+        match unrollType ft' with
             TFun(rt,at,isvar,attrs) -> (rt,at,isvar,f',attrs)
           | TPtr (t, _) -> begin
-              match unrollType t with
+            match unrollType t with
                 TFun(rt,at,isvar,_) -> (* Make the function pointer
                                         * explicit  *)
                   let f'' =
                     match f'.enode with
-                      AddrOf lv -> new_exp ~loc:f'.eloc (Lval(lv))
-                    | _ -> 
+			AddrOf lv -> new_exp ~loc:f'.eloc (Lval(lv))
+                      | _ -> 
                         new_exp ~loc:f'.eloc 
                           (Lval (mkMem f' NoOffset))
                   in
@@ -5556,124 +5658,134 @@ arguments"
                 Kernel.fatal ~current:true
 		  "Unexpected type of the called function %a: %a"
                   Cil_printer.pp_exp f' Cil_printer.pp_typ x
-            end
+          end
           | x ->
             Kernel.fatal ~current:true
 	      "Unexpected type of the called function %a: %a"
               Cil_printer.pp_exp f' Cil_printer.pp_typ x
-        in
-        let argTypesList = argsToList argTypes in
+      in
+      let argTypesList = argsToList argTypes in
         (* Drop certain qualifiers from the result type *)
-        let resType' = typeRemoveAttributes ["warn_unused_result"] resType in
+      let resType' = typeRemoveAttributes ["warn_unused_result"] resType in
         (* Before we do the arguments we try to intercept a few builtins. For
          * these we have defined then with a different type, so we do not
          * want to give warnings. We'll just leave the arguments of these
          * functions alone*)
-        let isSpecialBuiltin =
-          match f''.enode with
+      let isSpecialBuiltin =
+        match f''.enode with
             Lval (Var fv, NoOffset) -> Cil.is_special_builtin fv.vname
           | _ -> false
-        in
-
-	let force_rlarg_eval = Kernel.ForceRLArgEval.get () in
+      in
+      
+      let force_rlarg_eval = Kernel.ForceRLArgEval.get () in
         (** If [force_rlarg_eval], make sure we evaluate args right-to-left. *)
-        let force_right_to_left_evaluation (r,c, e, t) =
+      let force_right_to_left_evaluation (r,c, e, t) =
 	  (* If chunk is empty then it is not already evaluated *)
 	  (* constants don't need to be pulled out *)
-          if force_rlarg_eval && (not (isConstant e)) && not isSpecialBuiltin
-          then
+        if force_rlarg_eval && (not (isConstant e)) && not isSpecialBuiltin
+        then
 	    (* create a temporary *)
-	    let tmp =
-              newTempVar
-                (Some (Pretty_utils.sfprintf "%a"
-			 Cil_descriptive_printer.pp_exp e)) 
-		true
-		t
-            in
-            let c = local_var_chunk c tmp in
+	  let tmp =
+            newTempVar
+              (Pretty_utils.sfprintf "%a" Cil_descriptive_printer.pp_exp e)
+	      true
+	      t
+          in
+          let c = local_var_chunk c tmp in
 	    (* create an instruction to give the e to the temporary *)
-	    let i = mkStmtOneInstr ~ghost:local_env.is_ghost
-              (Set(var tmp, e, loc))
-            in
+	  let i = mkStmtOneInstr ~ghost:local_env.is_ghost
+            (Set(var tmp, e, loc))
+          in
 	    (* add the instruction to the chunk *)
 	    (* change the expression to be the temporary *)
-	    (c +++ (i,[],[],[]), new_exp ~loc (Lval(var tmp)), t)
-          else
-	    (add_reads loc r c, e, t)
-        in
-        let init_chunk =
-          if force_rlarg_eval then empty else unspecified_chunk empty
-        in
+	  (c +++ (i,[],[],[]), new_exp ~loc (Lval(var tmp)), t)
+        else
+	  (add_reads loc r c, e, t)
+      in
+      let init_chunk =
+        if force_rlarg_eval then empty else unspecified_chunk empty
+      in
         (* Do the arguments. In REVERSE order !!! Both GCC and MSVC do this *)
-        let rec loopArgs = function
-          | ([], []) -> (init_chunk, [])
-
-          | _, [] ->
-            if not isSpecialBuiltin then
-              Kernel.error ~once:true ~current:true
-		"Too few arguments in call to %a." Cil_printer.pp_exp f' ;
-	    (init_chunk, [])
-
-          | ((_, at, _) :: atypes, a :: args) ->
-              let (ss, args') = loopArgs (atypes, args) in
+      let rec loopArgs = function
+        | ([], []) -> (init_chunk, [])
+	  
+        | _, [] ->
+          if not isSpecialBuiltin then
+            Kernel.error ~once:true ~current:true
+	      "Too few arguments in call to %a." Cil_printer.pp_exp f' ;
+	  (init_chunk, [])
+	    
+        | ((_, at, _) :: atypes, a :: args) ->
+          let (ss, args') = loopArgs (atypes, args) in
               (* Do not cast as part of translating the argument. We let
                * the castTo do this work. This was necessary for
                * test/small1/union5, in which a transparent union is passed
                * as an argument *)
-              let (sa, a', att) = force_right_to_left_evaluation
+          let (sa, a', att) = force_right_to_left_evaluation
                 (doExp local_env false a (AExp None)) in
-              let (_, a'') = castTo att at a' in
-              (ss @@ (sa, ghost), a'' :: args')
-
-          | ([], args) -> (* No more types *)
-              if not isvar && argTypes != None && not isSpecialBuiltin then
+          let (_, a'') = castTo att at a' in
+          (ss @@ (sa, ghost), a'' :: args')
+	    
+        | ([], args) -> (* No more types *)
+          if not isvar && argTypes != None && not isSpecialBuiltin then
                 (* Do not give a warning for functions without a prototype*)
-                Kernel.error ~once:true ~current:true
-		  "Too many arguments in call to %a" Cil_printer.pp_exp f';
-              let rec loop = function
-                  [] -> (init_chunk, [])
-                | a :: args ->
-                    let (ss, args') = loop args in
-                    let (sa, a', _) =
-                      force_right_to_left_evaluation
-                        (doExp local_env false a (AExp None))
-                    in
-                    (ss @@ (sa, ghost), a' :: args')
+            Kernel.error ~once:true ~current:true
+	      "Too many arguments in call to %a" Cil_printer.pp_exp f';
+          let rec loop = function
+          [] -> (init_chunk, [])
+            | a :: args ->
+              let (ss, args') = loop args in
+              let (sa, a', _) =
+                force_right_to_left_evaluation
+                  (doExp local_env false a (AExp None))
               in
-              let (chunk,args as res) = loop args in
-              (match argTypes, f''.enode with
-                | Some _,_ -> res
-                | None, Lval (Var f, NoOffset) when not isSpecialBuiltin-> 
-                    (* use default argument promotion to infer the type of the
-                       function, see 6.5.2.2.6 *)
-                    let (prm_types,args) =
-                      List.split
-                        (Extlib.mapi default_argument_promotion args)
-                    in
-                    let typ = TFun (resType, Some prm_types, false,attrs) in
-                    f.vtype <- typ;
-                    Cil.setFormalsDecl f typ;
-                    (chunk,args)
-                | None, _ -> res 
-                 (* TODO: treat function pointers. 
-                    The issue is that their origin is more
-                    difficult to trace than plain variables (e.g. we'd have
-                    to take into account possible assignments, or update
-                    accordingly the signature of current function in case
-                    of a formal.
-                 *)
-              )
-        in
-        let (sargs, args') = loopArgs (argTypesList, args) in
+              (ss @@ (sa, ghost), a' :: args')
+          in
+          let (chunk,args as res) = loop args in
+          (match argTypes, f''.enode with
+            | Some _,_ -> 
+	      if isvar then begin
+		(* use default argument promotion to infer the type of the
+                   variadic actuals, see C11:6.5.2.2:7 *)
+		promote_variadic_arguments res
+	      end else
+		res
+            | None, Lval (Var f, NoOffset)
+              when not isSpecialBuiltin ->
+	      begin
+		(* use default argument promotion to infer the type of the
+                   function, see 6.5.2.2.6 *)
+		assert (not isvar);
+		(* No nullary variadics see C11:6.7.6 *)
+		let (prm_types,args) =
+                  List.split
+                    (Extlib.mapi default_argument_promotion args)
+		in
+		let typ = TFun (resType, Some prm_types, false,attrs) in
+		Cil.update_var_type f typ;
+		Cil.setFormalsDecl f typ;
+		(chunk,args)
+	      end
+            | None, _ -> res 
+              (* TODO: treat function pointers. 
+                 The issue is that their origin is more
+                 difficult to trace than plain variables (e.g. we'd have
+                 to take into account possible assignments, or update
+                 accordingly the signature of current function in case
+                 of a formal.
+              *)
+           )
+           in
+          let (sargs, args') = loopArgs (argTypesList, args) in
         (* Setup some pointer to the elements of the call. We may change
          * these below *)
-        let s0 = unspecified_chunk empty in
+          let s0 = unspecified_chunk empty in
         (* there is a sequence point between evaluations of args
            and the call itself, but we have to check that args wo side-effects
            (thus not appearing anywhere in sargs) are not modified by others...
            The call must thus be in the unspecified chunk
         *)
-        let sargs = if isEmpty sargs then empty else sargs in
+          let sargs = if isEmpty sargs then empty else sargs in
         let prechunk = ref ((s0 @@ (sf, ghost)) @@ (sargs, ghost)) in
         (* Do we actually have a call, or an expression? *)
         let piscall: bool ref = ref true in
@@ -5706,8 +5818,8 @@ arguments"
 
         (* Try to intercept some builtins *)
         (match (!pf).enode with
-           Lval(Var fv, NoOffset) -> begin
-             if fv.vname = "__builtin_va_arg" then begin
+          | Lval(Var fv, NoOffset) -> begin
+            if fv.vname = "__builtin_va_arg" then begin
                match !pargs with
                  marker :: ({enode = SizeOf resTyp} as size) :: _ -> begin
                    (* Make a variable of the desired type *)
@@ -5715,7 +5827,7 @@ arguments"
                      match !pwhat with
                        ASet (is_real,lv, r, lvt) -> is_real, lv, r, lvt
                      | _ ->
-                         let v = newTempVar None true resTyp in
+                         let v = newTempVar "vararg" true resTyp in
                          locals := v::!locals;
                          false, var v, [], resTyp
                    in
@@ -5782,29 +5894,101 @@ arguments"
                    end
                  | _ ->
                    Kernel.warning ~current:true "Invalid call to %s\n" fv.vname;
+               end else if fv.vname = "__builtin_va_arg_pack" then begin 
+		 (match !pargs with [  ] -> begin 
+                   piscall := false; 
+		   pres := new_exp ~loc:e.expr_loc (SizeOfE !pf);
+		   prestype := theMachine.typeOfSizeOf
+                 end
+		   | _ -> 
+                     Kernel.warning ~current:true 
+		       "Invalid call to builtin_va_arg_pack");
                end else if fv.vname = "__builtin_constant_p" then begin
                  (* Drop the side-effects *)
                  prechunk := empty;
-
+		 
                  (* Constant-fold the argument and see if it is a constant *)
                  (match !pargs with
                     [ arg ] -> begin
                       match (constFold true arg).enode with
-                        Const _ -> piscall := false;
+                        | Const _ -> piscall := false;
                           pres := integer ~loc:e.expr_loc 1 ;
                           prestype := intType
-
-                      | _ -> piscall := false;
+			    
+			| _ -> piscall := false;
                           pres := integer ~loc:e.expr_loc 0;
                           prestype := intType
                     end
                   | _ ->
                     Kernel.warning ~current:true
-		      "Invalid call to builtin_constant_p");
-               end
-           end
-         | _ -> ());
-
+		      "Invalid call to builtin_constant_p")
+	       end
+		 else if fv.vname = "__builtin_types_compatible_p" then begin
+		   (* Constant-fold the argument and see if it is a constant *)
+		   (match !pargs with 
+		       [ {enode = SizeOf t1}; {enode = SizeOf t2}] -> begin
+			 (* Drop the side-effects *)
+			 prechunk := empty;
+			 piscall := false; 
+			 let compatible =
+			   try ignore(combineTypes CombineOther t1 t2); true
+			   with Failure _ -> false
+			 in if compatible then
+			     pres := integer ~loc 1
+			   else
+			     pres := integer ~loc 0;
+			 prestype := intType
+		       end
+		     | _ -> 
+		       Kernel.warning 
+			 ~once:true 
+			 ~current:true 
+			 "Invalid call to builtin_types_compatible_p");
+		 end 
+		 else if asconst then 
+		   (* last special case: we cannot allow a function call
+		      at this point.*)
+		   begin
+		     piscall := false;
+		     Kernel.warning
+		       ~once:true
+		       ~current:true 
+		       "Call to %a in constant. Ignoring this call and \
+                        returning 0." 
+	    Cprint.print_expression f;
+		   end
+(*TODO: support those nice builtins.
+  One needs to translate the code below from 
+  Cil to frama-C. 
+  
+  else if fv.vname = "__builtin_choose_expr" then begin
+  
+	  (* Constant-fold the argument and see if it is a constant *)
+  (match !pargs with 
+  [ arg; e1; e2 ] -> begin 
+  let constfolded = constFold true arg in
+  match constfolded.enode with 
+  | (Const _) -> 
+  piscall := false; 
+  if isZero constfolded then begin
+          (* Keep only 3rd arg side effects *)
+  prechunk := (fun _ -> sf @@ (List.nth sargsl 2));
+  pres := e2;
+  prestype := typeOf e2
+	              end else begin
+          (* Keep only 2nd arg side effects *)
+  prechunk := (fun _ -> sf @@ (List.nth sargsl 1));
+  pres := e1;
+  prestype := typeOf e1
+  end
+  | _ -> ignore (warn "builtin_choose_expr expects a constant first argument")
+  end
+  | _ -> 
+  Kernel.warning "Invalid call to builtin_choose_expr")
+  end
+*)
+          end
+	  | _ -> ());
 
         (* Now we must finish the call *)
         if !piscall then begin
@@ -5857,7 +6041,7 @@ arguments"
 		     Cil_descriptive_printer.pp_exp) 
 		  !pargs
               in
-              let tmp = newTempVar (Some descr) false restype'' in
+              let tmp = newTempVar descr false restype'' in
               locals:=tmp::!locals;
               (* Remember that this variable has been created for this
                * specific call. We will use this in collapseCallCast. *)
@@ -5912,8 +6096,13 @@ arguments"
         in
         (* Do e3 for real *)
         let r3, se3, e3', t3 = doExp local_env asconst e3 what' in
-        (* Compute the type of the result *)
-        let tresult = conditionalConversion t2 t3 in
+        (* Compute the type of the result. If we are about to drop it,
+           it has type void anyway, especially in case of nested ternary
+           ops (Cf bts 1503).
+         *)
+        let tresult = 
+          if what = ADrop then Cil.voidType else conditionalConversion t2 t3
+        in
         if not (isEmpty se2) then
           ConditionalSideEffectHook.apply (e,e2);
         if not (isEmpty se3) then
@@ -5940,7 +6129,10 @@ arguments"
           let res = Cil.new_exp ~loc (CastE(Cil.voidType,Cil.zero ~loc)) in
           (match e2'o with
             | None when is_dangerous e3' || not (isEmpty se3) ->
-              let tmp = newTempVar None true tresult in
+              let descr =
+                Pretty_utils.sfprintf "%a" Cprint.print_expression e1
+              in
+              let tmp = newTempVar descr true tresult in
               let tmp_var = var tmp in
               let tmp_lval = new_exp ~loc:e.expr_loc (Lval (tmp_var)) in
               let (r1, se1, _, _) =
@@ -5997,30 +6189,38 @@ arguments"
         | _ -> (* Use a conditional *) begin
             match e2'o with
             | None -> (* has form "e1 ? : e3"  *)
-                let tmp = newTempVar None true tresult in
-                let tmp_var = var tmp in
-                let tmp_lval = new_exp ~loc:e.expr_loc (Lval (tmp_var)) in
-                let (r1,se1, _, _) =
-                  doExp local_env asconst e1 (ASet(false, tmp_var, [], tresult))
-                in
-                let se1 = local_var_chunk se1 tmp in
-                let r3,se3,_,_ =
-                  finishExp
-                    ~newWhat:(ASet(false,tmp_var, [], tresult)) r3 se3 e3' t3
-                in
+              let descr = Pretty_utils.sfprintf "%a" Cprint.print_expression e1
+              in
+              let tmp = newTempVar descr true tresult in
+              let tmp_var = var tmp in
+              let tmp_lval = new_exp ~loc:e.expr_loc (Lval (tmp_var)) in
+              let (r1,se1, _, _) =
+                doExp local_env asconst e1 (ASet(false, tmp_var, [], tresult))
+              in
+              let se1 = local_var_chunk se1 tmp in
+              let r3,se3,_,_ =
                 finishExp
-                  (r1@r3)
-                  ((empty @@ (se1, ghost)) @@
-                     (ifChunk ~ghost tmp_lval loc skipChunk se3, ghost))
-                  tmp_lval
-                  tresult
+                  ~newWhat:(ASet(false,tmp_var, [], tresult)) r3 se3 e3' t3
+              in
+              finishExp
+                (r1@r3)
+                ((empty @@ (se1, ghost)) @@
+                    (ifChunk ~ghost tmp_lval loc skipChunk se3, ghost))
+                tmp_lval
+                tresult
             | Some e2' ->
                 let is_real, lv, r, lvt, scope_chunk =
                   match what with
                   | ASet (is_real, lv, r, lvt) -> is_real, lv, r, lvt, empty
                   | _ ->
-                      let tmp = newTempVar None true tresult in
-                      false, var tmp, [], tresult, local_var_chunk empty tmp
+                    let descr =
+                      Pretty_utils.sfprintf "%a?%a:%a"
+                        Cprint.print_expression e1
+                        Cil_descriptive_printer.pp_exp e2'
+                        Cil_descriptive_printer.pp_exp e3'
+                    in
+                    let tmp = newTempVar descr true tresult in
+                    false, var tmp, [], tresult, local_var_chunk empty tmp
                 in
                 (* Now do e2 and e3 for real *)
                 let (r2,se2, _, _) =
@@ -6092,7 +6292,7 @@ arguments"
             let se, e =
               match se.stmts with
                 [ { skind = Block b},_, _, _, _ ] ->
-                  let vi = newTempVar (Some "GNU.body") true t in
+                  let vi = newTempVar "GNU.body" true t in
                   b.bstmts <-
                     b.bstmts @
                     [Cil.mkStmtOneInstr ~ghost:local_env.is_ghost
@@ -6483,12 +6683,12 @@ and doInitializer local_env (vi: varinfo) (inite: A.init_expression)
 
   (* Setup the pre-initializer *)
   let topPreInit = ref NoInitPre in
-  if debugInit then
-    Kernel.debug "@\nStarting a new initializer for %s : %a@\n" vi.vname Cil_printer.pp_typ vi.vtype;
+  Kernel.debug ~dkey:category_initializer
+    "@\nStarting a new initializer for %s : %a@\n"
+    vi.vname Cil_printer.pp_typ vi.vtype;
   let topSetupInit (o: offset) (e: exp) =
-    if debugInit then
-      Kernel.debug " set %a := %a@\n"  
-	Cil_printer.pp_lval (Var vi, o) Cil_printer.pp_exp e;
+    Kernel.debug ~dkey:category_initializer " set %a := %a@\n"  
+      Cil_printer.pp_lval (Var vi, o) Cil_printer.pp_exp e;
     let newinit = setOneInit !topPreInit o e in
     if newinit != !topPreInit then topPreInit := newinit
   in
@@ -6503,12 +6703,12 @@ and doInitializer local_env (vi: varinfo) (inite: A.init_expression)
    * for toplevel array types; now, collectInitializer does the job,
    * including for nested array types *)
   let typ' = vi.vtype in
-  if debugInit then
-    Kernel.debug "Collecting the initializer for %s@\n" vi.vname;
+  Kernel.debug ~dkey:category_initializer
+    "Collecting the initializer for %s@\n" vi.vname;
   let (init, typ'') = collectInitializer !topPreInit typ' in
-  if debugInit then
-    Kernel.debug "Finished the initializer for %s@\n  init=%a@\n  typ=%a@\n  acc=%a@\n"
-      vi.vname Cil_printer.pp_init init Cil_printer.pp_typ typ' d_chunk acc;
+  Kernel.debug ~dkey:category_initializer
+    "Finished the initializer for %s@\n  init=%a@\n  typ=%a@\n  acc=%a@\n"
+    vi.vname Cil_printer.pp_init init Cil_printer.pp_typ typ' d_chunk acc;
   empty @@ (acc, local_env.is_ghost), init, typ''
 
 and blockInitializer local_env vi inite =
@@ -6571,17 +6771,16 @@ and doInit
     | _ -> initl1
   in
   let allinitl = initl2 in
-
-  if debugInit then begin
-    Kernel.debug "doInit for %t %s (current %a). Looking at: %t" whoami
-      (if so.eof then "(eof)" else "")
-      Cil_printer.pp_lval (Var so.host, so.curOff)
+  Kernel.debug ~dkey:category_initializer
+    "doInit for %t %s (current %a). Looking at: %t" whoami
+    (if so.eof then "(eof)" else "")
+    Cil_printer.pp_lval (Var so.host, so.curOff)
     (fun fmt ->
-       match allinitl with
-           [] -> Format.fprintf fmt "[]@."
-         | (what, ie) :: _ ->
-             Cprint.print_init_expression fmt (A.COMPOUND_INIT [(what, ie)]));
-  end;
+      match allinitl with
+      | [] -> Format.fprintf fmt "[]@."
+      | (what, ie) :: _ ->
+        Cprint.print_init_expression fmt (A.COMPOUND_INIT [(what, ie)])
+    );
   match unrollType so.soTyp, allinitl with
     _, [] -> acc, [] (* No more initializers return *)
 
@@ -6623,7 +6822,7 @@ and doInit
 	(* ISO 6.7.8 para 14: final NUL added only if no size specified, or
 	 * if there is room for it; btw, we can't rely on zero-init of
 	 * globals, since this array might be a local variable *)
-        if ((not (Extlib.has_some leno)) or
+        if ((not (Extlib.has_some leno)) ||
                ((String.length s) < (integerArrayLength leno)))
         then ref [init Int64.zero]
         else ref []
@@ -6766,8 +6965,9 @@ and doInit
       let r, se, oneinit', t' =
         doExp local_env isconst oneinit (AExp(Some so.soTyp)) in
       let se = add_reads oneinit'.eloc r se in
-      Kernel.debug "oneinit'=%a, t'=%a, so.soTyp=%a"
-         Cil_printer.pp_exp oneinit' Cil_printer.pp_typ t' Cil_printer.pp_typ so.soTyp;
+      Kernel.debug ~dkey:category_initializer "oneinit'=%a, t'=%a, so.soTyp=%a"
+        Cil_printer.pp_exp oneinit' Cil_printer.pp_typ t'
+        Cil_printer.pp_typ so.soTyp;
       setone so.soOff (if theMachine.insertImplicitCasts then
                          snd (castTo t' so.soTyp oneinit')
                        else oneinit');
@@ -6868,8 +7068,9 @@ and doInit
           let se = acc @@ (se, local_env.is_ghost) in
           doInit local_env isconst add_implicit_ensures setone so se restil
 	with Not_found ->
-	  Kernel.fatal ~current:true
-	    "doInit: unexpected NEXT_INIT for %a\n" Cil_printer.pp_typ t
+	  Kernel.abort ~current:true
+	    "scalar value (of type %a) initialized by compound initializer" 
+            Cil_printer.pp_typ t
       end
 
   (* We have a designator *)
@@ -6984,9 +7185,8 @@ and doInit
  * varinfo *)
 and createGlobal ghost logic_spec ((t,s,b,attr_list) : (typ * storage * bool * A.attribute list))
     (((n,ndt,a,cloc), inite) : A.init_name) : varinfo =
-  try
-    if debugGlobal then
-      Kernel.debug "createGlobal: %s" n;
+    try
+    Kernel.debug ~dkey:category_global ~level:2 "createGlobal: %s" n;
     (* If the global is a Frama-C builtin, set the generated flag *)
     let is_fc_builtin {A.expr_node=enode} =
       match enode with A.VARIABLE "FC_BUILTIN" -> true | _ -> false
@@ -6996,7 +7196,8 @@ and createGlobal ghost logic_spec ((t,s,b,attr_list) : (typ * storage * bool * A
     in
     (* Make a first version of the varinfo *)
     let vi = makeVarInfoCabs ~ghost ~isformal:false
-      ~isglobal:true ~isgenerated (convLoc cloc) (t,s,b,attr_list) (n,ndt,a) in
+      ~isglobal:true ~isgenerated (convLoc cloc) (t,s,b,attr_list) (n,ndt,a)
+    in
     (* Add the variable to the environment before doing the initializer
      * because it might refer to the variable itself *)
     if isFunctionType vi.vtype then begin
@@ -7008,6 +7209,15 @@ and createGlobal ghost logic_spec ((t,s,b,attr_list) : (typ * storage * bool * A
       (* with no-storage prototype and static definition *)
       if vi.vstorage = NoStorage then
         vi.vstorage <- Extern;
+    end else if Extlib.has_some logic_spec then begin
+      let emit,msg = 
+        if Kernel.ContinueOnAnnotError.get () then
+          Kernel.warning, " (ignoring)."
+        else Kernel.error, "."
+      in
+      emit ~current:true ~once:true
+        "Global variable %s is not a function. It cannot have a contract%s"
+        vi.vname msg
     end;
     let vi, alreadyInEnv = makeGlobalVarinfo (inite != A.NO_INIT) vi in
     (* Do the initializer and complete the array type if necessary *)
@@ -7020,7 +7230,7 @@ and createGlobal ghost logic_spec ((t,s,b,attr_list) : (typ * storage * bool * A
          * initializer only if it really differs from the type of
          * the variable. *)
         if unrollType vi.vtype != unrollType et then
-          vi.vtype <- et;
+          Cil.update_var_type vi et;
         if isNotEmpty se then begin
           Kernel.error ~once:true ~current:true
 	    "invalid global initializer @[%a@]" d_chunk se;
@@ -7035,14 +7245,14 @@ and createGlobal ghost logic_spec ((t,s,b,attr_list) : (typ * storage * bool * A
         Kernel.error ~once:true ~current:true
 	  "Global %s was already defined at %a" vi.vname Cil_printer.pp_location oldloc;
       end;
-      if debugGlobal then
-        Kernel.debug " global %s was already defined" vi.vname;
+      Kernel.debug ~dkey:category_global ~level:2
+        " global %s was already defined" vi.vname;
       (* Do not declare it again, but update the spec if any *)
       if isFunctionType vi.vtype then
         begin
           match logic_spec with
-            None -> ()
-          | Some (spec,_) ->
+            | None -> ()
+            | Some (spec,_) ->
               let l1 = get_formals vi in
               let l2 = Cil.getFormalsDecl vi in
               List.iter2
@@ -7067,9 +7277,8 @@ and createGlobal ghost logic_spec ((t,s,b,attr_list) : (typ * storage * bool * A
       vi
     with Not_found -> begin
       (* Not already defined *)
-      if debugGlobal then
-        Kernel.debug " first definition for %s(%d)\n" vi.vname
-          vi.vid;
+      Kernel.debug ~dkey:category_global ~level:2
+        " first definition for %s(%d)\n" vi.vname vi.vid;
       if init != None then begin
         (* weimer: Sat Dec  8 17:43:34  2001
          * MSVC NT Kernel headers include this lovely line:
@@ -7121,8 +7330,8 @@ and createGlobal ghost logic_spec ((t,s,b,attr_list) : (typ * storage * bool * A
           cabsPushGlobal (GVarDecl (spec, vi, CurrentLoc.get ()));
           vi
         end else begin
-          if debugGlobal then
-            Kernel.debug " already in env %s" vi.vname;
+          Kernel.debug ~dkey:category_global ~level:2
+            " already in env %s" vi.vname;
           (match logic_spec with
            | None -> ()
            | Some (spec,loc) ->
@@ -7189,9 +7398,8 @@ and createLocal ghost ((_, sto, _, _) as specs)
       empty
 
   | _ when sto = Static ->
-      if debugGlobal then
-        Kernel.debug "createGlobal (local static): %s" n;
-
+      Kernel.debug ~dkey:category_global ~level:2
+        "createGlobal (local static): %s" n;
       (* Now alpha convert it to make sure that it does not conflict with
        * existing globals or locals from this function. *)
       let newname, _  = newAlphaName true "" n in
@@ -7210,7 +7418,7 @@ and createLocal ghost ((_, sto, _, _) as specs)
       (* Maybe this is an array whose length depends on something with local
          scope, e.g. "static char device[ sizeof(local) ]".
          Const-fold the type to fix this. *)
-      vi.vtype <- constFoldType vi.vtype;
+      Cil.update_var_type vi (constFoldType vi.vtype);
 
       let init : init option =
         if inite = A.NO_INIT then
@@ -7221,7 +7429,7 @@ and createLocal ghost ((_, sto, _, _) as specs)
            * initializer only if it really differs from the type of
            * the variable. *)
           if unrollType vi.vtype != unrollType et then
-            vi.vtype <- et;
+            Cil.update_var_type vi et;
           if isNotEmpty se then
             Kernel.error ~once:true ~current:true "global static initializer";
           (* Check that no locals are refered by the initializer *)
@@ -7309,9 +7517,8 @@ and createLocal ghost ((_, sto, _, _) as specs)
             (* do it in two *)
             let rt, _, _, _ = splitFunctionType alloca.vtype in
             let tmp =
-              newTempVar
-                (Some 
-		   (Pretty_utils.sfprintf "alloca(%a)" Cil_printer.pp_exp sizeof))
+              newTempVar 
+		(Pretty_utils.sfprintf "alloca(%a)" Cil_printer.pp_exp sizeof)
                 false rt
             in
             (local_var_chunk setlen tmp)
@@ -7334,14 +7541,15 @@ and createLocal ghost ((_, sto, _, _) as specs)
         (* Fix the length *)
         (match vi.vtype, ie', et with
            (* We have a length now *)
-           TArray(_,None, _, _), _, TArray(_, Some _, _, _) -> vi.vtype <- et
+           TArray(_,None, _, _), _, TArray(_, Some _, _, _) -> 
+             Cil.update_var_type vi et
              (* Initializing a local array *)
          | TArray(TInt((IChar|IUChar|ISChar), _) as bt, None, l, a),
              SingleInit({enode = Const(CStr s);eloc=loc}), _ ->
-             vi.vtype <- TArray(bt,
-                                Some (integer ~loc (String.length s + 1)),
-                                l,
-                                a)
+             Cil.update_var_type vi
+               (TArray(bt,
+                       Some (integer ~loc (String.length s + 1)),
+                       l, a))
          | _, _, _ -> ());
 
         (* Now create assignments instead of the initialization *)
@@ -7506,8 +7714,8 @@ and doDecl local_env (isglobal: bool) : A.definition -> chunk = function
         let idloc = loc1 in
         let funloc = fst loc1, snd loc2 in
         let endloc = loc2 in
-        if debugGlobal then
-          Kernel.debug "Definition of %s at %a\n" n Cil_printer.pp_location idloc;
+        Kernel.debug ~dkey:category_global ~level:2
+          "Definition of %s at %a\n" n Cil_printer.pp_location idloc;
         CurrentLoc.set idloc;
         try
           IH.clear callTempVars;
@@ -7553,7 +7761,7 @@ and doDecl local_env (isglobal: bool) : A.definition -> chunk = function
               doType local_env.is_ghost false
                 (AttrName false) bt (A.PARENTYPE(attrs, dt, a)) in
             (* Format.printf "Attrs are %a@." d_attrlist funattr; *)
-            !currentFunctionFDEC.svar.vtype <- ftyp;
+            Cil.update_var_type !currentFunctionFDEC.svar ftyp;
             !currentFunctionFDEC.svar.vattr <- funattr;
 
             (* If this is the definition of an extern inline then we change
@@ -7674,7 +7882,7 @@ and doDecl local_env (isglobal: bool) : A.definition -> chunk = function
 
             (* Now fix the names of the formals in the type of the function
              * as well *)
-            !currentFunctionFDEC.svar.vtype <- ftype;
+            Cil.update_var_type !currentFunctionFDEC.svar ftype;
             !currentFunctionFDEC.sformals <- formals;
             (* we will revisit the spec for the declaration in order
                to change the formals according to the new variables.
@@ -7707,7 +7915,7 @@ and doDecl local_env (isglobal: bool) : A.definition -> chunk = function
                   (* Fix the type back to a transparent union type *)
                   (try
                      let origtype = List.assq idx !transparentUnionArgs in
-                     a.vtype <- origtype;
+                     Cil.update_var_type a origtype;
                    with Not_found -> ());
                   fixbackFormals (idx + 1) args'
             in
@@ -7984,10 +8192,7 @@ and doTypedef ghost ((specs, nl): A.name_group) =
         let newTyp, tattr =
           doType ghost false AttrType bt (A.PARENTYPE(attrs, ndt, a))  in
         let newTyp' = cabsTypeAddAttributes tattr newTyp in
-        (* Create a new name for the type. Use the same name space as that of
-         * variables to avoid confusion between variable names and types. This
-         * is actually necessary in some cases.  *)
-        let n', _  = newAlphaName true "" n in
+        let n', _  = newAlphaName true "type" n in
         let ti =
           { torig_name = n; tname = n';
             ttype = newTyp'; treferenced = false }
@@ -8412,7 +8617,7 @@ and doStatement local_env (s : A.statement) : chunk =
         (* Check if we are translating 'do { <s> } while (0)'. If so, translate
            it sito '<s>' instead. Not active for now as it can impact plugins
            that compare the shape of the Cabs and of the Cil files. *)
-        if false &&
+        if Kernel.SimplifyTrivialLoops.get() &&
           isCabsZeroExp e (* exp is 0 or something equivalent *) &&
           a = [] (* No loop annot *) &&
           not (continueUsed ()) (* no 'continue' inside s *) &&
@@ -8528,10 +8733,16 @@ and doStatement local_env (s : A.statement) : chunk =
         CurrentLoc.set loc';
         let (se, e', _) = doFullExp local_env true e (AExp None) in
         if isNotEmpty se || not (Cil.isIntegerConstant e') then
-          Kernel.error ~once:true ~current:true "Case statement with a non-constant";
-        caseRangeChunk ~ghost
-	  [if theMachine.lowerConstants then constFold false e' else e']
-          loc' (doStatement local_env s)
+          Kernel.error ~once:true ~current:true
+            "Case statement with a non-constant";
+        let chunk =
+          caseRangeChunk ~ghost
+	    [if theMachine.lowerConstants then constFold false e' else e']
+            loc' (doStatement local_env s)
+        in
+        (* se has no statement, but can contain local variables, in
+           particular in the case of a sizeof with side-effects. *)
+        se @@ (chunk,ghost)
 
     | A.CASERANGE (el, eh, s, loc) ->
         let loc' = convLoc loc in
@@ -8539,7 +8750,8 @@ and doStatement local_env (s : A.statement) : chunk =
         let (sel, el', _) = doFullExp local_env false el (AExp None) in
         let (seh, eh', _) = doFullExp local_env false eh (AExp None) in
         if isNotEmpty sel || isNotEmpty seh then
-          Kernel.error ~once:true ~current:true "Case statement with a non-constant";
+          Kernel.error ~once:true ~current:true
+            "Case statement with a non-constant";
         let il, ih =
           match (constFold true el').enode, (constFold true eh').enode with
             Const(CInt64(il, _, _)), Const(CInt64(ih, _, _)) ->
@@ -8552,7 +8764,9 @@ and doStatement local_env (s : A.statement) : chunk =
         let rec mkAll (i: int) =
           if i > ih then [] else integer ~loc i :: mkAll (i + 1)
         in
-        caseRangeChunk ~ghost (mkAll il) loc' (doStatement local_env s)
+        (sel @@ (seh,ghost)) @@ 
+          (caseRangeChunk ~ghost (mkAll il) loc' (doStatement local_env s),
+           ghost)
 
     | A.DEFAULT (s, loc) ->
         let loc' = convLoc loc in
@@ -8623,11 +8837,7 @@ and doStatement local_env (s : A.statement) : chunk =
       end
 
     | A.DEFINITION d ->
-        let s = doDecl local_env false d  in
-        (*
-          Kernel.debug "Def at %a: %a\n" Cil_printer.pp_location (currentLoc()) d_chunk s;
-        *)
-        s
+        doDecl local_env false d
 
     | A.ASM (asmattr, tmpls, details, loc) ->
         (* Make sure all the outs are variables *)
@@ -8635,7 +8845,7 @@ and doStatement local_env (s : A.statement) : chunk =
         let attr' = doAttributes local_env.is_ghost asmattr in
         CurrentLoc.set loc';
         let stmts : chunk ref = ref empty in
-	let (tmpls', outs', ins', clobs') =
+	let (tmpls', outs', ins', clobs', labels') =
 	  match details with
 	  | None ->
 	      let tmpls' =
@@ -8645,8 +8855,8 @@ and doStatement local_env (s : A.statement) : chunk =
 		  let escape = Str.global_replace pattern "%%" in
 		  List.map escape tmpls
 	      in
-	      (tmpls', [], [], [])
-	  | Some { aoutputs = outs; ainputs = ins; aclobbers = clobs } ->
+	      (tmpls', [], [], [],[])
+	  | Some { aoutputs = outs; ainputs = ins; aclobbers = clobs; alabels = labels } ->
               let outs' =
 		List.map
 		  (fun (id, c, e) ->
@@ -8676,11 +8886,20 @@ and doStatement local_env (s : A.statement) : chunk =
 		     (id, c, e'))
 		  ins
               in
-	      (tmpls, outs', ins', clobs)
+	      let labels' = 
+		List.map 
+		  (fun label -> 
+		    let label = lookupLabel label in
+		    let gref = ref dummyStmt in
+		    addGoto label gref;
+		    gref) 
+		  labels 
+	      in
+	      (tmpls, outs', ins', clobs, labels')
 	in
         !stmts @@
           (i2c(mkStmtOneInstr ~ghost:local_env.is_ghost
-                 (Asm(attr', tmpls', outs', ins', clobs', loc')),[],[],[]),
+                 (Asm(attr', tmpls', outs', ins', clobs', labels', loc')),[],[],[]),
           ghost)
 
     | TRY_FINALLY (b, h, loc) ->
@@ -8761,7 +8980,7 @@ let rec stripParenLocal e = match e.expr_node with
 class stripParenClass : V.cabsVisitor = object
   inherit V.nopCabsVisitor
 
-  method vexpr e = match e.expr_node with
+  method! vexpr e = match e.expr_node with
   | A.PAREN e2 -> ChangeDoChildrenPost (stripParenLocal e2,stripParenLocal)
   | _ -> DoChildren
 end
@@ -8785,7 +9004,7 @@ let convFile (f : A.file) : Cil_types.file =
   H.clear alreadyDefined;
   H.clear staticLocals;
   H.clear typedefs;
-  H.clear isomorphicStructs;
+  cleanup_isomorphicStructs ();
   H.clear alpha_renaming;
   Stack.clear packing_pragma_stack;
   current_packing_pragma := None;
@@ -8806,7 +9025,7 @@ let convFile (f : A.file) : Cil_types.file =
     cabsPushGlobal (GVarDecl (empty_funspec (), v, Cil.builtinLoc));
     Cil.setFormalsDecl v v.vtype
   in
-  Cil.Builtin_functions.iter setupBuiltin;
+  Cil.Builtin_functions.iter_sorted setupBuiltin;
 
   let globalidx = ref 0 in
   let doOneGlobal (ghost,(d: A.definition)) =
@@ -8826,7 +9045,7 @@ let convFile (f : A.file) : Cil_types.file =
   H.clear alreadyDefined;
   H.clear compInfoNameEnv;
   H.clear enumInfoNameEnv;
-  H.clear isomorphicStructs;
+  cleanup_isomorphicStructs ();
   H.clear staticLocals;
   H.clear typedefs;
   H.clear env;

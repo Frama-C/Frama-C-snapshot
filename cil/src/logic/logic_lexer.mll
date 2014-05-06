@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA   (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -88,6 +88,7 @@
         "axiomatic", AXIOMATIC, false;
         "behavior", BEHAVIOR, false;
         "behaviors", BEHAVIORS, false;
+        "_Bool", BOOL, true;
         "breaks", BREAKS, false;
 	"case", CASE, true;
         "char", CHAR, true;
@@ -241,7 +242,8 @@
 
 let space = [' ' '\t' '\012' '\r' '@' ]
 
-let rD =	['0'-'9']
+let rB = ['0' '1']
+let rD = ['0'-'9']
 let rO = ['0'-'7']
 let rL = ['a'-'z' 'A'-'Z' '_']
 let rH = ['a'-'f' 'A'-'F' '0'-'9']
@@ -270,6 +272,7 @@ rule token = parse
   | rL (rL | rD)*       { let s = lexeme lexbuf in identifier s }
 
   | '0'['x''X'] rH+ rIS?    { CONSTANT (IntConstant (lexeme lexbuf)) }
+  | '0'['b''B'] rB+ rIS?    { CONSTANT (IntConstant (lexeme lexbuf)) }
   | '0' rD+ rIS?            { CONSTANT (IntConstant (lexeme lexbuf)) }
   | rD+                     { CONSTANT10 (lexeme lexbuf) }
   | rD+ rIS                 { CONSTANT (IntConstant (lexeme lexbuf)) }

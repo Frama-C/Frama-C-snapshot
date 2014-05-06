@@ -24,7 +24,7 @@ int fn1(int x, int y)
 
 int R1, R2;
 
-int main () {
+int main1 () {
   /* passing volatile things to functions */
   R1 = fn1(G, G|0);
   R2 = fn2(G, G|0);
@@ -61,6 +61,21 @@ int main () {
   pV = &Y;
   *pV = y; /* assignment to volatile Y */
   y = *pV;
-  
+
   return Y;
+}
+
+// Test volatile pointers
+int * volatile main2() {
+  int * volatile p1, * volatile p2, * volatile p3;
+  p1 = G ? 0 : &X;
+  p2 = &X;
+  k = G ? 0 : &X;
+  p3 = k;
+  return k;
+}
+
+void main() {
+  main1();
+  main2();
 }

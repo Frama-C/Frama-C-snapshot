@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -105,7 +105,7 @@ sig
   (** {3 Locations} *)
 
   val field : logic -> fieldinfo -> logic
-  val shift : logic -> c_object -> ?size:int64 -> logic -> logic
+  val shift : logic -> c_object -> ?size:int -> logic -> logic
   val load : Sigma.t -> c_object -> logic -> logic
 
   (** {3 Sets of loc-or-values} *)

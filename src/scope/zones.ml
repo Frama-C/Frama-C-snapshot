@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -68,7 +68,8 @@ let process_call_res data stmt lvaloption froms =
     | None -> false, data
     | Some lval ->
         let ret_dpds = froms.Function_Froms.deps_return in
-        let r_dpds = Lmap_bitwise.From_Model.LOffset.collapse ret_dpds in
+        let r_dpds = Function_Froms.Memory.LOffset.collapse ret_dpds in
+        let r_dpds = Function_Froms.Deps.to_zone r_dpds in
         let l_dpds, exact, l_zone =
           Datascope.get_lval_zones ~for_writing:true  stmt lval in
           compute_new_data data l_zone l_dpds exact r_dpds
@@ -80,7 +81,8 @@ let process_call_res data stmt lvaloption froms =
 * modified for sure. *)
 let process_froms data_after froms =
   let from_table = froms.Function_Froms.deps_table in
-  let process_out_call out (default, out_dpds) (to_prop, used, new_data) =
+  let process_out_call out (default, deps) (to_prop, used, new_data) =
+    let out_dpds = Function_Froms.Deps.to_zone deps in
     let exact = not default in
     (* be careful to compare out with data_after and not new_data *)
     if (Data.intersects data_after out) then
@@ -97,10 +99,10 @@ let process_froms data_after froms =
   let new_data = Data.bottom in (* add out_dpds when out intersects data_after*)
   let used = false in (* is the call needed ? *)
   let to_prop, used, new_data =
-    try Lmap_bitwise.From_Model.fold process_out_call from_table
+    try Function_Froms.Memory.fold process_out_call from_table
           (to_prop, used, new_data)
-    with Lmap_bitwise.From_Model.Cannot_fold ->
-      process_out_call  Locations.Zone.top (false, Locations.Zone.top)
+    with Function_Froms.Memory.Cannot_fold ->
+      process_out_call Locations.Zone.top (false, Function_Froms.Deps.top)
           (to_prop, used, new_data)
   in let data = Data.merge to_prop new_data in
     (used, data)
@@ -176,7 +178,7 @@ let process_call data_after stmt lvaloption funcexp args =
 module Computer (Param:sig val states : Ctx.t end) = struct
 
   let name = "Zones"
-  let debug = ref false
+  let debug = false
 
   let used_stmts = ref []
   let add_used_stmt stmt = used_stmts := stmt :: !used_stmts
@@ -198,12 +200,11 @@ module Computer (Param:sig val states : Ctx.t end) = struct
   end
 
   let combineStmtStartData _stmt ~old new_ =
-    let result = Data.merge old new_ in
-    if Data.equal result old then None else Some result
+    if Data.equal new_ old then None else Some new_
 
   let combineSuccessors = Data.merge
 
-  let doStmt _stmt = Dataflow.Default
+  let doStmt _stmt = Dataflow2.Default
 
   let doInstr stmt instr data =
     match instr with
@@ -213,24 +214,22 @@ module Computer (Param:sig val states : Ctx.t end) = struct
           let r_dpds = Data.exp_zone stmt exp in
           let used, data = compute_new_data data l_zone l_dpds exact r_dpds in
           let _ = if used then add_used_stmt stmt in
-              Dataflow.Done data
+              Dataflow2.Done data
       |  Call (lvaloption,funcexp,args,_) ->
           let used, data = process_call data stmt lvaloption funcexp args in
           let _ = if used then add_used_stmt stmt in
-            Dataflow.Done data
-      | _ -> Dataflow.Default
+            Dataflow2.Done data
+      | _ -> Dataflow2.Default
 
   let filterStmt _stmt _next = true
 
   let funcExitData = Data.bottom
 
-  let stmt_can_reach _ _ = true
-
 end
 
 let compute_ctrl_info pdg ctrl_part used_stmts =
   let module CtrlComputer = Computer (struct let states = ctrl_part end) in
-  let module CtrlCompute = Dataflow.Backwards(CtrlComputer) in
+  let module CtrlCompute = Dataflow2.Backwards(CtrlComputer) in
   let seen = Stmt.Hashtbl.create 50 in
   let rec add_node_ctrl_nodes new_stmts node =
     let ctrl_nodes = !Db.Pdg.direct_ctrl_dpds pdg node in
@@ -285,7 +284,7 @@ let compute kf stmt lval =
   List.iter (fun s -> Ctx.add data_part s Data.bottom) f.sallstmts;
   let _ = Ctx.add data_part stmt zone in
   let module DataComputer = Computer (struct let states = data_part end) in
-  let module DataCompute = Dataflow.Backwards(DataComputer) in
+  let module DataCompute = Dataflow2.Backwards(DataComputer) in
   let _ = DataCompute.compute stmt.preds in
   let ctrl_part = data_part (* Ctx.create 50 *) in
     (* it is confusing to have 2 part in the provided information,
@@ -298,7 +297,7 @@ let compute kf stmt lval =
   in
   let all_used_stmts =
     List.fold_left
-      (fun e acc -> Stmt.Set.add acc e) Stmt.Set.empty all_used_stmts
+      (fun e acc -> Stmt.Hptset.add acc e) Stmt.Hptset.empty all_used_stmts
   in
   all_used_stmts, data_part
 
@@ -315,7 +314,7 @@ let pretty fmt stmt_zones =
        (*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
 
 let () =
-  Db.register (* kernel_function -> stmt -> lval -> StmtSet.t * t_zones *)
+  Db.register (* kernel_function -> stmt -> lval -> StmtHptset.t * t_zones *)
     Db.Journalization_not_required (* TODO *)
     (*
     (Db.Journalize("Scope.build_zones",

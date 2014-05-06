@@ -1,5 +1,5 @@
 /* run.config
-   STDOPT: +"-remove-redundant-alarms -context-width 3"
+   STDOPT: +"-scope-verbose 2 -remove-redundant-alarms -context-width 3"
    */
 
 

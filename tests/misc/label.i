@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -memory-footprint 1 -val -deps -out -input -journal-disable
+   OPT: -val -deps -out -input -journal-disable
 */
 int a,b,d,e,i,*p,*q;
 

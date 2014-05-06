@@ -2,8 +2,8 @@
 #                                                                        #
 #  This file is part of Aorai plug-in of Frama-C.                        #
 #                                                                        #
-#  Copyright (C) 2007-2013                                               #
-#    CEA (Commissariat a l'énergie atomique et aux énergies              #
+#  Copyright (C) 2007-2014                                               #
+#    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              #
 #         alternatives)                                                  #
 #    INRIA (Institut National de Recherche en Informatique et en         #
 #           Automatique)                                                 #
@@ -98,6 +98,10 @@ $(Aorai_DIR)/Makefile: $(Aorai_DIR)/Makefile.in \
 			$(CONFIG_STATUS_DIR)/config.status
 	cd $(CONFIG_STATUS_DIR) && ./config.status
 
+headers::
+	$(SED) $(FRAMAC_SRC)/headers/INSA_INRIA_LGPL \
+	       -e 's/This file is/Files in this archive are/' \
+	       > $(FRAMAC_SRC)/doc/aorai/example/LICENSE
 
 LOCAL_SRC_DIR=aorai
 COMMON_FILES_TO_COPY=$(PLUGIN_DISTRIB_EXTERNAL) Makefile.in YA.README INSTALL VERSIONS.txt

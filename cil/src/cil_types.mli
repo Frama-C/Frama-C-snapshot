@@ -35,8 +35,8 @@
 (*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE         *)
 (*  POSSIBILITY OF SUCH DAMAGE.                                             *)
 (*                                                                          *)
-(*  File modified by CEA (Commissariat à l'énergie atomique et aux          *)
-(*                        énergies alternatives)                            *)
+(*  File modified by CEA (Commissariat Ã  l'Ã©nergie atomique et aux          *)
+(*                        Ã©nergies alternatives)                            *)
 (*               and INRIA (Institut National de Recherche en Informatique  *)
 (*                          et Automatique).                                *)
 (****************************************************************************)
@@ -414,16 +414,16 @@ and fieldinfo = {
       expression. *)
 
   mutable fsize_in_bits: int option;
-  (** Similar to [fbitfield] for all types of fields. Useful when the type of
-      the field is changed in the analyzer, to recall the size of the original
-      field.  @deprecated only Jessie uses this *)
-
-  mutable foffset_in_bits: int option;
-  (** Store the offset at which the field starts in the structure.
+  (** (Deprecated. Use {!Cil.bitsOffset} instead.) Similar to [fbitfield] for
+      all types of fields.
       @deprecated only Jessie uses this *)
 
+  mutable foffset_in_bits: int option;
+  (** Offset at which the field starts in the structure. Do not read directly,
+      but use {!Cil.bitsOffset} instead. *)
+
   mutable fpadding_in_bits: int option;
-(** Store the size of the padding that follows the field, if any.
+(** (Deprecated.) Store the size of the padding that follows the field, if any.
     @deprecated only Jessie uses this *)
 }
 
@@ -1062,9 +1062,10 @@ and stmtkind =
   (** statements whose order of execution is not specified by
       ISO/C.  This is important for the order of side effects
       during evaluation of expressions. Each statement comes
-      together with three list of lval
+      together with three list of lval, in this order.
       - lvals that are written during the sequence and whose future
-      value depends upon the statement (it is legal to read from them)
+      value depends upon the statement (it is legal to read from them, but
+      not to write to them)
       - lvals that are written during the evaluation of the statement itself
       - lval that are read.
       - Function calls in the corresponding statement
@@ -1139,6 +1140,8 @@ and instr =
     * (string option * string * exp) list
     (* inputs with optional names and constraints *)
     * string list (* register clobbers *)
+    * (stmt ref) list  (* list of statements this asm section may jump to. Destination
+			must have a label. *)
     * location
   (** An inline assembly instruction. The arguments are 
       (1) a list of attributes (only const and volatile can appear here and only
@@ -1148,7 +1151,8 @@ and instr =
      constraints.
       (4) a list of input expressions along with constraints
       (5) clobbered registers
-      (6) location information *)
+      (6) Possible destinations statements
+      (7) location information *)
 
   | Skip of location
 
@@ -1211,7 +1215,11 @@ and term = {
   term_loc : Lexing.position * Lexing.position;
   (** position in the source file. *)
   term_type : logic_type; (** type of the term. *)
-  term_name: string list; (** names of the term if any. *)
+  term_name: string list; 
+   (** names of the term if any. A name can be an arbitrary string, where
+     '"' and '\'' are escaped by a \, and which does not end with a \. 
+     Hence, "name" and 'name' should be recognized as a unique label by most
+     tools. *)
 }
 
 (** the various kind of terms. *)
@@ -1345,8 +1353,9 @@ and logic_type_def =
 and logic_var_kind = 
   | LVGlobal (** global logic function or predicate. *)
   | LVC (** Logic counterpart of a C variable. *)
-  | LVFormal (** formal parameter of a logic function / predicate *)
-  | LVQuant (** Bound by a quantifier or a Lambda abstraction. *)
+  | LVFormal (** formal parameter of a logic function / predicate
+                 or \lambda abstraction *)
+  | LVQuant (** Bound by a quantifier (\exists or \forall) *)
   | LVLocal (** local \let *)
 
 (** description of a logic variable
@@ -1428,7 +1437,7 @@ and predicate =
 (** predicate with an unique identifier.  Use [Logic_const.new_predicate] to
     create fresh predicates *)
 and identified_predicate = {
-  ip_name: string list; (** names given to the predicate if any.*)
+  mutable ip_name: string list; (** names given to the predicate if any.*)
   ip_loc: location; (** location in the source code. *)
   ip_id: int; (** identifier *)
   ip_content: predicate; (** the predicate itself*)

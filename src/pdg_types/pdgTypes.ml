@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -93,7 +93,7 @@ end
                     Locations.Zone.pretty z
 
   let pretty_node fmt n =
-    Format.fprintf fmt "[Elem] %d : %a" (id n)
+    Format.fprintf fmt "@[<hov 2>{n%d}:@ %a@]" (id n)
       PdgIndex.Key.pretty (elem_key n)
 
 end
@@ -458,8 +458,8 @@ module Pdg = struct
         let rehash = Datatype.identity
         open Structural_descr
         let structural_descr =
-          Structure
-            (Sum [| [|
+	  t_sum
+	    [| [|
               pack
                 (t_record
 		   [| G.packed_descr;
@@ -469,7 +469,7 @@ module Pdg = struct
                        H.packed_descr);
                       pack fi_descr; 
 		   |])
-		    |] |])
+		    |] |]
 
         let name = "body"
         let mem_project = Datatype.never_any_project
@@ -562,19 +562,21 @@ module Pdg = struct
       G.iter_vertex (fun n -> r := n :: !r) graph;
       List.sort Node.compare !r
     in
-    let iter = if bw then G.iter_pred_e else G.iter_succ_e in
-    let print_node n =  Format.fprintf fmt "%a@." Node.pretty_node n in
-    let print_dpd src dpd_kind dst =
-      if bw then Format.fprintf fmt "  <-%a- %d@." G.pretty_edge_label dpd_kind
-        (Node.id src)
-      else Format.fprintf fmt "  -%a-> %d@." G.pretty_edge_label dpd_kind
-        (Node.id dst)
+    let print_dpd src d_kind dst =
+      Format.fprintf fmt "@ ";
+      if bw then
+        Format.fprintf fmt "@[<-%a- %d@]" G.pretty_edge_label d_kind (Node.id src)
+      else
+        Format.fprintf fmt "@[-%a-> %d@]" G.pretty_edge_label d_kind (Node.id dst)
     in
-    let print_node_and_dpds n =
-      print_node n;
-      iter print_dpd graph n
+    let iter_dpd = if bw then G.iter_pred_e else G.iter_succ_e in
+    let print_node_and_dpds fmt n =
+      Format.fprintf fmt "@[<v 2>@[%a@]" Node.pretty_node n;
+      iter_dpd print_dpd graph n;
+      Format.fprintf fmt "@]";
     in
-    List.iter print_node_and_dpds all
+    Pretty_utils.pp_list ~pre:"@[<v>" ~sep:"@ " ~suf:"@]"
+      print_node_and_dpds fmt all
 
   let pretty_bw ?(bw=false) fmt pdg =
     try
@@ -624,7 +626,7 @@ module Pdg = struct
 
     let graph_attributes _ = [`Rankdir `TopToBottom ]
 
-    let default_vertex_attributes _ = [`Style `Filled]
+    let default_vertex_attributes _ = [`Style [`Filled]]
     let vertex_name v = string_of_int (Node.id v)
 
     let vertex_attributes v =
@@ -709,15 +711,16 @@ module Pdg = struct
         if Dpd.is_ctrl d then (`Arrowtail `Odot)::attrib else attrib
       in
       let attrib =
-        if Dpd.is_addr d then (`Style `Dotted)::attrib else attrib
+        if Dpd.is_addr d then (`Style [`Dotted])::attrib else attrib
       in
         attrib
 
     let get_subgraph v =
       let mk_subgraph name attrib =
-        let attrib = (`Style `Filled) :: attrib in
+        let attrib = (`Style [`Filled]) :: attrib in
         Some { Graph.Graphviz.DotAttributes.sg_name= name;
-               Graph.Graphviz.DotAttributes.sg_attributes = attrib }
+               sg_parent = None;
+               sg_attributes = attrib }
       in
       match Node.elem_key v with
       | Key.CallStmt call | Key.SigCallKey (call, _) ->

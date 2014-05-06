@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -22,7 +22,6 @@
 
 open Cil_types
 open Cil_datatype
-open Db
 
 (* ************************************************************************* *)
 (** {2 Searching security annotations} *)
@@ -99,7 +98,7 @@ let search_security_requirements () =
 
 open PdgIndex
 
-let get_node_stmt node = Key.stmt (!Pdg.node_key node)
+let get_node_stmt node = Key.stmt (!Db.Pdg.node_key node)
 
 module NodeKf = Datatype.Pair(PdgTypes.Node)(Kernel_function)
 
@@ -247,25 +246,26 @@ module Todolist : sig
   type todo = private
       { node: PdgTypes.Node.t;
         kf: kernel_function;
-        pdg: Pdg.t;
+        pdg: Db.Pdg.t;
         callstack_length: int;
         from_deep: bool }
   type t = todo list
-  val mk_init: kernel_function -> Pdg.t -> PdgTypes.Node.t list -> todo list
-  val add: PdgTypes.Node.t -> kernel_function -> Pdg.t -> int -> bool -> t -> t
+  val mk_init: kernel_function -> Db.Pdg.t -> PdgTypes.Node.t list -> todo list
+  val add: 
+    PdgTypes.Node.t -> kernel_function -> Db.Pdg.t -> int -> bool -> t -> t
 end = struct
 
   type todo =
       { node: PdgTypes.Node.t;
         kf: kernel_function;
-        pdg: Pdg.t;
+        pdg: Db.Pdg.t;
         callstack_length: int;
         from_deep: bool }
 
   type t = todo list
 
   let add n kf pdg len fd list =
-    match !Pdg.node_key n with
+    match !Db.Pdg.node_key n with
     | Key.SigKey (Signature.In Signature.InCtrl) ->
         (* do not consider node [InCtrl]  *)
         list
@@ -276,7 +276,7 @@ end = struct
         list
     | _ ->
         Security_slicing_parameters.debug ~level:2 "adding node %a (in %s)"
-          (!Pdg.pretty_node false) n
+          (!Db.Pdg.pretty_node false) n
           (Kernel_function.get_name kf);
         { node = n; kf = kf; pdg = pdg;
           callstack_length = len; from_deep = fd }
@@ -291,7 +291,7 @@ module Component = struct
 
   (* not optimal implementation: no memoization (bts#006) *)
 
-  module M = Map.Make(NodeKf)
+  module M = FCMap.Make(NodeKf)
 
   type fwd_kind = Impact | Security
 
@@ -301,7 +301,7 @@ module Component = struct
     | Forward of fwd_kind
 
   type value =
-      { pdg: Pdg.t;
+      { pdg: Db.Pdg.t;
         mutable callstack_length: int;
         mutable direct: bool;
         mutable indirect_backward: bool;
@@ -356,15 +356,15 @@ module Component = struct
     (* do not consider address dependencies now (except for impact analysis):
        just consider them during the last slicing pass
        (for semantic preservation of pointers) *)
-    let direct node = !Pdg.direct_data_dpds pdg node in
+    let direct node = !Db.Pdg.direct_data_dpds pdg node in
     match kind with
     | Direct -> direct node
-    | Indirect_Backward -> direct node @ !Pdg.direct_ctrl_dpds pdg node
+    | Indirect_Backward -> direct node @ !Db.Pdg.direct_ctrl_dpds pdg node
     | Forward Security ->
-        !Pdg.direct_data_uses pdg node @ !Pdg.direct_ctrl_uses pdg node
+        !Db.Pdg.direct_data_uses pdg node @ !Db.Pdg.direct_ctrl_uses pdg node
     | Forward Impact ->
-        !Pdg.direct_data_uses pdg node @ !Pdg.direct_ctrl_uses pdg node
-        @ !Pdg.direct_addr_uses pdg node
+        !Db.Pdg.direct_data_uses pdg node @ !Db.Pdg.direct_ctrl_uses pdg node
+        @ !Db.Pdg.direct_addr_uses pdg node
 
   let search_input kind kf lazy_l =
     try
@@ -378,18 +378,18 @@ module Component = struct
       []
 
   let add_from_deep caller todo n =
-    Todolist.add n caller (!Pdg.get caller) 0 true todo
+    Todolist.add n caller (!Db.Pdg.get caller) 0 true todo
 
   let forward_caller kf node todolist =
-    let pdg = !Pdg.get kf in
+    let pdg = !Db.Pdg.get kf in
     List.fold_left
       (fun todolist (caller, callsites) ->
          (* foreach caller *)
          List.fold_left
            (fun todolist callsite ->
               let nodes =
-                !Pdg.find_call_out_nodes_to_select
-                  pdg (PdgTypes.NodeSet.singleton node) (!Pdg.get caller) callsite
+                !Db.Pdg.find_call_out_nodes_to_select
+                  pdg (PdgTypes.NodeSet.singleton node) (!Db.Pdg.get caller) callsite
               in
               List.fold_left
                 (add_from_deep caller)
@@ -398,7 +398,7 @@ module Component = struct
            todolist
            callsites)
       todolist
-      (!Value.callers kf)
+      (!Db.Value.callers kf)
 
   let related_nodes_of_nodes kind result nodes =
     let initial_nodes =
@@ -420,7 +420,7 @@ module Component = struct
             end else begin
               Security_slicing_parameters.debug
                 ~level:2 "considering node %a (in %s)"
-                (!Pdg.pretty_node false) node
+                (!Db.Pdg.pretty_node false) node
                 (Kernel_function.get_name kf);
               (* intraprocedural related_nodes *)
               let related_nodes = one_step_related_nodes kind pdg node in
@@ -448,7 +448,7 @@ module Component = struct
                          for zone %a@."  (Kernel_function.get_name kf)
                          (Kernel_function.get_name caller)
                          Locations.Zone.pretty zone;*)
-                      let pdg_caller = !Pdg.get caller in
+                      let pdg_caller = !Db.Pdg.get caller in
                       let do_call todolist callsite =
                         match kind with
                         | Direct | Indirect_Backward ->
@@ -460,18 +460,18 @@ module Component = struct
                       in
                       List.fold_left do_call todolist callsites
                     in
-                    List.fold_left do_caller todolist (!Value.callers kf)
+                    List.fold_left do_caller todolist (!Db.Value.callers kf)
                 | _ ->
                     todolist
               in
               let todolist =
-                match !Pdg.node_key node with
+                match !Db.Pdg.node_key node with
                 | Key.SigKey (Signature.In Signature.InCtrl) ->
                     assert false
                 | Key.SigKey (Signature.In (Signature.InImpl zone)) ->
                     let compute_nodes pdg_caller callsite =
                       let nodes, _undef_zone =
-                        !Pdg.find_location_nodes_at_stmt
+                        !Db.Pdg.find_location_nodes_at_stmt
                           pdg_caller callsite ~before:true zone
                           (* TODO : use undef_zone (see FS#201)? *)
                       in
@@ -484,9 +484,9 @@ module Component = struct
                     let compute_nodes pdg_caller callsite =
                       [ match key with
                         | Signature.In (Signature.InNum n) ->
-                            !Pdg.find_call_input_node pdg_caller callsite n
+                            !Db.Pdg.find_call_input_node pdg_caller callsite n
                         | Signature.Out Signature.OutRet  ->
-                            !Pdg.find_call_output_node pdg_caller callsite
+                            !Db.Pdg.find_call_output_node pdg_caller callsite
                         | Signature.In
                             (Signature.InCtrl | Signature.InImpl _)
                         | Signature.Out _ ->
@@ -504,8 +504,8 @@ module Component = struct
                     let stmt = Key.call_from_id id in
                     let called_kfs =
                       Kernel_function.Hptset.elements
-                        (try Value.call_to_kernel_function stmt
-                         with Value.Not_a_call -> assert false)
+                        (try Db.Value.call_to_kernel_function stmt
+                         with Db.Value.Not_a_call -> assert false)
                     in
                     let todolist =
                       List.fold_left
@@ -515,14 +515,14 @@ module Component = struct
                             "[security] search inside %s (from %s)@."
                             (Kernel_function.get_name called_kf)
                             (Kernel_function.get_name kf);*)
-                          let called_pdg = !Pdg.get called_kf in
+                          let called_pdg = !Db.Pdg.get called_kf in
                           let nodes =
                             try
                               match kind, key with
                               | (Direct | Indirect_Backward),
                             Signature.Out out_key  ->
                                 let nodes, _undef_zone =
-                                  !Pdg.find_output_nodes called_pdg out_key
+                                  !Db.Pdg.find_output_nodes called_pdg out_key
                                 (* TODO: use undef_zone (see FS#201) *)
                                 in
                                 let nodes =
@@ -531,28 +531,28 @@ module Component = struct
                                 nodes
                               | _, Signature.In (Signature.InNum n) ->
                                 search_input kind called_kf
-                                  (lazy [!Pdg.find_input_node called_pdg n])
+                                  (lazy [!Db.Pdg.find_input_node called_pdg n])
                               | _, Signature.In Signature.InCtrl ->
                                 search_input kind called_kf
                                   (lazy
-                                     [!Pdg.find_entry_point_node called_pdg])
+                                     [!Db.Pdg.find_entry_point_node called_pdg])
                               | _, Signature.In (Signature.InImpl _) ->
                                 assert false
                               | Forward _, Signature.Out _ ->
                                 []
                             with
-                            | Pdg.Top ->
+                            | Db.Pdg.Top ->
                               Security_slicing_parameters.warning
                                 "no precise pdg for function %s. \n\
 Ignoring this function in the analysis (potentially incorrect results)."
                                 (Kernel_function.get_name called_kf);
                               []
-                            | Pdg.Bottom | Not_found -> assert false
+                            | Db.Pdg.Bottom | Not_found -> assert false
                           in
                           List.fold_left
                             (fun todo n ->
                                   (*Format.printf "node %a inside %s@."
-                                    (!Pdg.pretty_node false) n
+                                    (!Db.Pdg.pretty_node false) n
                                     (Kernel_function.get_name called_kf);*)
                               Todolist.add
                                 n called_kf called_pdg
@@ -588,16 +588,16 @@ Ignoring this function in the analysis (potentially incorrect results)."
                           let from_stmt = List.fold_left
                             (fun s n -> PdgTypes.NodeSet.add n s)
                             PdgTypes.NodeSet.empty from_stmt in
-                          let called_pdg = !Pdg.get called_kf in
+                          let called_pdg = !Db.Pdg.get called_kf in
                           let nodes =
                             try
-                              !Pdg.find_in_nodes_to_select_for_this_call
+                              !Db.Pdg.find_in_nodes_to_select_for_this_call
                                 pdg from_stmt stmt called_pdg
                             with
-                            | Pdg.Top ->
+                            | Db.Pdg.Top ->
                               (* warning already emited in the previous fold *)
                               []
-                            | Pdg.Bottom | Not_found -> assert false
+                            | Db.Pdg.Bottom | Not_found -> assert false
                           in
                           List.fold_left
                             (fun todo n ->
@@ -627,10 +627,10 @@ Ignoring this function in the analysis (potentially incorrect results)."
   let initial_nodes kf stmt =
     Security_slicing_parameters.debug
       ~level:3 "computing initial nodes for %d" stmt.sid;
-    let pdg = !Pdg.get kf in
+    let pdg = !Db.Pdg.get kf in
     let nodes =
       if Db.Value.is_reachable_stmt stmt then
-        try !Pdg.find_simple_stmt_nodes pdg stmt
+        try !Db.Pdg.find_simple_stmt_nodes pdg stmt
         with Not_found -> assert false
       else begin
         Security_slicing_parameters.debug
@@ -658,7 +658,7 @@ Ignoring this function in the analysis (potentially incorrect results)."
           nodes
       in
       res
-    with Pdg.Top | Pdg.Bottom ->
+    with Db.Pdg.Top | Db.Pdg.Bottom ->
       Security_slicing_parameters.warning "PDG is not manageable. skipping.";
       M.empty
 
@@ -669,7 +669,7 @@ Ignoring this function in the analysis (potentially incorrect results)."
       Security_slicing_parameters.debug
         "computing backward indirect component for %d" stmt.sid;
       related_nodes_of_nodes Indirect_Backward res nodes
-    with Pdg.Top | Pdg.Bottom ->
+    with Db.Pdg.Top | Db.Pdg.Bottom ->
       Security_slicing_parameters.warning "PDG is not manageable. skipping.";
       M.empty
 
@@ -862,7 +862,7 @@ let slice ctrl =
   let slicing = !Slicing.Project.mk_project name in
   let select (n, kf) sel =
     Security_slicing_parameters.debug ~level:2 "selecting %a (of %s)"
-      (!Pdg.pretty_node false) n
+      (!Db.Pdg.pretty_node false) n
       (Kernel_function.get_name kf);
     !Slicing.Select.select_pdg_nodes
       sel

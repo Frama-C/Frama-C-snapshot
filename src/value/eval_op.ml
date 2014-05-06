@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -26,7 +26,6 @@ let pp_v v fmt = V.pretty fmt v
 
 open Cil_types
 open Abstract_interp
-open Cvalue
 
 let offsetmap_of_v ~typ v =
   let size = Int.of_int (Cil.bitsSizeOf typ) in
@@ -108,7 +107,6 @@ let reinterpret ~with_alarms t v =
   | TPtr _ -> reinterpret_int ~with_alarms Cil.theMachine.Cil.upointKind v
   | TFloat (fkind, _) ->
       reinterpret_float ~with_alarms fkind v
-  | TComp _ -> v (* see test [struct_call.c] *)
   | TBuiltin_va_list _ ->
       (CilE.do_warn with_alarms.CilE.imprecision_tracing 
 	 (fun _ ->
@@ -117,27 +115,29 @@ let reinterpret ~with_alarms t v =
              Value_util.pp_callstack)
       );
       V.topify_arith_origin v
-  | TFun _ -> v
+  | TComp _ | TArray _ | TFun _ ->
+    (* Nothing can/should be done on struct and arrays, that are either already
+       imprecise as a Cvalue.V, or read in a precise way. It is not clear
+       that a TFun can be obtained here, but one never know. *)
+    v
   | TNamed _ -> assert false
   | TVoid _ -> assert false
-  | TArray _ -> assert false
 
-let v_of_offsetmap ~with_alarms ~typ offsm =
+
+let v_uninit_of_offsetmap ~with_alarms ~typ offsm =
   let size = Bit_utils.sizeof typ in
   match size with
-    | Int_Base.Top -> assert false (* TODO *)
+    | Int_Base.Top -> V_Offsetmap.find_imprecise_everywhere offsm
     | Int_Base.Value size ->
-        let vuinit =
-          V_Offsetmap.find
-            ~with_alarms
-            ~validity:(Base.Known (Integer.zero, Integer.pred size))
-            ~conflate_bottom:false
-            ~offsets:(Ival.singleton_zero)
-            ~size
-            offsm
-        in
-        let v = V_Or_Uninitialized.get_v vuinit in
-        reinterpret ~with_alarms typ v
+      let validity = Base.Known (Integer.zero, Integer.pred size) in
+      let offsets = Ival.singleton_zero in
+      V_Offsetmap.find
+        ~with_alarms ~validity ~conflate_bottom:false ~offsets ~size offsm
+
+let v_of_offsetmap ~with_alarms ~typ offsm =
+  let v_uninit = v_uninit_of_offsetmap ~with_alarms ~typ offsm in
+  let v = V_Or_Uninitialized.get_v v_uninit in
+  reinterpret ~with_alarms typ v
 
 
 let do_promotion ~with_alarms rounding_mode ~src_typ ~dst_typ v msg =
@@ -147,7 +147,7 @@ let do_promotion ~with_alarms rounding_mode ~src_typ ~dst_typ v msg =
       let v, _ok = Cvalue.V.cast_int_to_float rounding_mode v in
       v
   | TInt (kind,_), TFloat (fkind, _) ->
-      let size = Cil.bitsSizeOf dst_typ in
+      let size = Cil.bitsSizeOfInt kind in
       let signed = Cil.isSigned kind in
       let addr, top, overflow, r =
         Cvalue.V.cast_float_to_int ~signed ~size v
@@ -167,17 +167,17 @@ let do_promotion ~with_alarms rounding_mode ~src_typ ~dst_typ v msg =
       reinterpret_float ~with_alarms fkind v
   | _, _ -> v
 
-let handle_overflow ~with_alarms typ interpreted_e =
+let handle_overflow ~with_alarms ~warn_unsigned typ interpreted_e =
   match Cil.unrollType typ with
     | TInt(kind, _) ->
         let signed = Cil.isSigned kind in
-        let size = Cil.bitsSizeOf typ in
+        let size = Cil.bitsSizeOfInt kind in
         let mn, mx =
           if signed then
-            let b = Int.power_two (size-1) in
+            let b = Int.two_power_of_int (size-1) in
             Int.neg b, Int.pred b
           else
-            Int.zero, Int.pred (Int.power_two size)
+            Int.zero, Int.pred (Int.two_power_of_int size)
         in
         let warn_under, warn_over =
           try
@@ -195,14 +195,18 @@ let handle_overflow ~with_alarms typ interpreted_e =
             in
             u, o
           with V.Not_based_on_null ->
-            Some mn, Some mx
+            (* Catch bottom case here: there is no overflow in this case. *)
+            if V.is_bottom interpreted_e then
+              None, None
+            else
+              Some mn, Some mx
         in
 	(match warn_under, warn_over with
 	   | None, None ->
 	       interpreted_e
 	   | _ ->
 	       if (signed && Kernel.SignedOverflow.get ()) ||
-                  (not signed && Kernel.UnsignedOverflow.get ())
+                  (not signed && warn_unsigned && Kernel.UnsignedOverflow.get())
                then
 	         let all_values =
 		   Cvalue.V.inject_ival 
@@ -294,8 +298,9 @@ let eval_binop_int ~with_alarms ?typ ~te1 ev1 op ev2 =
     | PlusA ->  V.add_untyped (Int_Base.one) ev1 ev2
     | MinusA -> V.add_untyped Int_Base.minus_one ev1 ev2
     | MinusPP ->
-      let minus_val = V.add_untyped Int_Base.minus_one ev1 ev2 in
-      begin
+      if not (Value_parameters.WarnPointerSubstraction.get ()) then begin
+        (* Generate garbled mix if the two pointers disagree on their base *)
+        let minus_val = V.add_untyped Int_Base.minus_one ev1 ev2 in
         try
           let size = Int_Base.project (Bit_utils.sizeof_pointed te1) in
           let size = Int.div size Int.eight in
@@ -306,15 +311,30 @@ let eval_binop_int ~with_alarms ?typ ~te1 ev1 op ev2 =
             Cvalue.V.inject_ival (Ival.scale_div ~pos:true size minus_val)
         with
           | Int_Base.Error_Top
-          | Cvalue.V.Not_based_on_null
-          | Not_found ->
+          | Cvalue.V.Not_based_on_null ->
             V.join (V.topify_arith_origin ev1) (V.topify_arith_origin ev2)
+      end else begin
+        (* Pointwise arithmetics.*)
+        (* TODO: we may be able to reduce the bases that appear only on one
+           side *)
+        let minus_offs, warn = V.sub_untyped_pointwise ev1 ev2 in
+        if warn then CilE.warn_pointer_subtraction with_alarms;
+        let offs = 
+        try
+          let size = Int_Base.project (Bit_utils.sizeof_pointed te1) in
+          let size = Int.div size Int.eight in
+          if Int.is_one size
+          then minus_offs
+          else Ival.scale_div ~pos:true size minus_offs
+        with Int_Base.Error_Top -> Ival.top
+        in
+        V.inject_ival offs
       end
     | Mod -> V.c_rem ~with_alarms ev1 ev2
     | Div -> V.div ~with_alarms ev1 ev2
     | Mult -> V.mul ~with_alarms ev1 ev2
     | BXor -> V.bitwise_xor ~with_alarms ev1 ev2
-    | BOr -> V.bitwise_or ~size:(Cil.bitsSizeOf te1) ev1 ev2
+    | BOr -> V.bitwise_or ~with_alarms ev1 ev2
     | BAnd ->
         let size = Cil.bitsSizeOf te1 in
         let signed = Bit_utils.is_signed_int_enum_pointer te1 in
@@ -338,12 +358,12 @@ let eval_binop_int ~with_alarms ?typ ~te1 ev1 op ev2 =
             | Some t -> 
                 let t = Cil.unrollType t in
                 let warn_negative = 
-                  Value_parameters.LeftShiftNegative.get() &&
+                  Value_parameters.WarnLeftShiftNegative.get() &&
                   Bit_utils.is_signed_int_enum_pointer t
                 in
                 Some (warn_negative, Cil.bitsSizeOf t)
 	  in
-          f ~with_alarms ?size ev1 ev2
+          f ~with_alarms ~size ev1 ev2
 	end
 
     (* Strict evaluation. The caller of this function is supposed to take
@@ -385,7 +405,7 @@ let eval_unop ~check_overflow ~with_alarms v t op =
   | Neg ->
       let r = eval_uneg ~with_alarms v t in
       if check_overflow
-      then handle_overflow ~with_alarms t r
+      then handle_overflow ~with_alarms ~warn_unsigned:true t r
       else r
   | BNot ->
       (try
@@ -410,7 +430,7 @@ let eval_unop ~check_overflow ~with_alarms v t op =
 
 
 
-let reduce_rel_symetric_int positive binop cond_expr value =
+let reduce_rel_symmetric_int positive binop cond_expr value =
   match positive,binop with
     | false, Eq | true,  Ne -> V.diff_if_one value cond_expr
     | true,  Eq | false, Ne -> 
@@ -420,48 +440,52 @@ let reduce_rel_symetric_int positive binop cond_expr value =
       else V.narrow value cond_expr
     | _,_ -> value
 
-let reduce_rel_symetric_float = reduce_rel_symetric_int
+let reduce_rel_symmetric_float = reduce_rel_symmetric_int
 
-let reduce_rel_antisymetric_int ~typ_loc:_ positive binop cond_expr value =
-  try match positive,binop with
+let reduce_rel_antisymmetric_int ~typ_loc:_ positive binop cond_expr value =
+  match positive,binop with
     | true,  Le | false, Gt -> V.filter_le value ~cond_expr
     | true,  Ge | false, Lt -> V.filter_ge value ~cond_expr
     | false, Le | true,  Gt -> V.filter_gt value ~cond_expr
     | false, Ge | true,  Lt -> V.filter_lt value ~cond_expr
     | _,_ -> value
-  with V.Error_Bottom -> V.bottom
 
-let reduce_rel_antisymetric_float round ~typ_loc positive binop cond_expr value =
-  try let r = match positive,binop with
+let reduce_rel_antisymmetric_float round ~typ_loc positive binop cond_expr value =
+  match positive,binop with
     | true, Le | false, Gt -> V.filter_le_float round ~typ_loc value ~cond_expr
     | true, Ge | false, Lt -> V.filter_ge_float round ~typ_loc value ~cond_expr
     | false, Le | true, Gt -> V.filter_gt_float round ~typ_loc value ~cond_expr
     | false, Ge | true, Lt -> V.filter_lt_float round ~typ_loc value ~cond_expr
     | _,_ -> value
-  in
-  r
-  with V.Error_Bottom -> V.bottom
 
 
 type reduce_rel_int_float = {
-  reduce_rel_symetric: bool -> binop -> V.t -> V.t -> V.t;
-  reduce_rel_antisymetric: typ_loc:typ -> bool -> binop -> V.t -> V.t -> V.t;
+  reduce_rel_symmetric: bool -> binop -> V.t -> V.t -> V.t;
+  reduce_rel_antisymmetric: typ_loc:typ -> bool -> binop -> V.t -> V.t -> V.t;
 }
 
 let reduce_rel_int = {
-  reduce_rel_symetric = reduce_rel_symetric_int;
-  reduce_rel_antisymetric = reduce_rel_antisymetric_int;
+  reduce_rel_symmetric = reduce_rel_symmetric_int;
+  reduce_rel_antisymmetric = reduce_rel_antisymmetric_int;
 }
 
 let reduce_rel_float round = {
-  reduce_rel_symetric = reduce_rel_symetric_float;
-  reduce_rel_antisymetric = reduce_rel_antisymetric_float round;
+  reduce_rel_symmetric = reduce_rel_symmetric_float;
+  reduce_rel_antisymmetric = reduce_rel_antisymmetric_float round;
 }
 
-let eval_float_constant ~with_alarms f fkind =
-  let f = Ival.F.of_float f in
+let eval_float_constant ~with_alarms f fkind fstring =
+  let fl, fu = 
+    match fstring with
+    | Some string when Value_parameters.AllRoundingModesConstants.get ()->
+      let parsed_f = Floating_point.parse_kind fkind string in
+      parsed_f.Floating_point.f_lower, parsed_f.Floating_point.f_upper
+    | None | Some _ -> f, f
+  in
+  let fl = Ival.F.of_float fl in
+  let fu = Ival.F.of_float fu in
   try
-    let overflow, af = Ival.Float_abstract.inject_r f f in
+    let overflow, af = Ival.Float_abstract.inject_r fl fu in
     let v = V.inject_ival (Ival.inject_float af) in
     if overflow then begin
       Warn.warn_float ~with_alarms ~overflow:true (Some fkind) (pp_v v)
@@ -475,6 +499,12 @@ let eval_float_constant ~with_alarms f fkind =
       finite. This path is assumed to be dead.";
     V.bottom
 
+let light_topify v =
+  match v with
+  | V.Top _ -> v
+  | V.Map m ->
+    let aux b _ acc = V.join acc (V.inject b Ival.top) in
+    V.M.fold aux m V.bottom
 
 (*
 Local Variables:

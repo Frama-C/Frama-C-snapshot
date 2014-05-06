@@ -1,6 +1,6 @@
 /* run.config
   GCC:
-  OPT: -memory-footprint 1 -val -deps -out -input  -main f -journal-disable
+  OPT: -val -deps -out -input  -main f -journal-disable
 */
 
 void f(unsigned short typemess)

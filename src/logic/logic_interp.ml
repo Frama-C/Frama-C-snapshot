@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -236,6 +236,20 @@ and loc_to_exp ~result {term_node = lnode ; term_type = ltype; term_loc = loc} =
   | Tinter _ | Tcomprehension _ -> error_lval()
   | Tat ({term_node = TAddrOf (TVar _, TNoOffset)} as taddroflval, _) ->
       loc_to_exp ~result taddroflval
+  | TLogic_coerce(Linteger, t) when Logic_typing.is_integral_type t.term_type ->
+    loc_to_exp ~result t
+  | TLogic_coerce(Lreal, t) when Logic_typing.is_integral_type t.term_type ->
+    List.map
+      (fun x -> new_exp ~loc (CastE (logic_type_to_typ Lreal, x)))
+      (loc_to_exp ~result t)
+  | TLogic_coerce(Lreal, t) when Logic_typing.is_arithmetic_type t.term_type ->
+    loc_to_exp ~result t
+  | TLogic_coerce (set, t)
+      when
+        Logic_const.is_set_type set &&
+          Logic_utils.is_same_type
+          (Logic_typing.type_of_set_elem set) t.term_type ->
+    loc_to_exp ~result t
 
  (* additional constructs *)
   | Tapp _ | Tlambda _ | Trange _   | Tlet _
@@ -257,6 +271,14 @@ let rec loc_to_lval ~result t =
   | TStartOf lv -> loc_lval_to_lval ~result lv
   | Tunion l1 -> List.concat (List.map (loc_to_lval ~result) l1)
   | Tempty_set -> []
+  (* coercions to arithmetic types cannot be lval. We only have to consider
+     a coercion to set here.
+   *) 
+  | TLogic_coerce(set, t) when
+      Logic_typing.is_set_type set &&
+        Logic_utils.is_same_type
+        (Logic_typing.type_of_set_elem set) t.term_type ->
+    loc_to_lval ~result t
   | Tinter _ -> error_lval() (* TODO *)
   | Tcomprehension _ -> error_lval()
   | TSizeOfE _ | TAlignOfE _ | TUnOp _ | TBinOp _ | TSizeOfStr _
@@ -265,9 +287,6 @@ let rec loc_to_lval ~result t =
   | TCoerce _ | TCoerceE _ | TDataCons _ | TUpdate _ | Tlambda _
   | Ttypeof _ | Ttype _ | Tlet _ | TLogic_coerce _ ->
       error_lval ()
-
-let identified_term_zone_to_loc ~result state t =
-  !Db.Properties.Interp.loc_to_loc ~result state t.it_content
 
 let loc_to_offset ~result loc =
   let rec aux h =
@@ -662,7 +681,7 @@ function contracts."
 	    self#change_label (AbsLabel_stmt stmt) x
 
 
-      method vpredicate p =
+      method! vpredicate p =
       let fail () =
         raise (NYI (Pretty_utils.sfprintf
                       "[logic_interp] %a" Printer.pp_predicate p))
@@ -702,20 +721,22 @@ function contracts."
         -> fail ()
 
       method private do_term_lval t =
-        let msg = "[logic_interp] dependencies of a term lval" in
-        let exp = try (* to be removed *)
-          !Db.Properties.Interp.term_to_exp ~result:None t
+        let current_before, current_stmt = self#get_ctrl_point () in
+        let state = Db.Value.get_stmt_state current_stmt in
+        try
+          let deps = !Db.From.find_deps_term_no_transitivity_state state t in
+          (* TODO: what we should we do with other program points? *)
+          let z = Logic_label.Map.find (LogicLabel (None,"Here")) deps in
+          let z =
+            Locations.Zone.filter_base
+              (function Base.CLogic_Var _ -> false | _ -> true)
+              z
+          in
+          add_result current_before current_stmt z
         with Invalid_argument "not an lvalue" ->
-          raise (NYI msg)
-            in
-            let current_before, current_ki = self#get_ctrl_point () in
-            let loc = try (* to be removed *)
-              !Db.From.find_deps_no_transitivity current_ki exp
-            with Invalid_argument "not an lvalue" ->
-              raise (NYI msg)
-            in add_result current_before current_ki loc;
+          raise (NYI "[logic_interp] dependencies of a term lval")
 
-      method vterm t =
+      method! vterm t =
         match t.term_node with
           | TAddrOf _ | TLval (TMem _,_)
           | TLval(TVar {lv_origin = Some _},_) | TStartOf _  ->
@@ -728,6 +749,9 @@ function contracts."
           | Tat (_, StmtLabel st) -> self#change_label_to_stmt !st t
           | Tat (_, LogicLabel (_,s)) ->
             failwith ("unknown logic label" ^ s)
+          | TSizeOf _ | TSizeOfE _ | TSizeOfStr _ | TAlignOf _ | TAlignOfE _ ->
+            (* These are static constructors, there are no dependencies here *)
+            SkipChildren
           | _ -> DoChildren
     end
 
@@ -943,7 +967,7 @@ let to_result_from_pred p =
   let visitor = object (_self)
     inherit Visitor.frama_c_inplace
 
-      method vterm_lhost t =
+      method! vterm_lhost t =
         match t with
           | TResult _ -> raise Prune
           | _ -> DoChildren
@@ -970,8 +994,6 @@ let () =
   Db.Properties.Interp.loc_to_lval := loc_to_lval;
   Db.Properties.Interp.loc_to_offset := loc_to_offset;
   Db.Properties.Interp.loc_to_exp := loc_to_exp;
-  Db.Properties.Interp.identified_term_zone_to_loc := 
-    identified_term_zone_to_loc;
 
   Db.Properties.Interp.To_zone.code_annot_filter := To_zone.code_annot_filter;
   Db.Properties.Interp.To_zone.mk_ctx_func_contrat := 

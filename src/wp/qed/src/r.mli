@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -31,8 +31,11 @@ type maybe =
   | Sure_false
   | Unknown
 
-val eq : t -> t -> maybe
-val lt : t -> t -> maybe
+val is_zero : t -> bool
+
+val eq  : t -> t -> maybe
+val neq : t -> t -> maybe
+val lt  : t -> t -> maybe
 val leq : t -> t -> maybe
 
 val opp : t -> t

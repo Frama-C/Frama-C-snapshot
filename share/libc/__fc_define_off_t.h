@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2013                                               */
+/*  Copyright (C) 2007-2014                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -22,6 +22,6 @@
 
 #ifndef __FC_DEFINE_OFF_T
 #define __FC_DEFINE_OFF_T
-typedef unsigned int off_t;
+typedef long int off_t;
 #endif
 

@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -20,22 +20,22 @@
 (*                                                                        *)
 (**************************************************************************)
 
-module Metrics: Plugin.S
+include Plugin.S
 
-module Enabled: Plugin.WithOutput
+module Enabled: Parameter_sig.With_output
 (** Activate metrics *)
 
-module ByFunction: Plugin.Bool
+module ByFunction: Parameter_sig.Bool
 (** Activate metrics by function *)
 
-module ValueCoverage: Plugin.WithOutput
+module ValueCoverage: Parameter_sig.With_output
 (** Give an estimation about value analysis code penetration.
     Only works on CIL AST. *)
 
-module AstType: Plugin.String
+module AstType: Parameter_sig.String
 (** Set the ASTs on which the metrics should be computetd *)
 
-module OutputFile: Plugin.String
+module OutputFile: Parameter_sig.String
 (** Pretty print metrics to the given file.
     The output format will be recognized through the extension.
     Supported extensions are:
@@ -43,7 +43,7 @@ module OutputFile: Plugin.String
     "txt" or "text" for text
 *)
 
-module SyntacticallyReachable: Plugin.String_set
+module SyntacticallyReachable: Parameter_sig.String_set
 (** List of functions for which we compute the functions they may call *)
 
 (*

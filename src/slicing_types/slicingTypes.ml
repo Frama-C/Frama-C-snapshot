@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -172,7 +172,7 @@ module Sl_mark =
     (struct
       type t = SlicingInternals.pdg_mark
       let name = "SlicingTypes.Sl_mark"
-      let structural_descr = Structural_descr.Unknown
+      let structural_descr = Structural_descr.t_unknown
       let reprs = [ SlicingInternals.dummy_pdg_mark ]
       let compare = SlicingInternals.compare_pdg_mark
       let equal : t -> t -> bool = ( = )

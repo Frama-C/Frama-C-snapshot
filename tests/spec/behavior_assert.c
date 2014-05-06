@@ -1,6 +1,6 @@
 /* run.config 
-OPT: -memory-footprint 1 -val -deps -out -input -journal-disable -lib-entry
-OPT: -memory-footprint 1 -val -deps -out -input -journal-disable    
+OPT: -val -deps -out -input -journal-disable -lib-entry
+OPT: -val -deps -out -input -journal-disable
 */
 
 int e;

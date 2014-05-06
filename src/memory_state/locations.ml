@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -35,15 +35,27 @@ module Initial_Values = struct
             [] ]
 end
 
-module MapLattice =
-  Map_Lattice.Make
-    (Base)(Base.SetLattice)(Ival)(Initial_Values)(struct let zone = false end)
+(* Store the information that the location has at most cardinal 1 *)
+module Comp_cardinal_0_1 = struct
+  let e = true
+  let compose _ _ = false (* Keys cannot be bound to Bottom (see MapLattice).
+                             Hence, two subtrees have cardinal one. *)
+  let f _k v = Ival.cardinal_zero_or_one v
+  let default = true
+end
 
-module HT = Hashtbl
+module MapLatticeIval =
+  Map_Lattice.Make
+    (Base.Base)(Base.SetLattice)(Ival)(Comp_cardinal_0_1)(Initial_Values)(
+      struct
+        let zone = false
+        let null = Base.null
+        let is_null = Base.is_null
+      end)
 
 module Location_Bytes = struct
 
-  include MapLattice
+  include MapLatticeIval
 
   type z = tt =
     | Top of Base.SetLattice.t * Origin.t
@@ -72,6 +84,20 @@ module Location_Bytes = struct
     try
       map_offsets (Ival.add_int offset) l
     with Error_Top -> l
+
+  (* Override the function coming from MapLattice, we can do better *)
+  let cardinal_zero_or_one = function
+    | Top _ -> false
+    | Map m -> M.compositional_bool m
+
+  let cardinal = function
+    | Top _ -> None
+    | Map m ->
+      M.fold (fun _ v card ->
+        match card, Ival.cardinal v with
+          | None, _ | _, None -> None
+          | Some c1, Some c2 -> Some (Int.add c1 c2)
+      ) m (Some Int.zero)
 
   let top_with_origin origin =
     Top(Base.SetLattice.top, origin)
@@ -117,7 +143,7 @@ module Location_Bytes = struct
                  match base with
                    Base.String (_, strid) ->
                      let str = 
-		       match Base.get_string strid with
+		       match strid with
 		       | Base.CSString s -> s
 		       | Base.CSWstring _ -> 
 			   failwith "Unimplemented: wide strings"
@@ -130,20 +156,12 @@ module Location_Bytes = struct
                          (Some (Int.of_int len))
                      in
                      let roffs = Ival.narrow range offs in
-                     Ival.fold
+                     Ival.fold_int
                        (fun i () -> f base strz (Int.to_int i) len)
                        roffs
                        ()
                  | _ -> ())
            m
-
- let under_topify v =
-     match v with
-   | Top _ -> v
-   | Map _ ->
-       if is_included singleton_zero v
-       then singleton_zero
-       else bottom
 
  let topify_merge_origin v =
    topify_with_origin_kind Origin.K_Merge v
@@ -158,7 +176,8 @@ module Location_Bytes = struct
    topify_with_origin_kind Origin.K_Leaf v
 
  let may_reach base loc =
-   if Base.is_null base then true else
+   if Base.is_null base then true
+   else
      match loc with
      | Top (toparam,_) ->
          Base.SetLattice.is_included (Base.SetLattice.inject_singleton base) toparam
@@ -172,7 +191,7 @@ module Location_Bytes = struct
    let projection _base = Ival.top in
    let cached_f =
      cached_fold
-       ~cache:("loc_top_locals", 653)
+       ~cache_name:"loc_top_locals"
        ~temporary:true
        ~f
        ~projection
@@ -214,7 +233,7 @@ module Location_Bytes = struct
    let projection _base = Ival.top in
    let cached_f =
      cached_fold
-       ~cache:("loc_top_any_locals", 777)
+       ~cache_name:"loc_top_any_locals"
        ~temporary:false
        ~f
        ~projection
@@ -232,42 +251,44 @@ module Location_Bytes = struct
        | Map _ -> false);
        true
 
- exception Found_overlap
+ type overlaps = Overlaps of (M.t -> M.t -> bool)
 
- let partially_overlaps_table = Datatype.Int.Hashtbl.create 7
- let () = 
-   Project.register_after_set_current_hook ~user_only:false 
-     (fun _ -> Datatype.Int.Hashtbl.clear partially_overlaps_table)
+ module DatatypeOverlap = Datatype.Make(struct
+   include Datatype.Undefined (* Closures: cannot be marshalled *)
+   type t = overlaps
+   let name = "Locations.DatatypeOverlap.t"
+   let reprs = [Overlaps (fun _ _ -> true)]
+   let mem_project = Datatype.never_any_project
+ end)
+
+ module PartiallyOverlaps =
+   State_builder.Int_hashtbl(DatatypeOverlap)(struct
+     let size = 7
+     let dependencies = [Ast.self]
+     let name = "Locations.PartiallyOverlap"
+   end)
 
  let partially_overlaps ~size mm1 mm2 =
-      match mm1, mm2 with
-      | Top (_,_), Top (_,_) -> true
-      | Top _, (Map _ as m) | (Map _ as m), Top _ -> not (equal m bottom)
-      | Map m1, Map m2 ->
-	  let size_int = Int.to_int size in
-	  try
-	    let map_partially_overlaps =
-	      try
-		Datatype.Int.Hashtbl.find partially_overlaps_table size_int
-	      with Not_found ->
-		let f = 
-		  M.generic_symetric_existential_predicate 
-		    Found_overlap
-		    (fun _s _t -> true) 
-		    ~decide_one:(fun _ _ -> ())
-		    ~decide_both:
-		    (fun x y -> 
-		      if Ival.partially_overlaps size x y
-		      then raise Found_overlap)
-		in
-		Datatype.Int.Hashtbl.add partially_overlaps_table size_int f;
-		f
-	    in    
-	    map_partially_overlaps m1 m2;
-	    false
-          with
-            Found_overlap -> true
-
+   match mm1, mm2 with
+     | Top _, _ | _, Top _ -> intersects mm1 mm2
+     | Map m1, Map m2 ->
+       let size_int = Int.to_int size in
+       let map_partially_overlaps =
+	 try
+           (match PartiallyOverlaps.find size_int with Overlaps f -> f)
+	 with Not_found ->
+           let name = Pretty_utils.sfprintf "Locations.Overlap(%d)" size_int in
+	   let f = 
+	     M.symmetric_binary_predicate
+               (M.TemporaryCache name) M.ExistentialPredicate
+	       ~decide_fast:(fun _ _ -> M.PUnknown)
+	       ~decide_one:(fun _ _ -> false)
+	       ~decide_both:(fun _ x y -> Ival.partially_overlaps size x y)
+	   in
+           PartiallyOverlaps.add size_int (Overlaps f);
+	   f
+       in
+       map_partially_overlaps m1 m2
 end
 
 module Location_Bits = Location_Bytes
@@ -276,12 +297,17 @@ module Zone = struct
 
   module Initial_Values = struct let v = [ [] ] end
 
-  include Map_Lattice.Make
-  (Base)
+  include Map_Lattice.Make_without_cardinal
+  (Base.Base)
   (Base.SetLattice)
   (Int_Intervals)
+  (Hptmap.Comp_unused)
   (Initial_Values)
-  (struct let zone = true end)
+  (struct
+    let zone = true
+    let null = Base.null
+    let is_null = Base.is_null
+   end)
 
   let default base bi ei = inject base (Int_Intervals.inject [bi,ei])
   let defaultall base = inject base Int_Intervals.top
@@ -306,29 +332,14 @@ module Zone = struct
         Pretty_utils.pp_iter ~pre:"" ~suf:"" ~sep:";@,@ "
           (fun f -> M.iter (fun k v -> f (k, v))) print_binding fmt off
 
-  let valid_intersects m1 m2 =
-    let result =
-      match m1,m2 with
-      | Map _, Map _ ->
-          intersects m1 m2
-      | Top (toparam, _), m | m, Top (toparam, _) ->
-          (equal m bottom) ||
-            let f base () =
-              if Base.SetLattice.is_included (Base.SetLattice.inject_singleton base) toparam
-              then raise Hptmap.Found_inter
-            in
-            try
-              fold_bases f m ();
-              false
-            with Hptmap.Found_inter | Error_Top -> true
-    in
-    result
+  let valid_intersects = intersects
 
  let mem_base b = function
    | Top (top_param, _) ->
        Base.SetLattice.mem b top_param
    | Map m -> M.mem b m
 
+ let shape = M.shape
 
 end
 
@@ -448,7 +459,7 @@ let int_base_size_of_varinfo v =
     Int_Base.top
 
 let loc_of_varinfo v =
-  let base = Base.find v in
+  let base = Base.of_varinfo v in
   make_loc (Location_Bits.inject base Ival.zero) (int_base_size_of_varinfo v)
 
 let loc_of_base v =
@@ -470,6 +481,7 @@ let loc_of_typoffset v typ offset =
       Int_Base.top
 
 let loc_bottom = make_loc Location_Bits.bottom Int_Base.top
+let is_bottom_loc l = Location_Bits.is_bottom l.loc
 
 let cardinal_zero_or_one { loc = loc ; size = size } =
   Location_Bits.cardinal_zero_or_one loc &&
@@ -520,12 +532,6 @@ let pretty_english ~prefix fmt { loc = m ; size = size } =
 	(fun f -> Location_Bits.M.iter (fun k v -> f (k, v)))
         print_binding fmt off
 
-
-(* Iterator to use in the case [Top (Base.SetLattice.Set _, _)] with the same
-   signature as in the case [Map] *)
-let fold_topset f =
-  Base.Hptset.fold (fun base acc -> f base Ival.top acc)
-
 let enumerate_valid_bits ~for_writing {loc = loc_bits; size = size}=
   let compute_offset base offs acc =
     let valid_offset = reduce_offset_by_validity ~for_writing base offs size in
@@ -537,10 +543,8 @@ let enumerate_valid_bits ~for_writing {loc = loc_bits; size = size}=
   in
   match loc_bits with
   | Location_Bits.Top (Base.SetLattice.Top, _) -> Zone.top
-  | Location_Bits.Top (Base.SetLattice.Set s, _) ->
-      Zone.inject_map (fold_topset compute_offset s Zone.M.empty)
-  | Location_Bits.Map m ->
-      Zone.inject_map (Location_Bits.M.fold compute_offset m Zone.M.empty)
+  | _ ->
+    Zone.Map (Location_Bits.fold_topset_ok compute_offset loc_bits Zone.M.empty)
 
 (** [valid_part l] is an over-approximation of the valid part
    of the location [l] *)
@@ -555,12 +559,11 @@ let valid_part ~for_writing {loc = loc; size = size } =
   let locbits = 
     match loc with
       | Location_Bits.Top (Base.SetLattice.Top, _) -> loc
-      | Location_Bits.Top (Base.SetLattice.Set s, _) ->
+      | Location_Bits.Top (Base.SetLattice.Set _, _) ->
           (* We do not reduce garbled mixes. This makes them disappear after
              one memory access. *)
           if false then
-            Location_Bits.inject_map
-              (fold_topset compute_loc s Location_Bits.M.empty)
+            Location_Bits.(Map (fold_topset_ok compute_loc loc M.empty))
           else
             loc
       | Location_Bits.Map m ->
@@ -576,10 +579,8 @@ let enumerate_bits ({loc = loc_bits; size = size} as _arg)=
   in
   match loc_bits with
   | Location_Bits.Top (Base.SetLattice.Top, _) -> Zone.top
-  | Location_Bits.Top (Base.SetLattice.Set s, _) ->
-      Zone.inject_map (fold_topset compute_offset s Zone.M.empty)
-  | Location_Bits.Map m ->
-      Zone.inject_map (Location_Bits.M.fold compute_offset m Zone.M.empty)
+  | _ ->
+    Zone.Map (Location_Bits.fold_topset_ok compute_offset loc_bits Zone.M.empty)
 
 let zone_of_varinfo var = enumerate_bits (loc_of_varinfo var)
 

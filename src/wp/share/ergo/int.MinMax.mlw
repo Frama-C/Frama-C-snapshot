@@ -1,0 +1,50 @@
+(**************************************************************************)
+(*                                                                        *)
+(*  The Why3 Verification Platform   /   The Why3 Development Team        *)
+(*  Copyright 2010-2013   --   INRIA - CNRS - Paris-Sud University        *)
+(*                                                                        *)
+(*  This software is distributed under the terms of the GNU Lesser        *)
+(*  General Public License version 2.1, with the special exception        *)
+(*  on linking described in file LICENSE.                                 *)
+(*                                                                        *)
+(*  File modified by CEA (Commissariat à l'énergie atomique et aux        *)
+(*                        énergies alternatives).                         *)
+(*                                                                        *)
+(**************************************************************************)
+
+(* this is a prelude for Alt-Ergo*)
+(** The theory BuiltIn_ must be appended to this file*)
+(** The theory Bool_ must be appended to this file*)
+(** The theory int_Int_ must be appended to this file*)
+logic min_int : int, int -> int
+
+logic max_int : int, int -> int
+
+axiom Max_is_ge : (forall x:int. forall y:int. (x <= max_int(x, y)))
+
+axiom Max_is_ge1 : (forall x:int. forall y:int. (y <= max_int(x, y)))
+
+axiom Max_is_some :
+  (forall x:int. forall y:int. ((max_int(x, y) = x) or (max_int(x, y) = y)))
+
+axiom Min_is_le : (forall x:int. forall y:int. (min_int(x, y) <= x))
+
+axiom Min_is_le1 : (forall x:int. forall y:int. (min_int(x, y) <= y))
+
+axiom Min_is_some :
+  (forall x:int. forall y:int. ((min_int(x, y) = x) or (min_int(x, y) = y)))
+
+axiom Max_x : (forall x:int. forall y:int. ((y <= x) -> (max_int(x, y) = x)))
+
+axiom Max_y : (forall x:int. forall y:int. ((x <= y) -> (max_int(x, y) = y)))
+
+axiom Min_x : (forall x:int. forall y:int. ((x <= y) -> (min_int(x, y) = x)))
+
+axiom Min_y : (forall x:int. forall y:int. ((y <= x) -> (min_int(x, y) = y)))
+
+axiom Max_sym :
+  (forall x:int. forall y:int. ((y <= x) -> (max_int(x, y) = max_int(y, x))))
+
+axiom Min_sym :
+  (forall x:int. forall y:int. ((y <= x) -> (min_int(x, y) = min_int(y, x))))
+

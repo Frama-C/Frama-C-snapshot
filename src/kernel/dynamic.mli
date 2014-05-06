@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -92,7 +92,7 @@ module Parameter : sig
   end
 
   (** retrieve the representation of the corresponding parameter. *)
-  val get_parameter: string -> Parameter.t
+  val get_parameter: string -> Typed_parameter.t
 
   (** retrieve the state related to the corresponding parameter.
       @raise Not_found if the option does not correspond to an actual
@@ -137,6 +137,10 @@ module Parameter : sig
   module StringList : sig
     include Common with type t = string list
     val add: string -> string  -> unit
+    val append_before: string -> string list -> unit
+      (** @since Neon-20130301 *)
+    val append_after: string -> string list -> unit
+      (** @since Neon-20130301 *)
     val remove: string -> string -> unit
     val is_empty: string -> unit -> bool
     val iter: string -> (string -> unit) -> unit
@@ -186,17 +190,10 @@ val set_default: bool -> unit
   (** Search in all the default directories iff the parameter is [true].
       @since Boron-20100401 *)
 
-module Main : sig
-
-  val extend : (unit -> unit) -> unit
-    (** Register a function to be called by the Frama-C main entry point.
-        @deprecated since Lithium-20081201. Replaced by {!Db.Main.extend}.
-        @deprecated Since Beryllium-20090601-beta1. Replaced by {!Db.Main}. *)
-
-  val apply: unit -> unit
-    (** Apply entry points previously registered . *)
-
-end
+val add_dependencies: from:string -> string -> unit
+(** [add_dependencies ~from p] indicates that the plugin [from] must be loaded
+    before [p].
+    @since Neon-20130301 *)
 
 (*
   Local Variables:

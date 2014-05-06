@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -34,9 +34,10 @@ type setup = {
   cfloat : Cfloat.model ;
 }
 
-val id : setup -> string
+type driver = LogicBuiltins.driver
+
+val ident : setup -> string
 val descr : setup -> string
-val model : setup -> Model.t
-val computer : setup -> Generator.computer
+val computer : setup -> driver -> Generator.computer
 
 val parse : string list -> setup

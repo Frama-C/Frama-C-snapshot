@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -24,6 +24,12 @@ open Cil_types
 open Printer_api
 open Format
 
+let debug_logic_types = Kernel.register_category "printer:logic-types"
+let debug_logic_coercions = Kernel.register_category "printer:logic-coercions"
+let debug_builtins = Kernel.register_category "printer:builtins"
+let debug_sid = Kernel.register_category "printer:sid"
+let debug_unspecified = Kernel.register_category "printer:unspecified"
+
 module Behavior_extensions = struct
   let printer_tbl = Hashtbl.create 5
   let register name printer =
@@ -31,7 +37,7 @@ module Behavior_extensions = struct
   let pp (printer:extensible_printer_type) fmt (name, code, preds) =
     try 
       let pp = Hashtbl.find printer_tbl name in
-      pp printer fmt (code, preds)
+      Format.fprintf fmt "@[<hov 2>%s %a;@]" name (pp printer) (code, preds)
     with Not_found -> 
       (* default pretty-printer *)
       Format.fprintf fmt "@[<hov 2>%s %a;@]"
@@ -46,17 +52,28 @@ let register_behavior_extension = Behavior_extensions.register
 let reserved_attributes = ref []
 let register_shallow_attribute s = reserved_attributes:=s::!reserved_attributes
 
+let needs_quote =
+  let regex = Str.regexp "^[A-Za-z0-9_]+$" in
+  fun s -> not (Str.string_match regex s 0)
+
 let print_as_source source =
   Kernel.Debug.get () = 0 
   &&
   (Kernel.BigIntsHex.is_default () 
    || not (Str.string_match (Str.regexp "^-?[0-9]+$") source 0))
 
+
+(* This function decides whether to hide Frama-C's own builtins (in
+   fc_builtin_for_normalization). *)
+let print_var v =
+  not (Cil.is_unused_builtin v) || Kernel.is_debug_key_enabled debug_builtins
+
+
 let pretty_C_constant suffix k fmt i = 
   let nb_signed_bits = 
     Integer.pred (Integer.of_int (8 * (Cil.bytesSizeOfInt k))) 
   in
-  let max_strict_signed = Integer.shift_left Integer.one nb_signed_bits in
+  let max_strict_signed = Integer.two_power nb_signed_bits in
   let most_neg = Integer.neg max_strict_signed in
   if Integer.equal most_neg i then 
      (* sm: quirk here: if you print -2147483648 then this is two
@@ -221,7 +238,13 @@ end
 
 let get_termination_kind_name = function
   | Normal -> "ensures" | Exits -> "exits" | Breaks -> "breaks"
-  | Continues -> "continue" | Returns -> "returns"
+  | Continues -> "continues" | Returns -> "returns"
+
+(* Grab one of the labels of a statement *)
+let rec pickLabel = function
+  | [] -> None
+  | Label (lbl, _, _) :: _ -> Some lbl
+  | _ :: rest -> pickLabel rest
 
 class cil_printer () = object (self)
 
@@ -248,7 +271,11 @@ class cil_printer () = object (self)
       Extlib.try_finally ~finally f fmt x;
 
   val mutable verbose = false
-
+  (* Do not add a value that depends on a
+     non-constant variable of the kernel here (e.g. [Kernel.Debug.get ()]). Due
+     to the way the pretty-printing class is instantiated, this value would be
+     evaluated too soon. Override the [reset] method instead. *)
+    
   val current_stmt = Stack.create ()
 
   val mutable current_function = None
@@ -281,74 +308,66 @@ class cil_printer () = object (self)
     ignore (Stack.pop current_stmt); 
     has_annot <- false; 
     s
-      
+
   method private current_stmt =
     try Some (Stack.top current_stmt) with Stack.Empty -> None
 
   method private may_be_skipped s = s.labels = []
 
-  val mutable currentFormals : varinfo list = []
-  method private getLastNamedArgument s = match List.rev currentFormals with
-  | [] ->
-    Kernel.abort
-      "Cannot find the last named argument when printing call to %s"
-      s
-  | f :: _ -> Cil.new_exp ~loc:f.vdecl (Lval (Cil.var f))
-
   method location fmt loc = Cil_datatype.Location.pretty fmt loc
     
- (* constant *)
+  (* constant *)
   method constant fmt = function
-   | CInt64(_, _, Some s) when print_as_source s ->
-       fprintf fmt "%s" s (* Always print the text if there is one, unless
-                             we want to print it as hexa *)
-   | CInt64(i, ik, _) ->
-       (*fprintf fmt "/* %Lx */" i;*)
-       (** We must make sure to capture the type of the constant. For some
-	   constants this is done with a suffix, for others with a cast
-	   prefix.*) 
-     let suffix = match ik with
-       | IUInt -> "U"
-       | ILong -> "L"
-       | IULong -> "UL"
-       | ILongLong -> if Cil.theMachine.Cil.msvcMode then "L" else "LL"
-       | IULongLong -> if Cil.theMachine.Cil.msvcMode then "UL" else "ULL"
-       | IInt | IBool | IShort | IUShort | IChar | ISChar | IUChar -> ""
-     in
-     let prefix =
-       if suffix <> "" then ""
-       else if ik = IInt then ""
-       else Pretty_utils.sfprintf "(%a)" self#ikind ik
-     in
-     fprintf fmt "%s%a" prefix (pretty_C_constant suffix ik) i
+  | CInt64(_, _, Some s) when print_as_source s ->
+    fprintf fmt "%s" s (* Always print the text if there is one, unless
+                          we want to print it as hexa *)
+  | CInt64(i, ik, _) ->
+    (*fprintf fmt "/* %Lx */" i;*)
+    (** We must make sure to capture the type of the constant. For some
+	constants this is done with a suffix, for others with a cast
+	prefix.*) 
+    let suffix = match ik with
+      | IUInt -> "U"
+      | ILong -> "L"
+      | IULong -> "UL"
+      | ILongLong -> if Cil.theMachine.Cil.msvcMode then "L" else "LL"
+      | IULongLong -> if Cil.theMachine.Cil.msvcMode then "UL" else "ULL"
+      | IInt | IBool | IShort | IUShort | IChar | ISChar | IUChar -> ""
+    in
+    let prefix =
+      if suffix <> "" then ""
+      else if ik = IInt then ""
+      else Pretty_utils.sfprintf "(%a)" self#ikind ik
+    in
+    fprintf fmt "%s%a" prefix (pretty_C_constant suffix ik) i
 
-   | CStr(s) -> fprintf fmt "\"%s\"" (Escape.escape_string s)
-   | CWStr(s) ->
-       (* text ("L\"" ^ escape_string s ^ "\"")  *)
-       fprintf fmt "L";
-       List.iter
-	 (fun elt ->
-	    if (elt >= Int64.zero &&
-		  elt <= (Int64.of_int 255)) then
-	      fprintf fmt "%S"
-		(Escape.escape_char (Char.chr (Int64.to_int elt)))
-	    else
-	      fprintf fmt "\"\\x%LX\"" elt;
-	    fprintf fmt "@ ")
-	 s;
-	 (* we cannot print L"\xabcd" "feedme" as L"\xabcdfeedme" --
-	  * the former has 7 wide characters and the later has 3. *)
+  | CStr(s) -> fprintf fmt "\"%s\"" (Escape.escape_string s)
+  | CWStr(s) ->
+    (* text ("L\"" ^ escape_string s ^ "\"")  *)
+    fprintf fmt "L";
+    List.iter
+      (fun elt ->
+	if (elt >= Int64.zero &&
+	      elt <= (Int64.of_int 255)) then
+	  fprintf fmt "%S"
+	    (Escape.escape_char (Char.chr (Int64.to_int elt)))
+	else
+	  fprintf fmt "\"\\x%LX\"" elt;
+	fprintf fmt "@ ")
+      s;
+  (* we cannot print L"\xabcd" "feedme" as L"\xabcdfeedme" --
+   * the former has 7 wide characters and the later has 3. *)
 
-   | CChr(c) -> fprintf fmt "'%s'" (Escape.escape_char c)
-   | CReal(_, _, Some s) -> fprintf fmt "%s" s
-   | CReal(f, fsize, None) ->
-       fprintf fmt "%a%s" 
-	 Floating_point.pretty f
-	 (match fsize with
-	    FFloat -> "f"
-	  | FDouble -> ""
-	  | FLongDouble -> "L")
-   | CEnum {einame = s} -> fprintf fmt "%s" s
+  | CChr(c) -> fprintf fmt "'%s'" (Escape.escape_char c)
+  | CReal(_, _, Some s) -> fprintf fmt "%s" s
+  | CReal(f, fsize, None) ->
+    fprintf fmt "%a%s" 
+      Floating_point.pretty f
+      (match fsize with
+	FFloat -> "f"
+      | FDouble -> ""
+      | FLongDouble -> "L")
+  | CEnum {einame = s} -> fprintf fmt "%s" s
 
   (*** VARIABLES ***)
   method varname fmt v = pp_print_string fmt v
@@ -499,26 +518,45 @@ class cil_printer () = object (self)
       dprintf "{@[%a@]}"
       (docList ~sep:(chr ',' ++ break) dinit) initl
      *)
-    let printDesignator =
-      if not Cil.theMachine.Cil.msvcMode then begin
-	(* Print only for union when we do not initialize the first field *)
-	match Cil.unrollType t, initl with
-	| TComp(ci, _, _), [(Field(f, NoOffset), _)] ->
-	  not (ci.cstruct) && ci.cfields != [] && (List.hd ci.cfields) != f
-	| _ -> false
-      end else
-	false
-    in
-    let d_oneInit fmt = function
+    let designated_init fmt = function
       | Field(f, NoOffset), i ->
-	if printDesignator then fprintf fmt ".%a = " self#varname f.fname;
+	fprintf fmt ".%a = " self#varname f.fname;
 	self#init fmt i
       | Index(e, NoOffset), i ->
-	if printDesignator then fprintf fmt "[%a] = " self#exp e;
+	fprintf fmt "[%a] = " self#exp e;
 	self#init fmt i
       | _ -> Kernel.fatal "Trying to print malformed initializer"
     in
-    fprintf fmt  "{@[%a@]}" (Pretty_utils.pp_list ~sep:",@ " d_oneInit) initl
+    if not (Cil.isArrayType t) then
+      fprintf fmt
+        "{@[%a@]}" (Pretty_utils.pp_list ~sep:",@ " designated_init) initl
+    else begin
+      let print_index prev_index (designator,init as di) =
+        let curr_index =
+          match designator with
+            | Index(e,NoOffset) -> Cil.isInteger (Cil.constFold false e)
+            | _ -> None
+        in
+        let designator_needed =
+          match prev_index, curr_index with
+            | None, _ | _, None -> true
+            | Some p, Some c -> not (Integer.equal (Integer.succ p) c)
+        in
+        if designator_needed then designated_init fmt di
+        else self#init fmt init;
+        curr_index
+      in
+      let print_next_index prev_index di =
+        Format.fprintf fmt ",@ "; print_index prev_index di
+      in
+      Format.fprintf fmt "{@[";
+      (match initl with
+        | [] -> ()
+        | i::tl ->
+          let curr_index = print_index (Some Integer.minus_one) i in
+          ignore (List.fold_left print_next_index curr_index tl));
+      Format.fprintf fmt "@]}"
+    end
 
   (** What terminator to print after an instruction. sometimes we want to
       print sequences of instructions separated by comma *)
@@ -609,7 +647,7 @@ class cil_printer () = object (self)
 	when ((vi.vname = "__builtin_stdarg_start" ||
 	    vi.vname = "__builtin_va_start")
 	      && not state.print_cil_as_is) ->
-      let last = self#getLastNamedArgument vi.vname in
+      let last = self#getLastNamedArgument () in
       self#instr fmt (Call(None, Cil.dummy_exp(Lval(Var vi,NoOffset)),
 			   [marker; last],l))
 
@@ -618,7 +656,7 @@ class cil_printer () = object (self)
     | Call(res, {enode = Lval(Var vi, NoOffset)}, [ ], l)
 	when vi.vname = "__builtin_next_arg" 
 	&& not state.print_cil_as_is ->
-      let last = self#getLastNamedArgument vi.vname in
+      let last = self#getLastNamedArgument () in
       self#instr fmt (Call(res,Cil.dummy_exp(Lval(Var vi,NoOffset)),[last],l))
 
     (* In cparser we have turned the call to
@@ -667,15 +705,18 @@ the arguments."
       (* Now the terminator *)
       fprintf fmt "%s" instr_terminator
 
-    | Asm(attrs, tmpls, outs, ins, clobs, l) ->
+    | Asm(attrs, tmpls, outs, ins, clobs, labels, l) ->
       self#line_directive fmt l;
+      let goto = if labels=[] then "" else " goto" in
       if Cil.theMachine.Cil.msvcMode then
-	fprintf fmt "__asm {@[%a@]}%s"
+	fprintf fmt "__asm%s {@[%a@]}%s"
+	  goto
 	  (Pretty_utils.pp_list ~sep:"@\n"
 	     (fun fmt s -> fprintf fmt "%s" s)) tmpls
 	  instr_terminator
       else begin
-	fprintf fmt "__asm__%a (@[%a"
+	fprintf fmt "__asm__%s%a (@[%a"
+	  goto
 	  self#attributes attrs
 	  (Pretty_utils.pp_list ~sep:"@\n"
 	     (fun fmt x ->
@@ -712,11 +753,23 @@ the arguments."
 	    ins;
 
 
-	if clobs <> [] then
+	if clobs <> [] || labels <> [] then
 	  fprintf fmt ": %a"
 	    (Pretty_utils.pp_list ~sep:",@ "
 	       (fun fmt c -> fprintf fmt "\"%s\"" (Escape.escape_string c)))
 	    clobs;
+
+	if labels <> [] then 
+	  fprintf fmt ": %a"
+	    (Pretty_utils.pp_list ~sep:",@ "
+	       (fun fmt r -> 
+		 match pickLabel !r.labels with 
+		 | Some label -> Format.pp_print_string  fmt label
+		 | None ->       
+		   Kernel.error "Cannot find label for target of asm goto: %a" 
+		     (self#without_annot self#stmt) !r;
+		   Format.pp_print_string fmt "__invalid_label"))
+	    labels;
 
 	fprintf fmt "@])%s" instr_terminator
       end
@@ -728,6 +781,19 @@ the arguments."
 	self#code_annotation fmt annot ;
 	Pretty_utils.pp_close_block fmt "*/";
       end
+
+  (** For variadic calls *)
+  method private getLastNamedArgument () =
+    match self#current_function with
+    | None ->
+      Kernel.error ~current:true "Current stmt not positioned";
+      Cil_datatype.Exp.dummy
+    | Some vi ->
+      let formals = Cil.getFormalsDecl vi in
+      match List.rev formals with
+      | [] -> assert false (* Typing error, this function is variadic and should
+                           have at least one argument *)
+      | f :: _ -> Cil.new_exp ~loc:f.vdecl (Lval (Cil.var f))
 
   (**** STATEMENTS ****)
   method stmt fmt (s:stmt) =        (* control-flow statement *)
@@ -743,12 +809,14 @@ the arguments."
       Pretty_utils.pp_list ~sep:"@ " ~suf:"@]@ " self#label fmt s.labels
 
   method label fmt = function
-  | Label (s, _, true) -> fprintf fmt "@[%s:@]" s
-  | Label (s, _, false) -> fprintf fmt "@[%s: /* internal */@]" s
+  | Label (s, _, b) when b || not verbose -> fprintf fmt "@[%s:@]" s
+  | Label (s, _, _) -> fprintf fmt "@[%s: /* internal */@]" s
   | Case (e, _) -> fprintf fmt "@[case %a:@]" self#exp e
   | Default _ -> fprintf fmt "@[default:@]"
 
-  val ghost_stack = Stack.create ()
+  (* number of opened ghost code *)
+  val mutable is_ghost = false
+  method private display_comment () = not is_ghost || verbose
 
   method annotated_stmt (next: stmt) fmt (s: stmt) =
     pp_open_hvbox fmt 2;
@@ -758,24 +826,31 @@ the arguments."
     if Cil.is_skip s.skind && not s.ghost then begin
       if verbose || s.labels <> [] then fprintf fmt ";"
     end else begin
-      if s.ghost && not (Stack.top ghost_stack) then
-        Pretty_utils.pp_open_block fmt "@[/*@@ ghost ";
-      Stack.push s.ghost ghost_stack;
+      let was_ghost = is_ghost in
+      let display_ghost = s.ghost && not was_ghost in
+      if display_ghost then begin
+	is_ghost <- true;
+        Pretty_utils.pp_open_block fmt "@[/*@@ ghost "
+      end;
       self#stmtkind next fmt s.skind ;
-      ignore (Stack.pop ghost_stack);
-      if s.ghost && not (Stack.top ghost_stack) then
-        Pretty_utils.pp_close_block fmt "*/@]" ;
+      if display_ghost then begin
+	is_ghost <- false;
+        Pretty_utils.pp_close_block fmt "*/@]"
+      end
     end;
     pp_close_box fmt ();
     pp_close_box fmt ()
 
   method private require_braces ?(has_annot=self#has_annot) blk = 
     force_brace 
+  || verbose || Kernel.is_debug_key_enabled debug_sid
+  (* If one the of condition above is true, /* sid:... */ will be printed
+     on its own line before s. Braces are needed *)
   ||
-    match blk.bstmts, blk.battrs, blk.blocals with
-    | _ :: _ :: _, _, _ | _, _, _ :: _ | _, _ :: _, _ -> true
-    | [ { skind = Block b } ], _, _ -> has_annot || self#require_braces b
-    | _, _, _ -> has_annot
+      match blk.bstmts, blk.battrs, blk.blocals with
+      | _ :: _ :: _, _, _ | _, _, _ :: _ | _, _ :: _, _ -> true
+      | [ { skind = Block b } ], _, _ -> has_annot || self#require_braces b
+      | _, _, _ -> has_annot
 
   method private inline_block ?has_annot blk = match blk.bstmts with
   | [] | [ { skind = (Instr _ | Return _ | Goto _ | Break _ | Continue _ ) } ] 
@@ -783,7 +858,7 @@ the arguments."
     not (self#require_braces ?has_annot blk)
   | [ { skind = Block blk } ] -> self#inline_block blk
   | _ -> false
-      
+    
   method private block_is_function blk = match blk.bstmts with
   | [ { skind = Instr (Call _) } ] -> true
   | [ { skind = Block blk } ] -> self#block_is_function blk
@@ -800,18 +875,12 @@ the arguments."
   | _ -> false
 
   method private vdecl_complete fmt v =
-    let in_ghost_code =
-      try Stack.top ghost_stack
-      with Stack.Empty -> false
-    in
+    let display_ghost = v.vghost && not is_ghost in
     Format.fprintf fmt "@[<hov 0>%t%a;%t@]"
-      (if v.vghost && not in_ghost_code then
-          fun fmt -> Format.fprintf fmt "/*@@ ghost@ "
+      (if display_ghost then fun fmt -> Format.fprintf fmt "/*@@ ghost@ "
        else ignore)
       self#vdecl v
-      (if v.vghost && not in_ghost_code then
-          fun fmt -> Format.fprintf fmt "@ */"
-       else ignore)
+      (if display_ghost then fun fmt -> Format.fprintf fmt "@ */" else ignore)
 
   (* no box around the block *)
   method private unboxed_block ?(cut=true) ?braces ?has_annot fmt blk =
@@ -822,8 +891,8 @@ the arguments."
     let inline = not braces && self#inline_block ?has_annot blk in
     if braces then pp_print_char fmt '{';
     if braces && not inline then pp_print_space fmt ();
-    if Kernel.debug_atleast 1 then
-      fprintf fmt "@[/* %a */@]@ "
+    if blk.blocals <> [] && verbose then
+      fprintf fmt "@[/* Locals: %a */@]@ "
 	(Pretty_utils.pp_list ~sep:",@ " self#varinfo) blk.blocals;
     if blk.battrs <> [] then 
       (* [JS 2012/12/07] could directly call self#attributesGen whenever we are
@@ -853,7 +922,7 @@ the arguments."
     let braces = 
       match braces with None -> self#require_braces blk | Some b -> b
     in
-    let open_box = 
+    let open_box =
       if self#inline_block blk then pp_open_hvbox else pp_open_vbox 
     in
     open_box fmt (if braces then 2 else 0);
@@ -899,8 +968,8 @@ the arguments."
   | UnspecifiedSequence seq ->
     let print_stmt pstmt fmt (stmt, modifies, writes, reads,_) =
       pstmt fmt stmt;
-      if verbose then
-	Format.fprintf fmt "@ /*effects: @[(%a)%a@ <-@ %a@]*/"
+      if verbose || Kernel.is_debug_key_enabled debug_unspecified then
+	Format.fprintf fmt "@ /*effects: @[(%a) %a@ <-@ %a@]*/"
           (Pretty_utils.pp_list ~sep:",@ " self#lval) modifies
 	  (Pretty_utils.pp_list ~sep:",@ " self#lval) writes
 	  (Pretty_utils.pp_list ~sep:",@ " self#lval) reads
@@ -915,7 +984,10 @@ the arguments."
 	print_stmt (self#next_stmt s_next) fmt srw_first ;
 	iterblock fmt tail
     in
-    fprintf fmt "@[<v 2>{@ @[/*undefined sequence*/@]%a@;<1 -2>}@]"
+    fprintf fmt "@[<v 2>{%t%a@;<1 -2>}@]"
+      (if self#display_comment () then 
+	  fun fmt -> fprintf fmt "@ @[/*sequence*/@]"
+       else ignore)
       iterblock seq;
 
   | Return(None, l) ->
@@ -927,12 +999,6 @@ the arguments."
       self#exp e
 
   | Goto (sref, l) -> begin
-    (* Grab one of the labels *)
-    let rec pickLabel = function
-    [] -> None
-      | Label (lbl, _, _) :: _ -> Some lbl
-      | _ :: rest -> pickLabel rest
-    in
     match pickLabel !sref.labels with
     | Some lbl ->
       fprintf fmt "@[%agoto %s;@]" 
@@ -1031,8 +1097,11 @@ the arguments."
 	      when not state.print_cil_as_is
 		&& self#may_be_skipped to_skip ->
 	    (match skipEmpty tb.bstmts, skipEmpty fb.bstmts with
-	    | [], { skind = Break _; labels = [] } :: _  -> e, rest
-	    | { skind = Break _; labels = [] }:: _, [] -> 
+	    | [], [{ skind = Break _; labels = [] } as s]
+              when self#may_be_skipped s ->
+              e, rest
+	    | [{ skind = Break _; labels = [] } as s], []
+              when self#may_be_skipped s ->
 	      Cil.dummy_exp (UnOp(LNot, e, Cil.intType)), rest
 	    | _ -> raise Not_found)
 	  | _ -> raise Not_found
@@ -1055,10 +1124,11 @@ the arguments."
     (* We do not want to put extra braces in presence of blocks included in
        another block (that's often the case). So the following line
        specifically limits the number of braces in that case. But that
-       assumes that the required braces have already be put before by the
+       assumes that the required braces have already been put before by the
        callers *)
     let braces = 
-      b.blocals <> [] || b.battrs <> [] 
+      b.blocals <> [] || b.battrs <> [] ||
+        (Kernel.is_debug_key_enabled debug_sid) || verbose
       || (self#has_annot 
 	  && logic_printer_enabled
 	  && (* at least two statements inside *) 
@@ -1087,7 +1157,7 @@ the arguments."
   method global fmt (g:global) =
     match g with
     | GFun (fundec, l) ->
-      if not (Cil.is_unused_builtin fundec.svar) || Kernel.verbose_atleast 4
+      if print_var fundec.svar
       then begin
 	self#in_current_function fundec.svar;
 	(* If the function has attributes then print a prototype because
@@ -1112,7 +1182,7 @@ the arguments."
     | GType (typ, l) ->
       self#line_directive ~forcefile:true fmt l;
       fprintf fmt "typedef %a;@\n"
-	(self#typ (Some (fun fmt -> fprintf fmt "%s" typ.tname))) typ.ttype
+	(self#typ (Some (fun fmt -> self#varname fmt typ.tname))) typ.ttype
 
     | GEnumTag (enum, l) ->
       self#line_directive fmt l;
@@ -1152,10 +1222,11 @@ the arguments."
 
     | GCompTagDecl (comp, l) -> (* This is a declaration of a tag *)
       self#line_directive fmt l;
-      fprintf fmt "%s;@\n" (Cil.compFullName comp)
-
+      fprintf fmt "%s %a;@\n"
+        (if comp.cstruct then "struct" else "union")
+        self#varname comp.cname
     | GVar (vi, io, l) ->
-      if not (Cil.is_unused_builtin vi) || Kernel.verbose_atleast 4 then begin
+      if print_var vi then begin
 	self#line_directive ~forcefile:true fmt l;
         if vi.vghost then Format.fprintf fmt "/*@@ ghost@ ";
 	self#vdecl fmt vi;
@@ -1179,7 +1250,7 @@ the arguments."
       end
     (* print global variable 'extern' declarations, and function prototypes *)
     | GVarDecl (funspec, vi, l) ->
-      if not (Cil.is_unused_builtin vi) || Kernel.verbose_atleast 4 then begin
+      if print_var vi then begin
 	if Cil.isFunctionType vi.vtype then self#in_current_function vi;
 	self#opt_funspec fmt funspec;
 	if not state.print_cil_as_is && Cil.Builtin_functions.mem vi.vname 
@@ -1264,31 +1335,30 @@ the arguments."
 
   method private fundecl fmt f =
     (* declaration. *)
+    let was_ghost = is_ghost in
+    let entering_ghost = f.svar.vghost && not was_ghost in
     fprintf fmt "@[%t%a@\n@[<v 2>"
-      (if f.svar.vghost
-       then fun fmt -> Format.fprintf fmt "/*@@ ghost@ "
+      (if entering_ghost then fun fmt -> Format.fprintf fmt "/*@@ ghost@ " 
        else ignore)
       self#vdecl f.svar;
     (* We take care of locals in blocks. *)
     (*List.iter (fprintf fmt "@\n%a;" self#vdecl) f.slocals ;*)
     (* body. *)
-    currentFormals <- f.sformals ;
-    Stack.push f.svar.vghost ghost_stack;
+    if entering_ghost then is_ghost <- true;
     self#unboxed_block ~has_annot:false ~braces:true fmt f.sbody;
-    ignore (Stack.pop ghost_stack);
-    currentFormals <- [];
-    fprintf fmt "@]%t@]@." 
-      (if f.svar.vghost then fun fmt -> Format.fprintf fmt "@ */" else ignore)
+    if entering_ghost then is_ghost <- false;
+    fprintf fmt "@]%t@]@."
+      (if entering_ghost then fun fmt -> Format.fprintf fmt "@ */" else ignore)
 
   (***** PRINTING DECLARATIONS and TYPES ****)
 
- method storage fmt c =
-   fprintf fmt "%s"
-     (match c with
-       | NoStorage -> ""
-       | Static ->  "static "
-       | Extern -> "extern "
-       | Register -> "register ")
+  method storage fmt c =
+    fprintf fmt "%s"
+      (match c with
+      | NoStorage -> ""
+      | Static ->  "static "
+      | Extern -> "extern "
+      | Register -> "register ")
 
   method fkind fmt = function
   | FFloat -> fprintf fmt "float"
@@ -1361,38 +1431,29 @@ the arguments."
        * the parenthesis. *)
       let (paren: (formatter -> unit) option), (bt': typ) =
 	match bt with
-	  TFun(rt, args, isva, fa) when Cil.theMachine.Cil.msvcMode ->
-	    let an, af', at = 
-	      Cil.partitionAttributes ~default:Cil.AttrType fa 
-	    in
+	| TFun(rt, args, isva, fa) when Cil.theMachine.Cil.msvcMode ->
+	  let an, af', at = Cil.partitionAttributes ~default:Cil.AttrType fa in
 	    (* We take the af' and we put them into the parentheses *)
-	    Some
-	      (fun fmt ->
-		fprintf fmt
-		  "(%a"
-		  printAttributes af'),
-	    TFun(rt, args, isva, Cil.addAttributes an at)
-
+	  Some
+	    (fun fmt ->
+	      fprintf fmt
+		"(%a"
+		printAttributes af'),
+	  TFun(rt, args, isva, Cil.addAttributes an at)
 	| TFun _ | TArray _ -> (Some (fun fmt -> fprintf fmt "(")), bt
-
 	| _ -> None, bt
       in
-      let name' = fun fmt ->
-	fprintf fmt "*%a%a"
-	  printAttributes a
-	  pname (a <> [])
+      let name' = 
+	fun fmt -> fprintf fmt "*%a%a" printAttributes a pname (a <> [])
       in
       let name'' =
 	fun fmt ->
 	  (* Put the parenthesis *)
 	  match paren with
-	    Some p -> fprintf fmt "%t%t)" p name'
-	  | _ -> fprintf fmt "%t" name'
+	  | Some p -> fprintf fmt "%t%t)" p name'
+	  | None -> fprintf fmt "%t" name'
       in
-      self#typ
-	(Some name'')
-	fmt
-	bt'
+      self#typ (Some name'') fmt bt'
 
     | TArray (elemt, lo, _, a) ->
       (* qualifiers attributes are not supposed to be on the TArray,
@@ -1424,81 +1485,76 @@ the arguments."
 
     | TFun (restyp, args, isvararg, a) ->
       let name' fmt =
-	if a = [] then pname fmt false else
- 	  if nameOpt = None then
-	    printAttributes fmt a
- 	  else
- 	    fprintf fmt "(%a%a)"
-	      printAttributes a
-	      pname (a <> [])
+	if a = [] then pname fmt false 
+	else if nameOpt = None then printAttributes fmt a
+ 	else fprintf fmt "(%a%a)" printAttributes a pname (a <> [])
       in
-	 let module Args(A:sig type t
-			     val args: t list option
-			     val pp_args: Format.formatter -> t -> unit
-			 end)=
-	   struct
-	     let pp_prms fmt =
-	       fprintf fmt "%t(@[%t@])" name'
-		 (fun fmt ->
-		    match A.args with
-		      | None -> ()
-		      | Some [] when isvararg ->
-			  fprintf fmt "..."
-		      | Some [] -> fprintf fmt "void"
-		      | Some args ->
-			  Pretty_utils.pp_list ~sep:",@ " A.pp_args
-			    fmt args ;
-			  if isvararg then fprintf fmt "@ , ...";
-		 )
-	   end
-	 in
-	 let pp_prms =
-	   match fundecl with
-	     | None ->
-		  let module Args =
-		    Args(struct
-			   type t = (string * typ * attributes)
-			   let args = args
-			   let pp_args fmt (aname,atype,aattr) =
-			     let stom, rest = 
-			       Cil.separateStorageModifiers aattr 
-			     in
-			     (* First the storage modifiers *)
-			     fprintf fmt
-			       "%a%a%a"
-			       self#attributes stom
-			       (self#typ
-				  (Some (fun fmt -> fprintf fmt "%s" aname))) 
-			       atype
-                               self#attributes rest
-			 end)
-		  in Args.pp_prms
-	      | Some fundecl ->
-		  let module Args =
-		    Args(struct
-			   type t = varinfo
-			   let args =
-			     (try Some (Cil.getFormalsDecl fundecl)
-			      with Not_found -> None)
-			   let pp_args = self#vdecl
-			 end)
-		  in Args.pp_prms
-	 in
-	 self#typ (Some pp_prms) fmt restyp
-     | TNamed (t, a) ->
-	 fprintf fmt "%a%a%a"
-	   self#varname t.tname
-	   self#attributes a
-	   pname true
+      let module Args
+	  (A:sig 
+	    type t
+	    val args: t list option
+	    val pp_args: Format.formatter -> t -> unit
+	  end)
+	  =
+	  struct
+	    let pp_prms fmt =
+	      fprintf fmt "%t(@[%t@])" name'
+		(fun fmt ->
+		  match A.args with
+		  | (None | Some []) when isvararg -> fprintf fmt "..."
+		  | None -> ()
+		  | Some [] -> fprintf fmt "void"
+		  | Some args ->
+		    Pretty_utils.pp_list ~sep:",@ " A.pp_args fmt args;
+		    if isvararg then fprintf fmt "@ , ...")
+	  end
+      in
+      let pp_prms = match fundecl with
+	| None ->
+	  let module Args =
+		Args(struct
+		  type t = (string * typ * attributes)
+		  let args = args
+		  let pp_args fmt (aname,atype,aattr) =
+		    let stom, rest = Cil.separateStorageModifiers aattr in
+		    (* First the storage modifiers *)
+		    fprintf fmt
+		      "%a%a%a"
+		      self#attributes stom
+		      (self#typ
+			 (Some (fun fmt -> fprintf fmt "%s" aname))) 
+		      atype
+                      self#attributes rest
+		end)
+	  in 
+	  Args.pp_prms
+	| Some fundecl ->
+	  let module Args =
+		Args(struct
+		  type t = varinfo
+		  let args =
+		    try Some (Cil.getFormalsDecl fundecl)
+		    with Not_found -> None
+		  let pp_args = self#vdecl
+		end)
+	  in 
+	  Args.pp_prms
+      in
+      self#typ (Some pp_prms) fmt restyp
+    | TNamed (t, a) ->
+      fprintf fmt "%a%a%a"
+	self#varname t.tname
+	self#attributes a
+	pname true
 
-     | TBuiltin_va_list a ->
-	 fprintf fmt "__builtin_va_list%a%a"
-	   self#attributes a
-	   pname true
+    | TBuiltin_va_list a ->
+      fprintf fmt "__builtin_va_list%a%a"
+	self#attributes a
+	pname true
 
   (**** PRINTING ATTRIBUTES *********)
   method attributes fmt a = self#attributesGen false fmt a
-     
+    
   (* Print one attribute. Return also an indication whether this attribute
      should be printed inside the __attribute__ list *)
   method attribute fmt = function
@@ -1516,7 +1572,9 @@ the arguments."
      *)
     | "volatile", [] -> fprintf fmt "volatile"; false
     | "restrict", [] -> fprintf fmt "__restrict"; false
-    | "missingproto", [] -> fprintf fmt "/* missing proto */"; false
+    | "missingproto", [] -> 
+      if self#display_comment () then fprintf fmt "/* missing proto */"; 
+      false
     | "cdecl", [] when Cil.theMachine.Cil.msvcMode -> 
       fprintf fmt "__cdecl"; false
     | "stdcall", [] when Cil.theMachine.Cil.msvcMode ->
@@ -1538,50 +1596,47 @@ the arguments."
        sm: I've now encountered a problem with mode(__hi__)...
        I don't know what's going on, but let's try disabling all "mode". *)
     | "mode", [ACons(tag,[])] ->
-      fprintf fmt "/* mode(%s) */" tag;
+      if self#display_comment () then fprintf fmt "/* mode(%s) */" tag;
       false
 	
     (* sm: also suppress "format" because we seem to print it in 
        a way gcc does not like *)
     | "format", _ -> 
-      fprintf fmt "/* format attribute */";
+      if self#display_comment () then fprintf fmt "/* format attribute */";
       false
 
     | "hidden", _ -> (* hidden attribute list *)
-      fprintf fmt ""; 
       false
     (* sm: here's another one I don't want to see gcc warnings about.. *)
     | "mayPointToStack", _ when not state.print_cil_input ->
       (* [matth: may be inside another comment.]
 	 -> text "/*mayPointToStack*/", false *)
-      fprintf fmt ""; 
       false
-	  
+	
     | "arraylen", [a] ->
-      fprintf fmt "/*[%a]*/" self#attrparam a;
+      if self#display_comment () then fprintf fmt "/*[%a]*/" self#attrparam a;
       false
-    | "static",_ -> fprintf fmt "/* static */"; false
+    | "static",_ -> 
+      if self#display_comment () then fprintf fmt "/* static */"; false
     | "", _ ->
       fprintf fmt "%a "
 	(Pretty_utils.pp_list ~sep:" " self#attrparam) args;
       true
     | s, _ when s = Cil.bitfield_attribute_name &&
-                not Cil.miscState.Cil.printCilAsIs ->
+             not Cil.miscState.Cil.printCilAsIs ->
       false
     | _ -> (* This is the dafault case *)
       (* Add underscores to the name *)
       let an' =
-	if Cil.theMachine.Cil.msvcMode then "__" ^ an 
-	else "__" ^ an ^ "__"
+	if Cil.theMachine.Cil.msvcMode then "__" ^ an else "__" ^ an ^ "__"
       in
-      if args = [] then
-	(fprintf fmt "%s" an';
-	 true)
-      else
-	(fprintf fmt "%s(%a)"
-	   an'
-	   (Pretty_utils.pp_list ~sep:"," self#attrparam) args;
-	 true))
+      (match args with
+      | [] -> fprintf fmt "%s" an'
+      | _ :: _ ->
+	fprintf fmt "%s(%a)"
+	  an'
+	  (Pretty_utils.pp_list ~sep:"," self#attrparam) args);
+      true)
   | AttrAnnot s ->
     fprintf fmt "%s" (Cil.mkAttrAnnot s); false
 
@@ -1592,15 +1647,13 @@ the arguments."
 	true
       else if contextprec == Precedence.bitwiseLevel then
 	 (* quiet down some GCC warnings *)
-	 thisLevel == Precedence.additiveLevel
-	 || thisLevel == Precedence.comparativeLevel
-       else
-	 false
-     in
-     if needParens then
-       fprintf fmt "(%a)" self#attrparam a
-     else
-       self#attrparam fmt a
+	thisLevel == Precedence.additiveLevel
+	|| thisLevel == Precedence.comparativeLevel
+      else
+	false
+    in
+    if needParens then fprintf fmt "(%a)" self#attrparam a
+    else self#attrparam fmt a
 
   method attrparam fmt a =
     let level = Precedence.getParenthLevelAttrParam a in
@@ -1618,26 +1671,24 @@ the arguments."
     | AAlignOf t -> fprintf fmt "__alignof__(%a)" (self#typ None) t
     | AUnOp(u,a1) ->
       fprintf fmt "%a %a" self#unop u (self#attribute_prec level) a1
-	
     | ABinOp(b,a1,a2) ->
       fprintf fmt "@[(%a)%a@  (%a) @]"
 	(self#attribute_prec level) a1
 	self#binop b
 	(self#attribute_prec level) a2
-
-     | ADot (ap, s) ->
-	 fprintf fmt "%a.%s" self#attrparam ap s
-     | AStar a1 ->
-	 fprintf fmt "(*%a)" (self#attribute_prec Precedence.derefStarLevel) a1
-     | AAddrOf a1 ->
-	 fprintf fmt "& %a" (self#attribute_prec Precedence.addrOfLevel) a1
-     | AIndex (a1, a2) ->
-	 fprintf fmt "%a[%a]" self#attrparam a1 self#attrparam a2
-     | AQuestion (a1, a2, a3) ->
-	 fprintf fmt "%a ? %a : %a"
-	   self#attrparam a1
-	   self#attrparam a2
-	   self#attrparam a3
+    | ADot (ap, s) ->
+      fprintf fmt "%a.%s" self#attrparam ap s
+    | AStar a1 ->
+      fprintf fmt "(*%a)" (self#attribute_prec Precedence.derefStarLevel) a1
+    | AAddrOf a1 ->
+      fprintf fmt "& %a" (self#attribute_prec Precedence.addrOfLevel) a1
+    | AIndex (a1, a2) ->
+      fprintf fmt "%a[%a]" self#attrparam a1 self#attrparam a2
+    | AQuestion (a1, a2, a3) ->
+      fprintf fmt "%a ? %a : %a"
+	self#attrparam a1
+	self#attrparam a2
+	self#attrparam a3
 
   (* A general way of printing lists of attributes *)
   method private attributesGen (block: bool) fmt (a: attributes) =
@@ -1645,35 +1696,35 @@ the arguments."
        the __attribute__ list *)
     let rec loop (in__attr__: string list) = function
       | [] ->
-          if in__attr__ <> [] then
-            begin
+        if in__attr__ <> [] then
+          begin
 	      (* sm: added 'forgcc' calls to not comment things out
 	       * if CIL is the consumer; this is to address a case
 	       * Daniel ran into where blockattribute(nobox) was being
 	       * dropped by the merger
 	       *)
-	      (if block then
-                 fprintf fmt " %s __blockattribute__("
-		   (Cil.forgcc "/*")
-	       else
-                 fprintf fmt " __attribute__((");
-	      Pretty_utils.pp_list ~sep:",@ "
-                Format.pp_print_string fmt in__attr__;
-	      fprintf fmt ")%s"
-                (if block then Cil.forgcc "*/" else ")")
-            end
-      | x :: rest ->
-          let buff = Buffer.create 17 in
-          let local_fmt = formatter_of_buffer buff in
-          let ina = self#attribute local_fmt x in
-          pp_print_flush local_fmt ();
-          let dx = Buffer.contents buff in
-          if ina then
-            loop (dx :: in__attr__) rest
-          else begin
-            if dx <> "" then fprintf fmt " %s" dx;
-            loop in__attr__ rest
+	    (if block then
+                fprintf fmt " %s __blockattribute__("
+		  (Cil.forgcc "/*")
+	     else
+                fprintf fmt " __attribute__((");
+	    Pretty_utils.pp_list ~sep:",@ "
+              Format.pp_print_string fmt in__attr__;
+	    fprintf fmt ")%s"
+              (if block then Cil.forgcc "*/" else ")")
           end
+      | x :: rest ->
+        let buff = Buffer.create 17 in
+        let local_fmt = formatter_of_buffer buff in
+        let ina = self#attribute local_fmt x in
+        pp_print_flush local_fmt ();
+        let dx = Buffer.contents buff in
+        if ina then
+          loop (dx :: in__attr__) rest
+        else begin
+          if dx <> "" then fprintf fmt " %s" dx;
+          loop in__attr__ rest
+        end
     in
     let keep_attr = function
       | Attr (s,_) -> not (List.mem s !reserved_attributes)
@@ -1686,29 +1737,29 @@ the arguments."
   (* ******************************************************************* *)
 
   method logic_constant fmt = function
-   | Integer(_, Some s) when print_as_source s ->
-       fprintf fmt "%s" s (* Always print the text if there is one, unless
-                             we want to print it as hexa *)
-   | Integer(i, _) ->  Datatype.Big_int.pretty fmt i
-   | LStr(s) -> fprintf fmt "\"%s\"" (Escape.escape_string s)
-   | LWStr(s) ->
+  | Integer(_, Some s) when print_as_source s ->
+    fprintf fmt "%s" s (* Always print the text if there is one, unless
+                          we want to print it as hexa *)
+  | Integer(i, _) ->  Datatype.Big_int.pretty fmt i
+  | LStr(s) -> fprintf fmt "\"%s\"" (Escape.escape_string s)
+  | LWStr(s) ->
        (* text ("L\"" ^ escape_string s ^ "\"")  *)
-       fprintf fmt "L";
-       List.iter
-	 (fun elt ->
-	    if (elt >= Int64.zero &&
-		  elt <= (Int64.of_int 255)) then
-	      fprintf fmt "%S"
-		(Escape.escape_char (Char.chr (Int64.to_int elt)))
-	    else
-	      fprintf fmt "\"\\x%LX\"" elt;
-	    fprintf fmt "@ ")
-	 s;
+    fprintf fmt "L";
+    List.iter
+      (fun elt ->
+	if (elt >= Int64.zero &&
+	      elt <= (Int64.of_int 255)) then
+	  fprintf fmt "%S"
+	    (Escape.escape_char (Char.chr (Int64.to_int elt)))
+	else
+	  fprintf fmt "\"\\x%LX\"" elt;
+	fprintf fmt "@ ")
+      s;
    (* we cannot print L"\xabcd" "feedme" as L"\xabcdfeedme" -- the former
       has 7 wide characters and the later has 3. *)
-   | LChr(c) -> fprintf fmt "'%s'" (Escape.escape_char c)
-   | LReal(r) -> fprintf fmt "%s" r.r_literal
-   | LEnum {einame = s} -> fprintf fmt "%s" s
+  | LChr(c) -> fprintf fmt "'%s'" (Escape.escape_char c)
+  | LReal(r) -> fprintf fmt "%s" r.r_literal
+  | LEnum {einame = s} -> fprintf fmt "%s" s
 
 
   method logic_type name fmt =
@@ -1738,13 +1789,17 @@ the arguments."
 	((* the space avoids the issue of list<list<int>> where the double >
 	    would be read as a shift. It could be optimized away in most of
 	    the cases. *)
-	     Pretty_utils.pp_list ~pre:"<@[" ~sep:",@ " ~suf:"@]>@ "
-	       (self#logic_type None)) l pname
-     | Larrow (args,rt) ->
-	 fprintf fmt "@[@[<2>{@ %a@]}@]%a%t"
-	   (Pretty_utils.pp_list ~sep:",@ " (self#logic_type None)) args
-	   (self#logic_type None) rt pname
-     | Lvar s -> fprintf fmt "%a%t" self#varname s pname
+	  Pretty_utils.pp_list ~pre:"<@[" ~sep:",@ " ~suf:"@]>@ "
+	    (self#logic_type None)) l pname
+    | Larrow (args,rt) ->
+      fprintf fmt "@[@[<2>{@ %a@]}@]%a%t"
+	(Pretty_utils.pp_list ~sep:",@ " (self#logic_type None)) args
+	(self#logic_type None) rt pname
+    | Lvar s -> fprintf fmt "%a%t" self#varname s pname
+
+  method private name fmt s =
+    if needs_quote s then Format.fprintf fmt "\"%s\"" s
+    else Format.pp_print_string fmt s
 
   method private term_prec contextprec fmt e =
     let thisLevel = Precedence.getParenthLevelLogic e.term_node in
@@ -1752,7 +1807,7 @@ the arguments."
       if thisLevel >= contextprec then
 	true
       else if contextprec == Precedence.bitwiseLevel then
-	 (* quiet down some GCC warnings *)
+	(* quiet down some GCC warnings *)
 	thisLevel == Precedence.additiveLevel 
 	|| thisLevel == Precedence.comparativeLevel
       else
@@ -1761,22 +1816,17 @@ the arguments."
     if needParens then fprintf fmt "@[<hov 2>(%a)@]" self#term e
     else self#term fmt e
 
-  val mutable is_debug_type_mode = false
-  initializer is_debug_type_mode <- false
-    
   method identified_term fmt t = self#term fmt t.it_content
-     
+    
   method term fmt t =
-    if (Kernel.debug_atleast 5) && (not is_debug_type_mode) then begin 
-      is_debug_type_mode <- true ;
-      fprintf fmt "/*type:%a*/" (self#logic_type None) t.term_type;
-      is_debug_type_mode <- false ;
+    if Kernel.is_debug_key_enabled debug_logic_types then begin 
+      fprintf fmt "/* type:%a */" (self#logic_type None) t.term_type;
     end;
     match t.term_name with
     | [] -> self#term_node fmt t
     | _ :: _ ->
       fprintf fmt "(@[%a:@ %a@])"
-	(Pretty_utils.pp_list ~sep:":@ " pp_print_string) t.term_name
+	(Pretty_utils.pp_list ~sep:":@ " self#name) t.term_name
 	self#term_node t
 
   (* This instance variable is true the pretty-printed term is not inside 
@@ -1859,11 +1909,12 @@ the arguments."
 	| [] -> None
 	| Label (l, _, _) :: _ -> Some l
 	| _ :: rest -> pickLabel rest
-      in let l = match pickLabel !sref.labels with
-	Some l -> l
-      | None -> Kernel.fatal "Cannot find label for \\at@.";
-	 in
-	 fprintf fmt "@[\\at(@[@[%a@],@,@[%s@]@])@]" self#term t l
+      in 
+      let l = match pickLabel !sref.labels with
+	| Some l -> l
+	| None -> Kernel.fatal "Cannot find label for \\at";
+      in
+      fprintf fmt "@[\\at(@[@[%a@],@,@[%s@]@])@]" self#term t l
     | Tat (t,(LogicLabel (_, l) as lab)) ->
       let old_label = current_label in
       current_label <- lab;
@@ -1912,9 +1963,12 @@ the arguments."
 	   (fun fmt p -> fprintf fmt ";@ %a" self#identified_pred p))
 	pred
     | Trange(low,high) ->
-      fprintf fmt "@[%a..@,%a@]"
-	(Pretty_utils.pp_opt (self#term_prec current_level)) low
-	(Pretty_utils.pp_opt (self#term_prec current_level)) high
+      let pp_term = self#term_prec current_level in
+      fprintf fmt "@[%a..%a@]"
+	(Pretty_utils.pp_opt
+           (fun fmt v -> Format.fprintf fmt "%a " pp_term v)) low
+	(Pretty_utils.pp_opt
+           (fun fmt v -> Format.fprintf fmt "@ %a" pp_term v)) high;
     | Tlet(def,body) ->
       assert
 	(Kernel.verify (def.l_labels = [])
@@ -1938,8 +1992,8 @@ the arguments."
 	pp_defn
 	(self#term_prec current_level) body
     | TLogic_coerce(ty,t) ->
-      if Kernel.debug_atleast 1 then
-        fprintf fmt "/*coercion to:@[%a@]*/" (self#logic_type None) ty;
+      if Kernel.is_debug_key_enabled debug_logic_coercions then
+        fprintf fmt "/* coercion to:@[%a@] */" (self#logic_type None) ty;
       self#term_prec current_level fmt t
 	
   method private term_lval_prec contextprec fmt lv =
@@ -1959,7 +2013,7 @@ the arguments."
   | TMem e, o ->
     fprintf fmt "(*%a)%a"
       (self#term_prec Precedence.derefStarLevel) e self#term_offset o
-  
+      
   method model_field fmt mi = self#varname fmt mi.mi_name
 
   method term_offset fmt o = match o with
@@ -1992,11 +2046,11 @@ the arguments."
     | _ :: _ ->
       if parenth = Precedence.upperLevel then
 	fprintf fmt "@[<hv 2>%a:@ %a@]"
-	  (Pretty_utils.pp_list ~sep:":@ " pp_print_string) names
+	  (Pretty_utils.pp_list ~sep:":@ " self#name) names
 	  self#pred_prec (Precedence.upperLevel, content)
       else
 	fprintf fmt "(@[<hv 2>%a:@ %a@])"
-	  (Pretty_utils.pp_list ~sep:":@ " pp_print_string) names
+	  (Pretty_utils.pp_list ~sep:":@ " self#name) names
 	  self#pred_prec (Precedence.upperLevel, content)
 	  
   method private identified_pred fmt p =
@@ -2009,12 +2063,8 @@ the arguments."
     self#named_pred fmt (Precedence.upperLevel, p.name, p.content)
 
   method identified_predicate fmt p =
-    (*fprintf fmt "@[IP_LOC:%a@\n@]" Extlib.pretty_position (fst p.ip_loc);*)
-    if verbose then
-      fprintf fmt "@[<hv 2>//id:%d@ %a@]"
-	p.ip_id self#predicate_named (Logic_const.pred_of_id_pred p)
-    else 
-      self#predicate_named fmt (Logic_const.pred_of_id_pred p)
+    if verbose then fprintf fmt "/* ip:%d */" p.ip_id;
+    self#predicate_named fmt (Logic_const.pred_of_id_pred p)
 
   method private preds kw fmt l =
     Pretty_utils.pp_list ~suf:"@]@\n" ~sep:"@\n"
@@ -2116,7 +2166,7 @@ the arguments."
 	(Pretty_utils.pp_list ~sep:",@ " self#term) seps
     | Pat (p,StmtLabel sref) ->
       let rec pickLabel = function
-	| [] -> Kernel.fatal "Cannot find label for \\at@."
+	| [] -> Kernel.fatal "Cannot find label for \\at"
 	| Label (l, _, _) :: _ -> l
 	| _ :: rest -> pickLabel rest
       in
@@ -2188,9 +2238,7 @@ the arguments."
   | Writes l ->
     let without_result =
       List.filter
-	(function (a,_) -> 
-          not (Logic_const.is_result a.it_content ||
-                 Logic_const.is_exit_status a.it_content)) 
+	(function (a,_) -> not (Logic_const.is_exit_status a.it_content))
         l
     in
     fprintf fmt "@[<h>%s%a@]"
@@ -2202,8 +2250,6 @@ the arguments."
   method private assigns_deps kw fmt = function
   | WritesAny -> ()
   | Writes [] as a -> self#assigns kw fmt a
-  | Writes [ b,_ as a ] when Logic_const.is_result b.it_content ->
-    self#from kw fmt a
   | Writes l as a ->
     fprintf fmt "@[<v>%a%a@]"
       (self#assigns kw) a
@@ -2236,13 +2282,15 @@ the arguments."
 	 (if extra_nl && nl && (variant != None || terminates != None) 
 	  then format_of_string "@\n" 
 	  else ""))
-    
-   (* not enclosed in a box *)
+      
+  (* not enclosed in a box *)
   method private behavior_contents ~extra_nl nl ?terminates ?variant fmt b =
     self#set_current_behavior b;
+    (* Template for correct line breaks:
+       let nl_line_n = nb_line_(n+1) || is_empty clause_line_(n+1) *)
     let nl_assigns = nl || b.b_allocation != FreeAllocAny in
-    let nl_ensures = nl_assigns || b.b_assigns != WritesAny in
-    let nl_extended = nl_ensures || b.b_extended != [] in
+    let nl_extended = nl_assigns || b.b_assigns != WritesAny in
+    let nl_ensures = nl_extended || b.b_extended != [] in
     let nl_decreases = nl_extended || b.b_post_cond != [] in
     let nl_requires = nl_decreases || variant != None || terminates != None in
     let nl_assumes = nl_requires || b.b_requires != [] in
@@ -2254,7 +2302,7 @@ the arguments."
       (pp_list nl_assumes self#assumes) b.b_assumes
       (pp_list nl_requires self#requires) b.b_requires
       (self#terminates_decreases ~extra_nl:false nl_decreases) 
-      (terminates, variant)
+        (terminates, variant)
       (pp_list nl_ensures self#post_cond) b.b_post_cond
       (pp_list nl_extended 
 	 (Behavior_extensions.pp (self:>extensible_printer_type))) b.b_extended
@@ -2404,7 +2452,7 @@ the arguments."
 	match pickLabel !sref.labels with
 	| Some l -> l
 	| None -> "__invalid_label"
-     in 
+    in 
     pp_print_string fmt s
 
   method private labels fmt labels =
@@ -2503,9 +2551,6 @@ the arguments."
       (pp_vol "reads") rvi_opt
       (pp_vol "writes") wvi_opt ;
   | Daxiomatic(id,decls,_) ->
-	 (*
-	   Format.eprintf "cil.annotation on axiomatic %s@." id;
-	  *)
     fprintf fmt "@[<v 2>axiomatic@ %s {@\n%a}@]@\n" id
       (Pretty_utils.pp_list ~pre:"@[<v 0>" ~suf:"@]@\n" ~sep:"@\n"
 	 self#global_annotation)

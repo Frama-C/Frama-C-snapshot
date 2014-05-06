@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -95,7 +95,7 @@ class generic_frama_c_visitor:
   (** Generic class that abstracts over [frama_c_inplace] and [frama_c_copy]. 
       @plugin development guide *)
 
-(** Visit a file. This will will re-cons all globals TWICE (so that it is
+(** Visit a file. This will re-cons all globals TWICE (so that it is
     tail-recursive). Use {!Cil.visitCilFileSameGlobals} if your visitor will
     not change the list of globals. *)
 val visitFramacFileCopy: frama_c_visitor -> file -> file

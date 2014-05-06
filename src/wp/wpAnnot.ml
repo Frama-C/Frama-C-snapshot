@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -211,12 +211,13 @@ let mk_call_pre_id called_kf bhv s_call called_pre =
 let call_preconditions =
   Statuses_by_call.all_call_preconditions_at ~warn_missing:true
 
-(* Preconditiosn at call-point as WpPropId.t *)
-let preconditions_at_call s vkf =
-  let kf = Globals.Functions.get vkf in
-  let preconds = call_preconditions kf s in
-  let aux (pre, pre_call) = WpPropId.mk_call_pre_id kf s pre pre_call in
-  List.map aux preconds
+(* Preconditions at call-point as WpPropId.t *)
+let preconditions_at_call s = function
+  | Cil2cfg.Static kf -> 
+      let preconds = call_preconditions kf s in
+      let aux (pre, pre_call) = WpPropId.mk_call_pre_id kf s pre pre_call in
+      List.map aux preconds
+  | Cil2cfg.Dynamic _ -> []
 
 let get_called_preconditions_at kf stmt =
   List.map snd (call_preconditions kf stmt)
@@ -398,10 +399,10 @@ let kind_to_select config kind id = match kind with
     | WpStrategy.AcutB goal ->
         let goal = goal && goal_to_select config id in
           Some (WpStrategy.AcutB goal)
-    | WpStrategy.AcallPre goal ->
+    | WpStrategy.AcallPre(goal,fct) ->
         let goal = goal && goal_to_select config id in
-          Some (WpStrategy.AcallPre goal)
-    | WpStrategy.Ahyp | WpStrategy.AcallHyp -> Some kind
+          Some (WpStrategy.AcallPre(goal,fct))
+    | WpStrategy.Ahyp | WpStrategy.AcallHyp _ -> Some kind
 
 let add_prop_inv_establish config acc kind s ca p =
   let id = WpPropId.mk_establish_id config.kf s ca in
@@ -735,33 +736,22 @@ let add_stmt_spec_annots config v s spec ((b_acc, (p_acc, e_acc)) as acc) =
 (* Call annotations                                                           *)
 (*----------------------------------------------------------------------------*)
 
-let add_called_pre config called_kf s spec =
-  debug "[add_called_pre] for %a@."
-    Kernel_function.pretty  called_kf;
+let add_called_pre config called_kf s spec acc =
   let add_behav acc b = (* pre for behavior is [assumes => requires] *)
     let assumes = (Ast_info.behavior_assumes b) in
     let add_pre acc pre =
       let id = mk_call_pre_id called_kf b s pre in
-      let kind = WpStrategy.AcallPre (goal_to_select config id) in
-        WpStrategy.add_prop_call_pre acc kind id ~assumes pre
+      let kind = WpStrategy.AcallPre (goal_to_select config id,called_kf) in
+      WpStrategy.add_prop_call_pre acc kind id ~assumes pre
     in List.fold_left add_pre acc b.b_requires
   in
-  let acc =
-    List.fold_left add_behav WpStrategy.empty_acc spec.spec_behavior 
-  in
-    if acc = WpStrategy.empty_acc then
-      debug "no called precond for %a@."
-        Kernel_function.pretty  called_kf;
-    acc
+  List.fold_left add_behav acc spec.spec_behavior 
 
-let add_called_post called_kf termination_kind =
+let add_called_post called_kf termination_kind acc =
   let spec = Annotations.funspec called_kf in
-  debug "[add_called_post] '%s' for %a@."
-    (WpPropId.string_of_termination_kind termination_kind)
-    Kernel_function.pretty  called_kf;
   let add_behav acc b =
     (* post for behavior is [\old(assumes) => ensures] *)
-    let kind = WpStrategy.AcallHyp in
+    let kind = WpStrategy.AcallHyp called_kf in
     let assumes = (Ast_info.behavior_assumes b) in
     let add_post acc (tk, p) = 
       if tk = termination_kind 
@@ -769,39 +759,42 @@ let add_called_post called_kf termination_kind =
       else acc
     in List.fold_left add_post acc b.b_post_cond
   in 
-  let acc = List.fold_left add_behav WpStrategy.empty_acc spec.spec_behavior in
-    if acc = WpStrategy.empty_acc then
-      debug "no called %s postcondition for %a@."
-        (WpPropId.string_of_termination_kind termination_kind)
-        Kernel_function.pretty  called_kf;
-    acc
+  List.fold_left add_behav acc spec.spec_behavior
 
+let add_call_annots config s kf l_post precond (before,(posts,exits)) =
+  let spec = Annotations.funspec kf in
+  let before = 
+    if precond then add_called_pre config kf s spec before else before in
+  let posts = add_called_post kf Normal posts in
+  let posts = WpStrategy.add_call_assigns_hyp posts config.kf s
+    ~called_kf:kf l_post (Some spec) in
+  let exits = add_called_post kf Exits exits in
+  before , ( posts , exits )
+    
 let get_call_annots config v s fct =
   let l_post = Cil2cfg.get_post_logic_label config.cfg v in
-  match Kernel_function.get_called fct with
-    | Some kf ->
-        let spec = Annotations.funspec kf in
-        let before_annots =
-          if rte_precond_status config.kf then WpStrategy.empty_acc
-          else add_called_pre config kf s spec
-        in
-        let post_annots = add_called_post kf Normal in
-        let post_annots =
-          WpStrategy.add_call_assigns_hyp post_annots config.kf s 
-            l_post (Some spec)
-        in
-        let exits_annots = add_called_post kf Exits in
-        before_annots, (post_annots, exits_annots)
+  let empty = let e = WpStrategy.empty_acc in e,(e,e) in
+  match fct with
 
-    | None ->
-        Wp_parameters.warning ~once:true ~source:(fst (Stmt.loc s))
-          "Call through function pointer in function '%a' not implemented yet: \
-           ignore called function properties." 
-	  Kernel_function.pretty config.kf;
-        let assigns_annots = 
-          WpStrategy.add_call_assigns_hyp WpStrategy.empty_acc config.kf s 
-            l_post None
-        in WpStrategy.empty_acc, (assigns_annots, assigns_annots)
+    | Cil2cfg.Static kf ->
+	let precond = not (rte_precond_status config.kf) in
+	add_call_annots config s kf l_post precond empty
+
+    | Cil2cfg.Dynamic _ ->
+	let calls = Dyncall.get ~bhv:(name_of_asked_bhv config.cur_bhv) s in
+	if calls=[] then
+	  begin
+            Wp_parameters.warning ~once:true ~source:(fst (Stmt.loc s))
+              "Ignored function pointer (see -wp-dynamic)" ;
+	    let annots = WpStrategy.add_call_assigns_any WpStrategy.empty_acc s in
+	    WpStrategy.empty_acc, (annots , annots)
+	  end
+	else 
+	  begin
+	    List.fold_left 
+	      (fun acc kf -> add_call_annots config s kf l_post true acc)
+	      empty calls
+	  end
 
 (*----------------------------------------------------------------------------*)
 let add_variant_annot config s ca var_exp loop_entry loop_back =
@@ -1060,9 +1053,9 @@ let get_behavior_annots config =
 
     | Cil2cfg.Vcall (s,_,fct,_) ->
         let stmt_annots = get_stmt_annots config v s in
-          WpStrategy.add_node_annots annots cfg v stmt_annots;
+        WpStrategy.add_node_annots annots cfg v stmt_annots;
         let call_annots = get_call_annots config v s fct in
-          WpStrategy.add_node_annots annots cfg v call_annots
+        WpStrategy.add_node_annots annots cfg v call_annots
 
     | Cil2cfg.Vloop (_, s) ->
         let stmt_annots = get_stmt_annots config v s in
@@ -1156,22 +1149,25 @@ let internal_function_behaviors cfg =
   let def_annot_bhv = HdefAnnotBhv.create 42 in
   let get_stmt_bhv node stmt acc =
     let add_bhv_info acc b =
-      if b.b_name = Cil.default_behavior_name then
-        begin
-          let _, int_edges = Cil2cfg.get_internal_edges cfg node in
-          let n = Cil2cfg.Eset.cardinal int_edges in
-          let reg e =
-            try
-              let (_old_s, old_n) = HdefAnnotBhv.find def_annot_bhv e in
-                if n < old_n then
-                  (* new spec is included in the old one : override. *)
-                  raise Not_found
-            with Not_found ->
-              HdefAnnotBhv.replace def_annot_bhv e (stmt, n)
-          in
-            Cil2cfg.Eset.iter reg int_edges
-        end;
-      (node, stmt, b)::acc
+      if is_empty_behavior b then acc else
+	begin
+	  if b.b_name = Cil.default_behavior_name then
+            begin
+              let _, int_edges = Cil2cfg.get_internal_edges cfg node in
+              let n = Cil2cfg.Eset.cardinal int_edges in
+              let reg e =
+		try
+		  let (_old_s, old_n) = HdefAnnotBhv.find def_annot_bhv e in
+                  if n < old_n then
+                    (* new spec is included in the old one : override. *)
+                    raise Not_found
+		with Not_found ->
+		  HdefAnnotBhv.replace def_annot_bhv e (stmt, n)
+              in
+              Cil2cfg.Eset.iter reg int_edges
+            end;
+	  (node, stmt, b)::acc
+	end
     in
     let spec_bhv_names acc annot = match annot with
       | {annot_content = AStmtSpec (_,spec)} ->
@@ -1266,14 +1262,13 @@ let process_unreached_annots cfg =
     | Cil2cfg.VfctIn -> Wp_parameters.fatal "FctIn must be reachable"
     | Cil2cfg.VfctOut  -> List.fold_left (do_bhv Normal) acc spec.spec_behavior
     | Cil2cfg.Vexit  -> List.fold_left (do_bhv Exits) acc spec.spec_behavior
-    | Cil2cfg.Vcall (s, _, {enode=Lval (Var vkf, NoOffset)}, _) ->
+    | Cil2cfg.Vcall (s, _, call, _) ->
         Annotations.fold_code_annot (do_annot s) s acc @
-          preconditions_at_call s vkf
-    | Cil2cfg.Vcall (s, _, _, _)
+          preconditions_at_call s call
     | Cil2cfg.Vstmt s
     | Cil2cfg.VblkIn (Cil2cfg.Bstmt s, _)
     | Cil2cfg.Vtest (true, s, _) | Cil2cfg.Vloop (_, s) | Cil2cfg.Vswitch (s,_)
-      -> Annotations.fold_code_annot (do_annot s) s acc
+	-> Annotations.fold_code_annot (do_annot s) s acc
     | Cil2cfg.Vtest (false, _, _) | Cil2cfg.Vloop2 _ 
     | Cil2cfg.VblkIn _ | Cil2cfg.VblkOut _ | Cil2cfg.Vend -> acc
   in
@@ -1319,30 +1314,9 @@ let build_configs assigns kf behaviors ki property =
 
 let get_strategies assigns kf behaviors ki property =
   let configs = build_configs assigns kf behaviors ki property in
-  let rec add_stgs l = match l with [] -> []
-    | config::tl ->
-        let stg = build_bhv_strategy config in
-        let stgs = stg::(add_stgs tl) in
-          match config.cur_bhv, config.asked_prop with
-            | FunBhv (Some b), AllProps 
-		when not (Cil2cfg.cfg_spec_only config.cfg) ->
-                let froms = Property.ip_from_of_behavior kf Kglobal b in
-		if froms <> [] then
-		  if Wp_parameters.Froms.get () then
-                    let add acc ip = match ip with
-                      | Property.IPFrom id_from ->
-			  (WpFroms.get_strategy_for_from id_from)::acc
-                      | _ -> acc
-                    in List.fold_left add stgs froms
-		  else
-		    begin
-		      Wp_parameters.warning ~current:false ~once:true
-			"Ignoring '\\from' part of assigns specification in function '%a'"
-			Kernel_function.pretty kf ;
-		      stgs
-		    end
-		else stgs
-            | _, _ -> (* TODO *) stgs
+  let rec add_stgs l = match l with [] -> [] | config::tl ->
+    let stg = build_bhv_strategy config in
+    stg::(add_stgs tl)
   in add_stgs configs
 
 (*----------------------------------------------------------------------------*)
@@ -1412,8 +1386,6 @@ let get_id_prop_strategies ?(assigns=WithAssigns) p =
             get_strategies assigns kf bhvs None (IdProp p)
       | Property.IPPredicate (Property.PKRequires _, _kf, Kglobal, _p) ->
           get_precond_strategies p
-      | Property.IPFrom id_from ->
-          [ WpFroms.get_strategy_for_from id_from ]
       | _ ->
           let strategies = match Property.get_kf p with
             | None -> Wp_parameters.warning

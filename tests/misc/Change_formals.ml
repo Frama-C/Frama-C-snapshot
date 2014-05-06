@@ -9,8 +9,7 @@ class transform prj = object(_self)
 
   inherit Visitor.frama_c_copy prj 
   
-  method vglob_aux = function
-    
+  method! vglob_aux = function
     | GFun (_fdec, _loc) as g  -> 
       let mk_formal = function l -> begin match l with
       | GFun (fundec, loc) :: [] ->
@@ -67,7 +66,7 @@ class transform prj = object(_self)
   | GText _
   | GAnnot _ -> Cil.DoChildren
 
-  method vinst = function
+  method! vinst = function
     | Call(_,{ Cil_types.enode = Lval (Var _, NoOffset)},_,_) as i ->
         let add_zero = function
           | [Call(res,f,args,loc)] ->

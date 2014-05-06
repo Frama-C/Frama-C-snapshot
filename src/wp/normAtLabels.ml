@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -57,7 +57,7 @@ class norm_at label_map = object(self)
     in x
 
 
-  method vterm t =
+  method! vterm t =
     match t.term_node with
       | Tat (t, l) ->
           let old_label = self#change_label l in
@@ -89,7 +89,7 @@ class norm_at label_map = object(self)
           Cil.ChangeDoChildrenPost (t,post)
       | _ -> Cil.DoChildren
 
-  method vpredicate_named p = match p.content with
+  method! vpredicate_named p = match p.content with
     | Pat (p, l) ->
         let old_label = self#change_label l in
         let new_p = {p with content = Pnot p} in
@@ -180,9 +180,10 @@ let labels_assert_after s l_post = function
   | StmtLabel rs -> Clabels.mk_logic_label !rs
   | l -> raise (LabelError l)
 
-let labels_loop_inv _s = function
+let labels_loop_inv s = function
   | LogicLabel (None, "Pre") -> Logic_const.pre_label
   | LogicLabel (None, "Here") -> Logic_const.here_label
+  | LogicLabel (None, "LoopEntry") -> Clabels.mk_logic_label s
   | LogicLabel (None, ("Old" | "Post")) as l -> raise (LabelError l)
   | l -> l
 

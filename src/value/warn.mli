@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -64,6 +64,16 @@ val warn_float:
 val warn_float_addr:
   with_alarms:CilE.warn_mode -> (Format.formatter -> unit) -> unit
 
-(* Returns the first eventual imprecise part contained in an offsetmap *)
+(** Returns the first eventual imprecise part contained in an offsetmap *)
 val offsetmap_contains_imprecision:
   Cvalue.V_Offsetmap.t -> Cvalue.V.t option
+
+(** If the supplied offsetmap has an arithmetic type and contains indeterminate
+    bits (uninitialized, or escaping address), raises the corresponding alarm(s)
+    and returns the reduced offsetmap.
+    The syntactic context must have been positioned by the caller. If
+    some bits are guaranteed to be indeterminate, returns [None]; this indicates
+    completely erroneous code. *)
+val warn_indeterminate_offsetmap:
+  with_alarms:CilE.warn_mode ->
+  typ -> Cvalue.V_Offsetmap.t -> Cvalue.V_Offsetmap.t option

@@ -2,8 +2,8 @@
 /*                                                                        */
 /*  This file is part of Aorai plug-in of Frama-C.                        */
 /*                                                                        */
-/*  Copyright (C) 2007-2013                                               */
-/*    CEA (Commissariat a l'énergie atomique et aux énergies              */
+/*  Copyright (C) 2007-2014                                               */
+/*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              */
 /*         alternatives)                                                  */
 /*    INRIA (Institut National de Recherche en Informatique et en         */
 /*           Automatique)                                                 */
@@ -56,7 +56,7 @@ let fetch_and_create_state name =
 ;;
 
 let prefetch_and_create_state name =
-    if (Hashtbl.mem prefetched_states name) or 
+    if (Hashtbl.mem prefetched_states name) || 
       not (Hashtbl.mem observed_states name) 
     then
       begin
@@ -126,7 +126,7 @@ main
     let states=
       Hashtbl.fold
         (fun _ st l ->
-	   if st.acceptation=Undefined or st.init=Undefined then
+	   if st.acceptation=Undefined || st.init=Undefined then
 	     begin
 	       Aorai_option.abort
                  "Error: the state '%s' is used but never defined.\n" st.name
@@ -329,8 +329,14 @@ arith_relation_mul
   : arith_relation_mul SLASH access_or_const { PBinop(Bdiv,$1,$3) }
   | arith_relation_mul STAR access_or_const { PBinop(Bmul, $1, $3) }
   | arith_relation_mul PERCENT access_or_const { PBinop(Bmod, $1, $3) }
-  | access_or_const { $1 }
+  | arith_relation_bw %prec lowest { $1 }
   ;
+
+arith_relation_bw
+  : access_or_const %prec lowest { $1 }
+  | arith_relation_bw AMP access_or_const { PBinop(Bbw_and,$1,$3) }
+  | arith_relation_bw PIPE access_or_const { PBinop(Bbw_or,$1,$3) }
+  | arith_relation_bw CARET access_or_const { PBinop(Bbw_xor,$1,$3) }
 
 /* returns a Lval exp or a Const exp*/
 access_or_const

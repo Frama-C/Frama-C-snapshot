@@ -22,7 +22,7 @@ let main _ =
   Kernel.Debug.set memo_debug ;
   let kf =  Globals.Functions.find_def_by_name "main" in
   let pdg = !Db.Pdg.get kf in
-  !Db.Pdg.pretty Format.std_formatter pdg;
+  Format.printf "%a@." (!Db.Pdg.pretty ~bw:false) pdg;
   !Db.Pdg.extract pdg "tests/pdg/dyn_dpds_0.dot";
   let assert_sid = 5 in (* assert ( *p>G) *)
   let assert_stmt, kf = Kernel_function.find_from_sid assert_sid in
@@ -43,7 +43,7 @@ let main _ =
   let undef = match undef with None -> assert false | Some z -> z in
   Format.printf "Warning : cannot select %a in this function...@\n"
     Locations.Zone.pretty undef;
-  !Db.Pdg.pretty Format.std_formatter pdg;
+  Format.printf "%a@." (!Db.Pdg.pretty ~bw:false) pdg;
   !Db.Pdg.extract pdg "tests/pdg/dyn_dpds_1.dot"
 
 let () = Db.Main.extend main

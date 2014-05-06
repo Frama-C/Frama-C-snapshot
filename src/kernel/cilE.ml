@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -35,7 +35,11 @@ open Cil
    Currently, the default printer does not do that. *)
 let local_printer: Printer.extensible_printer = object (self)
   inherit Printer.extensible_printer () as super
-  method predicate fmt = function
+
+  (* Temporary variables for which we want to print more information *)
+  val mutable temporaries = Cil_datatype.Varinfo.Set.empty
+
+  method! predicate fmt = function
   | Pand({ content = Prel(rel1, low, t) }, 
 	 { content = Prel(rel2, _, up) }) ->
 		 (* explicit use the undocumented form of the built 
@@ -47,11 +51,34 @@ let local_printer: Printer.extensible_printer = object (self)
       Printer.pp_relation rel2
       super#term up
   | p -> super#predicate fmt p
-  method code_annotation fmt ca = match ca.annot_content with
-  | AAssert(_, p) ->  
-    (* ignore the name *) 
-    Format.fprintf fmt "@[assert@ %a;@]" self#predicate p.content
+
+  method! code_annotation fmt ca =
+    temporaries <- Cil_datatype.Varinfo.Set.empty;
+    match ca.annot_content with
+    | AAssert(_, p) ->  
+      (* ignore the ACSL name *) 
+      Format.fprintf fmt "@[<v>@[assert@ %a;@]" self#predicate p.content;
+      (* print temporary variables information *)
+      if not (Cil_datatype.Varinfo.Set.is_empty temporaries) then begin
+        Format.fprintf fmt "@ @[(%t)@]" self#pp_temporaries
+      end;
+      Format.fprintf fmt "@]";
   | _ -> assert false
+
+  method private pp_temporaries fmt =
+    let pp_var fmt vi =
+      Format.fprintf fmt "%s from@ @[%s@]" vi.vname (Extlib.the vi.vdescr)
+    in
+    Pretty_utils.pp_iter Cil_datatype.Varinfo.Set.iter
+      ~pre:"" ~suf:"" ~sep:",@ " pp_var fmt temporaries
+
+  method! logic_var fmt lvi =
+    (match lvi.lv_origin with
+    | None | Some { vdescr = None }-> ()
+    | Some ({ vdescr = Some _ } as vi) ->
+      temporaries <- Cil_datatype.Varinfo.Set.add vi temporaries
+    );
+    super#logic_var fmt lvi
 end 
 
 let current_stmt_tbl =
@@ -141,6 +168,7 @@ let do_warn {a_log=log;a_call=call} f =
   call ()
 
 let register_alarm ?kf ?(status=Property_status.Dont_know) e ki a =
+  Value_messages.new_alarm ki a status;
   Alarms.register ~loc:(sc_kinstr_loc ki) ?kf ~status e ki a
  
 let warn_div warn_mode =
@@ -358,6 +386,41 @@ let warn_pointer_comparison warn_mode =
 	| _, SyBinOp _ ->
 	  assert false)
 
+let warn_valid_string warn_mode =
+  do_warn warn_mode.defined_logic
+    (fun (emitter, suffix) ->
+      let aux ki e =
+	let annot, is_new =
+	  register_alarm emitter ki (Alarms.Valid_string e)
+	in
+	if is_new then
+          Kernel.warning ~current:true
+            "@[may not point to a valid string:@ %a@]%t"
+            local_printer#code_annotation annot suffix;
+      in
+      match get_syntactic_context () with
+	| _,SyNone -> ()
+	| _,(SyMemLogic _ | SySep _ | SyCallResult | SyMem _ | SyBinOp _) ->
+	  assert false
+        | ki, SyUnOp e ->
+          aux ki e)
+
+let warn_pointer_subtraction warn_mode =
+  do_warn warn_mode.defined_logic
+    (fun (emitter, suffix) ->
+      match get_syntactic_context () with
+	| _,SyNone -> ()
+	| _,(SyMem _ | SyMemLogic _ | SySep _ | SyCallResult | SyUnOp _) ->
+	  assert false
+	| ki, SyBinOp (_, _, e1, e2) ->
+	  let annot, is_new =
+	    register_alarm emitter ki (Alarms.Differing_blocks (e1, e2))
+	  in
+	  if is_new then
+            Kernel.warning ~current:true
+              "@[pointer subtraction:@ %a@]%t"
+              local_printer#code_annotation annot suffix)
+
 let warn_nan_infinite warn_mode fkind pp =
   let sfkind = match fkind with
     | None -> "real"
@@ -383,8 +446,8 @@ let warn_nan_infinite warn_mode fkind pp =
 	  in
 	  if is_new then
             Kernel.warning ~current:true ~once:true
-              "@[non-finite@ %s@ value@ (%t):@ %a@]"
-              sfkind pp local_printer#code_annotation annot)
+              "@[non-finite@ %s@ value@ (%t):@ %a@]%t"
+              sfkind pp local_printer#code_annotation annot suffix)
 
 let warn_uninitialized warn_mode = 
   do_warn warn_mode.unspecified
@@ -402,8 +465,8 @@ let warn_uninitialized warn_mode =
 	  in
 	  if is_new then
             Kernel.warning ~current:true
-              "@[accessing uninitialized left-value:@ %a@]"
-              local_printer#code_annotation annot)
+              "@[accessing uninitialized left-value:@ %a@]%t"
+              local_printer#code_annotation annot suffix)
 
 let warn_escapingaddr warn_mode =
   do_warn warn_mode.unspecified

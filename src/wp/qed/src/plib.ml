@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -68,35 +68,40 @@ let pp_call_apply ~f pp fmt = function
 let pp_binop ~op pp fmt a b =
   fprintf fmt "%a@ %s %a" pp a op pp b
 
-let pp_assoc ~e ~op pp fmt = function
-  | [] -> pp_print_string fmt e
-  | x::xs -> 
+let print_not_empty s fmt = function
+  | Some e -> pp_print_string fmt e
+  | None -> invalid_arg ("Plib.print_not_empty: invariant broken: empty list for " ^ s)
+(** neutral element not given but the list is empty *)
+
+let pp_assoc ?e ~op pp fmt = function
+  | [] -> print_not_empty op fmt e
+  | x::xs ->
       pp fmt x ; List.iter (fun y -> fprintf fmt " %s@ %a" op pp y) xs
 
-let rec pp_fold_binop ~e ~op pp fmt = function
-  | [] -> pp_print_string fmt e
+let rec pp_fold_binop ?e ~op pp fmt = function
+  | [] -> print_not_empty op fmt e
   | [x] -> pp fmt x
-  | x::xs -> fprintf fmt "(%a %s@ %a)" pp x op (pp_fold_binop ~e ~op pp) xs
+  | x::xs -> fprintf fmt "(%a %s@ %a)" pp x op (pp_fold_binop ?e ~op pp) xs
 
-let rec pp_fold_call ~e ~f pp fmt = function
-  | [] -> pp_print_string fmt e
+let rec pp_fold_call ?e ~f pp fmt = function
+  | [] -> print_not_empty f fmt e
   | [x] -> pp fmt x
-  | x::xs -> fprintf fmt "%s(%a,@ %a)" f pp x (pp_fold_call ~e ~f pp) xs
+  | x::xs -> fprintf fmt "%s(%a,@ %a)" f pp x (pp_fold_call ?e ~f pp) xs
 
-let rec pp_fold_apply ~e ~f pp fmt = function
-  | [] -> pp_print_string fmt e
+let rec pp_fold_apply ?e ~f pp fmt = function
+  | [] -> print_not_empty f fmt e
   | [x] -> pp fmt x
-  | x::xs -> fprintf fmt "(%s@ %a@ %a)" f pp x (pp_fold_apply ~e ~f pp) xs
+  | x::xs -> fprintf fmt "(%s@ %a@ %a)" f pp x (pp_fold_apply ?e ~f pp) xs
 
-let rec pp_fold_call_rev ~e ~f pp fmt = function
-  | [] -> pp_print_string fmt e
+let rec pp_fold_call_rev ?e ~f pp fmt = function
+  | [] -> print_not_empty f fmt e 
   | [x] -> pp fmt x
-  | x::xs -> fprintf fmt "%s(%a,@ %a)" f (pp_fold_call_rev ~e ~f pp) xs pp x
+  | x::xs -> fprintf fmt "%s(%a,@ %a)" f (pp_fold_call_rev ?e ~f pp) xs pp x
 
-let rec pp_fold_apply_rev ~e ~f pp fmt = function
-  | [] -> pp_print_string fmt e
+let rec pp_fold_apply_rev ?e ~f pp fmt = function
+  | [] -> print_not_empty f fmt e 
   | [x] -> pp fmt x
-  | x::xs -> fprintf fmt "(%s@ %a@ %a)" f pp x (pp_fold_apply_rev ~e ~f pp) xs
+  | x::xs -> fprintf fmt "(%s@ %a@ %a)" f pp x (pp_fold_apply_rev ?e ~f pp) xs
 
 let pp_listcompact ~sep pp fmt = function
   | [] -> ()
@@ -117,9 +122,9 @@ let iteri f = function
   | [x] -> f Isingle x
   | x::xs -> 
       let rec iterk f = function
-	| [] -> ()
-	| [x] -> f Ilast x
-	| x::xs -> f Imiddle x ; iterk f xs
+        | [] -> ()
+        | [x] -> f Ilast x
+        | x::xs -> f Imiddle x ; iterk f xs
       in f Ifirst x ; iterk f xs
 
 let iterk f xs =
@@ -132,6 +137,45 @@ let mapk f xs =
   let rec step f k = function
     | [] -> []
     | x::xs -> 
-	let y = f k x in
-	y :: step f (succ k) xs
+        let y = f k x in
+        y :: step f (succ k) xs
   in step f 0 xs
+
+(** the regexp shouldn't match empty *)
+let global_substitute_fmt regexp repl_fun fmt text =
+  let rec replace start =
+    if start < String.length text then
+      try
+        let pos = Str.search_forward regexp text start in
+        let end_pos = Str.match_end () in
+        assert (start <= pos && pos < end_pos);
+        if start < pos then
+          pp_print_string fmt (String.sub text start (pos - start));
+        repl_fun fmt (Str.matched_group 1 text);
+        replace end_pos
+      with Not_found ->
+          pp_print_string fmt (Str.string_after text start)
+  in
+  replace 0
+
+let regexp_arg_pos = Str.regexp "%\\([0-9]+\\)"
+let substitute_list print s fmt l =
+  let args = Array.of_list l in
+  let repl_fun fmt grp =
+    let i = int_of_string grp in
+    print fmt args.(i-1) in
+  global_substitute_fmt regexp_arg_pos repl_fun fmt s
+
+(** the regexp shouldn't match empty *)
+let iter_group regexp iter_fun text =
+  let rec iter start =
+    if start < String.length text then
+      try
+        let pos = Str.search_forward regexp text start in
+        let end_pos = Str.match_end () in
+        assert (start <= pos && pos < end_pos);
+        iter_fun (Str.matched_group 1 text);
+        iter end_pos
+      with Not_found -> ()
+  in
+  iter 0

@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -98,18 +98,6 @@ let () =
       let ppts = Property.ip_of_spec kf Kglobal spec in
       List.iter Property_status.remove ppts)
 
-module Is_populate =
-  State_builder.Hashtbl
-    (Kf.Hashtbl)
-    (Datatype.Unit)
-    (struct
-      let size = 17
-      let dependencies = [ funspec_state ]
-      let name = "Annotations.Is_populate"
-     end)
-
-let () = Ast.add_linked_state Is_populate.self
-
 module Code_annots =
   Emitter.Make_table
     (Stmt.Hashtbl)
@@ -195,11 +183,8 @@ let populate_spec_ref = Extlib.mk_fun "Annotations.populate_spec"
 let populate_spec populate kf spec = match kf.fundec with
   | Definition _ -> false
   | Declaration _ ->
-    if populate && not (Is_populate.mem kf) then begin
-      (* Kernel.feedback "infering contract for function %a" Kf.pretty kf; *)
-      Is_populate.add kf ();
+    if populate then begin
       !populate_spec_ref kf spec;
-      true
     end else
       false
 
@@ -615,14 +600,14 @@ let dependencies_of_global annot =
     (* do not use Visitor here, we're above it in link order.
        Anyway, there's nothing Frama-C-specific in the visitor. *)
     inherit Cil.nopCilVisitor
-    method vvrbl vi =
+    method! vvrbl vi =
       if vi.vglob then c_vars := Cil_datatype.Varinfo.Set.add vi !c_vars;
       Cil.DoChildren
-    method vlogic_info_use li =
+    method! vlogic_info_use li =
       if not (Cil_datatype.Logic_info.Set.mem li !local_logics) then
         logic_vars := Cil_datatype.Logic_info.Set.add li !logic_vars;
       Cil.DoChildren
-    method vlogic_info_decl li =
+    method! vlogic_info_decl li =
       local_logics := Cil_datatype.Logic_info.Set.add li !local_logics;
       Cil.DoChildren
   end
@@ -785,21 +770,44 @@ let add_terminates e kf t =
   extend_funspec e kf mk_spec set_spec;
   Property_status.register (Property.ip_of_terminates kf Kglobal t)
 
+let check_bhv_name spec flag name =
+  if name = Cil.default_behavior_name then begin
+    Kernel.warning
+      "Trying to add default behavior in a complete or disjoint clause";
+    false
+  end
+  else if
+      List.exists (fun x -> x.b_name = name) spec.spec_behavior
+  then flag
+  else begin
+    Kernel.warning
+      "Trying to add a non-existing behavior %s \
+        in a complete or disjoint clause"
+      name;
+    false
+  end
+
 let add_complete e kf l =
-  let mk_spec () = mk_spec [] None None [ l ] [] in
-  let set_spec spec _tbl =
-    spec.spec_complete_behaviors <- l :: spec.spec_complete_behaviors
-  in
-  extend_funspec e kf mk_spec set_spec;
-  Property_status.register (Property.ip_of_complete kf Kglobal l)
+  let spec = generic_funspec ~populate:false merge_behaviors Extlib.id kf in
+  if List.fold_left (check_bhv_name spec) true l then begin
+    let mk_spec () = mk_spec [] None None [ l ] [] in
+    let set_spec spec _tbl =
+      spec.spec_complete_behaviors <- l :: spec.spec_complete_behaviors
+    in
+    extend_funspec e kf mk_spec set_spec;
+    Property_status.register (Property.ip_of_complete kf Kglobal l)
+  end
 
 let add_disjoint e kf l =
-  let mk_spec () = mk_spec [] None None [] [ l ] in
-  let set_spec spec _tbl =
-    spec.spec_disjoint_behaviors <- l :: spec.spec_disjoint_behaviors
-  in
-  extend_funspec e kf mk_spec set_spec;
-  Property_status.register (Property.ip_of_disjoint kf Kglobal l)
+  let spec = generic_funspec ~populate:false merge_behaviors Extlib.id kf in
+  if List.fold_left (check_bhv_name spec) true l then begin
+    let mk_spec () = mk_spec [] None None [] [ l ] in
+    let set_spec spec _tbl =
+      spec.spec_disjoint_behaviors <- l :: spec.spec_disjoint_behaviors
+    in
+    extend_funspec e kf mk_spec set_spec;
+    Property_status.register (Property.ip_of_disjoint kf Kglobal l)
+  end
 
 let extend_behavior e kf bhv_name set_bhv =
   (* Kernel.feedback "Function %a, behavior %s" Kf.pretty kf bhv_name;*)
@@ -862,13 +870,22 @@ let add_requires e kf bhv_name l =
     l
 
 let add_assumes e kf bhv_name l =
-  let bhv =
-    extend_behavior e kf bhv_name (fun b -> b.b_assumes <- l @ b.b_assumes)
-  in
-  List.iter
-    (fun p ->
-      Property_status.register (Property.ip_of_assumes kf Kglobal bhv p))
-    l
+  if bhv_name = Cil.default_behavior_name then begin
+    match l with
+      | [] -> () (* adding an empty list is a no-op. *)
+      | [_] ->
+        Kernel.warning "Trying to add an assumes clause to default behavior"
+      | _ ->
+        Kernel.warning "Trying to add assumes clauses to default behavior"
+  end else begin
+    let bhv =
+      extend_behavior e kf bhv_name (fun b -> b.b_assumes <- l @ b.b_assumes)
+    in
+    List.iter
+      (fun p ->
+        Property_status.register (Property.ip_of_assumes kf Kglobal bhv p))
+      l
+  end
 
 let add_ensures e kf bhv_name l =
   let bhv =
@@ -1016,13 +1033,16 @@ let remove_in_funspec e kf set_spec =
   with Not_found ->
     assert false
 
-let remove_behavior e kf bhv =
+let remove_behavior ?(force=false) e kf bhv =
   let set_spec spec tbl =
     (* Kernel.feedback "Current spec is %a@." Cil_printer.pp_funspec spec; *)
-    spec.spec_behavior <- filterq bhv spec.spec_behavior;
+    (* do not use physical equality since the behaviors are almost always copied
+       at some points *)
+    let eq b1 b2 = b1.b_name = b2.b_name in
+    spec.spec_behavior <- filterq ~eq bhv spec.spec_behavior;
     let name = bhv.b_name in
     let check get =
-      if
+      if not force &&
 	exists_in_funspec
 	  (fun s -> List.exists (List.exists ((=) name)) (get s))
 	  tbl

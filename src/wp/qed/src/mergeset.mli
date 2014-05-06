@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -41,9 +41,14 @@ sig
 
   val is_empty : t -> bool
   val empty : t
+
+  (* good sharing *) 
   val add : elt -> t -> t
   val singleton : elt -> t
   val elements : t -> elt list
+
+  (* good sharing *) 
+  val remove : elt -> t -> t
 
   val mem : elt -> t -> bool
   val iter : (elt -> unit) -> t -> unit

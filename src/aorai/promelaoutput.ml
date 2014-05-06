@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Aorai plug-in of Frama-C.                        *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -248,11 +248,8 @@ let output_dot_automata (states_l,trans_l) fichier =
     (fun fmt ->
       if DotSeparatedLabels.get () then
         (Format.fprintf fmt 
-           "/* guards of transitions */@\ncomment=%t\"%a\"%t;@\n"
-           escape_newline
-           (Pretty_utils.pp_list ~sep:"@\n" print_trans) trans_l
-           normal_newline
-        ));
+           "/* guards of transitions */@\ncomment=\"%a\";@\n"
+           (Pretty_utils.pp_list ~sep:"@\n" print_trans) trans_l));
   normal_newline fmt;
   close_out cout
 

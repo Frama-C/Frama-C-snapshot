@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -23,14 +23,14 @@
 open Cil_types
 open Eval_terms
 
-let emit_status ppt s =
-  Property_status.emit ~distinct:true Value_util.emitter ~hyps:[] ppt s
+(** Statuses for code annotations and function contracts *)
 
-let emit_unreachable ppt =
-  let reach_p = Property.ip_reachable_ppt ppt in
-  Property_status.emit ~distinct:false Value_util.emitter ~hyps:[]
-    reach_p Property_status.False_and_reachable
+let emit_status ppt status =
+  Property_status.emit ~distinct:true Value_util.emitter ~hyps:[] ppt status
 
+let notify_status ppt status state =
+  Value_messages.new_status ppt status state
+;;
 
 module ActiveBehaviors = struct
 
@@ -53,7 +53,7 @@ module ActiveBehaviors = struct
   type t = {
     init_state: Cvalue.Model.t;
     funspec: funspec;
-    is_active: funbehavior -> predicate_value
+    is_active: funbehavior -> predicate_status
   }
 
   module HashBehaviors = Hashtbl.Make(
@@ -96,6 +96,13 @@ module ActiveBehaviors = struct
 
 end
 
+(* Does the given function has any requires to evaluate. Use kf.spec as
+   a shortcut. *)
+let has_requires kf =
+  let behav_has_requires b = b.b_requires <> [] in
+  List.exists behav_has_requires kf.spec.spec_behavior
+
+
 let conv_status = function
   | False -> Property_status.False_if_reachable;
   | True -> Property_status.True;
@@ -108,111 +115,187 @@ let pp_header kf fmt b =
   Format.fprintf fmt "Function %a%a"
     Kernel_function.pretty kf ActiveBehaviors.pp_bhv b
 
-(** [eval_and_reduce preds ab b proj states update_status pp_header env slevel ab b] *)
-    
-let eval_and_reduce ab b preds states update_status env slevel pp_header str =
-  let aux_pred reduce states ({ip_content=pr; ip_loc= (source, _ as loc)} as pred) =
+
+(* The function that puts statuses on pre- and post-conditions is essentially
+   agnostic as to which kind of property it operates on. However, the messages
+   that get emitted are quite different. The types below distinguish between
+   the various possibilities. *)
+type postcondition_kf_kind =
+| PostLeaf (* The function has no body in the AST *)
+| PostBody (* The function has a body, which is used for the evaluation *)
+| PostUseSpec (* The function has a body, but its specification is used
+                 instead *)
+and pre_post_kind = Precondition | Postcondition of postcondition_kf_kind
+
+let pp_pre_post_kind fmt = function
+  | Precondition -> Format.pp_print_string fmt "precondition"
+  | Postcondition _ -> Format.pp_print_string fmt "postcondition"
+
+let post_kind kf =
+  if !Db.Value.use_spec_instead_of_definition kf then
+    if Kernel_function.is_definition kf then
+      PostUseSpec
+    else
+      PostLeaf
+  else
+    PostBody
+
+(* [eval_and_reduce_pre_post kf ab b pre_post ips states build_prop build_env]
+   evaluates the pre- or post-conditions [ips] of [kf] in the states [states].
+   The states are used simultaneously for evaluation and reduction: if one
+   predicate is not valid in one of the states, the status of the predicate is
+   set to [Unknown] or [Invalid]. In this case, the state is simultaneously
+   reduced (when possible).
+   [pre_post] indicates the kind of clause (pre or post) being evaluated.
+   [ab] and [b] give respectively the statuses of the behaviors of the function
+     (active or not), and the current behavior.
+   [build_prop] builds the [Property.t] that corresponds to the pre/post being
+     evaluated.
+   [build_env] is used to build the environment evaluation, in particular
+     the pre- and post-states. *)
+let eval_and_reduce_pre_post kf ab b pre_post ips states build_prop build_env =
+  let pp_header = pp_header kf in
+  let slevel = Value_util.get_slevel kf in
+  let aux_pred behav_active states pred =
+    let pr = Logic_utils.named_of_identified_predicate pred in
+    let source = fst pr.loc in
     if State_set.is_empty states then
       (Value_parameters.result ~once:true ~source
-         "%a: no state left in which to evaluate %s, status not \
-         computed.%t" pp_header b str Value_util.pp_callstack;
+         "%a: no state left in which to evaluate %a, status%a not \
+         computed.%t" pp_header b pp_pre_post_kind pre_post
+         Description.pp_named pr Value_util.pp_callstack;
        states)
     else
-      let pr = Ast_info.predicate loc pr in
-      let res = fold_join_predicate State_set.fold
-        (fun state -> eval_predicate (env state) pr)
-        states
+      let ip = build_prop pred in
+      let (statuses, reduced_stateset) =
+        State_set.fold 
+          (fun (accres, accstateset) (state, _trace as stt) ->
+            let env = build_env state in
+	    let res = eval_predicate env pr in
+	    notify_status ip (conv_status res) state;
+	    let reduced_states = 
+	      if behav_active then
+                match res with
+                | False -> 
+		  State_set.empty
+                | True ->
+                (* Reduce in case [pre] is a disjunction *)
+		  split_disjunction_and_reduce
+                    ~reduce:false ~env stt ~slevel pr ip
+                | Unknown ->
+                (* Reduce in all cases *)
+		  split_disjunction_and_reduce
+                    ~reduce:true ~env stt ~slevel pr ip
+	      else
+		State_set.singleton stt
+	    in 
+	    (res::accres, State_set.merge reduced_states accstateset)
+	  ) ([], State_set.empty) states 
       in
-      Value_parameters.result ~once:true ~source
-        "%a: %s got status %a.%t%t"
-        pp_header b str pretty_predicate_value res
-        (if reduce then (fun _ -> ()) else behavior_inactive)
-        Value_util.pp_callstack;
-      update_status (conv_status res) pred;
-      if reduce then
-        match res with
-          | False ->
-              State_set.empty
-          | True ->
-              let env = env (State_set.join states) in
-              (* Reduce in case [pre] is a disjunction *)
-              reduce_by_disjunction ~always:false ~env states slevel pr
-          | Unknown ->
-              let env = env (State_set.join states) in
-              (* Reduce in all cases *)
-              reduce_by_disjunction  ~always:true ~env states slevel pr
-      else
-        states
+      let res = join_list_predicate_status statuses in
+      begin match pre_post with
+      | Precondition | Postcondition PostBody ->
+        Value_parameters.result ~once:true ~source
+          "%a: %a%a got status %a.%t%t"
+          pp_header b pp_pre_post_kind pre_post Description.pp_named pr
+          pretty_predicate_status res
+          (if behav_active then (fun _ -> ()) else behavior_inactive)
+          Value_util.pp_callstack;
+        emit_status ip (conv_status res);
+      | Postcondition (PostLeaf | PostUseSpec as postk) ->
+        (* Do not display anything for postconditions of leaf functions that
+           receive status valid (very rare) or unknown: this brings no
+           information. However, warn the user if the status is invalid.
+           (unless this is on purpose, using [assert \false]) *)
+        let pp_behavior_inactive fmt =
+          Format.fprintf fmt ",@ the behavior@ was@ inactive"
+        in
+        if res = False && pred.ip_content <> Pfalse then
+          Value_parameters.result ~once:true ~source
+            "@[%a:@ this postcondition@ evaluates to@ false@ in this@ context.\
+                @ If it is valid,@ either@ a precondition@ was not@ verified@ \
+                for this@ call%t,@ or some assigns/from@ clauses@ are \
+                incomplete@ (or incorrect).@]%t"
+            pp_header b
+            (if behav_active then (fun _ -> ()) else pp_behavior_inactive)  
+            Value_util.pp_callstack;
+        (* Only emit a status if the function has a body. Otherwise, we would
+           overwite the "considered valid" status of the kernel. *)
+        if postk = PostUseSpec then
+          emit_status ip (conv_status res);
+      end;
+      reduced_stateset
   in
   match ActiveBehaviors.active ab b with
-    | True -> List.fold_left (aux_pred true) states preds
-    | Unknown -> List.fold_left (aux_pred false) states preds
+    | True -> List.fold_left (aux_pred true) states ips
+    | Unknown -> List.fold_left (aux_pred false) states ips
     | False ->
-        (match preds with
+        (match ips with
            | [] -> ()
            | {ip_loc=(source,_)} ::_ ->
                Value_parameters.result ~once:true ~source
-                 "%a: assumes got status invalid; %s not evaluated.%t"
-                 pp_header b str Value_util.pp_callstack
+                 "%a: assumes got status invalid; %a not evaluated.%t"
+                 pp_header b pp_pre_post_kind pre_post Value_util.pp_callstack
         );
         states
 
 let check_fct_postconditions kf ab ~result ~init_state ~post_states kind =
   let behaviors = Annotations.behaviors kf in
-  let slevel = Value_util.get_slevel kf in
   let incorporate_behavior states b =
     if b.b_post_cond = [] then states
     else
       let posts = List.filter (fun (x,_) -> x = kind) b.b_post_cond in
       let posts = List.map snd posts in
-      let update_status st post =
-        let ip = Property.ip_of_ensures kf Kglobal b (kind, post) in
-        emit_status ip st
+      let build_prop post =
+        Property.ip_of_ensures kf Kglobal b (kind, post)
       in
-      let env state = env_post_f ~post:state ~pre:init_state ~result () in
-      eval_and_reduce ab b posts states update_status env slevel (pp_header kf) "postcondition"
+      let build_env state = env_post_f ~post:state ~pre:init_state ~result () in
+      eval_and_reduce_pre_post
+        kf ab b (Postcondition (post_kind kf)) posts states build_prop build_env
   in
   List.fold_left incorporate_behavior post_states behaviors
 
 (** Check the precondition of [kf]. This may result in splitting [init_state]
     into multiple states if the precondition contains disjunctions. *)
 let check_fct_preconditions kf ab call_ki init_state =
-  let init_states = State_set.singleton init_state in
+  let init_trace = Trace.initial kf in
+  let init_states = State_set.singleton (init_state, init_trace) in
   let spec = Annotations.funspec kf in
-  let slevel = Value_util.get_slevel kf in
   let incorporate_behavior states b =
     if b.b_requires = [] then states
     else
-      let emit st vc =
-        let ip = Property.ip_of_requires kf Kglobal b vc in
+      let build_prop pre =
+	let ip_precondition = Property.ip_of_requires kf Kglobal b pre in
         match call_ki with
           | Kglobal -> (* status of the main function. We update the global
                           status, and pray that there is no recursion.
                           TODO: check what the WP does.*)
-              emit_status ip st
+            ip_precondition
           | Kstmt stmt ->
-              Statuses_by_call.setup_precondition_proxy kf ip;
-              let ip_call = Statuses_by_call.precondition_at_call kf ip stmt in
-              emit_status ip_call st
+	      (* Status is set on the copy of the precondition on the call point [stmt]. *)
+              Statuses_by_call.setup_precondition_proxy kf ip_precondition;
+              let ip_call = Statuses_by_call.precondition_at_call kf ip_precondition stmt in
+	      ip_call
       in
-      eval_and_reduce ab b b.b_requires
-        states emit (fun init -> env_pre_f ~init ()) slevel
-        (pp_header kf) "precondition"
+      let build_env init = env_pre_f ~init () in
+      eval_and_reduce_pre_post
+        kf ab b Precondition b.b_requires states build_prop build_env
   in
   List.fold_left incorporate_behavior init_states spec.spec_behavior
 
 
 (* Reduce the given states according to the given code annotations.
    If [record] is true, update the proof state of the code annotation.
-   DO NOT PASS record=false unless you known what your are doing *)
+   DO NOT PASS record=false unless you know what your are doing *)
 let interp_annot kf ab initial_state slevel states stmt ca record =
+  let ips = Property.ip_of_code_annot kf stmt ca in
   let source = match Cil_datatype.Code_annotation.loc ca with
     | Some loc when not (Cil_datatype.Location.equal
                            loc Cil_datatype.Location.unknown)
         -> fst loc
     | _ -> fst (Cil.CurrentLoc.get ()) (* fallback: current statement *)
   in
-  let aux text behav p =
+  let aux_interp text behav p ip =
     let in_behavior =
       match behav with
         | [] -> `True
@@ -229,45 +312,75 @@ let interp_annot kf ab initial_state slevel states stmt ca record =
     match in_behavior with
     | `False -> states
     | `True | `Unknown as in_behavior ->
-      let result = fold_join_predicate State_set.fold
-        (fun here ->
-          let env = env_annot ~pre:initial_state ~here () in
-          eval_predicate env p)
-        states
+      let statuses, reduced_states =
+        State_set.fold
+          (fun (accres, accstateset) (here, trace as ht) ->
+            let env = env_annot ~pre:initial_state ~here () in
+	    let res = eval_predicate env p in
+            let reduced_states = match res, in_behavior with
+              | _, `Unknown ->
+                (* Cannot conclude because behavior might be inactive *)
+ 		State_set.add ht (accstateset)
+
+              | False, `True -> (* Dead/invalid branch *)
+                accstateset
+
+              | (Unknown | True), `True ->
+                let env = env_annot ~pre:initial_state ~here () in
+                (* Reduce by p if it is a disjunction, or if it did not
+                   evaluate to True *)
+                let reduce = res = Unknown in
+                let reduced_states =
+                  split_disjunction_and_reduce ~reduce ~env (here,trace) ~slevel p ip
+                in
+                State_set.merge reduced_states accstateset
+            in
+            res :: accres, reduced_states
+	  ) ([], State_set.empty) states 
       in
-      let ip = Property.ip_of_code_annot kf stmt ca in
-      let change_status st =
-        if record then List.iter (fun p -> emit_status p st) ip
-      in
-      let message, states =
-        (match result, in_behavior with
+      (* if record [holds], emit statuses in the Kernel, and print a message *)
+      if record then begin
+        let status = join_list_predicate_status statuses in
+        let change_status st =
+          List.iter (fun p -> emit_status p st) ips
+        in
+        let message =
+          match status, in_behavior with
           | Unknown, _ ->
-              change_status Property_status.Dont_know;
-              "unknown", states
+            change_status Property_status.Dont_know;
+            "unknown"
           | True, _ ->
-              change_status Property_status.True;
-              "valid", states
+            change_status Property_status.True;
+            "valid"
           | False, `True ->
-              change_status Property_status.False_if_reachable;
-              "invalid (stopping propagation)", State_set.empty
+            change_status Property_status.False_if_reachable;
+            "invalid (stopping propagation)"
           | False, `Unknown ->
-              change_status Property_status.False_if_reachable;
-              "invalid", states
-        )
-      in
-      if record then 
+            change_status Property_status.False_if_reachable;
+            "invalid"
+        in
 	Value_parameters.result ~once:true ~source
-	  "%s got status %s." text message;
-      if in_behavior = `True then
-        let here = State_set.join states in
-        let env = env_annot ~pre:initial_state ~here () in
-        reduce_by_disjunction ~always:(result = Unknown) ~env states slevel p
-      else
-	states
+	  "%s%a got status %s." text Description.pp_named p message;
+      end;
+      (* States resulting from disjunctions are reversed compared to the
+         'nice' ordering *)
+      State_set.reorder reduced_states
+  in
+  let aux text behav p ip =
+    if State_set.is_empty states then (
+      if record then
+        Value_parameters.result ~once:true ~source
+          "no state left in which to evaluate %s, status not \
+         computed.%t" (String.lowercase text) Value_util.pp_callstack;
+      states
+    ) else
+      aux_interp text behav p ip
   in
   match ca.annot_content with
-    | AAssert (behav,p) -> aux "Assertion" behav p
-    | AInvariant (behav, true, p) -> aux "Loop invariant" behav p
+    | AAssert (behav,p) ->
+      aux "Assertion" behav p (Property.ip_of_code_annot_single kf stmt ca)
+    | AInvariant (behav, true, p) ->
+      aux "Loop invariant" behav p (Property.ip_of_code_annot_single kf stmt ca)
     | APragma _
     | AInvariant (_, false, _)
     | AVariant _ | AAssigns _ | AAllocation _
@@ -275,17 +388,52 @@ let interp_annot kf ab initial_state slevel states stmt ca record =
 
 
 let mark_unreachable () =
-  let do_stmt stmt _emit ca =
-    if not (Db.Value.is_reachable_stmt stmt) then
+  let mark ppt =
+    if not (Property_status.automatically_proven ppt) then begin
+      Value_parameters.debug "Marking property %a as dead"
+        Description.pp_property ppt;
+      let emit =
+        Property_status.emit ~distinct:false Value_util.emitter ~hyps:[]
+      in
+      let reach_p = Property.ip_reachable_ppt ppt in
+      emit ppt Property_status.True;
+      emit reach_p Property_status.False_and_reachable;
+      notify_status reach_p Property_status.False_and_reachable Cvalue.Model.bottom
+    end
+  in
+  (* Mark standard code annotations *)
+  let do_code_annot stmt _emit ca =
+    if not (Db.Value.is_reachable_stmt stmt) then begin
       let kf = Kernel_function.find_englobing_kf stmt in
       let ppts = Property.ip_of_code_annot kf stmt ca in
-      List.iter (fun p ->
-        Value_parameters.debug "Marking property %a as dead"
-          Description.pp_property p;
-        emit_unreachable p
-      ) ppts
+      List.iter mark ppts;
+    end
   in
-  Annotations.iter_all_code_annot do_stmt
+  (* Mark preconditions of dead calls *)
+  let unreach = object
+    inherit Visitor.frama_c_inplace
+
+    method! vstmt_aux stmt =
+      if not (Db.Value.is_reachable_stmt stmt) then begin
+        match stmt.skind with
+          | Instr (Call (_, e, _, _)) ->
+            (match Kernel_function.get_called e with
+              | Some kf ->
+                let preconds =
+                  Statuses_by_call.all_call_preconditions_at
+                    ~warn_missing:false kf stmt
+                in
+                List.iter (fun (_, p) -> mark p) preconds
+              | None -> ())
+          | _ -> ()
+      end;
+      Cil.DoChildren
+
+    method! vinst _ = Cil.SkipChildren
+  end
+  in
+  Annotations.iter_all_code_annot do_code_annot;
+  Visitor.visitFramacFile unreach (Ast.get ())
 
 let mark_rte () =
   let _, mem, _ = !Db.RteGen.get_memAccess_status () in

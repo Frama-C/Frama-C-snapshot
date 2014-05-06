@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -47,7 +47,7 @@ class do_non_linear_assignments = object(self)
 
   method result = assigns_table
 
-  method vstmt s =
+  method! vstmt s =
     current_locs <- None;
     match s.skind with
       | UnspecifiedSequence seq ->
@@ -58,7 +58,7 @@ class do_non_linear_assignments = object(self)
           SkipChildren (* do not visit the additional lvals *)
       | _ -> super#vstmt s
 
-  method vlval lv =
+  method! vlval lv =
     match current_locs with
       None -> SkipChildren
     | Some current_locs ->
@@ -72,9 +72,9 @@ class do_non_linear_assignments = object(self)
         end
 
 
-  method vcode_annot _ = SkipChildren
+  method! vcode_annot _ = SkipChildren
 
-  method visit_addr lv =
+  method private visit_addr lv =
     begin match lv with
       Var v, offset ->
         let offset' = visitCilOffset (self :> cilVisitor) offset in
@@ -90,7 +90,7 @@ class do_non_linear_assignments = object(self)
         else ChangeTo (Mem e', offset')
     end;
 
-  method vinst i =
+  method! vinst i =
     match i with
     | Set (lv,exp,_) ->
         current_locs <- Some (Loc_hashtbl.create 7);
@@ -106,7 +106,7 @@ class do_non_linear_assignments = object(self)
         SkipChildren
     | _ -> SkipChildren
 
-  method vexpr exp =
+  method! vexpr exp =
     match exp.enode with
     | AddrOf _lv | StartOf _lv ->
         SkipChildren (* TODO: do better stuff *)

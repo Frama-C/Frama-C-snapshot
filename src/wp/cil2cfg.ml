@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -39,13 +39,21 @@ type block_type =
   (* added to identify 2 blocks for tests, else there are mixed up because same
   * sid *)
 
+type call_type =
+  | Dynamic of exp
+  | Static of kernel_function
+
+let pp_call_type fmt = function
+  | Dynamic _ -> Format.pp_print_string fmt "dynamic"
+  | Static kf -> Kernel_function.pretty fmt kf
+
 type node_type =
   | Vstart | Vend | Vexit
   | VfctIn | VfctOut (* TODO : not useful anymore -> Bfct *)
   | VblkIn of block_type * block
   | VblkOut of block_type * block
   | Vstmt of stmt
-  | Vcall of stmt * lval option * exp * exp list
+  | Vcall of stmt * lval option * call_type * exp list
   | Vtest of bool * stmt * exp (** bool=true for In and false for Out *)
   | Vswitch of stmt * exp
   | Vloop of bool option * stmt 
@@ -121,10 +129,11 @@ let same_node v v' =
     (node_id v) = (node_id v')
 
 (** the CFG nodes *)
-module VL = struct
+module VL = 
+struct
   type t = node
 
-  let hash v = let (a,b) = (node_id v) in a*17 + b
+  let hash v = let (a,b) = (node_id v) in b*17 + a
 
   let equal v v' = same_node v v'
 
@@ -216,7 +225,7 @@ end
 
 module PMAP(X: Graph.Sig.COMPARABLE) = struct
 
-  module M = Map.Make(X)
+  module M = FCMap.Make(X)
   type 'a t = 'a M.t ref
   type key = X.t
   type 'a return = unit
@@ -278,10 +287,13 @@ module CFG:
   end
 
 (** Set of edges. *)
-module Eset = Set.Make (CFG.E)
+module Eset = FCSet.Make (CFG.E)
 
 (** Set of nodes. *)
-module Nset = Set.Make (CFG.V)
+module Nset = FCSet.Make (CFG.V)
+
+(** Hashtbl of node *)
+module Ntbl = Hashtbl.Make (CFG.V)
 
 (** The final CFG is composed of the graph, but also :
   * the function that it represents,
@@ -347,7 +359,12 @@ let succ_e cfg n =
   with Invalid_argument _ ->
     (Wp_parameters.warning "[cfg.succ_e] pb with node %a" pp_node n; [])
 
-let edge_key e = (VL.hash (edge_src e)), (VL.hash (edge_dst e))
+type edge_key = int * int * int * int
+
+let edge_key e : edge_key =
+  let a,b = node_id (edge_src e) in
+  let c,d = node_id (edge_dst e) in
+  a,b,c,d
 
 let same_edge e1 e2 = (edge_key e1 = edge_key e2)
 
@@ -603,8 +620,7 @@ let get_post_logic_label cfg v =
         | Some s ->  Some (Clabels.mk_logic_label s)
 
 let blocks_closed_by_edge cfg e =
-  debug
-    "[blocks_closed_by_edge] for %a...@." pp_edge e;
+  debug "[blocks_closed_by_edge] for %a...@." pp_edge e;
   let v_before = edge_src e in
   let blocks = match node_type v_before with
     | Vstmt s | Vtest (true, s, _) | Vloop (_, s) | Vswitch (s,_) ->
@@ -659,9 +675,8 @@ end
 
 module HE (I : sig type t end) = struct
   type ti = I.t
-  type t = ((int*int), ti) Hashtbl.t
+  type t = (edge_key, ti) Hashtbl.t
   let create n = Hashtbl.create n
-  let edge_key e = (VL.hash (edge_src e)), (VL.hash (edge_dst e))
   let find info e = Hashtbl.find info (edge_key e)
   let find_all info e = Hashtbl.find_all info (edge_key e)
   let add info e i = Hashtbl.add info (edge_key e) i
@@ -751,13 +766,18 @@ let setup_preconditions_proxies e_kf =
         Statuses_by_call.setup_all_preconditions_proxies kf
     | _ -> () (* call through function pointer *)
 
+let get_call_type fct =
+  match Kernel_function.get_called fct with
+    | None -> Dynamic fct
+    | Some kf -> Static kf
+
 (** In some cases (goto for instance) we have to create a node before having
 * processed if through [cfg_stmt]. It is important that the created node
 * is the same than while the 'normal' processing ! That is why
 * this pattern matching might seem redondant with the other one. *)
 let get_stmt_node env s = match s.skind with
   | Instr (Call (res, fct, args, _)) ->
-      get_node env (Vcall (s, res, fct, args))
+      get_node env (Vcall (s, res, get_call_type fct, args))
   | Block b -> get_node env (VblkIn (Bstmt s,b))
   | UnspecifiedSequence seq ->
       let b = Cil.block_from_unspecified_sequence seq in
@@ -1050,29 +1070,29 @@ module LoopInfo = struct
   type node = CFG.V.t
   type graph = t
   type tenv = { graph : t ;
-                dfsp : (node, int) Hashtbl.t;
-                iloop_header : (node, node) Hashtbl.t;
+                dfsp : int Ntbl.t;
+                iloop_header : node Ntbl.t;
                 loop_headers : node list ;
                 irreducible : node list ;
                 unstruct_coef : int }
 
   let init cfg =
     let env = { graph = cfg ;
-                dfsp = Hashtbl.create 97; iloop_header =  Hashtbl.create 7;
+                dfsp = Ntbl.create 97; iloop_header =  Ntbl.create 7;
                 loop_headers = []; irreducible = []; unstruct_coef = 0 } in
       env, cfg_start cfg
 
   let eq_nodes = CFG.V.equal
 
-  let set_pos env n pos = Hashtbl.add env.dfsp n pos; env
-  let reset_pos env n = Hashtbl.replace env.dfsp n 0; env
-  let get_pos env n = try Hashtbl.find env.dfsp n with Not_found -> 0
+  let set_pos env n pos = Ntbl.add env.dfsp n pos; env
+  let reset_pos env n = Ntbl.replace env.dfsp n 0; env
+  let get_pos env n = try Ntbl.find env.dfsp n with Not_found -> 0
   let get_pos_if_traversed env n =
-    try Some (Hashtbl.find env.dfsp n) with Not_found -> None
+    try Some (Ntbl.find env.dfsp n) with Not_found -> None
 
-  let set_iloop_header env b h = Hashtbl.add env.iloop_header b h; env
+  let set_iloop_header env b h = Ntbl.add env.iloop_header b h; env
   let get_iloop_header env b =
-    try Some (Hashtbl.find env.iloop_header b) with Not_found -> None
+    try Some (Ntbl.find env.iloop_header b) with Not_found -> None
 
   let add_loop_header env h = { env with loop_headers = h :: env.loop_headers}
   let add_irreducible env h = { env with irreducible = h :: env.irreducible}
@@ -1088,7 +1108,6 @@ module LoopInfo = struct
     let k = 1. +. k in
       k
 
-  (* let pretty_node fmt n = Format.fprintf fmt "%d" (VL.hash n) *)
 end
 
 module Mloop = WeiMaoZouChen (LoopInfo)
@@ -1105,7 +1124,6 @@ let set_back_edge e =
       | Ecase _ | Enext -> assert false
 
 let mark_loops cfg =
-  let kf = cfg_kf cfg in
   let env = Mloop.identify_loops cfg in
   let mark_loop_back_edge h = match node_stmt_opt h with
     | None -> (* Because we use !Db.Dominators that work on statements,
@@ -1117,7 +1135,7 @@ let mark_loops cfg =
           let is_back_edge =
             try
               let n_stmt = node_stmt_exn n in
-                !Db.Dominators.is_dominator kf ~opening:h_stmt ~closing:n_stmt
+                Dominators.dominates h_stmt n_stmt
             with Not_found -> false (* pred of h is not a stmt *)
           in
             if is_back_edge then set_back_edge e;
@@ -1224,8 +1242,9 @@ module Printer (PE : sig val edge_txt : edge -> string end) = struct
     let s' = if String.length s >= 50 then (String.sub s 0 49) ^ "..." else s in
     String.escaped s'
 
-  let vertex_name v =
-    let n = V.label v in (string_of_int (VL.hash n))
+  let vertex_name v = 
+    let a,b = node_id v in
+    Printf.sprintf "%d.%d" a b
 
   let vertex_attributes v =
     let n = V.label v in
@@ -1259,8 +1278,9 @@ module Printer (PE : sig val edge_txt : edge -> string end) = struct
       | Vstart | Vend | Vexit -> [`Color 0x0000FF; `Shape `Doublecircle]
       | VfctIn | VfctOut -> [`Color 0x0000FF; `Shape `Box]
       | VblkIn _ | VblkOut _ -> [`Shape `Box]
-      | Vloop _ | Vloop2 _ -> [`Color 0xFF0000; `Style `Filled]
-      | Vtest _ | Vswitch _ -> [`Color 0x00FF00; `Style `Filled; `Shape `Diamond]
+      | Vloop _ | Vloop2 _ -> [`Color 0xFF0000; `Style [`Filled]]
+      | Vtest _ | Vswitch _ ->
+        [`Color 0x00FF00; `Style [`Filled]; `Shape `Diamond]
       | Vcall _ | Vstmt _ -> []
     in (`Label (String.escaped label))::attr
 
@@ -1270,15 +1290,15 @@ module Printer (PE : sig val edge_txt : edge -> string end) = struct
     let attr = [] in
     let attr = (`Label (String.escaped (PE.edge_txt e)))::attr in
     let attr =
-      if is_back_edge e then (`Constraint false)::(`Style `Bold)::attr
+      if is_back_edge e then (`Constraint false)::(`Style [`Bold])::attr
       else attr
     in
     let attr = match (edge_type e) with
       | Ethen | EbackThen -> (`Color 0x00FF00)::attr
       | Eelse | EbackElse -> (`Color 0xFF0000)::attr
-      | Ecase [] -> (`Color 0x0000FF)::(`Style `Dashed)::attr
+      | Ecase [] -> (`Color 0x0000FF)::(`Style [`Dashed])::attr
       | Ecase _ -> (`Color 0x0000FF)::attr
-      | Enext -> (`Style `Dotted)::attr
+      | Enext -> (`Style [`Dotted])::attr
       | Eback -> attr (* see is_back_edge above *)
       | Enone -> attr
     in
@@ -1288,9 +1308,10 @@ module Printer (PE : sig val edge_txt : edge -> string end) = struct
 
   let get_subgraph v =
      let mk_subgraph name attrib =
-      let attrib = (`Style `Filled) :: attrib in
+      let attrib = (`Style [`Filled]) :: attrib in
           Some { Graph.Graphviz.DotAttributes.sg_name= name;
-                 Graph.Graphviz.DotAttributes.sg_attributes = attrib }
+                 sg_parent = None;
+                 sg_attributes = attrib }
     in
        match node_type (V.label v) with
          | Vcall (s,_,_,_) ->

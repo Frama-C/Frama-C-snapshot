@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Aorai plug-in of Frama-C.                        *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -37,7 +37,7 @@ let rename_pred v1 v2 p =
   let r =
   object
     inherit Visitor.frama_c_copy (Project.current())
-    method vlogic_var_use v =
+    method! vlogic_var_use v =
       if Cil_datatype.Logic_var.equal v v1 then Cil.ChangeTo v2
       else Cil.JustCopy
   end
@@ -468,10 +468,6 @@ let mk_global_var vi =
   in
   mk_global_var_init vi ini
 
-let mk_global_c_vars name ty =
-  let vi = (Cil.makeGlobalVar name ty) in
-  mk_global_var vi
-
 let mk_global_c_var_init name init =
   let ty = Cil.typeOf init in
   let vi = Cil.makeGlobalVar name ty in
@@ -645,13 +641,20 @@ let funcStatus_to_init st =
                                     (Const(op_status_to_cenum (st)))))}
 
 class visit_decl_loops_init () =
-object (*(self) *)
+object(self)
   inherit Visitor.frama_c_inplace
 
-  method vstmt_aux stmt =
+  method! vstmt_aux stmt =
     begin
       match stmt.skind with
-        | Loop _ -> mk_global_c_vars (Data_for_aorai.loopInit^"_"^(string_of_int stmt.sid)) (TInt(IInt,[]))
+        | Loop _ ->
+          let scope = Kernel_function.find_enclosing_block stmt in
+          let f = Extlib.the self#current_func in
+          let name = Data_for_aorai.loopInit ^ "_" ^ (string_of_int stmt.sid) in
+          let var =
+            Cil.makeLocalVar f ~scope ~generated:true name Cil.intType
+          in
+          Data_for_aorai.set_varinfo name var
         | _ -> ()
     end;
     Cil.DoChildren
@@ -667,13 +670,13 @@ let change_vars subst subst_res kf label pred =
     object
       inherit Visitor.frama_c_copy (Project.current())
 
-      method vterm t =
+      method! vterm t =
         match t.term_node with
             TLval (TVar { lv_origin = Some v},_) when v.vglob -> add_label t
           | TLval (TMem _,_) -> add_label t
           | _ -> DoChildren
 
-      method vterm_lhost = function
+      method! vterm_lhost = function
         | TResult ty ->
           (match kf with
               None -> Aorai_option.fatal
@@ -690,7 +693,7 @@ let change_vars subst subst_res kf label pred =
                  ChangeTo (TVar new_lv)))
         | TMem _ | TVar _ -> DoChildren
 
-      method vlogic_var_use lv =
+      method! vlogic_var_use lv =
         match lv.lv_origin with
           | Some v when not v.vglob ->
             (try
@@ -866,22 +869,19 @@ let initGlobals root complete =
     mk_decl_loops_init ();
   end;
 
-  if Aorai_option.Deterministic.get () then begin
-    (* must flush now previous globals which are used in the lemmas in order to
-       be able to put these last ones in the right places in the AST. *)
-    flush_globals ();
-    mk_global_comment "//* ";
-    mk_global_comment "//**************** ";
-    mk_global_comment "//* Proof that the automaton is deterministic";
-    mk_global_comment "//* ";
-    mk_deterministic_lemma ();
-  end;
-
   mk_global_comment "//* ";
   mk_global_comment "//****************** ";
   mk_global_comment "//* Auxiliary variables used in transition conditions";
   mk_global_comment "//*";
   List.iter mk_global_var (Data_for_aorai.aux_variables());
+
+  if Aorai_option.Deterministic.get () then begin
+    (* must flush now previous globals which are used in the lemmas in order to
+       be able to put these last ones in the right places in the AST. *)
+    flush_globals ();
+    mk_deterministic_lemma ();
+  end;
+
   (match Data_for_aorai.abstract_logic_info () with
     | [] -> ()
     | l ->
@@ -902,9 +902,8 @@ let initGlobals root complete =
 (* ************************************************************************* *)
 (** {b Pre/post management} *)
 
-(* assigns curState, curOp and curOpStatus *)
-let aorai_assigns loc =
-  let from_state =
+let automaton_locations loc =
+  let auto_state =
     if Aorai_option.Deterministic.get () then
       [ Logic_const.new_identified_term (state_term()), FromAny ]
     else
@@ -915,18 +914,35 @@ let aorai_assigns loc =
                (Data_for_aorai.get_state_logic_var state)), FromAny)
         (fst (Data_for_aorai.getAutomata()))
   in
-  Writes
-      (* mk_from (host_stateOld_term ());
-         mk_from (host_trans_term ()); *)
-      ((Logic_const.new_identified_term
-         (Logic_const.tvar ~loc
-            (Data_for_aorai.get_logic_var Data_for_aorai.curOpStatus)),
-        FromAny) ::
-          (Logic_const.new_identified_term
-             (Logic_const.tvar ~loc
-                (Data_for_aorai.get_logic_var Data_for_aorai.curOp)),
-           FromAny) ::
-          from_state)
+  (Logic_const.new_identified_term
+     (Logic_const.tvar ~loc
+        (Data_for_aorai.get_logic_var Data_for_aorai.curOpStatus)),
+   FromAny) ::
+    (Logic_const.new_identified_term
+       (Logic_const.tvar ~loc
+          (Data_for_aorai.get_logic_var Data_for_aorai.curOp)),
+     FromAny) ::
+    auto_state
+
+let automaton_assigns loc = Writes (automaton_locations loc)
+
+let aorai_assigns state loc =
+  let merged_states =
+    Aorai_state.Map.fold
+      (fun _ state acc -> Data_for_aorai.merge_end_state state acc)
+      state Aorai_state.Map.empty
+  in
+  let bindings =
+    Aorai_state.Map.fold
+      (fun _ (_,_,b) acc -> Data_for_aorai.merge_bindings b acc)
+      merged_states Cil_datatype.Term.Map.empty
+  in
+  let elements = 
+    Cil_datatype.Term.Map.fold
+      (fun t _ acc -> (Logic_const.new_identified_term t,FromAny)::acc)
+      bindings []
+  in
+  Writes (automaton_locations loc @ elements)
 
 let action_assigns trans =
   let add_if_needed v lv (known_vars, assigns as acc) =
@@ -1513,10 +1529,10 @@ let auto_func_behaviors loc f st state =
            (Req,
             Logic_const.tvar ~loc
               (Data_for_aorai.get_logic_var Data_for_aorai.curOpStatus),
-            (Logic_utils.mk_dummy_term
+            (Logic_const.term
                (TConst (constant_to_lconstant
 			  (Data_for_aorai.op_status_to_cenum st)))
-               Cil.intType)))
+               (Ctype Cil.intType))))
     in
     let called_pre_2 =
       Logic_const.new_predicate
@@ -1524,11 +1540,11 @@ let auto_func_behaviors loc f st state =
            (Req,
             Logic_const.tvar ~loc
               (Data_for_aorai.get_logic_var Data_for_aorai.curOp),
-            (Logic_utils.mk_dummy_term
+            (Logic_const.term
                (TConst((constant_to_lconstant
 			  (Data_for_aorai.func_to_cenum 
 			     (Kernel_function.get_name f)))))
-		  Cil.intType)))
+		  (Ctype Cil.intType))))
     in
       (* let old_pred = Aorai_utils.mk_old_state_pred loc in *)
     [(Normal, called_pre); (Normal, called_pre_2)]
@@ -1542,7 +1558,7 @@ let auto_func_behaviors loc f st state =
     in
     concat_assigns new_assigns assigns, new_behaviors @ behaviors
   in
-  let assigns = aorai_assigns loc in
+  let assigns = automaton_assigns loc in
   let assigns, behaviors = (List.fold_left mk_behavior (assigns,[]) states) in
   let global_behavior =
     Cil.mk_behavior ~requires ~post_cond ~assigns ()
@@ -1626,7 +1642,7 @@ let possible_states_preds state =
   in
   Data_for_aorai.Aorai_state.Map.fold treat_one_state state []
 
-let update_to_pred ~pre_state ~post_state location bindings =
+let update_to_pred ~start ~pre_state ~post_state location bindings =
   let loc = Cil_datatype.Location.unknown in
   let intv =
     Cil_datatype.Term.Map.fold
@@ -1644,20 +1660,22 @@ let update_to_pred ~pre_state ~post_state location bindings =
   in
   let guard =
     Logic_const.pand ~loc
-      (Logic_const.pat ~loc (is_state_pred pre_state, Logic_const.pre_label),
+      (Logic_const.pat ~loc (is_state_pred pre_state, start),
        is_state_pred post_state)
   in
   Logic_const.pimplies ~loc (guard, pred)
 
-let action_to_pred ~pre_state ~post_state bindings =
+let action_to_pred ~start ~pre_state ~post_state bindings =
   let treat_one_loc loc vals acc =
-    update_to_pred ~pre_state ~post_state loc vals :: acc
+    update_to_pred ~start ~pre_state ~post_state loc vals :: acc
   in
   Cil_datatype.Term.Map.fold treat_one_loc bindings []
 
-let all_actions_preds state =
+let all_actions_preds start state =
   let treat_current_state pre_state post_state (_,_,bindings) acc =
-    let my_bindings = action_to_pred ~pre_state ~post_state bindings in
+    let my_bindings =
+      action_to_pred ~start ~pre_state ~post_state bindings
+    in
     my_bindings @ acc
   in
   let treat_start_state pre_state map acc =

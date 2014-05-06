@@ -67,6 +67,20 @@ void main2 () {
   }
 }
 
+void main2_done () {
+  /*@ loop pragma UNROLL 2;
+    @ loop pragma UNROLL "done", 2; */
+  for (int i=0;i<2;i++) {
+    /*@ loop pragma UNROLL 2; */
+    for (int j=0;j<2;j++){
+      i += 1;
+      goto foo;
+      i += 1;
+    foo:
+    }
+  }
+}
+
 void main3 (int c) {
   int i=0;
   if (c == 0) goto foo;
@@ -88,3 +102,4 @@ void main3 (int c) {
   up:
   }
 }
+

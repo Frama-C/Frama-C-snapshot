@@ -1,6 +1,6 @@
 /* run.config
    GCC:
-   OPT: -memory-footprint 1 -val -deps -out -input -absolute-valid-range 0-0x7 -journal-disable
+   OPT: -val -deps -out -input -absolute-valid-range 0-0x7 -journal-disable
 */
 unsigned short d,e[10]={0},c = 0;
 

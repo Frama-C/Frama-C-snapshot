@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -30,15 +30,19 @@ open Value_util
 
 
 exception Not_an_exact_loc
+let not_an_exact_loc = Not_an_exact_loc
 
 exception Reduce_to_bottom
+let reduce_to_bottom = Reduce_to_bottom
 
 exception Offset_not_based_on_Null of
           Locations.Zone.t option * Location_Bytes.t * typ
 
 exception Cannot_find_lv
+let cannot_find_lv = Cannot_find_lv
 
 exception Too_linear
+let too_linear = Too_linear
 
 type cond =
     { exp: exp; (* The condition of the branch*)
@@ -58,6 +62,10 @@ let rec lval_to_loc ~with_alarms state lv =
   let _, r, _typ = lval_to_loc_state ~with_alarms state lv in
   r
 
+and lval_to_precise_loc ~with_alarms state lv =
+  let _, r, _typ = lval_to_precise_loc_state ~with_alarms state lv in
+  r
+
 and lval_to_loc_state ~with_alarms state lv =
   let state,_,r, typ =
     lval_to_loc_deps_state
@@ -69,9 +77,31 @@ and lval_to_loc_state ~with_alarms state lv =
   in
   state, r, typ
 
-and lval_to_loc_deps_state ~with_alarms ~deps state ~reduce_valid_index (host,offset as lv) =
+and lval_to_precise_loc_state ~with_alarms state lv =
+  let state,_,r, typ =
+    lval_to_precise_loc_deps_state
+      ~with_alarms
+      ~deps:None
+      ~reduce_valid_index:(Kernel.SafeArrays.get ())
+      state
+      lv
+  in
+  state, r, typ
+
+and lval_to_loc_deps_state ~with_alarms ~deps state ~reduce_valid_index lv =
+  let state, deps, pl, typ =
+    lval_to_precise_loc_deps_state
+      ~with_alarms ~deps state ~reduce_valid_index lv
+  in
+  (*match fst pl with
+    | PLVarOffset _ | PLLocOffset _ ->
+      Value_parameters.result ~current:true "##Precise %a@." pretty_loc (fst pl)
+    | _ -> ()*)
+  state, deps, Precise_locs.imprecise_location pl, typ
+
+and lval_to_precise_loc_deps_state ~with_alarms ~deps state ~reduce_valid_index (host,offset as lv) =
   if not (Cvalue.Model.is_reachable state) then
-    state, deps, loc_bottom, typeOfLval lv
+    state, deps, Precise_locs.loc_bottom, typeOfLval lv
   else
     let typ = match host with
     | Var host -> host.vtype
@@ -83,33 +113,39 @@ and lval_to_loc_deps_state ~with_alarms ~deps state ~reduce_valid_index (host,of
       in
       let state, deps, loc = eval_host ~with_alarms ~deps state host offs in
       let size = Eval_op.sizeof_lval_typ typ_offs in
-      state, deps, make_loc loc size, typ_offs
+      let loc = Precise_locs.make_precise_loc loc ~size in
+      state, deps, loc, typ_offs
     with Offset_not_based_on_Null(deps,offset,typ_offs) ->
-      let state, deps, loc_if_no_offset =
-        eval_host ~with_alarms ~deps state host Ival.zero
+      let state, deps, loc_no_offset =
+        eval_host ~with_alarms ~deps state host Precise_locs.offset_zero
       in
-      let loc =
-        Location_Bits.join (loc_bytes_to_loc_bits offset) loc_if_no_offset
-      in
+      let imprecise = Precise_locs.imprecise_location_bits loc_no_offset in
+      let loc = Location_Bits.join (loc_bytes_to_loc_bits offset) imprecise in
       let size = Eval_op.sizeof_lval_typ typ_offs in
-      state, deps, make_loc loc size, typ_offs
+      let loc =
+        Precise_locs.(make_precise_loc (inject_location_bits loc) ~size)
+      in
+      state, deps, loc, typ_offs
 
-(* Evaluation of the right part of an lval (an host) to a location *)
+(* Combination of the evaluation of the right part of an lval (an host) with
+   an offset, to obtain a location *)
 and eval_host ~with_alarms ~deps state host offs =
-  if Ival.is_bottom offs
+  if Precise_locs.is_bottom_offset offs
   then
-    Cvalue.Model.bottom, Some Zone.bottom, Location_Bits.bottom
-  else
+    Cvalue.Model.bottom, deps, Precise_locs.bottom_location_bits
+  else (
     match host with
     | Var host ->
-        let base = Base.find host in
-        state, deps, Location_Bits.inject base offs
+        let base = Base.of_varinfo host in
+        state, deps, Precise_locs.combine_base_precise_offset base offs
     | Mem x ->
         let state, deps, loc_lv =
           eval_expr_with_deps_state ~with_alarms deps state x
         in
-        let loc_bits = Location_Bits.shift offs (loc_bytes_to_loc_bits loc_lv)in
-        state, deps, loc_bits
+        let loc_bits = loc_bytes_to_loc_bits loc_lv in
+        let loc_p = Precise_locs.combine_loc_precise_offset loc_bits offs in
+        state, deps, loc_p
+  )
 
 (** Detects if an expression can be considered as a lvalue even though it is
     hidden by a cast that does not change the lvalue. Raises [exn] if it cannot.
@@ -157,13 +193,13 @@ and find_lv ~with_alarms (state:Cvalue.Model.t) ee =
   (* [BM] Do not recognize an lval whenever a volatile is involved to
      prevent copy/paste optimization. IS THIS THE RIGHTPLACE PC ?*)
   if hasAttribute "volatile" (typeAttrs (typeOf ee)) then
-    raise Cannot_find_lv;
+    raise cannot_find_lv;
   match ee.enode with
   | Lval lv -> lv
   | CastE (typ,e) ->
-      pass_cast state Cannot_find_lv typ e;
+      pass_cast state cannot_find_lv typ e;
       find_lv ~with_alarms state e
-  | _ -> raise Cannot_find_lv
+  | _ -> raise cannot_find_lv
 
 (** If possible, decomposes [e] into [lval+offset]; where [lval] is a Cil
     expression, and [offset] is an Ival.t, in bytes.
@@ -195,7 +231,7 @@ and find_lv_plus_offset ~with_alarms state e =
      Printer.pp_exp e !d_lval lv Ival.pretty ival
      ) !acc; *)
   match !acc with
-  | None -> raise Cannot_find_lv
+  | None -> raise cannot_find_lv
   | Some (lv, offs) -> lv, offs
 
 (* Find locations on which it is interesting to proceed by case disjunction
@@ -211,7 +247,7 @@ and get_influential_vars state exp =
         let _, _, offset, _ =
           eval_offset ~reduce_valid_index:true ~with_alarms None t state off
         in
-        offset
+        Precise_locs.imprecise_offset offset
       with Offset_not_based_on_Null _ -> Ival.top
     in
     match exp.enode with
@@ -221,7 +257,7 @@ and get_influential_vars state exp =
         then
           (* no variable in offset can be influential. Check the
              contents of the location, on which we might want to enumerate  *)
-          let varid = Base.create_varinfo v in
+          let varid = Base.of_varinfo v in
           let loc =
             Locations.make_loc
               (Locations.Location_Bits.inject varid offset)
@@ -275,7 +311,7 @@ and reduce_by_valid_loc ~positive ~for_writing loc typ state =
     if Cvalue.V.is_imprecise value then
       (* we won't reduce anything anyway, and we may lose information if loc
          contains misaligned data *)
-      raise Cannot_find_lv;
+      raise cannot_find_lv;
     let value_as_loc =
       make_loc (loc_bytes_to_loc_bits value) (sizeof_pointed typ)
     in
@@ -288,30 +324,29 @@ and reduce_by_valid_loc ~positive ~for_writing loc typ state =
     if Location_Bytes.equal value reduced_value
     then state
     else begin
-	if Location_Bytes.equal Location_Bytes.bottom reduced_value
-	then Cvalue.Model.bottom
-	else
-          Cvalue.Model.reduce_previous_binding ~with_alarms:CilE.warn_none_mode
-            state loc reduced_value
-      end
+      if Location_Bytes.equal Location_Bytes.bottom reduced_value
+      then Cvalue.Model.bottom
+      else
+        Cvalue.Model.reduce_previous_binding state loc reduced_value
+    end
   with Cannot_find_lv -> state
 
 and eval_binop ~with_alarms e deps state =
   match e.enode with
   | BinOp (op, e1, e2, typ) ->
-      let state, deps, ev1 =
-        eval_expr_with_deps_state ~with_alarms deps state e1
+    let state, deps, ev1 =
+      eval_expr_with_deps_state ~with_alarms deps state e1
+    in
+    if V.is_bottom ev1 then
+      Cvalue.Model.bottom, deps, V.bottom
+    else
+      let state, deps, ev2 =
+        eval_expr_with_deps_state ~with_alarms deps state e2
       in
-      if V.is_bottom ev1
-      then Cvalue.Model.bottom, (Some Zone.bottom) ,V.bottom
-      else
-        let state, deps, ev2 =
-          eval_expr_with_deps_state ~with_alarms deps state e2
-        in
-        if V.is_bottom ev2
-        then Cvalue.Model.bottom, (Some Zone.bottom) ,V.bottom
-        else begin
-            begin match unrollType (typeOf e1) with
+      if V.is_bottom ev2 then
+        Cvalue.Model.bottom, deps, V.bottom
+      else begin
+        match unrollType (typeOf e1) with
             | TFloat (fkind, _) ->
                 CilE.set_syntactic_context (CilE.SyUnOp e);
                 let r = Eval_op.eval_binop_float ~with_alarms
@@ -324,16 +359,16 @@ and eval_binop ~with_alarms e deps state =
 		let v =
                   Eval_op.eval_binop_int ~with_alarms ~typ ~te1 ev1 op ev2
                 in
-		(* Warn if overflow in a signed int binop *)
+		(* Warn if overflow during a non-bitwise operation *)
 		let v = match op with
                 | Shiftlt | Mult | MinusPP | MinusPI | IndexPI | PlusPI
                 | PlusA | Div | Mod | MinusA ->
-                    Eval_op.handle_overflow ~with_alarms typ v
+                  let warn_unsigned = op <> Shiftlt in
+                  Eval_op.handle_overflow ~with_alarms ~warn_unsigned typ v
                 | _ -> v
 		in
 		state, deps, v
-            end
-          end
+      end
   | _ -> assert false
 
 and eval_expr ~with_alarms state e =
@@ -353,11 +388,11 @@ and eval_expr_with_deps_state ~with_alarms deps state e =
               (match charConstToInt c with
               | CInt64 (i,_,_) -> V.inject_int i
               | _ -> assert false)
-          | CReal (f, fkind, _) ->
+          | CReal (f, fkind, fstring) ->
               CilE.set_syntactic_context (CilE.SyUnOp e);
-              Eval_op.eval_float_constant ~with_alarms f fkind 
+              Eval_op.eval_float_constant ~with_alarms f fkind fstring
           | CWStr _ | CStr _ ->
-              V.inject (Base.create_string orig_expr) Ival.zero
+              V.inject (Base.of_string_exp e) Ival.zero
           | CEnum {eival = e} ->
               eval_expr ~with_alarms state e
           end
@@ -415,9 +450,8 @@ and eval_expr_with_deps_state ~with_alarms deps state e =
   let r =
     if hasAttribute "volatile" (typeAttrs (typeOf e))
       && not (Cvalue.V.is_bottom r)
-    then V.top_int
-    else
-      r
+    then Eval_op.light_topify r
+    else r
   in
   let typ = typeOf e in
   CilE.set_syntactic_context (CilE.SyUnOp e);
@@ -467,7 +501,7 @@ and eval_expr_with_deps_state_subdiv ~with_alarms deps state e =
       | v :: tail ->
           try
             if not (List.exists (fun x -> Locations.loc_equal v x) tail)
-            then raise Too_linear;
+            then raise too_linear;
             let v_value =
               Cvalue.Model.find
                 ~conflate_bottom:true
@@ -481,18 +515,13 @@ and eval_expr_with_deps_state_subdiv ~with_alarms deps state e =
             if not (Locations.Location_Bytes.is_included
                        v_value
                        Locations.Location_Bytes.top_float)
-            then raise Too_linear;
+            then raise too_linear;
 
             let working_list = ref [ (v_value, result_without_subdiv) ] in
 	    let bound1, bound2 = Cvalue.V.min_and_max_float v_value in
 	    let compute subvalue =
 	      let substate =
-                Cvalue.Model.add_binding
-                  ~with_alarms:CilE.warn_none_mode
-                  ~exact:true
-                  state
-                  v
-                  subvalue
+                Cvalue.Model.reduce_previous_binding state v subvalue
               in
 	      let subexpr = 
 		eval_expr ~with_alarms substate e 
@@ -623,13 +652,8 @@ and eval_expr_with_deps_state_subdiv ~with_alarms deps state e =
                     Cvalue.V.bottom)
                     working_list
                 in
-                Cvalue.Model.add_binding
-                  ~with_alarms:CilE.warn_none_mode
-                  ~exact:true
-                  state
-                  v
-                  reduced_var,
-              optimized_exp_value
+                Cvalue.Model.reduce_previous_binding state v reduced_var,
+                optimized_exp_value
               else
                 state_without_subdiv,
               List.fold_left
@@ -687,8 +711,7 @@ and reduce_by_accessed_loc ~for_writing state lv loc =
 		    in
 		    (* [new_val] is not necessarily included in previous
                        binding, use [reduce_binding] *)
-		    Cvalue.Model.reduce_binding
-                      ~with_alarms state loc_mem new_val
+		    Cvalue.Model.reduce_binding state loc_mem new_val
 		  else state
 		with Cannot_find_lv (* find_lval_plus_offset *) -> 
 		  state)
@@ -737,7 +760,7 @@ and reduce_by_accessed_loc ~for_writing state lv loc =
 			in
 			if not (Location_Bits.equal valid_accessed_loc.loc accessed_loc.loc)
 			then
-                          if Location_Bits.equal Location_Bits.bottom valid_accessed_loc.loc then
+                          if Locations.is_bottom_loc valid_accessed_loc then
                             Cvalue.Model.bottom
                           else
 			  let new_index_val = (* in bytes *)
@@ -775,7 +798,6 @@ and reduce_by_accessed_loc ~for_writing state lv loc =
 			  in
 			  let new_index_val = Cvalue.V.inject_ival new_index_val in
 			  Cvalue.Model.reduce_previous_binding 
-			    ~with_alarms
 			    state loc_index new_index_val
 			else
 			  state
@@ -786,7 +808,7 @@ and reduce_by_accessed_loc ~for_writing state lv loc =
 		else state
 
 	    | CastE(typ,e) ->
-		pass_cast state Cannot_find_lv typ e;
+		pass_cast state cannot_find_lv typ e;
 		aux e
 	    | _ -> state)
 	  in
@@ -800,11 +822,9 @@ and reduce_by_accessed_loc ~for_writing state lv loc =
     with Cil.SizeOfError _ (* from Cil.bits... and others *) -> state
   in state, valid_loc
 
- and eval_lval ~conflate_bottom ~with_alarms deps state lv =
-    let state, deps, loc, typ_lv =
-      lval_to_loc_deps_state ~with_alarms
-        ~deps state lv ~reduce_valid_index:(Kernel.SafeArrays.get ())
-    in
+ (* Auxiliary function for [eval_lval] below. We are evaluating the location
+    [loc] that resulted from the evaluation of [lv]. *)
+ and eval_lval_one_loc ~conflate_bottom ~with_alarms deps state lv typ_lv loc =
     CilE.set_syntactic_context (CilE.SyMem lv);
     let state, result =
       if conflate_bottom
@@ -825,119 +845,148 @@ and reduce_by_accessed_loc ~for_writing state lv loc =
       | Some deps ->
           Some (Zone.join deps (enumerate_valid_bits ~for_writing:false loc))
     in
-    state, new_deps, result, typ_lv
+    state, new_deps, result
+
+ and eval_lval ~conflate_bottom ~with_alarms deps state lv =
+    let state, deps, precise_loc, typ_lv =
+      lval_to_precise_loc_deps_state ~with_alarms
+        ~deps state lv ~reduce_valid_index:(Kernel.SafeArrays.get ())
+    in
+    if Precise_locs.is_bottom_loc precise_loc then
+      Model.bottom, deps, V.bottom, typ_lv
+    else
+      let aux loc (res_state, res_deps, res_result) =
+        let state', deps, res' =
+          eval_lval_one_loc ~with_alarms ~conflate_bottom
+            res_deps state lv typ_lv loc
+        in
+        Model.join res_state state', deps, V.join res' res_result
+      in
+      let state, deps, res =
+        Precise_locs.fold aux precise_loc (Model.bottom, deps, V.bottom)
+      in
+      state, deps, res, typ_lv
 
  and eval_lval_and_convert ~with_alarms deps state (e, lv) =
-    let state, deps, result, typ_lv =
+    let state, deps, oldv, typ =
       eval_lval ~conflate_bottom:true ~with_alarms deps state lv
     in
     CilE.set_syntactic_context (CilE.SyUnOp e);
-    let result_conv = Eval_op.reinterpret ~with_alarms typ_lv result in
+    let newv = Eval_op.reinterpret ~with_alarms typ oldv in
+    (* Reduce if the conversion has really improved the result; in particular
+       float that are top_int are reduced there. On the other hand, we do not
+       want to take into account conversions unsigned -> signed, etc. *)
     let state' =
-      if not (V.equal result result_conv) then
-	try
-          let loc, _v, _ = eval_as_exact_loc ~with_alarms state e in
-          Cvalue.Model.reduce_previous_binding
-            ~with_alarms:CilE.warn_none_mode state loc result_conv
+      (* Currently, we only store the reduction infinite float -> finite. *)
+      if V.equal oldv V.top_int && isFloatingType typ then
+        try
+          let loc, _v, _ = eval_as_exact_loc ~with_alarms ~locv:false state e in
+          Cvalue.Model.reduce_previous_binding state loc newv
         with Not_an_exact_loc -> state
       else state
     in
-    state', deps, result_conv
+    state', deps, newv
+
+ (** We are accessing an array of size [array_size] at indexes [index] in state
+     [state]. If index causes an out-of-bounds access, emit an informative
+     alarm,  reduce [index], and if possible reduce [index_exp] in [state]. *)
+ and reduce_index ~with_alarms array_size_exp array_size index_exp index state =
+  let array_range =
+    Ival.inject_range (Some Int.zero) (Some (Integer.pred array_size))
+  in
+  let new_index = Ival.narrow index array_range in
+  if Ival.equal new_index index
+  then state, index
+  else begin
+    CilE.do_warn with_alarms.CilE.others
+      (fun _ ->
+	let range = Pretty_utils.to_string Ival.pretty index in
+	let positive = match Ival.min_int index with
+	  | None -> false
+	  | Some min -> Int.ge min Int.zero
+	in
+        let size = Extlib.the array_size_exp (* array_size exists *) in
+        (* first [index_exp] is unused *)
+        let sc = CilE.SyBinOp (index_exp, IndexPI, index_exp, size) in
+	CilE.set_syntactic_context sc;
+	CilE.warn_index with_alarms ~positive ~range
+      );
+    begin
+      try
+        let loc,_,_=
+          eval_as_exact_loc ~with_alarms ~locv:false state index_exp
+        in
+        let ival_new_index = V.inject_ival new_index in
+        let new_state =
+          Cvalue.Model.reduce_previous_binding state loc ival_new_index
+        in
+        new_state, new_index
+      with Not_an_exact_loc  -> state, new_index
+    end
+  end
 
  and eval_offset ~with_alarms ~reduce_valid_index deps typ state offset =
     match offset with
     | NoOffset ->
-	state, deps, Ival.singleton_zero, typ
+	state, deps, Precise_locs.offset_zero, typ
     | Index (exp,remaining) ->
 	let typ_pointed,array_size = match (unrollType typ) with
 	| TArray (t,size,_,_) -> t, size
 	| t ->
            Value_parameters.fatal ~current:true "Got type '%a'" Printer.pp_typ t
 	in
-	let state, deps, current =
+	let state, deps, index =
           eval_expr_with_deps_state ~with_alarms deps state exp
 	in
-	if V.is_bottom current
+	if V.is_bottom index
 	then
           let typ_offset = typeOffset typ_pointed remaining in
-          Cvalue.Model.bottom, (Some Zone.bottom), Ival.bottom, typ_offset
-	else
-          let state, offset =
-            try
-              let v = V.project_ival current in
-              let state, v =
-		if reduce_valid_index then
-                  try
-                    let array_siz = lenOfArray64 array_size in
-                    let new_v =
-                      Ival.narrow
-			(Ival.inject_range
-                            (Some Int.zero)
-                            (Some (Integer.pred array_siz)))
-			v
-                    in
-                    let new_state =
-                      if Ival.equal new_v v
-                      then state
-                      else begin
-			  begin
-                          CilE.do_warn with_alarms.CilE.others
-			    (fun _ ->
-				let range = Pretty_utils.sfprintf "%a"
-                                  V.pretty current in
-				let positive = match Ival.min_int v with
-				| None -> false
-				| Some min -> Int.ge min Int.zero
-				in
-				CilE.set_syntactic_context
-                                  (CilE.SyBinOp
-                                     (exp (* useless *),
-				       IndexPI,
-                                       exp,
-                                       Extlib.the array_size));
-				CilE.warn_index with_alarms ~positive ~range)
-			  end;
-			  begin try
-                              let loc,_,_= eval_as_exact_loc ~with_alarms state exp in
-                              Cvalue.Model.reduce_previous_binding
-				~with_alarms:CilE.warn_none_mode
-				state loc (V.inject_ival new_v)
-			    with Not_an_exact_loc  -> state
-			  end
-			end
-                    in
-                    new_state, new_v
-                  with LenOfArray -> state, v
-		else state, v
-              in
-              state, v
-            with V.Not_based_on_null ->
-              let deps, offset =
-		topify_offset
-                  ~with_alarms
-                  deps
-                  state
-                  (Cvalue.V.topify_arith_origin current)
-                  remaining
-              in
-              let typ_offset = typeOffset typ_pointed remaining in
-              raise (Offset_not_based_on_Null (deps, offset, typ_offset))
-          in
-          let state, deps, r, typ_offs =
-            eval_offset ~reduce_valid_index ~with_alarms
-              deps typ_pointed state remaining
-          in
-          let offset = Ival.scale_int64base (sizeof typ_pointed) offset in
-          state, deps, Ival.add_int offset r, typ_offs
+          Cvalue.Model.bottom, deps, Precise_locs.offset_bottom, typ_offset
+	else begin
+          try
+            let index_i = V.project_ival index in
+            let state, index_i =
+              try
+	        if reduce_valid_index then
+                  let array_size_i = lenOfArray64 array_size in
+                  reduce_index ~with_alarms
+                    array_size array_size_i exp index_i state
+	        else state, index_i
+              with LenOfArray -> state, index_i (* unknown array size *)
+            in
+            (* Index offsets expressed in terms of the array elements size *)
+            let index_i = Ival.scale_int_base (sizeof typ_pointed) index_i in
+            (* offset(s) for each cell *)
+            let state, deps, roffset, typ_offs =
+              eval_offset ~reduce_valid_index ~with_alarms
+                deps typ_pointed state remaining
+            in
+            (* Combine the two offsets *)
+            state,deps, Precise_locs.shift_offset index_i roffset, typ_offs
+          with V.Not_based_on_null ->
+            (* result will be a garbled mix: collect all the bases involved in
+               the evaluation of [offset], and raise an exception *)
+            let bases_index = Cvalue.V.topify_arith_origin index in
+            let deps, bases =
+              topify_offset ~with_alarms deps state bases_index remaining
+            in
+            let typ_offset = typeOffset typ_pointed remaining in
+            raise (Offset_not_based_on_Null (deps, bases, typ_offset))
+        end
     | Field (fi,remaining) ->
         let attrs = filter_qualifier_attributes (typeAttr typ)  in
         let typ_fi = typeAddAttributes attrs fi.ftype in
-	let current,_ = bitsOffset typ (Field(fi,NoOffset)) in
 	let state, deps, r, typ =
           eval_offset ~with_alarms
             ~reduce_valid_index deps typ_fi state remaining
 	in
-	state, deps, Ival.add_int (Ival.of_int current) r, typ
+        let off =
+          try
+            let field = fst (bitsOffset typ (Field(fi,NoOffset))) in
+            Precise_locs.shift_offset_by_singleton (Int.of_int field) r
+          with Cil.SizeOfError _ -> Precise_locs.offset_top
+        in
+	state, deps, off, typ
  and topify_offset ~with_alarms deps state acc offset =
     match offset with
     | NoOffset -> deps,acc
@@ -953,25 +1002,28 @@ and reduce_by_accessed_loc ~for_writing state lv loc =
 	in
 	topify_offset ~with_alarms deps state acc remaining
 
- and eval_as_exact_loc ~with_alarms state e =
+ and eval_as_exact_loc ~with_alarms ?(locv=true) state e =
     try
       let lv = find_lv ~with_alarms state e in
       let _, loc, typ = lval_to_loc_state ~with_alarms state lv in
       let loc = Locations.valid_part ~for_writing:false loc in
-      if not (cardinal_zero_or_one loc) then raise Not_an_exact_loc;
-      CilE.set_syntactic_context (CilE.SyMem lv);
+      if not (cardinal_zero_or_one loc) then raise not_an_exact_loc;
       let v =
-	Cvalue.Model.find ~conflate_bottom:true ~with_alarms state loc in
-      (* Using (typeOf e) caused imprecisions with the condition
-	 char c; ... if (c>0) being transformed in if (((int)c)>0) by Cil. *)
-      CilE.set_syntactic_context (CilE.SyUnOp e);
-      let v' = Eval_op.reinterpret ~with_alarms typ v in
-      let v' = Eval_op.cast_lval_bitfield typ loc.size v' in
-      if Cvalue.V.has_sign_problems v && not (Cvalue.V.equal v v')
-      then raise Not_an_exact_loc;
-      loc, v', typ
+        if locv then begin
+          CilE.set_syntactic_context (CilE.SyMem lv);
+          let v = Cvalue.Model.find ~with_alarms
+            ~conflate_bottom:true state loc
+          in
+          CilE.set_syntactic_context (CilE.SyUnOp e);
+          let v' = Eval_op.reinterpret ~with_alarms typ v in
+          let v' = Eval_op.cast_lval_bitfield typ loc.size v' in
+          v'
+        end else
+          V.bottom
+      in
+      loc, v, typ
     with Cannot_find_lv ->
-      raise Not_an_exact_loc
+      raise not_an_exact_loc
 
 and warn_reduce_by_accessed_loc ~with_alarms ~for_writing state loc lv =
   let warn = not (Locations.is_valid ~for_writing loc) in
@@ -979,7 +1031,7 @@ and warn_reduce_by_accessed_loc ~with_alarms ~for_writing state loc lv =
     CilE.set_syntactic_context (CilE.SyMem lv);
     (if for_writing then CilE.warn_mem_write else CilE.warn_mem_read)
       with_alarms;
-    (* The call is is_valid and to reduce_by_accessed_loc below cannot be
+    (* The calls to [is_valid] and to [reduce_by_accessed_loc] below cannot be
        fused because of bases with validity unkwnown *)
     reduce_by_accessed_loc ~for_writing state lv loc
   end
@@ -1020,7 +1072,7 @@ let reduce_by_left_comparison_abstract eval pos expl binop expr state =
 		  loc, val_for_loc, 
 		  (V.cast_float_to_int_inverse ~single_precision), 
 		  val_compared, typ_loc
-	      | _ -> raise Not_an_exact_loc)
+	      | _ -> raise not_an_exact_loc)
 	  in
 	  ( match expl.enode with
 	  | CastE (typ_larger, { enode = CastE(typ_loc,e1) } )
@@ -1032,20 +1084,19 @@ let reduce_by_left_comparison_abstract eval pos expl binop expr state =
 	      invert_cast e1 typ_loc
 	  | CastE (typ_loc, e1) when isIntegralType typ_loc ->
 	      invert_cast e1 typ_loc
-	  | _ -> raise Not_an_exact_loc)
+	  | _ -> raise not_an_exact_loc)
 	    
-    in    
-
+    in
     let cond_v = expr in
     let v_sym =
-      eval.Eval_op.reduce_rel_symetric pos binop cond_v val_compared in
+      eval.Eval_op.reduce_rel_symmetric pos binop cond_v val_compared in
     let v_asym =
-      eval.Eval_op.reduce_rel_antisymetric ~typ_loc pos binop cond_v v_sym in
+      eval.Eval_op.reduce_rel_antisymmetric ~typ_loc pos binop cond_v v_sym in
 (*    Format.printf "reduce_by_left %a -> %a -> %a@." 
       Cvalue.V.pretty val_for_loc
       Cvalue.V.pretty val_compared
       Cvalue.V.pretty v_asym; *)
-    if V.equal v_asym V.bottom then raise Reduce_to_bottom;
+    if V.equal v_asym V.bottom then raise reduce_to_bottom;
     if V.equal v_asym val_compared
     then state
     else (
@@ -1059,11 +1110,10 @@ let reduce_by_left_comparison_abstract eval pos expl binop expr state =
 	      Cvalue.V.pretty val_compared
 	      Cvalue.V.pretty v_asym
 	      Cvalue.V.pretty new_val_for_loc;  *)
-	    Cvalue.Model.reduce_previous_binding
-	      ~with_alarms:CilE.warn_none_mode
-	      state loc new_val_for_loc
+	    Cvalue.Model.reduce_previous_binding state loc new_val_for_loc
 	  end )
-  with Not_an_exact_loc  -> state
+  with
+  | Not_an_exact_loc | Cil.SizeOfError _ -> state
 
 let reduce_by_left_comparison eval pos expl binop expr state =
   let expr = eval_expr ~with_alarms:CilE.warn_none_mode state expr in
@@ -1112,37 +1162,32 @@ let reduce_by_cond_enumerate state cond locs =
   in
   try
     let loc, vloc, _tail = enumerate_one_var locs in
-    (* Format.printf "enumerate %a %a@." pretty_loc v1 V.pretty v_interp1; *)
+    (* Format.printf "enumerate %a %a@."  Location.pretty loc V.pretty vloc;*)
     let f one_val acc =
       (* interpret cond in an environment where v -> one_val *)
       let env =
-        Cvalue.Model.reduce_previous_binding
-	  ~with_alarms:CilE.warn_none_mode
-          state loc one_val
+        Cvalue.Model.reduce_previous_binding state loc one_val
       in
       let stays = condition_may_still_be_true_in_state env in
       (* Format.printf "enumerate %a stays:%B@." V.pretty one_val stays; *)
       if stays then Location_Bytes.join one_val acc else acc
     in
     let newv =
-      Location_Bytes.fold_enum
-        ~split_non_enumerable:2 f vloc Location_Bytes.bottom
+      Location_Bytes.fold_enum f vloc Location_Bytes.bottom
     in
     if V.is_bottom newv
-    then raise Reduce_to_bottom
+    then raise reduce_to_bottom
     else if V.equal newv vloc
     then state
     else
-      Cvalue.Model.reduce_previous_binding
-        ~with_alarms:CilE.warn_none_mode
-        state loc newv
+      Cvalue.Model.reduce_previous_binding state loc newv
   with Not_found -> state
 
 
 (** raises [Reduce_to_bottom] and never returns [Cvalue.Model.bottom]*)
 let reduce_by_cond state cond =
   (* Do not reduce anything if the cond is volatile.
-     (This test is dumb because the cond may contain volatile l-values
+     (This test is dumb because the cond may contain volatile lvalues
      without the "volatile" attribute appearing at toplevel. pc 2007/11) *)
   if hasAttribute "volatile" (typeAttr (typeOf cond.exp)) then state
   else
@@ -1150,6 +1195,66 @@ let reduce_by_cond state cond =
       (*Format.printf "eval_cond_aux %B %a@." cond.positive 
 	Printer.pp_exp cond.exp;*)
       match cond.positive,cond.exp.enode with
+      | _, (BinOp ((Eq | Ne) as eqop, ({enode = BinOp (Mod, ({enode = Lval _ } as expl), 
+					exp12, typ1)} as exp1), 
+		   exp2, _)) 
+      | _, (BinOp ((Eq | Ne) as eqop, exp2, 
+		   ({enode = BinOp (Mod, ({enode = Lval _ } as expl),
+				    exp12, typ1)} as exp1), _))  ->
+        let reduce_rel = reduce_rel_from_type (unrollType typ1) in
+	( try
+	    let with_alarms = CilE.warn_none_mode in
+	    let a12 = V.project_ival (eval_expr ~with_alarms state exp12) in
+	    let modu = Ival.project_int a12 in
+	    let a2 = V.project_ival (eval_expr ~with_alarms state exp2) in
+	    let i2 = Ival.project_int a2 in
+	    let loc, value, _ = eval_as_exact_loc ~with_alarms state expl in
+(*	    Format.printf "loc:%a value:%a == %a %% %a\n"
+	      Locations.pretty loc
+	      V.pretty value
+	      Int.pretty i2
+	      Int.pretty modu; *)
+	    let av = V.project_ival value in
+	    ( match av with
+	      Ival.Top _ | Ival.Set _ ->
+		let r = i2 in
+		if Int.le modu Int.zero then raise not_an_exact_loc; (* TODO *)
+		  let min, max, r = 
+		    if (eqop = Ne) = cond.positive (* really not equal *)
+		    then begin
+		      if Int.equal modu Int.two && Int.is_zero r
+		      then None, None, Int.one
+		      else raise not_an_exact_loc 
+		    end
+		    else
+		      if Int.is_zero r then
+			None, None, r
+		      else if Int.gt r Int.zero
+		      then		    
+			Some (Int.round_up_to_r ~min:Int.zero ~r ~modu), None, r
+		      else
+		    (* None, (Int.round_down_to_r ~max:Int.zero ~r ~modu), (r *)
+			raise not_an_exact_loc (* TODO *)
+		in
+		if Int.ge (Int.abs r) modu 
+		then Model.bottom
+		else
+		  let reducer = Ival.inject_top min max r modu in
+		  let reduced_value = 
+		    Ival.meet (* exact here *)
+		      reducer
+		      av
+		  in
+		  let state = 
+		    Model.reduce_binding state loc (V.inject_ival reduced_value)
+		  in
+		  reduce_by_comparison reduce_rel cond.positive exp1 eqop exp2 
+		    state
+	    | Ival.Float _ -> raise not_an_exact_loc
+	    )
+	  with Not_an_exact_loc | V.Not_based_on_null | Ival.Not_Singleton_Int 
+	    -> 
+            reduce_by_comparison reduce_rel cond.positive exp1 eqop exp2 state)
       | _positive, BinOp ((Le|Ne|Eq|Gt|Lt|Ge as binop), exp1, exp2, _typ) ->
         let reduce_rel = reduce_rel_from_type (unrollType (typeOf exp1)) in
         reduce_by_comparison reduce_rel cond.positive exp1 binop exp2 state
@@ -1181,7 +1286,7 @@ let reduce_by_cond state cond =
           in let new_v2 = try aux {cond with exp = exp2} state
             with Reduce_to_bottom -> Cvalue.Model.bottom
           in let r = Cvalue.Model.join new_v1 new_v2 in
-          if Db.Value.is_reachable r then r else raise Reduce_to_bottom
+          if Db.Value.is_reachable r then r else raise reduce_to_bottom
 
       | _, UnOp(LNot,exp,_) ->
           aux { positive = not cond.positive; exp = exp; } state
@@ -1236,6 +1341,10 @@ let compatible_functions ~with_alarms vi typ_pointer typ_fun =
         "@[Function pointer@ and@ pointed function@ '%a' @ have@ incompatible \
             types:@ %a@ vs.@ %a.@ assert(function type matches)@]"
         Printer.pp_varinfo vi Printer.pp_typ typ_pointer Printer.pp_typ typ_fun;
+    let compatible_sizes t1 t2 =
+      try bitsSizeOf t1 = bitsSizeOf t2
+      with Cil.SizeOfError _ -> false
+    in
     match Cil.unrollType typ_pointer, Cil.unrollType typ_fun with
       | TFun (ret1, args1, var1, _), TFun (ret2, args2, var2, _) ->
           (* Either both functions are variadic, or none. Otherwise, it
@@ -1246,7 +1355,7 @@ let compatible_functions ~with_alarms vi typ_pointer typ_fun =
              | TVoid _, TVoid _ -> true (* let's avoid relying on the size
                                            of void *)
              | TVoid _, _ | _, TVoid _ -> false
-             | t1, t2 -> bitsSizeOf t1 = bitsSizeOf t2
+             | t1, t2 -> compatible_sizes t1 t2
           ) &&
           (* Argument lists of the same length, with compatible sizes between
              the arguments, or unspecified argument lists *)
@@ -1255,7 +1364,7 @@ let compatible_functions ~with_alarms vi typ_pointer typ_fun =
              | Some l1, Some l2 ->
                  List.length l1 = List.length l2 &&
                  List.for_all2
-                   (fun (_, t1, _) (_, t2, _) -> bitsSizeOf t1 = bitsSizeOf t2)
+                   (fun (_, t1, _) (_, t2, _) -> compatible_sizes t1 t2)
                    l1 l2
           )
       | _ -> false
@@ -1292,6 +1401,11 @@ let resolv_func_vinfo ~with_alarms deps state funcexp =
                     "Function pointer call at absolute position in memory: \
                        ignoring this particular value: %t" pp_assert;
                   acc
+                | Base.CLogic_Var _ -> 
+                  warning_once_current
+                    "Function pointer call to a logic variable: \
+                       ignoring this particular value: %t" pp_assert;
+                  acc
                 | Base.Var (v,_) | Base.Initialized_Var (v,_) ->
                   if Cil.isFunctionType v.vtype then (
                     if Ival.contains_non_zero offs then
@@ -1312,9 +1426,10 @@ let resolv_func_vinfo ~with_alarms deps state funcexp =
                     acc)
             )
             loc Kernel_function.Hptset.empty
-        | Location_Bytes.Top (set, _) ->
-            warning_once_current
-              "Function pointer for call is imprecise: %t" pp_assert;
+        | Location_Bytes.Top (set, o) ->
+          warning_once_current
+            "Function pointer for call is imprecise: %t" pp_assert;
+          try
             Base.SetLattice.fold
               (fun b acc -> match b with
                 | Base.Var (v,_) | Base.Initialized_Var (v,_)
@@ -1325,18 +1440,36 @@ let resolv_func_vinfo ~with_alarms deps state funcexp =
                     else acc
                 | _ -> acc
               ) set Kernel_function.Hptset.empty
-
+          with Base.SetLattice.Error_Top ->
+            if Mark_noresults.no_memoization_enabled () then
+              Value_parameters.abort ~current:true
+                "Function pointer evaluates to anything. Try deactivating \
+                 option(s) -no-results, -no-results-function and \
+                 -obviously-terminates@."
+            else
+              Value_parameters.fatal ~current:true
+                "Function pointer evaluates to anything. origin %a, function %a"
+                Origin.pretty o Printer.pp_exp v
       in
       fundecs, deps
   | _ ->
       assert false
 
 let offsetmap_of_lv ~with_alarms state lv =
-  let state, loc_to_read, _typ = lval_to_loc_state ~with_alarms state lv in
+  let state, loc_to_read, _typ =
+    lval_to_precise_loc_state ~with_alarms state lv
+  in
   CilE.set_syntactic_context (CilE.SyMem lv);
+  let aux loc offsm_res =
+    let copy = Cvalue.Model.copy_offsetmap ~with_alarms loc state in
+    match copy, offsm_res with
+      | None as r, None | (Some _ as r), None | None, (Some _ as r) -> r
+      | Some r1, Some r2 -> Some (V_Offsetmap.join r1 r2)
+  in
   loc_to_read,
   state,
-  Cvalue.Model.copy_offsetmap ~with_alarms loc_to_read state
+  Precise_locs.fold aux loc_to_read None
+  
 
 
 (* -------------------------------------------------------------------------- *)

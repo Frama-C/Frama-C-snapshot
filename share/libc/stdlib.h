@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2013                                               */
+/*  Copyright (C) 2007-2014                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -63,33 +63,33 @@ long int atol(const char *nptr);
 long long int atoll(const char *nptr);
 
 /* See ISO C: 7.20.1.3 to complete these specifications */
-/*@ assigns \result \from nptr[..] ; */
+/*@ assigns \result,*endptr \from nptr[0..],nptr ; */
 double strtod(const char * restrict nptr,
      char ** restrict endptr);
-/*@ assigns \result \from nptr[..] ; */
+/*@ assigns \result,*endptr \from nptr[0..],nptr ; */
 float strtof(const char * restrict nptr,
      char ** restrict endptr);
-/*@ assigns \result \from nptr[..] ; */
+/*@ assigns \result,*endptr \from nptr[0..],nptr ; */
 long double strtold(const char * restrict nptr,
      char ** restrict endptr);
 
 /* TODO: See ISO C 7.20.1.4 to complete these specifications */
-/*@ assigns \result \from nptr[..] ; */
+/*@ assigns \result,*endptr \from nptr[0..]; */
 long int strtol(
      const char * restrict nptr,
      char ** restrict endptr,
      int base);
-/*@ assigns \result \from nptr[..] ; */
+/*@ assigns \result,*endptr \from nptr[0..]; */
 long long int strtoll(
      const char * restrict nptr,
      char ** restrict endptr,
      int base);
-/*@ assigns \result \from nptr[..] ; */
+/*@ assigns \result,*endptr \from nptr[0..]; */
 unsigned long int strtoul(
      const char * restrict nptr,
      char ** restrict endptr,
      int base);
-/*@ assigns \result \from nptr[..] ; */
+/*@ assigns \result,*endptr \from nptr[0..]; */
 unsigned long long int strtoull(
      const char * restrict nptr,
      char ** restrict endptr,
@@ -139,7 +139,7 @@ void *malloc(size_t size);
   @ assigns  __fc_heap_status \from __fc_heap_status;
   @ behavior deallocation:
   @   assumes  p!=\null;
-  @   requires \freeable(p);
+  @   requires freeable:\freeable(p);
   @   assigns  __fc_heap_status \from __fc_heap_status;
   @   ensures  \allocable(p);
   @ behavior no_deallocation:
@@ -216,11 +216,20 @@ void *bsearch(const void *key, const void *base,
 
 /* ISO C: 7.20.6 */
 
-/*@ assigns \result \from j ; */
+/*@ 
+  requires abs_representable:(int)(-j) == -j ;
+  assigns \result \from j ;
+*/
 int abs(int j);
-/*@ assigns \result \from j ; */
+
+/*@ 
+  requires abs_representable:(long)(-j) == -j ;
+  assigns \result \from j ; */
 long int labs(long int j);
-/*@ assigns \result \from j ; */
+
+/*@
+  requires abs_representable:(long long)(-j) == -j ;
+  assigns \result \from j ; */
 long long int llabs(long long int j);
 
 /*@ assigns \result \from numer,denom ; */

@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2013                                               */
+/*  Copyright (C) 2007-2014                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -22,19 +22,19 @@
 
 #ifndef __FC_SOCKET_H__
 #define __FC_SOCKET_H__
-#include "__fc_machdep.h"
+#include "../__fc_machdep.h"
 
 typedef __UINT_LEAST32_T socklen_t;
 #include "../__fc_define_sa_family_t.h"
 #include "../__fc_define_sockaddr.h"
 /* Not POSIX compliant but seems needed for some functions... */
-#include "__fc_define_ssize_t.h"
+#include "../__fc_define_ssize_t.h"
 
 struct sockaddr_storage {
   sa_family_t   ss_family;
 };
 
-#include "__fc_define_iovec.h"
+#include "../__fc_define_iovec.h"
 
 struct cmsghdr {
   socklen_t  cmsg_len;
@@ -138,12 +138,22 @@ int     getpeername(int, struct sockaddr *, socklen_t *);
 int     getsockname(int, struct sockaddr *, socklen_t *);
 int     getsockopt(int, int, int, void *, socklen_t *);
 int     listen(int, int);
-ssize_t recv(int, void *, size_t, int);
+
+/*@ 
+  ensures -1 <= \result <= length ;
+  assigns ((char*)buffer)[0 .. length-1] ;
+ */
+ssize_t recv(int socket, void * buffer, size_t length, int flags);
+
 ssize_t recvfrom(int, void *, size_t, int,
         struct sockaddr *, socklen_t *);
 
 /*@ requires \valid(&((char *)hdr->msg_control)[0..hdr->msg_controllen-1]);
   @ requires \valid(&(hdr->msg_iov[0..hdr->msg_iovlen-1]));
+  @ requires hdr->msg_name == 0
+      || \valid(&((char *)hdr->msg_name)[0..hdr->msg_namelen-1]);
+  @ assigns ((char *) hdr->msg_name)[0..hdr->msg_namelen-1];
+  @ assigns hdr->msg_namelen;
   @ assigns ((char *) hdr->msg_iov[0..hdr->msg_iovlen-1].iov_base)[0..];
   @ assigns ((char *) hdr->msg_control)[0..];
   @ assigns hdr->msg_controllen;

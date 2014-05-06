@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -35,56 +35,68 @@ open Definitions
 module L = Qed.Logic
 
 let datatype = "MemTyped"
-let theory = "memory"
+let library = "memory"
 
-let a_addr = Lang.datatype ~theory ~link:"addr"
+let a_addr = Lang.datatype ~library "addr"
 let t_addr = L.Data(a_addr,[])
-let f_base   = Lang.extern_f ~theory ~result:L.Sint "base"
-let f_offset = Lang.extern_f ~theory ~result:L.Sint "offset"
-let f_shift  = Lang.extern_f ~theory "shift"
-let f_global = Lang.extern_f ~theory "global"
-let f_null   = Lang.extern_f ~theory "null"
+let f_base   = Lang.extern_f ~library ~result:L.Int
+    ~link:{altergo = Qed.Engine.F_subst("%1.base");
+           why3    = Qed.Engine.F_subst("%1.base");
+           coq     = Qed.Engine.F_subst("(base %1)");
+          } "base"
+let f_offset = Lang.extern_f ~library ~result:L.Int
+    ~link:{altergo = Qed.Engine.F_subst("%1.offset");
+           why3    = Qed.Engine.F_subst("%1.offset");
+           coq     = Qed.Engine.F_subst("(offset %1)");
+          } "offset"
+let f_shift  = Lang.extern_f ~library ~result:t_addr "shift"
+let f_global = Lang.extern_f ~library ~result:t_addr "global"
+let f_null   = Lang.extern_f ~library ~result:t_addr "null"
 
-let p_valid_rd = Lang.extern_fp ~theory "valid_rd"
-let p_valid_rw = Lang.extern_fp ~theory "valid_rw"
-let p_separated = Lang.extern_fp ~theory "separated"
-let p_included = Lang.extern_fp ~theory "included"
-let p_eqmem = Lang.extern_fp ~theory "eqmem"
-let p_havoc = Lang.extern_fp ~theory "havoc"
-let f_region = Lang.extern_f ~theory ~result:L.Sint "region"   (* base -> region *)
-let p_linked = Lang.extern_fp ~theory "linked" (* allocation-table -> prop *)
-let p_sconst = Lang.extern_fp ~theory "sconst" (* int-memory -> prop *)
-let p_framed = Lang.extern_fp ~theory "framed" (* m-pointer -> prop *)
-let a_lt = Lang.extern_p ~theory ~prop:"addr_lt" ~bool:"addr_lt_bool" ()
-let a_leq = Lang.extern_p ~theory ~prop:"addr_le" ~bool:"addr_le_bool" ()
-let a_cast = Lang.extern_f ~result:L.Sint ~category:L.Injection ~theory "cast"
-let a_hardware = Lang.extern_f ~result:L.Sint ~category:L.Injection ~theory "hardware"
+let p_valid_rd = Lang.extern_fp ~library "valid_rd"
+let p_valid_rw = Lang.extern_fp ~library "valid_rw"
+let p_separated = Lang.extern_fp ~library "separated"
+let p_included = Lang.extern_fp ~library "included"
+let p_eqmem = Lang.extern_fp ~library "eqmem"
+let p_havoc = Lang.extern_fp ~library "havoc"
+let f_region = Lang.extern_f ~library ~result:L.Int "region"   (* base -> region *)
+let p_framed = Lang.extern_fp ~library "framed" (* m-pointer -> prop *)
+let p_linked = Lang.extern_fp ~library "linked" (* allocation-table -> prop *)
+let p_sconst = Lang.extern_fp ~library "sconst" (* int-memory -> prop *)
+let a_lt = Lang.extern_p ~library ~bool:"addr_lt_bool" ~prop:"addr_lt" ()
+let a_leq = Lang.extern_p ~library ~bool:"addr_le_bool" ~prop:"addr_le" ()
+let a_cast = Lang.extern_f ~result:L.Int ~category:L.Injection ~library "cast"
+let a_hardware = Lang.extern_f ~result:L.Int ~category:L.Injection ~library "hardware"
 
 (* -------------------------------------------------------------------------- *)
-(* --- Utilities on loc-as-term                                           --- *)
+(* --- Utilities                                                          --- *)
 (* -------------------------------------------------------------------------- *)
 
-let rec a_base l = match F.repr l with
+let a_null = F.constant (e_fun f_null [])
+let a_base p = e_fun f_base [p]
+let a_offset p = e_fun f_offset [p]
+let a_global b = e_fun f_global [b]
+let a_shift l k = e_fun f_shift [l;k]
+let a_addr b k = a_shift (a_global b) k
+
+(* -------------------------------------------------------------------------- *)
+(* --- Qed Simplifiers                                                    --- *)
+(* -------------------------------------------------------------------------- *)
+
+let phi_base l = match F.repr l with
   | L.Fun(f,[p;_]) when f==f_shift -> a_base p
   | L.Fun(f,[b]) when f==f_global -> b
   | L.Fun(f,[]) when f==f_null -> e_zero
-  | _ -> F.e_funraw f_base [l]
+  | _ -> raise Not_found
 
-let rec a_offset l = match F.repr l with
-  | L.Fun(f,[p;k]) when f==f_shift -> F.e_add (a_offset p) k
+let phi_offset l = match F.repr l with
+  | L.Fun(f,[p;k]) when f==f_shift -> e_add (a_offset p) k
   | L.Fun(f,_) when f==f_global || f==f_null -> F.e_zero
-  | _ -> F.e_funraw f_offset [l]
+  | _ -> raise Not_found
 
-let rec a_shift l k = match F.repr l with
-  | L.Fun(f,[p;i]) when f==f_shift -> F.e_funraw f_shift [p;e_add i k]
-  | _ -> F.e_funraw f_shift [l;k]
-
-let a_null = F.e_funraw f_null []
-
-let a_global base = 
-  if base == e_zero then a_null else F.e_funraw f_global [base]
-
-let a_addr base offset = a_shift (a_global base) offset
+let phi_shift l k = match F.repr l with
+  | L.Fun(f,[p;i]) when f==f_shift -> a_shift p (e_add i k)
+  | _ -> raise Not_found
 
 let eq_shift a b =
   let p = a_base a in
@@ -96,14 +108,19 @@ let eq_shift a b =
       | L.No -> F.p_false
       | L.Yes -> F.p_equal i j
       | L.Maybe -> raise Not_found
-	  
+
+let r_separated = function 
+  | [p;a;q;b] when a == F.e_one && b == F.e_one -> F.e_neq p q
+  | _ -> raise Not_found
+
 let () =
   begin
-    F.add_builtin_1   f_base   a_base ;
-    F.add_builtin_1   f_offset a_offset ;
-    F.add_builtin_2   f_shift  a_shift ;
-    F.add_builtin_peq f_shift  eq_shift ;
-    F.add_builtin_peq f_global eq_shift ;
+    F.set_builtin_1   f_base   phi_base ;
+    F.set_builtin_1   f_offset phi_offset ;
+    F.set_builtin_2   f_shift  phi_shift ;
+    F.set_builtin_eqp f_shift  eq_shift ;
+    F.set_builtin_eqp f_global eq_shift ;
+    F.set_builtin p_separated r_separated ;
   end
 
 (* -------------------------------------------------------------------------- *)
@@ -165,6 +182,7 @@ struct
       [M_int;M_char;M_float;M_pointer;T_alloc] ;
     fun c -> m.(rank c)
   let basename_of_chunk = name
+  let is_framed _ = false
 end
 
 module Heap = Qed.Collection.Make(Chunk)
@@ -205,10 +223,10 @@ let signature ft =
 let memories sigma ft = List.map (Sigma.value sigma) ft
 
 let rec size_of_object = function
-  | C_int _ | C_float _ | C_pointer _ -> Int64.one
+  | C_int _ | C_float _ | C_pointer _ -> 1
   | C_comp c -> size_of_comp c
   | C_array { arr_flat = Some { arr_size = n } ; arr_element = elt } -> 
-      Int64.mul n (size_of_typ elt)
+      n * (size_of_typ elt)
   | C_array _ as a ->
       Wp_parameters.abort ~current:true "Undefined array-size (%a)" 
 	Ctypes.pretty a
@@ -216,16 +234,16 @@ and size_of_typ t = size_of_object (object_of t)
 and size_of_field f = size_of_typ f.ftype
 and size_of_comp c = 
   List.fold_left
-    (fun s f -> Int64.add s (size_of_field f))
-    Int64.zero c.cfields
+    (fun s f -> s + size_of_field f)
+    0 c.cfields
 
 let offset_of_field f =
   let rec fnext k f = function
     | [] -> assert false
     | g::gs ->
 	if Fieldinfo.equal f g then k 
-	else fnext (Int64.add k (size_of_field g)) f gs
-  in fnext Int64.zero f f.fcomp.cfields
+	else fnext (k + size_of_field g) f gs
+  in fnext 0 f f.fcomp.cfields
 
 (* -------------------------------------------------------------------------- *)
 (* --- Utilities on loc-as-term                                           --- *)
@@ -243,8 +261,8 @@ let occurs x l = F.occurs x l
 (* -------------------------------------------------------------------------- *)
 
 let loadrec = ref (fun _ _ _ -> assert false)
-let field l f = a_shift l (F.e_int64 (offset_of_field f))
-let shift l obj k = a_shift l (F.e_mul (F.e_int64 (size_of_object obj)) k)
+let field l f = a_shift l (F.e_int (offset_of_field f))
+let shift l obj k = a_shift l (F.e_mul (F.e_int (size_of_object obj)) k)
 
 (* -------------------------------------------------------------------------- *)
 (* --- Generated Axiomatization                                           --- *)
@@ -269,8 +287,8 @@ module STRING = Model.Generator(LITERAL)
      type key = LITERAL.t
      type data = term
 
-     let linked lfun base cst =
-       let name = Fun.id lfun ^ "_linked" in
+     let linked prefix base cst =
+       let name = prefix ^ "_linked" in
        let a = Lang.freshvar ~basename:"alloc" (Chunk.tau_of_chunk T_alloc) in
        let m = e_var a in
        let m_linked = p_call p_linked [m] in
@@ -283,8 +301,8 @@ module STRING = Model.Generator(LITERAL)
 	 l_cluster = Cstring.cluster () ;
        }
 
-     let region lfun base cst =
-       let name = Fun.id lfun ^ "_region" in
+     let region prefix base cst =
+       let name = prefix ^ "_region" in
        let re = - Cstring.str_id cst in
        Definitions.define_lemma {
 	 l_assumed = true ;
@@ -293,8 +311,8 @@ module STRING = Model.Generator(LITERAL)
 	 l_cluster = Cstring.cluster () ;
        }
 
-     let sconst lfun base cst =
-       let name = Fun.id lfun ^ "_literal" in
+     let sconst prefix base cst =
+       let name = prefix ^ "_literal" in
        let i = Lang.freshvar ~basename:"i" L.Int in
        let c = Cstring.char_at cst (e_var i) in
        let addr = a_addr base (e_var i) in
@@ -311,7 +329,9 @@ module STRING = Model.Generator(LITERAL)
        }
 
      let compile (eid,cst) =
-       let lfun = Lang.generated_f ~result:L.Sint "Str_%d" eid in
+       let lfun = Lang.generated_f ~result:L.Int "Str_%d" eid in
+       (** Since its a generated it is the unique name given *)
+       let prefix = Lang.Fun.debug lfun in
        let base = F.e_fun lfun [] in
        Definitions.define_symbol {
 	 d_lfun = lfun ; d_types = 0 ; d_params = [] ; 
@@ -319,15 +339,15 @@ module STRING = Model.Generator(LITERAL)
 	 d_cluster = Cstring.cluster () ;
        } ;
        Definitions.define_lemma {
-	 l_name = Lang.Fun.id lfun ^ "_base" ;
+	 l_name = prefix ^ "_base" ;
 	 l_assumed = true ;
 	 l_types = 0 ; l_triggers = [] ; l_forall = [] ;
 	 l_lemma = F.p_lt base F.e_zero ;
 	 l_cluster = Cstring.cluster () ;
        } ;
-       region lfun base cst ;
-       linked lfun base cst ;
-       sconst lfun base cst ;
+       region prefix base cst ;
+       linked prefix base cst ;
+       sconst prefix base cst ;
        base
 
    end)
@@ -338,8 +358,8 @@ module BASE = Model.Generator(Varinfo)
      type key = varinfo
      type data = term
 
-     let region lfun x base =
-       let name = Fun.id lfun ^ "_region" in
+     let region prefix x base =
+       let name = prefix ^ "_region" in
        let re = if x.vglob then 0 else if x.vformal then 1 else 2 in
        Definitions.define_lemma {
 	 l_assumed = true ;
@@ -348,13 +368,13 @@ module BASE = Model.Generator(Varinfo)
 	 l_cluster = cluster_globals () ;
        }
 
-     let linked lfun x base =
-       let name = Fun.id lfun ^ "_linked" in
+     let linked prefix x base =
+       let name = prefix ^ "_linked" in
        let size = Ctypes.sizeof_typ x.vtype in
        let a = Lang.freshvar ~basename:"alloc" (Chunk.tau_of_chunk T_alloc) in
        let m = e_var a in
        let m_linked = p_call p_linked [m] in
-       let base_size = p_equal (F.e_get m base) (e_int64 size) in
+       let base_size = p_equal (F.e_get m base) (e_int size) in
        Definitions.define_lemma {
 	 l_assumed = true ;
 	 l_name = name ; l_types = 0 ; 
@@ -366,22 +386,25 @@ module BASE = Model.Generator(Varinfo)
      let generate x = 
        let prefix = if x.vglob then "G" else if x.vformal then "P" else "L" in
        let lfun = Lang.generated_f 
-	 ~category:L.Constructor ~result:L.Sint 
+	 ~category:L.Constructor ~result:L.Int 
 	 "%s_%s_%d" prefix x.vorig_name x.vid in
+       (** Since its a generated it is the unique name given *)
+       let prefix = Lang.Fun.debug lfun in
        let dfun = Definitions.Value( L.Int , Def , e_int (succ x.vid) ) in
        Definitions.define_symbol {
 	 d_lfun = lfun ; d_types = 0 ; d_params = [] ; d_definition = dfun ;
 	 d_cluster = cluster_globals () ;
        } ; 
        let base = e_fun lfun [] in
-       region lfun x base ; linked lfun x base ; base
+       region prefix x base ; linked prefix x base ; base
 
      let compile = Lang.local generate
    end)
 
 module MONOTONIC : 
 sig 
-  val generate : lfun -> var list -> chunk list -> (term list -> term) -> unit 
+  val generate :
+    string -> lfun -> var list -> chunk list -> (term list -> term) -> unit 
 end =
 struct
   
@@ -407,8 +430,8 @@ struct
   let separated env q k = F.p_call p_separated [q;k;List.hd env.params;env.range]
   let included env q k = F.p_call p_included [q;k;List.hd env.params;env.range]
 
-  let generate_update env c =
-    let name = Lang.Fun.id env.lfun ^ "_update_" ^ Chunk.name c in
+  let generate_update prefix env c =
+    let name = prefix ^ "_update_" ^ Chunk.name c in
     let q = e_var (Lang.freshvar ~basename:"q" (Chunk.key_of_chunk c)) in
     let v = e_var (Lang.freshvar ~basename:"v" (Chunk.val_of_chunk c)) in
     let phi = e_fun env.lfun (env.params @ env.memories) in
@@ -424,8 +447,8 @@ struct
       l_cluster = cluster_memory () ;
     }
 
-  let generate_eqmem env c =
-    let name = Lang.Fun.id env.lfun ^ "_eqmem_" ^ Chunk.name c in
+  let generate_eqmem prefix env c =
+    let name = prefix  ^ "_eqmem_" ^ Chunk.name c in
     let q = e_var (Lang.freshvar ~basename:"q" (Chunk.key_of_chunk c)) in
     let k = e_var (Lang.freshvar ~basename:"k" L.Int) in
     let phi = e_fun env.lfun (env.params @ env.memories) in
@@ -446,8 +469,8 @@ struct
       l_cluster = cluster_memory () ;
     }
     
-  let generate_havoc env c =
-    let name = Lang.Fun.id env.lfun ^ "_havoc_" ^ Chunk.name c in
+  let generate_havoc prefix env c =
+    let name = prefix ^ "_havoc_" ^ Chunk.name c in
     let q = e_var (Lang.freshvar ~basename:"q" (Chunk.key_of_chunk c)) in
     let k = e_var (Lang.freshvar ~basename:"k" L.Int) in
     let phi = e_fun env.lfun (env.params @ env.memories) in
@@ -468,7 +491,7 @@ struct
       l_cluster = cluster_memory () ;
     }
 
-  let generate lfun xs cs range =
+  let generate prefix lfun xs cs range =
     let sigma = Sigma.create () in
     let xp = Lang.freshvar ~basename:"p" t_addr in
     let xs = List.map Lang.freshen xs in
@@ -482,9 +505,9 @@ struct
     } in
     List.iter 
       (fun chunk ->
-	 generate_update env chunk ;
-	 generate_eqmem env chunk ;
-	 generate_havoc env chunk ;
+	 generate_update prefix env chunk ;
+	 generate_eqmem prefix env chunk ;
+	 generate_havoc prefix env chunk ;
       ) cs
 
 end
@@ -496,7 +519,10 @@ module COMP = Model.Generator(Compinfo)
      type data = lfun * chunk list
 
      let generate c =
-       let lfun = Lang.generated_f "Load_%s" (Lang.comp_id c) in
+       let result = Lang.tau_of_comp c in
+       let lfun = Lang.generated_f ~result "Load_%s" (Lang.comp_id c) in
+       (** Since its a generated it is the unique name given *)
+       let prefix = Lang.Fun.debug lfun in
        let xmem,ft,sigma = signature (footprint_comp c) in
        let xloc = Lang.freshvar ~basename:"p" t_addr in
        let loc = e_var xloc in
@@ -504,15 +530,15 @@ module COMP = Model.Generator(Compinfo)
 	 (fun f ->
 	    Cfield f , !loadrec sigma (object_of f.ftype) (field loc f)
 	 ) c.cfields in
-       let dfun = Definitions.Value( Lang.tau_of_comp c , Def , e_record def ) in
+       let dfun = Definitions.Value( result , Def , e_record def ) in
        Definitions.define_symbol {
 	 d_lfun = lfun ; d_types = 0 ;
 	 d_params = xloc :: xmem ;
 	 d_definition = dfun ;
 	 d_cluster = cluster_memory () ;
        } ; 
-       let range = e_int64 (size_of_comp c) in
-       MONOTONIC.generate lfun [] ft (fun _ -> range) ;
+       let range = e_int (size_of_comp c) in
+       MONOTONIC.generate prefix lfun [] ft (fun _ -> range) ;
        lfun , ft
 
      let compile = Lang.local generate
@@ -526,10 +552,11 @@ module ARRAY = Model.Generator(Matrix.NATURAL)
      type data = lfun * chunk list
 
      let generate (obj,ds) =
-       let lfun = Lang.generated_f "Array%s_%s" 
-	 (Matrix.id ds) (Matrix.natural_id obj) 
-       in
-       let axiom = Fun.id lfun ^ "_access" in
+       let result = Matrix.tau obj ds in
+       let lfun = Lang.generated_f ~result "Array%s_%s" 
+	 (Matrix.id ds) (Matrix.natural_id obj) in
+       let prefix = Lang.Fun.debug lfun in
+       let axiom = prefix ^ "_access" in
        let xmem,ft,sigma = signature (footprint obj) in
        let xloc = Lang.freshvar ~basename:"p" t_addr in
        let loc = e_var xloc in
@@ -542,7 +569,7 @@ module ARRAY = Model.Generator(Matrix.NATURAL)
        Definitions.define_symbol {
 	 d_lfun = lfun ; d_types = 0 ; 
 	 d_params = xloc :: denv.size_var @ xmem ;
-	 d_definition = Logic (Matrix.tau obj ds) ;
+	 d_definition = Logic result ;
 	 d_cluster = cluster ;
        } ;
        Definitions.define_lemma {
@@ -554,7 +581,7 @@ module ARRAY = Model.Generator(Matrix.NATURAL)
 	 l_cluster = cluster ;
        } ;
        if denv.monotonic then 
-	 MONOTONIC.generate lfun denv.size_var ft F.e_prod ;
+	 MONOTONIC.generate prefix lfun denv.size_var ft F.e_prod ;
        lfun , ft
 
      let compile = Lang.local generate
@@ -611,24 +638,22 @@ struct
     | I i -> Ctypes.pp_int fmt i
     | F f -> Ctypes.pp_float fmt f
 
-  let is_one n = (Int64.compare n Int64.one = 0)
-
   let eqatom a1 a2 =
     match a1 , a2 with
       | P _ , P _ -> true
       | _ -> (a1 = a2)
 	  
   type block = 
-    | Str of atom * int64
-    | Arr of layout * int64 (* non-homogeneous, more than one *)
+    | Str of atom * int
+    | Arr of layout * int (* non-homogeneous, more than one *)
     | Garbled
 
   and layout = block list
 
   let rec pp_block fmt = function
-    | Str(a,n) when is_one n -> pp_atom fmt a
-    | Str(a,n) -> Format.fprintf fmt "%a[%s]" pp_atom a (Int64.to_string n)
-    | Arr(ly,n) -> Format.fprintf fmt "%a[%s]" pp_layout ly (Int64.to_string n)
+    | Str(a,n) when n=1 -> pp_atom fmt a
+    | Str(a,n) -> Format.fprintf fmt "%a[%d]" pp_atom a n
+    | Arr(ly,n) -> Format.fprintf fmt "%a[%d]" pp_layout ly n
     | Garbled -> Format.fprintf fmt "..."
 	
   and pp_layout fmt = function
@@ -642,12 +667,12 @@ struct
 
   let add_atom a ly =
     match ly with
-      | Str(b,m) :: w when eqatom a b -> Str(b,Int64.succ m)::w
-      | _ -> Str(a,Int64.one) :: ly
+      | Str(b,m) :: w when eqatom a b -> Str(b,m+1)::w
+      | _ -> Str(a,1) :: ly
 	  
   let add_block p ly =
     match p , ly with
-      | Str(a,n) , Str(b,m)::w when eqatom a b -> Str(b,Int64.add n m)::w
+      | Str(a,n) , Str(b,m)::w when eqatom a b -> Str(b,n+m)::w
       | Garbled , Garbled::_ -> ly
       | _ -> p :: ly
 
@@ -655,7 +680,7 @@ struct
   let add_many ly n w =
     match ly with
       | [] -> w
-      | [Str(a,m)] -> add_block (Str(a,Int64.mul m n)) w
+      | [Str(a,m)] -> add_block (Str(a,n*m)) w
       | Garbled::_ -> add_block Garbled w
       | ly -> Arr(ly,n) :: w
 
@@ -671,13 +696,13 @@ struct
 	  add_block Garbled w
     | C_array { arr_flat = Some a } ->
 	let ly = rlayout [] (Ctypes.object_of a.arr_cell) in
-	if is_one a.arr_cell_nbr 
+	if a.arr_cell_nbr = 1
 	then ly @ w (* ly is in reversed order *)
 	else add_many (List.rev ly) a.arr_cell_nbr w
     | C_array { arr_element = e } ->
 	if Wp_parameters.ExternArrays.get () then
 	  let ly = rlayout [] (Ctypes.object_of e) in
-	  add_many (List.rev ly) Int64.max_int w
+	  add_many (List.rev ly) max_int w
 	else
 	  add_block Garbled w
 
@@ -688,7 +713,7 @@ struct
   type comparison = Fit | Equal | Mismatch
 
   let add_array ly n w = 
-    if is_one n then ly @ w else add_many ly n w
+    if n=1 then ly @ w else add_many ly n w
 
   let rec compare l1 l2 =
     match l1 , l2 with
@@ -700,14 +725,11 @@ struct
 	    | Garbled , _ | _ , Garbled -> Mismatch
 	    | Str(a,n) , Str(b,m) -> 
 		if eqatom a b then
-		  let cmp = Int64.compare n m in
-		  if cmp < 0 then
-		    (* n < m *)
-		    let w2 = Str(a,Int64.sub m n)::w2 in
+		  if n < m then
+		    let w2 = Str(a,m-n)::w2 in
 		    compare w1 w2
-		  else if cmp > 0 then
-		    (* n > m *)
-		    let w1 = Str(a,Int64.sub n m)::w1 in
+		  else if n > m then
+		    let w1 = Str(a,n-m)::w1 in
 		    compare w1 w2
 		  else
 		    (* n = m *)
@@ -717,26 +739,22 @@ struct
 		begin
 		  match compare u v with
 		    | Mismatch -> Mismatch
-		    | Fit -> 
-			if is_one n then Fit else Mismatch
+		    | Fit -> if n=1 then Fit else Mismatch
 		    | Equal ->
-			let cmp = Int64.compare n m in
-			if cmp < 0 then
-			  (* n < m *)
-			  let w2 = add_array v (Int64.sub m n) w2 in
+			if n < m then
+			  let w2 = add_array v (m-n) w2 in
 			  compare w1 w2
-			else if cmp > 0 then
-			  (* n > m *)
-			  let w1 = add_array u (Int64.sub n m) w1 in
+			else if n > m then
+			  let w1 = add_array u (n-m) w1 in
 			  compare w1 w2
 			else
 			  (* n = m *)
 			  compare w1 w2
 		end
 	    | Arr(v,n) , Str _ ->
-		compare (v @ add_array v (Int64.pred n) w1) l2
+		compare (v @ add_array v (n-1) w1) l2
 	    | Str _ , Arr(v,n) ->
-		compare l1 (v @ add_array v (Int64.pred n) w2)
+		compare l1 (v @ add_array v (n-1) w2)
 
   let rec fits obj1 obj2 = 
     match obj1 , obj2 with
@@ -810,11 +828,11 @@ let havoc_range s obj l n =
        ps := F.p_call p_havoc [m1;m2;l;n] :: !ps
     ) (footprint obj) ; !ps
 
-let havoc s obj l = havoc_range s obj l (e_int64 (size_of_object obj))
+let havoc s obj l = havoc_range s obj l (e_int (size_of_object obj))
 
 let eqmem s obj l = 
   let ps = ref [] in
-  let n = e_int64 (size_of_object obj) in
+  let n = e_int (size_of_object obj) in
   Heap.Set.iter
     (fun c ->
        let m1 = Sigma.value s.pre c in
@@ -865,7 +883,7 @@ let assigned s obj = function
       let hs = equal_loc s obj l in
       List.map (fun h -> p_forall xs (p_or p h)) hs
   | Sarray(l,obj,n) ->
-      assigned_range s obj l (e_zero) (e_int64 (Int64.pred n))
+      assigned_range s obj l (e_zero) (e_int (n-1))
   | Srange(l,obj,u,v) -> 
       let a = match u with Some a -> a | None -> e_zero in
       let b = match v with Some b -> b | None -> get_last s.pre l in
@@ -902,9 +920,9 @@ let access acs l = match acs with
   | RD -> p_true
 
 let valid sigma acs = function
-  | Rloc(obj,l) -> s_valid sigma acs l (e_int64 (size_of_object obj))
+  | Rloc(obj,l) -> s_valid sigma acs l (e_int (size_of_object obj))
   | Rarray(l,obj,s) ->
-      let n = e_fact (size_of_object obj) (e_int64 s) in
+      let n = e_fact (size_of_object obj) (e_int s) in
       s_valid sigma acs l n
   | Rrange(l,obj,Some a,Some b) ->
       let l = shift l obj a in
@@ -928,9 +946,9 @@ let allocates spost xs a =
       List.fold_left
 	(fun m x -> 
 	   let size = match a with
-	     | FREE -> Int64.zero 
+	     | FREE -> 0
 	     | ALLOC -> size_of_typ x.vtype 
-	   in F.e_set m (BASE.get x) (e_int64 size))
+	   in F.e_set m (BASE.get x) (e_int size))
 	(Sigma.value spre T_alloc) xs in
     spre , [ p_equal (Sigma.value spost T_alloc) alloc ]
 
@@ -960,9 +978,9 @@ type range =
 
 let range = function
   | Rloc(obj,l) -> 
-      LOC( l , e_int64 (size_of_object obj) )
+      LOC( l , e_int (size_of_object obj) )
   | Rarray(l,obj,n) ->
-      let n = e_fact (size_of_object obj) (e_int64 n) in
+      let n = e_fact (size_of_object obj) (e_int n) in
       LOC( l , n )
   | Rrange(l,obj,Some a,Some b) ->
       let l = shift l obj a in

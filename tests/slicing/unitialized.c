@@ -4,8 +4,8 @@
    OPT: -check -slice-assert main -journal-disable -then-on 'Slicing export' -print
    OPT: -check -slice-return g -journal-disable -then-on 'Slicing export' -print
  */
-
-#include "share/libc/stdio.h"
+//@ assigns \result \from \nothing;
+int printf(const char*, ...);
 
 int X1, X2 ;
 void f1() {

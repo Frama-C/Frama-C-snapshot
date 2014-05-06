@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -24,9 +24,6 @@
 open Cabs
 open Metrics_base
 open Metrics_base.BasicMetrics
-open Metrics_parameters
-;;
-
 
 class metricsCabsVisitor = object(self)
   inherit Cabsvisit.nopCabsVisitor
@@ -81,7 +78,7 @@ class metricsCabsVisitor = object(self)
     );
     local_metrics := empty_metrics;
 
-  method vdef def =
+  method! vdef def =
     match def with
       | FUNDEF (_, sname, _, _, _) ->
         begin
@@ -91,7 +88,7 @@ class metricsCabsVisitor = object(self)
               cfile_name = get_filename def;
               cfunc_name = funcname;
               cfuncs = 1; (* Only one function is indeed being defined here *)};
-          Metrics.debug
+          Metrics_parameters.debug
             ~level:1 "Definition of function %s encountered@." funcname;
           apply_then_set incr_funcs global_metrics;
           self#add_to_functions_with_source funcname;
@@ -115,7 +112,7 @@ class metricsCabsVisitor = object(self)
       | CUSTOM _
       | GLOBANNOT _ -> Cil.DoChildren;
 
-  method vexpr expr =
+  method! vexpr expr =
     (match expr.expr_node with
       | NOTHING -> ()
       | UNARY (unop, _) ->
@@ -175,7 +172,7 @@ class metricsCabsVisitor = object(self)
       | DEFAULT _
       | _ -> was_case := false
 
-  method vstmt stmt =
+  method! vstmt stmt =
     self#incr_both_metrics incr_slocs;
     (match stmt.stmt_node with
       | DEFAULT _ -> () (* The default case is not counted as a path choice
@@ -216,7 +213,7 @@ class metricsCabsVisitor = object(self)
     try Datatype.String.Map.find filename metrics_map
     with
       | Not_found ->
-        Metrics.fatal "Metrics for file %s not_found@." filename
+        Metrics_parameters.fatal "Metrics for file %s not_found@." filename
 
   method pp_file_metrics fmt filename =
     Format.fprintf fmt "@[<v 0>%a@]"
@@ -295,7 +292,7 @@ class halsteadCabsVisitor = object(self)
     update_val_incr "(" operator_tbl.otherop_tbl;
     update_val_incr ")" operator_tbl.otherop_tbl;
 
-  method vexpr e =
+  method! vexpr e =
     match e.Cabs.expr_node with
       | UNARY _ ->
         let unop = fst (Cprint.get_operator e) in
@@ -335,7 +332,7 @@ class halsteadCabsVisitor = object(self)
       | _ -> Cil.DoChildren;
 
 
-  method vstmt s =
+  method! vstmt s =
     let reserved rstr =
       update_val_incr rstr operator_tbl.reserved_tbl;
       Cil.DoChildren;
@@ -391,11 +388,11 @@ class halsteadCabsVisitor = object(self)
         reserved "try";
       | _ -> Cil.DoChildren;
 
-  method vtypespec tspec =
+  method! vtypespec tspec =
     update_val_incr tspec operator_tbl.tspec_tbl;
     Cil.DoChildren;
 
-  method vspec spec =
+  method! vspec spec =
     let reserved rstr =
       update_val_incr rstr operator_tbl.reserved_tbl;
     in
@@ -413,7 +410,7 @@ class halsteadCabsVisitor = object(self)
         | _ -> ()
     in List.iter do_spec spec; Cil.DoChildren;
 
-  method vdecltype tdecl =
+  method! vdecltype tdecl =
     match tdecl with
       | JUSTBASE ->
         Cil.SkipChildren;
@@ -430,7 +427,7 @@ class halsteadCabsVisitor = object(self)
         Cil.SkipChildren;
 
 
-  method vinitexpr ie =
+  method! vinitexpr ie =
     ( match ie with
       | COMPOUND_INIT l ->
         let n = List.length l in
@@ -439,7 +436,7 @@ class halsteadCabsVisitor = object(self)
       | _ -> ());
     Cil.DoChildren
 
-  method vblock b =
+  method! vblock b =
     if b.bstmts <> [] then (
       let n = List.length b.bstmts in
       update_val n ";" operator_tbl.otherop_tbl);
@@ -447,7 +444,7 @@ class halsteadCabsVisitor = object(self)
       update_val (List.length b.battrs) "," operator_tbl.otherop_tbl;
     Cil.DoChildren;
 
-  method vdef d =
+  method! vdef d =
     match d with
       | FUNDEF (bl, (_, (fname, dtype, _, nloc)), b, loc1, loc2) ->
         Cil.ChangeDoChildrenPost(
@@ -624,8 +621,7 @@ let compute_metrics () =
   List.iter (fun file ->
     ignore (Cabsvisit.visitCabsFile (cabs_visitor:>Cabsvisit.cabsVisitor) file))
     cabs_files ;
-  Metrics.result "%a" pp_metrics cabs_visitor;
-;;
+  Metrics_parameters.result "%a" pp_metrics cabs_visitor
 
 let get_metrics () =
   let cabs_files = Ast.UntypedFiles.get () in
@@ -643,18 +639,26 @@ let compute_on_cabs () =
     let cabs_files = Ast.UntypedFiles.get () in
     let cabs_visitor = new metricsCabsVisitor in
     List.iter (fun file ->
-      Metrics.debug ~level:2 "Compute Cabs metrics for file %s@." (fst file);
-      ignore (Cabsvisit.visitCabsFile (cabs_visitor:>Cabsvisit.cabsVisitor) file);
+      Metrics_parameters.debug
+	~level:2 "Compute Cabs metrics for file %s@." (fst file);
+      ignore
+	(Cabsvisit.visitCabsFile (cabs_visitor:>Cabsvisit.cabsVisitor) file);
     )
       cabs_files
     ;
     if Metrics_parameters.ByFunction.get () then
-    Metrics.result "@[<v 0>Cabs:@ %a@]" cabs_visitor#pp_detailed_text_metrics ();
+    Metrics_parameters.result
+      "@[<v 0>Cabs:@ %a@]" cabs_visitor#pp_detailed_text_metrics ();
     Halstead.compute_metrics ();
   with
     | Ast.NoUntypedAst ->
-      Metrics.warning
+      Metrics_parameters.warning
         "@[<v 0> Project has no untyped AST. Only metrics over normalized CIL \
                  AST are available. \
          @]@."
-    ;;
+
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

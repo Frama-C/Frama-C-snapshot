@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -40,4 +40,11 @@ module PrintProperties =
       let option_name = "-report-print-properties"
       let help = "print not only the locations, but also the \
                              properties themselves"
+     end)
+
+module Untried =
+  False
+    (struct
+      let option_name = "-report-untried"
+      let help = "display properties which no plug-in tried to prove"
      end)

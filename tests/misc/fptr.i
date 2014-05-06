@@ -1,7 +1,7 @@
 /* run.config
    GCC:
-   OPT: -memory-footprint 1 -val -deps -out  -journal-disable
-   OPT: -memory-footprint 1 -val -deps -out -main main_uninit -journal-disable -inout-callwise
+   OPT: -val -deps -out  -journal-disable
+   OPT: -val -deps -out -main main_uninit -journal-disable -inout-callwise
 */
 int R=77;
 

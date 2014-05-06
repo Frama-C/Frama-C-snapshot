@@ -9,7 +9,8 @@ int f(int x) { return x; }
 
 int g(int y) { return f(2*y); }
 
-#include "share/libc/stdio.h"
+//@ assigns \result \from \nothing;
+int printf(const char*, ...);
 
 int main (int argc, char * argv[]) {
   int i;

@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -24,59 +24,63 @@
 
 open Cil_types
 open Cil
-open Cil_datatype
 open Visitor
 
 let dkey = Kernel.register_category "ulevel"
 
-let extract_from_pragmas s times =
-  let annot = Annotations.code_annot s in
-  let pragmas = Logic_utils.extract_loop_pragma annot in
-    
-  let get_nb_times (found_times,_ as elt) p =
-    let get_nb_times _ spec = match spec with
-      | {term_type=typ}  when Logic_typing.is_integral_type typ ->
-	  if found_times then 
-	    (Kernel.warning ~once:true ~current:true
-	       "ignoring unrolling directive (directive already defined)";
-	     raise Not_found)
-	  else
-	    (try 
-	       begin
-		 match isInteger (Cil.constFold true (!Db.Properties.Interp.term_to_exp None spec)) with
-		   | Some i -> 
-		       Some (Integer.to_int i)
-		   | None -> Kernel.warning ~once:true ~current:true
-		       "ignoring unrolling directive (not a constant expression)";
-		       raise Not_found
-	       end
-	     with Invalid_argument s -> 
-	       Kernel.warning ~once:true ~current:true
-		 "ignoring unrolling directive (%s)" s;
-	       raise Not_found)
-      | _ -> None
-    in match p with
-      | Unroll_specs specs ->
-	  (try 
-	     begin
-	       match List.fold_left get_nb_times None specs with
-		 | Some i -> true, i
-		 | None -> elt
-	     end
-	   with Not_found -> elt)
-      | _ ->
-	  elt 
+type loop_pragmas_info =
+  { unroll_number: int option;
+    total_unroll: Emitter.t option;
+    ignore_unroll: bool }
+
+let empty_info =
+  { unroll_number = None; total_unroll = None; ignore_unroll = false }
+
+let update_info emitter info spec =
+  match spec with
+    | {term_type=typ}  when Logic_typing.is_integral_type typ ->
+      if Extlib.has_some info.unroll_number && not info.ignore_unroll then begin
+	Kernel.warning ~once:true ~current:true
+	  "ignoring unrolling directive (directive already defined)";
+        info
+      end else begin
+	try
+	  begin
+            let i =
+              Cil.constFold true(!Db.Properties.Interp.term_to_exp None spec)
+            in
+	    match isInteger i with
+	      | Some i -> { info with unroll_number = Some (Integer.to_int i) }
+	      | None ->
+                Kernel.warning ~once:true ~current:true
+		  "ignoring unrolling directive (not a constant expression)";
+                info
+	  end
+	with Invalid_argument s -> 
+	  Kernel.warning ~once:true ~current:true
+	    "ignoring unrolling directive (%s)" s;
+	  info
+      end
+    | {term_node=TConst (LStr "done") } -> { info with ignore_unroll = true }
+    | {term_node=TConst (LStr "completely") } ->
+      if Extlib.has_some info.total_unroll then begin
+        Kernel.warning ~once:true ~current:true
+          "found two total unroll pragmas";
+        info
+      end else { info with total_unroll = Some emitter }
+    | _ -> info
+
+let extract_from_pragmas s =
+  let filter _ a = Logic_utils.is_loop_pragma a in
+  let pragmas = Annotations.code_annot_emitter ~filter s in
+  let get_infos info (a,e) =
+    match a.annot_content with
+      | APragma (Loop_pragma (Unroll_specs specs)) ->
+        List.fold_left (update_info e) info specs
+      | APragma (Loop_pragma _) -> info
+      | _ -> assert false (* should have been filtered above. *)
   in 
-  let times = snd (List.fold_left get_nb_times (false, times) pragmas) 
-  in
-  let is_total_unrolling spec = match spec with
-    | {term_node=TConst (LStr "completely") } -> true
-    | _ -> false
-  in
-  let is_total_unrolling = function
-    | Unroll_specs specs -> List.exists is_total_unrolling specs
-    | _ -> false 
-  in times, (List.exists is_total_unrolling pragmas) 
+  List.fold_left get_infos empty_info pragmas
 
 let fresh_label =
   let counter = ref (-1) in
@@ -106,7 +110,7 @@ let refresh_vars new_var old_var =
   let assoc = List.combine old_var new_var in
   let visit = object
     inherit Visitor.frama_c_inplace
-    method vvrbl vi =
+    method! vvrbl vi =
       try ChangeTo (snd (List.find (fun (x,_) -> x.vid = vi.vid) assoc))
       with Not_found -> SkipChildren
   end
@@ -117,7 +121,7 @@ let update_gotos sid_tbl block =
   let goto_updater =
   object
     inherit nopCilVisitor
-    method vstmt s = match s.skind with
+    method! vstmt s = match s.skind with
       | Goto(sref,_loc) ->
           (try (* A deep copy has already be done. Just modifies the reference in place. *)
              let new_stmt = Cil_datatype.Stmt.Map.find !sref sid_tbl in
@@ -126,13 +130,12 @@ let update_gotos sid_tbl block =
 	  DoChildren
       | _ -> DoChildren
    (* speed up: skip non interesting subtrees *)
-   method vvdec _ = SkipChildren (* via visitCilFunction *)
-   method vspec _ = SkipChildren (* via visitCilFunction *)
-   method vcode_annot _ = SkipChildren (* via Code_annot stmt *)
-   method vloop_annot _ = SkipChildren (* via Loop stmt *)
-   method vexpr _ = SkipChildren (* via stmt such as Return, IF, ... *)
-   method vlval _ = SkipChildren (* via stmt such as Set, Call, Asm, ... *)
-   method vattr _ = SkipChildren (* via Asm stmt *)
+   method! vvdec _ = SkipChildren (* via visitCilFunction *)
+   method! vspec _ = SkipChildren (* via visitCilFunction *)
+   method! vcode_annot _ = SkipChildren (* via Code_annot stmt *)
+   method! vexpr _ = SkipChildren (* via stmt such as Return, IF, ... *)
+   method! vlval _ = SkipChildren (* via stmt such as Set, Call, Asm, ... *)
+   method! vattr _ = SkipChildren (* via Asm stmt *)
   end
   in visitCilBlock (goto_updater:>cilVisitor) block
 
@@ -140,7 +143,7 @@ let is_referenced stmt l =
   let module Found = struct exception Found end in
   let vis = object
     inherit Visitor.frama_c_inplace
-    method vlogic_label l =
+    method! vlogic_label l =
       match l with
 	| StmtLabel s when !s == stmt -> raise Found.Found
 	| _ -> DoChildren
@@ -152,11 +155,11 @@ let is_referenced stmt l =
   with Found.Found -> true
 
 (* Deep copy of annotations taking care of labels into annotations. *)
-let copy_annotations kf assoc labelled_stmt_tbl (stmt_src,stmt_dst) =
+let copy_annotations kf assoc labelled_stmt_tbl (break_continue_must_change, stmt_src,stmt_dst) =
   let fresh_annotation a =
     let visitor = object
       inherit Visitor.frama_c_copy (Project.current())
-      method vlogic_var_use vi =
+      method! vlogic_var_use vi =
 	match vi.lv_origin with
             None -> SkipChildren
           | Some vi ->
@@ -171,10 +174,10 @@ let copy_annotations kf assoc labelled_stmt_tbl (stmt_src,stmt_dst) =
                        local var %s"
                       vi.vname
             end
-      method vlogic_label (label:logic_label) =
+      method! vlogic_label (label:logic_label) =
 	match label with
 	| StmtLabel (stmt) -> 
-	    (try (* A deep copy has already be done. 
+	    (try (* A deep copy has already been done. 
 		    Just modifies the reference in place. *)
                let new_stmt = Cil_datatype.Stmt.Map.find !stmt labelled_stmt_tbl
 	       in ChangeTo (StmtLabel (ref new_stmt))
@@ -184,14 +187,50 @@ let copy_annotations kf assoc labelled_stmt_tbl (stmt_src,stmt_dst) =
     end
     in visitCilCodeAnnotation (visitor:>cilVisitor) (Logic_const.refresh_code_annotation a) 
   in
+  let filter_annotation a = (* Special cases for some "breaks" and "continues" clauses. *)
+    (* Note: it would be preferable to do that job in the visitor of 'fresh_annotation'... *) 
+    Kernel.debug ~dkey
+      "Copying an annotation to stmt %d from stmt %d@."
+      stmt_dst.sid stmt_src.sid;
+    (* TODO: transforms 'breaks' and 'continues' clauses into unimplemented
+       'gotos' clause (still undefined clause into ACSL!). *)
+    (* WORKS AROUND: since 'breaks' and 'continues' clauses have not be preserved
+       into the unrolled stmts, and are not yet transformed into 'gotos' (see. TODO), 
+       they are not copied. *)
+    match break_continue_must_change, a  with
+    | (None, None), _ -> Some a (* 'breaks' and 'continues' can be kept *)
+    | _, { annot_content=AStmtSpec (s,spec) } -> 
+      let filter_post_cond = function
+	| Breaks, _  when (fst break_continue_must_change) != None  -> 
+	    Kernel.debug ~dkey "Uncopied 'breaks' clause to stmt %d@." stmt_dst.sid;
+	    false
+	| Continues, _ when (snd break_continue_must_change) != None -> 
+	    Kernel.debug ~dkey "Uncopied 'continues' clause to stmt %d@." stmt_dst.sid;
+	    false
+	| _ -> true in
+      let filter_behavior acc bhv = 
+	let bhv = { bhv with b_post_cond = List.filter filter_post_cond bhv.b_post_cond }  in 
+	  (* The default behavior cannot be removed if another behavior remains... *)
+	if (Cil.is_empty_behavior bhv) &&  not (Cil.is_default_behavior bhv) then acc
+	else bhv::acc
+      in
+      let filter_behaviors bhvs =  
+	(*... so the default behavior is removed there if it is alone. *)
+	match List.fold_left filter_behavior [] bhvs with
+	  | [bhv] when Cil.is_empty_behavior bhv -> []
+	  | bhvs -> List.rev bhvs
+      in
+      let spec = { spec with spec_behavior = filter_behaviors spec.spec_behavior } in
+      if Cil.is_empty_funspec spec then None (* No statement contract will be added *)
+      else Some { a with annot_content=AStmtSpec (s,spec) }
+    | _, _ -> Some a
+  in
   let new_annots =
     Annotations.fold_code_annot
       (fun emitter annot acc ->
-         Kernel.debug ~dkey
-           "Copying an annotation to stmt %d from stmt %d@."
-           stmt_dst.sid stmt_src.sid;
-         let new_annot = fresh_annotation annot in
-         (emitter, new_annot) :: acc)
+         match filter_annotation annot with
+	   | None -> acc
+	   | Some filtred_annot -> (emitter, fresh_annotation filtred_annot) :: acc)
       stmt_src
       []
   in
@@ -203,11 +242,11 @@ let update_loop_current kf loop_current block =
   let vis = object(self)
     inherit Visitor.frama_c_inplace
     initializer self#set_current_kf kf
-    method vlogic_label =
+    method! vlogic_label =
       function
 	| LogicLabel(_,"LoopCurrent") -> ChangeTo (StmtLabel (ref loop_current))
 	| _ -> DoChildren
-    method vstmt_aux s =
+    method! vstmt_aux s =
       match s.skind with
 	| Loop _ -> SkipChildren (* loop init and current are not the same here. *)
 	| _ -> DoChildren
@@ -218,11 +257,11 @@ let update_loop_entry kf loop_entry stmt =
   let vis = object(self)
     inherit Visitor.frama_c_inplace
     initializer self#set_current_kf kf
-    method vlogic_label =
+    method! vlogic_label =
       function
 	| LogicLabel(_,"LoopEntry") -> ChangeTo (StmtLabel (ref loop_entry))
 	| _ -> DoChildren
-    method vstmt_aux s =
+    method! vstmt_aux s =
       match s.skind with
 	| Loop _ -> SkipChildren (* loop init and current are not the same here. *)
 	| _ -> DoChildren
@@ -236,11 +275,12 @@ let copy_block kf break_continue_must_change bl =
   let fundec = 
     try Kernel_function.get_definition kf
     with Kernel_function.No_Definition -> assert false
-  and annotated_stmts = ref []
-  and labelled_stmt_tbl = Stmt.Map.empty
-  and calls_tbl = Stmt.Map.empty
+  and annotated_stmts = ref [] (* for copying the annotations later. *) 
+  and labelled_stmt_tbl = Cil_datatype.Stmt.Map.empty
+  and calls_tbl = Cil_datatype.Stmt.Map.empty
   in
-  let rec copy_stmt break_continue_must_change labelled_stmt_tbl calls_tbl stmt =
+  let rec copy_stmt
+      break_continue_must_change labelled_stmt_tbl calls_tbl stmt =
     let result =
       { labels = []; 
         sid = Sid.next (); 
@@ -253,7 +293,7 @@ let copy_block kf break_continue_must_change bl =
       if stmt.labels = [] then
         [], labelled_stmt_tbl
       else
-        let new_tbl = Stmt.Map.add stmt result labelled_stmt_tbl
+        let new_tbl = Cil_datatype.Stmt.Map.add stmt result labelled_stmt_tbl
         and new_labels =
           List.fold_left
             (fun lbls -> function
@@ -270,7 +310,7 @@ let copy_block kf break_continue_must_change bl =
       in new_labels, new_tbl
     in
     let new_calls_tbl = match stmt.skind with
-      | Instr(Call _) -> Stmt.Map.add stmt result calls_tbl
+      | Instr(Call _) -> Cil_datatype.Stmt.Map.add stmt result calls_tbl
       | _ -> calls_tbl
     in
     let new_stmkind,new_labelled_stmt_tbl, new_calls_tbl =
@@ -284,7 +324,7 @@ let copy_block kf break_continue_must_change bl =
 	Kernel.debug ~dkey 
           "Found an annotation to copy for stmt %d from stmt %d@."
           result.sid stmt.sid;
-	annotated_stmts := (stmt,result) :: !annotated_stmts;
+	annotated_stmts := (break_continue_must_change, stmt,result) :: !annotated_stmts;
       end;
     result, new_labelled_stmt_tbl, new_calls_tbl
 
@@ -306,7 +346,7 @@ let copy_block kf break_continue_must_change bl =
         CurrentLoc.set loc;
         let new_block,labelled_stmt_tbl,calls_tbl =
           copy_block
-            None (* from now on break and continue can be kept *)
+            (None, None) (* from now on break and continue can be kept *)
             labelled_stmt_tbl
             calls_tbl
             bl
@@ -319,7 +359,8 @@ let copy_block kf break_continue_must_change bl =
         Block (new_block),labelled_stmt_tbl,calls_tbl
       | UnspecifiedSequence seq ->
           let change_calls lst calls_tbl =
-            List.map (fun x -> ref (Stmt.Map.find !x calls_tbl)) lst
+            List.map
+              (fun x -> ref (Cil_datatype.Stmt.Map.find !x calls_tbl)) lst
           in
           let new_seq,labelled_stmt_tbl,calls_tbl =
             List.fold_left
@@ -336,23 +377,26 @@ let copy_block kf break_continue_must_change bl =
           UnspecifiedSequence (List.rev new_seq),labelled_stmt_tbl,calls_tbl
       | Break loc ->
           (match break_continue_must_change with
-           | None -> stkind
-           | Some (brk_lbl_stmt,_) -> Goto ((ref brk_lbl_stmt),loc)),
+           | None, _ -> stkind (* kept *)
+           | (Some (brk_lbl_stmt)), _ -> Goto ((ref brk_lbl_stmt),loc)),
           labelled_stmt_tbl,
         calls_tbl
       | Continue loc ->
           (match break_continue_must_change with
-           | None -> stkind
-           | Some (_,continue_lbl_stmt) ->
+           | _,None -> stkind (* kept *)
+           | _,(Some (continue_lbl_stmt)) ->
                Goto ((ref continue_lbl_stmt),loc)),
           labelled_stmt_tbl,
           calls_tbl
       | Switch (e,block,stmts,loc) ->
-          (* from now on break and continue can be kept *)
+          (* from now on break only can be kept *)
         let new_block,new_labelled_stmt_tbl,calls_tbl =
-          copy_block None labelled_stmt_tbl calls_tbl block
+          copy_block (None, (snd break_continue_must_change)) labelled_stmt_tbl calls_tbl block
         in
-        let stmts' = List.map (fun s -> Stmt.Map.find s new_labelled_stmt_tbl) stmts in
+        let stmts' =
+          List.map
+            (fun s -> Cil_datatype.Stmt.Map.find s new_labelled_stmt_tbl) stmts
+        in
         Switch(e,new_block,stmts',loc),new_labelled_stmt_tbl,calls_tbl
       | TryFinally _ | TryExcept _ -> assert false
 
@@ -385,10 +429,12 @@ let copy_block kf break_continue_must_change bl =
   List.iter (copy_annotations kf !assoc labelled_stmt_tbl) !annotated_stmts ;
   update_gotos labelled_stmt_tbl new_block
 
-(* Update to take into account annotations*)
-class do_it (emitter,(times:int)) = object(self)
-  inherit Visitor.frama_c_inplace
+let ast_has_changed = ref false
 
+(* Update to take into account annotations*)
+class do_it ((force:bool),(times:int)) = object(self)
+  inherit Visitor.frama_c_inplace
+    initializer ast_has_changed := false;
   (* We sometimes need to move labels between statements. This table
      maps the old statement to the new one *)
   val moved_labels = Cil_datatype.Stmt.Hashtbl.create 17
@@ -399,25 +445,32 @@ class do_it (emitter,(times:int)) = object(self)
 
   method get_file_has_unrolled_loop () = file_has_unrolled_loop ;
 
-  method vfunc fundec =
+  method! vfunc fundec =
     assert (gotos = []) ;
     assert (not has_unrolled_loop) ;
     let post_goto_updater =
       (fun id -> 
-	 if has_unrolled_loop then
-	   List.iter (fun s -> match s.skind with Goto(sref,_loc) ->
-			(try 
-			   let new_stmt = Cil_datatype.Stmt.Hashtbl.find moved_labels !sref in
-			     sref := new_stmt
-			 with Not_found -> ())
-			| _ -> assert false) gotos ;
+	 if has_unrolled_loop then begin
+	   List.iter
+             (fun s -> match s.skind with Goto(sref,_loc) ->
+	       (try 
+		  let new_stmt =
+                    Cil_datatype.Stmt.Hashtbl.find moved_labels !sref
+                  in
+		  sref := new_stmt
+		with Not_found -> ())
+	       | _ -> assert false)
+             gotos;
+           File.must_recompute_cfg id;
+           ast_has_changed:=true
+         end;
 	 has_unrolled_loop <- false ;
 	 gotos <- [] ;
 	 Cil_datatype.Stmt.Hashtbl.clear moved_labels ;
 	 id) in
       ChangeDoChildrenPost (fundec, post_goto_updater)
 
-  method vstmt_aux s = match s.skind with
+  method! vstmt_aux s = match s.skind with
   | Goto _ -> 
       gotos <- s::gotos; (* gotos that may need to be updated *)
       DoChildren
@@ -440,8 +493,10 @@ class do_it (emitter,(times:int)) = object(self)
       in
       ChangeDoChildrenPost (s, update)
   | Loop _ ->
-    let number, is_total_unrolling = extract_from_pragmas s times 
-    in
+    let infos = extract_from_pragmas s in
+    let number = Extlib.opt_conv times infos.unroll_number in
+    let total_unrolling = infos.total_unroll in
+    let is_ignored_unrolling = not force && infos.ignore_unroll in
     let f sloop = 
       Kernel.debug ~dkey
         "Unrolling loop stmt %d (%d times) inside function %a@." 
@@ -453,6 +508,8 @@ class do_it (emitter,(times:int)) = object(self)
 	(* Note: loop annotations are kept into the remaining loops,
 	   but are not transformed into statement contracts inside the 
 	   unrolled parts. *)
+	(* Note: a goto from outside a loop to inside that loop will still 
+           goes into the remaining loop. *)
 	(* TODO: transforms loop annotations into statement contracts 
 	   inside the unrolled parts. *)
       CurrentLoc.set loc;
@@ -477,7 +534,7 @@ class do_it (emitter,(times:int)) = object(self)
         let new_block =
            copy_block
 	    (Extlib.the self#current_kf)
-            (Some (break_lbl_stmt,!current_continue))
+            ((Some break_lbl_stmt),(Some !current_continue))
             block
         in
         current_continue := mk_continue ();
@@ -504,56 +561,73 @@ class do_it (emitter,(times:int)) = object(self)
       in new_stmt
     | _ -> assert false
     in 
-    let g sloop new_stmts =
-      let annot = Logic_const.new_code_annotation (AInvariant ([],true,Logic_const.pfalse))
-      in Annotations.add_code_annot
-	   emitter ~kf:(Extlib.the self#current_kf) sloop annot;
-	new_stmts
+    let g sloop new_stmts = (* Adds "loop invariant \false;" to the remaining 
+                               loop when "completely" unrolled. *)
+      (* Note: since a goto from outside the loop to inside the loop 
+               still goes into the remaining loop...*)
+      match total_unrolling with
+        | None -> new_stmts
+        | Some emitter ->
+          let annot =
+            Logic_const.new_code_annotation
+              (AInvariant ([],true,Logic_const.pfalse))
+          in
+          Annotations.add_code_annot
+	    emitter ~kf:(Extlib.the self#current_kf) sloop annot;
+          new_stmts
     in
-    let f = if number > 0 then f else (fun s -> s) in
-    let g sloop = if is_total_unrolling then g sloop else (fun s -> s) in
-    let fg sloop = g sloop (f sloop) in
-    ChangeDoChildrenPost (s, fg)
+    let h sloop new_stmts = (* To indicate that the unrolling has been done *)
+      let specs = Unroll_specs [(Logic_const.term (TConst (LStr "done"))
+				   (Ctype Cil.charPtrType)) ;
+				Logic_const.tinteger number
+			       ] in
+      let annot =
+        Logic_const.new_code_annotation (APragma (Loop_pragma specs))
+      in
+      Annotations.add_code_annot
+        Emitter.end_user ~kf:(Extlib.the self#current_kf) sloop annot;
+      new_stmts
+    in
+    let fgh sloop = h sloop (g sloop (f sloop)) in
+    let fgh =
+      if (number > 0) && not is_ignored_unrolling then fgh else (fun s -> s)
+    in
+    ChangeDoChildrenPost (s, fgh)
 
   | _ -> DoChildren
 end
 
 (* Performs unrolling transformation without using -ulevel option.
    Do not forget to apply  [transformations_closure] afterwards. *)
-let apply_transformation nb emitter (file,recompute_cfg) =
+let apply_transformation ?(force=true) nb file =
   (* [nb] default number of unrolling used when there is no UNROLL loop pragma.
      When [nb] is negative, no unrolling is done; all UNROLL loop pragmas 
      are ignored. *)
   if nb >= 0 then
-    let visitor = new do_it (emitter, nb) in
+    let visitor = new do_it (force, nb) in
       Kernel.debug ~dkey "Using -ulevel %d option and UNROLL loop pragmas@." nb;
-      visitFramacFileSameGlobals (visitor:>Visitor.frama_c_visitor) file ;
-      file,(recompute_cfg || (visitor#get_file_has_unrolled_loop ()))
+      visitFramacFileSameGlobals (visitor:>Visitor.frama_c_visitor) file;
+      if !ast_has_changed then Ast.mark_as_changed ()
   else begin
     Kernel.debug ~dkey
-      "No unrolling is done; all UNROLL loop pragmas are ignored@.";
-    file, recompute_cfg
+      "No unrolling is done; all UNROLL loop pragmas are ignored@."
   end
-
-let transformations_closure (file,recompute_cfg) =
-  if recompute_cfg then
-    begin (* The CFG has be to recomputed *)
-      Kernel.debug ~dkey "Closure: recomputing CFG@.";
-      Cfg.clearFileCFG ~clear_id:false file;
-      Cfg.computeFileCFG file;
-      Ast.mark_as_changed ()
-    end ;
-  (file, false)
-      
-module Syntactic_transformations = Hook.Fold(struct type t = (Cil_types.file * bool) end)
-let add_syntactic_transformation = Syntactic_transformations.extend
 
 (* Performs and closes all syntactic transformations *)
 let compute file =
-  let acc = Syntactic_transformations.apply (file,false) in
   let nb = Kernel.UnrollingLevel.get () in
-    ignore (transformations_closure (apply_transformation nb Emitter.end_user acc))
-    
+  let force = Kernel.UnrollingForce.get () in
+  apply_transformation ~force nb file
+
+let unroll_transform =
+  File.register_code_transformation_category "loop unrolling"
+
+let () = 
+  File.add_code_transformation_after_cleanup 
+    ~deps:[(module Kernel.UnrollingLevel:Parameter_sig.S);
+           (module Kernel.UnrollingForce:Parameter_sig.S)]
+    unroll_transform compute
+
 (*
 Local Variables:
 compile-command: "make -C ../.."

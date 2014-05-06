@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -30,7 +30,6 @@ val divmod_assertion: (exp, unit) alarm_gen
 val signed_div_assertion: (exp * exp * exp, unit) alarm_gen
 val shift_alarm: (exp * int option, unit) alarm_gen
 val signed_shift_assertion: (exp * binop * exp * exp, unit) alarm_gen
-val unsigned_shift_assertion: (exp * exp * exp, unit) alarm_gen
 val mult_sub_add_assertion: (bool * exp * binop * exp * exp, unit) alarm_gen
 val uminus_assertion: (exp, unit) alarm_gen
 val signed_downcast_assertion: (typ * exp, bool) alarm_gen

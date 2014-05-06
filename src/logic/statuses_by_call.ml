@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -35,7 +35,7 @@ module PreCondProxyGenerated =
   State_builder.Hashtbl(Property.Hashtbl)(Datatype.List(Property))
     (struct
        let name = "Call Preconditions Generated"
-       let dependencies = [Ast.self; Property_status.self]
+       let dependencies = [Ast.self]
        let size = 97
      end)
 
@@ -43,6 +43,33 @@ module PreCondProxyGenerated =
 module PropStmt =
   Datatype.Pair_with_collections(Property)(Cil_datatype.Stmt)
     (struct let module_name = "Statuses_by_call.PropStmt" end)
+
+module FunctionPointers =
+  Cil_state_builder.Stmt_hashtbl(Kernel_function.Hptset)
+    (struct
+      let name = "Statuses_by_call.FunctionPointers"
+      let dependencies = [Ast.self]
+      let size = 37
+     end)
+
+let add_called_function stmt kf =
+  let prev =
+    try FunctionPointers.find stmt
+    with Not_found -> Kernel_function.Hptset.empty
+  in
+  let s = Kernel_function.Hptset.add kf prev in
+  FunctionPointers.replace stmt s
+
+
+let all_functions_with_preconditions stmt =
+  match stmt with
+  | { skind=Instr (Call(_,{enode = Lval (Var vkf, NoOffset)},_,_)) } ->
+    let kf = Globals.Functions.get vkf in
+    Kernel_function.Hptset.singleton kf
+  |  _ ->
+    try FunctionPointers.find stmt
+    with Not_found -> Kernel_function.Hptset.empty
+
 
 (* Map from [requires * stmt] to the specialization of the requires
    at the statement. Only present if the kernel function that contains
@@ -76,6 +103,7 @@ let rec precondition_at_call kf pid stmt =
         Kernel.debug ~source:(fst loc)
           "Adding precondition for call to %a through pointer"
           Kernel_function.pretty kf;
+        add_called_function stmt kf;
         add_call_precondition pid p
       )
     | _ -> assert false (* meaningless on a non-call statement *)
@@ -103,7 +131,7 @@ and add_call_precondition precondition call_precondition =
   Property_status.logical_consequence preconditions_emitter precondition all
 
 let fold_requires f kf acc =
-  let bhvs = Annotations.behaviors kf in
+  let bhvs = Annotations.behaviors ~populate:false kf in
   List.fold_left
     (fun acc bhv -> List.fold_left (f bhv) acc bhv.b_requires) acc bhvs
 

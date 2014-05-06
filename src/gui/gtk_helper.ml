@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -105,13 +105,11 @@ end
 
 module Configuration = struct
   include Cilconfig
-  let configuration_file =(* This is the user home directory *)
-    Filename.concat (try Sys.getenv "USERPROFILE" (*Win32*) with Not_found ->
-                       try Sys.getenv "HOME" (*Unix like*) with Not_found ->
-                         ".")
-      ".frama-c-gui.config"
-  let load () = loadConfiguration configuration_file
-  let save () = saveConfiguration configuration_file
+  let configuration_file () =
+    try Gui_parameters.Config.file ~error:false "frama-c-gui.config"
+    with Gui_parameters.Config.No_dir -> ""
+  let load () = loadConfiguration (configuration_file ())
+  let save () = saveConfiguration (configuration_file ())
   let () = Cmdline.at_normal_exit save
   let set = setConfiguration
   let find = findConfiguration
@@ -597,7 +595,7 @@ struct
     val mutable roots : (int,custom_list) H.t = H.create 19
     method private find_opt i =
       try Some (H.find roots i) with Not_found -> None
-    method custom_flags = [`LIST_ONLY]
+    method! custom_flags = [`LIST_ONLY]
     method custom_get_iter (path:Gtk.tree_path) : custom_list option =
       let indices: int array  = GTree.Path.get_indices path in
       match indices with
@@ -721,7 +719,7 @@ object (self: #host)
       fmt
 
   method private display_toplevel_error ?parent ~cancelable e =
-    Cmdline.error_occured ();
+    Cmdline.error_occurred e;
     if cancelable then Project.Undo.restore ();
     self#error ?parent "%s" (Cmdline.protect e)
 
@@ -762,14 +760,13 @@ object (self: #host)
        with
        | Log.AbortError _ as e ->
          self#display_toplevel_error ?parent ~cancelable e;
-         None
-       | _ -> assert false)
+         None)
     | e when Cmdline.catch_at_toplevel e ->
       self#display_toplevel_error ?parent ~cancelable e;
       None
     | e ->
       if Kernel.debug_atleast 1 then begin
-	Cmdline.error_occured ();
+	Cmdline.error_occurred e;
 	raise e
       end else begin
 	self#display_toplevel_error ?parent ~cancelable e;
@@ -921,7 +918,7 @@ module Custom =struct
   type ('a,'b) column = 
       ?title:string -> 'b list -> ('a -> 'b list) -> GTree.view_column
       
-  let add_column view empty data ?title renderer render =
+  let add_column (view:GTree.view) empty data ?title renderer render =
   begin
     let column = GTree.view_column ?title ~renderer:(renderer,[]) () in
     column#set_resizable true ;
@@ -932,7 +929,7 @@ module Custom =struct
 	   | None -> []
 	   | Some e -> render e in
 	 renderer#set_properties props) ;
-    view#append_column column ; 
+    ignore (view#append_column column); 
     begin
       match empty with
 	| None -> ()
@@ -1119,7 +1116,7 @@ module Custom =struct
     object
       method reload = m#reload
       inherit ['a,'a,unit,unit] GTree.custom_tree_model (new GTree.column_list)
-      method custom_flags = [`LIST_ONLY]
+      method! custom_flags = [`LIST_ONLY]
       method custom_decode_iter a () () = a
       method custom_encode_iter a = (a,(),())
 	
@@ -1282,8 +1279,12 @@ let graph_window_through_dot ~parent ~title dot_formatter =
     let fmt = Format.formatter_of_out_channel (open_out temp_file) in
     dot_formatter fmt;
     Format.pp_print_flush fmt ();
-    let view = 	snd (Dgraph.DGraphContainer.Dot.from_dot_with_commands ~packing temp_file) in
-    view in
+    let view = 
+      snd 
+        (Dgraph.DGraphContainer.Dot.from_dot_with_commands ~packing temp_file)
+    in
+    view
+  in
   try
     graph_window ~parent ~title make_view
   with Dgraph.DGraphModel.DotError _ as exn ->

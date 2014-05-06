@@ -35,8 +35,8 @@
 (*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE         *)
 (*  POSSIBILITY OF SUCH DAMAGE.                                             *)
 (*                                                                          *)
-(*  File modified by CEA (Commissariat à l'énergie atomique et aux          *)
-(*                        énergies alternatives)                            *)
+(*  File modified by CEA (Commissariat Ã  l'Ã©nergie atomique et aux          *)
+(*                        Ã©nergies alternatives)                            *)
 (*               and INRIA (Institut National de Recherche en Informatique  *)
 (*                          et Automatique).                                *)
 (****************************************************************************)
@@ -68,14 +68,14 @@ type 'a alphaTableData
  * previous occurrence. This function knows about the location implicitly 
  * from the [(Cil.CurrentLoc.get ())]. *)
 val newAlphaName: alphaTable:(string, 'a alphaTableData ref) Hashtbl.t ->
-                  undolist: 'a undoAlphaElement list ref option ->
+                  ?undolist: 'a undoAlphaElement list ref ->
                   lookupname:string -> data:'a -> string * 'a
 
 
 (** Register a name with an alpha conversion table to ensure that when later 
   * we call newAlphaName we do not end up generating this one *)
 val registerAlphaName: alphaTable:(string, 'a alphaTableData ref) Hashtbl.t -> 
-                       undolist: 'a undoAlphaElement list ref option ->
+                       ?undolist: 'a undoAlphaElement list ref ->
                        lookupname:string -> data:'a -> unit
 
 (** Split the name in preparation for newAlphaName. The prefix returned is 

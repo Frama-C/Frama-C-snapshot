@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -84,6 +84,9 @@ val pretty_bits:
   stop:Integer.t -> Format.formatter -> bool * typ option
   (** Pretty prints a range of bits in a type for the user.
       Tries to find field names and array indexes, whenever possible. *)
+
+val pretty_offset:
+  typ -> Integer.t -> Format.formatter -> unit
 
 (*
 Local Variables:

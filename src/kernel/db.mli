@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -47,7 +47,6 @@
 *)
 
 open Cil_types
-open Cil
 open Cil_datatype
 
 (* ************************************************************************* *)
@@ -146,8 +145,7 @@ end
 (* ************************************************************************* *)
 
 (** The Value analysis itself.
-    @see <../value/index.html> internal documentation. 
-    @plugin development guide *)
+    @see <../value/index.html> internal documentation. *)
 module Value : sig
 
   type state = Cvalue.Model.t
@@ -188,11 +186,6 @@ module Value : sig
     (** Table containing the state of the value analysis after the evaluation
         of each reachable and evaluable statement. Filled only if
         [Value_parameters.ResultsAfter] is set. *)
-
-  val degeneration_occurred:
-    (Cil_types.kinstr -> Cil_types.lval option -> unit) ref
-    (** This hook is called by the value analysis in the seldom
-        case a total degeneration occurs. *)
 
   val ignored_recursive_call: kernel_function -> bool
   (** This functions returns true if the value analysis found and ignored
@@ -254,7 +247,6 @@ module Value : sig
       too few or too many of them) *)
 
 
-
   (** {4 Initial state of the analysis} *)
 
   (** The functions below are related to the the value of the global variables
@@ -273,7 +265,7 @@ module Value : sig
   val globals_state : unit -> state
 
 
-  (** Returns [true] if the initial state for globals used by the value
+  (** @return [true] if the initial state for globals used by the value
       analysis has been supplied by the user (through
       [globals_set_initial_state]), or [false] if it is automatically
       computed by the value analysis *)
@@ -371,26 +363,6 @@ module Value : sig
   val access_expr : (kinstr -> exp ->  t) ref
   val access_location : (kinstr -> Locations.location ->  t) ref
 
-  (** {3 State after a kinstr} *)
-
-  val access_after : (kinstr -> lval -> t) ref
-    (** @raise Not_found if the kinstr has no accessible successors.
-        @deprecated since Carbon-20110201  Use
-          {Record_Value_After_Callbacks} or ask for a better interface if you
-        need this functionality *)
-
-  val access_location_after : (kinstr -> Locations.location -> t) ref
-    (** @raise Not_found if the kinstr has no accessible successors.
-        @deprecated since Carbon-20110201  Use
-          {Record_Value_After_Callbacks} or ask for a better interface if you
-        need this functionality *)
-
-  val lval_to_offsetmap_after :
-    (kinstr -> lval -> Cvalue.V_Offsetmap.t option) ref
-    (** @raise Not_found if the kinstr has no accessible successors.
-        @deprecated since Carbon-20110201  Use
-          {Record_Value_After_Callbacks} or ask for a better interface if you
-        need this functionality *)
 
   (** {3 Locations of left values} *)
 
@@ -428,6 +400,17 @@ module Value : sig
     (state -> lval -> Locations.Zone.t) ref
     (** Does not emit alarms. *)
 
+  val lval_to_zone_with_deps_state:
+    (state -> for_writing:bool -> deps:Locations.Zone.t option -> lval ->
+     Locations.Zone.t * Locations.Zone.t * bool) ref
+  (** [lval_to_zone_with_deps_state state ~for_writing ~deps lv] computes
+      [res_deps, zone_lv, exact], where [res_deps] are the memory zones needed
+      to evaluate [lv] in [state] joined  with [deps]. [zone_lv] contains the
+      valid memory zones that correspond to the location that [lv] evaluates
+      to in [state]. If [for_writing] is true, [zone_lv] is restricted to
+      memory zones that are writable. [exact] indicates that [lv] evaluates
+      to a valid locatio of cardinal at most one. *)
+
   (** Evaluation of the [\from] clause of an [assigns] clause.*)
   val assigns_inputs_to_zone :
     (state -> identified_term assigns -> Locations.Zone.t) ref
@@ -440,6 +423,20 @@ module Value : sig
       assigns term results in one location. *)
   val assigns_outputs_to_locations :
     (state -> result:varinfo option -> identified_term assigns -> Locations.location list) ref
+
+
+  (** {3 Evaluation of logic terms and predicates} *)
+  module Logic : sig
+  (** The APIs of this module are not stabilized yet, and are subject
+      to change between Frama-C versions. *)
+
+    val eval_predicate:
+      (pre:state -> here:state -> predicate named ->
+       Property_status.emitted_status) ref
+      (** Evaluate the given predicate in the given states for the Pre
+          and Here ACSL labels.
+	  @since Neon-20130301 *)
+  end
 
 
   (** {3 Callbacks} *)
@@ -476,14 +473,18 @@ module Value : sig
   module Call_Value_Callbacks:
     Hook.Iter_hook with type param = state * callstack
 
+  (** Actions to perform whenever a statement is handled. *)
+  module Compute_Statement_Callbacks:
+    Hook.Iter_hook with type param = stmt * callstack * state list
+
+
   (** {3 Pretty printing} *)
 
   val pretty : Format.formatter -> t -> unit
-  val pretty_state_without_null : Format.formatter -> state -> unit
   val pretty_state : Format.formatter -> state -> unit
 
-  val display : Format.formatter -> kernel_function -> unit
-  val display_globals : Format.formatter -> unit -> unit
+
+  val display : (Format.formatter -> kernel_function -> unit) ref
 
   (**/**)
   (** {3 Internal use only} *)
@@ -537,11 +538,14 @@ module From : sig
         @return true iff the analysis has been performed *)
 
   val get : (kernel_function -> Function_Froms.t) ref
-  val access : (Locations.Zone.t -> Lmap_bitwise.From_Model.t
+  val access : (Locations.Zone.t -> Function_Froms.Memory.t
                 -> Locations.Zone.t) ref
   val find_deps_no_transitivity : (stmt -> exp -> Locations.Zone.t) ref
   val find_deps_no_transitivity_state :
     (Value.state -> exp -> Locations.Zone.t) ref
+
+  val find_deps_term_no_transitivity_state :
+    (Value.state -> term -> Value_types.logic_dependencies) ref
 
   val self: State.t ref
 
@@ -550,18 +554,16 @@ module From : sig
   val pretty : (Format.formatter -> kernel_function -> unit) ref
   val display : (Format.formatter -> unit) ref
 
-  (** {3 Internal use only} *)
-
-  val update :
-    (Locations.location -> Locations.Zone.t -> Lmap_bitwise.From_Model.t
-     -> Lmap_bitwise.From_Model.t) ref
+  (** {3 Callback} *)
 
  module Record_From_Callbacks:
    Hook.Iter_hook with type param =
    Kernel_function.t Stack.t *
-     Lmap_bitwise.From_Model.t Stmt.Hashtbl.t *
-     (Kernel_function.t * Lmap_bitwise.From_Model.t) list
+     Function_Froms.Memory.t Stmt.Hashtbl.t *
+     (Kernel_function.t * Function_Froms.Memory.t) list
      Stmt.Hashtbl.t
+
+  (** {3 Access to callwise-stored data} *)
 
   module Callwise : sig
     val iter : ((kinstr -> Function_Froms.t -> unit) -> unit) ref
@@ -651,14 +653,6 @@ module Properties : sig
           the future.
           @raise Invalid_argument in some cases. *)
 
-    val identified_term_zone_to_loc:
-      (result: Cil_types.varinfo option -> Value.state ->
-       Cil_types.identified_term -> Locations.location) ref
-      (** @raise Invalid_argument in some cases.
-          @deprecated Carbon-20110201
-          use [loc_to_loc (...) x.it_content] instead
-       *)
-
     (** {3 From logic terms to Zone.t} *)
 
     module To_zone : sig
@@ -710,14 +704,6 @@ module Properties : sig
         (** Entry point to get zones needed to evaluate the list of
             [predicates] relative to the [ctx] of interpretation. *)
 
-      val from_zones:
-        (identified_term list -> t_ctx -> t_zone_info * t_decl) ref
-        (** Entry point to get zones needed to evaluate the list of
-            [predicates] relative to the [ctx] of interpretation.
-            @deprecated Carbon-20110201
-            use [from_terms (..) x.it_content] instead
-         *)
-
       val from_zone: (identified_term -> t_ctx -> t_zone_info * t_decl) ref
         (** Entry point to get zones needed to evaluate the [zone] relative to
             the [ctx] of interpretation. *)
@@ -725,11 +711,8 @@ module Properties : sig
       val from_stmt_annot:
         (code_annotation -> stmt * kernel_function
           -> (t_zone_info * t_decl) * t_pragmas) ref
-        (** Entry point to get zones needed to evaluate annotations of this
-            [stmt].
-            @deprecated Carbon-20110201
-            use [from_terms (..) x.it_content] instead
-         *)
+        (** Entry point to get zones needed to evaluate an annotation on the
+            given stmt. *)
 
       val from_stmt_annots:
         ((code_annotation -> bool) option ->
@@ -824,30 +807,6 @@ module Postdominators: PostdominatorsTypes.Sig
     @see <../postdominators/index.html> internal documentation. *)
 module PostdominatorsValue: PostdominatorsTypes.Sig
 
-
-(** Dominators plugin.
-    @see <../postdominators/index.html> internal documentation. *)
-module Dominators: sig
-  val compute: (kernel_function -> unit) ref
-
-  exception Top
-    (** Used for {!stmt_dominators} when the dominators of a statement
-        cannot be computed. It means that there is no path from the
-        entry point to this statement. *)
-
-  val stmt_dominators: (kernel_function -> stmt -> Stmt.Hptset.t) ref
-    (** @raise Top (see above) *)
-
-  val is_dominator:
-    (kernel_function -> opening:stmt -> closing:stmt -> bool) ref
-
-  val display: (unit -> unit) ref
-
-  val print_dot : (string -> kernel_function -> unit) ref
-    (** Print a representation of the dominators in a dot file
-        whose name is [basename.function_name.dot]. *)
-end
-
 (** Runtime Error Annotation Generation plugin.
     @see <../rte/index.html> internal documentation. *)
 module RteGen : sig
@@ -907,6 +866,11 @@ module Impact : sig
   val from_stmt: (stmt -> stmt list) ref
     (** Compute the impact analysis of the given statement.
         @return the impacted statements *)
+  val from_nodes:
+    (kernel_function -> PdgTypes.Node.t list -> PdgTypes.NodeSet.t) ref
+    (** Compute the impact analysis of the given set of PDG nodes,
+        that come from the given function.
+        @return the impacted nodes *)
   val slice: (stmt list -> unit) ref
     (** Slice the given statement according to the impact analysis. *)
 end
@@ -944,11 +908,6 @@ module Pdg : sig
 
   type t = PdgTypes.Pdg.t
       (** PDG type *)
-
-(* Values of type PdgIndex.Key.t are used as keys to identify elements of a function.
-          See {!module:PdgIndex.Key}
-          to know more about it and to get functions to build some keys.
-*)
 
   type t_nodes_and_undef =
       ((PdgTypes.Node.t * Locations.Zone.t option) list * Locations.Zone.t option)
@@ -1240,35 +1199,15 @@ module Pdg : sig
         @see <../pdg/index.html> PDG internal documentation. *)
 
   val pretty_node : (bool -> Format.formatter -> PdgTypes.Node.t -> unit) ref
-    (** Pretty print information on a node :
-    * with [short=true] if only print a number of the node,
-    * else it prints a bit more. *)
+    (** Pretty print information on a node : with [short=true], only the id
+        of the node is printed.. *)
 
   val pretty_key : (Format.formatter -> PdgIndex.Key.t -> unit) ref
     (** Pretty print information on a node key *)
 
   val pretty : (?bw:bool -> Format.formatter -> t -> unit) ref
     (** For debugging... Pretty print pdg information.
-    * Print codependencies rather than dependencies if [bw=true].
-    * *)
-
-(*
-  (** {3 Functors to compute marks for the PDG} *)
-
-  (** [F_FctMarks] can be used to propagate marks
-      It also provides information for an interprocedural analysis.
-      Alternatively, one can use [F_ProjMarks] below. *)
-  module F_FctMarks (M:PdgMarks.T_Mark)
-    : PdgMarks.T_Fct with type t_mark = M.t
-                      and type t_call_info = M.t_call_info
-*)
-  (* [F_ProjMarks] handle the full interprocedural propagation
-      (cf. [Pdg.Register.F_Proj]) *)
-
-                                (*
-  type 't_mark t_info_caller_inputs = 't_mark PdgMarks.t_info_caller_inputs
-  type 't_mark t_info_inter = 't_mark PdgMarks.t_info_inter
-  *)
+      Print codependencies rather than dependencies if [bw=true]. *)
 
 end
 
@@ -1277,8 +1216,7 @@ end
 module Scope : sig
   val get_data_scope_at_stmt :
     (kernel_function -> stmt -> lval ->
-       Stmt.Set.t *
-         (Stmt.Set.t * Stmt.Set.t)) ref
+       Stmt.Hptset.t * (Stmt.Hptset.t * Stmt.Hptset.t)) ref
     (**
     * @raise Kernel_function.No_Definition if [kf] has no definition.
     * @return 3 statement sets related to the value of [lval] before [stmt] :
@@ -1289,7 +1227,7 @@ module Scope : sig
 
   val get_prop_scope_at_stmt :
     (kernel_function -> stmt -> code_annotation ->
-       Stmt.Set.t * code_annotation list) ref
+       Stmt.Hptset.t * code_annotation list) ref
     (** compute the set of statements where the given annotation has the same
     * value than it has before the given stmt.
     * Also return the *)
@@ -1305,7 +1243,7 @@ module Scope : sig
 
   val get_defs :
     (kernel_function -> stmt -> lval ->
-     (Stmt.Set.t * Locations.Zone.t option) option) ref
+     (Stmt.Hptset.t * Locations.Zone.t option) option) ref
     (** @return the set of statements that define [lval] before [stmt] in [kf].
     * Also returns the zone that is possibly not defined.
     * Can return [None] when the information is not available (Pdg missing).
@@ -1327,7 +1265,7 @@ module Scope : sig
 
   type t_zones = Locations.Zone.t Stmt.Hashtbl.t
   val build_zones :
-    (kernel_function -> stmt -> lval -> Stmt.Set.t * t_zones) ref
+    (kernel_function -> stmt -> lval -> Stmt.Hptset.t * t_zones) ref
   val pretty_zones : (Format.formatter -> t_zones -> unit) ref
   val get_zones : (t_zones ->  Cil_types.stmt -> Locations.Zone.t) ref
 

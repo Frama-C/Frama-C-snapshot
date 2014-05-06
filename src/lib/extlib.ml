@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -73,6 +73,9 @@ let ($) f g x = f (g x)
 
 let swap f x y = f y x
 
+let iter_uncurry2 iter f v =
+  iter (fun a b -> f (a, b)) v
+
 (* ************************************************************************* *)
 (** {2 Lists} *)
 (* ************************************************************************* *)
@@ -87,6 +90,12 @@ let rec last = function
   | _ :: l -> last l
 
 let filter_out f ls = List.filter (fun x -> not (f x)) ls
+
+let replace cmp x l =
+  let rec aux = function
+    | [] -> [x]
+    | y::l -> if cmp x y then x::l else y :: aux l
+  in aux l
 
 let filter_map filter f l =
   let rec aux = function
@@ -219,8 +228,8 @@ let xor x y = if x then not y else y
 (** {2 Performance} *)
 (* ************************************************************************* *)
 
-external getperfcount: unit -> int = "getperfcount"
-external getperfcount1024: unit -> int = "getperfcount1024"
+external getperfcount: unit -> int = "getperfcount" "noalloc"
+external getperfcount1024: unit -> int = "getperfcount1024" "noalloc"
 
 let gentime counter ?msg f x =
   let c1 = counter () in
@@ -257,7 +266,7 @@ let _time2 name f =
     Format.eprintf "timing of %s: %d (%d)@." name !cpt diff;
     res
 
-external address_of_value: 'a -> int = "address_of_value"
+external address_of_value: 'a -> int = "address_of_value" "noalloc"
 
 (* ************************************************************************* *)
 (** {2 Exception catcher} *)
@@ -310,13 +319,21 @@ let temp_file_cleanup_at_exit ?(debug=false) s1 s2 =
         safe_remove file) ;
   file
 
-let temp_dir_cleanup_at_exit base =
+let temp_dir_cleanup_at_exit ?(debug=false) base =
   let rec try_dir_cleanup_at_exit limit base =
     let file = Filename.temp_file base ".tmp" in
     let dir = Filename.chop_extension file ^ ".dir" in
+    safe_remove file;
     try
       Unix.mkdir dir 0o700 ;
-      at_exit (fun () -> safe_remove_dir dir ; safe_remove file) ;
+      at_exit
+        (fun () ->
+          if debug then begin
+            if Sys.file_exists dir then
+              Format.printf
+                "@[[extlib] Debug flag was set: not removing dir %s@]@." dir;
+          end else
+            safe_remove_dir dir);
       dir
     with Unix.Unix_error _ ->
       if limit < 0 then
@@ -329,10 +346,10 @@ let temp_dir_cleanup_at_exit base =
   in
   try_dir_cleanup_at_exit 10 base
 
-external terminate_process: int -> unit = "terminate_process"
+external terminate_process: int -> unit = "terminate_process" "noalloc"
   (* In src/buckx/buckx_c.c *)
 
-external usleep: int -> unit = "ml_usleep"
+external usleep: int -> unit = "ml_usleep" "noalloc"
   (* In src/buckx/buckx_c.c ; man usleep for details. *)
 
 (* ************************************************************************* *)

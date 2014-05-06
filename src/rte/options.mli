@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -22,17 +22,18 @@
 
 include Plugin.S
 
-module Enabled: Plugin.Bool
+module Enabled: Parameter_sig.Bool
 
-module DoAll: Plugin.Bool
-module DoDivMod : Plugin.Bool
-module DoFloatToInt : Plugin.Bool
-module DoMemAccess : Plugin.Bool
-module DoCalledPrecond : Plugin.Bool
+module DoAll: Parameter_sig.Bool
+module DoShift : Parameter_sig.Bool
+module DoDivMod : Parameter_sig.Bool
+module DoFloatToInt : Parameter_sig.Bool
+module DoMemAccess : Parameter_sig.Bool
+module DoCalledPrecond : Parameter_sig.Bool
 
-module Trivial : Plugin.Bool
-module Warn : Plugin.Bool
-module FunctionSelection : Plugin.String_set
+module Trivial : Parameter_sig.Bool
+module Warn : Parameter_sig.Bool
+module FunctionSelection : Parameter_sig.String_set
 
 val warn: ?source:Lexing.position -> ('a, Format.formatter, unit) format -> 'a
 

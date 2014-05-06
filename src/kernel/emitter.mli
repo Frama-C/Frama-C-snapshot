@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -39,8 +39,8 @@ include Datatype.S_with_collections with type t = emitter
 val create: 
   string -> 
   kind list -> 
-  correctness:Parameter.t list -> 
-  tuning:Parameter.t list -> t
+  correctness:Typed_parameter.t list -> 
+  tuning:Typed_parameter.t list -> t
 (** [Emitter.create name kind ~correctness ~tuning] creates a new emitter with
     the given name. The given parameters are the ones which impact the generated
     annotations/status. A "correctness" parameter may fully change a generated

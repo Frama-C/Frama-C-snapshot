@@ -1,0 +1,30 @@
+(**************************************************************************)
+(*                                                                        *)
+(*  This file is part of WP plug-in of Frama-C.                           *)
+(*                                                                        *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
+(*         alternatives)                                                  *)
+(*                                                                        *)
+(*  you can redistribute it and/or modify it under the terms of the GNU   *)
+(*  Lesser General Public License as published by the Free Software       *)
+(*  Foundation, version 2.1.                                              *)
+(*                                                                        *)
+(*  It is distributed in the hope that it will be useful,                 *)
+(*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
+(*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
+(*  GNU Lesser General Public License for more details.                   *)
+(*                                                                        *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
+(*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
+(*                                                                        *)
+(**************************************************************************)
+
+(* generated automatically at developer compilation time *)
+theory Qed.Qed meta "realized_theory" "Qed.Qed", "Qed" end
+theory Cmath.Cmath meta "realized_theory" "Cmath.Cmath", "Cmath" end
+theory Cint.Cint meta "realized_theory" "Cint.Cint", "Cint" end
+theory Cbits.Cbits meta "realized_theory" "Cbits.Cbits", "Cbits" end
+theory Memory.Memory meta "realized_theory" "Memory.Memory", "Memory" end
+theory Vset.Vset meta "realized_theory" "Vset.Vset", "Vset" end
+theory Cfloat.Cfloat meta "realized_theory" "Cfloat.Cfloat", "Cfloat" end

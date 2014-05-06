@@ -2,8 +2,8 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2012                                               */
-/*    CEA (Commissariat à l'énergie atomique et aux énergies              */
+/*  Copyright (C) 2007-2014                                               */
+/*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
 /*  you can redistribute it and/or modify it under the terms of the GNU   */
@@ -19,6 +19,9 @@
 /*  for more details (enclosed in the file licenses/LGPLv2.1).            */
 /*                                                                        */
 /**************************************************************************/
+
+#ifndef MACHINE_H
+#define MACHINE_H
 
 #include "libc/__fc_machdep.h"
 
@@ -84,3 +87,5 @@ struct FRAMA_C_IO_FILE { char *content; };
 #endif
 typedef struct FRAMA_C_IO_FILE FILE;
 #endif
+
+#endif //MACHINE_H

@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -memory-footprint 1 -val -deps -out -input -absolute-valid-range 0-0xFF -journal-disable
+   OPT: -val -deps -out -input -absolute-valid-range 0-0xFF -journal-disable
 */
 
 int* T = (int*)0;

@@ -1,6 +1,6 @@
 /* run.config
    GCC:
-   OPT: -memory-footprint 1 -val -deps -deref  -journal-disable
+   OPT: -val -deps -deref  -journal-disable
 */
 int a,b,c,d,e,*p, t[10];
 

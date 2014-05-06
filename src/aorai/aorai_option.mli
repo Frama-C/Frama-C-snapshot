@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Aorai plug-in of Frama-C.                        *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -23,24 +23,22 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open Plugin
-
 include Plugin.S
 
-module Ltl_File : String
-module To_Buchi: String
-module Buchi: String
-module Ya: String
-module Output_Spec : Bool
-module Output_C_File : String
-module Dot : Bool
-module DotSeparatedLabels: Bool
-module AbstractInterpretation : Bool
-module Axiomatization : Bool
-module ConsiderAcceptance : Bool
-module AutomataSimplification : Bool
-module Test : Int
-module AddingOperationNameAndStatusInSpecification:Bool
+module Ltl_File: Parameter_sig.String
+module To_Buchi: Parameter_sig.String
+module Buchi: Parameter_sig.String
+module Ya: Parameter_sig.String
+module Output_Spec: Parameter_sig.Bool
+module Output_C_File: Parameter_sig.String
+module Dot: Parameter_sig.Bool
+module DotSeparatedLabels: Parameter_sig.Bool
+module AbstractInterpretation: Parameter_sig.Bool
+module Axiomatization: Parameter_sig.Bool
+module ConsiderAcceptance: Parameter_sig.Bool
+module AutomataSimplification: Parameter_sig.Bool
+module Test: Parameter_sig.Int
+module AddingOperationNameAndStatusInSpecification: Parameter_sig.Bool
 
 (** [true] if the user declares that its ya automaton is deterministic. *)
 module Deterministic: State_builder.Ref with type data = bool

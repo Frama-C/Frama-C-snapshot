@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -43,7 +43,15 @@ module DoDivMod =
   True
     (struct
        let option_name = "-rte-div"
-       let help = "when on (default), annotate for division by zero"
+       let help = "when on (default), annotate for modulo and division by zero"
+     end)
+
+(* annotates left and right shifts (undefined behavior) *)
+module DoShift =
+  True
+    (struct
+       let option_name = "-rte-shift"
+       let help = "when on (default), annotate for left and right shifts by a value out of bounds"
      end)
 
 (* annotates division by zero (undefined behavior) *)

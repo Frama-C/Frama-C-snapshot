@@ -1,0 +1,121 @@
+(**************************************************************************)
+(*                                                                        *)
+(*  This file is part of WP plug-in of Frama-C.                           *)
+(*                                                                        *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
+(*         alternatives)                                                  *)
+(*                                                                        *)
+(*  you can redistribute it and/or modify it under the terms of the GNU   *)
+(*  Lesser General Public License as published by the Free Software       *)
+(*  Foundation, version 2.1.                                              *)
+(*                                                                        *)
+(*  It is distributed in the hope that it will be useful,                 *)
+(*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
+(*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
+(*  GNU Lesser General Public License for more details.                   *)
+(*                                                                        *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
+(*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
+(*                                                                        *)
+(**************************************************************************)
+
+(* this is a prelude for Alt-Ergo*)
+(** The theory BuiltIn_ must be appended to this file*)
+(** The theory Bool_ must be appended to this file*)
+(** The theory real_Real_ must be appended to this file*)
+(** The theory real_RealInfix_ must be appended to this file*)
+(** The theory real_Abs_ must be appended to this file*)
+(** The theory real_Square_ must be appended to this file*)
+logic to_float32 : real -> real
+
+logic to_float64 : real -> real
+
+predicate is_float32(x: real) = (to_float32(x) = x)
+
+predicate is_float64(x: real) = (to_float64(x) = x)
+
+type rounding_mode = Up | Down | ToZero | NearestTiesToAway
+  | NearestTiesToEven
+
+logic match_rounding_mode : rounding_mode, 'a, 'a, 'a, 'a, 'a -> 'a
+
+axiom match_rounding_mode_Up :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  (match_rounding_mode(Up, z, z1, z2, z3, z4) = z))
+
+axiom match_rounding_mode_Down :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  (match_rounding_mode(Down, z, z1, z2, z3, z4) = z1))
+
+axiom match_rounding_mode_ToZero :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  (match_rounding_mode(ToZero, z, z1, z2, z3, z4) = z2))
+
+axiom match_rounding_mode_NearestTiesToAway :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  (match_rounding_mode(NearestTiesToAway, z, z1, z2, z3, z4) = z3))
+
+axiom match_rounding_mode_NearestTiesToEven :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  (match_rounding_mode(NearestTiesToEven, z, z1, z2, z3, z4) = z4))
+
+logic round_double : rounding_mode, real -> real
+
+logic round_float : rounding_mode, real -> real
+
+logic is_finite32 : real -> prop
+
+logic is_finite64 : real -> prop
+
+axiom float_32 :
+  (forall x:real [round_float(NearestTiesToEven, x)].
+  (to_float32(x) = round_float(NearestTiesToEven, x)))
+
+axiom float_64 :
+  (forall x:real [round_double(NearestTiesToEven, x)].
+  (to_float64(x) = round_double(NearestTiesToEven, x)))
+
+axiom is_finite_to_float_32 :
+  (forall x:real [is_finite32(to_float32(x))]. is_finite32(to_float32(x)))
+
+axiom is_finite_to_float_64 :
+  (forall x:real [is_finite64(to_float64(x))]. is_finite64(to_float64(x)))
+
+function add_float32(x: real, y: real) : real = to_float32((x + y))
+
+function add_float64(x: real, y: real) : real = to_float64((x + y))
+
+function mul_float32(x: real, y: real) : real = to_float32((x * y))
+
+function mul_float64(x: real, y: real) : real = to_float64((x * y))
+
+function div_float32(x: real, y: real) : real = to_float32((x / y))
+
+function div_float64(x: real, y: real) : real = to_float64((x / y))
+
+function sqrt_float32(x: real) : real = to_float32(sqrt(x))
+
+function sqrt_float64(x: real) : real = to_float64(sqrt(x))
+
+logic model : real -> real
+
+function delta(x: real) : real = abs_real((x - model(x)))
+
+function error(x: real) : real = (delta(x) / abs_real(model(x)))
+
+axiom model_float_32 : (forall x:real. (model(to_float32(x)) = model(x)))
+
+axiom model_float_64 : (forall x:real. (model(to_float64(x)) = model(x)))
+
+axiom model_add :
+  (forall x:real. forall y:real. (model((x + y)) = (model(x) + model(y))))
+
+axiom model_mul :
+  (forall x:real. forall y:real. (model((x * y)) = (model(x) * model(y))))
+
+axiom model_div :
+  (forall x:real. forall y:real. (model((x / y)) = (model(x) / model(y))))
+
+axiom model_sqrt : (forall x:real. (model(sqrt(x)) = sqrt(model(x))))
+

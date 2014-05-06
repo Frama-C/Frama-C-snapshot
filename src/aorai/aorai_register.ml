@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Aorai plug-in of Frama-C.                        *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -74,7 +74,7 @@ let convert_ltl_exprs t =
 let syntax_error loc msg =
   Aorai_option.abort
     "File %S, line %d, characters %d-%d:@\nSyntax error: %s"
-    (fst loc).Lexing.pos_fname (fst loc).Lexing.pos_lnum
+    (Filepath.pretty (fst loc).Lexing.pos_fname) (fst loc).Lexing.pos_lnum
     ((fst loc).Lexing.pos_cnum - (fst loc).Lexing.pos_bol)
     ((snd loc).Lexing.pos_cnum - (fst loc).Lexing.pos_bol)
     msg
@@ -347,7 +347,7 @@ let work () =
         File.create_project_from_visitor "aorai"
 	  (fun prj -> new Visitor.frama_c_copy prj)
       in
-      Project.copy ~selection:(Plugin.get_selection ()) prj;
+      Project.copy ~selection:(Parameter_state.get_selection ()) prj;
       Project.on prj output ()
     end
 
@@ -368,7 +368,7 @@ let run () =
       File.create_project_from_visitor "aorai_tmp"
 	(fun prj -> new Visitor.frama_c_copy prj)
     in
-    Project.copy ~selection:(Plugin.get_selection ()) work_prj;
+    Project.copy ~selection:(Parameter_state.get_selection ()) work_prj;
     Project.on work_prj work ();
     Project.remove ~project:work_prj ()
 

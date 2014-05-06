@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -292,10 +292,11 @@ let rec echo_lines output text prefix p q =
 let echo_source output = function
   | None -> ()
   | Some src ->
-    let s =
-      Printf.sprintf "%s:%d:" src.Lexing.pos_fname src.Lexing.pos_lnum
-    in
-    output s 0 (String.length s)
+      let s =
+        Printf.sprintf "%s:%d:" 
+          (Filepath.pretty src.Lexing.pos_fname) src.Lexing.pos_lnum
+      in
+      output s 0 (String.length s)
 
 let do_echo terminal source prefix text p q =
   if p <= q then
@@ -563,7 +564,7 @@ let log_channel channel
   logtext channel ~kind
     ~prefix:(get_prefix kind channel.plugin prefix)
     ~source:(get_source current source)
-    ~once ?emitwith ~echo ?append
+    ~once ~emitwith ~echo ~append
     text
 
 let with_log_channel channel f
@@ -574,7 +575,7 @@ let with_log_channel channel f
   logwith channel ~kind
     ~prefix:(get_prefix kind channel.plugin prefix)
     ~source:(get_source current source)
-    ~echo ?append (finally_do f) text
+    ~echo ~append (finally_do f) text
 
 let echo e =
   try
@@ -594,31 +595,44 @@ let echo e =
 (* --- Plug-in Interface                                                 --- *)
 (* ------------------------------------------------------------------------- *)
 
+type category = string
+module Category_set = FCSet.Make(String)
+
 module type Messages =
 sig
 
-  type category = private string
-
-  val register_category: string -> category
-
-  module Category_set: Set.S with type elt = category
-
-  val get_category: string -> Category_set.t
-  val get_all_categories: unit -> Category_set.t
-
   val verbose_atleast: int -> bool
   val debug_atleast: int -> bool
-  val add_debug_keys: Category_set.t -> unit
-  val del_debug_keys: Category_set.t -> unit
-  val get_debug_keys: unit -> Category_set.t
 
-  val is_debug_key_enabled: category -> bool
-
-  val get_debug_keyset : unit -> category list
+  val printf : ?level:int -> ?dkey:category -> 
+    ?current:bool -> ?source:Lexing.position ->
+    ?append:(Format.formatter -> unit) ->
+    ?header:(Format.formatter -> unit) ->
+    ?prefix:string ->
+    ?suffix:string ->
+    ('a,formatter,unit) format -> 'a
 
   val result  : ?level:int -> ?dkey:category -> 'a pretty_printer
   val feedback: ?level:int -> ?dkey:category -> 'a pretty_printer
   val debug   : ?level:int -> ?dkey:category -> 'a pretty_printer
+  val debug0   : ?level:int -> ?dkey:category ->
+    unit pretty_printer
+  val debug1   : ?level:int -> ?dkey:category ->
+    ('a -> unit) pretty_printer
+  val debug2   : ?level:int -> ?dkey:category ->
+    ('a -> 'b -> unit) pretty_printer
+  val debug3   : ?level:int -> ?dkey:category ->
+    ('a -> 'b -> 'c -> unit) pretty_printer
+  val debug4   : ?level:int -> ?dkey:category ->
+    ('a -> 'b -> 'c -> 'd -> unit) pretty_printer
+  val debug5   : ?level:int -> ?dkey:category ->
+    ('a -> 'b -> 'c -> 'd -> 'e -> unit) pretty_printer
+  val debug6   : ?level:int -> ?dkey:category ->
+    ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> unit) pretty_printer
+  val debug7   : ?level:int -> ?dkey:category ->
+    ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g -> unit) pretty_printer
+  val debug8   : ?level:int -> ?dkey:category ->
+    ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g -> 'h -> unit) pretty_printer
   val warning : 'a pretty_printer
   val error   : 'a pretty_printer
   val abort   : ('a,'b) pretty_aborter
@@ -640,6 +654,19 @@ sig
   val register : kind -> (event -> unit) -> unit (** Very local listener. *)
   val register_tag_handlers : (string -> string) * (string -> string) -> unit
 
+  val register_category: string -> category
+
+  val get_category: string -> Category_set.t
+  val get_all_categories: unit -> Category_set.t
+
+  val add_debug_keys: Category_set.t -> unit
+  val del_debug_keys: Category_set.t -> unit
+  val get_debug_keys: unit -> Category_set.t
+
+  val is_debug_key_enabled: category -> bool
+
+  val get_debug_keyset : unit -> category list
+
 end
 
 module Register
@@ -652,10 +679,6 @@ module Register
 struct
 
   include P
-
-  type category = string
-
-  module Category_set = (Set.Make(String): Set.S with type elt = category)
 
   let categories = Hashtbl.create 3
 
@@ -686,7 +709,11 @@ struct
 
   let get_category s =
     let s = if s = "*" then "" else s in
-    try Hashtbl.find categories s with Not_found -> Category_set.empty
+    try Hashtbl.find categories s 
+    with Not_found -> 
+      (* returning [s] itself is required to get indirect kernel categories
+	 (e.g. project) to work. *) 
+      Category_set.singleton s
 
   let get_all_categories () = get_category ""
 
@@ -694,7 +721,6 @@ struct
 
   let add_debug_keys s = debug_keys:= Category_set.union s !debug_keys
   let del_debug_keys s = debug_keys:= Category_set.diff !debug_keys s
-
   let get_debug_keys () = !debug_keys
 
   let is_debug_key_enabled s = Category_set.mem s !debug_keys
@@ -769,7 +795,7 @@ struct
         ~kind
         ~prefix:(prefix_for kind)
         ~source:(get_source current source)
-        ~once ?emitwith ~echo ?append
+        ~once ~emitwith ~echo ~append
         text
     else nullprintf text
 
@@ -781,7 +807,7 @@ struct
         ~kind:Result
         ~prefix:(prefix_dkey dkey)
         ~source:(get_source current source)
-        ~once ?emitwith ~echo ?append
+        ~once ~emitwith ~echo ~append
         text
     else nullprintf text
 
@@ -793,11 +819,31 @@ struct
         ~kind:Feedback
         ~prefix:(prefix_dkey dkey)
         ~source:(get_source current source)
-        ~once ?emitwith ~echo ?append
+        ~once ~emitwith ~echo ~append
         text
     else nullprintf text
 
+  let should_output_debug level dkey =
+    match level, dkey with
+      | None, None -> debug_atleast 1
+      | Some l, None -> debug_atleast l
+      | None, Some _ -> has_debug_key dkey
+      | Some l, Some _ -> debug_atleast l && has_debug_key dkey
+
   let debug
+      ?level ?dkey ?(current=false) ?source
+      ?emitwith ?(echo=true) ?(once=false) ?append text =
+    if should_output_debug level dkey then
+      logtext channel
+        ~kind:Feedback
+        ~prefix:(prefix_dkey dkey)
+        ~source:(get_source current source)
+        ~once ~emitwith ~echo ~append
+        text
+    else
+      nullprintf text
+
+  let debug0
       ?(level=1) ?dkey ?(current=false) ?source
       ?emitwith ?(echo=true) ?(once=false) ?append text =
     if debug_atleast level && has_debug_key dkey then
@@ -805,10 +851,97 @@ struct
         ~kind:Feedback
         ~prefix:(prefix_dkey dkey)
         ~source:(get_source current source)
-        ~once ?emitwith ~echo ?append
+        ~once ~emitwith ~echo ~append
         text
-    else
-      nullprintf text
+
+  let debug1
+      ?(level=1) ?dkey ?(current=false) ?source
+      ?emitwith ?(echo=true) ?(once=false) ?append text x1 =
+    if debug_atleast level && has_debug_key dkey then
+      logtext channel
+        ~kind:Feedback
+        ~prefix:(prefix_dkey dkey)
+        ~source:(get_source current source)
+        ~once ~emitwith ~echo ~append
+        text x1
+
+  let debug2
+      ?(level=1) ?dkey ?(current=false) ?source
+      ?emitwith ?(echo=true) ?(once=false) ?append text x1 x2 =
+    if debug_atleast level && has_debug_key dkey then
+      logtext channel
+        ~kind:Feedback
+        ~prefix:(prefix_dkey dkey)
+        ~source:(get_source current source)
+        ~once ~emitwith ~echo ~append
+        text x1 x2
+
+  let debug3
+      ?(level=1) ?dkey ?(current=false) ?source
+      ?emitwith ?(echo=true) ?(once=false) ?append text x1 x2 x3 =
+    if debug_atleast level && has_debug_key dkey then
+      logtext channel
+        ~kind:Feedback
+        ~prefix:(prefix_dkey dkey)
+        ~source:(get_source current source)
+        ~once ~emitwith ~echo ~append
+        text x1 x2 x3
+
+  let debug4
+      ?(level=1) ?dkey ?(current=false) ?source
+      ?emitwith ?(echo=true) ?(once=false) ?append text x1 x2 x3 x4 =
+    if debug_atleast level && has_debug_key dkey then
+      logtext channel
+        ~kind:Feedback
+        ~prefix:(prefix_dkey dkey)
+        ~source:(get_source current source)
+        ~once ~emitwith ~echo ~append
+        text x1 x2 x3 x4
+
+  let debug5
+      ?(level=1) ?dkey ?(current=false) ?source
+      ?emitwith ?(echo=true) ?(once=false) ?append text x1 x2 x3 x4 x5 =
+    if debug_atleast level && has_debug_key dkey then
+      logtext channel
+        ~kind:Feedback
+        ~prefix:(prefix_dkey dkey)
+        ~source:(get_source current source)
+        ~once ~emitwith ~echo ~append
+        text x1 x2 x3 x4 x5
+
+  let debug6
+      ?(level=1) ?dkey ?(current=false) ?source
+      ?emitwith ?(echo=true) ?(once=false) ?append text x1 x2 x3 x4 x5 x6 =
+    if debug_atleast level && has_debug_key dkey then
+      logtext channel
+        ~kind:Feedback
+        ~prefix:(prefix_dkey dkey)
+        ~source:(get_source current source)
+        ~once ~emitwith ~echo ~append
+        text x1 x2 x3 x4 x5 x6
+
+  let debug7
+      ?(level=1) ?dkey ?(current=false) ?source
+      ?emitwith ?(echo=true) ?(once=false) ?append text x1 x2 x3 x4 x5 x6 x7 =
+    if debug_atleast level && has_debug_key dkey then
+      logtext channel
+        ~kind:Feedback
+        ~prefix:(prefix_dkey dkey)
+        ~source:(get_source current source)
+        ~once ~emitwith ~echo ~append
+        text x1 x2 x3 x4 x5 x6 x7
+
+  let debug8
+      ?(level=1) ?dkey ?(current=false) ?source
+      ?emitwith ?(echo=true) ?(once=false) ?append text
+      x1 x2 x3 x4 x5 x6 x7 x8 =
+    if debug_atleast level && has_debug_key dkey then
+      logtext channel
+        ~kind:Feedback
+        ~prefix:(prefix_dkey dkey)
+        ~source:(get_source current source)
+        ~once ~emitwith ~echo ~append
+        text x1 x2 x3 x4 x5 x6 x7 x8
 
   let warning
       ?(current=false) ?source
@@ -817,7 +950,7 @@ struct
       ~kind:Warning
       ~prefix:(Label (Printf.sprintf "[%s] warning: " label))
       ~source:(get_source current source)
-      ~once ?emitwith ~echo ?append
+      ~once ~emitwith ~echo ~append
       text
 
   let error
@@ -826,7 +959,7 @@ struct
     logtext channel
       ~kind:Error ~prefix:prefix_error
       ~source:(get_source current source)
-      ~once ?emitwith ~echo ?append
+      ~once ~emitwith ~echo ~append
       text
 
   let abort
@@ -835,7 +968,7 @@ struct
     logwith channel
       ~kind:Error ~prefix:prefix_error
       ~source:(get_source current source)
-      ~echo ?append
+      ~echo ~append
       (finally_raise (AbortError P.channel))
       text
 
@@ -845,7 +978,7 @@ struct
     logtext channel
       ~kind:Failure ~prefix:prefix_failure
       ~source:(get_source current source)
-      ~once ?emitwith ~echo ?append
+      ~once ~emitwith ~echo ~append
       text
 
   let fatal
@@ -854,7 +987,7 @@ struct
     logwith channel
       ~kind:Failure ~prefix:prefix_failure
       ~source:(get_source current source)
-      ~echo ?append
+      ~echo ~append
       (finally_raise (AbortFatal P.channel))
       text
 
@@ -867,7 +1000,7 @@ struct
       logwith channel
         ~kind:Failure ~prefix:prefix_failure
         ~source:(get_source current source)
-        ~echo ?append finally_false text
+        ~echo ~append finally_false text
 
   let with_result f
       ?(current=false) ?source
@@ -876,7 +1009,7 @@ struct
       ~kind:Result
       ~prefix:(if debug_atleast 1 then prefix_all else prefix_first)
       ~source:(get_source current source)
-      ~echo ?append (finally_do f) text
+      ~echo ~append (finally_do f) text
 
   let with_warning f
       ?(current=false) ?source
@@ -884,7 +1017,7 @@ struct
     logwith channel
       ~kind:Warning ~prefix:prefix_warning
       ~source:(get_source current source)
-      ~echo ?append (finally_do f) text
+      ~echo ~append (finally_do f) text
 
   let with_error f
       ?(current=false) ?source
@@ -892,7 +1025,7 @@ struct
     logwith channel
       ~kind:Error ~prefix:prefix_error
       ~source:(get_source current source)
-      ~echo ?append (finally_do f) text
+      ~echo ~append (finally_do f) text
 
   let with_failure f
       ?(current=false) ?source
@@ -900,7 +1033,7 @@ struct
     logwith channel
       ~kind:Failure ~prefix:prefix_failure
       ~source:(get_source current source)
-      ~echo ?append (finally_do f) text
+      ~echo ~append (finally_do f) text
 
   let with_log f
       ?(kind=Result) ?(current=false) ?source
@@ -909,7 +1042,7 @@ struct
       ~kind
       ~prefix:(prefix_for kind)
       ~source:(get_source current source)
-      ~echo ?append (finally_do f) text
+      ~echo ~append (finally_do f) text
 
   let register kd f =
     let em = channel.emitters.(nth_kind kd) in
@@ -934,6 +1067,55 @@ struct
     deprecated "Log.get_debug_key_set"
       ~now:"Log.get_all_categories (which returns a set instead of list)"
       (fun () -> Category_set.elements (get_debug_keys ()))
+
+  let noprint _fmt = ()
+  let noemit _event = ()
+
+  let spynewline bol output buffer start length =
+    begin
+      let ofs = start+length-1 in
+      if 0 <= ofs && ofs < String.length buffer then
+	bol := buffer.[ofs] = '\n' ;
+      output buffer start length
+    end
+
+  let printf ?(level=1) ?dkey ?(current=false) ?source ?(append=noprint)
+      ?header ?prefix ?suffix text =
+    if verbose_atleast level && has_debug_key dkey then
+      begin
+	(* Header is a regular message *)
+	let header = match header with None -> noprint | Some h -> h in
+	logtext channel ~kind:Result 
+	  ~prefix:(prefix_dkey dkey) ~source:(get_source current source)
+          ~emitwith:(Some noemit) ~echo:true ~append:None ~once:false
+          "%t" header ;
+	let print_line = function
+	  | None -> ()
+	  | Some line ->
+	      stdout.output line 0 (String.length line) ;
+	      stdout.output "\n" 0 1 ;
+	      stdout.flush () ;
+	in
+	print_line prefix ;
+	let bol = ref true in
+	let stdout = { stdout with output = spynewline bol stdout.output } in
+	let fmt = delayed_terminal stdout in
+	try
+	  Format.kfprintf
+	    begin fun fmt ->
+	       append fmt ;
+	       Format.pp_print_flush fmt () ;
+	       unlock_terminal stdout fmt ;
+	       if not !bol then Format.pp_print_newline fmt () ;
+	       print_line suffix ;
+	    end
+	    fmt text
+	with error ->
+	  unlock_terminal stdout fmt ; raise error
+      end
+    else 
+      nullprintf text
+
 end
 
 (*

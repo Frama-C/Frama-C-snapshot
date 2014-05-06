@@ -1,6 +1,6 @@
 /* run.config
-   OPT: -memory-footprint 1 -val -deps -out -input  -journal-disable
-   OPT: -memory-footprint 1 -val -deps -out -input  -main main1 -journal-disable
+   OPT: -val -deps -out -input  -journal-disable
+   OPT: -val -deps -out -input  -main main1 -journal-disable
 */
 
 void f(int * x, int * y, int **z, int a, char b);

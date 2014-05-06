@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -23,6 +23,8 @@
 open Cil_types
 open Cil_datatype
 open Cil
+
+let dkey = Kernel.register_category "globals"
 
 (* ************************************************************************* *)
 (** {2 Global variables} *)
@@ -92,7 +94,7 @@ module Vars = struct
 
   let () = Varinfo.internal_pretty_code_ref := pp_varinfo
 
-  let iter_in_file_order f = 
+  let iter_globals f l =
     let treat_global = function
       | GVar(vi,init,_) -> f vi init
       | GVarDecl (_,vi,_) when not (Cil.isFunctionType vi.vtype) ->
@@ -100,17 +102,24 @@ module Vars = struct
       | GType _ | GCompTag _ | GCompTagDecl _ | GEnumTag _ | GEnumTagDecl _
       | GVarDecl _ | GFun _ | GAsm _ | GPragma _ | GText _ | GAnnot _ -> ()
     in
-    List.iter treat_global (Ast.get ()).globals
+    List.iter treat_global l
 
-  let fold_in_file_order f acc = 
-    let treat_global acc g = match g with
+  let fold_globals f acc l =
+    let treat_global acc = function
       | GVar(vi,init,_) -> f vi init acc
       | GVarDecl (_,vi,_) when not (Cil.isFunctionType vi.vtype) ->
         f vi { init = None } acc
       | GType _ | GCompTag _ | GCompTagDecl _ | GEnumTag _ | GEnumTagDecl _
       | GVarDecl _ | GFun _ | GAsm _ | GPragma _ | GText _ | GAnnot _ -> acc
     in
-    List.fold_left treat_global acc (Ast.get ()).globals
+    List.fold_left treat_global acc l
+
+  let iter_in_file_order f = iter_globals f (Ast.get ()).globals
+  let fold_in_file_order f acc = fold_globals f acc (Ast.get ()).globals
+
+  let iter_in_file_rev_order f = iter_globals f (List.rev (Ast.get ()).globals)
+  let fold_in_file_rev_order f acc = 
+    fold_globals f acc (List.rev (Ast.get ()).globals)
 
 end
 
@@ -134,39 +143,34 @@ module Functions = struct
   let self = State.self
 
   (* Maintain an alphabetical ordering of the functions, so that
-     iteration stays independent from vid numerotation scheme.
-     NB: Might be possible to have a map from string to vi in order
-     to use the structure for find_by_name *)
+     iteration stays independent from vid numerotation scheme. *)
   module VarinfoAlphaOrderSet = struct
-    let compare x y =
+    let compare_alpha x y =
       let res = String.compare x.vname y.vname in
       if res = 0 then Datatype.Int.compare x.vid y.vid
       else res
 
-    module Data =
-      Set.Make
-        (struct
-           type t = varinfo
-           let compare = compare
-         end)
-
     module Elts = struct
       include Cil_datatype.Varinfo
-      let compare = compare
+      let compare = compare_alpha
     end
-
-    include
-      Datatype.Set
-      (Data)(Elts)(struct let module_name = "VarinfoAlphaOrderSet" end)
   end
 
-  module Iterator =
-    State_builder.Set_ref
-      (VarinfoAlphaOrderSet)
+  module Iterator = struct
+    module State = State_builder.Ref
+      (Datatype.String.Map.Make(VarinfoAlphaOrderSet.Elts))
       (struct
          let name = "FunctionsOrder"
          let dependencies = [ State.self ]
+         let default () = Datatype.String.Map.empty
        end)
+    let add v =
+      State.set (Datatype.String.Map.add v.vname v (State.get ()))
+    let iter f =
+      Datatype.String.Map.iter (fun _ v -> f v) (State.get ())
+    let fold f acc =
+      Datatype.String.Map.fold (fun _ v acc -> f v acc) (State.get ()) acc
+  end
 
   let init_kernel_function f spec =
     { fundec = f; return_stmt = None; spec = spec }
@@ -222,14 +226,14 @@ module Functions = struct
   let add f =
     match f with
     | Definition (n, l) ->
-      Kernel.debug
+      Kernel.debug ~dkey
 	"@[<hov 2>Register definition %a with specification@. \"%a\"@]"
         Varinfo.pretty_vname n.svar Cil_printer.pp_funspec n.sspec ;
       replace_by_definition n.sspec n l;
       (* Kernel.MainFunction.set_possible_values
         (n.svar.vname :: Kernel.MainFunction.get_possible_values ()) *)
     | Declaration (spec, v,_,l) ->
-      Kernel.debug
+      Kernel.debug ~dkey
 	"@[<hov 2>Register declaration %a with specification@ \"%a\"@]"
         Varinfo.pretty_vname v Cil_printer.pp_funspec spec;
       replace_by_declaration spec v l
@@ -287,34 +291,20 @@ module Functions = struct
     ignore (State.memo ~change add vi);
     Iterator.add vi
 
-  exception Found_kf of kernel_function
-
   let find_by_name fct_name =
-    let f kf =
-      if Ast_info.Function.get_name kf.fundec = fct_name
-      then raise (Found_kf kf)
-    in
-    try
-      iter f;
-      raise Not_found
-    with Found_kf kf ->
-      kf
+    let vi = Datatype.String.Map.find fct_name (Iterator.State.get ()) in
+    State.find vi
 
   let find_def_by_name fct_name =
-    let f kf =
-      if Ast_info.Function.is_definition kf.fundec
-        && Ast_info.Function.get_name kf.fundec = fct_name
-      then
-        raise (Found_kf kf)
-    in
-    try
-      iter f;
+    let vi = Datatype.String.Map.find fct_name (Iterator.State.get ()) in
+    let res = State.find vi in
+    if Ast_info.Function.is_definition res.fundec then
+      res
+    else
       raise Not_found
-    with Found_kf kf -> 
-      kf
 
   let () =
-    Plugin.set_function_names
+    Parameter_customize.set_function_names
       (fun () -> 
 	State.fold
 	  (fun _ kf acc ->
@@ -323,30 +313,6 @@ module Functions = struct
             then Ast_info.Function.get_name f :: acc 
 	    else acc)
 	  [])
-
-  let find_englobing_kf ki =
-    match ki with
-    | Kglobal -> None
-    | Kstmt s ->
-        try
-          iter
-            (fun kf ->
-               match kf.fundec with
-               | Definition (fundec,_) ->
-                   if List.exists
-                     (fun sa -> sa.sid = s.sid)
-                     fundec.sallstmts
-                   then
-                     raise (Found_kf kf)
-               | Declaration _ -> ());
-          None
-        with Found_kf kf ->
-          Some kf
-
-  let find_englobing_kf =
-    Kernel.deprecated "Globals.Functions.find_englobing_kf"
-      ~now:"Kernel_function.find_englobing_kf" find_englobing_kf
-
 
   exception Found of kernel_function
   let get_astinfo vi =
@@ -377,7 +343,7 @@ module Functions = struct
   let () =
     Vars.get_astinfo_ref := get_astinfo;
     Ast.add_linked_state State.self;
-    Ast.add_linked_state Iterator.self
+    Ast.add_linked_state Iterator.State.self
 
 end
 
@@ -405,9 +371,9 @@ module FileIndex = struct
         (Ast.get ())
         (fun glob ->
           let f = (fst (Global.loc glob)).Lexing.pos_fname in
-           if Kernel.debug_atleast 1 then
-             Kernel.debug "Indexing global in file %s@." f;
-           ignore
+          Kernel.debug ~dkey "Indexing global in file %s@."
+            (Filepath.pretty f);
+          ignore
              (S.memo
                 ~change:(fun (f,l) -> f, glob:: l) (fun _ -> f,[ glob ]) f))
     in
@@ -625,7 +591,7 @@ let get_comments_global g =
       match l with
         | [] -> 
           Kernel.fatal "Cannot find global %a in file %s"
-            Cil_printer.pp_global g file
+            Cil_printer.pp_global g (Filepath.pretty file)
         | g' :: l when Cil_datatype.Global.equal g g' ->
             { Lexing.pos_fname = file;
               Lexing.pos_lnum = 1;

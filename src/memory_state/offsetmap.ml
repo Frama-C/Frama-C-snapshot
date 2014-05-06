@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -38,7 +38,8 @@ let ( %~ ) = Integer.pos_rem
 let succ = Integer.succ
 let pred = Integer.pred
 
-module Make (V : Lattice_With_Isotropy.S) = struct
+
+module Make (V : module type of Offsetmap_lattice_with_isotropy) = struct
 
   open Format
 
@@ -124,17 +125,16 @@ module Make (V : Lattice_With_Isotropy.S) = struct
         let r = Recursive.create ()
         let structural_descr =
           let p_bint = Datatype.Big_int.packed_descr in
-          Structure
-            (Sum
-               [| [| p_bint;
-                     p_bint;
-                     recursive_pack r;
-                     p_bint;
-                     recursive_pack r;
-                     p_bint;
-                     p_bint;
-                     V.packed_descr;
-                     p_int |] |])
+          t_sum
+            [| [| p_bint;
+                  p_bint;
+                  recursive_pack r;
+                  p_bint;
+                  recursive_pack r;
+                  p_bint;
+                  p_bint;
+                  V.packed_descr;
+                  p_int |] |]
         let () = Recursive.update r structural_descr
         let equal = equal
         let hash = hash
@@ -215,7 +215,7 @@ module Make (V : Lattice_With_Isotropy.S) = struct
       let tag = tag lor current_counter in
       let tentative_new_node = Node(cur, offl, subl, offr, subr, f, g, v,tag) in
       let hashed_node = NewoHashconsTbl.merge tentative_new_node in
-      if hashed_node != tentative_new_node
+      if hashed_node == tentative_new_node
       then begin
          if current_counter = max_int 
          then Kernel.fatal "Internal maximum exeeded";
@@ -390,6 +390,22 @@ module Make (V : Lattice_With_Isotropy.S) = struct
    imp_z.zipper <- z;
  ;;
 
+ (* Minimum and maximum bit bounds in the offsetmap (inclusively), assumming
+    that [m] starts at [curr_off]. Usually not required, as we use [validity]
+    arguments, that give the size of the offsetmap. Beware that this function
+    returns something incorrect if [m] is [Empty]. *)
+ let bounds_offset curr_off m =
+   let rec min curr_off = function
+     | Empty -> curr_off
+     | Node (_, offl, subl, _, _, _, _, _, _) -> min (curr_off +~ offl) subl
+   and max curr_off = function
+     | Empty -> curr_off
+     | Node (_, _, _, offr, subr, _, _, _, _) -> max (curr_off +~ offr) subr
+   in
+   (min curr_off m, max curr_off m)
+
+ let _bounds m = bounds_offset Int.zero m
+
  (** Folding and iterating from the leftmost node to the rightmost one
      If t =  n0         fold f t i = f n2 (f n0 (f n1 i))
             / \         iter f t   = f n1; fn0; f n2;
@@ -433,6 +449,7 @@ module Make (V : Lattice_With_Isotropy.S) = struct
  let iter f t = iter_offset f Integer.zero t
  ;;
 
+ (* Same as iter, but does not compute offsets (hence more efficient). *)
  let rec iter_on_values f t =
    match t with
      | Empty -> ()
@@ -613,16 +630,12 @@ module Make (V : Lattice_With_Isotropy.S) = struct
 
  (** Inclusion functions *)
 
- (* Auxiliary fonction for inclusion: test the inclusion of the values *)
- let is_similar inclv (r1 : Integer.t) (m1: Integer.t) v1 r2 m2 v2 =
-   if (r1 =~ r2 && m1 =~ m2) || V.is_isotropic v1 || V.is_isotropic v2
-   then inclv v1 v2
-   else false
-
- (* Auxiliary fonction for inclusion *)
- let is_included_node_exn inclv (amin1 : Integer.t) (amax1 : Integer.t) r1 m1 v1 amin2 amax2 r2 m2 v2 mabs_min mabs_max =
+ (* Auxiliary fonction for inclusion: check that, between [mabs_min] and
+    [mabs_max], the values (r1, m1, v1) and (r2, m2, v2), respectively
+    bound between (amin1, amax1) and (amin2, amax2), are included. *)
+ let is_included_nodes_values (amin1 : Integer.t) (amax1 : Integer.t) r1 m1 v1 amin2 amax2 r2 m2 v2 mabs_min mabs_max =
    if V.is_isotropic v1 || V.is_isotropic v2 then
-     inclv v1 v2
+     V.is_included v1 v2
    else
      let max_test =
        if amax1 <~ amax2
@@ -633,11 +646,11 @@ module Make (V : Lattice_With_Isotropy.S) = struct
      and ok_max = amax1 =~ amax2 || max_test
      in
      if r1 =~ r2 && m1 =~ m2 && ok_min && ok_max
-     then inclv v1 v2
+     then V.is_included v1 v2
      else false
 
  (* Functional for inclusion test. *)
- let is_included_aux cache inclv (o1, t1) (o2, t2) =
+ let is_included_aux cache (o1, t1) (o2, t2) =
    match t1, t2 with
      | Empty, _ -> true (* BYTODO *)
      | _, Empty -> true (* BYTODO *)
@@ -665,20 +678,23 @@ module Make (V : Lattice_With_Isotropy.S) = struct
            let mabs_min = amin1 in
            begin
              (if amax1 =~ amax2 then begin
-                is_similar inclv r1 m1 v1 r2 m2 v2 &&
-                cache (or1, subr1) (or2, subr2)
+               (if (r1 =~ r2 && m1 =~ m2) ||
+                   V.is_isotropic v1 || V.is_isotropic v2
+                then V.is_included v1 v2
+                else false)
+               &&
+                 cache (or1, subr1) (or2, subr2)
               end
               else if amax1 >~ amax2 then begin
-                is_included_node_exn inclv
+                is_included_nodes_values
                   amin1 amax1 r1 m1 v1
                   amin2 amax2 r2 m2 v2 mabs_min amax2
                 &&
                 cache (o1, t1) (or2, subr2)
               end
               else
-                begin
-                  assert (amax1 <~ amax2);
-                  is_included_node_exn inclv
+                begin (* amax1 <~ amax2 *)
+                  is_included_nodes_values
                     amin1 amax1 r1 m1 v1
                     amin2 amax2 r2 m2 v2 mabs_min amax1
                   &&
@@ -688,38 +704,44 @@ module Make (V : Lattice_With_Isotropy.S) = struct
              cache (ol1, subl1) (ol2, subl2)
            end
          else
+           (* treat the common interval and the right parts of the trees.
+              The common interval starts at [mabs_min] and goes up to
+              [min amax1 amax2]. *)
            let treat_current_right_nodes mabs_min =
              if amax1 =~ amax2 then begin
-               is_included_node_exn inclv
+               is_included_nodes_values
                  amin1 amax1 r1 m1 v1
                  amin2 amax2 r2 m2 v2 mabs_min amax1
                &&
                cache (or1, subr1) (or2, subr2)
              end
              else if amax1 >~ amax2 then begin
-               is_included_node_exn inclv
+               is_included_nodes_values
                  amin1 amax1 r1 m1 v1
                  amin2 amax2 r2 m2 v2 mabs_min amax2
                &&
                cache (o1, t1) (or2, subr2)
              end
              else
-               begin
-                 assert (amax1 <~ amax2);
-                 is_included_node_exn inclv
+               begin (* amax1 <~ amax2 *)
+                 is_included_nodes_values
                    amin1 amax1 r1 m1 v1
                    amin2 amax2 r2 m2 v2 mabs_min amax1
                  &&
                  cache (or1, subr1) (o2, t2)
                end;
            in
+           (* Find the beginning of the common part of the two intervals (ie.
+              [mabs_min] above, which is by definition [max amin1 amin2]), and
+              treat this interval and the right trees. Then, check the inclusion
+              of the subtree that starts just before [mabs_min] with the
+              entire other tree. *)
            if amin1 >~ amin2 then begin
-             treat_current_right_nodes amin2 &&
+             treat_current_right_nodes amin1 &&
              cache (ol1, subl1) (o2, t2)
            end
-           else begin
-             assert (amin1 <~ amin2);
-             treat_current_right_nodes amin1 &&
+           else begin (* amin1 <~ amin2 *)
+             treat_current_right_nodes amin2 &&
              cache (o1, t1) (ol2, subl2)
            end
        end
@@ -732,13 +754,9 @@ module Make (V : Lattice_With_Isotropy.S) = struct
    let rec aux t1 t2 =
      if Cacheable.equal t1 t2
      then true
-     else is_included_aux (IsIncludedCache.merge aux) V.is_included t1 t2
+     else is_included_aux (IsIncludedCache.merge aux) t1 t2
    in
    aux (Integer.zero, t1) (Integer.zero, t2)
- ;;
-
- let is_included_exn t1 t2 =
-   if not (is_included t1 t2) then raise Is_not_included
  ;;
 
  (** Joins two trees with no overlapping intervals.  *)
@@ -950,12 +968,14 @@ module Make (V : Lattice_With_Isotropy.S) = struct
          pretty_int offset pretty_int max_bit
          pretty_int curr_off pretty_int rem pretty_int modu V.pretty v ; *)
        let this_inform, read_bits = extract_bits ~topify ~start ~stop ~modu v in
+       (* Format.printf "After single step: read bits %a@." V.pretty read_bits; *)
        inform := !inform || this_inform;
        let result = 
 	 merge_bits ~topify ~conflate_bottom
            ~offset:merge_offset ~length:(Integer.length start stop)
            ~value:read_bits ~total_length:(Integer.to_int size) acc
        in
+       (* Format.printf "After merge_bits: result %a@." V.pretty result; *)
        read_end, result
      in
      let start = Integer.max offset curr_off
@@ -980,10 +1000,11 @@ module Make (V : Lattice_With_Isotropy.S) = struct
        done;
        !acc;
    in
-(*   Format.printf "extract_bits_and_stitch istart@ %Ld@ size %Ld\
-  coff %Ld abs_max %Ld val %a@\n  acc %a res %a@."
-     offset size curr_off (curr_off +~ (get_max node))
-     V.pretty (get_v node) V.pretty acc V.pretty r; *)
+  (* Format.printf "extract_bits_and_stitch istart@ %a@ size %a\
+     coff %a abs_max -- val %a@\n  acc %a res %a@."
+     pretty_int offset pretty_int size pretty_int curr_off
+     (\* pretty_int (curr_off +~ (get_max node)) *\)
+     V.pretty v  V.pretty acc V.pretty r; *)
    !inform, r
  ;;
 
@@ -991,7 +1012,7 @@ module Make (V : Lattice_With_Isotropy.S) = struct
  (** Auxiliary function to join 2 trees with merge. The merge on two values
      is done by [merge_v]. Since this function can be [V.widen], the
      left/right order of arguments must be preserved. *)
- let f_aux_merge merge_v abs_min abs_max rem1 modu1 v1 rem2 modu2 v2 =
+ let f_aux_merge inform merge_v abs_min abs_max rem1 modu1 v1 rem2 modu2 v2 =
  (*  Format.printf "f_aux_merge: [%a, %a]@.(%a %a %a)@.(%a %a %a)@."
      pretty_int abs_min pretty_int abs_max pretty_int rem1 pretty_int
      modu1 V.pretty v1 pretty_int rem2 pretty_int modu2 V.pretty v2 ; *)
@@ -1007,18 +1028,19 @@ module Make (V : Lattice_With_Isotropy.S) = struct
      let offset = abs_min in
      let size = Integer.length abs_min abs_max in
      let rem = abs_min %~ size in
-     let _, v1' =
+     let this_inform1, v1' =
        if modu1 =~ size && ((rem1 %~ size) =~ rem)
        then false, v1
        else extract_bits_and_stitch ~topify ~conflate_bottom
-         ~offset ~size offset (rem1, modu1, v1) abs_max V.singleton_zero
+         ~offset ~size offset (rem1, modu1, v1) abs_max V.merge_neutral_element
      in
-     let _, v2' =
+     let this_inform2, v2' =
        if modu2 =~ size && ((rem2 %~ size) =~ rem)
        then false, v2
        else extract_bits_and_stitch ~topify ~conflate_bottom
-         ~offset ~size offset (rem2, modu2, v2) abs_max V.singleton_zero
+         ~offset ~size offset (rem2, modu2, v2) abs_max V.merge_neutral_element
      in
+     inform := !inform || this_inform1 || this_inform2;
 (*     Format.printf "1: (%a, %a, %a);@.2: (%a, %a, %a);@.[%a--%a] -> %a/%a@."
        pretty_int rem1 pretty_int modu1 V.pretty v1
        pretty_int rem2 pretty_int modu2 V.pretty v2
@@ -1027,29 +1049,43 @@ module Make (V : Lattice_With_Isotropy.S) = struct
      rem, size, merge_v v1' v2'
  ;;
 
- let f_join = f_aux_merge V.join;;
-
- module JoinCache = Binary_cache.Make_Symetric(Cacheable)(Cacheable)
+ module JoinCache = Binary_cache.Make_Symmetric(Cacheable)(Cacheable)
  let () = clear_caches := JoinCache.clear :: !clear_caches;;
 
  (** Joining two trees that cover the same range *)
  let join t1 t2 =
+   let inform = ref false in
+   let f_join = f_aux_merge inform V.join in
    let rec aux_cache t1 t2 =
      if Cacheable.equal t1 t2 then t1
      else JoinCache.merge (merge aux_cache f_join) t1 t2
    in
-   snd (aux_cache (Integer.zero, t1) (Integer.zero, t2))
+   let _, r = aux_cache (Integer.zero, t1) (Integer.zero, t2) in
+(*   if !inform then
+     Kernel.result ~current:true ~once:true
+       "Loss of precision during join operation"; *)
+   r
  ;;
 
-
- let f_widen wh = f_aux_merge (V.widen wh);;
-
  let widen wh t1 t2 =
+   let inform = ref false in
+   (* Due to the way f_aux_merge is designed, we can obtain intervals on which
+      the two bindings do not verify [is_included v1 v2]. The widening
+      operations require this, so we correct the arguments here. *)
+   let widen v1 v2 =
+     let v2 = if not (V.is_included v1 v2) then V.join v1 v2 else v2 in
+     V.widen wh v1 v2
+   in
+   let f_widen = f_aux_merge inform widen in
    let rec aux t1 t2 =
      if Cacheable.equal t1 t2 then t1
-     else merge aux (f_widen wh) t1 t2
+     else merge aux f_widen t1 t2
    in
-   snd (aux (Integer.zero, t1) (Integer.zero, t2))
+   let _, r = aux (Integer.zero, t1) (Integer.zero, t2) in
+(* if !inform then
+     Kernel.result ~current:true ~once:true
+       "Loss of precision during widening"; *)
+   r
  ;;
 
 
@@ -1084,7 +1120,7 @@ module Make (V : Lattice_With_Isotropy.S) = struct
 
  (* First and last bits are included in the interval. The returned value
     is at the very least isotropic, possibly topified. *)
- let find_imprecise (first_bit, last_bit) tree =
+ let find_imprecise_between (first_bit, last_bit) tree =
    let rec aux tree_offset tree =
      match tree with
      | Empty -> V.bottom
@@ -1108,17 +1144,18 @@ module Make (V : Lattice_With_Isotropy.S) = struct
          else
            if V.is_isotropic v
            then v
-           else V.topify_misaligned_read_origin v
+           else
+             let origin = Origin.(current K_Misalign_read) in
+             V.topify_with_origin origin v
        in
        V.join subl_value (V.join subr_value current_node_value)
    in
    aux Integer.zero tree
 
-(* Searches for all intervals of the rangemap
-   contained in the  the interval [start, offset + size - 1].
-   Assumes the rangemap is rooted at offset 0. *)
- let find_itv ~topify ~with_alarms ~conflate_bottom ~start ~size tree period_read_ahead =
-   ignore(with_alarms); (* FIXME *)
+(* Query the offsetmap for the interval [start, start + size - 1], which is
+   supposed to fit in the offsetmap. Assumes the offsetmap is rooted at
+   offset 0 *)
+ let find_itv ~topify ~conflate_bottom ~start ~size tree period_read_ahead =
    let z, cur_off, root = find_bit start tree in
    match root with
      | Empty ->
@@ -1140,7 +1177,7 @@ module Make (V : Lattice_With_Isotropy.S) = struct
            end
          else
            let inform = ref false in
-           let acc = ref V.singleton_zero in
+           let acc = ref V.merge_neutral_element in
            let impz = { node = root; offset = cur_off; zipper = z; } in
            while impz.offset <=~ isize do
              let this_inform, v =
@@ -1164,10 +1201,7 @@ module Make (V : Lattice_With_Isotropy.S) = struct
  let find ~with_alarms ~validity ~conflate_bottom ~offsets ~size tree  =
     let inform = ref false in
     let filtered_by_bound =
-      try
-        Tr_offset.filter_by_bound_for_reading ~with_alarms offsets size validity
-      with
-        Tr_offset.Unbounded -> raise Not_found (* return top *)
+      Tr_offset.filter_by_bound_for_reading ~with_alarms offsets size validity
     in
     let r = try
       match filtered_by_bound with
@@ -1179,7 +1213,7 @@ module Make (V : Lattice_With_Isotropy.S) = struct
            while !mn <=~ mx do
              let this_inform, read_ahead, v =
                find_itv ~topify:Origin.K_Misalign_read ~conflate_bottom
-                 ~with_alarms ~start:!mn ~size tree m
+                 ~start:!mn ~size tree m
              in
              inform := !inform || this_inform;
              acc := V.join v !acc;
@@ -1194,20 +1228,20 @@ module Make (V : Lattice_With_Isotropy.S) = struct
            done;
            !acc
        | Tr_offset.Set s ->
-           Ival.O.fold
-             (fun offset acc ->
+           List.fold_left
+             (fun acc offset ->
                 let this_inform, _, new_value =
                   find_itv ~topify:Origin.K_Misalign_read ~conflate_bottom
-                    ~with_alarms ~start:offset ~size tree Integer.zero
+                    ~start:offset ~size tree Integer.zero
                 in
                 inform := !inform || this_inform;
                 let result = V.join acc new_value in
                 if V.equal result V.top then raise Not_found;
                 result)
-             s
-             V.bottom
+             V.bottom s
        | Tr_offset.Imprecise(mn, mx) ->
-           find_imprecise (mn, mx) tree
+           find_imprecise_between (mn, mx) tree
+       | Tr_offset.Invalid -> V.bottom
     with Bit_Not_found -> V.top
     in
     if !inform then begin
@@ -1310,7 +1344,8 @@ let update_itv_with_rem ~exact ~offset ~abs_max ~size ~rem curr_off v tree =
              new_r, new_m, cast_v
 
            else
-             let new_value = V.topify_merge_origin (V.join v_node v) in
+             let origin = Origin.(current K_Merge) in
+             let new_value = V.topify_with_origin origin (V.join v_node v) in
              let new_rem = Integer.zero and new_modu = Integer.one in
              new_rem, new_modu, new_value
          in
@@ -1348,7 +1383,7 @@ let update_itv_with_rem ~exact ~offset ~abs_max ~size ~rem curr_off v tree =
    );
    let v = V.topify_with_origin o v in
    let clip_min, clip_max = match validity with
-     | Base.Invalid -> assert false (* offsetmap should be empty *)
+     | Base.Invalid -> raise Result_is_bottom
      | Base.Known (min, max)
      | Base.Unknown (min, _, max) ->
          (fun min' -> Integer.max min min'),
@@ -1364,10 +1399,14 @@ let update_itv_with_rem ~exact ~offset ~abs_max ~size ~rem curr_off v tree =
         let new_min = clip_min min and new_max = clip_max max in
         let acc =
           if min <~ new_min (* Before validity *)
-          then add_basic_node ~min ~max:(pred min) ~v:V.bottom acc
+          then add_basic_node ~min ~max:(pred new_min) ~v:V.bottom acc
           else acc
         in
-        let acc = add_basic_node ~min:new_min ~max:new_max ~v:new_v acc in
+        let acc =
+          if new_min <=~ new_max
+          then add_basic_node ~min:new_min ~max:new_max ~v:new_v acc
+          else acc (* Interval completely out of validity *)
+        in
         let acc =
           if new_max <~ max (* After validity *)
           then add_basic_node ~min:(succ new_max) ~max ~v:V.bottom acc
@@ -1482,40 +1521,32 @@ let update_itv_with_rem ~exact ~offset ~abs_max ~size ~rem curr_off v tree =
 
 let update ~with_alarms ~validity ~exact ~offsets ~size v t =
   let v = V.anisotropic_cast ~size v in
-  try
-    let exact, reduced = Tr_offset.filter_by_bound_for_writing
-      ~with_alarms ~exact offsets size validity
-    in
-    match reduced with
+  let exact, reduced = Tr_offset.filter_by_bound_for_writing
+    ~with_alarms ~exact offsets size validity
+  in
+  match reduced with
     | Tr_offset.Imprecise (mn, mx) ->
-        let v = V.topify_misaligned_read_origin v in
+        let origin = Origin.(current K_Misalign_read) in
+        let v = V.topify_with_origin origin v in
         snd (update_itv ~exact:false ~offset:mn ~abs_max:mx ~size:Integer.one
                Integer.zero v t) (* TODO: check *)
 
     | Tr_offset.Interval(mn, mx, m) ->
         update_itvs_or_approx exact mn mx m size v t
 
-    | Tr_offset.Set s when not (Ival.O.is_empty s) ->
-        Ival.O.fold
-          (fun offset acc ->
+    | Tr_offset.Set s ->
+        List.fold_left
+          (fun acc offset ->
              let update = update_itv ~exact in
              let _, r = update ~offset ~size
                ~abs_max:(pred (offset +~ size)) Integer.zero v acc
              in
              r
-          ) s t
-    | Tr_offset.Set _  ->
+          ) t s
+    | Tr_offset.Invalid  ->
         if exact
         then raise Result_is_bottom
         else t
-  with
-    Tr_offset.Unbounded ->
-      (let w = with_alarms.CilE.imprecision_tracing in
-       Extlib.may(fun _ -> Kernel.warning ~once:true ~current:true
-         "Writing at unbounded offset: approximating") 
-	 w.CilE.a_log;
-       w.CilE.a_call());
-      update_imprecise_everywhere ~validity (Origin.current Origin.K_Arith) v t
 
 
  let copy_single offset tree size period_read_ahead =
@@ -1562,11 +1593,20 @@ let update ~with_alarms ~validity ~exact ~offsets ~size v t =
    read_ahead, !acc
  ;;
 
+ let is_single_interval ?(f=fun _ -> true) o =
+   match o with
+   | Node(_, _, Empty, _, Empty, _, _, v, _) -> f v
+   | _ -> false
+
+ let single_interval_value o =
+   match o with
+   | Node(_, _, Empty, _, Empty, _, _, v, _) -> Some v
+   | _ -> None
+
+
  let copy_slice ~with_alarms ~validity ~offsets ~size tree =
     let filtered_by_bound =
-      try Tr_offset.filter_by_bound_for_reading
-            ~with_alarms offsets size validity
-      with Tr_offset.Unbounded -> raise Not_found (* return top *)
+      Tr_offset.filter_by_bound_for_reading ~with_alarms offsets size validity
     in
     let init =
       add_basic_node ~min:Integer.zero ~max:(pred size) ~v:V.bottom empty
@@ -1594,14 +1634,16 @@ let update ~with_alarms ~validity ~exact ~offsets ~size v t =
           done;
           !acc_tree
        | Tr_offset.Set s ->
-           Ival.O.fold
-             (fun offset acc_tree ->
+           List.fold_left
+             (fun acc_tree offset ->
                let _, t = copy_single offset tree size Integer.zero in
                join acc_tree t
-             ) s init
+             ) init s
        | Tr_offset.Imprecise(mn, mx) ->
-           let v = find_imprecise (mn, mx) tree in
+           let v = find_imprecise_between (mn, mx) tree in
            add_basic_node ~min:Integer.zero ~max:(pred size) ~v empty
+       | Tr_offset.Invalid ->
+           empty
     in
     result
  ;;
@@ -1685,7 +1727,7 @@ let update ~with_alarms ~validity ~exact ~offsets ~size v t =
               paste_slice_itv ~exact:false src start_src stop_src start_to acc,
               true
       in
-      let res, success = Ival.fold aux offsets (dst, false) in
+      let res, success = Ival.fold_int aux offsets (dst, false) in
       if success then res else raise Result_is_bottom
     with Not_less_than ->
       Kernel.result ~current:true ~once:true
@@ -1748,56 +1790,47 @@ let update ~with_alarms ~validity ~exact ~offsets ~size v t =
       (fun fmt -> iter (pretty_binding fmt)) m
 
   let create_isotropic ~size v =
+    assert (Int.gt size Int.zero);
     assert (V.is_isotropic v);
     add_basic_node ~min:Integer.zero ~max:(pred size) ~v empty
 
   let create ~size v ~size_v =
+    assert (Int.gt size Int.zero);
     add_node_from_root ~min:Integer.zero ~max:(pred size) ~rem:Integer.zero
       ~modu:size_v ~v empty
 
   let cardinal_zero_or_one offsetmap =
     (singleton_tag offsetmap) <> 0
 
-  let from_string s =
-    let s = s ^ "\000" in
-    let r = ref empty in
-    let char_width = 8 in
-    let l = String.length s in
-    for i = 0 to l-1 do
-      let b = i * char_width in
-      let e = b + char_width - 1 in
-      r := add_basic_node
-        ~min:(Integer.of_int b) ~max:(Integer.of_int e) ~v:(V.of_char s.[i]) !r
-    done;
-    !r
-
-  let from_wstring s =
-    let s = s @ [0L] in
-    let pwchar_width = 
-      Integer.of_int (Cil.bitsSizeOf Cil.theMachine.Cil.wcharType - 1)
+  let of_list fold l size_elt =
+    let s = pred size_elt in
+    let n = ref Integer.zero in
+    let addw acc v =
+      let e = !n +~ s in
+      let r = add_basic_node ~min:!n ~max:e ~v acc in
+      n := succ e;
+      r
     in
-    let addw (b,acc) wchar =
-      let e = b +~ pwchar_width in
-      succ e, add_basic_node ~min:b ~max:e ~v:(V.of_int64 wchar) acc
-    in
-    snd (List.fold_left addw (Integer.zero,empty) s)
-
-  let from_cstring = function
-    | Base.CSWstring w -> from_wstring w
-    | Base.CSString s -> from_string s
-
+    fold addw empty l
 
   let add (min, max) (v, modu, rem) m =
     snd (update_itv_with_rem ~exact:true
            ~offset:min ~abs_max:max ~rem ~size:modu Integer.zero v m)
 
-  let find_imprecise_everywhere ~validity m =
+  let find_imprecise ~validity m =
     match validity with
     | Base.Known (min, max) | Base.Unknown (min, _, max) ->
-        find_imprecise (min, max) m
+        find_imprecise_between (min, max) m
     | Base.Periodic (_min, _max, p) ->
-        find_imprecise (Int.zero, pred p) m
+        find_imprecise_between (Int.zero, pred p) m
     | Base.Invalid -> V.bottom
+
+  let find_imprecise_everywhere m =
+    match m with
+    | Empty -> V.bottom
+    | Node _ ->
+      let bounds = bounds_offset Int.zero m in
+      find_imprecise_between bounds m
 
 
   let clear_caches () = List.iter (fun f -> f ()) !clear_caches

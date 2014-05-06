@@ -1,6 +1,6 @@
 /* run.config
-   OPT: -memory-footprint 1 -val -deps -out -input -warn-signed-overflow
-   OPT: -memory-footprint 1 -val -deps -out -input -no-warn-signed-overflow
+   OPT: -val -deps -out -input -warn-signed-overflow
+   OPT: -val -deps -out -input -no-warn-signed-overflow
 */
 extern int printf (__const char *__restrict __format, ...);
 /* L'analyseur déborde et dit i=-1 */

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,6 +20,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
+module Fc_config = Config
 module STRING = String
 let () = Plugin.is_share_visible ()
 include Plugin.Register
@@ -27,7 +28,7 @@ include Plugin.Register
      let name = "WP"
      let shortname = "wp"
      let help = "Weakest Preconditions Calculus\n\
-WP 0.7 for " ^ Config.version
+WP 0.8 for " ^ Config.version
    end)
 
 (* localize all warnings inside WP *)
@@ -58,8 +59,8 @@ let has_dkey k =
 
 let wp_generation = add_group "Goal Selection"
 
-let () = Plugin.set_group wp_generation
-let () = Plugin.do_not_save ()
+let () = Parameter_customize.set_group wp_generation
+let () = Parameter_customize.do_not_save ()
 module WP =
   Action(struct
            let option_name = "-wp"
@@ -67,8 +68,8 @@ module WP =
          end)
 let () = on_reset WP.clear
 
-let () = Plugin.set_group wp_generation
-let () = Plugin.do_not_save ()
+let () = Parameter_customize.set_group wp_generation
+let () = Parameter_customize.do_not_save ()
 module Functions =
   StringList
     (struct
@@ -78,8 +79,8 @@ module Functions =
      end)
 let () = on_reset Functions.clear
 
-let () = Plugin.set_group wp_generation
-let () = Plugin.do_not_save ()
+let () = Parameter_customize.set_group wp_generation
+let () = Parameter_customize.do_not_save ()
 module SkipFunctions =
   StringList
     (struct
@@ -89,8 +90,8 @@ module SkipFunctions =
      end)
 let () = on_reset SkipFunctions.clear
 
-let () = Plugin.set_group wp_generation
-let () = Plugin.do_not_save ()
+let () = Parameter_customize.set_group wp_generation
+let () = Parameter_customize.do_not_save ()
 module Behaviors =
   StringList
     (struct
@@ -100,8 +101,8 @@ module Behaviors =
      end)
 let () = on_reset Behaviors.clear
 
-let () = Plugin.set_group wp_generation
-let () = Plugin.do_not_save ()
+let () = Parameter_customize.set_group wp_generation
+let () = Parameter_customize.do_not_save ()
 module Properties =
   StringList
     (struct
@@ -133,28 +134,28 @@ let job () =
       | _ , _ -> WP_Fct (List.filter (fun f -> not (List.mem f skp)) fct)
   else WP_None
 
-let () = Plugin.set_group wp_generation
+let () = Parameter_customize.set_group wp_generation
 module StatusAll =
   False(struct
           let option_name = "-wp-status-all"
           let help = "Select properties with any status (default: no)"
        end)
 
-let () = Plugin.set_group wp_generation
+let () = Parameter_customize.set_group wp_generation
 module StatusTrue =
   False(struct
           let option_name = "-wp-status-valid"
           let help = "Select properties with status 'Valid' (default: no)"
        end)
 
-let () = Plugin.set_group wp_generation
+let () = Parameter_customize.set_group wp_generation
 module StatusFalse =
   False(struct
           let option_name = "-wp-status-invalid"
           let help = "Select properties with status 'Invalid' (default: no)"
         end)
 
-let () = Plugin.set_group wp_generation
+let () = Parameter_customize.set_group wp_generation
 module StatusMaybe =
   True(struct
          let option_name = "-wp-status-maybe"
@@ -162,23 +163,12 @@ module StatusMaybe =
        end)
 
 (* ------------------------------------------------------------------------ *)
-(* --- Froms                                                            --- *)
-(* ------------------------------------------------------------------------ *)
-
-let () = Plugin.set_group wp_generation
-module Froms =
-  False(struct
-          let option_name = "-wp-froms"
-          let help = "Undocumented (dot not use)."
-        end)
-
-(* ------------------------------------------------------------------------ *)
 (* ---  Memory Models                                                   --- *)
 (* ------------------------------------------------------------------------ *)
 
 let wp_model = add_group "Model Selection"
 
-let () = Plugin.set_group wp_model
+let () = Parameter_customize.set_group wp_model
 module Model =
   StringList
     (struct
@@ -195,21 +185,21 @@ module Model =
                     * '+real/+float' real or IEEE floatting point arithmetics"
      end)
     
-let () = Plugin.set_group wp_model
+let () = Parameter_customize.set_group wp_model
 module ExternArrays =
   False(struct
 	  let option_name = "-wp-extern-arrays"
 	  let help = "Put some default size for extern arrays"
 	end)
 
-let () = Plugin.set_group wp_model
+let () = Parameter_customize.set_group wp_model
 module ExtEqual =
   False(struct
 	  let option_name = "-wp-extensional"
 	  let help = "Use extensional equality on compounds (hypotheses only)"
 	end)
 
-let () = Plugin.set_group wp_model
+let () = Parameter_customize.set_group wp_model
 module Literals =
   False(struct
 	  let option_name = "-wp-literals"
@@ -222,53 +212,74 @@ module Literals =
 
 let wp_strategy = add_group "Computation Strategies"
 
-let () = Plugin.set_group wp_strategy
+let () = Parameter_customize.set_group wp_strategy
 module RTE =
   False(struct
           let option_name = "-wp-rte"
           let help = "Generates RTE guards before WP"
         end)
 
-let () = Plugin.set_group wp_strategy
+let () = Parameter_customize.set_group wp_strategy
 module Simpl =
   True(struct
         let option_name = "-wp-simpl"
         let help = "Simplify constant terms and predicates."
        end)
 
-let () = Plugin.set_group wp_strategy
+let () = Parameter_customize.set_group wp_strategy
 module Let =
   True(struct
          let option_name = "-wp-let"
          let help = "Use variable elimination (by default)."
        end)
 
-let () = Plugin.set_group wp_strategy
+let () = Parameter_customize.set_group wp_strategy
 module Prune =
   True(struct
          let option_name = "-wp-pruning"
          let help = "Prune trivial branches (by default)."
        end)
 
-let () = Plugin.set_group wp_strategy
+let () = Parameter_customize.set_group wp_strategy
 module Clean =
   True(struct
           let option_name = "-wp-clean"
           let help = "Use variable filtering (by default)."
 	end)
 
-let () = Plugin.set_group wp_strategy
+let () = Parameter_customize.set_group wp_strategy
+module Bits =
+  True(struct
+          let option_name = "-wp-bits"
+          let help = "Use bit-test simplifications (by default)."
+	end)
+
+let () = Parameter_customize.set_group wp_strategy
+module QedChecks =
+  False(struct
+          let option_name = "-wp-qed-checks"
+          let help = "Cheks internal simplifications."
+	end)
+
+let () = Parameter_customize.set_group wp_strategy
+module Split =
+  False(struct
+          let option_name = "-wp-split"
+          let help = "Split conjunctions into sub-goals."
+        end)
+
+let () = Parameter_customize.set_group wp_strategy
 module Invariants =
   False(struct
           let option_name = "-wp-invariants"
           let help = "Handle generalized invariants inside loops."
         end)
 
-let () = Plugin.set_group wp_strategy
-module Split =
+let () = Parameter_customize.set_group wp_strategy
+module DynCall =
   False(struct
-          let option_name = "-wp-split"
-          let help = "Split conjunctions into sub-goals."
+          let option_name = "-wp-dynamic"
+          let help = "Handle dynamic calls with specific annotations."
         end)
 
 (* ------------------------------------------------------------------------ *)
@@ -277,7 +288,7 @@ module Split =
 
 let wp_prover = add_group "Prover Interface"
 
-let () = Plugin.set_group wp_prover
+let () = Parameter_customize.set_group wp_prover
 module Provers = StringList
   (struct
      let option_name = "-wp-prover"
@@ -295,7 +306,7 @@ module Provers = StringList
 
 let () = Provers.add_aliases [ "-wp-proof" ] (* Deprecated *)
 
-let () = Plugin.set_group wp_prover
+let () = Parameter_customize.set_group wp_prover
 module Generate = False
   (struct
      let option_name = "-wp-gen"
@@ -303,7 +314,7 @@ module Generate = False
    end)
 let () = on_reset Generate.clear 
 
-let () = Plugin.set_group wp_prover
+let () = Parameter_customize.set_group wp_prover
 module Detect = Action
   (struct
      let option_name = "-wp-detect"
@@ -311,7 +322,7 @@ module Detect = Action
    end)
 let () = on_reset Detect.clear
 
-let () = Plugin.set_group wp_prover
+let () = Parameter_customize.set_group wp_prover
 module Drivers =
   StringList
     (struct
@@ -320,7 +331,7 @@ module Drivers =
        let help = "Load drivers for linking to external libraries"
      end)
 
-let () = Plugin.set_group wp_prover
+let () = Parameter_customize.set_group wp_prover
 module Depth =
   Int(struct
 	let option_name = "-wp-depth"
@@ -329,7 +340,7 @@ module Depth =
 	let help = "Set depth of exploration for provers."
       end)
 
-let () = Plugin.set_group wp_prover
+let () = Parameter_customize.set_group wp_prover
 module Steps =
   Int(struct
 	let option_name = "-wp-steps"
@@ -338,7 +349,7 @@ module Steps =
 	let help = "Set number of steps for provers."
       end)
 
-let () = Plugin.set_group wp_prover
+let () = Parameter_customize.set_group wp_prover
 module Timeout =
   Int(struct
         let option_name = "-wp-timeout"
@@ -349,7 +360,7 @@ module Timeout =
             "Set the timeout (in seconds) for provers (default: %d)." default
       end)
 
-let () = Plugin.set_group wp_prover
+let () = Parameter_customize.set_group wp_prover
 module CoqTimeout =
   Int(struct
         let option_name = "-wp-coq-timeout"
@@ -360,7 +371,7 @@ module CoqTimeout =
             "Set the timeout (in seconds) for Coq (default: %d)." default
       end)
 
-let () = Plugin.set_group wp_prover
+let () = Parameter_customize.set_group wp_prover
 module Procs =
   Int(struct
         let option_name = "-wp-par"
@@ -371,20 +382,12 @@ module Procs =
             "Number of parallel proof process (default: %d)" default
       end)
 
-let () = Plugin.set_group wp_prover
+let () = Parameter_customize.set_group wp_prover
 module ProofTrace =
   False
     (struct
         let option_name = "-wp-proof-trace"
         let help = "Keeps output of provers for valid POs (default: no)"
-     end)
-
-let () = Plugin.set_group wp_prover
-module UnsatModel =
-  False
-    (struct
-       let option_name = "-wp-unsat-model"
-       let help = "Keeps output of provers for unknown POs (default: no)"
      end)
 
 (* ------------------------------------------------------------------------ *)
@@ -393,7 +396,7 @@ module UnsatModel =
 
 let wp_proverlibs = add_group "Prover Libraries"
 
-let () = Plugin.set_group wp_proverlibs
+let () = Parameter_customize.set_group wp_proverlibs
 module Script =
   String(struct
            let option_name = "-wp-script"
@@ -402,14 +405,14 @@ module Script =
            let help = "Set user's file for Coq proofs."
          end)
 
-let () = Plugin.set_group wp_proverlibs
+let () = Parameter_customize.set_group wp_proverlibs
 module UpdateScript =
   True(struct
          let option_name = "-wp-update-script"
          let help = "If turned off, do not save or modify user's proofs."
        end)
 
-let () = Plugin.set_group wp_proverlibs
+let () = Parameter_customize.set_group wp_proverlibs
 module CoqTactic =
   String
     (struct
@@ -419,7 +422,7 @@ module CoqTactic =
        let help = "Default tactic for Coq"
      end)
 
-let () = Plugin.set_group wp_proverlibs
+let () = Parameter_customize.set_group wp_proverlibs
 module TryHints =
   False
     (struct
@@ -427,7 +430,7 @@ module TryHints =
        let help = "Try scripts from other goals (see also -wp-hints)"
      end)
 
-let () = Plugin.set_group wp_proverlibs
+let () = Parameter_customize.set_group wp_proverlibs
 module Hints =
   Int
     (struct
@@ -437,25 +440,25 @@ module Hints =
        let help = "Maximum number of proposed Coq scripts (default 3)"
      end)
 
-let () = Plugin.set_group wp_proverlibs
+let () = Parameter_customize.set_group wp_proverlibs
 module Includes =
   StringList
     (struct
        let option_name = "-wp-include"
-       let arg_name = "dir,..."
-       let help = "Directory where to find extensions for provers"
+       let arg_name = "dir,...,+sharedir"
+       let help = "Directory where to find libraries and drivers for provers"
      end)
 
-let () = Plugin.set_group wp_proverlibs
+let () = Parameter_customize.set_group wp_proverlibs
 module CoqLibs =
   StringList
     (struct
        let option_name = "-wp-coq-lib"
        let arg_name = "*.v,*.vo"
-       let help = "Additional libraries for Coq."
+       let help = "Additional libraries for Coq"
      end)
 
-let () = Plugin.set_group wp_proverlibs
+let () = Parameter_customize.set_group wp_proverlibs
 module WhyLibs =
   StringList
     (struct
@@ -464,7 +467,7 @@ module WhyLibs =
        let help = "Additional libraries for Why"
      end)
 
-let () = Plugin.set_group wp_proverlibs
+let () = Parameter_customize.set_group wp_proverlibs
 module WhyFlags =
   StringList
     (struct
@@ -473,7 +476,7 @@ module WhyFlags =
        let help = "Additional options for Why3"
      end)
 
-let () = Plugin.set_group wp_proverlibs
+let () = Parameter_customize.set_group wp_proverlibs
 module AltErgoLibs =
   StringList
     (struct
@@ -482,7 +485,7 @@ module AltErgoLibs =
        let help = "Additional library file for Alt-Ergo"
      end)
 
-let () = Plugin.set_group wp_proverlibs
+let () = Parameter_customize.set_group wp_proverlibs
 module AltErgoFlags =
   StringList
     (struct
@@ -491,13 +494,7 @@ module AltErgoFlags =
        let help = "Additional options for Alt-Ergo"
      end)
 
-let () = Plugin.set_group wp_proverlibs
-module AltErgoLightInt =
-  False
-    (struct
-       let option_name = "-wp-alt-ergo-lightint"
-       let help = "Use lightweight machine integer library for Alt-Ergo"
-     end)
+let () = Parameter_customize.set_group wp_proverlibs
 
 (* ------------------------------------------------------------------------ *)
 (* --- PO Management                                                    --- *)
@@ -505,8 +502,8 @@ module AltErgoLightInt =
 
 let wp_po = add_group "Proof Obligations"
 
-let () = Plugin.set_group wp_po
-let () = Plugin.do_not_save ()
+let () = Parameter_customize.set_group wp_po
+let () = Parameter_customize.do_not_save ()
 module Print =
   Action(struct
            let option_name = "-wp-print"
@@ -514,8 +511,8 @@ module Print =
          end)
 let () = on_reset Print.clear
 
-let () = Plugin.set_group wp_po
-let () = Plugin.do_not_save ()
+let () = Parameter_customize.set_group wp_po
+let () = Parameter_customize.do_not_save ()
 module Report =
   StringList(struct
 	       let option_name = "-wp-report"
@@ -523,8 +520,8 @@ module Report =
 	       let help = "Report specification file(s)"
 	     end)
 
-let () = Plugin.set_group wp_po
-let () = Plugin.do_not_save ()
+let () = Parameter_customize.set_group wp_po
+let () = Parameter_customize.do_not_save ()
 module ReportName =
   String(struct
 	   let option_name = "-wp-report-basename"
@@ -533,7 +530,7 @@ module ReportName =
 	   let help = Printf.sprintf "Basename of generated reports (default %S)" default
 	 end)
 
-let () = Plugin.set_group wp_po
+let () = Parameter_customize.set_group wp_po
 module OutputDir =
   String(struct
            let option_name = "-wp-out"
@@ -543,22 +540,32 @@ module OutputDir =
                        Defaults to some temporary directory."
          end)
 
-let () = Plugin.set_group wp_po
-let () = Plugin.do_not_save ()
+let () = Parameter_customize.set_group wp_po
+let () = Parameter_customize.do_not_save ()
 module Check =
   Action(struct
            let option_name = "-wp-check"
            let help =
-        "check the syntax and type of the produced file against \n\
-         alt-ergo, why3 and coq when the environnement variable WPCHECK=YES."
+        "Checks the syntax and type of the produced file, instead of proving.\n\
+         When the environnement variable WPCHECK is set to 'YES',\n\
+         provers Alt-Ergo, Why-3 and Coq are run in this mode on all generated goals."
          end)
 let () = on_reset Print.clear
 
-let wpcheck () =
-  Check.get () &&
+let wpcheck_provers () =
+  if not (Check.get ()) then []
+  else
     try
-      Sys.getenv "WPCHECK" = "YES"
-    with Not_found -> false
+      let l = Str.split (Str.regexp " ") (Sys.getenv "WPCHECK") in
+      List.fold_left (fun acc -> function
+          | "YES" -> `Coq::`Why3::`Altergo::acc
+          | "coq" -> `Coq::acc
+          | "why3" -> `Why3::acc
+          | "altergo" -> `Altergo::acc
+          | _ ->
+            abort "$WPCHECK can contain only coq, why3 or altergo separated by \
+                   single space.") [] l
+    with Not_found -> []
 
 (* -------------------------------------------------------------------------- *)
 (* --- OS environment variables                                           --- *)
@@ -581,7 +588,7 @@ let get_env ?default var =
 
 let dkey = register_category "out"
 
-let is_out () = !Config.is_gui || OutputDir.get() <> ""
+let is_out () = !Fc_config.is_gui || OutputDir.get() <> ""
 
 let make_output_dir dir =
   if Sys.file_exists dir then
@@ -617,7 +624,7 @@ let make_gui_dir () =
       try Sys.getenv "USERPROFILE" (*Win32*) with Not_found ->
         try Sys.getenv "HOME" (*Unix like*) with Not_found ->
           "." in
-    let dir = Filename.concat home ".frama-c-wp" in
+    let dir = home ^ "/" ^ ".frama-c-wp" in
     if Sys.file_exists dir && Sys.is_directory dir then
       Extlib.safe_remove_dir dir;
     make_output_dir dir ; dir
@@ -631,7 +638,7 @@ let base_output () =
   | None -> let output =
               match OutputDir.get () with
               | "" ->
-                if !Config.is_gui
+                if !Fc_config.is_gui
                 then make_gui_dir ()
                 else make_tmp_dir ()
               | dir ->
@@ -646,7 +653,7 @@ let get_output () =
   let name = Project.get_unique_name project in
   if name = "default" then base
   else 
-    let dir = Filename.concat base name in
+    let dir = base ^ "/" ^ name in
     make_output_dir dir ; dir
     
 let get_output_dir d =
@@ -654,39 +661,18 @@ let get_output_dir d =
   let path = Printf.sprintf "%s/%s" base d in
   make_output_dir path ; path
 
-let dkey = register_category "includes"
-let find_db = ref false
-let find_lib file =
-  if Sys.file_exists file then file else 
-    let rec lookup file = function
-      | [] -> abort "File '%s' not found (see -wp-include)" file
-      | dir::dirs ->
-	  let path = Printf.sprintf "%s/%s" dir file in
-	  if Sys.file_exists path then path else lookup file dirs
-    in
-    let includes = 
-      List.map
-	(fun d ->
-	   if STRING.get d 0 = '+' then
-	     Printf.sprintf "%s/%s"
-	       (Kernel.Share.dir ()) 
-	       (STRING.sub d 1 (STRING.length d - 1))
-	   else d)
-	(Includes.get ())
-    in
-    let shared = 
-      try [Share.dir ~error:false ()] 
-      with Share.No_dir -> [] in
-    let drivers = List.map Filename.dirname (Drivers.get ()) in
-    let directories = includes @ drivers @ shared in
-    if not !find_db && has_dkey "includes" then
-      begin
-	find_db := true ;
-	debug ~dkey "Included directories:%t"
-	  (fun fmt ->
-	     List.iter 
-	       (fun d -> Format.fprintf fmt "@\n - '%s'" d)
-	       directories
-	  )
-      end ;
-    lookup file directories
+let get_includes () =
+  List.map
+    (fun d ->
+       if STRING.get d 0 = '+' then
+	 Printf.sprintf "%s/%s"
+    (Kernel.Share.dir ())
+    (STRING.sub d 1 (STRING.length d - 1))
+       else d)
+    (Includes.get ())
+
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

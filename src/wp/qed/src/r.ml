@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -34,8 +34,13 @@ type maybe =
   | Sure_false
   | Unknown
 
+let is_zero = function
+  | "0" | "0.0" | "0." -> true
+  | _ -> false
+
 let eq a b = if a = b then Sure_true else Unknown
-let lt _a _b = Unknown
+let neq a b = if a = b then Sure_false else Unknown
+let lt a b = if a = b then Sure_false else Unknown
 let leq a b = if a = b then Sure_true else Unknown
 
 let pretty = Format.pp_print_string
@@ -44,8 +49,8 @@ let positive a = String.length a <= 0 || a.[0] <> '-'
 let negative a = String.length a > 0 && a.[0] = '-'
 let opp a =
   if String.length a <= 0 then a else
-    if a.[0] = '-' then
-      String.sub a 1 (String.length a - 1)
-    else
-      ("-" ^ a)
+  if a.[0] = '-' then
+    String.sub a 1 (String.length a - 1)
+  else
+    ("-" ^ a)
 

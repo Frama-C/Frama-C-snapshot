@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -38,8 +38,8 @@ type c_label =
 let equal = (=)
 
 module T = struct type t = c_label let compare = Pervasives.compare end
-module LabelMap = Map.Make(T)
-module LabelSet = Set.Make(T)
+module LabelMap = FCMap.Make(T)
+module LabelSet = FCSet.Make(T)
 
 let has_prefix p s =
   let rec scan k p s =

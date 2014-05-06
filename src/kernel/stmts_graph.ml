@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -33,7 +33,7 @@ struct
 
   module HV = Hashtbl.Make(Stmt)
   module HptmapStmtBool = Hptmap.Make
-    (struct include Stmt let id s = s.sid end)
+    (Cil_datatype.Stmt_Id)
     (Datatype.Bool)
     (Hptmap.Comp_unused)
     (struct let v = [ [] ] end)
@@ -96,6 +96,24 @@ let stmt_can_reach _kf =
     (*Kernel.debug ~level:4 "CHECK PATH %d->%d@\n" s1.sid s2.sid;*)
     check s1 s2
 
+(* Cached versions of [Stmts_graph.stmt_can_reach] *)
+
+module StmtCanReachCache =
+  Kernel_function.Make_Table
+    (Datatype.Function
+       (struct include Cil_datatype.Stmt let label = None end)
+       (Datatype.Function
+          (struct include Cil_datatype.Stmt let label = None end)
+          (Datatype.Bool)))
+    (struct
+      let name = "Eval_funs.StmtCanReachCache"
+      let size = 17
+      let dependencies = [ Ast.self ]
+     end)
+
+let stmt_can_reach = StmtCanReachCache.memo stmt_can_reach
+
+
 let stmt_can_reach_filtered filterfunc =
   let cache = PathChecker.create () in
   let check = PathChecker.check_path_using_filter filterfunc cache in
@@ -139,12 +157,12 @@ module TP = struct
 
   let vertex_attributes s =
     match s.skind with
-    | Loop _ -> [`Color 0xFF0000; `Style `Filled]
-    | If _ -> [`Color 0x00FF00; `Style `Filled; `Shape `Diamond]
-    | Return _ -> [`Color 0x0000FF; `Style `Filled]
+    | Loop _ -> [`Color 0xFF0000; `Style [`Filled]]
+    | If _ -> [`Color 0x00FF00; `Style [`Filled]; `Shape `Diamond]
+    | Return _ -> [`Color 0x0000FF; `Style [`Filled]]
     | Block _ -> [`Shape `Box; `Fontsize 8]
-    | Goto _ -> [`Shape `Diamond; `Color 0x00FFFF ; `Style `Filled]
-    | Instr (Skip _) -> [`Color 0x00FFFF ; `Style `Filled]
+    | Goto _ -> [`Shape `Diamond; `Color 0x00FFFF ; `Style [`Filled]]
+    | Instr (Skip _) -> [`Color 0x00FFFF ; `Style [`Filled]]
     | _ -> []
   let default_vertex_attributes _ = []
 
@@ -159,7 +177,7 @@ class stmt_graph_builder = object
   inherit nopCilVisitor
   val graph = SG.create ()
   method result = graph
-  method vstmt s =
+  method! vstmt s =
     SG.add_vertex graph s; (* required for function with exactly one stmt *)
     List.iter (SG.add_edge graph s) s.succs;
     (* preds will be set latter while being visited *)

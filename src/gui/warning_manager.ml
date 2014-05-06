@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -24,7 +24,9 @@ open Log
 
 let scope = function
   | None -> "Global"
-  | Some s -> Printf.sprintf "%s:%d" s.Lexing.pos_fname s.Lexing.pos_lnum
+  | Some s ->
+    Printf.sprintf "%s:%d"
+      (Filepath.pretty s.Lexing.pos_fname) s.Lexing.pos_lnum
 
 module Legacy=struct
 type t =

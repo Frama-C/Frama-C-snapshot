@@ -35,8 +35,8 @@
 (*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE         *)
 (*  POSSIBILITY OF SUCH DAMAGE.                                             *)
 (*                                                                          *)
-(*  File modified by CEA (Commissariat à l'énergie atomique et aux          *)
-(*                        énergies alternatives)                            *)
+(*  File modified by CEA (Commissariat Ã  l'Ã©nergie atomique et aux          *)
+(*                        Ã©nergies alternatives)                            *)
 (*               and INRIA (Institut National de Recherche en Informatique  *)
 (*                          et Automatique).                                *)
 (****************************************************************************)
@@ -75,13 +75,13 @@ let exp_ok = ref true
 class memReadOrAddrOfFinderClass = object
   inherit nopCilVisitor
 
-  method vexpr e = match e.enode with
+  method! vexpr e = match e.enode with
     Lval(Mem _, _) ->
       exp_ok := false;
       SkipChildren
   | _ -> DoChildren
 
-  method vvrbl vi =
+  method! vvrbl vi =
     if vi.vglob then
       (if !debug then (Kernel.debug "memReadOrAddrOfFinder: %s is a global\n"
                                vi.vname);
@@ -115,7 +115,7 @@ let fsr = ref emptyStmt
 class stmtFinderClass sid = object
   inherit nopCilVisitor
 
-  method vstmt stm =
+  method! vstmt stm =
     if stm.sid = sid
     then (fsr := stm; SkipChildren)
     else DoChildren
@@ -213,7 +213,7 @@ let udDeepSkindHtbl = IH.create 64
 class defCollectorClass = object
   inherit nopCilVisitor
 
-  method vstmt s =
+  method! vstmt s =
     let _,d = if IH.mem udDeepSkindHtbl s.sid
     then IH.find udDeepSkindHtbl s.sid
     else let u',d' = UD.computeDeepUseDefStmtKind s.skind in
@@ -280,7 +280,7 @@ let useList = ref []
 class useListerClass (defid:int) (vi:varinfo) = object(self)
     inherit RD.rdVisitorClass
 
-  method vexpr e =
+  method! vexpr e =
     match e.enode with
       Lval(Var vi', _off) ->
         (match self#get_cur_iosh() with
@@ -465,7 +465,7 @@ let forms = [Exact "tmp";
 let varXformClass action data sid fd nofrm = object
     inherit nopCilVisitor
 
-  method vexpr e = match e.enode with
+  method! vexpr e = match e.enode with
     Lval(Var vi, NoOffset) ->
       (match action data sid vi fd nofrm with
         None -> DoChildren
@@ -495,7 +495,7 @@ end
 let lvalXformClass action data sid fd nofrm = object
   inherit nopCilVisitor
 
-  method vexpr e =
+  method! vexpr e =
     let castrm e =
       Expcompare.stripCastsDeepForPtrArith e
     in
@@ -735,7 +735,7 @@ let ae_const_prop eh sid e fd nofrm =
 class expTempElimClass (fd:fundec) = object (self)
   inherit RD.rdVisitorClass
 
-  method vexpr e =
+  method! vexpr e =
 
     let do_change iosh vi =
       let ido = RD.iosh_singleton_lookup iosh vi in
@@ -782,7 +782,7 @@ end
 class expLvTmpElimClass (fd : fundec) = object(self)
   inherit AELV.aeVisitorClass
 
-  method vexpr e =
+  method! vexpr e =
     match self#get_cur_eh () with
     | None -> DoChildren
     | Some eh -> begin
@@ -796,7 +796,7 @@ end
 class incdecTempElimClass (fd:fundec) = object (self)
   inherit RD.rdVisitorClass
 
-  method vexpr e =
+  method! vexpr e =
 
     let do_change iosh vi =
       let ido = RD.iosh_singleton_lookup iosh vi in
@@ -843,7 +843,7 @@ end
 class callTempElimClass (fd:fundec) = object (self)
   inherit RD.rdVisitorClass
 
-  method vexpr e =
+  method! vexpr e =
 
     let do_change iosh vi =
       let ido = RD.iosh_singleton_lookup iosh vi in
@@ -890,7 +890,7 @@ class callTempElimClass (fd:fundec) = object (self)
        unless they are found and the replacement prevented.
        It will be possible to replace more temps if dead
        code elimination is performed before printing. *)
-  method vinst i =
+  method! vinst i =
     (* Need to copy this from rdVisitorClass because we are overriding *)
     if !debug then 
       Kernel.debug "rdVis: before %a, rd_dat_lst is %d long"
@@ -925,7 +925,7 @@ let rm_unused_locals fd =
   let good_locals = List.filter good_var fd.slocals in
   let remove_block_locals = object
     inherit Cil.nopCilVisitor
-    method vblock b =
+    method! vblock b =
       b.blocals <- List.filter good_var b.blocals;
       DoChildren
   end
@@ -971,7 +971,7 @@ class unusedRemoverClass : cilVisitor = object(self)
       not(IH.mem incdecHash vi.vid))
 
   (* figure out which locals aren't used *)
-  method vfunc f =
+  method! vfunc f =
     cur_func <- f;
     (* the set of used variables *)
     let used = List.fold_left (fun u s ->
@@ -993,7 +993,7 @@ class unusedRemoverClass : cilVisitor = object(self)
   (* remove instructions that set variables
      that aren't used. Also remove instructions
      that set variables mentioned in iioh *)
-  method vstmt stm =
+  method! vstmt stm =
 
     (* return the list of pairs with fst = f *)
     let findf_in_pl f (pl : (int * int) list)  =
@@ -1069,7 +1069,7 @@ class unusedRemoverClass : cilVisitor = object(self)
              not (IH.mem iioh vi.vid) ||
              (match IH.find iioh vi.vid with
                None -> true | Some _ -> false)
-           | Asm(_,_,slvlst,_,_,_) ->
+           | Asm(_,_,slvlst,_,_,_,_) ->
                (* make sure the outputs are in the locals list *)
                List.iter (fun (_,_s,lv) ->
                  match lv with (Var vi,_) ->
@@ -1102,7 +1102,7 @@ class unusedRemoverClass : cilVisitor = object(self)
         SkipChildren
     | _ -> DoChildren
 
-  method vblock b =
+  method! vblock b =
     b.blocals <- List.filter self#good_var b.blocals;
     DoChildren
 
@@ -1130,7 +1130,7 @@ let rec fold_blocks b =
 
 class removeBrackets = object
   inherit nopCilVisitor
-  method vblock b =
+  method! vblock b =
     fold_blocks b;
     DoChildren
 end

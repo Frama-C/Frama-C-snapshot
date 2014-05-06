@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -23,6 +23,6 @@
 val prologue : unit -> unit
 val filter_if :
   Cil_types.stmt ->
-  'a Dataflow.guardaction * 'b Dataflow.guardaction ->
-  'a Dataflow.guardaction * 'b Dataflow.guardaction
+  'a Dataflow2.guardaction * 'b Dataflow2.guardaction ->
+  'a Dataflow2.guardaction * 'b Dataflow2.guardaction
 val epilogue : unit -> unit

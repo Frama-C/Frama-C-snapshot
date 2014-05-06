@@ -35,8 +35,8 @@
 (*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE         *)
 (*  POSSIBILITY OF SUCH DAMAGE.                                             *)
 (*                                                                          *)
-(*  File modified by CEA (Commissariat à l'énergie atomique et aux          *)
-(*                        énergies alternatives)                            *)
+(*  File modified by CEA (Commissariat Ã  l'Ã©nergie atomique et aux          *)
+(*                        Ã©nergies alternatives)                            *)
 (*               and INRIA (Institut National de Recherche en Informatique  *)
 (*                          et Automatique).                                *)
 (****************************************************************************)
@@ -368,13 +368,13 @@ and childrenStatement vis s =
       in
       let details' = match details with
       | None -> details
-      | Some { aoutputs = outl; ainputs = inl; aclobbers = clobs } ->
+      | Some { aoutputs = outl; ainputs = inl; aclobbers = clobs; alabels = labels } ->
 	  let outl' = mapNoCopy childrenIdentStringExp outl in
 	  let inl' = mapNoCopy childrenIdentStringExp inl in
 	  if outl' == outl && inl' == inl then
 	    details
 	  else
-	    Some { aoutputs = outl'; ainputs = inl'; aclobbers = clobs }
+	    Some { aoutputs = outl'; ainputs = inl'; aclobbers = clobs ; alabels = labels }
       in
       if details' != details then
         {s with stmt_node = ASM (sl, b, details', l)} else s

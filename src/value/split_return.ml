@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -23,41 +23,6 @@
 open Cil_types
 open Abstract_interp
 open Cvalue
-
-type split_strategy =
-  | NoSplit
-  | SplitEqList of Datatype.Big_int.t list
-(* To be completed with more involved strategies *)
-
-module SplitStrategy =
-  Datatype.Make_with_collections(struct
-    type t = split_strategy
-    let name = "Value.Split_return.split_strategy"
-    let rehash = Datatype.identity
-    let structural_descr = Structural_descr.Abstract
-    let reprs = [NoSplit]
-    let compare s1 s2 = match s1, s2 with
-      | NoSplit, NoSplit -> 0
-      | SplitEqList l1, SplitEqList l2 ->
-          Extlib.list_compare Int.compare l1 l2
-      | NoSplit, SplitEqList _ -> -1
-      | SplitEqList _, NoSplit -> 1
-    let equal = Datatype.from_compare
-    let hash = function
-      | NoSplit -> 17
-      | SplitEqList l ->
-          List.fold_left (fun acc i -> acc * 13 + 57 * Int.hash i) 1 l
-    let copy = Datatype.identity
-    let internal_pretty_code = Datatype.undefined
-    let pretty fmt = function
-      | NoSplit -> Format.pp_print_string fmt "no split"
-      | SplitEqList l ->
-        Format.fprintf fmt "Split on \\result == %a"
-          (Pretty_utils.pp_list ~sep:",@ " Datatype.Big_int.pretty) l
-    let varname _ = "v"
-    let mem_project _ _ = false
-  end)
-
 
 (* Auxiliary module for inference of split criterion. We collect all the
    usages of a function call, and all places where they are compared against
@@ -116,25 +81,26 @@ module ReturnUsage = struct
           MapLval.add lv_dest u uf
       | _ -> uf
 
+  (* add a comparison with the integer [i] to the lvalue [lv] *)
+  let add_compare_ct uf i lv =
+    if Cil.isIntegralType (Cil.typeOfLval lv) then
+      let u = find_or_default uf lv in
+      let v = Datatype.Big_int.Set.add i u.ret_compared in
+      let u = { u with ret_compared = v } in
+      if debug then Format.printf
+        "[Usage] Comparing %a to %a@." Printer.pp_lval lv Int.pretty i;
+      MapLval.add lv u uf
+    else
+      uf
+
+
   (* Treat an expression [lv == ct], [lv != ct] or [!lv], possibly with some
      cast. [ct] is added to the store of usages. *)
   let add_compare (uf: return_usage_per_fun) cond =
-    (* add a comparison with the integer [i] to the lvalue [lv] *)
-    let add_ct i lv =
-      if Cil.isIntegralType (Cil.typeOfLval lv) then
-        let u = find_or_default uf lv in
-        let v = Datatype.Big_int.Set.add i u.ret_compared in
-        let u = { u with ret_compared = v } in
-        if debug then Format.printf
-          "[Usage] Comparing %a to %a@." Printer.pp_lval lv Int.pretty i;
-        MapLval.add lv u uf
-      else
-        uf
-    in
     (* if [ct] is an integer constant, memoize it is compared to [lv] *)
     let add ct lv =
       (match (Cil.constFold true ct).enode with
-        | Const (CInt64 (i, _, _)) -> add_ct i lv
+        | Const (CInt64 (i, _, _)) -> add_compare_ct uf i lv
         | _ -> uf)
     in
     match cond.enode with
@@ -147,13 +113,34 @@ module ReturnUsage = struct
           add ct lv
 
       | UnOp (LNot, {enode = Lval lv}, _) ->
-          add_ct Int.zero lv
+          add_compare_ct uf Int.zero lv
 
       | UnOp (LNot, {enode = CastE (typ, {enode = Lval lv})}, _)
         when Cil.isIntegralType typ && Cil.isIntegralType (Cil.typeOfLval lv) ->
-          add_ct Int.zero lv
+          add_compare_ct uf Int.zero lv
 
       | _ -> uf
+
+  (* Treat an expression [v] or [e1 && e2] or [e1 || e2]. This expression is
+     supposed to be just inside an [if(...)], so that we may recognize patterns
+     such as [if (f() && g())]. Patterns such as [if (f() == 1 && !g())] are
+     handled in another way: the visitor recognizes comparison operators
+     and [!], and calls {!add_compare}. *)
+  let rec add_direct_comparison uf e =
+    match e.enode with
+    | Lval lv ->
+      add_compare_ct uf Int.zero lv
+
+    | CastE (typ, {enode = Lval lv})
+        when Cil.isIntegralType typ && Cil.isIntegralType (Cil.typeOfLval lv) ->
+      add_compare_ct uf Int.zero lv
+
+    | BinOp ((LAnd | LOr), e1, e2, _) ->
+      add_direct_comparison (add_direct_comparison uf e1) e2
+
+    | _ -> uf
+
+
 
   (* Extract global usage: map functions to integers their return values
      are tested against *)
@@ -179,7 +166,7 @@ module ReturnUsage = struct
 
     val mutable usage = MapLval.empty
 
-    method vinst i =
+    method! vinst i =
       (match i with
         | Set (lv, e, _) ->
             usage <- add_alias usage lv e
@@ -189,7 +176,16 @@ module ReturnUsage = struct
       );
       Cil.DoChildren
 
-    method vexpr e =
+    method! vstmt_aux s =
+      (match s.skind with
+      | If (e, _, _, _)
+      | Switch (e, _, _, _) ->
+          usage <- add_direct_comparison usage e
+      | _ -> ()
+      );
+      Cil.DoChildren
+
+    method! vexpr e =
       usage <- add_compare usage e;
       Cil.DoChildren
 
@@ -223,7 +219,7 @@ module AutoStrategy = State_builder.Option_ref
     let dependencies = [Ast.self; Value_parameters.SplitReturnAuto.self]
    end)
 
-module KfStrategy = Kernel_function.Make_Table(SplitStrategy)
+module KfStrategy = Kernel_function.Make_Table(Split_strategy)
   (struct
     let size = 17
     let dependencies = [Value_parameters.SplitReturnFunction.self;
@@ -237,9 +233,7 @@ let strategy =
     (fun kf ->
       let name = Kernel_function.get_name kf in
       try
-        let l = Value_parameters.SplitReturnFunction.find name in
-        if l = [] then raise Not_found (* use automatic detection *);
-        SplitEqList (List.map Abstract_interp.Int.of_int l)
+	Value_parameters.SplitReturnFunction.find name
       with Not_found ->
         let auto =
           match AutoStrategy.get_option () with
@@ -260,11 +254,11 @@ let strategy =
         try
           let set = Kernel_function.Map.find kf auto in
           let li = Datatype.Big_int.Set.fold (fun i acc -> i :: acc) set [] in
-          SplitEqList li
-        with Not_found -> NoSplit)
+          Split_strategy.SplitEqList li
+        with Not_found -> Split_strategy.NoSplit)
 
 let default states =
-  let joined = State_set.join states in
+  let (joined,_) = State_set.join states in
   if Model.is_reachable joined then [joined] else []
 
 let split_eq_aux kf return_lv i states =
@@ -274,17 +268,15 @@ let split_eq_aux kf return_lv i states =
   let (eq, neq, mess) = List.fold_left
     (fun (eq, neq, mess) state ->
       if Model.is_reachable state then
-        let v = Model.find_unspecified ~with_alarms state loc in
-        let v' = V_Or_Uninitialized.get_v v in
+        let v' = Model.find ~with_alarms ~conflate_bottom:false state loc in
         (*Format.printf "## vi %a, v %a@." V.pretty v_i V.pretty v'; *)
         if V.equal v_i v' then
           (Model.join state eq, neq, mess)
         else
-          let v'' = V.diff_if_one v' v_i in
-          if V.equal v'' v' then
-            (eq, state :: neq, mess)
-          else
+          if V.is_included v_i v' then
             (eq, state :: neq, true)
+          else
+            (eq, state :: neq, mess)
       else
         (eq, neq, mess)
     ) (Model.bottom, [], false) states
@@ -321,8 +313,10 @@ let join_final_states kf ~return_lv states =
       | Some _ -> assert false (* Cil invariant *)
   in
   match strategy kf with
-    | NoSplit -> default states
-    | SplitEqList i -> split i
+    | Split_strategy.SplitEqList i -> split i
+    | Split_strategy.NoSplit -> default states
+    | Split_strategy.FullSplit -> State_set.to_list states
+
 
 
 

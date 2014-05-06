@@ -35,8 +35,8 @@
 (*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE         *)
 (*  POSSIBILITY OF SUCH DAMAGE.                                             *)
 (*                                                                          *)
-(*  File modified by CEA (Commissariat à l'énergie atomique et aux          *)
-(*                        énergies alternatives)                            *)
+(*  File modified by CEA (Commissariat Ã  l'Ã©nergie atomique et aux          *)
+(*                        Ã©nergies alternatives)                            *)
 (*               and INRIA (Institut National de Recherche en Informatique  *)
 (*                          et Automatique).                                *)
 (****************************************************************************)
@@ -167,10 +167,14 @@ end
 (** @since Oxygen-20120901 *)
 module OffsetStructEq: S_with_collections with type t = offset
 
+module Stmt_Id:  Hptmap.Id_Datatype with type t = stmt
 module Stmt: sig
   include S_with_collections with type t = stmt
-  module Hptset: sig include Hptset.S with type elt = stmt
-                     val self: State.t end
+  module Hptset: sig
+    include Hptset.S with type elt = stmt
+                     and type 'a shape = 'a Hptmap.Shape(Stmt_Id).t
+    val self: State.t
+  end
   val loc: t -> location
   val pretty_sid: Format.formatter -> t -> unit
     (** Pretty print the sid of the statement
@@ -183,6 +187,11 @@ module Attribute: sig
   include S_with_collections with type t = attribute
 (**/**)
 val pretty_ref: (Format.formatter -> t -> unit) ref
+end
+
+module Attributes: sig
+  include S_with_collections with type t = attributes
+(**/**)
 end
 
 (**/**)
@@ -213,11 +222,16 @@ val punrollType: (typ -> typ) ref
 
 module Typeinfo: S_with_collections with type t = typeinfo
 
+module Varinfo_Id: Hptmap.Id_Datatype
+
 (** @plugin development guide *)
 module Varinfo: sig
   include S_with_collections with type t = varinfo
-  module Hptset: sig include Hptset.S with type elt = t
-                     val self: State.t end
+  module Hptset: sig
+    include Hptset.S with type elt = varinfo
+                     and type 'a shape = 'a Hptmap.Shape(Varinfo_Id).t
+    val self: State.t
+  end
   val dummy: t
   val pretty_vname: Format.formatter -> t -> unit
   (** Pretty print the name of the varinfo.
@@ -300,10 +314,21 @@ module Term: sig
 end
 
 module Term_lhost: S_with_collections with type t = term_lhost
-module Term_offset: S_with_collections with type t = term_offset
-module Term_lval: S_with_collections with type t = term_lval
+module Term_offset: sig
+  include S_with_collections with type t = term_offset
+  (**/**)
+  val pretty_ref: (Format.formatter -> t -> unit) ref
+end
+module Term_lval: sig
+  include S_with_collections with type t = term_lval
+  (**/**)
+  val pretty_ref: (Format.formatter -> t -> unit) ref
+end
 
 module Predicate_named: S with type t = predicate named
+module Identified_predicate: 
+  S_with_collections with type t = identified_predicate
+(** @since Neon-20130301 *)
 
 (**************************************************************************)
 (** {3 Logic_ptree}

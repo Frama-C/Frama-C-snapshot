@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -33,8 +33,8 @@ type kind = Property_status | Alarm | Code_annot | Funspec | Global_annot
 type emitter =
     { name: string;
       kinds: kind list;
-      tuning_parameters: Parameter.t list;
-      correctness_parameters: Parameter.t list }
+      tuning_parameters: Typed_parameter.t list;
+      correctness_parameters: Typed_parameter.t list }
 
 module D =
   Datatype.Make_with_collections
@@ -42,7 +42,7 @@ module D =
       type t = emitter
       let name = "Emitter.t"
       let rehash = Datatype.identity
-      let structural_descr = Structural_descr.Unknown
+      let structural_descr = Structural_descr.t_unknown
       let reprs = 
         [ { name = ""; 
 	    kinds = [];
@@ -81,7 +81,7 @@ module Usable_emitter = struct
       type t = usable_emitter
       let name = "Emitter.Usable_emitter.t"
       let rehash = Datatype.identity
-      let structural_descr = Structural_descr.Abstract
+      let structural_descr = Structural_descr.t_abstract
       let reprs = 
 	let p = Datatype.String.Map.empty in
 	[ { u_id = -1;
@@ -109,7 +109,10 @@ module Usable_emitter = struct
 
   let get e =
     let get_params map =
-      Datatype.String.Map.fold (fun s _ acc -> Parameter.get s :: acc) map []
+      Datatype.String.Map.fold
+	(fun s _ acc -> Typed_parameter.get s :: acc) 
+	map 
+	[]
     in
     { name = e.u_name;
       kinds = e.u_kinds;
@@ -153,10 +156,10 @@ let create name kinds ~correctness ~tuning =
 let get_name e = e.name
 
 let correctness_parameters e = 
-  List.map (fun p -> p.Parameter.name) e.correctness_parameters
+  List.map (fun p -> p.Typed_parameter.name) e.correctness_parameters
 
 let tuning_parameters e = 
-  List.map (fun p -> p.Parameter.name) e.tuning_parameters
+  List.map (fun p -> p.Typed_parameter.name) e.tuning_parameters
 
 let end_user = 
   create
@@ -266,8 +269,8 @@ let update_usable_emitter tuning ~used usable_e param_name value =
 exception Found of Usable_emitter.t
 
 let update_parameter tuning usable_e p =
-  let param_name = p.Parameter.name in
-  let value = Parameter.get_value p in
+  let param_name = p.Typed_parameter.name in
+  let value = Typed_parameter.get_value p in
   try 
     let _, set = Usable_emitters_of_emitter.find usable_e.u_name in
     try
@@ -320,8 +323,8 @@ let register_correctness_parameter name kinds =
   iter_on_kinds (State_dependency_graph.add_dependencies ~from:state) kinds
 
 let parameter_hooks 
-    : (unit -> unit) Datatype.String.Hashtbl.t Parameter.Hashtbl.t
-    = Parameter.Hashtbl.create 97
+    : (unit -> unit) Datatype.String.Hashtbl.t Typed_parameter.Hashtbl.t
+    = Typed_parameter.Hashtbl.create 97
 
 let register_tuning_parameter name p =
   let update () =
@@ -349,10 +352,12 @@ let register_tuning_parameter name p =
       ()
   in
   try
-    let tbl = Parameter.Hashtbl.find parameter_hooks p in
+    let tbl = Typed_parameter.Hashtbl.find parameter_hooks p in
     Datatype.String.Hashtbl.replace tbl name update
   with Not_found ->
-    Kernel.fatal "[Emitter] no hook table for parameter %s" p.Parameter.name
+    Kernel.fatal
+      "[Emitter] no hook table for parameter %s" 
+      p.Typed_parameter.name
 
 let () = 
   Cmdline.run_after_extended_stage
@@ -360,26 +365,26 @@ let () =
       State_selection.Static.iter
 	(fun s -> 
 	  let tbl = Datatype.String.Hashtbl.create 7 in
-	  let p = Parameter.get (State.get_name s) in
-	  Parameter.Hashtbl.add parameter_hooks p tbl;
+	  let p = Typed_parameter.get (State.get_name s) in
+	  Typed_parameter.Hashtbl.add parameter_hooks p tbl;
 	  let update () = Datatype.String.Hashtbl.iter (fun _ f -> f ()) tbl in
-	  match p.Parameter.accessor with
+	  match p.Typed_parameter.accessor with
 	  (* factorisation requires GADT (OCaml 4.01) *)
-	  | Parameter.Bool(a, _) -> 
-	    a.Parameter.add_set_hook (fun _ _ -> update ())
-	  | Parameter.Int(a, _) ->  
-	    a.Parameter.add_set_hook (fun _ _ -> update ())
-	  | Parameter.String(a, _) -> 
-	    a.Parameter.add_set_hook (fun _ _ -> update ())
-	  | Parameter.String_set a -> 
-	    a.Parameter.add_set_hook (fun _ _ -> update ())
-	  | Parameter.String_list a -> 
-	    a.Parameter.add_set_hook (fun _ _ -> update ()))
-	(* [JS 2012/02/07] should be limited to [Plugin.get_selection_context],
-	   but it is not possible while each plug-in (including Wp) is not
-	   projectified *)
-(*	(Plugin.get_selection_context ~is_set:false ()))*)
-	(Plugin.get_selection ~is_set:false ()))
+	  | Typed_parameter.Bool(a, _) -> 
+	    a.Typed_parameter.add_set_hook (fun _ _ -> update ())
+	  | Typed_parameter.Int(a, _) ->  
+	    a.Typed_parameter.add_set_hook (fun _ _ -> update ())
+	  | Typed_parameter.String(a, _) -> 
+	    a.Typed_parameter.add_set_hook (fun _ _ -> update ())
+	  | Typed_parameter.String_set a -> 
+	    a.Typed_parameter.add_set_hook (fun _ _ -> update ())
+	  | Typed_parameter.String_list a -> 
+	    a.Typed_parameter.add_set_hook (fun _ _ -> update ()))
+	(* [JS 2012/02/07] should be limited to
+	   [Option_functor.get_selection_context], but it is not possible while
+	   each plug-in (including Wp) is not projectified *)
+	(*	(Option_functor.get_selection_context ~is_set:false ()))*)
+	(Parameter_state.get_selection ~is_set:false ()))
 
 let update_table tbl =
   (* remove old stuff *)
@@ -395,7 +400,7 @@ let update_table tbl =
 		e.u_kinds)
 	    e.correctness_values;
 	  (* remove hooks corresponding to old tuning parameters *)
-	  Parameter.Hashtbl.iter 
+	  Typed_parameter.Hashtbl.iter 
 	    (fun _ tbl -> Datatype.String.Hashtbl.clear tbl)
 	    parameter_hooks)
 	!all_usable_e);
@@ -408,7 +413,8 @@ let update_table tbl =
 	    (fun p _ -> register_correctness_parameter p e.u_kinds)
 	    e.correctness_values;
 	  Datatype.String.Map.iter
-	    (fun p _ -> register_tuning_parameter e_name (Parameter.get p))
+	    (fun p _ -> 
+	      register_tuning_parameter e_name (Typed_parameter.get p))
 	    e.tuning_values)
 	!all_usable_e)
     tbl
@@ -418,7 +424,7 @@ let () = Usable_emitters_of_emitter.add_hook_on_update update_table
 let register_parameter tuning usable_e p =
   let usable_e = update_parameter tuning usable_e p in
   if tuning then register_tuning_parameter usable_e.u_name p
-  else register_correctness_parameter p.Parameter.name usable_e.u_kinds;
+  else register_correctness_parameter p.Typed_parameter.name usable_e.u_kinds;
   usable_e
 
 let create_usable_emitter e =

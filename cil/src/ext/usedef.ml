@@ -35,8 +35,8 @@
 (*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE         *)
 (*  POSSIBILITY OF SUCH DAMAGE.                                             *)
 (*                                                                          *)
-(*  File modified by CEA (Commissariat à l'énergie atomique et aux          *)
-(*                        énergies alternatives)                            *)
+(*  File modified by CEA (Commissariat Ã  l'Ã©nergie atomique et aux          *)
+(*                        Ã©nergies alternatives)                            *)
 (*               and INRIA (Institut National de Recherche en Informatique  *)
 (*                          et Automatique).                                *)
 (****************************************************************************)
@@ -94,7 +94,7 @@ class useDefVisitorClass : cilVisitor = object (self)
 
   (** this will be invoked on variable definitions only because we intercept
    * all uses of variables in expressions ! *)
-  method vvrbl (v: varinfo) =
+  method! vvrbl (v: varinfo) =
     if (!considerVariableDef) v &&
       not(!onlyNoOffsetsAreDefs) then
       varDefs := VS.add v !varDefs;
@@ -103,7 +103,7 @@ class useDefVisitorClass : cilVisitor = object (self)
   (** If onlyNoOffsetsAreDefs is true, then we need to see the
    *  varinfo in an lval along with the offset. Otherwise just
    *  DoChildren *)
-  method vlval (l: lval) =
+  method! vlval (l: lval) =
     if !onlyNoOffsetsAreDefs then
       match l with
 	(Var vi, NoOffset) ->
@@ -119,7 +119,7 @@ class useDefVisitorClass : cilVisitor = object (self)
       | _ -> DoChildren
     else DoChildren
 
-  method vexpr (e:exp) =
+  method! vexpr (e:exp) =
     let extra = (!extraUsesOfExpr) e in
     if not (VS.is_empty extra) then
       varUsed := VS.union extra !varUsed;
@@ -143,7 +143,7 @@ class useDefVisitorClass : cilVisitor = object (self)
     | _ -> DoChildren
 
   (* For function calls, do the transitive variable read/defs *)
-  method vinst = function
+  method! vinst = function
       Call (lvo, f, args, _) -> begin
         (* we will compute the use and def that appear in
          * this instruction. We also add in the stuff computed by
@@ -160,7 +160,7 @@ class useDefVisitorClass : cilVisitor = object (self)
         List.iter (fun arg -> ignore (visitCilExpr self arg)) args';
         SkipChildren;
       end
-    | Asm(_,_,slvl,_,_,_) -> List.iter (fun (_,s,lv) ->
+    | Asm(_,_,slvl,_,_,_,_) -> List.iter (fun (_,s,lv) ->
 	match lv with (Var v, _off) ->
 	  if s.[0] = '+' then
 	    varUsed := VS.add v !varUsed;

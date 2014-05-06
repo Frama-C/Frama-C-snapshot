@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -43,14 +43,14 @@ let run (host:basic_main) dialog () =
   Kernel_hook.clear ()
 
 let add_parameter (box:GPack.box) p =
-  let name = p.Parameter.name in
-  let tooltip = p.Parameter.help in
-  let is_set = p.Parameter.is_set in
+  let name = p.Typed_parameter.name in
+  let tooltip = p.Typed_parameter.help in
+  let is_set = p.Typed_parameter.is_set in
   let use_markup = is_set () in
   let highlight s = "<span foreground=\"blue\">" ^ s ^ "</span>" in
   let hname = highlight name in
-  (match p.Parameter.accessor with
-  | Parameter.Bool ({ Parameter.get = get; set = set }, None) ->
+  (match p.Typed_parameter.accessor with
+  | Typed_parameter.Bool ({ Typed_parameter.get = get; set = set }, None) ->
     let name = if use_markup then hname else name in
     (* fix bts#510: a parameter [p] must be set if and only if it is set by the
        user in the launcher. In particular, it must not be reset to its old
@@ -59,7 +59,8 @@ let add_parameter (box:GPack.box) p =
     let set r = if r <> old then set r in
     Kernel_hook.extend (on_bool ~tooltip ~use_markup box name get set);
 
-  | Parameter.Bool ({ Parameter.get = get; set = set }, Some negative_name) ->
+  | Typed_parameter.Bool
+      ({ Typed_parameter.get = get; set = set }, Some negative_name) ->
     let use_markup = is_set () in
     let name, _negative_name =
       if use_markup then hname, highlight negative_name
@@ -70,7 +71,7 @@ let add_parameter (box:GPack.box) p =
     Kernel_hook.extend
       (on_bool ~tooltip ~use_markup box name (*negative_name*) get set);
 
-  | Parameter.Int ({ Parameter.get = get; set = set }, range) ->
+  | Typed_parameter.Int ({ Typed_parameter.get = get; set = set }, range) ->
     let use_markup = is_set () in
     let name = if use_markup then hname else name in
     let lower, upper = range () in
@@ -79,7 +80,8 @@ let add_parameter (box:GPack.box) p =
     Kernel_hook.extend
       (on_int ~tooltip ~use_markup ~lower ~upper ~width:120 box name get set);
 
-  | Parameter.String({ Parameter.get = get; set = set }, possible_values) ->
+  | Typed_parameter.String
+      ({ Typed_parameter.get = get; set = set }, possible_values) ->
     let use_markup = is_set () in
     let hname = if use_markup then hname else name in
     let old = get () in
@@ -107,8 +109,8 @@ let add_parameter (box:GPack.box) p =
       Kernel_hook.extend 
 	   (fun () -> if !widget_value <> old then set !widget_value))
 
-  | Parameter.String_set { Parameter.get = get; set = set }
-  | Parameter.String_list { Parameter.get = get; set = set } ->
+  | Typed_parameter.String_set { Typed_parameter.get = get; set = set }
+  | Typed_parameter.String_list { Typed_parameter.get = get; set = set } ->
     let use_markup = is_set () in
     let name = if use_markup then hname else name in
     let old = get () in

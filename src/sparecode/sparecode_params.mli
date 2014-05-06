@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -22,13 +22,13 @@
 
 include Plugin.S
 
-module Analysis: Plugin.Bool
+module Analysis: Parameter_sig.Bool
 (** Whether to perform spare code detection or not. *)
 
-module Annot : Plugin.Bool
+module Annot : Parameter_sig.Bool
 (** keep more things to keep all reachable annotations. *)
 
-module GlobDecl : Plugin.Bool
+module GlobDecl : Parameter_sig.Bool
     (** remove unused global types and variables *)
 
 (*

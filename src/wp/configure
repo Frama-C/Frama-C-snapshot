@@ -584,6 +584,7 @@ PACKAGE_URL=
 ac_unique_file="Makefile.in"
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
+WHY3COQC
 COQC
 DYNAMIC_WP
 ENABLE_WP
@@ -632,7 +633,8 @@ ac_user_opts='
 enable_option_checking
 enable_wp
 with_wp_static
-enable_wpcoq
+enable_wp_coq
+enable_wp_why3
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1245,7 +1247,8 @@ Optional Features:
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --enable-wp             WP plug-in (default: yes)
-  --enable-wpcoq          Wp precompiled coq libraries (default: yes)
+  --enable-wp-coq         Wp precompiled Coq libraries (default: yes)
+  --enable-wp-why3        Wp precompiled Why3-Coq libraries (default: yes)
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -2131,11 +2134,20 @@ echo "wp... $ENABLE"
 
 
 
-# Check whether --enable-wpcoq was given.
-if test "${enable_wpcoq+set}" = set; then :
-  enableval=$enable_wpcoq; WPCOQ=$enableval
+# Check whether --enable-wp-coq was given.
+if test "${enable_wp_coq+set}" = set; then :
+  enableval=$enable_wp_coq; WPCOQ=$enableval
 else
   WPCOQ=yes
+
+fi
+
+
+# Check whether --enable-wp-why3 was given.
+if test "${enable_wp_why3+set}" = set; then :
+  enableval=$enable_wp_why3; WPWHY3COQ=$enableval
+else
+  WPWHY3COQ=yes
 
 fi
 
@@ -2164,8 +2176,8 @@ if test "$ENABLE_WP" != "no"; then
 
 
 
+  ## Configuring for WP-COQ
   if test "$WPCOQ" = "yes" ; then
-    ## coq
     # Extract the first word of "coqc", so it can be a program name with args.
 set dummy coqc; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
@@ -2223,6 +2235,77 @@ $as_echo "$as_me: rerun configure to make wp using coq 8.4" >&6;}
     fi
   else
     COQC="no"
+  fi
+
+
+  ## Configuring for WHY3-COQ
+  if test "$COQC" = "yes" -a "$WPWHY3COQ" = "yes" ; then
+    # Extract the first word of "why3", so it can be a program name with args.
+set dummy why3; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_prog_WHY3COQC+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test -n "$WHY3COQC"; then
+  ac_cv_prog_WHY3COQC="$WHY3COQC" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_prog_WHY3COQC="yes"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_prog_WHY3COQC" && ac_cv_prog_WHY3COQC="no"
+fi
+fi
+WHY3COQC=$ac_cv_prog_WHY3COQC
+if test -n "$WHY3COQC"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $WHY3COQC" >&5
+$as_echo "$WHY3COQC" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+    if test "$WHY3COQC" = "yes" ; then
+      WHY3VERSION=`why3 --version | sed -n -e 's|.*version* *\([^ ]*\) .*$|\1|p' `
+      case $WHY3VERSION in
+        0.82*)
+          { $as_echo "$as_me:${as_lineno-$LINENO}: result: why3 version $WHY3VERSION found" >&5
+$as_echo "why3 version $WHY3VERSION found" >&6; }
+	  WHY3LIB=`why3 --print-libdir`
+	  if test -f $WHY3LIB/coq/BuiltIn.vo ; then
+	    { $as_echo "$as_me:${as_lineno-$LINENO}: result: why3 compiled coq libraries found" >&5
+$as_echo "why3 compiled coq libraries found" >&6; }
+	  else
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: why3 compiled coq libraries not found in $WHY3LIB" >&5
+$as_echo "why3 compiled coq libraries not found in $WHY3LIB" >&6; }
+	    WHY3COQC="no"
+          fi
+          ;;
+        *)
+          { $as_echo "$as_me:${as_lineno-$LINENO}: result: wp needs needs why3 0.82" >&5
+$as_echo "wp needs needs why3 0.82" >&6; }
+          WHY3COQC="no"
+          ;;
+      esac
+    else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: rerun configure to make wp using why3 0.82" >&5
+$as_echo "$as_me: rerun configure to make wp using why3 0.82" >&6;}
+    fi
+  else
+    WHY3COQC="no"
   fi
 
 

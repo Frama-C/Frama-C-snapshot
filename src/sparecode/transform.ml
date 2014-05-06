@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -24,21 +24,21 @@ open Cil_types
 open Cil
 
 module BoolInfo = struct
-  type proj = Marks.proj
-  type fct = Marks.fct option * Kernel_function.t
+  type proj = Spare_marks.proj
+  type fct = Spare_marks.fct option * Kernel_function.t
 
   exception EraseAssigns
   exception EraseAllocation
 
   let fct_info project kf =
-    match Marks.get_marks project kf with
+    match Spare_marks.get_marks project kf with
       | None -> 
-          if Marks.kf_visible project kf then [None, kf] else []
+          if Spare_marks.kf_visible project kf then [None, kf] else []
       | Some fm -> [Some fm, kf]
 
   let key_visible txt fm key =
     let visible = match fm with None -> true
-      | Some fm -> Marks.key_visible fm key 
+      | Some fm -> Spare_marks.key_visible fm key
     in
     Sparecode_params.debug ~level:3 "%s : %a -> %b" 
       txt !Db.Pdg.pretty_key key visible;
@@ -54,8 +54,9 @@ module BoolInfo = struct
 
   let term_visible (fm,kf) t =
     let module M = struct exception Invisible end in
-    let visitor = object inherit Visitor.frama_c_inplace
-      method vlogic_var_use v =
+    let visitor = object
+      inherit Visitor.frama_c_inplace
+      method! vlogic_var_use v =
         match v.lv_origin with
           | None -> DoChildren
           | Some v when v.vformal ->
@@ -132,9 +133,9 @@ module BoolInfo = struct
             with
               | None -> None
               | Some kf ->
-                   match Marks.get_marks project kf with
+                   match Spare_marks.get_marks project kf with
                       | None -> 
-                          if Marks.kf_visible project kf 
+                          if Spare_marks.kf_visible project kf
                           then Some (kf, (None,kf))
                           else None
                       | Some fm -> Some (kf, (Some fm,kf))

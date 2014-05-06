@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -37,7 +37,7 @@ let sizeofpointer () =  bitsSizeOf theMachine.upointType
 let max_bit_size () =
   Int.mul
   (sizeofchar())
-  (Int.shift_left Int.one (Int.of_int (sizeofpointer())))
+  (Int.two_power_of_int (sizeofpointer()))
 
 let max_bit_address () = Int.pred (max_bit_size())
 
@@ -132,8 +132,7 @@ let osizeof_pointed typ =
     bits. Never call it on a non pointer type [lval]. *)
 let sizeof_pointed_lval lv = sizeof_pointed (Cil.typeOfLval lv)
 
-(** Set of integers *)
-module IntSet = Set.Make(Int)
+
 
 (* -------------------------------------------------------------------------- *)
 (* --- Pretty Printing                                                    --- *)
@@ -207,7 +206,6 @@ let rec pretty_bits_internal env bfinfo typ ~align ~start ~stop =
                Int.pretty start
                Int.pretty stop;
              false) else true);
-
   match (unrollType typ) with
     | TInt (_ , _) | TPtr (_, _) | TEnum (_, _)  | TFloat (_, _)
     | TVoid _ | TBuiltin_va_list _ | TNamed _ | TFun (_, _, _, _) as typ ->
@@ -230,7 +228,7 @@ let rec pretty_bits_internal env bfinfo typ ~align ~start ~stop =
            raw_bits 'b' start stop)
         )
 
-    | TComp (compinfo, _, _) as typ -> begin
+    | TComp (compinfo, _, _) as typ ->
         let size = Int.of_int (try bitsSizeOf typ
                                with SizeOfError _ -> 0)
         in
@@ -238,7 +236,8 @@ let rec pretty_bits_internal env bfinfo typ ~align ~start ~stop =
         then
           update_types typ (* do not print sub-fields if the size is exactly
                             the right one and the alignement is not important *)
-        else
+        else begin
+        try
           let full_fields_to_print = List.fold_left
             (fun acc field ->
                let current_offset = Field (field,NoOffset) in
@@ -257,13 +256,13 @@ let rec pretty_bits_internal env bfinfo typ ~align ~start ~stop =
                      (Int.pred width_o)
                  else stop
                in
-               let new_bfinfo = match field.fbitfield with
-                 | None -> Other
-                 | Some i -> Bitfield (Int.to_int64 (Int.of_int i))
-               in
-               let new_align = Int.pos_rem (Int.sub align start_o) env.rh_size
-               in
                if Int.le new_start new_stop then
+		 let new_bfinfo = match field.fbitfield with
+                   | None -> Other
+                   | Some i -> Bitfield (Int.to_int64 (Int.of_int i))
+		 in
+		 let new_align = Int.pos_rem (Int.sub align start_o) env.rh_size
+		 in
                  let name = Pretty_utils.sfprintf "%a" Printer.pp_field field in
                  NamedField( name ,
                              new_bfinfo , field.ftype ,
@@ -326,6 +325,8 @@ let rec pretty_bits_internal env bfinfo typ ~align ~start ~stop =
                 Format.pp_print_char env.fmt '{' ;
                 pretty_all_fields fs ;
                 Format.pp_print_char env.fmt '}'
+        with Cil.SizeOfError _ ->
+          raw_bits '?' start stop
         end
 
       | TArray (typ, _, _, _) ->
@@ -408,6 +409,139 @@ let rec pretty_bits_internal env bfinfo typ ~align ~start ~stop =
                       Format.pp_print_char env.fmt '}' ;
             else (env.types <- Mixed;
                   raw_bits 'a' start stop)
+
+
+let rec pretty_offset_internal env typ ~start =
+
+  let update_types typ = env.types <- update_types env.types typ in
+
+  let raw_offset start =
+    let cond = false in
+    Format.fprintf env.fmt "[%t]%s"
+      (fun fmt -> Format.fprintf fmt "bit %a" Int.pretty start)
+      (if cond then (env.misaligned <- true ; "#") else "")
+  in
+  match (unrollType typ) with
+    | TInt (_ , _) | TPtr (_, _) | TEnum (_, _)  | TFloat (_, _)
+    | TVoid _ | TBuiltin_va_list _ | TNamed _ | TFun (_, _, _, _) as typ ->
+        if Int.is_zero start then
+             (** pretty print a full offset *)
+             ( update_types typ)
+        else begin 
+	  env.types <- Mixed;
+          raw_offset start
+	end        
+
+    | TComp (compinfo, _, _) as typ ->
+        if (not env.use_align)
+        then
+          update_types typ (* do not print sub-fields if the size is exactly
+                            the right one and the alignement is not important *)
+        else begin
+        try
+          let full_fields_to_print = List.fold_left
+            (fun acc field ->
+               let current_offset = Field (field,NoOffset) in
+               let start_o,width_o = bitsOffset typ current_offset in
+               let start_o,width_o = Int.of_int start_o, Int.of_int width_o in
+	       let diff = Int.sub start start_o in
+               if Int.le start_o start && Int.le diff width_o then
+		 let new_bfinfo = match field.fbitfield with
+                   | None -> Other
+                   | Some i -> Bitfield (Int.to_int64 (Int.of_int i))
+		 in
+		 let new_align = Int.zero
+		 in
+                 let name = Pretty_utils.sfprintf "%a" Printer.pp_field field in
+                 NamedField( name ,
+                             new_bfinfo , field.ftype ,
+                             new_align , diff , diff ) :: acc
+               else
+                 acc)
+            []
+            compinfo.cfields
+          in
+          (** find non covered intervals in structs *)
+          let non_covered,succ_last =
+            if compinfo.cstruct then
+              List.fold_left
+                (fun ((s,last_field_offset) as acc) field ->
+                   let current_offset = Field (field,NoOffset) in
+                   let start_o,width_o = bitsOffset typ current_offset in
+                   let start_o,width_o =
+                     Int.of_int start_o, Int.of_int width_o
+                   in
+                   let succ_stop_o = Int.add start_o width_o in
+                   if Int.gt start_o start then acc
+                   else if Int.le succ_stop_o start then acc
+                   else if Int.gt start_o last_field_offset then
+                     (* found a hole *)
+                     (RawField('c', last_field_offset,Int.pred start_o)::s,
+                      succ_stop_o)
+                   else
+                     (s,succ_stop_o)
+                )
+                (full_fields_to_print,start)
+                compinfo.cfields
+            else full_fields_to_print, Int.zero
+          in
+          let overflowing =
+            if compinfo.cstruct && Int.le succ_last start
+            then RawField('o',Int.max start succ_last,start)::non_covered
+            else non_covered
+          in
+          let pretty_one_field = function
+            | NamedField(name,_bf,ftyp,_align,start,_stop) ->
+                Format.fprintf env.fmt ".%s" name ;
+                pretty_offset_internal env ftyp ~start
+            | RawField(_c,start,_stop) ->
+                env.types <- Mixed;
+                Format.pp_print_char env.fmt '.' ;
+                raw_offset start
+          in
+          let rec pretty_all_fields = function
+            | [] -> ()
+            | [f] -> pretty_one_field f
+            | f::fs ->
+                pretty_all_fields fs ;
+                Format.pp_print_string env.fmt "; ";
+                pretty_one_field f ;
+          in
+          match overflowing with
+            | [] -> Format.pp_print_string env.fmt "{}"
+            | [f] -> pretty_one_field f
+            | fs ->
+                Format.pp_print_char env.fmt '{' ;
+                pretty_all_fields fs ;
+                Format.pp_print_char env.fmt '}'
+        with Cil.SizeOfError _ ->
+          raw_offset start
+        end
+
+      | TArray (typ, _, _, _) ->
+          let size =
+            try Int.of_int (bitsSizeOf typ)
+            with Cil.SizeOfError _ -> Int.zero
+          in
+          if Int.is_zero size then
+            raw_offset start
+          else
+          let start_case = Int.pos_div start size in
+          let rem_start_size = Int.pos_rem start size in
+            Format.fprintf env.fmt "[%a]" Int.pretty start_case ;
+            pretty_offset_internal env typ
+              ~start:rem_start_size
+
+let pretty_offset typ start fmt = 
+    let env =
+      {
+	fmt = fmt ;
+	rh_size = Int.zero ;
+	use_align = true ;
+	misaligned = false ;
+	types = NoneYet ;}
+    in
+    pretty_offset_internal env typ start
 
 
 let pretty_bits typ ~use_align ~align ~rh_size ~start ~stop fmt =

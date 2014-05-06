@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -20,11 +20,9 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open Db
-
 let main (main_ui:Design.main_window_extension_points) =
   let filetree_selector ~was_activated ~activating globals =
-    if Value.is_computed () then begin
+    if Db.Value.is_computed () then begin
       if not was_activated && activating then begin match globals with
 (* [JS 2009/30/03] GUI may become too slow if froms are displayed *)
 (*      | [GFun ({svar=v},_)] ->
@@ -46,6 +44,6 @@ let () = Design.register_extension main
 
 (*
 Local Variables:
-compile-command: "LC_ALL=C make -C ../.. -j"
+compile-command: "make -C ../.."
 End:
 *)

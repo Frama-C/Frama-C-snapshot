@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -93,12 +93,7 @@ end
     their respectives names.
 *)
 module VInfoMap: sig
-  include Map.S with type key = Cil_types.varinfo
-(* This should be removed whenever 3.12 will be the oldest
-   OCaml version used and replaced by Map.cardinal.
-*)
-  (** Cardinal of a VInfoMap *)
-  val map_cardinal: 'a t -> int;;
+  include FCMap.S with type key = Cil_types.varinfo
 
   val to_varinfo_map: 'a t -> 'a Cil_datatype.Varinfo.Map.t
 end
@@ -108,7 +103,7 @@ val map_cardinal_varinfomap: 'a Cil_datatype.Varinfo.Map.t -> int;;
 
 (** Pretty print a varinfo set. *)
 val pretty_set :
-  ((Cil_types.varinfo -> int -> unit) -> 'a -> 'b) ->
+  ((Cil_types.varinfo -> int -> unit) -> 'a -> unit) ->
   Format.formatter -> 'a -> unit
 ;;
 

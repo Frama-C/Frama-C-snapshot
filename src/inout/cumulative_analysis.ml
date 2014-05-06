@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -21,7 +21,6 @@
 (**************************************************************************)
 
 open Cil_types
-open Db
 open Visitor
 
 let specialize_state_on_call ?stmt kf =
@@ -31,7 +30,7 @@ let specialize_state_on_call ?stmt kf =
         if Cvalue.Model.is_top at_stmt then
           Cvalue.Model.top (* can occur with -no-results-function option *)
         else !Db.Value.add_formals_to_state at_stmt kf l
-    | _ -> Value.get_initial_state kf
+    | _ -> Db.Value.get_initial_state kf
 
 
 class virtual ['a] cumulative_visitor = object
@@ -73,7 +72,7 @@ struct
     Kernel_function.Make_Table(X.T)
       (struct
          let name = "Memo " ^ X.analysis_name
-         let dependencies = [ Value.self ]
+         let dependencies = [ Db.Value.self ]
          let size = 97
        end)
 
@@ -94,7 +93,7 @@ struct
       let f = Kernel_function.get_definition kf in
       if List.exists (Kernel_function.equal kf) call_stack then (
         if Db.Value.ignored_recursive_call kf then
-          Inout_parameters.warning ~current:true
+          Inout_parameters.warning ~current:true ~once:true
             "During %s analysis of %a: ignoring probable recursive call."
             X.analysis_name Kernel_function.pretty kf;
         self#add_cycle (Kernel_function.Hptset.singleton kf);

@@ -23,14 +23,22 @@ const char* tab_str[TSZ] =
     "aaaaaaaaaaaa" ,
     "aaaaaaaaaaaaa" }; // 13
 
-int main () {
+char unterminated_string[12] = "unterminated";
+
+int main (int c) {
   const char* loc_str = "Bonjour Monde\n";
   char loc_char_array[5];
-  size_t sz1,sz2,sz3,sz4,sz5;
+  size_t sz1,sz2,sz3,sz4,sz5, szu;
   int x = 0xabcdef00;
   int z = 0x12345600;
   int i;
   char *str;
+
+  if (c & 1) 
+    {
+      szu = Frama_C_strlen(unterminated_string);
+      Frama_C_dump_each();
+    }
 
   str = Frama_C_nondet(0,1) ? static_str : loc_str;
   sz1 = Frama_C_strlen(str);  

@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -82,10 +82,10 @@ and add_pending ipref (ps:Consolidation.pending) =
 	 ) m
     ) ps
 
-let never_tried ip =
+let consider_ip ip =
   match Consolidation.get ip with
-    | Consolidation.Never_tried -> true
-    | _ -> false
+    | Consolidation.Never_tried -> Report_parameters.Untried.get ()
+    | _ -> true
 
 let iter (inspector:inspector) =
   begin
@@ -93,7 +93,7 @@ let iter (inspector:inspector) =
     let properties = ref Property.Set.empty in
     Property_status.iter
       (fun ip -> 
-	if not (never_tried ip) then 
+	if consider_ip ip then 
 	  add_property properties ip) ;
     let globals = ref Property.Set.empty in
     let functions = ref Kernel_function.Map.empty in

@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -24,11 +24,9 @@
 (** {2 Security parameters} *)
 (* ************************************************************************* *)
 
-open Plugin
+include Plugin.S
 
-include S
-
-module Slicing: Bool
+module Slicing: Parameter_sig.Bool
   (** Perform the security slicing pre-analysis. *)
 
 (*

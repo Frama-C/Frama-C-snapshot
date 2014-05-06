@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -50,7 +50,7 @@ struct
   type chunk = M.Chunk.t
 
   type signature = 
-    | CST of Qed.Z.t
+    | CST of Integer.t
     | SIG of sig_param list
   and sig_param =
     | Sig_value of logic_var (* to be replaced by the value *)
@@ -330,7 +330,7 @@ struct
 	let (parm,sigm) = 
 	  LabelMap.fold
 	    (fun label sigma ->
-	       Heap.Set.fold 
+	       Heap.Set.fold_sorted
 		 (fun chunk acc ->
 		    if filter result (Sigma.get sigma chunk) then 
 		      let (parm,sigm) = acc in
@@ -483,7 +483,7 @@ struct
 	     (fun acc l -> 
 		let label = Clabels.c_label l in
 		let sigma = Sigma.create () in
-		Heap.Set.fold 
+		Heap.Set.fold_sorted 
 		  (fun chunk (parm,sigm) -> 
 		     let x = Sigma.get sigma chunk in
 		     let s = Sig_chunk (chunk,label) in
@@ -606,16 +606,21 @@ struct
 	 List.fold_left (heap_case labels_used) support s)
       Heap.Map.empty cases in
     (* Make signature with collected chunks *)
-    let (parm,sigm) = Heap.Map.fold
-      (fun chunk labels acc ->
-	 let basename = Chunk.basename_of_chunk chunk in
-	 let tau = Chunk.tau_of_chunk chunk in
-	 LabelSet.fold
-	   (fun label (parm,sigm) ->
-	      let x = Lang.freshvar ~basename tau in
-	      x :: parm , Sig_chunk(chunk,label) :: sigm
-	   ) labels acc)
-      support (parp,sigp) in
+    let (parm,sigm) = 
+      let frame = logic_frame l.l_var_info.lv_name l.l_tparams in
+      in_frame frame
+	(fun () -> 
+	   Heap.Map.fold_sorted
+	     (fun chunk labels acc ->
+		let basename = Chunk.basename_of_chunk chunk in
+		let tau = Chunk.tau_of_chunk chunk in
+		LabelSet.fold
+		  (fun label (parm,sigm) ->
+		     let x = Lang.freshvar ~basename tau in
+		     x :: parm , Sig_chunk(chunk,label) :: sigm
+		  ) labels acc)
+	     support (parp,sigp) 
+	) () in
     (* Set global Signature *)
     let lfun = ACSL l in
     let ldef = {
@@ -624,8 +629,9 @@ struct
       d_params = parm ;
       d_cluster = cluster ;
       d_definition = Logic Qed.Logic.Prop ;
-    } in 
+    } in
     Definitions.update_symbol ldef ;
+    Signature.update l (SIG sigm) ;
     (* Re-compile final cases *)
     let cases = List.map
       (fun (case,labels,types,lemma) -> 
@@ -640,13 +646,13 @@ struct
     match l.l_body with
       | LBnone -> 
 	  let vars = match section with
-	    | Toplevel _ -> 
-		if l.l_labels <> [] then
-		  Wp_parameters.warning ~once:true ~current:false
-		    "No definition for '%s' interpreted as reads nothing" 
-		    l.l_var_info.lv_name ; []
+	    | Toplevel _ -> []
 	    | Axiomatic a -> Varinfo.Set.elements a.ax_reads
-	  in compile_lbnone cluster l vars
+	  in if l.l_labels <> [] && vars = [] then
+	      Wp_parameters.warning ~once:true ~current:false
+		"No definition for '%s' interpreted as reads nothing" 
+		l.l_var_info.lv_name ;
+	  compile_lbnone cluster l vars
       | LBterm t -> compile_lbterm cluster l t
       | LBpred p -> compile_lbpred cluster l p
       | LBreads ts -> compile_lbreads cluster l ts
@@ -693,15 +699,15 @@ struct
       let cluster = Definitions.section section in
       match section with
 	| Toplevel _ ->
-	    Signature.memoize (compile_logic cluster section) phi
+	  Signature.memoize (compile_logic cluster section) phi
 	| Axiomatic ax ->
-	    (* force compilation of entire axiomatics *)
-	    define_axiomatic cluster ax ;
-	    try Signature.find phi
-	    with Not_found -> 
-	      Wp_parameters.fatal ~current:true
-		"Axiomatic '%s' compiled, but '%a' not" 
-		ax.ax_name Printer.pp_logic_var phi.l_var_info
+	  (* force compilation of entire axiomatics *)
+	  define_axiomatic cluster ax ;
+	  try Signature.find phi
+	  with Not_found -> 
+	    Wp_parameters.fatal ~current:true
+	      "Axiomatic '%s' compiled, but '%a' not" 
+	      ax.ax_name Printer.pp_logic_var phi.l_var_info
 
   (* -------------------------------------------------------------------------- *)
   (* --- Binding Formal with Actual w.r.t Signature                         --- *)
@@ -711,9 +717,9 @@ struct
     match labels with
       | [] -> LabelMap.empty
       | (l1,l2) :: labels ->
-	  let l1 = Clabels.c_label l1 in
-	  let l2 = Clabels.c_label l2 in
-	  LabelMap.add l1 (mem_at env l2) (bind_labels env labels)
+	let l1 = Clabels.c_label l1 in
+	let l2 = Clabels.c_label l2 in
+	LabelMap.add l1 (mem_at env l2) (bind_labels env labels)
     
   let call_params env
       (phi:logic_info)
@@ -725,8 +731,14 @@ struct
     let mlabels = bind_labels env labels in
     List.map
       (function
-	 | Sig_value lv -> Logic_var.Map.find lv mparams
-	 | Sig_chunk(c,l) -> M.Sigma.value (LabelMap.find l mlabels) c
+         | Sig_value lv -> Logic_var.Map.find lv mparams
+	 | Sig_chunk(c,l) -> 
+	   let sigma = 
+	     try LabelMap.find l mlabels
+	     with Not_found -> 
+	       Wp_parameters.fatal "*** Label %a not-found@." Clabels.pretty l
+	   in
+	   M.Sigma.value sigma c
       ) sparam
       
   let call_fun env 
@@ -736,8 +748,8 @@ struct
     match signature phi with
       | CST c -> e_zint c
       | SIG sparam -> 
-	  let es = call_params env phi labels sparam parameters in
-	  F.e_fun (ACSL phi) es
+	let es = call_params env phi labels sparam parameters in
+	F.e_fun (ACSL phi) es
 
   let call_pred env 
       (phi:logic_info) 

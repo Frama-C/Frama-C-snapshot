@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -memory-footprint 1 -val -obviously-terminates -journal-disable -float-normal share/builtin.c
+   OPT: -val -obviously-terminates -journal-disable -float-normal share/builtin.c
 */
 
 double Frama_C_cos_precise(double);

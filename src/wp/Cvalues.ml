@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -222,7 +222,7 @@ module EQARRAY = Model.Generator(Matrix.NATURAL)
      type data = Lang.lfun
      let name = "Cvalues.EqArray"
      let compile (te,ds) =
-       let lfun = Lang.generated_f "EqArray%s_%s" 
+       let lfun = Lang.generated_f ~sort:Logic.Sprop "EqArray%s_%s" 
 	 (Matrix.id ds) (Matrix.natural_id te) 
        in
        let cluster = Definitions.matrix te in
@@ -469,14 +469,13 @@ struct
 	  | Vset.Singleton _ | Vset.Set _ -> kset
 	  | Vset.Range(a,b) -> 
 	      let cap l = function None -> Some l | u -> u in
-	      let s = Int64.pred s in
-	      Vset.Range(cap e_zero a,cap (e_int64 s) b)
+	      Vset.Range(cap e_zero a,cap (e_int (s-1)) b)
 	  | Vset.Descr(xs,k,p) ->
 	      let a = e_zero in
-	      let b = e_int64 s in
+	      let b = e_int s in
 	      Vset.Descr(xs,k,p_conj [p_leq a k;p_lt k b;p])
 
-  let shift_set sloc obj size kset =
+  let shift_set sloc obj (size : int option) kset =
     match sloc , kset , size with
       | Sloc l , Vset.Range(None,None) , Some s -> Sarray(l,obj,s)
       | _ ->

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,6 +27,20 @@ open Qed.Logic
 
 (** Logic Language based on Qed *)
 
+(** {2 Library} *)
+
+type library = string
+
+
+type 'a infoprover = {
+  altergo: 'a;
+  why3   : 'a;
+  coq    : 'a;
+}
+(** generic way to have different informations for the provers *)
+
+val infoprover: 'a -> 'a infoprover
+(** same information for all the provers *)
 (** {2 Naming} Unique identifiers. *)
 
 val comp_id  : compinfo -> string
@@ -35,20 +49,19 @@ val type_id  : logic_type_info -> string
 val logic_id : logic_info -> string
 val lemma_id : string -> string
 
-(** {2 Theory} *)
-
-type theory = string
-
 (** {2 Symbols} *)
 
-type adt = private
+type adt = private (** A type is never registered in a Definition.t *)
   | Mtype of mdt (** External type *)
   | Mrecord of mdt * fields (** External record-type *)
   | Atype of logic_type_info (** Logic Type *)
   | Comp of compinfo (** C-code struct or union *)
-and mdt = {
-  mdt_link : string ;
-  mdt_theory : theory ;
+and mdt = string extern (** name to print to the provers *)
+and 'a extern = {
+  ext_id     : int;
+  ext_link   : 'a infoprover;
+  ext_library : library; (** a library which it depends on *)
+  ext_debug  : string; (** just for printing during debugging *)
 }
 and fields = { mutable fields : field list }
 and field =
@@ -56,31 +69,30 @@ and field =
   | Cfield of fieldinfo
 and tau = (field,adt) Logic.datatype
 
-type scope = External of theory | Generated
+
 type lfun =
-  | Function of lfunction 
-  | Predicate of lpredicate
-  | ACSL of logic_info
-  | CTOR of logic_ctor_info
-      
-and lfunction = {
-  f_scope : scope ;
-  f_link : Engine.link ;
-  f_category : lfun category ;
-  f_params : sort list ;
-  f_result : sort ;
+  | ACSL of Cil_types.logic_info (** Registered in Definition.t,
+                                     only  *)
+  | CTOR of Cil_types.logic_ctor_info (** Not registered in Definition.t
+                                          directly converted/printed *)
+  | Model of model (** *)
+
+and model = {
+  m_category : lfun category ;
+  m_params : sort list ;
+  m_resort : sort ;
+  m_result : tau option ;
+  m_source : source ;
 }
 
-and lpredicate = {
-  p_scope : scope ;
-  p_params : sort list ;
-  p_prop : string ;
-  p_bool : string ;
-}
+and source =
+  | Generated of string
+  | Extern of Engine.link extern
 
-val builtin : name:string -> link:string -> theory:string -> unit
-val datatype : link:string -> theory:string -> adt
-val record : link:string -> theory:string -> (string * tau) list -> adt
+val builtin_type : name:string -> link:string infoprover -> library:string -> unit
+val datatype : library:string -> string -> adt
+val record :
+  link:string infoprover -> library:string -> (string * tau) list -> adt
 val atype : logic_type_info -> adt
 val comp : compinfo -> adt
 val field : adt -> string -> field
@@ -89,30 +101,42 @@ val fields_of_field : field -> field list
 
 type balance = Nary | Left | Right
 
-val extern_s : 
-  theory:theory -> ?balance:balance -> 
-  ?category:lfun category -> ?params:sort list -> ?result:sort ->
+val extern_s :
+  library:library -> 
+  ?link:(Engine.link infoprover) ->
+  ?category:lfun category -> 
+  ?params:sort list -> 
+  ?sort:sort -> 
+  ?result:tau ->
   string -> lfun
 
-val extern_f : 
-  theory:theory -> ?balance:balance -> 
-  ?category:lfun category -> ?params:sort list -> ?result:sort ->
+val extern_f :
+  library:library -> 
+  ?link:(Engine.link infoprover) ->
+  ?balance:balance ->
+  ?category:lfun category -> 
+  ?params:sort list -> 
+  ?sort:sort -> 
+  ?result:tau ->
   ('a,Format.formatter,unit,lfun) format4 -> 'a
+(** balance just give a default when link is not specified *)
 
-val extern_p : 
-  theory:theory -> prop:string -> bool:string -> 
+val extern_p :
+  library:library ->
+  ?bool:string ->
+  ?prop:string ->
+  ?link:Engine.link infoprover ->
   ?params:sort list -> unit -> lfun
 
-val extern_fp : theory:theory -> ?params:sort list -> string -> lfun
+val extern_fp : library:library -> ?params:sort list ->
+  ?link:string infoprover -> string -> lfun
 
 val generated_f : ?category:lfun category -> 
-  ?params:sort list -> ?result:sort -> 
+  ?params:sort list -> ?sort:sort -> ?result:tau -> 
   ('a,Format.formatter,unit,lfun) format4 -> 'a
 
 val generated_p : string -> lfun
 
-val link : Engine.cmode -> lfun -> Engine.link
-val theory : lfun -> string
 
 (** {2 Sorting and Typing} *)
 
@@ -137,25 +161,49 @@ module ADT : Logic.Data with type t = adt
 module Field : Logic.Field with type t = field
 module Fun : Logic.Function with type t = lfun
 
+class virtual idprinting :
+  object
+    method virtual basename : string -> string
+    (** Allows to sanitize the basename used for generated or ACSL
+        name (not the one provided by the driver. *)
+    method virtual infoprover : 'a. 'a infoprover -> 'a
+    (** Specify the field to use in an infoprover *)
+
+    method datatypename : string -> string
+    method fieldname    : string -> string
+    method funname      : string -> string
+
+    method datatype : ADT.t   -> string
+    method field    : Field.t -> string
+    method link     : Fun.t   -> Engine.link
+  end
+
 module F :
 sig
 
   (** {3 Expressions} *)
  
-  include Logic.Term with module ADT = ADT
+  include Logic.Term with type Z.t = Integer.t
+		     and module ADT = ADT
 		     and module Field = Field
 		     and module Fun = Fun
 
   type unop = term -> term
   type binop = term -> term -> term
 
+  val head : term -> string
+
   val e_zero : term
   val e_one : term
   val e_minus_one : term
+  val e_one_real : term
   val e_zero_real : term
 
+  val constant : term -> term
+
+  val e_fact : int -> term -> term
+
   val e_int64 : int64 -> term
-  val e_fact : int64 -> term -> term
   val e_bigint : Integer.t -> term
   val e_mthfloat : float -> term
   val e_hexfloat : float -> term
@@ -236,17 +284,24 @@ sig
   val pp_eterm : env -> Format.formatter -> term -> unit
   val pp_epred : env -> Format.formatter -> pred -> unit
 
-  val pred : pred -> (field,lfun,var,pred) Logic.term_repr
+  val pred : pred -> pred expression
 
   module Pmap : Qed.Idxmap.S with type key = pred
   module Pset : Qed.Idxset.S with type elt = pred
 
-  type pattern = Fun.t Qed.Pattern.fpattern
-  val rewrite : name:string -> vars:tau array -> pattern -> (term array -> term) -> unit
+  (** {3 Builtins} *)
 
-  val add_builtin_1 : lfun -> (term -> term) -> unit
-  val add_builtin_2 : lfun -> (term -> term -> term) -> unit
-  val add_builtin_peq : lfun -> (term -> term -> pred) -> unit
+  val release : unit -> unit
+
+  val set_builtin_1 : lfun -> (term -> term) -> unit
+  val set_builtin_2 : lfun -> (term -> term -> term) -> unit
+  val set_builtin_eqp : lfun -> (term -> term -> pred) -> unit
+
+  (** {3 Internal Checks} *)
+
+  val do_checks : bool ref
+  val iter_checks : (qed:term -> raw:term -> goal:pred -> unit) -> unit
+
 
 end
 

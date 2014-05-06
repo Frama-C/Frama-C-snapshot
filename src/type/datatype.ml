@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -128,13 +128,13 @@ end
 
 module Undefined = struct
   include Partial_undefined
-  let structural_descr = Structural_descr.Unknown
+  let structural_descr = Structural_descr.t_unknown
   let rehash = undefined
 end
 
 module Serializable_undefined = struct
   include Partial_undefined
-  let structural_descr = Structural_descr.Abstract
+  let structural_descr = Structural_descr.t_abstract
   let rehash = identity
   let mem_project = never_any_project
 end
@@ -286,29 +286,18 @@ module Make(X: Make_input) = struct
 end
 
 module type Set = sig
-  include Set.S
-  val ty: t Type.t
-  val name: string
-  val descr: t Descr.t
-  val packed_descr: Structural_descr.pack
-  val reprs: t list
-  val hash: t -> int
-  val internal_pretty_code: Type.precedence -> Format.formatter -> t -> unit
-  val pretty_code: Format.formatter -> t -> unit
-  val pretty: Format.formatter -> t -> unit
-  val varname: t -> string
-  val mem_project: (Project_skeleton.t -> bool) -> t -> bool
-  val copy: t -> t
+  include FCSet.S
+  include S with type t := t
 end
 
 module type Map = sig
-  include Map.S
+  include FCMap.S
   module Key: S with type t = key
   module Make(Data: S) : S with type t = Data.t t
 end
 
 module type Hashtbl_with_descr = sig
-  include Hashtbl_common_interface.S
+  include FCHashtbl.S
   val structural_descr: Structural_descr.t -> Structural_descr.t
 end
 
@@ -901,7 +890,7 @@ module type Polymorphic_input = sig
     (Project_skeleton.t -> bool) -> 'a t -> bool
 end
 
-module Polymorphic(P: Polymorphic_input) = struct
+module Polymorphic_gen(P: Polymorphic_input) = struct
 
   include Type.Polymorphic(P)
 
@@ -924,7 +913,7 @@ module Polymorphic(P: Polymorphic_input) = struct
 
   let () = poly_name_ref := ""
 
-  module Make(X: S) = struct
+  module Make_gen(X: S)(R: sig val rehash: X.t poly -> X.t poly end) = struct
 
     module T = struct
       type t = X.t P.t
@@ -951,7 +940,8 @@ module Polymorphic(P: Polymorphic_input) = struct
               fun x -> P.map f x
           in
           build mk X.copy
-        let rehash = identity
+        let rehash = R.rehash
+
         let internal_pretty_code =
           let mk f =
             if f == pp_fail then pp_fail
@@ -976,6 +966,18 @@ module Polymorphic(P: Polymorphic_input) = struct
 
   end
 
+end
+
+module Polymorphic(P: Polymorphic_input) = struct
+  include Polymorphic_gen(P)
+  module Make(X: S) = 
+    Make_gen
+      (X)
+      (struct 
+	let rehash = 
+	  if Descr.is_unmarshable X.descr then undefined 
+	  else identity
+       end)
 end
 
 (* ****************************************************************************)
@@ -1171,6 +1173,102 @@ let list (type typ) (ty: typ Type.t) =
   L.ty
 
 (* ****************************************************************************)
+(** {3 Arrays} *)
+(* ****************************************************************************)
+
+let () = poly_name_ref := "array"
+module Poly_array =
+  Polymorphic
+    (struct
+      type 'a t = 'a array
+      let name ty = Type.par_ty_name is_function_or_pair ty ^ " array"
+      let module_name = "Datatype.Array"
+      let reprs ty = [ [| ty |] ]
+      let structural_descr = Structural_descr.t_array
+      exception Early_exit of int
+      let mk_equal f a1 a2 =
+	let size = Array.length a1 in
+	if Array.length a2 != size then false
+	else try
+	       for i = 0 to size - 1 do
+		 if not (f a1.(i) a2.(i)) then raise (Early_exit 0)
+	       done;
+	       true
+	  with Early_exit _ -> false
+      ;;
+      let mk_compare f a1 a2 =
+        if a1 == a2 then 0
+	else let size1 = Array.length a1 and size2 = Array.length a2 in
+	     if size1 < size2 then -1
+	     else if size2 > size1 then 1
+	     else try
+		    for i = 0 to size1 do
+		      let n = f a1.(i) a2.(i) in
+		      if n != 0 then raise (Early_exit n)
+		    done;
+		    0
+	       with Early_exit n -> n
+      ;;
+      (* Do not spend too much time hashing long arrays... *)
+      let mk_hash f a =
+	let max = max 15 ((Array.length a) - 1) in
+	let acc = ref 1 in
+	for i = 0 to max do acc := 257 * !acc + f a.(i) done;
+	!acc
+      ;;
+      let map = Array.map
+      let mk_internal_pretty_code f p fmt a =
+        let pp fmt =
+          Format.fprintf fmt "@[<hv 2>[| %t |]@]"
+            (fun fmt ->
+	      let length = Array.length a in
+	      match length with
+		| 0 -> ()
+		| _ -> (Format.fprintf fmt "%a" (f Type.List) a.(0);
+			for i = 1 to (length - 1) do
+			  Format.fprintf fmt ";@;%a" (f Type.List) a.(i)
+			done))
+        in
+        Type.par p Type.Basic fmt pp (* Never enclose arrays in parentheses *)
+      let mk_pretty f fmt x =
+        mk_internal_pretty_code (fun _ -> f) Type.Basic fmt x
+      let mk_varname = undefined
+      let mk_mem_project mem f a =
+	try
+	  for i = 0 to (Array.length a - 1) do
+	    if mem f a.(i) then raise (Early_exit 0)
+	  done;
+	  false
+	with Early_exit _ -> true
+     end)
+
+module Caml_array = Array
+module Array = Poly_array.Make
+
+let array (type typ) (ty: typ Type.t) =
+  let module L =
+    Array(struct
+      type t = typ
+      let ty = ty
+      let name = Type.name ty
+      let descr = Descr.of_type ty
+      let packed_descr = Descr.pack descr
+      let reprs = Type.reprs ty
+      let equal = equal ty
+      let compare = compare ty
+      let hash = hash ty
+      let copy = copy ty
+      let internal_pretty_code = internal_pretty_code ty
+      let pretty_code = pretty_code ty
+      let pretty = from_pretty_code
+      let varname = varname ty
+      let mem_project = mem_project ty
+    end)
+  in
+  L.ty
+
+
+(* ****************************************************************************)
 (** {3 Queue} *)
 (* ****************************************************************************)
 
@@ -1228,10 +1326,10 @@ let queue (type typ) (ty: typ Type.t) =
 
 module type Functor_info = sig val module_name: string end
 
-module Initial_caml_set = Set
-
 (* ocaml functors are generative *)
-module Set(S: Set.S)(E: S with type t = S.elt)(Info: Functor_info) = struct
+module Set
+  (S: FCSet.S)(E: S with type t = S.elt)(Info: Functor_info) =
+struct
 
   let () = check E.equal "equal" E.name Info.module_name
   let () = check E.compare "compare" E.name Info.module_name
@@ -1249,7 +1347,12 @@ module Set(S: Set.S)(E: S with type t = S.elt)(Info: Functor_info) = struct
       let hash =
         if E.hash == undefined then undefined
         else (fun s -> S.fold (fun e h -> 67 * E.hash e + h) s 189)
-      let rehash = identity
+      let rehash =
+        if Descr.is_unmarshable E.descr then undefined
+        else if Descr.is_abstract E.descr then identity
+        else
+          fun s -> (* The key changed, rebalance the tree *)
+            S.fold S.add s S.empty
       let copy =
         (* [JS 2011/05/31] No optimisation for the special case of
            identity, since we really want to perform a DEEP copy. *)
@@ -1312,15 +1415,14 @@ end
 (** {3 Map} *)
 (* ****************************************************************************)
 
-module Initial_caml_map = Map
-
-module Map(M: Map.S)
-          (Key: S with type t = M.key)(Info: Functor_info) = struct
+module Map
+  (M: FCMap.S)(Key: S with type t = M.key)(Info: Functor_info) = 
+struct
 
   let () = check Key.equal "equal" Key.name Info.module_name
   let () = check Key.compare "compare" Key.name Info.module_name
 
-  module P = Polymorphic
+  module P_gen = Polymorphic_gen
     (struct
       type 'a t = 'a M.t
       let name ty =
@@ -1387,6 +1489,25 @@ module Map(M: Map.S)
                   true
      end)
 
+  module P = struct
+    include P_gen
+    module Make(X:S) = 
+      Make_gen
+	(X)
+	(struct
+	  let rehash =
+	    if Descr.is_unmarshable Key.descr
+	      || Descr.is_unmarshable X.descr 
+	    then undefined
+	    else
+	      if Descr.is_abstract Key.descr then identity
+	      else (* the key changed: rebuild the map *)
+		fun m ->
+		  M.fold M.add m M.empty;
+	 end)
+  end
+
+
   include M
   module Key = Key
   module Make = P.Make
@@ -1397,8 +1518,6 @@ end
 (** {3 Hashtbl} *)
 (* ****************************************************************************)
 
-module Initial_caml_hashtbl = Hashtbl_common_interface
-
 (* ocaml functors are generative *)
 module Hashtbl
   (H: Hashtbl_with_descr)(Key: S with type t = H.key)(Info : Functor_info) =
@@ -1407,7 +1526,7 @@ struct
   let () = check Key.equal "equal" Key.name Info.module_name
   let () = check Key.hash "hash" Key.name Info.module_name
 
-  module P = Polymorphic
+  module P_gen = Polymorphic_gen
     (struct
       type 'a t = 'a H.t
       let name ty =
@@ -1449,6 +1568,27 @@ struct
                 with Exit ->
                   true
    end)
+
+  module P = struct
+    include P_gen
+    module Make(X:S) = 
+      Make_gen
+	(X)
+	(struct
+	  let rehash =
+	    if Descr.is_unmarshable Key.descr
+	      || Descr.is_unmarshable X.descr 
+	    then undefined
+	    else
+	      if Descr.is_abstract Key.descr then identity
+	      else (* the key changed: rebuild the hashtbl *)
+		fun h ->
+		  let h' = H.create (H.length h) in
+		  H.iter (H.add h') h;
+		  h'
+	 end)
+	
+  end
 
   include H
 
@@ -1521,20 +1661,20 @@ module With_collections(X: S)(Info: Functor_info) = struct
 
   module Set =
     Set
-      (Initial_caml_set.Make(D))
+      (FCSet.Make(D))
       (D)
       (struct let module_name = Info.module_name ^ ".Set" end)
 
   module Map =
     Map
-      (Initial_caml_map.Make(D))
+      (FCMap.Make(D))
       (D)
       (struct let module_name = Info.module_name ^ ".Map" end)
 
   module Hashtbl =
     Hashtbl
       (struct
-	include Initial_caml_hashtbl.Make(D)
+	include FCHashtbl.Make(D)
 
         (* Override "sorted" iterators by using the datatype comparison
            function if it has been supplied *)
@@ -1587,10 +1727,10 @@ struct
           type t = X.t
           let name = X.name
           let reprs = X.reprs
-          let structural_descr = Structural_descr.Abstract
+          let structural_descr = Structural_descr.t_abstract
           let equal = X.equal
           let compare = X.compare
-          let hash = Initial_caml_hashtbl.hash
+          let hash = FCHashtbl.hash
           let rehash = identity
           let copy = X.copy
           let internal_pretty_code =
@@ -1739,7 +1879,7 @@ module Formatter =
       type t = Format.formatter
       let name = "Datatype.Formatter"
       let reprs = [ Format.std_formatter ]
-      let structural_descr = Structural_descr.Unknown
+      let structural_descr = Structural_descr.t_unknown
       let equal = undefined
       let compare = undefined
       let hash = undefined
@@ -1758,7 +1898,7 @@ module Big_int =
       type t = Integer.t
       let name = "Datatype.Big_int"
       let reprs = [ Integer.zero ]
-      let structural_descr = Structural_descr.Abstract
+      let structural_descr = Structural_descr.t_abstract
       let equal = Integer.equal
       let compare = Integer.compare
       let hash = Integer.hash
@@ -1997,6 +2137,10 @@ module Option_with_collections(T:S)(Info:Functor_info) =
 
 module List_with_collections(T:S)(Info:Functor_info) =
   With_collections (List(T))(Info)
+
+module Array_with_collections(T:S)(Info:Functor_info) =
+  With_collections (Array(T))(Info)
+
 
 (*
 Local Variables:

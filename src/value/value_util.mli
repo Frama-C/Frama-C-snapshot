@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -45,7 +45,6 @@ val pp_callstack : Format.formatter -> unit
 
 (* TODO: Document the rest of this file. *)
 val get_rounding_mode : unit -> Ival.Float_abstract.rounding_mode
-val do_degenerate : lval option -> unit
 val stop_if_stop_at_first_alarm_mode : unit -> unit
 val emitter : Emitter.t
 val warn_all_mode : CilE.warn_mode
@@ -53,15 +52,12 @@ val with_alarm_stop_at_first : CilE.warn_mode
 val with_alarms_raise_exn : exn -> CilE.warn_mode
 val warn_all_quiet_mode : unit -> CilE.warn_mode
 val get_slevel : Kernel_function.t -> Value_parameters.SlevelFunction.value
+val warn_indeterminate: Kernel_function.t -> bool
 val set_loc : kinstr -> unit
 module Got_Imprecise_Value : State_builder.Ref with type data = Datatype.Bool.t
 val pretty_actuals : Format.formatter -> ('a * Cvalue.V.t * 'b) list -> unit
 val pretty_current_cfunction_name : Format.formatter -> unit
 val warning_once_current : ('a, Format.formatter, unit) format -> 'a
-module StmtCanReachCache : State_builder.Hashtbl 
-  with type key = Kernel_function.t
-  and type data = stmt -> stmt -> Datatype.Bool.t
-val stmt_can_reach : StmtCanReachCache.key -> StmtCanReachCache.data
 val debug_result :
   Kernel_function.t ->
   Cvalue.V_Offsetmap.t option * 'a * Base.SetLattice.t -> unit
@@ -71,6 +67,12 @@ val map_outputs :
   (Cvalue.V_Offsetmap.t option * 'a) list
 val remove_formals_from_state :
   varinfo list -> Cvalue.Model.t -> Cvalue.Model.t
+
+(* Statements for which the analysis has degenerated. [true] means that this is
+   the statement on which the degeneration occurred, or a statement above in
+   the callstack *)
+module DegenerationPoints:
+  State_builder.Hashtbl with type key = stmt and type data = bool
 
 (*
 Local Variables:

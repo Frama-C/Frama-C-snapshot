@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -46,7 +46,6 @@ type 'a category =
   | Function      (** no reduction rule *)
   | Constructor   (** [f xs = g ys] iff [f=g && xi=yi] *)
   | Injection     (** [f xs = f ys] iff [xi=yi] *)
-  | Constant of Z.t
   | Operator of 'a operator
 
 (** Quantifiers and Binders *)
@@ -83,7 +82,7 @@ sig
   val equal : t -> t -> bool
   val compare : t -> t -> int
   val pretty : Format.formatter -> t -> unit
-  val id : t -> string (** full, unique, identifier *)
+  val debug : t -> string (** for printing during debug *)
 end
 
 (** {2 Abstract Data Types} *)
@@ -103,7 +102,7 @@ end
 (** {2 User Defined Functions} *)
 module type Function =
 sig
-  include Symbol 
+  include Symbol
   val category : t -> t category
   val params : t -> sort list (** params ; exceeding params use Sdata *)
   val sort : t -> sort (** result *)
@@ -125,12 +124,12 @@ type ('f,'a) funtype = {
   params : ('f,'a) datatype list ; (** Type of parameters *)
 }
 
-type ('f,'d,'x,'e) term_repr =
+type ('z,'f,'d,'x,'e) term_repr =
   | True
   | False
-  | Kint  of Z.t
+  | Kint  of 'z
   | Kreal of R.t
-  | Times of Z.t * 'e
+  | Times of 'z * 'e
   | Add   of 'e list
   | Mul   of 'e list
   | Div   of 'e * 'e
@@ -153,12 +152,13 @@ type ('f,'d,'x,'e) term_repr =
   | Apply of 'e * 'e list
   | Bind  of binder * 'x * 'e
 
-type 'a affine = { constant : Z.t ; factors : (Z.t * 'a) list }
+type ('z,'a) affine = { constant : 'z ; factors : ('z * 'a) list }
 
 (** {2 Formulae} *)
 module type Term =
 sig
 
+  module Z : Arith.Z
   module ADT : Data
   module Field : Field
   module Fun : Function
@@ -190,20 +190,25 @@ sig
 
   (** {3 Terms} *)
 
-  type 'a symbol = (Field.t,Fun.t,var,'a) term_repr
+  type 'a expression = (Z.t,Field.t,Fun.t,var,'a) term_repr
 
-  type repr = term symbol
+  type repr = term expression
   type path = int list (** position of a subterm in a term. *)
   type record = (Field.t * term) list
 
-  val is_true  : term -> maybe (** Constant time *)
-  val is_false : term -> maybe (** Constant time *)
+  val decide   : term -> bool (** Return [true] if and only the term is [e_true]. Constant time. *)
+  val is_true  : term -> maybe (** Constant time. *)
+  val is_false : term -> maybe (** Constant time. *)
   val is_prop  : term -> bool (** Boolean or Property *)
   val is_int   : term -> bool (** Integer sort *)
   val is_real  : term -> bool (** Real sort *)
   val is_arith : term -> bool (** Integer or Real sort *)
 
   val are_equal : term -> term -> maybe (** Computes equality *)
+  val eval_eq   : term -> term -> bool  (** Same as [are_equal] is [Yes] *)
+  val eval_neq  : term -> term -> bool  (** Same as [are_equal] is [No]  *)
+  val eval_lt   : term -> term -> bool  (** Same as [e_lt] is [e_true] *)
+  val eval_leq  : term -> term -> bool  (** Same as [e_leq] is [e_true]  *)
 
   val repr : term -> repr  (** Constant time *)
   val sort : term -> sort   (** Constant time *)
@@ -247,6 +252,8 @@ sig
   val e_record : record -> term
   val e_fun : Fun.t -> term list -> term
 
+  val e_repr : repr -> term
+
   (** {3 Quantification and Binding} *)
 
   val e_forall : var list -> term -> term
@@ -258,61 +265,65 @@ sig
 
   (** {3 Recursion Scheme} *)
 
-  val e_repr : repr -> term
+  val r_map : ('a -> term) -> 'a expression -> term
+  (** @raise Invalid_argument on Bind constructor *)
 
   val e_map  : (term -> term) -> term -> term
-    (** @raise Invalid_argument on Bind constructor *)
+  (** @raise Invalid_argument on Bind constructor *)
 
   val e_iter : (term -> unit) -> term -> unit
-    (** Also goes into Bind constructor *)
+  (** Also goes into Bind constructor *)
 
   val f_map  : (Vars.t -> term -> term) -> Vars.t -> term -> term
-    (** Pass the bound variables in context *)
+  (** Pass the bound variables in context *)
 
   val f_iter  : (Vars.t -> term -> unit) -> Vars.t -> term -> unit
-    (** Pass the bound variables in context *)
+  (** Pass the bound variables in context *)
 
   (** {3 Support for Builtins} *)
 
-  val add_builtin : Fun.t -> (term list -> term) -> unit
-    (** Register a simplifier for function [f]. The computation code
-	may raise [Not_found], in which case the symbol is not interpreted. 
+  val set_builtin : Fun.t -> (term list -> term) -> unit
+  (** Register a simplifier for function [f]. The computation code
+      	may raise [Not_found], in which case the symbol is not interpreted. 
 
-	If [f] is an operator with algebraic rules (see type
-	[operator]), the children are normalized {i before} builtin
-	call. 
+      	If [f] is an operator with algebraic rules (see type
+      	[operator]), the children are normalized {i before} builtin
+      	call.
 
-	Circularity can be broken using [e_funop] and [e_funraw].  By
-	the way, it is the responsability of the normalization
-	function to returns a properly normalized term.
-    *)
+      	Highest priority is [0].
+      	Recursive calls must be performed on strictly smaller terms.
+  *)
 
-  val add_builtin_eq : Fun.t -> (term -> term -> term) -> unit
-    (** Register a builtin equality for comparing any term with head-symbol. 
-	{b Must} only need comparison for strictly smaller terms. *)
+  val set_builtin_eq : Fun.t -> (term -> term -> term) -> unit
+  (** Register a builtin equality for comparing any term with head-symbol. 
+      	{b Must} only use recursive comparison for strictly smaller terms. 
+      	The recognized term with head function symbol is passed first.
 
-  val e_funop : Fun.t -> term list -> term
-    (** Variant of [e_fun] that do not invoke builtins. 
-	Operator are still normalized, though.
+      	Highest priority is [0].
+      	Recursive calls must be performed on strictly smaller terms.
+  *)
 
-	{b warning:} should not be used outside a builtin normalization function. *)
+  val set_builtin_leq : Fun.t -> (term -> term -> term) -> unit
+  (** Register a builtin for comparing any term with head-symbol. 
+      	{b Must} only use recursive comparison for strictly smaller terms. 
+      	The recognized term with head function symbol can be on both sides.
+      	Strict comparison is automatically derived from the non-strict one.
 
-  val e_funraw : Fun.t -> term list -> term
-    (** Variant of [e_fun] that do not invoke builtins, 
-	{i nor} operator normalization rules.
-	{b warning:} should not be used outside a builtin normalization function. *)
+      	Highest priority is [0].
+      	Recursive calls must be performed on strictly smaller terms.
+  *)
 
   (** {3 Specific Patterns} *)
 
   val literal : term -> bool * term
   val congruence_eq : term -> term -> (term * term) list option
-    (** If [congruence_eq a b] returns [[ai,bi]], [a=b] is equivalent to [And{ai=bi}]. *)
+  (** If [congruence_eq a b] returns [[ai,bi]], [a=b] is equivalent to [And{ai=bi}]. *)
   val congruence_neq : term -> term -> (term * term) list option
-    (** If [congruence_eq a b] returns [[ai,bi]], [a<>b] is equivalent to [Or{ai<>bi}]. *)
+  (** If [congruence_eq a b] returns [[ai,bi]], [a<>b] is equivalent to [Or{ai<>bi}]. *)
   val flattenable : term -> bool
   val flattens : term -> term -> bool (** The comparison flattens *)
   val flatten : term -> term list (** Returns an equivalent conjunction *)
-  val affine : term -> term affine
+  val affine : term -> (Z.t,term) affine
   val record_with : record -> (term * record) option
 
   (** {3 Symbol} *)
@@ -352,17 +363,17 @@ sig
     ?shareable:(term -> bool) -> 
     ?closed:Vars.t -> 
     term list -> term list
-    (** Computes the sub-terms that appear several times.
-	[shared marked linked e] returns the shared subterms of [e].
+  (** Computes the sub-terms that appear several times.
+      	[shared marked linked e] returns the shared subterms of [e].
 
-	The list of shared subterms is consistent with
-	order of definition: each trailing terms only depend on heading ones.
+      	The list of shared subterms is consistent with
+      	order of definition: each trailing terms only depend on heading ones.
 
-	The traversal is controled by two optional arguments:
-	- [atomic] those terms are not traversed (considered as atomic)
-	- [shareable] those terms that can be shared (all by default)
-	- [closed] free variables of [t] authorized in sub-terms
-    *)
+      	The traversal is controled by two optional arguments:
+      	- [atomic] those terms are not traversed (considered as atomic)
+      	- [shareable] those terms that can be shared (all by default)
+      	- [closed] free variables of [t] authorized in sub-terms
+  *)
 
   (** Low-level shared primitives: [shared] is actually a combination of
       building marks, marking terms, and extracting definitions:

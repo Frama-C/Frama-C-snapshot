@@ -1,7 +1,7 @@
 /* run.config
    GCC:
-   OPT: -memory-footprint 1 -val -deps -out -input -journal-disable
-   OPT: -memory-footprint 1 -val -deps -out -input -main f -journal-disable
+   OPT: -val -deps -out -input -journal-disable
+   OPT: -val -deps -out -input -main f -journal-disable
 */
 
 

@@ -56,12 +56,12 @@ void main() {
   if (vol) s += 24;
   Frama_C_memset(t10+4, 0x88, s); // imprecise size
 
-  unsigned long s = 8;
-  if (vol) s += 8;
+  unsigned long s1 = 8;
+  if (vol) s1 += 8;
   p = t11 + 2;
   if (vol)
     p++;
-  Frama_C_memset(p, 0x99, s); // imprecise dest+size with juxtaposition
+  Frama_C_memset(p, 0x99, s1); // imprecise dest+size with juxtaposition
 
   if (vol)
     Frama_C_memset(ts, 254, sizeof(ts));

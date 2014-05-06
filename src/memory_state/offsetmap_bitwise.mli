@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -30,10 +30,13 @@ open Lattice_Interval_Set
 
 type itv = Int.t * Int.t
 
-module Make(V: Abstract_interp.Lattice) : sig
+module Make(V: Lattice_type.Bounded_Join_Semi_Lattice) : sig
 
   include Datatype.S_no_copy
   val degenerate : V.t -> t
+  val pretty_with_type_generic_printer : 
+    Cil_types.typ option -> (Format.formatter -> V.t -> unit) ->  string ->
+    Format.formatter -> t -> unit
   val pretty_with_type : Cil_types.typ option -> Format.formatter -> t -> unit
 
   val empty : t
@@ -52,7 +55,6 @@ module Make(V: Abstract_interp.Lattice) : sig
   val add_iset : exact:bool -> Int_Intervals.t -> V.t -> t -> t
   val join : t -> t -> t
   val joindefault :  t -> t
-  val is_included_exn : t -> t -> unit
   val is_included : t -> t -> bool
   val map_and_merge : (V.t -> V.t) -> t -> t -> t
   val map :  (bool * V.t -> bool * V.t) -> t -> t

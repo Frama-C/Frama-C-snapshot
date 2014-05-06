@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -165,10 +165,10 @@ let compute kf stmt lval =
     let add_node node defs =
       match PdgIndex.Key.stmt (!Db.Pdg.node_key node) with
         | None -> defs
-        | Some s -> Stmt.Set.add s defs
+        | Some s -> Stmt.Hptset.add s defs
     in
     (* select corresponding stmts *)
-    let defs = NSet.fold add_node nodes Stmt.Set.empty in
+    let defs = NSet.fold add_node nodes Stmt.Hptset.empty in
     (defs, undef)
   in
   Extlib.opt_map extract (compute_aux kf stmt lval)
@@ -222,7 +222,7 @@ let compute_with_def_type kf stmt lval =
 (*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*)
 
 module D = Datatype.Option
-             (Datatype.Pair(Stmt.Set)(Datatype.Option(Locations.Zone)))
+             (Datatype.Pair(Stmt.Hptset)(Datatype.Option(Locations.Zone)))
 
 module DT = Datatype.Option
              (Datatype.Pair
@@ -231,7 +231,7 @@ module DT = Datatype.Option
 
 let () =
   Db.register (* kernel_function -> stmt -> lval ->
-                   (Cil_datatype.Stmt.Set.t * Locations.Zone.t option) option *)
+                   (Cil_datatype.Stmt.Hptset.t * Locations.Zone.t option) option *)
     (Db.Journalize
        ("Scope.get_defs",
         Datatype.func3 Kernel_function.ty Stmt.ty Lval.ty (D.ty)))

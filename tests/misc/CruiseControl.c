@@ -564,7 +564,6 @@ bool main(_C_CruiseControl * _C_){
 ** last modification date for CruiseControl.lus (MM/DD/YYYY): 07/06/2007 
 ********************************************************************$*/
 
-#include "CruiseControl.h"
 const Speed ZeroSpeed = (real) 0.0;
 
 const Speed SpeedInc = (real) 2.0;

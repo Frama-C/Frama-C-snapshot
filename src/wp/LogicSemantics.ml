@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -81,8 +81,8 @@ struct
 
   let pp_sloc fmt = function
     | Sloc l -> M.pretty fmt l
-    | Sarray(l,_,s) -> Format.fprintf fmt "@[<hov2>%a@,+[%s]@]"
-	M.pretty l (Int64.to_string s)
+    | Sarray(l,_,s) -> Format.fprintf fmt "@[<hov2>%a@,+[%d]@]"
+	M.pretty l s
     | Srange(l,_,a,b) -> Format.fprintf fmt "@[<hov2>%a@,+(%a@,..%a)@]"
 	M.pretty l pp_bound a pp_bound b 
     | Sdescr _ -> Format.fprintf fmt "<descr>"
@@ -382,10 +382,10 @@ struct
 
   let term_binop env binop a b =
     match binop with
-      | PlusA -> arith env L.apply_add (L.apply Cfloat.radd) a b
-      | MinusA -> arith env L.apply_sub (L.apply Cfloat.rsub) a b
-      | Mult -> arith env (L.apply e_mul) (L.apply Cfloat.rmul) a b
-      | Div -> arith env (L.apply e_div) (L.apply Cfloat.rdiv) a b
+      | PlusA -> arith env L.apply_add (L.apply F.e_add) a b
+      | MinusA -> arith env L.apply_sub (L.apply F.e_sub) a b
+      | Mult -> arith env (L.apply e_mul) (L.apply F.e_mul) a b
+      | Div -> arith env (L.apply e_div) (L.apply F.e_div) a b
       | Mod -> L.apply e_mod (C.logic env a) (C.logic env b)
       | PlusPI | IndexPI ->
 	  let va = C.logic env a in
@@ -504,7 +504,7 @@ struct
       | TAddrOf lval | TStartOf lval -> addr_lval env lval
 
       | TUnOp(Neg,t) when not (Logic_typing.is_integral_type t.term_type) ->
-	  L.map Cfloat.ropp (C.logic env t)
+	  L.map F.e_opp (C.logic env t)
       | TUnOp(unop,t) -> term_unop unop (C.logic env t)
       | TBinOp(binop,a,b) -> term_binop env binop a b
 

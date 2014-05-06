@@ -2,8 +2,8 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2012                                               */
-/*    CEA (Commissariat à l'énergie atomique et aux énergies              */
+/*  Copyright (C) 2007-2014                                               */
+/*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
 /*  you can redistribute it and/or modify it under the terms of the GNU   */
@@ -25,6 +25,13 @@
 #ifndef FRAMA_C_MEMCPY
 #include "builtin.h"
 void* memcpy(void* region1, const void* region2, size_t n)
+{
+  if (n > 0)
+    Frama_C_memcpy(region1, region2, n);
+  return region1;
+}
+
+void* memmove(void* region1, const void* region2, size_t n)
 {
   if (n > 0)
     Frama_C_memcpy(region1, region2, n);

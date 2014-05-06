@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -23,32 +23,56 @@
 open Cil
 open Cil_types
 open Cil_datatype
-open Db
 open Visitor
 open Options
 
+let rec pp_stmt fmt s = match s.skind with
+  | Instr _ | Return _ | Goto _ | Break _ | Continue _ | TryFinally _
+  | TryExcept _ -> 
+    Printer.without_annot Printer.pp_stmt fmt s
+  | If (e, _, _, _) ->
+    Format.fprintf fmt "if(%a) <..>" Printer.pp_exp e
+  | Switch (e, _, _, _) ->
+    Format.fprintf fmt "switch(%a)<..>" Printer.pp_exp e
+  | Loop _ -> Format.fprintf fmt "while (...)"
+  | Block b ->
+    begin match b.bstmts with
+    | [] -> Format.fprintf fmt "<Block {}>"
+    | s :: _ -> Format.fprintf fmt "<Block { %a }>" pp_stmt s
+    end
+  | UnspecifiedSequence _ -> Format.fprintf fmt "TODO"
+
 let print_results fmt a =
-  List.iter
-    (fun s -> 
-      Format.fprintf fmt "@\nsid %d: %a" 
-	s.sid (Printer.without_annot Printer.pp_stmt) s) 
-    a
+  Pretty_utils.pp_list
+    (fun fmt s -> 
+      Format.fprintf fmt "@[<hov 2>%a (sid %d): %a@]" 
+	Printer.pp_location (Stmt.loc s) s.sid pp_stmt s
+    ) fmt a
 
 let compute_from_stmt stmt =
   let kf = Kernel_function.find_englobing_kf stmt in
   let skip = Compute_impact.skip () in
   let reason = Options.Reason.get () in
-  Compute_impact.impacted_stmts ~skip ~reason kf [stmt]
+  Compute_impact.stmts_impacted ~skip ~reason kf [stmt]
+
+let compute_from_nodes kf nodes =
+  let skip = Compute_impact.skip () in
+  let reason = Options.Reason.get () in
+  let r = Compute_impact.nodes_impacted ~skip ~reason kf nodes in
+  Pdg_aux.NS.fold
+    (fun (n, _z) acc -> PdgTypes.NodeSet.add n acc)
+    r PdgTypes.NodeSet.empty
+
 
 let compute_multiple_stmts skip kf ls =
   debug "computing impact of statement(s) %a" 
     (Pretty_utils.pp_list ~sep:",@ " Stmt.pretty_sid) ls;
   let reason = Options.Reason.get () in
-  let res, _, _ = Compute_impact.impacted_nodes ~skip ~reason kf ls in
+  let res, _, _ = Compute_impact.nodes_impacted_by_stmts ~skip ~reason kf ls in
   let res_nodes = Compute_impact.result_to_nodes res in
   let res_stmts = Compute_impact.nodes_to_stmts res_nodes in
   if Print.get () then begin
-    result "impacted statements of stmt(s) %a are:%a"
+    result "@[<v 2>@[impacted statements of stmt(s) %a are:@]@ %a@]"
       (Pretty_utils.pp_list ~sep:",@ " Stmt.pretty_sid) ls
       print_results res_stmts
   end;
@@ -72,8 +96,7 @@ let slice (stmts:stmt list) =
   !Db.Slicing.Project.print_extracted_project ?fmt:None ~extracted_prj ;
   feedback ~level:2 "slicing done"
 
-(* TODO: change function to generate on-the-fly the relevant pdg nodes *)
-let all_pragmas_kf _kf l =
+let all_pragmas_kf l =
   List.fold_left
     (fun acc (s, a) ->
       match a.annot_content with
@@ -89,11 +112,11 @@ let compute_pragmas () =
   let visitor = object
     inherit Visitor.frama_c_inplace as super
 
-    method vfunc f =
+    method! vfunc f =
       pragmas := [];
       super#vfunc f
 
-    method vstmt_aux s =
+    method! vstmt_aux s =
       pragmas :=
         List.map
           (fun a -> s, a)
@@ -120,10 +143,9 @@ let compute_pragmas () =
   (* compute impact analyses on each kf *)
   let nodes = List.fold_left
     (fun nodes (kf, pragmas) ->
-       let pragmas_stmts = all_pragmas_kf kf pragmas in
-       PdgTypes.NodeSet.union nodes
-         (compute_multiple_stmts skip kf pragmas_stmts)
-    ) PdgTypes.NodeSet.empty pragmas
+       let pragmas_stmts = all_pragmas_kf pragmas in
+       Pdg_aux.NS.union nodes (compute_multiple_stmts skip kf pragmas_stmts)
+    ) Pdg_aux.NS.empty pragmas
   in
   let stmts = Compute_impact.nodes_to_stmts nodes in
   if Options.Slicing.get () then ignore (slice stmts);
@@ -134,7 +156,7 @@ let main () =
   if is_on () then begin
     feedback "beginning analysis";
     assert (not (Pragma.is_empty ()));
-    ignore (!Impact.compute_pragmas ());
+    ignore (!Db.Impact.compute_pragmas ());
     feedback "analysis done"
   end
 let () = Db.Main.extend main
@@ -145,19 +167,25 @@ let () =
     (Db.Journalize
        ("Impact.compute_pragmas",
         Datatype.func Datatype.unit (Datatype.list Stmt.ty)))
-    Impact.compute_pragmas
+    Db.Impact.compute_pragmas
     compute_pragmas;
   (* from_stmt *)
   Db.register
     (Db.Journalize
        ("Impact.from_stmt", Datatype.func Stmt.ty (Datatype.list Stmt.ty)))
-    Impact.from_stmt
+    Db.Impact.from_stmt
     compute_from_stmt;
+  (* from_nodes *)
+  Db.register
+    (Db.Journalize
+       ("Impact.from_nodes", Datatype.func2 Kernel_function.ty (Datatype.list PdgTypes.Node.ty) (PdgTypes.NodeSet.ty)))
+    Db.Impact.from_nodes
+    compute_from_nodes;
   (* slice *)
   Db.register
     (Db.Journalize
        ("Impact.slice", Datatype.func (Datatype.list Stmt.ty) Datatype.unit))
-    Impact.slice
+    Db.Impact.slice
     slice
 
 (*

@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -106,7 +106,7 @@ class occurrence = object (self)
 
   inherit Visitor.frama_c_inplace as super
 
-  method vlval lv =
+  method! vlval lv =
     let ki = self#current_kinstr in
     if Db.Value.is_accessible ki then begin
       let z = !Db.Value.lval_to_zone ki ~with_alarms:CilE.warn_none_mode lv in
@@ -124,7 +124,7 @@ class occurrence = object (self)
     end;
     DoChildren
 
-  method vterm_lval tlv =
+  method! vterm_lval tlv =
     (try
        let lv = !Db.Properties.Interp.term_lval_to_lval ~result:None tlv in
        ignore (self#vlval lv)
@@ -133,7 +133,7 @@ class occurrence = object (self)
        | Invalid_argument msg -> error ~current:true "%s@." msg);
     DoChildren
 
-  method vstmt_aux s =
+  method! vstmt_aux s =
     !Db.progress ();
     super#vstmt_aux s
 
@@ -147,7 +147,7 @@ type access_type = Read | Write | Both
 class is_sub_lval lv = object
   inherit Cil.nopCilVisitor
 
-  method vlval lv' =
+  method! vlval lv' =
     if Cil_datatype.Lval.equal lv lv' then raise Exit;
     DoChildren
 end
@@ -178,7 +178,7 @@ let classify_accesses (_kf, ki, lv) =
               else Write
             else Read
 
-        | Asm (_, _, out, inp, _, _) ->
+        | Asm (_, _, out, inp, _, _,_) ->
             if List.exists (fun (_, _, out) -> is_lv out) out then
               if List.exists (fun (_, _, inp) -> contained_exp inp) inp
               then Both

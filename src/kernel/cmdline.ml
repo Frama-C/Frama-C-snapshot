@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -57,26 +57,24 @@ module Debug_level = Make_level(struct let default = 0 end)
 module Verbose_level = Make_level(struct let default = 1 end)
 module Kernel_debug_level = Make_level(struct let default = 0 end)
 module Kernel_verbose_level = Make_level(struct let default = 1 end)
-
 let kernel_debug_atleast_ref = ref (fun n -> Kernel_debug_level.get () >= n)
 let kernel_verbose_atleast_ref = ref (fun n -> Kernel_verbose_level.get () >= n)
+
+module Kernel_log =
+  Log.Register
+    (struct
+      let channel = Log.kernel_channel_name
+      let label = Log.kernel_label_name
+      let debug_atleast level = !kernel_debug_atleast_ref level
+      let verbose_atleast level = !kernel_verbose_atleast_ref level
+     end)
+let dkey = Kernel_log.register_category "cmdline"
+
 let quiet_ref = ref false
 let journal_enable_ref = ref !Config.is_gui
 let journal_isset_ref = ref false
-let journal_name_ref = ref "frama_c_journal"
 let use_obj_ref = ref true
 let use_type_ref = ref true
-
-module L =
-  Log.Register
-    (struct
-       let channel = Log.kernel_channel_name
-       let label = Log.kernel_label_name
-       (* eta-expansion required below *)
-       let verbose_atleast n = !kernel_verbose_atleast_ref n
-       let debug_atleast n = !kernel_debug_atleast_ref n
-     end)
-include L
 
 (* ************************************************************************* *)
 (** {2 Handling errors} *)
@@ -93,12 +91,16 @@ Look at the console for additional information (if any)."
     ""
 
 let get_backtrace () =
+  (* Get the backtrace before potentially destroying it in the handler below *)
+  let bt = Printexc.get_backtrace () in
   let current_src_string =
     try
       let src = Log.get_current_source() in
-      "Current source was: " ^ (Printf.sprintf "%s:%d" src.Lexing.pos_fname src.Lexing.pos_lnum) ^ "\n"
-    with Not_found -> "Current source was not set\n" in
-  current_src_string ^ "The full backtrace is:\n" ^ Printexc.get_backtrace ()
+      Pretty_utils.sfprintf "Current source was: %s:%d@."
+        (Filepath.pretty src.Lexing.pos_fname) src.Lexing.pos_lnum
+    with Not_found -> "Current source was not set\n"
+  in
+  current_src_string ^ "The full backtrace is:\n" ^ bt
 
 let request_crash_report =
   Format.sprintf
@@ -152,11 +154,11 @@ module NormalExit = Hook.Make(struct end)
 let at_normal_exit = NormalExit.extend
 let run_normal_exit_hook = NormalExit.apply
 
-module ErrorExit = Hook.Make(struct end)
+module ErrorExit = Hook.Build(struct type t = exn end)
 let at_error_exit = ErrorExit.extend
 let run_error_exit_hook = ErrorExit.apply
-let error_occured_ref = ref false
-let error_occured () = error_occured_ref := true
+let error_occurred_ref = ref None
+let error_occurred exn = error_occurred_ref := Some exn
 
 type exit = unit
 exception Exit
@@ -185,26 +187,26 @@ let catch_toplevel_run ~f ~quit ~at_normal_exit ~on_error =
     try
       at_normal_exit ()
     with exn ->
-      L.feedback
-        ~level:0
+      Kernel_log.feedback ~level:0
         "error occurring when exiting Frama-C: stopping exit procedure.\n%s@."
         (protect exn);
       exit 5
   in
-  let run_on_error () =
+  let run_on_error exn =
     try
-      on_error ()
-    with exn ->
-      L.feedback
-        ~level:0
+      on_error exn
+    with exn' ->
+      Kernel_log.feedback ~level:0
         "error occurring when handling error: stopping error handling \
 procedure.\n%s@."
-        (protect exn);
+        (protect exn');
       exit 6
   in
   let bail_out () =
-    (if !error_occured_ref then run_on_error else run_at_normal_exit) ();
-    (* even if an error occured somewhere, Frama-C stops normally. *)
+    (match !error_occurred_ref with
+    | None -> run_at_normal_exit ()
+    | Some exn -> run_on_error exn);
+    (* even if an error occurred somewhere, Frama-C stops normally. *)
     exit 0
   in
   bail_out_ref := bail_out;
@@ -218,11 +220,11 @@ procedure.\n%s@."
     | Exit ->
         bail_out ()
     | exn when catch_at_toplevel exn ->
-        L.feedback ~level:0 "%s" (protect exn);
-        run_on_error ();
+        Kernel_log.feedback ~level:0 "%s" (protect exn);
+        run_on_error exn;
         exit (exit_code exn)
     | exn ->
-        run_on_error ();
+        run_on_error exn;
         raise exn
 
 (* ************************************************************************* *)
@@ -240,7 +242,7 @@ let raise_error name because = raise (Cannot_parse(name, because))
 
 let error name msg =
   let bin_name = Sys.argv.(0) in
-  L.abort
+  Kernel_log.abort
     "option `%s' %s.@\nuse `%s -help' for more information."
     name msg bin_name
 
@@ -298,7 +300,7 @@ let parse known_options_list then_expected options_list =
   let rec go unknown_options nb_used = function
     | [] -> unknown_options, nb_used, None
     | [ "-then" ] when then_expected ->
-      L.warning "ignoring last option `-then'";
+      Kernel_log.warning "ignoring last option `-then'";
       unknown_options, nb_used, None
     | [ "-then-on" ] when then_expected ->
       raise_error "-then-on" "requires a string as argument"
@@ -343,7 +345,6 @@ let () =
     parse
     [ "-journal-enable", Unit (fun () -> set_journal true);
       "-journal-disable", Unit (fun () -> set_journal false);
-      "-journal-name", String (fun s -> journal_name_ref := s);
       "-no-obj", Unit (fun () -> use_obj_ref := false);
       "-no-type", Unit (fun () -> use_type_ref := false);
       "-quiet",
@@ -372,7 +373,7 @@ let () =
   if not !use_type_ref then begin
     Type.no_obj ();
     if !journal_enable_ref then begin
-      warning "disabling journal in the 'no obj' mode";
+      Kernel_log.warning "disabling journal in the 'no obj' mode";
       journal_enable_ref := false
     end
   end
@@ -381,7 +382,6 @@ let quiet = !quiet_ref
 
 let journal_enable = !journal_enable_ref
 let journal_isset = !journal_isset_ref
-let journal_name = !journal_name_ref
 let use_obj = !use_obj_ref
 let use_type = !use_type_ref
 
@@ -438,14 +438,15 @@ end = struct
 
   let find p =
     try Hashtbl.find plugins p
-    with Not_found -> fatal "Plug-in %s not found" p
+    with Not_found -> Kernel_log.fatal "Plug-in %s not found" p
 
   let add_group ?(memo=false) ~plugin name =
     let groups = (find plugin).groups in
     name,
     if Hashtbl.mem groups name then begin
       if not memo then
-        abort "A group of name %s already exists for plug-in %s" name plugin;
+        Kernel_log.abort
+	  "A group of name %s already exists for plug-in %s" name plugin;
       false
     end else begin
       Hashtbl.add groups name (ref []);
@@ -454,7 +455,7 @@ end = struct
 
   let find_group p g =
     try Hashtbl.find (find p).groups g
-    with Not_found -> fatal "Group %s not found for plug-in %s" g p
+    with Not_found -> Kernel_log.fatal "Group %s not found for plug-in %s" g p
 
   module Option_names : sig
     val add: string -> bool -> unit
@@ -543,8 +544,8 @@ struct
   let add_for_parsing option = Hashtbl.add options option.oname option
 
   let add name plugin ?(argname="") help visible ext_help setting =
-    L.debug ~level:4 "Cmdline: [%s] registers %S for stage %s."
-      plugin name S.name;
+(*    L.debug ~level:4 "Cmdline: [%s] registers %S for stage %s."
+      plugin name S.name;*)
     let help = if help = "" then "undocumented" else help in
     let o =
       { oname = name; 
@@ -558,7 +559,9 @@ struct
     Plugin.add_option plugin o
 
   let parse options_list =
-    L.feedback ~level:3 "parsing command line options of stage %S." S.name ;
+    Kernel_log.feedback ~dkey
+      "parsing command line options of stage %S." 
+      S.name;
     let options, nb_used, then_options =
       parse
         (Hashtbl.fold (fun _ o acc -> (o.oname, o.setting) :: acc) options [])
@@ -567,7 +570,7 @@ struct
     in
     let nb_used = nb_used + !nb_actions in
     if S.exclusive && nb_used > 1 then begin
-      L.abort "at most one %s action must be specified." S.name;
+      Kernel_log.abort "at most one %s action must be specified." S.name;
     end;
     H.apply ();
     options, nb_used, then_options
@@ -674,19 +677,19 @@ module On_Files = Hook.Build(struct type t = string list end)
 let use_cmdline_files = On_Files.extend
 
 let set_files used_loading l =
-  L.feedback ~level:3 "setting files from command lines.";
+  Kernel_log.feedback ~dkey "setting files from command lines.";
   List.iter
     (fun s ->
       if s = "" then error "" "has no name. What do you exactly have in mind?";
       if s.[0] = '-' then error s "is unknown")
     l;
   assert
-    (L.verify
+    (Kernel_log.verify
        (not (On_Files.is_empty ()))
        "no function uses the files provided on the command line");
   if List.length l > 0 then
     if used_loading then
-      warning
+      Kernel_log.warning
         "ignoring source files specified on the command line \
 while loading a global initial context."
     else begin
@@ -698,7 +701,7 @@ let nb_used_ref = ref 0
 let nb_used_relevant = ref false
 let nb_given_options () =
   assert
-    (L.verify
+    (Kernel_log.verify
        !nb_used_relevant "function `nb_given_options' called too early");
   !nb_used_ref
 
@@ -711,7 +714,7 @@ let rec play_in_toplevel on_from_name nb_used play options =
   in
   assert (then_options_exiting = None);
   if nb_used_exiting > 0 then
-    fatal "setting an option at the exiting stage must stop Frama-C";
+    Kernel_log.fatal "setting an option at the exiting stage must stop Frama-C";
   let options, nb_used_loading, then_options_loading =
     Loading_Stage.parse options
   in
@@ -728,7 +731,7 @@ let rec play_in_toplevel on_from_name nb_used play options =
   + nb_used_loading
   + nb_used_config ;
   set_files (nb_used_loading > 0) files;
-  L.feedback ~level:3 "running plug-in mains.";
+  Kernel_log.feedback ~dkey "running plug-in mains.";
   play ();
   match then_options_extended with
   | None -> ()
@@ -821,11 +824,12 @@ let print_option_help fmt ~plugin ~group name =
   let p = Plugin.find plugin in
   let options = 
     try Hashtbl.find p.Plugin.groups group 
-    with Not_found -> fatal "[Cmdline.print_option_help] no group %s" group
+    with Not_found -> 
+      Kernel_log.fatal "[Cmdline.print_option_help] no group %s" group
   in
   (* linear search... *)
   let rec find_then_print = function
-    | [] -> fatal "[Cmdline.print_option_help] no option %s" name
+    | [] -> Kernel_log.fatal "[Cmdline.print_option_help] no option %s" name
     | o :: tl -> 
       if o.oname = name then ignore (low_print_option_help fmt true o)
       else find_then_print tl

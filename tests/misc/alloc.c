@@ -1,7 +1,7 @@
 /* run.config
    GCC:
-   OPT: -memory-footprint 1 -val -deps -out -input -journal-disable
-   OPT: -memory-footprint 1 -val -deps -out -input -absolute-valid-range 0x100-0x200 -main main_abs -journal-disable
+   OPT: -val -deps -out -input -journal-disable
+   OPT: -val -deps -out -input -absolute-valid-range 0x100-0x200 -main main_abs -journal-disable
 */
 
 #define FRAMA_C_MALLOC_INDIVIDUAL

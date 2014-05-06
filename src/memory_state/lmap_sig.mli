@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -25,34 +25,38 @@
 
 open Locations
 
-type v (** type of the values associated to the locations *)
+type v (** type of the values associated to a location *)
 type offsetmap (** type of the maps associated to a base *)
-type widen_hint_y (** widening hints associated to values *)
+type widen_hint_base (** widening hints for each base *)
 
 module LBase :
 sig
   type t
   val iter : (Base.base -> offsetmap -> unit) -> t -> unit
+  val shape: t -> offsetmap Hptmap.Shape(Base.Base).t
 end
 
 type tt = private Bottom | Top | Map of LBase.t
 
 include Datatype.S_with_collections with type t = tt
 
-type widen_hint = bool * Base.Set.t * (Base.t -> widen_hint_y)
+(** Bases that must be widening in priority, plus widening hints for each
+    base. *)
+type widen_hint = Base.Set.t * (Base.t -> widen_hint_base)
 
 val add_base :  Base.t -> offsetmap -> t -> t
 
-val pretty_without_null : Format.formatter -> t -> unit
-val pretty_filter:
-  Format.formatter -> t -> Zone.t -> (Base.t -> bool) -> unit
-val pretty_diff:
-  Format.formatter -> t -> t -> unit
+val pretty: Format.formatter -> t -> unit
+val pretty_filter: Format.formatter -> t -> Zone.t -> unit
+(** [pretty_filter m z] pretties only the part of [m] that correspond to
+    the bases present in [z] *)
+val pretty_diff: Format.formatter -> t -> t -> unit
+
 val add_binding:
-  with_alarms:CilE.warn_mode -> exact:bool -> t -> location -> v -> t
+  with_alarms:CilE.warn_mode -> reducing:bool -> exact:bool -> t -> location -> v -> t
 
 val find:
-  conflate_bottom:bool -> with_alarms:CilE.warn_mode -> t -> location -> v
+  with_alarms:CilE.warn_mode -> conflate_bottom:bool -> t -> location -> v
 
 val join : t -> t -> t
 val is_included : t -> t -> bool
@@ -69,9 +73,14 @@ val is_empty_map : t -> bool
 val bottom : t
 val is_reachable : t -> bool
 
-val widen : widen_hint-> t -> t -> (bool * t)
+val widen : widen_hint-> t -> t -> t
 
 val filter_base : (Base.t -> bool) -> t -> t
+(** Remove from the map all the bases that do not satisfy the predicate. *)
+
+val filter_by_shape: 'a Hptmap.Shape(Base.Base).t -> t -> t
+(** Remove from the map all the bases that are not also present in
+    the given [Base.t]-indexed tree. *)
 
 (** @raise Not_found if the varid is not present in the map. *)
 val find_base : Base.t -> t -> offsetmap
@@ -80,11 +89,6 @@ val find_base_or_default : Base.t -> t -> offsetmap
 
 (** Removes the base if it is present. Does nothing otherwise. *)
 val remove_base : Base.t -> t -> t
-
-val reduce_previous_binding :
-  with_alarms:CilE.warn_mode -> t -> location -> v -> t
-val reduce_binding :
-  with_alarms:CilE.warn_mode -> t -> location -> v -> t
 
 (** [paste_offsetmap ~from:offmap ~dst_loc ~start ~size ~exact m]
     copies [size] bits starting at [start] in [offmap], and pastes
@@ -127,14 +131,13 @@ exception Error_Bottom
 
 val cached_fold :
   f:(Base.t -> offsetmap -> 'a) ->
-  cache:string * int -> temporary:bool ->
+  cache_name:string -> temporary:bool ->
   joiner:('a -> 'a -> 'a) -> empty:'a -> t -> 'a
 
 val cached_map :
   f:(Base.t -> offsetmap -> offsetmap) ->
   cache:string * int -> temporary:bool ->
   t -> t
-
 
 (** Prefixes. To be used by advanced users only *)
 

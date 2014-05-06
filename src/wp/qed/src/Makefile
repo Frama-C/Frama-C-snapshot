@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of WP plug-in of Frama-C.                           #
 #                                                                        #
-#  Copyright (C) 2007-2013                                               #
+#  Copyright (C) 2007-2014                                               #
 #    CEA (Commissariat a l'energie atomique et aux energies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -35,17 +35,18 @@ SRC_MLI:=$(QED_SRC_MLI)
 LBO= $(addsuffix .cmo,$(LIB_ML))
 LBX= $(addsuffix .cmx,$(LIB_ML))
 CML= $(addsuffix .cmi,$(SRC_MLI))
-CMI= $(CML) $(addsuffix .cmi,$(SRC_ML))
 CMO= $(addsuffix .cmo,$(SRC_ML))
 CMX= $(addsuffix .cmx,$(SRC_ML))
+CMI= $(addsuffix .cmi,$(LIB_ML) $(SRC_MLI) $(SRC_ML))
 DOC= $(addsuffix .mli,$(LIB_ML) $(SRC_MLI) $(SRC_ML))
 
-.PHONY: all byte opt doc
+.PHONY: all byte opt doc dot
 
 all:  byte opt
 byte: ../bin/Qed.cmo Makefile Makefile.src
 opt:  ../bin/Qed.cmx Makefile Makefile.src
 doc:  ../html/index.html
+dot:  depend.pdf
 
 Qed.cmo: $(LBO) $(CMO) $(CML)
 	$(OCAMLC) -pack -o $@ $(LBO) $(CML) $(CMO)
@@ -58,7 +59,6 @@ Qed.cmx: $(LBX) $(CMX) $(CML)
 	$(OCAMLOPT) -pack -for-pack $(PACK) -o $@ $(LBX) $(CML) $(CMX)
 endif
 
-
 ../bin/Qed.cmo: Qed.cmo
 	@mkdir -p ../bin
 	cp Qed.cmo Qed.cmi ../bin/
@@ -67,34 +67,34 @@ endif
 	@mkdir -p ../bin
 	cp Qed.cmx Qed.cmi Qed.o ../bin/
 
-../html/index.html: $(DOC) Makefile
+../html/index.html: $(DOC) Makefile feedback.ml
 	@rm -fr ../html
 	@mkdir -p ../html
-	$(OCAMLDOC) -html -d ../html -t "Qed Library" -stars $(DOC)
+	$(OCAMLDOC) -v -html -d ../html -t "Qed Library" -stars $(DOC) | ocaml unix.cma feedback.ml
 	@cp -f ocamldoc.css ../html/style.css
 
-depend: lexer.ml numbers.ml
+depend: numbers.ml
 
 depend.pdf: depend.dot
 	dot -T pdf -Grotate=180 -o $@ $<
 
-depend.dot: .depend
+depend.dot: .depend $(CMI)
 	$(OCAMLDOC) -dot-reduce -o $@ -dot $(addsuffix .mli,$(SRC_MLI)) $(addsuffix .ml,$(LIB_ML) $(SRC_ML))
 
 clean::
 	rm -fr ../html
-	rm -f lexer.ml depend.dot depend.pdf
+	rm -f depend.dot depend.pdf
 
 distclean::
 	rm -f ../bin/Qed.*
 
 INCLUDES=
 OPTCMI=
-OPTCMO= -w PSUZ -warn-error PSUZ
+OPTCMO= -annot -w PSUZ+7 -warn-error PSUZ+7
 ifeq ($(PACK),no)
-OPTCMX= -w PSUZ -warn-error PSUZ -for-pack Qed
+OPTCMX= -annot -w PSUZ+7 -warn-error PSUZ+7 -for-pack Qed
 else
-OPTCMX= -w PSUZ -warn-error PSUZ -for-pack $(PACK).Qed
+OPTCMX= -annot -w PSUZ+7 -warn-error PSUZ+7 -for-pack $(PACK).Qed
 endif
 
 include MakeOcaml

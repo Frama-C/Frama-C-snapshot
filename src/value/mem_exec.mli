@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -33,13 +33,15 @@ module ValueOutputs: Datatype.S with type t =
   Base.SetLattice.t (** cloberred set for local variables *)
 
 
-(** [store_computed_call (kf, ki) init_state outputs] memoizes the fact
-    that calling [kf] at statement [ki], with initial state [init_state],
-    resulted in the states [outputs]. Those information are intended to
-    be reused in subsequent calls *)
+(** [store_computed_call (kf, ki) init_state actuals outputs] memoizes the fact
+    that calling [kf] at statement [ki], with initial state [init_state]
+    and arguments [actuals] resulted in the states [outputs]; the expressions
+    in the actuals are not used. Those information are intended to be reused
+    in subsequent calls *)
 val store_computed_call :
   Value_types.call_site ->
   Cvalue.Model.t ->
+  (Cil_types.exp * Cvalue.Model.offsetmap) list -> 
   Value_types.call_result ->
   unit
 
@@ -52,6 +54,7 @@ val store_computed_call :
 val reuse_previous_call :
   Value_types.call_site ->
   Cvalue.Model.t ->
+  (Cil_types.exp * Cvalue.Model.offsetmap) list -> 
   (Value_types.call_result * int) option
 
 (** Clean all previously stored results *)

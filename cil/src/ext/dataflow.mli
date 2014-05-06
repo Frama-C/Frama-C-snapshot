@@ -35,8 +35,8 @@
 (*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE         *)
 (*  POSSIBILITY OF SUCH DAMAGE.                                             *)
 (*                                                                          *)
-(*  File modified by CEA (Commissariat à l'énergie atomique et aux          *)
-(*                        énergies alternatives)                            *)
+(*  File modified by CEA (Commissariat Ã  l'Ã©nergie atomique et aux          *)
+(*                        Ã©nergies alternatives)                            *)
 (*               and INRIA (Institut National de Recherche en Informatique  *)
 (*                          et Automatique).                                *)
 (****************************************************************************)
@@ -83,7 +83,7 @@ module StartData(X:sig type t val size: int end) :
 (** {2 Forwards Dataflow Analysis} *)
 (* ************************************************************************* *)
 
-(** Interface to provide for a backward dataflow analysis. *)
+(** Interface to provide for a forward dataflow analysis. *)
 module type ForwardsTransfer = sig
 
   val name: string (** For debugging purposes, the name of the analysis *)
@@ -100,29 +100,37 @@ module type ForwardsTransfer = sig
   (** Pretty-print the state. *)
 
   val computeFirstPredecessor: Cil_types.stmt -> t -> t
-  (** Given the first value for a predecessors, compute the value to be set
-      for the block. *)
+  (** [computeFirstPredecessor s d] is called when [s] is reached for the
+      first time (i.e. no previous data is associated with it). The data [d]
+      is propagated to [s] from an unspecified preceding statement [s'].
+      The result of the call is stored as the new data for [s].
+      
+      [computeFirstPredecessor] usually leaves [d] unchanged, but may
+      potentially change it. It is also possible to perform a side-effect,
+      for dataflows that store information out of the type [t]. *)
 
   val combinePredecessors: Cil_types.stmt -> old:t -> t -> t option
-  (** Take some old data for the start of a statement, and some new data for the
+  (** Take some old data for the given statement, and some new data for the
       same point. Return None if the combination is identical to the old
-      data. Otherwise, compute the combination, and return it. *)
+      data, to signify that a fixpoint is currently reached for this statement.
+      Otherwise, compute the combination, and return it. *)
 
   val doInstr: Cil_types.stmt -> Cil_types.instr -> t -> t action
-  (** The (forwards) transfer function for an instruction. The
-      [(Cil.CurrentLoc.get ())] is set before calling this. The default action
-      is to continue with the state unchanged.  [stmt] is the statement
-      englobing [instr]. *)
+  (** The (forwards) transfer function for an instruction (which is englobed
+      by the given statement). The action [Default] propagates the state
+      passed as an argument unchanged. The current location is updated before
+      this function is called. *)
 
   val doGuard: Cil_types.stmt -> Cil_types.exp -> t -> 
     t guardaction * t guardaction
-  (** Generate the successors [th, el] to an If statement assuming the given
-      expression is respectively nonzero and zero.  Analyses that don't need
-      guard information can return GDefault, GDefault; this is equivalent to
-      returning GUse of the input.  A return value of GUnreachable indicates
+  (** Generate the successors [act_th, act_el] to an [If] statement. [act_th]
+      (resp. [act_el]) corresponds to the case where the given expression
+      evaluates to zero (resp. non-zero). It is always possible to return
+      [GDefault, GDefault], especially for analyses that do not use guard
+      information. This is equivalent to returning [GUse d, GUse d], where [d]
+      is the input state.  A return value of GUnreachable indicates
       that this half of the branch will not be taken and should not be explored.
-      This will be called once per If. [stmt] is the corresponding [If]
-      statement FYI only.  *)
+      [stmt] is the corresponding [If] statement, passed as information only. *)
 
   val doStmt: Cil_types.stmt -> t -> t stmtaction
   (** The (forwards) transfer function for a statement. The [(Cil.CurrentLoc.get

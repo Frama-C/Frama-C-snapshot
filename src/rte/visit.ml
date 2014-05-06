@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -47,7 +47,15 @@ let treat_tlval fa_terms ret_opt origin tlval =
   in
   let t_lhost, t_offset = tlval in
   match t_lhost with
-  | TMem _st -> Cil.DoChildren
+  | TMem _st -> 
+    let normalise_lval = function
+    | TLval ((TMem {term_node=TAddrOf lv}), ofs) -> 
+        TLval (Logic_const.addTermOffsetLval ofs lv)
+    | TLval ((TMem {term_node=TStartOf lv}), ofs) -> 
+        TLval (Logic_const.addTermOffsetLval (TIndex (Cil.lzero (), ofs)) lv)
+    | x -> x
+    in
+      Cil.DoChildrenPost normalise_lval
   | TResult _ty -> 
     (* for post-conditions and assigns containing a \result *)
     (match ret_opt with
@@ -117,7 +125,7 @@ let replacement_visitor replace_pre fa_terms ret_opt = object
   (*  BTS 1052: must use a copy visitor *)
   inherit Cil.genericCilVisitor (Cil.copy_visit (Project.current ()))
 
-  method vterm_node = function
+  method! vterm_node = function
   | TConst _ | TSizeOf _ | TSizeOfStr _
   | TAlignOf _ | Tnull | Ttype _ | Tempty_set -> Cil.SkipChildren
 
@@ -126,9 +134,16 @@ let replacement_visitor replace_pre fa_terms ret_opt = object
   | TStartOf _ (* [VP] Neither parameters nor returned value can be
                   an array in a C function. Hence, TStartOf can not have
                   \result or a formal as base. *)
+  | Tat _  -> 
+    let normalize_at = function
+      | Tat ({term_node=((TAddrOf (TVar {lv_kind=LVC},_)) as t)}, _)  -> t
+      | Tat ({term_node=((TStartOf (TVar {lv_kind=LVC},_)) as t)}, _)  -> t
+      | x -> x
+    in
+    Cil.DoChildrenPost normalize_at
   | _ -> Cil.DoChildren
 
-  method vlogic_label = function
+  method! vlogic_label = function
   | StmtLabel _ -> Cil.DoChildren
   | LogicLabel _ as l when Logic_label.equal l Logic_const.pre_label ->
     Cil.ChangeDoChildrenPost(replace_pre, fun x->x)
@@ -201,6 +216,9 @@ class annot_visitor kf = object (self)
 
   method private do_div_mod () =
     Options.DoDivMod.get () && not (Generator.Div_mod.is_computed kf)
+
+  method private do_shift () =
+    Options.DoShift.get () && not (Generator.Shift.is_computed kf)
 
   method private do_signed_overflow () =
     Kernel.SignedOverflow.get () && not (Generator.Signed.is_computed kf)
@@ -545,7 +563,7 @@ class annot_visitor kf = object (self)
       let kinstr = self#current_kinstr in
       f ~remove_trivial ~warning kf kinstr
 
-  method vstmt s = match s.skind with
+  method! vstmt s = match s.skind with
   | UnspecifiedSequence l ->
     (* UnspecifiedSequences may contain lvals for side-effects, that
        give rise to spurious assertions *)
@@ -555,7 +573,7 @@ class annot_visitor kf = object (self)
   | _ -> Cil.DoChildren
 
   (* assigned left values are checked for valid access *)
-  method vinst = function
+  method! vinst = function
   | Set (lval,_,_) ->
     if self#do_mem_access () then begin
       Options.debug "lval %a: validity of potential mem access checked\n"
@@ -622,7 +640,7 @@ class annot_visitor kf = object (self)
       Cil.DoChildren
   | _ -> Cil.DoChildren
 
-  method vexpr exp =
+  method! vexpr exp =
     Options.debug "considering exp %a\n" Printer.pp_exp exp;
     match exp.enode with
     | BinOp((Div | Mod) as op, lexp, rexp, ty) ->
@@ -641,23 +659,15 @@ class annot_visitor kf = object (self)
     | BinOp((Shiftlt | Shiftrt) as op, lexp, rexp,ttype ) ->
       (match Cil.unrollType ttype with 
       | TInt(kind,_) -> 
-	let do_signed = self#do_signed_overflow () in
-	let do_unsigned = self#do_unsigned_overflow () in
-	if do_signed || do_unsigned then begin
+	if self#do_shift () then begin
 	  let t = Cil.unrollType (Cil.typeOf exp) in
 	  let size = Cil.bitsSizeOf t in
-	  self#generate_assertion Rte.shift_alarm (rexp, Some size);
-	  if do_signed && Cil.isSigned kind then
-	    self#generate_assertion 
-	      Rte.signed_shift_assertion
-	      (exp, op, lexp, rexp)
-	  else
-	    if do_unsigned && not (Cil.isSigned kind) && op = Shiftlt then
-	      (* assertions specific to unsigned shift *)
-	      self#generate_assertion 
-		Rte.unsigned_shift_assertion
-		(exp, lexp, rexp)
+	    (* Not really a problem of overflow, but almost a similar to self#do_div_mod *)
+            self#generate_assertion Rte.shift_alarm (rexp, Some size);
 	end;
+	if self#do_signed_overflow () && Cil.isSigned kind then
+	  self#generate_assertion
+	    Rte.signed_shift_assertion (exp, op, lexp, rexp);
 	Cil.DoChildren
       | _ -> Cil.DoChildren)
 
@@ -809,6 +819,10 @@ let annotate_kf kf =
       let module C = Check(Generator.Div_mod)(Options.DoDivMod) in 
       C.compute ()
     in
+    let must_run3bis =
+      let module C = Check(Generator.Shift)(Options.DoShift) in
+      C.compute ()
+    in
     let must_run4 =
       let module C = Check (Generator.Downcast)(Kernel.SignedDowncast) in 
       C.compute ()
@@ -835,7 +849,8 @@ let annotate_kf kf =
       let module C = Check(Generator.Called_precond)(Options.DoCalledPrecond) in
       C.compute ()
     in
-    if must_run1 || must_run2 || must_run3 || must_run4 || must_run5 
+    if must_run1 || must_run2 || must_run3  || must_run3bis
+      || must_run4 || must_run5 
       || must_run6 || must_run7 || must_run8
     then begin
       Options.feedback "annotating function %a" Kernel_function.pretty kf;
@@ -870,9 +885,7 @@ let do_precond kf =
   Generator.Unsigned_overflow.set kf old_uo;
   Generator.Unsigned_downcast.set kf old_ud;
   Generator.Downcast.set kf old_downcast;
-  Generator.Float_to_int.set kf old_float_to_int;
-;;
-
+  Generator.Float_to_int.set kf old_float_to_int
 
 let do_all_rte kf =
   (* annonate for all rte + unsigned overflows (which are not rte), for a given

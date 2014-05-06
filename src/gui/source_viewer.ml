@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -54,6 +54,7 @@ let make ~packing =
     original_source_window#misc#render_icon ~size:`MENU `DIALOG_WARNING
   in
   original_source_window#set_marker_pixbuf "warning" pixbuf; *)
+  original_source_window#misc#modify_font_by_name "Monospace";
   original_source_window#misc#set_name "source";
   let original_source_buffer = original_source_window#source_buffer in
   set_language_to_C original_source_buffer;

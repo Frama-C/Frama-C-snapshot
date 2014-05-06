@@ -7,8 +7,8 @@
 (*  General Public License version 2.1, with the special exception        *)
 (*  on linking described in file LICENSE.                                 *)
 (*                                                                        *)
-(*  File modified by CEA (Commissariat à l'énergie atomique et aux        *)
-(*                        énergies alternatives).                         *)
+(*  File modified by CEA (Commissariat Ã  l'Ã©nergie atomique et aux        *)
+(*                        Ã©nergies alternatives).                         *)
 (*                                                                        *)
 (**************************************************************************)
 

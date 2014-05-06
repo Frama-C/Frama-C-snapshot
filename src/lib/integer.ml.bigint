@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -84,7 +84,7 @@ let shift_left_big_int x y = (* idem multiplication *)
 let shift_right_big_int x y = (* idem division rounding to -oo *)
   div_big_int x (power_int_positive_big_int 2 y)
 
-let power_two =
+let two_power_of_int =
   let h = Hashtbl.create 7 in
   fun k ->
       try
@@ -97,7 +97,7 @@ let power_two =
 let two_power y =
     try
       let k = int_of_big_int y in
-      power_two k
+      two_power_of_int k
     with Failure _ -> assert false
 
 let log_shift_right_big_int x y = (* no meaning for negative value of x *)
@@ -144,6 +144,7 @@ let bitwise_extraction first_bit last_bit x =
   let two = small_nums.(2)
   let four = small_nums.(4)
   let eight = small_nums.(8)
+  let sixteen = small_nums.(16)
   let thirtytwo = small_nums.(32)
   let onethousand = big_int_of_int 1000
   let billion_one = big_int_of_int 1_000_000_001
@@ -212,10 +213,12 @@ let bitwise_extraction first_bit last_bit x =
 
   let minus_one = pred zero
 
-  let two_power_60 = power_two 60
-  let two_power_64 = power_two 64
+  let two_power_32 = two_power_of_int 32
+  let two_power_60 = two_power_of_int 60
+  let two_power_64 = two_power_of_int 64
 
   let add_2_64 x = add two_power_64 x
+  let add_2_32 x = add two_power_32 x
 
   let pretty ?(hexa=false) fmt v =
     let rec aux v =
@@ -262,10 +265,6 @@ let bitwise_extraction first_bit last_bit x =
     then logand value (pred mask)
     else
       logor (lognot (pred mask)) value
-
-  let two_power = two_power
-
-  let power_two = power_two
 
   let extract_bits ~start ~stop v =
     assert (ge start zero && ge stop start);

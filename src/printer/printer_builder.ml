@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -31,6 +31,7 @@ struct
     | None ->
       let p = !mk_printer () in
       printer_ref := Some p;
+      p#reset ();
       p
     | Some p ->
       p#reset ();
@@ -42,6 +43,8 @@ struct
 
   let without_annot f fmt x = (printer ())#without_annot f fmt x
   let force_brace f fmt x = (printer ())#force_brace f fmt x
+
+  let pp_varname fmt x = (printer())#varname fmt x
 
   (* eta-expansion required for applying side-effect of [printer ()] at the
      right time *)

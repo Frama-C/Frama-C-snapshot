@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -303,15 +303,15 @@ struct
            Bot
 
 *)
- (* never used *)
-  (* let print fmt = function
+
+  let _print fmt = function
     | Bot -> Format.pp_print_string fmt "-"
     | Top -> Format.pp_print_string fmt "&"
     | Value -> Format.pp_print_string fmt "(=)"
-    | RefValue -> Format.pp_print_string fmt "(*)"
+    | RefValue -> Format.pp_print_string fmt "(\042)" (* '\042'='*' *)
     | Array box -> Format.fprintf fmt "@{%a}" pp_box box
-    | RefArray box -> Format.fprintf fmt "(*){%a}" pp_box box
-   *)
+    | RefArray box -> Format.fprintf fmt "(\042){%a}" pp_box box (* '\042'='*' *)
+
   let pretty ~name fmt = function
     | Bot -> Format.fprintf fmt "%s not used" name
     | Top -> Format.fprintf fmt "&%s" name
@@ -436,7 +436,7 @@ end
 (* --- Fixpoint Computation                                               --- *)
 (* -------------------------------------------------------------------------- *)
 
-module Omap = Map.Make(Root)
+module Omap = FCMap.Make(Root)
 module Domain = Datatype.Make
   (struct
      type t = Occur.t Omap.t
@@ -726,8 +726,8 @@ object
 
   initializer Context.in_spec := false
 
-  method vexpr e = expr Context.epsilon e ; SkipChildren
-  method vinst = function 
+  method! vexpr e = expr Context.epsilon e ; SkipChildren
+  method! vinst = function 
     | Call( result , e , es , _ ) -> 
 	lval_option Context.assigned result ; 
 	funcall e es ; 
@@ -740,9 +740,9 @@ object
     | Skip _ -> DoChildren
     | Asm _ -> DoChildren
 
-  method vterm t = term Context.epsilon t ; SkipChildren
-  method vpredicate p = predicate p ; SkipChildren
-  method vspec = Context.on_spec
+  method! vterm t = term Context.epsilon t ; SkipChildren
+  method! vpredicate p = predicate p ; SkipChildren
+  method! vspec = Context.on_spec
 
 end
 

@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -25,16 +25,14 @@
 
 open Cil_types
 
-exception No_such_while
-val get_loop_stmts : kernel_function -> stmt -> Cil_datatype.Stmt.Set.t
-  (** Precondition: the kernel function is not a leaf function.
-      @raise No_such_while if [stmt.skind] is not a [While]. *)
-
 val is_natural : kernel_function -> stmt -> bool
-val get_naturals : kernel_function -> (stmt * stmt list) list
+val get_naturals : kernel_function -> stmt list Cil_datatype.Stmt.Map.t
+
+val is_non_natural: kernel_function -> stmt -> bool
+val get_non_naturals: kernel_function -> Cil_datatype.Stmt.Set.t
 
 val back_edges : kernel_function -> stmt -> stmt list
-val while_for_natural_loop : kernel_function -> stmt -> stmt
+(** Statements that are the origin of a back-edge to a natural loop. *)
 
 (*
 Local Variables:

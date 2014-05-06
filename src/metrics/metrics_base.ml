@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -160,7 +160,7 @@ module BasicMetrics = struct
       (* It is a global metrics *)
         "Global metrics"
       else Format.sprintf "Stats for function <%s/%s>"
-        metrics.cfile_name metrics.cfunc_name
+        (Filepath.pretty metrics.cfile_name) metrics.cfunc_name
     in
     Format.fprintf fmt "@[<v 0>%a @ %a@]"
       (mk_hdr 1) heading
@@ -247,26 +247,21 @@ let get_file_type filename =
       | "html" | "htm" -> Html
       | "txt" | "text" -> Text
       | s ->
-        Metrics_parameters.Metrics.fatal
+        Metrics_parameters.fatal
           "Unknown file extension %s. Cannot produce output.@." s
   with
     | No_suffix ->
-       Metrics_parameters.Metrics.fatal
+       Metrics_parameters.fatal
          "File %s has no suffix. Cannot produce output.@." filename
-;;
 
 (** Map of varinfos sorted by name (and not by ids) *)
 module VInfoMap = struct
-  include Map.Make (
+  include FCMap.Make (
     struct
       let compare v1 v2 = Pervasives.compare v1.vname v2.vname;;
       type t = Cil_types.varinfo
     end
   )
-
-  let map_cardinal (map:'a t) =
-    fold (fun _funcname _ cardinal -> succ cardinal) map 0 ;;
-
 
   let to_varinfo_map vmap =
     fold (fun k v mapacc -> Varinfo.Map.add k v mapacc) vmap Varinfo.Map.empty
@@ -286,7 +281,6 @@ let pretty_set iter fmt s =
         n (if n > 1 then "s" else ""))
     s;
   Format.fprintf fmt "@]"
-;;
 
 let is_entry_point vinfo times_called =
   times_called = 0 && not vinfo.vaddrof
@@ -353,4 +347,9 @@ let float_to_string f =
   let len = String.length s in
   let plen = pred len in
   if s.[plen] = '.' then String.sub s 0 plen else Format.sprintf "%.2f" f
-;;
+
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -112,9 +112,9 @@ let compute_call_from_value_states current_function states =
       try Stmt.Hashtbl.find states s
       with Not_found -> Cvalue.Model.bottom
 
-    let lval_to_loc_with_deps s ~deps lv =
+    let lval_to_zone_with_deps s ~deps ~for_writing lv =
       let state = get_stmt_state s in
-      !Db.Value.lval_to_loc_with_deps_state state ~deps lv
+      !Db.Value.lval_to_zone_with_deps_state state ~deps ~for_writing lv
 
     let expr_to_kernel_function kinstr ~deps exp =
       let state = get_stmt_state kinstr in

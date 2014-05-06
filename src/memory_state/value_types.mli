@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -64,6 +64,10 @@ type call_result = {
     (** Is it possible to cache the result of this call? *);
 }
 
+
+(** Dependencies for the evaluation of a term or a predicate: for each
+    program point involved, sets of zones that must be read *)
+type logic_dependencies = Locations.Zone.t Cil_datatype.Logic_label.Map.t
 
 (*
 Local Variables:

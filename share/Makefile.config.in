@@ -2,8 +2,8 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2013                                               #
-#    CEA (Commissariat à l'énergie atomique et aux énergies              #
+#  Copyright (C) 2007-2014                                               #
+#    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              #
 #         alternatives)                                                  #
 #                                                                        #
 #  you can redistribute it and/or modify it under the terms of the GNU   #
@@ -37,6 +37,8 @@ FRAMAC_TOP_SRCDIR 	?= @abs_top_srcdir@
 # Installation paths #
 ######################
 
+CYGPATH         ?=@CYGPATH@
+
 DESTDIR 	?=
 prefix		?=@prefix@
 exec_prefix	?=@exec_prefix@
@@ -52,6 +54,7 @@ FRAMAC_PLUGINDIR ?=$(FRAMAC_LIBDIR)/plugins
 FRAMAC_DATADIR 	?=$(DATADIR)/frama-c
 EMACS_DATADIR	?=$(DATADIR)/emacs/site-lisp
 FRAMAC_DEFAULT_CPP ?=@FRAMAC_DEFAULT_CPP@
+DEFAULT_CPP_KEEP_COMMENTS?=@DEFAULT_CPP_KEEP_COMMENTS@
 FC_MCPP ?=@FC_MCPP@
 
 ###############
@@ -79,7 +82,9 @@ OCAMLBEST	?=@OCAMLBEST@
 OCAMLVERSION 	?=@OCAMLVERSION@
 NATIVE_DYNLINK  ?=@HAS_NATIVE_DYNLINK@
 USABLE_NATIVE_DYNLINK ?=@HAS_USABLE_NATIVE_DYNLINK@
+NATIVE_THREADS	?=@HAS_NATIVE_THREADS@
 OCAMLWIN32	?=@OCAMLWIN32@
+PTESTSBEST      ?=@PTESTSBEST@
 
 #############
 # Libraries #
@@ -153,3 +158,9 @@ ENABLE_SPARECODE                  ?=@ENABLE_SPARECODE@
 ENABLE_SYNTACTIC_CALLGRAPH        ?=@ENABLE_SYNTACTIC_CALLGRAPH@
 ENABLE_USERS	                  ?=@ENABLE_USERS@
 ENABLE_VALUE_ANALYSIS             ?=@ENABLE_VALUE_ANALYSIS@
+
+
+##########################################################################
+# Local Variables:
+# mode: makefile
+# End:

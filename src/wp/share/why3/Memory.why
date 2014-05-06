@@ -1,0 +1,139 @@
+(**************************************************************************)
+(*                                                                        *)
+(*  This file is part of WP plug-in of Frama-C.                           *)
+(*                                                                        *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
+(*         alternatives)                                                  *)
+(*                                                                        *)
+(*  you can redistribute it and/or modify it under the terms of the GNU   *)
+(*  Lesser General Public License as published by the Free Software       *)
+(*  Foundation, version 2.1.                                              *)
+(*                                                                        *)
+(*  It is distributed in the hope that it will be useful,                 *)
+(*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
+(*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
+(*  GNU Lesser General Public License for more details.                   *)
+(*                                                                        *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
+(*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
+(*                                                                        *)
+(**************************************************************************)
+
+theory Memory
+use bool.Bool as Bool
+use int.Int as Int
+use map.Map as Map
+
+type addr =
+  | Mk_addr (base:int) (offset:int)
+
+predicate addr_le addr addr
+
+predicate addr_lt addr addr
+
+function addr_le_bool addr addr : Bool.bool
+
+function addr_lt_bool addr addr : Bool.bool
+
+axiom addr_le_def : forall p:addr, q:addr [addr_le p q]. ((base p) = (base
+  q)) -> addr_le p q <-> (Int.(<=) (offset p) (offset q))
+
+axiom addr_lt_def : forall p:addr, q:addr [addr_lt p q]. ((base p) = (base
+  q)) -> addr_lt p q <-> (Int.(<) (offset p) (offset q))
+
+axiom addr_le_bool_def : forall p:addr, q:addr [addr_le_bool p q]. addr_le p
+  q <-> ((addr_le_bool p q) = (Bool.True))
+
+axiom addr_lt_bool_def : forall p:addr, q:addr [addr_lt_bool p q]. addr_lt p
+  q <-> ((addr_lt_bool p q) = (Bool.True))
+
+function null : addr = Mk_addr 0 0
+
+function global (b:int) : addr = Mk_addr b 0
+
+function shift (p:addr) (k:int) : addr = Mk_addr (base p) (Int.(+) (offset
+  p) (k))
+
+predicate included (p:addr) (a:int) (q:addr) (b:int) = (Int.(>) (a) (0)) ->
+  (Int.(>=) (b) (0)) /\ ((base p) = (base q)) /\ (Int.(<=) (offset q) (offset
+  p)) /\ (Int.(<=) ((Int.(+) (offset p) (a))) ((Int.(+) (offset q) (b))))
+
+predicate separated (p:addr) (a:int) (q:addr) (b:int) = (Int.(<=) (a) (0)) \/
+  (Int.(<=) (b) (0)) \/ not ((base p) = (base q)) \/
+  (Int.(<=) ((Int.(+) (offset q) (b))) (offset p)) \/
+  (Int.(<=) ((Int.(+) (offset p) (a))) (offset q))
+
+predicate eqmem (m1:Map.map addr 'a) (m2:Map.map addr 'a) (p:addr) (a:int) =
+  forall q:addr [(Map.([]) (m1) (p))| (Map.([]) (m2) (q))]. included q 1 p
+  a -> (((Map.([]) (m1) (q))) = ((Map.([]) (m2) (q))))
+
+predicate havoc (m1:Map.map addr 'a) (m2:Map.map addr 'a) (p:addr) (a:int) =
+  forall q:addr [(Map.([]) (m1) (p))| (Map.([]) (m2) (q))]. separated q 1 p
+  a -> (((Map.([]) (m1) (q))) = ((Map.([]) (m2) (q))))
+
+predicate valid_rd (m:Map.map int int) (p:addr) (n:int) =
+  (Int.(>) (n) (0)) -> (Int.(<=) (0) (offset p)) /\
+  (Int.(<=) ((Int.(+) (offset p) (n))) ((Map.([]) (m) (base p))))
+
+predicate valid_rw (m:Map.map int int) (p:addr) (n:int) =
+  (Int.(>) (n) (0)) -> (Int.(<) (0) (base p)) /\ (Int.(<=) (0) (offset p)) /\
+  (Int.(<=) ((Int.(+) (offset p) (n))) ((Map.([]) (m) (base p))))
+
+axiom valid_rw_rd : forall m:Map.map int int. forall p:addr. forall n:int.
+  valid_rw m p n -> valid_rd m p n
+
+axiom valid_string : forall m:Map.map int int. forall p:addr. (Int.(<) (base
+  p) (0)) -> (Int.(<=) (0) (offset p)) /\ (Int.(<) (offset
+  p) ((Map.([]) (m) (base p)))) -> valid_rd m p 1 /\ not valid_rw m p 1
+
+axiom separated_1 : forall p:addr, q:addr. forall a:int, b:int, i:int, j:int
+  [separated p a q b, Mk_addr (base p) i, Mk_addr (base q) j]. separated p a
+  q b -> (Int.(<=) (offset p) (i)) /\ (Int.(<) (i) ((Int.(+) (offset
+  p) (a)))) -> (Int.(<=) (offset q) (j)) /\ (Int.(<) (j) ((Int.(+) (offset
+  q) (b)))) -> not ((Mk_addr (base p) i) = (Mk_addr (base q) j))
+
+function region int : int
+
+predicate linked (Map.map int int)
+
+predicate sconst (Map.map addr int)
+
+predicate framed (m:Map.map addr addr) = forall p:addr [(Map.([]) (m) (p))].
+  (Int.(<=) (region (base (Map.([]) (m) (p)))) (0))
+
+axiom separated_included : forall p:addr, q:addr. forall a:int, b:int
+  [separated p a q b, included p a q b]. (Int.(>) (a) (0)) ->
+  (Int.(>) (b) (0)) -> separated p a q b -> included p a q b -> false
+
+axiom included_trans : forall p:addr, q:addr, r:addr. forall a:int, b:int, c:
+  int [included p a q b, included q b r c]. included p a q b -> included q b
+  r c -> included p a r c
+
+axiom separated_trans : forall p:addr, q:addr, r:addr. forall a:int, b:int,
+  c:int [included p a q b, separated q b r c]. included p a q b -> separated
+  q b r c -> separated p a r c
+
+axiom separated_sym : forall p:addr, q:addr. forall a:int, b:int [separated p
+  a q b]. separated p a q b <-> separated q b p a
+
+axiom eqmem_included : forall m1:Map.map addr 'a, m2:Map.map addr 'a.
+  forall p:addr, q:addr. forall a:int, b:int [eqmem m1 m2 p a, eqmem m1 m2 q
+  b]. included p a q b -> eqmem m1 m2 q b -> eqmem m1 m2 p a
+
+axiom eqmem_sym : forall m1:Map.map addr 'a, m2:Map.map addr 'a. forall p:
+  addr. forall a:int. eqmem m1 m2 p a -> eqmem m2 m1 p a
+
+axiom havoc_sym : forall m1:Map.map addr 'a, m2:Map.map addr 'a. forall p:
+  addr. forall a:int. havoc m1 m2 p a -> havoc m2 m1 p a
+
+function cast addr : int
+
+axiom cast_injective : forall p:addr, q:addr [cast p, cast q]. ((cast
+  p) = (cast q)) -> ((p) = (q))
+
+function hardware int : int
+
+axiom hardnull : ((hardware 0) = (0))
+
+end

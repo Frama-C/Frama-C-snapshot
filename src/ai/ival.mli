@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -39,6 +39,9 @@ exception Can_not_subdiv
 
 module Float_abstract : sig
   type t
+
+  (** [Nan_or_infinite] means that the operation may not be a finite float.
+      (It does not mean that it is not a finite float). *)
   exception Nan_or_infinite
   exception Bottom
   type rounding_mode = Any | Nearest_Even
@@ -93,67 +96,41 @@ module Float_abstract : sig
 end
 
 
-module O : sig
-  type elt = Abstract_interp.Int.t
-  type t
-  val empty : t
-  val is_empty : t -> bool
-  val mem : elt -> t -> bool
-  val add : elt -> t -> t
-  val singleton : elt -> t
-  val remove : elt -> t -> t
-  val union : t -> t -> t
-  val inter : t -> t -> t
-  val diff : t -> t -> t
-  val compare : t -> t -> int
-  val equal : t -> t -> bool
-  val subset : t -> t -> bool
-  val iter : (elt -> unit) -> t -> unit
-  val fold : (elt -> 'a -> 'a) -> t -> 'a -> 'a
-  val for_all : (elt -> bool) -> t -> bool
-  val exists : (elt -> bool) -> t -> bool
-  val filter : (elt -> bool) -> t -> t
-  val partition : (elt -> bool) -> t -> t * t
-  val cardinal : t -> int
-  val elements : t -> elt list
-  val min_elt : t -> elt
-  val max_elt : t -> elt
-  val choose : t -> elt
-  val split : elt -> t -> t * bool * t
-end
-
 type tt = private
   | Set of Abstract_interp.Int.t array
   | Float of Float_abstract.t
+  (** [Top(min, max, rest, modulo)] represents the interval between
+      [min] and [max], congruent to [rest] modulo [modulo]. A value of
+      [None] for [min] (resp. [max]) represents -infinity
+      (resp. +infinity). [modulo] is > 0, and [0 <= rest < modulo].
+
+      Actual [Top] is thus represented by Top(None,None,Int.zero,Int.one) *)
   | Top of Abstract_interp.Int.t option * Abstract_interp.Int.t option *
       Abstract_interp.Int.t * Abstract_interp.Int.t
 
 module Widen_Hints : sig
-  include SetWithNearest.S with type elt = Integer.t
+  include FCSet.S with type elt = Integer.t
+  include Datatype.S with type t:=t
+
   val default_widen_hints: t
+
+  (* max_int, max_long, max_long_long *)
+  val hints_for_signed_int_types: unit -> t
 end
 
-exception Error_Top
-exception Error_Bottom
 
-include Datatype.S with type t = tt
-type widen_hint = Widen_Hints.t
-val join : t -> t -> t
-val link : t -> t -> t
-val meet : t -> t -> t
-val narrow : t -> t -> t
-val bottom : t
-val top : t
+include Datatype.S_with_collections with type t = tt
+include Lattice_type.Full_AI_Lattice_with_cardinality
+  with type t := t
+  and type widen_hint = Widen_Hints.t
+
 val is_bottom : t -> bool
-val is_included : t -> t -> bool
-val is_included_exn : t -> t -> unit
-val intersects : t -> t -> bool
-val partially_overlaps : Abstract_interp.Int.t -> t -> t -> bool
-val widen : widen_hint -> t -> t -> t
-val fold_enum : split_non_enumerable:int -> (t -> 'a -> 'a) -> t -> 'a -> 'a
-val diff : t -> t -> t
-val diff_if_one : t -> t -> t
+val partially_overlaps : size:Abstract_interp.Int.t -> t -> t -> bool
+
 val add_int : t -> t -> t
+(** Overapproximation of the addition of two integer (ie. not [Float]) ivals. *)
+val add_singleton_int: Integer.t -> t -> t
+(** Overapproximation of the addition of an integer ival with an integer *)
 val neg : t -> t
 val sub : t -> t -> t
 
@@ -168,58 +145,84 @@ val min_max_r_mod : t ->
 val min_and_max :
   t -> Abstract_interp.Int.t option * Abstract_interp.Int.t option
 val bitwise_and : size:int -> signed:bool -> t -> t -> t
-val bitwise_or : size:int -> t -> t -> t
+val bitwise_or : t -> t -> t
 val bitwise_xor : t -> t -> t
 
 val min_and_max_float : t -> F.t * F.t
-val inject_range :
-  Abstract_interp.Int.t option -> Abstract_interp.Int.t option -> t
-  (** [None] means unbounded. The interval is inclusive. *)
 
-val cardinal_zero_or_one : t -> bool
-val is_singleton_int : t -> bool
-val inject_singleton : Abstract_interp.Int.t -> t
+
 val zero : t
 val one : t
-val compare_min_float : t -> t -> int
-val compare_max_float : t -> t -> int
-val compare_min_int : t -> t -> int
-val compare_max_int : t -> t -> int
+
 val is_zero : t -> bool
 val is_one : t -> bool
-val inject_float : Float_abstract.t -> t
-val inject_float_interval : float -> float -> t
+
 val top_float : t
 val top_single_precision_float : t
 val project_float : t -> Float_abstract.t
-    (** @raise F.Nan_or_infinite when the float is Nan or infinite. *)
+    (** @raise F.Nan_or_infinite when the float may be Nan or infinite. *)
 val force_float: Cil_types.fkind -> t -> bool * t
+
 val in_interval :
   Abstract_interp.Int.t ->
   Abstract_interp.Int.t option ->
   Abstract_interp.Int.t option ->
   Abstract_interp.Int.t -> Abstract_interp.Int.t -> bool
 val contains_zero : t -> bool
+
+
+(** Building Ival *)
+
+val inject_singleton : Abstract_interp.Int.t -> t
+
+val inject_float : Float_abstract.t -> t
+val inject_float_interval : float -> float -> t
+
+val inject_range :
+  Abstract_interp.Int.t option -> Abstract_interp.Int.t option -> t
+  (** [None] means unbounded. The interval is inclusive. *)
+
+val inject_top :
+  Abstract_interp.Int.t option ->
+  Abstract_interp.Int.t option ->
+  Abstract_interp.Int.t -> Abstract_interp.Int.t -> t
+(** [inject_top min max r m] checks [min], [max], [r] and [m] for consistency
+    as arguments of the [Top] constructor
+    and returns the lattice element of integers equal to [r] modulo [m] 
+    between [min] and [max] (which may be a Set if there are few of these).
+    For [min] and [max], [None] means unbounded. *)
+
+
+(** Cardinality *)
+
+val cardinal_zero_or_one : t -> bool
+val is_singleton_int : t -> bool
+
 exception Not_Singleton_Int
+
 val project_int : t -> Abstract_interp.Int.t
-    (** @raise Not_Singleton_Int when the cardinal of the argument is not 1. *)
+    (** @raise Not_Singleton_Int when the cardinal of the argument is not 1,
+        or if it is not an integer. *)
+
+val cardinal: t -> Integer.t option
+(** [cardinal v] returns [n] if [v] has finite cardinal [n], or [None] if
+    the cardinal is not finite. *)
+
 val cardinal_less_than : t -> int -> int
 (** [cardinal_less_than t n] returns the cardinal of [t] is this cardinal
     is at most [n].
     @raise Abstract_interp.Not_less_than is the cardinal of [t]
     is more than [n] *)
 
-val splitting_cardinal_less_than: split_non_enumerable:int -> t -> int -> int
+val fold_int : (Abstract_interp.Int.t -> 'a -> 'a) -> t -> 'a -> 'a
+(** Iterate on the integer values of the ival. Raise {!Error_Top} if the
+    argument is a float or a potentially infinite integer. *)
 
-val inject_top :
-  Abstract_interp.Int.t option ->
-  Abstract_interp.Int.t option ->
-  Abstract_interp.Int.t -> Abstract_interp.Int.t -> t
-(** [inject_top min max r m] returns the smallest lattice element that
-    contains all integers equal to [r] modulo [m] between [min] and
-    [max]. [None] means unbounded. *)
+val fold_enum : (t -> 'a -> 'a) -> t -> 'a -> 'a
+(** Iterate on every value of the ival. Raise {!Error_Top} if the argument is a
+    non-singleton float or a potentially infinite integer. *)
 
-val fold : (Abstract_interp.Int.t -> 'a -> 'a) -> t -> 'a -> 'a
+val fold_split : split:int -> (t -> 'a -> 'a) -> t -> 'a -> 'a
 
 val apply_set :
   (Abstract_interp.Int.t -> Abstract_interp.Int.t -> Abstract_interp.Int.t ) ->
@@ -237,18 +240,35 @@ val zero_or_one : t
 val contains_non_zero : t -> bool
 val subdiv_float_interval : size:int -> t -> t * t
 val subdiv : size:int -> t -> t * t
+
+
+val compare_min_float : t -> t -> int
+val compare_max_float : t -> t -> int
+val compare_min_int : t -> t -> int
+val compare_max_int : t -> t -> int
+
+
 val scale : Abstract_interp.Int.t -> t -> t
 val scale_div : pos:bool -> Abstract_interp.Int.t -> t -> t
+(** [scale_div ~pos:false f v] is an over-approximation of the set of
+    elements [x / f] for [x] in [v].
+
+    [scale_div ~pos:true f v] is an over-approximation of the set of
+    elements [x pos_div f] for [x] in [v]. *)
 val negative : t
 val div : t -> t -> t
 val scale_rem : pos:bool -> Abstract_interp.Int.t -> t -> t
+(** [scale_rem ~pos:false f v] is an over-approximation of the set of
+    elements [x mod f] for [x] in [v].
+
+    [scale_rem ~pos:true f v] is an over-approximation of the set of
+    elements [x pos_rem f] for [x] in [v]. *)
+
 val c_rem : t -> t -> t
 val mul : t -> t -> t
 val shift_left : size:Abstract_interp.Int.t option -> t -> t -> t
 val shift_right : size:Abstract_interp.Int.t option -> t -> t -> t
 val interp_boolean : contains_zero:bool -> contains_non_zero:bool -> t
-
-val set_of_array : Abstract_interp.Int.t array -> O.t
 
 (** Extract bits from [start] to [stop] from the given Ival, [start]
     and [stop] being included. [size]  is the size of the entire ival. *)
@@ -278,7 +298,7 @@ val compare_C :
 val max_max :
   Abstract_interp.Int.t option ->
   Abstract_interp.Int.t option -> Abstract_interp.Int.t option
-val scale_int64base : Int_Base.t -> t -> t
+val scale_int_base : Int_Base.t -> t -> t
 val cast_float_to_int :
     signed:bool -> size:int -> t -> (** Top *) bool * (** Overflow *) bool * t
 val cast_float_to_int_inverse : single_precision:bool -> tt -> tt
@@ -291,6 +311,7 @@ val cast_double : t -> bool * t
 val pretty_debug : Format.formatter -> t -> unit
 
 val get_small_cardinal: unit -> int
+(** Value of of option -ilevel *)
 
 (**/**) (* This is automatically set by the Value plugin. Do not use. *)
 val set_small_cardinal: int -> unit

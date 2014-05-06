@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -26,7 +26,7 @@ open CilE
 
 
 module Make_LOffset
-  (V: Lattice_With_Isotropy.S)
+  (V: module type of Offsetmap_lattice_with_isotropy)
   (Offsetmap: module type of Offsetmap_sig
               with type v = V.t
               and type widen_hint = V.widen_hint)
@@ -36,7 +36,7 @@ struct
 
   type v = V.t
   type offsetmap = Offsetmap.t
-  type widen_hint_y = V.widen_hint
+  type widen_hint_base = V.widen_hint
 
     open Default_offsetmap
 
@@ -54,7 +54,7 @@ struct
       module Initial_Values = struct let v = [ [] ] end
 
       include Hptmap.Make
-      (Base)
+      (Base.Base)
       (Offsetmap)
       (Comp)
       (Initial_Values)
@@ -62,15 +62,14 @@ struct
       let () = Ast.add_monotonic_state self
 
 
-      let add k v m =
-        if Offsetmap.equal v (default_offsetmap k) then
-          remove k m
-        else add k v m
+      let add b v m =
+        if Offsetmap.equal v (default_offsetmap b) then
+          remove b m
+        else add b v m
 
-      let find_or_default varid map =
-        try
-          find varid map
-        with Not_found -> default_offsetmap varid
+      let find_or_default b map =
+        try find b map
+        with Not_found -> default_offsetmap b
     end
 
     let clear_caches = LBase.clear_caches
@@ -120,25 +119,23 @@ struct
       | Map m -> LBase.hash m
 
     let pretty fmt m =
-      Format.fprintf fmt "@[";
-      (match m with
-        Bottom -> Format.fprintf fmt "NOT ACCESSIBLE"
-       | Map m ->
-           LBase.iter
-             (fun base offs ->
-                let typ = Base.typeof base in
-                  Format.fprintf fmt "@[%a@[%a@]@\n@]" Base.pretty base
-                    (Offsetmap.pretty_typ typ) offs)
-             m
-       | Top -> Format.fprintf fmt "NO INFORMATION");
-      Format.fprintf fmt "@]"
+      match m with
+        | Bottom -> Format.fprintf fmt "@[NOT ACCESSIBLE@]"
+        | Map m ->
+          Pretty_utils.pp_iter ~pre:"@[<v>" ~sep:"@ " ~suf:"@]"
+            (Extlib.iter_uncurry2 LBase.iter)
+            (fun fmt (base, offs) ->
+              let typ = Base.typeof base in
+              Format.fprintf fmt "@[%a@[%a@]@]" Base.pretty base
+                (Offsetmap.pretty_typ typ) offs)
+            fmt m
+        | Top -> Format.fprintf fmt "@[NO INFORMATION@]"
 
     include Datatype.Make_with_collections
         (struct
           type t = tt
           let structural_descr =
-            Structural_descr.Structure
-              (Structural_descr.Sum [| [| LBase.packed_descr |] |])
+            Structural_descr.t_sum [| [| LBase.packed_descr |] |]
           let name = Offsetmap.name ^ " lmap"
           let reprs = Bottom :: Top :: List.map (fun b -> Map b) LBase.reprs
           let equal = equal
@@ -181,6 +178,11 @@ struct
              m
              LBase.empty)
 
+  let filter_by_shape shape = function
+    | Top -> Top
+    | Bottom -> Bottom
+    | Map m -> Map (LBase.inter_with_shape shape m)
+
   let find_base (vi:LBase.key) (m:t) =
     match m with
       | Bottom -> raise Not_found
@@ -198,21 +200,6 @@ struct
       Bottom -> false
     | Top | Map _ -> true
 
-  let pretty_without_null fmt m =
-    Format.fprintf fmt "@[";
-    (match m with
-      Bottom -> Format.fprintf fmt "NOT ACCESSIBLE"
-    | Top -> Format.fprintf fmt "NO INFORMATION"
-    | Map m ->
-         LBase.iter
-           (fun base offs ->
-              if not (Base.is_null base) then
-                Format.fprintf fmt "@[%a@[%a@]@\n@]" Base.pretty base
-                  (Offsetmap.pretty_typ (Base.typeof base)) offs)
-           m);
-    Format.fprintf fmt "@]"
-
-
   let all_bottom m =
     let f v _ =
       if not (V.equal V.bottom v) then raise Exit
@@ -220,38 +207,43 @@ struct
     try Offsetmap.iter_on_values f m; true
     with Exit -> false
 
-  (* Display bases in [filter]. *)
-  let pretty_filter fmt mm filter refilter =
-    Format.fprintf fmt "@[";
-    (match mm with
-     | Bottom -> Format.fprintf fmt "NON TERMINATING FUNCTION"
-     | Top -> Format.fprintf fmt "NO INFORMATION"
-     | Map m ->
-         let filter_it base _itvs () =
-           if refilter base
-           then
-             let offsm = LBase.find_or_default base m in
-	     if not (all_bottom offsm)
-	     then
-               Format.fprintf fmt "@[%a@[%a@]@\n@]"
-		 Base.pretty base
-		 (Offsetmap.pretty_typ (Base.typeof base)) offsm
-         in
-         try
-           Zone.fold_topset_ok filter_it filter ()
-         with Zone.Error_Top ->
-             Format.fprintf fmt
-               "Cannot filter: dumping raw memory (including unchanged variables)@\n%a@\n"
-               pretty mm
-         );
-    Format.fprintf fmt "@]"
+  (* Display only the bases present in [filter], but including those
+     that are bound to their default value. *)
+  let pretty_filter fmt mm zfilter =
+    match mm with
+      | Bottom -> Format.fprintf fmt "@[NON TERMINATING FUNCTION@]"
+      | Top -> Format.fprintf fmt "@[NO INFORMATION@]"
+      | Map m ->
+        let first = ref true in
+        let filter base _itvs () =
+          let offsm = LBase.find_or_default base m in
+	  if not (all_bottom offsm)
+	  then begin
+            if !first then first := false else Format.fprintf fmt "@ ";
+            Format.fprintf fmt "@[%a%a@]"
+	      Base.pretty base (Offsetmap.pretty_typ (Base.typeof base)) offsm
+          end
+        in
+        match zfilter with
+          | Zone.Top (Base.SetLattice.Top, _) ->
+            pretty fmt mm (* fallback *)
+          | _ ->
+            Format.fprintf fmt "@[<v>";
+            Zone.fold_topset_ok filter zfilter ();
+            Format.fprintf fmt "@]"
 
+  (* Reduce validity for read-only bases on which we want to write *)
+  let for_writing_validity ~reducing b =
+    (* If we are reducing, we do not need 
+       to exclude readonly base. *)
+    if not reducing && Base.is_read_only b then
+      Base.Invalid
+    else
+      Base.validity b
 
-  let add_binding_offsetmap ~reducing ~with_alarms ~exact varid offsets size v map =
-    let validity = Base.validity varid in
-    if ((not reducing) && (Base.is_read_only varid)
-        || validity = Base.Invalid)
-    then raise Offsetmap.Result_is_bottom;
+  let add_binding_offsetmap ~with_alarms ~reducing ~exact varid offsets size v map =
+    let validity = for_writing_validity ~reducing varid in
+    if validity = Base.Invalid then raise Offsetmap.Result_is_bottom;
     match size with
       | Int_Base.Top ->
           let offsm = LBase.find_or_default varid map in
@@ -281,12 +273,12 @@ struct
     | Map mem ->
         Map (LBase.add base (Offsetmap.create ~size v ~size_v) mem)
 
-  let add_binding ~reducing ~with_alarms ~exact initial_mem {loc=loc ; size=size } v =
+  let add_binding ~with_alarms ~reducing ~exact initial_mem {loc=loc ; size=size } v =
     (*Format.printf "add_binding: loc:%a@\n" Location_Bits.pretty loc;*)
     if V.equal v V.bottom then Bottom else
       match initial_mem with
-      | Top -> initial_mem
-      | Bottom -> assert false
+      | Top -> Top
+      | Bottom -> Bottom
       | Map mem ->
           let result =
             (match loc with
@@ -301,25 +293,28 @@ struct
                  (* Format.printf "dumping memory : %a@\n" pretty initial_mem;*)
                top (* the map where every location maps to top *)
              | Location_Bits.Top (Base.SetLattice.Set set, origin) ->
+                 (* Always emit an alarm, we emit out-of-bounds anyway *)
                  warn_mem_write with_alarms;
-                 let treat_base varid acc =
-                   if (not reducing) && (Base.is_read_only varid)
-                   then acc
-                   else
-                     match Base.validity varid with
+                 let had_non_bottom = ref false in
+                 let treat_base b acc =
+                   let validity = for_writing_validity ~reducing b in
+                   match validity with
                      | Base.Invalid -> acc
                      | Base.Unknown _ | Base.Known _ | Base.Periodic _ ->
-                         let offsm = LBase.find_or_default varid mem in
-                         let validity = Base.validity varid in
+                       let offsm = LBase.find_or_default b mem in
+                       try
                          let offsetmap =
                            Offsetmap.update_imprecise_everywhere
                              ~validity origin v offsm
                          in
-                         LBase.add varid offsetmap acc
+                         had_non_bottom := true;
+                         LBase.add b offsetmap acc
+                       with Offsetmap.Result_is_bottom -> acc
                  in
                  let result =
-                   Map (Base.Hptset.fold treat_base set
-                           (treat_base Base.null mem))
+                   let after_null = treat_base Base.null mem in
+                   let r = Base.Hptset.fold treat_base set after_null in
+                   if !had_non_bottom then Map r else bottom
                  in
  (* Format.printf "debugging add_binding topset, loc =%a, result=%a@."
                                 Location_Bits.pretty loc
@@ -333,8 +328,9 @@ struct
                    (fun varid offsets map ->
                       try
                         let r =
-                          add_binding_offsetmap ~reducing
+                          add_binding_offsetmap
                             ~with_alarms
+                            ~reducing
                             ~exact
                             varid
                             offsets
@@ -369,7 +365,7 @@ assumed to be dead."));
     | Top -> Offsetmap.empty
     | Bottom -> assert false 
 
-  let find ~conflate_bottom ~with_alarms mem { loc = loc ; size = size } =
+  let find ~with_alarms ~conflate_bottom mem { loc = loc ; size = size } =
     let result =
       match mem with
       | Bottom -> V.bottom
@@ -378,9 +374,7 @@ assumed to be dead."));
             let validity = Base.validity base in
             CilE.warn_mem_read with_alarms;
             let offsetmap = find_base_or_default base mem in
-            let new_v =
-              Offsetmap.find_imprecise_everywhere ~validity offsetmap
-            in
+            let new_v = Offsetmap.find_imprecise ~validity offsetmap in
             V.join new_v acc
           in
           begin match loc with
@@ -431,56 +425,14 @@ assumed to be dead."));
     in
     result
 
-  let reduce_previous_binding ~with_alarms initial_mem l v =
-    assert
-      (if not (Locations.cardinal_zero_or_one l)
-        then begin
-            Format.printf "Internal error 835; debug info:@\n%a@."
-              Locations.pretty l;
-            false
-          end
-        else
-          true);
-    add_binding ~reducing:true ~exact:true ~with_alarms initial_mem l v
-
-
-(* XXXXXXXXX bug with uninitialized values ? *)
-  let reduce_binding ~with_alarms initial_mem l v =
-    let v_old = find ~conflate_bottom:true ~with_alarms initial_mem l in
-    if V.equal v v_old
-    then initial_mem
-    else
-      let vv = V.narrow v_old v in
-(* Format.printf "narrow %a %a %a@." V.pretty v_old V.pretty v V.pretty vv; *)
-      if V.equal vv v_old then initial_mem
-      else reduce_previous_binding ~with_alarms initial_mem l vv
-
-(*
-  let reduce_previous_binding ~with_alarms initial_mem l v = 
-    let s1 = reduce_previous_binding ~with_alarms initial_mem l v in
-    let s2 = reduce_binding ~with_alarms initial_mem l v in
-    if not (equal s1 s2)
-    then
-      Format.printf "DIFF@\n%a@\n@\n%a@\n@\n%a@."
-	V.pretty v
-	pretty s1
-	pretty s2;
-    s1
-*)
-
-  let add_binding = add_binding ~reducing:false
-
   let join_internal =
-    let decide_none base v1 =
-        (Offsetmap.join v1 (default_offsetmap base))
+    let decide_none base v1 = Offsetmap.join v1 (default_offsetmap base) in
+    let decide_some v1 v2 = Offsetmap.join v1 v2 in
+    let symmetric_merge =
+      LBase.symmetric_merge ~cache:("lmap", ()) ~decide_none ~decide_some
     in
-    let decide_some v1 v2 =
-        (Offsetmap.join v1 v2)
-    in
-    let symetric_merge =
-      LBase.symetric_merge ~cache:("lmap",65536) ~decide_none ~decide_some in
     fun m1 m2 ->
-      Map (symetric_merge m1 m2)
+      Map (symmetric_merge m1 m2)
 
   let join  mm1 mm2 =
     match mm1, mm2 with
@@ -509,8 +461,11 @@ assumed to be dead."));
             Format.fprintf fmt "@[%a @[<v>L@[%a@]@,R@[%a@]@]@]@ "
               Base.pretty base pp m1 pp m2
     in
+    (* The diff is implemented by performing a merge on the two offsetmaps.
+       We _must not_ cache the result, as we are interested only in the side
+       effects. *)
     let decide b m1 m2 = print b m1 m2; Offsetmap.empty in
-    let aux = LBase.generic_merge ~cache:("",0) ~decide in
+    let aux = LBase.generic_merge ~idempotent:true ~cache:("", false) ~decide in
     Format.fprintf fmt "@[<v>";
     ignore (aux m1 m2);
     Format.fprintf fmt "@]"
@@ -525,89 +480,74 @@ assumed to be dead."));
           if m1 == m2 then Format.fprintf fmt "Equal"
           else pretty_diff_aux fmt m1 m2
 
+  let is_included =
+    let name = Pretty_utils.sfprintf "Lmap(%s).is_included" V.name in
+    let decide_fst base v1 =
+      Offsetmap.is_included v1 (default_offsetmap base)
+    in
+    let decide_snd base v2 =
+      Offsetmap.is_included (default_offsetmap base) v2
+    in
+    let decide_both _ m1 m2 = Offsetmap.is_included m1 m2 in
+    let decide_fast s t =
+      if s == t then LBase.PTrue (* Inclusion holds *)
+      else
+        if LBase.compositional_bool t
+        (* s is a singleton. We have s \subset t iff s == t *)
+        then LBase.PFalse
+        else LBase.PUnknown
+    in
+    let generic_is_included =
+      LBase.binary_predicate
+        (LBase.PersistentCache name) LBase.UniversalPredicate
+        ~decide_fast ~decide_fst ~decide_snd ~decide_both
+    in
+    fun (m1:t) (m2:t) ->
+      match m1,m2 with
+        | Bottom,_ -> true | _,Bottom -> false
+        |   _, Top -> true | Top, _ -> false
+        | Map m1', Map m2' -> generic_is_included m1' m2'
 
-let is_included =
-  let decide_fst base v1 =
-    Offsetmap.is_included_exn v1 (default_offsetmap base)
-  in
-  let decide_snd base v2 =
-    Offsetmap.is_included_exn (default_offsetmap base) v2
-  in
-  let decide_both = Offsetmap.is_included_exn
-  in
-  let generic_is_included =
-    LBase.generic_is_included Abstract_interp.Is_not_included
-      ~cache:("lmap", 16384)
-      ~decide_fst ~decide_snd ~decide_both
-  in
-  fun (m1:t) (m2:t) ->
-    match m1,m2 with
-      Bottom,_ -> true | _,Bottom -> false
-    |   _, Top -> true | Top, _ -> false
-    | Map m1,Map m2 ->
-        try
-          generic_is_included m1 m2;
-          true
-        with
-          Is_not_included -> false
+
+  type widen_hint = Base.Set.t * (Base.t -> V.widen_hint)
 
   (* Precondition : m1 <= m2 *)
-  type widen_hint = bool * Base.Set.t * (Base.t -> V.widen_hint)
-  let widen (widen_other_keys, wh_key_set, wh_hints) r1 r2 =
-    let result =
-      match r1,r2 with
-      | Top, _ | _, Top -> assert false
-    | Bottom,Bottom -> false, Bottom
+  let widen (wh_key_set, wh_hints) r1 r2 =
+    match r1,r2 with
+    | Top, _ | _, Top -> assert false
+    | Bottom,Bottom -> Bottom
     | _,Bottom -> assert false (* thanks to precondition *)
-    | Bottom, m -> false, m
+    | Bottom, m -> m
     | Map m1,Map m2 ->
-        let m_done, m_remain =
-          (* [m_done] = widened state on keys of [wh_key_set].
-             if a widening is performed for one of them,
-             [m_remain] will be empty.
-          *)
+        let widened, something_done =
           Base.Set.fold
-            (fun key (m_done, m_remain) ->
+            (fun key (widened, something_done) ->
                let offs2 = LBase.find_or_default key m2 in
                let offs1 = LBase.find_or_default key m1 in
-               let fixed = Offsetmap.is_included offs2 offs1 in
+               let unchanged = Offsetmap.equal offs2 offs1 in
                  (* Format.printf "key=%a, fixed=%b@."
                     Base.pretty key fixed; *)
-                 if fixed
-                 then (m_done, LBase.remove key m_remain)
+                 if unchanged
+                 then (widened, something_done)
                  else
-                   let new_off = Offsetmap.widen (wh_hints key) offs1 offs2
-                   in
-                     LBase.add key new_off m_done, LBase.empty)
-            wh_key_set
-            (m2, m2)
+                   let new_off = Offsetmap.widen (wh_hints key) offs1 offs2 in
+                   (LBase.add key new_off widened, true)
+            ) wh_key_set (m2, false)
         in
-        let fixed_for_all_wh_key = not (LBase.is_empty m_remain) in
-          (* Format.printf "widening (widen_other_keys=%b, fixed_for_all_wh_key %b)@."
-            widen_other_keys fixed_for_all_wh_key; *)
-        if widen_other_keys
-          then
-            let other_keys_widened =
-              Map
-                (LBase.fold
-                   (fun base offs2 acc ->
-                      (* Format.printf "widening also on key %a@."
-                        Base.pretty base; *)
-                        let offs1 = LBase.find_or_default base m1 in
-                        let new_off =
-                          Offsetmap.widen (wh_hints base) offs1 offs2
-                        in               
-                        if offs2 != new_off then LBase.add base new_off acc
-                        else acc
-                   )
-                   m_remain
-                   m_done)
-            in
-              true, other_keys_widened
-          else
-            fixed_for_all_wh_key, Map m_done
-        in
-    result
+        if something_done then
+          Map widened
+        else
+          let merge base v1 v2 = match v1, v2 with
+            | None, None -> assert false (* generic_merge invariant *)
+            | Some _, None -> assert false (* by precondition *)
+            | None, Some off -> off
+            | Some off1, Some off2 ->
+              if off1 == off2 then off1
+              else
+                Offsetmap.widen (wh_hints base) off1 off2
+          in
+          Map (LBase.generic_merge
+                 ~idempotent:true ~cache:("", false) ~decide:merge m1 m2)
 
   let paste_offsetmap ~with_alarms ~from ~dst_loc ~start ~size ~exact m =
     match m with
@@ -623,10 +563,8 @@ let is_included =
         (* TODO: do we want to alter exact here? *)
         let had_non_bottom = ref false in
         let treat_dst base_dst i_dst acc =
-          if Base.is_read_only base_dst
-          then (CilE.warn_mem_write with_alarms; acc)
-          else
-            let validity = Base.validity base_dst in
+          let validity = for_writing_validity ~reducing:false base_dst in
+          if validity <> Base.Invalid then
             let offsetmap_dst = LBase.find_or_default base_dst m' in
             try
               let new_offsetmap =
@@ -640,6 +578,10 @@ let is_included =
             with Offsetmap.Result_is_bottom ->
 	      CilE.warn_mem_write with_alarms;
               acc
+          else (
+	    CilE.warn_mem_write with_alarms;
+            acc
+          ) 
 	in
         match dst_loc with
           | Location_Bits.Map _ ->
@@ -664,7 +606,7 @@ let is_included =
                 ~validity ~conflate_bottom:false
                 ~offsets:(Ival.inject_singleton start) ~size from
               in
-              add_binding ~with_alarms ~exact:false m loc_dst v
+              add_binding ~with_alarms ~reducing:false ~exact:false m loc_dst v
 
   let copy_offsetmap ~with_alarms src_loc mm =
     match mm with
@@ -685,13 +627,14 @@ let is_included =
                   let copy = Offsetmap.copy_slice ~with_alarms ~validity
                     ~offsets:i_src ~size offsetmap_src
                   in
-                  (* TODO. copy_ival seems to return an empty offsetmap only if
-                     i_src is degenerate. This needs further checking *)
-                  assert (not (Offsetmap.is_empty copy));
-                  match acc with
-                    | None -> Some copy
-                    | Some acc ->
-                      Some ((Offsetmap.join copy acc))
+                  if Offsetmap.is_empty copy then  (
+                    CilE.warn_mem_read with_alarms;
+                    acc)
+                  else
+                    match acc with
+                      | None -> Some copy
+                      | Some acc ->
+                        Some ((Offsetmap.join copy acc))
               in
               Location_Bits.fold_i treat_src src_loc.loc None
             end
@@ -723,8 +666,8 @@ let is_included =
             m
             acc
 
-  let cached_fold ~f ~cache ~temporary ~joiner ~empty =
-    let cached_f = LBase.cached_fold ~f ~cache ~temporary ~joiner ~empty
+  let cached_fold ~f ~cache_name ~temporary ~joiner ~empty =
+    let cached_f = LBase.cached_fold ~f ~cache_name ~temporary ~joiner ~empty
     in
     function
       | Top -> assert false

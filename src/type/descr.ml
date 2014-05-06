@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -36,7 +36,7 @@ let uncheck_pack d = try unsafe_pack d with Cannot_pack -> assert false
 (** {2 Predefined type descriptors} *)
 (* ********************************************************************** *)
 
-let unmarshable = pack Unknown
+let unmarshable = pack t_unknown
 let is_unmarshable x = x = unmarshable
 
 let t_unit = uncheck_pack Unmarshal.t_unit
@@ -47,6 +47,8 @@ let t_bool = uncheck_pack Unmarshal.t_bool
 let t_int32 = uncheck_pack Unmarshal.t_int32
 let t_int64 = uncheck_pack Unmarshal.t_int64
 let t_nativeint = uncheck_pack Unmarshal.t_nativeint
+
+let is_abstract x = x = uncheck_pack Unmarshal.Abstract
 
 (* ********************************************************************** *)
 (** {2 Type descriptor builders} *)
@@ -172,8 +174,8 @@ let transform descr f = match descr with
 (* ********************************************************************** *)
 
 let str = function
-  | Nopack -> Unknown
-  | Pack p -> T_pack p
+  | Nopack -> t_unknown
+  | Pack p -> of_pack p
   | Recursive _ -> raise Invalid_descriptor
 
 let pack x = x

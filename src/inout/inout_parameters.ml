@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -91,7 +91,7 @@ module ForceInoutExternalWithFormals =
        let help = "same as -inout but without local variables and with function parameters"
      end)
 
-let () = Plugin.set_group messages
+let () = Parameter_customize.set_group messages
 module Output =
   True(struct
     let option_name = "-inout-print"

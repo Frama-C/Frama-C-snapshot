@@ -35,8 +35,8 @@
 (*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE         *)
 (*  POSSIBILITY OF SUCH DAMAGE.                                             *)
 (*                                                                          *)
-(*  File modified by CEA (Commissariat à l'énergie atomique et aux          *)
-(*                        énergies alternatives)                            *)
+(*  File modified by CEA (Commissariat Ã  l'Ã©nergie atomique et aux          *)
+(*                        Ã©nergies alternatives)                            *)
 (*               and INRIA (Institut National de Recherche en Informatique  *)
 (*                          et Automatique).                                *)
 (****************************************************************************)
@@ -108,7 +108,7 @@ let rec stripCastsForPtrArith (e:exp): exp =
 class volatileFinderClass br = object
   inherit nopCilVisitor
 
-  method vtype (t : typ)  =
+  method! vtype (t : typ)  =
     if hasAttribute "volatile" (typeAttrs t) then begin
       br := true;
       SkipChildren

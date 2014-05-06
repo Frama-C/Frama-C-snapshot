@@ -1,0 +1,111 @@
+(**************************************************************************)
+(*                                                                        *)
+(*  This file is part of WP plug-in of Frama-C.                           *)
+(*                                                                        *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
+(*         alternatives)                                                  *)
+(*                                                                        *)
+(*  you can redistribute it and/or modify it under the terms of the GNU   *)
+(*  Lesser General Public License as published by the Free Software       *)
+(*  Foundation, version 2.1.                                              *)
+(*                                                                        *)
+(*  It is distributed in the hope that it will be useful,                 *)
+(*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
+(*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
+(*  GNU Lesser General Public License for more details.                   *)
+(*                                                                        *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
+(*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
+(*                                                                        *)
+(**************************************************************************)
+
+theory Qed
+use bool.Bool as Bool
+use int.Int as Int
+use int.Abs as Abs
+use int.ComputerDivision as ComputerDivision
+use real.Real as Real
+use real.FromInt as FromInt
+
+function ite Bool.bool 'a 'a : 'a
+
+function eqb 'a 'a : Bool.bool
+
+axiom eqb1 : forall x:'a, y:'a. ((eqb x y) = (Bool.True)) <-> ((x) = (y))
+
+function neqb 'a 'a : Bool.bool
+
+axiom neqb1 : forall x:'a, y:'a. ((neqb x y) = (Bool.True)) <->
+  not ((x) = (y))
+
+function zlt int int : Bool.bool
+
+function zleq int int : Bool.bool
+
+axiom zlt1 : forall x:int, y:int. ((zlt x y) = (Bool.True)) <->
+  (Int.(<) (x) (y))
+
+axiom zleq1 : forall x:int, y:int. ((zleq x y) = (Bool.True)) <->
+  (Int.(<=) (x) (y))
+
+function rlt real real : Bool.bool
+
+function rleq real real : Bool.bool
+
+axiom rlt1 : forall x:real, y:real. ((rlt x y) = (Bool.True)) <->
+  (Real.(<) (x) (y))
+
+axiom rleq1 : forall x:real, y:real. ((rleq x y) = (Bool.True)) <->
+  (Real.(<=) (x) (y))
+
+function truncate real : int
+
+function real_of_int (x:int) : real = FromInt.from_int x
+
+axiom truncate_of_int : forall x:int. ((truncate (real_of_int x)) = (x))
+
+axiom c_euclidian : forall n:int, d:int [ComputerDivision.div n d,
+  ComputerDivision.mod n d]. not ((d) = (0)) ->
+  ((n) = ((Int.(+) ((Int.(*) (ComputerDivision.div n
+  d) (d))) (ComputerDivision.mod n d))))
+
+axiom cdiv_cases : forall n:int, d:int [ComputerDivision.div n d].
+  ((Int.(>=) (n) (0)) -> (Int.(>) (d) (0)) -> ((ComputerDivision.div n
+  d) = ((ComputerDivision.div n d)))) /\ ((Int.(<=) (n) (0)) ->
+  (Int.(>) (d) (0)) -> ((ComputerDivision.div n
+  d) = ((Int.(-_) ((ComputerDivision.div (Int.(-_) (n)) d)))))) /\
+  ((Int.(>=) (n) (0)) -> (Int.(<) (d) (0)) -> ((ComputerDivision.div n
+  d) = ((Int.(-_) ((ComputerDivision.div n (Int.(-_) (d)))))))) /\
+  ((Int.(<=) (n) (0)) -> (Int.(<) (d) (0)) -> ((ComputerDivision.div n
+  d) = ((ComputerDivision.div (Int.(-_) (n)) (Int.(-_) (d))))))
+
+axiom cmod_cases : forall n:int, d:int [ComputerDivision.mod n d].
+  ((Int.(>=) (n) (0)) -> (Int.(>) (d) (0)) -> ((ComputerDivision.mod n
+  d) = ((ComputerDivision.mod n d)))) /\ ((Int.(<=) (n) (0)) ->
+  (Int.(>) (d) (0)) -> ((ComputerDivision.mod n
+  d) = ((Int.(-_) ((ComputerDivision.mod (Int.(-_) (n)) d)))))) /\
+  ((Int.(>=) (n) (0)) -> (Int.(<) (d) (0)) -> ((ComputerDivision.mod n
+  d) = ((ComputerDivision.mod n (Int.(-_) (d)))))) /\ ((Int.(<=) (n) (0)) ->
+  (Int.(<) (d) (0)) -> ((ComputerDivision.mod n
+  d) = ((Int.(-_) ((ComputerDivision.mod (Int.(-_) (n)) (Int.(-_) (d))))))))
+
+axiom cmod_remainder : forall n:int, d:int [ComputerDivision.mod n d].
+  ((Int.(>=) (n) (0)) -> (Int.(>) (d) (0)) ->
+  (Int.(<=) (0) (ComputerDivision.mod n d)) /\ (Int.(<) (ComputerDivision.mod
+  n d) (d))) /\ ((Int.(<=) (n) (0)) -> (Int.(>) (d) (0)) ->
+  (Int.(<) ((Int.(-_) (d))) (ComputerDivision.mod n d)) /\
+  (Int.(<=) (ComputerDivision.mod n d) (0))) /\ ((Int.(>=) (n) (0)) ->
+  (Int.(<) (d) (0)) -> (Int.(<=) (0) (ComputerDivision.mod n d)) /\
+  (Int.(<) (ComputerDivision.mod n d) ((Int.(-_) (d))))) /\
+  ((Int.(<=) (n) (0)) -> (Int.(<) (d) (0)) ->
+  (Int.(<) (d) (ComputerDivision.mod n d)) /\ (Int.(<=) (ComputerDivision.mod
+  n d) (0)))
+
+axiom cdiv_neutral : forall a:int [ComputerDivision.div a 1].
+  ((ComputerDivision.div a 1) = (a))
+
+axiom cdiv_inv : forall a:int [ComputerDivision.div a a]. not ((a) = (0)) ->
+  ((ComputerDivision.div a a) = (1))
+
+end

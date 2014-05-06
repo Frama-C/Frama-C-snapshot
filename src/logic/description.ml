@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -125,7 +125,7 @@ let pp_stmt kloc fmt stmt =
 	Format.fprintf fmt "call '%s'%a" v.vname (pp_kloc kloc) loc
     | Instr (Set(_,_,loc)|Call(_,_,_,loc)) -> 
 	Format.fprintf fmt "instruction%a" (pp_kloc kloc) loc
-    | Instr (Asm(_,_,_,_,_,loc)) ->
+    | Instr (Asm(_,_,_,_,_,_,loc)) ->
 	Format.fprintf fmt "assembly%a%a" pp_labels stmt (pp_kloc kloc) loc
     | Instr (Skip(_,loc)) ->
 	Format.fprintf fmt "program point%a%a" pp_labels stmt (pp_kloc kloc) (loc,loc)

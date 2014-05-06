@@ -1,8 +1,8 @@
 /* run.config
-   OPT: -memory-footprint 1 -slevel 30 -val -cpp-command "gcc -C -E -DFLOAT=double -I. " share/builtin.c -float-hex -journal-disable -subdivide-float-var 0
-   OPT: -memory-footprint 1 -slevel 30 -val -cpp-command "gcc -C -E -DFLOAT=double -I. " share/builtin.c -float-hex -journal-disable -subdivide-float-var 10
-   OPT: -memory-footprint 1 -slevel 30 -val -cpp-command "gcc -C -E -DFLOAT=float -I. " share/builtin.c -float-hex -journal-disable -subdivide-float-var 0
-   OPT: -memory-footprint 1 -slevel 30 -val -cpp-command "gcc -C -E -DFLOAT=float -I. " share/builtin.c -float-hex -journal-disable -subdivide-float-var 10
+   OPT: -slevel 30 -val -cpp-command "gcc -C -E -DFLOAT=double -I. " share/builtin.c -float-hex -journal-disable -subdivide-float-var 0
+   OPT: -slevel 30 -val -cpp-command "gcc -C -E -DFLOAT=double -I. " share/builtin.c -float-hex -journal-disable -subdivide-float-var 10
+   OPT: -slevel 30 -val -cpp-command "gcc -C -E -DFLOAT=float -I. " share/builtin.c -float-hex -journal-disable -subdivide-float-var 0
+   OPT: -slevel 30 -val -cpp-command "gcc -C -E -DFLOAT=float -I. " share/builtin.c -float-hex -journal-disable -subdivide-float-var 10
 */
 
 #include "share/builtin.h"

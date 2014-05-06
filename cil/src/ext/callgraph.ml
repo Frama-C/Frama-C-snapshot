@@ -35,8 +35,8 @@
 (*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE         *)
 (*  POSSIBILITY OF SUCH DAMAGE.                                             *)
 (*                                                                          *)
-(*  File modified by CEA (Commissariat à l'énergie atomique et aux          *)
-(*                        énergies alternatives)                            *)
+(*  File modified by CEA (Commissariat Ã  l'Ã©nergie atomique et aux          *)
+(*                        Ã©nergies alternatives)                            *)
 (*               and INRIA (Institut National de Recherche en Informatique  *)
 (*                          et Automatique).                                *)
 (****************************************************************************)
@@ -144,7 +144,7 @@ class cgComputer (graph: callgraph) = object
 
 
   (* begin visiting a function definition *)
-  method vfunc (f:fundec) : fundec visitAction = 
+  method! vfunc (f:fundec) : fundec visitAction = 
     begin
       Kernel.feedback ~level:2 "Callgraph for function %s" f.svar.vname ;
       let node =  getNodeForVar graph f.svar in
@@ -156,7 +156,7 @@ class cgComputer (graph: callgraph) = object
   end
 
   (* visit an instruction; we're only interested in calls *)
-  method vinst (i:instr) : instr list visitAction = begin
+  method! vinst (i:instr) : instr list visitAction = begin
     (*(trace "callgraph" (P.dprintf "visiting instruction: %a\n" dn_instr i));*)
     let caller : callnode =
       match curFunc with
@@ -189,7 +189,7 @@ class cgComputer (graph: callgraph) = object
     DoChildren
   end
 
-  method vexpr (e: exp) =
+  method! vexpr (e: exp) =
     (match e.enode with
       AddrOf (Var fv, NoOffset) when isFunctionType fv.vtype ->
         markFunctionAddrTaken graph fv

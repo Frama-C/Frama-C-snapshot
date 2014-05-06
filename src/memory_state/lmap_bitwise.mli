@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -34,6 +34,8 @@ module type Location_map_bitwise = sig
   type y
 
   include Datatype.S
+  include Lattice_type.Bounded_Join_Semi_Lattice with type t := t
+  include Lattice_type.With_Top with type t := t
 
   module LOffset : sig
     include Datatype.S
@@ -53,12 +55,12 @@ module type Location_map_bitwise = sig
   end
 
   val empty : t
-  val bottom: t
   val is_empty : t -> bool
   val is_bottom : t -> bool
-  val top: t
-  val join : t -> t -> t
-  val is_included : t -> t -> bool
+
+  val pretty_generic_printer:
+    y Pretty_utils.formatter -> string -> t Pretty_utils.formatter
+
   val add_binding : exact:bool -> t -> Zone.t -> y -> t
 
   val map_and_merge : (y -> y) -> t -> t -> t
@@ -98,7 +100,6 @@ module type Location_map_bitwise = sig
         that the zone was not modified *)
 
   val copy_paste :
-    with_alarms:CilE.warn_mode ->
     f:(bool * y -> bool * y) ->
     location -> location -> t -> t
   (** This function takes a function [f] to be applied to each bit of
@@ -114,14 +115,13 @@ end
 
 (** Lattice with default values on a range or on an entire base. *)
 module type With_default = sig
-  include Abstract_interp.Lattice
+  include Lattice_type.Bounded_Join_Semi_Lattice
+  include Lattice_type.With_Top with type t := t
   val default : Base.t -> Int.t -> Int.t -> t
   val defaultall : Base.t -> t
 end
 
 module Make_bitwise(V : With_default) : Location_map_bitwise with type y = V.t
-
-module From_Model : Location_map_bitwise with type y = Locations.Zone.t
 
 (*
 Local Variables:

@@ -18,9 +18,9 @@ Ps GPs;
 typedef struct { int a; int b; } Ts2;
 Ts2 S2;
 
-/* same type name for something else : renamed by cil. Cool !*/
-typedef char Ts2;
-Ts2 C = 'a';
+
+typedef char Ts2bis;
+Ts2bis C = 'a';
 
 // Can be removed : used in an unused function
 typedef struct { int a; int b; int c; } Ts3;

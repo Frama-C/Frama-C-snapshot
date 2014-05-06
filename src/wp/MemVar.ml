@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -55,6 +55,12 @@ struct
     | Alloc of varinfo
     | Mem of M.Chunk.t
 
+  let is_framed_var x =
+    not x.vglob && 
+    match V.param x with
+    | ByValue -> true
+    | ByRef | InHeap -> false
+      
   module VAR = 
   struct
     type t = varinfo
@@ -69,6 +75,7 @@ struct
 	| ByRef -> Cil.typeOf_pointed x.vtype
     let tau_of_chunk x = Lang.tau_of_ctype (typ_of_param x)
     let basename_of_chunk = LogicUsage.basename
+    let is_framed = is_framed_var
   end
 
   module VALLOC = 
@@ -84,6 +91,7 @@ struct
       match V.param x with
 	| ByRef -> "ra_" ^ LogicUsage.basename x
 	| ByValue | InHeap -> "ta_" ^ LogicUsage.basename x
+    let is_framed = is_framed_var
   end
 
   module Chunk =
@@ -117,6 +125,10 @@ struct
       | Var x -> VAR.basename_of_chunk x
       | Alloc x -> VALLOC.basename_of_chunk x
       | Mem m -> M.Chunk.basename_of_chunk m
+    let is_framed = function
+      | Var x -> VAR.is_framed x
+      | Alloc x -> VALLOC.is_framed x
+      | Mem m -> M.Chunk.is_framed m
   end
 
   (* -------------------------------------------------------------------------- *)
@@ -229,10 +241,10 @@ struct
       | Alloc x -> { s with alloc = ALLOC.havoc_chunk s.alloc x }
       | Mem m -> { s with mem = M.Sigma.havoc_chunk s.mem m }
 
-    let havoc_any s = { 
+    let havoc_any ~call s = { 
       alloc = s.alloc ;
-      vars = SIGMA.havoc_any s.vars ;
-      mem = M.Sigma.havoc_any s.mem ;
+      vars = SIGMA.havoc_any ~call s.vars ;
+      mem = M.Sigma.havoc_any ~call s.mem ;
     }
 
     let domain s = 
@@ -357,8 +369,7 @@ struct
   let block_length sigma obj = function
     | Mloc l -> M.block_length sigma.mem obj l
     | Fref _ -> Wp_parameters.fatal "Block-length of ref-var"
-    | Fval(x,_) | Mval(x,_) -> 
-	F.e_int64 (Ctypes.sizeof_typ (VAR.typ_of_param x))
+    | Fval(x,_) | Mval(x,_) -> F.e_int (Ctypes.sizeof_typ (VAR.typ_of_param x))
 
   let cast obj l = Mloc(M.cast obj (mloc_of_loc l))
   let loc_of_int e a = Mloc(M.loc_of_int e a)
@@ -424,7 +435,7 @@ struct
 
   let rec offset = function
     | [] -> e_zero
-    | Field f :: ofs -> e_add (e_int64 (Ctypes.field_offset f)) (offset ofs)
+    | Field f :: ofs -> e_add (e_int (Ctypes.field_offset f)) (offset ofs)
     | Index(obj,k)::ofs -> e_add (e_fact (Ctypes.sizeof_object obj) k) (offset ofs)
 
   let loc_diff obj a b =
@@ -432,7 +443,7 @@ struct
       | Mloc l1 , Mloc l2 -> M.loc_diff obj l1 l2
       | Fref x , Fref y when Varinfo.equal x y -> e_zero
       | (Fval(x,p)|Mval(x,p)) , (Fval(y,q)|Mval(y,q)) when Varinfo.equal x y ->
-	  e_div (e_sub (offset p) (offset q)) (e_int64 (Ctypes.sizeof_object obj))
+	  e_div (e_sub (offset p) (offset q)) (e_int (Ctypes.sizeof_object obj))
       | Mval _ , _ | _ , Mval _
       | Fval _ , _ | _ , Fval _
       | Fref _ , _ | _ , Fref _
@@ -465,7 +476,7 @@ struct
 	then Wp_parameters.warning ~once:true
 	  "Validity of unsized array not implemented yet (considered valid)." ;
 	None
-    | C_array { arr_flat=Some s } -> Some (e_int64 s.arr_size)
+    | C_array { arr_flat=Some s } -> Some (e_int s.arr_size)
 
   (* offset *)
 	
@@ -544,7 +555,7 @@ struct
     | Fval(x,p) | Mval(x,p) -> valid_path sigma x (VAR.typ_of_param x) p
     | Mloc _ as l -> 
 	let a = Some e_zero in
-	let b = Some (e_int64 (Int64.pred s)) in
+	let b = Some (e_int (s-1)) in
 	M.valid sigma.mem acs (Rrange(mloc_of_loc l,obj,a,b))
 	  
   let valid sigma acs = function
@@ -614,7 +625,7 @@ struct
 	  [ Drange( Vset.bound_shift a k , Vset.bound_shift b k ) ]
       | d :: ofs -> dofs d :: range ofs obj a b
 
-  let dsize s = Drange(Some (e_int 0) , Some (e_int64 (Int64.pred s)))
+  let dsize s = Drange(Some (e_int 0) , Some (e_int (s-1)))
   let rsize ofs s = delta ofs @ [ dsize s ]
 
 

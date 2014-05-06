@@ -1,0 +1,129 @@
+##########################################################################
+#                                                                        #
+#  This file is part of Frama-C.                                         #
+#                                                                        #
+#  Copyright (C) 2007-2014                                               #
+#    CEA (Commissariat à l'énergie atomique et aux énergies              #
+#         alternatives)                                                  #
+#                                                                        #
+#  you can redistribute it and/or modify it under the terms of the GNU   #
+#  Lesser General Public License as published by the Free Software       #
+#  Foundation, version 2.1.                                              #
+#                                                                        #
+#  It is distributed in the hope that it will be useful,                 #
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of        #
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         #
+#  GNU Lesser General Public License for more details.                   #
+#                                                                        #
+#  See the GNU Lesser General Public License version 2.1                 #
+#  for more details (enclosed in the file licenses/LGPLv2.1).            #
+#                                                                        #
+##########################################################################
+
+.DEFAULT_GOAL=all
+
+ifndef SUFFIXES_ARE_SET
+
+SUFFIXES_ARE_SET:=true
+
+# The former .SUFFIXES delete all predefined implicit rules
+# The latter .SUFFIXES defines our suffix list
+# See GNU Make manual, section 10.7
+# This way of declaring implicit rules is deprecated,
+# but that is the only way for removing **all** predefined implicit rules
+# The only other way is to remove each predefined implicit rule, one by one.
+.SUFFIXES:
+.SUFFIXES: .c .o .mli .ml .cmi .cmo .cmx .mll .mly .tex .dvi .ps .html .cmxs \
+	.png .svg .ps
+
+ifdef DOT
+%.png: %.dot
+	$(PRINT_DOT) $@
+	$(DOT) -Tpng -o $@ $<
+
+%.svg: %.dot
+	$(PRINT_DOT) $@
+	$(ISED) -e "s/\(digraph .*\)/\1 node [href=\"\\\\N.html\"];/" $<
+	$(DOT) -Tsvg -o $@ $<
+
+%.ps: %.dot
+	$(PRINT_DOT) $@
+	$(DOT) -Tps -o $@ $<
+%.pdf: %.dot
+	$(PRINT_DOT) $@
+	$(DOT) -Tpdf -o $@ $<
+
+else
+%.png: %.dot
+	@$(ECHO) "dot missing: generation of $@ skipped."
+%.svg: %.dot
+	@$(ECHO) "dot missing: generation of $@ skipped."
+%.ps: %.dot
+	@$(ECHO) "dot missing: generation of $@ skipped."
+endif
+
+%.cmi: %.mli
+	$(PRINT_OCAMLC) $@
+	$(OCAMLC) -c $(BFLAGS) $<
+
+%.cmi: %.ml
+	$(PRINT_OCAMLC) $@
+	if `test -e $<i`; then $(OCAMLC) -c $(BFLAGS) $<i; \
+	else $(MAKE) $(patsubst %.ml,%.cmo,$<); fi
+
+%.cmo: %.ml
+	$(PRINT_OCAMLC) $@
+	$(OCAMLC) -c $(BFLAGS) $<
+
+%.inferred.mli: %.ml
+	$(PRINT_INFERRING) $@
+	$(OCAMLC) -i $(BFLAGS) $< > $@
+
+%.cmx: %.ml
+	$(PRINT_OCAMLOPT) $@
+	$(OCAMLOPT) -c $(OFLAGS) $<
+
+# .o are generated together with .cmx, but %.o %.cmx: %.ml only confuses
+# make when computing dependencies...
+%.o: %.cmx
+	:
+
+.ml.cmxs:
+	$(PRINT_PACKING) $@
+	$(OCAMLOPT) -shared -o $@ $(OFLAGS) $<
+
+.mll.ml:
+	$(PRINT_OCAMLLEX) $@
+	$(CHMOD_RW) $@
+	$(OCAMLLEX) $<
+	$(CHMOD_RO) $@
+
+%.mli %.ml: %.mly
+	$(PRINT_OCAMLYACC) $@
+	$(CHMOD_RW) $(<:.mly=.ml) $(<:.mly=.mli)
+	$(OCAMLYACC) -v $<
+	$(CHMOD_RO) $(<:.mly=.ml) $(<:.mly=.mli)
+
+.tex.dvi:
+	$(PRINT_LATEX) $@
+	latex $< && latex $<
+
+.dvi.ps:
+	$(PRINT_DVIPS) $@
+	dvips $< -o $@
+
+.tex.html:
+	$(PRINT_HEVEA) $@
+	hevea $<
+
+.c.o:
+	$(PRINT_OCAMLC) $@
+	$(OCAMLC) $(BFLAGS) -ccopt "-o $@" $<
+
+endif
+
+
+##########################################################################
+# Local Variables:
+# mode: makefile
+# End:

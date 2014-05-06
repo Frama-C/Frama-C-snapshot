@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -29,7 +29,7 @@
 type 'a t
 
 val empty : 'a t
-val lf : int -> 'a option -> 'a t
+val singleton : int -> 'a -> 'a t
 
 val compare : ('a -> 'a -> int) -> 'a t -> 'a t -> int
 val equal : ('a -> 'a -> bool) -> 'a t -> 'a t -> bool
@@ -42,7 +42,10 @@ val find : int -> 'a t -> 'a (** or raise Not_found *)
 val add : int -> 'a -> 'a t -> 'a t
 val remove : int -> 'a t -> 'a t
 
+(** [insert (fun key v old -> ...) key v map] *)
 val insert : (int -> 'a -> 'a -> 'a) -> int -> 'a -> 'a t -> 'a t
+
+val change : (int -> 'b -> 'a option -> 'a option) -> int -> 'b -> 'a t -> 'a t
 
 val iter : ('a -> unit) -> 'a t -> unit
 val iteri : (int -> 'a -> unit) -> 'a t -> unit
@@ -50,16 +53,29 @@ val iteri : (int -> 'a -> unit) -> 'a t -> unit
 val fold : ('a -> 'b -> 'b) -> 'a t -> 'b -> 'b
 val foldi : (int -> 'a -> 'b -> 'b) -> 'a t -> 'b -> 'b
 
+val mapl : (int -> 'a -> 'b) -> 'a t -> 'b list
+
 val map : ('a -> 'b) -> 'a t -> 'b t
 val mapi : (int -> 'a -> 'b) -> 'a t -> 'b t
 val mapf : (int -> 'a -> 'b option) -> 'a t -> 'b t
+val mapq : (int -> 'a -> 'a option) -> 'a t -> 'a t
 val filter : (int -> 'a -> bool) -> 'a t -> 'a t
+val partition : (int -> 'a -> bool) -> 'a t -> 'a t * 'a t
+val partition_split : (int -> 'a -> 'a option * 'a option) -> 'a t -> 'a t * 'a t
 
-val intersect : 'a t -> 'b t -> bool
+val for_all: (int -> 'a -> bool) -> 'a t -> bool
+val exists: (int -> 'a -> bool) -> 'a t -> bool
 
-val inter : (int -> 'a -> 'a -> 'a) -> 'a t -> 'a t -> 'a t
 val union : (int -> 'a -> 'a -> 'a) -> 'a t -> 'a t -> 'a t
-val subset :  (int -> 'a -> 'b -> bool) -> 'a t -> 'b t -> bool
+val inter : (int -> 'a -> 'b -> 'c) -> 'a t -> 'b t -> 'c t
+val interf : (int -> 'a -> 'b -> 'c option) -> 'a t -> 'b t -> 'c t
+val interq : (int -> 'a -> 'a -> 'a option) -> 'a t -> 'a t -> 'a t
+val diffq :  (int -> 'a -> 'a -> 'a option) -> 'a t -> 'a t -> 'a t
+val subsetk : 'a t -> 'b t -> bool
+val subset : (int -> 'a -> 'b -> bool) -> 'a t -> 'b t -> bool
+val intersect : 'a t -> 'b t -> bool
+val intersectf : (int -> 'a -> 'b -> bool) -> 'a t -> 'b t -> bool
+
 
 val merge : (int -> 'a option -> 'b option -> 'c option) -> 'a t -> 'b t -> 'c t
 val iter2 : (int -> 'a option -> 'b option -> unit) -> 'a t -> 'b t -> unit

@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -20,14 +20,15 @@
 (*                                                                        *)
 (**************************************************************************)
 
-external set_round_downward: unit -> unit = "set_round_downward"
-external set_round_upward: unit -> unit = "set_round_upward"
-external set_round_nearest_even: unit -> unit = "set_round_nearest_even"
+external set_round_downward: unit -> unit = "set_round_downward" "noalloc"
+external set_round_upward: unit -> unit = "set_round_upward" "noalloc"
+external set_round_nearest_even: unit -> unit = "set_round_nearest_even" "noalloc"
 
-external round_to_single_precision_float: float -> float = "round_to_float"
-
+external round_to_single_precision_float: float -> float = "round_to_float" 
 external sys_single_precision_of_string: string -> float = 
     "single_precision_of_string"
+(* TODO two functions above: declare "float", 
+   must have separate version for bytecode, see OCaml manual *)
 
 let max_single_precision_float = Int32.float_of_bits 0x7f7fffffl
 let most_negative_single_precision_float = -. max_single_precision_float
@@ -50,7 +51,14 @@ let inf ~man_size ~max_exp =
 let make_float ~num ~den ~exp ~man_size ~min_exp ~max_exp = 
   assert (Integer.gt num Integer.zero);
   assert (Integer.gt den Integer.zero);
-
+(*
+  Format.printf "make_float: num den exp:@\n%a@\n@\n%a@\n@\n%d@.min_exp:%d max_exp:%d@."
+    (Integer.pretty ~hexa:false) num 
+    (Integer.pretty ~hexa:false) den
+    exp
+    min_exp
+    max_exp;
+*)
   let size_bi = Integer.of_int man_size in
   let ssize_bi = Integer.of_int (succ man_size) in
   let min_exp = min_exp - man_size in
@@ -58,9 +66,8 @@ let make_float ~num ~den ~exp ~man_size ~min_exp ~max_exp =
   let den = ref den in
   let exp = ref exp in
   while 
-    Integer.ge
-      num 
-      (Integer.shift_left !den ssize_bi)
+    Integer.ge num (Integer.shift_left !den ssize_bi)
+    || !exp < min_exp
   do
     den := Integer.shift_left !den Integer.one;
     incr exp
@@ -76,8 +83,13 @@ let make_float ~num ~den ~exp ~man_size ~min_exp ~max_exp =
   done;
   let num = !num in
   let exp = !exp in
- 
-  if exp > max_exp then inf ~man_size ~max_exp
+(* 
+  Format.printf "make_float2: num den exp:@\n%a@\n@\n%a@\n@\n%d@."
+    (Integer.pretty ~hexa:false) num 
+    (Integer.pretty ~hexa:false) den
+    exp;
+*)
+  if exp > max_exp - man_size then inf ~man_size ~max_exp
   else
     let man = Integer.native_div num den in
     let rem =    
@@ -87,7 +99,7 @@ let make_float ~num ~den ~exp ~man_size ~min_exp ~max_exp =
       Integer.shift_left rem Integer.one
     in
     let man = Integer.to_int64 man in
-    (*  Format.printf "pre-rounding: num den man rem: %a %a %Ld %a@."
+(* Format.printf "pre-round: num den man rem:@\n%a@\n@\n%a@\n@\n%Ld@\n@\n%a@."
         (Integer.pretty ~hexa:false) num 
         (Integer.pretty ~hexa:false) den
         man
@@ -217,6 +229,11 @@ let double_precision_of_string s =
   else (* decimal *)
     parse_float ~man_size:52 ~min_exp:(-1022) ~max_exp:1023 s
 
+let parse_kind kind string =
+  match kind with
+  | Cil_types.FFloat -> single_precision_of_string string
+  | Cil_types.FDouble | Cil_types.FLongDouble ->
+    double_precision_of_string string
 
 let pretty_normal ~use_hex fmt f =
   let double_norm = Int64.shift_left 1L 52 in
@@ -310,21 +327,24 @@ exception Float_Non_representable_as_Int64
    raise Float_Non_representable_as_Int64. This is the most reasonable as
    a floating-point number may represent an exponentially large integer. *)
 let truncate_to_integer =
-  let min_64_float = Int64.to_float Int64.min_int in
-  let max_64_float =
-    let open Int64 in
-    float_of_bits (pred (bits_of_float (to_float max_int)))
+  let min_64_float = -9.22337203685477581e+18 
+           (* Int64.to_float (-0x8000000000000000L) *) 
   in
+  let max_64_float = 9.22337203685477478e+18 
+(*    let open Int64 in
+    float_of_bits (pred (bits_of_float (to_float max_int))) *)
+  in
+  let float_non_representable_as_int64 = Float_Non_representable_as_Int64 in
   fun x ->
-    if min_64_float <= x && x <= max_64_float then
+    let max_64_float = Extlib.id max_64_float in
+    if x < min_64_float || x > (max_64_float +. max_64_float)
+    then raise float_non_representable_as_int64;
+    if x <= max_64_float then
       Integer.of_int64 (Int64.of_float x)
-    else if min_64_float <= x && x <= (2. *. max_64_float) then
+    else 
       Integer.add 
 	(Integer.of_int64 (Int64.of_float (x +. min_64_float)))
-	(Integer.power_two 63)
-    else
-      raise Float_Non_representable_as_Int64
-
+	(Integer.two_power_of_int 63)
 
 (*
 Local Variables:

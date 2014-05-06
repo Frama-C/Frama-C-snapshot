@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -48,8 +48,7 @@ include Datatype.Make
   type t = i (*= Top | Value of Integer.t *)
   let name = "Int_Base.t"
   let structural_descr =
-    Structural_descr.Structure
-      (Structural_descr.Sum [| [| Datatype.Big_int.packed_descr |] |])
+    Structural_descr.t_sum [| [| Datatype.Big_int.packed_descr |] |]
   let reprs = Top :: List.map (fun v -> Value v) Datatype.Big_int.reprs
   let equal = equal
   let compare = compare

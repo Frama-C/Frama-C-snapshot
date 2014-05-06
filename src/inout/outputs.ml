@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -20,11 +20,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* Hidden by open Db *)
-let get_external_aux = Operational_inputs.get_external_aux
 open Cil_types
 open Visitor
-open Db
 open Locations
 
 class virtual do_it_ = object(self)
@@ -35,7 +32,7 @@ class virtual do_it_ = object(self)
 
   method result = outs
 
-  method vstmt_aux s =
+  method! vstmt_aux s =
     match s.skind with
       | UnspecifiedSequence seq ->
           List.iter
@@ -49,28 +46,16 @@ class virtual do_it_ = object(self)
     outs <- Zone.join new_ outs;
 
   method private do_assign lv =
-    let loc =
-      !Value.lval_to_loc ~with_alarms:CilE.warn_none_mode
-        self#current_kinstr
-        lv
+    let state = Db.Value.get_state self#current_kinstr in
+    let _deps, bits_loc, _exact =
+      !Db.Value.lval_to_zone_with_deps_state state
+	~deps:None ~for_writing:true lv
     in
-    if not (Location_Bits.equal loc.loc Location_Bits.bottom)
-    then
-      begin
-        if Location_Bits.equal
-          loc.loc
-          Location_Bits.top
-        then
-          Inout_parameters.debug ~current:true
-            "Problem with %a@\nValue at this point:@\n%a"
-            Printer.pp_lval lv
-            Value.pretty_state (Value.get_state self#current_kinstr) ;
-        let bits_loc = enumerate_valid_bits ~for_writing:true loc in
-        self#join bits_loc
-      end
+    self#join bits_loc
 
-  method vinst i =
-    if Value.is_reachable (Value.noassert_get_state self#current_kinstr) then
+  method! vinst i =
+    if Db.Value.is_reachable (Db.Value.noassert_get_state self#current_kinstr) 
+    then
       (* noassert needed for Eval.memoize. Not really satisfactory *)
     begin
       match i with
@@ -78,19 +63,20 @@ class virtual do_it_ = object(self)
       | Call (lv_opt,exp,_,_) ->
           (match lv_opt with None -> ()
              | Some lv -> self#do_assign lv);
-          let _, callees =
-            !Value.expr_to_kernel_function
-              ~with_alarms:CilE.warn_none_mode
-              ~deps:None
-              self#current_kinstr
-              exp
-          in
-          Kernel_function.Hptset.iter
-            (fun kf ->
-               let { Inout_type.over_outputs = z } =
-                 get_external_aux ?stmt:self#current_stmt kf in
-               self#join z
-            ) callees
+          let state = Db.Value.get_state self#current_kinstr in
+          if Cvalue.Model.is_top state then
+            self#join Zone.top
+          else
+            let _, callees =
+              !Db.Value.expr_to_kernel_function_state ~deps:None state exp in
+            Kernel_function.Hptset.iter
+              (fun kf ->
+                let { Inout_type.over_outputs = z } =
+                  Operational_inputs.get_external_aux
+		    ?stmt:self#current_stmt kf 
+		in
+                self#join z
+              ) callees
       | _ -> ()
     end;
     Cil.SkipChildren
@@ -102,7 +88,7 @@ class virtual do_it_ = object(self)
 
   method compute_funspec kf =
     let state = self#specialize_state_on_call kf in
-    let behaviors = !Value.valid_behaviors kf state in
+    let behaviors = !Db.Value.valid_behaviors kf state in
     let assigns = Ast_info.merge_assigns behaviors in
     !Db.Value.assigns_outputs_to_zone state ~result:None assigns
 end

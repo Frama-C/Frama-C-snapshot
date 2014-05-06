@@ -80,7 +80,7 @@ module B = struct
   module T = Type.Abstract(struct let name = "A.t" end)
   let ty = T.ty
   let _ =
-    Type.register ~ml_name:None ~name:"B.t" Structural_descr.Unknown [ 0.0 ]
+    Type.register ~ml_name:None ~name:"B.t" Structural_descr.t_unknown [ 0.0 ]
   module U = Type.Abstract(struct let name = "A.u" end)
   let ty' = U.ty
   let fut = Datatype.func Datatype.unit ty'

@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -33,185 +33,207 @@ include Plugin.S
 (** {2 Installation Information} *)
 (* ************************************************************************* *)
 
-module PrintVersion: Plugin.Bool
+module PrintVersion: Parameter_sig.Bool
   (** Behavior of option "-version" *)
 
-module PrintShare: Plugin.Bool
+module PrintShare: Parameter_sig.Bool
   (** Behavior of option "-print-share-path" *)
 
-module PrintLib: Plugin.Bool
+module PrintLib: Parameter_sig.Bool
   (** Behavior of option "-print-lib-path" *)
 
-module PrintPluginPath: Plugin.Bool
+module PrintPluginPath: Parameter_sig.Bool
   (** Behavior of option "-print-plugin-path" *)
 
 (* ************************************************************************* *)
 (** {2 Output Messages} *)
 (* ************************************************************************* *)
 
-module GeneralVerbose: Plugin.Int
+module GeneralVerbose: Parameter_sig.Int
   (** Behavior of option "-verbose" *)
 
-module GeneralDebug: Plugin.Int
+module GeneralDebug: Parameter_sig.Int
   (** Behavior of option "-debug" *)
 
-module Quiet: Plugin.Bool
+module Quiet: Parameter_sig.Bool
   (** Behavior of option "-quiet" *)
 
 (** @plugin development guide *)
 module Unicode: sig
-  include Plugin.Bool
+  include Parameter_sig.Bool
   val without_unicode: ('a -> 'b) -> 'a -> 'b
   (** Execute the given function as if the option [-unicode] was not set. *)
 end
 (** Behavior of option "-unicode".
     @plugin development guide *)
 
-module UseUnicode: Plugin.Bool
+module UseUnicode: Parameter_sig.Bool
   (** Behavior of option "-unicode"
       @deprecated since Nitrogen-20111001 use module {!Unicode} instead. *)
 
-module Time: Plugin.String
+module Time: Parameter_sig.String
   (** Behavior of option "-time" *)
 
-module Collect_messages: Plugin.Bool
+module Collect_messages: Parameter_sig.Bool
 (** Behavior of option "-collect-messages" *)
 
 (* ************************************************************************* *)
 (** {2 Input / Output Source Code} *)
 (* ************************************************************************* *)
 
-module PrintCode : Plugin.Bool
+module PrintCode : Parameter_sig.Bool
   (** Behavior of option "-print" *)
 
-module PrintComments: Plugin.Bool
+module PrintComments: Parameter_sig.Bool
   (** Behavior of option "-keep-comments" *)
 
 (** Behavior of option "-ocode".
     @plugin development guide *)
 module CodeOutput : sig
-  include Plugin.String
+  include Parameter_sig.String
   val output: (Format.formatter -> unit) -> unit
 end
 
-module FloatNormal: Plugin.Bool
+(** Behavior of option "-add-symbolic-path"
+    @since Neon-20130301 *)
+module SymbolicPath: Parameter_sig.String_set
+
+module FloatNormal: Parameter_sig.Bool
   (** Behavior of option "-float-normal" *)
 
-module FloatRelative: Plugin.Bool
+module FloatRelative: Parameter_sig.Bool
   (** Behavior of option "-float-relative" *)
 
-module FloatHex: Plugin.Bool
+module FloatHex: Parameter_sig.Bool
   (** Behavior of option "-float-hex" *)
 
-module BigIntsHex: Plugin.Int
+module BigIntsHex: Parameter_sig.Int
   (** Behavior of option "-hexadecimal-big-integers" *)
 
 (* ************************************************************************* *)
 (** {2 Save/Load} *)
 (* ************************************************************************* *)
 
-module SaveState: Plugin.String
+module SaveState: Parameter_sig.String
   (** Behavior of option "-save" *)
 
-module LoadState: Plugin.String
+module LoadState: Parameter_sig.String
   (** Behavior of option "-load" *)
 
-module AddPath: Plugin.String_list
+module AddPath: Parameter_sig.String_list
   (** Behavior of option "-add-path" *)
 
-module LoadModule: Plugin.String_set
+module LoadModule: Parameter_sig.String_set
   (** Behavior of option "-load-module" *)
 
-module LoadScript: Plugin.String_set
+module LoadScript: Parameter_sig.String_set
   (** Behavior of option "-load-script" *)
 
-module Dynlink: Plugin.Bool
+module Dynlink: Parameter_sig.Bool
   (** Behavior of option "-dynlink" *)
 
 (** Kernel for journalization. *)
 module Journal: sig
 
-  module Enable: Plugin.Bool
+  module Enable: Parameter_sig.Bool
     (** Behavior of option "-journal-enable" *)
 
-  module Name: Plugin.String
+  module Name: Parameter_sig.String
     (** Behavior of option "-journal-name" *)
 
 end
+
+module Session_dir: Parameter_sig.String
+(** Directory in which session files are searched. 
+    @since Neon-20130301 *)
+
+module Config_dir: Parameter_sig.String
+(** Directory in which config files are searched. 
+    @since Neon-20130301 *)
 
 (* ************************************************************************* *)
 (** {2 Customizing Normalization} *)
 (* ************************************************************************* *)
 
-module UnrollingLevel: Plugin.Int
+module UnrollingLevel: Parameter_sig.Int
   (** Behavior of option "-ulevel" *)
+
+module UnrollingForce: Parameter_sig.Bool
+  (** Behavior of option "-ulevel-force" 
+      @since Fluorine-20130501+dev *)
 
 (** Behavior of option "-machdep".
     If function [set] is called, then {!File.prepare_from_c_files} must be
     called for well preparing the AST. *)
-module Machdep: Plugin.String
+module Machdep: Parameter_sig.String
 
 (** Behavior of option "-enums" *)
-module Enums: Plugin.String
+module Enums: Parameter_sig.String
 
-module CppCommand: Plugin.String
+module CppCommand: Parameter_sig.String
   (** Behavior of option "-cpp-command" *)
 
-module CppExtraArgs: Plugin.String_list
+module CppExtraArgs: Parameter_sig.String_list
   (** Behavior of option "-cpp-extra-args" *)
 
-module ReadAnnot: Plugin.Bool
+module ReadAnnot: Parameter_sig.Bool
   (** Behavior of option "-read-annot" *)
 
-module PreprocessAnnot: Plugin.Bool
+module PreprocessAnnot: Parameter_sig.Bool
   (** Behavior of option "-pp-annot" *)
 
-module TypeCheck: Plugin.Bool
-  (** Behavior of option "-type-check" *)
+module TypeCheck: Parameter_sig.Bool
+  (** Behavior of option "-typecheck" *)
 
-module ContinueOnAnnotError: Plugin.Bool
+module ContinueOnAnnotError: Parameter_sig.Bool
   (** Behavior of option "-continue-annot-error" *)
 
-module SimplifyCfg: Plugin.Bool
+module SimplifyCfg: Parameter_sig.Bool
   (** Behavior of option "-simplify-cfg" *)
 
-module KeepSwitch: Plugin.Bool
+module KeepSwitch: Parameter_sig.Bool
   (** Behavior of option "-keep-switch" *)
 
-module Keep_unused_specified_functions: Plugin.Bool
-(** Behavior of option -keep-unused-specified-function. *)
+module Keep_unused_specified_functions: Parameter_sig.Bool
+(** Behavior of option "-keep-unused-specified-function". *)
 
-module Constfold: Plugin.Bool
+module SimplifyTrivialLoops: Parameter_sig.Bool
+(** Behavior of option "-simplify-trivial-loops". *)
+
+module Constfold: Parameter_sig.Bool
   (** Behavior of option "-constfold" *)
 
-module InitializedPaddingLocals: Plugin.Bool
+module InitializedPaddingLocals: Parameter_sig.Bool
   (** Behavior of option "-initialized-padding-locals" *)
+
+module AgressiveMerging: Parameter_sig.Bool
+  (** Behavior of option "-agressive-merging" *)
 
 (** Analyzed files *)
 module Files: sig
 
-  include Plugin.String_list
+  include Parameter_sig.String_list
     (** List of files to analyse *)
 
-  module Check: Plugin.Bool
+  module Check: Parameter_sig.Bool
     (** Behavior of option "-check" *)
 
-  module Copy: Plugin.Bool
+  module Copy: Parameter_sig.Bool
     (** Behavior of option "-copy" *)
 
-  module Orig_name: Plugin.Bool
+  module Orig_name: Parameter_sig.Bool
     (** Behavior of option "-orig-name" *)
 
 end
 
-val normalization_parameters: Parameter.t list
+val normalization_parameters: Typed_parameter.t list
 (** All the normalization options that influence the AST (in particular,
     changing one will reset the AST entirely *)
 
-module WarnDecimalFloat: Plugin.String
+module WarnDecimalFloat: Parameter_sig.String
   (** Behavior of option "-warn-decimal-float" *)
 
-module WarnUndeclared: Plugin.Bool
+module WarnUndeclared: Parameter_sig.Bool
   (** Behavior of option "-warn-call-to-undeclared" *)
 
 
@@ -219,10 +241,10 @@ module WarnUndeclared: Plugin.Bool
 (** {3 Customizing cabs2cil options} *)
 (* ************************************************************************* *)
 
-module AllowDuplication: Plugin.Bool
+module AllowDuplication: Parameter_sig.Bool
   (** Behavior of option "-allow-duplication". *)
 
-module DoCollapseCallCast: Plugin.Bool
+module DoCollapseCallCast: Parameter_sig.Bool
   (** Behavior of option "-collapse-call-cast". 
 
       If false, the destination of a Call instruction should always have the
@@ -237,7 +259,7 @@ module DoCollapseCallCast: Plugin.Bool
       This is false by default.  Set to true to replicate the behavior
       of CIL 1.3.5 and earlier. *)
 
-module ForceRLArgEval: Plugin.Bool
+module ForceRLArgEval: Parameter_sig.Bool
   (** Behavior of option "-force-rl-arg-eval". *)
 
 (* ************************************************************************* *)
@@ -251,7 +273,7 @@ module ForceRLArgEval: Plugin.Bool
     point is invalid in the right way. *)
 module MainFunction: sig
 
-  include Plugin.String
+  include Parameter_sig.String
 
   (** {2 Internal functions}
 
@@ -267,34 +289,34 @@ end
     {!LibEntry.get} since the first one handles the case where the entry point
     is invalid in the right way. *)
 module LibEntry: sig
-  include Plugin.Bool
+  include Parameter_sig.Bool
   val unsafe_set: t -> unit (** Not for casual users. *)
 end
 
-module UnspecifiedAccess: Plugin.Bool
+module UnspecifiedAccess: Parameter_sig.Bool
   (** Behavior of option "-unspecified-access" *)
 
-module SafeArrays: Plugin.Bool
+module SafeArrays: Parameter_sig.Bool
   (** Behavior of option "-safe-arrays".
       @plugin development guide *)
 
-module SignedOverflow: Plugin.Bool
+module SignedOverflow: Parameter_sig.Bool
   (** Behavior of option "-warn-signed-overflow" *)
 
-module UnsignedOverflow: Plugin.Bool
+module UnsignedOverflow: Parameter_sig.Bool
   (** Behavior of option "-warn-unsigned-overflow" *)
 
-module SignedDowncast: Plugin.Bool
+module SignedDowncast: Parameter_sig.Bool
   (** Behavior of option "-warn-signed-downcast" *)
 
-module UnsignedDowncast: Plugin.Bool
+module UnsignedDowncast: Parameter_sig.Bool
   (** Behavior of option "-warn-unsigned-downcast" *)
 
-module AbsoluteValidRange: Plugin.String
+module AbsoluteValidRange: Parameter_sig.String
   (** Behavior of option "-absolute-valid-range" *)
 
 (*
-module FloatFlushToZero: Plugin.Bool
+module FloatFlushToZero: Parameter_sig.Bool
   (** Behavior of option "-float-flush-to-zero" *)
 *)
 

@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -20,7 +20,6 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open Db
 open Options
 
 module KfSorted = struct
@@ -45,7 +44,7 @@ module KfSorted = struct
         Kernel_function.compare kf1 kf2
 end
 
-module SetKfSorted = Set.Make(KfSorted)
+module SetKfSorted = FCSet.Make(KfSorted)
 
 module SGraph =
   Graph.Imperative.Digraph.ConcreteLabeled
@@ -65,7 +64,7 @@ module SGState =
         end))
     (struct
       let name = "SGState"
-      let dependencies = [ Value.self ]
+      let dependencies = [ Db.Value.self ]
      end)
 
 module SCQueue =
@@ -80,16 +79,16 @@ let callgraph () =
   SGState.memo
     (fun () ->
        let g = SGraph.create () in
-       !Value.compute ();
+       !Db.Value.compute ();
        Globals.Functions.iter
          (fun kf ->
-            if !Value.is_called kf then SGraph.add_vertex g kf;
+            if !Db.Value.is_called kf then SGraph.add_vertex g kf;
             List.iter
               (fun (caller,call_sites) ->
                  List.iter
                    (fun call_site -> SGraph.add_edge_e g (kf,call_site,caller))
                    call_sites)
-              (!Value.callers kf));
+              (!Db.Value.callers kf));
        g)
 
 module Service =
@@ -103,8 +102,8 @@ module Service =
          let name = Kernel_function.get_name
          let attributes v =
            [ `Style
-               (if Kernel_function.is_definition v then `Bold
-                else `Dotted) ]
+               [if Kernel_function.is_definition v then `Bold
+                else `Dotted] ]
          let entry_point () =
            try Some (fst (Globals.entry_point ()))
            with Globals.No_such_entry_point _ -> None

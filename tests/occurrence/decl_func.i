@@ -6,7 +6,7 @@ int x,y;
 
 /*@ predicate foo{L} = x == y; */
 
-/*@ assigns \nothing;
+/*@ assigns \result \from \nothing;
   ensures \result == x + 1;
 */
 int f(int x);

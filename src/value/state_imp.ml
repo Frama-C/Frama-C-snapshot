@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -126,37 +126,11 @@ let rec add_exn v s =
       end
     end
 
-let merge_into sa sb =
-  let unchanged = ref true in
-  let f e =
-    try
-      add_exn e sb ;
-      unchanged := false
-    with Unchanged ->
-      ()
-  in
-  let result = iter f sa in
-  if !unchanged then raise Unchanged;
-  result
-
-let merge_set_into set sb =
-  let unchanged = ref true in
-  let f e =
-    try
-      add_exn e sb ;
-      unchanged := false
-    with Unchanged ->
-      ()
-  in
-  let result = State_set.iter f set in
-  if !unchanged then raise Unchanged;
-  result
-
 let merge_set_return_new set sb =
-  let f acc e =
+  let f acc (e, trace) =
     try
       add_exn e sb ;
-      e :: acc
+      (e,trace) :: acc
     with Unchanged ->
       acc
   in
@@ -168,6 +142,7 @@ let add v s =
   try
     add_exn v s
   with Unchanged -> ()
+;;
 
 let singleton v =
   let r = empty () in
@@ -185,7 +160,7 @@ let fold f acc s = fold (fun acc v -> f v acc) s acc
 let to_list i = Sindexed.fold (fun _k v a -> v :: a) i.t i.o
 
 let to_set i =
-  State_set.of_list (to_list i)
+  State_set.of_list_forget_history (to_list i)
 
 (*
 Local Variables:

@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -39,6 +39,7 @@ module Location_Bytes : sig
     val iter : (Base.t -> Ival.t -> unit) -> t -> unit
     val find :  key -> t -> Ival.t
     val fold : (Base.t -> Ival.t -> 'a -> 'a) -> t -> 'a -> 'a
+    val shape: t -> Ival.t Hptmap.Shape(Base.Base).t
   end
 
   type z =
@@ -47,9 +48,10 @@ module Location_Bytes : sig
 
   (** Those locations have a lattice structure, including standard operations
       such as [join], [narrow], etc. *)
-  include Lattice
+  include Lattice_type.AI_Lattice_with_cardinal_one
     with type t = z
-    and type widen_hint = Base.SetLattice.widen_hint * (Base.t -> Ival.widen_hint)
+    and type  widen_hint = Base.t -> Ival.widen_hint
+  include Lattice_type.With_Error_Top
 
   val singleton_zero : t
     (** the set containing only the value for to the C expression [0] *)
@@ -87,7 +89,6 @@ module Location_Bytes : sig
   val topify_misaligned_read_origin : t -> t
   val topify_merge_origin : t -> t
   val topify_leaf_origin : t -> t
-  val under_topify : t -> t
   val topify_with_origin: Origin.t -> t -> t
   val topify_with_origin_kind: Origin.kind -> t -> t
   val inject_top_origin : Origin.t -> Base.SetLattice.O.t -> t
@@ -103,8 +104,13 @@ module Location_Bytes : sig
   val fold_i : (Base.t -> Ival.t -> 'a -> 'a) -> t -> 'a -> 'a
     (** Fold with offsets. 
         @raise Error_Top in the cases [Top Top], [Top bases]. *)
+  val fold_topset_ok: (Base.t -> Ival.t -> 'a -> 'a) -> t -> 'a -> 'a
+    (** Fold with offsets, including in the case [Top bases]. In this case,
+        [Ival.top] is supplied to the iterator.
+        @raise Error_Top in the case [Top Top]. *)
+
   val cached_fold:
-    cache:string * int ->
+    cache_name:string ->
     temporary:bool ->
     f:(Base.t -> Ival.t -> 'a) ->
     projection:(Base.t -> Ival.t) ->
@@ -114,11 +120,10 @@ module Location_Bytes : sig
   (** Number of locations *)
   val cardinal_zero_or_one : t -> bool
   val cardinal_less_than : t -> int -> int
+  val cardinal: t -> Integer.t option (** None if the cardinal is unbounded *)
   val find_lonely_binding : t -> Base.t * Ival.t
   val find_lonely_key : t -> Base.t * Ival.t
-  val fold_enum : split_non_enumerable:int -> (t -> 'a -> 'a) -> t -> 'a -> 'a
-  val splitting_cardinal_less_than :
-    split_non_enumerable:int -> t -> int -> int
+  val fold_enum : (t -> 'a -> 'a) -> t -> 'a -> 'a
 
   (** Destructuring *)
   val find_or_bottom : Base.t -> M.t -> Ival.t
@@ -174,34 +179,17 @@ module Zone : sig
 
   type map_t
   type tt = Top of Base.SetLattice.t * Origin.t | Map of map_t
-  include Datatype.S with type t = tt
+  include Datatype.S_with_collections with type t = tt
 
-  val top : t
-  val bottom : t
+  include Lattice_type.Bounded_Join_Semi_Lattice with type t := t
+  include Lattice_type.With_Top with type t := t
+  include Lattice_type.With_Narrow with type t := t
+  include Lattice_type.With_Under_Approximation with type t := t
+  include Lattice_type.With_Diff with type t := t
+
   val is_bottom: t -> bool
   val inject : Base.t -> Int_Intervals.t -> t
 
-  val join : t -> t -> t
-    (** Over-approximation of union. *)
-
-  val link : t -> t -> t
-    (** Under_approximation of union. *)
-
-  val narrow : t -> t -> t
-    (** Over-approximation of intersection. *)
-
-  val meet : t -> t -> t
-    (** Under-approximation of intersection. *)
-
-  val diff : t -> t -> t
-    (** Over-approximation of difference.
-        [arg2] needs to be exact or an under-approximation. *)
-
-  val diff_if_one : t -> t -> t
-      (** Over-approximation of difference. [arg2] can be an
-          over-approximation. *)
-
-  exception Error_Bottom
   exception Error_Top
 
   val map_i : (Base.t -> Int_Intervals.t -> t) -> t -> t
@@ -221,14 +209,6 @@ module Zone : sig
    [valid_intersects z1 z2] returns true iff [z1] and [z2] have a valid
     intersection. *)
   val valid_intersects : t -> t -> bool
-
-  type widen_hint
-  val widen : widen_hint -> t -> t -> t
-
-  val is_included : t -> t -> bool
-  val is_included_exn : t -> t -> unit
-  val cardinal_zero_or_one : t -> bool
-  val cardinal_less_than : t -> int -> int
 
   (** {3 Folding} *)
 
@@ -250,7 +230,7 @@ module Zone : sig
         @raise Error_Top in the case [Top Top]. *)
 
   val cached_fold :
-    cache:string * int ->
+    cache_name:string ->
     temporary:bool ->
     f:(Base.t -> Lattice_Interval_Set.Int_Intervals.t -> 'b) ->
     projection:(Base.t -> Lattice_Interval_Set.Int_Intervals.t) ->
@@ -263,6 +243,9 @@ module Zone : sig
 
   val default :  Base.t -> Int.t -> Int.t -> t
   val defaultall :  Base.t -> t
+
+  (** {3 Misc} *)
+  val shape: map_t -> Int_Intervals.t Hptmap.Shape(Base.Base).t
 
 (**/**)
   val clear_caches: unit -> unit
@@ -281,6 +264,8 @@ type location = private {
 module Location: Datatype.S with type t = location
 
 val loc_bottom : location
+val is_bottom_loc: location -> bool
+
 val make_loc : Location_Bits.t -> Int_Base.t -> location
 
 val loc_equal : location -> location -> bool

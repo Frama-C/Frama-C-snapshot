@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -20,25 +20,26 @@
 (*                                                                        *)
 (**************************************************************************)
 
+(** Evaluation of terms and predicates *)
+
 open Cil_types
 open Locations
 open Cvalue
 
 (** Evaluating a predicate. [Unknown] is the Top of the lattice *)
-type predicate_value = True | False | Unknown
-val pretty_predicate_value : Format.formatter -> predicate_value -> unit
+type predicate_status = True | False | Unknown
+val pretty_predicate_status : Format.formatter -> predicate_status -> unit
 
-val join_predicate : predicate_value -> predicate_value -> predicate_value
-
-val fold_join_predicate :
-  ((predicate_value option -> 'a -> predicate_value option) ->
-   'b option -> 'c -> predicate_value option) ->
-  ('a -> predicate_value) -> 'c -> predicate_value
+val join_predicate_status :
+  predicate_status -> predicate_status -> predicate_status
+val join_list_predicate_status :
+  predicate_status list -> predicate_status
 
 
 (** Error during the evaluation of a term or a predicate *)
 type logic_evaluation_error =
   | Unsupported of string
+  | UnsupportedLogicVar of logic_var
   | AstError of string
   | NoEnv of logic_label
   | NoResult
@@ -61,14 +62,15 @@ val env_post_f :
   ?c_labels:labels_states -> pre:Model.t -> post:Model.t ->
   result:varinfo option -> unit -> eval_env
 val env_assigns: init:Model.t -> eval_env
+val env_here: Model.t -> eval_env
 
 (** Dependencies needed to evaluate a term or a predicate *)
-type edeps = Zone.t Cil_datatype.Logic_label.Map.t
+type logic_deps = Zone.t Cil_datatype.Logic_label.Map.t
 
 type 'a eval_result = {
   etype: Cil_types.typ;
   evalue: 'a list;
-  edeps: edeps;
+  ldeps: logic_deps;
 }
 
 val eval_term :
@@ -85,7 +87,7 @@ val eval_tlval_as_location :
 
 val eval_tlval_as_locations :
   with_alarms:CilE.warn_mode ->
-  eval_env -> term -> location list * edeps
+  eval_env -> term -> location list * logic_deps
 
 val eval_tlval_as_zone :
   with_alarms:CilE.warn_mode ->
@@ -97,15 +99,21 @@ val eval_term_as_exact_loc :
   eval_env -> term -> Cil_datatype.Typ.t * location
 
 val eval_predicate :
-  eval_env -> predicate named -> predicate_value
+  eval_env -> predicate named -> predicate_status
+
+val predicate_deps: eval_env -> predicate named -> logic_deps
 
 val reduce_by_predicate :
   eval_env -> bool -> predicate named -> eval_env
 
-val reduce_by_disjunction :
-  always:bool ->
+(** If [reduce] is true, reduce in all cases. Otherwise, reduce only
+    when [p] is a disjunction, ie. split by this disjunction.
+    The Property is the one in which is [p]. *)
+val split_disjunction_and_reduce :
+  reduce:bool ->
   env:eval_env ->
-  State_set.t ->
-  int ->
+  (Cvalue.Model.t * Trace.t) ->
+  slevel:int ->
   predicate named ->
+  Property.t ->
   State_set.t

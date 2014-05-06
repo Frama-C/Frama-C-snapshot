@@ -2,8 +2,8 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2013                                               #
-#    CEA (Commissariat à l'énergie atomique et aux énergies              #
+#  Copyright (C) 2007-2014                                               #
+#    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              #
 #         alternatives)                                                  #
 #                                                                        #
 #  you can redistribute it and/or modify it under the terms of the GNU   #
@@ -44,54 +44,35 @@ CIL_DIRS= $(CIL_PATH) $(CIL_PATH)/ext $(CIL_PATH)/frontc $(CIL_PATH)/logic \
 
 FRAMAC_SRC_DIRS=$(UNPACKED_DIRS) $(CIL_DIRS)
 
+ifeq ($(OCAMLWIN32),yes)
+ifneq ($(CYGPATH),no)
+winpath=$(shell $(CYGPATH) -m $(1))
+else
+winpath=$(1)
+endif #CYGPATH
+else
+winpath=$(1)
+endif #OCAMLWIN32
+
 ##################
 # Flags          #
 ##################
 
-ifeq ($(findstring 3.10,$(OCAMLVERSION)),)
-HAS_OCAML311 = yes
-else
-HAS_OCAML311 = no
-endif
-
-ifeq ($(HAS_OCAML311),yes)
- ifeq ($(findstring 3.12,$(OCAMLVERSION)),)
-  ifeq ($(findstring 3.13,$(OCAMLVERSION)),) # obsolete version number
-   ifeq ($(findstring 4.00,$(OCAMLVERSION)),)
-    ifeq ($(findstring 4.01,$(OCAMLVERSION)),)
-     HAS_OCAML312 = no  # Ocaml 3.11
-     HAS_OCAML400 = no
-    else
-     HAS_OCAML312 = yes
-     HAS_OCAML400 = yes
-    endif # 4.01
-   else
-    HAS_OCAML312 = yes
-    HAS_OCAML400 = yes
-   endif # 4.00
-  else
-   HAS_OCAML312 = yes
-   HAS_OCAML400 = no
-  endif # 3.13
- else
-  HAS_OCAML312 = yes
-  HAS_OCAML400 = no
- endif
-else
- HAS_OCAML312 = no  # OCaml 3.10
- HAS_OCAML400 = no
+# findstring returns an empty string if it does not match, and the value it
+# searches if it matches. Hence we compare with the empty string and negate
+# the condition
+ifneq ($(findstring 3.12,$(OCAMLVERSION)),) # 3.12
+  HAS_OCAML4 = no
+else  # >=4
+  HAS_OCAML4 = yes
 endif
 
 # All warnings are activated by default: this could grow up the chance of
 # compatibility breaks with future versions of the caml compilers.
-# BUT that is only the case of the SVN version
-# since the distrib is not compiled with -warn-error.
+# BUT that is only the case of the SVN version since the distrib is not
+# compiled with -warn-error.
 # See BTS #310 and #638.
-ifeq ($(HAS_OCAML312),yes)
-WARNINGS= -w +a-4-6-7-9 # add warning 7 and 9 whenever 3.12 will be mandatory
-else
-WARNINGS= -w Ael
-endif
+WARNINGS= -w +a-4-6-9-41-44-45 #-strict-sequence 
 
 FLAGS	= $(WARNINGS) $(OCAML_ANNOT_OPTION) $(OPTIM)
 DEBUG	= -g
@@ -158,6 +139,8 @@ CHMOD_RW= sh -c \
   if test -e $$f; then chmod u+w $$f; fi \
 done' chmod_rw
 CP      = install
+#follow symbolic link
+CP_L    = cp -fL
 ECHO	= echo
 MKDIR   = mkdir -p
 MV	= mv
@@ -269,104 +252,8 @@ else
 DOC_PLUGIN=$(DOC_DIR)/docgen.cmo
 endif
 
-#################
-# Generic rules #
-#################
 
-.DEFAULT_GOAL=all
-
-ifndef SUFFIXES_ARE_SET
-
-SUFFIXES_ARE_SET:=true
-
-# The former .SUFFIXES delete all predefined implicit rules
-# The latter .SUFFIXES defines our suffix list
-# See GNU Make manual, section 10.7
-# This way of declaring implicit rules is deprecated,
-# but that is the only way for removing **all** predefined implicit rules
-# The only other way is to remove each predefined implicit rule, one by one.
-.SUFFIXES:
-.SUFFIXES: .c .o .mli .ml .cmi .cmo .cmx .mll .mly .tex .dvi .ps .html .cmxs \
-	.png .svg .ps
-
-ifdef DOT
-%.png: %.dot
-	$(PRINT_DOT) $@
-	$(DOT) -Tpng -o $@ $<
-
-%.svg: %.dot
-	$(PRINT_DOT) $@
-	$(ISED) -e "s/\(digraph .*\)/\1 node [href=\"\\\\N.html\"];/" $<
-	$(DOT) -Tsvg -o $@ $<
-
-%.ps: %.dot
-	$(PRINT_DOT) $@
-	$(DOT) -Tps -o $@ $<
-else
-%.png: %.dot
-	@$(ECHO) "dot missing: generation of $@ skipped."
-%.svg: %.dot
-	@$(ECHO) "dot missing: generation of $@ skipped."
-%.ps: %.dot
-	@$(ECHO) "dot missing: generation of $@ skipped."
-endif
-
-.mli.cmi:
-	$(PRINT_OCAMLC) $@
-	$(OCAMLC) -c $(BFLAGS) $<
-
-.ml.cmi:
-	$(PRINT_OCAMLC) $@
-	if `test -e $<i`; then $(OCAMLC) -c $(BFLAGS) $<i; \
-	else $(MAKE) $(patsubst %.ml,%.cmo,$<); fi
-
-.ml.cmo:
-	$(PRINT_OCAMLC) $@
-	$(OCAMLC) -c $(BFLAGS) $<
-
-%.inferred.mli: %.ml
-	$(PRINT_INFERRING) $@
-	$(OCAMLC) -i $(BFLAGS) $< > $@
-
-%.cmx: %.ml
-	$(PRINT_OCAMLOPT) $@
-	$(OCAMLOPT) -c $(OFLAGS) $<
-
-# .o are generated together with .cmx, but %.o %.cmx: %.ml only confuses
-# make when computing dependencies...
-%.o: %.cmx
-	:
-
-.ml.cmxs:
-	$(PRINT_PACKING) $@
-	$(OCAMLOPT) -shared -o $@ $(OFLAGS) $<
-
-.mll.ml:
-	$(PRINT_OCAMLLEX) $@
-	$(CHMOD_RW) $@
-	$(OCAMLLEX) $<
-	$(CHMOD_RO) $@
-
-%.mli %.ml: %.mly
-	$(PRINT_OCAMLYACC) $@
-	$(CHMOD_RW) $(<:.mly=.ml) $(<:.mly=.mli)
-	$(OCAMLYACC) -v $<
-	$(CHMOD_RO) $(<:.mly=.ml) $(<:.mly=.mli)
-
-.tex.dvi:
-	$(PRINT_LATEX) $@
-	latex $< && latex $<
-
-.dvi.ps:
-	$(PRINT_DVIPS) $@
-	dvips $< -o $@
-
-.tex.html:
-	$(PRINT_HEVEA) $@
-	hevea $<
-
-.c.o:
-	$(PRINT_OCAMLC) $@
-	$(OCAMLC) $(BFLAGS) -ccopt "-o $@" $<
-
-endif
+##########################################################################
+# Local Variables:
+# mode: makefile
+# End:

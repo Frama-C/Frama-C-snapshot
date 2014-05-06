@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -24,9 +24,18 @@ open Cil_types
 
 type call_site = kernel_function * kinstr
 
-module Callsite =
-  Datatype.Pair_with_collections(Kernel_function)(Cil_datatype.Kinstr)
+module Callsite = struct
+  include Datatype.Pair_with_collections(Kernel_function)(Cil_datatype.Kinstr)
     (struct let module_name = "Value_callbacks.Callpoint" end)
+
+  let pretty fmt (kf, ki) =
+    Format.fprintf fmt "%a@@%t" Kernel_function.pretty kf
+      (fun fmt ->
+        match ki with
+        | Kglobal -> Format.pp_print_string fmt "<main>"
+        | Kstmt stmt -> Format.pp_print_int fmt stmt.sid
+      )
+end
 
 
 type callstack = call_site list
@@ -52,6 +61,7 @@ type call_result = {
   c_cacheable: cacheable;
 }
 
+type logic_dependencies = Locations.Zone.t Cil_datatype.Logic_label.Map.t
 
 (*
 Local Variables:

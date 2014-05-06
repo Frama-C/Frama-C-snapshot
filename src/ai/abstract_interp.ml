@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -21,116 +21,22 @@
 (**************************************************************************)
 
 exception Not_less_than
-exception Is_not_included
 
-(** Generic lattice *)
-module type Lattice = sig
+open Lattice_type
 
+module Make_Lattice_Set(V:Lattice_Value): Lattice_Set with type O.elt = V.t =
+struct
   exception Error_Top
-  exception Error_Bottom
-
-  include Datatype.S (** datatype of element of the lattice *)
-
-  type widen_hint (** hints for the widening *)
-
-  val join: t -> t -> t (** over-approximation of union *)
-  val link: t -> t -> t (** under-approximation of union *)
-  val meet: t -> t -> t (** under-approximation of intersection *)
-  val narrow: t -> t -> t (** over-approximation of intersection *)
-  val bottom: t (** the smallest *)
-  val top: t  (** the largest *)
-
-  val is_included: t -> t -> bool
-  val is_included_exn: t -> t -> unit
-  val intersects: t -> t -> bool
-
-  val widen: widen_hint -> t -> t -> t
-    (** [widen h t1 t2] is an over-approximation of [join t1 t2].
-        Assumes [is_included t1 t2] *)
-
-  val cardinal_zero_or_one: t -> bool
-
-  (** [cardinal_less_than t v ]
-      @raise Not_less_than whenever the cardinal of [t] is higher than [v] *)
-  val cardinal_less_than: t -> int -> int
-
-
-end
-
-module type Lattice_With_Diff = sig
-  include Lattice
-  val diff : t -> t -> t
-    (** [diff t1 t2] is an over-approximation of [t1-t2]. *)
-  val diff_if_one : t -> t -> t
-    (** [diff t1 t2] is an over-approximation of [t1-t2].
-       Returns [t1] if [t2] is not a singleton. *)
-  val fold_enum :
-    split_non_enumerable:int -> (t -> 'a -> 'a) -> t -> 'a -> 'a
-  val splitting_cardinal_less_than:
-    split_non_enumerable:int -> t -> int -> int
-  val pretty_debug : Format.formatter -> t -> unit
-end
-
-module type Lattice_Product = sig
-  type t1
-  type t2
-  type tt = private Product of t1*t2 | Bottom
-  include Lattice with type t = tt
-  val inject : t1 -> t2 -> t
-  val fst : t -> t1
-  val snd : t -> t2
-end
-
-module type Lattice_Sum = sig
-  type t1
-  type t2
-  type sum = private Top | Bottom | T1 of t1 | T2 of t2
-  include Lattice with type t = sum
-  val inject_t1 : t1 -> t
-  val inject_t2 : t2 -> t
-end
-
-module type Lattice_Base = sig
-  type l
-  type tt = private Top | Bottom | Value of l
-  include Lattice with type t = tt
-  val project : t -> l
-  val inject: l -> t
-  val transform: (l -> l -> l) -> tt -> tt -> tt
-end
-
-module type Lattice_Set = sig
-  module O: Datatype.Set
-  type tt = private Set of O.t | Top
-  include Lattice with type t = tt and type widen_hint = O.t
-  val inject_singleton: O.elt -> t
-  val inject: O.t -> t
-  val empty: t
-  val apply2: (O.elt -> O.elt -> O.elt) -> (t -> t -> t)
-  val apply1: (O.elt -> O.elt) -> (t -> t)
-  val fold: ( O.elt -> 'a -> 'a) -> t -> 'a -> 'a
-  val iter: ( O.elt -> unit) -> t -> unit
-  val exists: (O.elt -> bool) -> t -> bool
-  val for_all: (O.elt -> bool) -> t -> bool
-  val project : t -> O.t
-  val mem : O.elt -> t -> bool
-end
-
-module type LatValue = Datatype.S_with_collections
-
-module Make_Lattice_Set(V:LatValue): Lattice_Set with type O.elt = V.t = struct
-
-  exception Error_Top
-  exception Error_Bottom
 
   module O = struct
     include Datatype.Set
-      (Set.Make(V))
+      (FCSet.Make(V))
       (V)
       (struct let module_name = "Make_lattice_set" end)
   end
 
-  type tt = Set of O.t | Top
+  type t = Set of O.t | Top
+  type set = t
   type widen_hint = O.t
 
   let bottom = Set O.empty
@@ -255,8 +161,9 @@ module Make_Lattice_Set(V:LatValue): Lattice_Set with type O.elt = V.t = struct
       | Top,_ -> false
       | Set s1,Set s2 -> O.subset s1 s2
 
-  let is_included_exn v1 v2 =
-    if not (is_included v1 v2) then raise Is_not_included
+  let join_and_is_included t1 t2 =
+    let t12 = join t1 t2 in
+    (t12, equal t12 t2)
 
   let intersects t1 t2 =
     let b = match t1,t2 with
@@ -295,13 +202,12 @@ module Make_Lattice_Set(V:LatValue): Lattice_Set with type O.elt = V.t = struct
     | Set s -> O.mem v s
 
   include
-    Datatype.Make
+    (Datatype.Make
       (struct
-         type t = tt
+         type t = set
          let name = V.name ^ " lattice_set"
          let structural_descr =
-           Structural_descr.Structure
-	     (Structural_descr.Sum [| [| O.packed_descr |] |])
+	   Structural_descr.t_sum [| [| O.packed_descr |] |]
          let reprs = Top :: List.map (fun o -> Set o) O.reprs
          let equal = equal
          let compare = compare
@@ -312,20 +218,21 @@ module Make_Lattice_Set(V:LatValue): Lattice_Set with type O.elt = V.t = struct
          let pretty = pretty
          let varname = Datatype.undefined
          let mem_project = Datatype.never_any_project
-       end)
+       end) :
+      Datatype.S with type t := t)
 
 end
 
-module Make_Hashconsed_Lattice_Set(V: Hptset.Id_Datatype)(O: Hptset.S with type elt = V.t)
-  : Lattice_Set with module O = O =
+module Make_Hashconsed_Lattice_Set(V: Hptmap.Id_Datatype)(O: Hptset.S with type elt = V.t)
+  : Lattice_Hashconsed_Set with module O = O =
 struct
 
   exception Error_Top
-  exception Error_Bottom
 
   module O = O
 
-  type tt = Set of O.t | Top
+  type t = Set of O.t | Top
+  type set = t
   type widen_hint = O.t
 
   let bottom = Set O.empty
@@ -448,19 +355,14 @@ struct
       | Top,_ -> false
       | Set s1,Set s2 -> O.subset s1 s2
 
-  let is_included_exn v1 v2 =
-    if not (is_included v1 v2) then raise Is_not_included
+  let join_and_is_included t1 t2 =
+    let t = join t1 t2 in
+    (t, t == t2)
 
   let intersects t1 t2 =
-    let b = match t1,t2 with
+    match t1,t2 with
       | _,Top | Top,_ -> true
-      | Set s1,Set s2 ->
-          O.exists (fun e -> O.mem e s2) s1
-    in
-    (* Format.printf
-       "[Lattice_Set]%a intersects %a: %b @\n"
-       pretty t1 pretty t2 b;*)
-    b
+      | Set s1,Set s2 -> O.intersects s1 s2
 
   let fold f elt init = match elt with
     | Top -> raise Error_Top
@@ -486,13 +388,11 @@ struct
     | Top -> true
     | Set s -> O.mem v s
 
-  include Datatype.Make
+  include (Datatype.Make
       (struct
-        type t = tt
+        type t = set
         let name = V.name ^ " hashconsed_lattice_set"
-        let structural_descr =
-          Structural_descr.Structure
-            (Structural_descr.Sum [| [| O.packed_descr |] |])
+        let structural_descr = Structural_descr.t_sum [| [| O.packed_descr |] |]
         let reprs = Top :: List.map (fun o -> Set o) O.reprs
         let equal = equal
         let compare = compare
@@ -503,15 +403,17 @@ struct
         let pretty = pretty
         let varname = Datatype.undefined
         let mem_project = Datatype.never_any_project
-       end)
+       end) :
+      Datatype.S with type t := t)
   let () = Type.set_ml_name ty None
 
 end
 
-module Make_Lattice_Base (V:LatValue):(Lattice_Base with type l = V.t) = struct
+module Make_Lattice_Base (V:Lattice_Value):(Lattice_Base with type l = V.t) = struct
 
   type l = V.t
-  type tt = Top | Bottom | Value of l
+  type t = Top | Bottom | Value of l
+  type base = t
   type widen_hint = V.t list
 
   let bottom = Bottom
@@ -528,11 +430,6 @@ module Make_Lattice_Base (V:LatValue):(Lattice_Base with type l = V.t) = struct
   let cardinal_zero_or_one v = match v with
     | Top  -> false
     | _ -> true
-
-  let cardinal_less_than v n = match v with
-    | Top  -> raise Not_less_than
-    | Value _ -> if n >= 1 then 1 else raise Not_less_than
-    | Bottom -> 0
 
   let compare =
     if V.compare == Datatype.undefined then
@@ -607,18 +504,18 @@ module Make_Lattice_Base (V:LatValue):(Lattice_Base with type l = V.t) = struct
        pretty t1 pretty t2 b;*)
     b
 
-  let is_included_exn v1 v2 =
-    if not (is_included v1 v2) then raise Is_not_included
+  let join_and_is_included t1 t2 =
+    let t = join t1 t2 in
+    (t, equal t t2);;
 
   let intersects t1 t2 = not (equal (meet t1 t2) Bottom)
 
-  include Datatype.Make
+  include
+  (Datatype.Make
   (struct
-    type t = tt (*= Top | Bottom | Value of l*)
+    type t = base (*= Top | Bottom | Value of l*)
     let name = V.name ^ " lattice_base"
-    let structural_descr =
-      Structural_descr.Structure
-        (Structural_descr.Sum [| [| V.packed_descr |] |])
+    let structural_descr = Structural_descr.t_sum [| [| V.packed_descr |] |]
     let reprs = Top :: Bottom :: List.map (fun v -> Value v) V.reprs
     let equal = equal
     let compare = compare
@@ -629,7 +526,8 @@ module Make_Lattice_Base (V:LatValue):(Lattice_Base with type l = V.t) = struct
     let pretty = pretty
     let varname = Datatype.undefined
     let mem_project = Datatype.never_any_project
-   end)
+   end) :
+  Datatype.S with type t := t)
   let () = Type.set_ml_name ty None
 
 end
@@ -684,23 +582,19 @@ module type Collapse = sig
 end
 
 (** If [C.collapse] then [L1.Bottom,_ = _,L2.Bottom = Bottom] *)
-module Make_Lattice_Product(L1:Lattice)(L2:Lattice)(C:Collapse):
+module Make_Lattice_Product(L1:AI_Lattice_with_cardinal_one)(L2:AI_Lattice_with_cardinal_one)(C:Collapse):
   (Lattice_Product with type t1 =  L1.t and type t2 = L2.t) =
 struct
 
-  exception Error_Top
-  exception Error_Bottom
-
   type t1 = L1.t
   type t2 = L2.t
-  type tt = Product of t1*t2 | Bottom
+  type t = Product of t1*t2 | Bottom
+  type product = t
   type widen_hint = L1.widen_hint * L2.widen_hint
 
   let hash = function
     | Bottom -> 3
     | Product(v1, v2) -> L1.hash v1 + 3 * L2.hash v2
-
-  let cardinal_less_than _ = assert false
 
   let cardinal_zero_or_one v = match v with
     | Bottom -> true
@@ -770,9 +664,21 @@ struct
       | Product (l1,ll1), Product (l2,ll2) ->
           Product(L1.join l1 l2, L2.join ll1 ll2)
 
-  let link _ = assert false (** Not implemented yet. *)
+  let link x1 x2 =
+    if x1 == x2 then x1 else
+      match x1,x2 with
+      | Bottom, v | v, Bottom -> v
+      | Product (l1,ll1), Product (l2,ll2) ->
+          Product(L1.link l1 l2, L2.link ll1 ll2)
 
-  let narrow _ = assert false (** Not implemented yet. *)
+  let narrow x1 x2 =
+    if x1 == x2 then x1 else
+    match x1,x2 with
+    | Bottom, _ | _, Bottom -> Bottom
+    | Product (l1,ll1), Product (l2,ll2) ->
+        let l1 = L1.narrow l1 l2 in
+        let l2 = L2.narrow ll1 ll2 in
+        inject l1 l2
 
   let meet x1 x2 =
     if x1 == x2 then x1 else
@@ -804,23 +710,15 @@ struct
     | Product (l1,ll1), Product (l2,ll2) ->
         (L1.is_included l1 l2) && (L2.is_included ll1 ll2)
 
-  let is_included_exn x1 x2 =
-    if x1 != x2
-    then
-      match x1,x2 with
-      | Bottom, _ -> ()
-      | _, Bottom -> raise Is_not_included
-      | Product (l1,ll1), Product (l2,ll2) ->
-          L1.is_included_exn l1 l2;
-          L2.is_included_exn ll1 ll2
+  let join_and_is_included x1 x2 =
+    let x12 = join x1 x2 in (x12, equal x12 x2)
 
-  include Datatype.Make
+  include (Datatype.Make
       (struct
-        type t = tt (*= Product of t1*t2 | Bottom*)
+        type t = product (*= Product of t1*t2 | Bottom*)
         let name = "(" ^ L1.name ^ ", " ^ L2.name ^ ") lattice_product"
         let structural_descr =
-          Structural_descr.Structure
-            (Structural_descr.Sum [| [| L1.packed_descr; L2.packed_descr |] |])
+          Structural_descr.t_sum [| [| L1.packed_descr; L2.packed_descr |] |]
         let reprs =
           Bottom ::
             List.fold_left
@@ -838,17 +736,120 @@ struct
         let pretty = pretty
         let varname = Datatype.undefined
         let mem_project = Datatype.never_any_project
+       end) :
+      Datatype.S with type t := t)
+  let () = Type.set_ml_name ty None
+
+end
+
+module Make_Lattice_UProduct(L1:AI_Lattice_with_cardinal_one)(L2:AI_Lattice_with_cardinal_one):
+  (Lattice_UProduct with type t1 =  L1.t and type t2 = L2.t) =
+struct
+
+  type t1 = L1.t
+  type t2 = L2.t
+  type tt = t1 * t2
+  type widen_hint = L1.widen_hint * L2.widen_hint
+
+  let hash (v1, v2) = L1.hash v1 + 31 * L2.hash v2
+
+  let cardinal_zero_or_one (t1, t2) = 
+        (L1.cardinal_zero_or_one t1) &&
+          (L2.cardinal_zero_or_one t2)
+
+  let compare =
+    if L1.compare == Datatype.undefined || L2.compare == Datatype.undefined then (
+      Kernel.debug "Missing comparison function for (%s, %s) lattice_uproduct: \
+                    %b %b"
+        L1.name L2.name
+        (L1.compare == Datatype.undefined) (L2.compare == Datatype.undefined);
+      Datatype.undefined)
+    else fun x x' ->
+      if x == x' then 0 else
+        match x,x' with
+          | (a,b), (a',b') ->
+              let c = L1.compare a a' in
+              if c = 0 then L2.compare b b' else c
+
+  let equal x x' =
+    if x == x' then true else
+      match x,x' with
+      | ( (a,b)), ( (a',b')) ->
+          L1.equal a a' && L2.equal b b'
+
+  let top = (L1.top,L2.top)
+
+  let bottom = L1.bottom,L2.bottom
+
+  let widen (wh1, wh2) t l =
+    let t1 = fst t in
+    let t2 = snd t in
+    let l1 = fst l in
+    let l2 = snd l in
+    (L1.widen wh1 t1 l1), (L2.widen wh2 t2 l2)
+
+  let join (l1,ll1) (l2,ll2) =
+    L1.join l1 l2, L2.join ll1 ll2
+
+  let link (l1,ll1) (l2,ll2) =
+    L1.link l1 l2, L2.link ll1 ll2
+
+  let narrow (l1,ll1) (l2,ll2) =
+    L1.narrow l1 l2, L2.narrow ll1 ll2
+
+  let meet (l1,ll1) (l2,ll2) =
+    L1.meet l1 l2, L2.meet ll1 ll2
+
+  let pretty fmt (l1, l2) =
+        Format.fprintf fmt "(%a,%a)" L1.pretty l1 L2.pretty l2
+
+  let intersects  (l1,ll1) (l2,ll2) =
+        (L1.intersects l1 l2) && (L2.intersects ll1 ll2)
+
+  let is_included x1 x2 =
+    (x1 == x2) ||
+    match x1,x2 with
+    |  (l1,ll1),  (l2,ll2) ->
+        (L1.is_included l1 l2) && (L2.is_included ll1 ll2)
+
+  let join_and_is_included (l1,ll1) (l2,ll2) =
+    let (l,b) = L1.join_and_is_included l1 l2 in
+    if b then
+      let (ll,bb) = L2.join_and_is_included ll1 ll2 in
+      ((l,ll),bb)
+    else ((l, L2.join ll1 ll2), false);;
+
+  include Datatype.Make
+      (struct
+        type t = tt (*= t1*t2 *)
+        let name = "(" ^ L1.name ^ ", " ^ L2.name ^ ") lattice_uproduct"
+        let structural_descr =
+          Structural_descr.t_sum [| [| L1.packed_descr; L2.packed_descr |] |]
+        let reprs =
+            List.fold_left
+            (fun acc l1 ->
+              List.fold_left
+                (fun acc l2 -> (l1, l2) :: acc) acc L2.reprs)
+            []
+            L1.reprs
+        let equal = equal
+        let compare = compare
+        let hash = hash
+        let rehash = Datatype.identity
+        let copy = Datatype.undefined
+        let internal_pretty_code = Datatype.undefined
+        let pretty = pretty
+        let varname = Datatype.undefined
+        let mem_project = Datatype.never_any_project
        end)
   let () = Type.set_ml_name ty None
 
 end
 
-module Make_Lattice_Sum (L1:Lattice) (L2:Lattice):
+module Make_Lattice_Sum (L1:AI_Lattice_with_cardinal_one) (L2:AI_Lattice_with_cardinal_one):
   (Lattice_Sum with type t1 = L1.t and type t2 = L2.t)
   =
 struct
-  exception Error_Top
-  exception Error_Bottom
   type t1 = L1.t
   type t2 = L2.t
   type sum = Top | Bottom | T1 of t1 | T2 of t2
@@ -862,8 +863,6 @@ struct
     | Bottom -> 5
     | T1 t -> 7 * L1.hash t
     | T2 t -> - 17 * L2.hash t
-
-  let cardinal_less_than _ = assert false
 
   let cardinal_zero_or_one v = match v with
     | Top  -> false
@@ -937,9 +936,27 @@ struct
             "Degenerating collision : %a <==> %a@\n" pretty u pretty v;*)
           top
 
-  let link _ = assert false (** Not implemented yet. *)
+  let link u v =
+    if u == v then u else
+      match u,v with
+      | T1 t1,T1 t2 -> T1 (L1.link t1 t2)
+      | T2 t1,T2 t2 -> T2 (L2.link t1 t2)
+      | Bottom,x| x,Bottom -> x
+      | _,_ ->
+          (*Format.printf
+            "Degenerating collision : %a <==> %a@\n" pretty u pretty v;*)
+          top
 
-  let narrow _ = assert false (** Not implemented yet. *)
+  let narrow u v =
+    if u == v then u else
+    match u,v with
+      | T1 t1,T1 t2 -> inject_t1 (L1.narrow t1 t2)
+      | T2 t1,T2 t2 -> inject_t2 (L2.narrow t1 t2)
+      | (T1 _ | T2 _),Top -> u
+      | Top,(T1 _ | T2 _) -> v
+      | Top,Top -> top
+      | T1 _, T2 _ | T2 _, T1 _
+      | Bottom, _ | _, Bottom -> bottom
 
   let meet u v =
     if u == v then u else
@@ -949,7 +966,9 @@ struct
       | (T1 _ | T2 _),Top -> u
       | Top,(T1 _ | T2 _) -> v
       | Top,Top -> top
-      | _,_ -> bottom
+      | T1 _, T2 _ | T2 _, T1 _
+      | Bottom, _ | _, Bottom -> bottom
+
 
   let intersects u v =
     match u,v with
@@ -972,14 +991,15 @@ struct
       "[Lattice_Sum]%a is included in %a: %b @\n" pretty u pretty v b;*)
     b
 
-  let is_included_exn v1 v2 =
-    if not (is_included v1 v2) then raise Is_not_included
+  let join_and_is_included a b =
+    let ab = join a b in (ab, equal a b)
+
 
   include Datatype.Make
   (struct
     type t = sum
     let name = "(" ^ L1.name ^ ", " ^ L2.name ^ ") lattice_sum"
-    let structural_descr = Structural_descr.Unknown
+    let structural_descr = Structural_descr.t_unknown
     let reprs =
       Top :: Bottom
       :: List.fold_left

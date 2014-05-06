@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -24,7 +24,7 @@ let compute = Build.compute_pdg
 
 let pretty ?(bw=false) fmt pdg =
     let kf = PdgTypes.Pdg.get_kf pdg in
-    Format.fprintf fmt "@[RESULT for %s:@]@\n@[%a@]"
+    Format.fprintf fmt "@[RESULT for %s:@]@\n@[ %a@]"
       (Kernel_function.get_name kf) (PdgTypes.Pdg.pretty_bw ~bw) pdg
 
 let pretty_node short =
@@ -33,7 +33,7 @@ let pretty_node short =
 
 let print_dot pdg filename =
   PdgTypes.Pdg.build_dot filename pdg;
-  Pdg_parameters.result "dot file generated in %s" filename
+  Pdg_parameters.feedback "dot file generated in %s" filename
 
 module Tbl =
   Kernel_function.Make_Table
@@ -111,14 +111,9 @@ let () =
   Db.Pdg.pretty_key := PdgIndex.Key.pretty;
   Db.Pdg.extract := print_dot
 
-(* Polymorphic functions : cannot be registered in Db.
-   Can be used through Pdg.Register (see Pdg.mli) *)
-let translate_marks_to_prop = Marks.translate_marks_to_prop
-let call_out_marks_to_called = Marks.call_out_marks_to_called
-let in_marks_to_caller = Marks.in_marks_to_caller
-let translate_in_marks = Marks.translate_in_marks
-
-module F_Proj = Marks.F_Proj
+(* This module contains polymorphic functions : cannot be registered in Db.
+   Can be used through Pdg.Register instead (see Pdg.mli) *)
+include Marks
 
 
 let deps =
@@ -154,7 +149,10 @@ let output () =
     if all || Datatype.String.Set.mem fname (Pdg_parameters.BuildFct.get ())
     then
       let pdg = !Db.Pdg.get kf in
-      Pdg_parameters.result "@[%a@]" (!Db.Pdg.pretty ~bw) pdg;
+      let header fmt =
+        Format.fprintf fmt "PDG for %a" Kernel_function.pretty kf
+      in
+      Pdg_parameters.printf ~header "@[ @[%a@]@]" (PdgTypes.Pdg.pretty_bw ~bw) pdg
   in
   !Db.Semantic_Callgraph.topologically_iter_on_functions do_kf_pdg
 

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -46,10 +46,10 @@ type c_float =
 
 (** Array objects, with both the head view and the flatten view. *)
 type arrayflat = {
-  arr_size     : int64 ;   (** number of elements in the array *)
-  arr_dim      : int ;     (** number of dimensions in the array *)
-  arr_cell     : typ ;     (** type of elementary cells of the flatten array. Never an array. *)
-  arr_cell_nbr : int64 ;   (** number of elementary cells in the flatten array *)
+  arr_size     : int ; (** number of elements in the array *)
+  arr_dim      : int ; (** number of dimensions in the array *)
+  arr_cell     : typ ; (** type of elementary cells of the flatten array. Never an array. *)
+  arr_cell_nbr : int ; (** number of elementary cells in the flatten array *)
 }
 
 type arrayinfo = {
@@ -91,8 +91,10 @@ val char : char -> int64
 val constant : exp -> int64
 val get_int : exp -> int64 option
 
-val signed : c_int -> bool  (** true if ikind is signed *)
-val c_int_bounds: c_int -> Qed.Z.t * Qed.Z.t
+val i_bits : c_int -> int (** size in bits *)
+val i_bytes : c_int -> int (** size in bytes *)
+val signed : c_int -> bool  (** [true] if signed *)
+val c_int_bounds: c_int -> Integer.t * Integer.t
 
 (** All sizes are in bits *)
 
@@ -100,17 +102,17 @@ val sub_c_int: c_int -> c_int -> bool
 
 val sub_c_float : c_float -> c_float -> bool
 
-val sizeof_typ : typ -> int64
-val sizeof_object : c_object -> int64
-val field_offset : fieldinfo -> int64
+val sizeof_typ : typ -> int
+val sizeof_object : c_object -> int
+val field_offset : fieldinfo -> int
 
 val no_infinite_array : c_object -> bool
 val array_dim : arrayinfo -> c_object * int
-val array_size : typ -> int64 option
-val array_dimensions : arrayinfo -> c_object * int64 option list
+val array_size : typ -> int option
+val array_dimensions : arrayinfo -> c_object * int option list
   (** Returns the list of dimensions the array consists of.
       None-dimension means undefined one. *)
-val dimension_of_object : c_object -> (int * int64) option
+val dimension_of_object : c_object -> (int * int) option
   (** Returns None for 1-dimension objects, and Some(d,N) for d-matrix with N cells *)
 
 val i_convert : c_int -> c_int -> c_int

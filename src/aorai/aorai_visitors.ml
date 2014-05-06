@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Aorai plug-in of Frama-C.                        *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -89,7 +89,7 @@ object (self)
 
   val aux_post_table = Kernel_function.Hashtbl.create 17
 
-  method vglob_aux g =
+  method! vglob_aux g =
     match g with
     | GFun (fundec,loc) ->
       let kf = Extlib.the self#current_kf in
@@ -137,7 +137,7 @@ object (self)
       ChangeDoChildrenPost([g], fun x -> globs @ x)
     | _ -> DoChildren
 
-  method vstmt_aux stmt =
+  method! vstmt_aux stmt =
     match stmt.skind with
       | Return (res,loc)  ->
         let kf = Extlib.the self#current_kf in
@@ -172,7 +172,7 @@ class change_formals old_kf new_kf =
   let formals = List.combine old_formals new_formals in
 object
   inherit Visitor.frama_c_inplace
-  method vlogic_var_use lv =
+  method! vlogic_var_use lv =
     match lv.lv_origin with
       | None -> SkipChildren
       | Some vi ->
@@ -188,7 +188,7 @@ class change_result new_kf =
   let v = List.hd (Kernel_function.get_formals new_kf) in
 object
   inherit Visitor.frama_c_inplace
-  method vterm_lhost lh =
+  method! vterm_lhost lh =
     match lh with
         TResult _ -> ChangeTo (TVar (Cil.cvar_to_lvar v))
       | _ -> DoChildren
@@ -196,9 +196,9 @@ end
 
 let post_treatment_loops = Hashtbl.create 97
 
-let update_loop_assigns kf stmt vi code_annot =
+let update_loop_assigns kf stmt state vi code_annot =
   let loc = Cil_datatype.Stmt.loc stmt in
-  let assigns = Aorai_utils.aorai_assigns loc in
+  let assigns = Aorai_utils.aorai_assigns state loc in
   let assigns =
     Logic_utils.concat_assigns 
       (Writes
@@ -230,8 +230,9 @@ let get_action_post_cond kf ?init_trans return_states =
   in
   let treat_one_path pre_state post_state (int_states,_,bindings) acc =
     if to_consider pre_state int_states then begin
+      let start = Logic_const.pre_label in
       let post_conds =
-        Aorai_utils.action_to_pred ~pre_state ~post_state bindings
+        Aorai_utils.action_to_pred ~start ~pre_state ~post_state bindings
       in
       Aorai_option.debug ~dkey
         "Getting action post-conditions for %a, from state %s to state %s@\n%a"
@@ -457,12 +458,11 @@ class visit_adding_pre_post_from_buch treatloops =
       predicate_to_invariant kf stmt pred
     end
   in
-  let impossible_states_preds possible_states my_state =
+  let impossible_states_preds start possible_states my_state =
     let treat_one_start_state state start_state end_states acc =
       if not (Data_for_aorai.Aorai_state.Map.mem state end_states) then
         Logic_const.pimplies
-          (Logic_const.pat(Aorai_utils.is_state_pred start_state,
-                           Logic_const.pre_label),
+          (Logic_const.pat(Aorai_utils.is_state_pred start_state, start),
            Aorai_utils.is_out_of_state_pred state)
         :: acc
       else acc
@@ -470,6 +470,32 @@ class visit_adding_pre_post_from_buch treatloops =
     let treat_one_state state _ acc =
       Data_for_aorai.Aorai_state.Map.fold
         (treat_one_start_state state) my_state acc
+    in
+    Data_for_aorai.Aorai_state.Map.fold treat_one_state possible_states []
+  in
+  let impossible_states_preds_inv start possible_states my_state =
+    let treat_one_start_state state start_state end_states acc =
+      if Data_for_aorai.Aorai_state.Map.mem state end_states then
+        Logic_const.pand
+          (acc,
+           Logic_const.pat(Aorai_utils.is_out_of_state_pred start_state, start))
+      else acc
+    in
+    let treat_one_state state _ acc =
+      let out_states =
+        Data_for_aorai.Aorai_state.Map.fold
+          (treat_one_start_state state) my_state Logic_const.ptrue
+      in
+      if Data_for_aorai.Aorai_state.Map.cardinal my_state = 1 &&
+        not (Logic_utils.is_trivially_true out_states)
+      then acc (* we only have a single entry state: we can't possibly be
+                  out of it, or another annotation above is invalid. No need
+                  to put an implication with a false lhs.
+                *)
+      else
+        Logic_const.pimplies
+          (out_states, Aorai_utils.is_out_of_state_pred state)
+        ::acc
     in
     Data_for_aorai.Aorai_state.Map.fold treat_one_state possible_states []
   in
@@ -510,20 +536,25 @@ class visit_adding_pre_post_from_buch treatloops =
     let res = List.fold_left filter [] states in
     List.map fst res
   in
-  (* TODO: add assigns of auxiliary variables... *)
-  let update_assigns loc kf spec =
+  let update_assigns loc kf ki spec =
     let update_assigns bhv =
-      let assigns = Aorai_utils.aorai_assigns loc in
-      match kf with
-      | None -> (* stmt contract *)
-	bhv.b_assigns <- Logic_utils.concat_assigns bhv.b_assigns assigns
-      | Some kf -> (* function contract *)
-	Annotations.add_assigns
-	  ~keep_empty:true
-	  Aorai_option.emitter
-	  kf
-	  bhv.b_name
-	  assigns;
+      (* NB: The assigns for a statement contract is a bit overapproximated,
+         (includes assigns of the whole function), but we don't really have
+         a better information at this point.
+       *)
+      let assigns =
+        Aorai_utils.aorai_assigns (Data_for_aorai.get_kf_return_state kf) loc
+      in
+      match ki with
+        | Kstmt _ -> (* stmt contract *)
+	  bhv.b_assigns <- Logic_utils.concat_assigns bhv.b_assigns assigns
+        | Kglobal -> (* function contract *)
+	  Annotations.add_assigns
+	    ~keep_empty:true
+	    Aorai_option.emitter
+	    kf
+	    bhv.b_name
+	    assigns;
     in
     List.iter update_assigns spec.spec_behavior
   in
@@ -784,7 +815,7 @@ object(self)
 
   method private leave_block () = !(Stack.pop has_call)
 
-  method vfunc f =
+  method! vfunc f =
     let my_kf = Extlib.the self#current_kf in
     let vi = Kernel_function.get_vi my_kf in
     let spec = Annotations.funspec my_kf in
@@ -805,17 +836,17 @@ object(self)
       in
       let post_cond = needs_post my_kf in
       match Cil.find_default_behavior spec with
-      | Some b ->
-	Annotations.add_requires Aorai_option.emitter my_kf b.b_name requires;
-	Annotations.add_ensures Aorai_option.emitter my_kf b.b_name post_cond;
-	Annotations.add_behaviors Aorai_option.emitter my_kf bhvs
-      | None ->
-        let bhv = Cil.mk_behavior ~requires ~post_cond () in
-	Annotations.add_behaviors Aorai_option.emitter my_kf (bhv :: bhvs));
-    let after f = update_assigns f.svar.vdecl (Some my_kf) spec; f in
+        | Some b ->
+	  Annotations.add_requires Aorai_option.emitter my_kf b.b_name requires;
+	  Annotations.add_ensures Aorai_option.emitter my_kf b.b_name post_cond;
+	  Annotations.add_behaviors Aorai_option.emitter my_kf bhvs
+        | None ->
+          let bhv = Cil.mk_behavior ~requires ~post_cond () in
+	  Annotations.add_behaviors Aorai_option.emitter my_kf (bhv :: bhvs));
+    let after f = update_assigns f.svar.vdecl my_kf Kglobal spec; f in
     ChangeDoChildrenPost(f,after)
 
-  method vglob_aux g =
+  method! vglob_aux g =
     match g with
     | GVarDecl(_,v,_) when
         Cil.isFunctionType v.vtype
@@ -851,14 +882,16 @@ object(self)
       | Not_auto_func -> DoChildren (* they are not considered here. *))
     | _ -> DoChildren
 
-  method vstmt_aux stmt =
+  method! vstmt_aux stmt =
     let kf = Extlib.the self#current_kf in
     let treat_loop body_ref stmt =
       let init_state = Data_for_aorai.get_loop_init_state stmt in
       let inv_state = Data_for_aorai.get_loop_invariant_state stmt in
-      let glob_state = Data_for_aorai.merge_state init_state inv_state in
-      let possible_states = all_possible_states glob_state in
 
+      let possible_states =
+        Data_for_aorai.merge_end_state
+          (all_possible_states init_state) (all_possible_states inv_state)
+      in
       let loop_assigns =
         Annotations.code_annot ~filter:Logic_utils.is_assigns stmt
       in
@@ -905,16 +938,20 @@ object(self)
       end;
 
       (*    2) The associated init variable is set to 1 before the loop *)
-      let new_loop = mkStmt stmt.skind in
-      new_loop.sid<-(Cil.Sid.next ());
+      let new_loop = mkStmt ~valid_sid:true stmt.skind in
       let stmt_varset =
-        Cil.mkStmtOneInstr
+        Cil.mkStmtOneInstr ~valid_sid:true
           (Set((Var(vi_init),NoOffset), Cil.one ~loc, loc))
       in
-      stmt_varset.sid <- Cil.Sid.next ();
       stmt_varset.ghost <- true;
       let block = mkBlock [stmt_varset;new_loop] in
       stmt.skind<-Block(block);
+
+      (* Overcome WP limitation wrt LoopEntry. See bug 1353 *)
+      new_loop.labels <- 
+        [ Label ("aorai_loop_" ^ string_of_int stmt.sid,
+                 Cil_datatype.Stmt.loc stmt, false)];
+      let loop_entry_label = StmtLabel (ref new_loop) in
 
       (*    3) Generation of the loop invariant *)
       let mk_imply operator predicate =
@@ -933,25 +970,30 @@ object(self)
 	 one). *)
       condition_to_invariant kf possible_states new_loop;
 
-      let init_preds = impossible_states_preds possible_states init_state in
+      let init_preds =
+        impossible_states_preds Logic_const.pre_label possible_states init_state
+      in
       let treat_init_pred pred =
         let pred = mk_imply Rneq pred in
         predicate_to_invariant kf new_loop pred
       in
       List.iter treat_init_pred init_preds;
-
-      let invariant_preds = impossible_states_preds possible_states inv_state in
+      let invariant_preds =
+        impossible_states_preds_inv loop_entry_label possible_states inv_state
+      in
       let treat_inv_pred pred =
         let pred = mk_imply Req pred in
         predicate_to_invariant kf new_loop pred
       in
       List.iter treat_inv_pred invariant_preds;
 
-      let action_inv_preds = Aorai_utils.all_actions_preds glob_state in
+      let action_inv_preds =
+        Aorai_utils.all_actions_preds loop_entry_label inv_state
+      in
       List.iter (predicate_to_invariant kf new_loop) action_inv_preds;
       
       List.iter
-        (update_loop_assigns kf new_loop (Cil.cvar_to_lvar vi_init))
+        (update_loop_assigns kf new_loop inv_state (Cil.cvar_to_lvar vi_init))
         loop_assigns;
 
       (*    4) Keeping in mind to preserve old annotations after visitor end *)
@@ -965,7 +1007,12 @@ object(self)
       if self#leave_block () then
         let annots = Annotations.code_annot stmt in
         let _, specs = List.split (Logic_utils.extract_contract annots) in
-        List.iter (update_assigns (Cil_datatype.Stmt.loc stmt) None) specs;
+        List.iter
+          (update_assigns
+             (Cil_datatype.Stmt.loc stmt) 
+             (Extlib.the self#current_kf)
+             (Kstmt stmt))
+          specs;
         s
       else 
 	s
@@ -979,7 +1026,7 @@ object(self)
     else
       ChangeDoChildrenPost(stmt,after)
 
-  method vinst = function
+  method! vinst = function
   | Call _ -> self#call (); DoChildren
   | _ -> DoChildren
 
@@ -1006,9 +1053,9 @@ object (*(self) *)
 
   inherit Visitor.frama_c_inplace
 
-  method vfunc _f = DoChildren
+  method! vfunc _f = DoChildren
 
-  method vstmt_aux stmt =
+  method! vstmt_aux stmt =
     match stmt.skind with
       | Instr(Call (_,funcexp,_,_)) ->
           let name = get_call_name funcexp in

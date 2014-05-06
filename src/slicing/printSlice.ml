@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -57,7 +57,7 @@ class printerClass optional_ff = object(self)
   inherit Printer.extensible_printer () as super
   val opt_ff = optional_ff
 
-  method vdecl fmt var =
+  method! vdecl fmt var =
     match opt_ff with
     | None -> super#vdecl fmt var
     | Some ff ->
@@ -74,7 +74,7 @@ class printerClass optional_ff = object(self)
             str_m
             super#vdecl var
 
-  method stmtkind next fmt kind =
+  method! stmtkind next fmt kind =
     let stmt_info fmt stmt = match opt_ff with
       | None -> Format.fprintf fmt "@[/* %d */@]" stmt.Cil_types.sid
       | Some ff ->
@@ -99,7 +99,7 @@ class printerClass optional_ff = object(self)
       let sub_stmts = find_sub_stmts s in
       List.iter (self#stmt fmt) sub_stmts
 
-  method label fmt l =
+  method! label fmt l =
     let label_info = match opt_ff with
       | None -> "label"
       | Some ff ->
@@ -227,7 +227,7 @@ module PrintProject = struct
 
   let graph_attributes (name, _) = [`Label name]
 
-  let default_vertex_attributes _ = [`Style `Filled]
+  let default_vertex_attributes _ = [`Style [`Filled]]
 
   let vertex_name v = match v with
     | Src fi -> SlicingMacros.fi_name fi
@@ -280,18 +280,19 @@ module PrintProject = struct
 
   let edge_attributes (e, call) =
     let attrib = match e with
-    | (Src _, Src _) -> [`Style `Invis]
-    | (OptSliceCallers _, _) -> [`Style `Invis]
-    | (_, OptSliceCallers _) -> [`Style `Invis]
+    | (Src _, Src _) -> [`Style [`Invis]]
+    | (OptSliceCallers _, _) -> [`Style [`Invis]]
+    | (_, OptSliceCallers _) -> [`Style [`Invis]]
     | _ -> []
     in match call with None -> attrib
       | Some call -> (`Label (string_of_int call.sid)):: attrib
 
   let get_subgraph v =
     let mk_subgraph name attrib =
-      let attrib = (*(`Label name) ::*) (`Style `Filled) :: attrib in
+      let attrib = (*(`Label name) ::*) (`Style [`Filled]) :: attrib in
           Some { Graph.Graphviz.DotAttributes.sg_name= name;
-                 Graph.Graphviz.DotAttributes.sg_attributes = attrib }
+                 sg_parent = None;
+                 sg_attributes = attrib }
     in
     let f_subgraph fi =
       let name = SlicingMacros.fi_name fi in

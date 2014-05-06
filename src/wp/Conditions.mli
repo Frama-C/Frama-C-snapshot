@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -26,7 +26,6 @@
 
 open Cil_types
 open Lang
-open Lang.F
 
 (** Bundles *)
 
@@ -41,28 +40,43 @@ type 'a attributed =
       'a )
 
 val empty : bundle
-val occurs : var -> bundle -> bool
-val intersect : pred -> bundle -> bool
+val occurs : F.var -> bundle -> bool
+val intersect : F.pred -> bundle -> bool
 val merge : bundle list -> bundle
-val domain : pred list -> bundle -> bundle
-val intros : pred list -> bundle -> bundle
-val assume : (pred -> bundle -> bundle) attributed
-val branch : (pred -> bundle -> bundle -> bundle) attributed
+val domain : F.pred list -> bundle -> bundle
+val intros : F.pred list -> bundle -> bundle
+val assume : (F.pred -> bundle -> bundle) attributed
+val branch : (F.pred -> bundle -> bundle -> bundle) attributed
 val either : (bundle list -> bundle) attributed
-val extract : bundle -> pred list
+val extract : bundle -> F.pred list
 
 (** Hypotheses *)
 
-type t
+type hypotheses
+val hypotheses : bundle -> hypotheses
+  
+type sequent = hypotheses * F.pred
 
-val freeze : bundle -> t
+(** Simplifier *)
 
-val clean : t -> pred -> t * pred
-val letify : t -> pred -> t * pred
-val pruning : t -> pred -> t * pred
+exception Contradiction
 
-val hypotheses : t -> pred list
-val close : t -> pred -> pred
+class type simplifier =
+  object
+    method name : string
+    method copy : simplifier
+    method assume : F.pred -> unit
+    method target : F.pred -> unit
+    method fixpoint : unit
+    method simplify : F.pred -> F.pred
+    method infer : F.pred list
+  end
+
+val clean : sequent -> sequent
+val letify : ?solvers:simplifier list -> sequent -> sequent
+val pruning : ?solvers:simplifier list -> sequent -> sequent
+
+val close : sequent -> F.pred
 
 (** Pretty *)
 
@@ -71,4 +85,4 @@ type link = Lstmt of stmt | Lprop of Property.t
 val linker : unit -> linker
 val get_link : linker -> string -> link
 
-val pretty : ?linker:linker -> Format.formatter -> t -> F.pred -> unit
+val pretty : ?linker:linker -> Format.formatter -> sequent -> unit

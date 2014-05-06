@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -32,9 +32,9 @@ module S = Set.Make(String)
 (* -------------------------------------------------------------------------- *)
 
 let is_letter c = c = '_'
-  || ('a' <= c && c <= 'z') 
-  || ('a' <= c && c <= 'z') 
-  || ('0' <= c && c <= '9')
+                  || ('a' <= c && c <= 'z') 
+                  || ('a' <= c && c <= 'z') 
+                  || ('0' <= c && c <= '9')
 
 let is_ident op = is_letter op.[String.length op - 1]
 
@@ -76,20 +76,20 @@ let copy m = { domain = m.domain ; base = m.base }
 (* -------------------------------------------------------------------------- *)
 
 class type ['a,'idx] linker = 
-object
-  method lock  : unit
-  method clear : unit
-  method push  : 'idx
-  method pop   : 'idx -> unit
-  method mem   : 'a -> bool
-  method find  : 'a -> string
-  method link  : 'a -> string -> unit
-  method print : 'a printer
-  method alloc : basename:string -> 'a -> string
-  method alloc_with : allocator -> unit
-  method reserve : basename:string -> string
-  method bind_reserved : 'a -> string -> unit
-end
+  object
+    method lock  : unit
+    method clear : unit
+    method push  : 'idx
+    method pop   : 'idx -> unit
+    method mem   : 'a -> bool
+    method find  : 'a -> string
+    method link  : 'a -> string -> unit
+    method print : 'a printer
+    method alloc : basename:string -> 'a -> string
+    method alloc_with : allocator -> unit
+    method reserve : basename:string -> string
+    method bind_reserved : 'a -> string -> unit
+  end
 
 module Link(A : Symbol) =
 struct
@@ -98,36 +98,36 @@ struct
   type index = string I.t
 
   class alinker =
-  object(self)
-    val mutable alloc : allocator option = None
-    val mutable index : index = I.empty
-      
-    method push = index
-    method pop idx = index <- idx
-      
-    method lock = alloc <- None
-    method alloc_with allocator = alloc <- Some allocator
-    method clear = index <- I.empty
-    method find a = I.find a index
-    method mem a = I.mem a index
-    method print fmt a =
-      try pp_print_string fmt (I.find a index)
-      with Not_found -> fprintf fmt "<%a>" A.pretty a
-    method link a f = 
-      match alloc with
-	| None -> failwith "Qed.Linker.Locked"
-	| Some allocator ->
-	    declare allocator f ; 
-	    index <- I.add a f index
-    method alloc ~basename a =
-      let s = self#reserve ~basename in
-      index <- I.add a s index ; s
-    method reserve ~basename =
-      match alloc with
-	| None -> failwith "Qed.Linker.Locked"
-	| Some allocator -> fresh allocator basename
-    method bind_reserved a s = index <- I.add a s index
-  end
+    object(self)
+      val mutable alloc : allocator option = None
+      val mutable index : index = I.empty
+
+      method push = index
+      method pop idx = index <- idx
+
+      method lock = alloc <- None
+      method alloc_with allocator = alloc <- Some allocator
+      method clear = index <- I.empty
+      method find a = I.find a index
+      method mem a = I.mem a index
+      method print fmt a =
+        try pp_print_string fmt (I.find a index)
+        with Not_found -> fprintf fmt "<%a>" A.pretty a
+      method link a f = 
+        match alloc with
+        | None -> failwith "Qed.Linker.Locked"
+        | Some allocator ->
+            declare allocator f ; 
+            index <- I.add a f index
+      method alloc ~basename a =
+        let s = self#reserve ~basename in
+        index <- I.add a s index ; s
+      method reserve ~basename =
+        match alloc with
+        | None -> failwith "Qed.Linker.Locked"
+        | Some allocator -> fresh allocator basename
+      method bind_reserved a s = index <- I.add a s index
+    end
 
   let linker () = (new alinker :> (A.t,index) linker)
 end
@@ -140,13 +140,13 @@ module Record(T : Logic.Term) =
 struct
 
   module Smap = Map.Make
-    (struct
-       type t = T.Field.t list
-       let compare = Hcons.compare_list T.Field.compare
-     end)
+      (struct
+        type t = T.Field.t list
+        let compare = Hcons.compare_list T.Field.compare
+      end)
 
   module Amap = Map.Make(T.ADT)
-    
+
   type t = {
     mutable fields : T.Field.t list Amap.t ;
     mutable record : T.ADT.t Smap.t ;

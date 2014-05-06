@@ -2,7 +2,7 @@
    < tests/slicing/select_by_annot.ml
 *)
 
-module S = Db.Slicing;;
+
 open LibSelect;;
 
 let main _ =

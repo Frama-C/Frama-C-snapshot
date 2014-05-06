@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -memory-footprint 1 -val -deps -out -input -lib-entry -main main -journal-disable
+   OPT: -val -deps -out -input -lib-entry -main main -journal-disable
 */
 
 unsigned short AutoTest[1000]={0};

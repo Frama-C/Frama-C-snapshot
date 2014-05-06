@@ -10,11 +10,11 @@ include Plugin.Register
 class visitor =
   object
     inherit Visitor.frama_c_inplace
-    method vterm t =
+    method! vterm t =
       result "Term: %a, type is %a"
         Printer.pp_term t Printer.pp_logic_type t.Cil_types.term_type;
       Cil.DoChildren
-    method vterm_lval (host,off as lv) =
+    method! vterm_lval (host,off as lv) =
       let ty = Cil.typeOfTermLval lv in
       let plain_lval = (host,TNoOffset) in
       let tyh = Cil.typeOfTermLval plain_lval in

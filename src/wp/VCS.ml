@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -31,6 +31,11 @@ type prover =
   | Coq           (* Coq and Coqide *)
   | Qed           (* Qed Solver *)
 
+type mode =
+  | BatchMode (* Only check scripts *)
+  | EditMode  (* Edit then check scripts *)
+  | FixMode   (* Try check script, then edit script on non-success *)
+
 type language =
   | L_why3
   | L_coq
@@ -38,6 +43,7 @@ type language =
 
 let prover_of_name = function
   | "" | "none" -> None
+  | "qed" | "Qed" -> Some Qed
   | "alt-ergo" | "altgr-ergo" -> Some AltErgo
   | "coq" | "coqide" -> Some Coq
   | "why3ide" -> Some Why3ide
@@ -54,6 +60,11 @@ let name_of_prover = function
   | AltErgo -> "Alt-Ergo"
   | Coq -> "Coq"
   | Qed -> "Qed"
+ 
+let name_of_mode = function 
+  | FixMode -> "Fix"
+  | EditMode -> "Edit"
+  | BatchMode -> "Batch"
 
 let sanitize_why3 s =
   let buffer = Buffer.create 80 in
@@ -96,9 +107,10 @@ let language_of_prover_name = function
   | "coq" | "coqide" -> Some L_coq
   | _ -> Some L_why3
 
-let is_interactive = function
-  | "coqide" | "altgr-ergo" -> true
-  | _ -> false
+let mode_of_prover_name = function
+  | "coqedit" -> EditMode
+  | "coqide" | "altgr-ergo" -> FixMode
+  | _ -> BatchMode
 
 let cmp_prover p q =
   match p,q with
@@ -116,22 +128,23 @@ let cmp_prover p q =
     | _, Why3 _ ->   1
     | Why3ide, Why3ide -> 0
 
-
 let pp_prover fmt = function
   | AltErgo -> Format.pp_print_string fmt "Alt-Ergo"
   | Why3ide -> Format.pp_print_string fmt "Why3ide"
   | Coq -> Format.pp_print_string fmt "Coq"
   | Why3 smt ->
       if Wp_parameters.debug_atleast 1 then
-         Format.pp_print_string fmt ("Why:"^(String.capitalize smt))
+         Format.pp_print_string fmt ("Why:"^smt)
       else
-        Format.pp_print_string fmt (String.capitalize smt)
+        Format.pp_print_string fmt smt
   | Qed -> Format.fprintf fmt "Qed"
 
 let pp_language fmt = function
   | L_altergo -> Format.pp_print_string fmt "Alt-Ergo"
   | L_coq -> Format.pp_print_string fmt "Coq"
   | L_why3 -> Format.pp_print_string fmt "Why3"
+
+let pp_mode fmt m = Format.pp_print_string fmt (name_of_mode m)
 
 (* -------------------------------------------------------------------------- *)
 (* --- Results                                                            --- *)

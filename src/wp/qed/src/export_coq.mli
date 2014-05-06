@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -36,11 +36,11 @@ sig
   open T
 
   class virtual engine :
-  object
-    inherit [ADT.t,Field.t,Fun.t,tau,var,term] Engine.engine
-    method op_spaced : string -> bool
-    method declare_fixpoint : prefix:string -> 
-      formatter -> Fun.t -> var list -> tau -> term -> unit
-  end
+    object
+      inherit [Z.t,ADT.t,Field.t,Fun.t,tau,var,term] Engine.engine
+      method op_spaced : string -> bool
+      method declare_fixpoint : prefix:string -> 
+        formatter -> Fun.t -> var list -> tau -> term -> unit
+    end
 
 end

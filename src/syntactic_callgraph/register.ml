@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -37,8 +37,8 @@ module Service =
          let name v = nodeName v.cnInfo
          let attributes v =
            [ match v.cnInfo with
-             | NIVar (_,b) when not !b -> `Style `Dotted
-             | _ -> `Style `Bold ]
+             | NIVar (_,b) when not !b -> `Style [`Dotted]
+             | _ -> `Style [`Bold] ]
          let equal v1 v2 = id v1 = id v2
 	 let compare v1 v2 = 
 	   let i1 = id v1 in
@@ -103,27 +103,13 @@ Use option `-main' to improve them.";
   cg
 
 let get () = CG.memo compute
-(*
-module SG =
-  State_builder.OptionRef
-    (Service.SG.Datatype)
-    (struct
-       let name = name ^ " (service only)"
-       let dependencies = [ CG.self; ServicesOnly.self ]
-     end)
 
-let get_services () = SG.memo (fun () -> Service.compute_services (get ()))
-*)
 let dump () =
   let output =
-(*    if ServicesOnly.get () then
-      let sg = get_services () in
-      fun o -> Service.output_services o sg
-    else *)
-      let cg = get () in
-      fun o -> 
-	Service_graph.frama_c_display false;
-	Service.output_graph o cg
+    let cg = get () in
+    fun o -> 
+      Service_graph.frama_c_display false;
+      Service.output_graph o cg
   in
   let file = Filename.get () in
   feedback ~level:2 "dumping the graph into file %s" file;

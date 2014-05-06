@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -93,16 +93,40 @@ let lemma_id l = Printf.sprintf "Q_%s" (avoid_leading_backlash l)
 
 (* -------------------------------------------------------------------------- *)
 
-type theory = string
+type 'a infoprover =
+  {
+    altergo: 'a;
+    why3   : 'a;
+    coq    : 'a;
+  }
+
+(* generic way to have different informations for the provers *)
+
+let infoprover x = {
+    altergo = x;
+    why3    = x;
+    coq     = x;
+  }
+
+let map_infoprover f i = {
+    altergo = f i.altergo;
+    why3    = f i.why3;
+    coq     = f i.coq;
+  }
+
+type library = string
 
 type adt = 
   | Mtype of mdt (* Model type *)
   | Mrecord of mdt * fields (* Model record-type *)
   | Atype of logic_type_info (* Logic Type *)
   | Comp of compinfo (* C-code struct or union *)
-and mdt = {
-  mdt_link : string ;
-  mdt_theory : theory ;
+and mdt = string extern (** name to print to the provers *)
+and 'a extern = {
+  ext_id      : int;
+  ext_link : 'a infoprover;
+  ext_library : library; (** a library which it depends on *)
+  ext_debug   : string; (** just for printing during debugging *)
 }
 and fields = { mutable fields : field list }
 and field =
@@ -111,6 +135,15 @@ and field =
 and tau = (field,adt) Logic.datatype
 
 let pointer = Context.create "Lang.pointer"
+
+let new_extern_id = ref (-1)
+let new_extern ~debug ~library ~link =
+    incr new_extern_id;
+    {ext_id     = !new_extern_id;
+     ext_library = library;
+     ext_debug  = debug;
+     ext_link   = link}
+let ext_compare a b = Datatype.Int.compare a.ext_id b.ext_id
 
 (* -------------------------------------------------------------------------- *)
 (* --- Sorting & Typing                                                   --- *)
@@ -182,16 +215,17 @@ struct
   type t = adt
 
   let basename = function
-    | Mtype a -> basename "M" a.mdt_link
-    | Mrecord(r,_) -> basename "R" r.mdt_link
+    | Mtype a -> basename "M" a.ext_link.altergo
+    | Mrecord(r,_) -> basename "R" r.ext_link.altergo
     | Comp c -> basename (if c.cstruct then "S" else "U") c.corig_name
     | Atype lt -> basename "A" lt.lt_name
 
-  let id = function
-    | Mtype a -> a.mdt_link
-    | Mrecord(a,_) -> a.mdt_link
+  let debug = function
+    | Mtype a -> a.ext_debug
+    | Mrecord(a,_) -> a.ext_debug
     | Comp c -> comp_id c
     | Atype lt -> type_id lt
+
   let hash = function
     | Mtype a | Mrecord(a,_) -> Hashtbl.hash a
     | Comp c -> Compinfo.hash c
@@ -200,10 +234,10 @@ struct
   let compare a b =
     if a==b then 0 else
       match a,b with
-	| Mtype a , Mtype b -> String.compare a.mdt_link b.mdt_link
+	| Mtype a , Mtype b -> ext_compare a b
 	| Mtype _ , _ -> (-1)
 	| _ , Mtype _ -> 1
-	| Mrecord(a,_) , Mrecord(b,_) -> String.compare a.mdt_link b.mdt_link
+	| Mrecord(a,_) , Mrecord(b,_) -> ext_compare a b
 	| Mrecord _ , _ -> (-1)
 	| _ , Mrecord _ -> 1
 	| Comp a , Comp b -> Compinfo.compare a b
@@ -213,7 +247,7 @@ struct
 
   let equal a b = (compare a b = 0)
 
-  let pretty fmt a = Format.pp_print_string fmt (id a)
+  let pretty fmt a = Format.pp_print_string fmt (debug a)
 
 end
 
@@ -225,16 +259,16 @@ let atype t =
   try Mtype(Hashtbl.find builtins t.lt_name)
   with Not_found -> Atype t
 
-let builtin ~name ~link ~theory =
-  let m = { mdt_link = link ; mdt_theory = theory } in
+let builtin_type ~name ~link ~library =
+  let m = new_extern ~link ~library ~debug:name in
   Hashtbl.add builtins name m
 
-let datatype ~link ~theory =
-  let m = { mdt_link = link ; mdt_theory = theory } in
+let datatype ~library name =
+  let m = new_extern ~link:(infoprover name) ~library ~debug:name in
   Mtype m
 
-let record ~link ~theory fts =
-  let m = { mdt_link = link ; mdt_theory = theory } in
+let record ~link ~library fts =
+  let m = new_extern ~link ~library ~debug:link.altergo in
   let r = { fields = [] } in
   let fs = List.map (fun (f,t) -> Mfield(m,r,f,t)) fts in
   r.fields <- fs ; Mrecord(m,r)
@@ -273,7 +307,7 @@ struct
 
   type t = field
 
-  let id = function
+  let debug = function
     | Mfield(_,_,f,_) -> f
     | Cfield f -> field_id f
 
@@ -291,7 +325,7 @@ struct
 	    
   let equal f g = (compare f g = 0)
 
-  let pretty fmt f = Format.pp_print_string fmt (id f)
+  let pretty fmt f = Format.pp_print_string fmt (debug f)
 
   let sort = function
     | Mfield(_,_,_,s) -> Qed.Kind.of_tau s
@@ -303,36 +337,32 @@ end
 (* --- Functions & Predicates                                             --- *)
 (* -------------------------------------------------------------------------- *)
 
-type scope = External of string | Generated
-
 type lfun =
-  | Function of lfunction
-  | Predicate of lpredicate
-  | ACSL of logic_info
-  | CTOR of logic_ctor_info
-      
-and lfunction = {
-  f_scope : scope ;
-  f_link : Engine.link ;
-  f_category : lfun category ;
-  f_params : sort list ;
-  f_result : sort ;
+  | ACSL of Cil_types.logic_info (** Registered in Definition.t,
+                                     only  *)
+  | CTOR of Cil_types.logic_ctor_info (** Not registered in Definition.t
+                                          directly converted/printed *)
+  | Model of model (** *)
+
+and model = {
+  m_category : lfun category ;
+  m_params : sort list ;
+  m_resort : sort ;
+  m_result : tau option ;
+  m_source : source ;
 }
 
-and lpredicate = {
-  p_scope : scope ;
-  p_params : sort list ;
-  p_prop : string ;
-  p_bool : string ;
-}
+and source =
+  | Generated of string
+  | Extern of Engine.link extern
 
 let tau_of_lfun = function
   | ACSL f -> tau_of_return f
   | CTOR c -> 
       if c.ctor_type.lt_params = [] then Logic.Data(Atype c.ctor_type,[])
       else raise Not_found
-  | Predicate _ -> Prop
-  | Function f -> match f.f_result with
+  | Model { m_result = Some t } -> t
+  | Model m -> match m.m_resort with
       | Sint -> Int
       | Sreal -> Real
       | Sbool -> Bool
@@ -340,63 +370,102 @@ let tau_of_lfun = function
 
 type balance = Nary | Left | Right
 
-let symbolf ~scope 
-    ?(balance=Nary) 
-    ?(category=Logic.Function) 
-    ?(params=[]) 
-    ?(result=Logic.Sdata) 
+type 'a linkinfo = {
+  mutable thdep : string list;
+  mutable link : 'a
+}
+
+
+let symbolf
+    ?library
+    ?link
+    ?(balance=Nary) (** specify a default for link *)
+    ?(category=Logic.Function)
+    ?(params=[])
+    ?(sort=Logic.Sdata)
+    ?(result:tau option)
     name =
   let buffer = Buffer.create 80 in
   Format.kfprintf
     (fun fmt ->
        Format.pp_print_flush fmt () ;
        let name = Buffer.contents buffer in
-       let link = match balance with
-	 | Nary -> Engine.F_call name
-	 | Left -> Engine.F_left("?",name)
-	 | Right -> Engine.F_right("?",name) 
-       in Function {
-	 f_scope = scope ;
-	 f_link = link ;
-	 f_category = category ; 
-	 f_params = params ;
-	 f_result = result ;
+       let source = match library with
+         | None -> assert (link = None); Generated name
+         | Some th ->
+           let conv n = function
+             | Nary  -> Engine.F_call n
+             | Left  -> Engine.F_left n
+             | Right -> Engine.F_right n
+           in
+           let link = match link with
+             | None -> infoprover (conv name balance)
+             | Some info -> info
+           in
+           Extern (new_extern ~library:th ~link ~debug:name) in
+       let resort,result = match sort,result with
+	 | _,Some t -> Kind.of_tau t,result
+	 | Sint,None -> sort,Some Int
+	 | Sreal,None -> sort,Some Real
+	 | Sbool,None -> sort,Some Bool
+	 | Sprop,None -> sort,Some Prop
+	 | _ -> sort,None in
+       Model {
+	 m_category = category ;
+	 m_params = params ;
+	 m_result = result ;
+	 m_resort = resort ;
+         m_source = source;
        }
     ) (Format.formatter_of_buffer buffer) name
 
-let extern_s ~theory ?(balance=Nary) ?category ?params ?result name = 
-  symbolf ~scope:(External theory) ~balance ?category ?params ?result "%s" name
+let extern_s ~library ?link ?category ?params ?sort ?result name =
+  symbolf ~library ?category ?params ?sort ?result ?link "%s" name
 
-let extern_f ~theory ?(balance=Nary) ?category ?params ?result name = 
-  symbolf ~scope:(External theory) ~balance ?category ?params ?result name
+let extern_f ~library ?link ?balance ?category ?params ?sort ?result name =
+  symbolf ~library ?category ?params ?link ?balance ?sort ?result name
 
-let extern_p ~theory ~prop ~bool ?(params=[]) () = 
-  Predicate {
-    p_scope = External theory ; 
-    p_params = params ;
-    p_prop = prop ; 
-    p_bool = bool ;
+let extern_p ~library ?bool ?prop ?link ?(params=[]) () =
+  let link = 
+    match bool,prop,link with
+      | Some b , Some p , None -> infoprover (Engine.F_bool_prop(b,p))
+      | _ , _ , Some info -> info 
+      | _ , _ , _ -> assert false 
+  in
+  let debug = Export.debug link.altergo in
+  Model {
+    m_category = Logic.Function;
+    m_params = params ;
+    m_resort = Logic.Sprop;
+    m_result = Some Logic.Prop;
+    m_source = Extern (new_extern ~library ~link ~debug)
   }
 
-let extern_fp ~theory ?(params=[]) phi =
-  Function {
-    f_scope = External theory ;
-    f_link = Engine.F_call phi ;
-    f_category = Logic.Function ;
-    f_params = params ;
-    f_result = Logic.Sprop ;
+let extern_fp ~library ?(params=[]) ?link phi =
+  let link = match link with
+    | None -> infoprover (Engine.F_call phi)
+    | Some link -> map_infoprover (fun phi -> Engine.F_call(phi)) link in
+  Model {
+    m_category = Logic.Function ;
+    m_params = params ;
+    m_resort = Logic.Sprop;
+    m_result = Some Logic.Prop;
+    m_source = Extern (new_extern
+                         ~library
+                         ~link
+                         ~debug:phi)
   }
 
-let generated_f ?category ?params ?result name = 
-  symbolf ~scope:Generated ?category ?params ?result name
+let generated_f ?category ?params ?sort ?result name = 
+  symbolf ?category ?params ?sort ?result name
 
 let generated_p name = 
-  Function {
-    f_scope = Generated ;
-    f_link = Engine.F_call name ;
-    f_category = Logic.Function ;
-    f_params = [] ;
-    f_result = Logic.Sprop ;
+  Model {
+    m_category = Logic.Function ;
+    m_params = [] ;
+    m_resort = Logic.Sprop;
+    m_result = Some Logic.Prop;
+    m_source = Generated name
   }
 
 let constructor ct = CTOR ct
@@ -407,66 +476,52 @@ struct
 
   type t = lfun
 
-  let id = function
-    | Function f -> Export.link_name f.f_link
-    | Predicate p -> p.p_prop
+  let debug = function
     | ACSL f -> logic_id f
     | CTOR c -> ctor_id c
-
-  let link cmode = function
-    | Function f -> f.f_link
-    | ACSL f -> Engine.F_call (logic_id f)
-    | CTOR c -> Engine.F_call (ctor_id c)
-    | Predicate p -> Engine.F_call 
-	(match cmode with Engine.Cprop -> p.p_prop | Engine.Cterm -> p.p_bool)
-
-  let theory = function
-    | Function { f_scope=s } | Predicate { p_scope=s } ->
-	(match s with Generated -> "generated" | External t -> t)
-    | ACSL _ -> "ACSL"
-    | CTOR _ -> "CTOR"
+    | Model({m_source=Generated n}) -> n
+    | Model({m_source=Extern e})    -> e.ext_debug
 
   let hash = function
-    | Function f -> Hashtbl.hash f.f_link
-    | Predicate p -> Hashtbl.hash p.p_prop
     | ACSL f -> Logic_info.hash f
     | CTOR c -> Logic_ctor_info.hash c
+    | Model({m_source=Generated n}) -> Datatype.String.hash n
+    | Model({m_source=Extern e})    -> e.ext_id
 
   let compare f g =
     if f==g then 0 else
       match f , g with
-	| Function { f_link = f } , Function { f_link = g } -> 
-	    String.compare (Export.link_name f) (Export.link_name g)
-	| Function _ , _ -> (-1)
-	| _ , Function _ -> 1
-	| Predicate { p_prop = f } , Predicate { p_prop = g } -> 
-	    String.compare f g
-	| Predicate _ , _ -> (-1)
-	| _ , Predicate _ -> 1
+        | Model({m_source=Generated f}), Model({m_source=Generated g})
+          -> String.compare f g
+        | Model({m_source=Generated _}), _ -> (-1)
+        | _, Model({m_source=Generated _}) -> 1
+        | Model({m_source=Extern f}), Model({m_source=Extern g})
+          -> ext_compare f g
+        | Model({m_source=Extern _}), _ -> (-1)
+        | _, Model({m_source=Extern _}) -> 1
 	| ACSL f , ACSL g -> Logic_info.compare f g
 	| ACSL _ , _ -> (-1)
 	| _ , ACSL _ -> 1
 	| CTOR c , CTOR d -> Logic_ctor_info.compare c d
-	    
+
   let equal f g = (compare f g = 0)
 
-  let pretty fmt f = Format.pp_print_string fmt (id f)
+  let pretty fmt f = Format.pp_print_string fmt (debug f)
 
   let category = function
-    | Function f -> f.f_category
-    | Predicate _ | ACSL _ -> Logic.Function
+    | Model m -> m.m_category
+    | ACSL _ -> Logic.Function
     | CTOR _ -> Logic.Constructor
 
   let sort = function
-    | Function f -> f.f_result
-    | Predicate _ | ACSL { l_type=None } -> Logic.Sprop
+    | Model m -> m.m_resort
+    | ACSL { l_type=None } -> Logic.Sprop
     | ACSL { l_type=Some t } -> sort_of_ltype t
     | CTOR _ -> Logic.Sdata
 
   let params = function
-    | Function f -> f.f_params
-    | Predicate p -> p.p_params
-    | ACSL lt -> 
+    | Model m -> m.m_params
+    | ACSL lt ->
 	if lt.l_labels=[] then
 	  List.map (fun x -> sort_of_ltype x.lv_type) lt.l_profile
 	else []
@@ -474,8 +529,29 @@ struct
 
 end
 
-let link = Fun.link
-let theory = Fun.theory
+class virtual idprinting =
+  object(self)
+    method virtual basename  : string -> string
+    method virtual infoprover: 'a. 'a infoprover -> 'a
+
+    method datatypename  = self#basename
+    method fieldname     = self#basename
+    method funname       = self#basename
+
+    method datatype = function
+      | Mtype a -> self#infoprover a.ext_link
+      | Mrecord(a,_) -> self#infoprover a.ext_link
+      | Comp c -> self#datatypename (comp_id c)
+      | Atype lt -> self#datatypename (type_id lt)
+    method field = function
+      | Mfield(_,_,f,_) -> self#fieldname f
+      | Cfield f -> self#fieldname (field_id f)
+    method link = function
+    | ACSL f -> Engine.F_call (self#funname (logic_id f))
+    | CTOR c -> Engine.F_call (self#funname (ctor_id c))
+    | Model({m_source=Generated n}) -> Engine.F_call (self#funname n)
+    | Model({m_source=Extern e})    -> self#infoprover e.ext_link
+  end
 
 (* -------------------------------------------------------------------------- *)
 (* --- Terms                                                              --- *)
@@ -484,9 +560,95 @@ let theory = Fun.theory
 module F = 
 struct
 
-  module T = Qed.Term.Make(ADT)(Field)(Fun)
+  module ZInteger = 
+  struct
+    include Integer
+    let pretty = Integer.pretty ~hexa:false
+    let leq = Integer.le
+  end
+
+  module T = Qed.Term.Make(ZInteger)(ADT)(Field)(Fun)
+
+  (* -------------------------------------------------------------------------- *)
+  (* --- Qed Projectified State                                             --- *)
+  (* -------------------------------------------------------------------------- *)
+
+  module DATA = 
+    Datatype.Make
+      (struct
+        type t = T.state
+        let name = "Wp.Qed"
+        let rehash = Datatype.identity
+        let structural_descr = Structural_descr.t_unknown
+        let reprs = [T.get_state ()]
+        let equal = Datatype.undefined
+        let compare = Datatype.undefined
+        let hash = Datatype.undefined
+        let copy _old = T.create ()
+        let varname = Datatype.undefined
+        let pretty = Datatype.undefined
+        let internal_pretty_code = Datatype.undefined 
+        let mem_project _ _ = false
+      end)
+      
+  module STATE =
+    State_builder.Register(DATA)
+      (struct
+        type t = T.state
+        let create = T.create
+        let clear = T.clr_state
+        let get = T.get_state 
+        let set = T.set_state
+        let clear_some_projects _ _ = false
+      end)
+      (struct
+        let name = "Wp.Qed"
+        let dependencies = []
+        let unique_name = name
+      end)
+
+  (* -------------------------------------------------------------------------- *)
+  (* --- Term API                                                           --- *)
+  (* -------------------------------------------------------------------------- *)
+
   module Pretty = Qed.Pretty.Make(T)
   include T
+
+  (* -------------------------------------------------------------------------- *)
+  (* --- Term Checking                                                      --- *)
+  (* -------------------------------------------------------------------------- *)
+
+  let do_checks = ref false
+  let iter_checks f = T.iter_checks 
+    (fun ~qed ~raw -> f ~qed ~raw ~goal:(T.check_unit ~qed ~raw))
+
+  let e_add a b = 
+    let r = T.e_add a b in
+    if !do_checks then T.check (Add[a;b]) r else r
+  let e_sum xs = 
+    let r = T.e_sum xs in
+    if !do_checks then T.check (Add xs) r else r
+  let e_times k x = 
+    let r = T.e_times k x in
+    if !do_checks then T.check (Times(k,x)) r else r
+  let e_opp x =
+    let r = T.e_opp x in
+    if !do_checks then T.check (Times(Z.minus_one,x)) r else r
+  let e_leq a b =
+    let r = T.e_leq a b in
+    if !do_checks then T.check (Leq(a,b)) r else r
+  let e_lt a b =
+    let r = T.e_lt a b in
+    if !do_checks then T.check (Lt(a,b)) r else r
+  let e_eq a b =
+    let r = T.e_eq a b in
+    if !do_checks then T.check (Eq(a,b)) r else r
+  let e_neq a b =
+    let r = T.e_neq a b in
+    if !do_checks then T.check (Neq(a,b)) r else r
+  let e_fun f xs =
+    let r = T.e_fun f xs in
+    if !do_checks then T.check (Fun(f,xs)) r else r
 
   (* -------------------------------------------------------------------------- *)
   (* --- Term Extensions                                                    --- *)
@@ -495,16 +657,17 @@ struct
   type unop = term -> term
   type binop = term -> term -> term
 
-  let e_zero = e_zint Z.zero
-  let e_one = e_zint Z.one
-  let e_minus_one = e_zint Z.minus_one
-  let e_zero_real = e_real (R.of_string "0.0")
+  let e_zero = T.constant (e_zint Z.zero)
+  let e_one  = T.constant (e_zint Z.one)
+  let e_minus_one = T.constant (e_zint Z.minus_one)
+  let e_one_real  = T.constant (e_real (R.of_string "1.0"))
+  let e_zero_real = T.constant (e_real (R.of_string "0.0"))
 
   let hex_of_float f = 
     Pretty_utils.to_string (Floating_point.pretty_normal ~use_hex:true) f
     
   let e_int64 z = e_zint (Z.of_string (Int64.to_string z))
-  let e_fact k e = e_times (Z.of_string (Int64.to_string k)) e
+  let e_fact k e = e_times (Z.of_int k) e
   let e_bigint z = e_zint (Z.of_string (Integer.to_string z))
   let e_range a b = e_sum [b;e_one;e_opp a]
   let e_mthfloat f = T.e_real (R.of_string (string_of_float f))
@@ -531,7 +694,7 @@ struct
   let lift f x = f x
 
   let is_zero e = match T.repr e with
-    | Kint z -> Qed.Z.null z
+    | Kint z -> Integer.equal z Integer.zero
     | _ -> false
 
   let eqp = equal
@@ -580,6 +743,37 @@ struct
   let varsp = vars
   let pred = repr
   let idp = id
+
+  let head e = match T.repr e with
+    | Kint _ -> "int"
+    | Kreal _ -> "real"
+    | True -> "true"
+    | False -> "false"
+    | Var _ -> "var"
+    | Add _ -> "add"
+    | Mul _ -> "mul"
+    | Times _ -> "times"
+    | Div _ -> "div"
+    | Mod _ -> "mod"
+    | Eq _ -> "eq"
+    | Neq _ -> "neq"
+    | Not _ -> "not"
+    | Lt _ -> "lt"
+    | Leq _ -> "leq"
+    | And _ -> "and"
+    | Or _ -> "or"
+    | Imply _ -> "imply"
+    | If _ -> "if"
+    | Fun _ -> "fun"
+    | Aget _ -> "access"
+    | Aset _ -> "update"
+    | Rget _ -> "getfield"
+    | Rdef _ -> "record"
+    | Bind(Forall,_,_) -> "forall"
+    | Bind(Exists,_,_) -> "exists"
+    | Bind(Lambda,_,_) -> "lambda"
+    | Apply _ -> "apply"
+
       
   let pp_term fmt e = 
     if Wp_parameters.has_dkey "pretty"
@@ -596,7 +790,7 @@ struct
       Vars.iter (fun x -> Format.fprintf fmt "@ %a" pp_var x) xs ;
       Format.fprintf fmt " }@]" ;
     end
-
+      
   let debugp = T.debug
 
   type env = Pretty.env
@@ -617,38 +811,14 @@ struct
 
   module Pmap = Tmap
   module Pset = Tset
-
-  module P = Qed.Pattern.Make(T)
-
-  type pattern = P.pattern
       
-  let rewrite ~name ~vars pattern eval =
-    let open Qed.Pattern in
-    match pattern with 
-      | Pfun(f,ps) -> 
-	  if Wp_parameters.has_dkey "rules" then
-	    begin
-	      let pool = T.pool () in
-	      let s = Array.map (fun t -> e_var (T.fresh pool t)) vars in
-	      Wp_parameters.result
-		"@[<hov 2>Rule %S:@ %a ==>@ %t"
-		name pp_term (P.instance s pattern)
-		(fun fmt ->
-		   (try pp_term fmt (eval s)
-		    with Not_found -> Format.pp_print_string fmt "<...>") ;
-		   Format.fprintf fmt "@]@." ;
-		) ;
-	    end ;
-	  add_builtin f (fun es -> eval (P.pmatch_all ps es))
-      | _ -> ()
+  let set_builtin_1 f r = 
+    set_builtin f (function [e] -> r e | _ -> raise Not_found)
 
-  let add_builtin_1 f r = 
-    add_builtin f (function [e] -> r e | _ -> raise Not_found)
-
-  let add_builtin_2 f r = 
-    add_builtin f (function [a;b] -> r a b | _ -> raise Not_found)
-
-  let add_builtin_peq = add_builtin_eq
+  let set_builtin_2 f r = 
+    set_builtin f (function [a;b] -> r a b | _ -> raise Not_found)
+      
+  let set_builtin_eqp = set_builtin_eq
 
 end
 
@@ -725,7 +895,7 @@ let get_variables () = (Context.get cgamma).vars
 module Alpha =
 struct
 
-  module Vmap = Map.Make(Var)
+  module Vmap = FCMap.Make(Var)
 
   type t = {
     mutable vars : var Vmap.t ;

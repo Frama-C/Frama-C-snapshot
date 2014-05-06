@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -154,6 +154,23 @@ end
 (*============================================================================*)
 (** Postdominators (with infine path extension) *)
 (*============================================================================*)
+(** This backward dataflow implements a variant of postdominators that verify
+    the property P enunciated in bts 963: a statement postdominates itself
+    if and only it is within the main path of a syntactically infinite loop.
+
+    The implementation is as follows:
+    - compute postdominators with an additional flag infinite loop/non-infinite
+    loop. Every path that may terminate does not have the "infinite loop" flag
+
+    - the implementation verifies property P only for Loop statements. To
+    obtain the property, the cfg is locally rewritten. For statements
+    --> p --> s:Loop --> h --> ... --> e
+              ^                        |
+              |                        |
+              --------------------------
+    the edges p --> s are transformed into p --> h, but _not_ the backward
+    edges e --> s. This way, s post-dominates itself if and only if s is
+    a syntactically infinite loop, but not if there is an outgoing edge. *)
 module PdgPostdom : sig
 
   type t
@@ -170,30 +187,23 @@ end = struct
     type t = 
       | ToReturn of Stmt.Hptset.t
       | ToInfinity of Stmt.Hptset.t
-      | Init
 
     let inter a b = match a,b with
-      | Init, Init -> Init
-      | ToReturn v, Init | Init, ToReturn v -> ToReturn v
-      | ToInfinity v, Init | Init, ToInfinity v -> ToInfinity v
       | ToReturn v, ToReturn v' -> ToReturn ( Stmt.Hptset.inter v v')
       | ToInfinity v, ToInfinity v' -> ToInfinity ( Stmt.Hptset.inter v v')
       | ToReturn v, ToInfinity _ | ToInfinity _, ToReturn v -> ToReturn v
 
     let equal a b = match a,b with
-      | Init, Init -> true
       | ToReturn v, ToReturn v' ->  Stmt.Hptset.equal v v'
       | ToInfinity v, ToInfinity v' ->  Stmt.Hptset.equal v v'
       | _ -> false
 
     let add stmt set = match set with
-      | Init -> Init
       | ToReturn set -> ToReturn (Stmt.Hptset.add stmt set)
       | ToInfinity set -> ToInfinity (Stmt.Hptset.add stmt set)
 
     let pretty fmt d =
       match d with
-        | Init -> Format.fprintf fmt "Top"
         | ToReturn d -> Format.fprintf fmt "{%a}_ret" Stmt.Hptset.pretty d
         | ToInfinity d -> Format.fprintf fmt "{%a}_oo" Stmt.Hptset.pretty d
   end
@@ -233,7 +243,10 @@ end = struct
         in List.fold_left modif [] stmt.preds
 
   let add_postdom infos start init =
-    let get s = try Stmt.Hashtbl.find infos s with Not_found -> State.Init in
+    let get s =
+      try Stmt.Hashtbl.find infos s
+      with Not_found -> State.ToInfinity Stmt.Hptset.empty
+    in
     let do_stmt stmt = match succs stmt with 
       | [] when stmt.sid = start.sid -> 
           Some (State.ToReturn (Stmt.Hptset.empty))
@@ -252,18 +265,20 @@ end = struct
       if is_in_stmts Queue.iter p todo then () else Queue.add p todo 
     in
     let rec do_todo () =
-      try
-        let s = Queue.take todo in
-        let _ = match do_stmt s with
-          | None -> (* finished with that one *) ()
-          | Some st -> (* store state and add preds *)
-              Stmt.Hashtbl.add infos s st; List.iter add_todo (preds s)
-        in do_todo ()
-      with Queue.Empty -> ()
-    in
-    let _ = Stmt.Hashtbl.add infos start init in
-    let _ = List.iter (fun p -> Queue.add p todo) (preds start) in
+      let s = Queue.take todo in
+      begin
+        match do_stmt s with
+        | None -> (* finished with that one *) ()
+        | Some st -> (* store state and add preds *)
+        Stmt.Hashtbl.add infos s st; List.iter add_todo (preds s)
+      end;
       do_todo ()
+    in
+    try
+      let _ = Stmt.Hashtbl.add infos start init in
+      let _ = List.iter (fun p -> Queue.add p todo) (preds start) in
+      do_todo () 
+    with Queue.Empty -> ()
 
   let compute kf =
     let infos = Stmt.Hashtbl.create 50 in
@@ -293,7 +308,6 @@ end = struct
       let stmt_to_ret, postdoms = match Stmt.Hashtbl.find infos stmt with
         | State.ToInfinity postdoms -> false, postdoms
         | State.ToReturn postdoms -> true, postdoms
-        | State.Init -> assert false
       in let postdoms =
         if with_s then Stmt.Hptset.add stmt postdoms else postdoms
       in 

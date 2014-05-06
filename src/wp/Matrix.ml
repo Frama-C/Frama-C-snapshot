@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,7 +27,7 @@
 open Ctypes
 open Lang.F
 
-type dim = int64 option
+type dim = int option
 type matrix = c_object * dim list
 
 let of_array = Ctypes.array_dimensions
@@ -51,7 +51,7 @@ struct
     List.iter
       (function
 	 | None -> Format.pp_print_string fmt "[]"
-	 | Some d -> Format.fprintf fmt "[%s]" (Int64.to_string d)
+	 | Some d -> Format.fprintf fmt "[%d]" d
       ) ds
 end
 
@@ -148,7 +148,7 @@ let denv = collect 0
 let rec dval = function
   | [] -> []
   | None :: ds -> dval ds
-  | Some n :: ds -> e_int64 n :: dval ds
+  | Some n :: ds -> e_int n :: dval ds
 let size (_,ds) = dval ds
 let rec tau obj = function
   | [] -> Lang.tau_of_object obj

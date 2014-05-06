@@ -209,6 +209,8 @@ let readfloat_big =
 
 (* Auxiliary functions for handling closures. *)
 
+(* Not used by Frama-C, causing problems with ARM, see:
+http://lists.gforge.inria.fr/pipermail/frama-c-discuss/2013-August/003702.html
 let (code_area_start, cksum) =
   let s = Marshal.to_string id [Marshal.Closures] in
   let cksum = String.sub s 0x1E 16 in
@@ -222,6 +224,7 @@ let (code_area_start, cksum) =
   let start = Obj.add_offset (Obj.field (Obj.repr id) 0) (Int32.neg ofs) in
   (start, cksum)
 ;;
+*)
 
 let check_const ch s msg =
   for i = 0 to String.length s - 1 do
@@ -412,10 +415,12 @@ let input_val ch t =
           read_double_array stk t len readfloat_big
 
       | 0x10 (* CODE_CODEPOINTER *) ->
+	assert false
+(* NOT USED BY Frama-C 
           let ofs = getword ch in
           check_const ch cksum "input_value: code mismatch";
 	  let offset_pointer = Obj.add_offset code_area_start ofs in
-          return stk (do_transform t offset_pointer)
+          return stk (do_transform t offset_pointer) *)
       | 0x11 (* CODE_INFIXPOINTER *) ->
           let ofs = getword ch in
           let clos = intern_rec [] t in

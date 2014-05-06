@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA   (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -53,7 +53,7 @@ let add_tokens s =
 
 let wildcard_rules =
   [ "bs_keyword"; "wildcard"; "keyword"; "c_keyword"; 
-    "acsl_c_keyword"; "is_ext_spec";
+    "non_logic_keyword"; "acsl_c_keyword"; "is_ext_spec";
     "is_acsl_spec"; "is_acsl_decl_or_code_annot";
     "is_acsl_other"; "post_cond";
     "identifier_or_typename"

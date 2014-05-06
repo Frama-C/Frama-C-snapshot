@@ -47,8 +47,8 @@ void misaligned_struct() {
   Frama_C_show_each_f (*((char *)&S3.i1) == S4.c1); // Ok
 }
 
-int main(int c1, int c2) {
-  int i;
+void main(int c1, int c2) {
+
   
   *(int*)(&T[0])=c1?1:2;
   *(int*)(&T[4])=c2?1:2;
@@ -63,5 +63,4 @@ int main(int c1, int c2) {
 
   if (c1) Frama_C_show_each_g (S1.i1 == *(short*)&S1.c1); // to do
 
-  return i;
 }

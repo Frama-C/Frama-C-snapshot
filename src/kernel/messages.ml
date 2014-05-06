@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -47,18 +47,34 @@ module Messages =
      end)
 let () = Ast.add_monotonic_state Messages.self
 
-module NbMessages =
+module Nb_errors =
   State_builder.Zero_ref
     (struct
-       let name = "nb_messages"
+       let name = "nb_errors"
        let dependencies = [Messages.self]
      end)
 
-let self = Messages.self
+let add_error m =
+  Nb_errors.set (Nb_errors.get() + 1);
+  Messages.set (m :: Messages.get ());;
 
-let add_message m =
-  NbMessages.set (NbMessages.get () + 1);
-  Messages.set (m :: Messages.get ())
+let nb_errors() = Nb_errors.get();;
+
+module Nb_warnings =
+  State_builder.Zero_ref
+    (struct
+       let name = "nb_warnings"
+       let dependencies = [Messages.self]
+     end)
+
+let add_warning m =
+  Nb_warnings.set (Nb_warnings.get() + 1);
+  Messages.set (m :: Messages.get ());;
+
+let nb_warnings() = Nb_warnings.get();;
+let nb_messages() = nb_errors() + nb_warnings();;
+
+let self = Messages.self
 
 let iter f = List.iter f (List.rev (Messages.get ()))
 let dump_messages () = iter Log.echo
@@ -68,27 +84,31 @@ let enable_collect =
   fun () ->
     if !not_yet then begin
       Kernel.debug "enable collection of error messages.";
-      Log.add_listener ~kind:[ Log.Error; Log.Warning ] add_message;
+      Log.add_listener ~kind:[ Log.Error ] add_error;
+      Log.add_listener ~kind:[ Log.Warning ] add_warning;
       not_yet := false
     end
 
-
-module OnceTable = State_builder.Hashtbl
-  (DatatypeMessages.Hashtbl)(Datatype.Unit)
-  (struct
-     let size = 37
-     let dependencies = []
-     let name = "Message.OnceTable"
-   end)
+module OnceTable = 
+  State_builder.Hashtbl
+    (DatatypeMessages.Hashtbl)
+    (Datatype.Unit)
+    (struct
+      let size = 37
+      let dependencies = [ Ast.self ]
+      let name = "Message.OnceTable"
+     end)
 
 let check_not_yet evt =
   if OnceTable.mem evt then false
-  else ( OnceTable.add evt () ; true)
-
-let reset_once_flag () = OnceTable.clear ()
+  else begin
+    OnceTable.add evt (); 
+    true
+  end
 
 let () = Log.check_not_yet := check_not_yet
 
+let reset_once_flag () = OnceTable.clear ()
 
 let () =
   let run () = if Kernel.Collect_messages.get () then enable_collect () in

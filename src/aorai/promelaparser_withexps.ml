@@ -286,7 +286,7 @@ let yyact = [|
                                                                  ( 
 	    let states=
 	      Hashtbl.fold (fun _ st l -> 
-		if st.acceptation=Undefined or st.init=Undefined then
+		if st.acceptation=Undefined || st.init=Undefined then
 		  begin
 		    Format.print_string ("Error: the state '"^(st.name)^"' is used but never defined.\n");
 		    exit 1
@@ -305,7 +305,7 @@ let yyact = [|
                                                  (
 	    let states=
 	      Hashtbl.fold (fun _ st l -> 
-		if st.acceptation=Undefined or st.init=Undefined then
+		if st.acceptation=Undefined || st.init=Undefined then
 		  begin
                     Aorai_option.abort 
                       "Error: state %s is used bug never defined" st.name

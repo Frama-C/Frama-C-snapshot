@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Aorai plug-in of Frama-C.                        *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat a l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -340,6 +340,8 @@ module Case_state:
 
 type state = Case_state.t
 
+val pretty_end_state: Aorai_state.t -> Format.formatter -> end_state -> unit
+
 val pretty_state: Format.formatter -> state -> unit
 
 (** [included_state st1 st2] is [true] iff [st1] is included in [st2], i.e:
@@ -359,6 +361,7 @@ val merge_end_state: end_state -> end_state -> end_state
 (** Merges two state: union of possible start states, of possible paths, and
     merge of ranges of possible values. *)
 val merge_state: state -> state -> state
+
 
 (** Register a new init state for kernel function.
     If there is already an init state registered, the new one is merged with
@@ -395,8 +398,8 @@ val get_loop_init_state: Cil_types.stmt -> state
 
 val get_loop_invariant_state: Cil_types.stmt -> state
 
-val debug_computed_state: unit -> unit
-(** Pretty-prints all computed states. Depends on dataflow debug category. *) 
+val debug_computed_state: ?dkey:Log.category -> unit -> unit
+(** Pretty-prints all computed states. Default key is dataflow. *) 
 
 (* ************************************************************************* *)
 (**{b Enumeration management}*)

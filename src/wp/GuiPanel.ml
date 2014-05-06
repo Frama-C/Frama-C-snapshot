@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -122,7 +122,7 @@ object(self)
       dialog#on_value `APPLY self#update ;
     end
 
-  method update () = Wp_parameters.Model.set [Factory.id self#get]
+  method update () = Wp_parameters.Model.set [Factory.ident self#get]
 
   method set (s:setup) =
     begin
@@ -241,14 +241,9 @@ let wp_panel
     Wp_parameters.Split.get Wp_parameters.Split.set demon ;
 
   Gtk_form.check ~label:"Trace"
-    ~tooltip:"Reports proof information from the provers"
+    ~tooltip:"Reports proof information from provers"
     ~packing:options#pack
     Wp_parameters.ProofTrace.get Wp_parameters.ProofTrace.set demon ;
-
-  Gtk_form.check ~label:"Proof"
-    ~tooltip:"Reports model/proof information from the provers"
-    ~packing:options#pack
-    Wp_parameters.UnsatModel.get Wp_parameters.UnsatModel.set demon ;
 
   let options = GPack.hbox ~spacing:8 ~packing () in
 

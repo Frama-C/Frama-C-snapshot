@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA   (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
 (*           Automatique)                                                 *)
@@ -29,6 +29,7 @@ let add = Logic_env.add_builtin_logic_function_gen
 
 let float_type = Ctype Cil.floatType
 let double_type = Ctype Cil.doubleType
+let string_type = Ctype Cil.charConstPtrType
 let long_double_type = Ctype Cil.longDoubleType
 let object_ptr = Ctype Cil.voidPtrType
 let fun_ptr = Ctype (TPtr(TFun(Cil.voidType,None,false,[]),[]))
@@ -129,6 +130,8 @@ let init =
                                          ("p2", object_ptr)];
             "\\pointer_comparable", [], [("p1", object_ptr);
                                          ("p2", fun_ptr)];
+            "\\points_to_valid_string", [], ["p", object_ptr];
+	    "\\warning", [], [("str", string_type)];
           ];
         (* functions *)
         List.iter

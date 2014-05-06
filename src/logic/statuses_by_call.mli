@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -49,6 +49,13 @@ val all_call_preconditions_at:
     the tuple is the require,  the second the copy at the call point.
     If [warn_missing] is true and a copy has not yet been created an error
     is raised. *)
+
+val all_functions_with_preconditions: stmt -> Kernel_function.Hptset.t
+(** Returns the set of functions that can be called at the given statement
+    and for which a precondition has been specialized at this call.
+    Those functions are registered when the function {!precondition_at_call}
+    is called. *)
+
 
 val replace_call_precondition: Property.t -> stmt -> Property.t -> unit
 (** [replace_for_call pre stmt pre_at_call] states that [pre_at_call]

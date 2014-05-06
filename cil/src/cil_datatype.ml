@@ -35,8 +35,8 @@
 (*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE         *)
 (*  POSSIBILITY OF SUCH DAMAGE.                                             *)
 (*                                                                          *)
-(*  File modified by CEA (Commissariat à l'énergie atomique et aux          *)
-(*                        énergies alternatives)                            *)
+(*  File modified by CEA (Commissariat Ã  l'Ã©nergie atomique et aux          *)
+(*                        Ã©nergies alternatives)                            *)
 (*               and INRIA (Institut National de Recherche en Informatique  *)
 (*                          et Automatique).                                *)
 (****************************************************************************)
@@ -67,7 +67,7 @@ module Make
       include Datatype.Undefined
       include X
       let name = "Cil_datatype." ^ name
-      let structural_descr = Structural_descr.Abstract
+      let structural_descr = Structural_descr.t_abstract
       let rehash = Datatype.identity
       let mem_project = Datatype.never_any_project
      end)
@@ -89,7 +89,7 @@ module Make_with_collections
     (struct
       include X
       let name = "Cil_datatype." ^ name
-      let structural_descr = Structural_descr.Abstract
+      let structural_descr = Structural_descr.t_abstract
       let rehash = Datatype.identity
       let mem_project = Datatype.never_any_project
      end)
@@ -184,12 +184,14 @@ module Location = struct
       let internal_pretty_code = Datatype.undefined
       let pretty fmt loc = 
 	let loc = (fst loc) in
-	Format.fprintf fmt "%s:%d" loc.Lexing.pos_fname loc.Lexing.pos_lnum
+	Format.fprintf fmt "%s:%d" 
+          (Filepath.pretty loc.Lexing.pos_fname)
+          loc.Lexing.pos_lnum
       let varname _ = "loc"
      end)
 
   let pretty_long fmt loc =
-    let file = Filename.basename (fst loc).Lexing.pos_fname in
+    let file = Filepath.pretty (fst loc).Lexing.pos_fname in
     let line = (fst loc).Lexing.pos_lnum in
     if file <> "." && file <> "" && line > 0 then
       Format.fprintf fmt "file %s, line %d" file line
@@ -222,7 +224,7 @@ module Instr = struct
     | Skip l
     | Set (_,_,l)
     | Call (_,_,_,l)
-    | Asm (_,_,_,_,_,l)
+    | Asm (_,_,_,_,_,_,l)
     | Code_annot (_,l) -> l
 
 end
@@ -241,12 +243,9 @@ module File =
       let varname _ = "ast"
      end)
 
-module Stmt = struct
-
+module Stmt_Id = struct
   let pretty_ref = ref (fun _ _ -> assert false)
-
-  module Aux =
-    Make_with_collections
+  include Make_with_collections
     (struct
       type t = stmt
       let name = "Stmt"
@@ -271,16 +270,16 @@ module Stmt = struct
       let pretty fmt s = !pretty_ref fmt s
       let varname _ = "stmt"
      end)
-
-  include Aux
+  let id stmt = stmt.sid
+end
+module Stmt = struct
+  include Stmt_Id
 
   let pretty_sid fmt s = Format.pp_print_int fmt s.sid
 
   module Hptset = struct
     include Hptset.Make
-      (struct include Aux
-              let id s = s.sid
-              let pretty = pretty_sid end)
+      (Stmt_Id)
       (struct let v = [ [ ] ] end)
       (struct let l = [ ] (* This should be [Ast.self], but cannot be done
                              here *) end)
@@ -546,6 +545,10 @@ end
 
 let pretty_typ_ref = ref (fun _ _ -> assert false)
 
+module Attributes=
+  Datatype.List_with_collections(Attribute) 
+    (struct let module_name = "Attributes" end)
+
 module MakeTyp(M:sig val config: type_compare_config val name: string end) =
 struct
   include Make_with_collections
@@ -652,7 +655,7 @@ module Label =
       let copy = Datatype.undefined
      end)
 
-module Varinfo = struct
+module Varinfo_Id = struct
   let pretty_ref = ref (fun _ _ -> assert false)
   let internal_pretty_code_ref = ref (fun _ _ _ -> assert false)
   let dummy =
@@ -676,7 +679,7 @@ module Varinfo = struct
       vlogic = false;
       vlogic_var_assoc = None }
 
-  module Aux = Make_with_collections
+  include Make_with_collections
       (struct
       type t = varinfo
       let name = "Varinfo"
@@ -689,17 +692,17 @@ module Varinfo = struct
       let pretty fmt v = !pretty_ref fmt v
       let varname v = "vi_" ^ v.vorig_name
      end)
+  let id v = v.vid
+end
+
+module Varinfo = struct
+  include Varinfo_Id
+
   let pretty_vname fmt v = Format.pp_print_string fmt v.vname
-
-  include Aux
-
-  let pretty_vid fmt v = Format.pp_print_int fmt v.vid
 
   module Hptset = struct
     include Hptset.Make
-      (struct include Aux
-              let id v = v.vid
-              let pretty = pretty_vid end)
+      (Varinfo_Id)
       (struct let v = [ [ ] ] end)
       (struct let l = [ ] (* Should morally be [Ast.self] *) end)
   end
@@ -1744,8 +1747,9 @@ module Term_lhost =
       let varname = Datatype.undefined
      end)
 
-module Term_offset =
-  Make_with_collections
+module Term_offset = struct
+  let pretty_ref = ref (fun _ _ -> assert false)
+  include Make_with_collections
     (struct
       type t = term_offset
       let name = "Term_offset"
@@ -1755,15 +1759,19 @@ module Term_offset =
       let hash = hash_fct hash_toffset
       let copy = Datatype.undefined
       let internal_pretty_code = Datatype.undefined
-      let pretty = Datatype.undefined
+      let pretty fmt t_o = !pretty_ref fmt t_o
       let varname = Datatype.undefined
      end)
+end
 
-module Term_lval =
-  Datatype.Pair_with_collections
+module Term_lval = struct
+  let pretty_ref = ref (fun _ _ -> assert false)
+  include Datatype.Pair_with_collections
     (Term_lhost)
     (Term_offset)
     (struct let module_name = "Cil_datatype.Term_lval" end)
+  let pretty fmt t = !pretty_ref fmt t
+end
 
 module Logic_label =
   Make_with_collections
@@ -1954,7 +1962,7 @@ module Kf = struct
   (struct
     type t = kernel_function
     let name = "Cil_datatype.Kf"
-    let structural_descr = Structural_descr.Abstract
+    let structural_descr = Structural_descr.t_abstract
     let reprs =
       let empty_spec =
 	{ spec_behavior = [];
@@ -1990,12 +1998,13 @@ module Kf = struct
 	Location.reprs
     let compare k1 k2 = Datatype.Int.compare (id k1) (id k2)
     let equal k1 k2 =
-      if k1 != k2 then
-        (assert
-           (Kernel.verify
-              ((id k1) <> (id k2)) "Two kf for %a and %a (%d)"
-              Varinfo.pretty (vi k1) Varinfo.pretty (vi k2) (id k1));
-         false)
+      if k1 != k2 then (
+        if (id k1) = (id k2) then
+          Kernel.fatal "Two kf for %a (%d) and %a (%d) (%d)"
+            Varinfo.pretty (vi k1) (Extlib.address_of_value k1)
+	    Varinfo.pretty (vi k2) (Extlib.address_of_value k2)
+	    (id k1);
+        false)
       else true
     let hash = id
     let copy = Datatype.undefined
@@ -2051,7 +2060,7 @@ module Funspec =
     (struct
       include Datatype.Serializable_undefined
       type t = funspec
-      let name = "funspec"
+      let name = "Funspec"
       let reprs =
 	[ { spec_behavior = [];
 	    spec_variant = None;
@@ -2082,10 +2091,10 @@ module Fundec = struct
   include Datatype.Make_with_collections
   (struct
     type t = fundec
-    let name = "fundec"
+    let name = "Fundec"
     let varname v = "fd_" ^ v.svar.vorig_name
     let reprs = reprs
-    let structural_descr = Structural_descr.Abstract
+    let structural_descr = Structural_descr.t_abstract
     let compare v1 v2 = Datatype.Int.compare v1.svar.vid v2.svar.vid
     let hash v = v.svar.vid
     let equal v1 v2 = v1.svar.vid = v2.svar.vid
@@ -2101,12 +2110,31 @@ module Predicate_named =
   Make
     (struct
       type t = predicate named
-      let name = "predicate_named"
+      let name = "Predicate_named"
       let reprs = 
 	[ { name = [ "" ]; loc = Location.unknown; content = Pfalse } ]
       let internal_pretty_code = Datatype.undefined
       let pretty = Datatype.undefined
       let varname _ = "p"
+     end)
+
+module Identified_predicate =
+  Make_with_collections
+    (struct
+        type t = identified_predicate
+        let name = "Identified_predicate"
+        let reprs =
+          [ { ip_name = [ "" ]; 
+	      ip_loc = Location.unknown; 
+	      ip_content = Pfalse; 
+	      ip_id = -1} ]
+        let compare x y = Extlib.compare_basic x.ip_id y.ip_id
+        let equal x y = x.ip_id = y.ip_id
+        let copy = Datatype.undefined
+        let hash x = x.ip_id
+        let internal_pretty_code = Datatype.undefined
+        let pretty = Datatype.undefined
+        let varname _ = "id_predyes"
      end)
 
 (**************************************************************************)

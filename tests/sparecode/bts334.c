@@ -56,7 +56,7 @@ void process(int conf )
 
 }
 /*@ behavior default:
-      assigns *p;
+      assigns *p \from \nothing;
       */
 extern int init(int *p ) ;
 void main_init(void)

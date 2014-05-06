@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -21,17 +21,11 @@
 (**************************************************************************)
 
 (** {2 Internals types}
-  * Internals type definitions should be hidden to the outside world,
-  * but it is not really possible to have abstract types since Slicing has to
-  * use Db.Slicing functions...
- *)
+    Internals type definitions should be hidden to the outside world,
+    but it is not really possible to have abstract types since Slicing has to
+    use Db.Slicing functions... *)
 
 open Cil_datatype
-
-(** {3 About the PDG}
-* As the PDG is not defined here anymore, look at
-* {{:../pdg/PdgTypes.html}PdgTypes} for more information about it.
-* *)
 
 (** {3 About options} *)
 
@@ -139,9 +133,9 @@ and
 
 and
   project = { name : string ;
-                application : Project.t ;
-                functions : fct_info Varinfo.Hashtbl.t;
-                mutable actions : criterion list;
+              application : Project.t ;
+              functions : fct_info Varinfo.Hashtbl.t;
+              mutable actions : criterion list;
               }
 
 and

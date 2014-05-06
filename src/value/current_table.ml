@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -22,17 +22,22 @@
 
 open Cil_datatype
 
+ type state_imp = State_imp.t;;
+
  type record =
       {
-        mutable superposition : State_imp.t ;
+	superposition : State_imp.t ;
         mutable widening : int ;
         mutable widening_state : Cvalue.Model.t ;
+	mutable counter_unroll : int ;
       }
 
   let empty_record () =
     { superposition = State_imp.empty () ;
       widening = Value_parameters.WideningLevel.get () ;
-      widening_state = Cvalue.Model.bottom }
+      widening_state = Cvalue.Model.bottom ;
+      counter_unroll = 0;
+    }
 
   type t = record Stmt.Hashtbl.t
 
@@ -53,25 +58,14 @@ open Cil_datatype
     let r = find_current current_table kinstr in
     r.widening, r.widening_state
 
-  let update_current_exn current_table stmt v =
-    let record = find_current current_table stmt in
-    State_imp.merge_set_into v record.superposition
-
-
-  let update_current current_table kinstr v =
-    try
-      update_current_exn current_table kinstr v
-    with State_imp.Unchanged -> ()
-
-
   let update_and_tell_if_changed current_table kinstr d =
     let record = find_current current_table kinstr in
     if Cvalue.Model.is_reachable record.widening_state
     then
-      let j = State_set.join d in
+      let (j,tr) = State_set.join d in
       if Cvalue.Model.is_included j record.widening_state
       then State_set.empty
-      else State_set.singleton j
+      else State_set.singleton (j,tr)
     else
       State_imp.merge_set_return_new d record.superposition
 
@@ -92,10 +86,7 @@ open Cil_datatype
       if Value_parameters.ResultsCallstack.get () then 
 	Db.Value.update_callstack_table ~after:false k callstack sum
    in
-   if Mark_noresults.should_memorize_function
-     (Kernel_function.get_definition (Value_util.current_kf()))
-   then
-     Stmt.Hashtbl.iter treat_stmt (Lazy.force hash_states)
+   Stmt.Hashtbl.iter treat_stmt (Lazy.force hash_states)
 
    let superpositions current_table =
      let r = Stmt.Hashtbl.create (Stmt.Hashtbl.length current_table)
@@ -124,5 +115,13 @@ open Cil_datatype
      let record = find_current current_table s in
      let s = State_imp.to_set record.superposition in
      if Cvalue.Model.is_reachable record.widening_state
-     then State_set.add record.widening_state s
+     (* Forget about the trace. TODO: preserve the trace. *)
+     then State_set.add (record.widening_state, Trace.top) s
      else s
+
+
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

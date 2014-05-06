@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -165,10 +165,6 @@ val clear: ?selection:State_selection.t -> ?project:t -> unit -> unit
       @modify Carbon-20101201 replace the optional arguments [only] and
       [except] by a single one [selection]. 
       @plugin development guide *)
-
-val register_todo_on_clear: (t -> unit) -> unit
-  (** @deprecated since Boron-20100401.
-      Replaced by {!register_todo_before_clear} *)
 
 val register_todo_before_clear: (t -> unit) -> unit
   (** Register an action performed just before clearing a project.

@@ -1,8 +1,8 @@
 /* run.config
    STDOPT: +"-unspecified-access"
 */
-
-#include "share/libc/stdio.c"
+//@ assigns \nothing;
+int printf(const char*, ...);
 
 int uppol2(int al1,int al2,int plt,int plt1,int plt2)
 {

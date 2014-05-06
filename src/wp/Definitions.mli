@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -78,7 +78,6 @@ sig
   val plug : trigger list list -> pred -> var list * pred
 end
 
-
 val define_symbol : dfun -> unit
 val update_symbol : dfun -> unit
 val find_lemma : logic_lemma -> dlemma (* raises Not_found *)
@@ -112,14 +111,13 @@ object
   method vsymbol : lfun -> unit
   method vlemma : logic_lemma -> unit
   method vcluster : cluster -> unit
-  method vtheory : string -> unit
+  method vlibrary : string -> unit
   method vgoal : axioms option -> F.pred -> unit
   method vself : unit
 
   (** {2 Visited definitions} *)
 
   method virtual section : string -> unit (** Comment *)
-  method virtual on_theory : string -> unit (** Builtin theory to import *)
   method virtual on_library : string -> unit (** External library to import *)
   method virtual on_cluster : cluster -> unit (** Outer cluster to import *)
   method virtual on_type : logic_type_info -> typedef -> unit (** This local type must be defined *)

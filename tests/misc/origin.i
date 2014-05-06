@@ -1,7 +1,7 @@
 /* run.config
    GCC:
-   OPT: -memory-footprint 1 -val -out -deps -main main -journal-disable
-   OPT: -memory-footprint 1 -val -out -deps -main origin -journal-disable
+   OPT: -val -out -deps -main main -journal-disable
+   OPT: -val -out -deps -main origin -journal-disable
 
 */
 char f();
@@ -44,7 +44,7 @@ int *pm1, *pm2, *qm2;
 
 void origin_misalign_1(void) {
   pm1  = *(int**)(2 + (char *) Tm1);
-  *pm1 = 0;
+  *pm1 = 1;
 }
 
 void origin_misalign_2(void) {

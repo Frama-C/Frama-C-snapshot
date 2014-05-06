@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -39,22 +39,22 @@ sig
   type trigger = (T.var,Fun.t) ftrigger
 
   class virtual engine :
-  object
-    inherit [ADT.t,Field.t,Fun.t,tau,var,term] Engine.engine
-    method op_spaced : string -> bool
-    method op_record : string * string
-    method pp_forall : tau -> var list printer
-    method pp_intros : tau -> var list printer
-    method pp_exists : tau -> var list printer
-    method pp_param : var printer
-    method pp_trigger : (var,Fun.t) ftrigger printer
-    method pp_declare_symbol : cmode -> Fun.t printer
-    method pp_declare_adt : formatter -> ADT.t -> int -> unit
-    method pp_declare_def : formatter -> ADT.t -> int -> tau -> unit
-    method pp_declare_sum : formatter -> ADT.t -> int -> (Fun.t * tau list) list -> unit
-    method declare_prop : kind:string -> formatter -> string -> T.var list -> trigger list list -> term -> unit
-    method declare_fixpoint : prefix:string -> 
-      formatter -> Fun.t -> var list -> tau -> term -> unit
-  end
+    object
+      inherit [Z.t,ADT.t,Field.t,Fun.t,tau,var,term] Engine.engine
+      method op_spaced : string -> bool
+      method op_record : string * string
+      method pp_forall : tau -> var list printer
+      method pp_intros : tau -> var list printer
+      method pp_exists : tau -> var list printer
+      method pp_param : var printer
+      method pp_trigger : (var,Fun.t) ftrigger printer
+      method pp_declare_symbol : cmode -> Fun.t printer
+      method pp_declare_adt : formatter -> ADT.t -> int -> unit
+      method pp_declare_def : formatter -> ADT.t -> int -> tau -> unit
+      method pp_declare_sum : formatter -> ADT.t -> int -> (Fun.t * tau list) list -> unit
+      method declare_prop : kind:string -> formatter -> string -> T.var list -> trigger list list -> term -> unit
+      method declare_fixpoint : prefix:string -> 
+        formatter -> Fun.t -> var list -> tau -> term -> unit
+    end
 
 end

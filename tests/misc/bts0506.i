@@ -22,7 +22,7 @@ void main2() {
   unsigned long r7 = f2();
 
   unsigned int r8 = f3();
-  int r8 = f3();
+  int r8bis = f3();
 
   float r9 = f4();
   double r10 = f4();

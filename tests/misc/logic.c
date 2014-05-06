@@ -44,6 +44,8 @@ void eq_tsets () {
 
   //@ assert \union() != \union(x);
 
+  //@ assert \inter(&t, &u) == \empty;
+
 }
 
 void eq_char() {

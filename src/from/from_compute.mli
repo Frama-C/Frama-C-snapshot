@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -36,16 +36,20 @@ end
     Db.Value on more precise state. *)
 module type Values_To_Use_Sig =
 sig
-  val lval_to_loc_with_deps :
+  val lval_to_zone_with_deps :
     stmt ->
-    deps:Locations.Zone.t ->
+    deps:Locations.Zone.t option ->
+    for_writing:bool ->
     lval ->
-    Locations.Zone.t * Locations.location
+    Locations.Zone.t * Locations.Zone.t * bool
+
   val expr_to_kernel_function :
     stmt ->
     deps:Locations.Zone.t option ->
     exp -> Locations.Zone.t * Kernel_function.Hptset.t
+
   val get_stmt_state : stmt -> Db.Value.state
+
   val access_expr : stmt -> exp -> Db.Value.t
 end
 
@@ -67,11 +71,9 @@ val compute_using_prototype_for_state :
 (** Direct computation of the dependencies on expressions, offsets and
     lvals. The state at the statement is taken from Values_To_Use *)
 val find_deps_no_transitivity :
-  Db.Value.state -> exp -> Locations.Zone.t
-val find_deps_offset_no_transitivity :
-  Db.Value.state -> offset -> Locations.Zone.t
+  Db.Value.state -> exp -> Function_Froms.Deps.t
 val find_deps_lval_no_transitivity :
-  Db.Value.state -> lval -> Locations.Zone.t
+  Db.Value.state -> lval -> Function_Froms.Deps.t
 
 
 (** Functor computing the functional dependencies, according to the three
@@ -81,13 +83,6 @@ module Make :
   functor (Froms_To_Use : Froms_To_Use_Sig) ->
   functor (Recording_To_Do : Recording_Sig) ->
 sig
-
-  (** Computation of the dependencies on an expression, but recursive
-      dependencies are resolved using the value of type
-      [Lmap_bitwise.From_Model.t]. *)
-  val find_deps :
-    stmt ->
-    Lmap_bitwise.From_Model.t -> exp -> Locations.Zone.t
 
   (** Compute the dependencies of the given function, and return them *)
   val compute_and_return : Kernel_function.t -> Function_Froms.t

@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -103,17 +103,17 @@ let default_icon = Datatype.String.Set.singleton default_icon_name
 
 module Make_StmtSetState (Info:sig val name: string end) =
   struct include State_builder.Ref
-    (Stmt.Set)
+    (Stmt.Hptset)
     (struct
        let name = Info.name
        let dependencies = [ Db.Value.self ]
-       let default () = Stmt.Set.empty
+       let default () = Stmt.Hptset.empty
      end)
 	
    let set s = 
      set s;
      Kf_containing_highlighted_stmt.clear ();
-     Stmt.Set.iter 
+     Stmt.Hptset.iter 
        (fun stmt -> 
 	 Kf_containing_highlighted_stmt.replace 
 	   (Kernel_function.find_englobing_kf stmt) default_icon)
@@ -184,9 +184,9 @@ module DataScope : (DpdCmdSig with type t_in = lval)  = struct
       ^"For more information, please look at the Scope plugin documentation.")
 
   let get_info _kf_stmt_opt =
-    if Stmt.Set.is_empty (Fscope.get ())
-      && Stmt.Set.is_empty (FBscope.get ())
-      && Stmt.Set.is_empty (Bscope.get ())
+    if Stmt.Hptset.is_empty (Fscope.get ())
+      && Stmt.Hptset.is_empty (FBscope.get ())
+      && Stmt.Hptset.is_empty (Bscope.get ())
     then ""
     else "[scope] selected"
 
@@ -196,9 +196,9 @@ module DataScope : (DpdCmdSig with type t_in = lval)  = struct
     "[scope] computed"
 
   let tag_stmt stmt =
-    if Stmt.Set.mem stmt (Fscope.get()) then scope_f_tag
-    else if Stmt.Set.mem stmt (FBscope.get()) then scope_fb_tag
-    else if Stmt.Set.mem stmt (Bscope.get()) then scope_b_tag
+    if Stmt.Hptset.mem stmt (Fscope.get()) then scope_f_tag
+    else if Stmt.Hptset.mem stmt (FBscope.get()) then scope_fb_tag
+    else if Stmt.Hptset.mem stmt (Bscope.get()) then scope_b_tag
     else empty_tag
 
 end
@@ -226,7 +226,7 @@ module Pscope (* : (DpdCmdSig with type t_in = code_annotation) *) = struct
       ^"For more information, please look at the Scope plugin documentation.")
 
   let get_info _kf_stmt_opt =
-    if Stmt.Set.is_empty (Pscope.get ())
+    if Stmt.Hptset.is_empty (Pscope.get ())
     then ""
     else "[prop_scope] selected"
 
@@ -236,8 +236,8 @@ module Pscope (* : (DpdCmdSig with type t_in = code_annotation) *) = struct
     "[prop_scope] computed"
 
   let tag_stmt stmt =
-    (*if Stmt.Set.mem stmt (Pscope_warn.get()) then scope_p_warn_tag
-    else*) if Stmt.Set.mem stmt (Pscope.get()) then scope_p_tag
+    (*if Stmt.Hptset.mem stmt (Pscope_warn.get()) then scope_p_warn_tag
+    else*) if Stmt.Hptset.mem stmt (Pscope.get()) then scope_p_tag
     else empty_tag
 
   let tag_annot annot =
@@ -313,7 +313,7 @@ module Zones : (DpdCmdSig with type t_in = lval)  = struct
     struct include State_builder.Option_ref
       (Datatype.Pair
          (Stmt.Hashtbl.Make(Locations.Zone))
-         (Stmt.Set))
+         (Stmt.Hptset))
       (struct
          let name = "Dpds_gui.Highlighter.ZonesState"
          let dependencies = [ Db.Value.self ]
@@ -321,7 +321,7 @@ module Zones : (DpdCmdSig with type t_in = lval)  = struct
     let set s = 
       set s;
       Kf_containing_highlighted_stmt.clear ();
-      Stmt.Set.iter 
+      Stmt.Hptset.iter 
 	(fun stmt -> 
 	  Kf_containing_highlighted_stmt.replace 
 	    (Kernel_function.find_englobing_kf stmt) default_icon)
@@ -358,7 +358,7 @@ module Zones : (DpdCmdSig with type t_in = lval)  = struct
     let is_used =
       try
         let _zones, used =  ZonesState.get () in
-        Stmt.Set.mem stmt used
+        Stmt.Hptset.mem stmt used
       with Not_found -> false
     in
       if is_used then zones_used_tag else empty_tag

@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -27,8 +27,10 @@ let small_cardinal = ref 8
 let small_cardinal_Int = ref (Int.of_int !small_cardinal)
 let small_cardinal_log = ref 3
 
+let debug_cardinal = false
+
 let set_small_cardinal i =
-  assert (2 <= i && i <= 256);
+  assert (2 <= i && i <= 1024);
   let rec log j p =
     if i <= p then j
     else log (j+1) (2*p)
@@ -40,6 +42,7 @@ let set_small_cardinal i =
 let get_small_cardinal () = !small_cardinal
 
 exception Can_not_subdiv
+let can_not_subdiv = Can_not_subdiv
 
 module F = struct
 
@@ -47,16 +50,20 @@ module F = struct
 
   let packed_descr = Structural_descr.p_float
 
-  let compare f1 f2 =
+  external compare : float -> float -> int = "float_compare_total" "noalloc"
+
+(* The Caml version below is fine but the C version is faster and
+   does not allocateâ€”it would be possible for the Caml version
+   to avoid allocation, but OCaml 4.00.1 allocates 80 bytes,
+   for instance *)
+(*  let compare f1 f2 =
     let i1 = Int64.bits_of_float f1 in
     let i2 = Int64.bits_of_float f2 in
-    let m1 =  (Int64.logand i1 Int64.min_int) in
-    let m2 =  (Int64.logand i2 Int64.min_int) in    
+    let m1 = (Int64.logand i1 Int64.min_int) in
+    let m2 = (Int64.logand i2 Int64.min_int) in    
     if m1 = m2 
     then compare f1 f2
-    else compare m1 m2
-
-  let () = assert ((compare (-0.) 0.) = -1)
+    else compare m1 m2 *)
 
   let equal f1 f2 = compare f1 f2 = 0
 
@@ -78,11 +85,12 @@ module F = struct
   let min_denormal = Int64.float_of_bits 1L
   let neg_min_denormal = -. min_denormal
 
-  let is_positive f =
-    Int64.logand (Int64.bits_of_float f) Int64.min_int = Int64.zero
+(* works but allocates:
+  let is_negative f = Int64.bits_of_float f < Int64.zero *)
+  external is_negative : float -> bool = "float_is_negative" "noalloc"
 
   let zero_of_same_sign f = 
-    if is_positive f then zero else minus_zero
+    if is_negative f then minus_zero else zero
 
   let is_infinity = (=) infinity
   let is_neg_infinity = (=) neg_infinity
@@ -118,6 +126,15 @@ module F = struct
 
   let le_ieee = ((<=) : float -> float -> bool)
   let lt_ieee = ((<) : float -> float -> bool)
+
+  let sqrt = (* See bts #1396. We patch Pervasives function only when needed *)
+    if compare (sqrt minus_zero) minus_zero <> 0 then
+      fun v ->
+        if v = minus_zero 
+	then v
+        else sqrt v
+    else
+      sqrt
 
   let sqrt = wrap_un sqrt
 
@@ -183,10 +200,7 @@ module F = struct
   let round_up = round Int64.succ Int64.pred
   let round_down = round Int64.pred Int64.succ
 
-  let le f1 f2 =
-    if f1 = zero && f2 = zero
-    then (1. /. f1) <= (1. /. f2)
-    else f1 <= f2
+  let le f1 f2 = compare f1 f2 <= 0
 
   let min f1 f2 =
     if le f1 f2 then f1 else f2
@@ -278,8 +292,7 @@ module Float_abstract = struct
   (* open Private_Couple *) (* Workaround for Ocaml bug 5718 *)
 
   let structural_descr =
-    Structural_descr.Structure
-      (Structural_descr.Sum [| [| F.packed_descr; F.packed_descr |] |])
+    Structural_descr.t_sum [| [| F.packed_descr; F.packed_descr |] |]
 
   let packed_descr = Structural_descr.pack structural_descr
 
@@ -388,29 +401,31 @@ module Float_abstract = struct
     if rounding_mode = Any
     then Floating_point.set_round_upward ();
     let e = Floating_point.round_to_single_precision_float e in
-    let infb, b = match classify_float b, denormal_treatment with
-    | FP_infinite, _ ->
+    let infb, b = 
+      match classify_float b, denormal_treatment with
+      | FP_infinite, _ ->
 	if F.equal_ieee b F.infinity 
 	then raise Bottom;
-          true, F.most_negative_single_precision_float
-    | FP_subnormal, FTZ -> false,
+        true, F.most_negative_single_precision_float
+      | FP_subnormal, FTZ -> false,
 	F.zero_of_same_sign b
-    | FP_subnormal, DenormalsandFTZ when F.is_positive b ->
+      | FP_subnormal, DenormalsandFTZ when not (F.is_negative b) ->
         false, F.zero
-    | _ -> false, b
-      in
-      let infe, e = match classify_float e, denormal_treatment with
-        | FP_infinite, _ ->
-	    if F.equal_ieee e F.neg_infinity 
-	    then raise Bottom;
-            true, F.max_single_precision_float
-        | FP_subnormal, FTZ -> false,
-	    F.zero_of_same_sign e
-        | FP_subnormal, DenormalsandFTZ when not (F.is_positive e) ->
-            false, F.minus_zero
-        | _ -> false, e
-      in
-      infb || infe, inject b e
+      | _ -> false, b
+    in
+    let infe, e = 
+      match classify_float e, denormal_treatment with
+      | FP_infinite, _ ->
+	if F.equal_ieee e F.neg_infinity 
+	then raise Bottom;
+        true, F.max_single_precision_float
+      | FP_subnormal, FTZ -> false,
+	F.zero_of_same_sign e
+      | FP_subnormal, DenormalsandFTZ when F.is_negative e ->
+        false, F.minus_zero
+      | _ -> false, e
+    in
+    infb || infe, inject b e
  (*   in
     Format.printf "Casting double -> float %a -> %B %a@."
       pretty _arg
@@ -419,33 +434,60 @@ module Float_abstract = struct
     fl, _res
  *)
 
-  let bits_of_float64 (Private_Couple.I(l, u)) =
-    if F.le u F.minus_zero
-    then
-      Int.of_int64 (Int64.bits_of_float u),
-      Int.of_int64 (Int64.bits_of_float l)
-    else if F.le F.zero l
-    then 
-      Int.of_int64 (Int64.bits_of_float l),
-      Int.of_int64 (Int64.bits_of_float u)
-    else
-      Int.of_int64 Int64.min_int,
-      Int.of_int64 (Int64.bits_of_float u)
 
- let bits_of_float32 (Private_Couple.I(l, u)) =
+  (* Bitwise reinterpretation of a double to a 64-bit integer. signedness of the
+     integer is defined by ~signed *)
+  let bits_of_float64 ~signed (Private_Couple.I(l, u)) =
+    if F.is_negative u
+    then begin
+      if signed then
+        Int.of_int64 (Int64.bits_of_float u),
+        Int.of_int64 (Int64.bits_of_float l)
+      else
+        Int.(add_2_64 (of_int64 (Int64.bits_of_float u))),
+        Int.(add_2_64 (of_int64 (Int64.bits_of_float l)))
+    end
+    else if F.is_negative l
+    then begin
+      if signed then
+	Int.of_int64 Int64.min_int,
+	Int.of_int64 (Int64.bits_of_float u)
+      else
+        Int.zero,
+        Int.(add_2_64 (of_int64 (Int64.bits_of_float l)))
+    end
+    else
+	Int.of_int64 (Int64.bits_of_float l),
+	Int.of_int64 (Int64.bits_of_float u)
+
+ (* Bitwise reinterpretation of a float to a 32-bit integer. signedness of the
+    integer is defined by ~signed *)
+ let bits_of_float32 ~signed (Private_Couple.I(l, u)) =
    assert (F.equal l (Floating_point.round_to_single_precision_float l));
    assert (F.equal u (Floating_point.round_to_single_precision_float u));
-   if F.le u F.minus_zero
-   then
-      Int.of_int32 (Int32.bits_of_float u),
-      Int.of_int32 (Int32.bits_of_float l)
-    else if F.le F.zero l
-    then 
-      Int.of_int32 (Int32.bits_of_float l),
-      Int.of_int32 (Int32.bits_of_float u)
+    if F.is_negative u
+    then begin
+      if signed then
+        Int.of_int32 (Int32.bits_of_float u),
+        Int.of_int32 (Int32.bits_of_float l)
+      else
+        Int.(add_2_32 (of_int32 (Int32.bits_of_float u))),
+        Int.(add_2_32 (of_int32 (Int32.bits_of_float l)))
+    end
     else
-      Int.of_int32 Int32.min_int,
-      Int.of_int32 (Int32.bits_of_float u)
+      if F.is_negative l
+      then begin
+        if signed then
+	  Int.of_int32 Int32.min_int,
+	  Int.of_int32 (Int32.bits_of_float u)
+        else
+          Int.zero,
+          Int.(add_2_32 (of_int32 (Int32.bits_of_float l)))
+      end
+      else
+	Int.of_int32 (Int32.bits_of_float l),
+	Int.of_int32 (Int32.bits_of_float u)
+
 
 
   let add_float rounding_mode v1 v2 =
@@ -750,7 +792,7 @@ module Float_abstract = struct
           end
     in
     if F.le midpointu l || F.le u midpointl
-    then raise Can_not_subdiv;
+    then raise can_not_subdiv;
 (*    Format.printf "%a %a %a %a@."
       (F.pretty_normal ~use_hex:true) l
       (F.pretty_normal ~use_hex:true) midpointl
@@ -766,9 +808,7 @@ end
 
 module Widen_Arithmetic_Value_Set = struct
 
-  module V = Int
-  module S = SetWithNearest.Make(Int)
-  include S
+  include Datatype.Big_int.Set
 
   let pretty fmt s =
     if is_empty s then Format.fprintf fmt "{}"
@@ -779,12 +819,29 @@ module Widen_Arithmetic_Value_Set = struct
         ~sep:";@ "
         iter Int.pretty fmt s
 
+  let of_list l =
+    match l with
+    | [] -> empty
+    | [e] -> singleton e
+    | e :: q ->
+      List.fold_left (fun acc x -> add x acc) (singleton e) q
+
   let default_widen_hints =
-    List.fold_left
-      (fun acc x ->
-        add (Int.of_int x) acc)
-      empty
-      [ -128;-1;0;1;3;15;127;512;32767;1 lsl 29 ]
+    of_list (List.map Int.of_int [-128;-1;0;1;3;15;127;512;32767])
+
+  let _default_widen_hints = of_list [Int.of_int (-1); Int.zero; Int.one]
+
+  (* Bounds for all the signed types greater than int. No need to add smaller
+     types: the computations are done as int, and then cast back in the smaller
+     type. Thus they "overflow", but through a downcast. We do not add unsigned
+     types either, given the fact that we automatically transform [0..2^n-1]
+     into top_int when the value is stored. *)
+  let hints_for_signed_int_types () =
+    let size_int = Cil.bitsSizeOfInt Cil_types.IInt in
+    let size_long = Cil.bitsSizeOfInt Cil_types.ILong in
+    let size_long_long = Cil.bitsSizeOfInt Cil_types.ILongLong in
+    let signed size = Int.pred (Int.two_power_of_int (size-1)) in
+    of_list [signed size_int; signed size_long; signed size_long_long]
 
 end
 
@@ -803,7 +860,7 @@ let opt1 f m =
 exception Error_Top
 exception Error_Bottom
 
-module O = Set.Make(Int)
+module O = FCSet.Make(Integer)
 
 type pre_set = 
     Pre_set of O.t * int
@@ -813,6 +870,11 @@ type tt =
   | Set of Int.t array
   | Float of Float_abstract.t
   | Top of Int.t option * Int.t option * Int.t * Int.t
+(* Binary abstract operations do not model precisely float/integer operations.
+   It is the responsability of the callers to have two operands of the same
+   implicit type. The only exception is for [singleton_zero], which is the
+   correct representation of [0.] *)
+
 
 module Widen_Hints = Widen_Arithmetic_Value_Set
 type widen_hint = Widen_Hints.t
@@ -821,9 +883,6 @@ let some_zero = Some Int.zero
 
 let bottom = Set (Array.make 0 Int.zero)
 let top = Top(None, None, Int.zero, Int.one)
-
-let set_of_array a = 
-  Array.fold_right O.add a O.empty
 
 let hash_v_option v =
   match v with None -> 97 | Some v -> Int.hash v
@@ -931,23 +990,29 @@ let all_negatives max =
   | None -> false
   | Some m -> Int.le m Int.zero
 
-let check doc min max r modu =
-  assert(assert (Int.ge r Int.zero );
-         assert (Int.ge modu Int.one );
-         (match min with
-         | None -> ()
-         | Some m ->
-           if not (Int.equal (Int.pos_rem m modu) r) then begin
-             Kernel.warning ~once:true ~current:true
-               "Make_Lattice_Mod.check: '%s'\n" doc;
-             Kernel.feedback "min=%a modu=%a r=%a@."
-               Int.pretty m  Int.pretty modu  Int.pretty r;
-             assert false
-           end);
-         (match max with
-         | None -> ()
-         | Some m -> assert (Int.equal (Int.pos_rem m modu) r));
-         true)
+(* Sanity check for Top's arguments *)
+let check min max r modu =
+      if not (
+       (Int.ge r Int.zero )
+    && (Int.ge modu Int.one )
+    && (Int.lt r modu)
+    && (match min with
+      | None -> true
+      | Some m -> (Int.equal (Int.pos_rem m modu) r))
+    && (match max with
+      | None -> true
+      | Some m -> (Int.equal (Int.pos_rem m modu) r)))
+      then begin
+	  let bound fmt = 
+	    function 
+		None -> Format.fprintf fmt "--" 
+	      | Some(x) -> Int.pretty fmt x 
+	  in 
+	  Kernel.fatal "broken with min=%a max=%a r=%a modu=%a" 
+	    bound min bound max Int.pretty r Int.pretty modu;
+	end;
+	    true
+
 
 let cardinal_zero_or_one v =
   match v with
@@ -1023,7 +1088,7 @@ let subdiv_float_interval ~size v =
       inject_float f1, inject_float f2
   | Top _ | Set _ ->
       assert (is_zero v);
-      raise Can_not_subdiv
+      raise can_not_subdiv
 
 (*  let minus_zero = Float (Float_abstract.minus_zero, Float_abstract.minus_zero) *)
 
@@ -1068,6 +1133,14 @@ let project_int v = match v with
 | Set [| e |] -> e
 | _ -> raise Not_Singleton_Int
 
+let cardinal v =
+  match v with
+    | Top (None,_,_,_) | Top (_,None,_,_) -> None
+    | Top (Some mn, Some mx,_,m) ->
+        Some (Int.succ ((Int.native_div (Int.sub mx mn) m)))
+    | Set s -> Some (Int.of_int (Array.length s))
+    | Float f -> if Float_abstract.is_singleton f then Some Int.one else None
+
 let cardinal_less_than v n =
   let c =
     match v with
@@ -1082,27 +1155,12 @@ let cardinal_less_than v n =
   then Int.to_int c (* This is smaller than the original [n] *)
   else raise Not_less_than
 
-let splitting_cardinal_less_than ~split_non_enumerable v n =
-  let c =
-    match v with
-    | Top (None,_,_,_) | Top (_,None,_,_) -> raise Not_less_than
-    | Top (Some mn, Some mx,_,m) ->
-        Int.succ ((Int.native_div (Int.sub mx mn) m))
-    | Set s -> Int.of_int (Array.length s)
-    | Float f ->
-        if Float_abstract.is_singleton f then Int.one
-        else Int.of_int split_non_enumerable
-  in
-  if Int.le c (Int.of_int n)
-  then Int.to_int c
-  else raise Not_less_than
-
 let share_top min max r modu =
   let r = Top (min, max, r, modu) in
   if equal r top then top else r
 
 let inject_top min max r modu =
-  check "inject_top" min max r modu;
+  assert (check min max r modu);
   match min, max with
   | Some mn, Some mx ->
       if Int.gt mx mn then
@@ -1135,7 +1193,7 @@ let subdiv ~size v =
   | Set arr ->
       let len = Array.length arr in
       assert (len > 0 );
-      if len <= 1 then raise Can_not_subdiv;      
+      if len <= 1 then raise can_not_subdiv;      
       let m = len lsr 1 in
       let lenhi = len - m in
       let lo = Array.sub arr 0 m in
@@ -1149,14 +1207,14 @@ let subdiv ~size v =
       let lohi = Integer.round_up_to_r ~min:succmean ~r ~modu in
       inject_top (Some lo) (Some hilo) r modu,
       inject_top (Some lohi) (Some hi) r modu
-  | Top _ -> raise Can_not_subdiv
+  | Top _ -> raise can_not_subdiv
 
 let inject_range min max = inject_top min max Int.zero Int.one
 
 let top_float = Float Float_abstract.top
 
 let unsafe_make_top_from_set_4 s =
-  assert (O.cardinal s >= 2);
+  if debug_cardinal then assert (O.cardinal s >= 2);
   let m = O.min_elt s in
   let modu = O.fold
       (fun x acc ->
@@ -1187,7 +1245,7 @@ let unsafe_make_top_from_array_4 s =
   let r = Int.pos_rem m modu in
   let max = Some s.(pred l) in
   let min = Some m in
-  check "unsafe_make_top_from_array_4" min max r modu;
+  assert (check min max r modu);
   (min,max,r,modu)
 
 let unsafe_make_top_from_array s =
@@ -1198,15 +1256,15 @@ let empty_ps = Pre_set (O.empty, 0)
 
 let add_ps ps x =
   match ps with
-    Pre_set(o,s) ->
-      assert (O.cardinal o = s);
+  | Pre_set(o,s) ->
+      if debug_cardinal then assert (O.cardinal o = s);
       if (O.mem x o) (* TODO: improve *)
       then ps
       else 
 	let no = O.add x o in
 	if s < !small_cardinal
 	then begin	    
-	    assert (O.cardinal no = succ s);
+	    if debug_cardinal then assert (O.cardinal no = succ s);
 	    Pre_set (no, succ s)
 	  end
 	else 
@@ -1573,8 +1631,8 @@ let join v1 v2 =
     if v1 == v2 then v1 else
       match v1,v2 with
       | Top(mn1,mx1,r1,m1), Top(mn2,mx2,r2,m2) ->
-          check "join left" mn1 mx1 r1 m1;
-          check "join right" mn2 mx2 r2 m2;
+          assert (check mn1 mx1 r1 m1);
+          assert (check mn2 mx2 r2 m2);
           let modu = Int.pgcd (Int.pgcd m1 m2) (Int.abs(Int.sub r1 r2)) in
           let r = Int.rem r1 modu in
           let min = min_min mn1 mn2 in
@@ -1597,7 +1655,7 @@ let join v1 v2 =
               None -> None
             | Some m -> Some (Int.max m s.(pred l))
             in
-            check "inside join" new_min new_max new_r new_modu;
+            assert (check new_min new_max new_r new_modu);
             share_top new_min new_max new_r new_modu
       | Set s1 , Set s2 ->
 	  let l1 = Array.length s1 in
@@ -1708,8 +1766,7 @@ let join v1 v2 =
     pretty v1 pretty v2 pretty result; *)
   result
 
-    (* TODO: rename this function in fold_int *)
-let fold f v acc =
+let fold_int f v acc =
   match v with
     Top(None,_,_,_) | Top(_,None,_,_) | Float _ ->
       raise Error_Top
@@ -1718,23 +1775,27 @@ let fold f v acc =
   | Set s ->
       Array.fold_left (fun acc x -> f x acc) acc s
 
-let fold_enum ~split_non_enumerable f v acc =
+let fold_enum f v acc =
+  match v with
+  | Float fl when Float_abstract.is_singleton fl -> f v acc
+  | Float _ -> raise Error_Top
+  | Set _ | Top _ -> fold_int (fun x acc -> f (inject_singleton x) acc) v acc
+
+let fold_split ~split f v acc =
   match v with
   | Float (fl) when Float_abstract.is_singleton fl ->
       f v acc
   | Float (fl) ->
       Float_abstract.fold_split
-        split_non_enumerable
+        split
         (fun fl acc -> f (inject_float fl) acc)
         fl
         acc
   | Top(_,_,_,_) | Set _ ->
-      fold (fun x acc -> f (inject_singleton x) acc) v acc
+      fold_int (fun x acc -> f (inject_singleton x) acc) v acc
 
 
-
-
-        (** [min_is_lower mn1 mn2] is true iff mn1 is a lower min than mn2 *)
+(** [min_is_lower mn1 mn2] is true iff mn1 is a lower min than mn2 *)
 let min_is_lower mn1 mn2 =
   match mn1, mn2 with
     None, _ -> true
@@ -1742,7 +1803,7 @@ let min_is_lower mn1 mn2 =
   | Some m1, Some m2 ->
       Int.le m1 m2
 
-        (** [max_is_greater mx1 mx2] is true iff mx1 is a greater max than mx2 *)
+(** [max_is_greater mx1 mx2] is true iff mx1 is a greater max than mx2 *)
 let max_is_greater mx1 mx2 =
   match mx1, mx2 with
     None, _ -> true
@@ -1798,16 +1859,14 @@ let is_included t1 t2 =
   | Float _, _ -> equal t2 top
   | _, Float (f) -> is_zero t1 && (Float_abstract.contains_zero f)
 
-let is_included_exn v1 v2 =
-  if not (is_included v1 v2) then raise Is_not_included
-
-      (* In this lattice, [meet t1 t2=bottom] iff the
-         intersection of [t1] and [t2] is empty. *)
-
+let join_and_is_included a b =
+    let ab = join a b in (ab, equal a b)
+(* In this lattice, [meet t1 t2=bottom] iff the
+   intersection of [t1] and [t2] is empty. *)
 let intersects t1 t2 =
   not (equal bottom (meet t1 t2))
 
-let partially_overlaps size t1 t2 =
+let partially_overlaps ~size t1 t2 =
   match t1, t2 with
     Set s1, Set s2 ->
       not 
@@ -1979,6 +2038,18 @@ let map_set_incr f (s : Integer.t array) =
     in
     c 1 0 (f s.(0))
 
+
+let add_singleton_int i v = match v with
+  | Float _ -> top
+  | Set s -> apply_bin_1_strict_incr Int.add i s
+  | Top (mn, mx, r, m) ->
+    let incr v = Int.add i v in
+    let new_mn = opt1 incr mn in
+    let new_mx = opt1 incr mx in
+    let new_r = Int.pos_rem (incr r) m in
+    share_top new_mn new_mx new_r m
+
+
 let rec add_int v1 v2 =
   match v1,v2 with
     Float _, _ | _, Float _ -> top
@@ -2000,19 +2071,13 @@ let rec add_int v1 v2 =
         with Infinity -> None
       in
       inject_top mn mx r m
-  | Set s, (Top(mn1,mx1,r1,m1) as t) | (Top(mn1,mx1,r1,m1) as t), Set s ->
+  | Set s, (Top _ as t) | (Top _ as t), Set s ->
       let l = Array.length s in
       if l = 0
       then bottom
       else if l = 1
       then (* only one element *)
-	let mn = s.(0) in
-        let incr = Int.add mn in
-        let new_mn = opt1 incr mn1 in
-        let new_mx = opt1 incr mx1 in
-        let new_r = Int.pos_rem (incr r1) m1 in
-        check "add" new_mn new_mx new_r m1 ;
-        share_top new_mn new_mx new_r m1
+        add_singleton_int s.(0) t
       else
         add_int t (unsafe_make_top_from_array s)
 
@@ -2138,53 +2203,67 @@ let largest_below max x = (* TODO: improve for Set *)
       then Extlib.the mx
       else Int.round_down_to_r ~max ~r ~modu
 
+(* Rounds up (x+1) to the next power of two, then substracts one; optimized. *)
 let next_pred_power_of_two x =
+  (* Unroll the first iterations, and skip the tests. *)
   let x = Int.logor x (Int.shift_right x Int.one) in
   let x = Int.logor x (Int.shift_right x Int.two) in
-  let rec f old =
-    let x = Int.logor old (Int.shift_right old Int.four) in
+  let x = Int.logor x (Int.shift_right x Int.four) in
+  let x = Int.logor x (Int.shift_right x Int.eight) in
+  let x = Int.logor x (Int.shift_right x Int.sixteen) in
+  let shift = Int.thirtytwo in
+  let rec loop old shift =
+    let x = Int.logor old (Int.shift_right old shift) in
     if Int.equal old x then x
-    else f x
-  in
-  f x
+    else loop x (Int.shift_left shift Int.one) in
+  loop x shift
 
- (* [different_bits min min] returns the mask of the bits that can be different
-             for different numbers in the interval [min]..[max] *)
+(* [different_bits min max] returns an overapproximation of the mask
+   of the bits that can be different for different numbers
+   in the interval [min]..[max] *)
 let different_bits min max =
   let x = Int.logxor min max in
   next_pred_power_of_two x
 
- (* [pos_max_land min1 max1 min2 max2] computes an upper bound for
-    [x1 land x2] where [x1] is in [min1]..[max1] and [x2] is in [min2]..[max2].
-    Precondition : [min1], [max1], [min2], [max2] must all have the
-       same sign *)
+(* [pos_max_land min1 max1 min2 max2] computes an upper bound for
+   [x1 land x2] where [x1] is in [min1]..[max1] and [x2] is in [min2]..[max2].
+   Precondition : [min1], [max1], [min2], [max2] must all have the
+   same sign.
+   Note: the algorithm below is optimal for the problem as stated.
+   It is possible to compute this optimal solution faster but it does not
+   seem worth the time necessary to think about it as long as integers
+   are at most 64-bit. *)
 let pos_max_land min1 max1 min2 max2 =
   let x1 = different_bits min1 max1 in
   let x2 = different_bits min2 max2 in
-  (*    Format.printf "pos_max_land %a %a -> %a |  %a %a -> %a@."
+(*      Format.printf "pos_max_land %a %a -> %a |  %a %a -> %a@."
         Int.pretty min1 Int.pretty max1 Int.pretty x1
-        Int.pretty min2 Int.pretty max2 Int.pretty x2;*)
-  if Int.lt x1 x2
-  then
-    (*let diff = Int.sub x2 x1 in*)
-    let mask = Int.lognot x2 in
-    let forced = Int.logand mask min1 in
-    let part = Int.logand forced min2 in
-    if Int.equal part forced
-    then
-      Int.min max1 max2
-    else Int.logor part x2
-  else
-    (*let diff = Int.sub x1 x2 in*)
-    let mask = Int.lognot x1 in
-    let forced = Int.logand mask min2 in
-    let part = Int.logand forced min1 in
-    if Int.equal part forced
-    then
-      Int.min max1 max2
-    else Int.logor part x1
+        Int.pretty min2 Int.pretty max2 Int.pretty x2; *)
+  let fold_maxs max1 p f acc =
+    let rec aux p acc =
+      let p = Int.shift_right p Int.one in
+      if Int.is_zero p
+      then f max1 acc
+      else if Int.is_zero (Int.logand p max1) 
+      then aux p acc
+      else 
+	let c = Int.logor (Int.sub max1 p) (Int.pred p) in
+	aux p (f c acc)
+    in aux p acc
+  in
+  let sx1 = Int.succ x1 in
+  let n1 = fold_maxs max1 sx1 (fun _ y -> succ y) 0 in
+  let maxs1 = Array.make n1 sx1 in
+  let _ = fold_maxs max1 sx1 (fun x i -> Array.set maxs1 i x; succ i) 0 in
+  fold_maxs max2 (Int.succ x2)
+    (fun max2 acc -> 
+      Array.fold_left
+	(fun acc max1 -> Int.max (Int.logand max1 max2) acc)
+	acc
+	maxs1)
+    (Int.logand max1 max2)
 
-let bitwise_or ~size:_ v1 v2 =
+let bitwise_or v1 v2 =
   if is_bottom v1 || is_bottom v2
   then bottom
   else
@@ -2192,13 +2271,15 @@ let bitwise_or ~size:_ v1 v2 =
       Float _, _ | _, Float _ -> top
      | Set s1, Set s2 ->
         apply2_v Int.logor s1 s2
+     | Set s, v | v, Set s when Array.length s = 1 && Int.is_zero s.(0) -> v
      | Top _, _ | _, Top _ ->
          ( match min_and_max v1 with
            Some mn1, Some mx1 when Int.ge mn1 Int.zero ->
              ( match min_and_max v2 with
                Some mn2, Some mx2 when Int.ge mn2 Int.zero ->
-                 let r = next_pred_power_of_two (Int.logor mx1 mx2) in
-                 inject_range (Some (Int.max mn1 mn2)) (Some r)
+                 let new_max = next_pred_power_of_two (Int.logor mx1 mx2) in
+		 let new_min = Int.max mn1 mn2 in (* Or can only add bits *)
+                 inject_range (Some new_min) (Some new_max)
              | _ -> top )
          | _ -> top )
 
@@ -2261,14 +2342,16 @@ let scale_div ~pos f v =
   match v with
   | Top(mn1,mx1,r1,m1) ->
       let r, modu =
-        if (Int.is_zero (Int.rem m1 f)) &&
-          ((Int.is_zero (Int.rem r1 f)) ||
-          (min_is_lower (some_zero) mn1) || (* all positive *)
-          (max_is_greater (some_zero) mx1) || (* all negative *)
-          pos                         (* good div *) )
+	let negative = max_is_greater (some_zero) mx1 in
+        if (negative (* all negative *) ||
+	     pos (* good div *) ||
+       	     (min_is_lower (some_zero) mn1)  (* all positive *) ||
+             (Int.is_zero (Int.rem r1 f)) (* exact *) )	 
+	  && (Int.is_zero (Int.rem m1 f))
         then
           let modu = Int.abs (div_f m1) in
-          (Int.pos_rem (div_f r1) modu), modu
+	  let r = if negative then Int.sub r1 m1 else r1 in
+          (Int.pos_rem (div_f r) modu), modu
         else (* degeneration*)
           Int.zero, Int.one
       in
@@ -2364,7 +2447,6 @@ let div x y =
    [scale_rem ~pos:true f v] is an over-approximation of the set of
    elements [x pos_rem f] for [x] in [v].
 *)
-
 let scale_rem ~pos f v =
 (*     Format.printf "scale_rem %b %a %a@."
     pos
@@ -2397,22 +2479,15 @@ let scale_rem ~pos f v =
         let mn_rem,mx_rem =
           match mn,mx with
           | Some mn,Some mx ->
-              let mn_rem = rem_f mn in
-              let mx_rem = rem_f mx in
-              (*   Format.printf "scale_rem 1:%a %a %a %b %b %a %a@."
-                   Int.pretty mn Int.pretty mx Int.pretty f
-                   (Int.lt mx f) (Int.gt mn (Int.neg f))
-                   Int.pretty mn_rem Int.pretty mx_rem;*)
-              if
-                ((Int.lt (Int.sub mx mn) f) ||
-                    ((Int.lt mx f) && (Int.gt mn (Int.neg f))))  &&
-                  (Int.le mn_rem mx_rem)
-              then
-                ( (*Format.printf "scale_rem 2:%a %a %a %a@."
-                    Int.pretty mn Int.pretty mx Int.pretty mn_rem Int.pretty mx_rem; *)
-
-                  mn_rem,mx_rem)
-              else binf,bsup
+            let div_f a =
+              if pos then Int.pos_div a f else Int.c_div a f
+            in
+            (* See if [mn..mx] is included in [k*f..(k+1)*f] for some [k]. In
+               this case, [%] is monotonic and [mn%f .. mx%f] is a more precise
+               result. *)
+            if Int.equal (div_f mn) (div_f mx) then
+              rem_f mn, rem_f mx
+            else binf,bsup
           | _ -> binf,bsup
         in
         inject_top (Some mn_rem) (Some mx_rem) rr modu
@@ -2483,11 +2558,11 @@ let create_all_values ~modu ~signed ~size =
   with Not_found ->
     let mn, mx =
       if signed then
-        let b = Int.power_two (size-1) in
+        let b = Int.two_power_of_int (size-1) in
         (Int.round_up_to_r ~min:(Int.neg b) ~modu ~r:Int.zero,
         Int.round_down_to_r ~max:(Int.pred b) ~modu ~r:Int.zero)
       else
-        let b = Int.power_two size in
+        let b = Int.two_power_of_int size in
         Int.zero,
         Int.round_down_to_r ~max:(Int.pred b) ~modu ~r:Int.zero
     in
@@ -2495,16 +2570,19 @@ let create_all_values ~modu ~signed ~size =
     AllValueHashtbl.add all_values_table t r;
     r
 
+let big_int_64 = Int.of_int 64
+let big_int_32 = Int.thirtytwo
+
 let cast ~size ~signed ~value =
   if equal top value
   then create_all_values ~size:(Int.to_int size) ~signed ~modu:Int.one
   else
   let result =
     let factor = Int.two_power size in
-    let mask = Int.two_power (Int.sub size Int.one) in
+    let mask = Int.two_power (Int.pred size) in
     let rem_f value = Int.cast ~size ~signed ~value
     in
-    let not_p_factor = Int.lognot (Int.pred factor) in
+    let not_p_factor = Int.neg factor in
     let best_effort r m =
       let modu = Int.pgcd factor m in
       let rr = Int.pos_rem r modu in
@@ -2543,7 +2621,20 @@ let cast ~size ~signed ~value =
     | Top (_,_,r,m) ->
         best_effort r m
     | Set s -> map_set_exnsafe rem_f s
-    | Float _ -> top
+    | Float f ->
+      let low, high = 
+	if Int.equal size big_int_64
+	then
+          let l, h = Float_abstract.bits_of_float64 ~signed f in
+          Some l, Some h
+	else
+          if Int.equal size big_int_32
+          then
+            let l, h = Float_abstract.bits_of_float32 ~signed f in
+            Some l, Some h
+          else None, None
+      in
+      inject_range low high
   in
 (*  Format.printf "Cast with size:%d signed:%b to %a@\n"
     size
@@ -2560,7 +2651,7 @@ let cast_float ~rounding_mode v =
 	  let b, f = 
 	    Float_abstract.round_to_single_precision_float ~rounding_mode f
 	  in
-	  b, Float f
+	  b, inject_float f
 	with Float_abstract.Bottom -> true, bottom)
   | Set _ when is_zero v -> false, zero
   | Set _ | Top _ ->
@@ -2591,8 +2682,8 @@ let rec mul v1 v2 =
       | Set s1, Set s2 ->
           apply2_n Int.mul s1 s2
       | Top(mn1,mx1,r1,m1), Top(mn2,mx2,r2,m2) ->
-          check "mul left" mn1 mx1 r1 m1;
-          check "mul right" mn2 mx2 r2 m2;
+          assert (check mn1 mx1 r1 m1);
+          assert (check mn2 mx2 r2 m2);
           let mn1 = inject_min mn1 in
           let mx1 = inject_max mx1 in
           let mn2 = inject_min mn2 in
@@ -2610,7 +2701,7 @@ let rec mul v1 v2 =
 		  let modu1 = Int.pgcd m1 m2 in
 		  let modu2 = Int.mul multipl1 multipl2 in
 		  let modu = Int.ppcm modu1 modu2 in    *)
-          let modu = Int.pgcd (Int.pgcd (Int.mul m1 m2) (Int.mul r1 m2)) (Int.mul r2 m1)
+          let modu = Int.(pgcd (pgcd (mul m1 m2) (mul r1 m2)) (mul r2 m1))
           in
           let r = Int.rem (Int.mul r1 r2) modu in
           (*      let t = Top (ext_proj min, ext_proj max, r, modu) in
@@ -2631,13 +2722,13 @@ let rec mul v1 v2 =
 let shift_left ~size x y =
   try
     let min = smallest_above Int.zero y in
-    let min = Int.shift_left Int.one min in
+    let min = Int.two_power min in
     let max = match size with
       | None ->
           (match max_int y with Some v -> v | None -> raise No_such_element)
       | Some size -> largest_below (Int.pred size) y
     in
-    let max = Int.shift_left Int.one max in
+    let max = Int.two_power max in
     let factor = inject_top (Some min) (Some max) Int.zero min in
     (*      Format.printf "shift_left %a factor:%a@." pretty y pretty factor; *)
     mul factor x
@@ -2654,8 +2745,7 @@ let shift_right ~size x y =
         | Some size -> largest_below (Int.pred size) y
       in
       Int.fold
-        (fun n acc -> join acc (scale_div ~pos:true
-                                  (Int.shift_left Int.one n) x))
+        (fun n acc -> join acc (scale_div ~pos:true (Int.two_power n) x))
         ~inf:min ~sup:max ~step:Int.one
         bottom
     with No_such_element ->
@@ -2756,24 +2846,23 @@ let rec extract_bits ~start ~stop ~size v =
 	   s)
   | Float f ->
       let l, u =
-	if Int.equal size (Int.of_int 64)
+	if Int.equal size big_int_64
 	then 
-	  Float_abstract.bits_of_float64 f 
+	  Float_abstract.bits_of_float64 ~signed:true f 
 	else 
-	  Float_abstract.bits_of_float32 f 
+	  Float_abstract.bits_of_float32 ~signed:true f 
       in
       extract_bits ~start ~stop ~size (inject_range (Some l) (Some u))	    
-  | Top _ ->
-      inject_top
-        some_zero
-        (Some (Int.pred (Int.power_two (Int.to_int (Int.length start stop)))))
-        Int.zero
-        Int.one
-
-let b64 = Int.of_int 64
+  | Top(_,_,_,_) as d ->
+      let dived = scale_div ~pos:true (Int.two_power start) d in
+      let rem =
+	scale_rem ~pos:true (Int.two_power (Int.length start stop)) dived in
+      (* Kernel.feedback "initial: %a results: %a " pretty d pretty rem; *)
+      rem
+;;
 
 let all_values ~size v =
-  if Int.lt b64 size then false
+  if Int.lt big_int_64 size then false
       (* values of this size cannot be enumerated anyway in C.
          They may occur while initializing large blocks of arrays.
        *)
@@ -2785,8 +2874,8 @@ let all_values ~size v =
     | Top (Some mn, Some mx,_,modu) ->
         Int.is_one modu &&
           Int.le
-          (Int.power_two (Int.to_int size))
-          (Int.succ (Int.sub mx mn))
+          (Int.two_power size)
+          (Int.length mn mx)
     | Set s ->
 	let siz = Int.to_int size in
 	Array.length s >= 1 lsl siz &&
@@ -2802,23 +2891,22 @@ let compare_C f v1 v2 =
   let max2 = max_int v2 in
   f min1 max1 min2 max2
 
-include Datatype.Make
+include Datatype.Make_with_collections
     (struct
       type t = tt
       let name = Int.name ^ " lattice_mod"
       open Structural_descr
       let structural_descr =
         let s_int = Descr.str Int.descr in
-        Structure
-          (Sum
-             [|
-               [| pack (t_array s_int) |];
-               [| Float_abstract.packed_descr |];
-               [| pack (t_option s_int);
-                  pack (t_option s_int);
-                  Int.packed_descr;
-                  Int.packed_descr |]
-             |])
+        t_sum
+          [|
+            [| pack (t_array s_int) |];
+            [| Float_abstract.packed_descr |];
+            [| pack (t_option s_int);
+               pack (t_option s_int);
+               Int.packed_descr;
+               Int.packed_descr |]
+          |]
       let reprs = [ top ; bottom ]
       let equal = equal
       let compare = compare
@@ -2834,7 +2922,7 @@ include Datatype.Make
       let varname = Datatype.undefined
     end)
 
-let scale_int64base factor v = match factor with
+let scale_int_base factor v = match factor with
   | Int_Base.Top -> top
   | Int_Base.Value f -> scale f v
 
@@ -2859,7 +2947,8 @@ let cast_float_to_int ~signed ~size iv =
 
 let cast_float_to_int_inverse ~single_precision i =
   match min_and_max i with
-  | Some min, Some max when Int.le (Int.of_int (-1000)) min && Int.le max Int.onethousand ->
+  | Some min, Some max when Int.le (Int.of_int (-16777215)) min &&
+                            Int.le max (Int.of_int 16777215) ->
       let minf = 
 	if Int.le min Int.zero
 	then
@@ -2937,7 +3026,7 @@ let sub_bits x = (* TODO: can be improved *)
   in
   let o = aux Int.one o_zero in
   let s = 1 lsl popcnt in
-  assert (O.cardinal o = s);
+  (* assert (O.cardinal o = s); *)
   inject_ps (Pre_set (o, s))
 
 let bitwise_and ~size ~signed v1 v2 =
@@ -2957,7 +3046,7 @@ let bitwise_and ~size ~signed v1 v2 =
     match v1, v2 with
       Float _, _ | _, Float _ -> assert false
     | Top _, other | other, Top _ ->
-        let half_range = Int.power_two (pred size) in
+        let half_range = Int.two_power_of_int (pred size) in
         let minint = Int.neg half_range in
         let max_int_v1, max_int_v2 as max_int_v1_v2 = max_int v1, max_int v2 in
         let min_int_v1, min_int_v2 as min_int_v1_v2 = min_int v1, min_int v2 in

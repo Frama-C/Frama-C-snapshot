@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -296,7 +296,7 @@ end = struct
   let visible_lval vars_visible lval =
     let visitor = object
       inherit Visitor.frama_c_inplace
-      method vvrbl v =
+      method! vvrbl v =
         if not v.vglob then
           ignore (Varinfo.Hashtbl.find vars_visible v);
         SkipChildren
@@ -357,7 +357,7 @@ end = struct
     (** Applied on each variable use :
         * must replace references to formal/local variables
         * and source function calls *)
-    method vvrbl (v: varinfo) =
+    method! vvrbl (v: varinfo) =
       if v.vglob
       then
         try let v' = (Hashtbl.find fun_vars v.vname) in
@@ -415,7 +415,8 @@ end = struct
       in let new_locals = filter locals in
 	 new_locals
 
-    method vcode_annot v =
+    method! vcode_annot v =
+      Extlib.may Cil.CurrentLoc.set (Cil_datatype.Code_annotation.loc v);
       let stmt =
         Cil.get_original_stmt self#behavior (Extlib.the self#current_stmt)
       in
@@ -452,7 +453,7 @@ end = struct
         debug1 "[process_call] call %s@." var_slice.vname;
         Instr (new_call)
 
-    method vblock (b: block) =
+    method! vblock (b: block) =
       let optim b' =
         (* This optim must be performed after the sliced annotations have
            been put in the new table. Hence, we must put the action into
@@ -591,7 +592,7 @@ end = struct
       in
       Cil.ChangeDoChildrenPost (s, do_after)
 
-    method vstmt_aux s =
+    method! vstmt_aux s =
       let finfo = self#get_finfo () in
       let rec filter_labels labels = match labels with
         | [] -> []
@@ -608,7 +609,7 @@ end = struct
       | _ when Info.inst_visible finfo s -> self#process_visible_stmt s
       | _ -> self#process_invisible_stmt s
 
-    method vfunc f =
+    method! vfunc f =
       debug1 "@[[vfunc] -> %s@\n@]@." f.svar.vname;
       fi <- Some (Varinfo.Hashtbl.find fi_table f.svar);
       (* parameters *)
@@ -647,7 +648,7 @@ end = struct
       let t' = visitCilTerm (self:>Cil.cilVisitor) t.it_content in
       Logic_const.new_identified_term t'
 
-    method vfrom (b,f) =
+    method! vfrom (b,f) =
       let finfo = self#get_finfo () in
       let from_visible t = Info.fun_deps_visible finfo t in
       let b = self#visit_identified_term b in
@@ -657,7 +658,7 @@ end = struct
         | From l -> b, From (filter_list from_visible self#visit_identified_term l)
       in ChangeTo res
 
-    method vbehavior b =
+    method! vbehavior b =
       let finfo = self#get_finfo () in
 
       let pre_visible p =  Info.fun_precond_visible finfo p.ip_content in
@@ -693,7 +694,7 @@ end = struct
       );
       SkipChildren (* see the warning on [SkipChildren] in [vspec] ! *)
 
-    method vspec spec =
+    method! vspec spec =
       debug1 "@[[vspec] for %a @\n@]@."
         Kernel_function.pretty (Extlib.the self#current_kf);
       let finfo = self#get_finfo () in
@@ -730,6 +731,7 @@ end = struct
       fi <- Some finfo;
       let new_var = ff_var fun_vars kf finfo in
       (* we're building a prototype. *)
+      if not (Varinfo.Hashtbl.mem fi_table new_var) then begin
       new_var.vdefined <- false;
       let new_kf = make_new_kf my_kf kf new_var in
       Varinfo.Hashtbl.add fi_table new_var finfo;
@@ -794,6 +796,16 @@ end = struct
       Queue.add 
         (fun () -> Globals.Functions.register new_kf) self#get_filling_actions;
       GVarDecl (Cil.empty_funspec(), new_var, loc), action
+      end else begin
+        let old_finfo = Varinfo.Hashtbl.find fi_table new_var in
+        if not (finfo = old_finfo) then
+          Kernel.fatal
+            "Found two distinct slices of function %a with the same name %s"
+            Kernel_function.pretty kf
+            new_var.vname;
+        (* already processed: no need for more *)
+        GVarDecl(Cil.empty_funspec(),new_var,loc), fun () -> ()
+      end
 
     method private compute_fct_prototypes (_fct_var,loc) =
       let finfo_list = Info.fct_info pinfo (Extlib.the self#current_kf) in
@@ -848,7 +860,7 @@ end = struct
       in
       List.map do_f finfo_list
 
-    method vglob_aux g =
+    method! vglob_aux g =
       let post action g =
         List.iter (fun x -> x()) action; fi <- None;
         debug1 "[post action] done.@.";

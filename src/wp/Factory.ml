@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -35,6 +35,8 @@ type setup = {
 }
 
 (*[LC] All types in [model] must be Pervasives-comparable *)
+
+type driver = LogicBuiltins.driver
 
 (* -------------------------------------------------------------------------- *)
 (* --- Description & Id                                                   --- *)
@@ -78,7 +80,7 @@ let descr_cfloat d = function
   | Cfloat.Real -> ()
   | Cfloat.Float -> add d "float" 
 
-let descr (s:setup) =
+let descr_setup (s:setup) =
   begin
     let i = Buffer.create 40 in
     let t = Buffer.create 40 in
@@ -89,6 +91,11 @@ let descr (s:setup) =
     descr_cfloat d s.cfloat ;
     ( Buffer.contents i , Buffer.contents t )
   end
+
+let descriptions = Hashtbl.create 31 (*[LC] Not projectified: simple strings *)
+let descr s = 
+  try Hashtbl.find descriptions s
+  with Not_found -> let w = descr_setup s in Hashtbl.add descriptions s w ; w
 
 (* -------------------------------------------------------------------------- *)
 (* --- Generator & Model                                                  --- *)
@@ -143,41 +150,51 @@ let configure_mheap = function
   | Hoare -> MemEmpty.configure ()
   | Typed p -> MemTyped.configure () ; Context.set MemTyped.pointer p
 
-let configure (s:setup) () =
+let configure (s:setup) (d:driver) () =
   begin
     configure_mheap s.mheap ;
-    Context.set Cint.model s.cint ;
-    Context.set Cfloat.model s.cfloat ;
+    Cint.configure s.cint ;
+    Cfloat.configure s.cfloat ;
+    Context.set LogicBuiltins.driver d ;
   end
 
 (* -------------------------------------------------------------------------- *)
 (* --- Access                                                             --- *)
 (* -------------------------------------------------------------------------- *)
 
-module MODEL = Map.Make
-  (struct type t = setup let compare = Pervasives.compare end)
+module MODEL = FCMap.Make
+  (struct
+     type t = setup * driver 
+     let compare (s,d) (s',d') = 
+       let cmp = Pervasives.compare s s' in
+       if cmp <> 0 then cmp else LogicBuiltins.compare d d'
+   end)
 
 type instance = {
-  id : string ;
-  descr : string ;
   model : Model.t ;
+  driver : LogicBuiltins.driver ;
 }
 
 let instances = ref MODEL.empty
 
-let instance (s:setup) =
-  try MODEL.find s !instances
+let instance (s:setup) (d:driver) =
+  try MODEL.find (s,d) !instances
   with Not_found ->
     let id,descr = descr s in
-    let tuning = [configure s] in
+    let tuning = [configure s d] in
+    let id,descr = 
+      if LogicBuiltins.is_default d then id,descr
+      else 
+	( id ^ "_" ^ LogicBuiltins.id d ,
+	  descr ^ " (Driver " ^ LogicBuiltins.descr d ^ ")" )
+    in
     let model = Model.register ~id ~descr ~tuning () in
-    let instance = { id = id ; descr = descr ; model = model } in
-    instances := MODEL.add s instance !instances ; instance
-
-let id s = (instance s).id
-let descr s = (instance s).descr
-let model s = (instance s).model
-let computer (s:setup) = wp s (instance s).model
+    let instance = { model = model ; driver = d } in
+    instances := MODEL.add (s,d) instance !instances ; instance
+      
+let ident s = fst (descr s)
+let descr s = snd (descr s)
+let computer (s:setup) (d:driver) = wp s (instance s d).model
 
 let split (m:string) : string list =
   let tk = ref [] in

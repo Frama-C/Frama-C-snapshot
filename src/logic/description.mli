@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -37,6 +37,9 @@ val pp_idpred : bool -> Format.formatter -> identified_predicate -> unit
 val pp_region : bool -> Format.formatter -> identified_term from list -> unit
 (** prints message "nothing" or the "'<names>'" or the "(<location>)" of the
     relation *) 
+
+val pp_named: Format.formatter -> 'a named -> unit
+(** prints the name of a named logic structure (if any), separated by ','. *)
 
 val pp_for : Format.formatter -> string list -> unit
 (** prints nothing or " for 'b1,...,bn'" *)

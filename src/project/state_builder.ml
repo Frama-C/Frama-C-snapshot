@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -442,6 +442,7 @@ module type Set_ref = sig
   include Ref
   type elt
   val add: elt -> unit
+  val remove: elt -> unit
   val is_empty: unit -> bool
   val mem: elt -> bool
   val fold: (elt -> 'a -> 'a) -> 'a -> 'a
@@ -454,6 +455,7 @@ module Set_ref(S: Datatype.Set)(Info: Info) = struct
   let apply f = f (get ())
   let is_empty () = apply S.is_empty
   let add x = set (apply (S.add x))
+  let remove x = set (apply (S.remove x))
   let mem x = apply (S.mem x)
   let fold f = apply (S.fold f)
   let iter f = apply (S.iter f)

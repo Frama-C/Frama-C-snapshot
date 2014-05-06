@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -27,12 +27,19 @@ let version () =
 Compilation date: %s@\n\
 Share path: %s (may be overridden with FRAMAC_SHARE variable)@\n\
 Library path: %s (may be overridden with FRAMAC_LIB variable)@\n\
-Plug-in paths: %t(may be overridden with FRAMAC_PLUGIN variable)@."
+Plug-in paths: %t(may be overridden with FRAMAC_PLUGIN variable)%t@."
 	 Config.version Config.date Config.datadir Config.libdir
 	 (fun fmt -> List.iter 
 	    (fun s -> Format.fprintf fmt "%s " s)
 	    (Dynamic.default_path ()))
-      );
+        (fun fmt ->
+          if Config.preprocessor = "" then
+            Format.fprintf fmt "@\nWARNING: no default pre-processor"
+          else if not Config.preprocessor_keep_comments then
+            Format.fprintf fmt
+              "@\nWARNING: default pre-processor is not able to keep comments \
+               (hence ACSL annotations) in its output"
+        ));
     raise Cmdline.Exit
   end
 let () = Cmdline.run_after_early_stage version
@@ -75,15 +82,35 @@ let time () =
 let () = at_exit time
 
 (* Save Frama-c on disk if required *)
-let save_binary () =
+let save_binary keep_name =
   let filename = Kernel.SaveState.get () in
   if filename <> "" then begin
     Kernel.SaveState.clear ();
-    try Project.save_all filename
+    let realname =
+      if keep_name then filename
+      else begin
+	let s = filename ^ ".crash" in
+	Kernel.warning
+	  "attempting to save on crash: modifying filename into `%s'." s;
+	s
+      end
+    in
+    try 
+      Project.save_all realname
     with Project.IOError s ->
-      Kernel.error "problem while saving to file %s (%s)." filename s
- end
-let () = at_exit save_binary
+      Kernel.error "problem while saving to file %s (%s)." realname s
+  end
+let () = 
+  (* implement behavior described in BTS #1388: 
+     - on normal exit: save
+     - on Sys.break, system error, user error or feature request: do not save
+     - on fatal error or unexpected error: save, but slighly change the
+     generated filename. *)
+  Cmdline.at_normal_exit (fun () -> save_binary true);
+  Cmdline.at_error_exit
+    (function
+    | Sys.Break | Sys_error _ | Log.AbortError _ | Log.FeatureRequest _ -> ()
+    | _ -> save_binary false)
 
 (* Load Frama-c from disk if required *)
 let load_binary () =

@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -98,7 +98,7 @@ include Datatype.Make_with_collections
     (struct
       type t = state
       let name = "State"
-      let structural_descr = Structural_descr.Unknown
+      let structural_descr = Structural_descr.t_unknown
       let reprs = [ dummy ]
       let compare x y =
         if x == y then 0 else String.compare x.unique_name y.unique_name

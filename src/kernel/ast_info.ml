@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -98,23 +98,12 @@ let term_lvals_of_term t =
     (Cil.visitCilTerm
        (object
           inherit nopCilVisitor
-          method vterm_lval lv =
+          method! vterm_lval lv =
             l := lv :: !l;
             DoChildren
         end)
        t);
   !l
-
-let is_trivial_predicate = function Ptrue -> true | _ -> false
-
-let is_trivial_named_predicate p = is_trivial_predicate p.content
-
-let is_trivial_annotation a =
-  match a.annot_content with
-    | AAssert (_,a) -> is_trivial_named_predicate a
-    | APragma _ | AStmtSpec _ | AInvariant _ | AVariant _
-    | AAssigns _| AAllocation _
-      -> false
 
 let behavior_assumes b =
   Logic_const.pands (List.map Logic_const.pred_of_id_pred b.b_assumes)
@@ -305,17 +294,6 @@ let rec is_null_term t = match t.term_node with
       Integer.equal (value_of_integral_logic_const c) Integer.zero
   | TCastE(_,t) -> is_null_term t
   | _ -> false
-
-(* ************************************************************************** *)
-(** {2 Predicates} *)
-(* ************************************************************************** *)
-
-let predicate loc p =
-  {
-    name = [];
-    loc = loc;
-    content = p;
-  }
 
 (* ************************************************************************** *)
 (** {2 Statements} *)

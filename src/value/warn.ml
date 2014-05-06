@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -155,11 +155,10 @@ let check_no_recursive_call kf =
 
 (* Warn if [lv] changes during a call [lvret = kf()] *)
 let warn_modified_result_loc ~with_alarms kf locret state lvret =
-  CilE.do_warn with_alarms.CilE.others
-    (fun (_emit, suffix) ->
-       match lvret with
-         | Var _, NoOffset -> () (* Skip trivially constant l-values *)
-         | _ ->
+  if with_alarms.CilE.others != CilE.a_ignore then
+    match lvret with
+      | Var _, NoOffset -> () (* Skip trivially constant l-values *)
+      | _ ->
            (* Go through Db.Value to avoid recursivity between modules *)
            let locret' = !Db.Value.lval_to_loc_state state lvret in
            if not (Location.equal locret locret') then
@@ -171,10 +170,13 @@ let warn_modified_result_loc ~with_alarms kf locret state lvret =
              if not (Location.equal validlocret validlocret') then
                let loc = Cil_datatype.Location.unknown in
                let exp = Cil.mkAddrOrStartOf ~loc lvret in
-               Value_parameters.warning ~current:true ~once:true
-                "@[possible@ side-effect@ modifying %a@ within@ call@ to %a@]%t"
-                 Printer.pp_exp exp Kernel_function.pretty kf suffix;
-    )
+               CilE.do_warn with_alarms.CilE.others
+                 (fun (_emit, suffix) ->
+                    Value_parameters.warning ~current:true ~once:true
+                      "@[possible@ side-effect@ modifying %a@ within@ call@ \
+                         to %a@]%t"
+                      Printer.pp_exp exp Kernel_function.pretty kf suffix;
+                 )
 
 
 let warn_locals_escape is_block fundec k locals =
@@ -305,11 +307,13 @@ let warn_right_exp_imprecision ~with_alarms lv loc_lv exp_val =
 (* Auxiliary function for do_assign (currently), that warns when the
    left-hand side and the right-hand side of an assignment overlap *)
 let warn_overlap ~with_alarms (lv, left_loc) (exp_lv, right_loc) =
+  let big_enough size =
+    try Integer.gt size (Integer.of_int (Cil.bitsSizeOf Cil.intType))
+    with Cil.SizeOfError _ -> true
+  in
   if with_alarms.CilE.others.CilE.a_log <> None then
     match right_loc.size with
-      | Int_Base.Value size
-          when Integer.gt size (Integer.of_int (Cil.bitsSizeOf Cil.intType))
-        ->
+      | Int_Base.Value size when big_enough size ->
     	  if Location_Bits.partially_overlaps size right_loc.loc left_loc.loc
 	  then begin
             CilE.set_syntactic_context (CilE.SySep (lv, exp_lv));
@@ -329,6 +333,40 @@ let offsetmap_contains_imprecision offs =
       ) offs;
     None
   with Got_imprecise v -> Some v
+
+let warn_indeterminate_offsetmap ~with_alarms typ offsm =
+  if Cil.isArithmeticOrPointerType typ then (
+    let uninit = ref false in
+    let escaping = ref false in
+    let warn () =
+      if !uninit then CilE.warn_uninitialized with_alarms;
+      if !escaping then CilE.warn_escapingaddr with_alarms;
+    in
+    try
+      let res = ref offsm in
+      Cvalue.V_Offsetmap.iter
+        (fun itv (v, size, offs) ->
+          let open Cvalue.V_Or_Uninitialized in
+          match v with
+          | C_init_noesc _ -> ()
+          | C_init_esc v'  | C_uninit_esc v' | C_uninit_noesc v' ->
+            begin match v with
+            | C_init_esc _ -> escaping := true
+            | C_uninit_noesc _ -> uninit := true
+            | C_uninit_esc _ -> escaping := true; uninit := true
+            | _ -> assert false
+            end;
+            if Cvalue.V.is_bottom v' then raise Exit;
+            res := Cvalue.V_Offsetmap.add itv (C_init_noesc v', size, offs) !res
+        ) offsm;
+      warn ();
+      Some !res
+    with Exit ->
+      warn ();
+      None
+  ) else
+    Some offsm
+
 
 let warn_float_addr ~with_alarms msg =
   CilE.do_warn with_alarms.CilE.imprecision_tracing

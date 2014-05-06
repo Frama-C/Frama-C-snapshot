@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -225,7 +225,7 @@ end
 let guarded_feedback selection level fmt_msg =
   if verbose_atleast level then
     if State_selection.is_full selection then
-      feedback ~level fmt_msg
+      feedback ~dkey ~level fmt_msg
     else
       let n = State_selection.cardinal selection in
       if n = 0 then
@@ -235,7 +235,7 @@ let guarded_feedback selection level fmt_msg =
           if n > 1 then Format.fprintf fmt " (for %d states)" n
           else Format.fprintf fmt " (for 1 state)"
 	in
-        feedback ~level ~append:states fmt_msg;
+        feedback ~dkey ~level ~append:states fmt_msg;
   else
     Log.nullprintf fmt_msg
 
@@ -260,7 +260,7 @@ end
 module Setter = Make_setter(Mem)
 
 let unjournalized_set_name p s =
-  feedback ~level:2 "renaming project %S to %S" p.unique_name s;
+  feedback ~dkey ~level:2 "renaming project %S to %S" p.unique_name s;
   Setter.set_name p s
 
 let set_name =
@@ -273,9 +273,9 @@ module Create_Hook = Hook.Build(struct type t = project end)
 let register_create_hook = Create_Hook.extend
 
 let force_create name =
-  feedback ~level:2 "creating project %S" name;
+  feedback ~dkey ~level:2 "creating project %S" name;
   let p = Setter.make name in
-  feedback ~level:3 "its unique name is %S" p.unique_name;
+  feedback ~dkey ~level:3 "its unique name is %S" p.unique_name;
   Q.add_at_end p projects;
   States_operations.create p;
   Create_Hook.apply p;
@@ -361,7 +361,7 @@ module Before_remove = Hook.Build(struct type t = project end)
 let register_before_remove_hook = Before_remove.extend
 
 let unjournalized_remove project =
-  feedback ~level:2 "removing project %S" project.unique_name;
+  feedback ~dkey ~level:2 "removing project %S" project.unique_name;
   if Q.length projects = 1 then raise (Cannot_remove project.unique_name);
   Before_remove.apply project;
   States_operations.remove project;
@@ -387,7 +387,7 @@ let journalized_remove =
 let remove ?(project=current()) () = journalized_remove project ()
 
 let remove_all () =
-  feedback ~level:2 "removing all existing projects";
+  feedback ~dkey ~level:2 "removing all existing projects";
   try
     iter_on_projects Before_remove.apply;
     States_operations.clean ();
@@ -412,10 +412,6 @@ let copy ?(selection=State_selection.full) ?(src=current()) dst =
 
 module Before_Clear_Hook = Hook.Build(struct type t = project end)
 let register_todo_before_clear = Before_Clear_Hook.extend
-let register_todo_on_clear =
-  deprecated
-    "Project.register_todo_on_clear" ~now:"Project.register_todo_before_clear"
-    register_todo_before_clear
 
 module After_Clear_Hook = Hook.Build(struct type t = project end)
 let register_todo_after_clear = After_Clear_Hook.extend
@@ -766,7 +762,7 @@ module Undo = struct
         Journal.restore ();
         clear_breakpoint ()
       with IOError s ->
-        feedback "cannot restore the last breakpoint: %S" s;
+        feedback ~dkey "cannot restore the last breakpoint: %S" s;
         clear_breakpoint ()
     end
 

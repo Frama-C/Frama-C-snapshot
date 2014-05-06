@@ -2,8 +2,8 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2013                                               */
-/*    CEA (Commissariat à l'énergie atomique et aux énergies              */
+/*  Copyright (C) 2007-2014                                               */
+/*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
 /*  you can redistribute it and/or modify it under the terms of the GNU   */
@@ -31,6 +31,7 @@
 #include "caml/fail.h"
 #include <assert.h>
 #include <stdlib.h>
+#include <stdint.h>
 
 // Some BSD flavors do not implement all of C99
 #if defined(__OpenBSD__) || defined(__NetBSD__) 
@@ -80,6 +81,7 @@ value getperfcount(value dum)
 {
   unsigned long l, h;
   GETCOUNTER(l,h);
+  (void) h;
   return (l | 1);
 }
 
@@ -110,6 +112,27 @@ value set_round_nearest_even(value dummy)
 {
   fesetround(FE_TONEAREST);
   return Val_unit;
+}
+
+value float_compare_total(value x, value y)
+{
+  union { double d; int64_t i; } ux, uy;
+  ux.d = Double_val(x);
+  uy.d = Double_val(y);
+
+  if (ux.i == uy.i) return Val_int(0);
+  
+  ux.i = ux.i ^ (((uint64_t)(ux.i >> 63))>>1);
+  uy.i = uy.i ^ (((uint64_t)(uy.i >> 63))>>1);
+ 
+  if (ux.i < uy.i) return Val_int(-1); else return Val_int(1);
+}
+
+value float_is_negative(value v)
+{
+  union { double d; uint64_t i; } uv;
+  uv.d = Double_val(v);
+  return (Val_int((int)((uv.i) >> 63)));
 }
 
 /* Some compilers apply the C90 standard stricly and do not

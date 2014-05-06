@@ -29,8 +29,8 @@
 (*  invalidate any other reasons why the executable file might be         *)
 (*  covered by the GNU Library General Public License.                    *)
 (*                                                                        *)
-(*  File modified by CEA (Commissariat à l'énergie atomique et aux        *)
-(*                        énergies alternatives).                         *)
+(*  File modified by CEA (Commissariat Ã  l'Ã©nergie atomique et aux        *)
+(*                        Ã©nergies alternatives).                         *)
 (*                                                                        *)
 (**************************************************************************)
 
@@ -496,14 +496,13 @@ module Make(Ord: Datatype.S)(Value: Value) = struct
     open Structural_descr
     let r = Recursive.create ()
     let structural_descr =
-      Structure
-        (Sum
-           [| [| recursive_pack r;
-                 Ord.packed_descr;
-                 Value.packed_descr;
-                 recursive_pack r;
-                 p_int;
-                 p_int |] |] )
+      t_sum
+        [| [| recursive_pack r;
+              Ord.packed_descr;
+              Value.packed_descr;
+              recursive_pack r;
+              p_int;
+              p_int |] |]
     let () = Recursive.update r structural_descr
     let reprs =
       List.fold_left

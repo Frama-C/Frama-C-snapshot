@@ -35,8 +35,8 @@
 (*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE         *)
 (*  POSSIBILITY OF SUCH DAMAGE.                                             *)
 (*                                                                          *)
-(*  File modified by CEA (Commissariat à l'énergie atomique et aux          *)
-(*                        énergies alternatives)                            *)
+(*  File modified by CEA (Commissariat Ã  l'Ã©nergie atomique et aux          *)
+(*                        Ã©nergies alternatives)                            *)
 (*               and INRIA (Institut National de Recherche en Informatique  *)
 (*                          et Automatique).                                *)
 (****************************************************************************)
@@ -68,27 +68,29 @@ type 'a undoAlphaElement =
  * prefix. The largest suffix is one when only the version without suffix has 
  * been used. *)
 let rec newAlphaName ~(alphaTable: (string, 'a alphaTableData ref) H.t)
-                     ~(undolist: 'a undoAlphaElement list ref option)
+                     ?undolist
                      ~(lookupname: string) 
                      ~(data: 'a) : string * 'a = 
-  alphaWorker ~alphaTable:alphaTable ~undolist:undolist 
+  alphaWorker ~alphaTable:alphaTable ?undolist
               ~lookupname:lookupname ~data:data true
   
 
 (** Just register the name so that we will not use in the future *)
 and registerAlphaName ~(alphaTable: (string, 'a alphaTableData ref) H.t)
-                      ~(undolist: 'a undoAlphaElement list ref option)
+                      ?undolist
                       ~(lookupname: string) 
                       ~(data: 'a) : unit = 
-  ignore (alphaWorker ~alphaTable:alphaTable ~undolist:undolist 
+  ignore (alphaWorker ~alphaTable:alphaTable ?undolist
                       ~lookupname:lookupname ~data:data false)
 
 
 and alphaWorker      ~(alphaTable: (string, 'a alphaTableData ref) H.t)
-                     ~(undolist: 'a undoAlphaElement list ref option)
+                     ?undolist
                      ~(lookupname: string) ~(data:'a)
                      (make_new: bool) : string * 'a = 
-  let prefix, suffix, (numsuffix: Big_int.big_int) = splitNameForAlpha ~lookupname in
+  let prefix, suffix, (numsuffix: Big_int.big_int) =
+    splitNameForAlpha ~lookupname
+  in
   if debugAlpha prefix then
     (Kernel.debug "Alpha worker: prefix=%s suffix=%s (%s) create=%b. " 
               prefix suffix (Big_int.string_of_big_int numsuffix) make_new);

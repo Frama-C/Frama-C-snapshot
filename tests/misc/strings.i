@@ -126,6 +126,5 @@ int main8() {
   char long_chain[] = "really really really long chain";
   assigns(&tc[0],30);
   int x = strcmp(long_chain, tc);
-  int x = strcmp(long_chain, tc);
   return x;
 }

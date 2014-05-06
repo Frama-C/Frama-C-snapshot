@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -95,14 +95,14 @@ let compute () =
          val mutable current_kf = None
          val mutable opened_blocks = []
          method kf = match current_kf with None -> assert false | Some kf -> kf
-         method vblock b =
+         method! vblock b =
            opened_blocks <- b :: opened_blocks;
            Cil.ChangeDoChildrenPost
              (b,fun b -> opened_blocks <- List.tl opened_blocks; b)
-	 method vstmt s =
+	 method! vstmt s =
 	   Datatype.Int.Hashtbl.add h s.sid (self#kf, s, opened_blocks);
 	   Cil.DoChildren
-	 method vglob g =
+	 method! vglob g =
 	   begin match g with
 	   | GFun (fd, _) ->
 	       (try
@@ -163,41 +163,42 @@ let find_all_enclosing_blocks s =
   let (_,_,b) = Datatype.Int.Hashtbl.find table s.sid in b
 
 let stmt_in_loop kf stmt =
-  let blocks = find_all_enclosing_blocks stmt in
+  let module Res = struct exception Found of bool end in
   let vis = object
     inherit Cil.nopCilVisitor
-    method vstmt s =
+    val is_in_loop = Stack.create ()
+    method! vstmt s =
       match s.skind with
-        | Loop (_,b,_,_,_) ->
-            if List.memq b blocks then raise Exit;
-            Cil.SkipChildren 
-            (* Don't need to inspect nested loops if it's already
-               outside the outermost one. *)
-        | _ -> Cil.DoChildren
+        | Loop _ -> 
+          Stack.push true is_in_loop;
+          if Cil_datatype.Stmt.equal s stmt then raise (Res.Found true);
+          Cil.DoChildrenPost (fun s -> ignore (Stack.pop is_in_loop); s)
+        | _ when Cil_datatype.Stmt.equal s stmt ->
+          raise (Res.Found (Stack.top is_in_loop))
+        | _  -> Cil.DoChildren
+    initializer Stack.push false is_in_loop
   end
   in
   try
-    ignore 
+    ignore
       (Cil.visitCilFunction vis (get_definition kf));
     false
   with
-    | Exit -> true
+    | Res.Found f -> f
     | No_Definition -> false (* Not the good kf obviously. *)
 
 let find_enclosing_loop kf stmt =
-  let blocks = find_all_enclosing_blocks stmt in
-  let innermost = ref None in
+  let module Res = struct exception Found of Cil_types.stmt end in
   let vis = object
     inherit Cil.nopCilVisitor
-    method vstmt s =
+    val loops = Stack.create ()
+    method! vstmt s =
       match s.skind with
-        | Loop (_,b,_,_,_) ->
-            if List.memq b blocks then
-              begin innermost:= Some s; Cil.DoChildren end
-            else
-              Cil.SkipChildren 
-              (* Don't need to inspect nested loops if it's already
-                 outside the outermost one. *)
+        | Loop _ ->
+          Stack.push s loops;
+          Cil.DoChildrenPost (fun s -> ignore (Stack.pop loops); s)
+        | _ when Cil_datatype.Stmt.equal s stmt ->
+          raise (Res.Found (Stack.top loops))
         | _ -> Cil.DoChildren
   end
   in
@@ -205,15 +206,13 @@ let find_enclosing_loop kf stmt =
     (match stmt.skind with
       | Loop _ -> stmt
       | _ ->
-          ignore
-            (Cil.visitCilFunction vis (get_definition kf));
-          (match !innermost with
-            | Some s -> s
-            | None -> raise Not_found))
-    
+        ignore
+          (Cil.visitCilFunction vis (get_definition kf));
+        raise Not_found)
   with
     | No_Definition -> raise Not_found (* Not the good kf obviously. *)
-          
+    | Stack.Empty -> raise Not_found (* statement outside of a loop *)
+    | Res.Found s -> s
 
 exception Got_return of stmt
 exception No_Statement
@@ -224,7 +223,7 @@ let find_return kf =
       let find_return fd =
         let visitor = object
           inherit Cil.nopCilVisitor
-          method vstmt s =
+          method! vstmt s =
             match s.skind with
               | Return _ -> raise (Got_return s)
               | _ -> Cil.DoChildren
@@ -260,7 +259,7 @@ let find_label kf label =
   | Definition (fundec,_) ->
       let label_finder = object
         inherit Cil.nopCilVisitor
-        method vstmt s = begin
+        method! vstmt s = begin
           if List.exists
             (fun lbl -> match lbl with
              | Label (s,_,_) -> s = label
@@ -269,9 +268,9 @@ let find_label kf label =
             s.labels then raise (Found_label (ref s));
           Cil.DoChildren
         end
-        method vexpr _ = Cil.SkipChildren
-        method vtype _ = Cil.SkipChildren
-        method vinst _ = Cil.SkipChildren
+        method! vexpr _ = Cil.SkipChildren
+        method! vtype _ = Cil.SkipChildren
+        method! vinst _ = Cil.SkipChildren
       end
       in
       try
@@ -311,14 +310,14 @@ class callsite_visitor hmap = object (self)
   method private kf = match current_kf with None -> assert false | Some kf -> kf
 
   (* Go into functions *)
-  method vglob = function
+  method! vglob = function
     | GFun(fd,_) ->
         current_kf <- Some(Globals.Functions.get fd.svar) ;
         Cil.DoChildren
     | _ -> Cil.SkipChildren
 
   (* Inspect stmt calls *)
-  method vstmt stmt =
+  method! vstmt stmt =
     match stmt.skind with
       | Instr(Call(_,fct,_,_)) ->
           begin
@@ -336,8 +335,8 @@ class callsite_visitor hmap = object (self)
       | _ -> Cil.DoChildren
 
   (* Skip many other things ... *)
-  method vexpr _ = Cil.SkipChildren
-  method vtype _ = Cil.SkipChildren
+  method! vexpr _ = Cil.SkipChildren
+  method! vtype _ = Cil.SkipChildren
 
 end
 
@@ -385,32 +384,18 @@ let is_formal_or_local v kf =
   (not v.vglob) && (is_formal v kf || is_local v kf)
 
 (* ************************************************************************* *)
-(** {2 Pretty printer} *)
-(* ************************************************************************* *)
-
-let pretty_name =
-  Kernel.deprecated
-    "Kernel_function.pretty"
-    ~now:"Kernel_function.pretty"
-    pretty
-
-(* ************************************************************************* *)
 (** {2 Collections} *)
 (* ************************************************************************* *)
 
 module Make_Table = State_builder.Hashtbl(Cil_datatype.Kf.Hashtbl)
 
 module Hptset = struct
-  let pretty_kf = pretty
-
   include Hptset.Make
     (Cil_datatype.Kf)
     (struct let v = [ [ ] ] end)
     (struct let l = [ Ast.self ] end)
   let () = Ast.add_monotonic_state self
   let () = Ast.add_hook_on_update clear_caches
-
-  let pretty fmt = Pretty_utils.pp_iter iter pretty_kf fmt
 end
 
 (* ************************************************************************* *)

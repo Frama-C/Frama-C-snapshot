@@ -1,0 +1,44 @@
+(**************************************************************************)
+(*                                                                        *)
+(*  This file is part of WP plug-in of Frama-C.                           *)
+(*                                                                        *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
+(*         alternatives)                                                  *)
+(*                                                                        *)
+(*  you can redistribute it and/or modify it under the terms of the GNU   *)
+(*  Lesser General Public License as published by the Free Software       *)
+(*  Foundation, version 2.1.                                              *)
+(*                                                                        *)
+(*  It is distributed in the hope that it will be useful,                 *)
+(*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
+(*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
+(*  GNU Lesser General Public License for more details.                   *)
+(*                                                                        *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
+(*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
+(*                                                                        *)
+(**************************************************************************)
+
+(* this is a prelude for Alt-Ergo*)
+(** The theory BuiltIn_ must be appended to this file*)
+(** The theory Bool_ must be appended to this file*)
+(** The theory int_Int_ must be appended to this file*)
+(** The theory int_Abs_ must be appended to this file*)
+(** The theory real_Real_ must be appended to this file*)
+(** The theory real_RealInfix_ must be appended to this file*)
+(** The theory real_Square_ must be appended to this file*)
+axiom abs_def : (forall x:int [abs_int(x)]. ((0 <= x) -> (abs_int(x) = x)))
+
+axiom abs_def1 :
+  (forall x:int [abs_int(x)]. ((not (0 <= x)) -> (abs_int(x) = (-x))))
+
+axiom sqrt_lin1 : (forall x:real [sqrt(x)]. ((1. <  x) -> (sqrt(x) <  x)))
+
+axiom sqrt_lin0 :
+  (forall x:real [sqrt(x)]. (((0. <  x) and (x <  1.)) -> (x <  sqrt(x))))
+
+axiom sqrt_0 : (sqrt(0.) = 0.)
+
+axiom sqrt_1 : (sqrt(1.) = 1.)
+

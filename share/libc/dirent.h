@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2013                                               */
+/*  Copyright (C) 2007-2014                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -26,6 +26,7 @@
 typedef struct __FC_DIR_T { unsigned int __fc_dir_contents; } DIR;
 
 #include "__fc_define_ino_t.h"
+#include "__fc_define_off_t.h"
 
 struct dirent {
     ino_t          d_ino;       /* inode number */

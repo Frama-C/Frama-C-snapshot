@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -29,6 +29,7 @@ end
 module Signed: S
 module Mem_access: S
 module Div_mod: S
+module Shift: S
 module Downcast: S
 module Unsigned_overflow: S
 module Unsigned_downcast: S
@@ -39,6 +40,7 @@ val emitter: Emitter.t
 
 val precond_status: unit -> Db.RteGen.status_accessor
 val signed_status: unit -> Db.RteGen.status_accessor
+val shift_status: unit -> Db.RteGen.status_accessor
 val div_mod_status: unit -> Db.RteGen.status_accessor
 val downcast_status: unit -> Db.RteGen.status_accessor
 val mem_access_status: unit -> Db.RteGen.status_accessor

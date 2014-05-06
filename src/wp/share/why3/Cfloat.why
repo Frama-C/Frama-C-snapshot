@@ -1,0 +1,118 @@
+(**************************************************************************)
+(*                                                                        *)
+(*  This file is part of WP plug-in of Frama-C.                           *)
+(*                                                                        *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
+(*         alternatives)                                                  *)
+(*                                                                        *)
+(*  you can redistribute it and/or modify it under the terms of the GNU   *)
+(*  Lesser General Public License as published by the Free Software       *)
+(*  Foundation, version 2.1.                                              *)
+(*                                                                        *)
+(*  It is distributed in the hope that it will be useful,                 *)
+(*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
+(*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
+(*  GNU Lesser General Public License for more details.                   *)
+(*                                                                        *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
+(*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
+(*                                                                        *)
+(**************************************************************************)
+
+theory Cfloat
+use real.Real as Real
+use real.Square as Square
+
+function abs (x:real) : real = if (Real.(>=) (x) (0.0)) then x
+  else (Real.(-_) (x))
+
+axiom Abs_le : forall x:real, y:real. (Real.(<=) (abs x) (y)) <->
+  (Real.(<=) ((Real.(-_) (y))) (x)) /\ (Real.(<=) (x) (y))
+
+axiom Abs_pos : forall x:real. (Real.(>=) (abs x) (0.0))
+
+axiom Abs_sum : forall x:real, y:real. (Real.(<=) (abs
+  (Real.(+) (x) (y))) ((Real.(+) (abs x) (abs y))))
+
+axiom Abs_prod : forall x:real, y:real. ((abs
+  (Real.(*) (x) (y))) = ((Real.(*) (abs x) (abs y))))
+
+axiom triangular_inequality : forall x:real, y:real, z:real. (Real.(<=) (abs
+  (Real.(-) (x) (z))) ((Real.(+) (abs (Real.(-) (x) (y))) (abs
+  (Real.(-) (y) (z))))))
+
+function to_float32 real : real
+
+function to_float64 real : real
+
+predicate is_float32 (x:real) = ((to_float32 x) = (x))
+
+predicate is_float64 (x:real) = ((to_float64 x) = (x))
+
+type rounding_mode =
+  | Up
+  | Down
+  | ToZero
+  | NearestTiesToAway
+  | NearestTiesToEven
+
+function round_double rounding_mode real : real
+
+function round_float rounding_mode real : real
+
+predicate is_finite32 real
+
+predicate is_finite64 real
+
+axiom float_32 : forall x:real [round_float NearestTiesToEven x].
+  ((to_float32 x) = (round_float NearestTiesToEven x))
+
+axiom float_64 : forall x:real [round_double NearestTiesToEven x].
+  ((to_float64 x) = (round_double NearestTiesToEven x))
+
+axiom is_finite_to_float_32 : forall x:real [is_finite32 (to_float32 x)].
+  is_finite32 (to_float32 x)
+
+axiom is_finite_to_float_64 : forall x:real [is_finite64 (to_float64 x)].
+  is_finite64 (to_float64 x)
+
+function add_float32 (x:real) (y:real) : real = to_float32 (Real.(+) (x) (y))
+
+function add_float64 (x:real) (y:real) : real = to_float64 (Real.(+) (x) (y))
+
+function mul_float32 (x:real) (y:real) : real = to_float32 (Real.(*) (x) (y))
+
+function mul_float64 (x:real) (y:real) : real = to_float64 (Real.(*) (x) (y))
+
+function div_float32 (x:real) (y:real) : real = to_float32 (Real.(/) (x) (y))
+
+function div_float64 (x:real) (y:real) : real = to_float64 (Real.(/) (x) (y))
+
+function sqrt_float32 (x:real) : real = to_float32 (Square.sqrt x)
+
+function sqrt_float64 (x:real) : real = to_float64 (Square.sqrt x)
+
+function model real : real
+
+function delta (x:real) : real = abs (Real.(-) (x) (model x))
+
+function error (x:real) : real = (Real.(/) (delta x) (abs (model x)))
+
+axiom model_float_32 : forall x:real. ((model (to_float32 x)) = (model x))
+
+axiom model_float_64 : forall x:real. ((model (to_float64 x)) = (model x))
+
+axiom model_add : forall x:real, y:real. ((model
+  (Real.(+) (x) (y))) = ((Real.(+) (model x) (model y))))
+
+axiom model_mul : forall x:real, y:real. ((model
+  (Real.(*) (x) (y))) = ((Real.(*) (model x) (model y))))
+
+axiom model_div : forall x:real, y:real. ((model
+  (Real.(/) (x) (y))) = ((Real.(/) (model x) (model y))))
+
+axiom model_sqrt : forall x:real. ((model (Square.sqrt x)) = (Square.sqrt
+  (model x)))
+
+end

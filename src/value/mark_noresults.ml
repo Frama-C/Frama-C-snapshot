@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -25,7 +25,7 @@ open Cil_types
 class mark_visitor = object(_self)
   inherit Cil.nopCilVisitor
 
-  method vstmt s =
+  method! vstmt s =
     Db.Value.update_table s Cvalue.Model.top;
     Cil.DoChildren
 
@@ -49,6 +49,16 @@ let run () =
 
 let () = Db.Value.no_results :=
   (fun fd -> not (should_memorize_function fd))
+
+(* Signal that some results are not stored. The gui, or some calls to
+   Db.Value, may fail ungracefully *)
+let no_memoization_enabled () =
+  Value_parameters.NoResultsAll.get() ||
+  Value_parameters.ObviouslyTerminatesAll.get() ||
+  not (Value_parameters.NoResultsFunctions.is_empty ()) ||
+  not (Value_parameters.ObviouslyTerminatesFunctions.is_empty ())
+
+
 
 (*
 Local Variables:

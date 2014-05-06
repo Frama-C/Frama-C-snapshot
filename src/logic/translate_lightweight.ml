@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -195,7 +195,7 @@ class annotateFunFromDeclspec =
 object
   inherit Visitor.frama_c_inplace
 
-  method vglob_aux = function
+  method! vglob_aux = function
   | GFun(f,_) ->
     annotate_fun f.svar;
     SkipChildren
@@ -234,6 +234,12 @@ end
 let interprate file =
   let visitor = new annotateFunFromDeclspec in
   Visitor.visitFramacFile visitor file
+
+let lightweight_transform =
+  File.register_code_transformation_category "lightweight spec"
+
+let () =
+  File.add_code_transformation_after_cleanup lightweight_transform interprate
 
 (*
 Local Variables:

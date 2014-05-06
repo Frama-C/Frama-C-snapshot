@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -54,7 +54,7 @@ class descriptive_printer = object (self)
      (Other occurrences of lvalues are the left-hand sides of assignments,
      but we shouldn't substitute there since "foo(a,b) = foo(a,b)"
      would make no sense to the user.)  *)
-  method exp fmt e = match e.enode with
+  method! exp fmt e = match e.enode with
   | Lval (Var vi, o)
   | StartOf (Var vi, o) ->
     Format.fprintf fmt "%a%a" self#pVarDescriptive vi self#offset o

@@ -24,16 +24,16 @@
 			      AUTOMATIC INSTALLATION
 ===============================================================================
 
------------------------
-Windows OS and Mac OS X
------------------------
+--------
+Mac OS X
+--------
 
-Download the auto-installer corresponding to your system from
+Download the auto-installer from
 	 http://frama-c.com/download.html
 
 Then just run it!
 
-Note: these auto-installers are **not** provided for each Frama-C version.
+Note: this auto-installer is **not** provided for each Frama-C version.
 
 ----------------------------------------------------
 Debian >= Squeeze 6.0 and Ubuntu >= Lucid Lynx 10.04
@@ -54,6 +54,28 @@ Fedora >= 13
 If you are using Fedora >= 13 then a Frama-C package is provided:
 
   yum install frama-c
+
+----
+Opam
+----
+
+Opam (http://opam.ocamlpro.com) is a package manager for OCaml libraries and
+applications, that runs under Linux and Mac OS X. There is a package for
+Frama-C, so that if you have opam installed, you just have to type
+
+  opam install frama-c
+
+Note however that you may need to install Gtk, GtkSourceView and GnomeCanvas
+separately. These are C libraries with OCaml bindings that are used by the
+GUI. Opam manages the binding but not the external libraries yet.
+
+----
+Wodi
+----
+
+Wodi (http://wodi.forge.ocamlcore.org/) is a package manager for OCaml libraries
+and applications that specifically target the Windows platform. It features
+a GUI, so that you just have to select the Frama-C package from there.
 
 ===============================================================================
 The remainder of these installation instructions is for building Frama-C from
@@ -87,6 +109,7 @@ See below for more detailed and specific instructions.
 
 - GNU make version >= 3.81
 - Objective Caml >= 3.12.1;
+- a C compiler with standard C and POSIX headers and libraries
 
 The Frama-C GUI also requires:
 - Gtk (>= 2.4)
@@ -94,7 +117,7 @@ The Frama-C GUI also requires:
 - GnomeCanvas 2.x
 - LablGtk >= 2.14.0
 
-If OcamlGraph 1.8.3 [1] is already installed, then it will be used by Frama-C.
+If OcamlGraph 1.8.5 [1] is already installed, then it will be used by Frama-C.
 Otherwise the distributed local copy (directory ocamlgraph) will be used.
 
 If Zarith [2] is installed, it will be used by Frama-C. Otherwise another 

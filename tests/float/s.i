@@ -1,6 +1,6 @@
 /* run.config
-   OPT: -all-rounding-modes -memory-footprint 1 -val -deps -out -input -journal-disable -float-hex 
-   OPT: -memory-footprint 1 -val -deps -out -input -journal-disable -float-hex 
+   OPT: -all-rounding-modes -val -deps -out -input -journal-disable -float-hex
+   OPT: -val -deps -out -input -journal-disable -float-hex
 */
 
 typedef float T1;

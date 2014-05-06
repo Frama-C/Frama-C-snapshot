@@ -1,7 +1,7 @@
 int G;
 int x,y;
 
-int i_auSetEepromProgActive() {
+int f() {
   return G?0:(-51);
 }
 
@@ -17,7 +17,7 @@ int main(int argc, char**argv)
     x = c;
   if(s >= -10)
     y = s;
-  r = i_auSetEepromProgActive() ;
+  r = f() ;
   if (r != (0))
     {
       inRet = (-51);

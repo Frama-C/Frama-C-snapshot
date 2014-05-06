@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -46,15 +46,14 @@ module BuildFct =
        let help = "build the dependence graph for the specified function"
      end)
 
-
-let () = Plugin.set_group output
+let () = Parameter_customize.set_group output
 module PrintBw =
   False(struct
           let option_name = "-codpds"
           let help = "force option -pdg-print to show the co-dependencies rather than the dependencies"
         end)
 
-let () = Plugin.set_group output
+let () = Parameter_customize.set_group output
 module DotBasename =
   EmptyString
     (struct

@@ -2,8 +2,8 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2013                                               */
-/*    CEA   (Commissariat à l'énergie atomique et aux énergies            */
+/*  Copyright (C) 2007-2014                                               */
+/*    CEA   (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies            */
 /*           alternatives)                                                */
 /*    INRIA (Institut National de Recherche en Informatique et en         */
 /*           Automatique)                                                 */
@@ -103,9 +103,11 @@
            acc
           | FromAny, _ ->
               (* the new fundeps is strictly more precise than the old one.
-                 We can remove the old dependencies. *)
-              let acc = Extlib.filter_out (compare_pair p) acc in
-              acc @ [p]
+                 We replace the old dependency by the new one, but keep
+                 the location at its old place in the list. This ensures
+                 that we get the exact same clause if we try to 
+                 link the original contract with its pretty-printed version. *)
+              Extlib.replace compare_pair p acc
           | From _, From _ -> 
             (* we keep the two functional dependencies, 
                as they have to be proved separately. *)
@@ -196,6 +198,13 @@
   let check_registered kw =
     if Logic_utils.is_extension kw then kw else raise Parsing.Parse_error
 
+  let escape =
+    let regex1 = Str.regexp "\\(\\(\\\\\\\\\\)*[^\\]\\)\\(['\"]\\)" in
+    let regex2 = Str.regexp "\\(\\\\\\\\\\)*\\\\$" in
+    fun str -> 
+      let str = Str.global_replace regex1 "\\1\\\\3" str in
+      Str.global_replace regex2 "\\1\\\\" str
+
 %}
 
 /*****************************************************************************/
@@ -211,7 +220,7 @@
 %token <Logic_ptree.constant> CONSTANT
 %token <string> CONSTANT10
 %token LPAR RPAR IF ELSE COLON COLON2 COLONCOLON DOT DOTDOT DOTDOTDOT
-%token INT INTEGER REAL BOOLEAN FLOAT LT GT LE GE EQ NE COMMA ARROW EQUAL
+%token INT INTEGER REAL BOOLEAN BOOL FLOAT LT GT LE GE EQ NE COMMA ARROW EQUAL
 %token FORALL EXISTS IFF IMPLIES AND OR NOT SEPARATED
 %token TRUE FALSE OLD AT RESULT
 %token BLOCK_LENGTH BASE_ADDR OFFSET VALID VALID_READ VALID_INDEX VALID_RANGE
@@ -307,7 +316,7 @@ ne_lexpr_list:
 ;
 
 lexpr_eof:
-| lexpr EOF { $1 }
+| full_lexpr EOF { $1 }
 ;
 
 lexpr_option:
@@ -338,7 +347,8 @@ lexpr:
            let l = loc () in
            raise (Not_well_formed(l, "Wide strings are not allowed as labels."))
          end;
-         info (PLnamed (("\"" ^ str ^ "\""), $3))
+        let str = escape str in
+         info (PLnamed (str, $3))
        }
 | lexpr_rel %prec prec_rel_list { $1 }
 ;
@@ -500,7 +510,8 @@ lexpr_inner:
 | lexpr_inner COLONGT lexpr_inner %prec prec_cast
       { info (PLcoercionE ($1, $3)) }
 | TYPEOF LPAR lexpr RPAR { info (PLtypeof $3) }
-| BSTYPE LPAR type_spec STAR RPAR { info (PLtype $3) }
+| BSTYPE LPAR type_spec RPAR { info (PLtype $3) }
+| BSTYPE LPAR type_spec stars RPAR { info (PLtype ($4 $3)) }
     /* tsets */
 | EMPTY { info PLempty }
 | BSUNION LPAR lexpr_list RPAR { info (PLunion $3) }
@@ -524,8 +535,8 @@ lexpr_inner:
 ;
 
 ne_label_args:
-| identifier { [ $1 ] }
-| identifier COMMA ne_label_args { $1 :: $3 }
+| identifier_or_typename { [ $1 ] }
+| identifier_or_typename COMMA ne_label_args { $1 :: $3 }
 
 string:
 | STRING_LITERAL { $1 }
@@ -749,6 +760,7 @@ type_spec:
 | REAL           { LTreal }
 | BOOLEAN        { LTnamed (Utf8_logic.boolean,[]) }
 | VOID           { LTvoid }
+| BOOL           { LTint IBool }
 | CHAR           { LTint IChar }       /** [char] */
 | SIGNED CHAR    { LTint ISChar }      /** [signed char] */
 | UNSIGNED CHAR  { LTint IUChar }      /** [unsigned char] */
@@ -780,9 +792,9 @@ type_spec:
 | FLOAT             { LTfloat FFloat }
 | DOUBLE            { LTfloat FDouble }
 | LONG DOUBLE       { LTfloat FLongDouble }
-| STRUCT exit_rt_type identifier { LTstruct $3 }
-| ENUM   exit_rt_type identifier { LTenum $3 }
-| UNION  exit_rt_type identifier  { LTunion $3 }
+| STRUCT exit_rt_type identifier_or_typename { LTstruct $3 }
+| ENUM   exit_rt_type identifier_or_typename { LTenum $3 }
+| UNION  exit_rt_type identifier_or_typename  { LTunion $3 }
 | TYPENAME          { LTnamed ($1,[]) }
 | TYPENAME LT enter_rt_type  ne_logic_type_list GT exit_rt_type
       { LTnamed($1,$4) }
@@ -1173,12 +1185,12 @@ assigns:
   }*/
 ;
 
-zones :
+zones:
 | ne_zones { $1 }
 | NOTHING  { [] }
 ;
 
-ne_zones :
+ne_zones:
 | ne_lexpr_list { $1 }
 ;
 
@@ -1186,7 +1198,7 @@ ne_zones :
 
 annot:
 | annotation EOF  { $1 }
-| is_spec any EOF { Aspec  }
+| is_spec any EOF { Aspec }
 | decl_list EOF   { Adecl ($1) }
 | CUSTOM any_identifier COLON custom_tree EOF { Acustom(loc (),$2, $4) }
 ;
@@ -1671,6 +1683,7 @@ c_keyword:
 | CASE { "case" }
 | CHAR { "char" }
 | BOOLEAN { "boolean" }
+| BOOL { "_Bool" }
 | CONST { "const" }
 | DOUBLE { "double" }
 | ELSE { "else" }
@@ -1741,7 +1754,6 @@ is_acsl_other:
 | READS { "reads" }
 | REAL { "real" }
 | WRITES { "writes" }
-| CUSTOM { "custom" }
 ;
 
 is_ext_spec:
@@ -1764,6 +1776,7 @@ non_logic_keyword:
 | is_acsl_spec   { $1 }
 | is_acsl_decl_or_code_annot { $1 }
 | is_acsl_other  { $1 }
+| CUSTOM { "custom" }
 ;
 
 /* ACSL extension language */

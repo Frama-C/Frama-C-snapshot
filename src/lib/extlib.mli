@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -73,6 +73,10 @@ val ($) : ('b -> 'c) -> ('a -> 'b) -> 'a -> 'c
 val swap: ('a -> 'b -> 'c) -> 'b -> 'a -> 'c
   (** Swap arguments. *)
 
+val iter_uncurry2:
+  (('a -> 'b -> unit) -> 'c -> unit) ->
+  (('a * 'b -> unit) -> 'c -> unit)
+
 (* ************************************************************************* *)
 (** {2 Lists} *)
 (* ************************************************************************* *)
@@ -88,6 +92,13 @@ val last: 'a list -> 'a
 
 val filter_out: ('a -> bool) -> 'a list -> 'a list
   (** Filter out elements that pass the test *)
+
+val replace: ('a -> 'a -> bool) -> 'a -> 'a list -> 'a list
+  (** [replace cmp x l] replaces the first element [y] of [l] such that
+      [cmp x y] is true by [x]. If no such element exists, [x] is added
+      at the tail of [l].
+      @since Neon-20130301 
+   *)
 
 val filter_map: ('a -> bool) -> ('a -> 'b) -> 'a list -> 'b list
 val filter_map': ('a -> 'b) -> ('b -> bool) -> 'a list -> 'b list
@@ -149,6 +160,7 @@ val mapi: (int -> 'a -> 'b) -> 'a list -> 'b list
 val has_some: 'a option -> bool
 
 val may: ('a -> unit) -> 'a option -> unit
+  (** [may f v] applies [f] to [x] if [v = Some(x)] *)
 
 val opt_conv: 'a -> 'a option -> 'a
   (** [opt_conv default v] returns [default] if [v] is [None] and [a] if
@@ -236,13 +248,13 @@ val make_unique_name:
 (** {2 Performance} *)
 (* ************************************************************************* *)
 
-external getperfcount: unit -> int = "getperfcount"
-external getperfcount1024: unit -> int = "getperfcount1024"
+external getperfcount: unit -> int = "getperfcount" "noalloc"
+external getperfcount1024: unit -> int = "getperfcount1024" "noalloc"
 
 val time: ?msg:string -> ('a -> 'b) -> 'a -> 'b
 val time1024: ?msg:string -> ('a -> 'b) -> 'a -> 'b
 
-external address_of_value: 'a -> int = "address_of_value"
+external address_of_value: 'a -> int = "address_of_value" "noalloc"
 
 (* ************************************************************************* *)
 (** {2 Exception catcher} *)
@@ -271,9 +283,10 @@ val temp_file_cleanup_at_exit: ?debug:bool -> string -> string -> string
       @modify Oxygen-20120901 optional debug argument
 *)
 
-val temp_dir_cleanup_at_exit: string -> string
+val temp_dir_cleanup_at_exit: ?debug:bool -> string -> string
 (** @raise Temp_file_error if the temp dir cannot be created.
-    @modify Nitrogen-20111001 may now raise Temp_file_error *)
+    @modify Nitrogen-20111001 may now raise Temp_file_error
+    @modify Neon-20130301 add optional debug flag *)
 
 val safe_remove: string -> unit
   (** Tries to delete a file and never fails. *)

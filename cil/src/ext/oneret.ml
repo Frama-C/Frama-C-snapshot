@@ -35,8 +35,8 @@
 (*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE         *)
 (*  POSSIBILITY OF SUCH DAMAGE.                                             *)
 (*                                                                          *)
-(*  File modified by CEA (Commissariat à l'énergie atomique et aux          *)
-(*                        énergies alternatives)                            *)
+(*  File modified by CEA (Commissariat Ã  l'Ã©nergie atomique et aux          *)
+(*                        Ã©nergies alternatives)                            *)
 (*               and INRIA (Institut National de Recherche en Informatique  *)
 (*                          et Automatique).                                *)
 (****************************************************************************)
@@ -48,7 +48,7 @@ open Logic_const
 let adjust_assigns_clause loc var code_annot =
   let change_result = object
     inherit Cil.nopCilVisitor
-    method vterm_lhost = function
+    method! vterm_lhost = function
       | TResult _ -> ChangeTo (TVar var)
       | TVar _ | TMem _ -> DoChildren
   end
@@ -57,7 +57,7 @@ let adjust_assigns_clause loc var code_annot =
   let module M = struct exception Found end in
   let check_var = object
     inherit Cil.nopCilVisitor
-    method vterm_lhost = function
+    method! vterm_lhost = function
       | TVar v when Cil_datatype.Logic_var.equal var v -> raise M.Found
       | TVar _ | TResult _ | TMem _ -> DoChildren
   end
@@ -125,7 +125,7 @@ let oneret (f: fundec) : unit =
   let convert_result p =
     let vis = object
       inherit Cil.nopCilVisitor
-      method vterm_lhost = function
+      method! vterm_lhost = function
         | TResult _ ->
           let v = getRetVar () in
           ChangeTo (TVar (cvar_to_lvar v))

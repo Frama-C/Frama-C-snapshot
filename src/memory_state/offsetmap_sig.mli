@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -48,8 +48,10 @@ val create_isotropic: size:Int.t -> v -> t
 (** Same as {!create}, but for values that are isotropic. In this case,
     [size_v] is automatically computed. *)
 
-val from_cstring : Base.cstring -> t
-
+val of_list: ((t -> v -> t) -> t -> 'l -> t) -> 'l -> Int.t -> t
+(** [from_list fold c size] creates an offsetmap by applying the iterator
+    [fold] to the container [c], the elements of [c] being supposed to
+    be of size [size]. *)
 
 (** {2 Empty offsetmap} *)
 
@@ -98,15 +100,13 @@ val iter_on_values:
 val fold_on_values: (v -> Int.t -> 'a -> 'a) -> t -> 'a -> 'a
 (** Same as [iter_on_values] but with an accumulator *)
 
+
 (** {2 Join and inclusion testing} *)
 
 val join : t -> t -> t
 
 val is_included : t -> t -> bool
 (** [is_included m1 m2] tests whether [m1] is included in [m2]. *)
-val is_included_exn : t -> t -> unit
-(** [is_included_exn m1 m2] raises {!Abstract_interp.Is_not_included}
-    if [m1] is not included in [m2], and does nothing otherwise. *)
 
 val widen : widen_hint -> t -> t -> t
 (** [widen wh m1 m2] performs a widening step on [m2], assuming that
@@ -124,13 +124,12 @@ val find :
 (** Find the value bound to a set of intervals, expressed as an ival, in the
     given rangemap. *)
 
-val find_imprecise: Int.t * Int.t -> t -> v
-(** [find_imprecise (ib, ie) m] returns the join of the values bound between
-    [ib] and [ie] (inclusively) in [m]. *)
-(* TODOBY add validity *)
+val find_imprecise: validity:Base.validity-> t -> v
+(** [find_imprecise ~validity m] returns an imprecise join of the values bound
+    in [m], in the range described by [validity].  *)
 
-val find_imprecise_everywhere: validity:Base.validity -> t -> v
-(** Returns the join of all the values bound in the offsetmap. *)
+val find_imprecise_everywhere: t -> v
+(** Returns an imprecise join of all the values bound in the offsetmap. *)
 
 val copy_slice:
   with_alarms:CilE.warn_mode ->
@@ -145,7 +144,7 @@ val copy_slice:
 (** {2 Adding values} *)
 
 val add : (Int.t * Int.t) -> (v * Int.t * Rel.t) -> t -> t
-(** [add_with_offset (min, max) (v, size, offset) m] maps the interval
+(** [add (min, max) (v, size, offset) m] maps the interval
     [min..max] (inclusive) to the value [v] in [m]. [v] is assumed as having
     size [size]. If [stop-start+1] is greater than [size], [v] repeats itself
     until the entire interval is filled. [offset] is the offset at which [v]
@@ -184,11 +183,23 @@ val paste_slice:
   t -> t
 
 
-(** {2 Misc} *)
+(** {2 Shape} *)
 
 val cardinal_zero_or_one: t -> bool
 (** Returns [true] if and only if all the interval bound in the
     offsetmap are mapped to values with cardinal at most 1. *)
+
+(** [is_single_interval ?f o] is true if
+    (1) the offsetmap [o] contains a single binding
+    (2) either [f] is [None], or the bound value [v] verifies [f v]. *)
+val is_single_interval: ?f:(v -> bool) -> t -> bool
+
+val single_interval_value: t -> v option
+(** [single_interval_value o] returns [Some v] if [o] contains a single
+    interval, to which [v] is bound, and [None] otherwise. *)
+
+
+(** {2 Misc} *)
 
 (** Clear the caches local to this module. Beware that they are not
     project-aware, and that you must call them at every project switch. *)

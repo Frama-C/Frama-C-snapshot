@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -54,7 +54,7 @@ struct
   let accept_base_in_lmap kf = (* Eta-expansion required *)
     !Db.Semantic_Callgraph.accept_base ~with_formals:false ~with_locals:false kf
   let final_cleanup kf froms =
-    if Lmap_bitwise.From_Model.is_bottom froms.Function_Froms.deps_table
+    if Function_Froms.Memory.is_bottom froms.Function_Froms.deps_table
     then froms
     else
     let f b intervs =
@@ -64,16 +64,9 @@ struct
       else Zone.bottom
     in
     let joiner = Zone.join in
-    let projection base =
-      match Base.validity base with
-      | Base.Invalid -> Lattice_Interval_Set.Int_Intervals.bottom
-      | Base.Periodic (min_valid, max_valid, _)
-      | Base.Known (min_valid,max_valid)
-      | Base.Unknown (min_valid,_,max_valid)->
-          Lattice_Interval_Set.Int_Intervals.inject_bounds min_valid max_valid
-    in
+    let projection base = Base.valid_range (Base.validity base) in
     let zone_substitution =
-      Zone.cached_fold ~cache:("from cleanup", 331) ~temporary:true
+      Zone.cached_fold ~cache_name:"from cleanup" ~temporary:true
         ~f ~joiner ~empty:Zone.bottom ~projection
     in
     let zone_substitution x =
@@ -81,15 +74,12 @@ struct
         zone_substitution x
       with Zone.Error_Top -> Zone.top
     in
-    { Function_Froms.deps_table =
-        Lmap_bitwise.From_Model.map_and_merge
-          zone_substitution
-          froms.Function_Froms.deps_table
-          Lmap_bitwise.From_Model.empty;
+    let subst = Function_Froms.Deps.subst zone_substitution in
+    let open Function_Froms in
+    { deps_table =
+        Memory.map_and_merge subst froms.deps_table Memory.empty;
       deps_return =
-        Lmap_bitwise.From_Model.LOffset.map
-          (function b, d -> b, zone_substitution d)
-          froms.Function_Froms.deps_return;
+        Memory.LOffset.map (function b, d -> b, subst d) froms.deps_return;
     }
   let record_kf kf last_from = Tbl.add kf last_from
 end
@@ -100,9 +90,9 @@ module Value_local = struct
   let expr_to_kernel_function s ~deps exp =
     !Db.Value.expr_to_kernel_function
       (Kstmt s) ~with_alarms:CilE.warn_none_mode ~deps exp
-  let lval_to_loc_with_deps s ~deps lval =
-    !Db.Value.lval_to_loc_with_deps
-      (Kstmt s) ~with_alarms:CilE.warn_none_mode ~deps lval
+  let lval_to_zone_with_deps s ~deps ~for_writing lval =
+    !Db.Value.lval_to_zone_with_deps_state
+      (get_stmt_state s) ~for_writing ~deps lval
 end
 
 module From =
@@ -133,12 +123,22 @@ let () =
   Db.From.find_deps_no_transitivity :=
     (fun stmt lv ->
        let state = Db.Value.get_stmt_state stmt in
-       From_compute.find_deps_no_transitivity state lv);
+       let deps = From_compute.find_deps_no_transitivity state lv in
+       Function_Froms.Deps.to_zone deps);
   Db.From.find_deps_no_transitivity_state :=
-    From_compute.find_deps_no_transitivity;
+    (fun s e ->
+      let deps = From_compute.find_deps_no_transitivity s e in
+      Function_Froms.Deps.to_zone deps);
 
   ignore (
     Db.register_compute "From.compute_all"
       [Tbl.self]
       Db.From.compute_all
       force_compute_all);
+
+
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

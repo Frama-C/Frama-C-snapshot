@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -43,7 +43,7 @@ let prologue () =
     end
 
 let filter_if stmt (th, el as thel) =
-  if th = Dataflow.GUnreachable || el = Dataflow.GUnreachable
+  if th = Dataflow2.GUnreachable || el = Dataflow2.GUnreachable
   then thel
   else
     let sep = !mask in
@@ -62,9 +62,9 @@ let filter_if stmt (th, el as thel) =
           c;
         if c
         then
-          th, Dataflow.GUnreachable
+          th, Dataflow2.GUnreachable
         else
-          Dataflow.GUnreachable, el
+          Dataflow2.GUnreachable, el
       end
     else thel
 

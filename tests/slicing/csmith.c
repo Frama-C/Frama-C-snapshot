@@ -1,6 +1,12 @@
 /* run.config
    OPT: -slice-return main -journal-disable -then-on 'Slicing export' -print
 COMMENT: TODO add -check to the command, but it fails at the moment...
+   OPT: -main bts906b -fct-pdg bts906b -pdg-print -pdg-verbose 2
+   OPT: -main bts906c -fct-pdg bts906c -pdg-print -pdg-verbose 2
+COMMENT: The two PDG tests above test interesting case where the slicing may
+COMMENT: slice away a goto because of an incorrect analyze of some dead code,
+COMMENT: which make the slicer think that the destination of the goto is the
+COMMENT: syntactic successor of the goto instruction...
  **/
 
 
@@ -176,6 +182,28 @@ B : i --;
   return 0;
 }
 
+
+int bts906c (void) {
+  int x = 0;
+  int i = 2;
+  while (i >= 0) {
+    while (1) {
+      if (i)
+        goto B;
+      else {
+        x ++;
+        return x;
+      W:
+	x++;
+	goto W;
+      }
+    }
+B : i --;
+  }
+  return 0;
+}
+
+
 int bts963 (void) {
    int x = 0;
    int i;
@@ -215,6 +243,7 @@ int main (int n) {
   x += bts899 ();
   x += bts906 ();
   x += bts906b ();
+  //  x += bts906c ();
   x += bts963 ();
   x += bts963b ();
   return x;

@@ -1,6 +1,6 @@
 /* run.config
    EXECNOW: make -s tests/journal/intra.opt tests/journal/intra.byte
-   EXECNOW: BIN intra_journal.ml ./tests/journal/intra.opt -journal-enable -journal-name tests/journal/result/intra_journal tests/journal/intra.i > /dev/null 2> /dev/null
+   EXECNOW: BIN intra_journal.ml ./tests/journal/intra.opt -journal-enable -journal-name tests/journal/result/intra_journal.ml tests/journal/intra.i > /dev/null 2> /dev/null
    CMD: FRAMAC_LIB=lib/fc ./tests/journal/intra.byte
    OPT: -load-script tests/journal/result/intra_journal -journal-disable
 */

@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -24,8 +24,6 @@
     Do not use this module if you don't know what you are doing. *)
 
 (* [JS 2011/10/03] To the authors/users of this module: please document it. *)
-
-module MemoryFootprint : State_builder.Ref with type data = int
 
 module type WeakHashable =
 sig

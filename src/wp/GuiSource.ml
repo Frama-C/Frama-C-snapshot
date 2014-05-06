@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -208,6 +208,7 @@ object(self)
 	  | Some { Wpo.po_pid = pid ; Wpo.po_formula = f } ->
 	      begin
 		match f with
+		  | GoalCheck _ -> ()
 		  | GoalLemma l -> 
 		      deps <- lemmas l.VC_Lemma.depends
 		  | GoalAnnot a ->
@@ -215,8 +216,9 @@ object(self)
 		      path <- instructions a.VC_Annot.path ;
 		      deps <- a.VC_Annot.deps ;
 	      end ;
-	      let ip = WpPropId.property_of_id pid in
-	      goal <- Some ip ;
+	      if not (WpPropId.is_check pid) then
+		( let ip = WpPropId.property_of_id pid in
+		  goal <- Some ip ) ;
 	      Gtk_helper.later self#scroll ;
       end
 

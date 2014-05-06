@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -48,10 +48,9 @@ module Signature = struct
 
   module Str_descr = struct
     open Structural_descr
-    let in_key =
-      Structure (Sum [| [| p_int |]; [| Locations.Zone.packed_descr |] |])
-    let out_key = Structure (Sum [| [| Locations.Zone.packed_descr |] |])
-    let key = Structure (Sum [| [| pack in_key |]; [| pack out_key |] |])
+    let in_key = t_sum [| [| p_int |]; [| Locations.Zone.packed_descr |] |]
+    let out_key = t_sum [| [| Locations.Zone.packed_descr |] |]
+    let key = t_sum [| [| pack in_key |]; [| pack out_key |] |]
 
     let t d_info = t_record
           [| pack (t_option d_info);
@@ -392,16 +391,15 @@ module Key = struct
           open Structural_descr
           let structural_descr =
             let p_key = pack Signature.Str_descr.key in
-            Structure
-              (Sum
-                 [|
-                   [| p_key |];
-                   [| Varinfo.packed_descr |];
-                   [| Stmt.packed_descr |];
-                   [| Cil_datatype.Stmt.packed_descr |];
-                   [| Cil_datatype.Stmt.packed_descr; Label.packed_descr |];
-                   [| Cil_datatype.Stmt.packed_descr; p_key |];
-                 |])
+            t_sum
+              [|
+                [| p_key |];
+                [| Varinfo.packed_descr |];
+                [| Stmt.packed_descr |];
+                [| Cil_datatype.Stmt.packed_descr |];
+                [| Cil_datatype.Stmt.packed_descr; Label.packed_descr |];
+                [| Cil_datatype.Stmt.packed_descr; p_key |];
+              |]
           let rehash = Datatype.identity
           let pretty = pretty_node
           let mem_project = Datatype.never_any_project

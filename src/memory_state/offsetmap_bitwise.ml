@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -25,10 +25,8 @@ open Lattice_Interval_Set
 
 type itv = Int.t * Int.t
 
-module Make(V: Abstract_interp.Lattice) =
+module Make(V: Lattice_type.Bounded_Join_Semi_Lattice) =
 struct
-
-  open Abstract_interp
 
   module V_bool = struct
     include Datatype.Pair_with_collections(Datatype.Bool)(V)
@@ -82,7 +80,7 @@ struct
 
 
   module MapIntervals =
-    Map.Make(struct
+    FCMap.Make(struct
       type t = Int_Intervals.t
       let compare = Int_Intervals.compare_itvs
     end)
@@ -126,21 +124,20 @@ struct
                  with Cil.SizeOfError _ -> false)
             | None -> false
 
-  let pretty_with_type typ fmt m =
+  let pretty_with_type_generic_printer typ printer sep fmt m =
     match m with
     | Degenerate v ->
-        Format.fprintf fmt "@[[..] FROM @[%a@]@]"
-          V.pretty v
+        Format.fprintf fmt "@[[..] %s @[%a@]@]" sep printer v
     | Map m ->
         let pp_itv = Int_Intervals.pretty_typ typ in
         let first = ref true in
         let pretty_binding fmt itvs (default,v) () =
           if !first then first := false else Format.fprintf fmt "@," ;
-          Format.fprintf fmt "@[<hv>@[%a@]%(%)@[FROM @[%a%s@]@]@]"
+          Format.fprintf fmt "@[<hv>@[%a@]%(%)@[%s @[%a%s@]@]@]"
             pp_itv itvs
             (if range_covers_whole_type typ itvs
              then (" ": (unit,Format.formatter,unit) format) else "@ ")
-            V.pretty v
+            sep printer v
             (if default then " (and SELF)" else "")
 
         in
@@ -148,6 +145,8 @@ struct
         fold_fuse_same_aux (pretty_binding fmt) m ();
         Format.fprintf fmt "@]"
 
+  let pretty_with_type typ fmt m =
+    pretty_with_type_generic_printer typ V.pretty "FROM" fmt m
 
   let pretty = pretty_with_type None
 
@@ -156,8 +155,7 @@ struct
     type t = tt
     let name = V.name ^ " offsetmap_bitwise"
     let structural_descr =
-      Structural_descr.Structure
-        (Structural_descr.Sum [| [| M.packed_descr |]; [| V.packed_descr |] |])
+      Structural_descr.t_sum [| [| M.packed_descr |]; [| V.packed_descr |] |]
     let reprs =
       List.fold_left
         (fun acc m -> Map m :: acc)
@@ -187,18 +185,11 @@ struct
         let concerned_intervals =
           M.concerned_intervals Int_Interv.fuzzy_order i m
         in
-        let treat_mid_interval (_bk,ek) (bl,_el) acc =
-       (*   Format.printf "treat_mid_itv: ek:%a bl:%a@\n" Int.pretty ek
-            Int.pretty bl; *)
-          let s_ek = Int.succ ek in
-          if Int.lt s_ek bl then
-            V.join (default s_ek (Int.pred bl)) acc
-          else acc
-        in
-        (*let concerned_intervals = List.rev concerned_intervals in*)
         match concerned_intervals with
-          [] -> default bi ei
+        | [] -> default bi ei
         | ((_bk,ek),_)::_ ->
+            (* Beware that intervals are presented in reverse order.
+               [(bk, ek)] is the highest one. *)
             let implicit_right =
               if Int.gt ei ek
               then default (Int.succ ek) ei
@@ -206,12 +197,20 @@ struct
             in
             let rec implicit_mid_and_left list acc =
               match list with
-              | [(bl,_el),_] ->
+              | [(bl,_el),_] -> (* Implicit left *)
                   if Int.lt bi bl
                   then V.join acc (default bi (Int.pred bl))
                   else acc
-              | (k,_)::(((l,_)::_) as tail) ->
-                  treat_mid_interval k l (implicit_mid_and_left tail acc)
+              | ((bl, _el), _)::((((_bk, ek), _)::_) as tail) ->
+                let tail = implicit_mid_and_left tail acc in
+                (* implicit mid, ie. a hole between the two intervals. Again,
+                   [(bk, ek)] is the highest interval *)
+                (*   Format.printf "treat_mid_itv: ek:%a bl:%a@\n" Int.pretty ek
+                     Int.pretty bl; *)
+                let s_ek = Int.succ ek in
+                if Int.lt s_ek bl then
+                  V.join (default s_ek (Int.pred bl)) tail
+                else tail
               | [] -> assert false
             in
             let implicit =
@@ -219,9 +218,12 @@ struct
             in
             (* now add the explicit values *)
             List.fold_left
-              (function acc -> function ((bi,ei),(d,v)) ->
+              (function acc -> function ((bi',ei'),(d,v)) ->
                  let valu = V.join v acc in
-                 if d then (V.join valu (default bi ei)) else valu
+                 if d then
+                   let (b, e) = Int_Interv.clip_itv (bi, ei) (bi', ei') in
+                   V.join valu (default b e)
+                 else valu
               )
               implicit
               concerned_intervals
@@ -288,22 +290,6 @@ struct
           pretty m
           pretty result;*)
         result
-
-(*
-        let new_v =
-          List.fold_left
-            (fun vacc (_,(_,v)) ->
-              (V.join vacc v))
-            v
-            concerned_intervals
-        in
-        let d =
-          try Int_Interv.check_coverage i concerned_intervals;
-            List.fold_left (fun acc ((_,_),(d,_)) -> acc || d) false concerned_intervals
-          with Is_not_included -> true
-        in
-        add_internal i (d, new_v) m
-*)
 
   let collapse m =
     match m with
@@ -596,7 +582,7 @@ struct
           Int_Interv.fuzzy_order (bi,ei) offs2
       in
       List.iter
-        (fun (_,(b,_v)) -> if not b then raise Is_not_included)
+        (fun (_,(b,_v)) -> if not b then raise Int_Interv.Not_fully_included)
         concerned_intervals
     in
     let f (bi,ei) _ acc =
@@ -619,7 +605,7 @@ struct
         then check (Int.succ ek) Int.max_int *)
         ()
 
-  let is_included_exn offs1 offs2 =
+  let is_included_aux offs1 offs2 =
     if offs1 != offs2 then
       match offs1, offs2 with
       | Map offs1, Map offs2 ->
@@ -630,21 +616,21 @@ struct
             Int_Interv.check_coverage i concerned_intervals;
             List.iter
               (fun ((_bj, _ej),(dj,vj)) ->
-                 if di && (not dj) then raise Is_not_included;
-                 if not (V.is_included vi vj) then raise Is_not_included)
-              concerned_intervals
+                 if (di && (not dj)) || not (V.is_included vi vj) then
+                   raise Int_Interv.Not_fully_included;
+              ) concerned_intervals
           in
           M.iter treat_itv offs1    ;
           check_inter offs1 offs2
       | Degenerate _v1, Map _offs2 ->
-          raise Is_not_included
+          raise Int_Interv.Not_fully_included
       | _, Degenerate v2 ->
           if not (V.is_included (collapse offs1) v2)
-          then raise Is_not_included
+          then raise Int_Interv.Not_fully_included
 
   let is_included m1 m2 =
-    try is_included_exn m1 m2; true with
-      Is_not_included -> false
+    try is_included_aux m1 m2; true
+    with Int_Interv.Not_fully_included -> false
 
   let join mm1 mm2 =
 (*    check_contiguity(mm1);

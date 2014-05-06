@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -32,8 +32,8 @@ module Make
   (M:sig
     val name:string
     val default: kernel_function -> bool
-    val parameter: Parameter.t
-    val additional_parameters: Parameter.t list
+    val parameter: Typed_parameter.t
+    val additional_parameters: Typed_parameter.t list
   end)
   =
 struct
@@ -45,9 +45,10 @@ struct
 	let name = M.name
 	let size = 17
 	let dependencies =
-          let extract p = State.get p.Parameter.name in
-	  List.map extract (M.parameter :: M.additional_parameters) @
-            [ Ast.self; Options.Trivial.self]
+          let extract p = State.get p.Typed_parameter.name in
+	  Ast.self
+	  :: Options.Trivial.self 
+	  :: List.map extract (M.parameter :: M.additional_parameters) 
        end)
 
   let is_computed kf = H.memo M.default kf
@@ -81,6 +82,15 @@ module Div_mod =
        let name = "division_by_zero"
        let default kf = not (Kernel_function.is_definition kf)
        let parameter = Options.DoDivMod.parameter
+       let additional_parameters = []
+     end)
+
+module Shift =
+  Make
+    (struct
+       let name = "shift_value_out_of_bounds"
+       let default kf = not (Kernel_function.is_definition kf)
+       let parameter = Options.DoShift.parameter
        let additional_parameters = []
      end)
 
@@ -136,6 +146,7 @@ let proxy =
     [ Signed.self;
       Mem_access.self;
       Div_mod.self;
+      Shift.self;
       Downcast.self;
       Unsigned_downcast.self;
       Unsigned_overflow.self;
@@ -148,6 +159,7 @@ let () = Db.RteGen.self := self
 let precond_status () = Called_precond.triple
 let signed_status () = Signed.triple
 let div_mod_status () = Div_mod.triple
+let shift_status () = Shift.triple
 let downcast_status () = Downcast.triple
 let mem_access_status () = Mem_access.triple
 let float_to_int_status () = Float_to_int.triple
@@ -159,6 +171,7 @@ let all_status () =
     signed_status ();
     mem_access_status ();
     div_mod_status ();
+    shift_status ();
     downcast_status ();
     float_to_int_status ();
     unsigned_overflow_status ();

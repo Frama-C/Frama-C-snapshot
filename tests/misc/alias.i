@@ -1,11 +1,11 @@
 /* run.config
-   OPT: -memory-footprint 1 -val -deps -out -input -journal-disable -no-results-function f
-   OPT: -memory-footprint 1 -val -deps -out -input  -main main3 -journal-disable
-   OPT: -memory-footprint 1 -val -deps -out -input  -main main4 -absolute-valid-range 0-0xFF -journal-disable
-   OPT: -memory-footprint 1 -val -deps -out -input  -main main5 -journal-disable
-   OPT: -memory-footprint 1 -val -deps -out -input  -main main6 -absolute-valid-range 0-0xFF -journal-disable
-   OPT: -memory-footprint 1 -val -deps -out -input  -main main11  -absolute-valid-range 0-0xFF -journal-disable
-   OPT: -memory-footprint 1 -val -deps -out -input  -main main8  -absolute-valid-range 0-0xFF -journal-disable
+   OPT: -val -deps -out -input -journal-disable -no-results-function f
+   OPT: -val -deps -out -input  -main main3 -journal-disable
+   OPT: -val -deps -out -input  -main main4 -absolute-valid-range 0-0xFF -journal-disable
+   OPT: -val -deps -out -input  -main main5 -journal-disable
+   OPT: -val -deps -out -input  -main main6 -absolute-valid-range 0-0xFF -journal-disable
+   OPT: -val -deps -out -input  -main main11  -absolute-valid-range 0-0xFF -journal-disable
+   OPT: -val -deps -out -input  -main main8  -absolute-valid-range 0-0xFF -journal-disable
 
 */
 void f(char*x,int*y) {

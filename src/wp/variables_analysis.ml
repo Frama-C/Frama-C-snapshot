@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
+(*  Copyright (C) 2007-2014                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -465,26 +465,26 @@ class logic_parameters_and_addr_taken_collection :
   Visitor.frama_c_visitor = object
     inherit Visitor.frama_c_inplace
       
-    method vexpr e =
+    method! vexpr e =
       match (Cil.stripInfo e).enode with
 	|  StartOf (Var vinfo,_)
 	| AddrOf (Var vinfo,_) -> incr_addr_taken (Cv vinfo); DoChildren
 	| _ -> DoChildren
 	    
-    method vterm t = 
+    method! vterm t = 
       match t.term_node with
 	| TAddrOf(TVar lv,_)
 	| TStartOf(TVar lv,_) ->
 	    incr_addr_taken (var_type_of_lvar lv); DoChildren
 	| _ -> DoChildren
 	    
-    method vpredicate = function
+    method! vpredicate = function
       | Pforall (xl,_) | Pexists (xl,_) ->
 	  add_logics_value xl ; DoChildren
       | _ -> DoChildren
 
 
-    method vannotation = function
+    method! vannotation = function
       | Dfun_or_pred (linfo,_) ->
 	  List.iter (fun lv -> 
 		       oracle "[logicParam] %a" Printer.pp_logic_var lv;
@@ -810,17 +810,17 @@ let reference_parameter_usage_term e =
 class parameters_call_kind_analysis : Visitor.frama_c_visitor = object
   inherit Visitor.frama_c_inplace
 
-  method vinst = function 
+  method! vinst = function 
     | Call (_ ,{enode =Lval(Var _,NoOffset)} , _,_) -> SkipChildren
     | Set (lv,_,_) ->
 	if reference_parameter_usage_lval lv then SkipChildren else DoChildren 
     | _ -> DoChildren
 
-  method vexpr e = 
+  method! vexpr e = 
     if reference_parameter_usage  (Cil.stripInfo e).enode then SkipChildren 
     else DoChildren
 	    
-  method vterm t = 
+  method! vterm t = 
     match t.term_node with 
       | Tapp (_,_ , _) -> SkipChildren 
       | Tblock_length (_,_)
@@ -828,7 +828,7 @@ class parameters_call_kind_analysis : Visitor.frama_c_visitor = object
       | t1 -> 
 	  if reference_parameter_usage_term t1 then SkipChildren else DoChildren
 	 
-  method vpredicate = function
+  method! vpredicate = function
     | Papp (_, _, _) -> SkipChildren
     | Pvalid _ 
     | Pvalid_read _ 
@@ -1512,13 +1512,13 @@ NB: The resolution of an entire [ChainCall] can't been done here because
 class calls_collection : Visitor.frama_c_visitor = object
   inherit Visitor.frama_c_inplace
 
-  method vinst = function 
+  method! vinst = function 
     | Call (_ ,{enode =Lval(Var f,NoOffset)} , el,_) as e->
 	debug "[Calls_collection] call %a" Printer.pp_instr e;
 	collect_calls f el ; SkipChildren
     | _ -> DoChildren
 	    
-  method vterm t = 
+  method! vterm t = 
     match t.term_node with 
       | Tapp (lf,_ , targs) -> 
 	  debug "[Calls_collection] app %a" Printer.pp_term t;
@@ -1528,7 +1528,7 @@ class calls_collection : Visitor.frama_c_visitor = object
 	 collect_apps_builtin [ta] ; SkipChildren
       | _ -> DoChildren
 	  
-  method vpredicate = function
+  method! vpredicate = function
     | Papp (lf, _, targs) -> collect_apps lf targs ; SkipChildren
     | Pfresh (_todo_label1,_todo_label2,t,n) -> (* [PB] TODO: labels and size added *)
 	debug "[Calls_collection] predicate app on %a, %a" 

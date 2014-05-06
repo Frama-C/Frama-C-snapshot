@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -21,7 +21,8 @@
 (**************************************************************************)
 
 (** ACSL comparable property.
-    @since Carbon-20101201 *)
+    @since Carbon-20101201
+    @plugin development guide *)
 
 open Cil_types
 
@@ -86,7 +87,7 @@ type identified_reachable = kernel_function option * kinstr * program_point
     [None, Some kf] --> impossible
     [Some kf, Kglobal] --> property of a function without code
     [Some kf, Kstmt stmt] --> reachability of the given stmt (and the attached
-    properties *)
+    properties) *)
 
 and identified_axiomatic = string * identified_property list
 
@@ -113,8 +114,13 @@ and identified_property = private
 
 include Datatype.S_with_collections with type t = identified_property
 
-(* [JS 2011/08/04] seem to be unused *)
-(*val short_pretty: Format.formatter -> t -> unit*)
+val short_pretty: Format.formatter -> t -> unit
+(** output a meaningful name for the property (e.g. the name of the
+    corresponding identified predicate when available)
+    reverting back to the full ACSL formula if it can't find one.
+    The name is not meant to uniquely identify the property.
+    @since Neon-20130301 
+ *)
 
 (** @since Oxygen-20120901 *)
 val pretty_predicate_kind: Format.formatter -> predicate_kind -> unit

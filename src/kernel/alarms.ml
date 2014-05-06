@@ -2,8 +2,8 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2013                                               *)
-(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*  Copyright (C) 2007-2014                                               *)
+(*    CEA (Commissariat Ã  l'Ã©nergie atomique et aux Ã©nergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
 (*  you can redistribute it and/or modify it under the terms of the GNU   *)
@@ -45,6 +45,7 @@ type alarm =
   | Pointer_comparison of
       exp option (* [None] when implicit comparison to 0 *) 
     * exp
+  | Differing_blocks of exp * exp
   | Overflow of
       overflow_kind
     * exp
@@ -58,6 +59,7 @@ type alarm =
   | Overlap of lval * lval
   | Uninitialized of lval
   | Is_nan_or_infinite of exp * fkind
+  | Valid_string of exp
 
 module D =
   Datatype.Make_with_collections
@@ -79,6 +81,8 @@ module D =
 	| Uninitialized _ -> 9
 	| Is_nan_or_infinite _ -> 10
         | Float_to_int _ -> 11
+        | Differing_blocks _ -> 12
+        | Valid_string _ -> 13
 
       let compare a1 a2 = match a1, a2 with
 	| Division_by_zero e1, Division_by_zero e2 -> Exp.compare e1 e2
@@ -127,10 +131,16 @@ module D =
 	  let n = Lval.compare lv11 lv21 in
 	  if n = 0 then Lval.compare lv12 lv22 else n
 	| Uninitialized lv1, Uninitialized lv2 -> Lval.compare lv1 lv2
+        | Differing_blocks (e11, e12), Differing_blocks (e21, e22) ->
+          let n = Exp.compare e11 e21 in
+	  if n = 0 then Exp.compare e12 e22 else n
+        | Valid_string(e1), Valid_string(e2) ->
+          Exp.compare e1 e2
 	| _, (Division_by_zero _ | Memory_access _ | Logic_memory_access _  |
               Index_out_of_bound _ | Invalid_shift _ | Pointer_comparison _ |
               Overflow _ | Not_separated _ | Overlap _ | Uninitialized _ |
-              Is_nan_or_infinite _ | Float_to_int _ )
+              Is_nan_or_infinite _ | Float_to_int _ | Differing_blocks _ |
+              Valid_string _)
           ->
 	  let n = rank a1 - rank a2 in
 	  assert (n <> 0);
@@ -156,6 +166,8 @@ module D =
 	    (rank a, 
 	     (match e1 with None -> 0 | Some e -> 17 + Exp.hash e), 
 	     Exp.hash e2)
+	| Differing_blocks (e1, e2) -> 
+	  Hashtbl.hash (rank a, Exp.hash e1, Exp.hash e2)
 	| Overflow(s, e, n, b) ->
 	  Hashtbl.hash
 	    (Hashtbl.hash (s:overflow_kind), 
@@ -172,8 +184,9 @@ module D =
 	| Not_separated(lv1, lv2) | Overlap(lv1, lv2) -> 
 	  Hashtbl.hash (rank a, Lval.hash lv1, Lval.hash lv2)
 	| Uninitialized lv -> Hashtbl.hash (rank a, Lval.hash lv)
+        | Valid_string(e) -> Hashtbl.hash (rank a, Exp.hash e)
 
-      let structural_descr = Structural_descr.Abstract
+      let structural_descr = Structural_descr.t_abstract
       let rehash = Datatype.identity
       let varname = Datatype.undefined
 
@@ -206,6 +219,9 @@ module D =
 	    Printer.pp_exp 
 	    (match e1 with None -> Cil.zero e2.eloc | Some e -> e)
 	    Printer.pp_exp e2
+        | Differing_blocks (e1, e2) ->
+	  Format.fprintf fmt "Differing_blocks(@[%a@],@ @[%a@])"
+	    Printer.pp_exp e1 Printer.pp_exp e2          
 	| Overflow(s, e, n, b) ->
 	  Format.fprintf fmt "%s(@[%a@]@ %s@ @[%a@])"
 	    (String.capitalize (string_of_overflow_kind s))
@@ -228,6 +244,8 @@ module D =
 	    Lval.pretty lv1 Lval.pretty lv2
 	| Uninitialized lv ->
 	  Format.fprintf fmt "Uninitialized(@[%a@])" Lval.pretty lv
+        | Valid_string e ->
+          Format.fprintf fmt "Valid_string(@[%a@])" Exp.pretty e
 
       let internal_pretty_code = Datatype.undefined
       let copy = Datatype.undefined
@@ -323,12 +341,14 @@ let get_name = function
   | Index_out_of_bound _ -> "index_bound"
   | Invalid_shift _ -> "shift"
   | Pointer_comparison _ -> "ptr_comparison"
+  | Differing_blocks _ -> "differing_blocks"
   | Overflow(s, _, _, _) -> string_of_overflow_kind s
   | Not_separated _ -> "separation"
   | Overlap _ -> "overlap"
   | Uninitialized _ -> "initialisation"
   | Is_nan_or_infinite _ -> "is_nan_or_infinite"
   | Float_to_int _ -> "float_to_int"
+  | Valid_string _ -> "valid_string"
 
 let overflowed_expr_to_term e = 
   let loc = e.eloc in
@@ -401,6 +421,22 @@ let create_predicate ?(loc=Location.unknown) alarm =
     in
     let t2 = Logic_utils.expr_to_term ~cast:true e2 in
     Logic_utils.pointer_comparable ~loc t1 t2
+
+  | Valid_string(e) ->
+    let loc = e.eloc in
+    let t =  Logic_utils.expr_to_term ~cast:true e in
+    Logic_utils.points_to_valid_string ~loc t
+
+  | Differing_blocks(e1, e2) ->
+    (* \base_addr(e1) == \base_addr(e2) *)
+    let loc = e1.eloc in
+    let t1 = Logic_utils.expr_to_term ~cast:true e1 in
+    let here = Logic_const.here_label in
+    let typ = Ctype Cil.charPtrType in
+    let t1 = Logic_const.term ~loc:e1.eloc (Tbase_addr(here, t1)) typ in
+    let t2 = Logic_utils.expr_to_term ~cast:true e2 in
+    let t2 = Logic_const.term ~loc:e2.eloc (Tbase_addr(here, t2)) typ in
+    Logic_const.prel ~loc (Req, t1, t2)
 
   | Overflow(_, e, n, bound) -> 
     (* n <= e or e <= n according to bound *)
