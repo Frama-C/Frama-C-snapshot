@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -31,6 +31,7 @@
 
 type c_label =
   | Here
+  | Init
   | Pre
   | Post
   | Exit
@@ -55,13 +56,13 @@ val mk_stmt_label : Cil_types.stmt -> c_label
 val mk_loop_label : Cil_types.stmt -> c_label
 
 val c_label : Cil_types.logic_label -> c_label
-  (**
-      Assumes the logic label only comes from normalized labels.
+(**
+    Assumes the logic label only comes from normalized labels.
 
-      This is the case inside [Wp] module, where all ACSL formula comes
-      from [WpAnnot], which in turns always preprocess the labels
-      through [NormAtLabels].
-  *)
+    This is the case inside [Wp] module, where all ACSL formula comes
+    from [WpAnnot], which in turns always preprocess the labels
+    through [NormAtLabels].
+*)
 
 val pretty : Format.formatter -> c_label -> unit
 
@@ -69,5 +70,5 @@ open Cil_types
 
 val lookup_name : c_label -> string
 val lookup : (logic_label * logic_label) list -> string -> c_label
-  (** [lookup bindings lparam] retrieves the actual label
-      for the label in [bindings] for label parameter [lparam]. *)
+(** [lookup bindings lparam] retrieves the actual label
+    for the label in [bindings] for label parameter [lparam]. *)

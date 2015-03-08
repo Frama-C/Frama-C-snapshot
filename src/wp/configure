@@ -1799,6 +1799,13 @@ EXTERNAL_PLUGINS=
 
 
 
+
+# Usage: plugin_disable([plugin],[reason])
+
+
+
+
+
 # Implementation of an ordering $1 < $2: "" < yes < partial < no
 lt_mark () {
   first=`echo "$1" | sed -e 's/ .*//' `
@@ -2152,7 +2159,6 @@ else
 fi
 
 
-if test "$ENABLE_WP" != "no"; then
 
 
 
@@ -2168,13 +2174,31 @@ if test "$ENABLE_WP" != "no"; then
 
 
 
-        USE_RTE_ANNOTATION=$USE_RTE_ANNOTATION" "wp
-        USED_WP=$USED_WP" "rte_annotation
+        USE_RTEGEN=$USE_RTEGEN" "wp
+        USED_WP=$USED_WP" "rtegen
 
 
 
 
 
+
+
+
+# First, initialize some variables
+for fp in ${PLUGINS_FORCE_LIST}; do
+  if test "$fp" != "FORCE_GTKSOURCEVIEW"; then
+    plugin=`echo $fp | sed -e "s/FORCE_\(.*\)/\1/" `
+    TODOLIST=$TODOLIST" "$plugin
+    eval MARK_$plugin=
+    eval REMEMBER_$plugin=
+  fi
+done
+# main call
+compute_dependency
+
+
+# NB: this would deserve to use plugin_requires mechanism
+if test "$ENABLE_WP" != "no"; then
 
   ## Configuring for WP-COQ
   if test "$WPCOQ" = "yes" ; then
@@ -2281,7 +2305,7 @@ fi
     if test "$WHY3COQC" = "yes" ; then
       WHY3VERSION=`why3 --version | sed -n -e 's|.*version* *\([^ ]*\) .*$|\1|p' `
       case $WHY3VERSION in
-        0.82*)
+        0.85*)
           { $as_echo "$as_me:${as_lineno-$LINENO}: result: why3 version $WHY3VERSION found" >&5
 $as_echo "why3 version $WHY3VERSION found" >&6; }
 	  WHY3LIB=`why3 --print-libdir`
@@ -2295,33 +2319,19 @@ $as_echo "why3 compiled coq libraries not found in $WHY3LIB" >&6; }
           fi
           ;;
         *)
-          { $as_echo "$as_me:${as_lineno-$LINENO}: result: wp needs needs why3 0.82" >&5
-$as_echo "wp needs needs why3 0.82" >&6; }
+          { $as_echo "$as_me:${as_lineno-$LINENO}: result: wp needs why3 0.85" >&5
+$as_echo "wp needs why3 0.85" >&6; }
           WHY3COQC="no"
           ;;
       esac
     else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: rerun configure to make wp using why3 0.82" >&5
-$as_echo "$as_me: rerun configure to make wp using why3 0.82" >&6;}
+      { $as_echo "$as_me:${as_lineno-$LINENO}: rerun configure to make wp using why3 0.85" >&5
+$as_echo "$as_me: rerun configure to make wp using why3 0.85" >&6;}
     fi
   else
     WHY3COQC="no"
   fi
 
-
-
-
-# First, initialize some variables
-for fp in ${PLUGINS_FORCE_LIST}; do
-  if test "$fp" != "FORCE_GTKSOURCEVIEW"; then
-    plugin=`echo $fp | sed -e "s/FORCE_\(.*\)/\1/" `
-    TODOLIST=$TODOLIST" "$plugin
-    eval MARK_$plugin=
-    eval REMEMBER_$plugin=
-  fi
-done
-# main call
-compute_dependency
 
 fi
 

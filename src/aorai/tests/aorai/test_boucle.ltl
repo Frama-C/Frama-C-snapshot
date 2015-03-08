@@ -1,0 +1,1 @@
+_G_(CALL(b) => (CALL_OR_RETURN(b) _U_ CALL(a)))

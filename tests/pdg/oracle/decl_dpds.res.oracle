@@ -1,0 +1,120 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/pdg/decl_dpds.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  G ∈ [--..--]
+  S ∈ [--..--]
+tests/pdg/decl_dpds.c:16:[kernel] warning: signed overflow. assert argc+1 ≤ 2147483647;
+tests/pdg/decl_dpds.c:18:[kernel] warning: out of bounds read. assert \valid_read(argv+(int)(argc-1));
+tests/pdg/decl_dpds.c:18:[kernel] warning: out of bounds read. assert \valid_read(*(argv+(int)(argc-1))+0);
+tests/pdg/decl_dpds.c:19:[kernel] warning: out of bounds read. assert \valid_read(argv+(int)(argc-1));
+tests/pdg/decl_dpds.c:19:[kernel] warning: out of bounds write. assert \valid(*(argv+(int)(argc-1))+0);
+tests/pdg/decl_dpds.c:23:[kernel] warning: signed overflow. assert *p+1 ≤ 2147483647;
+tests/pdg/decl_dpds.c:25:[kernel] warning: signed overflow. assert -2147483648 ≤ argc0+argc1 ≤ 2147483647;
+tests/pdg/decl_dpds.c:25:[kernel] warning: signed overflow. assert -2147483648 ≤ (int)(argc0+argc1)+G ≤ 2147483647;
+tests/pdg/decl_dpds.c:25:[kernel] warning: signed overflow.
+                  assert -2147483648 ≤ (int)((int)(argc0+argc1)+G)+S.a ≤ 2147483647;
+[value] Recording results for main
+[value] done for function main
+[pdg] computing for function main
+[pdg] done for function main
+[pdg] PDG for main
+ {n1}: InCtrl
+ {n2}: VarDecl : argc
+   -[a--]-> 3
+ {n3}: In1
+   -[a--]-> 2
+ {n4}: VarDecl : argv
+   -[a--]-> 5
+ {n5}: In2
+   -[a--]-> 4
+ {n6}: VarDecl : argc0
+ {n7}: VarDecl : tmp
+ {n8}: VarDecl : argc1
+ {n9}: VarDecl : c
+ {n10}: VarDecl : p
+ {n11}: VarDecl : __retres
+ {n12}: unspecified sequence
+   -[-c-]-> 1
+ {n13}: tmp = argc;
+   -[-c-]-> 1
+   -[--d]-> 2
+   -[--d]-> 3
+   -[a--]-> 7
+   -[-c-]-> 12
+ {n14}: argc ++;
+   -[-c-]-> 1
+   -[a-d]-> 2
+   -[--d]-> 3
+   -[-c-]-> 12
+ {n15}: ;
+   -[-c-]-> 1
+   -[-c-]-> 12
+ {n16}: argc0 = tmp;
+   -[-c-]-> 1
+   -[a--]-> 6
+   -[--d]-> 7
+   -[--d]-> 13
+ {n17}: argc1 = argc;
+   -[-c-]-> 1
+   -[--d]-> 2
+   -[a--]-> 8
+   -[--d]-> 14
+ {n18}: c = *(*(argv + (argc - 1)) + 0);
+   -[-c-]-> 1
+   -[--d]-> 2
+   -[--d]-> 4
+   -[--d]-> 5
+   -[a--]-> 9
+   -[--d]-> 14
+   -[--d]-> 29
+   -[--d]-> 30
+   -[--d]-> 31
+ {n19}: *(*(argv + (argc - 1)) + 0) = (char)'a';
+   -[-c-]-> 1
+   -[a--]-> 2
+   -[a--]-> 4
+   -[a--]-> 5
+   -[a--]-> 14
+   -[a--]-> 29
+ {n20}: argc = 0;
+   -[-c-]-> 1
+   -[a--]-> 2
+ {n21}: argc0
+   -[-c-]-> 1
+   -[--d]-> 6
+   -[--d]-> 16
+ {n22}: p = & argc0;
+   -[-c-]-> 1
+   -[--d]-> 6
+   -[a--]-> 10
+   -[-c-]-> 21
+ {n23}: (*p) ++;
+   -[-c-]-> 1
+   -[a-d]-> 10
+   -[--d]-> 16
+   -[-c-]-> 21
+   -[a-d]-> 22
+ {n24}: __retres = ((argc0 + argc1) + G) + S.a;
+   -[-c-]-> 1
+   -[--d]-> 6
+   -[--d]-> 8
+   -[a--]-> 11
+   -[--d]-> 16
+   -[--d]-> 17
+   -[--d]-> 23
+   -[--d]-> 27
+   -[--d]-> 28
+ {n25}: return __retres;
+   -[-c-]-> 1
+   -[--d]-> 11
+   -[--d]-> 24
+ {n26}: OutRet
+   -[--d]-> 25
+ {n27}: In(G)
+ {n28}: In(S.a)
+ {n29}: In(S_argv[0..3])
+ {n30}: In(S_0_S_argv[0])
+ {n31}: In(S_1_S_argv[0])

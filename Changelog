@@ -12,6 +12,226 @@
 # '#?nnn'  : OLD-BTS entry #nnn                                               #
 ###############################################################################
 
+###################################
+Open Source Release Sodium-20150201
+###################################
+
+-  Kernel     [2015/02/01] Tests are added to the distrib (make tests)
+-  Value      [2015/01/07] Special functions CEA_ are deprecated. Use
+	      Frama_C_show_each or Frama_C_dump_each instead.
+-  Kernel     [2014/12/28] Improve pretty-printing of some loops.
+-* Kernel     [2014/12/16] -load-module M now works fine if M uses the API
+	      of another plug-in (bts #!1824).
+
+-! Cil        [2014/12/09] Default preprocessing command now includes Frama-C's
+	      standard library, and when possible sets option '-nostdinc'.
+	      See options -frama-c-stdlib and -cpp-gnu-like.
+*! Cil        [2014/12/09] Variables __FC_MACHDEP_FOO_BAR are now automatically
+	      positioned when setting a non-standard machdep and using Frama-C's
+	      standard library.
+-  Cil        [2014/12/09] Option -pp-annot should be much faster when parsing
+	      files with many ACSL annotations.
+-  Logic      [2014/11/28] The ACSL parser now ignores /*@{ and /*@} comments,
+	      to avoid conflicting with Doxygen.
+-  Value      [2014/11/10] Accesses to locations that contain garbled mix now
+	      cause the garbled mix to be reduced to the set of valid locations.
+-  Value      [2014/11/07] Accesses to '*(foo *)p' may now reduce p according
+	      to the validity of the access, when useful.
+-  Value      [2014/11/07] Removed message "assigning non-deterministic
+	      value from the first time".
+-  Value      [2014/10/28] Option -slevel-merge-after-loop renamed to
+	      -val-slevel-merge-after-loop. Now takes a set of kernel functions
+	      as an argument.
+-  Value      [2014/10/24] Per-callstack results are now always computed.
+	      Option -val-callstack-results is deprecated.
+-  From       [2014/10/24] New option -from-verify-assigns to give assigns/from
+	      clauses of function with bodies a validity status.
+-! Value      [2014/10/24] Logic ranges are now evaluated using a dedicated
+	      lattice. Results are almost always more precise, and the analysis
+	      faster.
+-* Kernel     [2014/10/23] allow dynamically loaded module to start with a
+	      lower-case letter. Fixes #1276.
+-* Value      [2014/10/15] Improved precision for variables that are reduced
+	      (but not written) during a call memorized by option -memexec-all
+-  Value      [2014/10/15] Indeterminate bits copied when option
+	      -val-warn-copy-indeterminate is active now cause a reduction in
+	      the source location.
+-  Value      [2014/10/15] Arguments of functions that give rise to an alarm
+	      are now reduced when possible.
+-  Value      [2014/09/26] Reduce arguments of a function according to the
+	      possible values of the formal at the end of the call.
+-  Value      [2014/09/26] Better precision when a scalar value is written
+              through a garbled mix.
+o! Value      [2014/09/26] Remove experimental support for periodic bases.
+-* Value      [2014/09/25] Fix bug when writing precise values at too many
+	      locations in packed arrays.
+-* Value      [2014/09/19] When for missing '\from' clause for '\result' when
+	      result is used in a postcondition. Fixes bug #1908.
+o! Value      [2014/08/29] Garbled mix (constructor Top in modules
+	      Location_Bits/Bytes) now explicitly mention the NULL base.
+-  Kernel     [2014/08/15] New option '-then-last', which behaves like
+	      '-then-on' on the last project created by a program transformer.
+-* Value      [2014/07/27] Text-only alarms that used the '\defined' predicate
+	      (to warn about dereferencing pointers to out-of-scope variables)
+	      are now emitted with the '\dangling_contents predicate.
+-  Logic      [2014/07/27] The ACSL predicate '\specified', which has been
+	      renamed to '!\dangling_contents' is now supported.
+o! Value      [2014/07/22] Value 'empty' is no longer exported in module
+	      Offsetmap. The API should prevent any accidental creation.
+-  Inout      [2014/07/22] Remove undocumented option -access-path
+o! Value      [2014/07/22] Most iterators of module Lmap and Cvalue.Model
+	      now accept only the non-bottom and non-top cases.
+o! Value      [2014/07/22] API of module Cvalue.V_Or_Uninitialized is now
+	      type-safe. Replace all occurrences of 'get_flags v' by 'v'.
+o! Value      [2014/07/22] Improve and clarify the return conventions of modules
+	      Offsetmap, Lmap, Cvalue.V_Offsetmap and Cvalue.Model, by returning
+	      three cases: `Bottom, `Top and `Map. The latter case indicates
+	      the operation succeeded precisely'.
+o! Value      [2014/07/22] Functions find_base and find_base_or_default in
+	      modules Lmap and Cvalue.Model now return an optional type, to
+	      account for invalid bases (that may not be present in the map).
+o! Value      [2014/07/22] Some functions of modules Offsetmap, Lmap,
+	      Cvalue.V_Offsetmap and Cvalue.Model now require a separate
+	      Locations.Location_Bits.t and (integer) size, instead of a
+	      Locations.location. This avoids errors when the case was
+	      Int_Base.Top.
+o  Value      [2014/07/22] Argument ~conflate_bottom to Cvalue.Model.find is now
+	      optional. The documentation has been updated to better explain its
+	      meaning.
+-  Value      [2014/07/22] Message 'extracting bits of a pointer' is no longer
+	      emitted, as it was redundant with the warnings about garbled mix.
+-* Value      [2014/07/22] Fix evaluation of '/' in the logic, that silently
+	      ignored the presence of the value 0 in the divisor.
+-  Value      [2014/07/22] The arguments of an invalid shift operation are now
+	      reduced so that they belong to the proper range.
+o! Value      [2014/07/22] Multiple low-level functions have been removed from
+	      modules Cvalue.V and Cvalue.Model, and are no longer available.
+o! Value      [2014/07/22] Function Cvalue.Model.find does *not* signal its
+	      result is indeterminate anymore. Use function
+	      Cvalue.Model.find_unspecified instead.
+o! Value      [2014/07/22] Major API change in directories src/ai and
+	      src/memory_state. Functions no longer take ~with_alarms arguments.
+	      Instead, they return booleans, that indicate an alarm occurred.
+-  Value      [2014/07/22] More systematic emission of message 'operation [...]
+	      incurs a loss of precision', signaling an arithmetic operation
+	      on a pointer address. This message is now emitted by Value itself.
+-! Kernel     [2014/07/09] New way to handle command line options which
+	      accepts sets of values. Values may be prefixed by '+' or
+	      '-' to add/remove them and categories of values prefixed by
+	      '@' are available as well (for instance @all).
+o! Kernel     [2014/07/09] A new bunch of functors are available to
+	      define command line collections.
+o! Cil        [2014/07/03] Field 'vgenerated' of type Cil_types.varinfo has
+	      been replaced by the field 'vtemp' to emphasize the fact that
+	      it should only be set to true for temp variables generated
+	      during elaboration.
+o  Cil        [2014/06/27] Variables are created with a field 'vgenerated' set
+	      to 'false' by default. Only Cil should position this field to
+	      'true'.
+o! Cil        [2014/06/27] The field 'vlogic' of type Cil_types.varinfo has
+	      been replaced by the field 'vsource', to avoid confusion with
+	      logic variables. The value of the new field is the negation of
+	      the previous one.
+-! Cil        [2014/06/17] Frama-C's x86 default machdeps no longer assume that
+	      the compiler is GCC. Some typing extensions and builtin are thus
+	      deactivated. If you want a GCC-centric analysis, use the
+	      gcc-prefixed machdeps.
+o! Cil        [2014/06/17] Modifications in some fields of type Cil_types.mach.
+	      Function File.new_machdep has a simpler type.
+-  Value      [2014/06/17] Option -val-split-return can now be used to split
+	      between NULL / non-NULL pointers
+-  Kernel     [2014/06/16] New option -const-readonly (set by default), that
+	      asserts that 'const' variables must never be written.
+-  Logic      [2014/06/16] New logic label "Init", that refers to the state
+	      just after the initialization of globals.
+-  Cil        [2014/06/16] Values extracted from initializers of const variables
+	      are now accepted as arguments of directives pragma loop UNROLL.
+-  Logic      [2014/06/16] New builtin functions \min and \max of type
+	      Set(Integer) -> Int
+-  Semantic Constant Folding [2014/06/12] Reducing the number of introduced
+	      casts; feature #!1787.
+-  Value      [2014/06/07] Improve conversion of float values that have been
+	      written as integers (through low-level memory accesses)
+-  Value      [2014/06/06] Improved pretty-printing of variables containing
+	      pointers.
+-* Makefile   [2014/06/05] Do not install ZArith with Frama-C anymore.
+o* Makefile   [2014/06/05] Fixed compilation bug for plug-ins with both a
+	      GUI and a non-empty API (bug #!1798).
+-  Value      [2014/06/01] Improved widening on variables that are used to
+	      access an array
+-  Value      [2014/05/27] The GUI now showns the value of logic l-values
+	      inside function specifications. They are evaluated in the
+	      pre-state of the function, before the evaluation of preconditions.
+o  Gui        [2014/05/27] Logic l-values inside function specifications can
+	      now be selected
+*  Slicing    [2014/05/23] Fix issues about slicing calls to the main function
+	      and journalization (bug #!1684).
+-  Kernel     [2014/05/22] Nicer error message in case of code
+	      incompatibility when loading a plug-in.
+-* Kernel     [2014/05/15] Fix bug #1765 (spelling errors).
+-* Slicing    [2014/05/14] Fix crashes about multiple slicing pragma inside a
+              function (bug #1768).
+-  Report     [2014/04/07] New option -report-callsite-preconditions.
+-  Report     [2014/04/07] More consistent behavior when option -report-untried
+	      is not set.
+-  Report     [2014/04/07] Better reporting of reachability statuses; do not
+	      coalesce unproven reachability assertions with other alarms.
+-  Value      [2014/04/05] When option -val-callstack-results is set, the GUI
+	      now displays a callstacks-wide consolidation of the possibles
+	      values for expressions and terms. Previously, the potentially
+	      less precise summary state was used.
+-  From       [2014/04/05] Major performance improvements on big analyses.
+-! Value      [2014/04/05] Complete rewrite of the modules Int_Intervals and
+	      Offsetmap_bitwise; both are now implemented with the same
+	      datastructure as Offsetmap. Many performance improvements.
+	      Many changes in the API of module Offsetmap_bitwise. Few changes
+	      in Int_Intervals, but the englobing module Lattice_Interval_Set
+	      has been removed.
+-  Gui        [2014/03/27] New option -gui-project to run the GUI in a
+	      given project.
+-  Semantic Constant Folding [2014/03/25] Reducing the number of introduced
+	      casts; feature issue #!1697.
+-  Semantic Constant Folding [2014/03/25] New option -scf-project-name.
+o! Cil        [2014/03/24] The ikind for Cil.kinteger64 is now optional.
+-  Value      [2014/03/20] File-scope and formal const variables are read-only.
+	      Any possibility of writing there is treated as alarm.
+-! Gui        [2014/03/14] C expressions can now be selected through the source
+	      panel.
+-* Cil        [2014/03/13] Fix erroneous integral promotion of type 'char' on
+	      architectures where 'char' is unsigned.
+-  Semantic Constant Folding [2014/03/13] Generate nicer constants for integers
+	      and pointers
+-  Semantic Constant Folding [2014/03/13] Floating-point constants can now
+	      be propagated.
+-* Semantic Constant Folding [2014/03/13] Fix crashes and/or multiple declations
+	      when a global was referenced in the constant-folded project
+	      earlier than in the original one.
+-  Value      [2014/03/12] Improve precision of &.
+o  Logic      [2014/03/04] Annotations.{iter,fold}_all_code_annot are now
+	      by default sorted. Use ~sorted:false in case of efficiency issues.
+-* Value      [2014/03/02] Dividing an integer value by a memory address
+	      requires the address to be comparable to NULL.
+-  Value      [2014/03/02] Alarms are now re-evaluated at the end of the
+	      analysis. If their truth value is 'Valid' or 'Invalid', this more
+	      precise status is used, instead of the previous 'Unknown' one.
+-  Value      [2014/03/01] Preconditions of functions that are never called are
+	      now also marked as dead at each call-site.
+-  Rte        [2014/03/01] Very big floating-point constants that are converted
+	      to an integer are now reported as overflowing in only one
+	      direction
+-  Value      [2014/03/01] Alarms when converting integers to floating-point
+	      are now reported only for the range that overflows
+-  Value      [2014/03/01] Instructions whose execution is guaranteed to fail
+	      are now displayed in the GUI
+-  Value      [2014/03/01] Option -val-after-results is now always active by
+	      default, and can no longer be unset
+
+-! Kernel      [2014/05/12] require ocamlgraph version 1.8.5
+-  Kernel      [2014/08/07] add instructions for downloading the manuals
+-* Configure   [2014/03/17] use the gcc from the configure for compiling c files
+-* Configure   [2014/03/10] fix for autoconf < 2.67 when checking ability
+	       of default pre-processor to keep comments
+
 #################################
 Open Source Release Neon-20140301
 #################################
@@ -21,7 +241,7 @@ Open Source Release Neon-20140301
 -* Kernel     [2014/02/18] Fix -machdep help in presence of other actions
 	      (bts #1643).
 +* Logic      [2014/02/05] Better handling of sets. Use Tlogic_coerce to
-	      explicitely mark conversion from singleton to set.
+	      explicitly mark conversion from singleton to set.
 -  Kernel     [2014/02/04] Assigns clauses generated by the kernel for functions
 	      with neither a specification nor a body receive an 'Unknown'
 	      status.
@@ -1607,7 +1827,7 @@ o* Cil	      [2010/12/20] Fixed bug #645. Ast_info.constant_expr,
 	      mkAddrOrStartOf,mkString,parseInt,sizeOf] no longer use
 	      an optional argument ?loc. It is now a non optional labeled
 	      argument. Previous default value of loc was
-	      ~loc:Cil_datatype.Location.unkown which is most of the time
+	      ~loc:Cil_datatype.Location.unknown which is most of the time
 	      not accurate.
 
 ###################################

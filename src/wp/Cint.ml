@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -176,7 +176,7 @@ let iunop f i x =
 (* -------------------------------------------------------------------------- *)
 (* --- Arithmetics                                                        --- *)
 (* -------------------------------------------------------------------------- *)
-    
+
 (* C Code Semantics *)
 let iopp = iunop e_opp
 let iadd = ibinop e_add
@@ -239,7 +239,6 @@ let rec is_positive_or_null e = match F.repr e with
   | _ -> (* try some improvement first then ask to qed *)
       let improved_is_positive_or_null e = match F.repr e with
         | Logic.Add es -> List.for_all is_positive_or_null es
-        | Logic.Var _v -> let _tau = F.tau_of_var _v in false
         | _ -> false
       in if improved_is_positive_or_null e then true
       else match F.is_true (F.e_leq e_zero e) with

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -55,21 +55,32 @@ type labels_states = Cvalue.Model.t Cil_datatype.Logic_label.Map.t
     the environment to evaluate an annotation *)
 type eval_env
 val env_pre_f :
-  ?c_labels:labels_states -> init:Model.t -> unit -> eval_env
+  ?c_labels:labels_states -> pre:Model.t -> unit -> eval_env
 val env_annot :
   ?c_labels:labels_states -> pre:Model.t -> here:Model.t -> unit -> eval_env
 val env_post_f :
   ?c_labels:labels_states -> pre:Model.t -> post:Model.t ->
   result:varinfo option -> unit -> eval_env
-val env_assigns: init:Model.t -> eval_env
-val env_here: Model.t -> eval_env
+val env_assigns: pre:Model.t -> eval_env
+
+(** Used by auxiliary plugins, that do not supply the other states *)
+val env_only_here: Model.t -> eval_env
 
 (** Dependencies needed to evaluate a term or a predicate *)
 type logic_deps = Zone.t Cil_datatype.Logic_label.Map.t
 
+
+
+(** Return a pair of (under-approximating, over-approximating) zones. *)
+val eval_tlval_as_zone_under_over:
+  with_alarms:CilE.warn_mode ->
+  for_writing:bool -> eval_env -> term -> Zone.t * Zone.t
+
+(* ML: Should not be exported. *)
 type 'a eval_result = {
   etype: Cil_types.typ;
-  evalue: 'a list;
+  eunder: 'a;
+  eover: 'a;
   ldeps: logic_deps;
 }
 
@@ -84,10 +95,6 @@ val eval_tlval :
 val eval_tlval_as_location :
   with_alarms:CilE.warn_mode ->
   eval_env -> term -> location
-
-val eval_tlval_as_locations :
-  with_alarms:CilE.warn_mode ->
-  eval_env -> term -> location list * logic_deps
 
 val eval_tlval_as_zone :
   with_alarms:CilE.warn_mode ->

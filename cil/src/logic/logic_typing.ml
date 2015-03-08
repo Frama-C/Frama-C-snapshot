@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -410,6 +410,9 @@ let funspec () =
 
 end
 
+let append_init_label env =
+  Lenv.add_logic_label "Init" Logic_const.init_label env
+
 let append_here_label env =
   let env = Lenv.add_logic_label "Here" Logic_const.here_label env in
   Lenv.set_current_logic_label Logic_const.here_label env
@@ -441,6 +444,7 @@ let enter_post_state env kind = Lenv.enter_post_state env kind
 
 let post_state_env kind typ =
   let env = Lenv.funspec () in
+  let env = append_init_label env in
   let env = append_here_label env in
   let env = append_old_and_post_labels env in
   (* NB: this allows to have \result and Exits as termination kind *)
@@ -449,6 +453,21 @@ let post_state_env kind typ =
   let env = enter_post_state env kind in
   env
 
+type type_namespace = Typedef | Struct | Union | Enum
+
+module Type_namespace =
+  Datatype.Make(struct
+    include Datatype.Serializable_undefined
+
+    let reprs = [Typedef]
+    let name = "Logic_typing.type_namespace"
+    type t = type_namespace
+    let compare : t -> t -> int = Pervasives.compare
+    let equal : t -> t -> bool = (=)
+    let hash : t -> int = Hashtbl.hash
+  end)
+
+
 type typing_context = {
   is_loop: unit -> bool;
   anonCompFieldName : string;
@@ -456,9 +475,8 @@ type typing_context = {
   find_macro : string -> lexpr;
   find_var : string -> logic_var;
   find_enum_tag : string -> exp * typ;
-  find_comp_type : kind:string -> string -> typ;
   find_comp_field: compinfo -> string -> offset;
-  find_type : string -> typ;
+  find_type : type_namespace -> string -> typ;
   find_label : string -> stmt ref;
   remove_logic_function : string -> unit;
   remove_logic_type: string -> unit;
@@ -542,11 +560,18 @@ let plain_arithmetic_type t =
           not (Cil.isVoidType ty)
       | _ -> error loc "not a pointer or array type"
 
+  let plain_fun_ptr typ =
+    match unroll_type typ with
+      | Ctype (TPtr(ty,_)) -> Cil.isFunctionType ty
+      | _ -> false
+
   let is_arithmetic_type = plain_or_set plain_arithmetic_type
 
   let is_integral_type = plain_or_set plain_integral_type
 
   let is_non_void_ptr loc = plain_or_set (plain_non_void_ptr loc)
+
+  let is_fun_ptr = plain_or_set plain_fun_ptr
 
   let check_non_void_ptr loc typ =
     if not (is_non_void_ptr loc typ) then
@@ -619,9 +644,8 @@ module Make
       val find_macro : string -> lexpr
       val find_var : string -> logic_var
       val find_enum_tag : string -> exp * typ
-      val find_comp_type : kind:string -> string -> typ
       val find_comp_field: compinfo -> string -> offset
-      val find_type : string -> typ
+      val find_type : type_namespace -> string -> typ
       val find_label : string -> stmt ref
       val remove_logic_function : string -> unit
       val remove_logic_type: string -> unit
@@ -650,7 +674,6 @@ struct
     find_macro = C.find_macro;
     find_var = C.find_var;
     find_enum_tag = C.find_enum_tag;
-    find_comp_type = C.find_comp_type;
     find_comp_field = C.find_comp_field;
     find_type = C.find_type ;
     find_label = C.find_label;
@@ -771,13 +794,13 @@ struct
                        Cil.empty_size_cache (),[]))
     | LTpointer ty -> Ctype (TPtr (c_logic_type loc env ty, []))
     | LTenum e ->
-        (try Ctype (C.find_comp_type "enum" e)
+        (try Ctype (C.find_type Enum e)
          with Not_found -> error loc "no such enum %s" e)
     | LTstruct s ->
-        (try Ctype (C.find_comp_type "struct" s)
+        (try Ctype (C.find_type Struct s)
          with Not_found -> error loc "no such struct %s" s)
     | LTunion u ->
-        (try Ctype (C.find_comp_type "union" u)
+        (try Ctype (C.find_type Union u)
          with Not_found -> error loc "no such union %s" u)
     | LTarrow (prms,rt) ->
         (* For now, our only function types are C function pointers. *)
@@ -789,7 +812,7 @@ struct
     | LTnamed (id,[]) ->
         (try Lenv.find_type_var id env
          with Not_found ->
-           try Ctype (C.find_type id) with Not_found ->
+           try Ctype (C.find_type Typedef id) with Not_found ->
              try
                let info = C.find_logic_type id in
                if info.lt_params <> [] then
@@ -899,7 +922,7 @@ struct
           | Pnot p | Plet (_,p) | Pforall(_,p) | Pexists(_,p) -> needs_at_pred p
           | Pif(t,p1,p2) -> needs_at t || needs_at_pred p1 || needs_at_pred p2
           | Pvalid (_,t) | Pvalid_read (_,t) | Pinitialized (_,t)
-	  | Pallocable(_,t) | Pfreeable(_,t)-> needs_at t
+          | Pdangling (_, t) | Pallocable(_,t) | Pfreeable(_,t)-> needs_at t
           | Pfresh (_,_,t,n) -> (needs_at t) && (needs_at n)
           | Psubtype _ -> false
     in
@@ -1161,15 +1184,16 @@ struct
       | Ctype ty1, Ctype ty2 ->
           if is_same_c_type ty1 ty2
           then ot, oterm
-          else
+          else if (isIntegralType ty1 && isIntegralType ty2) then begin
             let sz1 = bitsSizeOf ty1 in
             let sz2 = bitsSizeOf ty2 in
-            if (isIntegralType ty1 && isIntegralType ty2 &&
-                  (sz1 < sz2
-                   || (sz1 = sz2 && (isSignedInteger ty1 = isSignedInteger ty2))
-                   || is_enum_cst oterm nt
-                  ))
-              || is_implicit_pointer_conversion oterm ty1 ty2
+            if (sz1 < sz2
+                || (sz1 = sz2 && (isSignedInteger ty1 = isSignedInteger ty2))
+                || is_enum_cst oterm nt)
+            then begin let t, e = c_cast_to ty1 ty2 oterm in Ctype t,e end
+            else error loc "invalid implicit conversion from '%a' to '%a'"
+              Cil_printer.pp_typ ty1 Cil_printer.pp_typ ty2
+          end else if is_implicit_pointer_conversion oterm ty1 ty2
               || (match unrollType ty1, unrollType ty2 with
                     | (TFloat (f1,_), TFloat (f2,_)) ->
                         f1 <= f2
@@ -2138,7 +2162,11 @@ struct
 		       (* access to C variable need a current label *)
                        lv.vreferenced <- true
                    | None -> ());
-                old_val info
+                (match info.lv_type with
+                  | Ctype(TFun _ as t) ->
+                    (* function decays as a pointer *)
+                    TAddrOf (TVar info, TNoOffset), Ctype (TPtr (t,[]))
+                  | _ -> old_val info)
 	      with Not_found ->
 	        try
 	          let e,t = C.find_enum_tag x in
@@ -2586,7 +2614,8 @@ struct
           (Trange(t1,t2),
            Ltype(C.find_logic_type "set", [arithmetic_conversion ty1 ty2]))
       | PLvalid _ | PLvalid_read _ | PLfresh _ | PLallocable _ | PLfreeable _
-      | PLinitialized _ | PLexists _ | PLforall _  | PLimplies _ | PLiff _
+      | PLinitialized _ | PLdangling _ | PLexists _ | PLforall _ 
+      | PLimplies _ | PLiff _
       | PLxor _ | PLsubtype _ | PLseparated _ ->
         if silent then raise Backtrack;
         error loc "syntax error (expression expected but predicate found)"
@@ -2669,6 +2698,11 @@ struct
           | TStartOf lv | TCastE(_,{term_node = TStartOf lv})
           | Tat ({term_node = TStartOf lv}, _) ->
               f lv t
+          | TAddrOf lv when is_fun_ptr t.term_type ->
+            f lv
+              { t with
+                term_type = type_of_pointed t.term_type;
+                term_node = TLval lv }
           | _ -> error t.term_loc "not a left value: %a"
               Cil_printer.pp_term t
     in
@@ -2844,6 +2878,17 @@ struct
 
   and predicate env p0 =
     let loc = p0.lexpr_loc in
+    (* Auxiliary function for valid, valid_read, initialized and specified *)
+    let predicate_label_non_void_ptr fpred label t =
+      let l = find_current_logic_label loc env label in
+      let t = term env t in
+      let t = mk_logic_pointer_or_StartOf t in
+      check_non_void_ptr t.term_loc t.term_type;
+      (* higher-order funs do not mix well with (optional) labels,
+         hence the binding below. *)
+      let loc = Some loc in
+      fpred ?loc (l,t)
+    in
     match p0.lexpr_node with
       | PLfalse -> unamed ~loc Pfalse
       | PLtrue -> unamed ~loc Ptrue
@@ -2932,28 +2977,13 @@ struct
 	    pallocable ~loc:p0.lexpr_loc (l,t)
 	  else error loc "subscripted value is neither array nor pointer"
       | PLvalid_read (l, t) ->
-          (* validity need a current label to have some semantics *)
-          let l = find_current_logic_label loc env l in
-          let loc = t.lexpr_loc in
-          let t = term env t in
-          let t = mk_logic_pointer_or_StartOf t in
-          check_non_void_ptr loc t.term_type;
-          pvalid_read ~loc:p0.lexpr_loc (l,t)
+          predicate_label_non_void_ptr pvalid_read l t
       | PLvalid (l,t) ->
-           (* validity need a current label to have some semantics *)
-          let l = find_current_logic_label loc env l in
-          let loc = t.lexpr_loc in
-          let t = term env t in
-          let t = mk_logic_pointer_or_StartOf t in
-          check_non_void_ptr loc t.term_type;
-          pvalid ~loc:p0.lexpr_loc (l,t)
+          predicate_label_non_void_ptr pvalid l t
       | PLinitialized (l,t) ->
-          (* initialized need a current label to have some semantics *)
-          let l = find_current_logic_label loc env l in
-          let t = term env t in
-          let t = mk_logic_pointer_or_StartOf t in
-          check_non_void_ptr t.term_loc t.term_type;
-          pinitialized ~loc:p0.lexpr_loc (l,t)
+          predicate_label_non_void_ptr pinitialized l t
+      | PLdangling (l,t) ->
+          predicate_label_non_void_ptr pdangling l t
       | PLold p ->
           let lab = find_old_label p0.lexpr_loc env in
           let env = Lenv.set_current_logic_label lab env in
@@ -3148,7 +3178,7 @@ struct
     | Widen_variables l -> (Widen_variables (List.map (term env) l))
 
   let type_annot loc ti =
-    let env = append_here_label (Lenv.empty()) in
+    let env = append_here_label (append_init_label (Lenv.empty())) in
     let this_type = logic_type loc env ti.this_type in
     let v = Cil_const.make_logic_var_formal ti.this_name this_type in
     let env = Lenv.add_var ti.this_name v env in
@@ -3214,7 +3244,7 @@ struct
       end)
 
   let type_spec old_behaviors loc is_stmt_contract result env s =
-    let env = append_here_label env in
+    let env = append_here_label (append_init_label env) in
     let env_with_result = add_result env result in
     let env_with_result_and_exit_status = add_exit_status env_with_result in
     (* assigns_env is a bit special:
@@ -3360,11 +3390,13 @@ struct
     | IPstmt as ip -> ip
 
   let code_annot_env () =
-    let env = append_here_label (append_pre_label (Lenv.empty())) in
+    let env = append_here_label (append_pre_label (append_init_label 
+						     (Lenv.empty()))) in
     if C.is_loop () then append_loop_labels env else env
 
   let loop_annot_env () =
-    append_loop_labels (append_here_label (append_pre_label (Lenv.empty())))
+    append_loop_labels (append_here_label (append_pre_label (append_init_label
+							       (Lenv.empty()))))
 
   let code_annot loc current_behaviors current_return_type ca =
     let annot = match ca with
@@ -3682,7 +3714,7 @@ struct
           Logic_env.Lemmas.add x def;
           def
       | LDinvariant (s, e) ->
-        let env = append_here_label (Lenv.empty()) in
+        let env = append_here_label (append_init_label (Lenv.empty())) in
         let p = predicate env e in
         let li = Cil_const.make_logic_info s in
 	li.l_labels <- [Logic_const.here_label];

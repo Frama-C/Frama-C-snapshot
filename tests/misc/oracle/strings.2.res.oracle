@@ -1,0 +1,68 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/strings.i (no preprocessing)
+tests/misc/strings.i:58:[kernel] warning: Return statement with a value in function returning void
+[value] Analyzing a complete application starting at main7
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  s1[0] ∈ {104}
+    [1] ∈ {101}
+    [2..3] ∈ {108}
+    [4] ∈ {111}
+    [5] ∈ {0}
+    [6] ∈ {32}
+    [7] ∈ {119}
+    [8] ∈ {111}
+    [9] ∈ {114}
+    [10] ∈ {108}
+    [11] ∈ {100}
+    [12] ∈ {0}
+  s2[0] ∈ {104}
+    [1] ∈ {101}
+    [2..3] ∈ {108}
+    [4] ∈ {111}
+    [5] ∈ {0}
+  s5 ∈ {0}
+  s6 ∈ {0}
+  cc ∈ {97}
+  Q ∈ {0}
+  R ∈ {0}
+  S ∈ {0}
+  T ∈ {0}
+  U ∈ {0}
+  V ∈ {0}
+  W ∈ {0}
+  X ∈ {0}
+  Y ∈ {0}
+  Z ∈ {0}
+  s3 ∈ {{ "tutu" }}
+  s4 ∈ {{ "tutu" }}
+  s7 ∈ {{ "hello\000 world" }}
+  s8 ∈ {{ "hello" }}
+tests/misc/strings.i:101:[kernel] warning: out of bounds write. assert \valid(tmp);
+                                       (tmp from f?s5 + 2:& c)
+tests/misc/strings.i:103:[kernel] warning: out of bounds write. assert \valid(s5);
+tests/misc/strings.i:105:[kernel] warning: out of bounds write. assert \valid(s6);
+[value] Recording results for main7
+[value] done for function main7
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main7:
+  s5 ∈ {{ &c }}
+  s6 ∈ {{ &c }}
+  R ∈ {84}
+  c ∈ {116}
+  __retres ∈ {116}
+[from] Computing for function main7
+[from] Done for function main7
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main7:
+  s5 FROM s3; d
+  s6 FROM s3; e
+  R FROM s3; d; f
+  \result FROM s4; "tutu"[bits 0 to 7]
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main7:
+          s5; s6; R; c; tmp; __retres
+[inout] Inputs for function main7:
+          s5; s6; cc; s3; s4; "tutu"[bits 0 to 7]

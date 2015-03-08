@@ -1,3 +1,7 @@
+/* run.config
+   STDOPT: +" -all-rounding-modes -then -no-all-rounding-modes"
+*/
+
 volatile v;
 
 int main()

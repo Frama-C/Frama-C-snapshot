@@ -1,0 +1,41 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/pointer2.i (no preprocessing)
+[value] Analyzing a complete application starting at h
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  p ∈ {0}
+  q ∈ {0}
+  x ∈ {0}
+  y ∈ {0}
+  z ∈ {0}
+[value] computing for function f <- h.
+        Called from tests/misc/pointer2.i:18.
+[value] Recording results for f
+[value] Done for function f
+[value] Recording results for h
+[value] done for function h
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function f:
+  
+[value] Values at end of function h:
+  q ∈ {{ &y }}
+[from] Computing for function f
+[from] Done for function f
+[from] Computing for function h
+[from] Done for function h
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function f:
+  \result FROM r
+[from] Function h:
+  q FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function f:
+          \nothing
+[inout] Inputs for function f:
+          \nothing
+[inout] Out (internal) for function h:
+          q
+[inout] Inputs for function h:
+          \nothing

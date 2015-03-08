@@ -1,0 +1,87 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/enum2.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  must_be_one ∈ {0}
+  must_be_zero ∈ {0}
+[value] computing for function enum1_sgn1_inf_sgn0 <- main.
+        Called from tests/misc/enum2.c:33.
+[value] computing for function printf <- enum1_sgn1_inf_sgn0 <- main.
+        Called from tests/misc/enum2.c:27.
+[value] using specification for function printf
+[value] Done for function printf
+[value] Recording results for enum1_sgn1_inf_sgn0
+[value] Done for function enum1_sgn1_inf_sgn0
+[value] computing for function enum1_sgn1_positif <- main.
+        Called from tests/misc/enum2.c:34.
+[value] computing for function f <- enum1_sgn1_positif <- main.
+        Called from tests/misc/enum2.c:21.
+[value] Recording results for f
+[value] Done for function f
+[value] computing for function printf <- enum1_sgn1_positif <- main.
+        Called from tests/misc/enum2.c:22.
+[value] Done for function printf
+[value] Recording results for enum1_sgn1_positif
+[value] Done for function enum1_sgn1_positif
+[value] computing for function printf <- main.
+        Called from tests/misc/enum2.c:35.
+[value] Done for function printf
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function f:
+  y ∈ {2557891634}
+[value] Values at end of function enum1_sgn1_inf_sgn0:
+  res ∈ {0}
+[value] Values at end of function enum1_sgn1_positif:
+  res ∈ {1}
+[value] Values at end of function main:
+  must_be_one ∈ {1}
+  must_be_zero ∈ {0}
+  res ∈ {8}
+[from] Computing for function f
+[from] Done for function f
+[from] Computing for function enum1_sgn1_inf_sgn0
+[from] Computing for function printf <-enum1_sgn1_inf_sgn0
+[from] Done for function printf
+tests/misc/enum2.c:27:[from] warning: variadic call detected. Using only 1 argument(s).
+[from] Done for function enum1_sgn1_inf_sgn0
+[from] Computing for function enum1_sgn1_positif
+tests/misc/enum2.c:22:[from] warning: variadic call detected. Using only 1 argument(s).
+[from] Done for function enum1_sgn1_positif
+[from] Computing for function main
+tests/misc/enum2.c:35:[from] warning: variadic call detected. Using only 1 argument(s).
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function f:
+  \result FROM x
+[from] Function printf:
+  \result FROM \nothing
+[from] Function enum1_sgn1_inf_sgn0:
+  \result FROM \nothing
+[from] Function enum1_sgn1_positif:
+  \result FROM \nothing
+[from] Function main:
+  must_be_one FROM \nothing
+  must_be_zero FROM \nothing
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function f:
+          y
+[inout] Inputs for function f:
+          \nothing
+[inout] Out (internal) for function enum1_sgn1_inf_sgn0:
+          res
+[inout] Inputs for function enum1_sgn1_inf_sgn0:
+          \nothing
+[inout] Out (internal) for function enum1_sgn1_positif:
+          res; tmp
+[inout] Inputs for function enum1_sgn1_positif:
+          \nothing
+[inout] Out (internal) for function main:
+          must_be_one; must_be_zero; res
+[inout] Inputs for function main:
+          \nothing

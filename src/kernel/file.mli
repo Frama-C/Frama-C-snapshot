@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -23,8 +23,12 @@
 (** Frama-c preprocessing and Cil AST initialization.
     @plugin development guide *)
 
+(** Whether a given preprocessor supports gcc options used in some
+    configurations. *)
+type cpp_opt_kind = Gnu | Not_gnu | Unknown
+
 type file =
-  | NeedCPP of string * string
+  | NeedCPP of string * string * cpp_opt_kind
       (** The first string is the filename of the [.c] to preprocess.
           The second one is the preprocessor command ([filename.c -o
           tempfilname.i] will be appended at the end).*)
@@ -43,20 +47,19 @@ val new_file_type:
       @plugin development guide
    *)
 
-val new_machdep: string -> (module Cil.Machdeps) -> unit
+val new_machdep: string -> Cil_types.mach -> unit
 (** [new_machdep name module] registers a new machdep name as recognized by
     Frama-C through The usual uses is
     [Cmdline.run_after_loading_stage
-    (fun () -> File.new_machdep
-    "my_machdep"
-    (module My_machdep_implem: Cil.Machdeps))]
+      (fun () -> File.new_machdep "my_machdep" my_machdep_implem)]
     @since Nitrogen-20111001
     @modify Fluorine-20130401 Receives the machdep (as a module) as argument
+    @modify Sodium-20150201 Receives directly the machdep as argument
     @raise Invalid_argument if the given name already exists *)
 
 type code_transformation_category
 (** type of registered code transformations
-   @since Neon-20130301 
+   @since Neon-20140301 
 *)
 
 val register_code_transformation_category:
@@ -88,7 +91,7 @@ val add_code_transformation_before_cleanup:
 
       At this level, globals and ACSL annotations have not been registered.
      
-      @since Neon-20130301 
+      @since Neon-20140301 
       @plugin development guide *)
 
 val add_code_transformation_after_cleanup:
@@ -100,14 +103,14 @@ val add_code_transformation_after_cleanup:
       At this level, globals and ACSL annotations have been registered. If
       the hook adds some new globals or annotations, it must take care of
       adding them in the appropriate tables.
-      @since Neon-20130301 
+      @since Neon-20140301 
       @plugin development guide *)
 
 val must_recompute_cfg: Cil_types.fundec -> unit
   (** [must_recompute_cfg f] must be called by code transformation hooks
       when they modify statements in function [f]. This will trigger a 
       recomputation of the cfg of [f] after the transformation.
-      @since Neon-20130301 
+      @since Neon-20140301 
       @plugin development guide *)
 
 val get_suffixes: unit -> string list
@@ -117,7 +120,7 @@ val get_suffixes: unit -> string list
 val get_name: t -> string
   (** File name. *)
 
-val get_preprocessor_command: unit -> string
+val get_preprocessor_command: unit -> string * cpp_opt_kind
   (** Return the preprocessor command to use. *)
 
 val pre_register: t -> unit
@@ -172,19 +175,25 @@ val init_project_from_visitor:
    *)
 
 val create_project_from_visitor:
-  ?reorder:bool -> string -> (Project.t -> Visitor.frama_c_visitor) -> Project.t
+  ?reorder:bool -> ?last:bool ->
+  string ->
+  (Project.t -> Visitor.frama_c_visitor) ->
+  Project.t
   (** Return a new project with a new cil file representation by visiting the
       file of the current project. If [reorder] is [true], the globals in the
-      AST of the new project are reordered (default is [false]).
+      AST of the new project are reordered (default is [false]). If [last] is
+      [true] (by default), remember than the returned project is the last
+      created one.
       The visitor is responsible to avoid sharing between old file and new
       file (i.e. it should use {!Cil.copy_visit} at some point).
       @raise File_types.Bad_Initialization if called more than once.
       @since Beryllium-20090601-beta1
-      @modify Fluorine-20130401 added reorder optional argument
+      @modify Fluorine-20130401 added [reorder] optional argument
+      @modify Sodium-20150201 added [last] optional argument
       @plugin development guide *)
 
 val create_rebuilt_project_from_visitor:
-  ?reorder:bool -> ?preprocess:bool -> 
+  ?reorder:bool -> ?last:bool -> ?preprocess:bool ->
   string -> (Project.t -> Visitor.frama_c_visitor) -> Project.t
 (** Like {!create_project_from_visitor}, but the new generated cil file is
     generated into a temp .i or .c file according to [preprocess], then re-built
@@ -214,7 +223,7 @@ val reorder_ast: unit -> unit
  *)
 
 val reorder_custom_ast: Cil_types.file -> unit
-(** @since Neon-20130301 *)
+(** @since Neon-20140301 *)
 
 (* ************************************************************************* *)
 (** {2 Pretty printing} *)

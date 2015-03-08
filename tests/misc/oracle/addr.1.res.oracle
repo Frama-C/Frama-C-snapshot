@@ -1,0 +1,26 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/addr.i (no preprocessing)
+[value] Analyzing a complete application starting at f
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  t[0..4] ∈ {0}
+  x ∈ {0}
+  p ∈ {0}
+  q ∈ {0}
+[value] Recording results for f
+[value] done for function f
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function f:
+  p ∈ {{ &t + [-8589934592..8589934588],0%4 }}
+[from] Computing for function f
+[from] Done for function f
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function f:
+  p FROM i
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function f:
+          p
+[inout] Inputs for function f:
+          \nothing

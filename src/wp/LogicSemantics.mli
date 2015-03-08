@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -58,8 +58,8 @@ sig
 
   val frame : kernel_function -> frame
   val frame_copy : frame -> frame
-  val call_pre   : kernel_function -> value list -> sigma -> frame
-  val call_post  : kernel_function -> value list -> sigma sequence -> frame
+  val call_pre   : sigma -> kernel_function -> value list -> sigma -> frame
+  val call_post  : sigma -> kernel_function -> value list -> sigma sequence -> frame
 
   val return : unit -> typ
   val result : unit -> var
@@ -70,7 +70,7 @@ sig
   (** {3 Traductions} *)
 
   type env
-    
+
   val new_env : logic_var list -> env
   val move : env -> sigma -> env
   val sigma : env -> sigma
@@ -95,5 +95,5 @@ sig
   val valid : sigma -> acs -> c_object -> region -> pred
   val included : c_object -> region -> c_object -> region -> pred
   val separated : (c_object * region) list -> pred
-    
+
 end

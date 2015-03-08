@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -53,11 +53,11 @@ module type S = sig
   module Share: Parameter_sig.Specific_dir
 
   (** Handle the specific `session' directory of the plug-in. 
-      @since Neon-20130301 *)
+      @since Neon-20140301 *)
   module Session: Parameter_sig.Specific_dir
 
   (** Handle the specific `config' directory of the plug-in. 
-      @since Neon-20130301 *)
+      @since Neon-20140301 *)
   module Config: Parameter_sig.Specific_dir
 
   val help: Cmdline.Group.t
@@ -111,18 +111,18 @@ val is_share_visible: unit -> unit
 val is_session_visible: unit -> unit
 (** Make visible to the end-user the -<plug-in>-session option.
     To be called just before applying {!Register} to create plug-in services.
-    @since Neon-20130301 *)
+    @since Neon-20140301 *)
 
 val is_config_visible: unit -> unit
 (** Make visible to the end-user the -<plug-in>-config option.
     To be called just before applying {!Register} to create plug-in services.
-    @since Neon-20130301 *)
+    @since Neon-20140301 *)
 
 val plugin_subpath: string -> unit
 (** Use the given string as the sub-directory in which the plugin files will
     be installed (ie. [share/frama-c/plugin_subpath]...). Relevant for
     directories [Share], [Session] and [Config] above.
-    @since Neon-20130301 *)
+    @since Neon-20140301 *)
 
 (* ************************************************************************* *)
 (** {2 Handling plugins} *)

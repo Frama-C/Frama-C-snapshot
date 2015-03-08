@@ -1,0 +1,92 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_acsl/equal.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function simple_array
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_acsl/equal.i, line 18) in 'simple_array':
+Let x_0 = t0_0[0].
+Let x_1 = t0_0[1].
+Assume {
+  (* Domain *)
+  Type: (IsArray1_sint32 t0_0) /\ (IsArray1_sint32 t1_0) /\ (is_sint32 x_0)
+        /\ (is_sint32 x_1).
+}
+Prove: (EqArray1_int 2 t0_0 t1_0[0->x_0][1->x_1]).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function simple_struct
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_acsl/equal.i, line 12) in 'simple_struct':
+Assume {
+  (* Domain *)
+  Type: (IsS_S s0_0) /\ (is_sint32 s0_0.F_S_a) /\ (is_sint32 s0_0.F_S_b).
+}
+Prove: (EqS_S s0_0 s0_0).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function with_array_struct
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_acsl/equal.i, line 24) in 'with_array_struct':
+Let a_0 = st0_0.F_St_tab.
+Let a_1 = st1_0.F_St_tab.
+Assume {
+  (* Domain *)
+  Type: (IsS_St st0_0) /\ (IsS_St st1_0) /\ (IsArray1_sint32 a_0)
+        /\ (IsArray1_sint32 a_1).
+  (* Goal *)
+  When: (EqArray1_int 10 a_0 a_1).
+}
+Prove: (EqS_St st0_0 st1_0).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function with_ptr_and_array_struct
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_acsl/equal.i, line 43) in 'with_ptr_and_array_struct':
+Let a_0 = q0_0.F_Q_qs.
+Let a_1 = q1_0.F_Q_qs.
+Let a_2 = q0_0.F_Q_qt.
+Let a_3 = q1_0.F_Q_qt.
+Assume {
+  (* Domain *)
+  Type: (IsS_Q q0_0) /\ (IsS_Q q1_0) /\ (IsArray1_sint32 a_2)
+        /\ (IsArray1_sint32 a_3) /\ (IsS_S a_0) /\ (IsS_S a_1).
+  (* Goal *)
+  When: (q0_0.F_Q_qp=q1_0.F_Q_qp) /\ (EqS_S a_0 a_1)
+        /\ (EqArray1_int 2 a_2 a_3).
+}
+Prove: (EqS_Q q0_0 q1_0).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function with_ptr_array
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_acsl/equal.i, line 36) in 'with_ptr_array':
+Assume {
+  (* Goal *)
+  When: forall i_0:int. (0<=i_0) -> (i_0<=4) -> (tp0_0[i_0]=tp1_0[i_0]).
+}
+Prove: (EqArray1_pointer 5 tp0_0 tp1_0).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function with_ptr_struct
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_acsl/equal.i, line 30) in 'with_ptr_struct':
+Assume { (* Goal *) When: sp0_0.F_Sp_p=sp1_0.F_Sp_p. }
+Prove: (EqS_Sp sp0_0 sp1_0).
+
+------------------------------------------------------------

@@ -1,0 +1,106 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/pdg/call.c (with preprocessing)
+[value] Analyzing an incomplete application starting at g
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  G ∈ [--..--]
+  A ∈ [--..--]
+  B ∈ [--..--]
+tests/pdg/call.c:18:[kernel] warning: signed overflow. assert -2147483648 ≤ x+y ≤ 2147483647;
+[value] computing for function f <- g.
+        Called from tests/pdg/call.c:18.
+tests/pdg/call.c:14:[kernel] warning: signed overflow. assert -2147483648 ≤ a+G.a ≤ 2147483647;
+[value] Recording results for f
+[value] Done for function f
+[value] Recording results for g
+[value] done for function g
+[pdg] computing for function f
+[pdg] done for function f
+[pdg] dot file generated in tests/pdg/call.f.dot
+[pdg] computing for function g
+[from] Computing for function f
+[from] Done for function f
+[pdg] done for function g
+[pdg] dot file generated in tests/pdg/call.g.dot
+[pdg] ====== PDG GRAPH COMPUTED ======
+[pdg] PDG for f
+ {n1}: InCtrl
+ {n2}: VarDecl : a
+   -[a--]-> 3
+ {n3}: In1
+   -[a--]-> 2
+ {n4}: VarDecl : b
+   -[a--]-> 5
+ {n5}: In2
+   -[a--]-> 4
+ {n6}: VarDecl : __retres
+ {n7}: G.b = b;
+   -[-c-]-> 1
+   -[--d]-> 4
+   -[--d]-> 5
+ {n8}: __retres = a + G.a;
+   -[-c-]-> 1
+   -[--d]-> 2
+   -[--d]-> 3
+   -[a--]-> 6
+   -[--d]-> 11
+ {n9}: return __retres;
+   -[-c-]-> 1
+   -[--d]-> 6
+   -[--d]-> 8
+ {n10}: OutRet
+   -[--d]-> 9
+ {n11}: In(G.a)
+[pdg] PDG for g
+ {n12}: InCtrl
+ {n13}: VarDecl : x
+   -[a--]-> 14
+ {n14}: In1
+   -[a--]-> 13
+ {n15}: VarDecl : y
+   -[a--]-> 16
+ {n16}: In2
+   -[a--]-> 15
+ {n17}: VarDecl : z
+   -[a--]-> 18
+ {n18}: In3
+   -[a--]-> 17
+ {n19}: VarDecl : r
+ {n20}: Call5-InCtrl : r = f(x + y,z);
+   -[-c-]-> 12
+ {n21}: Call5-In1 : r = f(x + y,z);
+   -[-c-]-> 12
+   -[--d]-> 13
+   -[--d]-> 14
+   -[--d]-> 15
+   -[--d]-> 16
+   -[-c-]-> 20
+ {n22}: Call5-In2 : r = f(x + y,z);
+   -[-c-]-> 12
+   -[--d]-> 17
+   -[--d]-> 18
+   -[-c-]-> 20
+ {n23}: Call5-Out(G.b) : r = f(x + y,z);
+   -[-c-]-> 12
+   -[-c-]-> 20
+   -[--d]-> 22
+ {n24}: Call5-OutRet : r = f(x + y,z);
+   -[-c-]-> 12
+   -[a--]-> 19
+   -[-c-]-> 20
+   -[--d]-> 21
+   -[--d]-> 29
+ {n25}: A = G.a;
+   -[-c-]-> 12
+   -[--d]-> 29
+ {n26}: B = G.b;
+   -[-c-]-> 12
+   -[--d](G.b)-> 23
+ {n27}: return r;
+   -[-c-]-> 12
+   -[--d]-> 19
+   -[--d]-> 24
+ {n28}: OutRet
+   -[--d]-> 27
+ {n29}: In(G.a)

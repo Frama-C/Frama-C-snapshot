@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -28,32 +28,12 @@ open Locations
 
 exception Call_did_not_take_place
 
-module type Froms_To_Use_Sig = sig
-  val get : kernel_function -> kinstr -> Function_Froms.t
-end
-
-module type Values_To_Use_Sig = sig
-  val lval_to_zone_with_deps :
-    stmt ->
-    deps:Locations.Zone.t option ->
-    for_writing:bool ->
-    Cil_types.lval ->
-    Locations.Zone.t * Locations.Zone.t * bool
-
-  val expr_to_kernel_function :
-    stmt ->
-    deps:Locations.Zone.t option ->
-    Cil_types.exp -> Locations.Zone.t * Kernel_function.Hptset.t
-
-  val get_stmt_state : stmt -> Db.Value.state
-  val access_expr : Cil_types.stmt -> Cil_types.exp -> Db.Value.t
-end
-
-module type Recording_Sig = sig
-  val accept_base_in_lmap : kernel_function -> Base.t -> bool
-  val final_cleanup: kernel_function -> Function_Froms.t -> Function_Froms.t
-  val record_kf : kernel_function -> Function_Froms.t -> unit
-    (* function to call at the end of the treatment of a function *)
+module type To_Use =
+sig
+  val get_from_call : kernel_function -> stmt -> Function_Froms.t
+  val get_value_state : stmt -> Db.Value.state
+  val keep_base : kernel_function -> Base.t -> bool
+  val cleanup_and_save : kernel_function -> Function_Froms.t -> Function_Froms.t
 end
 
 let rec find_deps_no_transitivity state expr =
@@ -69,7 +49,7 @@ let rec find_deps_no_transitivity state expr =
           ~deps:Zone.bottom
           lv
         in
-        Function_Froms.Deps.data_deps deps
+        Function_Froms.Deps.from_data_deps deps
     | CastE (_, e)|UnOp (_, e, _) ->
         find_deps_no_transitivity state e
     | BinOp (_, e1, e2, _) ->
@@ -88,10 +68,6 @@ and find_deps_lval_no_transitivity state lv =
     Zone.pretty ind_deps Zone.pretty direct_deps;
   { Function_Froms.Deps.data = direct_deps; indirect = ind_deps }
 
-let update z exact new_v memory =
-  Function_Froms.Memory.add_binding exact memory z new_v
-
-
 let compute_using_prototype_for_state state kf =
   let varinfo = Kernel_function.get_vi kf in
   let behaviors = !Db.Value.valid_behaviors kf state in
@@ -99,7 +75,10 @@ let compute_using_prototype_for_state state kf =
   let return_deps,deps =
     match assigns with
       | WritesAny ->
-          Function_Froms.(Memory.LOffset.degenerate Deps.top, Memory.top)
+          From_parameters.warning "no assigns clauses@ for function %a.@ \
+                                     Results@ will be@ imprecise."
+                                  Kernel_function.pretty kf;
+          Function_Froms.Memory.(top_return, top)
       | Writes assigns ->
           let (rt_typ,_,_,_) = splitFunctionTypeVI varinfo in
           let input_zone out ins =
@@ -108,26 +87,36 @@ let compute_using_prototype_for_state state kf =
           in
           let treat_assign acc (out, ins) =
             try
-              let output_locs, _deps =
-                !Db.Properties.Interp.loc_to_locs
-		  ~result:None state out.it_content
+	      let (output_loc_under, output_loc_over, _deps) =
+		!Db.Properties.Interp.loc_to_loc_under_over
+                  ~result:None state out.it_content
               in
               let input_zone = input_zone out ins in
-              let treat_one_output acc out_loc =
-		let exact = Location_Bits.cardinal_zero_or_one out_loc.loc in
-                let output_zone =
-                  Locations.enumerate_valid_bits ~for_writing:true out_loc
-                in
-                let overlap = Zone.intersects output_zone input_zone in
-                let exact = exact && not overlap in
-                (* assign clauses do not let us specify address
-                   dependencies for now, so we assume it is all
-                   data dependencies *)
-                let input_deps = Function_Froms.Deps.data_deps input_zone in
-                Function_Froms.Memory.add_binding ~exact
-                  acc output_zone input_deps
+              (* assign clauses do not let us specify address
+                 dependencies for now, so we assume it is all data
+                 dependencies *)
+              let input_deps =
+                Function_Froms.Deps.from_data_deps input_zone
               in
-              List.fold_left treat_one_output acc output_locs
+              (* Weak update of the over-approximation of the zones assigned *)
+              let acc = Function_Froms.Memory.add_binding_loc ~exact:false
+                acc output_loc_over input_deps in
+	      let output_loc_under_zone = Locations.enumerate_valid_bits_under
+		~for_writing:true output_loc_under in
+	      (* Now, perform a strong update on the zones that are guaranteed
+                 to be assigned (under-approximation) AND that do not depend
+                 on themselves.
+                 Note: here we remove an overapproximation from an
+		 underapproximation to get an underapproximation, which is not
+		 the usual direction. It works here because diff on non-top
+                 zones is an exact operation. *)
+	      let sure_out_zone =
+                Zone.(if equal top input_zone then bottom
+                      else diff output_loc_under_zone input_zone)
+              in
+	      let acc = Function_Froms.Memory.add_binding ~exact:true
+		acc sure_out_zone input_deps in
+	      acc
             with Invalid_argument "not an lvalue" ->
               From_parameters.result
                 ~once:true ~current:true "Unable to extract assigns in %a"
@@ -138,7 +127,7 @@ let compute_using_prototype_for_state state kf =
             let zone_from = input_zone out from in
             (* assign clauses do not let us specify address dependencies for
                now, so we assume it is all data dependencies *)
-            let inputs_deps = Function_Froms.Deps.data_deps zone_from in
+            let inputs_deps = Function_Froms.Deps.from_data_deps zone_from in
             try
               let coffs =
                 !Db.Properties.Interp.loc_to_offset ~result:None out.it_content
@@ -146,22 +135,17 @@ let compute_using_prototype_for_state state kf =
               List.fold_left
                 (fun acc coff ->
                   let (base,width) = bitsOffset rt_typ coff in
-                  Function_Froms.Memory.LOffset.add_iset
-                    ~exact:true
-                    (Lattice_Interval_Set.Int_Intervals.from_ival_size
-                       (Ival.of_int base)
-                       (Int_Base.inject (Int.of_int width)))
-                    inputs_deps
-                    acc)
+                  let size = Int_Base.inject (Int.of_int width) in
+                  Function_Froms.Memory.(add_to_return
+                                           ~start:base ~size ~m:acc inputs_deps)
+                )
                 acc coffs
             with Invalid_argument "not an lvalue" | SizeOfError _ ->
               From_parameters.result  ~once:true ~current:true
                 "Unable to extract a proper offset. \
                  Using FROM for the whole \\result";
-              Function_Froms.Memory.LOffset.add_iset ~exact:false
-                (Lattice_Interval_Set.Int_Intervals.from_ival_size
-                   (Ival.of_int 0) (Bit_utils.sizeof rt_typ))
-                inputs_deps acc
+              let size = Bit_utils.sizeof rt_typ in
+              Function_Froms.(Memory.add_to_return ~size ~m:acc inputs_deps)
           in
           let return_assigns, other_assigns =
             List.fold_left
@@ -173,17 +157,13 @@ let compute_using_prototype_for_state state kf =
           let return_assigns =
             match return_assigns with
               | [] when Cil.isVoidType rt_typ ->
-                  Function_Froms.Memory.LOffset.empty
+                  Function_Froms.Memory.default_return
               | [] -> (* \from unspecified. *)
-                  Function_Froms.(
-                    Memory.LOffset.add_iset ~exact:true
-                      (Lattice_Interval_Set.Int_Intervals.from_ival_size
-                         (Ival.of_int 0) (Bit_utils.sizeof rt_typ))
-                      Deps.top
-                      Memory.LOffset.empty)
+                let size = Bit_utils.sizeof rt_typ in
+                Function_Froms.Memory.top_return_size size
               | _ ->
                   List.fold_left treat_ret_assign
-                    Function_Froms.Memory.LOffset.empty return_assigns
+                    Function_Froms.Memory.default_return return_assigns
           in
           return_assigns,
           List.fold_left
@@ -201,13 +181,10 @@ module ZoneStmtMap = struct
     let decide_none _base z = z in
     let decide_some z1 z2 = Zone.join z1 z2 in
     symmetric_merge ~cache:("From_compute.ZoneStmtMap.join", ())
-      ~decide_none ~decide_some
+      ~empty_neutral:true ~decide_none ~decide_some
 end
 
-module Make
-  (Values_To_Use:Values_To_Use_Sig)
-  (Froms_To_Use: Froms_To_Use_Sig)
-  (Recording_To_Do: Recording_Sig) =
+module Make (To_Use: To_Use) =
 struct
   type t' =
       { additional_deps_table : ZoneStmtMap.t;
@@ -229,6 +206,7 @@ struct
   let rebuild_additional_deps map =
     ZoneStmtMap.fold (fun _ z accz -> Zone.join z accz) map Zone.bottom
 
+
   (** given a [Function_Froms.Deps.t], apply [f] on both components and merge
       the result:
         depending directly on an indirect dependency -> indirect,
@@ -242,11 +220,43 @@ struct
     { data = data; indirect = ind }
 
 
+  (** Bind all the given variables to [Assigned \from \nothing]. This function
+      is always called on local variables. We do *not* want to bind a local
+      variable [v] to Unassigned, as otherwise we could get some dependencies
+      that refer to [v] (when [v] is not guaranteed to be always assigned, or
+      for padding in local structs), and that would need to be removed when v
+      goes out of scope. Moreover, semantically, [v] *is* assigned (albeit to
+      "uninitalized",  which represents an indefinite part of the stack). We
+      do not attemps to track this "uninitalized" information in From, as this
+      is redundant with the work done by Value -- hence the use of [\nothing].*)
+  let bind_locals vars m =
+    let aux_local acc vi =
+      (* Consider that local are initialized to a constant value *)
+      Function_Froms.Memory.bind_var vi Function_Froms.Deps.bottom acc
+    in
+    if Function_Froms.Memory.is_bottom m
+    then m
+    else List.fold_left aux_local m vars
+
   let find stmt deps_tbl expr =
-    let state = Values_To_Use.get_stmt_state stmt in
+    let state = To_Use.get_value_state stmt in
     let pre_trans = find_deps_no_transitivity state expr in
     merge_deps
       (fun d -> Function_Froms.Memory.find_precise deps_tbl d) pre_trans
+
+  let lval_to_zone_with_deps stmt ~for_writing lv =
+    let state = To_Use.get_value_state stmt in
+    !Db.Value.lval_to_zone_with_deps_state
+      state ~deps:(Some Zone.bottom) ~for_writing lv
+
+  let lval_to_precise_loc_with_deps stmt ~for_writing lv =
+    let state = To_Use.get_value_state stmt in
+    let deps, loc =
+      !Db.Value.lval_to_precise_loc_with_deps_state
+        state ~deps:(Some Zone.bottom) lv
+    in
+    let exact = Precise_locs.valid_cardinal_zero_or_one ~for_writing loc in
+    deps, loc, exact
 
   let empty_from =
     { additional_deps_table = ZoneStmtMap.empty;
@@ -265,36 +275,9 @@ struct
 
     let callwise_states_with_formals = Stmt.Hashtbl.create 7
 
-    type substit = 
-        Froms of Function_Froms.Deps.t
-
-    let cached_substitute call_site_froms extra_loc =
-      let f k intervs =
-          Function_Froms.Memory.find_precise
-            call_site_froms
-            (Zone.inject k intervs)
-      in
-      let joiner = Function_Froms.Deps.join in
-      let projection base = Base.valid_range (Base.validity base) in
-      let zone_substitution =
-        Zone.cached_fold ~cache_name:"from substitution" ~temporary:true
-          ~f ~joiner ~empty:Function_Froms.Deps.bottom ~projection
-      in
-      let zone_substitution x =
-        try zone_substitution x
-        with Zone.Error_Top -> Function_Froms.Deps.top
-      in
-      let open Function_Froms.Deps in
-      fun { data; indirect } ->
-	let dirdeps = zone_substitution data in
-        let inddeps = zone_substitution indirect in
-        (* depending directly on an indirect dependency -> indirect,
-           depending indirectly on a direct dependency  -> indirect *)
-	let ind =
-          Zone.(join dirdeps.indirect (join (to_zone inddeps) extra_loc))
-        in
-        let dir = dirdeps.data in
-        { data = dir; indirect = ind }
+    let substitute call_site_froms extra_loc deps =
+      let subst_deps = Function_Froms.Memory.substitute call_site_froms deps in
+      Function_Froms.Deps.add_indirect_dep subst_deps extra_loc
 
     let display_one_from fmt v =
       Function_Froms.Memory.pretty fmt v.deps_table;
@@ -318,8 +301,7 @@ struct
           Zone.join additional state.additional_deps }
 
 
-    let join_and_is_included smaller larger =
-      let old = larger and new_ = smaller in
+    let join_and_is_included new_ old =
       let additional_map, additional_zone, included =
         let mold = old.additional_deps_table in
         let mnew = new_.additional_deps_table in
@@ -331,8 +313,10 @@ struct
           let new_z = Zone.join old.additional_deps new_.additional_deps in
           m, new_z, false
       in
-      let map = Function_Froms.Memory.join old.deps_table new_.deps_table in
-      let included' = Function_Froms.Memory.equal map old.deps_table in
+      let map, included' =
+        Function_Froms.Memory.join_and_is_included
+          new_.deps_table old.deps_table
+      in
       { deps_table = map;
         additional_deps_table = additional_map;
         additional_deps = additional_zone; },
@@ -340,38 +324,33 @@ struct
 
     let join old new_ = fst (join_and_is_included old new_)
 
-    let resolv_func_vinfo ?deps stmt funcexp =
-      Values_To_Use.expr_to_kernel_function ~deps stmt funcexp
+    (** Handle an assignement [lv = ...], the dependencies of the right-hand
+        side being stored in [deps_right]. *)
+    let transfer_assign stmt lv deps_right state =
+      (* The assigned location is [loc], whose address is computed from
+         [deps]. *)
+      let deps, loc, exact =
+        lval_to_precise_loc_with_deps stmt ~for_writing:true lv
+      in
+      let deps_of_deps = Function_Froms.Memory.find state.deps_table deps in
+      let all_indirect = Zone.join state.additional_deps deps_of_deps in
+      let deps = Function_Froms.Deps.add_indirect_dep deps_right all_indirect in
+      { state with deps_table =
+          Function_Froms.Memory.add_binding_precise_loc
+            ~exact state.deps_table loc deps }
 
     let transfer_instr stmt (i: instr) (state: t) =
       !Db.progress ();
-      let add_set_with_additional_var lv v d =
-        let deps, target, exact =
-          (* The modified location is [target],
-             whose address is computed from [deps]. *)
-          Values_To_Use.lval_to_zone_with_deps
-            stmt ~deps:(Some Zone.bottom) ~for_writing:true lv
-        in
-        let deps_of_deps = Function_Froms.Memory.find d.deps_table deps in
-        let deps = 
-	  Function_Froms.Deps.add_indirect_dep
-	    (Function_Froms.Deps.add_indirect_dep v deps_of_deps)
-	    d.additional_deps
-	in
-        let r = update target exact deps d.deps_table in
-        {d with deps_table=r; }
-      in
       match i with
         | Set (lv, exp, _) ->
               let comp_vars = find stmt state.deps_table exp in
-              add_set_with_additional_var lv comp_vars state
+              transfer_assign stmt lv comp_vars state
         | Call (lvaloption,funcexp,argl,_) ->
               !Db.progress ();
+              let value_state = To_Use.get_value_state stmt in
               let funcexp_deps, called_vinfos =
-                resolv_func_vinfo
-                  ~deps:Zone.bottom
-                  stmt
-                  funcexp
+                !Db.Value.expr_to_kernel_function_state
+                  value_state ~deps:(Some Zone.bottom) funcexp
               in
               (* dependencies for the evaluation of [funcexp] *)
               let funcexp_deps =
@@ -385,43 +364,30 @@ struct
               let args_froms =
                 List.map
                   (fun arg ->
-                    (* TODO : optimize the dependencies on subfields for structs
-                    *)
-                    Froms (find stmt state.deps_table arg))
+                    (* TODO : dependencies on subfields for structs *)
+                    find stmt state.deps_table arg)
                   argl
               in
               let states_with_formals = ref [] in
-              let do_on kernel_function =
-                let called_vinfo = Kernel_function.get_vi kernel_function in
+              let do_on kf =
+                let called_vinfo = Kernel_function.get_vi kf in
                 if Ast_info.is_cea_function called_vinfo.vname then
                   state
                 else
-                  let { Function_Froms.deps_return = return_from;
-                        deps_table = called_func_froms } =
-                    Froms_To_Use.get kernel_function (Kstmt stmt)
-                  in
-                  if Function_Froms.Memory.is_bottom called_func_froms then
+                  let froms_call = To_Use.get_from_call kf stmt in
+                  let froms_call_table = froms_call.Function_Froms.deps_table in
+                  if Function_Froms.Memory.is_bottom froms_call_table then
                     bottom_from
                   else
-                  let formal_args =
-                    Kernel_function.get_formals kernel_function
-                  in
+                  let formal_args = Kernel_function.get_formals kf in
                   let state_with_formals = ref state.deps_table in
                   begin try
                    List.iter2
                      (fun vi from ->
-                       match from with
-                         | Froms from ->
-                             let zvi = Locations.zone_of_varinfo vi in
-                             state_with_formals :=
-                               Function_Froms.Memory.add_binding
-                               ~exact:true
-                               !state_with_formals
-                               zvi
-                               from
-                         (*| Lvalue _ -> assert false *))
-                     formal_args
-                     args_froms;
+                       state_with_formals :=
+                         Function_Froms.Memory.bind_var
+                         vi from !state_with_formals;
+                     ) formal_args args_froms;
                     with Invalid_argument "List.iter2" ->
                       From_parameters.warning ~once:true ~current:true
                         "variadic call detected. Using only %d argument(s)."
@@ -429,74 +395,31 @@ struct
                            (List.length formal_args)
                            (List.length args_froms))
                   end;
-
                   if not (Db.From.Record_From_Callbacks.is_empty ())
                   then
                     states_with_formals :=
-                      (kernel_function, !state_with_formals) ::
-                      !states_with_formals;
-                  let substitute =
-                    cached_substitute
-                      !state_with_formals
-                      additional_deps
+                      (kf, !state_with_formals) :: !states_with_formals;
+                  let subst_before_call =
+                    substitute !state_with_formals additional_deps
                   in
-                  let new_state =
-                    (* From state just after the call,
-                       but before the result assigment *)
-                    {state with
-                      deps_table =
-                        Function_Froms.Memory.map_and_merge substitute
-                          called_func_froms
-                          state.deps_table}
+                  (* From state just after the call,
+                     but before the result assigment *)
+                  let deps_after_call =
+                    let before_call = state.deps_table in
+                    let open Function_Froms in
+                    let subst d = DepsOrUnassigned.subst subst_before_call d in
+                    let call_substituted = Memory.map subst froms_call_table in
+                    Memory.compose call_substituted before_call
                   in
+                  let state = {state with deps_table = deps_after_call } in
                   (* Treatement for the possible assignement
                      of the call result *)
-                  (match lvaloption with
-                  | None -> new_state
+                  match lvaloption with
+                  | None -> state
                   | Some lv ->
-                    let first = ref true in
-                    (try
-                       Function_Froms.Memory.LOffset.fold
-                         (fun _itv (_,x) acc ->
-                           if not !first
-                           then (*treatment below only compatible with imprecise
-                                  handling of Return elsewhere in this file *)
-                             raise Not_found;
-                           first := false;
-                           let res = substitute x in
-                           let deps, loczone, exact =
-                             Values_To_Use.lval_to_zone_with_deps
-                               stmt
-                               ~deps:(Some Zone.bottom)
-                               ~for_writing:true
-                               lv
-                           in
-                           let deps =
-                             Function_Froms.Memory.find_precise
-                               acc.deps_table deps 
-			   in
-                           let deps = Function_Froms.Deps.join res deps in
-                           let deps = 
-			     Function_Froms.Deps.add_indirect_dep  
-			       deps 
-			       acc.additional_deps
-			   in
-                           { acc with deps_table =
-                               update loczone exact deps acc.deps_table}
-                         )
-                         return_from
-                         new_state
-                     with Not_found -> (* from find_lonely_binding *)
-                       let vars =
-                         Function_Froms.Memory.LOffset.map
-                           (fun (b,x) -> (b,substitute x))
-                           return_from
-                       in
-                       add_set_with_additional_var
-                         lv
-                         (Function_Froms.Memory.LOffset.collapse vars)
-                         new_state
-                    ))
+                    let return_from = froms_call.Function_Froms.deps_return in
+                    let deps_ret = subst_before_call return_from in
+                    transfer_assign stmt lv deps_ret state
               in
               let f f acc =
                 let p = do_on f in
@@ -527,7 +450,10 @@ struct
 
 
     let transfer_guard s e d =
-      let interpreted_e = Values_To_Use.access_expr s e in
+      let value_state = To_Use.get_value_state s in
+      let interpreted_e =
+        !Db.Value.eval_expr ~with_alarms:CilE.warn_none_mode value_state e
+      in
       let t1 = unrollType (typeOf e) in
       let do_then, do_else =
         if isIntegralType t1 || isPointerType t1
@@ -572,32 +498,31 @@ struct
       	let data = transfer_conditional_exp s exp data in
       	Dataflows.transfer_switch_from_guard transfer_guard s data
 
-      | Return _ -> []
+      | Return _ | Throw _ -> []
 
       | UnspecifiedSequence _ | Loop _ | Block _
       | Goto _ | Break _ | Continue _
-      | TryExcept _ | TryFinally _
+      | TryExcept _ | TryFinally _ | TryCatch _
 	-> map_on_all_succs data
     ;;
 
     (* Filter out unreachable values. *)
     let transfer_stmt s d = 
-      if Db.Value.is_reachable (Values_To_Use.get_stmt_state s) &&
+      if Db.Value.is_reachable (To_Use.get_value_state s) &&
         not (Function_Froms.Memory.is_bottom d.deps_table)
       then transfer_stmt s d
       else []
 
     let doEdge s succ d =
-      if Db.Value.is_reachable (Values_To_Use.get_stmt_state succ) 
+      if Db.Value.is_reachable (To_Use.get_value_state succ)
       then
 	let d = match Kernel_function.blocks_closed_by_edge s succ with
           | [] -> d
           | closed_blocks ->
-            let deps_table =
-              Function_Froms.Memory.uninitialize
-		(List.fold_left (fun x y -> y.blocals @ x) [] closed_blocks)
-		d.deps_table
-            in { d with deps_table = deps_table }
+            let vars =
+              List.fold_left (fun x y -> y.blocals @ x) [] closed_blocks
+            in
+            { d with deps_table = bind_locals vars d.deps_table }
 	in d
       else 
 	bottom_from
@@ -617,23 +542,19 @@ struct
       (match return.skind with
       | Return (Some ({enode = Lval v}),_) ->
         let deps, target, _exact =
-          Values_To_Use.lval_to_zone_with_deps
-            ~deps:(Some Zone.bottom)
-            ~for_writing:false
-            return
-            v
+          lval_to_zone_with_deps ~for_writing:false return v
         in
-        Function_Froms.Memory.LOffset.join
-          (Function_Froms.Memory.find_base state.deps_table deps)
-          (Function_Froms.Memory.find_base state.deps_table target)
+        let z = Zone.join target deps in
+        let deps = Function_Froms.Memory.find_precise state.deps_table z in
+        let size = Bit_utils.sizeof (Cil.typeOfLval v) in
+        Function_Froms.(Memory.add_to_return ~size deps)
       | Return (None,_) ->
-        Function_Froms.Memory.LOffset.empty
+        Function_Froms.Memory.default_return
       | _ -> assert false)
     in
+    let accept = To_Use.keep_base kf in
     let deps_table =
-      Function_Froms.Memory.filter_base
-        (Recording_To_Do.accept_base_in_lmap kf)
-        state.deps_table
+      Function_Froms.Memory.filter_base accept state.deps_table
     in
     { deps_return = deps_return;
       Function_Froms.deps_table = deps_table }
@@ -659,9 +580,7 @@ struct
           Stack.push kf call_stack;
           let state =
             { empty_from with
-              deps_table =
-                Function_Froms.Memory.uninitialize
-                  f.slocals empty_from.deps_table }
+                deps_table = bind_locals f.slocals empty_from.deps_table }
           in
 	  let module Fenv =
                 (val Dataflows.function_env kf: Dataflows.FUNCTION_ENV)
@@ -687,8 +606,7 @@ struct
           let _poped = Stack.pop call_stack in
           let last_from =
             try
-              if Db.Value.is_reachable
-                (Values_To_Use.get_stmt_state ret_id)
+              if Db.Value.is_reachable (To_Use.get_value_state ret_id)
               then
                 externalize
                   ret_id
@@ -701,14 +619,14 @@ struct
                 "Non-terminating function %a (no dependencies)"
                 Kernel_function.pretty kf;
               { Function_Froms.deps_return =
-                  Function_Froms.Memory.LOffset.empty;
+                  Function_Froms.Memory.default_return;
                 deps_table = Function_Froms.Memory.bottom }
             end
           in
           last_from
 
         with Exit (* Recursive call *) ->
-          { Function_Froms.deps_return = Function_Froms.Memory.LOffset.empty;
+          { Function_Froms.deps_return = Function_Froms.Memory.default_return;
             deps_table = Function_Froms.Memory.empty }
 
   let compute_using_prototype kf =
@@ -727,14 +645,12 @@ struct
          call_stack;
        !s);
     !Db.progress ();
-
     let result =
       if !Db.Value.use_spec_instead_of_definition kf
       then compute_using_prototype kf
       else compute_using_cfg kf
     in
-    let result = Recording_To_Do.final_cleanup kf result in
-    Recording_To_Do.record_kf kf result;
+    let result = To_Use.cleanup_and_save kf result in
     From_parameters.feedback
       "Done for function %a" Kernel_function.pretty kf;
     !Db.progress ();

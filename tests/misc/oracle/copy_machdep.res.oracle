@@ -1,0 +1,5 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/copy_machdep.i (no preprocessing)
+[kernel] Machdep is preserved
+[kernel] Enums is preserved
+[kernel] Unicode is preserved

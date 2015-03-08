@@ -1,0 +1,78 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/call.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  p[0..9] ∈ {0}
+  q[0..9] ∈ {0}
+  r ∈ {0}
+  res ∈ {0}
+  x ∈ {0}
+tests/misc/call.i:19:[kernel] warning: out of bounds read. assert \valid_read(v+1);
+[value] computing for function leaf_fun_int <- main.
+        Called from tests/misc/call.i:19.
+tests/misc/call.i:19:[kernel] warning: Neither code nor specification for function leaf_fun_int, generating default assigns from the prototype
+[value] using specification for function leaf_fun_int
+[value] Done for function leaf_fun_int
+tests/misc/call.i:20:[kernel] warning: out of bounds read. assert \valid_read(v+1);
+[value] computing for function leaf_fun_charp <- main.
+        Called from tests/misc/call.i:20.
+tests/misc/call.i:20:[kernel] warning: Neither code nor specification for function leaf_fun_charp, generating default assigns from the prototype
+[value] using specification for function leaf_fun_charp
+[value] Done for function leaf_fun_charp
+tests/misc/call.i:23:[value] entering loop for the first time
+[value] computing for function f <- main.
+        Called from tests/misc/call.i:39.
+[value] Recording results for f
+[value] Done for function f
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function f:
+  res ∈ {177; 188}
+[value] Values at end of function main:
+  p[0..4] ∈ {0; 1; 2; 3; 4; 5; 6}
+   [5] ∈ {177}
+   [6] ∈ {0; 1; 2; 3; 4; 5; 6}
+   [7..9] ∈ {0}
+  q[0..4] ∈ {0; 10; 11; 12; 13; 14; 15; 16}
+   [5] ∈ {188}
+   [6] ∈ {0; 10; 11; 12; 13; 14; 15; 16}
+   [7..9] ∈ {0}
+  res ∈ {177; 188}
+  lcount ∈ {7}
+  tmp ∈ {{ &p[0] ; &q[0] }}
+  S_1_S_v[0..1] ∈ [--..--]
+[from] Computing for function f
+[from] Done for function f
+[from] Computing for function main
+[from] Computing for function leaf_fun_int <-main
+[from] Done for function leaf_fun_int
+[from] Computing for function leaf_fun_charp <-main
+[from] Done for function leaf_fun_charp
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function f:
+  res FROM p[5]; q[5]; t
+[from] Function leaf_fun_charp:
+  S_1_S_v[0..1] FROM S_1_S_v[0..1] (and SELF)
+[from] Function leaf_fun_int:
+  NO EFFECTS
+[from] Function main:
+  p{[0..4]; [6]} FROM \nothing (and SELF)
+   [5] FROM \nothing
+  q{[0..4]; [6]} FROM \nothing (and SELF)
+   [5] FROM \nothing
+  res FROM c
+  S_1_S_v[0..1] FROM c; S_1_S_v[0..1] (and SELF)
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function f:
+          res
+[inout] Inputs for function f:
+          p[5]; q[5]
+[inout] Out (internal) for function main:
+          p[0..6]; q[0..6]; res; lcount; tmp; S_1_S_v[0..1]
+[inout] Inputs for function main:
+          p[5]; q[5]; S_v[1]; S_1_S_v[0..1]

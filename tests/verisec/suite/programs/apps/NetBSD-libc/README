@@ -1,0 +1,7 @@
+-= NetBSD libc =-
+
+Homepage: http://www.netbsd.org
+Domain: C Library
+
+NetBSD is a Unix-like operating system, and this is it's
+implementation of the C standard library.

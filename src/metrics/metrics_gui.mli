@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -26,7 +26,7 @@
     @returns a box containing the lower part of the panel where metrics can
     display their results.
 *)
-val init_panel : unit -> GPack.box ;;
+val init_panel : Design.main_window_extension_points -> GPack.box ;;
 
 (** @returns a value allowing to register the panel into the main GUI *)
 val coerce_panel_to_ui : < coerce : 'a; .. > -> 'b -> string * 'a * 'c option  ;;

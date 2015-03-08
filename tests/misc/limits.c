@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -val -warn-signed-overflow -cpp-command "gcc -C -E -nostdinc -I. -Ishare/libc"
+   OPT: -val -warn-signed-overflow
 */
 
 #include <limits.h>

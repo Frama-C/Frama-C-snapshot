@@ -1,0 +1,288 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/reevaluate_alarms.i (no preprocessing)
+tests/misc/reevaluate_alarms.i:15:[kernel] warning: Return statement with a value in function returning void
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  S ∈ {0}
+  T[0..4] ∈ {0}
+  n ∈ {1}
+[value] computing for function loop <- main.
+        Called from tests/misc/reevaluate_alarms.i:34.
+tests/misc/reevaluate_alarms.i:13:[value] entering loop for the first time
+tests/misc/reevaluate_alarms.i:14:[kernel] warning: out of bounds write. assert \valid(tmp);
+                                       (tmp from p++)
+tests/misc/reevaluate_alarms.i:14:[kernel] warning: signed overflow. assert S+i ≤ 2147483647;
+[value] Recording results for loop
+[value] Done for function loop
+[value] computing for function compute_n <- main.
+        Called from tests/misc/reevaluate_alarms.i:36.
+tests/misc/reevaluate_alarms.i:19:[value] entering loop for the first time
+tests/misc/reevaluate_alarms.i:20:[kernel] warning: signed overflow. assert n*i ≤ 2147483647;
+[value] Recording results for compute_n
+[value] Done for function compute_n
+[value] computing for function init_p <- main.
+        Called from tests/misc/reevaluate_alarms.i:40.
+[value] Recording results for init_p
+[value] Done for function init_p
+[value] computing for function initialized_p <- main.
+        Called from tests/misc/reevaluate_alarms.i:41.
+tests/misc/reevaluate_alarms.i:30:[kernel] warning: accessing uninitialized left-value: assert \initialized(p);
+[value] Recording results for initialized_p
+[value] Done for function initialized_p
+[value] computing for function init_p <- main.
+        Called from tests/misc/reevaluate_alarms.i:43.
+[value] Recording results for init_p
+[value] Done for function init_p
+[value] computing for function initialized_p <- main.
+        Called from tests/misc/reevaluate_alarms.i:44.
+[value] Recording results for initialized_p
+[value] Done for function initialized_p
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function compute_n:
+  n ∈ [1..2147483647]
+  i ∈ {6}
+[value] Values at end of function init_p:
+  x ∈ {0} or UNINITIALIZED
+  y ∈ {0} or UNINITIALIZED
+[value] Values at end of function initialized_p:
+  x ∈ {1}
+[value] Values at end of function loop:
+  S ∈ [0..2147483647]
+  T[0..4] ∈ [0..2147483647]
+  i ∈ {5}
+  p ∈ {{ &T + [0..--],0%4 }}
+[value] Values at end of function main:
+  S ∈ [0..2147483647]
+  T[0..4] ∈ [0..2147483647]
+  n ∈ [1..2147483647]
+  x ∈ {0}
+  y ∈ {0}
+  __retres ∈ {0}
+[from] Computing for function compute_n
+[from] Done for function compute_n
+[from] Computing for function init_p
+[from] Done for function init_p
+[from] Computing for function initialized_p
+[from] Done for function initialized_p
+[from] Computing for function loop
+[from] Done for function loop
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function compute_n:
+  n FROM n (and SELF)
+[from] Function init_p:
+  x FROM n; p (and SELF)
+  y FROM n; p (and SELF)
+[from] Function initialized_p:
+  NO EFFECTS
+[from] Function loop:
+  S FROM S (and SELF)
+  T[0..4] FROM S (and SELF)
+[from] Function main:
+  S FROM S (and SELF)
+  T[0..4] FROM S (and SELF)
+  n FROM n (and SELF)
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function compute_n:
+          n; i
+[inout] Inputs for function compute_n:
+          n
+[inout] Out (internal) for function init_p:
+          x; y
+[inout] Inputs for function init_p:
+          n
+[inout] Out (internal) for function initialized_p:
+          x
+[inout] Inputs for function initialized_p:
+          x; y
+[inout] Out (internal) for function loop:
+          S; T[0..4]; i; p; tmp
+[inout] Inputs for function loop:
+          S
+[inout] Out (internal) for function main:
+          S; T[0..4]; n; x; y; __retres
+[inout] Inputs for function main:
+          S; n
+[report] Computing properties status...
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'loop'
+--------------------------------------------------------------------------------
+
+[    -    ] Assertion 'Value,mem_access' (file tests/misc/reevaluate_alarms.i, line 14)
+            tried with Value.
+[    -    ] Assertion 'Value,signed_overflow' (file tests/misc/reevaluate_alarms.i, line 14)
+            tried with Value.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'compute_n'
+--------------------------------------------------------------------------------
+
+[    -    ] Assertion 'Value,signed_overflow' (file tests/misc/reevaluate_alarms.i, line 20)
+            tried with Value.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'initialized_p'
+--------------------------------------------------------------------------------
+
+[    -    ] Assertion 'Value,initialisation' (file tests/misc/reevaluate_alarms.i, line 30)
+            tried with Value.
+
+--------------------------------------------------------------------------------
+--- Status Report Summary
+--------------------------------------------------------------------------------
+     4 To be validated
+     4 Total
+--------------------------------------------------------------------------------
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  S ∈ {0}
+  T[0..4] ∈ {0}
+  n ∈ {1}
+[value] computing for function loop <- main.
+        Called from tests/misc/reevaluate_alarms.i:34.
+[value] Recording results for loop
+[value] Done for function loop
+[value] computing for function compute_n <- main.
+        Called from tests/misc/reevaluate_alarms.i:36.
+[value] Recording results for compute_n
+[value] Done for function compute_n
+[value] computing for function init_p <- main.
+        Called from tests/misc/reevaluate_alarms.i:40.
+[value] Recording results for init_p
+[value] Done for function init_p
+[value] computing for function initialized_p <- main.
+        Called from tests/misc/reevaluate_alarms.i:41.
+[value] Recording results for initialized_p
+[value] Done for function initialized_p
+[value] computing for function init_p <- main.
+        Called from tests/misc/reevaluate_alarms.i:43.
+[value] Recording results for init_p
+[value] Done for function init_p
+[value] computing for function initialized_p <- main.
+        Called from tests/misc/reevaluate_alarms.i:44.
+[value] Recording results for initialized_p
+[value] Done for function initialized_p
+[value] Recording results for main
+[value] done for function main
+tests/misc/reevaluate_alarms.i:14:[value] Assertion 'Value,signed_overflow' got final status valid.
+tests/misc/reevaluate_alarms.i:14:[value] Assertion 'Value,mem_access' got final status valid.
+tests/misc/reevaluate_alarms.i:20:[value] Assertion 'Value,signed_overflow' got final status valid.
+tests/misc/reevaluate_alarms.i:30:[value] Assertion 'Value,initialisation' got final status valid.
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function compute_n:
+  n ∈ {120}
+  i ∈ {6}
+[value] Values at end of function init_p:
+  x ∈ {0}
+  y ∈ {0} or UNINITIALIZED
+[value] Values at end of function initialized_p:
+  x ∈ {1}
+[value] Values at end of function loop:
+  S ∈ {10}
+  T[0] ∈ {0}
+   [1] ∈ {1}
+   [2] ∈ {3}
+   [3] ∈ {6}
+   [4] ∈ {10}
+  i ∈ {5}
+  p ∈ {{ &T[5] }}
+[value] Values at end of function main:
+  S ∈ {10}
+  T[0] ∈ {0}
+   [1] ∈ {1}
+   [2] ∈ {3}
+   [3] ∈ {6}
+   [4] ∈ {10}
+  n ∈ {120}
+  x ∈ {0}
+  y ∈ {0}
+  __retres ∈ {0}
+[from] Computing for function compute_n
+[from] Done for function compute_n
+[from] Computing for function init_p
+[from] Done for function init_p
+[from] Computing for function initialized_p
+[from] Done for function initialized_p
+[from] Computing for function loop
+[from] Done for function loop
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function compute_n:
+  n FROM n (and SELF)
+[from] Function init_p:
+  x FROM n; p (and SELF)
+  y FROM n; p (and SELF)
+[from] Function initialized_p:
+  NO EFFECTS
+[from] Function loop:
+  S FROM S (and SELF)
+  T[0..4] FROM S (and SELF)
+[from] Function main:
+  S FROM S (and SELF)
+  T[0..4] FROM S (and SELF)
+  n FROM n (and SELF)
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function compute_n:
+          n; i
+[inout] Inputs for function compute_n:
+          n
+[inout] Out (internal) for function init_p:
+          x; y
+[inout] Inputs for function init_p:
+          n
+[inout] Out (internal) for function initialized_p:
+          x
+[inout] Inputs for function initialized_p:
+          x; y
+[inout] Out (internal) for function loop:
+          S; T[0..4]; i; p; tmp
+[inout] Inputs for function loop:
+          S
+[inout] Out (internal) for function main:
+          S; T[0..4]; n; x; y; __retres
+[inout] Inputs for function main:
+          S; n
+[report] Computing properties status...
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'loop'
+--------------------------------------------------------------------------------
+
+[  Valid  ] Assertion 'Value,mem_access' (file tests/misc/reevaluate_alarms.i, line 14)
+            by Value (v2).
+[  Valid  ] Assertion 'Value,signed_overflow' (file tests/misc/reevaluate_alarms.i, line 14)
+            by Value (v2).
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'compute_n'
+--------------------------------------------------------------------------------
+
+[  Valid  ] Assertion 'Value,signed_overflow' (file tests/misc/reevaluate_alarms.i, line 20)
+            by Value (v2).
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'initialized_p'
+--------------------------------------------------------------------------------
+
+[  Valid  ] Assertion 'Value,initialisation' (file tests/misc/reevaluate_alarms.i, line 30)
+            by Value (v2).
+
+--------------------------------------------------------------------------------
+--- Status Report Summary
+--------------------------------------------------------------------------------
+     4 Completely validated
+     4 Total
+--------------------------------------------------------------------------------

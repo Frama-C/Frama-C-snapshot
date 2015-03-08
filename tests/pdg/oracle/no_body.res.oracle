@@ -1,0 +1,108 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/pdg/no_body.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  G ∈ {0}
+[value] computing for function f <- main.
+        Called from tests/pdg/no_body.c:24.
+tests/pdg/no_body.c:24:[kernel] warning: Neither code nor specification for function f, generating default assigns from the prototype
+[value] using specification for function f
+[value] Done for function f
+[value] computing for function loop <- main.
+        Called from tests/pdg/no_body.c:25.
+tests/pdg/no_body.c:16:[value] entering loop for the first time
+[value] computing for function f <- loop <- main.
+        Called from tests/pdg/no_body.c:16.
+[value] Done for function f
+tests/pdg/no_body.c:18:[kernel] warning: signed overflow. assert G+1 ≤ 2147483647;
+[value] computing for function f <- loop <- main.
+        Called from tests/pdg/no_body.c:16.
+[value] Done for function f
+[value] computing for function f <- loop <- main.
+        Called from tests/pdg/no_body.c:16.
+[value] Done for function f
+[value] computing for function f <- loop <- main.
+        Called from tests/pdg/no_body.c:16.
+[value] Done for function f
+[value] computing for function f <- loop <- main.
+        Called from tests/pdg/no_body.c:16.
+[value] Done for function f
+[value] computing for function f <- loop <- main.
+        Called from tests/pdg/no_body.c:16.
+[value] Done for function f
+[value] computing for function f <- loop <- main.
+        Called from tests/pdg/no_body.c:16.
+[value] Done for function f
+[value] computing for function f <- loop <- main.
+        Called from tests/pdg/no_body.c:16.
+[value] Done for function f
+[value] computing for function f <- loop <- main.
+        Called from tests/pdg/no_body.c:16.
+[value] Done for function f
+[value] computing for function f <- loop <- main.
+        Called from tests/pdg/no_body.c:16.
+[value] Done for function f
+[value] computing for function f <- loop <- main.
+        Called from tests/pdg/no_body.c:16.
+[value] Done for function f
+[value] computing for function f <- loop <- main.
+        Called from tests/pdg/no_body.c:16.
+[value] Done for function f
+tests/pdg/no_body.c:17:[kernel] warning: signed overflow. assert x+1 ≤ 2147483647;
+[value] Recording results for loop
+[value] Done for function loop
+[value] Recording results for main
+[value] done for function main
+[inout] InOut (internal) for function loop:
+        Operational inputs:
+          G; x
+        Operational inputs on termination:
+          G; x
+        Sure outputs:
+          tmp
+[inout] InOut (internal) for function main:
+        Operational inputs:
+          \nothing
+        Operational inputs on termination:
+          \nothing
+        Sure outputs:
+          G; x
+[pdg] computing for function main
+[from] Computing for function f
+[from] Done for function f
+[from] Computing for function loop
+[from] Done for function loop
+[pdg] done for function main
+[pdg] PDG for main
+ {n1}: InCtrl
+ {n2}: VarDecl : x
+ {n3}: x = 1;
+   -[-c-]-> 1
+   -[a--]-> 2
+ {n4}: Call11-InCtrl : G = f(x);
+   -[-c-]-> 1
+ {n5}: Call11-In1 : G = f(x);
+   -[-c-]-> 1
+   -[--d]-> 2
+   -[--d]-> 3
+   -[-c-]-> 4
+ {n6}: Call11-OutRet : G = f(x);
+   -[-c-]-> 1
+   -[-c-]-> 4
+   -[--d]-> 5
+ {n7}: Call12-InCtrl : loop(x);
+   -[-c-]-> 1
+ {n8}: Call12-In1 : loop(x);
+   -[-c-]-> 1
+   -[--d]-> 2
+   -[--d]-> 3
+   -[-c-]-> 7
+ {n9}: Call12-Out(G) : loop(x);
+   -[-c-]-> 1
+   -[--d]-> 6
+   -[-c-]-> 7
+   -[--d]-> 8
+ {n10}: return;
+   -[-c-]-> 1

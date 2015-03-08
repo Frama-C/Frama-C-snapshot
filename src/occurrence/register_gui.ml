@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -114,7 +114,7 @@ let occurrence_highlighter buffer loc ~start ~stop =
         in
         match loc with
         | PLval (_, ki, lval) ->
-            let same_lval (_kf, k, l) = 
+            let same_lval (_kf, k, l) =
               Kinstr.equal k ki && Lval.equal l lval
             in
             if List.exists same_lval result then highlight ()
@@ -128,7 +128,7 @@ let occurrence_highlighter buffer loc ~start ~stop =
             if List.exists same_tlval result then highlight ()
         | PVDecl(_, vi') when Varinfo.equal vi vi' ->
             highlight ()
-        | PVDecl _ | PStmt _ | PGlobal _ | PIP _ -> ()
+        | PExp _ | PVDecl _ | PStmt _ | PGlobal _ | PIP _ -> ()
 
 module FollowFocus =
   State_builder.Ref

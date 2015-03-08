@@ -1,0 +1,176 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/loopinv.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  
+[value] computing for function main1 <- main.
+        Called from tests/misc/loopinv.c:51.
+[value] computing for function init <- main1 <- main.
+        Called from tests/misc/loopinv.c:22.
+tests/misc/loopinv.c:5:[value] Function init: precondition got status valid.
+tests/misc/loopinv.c:6:[value] Function init: precondition got status valid.
+tests/misc/loopinv.c:9:[value] Loop invariant got status valid.
+tests/misc/loopinv.c:10:[value] entering loop for the first time
+[value] Recording results for init
+[value] Done for function init
+[value] computing for function init <- main1 <- main.
+        Called from tests/misc/loopinv.c:25.
+[value] Recording results for init
+[value] Done for function init
+[value] Recording results for main1
+[value] Done for function main1
+[value] computing for function main2 <- main.
+        Called from tests/misc/loopinv.c:52.
+tests/misc/loopinv.c:32:[value] Loop invariant got status valid.
+tests/misc/loopinv.c:33:[value] Loop invariant got status valid.
+tests/misc/loopinv.c:32:[value] Loop invariant got status invalid (stopping propagation).
+tests/misc/loopinv.c:33:[value] no state left in which to evaluate loop invariant, status not computed.
+[value] Recording results for main2
+[value] Done for function main2
+[value] computing for function main3 <- main.
+        Called from tests/misc/loopinv.c:53.
+tests/misc/loopinv.c:42:[value] Loop invariant got status valid.
+tests/misc/loopinv.c:43:[value] entering loop for the first time
+[value] Called Frama_C_show_each({0}, {0})
+[value] Called Frama_C_show_each({0; 1}, {0; 1})
+tests/misc/loopinv.c:42:[value] Loop invariant got status unknown.
+[value] Called Frama_C_show_each({0; 1; 2}, {0; 1; 2})
+[value] Called Frama_C_show_each({0; 1; 2; 3}, {0; 1; 2; 3})
+[value] Called Frama_C_show_each({0; 1; 2; 3; 4}, {0; 1; 2; 3; 4})
+[value] Called Frama_C_show_each([0..9], {0; 1; 2; 3; 4; 5})
+[value] Called Frama_C_show_each([0..10], {0; 1; 2; 3; 4; 5; 6})
+[value] Called Frama_C_show_each([0..13], {0; 1; 2; 3; 4; 5; 6; 7})
+[value] Called Frama_C_show_each([0..14], [0..8])
+[value] Called Frama_C_show_each([0..15], [0..9])
+[value] Called Frama_C_show_each([0..16], [0..10])
+[value] Called Frama_C_show_each([0..21], [0..11])
+[value] Called Frama_C_show_each([0..22], [0..12])
+[value] Called Frama_C_show_each([0..25], [0..13])
+[value] Called Frama_C_show_each([0..26], [0..14])
+[value] Called Frama_C_show_each([0..29], [0..15])
+[value] Called Frama_C_show_each([0..30], [0..16])
+[value] Called Frama_C_show_each([0..33], [0..17])
+[value] Called Frama_C_show_each([0..34], [0..18])
+[value] Called Frama_C_show_each([0..37], [0..19])
+[value] Called Frama_C_show_each([0..38], [0..20])
+[value] Called Frama_C_show_each([0..41], [0..21])
+[value] Called Frama_C_show_each([0..42], [0..22])
+[value] Called Frama_C_show_each([0..45], [0..23])
+[value] Called Frama_C_show_each([0..46], [0..24])
+[value] Called Frama_C_show_each([0..49], [0..25])
+[value] Called Frama_C_show_each([0..50], [0..26])
+[value] Called Frama_C_show_each([0..53], [0..27])
+[value] Called Frama_C_show_each([0..54], [0..28])
+[value] Called Frama_C_show_each([0..57], [0..29])
+[value] Called Frama_C_show_each([0..58], [0..30])
+[value] Called Frama_C_show_each([0..61], [0..31])
+[value] Called Frama_C_show_each([0..62], [0..32])
+[value] Called Frama_C_show_each([0..65], [0..33])
+[value] Called Frama_C_show_each([0..66], [0..34])
+[value] Called Frama_C_show_each([0..69], [0..35])
+[value] Called Frama_C_show_each([0..70], [0..36])
+[value] Called Frama_C_show_each([0..73], [0..37])
+[value] Called Frama_C_show_each([0..74], [0..38])
+[value] Called Frama_C_show_each([0..77], [0..39])
+[value] Called Frama_C_show_each([0..78], [0..40])
+[value] Called Frama_C_show_each([0..81], [0..41])
+[value] Called Frama_C_show_each([0..82], [0..42])
+[value] Called Frama_C_show_each([0..85], [0..43])
+[value] Called Frama_C_show_each([0..86], [0..44])
+[value] Called Frama_C_show_each([0..89], [0..45])
+[value] Called Frama_C_show_each([0..90], [0..46])
+[value] Called Frama_C_show_each([0..93], [0..47])
+[value] Called Frama_C_show_each([0..94], [0..48])
+[value] Called Frama_C_show_each([0..97], [0..49])
+[value] Called Frama_C_show_each([0..98], [0..50])
+[value] Called Frama_C_show_each([0..99], [0..51])
+[value] Called Frama_C_show_each([0..99], [0..52])
+[value] Called Frama_C_show_each([0..99], [0..128])
+[value] Called Frama_C_show_each([0..99], [0..129])
+[value] Called Frama_C_show_each([0..99], [0..513])
+[value] Called Frama_C_show_each([0..99], [0..514])
+[value] Called Frama_C_show_each([0..99], [0..32768])
+[value] Called Frama_C_show_each([0..99], [0..32769])
+tests/misc/loopinv.c:45:[kernel] warning: signed overflow. assert j+1 ≤ 2147483647;
+[value] Called Frama_C_show_each([0..99], [0..2147483647])
+[value] Recording results for main3
+[value] Done for function main3
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function init:
+  p ∈ {{ &t1 + [4..284],0%4 ; &t2 + [4..40],0%4 }}
+  t1[0] ∈ UNINITIALIZED
+    [1..71] ∈ {1} or UNINITIALIZED
+  t2[0] ∈ UNINITIALIZED
+    [1..10] ∈ {1} or UNINITIALIZED
+[value] Values at end of function main1:
+  t1[0] ∈ UNINITIALIZED
+    [1..71] ∈ {1} or UNINITIALIZED
+  t2[0] ∈ UNINITIALIZED
+    [1..10] ∈ {1} or UNINITIALIZED
+[value] Values at end of function main2:
+  NON TERMINATING FUNCTION
+[value] Values at end of function main3:
+  j ∈ [0..2147483647]
+[value] Values at end of function main:
+  
+[report] Computing properties status...
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'init'
+--------------------------------------------------------------------------------
+
+[  Valid  ] Pre-condition (file tests/misc/loopinv.c, line 5)
+            by Call Preconditions.
+[  Valid  ] Pre-condition (file tests/misc/loopinv.c, line 6)
+            by Call Preconditions.
+[  Valid  ] Invariant (file tests/misc/loopinv.c, line 9)
+            by Value.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'main1'
+--------------------------------------------------------------------------------
+
+[  Valid  ] Instance of 'Pre-condition (file tests/misc/loopinv.c, line 5)' at call 'init' (file tests/misc/loopinv.c, line 22)
+
+            by Value.
+[  Valid  ] Instance of 'Pre-condition (file tests/misc/loopinv.c, line 6)' at call 'init' (file tests/misc/loopinv.c, line 22)
+
+            by Value.
+[  Valid  ] Instance of 'Pre-condition (file tests/misc/loopinv.c, line 5)' at call 'init' (file tests/misc/loopinv.c, line 25)
+
+            by Value.
+[  Valid  ] Instance of 'Pre-condition (file tests/misc/loopinv.c, line 6)' at call 'init' (file tests/misc/loopinv.c, line 25)
+
+            by Value.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'main2'
+--------------------------------------------------------------------------------
+
+[    -    ] Invariant (file tests/misc/loopinv.c, line 32)
+            tried with Value.
+[  Valid  ] Invariant (file tests/misc/loopinv.c, line 33)
+            by Value.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'main3'
+--------------------------------------------------------------------------------
+
+[    -    ] Invariant (file tests/misc/loopinv.c, line 42)
+            tried with Value.
+[    -    ] Assertion 'Value,signed_overflow' (file tests/misc/loopinv.c, line 45)
+            tried with Value.
+
+--------------------------------------------------------------------------------
+--- Status Report Summary
+--------------------------------------------------------------------------------
+     9 Completely validated
+     3 To be validated
+    12 Total
+--------------------------------------------------------------------------------

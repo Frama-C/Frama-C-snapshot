@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -225,7 +225,7 @@ struct
       else Parameter_customize.is_invisible ()
 
     module Dir_name =
-      EmptyString
+      Empty_string
         (struct
           let option_name = prefix ^ O.option_name
           let arg_name = O.arg_name
@@ -285,7 +285,7 @@ struct
 	let option_name = "share"
 	let arg_name = "dir"
 	let help = "set the plug-in share directory to <dir> \
-(may be used if the plug-in is not installed at the same place than Frama-C)"
+(may be used if the plug-in is not installed at the same place as Frama-C)"
        end)
       (struct 
 	let dir () = Config.datadir 
@@ -437,7 +437,7 @@ struct
       "disables message display for categories <k1>,...,<kn>"
 
   module Debug_category =
-    StringSet(struct
+    String_set(struct
       let option_name = debug_category_optname
       let arg_name="k1[,...,kn]"
       let help =

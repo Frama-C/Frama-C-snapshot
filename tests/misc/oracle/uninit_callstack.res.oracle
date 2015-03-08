@@ -1,0 +1,13 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/uninit_callstack.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  p ∈ {0}
+  x ∈ {0}
+tests/misc/uninit_callstack.i:8:[kernel] warning: accessing uninitialized left-value: assert \initialized(p);
+                  stack: f :: tests/misc/uninit_callstack.i:14 <- main
+tests/misc/uninit_callstack.i:8:[kernel] warning: completely indeterminate value in a.
+[value] done for function main
+[value] ====== VALUES COMPUTED ======

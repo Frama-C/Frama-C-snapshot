@@ -1,0 +1,109 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/misaligned_tabs.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  T[0..299] ∈ {0}
+  S1{.i1; .i2} ∈ {4369}
+    {.c1; .c2} ∈ {17}
+    {.i3; .i4} ∈ {4369}
+  S2{.i1; .i2} ∈ {4369}
+    {.c1; .c2} ∈ {17}
+    {.i3; .i4} ∈ {4369}
+  S3{.i1; .i2} ∈ {4369}
+    {.c1; .c2} ∈ {17}
+    {.i3; .i4} ∈ {4369}
+  S4{.i1; .i2} ∈ {4369}
+    {.c1; .c2} ∈ {17}
+    {.i3; .i4} ∈ {4369}
+[value] computing for function misaligned_struct <- main.
+        Called from tests/misc/misaligned_tabs.i:58.
+[value] Called Frama_C_show_each_1({1})
+[value] Called Frama_C_show_each_2({1})
+[value] Called Frama_C_show_each_3({1})
+[value] Called Frama_C_show_each_4({1})
+[value] Called Frama_C_show_each_5({1})
+[value] Called Frama_C_show_each_6({1})
+[value] Called Frama_C_show_each_7({1})
+[value] Called Frama_C_show_each_8({1})
+[value] Called Frama_C_show_each_9({1})
+[value] Called Frama_C_show_each_a({1})
+[value] Called Frama_C_show_each_b({1})
+[value] Called Frama_C_show_each_c({1})
+[value] Called Frama_C_show_each_d({1})
+[value] Called Frama_C_show_each_e({1})
+[value] Called Frama_C_show_each_f({1})
+[value] Recording results for misaligned_struct
+[value] Done for function misaligned_struct
+[value] Called Frama_C_show_each_g({1})
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function misaligned_struct:
+  S1.i1[bits 0 to 7] ∈ {17}
+    {.i1[bits 8 to 15]#; .i2} ∈ {4369} repeated %16, bits 8 to 31 
+    {.c1; .c2} ∈ {17}
+    {.i3; .i4} ∈ {4369}
+  S2.i1# ∈ {17} repeated %8 
+    .i2 ∈ {4369}
+    {.c1; .c2} ∈ {17}
+    {.i3; .i4} ∈ {4369}
+  S3.i1[bits 0 to 7]# ∈ {4369}%16, bits 0 to 7 
+    {.i1[bits 8 to 15]; .i2#; .c1; .c2; .i3#; .i4[bits 0 to 7]} ∈
+    {17} repeated %8 
+    .i4[bits 8 to 15]# ∈ {4369}%16, bits 8 to 15 
+  S4{.i1#; .i2#} ∈ {17} repeated %8 
+    {.c1#; .c2#} ∈ {4369}%32, bits 0 to 15 
+    {.i3#; .i4#} ∈ {17} repeated %8 
+[value] Values at end of function main:
+  T[0]# ∈ {1; 2}%32, bits 0 to 7 
+   [1]# ∈ {1; 2}%32, bits 8 to 15 
+   [bits 16 to 95]# ∈ {1; 2} repeated %32, bits 16 to 95 
+   [12..299] ∈ {0}
+  S1.i1[bits 0 to 7] ∈ {17}
+    {.i1[bits 8 to 15]#; .i2} ∈ {4369} repeated %16, bits 8 to 31 
+    {.c1; .c2} ∈ {17}
+    {.i3; .i4} ∈ {4369}
+  S2.i1# ∈ {17} repeated %8 
+    .i2 ∈ {4369}
+    {.c1; .c2} ∈ {17}
+    {.i3; .i4} ∈ {4369}
+  S3.i1[bits 0 to 7]# ∈ {4369}%16, bits 0 to 7 
+    {.i1[bits 8 to 15]; .i2#; .c1; .c2; .i3#; .i4[bits 0 to 7]} ∈
+    {17} repeated %8 
+    .i4[bits 8 to 15]# ∈ {4369}%16, bits 8 to 15 
+  S4{.i1#; .i2#} ∈ {17} repeated %8 
+    {.c1#; .c2#} ∈ {4369}%32, bits 0 to 15 
+    {.i3#; .i4#} ∈ {17} repeated %8 
+[from] Computing for function misaligned_struct
+[from] Done for function misaligned_struct
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function misaligned_struct:
+  S1.i1[bits 0 to 7] FROM \nothing
+  S2.i1 FROM \nothing
+  S3{{.i1[bits 8 to 15]; .i2}; {.i3; .i4[bits 0 to 7]}} FROM \nothing
+  S4 FROM \nothing
+[from] Function main:
+  T{[0]; [2..3]} FROM c1
+   {[1]; [4..11]} FROM c2
+  S1.i1[bits 0 to 7] FROM \nothing
+  S2.i1 FROM \nothing
+  S3{{.i1[bits 8 to 15]; .i2}; {.i3; .i4[bits 0 to 7]}} FROM \nothing
+  S4 FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function misaligned_struct:
+          S1.i1[bits 0 to 7]; S2.i1;
+          S3{{.i1[bits 8 to 15]; .i2}; {.i3; .i4[bits 0 to 7]}}; S4
+[inout] Inputs for function misaligned_struct:
+          S1{.i1; .i2; .c1; .c2}; S2{{.i1; .i2}; .c2}; S3{{.i1; .i2; .c1}; .i3};
+          S4{.i1; .i2; .c1; .c2; .i3}
+[inout] Out (internal) for function main:
+          T[0..11]; S1.i1[bits 0 to 7]; S2.i1;
+          S3{{.i1[bits 8 to 15]; .i2}; {.i3; .i4[bits 0 to 7]}}; S4
+[inout] Inputs for function main:
+          T[4..7]; S1{.i1; .i2; .c1; .c2}; S2{{.i1; .i2}; .c2};
+          S3{{.i1; .i2; .c1}; .i3}; S4{.i1; .i2; .c1; .c2; .i3}

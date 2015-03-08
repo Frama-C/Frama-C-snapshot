@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -534,7 +534,7 @@ end
 
 module Int = struct
   include (Integer: module type of Integer with type t = Integer.t)
-  include (Datatype.Big_int: Datatype.S_with_collections with type t:=Integer.t)
+  include (Datatype.Integer: Datatype.S_with_collections with type t:=Integer.t)
 
   let pretty fmt v =
     if not (Kernel.BigIntsHex.is_default ()) then

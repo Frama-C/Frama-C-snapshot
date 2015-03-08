@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -val -cpp-command "gcc -C -E -DPTEST"  -journal-disable -then -machdep x86_64 -then -machdep x86_16
+   OPT: -val -cpp-extra-args="-DPTEST"  -journal-disable -then -machdep x86_64 -then -machdep x86_16
 */
 
 #ifndef PTEST

@@ -1,0 +1,31 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/wide_string.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  
+tests/misc/wide_string.c:16:[kernel] warning: accessing out of bounds index {4}. assert 4 < 4;
+tests/misc/wide_string.c:19:[kernel] warning: accessing out of bounds index {4}. assert 4 < 4;
+[value] Recording results for main
+[value] done for function main
+tests/misc/wide_string.c:16:[value] Assertion 'Value,index_bound' got final status invalid.
+tests/misc/wide_string.c:19:[value] Assertion 'Value,index_bound' got final status invalid.
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  p ∈ {{ "bar" }}
+  q ∈ {{ L"foO" }}
+  __retres ∈ {0}
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  \result FROM "bar"{[bits 8 to 15]; [bits 24 to 31]};
+               L"foO"{[bits 32 to 63]; [bits 96 to 127]}
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          p; q; c; wc; __retres
+[inout] Inputs for function main:
+          "bar"{[bits 8 to 15]; [bits 24 to 31]};
+          L"foO"{[bits 32 to 63]; [bits 96 to 127]}

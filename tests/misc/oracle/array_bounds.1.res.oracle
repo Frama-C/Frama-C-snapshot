@@ -1,0 +1,82 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/array_bounds.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  c ∈ [--..--]
+  s.a ∈ {1}
+   .T[0] ∈ {0}
+   .T[1] ∈ {1}
+   .T[2] ∈ {2}
+   .T[3] ∈ {3}
+   .T[4] ∈ {4}
+   .T[5] ∈ {5}
+   .T[6] ∈ {6}
+   .T[7] ∈ {7}
+   .T[8] ∈ {8}
+   .T[9] ∈ {9}
+   .T[10] ∈ {10}
+   .T[11] ∈ {11}
+   .b ∈ {20}
+  u.a ∈ {1}
+   .T[0] ∈ {0}
+   .T[1] ∈ {1}
+   .T[2] ∈ {2}
+   .T[3] ∈ {3}
+   .T[4] ∈ {4}
+   .T[5] ∈ {5}
+   .T[6] ∈ {6}
+   .T[7] ∈ {7}
+   .T[8] ∈ {8}
+   .T[9] ∈ {9}
+   .T[10] ∈ {10}
+   .T[11] ∈ {11}
+   .b ∈ {20}
+tests/misc/array_bounds.i:14:[value] entering loop for the first time
+[value] Called Frama_C_show_each({0})
+[value] Called Frama_C_show_each({0; 1})
+[value] Called Frama_C_show_each({0; 1; 2})
+[value] Called Frama_C_show_each({0; 1; 2; 3})
+[value] Called Frama_C_show_each({0; 1; 2; 3; 4})
+[value] Called Frama_C_show_each([0..11])
+[value] Called Frama_C_show_each([0..12])
+[value] Called Frama_C_show_each([0..15])
+tests/misc/array_bounds.i:16:[kernel] warning: out of bounds write. assert \valid(&u.T[i]);
+[value] Called Frama_C_show_each([0..16])
+[value] Called Frama_C_show_each([0..127])
+[value] Called Frama_C_show_each([0..128])
+[value] Called Frama_C_show_each([0..512])
+[value] Called Frama_C_show_each([0..513])
+[value] Called Frama_C_show_each([0..32767])
+[value] Called Frama_C_show_each([0..32768])
+tests/misc/array_bounds.i:14:[kernel] warning: signed overflow. assert i+5 ≤ 2147483647;
+[value] Called Frama_C_show_each([0..2147483647])
+tests/misc/array_bounds.i:14:[kernel] warning: signed overflow. assert i+1 ≤ 2147483647;
+tests/misc/array_bounds.i:19:[value] entering loop for the first time
+tests/misc/array_bounds.i:20:[kernel] warning: out of bounds write. assert \valid(&s.T[j]);
+tests/misc/array_bounds.i:19:[kernel] warning: signed overflow. assert j+5 ≤ 2147483647;
+tests/misc/array_bounds.i:19:[kernel] warning: signed overflow. assert j+1 ≤ 2147483647;
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  s.a ∈ {9}
+   {.T[0..11]; .b} ∈ [--..--]
+  u.a ∈ {-1; 1}
+   {.T[0..11]; .b} ∈ [--..--]
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  s.a FROM \nothing
+   .T[0..11] FROM c (and SELF)
+   .b FROM c
+  u.a FROM c (and SELF)
+   {.T[0..11]; .b} FROM c (and SELF)
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          s; u; i; j
+[inout] Inputs for function main:
+          c

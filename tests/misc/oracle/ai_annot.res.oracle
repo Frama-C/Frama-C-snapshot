@@ -1,0 +1,38 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/ai_annot.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  u ∈ {0}
+  v ∈ {0}
+  w ∈ {0}
+tests/misc/ai_annot.i:9:[value] Assertion got status unknown.
+tests/misc/ai_annot.i:10:[value] Assertion got status unknown.
+tests/misc/ai_annot.i:11:[value] Assertion got status unknown.
+tests/misc/ai_annot.i:12:[kernel] warning: out of bounds write. assert \valid(p+1);
+tests/misc/ai_annot.i:14:[kernel] warning: out of bounds read. assert \valid_read(p+2);
+tests/misc/ai_annot.i:14:[kernel] warning: signed overflow. assert x+*(p+2) ≤ 2147483647;
+[value] Recording results for main
+[value] done for function main
+[scope:rm_asserts] removing 2 assertion(s)
+tests/misc/ai_annot.i:12:[scope:rm_asserts] removing redundant assert Value: mem_access: \valid(p+1);
+tests/misc/ai_annot.i:14:[scope:rm_asserts] removing redundant assert Value: mem_access: \valid_read(p+2);
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  __retres ∈ [--..--]
+  S_p[0] ∈ [--..--]
+     [1] ∈ [0..2147483647]
+     [2] ∈ [--..--]
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  S_p[1] FROM x; p
+  \result FROM x; p; S_p[2]
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          __retres; S_p[1]
+[inout] Inputs for function main:
+          S_p[2]

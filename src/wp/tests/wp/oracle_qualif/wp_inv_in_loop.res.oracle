@@ -1,0 +1,66 @@
+# frama-c -wp -wp-model 'Typed (Ref)' [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp/wp_inv_in_loop.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] Collecting variable usage
+tests/wp/wp_inv_in_loop.c:99:[wp] warning: Missing assigns clause (assigns 'everything' instead)
+tests/wp/wp_inv_in_loop.c:169:[wp] warning: calculus failed on strategy
+              for 'double_entry', behavior 'default!', properties -qed_ko, both assigns or not
+              because unsupported non-natural loop without invariant property. (abort)
+tests/wp/wp_inv_in_loop.c:45:[wp] warning: Missing assigns clause (assigns 'everything' instead)
+tests/wp/wp_inv_in_loop.c:185:[wp] warning: Missing assigns clause (assigns 'everything' instead)
+tests/wp/wp_inv_in_loop.c:82:[wp] warning: Missing assigns clause (assigns 'everything' instead)
+tests/wp/wp_inv_in_loop.c:62:[wp] warning: Missing assigns clause (assigns 'everything' instead)
+tests/wp/wp_inv_in_loop.c:17:[wp] warning: Missing assigns clause (assigns 'everything' instead)
+[wp] 32 goals scheduled
+[wp] [Qed] Goal typed_ref_bts618_inv_qed_ok : Valid
+[wp] [Qed] Goal typed_ref_caveat_inv_inv_qed_ok : Valid
+[wp] [Qed] Goal typed_ref_caveat_inv_loop_assign : Valid
+[wp] [Qed] Goal typed_ref_double_loop_inv_qed_ok : Valid
+[wp] [Qed] Goal typed_ref_double_loop_inv_qed_ok_2 : Valid
+[wp] [Qed] Goal typed_ref_double_loop_loop_assign : Valid
+[wp] [Qed] Goal typed_ref_goto_natural_loop_qed_ok_post_qed_ok_ok : Valid
+[wp] [Qed] Goal typed_ref_goto_natural_loop_inv_qed_ok_for_qed_ok : Valid
+[wp] [Qed] Goal typed_ref_inv_from_init_inv_qed_ok_I : Valid
+[wp] [Qed] Goal typed_ref_inv_from_init_loop_assign : Valid
+[wp] [Alt-Ergo] Goal typed_ref_non_natural_loop_n_neg_post : Valid
+[wp] [Alt-Ergo] Goal typed_ref_non_natural_loop_inv_for_n_neg : Valid
+[wp] [Alt-Ergo] Goal typed_ref_non_natural_loop_n_pos_post : Unknown
+[wp] [Alt-Ergo] Goal typed_ref_non_natural_loop_inv_qed_ok_for_n_pos : Valid
+[wp] [Qed] Goal typed_ref_razT2_post_post : Valid
+[wp] [Qed] Goal typed_ref_razT2_inv_Ii : Valid
+[wp] [Qed] Goal typed_ref_razT2_inv : Valid
+[wp] [Qed] Goal typed_ref_razT2_inv_2 : Valid
+[wp] [Qed] Goal typed_ref_razT2_loop_assign_part1 : Valid
+[wp] [Qed] Goal typed_ref_razT2_loop_assign_part2 : Valid
+[wp] [Qed] Goal typed_ref_razT2_loop_assign_part3 : Valid
+[wp] [Qed] Goal typed_ref_razT2simple_post_qed_ok_post : Valid
+[wp] [Qed] Goal typed_ref_razT2simple_inv_qed_ok_I1 : Valid
+[wp] [Qed] Goal typed_ref_razT2simple_inv_qed_ok_I2 : Valid
+[wp] [Qed] Goal typed_ref_razT2simple_loop_assign_part1 : Valid
+[wp] [Qed] Goal typed_ref_razT2simple_loop_assign_part2 : Valid
+[wp] [Qed] Goal typed_ref_razT2simple_loop_assign_part3 : Valid
+[wp] [Qed] Goal typed_ref_simple_inv_post_qed_ok : Valid
+[wp] [Qed] Goal typed_ref_simple_inv_inv_qed_ok : Valid
+[wp] [Qed] Goal typed_ref_test_for_tag_post_qed_ok : Valid
+[wp] [Qed] Goal typed_ref_test_for_tag_inv_qed_ok : Valid
+[wp] [Qed] Goal typed_ref_test_for_tag_loop_assign : Valid
+[wp] Proved goals:   31 / 32
+     Qed:            28 
+     Alt-Ergo:        3  (unknown: 1)
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+simple_inv           2     -           2       100%
+inv_from_init        2     -           2       100%
+caveat_inv           2     -           2       100%
+double_loop          3     -           3       100%
+razT2simple          6     -           6       100%
+razT2                7     -           7       100%
+bts618               1     -           1       100%
+non_natural_loop    -       3 (36)     4      75.0%
+test_for_tag         3     -           3       100%
+goto_natural_loop    2     -           2       100%
+----------------------------------------------------------

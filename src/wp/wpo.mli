@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -64,7 +64,7 @@ end
 module VC_Lemma :
 sig
 
-   type t = {
+  type t = {
     lemma : Definitions.dlemma ;
     depends : logic_lemma list ; 
     (* list of axioms and lemma on which the proof depends on *)

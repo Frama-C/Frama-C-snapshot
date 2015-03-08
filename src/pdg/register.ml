@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -124,17 +124,16 @@ let () = Pdg_parameters.BuildAll.set_output_dependencies deps
 let compute () =
   let all = Pdg_parameters.BuildAll.get () in
   let do_kf_pdg kf =
-    let fname = Kernel_function.get_name kf in
-    if all || Datatype.String.Set.mem fname (Pdg_parameters.BuildFct.get ())
-    then
+    if all || Kernel_function.Set.mem kf (Pdg_parameters.BuildFct.get ()) then
       let pdg = !Db.Pdg.get kf in
       let dot_basename = Pdg_parameters.DotBasename.get () in
       if dot_basename <> "" then
+        let fname = Kernel_function.get_name kf in
         !Db.Pdg.extract pdg (dot_basename ^ "." ^ fname ^ ".dot")
   in
   !Db.Semantic_Callgraph.topologically_iter_on_functions do_kf_pdg;
-  Pdg_parameters.debug "Logging keys : %s" 
-    (Pdg_parameters.Debug_category.get_set()) ;
+  Pdg_parameters.debug "Logging keys : %s"
+    (Pdg_parameters.Debug_category.As_string.get ());
   if Pdg_parameters.BuildAll.get () then
     Pdg_parameters.feedback "====== PDG GRAPH COMPUTED ======"
 
@@ -145,20 +144,19 @@ let output () =
   let bw  = Pdg_parameters.PrintBw.get () in
   let all = Pdg_parameters.BuildAll.get () in
   let do_kf_pdg kf =
-    let fname = Kernel_function.get_name kf in
-    if all || Datatype.String.Set.mem fname (Pdg_parameters.BuildFct.get ())
-    then
+    if all || Kernel_function.Set.mem kf (Pdg_parameters.BuildFct.get ()) then
       let pdg = !Db.Pdg.get kf in
       let header fmt =
         Format.fprintf fmt "PDG for %a" Kernel_function.pretty kf
       in
-      Pdg_parameters.printf ~header "@[ @[%a@]@]" (PdgTypes.Pdg.pretty_bw ~bw) pdg
+      Pdg_parameters.printf ~header "@[ @[%a@]@]"
+        (PdgTypes.Pdg.pretty_bw ~bw) pdg
   in
   !Db.Semantic_Callgraph.topologically_iter_on_functions do_kf_pdg
 
 let something_to_do () =
   Pdg_parameters.BuildAll.get ()
-  || not (Datatype.String.Set.is_empty (Pdg_parameters.BuildFct.get ()))
+  || not (Kernel_function.Set.is_empty (Pdg_parameters.BuildFct.get ()))
 
 let main () =
   if something_to_do () then

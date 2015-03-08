@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -51,10 +51,6 @@ and validity =
   	   - potentially valid between k+1 and e:
           Accesses on potentially valid parts will succeed, but will also
           raise an alarm. *)
-  | Periodic of Int.t * Int.t (** min-max bounds*) * Int.t (** Period *)
-      (** Valid between the two bounds, and considered as a repetition
-          of the given period. Only one period is stored; consequently,
-          strong updates are impossible. *)
   | Invalid (** Valid nowhere. Typically used for the NULL base, or for
                 function pointers. *)
 
@@ -71,6 +67,7 @@ module Hptset: Hptset.S
 
 module SetLattice: Lattice_type.Lattice_Hashconsed_Set with module O = Hptset
 
+module Validity: Datatype.S with type t = validity
 
 (** [pretty_addr fmt base] pretty-prints the name of [base] on [fmt], with 
     a leading ampersand if it is a variable *)
@@ -86,7 +83,7 @@ val typeof : t -> Cil_types.typ option
 val pretty_validity : Format.formatter -> validity -> unit
 val validity : t -> validity
 val validity_from_type : Cil_types.varinfo -> validity
-val valid_range: validity -> Lattice_Interval_Set.Int_Intervals.t
+val valid_range: validity -> Int_Intervals_sig.itv option
 
 
 (** {2 Finding bases} *)
@@ -120,6 +117,8 @@ val is_function : t -> bool
 
 val null : t
 val is_null : t -> bool
+val null_set: Hptset.t
+(** Set containing only the base {!null}. *)
 
 val min_valid_absolute_address: unit -> Int.t
 val max_valid_absolute_address: unit -> Int.t
@@ -157,8 +156,7 @@ val register_initialized_var: Cil_types.varinfo -> validity -> t
 val register_memory_var : Cil_types.varinfo -> validity -> t
   (** Memory variables are variables not present in the source of the program.
       They are created only to fill the contents of another variable, or
-      through dynamic allocation. Their field [vlogic] is set to true. *)
-  (* TODO: change name of [vlogic] field. *)
+      through dynamic allocation. Their field [vsource] is set to false. *)
 
 (*
 Local Variables:

@@ -1,0 +1,46 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/label.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  a ∈ {0}
+  b ∈ {0}
+  d ∈ {0}
+  e ∈ {0}
+  i ∈ {0}
+  p ∈ {0}
+  q ∈ {0}
+tests/misc/label.i:18:[value] Assigning imprecise value to *((char *)(& p) + i)
+        (pointing to p with offsets {0; 8}).
+        The imprecision originates from Merge {tests/misc/label.i:18}
+tests/misc/label.i:18:[value] Assigning imprecise value to *((char *)(& p) + i)
+        (pointing to p with offsets {0; 8; 16}).
+        The imprecision originates from Merge {tests/misc/label.i:18}
+tests/misc/label.i:18:[value] Assigning imprecise value to *((char *)(& p) + i)
+        (pointing to p with offsets {0; 8; 16; 24}).
+        The imprecision originates from Merge {tests/misc/label.i:18}
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  a ∈ {{ &d + {4} }}
+  b ∈ {1; 2}
+  i ∈ {4}
+  p ∈ {{ garbled mix of &{a; b} (origin: Merge {tests/misc/label.i:18}) }}
+  q ∈ {{ &a }}
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  a FROM \nothing
+  b FROM c
+  i FROM i
+  p FROM i; c
+  q FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          a; b; i; p; q
+[inout] Inputs for function main:
+          i; p; q

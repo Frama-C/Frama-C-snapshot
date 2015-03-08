@@ -1,0 +1,24 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/float/round10d.i (no preprocessing)
+tests/float/round10d.i:9:[kernel] warning: Floating-point constant 0.1 is not represented exactly. Will use 0x1.999999999999ap-4. See documentation for option -warn-decimal-float
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  
+[value] Called Frama_C_show_each_dixieme({1.6000000000000000*2^-4})
+[value] Called Frama_C_show_each_t({1.6000000000000000*2^-4})
+[value] Called Frama_C_show_each_t({1.6000000000000000*2^-3})
+[value] Called Frama_C_show_each_t({1.2000000000000001*2^-2})
+[value] Called Frama_C_show_each_t({1.6000000000000000*2^-2})
+[value] Called Frama_C_show_each_t({1.0000000000000000*2^-1})
+[value] Called Frama_C_show_each_t({1.1999999999999999*2^-1})
+[value] Called Frama_C_show_each_t({1.3999999999999999*2^-1})
+[value] Called Frama_C_show_each_t({1.5999999999999998*2^-1})
+[value] Called Frama_C_show_each_t({1.7999999999999998*2^-1})
+[value] Called Frama_C_show_each_t({1.9999999999999998*2^-1})
+tests/float/round10d.i:11:[value] entering loop for the first time
+tests/float/round10d.i:16:[value] Assertion got status invalid (stopping propagation).
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======

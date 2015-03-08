@@ -1,5 +1,5 @@
 /* run.config
-   STDOPT: +"-print"
+   STDOPT: +"-print -then -scf -then-on propagated -val -no-scf"
 */
 
 int *p;

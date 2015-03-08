@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -28,30 +28,30 @@ let job_key= Wp_parameters.register_category "trace-job"
 let cmdline () : setup =
   begin
     match Wp_parameters.Model.get () with
-      | ["Runtime"] ->
-	  Wp_parameters.abort
-	    "Model 'Runtime' is no more available.@\nIt will be reintroduced \
-             in a future release."
-      | ["Logic"] ->
-	  Wp_parameters.warning ~once:true
-	    "Deprecated 'Logic' model.@\nUse 'Typed' with option '-wp-ref' \
-             instead." ;
-	  {
-	    mheap = Factory.Typed MemTyped.Fits ;
-	    mvar = Factory.Ref ;
-	    cint = Cint.Natural ;
-	    cfloat = Cfloat.Real ;
-	  }
-      | ["Store"] ->
-	  Wp_parameters.warning ~once:true
-	    "Deprecated 'Store' model.@\nUse 'Typed' instead." ;
-	  {
-	    mheap = Factory.Typed MemTyped.Fits ;
-	    mvar = Factory.Var ;
-	    cint = Cint.Natural ;
-	    cfloat = Cfloat.Real ;
-	  }
-      | spec -> Factory.parse spec
+    | ["Runtime"] ->
+        Wp_parameters.abort
+          "Model 'Runtime' is no more available.@\nIt will be reintroduced \
+           in a future release."
+    | ["Logic"] ->
+        Wp_parameters.warning ~once:true
+          "Deprecated 'Logic' model.@\nUse 'Typed' with option '-wp-ref' \
+           instead." ;
+        {
+          mheap = Factory.Typed MemTyped.Fits ;
+          mvar = Factory.Ref ;
+          cint = Cint.Natural ;
+          cfloat = Cfloat.Real ;
+        }
+    | ["Store"] ->
+        Wp_parameters.warning ~once:true
+          "Deprecated 'Store' model.@\nUse 'Typed' instead." ;
+        {
+          mheap = Factory.Typed MemTyped.Fits ;
+          mvar = Factory.Var ;
+          cint = Cint.Natural ;
+          cfloat = Cfloat.Real ;
+        }
+    | spec -> Factory.parse spec
   end
 
 let set_model (s:setup) =
@@ -78,7 +78,7 @@ let do_wp_print () =
       Log.print_on_output
         (fun fmt ->
            Wpo.iter
-	     ~on_axiomatics:(Wpo.pp_axiomatics fmt)
+             ~on_axiomatics:(Wpo.pp_axiomatics fmt)
              ~on_behavior:(Wpo.pp_function fmt)
              ~on_goal:(Wpo.pp_goal_flow fmt) ())
 
@@ -87,7 +87,7 @@ let do_wp_print_for goals =
     if Bag.is_empty goals
     then Wp_parameters.result "No proof obligations"
     else Log.print_on_output
-      (fun fmt -> Bag.iter (Wpo.pp_goal_flow fmt) goals)
+        (fun fmt -> Bag.iter (Wpo.pp_goal_flow fmt) goals)
 
 let do_wp_report () =
   let rfiles = Wp_parameters.Report.get () in
@@ -110,31 +110,31 @@ let pp_result wpo fmt r =
   else
     VCS.pp_result fmt r ;
   match r.VCS.verdict with
-    | VCS.Unknown | VCS.Timeout | VCS.Stepout ->
-	let ws = Wpo.warnings wpo in
-	if ws <> [] then
-	  let n = List.length ws in
-	  let s = List.exists (fun w -> w.Warning.severe) ws in
-	  begin
-	    match s , n with
-	      | true , 1 -> Format.fprintf fmt " (Degenerated)"
-	      | true , _ -> Format.fprintf fmt " (Degenerated, %d warnings)" n
-	      | false , 1 -> Format.fprintf fmt " (Stronger)"
-	      | false , _ -> Format.fprintf fmt " (Stronger, %d warnings)" n
-	  end
-    | _ -> ()
+  | VCS.Unknown | VCS.Timeout | VCS.Stepout ->
+      let ws = Wpo.warnings wpo in
+      if ws <> [] then
+        let n = List.length ws in
+        let s = List.exists (fun w -> w.Warning.severe) ws in
+        begin
+          match s , n with
+          | true , 1 -> Format.fprintf fmt " (Degenerated)"
+          | true , _ -> Format.fprintf fmt " (Degenerated, %d warnings)" n
+          | false , 1 -> Format.fprintf fmt " (Stronger)"
+          | false , _ -> Format.fprintf fmt " (Stronger, %d warnings)" n
+        end
+  | _ -> ()
 
 let do_wpo_start goal prover =
   if Wp_parameters.has_dkey "prover" then
     Wp_parameters.feedback "[%a] Goal %s preprocessing" 
       VCS.pp_prover prover (Wpo.get_gid goal)
-  
+
 let auto_check_valid goal result = match goal with
   | { Wpo.po_formula = Wpo.GoalCheck _ } -> result.VCS.verdict = VCS.Valid
   | _ -> false
 
 let is_verdict result = Wpo.is_verdict result || Wp_parameters.Check.get ()
-      
+
 let wp_why3ide_launch task =
   let server = ProverTask.server () in
   (** Do on_server_stop save why3 session *)
@@ -158,19 +158,19 @@ let do_wp_check_iter provers iter_on_goals =
     match result.VCS.verdict with
     | VCS.Computing _ -> ()
     | VCS.Timeout | VCS.Stepout | VCS.Failed ->
-      Wp_parameters.feedback "[%a] Type error %s : %a"
-	VCS.pp_prover prover (Wpo.get_gid goal) (pp_result goal) result;
+        Wp_parameters.feedback "[%a] Type error %s : %a"
+          VCS.pp_prover prover (Wpo.get_gid goal) (pp_result goal) result;
     | VCS.NoResult | VCS.Invalid | VCS.Unknown | VCS.Valid
-        when Wp_parameters.has_dkey "prover" ->
-      Wp_parameters.feedback "[%a] Type ok %s : %a"
-	VCS.pp_prover prover (Wpo.get_gid goal) (pp_result goal) result;
+      when Wp_parameters.has_dkey "prover" ->
+        Wp_parameters.feedback "[%a] Type ok %s : %a"
+          VCS.pp_prover prover (Wpo.get_gid goal) (pp_result goal) result;
     | VCS.NoResult | VCS.Invalid | VCS.Unknown | VCS.Valid -> ()
   in
   iter_on_goals
     (fun goal ->
-      if not (already_valid goal) then
-	Prover.spawn goal 
-	  ~callin:do_wpo_start ~callback:do_wpo_feedback provers
+       if not (already_valid goal) then
+         Prover.spawn goal 
+           ~callin:do_wpo_start ~callback:do_wpo_feedback provers
     ) ;
   Task.launch server
 
@@ -178,14 +178,14 @@ let do_wp_check () =
   match Wp_parameters.wpcheck_provers () with
   | [] -> ()
   | l ->
-    do_wp_check_iter l (fun f -> Wpo.iter ~on_goal:f ())
+      do_wp_check_iter l (fun f -> Wpo.iter ~on_goal:f ())
 
 let do_wp_check_for goals =
   match Wp_parameters.wpcheck_provers () with
   | [] -> ()
   | l ->
-    do_wp_check_iter l (fun f -> Bag.iter f goals)
-	
+      do_wp_check_iter l (fun f -> Bag.iter f goals)
+
 (* ------------------------------------------------------------------------ *)
 (* ---  Feedback                                                        --- *)
 (* ------------------------------------------------------------------------ *)
@@ -203,7 +203,7 @@ module PM =
 type pstat = { 
   mutable proved : int ;
   mutable unknown : int ;
-  mutable interruped : int ;
+  mutable interrupted : int ;
   mutable failed : int ;
   mutable uptime : float ;
   mutable dntime : float ;
@@ -235,7 +235,7 @@ let get_pstat p =
     let s = { 
       proved = 0 ; 
       unknown = 0 ;
-      interruped = 0 ; 
+      interrupted = 0 ;
       failed = 0 ;
       steps = 0 ;
       uptime = 0.0 ;
@@ -256,11 +256,11 @@ let do_list_scheduled iter_on_goals =
     begin
       clear_scheduled () ;
       iter_on_goals 
-	(fun goal -> if not (already_valid goal) then 
-	    begin
-	      incr scheduled ;
-	      if !spy then session := GOALS.add goal !session ;
-	    end) ;
+        (fun goal -> if not (already_valid goal) then 
+            begin
+              incr scheduled ;
+              if !spy then session := GOALS.add goal !session ;
+            end) ;
       let n = !scheduled in
       if n > 1
       then Wp_parameters.feedback "%d goals scheduled" n 
@@ -271,19 +271,19 @@ let do_wpo_feedback goal prover res =
   if is_verdict res && not (auto_check_valid goal res) then
     begin
       Wp_parameters.feedback "[%a] Goal %s : %a"
-	VCS.pp_prover prover (Wpo.get_gid goal) (pp_result goal) res;
+        VCS.pp_prover prover (Wpo.get_gid goal) (pp_result goal) res;
       let s = get_pstat prover in
       let open VCS in
       match res.verdict with
-	| NoResult | Computing _ | Invalid | Unknown -> s.unknown <- succ s.unknown
-	| Stepout | Timeout -> s.interruped <- succ s.interruped
-	| Failed -> s.failed <- succ s.failed
-	| Valid ->
-	    proved := GOALS.add goal !proved ;
-	    s.proved <- succ s.proved ;
-	    add_step s res.prover_steps ;
-	    add_time s res.prover_time ;
-	    if prover <> Qed then add_time (get_pstat Qed) res.solver_time
+      | NoResult | Computing _ | Invalid | Unknown -> s.unknown <- succ s.unknown
+      | Stepout | Timeout -> s.interrupted <- succ s.interrupted
+      | Failed -> s.failed <- succ s.failed
+      | Valid ->
+          proved := GOALS.add goal !proved ;
+          s.proved <- succ s.proved ;
+          add_step s res.prover_steps ;
+          add_time s res.prover_time ;
+          if prover <> Qed then add_time (get_pstat Qed) res.solver_time
     end
 
 let do_list_scheduled_result () =
@@ -291,32 +291,32 @@ let do_list_scheduled_result () =
     begin
       let proved = GOALS.cardinal !proved in
       Wp_parameters.result "%t"
-	(fun fmt ->
-	   Format.fprintf fmt "Proved goals: %4d / %d@\n" proved !scheduled ;
-	   let ptab p = String.length (VCS.name_of_prover p) in
-	   let ntab = PM.fold (fun p _ s -> max (ptab p) s) !provers 12 in
-	   PM.iter
-	     (fun p s ->
-		let name = VCS.name_of_prover p in
-		Format.fprintf fmt "%s:%s %4d " 
-		  name (String.make (ntab - String.length name) ' ') s.proved ;
-		if s.uptime > Rformat.epsilon && 
-		  not (Wp_parameters.has_dkey "no-time-info") 
-		then 
-		  Format.fprintf fmt " (%a-%a)" 
-		    Rformat.pp_time s.dntime 
-		    Rformat.pp_time s.uptime ;
-		if s.steps > 0  && not (Wp_parameters.has_dkey "no-step-info") then 
-		  Format.fprintf fmt " (%d)" s.steps ;
-		if s.interruped > 0 then 
-		  Format.fprintf fmt " (interruped: %d)" s.interruped ;
-		if s.unknown > 0 then 
-		  Format.fprintf fmt " (unknown: %d)" s.unknown ;
-		if s.failed > 0 then 
-		  Format.fprintf fmt " (failed: %d)" s.failed ;
-		Format.fprintf fmt "@\n" ;
-	     ) !provers
-	) ;
+        (fun fmt ->
+           Format.fprintf fmt "Proved goals: %4d / %d@\n" proved !scheduled ;
+           let ptab p = String.length (VCS.name_of_prover p) in
+           let ntab = PM.fold (fun p _ s -> max (ptab p) s) !provers 12 in
+           PM.iter
+             (fun p s ->
+                let name = VCS.name_of_prover p in
+                Format.fprintf fmt "%s:%s %4d " 
+                  name (String.make (ntab - String.length name) ' ') s.proved ;
+                if s.uptime > Rformat.epsilon && 
+                   not (Wp_parameters.has_dkey "no-time-info") 
+                then 
+                  Format.fprintf fmt " (%a-%a)" 
+                    Rformat.pp_time s.dntime 
+                    Rformat.pp_time s.uptime ;
+                if s.steps > 0  && not (Wp_parameters.has_dkey "no-step-info") then 
+                  Format.fprintf fmt " (%d)" s.steps ;
+                if s.interrupted > 0 then
+                  Format.fprintf fmt " (interrupted: %d)" s.interrupted ;
+                if s.unknown > 0 then 
+                  Format.fprintf fmt " (unknown: %d)" s.unknown ;
+                if s.failed > 0 then 
+                  Format.fprintf fmt " (failed: %d)" s.failed ;
+                Format.fprintf fmt "@\n" ;
+             ) !provers
+        ) ;
       clear_scheduled () ;
     end
 
@@ -330,18 +330,18 @@ let spwan_wp_proofs_iter ~provers iter_on_goals =
       let server = ProverTask.server () in
       ignore (Wp_parameters.Share.dir ()); (* To prevent further errors *)
       iter_on_goals
-	(fun goal ->
-	   if not (already_valid goal) then
-	     Prover.spawn goal 
-	       ~callin:do_wpo_start ~callback:do_wpo_feedback provers
-	) ;
+        (fun goal ->
+           if not (already_valid goal) then
+             Prover.spawn goal 
+               ~callin:do_wpo_start ~callback:do_wpo_feedback provers
+        ) ;
       Task.launch server
     end
   else if not (Wp_parameters.Print.get ()) then
     iter_on_goals
       (fun goal ->
-	 if not (already_valid goal) then
-	   do_wpo_display goal)
+         if not (already_valid goal) then
+           do_wpo_display goal)
 
 let get_prover_names () =
   match Wp_parameters.Provers.get () with [] -> [ "alt-ergo" ] | pnames -> pnames
@@ -350,9 +350,9 @@ let compute_provers why3ide () =
   List.fold_right
     (fun pname prvs ->
        match Wpo.prover_of_name pname with
-	 | None -> prvs
-         | Some VCS.Why3ide -> why3ide := true; prvs
-	 | Some prover -> (VCS.mode_of_prover_name pname , prover) :: prvs)
+       | None -> prvs
+       | Some VCS.Why3ide -> why3ide := true; prvs
+       | Some prover -> (VCS.mode_of_prover_name pname , prover) :: prvs)
     (get_prover_names ()) []
 
 let do_wp_proofs_iter iter =
@@ -382,8 +382,8 @@ let wp_compute_deprecated kf bhv ipopt =
   let model = computer () in
   let goals =
     match ipopt with 
-      | None -> Generator.compute_kf model ?kf ~bhv () 
-      | Some ip -> Generator.compute_ip model ip
+    | None -> Generator.compute_kf model ?kf ~bhv () 
+    | Some ip -> Generator.compute_ip model ip
   in do_wp_proofs_for goals
 
 let wp_compute_kf kf bhv prop =
@@ -410,17 +410,17 @@ let cmdline_run () =
     Dyncall.compute ();
     if Wp_parameters.has_dkey "logicusage" then 
       begin
-	LogicUsage.compute ();
-	LogicUsage.dump ();
+        LogicUsage.compute ();
+        LogicUsage.dump ();
       end ;
     if Wp_parameters.has_dkey "varusage" then 
       begin
-	VarUsage.compute ();
-	VarUsage.dump ();
+        VarUsage.compute ();
+        VarUsage.dump ();
       end ;
     if Wp_parameters.has_dkey "builtins" then 
       begin
-	LogicBuiltins.dump ();
+        LogicBuiltins.dump ();
       end ;
     Variables_analysis.precondition_compute ();
     let bhv = Wp_parameters.Behaviors.get () in
@@ -429,31 +429,31 @@ let cmdline_run () =
     Generator.compute_selection computer ~fct ~bhv ~prop ()
   in
   match Wp_parameters.job () with
-    | Wp_parameters.WP_None -> ()
-    | Wp_parameters.WP_All ->
-	begin
-          ignore (wp_main Generator.F_All);
-          do_wp_proofs ();
-          do_wp_print ();
-	  do_wp_report ();
-          do_wp_check ();
-	end
-    | jb ->
-	let fct = 
-	  let open Wp_parameters in
-	  match jb with
-	    | WP_None -> Generator.F_List []
-	    | WP_All -> Generator.F_All
-	    | WP_Fct fs -> Generator.F_List fs
-	    | WP_SkipFct fs -> Generator.F_Skip fs
-	in
-	begin
-          let goals = wp_main fct in
-          do_wp_proofs_for goals ;
-          do_wp_print_for goals ;
-	  do_wp_report () ;
-          do_wp_check_for goals;
-	end
+  | Wp_parameters.WP_None -> ()
+  | Wp_parameters.WP_All ->
+      begin
+        ignore (wp_main Generator.F_All);
+        do_wp_proofs ();
+        do_wp_print ();
+        do_wp_report ();
+        do_wp_check ();
+      end
+  | jb ->
+      let fct = 
+        let open Wp_parameters in
+        match jb with
+        | WP_None -> Generator.F_List []
+        | WP_All -> Generator.F_All
+        | WP_Fct fs -> Generator.F_List fs
+        | WP_SkipFct fs -> Generator.F_Skip fs
+      in
+      begin
+        let goals = wp_main fct in
+        do_wp_proofs_for goals ;
+        do_wp_print_for goals ;
+        do_wp_report () ;
+        do_wp_check_for goals;
+      end
 
 (* ------------------------------------------------------------------------ *)
 (* ---  Register external functions                                     --- *)
@@ -496,9 +496,9 @@ let wp_clear =
     wp_clear
 
 let run = Dynamic.register ~plugin:"Wp" "run"
-  (Datatype.func Datatype.unit Datatype.unit)
-  ~journalize:true
-  cmdline_run
+    (Datatype.func Datatype.unit Datatype.unit)
+    ~journalize:true
+    cmdline_run
 
 let () =
   let open Datatype in
@@ -525,9 +525,9 @@ let pp_wp_parameters fmt =
     let spec = Wp_parameters.Model.get () in
     if spec <> [] && spec <> ["Typed"] then
       ( let descr = Factory.descr (Factory.parse spec) in
-	Format.fprintf fmt " -wp-model '%s'" descr ) ;
+        Format.fprintf fmt " -wp-model '%s'" descr ) ;
     if not (Wp_parameters.Let.get ()) then Format.pp_print_string fmt
-      " -wp-no-let" ;
+        " -wp-no-let" ;
     if Wp_parameters.Let.get () && not (Wp_parameters.Prune.get ())
     then Format.pp_print_string fmt " -wp-no-prune" ;
     if Wp_parameters.Split.get () then Format.pp_print_string fmt " -wp-split" ;
@@ -542,22 +542,22 @@ let pp_wp_parameters fmt =
   end
 
 let () = Cmdline.run_after_setting_files 
-  (fun _ -> 
-     if Wp_parameters.has_dkey "shell" then
-       Log.print_on_output pp_wp_parameters)
+    (fun _ -> 
+       if Wp_parameters.has_dkey "shell" then
+         Log.print_on_output pp_wp_parameters)
 
 let do_prover_detect () =
   if not !Config.is_gui && Wp_parameters.Detect.get () then
     ProverWhy3.detect_why3 
       begin function
-	| None -> Wp_parameters.error ~current:false "Why3 not found"
-	| Some dps ->
-	    List.iter
-	      (fun dp ->
-		 let open ProverWhy3 in
-		 Wp_parameters.result "Prover %10s %-10s [%s]" 
-		   dp.dp_name dp.dp_version dp.dp_prover
-	      ) dps
+        | None -> Wp_parameters.error ~current:false "Why3 not found"
+        | Some dps ->
+            List.iter
+              (fun dp ->
+                 let open ProverWhy3 in
+                 Wp_parameters.result "Prover %10s %-10s [%s]" 
+                   dp.dp_name dp.dp_version dp.dp_prover
+              ) dps
       end
 
 (* ------------------------------------------------------------------------ *)
@@ -574,9 +574,9 @@ let do_finally job1 job2 () =
     let r1 = try job1 () ; None with error -> Some error in
     let r2 = try job2 () ; None with error -> Some error in
     match r1 , r2 with
-      | None , None -> ()
-      | Some e1 , _ -> raise e1
-      | None , Some e2 -> raise e2
+    | None , None -> ()
+    | Some e1 , _ -> raise e1
+    | None , Some e2 -> raise e2
 
 let (&&&) = do_finally
 let rec sequence jobs = match jobs with
@@ -586,15 +586,15 @@ let rec sequence jobs = match jobs with
 let tracelog () =
   if Datatype.String.Set.is_empty (Wp_parameters.Debug_category.get ()) then
     Wp_parameters.debug
-      "Logging keys : %s." (Wp_parameters.Debug_category.get_set())
-  
+      "Logging keys: %s." (Wp_parameters.Debug_category.As_string.get ())
+
 let main = sequence [
-  (fun () -> Wp_parameters.debug ~dkey:job_key "Start WP plugin...@.") ;
-  do_prover_detect ;
-  cmdline_run ;
-  tracelog ;
-  Wp_parameters.reset ;
-  (fun () -> Wp_parameters.debug ~dkey:job_key "Stop WP plugin...@.") ;
-]
+    (fun () -> Wp_parameters.debug ~dkey:job_key "Start WP plugin...@.") ;
+    do_prover_detect ;
+    cmdline_run ;
+    tracelog ;
+    Wp_parameters.reset ;
+    (fun () -> Wp_parameters.debug ~dkey:job_key "Stop WP plugin...@.") ;
+  ]
 
 let () = Db.Main.extend main

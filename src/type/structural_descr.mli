@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -109,10 +109,10 @@ end
 (* ********************************************************************** *)
 
 val t_unknown: t
-(** @since Neon-20130301 *)
+(** @since Neon-20140301 *)
 
 val t_abstract: t
-(** @since Neon-20130301 *)
+(** @since Neon-20140301 *)
 
 val t_unit : t
 val t_int : t
@@ -131,7 +131,7 @@ val t_option : t -> t
 val t_array : t -> t
 val t_queue: t -> t
 val t_sum: pack array array -> t
-(** @since Neon-20130301 *)
+(** @since Neon-20140301 *)
 
 (** Use the functions below only if the compare/hash functions cannot change by
     marshalling. *)

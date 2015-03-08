@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -41,7 +41,22 @@ let merge_call_froms table callsite froms =
   with Not_found ->
     Kinstr.Hashtbl.add table callsite froms
 
-let call_froms_stack = ref []
+(** State for the analysis of one function call *)
+type from_state = {
+  current_function: Kernel_function.t (** Function being analyzed *);
+  value_initial_state: Db.Value.state (** State of Value at the beginning of
+                                          the call *);
+  table_for_calls: Function_Froms.t Kinstr.Hashtbl.t
+    (** State of the From plugin for each statement containing a function call
+        in the body of [current_function]. Updated incrementally each time
+        Value analyses such a statement *);
+}
+
+(** The state of the callwise From analysis. Only the top of this callstack
+    is accessed. New calls are pushed on the stack when Value starts the
+    analysis of a function, and popped when the analysis finisheds. This
+    stack is manually synchronized with Value's callstack. *)
+let call_froms_stack : from_state list ref = ref []
 
 let record_callwise_dependencies_in_db call_site froms =
   try
@@ -49,19 +64,20 @@ let record_callwise_dependencies_in_db call_site froms =
     Tbl.replace call_site (Function_Froms.join previous froms)
   with Not_found -> Tbl.add call_site froms
 
-let call_for_individual_froms (state, call_stack) =
+let call_for_individual_froms (value_initial_state, call_stack) =
   if From_parameters.ForceCallDeps.get () then begin
     let current_function, call_site = List.hd call_stack in
     if not (!Db.Value.use_spec_instead_of_definition current_function) then
-      let table_for_current_function = Kinstr.Hashtbl.create 7 in
+      let table_for_calls = Kinstr.Hashtbl.create 7 in
       call_froms_stack :=
-        (current_function,table_for_current_function) :: !call_froms_stack
+        { current_function; value_initial_state; table_for_calls } ::
+          !call_froms_stack
     else
       try
-        let _above_function, table = List.hd !call_froms_stack in
+        let { table_for_calls = table } = List.hd !call_froms_stack in
         let froms =
           From_compute.compute_using_prototype_for_state
-            state current_function
+            value_initial_state current_function
         in
         merge_call_froms table call_site froms;
         record_callwise_dependencies_in_db call_site froms;
@@ -71,15 +87,15 @@ let call_for_individual_froms (state, call_stack) =
   end
 
 let end_record call_stack froms =
-    let (current_function, call_site) = List.hd call_stack in
+    let (current_function_value, call_site) = List.hd call_stack in
     record_callwise_dependencies_in_db call_site froms;
     (* pop + record in top of stack the froms of function that just finished *)
     match !call_froms_stack with
-      | (current_function2, _) :: (((_caller, table) :: _) as tail) ->
-          if current_function2 != current_function then
+      | {current_function} :: ({table_for_calls = table} :: _ as tail) ->
+          if current_function_value != current_function then
             From_parameters.fatal "calldeps %a != %a@."
-              Kernel_function.pretty current_function (* g *)
-              Kernel_function.pretty current_function2; (* f *)
+              Kernel_function.pretty current_function
+              Kernel_function.pretty current_function_value;
           call_froms_stack := tail;
           merge_call_froms table call_site froms
 
@@ -99,51 +115,32 @@ module MemExec =
      end)
 
 let compute_call_from_value_states current_function states =
-  let module Froms_To_Use =
-      struct
-        let get _f callsite =
-          let _current_function, table = List.hd !call_froms_stack in
-          try Kinstr.Hashtbl.find table callsite
-          with Not_found -> raise From_compute.Call_did_not_take_place
-      end
-  in
-  let module Values_To_Use = struct
-    let get_stmt_state s =
+  let module To_Use = struct
+    let get_from_call _f callsite =
+      let { table_for_calls } = List.hd !call_froms_stack in
+      try Kinstr.Hashtbl.find table_for_calls (Cil_types.Kstmt callsite)
+      with Not_found -> raise From_compute.Call_did_not_take_place
+
+    let get_value_state s =
       try Stmt.Hashtbl.find states s
       with Not_found -> Cvalue.Model.bottom
 
-    let lval_to_zone_with_deps s ~deps ~for_writing lv =
-      let state = get_stmt_state s in
-      !Db.Value.lval_to_zone_with_deps_state state ~deps ~for_writing lv
+    let keep_base kf base =
+      let fundec = Kernel_function.get_definition kf in
+      not (Base.is_formal_or_local base fundec)
 
-    let expr_to_kernel_function kinstr ~deps exp =
-      let state = get_stmt_state kinstr in
-      !Db.Value.expr_to_kernel_function_state state ~deps exp
-
-    let access_expr stmt expr =
-      let state = get_stmt_state stmt in
-      !Db.Value.eval_expr ~with_alarms:CilE.warn_none_mode state expr
+    let cleanup_and_save _kf froms = froms
   end
   in
-  let module Recording_To_Do =
-      struct
-        let accept_base_in_lmap kf base =
-          let fundec = Kernel_function.get_definition kf in
-          not (Base.is_formal_or_local base fundec)
-        let final_cleanup _kf froms = froms
-        let record_kf _kf _last_froms = ()
-      end
-  in
-  let module Callwise_Froms =
-      From_compute.Make(Values_To_Use)(Froms_To_Use)(Recording_To_Do)
-  in
+  let module Callwise_Froms = From_compute.Make(To_Use) in
   Callwise_Froms.compute_and_return current_function
 
 
 let record_for_individual_froms (call_stack, value_res) =
   if From_parameters.ForceCallDeps.get () then begin
     let froms = match value_res with
-      | Value_types.Normal states | Value_types.NormalStore (states, _) ->
+      | Value_types.Normal (states, _after_states)
+      | Value_types.NormalStore ((states, _after_states), _) ->
           let cur_kf, _ = List.hd call_stack in
           let froms =
             if !Db.Value.no_results (Kernel_function.get_definition cur_kf) then
@@ -151,6 +148,12 @@ let record_for_individual_froms (call_stack, value_res) =
             else
               compute_call_from_value_states cur_kf (Lazy.force states)
           in
+          let pre_state = match !call_froms_stack with
+            | [] -> assert false
+            | { value_initial_state } :: _ -> value_initial_state
+          in
+          if From_parameters.VerifyAssigns.get () then
+	    !Db.Value.verify_assigns_froms cur_kf pre_state froms;
           (match value_res with
              | Value_types.NormalStore (_, memexec_counter) ->
                  MemExec.replace memexec_counter froms

@@ -1,0 +1,50 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/cond2.i (no preprocessing)
+[value] Analyzing a complete application starting at zero_ou_un_0
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  Gx ∈ [--..--]
+  Gy ∈ [--..--]
+  px ∈ {0}
+  py ∈ {0}
+  x ∈ {0}
+  y ∈ {0}
+  T[0..99] ∈ {0}
+  r ∈ {0}
+  s ∈ {0}
+  t ∈ {0}
+  u ∈ {0}
+tests/misc/cond2.i:26:[value] entering loop for the first time
+tests/misc/cond2.i:26:[kernel] warning: signed overflow. assert x+2 ≤ 2147483647;
+tests/misc/cond2.i:27:[value] entering loop for the first time
+tests/misc/cond2.i:27:[kernel] warning: signed overflow. assert y+5 ≤ 2147483647;
+[value] Recording results for zero_ou_un_0
+[value] done for function zero_ou_un_0
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function zero_ou_un_0:
+  x ∈ {0; 2}
+  y ∈ {1; 2}
+  r ∈ {0; 1}
+  s ∈ {0; 1}
+  t ∈ {0; 1}
+  u ∈ {1}
+  i ∈ [0..2147483647]
+[from] Computing for function zero_ou_un_0
+[from] Done for function zero_ou_un_0
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function zero_ou_un_0:
+  x FROM Gx
+  y FROM Gy
+  r FROM Gx (and SELF)
+  s FROM Gx; Gy (and SELF)
+  t FROM Gx; Gy (and SELF)
+  u FROM Gx
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function zero_ou_un_0:
+          x; y; r; s; t; u; i
+[inout] Out (external) for function zero_ou_un_0:
+          x; y; r; s; t; u
+[inout] Inputs for function zero_ou_un_0:
+          Gx; Gy; x; y

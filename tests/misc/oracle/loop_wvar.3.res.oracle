@@ -1,0 +1,17 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/loop_wvar.i (no preprocessing)
+[value] Analyzing a complete application starting at main_err2
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  i ∈ {0}
+  j ∈ {0}
+tests/misc/loop_wvar.i:39:[value] entering loop for the first time
+tests/misc/loop_wvar.i:39:[kernel] warning: could not interpret loop pragma relative to widening variables
+[value] Recording results for main_err2
+[value] done for function main_err2
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main_err2:
+  i ∈ {13; 14; 15}
+  j ∈ [0..55]
+  n ∈ {13}

@@ -1,0 +1,102 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_plugin/dynamic.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Computing dynamic calls.
+[wp] Dynamic call(s): 1.
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function call
+------------------------------------------------------------
+
+Goal calls f1 f2 in 'call' at instruction (file tests/wp_plugin/dynamic.i, line 30):
+Let a_0 = Mptr_0[(shiftfield_F_S_f closure_5)].
+Let a_1 = (shift_PTR (global G_f1_69) 0).
+Let a_2 = (shift_PTR (global G_f2_75) 0).
+Let x_0 = Mint_0[(shiftfield_F_S_param closure_5)].
+Assume {
+  (* Domain *)
+  Type: (is_sint32 Mint_0[(shiftfield_F_S_param closure_2)])
+        /\ (is_sint32 Mint_0[(shiftfield_F_S_param closure_4)])
+        /\ (is_sint32 x_0).
+  (* Heap *)
+  Have: (framed Mptr_0) /\ ((region (base closure_5))<=0).
+  (* Pre-condition (file tests/wp_plugin/dynamic.i, line 25) in 'call' *)
+  (* Pre-condition: *)
+  Have: (a_0=a_2) \/ ((a_0=a_1) /\ ((\iabs x_0)<=5)).
+}
+Prove: (a_0=a_1) \/ (a_0=a_2).
+
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_plugin/dynamic.i, line 26) in 'call' (1/2):
+Tags: Call f1.
+Let x_0 = Mint_0[(shiftfield_F_S_param closure_2)].
+Let a_0 = Mptr_0[(shiftfield_F_S_f closure_2)].
+Let a_1 = (shift_PTR (global G_f1_69) 0).
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_0)
+        /\ (is_sint32 Mint_0[(shiftfield_F_S_param closure_4)])
+        /\ (is_sint32 (1+x_0)).
+  (* Heap *)
+  Have: (framed Mptr_0) /\ ((region (base closure_2))<=0).
+  (* Pre-condition (file tests/wp_plugin/dynamic.i, line 25) in 'call' *)
+  (* Pre-condition: *)
+  Have: (a_0=(shift_PTR (global G_f2_75) 0))
+        \/ ((a_0=a_1) /\ ((\iabs x_0)<=5)).
+  (* tests/wp_plugin/dynamic.i:30: Instance of 'f1' *)
+  Have: a_0=a_1.
+  (* tests/wp_plugin/dynamic.i:30: Call 'f1' *)
+  Have: (-10<=x_0) /\ (x_0<=10).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_plugin/dynamic.i, line 26) in 'call' (2/2):
+Tags: Call f2.
+Let a_0 = Mptr_0[(shiftfield_F_S_f closure_4)].
+Let a_1 = (shift_PTR (global G_f2_75) 0).
+Let x_0 = Mint_0[(shiftfield_F_S_param closure_4)].
+Assume {
+  (* Domain *)
+  Type: (is_sint32 Mint_0[(shiftfield_F_S_param closure_2)])
+        /\ (is_sint32 x_0) /\ (is_sint32 (x_0-1)).
+  (* Heap *)
+  Have: (framed Mptr_0) /\ ((region (base closure_4))<=0).
+  (* Pre-condition (file tests/wp_plugin/dynamic.i, line 25) in 'call' *)
+  (* Pre-condition: *)
+  Have: (a_0=a_1)
+        \/ ((a_0=(shift_PTR (global G_f1_69) 0)) /\ ((\iabs x_0)<=5)).
+  (* tests/wp_plugin/dynamic.i:30: Instance of 'f2' *)
+  Have: a_0=a_1.
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_plugin/dynamic.i, line 10) in 'f1'' in 'call' at instruction (file tests/wp_plugin/dynamic.i, line 30)
+:
+Tags: Call f1.
+Let x_0 = Mint_0[(shiftfield_F_S_param closure_2)].
+Let a_0 = Mptr_0[(shiftfield_F_S_f closure_2)].
+Let a_1 = (shift_PTR (global G_f1_69) 0).
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_0)
+        /\ (is_sint32 Mint_0[(shiftfield_F_S_param closure_4)]).
+  (* Heap *)
+  Have: (framed Mptr_0) /\ ((region (base closure_2))<=0).
+  (* Pre-condition (file tests/wp_plugin/dynamic.i, line 25) in 'call' *)
+  (* Pre-condition: *)
+  Have: (a_0=(shift_PTR (global G_f2_75) 0))
+        \/ ((a_0=a_1) /\ ((\iabs x_0)<=5)).
+  (* tests/wp_plugin/dynamic.i:30: Instance of 'f1' *)
+  Have: a_0=a_1.
+}
+Prove: (-10<=x_0) /\ (x_0<=10).
+
+------------------------------------------------------------

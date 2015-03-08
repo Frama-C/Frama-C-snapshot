@@ -15,7 +15,7 @@ Require BuiltIn.
 
 (* Why3 goal *)
 Lemma andb_def : forall (x:bool) (y:bool),
-  ((andb x y) = match x with
+  ((Init.Datatypes.andb x y) = match x with
   | true => y
   | false => false
   end).
@@ -26,7 +26,7 @@ Qed.
 
 (* Why3 goal *)
 Lemma orb_def : forall (x:bool) (y:bool),
-  ((orb x y) = match x with
+  ((Init.Datatypes.orb x y) = match x with
   | false => y
   | true => true
   end).
@@ -36,7 +36,8 @@ apply refl_equal.
 Qed.
 
 (* Why3 goal *)
-Lemma xorb_def : forall (x:bool) (y:bool), ((xorb x y) = match (x,
+Lemma xorb_def : forall (x:bool) (y:bool),
+  ((Init.Datatypes.xorb x y) = match (x,
   y) with
   | (true, false) => true
   | (false, true) => true
@@ -49,7 +50,7 @@ Qed.
 
 (* Why3 goal *)
 Lemma notb_def : forall (x:bool),
-  ((negb x) = match x with
+  ((Init.Datatypes.negb x) = match x with
   | false => true
   | true => false
   end).
@@ -59,7 +60,8 @@ apply refl_equal.
 Qed.
 
 (* Why3 goal *)
-Lemma implb_def : forall (x:bool) (y:bool), ((implb x y) = match (x,
+Lemma implb_def : forall (x:bool) (y:bool),
+  ((Init.Datatypes.implb x y) = match (x,
   y) with
   | (true, false) => false
   | (_, _) => true

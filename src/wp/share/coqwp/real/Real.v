@@ -116,21 +116,23 @@ exact R1_neq_R0.
 Qed.
 
 (* Why3 comment *)
-(* inv is replaced with (Rinv x) by the coq driver *)
+(* inv is replaced with (Reals.Rdefinitions.Rinv x) by the coq driver *)
 
 (* Why3 goal *)
-Lemma Inverse : forall (x:R), (~ (x = 0%R)) -> ((x * (Rinv x))%R = 1%R).
+Lemma Inverse : forall (x:R), (~ (x = 0%R)) ->
+  ((x * (Reals.Rdefinitions.Rinv x))%R = 1%R).
 exact Rinv_r.
 Qed.
 
 (* Why3 goal *)
-Lemma infix_sl_def : forall (x:R) (y:R), ((Rdiv x y)%R = (x * (Rinv y))%R).
+Lemma infix_sl_def : forall (x:R) (y:R),
+  ((x / y)%R = (x * (Reals.Rdefinitions.Rinv y))%R).
 reflexivity.
 Qed.
 
 (* Why3 goal *)
 Lemma add_div : forall (x:R) (y:R) (z:R), (~ (z = 0%R)) ->
-  ((Rdiv (x + y)%R z)%R = ((Rdiv x z)%R + (Rdiv y z)%R)%R).
+  (((x + y)%R / z)%R = ((x / z)%R + (y / z)%R)%R).
 Proof.
 intros.
 field.
@@ -139,7 +141,7 @@ Qed.
 
 (* Why3 goal *)
 Lemma sub_div : forall (x:R) (y:R) (z:R), (~ (z = 0%R)) ->
-  ((Rdiv (x - y)%R z)%R = ((Rdiv x z)%R - (Rdiv y z)%R)%R).
+  (((x - y)%R / z)%R = ((x / z)%R - (y / z)%R)%R).
 Proof.
 intros.
 field.
@@ -148,7 +150,7 @@ Qed.
 
 (* Why3 goal *)
 Lemma neg_div : forall (x:R) (y:R), (~ (y = 0%R)) ->
-  ((Rdiv (-x)%R y)%R = (-(Rdiv x y)%R)%R).
+  (((-x)%R / y)%R = (-(x / y)%R)%R).
 Proof.
 intros.
 field.
@@ -157,7 +159,7 @@ Qed.
 
 (* Why3 goal *)
 Lemma assoc_mul_div : forall (x:R) (y:R) (z:R), (~ (z = 0%R)) ->
-  ((Rdiv (x * y)%R z)%R = (x * (Rdiv y z)%R)%R).
+  (((x * y)%R / z)%R = (x * (y / z)%R)%R).
 Proof.
 intros x y z _.
 apply Rmult_assoc.
@@ -165,7 +167,7 @@ Qed.
 
 (* Why3 goal *)
 Lemma assoc_div_mul : forall (x:R) (y:R) (z:R), ((~ (y = 0%R)) /\
-  ~ (z = 0%R)) -> ((Rdiv (Rdiv x y)%R z)%R = (Rdiv x (y * z)%R)%R).
+  ~ (z = 0%R)) -> (((x / y)%R / z)%R = (x / (y * z)%R)%R).
 Proof.
 intros x y z (Zy, Zz).
 unfold Rdiv.
@@ -175,7 +177,7 @@ Qed.
 
 (* Why3 goal *)
 Lemma assoc_div_div : forall (x:R) (y:R) (z:R), ((~ (y = 0%R)) /\
-  ~ (z = 0%R)) -> ((Rdiv x (Rdiv y z)%R)%R = (Rdiv (x * z)%R y)%R).
+  ~ (z = 0%R)) -> ((x / (y / z)%R)%R = ((x * z)%R / y)%R).
 Proof.
 intros x y z (Zy, Zz).
 field.

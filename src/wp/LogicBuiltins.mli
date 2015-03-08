@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -50,7 +50,7 @@ val find_lib: string -> string
 (** find a file in the includes of the current drivers *)
 
 val dependencies : string -> string list (** Of external theories. 
-					     Raises Not_found if undefined *)
+                                             					     Raises Not_found if undefined *)
 
 val add_library : string -> string list -> unit (** External theories *)
 
@@ -73,10 +73,10 @@ val add_predicate : string -> kind list ->
 
 val add_option :
   driver_dir:string -> string -> string -> library:string -> string -> unit
-  (** add a value to an option (group, name) *)
+(** add a value to an option (group, name) *)
 val set_option :
   driver_dir:string -> string -> string -> library:string -> string -> unit
-  (** reset and add a value to an option (group, name) *)
+(** reset and add a value to an option (group, name) *)
 
 type doption
 
@@ -86,8 +86,8 @@ val create_option:
     add a sanitizer for group [group] and option [name] *)
 
 val get_option : doption -> library:string -> string list
-  (** return the values of option (group, name),
-      return the empty list if not set *)
+(** return the values of option (group, name),
+    return the empty list if not set *)
 
 type builtin =
   | ACSLDEF

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -123,12 +123,22 @@ val fold_code_annot:
 (** Fold on each code annotation attached to the given statement. *)
 
 val iter_all_code_annot:
+  ?sorted:bool ->
   (stmt -> Emitter.t -> code_annotation -> unit) -> unit
-(** Iter on each code annotation of the program. *)
+(** Iter on each code annotation of the program.
+    If [sorted] is [true] (the default), iteration is sorted according
+    to the location of the statements and by emitter. Note that the
+    sorted version is less efficient than the unsorted iteration.
+    @modify Sodium-20150201: iteration is sorted
+ *)
 
 val fold_all_code_annot:
+  ?sorted:bool ->
   (stmt -> Emitter.t -> code_annotation -> 'a -> 'a) -> 'a -> 'a
-(** Fold on each code annotation of the program. *)
+(** Fold on each code annotation of the program. See above for
+    the meaning of the [sorted] argument.
+    @modify Sodium-20150201 sorted fold
+ *)
 
 val iter_global: 
   (Emitter.t -> global_annotation -> unit) -> unit
@@ -192,6 +202,15 @@ val fold_allocates:
   (Emitter.t -> identified_term allocation -> 'a -> 'a) -> 
   kernel_function -> string -> 'a -> 'a
   (** Fold on the allocates of the corresponding behavior. *)
+
+val iter_extended:
+  (Emitter.t -> (string * int * identified_predicate list) -> unit) ->
+  kernel_function -> string -> unit
+  (** @since Sodium-20150201 *)
+
+val fold_extended:
+  (Emitter.t -> (string * int * identified_predicate list) -> 'a -> 'a) ->
+  kernel_function -> string -> 'a -> 'a
 
 val iter_behaviors:
   (Emitter.t -> (identified_predicate, identified_term) behavior -> unit)
@@ -324,6 +343,11 @@ val add_allocates:
 (** Add new allocates into the given behavior (provided by its name) of the
     given function. *)
 
+val add_extended:
+  Emitter.t -> kernel_function -> string ->
+  (string * int * identified_predicate list) -> unit
+  (** @since Sodium-20150201 *)
+
 (**************************************************************************)
 (** {2 Removing annotations} *)
 (**************************************************************************)
@@ -410,6 +434,11 @@ val remove_assigns:
   Emitter.t -> kernel_function -> identified_term assigns -> unit
   (** Remove the corresponding assigns clause. Do nothing if the clause
       does not exist or was not emitted by the given emitter. *)
+
+val remove_extended:
+  Emitter.t -> kernel_function ->
+  (string * int * identified_predicate list) -> unit
+  (** @since Sodium-20150201 *)
 
 (**************************************************************************)
 (** {2 Other useful functions} *)

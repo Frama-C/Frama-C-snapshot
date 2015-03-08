@@ -1,0 +1,16 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_typed/unit_tset.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] 2 goals scheduled
+[wp] [Qed] Goal typed_complex_call_job_pre : Valid
+[wp] [Qed] Goal typed_complex_stmt_assign : Valid
+[wp] Proved goals:    2 / 2
+     Qed:             2
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+complex              2     -           2       100%
+----------------------------------------------------------

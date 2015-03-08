@@ -1795,6 +1795,13 @@ EXTERNAL_PLUGINS=
 
 
 
+
+# Usage: plugin_disable([plugin],[reason])
+
+
+
+
+
 # Implementation of an ordering $1 < $2: "" < yes < partial < no
 lt_mark () {
   first=`echo "$1" | sed -e 's/ .*//' `
@@ -2129,7 +2136,6 @@ echo "security_slicing... $ENABLE"
 
 
 
-if test "$ENABLE_SECURITY_SLICING" != "no"; then
 
 
 
@@ -2188,7 +2194,6 @@ done
 # main call
 compute_dependency
 
-fi
 
 
 

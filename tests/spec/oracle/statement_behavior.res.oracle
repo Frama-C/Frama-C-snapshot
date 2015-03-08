@@ -1,0 +1,37 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/spec/statement_behavior.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  
+[value] computing for function pfsqopfc <- main.
+        Called from tests/spec/statement_behavior.c:23.
+tests/spec/statement_behavior.c:13:[value] warning: assuming assembly code has no effects in function pfsqopfc
+tests/spec/statement_behavior.c:17:[value] Assertion got status unknown.
+tests/spec/statement_behavior.c:4:[value] Function pfsqopfc: postcondition got status unknown.
+[value] Recording results for pfsqopfc
+[value] Done for function pfsqopfc
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function pfsqopfc:
+  
+[value] Values at end of function main:
+  x ∈ {1}
+  y ∈ UNINITIALIZED
+  __retres ∈ {0}
+[inout] InOut (internal) for function pfsqopfc:
+        Operational inputs:
+          five_times
+        Operational inputs on termination:
+          five_times
+        Sure outputs:
+          \nothing
+[inout] InOut (internal) for function main:
+        Operational inputs:
+          \nothing
+        Operational inputs on termination:
+          \nothing
+        Sure outputs:
+          x; y; __retres

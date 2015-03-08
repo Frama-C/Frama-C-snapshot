@@ -1,0 +1,173 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/slicing/select_by_annot.c (with preprocessing)
+[value] Analyzing an incomplete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  S ∈ [--..--]
+  Sa ∈ [--..--]
+  X9 ∈ [--..--]
+  Y9 ∈ [--..--]
+  Z9 ∈ [--..--]
+  d ∈ [--..--]
+tests/slicing/select_by_annot.c:133:[value] Assertion got status valid.
+tests/slicing/select_by_annot.c:137:[kernel] warning: signed overflow. assert (int)((int)(a+b)+c)+d ≤ 2147483647;
+[value] computing for function modifS <- main.
+        Called from tests/slicing/select_by_annot.c:138.
+tests/slicing/select_by_annot.c:122:[kernel] warning: signed overflow. assert S.a+a ≤ 2147483647;
+[value] Recording results for modifS
+[value] Done for function modifS
+[value] computing for function new_int <- main.
+        Called from tests/slicing/select_by_annot.c:140.
+tests/slicing/select_by_annot.c:140:[kernel] warning: Neither code nor specification for function new_int, generating default assigns from the prototype
+[value] using specification for function new_int
+[value] Done for function new_int
+[value] computing for function f1 <- main.
+        Called from tests/slicing/select_by_annot.c:141.
+tests/slicing/select_by_annot.c:29:[value] Assertion got status unknown.
+[value] Recording results for f1
+[value] Done for function f1
+[value] computing for function f2 <- main.
+        Called from tests/slicing/select_by_annot.c:142.
+tests/slicing/select_by_annot.c:39:[value] Assertion got status unknown.
+[value] Recording results for f2
+[value] Done for function f2
+[value] computing for function f3 <- main.
+        Called from tests/slicing/select_by_annot.c:143.
+[value] Recording results for f3
+[value] Done for function f3
+[value] computing for function f4 <- main.
+        Called from tests/slicing/select_by_annot.c:144.
+[value] Recording results for f4
+[value] Done for function f4
+[value] computing for function f5 <- main.
+        Called from tests/slicing/select_by_annot.c:145.
+[value] Recording results for f5
+[value] Done for function f5
+[value] computing for function f6 <- main.
+        Called from tests/slicing/select_by_annot.c:146.
+tests/slicing/select_by_annot.c:77:[kernel] warning: signed overflow. assert Sa+1 ≤ 2147483647;
+[value] Recording results for f6
+[value] Done for function f6
+[value] computing for function f7 <- main.
+        Called from tests/slicing/select_by_annot.c:147.
+tests/slicing/select_by_annot.c:88:[kernel] warning: signed overflow. assert Sa+1 ≤ 2147483647;
+[value] Recording results for f7
+[value] Done for function f7
+[value] computing for function f8 <- main.
+        Called from tests/slicing/select_by_annot.c:148.
+tests/slicing/select_by_annot.c:97:[value] Loop invariant got status unknown.
+tests/slicing/select_by_annot.c:99:[value] entering loop for the first time
+tests/slicing/select_by_annot.c:100:[value] Assertion got status unknown.
+tests/slicing/select_by_annot.c:104:[kernel] warning: signed overflow. assert S.a+1 ≤ 2147483647;
+[value] Recording results for f8
+[value] Done for function f8
+[value] computing for function f9 <- main.
+        Called from tests/slicing/select_by_annot.c:149.
+[value] Recording results for f9
+[value] Done for function f9
+[value] Recording results for main
+[value] done for function main
+[from] Computing for function f1
+[from] Done for function f1
+[from] Computing for function f2
+[from] Done for function f2
+[from] Computing for function f3
+[from] Done for function f3
+[from] Computing for function f4
+[from] Done for function f4
+[from] Computing for function f5
+[from] Done for function f5
+[from] Computing for function f6
+[from] Done for function f6
+[from] Computing for function f7
+[from] Done for function f7
+[from] Computing for function f8
+[from] Done for function f8
+[from] Computing for function f9
+[from] Done for function f9
+[from] Computing for function modifS
+[from] Done for function modifS
+[from] Computing for function main
+[from] Computing for function new_int <-main
+[from] Done for function new_int
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function f1:
+  Sa FROM S.a; cond (and SELF)
+  \result FROM S.a; Sa; cond
+[from] Function f2:
+  Sa FROM S.a; cond (and SELF)
+  \result FROM S.a; Sa; cond
+[from] Function f3:
+  Sa FROM S.a; cond (and SELF)
+  \result FROM S.a; Sa; cond
+[from] Function f4:
+  Sa FROM S.a; cond (and SELF)
+  \result FROM S.a; Sa; cond
+[from] Function f5:
+  Sa FROM S.a; cond (and SELF)
+  \result FROM S.a; Sa; cond
+[from] Function f6:
+  Sa FROM S.a; cond (and SELF)
+  \result FROM S.a; Sa; cond
+[from] Function f7:
+  Sa FROM S.a; cond (and SELF)
+  \result FROM S.a; Sa; cond
+[from] Function f8:
+  S.a FROM S.a; cond (and SELF)
+  Sa FROM S.a; cond (and SELF)
+  \result FROM S.a; Sa; cond
+[from] Function f9:
+  X9 FROM c1; c2
+  Y9 FROM Z9
+  Z9 FROM c2
+[from] Function modifS:
+  S.a FROM S.a; a
+   .b FROM S.b; b
+[from] Function new_int:
+  \result FROM \nothing
+[from] Function main:
+  S.a FROM S.a; d
+   .b FROM S.b
+  Sa FROM S.a; d (and SELF)
+  X9 FROM d
+  Y9 FROM Z9
+  Z9 FROM d
+  d FROM \nothing
+  \result FROM d
+[from] ====== END OF DEPENDENCIES ======
+[slicing] slicing requests in progress...
+[slicing] making slicing project 'Slicing'...
+[slicing] interpreting slicing requests from the command line...
+[pdg] computing for function f4
+[pdg] done for function f4
+[slicing] applying all slicing requests...
+[slicing] applying 0 actions...
+[slicing] applying all slicing requests...
+[slicing] applying 1 actions...
+[slicing] applying actions: 1/1...
+[slicing] exporting project to 'Slicing export'...
+[slicing] applying all slicing requests...
+[slicing] applying 0 actions...
+[sparecode] remove unused global declarations from project 'Slicing export tmp'
+[sparecode] removed unused global declarations in new project 'Slicing export'
+/* Generated by Frama-C */
+struct Tstr {
+   int a ;
+   int b ;
+};
+struct Tstr S;
+int Sa;
+void f4_slice_1(int cond)
+{
+  int *p;
+  p = & S.a;
+  if (cond) 
+    /*@ slice pragma stmt; */
+    Sa = *p;
+  return;
+}
+
+

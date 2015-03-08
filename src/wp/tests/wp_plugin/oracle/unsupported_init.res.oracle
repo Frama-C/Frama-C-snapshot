@@ -1,0 +1,51 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_plugin/unsupported_init.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+tests/wp_plugin/unsupported_init.i:1:[wp] warning: Allocation, initialization and danglingness not yet implemented
+              (r1: \initialized(Y+(0 .. 99)))
+------------------------------------------------------------
+  Function f
+------------------------------------------------------------
+
+Goal Assertion 'a1' (file tests/wp_plugin/unsupported_init.i, line 9):
+tests/wp_plugin/unsupported_init.i:1: warning from wp:
+ - Warning: Ignored hypothesis
+   Reason: Allocation, initialization and danglingness not yet implemented
+(r1: \initialized(Y+(0 .. 99)))
+Let a_0 = (shift_sint32 B_0 0).
+Let x_0 = Mint_0[(shift_sint32 A_0 0)].
+Let x_1 = Mint_0[a_0].
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_0) /\ (is_sint32 x_1).
+  (* Heap *)
+  Have: ((region (base A_0))<=0) /\ ((region (base B_0))<=0).
+  (* tests/wp_plugin/unsupported_init.i:8: Call 'cp' *)
+  Have: x_0=x_1.
+  (* tests/wp_plugin/unsupported_init.i:8: Call Effects *)
+  Have: (havoc Mint_1 Mint_0 a_0 100).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition 'r1' in 'cp'' in 'f' at call 'cp' (file tests/wp_plugin/unsupported_init.i, line 8)
+:
+tests/wp_plugin/unsupported_init.i:1: warning from wp:
+ - Warning: Target turned to false, looking for context inconsistency
+   Reason: Allocation, initialization and danglingness not yet implemented
+(r1: \initialized(Y+(0 .. 99)))
+Assume {
+  (* Domain *)
+  Type: (is_sint32 Mint_0[(shift_sint32 A_0 0)])
+        /\ (is_sint32 Mint_0[(shift_sint32 B_0 0)]).
+  (* Heap *)
+  Have: ((region (base A_0))<=0) /\ ((region (base B_0))<=0).
+}
+Prove: false.
+
+------------------------------------------------------------

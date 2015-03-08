@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -36,7 +36,7 @@ let show main_ui =
       "Benjamin Monate";
       "Yannick Moy";
       "Anne Pacalet";
-      "Virgile Prévosto";
+      "Virgile Prevosto";
       "Julien Signoles";
       "Boris Yakobowski" ]
   in

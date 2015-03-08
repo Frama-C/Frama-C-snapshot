@@ -1,0 +1,643 @@
+# frama-c -wp -wp-model 'Typed (Ref)' [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_hoare/reference_array.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] Collecting variable usage
+------------------------------------------------------------
+  Function add_1_5
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_hoare/reference_array.i, line 49) in 'add_1_5':
+Let a_0 = (shift_A5_sint32 ap_0 0).
+Assume {
+  (* Goal *)
+  When: (0<=i_1) /\ (i_1<=4).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ ((region (base ap_0))<=0).
+  (* Pre-condition (file tests/wp_hoare/reference_array.i, line 47) in 'add_1_5' *)
+  (* Pre-condition: *)
+  Have: (valid_rw Malloc_0 (shift_sint32 a_0 0) 5).
+  (* tests/wp_hoare/reference_array.i:52: Call 'add_5' *)
+  Have: forall i_0:int.
+        (0<=i_0) -> (i_0<=4)
+        -> (reg_add_0[i_0]=(reg_load_0[i_0]+Mint_0[(shift_sint32 a_0 i_0)])).
+  (* tests/wp_hoare/reference_array.i:52: Call Effects *)
+  Have: forall i_0:int.
+        ((i_0<0) \/ (5<=i_0)) -> (reg_add_0[i_0]=reg_add_1[i_0]).
+}
+Prove: reg_add_0[i_1]=(reg_load_0[i_1]+Mint_0[(shift_sint32 a_0 i_1)]).
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/reference_array.i, line 48) in 'add_1_5':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/reference_array.i, line 48) in 'add_1_5':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_hoare/reference_array.i, line 26) in 'add_5'' in 'add_1_5' at call 'add_5' (file tests/wp_hoare/reference_array.i, line 52)
+:
+Assume {
+  (* Heap *)
+  Have: (linked Malloc_0) /\ ((region (base ap_2))<=0).
+  (* Pre-condition (file tests/wp_hoare/reference_array.i, line 47) in 'add_1_5' *)
+  (* Pre-condition: *)
+  Have: (valid_rw Malloc_0 (shift_sint32 (shift_A5_sint32 ap_2 0) 0) 5).
+}
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function calls_on_array_dim_1
+------------------------------------------------------------
+
+Goal Post-condition 'Pload' in 'calls_on_array_dim_1':
+Assume {
+  (* Goal *)
+  When: (0<=i_3) /\ (i_3<=4).
+  (* tests/wp_hoare/reference_array.i:65: Call 'load_5' *)
+  Have: forall i_0:int. (0<=i_0) -> (i_0<=4) -> (reg_load_0[i_0]=t_2[i_0]).
+  (* tests/wp_hoare/reference_array.i:65: Call Effects *)
+  Have: forall i_0:int.
+        ((i_0<0) \/ (5<=i_0)) -> (reg_load_0[i_0]=reg_load_1[i_0]).
+  (* tests/wp_hoare/reference_array.i:66: Call 'reset_5' *)
+  Have: forall i_0:int. (0<=i_0) -> (i_0<=4) -> (0=t_1[i_0]).
+  (* tests/wp_hoare/reference_array.i:66: Call Effects *)
+  Have: forall i_0:int. ((i_0<0) \/ (5<=i_0)) -> (t_1[i_0]=t_2[i_0]).
+  (* tests/wp_hoare/reference_array.i:67: Call 'add_5' *)
+  Have: forall i_0:int.
+        (0<=i_0) -> (i_0<=4) -> (reg_add_0[i_0]=(reg_load_0[i_0]+t_1[i_0])).
+  (* tests/wp_hoare/reference_array.i:67: Call Effects *)
+  Have: forall i_0:int.
+        ((i_0<0) \/ (5<=i_0)) -> (reg_add_0[i_0]=reg_add_1[i_0]).
+}
+Prove: reg_load_0[i_3]=t_2[i_3].
+
+------------------------------------------------------------
+
+Goal Post-condition 'Preset' in 'calls_on_array_dim_1':
+Assume {
+  (* Goal *)
+  When: (0<=i_1) /\ (i_1<=4).
+  (* tests/wp_hoare/reference_array.i:65: Call 'load_5' *)
+  Have: forall i_0:int. (0<=i_0) -> (i_0<=4) -> (reg_load_0[i_0]=t_2[i_0]).
+  (* tests/wp_hoare/reference_array.i:65: Call Effects *)
+  Have: forall i_0:int.
+        ((i_0<0) \/ (5<=i_0)) -> (reg_load_0[i_0]=reg_load_1[i_0]).
+  (* tests/wp_hoare/reference_array.i:66: Call 'reset_5' *)
+  Have: forall i_0:int. (0<=i_0) -> (i_0<=4) -> (0=t_1[i_0]).
+  (* tests/wp_hoare/reference_array.i:66: Call Effects *)
+  Have: forall i_0:int. ((i_0<0) \/ (5<=i_0)) -> (t_1[i_0]=t_2[i_0]).
+  (* tests/wp_hoare/reference_array.i:67: Call 'add_5' *)
+  Have: forall i_0:int.
+        (0<=i_0) -> (i_0<=4) -> (reg_add_0[i_0]=(reg_load_0[i_0]+t_1[i_0])).
+  (* tests/wp_hoare/reference_array.i:67: Call Effects *)
+  Have: forall i_0:int.
+        ((i_0<0) \/ (5<=i_0)) -> (reg_add_0[i_0]=reg_add_1[i_0]).
+}
+Prove: 0=t_1[i_1].
+
+------------------------------------------------------------
+
+Goal Post-condition 'Padd' in 'calls_on_array_dim_1':
+Assume {
+  (* Goal *)
+  When: (0<=i_0) /\ (i_0<=4).
+  (* tests/wp_hoare/reference_array.i:65: Call 'load_5' *)
+  Have: forall i_1:int. (0<=i_1) -> (i_1<=4) -> (reg_load_0[i_1]=t_2[i_1]).
+  (* tests/wp_hoare/reference_array.i:65: Call Effects *)
+  Have: forall i_1:int.
+        ((i_1<0) \/ (5<=i_1)) -> (reg_load_0[i_1]=reg_load_1[i_1]).
+  (* tests/wp_hoare/reference_array.i:66: Call 'reset_5' *)
+  Have: forall i_1:int. (0<=i_1) -> (i_1<=4) -> (0=t_1[i_1]).
+  (* tests/wp_hoare/reference_array.i:66: Call Effects *)
+  Have: forall i_1:int. ((i_1<0) \/ (5<=i_1)) -> (t_1[i_1]=t_2[i_1]).
+  (* tests/wp_hoare/reference_array.i:67: Call 'add_5' *)
+  Have: forall i_1:int.
+        (0<=i_1) -> (i_1<=4) -> (reg_add_0[i_1]=(reg_load_0[i_1]+t_1[i_1])).
+  (* tests/wp_hoare/reference_array.i:67: Call Effects *)
+  Have: forall i_1:int.
+        ((i_1<0) \/ (5<=i_1)) -> (reg_add_0[i_1]=reg_add_1[i_1]).
+}
+Prove: reg_add_0[i_0]=t_2[i_0].
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/reference_array.i, line 58) in 'calls_on_array_dim_1':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/reference_array.i, line 58) in 'calls_on_array_dim_1':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_hoare/reference_array.i, line 19) in 'load_5'' in 'calls_on_array_dim_1' at call 'load_5' (file tests/wp_hoare/reference_array.i, line 65)
+:
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_hoare/reference_array.i, line 9) in 'reset_5'' in 'calls_on_array_dim_1' at call 'reset_5' (file tests/wp_hoare/reference_array.i, line 66)
+:
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_hoare/reference_array.i, line 26) in 'add_5'' in 'calls_on_array_dim_1' at call 'add_5' (file tests/wp_hoare/reference_array.i, line 67)
+:
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function calls_on_array_dim_2
+------------------------------------------------------------
+
+Goal Post-condition 'Pload' in 'calls_on_array_dim_2':
+Let m_0 = tt_2[0].
+Let m_1 = tt_1[0].
+Assume {
+  (* Goal *)
+  When: (0<=i_3) /\ (i_3<=4).
+  (* tests/wp_hoare/reference_array.i:98: Call 'load_1_5' *)
+  Have: forall i_0:int. (0<=i_0) -> (i_0<=4) -> (reg_load_0[i_0]=m_0[i_0]).
+  (* tests/wp_hoare/reference_array.i:98: Call Effects *)
+  Have: forall i_0:int.
+        ((i_0<0) \/ (5<=i_0)) -> (reg_load_0[i_0]=reg_load_1[i_0]).
+  (* tests/wp_hoare/reference_array.i:99: Call 'reset_1_5' *)
+  Have: forall i_0:int. (0<=i_0) -> (i_0<=4) -> (0=m_1[i_0]).
+  (* tests/wp_hoare/reference_array.i:99: Call Effects *)
+  Have: (forall i_0:int.
+         (0!=i_0) -> (tt_1[i_0]=tt_2[i_0]))
+        /\ (forall i_0:int.
+            ((i_0<0) \/ (5<=i_0)) -> (m_1[i_0]=m_0[i_0])).
+  (* tests/wp_hoare/reference_array.i:100: Call 'add_1_5' *)
+  Have: forall i_0:int.
+        (0<=i_0) -> (i_0<=4) -> (reg_add_0[i_0]=(reg_load_0[i_0]+m_1[i_0])).
+  (* tests/wp_hoare/reference_array.i:100: Call Effects *)
+  Have: forall i_0:int.
+        ((i_0<0) \/ (5<=i_0)) -> (reg_add_0[i_0]=reg_add_1[i_0]).
+}
+Prove: reg_load_0[i_3]=m_0[i_3].
+
+------------------------------------------------------------
+
+Goal Post-condition 'Preset' in 'calls_on_array_dim_2':
+Let m_0 = tt_1[0].
+Let m_1 = tt_2[0].
+Assume {
+  (* Goal *)
+  When: (0<=i_1) /\ (i_1<=4).
+  (* tests/wp_hoare/reference_array.i:98: Call 'load_1_5' *)
+  Have: forall i_0:int. (0<=i_0) -> (i_0<=4) -> (reg_load_0[i_0]=m_1[i_0]).
+  (* tests/wp_hoare/reference_array.i:98: Call Effects *)
+  Have: forall i_0:int.
+        ((i_0<0) \/ (5<=i_0)) -> (reg_load_0[i_0]=reg_load_1[i_0]).
+  (* tests/wp_hoare/reference_array.i:99: Call 'reset_1_5' *)
+  Have: forall i_0:int. (0<=i_0) -> (i_0<=4) -> (0=m_0[i_0]).
+  (* tests/wp_hoare/reference_array.i:99: Call Effects *)
+  Have: (forall i_0:int.
+         (0!=i_0) -> (tt_1[i_0]=tt_2[i_0]))
+        /\ (forall i_0:int.
+            ((i_0<0) \/ (5<=i_0)) -> (m_0[i_0]=m_1[i_0])).
+  (* tests/wp_hoare/reference_array.i:100: Call 'add_1_5' *)
+  Have: forall i_0:int.
+        (0<=i_0) -> (i_0<=4) -> (reg_add_0[i_0]=(reg_load_0[i_0]+m_0[i_0])).
+  (* tests/wp_hoare/reference_array.i:100: Call Effects *)
+  Have: forall i_0:int.
+        ((i_0<0) \/ (5<=i_0)) -> (reg_add_0[i_0]=reg_add_1[i_0]).
+}
+Prove: 0=m_0[i_1].
+
+------------------------------------------------------------
+
+Goal Post-condition 'Padd' in 'calls_on_array_dim_2':
+Let m_0 = tt_2[0].
+Let m_1 = tt_1[0].
+Assume {
+  (* Goal *)
+  When: (0<=i_0) /\ (i_0<=4).
+  (* tests/wp_hoare/reference_array.i:98: Call 'load_1_5' *)
+  Have: forall i_1:int. (0<=i_1) -> (i_1<=4) -> (reg_load_0[i_1]=m_0[i_1]).
+  (* tests/wp_hoare/reference_array.i:98: Call Effects *)
+  Have: forall i_1:int.
+        ((i_1<0) \/ (5<=i_1)) -> (reg_load_0[i_1]=reg_load_1[i_1]).
+  (* tests/wp_hoare/reference_array.i:99: Call 'reset_1_5' *)
+  Have: forall i_1:int. (0<=i_1) -> (i_1<=4) -> (0=m_1[i_1]).
+  (* tests/wp_hoare/reference_array.i:99: Call Effects *)
+  Have: (forall i_1:int.
+         (0!=i_1) -> (tt_1[i_1]=tt_2[i_1]))
+        /\ (forall i_1:int.
+            ((i_1<0) \/ (5<=i_1)) -> (m_1[i_1]=m_0[i_1])).
+  (* tests/wp_hoare/reference_array.i:100: Call 'add_1_5' *)
+  Have: forall i_1:int.
+        (0<=i_1) -> (i_1<=4) -> (reg_add_0[i_1]=(reg_load_0[i_1]+m_1[i_1])).
+  (* tests/wp_hoare/reference_array.i:100: Call Effects *)
+  Have: forall i_1:int.
+        ((i_1<0) \/ (5<=i_1)) -> (reg_add_0[i_1]=reg_add_1[i_1]).
+}
+Prove: reg_add_0[i_0]=m_0[i_0].
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/reference_array.i, line 91) in 'calls_on_array_dim_2':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/reference_array.i, line 91) in 'calls_on_array_dim_2':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_hoare/reference_array.i, line 40) in 'load_1_5'' in 'calls_on_array_dim_2' at call 'load_1_5' (file tests/wp_hoare/reference_array.i, line 98)
+:
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_hoare/reference_array.i, line 33) in 'reset_1_5'' in 'calls_on_array_dim_2' at call 'reset_1_5' (file tests/wp_hoare/reference_array.i, line 99)
+:
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_hoare/reference_array.i, line 47) in 'add_1_5'' in 'calls_on_array_dim_2' at call 'add_1_5' (file tests/wp_hoare/reference_array.i, line 100)
+:
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function calls_on_array_dim_2_to_1
+------------------------------------------------------------
+
+Goal Post-condition 'todo,Pload' in 'calls_on_array_dim_2_to_1':
+Let a_0 = (shift_A20_A5_sint32 (global G_tt_110) 0).
+Let a_1 = (shift_sint32 a_0 0).
+Assume {
+  (* Goal *)
+  When: (0<=i_3) /\ (i_3<=4).
+  (* Heap *)
+  Have: (linked Malloc_0).
+  (* tests/wp_hoare/reference_array.i:83: Call 'load_5' *)
+  Have: (valid_rw Malloc_0 a_1 5)
+        /\ (forall i_0:int.
+            (0<=i_0) -> (i_0<=4)
+            -> (reg_load_0[i_0]=Mint_1[(shift_sint32 a_0 i_0)])).
+  (* tests/wp_hoare/reference_array.i:83: Call Effects *)
+  Have: forall i_0:int.
+        ((i_0<0) \/ (5<=i_0)) -> (reg_load_0[i_0]=reg_load_1[i_0]).
+  (* tests/wp_hoare/reference_array.i:84: Call 'reset_5' *)
+  Have: forall i_0:int.
+        (0<=i_0) -> (i_0<=4) -> (0=Mint_0[(shift_sint32 a_0 i_0)]).
+  (* tests/wp_hoare/reference_array.i:84: Call Effects *)
+  Have: (havoc Mint_1 Mint_0 a_1 5).
+  (* tests/wp_hoare/reference_array.i:85: Call 'add_5' *)
+  Have: forall i_0:int.
+        (0<=i_0) -> (i_0<=4)
+        -> (reg_add_0[i_0]=(reg_load_0[i_0]+Mint_0[(shift_sint32 a_0 i_0)])).
+  (* tests/wp_hoare/reference_array.i:85: Call Effects *)
+  Have: forall i_0:int.
+        ((i_0<0) \/ (5<=i_0)) -> (reg_add_0[i_0]=reg_add_1[i_0]).
+}
+Prove: reg_load_0[i_3]=tt_0[0][i_3].
+
+------------------------------------------------------------
+
+Goal Post-condition 'todo,Preset' in 'calls_on_array_dim_2_to_1':
+Let a_0 = (shift_A20_A5_sint32 (global G_tt_110) 0).
+Let a_1 = (shift_sint32 a_0 0).
+Assume {
+  (* Goal *)
+  When: (0<=i_1) /\ (i_1<=4).
+  (* Heap *)
+  Have: (linked Malloc_0).
+  (* tests/wp_hoare/reference_array.i:83: Call 'load_5' *)
+  Have: (valid_rw Malloc_0 a_1 5)
+        /\ (forall i_0:int.
+            (0<=i_0) -> (i_0<=4)
+            -> (reg_load_0[i_0]=Mint_1[(shift_sint32 a_0 i_0)])).
+  (* tests/wp_hoare/reference_array.i:83: Call Effects *)
+  Have: forall i_0:int.
+        ((i_0<0) \/ (5<=i_0)) -> (reg_load_0[i_0]=reg_load_1[i_0]).
+  (* tests/wp_hoare/reference_array.i:84: Call 'reset_5' *)
+  Have: forall i_0:int.
+        (0<=i_0) -> (i_0<=4) -> (0=Mint_0[(shift_sint32 a_0 i_0)]).
+  (* tests/wp_hoare/reference_array.i:84: Call Effects *)
+  Have: (havoc Mint_1 Mint_0 a_1 5).
+  (* tests/wp_hoare/reference_array.i:85: Call 'add_5' *)
+  Have: forall i_0:int.
+        (0<=i_0) -> (i_0<=4)
+        -> (reg_add_0[i_0]=(reg_load_0[i_0]+Mint_0[(shift_sint32 a_0 i_0)])).
+  (* tests/wp_hoare/reference_array.i:85: Call Effects *)
+  Have: forall i_0:int.
+        ((i_0<0) \/ (5<=i_0)) -> (reg_add_0[i_0]=reg_add_1[i_0]).
+}
+Prove: 0=tt_1[0][i_1].
+
+------------------------------------------------------------
+
+Goal Post-condition 'todo,Padd' in 'calls_on_array_dim_2_to_1':
+Let a_0 = (shift_A20_A5_sint32 (global G_tt_110) 0).
+Let a_1 = (shift_sint32 a_0 0).
+Assume {
+  (* Goal *)
+  When: (0<=i_0) /\ (i_0<=4).
+  (* Heap *)
+  Have: (linked Malloc_0).
+  (* tests/wp_hoare/reference_array.i:83: Call 'load_5' *)
+  Have: (valid_rw Malloc_0 a_1 5)
+        /\ (forall i_1:int.
+            (0<=i_1) -> (i_1<=4)
+            -> (reg_load_0[i_1]=Mint_1[(shift_sint32 a_0 i_1)])).
+  (* tests/wp_hoare/reference_array.i:83: Call Effects *)
+  Have: forall i_1:int.
+        ((i_1<0) \/ (5<=i_1)) -> (reg_load_0[i_1]=reg_load_1[i_1]).
+  (* tests/wp_hoare/reference_array.i:84: Call 'reset_5' *)
+  Have: forall i_1:int.
+        (0<=i_1) -> (i_1<=4) -> (0=Mint_0[(shift_sint32 a_0 i_1)]).
+  (* tests/wp_hoare/reference_array.i:84: Call Effects *)
+  Have: (havoc Mint_1 Mint_0 a_1 5).
+  (* tests/wp_hoare/reference_array.i:85: Call 'add_5' *)
+  Have: forall i_1:int.
+        (0<=i_1) -> (i_1<=4)
+        -> (reg_add_0[i_1]=(reg_load_0[i_1]+Mint_0[(shift_sint32 a_0 i_1)])).
+  (* tests/wp_hoare/reference_array.i:85: Call Effects *)
+  Have: forall i_1:int.
+        ((i_1<0) \/ (5<=i_1)) -> (reg_add_0[i_1]=reg_add_1[i_1]).
+}
+Prove: reg_add_0[i_0]=tt_0[0][i_0].
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/reference_array.i, line 73) in 'calls_on_array_dim_2_to_1' (1/2):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/reference_array.i, line 73) in 'calls_on_array_dim_2_to_1' (2/2):
+Call Effect at line 84
+Let a_0 = (shift_A20_A5_sint32 (global G_tt_110) 0).
+Let a_1 = (shift_sint32 a_0 0).
+Assume {
+  (* Heap *)
+  Have: (linked Malloc_1).
+  (* tests/wp_hoare/reference_array.i:83: Call 'load_5' *)
+  Have: (valid_rw Malloc_1 a_1 5)
+        /\ (forall i_0:int.
+            (0<=i_0) -> (i_0<=4)
+            -> (reg_load_0[i_0]=Mint_3[(shift_sint32 a_0 i_0)])).
+  (* tests/wp_hoare/reference_array.i:83: Call Effects *)
+  Have: forall i_0:int.
+        ((i_0<0) \/ (5<=i_0)) -> (reg_load_0[i_0]=reg_load_1[i_0]).
+  (* Merge *)Either {
+               Case:
+                 (* Control Flow *)
+                 Have: Mint_1=Mint_3.
+                 (* tests/wp_hoare/reference_array.i:84: Call 'reset_5' *)
+                 Have: forall i_0:int.
+                       (0<=i_0) -> (i_0<=4)
+                       -> (0=Mint_0[(shift_sint32 a_0 i_0)]).
+                 (* tests/wp_hoare/reference_array.i:84: Call Effects *)
+                 Have: (havoc Mint_1 Mint_0 a_1 5).
+               Case:
+                 (* Control Flow *)
+                 Have: Mint_2=Mint_3.
+                 (* tests/wp_hoare/reference_array.i:84: Exit Effects *)
+                 Have: (havoc Mint_2 Mint_4 a_1 5).
+             }
+}
+Prove: not (valid_rd Malloc_1 a_1 5).
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/reference_array.i, line 73) in 'calls_on_array_dim_2_to_1' (1/2):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/reference_array.i, line 73) in 'calls_on_array_dim_2_to_1' (2/2):
+Call Effect at line 84
+Let a_0 = (shift_A20_A5_sint32 (global G_tt_110) 0).
+Let a_1 = (shift_sint32 a_0 0).
+Assume {
+  (* Heap *)
+  Have: (linked Malloc_1).
+  (* tests/wp_hoare/reference_array.i:83: Call 'load_5' *)
+  Have: (valid_rw Malloc_1 a_1 5)
+        /\ (forall i_0:int.
+            (0<=i_0) -> (i_0<=4)
+            -> (reg_load_0[i_0]=Mint_1[(shift_sint32 a_0 i_0)])).
+  (* tests/wp_hoare/reference_array.i:83: Call Effects *)
+  Have: forall i_0:int.
+        ((i_0<0) \/ (5<=i_0)) -> (reg_load_0[i_0]=reg_load_1[i_0]).
+  (* tests/wp_hoare/reference_array.i:84: Call 'reset_5' *)
+  Have: forall i_0:int.
+        (0<=i_0) -> (i_0<=4) -> (0=Mint_0[(shift_sint32 a_0 i_0)]).
+  (* tests/wp_hoare/reference_array.i:84: Call Effects *)
+  Have: (havoc Mint_1 Mint_0 a_1 5).
+}
+Prove: not (valid_rd Malloc_1 a_1 5).
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_hoare/reference_array.i, line 19) in 'load_5'' in 'calls_on_array_dim_2_to_1' at call 'load_5' (file tests/wp_hoare/reference_array.i, line 83)
+:
+Assume { (* Heap *) Have: (linked Malloc_0). }
+Prove: (valid_rw Malloc_0
+         (shift_sint32 (shift_A20_A5_sint32 (global G_tt_110) 0) 0) 5).
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_hoare/reference_array.i, line 9) in 'reset_5'' in 'calls_on_array_dim_2_to_1' at call 'reset_5' (file tests/wp_hoare/reference_array.i, line 84)
+:
+Let a_0 = (shift_A20_A5_sint32 (global G_tt_110) 0).
+Assume {
+  (* Heap *)
+  Have: (linked Malloc_0).
+  (* tests/wp_hoare/reference_array.i:83: Call 'load_5' *)
+  Have: (valid_rw Malloc_0 (shift_sint32 a_0 0) 5)
+        /\ (forall i_0:int.
+            (0<=i_0) -> (i_0<=4)
+            -> (reg_load_0[i_0]=Mint_3[(shift_sint32 a_0 i_0)])).
+  (* tests/wp_hoare/reference_array.i:83: Call Effects *)
+  Have: forall i_0:int.
+        ((i_0<0) \/ (5<=i_0)) -> (reg_load_0[i_0]=reg_load_1[i_0]).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_hoare/reference_array.i, line 26) in 'add_5'' in 'calls_on_array_dim_2_to_1' at call 'add_5' (file tests/wp_hoare/reference_array.i, line 85)
+:
+Let a_0 = (shift_A20_A5_sint32 (global G_tt_110) 0).
+Let a_1 = (shift_sint32 a_0 0).
+Assume {
+  (* Heap *)
+  Have: (linked Malloc_0).
+  (* tests/wp_hoare/reference_array.i:83: Call 'load_5' *)
+  Have: (valid_rw Malloc_0 a_1 5)
+        /\ (forall i_0:int.
+            (0<=i_0) -> (i_0<=4)
+            -> (reg_load_0[i_0]=Mint_1[(shift_sint32 a_0 i_0)])).
+  (* tests/wp_hoare/reference_array.i:83: Call Effects *)
+  Have: forall i_0:int.
+        ((i_0<0) \/ (5<=i_0)) -> (reg_load_0[i_0]=reg_load_1[i_0]).
+  (* tests/wp_hoare/reference_array.i:84: Call 'reset_5' *)
+  Have: forall i_0:int.
+        (0<=i_0) -> (i_0<=4) -> (0=Mint_0[(shift_sint32 a_0 i_0)]).
+  (* tests/wp_hoare/reference_array.i:84: Call Effects *)
+  Have: (havoc Mint_1 Mint_0 a_1 5).
+}
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function load_1_5
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_hoare/reference_array.i, line 42) in 'load_1_5':
+Let a_0 = (shift_A5_sint32 lp_0 0).
+Assume {
+  (* Goal *)
+  When: (0<=i_1) /\ (i_1<=4).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ ((region (base lp_0))<=0).
+  (* Pre-condition (file tests/wp_hoare/reference_array.i, line 40) in 'load_1_5' *)
+  (* Pre-condition: *)
+  Have: (valid_rw Malloc_0 (shift_sint32 a_0 0) 5).
+  (* tests/wp_hoare/reference_array.i:45: Call 'load_5' *)
+  Have: forall i_0:int.
+        (0<=i_0) -> (i_0<=4)
+        -> (reg_load_0[i_0]=Mint_0[(shift_sint32 a_0 i_0)]).
+  (* tests/wp_hoare/reference_array.i:45: Call Effects *)
+  Have: forall i_0:int.
+        ((i_0<0) \/ (5<=i_0)) -> (reg_load_0[i_0]=reg_load_1[i_0]).
+}
+Prove: reg_load_0[i_1]=Mint_0[(shift_sint32 a_0 i_1)].
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/reference_array.i, line 41) in 'load_1_5':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/reference_array.i, line 41) in 'load_1_5':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_hoare/reference_array.i, line 19) in 'load_5'' in 'load_1_5' at call 'load_5' (file tests/wp_hoare/reference_array.i, line 45)
+:
+Assume {
+  (* Heap *)
+  Have: (linked Malloc_0) /\ ((region (base lp_2))<=0).
+  (* Pre-condition (file tests/wp_hoare/reference_array.i, line 40) in 'load_1_5' *)
+  (* Pre-condition: *)
+  Have: (valid_rw Malloc_0 (shift_sint32 (shift_A5_sint32 lp_2 0) 0) 5).
+}
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function reset_1_5
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_hoare/reference_array.i, line 36) in 'reset_1_5':
+Let a_0 = (shift_A5_sint32 rp_0 0).
+Let a_1 = (shift_sint32 a_0 0).
+Assume {
+  (* Goal *)
+  When: (0<=i_1) /\ (i_1<=4).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ ((region (base rp_0))<=0).
+  (* Pre-condition (file tests/wp_hoare/reference_array.i, line 33) in 'reset_1_5' *)
+  (* Pre-condition: *)
+  Have: (valid_rw Malloc_0 a_1 5).
+  (* tests/wp_hoare/reference_array.i:38: Call 'reset_5' *)
+  Have: forall i_0:int.
+        (0<=i_0) -> (i_0<=4) -> (0=Mint_0[(shift_sint32 a_0 i_0)]).
+  (* tests/wp_hoare/reference_array.i:38: Call Effects *)
+  Have: (havoc Mint_1 Mint_0 a_1 5).
+}
+Prove: 0=Mint_0[(shift_sint32 a_0 i_1)].
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/reference_array.i, line 34) in 'reset_1_5':
+Call Effect at line 38
+Let a_0 = (shift_sint32 (shift_A5_sint32 rp_0 0) 0).
+Assume {
+  (* Goal *)
+  When: (valid_rd Malloc_0 a_0 5).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ ((region (base rp_0))<=0).
+  (* Pre-condition (file tests/wp_hoare/reference_array.i, line 33) in 'reset_1_5' *)
+  (* Pre-condition: *)
+  Have: (valid_rw Malloc_0 a_0 5).
+  (* tests/wp_hoare/reference_array.i:38: Exit Effects *)
+  Have: (havoc Mint_2 Mint_0 a_0 5).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/reference_array.i, line 34) in 'reset_1_5':
+Call Effect at line 38
+Let a_0 = (shift_A5_sint32 rp_0 0).
+Let a_1 = (shift_sint32 a_0 0).
+Assume {
+  (* Goal *)
+  When: (valid_rd Malloc_0 a_1 5).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ ((region (base rp_0))<=0).
+  (* Pre-condition (file tests/wp_hoare/reference_array.i, line 33) in 'reset_1_5' *)
+  (* Pre-condition: *)
+  Have: (valid_rw Malloc_0 a_1 5).
+  (* tests/wp_hoare/reference_array.i:38: Call 'reset_5' *)
+  Have: forall i_0:int.
+        (0<=i_0) -> (i_0<=4) -> (0=Mint_0[(shift_sint32 a_0 i_0)]).
+  (* tests/wp_hoare/reference_array.i:38: Call Effects *)
+  Have: (havoc Mint_1 Mint_0 a_1 5).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_hoare/reference_array.i, line 9) in 'reset_5'' in 'reset_1_5' at call 'reset_5' (file tests/wp_hoare/reference_array.i, line 38)
+:
+Assume {
+  (* Heap *)
+  Have: (linked Malloc_0) /\ ((region (base rp_2))<=0).
+  (* Pre-condition (file tests/wp_hoare/reference_array.i, line 33) in 'reset_1_5' *)
+  (* Pre-condition: *)
+  Have: (valid_rw Malloc_0 (shift_sint32 (shift_A5_sint32 rp_2 0) 0) 5).
+}
+Prove: true.
+
+------------------------------------------------------------

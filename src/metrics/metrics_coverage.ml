@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -280,7 +280,6 @@ let all_funs () =
     Varinfo.Set.empty
 
 let compute () =
-  !Db.Value.compute ();
   let semantic = compute_semantic () in
   let main = fst (Globals.entry_point ()) in
   let syntactic, initializers = compute_syntactic main in

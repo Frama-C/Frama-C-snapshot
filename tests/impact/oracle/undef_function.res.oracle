@@ -1,0 +1,25 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/impact/undef_function.i (no preprocessing)
+[impact] beginning analysis
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  y ∈ {0}
+[value] computing for function g <- main.
+        Called from tests/impact/undef_function.i:10.
+tests/impact/undef_function.i:10:[kernel] warning: Neither code nor specification for function g, generating default assigns from the prototype
+[value] using specification for function g
+[value] Done for function g
+[value] Recording results for main
+[value] done for function main
+[pdg] computing for function main
+[from] Computing for function g
+[from] Done for function g
+[pdg] done for function main
+[pdg] computing for function g
+[pdg] done for function g
+[impact] impacted statements of stmt(s) 2 are:
+           tests/impact/undef_function.i:10 (sid 3): g(y);
+           tests/impact/undef_function.i:11 (sid 5): return y;
+[impact] analysis done

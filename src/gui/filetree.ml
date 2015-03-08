@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,6 +24,9 @@ open Cil_types
 open Cil_datatype
 open Extlib
 open Gtk_helper
+
+(* To debug performance related to heigth of lines *)
+let fixed_height = false
 
 type filetree_node =
   | File of string * Cil_types.global list
@@ -65,8 +68,8 @@ class type t =  object
   method refresh_columns : unit -> unit
 end
 
-(* crude way to to debug inefficiencies with the gtk interface
-let c = ref 0
+(* crude way to to debug inefficiencies with the gtk interface *)
+(*let c = ref 0
 let gtk s = incr c; Format.printf "[%d %s]@." !c s
 *)
 
@@ -165,30 +168,36 @@ struct
     in
     parent#foreach f
 
-    method append_tree (t:TREE.t) =
-      let rec make_forest root sons =
+    method set_tree (fill_cache:int list->custom_tree->unit) (t:TREE.t list) =
+      num_roots <- 0;
+      let rec make_forest pos root sons =
         Array.mapi
           (fun i t -> let result = {finfo=t; fidx=i; parent = Some root;
                                     sons = [||] }
-           in
-           let sons = make_forest result (TREE.sons t) in
-           result.sons<-sons;
-           result)
+                      in
+                      fill_cache (i::pos) result;
+                      let sons = make_forest (i::pos) result (TREE.sons t) in
+                      result.sons<-sons;
+                      result)
           sons
       in
-      let pos = num_roots in
-      num_roots <- num_roots+1;
-      let root = { finfo = t; sons = [||];
-                   parent = None;
-                   fidx = pos }
+      let new_roots = List.map
+        (fun t ->
+          let pos = num_roots in
+          num_roots <- num_roots+1;
+          let root = { finfo = t; sons = [||];
+                       parent = None;
+                       fidx = pos }
+          in
+          fill_cache [pos] root;
+          let sons = make_forest [pos] root (TREE.sons t)
+          in
+          root.sons <- sons;
+          root)
+        t
       in
+      roots <- Array.of_list new_roots
 
-      let sons = make_forest root (TREE.sons t)
-      in
-      root.sons <- sons;
-      roots <-
-        Array.init num_roots (fun n -> if n = num_roots - 1 then root
-                              else roots.(n))
     method clear () =
       self#custom_foreach (fun p _ ->
                              self#custom_row_deleted p;
@@ -323,6 +332,7 @@ module MYTREE = struct
     let storage = default_storage display_name (Array.of_list globs) in
     let sons = make_list_globals hide globs in
     storage, sons
+
 end
 
 module MODEL=MAKE(MYTREE)
@@ -359,11 +369,11 @@ module State = struct
      gtk node *)
   type cache = {
     cache_files:
-      (Gtk.tree_path * MODEL.custom_tree) Datatype.String.Hashtbl.t;
+      (int list * MODEL.custom_tree) Datatype.String.Hashtbl.t;
     cache_vars:
-      (Gtk.tree_path * MODEL.custom_tree) Varinfo.Hashtbl.t;
+      (int list * MODEL.custom_tree) Varinfo.Hashtbl.t;
     cache_global_annot:
-      (Gtk.tree_path * MODEL.custom_tree) Global_annotation.Hashtbl.t;
+      (int list * MODEL.custom_tree) Global_annotation.Hashtbl.t;
   }
 
   let default_cache () = {
@@ -384,20 +394,19 @@ module State = struct
          with Not_found -> None)
     | _ -> None
 
-  let fill_cache cache path row =
+  let fill_cache cache (path:int list) row =
     match row.MODEL.finfo with
-      | MYTREE.MFile (storage,_) ->
-        Datatype.String.Hashtbl.add
-          cache.cache_files storage.MYTREE.name (path,row)
-      | MYTREE.MGlobal storage ->
-        match storage.MYTREE.globals with
-          (* Only one element in this array by invariant: this is a leaf*)
-          | [| GFun ({svar=vi},_) | GVar(vi,_,_) | GVarDecl(_,vi,_) |] ->
-            Varinfo.Hashtbl.add cache.cache_vars vi (path,row)
-          | [| GAnnot (ga, _) |] ->
-            Global_annotation.Hashtbl.add cache.cache_global_annot ga (path,row)
-          | _ -> (* no cache for other globals yet *) ()
-
+    | MYTREE.MFile (storage,_) ->
+      Datatype.String.Hashtbl.add
+        cache.cache_files storage.MYTREE.name (path,row)
+    | MYTREE.MGlobal storage ->
+      match storage.MYTREE.globals with
+        (* Only one element in this array by invariant: this is a leaf*)
+      | [| GFun ({svar=vi},_) | GVar(vi,_,_) | GVarDecl(_,vi,_) |] ->
+        Varinfo.Hashtbl.add cache.cache_vars vi (path,row)
+      | [| GAnnot (ga, _) |] ->
+        Global_annotation.Hashtbl.add cache.cache_global_annot ga (path,row)
+      | _ -> (* no cache for other globals yet *) ()
 
   let default_filetree () =
     let m1 = MODEL.custom_tree () in
@@ -450,23 +459,27 @@ module State = struct
     let model, cache, _ = Ref.get () in
     (* Let's fill up the model with all files and functions. *)
     let files = cil_files () in
-    if flat_mode () then
-      let files =
+    begin 
+      if flat_mode () then
+        let files =
         MYTREE.make_list_globals hide (List.concat (List.map snd files))
       in
-      List.iter model#append_tree files
+      model#set_tree (fill_cache cache) files;
     else
-      List.iter
-        (fun v ->
-           let name, globals = MYTREE.make_file hide v in
-	   if not ((hide_stdlib ()) 
-		   && (MYTREE.comes_from_share name.MYTREE.name))
-	   then 
-             model#append_tree (MYTREE.MFile (name, globals)))
-        (List.sort (fun (s1, _) (s2, _) -> String.compare s1 s2) files);
+      let files = List.fold_left
+        (fun acc v ->
+          let name, globals = MYTREE.make_file hide v in
+	  if not ((hide_stdlib ()) 
+		  && (MYTREE.comes_from_share name.MYTREE.name))
+	  then 
+            (MYTREE.MFile (name, globals))::acc
+          else acc)
+        []
+        (List.sort (fun (s1, _) (s2, _) -> String.compare s1 s2) files)
+      in
+      model#set_tree (fill_cache cache) files
+    end;
     (* Let's build the table from globals to rows in the model *)
-    model#custom_foreach
-      (fun path tree -> (*gtk "cache";*) fill_cache cache path tree; false);
     Ref.mark_as_computed ()
 
   let get () =
@@ -529,8 +542,7 @@ let make (tree_view:GTree.view) =
       (fun b -> (MYTREE.get_storage row).MYTREE.strikethrough <- b)
       strikethrough;
     may (fun b -> (MYTREE.get_storage row).MYTREE.name <- b) text;
-    (* gtk "set_row"; *)
-    model#custom_row_changed path raw_row
+    if false then model#custom_row_changed (GTree.Path.create (List.rev path)) raw_row
   in
 
   let myself = object(self)
@@ -559,14 +571,16 @@ let make (tree_view:GTree.view) =
     method append_pixbuf_column
       ~title (f:(global list -> GTree.cell_properties_pixbuf list)) visible =
       let column = GTree.view_column ~title () in
-      column#set_resizable true;
+      if fixed_height then (column#set_sizing `FIXED;
+                            column#set_resizable false;
+                            column#set_fixed_width 100)
+      else column#set_resizable true;
       let renderer = GTree.cell_renderer_pixbuf [] in
       column#pack renderer;
       column#set_cell_data_func renderer
         (fun model row ->
            if visible () then
              let (path:Gtk.tree_path) = model#get_path row  in
-             (* gtk "cell renderer"; *)
              match model_custom#custom_get_iter path with
                | Some {MODEL.finfo=v} ->
                  renderer#set_properties
@@ -651,7 +665,6 @@ let make (tree_view:GTree.view) =
             (Printexc.to_string e)
         in
         try
-          (* gtk "select"; *)
           let {MODEL.finfo=t} =
             Extlib.the (model_custom#custom_get_iter path) in
           let selected_node = MYTREE.storage_type t in
@@ -674,7 +687,7 @@ let make (tree_view:GTree.view) =
                   f ~was_activated:(not old_force_selection && was_activated)
                     ~activating:true
                     selected_node
-                with e-> fail e)
+                with e -> fail e)
               select_functions;
           end;
           force_selection <- false;
@@ -725,17 +738,20 @@ let make (tree_view:GTree.view) =
       List.iter (fun f -> f (self :> t)) reset_extensions;
       State.Ref.set (mc, cache, prev_active);
       force_selection <- true;
-      match prev_active with
+      (match prev_active with
         | None -> ()
         | Some node ->
           match State.path_from_node path_cache node with
             | None -> ()
-            | Some (path, _) -> self#show_path_in_tree path;
+            | Some (path, _) -> 
+              self#show_path_in_tree (GTree.Path.create (List.rev path)))
 
     method select_global g =
       match State.path_from_node path_cache (Global g) with
         | None -> (* selection failed *) self#unselect; false
-        | Some (path, _) -> self#show_path_in_tree path; true
+        | Some (path, _) -> 
+          self#show_path_in_tree (GTree.Path.create (List.rev path));
+          true
 
     method selected_globals =
       match self#activated with
@@ -754,7 +770,6 @@ let make (tree_view:GTree.view) =
     let source_renderer = GTree.cell_renderer_text [`YALIGN 0.0] in
     let m_source_renderer renderer (lmodel:GTree.model) iter =
       let (path:Gtk.tree_path) = lmodel#get_path iter in
-      (* gtk "source renderer"; *)
       match self#model#custom_get_iter path with
         | Some p ->
           let special, text, strike, underline = match p.MODEL.finfo with
@@ -779,10 +794,13 @@ let make (tree_view:GTree.view) =
       ~title:"Source file"
       ~renderer:((source_renderer:>GTree.cell_renderer),[]) ()
     in
+    if fixed_height then column#set_sizing `FIXED;
     source_column <- Some column;
     column#set_cell_data_func
       source_renderer (m_source_renderer source_renderer);
-    column#set_resizable true;
+    if fixed_height then ( column#set_resizable false;
+                           column#set_fixed_width 100)
+    else column#set_resizable true;
     column#set_clickable true;
     column#set_widget (Some button_menu#coerce);
 
@@ -809,6 +827,7 @@ let make (tree_view:GTree.view) =
     let _ = tree_view#append_column column in
     tree_view#set_model (Some (init_model:>GTree.model));
     self#enable_select_functions ();
+    if fixed_height then tree_view#set_fixed_height_mode true;
 
   end
   in

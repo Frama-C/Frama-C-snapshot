@@ -3,7 +3,7 @@
    STDOPT: +"-main main_2"
    STDOPT: +"-main g"
 */
-#include "share/libc/__fc_builtin.c"
+#include "share/libc/__fc_builtin.h"
 
 int x;
 int f();

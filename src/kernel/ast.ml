@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -30,8 +30,6 @@ include
     (struct
        let name = "AST"
        
-       (* Kernel.UnrollingLevel.self is not a real dependency: the AST will
-          get recomputed whenever this parameter changes. See unroll.ml *)
        let dependencies =
          [ Cil.selfMachine;
            Kernel.SimplifyCfg.self;
@@ -40,6 +38,7 @@ include
            Kernel.ReadAnnot.self;
            Kernel.PreprocessAnnot.self;
            Kernel.Files.self;
+           Kernel.UnrollingLevel.self;
            Cil.selfFormalsDecl ]
      end)
 
@@ -60,9 +59,8 @@ let monotonic_states = ref []
 let add_monotonic_state state = monotonic_states := state :: !monotonic_states
 
 module After_building = Hook.Build(struct type t = Cil_types.file end)
+
 let apply_after_computed = After_building.extend
-let () = Parameter_customize.set_ast_hook apply_after_computed
-let () = List.iter apply_after_computed !Parameter_customize.init_ast_hooks
 
 let mark_as_changed () =
   let depends = State_selection.only_dependencies self in
@@ -87,7 +85,7 @@ let () =
                  Cil_datatype.Varinfo.Hptset.self ];
   add_monotonic_state Cil_datatype.Stmt.Hptset.self;
   add_monotonic_state Cil_datatype.Varinfo.Hptset.self;
-  Cil.register_ast_dependencies self;
+  Cil.set_dependencies_of_ast self;
   Logic_env.init_dependencies self;
 
 exception Bad_Initialization of string
@@ -120,9 +118,10 @@ let force_compute () =
 
 let get () = memo (fun () -> force_compute ())
 
-let is_computed () = is_computed ()
+let is_computed () = is_computed () (* hide the optional argument [?project] *)
 
 let compute () = if not (is_computed ()) then ignore (force_compute ())
+let () = Parameter_builder.force_ast_compute := compute
 
 let set_file file =
   let change old_file =

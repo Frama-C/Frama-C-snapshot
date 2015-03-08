@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2014                                               */
+/*  Copyright (C) 2007-2015                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -752,6 +752,7 @@ pid_t        getpgrp(void);
 pid_t        getpid(void);
 pid_t        getppid(void);
 pid_t        getsid(pid_t);
+/*@ assigns \result \from \nothing; */
 uid_t        getuid(void);
 char        *getwd(char *);
 int          isatty(int);

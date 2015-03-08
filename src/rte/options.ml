@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -25,7 +25,7 @@ preconditions at call sites"
 
 include Plugin.Register
   (struct
-     let name = "rte annotation"
+     let name = "rtegen"
      let shortname = "rte"
      let help = help_msg
    end)
@@ -129,7 +129,7 @@ module Warn =
    the plug-in performs its jobs (and only those). 
    By default all functions are annotated *)
 module FunctionSelection =
-  StringSet
+  Kernel_function_set
     (struct
        let option_name = "-rte-select"
        let arg_name = "fun"

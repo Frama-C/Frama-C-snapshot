@@ -1,0 +1,95 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/imprecise_invalid_write.i (no preprocessing)
+tests/misc/imprecise_invalid_write.i:5:[kernel] warning: Body of function main1 falls-through. Adding a return statement
+tests/misc/imprecise_invalid_write.i:10:[kernel] warning: Body of function main2 falls-through. Adding a return statement
+tests/misc/imprecise_invalid_write.i:17:[kernel] warning: Body of function main3 falls-through. Adding a return statement
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  x ∈ {0}
+  s ∈ {{ "abc" }}
+[value] computing for function main1 <- main.
+        Called from tests/misc/imprecise_invalid_write.i:22.
+tests/misc/imprecise_invalid_write.i:5:[kernel] warning: out of bounds write. assert \valid((int *)c);
+tests/misc/imprecise_invalid_write.i:5:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
+[value] Recording results for main1
+[value] Done for function main1
+[value] computing for function main2 <- main.
+        Called from tests/misc/imprecise_invalid_write.i:25.
+tests/misc/imprecise_invalid_write.i:9:[value] warning: Operation {{ &main1 }} + {{ &main1 }} incurs a loss of precision
+tests/misc/imprecise_invalid_write.i:9:[value] Assigning imprecise value to p.
+        The imprecision originates from Arithmetic
+        {tests/misc/imprecise_invalid_write.i:9}
+tests/misc/imprecise_invalid_write.i:10:[value] Reading left-value p.
+        It contains a garbled mix of {main1} because of Arithmetic
+        {tests/misc/imprecise_invalid_write.i:9}.
+tests/misc/imprecise_invalid_write.i:10:[kernel] warning: out of bounds write. assert \valid(p);
+tests/misc/imprecise_invalid_write.i:10:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
+[value] Recording results for main2
+[value] Done for function main2
+[value] computing for function main3 <- main.
+        Called from tests/misc/imprecise_invalid_write.i:28.
+tests/misc/imprecise_invalid_write.i:16:[value] warning: Operation {{ "abc" }} + {{ "abc" }} incurs a loss of precision
+tests/misc/imprecise_invalid_write.i:16:[value] Assigning imprecise value to p.
+        The imprecision originates from Arithmetic
+        {tests/misc/imprecise_invalid_write.i:16}
+tests/misc/imprecise_invalid_write.i:17:[value] Reading left-value p.
+        It contains a garbled mix of {"abc"} because of Arithmetic
+        {tests/misc/imprecise_invalid_write.i:16}.
+tests/misc/imprecise_invalid_write.i:17:[kernel] warning: out of bounds write. assert \valid(p);
+tests/misc/imprecise_invalid_write.i:17:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
+[value] Recording results for main3
+[value] Done for function main3
+[value] Recording results for main
+[value] done for function main
+tests/misc/imprecise_invalid_write.i:5:[value] Assertion 'Value,mem_access' got final status invalid.
+tests/misc/imprecise_invalid_write.i:10:[value] Assertion 'Value,mem_access' got final status invalid.
+tests/misc/imprecise_invalid_write.i:17:[value] Assertion 'Value,mem_access' got final status invalid.
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main1:
+  NON TERMINATING FUNCTION
+[value] Values at end of function main2:
+  NON TERMINATING FUNCTION
+[value] Values at end of function main3:
+  NON TERMINATING FUNCTION
+[value] Values at end of function main:
+  
+[from] Computing for function main1
+[from] Non-terminating function main1 (no dependencies)
+[from] Done for function main1
+[from] Computing for function main2
+[from] Non-terminating function main2 (no dependencies)
+[from] Done for function main2
+[from] Computing for function main3
+[from] Non-terminating function main3 (no dependencies)
+[from] Done for function main3
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main1:
+  NON TERMINATING - NO EFFECTS
+[from] Function main2:
+  NON TERMINATING - NO EFFECTS
+[from] Function main3:
+  NON TERMINATING - NO EFFECTS
+[from] Function main:
+  NO EFFECTS
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main1:
+          \nothing
+[inout] Inputs for function main1:
+          x
+[inout] Out (internal) for function main2:
+          p
+[inout] Inputs for function main2:
+          \nothing
+[inout] Out (internal) for function main3:
+          p
+[inout] Inputs for function main3:
+          s
+[inout] Out (internal) for function main:
+          \nothing
+[inout] Inputs for function main:
+          x; s

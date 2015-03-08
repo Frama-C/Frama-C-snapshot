@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -33,11 +33,11 @@ type bundle
 val dump : Format.formatter -> bundle -> unit
 
 type 'a attributed = 
-    ( ?descr:string ->
-      ?stmt:stmt -> 
-      ?deps:Property.t list ->
-      ?warn:Warning.Set.t ->
-      'a )
+  ( ?descr:string ->
+    ?stmt:stmt -> 
+    ?deps:Property.t list ->
+    ?warn:Warning.Set.t ->
+    'a )
 
 val empty : bundle
 val occurs : F.var -> bundle -> bool
@@ -54,7 +54,7 @@ val extract : bundle -> F.pred list
 
 type hypotheses
 val hypotheses : bundle -> hypotheses
-  
+
 type sequent = hypotheses * F.pred
 
 (** Simplifier *)

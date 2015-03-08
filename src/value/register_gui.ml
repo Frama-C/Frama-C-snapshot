@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -25,6 +25,112 @@ open Cil
 open Pretty_source
 open Gtk_helper
 
+(* Catch the fact that we are in a function for which [-no-results] or one
+   of its variants is set. Without this check, we would display 
+   much non-sensical information. *)
+let results_kf_computed = function
+  | { fundec = Definition (fundec, _) } ->
+    Mark_noresults.should_memorize_function fundec
+  | { fundec = Declaration _ } -> true (* This value is not really used *)
+
+
+(** Generic functions working for lvalues and expressions. *)
+
+(* special [with_alarms] value that logs important alarms, but allows execution
+   to continue *)
+let log_alarms () =
+  let ok = ref true in
+  let not_ok () = ok := false in
+  let with_alarms = {
+    CilE.others = {CilE.a_ignore with CilE.a_call=not_ok};
+    unspecified = {CilE.a_ignore with CilE.a_call=not_ok};
+    defined_logic =       CilE.a_ignore;
+    imprecision_tracing = CilE.a_ignore;
+  } in
+  with_alarms, ok
+
+let pp_eval_ok fmt ok =
+  if not ok then
+    Format.fprintf fmt " (evaluation may have failed in some cases) "
+
+type ('states, 'expr, 'v) evaluation_functions = {
+  eval_and_warn: 'states -> 'expr -> 'v * bool;
+  equal: 'v -> 'v -> bool;
+  bottom: 'v;
+  join: 'v -> 'v -> 'v;
+  pretty: 'expr -> Format.formatter -> 'v -> unit
+}
+
+let pretty_before_after ev (main_ui: Design.main_window) ~before ~after expr =
+  let pp fmt = main_ui#pretty_information fmt in
+  try
+    let vbefore, okbef = ev.eval_and_warn before expr in
+    let res_after = Extlib.opt_map (fun a -> ev.eval_and_warn a expr) after in
+    let pretty = ev.pretty expr in
+    match res_after with
+      | Some (vafter, okafter)
+          when ev.equal vbefore vafter ->
+        pp "Before this statement / after this statement%a:@. %a@."
+          pp_eval_ok (okbef && okafter) pretty vbefore
+      | Some (vafter, okafter) ->
+        pp "Before this statement%a:@. %a@."
+          pp_eval_ok okbef pretty vbefore;
+        pp "After this statement%a:@. %a@."
+          pp_eval_ok okafter pretty vafter
+      | None ->
+        pp "Before this statement%a:@. %a@."
+          pp_eval_ok okbef pretty vbefore;
+  with Eval_terms.LogicEvalError ee ->
+    Value_parameters.debug "Cannot evaluate term (%a)"
+      Eval_terms.pretty_logic_evaluation_error ee
+
+let pretty_per_callstacks ev (main_ui: Design.main_window) ~before ~after v =
+  let pp_info fmt = main_ui#pretty_information fmt in
+  let aux callstack before =
+    let after =
+      Extlib.opt_map
+        (fun cafter ->
+          try Value_types.Callstack.Hashtbl.find cafter callstack
+          with Not_found -> Cvalue.Model.bottom)
+        after
+    in
+    pp_info "@.For callstack [%a]@." Value_util.pretty_call_stack callstack;
+    pretty_before_after ev main_ui ~before ~after v
+  in
+  (* TODO: we should sort the callstacks by prefix *)
+  Value_types.Callstack.Hashtbl.iter aux before
+
+let callstack_fold ev h a =
+  let f _callstack state (acc_res, acc_w) =
+    let res, w = ev.eval_and_warn state a in
+    ev.join res acc_res, w || acc_w
+  in
+  Value_types.Callstack.Hashtbl.fold f h (ev.bottom, false)
+
+let pretty_callstack_summary ev main_ui ~before ~after v =
+  let ev = { ev with eval_and_warn = callstack_fold ev } in
+  pretty_before_after ev main_ui ~before ~after v
+
+let pretty_at_stmt ev main_ui stmt v =
+  (* Display 'after' states only in instructions. On blocks and if/switch
+     statements, the notion of 'after' is counter-intuitive. *)
+  let is_instr = match stmt.skind with Instr _ -> true | _ -> false in
+  (* Standard printing, without callstacks *)
+  let before =
+    match Db.Value.get_stmt_state_callstack ~after:false stmt with
+    | None -> Value_types.Callstack.Hashtbl.create 1
+    | Some x -> x
+  in
+  let after =
+    if is_instr
+    then Db.Value.get_stmt_state_callstack ~after:true stmt
+    else None
+  in
+  if Value_types.Callstack.Hashtbl.length before > 1
+  then pretty_callstack_summary ev main_ui ~before ~after v;
+  pretty_per_callstacks ev main_ui ~before ~after v
+
+(** lvalues-related functions *)
 
 type lval_or_absolute = TLVal of term | LVal of lval | AbsoluteMem
 
@@ -35,14 +141,21 @@ let pretty_lval_or_absolute fmt = function
 
 type offsetmap_result =
   | Bottom (* Bottom memory state *)
+  | Top (* State or size was Top *)
   | InvalidLoc (* Location is always invalid *)
   | Offsetmap of Cvalue.V_Offsetmap.t (* Normal result *)
 
 let equal_offsetmap_result r1 r2 = match r1, r2 with
   | Bottom, Bottom -> true
+  | Top, Top -> true
   | InvalidLoc, InvalidLoc -> true
   | Offsetmap o1, Offsetmap o2 -> Cvalue.V_Offsetmap.equal o1 o2
-  | (Bottom | InvalidLoc | Offsetmap _), _ -> false
+  | (Bottom | Top | InvalidLoc | Offsetmap _), _ -> false
+
+let join_offsetmap_result r1 r2 = match r1, r2 with
+  | Top, _ | _, Top -> Top
+  | (Bottom | InvalidLoc), x | x, (Bottom | InvalidLoc) -> x
+  | Offsetmap o1, Offsetmap o2 -> Offsetmap (Cvalue.V_Offsetmap.join o1 o2)
 
 (* Display [o] as a single value, when this is more readable and more precise
    than the standard display. *)
@@ -62,52 +175,43 @@ let pretty_offsetmap_result lv fmt r =
   begin match r with
   | Bottom ->  Format.pp_print_string fmt "<BOTTOM>"
   | InvalidLoc -> Format.pp_print_string fmt "<INVALID LOCATION>"
+  | Top -> Format.pp_print_string fmt "<NO INFORMATION>"
   | Offsetmap off ->
       let typ = match lv with
         | LVal lv -> Some (Cil.unrollType (typeOfLval lv))
-        | TLVal tlv -> 
+        | TLVal tlv ->
           Some (Cil.unrollType (Logic_utils.logicCType tlv.term_type))
         | AbsoluteMem -> None
       in
       pretty_lval_or_absolute fmt lv;
-      Cvalue.V_Offsetmap.pretty_typ typ fmt off;
+      Cvalue.V_Offsetmap.pretty_generic ?typ () fmt off;
       match typ with
       | None -> ()
       | Some typ -> pretty_stitched_offsetmap fmt typ off
   end
-
-(* special [with_alarms] value that log important alarms, but allow execution
-   to continue *)
-let log_alarms () =
-  let ok = ref true in
-  let not_ok () = ok := false in
-  let with_alarms = {
-    CilE.others = {CilE.a_ignore with CilE.a_call=not_ok};
-    unspecified = {CilE.a_ignore with CilE.a_call=not_ok};
-    defined_logic =       CilE.a_ignore;
-    imprecision_tracing = CilE.a_ignore;
-  } in
-  with_alarms, ok
-
-let pp_eval_ok fmt ok =
-  if not ok then
-    Format.fprintf fmt " (evaluation may have failed in some cases) "
 
 let lval_or_absolute_to_offsetmap state lv =
   let with_alarms, ok = log_alarms () in
   (* Evaluate the given location in [state]. Catch an unreachable state, an
      invalid location, or another error during the evaluation. *)
   let reduce_loc_and_eval loc =
-    if Cvalue.Model.is_reachable state then
+    if Cvalue.Model.is_top state then
+      Top, true
+    else if Cvalue.Model.is_reachable state then
       let loc' = Locations.valid_part ~for_writing:false loc in
       if Locations.is_bottom_loc loc' then
-        InvalidLoc, true
+        InvalidLoc, false
       else
-        match Cvalue.Model.copy_offsetmap ~with_alarms loc' state with
-          | None -> Bottom, true
-          | Some offsm ->
+        try
+          match Eval_op.copy_offsetmap ~with_alarms
+           loc'.Locations.loc (Int_Base.project loc'.Locations.size) state
+          with
+          | `Bottom -> Bottom, false
+          | `Top -> Top, true
+          | `Map offsm ->
             let ok = !ok && (Locations.loc_equal loc loc') in
             Offsetmap offsm, ok
+        with Int_Base.Error_Top -> Top, true
     else
       Bottom, true
   in
@@ -117,126 +221,70 @@ let lval_or_absolute_to_offsetmap state lv =
         let aux loc (acc_res, acc_ok) =
           let res, ok = reduce_loc_and_eval loc in
           match acc_res, res with
-            | Offsetmap e, r when Cvalue.V_Offsetmap.is_empty e ->
-              r, ok (* Hack for the initial value passed to [fold] *)
             | Offsetmap o1, Offsetmap o2 ->
               Offsetmap (Cvalue.V_Offsetmap.join o1 o2), acc_ok && ok
-            | (Offsetmap _ as r), _ | _, (Offsetmap _ as r)->
-              r, false (* a problem occurred at least once *)
-            | InvalidLoc, InvalidLoc -> InvalidLoc, acc_ok && ok
-            | Bottom, Bottom | InvalidLoc, Bottom | Bottom, InvalidLoc ->
-              Bottom, acc_ok && ok (* one of the locations evaluated to valid *)
+            | Bottom, v | v, Bottom -> v, acc_ok && ok
+            | Top, Top -> Top, acc_ok && ok
+            | InvalidLoc, InvalidLoc -> InvalidLoc, false
+            | InvalidLoc, Offsetmap _ -> res, false
+            | Offsetmap _, InvalidLoc -> acc_res, false
+            | Top, (InvalidLoc | Offsetmap _ as r)
+            | (InvalidLoc | Offsetmap _ as r), Top ->
+              r, acc_ok && ok (* cannot happen, we should get Top everywhere *)
         in
-        Precise_locs.fold aux ploc (Offsetmap (Cvalue.V_Offsetmap.empty), true)
+        Precise_locs.fold aux ploc (Bottom, true)
     | TLVal tlv ->
         let env = Eval_terms.env_annot ~pre:Cvalue.Model.top ~here:state () in
         let loc = Eval_terms.eval_tlval_as_location env ~with_alarms tlv in
         reduce_loc_and_eval loc
     | AbsoluteMem ->
-        try Offsetmap (Cvalue.Model.find_base Base.null state), true
-        with Not_found -> InvalidLoc, true
+      match Cvalue.Model.find_base_or_default Base.null state with
+      | `Bottom -> InvalidLoc, true
+      | `Top -> Top, true
+      | `Map m -> Offsetmap m, true
 
-let pretty_lva_before_after (main_ui: Design.main_window) ~before ~after lva =
-  let pp fmt = main_ui#pretty_information fmt in
-  try
-    let offbefore, okbef = lval_or_absolute_to_offsetmap before lva in
-    let res_after =
-      if Cvalue.Model.is_reachable before then
-        Extlib.opt_map
-          (fun (after, precise_after) ->
-            lval_or_absolute_to_offsetmap after lva, precise_after
-          ) after
-      else None
-    in
-    match res_after with
-      | Some ((offafter, okafter), precise_after)
-          when equal_offsetmap_result offbefore offafter ->
-        pp "Before this statement / %s statement%a:@. %a@."
-          (if precise_after then "after this" else "at next")
-          pp_eval_ok (okbef && okafter) (pretty_offsetmap_result lva) offbefore
-      | Some ((offafter, okafter), precise_after) ->
-        pp "Before this statement%a:@. %a@."
-          pp_eval_ok okbef (pretty_offsetmap_result lva) offbefore;
-        pp "%s statement%a:@. %a@."
-          (if precise_after then "After this" else "At next")
-          pp_eval_ok okafter (pretty_offsetmap_result lva) offafter
-      | None ->
-        pp "Before this statement%a:@. %a@."
-          pp_eval_ok okbef (pretty_offsetmap_result lva) offbefore;
-  with Eval_terms.LogicEvalError ee ->
-    Value_parameters.debug "Cannot evaluate term (%a)"
-      Eval_terms.pretty_logic_evaluation_error ee
-;;
+let lval_ev = 
+  {eval_and_warn=lval_or_absolute_to_offsetmap;
+   equal=equal_offsetmap_result;
+   bottom=Bottom;
+   pretty=pretty_offsetmap_result;
+   join=join_offsetmap_result}
 
-let pretty_lva_callstacks (main_ui: Design.main_window) ~cbefore ~cafter lva =
-  let pp fmt = main_ui#pretty_information fmt in
-  let aux callstack before =
-    let after =
-      Extlib.opt_map
-        (fun cafter ->
-           try Value_types.Callstack.Hashtbl.find cafter callstack, true
-           with Not_found -> Cvalue.Model.bottom, true
-        ) cafter
-    in
-    pp "@.For callstack [%a]@." Value_util.pretty_call_stack callstack;
-    pretty_lva_before_after main_ui ~before ~after lva
-  in
-  (* TODO: we should sort the callstacks by prefix *)
-  Value_types.Callstack.Hashtbl.iter aux cbefore
+let pretty_lva_at_stmt = pretty_at_stmt lval_ev
 
-(* Compute an after state by picking the pre state of the successors *)
-let approximated_after_state = function
-  | { Cil_types.succs = (_::_ as l) } ->
-      List.fold_left
-        (fun acc s ->
-           let state = Db.Value.get_stmt_state s in
-           Cvalue.Model.join acc state
-        ) Cvalue.Model.bottom l
-  | { skind = Return _ } as s -> Db.Value.get_stmt_state s
-  | _ -> Cvalue.Model.bottom
+(** Expressions-related functions *)
 
+let eval_exp_and_warn state e =
+  let with_alarms,ok = log_alarms () in
+  Eval_exprs.eval_expr ~with_alarms state e,
+  !ok
 
-let pretty_lva_at_stmt main_ui stmt lva =
-  (* Standard printing, without callstacks *)
-  let default () =
-    let before = Db.Value.get_stmt_state stmt in
-    let after = 
-      match stmt.skind with
-      | Instr _ ->
-        let kf = Kernel_function.find_englobing_kf stmt in
-        let fundec = Kernel_function.get_definition kf in
-        let precise = Value_parameters.ResultsAfter.get () &&
-          Mark_noresults.should_memorize_function fundec
-        in
-        let state =
-          if precise then
-            try Db.Value.AfterTable.find stmt 
-	    with Not_found -> Cvalue.Model.bottom
-          else 
-            approximated_after_state stmt
-        in
-        Some (state, precise)
-      | _ -> None
-    in
-    pretty_lva_before_after main_ui ~before ~after lva
-  in
-  let cbefore = Db.Value.get_stmt_state_callstack ~after:false stmt in
-  let cafter =  Db.Value.get_stmt_state_callstack ~after:true stmt in
-  match cbefore with
-    | Some cbefore ->
-        if Value_types.Callstack.Hashtbl.length cbefore > 1 then default ();
-        pretty_lva_callstacks main_ui ~cbefore ~cafter lva
-    | None -> default ()
+let pretty_exp_result e fmt v =
+  Format.fprintf fmt
+    "%a @[%s %a@]"
+    Printer.pp_exp e
+    (Unicode.inset_string ())
+    (Cvalue.V.pretty_typ (Some (Cil.typeOf e))) v
 
+let exp_ev =     
+  {eval_and_warn=eval_exp_and_warn;
+   equal=Cvalue.V.equal;
+   bottom=Cvalue.V.bottom;
+   pretty=pretty_exp_result;
+   join=Cvalue.V.join}
 
-let pretty_formal_initial_state (main_ui: Design.main_window_extension_points) vi state =
+let pretty_exp_at_stmt = pretty_at_stmt exp_ev 
+
+(** Special case for formals *)
+let pretty_formal_initial_state
+    (main_ui: Design.main_window_extension_points) lvoa state =
   (* Callstack information not available yet *)
-  let lval = LVal (Var vi, NoOffset) in
-  let offsm,_ = lval_or_absolute_to_offsetmap state lval in
+  let offsm,_ = lval_or_absolute_to_offsetmap state lvoa in
   let pp fmt = main_ui#pretty_information fmt in
   pp "Initial value (before preconditions):@.%a@."
-    (pretty_offsetmap_result lval) offsm
+    (pretty_offsetmap_result lvoa) offsm
 
+(** Core of the graphical interface. *)
 
 let gui_compute_values  (main_ui:Design.main_window_extension_points) =
   if not (Db.Value.is_computed ())
@@ -250,6 +298,31 @@ let cleant_outputs kf s =
   let filter = Locations.Zone.filter_base accept in
   Extlib.opt_map filter outs
 
+module C_labels =
+  State_builder.Ref(Datatype.Option(Cil_datatype.Logic_label.Map.Make(Cvalue.Model)))
+    (struct
+      let name = "GUI.c_labels"
+      let dependencies = [ Db.Value.Table_By_Callstack.self ]
+      let default () = None
+     end)
+
+let c_labels () =
+  match C_labels.get () with
+  | Some h -> h
+  | None ->
+    let h =
+      Db.Value.Table_By_Callstack.fold
+        (fun stmt _ acc ->
+          if stmt.labels != []
+          then Cil_datatype.Logic_label.Map.add
+            (StmtLabel (ref stmt))
+            (Db.Value.get_stmt_state stmt) acc
+          else acc)
+        Cil_datatype.Logic_label.Map.empty
+    in
+    C_labels.set (Some h);
+    h
+
 (* Evaluate the user-supplied term contained in the string [txt] *)
 let eval_user_term main_ui kf stmt txt =
   Cil.CurrentLoc.set (Cil_datatype.Stmt.loc stmt);
@@ -260,13 +333,7 @@ let eval_user_term main_ui kf stmt txt =
       let term = !Db.Properties.Interp.expr kf stmt txt in
       let pre = Db.Value.get_initial_state kf in
       let here = Db.Value.get_stmt_state stmt in
-      let open Cil_datatype in
-      let c_labels =
-        Db.Value.Table.fold
-          (fun stmt -> Logic_label.Map.add (StmtLabel (ref stmt)))
-          Logic_label.Map.empty
-      in
-      let env = Eval_terms.env_annot ~c_labels ~pre ~here ()
+      let env = Eval_terms.env_annot ~c_labels:(c_labels ()) ~pre ~here ()
       in
       begin match term.term_node with
         | TLval _ | TStartOf _ ->
@@ -274,13 +341,15 @@ let eval_user_term main_ui kf stmt txt =
         | _ ->
             let with_alarms, ok = log_alarms () in
             let evaled = Eval_terms.eval_term ~with_alarms env term in
-	    let v = List.fold_left
-              Cvalue.V.join Cvalue.V.bottom evaled.Eval_terms.evalue
+            let v = evaled.Eval_terms.eover in
+            let typ = match Logic_utils.unroll_type term.term_type with
+              | Ctype typ -> Some typ
+              | _ -> None
             in
             main_ui#pretty_information
               "Before the selected statement, all the values \
               taken by the term %a are contained in %a%a@."
-              Printer.pp_term term Cvalue.V.pretty v pp_eval_ok (!ok)
+              Printer.pp_term term (Cvalue.V.pretty_typ typ) v pp_eval_ok (!ok)
       end
   with
     | Logic_interp.Error (_, mess) ->
@@ -293,6 +362,7 @@ let eval_user_term main_ui kf stmt txt =
     | e ->
         main_ui#error "Invalid expression: %s" (Cmdline.protect e)
 
+let last_evaluate_acsl_request = ref ""
 
 let to_do_on_select
     (popup_factory:GMenu.menu GMenu.factory)
@@ -300,46 +370,72 @@ let to_do_on_select
     =
   if button_nb = 1 then
     begin
-      if Db.Value.is_computed ()
-      then begin
-        match selected with
+      if Db.Value.is_computed () then begin
+        try
+          match selected with
           | PStmt (kf,stmt) -> begin
-            (* Is it an accessible statement ? *)
-            if Db.Value.is_reachable_stmt stmt then begin
-              if Value_results.is_non_terminating_call stmt then
-                main_ui#pretty_information "This call never terminates@."
-              else
-                (* Out for this statement *)
-                let outs = cleant_outputs kf stmt in
-                match outs with
-                  | Some outs ->
-                      main_ui#pretty_information
-                        "Modifies @[<hov>%a@]@." Db.Outputs.pretty outs
+            if results_kf_computed kf then begin
+              (* Is it an accessible statement ? *)
+              if Db.Value.is_reachable_stmt stmt then begin
+                if Value_results.is_non_terminating_instr stmt then
+                  match stmt.skind with
+                  | Instr (Call (_lvopt, _, _, _)) ->
+                    (* This is not 100% accurate: the instr can also fail
+                       when storing the result in [lvopt] *)
+                    main_ui#pretty_information "This call never terminates.@."
+                  | Instr _ ->
+                    main_ui#pretty_information "This instruction always fail.@."
                   | _ -> ()
+                else
+                  (* Out for this statement *)
+                  let outs = cleant_outputs kf stmt in
+                  match outs with
+                  | Some outs ->
+                    main_ui#pretty_information
+                      "Modifies @[<hov>%a@]@." Db.Outputs.pretty outs
+                  | _ -> ()
+              end
+              else main_ui#pretty_information "This code is dead@.";
             end
-            else main_ui#pretty_information "This code is dead@.";
           end
           | PLval (_kf, Kstmt stmt,lv) ->
               if Db.Value.is_reachable_stmt stmt &&
                 not (isFunctionType (typeOfLval lv))
               then pretty_lva_at_stmt main_ui stmt (LVal lv)
+          | PExp (_kf, Kstmt stmt,e) ->
+              if Db.Value.is_reachable_stmt stmt
+              then
+                pretty_exp_at_stmt main_ui stmt e
           | PTermLval (_kf, Kstmt stmt, tlv) ->
               if Db.Value.is_reachable_stmt stmt then
                 let ltyp = Cil.typeOfTermLval tlv in
                 let term = Logic_const.term (TLval tlv) ltyp in
                 pretty_lva_at_stmt main_ui stmt (TLVal term)
+          | PTermLval (Some kf, Kglobal, tlv) ->
+              let state = Db.Value.get_initial_state kf in
+              if Cvalue.Model.is_reachable state then
+                let ltyp = Cil.typeOfTermLval tlv in
+                let term = Logic_const.term (TLval tlv) ltyp in
+                let lvoa = TLVal term in
+                pretty_formal_initial_state main_ui lvoa state
           | PVDecl (Some kf, vi) when vi.vformal ->
               let state = Db.Value.get_initial_state kf in
               if Cvalue.Model.is_reachable state then
-                pretty_formal_initial_state main_ui vi state
-          | PLval (_, Kglobal, _) | PTermLval (_, Kglobal, _) -> ()
+                let lvoa = LVal (Var vi, NoOffset) in
+                pretty_formal_initial_state main_ui lvoa state
+          | PExp (_,Kglobal,_)| PLval (_, Kglobal, _)
+          | PTermLval (None, Kglobal, _)-> ()
           | PVDecl (_kf,_vi) -> ()
           | PGlobal _  | PIP _ -> ()
-        end
+        with
+        | Eval_terms.LogicEvalError ee ->
+          main_ui#pretty_information "Cannot evaluate term: %a@."
+            Eval_terms.pretty_logic_evaluation_error ee
+      end
     end
   else if button_nb = 3
   then begin
-      match selected with
+    match selected with
       | PVDecl (_,vi) ->
           begin
             try
@@ -386,18 +482,21 @@ let to_do_on_select
           end
 
       | PStmt (kf,stmt) ->
-          if Db.Value.is_computed ()
+          if Db.Value.is_computed () && results_kf_computed kf
           then
             let eval_expr () =
               let txt =
                 GToolbox.input_string ~title:"Evaluate"
+		  ~text:!last_evaluate_acsl_request
                   "  Enter an ACSL expression to evaluate  "
                   (* the spaces at beginning and end should not be necessary
                      but are the quickest fix for an aesthetic GTK problem *)
               in
               match txt with
                 | None -> ()
-                | Some txt -> eval_user_term main_ui kf stmt txt
+                | Some txt -> 
+		  last_evaluate_acsl_request:=txt;
+		  eval_user_term main_ui kf stmt txt
             in
             begin
               try
@@ -455,6 +554,7 @@ let to_do_on_select
             | _ -> ()
             )
           end
+      | PExp _ -> () (* No C function only in exp *)
       | PTermLval _ -> () (* No C function calls in logic *)
       | PGlobal _ -> ()
       | PIP _ -> ()
@@ -496,14 +596,14 @@ let sync_filetree (filetree:Filetree.t) =
        (fun kf ->
          try
            let vi = Kernel_function.get_vi kf in
-	   let strikethrough = 
-	     Db.Value.is_computed () && not (!Db.Value.is_called kf)
-	   in
+           let strikethrough =
+             Db.Value.is_computed () && not (!Db.Value.is_called kf)
+           in
            filetree#set_global_attribute ~strikethrough vi
          with Not_found -> ());
      Globals.Vars.iter
        (fun vi _ ->
-         if vi.vlogic = false then
+         if vi.vsource = true then
            filetree#set_global_attribute
              ~strikethrough:(Db.Value.is_computed () && not (used_var vi))
              vi
@@ -555,13 +655,13 @@ let value_panel (main_ui:Design.main_window_extension_points) =
     GButton.button ~label:"Run" ~packing:(box#pack) ()
   in
   let w =
-    GPack.table ~packing:(box#pack ~expand:true ~fill:true) ~columns:2 () 
+    GPack.table ~packing:(box#pack ~expand:true ~fill:true) ~columns:2 ()
   in
   let box_1_1 = GPack.hbox ~packing:(w#attach ~left:1 ~top:1) () in
-  let slevel_refresh = 
-    let tooltip = 
+  let slevel_refresh =
+    let tooltip =
       Pretty_utils.sfprintf "%s"
-	Value_parameters.SemanticUnrollingLevel.parameter.Typed_parameter.help
+        Value_parameters.SemanticUnrollingLevel.parameter.Typed_parameter.help
     in
     Gtk_helper.on_int ~lower:0 ~upper:1000000 ~tooltip
       box_1_1
@@ -570,10 +670,15 @@ let value_panel (main_ui:Design.main_window_extension_points) =
       Value_parameters.SemanticUnrollingLevel.set
   in
   let box_1_2 = GPack.hbox ~packing:(w#attach ~left:1 ~top:2) () in
+  let validator s =
+    not
+      (Kernel_function.Set.is_empty
+         (Parameter_customize.get_c_ified_functions s))
+  in
   let main_refresh = Gtk_helper.on_string
     ~tooltip:(Pretty_utils.sfprintf "%s"
-                Kernel.MainFunction.parameter.Typed_parameter.help) 
-    ~validator:(fun s->List.mem s (Kernel.MainFunction.get_possible_values ()))
+                Kernel.MainFunction.parameter.Typed_parameter.help)
+    ~validator
     box_1_2
     "main"
     Kernel.MainFunction.get
@@ -582,13 +687,12 @@ let value_panel (main_ui:Design.main_window_extension_points) =
 
   let refresh () = slevel_refresh (); main_refresh()
   in
-  ignore (run_button#connect#pressed 
-	    (fun () ->
+  ignore (run_button#connect#pressed
+            (fun () ->
               main_ui#protect ~cancelable:true
                 (fun () -> refresh (); !Db.Value.compute (); main_ui#reset ());
               ));
   "Value", box#coerce, Some refresh
-
 
 let main (main_ui:Design.main_window_extension_points) =
   (* Hide unused functions and variables. Must be registered only once *)
@@ -598,15 +702,12 @@ let main (main_ui:Design.main_window_extension_points) =
       ~key:"value_hide_unused" hide_unused_function_or_var
   in
   hide_unused := hide;
-
   main_ui#file_tree#register_reset_extension sync_filetree;
-
   (* Very first display, we need to do a few things by hand *)
   if !hide_unused () then
     main_ui#file_tree#reset ()
   else
     sync_filetree main_ui#file_tree;
-
   let value_selector
       menu (main_ui:Design.main_window_extension_points) ~button localizable =
     to_do_on_select
@@ -616,53 +717,47 @@ let main (main_ui:Design.main_window_extension_points) =
       localizable
   in
   main_ui#register_source_selector value_selector;
-
   let highlighter (buffer:GSourceView2.source_buffer) localizable ~start ~stop =
     (* highlight dead code areas, non-terminating calls, and degeneration
        points if Value has run.*)
-    if Db.Value.is_computed () &&
-      (match localizable with PStmt _ -> true | _ -> false)
-    then
-      let ki = ki_of_localizable localizable in
-      let degenerate = match ki with
-        | Kglobal -> None
-        | Kstmt s ->
+    if Db.Value.is_computed () then
+      match localizable with
+      | PStmt (kf, stmt) -> begin
+        let degenerate =
           try
             Some (
-              if Value_util.DegenerationPoints.find s
+              if Value_util.DegenerationPoints.find stmt
               then (make_tag buffer ~name:"degeneration" [`BACKGROUND "orange"])
               else (make_tag buffer ~name:"unpropagated" [`BACKGROUND "yellow"])
             )
           with Not_found -> None
-      in
-      match degenerate with
+        in
+        match degenerate with
         | Some color_area ->
           apply_tag buffer color_area start stop
         | None ->
-      if Db.Value.is_accessible ki then
-        match ki with
-          | Kstmt stmt when Value_results.is_non_terminating_call stmt ->
-              let non_terminating =
-                Gtk_helper.make_tag
-                  buffer ~name:"value_non_terminating"
-                  [`BACKGROUND "tomato"]
+          if results_kf_computed kf then begin
+            if Db.Value.is_reachable_stmt stmt then begin
+              if Value_results.is_non_terminating_instr stmt then
+                let non_terminating =
+                  Gtk_helper.make_tag
+                    buffer ~name:"value_non_terminating"
+                    [`BACKGROUND "tomato"]
+                in
+                apply_tag buffer non_terminating (stop-1) stop
+            end
+            else
+              let dead_code_area =
+                make_tag buffer "deadcode" [`BACKGROUND "tomato";`STYLE `ITALIC]
               in
-              apply_tag buffer non_terminating (stop-1) stop
-          | _ -> ()
-      else
-        let dead_code_area =
-          make_tag
-            buffer
-            "deadcode"
-            [`BACKGROUND "tomato";
-             `STYLE `ITALIC;]
-        in
-        apply_tag buffer dead_code_area start stop
-
+              apply_tag buffer dead_code_area start stop
+          end
+      end
+      | _ -> ()
   in
   main_ui#register_source_highlighter highlighter;
   main_ui#register_panel value_panel
-  
+
 
 let () = Design.register_extension main
 ;;

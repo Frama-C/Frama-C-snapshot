@@ -1,0 +1,127 @@
+# frama-c -wp -wp-model 'Typed (Ref)' [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_hoare/logicref_simple.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] Collecting variable usage
+------------------------------------------------------------
+  Function fsimple
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_hoare/logicref_simple.i, line 14) in 'fsimple':
+Assume {
+  (* Domain *)
+  Type: (is_sint32 fsimple_0) /\ (is_sint32 (fsimple_0-1)).
+  (* Pre-condition (file tests/wp_hoare/logicref_simple.i, line 14) in 'fsimple' *)
+  (* Pre-condition: *)
+  Have: (P_simple Mint_0 (shift_PTR (global P_c_77) 0)).
+}
+Prove: 1=fsimple_0.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'fsimple':
+Effect at line 15
+Assume {
+  (* Pre-condition (file tests/wp_hoare/logicref_simple.i, line 14) in 'fsimple' *)
+  (* Pre-condition: *)
+  Have: (P_simple Mint_0 (shift_PTR (global P_c_77) 0)).
+}
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function fsimple_array
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_hoare/logicref_simple.i, line 19) in 'fsimple_array':
+Let x_0 = t_0[3].
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_0) /\ (is_sint32 (1+x_0)).
+  (* Pre-condition (file tests/wp_hoare/logicref_simple.i, line 19) in 'fsimple_array' *)
+  (* Pre-condition: *)
+  Have: (P_simple_array Mint_0 (shift_A10_sint32 (global G_t_80) 0)).
+}
+Prove: 0=x_0.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'fsimple_array':
+Effect at line 20
+Assume {
+  (* Pre-condition (file tests/wp_hoare/logicref_simple.i, line 19) in 'fsimple_array' *)
+  (* Pre-condition: *)
+  Have: (P_simple_array Mint_0 (shift_A10_sint32 (global G_t_80) 0)).
+}
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function ftwo_star
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_hoare/logicref_simple.i, line 22) in 'ftwo_star':
+Let x_0 = Mint_0[d_0].
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_0) /\ (is_sint32 (1+x_0)).
+  (* Heap *)
+  Have: (framed Mptr_0) /\ ((region (base d_0))<=0).
+  (* Pre-condition (file tests/wp_hoare/logicref_simple.i, line 22) in 'ftwo_star' *)
+  (* Pre-condition: *)
+  Have: (P_two_star Mptr_0 Mint_0 (shift_PTR (global P_d_87) 0)).
+}
+Prove: 0=x_0.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'ftwo_star':
+Effect at line 23
+Assume {
+  (* Domain *)
+  Type: (is_sint32 Mint_0[d_0]).
+  (* Heap *)
+  Have: (framed Mptr_0) /\ ((region (base d_0))<=0).
+  (* Pre-condition (file tests/wp_hoare/logicref_simple.i, line 22) in 'ftwo_star' *)
+  (* Pre-condition: *)
+  Have: (P_two_star Mptr_0 Mint_0 (shift_PTR (global P_d_87) 0)).
+}
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function fvpositive
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_hoare/logicref_simple.i, line 26) in 'fvpositive':
+Assume {
+  (* Heap *)
+  Have: (linked Malloc_0).
+  (* Pre-condition (file tests/wp_hoare/logicref_simple.i, line 26) in 'fvpositive' *)
+  (* Pre-condition: *)
+  Have: (P_vpositive Malloc_0 Mint_0 (shift_PTR (global P_b_92) 0)).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assertion 'todo' (file tests/wp_hoare/logicref_simple.i, line 29):
+Assume {
+  (* Heap *)
+  Have: (linked Malloc_0).
+  (* Pre-condition (file tests/wp_hoare/logicref_simple.i, line 26) in 'fvpositive' *)
+  (* Pre-condition: *)
+  Have: (P_vpositive Malloc_0 Mint_0 (shift_PTR (global P_b_92) 0)).
+}
+Prove: ra_b_1.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/logicref_simple.i, line 26) in 'fvpositive':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------

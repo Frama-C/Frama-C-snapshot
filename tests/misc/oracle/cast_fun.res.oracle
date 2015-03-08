@@ -1,0 +1,117 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/cast_fun.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  
+[value] computing for function f1 <- main.
+        Called from tests/misc/cast_fun.i:58.
+[value] using specification for function f1
+tests/misc/cast_fun.i:6:[value] warning: no 'assigns \result \from ...' clause specified for function f1
+[value] Done for function f1
+tests/misc/cast_fun.i:63:[value] warning: Function pointer and pointed function 'f2'  have incompatible types:
+                 int (int ) vs. int (void). assert(function type matches)
+[value] computing for function f3 <- main.
+        Called from tests/misc/cast_fun.i:68.
+[value] using specification for function f3
+tests/misc/cast_fun.i:10:[value] warning: no 'assigns \result \from ...' clause specified for function f3
+[value] Done for function f3
+tests/misc/cast_fun.i:73:[value] warning: Function pointer and pointed function 'f4'  have incompatible types:
+                 int (int ) vs. void (int ). assert(function type matches)
+tests/misc/cast_fun.i:78:[value] warning: Function pointer and pointed function 'f5'  have incompatible types:
+                 int (int ) vs. int (int , int ). assert(function type matches)
+[value] computing for function f6 <- main.
+        Called from tests/misc/cast_fun.i:83.
+[value] using specification for function f6
+[value] Done for function f6
+[value] computing for function f7 <- main.
+        Called from tests/misc/cast_fun.i:88.
+[value] using specification for function f7
+[value] Done for function f7
+tests/misc/cast_fun.i:93:[value] warning: Function pointer and pointed function 'f8'  have incompatible types:
+                 void (struct s1 ) vs. void (struct s3 ). assert(function type matches)
+[value] computing for function f9 <- main.
+        Called from tests/misc/cast_fun.i:98.
+[value] using specification for function f9
+[value] Done for function f9
+tests/misc/cast_fun.i:103:[value] warning: Function pointer and pointed function 'f10'  have incompatible types:
+                 void (int  , ...) vs. void (). assert(function type matches)
+tests/misc/cast_fun.i:108:[value] warning: Function pointer and pointed function 'f9'  have incompatible types: void (
+                 ) vs. void (int  , ...). assert(function type matches)
+[value] computing for function f10 <- main.
+        Called from tests/misc/cast_fun.i:113.
+[value] using specification for function f10
+[value] Done for function f10
+tests/misc/cast_fun.i:118:[value] warning: Function pointer and pointed function 'f10'  have incompatible types:
+                 int (int ) vs. void (). assert(function type matches)
+tests/misc/cast_fun.i:123:[value] warning: Function pointer and pointed function 'f10'  have incompatible types:
+                 int (int ) vs. void (). assert(function type matches)
+tests/misc/cast_fun.i:128:[value] warning: Function pointer and pointed function 'f1'  have incompatible types: void (
+                 ) vs. int (). assert(function type matches)
+[value] Recording results for main
+[from] Computing for function main
+tests/misc/cast_fun.i:58:[from] warning: variadic call detected. Using only 0 argument(s).
+tests/misc/cast_fun.i:98:[from] warning: variadic call detected. Using only 1 argument(s).
+tests/misc/cast_fun.i:113:[from] warning: variadic call detected. Using only 0 argument(s).
+[from] Done for function main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  p1 ∈ {{ &f1 ; &f3 }} or UNINITIALIZED
+  p2 ∈ {{ &f6 ; (void (*)(struct s1 ))&f7 }} or UNINITIALIZED
+  p3 ∈ {{ &f9 }} or UNINITIALIZED
+  p4 ∈ {{ &f10 }} or UNINITIALIZED
+  x ∈ [--..--] or UNINITIALIZED
+  s ∈ {0}
+[from] Computing for function main
+[from] Computing for function f1 <-main
+[from] Done for function f1
+[from] Computing for function f3 <-main
+[from] Done for function f3
+[from] Computing for function f6 <-main
+[from] Done for function f6
+[from] Computing for function f7 <-main
+[from] Done for function f7
+[from] Computing for function f9 <-main
+[from] Done for function f9
+[from] Computing for function f10 <-main
+[from] Done for function f10
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function f1:
+  \result FROM ANYTHING(origin:Unknown)
+[from] Function f10:
+  NO EFFECTS
+[from] Function f3:
+  \result FROM ANYTHING(origin:Unknown)
+[from] Function f6:
+  NO EFFECTS
+[from] Function f7:
+  NO EFFECTS
+[from] Function f9:
+  NO EFFECTS
+[from] Function main:
+  NO EFFECTS
+[from] ====== END OF DEPENDENCIES ======
+[from] ====== DISPLAYING CALLWISE DEPENDENCIES ======
+[from] call to f1 at tests/misc/cast_fun.i:58 (by main):
+  \result FROM ANYTHING(origin:Unknown)
+[from] call to f3 at tests/misc/cast_fun.i:68 (by main):
+  \result FROM ANYTHING(origin:Unknown)
+[from] call to f6 at tests/misc/cast_fun.i:83 (by main):
+  NO EFFECTS
+[from] call to f7 at tests/misc/cast_fun.i:88 (by main):
+  NO EFFECTS
+[from] call to f9 at tests/misc/cast_fun.i:98 (by main):
+  NO EFFECTS
+[from] call to f10 at tests/misc/cast_fun.i:113 (by main):
+  NO EFFECTS
+[from] entry point:
+  NO EFFECTS
+[from] ====== END OF CALLWISE DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          p1; p2; p3; p4; x; s
+[inout] Inputs for function main:
+          \nothing

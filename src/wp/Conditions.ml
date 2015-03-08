@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -70,6 +70,8 @@ let vars_cond = function
   | Type q | When q | Have q -> F.varsp q
   | Branch(p,(xs,_),(ys,_)) -> Vars.union (F.varsp p) (Vars.union xs ys)
   | Either cases -> vars_list cases
+
+let vars_sequent (hs,g) = Vars.union (F.varsp g) (vars_seq hs)
 
 (* -------------------------------------------------------------------------- *)
 (* --- Utilities                                                          --- *)
@@ -256,9 +258,10 @@ and pp_block fmt env (seq : step list) =
   List.iter (pp_step fmt env) seq
 
 let dump fmt (b:bundle) = 
-  pp_sequence fmt "Assume" F.empty (snd (Bundle.freeze b))
+  let xs,seq = Bundle.freeze b in
+  pp_sequence fmt "Assume" (F.env xs) seq
 
-let pp_seq title fmt s = pp_sequence fmt title F.empty s
+let pp_seq title fmt s = pp_sequence fmt title (F.env (vars_seq s)) s
 
 (* -------------------------------------------------------------------------- *)
 (* --- Extraction                                                         --- *)
@@ -279,11 +282,12 @@ let occurs x bundle = Vars.mem x (Bundle.vars bundle)
 (* --- Pretty Printer                                                     --- *)
 (* -------------------------------------------------------------------------- *)
 
-let pretty ?linker fmt (hyps,goal) = 
+let pretty ?linker fmt s =
   try
     glinker := linker ;
-    let env = F.closed (Vars.union (F.varsp goal) (vars_seq hyps)) in 
+    let env = F.env (vars_sequent s) in
     let m = F.marker env in
+    let (hyps,goal) = s in
     mark_seq m hyps ;
     F.mark_p m goal ;
     let env = F.define

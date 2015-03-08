@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -176,13 +176,15 @@ module Value : sig
     (** Return [true] iff the value analysis has been done.
         @plugin development guide *)
 
-  module Table:
-    State_builder.Hashtbl with type key = stmt and type data = state
+  module Table_By_Callstack:
+    State_builder.Hashtbl with type key = stmt
+                          and type data = state Value_types.Callstack.Hashtbl.t
     (** Table containing the results of the value analysis, ie.
         the state before the evaluation of each reachable statement. *)
 
-  module AfterTable:
-    State_builder.Hashtbl with type key = stmt and type data = state
+  module AfterTable_By_Callstack:
+    State_builder.Hashtbl with type key = stmt
+                          and type data = state Value_types.Callstack.Hashtbl.t
     (** Table containing the state of the value analysis after the evaluation
         of each reachable and evaluable statement. Filled only if
         [Value_parameters.ResultsAfter] is set. *)
@@ -303,8 +305,7 @@ module Value : sig
     (with_alarms:CilE.warn_mode -> state -> exp -> state * t) ref
 
   val find_lv_plus :
-    (with_alarms:CilE.warn_mode ->
-      Cvalue.Model.t -> Cil_types.exp ->
+    (Cvalue.Model.t -> Cil_types.exp ->
       (Cil_types.lval * Ival.t) list) ref
   (** returns the list of all decompositions of [expr] into the sum an lvalue
       and an interval. *)
@@ -411,6 +412,11 @@ module Value : sig
       memory zones that are writable. [exact] indicates that [lv] evaluates
       to a valid locatio of cardinal at most one. *)
 
+  val lval_to_precise_loc_with_deps_state:
+    (state -> deps:Locations.Zone.t option -> lval ->
+     Locations.Zone.t * Precise_locs.precise_location) ref
+
+
   (** Evaluation of the [\from] clause of an [assigns] clause.*)
   val assigns_inputs_to_zone :
     (state -> identified_term assigns -> Locations.Zone.t) ref
@@ -424,6 +430,12 @@ module Value : sig
   val assigns_outputs_to_locations :
     (state -> result:varinfo option -> identified_term assigns -> Locations.location list) ref
 
+  (** For internal use only. Evaluate the [assigns] clause of the
+      given function in the given prestate, compare it with the
+      computed froms, return warning and set statuses. *)
+  val verify_assigns_froms :
+    (Kernel_function.t -> pre:state -> Function_Froms.t -> unit) ref
+
 
   (** {3 Evaluation of logic terms and predicates} *)
   module Logic : sig
@@ -435,7 +447,7 @@ module Value : sig
        Property_status.emitted_status) ref
       (** Evaluate the given predicate in the given states for the Pre
           and Here ACSL labels.
-	  @since Neon-20130301 *)
+	  @since Neon-20140301 *)
   end
 
 
@@ -460,7 +472,9 @@ module Value : sig
   module Record_Value_Callbacks_New: Hook.Iter_hook
     with type param =
       callstack *
-      (state Stmt.Hashtbl.t) Lazy.t Value_types.callback_result
+      ((state Stmt.Hashtbl.t) Lazy.t  (* before states *) *
+       (state Stmt.Hashtbl.t) Lazy.t) (* after states *)
+       Value_types.callback_result
   (**/**)
 
   val no_results: (fundec -> bool) ref
@@ -492,9 +506,6 @@ module Value : sig
   val noassert_get_state : kinstr -> state
     (** To be used during the value analysis itself (instead of
         {!get_state}). *)
-  val noassert_get_stmt_state : stmt -> state
-    (** To be used during the value analysis itself (instead of
-        {!get_stmt_state}). *)
 
   val recursive_call_occurred: kernel_function -> unit
 
@@ -503,9 +514,6 @@ module Value : sig
   val mask_else: int
 
   val initial_state_only_globals : (unit -> state) ref
-
-  val update_table : stmt -> state -> unit
-  (* Merge the given state with others associated to the given stmt. *)
 
   val update_callstack_table: after:bool -> stmt -> callstack -> state -> unit
   (* Merge a new state in the table indexed by callstacks. *)
@@ -516,9 +524,11 @@ module Value : sig
     (kernel_function -> call_kinstr:kinstr -> state ->  (exp*t) list
        -> Cvalue.V_Offsetmap.t option (** returned value of [kernel_function] *) * state) ref
 *)
-  val merge_initial_state : kernel_function -> state -> unit
-    (** Store an additional possible initial state for the given function as
+  val merge_initial_state : callstack -> state -> unit
+    (** Store an additional possible initial state for the given callstack as
         well as its values for actuals. *)
+  (** @modify Neon-TIS now takes the current callstack instead of just
+      the current kernel function. *)
 
   val initial_state_changed: (unit -> unit) ref
 end
@@ -577,13 +587,6 @@ module Users : sig
   val get: (kernel_function -> Kernel_function.Hptset.t) ref
 end
 
-(** Do not use yet. *)
-module Access_path : sig
-  type t = (Locations.Zone.t * Locations.Location_Bits.t) Base.Map.t
-  val compute: (Cvalue.Model.t -> Base.Set.t -> t) ref
-  val filter: (t -> Locations.Zone.t -> t) ref
-  val pretty: (Format.formatter -> t -> unit) ref
-end
 
 (* ************************************************************************* *)
 (** {2 Properties} *)
@@ -595,10 +598,12 @@ module Properties : sig
   (** Interpretation of logic terms. *)
   module Interp : sig
 
-    (** {3 From C terms to logic terms} *)
+    (** {3 Parsing logic terms and annotations} *)
 
     val lval : (kernel_function -> stmt -> string -> Cil_types.term_lval) ref
     val expr : (kernel_function -> stmt -> string -> Cil_types.term) ref
+    val code_annot : (kernel_function -> stmt -> string -> code_annotation) ref
+
 
     (** {3 From logic terms to C terms} *)
 
@@ -643,13 +648,15 @@ module Properties : sig
        Locations.location) ref
       (** @raise Invalid_argument if the translation fails. *)
 
-    val loc_to_locs:
+    val loc_to_loc_under_over:
       (result: Cil_types.varinfo option -> Value.state -> term -> 
-       Locations.location list * Locations.Zone.t) ref
-      (** Translate a term more precisely than [loc_to_loc] if the term
-          evaluates to an ACSL tset. The zone returned is the locations
-          that have been read during evaluation.
-          Warning: This API is not stabilized, and is likely to change in
+       Locations.location * Locations.location * Locations.Zone.t) ref
+      (** Same as {!loc_to_loc}, except that we return simultaneously an
+          under-approximation of the term (first location), and an
+          over-approximation (second location). The under-approximation
+          is particularly useful when evaluating Tsets. The zone returned is an
+          over-approximation of locations that have been read during evaluation.
+          Warning: This API is not stabilized, and may change in
           the future.
           @raise Invalid_argument in some cases. *)
 
@@ -741,11 +748,6 @@ module Properties : sig
     val to_result_from_pred:
       (predicate named -> bool) ref
 
-    (** {3 Internal use only} *)
-
-    val code_annot :
-      (kernel_function -> stmt -> string -> code_annotation)
-      ref
 
   end
 
@@ -842,7 +844,7 @@ end
 (** Constant propagation plugin.
     @see <../constant_propagation/index.html> internal documentation. *)
 module Constant_Propagation: sig
-  val get : (Datatype.String.Set.t -> cast_intro:bool -> Project.t) ref
+  val get : (Cil_datatype.Fundec.Set.t -> cast_intro:bool -> Project.t) ref
     (** Propagate constant into the functions given by name.
         note: the propagation is performed into all functions when the set is
         empty; and casts can be introduced when [cast_intro] is true. *)
@@ -968,7 +970,10 @@ module Pdg : sig
         See also {!find_simple_stmt_nodes} or {!find_call_stmts}.
         @raise Not_found if the given statement is unreachable.
         @raise Bottom if given PDG is bottom.
-        @raise Top if the given pdg is top. *)
+        @raise Top if the given pdg is top.
+        @raise PdgIndex.CallStatement if the given stmt is a function
+        call. *)
+
 
   val find_simple_stmt_nodes : (t -> Cil_types.stmt -> PdgTypes.Node.t list) ref
     (** Get the nodes corresponding to the statement.

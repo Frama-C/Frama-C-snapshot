@@ -1,0 +1,29 @@
+# frama-c -wp -wp-rte [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_bts/bts_1360.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[rte] annotating function foo_correct
+[rte] annotating function foo_wrong
+[wp] 12 goals scheduled
+[wp] [Qed] Goal typed_foo_correct_post : Valid
+[wp] [Alt-Ergo] Goal typed_foo_correct_assert_rte_mem_access : Valid
+[wp] [Qed] Goal typed_foo_correct_assert_rte_mem_access_2 : Valid
+[wp] [Qed] Goal typed_foo_correct_assert_rte_mem_access_3 : Valid
+[wp] [Qed] Goal typed_foo_correct_assign_part1 : Valid
+[wp] [Qed] Goal typed_foo_correct_assign_part2 : Valid
+[wp] [Qed] Goal typed_foo_wrong_post : Valid
+[wp] [Qed] Goal typed_foo_wrong_assert_rte_mem_access : Valid
+[wp] [Qed] Goal typed_foo_wrong_assert_rte_mem_access_2 : Valid
+[wp] [Alt-Ergo] Goal typed_foo_wrong_assert_rte_mem_access_3 : Unknown
+[wp] [Qed] Goal typed_foo_wrong_assign_part1 : Valid
+[wp] [Qed] Goal typed_foo_wrong_assign_part2 : Valid
+[wp] Proved goals:   11 / 12
+     Qed:            10 
+     Alt-Ergo:        1  (unknown: 1)
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+foo_wrong            5     -           6      83.3%
+foo_correct          5      1 (20)     6       100%
+----------------------------------------------------------

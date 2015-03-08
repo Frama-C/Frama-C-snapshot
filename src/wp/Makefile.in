@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of WP plug-in of Frama-C.                           #
 #                                                                        #
-#  Copyright (C) 2007-2014                                               #
+#  Copyright (C) 2007-2015                                               #
 #    CEA (Commissariat a l'energie atomique et aux energies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -34,16 +34,6 @@ include $(FRAMAC_SHARE)/Makefile.config
 
 # Coq Resources Installation
 
-ifeq (@COQC@,yes)
-byte:: .make-wp-coq
-opt:: .make-wp-coq
-endif
-
-ifeq (@WHY3COQC@,yes)
-byte:: .make-wp-why3
-opt:: .make-wp-why3
-endif
-
 include $(PLUGIN_DIR)/share/Makefile.resources
 
 # Extension of the GUI for wp is compilable
@@ -70,7 +60,7 @@ PLUGIN_CMO:= \
 	cil2cfg normAtLabels \
 	wpPropId wpStrategy wpAnnot \
 	Context Warning Model Lang Matrix Passive Splitter \
-	Letify Cleaning Partitioning Conditions \
+	Letify Cleaning Conditions \
 	LogicBuiltins Definitions \
 	Cint Cfloat Vset Region Cstring Cvalues \
 	CodeSemantics \
@@ -92,7 +82,8 @@ PLUGIN_GENERATED:= \
    $(PLUGIN_DIR)/script.ml \
    $(PLUGIN_DIR)/rformat.ml \
    $(PLUGIN_DIR)/driver.ml \
-   $(PLUGIN_DIR)/why3_xml.ml
+   $(PLUGIN_DIR)/why3_xml.ml \
+   $(PLUGIN_DIR)/qed/src/numbers.ml \
 
 PLUGIN_UNDOC+=
 PLUGIN_DOCFLAGS+= -I $(PLUGIN_DIR)/qed/bin
@@ -100,6 +91,7 @@ PLUGIN_INTRO:=$(FRAMAC_SRC)/doc/code/intro_wp.txt
 PLUGIN_HAS_MLI:=yes
 PLUGIN_DISTRIBUTED:=$(PLUGIN_ENABLE)
 PLUGIN_DISTRIB_EXTERNAL:= \
+	Changelog \
 	Makefile.in \
 	configure.ac \
 	configure \
@@ -116,6 +108,7 @@ CEA_WP+= $(addprefix $(PLUGIN_DIR)/, Makefile.in configure.ac) \
 
 UNMODIFIED_WHY3+= $(addprefix $(PLUGIN_DIR)/share/, $(ALL_UNMODIFIED_WHY3_RESOURCES))
 MODIFIED_WHY3+= $(addprefix $(PLUGIN_DIR)/share/, $(ALL_MODIFIED_WHY3_RESOURCES))
+NO_CHECK_HEADERS+=$(addprefix $(PLUGIN_DIR), Changelog)
 
 # --------------------------------------------------------------------------
 # --- Qed Dependencies                                                   ---
@@ -174,8 +167,8 @@ CONFIG_STATUS_DIR=.
 endif
 
 $(Wp_DIR)/Makefile: $(Wp_DIR)/Makefile.in $(Wp_DIR)/share/Makefile.resources $(QED_SRC)/Makefile.src $(CONFIG_STATUS_DIR)/config.status
-	@cd $(CONFIG_STATUS_DIR) && ./config.status
-	$(QUIET_MAKE) depend
+	@cd $(CONFIG_STATUS_DIR) && ./config.status --file $@
+	#$(QUIET_MAKE) depend
 
 # --------------------------------------------------------------------------
 # --- Qed Dependencies                                                   ---
@@ -252,7 +245,7 @@ ALL_RESOURCES= \
 	$(ALL_WHY3_SOURCES)
 
 INSTALL_OPT?=
-INSTALL=@$(Wp_DIR)/share/instwp $(INSTALL_OPT)
+INSTALL_SHARE=@$(Wp_DIR)/share/instwp $(INSTALL_OPT)
 
 byte:: $(Wp_DIR)/share/instwp
 opt:: $(Wp_DIR)/share/instwp
@@ -271,33 +264,20 @@ $(Wp_DIR)/share/instwp: $(Wp_DIR)/share/install.ml
 
 wp-coq-all: wp-coq wp-why3
 
-wp-coq: .make-wp-coq
+wp-coq: coqwpcompile
 	@echo "Run 'make wp-coq-install' to install all precompiled libraries"
 
-wp-why3: .make-wp-why3
+wp-why3:  why3compile
 	@echo "Run 'make wp-coq-install' to install all precompiled libraries"
 
-.make-wp-coq: $(addprefix $(Wp_DIR)/share/, $(WP_COQ_SOURCES))
-	@echo "Compiling    Wp-Coq Library"
-	$(QUIET_MAKE) -C $(Wp_DIR)/share/coqwp depend
-	$(MAKE) -C $(Wp_DIR)/share/coqwp all
-	@touch .make-wp-coq
+WP_COQC_ENABLED=@COQC@
+WP_WHY3COQC_ENABLED=@WHY3COQC@
 
-.make-wp-why3: $(addprefix $(Wp_DIR)/share/, $(WHY3_COQ_SOURCES))
-	@echo "Compiling    Wp-Why3 Coq Library"
-	$(QUIET_MAKE) -C $(Wp_DIR)/share/why3 depend
-	$(MAKE) -C $(Wp_DIR)/share/why3 all
-	@touch .make-wp-why3
-
-wp-coq-clean:
-	@echo "Cleaning     All Coq Libraries"
-	@rm -f .make-wp-coq .make-why3-coq
-	$(QUIET_MAKE) -C $(Wp_DIR)/share/coqwp clean
-	$(QUIET_MAKE) -C $(Wp_DIR)/share/why3 clean
+include $(Wp_DIR)/share/Makefile
 
 wp-coq-install:
 	$(PRINT_INSTALL) "Coq Libraries"
-	$(INSTALL) -f -p -s \
+	$(INSTALL_SHARE) -f -p -s \
 		-i $(Wp_DIR)/share \
 		-d $(FRAMAC_DATADIR)/wp \
 		$(ALL_COQ_BINARIES)
@@ -308,7 +288,6 @@ wp-coq-uninstall:
 	@rm -f $(FRAMAC_DATADIR)/wp/coqwp/*.vo
 	@rm -f $(FRAMAC_DATADIR)/wp/coqwp/*/*.vo
 
-clean:: wp-coq-clean
 
 # --------------------------------------------------------------------------
 # --- Why3 configuration
@@ -339,7 +318,7 @@ $(Wp_DIR)/share/why3/why3.conf:
 install::
 	$(PRINT_INSTALL) WP shared files
 	$(MKDIR) $(FRAMAC_DATADIR)/wp
-	$(INSTALL) -p \
+	$(INSTALL_SHARE) -p \
 		-i $(Wp_DIR)/share \
 		-d $(FRAMAC_DATADIR)/wp \
 		$(ALL_RESOURCES) -f -b $(ALL_COQ_BINARIES)

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -46,9 +46,6 @@ sig
       method virtual field : Field.t -> string
       method basename : string -> string
       method virtual link : Fun.t -> link
-
-      method declare : string -> unit
-      method declare_all : string list -> unit
 
       method local : (unit -> unit) -> unit
       method global : (unit -> unit) -> unit
@@ -118,12 +115,13 @@ sig
 
       method virtual pp_conditional : formatter -> term -> term -> term -> unit
 
-      method virtual pp_forall : tau -> var list printer
-      method virtual pp_intros : tau -> var list printer
-      method virtual pp_exists : tau -> var list printer
-      method pp_lambda : var list printer
+      method virtual pp_forall : tau -> string list printer
+      method virtual pp_intros : tau -> string list printer
+      method virtual pp_exists : tau -> string list printer
+      method pp_lambda : (string * tau) list printer
 
-      method bind : var -> unit
+      method bind : var -> string
+      method find : var -> string
       method virtual pp_let : formatter -> pmode -> string -> term -> unit
 
       method is_shareable : term -> bool
@@ -131,12 +129,12 @@ sig
       method pp_flow : term printer
 
       method pp_tau : tau printer
-      method pp_var : var printer
+      method pp_var : string printer
       method pp_term : term printer
       method pp_prop : term printer
       method pp_expr : tau -> term printer
 
-      method pp_param : var printer
+      method pp_param : (string * tau) printer
       method virtual pp_trigger : trigger printer
       method virtual pp_declare_adt : formatter -> ADT.t -> int -> unit
       method virtual pp_declare_def : formatter -> ADT.t -> int -> tau -> unit

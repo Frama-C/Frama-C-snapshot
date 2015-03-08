@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -40,11 +40,9 @@ let run_plugins () =
   with Globals.No_such_entry_point msg ->
     Kernel.abort "%s" msg
 
-let on_from_name name f = match name with
-  | None -> f ()
-  | Some s ->
-    try Project.on (Project.from_unique_name s) f ()
-    with Not_found -> Kernel.abort "no project %S." s
+let on_from_name name f =
+  try Project.on (Project.from_unique_name name) f ()
+  with Project.Unknown_project -> Kernel.abort "no project `%s'." name
 
 let () = Db.Main.play := run_plugins
 

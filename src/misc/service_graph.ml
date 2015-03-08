@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -289,7 +289,7 @@ Src root:%s in %s (is_root:%b) Dst:%s in %s (is_root:%b) [2d case]"
         color e
       else
         match CallG.E.label e with
-        | Inter_services -> [ `Style [`Invis] ]
+        | Inter_services -> [ `Style `Invis ]
         | Inter_functions | Both -> color e
 
     let default_edge_attributes _ = []
@@ -303,7 +303,7 @@ Src root:%s in %s (is_root:%b) Dst:%s in %s (is_root:%b) [2d case]"
           sg_attributes =
             [ `Label ("S " ^ cs);
               `Color (Extlib.number_to_color id);
-              `Style [`Bold] ] }
+              `Style `Bold ] }
 
   end
 

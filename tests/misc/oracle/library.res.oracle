@@ -1,0 +1,444 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/library.i (no preprocessing)
+[value] Analyzing an incomplete application starting at main
+[value] Computing initial state
+[value:initial_state] creating variable S_0_p_ss with imprecise size (type struct ss [2])
+tests/misc/library.i:44:[value] warning: during initialization of variable 'ss', size of type 'struct ss' cannot be
+                 computed (abstract type 'struct ss')
+[value:initial_state] creating variable S_1_p_ss with imprecise size (type struct ss [2])
+[value:initial_state] creating variable S_q_ss with imprecise size (type struct ss [2][8])
+[value] Initial state computed
+[value] Values of globals at initialization
+  G ∈ {{ NULL ; &S_G[0] }}
+  G0 ∈ [--..--]
+  G1 ∈ {{ NULL ; &S_G1[0] }}
+  f ∈ {{ garbled mix of &{S_f_0} (origin: Well) }}
+  s.f[0] ∈ {{ garbled mix of &{S_0_f_s} (origin: Well) }}
+   .f[1] ∈ {{ garbled mix of &{S_1_f_s} (origin: Well) }}
+  ss.p[0] ∈ {{ NULL ; (struct ss *)&S_0_p_ss }}
+    .p[1] ∈ {{ NULL ; (struct ss *)&S_1_p_ss }}
+    .p[2..7] ∈ {{ NULL ; (struct ss *)&S_0_p_ss ; (struct ss *)&S_1_p_ss }}
+    .q ∈ {{ NULL ; (struct ss (*)[8])&S_q_ss }}
+  ff ∈ {{ garbled mix of &{S_ff} (origin: Well) }}
+  S_G[0] ∈ {{ NULL ; &S_0_S_G[0] }}
+     [1] ∈ {{ NULL ; &S_1_S_G[0] }}
+  S_0_S_G[0] ∈ {{ NULL ; &S_0_S_0_S_G[0] }}
+         [1] ∈ {{ NULL ; &S_1_S_0_S_G[0] }}
+  S_0_S_0_S_G[0] ∈ {{ NULL ; &S_0_S_0_S_0_S_G[0] }}
+             [1] ∈ {{ NULL ; &S_1_S_0_S_0_S_G[0] }}
+  S_0_S_0_S_0_S_G[0..1] ∈ [--..--]
+  S_1_S_0_S_0_S_G[0..1] ∈ [--..--]
+  S_1_S_0_S_G[0] ∈ {{ NULL ; &S_0_S_1_S_0_S_G[0] }}
+             [1] ∈ {{ NULL ; &S_1_S_1_S_0_S_G[0] }}
+  S_0_S_1_S_0_S_G[0..1] ∈ [--..--]
+  S_1_S_1_S_0_S_G[0..1] ∈ [--..--]
+  S_1_S_G[0] ∈ {{ NULL ; &S_0_S_1_S_G[0] }}
+         [1] ∈ {{ NULL ; &S_1_S_1_S_G[0] }}
+  S_0_S_1_S_G[0] ∈ {{ NULL ; &S_0_S_0_S_1_S_G[0] }}
+             [1] ∈ {{ NULL ; &S_1_S_0_S_1_S_G[0] }}
+  S_0_S_0_S_1_S_G[0..1] ∈ [--..--]
+  S_1_S_0_S_1_S_G[0..1] ∈ [--..--]
+  S_1_S_1_S_G[0] ∈ {{ NULL ; &S_0_S_1_S_1_S_G[0] }}
+             [1] ∈ {{ NULL ; &S_1_S_1_S_1_S_G[0] }}
+  S_0_S_1_S_1_S_G[0..1] ∈ [--..--]
+  S_1_S_1_S_1_S_G[0..1] ∈ [--..--]
+  S_G1[0..1] ∈ [--..--]
+  S_0_p_ss[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  S_1_p_ss[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  S_q_ss[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+[value] computing for function f_int <- main.
+        Called from tests/misc/library.i:17.
+tests/misc/library.i:17:[kernel] warning: Neither code nor specification for function f_int, generating default assigns from the prototype
+[value] using specification for function f_int
+[value] Done for function f_int
+[value] computing for function f_star_int <- main.
+        Called from tests/misc/library.i:18.
+tests/misc/library.i:18:[kernel] warning: Neither code nor specification for function f_star_int, generating default assigns from the prototype
+[value] using specification for function f_star_int
+[value] Done for function f_star_int
+tests/misc/library.i:19:[kernel] warning: out of bounds write. assert \valid(G1);
+tests/misc/library.i:19:[kernel] more than 200(67108864) locations to update in array. Approximating.
+tests/misc/library.i:20:[kernel] warning: out of bounds read. assert \valid_read(G);
+tests/misc/library.i:20:[kernel] warning: out of bounds read. assert \valid_read(*G);
+tests/misc/library.i:20:[kernel] warning: out of bounds read. assert \valid_read(*(*G));
+tests/misc/library.i:20:[kernel] warning: out of bounds write. assert \valid(*(*(*G)));
+[value] computing for function gen <- main.
+        Called from tests/misc/library.i:24.
+tests/misc/library.i:24:[kernel] warning: Neither code nor specification for function gen, generating default assigns from the prototype
+[value] using specification for function gen
+[value] Done for function gen
+tests/misc/library.i:25:[value] Reading left-value f.
+        It contains a garbled mix of {S_f_0} because of Well.
+tests/misc/library.i:25:[value] warning: Function pointer for call is imprecise: assert(\valid_fun_pointer(*f))
+[value] computing for function S_f_0 <- main.
+        Called from tests/misc/library.i:25.
+tests/misc/library.i:25:[kernel] warning: Neither code nor specification for function S_f_0, generating default assigns from the prototype
+[value] using specification for function S_f_0
+[value] Done for function S_f_0
+tests/misc/library.i:26:[value] Reading left-value g.
+        It contains a garbled mix of {S_g} because of Well.
+tests/misc/library.i:26:[value] warning: Function pointer for call is imprecise: assert(\valid_fun_pointer(*g))
+[value] computing for function S_g <- main.
+        Called from tests/misc/library.i:26.
+tests/misc/library.i:26:[kernel] warning: Neither code nor specification for function S_g, generating default assigns from the prototype
+[value] using specification for function S_g
+[value] Done for function S_g
+tests/misc/library.i:27:[value] warning: Function pointer call at absolute position in memory: ignoring this particular value: assert(\valid_fun_pointer(*h))
+tests/misc/library.i:27:[value] warning: Function pointer evaluates to function address plus offset: ignoring this particular value: assert(\valid_fun_pointer(*h))
+[value] computing for function alloced_return_gen <- main.
+        Called from tests/misc/library.i:27.
+tests/misc/library.i:27:[kernel] warning: Neither code nor specification for function alloced_return_gen, generating default assigns from the prototype
+[value] using specification for function alloced_return_gen
+[value] Done for function alloced_return_gen
+[value] computing for function i <- main.
+        Called from tests/misc/library.i:28.
+tests/misc/library.i:28:[kernel] warning: Neither code nor specification for function i, generating default assigns from the prototype
+[value] using specification for function i
+[value] Done for function i
+tests/misc/library.i:29:[kernel] warning: out of bounds read. assert \valid_read(pf);
+tests/misc/library.i:30:[kernel] more than 200(67108864) locations to update in array. Approximating.
+tests/misc/library.i:31:[kernel] warning: non-finite float value ([-6.80564693277e+38 .. 6.80564693277e+38]):
+                  assert \is_finite((float)(*pf+*pf));
+tests/misc/library.i:31:[kernel] more than 200(67108864) locations to update in array. Approximating.
+[value] computing for function k <- main.
+        Called from tests/misc/library.i:32.
+tests/misc/library.i:32:[kernel] warning: Neither code nor specification for function k, generating default assigns from the prototype
+[value] using specification for function k
+[value] Done for function k
+tests/misc/library.i:33:[kernel] warning: out of bounds write. assert \valid(pd);
+tests/misc/library.i:33:[kernel] more than 200(33554432) locations to update in array. Approximating.
+[value] Recording results for main
+[value] done for function main
+tests/misc/library.i:34:[kernel] more than 200(67108864) elements to enumerate. Approximating.
+[value] ====== VALUES COMPUTED ======
+tests/misc/library.i:33:[kernel] more than 200(33554432) elements to enumerate. Approximating.
+[value] Values at end of function main:
+  G0 ∈ [--..--]
+  G1 ∈ {{ &alloced_return_f_star_int + [0..2147483616],0%32 }}
+  x ∈ [--..--]
+  y ∈ {4}
+  h ∈ {{ NULL + [--..--] ; &alloced_return_gen + [0..2147483640],0%8 }}
+  z1 ∈ [--..--]
+  z2 ∈ [--..--]
+  z3 ∈ [--..--]
+  pf ∈ {{ &alloced_return_i + [0..2147483616],0%32 }}
+  vf ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
+  pd ∈ {{ &alloced_return_k + [0..2147483584],0%64 }}
+  S_0_S_0_S_0_S_G[0] ∈ {1}
+                 [1] ∈ [--..--]
+  alloced_return_f_star_int[bits 0 to ..] ∈ [--..--]
+  alloced_return_i[bits 0 to ..]# ∈
+                  [-3.40282346639e+38 .. 3.40282346639e+38] repeated %32 
+  alloced_return_k[bits 0 to ..]# ∈
+                  [-1.79769313486e+308 .. 1.79769313486e+308] repeated %64 
+[from] Computing for function main
+[from] Computing for function f_int <-main
+[from] Done for function f_int
+[from] Computing for function f_star_int <-main
+[from] Done for function f_star_int
+tests/misc/library.i:19:[kernel] more than 200(67108864) dependencies to update. Approximating.
+[from] Computing for function gen <-main
+[from] Done for function gen
+[from] Computing for function S_f_0 <-main
+[from] Done for function S_f_0
+[from] Computing for function S_g <-main
+[from] Done for function S_g
+[from] Computing for function alloced_return_gen <-main
+[from] Done for function alloced_return_gen
+[from] Computing for function i <-main
+[from] Done for function i
+tests/misc/library.i:30:[kernel] more than 200(67108864) dependencies to update. Approximating.
+tests/misc/library.i:31:[kernel] more than 200(67108864) dependencies to update. Approximating.
+[from] Computing for function k <-main
+[from] Done for function k
+tests/misc/library.i:33:[kernel] more than 200(33554432) dependencies to update. Approximating.
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function S_f_0:
+  x FROM x; y (and SELF)
+  \result FROM x; y
+[from] Function S_g:
+  x FROM x; y (and SELF)
+  \result FROM x; y
+[from] Function alloced_return_gen:
+  x FROM x; y (and SELF)
+  \result FROM x; y
+[from] Function f_int:
+  \result FROM x
+[from] Function f_star_int:
+  \result FROM x
+[from] Function gen:
+  \result FROM \nothing
+[from] Function i:
+  \result FROM \nothing
+[from] Function k:
+  \result FROM \nothing
+[from] Function main:
+  G0 FROM \nothing
+  G1 FROM \nothing
+  S_0_S_0_S_0_S_G[0] FROM G; S_G[0]; S_0_S_G[0]; S_0_S_0_S_G[0]
+  alloced_return_f_star_int[bits 0 to 17179868959] FROM \nothing (and SELF)
+  alloced_return_i[bits 0 to 17179868959]
+                  FROM alloced_return_i[bits 0 to 17179868959] (and SELF)
+  alloced_return_k[bits 0 to 17179868735] FROM \nothing (and SELF)
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          G0; G1; x; y; h; z1; z2; z3; pf; vf; pd; S_0_S_0_S_0_S_G[0];
+          alloced_return_f_star_int[bits 0 to 17179868959];
+          alloced_return_i[bits 0 to 17179868959];
+          alloced_return_k[bits 0 to 17179868735]
+[inout] Inputs for function main:
+          G; G1; f; S_G[0]; S_0_S_G[0]; S_0_S_0_S_G[0];
+          alloced_return_i[bits 0 to 17179868959]
+[value] Analyzing an incomplete application starting at main2
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  G ∈ {{ NULL ; &S_G[0] }}
+  G0 ∈ [--..--]
+  G1 ∈ {{ NULL ; &S_G1[0] }}
+  f ∈ {{ garbled mix of &{S_f_0} (origin: Well) }}
+  s.f[0] ∈ {{ garbled mix of &{S_0_f_s} (origin: Well) }}
+   .f[1] ∈ {{ garbled mix of &{S_1_f_s} (origin: Well) }}
+  ss.p[0] ∈ {{ NULL ; (struct ss *)&S_0_p_ss }}
+    .p[1] ∈ {{ NULL ; (struct ss *)&S_1_p_ss }}
+    .p[2..7] ∈ {{ NULL ; (struct ss *)&S_0_p_ss ; (struct ss *)&S_1_p_ss }}
+    .q ∈ {{ NULL ; (struct ss (*)[8])&S_q_ss }}
+  ff ∈ {{ garbled mix of &{S_ff} (origin: Well) }}
+  S_G[0] ∈ {{ NULL ; &S_0_S_G[0] }}
+     [1] ∈ {{ NULL ; &S_1_S_G[0] }}
+  S_0_S_G[0] ∈ {{ NULL ; &S_0_S_0_S_G[0] }}
+         [1] ∈ {{ NULL ; &S_1_S_0_S_G[0] }}
+  S_0_S_0_S_G[0] ∈ {{ NULL ; &S_0_S_0_S_0_S_G[0] }}
+             [1] ∈ {{ NULL ; &S_1_S_0_S_0_S_G[0] }}
+  S_0_S_0_S_0_S_G[0..1] ∈ [--..--]
+  S_1_S_0_S_0_S_G[0..1] ∈ [--..--]
+  S_1_S_0_S_G[0] ∈ {{ NULL ; &S_0_S_1_S_0_S_G[0] }}
+             [1] ∈ {{ NULL ; &S_1_S_1_S_0_S_G[0] }}
+  S_0_S_1_S_0_S_G[0..1] ∈ [--..--]
+  S_1_S_1_S_0_S_G[0..1] ∈ [--..--]
+  S_1_S_G[0] ∈ {{ NULL ; &S_0_S_1_S_G[0] }}
+         [1] ∈ {{ NULL ; &S_1_S_1_S_G[0] }}
+  S_0_S_1_S_G[0] ∈ {{ NULL ; &S_0_S_0_S_1_S_G[0] }}
+             [1] ∈ {{ NULL ; &S_1_S_0_S_1_S_G[0] }}
+  S_0_S_0_S_1_S_G[0..1] ∈ [--..--]
+  S_1_S_0_S_1_S_G[0..1] ∈ [--..--]
+  S_1_S_1_S_G[0] ∈ {{ NULL ; &S_0_S_1_S_1_S_G[0] }}
+             [1] ∈ {{ NULL ; &S_1_S_1_S_1_S_G[0] }}
+  S_0_S_1_S_1_S_G[0..1] ∈ [--..--]
+  S_1_S_1_S_1_S_G[0..1] ∈ [--..--]
+  S_G1[0..1] ∈ [--..--]
+  S_0_p_ss[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  S_1_p_ss[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  S_q_ss[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+[value] Recording results for main2
+[value] done for function main2
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main2:
+  
+[from] Computing for function main2
+[from] Done for function main2
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main2:
+  NO EFFECTS
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main2:
+          \nothing
+[inout] Inputs for function main2:
+          \nothing
+[value] Analyzing an incomplete application starting at main2
+[value] Computing initial state
+[value:initial_state] creating variable S_0_p_ss_0 with imprecise size (type struct ss [4])
+[value:initial_state] creating variable S_1_p_ss_0 with imprecise size (type struct ss [4])
+[value:initial_state] creating variable S_2_p_ss with imprecise size (type struct ss [4])
+[value:initial_state] creating variable S_3_p_ss with imprecise size (type struct ss [4])
+[value:initial_state] creating variable S_q_ss_0 with imprecise size (type struct ss [4][8])
+[value] Initial state computed
+[value] Values of globals at initialization
+  G ∈ {{ NULL ; &S_G_0[0] }}
+  G0 ∈ [--..--]
+  G1 ∈ {{ NULL ; &S_G1_0[0] }}
+  f ∈ {{ garbled mix of &{S_f_1} (origin: Well) }}
+  s.f[0] ∈ {{ garbled mix of &{S_0_f_s_0} (origin: Well) }}
+   .f[1] ∈ {{ garbled mix of &{S_1_f_s_0} (origin: Well) }}
+  ss.p[0] ∈ {{ NULL ; (struct ss *)&S_0_p_ss_0 }}
+    .p[1] ∈ {{ NULL ; (struct ss *)&S_1_p_ss_0 }}
+    .p[2] ∈ {{ NULL ; (struct ss *)&S_2_p_ss }}
+    .p[3] ∈ {{ NULL ; (struct ss *)&S_3_p_ss }}
+    .p[4..7] ∈
+    {{ NULL ; (struct ss *)&S_0_p_ss_0 ; (struct ss *)&S_1_p_ss_0 ;
+       (struct ss *)&S_2_p_ss ; (struct ss *)&S_3_p_ss }}
+    .q ∈ {{ NULL ; (struct ss (*)[8])&S_q_ss_0 }}
+  ff ∈ {{ garbled mix of &{S_ff_0} (origin: Well) }}
+  S_G_0[0] ∈ {{ NULL ; &S_0_S_G_0[0] }}
+       [1] ∈ {{ NULL ; &S_1_S_G_0[0] }}
+       [2] ∈ {{ NULL ; &S_2_S_G_0[0] }}
+       [3] ∈ {{ NULL ; &S_3_S_G_0[0] }}
+  S_0_S_G_0[0] ∈ {{ NULL ; &S_0_S_0_S_G_0[0] }}
+           [1] ∈ {{ NULL ; &S_1_S_0_S_G_0[0] }}
+           [2] ∈ {{ NULL ; &S_2_S_0_S_G_0[0] }}
+           [3] ∈ {{ NULL ; &S_3_S_0_S_G_0[0] }}
+  S_0_S_0_S_G_0[0] ∈ {{ NULL ; &S_0_S_0_S_0_S_G_0[0] }}
+               [1] ∈ {{ NULL ; &S_1_S_0_S_0_S_G_0[0] }}
+               [2] ∈ {{ NULL ; &S_2_S_0_S_0_S_G_0[0] }}
+               [3] ∈ {{ NULL ; &S_3_S_0_S_0_S_G_0[0] }}
+  S_0_S_0_S_0_S_G_0[0..3] ∈ [--..--]
+  S_1_S_0_S_0_S_G_0[0..3] ∈ [--..--]
+  S_2_S_0_S_0_S_G_0[0..3] ∈ [--..--]
+  S_3_S_0_S_0_S_G_0[0..3] ∈ [--..--]
+  S_1_S_0_S_G_0[0] ∈ {{ NULL ; &S_0_S_1_S_0_S_G_0[0] }}
+               [1] ∈ {{ NULL ; &S_1_S_1_S_0_S_G_0[0] }}
+               [2] ∈ {{ NULL ; &S_2_S_1_S_0_S_G_0[0] }}
+               [3] ∈ {{ NULL ; &S_3_S_1_S_0_S_G_0[0] }}
+  S_0_S_1_S_0_S_G_0[0..3] ∈ [--..--]
+  S_1_S_1_S_0_S_G_0[0..3] ∈ [--..--]
+  S_2_S_1_S_0_S_G_0[0..3] ∈ [--..--]
+  S_3_S_1_S_0_S_G_0[0..3] ∈ [--..--]
+  S_2_S_0_S_G_0[0] ∈ {{ NULL ; &S_0_S_2_S_0_S_G_0[0] }}
+               [1] ∈ {{ NULL ; &S_1_S_2_S_0_S_G_0[0] }}
+               [2] ∈ {{ NULL ; &S_2_S_2_S_0_S_G_0[0] }}
+               [3] ∈ {{ NULL ; &S_3_S_2_S_0_S_G_0[0] }}
+  S_0_S_2_S_0_S_G_0[0..3] ∈ [--..--]
+  S_1_S_2_S_0_S_G_0[0..3] ∈ [--..--]
+  S_2_S_2_S_0_S_G_0[0..3] ∈ [--..--]
+  S_3_S_2_S_0_S_G_0[0..3] ∈ [--..--]
+  S_3_S_0_S_G_0[0] ∈ {{ NULL ; &S_0_S_3_S_0_S_G_0[0] }}
+               [1] ∈ {{ NULL ; &S_1_S_3_S_0_S_G_0[0] }}
+               [2] ∈ {{ NULL ; &S_2_S_3_S_0_S_G_0[0] }}
+               [3] ∈ {{ NULL ; &S_3_S_3_S_0_S_G_0[0] }}
+  S_0_S_3_S_0_S_G_0[0..3] ∈ [--..--]
+  S_1_S_3_S_0_S_G_0[0..3] ∈ [--..--]
+  S_2_S_3_S_0_S_G_0[0..3] ∈ [--..--]
+  S_3_S_3_S_0_S_G_0[0..3] ∈ [--..--]
+  S_1_S_G_0[0] ∈ {{ NULL ; &S_0_S_1_S_G_0[0] }}
+           [1] ∈ {{ NULL ; &S_1_S_1_S_G_0[0] }}
+           [2] ∈ {{ NULL ; &S_2_S_1_S_G_0[0] }}
+           [3] ∈ {{ NULL ; &S_3_S_1_S_G_0[0] }}
+  S_0_S_1_S_G_0[0] ∈ {{ NULL ; &S_0_S_0_S_1_S_G_0[0] }}
+               [1] ∈ {{ NULL ; &S_1_S_0_S_1_S_G_0[0] }}
+               [2] ∈ {{ NULL ; &S_2_S_0_S_1_S_G_0[0] }}
+               [3] ∈ {{ NULL ; &S_3_S_0_S_1_S_G_0[0] }}
+  S_0_S_0_S_1_S_G_0[0..3] ∈ [--..--]
+  S_1_S_0_S_1_S_G_0[0..3] ∈ [--..--]
+  S_2_S_0_S_1_S_G_0[0..3] ∈ [--..--]
+  S_3_S_0_S_1_S_G_0[0..3] ∈ [--..--]
+  S_1_S_1_S_G_0[0] ∈ {{ NULL ; &S_0_S_1_S_1_S_G_0[0] }}
+               [1] ∈ {{ NULL ; &S_1_S_1_S_1_S_G_0[0] }}
+               [2] ∈ {{ NULL ; &S_2_S_1_S_1_S_G_0[0] }}
+               [3] ∈ {{ NULL ; &S_3_S_1_S_1_S_G_0[0] }}
+  S_0_S_1_S_1_S_G_0[0..3] ∈ [--..--]
+  S_1_S_1_S_1_S_G_0[0..3] ∈ [--..--]
+  S_2_S_1_S_1_S_G_0[0..3] ∈ [--..--]
+  S_3_S_1_S_1_S_G_0[0..3] ∈ [--..--]
+  S_2_S_1_S_G_0[0] ∈ {{ NULL ; &S_0_S_2_S_1_S_G_0[0] }}
+               [1] ∈ {{ NULL ; &S_1_S_2_S_1_S_G_0[0] }}
+               [2] ∈ {{ NULL ; &S_2_S_2_S_1_S_G_0[0] }}
+               [3] ∈ {{ NULL ; &S_3_S_2_S_1_S_G_0[0] }}
+  S_0_S_2_S_1_S_G_0[0..3] ∈ [--..--]
+  S_1_S_2_S_1_S_G_0[0..3] ∈ [--..--]
+  S_2_S_2_S_1_S_G_0[0..3] ∈ [--..--]
+  S_3_S_2_S_1_S_G_0[0..3] ∈ [--..--]
+  S_3_S_1_S_G_0[0] ∈ {{ NULL ; &S_0_S_3_S_1_S_G_0[0] }}
+               [1] ∈ {{ NULL ; &S_1_S_3_S_1_S_G_0[0] }}
+               [2] ∈ {{ NULL ; &S_2_S_3_S_1_S_G_0[0] }}
+               [3] ∈ {{ NULL ; &S_3_S_3_S_1_S_G_0[0] }}
+  S_0_S_3_S_1_S_G_0[0..3] ∈ [--..--]
+  S_1_S_3_S_1_S_G_0[0..3] ∈ [--..--]
+  S_2_S_3_S_1_S_G_0[0..3] ∈ [--..--]
+  S_3_S_3_S_1_S_G_0[0..3] ∈ [--..--]
+  S_2_S_G_0[0] ∈ {{ NULL ; &S_0_S_2_S_G_0[0] }}
+           [1] ∈ {{ NULL ; &S_1_S_2_S_G_0[0] }}
+           [2] ∈ {{ NULL ; &S_2_S_2_S_G_0[0] }}
+           [3] ∈ {{ NULL ; &S_3_S_2_S_G_0[0] }}
+  S_0_S_2_S_G_0[0] ∈ {{ NULL ; &S_0_S_0_S_2_S_G_0[0] }}
+               [1] ∈ {{ NULL ; &S_1_S_0_S_2_S_G_0[0] }}
+               [2] ∈ {{ NULL ; &S_2_S_0_S_2_S_G_0[0] }}
+               [3] ∈ {{ NULL ; &S_3_S_0_S_2_S_G_0[0] }}
+  S_0_S_0_S_2_S_G_0[0..3] ∈ [--..--]
+  S_1_S_0_S_2_S_G_0[0..3] ∈ [--..--]
+  S_2_S_0_S_2_S_G_0[0..3] ∈ [--..--]
+  S_3_S_0_S_2_S_G_0[0..3] ∈ [--..--]
+  S_1_S_2_S_G_0[0] ∈ {{ NULL ; &S_0_S_1_S_2_S_G_0[0] }}
+               [1] ∈ {{ NULL ; &S_1_S_1_S_2_S_G_0[0] }}
+               [2] ∈ {{ NULL ; &S_2_S_1_S_2_S_G_0[0] }}
+               [3] ∈ {{ NULL ; &S_3_S_1_S_2_S_G_0[0] }}
+  S_0_S_1_S_2_S_G_0[0..3] ∈ [--..--]
+  S_1_S_1_S_2_S_G_0[0..3] ∈ [--..--]
+  S_2_S_1_S_2_S_G_0[0..3] ∈ [--..--]
+  S_3_S_1_S_2_S_G_0[0..3] ∈ [--..--]
+  S_2_S_2_S_G_0[0] ∈ {{ NULL ; &S_0_S_2_S_2_S_G_0[0] }}
+               [1] ∈ {{ NULL ; &S_1_S_2_S_2_S_G_0[0] }}
+               [2] ∈ {{ NULL ; &S_2_S_2_S_2_S_G_0[0] }}
+               [3] ∈ {{ NULL ; &S_3_S_2_S_2_S_G_0[0] }}
+  S_0_S_2_S_2_S_G_0[0..3] ∈ [--..--]
+  S_1_S_2_S_2_S_G_0[0..3] ∈ [--..--]
+  S_2_S_2_S_2_S_G_0[0..3] ∈ [--..--]
+  S_3_S_2_S_2_S_G_0[0..3] ∈ [--..--]
+  S_3_S_2_S_G_0[0] ∈ {{ NULL ; &S_0_S_3_S_2_S_G_0[0] }}
+               [1] ∈ {{ NULL ; &S_1_S_3_S_2_S_G_0[0] }}
+               [2] ∈ {{ NULL ; &S_2_S_3_S_2_S_G_0[0] }}
+               [3] ∈ {{ NULL ; &S_3_S_3_S_2_S_G_0[0] }}
+  S_0_S_3_S_2_S_G_0[0..3] ∈ [--..--]
+  S_1_S_3_S_2_S_G_0[0..3] ∈ [--..--]
+  S_2_S_3_S_2_S_G_0[0..3] ∈ [--..--]
+  S_3_S_3_S_2_S_G_0[0..3] ∈ [--..--]
+  S_3_S_G_0[0] ∈ {{ NULL ; &S_0_S_3_S_G_0[0] }}
+           [1] ∈ {{ NULL ; &S_1_S_3_S_G_0[0] }}
+           [2] ∈ {{ NULL ; &S_2_S_3_S_G_0[0] }}
+           [3] ∈ {{ NULL ; &S_3_S_3_S_G_0[0] }}
+  S_0_S_3_S_G_0[0] ∈ {{ NULL ; &S_0_S_0_S_3_S_G_0[0] }}
+               [1] ∈ {{ NULL ; &S_1_S_0_S_3_S_G_0[0] }}
+               [2] ∈ {{ NULL ; &S_2_S_0_S_3_S_G_0[0] }}
+               [3] ∈ {{ NULL ; &S_3_S_0_S_3_S_G_0[0] }}
+  S_0_S_0_S_3_S_G_0[0..3] ∈ [--..--]
+  S_1_S_0_S_3_S_G_0[0..3] ∈ [--..--]
+  S_2_S_0_S_3_S_G_0[0..3] ∈ [--..--]
+  S_3_S_0_S_3_S_G_0[0..3] ∈ [--..--]
+  S_1_S_3_S_G_0[0] ∈ {{ NULL ; &S_0_S_1_S_3_S_G_0[0] }}
+               [1] ∈ {{ NULL ; &S_1_S_1_S_3_S_G_0[0] }}
+               [2] ∈ {{ NULL ; &S_2_S_1_S_3_S_G_0[0] }}
+               [3] ∈ {{ NULL ; &S_3_S_1_S_3_S_G_0[0] }}
+  S_0_S_1_S_3_S_G_0[0..3] ∈ [--..--]
+  S_1_S_1_S_3_S_G_0[0..3] ∈ [--..--]
+  S_2_S_1_S_3_S_G_0[0..3] ∈ [--..--]
+  S_3_S_1_S_3_S_G_0[0..3] ∈ [--..--]
+  S_2_S_3_S_G_0[0] ∈ {{ NULL ; &S_0_S_2_S_3_S_G_0[0] }}
+               [1] ∈ {{ NULL ; &S_1_S_2_S_3_S_G_0[0] }}
+               [2] ∈ {{ NULL ; &S_2_S_2_S_3_S_G_0[0] }}
+               [3] ∈ {{ NULL ; &S_3_S_2_S_3_S_G_0[0] }}
+  S_0_S_2_S_3_S_G_0[0..3] ∈ [--..--]
+  S_1_S_2_S_3_S_G_0[0..3] ∈ [--..--]
+  S_2_S_2_S_3_S_G_0[0..3] ∈ [--..--]
+  S_3_S_2_S_3_S_G_0[0..3] ∈ [--..--]
+  S_3_S_3_S_G_0[0] ∈ {{ NULL ; &S_0_S_3_S_3_S_G_0[0] }}
+               [1] ∈ {{ NULL ; &S_1_S_3_S_3_S_G_0[0] }}
+               [2] ∈ {{ NULL ; &S_2_S_3_S_3_S_G_0[0] }}
+               [3] ∈ {{ NULL ; &S_3_S_3_S_3_S_G_0[0] }}
+  S_0_S_3_S_3_S_G_0[0..3] ∈ [--..--]
+  S_1_S_3_S_3_S_G_0[0..3] ∈ [--..--]
+  S_2_S_3_S_3_S_G_0[0..3] ∈ [--..--]
+  S_3_S_3_S_3_S_G_0[0..3] ∈ [--..--]
+  S_G1_0[0..3] ∈ [--..--]
+  S_0_p_ss_0[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  S_1_p_ss_0[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  S_2_p_ss[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  S_3_p_ss[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  S_q_ss_0[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+[value] Recording results for main2
+[value] done for function main2
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main2:
+  
+[from] Computing for function main2
+[from] Done for function main2
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main2:
+  NO EFFECTS
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main2:
+          \nothing
+[inout] Inputs for function main2:
+          \nothing

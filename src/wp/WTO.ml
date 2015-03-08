@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -48,10 +48,10 @@ let rec pretty fmt = function
   | Node(k,Nil) -> Format.fprintf fmt "%d" k
   | Node(k,e) -> Format.fprintf fmt "%d@ " k ; pretty fmt e
   | Component(a,Nil) ->
-    Format.fprintf fmt "@[<hov 1>(%a)@]" pretty a
+      Format.fprintf fmt "@[<hov 1>(%a)@]" pretty a
   | Component(a,b) ->
-    Format.fprintf fmt "@[<hov 1>(%a)@]@ " pretty a ; 
-    pretty fmt b
+      Format.fprintf fmt "@[<hov 1>(%a)@]@ " pretty a ; 
+      pretty fmt b
 
 let rec visit scc vertex acc =
   begin
@@ -62,29 +62,29 @@ let rec visit scc vertex acc =
     let w = { loop = false ; head = n } in
     scc.succ
       (fun succ ->
-	let min = 
-	  let d = scc.dfn.(succ) in
-	  if d = 0 then visit scc succ acc else d
-	in
-	if min <= w.head then
-	  ( w.head <- min ; w.loop <- true )
+         let min = 
+           let d = scc.dfn.(succ) in
+           if d = 0 then visit scc succ acc else d
+         in
+         if min <= w.head then
+           ( w.head <- min ; w.loop <- true )
       ) vertex ;
     if w.head = scc.dfn.(vertex) then
       begin
-	scc.dfn.(vertex) <- max_int ;
-	let e = Stack.pop scc.stack in
-	if w.loop then
-	  begin
-	    let rec unstack scc e vertex =
-	      if e <> vertex then 
-		( scc.dfn.(e) <- 0 ; 
-		  let e = Stack.pop scc.stack in
-		  unstack scc e vertex )
-	    in unstack scc e vertex ; 
-	    acc := Component(component scc vertex, !acc)
-	  end
-	else
-	  acc := Node(vertex,!acc) ;
+        scc.dfn.(vertex) <- max_int ;
+        let e = Stack.pop scc.stack in
+        if w.loop then
+          begin
+            let rec unstack scc e vertex =
+              if e <> vertex then 
+                ( scc.dfn.(e) <- 0 ; 
+                  let e = Stack.pop scc.stack in
+                  unstack scc e vertex )
+            in unstack scc e vertex ; 
+            acc := Component(component scc vertex, !acc)
+          end
+        else
+          acc := Node(vertex,!acc) ;
       end ;
     w.head
   end
@@ -94,8 +94,8 @@ and component scc vertex =
     let p = ref Nil in
     scc.succ
       (fun succ ->
-	if scc.dfn.(succ) = 0 then
-	  ignore (visit scc succ p)
+         if scc.dfn.(succ) = 0 then
+           ignore (visit scc succ p)
       ) vertex ;
     Node(vertex,!p)
   end
@@ -112,7 +112,7 @@ let rec fix widen level = function
   | Nil -> true
   | Node(e,_) -> widen ~level e
   | Component(a,_) -> fix widen level a
-      
+
 let rec fixpoint widen update = function
   | Nil -> ()
   | Node(e,w) -> update e ; fixpoint widen update w

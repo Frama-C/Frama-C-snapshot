@@ -1,0 +1,99 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/float/logic.i (no preprocessing)
+tests/float/logic.i:11:[kernel] warning: Floating-point constant 0.1 is not represented exactly. Will use 0x1.999999999999ap-4
+tests/float/logic.i:16:[kernel] warning: Floating-point constant 0.1 is not represented exactly. Will use 0x1.999999999999ap-4
+tests/float/logic.i:21:[kernel] warning: Floating-point constant 0.1 is not represented exactly. Will use 0x1.999999999999ap-4
+tests/float/logic.i:70:[kernel] warning: Floating-point constant 3.3 is not represented exactly. Will use 0x1.a666666666666p1
+tests/float/logic.i:71:[kernel] warning: Floating-point constant 3.3 is not represented exactly. Will use 0x1.a666666666666p1
+tests/float/logic.i:74:[kernel] warning: Floating-point constant 3.3 is not represented exactly. Will use 0x1.a666666666666p1
+tests/float/logic.i:77:[kernel] warning: Floating-point constant 3.3 is not represented exactly. Will use 0x1.a666666666666p1
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  v ∈ [--..--]
+  undet ∈ [--..--]
+  top_int ∈ [--..--]
+tests/float/logic.i:12:[value] Assertion got status unknown.
+tests/float/logic.i:17:[value] Assertion got status invalid (stopping propagation).
+tests/float/logic.i:22:[value] Assertion got status valid.
+[value] computing for function test_is_finite <- main.
+        Called from tests/float/logic.i:27.
+tests/float/logic.i:50:[value] Assertion got status valid.
+tests/float/logic.i:51:[value] Assertion got status unknown.
+tests/float/logic.i:59:[value] Assertion got status unknown.
+tests/float/logic.i:67:[value] Assertion got status unknown.
+[value] computing for function my_fabs <- test_is_finite <- main.
+        Called from tests/float/logic.i:70.
+[value] using specification for function my_fabs
+[value] Done for function my_fabs
+[value] computing for function my_fabs <- test_is_finite <- main.
+        Called from tests/float/logic.i:71.
+[value] Done for function my_fabs
+[value] computing for function my_ratio <- test_is_finite <- main.
+        Called from tests/float/logic.i:74.
+[value] using specification for function my_ratio
+tests/float/logic.i:46:[value] warning: no 'assigns \result \from ...' clause specified for function my_ratio
+[value] Done for function my_ratio
+[value] computing for function my_ratio_body <- test_is_finite <- main.
+        Called from tests/float/logic.i:77.
+[value] computing for function my_fabs <- my_ratio_body <- test_is_finite <- main.
+        Called from tests/float/logic.i:41.
+[value] Done for function my_fabs
+tests/float/logic.i:39:[value] Function my_ratio_body: postcondition got status valid.
+tests/float/logic.i:40:[value] Function my_ratio_body: postcondition got status valid.
+[value] Recording results for my_ratio_body
+[value] Done for function my_ratio_body
+[value] Recording results for test_is_finite
+[value] Done for function test_is_finite
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function my_ratio_body:
+  __retres ∈ {-0x1.bca1b00000000p-1}
+[value] Values at end of function test_is_finite:
+  f1 ∈ [-0x1.fffffe0000000p127 .. 0x1.fffffe0000000p127]
+  f2 ∈ [--..--]
+  f3 ∈ [--..--]
+  p ∈ {{ &f2 ; &f3 }}
+  g1 ∈ {0x1.a666660000000p1}
+  g2 ∈ {0x1.a666660000000p1}
+  g3 ∈ [-0x1.fffffe0000000p-1 .. 0x1.fffffe0000000p-1]
+  g4 ∈ {-0x1.bca1b00000000p-1}
+[value] Values at end of function main:
+  __retres ∈ {0}
+[from] Computing for function my_ratio_body
+[from] Computing for function my_fabs <-my_ratio_body
+[from] Done for function my_fabs
+[from] Done for function my_ratio_body
+[from] Computing for function test_is_finite
+[from] Computing for function my_ratio <-test_is_finite
+[from] Done for function my_ratio
+[from] Done for function test_is_finite
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function my_fabs:
+  \result FROM f
+[from] Function my_ratio:
+  \result FROM ANYTHING(origin:Unknown)
+[from] Function my_ratio_body:
+  \result FROM f
+[from] Function test_is_finite:
+  NO EFFECTS
+[from] Function main:
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function my_ratio_body:
+          tmp; __retres
+[inout] Inputs for function my_ratio_body:
+          \nothing
+[inout] Out (internal) for function test_is_finite:
+          f1; f2; f3; p; g1; g2; g3; g4
+[inout] Inputs for function test_is_finite:
+          undet; top_int
+[inout] Out (internal) for function main:
+          d; d_0; f; __retres
+[inout] Inputs for function main:
+          v; undet; top_int

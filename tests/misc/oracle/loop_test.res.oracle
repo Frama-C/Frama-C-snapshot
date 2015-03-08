@@ -1,0 +1,110 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/loop_test.i (no preprocessing)
+[value] Analyzing a complete application starting at test_onzes
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  r0 ∈ {0}
+  r1 ∈ {0}
+  r2 ∈ {0}
+  r3 ∈ {0}
+  r4 ∈ {0}
+  r5 ∈ {0}
+  r6 ∈ {0}
+  r7 ∈ {0}
+  r8 ∈ {0}
+  r9 ∈ {0}
+  c0 ∈ {0}
+  c1 ∈ {0}
+  c2 ∈ {0}
+  c3 ∈ {0}
+  c4 ∈ {0}
+  c5 ∈ {0}
+  c6 ∈ {0}
+  c7 ∈ {0}
+  c8 ∈ {0}
+  c9 ∈ {0}
+[value] computing for function onze_0 <- test_onzes.
+        Called from tests/misc/loop_test.i:43.
+tests/misc/loop_test.i:9:[value] entering loop for the first time
+[value] Recording results for onze_0
+[value] Done for function onze_0
+[value] computing for function onze_1 <- test_onzes.
+        Called from tests/misc/loop_test.i:44.
+tests/misc/loop_test.i:12:[value] entering loop for the first time
+[value] Recording results for onze_1
+[value] Done for function onze_1
+[value] computing for function onze_2 <- test_onzes.
+        Called from tests/misc/loop_test.i:45.
+tests/misc/loop_test.i:15:[value] entering loop for the first time
+[value] Recording results for onze_2
+[value] Done for function onze_2
+[value] computing for function onze_3 <- test_onzes.
+        Called from tests/misc/loop_test.i:46.
+tests/misc/loop_test.i:18:[value] entering loop for the first time
+[value] Recording results for onze_3
+[value] Done for function onze_3
+[value] computing for function onze_4 <- test_onzes.
+        Called from tests/misc/loop_test.i:47.
+tests/misc/loop_test.i:21:[value] entering loop for the first time
+[value] Recording results for onze_4
+[value] Done for function onze_4
+[value] computing for function onze_5 <- test_onzes.
+        Called from tests/misc/loop_test.i:48.
+tests/misc/loop_test.i:25:[value] entering loop for the first time
+[value] Recording results for onze_5
+[value] Done for function onze_5
+[value] computing for function onze_6 <- test_onzes.
+        Called from tests/misc/loop_test.i:49.
+tests/misc/loop_test.i:28:[value] entering loop for the first time
+[value] Recording results for onze_6
+[value] Done for function onze_6
+[value] computing for function onze_7 <- test_onzes.
+        Called from tests/misc/loop_test.i:50.
+tests/misc/loop_test.i:31:[value] entering loop for the first time
+[value] Recording results for onze_7
+[value] Done for function onze_7
+[value] computing for function onze_8 <- test_onzes.
+        Called from tests/misc/loop_test.i:51.
+tests/misc/loop_test.i:34:[value] entering loop for the first time
+[value] Recording results for onze_8
+[value] Done for function onze_8
+[value] computing for function onze_9 <- test_onzes.
+        Called from tests/misc/loop_test.i:52.
+tests/misc/loop_test.i:37:[value] entering loop for the first time
+[value] Recording results for onze_9
+[value] Done for function onze_9
+[value] Recording results for test_onzes
+[value] done for function test_onzes
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function onze_0:
+  onze ∈ {11}
+[value] Values at end of function onze_1:
+  onze ∈ {11}
+[value] Values at end of function onze_2:
+  onze ∈ {11}
+[value] Values at end of function onze_3:
+  onze ∈ {11}
+[value] Values at end of function onze_4:
+  onze ∈ {11}
+[value] Values at end of function onze_5:
+  onze ∈ {11}
+[value] Values at end of function onze_6:
+  onze ∈ {11}
+[value] Values at end of function onze_7:
+  onze ∈ {11}
+[value] Values at end of function onze_8:
+  onze ∈ {11}
+[value] Values at end of function onze_9:
+  onze ∈ {11}
+[value] Values at end of function test_onzes:
+  r0 ∈ {11}
+  r1 ∈ {11}
+  r2 ∈ {11}
+  r3 ∈ {11}
+  r4 ∈ {11}
+  r5 ∈ {11}
+  r6 ∈ {11}
+  r7 ∈ {11}
+  r8 ∈ {11}
+  r9 ∈ {11}

@@ -1,0 +1,8 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/bts0990_link.i (no preprocessing)
+[kernel] Parsing tests/misc/bts0990_link_1.i (no preprocessing)
+[kernel] user error: Incompatible declaration for s:
+                     different type constructors: char * vs. char [100]
+                     First declaration was at  tests/misc/bts0990_link.i:8
+                     Current declaration is at tests/misc/bts0990_link_1.i:4
+[kernel] Frama-C aborted: invalid user input.

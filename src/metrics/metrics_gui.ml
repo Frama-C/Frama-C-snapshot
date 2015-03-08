@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -69,7 +69,7 @@ let clear_container w = List.iter (fun c -> c#destroy ()) w#children ;;
     - The upper part contains the various choices of the user;
     - The bottom part displays the result.
 *)
-let init_panel () =
+let init_panel (main_ui: Design.main_window_extension_points) =
   let v = GPack.vbox () in
   (* Titles, buttons, and headers *)
   let up = GPack.hbox ~width:120 ~packing:(v#pack ~expand:true) () in
@@ -78,7 +78,7 @@ let init_panel () =
 
   let choices = GEdit.combo_box_text ~active:0 ~strings:[] ~packing:(up#pack) ()
   in
-  let launch_button = GButton.button ~label:"Launch metrics"
+  let launch_button = GButton.button ~label:"Launch"
     ~packing:(up#pack) ()
   in
   ignore(launch_button#connect#clicked (fun () ->
@@ -90,7 +90,8 @@ let init_panel () =
         if List.mem_assoc s actions then
           let action = List.assoc s actions in
           clear_container bottom;
-          action bottom;
+          ignore (main_ui#full_protect ~cancelable:true
+                    (fun () -> action bottom))
         else ()
   ) );
   set_panel (Some choices) (Some bottom);

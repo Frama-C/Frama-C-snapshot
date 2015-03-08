@@ -1,0 +1,14 @@
+%init: init;
+%accept: last;
+
+init: { x == 3 } -> step1
+    | other -> init;
+
+step1: { x == 4 } -> last
+     | other -> step1
+     ;
+
+last: { x == 3 } -> step1
+    | { x == 4 } -> init
+    | other -> last
+    ;

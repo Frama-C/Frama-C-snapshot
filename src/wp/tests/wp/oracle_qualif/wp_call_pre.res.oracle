@@ -1,0 +1,34 @@
+# frama-c -wp -wp-model 'Typed' [...]
+[wp] user error: In model spec "Store" : unknown 'STORE' selector
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp/wp_call_pre.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+tests/wp/wp_call_pre.c:53:[wp] warning: Deprecated 'Store' model.
+              Use 'Typed' instead.
+[wp] Collecting axiomatic usage
+tests/wp/wp_call_pre.c:53:[kernel] warning: No code nor implicit assigns clause for function g, generating default assigns from the prototype
+tests/wp/wp_call_pre.c:53:[kernel] warning: No code nor implicit assigns clause for function f, generating default assigns from the prototype
+[wp] warning: Missing RTE guards
+[wp] 10 goals scheduled
+[wp] [Qed] Goal typed_call_g_call_g_pre_qed_ok_Rga : Valid
+[wp] [Qed] Goal typed_call_g_call_g_pre_Rgb : Valid
+[wp] [Qed] Goal typed_call_main_post_qed_ok : Valid
+[wp] [Qed] Goal typed_call_main_call_main_pre_qed_ok_Rmain : Valid
+[wp] [Qed] Goal typed_double_call_call_f_pre_qed_ok_Rf : Valid
+[wp] [Alt-Ergo] Goal typed_double_call_call_f_pre_qed_ok_Rf_2 : Valid
+[wp] [Qed] Goal typed_main_pre_qed_ok_Rmain : Valid
+[wp] [Qed] Goal typed_main_post_qed_ok_Emain : Valid
+[wp] [Qed] Goal typed_main_call_f_pre_qed_ok_Rf : Valid
+[wp] [Qed] Goal typed_stmt_pre_stmt_pre_qed_ok_Rstmt : Valid
+[wp] Proved goals:   10 / 10
+     Qed:             9 
+     Alt-Ergo:        1
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+double_call          1      1 (6)      2       100%
+main                 3     -           3       100%
+call_main            2     -           2       100%
+stmt_pre             1     -           1       100%
+call_g               2     -           2       100%
+----------------------------------------------------------

@@ -1,0 +1,25 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/const_syntax.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  INSTRU_N_00_01_001_CRC___1525983317999999999994352352523523993424999
+   ∈ {0}
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  INSTRU_N_00_01_001_CRC___1525983317999999999994352352523523993425000
+   ∈ {0}
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  NO EFFECTS
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          INSTRU_N_00_01_001_CRC___1525983317999999999994352352523523993425000
+[inout] Inputs for function main:
+          \nothing

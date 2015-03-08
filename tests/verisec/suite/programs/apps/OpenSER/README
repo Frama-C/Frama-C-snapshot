@@ -1,0 +1,8 @@
+-= OpenSER =-
+
+Homepage: http://www.openser.org
+Domain: SIP (Session Initiation Protocol) Server
+
+SIP is the Session Initiation Protocol. It is an application-layer 
+networking protocol which handles sessions. OpenSER is an open-source 
+SIP server.

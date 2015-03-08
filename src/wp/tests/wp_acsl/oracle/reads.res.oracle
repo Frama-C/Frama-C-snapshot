@@ -1,0 +1,157 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_acsl/reads.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function f
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok' in 'f':
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_1) /\ (is_sint32 y_1).
+  (* Pre-condition (file tests/wp_acsl/reads.i, line 23) in 'f' *)
+  (* Pre-condition: *)
+  Have: (P_Q y_1 x_1).
+  (* Pre-condition (file tests/wp_acsl/reads.i, line 24) in 'f' *)
+  (* Pre-condition: *)
+  Have: (0<=x_1) /\ (x_1<=10).
+  (* Pre-condition (file tests/wp_acsl/reads.i, line 25) in 'f' *)
+  (* Pre-condition: *)
+  Have: (0<=y_1) /\ (y_1<=10).
+}
+Prove: (P_Q (1+y_1) (1+x_1)).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function g
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok' in 'g':
+Let x_0 = Mint_2[u_0].
+Let m_0 = Mint_2[u_0->1+x_0].
+Let x_1 = m_0[v_0].
+Let x_2 = Mint_2[v_0].
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_0) /\ (is_sint32 x_2) /\ (is_sint32 x_1).
+  (* Heap *)
+  Have: ((region (base u_0))<=0) /\ ((region (base v_0))<=0).
+  (* Pre-condition (file tests/wp_acsl/reads.i, line 30) in 'g' *)
+  (* Pre-condition: *)
+  Have: (P_P Mint_2 u_0 v_0).
+  (* Pre-condition (file tests/wp_acsl/reads.i, line 31) in 'g' *)
+  (* Pre-condition: *)
+  Have: (0<=x_0) /\ (x_0<=10).
+  (* Pre-condition (file tests/wp_acsl/reads.i, line 32) in 'g' *)
+  (* Pre-condition: *)
+  Have: (0<=x_2) /\ (x_2<=10).
+}
+Prove: (P_P m_0[v_0->1+x_1] u_0 v_0).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function modifies_x
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok,F_OK' in 'modifies_x':
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_2).
+  (* Pre-condition 'H' in 'modifies_x' *)
+  (* Pre-condition 'H': *)
+  Have: P_f /\ (P_g x_2) /\ (P_h y_1 x_2) /\ (P_w y_1 x_2).
+}
+Prove: P_f.
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ko,G_KO' in 'modifies_x':
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_2).
+  (* Pre-condition 'H' in 'modifies_x' *)
+  (* Pre-condition 'H': *)
+  Have: P_f /\ (P_g x_2) /\ (P_h y_1 x_2) /\ (P_w y_1 x_2).
+}
+Prove: (P_g (1+x_2)).
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ko,H_KO' in 'modifies_x':
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_2).
+  (* Pre-condition 'H' in 'modifies_x' *)
+  (* Pre-condition 'H': *)
+  Have: P_f /\ (P_g x_2) /\ (P_h y_1 x_2) /\ (P_w y_1 x_2).
+}
+Prove: (P_h y_1 (1+x_2)).
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok,W_OK,todo' in 'modifies_x':
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_2).
+  (* Pre-condition 'H' in 'modifies_x' *)
+  (* Pre-condition 'H': *)
+  Have: P_f /\ (P_g x_2) /\ (P_h y_1 x_2) /\ (P_w y_1 x_2).
+}
+Prove: (P_w y_1 (1+x_2)).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function modifies_y
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok,F_OK' in 'modifies_y':
+Assume {
+  (* Domain *)
+  Type: (is_sint32 y_1).
+  (* Pre-condition 'H' in 'modifies_y' *)
+  (* Pre-condition 'H': *)
+  Have: P_f /\ (P_g x_0) /\ (P_h y_1 x_0) /\ (P_w y_1 x_0).
+}
+Prove: P_f.
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok,G_OK' in 'modifies_y':
+Assume {
+  (* Domain *)
+  Type: (is_sint32 y_1).
+  (* Pre-condition 'H' in 'modifies_y' *)
+  (* Pre-condition 'H': *)
+  Have: P_f /\ (P_g x_0) /\ (P_h y_1 x_0) /\ (P_w y_1 x_0).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ko,H_KO' in 'modifies_y':
+Assume {
+  (* Domain *)
+  Type: (is_sint32 y_1).
+  (* Pre-condition 'H' in 'modifies_y' *)
+  (* Pre-condition 'H': *)
+  Have: P_f /\ (P_g x_0) /\ (P_h y_1 x_0) /\ (P_w y_1 x_0).
+}
+Prove: (P_h (1+y_1) x_0).
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok,W_OK,todo' in 'modifies_y':
+Assume {
+  (* Domain *)
+  Type: (is_sint32 y_1).
+  (* Pre-condition 'H' in 'modifies_y' *)
+  (* Pre-condition 'H': *)
+  Have: P_f /\ (P_g x_0) /\ (P_h y_1 x_0) /\ (P_w y_1 x_0).
+}
+Prove: (P_w (1+y_1) x_0).
+
+------------------------------------------------------------

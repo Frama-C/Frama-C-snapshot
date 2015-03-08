@@ -1,3 +1,8 @@
+/* The name of this file is probably historical, as Value no longer degenerates 
+   on anything in it */
+
+volatile v;
+
 void main (int c,int d) {
 void *A,*B,*C,*D, *E;
  
@@ -16,6 +21,7 @@ void *A,*B,*C,*D, *E;
   char T[10][10];
   int x = (d<=10)?((d>=0)?d:0):0;
 
-  int vv = T[x][offset_uninit];
-
+  if (v) {
+    int vv = T[x][offset_uninit];
+  }
 }

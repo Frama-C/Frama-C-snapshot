@@ -1,0 +1,144 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/slicing/select_return_bis.c (with preprocessing)
+tests/slicing/select_return_bis.c:36:[kernel] warning: Calling undeclared function f. Old style K&R code?
+[slicing] slicing requests in progress...
+[value] Analyzing an incomplete application starting at g
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  G ∈ [--..--]
+  H ∈ [--..--]
+  I ∈ [--..--]
+[value] computing for function k <- g.
+        Called from tests/slicing/select_return_bis.c:35.
+[value] computing for function get <- k <- g.
+        Called from tests/slicing/select_return_bis.c:28.
+tests/slicing/select_return_bis.c:28:[kernel] warning: Neither code nor specification for function get, generating default assigns from the prototype
+[value] using specification for function get
+[value] Done for function get
+[value] computing for function k_bis <- k <- g.
+        Called from tests/slicing/select_return_bis.c:30.
+[value] computing for function send_bis <- k_bis <- k <- g.
+        Called from tests/slicing/select_return_bis.c:24.
+tests/slicing/select_return_bis.c:24:[kernel] warning: Neither code nor specification for function send_bis, generating default assigns from the prototype
+[value] using specification for function send_bis
+[value] Done for function send_bis
+[value] Recording results for k_bis
+[value] Done for function k_bis
+[value] Recording results for k
+[value] Done for function k
+[value] computing for function f <- g.
+        Called from tests/slicing/select_return_bis.c:36.
+[value] computing for function k <- f <- g.
+        Called from tests/slicing/select_return_bis.c:40.
+[value] computing for function get <- k <- f <- g.
+        Called from tests/slicing/select_return_bis.c:28.
+[value] Done for function get
+[value] computing for function k_bis <- k <- f <- g.
+        Called from tests/slicing/select_return_bis.c:30.
+[value] computing for function send_bis <- k_bis <- k <- f <- g.
+        Called from tests/slicing/select_return_bis.c:24.
+[value] Done for function send_bis
+[value] Recording results for k_bis
+[value] Done for function k_bis
+[value] Recording results for k
+[value] Done for function k
+[value] computing for function k <- f <- g.
+        Called from tests/slicing/select_return_bis.c:41.
+[value] computing for function get <- k <- f <- g.
+        Called from tests/slicing/select_return_bis.c:28.
+[value] Done for function get
+[value] computing for function k_bis <- k <- f <- g.
+        Called from tests/slicing/select_return_bis.c:30.
+[value] computing for function send_bis <- k_bis <- k <- f <- g.
+        Called from tests/slicing/select_return_bis.c:24.
+[value] Done for function send_bis
+[value] Recording results for k_bis
+[value] Done for function k_bis
+[value] Recording results for k
+[value] Done for function k
+[value] computing for function k <- f <- g.
+        Called from tests/slicing/select_return_bis.c:42.
+[value] computing for function get <- k <- f <- g.
+        Called from tests/slicing/select_return_bis.c:28.
+[value] Done for function get
+[value] computing for function k_bis <- k <- f <- g.
+        Called from tests/slicing/select_return_bis.c:30.
+[value] computing for function send_bis <- k_bis <- k <- f <- g.
+        Called from tests/slicing/select_return_bis.c:24.
+[value] Done for function send_bis
+[value] Recording results for k_bis
+[value] Done for function k_bis
+[value] Recording results for k
+[value] Done for function k
+[value] computing for function send <- f <- g.
+        Called from tests/slicing/select_return_bis.c:44.
+tests/slicing/select_return_bis.c:44:[kernel] warning: Neither code nor specification for function send, generating default assigns from the prototype
+[value] using specification for function send
+[value] Done for function send
+[value] Recording results for f
+[value] Done for function f
+[value] Recording results for g
+[value] done for function g
+[slicing] making slicing project 'Slicing'...
+[slicing] interpreting slicing requests from the command line...
+[pdg] computing for function f
+[from] Computing for function k
+[from] Computing for function get <-k
+[from] Done for function get
+[from] Computing for function k_bis <-k
+[from] Computing for function send_bis <-k_bis <-k
+[from] Done for function send_bis
+[from] Done for function k_bis
+[from] Done for function k
+[from] Computing for function send
+[from] Done for function send
+[pdg] done for function f
+[pdg] computing for function k_bis
+[pdg] done for function k_bis
+[slicing] applying all slicing requests...
+[slicing] applying 0 actions...
+[slicing] applying all slicing requests...
+[slicing] applying 2 actions...
+[slicing] applying actions: 1/2...
+[pdg] computing for function k
+[pdg] done for function k
+[slicing] applying actions: 2/2...
+[slicing] exporting project to 'Slicing export'...
+[slicing] applying all slicing requests...
+[slicing] applying 0 actions...
+[sparecode] remove unused global declarations from project 'Slicing export tmp'
+[sparecode] removed unused global declarations in new project 'Slicing export'
+/* Generated by Frama-C */
+int G;
+/*@ assigns \nothing; */
+extern void send(int x);
+
+/*@ assigns \nothing; */
+extern void send_bis(int x);
+
+void k_bis_slice_1(int ab, int d)
+{
+  if (ab) send_bis(d);
+  return;
+}
+
+int k_slice_1(int a, int b)
+{
+  G = b;
+  return a;
+}
+
+void f_slice_1(int y);
+
+void f_slice_1(int y)
+{
+  int z;
+  k_slice_1(0,y);
+  z = k_slice_1(G,0);
+  /*@ slice pragma expr z; */ ;
+  send(z);
+  return;
+}
+
+

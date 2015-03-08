@@ -1,0 +1,168 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/impact/variadic.i (no preprocessing)
+[impact] beginning analysis
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  y ∈ {0}
+  z ∈ {0}
+[value] computing for function f <- main.
+        Called from tests/impact/variadic.i:12.
+tests/impact/variadic.i:12:[kernel] warning: Neither code nor specification for function f, generating default assigns from the prototype
+[value] using specification for function f
+[value] Done for function f
+[value] Recording results for main
+[value] done for function main
+[pdg] computing for function main
+[from] Computing for function f
+[from] Done for function f
+[pdg] done for function main
+[pdg] computing for function f
+[pdg] warning: not implemented by pdg yet: variadic function
+[pdg] Top for function f
+[impact] warning: no precise pdg for function f. 
+                  Ignoring this function in the analysis (potentially incorrect results).
+[impact] impacted statements of stmt(s) 3 are:
+           tests/impact/variadic.i:12 (sid 4): f(i);
+[impact] analysis done
+[impact] beginning analysis
+[value] Analyzing a complete application starting at main1
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  y ∈ {0}
+  z ∈ {0}
+[value] computing for function g1 <- main1.
+        Called from tests/impact/variadic.i:29.
+[value] Recording results for g1
+[value] Done for function g1
+[value] computing for function g1 <- main1.
+        Called from tests/impact/variadic.i:30.
+[value] Recording results for g1
+[value] Done for function g1
+[value] Recording results for main1
+[value] done for function main1
+[pdg] computing for function main1
+[from] Computing for function g1
+[from] Done for function g1
+[pdg] done for function main1
+[pdg] computing for function g1
+[pdg] warning: not implemented by pdg yet: variadic function
+[pdg] Top for function g1
+tests/impact/variadic.i:29:[impact] warning: skipping impact within imprecisely analyzed function g1
+tests/impact/variadic.i:30:[impact] warning: skipping impact within imprecisely analyzed function g1
+[impact] impacted statements of stmt(s) 12 are:
+           tests/impact/variadic.i:30 (sid 13): g1(1,2);
+           tests/impact/variadic.i:31 (sid 15): return y;
+[impact] analysis done
+[impact] beginning analysis
+[value] Analyzing a complete application starting at main2
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  y ∈ {0}
+  z ∈ {0}
+[value] computing for function g2 <- main2.
+        Called from tests/impact/variadic.i:37.
+[value] using specification for function g2
+[value] Done for function g2
+[value] computing for function g2 <- main2.
+        Called from tests/impact/variadic.i:38.
+[value] Done for function g2
+[value] Recording results for main2
+[value] done for function main2
+[pdg] computing for function main2
+[from] Computing for function g2
+[from] Done for function g2
+[pdg] done for function main2
+[pdg] computing for function g2
+[pdg] warning: not implemented by pdg yet: variadic function
+[pdg] Top for function g2
+tests/impact/variadic.i:37:[impact] warning: skipping impact within imprecisely analyzed function g2
+[impact] impacted statements of stmt(s) 19 are:
+[impact] analysis done
+[impact] beginning analysis
+[value] Analyzing a complete application starting at main3
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  y ∈ {0}
+  z ∈ {0}
+[value] computing for function aux3 <- main3.
+        Called from tests/impact/variadic.i:57.
+[value] computing for function g1 <- aux3 <- main3.
+        Called from tests/impact/variadic.i:51.
+[value] Recording results for g1
+[value] Done for function g1
+[value] computing for function g1 <- aux3 <- main3.
+        Called from tests/impact/variadic.i:52.
+[value] Recording results for g1
+[value] Done for function g1
+[value] Recording results for aux3
+[value] Done for function aux3
+[value] computing for function aux3 <- main3.
+        Called from tests/impact/variadic.i:58.
+[value] computing for function g1 <- aux3 <- main3.
+        Called from tests/impact/variadic.i:51.
+[value] Recording results for g1
+[value] Done for function g1
+[value] computing for function g1 <- aux3 <- main3.
+        Called from tests/impact/variadic.i:52.
+[value] Recording results for g1
+[value] Done for function g1
+[value] Recording results for aux3
+[value] Done for function aux3
+[value] Recording results for main3
+[value] done for function main3
+[pdg] computing for function aux3
+[pdg] warning: not implemented by pdg yet: variadic function
+[pdg] Top for function aux3
+[impact] warning: analysis of aux3 is too imprecise, impact cannot be computed
+[pdg] computing for function main3
+[from] Computing for function aux3
+[from] Computing for function g1 <-aux3
+[from] Done for function g1
+[from] Done for function aux3
+[pdg] done for function main3
+[impact] impacted statements of stmt(s) 26 are:
+[impact] analysis done
+[impact] beginning analysis
+[value] Analyzing a complete application starting at main4
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  y ∈ {0}
+  z ∈ {0}
+[value] computing for function aux4bis <- main4.
+        Called from tests/impact/variadic.i:73.
+[value] computing for function aux4 <- aux4bis <- main4.
+        Called from tests/impact/variadic.i:68.
+[value] Recording results for aux4
+[value] Done for function aux4
+[value] Recording results for aux4bis
+[value] Done for function aux4bis
+[value] computing for function aux4bis <- main4.
+        Called from tests/impact/variadic.i:74.
+[value] computing for function aux4 <- aux4bis <- main4.
+        Called from tests/impact/variadic.i:68.
+[value] Recording results for aux4
+[value] Done for function aux4
+[value] Recording results for aux4bis
+[value] Done for function aux4bis
+[value] Recording results for main4
+[value] done for function main4
+[pdg] computing for function aux4
+[pdg] done for function aux4
+[pdg] computing for function aux4bis
+[pdg] warning: not implemented by pdg yet: variadic function
+[pdg] Top for function aux4bis
+[pdg] computing for function main4
+[from] Computing for function aux4bis
+[from] Computing for function aux4 <-aux4bis
+[from] Done for function aux4
+[from] Done for function aux4bis
+[pdg] done for function main4
+tests/impact/variadic.i:68:[impact] warning: cannot propagate impact into imprecisely analyzed caller function aux4bis
+[impact] impacted statements of stmt(s) 37 are:
+[impact] analysis done

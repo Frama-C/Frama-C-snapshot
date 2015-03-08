@@ -1,0 +1,66 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/static.i (no preprocessing)
+tests/misc/static.i:21:[kernel] Dropping side-effect in sizeof. Nothing to worry, this is by the book.
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  GLOB ∈ {0}
+  T[0..9] ∈ {0}
+  IT[0..9] ∈ {0}
+  G ∈ {0}
+  H ∈ {0}
+  R ∈ {0}
+  p ∈ {0}
+  a[0] ∈ {77}
+   [1] ∈ {0}
+  Rv ∈ {99}
+  x ∈ {0}
+[value] computing for function f <- main.
+        Called from tests/misc/static.i:19.
+[value] Recording results for f
+[value] Done for function f
+[value] computing for function f <- main.
+        Called from tests/misc/static.i:20.
+[value] Recording results for f
+[value] Done for function f
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function f:
+  __retres ∈ {{ &x }}
+[value] Values at end of function main:
+  GLOB ∈ {4}
+  G ∈ {0}
+  H ∈ {0}
+  R ∈ {3}
+  p ∈ {{ &a[0] }}
+  Rv ∈ [--..--]
+  x ∈ {3}
+  __retres ∈ {0}
+[from] Computing for function f
+[from] Done for function f
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function f:
+  \result FROM \nothing
+[from] Function main:
+  GLOB FROM \nothing
+  G FROM T[1..4]
+  H FROM IT[9][bits 0 to 7]
+  R FROM \nothing
+  p FROM \nothing
+  Rv FROM a[0]
+  x FROM \nothing
+  \result FROM T[0]
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function f:
+          __retres
+[inout] Inputs for function f:
+          \nothing
+[inout] Out (internal) for function main:
+          GLOB; G; H; R; p; Rv; tmp; tmp_0; x; __retres
+[inout] Inputs for function main:
+          T[0..4]; IT[9][bits 0 to 7]; p; a[0]; x

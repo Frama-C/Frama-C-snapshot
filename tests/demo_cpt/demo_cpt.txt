@@ -1,0 +1,5 @@
+- slicing sur c->balance à la fin
+  -> garde increase_size uniquement si on teste sa valeur de retour.
+     (dans add_operation_to_account)
+- sparecode s'il manque l'utilisation de ok
+- 

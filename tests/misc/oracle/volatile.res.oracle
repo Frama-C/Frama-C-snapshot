@@ -1,0 +1,218 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/volatile.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+tests/misc/volatile.i:1:[value] warning: global initialization of volatile value ignored
+tests/misc/volatile.i:7:[value] warning: global initialization of volatile field ignored
+tests/misc/volatile.i:11:[value] warning: global initialization of volatile value ignored
+tests/misc/volatile.i:13:[value] warning: global initialization of volatile field ignored
+tests/misc/volatile.i:14:[value] warning: global initialization of volatile field ignored
+[value] Initial state computed
+[value] Values of globals at initialization
+  G ∈ [--..--]
+  F ∈ [--..--]
+  E ∈ [--..--]
+  X ∈ [--..--]
+  Y ∈ [--..--]
+  pV ∈ {0}
+  k ∈ {1}
+  x ∈ {2}
+  y ∈ {3}
+  a ∈ {0}
+  b ∈ {0}
+  c ∈ {0}
+  d ∈ {0}
+  e ∈ {0}
+  f ∈ {0}
+  g ∈ {0}
+  h ∈ {0}
+  i ∈ {0}
+  j ∈ {0}
+  l ∈ {0}
+  m ∈ {0}
+  n ∈ {0}
+  o ∈ {0}
+  pv ∈ {0}
+  s1 ∈ {0}
+  s2.a ∈ {1}
+    .b ∈ [--..--]
+  sv1 ∈ [--..--]
+  sv2 ∈ [--..--]
+  sv3.a ∈ {3}
+     .b ∈ [--..--]
+  sv4.a ∈ {4}
+     .b ∈ [--..--]
+  R1 ∈ {0}
+  R2 ∈ {0}
+[value] computing for function main1 <- main.
+        Called from tests/misc/volatile.i:79.
+[value] computing for function fn1 <- main1 <- main.
+        Called from tests/misc/volatile.i:29.
+[value] Called Frama_C_show_each_1([-2147483648..2147483647])
+[value] Called Frama_C_show_each_2([-2147483648..2147483647])
+tests/misc/volatile.i:22:[kernel] warning: signed overflow. assert -2147483648 ≤ x_0+y_0 ≤ 2147483647;
+[value] Recording results for fn1
+[value] Done for function fn1
+[value] computing for function fn2 <- main1 <- main.
+        Called from tests/misc/volatile.i:30.
+tests/misc/volatile.i:30:[kernel] warning: Neither code nor specification for function fn2, generating default assigns from the prototype
+[value] using specification for function fn2
+[value] Done for function fn2
+[value] Called Frama_C_show_each_d([-2147483648..2147483647])
+tests/misc/volatile.i:42:[kernel] warning: signed overflow. assert -2147483648 ≤ b-c ≤ 2147483647;
+tests/misc/volatile.i:43:[kernel] warning: signed overflow. assert -2147483648 ≤ F-F ≤ 2147483647;
+tests/misc/volatile.i:45:[kernel] warning: signed overflow. assert -2147483648 ≤ F-g ≤ 2147483647;
+tests/misc/volatile.i:46:[kernel] warning: signed overflow. assert F+1 ≤ 2147483647;
+tests/misc/volatile.i:47:[kernel] warning: signed overflow. assert 2+F ≤ 2147483647;
+tests/misc/volatile.i:48:[kernel] warning: signed overflow. assert -2147483648 ≤ F-l ≤ 2147483647;
+tests/misc/volatile.i:49:[kernel] warning: signed overflow. assert -2147483648 ≤ m-l ≤ 2147483647;
+[value] Recording results for main1
+[value] Done for function main1
+[value] computing for function main2 <- main.
+        Called from tests/misc/volatile.i:80.
+[value] Recording results for main2
+[value] Done for function main2
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function fn1:
+  __retres ∈ [--..--]
+[value] Values at end of function main1:
+  G ∈ [--..--]
+  E ∈ [--..--]
+  X ∈ {2}
+  Y ∈ [--..--]
+  pV ∈ {{ &Y }}
+  k ∈ [--..--]
+  x ∈ {2}
+  y ∈ [--..--]
+  a ∈ {11; 12}
+  b ∈ [--..--]
+  c ∈ [--..--]
+  d ∈ [--..--]
+  e ∈ [--..--]
+  f ∈ [--..--]
+  g ∈ [--..--]
+  h ∈ {1}
+  l ∈ [-2147483647..2147483647]
+  m ∈ [-2147483646..2147483647]
+  n ∈ [--..--]
+  o ∈ [--..--]
+  pv ∈ {{ &X }}
+  R1 ∈ [--..--]
+  R2 ∈ [--..--]
+[value] Values at end of function main2:
+  k ∈ {{ NULL ; (int)&X }}
+  p1 ∈ {{ NULL + [--..--] ; &X + [--..--] }}
+  p2 ∈ {{ &X + [--..--] }}
+  p3 ∈ {{ NULL + [--..--] ; &X + [--..--] }}
+  __retres ∈ {{ NULL + [--..--] ; &X + [--..--] }}
+[value] Values at end of function main:
+  G ∈ [--..--]
+  E ∈ [--..--]
+  X ∈ {2}
+  Y ∈ [--..--]
+  pV ∈ {{ &Y }}
+  k ∈ {{ NULL ; (int)&X }}
+  x ∈ {2}
+  y ∈ [--..--]
+  a ∈ {11; 12}
+  b ∈ [--..--]
+  c ∈ [--..--]
+  d ∈ [--..--]
+  e ∈ [--..--]
+  f ∈ [--..--]
+  g ∈ [--..--]
+  h ∈ {1}
+  l ∈ [-2147483647..2147483647]
+  m ∈ [-2147483646..2147483647]
+  n ∈ [--..--]
+  o ∈ [--..--]
+  pv ∈ {{ &X }}
+  R1 ∈ [--..--]
+  R2 ∈ [--..--]
+[from] Computing for function fn1
+[from] Done for function fn1
+[from] Computing for function main1
+[from] Computing for function fn2 <-main1
+[from] Done for function fn2
+[from] Done for function main1
+[from] Computing for function main2
+[from] Done for function main2
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function fn1:
+  \result FROM x_0; y_0
+[from] Function fn2:
+  \result FROM \nothing
+[from] Function main1:
+  G FROM G
+  E FROM \nothing
+  X FROM x
+  Y FROM y
+  pV FROM \nothing
+  k FROM G
+  x FROM x
+  y FROM y
+  a FROM F
+  b FROM F
+  c FROM F
+  d FROM F
+  e FROM F
+  f FROM F
+  g FROM F
+  h FROM \nothing
+  l FROM F
+  m FROM F
+  n FROM F
+  o FROM F
+  pv FROM \nothing
+  R1 FROM G
+  R2 FROM \nothing
+  \result FROM y
+[from] Function main2:
+  k FROM G
+  \result FROM G
+[from] Function main:
+  G FROM G
+  E FROM \nothing
+  X FROM x
+  Y FROM y
+  pV FROM \nothing
+  k FROM G
+  x FROM x
+  y FROM y
+  a FROM F
+  b FROM F
+  c FROM F
+  d FROM F
+  e FROM F
+  f FROM F
+  g FROM F
+  h FROM \nothing
+  l FROM F
+  m FROM F
+  n FROM F
+  o FROM F
+  pv FROM \nothing
+  R1 FROM G
+  R2 FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function fn1:
+          __retres
+[inout] Inputs for function fn1:
+          \nothing
+[inout] Out (internal) for function main1:
+          G; E; X; Y; pV; k; x; y; a; b; c; d; e; f; g; h; l; m; n; o; pv; R1; R2
+[inout] Inputs for function main1:
+          G; F; X; Y; pV; x; y; b; c; g; h; l; m; pv
+[inout] Out (internal) for function main2:
+          k; p1; p2; p3; __retres
+[inout] Inputs for function main2:
+          G; k
+[inout] Out (internal) for function main:
+          G; E; X; Y; pV; k; x; y; a; b; c; d; e; f; g; h; l; m; n; o; pv; R1; R2
+[inout] Inputs for function main:
+          G; F; X; Y; pV; k; x; y; b; c; g; h; l; m; pv

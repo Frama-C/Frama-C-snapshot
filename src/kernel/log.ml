@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -844,9 +844,9 @@ struct
       nullprintf text
 
   let debug0
-      ?(level=1) ?dkey ?(current=false) ?source
+      ?level ?dkey ?(current=false) ?source
       ?emitwith ?(echo=true) ?(once=false) ?append text =
-    if debug_atleast level && has_debug_key dkey then
+    if should_output_debug level dkey then
       logtext channel
         ~kind:Feedback
         ~prefix:(prefix_dkey dkey)
@@ -855,9 +855,9 @@ struct
         text
 
   let debug1
-      ?(level=1) ?dkey ?(current=false) ?source
+      ?level ?dkey ?(current=false) ?source
       ?emitwith ?(echo=true) ?(once=false) ?append text x1 =
-    if debug_atleast level && has_debug_key dkey then
+    if should_output_debug level dkey then
       logtext channel
         ~kind:Feedback
         ~prefix:(prefix_dkey dkey)
@@ -866,9 +866,9 @@ struct
         text x1
 
   let debug2
-      ?(level=1) ?dkey ?(current=false) ?source
+      ?level ?dkey ?(current=false) ?source
       ?emitwith ?(echo=true) ?(once=false) ?append text x1 x2 =
-    if debug_atleast level && has_debug_key dkey then
+    if should_output_debug level dkey then
       logtext channel
         ~kind:Feedback
         ~prefix:(prefix_dkey dkey)
@@ -877,9 +877,9 @@ struct
         text x1 x2
 
   let debug3
-      ?(level=1) ?dkey ?(current=false) ?source
+      ?level ?dkey ?(current=false) ?source
       ?emitwith ?(echo=true) ?(once=false) ?append text x1 x2 x3 =
-    if debug_atleast level && has_debug_key dkey then
+    if should_output_debug level dkey then
       logtext channel
         ~kind:Feedback
         ~prefix:(prefix_dkey dkey)
@@ -888,9 +888,9 @@ struct
         text x1 x2 x3
 
   let debug4
-      ?(level=1) ?dkey ?(current=false) ?source
+      ?level ?dkey ?(current=false) ?source
       ?emitwith ?(echo=true) ?(once=false) ?append text x1 x2 x3 x4 =
-    if debug_atleast level && has_debug_key dkey then
+    if should_output_debug level dkey then
       logtext channel
         ~kind:Feedback
         ~prefix:(prefix_dkey dkey)
@@ -899,9 +899,9 @@ struct
         text x1 x2 x3 x4
 
   let debug5
-      ?(level=1) ?dkey ?(current=false) ?source
+      ?level ?dkey ?(current=false) ?source
       ?emitwith ?(echo=true) ?(once=false) ?append text x1 x2 x3 x4 x5 =
-    if debug_atleast level && has_debug_key dkey then
+    if should_output_debug level dkey then
       logtext channel
         ~kind:Feedback
         ~prefix:(prefix_dkey dkey)
@@ -910,9 +910,9 @@ struct
         text x1 x2 x3 x4 x5
 
   let debug6
-      ?(level=1) ?dkey ?(current=false) ?source
+      ?level ?dkey ?(current=false) ?source
       ?emitwith ?(echo=true) ?(once=false) ?append text x1 x2 x3 x4 x5 x6 =
-    if debug_atleast level && has_debug_key dkey then
+    if should_output_debug level dkey then
       logtext channel
         ~kind:Feedback
         ~prefix:(prefix_dkey dkey)
@@ -921,9 +921,9 @@ struct
         text x1 x2 x3 x4 x5 x6
 
   let debug7
-      ?(level=1) ?dkey ?(current=false) ?source
+      ?level ?dkey ?(current=false) ?source
       ?emitwith ?(echo=true) ?(once=false) ?append text x1 x2 x3 x4 x5 x6 x7 =
-    if debug_atleast level && has_debug_key dkey then
+    if should_output_debug level dkey then
       logtext channel
         ~kind:Feedback
         ~prefix:(prefix_dkey dkey)
@@ -932,10 +932,10 @@ struct
         text x1 x2 x3 x4 x5 x6 x7
 
   let debug8
-      ?(level=1) ?dkey ?(current=false) ?source
+      ?level ?dkey ?(current=false) ?source
       ?emitwith ?(echo=true) ?(once=false) ?append text
       x1 x2 x3 x4 x5 x6 x7 x8 =
-    if debug_atleast level && has_debug_key dkey then
+    if should_output_debug level dkey then
       logtext channel
         ~kind:Feedback
         ~prefix:(prefix_dkey dkey)

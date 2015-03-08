@@ -1,0 +1,145 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/strings.i (no preprocessing)
+tests/misc/strings.i:58:[kernel] warning: Return statement with a value in function returning void
+[value] Analyzing a complete application starting at main1
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  s1[0] ∈ {104}
+    [1] ∈ {101}
+    [2..3] ∈ {108}
+    [4] ∈ {111}
+    [5] ∈ {0}
+    [6] ∈ {32}
+    [7] ∈ {119}
+    [8] ∈ {111}
+    [9] ∈ {114}
+    [10] ∈ {108}
+    [11] ∈ {100}
+    [12] ∈ {0}
+  s2[0] ∈ {104}
+    [1] ∈ {101}
+    [2..3] ∈ {108}
+    [4] ∈ {111}
+    [5] ∈ {0}
+  s5 ∈ {0}
+  s6 ∈ {0}
+  cc ∈ {97}
+  Q ∈ {0}
+  R ∈ {0}
+  S ∈ {0}
+  T ∈ {0}
+  U ∈ {0}
+  V ∈ {0}
+  W ∈ {0}
+  X ∈ {0}
+  Y ∈ {0}
+  Z ∈ {0}
+  s3 ∈ {{ "tutu" }}
+  s4 ∈ {{ "tutu" }}
+  s7 ∈ {{ "hello\000 world" }}
+  s8 ∈ {{ "hello" }}
+[value] computing for function u <- main1.
+        Called from tests/misc/strings.i:39.
+tests/misc/strings.i:39:[kernel] warning: Neither code nor specification for function u, generating default assigns from the prototype
+[value] using specification for function u
+[value] Done for function u
+tests/misc/strings.i:39:[kernel] warning: out of bounds read. assert \valid_read(p-4);
+[value] computing for function u <- main1.
+        Called from tests/misc/strings.i:42.
+[value] Done for function u
+tests/misc/strings.i:42:[kernel] warning: out of bounds read. assert \valid_read(p+12);
+[value] computing for function u <- main1.
+        Called from tests/misc/strings.i:44.
+[value] Done for function u
+[value] computing for function u <- main1.
+        Called from tests/misc/strings.i:48.
+[value] Done for function u
+tests/misc/strings.i:48:[kernel] warning: out of bounds read. assert \valid_read(p-4);
+[value] Call to builtin bzero(({{ (unsigned char *)&a }},{10}))
+[value] computing for function u <- main1.
+        Called from tests/misc/strings.i:53.
+[value] Done for function u
+[value] computing for function strcpy <- main1.
+        Called from tests/misc/strings.i:53.
+tests/misc/strings.i:21:[kernel] warning: out of bounds write.
+                  assert \valid(tmp_unroll_46);
+                  (tmp_unroll_46 from ldst++)
+tests/misc/strings.i:21:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
+[value] Recording results for strcpy
+[value] Done for function strcpy
+[value] computing for function strlen <- main1.
+        Called from tests/misc/strings.i:58.
+[value] Recording results for strlen
+[value] Done for function strlen
+[value] Recording results for main1
+[value] done for function main1
+tests/misc/strings.i:21:[value] Assertion 'Value,mem_access' got final status invalid.
+tests/misc/strings.i:39:[value] Assertion 'Value,mem_access' got final status invalid.
+tests/misc/strings.i:42:[value] Assertion 'Value,mem_access' got final status invalid.
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function strcpy:
+  NON TERMINATING FUNCTION
+[value] Values at end of function strlen:
+  s ∈ {{ &s1[6] }}
+  l ∈ {5}
+[value] Values at end of function main1:
+  s1[0] ∈ {104}
+    [1] ∈ {101}
+    [2] ∈ {108}
+    [3] ∈ {97}
+    [4] ∈ {111}
+    [5] ∈ {0}
+    [6] ∈ {97}
+    [7] ∈ {119}
+    [8] ∈ {111}
+    [9] ∈ {114}
+    [10] ∈ {108}
+    [11] ∈ {100}
+    [12] ∈ {0}
+  R ∈ {0}
+  S ∈ {0}
+  T ∈ {0; 101}
+  p ∈ {{ &s1[5] ; &s2[3] }}
+[from] Computing for function strcpy
+[from] Non-terminating function strcpy (no dependencies)
+[from] Done for function strcpy
+[from] Computing for function strlen
+[from] Done for function strlen
+[from] Computing for function main1
+[from] Computing for function u <-main1
+[from] Done for function u
+[from] Computing for function Frama_C_bzero <-main1
+[from] Done for function Frama_C_bzero
+[from] Done for function main1
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function strcpy:
+  NON TERMINATING - NO EFFECTS
+[from] Function strlen:
+  \result FROM s1[0..4]; s
+[from] Function u:
+  \result FROM \nothing
+[from] Function main1:
+  s1{[3]; [6]} FROM cc
+  R FROM \nothing (and SELF)
+  S FROM \nothing (and SELF)
+  T FROM s1[1] (and SELF)
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function strcpy:
+          src; ldst; b[0..4]; tmp_unroll_46; tmp_1_unroll_46; tmp_0_unroll_46;
+          tmp_unroll_49; tmp_1_unroll_49; tmp_0_unroll_49; tmp_unroll_52;
+          tmp_1_unroll_52; tmp_0_unroll_52; tmp_unroll_55; tmp_1_unroll_55;
+          tmp_0_unroll_55; tmp_unroll_58; tmp_1_unroll_58; tmp_0_unroll_58;
+          tmp_unroll_61; tmp_1_unroll_61; tmp_0_unroll_61
+[inout] Inputs for function strcpy:
+          a[0..5]
+[inout] Out (internal) for function strlen:
+          s; l; tmp_unroll_106; tmp_unroll_109; tmp_unroll_112; tmp_unroll_115;
+          tmp_unroll_118; tmp_unroll_121
+[inout] Inputs for function strlen:
+          s1[0..5]
+[inout] Out (internal) for function main1:
+          s1{[3]; [6]}; R; S; T; p; tmp; tmp_0; tmp_1; tmp_2; a[0..9]; b[0..4]; tmp_3
+[inout] Inputs for function main1:
+          s1[0..5]; cc

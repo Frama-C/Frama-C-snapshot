@@ -1,0 +1,24 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_plugin/frame.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] 6 goals scheduled
+[wp] [Alt-Ergo] Goal typed_alias_post_KO : Unknown
+[wp] [Alt-Ergo] Goal typed_global_post_KO : Unknown
+[wp] [Qed] Goal typed_local_post_FRAMED : Valid
+[wp] [Alt-Ergo] Goal typed_local_post_KO : Unknown
+[wp] [Alt-Ergo] Goal typed_localref_post_KO : Unknown
+[wp] [Qed] Goal typed_localref_assert_FRAMED : Valid
+[wp] Proved goals:    2 / 6
+     Qed:             2 
+     Alt-Ergo:        0  (unknown: 4)
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+local                1     -           2      50.0%
+global              -      -           1       0.0%
+localref             1     -           2      50.0%
+alias               -      -           1       0.0%
+----------------------------------------------------------

@@ -1,0 +1,110 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/journal/intra.i (no preprocessing)
+[sparecode] remove unused code...
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  G ∈ {0}
+  X10 ∈ {0}
+  Y10 ∈ {0}
+[value] computing for function param <- main.
+        Called from tests/journal/intra.i:81.
+[value] Recording results for param
+[value] Done for function param
+[value] computing for function tmp <- main.
+        Called from tests/journal/intra.i:82.
+tests/journal/intra.i:20:[value] Assertion got status valid.
+tests/journal/intra.i:22:[value] Assertion got status valid.
+[value] Recording results for tmp
+[value] Done for function tmp
+[value] computing for function spare_called_fct <- main.
+        Called from tests/journal/intra.i:83.
+[value] Recording results for spare_called_fct
+[value] Done for function spare_called_fct
+[value] computing for function call_two_outputs <- main.
+        Called from tests/journal/intra.i:84.
+[value] computing for function two_outputs <- call_two_outputs <- main.
+        Called from tests/journal/intra.i:48.
+[value] Recording results for two_outputs
+[value] Done for function two_outputs
+[value] computing for function two_outputs <- call_two_outputs <- main.
+        Called from tests/journal/intra.i:52.
+[value] Recording results for two_outputs
+[value] Done for function two_outputs
+[value] Recording results for call_two_outputs
+[value] Done for function call_two_outputs
+[value] computing for function loop <- main.
+        Called from tests/journal/intra.i:85.
+tests/journal/intra.i:63:[value] Assertion got status valid.
+tests/journal/intra.i:64:[value] Loop invariant got status valid.
+tests/journal/intra.i:66:[value] entering loop for the first time
+[value] Recording results for loop
+[value] Done for function loop
+[value] computing for function assign <- main.
+        Called from tests/journal/intra.i:86.
+[value] Recording results for assign
+[value] Done for function assign
+[value] computing for function assign <- main.
+        Called from tests/journal/intra.i:87.
+[value] Recording results for assign
+[value] Done for function assign
+[value] computing for function stop <- main.
+        Called from tests/journal/intra.i:90.
+tests/journal/intra.i:90:[kernel] warning: Neither code nor specification for function stop, generating default assigns from the prototype
+[value] using specification for function stop
+[value] Done for function stop
+tests/journal/intra.i:92:[value] entering loop for the first time
+[value] Recording results for main
+[value] done for function main
+[pdg] computing for function main
+[from] Computing for function param
+[from] Done for function param
+[from] Computing for function tmp
+[from] Done for function tmp
+[from] Computing for function spare_called_fct
+[from] Done for function spare_called_fct
+[from] Computing for function call_two_outputs
+[from] Computing for function two_outputs <-call_two_outputs
+[from] Done for function two_outputs
+[from] Done for function call_two_outputs
+[from] Computing for function loop
+[from] Done for function loop
+[from] Computing for function assign
+[from] Done for function assign
+[from] Computing for function stop
+[from] Done for function stop
+[pdg] done for function main
+[pdg] computing for function call_two_outputs
+[pdg] done for function call_two_outputs
+[pdg] computing for function assign
+[pdg] done for function assign
+[pdg] computing for function loop
+[pdg] done for function loop
+[pdg] computing for function tmp
+[pdg] done for function tmp
+[pdg] computing for function param
+[pdg] done for function param
+[pdg] computing for function two_outputs
+[pdg] done for function two_outputs
+[pdg] computing for function Frama_C_bzero
+[from] Computing for function Frama_C_bzero
+[from] Done for function Frama_C_bzero
+[pdg] done for function Frama_C_bzero
+[pdg] computing for function Frama_C_copy_block
+[from] Computing for function Frama_C_copy_block
+[from] Done for function Frama_C_copy_block
+[pdg] done for function Frama_C_copy_block
+[pdg] computing for function f10
+[pdg] warning: unreachable entry point (sid:83, function f10)
+[pdg] Bottom for function f10
+[pdg] computing for function main2
+[pdg] warning: unreachable entry point (sid:92, function main2)
+[pdg] Bottom for function main2
+[pdg] computing for function spare_called_fct
+[pdg] done for function spare_called_fct
+[pdg] computing for function stop
+[pdg] done for function stop
+[sparecode] remove unused global declarations...
+[sparecode] result in new project 'default without sparecode'.
+[kernel] warning: ignoring source files specified on the command line while loading a global initial context.

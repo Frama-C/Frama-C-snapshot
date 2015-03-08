@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -187,13 +187,13 @@ Definition real_hex := real_base 2%R.
 
 Record farray (A B : Type) := { whytype1 : BuiltIn.WhyType A ;
                                whytype2 : BuiltIn.WhyType B ;
-                               access :> @Map.map A whytype1 B whytype2 }.
+                               access :> @Map.map A B }.
 Definition array (A : Type) := farray Z A.
 Hypothesis extensionality: forall (A B : Type) (f g : A -> B),
   (forall x, f x = g x) -> f = g.
 
 Definition select {A B : Type}
-  (m : farray A B) (k : A) : B := Map.get m k.
+  (m : farray A B) (k : A) : B := @Map.get A (whytype1 m) B (whytype2 m) m k.
 
 Lemma farray_eq : forall A B (m1 m2 : farray A B),
    whytype1 m1 = whytype1 m2 -> whytype2 m1 = whytype2 m2 ->
@@ -210,7 +210,7 @@ Qed.
 
 Definition update {A B : Type}
   (m : farray A B) (k : A) (v : B) : (farray A B) :=
-  {| whytype1 := whytype1 m; whytype2 := whytype2 m; access := Map.set m k v|}.
+  {| whytype1 := whytype1 m; whytype2 := whytype2 m; access := @Map.set A (whytype1 m) B (whytype2 m) m k v|}.
 
 Notation " a .[ k ] " := (select a k) (at level 60).
 Notation " a .[ k <- v ] " := (update a k v) (at level 60).

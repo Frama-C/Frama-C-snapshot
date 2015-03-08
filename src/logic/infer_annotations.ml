@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -54,7 +54,7 @@ let assigns_from_prototype kf =
         let t = tvar (cvar_to_lvar vi) in
         let typ = vi.vtype in
         if Cil.isVoidPtrType typ then
-          let const = hasAttribute "const" (typeAttrs (Cil.typeOf_pointed typ)) in
+          let const = typeHasAttribute "const" (Cil.typeOf_pointed typ) in
           let typ' = if const then Cil.charConstPtrType else Cil.charPtrType in
           (Logic_utils.mk_cast ~loc typ' t, typ')
         else (t, typ)
@@ -81,9 +81,7 @@ let assigns_from_prototype kf =
           let range = match size with
             | None -> make_range None
             | Some size ->
-              match (Cil.constFold true size).enode with
-                | Const(CInt64(length,_,_)) -> make_range (Some length)
-                | _ -> make_range None
+              make_range (Cil.constFoldToInt size)
           in
           let offs, typ = mk_offset true typ_elem in
           TIndex (range, offs), typ
@@ -119,7 +117,7 @@ let assigns_from_prototype kf =
       (List.filter
          (fun (_t, typ) ->
             let pointed_type = typeOf_pointed typ in
-            not (hasAttribute "const" (typeAttrs pointed_type))
+            not (typeHasAttribute "const" pointed_type)
          )
          pointer_args)
   in

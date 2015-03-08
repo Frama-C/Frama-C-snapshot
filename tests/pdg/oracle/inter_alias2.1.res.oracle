@@ -1,0 +1,67 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/pdg/inter_alias2.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  
+[value] computing for function f1 <- main.
+        Called from tests/pdg/inter_alias2.c:23.
+[value] computing for function incr_ptr <- f1 <- main.
+        Called from tests/pdg/inter_alias2.c:14.
+tests/pdg/inter_alias2.c:9:[kernel] warning: signed overflow. assert *p+1 ≤ 2147483647;
+[value] Recording results for incr_ptr
+[from] Computing for function incr_ptr
+[from] Done for function incr_ptr
+[value] Done for function incr_ptr
+[value] Recording results for f1
+[from] Computing for function f1
+[from] Done for function f1
+[value] Done for function f1
+[value] computing for function f2 <- main.
+        Called from tests/pdg/inter_alias2.c:24.
+[value] computing for function incr_ptr <- f2 <- main.
+        Called from tests/pdg/inter_alias2.c:19.
+[value] Recording results for incr_ptr
+[from] Computing for function incr_ptr
+[from] Done for function incr_ptr
+[value] Done for function incr_ptr
+[value] Recording results for f2
+[from] Computing for function f2
+[from] Done for function f2
+[value] Done for function f2
+tests/pdg/inter_alias2.c:26:[kernel] warning: signed overflow. assert -2147483648 ≤ v1+v2 ≤ 2147483647;
+[value] Recording results for main
+[from] Computing for function main
+[from] Done for function main
+[value] done for function main
+[from] ====== DISPLAYING CALLWISE DEPENDENCIES ======
+[from] call to incr_ptr at tests/pdg/inter_alias2.c:14 (by f1):
+  x1 FROM p; x1
+[from] call to incr_ptr at tests/pdg/inter_alias2.c:19 (by f2):
+  x2 FROM p; x2
+[from] call to f1 at tests/pdg/inter_alias2.c:23 (by main):
+  \result FROM a
+[from] call to f2 at tests/pdg/inter_alias2.c:24 (by main):
+  \result FROM b
+[from] entry point:
+  \result FROM i1; i2
+[from] ====== END OF CALLWISE DEPENDENCIES ======
+[pdg] computing for function incr_ptr
+[pdg] done for function incr_ptr
+[pdg] PDG for incr_ptr
+ {n1}: InCtrl
+ {n2}: VarDecl : p
+   -[a--]-> 3
+ {n3}: In1
+   -[a--]-> 2
+ {n4}: (*p) ++;
+   -[-c-]-> 1
+   -[a-d]-> 2
+   -[a-d]-> 3
+   -[--d]-> 6
+   -[--d]-> 7
+ {n5}: return;
+   -[-c-]-> 1
+ {n6}: In(x1)
+ {n7}: In(x2)

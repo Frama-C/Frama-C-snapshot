@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2014                                               */
+/*  Copyright (C) 2007-2015                                               */
 /*    CEA   (Commissariat à l'énergie atomique et aux énergies            */
 /*           alternatives)                                                */
 /*    INRIA (Institut National de Recherche en Informatique et en         */
@@ -36,6 +36,21 @@
   let loc_info loc x = { lexpr_node = x; lexpr_loc = loc }
   let loc_start x = fst x.lexpr_loc
   let loc_end x = snd x.lexpr_loc
+
+  (* Normalize p1 && (p2 && p3) into (p1 && p2) && p3 *)
+  let rec pland p1 p2 =
+    match p2.lexpr_node with
+      | PLand (p3,p4) ->
+        let loc = (loc_start p1, loc_end p3) in
+        PLand(loc_info loc (pland p1 p3),p4)
+      | _ -> PLand(p1,p2)
+
+  let rec plor p1 p2 =
+    match p2.lexpr_node with
+      | PLor(p3,p4) ->
+        let loc = (loc_start p1, loc_end p3) in
+        PLor(loc_info loc (plor p1 p3),p4)
+      | _ -> PLor(p1,p2)
 
   let clause_order i name1 name2 =
     raise
@@ -241,7 +256,7 @@
 %token SIZEOF LAMBDA LET
 %token TYPEOF BSTYPE
 %token WITH CONST
-%token INITIALIZED
+%token INITIALIZED DANGLING
 %token CUSTOM
 
 %nonassoc lowest
@@ -328,8 +343,8 @@ lexpr:
   /* predicates */
 | lexpr IMPLIES lexpr { info (PLimplies ($1, $3)) }
 | lexpr IFF lexpr { info (PLiff ($1, $3)) }
-| lexpr OR lexpr     { info (PLor ($1, $3)) }
-| lexpr AND lexpr    { info (PLand ($1, $3)) }
+| lexpr OR lexpr     { info (plor $1 $3) }
+| lexpr AND lexpr    { info (pland $1 $3) }
 | lexpr HATHAT lexpr    { info (PLxor ($1, $3)) }
 /* terms */
 | lexpr AMP lexpr { info (PLbinop ($1, Bbw_and, $3)) }
@@ -361,7 +376,7 @@ lexpr_rel:
         let relation = loc_info loc (PLrel($1,rel,rhs)) in
         match oth_rel with
             None -> relation
-          | Some oth_relation -> info (PLand(relation,oth_relation))
+          | Some oth_relation -> info (pland relation oth_relation)
       }
 ;
 
@@ -396,7 +411,7 @@ rel_list:
           None -> my_rel
         | Some rel ->
 	    let loc = loc_start $2, loc_end rel in
-	    loc_info loc (PLand(my_rel,rel))
+	    loc_info loc (pland my_rel rel)
       in
       $1,$2,sense,Some oth_rel
     else begin
@@ -449,6 +464,7 @@ lexpr_inner:
           ($2,info (PLbinop ($4, Badd, (info (PLrange((Some $6),Some $8)))))))
 }
 | INITIALIZED opt_label_1 LPAR lexpr RPAR { info (PLinitialized ($2,$4)) }
+| DANGLING opt_label_1 LPAR lexpr RPAR { info (PLdangling ($2,$4)) }
 | FRESH opt_label_2 LPAR lexpr COMMA lexpr RPAR { info (PLfresh ($2,$4, $6)) }
 | BASE_ADDR opt_label_1 LPAR lexpr RPAR { info (PLbase_addr ($2,$4)) }
 | BLOCK_LENGTH opt_label_1 LPAR lexpr RPAR { info (PLblock_length ($2,$4)) }
@@ -710,8 +726,7 @@ type_spec_cv:
 |    type_spec cv { $1 }
 
 cast_logic_type:
- | type_spec_cv abs_spec_option { $2 $1 }
- | type_spec_cv abs_spec cv { $2 $1 }
+ | type_spec_cv abs_spec_cv_option { $2 $1 }
 ;
 
 logic_rt_type:
@@ -724,6 +739,11 @@ abs_spec_option:
 | abs_spec { $1 }
 ;
 
+abs_spec_cv_option:
+| /* empty */ %prec TYPENAME  { fun t -> t }
+| abs_spec_cv { $1 }
+;
+
 abs_spec:
 |                    tabs { $1 }
 | stars                   %prec TYPENAME { $1 }
@@ -734,14 +754,36 @@ abs_spec:
 |       abs_spec_bis      %prec TYPENAME { $1 }
 ;
 
+abs_spec_cv:
+|                         tabs { $1 }
+| stars_cv                      %prec TYPENAME { $1 }
+| stars_cv                 tabs                { fun t -> $2 ($1 t) }
+| stars_cv abs_spec_bis_cv      %prec TYPENAME { fun t -> $2 ($1 t) }
+| stars_cv abs_spec_bis_cv tabs                { fun t -> $2 ($3 ($1 t)) }
+|          abs_spec_bis_cv tabs                { fun t -> $1 ($2 t) }
+|          abs_spec_bis_cv      %prec TYPENAME { $1 }
+;
+
 abs_spec_bis:
 | LPAR abs_spec RPAR { $2 }
 | abs_spec_bis LPAR abs_param_type_list RPAR { fun t -> $1 (LTarrow($3,t)) };
 ;
 
+abs_spec_bis_cv:
+| LPAR abs_spec_cv RPAR { $2 }
+| abs_spec_bis_cv LPAR abs_param_type_list RPAR { fun t -> $1 (LTarrow($3,t)) };
+;
+
 stars:
-| STAR       { fun t -> LTpointer t }
-| stars STAR { fun t -> $1 (LTpointer t) }
+| STAR          { fun t -> LTpointer t }
+| stars STAR    { fun t -> $1 (LTpointer t) }
+;
+
+stars_cv:
+| STAR          { fun t -> LTpointer t }
+| STAR cv       { fun t -> LTpointer t }
+| stars_cv STAR    { fun t -> $1 (LTpointer t) }
+| stars_cv STAR cv { fun t -> $1 (LTpointer t) }
 ;
 
 tabs:
@@ -1829,6 +1871,7 @@ bs_keyword:
 | VALID_RANGE { () }
 | VALID_READ { () }
 | INITIALIZED { () }
+| DANGLING { () }
 | WITH { () }
 ;
 

@@ -1,0 +1,6 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/empty_struct.c (with preprocessing)
+[value] Analyzing an incomplete application starting at main
+[value] Computing initial state
+tests/misc/empty_struct.c:24:[value] user error: empty struct are unsupported (type 'struct s', location s2.s). Aborting
+[kernel] Plug-in value aborted: invalid user input.

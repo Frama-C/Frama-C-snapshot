@@ -1,0 +1,28 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/deps.i (no preprocessing)
+[value] Analyzing a complete application starting at fonc1
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  
+tests/misc/deps.i:17:[kernel] warning: signed overflow. assert -2147483648 ≤ a+b ≤ 2147483647;
+tests/misc/deps.i:24:[kernel] warning: signed overflow. assert -2147483648 ≤ w+v2.x ≤ 2147483647;
+tests/misc/deps.i:24:[kernel] warning: signed overflow. assert -2147483648 ≤ (int)(w+v2.x)+v3.x ≤ 2147483647;
+[value] Recording results for fonc1
+[value] done for function fonc1
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function fonc1:
+  w ∈ [--..--]
+  v1.x ∈ [--..--]
+    .y ∈ UNINITIALIZED
+[from] Computing for function fonc1
+[from] Done for function fonc1
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function fonc1:
+  \result FROM a; b
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function fonc1:
+          w; v1.x; v2.x; v3.x
+[inout] Inputs for function fonc1:
+          \nothing

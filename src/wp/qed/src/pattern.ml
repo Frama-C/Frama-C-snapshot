@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -80,7 +80,7 @@ struct
   let rec pretty fmt = function
     | Pvar k -> Format.fprintf fmt "#%d" k
     | Pguard(k,_) -> Format.fprintf fmt "#%d?" k
-    | Pint z -> T.Z.pretty fmt z
+    | Pint z -> Format.pp_print_string fmt (T.Z.to_string z)
     | Ptrue -> Format.fprintf fmt "true"
     | Pfalse -> Format.fprintf fmt "false"
     | Pfun(f,ps) -> Plib.pp_call_var (T.Fun.debug f) pretty fmt ps

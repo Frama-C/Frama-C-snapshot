@@ -1,0 +1,43 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/threat_if.i (no preprocessing)
+tests/misc/threat_if.i:19:[kernel] warning: Return statement with a value in function returning void
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  p ∈ {0}
+  l ∈ {0}
+  m ∈ {0}
+  i ∈ {0}
+  X ∈ {-992}
+tests/misc/threat_if.i:14:[kernel] warning: out of bounds write. assert \valid(p);
+[value] computing for function printf <- main.
+        Called from tests/misc/threat_if.i:18.
+tests/misc/threat_if.i:18:[kernel] warning: Neither code nor specification for function printf, generating default assigns from the prototype
+[value] using specification for function printf
+[value] Done for function printf
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  p ∈ {{ NULL ; &l }}
+  l ∈ {0; 1}
+  G ∈ {-126}
+  c ∈ {-126}
+[from] Computing for function main
+[from] Computing for function printf <-main
+[from] Done for function printf
+tests/misc/threat_if.i:18:[from] warning: variadic call detected. Using only 1 argument(s).
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function printf:
+  NO EFFECTS
+[from] Function main:
+  p FROM i_0 (and SELF)
+  l FROM p; i_0 (and SELF)
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          p; l; G; c
+[inout] Inputs for function main:
+          p

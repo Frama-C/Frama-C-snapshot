@@ -1,5 +1,5 @@
 /* run.config
-   STDOPT: +"-impact-pragma main" +"-lib-entry" +"-calldeps" +"-inout-callwise" +"-then" +"-ulevel 10"
+   STDOPT: +"-kernel-msg-key offsetmap:caches -impact-pragma main -lib-entry -calldeps -inout-callwise -then -ulevel 10"
    */
 
 

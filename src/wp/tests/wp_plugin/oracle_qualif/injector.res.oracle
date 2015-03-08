@@ -1,0 +1,27 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_plugin/injector.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] 13 goals scheduled
+[wp] [Qed] Goal typed_f_call_g_pre : Valid
+[wp] [Qed] Goal typed_f_call_g_pre_2 : Valid
+[wp] [Qed] Goal typed_f_FST_FAIL_post_qed_ok : Valid
+[wp] [Qed] Goal typed_f_FST_FAIL_post_qed_ok_2 : Valid
+[wp] [Qed] Goal typed_f_FST_FAIL_post_qed_ok_3 : Valid
+[wp] [Qed] Goal typed_f_SND_FAIL_post_qed_ok : Valid
+[wp] [Qed] Goal typed_f_SND_FAIL_post_qed_ok_2 : Valid
+[wp] [Qed] Goal typed_f_SND_FAIL_post_qed_ok_3 : Valid
+[wp] [Qed] Goal typed_f_SND_FAIL_post_qed_ok_4 : Valid
+[wp] [Qed] Goal typed_f_SUCCESS_post_qed_ok : Valid
+[wp] [Qed] Goal typed_f_SUCCESS_post_qed_ok_2 : Valid
+[wp] [Qed] Goal typed_f_SUCCESS_post_qed_ok_3 : Valid
+[wp] [Qed] Goal typed_f_SUCCESS_post_qed_ok_4 : Valid
+[wp] Proved goals:   13 / 13
+     Qed:            13
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+f                   13     -          13       100%
+----------------------------------------------------------

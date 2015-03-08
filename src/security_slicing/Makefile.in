@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2014                                               #
+#  Copyright (C) 2007-2015                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -52,4 +52,4 @@ endif
 
 $(Security_slicing_DIR)/Makefile: $(Security_slicing_DIR)/Makefile.in \
 				$(CONFIG_STATUS_DIR)/config.status
-	cd $(CONFIG_STATUS_DIR) && ./config.status
+	cd $(CONFIG_STATUS_DIR) && ./config.status  --file $@

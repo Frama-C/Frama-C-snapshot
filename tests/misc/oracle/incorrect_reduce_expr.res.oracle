@@ -1,0 +1,17 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/incorrect_reduce_expr.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  NULL[rbits 256 to 295] ∈ [--..--]
+  t[0..4] ∈ {0}
+  p ∈ {0}
+  x ∈ {0}
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  NULL[rbits 256 to 295] ∈ [--..--]
+  p ∈ {32; 36}
+  x ∈ {13}

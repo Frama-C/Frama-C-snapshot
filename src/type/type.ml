@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -166,10 +166,14 @@ let register ?(closure=false) ~name ~ml_name structural_descr reprs =
 
 let add_abstract_types = ref (fun _ _ -> ())
 
+exception No_abstract_type of string
+
 module Abstract(T: sig val name: string end) = struct
   type t
   let ty =
-    if !use_obj then (Hashtbl.find types T.name).ty
+    if !use_obj then 
+      try (Hashtbl.find types T.name).ty
+      with Not_found -> raise (No_abstract_type T.name)
     else failwith "Cannot call `Type.Abstract' in `no obj' mode"
   let () =
     let p = match Str.split (Str.regexp_string ".") T.name with
@@ -784,7 +788,7 @@ struct
   let type_error s ty_name ty_name' =
     raise
       (Incompatible_type
-         (Format.sprintf "%s has type %s but is used with type %s."
+         (Format.sprintf "%s has type %s but is used with type %s"
             s ty_name' ty_name))
 
   let find tbl s ty =

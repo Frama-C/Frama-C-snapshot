@@ -1,0 +1,30 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_bts/nupw-bcl-bts1120.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] [WP:unreachability] Goal unreachable_smt_with_contract_stmt_assign : Valid
+[wp] [WP:unreachability] Goal unreachable_smt_with_contract_stmt_exit_ok : Valid
+[wp] [WP:unreachability] Goal unreachable_smt_with_contract_stmt_post_ok : Valid
+[wp] [WP:unreachability] Goal unreachable_smt_with_contract_stmt_pre_ok : Valid
+[wp] [WP:unreachability] Goal unreachable_smt_with_contract_assert_ok : Valid
+[wp] [WP:unreachability] Goal unreachable_smt_with_contract_call_f_with_precond_pre_ok : Valid
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] 8 goals scheduled
+[wp] [Alt-Ergo] Goal typed_g_exit_ok : Valid
+[wp] [Qed] Goal typed_g_loop_assign : Valid
+[wp] [Qed] Goal typed_g_assign_exit : Valid
+[wp] [Qed] Goal typed_g_assign_normal_part1 : Valid
+[wp] [Qed] Goal typed_g_assign_normal_part2 : Valid
+[wp] [Qed] Goal typed_g_assign_normal_part3 : Valid
+[wp] [Qed] Goal typed_unreachable_smt_with_contract_post_ok : Valid
+[wp] [Qed] Goal typed_unreachable_smt_with_contract_call_f_with_precond_pre_ok_2 : Valid
+[wp] Proved goals:    8 / 8
+     Qed:             7 
+     Alt-Ergo:        1
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+g                    5      1 (5)      6       100%
+unreachable_smt_with_contract   2   -     2    100%
+----------------------------------------------------------

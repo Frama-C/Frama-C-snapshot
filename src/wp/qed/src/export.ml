@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,7 +27,6 @@
 open Format
 open Logic
 open Plib
-open Linker
 open Engine
 
 let cmode = function 
@@ -60,71 +59,124 @@ let ctau = function
   | Prop -> Cprop
   | _ -> Cterm
 
-let declare_name = function
+let link_name = function
   | F_call f -> f
   | _ -> assert false (** Only normal function call F_call can be declared *)
 
 let debug = function
   | F_call f | F_left f | F_right f | F_bool_prop(_,f) | F_subst f | F_assoc f -> f
 
+(* -------------------------------------------------------------------------- *)
+(* --- Identifiers                                                        --- *)
+(* -------------------------------------------------------------------------- *)
+
+let is_letter = function
+  | '0' .. '9' | 'a' .. 'z' | 'A' .. 'Z' -> true
+  | _ -> false
+
+let is_ident op = 
+  try 
+    for i = 0 to String.length op - 1 do 
+      if not (is_letter op.[i]) then raise Exit
+    done ; true
+  with Exit -> false
+
+let extract_ident base =
+  let p = Buffer.create 32 in
+  for i=0 to String.length base - 1 do
+    let c = base.[i] in
+    if is_letter c then Buffer.add_char p c
+  done ;
+  Buffer.contents p
+
+(* -------------------------------------------------------------------------- *)
+(* --- Generic Engine                                                     --- *)
+(* -------------------------------------------------------------------------- *)
+
 module Make(T : Term) =
 struct
   open T
 
-  (* -------------------------------------------------------------------------- *)
-  (* --- Linkers                                                            --- *)
-  (* -------------------------------------------------------------------------- *)
-
-  module ADT = T.ADT
-  module Field = T.Field
-  module Fun = T.Fun
-
-  type tau = (Field.t,ADT.t) datatype
-  type var = Var.t
-  type term = T.term
-  type record = (Field.t * term) list
   type trigger = (var,Fun.t) ftrigger
   type typedef = (tau,Field.t,Fun.t) ftypedef
 
-  module Mvar   = Map.Make(Var)
-  module Ladt   = Link(ADT)
-  module Lfield = Link(Field)
-  module Lfun   = Link(Fun)
-  module Lvar   = Link(Var)
-  module STerm  = Link
-      (struct
-        type t = term
-        let hash = T.hash
-        let equal = T.equal
-        let compare = T.compare
-        let pretty = T.pretty
-        let debug t = Printf.sprintf "E%03d" (T.id t)
-      end)
-
   (* -------------------------------------------------------------------------- *)
-  (* --- Pretty Printing Engine                                             --- *)
+  (* --- Allocator                                                          --- *)
   (* -------------------------------------------------------------------------- *)
 
-  module TauMap = Map.Make
-      (struct
-        type t = T.tau
-        let compare = Kind.compare_tau Field.compare ADT.compare
-      end)
+  module VarMap = Map.Make(T.Var)
+  module Ident = Map.Make(String)
+  
+  type allocator = {
+    mutable base : string -> string ;
+    mutable index : int Ident.t ;
+    mutable fvars : string VarMap.t ;
+    mutable bvars : string Intmap.t ;
+    mutable share : string Tmap.t ;
+  }
 
-  let add_var x vars =
-    let tx = T.tau_of_var x in
-    let xs = try TauMap.find tx vars with Not_found -> [] in
-    TauMap.add tx (x::xs) vars
+  let identity x = x
+  
+  let create_alloc base = {
+    base ;
+    index = Ident.empty ;
+    fvars = VarMap.empty ;
+    bvars = Intmap.empty ;
+    share = Tmap.empty ;
+  }
 
-  let rec binders q xs p =
-    match T.repr p with
-    | Bind(q',y,p') when q'=q -> binders q (add_var y xs) p'
-    | _ -> xs,p
+  let copy_alloc lnk = {
+    base = lnk.base ;
+    index = lnk.index ;
+    fvars = lnk.fvars ;
+    bvars = lnk.bvars ;
+    share = lnk.share ;
+  }
 
-  let rec lambda xs p =
-    match T.repr p with
-    | Bind(Lambda,y,p') -> lambda (y::xs) p'
-    | _ -> List.rev xs , p
+  let fresh basename lnk =
+    let basename = lnk.base basename in
+    let k = try Ident.find basename lnk.index with Not_found -> 0 in
+    lnk.index <- Ident.add basename (succ k) lnk.index ;
+    if k=0 && String.length basename = 1 then basename 
+    else Printf.sprintf "%s_%d" basename k
+
+  let bind_bvar k t lnk =
+    let x = fresh (Tau.basename t) lnk in
+    lnk.bvars <- Intmap.add k x lnk.bvars ; x
+
+  let find_bvar k lnk = 
+    try Intmap.find k lnk.bvars
+    with Not_found -> assert false
+
+  let bind_fvar v lnk =
+    let x = fresh (Var.basename v) lnk in
+    lnk.fvars <- VarMap.add v x lnk.fvars ; x
+
+  let find_fvar v lnk = VarMap.find v lnk.fvars
+
+  let bind_term x t lnk =
+    lnk.share <- Tmap.add t x lnk.share
+
+  (* -------------------------------------------------------------------------- *)
+  (* --- Binders                                                            --- *)
+  (* -------------------------------------------------------------------------- *)
+
+  module TauMap = Map.Make(T.Tau)
+
+  let add_var k t vars =
+    let ks = try TauMap.find t vars with Not_found -> [] in
+    TauMap.add t (k::ks) vars
+
+  let rec binders q k vars e =
+    match T.repr e with
+    | Bind(q',t,e) when q'=q -> 
+        binders q (succ k) (add_var k t vars) (lc_repr e)
+    | _ -> k,vars,e
+
+  let rec lambda k kts e =
+    match T.repr e with
+    | Bind(Lambda,t,e) -> lambda (succ k) ((k,t)::kts) (lc_repr e)
+    | _ -> k,List.rev kts,e
 
   let rec has_prop_form link e = match T.repr e with
     | Eq _ | Neq _ | Leq _ | Lt _ | Imply _ | And _ | Or _ | If _
@@ -144,49 +196,23 @@ struct
       method virtual field : Field.t -> string
       method basename : string -> string = fun x -> x
 
-      val mutable global = allocator () 
-      val mutable vars = Vars.empty
-
-      method declare = Linker.declare global
-      method declare_all = List.iter (Linker.declare global)
-
-      val linker_variable  = Lvar.linker ()
-      val linker_shared = STerm.linker ()
-
-      method private push =
-        let gstack = global in
-        begin
-          global <- copy global ;
-          linker_variable#alloc_with global ;
-          linker_shared#alloc_with global ;
-          gstack , linker_variable#push , linker_shared#push
-        end
-
-      method private pop (gstack,idx_var,idx_shared) =
-        begin
-          global <- gstack ;
-          linker_variable#alloc_with gstack ;
-          linker_variable#pop idx_var ;
-          linker_shared#alloc_with gstack ;
-          linker_shared#pop idx_shared ;
-        end
+      val mutable alloc = create_alloc identity (* self is not available yet *)
+      initializer alloc.base <- self#basename
 
       method local (job : unit -> unit) =
-        let gstack = self#push in
-        try job () ; self#pop gstack
-        with err -> self#pop gstack ; raise err
+        let stack = alloc in
+        alloc <- copy_alloc alloc ;
+        try job () ; alloc <- stack
+        with err -> alloc <- stack ; raise err
 
       method global (job : unit -> unit) =
-        let gstack = self#push in
-        try
-          linker_variable#clear ;
-          linker_shared#clear ;
-          vars <- Vars.empty ;
-          job () ; 
-          self#pop gstack
-        with err -> 
-            self#pop gstack ; 
-            raise err
+        let stack = alloc in
+        alloc <- create_alloc self#basename ;
+        try job () ; alloc <- stack
+        with err -> alloc <- stack ; raise err
+
+      method bind v = bind_fvar v alloc
+      method find v = VarMap.find v alloc.fvars
 
       (* -------------------------------------------------------------------------- *)
       (* --- Types                                                              --- *)
@@ -235,7 +261,7 @@ struct
       (* --- Variables                                                          --- *)
       (* -------------------------------------------------------------------------- *)
 
-      method pp_var = linker_variable#print
+      method pp_var = Format.pp_print_string
 
       (* -------------------------------------------------------------------------- *)
       (* --- Atoms                                                              --- *)
@@ -565,42 +591,42 @@ struct
       (* --- Quantifiers                                                        --- *)
       (* -------------------------------------------------------------------------- *)
 
-      method virtual pp_forall : tau -> var list printer
-      method virtual pp_exists : tau -> var list printer
-      method virtual pp_lambda : var list printer
+      method virtual pp_forall : tau -> string list printer
+      method virtual pp_exists : tau -> string list printer
+      method virtual pp_lambda : (string * tau) list printer
 
-      method private pp_binders fmt p =
-        match T.repr p with
+      method private pp_binders fmt e =
+        match T.repr e with
 
-        | Bind(Lambda,x,p) ->
-            let xs,p = lambda [x] p in
-            List.iter self#bind xs ;
-            self#pp_lambda fmt xs ;
-            self#pp_binders fmt p 
-
-        | Bind((Forall|Exists) as q,x,p) -> 
-            let vars,p = binders q (add_var x TauMap.empty) p in
+        | Bind(Lambda,t,e) ->
+            let e = lc_repr e in
+            let n,kts,e = lambda 1 [0,t] e in
+            let last = Bvars.order (lc_vars e) + n - 1 in
+            let xts = List.map (fun (k,t) -> bind_bvar (last-k) t alloc,t) kts in
+            self#pp_lambda fmt xts ;
+            self#pp_binders fmt e
+              
+        | Bind((Forall|Exists) as q,t,e) -> 
+            let e = lc_repr e in
+            let n,vars,e = binders q 1 (add_var 0 t TauMap.empty) e in
+            let last = Bvars.order (lc_vars e) + n - 1 in
             TauMap.iter
-              (fun t xs ->
-                 List.iter self#bind xs ;
-                 let xs = List.sort Var.compare xs in
+              (fun t ks ->
+                 let xs = List.fold_left
+                     (fun xs k -> bind_bvar (last-k) t alloc :: xs) [] ks in
                  match q with
                  | Forall -> fprintf fmt "%a@ " (self#pp_forall t) xs
                  | Exists -> fprintf fmt "%a@ " (self#pp_exists t) xs
                  | Lambda -> assert false 
               ) vars ;
-            self#pp_binders fmt p
+            self#pp_binders fmt e
 
-        | _ -> self#pp_shared fmt p
+        | _ -> 
+            self#pp_shared fmt e
 
       (* -------------------------------------------------------------------------- *)
       (* --- Sharing                                                            --- *)
       (* -------------------------------------------------------------------------- *)
-
-      method bind x =
-        let basename = self#basename (T.base_of_var x) in
-        ignore (linker_variable#alloc ~basename x) ;
-        vars <- Vars.add x vars
 
       method is_shareable e =
         match T.repr e with
@@ -610,39 +636,30 @@ struct
         | Aget _ | Aset _ | Rget _ | Rdef _ -> true
         | And _ | Or _ | Not _ | Imply _ | If _ -> false
         | Fun _ -> not (T.is_prop e)
-        | Var _	| Apply _ | Bind _ -> false
+        | Bvar _ | Fvar _ | Apply _ | Bind _ -> false
 
       method virtual pp_let : Format.formatter -> pmode -> string -> term -> unit
 
-      method private pp_lets fmt xes e =
-        begin
-          let m0 = mode in
-          let p0 = pmode m0 in
-          List.iter 
-            (fun (x,e) ->
-               mode <- Mterm ;
-               self#pp_let fmt p0 x e ;
-               linker_shared#bind_reserved e x ;
-            ) xes ;
-          mode <- m0 ;
-          self#pp_flow fmt e ;
-        end
-
       method private pp_shared fmt e =
-        let shared e = linker_shared#mem e in
+        let shared e = Tmap.mem e alloc.share in
         let shareable e = self#is_shareable e in
-        let es = T.shared ~shareable ~shared ~closed:vars [e] in
+        let es = T.shared ~shareable ~shared [e] in
         if es <> [] then
           self#local 
-            (fun () ->
-               let xes =
-                 List.map
-                   (fun e -> 
-                      let basename = self#basename (T.basename e) in
-                      let var = linker_shared#reserve ~basename in
-                      var , e
-                   ) es 
-               in self#pp_lets fmt xes e)
+            begin fun () ->
+              let m0 = mode in
+              let p0 = pmode m0 in
+              List.iter
+                (fun e -> 
+                   let base = self#basename (T.basename e) in
+                   let x = fresh base alloc in
+                   mode <- Mterm ;
+                   self#pp_let fmt p0 x e ;
+                   bind_term x e alloc ;
+                ) es ;
+              mode <- m0 ;
+              self#pp_flow fmt e ;
+            end
         else 
           self#pp_flow fmt e
 
@@ -669,7 +686,7 @@ struct
       method pp_flow fmt e = self#pp_bool self#pp_do_flow fmt e
 
       method private pp_do_atom fmt e =
-        try pp_print_string fmt (linker_shared#find e)
+        try self#pp_var fmt (Tmap.find e alloc.share)
         with Not_found ->
           if self#is_atomic e
           then self#pp_repr fmt e
@@ -679,7 +696,7 @@ struct
           | Some s -> pp_print_string fmt s
                         
       method private pp_do_flow fmt e =
-        try pp_print_string fmt (linker_shared#find e)
+        try self#pp_var fmt (Tmap.find e alloc.share)
         with Not_found -> 
           match self#op_scope_for e with
           | None -> self#pp_repr fmt e
@@ -727,7 +744,8 @@ struct
         match T.repr e with
         | True -> pp_print_string fmt (self#e_true (cmode mode))
         | False -> pp_print_string fmt (self#e_false (cmode mode))
-        | Var x -> self#pp_var fmt x
+        | Fvar x -> self#pp_var fmt (find_fvar x alloc)
+        | Bvar(k,_) -> self#pp_var fmt (find_bvar k alloc)
         | Not p -> self#pp_not fmt p
         | Kint x -> self#pp_int (amode mode) fmt x
         | Kreal x -> self#pp_real fmt x
@@ -756,8 +774,7 @@ struct
       (* --- Formulae                                                           --- *)
       (* -------------------------------------------------------------------------- *)
 
-      method private pp_expr_mode m fmt e =
-        mode <- m ; self#pp_shared fmt e
+      method private pp_expr_mode m fmt e = mode <- m ; self#pp_shared fmt e
 
       method pp_term = self#pp_expr_mode Mterm
       method pp_prop = self#pp_expr_mode Mpositive

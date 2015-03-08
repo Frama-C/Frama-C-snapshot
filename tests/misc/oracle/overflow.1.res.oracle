@@ -1,0 +1,39 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/overflow.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  
+tests/misc/overflow.i:20:[value] warning: 2's complement assumed for overflow
+tests/misc/overflow.i:21:[value] warning: 2's complement assumed for overflow
+tests/misc/overflow.i:22:[value] warning: 2's complement assumed for overflow
+tests/misc/overflow.i:31:[value] warning: 2's complement assumed for overflow
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  i ∈ {18446744073709551615}
+  j ∈ {4294967295}
+  is ∈ {-1}
+  js ∈ {-1}
+  minjs ∈ {-2147483648}
+  maxjs ∈ {2147483647}
+  i1 ∈ {0}
+  j1 ∈ {0}
+  y ∈ {1; 100000}
+  x ∈ {0; 17050}
+  z ∈ {1000000; 1215752192}
+  t ∈ {-10000000; 727379968}
+  __retres ∈ {0}
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          i; j; is; js; minjs; maxjs; i1; j1; y; tmp; x; z; t; __retres
+[inout] Inputs for function main:
+          \nothing

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -52,21 +52,21 @@ val flush : context -> Set.t
 val add : t -> unit
 val emit : ?severe:bool -> ?source:string -> effect:string ->
   ('a,Format.formatter,unit) format -> 'a
-  (** Emit a warning in current context.
-      Defaults: [severe=true], [source="wp"]. *)
+(** Emit a warning in current context.
+    Defaults: [severe=true], [source="wp"]. *)
 
 val handle : ?severe:bool -> effect:string -> handler:('a -> 'b) -> ('a -> 'b) -> 'a -> 'b
-  (** Handle the error and emit a warning with specified severity and effect 
-      if a context has been set.
-      Otherwise, a WP-fatal error is raised instead. 
-      Default for [severe] is false. *)
+(** Handle the error and emit a warning with specified severity and effect 
+    if a context has been set.
+    Otherwise, a WP-fatal error is raised instead. 
+    Default for [severe] is false. *)
 
 type 'a outcome =
   | Result of Set.t * 'a
   | Failed of Set.t
 
 val catch : ?source:string -> ?severe:bool -> effect:string -> ('a -> 'b) -> 'a -> 'b outcome
-  (** Set up a context for the job. If non-handled errors are raised, 
-      then a warning is emitted with specified severity and effect. 
-      Default for [severe] is [true]. *)
+(** Set up a context for the job. If non-handled errors are raised, 
+    then a warning is emitted with specified severity and effect. 
+    Default for [severe] is [true]. *)
 

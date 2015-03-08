@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -68,7 +68,7 @@ let process_call_res data stmt lvaloption froms =
     | None -> false, data
     | Some lval ->
         let ret_dpds = froms.Function_Froms.deps_return in
-        let r_dpds = Function_Froms.Memory.LOffset.collapse ret_dpds in
+        let r_dpds = Function_Froms.Memory.collapse_return ret_dpds in
         let r_dpds = Function_Froms.Deps.to_zone r_dpds in
         let l_dpds, exact, l_zone =
           Datascope.get_lval_zones ~for_writing:true  stmt lval in
@@ -81,8 +81,9 @@ let process_call_res data stmt lvaloption froms =
 * modified for sure. *)
 let process_froms data_after froms =
   let from_table = froms.Function_Froms.deps_table in
-  let process_out_call out (default, deps) (to_prop, used, new_data) =
-    let out_dpds = Function_Froms.Deps.to_zone deps in
+  let process_out_call out deps (to_prop, used, new_data) =
+    let out_dpds = Function_Froms.DepsOrUnassigned.to_zone deps in
+    let default = Function_Froms.DepsOrUnassigned.may_be_unassigned deps in
     let exact = not default in
     (* be careful to compare out with data_after and not new_data *)
     if (Data.intersects data_after out) then
@@ -99,11 +100,13 @@ let process_froms data_after froms =
   let new_data = Data.bottom in (* add out_dpds when out intersects data_after*)
   let used = false in (* is the call needed ? *)
   let to_prop, used, new_data =
-    try Function_Froms.Memory.fold process_out_call from_table
-          (to_prop, used, new_data)
-    with Function_Froms.Memory.Cannot_fold ->
-      process_out_call Locations.Zone.top (false, Function_Froms.Deps.top)
-          (to_prop, used, new_data)
+    match from_table with
+    | Function_Froms.Memory.Bottom -> to_prop, used, new_data
+    | Function_Froms.Memory.Top ->
+      let v = Function_Froms.DepsOrUnassigned.top in
+      process_out_call Locations.Zone.top v (to_prop, used, new_data)
+    | Function_Froms.Memory.Map m ->
+      Function_Froms.Memory.fold process_out_call m (to_prop, used, new_data)
   in let data = Data.merge to_prop new_data in
     (used, data)
 

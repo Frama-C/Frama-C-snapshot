@@ -1,0 +1,29 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/pdg/globals.c (with preprocessing)
+[value] Analyzing a complete application starting at h
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  X ∈ {3}
+  S ∈ [--..--]
+  P ∈ {{ &X }}
+tests/pdg/globals.c:28:[kernel] warning: signed overflow. assert s2.a2+s2.b2 ≤ 2147483647;
+[value] Recording results for h
+[value] done for function h
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function h:
+  s2.a2 ∈ [--..--]
+    .b2 ∈ {3}
+    .s2 ∈ UNINITIALIZED
+  __retres ∈ [-2147483645..2147483647]
+[from] Computing for function h
+[from] Done for function h
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function h:
+  \result FROM X; P; x
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function h:
+          s2{.a2; .b2}; __retres
+[inout] Inputs for function h:
+          X; P

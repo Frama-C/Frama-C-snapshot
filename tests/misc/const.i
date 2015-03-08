@@ -1,57 +1,94 @@
 /* run.config
-   GCC:
-   OPT: -val -deps -out -input -journal-disable
-   OPT: -val -deps -out -input -main semantique_const_1 -journal-disable
-   OPT: -val -deps -out -input -main semantique_const_2 -journal-disable
-   OPT: -val -deps -out -input -lib-entry -main semantique_const_1 -journal-disable
-   OPT: -val -deps -out -input -lib-entry -main semantique_const_2 -journal-disable
+   OPT: -const-writable -val -deps -out -input -journal-disable -then -const-readonly
 */
 extern const int G;
-extern int H;
-extern int F;
 extern const int I=2;
+int J = 8;
 
-int G;
-int H;
-
+volatile v;
 int X;
 
-int main () {
-  H++;
-  I++;
-  return G+F;
+const struct {
+  int i1;
+  int i2;
+} s = { 3, 4};
+
+const int t[10] = {1, 2, 3, 4, 5, 6};
+
+void const_formal(int const i)
+{
+  Frama_C_show_each(i);
+  if (v) i = 0;
 }
 
-/** Comportement des analyses au sujet des variables "const" et "non const" :
- *
- * Les valeurs des variables "const" peuvent évoluer au cours de l'exécution
- * du code, comme pour toutes autres variables.
- *
- * Lors d'une analyse de type -lib-entry -main, les variables "const" ont pour
- * valeurs initiales, la valeur correspondant à leur expression d'initialisation.
- *
- * Les valeurs initiales des autres variables sont d'une valeur inderterminée, mais
- * dépendant de leur type.
- */
-int cste const = 10 ;
-int var        = 3 ;
+void pointer_to_const(const int *p) {
+  Frama_C_show_each(*p);
+  *p = 0; // Invalid access through the formal itself
+  Frama_C_show_each_dead();
+}
 
-int input_value_of_cste, output_value_of_cste ;
+void const_destination(int *p) {
+  Frama_C_show_each(*p);
+  *p = 0; // Invalid access through the variable pointed
+  Frama_C_show_each(p);
+}
 
-void semantique_const_1 (void) {
-  input_value_of_cste = cste ;
+void modify_I (){
+  Frama_C_show_each(I);
+  if (v) I++;
+  if (v) pointer_to_const(&I);
+  if (v) const_destination(&I);
+}
 
-  cste = var ;
+void modify_J (){
+  Frama_C_show_each(J);
+  if (v) J++;
+  if (v) pointer_to_const(&J);
+  if (v) const_destination(&J);
+}
 
-  output_value_of_cste = cste ;
+void modify_s (){
+  Frama_C_show_each(s.i1);
+  if (v) s.i1 ++;
+  if (v) pointer_to_const(&s.i2);
+  if (v) const_destination(&s.i2);
+}
+
+void modify_t(){
+  Frama_C_show_each(t[5]);
+  if (v) t[5] ++;
+  if (v) pointer_to_const(&t[3]);
+  if (v) const_destination(&t[2]);
 
 }
 
-void semantique_const_2 (void) {
-  const int cste = 10 ;
-  input_value_of_cste = cste ;
+// we can reduce G, even though it is constant
+void constrain_G () {
+  int r;
+  if (G == 1) {
+    r = G + 2;
+  } else {
+    //@ assert G == 4;
+    r = G + 1;
+  }
+  Frama_C_show_each(G);
+}
 
-  cste = var ;
+// Validity in the logic must correspond to the C part: check that the l-value
+// is not const
+void pointer_to_const_logic(const int *p) {
+  if (v) *p = 12;
+}
 
-  output_value_of_cste = cste ;
+void main () {
+  const_formal(G);
+  const_formal(42);
+
+  modify_I();
+  modify_J();
+  modify_s();
+  modify_t();
+  constrain_G ();
+
+  pointer_to_const_logic (&J);
 }

@@ -1,0 +1,41 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/enum.i (no preprocessing)
+[value] Analyzing a complete application starting at f
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  t[0] ∈ {1}
+   [1..2] ∈ {0}
+  u[0] ∈ {2}
+   [1..2] ∈ {0}
+[value] Call to builtin bzero(({{ (unsigned char *)&i }},{12}))
+tests/misc/enum.i:16:[value] entering loop for the first time
+tests/misc/enum.i:20:[value] Assertion got status valid.
+[value] Recording results for f
+[value] done for function f
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function f:
+  t[0] ∈ {1}
+   [1] ∈ {0}
+   [2] ∈ {42}
+  u[0] ∈ {2}
+   [1] ∈ {0}
+   [2] ∈ {36}
+  i[0..1] ∈ {0; 1}
+   [2] ∈ {0}
+  j ∈ {2}
+  k ∈ {0}
+[from] Computing for function f
+[from] Computing for function Frama_C_bzero <-f
+[from] Done for function Frama_C_bzero
+[from] Done for function f
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function f:
+  t[2] FROM \nothing
+  u[2] FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function f:
+          t[2]; u[2]; i[0..2]; j; k
+[inout] Inputs for function f:
+          \nothing

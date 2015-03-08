@@ -337,9 +337,15 @@ let oneret (f: fundec) : unit =
       Stack.push returns returns_clause_stack;
       Stack.push ca.annot_content stmt_contract_stack;
       scanStmts (s::acc) mainbody (popstack + 1) rests
-
+    | { skind = TryCatch(t,c,l) } as s :: rests ->
+      let scan_one_catch (e,b) = (e,scanBlock false b) in
+      let t = scanBlock false t in
+      let c = List.map scan_one_catch c in
+      s.skind <- TryCatch(t,c,l);
+      popn popstack;
+      scanStmts (s::acc) mainbody 0 rests
     | ({skind=(Goto _ | Instr _ | Continue _ | Break _
-                  | TryExcept _ | TryFinally _)} as s)
+                  | TryExcept _ | TryFinally _ | Throw _)} as s)
       :: rests ->
       popn popstack;
       scanStmts (s::acc) mainbody 0 rests

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -29,7 +29,7 @@ open CfgTypes
 (** Creating CFG *)
 
 module Make(T : Transition) : Cfg with module T = T
-    
+
 (** Labeling nodes *)
 
 module Labels(C : Cfg)(H : Hashtbl.S) :
@@ -38,9 +38,9 @@ sig
   type label = H.key
   val create : ?size:int -> C.cfg -> t
   val label : t -> label -> C.node
-    (** Retrieve (or create) the node associated to the label. *)
+  (** Retrieve (or create) the node associated to the label. *)
   val set_label : t -> label -> C.node -> unit
-    (** Register the label to points to the given node. *)
+  (** Register the label to points to the given node. *)
   val iter : (H.key -> C.node -> unit) -> t -> unit
 end
 
@@ -67,10 +67,10 @@ sig
 
   val create : A.cfg -> B.cfg -> t
   (** Graph [A] should be static : further nodes in [A] can not be indexed. [B] is free of constraint. *)
-    
+
   val image : t -> A.node -> B.node
   val set_image : t -> A.node -> B.node -> unit
-    
+
   (** Duplicates [A] into [B] with the provided morphism. *)
   val copy : t -> (A.node -> A.transition -> B.transition) -> unit
 end

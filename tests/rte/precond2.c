@@ -1,10 +1,5 @@
 /* run.config
-
-
-
    OPT: -load-script tests/rte/compute_annot/compute_annot.ml -journal-disable
-
-   OPT: -load-script tests/rte/rte_api/rte_api.ml -journal-disable
 */
 
 int global = 15;

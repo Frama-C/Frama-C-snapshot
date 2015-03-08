@@ -627,6 +627,7 @@ HAS_NATIVE_THREADS
 EXTERNAL_PLUGINS
 FC_MCPP
 DEFAULT_CPP_KEEP_COMMENTS
+FRAMAC_GNU_CPP
 FRAMAC_DEFAULT_CPP
 LOCAL_MACHDEP
 CYCLES_PER_USEC
@@ -688,8 +689,8 @@ DYNAMIC_SEMANTIC_CALLGRAPH
 ENABLE_SEMANTIC_CALLGRAPH
 DYNAMIC_SCOPE
 ENABLE_SCOPE
-DYNAMIC_RTE_ANNOTATION
-ENABLE_RTE_ANNOTATION
+DYNAMIC_RTEGEN
+ENABLE_RTEGEN
 DYNAMIC_POSTDOMINATORS
 ENABLE_POSTDOMINATORS
 DYNAMIC_PDG
@@ -779,10 +780,11 @@ ac_user_opts='
 enable_option_checking
 enable_verbosemake
 enable_unsupported_ocaml
-with_ocamlgraph
 enable_local_ocamlgraph
+with_ocamlgraph
 enable_zarith
 with_cc
+enable_localmachdep
 enable_mcpp
 with_cpp
 with_all_static
@@ -796,7 +798,7 @@ enable_metrics
 enable_occurrence
 enable_pdg
 enable_postdominators
-enable_rte_annotation
+enable_rtegen
 enable_scope
 enable_semantic_callgraph
 enable_slicing
@@ -1436,8 +1438,11 @@ Optional Features:
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --enable-verbosemake    verbose makefile commands
   --enable-unsupported-ocaml attempt to compile even against unsupported ocaml version
-  --enable-local-ocamlgraph    allow the user to use the local OcamlGraph version
+  --enable-local-ocamlgraph    force the user to use the local OcamlGraph version.
+  --disable-local-ocamlgraph   force the user to use an installed OCamlGraph version.
+
   --enable-zarith=<dir> use ZArith library
+  --enable-localmachdep    enable local machdep configuration
   --enable-mcpp           use Frama-C's mcpp
   --enable-semantic_constant_folding
                           support for constant propagation plugin (default: yes)
@@ -1449,7 +1454,7 @@ Optional Features:
   --enable-occurrence     support for occurrence analysis (default: yes)
   --enable-pdg            support for pdg plugin (default: yes)
   --enable-postdominators support for postdominators plugin (default: yes)
-  --enable-rte_annotation support for runtime error annotation (default: yes)
+  --enable-rtegen         support for runtime error annotation (default: yes)
   --enable-scope          support for scope plugin (default: yes)
   --enable-semantic_callgraph
                           support for semantic callgraph (default: yes)
@@ -2271,7 +2276,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2014                                               #
+#  Copyright (C) 2007-2015                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -2361,6 +2366,13 @@ EXTERNAL_PLUGINS=
 
 
 
+
+
+
+
+
+
+# Usage: plugin_disable([plugin],[reason])
 
 
 
@@ -2753,6 +2765,8 @@ case $OCAMLVERSION in
   3.11*) echo "${ECHO_T}Incompatible version! Use at least OCaml 3.12.1.";
          exit 2;;
   3.12.0*) echo "${ECHO_T}Incompatible version! Use at least OCaml 3.12.1.";
+           exit 2;;
+  4.02.0*) echo "${ECHO_T}Incompatible version. Use OCaml 4.02.1.";
            exit 2;;
   4.*) OCAML_ANNOT_OPTION="-annot -bin-annot";;
   *) echo "${ECHO_T}Incompatible version!"; exit 2;;
@@ -3442,6 +3456,15 @@ OCAMLGRAPH_EXISTS=no
 OCAMLGRAPH_INCLUDE=
 OCAMLGRAPH_CUSTOM=no
 
+# allow local ocamlgraph
+# Check whether --enable-local-ocamlgraph was given.
+if test "${enable_local_ocamlgraph+set}" = set; then :
+  enableval=$enable_local_ocamlgraph; ENABLE_LOCAL_OCAMLGRAPH=$enableval
+else
+  ENABLE_LOCAL_OCAMLGRAPH=auto
+fi
+
+
 
 # Check whether --with-ocamlgraph was given.
 if test "${with_ocamlgraph+set}" = set; then :
@@ -3450,10 +3473,11 @@ if test "${with_ocamlgraph+set}" = set; then :
 fi
 
 
-if test "$OCAMLFIND" = "no" -o "$OCAMLGRAPH_CUSTOM" = "yes"; then
+if test "$ENABLE_LOCAL_OCAMLGRAPH" != "yes"; then
+  if test "$OCAMLFIND" = "no" -o "$OCAMLGRAPH_CUSTOM" = "yes"; then
 
-# check if any ocamlgraph is installed in the right place
-  as_ac_File=`$as_echo "ac_cv_file_$OCAMLGRAPH_HOME/graph.$OBJ_SUFFIX" | $as_tr_sh`
+    # check if any ocamlgraph is installed in the right place
+    as_ac_File=`$as_echo "ac_cv_file_$OCAMLGRAPH_HOME/graph.$OBJ_SUFFIX" | $as_tr_sh`
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $OCAMLGRAPH_HOME/graph.$OBJ_SUFFIX" >&5
 $as_echo_n "checking for $OCAMLGRAPH_HOME/graph.$OBJ_SUFFIX... " >&6; }
 if eval \${$as_ac_File+:} false; then :
@@ -3475,87 +3499,86 @@ if eval test \"x\$"$as_ac_File"\" = x"yes"; then :
 fi
 
 
-  if test "$OCAMLGRAPH_EXISTS"="no" -a "$OCAMLGRAPH_CUSTOM" = "yes"; then
-    as_fn_error $? "unable to find OCamlGraph in custom location $OCAMLGRAPH_HOME.
-      Please give an appropriate value, or use default OCamlGraph library" "$LINENO" 5;
-  fi
-else
-  OCAMLGRAPH_HOME=$($OCAMLFIND query ocamlgraph 2>/dev/null \
-                          | tr -d '\r\n');
-  if test "$OCAMLGRAPH_HOME" != ""; then
-     OCAMLGRAPH_INCLUDE="-I $OCAMLGRAPH_HOME";
-     OCAMLGRAPH_EXISTS="yes";
-  else
-     { $as_echo "$as_me:${as_lineno-$LINENO}: no package ocamlgraph in ocamlfind" >&5
-$as_echo "$as_me: no package ocamlgraph in ocamlfind" >&6;}
-  fi;
-fi
-
-ocamlgraph_error() {
-  if test "$OCAMLGRAPH_CUSTOM" = "yes"; then
-  as_fn_error $? "Custom OCamlGraph library version $OCAMLGRAPH_VERSION is incompatible with
-    Frama-C. Please provide another location or use default OCamlGraph" "$LINENO" 5;
-  else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: OcamlGraph $OCAMLGRAPH_VERSION is incompatible with Frama-C." >&5
-$as_echo "$as_me: OcamlGraph $OCAMLGRAPH_VERSION is incompatible with Frama-C." >&6;}
-  OCAMLGRAPH_EXISTS=no
-  OCAMLGRAPH_INCLUDE=
-  :;
-  fi
-}
-
-# if any, check if it is a compatible version
-if test "$OCAMLGRAPH_EXISTS" = "yes"; then
-  test_ocamlgraph_version='print_string Graph.Version.version;;'
-  echo $test_ocamlgraph_version > test_ocamlgraph.ml
-  if $OCAMLC -o test_ocamlgraph $OCAMLGRAPH_INCLUDE graph.cmo \
-       test_ocamlgraph.ml 2> /dev/null; \
-  then
-    OCAMLGRAPH_VERSION=`./test_ocamlgraph`
-    case $OCAMLGRAPH_VERSION in
-    1.8.1) ocamlgraph_error;;
-    1.8.2) ocamlgraph_error;;
-    1.8.3) ocamlgraph_error;;
-    1.8.4) { $as_echo "$as_me:${as_lineno-$LINENO}: OcamlGraph $OCAMLGRAPH_VERSION found: great!" >&5
-$as_echo "$as_me: OcamlGraph $OCAMLGRAPH_VERSION found: great!" >&6;};;
-    1.8.*) { $as_echo "$as_me:${as_lineno-$LINENO}: OcamlGraph $OCAMLGRAPH_VERSION > 1.8.4 found: should be compatible, but no warranty. Use it at your own risk!" >&5
-$as_echo "$as_me: OcamlGraph $OCAMLGRAPH_VERSION > 1.8.4 found: should be compatible, but no warranty. Use it at your own risk!" >&6;};;
-    *) ocamlgraph_error;;
-    esac
-    if test "$OCAMLGRAPH_EXISTS" = "yes"; then # current version is ok
-      if test "$OCAMLBEST" = "opt"; then
-        if $OCAMLOPT -o test_ocamlgraph $OCAMLGRAPH_INCLUDE graph.cmxa \
-          test_ocamlgraph.ml 2> /dev/null; \
-        then
-          { $as_echo "$as_me:${as_lineno-$LINENO}: OcamlGraph native version is ok" >&5
-$as_echo "$as_me: OcamlGraph native version is ok" >&6;}
-        else
-          { $as_echo "$as_me:${as_lineno-$LINENO}: OcamlGraph native version is not ok" >&5
-$as_echo "$as_me: OcamlGraph native version is not ok" >&6;}
-          ocamlgraph_error
-        fi
-      else
-        ocamlgraph_error
-      fi
+    if test "$OCAMLGRAPH_EXISTS" = "no" -a "$OCAMLGRAPH_CUSTOM" = "yes"; then
+      as_fn_error $? "unable to find OCamlGraph in custom location $OCAMLGRAPH_HOME.
+        Please give an appropriate value, or use default OCamlGraph library" "$LINENO" 5;
     fi
   else
-    ocamlgraph_error
+    OCAMLGRAPH_HOME=$($OCAMLFIND query ocamlgraph 2>/dev/null \
+                            | tr -d '\r\n');
+    if test "$OCAMLGRAPH_HOME" != ""; then
+       OCAMLGRAPH_INCLUDE="-I $OCAMLGRAPH_HOME";
+       OCAMLGRAPH_EXISTS="yes";
+    else
+       { $as_echo "$as_me:${as_lineno-$LINENO}: no package ocamlgraph in ocamlfind" >&5
+$as_echo "$as_me: no package ocamlgraph in ocamlfind" >&6;}
+    fi;
   fi
-  rm -f test_ocamlgraph test_ocamlgraph.ml test_ocamlgraph.cm*
-fi
 
-# allow local ocamlgraph
-# Check whether --enable-local-ocamlgraph was given.
-if test "${enable_local_ocamlgraph+set}" = set; then :
-  enableval=$enable_local_ocamlgraph; ENABLE_LOCAL_OCAMLGRAPH=$enableval
-else
-  ENABLE_LOCAL_OCAMLGRAPH=yes
-fi
 
+  ocamlgraph_error() {
+    if test "$OCAMLGRAPH_CUSTOM" = "yes"; then
+    as_fn_error $? "Custom OCamlGraph library version $OCAMLGRAPH_VERSION is incompatible with
+      Frama-C. Please provide another location or use default OCamlGraph" "$LINENO" 5;
+    else
+    { $as_echo "$as_me:${as_lineno-$LINENO}: OcamlGraph $OCAMLGRAPH_VERSION is incompatible with Frama-C." >&5
+$as_echo "$as_me: OcamlGraph $OCAMLGRAPH_VERSION is incompatible with Frama-C." >&6;}
+    OCAMLGRAPH_EXISTS=no
+    OCAMLGRAPH_INCLUDE=
+    :;
+    fi
+  }
+
+  # if any, check if it is a compatible version
+  if test "$OCAMLGRAPH_EXISTS" = "yes"; then
+    test_ocamlgraph_version='print_string Graph.Version.version;;'
+    echo $test_ocamlgraph_version > test_ocamlgraph.ml
+    if $OCAMLC -o test_ocamlgraph $OCAMLGRAPH_INCLUDE graph.cmo \
+         test_ocamlgraph.ml 2> /dev/null; \
+    then
+      OCAMLGRAPH_VERSION=`./test_ocamlgraph`
+      case $OCAMLGRAPH_VERSION in
+      1.8.1 | 1.8.1+dev \
+      | 1.8.2 | 1.8.2+dev \
+      | 1.8.3 | 1.8.3+dev \
+      | 1.8.4 | 1.8.4+dev)
+        ocamlgraph_error;;
+      1.8.5 | 1.8.6)
+        { $as_echo "$as_me:${as_lineno-$LINENO}: OcamlGraph $OCAMLGRAPH_VERSION found: great!" >&5
+$as_echo "$as_me: OcamlGraph $OCAMLGRAPH_VERSION found: great!" >&6;};;
+      1.8.*)
+        { $as_echo "$as_me:${as_lineno-$LINENO}: OcamlGraph $OCAMLGRAPH_VERSION > 1.8.5 found: should be compatible, but no warranty.
+           Consider using --enable-local-ocamlgraph." >&5
+$as_echo "$as_me: OcamlGraph $OCAMLGRAPH_VERSION > 1.8.5 found: should be compatible, but no warranty.
+           Consider using --enable-local-ocamlgraph." >&6;};;
+      *) ocamlgraph_error;;
+      esac
+      if test "$OCAMLGRAPH_EXISTS" = "yes"; then # current version is ok
+        if test "$OCAMLBEST" = "opt"; then
+          if $OCAMLOPT -o test_ocamlgraph $OCAMLGRAPH_INCLUDE graph.cmxa \
+            test_ocamlgraph.ml 2> /dev/null; \
+          then
+            { $as_echo "$as_me:${as_lineno-$LINENO}: OcamlGraph native version is ok" >&5
+$as_echo "$as_me: OcamlGraph native version is ok" >&6;}
+          else
+            { $as_echo "$as_me:${as_lineno-$LINENO}: OcamlGraph native version is not ok" >&5
+$as_echo "$as_me: OcamlGraph native version is not ok" >&6;}
+            ocamlgraph_error
+          fi
+        else
+          ocamlgraph_error
+        fi
+      fi
+    else
+      ocamlgraph_error
+    fi
+    rm -f test_ocamlgraph test_ocamlgraph.ml test_ocamlgraph.cm*
+  fi
+fi; # ENABLE_LOCAL_OCAMLGRAPH != yes
 
 # revert back to local version of ocamlgraph
 if test "$OCAMLGRAPH_EXISTS" = "no"; then
-  if test "$ENABLE_LOCAL_OCAMLGRAPH" = "yes"; then
+  if test "$ENABLE_LOCAL_OCAMLGRAPH" != "no"; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: switching to OcamlGraph provided by Frama-C" >&5
 $as_echo "$as_me: switching to OcamlGraph provided by Frama-C" >&6;}
     OCAMLGRAPH_LOCAL=ocamlgraph
@@ -5109,6 +5132,13 @@ done
 
 
 # Local machdep feature (to generate new platforms)
+# Check whether --enable-localmachdep was given.
+if test "${enable_localmachdep+set}" = set; then :
+  enableval=$enable_localmachdep; LOCAL_MACHDEP=$enableval
+else
+  LOCAL_MACHDEP=no
+fi
+
 
 if test "$LOCAL_MACHDEP" = yes ; then
 
@@ -5198,6 +5228,13 @@ else
   HAVE_BUILTIN_VA_LIST=false
 fi
 
+if test "$HAVE_BUILTIN_VA_LIST" = "true" ;then
+   cat >>confdefs.h <<_ACEOF
+#define HAVE_BUILTIN_VA_LIST 1
+_ACEOF
+
+fi
+
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking if __thread is a keyword" >&5
 $as_echo_n "checking if __thread is a keyword... " >&6; }
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -5212,6 +5249,12 @@ fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $THREAD_IS_KEYWORD" >&5
 $as_echo "$THREAD_IS_KEYWORD" >&6; }
+if test "$THREAD_IS_KEYWORD" = "true" ;then
+   cat >>confdefs.h <<_ACEOF
+#define THREAD_IS_KEYWORD 1
+_ACEOF
+
+fi
 
 # Does gcc add underscores to identifiers to make assembly labels?
 # (I think MSVC always does)
@@ -5230,6 +5273,12 @@ rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $UNDERSCORE_NAME" >&5
 $as_echo "$UNDERSCORE_NAME" >&6; }
+if test "$UNDERSCORE_NAME" = "true" ;then
+   cat >>confdefs.h <<_ACEOF
+#define UNDERSCORE_NAME 1
+_ACEOF
+
+fi
 
 fi # local machdep configuration
 
@@ -5273,14 +5322,161 @@ if test "$FC_MCPP" = no; then
 # $CC. Note that we want to keep comments in the output, so that AC_PROG_CPP
 # alone is not sufficient.
   if test -z "$FRAMAC_DEFAULT_CPP"; then
-# We should use AC_CHECK_PROG_CPP, but then we would end up with a slightly
-# different command line than before for pre-processing (swapping -C and -E)
-# and since we have the brilliant idea to put this command line in our
-# test oracles, changing that would be painful.
-    CPP=$CC
-    CPPFLAGS="-C -E -I.";
+    ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking how to run the C preprocessor" >&5
+$as_echo_n "checking how to run the C preprocessor... " >&6; }
+# On Suns, sometimes $CPP names a directory.
+if test -n "$CPP" && test -d "$CPP"; then
+  CPP=
+fi
+if test -z "$CPP"; then
+  if ${ac_cv_prog_CPP+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+      # Double quotes because CPP needs to be expanded
+    for CPP in "$CC -E" "$CC -E -traditional-cpp" "/lib/cpp"
+    do
+      ac_preproc_ok=false
+for ac_c_preproc_warn_flag in '' yes
+do
+  # Use a header file that comes with gcc, so configuring glibc
+  # with a fresh cross-compiler works.
+  # Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+  # <limits.h> exists even on freestanding compilers.
+  # On the NeXT, cc -E runs the code through the compiler's parser,
+  # not just through cpp. "Syntax error" is here to catch this case.
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+		     Syntax error
+_ACEOF
+if ac_fn_c_try_cpp "$LINENO"; then :
+
+else
+  # Broken: fails on valid input.
+continue
+fi
+rm -f conftest.err conftest.i conftest.$ac_ext
+
+  # OK, works on sane cases.  Now check whether nonexistent headers
+  # can be detected and how.
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <ac_nonexistent.h>
+_ACEOF
+if ac_fn_c_try_cpp "$LINENO"; then :
+  # Broken: success on invalid input.
+continue
+else
+  # Passes both tests.
+ac_preproc_ok=:
+break
+fi
+rm -f conftest.err conftest.i conftest.$ac_ext
+
+done
+# Because of `break', _AC_PREPROC_IFELSE's cleaning code was skipped.
+rm -f conftest.i conftest.err conftest.$ac_ext
+if $ac_preproc_ok; then :
+  break
+fi
+
+    done
+    ac_cv_prog_CPP=$CPP
+
+fi
+  CPP=$ac_cv_prog_CPP
+else
+  ac_cv_prog_CPP=$CPP
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $CPP" >&5
+$as_echo "$CPP" >&6; }
+ac_preproc_ok=false
+for ac_c_preproc_warn_flag in '' yes
+do
+  # Use a header file that comes with gcc, so configuring glibc
+  # with a fresh cross-compiler works.
+  # Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+  # <limits.h> exists even on freestanding compilers.
+  # On the NeXT, cc -E runs the code through the compiler's parser,
+  # not just through cpp. "Syntax error" is here to catch this case.
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+		     Syntax error
+_ACEOF
+if ac_fn_c_try_cpp "$LINENO"; then :
+
+else
+  # Broken: fails on valid input.
+continue
+fi
+rm -f conftest.err conftest.i conftest.$ac_ext
+
+  # OK, works on sane cases.  Now check whether nonexistent headers
+  # can be detected and how.
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <ac_nonexistent.h>
+_ACEOF
+if ac_fn_c_try_cpp "$LINENO"; then :
+  # Broken: success on invalid input.
+continue
+else
+  # Passes both tests.
+ac_preproc_ok=:
+break
+fi
+rm -f conftest.err conftest.i conftest.$ac_ext
+
+done
+# Because of `break', _AC_PREPROC_IFELSE's cleaning code was skipped.
+rm -f conftest.i conftest.err conftest.$ac_ext
+if $ac_preproc_ok; then :
+
+else
+  { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "C preprocessor \"$CPP\" fails sanity check
+See \`config.log' for more details" "$LINENO" 5; }
+fi
+
+ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+    CPPFLAGS="-C -I.";
+    if test -n "$GCC"; then FRAMAC_GNU_CPP=true; else FRAMAC_GNU_CPP=false; fi
   else
     CPP=$FRAMAC_DEFAULT_CPP;
+    FRAMAC_GNU_CPP=true;
+    CPPFLAGS="-dD -nostdinc"
+    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#define foo 0
+                         /* foo */
+
+_ACEOF
+if ac_fn_c_try_cpp "$LINENO"; then :
+  FRAMAC_GNU_CPP=true
+else
+  FRAMAC_GNU_CPP=false
+fi
+rm -f conftest.err conftest.i conftest.$ac_ext
     CPPFLAGS=
   fi
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -5288,21 +5484,32 @@ if test "$FC_MCPP" = no; then
 /* Check whether comments are kept in output */
 _ACEOF
 if ac_fn_c_try_cpp "$LINENO"; then :
-  if grep -e kept conftest.i; then
+  if test -e conftest.i; then
+      if grep -e kept conftest.i; then
       FRAMAC_DEFAULT_CPP="$CPP $CPPFLAGS";
       DEFAULT_CPP_KEEP_COMMENTS=true;
      else
       { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Default pre-processing command '$CPP' do not preserve
-                   comments. Please use define an appropriate pre-processor
+                     comments. Please define an appropriate pre-processor
                    with --with-cpp, or you will only be able to use ACSL
                    annotations in already pre-processed files" >&5
 $as_echo "$as_me: WARNING: Default pre-processing command '$CPP' do not preserve
-                   comments. Please use define an appropriate pre-processor
+                     comments. Please define an appropriate pre-processor
                    with --with-cpp, or you will only be able to use ACSL
                    annotations in already pre-processed files" >&2;}
       FRAMAC_DEFAULT_CPP=$CPP;
       DEFAULT_CPP_KEEP_COMMENTS=false;
-     fi
+      fi;
+      else # handling old version of autoconf (<2.67) that does not keep
+           # preprocessor result in conftest.i
+        { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Unable to check whether $CPP preserves comments.
+                     Assuming everything is fine" >&5
+$as_echo "$as_me: WARNING: Unable to check whether $CPP preserves comments.
+                     Assuming everything is fine" >&2;}
+        FRAMAC_DEFAULT_CPP="$CPP $CPPFLAGS";
+        DEFAULT_CPP_KEEP_COMMENTS=true;
+      fi
+
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Unable to find a working pre-processor.
                    Please define one with --with-cpp, or you will be able
@@ -6484,9 +6691,9 @@ fi
 
 FORCE=no
 
-# Check whether --enable-rte_annotation was given.
-if test "${enable_rte_annotation+set}" = set; then :
-  enableval=$enable_rte_annotation; ENABLE=$enableval;FORCE=$enableval
+# Check whether --enable-rtegen was given.
+if test "${enable_rtegen+set}" = set; then :
+  enableval=$enable_rtegen; ENABLE=$enableval;FORCE=$enableval
 else
   ENABLE=$default
 
@@ -6515,25 +6722,25 @@ fi
 #eval ENABLE_DYNAMIC_$up=\$ENABLE
 
 if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
-  as_fn_error $? "rte_annotation is not available" "$LINENO" 5
+  as_fn_error $? "rtegen is not available" "$LINENO" 5
 fi
 
-FORCE_RTE_ANNOTATION=$FORCE
-PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_RTE_ANNOTATION
+FORCE_RTEGEN=$FORCE
+PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_RTEGEN
 
-ENABLE_RTE_ANNOTATION=$ENABLE
-NAME_RTE_ANNOTATION=rte_annotation
+ENABLE_RTEGEN=$ENABLE
+NAME_RTEGEN=rtegen
 if test "$default" = "no" -a "$FORCE" = "no"; then
-  INFO_RTE_ANNOTATION=" (not available by default)"
+  INFO_RTEGEN=" (not available by default)"
 fi
 
 # Dynamic plug-ins configuration
 # static plug-in
-   DYNAMIC_RTE_ANNOTATION=no
+   DYNAMIC_RTEGEN=no
 
 
 
-echo "rte_annotation... $ENABLE"
+echo "rtegen... $ENABLE"
 # kept defined for write_plugin_config. A bit ugly, but not more than
 # usual autoconf stuff.
 # m4_undefine([PLUGIN_NAME])
@@ -7411,24 +7618,27 @@ EXTRA_EXTERNAL_PLUGINS=
 
 # Check whether --enable-external was given.
 if test "${enable_external+set}" = set; then :
-  enableval=$enable_external;  if test -d $enableval; then
-    { $as_echo "$as_me:${as_lineno-$LINENO}: external plug-in $enableval found." >&5
-$as_echo "$as_me: external plug-in $enableval found." >&6;}
-    EXTRA_EXTERNAL_PLUGINS="$EXTRA_EXTERNAL_PLUGINS $enableval"
-    olddir=`pwd`
-    cd $enableval;
+  enableval=$enable_external;
+ for dir in $enableval; do
+  if test -d $dir; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: external plug-in $dir found." >&5
+$as_echo "$as_me: external plug-in $dir found." >&6;}
+    EXTRA_EXTERNAL_PLUGINS="$EXTRA_EXTERNAL_PLUGINS $dir"
+    olddir=$(pwd)
+    cd $dir;
     if test -x ./configure; then
-      new_section "configure plug-in $enableval"
+      new_section "configure plug-in $dir"
       ./configure --prefix=$prefix --datarootdir=$datarootdir \
         --exec_prefix=$exec_prefix --bindir=$bindir --libdir=$datadir/frama-c \
         --host=$host --build=$build --mandir=$mandir \
       || \
-      as_fn_error $? "cannot configure requested external plugin in $enableval" "$LINENO" 5
+      as_fn_error $? "cannot configure requested external plugin in $dir" "$LINENO" 5
      fi;
      cd $olddir
   else
     as_fn_error $? "--enable-external expects an existing directory as argument." "$LINENO" 5
-  fi
+  fi;
+ done
 
 fi
 
@@ -7442,11 +7652,12 @@ fi
 
 
 
-            ##########################################################################
+
+                ##########################################################################
 #                                                                        #
 #  This file is part of Aorai plug-in of Frama-C.                        #
 #                                                                        #
-#  Copyright (C) 2007-2014                                               #
+#  Copyright (C) 2007-2015                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #    INRIA (Institut National de Recherche en Informatique et en         #
@@ -7585,12 +7796,13 @@ echo "aorai... $ENABLE"
 
 
 
-if test "$ENABLE_AORAI" != "no"; then
 
 
         USE_LTLTOBA=$USE_LTLTOBA" "aorai
 
 
+
+if test "$ENABLE_AORAI" != "no"; then
   # ltl2ba library
 
 
@@ -7655,15 +7867,14 @@ fi
 
 
 
-
 fi
 
 
 
 
-        ac_config_files="$ac_config_files src/aorai/Makefile"
 
-        if test "$ENABLE_AORAI" != "no"; then
+
+         if test "$ENABLE_AORAI" != "no"; then
             EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} src/aorai";
          fi
 
@@ -7691,17 +7902,11 @@ fi
 
 
 
-
-
-
-
-
-
-            ##########################################################################
+                ##########################################################################
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2014                                               #
+#  Copyright (C) 2007-2015                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -7842,7 +8047,9 @@ echo "obfuscator... $ENABLE"
 
         ac_config_files="$ac_config_files src/obfuscator/Makefile"
 
-        if test "$ENABLE_OBFUSCATOR" != "no"; then
+
+
+         if test "$ENABLE_OBFUSCATOR" != "no"; then
             EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} src/obfuscator";
          fi
 
@@ -7862,11 +8069,12 @@ echo "obfuscator... $ENABLE"
 
 
 
-            ##########################################################################
+
+                ##########################################################################
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2014                                               #
+#  Copyright (C) 2007-2015                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -8015,7 +8223,9 @@ echo "report... $ENABLE"
 
         ac_config_files="$ac_config_files src/report/Makefile"
 
-        if test "$ENABLE_REPORT" != "no"; then
+
+
+         if test "$ENABLE_REPORT" != "no"; then
             EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} src/report";
          fi
 
@@ -8031,11 +8241,12 @@ echo "report... $ENABLE"
 
 
 
-            ##########################################################################
+
+                ##########################################################################
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2014                                               #
+#  Copyright (C) 2007-2015                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -8171,7 +8382,6 @@ echo "security_slicing... $ENABLE"
 
 
 
-if test "$ENABLE_SECURITY_SLICING" != "no"; then
 
 
 
@@ -8217,14 +8427,11 @@ if test "$ENABLE_SECURITY_SLICING" != "no"; then
 
 
 
-fi
 
 
 
 
-        ac_config_files="$ac_config_files src/security_slicing/Makefile"
-
-        if test "$ENABLE_SECURITY_SLICING" != "no"; then
+         if test "$ENABLE_SECURITY_SLICING" != "no"; then
             EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} src/security_slicing";
          fi
 
@@ -8247,11 +8454,12 @@ fi
 
 
 
-            ##########################################################################
+
+                ##########################################################################
 #                                                                        #
 #  This file is part of WP plug-in of Frama-C.                           #
 #                                                                        #
-#  Copyright (C) 2007-2014                                               #
+#  Copyright (C) 2007-2015                                               #
 #    CEA (Commissariat a l'energie atomique et aux energies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -8405,7 +8613,6 @@ else
 fi
 
 
-if test "$ENABLE_WP" != "no"; then
 
 
 
@@ -8421,156 +8628,20 @@ if test "$ENABLE_WP" != "no"; then
 
 
 
-        USE_RTE_ANNOTATION=$USE_RTE_ANNOTATION" "wp
-        USED_WP=$USED_WP" "rte_annotation
+        USE_RTEGEN=$USE_RTEGEN" "wp
+        USED_WP=$USED_WP" "rtegen
 
 
 
 
 
 
-  ## Configuring for WP-COQ
-  if test "$WPCOQ" = "yes" ; then
-    # Extract the first word of "coqc", so it can be a program name with args.
-set dummy coqc; ac_word=$2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_prog_COQC+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  if test -n "$COQC"; then
-  ac_cv_prog_COQC="$COQC" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_prog_COQC="yes"
-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-  test -z "$ac_cv_prog_COQC" && ac_cv_prog_COQC="no"
-fi
-fi
-COQC=$ac_cv_prog_COQC
-if test -n "$COQC"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $COQC" >&5
-$as_echo "$COQC" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-
-    if test "$COQC" = "yes" ; then
-      COQVERSION=`coqc -v | sed -n -e 's|.*version* *\([^ ]*\) .*$|\1|p' `
-      case $COQVERSION in
-        8.4*|trunk)
-          { $as_echo "$as_me:${as_lineno-$LINENO}: result: coqc version $COQVERSION found" >&5
-$as_echo "coqc version $COQVERSION found" >&6; }
-          ;;
-        *)
-          { $as_echo "$as_me:${as_lineno-$LINENO}: result: wp needs coq 8.4" >&5
-$as_echo "wp needs coq 8.4" >&6; }
-          COQC="no"
-          ;;
-      esac
-    else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: rerun configure to make wp using coq 8.4" >&5
-$as_echo "$as_me: rerun configure to make wp using coq 8.4" >&6;}
-    fi
-  else
-    COQC="no"
-  fi
-
-
-  ## Configuring for WHY3-COQ
-  if test "$COQC" = "yes" -a "$WPWHY3COQ" = "yes" ; then
-    # Extract the first word of "why3", so it can be a program name with args.
-set dummy why3; ac_word=$2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_prog_WHY3COQC+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  if test -n "$WHY3COQC"; then
-  ac_cv_prog_WHY3COQC="$WHY3COQC" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_prog_WHY3COQC="yes"
-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-  test -z "$ac_cv_prog_WHY3COQC" && ac_cv_prog_WHY3COQC="no"
-fi
-fi
-WHY3COQC=$ac_cv_prog_WHY3COQC
-if test -n "$WHY3COQC"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $WHY3COQC" >&5
-$as_echo "$WHY3COQC" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-
-    if test "$WHY3COQC" = "yes" ; then
-      WHY3VERSION=`why3 --version | sed -n -e 's|.*version* *\([^ ]*\) .*$|\1|p' `
-      case $WHY3VERSION in
-        0.82*)
-          { $as_echo "$as_me:${as_lineno-$LINENO}: result: why3 version $WHY3VERSION found" >&5
-$as_echo "why3 version $WHY3VERSION found" >&6; }
-	  WHY3LIB=`why3 --print-libdir`
-	  if test -f $WHY3LIB/coq/BuiltIn.vo ; then
-	    { $as_echo "$as_me:${as_lineno-$LINENO}: result: why3 compiled coq libraries found" >&5
-$as_echo "why3 compiled coq libraries found" >&6; }
-	  else
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: why3 compiled coq libraries not found in $WHY3LIB" >&5
-$as_echo "why3 compiled coq libraries not found in $WHY3LIB" >&6; }
-	    WHY3COQC="no"
-          fi
-          ;;
-        *)
-          { $as_echo "$as_me:${as_lineno-$LINENO}: result: wp needs needs why3 0.82" >&5
-$as_echo "wp needs needs why3 0.82" >&6; }
-          WHY3COQC="no"
-          ;;
-      esac
-    else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: rerun configure to make wp using why3 0.82" >&5
-$as_echo "$as_me: rerun configure to make wp using why3 0.82" >&6;}
-    fi
-  else
-    WHY3COQC="no"
-  fi
-
-
-
-fi
 
 
 
 
-        ac_config_files="$ac_config_files src/wp/Makefile"
 
-        if test "$ENABLE_WP" != "no"; then
+         if test "$ENABLE_WP" != "no"; then
             EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} src/wp";
          fi
 
@@ -8668,7 +8739,6 @@ fi
 
 
 if test "$HAS_LABLGTK" = "yes"; then
-
 
   # Gtksourceview
   ###############
@@ -9079,6 +9149,168 @@ $as_echo "$as_me: WARNING: $p partially enabled because $reason." >&2;}
     fi
   fi
 
+
+
+
+
+        ac_config_files="$ac_config_files src/aorai/Makefile"
+
+
+
+
+
+
+
+        ac_config_files="$ac_config_files src/security_slicing/Makefile"
+
+
+
+
+# NB: this would deserve to use plugin_requires mechanism
+if test "$ENABLE_WP" != "no"; then
+
+  ## Configuring for WP-COQ
+  if test "$WPCOQ" = "yes" ; then
+    # Extract the first word of "coqc", so it can be a program name with args.
+set dummy coqc; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_prog_COQC+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test -n "$COQC"; then
+  ac_cv_prog_COQC="$COQC" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_prog_COQC="yes"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_prog_COQC" && ac_cv_prog_COQC="no"
+fi
+fi
+COQC=$ac_cv_prog_COQC
+if test -n "$COQC"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $COQC" >&5
+$as_echo "$COQC" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+    if test "$COQC" = "yes" ; then
+      COQVERSION=`coqc -v | sed -n -e 's|.*version* *\([^ ]*\) .*$|\1|p' `
+      case $COQVERSION in
+        8.4*|trunk)
+          { $as_echo "$as_me:${as_lineno-$LINENO}: result: coqc version $COQVERSION found" >&5
+$as_echo "coqc version $COQVERSION found" >&6; }
+          ;;
+        *)
+          { $as_echo "$as_me:${as_lineno-$LINENO}: result: wp needs coq 8.4" >&5
+$as_echo "wp needs coq 8.4" >&6; }
+          COQC="no"
+          ;;
+      esac
+    else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: rerun configure to make wp using coq 8.4" >&5
+$as_echo "$as_me: rerun configure to make wp using coq 8.4" >&6;}
+    fi
+  else
+    COQC="no"
+  fi
+
+
+  ## Configuring for WHY3-COQ
+  if test "$COQC" = "yes" -a "$WPWHY3COQ" = "yes" ; then
+    # Extract the first word of "why3", so it can be a program name with args.
+set dummy why3; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_prog_WHY3COQC+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test -n "$WHY3COQC"; then
+  ac_cv_prog_WHY3COQC="$WHY3COQC" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_prog_WHY3COQC="yes"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_prog_WHY3COQC" && ac_cv_prog_WHY3COQC="no"
+fi
+fi
+WHY3COQC=$ac_cv_prog_WHY3COQC
+if test -n "$WHY3COQC"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $WHY3COQC" >&5
+$as_echo "$WHY3COQC" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+    if test "$WHY3COQC" = "yes" ; then
+      WHY3VERSION=`why3 --version | sed -n -e 's|.*version* *\([^ ]*\) .*$|\1|p' `
+      case $WHY3VERSION in
+        0.85*)
+          { $as_echo "$as_me:${as_lineno-$LINENO}: result: why3 version $WHY3VERSION found" >&5
+$as_echo "why3 version $WHY3VERSION found" >&6; }
+	  WHY3LIB=`why3 --print-libdir`
+	  if test -f $WHY3LIB/coq/BuiltIn.vo ; then
+	    { $as_echo "$as_me:${as_lineno-$LINENO}: result: why3 compiled coq libraries found" >&5
+$as_echo "why3 compiled coq libraries found" >&6; }
+	  else
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: why3 compiled coq libraries not found in $WHY3LIB" >&5
+$as_echo "why3 compiled coq libraries not found in $WHY3LIB" >&6; }
+	    WHY3COQC="no"
+          fi
+          ;;
+        *)
+          { $as_echo "$as_me:${as_lineno-$LINENO}: result: wp needs why3 0.85" >&5
+$as_echo "wp needs why3 0.85" >&6; }
+          WHY3COQC="no"
+          ;;
+      esac
+    else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: rerun configure to make wp using why3 0.85" >&5
+$as_echo "$as_me: rerun configure to make wp using why3 0.85" >&6;}
+    fi
+  else
+    WHY3COQC="no"
+  fi
+
+
+fi
+
+
+
+
+        ac_config_files="$ac_config_files src/wp/Makefile"
+
+
+
     if test -n "$REQUIRE_LABLGTK" -o -n "$USE_LABLGTK" -o "$no" = "yes"; then
       if test "$HAS_LABLGTK" = "no"; then
         { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: $LABLGTKPATH_FOR_CONFIGURE/lablgtk.$LIB_SUFFIX not found." >&5
@@ -9228,7 +9460,7 @@ $as_echo "$as_me: WARNING: native dynlink unavailable" >&2;}
         # compile statically all dynamic plug-ins
    # except contrary instructions
    USE_NATIVE_DYNLINK="";
-   for plugin in  SEMANTIC_CONSTANT_FOLDING FROM_ANALYSIS GUI IMPACT INOUT METRICS OCCURRENCE PDG POSTDOMINATORS RTE_ANNOTATION SCOPE SEMANTIC_CALLGRAPH SLICING SPARECODE SYNTACTIC_CALLGRAPH USERS VALUE_ANALYSIS AORAI OBFUSCATOR REPORT SECURITY_SLICING WP; do
+   for plugin in  SEMANTIC_CONSTANT_FOLDING FROM_ANALYSIS GUI IMPACT INOUT METRICS OCCURRENCE PDG POSTDOMINATORS RTEGEN SCOPE SEMANTIC_CALLGRAPH SLICING SPARECODE SYNTACTIC_CALLGRAPH USERS VALUE_ANALYSIS AORAI OBFUSCATOR REPORT SECURITY_SLICING WP; do
      n=NAME_$plugin
      d=DYNAMIC_$plugin
      s=STATIC_$plugin
@@ -9282,7 +9514,7 @@ $as_echo "$as_me: WARNING: native dynlink unsupported on this platform" >&2;}
         # compile statically all dynamic plug-ins
    # except contrary instructions
    USE_NATIVE_DYNLINK="";
-   for plugin in  SEMANTIC_CONSTANT_FOLDING FROM_ANALYSIS GUI IMPACT INOUT METRICS OCCURRENCE PDG POSTDOMINATORS RTE_ANNOTATION SCOPE SEMANTIC_CALLGRAPH SLICING SPARECODE SYNTACTIC_CALLGRAPH USERS VALUE_ANALYSIS AORAI OBFUSCATOR REPORT SECURITY_SLICING WP; do
+   for plugin in  SEMANTIC_CONSTANT_FOLDING FROM_ANALYSIS GUI IMPACT INOUT METRICS OCCURRENCE PDG POSTDOMINATORS RTEGEN SCOPE SEMANTIC_CALLGRAPH SLICING SPARECODE SYNTACTIC_CALLGRAPH USERS VALUE_ANALYSIS AORAI OBFUSCATOR REPORT SECURITY_SLICING WP; do
      n=NAME_$plugin
      d=DYNAMIC_$plugin
      s=STATIC_$plugin
@@ -9347,6 +9579,8 @@ compute_dependency
 ############################
 
 EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} ${EXTRA_EXTERNAL_PLUGINS}"
+
+
 
 
 
@@ -10734,7 +10968,7 @@ fi
 
 new_section "summary: plug-ins available"
 
-for plugin in  SEMANTIC_CONSTANT_FOLDING FROM_ANALYSIS GUI IMPACT INOUT METRICS OCCURRENCE PDG POSTDOMINATORS RTE_ANNOTATION SCOPE SEMANTIC_CALLGRAPH SLICING SPARECODE SYNTACTIC_CALLGRAPH USERS VALUE_ANALYSIS AORAI OBFUSCATOR REPORT SECURITY_SLICING WP; do
+for plugin in  SEMANTIC_CONSTANT_FOLDING FROM_ANALYSIS GUI IMPACT INOUT METRICS OCCURRENCE PDG POSTDOMINATORS RTEGEN SCOPE SEMANTIC_CALLGRAPH SLICING SPARECODE SYNTACTIC_CALLGRAPH USERS VALUE_ANALYSIS AORAI OBFUSCATOR REPORT SECURITY_SLICING WP; do
   n=NAME_$plugin
   e=ENABLE_$plugin
   d=DYNAMIC_$plugin

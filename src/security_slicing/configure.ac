@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2014                                               #
+#  Copyright (C) 2007-2015                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -34,12 +34,10 @@ m4_ifndef([FRAMAC_M4_MACROS],[m4_include(FRAMAC_SHARE/configure.ac)])
 check_plugin(security_slicing,PLUGIN_RELATIVE_PATH(plugin_file),
 	     [support for Security_slicing plug-in],yes,yes)
 
-if test "$ENABLE_SECURITY_SLICING" != "no"; then
-  plugin_require(security_slicing,slicing)
-  plugin_require(security_slicing,value_analysis)
-  plugin_require(security_slicing,pdg)
-  plugin_require(security_slicing,gui)
-  check_plugin_dependencies
-fi
+plugin_require(security_slicing,slicing)
+plugin_require(security_slicing,value_analysis)
+plugin_require(security_slicing,pdg)
+plugin_require(security_slicing,gui)
+check_plugin_dependencies
 
 write_plugin_config(Makefile)

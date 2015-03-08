@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -201,7 +201,8 @@ let merge_behavior fresh_bhv bhv =
   fresh_bhv.b_assigns <-
     merge_assigns ~keep_empty:false fresh_bhv.b_assigns bhv.b_assigns;
   fresh_bhv.b_allocation <-
-    Logic_utils.merge_allocation fresh_bhv.b_allocation bhv.b_allocation
+    Logic_utils.merge_allocation fresh_bhv.b_allocation bhv.b_allocation;
+  fresh_bhv.b_extended <- fresh_bhv.b_extended @ bhv.b_extended
 
 let merge_behaviors fresh old =
   let init_fresh_bhvs = fresh.spec_behavior in
@@ -392,22 +393,56 @@ let fold_code_annot f stmt acc =
   with Not_found ->
     acc
 
-let iter_all_code_annot f =
-  Code_annots.iter
-    (fun stmt tbl ->
-      Emitter.Usable_emitter.Hashtbl.iter
-	(fun e l -> List.iter (f stmt (Emitter.Usable_emitter.get e)) !l)
-	tbl)
+let iter_all_code_annot ?(sorted=true) f =
+  let cmp s1 s2 =
+    let res =
+      Cil_datatype.Location.compare
+        (Cil_datatype.Stmt.loc s1) (Cil_datatype.Stmt.loc s2)
+    in
+    if res <> 0 then res else Cil_datatype.Stmt.compare s1 s2
+  in
+  let f_inner stmt tbl =
+    let cmp = Emitter.Usable_emitter.compare in
+    let iter = 
+      if sorted then
+        Emitter.Usable_emitter.Hashtbl.iter_sorted ~cmp
+      else
+        Emitter.Usable_emitter.Hashtbl.iter
+    in
+    iter
+      (fun e l -> List.iter (f stmt (Emitter.Usable_emitter.get e)) !l)
+      tbl
+  in
+  let iter = if sorted then Code_annots.iter_sorted ~cmp else Code_annots.iter
+  in
+  iter f_inner
 
-let fold_all_code_annot f =
-  Code_annots.fold
-    (fun stmt tbl acc ->
-      Emitter.Usable_emitter.Hashtbl.fold
-	(fun e l acc ->
-	  let e = Emitter.Usable_emitter.get e in
-	  List.fold_left (fun acc x -> f stmt e x acc) acc !l)
-	tbl
-	acc)
+let fold_all_code_annot ?(sorted=true) f =
+  let cmp s1 s2 =
+    let res =
+      Cil_datatype.Location.compare
+        (Cil_datatype.Stmt.loc s1) (Cil_datatype.Stmt.loc s2)
+    in
+    if res <> 0 then res else Cil_datatype.Stmt.compare s1 s2
+  in
+  let f_inner stmt tbl acc =
+    let cmp = Emitter.Usable_emitter.compare in
+    let iter =
+      if sorted then
+        Emitter.Usable_emitter.Hashtbl.fold_sorted ~cmp
+      else
+        Emitter.Usable_emitter.Hashtbl.fold
+    in
+    iter
+      (fun e l acc ->
+        let e = Emitter.Usable_emitter.get e in
+        List.fold_left (fun acc x -> f stmt e x acc) acc !l)
+      tbl
+      acc
+  in
+  let fold = if sorted then Code_annots.fold_sorted ~cmp else Code_annots.fold
+  in
+  fold f_inner
 
 let iter_global f =
   Globals.iter
@@ -466,6 +501,7 @@ let iter_assumes f = iter_bhv_gen (fun b -> b.b_assumes) List.iter f
 let iter_ensures f = iter_bhv_gen (fun b -> b.b_post_cond) List.iter f
 let iter_assigns f = iter_bhv_gen (fun b -> b.b_assigns) (fun f a -> f a) f
 let iter_allocates f = iter_bhv_gen (fun b -> b.b_allocation) (fun f a -> f a) f
+let iter_extended f = iter_bhv_gen (fun b -> b.b_extended) List.iter f
 
 let fold_spec_gen get fold f kf acc =
  try
@@ -533,6 +569,10 @@ let fold_assigns f =
 let fold_allocates f =
   fold_bhv_gen (fun b -> b.b_allocation) (fun f a acc -> f a acc) f
 
+let fold_extended f =
+  fold_bhv_gen (fun b -> b.b_extended)
+    (fun f l acc -> List.fold_left (Extlib.swap f) acc l) f
+
 (**************************************************************************)
 (** {2 Adding annotations} *)
 (**************************************************************************)
@@ -567,9 +607,9 @@ let add_code_annot e ?kf stmt ca =
   in
   let ca = convert ca in
   let e = Emitter.get e in
-  let kf = match kf with 
+  let kf = match kf with
     | None -> Kernel_function.find_englobing_kf stmt
-    | Some kf -> kf 
+    | Some kf -> kf
   in
   let ppts = Property.ip_of_code_annot kf stmt ca in
   List.iter Property_status.register ppts;
@@ -941,6 +981,11 @@ let add_allocates e kf bhv_name a =
     Property_status.register
     (Property.ip_of_allocation kf Kglobal (Property.Id_behavior bhv) a)
 
+let add_extended e kf bhv_name ext =
+  ignore
+    (extend_behavior e kf bhv_name
+       (fun b -> b.b_extended <- ext :: b.b_extended))
+
 (**************************************************************************)
 (** {2 Removing annotations} *)
 (**************************************************************************)
@@ -1141,6 +1186,16 @@ let remove_allocates e kf p =
       spec.spec_behavior
   in
   remove_in_funspec e kf set_spec
+
+let remove_extended e kf ext =
+  let set_spec spec _tbl =
+    List.iter
+      (fun b ->
+        b.b_extended <- Extlib.filter_out ((==) ext) b.b_extended)
+    spec.spec_behavior
+  in
+  remove_in_funspec e kf set_spec
+        
 
 let remove_assigns e kf p =
   let set_spec spec _tbl =

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -194,7 +194,7 @@ class metricsCabsVisitor = object(self)
         self#incr_both_metrics incr_dpoints;
       | BREAK _
       | CONTINUE _ -> ()
-      | RETURN _ -> self#incr_both_metrics incr_exits;
+      | RETURN _ | THROW _ -> self#incr_both_metrics incr_exits;
       | SWITCH _ -> ()
       | LABEL _ -> ()
       | GOTO _
@@ -204,6 +204,7 @@ class metricsCabsVisitor = object(self)
       | SEQUENCE _
       | TRY_EXCEPT _
       | TRY_FINALLY _
+      | TRY_CATCH _
       | CODE_ANNOT _
       | CODE_SPEC _ -> ());
     self#set_case stmt;

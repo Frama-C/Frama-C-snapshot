@@ -1,0 +1,68 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/pdg/simple_call.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  G ∈ [--..--]
+  G1 ∈ [--..--]
+  G2 ∈ [--..--]
+  S ∈ [--..--]
+[value] computing for function call <- main.
+        Called from tests/pdg/simple_call.c:59.
+tests/pdg/simple_call.c:45:[kernel] warning: signed overflow. assert G+y ≤ 2147483647;
+[value] Recording results for call
+[value] Done for function call
+[value] Recording results for main
+[value] done for function main
+[pdg] computing for function main
+[from] Computing for function call
+[from] Done for function call
+[pdg] done for function main
+[pdg] PDG for main
+ {n1}: InCtrl
+ {n2}: VarDecl : a
+ {n3}: VarDecl : b
+ {n4}: VarDecl : c
+ {n5}: a = 0;
+   -[-c-]-> 1
+   -[a--]-> 2
+ {n6}: b = 1;
+   -[-c-]-> 1
+   -[a--]-> 3
+ {n7}: c = 3;
+   -[-c-]-> 1
+   -[a--]-> 4
+ {n8}: Call40-InCtrl : a = call(a + b,b + c);
+   -[-c-]-> 1
+ {n9}: Call40-In1 : a = call(a + b,b + c);
+   -[-c-]-> 1
+   -[--d]-> 2
+   -[--d]-> 3
+   -[--d]-> 5
+   -[--d]-> 6
+   -[-c-]-> 8
+ {n10}: Call40-In2 : a = call(a + b,b + c);
+   -[-c-]-> 1
+   -[--d]-> 3
+   -[--d]-> 4
+   -[--d]-> 6
+   -[--d]-> 7
+   -[-c-]-> 8
+ {n11}: Call40-Out(G) : a = call(a + b,b + c);
+   -[-c-]-> 1
+   -[-c-]-> 8
+   -[--d]-> 10
+   -[--d]-> 15
+ {n12}: Call40-OutRet : a = call(a + b,b + c);
+   -[-c-]-> 1
+   -[a--]-> 2
+   -[-c-]-> 8
+   -[--d]-> 9
+ {n13}: return a;
+   -[-c-]-> 1
+   -[--d]-> 2
+   -[--d]-> 12
+ {n14}: OutRet
+   -[--d]-> 13
+ {n15}: In(G)

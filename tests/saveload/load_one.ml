@@ -15,7 +15,7 @@ let () = Db.Main.extend main
 (* testing Project.create_by_copy *)
 let main2 () =
   !Db.Value.compute ();
-  let prj = Project.create_by_copy "copy" in
+  let prj = Project.create_by_copy ~last:false "copy" in
   Format.printf "INIT AST@.";
   File.pretty_ast ();
   Format.printf "COPY AST@.";

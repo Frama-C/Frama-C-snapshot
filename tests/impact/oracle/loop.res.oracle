@@ -1,0 +1,27 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/impact/loop.i (no preprocessing)
+[impact] beginning analysis
+[value] Analyzing an incomplete application starting at loop
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  c ∈ [--..--]
+  x ∈ [--..--]
+  y ∈ [--..--]
+  z ∈ [--..--]
+  w ∈ [--..--]
+tests/impact/loop.i:9:[value] entering loop for the first time
+tests/impact/loop.i:10:[kernel] warning: signed overflow. assert w+1 ≤ 2147483647;
+tests/impact/loop.i:11:[kernel] warning: signed overflow. assert y+1 ≤ 2147483647;
+tests/impact/loop.i:13:[kernel] warning: signed overflow. assert x+1 ≤ 2147483647;
+tests/impact/loop.i:14:[kernel] warning: signed overflow. assert x+1 ≤ 2147483647;
+[value] Recording results for loop
+[value] done for function loop
+[pdg] computing for function loop
+[pdg] done for function loop
+[impact] impacted statements of stmt(s) 9 are:
+           tests/impact/loop.i:11 (sid 7): z = y + 1;
+           tests/impact/loop.i:13 (sid 9): x ++;
+           tests/impact/loop.i:14 (sid 10): y = x + 1;
+           tests/impact/loop.i:16 (sid 11): w = z;
+[impact] analysis done

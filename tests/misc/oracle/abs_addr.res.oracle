@@ -1,0 +1,49 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/abs_addr.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  NULL[rbits 1048576 to 2097151] ∈ [--..--]
+  AutoTest[0..999] ∈ {0}
+[value] computing for function TstRomUcmm <- main.
+        Called from tests/misc/abs_addr.i:46.
+tests/misc/abs_addr.i:18:[value] entering loop for the first time
+tests/misc/abs_addr.i:32:[value] entering loop for the first time
+[value] Recording results for TstRomUcmm
+[value] Done for function TstRomUcmm
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function TstRomUcmm:
+  AutoTest[0..72] ∈ {0}
+          [73] ∈ {0; 1}
+          [74..999] ∈ {0}
+  rom ∈ [--..--] or UNINITIALIZED
+  chkrom ∈ [--..--]
+  ptrom ∈ {262142}
+  __retres ∈ {0; 1}
+[value] Values at end of function main:
+  AutoTest[0..72] ∈ {0}
+          [73] ∈ {0; 1}
+          [74..999] ∈ {0}
+[from] Computing for function TstRomUcmm
+[from] Done for function TstRomUcmm
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function TstRomUcmm:
+  AutoTest[73] FROM NULL[131072..262143] (and SELF)
+  \result FROM NULL[131072..262143]; AutoTest[73]
+[from] Function main:
+  AutoTest[73] FROM NULL[131072..262143] (and SELF)
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function TstRomUcmm:
+          AutoTest[73]; rom; chkrom; ptrom; __retres
+[inout] Inputs for function TstRomUcmm:
+          NULL[131072..262143]; AutoTest[73]
+[inout] Out (internal) for function main:
+          AutoTest[73]
+[inout] Inputs for function main:
+          NULL[131072..262143]; AutoTest[73]

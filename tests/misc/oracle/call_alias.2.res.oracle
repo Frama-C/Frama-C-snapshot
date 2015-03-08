@@ -1,0 +1,45 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/call_alias.i (no preprocessing)
+[value] Analyzing a complete application starting at main2
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  X ∈ {0}
+  c ∈ {0}
+  u ∈ {0}
+  v ∈ {0}
+  w ∈ {0}
+  G ∈ {0}
+  H ∈ {0}
+  I ∈ {0}
+[value] computing for function sum <- main2.
+        Called from tests/misc/call_alias.i:33.
+[value] Recording results for sum
+[value] Done for function sum
+[value] Recording results for main2
+[value] done for function main2
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function sum:
+  __retres ∈ {0}
+[value] Values at end of function main2:
+  I ∈ {0}
+[from] Computing for function sum
+[from] Done for function sum
+[from] Computing for function main2
+[from] Done for function main2
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function sum:
+  \result FROM a; b
+[from] Function main2:
+  I FROM G; H
+  \result FROM G; H
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function sum:
+          __retres
+[inout] Inputs for function sum:
+          \nothing
+[inout] Out (internal) for function main2:
+          I
+[inout] Inputs for function main2:
+          G; H; I

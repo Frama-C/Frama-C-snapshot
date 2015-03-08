@@ -1,0 +1,1286 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/slicing/simple_intra_slice.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  Unknown ∈ {0}
+  G ∈ {0}
+  S ∈ {0}
+  S1 ∈ {0}
+  S2 ∈ {0}
+tests/slicing/simple_intra_slice.c:98:[value] entering loop for the first time
+tests/slicing/simple_intra_slice.c:99:[kernel] warning: signed overflow. assert -2147483648 ≤ uninit-1;
+tests/slicing/simple_intra_slice.c:99:[kernel] warning: signed overflow. assert Unknown+1 ≤ 2147483647;
+tests/slicing/simple_intra_slice.c:99:[kernel] warning: signed overflow. assert -2147483648 ≤ Unknown-1;
+tests/slicing/simple_intra_slice.c:100:[value] entering loop for the first time
+tests/slicing/simple_intra_slice.c:101:[kernel] warning: signed overflow. assert -2147483648 ≤ uninit2-1;
+tests/slicing/simple_intra_slice.c:101:[kernel] warning: signed overflow. assert S.a+1 ≤ 2147483647;
+tests/slicing/simple_intra_slice.c:101:[kernel] warning: signed overflow. assert -2147483648 ≤ S.a-1;
+[value] computing for function f2 <- main.
+        Called from tests/slicing/simple_intra_slice.c:103.
+[value] computing for function f1 <- f2 <- main.
+        Called from tests/slicing/simple_intra_slice.c:23.
+[value] Recording results for f1
+[value] Done for function f1
+[value] Recording results for f2
+[value] Done for function f2
+[value] computing for function f3 <- main.
+        Called from tests/slicing/simple_intra_slice.c:104.
+[value] Recording results for f3
+[value] Done for function f3
+[value] computing for function f4 <- main.
+        Called from tests/slicing/simple_intra_slice.c:105.
+[value] Recording results for f4
+[value] Done for function f4
+[value] computing for function f5 <- main.
+        Called from tests/slicing/simple_intra_slice.c:106.
+[value] Recording results for f5
+[value] Done for function f5
+[value] computing for function f6 <- main.
+        Called from tests/slicing/simple_intra_slice.c:107.
+tests/slicing/simple_intra_slice.c:59:[value] entering loop for the first time
+tests/slicing/simple_intra_slice.c:71:[kernel] warning: signed overflow. assert -2147483648 ≤ 10*n ≤ 2147483647;
+[value] Recording results for f6
+[value] Done for function f6
+tests/slicing/simple_intra_slice.c:107:[kernel] warning: signed overflow. assert res+tmp_3 ≤ 2147483647;
+                                   (tmp_3 from f6(Unknown))
+[value] computing for function f7 <- main.
+        Called from tests/slicing/simple_intra_slice.c:108.
+tests/slicing/simple_intra_slice.c:79:[kernel] warning: signed overflow. assert S.a+3 ≤ 2147483647;
+tests/slicing/simple_intra_slice.c:82:[kernel] warning: signed overflow. assert s0.a+1 ≤ 2147483647;
+[value] Recording results for f7
+[value] Done for function f7
+[value] computing for function f8 <- main.
+        Called from tests/slicing/simple_intra_slice.c:110.
+[value] Recording results for f8
+[value] Done for function f8
+[value] computing for function f8 <- main.
+        Called from tests/slicing/simple_intra_slice.c:112.
+[value] Recording results for f8
+[value] Done for function f8
+[value] Recording results for main
+[value] done for function main
+[from] Computing for function f1
+[from] Done for function f1
+[from] Computing for function f2
+[from] Done for function f2
+[from] Computing for function f3
+[from] Done for function f3
+[from] Computing for function f4
+[from] Done for function f4
+[from] Computing for function f5
+[from] Done for function f5
+[from] Computing for function f6
+[from] Done for function f6
+[from] Computing for function f7
+[from] Done for function f7
+[from] Computing for function f8
+[from] Done for function f8
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function f1:
+  G FROM x
+  \result FROM y
+[from] Function f2:
+  G FROM \nothing
+  \result FROM \nothing
+[from] Function f3:
+  G FROM Unknown; c (and SELF)
+  \result FROM Unknown; c
+[from] Function f4:
+  G FROM Unknown; c (and SELF)
+  \result FROM Unknown; c
+[from] Function f5:
+  G FROM Unknown; G; c (and SELF)
+  \result FROM Unknown; c
+[from] Function f6:
+  \result FROM Unknown; n
+[from] Function f7:
+  S.a FROM S.a; s0
+   {.b; .c} FROM S.a; s0 (and SELF)
+[from] Function f8:
+  S1.a FROM S1.a; S2.a; ps (and SELF)
+    .b FROM S1.b; S2.b; ps (and SELF)
+  S2.a FROM S1.a; S2.a; ps (and SELF)
+    .b FROM S1.b; S2.b; ps (and SELF)
+[from] Function main:
+  Unknown FROM Unknown (and SELF)
+  G FROM Unknown
+  S.a FROM S
+   {.b; .c} FROM S (and SELF)
+  S1.a FROM Unknown; S1.a; S2.a (and SELF)
+    .b FROM Unknown; S1.b; S2.b (and SELF)
+  S2.a FROM Unknown; S1.a; S2.a (and SELF)
+    .b FROM Unknown; S1.b; S2.b (and SELF)
+  \result FROM Unknown
+[from] ====== END OF DEPENDENCIES ======
+[slicing] making slicing project 'slicing_1'...
+[pdg] computing for function f1
+[pdg] done for function f1
+RESULT for f1:
+ {n1}: InCtrl
+ {n2}: VarDecl : x
+   -[a--]-> 3
+ {n3}: In1
+   -[a--]-> 2
+ {n4}: VarDecl : y
+   -[a--]-> 5
+ {n5}: In2
+   -[a--]-> 4
+ {n6}: VarDecl : a
+ {n7}: VarDecl : b
+ {n8}: VarDecl : __retres
+ {n9}: a = 1;
+   -[-c-]-> 1
+   -[a--]-> 6
+ {n10}: b = 2;
+   -[-c-]-> 1
+   -[a--]-> 7
+ {n11}: G = x + a;
+   -[-c-]-> 1
+   -[--d]-> 2
+   -[--d]-> 3
+   -[--d]-> 6
+   -[--d]-> 9
+ {n12}: __retres = y + b;
+   -[-c-]-> 1
+   -[--d]-> 4
+   -[--d]-> 5
+   -[--d]-> 7
+   -[a--]-> 8
+   -[--d]-> 10
+ {n13}: return __retres;
+   -[-c-]-> 1
+   -[--d]-> 8
+   -[--d]-> 12
+ {n14}: OutRet
+   -[--d]-> 13
+int f1(int x, int y)
+{
+  int __retres;
+  int a;
+  int b;
+  /* 1 */
+  a = 1;
+  /* 2 */
+  b = 2;
+  /* 3 */
+  G = x + a;
+  /* 5 */
+  __retres = y + b;
+  /* 126 */
+  return __retres;
+}
+
+Slicing project worklist [default/slicing_1] =
+[f1_slice_1 = (n:11 ,<[ S ], [---]>)(n:1 ,<[-c-], [---]>)(n:2 ,<[--d], [---]>)(n:3 ,
+<[--d],
+[---]>)(n:6 ,<[--d], [---]>)(n:9 ,<[--d], [---]>)]
+
+[slicing] applying all slicing requests...
+[slicing] applying 1 actions...
+[slicing] applying actions: 1/1...
+Print slice = f1_slice_1: (InCtrl: <[-cd], [---]>)
+                          (In1: <[--d], [---]>)
+
+/**/int f1(/* <[--d], [---]> */ int x, /* <[---], [---]> */ int y)
+{
+  /* <[---], [---]> */ int __retres;
+  /* <[--d], [---]> */ int a;
+  /* <[---], [---]> */ int b;
+  /* <[--d], [---]> */
+  a = 1;
+  /* <[---], [---]> */
+  b = 2;
+  /* <[ S ], [---]> */
+  G = x + a;
+  /* <[---], [---]> */
+  __retres = y + b;
+  /* <[---], [---]> */
+  return __retres;
+}
+
+
+[pdg] computing for function f2
+[pdg] done for function f2
+RESULT for f2:
+ {n15}: InCtrl
+ {n16}: VarDecl : a
+ {n17}: VarDecl : b
+ {n18}: VarDecl : c
+ {n19}: VarDecl : tmp
+ {n20}: a = 1;
+   -[-c-]-> 15
+   -[a--]-> 16
+ {n21}: b = a + 1;
+   -[-c-]-> 15
+   -[--d]-> 16
+   -[a--]-> 17
+   -[--d]-> 20
+ {n22}: c = 3;
+   -[-c-]-> 15
+   -[a--]-> 18
+ {n23}: Call11-InCtrl : tmp = f1(b,c);
+   -[-c-]-> 15
+ {n24}: Call11-In1 : tmp = f1(b,c);
+   -[-c-]-> 15
+   -[--d]-> 17
+   -[--d]-> 21
+   -[-c-]-> 23
+ {n25}: Call11-In2 : tmp = f1(b,c);
+   -[-c-]-> 15
+   -[--d]-> 18
+   -[--d]-> 22
+   -[-c-]-> 23
+ {n26}: Call11-Out(G) : tmp = f1(b,c);
+   -[-c-]-> 15
+   -[-c-]-> 23
+   -[--d]-> 24
+ {n27}: Call11-OutRet : tmp = f1(b,c);
+   -[-c-]-> 15
+   -[a--]-> 19
+   -[-c-]-> 23
+   -[--d]-> 25
+ {n28}: return tmp;
+   -[-c-]-> 15
+   -[--d]-> 19
+   -[--d]-> 27
+ {n29}: OutRet
+   -[--d]-> 28
+int f2(void)
+{
+  int a;
+  int b;
+  int c;
+  int tmp;
+  /* 7 */
+  a = 1;
+  /* 9 */
+  b = a + 1;
+  /* 10 */
+  c = 3;
+  /* 11 */
+  tmp = f1(b,c);
+  /* 12 */
+  return tmp;
+}
+
+Slicing project worklist [default/slicing_1] =
+[f2_slice_1 = (n:22 ,<[ S ], [---]>)(n:15 ,<[-c-], [---]>)(n:18 ,<[a--],
+                                                                 [---]>)]
+
+[slicing] applying all slicing requests...
+[slicing] applying 1 actions...
+[slicing] applying actions: 1/1...
+Print slice = f2_slice_1: (InCtrl: <[-c-], [---]>)
+
+/**/int f2(void)
+{
+  /* <[---], [---]> */ int a;
+  /* <[---], [---]> */ int b;
+  /* <[a--], [---]> */ int c;
+  /* <[---], [---]> */ int tmp;
+  /* <[---], [---]> */
+  a = 1;
+  /* <[---], [---]> */
+  b = a + 1;
+  /* <[ S ], [---]> */
+  c = 3;
+  /* invisible call */ /* <[---], [---]> */
+  tmp = f1(b,c);
+  /* <[---], [---]> */
+  return tmp;
+}
+
+
+[pdg] computing for function f3
+[pdg] done for function f3
+RESULT for f3:
+ {n30}: InCtrl
+ {n31}: VarDecl : c
+   -[a--]-> 32
+ {n32}: In1
+   -[a--]-> 31
+ {n33}: VarDecl : a
+ {n34}: VarDecl : b
+ {n35}: VarDecl : x
+ {n36}: a = 1;
+   -[-c-]-> 30
+   -[a--]-> 33
+ {n37}: b = 2;
+   -[-c-]-> 30
+   -[a--]-> 34
+ {n38}: x = 0;
+   -[-c-]-> 30
+   -[a--]-> 35
+ {n39}: c > Unknown
+   -[-c-]-> 30
+   -[--d]-> 31
+   -[--d]-> 32
+   -[--d]-> 44
+ {n40}: x = b;
+   -[-c-]-> 30
+   -[--d]-> 34
+   -[a--]-> 35
+   -[--d]-> 37
+   -[-c-]-> 39
+ {n41}: G = a;
+   -[-c-]-> 30
+   -[--d]-> 33
+   -[--d]-> 36
+   -[-c-]-> 39
+ {n42}: return x;
+   -[-c-]-> 30
+   -[--d]-> 35
+   -[--d]-> 38
+   -[--d]-> 40
+ {n43}: OutRet
+   -[--d]-> 42
+ {n44}: In(Unknown)
+int f3(int c)
+{
+  int a;
+  int b;
+  int x;
+  /* 14 */
+  a = 1;
+  /* 15 */
+  b = 2;
+  /* 16 */
+  x = 0;
+  /* 18 */
+  if (c > Unknown) {
+    /* 19 */
+    x = b;
+  }
+  else {
+    /* 20 */
+    G = a;
+  }
+  /* 22 */
+  return x;
+}
+
+Slicing project worklist [default/slicing_1] =
+[f3_slice_1 = (n:42(restrict to x) ,<[--d], [---]>)]
+
+[slicing] applying all slicing requests...
+[slicing] applying 1 actions...
+[slicing] applying actions: 1/1...
+Print slice =
+f3_slice_1:
+(InCtrl: <[--d], [---]>)
+(In1: <[--d], [---]>)
+(In(Unknown): <[--d], [---]>)
+(OutRet: <[--d], [---]>)
+
+/**/int f3(/* <[--d], [---]> */ int c)
+{
+  /* <[---], [---]> */ int a;
+  /* <[--d], [---]> */ int b;
+  /* <[--d], [---]> */ int x;
+  /* <[---], [---]> */
+  a = 1;
+  /* <[--d], [---]> */
+  b = 2;
+  /* <[--d], [---]> */
+  x = 0;
+  /* <[--d], [---]> */
+  if (c > Unknown) {
+    /* <[--d], [---]> */
+    x = b;
+  }
+  else {
+    /* <[---], [---]> */
+    G = a;
+  }
+  /* <[--d], [---]> */
+  return x;
+}
+
+
+[pdg] computing for function f4
+[pdg] done for function f4
+RESULT for f4:
+ {n45}: InCtrl
+ {n46}: VarDecl : c
+   -[a--]-> 47
+ {n47}: In1
+   -[a--]-> 46
+ {n48}: VarDecl : a
+ {n49}: VarDecl : b
+ {n50}: VarDecl : x
+ {n51}: a = 1;
+   -[-c-]-> 45
+   -[a--]-> 48
+ {n52}: b = 2;
+   -[-c-]-> 45
+   -[a--]-> 49
+ {n53}: x = 0;
+   -[-c-]-> 45
+   -[a--]-> 50
+ {n54}: c > Unknown
+   -[-c-]-> 45
+   -[--d]-> 46
+   -[--d]-> 47
+   -[--d]-> 59
+ {n55}: G = a;
+   -[-c-]-> 45
+   -[--d]-> 48
+   -[--d]-> 51
+   -[-c-]-> 54
+ {n56}: x = b;
+   -[-c-]-> 45
+   -[--d]-> 49
+   -[a--]-> 50
+   -[--d]-> 52
+   -[-c-]-> 54
+ {n57}: return x;
+   -[-c-]-> 45
+   -[--d]-> 50
+   -[--d]-> 53
+   -[--d]-> 56
+ {n58}: OutRet
+   -[--d]-> 57
+ {n59}: In(Unknown)
+int f4(int c)
+{
+  int a;
+  int b;
+  int x;
+  /* 24 */
+  a = 1;
+  /* 25 */
+  b = 2;
+  /* 26 */
+  x = 0;
+  /* 28 */
+  if (c > Unknown) {
+    /* 29 */
+    G = a;
+  }
+  else {
+    /* 30 */
+    x = b;
+  }
+  /* 32 */
+  return x;
+}
+
+Slicing project worklist [default/slicing_1] =
+[f4_slice_1 = (n:57(restrict to x) ,<[--d], [---]>)]
+
+[slicing] applying all slicing requests...
+[slicing] applying 1 actions...
+[slicing] applying actions: 1/1...
+Print slice =
+f4_slice_1:
+(InCtrl: <[--d], [---]>)
+(In1: <[--d], [---]>)
+(In(Unknown): <[--d], [---]>)
+(OutRet: <[--d], [---]>)
+
+/**/int f4(/* <[--d], [---]> */ int c)
+{
+  /* <[---], [---]> */ int a;
+  /* <[--d], [---]> */ int b;
+  /* <[--d], [---]> */ int x;
+  /* <[---], [---]> */
+  a = 1;
+  /* <[--d], [---]> */
+  b = 2;
+  /* <[--d], [---]> */
+  x = 0;
+  /* <[--d], [---]> */
+  if (c > Unknown) {
+    /* <[---], [---]> */
+    G = a;
+  }
+  else {
+    /* <[--d], [---]> */
+    x = b;
+  }
+  /* <[--d], [---]> */
+  return x;
+}
+
+
+Slicing project worklist [default/slicing_1] =
+[f4_slice_2 = (n:55 ,<[ S ], [---]>)(n:45 ,<[-c-], [---]>)(n:54 ,<[-c-],
+                                                                 [---]>)(n:48 ,
+<[--d],
+[---]>)(n:51 ,<[--d], [---]>)]
+
+[slicing] applying all slicing requests...
+[slicing] applying 1 actions...
+[slicing] applying actions: 1/1...
+Print slice =
+f4_slice_2:
+(InCtrl: <[-cd], [---]>)
+(In1: <[-c-], [---]>)
+(In(Unknown): <[-c-], [---]>)
+
+/**/int f4(/* <[-c-], [---]> */ int c)
+{
+  /* <[--d], [---]> */ int a;
+  /* <[---], [---]> */ int b;
+  /* <[---], [---]> */ int x;
+  /* <[--d], [---]> */
+  a = 1;
+  /* <[---], [---]> */
+  b = 2;
+  /* <[---], [---]> */
+  x = 0;
+  /* <[-c-], [---]> */
+  if (c > Unknown) {
+    /* <[ S ], [---]> */
+    G = a;
+  }
+  else {
+    /* <[---], [---]> */
+    x = b;
+  }
+  /* <[---], [---]> */
+  return x;
+}
+
+
+[pdg] computing for function f5
+[pdg] done for function f5
+Sorties de la fonction f5 = G
+Slicing project worklist [default/slicing_1] =
+[f5_slice_1 = (n:73(restrict to G) ,<[--d], [---]>)(n:77(restrict to 
+G) ,<[--d], [---]>)]
+
+[slicing] applying all slicing requests...
+[slicing] applying 1 actions...
+[slicing] applying actions: 1/1...
+Print slice =
+f5_slice_1:
+(InCtrl: <[--d], [---]>)
+(In1: <[--d], [---]>)
+(In(G): <[--d], [---]>)
+(In(Unknown): <[--d], [---]>)
+
+/**/int f5(/* <[--d], [---]> */ int c)
+{
+  /* <[---], [---]> */ int x;
+  /* <[---], [---]> */
+  x = 0;
+  /* <[---], [---]> */
+  if (c > Unknown) {
+    /* <[---], [---]> */
+    goto Lsuite;
+  }
+  /* <[---], [---]> */
+  x ++;
+  /* <[---], [---]> */ Lsuite: /* <[---], [---]> */
+                               ;
+  /* <[--d], [---]> */
+  if (c < Unknown) {
+    /* <[--d], [---]> */
+    goto L2;
+  }
+  /* <[--d], [---]> */
+  G ++;
+  /* <[--d], [---]> */ L2: /* <[---], [---]> */
+                           x ++;
+  /* <[---], [---]> */
+  return x;
+}
+
+
+RESULT for f5:
+ {n60}: InCtrl
+ {n61}: VarDecl : c
+   -[a--]-> 62
+ {n62}: In1
+   -[a--]-> 61
+ {n63}: VarDecl : x
+ {n64}: x = 0;
+   -[-c-]-> 60
+   -[a--]-> 63
+ {n65}: c > Unknown
+   -[-c-]-> 60
+   -[--d]-> 61
+   -[--d]-> 62
+   -[--d]-> 78
+ {n66}: goto Lsuite;
+   -[-c-]-> 60
+   -[-c-]-> 65
+   -[-c-]-> 67
+ {n67}: Lsuite:
+   -[-c-]-> 60
+ {n68}: x ++;
+   -[-c-]-> 60
+   -[a-d]-> 63
+   -[--d]-> 64
+   -[-c-]-> 65
+   -[-c-]-> 66
+ {n69}: Lsuite: ;
+   -[-c-]-> 60
+ {n70}: c < Unknown
+   -[-c-]-> 60
+   -[--d]-> 61
+   -[--d]-> 62
+   -[--d]-> 78
+ {n71}: goto L2;
+   -[-c-]-> 60
+   -[-c-]-> 70
+   -[-c-]-> 72
+ {n72}: L2:
+   -[-c-]-> 60
+ {n73}: G ++;
+   -[-c-]-> 60
+   -[-c-]-> 70
+   -[-c-]-> 71
+   -[--d]-> 77
+ {n74}: L2: x ++;
+   -[-c-]-> 60
+   -[a-d]-> 63
+   -[--d]-> 64
+   -[--d]-> 68
+ {n75}: return x;
+   -[-c-]-> 60
+   -[--d]-> 63
+   -[--d]-> 74
+ {n76}: OutRet
+   -[--d]-> 75
+ {n77}: In(G)
+ {n78}: In(Unknown)
+int f5(int c)
+{
+  int x;
+  /* 34 */
+  x = 0;
+  /* 36 */
+  if (c > Unknown) {
+    /* 37 */
+    goto Lsuite;
+  }
+  /* 39 */
+  x ++;
+  /* label */ Lsuite: /* 40 */
+                      ;
+  /* 41 */
+  if (c < Unknown) {
+    /* 42 */
+    goto L2;
+  }
+  /* 44 */
+  G ++;
+  /* label */ L2: /* 45 */
+                  x ++;
+  /* 47 */
+  return x;
+}
+
+Slicing project worklist [default/slicing_1] =
+[f5_slice_2 = (n:75(restrict to x) ,<[--d], [---]>)]
+
+[slicing] applying all slicing requests...
+[slicing] applying 1 actions...
+[slicing] applying actions: 1/1...
+Print slice =
+f5_slice_2:
+(InCtrl: <[--d], [---]>)
+(In1: <[--d], [---]>)
+(In(Unknown): <[--d], [---]>)
+(OutRet: <[--d], [---]>)
+
+/**/int f5(/* <[--d], [---]> */ int c)
+{
+  /* <[--d], [---]> */ int x;
+  /* <[--d], [---]> */
+  x = 0;
+  /* <[--d], [---]> */
+  if (c > Unknown) {
+    /* <[--d], [---]> */
+    goto Lsuite;
+  }
+  /* <[--d], [---]> */
+  x ++;
+  /* <[--d], [---]> */ Lsuite: /* <[---], [---]> */
+                               ;
+  /* <[---], [---]> */
+  if (c < Unknown) {
+    /* <[---], [---]> */
+    goto L2;
+  }
+  /* <[---], [---]> */
+  G ++;
+  /* <[---], [---]> */ L2: /* <[--d], [---]> */
+                           x ++;
+  /* <[--d], [---]> */
+  return x;
+}
+
+
+Slicing project worklist [default/slicing_1] =
+[f5_slice_3 = (n:60 ,<[-c-], [---]>)]
+
+[slicing] applying all slicing requests...
+[slicing] applying 1 actions...
+[slicing] applying actions: 1/1...
+Print slice = f5_slice_3: (InCtrl: <[-c-], [---]>)
+
+/**/int f5(/* <[---], [---]> */ int c)
+{
+  /* <[---], [---]> */ int x;
+  /* <[---], [---]> */
+  x = 0;
+  /* <[---], [---]> */
+  if (c > Unknown) {
+    /* <[---], [---]> */
+    goto Lsuite;
+  }
+  /* <[---], [---]> */
+  x ++;
+  /* <[---], [---]> */ Lsuite: /* <[---], [---]> */
+                               ;
+  /* <[---], [---]> */
+  if (c < Unknown) {
+    /* <[---], [---]> */
+    goto L2;
+  }
+  /* <[---], [---]> */
+  G ++;
+  /* <[---], [---]> */ L2: /* <[---], [---]> */
+                           x ++;
+  /* <[---], [---]> */
+  return x;
+}
+
+
+[pdg] computing for function f6
+[pdg] done for function f6
+RESULT for f6:
+ {n79}: InCtrl
+ {n80}: VarDecl : n
+   -[a--]-> 81
+ {n81}: In1
+   -[a--]-> 80
+ {n82}: VarDecl : i
+ {n83}: VarDecl : __retres
+ {n84}: i = 0;
+   -[-c-]-> 79
+   -[a--]-> 82
+ {n85}: while(1)
+   -[-c-]-> 79
+   -[-c-]-> 85
+   -[-c-]-> 86
+   -[-c-]-> 87
+   -[-c-]-> 88
+   -[-c-]-> 93
+   -[-c-]-> 94
+ {n86}: n < 10
+   -[-c-]-> 79
+   -[--d]-> 80
+   -[--d]-> 81
+   -[-c-]-> 85
+   -[-c-]-> 86
+   -[-c-]-> 87
+   -[-c-]-> 88
+   -[--d]-> 91
+   -[-c-]-> 93
+   -[-c-]-> 94
+ {n87}: block
+   -[-c-]-> 79
+   -[-c-]-> 85
+   -[-c-]-> 86
+   -[-c-]-> 87
+   -[-c-]-> 88
+   -[-c-]-> 93
+   -[-c-]-> 94
+ {n88}: Unknown > 3
+   -[-c-]-> 79
+   -[-c-]-> 85
+   -[-c-]-> 86
+   -[-c-]-> 87
+   -[-c-]-> 88
+   -[-c-]-> 93
+   -[-c-]-> 94
+   -[--d]-> 103
+ {n89}: n % 2
+   -[-c-]-> 79
+   -[--d]-> 80
+   -[--d]-> 81
+   -[-c-]-> 85
+   -[-c-]-> 86
+   -[-c-]-> 87
+   -[-c-]-> 88
+   -[--d]-> 91
+   -[-c-]-> 93
+   -[-c-]-> 94
+ {n90}: continue;
+   -[-c-]-> 79
+   -[-c-]-> 85
+   -[-c-]-> 86
+   -[-c-]-> 87
+   -[-c-]-> 88
+   -[-c-]-> 89
+   -[-c-]-> 93
+   -[-c-]-> 94
+ {n91}: n ++;
+   -[-c-]-> 79
+   -[a-d]-> 80
+   -[--d]-> 81
+   -[-c-]-> 85
+   -[-c-]-> 86
+   -[-c-]-> 87
+   -[-c-]-> 88
+   -[-c-]-> 89
+   -[-c-]-> 90
+   -[--d]-> 91
+   -[-c-]-> 93
+   -[-c-]-> 94
+ {n92}: i = 1;
+   -[-c-]-> 79
+   -[a--]-> 82
+   -[-c-]-> 85
+   -[-c-]-> 86
+   -[-c-]-> 87
+   -[-c-]-> 88
+   -[-c-]-> 93
+   -[-c-]-> 94
+ {n93}: break;
+   -[-c-]-> 79
+   -[-c-]-> 85
+   -[-c-]-> 86
+   -[-c-]-> 87
+   -[-c-]-> 88
+   -[-c-]-> 93
+   -[-c-]-> 94
+ {n94}: break;
+   -[-c-]-> 79
+   -[-c-]-> 85
+   -[-c-]-> 86
+   -[-c-]-> 87
+   -[-c-]-> 88
+   -[-c-]-> 93
+   -[-c-]-> 94
+ {n95}: i
+   -[-c-]-> 79
+   -[--d]-> 82
+   -[--d]-> 84
+   -[--d]-> 92
+ {n96}: __retres = 0;
+   -[-c-]-> 79
+   -[a--]-> 83
+   -[-c-]-> 95
+ {n97}: __retres = 10 * n;
+   -[-c-]-> 79
+   -[--d]-> 80
+   -[--d]-> 81
+   -[a--]-> 83
+   -[--d]-> 91
+   -[-c-]-> 95
+ {n98}: goto return_label;
+   -[-c-]-> 79
+   -[-c-]-> 95
+   -[-c-]-> 99
+ {n99}: return_label:
+   -[-c-]-> 79
+ {n100}: goto return_label;
+   -[-c-]-> 79
+   -[-c-]-> 95
+   -[-c-]-> 99
+ {n101}: return_label: return __retres;
+   -[-c-]-> 79
+   -[--d]-> 83
+   -[--d]-> 96
+   -[--d]-> 97
+ {n102}: OutRet
+   -[--d]-> 101
+ {n103}: In(Unknown)
+int f6(int n)
+{
+  int __retres;
+  int i;
+  /* 49 */
+  i = 0;
+  /* 50 */
+  while (n < 10) {
+    /* 56 */
+    if (Unknown > 3) {
+      /* 57 */
+      i = 1;
+      /* 58 */
+      break;
+    }
+    /* 61 */
+    if (n % 2) {
+      /* 62 */
+      continue;
+    }
+    /* 64 */
+    n ++;
+  }
+  /* 66 */
+  if (i) {
+    /* 67 */
+    __retres = 0;
+    /* 132 */
+    goto return_label;
+  }
+  else {
+    /*@ assert Value: signed_overflow: 10*n ≤ 2147483647; */
+    /*@ assert Value: signed_overflow: -2147483648 ≤ 10*n; */
+    /* 69 */
+    __retres = 10 * n;
+    /* 133 */
+    goto return_label;
+  }
+  /* label */ return_label: /* 134 */
+                            return __retres;
+}
+
+Slicing project worklist [default/slicing_1] =
+[f6_slice_1 = (n:79 ,<[-c-], [---]>)(n:95 ,<[-c-], [---]>)]
+
+[slicing] applying all slicing requests...
+[slicing] applying 1 actions...
+[slicing] applying actions: 1/1...
+Print slice =
+f6_slice_1:
+(InCtrl: <[-c-], [---]>)
+(In1: <[-c-], [---]>)
+(In(Unknown): <[-c-], [---]>)
+
+/**/int f6(/* <[-c-], [---]> */ int n)
+{
+  /* <[---], [---]> */ int __retres;
+  /* <[-c-], [---]> */ int i;
+  /* <[-c-], [---]> */
+  i = 0;
+  /* <[-c-], [---]> */
+  while (n < 10) {
+    /* <[-c-], [---]> */
+    if (Unknown > 3) {
+      /* <[-c-], [---]> */
+      i = 1;
+      /* <[-c-], [---]> */
+      break;
+    }
+    /* <[-c-], [---]> */
+    if (n % 2) {
+      /* <[-c-], [---]> */
+      continue;
+    }
+    /* <[-c-], [---]> */
+    n ++;
+  }
+  /* <[-c-], [---]> */
+  if (i) {
+    /* <[---], [---]> */
+    __retres = 0;
+    /* <[---], [---]> */
+    goto return_label;
+  }
+  else {
+    /*@ assert Value: signed_overflow: 10*n ≤ 2147483647; */
+    /*@ assert Value: signed_overflow: -2147483648 ≤ 10*n; */
+    /* <[---], [---]> */
+    __retres = 10 * n;
+    /* <[---], [---]> */
+    goto return_label;
+  }
+  /* <[---], [---]> */ return_label: /* <[---], [---]> */
+                                     return __retres;
+}
+
+
+struct __anonstruct_Tstr_1 {
+   int a ;
+   int b ;
+   int c ;
+};
+typedef struct __anonstruct_Tstr_1 Tstr;
+int Unknown;
+int G;
+Print slice = f1_slice_1: (InCtrl: <[-cd], [---]>)
+                          (In1: <[--d], [---]>)
+
+/**/int f1(/* <[--d], [---]> */ int x, /* <[---], [---]> */ int y)
+{
+  /* <[---], [---]> */ int __retres;
+  /* <[--d], [---]> */ int a;
+  /* <[---], [---]> */ int b;
+  /* <[--d], [---]> */
+  a = 1;
+  /* <[---], [---]> */
+  b = 2;
+  /* <[ S ], [---]> */
+  G = x + a;
+  /* <[---], [---]> */
+  __retres = y + b;
+  /* <[---], [---]> */
+  return __retres;
+}
+
+Print slice = f2_slice_1: (InCtrl: <[-c-], [---]>)
+
+/**/int f2(void)
+{
+  /* <[---], [---]> */ int a;
+  /* <[---], [---]> */ int b;
+  /* <[a--], [---]> */ int c;
+  /* <[---], [---]> */ int tmp;
+  /* <[---], [---]> */
+  a = 1;
+  /* <[---], [---]> */
+  b = a + 1;
+  /* <[ S ], [---]> */
+  c = 3;
+  /* invisible call */ /* <[---], [---]> */
+  tmp = f1(b,c);
+  /* <[---], [---]> */
+  return tmp;
+}
+
+Print slice =
+f3_slice_1:
+(InCtrl: <[--d], [---]>)
+(In1: <[--d], [---]>)
+(In(Unknown): <[--d], [---]>)
+(OutRet: <[--d], [---]>)
+
+/**/int f3(/* <[--d], [---]> */ int c)
+{
+  /* <[---], [---]> */ int a;
+  /* <[--d], [---]> */ int b;
+  /* <[--d], [---]> */ int x;
+  /* <[---], [---]> */
+  a = 1;
+  /* <[--d], [---]> */
+  b = 2;
+  /* <[--d], [---]> */
+  x = 0;
+  /* <[--d], [---]> */
+  if (c > Unknown) {
+    /* <[--d], [---]> */
+    x = b;
+  }
+  else {
+    /* <[---], [---]> */
+    G = a;
+  }
+  /* <[--d], [---]> */
+  return x;
+}
+
+Print slice =
+f4_slice_2:
+(InCtrl: <[-cd], [---]>)
+(In1: <[-c-], [---]>)
+(In(Unknown): <[-c-], [---]>)
+
+/**/int f4(/* <[-c-], [---]> */ int c)
+{
+  /* <[--d], [---]> */ int a;
+  /* <[---], [---]> */ int b;
+  /* <[---], [---]> */ int x;
+  /* <[--d], [---]> */
+  a = 1;
+  /* <[---], [---]> */
+  b = 2;
+  /* <[---], [---]> */
+  x = 0;
+  /* <[-c-], [---]> */
+  if (c > Unknown) {
+    /* <[ S ], [---]> */
+    G = a;
+  }
+  else {
+    /* <[---], [---]> */
+    x = b;
+  }
+  /* <[---], [---]> */
+  return x;
+}
+
+Print slice =
+f4_slice_1:
+(InCtrl: <[--d], [---]>)
+(In1: <[--d], [---]>)
+(In(Unknown): <[--d], [---]>)
+(OutRet: <[--d], [---]>)
+
+/**/int f4(/* <[--d], [---]> */ int c)
+{
+  /* <[---], [---]> */ int a;
+  /* <[--d], [---]> */ int b;
+  /* <[--d], [---]> */ int x;
+  /* <[---], [---]> */
+  a = 1;
+  /* <[--d], [---]> */
+  b = 2;
+  /* <[--d], [---]> */
+  x = 0;
+  /* <[--d], [---]> */
+  if (c > Unknown) {
+    /* <[---], [---]> */
+    G = a;
+  }
+  else {
+    /* <[--d], [---]> */
+    x = b;
+  }
+  /* <[--d], [---]> */
+  return x;
+}
+
+Print slice = f5_slice_3: (InCtrl: <[-c-], [---]>)
+
+/**/int f5(/* <[---], [---]> */ int c)
+{
+  /* <[---], [---]> */ int x;
+  /* <[---], [---]> */
+  x = 0;
+  /* <[---], [---]> */
+  if (c > Unknown) {
+    /* <[---], [---]> */
+    goto Lsuite;
+  }
+  /* <[---], [---]> */
+  x ++;
+  /* <[---], [---]> */ Lsuite: /* <[---], [---]> */
+                               ;
+  /* <[---], [---]> */
+  if (c < Unknown) {
+    /* <[---], [---]> */
+    goto L2;
+  }
+  /* <[---], [---]> */
+  G ++;
+  /* <[---], [---]> */ L2: /* <[---], [---]> */
+                           x ++;
+  /* <[---], [---]> */
+  return x;
+}
+
+Print slice =
+f5_slice_2:
+(InCtrl: <[--d], [---]>)
+(In1: <[--d], [---]>)
+(In(Unknown): <[--d], [---]>)
+(OutRet: <[--d], [---]>)
+
+/**/int f5(/* <[--d], [---]> */ int c)
+{
+  /* <[--d], [---]> */ int x;
+  /* <[--d], [---]> */
+  x = 0;
+  /* <[--d], [---]> */
+  if (c > Unknown) {
+    /* <[--d], [---]> */
+    goto Lsuite;
+  }
+  /* <[--d], [---]> */
+  x ++;
+  /* <[--d], [---]> */ Lsuite: /* <[---], [---]> */
+                               ;
+  /* <[---], [---]> */
+  if (c < Unknown) {
+    /* <[---], [---]> */
+    goto L2;
+  }
+  /* <[---], [---]> */
+  G ++;
+  /* <[---], [---]> */ L2: /* <[--d], [---]> */
+                           x ++;
+  /* <[--d], [---]> */
+  return x;
+}
+
+Print slice =
+f5_slice_1:
+(InCtrl: <[--d], [---]>)
+(In1: <[--d], [---]>)
+(In(G): <[--d], [---]>)
+(In(Unknown): <[--d], [---]>)
+
+/**/int f5(/* <[--d], [---]> */ int c)
+{
+  /* <[---], [---]> */ int x;
+  /* <[---], [---]> */
+  x = 0;
+  /* <[---], [---]> */
+  if (c > Unknown) {
+    /* <[---], [---]> */
+    goto Lsuite;
+  }
+  /* <[---], [---]> */
+  x ++;
+  /* <[---], [---]> */ Lsuite: /* <[---], [---]> */
+                               ;
+  /* <[--d], [---]> */
+  if (c < Unknown) {
+    /* <[--d], [---]> */
+    goto L2;
+  }
+  /* <[--d], [---]> */
+  G ++;
+  /* <[--d], [---]> */ L2: /* <[---], [---]> */
+                           x ++;
+  /* <[---], [---]> */
+  return x;
+}
+
+Print slice =
+f6_slice_1:
+(InCtrl: <[-c-], [---]>)
+(In1: <[-c-], [---]>)
+(In(Unknown): <[-c-], [---]>)
+
+/**/int f6(/* <[-c-], [---]> */ int n)
+{
+  /* <[---], [---]> */ int __retres;
+  /* <[-c-], [---]> */ int i;
+  /* <[-c-], [---]> */
+  i = 0;
+  /* <[-c-], [---]> */
+  while (n < 10) {
+    /* <[-c-], [---]> */
+    if (Unknown > 3) {
+      /* <[-c-], [---]> */
+      i = 1;
+      /* <[-c-], [---]> */
+      break;
+    }
+    /* <[-c-], [---]> */
+    if (n % 2) {
+      /* <[-c-], [---]> */
+      continue;
+    }
+    /* <[-c-], [---]> */
+    n ++;
+  }
+  /* <[-c-], [---]> */
+  if (i) {
+    /* <[---], [---]> */
+    __retres = 0;
+    /* <[---], [---]> */
+    goto return_label;
+  }
+  else {
+    /*@ assert Value: signed_overflow: 10*n ≤ 2147483647; */
+    /*@ assert Value: signed_overflow: -2147483648 ≤ 10*n; */
+    /* <[---], [---]> */
+    __retres = 10 * n;
+    /* <[---], [---]> */
+    goto return_label;
+  }
+  /* <[---], [---]> */ return_label: /* <[---], [---]> */
+                                     return __retres;
+}
+
+Tstr S;
+Tstr S1;
+Tstr S2;
+Slicing project worklist [default/slicing_1] =
+
+

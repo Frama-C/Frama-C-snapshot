@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -29,7 +29,6 @@
 open Format
 open Logic
 open Plib
-open Linker
 
 type op =
   | Op of string (** Infix or prefix operator *)
@@ -93,9 +92,6 @@ class type virtual ['z,'adt,'field,'logic,'tau,'var,'term] engine =
 
     (** {3 Global and Local Environment} *)
 
-    method declare : string -> unit
-    method declare_all : string list -> unit
-
     method local : (unit -> unit) -> unit
     (** Calls the continuation in a local copy of the environment.
         	Previous environment is restored after return, but allocators
@@ -104,6 +100,9 @@ class type virtual ['z,'adt,'field,'logic,'tau,'var,'term] engine =
     method global : (unit -> unit) -> unit
     (** Calls the continuation in a fresh local environment.
         	Previous environment is restored after return. *)
+
+    method bind : 'var -> string
+    method find : 'var -> string
 
     (** {3 Types} *)
 
@@ -150,7 +149,7 @@ class type virtual ['z,'adt,'field,'logic,'tau,'var,'term] engine =
 
     (** {3 Variables} *)
 
-    method pp_var : 'var printer (** Default to local env *)
+    method pp_var : string printer
 
     (** {3 Calls} 
 
@@ -220,14 +219,13 @@ class type virtual ['z,'adt,'field,'logic,'tau,'var,'term] engine =
 
     (** {3 Binders} *)
 
-    method pp_forall : 'tau -> 'var list printer (** with separator *)
-    method pp_exists : 'tau -> 'var list printer (** with separator *)
-    method pp_lambda : 'var list printer
+    method pp_forall : 'tau -> string list printer
+    method pp_exists : 'tau -> string list printer
+    method pp_lambda : (string * 'tau) list printer
 
     (** {3 Bindings} *)
 
-    method is_shareable : 'term -> bool    
-    method bind : 'var -> unit
+    method is_shareable : 'term -> bool
     method pp_let : formatter -> pmode -> string -> 'term -> unit
 
     (** {3 Terms} *)

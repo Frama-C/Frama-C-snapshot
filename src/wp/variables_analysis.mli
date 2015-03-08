@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -26,14 +26,14 @@
    of variables by WP: 
     1) optimization of the by-reference call and 
     2) functional variables. 
-**)
+ **)
 
 (**
    At the end, the analysis associates an [var_kind] information to each 
    variables: 
      1) [Fvar] functional variable, variable such as its address is never
         taken,
- 
+
      2) [PRarg] by_pointer_reference argument, variable such as its 
         address is only taken in by reference calls (one or more),
 
@@ -49,10 +49,10 @@
         variable which is a formal parameter use for a by array reference
         call and can be invoked in a chain of by array reference call
         such as their arity are less or equal than n, 
-     
+
      6) [Cvar] other variable.
- 
-**)
+
+ **)
 
 type var_kind = 
     Fvar | Cvar | PRarg | ARarg | PRpar of int | ARpar of int 

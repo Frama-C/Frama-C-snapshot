@@ -1,0 +1,31 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/FP5.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  
+tests/misc/FP5.i:1:[value] Function main: precondition got status unknown.
+tests/misc/FP5.i:2:[value] Function main: precondition got status unknown.
+tests/misc/FP5.i:3:[value] Function main: precondition got status valid.
+tests/misc/FP5.i:23:[value] entering loop for the first time
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  i ∈ [0..2147483647]
+  S_c[0] ∈ {-1; 0; 1}
+     [1] ∈ [--..--]
+  S_b[0..1] ∈ [--..--]
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  S_c[0] FROM a; c
+  S_b[0] FROM a; b (and SELF)
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          i; S_c[0]; S_b[0]
+[inout] Inputs for function main:
+          \nothing

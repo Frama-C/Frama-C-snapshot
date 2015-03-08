@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -62,7 +62,7 @@ type access =
   | ByValue   (* The expression ["x"], equal to [load(&x)] *)
   | ByArray   (* The expression ["x[_]"], equal to [load(shift(load(&x),_))] *)
   | ByRef     (* The expression ["*x"], equal to [load(load(&x))] *)
-      
+
 module Access :
 sig
   type t = access
@@ -77,11 +77,11 @@ struct
   (* let is_bot = function NoAccess -> true | _ -> false *)
   (* unused for now *)
   (* let pretty x fmt = function
-    | NoAccess -> Format.fprintf fmt "-"
-    | ByValue -> Var.pretty fmt x
-    | ByAddr -> Format.fprintf fmt "&%a" Var.pretty x
-    | ByRef -> Format.fprintf fmt "*%a" Var.pretty x
-    | ByArray -> Format.fprintf fmt "%a[_]" Var.pretty x
+     | NoAccess -> Format.fprintf fmt "-"
+     | ByValue -> Var.pretty fmt x
+     | ByAddr -> Format.fprintf fmt "&%a" Var.pretty x
+     | ByRef -> Format.fprintf fmt "*%a" Var.pretty x
+     | ByArray -> Format.fprintf fmt "%a[_]" Var.pretty x
   *)
   let rank = function
     | NoAccess -> 0
@@ -89,7 +89,7 @@ struct
     | ByArray -> 2
     | ByValue -> 3
     | ByAddr -> 4
-(*  let leq a b = (rank a) <= (rank b)*) (* unused for now *)
+  (*  let leq a b = (rank a) <= (rank b)*) (* unused for now *)
   let cup a b = if rank a < rank b then b else a
 end
 
@@ -113,14 +113,14 @@ struct
 
   module Xmap = Qed.Mergemap.Make(Var)
   type t = access Xmap.t
-      
+
   let bot = Xmap.empty
   let cup = Xmap.union (fun _ -> Access.cup)
   (* unused for now *)
   (* let leq = Xmap.subset (fun _ -> Access.leq) *)
 
   (* unused for now *)
-(*  let rec lcup = function [] -> bot | [x] -> x | x::xs -> cup x (lcup xs)*)
+  (*  let rec lcup = function [] -> bot | [x] -> x | x::xs -> cup x (lcup xs)*)
   let rec fcup f = function [] -> bot | [x] -> f x | x::xs -> cup (f x) (fcup f xs)
 
   let get x e = try Xmap.find x e with Not_found -> NoAccess
@@ -194,14 +194,14 @@ let cast cv e = match cv with
 
 let cast_obj tgt src =
   match tgt , src with
-    | (C_int _ | C_float _) , (C_int _ | C_float _) -> Convert
-    | C_pointer tr , C_pointer te ->
-	let obj_r = Ctypes.object_of tr in
-	let obj_e = Ctypes.object_of te in
-	if Ctypes.compare obj_r obj_e = 0 
-	then Identity
-	else Cast
-    | _ -> if Ctypes.equal tgt src then Identity else Cast
+  | (C_int _ | C_float _) , (C_int _ | C_float _) -> Convert
+  | C_pointer tr , C_pointer te ->
+      let obj_r = Ctypes.object_of tr in
+      let obj_e = Ctypes.object_of te in
+      if Ctypes.compare obj_r obj_e = 0 
+      then Identity
+      else Cast
+  | _ -> if Ctypes.equal tgt src then Identity else Cast
 
 let cast_ctyp tgt src = cast_obj (Ctypes.object_of tgt) (Ctypes.object_of src)
 let cast_ltyp tgt src = match Logic_utils.unroll_type src with
@@ -257,29 +257,29 @@ let rec vexpr e = value (expr e)
 
 and expr (e:Cil_types.exp) : model = match e.enode with
 
-    (* Logics *)
-    | Const _ | SizeOf _ | SizeOfE _ | SizeOfStr _ | AlignOf _ | AlignOfE _ -> L
+  (* Logics *)
+  | Const _ | SizeOf _ | SizeOfE _ | SizeOfStr _ | AlignOf _ | AlignOfE _ -> L
 
-    (* Unary *)
-    | UnOp((Neg|BNot|LNot),e,_) | Info(e,_) -> expr e
+  (* Unary *)
+  | UnOp((Neg|BNot|LNot),e,_) | Info(e,_) -> expr e
 
-    (* Binary *)
-    | BinOp( (MinusPP|PlusA|MinusA|Mult|Div|Mod
-	     |Shiftlt|Shiftrt|BAnd|BXor|BOr|LAnd|LOr
-	     |Lt|Gt|Le|Ge|Eq|Ne), a,b,_ ) 
-      -> vcup (vexpr a) (vexpr b)
-	
-    (* Shifts *)
-    | BinOp((PlusPI|IndexPI|MinusPI),a,b,_) -> shift (expr a) (vexpr b)
+  (* Binary *)
+  | BinOp( (MinusPP|PlusA|MinusA|Mult|Div|Mod
+           |Shiftlt|Shiftrt|BAnd|BXor|BOr|LAnd|LOr
+           |Lt|Gt|Le|Ge|Eq|Ne), a,b,_ ) 
+    -> vcup (vexpr a) (vexpr b)
 
-    (* Casts *)
-    | CastE(ty_tgt,e) -> cast (cast_ctyp ty_tgt (Cil.typeOf e)) (expr e)
-	  
-    (* Address *)
-    | AddrOf lval | StartOf lval -> lvalue lval
+  (* Shifts *)
+  | BinOp((PlusPI|IndexPI|MinusPI),a,b,_) -> shift (expr a) (vexpr b)
 
-    (* Load *)
-    | Lval lval -> load (lvalue lval)
+  (* Casts *)
+  | CastE(ty_tgt,e) -> cast (cast_ctyp ty_tgt (Cil.typeOf e)) (expr e)
+
+  (* Address *)
+  | AddrOf lval | StartOf lval -> lvalue lval
+
+  (* Load *)
+  | Lval lval -> load (lvalue lval)
 
 and lvalue (h,ofs) = offset (host h) ofs
 and host = function
@@ -311,8 +311,8 @@ and term (env:context) (t:term) : model = match t.term_node with
 
   (* Binary *)
   | TBinOp( (MinusPP|PlusA|MinusA|Mult|Div|Mod
-	    |Shiftlt|Shiftrt|BAnd|BXor|BOr|LAnd|LOr
-	    |Lt|Gt|Le|Ge|Eq|Ne), a,b ) 
+            |Shiftlt|Shiftrt|BAnd|BXor|BOr|LAnd|LOr
+            |Lt|Gt|Le|Ge|Eq|Ne), a,b ) 
     -> vcup (vterm env a) (vterm env b)
 
   (* Shifts *)
@@ -341,7 +341,7 @@ and term (env:context) (t:term) : model = match t.term_node with
   | Toffset(_,t) | Tbase_addr(_,t) -> E (vterm env t)
   | Tnull | Tempty_set -> L
   | Tunion ts | Tinter ts -> fcup (vterm env) ts
-  
+
   (* Binders *)
   | Tlambda(xs,b) -> E (E.bind xs (vterm env b))
   | Tcomprehension(t,xs,None) -> E (E.bind xs (vterm env t))
@@ -370,12 +370,12 @@ and term_offset env (l:model) = function
   | TModel _ -> Wp_parameters.not_yet_implemented "Model fields"
 
 and addr_lval env (h,ofs) = match h with
-  | TResult _ -> Wp_parameters.fatal "Address of \\result"
+  | TResult _ -> Wp_parameters.abort ~current:true "Address of \\result"
   | TMem t -> term_offset env (term env t) ofs
   | TVar( {lv_origin=Some x} ) -> term_offset env (Loc_var x) ofs
   | TVar( {lv_origin=None} as x ) -> 
-      Wp_parameters.fatal "Address of logic variable (%a)"
-	Logic_var.pretty x
+      Wp_parameters.abort ~current:true 
+        "Address of logic variable (%a)" Logic_var.pretty x
 
 and pred (_:context) _ = E.bot
 

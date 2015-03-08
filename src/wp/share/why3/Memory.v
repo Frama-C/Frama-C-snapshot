@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -137,29 +137,27 @@ Definition separated (p:addr) (a:Z) (q:addr) (b:Z): Prop := (a <= 0%Z)%Z \/
   (((offset p) + a)%Z <= (offset q))%Z))).
 
 (* Why3 assumption *)
-Definition eqmem {a:Type} {a_WT:WhyType a} (m1:(@map.Map.map
-  addr addr_WhyType a a_WT)) (m2:(@map.Map.map addr addr_WhyType a a_WT))
-  (p:addr) (a1:Z): Prop := forall (q:addr), (included q 1%Z p a1) ->
-  ((map.Map.get m1 q) = (map.Map.get m2 q)).
+Definition eqmem {a:Type} {a_WT:WhyType a} (m1:(map.Map.map addr a))
+  (m2:(map.Map.map addr a)) (p:addr) (a1:Z): Prop := forall (q:addr),
+  (included q 1%Z p a1) -> ((map.Map.get m1 q) = (map.Map.get m2 q)).
 
 (* Why3 assumption *)
-Definition havoc {a:Type} {a_WT:WhyType a} (m1:(@map.Map.map
-  addr addr_WhyType a a_WT)) (m2:(@map.Map.map addr addr_WhyType a a_WT))
-  (p:addr) (a1:Z): Prop := forall (q:addr), (separated q 1%Z p a1) ->
-  ((map.Map.get m1 q) = (map.Map.get m2 q)).
+Definition havoc {a:Type} {a_WT:WhyType a} (m1:(map.Map.map addr a))
+  (m2:(map.Map.map addr a)) (p:addr) (a1:Z): Prop := forall (q:addr),
+  (separated q 1%Z p a1) -> ((map.Map.get m1 q) = (map.Map.get m2 q)).
 
 (* Why3 assumption *)
-Definition valid_rd (m:(@map.Map.map Z _ Z _)) (p:addr) (n:Z): Prop :=
+Definition valid_rd (m:(map.Map.map Z Z)) (p:addr) (n:Z): Prop :=
   (0%Z < n)%Z -> ((0%Z <= (offset p))%Z /\
   (((offset p) + n)%Z <= (map.Map.get m (base p)))%Z).
 
 (* Why3 assumption *)
-Definition valid_rw (m:(@map.Map.map Z _ Z _)) (p:addr) (n:Z): Prop :=
+Definition valid_rw (m:(map.Map.map Z Z)) (p:addr) (n:Z): Prop :=
   (0%Z < n)%Z -> ((0%Z < (base p))%Z /\ ((0%Z <= (offset p))%Z /\
   (((offset p) + n)%Z <= (map.Map.get m (base p)))%Z)).
 
 (* Why3 goal *)
-Lemma valid_rw_rd : forall (m:(@map.Map.map Z _ Z _)), forall (p:addr),
+Lemma valid_rw_rd : forall (m:(map.Map.map Z Z)), forall (p:addr),
   forall (n:Z), (valid_rw m p n) -> (valid_rd m p n).
 intros m p n.
 unfold valid_rw. unfold valid_rd.
@@ -167,7 +165,7 @@ intuition (auto with zarith).
 Qed.
 
 (* Why3 goal *)
-Lemma valid_string : forall (m:(@map.Map.map Z _ Z _)), forall (p:addr),
+Lemma valid_string : forall (m:(map.Map.map Z Z)), forall (p:addr),
   ((base p) < 0%Z)%Z -> (((0%Z <= (offset p))%Z /\
   ((offset p) < (map.Map.get m (base p)))%Z) -> ((valid_rd m p 1%Z) /\
   ~ (valid_rw m p 1%Z))).
@@ -227,17 +225,16 @@ Definition region: Z -> Z.
 Admitted.
 
 (* Why3 goal *)
-Definition linked: (@map.Map.map Z _ Z _) -> Prop.
+Definition linked: (map.Map.map Z Z) -> Prop.
 Admitted.
 
 (* Why3 goal *)
-Definition sconst: (@map.Map.map addr addr_WhyType Z _) -> Prop.
+Definition sconst: (map.Map.map addr Z) -> Prop.
 Admitted.
 
 (* Why3 assumption *)
-Definition framed (m:(@map.Map.map addr addr_WhyType
-  addr addr_WhyType)): Prop := forall (p:addr), ((region (base (map.Map.get m
-  p))) <= 0%Z)%Z.
+Definition framed (m:(map.Map.map addr addr)): Prop := forall (p:addr),
+  ((region (base (map.Map.get m p))) <= 0%Z)%Z.
 
 (* Why3 goal *)
 Lemma separated_included : forall (p:addr) (q:addr), forall (a:Z) (b:Z),
@@ -283,23 +280,23 @@ Qed.
 
 (* Why3 goal *)
 Lemma eqmem_included : forall {a:Type} {a_WT:WhyType a},
-  forall (m1:(@map.Map.map addr addr_WhyType a a_WT)) (m2:(@map.Map.map
-  addr addr_WhyType a a_WT)), forall (p:addr) (q:addr), forall (a1:Z) (b:Z),
-  (included p a1 q b) -> ((eqmem m1 m2 q b) -> (eqmem m1 m2 p a1)).
+  forall (m1:(map.Map.map addr a)) (m2:(map.Map.map addr a)), forall (p:addr)
+  (q:addr), forall (a1:Z) (b:Z), (included p a1 q b) -> ((eqmem m1 m2 q b) ->
+  (eqmem m1 m2 p a1)).
 intros a a_WT m1 m2 p q a1 b h1 h2.
 Admitted.
 
 (* Why3 goal *)
-Lemma eqmem_sym : forall {a:Type} {a_WT:WhyType a}, forall (m1:(@map.Map.map
-  addr addr_WhyType a a_WT)) (m2:(@map.Map.map addr addr_WhyType a a_WT)),
-  forall (p:addr), forall (a1:Z), (eqmem m1 m2 p a1) -> (eqmem m2 m1 p a1).
+Lemma eqmem_sym : forall {a:Type} {a_WT:WhyType a}, forall (m1:(map.Map.map
+  addr a)) (m2:(map.Map.map addr a)), forall (p:addr), forall (a1:Z), (eqmem
+  m1 m2 p a1) -> (eqmem m2 m1 p a1).
  intros A m1 m2 p a. unfold eqmem.
 Admitted.
 
 (* Why3 goal *)
-Lemma havoc_sym : forall {a:Type} {a_WT:WhyType a}, forall (m1:(@map.Map.map
-  addr addr_WhyType a a_WT)) (m2:(@map.Map.map addr addr_WhyType a a_WT)),
-  forall (p:addr), forall (a1:Z), (havoc m1 m2 p a1) -> (havoc m2 m1 p a1).
+Lemma havoc_sym : forall {a:Type} {a_WT:WhyType a}, forall (m1:(map.Map.map
+  addr a)) (m2:(map.Map.map addr a)), forall (p:addr), forall (a1:Z), (havoc
+  m1 m2 p a1) -> (havoc m2 m1 p a1).
 Admitted.
 
 (* Why3 goal *)

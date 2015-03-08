@@ -1,0 +1,219 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/postcond_leaf.c (with preprocessing)
+[value] user error: no assigns specified for function 'g1', for which a builtin
+                    or the specification will be used. Potential unsoundness.
+[value] user error: no assigns specified for function 'g2', for which a builtin
+                    or the specification will be used. Potential unsoundness.
+[value] user error: no assigns specified for function 'g3', for which a builtin
+                    or the specification will be used. Potential unsoundness.
+[value] warning: Generating potentially incorrect assigns for function 'g1' for which option -val-use-spec is set
+tests/misc/postcond_leaf.c:37:[kernel] warning: No code nor implicit assigns clause for function g1, generating default assigns from the prototype
+[value] warning: Generating potentially incorrect assigns for function 'g2' for which option -val-use-spec is set
+tests/misc/postcond_leaf.c:44:[kernel] warning: No code nor implicit assigns clause for function g2, generating default assigns from the prototype
+[value] warning: Generating potentially incorrect assigns for function 'g3' for which option -val-use-spec is set
+tests/misc/postcond_leaf.c:48:[kernel] warning: No code nor implicit assigns clause for function g3, generating default assigns from the prototype
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  i ∈ [--..--]
+tests/misc/postcond_leaf.c:77:[kernel] warning: No code nor implicit assigns clause for function f1, generating default assigns from the prototype
+[value] using specification for function f1
+tests/misc/postcond_leaf.c:21:[value] Function f1: this postcondition evaluates to false in this context.
+        If it is valid, either a precondition was not verified for this call,
+        or some assigns/from clauses are incomplete (or incorrect).
+tests/misc/postcond_leaf.c:80:[kernel] warning: No code nor implicit assigns clause for function f2, generating default assigns from the prototype
+[value] using specification for function f2
+tests/misc/postcond_leaf.c:26:[value] Function f2, behavior b: this postcondition evaluates to false in this
+        context. If it is valid, either a precondition was not verified for this
+        call, the behavior was inactive, or some assigns/from clauses are incomplete
+        (or incorrect).
+tests/misc/postcond_leaf.c:83:[kernel] warning: No code nor implicit assigns clause for function f3, generating default assigns from the prototype
+[value] using specification for function f3
+tests/misc/postcond_leaf.c:86:[kernel] warning: No code nor implicit assigns clause for function f4, generating default assigns from the prototype
+[value] using specification for function f4
+[value] using specification for function g1
+tests/misc/postcond_leaf.c:36:[value] Function g1: this postcondition evaluates to false in this context.
+        If it is valid, either a precondition was not verified for this call,
+        or some assigns/from clauses are incomplete (or incorrect).
+[value] using specification for function g2
+tests/misc/postcond_leaf.c:42:[value] Function g2, behavior b: this postcondition evaluates to false in this
+        context. If it is valid, either a precondition was not verified for this
+        call, the behavior was inactive, or some assigns/from clauses are incomplete
+        (or incorrect).
+[value] using specification for function g3
+tests/misc/postcond_leaf.c:51:[value] Function h1: postcondition got status invalid.
+tests/misc/postcond_leaf.c:57:[value] Function h2, behavior b: postcondition got status invalid. (Behavior may be inactive, no reduction performed.)
+tests/misc/postcond_leaf.c:62:[value] Function h3: postcondition got status unknown.
+tests/misc/postcond_leaf.c:66:[value] Function h4: postcondition got status invalid.
+tests/misc/postcond_leaf.c:111:[kernel] warning: No code nor implicit assigns clause for function k, generating default assigns from the prototype
+[value] using specification for function k
+tests/misc/postcond_leaf.c:71:[value] Function k: this postcondition evaluates to false in this context.
+        If it is valid, either a precondition was not verified for this call,
+        or some assigns/from clauses are incomplete (or incorrect).
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function h1:
+  
+[value] Values at end of function h2:
+  
+[value] Values at end of function h3:
+  
+[value] Values at end of function h4:
+  
+[value] Values at end of function main:
+  
+[report] Computing properties status...
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'f1'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Post-condition (file tests/misc/postcond_leaf.c, line 21)
+            Unverifiable but considered Valid.
+[    -    ] Assigns nothing
+            tried with Inferred annotations.
+[    -    ] Default behavior
+            tried with Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'f2'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Post-condition for 'b' (file tests/misc/postcond_leaf.c, line 26)
+            Unverifiable but considered Valid.
+[    -    ] Assigns nothing
+            tried with Inferred annotations.
+[  Valid  ] Behavior 'b'
+            by Frama-C kernel.
+[    -    ] Default behavior
+            tried with Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'f3'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Post-condition (file tests/misc/postcond_leaf.c, line 30)
+            Unverifiable but considered Valid.
+[    -    ] Assigns nothing
+            tried with Inferred annotations.
+[    -    ] Default behavior
+            tried with Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'f4'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Post-condition (file tests/misc/postcond_leaf.c, line 33)
+            Unverifiable but considered Valid.
+[    -    ] Assigns nothing
+            tried with Inferred annotations.
+[    -    ] Default behavior
+            tried with Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'g1'
+--------------------------------------------------------------------------------
+
+[  Alarm  ] Post-condition (file tests/misc/postcond_leaf.c, line 36)
+            By Value, with pending:
+             - Unreachable g1
+[    -    ] Assigns nothing
+            tried with Inferred annotations.
+[  Alarm  ] Default behavior
+            By Frama-C kernel, with pending:
+             - Assigns nothing
+             - Unreachable g1
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'g2'
+--------------------------------------------------------------------------------
+
+[  Alarm  ] Post-condition for 'b' (file tests/misc/postcond_leaf.c, line 42)
+            By Value, with pending:
+             - Unreachable g2
+[    -    ] Assigns nothing
+            tried with Inferred annotations.
+[  Alarm  ] Behavior 'b'
+            By Frama-C kernel, with pending:
+             - Unreachable g2
+[    -    ] Default behavior
+            tried with Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'g3'
+--------------------------------------------------------------------------------
+
+[    -    ] Post-condition (file tests/misc/postcond_leaf.c, line 47)
+            tried with Value.
+[    -    ] Assigns nothing
+            tried with Inferred annotations.
+[    -    ] Default behavior
+            tried with Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'h1'
+--------------------------------------------------------------------------------
+
+[  Alarm  ] Post-condition (file tests/misc/postcond_leaf.c, line 51)
+            By Value, with pending:
+             - Unreachable h1
+[  Alarm  ] Default behavior
+            By Frama-C kernel, with pending:
+             - Unreachable h1
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'h2'
+--------------------------------------------------------------------------------
+
+[  Alarm  ] Post-condition for 'b' (file tests/misc/postcond_leaf.c, line 57)
+            By Value, with pending:
+             - Unreachable h2
+[  Alarm  ] Behavior 'b'
+            By Frama-C kernel, with pending:
+             - Unreachable h2
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'h3'
+--------------------------------------------------------------------------------
+
+[    -    ] Post-condition (file tests/misc/postcond_leaf.c, line 62)
+            tried with Value.
+[    -    ] Default behavior
+            tried with Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'h4'
+--------------------------------------------------------------------------------
+
+[  Alarm  ] Post-condition (file tests/misc/postcond_leaf.c, line 66)
+            By Value, with pending:
+             - Unreachable h4
+[  Alarm  ] Default behavior
+            By Frama-C kernel, with pending:
+             - Unreachable h4
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'k'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Post-condition (file tests/misc/postcond_leaf.c, line 71)
+            Unverifiable but considered Valid.
+[    -    ] Assigns (file tests/misc/postcond_leaf.c, line 72)
+            tried with Inferred annotations.
+[    -    ] Froms (generated)
+            tried with Inferred annotations.
+[    -    ] Froms (file tests/misc/postcond_leaf.c, line 72)
+            tried with Inferred annotations.
+[    -    ] Default behavior
+            tried with Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Status Report Summary
+--------------------------------------------------------------------------------
+     1 Completely validated
+     5 Considered valid
+    20 To be validated
+    10 Alarms emitted
+    36 Total
+--------------------------------------------------------------------------------

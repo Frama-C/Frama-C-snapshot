@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -30,7 +30,7 @@ val empty : data_state
 val bottom: data_state
 
 val add_loc_node :
-  data_state -> exact:bool -> Locations.Zone.t -> Node.t -> data_state
+  data_state -> ?initializing:bool -> exact:bool -> Locations.Zone.t -> Node.t -> data_state
 val add_init_state_input :
   data_state -> Locations.Zone.t -> Node.t -> data_state
 

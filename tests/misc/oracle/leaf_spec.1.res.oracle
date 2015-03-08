@@ -1,0 +1,34 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/leaf_spec.i (no preprocessing)
+[value] Analyzing a complete application starting at main1
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  
+[value] computing for function f <- main1.
+        Called from tests/misc/leaf_spec.i:27.
+tests/misc/leaf_spec.i:27:[kernel] warning: Neither code nor specification for function f, generating default assigns from the prototype
+[value] using specification for function f
+tests/misc/leaf_spec.i:27:[value] warning: Completely invalid destination for assigns clause *x. Ignoring.
+tests/misc/leaf_spec.i:27:[value] warning: Completely invalid destination for assigns clause *y. Ignoring.
+[value] Done for function f
+[value] Recording results for main1
+[value] done for function main1
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main1:
+  
+[from] Computing for function main1
+[from] Computing for function f <-main1
+[from] Done for function f
+[from] Done for function main1
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function f:
+  NO EFFECTS
+[from] Function main1:
+  NO EFFECTS
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main1:
+          \nothing
+[inout] Inputs for function main1:
+          \nothing

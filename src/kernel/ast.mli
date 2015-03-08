@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -127,14 +127,11 @@ val mark_as_computed: unit -> unit
 
 val add_hook_on_update: (unit -> unit) -> unit
 (** Apply the given hook each time the reference to the AST is updated,
-    including on a project switch. 
+    including on a project switch.
     @since Fluorine-20130401 *)
-
 
 (**/**)
 val add_linked_state: State.t -> unit
-
-
 
 (*
 Local Variables:

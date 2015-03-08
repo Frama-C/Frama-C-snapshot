@@ -1,0 +1,6 @@
+%init: S0;
+%accept: Sf;
+
+S0: { !f().x < 4 } -> Sf;
+
+Sf: -> Sf;

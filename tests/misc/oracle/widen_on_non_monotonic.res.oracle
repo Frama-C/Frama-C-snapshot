@@ -1,0 +1,54 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/widen_on_non_monotonic.i (no preprocessing)
+tests/misc/widen_on_non_monotonic.i:57:[kernel] warning: Calling undeclared function fn1. Old style K&R code?
+tests/misc/widen_on_non_monotonic.i:58:[kernel] warning: Calling undeclared function fn2. Old style K&R code?
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  a ∈ {0}
+  b ∈ {0}
+  c ∈ {0}
+  d ∈ {0}
+  u ∈ {0}
+  g ∈ {0}
+  i ∈ {0}
+  j ∈ {0}
+  k ∈ {0}
+[value] computing for function main1 <- main.
+        Called from tests/misc/widen_on_non_monotonic.i:71.
+tests/misc/widen_on_non_monotonic.i:25:[value] entering loop for the first time
+tests/misc/widen_on_non_monotonic.i:23:[value] entering loop for the first time
+tests/misc/widen_on_non_monotonic.i:26:[value] entering loop for the first time
+tests/misc/widen_on_non_monotonic.i:27:[kernel] warning: signed overflow. assert -2147483648 ≤ b-1;
+tests/misc/widen_on_non_monotonic.i:21:[value] entering loop for the first time
+[value] Recording results for main1
+[value] Done for function main1
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main1:
+  NON TERMINATING FUNCTION
+[value] Values at end of function main:
+  NON TERMINATING FUNCTION
+[from] Computing for function main1
+[from] Non-terminating function main1 (no dependencies)
+[from] Done for function main1
+[from] Computing for function main
+[from] Non-terminating function main (no dependencies)
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main1:
+  NON TERMINATING - NO EFFECTS
+[from] Function main:
+  NON TERMINATING - NO EFFECTS
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main1:
+          a; b; c; d
+[inout] Inputs for function main1:
+          a{.f0[bits 0 to 15]; .f1[bits 0 to 15]; .f3}; b; c; d
+[inout] Out (internal) for function main:
+          a; b; c; d
+[inout] Inputs for function main:
+          a{.f0[bits 0 to 15]; .f1[bits 0 to 15]; .f3}; b; c; d

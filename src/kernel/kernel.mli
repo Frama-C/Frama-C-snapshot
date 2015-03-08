@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -95,7 +95,7 @@ module CodeOutput : sig
 end
 
 (** Behavior of option "-add-symbolic-path"
-    @since Neon-20130301 *)
+    @since Neon-20140301 *)
 module SymbolicPath: Parameter_sig.String_set
 
 module FloatNormal: Parameter_sig.Bool
@@ -145,14 +145,14 @@ end
 
 module Session_dir: Parameter_sig.String
 (** Directory in which session files are searched. 
-    @since Neon-20130301 *)
+    @since Neon-20140301 *)
 
 module Config_dir: Parameter_sig.String
 (** Directory in which config files are searched. 
-    @since Neon-20130301 *)
+    @since Neon-20140301 *)
 
 (* ************************************************************************* *)
-(** {2 Customizing Normalization} *)
+(** {2 Customizing Normalization and parsing} *)
 (* ************************************************************************* *)
 
 module UnrollingLevel: Parameter_sig.Int
@@ -176,14 +176,17 @@ module CppCommand: Parameter_sig.String
 module CppExtraArgs: Parameter_sig.String_list
   (** Behavior of option "-cpp-extra-args" *)
 
+module CppGnuLike: Parameter_sig.Bool
+  (** Behavior of option "-cpp-gnu-like" *)
+
+module FramaCStdLib: Parameter_sig.Bool
+  (** Behavior of option "-frama-c-stdlib" *)
+
 module ReadAnnot: Parameter_sig.Bool
   (** Behavior of option "-read-annot" *)
 
 module PreprocessAnnot: Parameter_sig.Bool
   (** Behavior of option "-pp-annot" *)
-
-module TypeCheck: Parameter_sig.Bool
-  (** Behavior of option "-typecheck" *)
 
 module ContinueOnAnnotError: Parameter_sig.Bool
   (** Behavior of option "-continue-annot-error" *)
@@ -206,25 +209,18 @@ module Constfold: Parameter_sig.Bool
 module InitializedPaddingLocals: Parameter_sig.Bool
   (** Behavior of option "-initialized-padding-locals" *)
 
-module AgressiveMerging: Parameter_sig.Bool
-  (** Behavior of option "-agressive-merging" *)
+module AggressiveMerging: Parameter_sig.Bool
+  (** Behavior of option "-aggressive-merging" *)
+
+module RemoveExn: Parameter_sig.Bool
+  (** Behavior of option "-remove-exn" *)
 
 (** Analyzed files *)
-module Files: sig
+module Files: Parameter_sig.String_list
+(** List of files to analyse *)
 
-  include Parameter_sig.String_list
-    (** List of files to analyse *)
-
-  module Check: Parameter_sig.Bool
-    (** Behavior of option "-check" *)
-
-  module Copy: Parameter_sig.Bool
-    (** Behavior of option "-copy" *)
-
-  module Orig_name: Parameter_sig.Bool
-    (** Behavior of option "-orig-name" *)
-
-end
+module Orig_name: Parameter_sig.Bool
+(** Behavior of option "-orig-name" *)
 
 val normalization_parameters: Typed_parameter.t list
 (** All the normalization options that influence the AST (in particular,
@@ -293,6 +289,10 @@ module LibEntry: sig
   val unsafe_set: t -> unit (** Not for casual users. *)
 end
 
+module ConstReadonly: Parameter_sig.Bool
+  (** Global variables with ["const"] qualifier are constant. 
+      See also [Cil.typeHasQualifier] *)
+
 module UnspecifiedAccess: Parameter_sig.Bool
   (** Behavior of option "-unspecified-access" *)
 
@@ -319,6 +319,20 @@ module AbsoluteValidRange: Parameter_sig.String
 module FloatFlushToZero: Parameter_sig.Bool
   (** Behavior of option "-float-flush-to-zero" *)
 *)
+
+(* ************************************************************************* *)
+(** {2 Checks} *)
+(* ************************************************************************* *)
+
+module Check: Parameter_sig.Bool
+  (** Behavior of option "-check" *)
+
+module Copy: Parameter_sig.Bool
+(** Behavior of option "-copy" *)
+
+module TypeCheck: Parameter_sig.Bool
+  (** Behavior of option "-typecheck" *)
+
 
 (*
 Local Variables:

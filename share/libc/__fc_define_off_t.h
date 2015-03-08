@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2014                                               */
+/*  Copyright (C) 2007-2015                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -22,6 +22,10 @@
 
 #ifndef __FC_DEFINE_OFF_T
 #define __FC_DEFINE_OFF_T
+
+#include "__fc_machdep.h"
+
 typedef long int off_t;
+typedef __INT64_T off64_t;
 #endif
 

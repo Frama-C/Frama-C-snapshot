@@ -17,11 +17,19 @@ int main(int c, int z, int zz) {
   f= -255;
   if ((c<=3) && (c>=0)) {
     c = 2*c-1;
+    int cc = c;
     a = 157 << c;
+    //@ assert c >= 0; // Reduction by the alarm on RHS
+    c = cc;
     d=1975;
     d = d >> c;
+    //@ assert c >= 0; // Reduction by the alarm on RHS
+    c = cc;
     f= -1975;
     f = f >> c;
+    c = cc;
+    c = c << 3;
+    //@ assert c >= 0; // Reduction by the alarm on LHS
     }
 
   if (z & 1) z=1<<32;

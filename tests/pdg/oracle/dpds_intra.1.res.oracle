@@ -1,0 +1,150 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/pdg/dpds_intra.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  G ∈ [--..--]
+  S ∈ [--..--]
+tests/pdg/dpds_intra.c:113:[kernel] warning: signed overflow. assert b+1 ≤ 2147483647;
+tests/pdg/dpds_intra.c:113:[kernel] warning: signed overflow. assert tmp+s.a ≤ 2147483647;
+                                   (tmp from b++)
+tests/pdg/dpds_intra.c:114:[kernel] warning: signed overflow. assert -2147483648 ≤ 2*a ≤ 2147483647;
+tests/pdg/dpds_intra.c:124:[kernel] warning: signed overflow. assert *p+1 ≤ 2147483647;
+[value] computing for function test_struct <- main.
+        Called from tests/pdg/dpds_intra.c:126.
+[value] Recording results for test_struct
+[value] Done for function test_struct
+[value] computing for function test_if_simple <- main.
+        Called from tests/pdg/dpds_intra.c:127.
+[value] Recording results for test_if_simple
+[value] Done for function test_if_simple
+tests/pdg/dpds_intra.c:127:[kernel] warning: accessing uninitialized left-value:
+                  assert \initialized(&tmp_1);
+                  (tmp_1 from test_if_simple())
+[value] computing for function test_goto_simple <- main.
+        Called from tests/pdg/dpds_intra.c:128.
+[value] Recording results for test_goto_simple
+[value] Done for function test_goto_simple
+[value] computing for function test_goto_arriere <- main.
+        Called from tests/pdg/dpds_intra.c:129.
+tests/pdg/dpds_intra.c:66:[kernel] warning: signed overflow. assert -2147483648 ≤ G-1;
+tests/pdg/dpds_intra.c:65:[kernel] warning: signed overflow. assert x+1 ≤ 2147483647;
+[value] Recording results for test_goto_arriere
+[value] Done for function test_goto_arriere
+tests/pdg/dpds_intra.c:129:[kernel] warning: signed overflow.
+                  assert res+tmp_3 ≤ 2147483647;
+                  (tmp_3 from test_goto_arriere())
+[value] computing for function test_goto_else <- main.
+        Called from tests/pdg/dpds_intra.c:130.
+[value] Recording results for test_goto_else
+[value] Done for function test_goto_else
+tests/pdg/dpds_intra.c:130:[kernel] warning: signed overflow.
+                  assert res+tmp_4 ≤ 2147483647;
+                  (tmp_4 from test_goto_else())
+[value] computing for function test_simple_loop <- main.
+        Called from tests/pdg/dpds_intra.c:131.
+tests/pdg/dpds_intra.c:99:[value] entering loop for the first time
+tests/pdg/dpds_intra.c:100:[kernel] warning: signed overflow. assert s+1 ≤ 2147483647;
+[value] Recording results for test_simple_loop
+[value] Done for function test_simple_loop
+tests/pdg/dpds_intra.c:131:[kernel] warning: signed overflow.
+                  assert res+tmp_5 ≤ 2147483647;
+                  (tmp_5 from test_simple_loop(G))
+[value] computing for function multiple_global_inputs <- main.
+        Called from tests/pdg/dpds_intra.c:132.
+tests/pdg/dpds_intra.c:35:[kernel] warning: signed overflow. assert -2147483648 ≤ S.a+G ≤ 2147483647;
+[value] Recording results for multiple_global_inputs
+[value] Done for function multiple_global_inputs
+tests/pdg/dpds_intra.c:132:[kernel] warning: signed overflow.
+                  assert res+tmp_6 ≤ 2147483647;
+                  (tmp_6 from multiple_global_inputs())
+tests/pdg/dpds_intra.c:134:[kernel] warning: signed overflow. assert -2147483648 ≤ *p+res ≤ 2147483647;
+[value] Recording results for main
+[value] done for function main
+[pdg] computing for function test_if_simple
+[pdg] done for function test_if_simple
+[pdg] PDG for test_if_simple
+ {n1}: InCtrl
+ {n2}: VarDecl : x0
+ {n3}: VarDecl : x1
+ {n4}: VarDecl : x2
+ {n5}: VarDecl : x3
+ {n6}: VarDecl : x
+ {n7}: x0 = 0;
+   -[-c-]-> 1
+   -[a--]-> 2
+ {n8}: x1 = 1;
+   -[-c-]-> 1
+   -[a--]-> 3
+ {n9}: x2 = 2;
+   -[-c-]-> 1
+   -[a--]-> 4
+ {n10}: x3 = 10;
+   -[-c-]-> 1
+   -[a--]-> 5
+ {n11}: G < x0
+   -[-c-]-> 1
+   -[--d]-> 2
+   -[--d]-> 7
+   -[--d]-> 21
+ {n12}: x = x0;
+   -[-c-]-> 1
+   -[--d]-> 2
+   -[a--]-> 6
+   -[--d]-> 7
+   -[-c-]-> 11
+ {n13}: G < x1
+   -[-c-]-> 1
+   -[--d]-> 3
+   -[--d]-> 8
+   -[-c-]-> 11
+   -[--d]-> 21
+ {n14}: x = x1;
+   -[-c-]-> 1
+   -[--d]-> 3
+   -[a--]-> 6
+   -[--d]-> 8
+   -[-c-]-> 11
+   -[-c-]-> 13
+ {n15}: G > x2
+   -[-c-]-> 1
+   -[--d]-> 4
+   -[--d]-> 9
+   -[-c-]-> 11
+   -[-c-]-> 13
+   -[--d]-> 21
+ {n16}: G < x3
+   -[-c-]-> 1
+   -[--d]-> 5
+   -[--d]-> 10
+   -[-c-]-> 11
+   -[-c-]-> 13
+   -[-c-]-> 15
+   -[--d]-> 21
+ {n17}: x = x3;
+   -[-c-]-> 1
+   -[--d]-> 5
+   -[a--]-> 6
+   -[--d]-> 10
+   -[-c-]-> 11
+   -[-c-]-> 13
+   -[-c-]-> 15
+   -[-c-]-> 16
+ {n18}: x = -1;
+   -[-c-]-> 1
+   -[a--]-> 6
+   -[-c-]-> 11
+   -[-c-]-> 13
+   -[-c-]-> 15
+   -[-c-]-> 16
+ {n19}: return x;
+   -[-c-]-> 1
+   -[--d]-> 6
+   -[--d]-> 12
+   -[--d]-> 14
+   -[--d]-> 17
+   -[--d]-> 18
+ {n20}: OutRet
+   -[--d]-> 19
+ {n21}: In(G)

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -51,8 +51,27 @@ let partial_pending (ps:Consolidation.pending) =
        best Property.Set.empty)
     ps
 
+
+(** Filters on which properties should be reported *)
+
+(* someone has tried to prove [ip], or show ips that no one attempted  *)
+let report_untried ip =
+  match Consolidation.get ip with
+  | Consolidation.Never_tried -> Report_parameters.Untried.get ()
+  | _ -> true
+
+(* ip is not the specialization of a property, or those specializations should
+   be shown.  *)
+let report_specialized ip =
+  (Report_parameters.Specialized.get ()) ||
+    (match ip with Property.IPPropertyInstance _ -> false | _ -> true)
+
+let report_ip ip =
+  report_untried ip && report_specialized ip
+
+
 let rec add_property ips ip =
-  if not (Property.Set.mem ip !ips) then
+  if report_ip ip && not (Property.Set.mem ip !ips) then
     begin
       ips := Property.Set.add ip !ips ;
       add_consolidation ips (Consolidation.get ip)
@@ -82,19 +101,11 @@ and add_pending ipref (ps:Consolidation.pending) =
 	 ) m
     ) ps
 
-let consider_ip ip =
-  match Consolidation.get ip with
-    | Consolidation.Never_tried -> Report_parameters.Untried.get ()
-    | _ -> true
-
 let iter (inspector:inspector) =
   begin
     (* Collect noticeable properties (tried + their pending) *)
     let properties = ref Property.Set.empty in
-    Property_status.iter
-      (fun ip -> 
-	if consider_ip ip then 
-	  add_property properties ip) ;
+    Property_status.iter (fun ip -> add_property properties ip) ;
     let globals = ref Property.Set.empty in
     let functions = ref Kernel_function.Map.empty in
     (* Dispatch properties into globals and per-function map *)

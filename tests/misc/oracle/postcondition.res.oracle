@@ -1,0 +1,297 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/postcondition.i (no preprocessing)
+tests/misc/postcondition.i:68:[kernel] warning: Return statement with a value in function returning void
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  G ∈ {0}
+  A ∈ {0}
+  B ∈ {0}
+  C ∈ {0}
+  D ∈ {0}
+  E ∈ {0}
+  EX ∈ {0}
+  X ∈ {0}
+  p ∈ {0}
+  TAB[0..9] ∈ {0}
+[value] computing for function get_index <- main.
+        Called from tests/misc/postcondition.i:84.
+tests/misc/postcondition.i:11:[value] Function get_index: precondition got status valid.
+[value] Called Frama_C_show_each_cmd({1})
+tests/misc/postcondition.i:18:[value] entering loop for the first time
+[value] computing for function u <- get_index <- main.
+        Called from tests/misc/postcondition.i:20.
+tests/misc/postcondition.i:20:[kernel] warning: No code nor implicit assigns clause for function u, generating default assigns from the prototype
+[value] using specification for function u
+[value] Done for function u
+[value] computing for function u <- get_index <- main.
+        Called from tests/misc/postcondition.i:20.
+[value] Done for function u
+[value] computing for function u <- get_index <- main.
+        Called from tests/misc/postcondition.i:20.
+[value] Done for function u
+[value] computing for function u <- get_index <- main.
+        Called from tests/misc/postcondition.i:20.
+[value] Done for function u
+[value] computing for function u <- get_index <- main.
+        Called from tests/misc/postcondition.i:20.
+[value] Done for function u
+[value] computing for function u <- get_index <- main.
+        Called from tests/misc/postcondition.i:20.
+[value] Done for function u
+[value] computing for function u <- get_index <- main.
+        Called from tests/misc/postcondition.i:20.
+[value] Done for function u
+[value] computing for function u <- get_index <- main.
+        Called from tests/misc/postcondition.i:20.
+[value] Done for function u
+tests/misc/postcondition.i:12:[value] Function get_index: postcondition got status valid.
+[value] Recording results for get_index
+[value] Done for function get_index
+[value] computing for function u <- main.
+        Called from tests/misc/postcondition.i:85.
+[value] Done for function u
+[value] computing for function bound <- main.
+        Called from tests/misc/postcondition.i:86.
+tests/misc/postcondition.i:26:[value] Function bound: postcondition got status unknown.
+[value] Recording results for bound
+[value] Done for function bound
+[value] computing for function u <- main.
+        Called from tests/misc/postcondition.i:87.
+[value] Done for function u
+[value] computing for function get_index <- main.
+        Called from tests/misc/postcondition.i:87.
+tests/misc/postcondition.i:11:[value] Function get_index: precondition got status unknown.
+[value] Called Frama_C_show_each_cmd({4})
+[value] computing for function u <- get_index <- main.
+        Called from tests/misc/postcondition.i:20.
+[value] Done for function u
+[value] computing for function u <- get_index <- main.
+        Called from tests/misc/postcondition.i:20.
+[value] Done for function u
+[value] computing for function u <- get_index <- main.
+        Called from tests/misc/postcondition.i:20.
+[value] Done for function u
+[value] computing for function u <- get_index <- main.
+        Called from tests/misc/postcondition.i:20.
+[value] Done for function u
+[value] computing for function u <- get_index <- main.
+        Called from tests/misc/postcondition.i:20.
+[value] Done for function u
+[value] computing for function u <- get_index <- main.
+        Called from tests/misc/postcondition.i:20.
+[value] Done for function u
+[value] computing for function u <- get_index <- main.
+        Called from tests/misc/postcondition.i:20.
+[value] Done for function u
+[value] computing for function u <- get_index <- main.
+        Called from tests/misc/postcondition.i:20.
+[value] Done for function u
+[value] computing for function u <- get_index <- main.
+        Called from tests/misc/postcondition.i:20.
+[value] Done for function u
+[value] computing for function u <- get_index <- main.
+        Called from tests/misc/postcondition.i:20.
+[value] Done for function u
+tests/misc/postcondition.i:12:[value] Function get_index: postcondition got status unknown.
+[value] Recording results for get_index
+[value] Done for function get_index
+[value] computing for function u <- main.
+        Called from tests/misc/postcondition.i:88.
+[value] Done for function u
+[value] computing for function cap <- main.
+        Called from tests/misc/postcondition.i:89.
+tests/misc/postcondition.i:89:[kernel] warning: No code nor implicit assigns clause for function cap, generating default assigns from the prototype
+[value] using specification for function cap
+[value] Done for function cap
+[value] computing for function u <- main.
+        Called from tests/misc/postcondition.i:90.
+[value] Done for function u
+[value] computing for function t0 <- main.
+        Called from tests/misc/postcondition.i:90.
+tests/misc/postcondition.i:33:[value] Function t0: postcondition got status valid.
+[value] Recording results for t0
+[value] Done for function t0
+[value] computing for function u <- main.
+        Called from tests/misc/postcondition.i:91.
+[value] Done for function u
+[value] computing for function t1 <- main.
+        Called from tests/misc/postcondition.i:91.
+tests/misc/postcondition.i:38:[value] Function t1: postcondition got status invalid.
+[value] Recording results for t1
+[value] Done for function t1
+[value] computing for function u <- main.
+        Called from tests/misc/postcondition.i:92.
+[value] Done for function u
+[value] computing for function t2 <- main.
+        Called from tests/misc/postcondition.i:92.
+tests/misc/postcondition.i:45:[value] Function t2: postcondition got status valid.
+[value] Recording results for t2
+[value] Done for function t2
+[value] computing for function u <- main.
+        Called from tests/misc/postcondition.i:93.
+[value] Done for function u
+[value] computing for function t3 <- main.
+        Called from tests/misc/postcondition.i:93.
+tests/misc/postcondition.i:60:[value] Function t3: postcondition got status valid.
+[value] Recording results for t3
+[value] Done for function t3
+[value] computing for function t4 <- main.
+        Called from tests/misc/postcondition.i:94.
+tests/misc/postcondition.i:65:[value] Function t4: postcondition got status valid.
+[value] Recording results for t4
+[value] Done for function t4
+[value] computing for function u <- main.
+        Called from tests/misc/postcondition.i:95.
+[value] Done for function u
+[value] computing for function t5 <- main.
+        Called from tests/misc/postcondition.i:95.
+tests/misc/postcondition.i:71:[value] Function t5: postcondition got status valid.
+tests/misc/postcondition.i:72:[value] Function t5: postcondition got status valid.
+[value] Recording results for t5
+[value] Done for function t5
+[value] computing for function f <- main.
+        Called from tests/misc/postcondition.i:96.
+tests/misc/postcondition.i:78:[value] Function f: postcondition got status valid.
+tests/misc/postcondition.i:79:[value] Function f: postcondition got status invalid.
+[value] Recording results for f
+[value] Done for function f
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function bound:
+  cmd ∈ {2}
+  __retres ∈ {0}
+[value] Values at end of function f:
+  __retres ∈ {0}
+[value] Values at end of function t0:
+  G ∈ {6}
+[value] Values at end of function t1:
+  G ∈ {6}
+[value] Values at end of function t2:
+  G ∈ {6}
+  p ∈ {{ &G }}
+[value] Values at end of function t3:
+  TAB[0].a ∈ {12}
+     {[0]{.b; .c}; [1..9]} ∈ {0}
+[value] Values at end of function t4:
+  x ∈ {4}
+  y ∈ {3}
+[value] Values at end of function t5:
+  x ∈ {9}
+[value] Values at end of function get_index:
+  ret ∈ [0..512]
+  __retres ∈ [0..512]
+[value] Values at end of function main:
+  G ∈ {0; 6}
+  B ∈ {0}
+  C ∈ [0..299]
+  D ∈ [-100..100]
+  E ∈ [20..80]
+  EX ∈ [-100..8]
+  X ∈ {0; 8}
+  p ∈ {{ NULL ; &G }}
+  TAB[0].a ∈ {0; 12}
+     {[0]{.b; .c}; [1..9]} ∈ {0}
+[from] Computing for function bound
+[from] Done for function bound
+[from] Computing for function f
+[from] Done for function f
+[from] Computing for function t0
+[from] Done for function t0
+[from] Computing for function t1
+[from] Done for function t1
+[from] Computing for function t2
+[from] Done for function t2
+[from] Computing for function t3
+[from] Done for function t3
+[from] Computing for function t4
+[from] Done for function t4
+[from] Computing for function t5
+[from] Done for function t5
+[from] Computing for function get_index
+[from] Computing for function u <-get_index
+[from] Done for function u
+[from] Done for function get_index
+[from] Computing for function main
+[from] Computing for function cap <-main
+[from] Done for function cap
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function bound:
+  \result FROM \nothing
+[from] Function cap:
+  \result FROM min; max
+[from] Function f:
+  \result FROM \nothing
+[from] Function t0:
+  G FROM \nothing
+[from] Function t1:
+  G FROM \nothing
+[from] Function t2:
+  G FROM \nothing
+  p FROM \nothing
+[from] Function t3:
+  TAB[0].a FROM \nothing
+[from] Function t4:
+  NO EFFECTS
+[from] Function t5:
+  \result FROM X
+[from] Function u:
+  \result FROM \nothing
+[from] Function get_index:
+  \result FROM cmd
+[from] Function main:
+  G FROM \nothing (and SELF)
+  B FROM \nothing
+  C FROM \nothing
+  D FROM \nothing
+  E FROM \nothing
+  EX FROM \nothing
+  X FROM \nothing (and SELF)
+  p FROM \nothing (and SELF)
+  TAB[0].a FROM \nothing (and SELF)
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function bound:
+          cmd; __retres
+[inout] Inputs for function bound:
+          \nothing
+[inout] Out (internal) for function f:
+          __retres
+[inout] Inputs for function f:
+          \nothing
+[inout] Out (internal) for function t0:
+          G
+[inout] Inputs for function t0:
+          \nothing
+[inout] Out (internal) for function t1:
+          G
+[inout] Inputs for function t1:
+          \nothing
+[inout] Out (internal) for function t2:
+          G; p
+[inout] Inputs for function t2:
+          p
+[inout] Out (internal) for function t3:
+          TAB[0].a
+[inout] Inputs for function t3:
+          \nothing
+[inout] Out (internal) for function t4:
+          x; y
+[inout] Inputs for function t4:
+          \nothing
+[inout] Out (internal) for function t5:
+          x
+[inout] Inputs for function t5:
+          X
+[inout] Out (internal) for function get_index:
+          ret; tmp; __retres
+[inout] Inputs for function get_index:
+          \nothing
+[inout] Out (internal) for function main:
+          G; B; C; D; E; EX; X; p; TAB[0].a; tmp; tmp_0; tmp_1; tmp_2; tmp_3; 
+          tmp_4; tmp_5
+[inout] Inputs for function main:
+          B; X; p

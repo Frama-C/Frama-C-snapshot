@@ -1,0 +1,38 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/termination.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  G[0..9] ∈ {0}
+  X ∈ {0}
+[value] computing for function loop <- main.
+        Called from tests/misc/termination.i:33.
+[value] Recording results for loop
+[value] Done for function loop
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function loop:
+  X ∈ {2}
+[value] Values at end of function main:
+  X ∈ {2}
+[from] Computing for function loop
+[from] Done for function loop
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function loop:
+  X FROM \nothing
+[from] Function main:
+  X FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function loop:
+          X
+[inout] Inputs for function loop:
+          \nothing
+[inout] Out (internal) for function main:
+          X; tmp
+[inout] Inputs for function main:
+          \nothing

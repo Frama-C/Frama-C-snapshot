@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -25,12 +25,12 @@
 (* -------------------------------------------------------------------------- *)
 
 module WP = State_builder.Ref
-  (Datatype.Unit)
-  (struct
-     let name = "WP"
-     let dependencies = [Ast.self]
-     let default () = ()
-   end)
+    (Datatype.Unit)
+    (struct
+      let name = "WP"
+      let dependencies = [Ast.self]
+      let default () = ()
+    end)
 
 (* -------------------------------------------------------------------------- *)
 (* --- Indexed Interface                                                  --- *)
@@ -69,8 +69,8 @@ end
 (* -------------------------------------------------------------------------- *)
 
 module Indexed
-  (Key:Datatype.S_with_collections)
-  (Info:Info with type key = Key.t) =
+    (Key:Datatype.S_with_collections)
+    (Info:Info with type key = Key.t) =
 struct
 
   type key = Key.t
@@ -86,10 +86,10 @@ struct
     try H.find key
     with Not_found ->
       let ip =
-	match Info.property key with
-	  | Later ip -> ip
-	  | Proxy(ip,emitter,ips) -> 
-	      Property_status.logical_consequence emitter ip ips ; ip
+        match Info.property key with
+        | Later ip -> ip
+        | Proxy(ip,emitter,ips) -> 
+            Property_status.logical_consequence emitter ip ips ; ip
       in
       List.iter (fun f -> f key ip) !hooks ; 
       H.add key ip ; ip
@@ -101,15 +101,15 @@ end
 (* -------------------------------------------------------------------------- *)
 
 module Indexed2
-  (Key1:Datatype.S_with_collections)
-  (Key2:Datatype.S_with_collections)
-  (Info:Info with type key = Key1.t * Key2.t) =
+    (Key1:Datatype.S_with_collections)
+    (Key2:Datatype.S_with_collections)
+    (Info:Info with type key = Key1.t * Key2.t) =
 struct
 
   module P = Datatype.Pair_with_collections(Key1)(Key2)
-    (struct
-       let module_name = Info.name
-     end)
+      (struct
+        let module_name = Info.name
+      end)
   module I = Indexed(P)(Info)
 
   type key1 = Key1.t

@@ -1,0 +1,43 @@
+# frama-c -wp -wp-model 'Typed (Ref)' [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_typed/unit_matrix.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] Collecting variable usage
+------------------------------------------------------------
+  Function make
+------------------------------------------------------------
+
+Goal Post-condition 'OK1' in 'make':
+Let m_0 = t_2[a_0->t_2[a_0][b_0->1]].
+Let x_0 = m_0[c_0->m_0[c_0][d_0->2]][a_0][b_0].
+Assume {
+  (* Domain *)
+  Type: (is_sint32 a_0) /\ (is_sint32 b_0) /\ (is_sint32 c_0)
+        /\ (is_sint32 d_0) /\ (is_sint32 x_0).
+  (* Goal *)
+  When: a_0!=c_0.
+}
+Prove: 1=x_0.
+
+------------------------------------------------------------
+
+Goal Post-condition 'OK2' in 'make':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'KO' in 'make':
+Let m_0 = t_2[a_0->t_2[a_0][b_0->1]].
+Let x_0 = m_0[c_0->m_0[c_0][d_0->2]][a_0][b_0].
+Assume {
+  (* Domain *)
+  Type: (is_sint32 a_0) /\ (is_sint32 b_0) /\ (is_sint32 c_0)
+        /\ (is_sint32 d_0) /\ (is_sint32 x_0).
+}
+Prove: 1=x_0.
+
+------------------------------------------------------------

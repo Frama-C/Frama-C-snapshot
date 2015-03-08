@@ -1,0 +1,31 @@
+- traiter les " global invariant".
+  exemple : ../jessie/band.c
+            ../../tests/jessie/init.c
+- gestion des variables globales const ?
+  exemple : ../../tests/jessie/init2.c
+- 2 alloc donne des pointeurs différents
+  exemple : ../../tests/jessie/alloc.c
+- ajouter les axiomes dans le fichiers why
+  exemple : ../../tests/jessie/count_bits.c
+- intervale pour un enum (se ramener à un invariant de type ?)
+  exemple : ../../tests/jessie/enum.c
+- predicate avec label
+  exemple : ../../tests/jessie/glob.c
+
+- détection des labels non traités
+
+- étudier les tests :
+  ../../tests/jessie/weber3.c
+  tests/more_wp/bubblesort.c
+  tests/more_wp/quicksort.c
+
+- pb traduction des définitions de prédicats en  M2 
+  (doit-on faire intervenir la memoire ou non ???)
+  exemple : ../../tests/jessie/interval_arith.c avec M2
+
+
+DONE :
+- simplification des let et forall
+- behaviors
+- some casts (integer -> integer and real -> real)
+- base_id for local variables

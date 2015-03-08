@@ -1,0 +1,69 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/leaf_spec.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  
+[value] computing for function f1 <- main.
+        Called from tests/misc/leaf_spec.i:19.
+tests/misc/leaf_spec.i:19:[kernel] warning: Neither code nor specification for function f1, generating default assigns from the prototype
+[value] using specification for function f1
+[value] Done for function f1
+[value] computing for function g <- main.
+        Called from tests/misc/leaf_spec.i:20.
+tests/misc/leaf_spec.i:20:[kernel] warning: Neither code nor specification for function g, generating default assigns from the prototype
+[value] using specification for function g
+[value] Done for function g
+[value] computing for function h <- main.
+        Called from tests/misc/leaf_spec.i:21.
+tests/misc/leaf_spec.i:21:[kernel] warning: Neither code nor specification for function h, generating default assigns from the prototype
+[value] using specification for function h
+[value] Done for function h
+[value] computing for function k <- main.
+        Called from tests/misc/leaf_spec.i:22.
+tests/misc/leaf_spec.i:22:[kernel] warning: Neither code nor specification for function k, generating default assigns from the prototype
+[value] using specification for function k
+tests/misc/leaf_spec.i:22:[value] warning: Completely invalid destination for assigns clause *l. Ignoring.
+[value] Done for function k
+[value] computing for function k0 <- main.
+        Called from tests/misc/leaf_spec.i:22.
+tests/misc/leaf_spec.i:22:[kernel] warning: Neither code nor specification for function k0, generating default assigns from the prototype
+[value] using specification for function k0
+[value] Done for function k0
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  
+[from] Computing for function main
+[from] Computing for function f1 <-main
+[from] Done for function f1
+[from] Computing for function g <-main
+[from] Done for function g
+[from] Computing for function h <-main
+[from] Done for function h
+[from] Computing for function k <-main
+[from] Done for function k
+[from] Computing for function k0 <-main
+[from] Done for function k0
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function f1:
+  NO EFFECTS
+[from] Function g:
+  \result FROM x
+[from] Function h:
+  \result FROM y
+[from] Function k:
+  \result FROM \nothing
+[from] Function k0:
+  \result FROM \nothing
+[from] Function main:
+  NO EFFECTS
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          \nothing
+[inout] Inputs for function main:
+          \nothing

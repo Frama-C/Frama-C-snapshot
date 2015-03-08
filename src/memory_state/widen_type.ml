@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -71,8 +71,7 @@ let hints_for_base default_hints hints_by_base b =
       let validity = Base.validity b in
       match validity with
         | Base.Known (_, m)
-        | Base.Unknown (_, _, m) 
-        | Base.Periodic (_, m, _) ->
+        | Base.Unknown (_, _, m) ->
           (* Try the frontier of the block: further accesses are invalid
              anyway. This also works great for constant strings (this computes
              the offset of the null terminator). *)

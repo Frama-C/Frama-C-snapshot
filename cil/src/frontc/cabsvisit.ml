@@ -388,6 +388,20 @@ and childrenStatement vis s =
       let b2' = visitCabsBlock vis b2 in
       if b1' != b1 || e' != e || b2' != b2 then
         {s with stmt_node = TRY_EXCEPT(b1', e', b2', l)} else s
+  | THROW (e,l) ->
+    let e' = optMapNoCopy (visitCabsExpression vis) e in
+    if e != e' then { s with stmt_node = THROW(e',l) } else s
+  | TRY_CATCH(t,l,loc) ->
+    let visit_one_catch (v,s as c) =
+      let v' = optMapNoCopy (childrenSingleName vis NVar) v in
+      let s' = vs loc s in
+      if v' != v || s' != s then (v,s) else c
+    in
+    let t' = vs loc t in
+    let l' = mapNoCopy visit_one_catch l in
+    if t' != t || l' != l then
+      { s with stmt_node = TRY_CATCH(t',l',loc) }
+    else s
   | CODE_ANNOT _ | CODE_SPEC _ -> s
 
 and visitCabsExpression vis (e: expression) : expression =

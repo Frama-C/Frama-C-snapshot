@@ -30,6 +30,10 @@ main(){
   unsigned i2 = s * 4;
   unsigned v1 = i1 & i2;
   unsigned v2 = i1 | i2;
+  
+  unsigned mask07 = (16 * s + 13) & 0x7;
+  unsigned mask0f = (16 * s + 13) & 0xF;
+  unsigned mask1f = (16 * s + 13) & 0x1F;
 
   return 0;
 }

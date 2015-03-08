@@ -1,0 +1,358 @@
+# frama-c -wp -wp-model 'Typed (Ref)' [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_hoare/reference_and_struct.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] Collecting variable usage
+------------------------------------------------------------
+  Function call_array_in_struct_param
+------------------------------------------------------------
+
+Goal Post-condition 'Pload2' in 'call_array_in_struct_param':
+Assume {
+  (* Pre-condition (file tests/wp_hoare/reference_and_struct.i, line 97) in 'call_array_in_struct_param' *)
+  (* Pre-condition: *)
+  Have: false.
+}
+Prove: reg_load_0[i_1]=
+       (Array1_int (shiftfield_F_S_tab (shift_S (global P_sf_131) 0)) 10
+         Mint_0)[i_1].
+
+------------------------------------------------------------
+
+Goal Post-condition 'Pload3' in 'call_array_in_struct_param':
+Let a_0 = (shift_S (global P_sf_131) 0).
+Assume {
+  (* Pre-condition (file tests/wp_hoare/reference_and_struct.i, line 97) in 'call_array_in_struct_param' *)
+  (* Pre-condition: *)
+  Have: false.
+}
+Prove: (Load_S_S a_0 Mint_0).F_S_tab[i_0]=
+       (Array1_int (shiftfield_F_S_tab a_0) 10 Mint_0)[i_0].
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/reference_and_struct.i, line 98) in 'call_array_in_struct_param':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/reference_and_struct.i, line 98) in 'call_array_in_struct_param':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_hoare/reference_and_struct.i, line 83) in 'load_5'' in 'call_array_in_struct_param' at call 'load_5' (file tests/wp_hoare/reference_and_struct.i, line 102)
+:
+Assume {
+  (* Pre-condition (file tests/wp_hoare/reference_and_struct.i, line 97) in 'call_array_in_struct_param' *)
+  (* Pre-condition: *)
+  Have: false.
+}
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function call_on_array_in_struct_global
+------------------------------------------------------------
+
+Goal Post-condition 'Pload' in 'call_on_array_in_struct_global':
+Let a_0 = (shiftfield_F_S_tab (shift_S (global G_s_115) 0)).
+Assume {
+  (* Goal *)
+  When: (0<=i_1) /\ (i_1<=4).
+  (* tests/wp_hoare/reference_and_struct.i:94: Call 'load_5' *)
+  Have: forall i_0:int.
+        (0<=i_0) -> (i_0<=4)
+        -> (reg_load_0[i_0]=Mint_0[(shift_sint32 a_0 i_0)]).
+  (* tests/wp_hoare/reference_and_struct.i:94: Call Effects *)
+  Have: forall i_0:int.
+        ((i_0<0) \/ (5<=i_0)) -> (reg_load_0[i_0]=reg_load_1[i_0]).
+}
+Prove: reg_load_0[i_1]=Mint_0[(shift_sint32 a_0 i_1)].
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/reference_and_struct.i, line 91) in 'call_on_array_in_struct_global':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/reference_and_struct.i, line 91) in 'call_on_array_in_struct_global':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_hoare/reference_and_struct.i, line 83) in 'load_5'' in 'call_on_array_in_struct_global' at call 'load_5' (file tests/wp_hoare/reference_and_struct.i, line 94)
+:
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function call_reset
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_hoare/reference_and_struct.i, line 20) in 'call_reset':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/reference_and_struct.i, line 19) in 'call_reset':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/reference_and_struct.i, line 19) in 'call_reset' (1/2):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/reference_and_struct.i, line 19) in 'call_reset' (2/2):
+Effect at line 23
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_hoare/reference_and_struct.i, line 11) in 'reset'' in 'call_reset' at call 'reset' (file tests/wp_hoare/reference_and_struct.i, line 23)
+:
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function call_reset_1_5
+------------------------------------------------------------
+
+Goal Post-condition 'Presset_mat' in 'call_reset_1_5':
+Let a_0 = (shift_A5_T (shift_A20_A5_T (global G_smatrix_104) 0) 0).
+Assume {
+  (* Goal *)
+  When: (0<=i_1) /\ (i_1<=4).
+  (* tests/wp_hoare/reference_and_struct.i:67: Call 'reset_1_5' *)
+  Have: forall i_0:int.
+        (0<=i_0) -> (i_0<=4)
+        -> (0=Mint_0[(shiftfield_F_T_a (shift_T a_0 i_0))]).
+  (* tests/wp_hoare/reference_and_struct.i:67: Call Effects *)
+  Have: (havoc Mint_1 Mint_0 (shift_T a_0 0) 10).
+}
+Prove: 0=Mint_0[(shiftfield_F_T_a (shift_T a_0 i_1))].
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/reference_and_struct.i, line 63) in 'call_reset_1_5':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/reference_and_struct.i, line 63) in 'call_reset_1_5':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_hoare/reference_and_struct.i, line 53) in 'reset_1_5'' in 'call_reset_1_5' at call 'reset_1_5' (file tests/wp_hoare/reference_and_struct.i, line 67)
+:
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function call_reset_5
+------------------------------------------------------------
+
+Goal Post-condition 'Preset_5' in 'call_reset_5':
+Let a_0 = (shift_A10_T (global G_ts_84) 0).
+Assume {
+  (* Goal *)
+  When: (0<=i_1) /\ (i_1<=4).
+  (* tests/wp_hoare/reference_and_struct.i:39: Call 'reset_5' *)
+  Have: forall i_0:int.
+        (0<=i_0) -> (i_0<=4)
+        -> (0=Mint_0[(shiftfield_F_T_a (shift_T a_0 i_0))]).
+  (* tests/wp_hoare/reference_and_struct.i:39: Call Effects *)
+  Have: (havoc Mint_1 Mint_0 (shift_T a_0 0) 10).
+}
+Prove: 0=Mint_0[(shiftfield_F_T_a (shift_T a_0 i_1))].
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/reference_and_struct.i, line 35) in 'call_reset_5':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/reference_and_struct.i, line 35) in 'call_reset_5':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_hoare/reference_and_struct.i, line 26) in 'reset_5'' in 'call_reset_5' at call 'reset_5' (file tests/wp_hoare/reference_and_struct.i, line 39)
+:
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function call_reset_5_dim2
+------------------------------------------------------------
+
+Goal Post-condition 'Presset_mat' in 'call_reset_5_dim2':
+Let a_0 = (shift_A5_T (shift_A20_A5_T (global G_smatrix_104) 0) 1).
+Assume {
+  (* Goal *)
+  When: (0<=i_1) /\ (i_1<=4).
+  (* tests/wp_hoare/reference_and_struct.i:75: Call 'reset_5' *)
+  Have: forall i_0:int.
+        (0<=i_0) -> (i_0<=4)
+        -> (0=Mint_0[(shiftfield_F_T_a (shift_T a_0 i_0))]).
+  (* tests/wp_hoare/reference_and_struct.i:75: Call Effects *)
+  Have: (havoc Mint_1 Mint_0 (shift_T a_0 0) 10).
+}
+Prove: 0=Mint_0[(shiftfield_F_T_a (shift_T a_0 i_1))].
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/reference_and_struct.i, line 71) in 'call_reset_5_dim2':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/reference_and_struct.i, line 71) in 'call_reset_5_dim2':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_hoare/reference_and_struct.i, line 26) in 'reset_5'' in 'call_reset_5_dim2' at call 'reset_5' (file tests/wp_hoare/reference_and_struct.i, line 75)
+:
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function call_reset_5_tps
+------------------------------------------------------------
+
+Goal Post-condition 'Preset_5_tps' in 'call_reset_5_tps':
+Let a_0 = tps_0[9].
+Let a_1 = (shift_T a_0 0).
+Assume {
+  (* Goal *)
+  When: (0<=i_1) /\ (i_1<=4).
+  (* Heap *)
+  Have: (linked Malloc_0).
+  (* Pre-condition (file tests/wp_hoare/reference_and_struct.i, line 44) in 'call_reset_5_tps' *)
+  (* Pre-condition: *)
+  Have: (valid_rw Malloc_0 a_1 10).
+  (* tests/wp_hoare/reference_and_struct.i:49: Call 'reset_5' *)
+  Have: forall i_0:int.
+        (0<=i_0) -> (i_0<=4)
+        -> (0=Mint_0[(shiftfield_F_T_a (shift_T a_0 i_0))]).
+  (* tests/wp_hoare/reference_and_struct.i:49: Call Effects *)
+  Have: (havoc Mint_1 Mint_0 a_1 10).
+}
+Prove: 0=Mint_0[(shiftfield_F_T_a (shift_T a_0 i_1))].
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/reference_and_struct.i, line 45) in 'call_reset_5_tps':
+Call Effect at line 49
+Let a_0 = (shift_T tps_0[9] 0).
+Assume {
+  (* Goal *)
+  When: (valid_rd Malloc_0 a_0 10).
+  (* Heap *)
+  Have: (linked Malloc_0).
+  (* Pre-condition (file tests/wp_hoare/reference_and_struct.i, line 44) in 'call_reset_5_tps' *)
+  (* Pre-condition: *)
+  Have: (valid_rw Malloc_0 a_0 10).
+  (* tests/wp_hoare/reference_and_struct.i:49: Exit Effects *)
+  Have: (havoc Mint_2 Mint_0 a_0 10).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/reference_and_struct.i, line 45) in 'call_reset_5_tps':
+Call Effect at line 49
+Let a_0 = tps_0[9].
+Let a_1 = (shift_T a_0 0).
+Assume {
+  (* Goal *)
+  When: (valid_rd Malloc_0 a_1 10).
+  (* Heap *)
+  Have: (linked Malloc_0).
+  (* Pre-condition (file tests/wp_hoare/reference_and_struct.i, line 44) in 'call_reset_5_tps' *)
+  (* Pre-condition: *)
+  Have: (valid_rw Malloc_0 a_1 10).
+  (* tests/wp_hoare/reference_and_struct.i:49: Call 'reset_5' *)
+  Have: forall i_0:int.
+        (0<=i_0) -> (i_0<=4)
+        -> (0=Mint_0[(shiftfield_F_T_a (shift_T a_0 i_0))]).
+  (* tests/wp_hoare/reference_and_struct.i:49: Call Effects *)
+  Have: (havoc Mint_1 Mint_0 a_1 10).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_hoare/reference_and_struct.i, line 26) in 'reset_5'' in 'call_reset_5_tps' at call 'reset_5' (file tests/wp_hoare/reference_and_struct.i, line 49)
+:
+Assume {
+  (* Heap *)
+  Have: (linked Malloc_0).
+  (* Pre-condition (file tests/wp_hoare/reference_and_struct.i, line 44) in 'call_reset_5_tps' *)
+  (* Pre-condition: *)
+  Have: (valid_rw Malloc_0 (shift_T tps_0[9] 0) 10).
+}
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function reset
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_hoare/reference_and_struct.i, line 13) in 'reset':
+Assume {
+  (* Heap *)
+  Have: (linked Malloc_0) /\ ((region (base p_0))<=0).
+  (* Pre-condition (file tests/wp_hoare/reference_and_struct.i, line 11) in 'reset' *)
+  (* Pre-condition: *)
+  Have: (valid_rw Malloc_0 p_0 2).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/reference_and_struct.i, line 12) in 'reset':
+Effect at line 15
+Let a_0 = (shiftfield_F_T_a p_0).
+Assume {
+  (* Domain *)
+  Type: (is_sint32 Mint_0[a_0]).
+  (* Goal *)
+  When: (valid_rd Malloc_0 a_0 1).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ ((region (base p_0))<=0).
+  (* Pre-condition (file tests/wp_hoare/reference_and_struct.i, line 11) in 'reset' *)
+  (* Pre-condition: *)
+  Have: (valid_rw Malloc_0 p_0 2).
+}
+Prove: true.
+
+------------------------------------------------------------

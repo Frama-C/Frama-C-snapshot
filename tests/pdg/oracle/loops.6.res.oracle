@@ -1,0 +1,44 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/pdg/loops.c (with preprocessing)
+[value] Analyzing an incomplete application starting at loop_with_goto
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  after ∈ [--..--]
+tests/pdg/loops.c:120:[kernel] warning: signed overflow. assert -2147483648 ≤ n-1;
+[value] Recording results for loop_with_goto
+[value] done for function loop_with_goto
+[pdg] computing for function loop_with_goto
+[pdg] done for function loop_with_goto
+[pdg] PDG for loop_with_goto
+ {n1}: InCtrl
+ {n2}: VarDecl : n
+   -[a--]-> 3
+ {n3}: In1
+   -[a--]-> 2
+ {n4}: n > 0
+   -[-c-]-> 1
+   -[--d]-> 2
+   -[--d]-> 3
+ {n5}: L:
+   -[-c-]-> 1
+   -[-c-]-> 4
+   -[-c-]-> 7
+ {n6}: L: n --;
+   -[-c-]-> 1
+   -[a-d]-> 2
+   -[--d]-> 3
+   -[-c-]-> 4
+   -[--d]-> 6
+   -[-c-]-> 7
+ {n7}: goto L;
+   -[-c-]-> 1
+   -[-c-]-> 4
+   -[-c-]-> 5
+   -[-c-]-> 7
+ {n8}: return n;
+   -[-c-]-> 1
+   -[--d]-> 2
+   -[--d]-> 3
+ {n9}: OutRet
+   -[--d]-> 8

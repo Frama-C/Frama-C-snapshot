@@ -43,13 +43,6 @@
 
 let dkey = Kernel.register_category "dataflows"
 
-(* This file defines a set of dataflow frameworks. Instead of defining
-   a single dataflow interface that tries to accomodate with all the
-   options, having a set of dataflows allow to keep things simple in
-   the general case; specific demands are handled by using more
-   general dataflows. Simpler-to-instanciate dataflows are instances
-   of the more general dataflows. *)
-
 open Ordered_stmt;;
 open Cil_types;;
 

@@ -1,0 +1,62 @@
+This file present the tests in ppc/test/pdg that deal with the
+Program Dependence Graph computation.
+
+** tests/pdg/dpds_intra.c
+   many small tests for the PDG.
+   The function "test_ctrl_dpd_multiple" is a case where some
+   PDG nodes should have more than one control dependencies,
+   but it cannot be tested because the value analysis doesn't work on that case.
+
+** tests/pdg/simple_call.c
+   tests for the PDG of function calls.
+
+** tests/pdg/calls_and_implicits.c
+   test the PDG for dependencies between global variables in calls.
+   Check if inputs and outputs are not mixed up.
+
+** tests/pdg/calls_and_struct.c
+   test the PDG for dependencies with structures.
+   In the function 'asgn_struct' we see that the precision could be better.
+
+** tests/pdg/decl_dpds.c
+   test the PDG with pointers and global variables.
+
+** tests/pdg/globals.c
+   Some tests to have more information about value analysis results.
+   Some of the results seem strange...
+
+** tests/pdg/inter_alias2.c
+   Test the PDG with pointers.
+   Show that the alias analysis merge the contexts and the precison problem.
+
+** tests/pdg/inter_alias.c
+   Test the PDG with pointers.
+
+** tests/pdg/multiple_calls.c
+   Test the PDG for call through function pointer.
+
+** tests/pdg/no_body.c
+   Test the PDG for call to a function that has no body.
+   It is strange that the result of the function doesn't depend on the inputs,
+   but it is the behaviour of the whole tool.
+
+** tests/pdg/pb_infinite_loop.c
+   Infinite loop => no post-dominator computation (not defined in this case).
+   Not-Implemented-Yet !
+   We should over-approximate the control dependencies in the loop
+   so that every statement depend on every test.
+
+** tests/pdg/variadic.c
+   Test a call to a function with a variable number of arguments.
+   The PDG of the variadic function is not computed -> TOP.
+
+** tests/pdg/dyn_dpds.c + tests/pdg/dyn_dpds.ml
+   Test for the dynamic dependencies.
+
+** tests/pdg/call.c
+   A very simple example to generate graph for the documentation.
+
+** tests/pdg/doc_dot.c
+   A very simple example to show the different kinds of nodes and link
+   in a .dot file (also for the documentation).
+

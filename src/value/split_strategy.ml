@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,7 +24,7 @@ open Abstract_interp
 
 type split_strategy =
   | NoSplit
-  | SplitEqList of Datatype.Big_int.t list
+  | SplitEqList of Datatype.Integer.t list
   | FullSplit
 (* To be completed with more involved strategies *)
 
@@ -58,7 +58,7 @@ Datatype.Make_with_collections(struct
     | FullSplit -> Format.pp_print_string fmt "full split"
     | SplitEqList l ->
       Format.fprintf fmt "Split on \\result == %a"
-        (Pretty_utils.pp_list ~sep:",@ " Datatype.Big_int.pretty) l
+        (Pretty_utils.pp_list ~sep:",@ " Datatype.Integer.pretty) l
   let varname _ = "v"
   let mem_project = Datatype.never_any_project
 end)

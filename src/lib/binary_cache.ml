@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,7 +24,8 @@ let memory_footprint_var_name = "FRAMA_C_MEMORY_FOOTPRINT"
 
 let memory_footprint =
   let error () =
-    Kernel.error "@[Bad value for environment variable@ %s.@ Expected value: \
+    Cmdline.Kernel_log.error
+      "@[Bad value for environment variable@ %s.@ Expected value: \
      integer between@ 1 and 10.@ Using@ default value@ of 2.@]"
       memory_footprint_var_name;
     2
@@ -38,6 +39,23 @@ let memory_footprint =
   | Failure "int_of_string" -> error ()
 
 let cache_size = 1 lsl (8 + memory_footprint)
+
+(** The caches of this module are lazy, for two reasons:
+
+  - some caches are never used, because the function that created them is
+    never called. This typically happens for functors implementing generic
+    datastructures, where not all functions are used in every module
+    (but every function with a static cache creates its cache nevertheless)
+
+  - Caches must be cleared as soon as some states change, in order to remain
+    coherent (for example, when the current project changes). When setting
+    multiple command-line options, the caches may be cleared after each option.
+    When caches are big, this becomes very time-consuming. To avoid this,
+    the functions [clear] do nothing when the caches have not been forced yet.
+    (This is not perfect: once a lazy cache has been forced, each 'clear'
+    operation becomes costly again.)
+*)
+let (!!) = Lazy.force
 
 module type Cacheable =
 sig
@@ -153,6 +171,75 @@ struct
         Obj.obj (Obj.field t (base+2))
 end
 
+module Array_4 =
+struct
+  type ('a, 'b, 'c, 'd) t
+
+  let (clear : ('a , 'b , 'c , 'd) t ->
+        'a -> 'b -> 'c -> 'd -> unit)
+      = fun t a b c d ->
+        let t = Obj.repr t in
+        let size4 = Obj.size t in
+        let i = ref 0 in
+        while (!i < size4)
+        do
+          let base = !i in
+          Obj.set_field t (base)   (Obj.repr a);
+          Obj.set_field t (base+1) (Obj.repr b);
+          Obj.set_field t (base+2) (Obj.repr c);
+          Obj.set_field t (base+3) (Obj.repr d);
+          i := base + 7;
+        done
+
+  let (make : int -> 'a -> 'b -> 'c -> 'd ->
+        ('a , 'b , 'c , 'd) t)
+      = fun size a b c d ->
+        let size4 = 4 * size in
+        let t  = Obj.obj (Obj.new_block 0 size4) in
+        clear t a b c d;
+        t
+
+  let (set :
+          ('a, 'b, 'c, 'd) t -> int ->
+        'a -> 'b -> 'c -> 'd -> unit)
+      = fun t i a b c d ->
+        let t = Obj.repr t in
+        let base = 4 * i in
+        Obj.set_field t (base)   (Obj.repr a);
+        Obj.set_field t (base+1) (Obj.repr b);
+        Obj.set_field t (base+2) (Obj.repr c);
+        Obj.set_field t (base+3) (Obj.repr d);
+  ;;
+
+  let (get0 :
+          ('a, 'b, 'c, 'd) t -> int -> 'a)
+      = fun t i ->
+        let t = Obj.repr t in
+        let base = 4 * i in
+        Obj.obj (Obj.field t (base))
+
+  let (get1 :
+          ('a, 'b, 'c, 'd) t -> int -> 'b)
+      = fun t i ->
+        let t = Obj.repr t in
+        let base = 4 * i in
+        Obj.obj (Obj.field t (base+1))
+
+  let (get2 :
+          ('a, 'b, 'c, 'd) t -> int -> 'c)
+      = fun t i ->
+        let t = Obj.repr t in
+        let base = 4 * i in
+        Obj.obj (Obj.field t (base+2))
+
+  let (get3 :
+          ('a, 'b, 'c, 'd) t -> int -> 'd)
+      = fun t i ->
+        let t = Obj.repr t in
+        let base = 4 * i in
+        Obj.obj (Obj.field t (base+3))
+end
+
 module Array_7 =
 struct
   type ('a, 'b, 'c, 'd, 'e, 'f, 'g) t
@@ -176,7 +263,7 @@ struct
           i := base + 7;
         done
 
-  let (make : int -> 'a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g ->
+  let (_make : int -> 'a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g ->
         ('a , 'b , 'c , 'd , 'e , 'f , 'g) t)
       = fun size a b c d e f g ->
         let size7 = 7 * size in
@@ -184,7 +271,7 @@ struct
         clear t a b c d e f g;
         t
 
-  let (set :
+  let (_set :
           ('a, 'b, 'c, 'd, 'e, 'f, 'g) t -> int ->
         'a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g -> unit)
       = fun t i a b c d e f g ->
@@ -198,49 +285,49 @@ struct
         Obj.set_field t (base+5) (Obj.repr f);
         Obj.set_field t (base+6) (Obj.repr g)
 
-  let (get0 :
+  let (_get0 :
           ('a, 'b, 'c, 'd, 'e, 'f, 'g) t -> int -> 'a)
       = fun t i ->
         let t = Obj.repr t in
         let base = 7 * i in
         Obj.obj (Obj.field t (base))
 
-  let (get1 :
+  let (_get1 :
           ('a, 'b, 'c, 'd, 'e, 'f, 'g) t -> int -> 'b)
       = fun t i ->
         let t = Obj.repr t in
         let base = 7 * i in
         Obj.obj (Obj.field t (base+1))
 
-  let (get2 :
+  let (_get2 :
           ('a, 'b, 'c, 'd, 'e, 'f, 'g) t -> int -> 'c)
       = fun t i ->
         let t = Obj.repr t in
         let base = 7 * i in
         Obj.obj (Obj.field t (base+2))
 
-  let (get3 :
+  let (_get3 :
           ('a, 'b, 'c, 'd, 'e, 'f, 'g) t -> int -> 'd)
       = fun t i ->
         let t = Obj.repr t in
         let base = 7 * i in
         Obj.obj (Obj.field t (base+3))
 
-  let (get4 :
+  let (_get4 :
           ('a, 'b, 'c, 'd, 'e, 'f, 'g) t -> int -> 'e)
       = fun t i ->
         let t = Obj.repr t in
         let base = 7 * i in
         Obj.obj (Obj.field t (base+4))
 
-  let (get5 :
+  let (_get5 :
           ('a, 'b, 'c, 'd, 'e, 'f, 'g) t -> int -> 'f)
       = fun t i ->
         let t = Obj.repr t in
         let base = 7 * i in
         Obj.obj (Obj.field t (base+5))
 
-  let (get6 :
+  let (_get6 :
           ('a, 'b, 'c, 'd, 'e, 'f, 'g) t -> int -> 'g)
       = fun t i ->
         let t = Obj.repr t in
@@ -249,15 +336,16 @@ struct
 
 end
 
-module Make_Symmetric (H: Cacheable) (R: Result) =
+module Symmetric_Binary (H: Cacheable) (R: Result) =
 struct
   let size = cache_size
-  let cache = Array_3.make size H.sentinel H.sentinel R.sentinel
+  let cache = lazy (Array_3.make size H.sentinel H.sentinel R.sentinel)
 
   let mask = pred size
 
   let clear () =
-    Array_3.clear cache H.sentinel H.sentinel R.sentinel
+    if Lazy.lazy_is_val cache then
+      Array_3.clear !!cache H.sentinel H.sentinel R.sentinel
 
   let hash = H.hash
 
@@ -273,49 +361,108 @@ struct
     in
     let has = has land mask in
 
-    if H.equal (Array_3.get0 cache has) a0
-      && H.equal (Array_3.get1 cache has) a1
+    if H.equal (Array_3.get0 !!cache has) a0
+      && H.equal (Array_3.get1 !!cache has) a1
     then begin
 (*      Format.printf "Cache O@.";  *)
-        Array_3.get2 cache has
+        Array_3.get2 !!cache has
       end
     else
       let result = f a0 a1 in
 (*      Format.printf "Cache N@."; *)
-      Array_3.set cache has a0 a1 result;
+      Array_3.set !!cache has a0 a1 result;
       result
 end
 
-
-module Make_Asymmetric (H: Cacheable) (R: Result) =
+module Arity_One (H: Cacheable) (R: Result) =
 struct
   let size = cache_size
-  let cache = Array_3.make size H.sentinel H.sentinel R.sentinel
+  let cache = lazy (Array_2.make size H.sentinel R.sentinel)
 
   let mask = pred size
 
   let clear () =
-    Array_3.clear cache H.sentinel H.sentinel R.sentinel
+    if Lazy.lazy_is_val cache then
+      Array_2.clear !!cache H.sentinel R.sentinel
+
+  let merge f a0 =
+    let h0 = H.hash a0 in
+    let has = h0 land mask in
+    if H.equal (Array_2.get0 !!cache has) a0
+    then begin
+(*      Format.printf "Cache O@.";  *)
+        Array_2.get1 !!cache has
+      end
+    else
+      let result = f a0 in
+(*      Format.printf "Cache N@."; *)
+      Array_2.set !!cache has a0 result;
+      result
+end
+
+module Arity_Two (H0: Cacheable) (H1: Cacheable) (R: Result) =
+struct
+
+  let size = cache_size
+  let cache = lazy (Array_3.make size H0.sentinel H1.sentinel R.sentinel)
+  let mask = pred size
+
+  let clear () =
+    if Lazy.lazy_is_val cache then
+      Array_3.clear !!cache H0.sentinel H1.sentinel R.sentinel
 
   let merge f a0 a1 =
-    let h0 = H.hash a0 in
-    let h1 = H.hash a1 in
+    let h0 = H0.hash a0 in
+    let h1 = H1.hash a1 in
     let has = h1 lsl 5 - h1 + h0
     in
     let has = has land mask in
 
-    if H.equal (Array_3.get0 cache has) a0
-      && H.equal (Array_3.get1 cache has) a1
+    if H0.equal (Array_3.get0 !!cache has) a0
+      && H1.equal (Array_3.get1 !!cache has) a1
     then begin
 (*      Format.printf "Cache O@.";  *)
-        Array_3.get2 cache has
+        Array_3.get2 !!cache has
       end
     else
       let result = f a0 a1 in
 (*      Format.printf "Cache N@."; *)
-      Array_3.set cache has a0 a1 result;
+      Array_3.set !!cache has a0 a1 result;
       result
 end
+
+module Arity_Three (H0: Cacheable) (H1: Cacheable) (H2: Cacheable) (R: Result) =
+struct
+  let size = cache_size
+  let cache =
+    lazy (Array_4.make size H0.sentinel H1.sentinel H2.sentinel R.sentinel)
+  let mask = pred size
+
+  let clear () =
+    if Lazy.lazy_is_val cache then
+      Array_4.clear !!cache H0.sentinel H1.sentinel H2.sentinel R.sentinel
+
+  let merge f a0 a1 a2 =
+    let h0 = H0.hash a0 in
+    let h1 = H1.hash a1 in
+    let h2 = H2.hash a2 in
+    let has = h0 + 117 * h1 + 2375 * h2 in
+    let has = has land mask in
+
+    if H0.equal (Array_4.get0 !!cache has) a0
+    && H1.equal (Array_4.get1 !!cache has) a1
+    && H2.equal (Array_4.get2 !!cache has) a2
+    then begin
+(*      Format.printf "Cache O@.";  *)
+        Array_4.get3 !!cache has
+      end
+    else
+      let result = f a0 a1 a2 in
+(*      Format.printf "Cache N@."; *)
+      Array_4.set !!cache has a0 a1 a2 result;
+      result
+end
+
 
 module Array_Bit =
 struct
@@ -346,16 +493,18 @@ struct
     String.fill s 0 (String.length s) zero
 end
 
-module Make_Binary (H0: Cacheable) (H1: Cacheable) =
+module Binary_Predicate (H0: Cacheable) (H1: Cacheable) =
 struct
   let size = cache_size
-  let cache = Array_2.make size H0.sentinel H1.sentinel
-  let result = Array_Bit.make size
+  let cache = lazy (Array_2.make size H0.sentinel H1.sentinel)
+  let result = lazy (Array_Bit.make size)
   let mask = pred size
 
   let clear () =
-    Array_2.clear cache H0.sentinel H1.sentinel;
-    Array_Bit.clear result
+    if Lazy.lazy_is_val cache then
+      Array_2.clear !!cache H0.sentinel H1.sentinel;
+    if Lazy.lazy_is_val result then
+      Array_Bit.clear !!result
 
   let merge f a0 a1 =
     let has =
@@ -365,30 +514,32 @@ struct
     in
     let has = has land mask in
 
-    if H0.equal (Array_2.get0 cache has) a0
-      && H1.equal (Array_2.get1 cache has) a1
+    if H0.equal (Array_2.get0 !!cache has) a0
+      && H1.equal (Array_2.get1 !!cache has) a1
     then begin
 (*      Format.printf "Cache O@.";  *)
-        Array_Bit.get result has
+        Array_Bit.get !!result has
       end
     else
       let r = f a0 a1 in
 (*      Format.printf "Cache N@."; *)
-      Array_2.set cache has a0 a1;
-      Array_Bit.set result has r;
+      Array_2.set !!cache has a0 a1;
+      Array_Bit.set !!result has r;
       r
 end
 
-module Make_Symmetric_Binary (H0: Cacheable) =
+module Symmetric_Binary_Predicate (H0: Cacheable) =
 struct
   let size = cache_size
-  let cache = Array_2.make size H0.sentinel H0.sentinel 
-  let result = Array_Bit.make size
+  let cache = lazy (Array_2.make size H0.sentinel H0.sentinel)
+  let result = lazy (Array_Bit.make size)
   let mask = pred size
 
   let clear () =
-    Array_2.clear cache H0.sentinel H0.sentinel;
-    Array_Bit.clear result
+    if Lazy.lazy_is_val cache then
+      Array_2.clear !!cache H0.sentinel H0.sentinel;
+    if Lazy.lazy_is_val result then
+      Array_Bit.clear !!result
 
   let hash = H0.hash
 
@@ -404,59 +555,20 @@ struct
     in
     let has = has land mask in
 
-    if H0.equal (Array_2.get0 cache has) a0
-      && H0.equal (Array_2.get1 cache has) a1
+    if H0.equal (Array_2.get0 !!cache has) a0
+      && H0.equal (Array_2.get1 !!cache has) a1
     then begin
 (*      Format.printf "Cache O@.";  *)
-        Array_Bit.get result has
+        Array_Bit.get !!result has
       end
     else
       let r = f a0 a1 in
 (*      Format.printf "Cache N@."; *)
-      Array_2.set cache has a0 a1;
-      Array_Bit.set result has r;
+      Array_2.set !!cache has a0 a1;
+      Array_Bit.set !!result has r;
       r
 end
 
-module Make_Het1_1_4 (H0: Cacheable) (H1: Cacheable) (H2: Cacheable) (R: Result) =
-struct
-  let size = cache_size
-  let cache =
-    Array_7.make size
-      H0.sentinel H1.sentinel
-      H2.sentinel H2.sentinel H2.sentinel H2.sentinel
-      R.sentinel
-
-  let mask = pred size
-
-  let clear () =
-    Array_7.clear cache
-      H0.sentinel H1.sentinel
-      H2.sentinel H2.sentinel H2.sentinel H2.sentinel
-      R.sentinel
-
-  let merge f a0 a1 a2 a3 a4 a5 =
-    let has = H0.hash a0 + 4909 * (H1.hash a1) +
-      127 * (H2.hash a2) + 971 * (H2.hash a3) +
-      31 * (H2.hash a4) + 7907 * (H2.hash a5)
-    in
-    let has = has land mask in
-    if H0.equal (Array_7.get0 cache has) a0
-      && H1.equal (Array_7.get1 cache has) a1
-      && H2.equal (Array_7.get2 cache has) a2
-      && H2.equal (Array_7.get3 cache has) a3
-      && H2.equal (Array_7.get4 cache has) a4
-      && H2.equal (Array_7.get5 cache has) a5
-    then begin
-(*      Format.printf "Cache O@."; *)
-        Array_7.get6 cache has
-      end
-    else
-      let result = f () in
-(*      Format.printf "Cache N@."; *)
-      Array_7.set cache has a0 a1 a2 a3 a4 a5 result;
-      result
-end
 
 (*
 Local Variables:

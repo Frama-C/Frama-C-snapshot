@@ -1,0 +1,14 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_plugin/params.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+------------------------------------------------------------
+  Global
+------------------------------------------------------------
+
+Lemma lem:
+Prove: (P_p 1)
+
+------------------------------------------------------------

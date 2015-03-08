@@ -1,0 +1,43 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/pointer_comp.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  v ∈ [--..--]
+  str1[0] ∈ {97}
+      [1] ∈ {98}
+      [2] ∈ {115}
+      [3] ∈ {100}
+      [4] ∈ {0}
+  str2[0] ∈ {97}
+      [1] ∈ {98}
+      [2..3] ∈ {100}
+      [4] ∈ {0}
+  s1 ∈ {0}
+  s2[0..7] ∈ {0}
+  NULL ∈ {0}
+tests/misc/pointer_comp.c:33:[kernel] warning: pointer comparison: assert \pointer_comparable(&s2[9], NULL);
+tests/misc/pointer_comp.c:34:[kernel] warning: pointer comparison: assert \pointer_comparable(&s2[9], &s2[9]);
+tests/misc/pointer_comp.c:37:[kernel] warning: pointer comparison: assert \pointer_comparable(&str1, &str2);
+tests/misc/pointer_comp.c:38:[kernel] warning: pointer comparison: assert \pointer_comparable(&s1, &s2);
+tests/misc/pointer_comp.c:39:[kernel] warning: pointer comparison:
+                  assert \pointer_comparable((void (*)())(&f), (void (*)())(&g));
+tests/misc/pointer_comp.c:46:[kernel] warning: pointer comparison: assert \pointer_comparable((void (*)())p, NULL);
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  i ∈ {0; 1}
+  p ∈ {{ &f ; &g }}
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  NO EFFECTS
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          i; p; tmp
+[inout] Inputs for function main:
+          v; NULL

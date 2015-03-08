@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -21,9 +21,11 @@
 (**************************************************************************)
 
 module SemanticConstFolding: Parameter_sig.Bool
-module SemanticConstFold: Parameter_sig.String_set
+module SemanticConstFold: Parameter_sig.Fundec_set
 module CastIntro: Parameter_sig.Bool
 module ExpandLogicContext: Parameter_sig.Bool
+module Project_name: Parameter_sig.String
+
 include Log.Messages
 
 (*

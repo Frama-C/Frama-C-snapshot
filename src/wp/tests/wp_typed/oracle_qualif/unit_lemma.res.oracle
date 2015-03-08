@@ -1,0 +1,23 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_typed/unit_lemma.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] 6 goals scheduled
+[wp] [Alt-Ergo] Goal typed_lemma_P23_KO : Unknown
+[wp] [Alt-Ergo] Goal typed_lemma_P52 : Valid
+[wp] [Alt-Ergo] Goal typed_lemma_P13 : Valid
+[wp] [Alt-Ergo] Goal typed_lemma_P14 : Valid
+[wp] [Alt-Ergo] Goal typed_lemma_P54 : Valid
+[wp] [Alt-Ergo] Goal typed_lemma_Foo : Valid
+[wp] Proved goals:    5 / 6
+     Qed:             0 
+     Alt-Ergo:        5  (unknown: 1)
+----------------------------------------------------------
+Axiomatics          WP   Alt-Ergo    Total   Success
+Lemma               -       1 (4)      2      50.0%
+Axiomatic G1        -       2 (7)      2       100%
+Axiomatic G2        -       1 (6)      1       100%
+Axiomatic Poluted   -       1 (5)      1       100%
+----------------------------------------------------------

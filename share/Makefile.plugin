@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2014                                               #
+#  Copyright (C) 2007-2015                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -200,7 +200,7 @@ endif
 
 PLUGIN_OPT:=`echo "$(PLUGIN_NAME)" | tr 'A-Z' 'a-z' `
 
-ifeq ("$(PLUGIN_DISTRIB_BIN)","yes")
+ifneq ("$(PLUGIN_DISTRIB_BIN)","no")
 CONFIG_DISTRIB_BIN += "--enable-$(PLUGIN_OPT)"
 ifeq ("$(PLUGIN_HAS_EXT_DOC)","yes")
 PLUGIN_BIN_DOC_LIST+=doc/plugins/$(PLUGIN_BASE).pdf
@@ -485,6 +485,7 @@ ifeq ("$(PLUGIN_HAS_MLI)","yes")
 
 TARGET_GUI_MLI:= $(PLUGIN_LIB_DIR)/gui/$(PLUGIN_NAME).mli
 TARGET_GUI_CMI:= $(TARGET_GUI_MLI:.mli=.cmi)
+$(TARGET_GUI_CMI): BFLAGS:=$($(NAME_GUI_BFLAGS))
 
 PLUGIN_GENERATED+= $(TARGET_GUI_MLI)
 
@@ -787,7 +788,7 @@ endif # PLUGIN_ENABLE
 .PHONY: $(PLUGIN_DIR)/$(PLUGIN_NAME)_DEP_REDO
 $(PLUGIN_DIR)/$(PLUGIN_NAME)_DEP_REDO: $(PLUGIN_GENERATED) $(TARGET_MLI) $(TARGET_GUI_MLI)
 	$(PRINT_DEP) $(dir $@).depend
-	$(CHMOD_RW) $(dir $@).depend
+	$(RM) $(dir $@).depend
 	$(OCAMLDEP) $(INCLUDES_FOR_OCAMLDEP) \
 	    $($(patsubst %_DEP_REDO,%_DEPFLAGS,$(basename $(notdir $@)))) \
 	      $(patsubst ./%,%, \
@@ -804,7 +805,7 @@ $(PLUGIN_DIR)/$(PLUGIN_NAME)_DEP_REDO: $(PLUGIN_GENERATED) $(TARGET_MLI) $(TARGE
 # Otherwise do it only if necessary
 $(PLUGIN_DIR)/$(PLUGIN_NAME)_DEP: $(PLUGIN_GENERATED) $(TARGET_MLI) $(TARGET_GUI_MLI)
 	$(PRINT_DEP) $(dir $@).depend
-	$(CHMOD_RW) $(dir $@).depend
+	$(RM) $(dir $@).depend
 	$(OCAMLDEP) $(INCLUDES_FOR_OCAMLDEP) \
 	    $($(basename $(notdir $@))FLAGS) \
 	    $(patsubst ./%,%, \
@@ -816,6 +817,25 @@ $(PLUGIN_DIR)/$(PLUGIN_NAME)_DEP: $(PLUGIN_GENERATED) $(TARGET_MLI) $(TARGET_GUI
 	$(TOUCH) $@
 	$(CHMOD_RO) $(dir $@).depend
 # touch above = Do not recompute dependances each times
+
+##########
+# Merlin #
+##########
+
+ifneq ($(FRAMAC_MAKE),yes)
+
+.PHONY: merlin_plugin
+
+merlin_plugin:
+	echo "B $(FRAMAC_LIBDIR)" > .merlin
+	echo "B $(FRAMAC_LIBDIR)/plugins" >> .merlin
+	echo "B $(FRAMAC_LIBDIR)/plugins/gui" >> .merlin
+	echo "PKG ocamlgraph" >> .merlin
+	echo "PKG zarith" >> .merlin
+	echo "PKG lablgtk2" >> .merlin
+
+endif
+
 
 ############
 # Cleaning #
@@ -851,7 +871,7 @@ $(PLUGIN_DIR)/$(PLUGIN_NAME)_CLEAN:
 
 .PHONY: $(PLUGIN_DIR)/$(PLUGIN_NAME)_DIST_CLEAN
 $(PLUGIN_DIR)/$(PLUGIN_NAME)_DIST_CLEAN:
-	$(RM) $(dir $@)/ptests_local_config.*
+	$(RM) $(dir $@)/tests/ptests_config
 
 .PHONY: $(PLUGIN_DIR)/$(PLUGIN_NAME)_CLEAN_DOC $($(PLUGIN_NAME)_DOC_DIR)
 $(PLUGIN_DIR)/$(PLUGIN_NAME)_CLEAN_DOC: $($(PLUGIN_NAME)_DOC_DIR)
@@ -859,7 +879,10 @@ $(PLUGIN_DIR)/$(PLUGIN_NAME)_CLEAN_DOC: $($(PLUGIN_NAME)_DOC_DIR)
 	$(RM) -r $<
 	$(RM) $(DOC_DIR)/$(notdir $(patsubst %_CLEAN_DOC,%,$@).toc)
 
-# Global lists seen in Makefile.in
+# Global lists seen in Makefile
+
+PLUGIN_GENERATED_LIST += $(PLUGIN_GENERATED)
+
 ifeq ($(PLUGIN_DYNAMIC),yes)
 #dynamic plugin
 PLUGIN_DYN_EXISTS:=yes

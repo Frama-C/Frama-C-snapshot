@@ -1,0 +1,16 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/loop_wvar.i (no preprocessing)
+[value] Analyzing a complete application starting at main_err1
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  i ∈ {0}
+  j ∈ {0}
+tests/misc/loop_wvar.i:27:[value] entering loop for the first time
+[value] Recording results for main_err1
+[value] done for function main_err1
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main_err1:
+  i ∈ {13}
+  j ∈ [0..55]
+  n ∈ {13}

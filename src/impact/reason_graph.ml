@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -139,7 +139,7 @@ module Printer (X: AdditionalInfo) = struct
 
   let graph_attributes _ = [`Label "Impact graph"]
 
-  let default_vertex_attributes _g = [`Style [`Filled]; `Shape `Box]
+  let default_vertex_attributes _g = [`Style `Filled; `Shape `Box]
   let default_edge_attributes _g = []
 
   let vertex_attributes v =

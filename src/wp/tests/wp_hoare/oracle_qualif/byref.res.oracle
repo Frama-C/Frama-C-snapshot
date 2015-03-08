@@ -1,0 +1,31 @@
+# frama-c -wp -wp-model 'Typed (Ref)' [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_hoare/byref.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] Collecting variable usage
+[wp] 11 goals scheduled
+[wp] [Qed] Goal typed_ref_correct_post_qed_ok : Valid
+[wp] [Qed] Goal typed_ref_correct_call_f_pre_qed_ok : Valid
+[wp] [Qed] Goal typed_ref_f_post_qed_ok : Valid
+[wp] [Qed] Goal typed_ref_f_assign : Valid
+[wp] [Qed] Goal typed_ref_f_ko_post_qed_ok : Valid
+[wp] [Qed] Goal typed_ref_f_ko_assign : Valid
+[wp] [Qed] Goal typed_ref_formal_post_qed_ok : Valid
+[wp] [Qed] Goal typed_ref_formal_call_f_pre_qed_ok : Valid
+[wp] [Qed] Goal typed_ref_local_post_qed_ok : Valid
+[wp] [Qed] Goal typed_ref_local_call_f_pre_qed_ok : Valid
+[wp] [Qed] Goal typed_ref_wrong_post_qed_ok : Valid
+[wp] Proved goals:   11 / 11
+     Qed:            11
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+f                    2     -           2       100%
+f_ko                 2     -           2       100%
+wrong                1     -           1       100%
+correct              2     -           2       100%
+local                2     -           2       100%
+formal               2     -           2       100%
+----------------------------------------------------------

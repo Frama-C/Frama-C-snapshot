@@ -1,0 +1,47 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/switch2.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  
+[value] computing for function f <- main.
+        Called from tests/misc/switch2.i:13.
+[value] Recording results for f
+[value] Done for function f
+[value] computing for function g <- main.
+        Called from tests/misc/switch2.i:13.
+tests/misc/switch2.i:13:[kernel] warning: Neither code nor specification for function g, generating default assigns from the prototype
+[value] using specification for function g
+[value] Done for function g
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function f:
+  __retres ∈ {3}
+[value] Values at end of function main:
+  exit_loop ∈ {3}
+  __retres ∈ {0}
+[from] Computing for function f
+[from] Done for function f
+[from] Computing for function main
+[from] Computing for function g <-main
+[from] Done for function g
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function f:
+  \result FROM x
+[from] Function g:
+  NO EFFECTS
+[from] Function main:
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function f:
+          __retres
+[inout] Inputs for function f:
+          \nothing
+[inout] Out (internal) for function main:
+          exit_loop; tmp_0; tmp_1; __retres
+[inout] Inputs for function main:
+          \nothing

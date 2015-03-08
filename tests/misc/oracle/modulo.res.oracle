@@ -1,0 +1,284 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/modulo.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  A ∈ {0}
+  B ∈ {0}
+  C ∈ {0}
+  D ∈ {0}
+  E ∈ {0}
+  F ∈ {0}
+  G ∈ {0}
+  H ∈ {0}
+  I ∈ {0}
+  J ∈ {0}
+  K ∈ {0}
+  L ∈ {0}
+  M ∈ {0}
+  N ∈ {0}
+  O ∈ {0}
+  P ∈ {0}
+  Q ∈ {0}
+  R ∈ {0}
+  i ∈ [--..--]
+  a ∈ [--..--]
+  b ∈ [--..--]
+  i2 ∈ [--..--]
+  v ∈ [--..--]
+[value] computing for function pgcd1 <- main.
+        Called from tests/misc/modulo.i:151.
+tests/misc/modulo.i:34:[value] Function pgcd1: precondition got status unknown.
+tests/misc/modulo.i:37:[value] Loop invariant got status valid.
+tests/misc/modulo.i:38:[value] Loop invariant got status valid.
+[value] Called Frama_C_show_each_1([1..10], [1..10], [0..9])
+[value] Called Frama_C_show_each_1({0}, [1..10], {0})
+[value] Called Frama_C_show_each_1([-10..-1], [1..10], [-9..0])
+[value] Called Frama_C_show_each_1([1..10], [-10..-1], [0..9])
+[value] Called Frama_C_show_each_1({0}, [-10..-1], {0})
+[value] Called Frama_C_show_each_1([-10..-1], [-10..-1], [-9..0])
+[value] Recording results for pgcd1
+[value] Done for function pgcd1
+[value] computing for function pgcd2 <- main.
+        Called from tests/misc/modulo.i:152.
+tests/misc/modulo.i:47:[value] Function pgcd2: precondition got status unknown.
+tests/misc/modulo.i:50:[value] Loop invariant got status valid.
+[value] Called Frama_C_show_each_2([-10..10], [1..10], [-9..9])
+[value] Called Frama_C_show_each_2([-10..10], [-10..-1], [-9..9])
+[value] Recording results for pgcd2
+[value] Done for function pgcd2
+[value] computing for function pgcd3 <- main.
+        Called from tests/misc/modulo.i:153.
+tests/misc/modulo.i:59:[value] Function pgcd3: precondition got status unknown.
+tests/misc/modulo.i:63:[kernel] warning: division by zero: assert b_0 ≢ 0;
+[value] Called Frama_C_show_each_3([-10..10], [-10..10], [-9..9])
+[value] Recording results for pgcd3
+[value] Done for function pgcd3
+[value] computing for function main2 <- main.
+        Called from tests/misc/modulo.i:155.
+tests/misc/modulo.i:9:[kernel] warning: signed overflow. assert -2147483648 ≤ 4*i ≤ 2147483647;
+tests/misc/modulo.i:10:[kernel] warning: signed overflow. assert -2147483648 ≤ 4*i ≤ 2147483647;
+tests/misc/modulo.i:11:[value] Assertion got status unknown.
+tests/misc/modulo.i:13:[value] Assertion got status unknown.
+tests/misc/modulo.i:27:[kernel] warning: division by zero: assert G ≢ 0;
+tests/misc/modulo.i:29:[kernel] warning: division by zero: assert L ≢ 0;
+[value] Recording results for main2
+[value] Done for function main2
+[value] computing for function simultaneous_congruences <- main.
+        Called from tests/misc/modulo.i:156.
+tests/misc/modulo.i:76:[value] Assertion got status unknown.
+tests/misc/modulo.i:82:[value] entering loop for the first time
+tests/misc/modulo.i:95:[value] entering loop for the first time
+[value] Recording results for simultaneous_congruences
+[value] Done for function simultaneous_congruences
+[value] computing for function shift_modulo <- main.
+        Called from tests/misc/modulo.i:157.
+tests/misc/modulo.i:100:[value] Assertion got status unknown.
+tests/misc/modulo.i:103:[kernel] warning: signed overflow. assert (int)((int)(i*12)+5)<<25 ≤ 2147483647;
+tests/misc/modulo.i:104:[kernel] warning: signed overflow. assert (int)((int)(i*13)+7)<<25 ≤ 2147483647;
+[value] Recording results for shift_modulo
+[value] Done for function shift_modulo
+[value] computing for function extract_bits_modulo <- main.
+        Called from tests/misc/modulo.i:158.
+tests/misc/modulo.i:109:[value] Assertion got status valid.
+[value] Recording results for extract_bits_modulo
+[value] Done for function extract_bits_modulo
+[value] computing for function pos_rem <- main.
+        Called from tests/misc/modulo.i:159.
+tests/misc/modulo.i:137:[value] Assertion got status unknown.
+tests/misc/modulo.i:142:[value] Assertion got status unknown.
+tests/misc/modulo.i:146:[value] Assertion got status unknown.
+[value] Recording results for pos_rem
+[value] Done for function pos_rem
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function extract_bits_modulo:
+  aa1 ∈ [1291..32011],1291%3072
+  ptr1 ∈ {{ (unsigned char *)&aa1 }}
+  m1 ∈ {11}
+  n1 ∈ [5..125],1%4
+  aa2 ∈ [1294..32124]
+  ptr2 ∈ {{ (unsigned char *)&aa2 }}
+  m2 ∈ [0..255]
+  n2 ∈ [5..125]
+  aa3 ∈ [1296..32126]
+  ptr3 ∈ {{ (unsigned char *)&aa3 }}
+  m3 ∈ [0..255]
+  n3 ∈ [5..125]
+  aa4 ∈ [16..126],5%11
+  ptr4 ∈ {{ (unsigned char *)&aa4 }}
+  m4 ∈ [16..126]
+  n4 ∈ {0}
+[value] Values at end of function main2:
+  A ∈ {0}
+  B ∈ {-3; 1}
+  C ∈ {1}
+  D ∈ {1; 4; 7; 10}
+  E ∈ {-11; -8; -5; -2; 1; 4; 7; 10}
+  F ∈ {5}
+  G ∈ [0..12]
+  H ∈ [0..100]
+  I ∈ [101..301],1%2
+  J ∈ [-201..299],4%5
+  K ∈ {-6; -1; 4; 9}
+  L ∈ [-9..9]
+  M ∈ {-6; -2; -1; 0; 1; 2; 4; 9}
+  N ∈ [-299..299]
+  O ∈ [0..11]
+  P ∈ {0}
+  Q ∈ [-8..8]
+[value] Values at end of function pgcd1:
+  a_0 ∈ [-10..10]
+  b_0 ∈ {0}
+[value] Values at end of function pgcd2:
+  a_0 ∈ [-10..10]
+  b_0 ∈ {0}
+[value] Values at end of function pgcd3:
+  a_0 ∈ [-10..10]
+  b_0 ∈ {0}
+[value] Values at end of function pos_rem:
+  n ∈ [-1..72]
+  j ∈ [-128..127]
+  k ∈ [0..135]
+  l ∈ [-128..127]
+[value] Values at end of function shift_modulo:
+  r ∈ [20..500],20%48
+  s ∈ [5..125],5%12
+  q ∈ {5; 17; 29; 41; 53}
+  t ∈ {7; 20; 33; 46; 59}
+[value] Values at end of function simultaneous_congruences:
+  n1 ∈ [98..436207493],98%195
+  n2 ∈ [98..436207493],98%195
+  n3 ∈ [98..436207493],98%195
+  m1 ∈ [7..134217735],3%4
+  m2 ∈ [10..201326602],4%6
+  o1 ∈ [11..268435451],11%24
+  o2 ∈ [11..268435451],11%24
+  o3 ∈ [11..268435451],11%24
+[value] Values at end of function main:
+  A ∈ {0}
+  B ∈ {-3; 1}
+  C ∈ {1}
+  D ∈ {1; 4; 7; 10}
+  E ∈ {-11; -8; -5; -2; 1; 4; 7; 10}
+  F ∈ {5}
+  G ∈ [0..12]
+  H ∈ [0..100]
+  I ∈ [101..301],1%2
+  J ∈ [-201..299],4%5
+  K ∈ {-6; -1; 4; 9}
+  L ∈ [-9..9]
+  M ∈ {-6; -2; -1; 0; 1; 2; 4; 9}
+  N ∈ [-299..299]
+  O ∈ [0..11]
+  P ∈ {0}
+  Q ∈ [-8..8]
+[from] Computing for function extract_bits_modulo
+[from] Done for function extract_bits_modulo
+[from] Computing for function main2
+[from] Done for function main2
+[from] Computing for function pgcd1
+[from] Done for function pgcd1
+[from] Computing for function pgcd2
+[from] Done for function pgcd2
+[from] Computing for function pgcd3
+[from] Done for function pgcd3
+[from] Computing for function pos_rem
+[from] Done for function pos_rem
+[from] Computing for function shift_modulo
+[from] Done for function shift_modulo
+[from] Computing for function simultaneous_congruences
+[from] Done for function simultaneous_congruences
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function extract_bits_modulo:
+  NO EFFECTS
+[from] Function main2:
+  A FROM i
+  B FROM i
+  C FROM i
+  D FROM i
+  E FROM i
+  F FROM i
+  G FROM i
+  H FROM i
+  I FROM i
+  J FROM i
+  K FROM i
+  L FROM i
+  M FROM i
+  N FROM i
+  O FROM i
+  P FROM i
+  Q FROM i
+[from] Function pgcd1:
+  \result FROM x; y
+[from] Function pgcd2:
+  \result FROM x; y
+[from] Function pgcd3:
+  \result FROM x; y
+[from] Function pos_rem:
+  NO EFFECTS
+[from] Function shift_modulo:
+  NO EFFECTS
+[from] Function simultaneous_congruences:
+  NO EFFECTS
+[from] Function main:
+  A FROM i
+  B FROM i
+  C FROM i
+  D FROM i
+  E FROM i
+  F FROM i
+  G FROM i
+  H FROM i
+  I FROM i
+  J FROM i
+  K FROM i
+  L FROM i
+  M FROM i
+  N FROM i
+  O FROM i
+  P FROM i
+  Q FROM i
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function extract_bits_modulo:
+          aa1; ptr1; m1; n1; aa2; ptr2; m2; n2; aa3; ptr3; m3; n3; aa4; ptr4; m4; n4
+[inout] Inputs for function extract_bits_modulo:
+          i
+[inout] Out (internal) for function main2:
+          A; B; C; D; E; F; G; H; I; J; K; L; M; N; O; P; Q
+[inout] Inputs for function main2:
+          A; D; G; I; J; K; L; i
+[inout] Out (internal) for function pgcd1:
+          a_0; b_0; tmp
+[inout] Inputs for function pgcd1:
+          \nothing
+[inout] Out (internal) for function pgcd2:
+          a_0; b_0; tmp
+[inout] Inputs for function pgcd2:
+          \nothing
+[inout] Out (internal) for function pgcd3:
+          a_0; b_0; tmp
+[inout] Inputs for function pgcd3:
+          \nothing
+[inout] Out (internal) for function pos_rem:
+          n; j; k; l
+[inout] Inputs for function pos_rem:
+          v
+[inout] Out (internal) for function shift_modulo:
+          r; s; q; t
+[inout] Inputs for function shift_modulo:
+          i
+[inout] Out (internal) for function simultaneous_congruences:
+          n1; n2; n3; m1; m2; o1; o2; o3
+[inout] Inputs for function simultaneous_congruences:
+          i2
+[inout] Out (internal) for function main:
+          A; B; C; D; E; F; G; H; I; J; K; L; M; N; O; P; Q
+[inout] Inputs for function main:
+          A; D; G; I; J; K; L; i; a; b; i2; v

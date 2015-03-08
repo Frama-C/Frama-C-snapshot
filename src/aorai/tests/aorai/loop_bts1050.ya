@@ -1,0 +1,5 @@
+%init : S0;
+%accept : Sf;
+
+S0 : {[ main( [ f(); g() ]{0,5} ) ]} -> Sf;
+Sf: -> Sf;

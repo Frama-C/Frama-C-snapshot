@@ -1,0 +1,39 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/overflow.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  
+tests/misc/overflow.i:20:[kernel] warning: signed overflow. assert 60000*y ≤ 2147483647;
+tests/misc/overflow.i:21:[kernel] warning: signed overflow. assert (int)(y*1000)*1000 ≤ 2147483647;
+tests/misc/overflow.i:22:[kernel] warning: signed overflow. assert -2147483648 ≤ (int)(-y)*10000000;
+tests/misc/overflow.i:31:[kernel] warning: signed overflow. assert -c ≤ 2147483647;
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  i ∈ {18446744073709551615}
+  j ∈ {4294967295}
+  is ∈ {-1}
+  js ∈ {-1}
+  minjs ∈ {-2147483648}
+  maxjs ∈ {2147483647}
+  i1 ∈ {0}
+  j1 ∈ {0}
+  y ∈ {1; 100000}
+  x ∈ {0}
+  z ∈ {1000000}
+  t ∈ {-10000000}
+  __retres ∈ {0}
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          i; j; is; js; minjs; maxjs; i1; j1; y; tmp; x; z; t; __retres
+[inout] Inputs for function main:
+          \nothing

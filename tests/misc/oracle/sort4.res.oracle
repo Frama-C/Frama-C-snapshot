@@ -1,0 +1,35 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/sort4.i (no preprocessing)
+tests/misc/sort4.i:25:[kernel] warning: parsing obsolete ACSL construct '\valid_range(addr,min,max)'. '\valid(addr+(min..max))' should be used instead.
+[value] Analyzing an incomplete application starting at sort4_1
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  a ∈ [--..--]
+  b ∈ [--..--]
+  c ∈ [--..--]
+  d ∈ [--..--]
+tests/misc/sort4.i:20:[value] Assertion got status unknown.
+[value] Recording results for sort4_1
+[value] done for function sort4_1
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function sort4_1:
+  a ∈ [--..--]
+  b ∈ [--..--]
+  c ∈ [--..--]
+  d ∈ [--..--]
+  tmp ∈ [-2147483647..2147483647] or UNINITIALIZED
+[from] Computing for function sort4_1
+[from] Done for function sort4_1
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function sort4_1:
+  a FROM a; b; c; d (and SELF)
+  b FROM a; b; c; d (and SELF)
+  c FROM a; b; c; d (and SELF)
+  d FROM a; b; c; d (and SELF)
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function sort4_1:
+          a; b; c; d; tmp
+[inout] Inputs for function sort4_1:
+          a; b; c; d

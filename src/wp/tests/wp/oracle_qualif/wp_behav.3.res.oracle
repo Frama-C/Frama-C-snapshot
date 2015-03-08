@@ -1,0 +1,22 @@
+# frama-c -wp -wp-model 'Hoare' [...]
+[kernel] preprocessing with "gcc -C -E -I.  tests/wp/wp_behav.c"
+[rte] annotating function assert_needed
+[rte] annotating function bhv
+[rte] annotating function bts0513
+[rte] annotating function f
+[rte] annotating function local_named_behavior
+[rte] annotating function min
+[rte] annotating function more_stmt_assigns
+[rte] annotating function part_stmt_bhv
+[rte] annotating function razT
+[rte] annotating function stmt_assigns
+[rte] annotating function stmt_contract
+[rte] annotating function stmt_contract_assigns
+[rte] annotating function stmt_contract_label
+[wp] Running WP plugin...
+[wp] Collecting axiomatic usage
+tests/wp/wp_behav.c:183:[wp] warning: Ignored specification 'for b1' (generalize to all behavior)
+[wp] warning: Missing RTE guards
+tests/wp/wp_behav.c:165:[wp] warning: Missing assigns clause (assigns 'everything' instead)
+[wp] user error: no share directory src/wp/share for plug-in WP.
+[kernel] Plug-in wp aborted: invalid user input.

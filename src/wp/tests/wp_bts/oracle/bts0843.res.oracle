@@ -1,0 +1,76 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_bts/bts0843.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function f3
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_bts/bts0843.i, line 12) in 'f3':
+Effect at line 13
+Let a_0 = Mptr_0[(shift_PTR (global G_p_67) 0)].
+Assume {
+  (* Goal *)
+  When: (valid_rd Malloc_0 (shiftfield_F___anonstruct_las_1_a a_0) 1).
+  (* Heap *)
+  Have: (framed Mptr_0) /\ (linked Malloc_0).
+  (* Pre-condition (file tests/wp_bts/bts0843.i, line 12) in 'f3' *)
+  (* Pre-condition: *)
+  Have: (valid_rw Malloc_0 a_0 1).
+}
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function g3
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_bts/bts0843.i, line 14) in 'g3':
+Call Effect at line 16
+Let a_0 = Mptr_0[(shift_PTR (global G_p_67) 0)].
+Let a_1 = (shiftfield_F___anonstruct_las_1_a a_0).
+Assume {
+  (* Goal *)
+  When: (valid_rd Malloc_0 a_1 1).
+  (* Heap *)
+  Have: (framed Mptr_0) /\ (linked Malloc_0).
+  (* Pre-condition (file tests/wp_bts/bts0843.i, line 14) in 'g3' *)
+  (* Pre-condition: *)
+  Have: (valid_rw Malloc_0 a_0 1).
+}
+Prove: (shiftfield_F___anonstruct_las_1_a Mptr_0[L_p_ref])=a_1.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_bts/bts0843.i, line 14) in 'g3':
+Call Effect at line 16
+Let a_0 = Mptr_0[(shift_PTR (global G_p_67) 0)].
+Let a_1 = (shiftfield_F___anonstruct_las_1_a a_0).
+Assume {
+  (* Goal *)
+  When: (valid_rd Malloc_0 a_1 1).
+  (* Heap *)
+  Have: (framed Mptr_0) /\ (linked Malloc_0).
+  (* Pre-condition (file tests/wp_bts/bts0843.i, line 14) in 'g3' *)
+  (* Pre-condition: *)
+  Have: (valid_rw Malloc_0 a_0 1).
+}
+Prove: (shiftfield_F___anonstruct_las_1_a Mptr_0[L_p_ref])=a_1.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_bts/bts0843.i, line 12) in 'f3'' in 'g3' at call 'f3' (file tests/wp_bts/bts0843.i, line 16)
+:
+Assume {
+  (* Heap *)
+  Have: (framed Mptr_2) /\ (linked Malloc_0).
+  (* Pre-condition (file tests/wp_bts/bts0843.i, line 14) in 'g3' *)
+  (* Pre-condition: *)
+  Have: (valid_rw Malloc_0 Mptr_2[(shift_PTR (global G_p_67) 0)] 1).
+}
+Prove: true.
+
+------------------------------------------------------------

@@ -1,0 +1,321 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/pdg/dpds_intra.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  G ∈ [--..--]
+  S ∈ [--..--]
+tests/pdg/dpds_intra.c:113:[kernel] warning: signed overflow. assert b+1 ≤ 2147483647;
+tests/pdg/dpds_intra.c:113:[kernel] warning: signed overflow. assert tmp+s.a ≤ 2147483647;
+                                   (tmp from b++)
+tests/pdg/dpds_intra.c:114:[kernel] warning: signed overflow. assert -2147483648 ≤ 2*a ≤ 2147483647;
+tests/pdg/dpds_intra.c:124:[kernel] warning: signed overflow. assert *p+1 ≤ 2147483647;
+[value] computing for function test_struct <- main.
+        Called from tests/pdg/dpds_intra.c:126.
+[value] Recording results for test_struct
+[value] Done for function test_struct
+[value] computing for function test_if_simple <- main.
+        Called from tests/pdg/dpds_intra.c:127.
+[value] Recording results for test_if_simple
+[value] Done for function test_if_simple
+tests/pdg/dpds_intra.c:127:[kernel] warning: accessing uninitialized left-value:
+                  assert \initialized(&tmp_1);
+                  (tmp_1 from test_if_simple())
+[value] computing for function test_goto_simple <- main.
+        Called from tests/pdg/dpds_intra.c:128.
+[value] Recording results for test_goto_simple
+[value] Done for function test_goto_simple
+[value] computing for function test_goto_arriere <- main.
+        Called from tests/pdg/dpds_intra.c:129.
+tests/pdg/dpds_intra.c:66:[kernel] warning: signed overflow. assert -2147483648 ≤ G-1;
+tests/pdg/dpds_intra.c:65:[kernel] warning: signed overflow. assert x+1 ≤ 2147483647;
+[value] Recording results for test_goto_arriere
+[value] Done for function test_goto_arriere
+tests/pdg/dpds_intra.c:129:[kernel] warning: signed overflow.
+                  assert res+tmp_3 ≤ 2147483647;
+                  (tmp_3 from test_goto_arriere())
+[value] computing for function test_goto_else <- main.
+        Called from tests/pdg/dpds_intra.c:130.
+[value] Recording results for test_goto_else
+[value] Done for function test_goto_else
+tests/pdg/dpds_intra.c:130:[kernel] warning: signed overflow.
+                  assert res+tmp_4 ≤ 2147483647;
+                  (tmp_4 from test_goto_else())
+[value] computing for function test_simple_loop <- main.
+        Called from tests/pdg/dpds_intra.c:131.
+tests/pdg/dpds_intra.c:99:[value] entering loop for the first time
+tests/pdg/dpds_intra.c:100:[kernel] warning: signed overflow. assert s+1 ≤ 2147483647;
+[value] Recording results for test_simple_loop
+[value] Done for function test_simple_loop
+tests/pdg/dpds_intra.c:131:[kernel] warning: signed overflow.
+                  assert res+tmp_5 ≤ 2147483647;
+                  (tmp_5 from test_simple_loop(G))
+[value] computing for function multiple_global_inputs <- main.
+        Called from tests/pdg/dpds_intra.c:132.
+tests/pdg/dpds_intra.c:35:[kernel] warning: signed overflow. assert -2147483648 ≤ S.a+G ≤ 2147483647;
+[value] Recording results for multiple_global_inputs
+[value] Done for function multiple_global_inputs
+tests/pdg/dpds_intra.c:132:[kernel] warning: signed overflow.
+                  assert res+tmp_6 ≤ 2147483647;
+                  (tmp_6 from multiple_global_inputs())
+tests/pdg/dpds_intra.c:134:[kernel] warning: signed overflow. assert -2147483648 ≤ *p+res ≤ 2147483647;
+[value] Recording results for main
+[value] done for function main
+[pdg] computing for function main
+[from] Computing for function test_struct
+[from] Done for function test_struct
+[from] Computing for function test_if_simple
+[from] Done for function test_if_simple
+[from] Computing for function test_goto_simple
+[from] Done for function test_goto_simple
+[from] Computing for function test_goto_arriere
+[from] Done for function test_goto_arriere
+[from] Computing for function test_goto_else
+[from] Done for function test_goto_else
+[from] Computing for function test_simple_loop
+[from] Done for function test_simple_loop
+[from] Computing for function multiple_global_inputs
+[from] Done for function multiple_global_inputs
+[pdg] done for function main
+[pdg] PDG for main
+ {n1}: InCtrl
+ {n2}: VarDecl : a
+ {n3}: VarDecl : b
+ {n4}: VarDecl : res
+ {n5}: VarDecl : s
+ {n6}: VarDecl : p
+ {n7}: VarDecl : tmp
+ {n8}: VarDecl : a_0
+ {n9}: VarDecl : tmp_0
+ {n10}: VarDecl : tmp_1
+ {n11}: VarDecl : tmp_2
+ {n12}: VarDecl : tmp_3
+ {n13}: VarDecl : tmp_4
+ {n14}: VarDecl : tmp_5
+ {n15}: VarDecl : tmp_6
+ {n16}: VarDecl : __retres
+ {n17}: b = G;
+   -[-c-]-> 1
+   -[a--]-> 3
+   -[--d]-> 66
+ {n18}: res = 0;
+   -[-c-]-> 1
+   -[a--]-> 4
+ {n19}: s.a = 1;
+   -[-c-]-> 1
+   -[a--]-> 5
+ {n20}: s.b = 2;
+   -[-c-]-> 1
+   -[a--]-> 5
+ {n21}: unspecified sequence
+   -[-c-]-> 1
+ {n22}: tmp = b;
+   -[-c-]-> 1
+   -[--d]-> 3
+   -[a--]-> 7
+   -[--d]-> 17
+   -[-c-]-> 21
+ {n23}: b ++;
+   -[-c-]-> 1
+   -[a-d]-> 3
+   -[--d]-> 17
+   -[-c-]-> 21
+ {n24}: a = tmp + s.a;
+   -[-c-]-> 1
+   -[a--]-> 2
+   -[--d]-> 5
+   -[--d]-> 7
+   -[--d]-> 19
+   -[-c-]-> 21
+   -[--d]-> 22
+ {n25}: b = 2 * a;
+   -[-c-]-> 1
+   -[--d]-> 2
+   -[a--]-> 3
+   -[--d]-> 24
+ {n26}: b > G
+   -[-c-]-> 1
+   -[--d]-> 3
+   -[--d]-> 25
+   -[--d]-> 66
+ {n27}: p = & a;
+   -[-c-]-> 1
+   -[--d]-> 2
+   -[a--]-> 6
+   -[-c-]-> 26
+ {n28}: a_0 = 1;
+   -[-c-]-> 1
+   -[a--]-> 8
+   -[-c-]-> 26
+ {n29}: p = & b;
+   -[-c-]-> 1
+   -[--d]-> 3
+   -[a--]-> 6
+   -[-c-]-> 26
+ {n30}: a_0 ++;
+   -[-c-]-> 1
+   -[a-d]-> 8
+   -[-c-]-> 26
+   -[--d]-> 28
+ {n31}: (*p) ++;
+   -[-c-]-> 1
+   -[a-d]-> 6
+   -[--d]-> 24
+   -[--d]-> 25
+   -[a-d]-> 27
+   -[a-d]-> 29
+ {n32}: unspecified sequence
+   -[-c-]-> 1
+ {n33}: Call103-InCtrl : tmp_0 = test_struct();
+   -[-c-]-> 1
+   -[-c-]-> 32
+ {n34}: Call103-OutRet : tmp_0 = test_struct();
+   -[-c-]-> 1
+   -[a--]-> 9
+   -[-c-]-> 32
+   -[-c-]-> 33
+ {n35}: res += tmp_0;
+   -[-c-]-> 1
+   -[a-d]-> 4
+   -[--d]-> 9
+   -[--d]-> 18
+   -[-c-]-> 32
+   -[--d]-> 34
+ {n36}: unspecified sequence
+   -[-c-]-> 1
+ {n37}: Call106-InCtrl : tmp_1 = test_if_simple();
+   -[-c-]-> 1
+   -[-c-]-> 36
+ {n38}: Call106-OutRet : tmp_1 = test_if_simple();
+   -[-c-]-> 1
+   -[a--]-> 10
+   -[-c-]-> 36
+   -[-c-]-> 37
+   -[--d]-> 66
+ {n39}: res += tmp_1;
+   -[-c-]-> 1
+   -[a-d]-> 4
+   -[--d]-> 10
+   -[--d]-> 35
+   -[-c-]-> 36
+   -[--d]-> 38
+ {n40}: unspecified sequence
+   -[-c-]-> 1
+ {n41}: Call109-InCtrl : tmp_2 = test_goto_simple();
+   -[-c-]-> 1
+   -[-c-]-> 40
+ {n42}: Call109-OutRet : tmp_2 = test_goto_simple();
+   -[-c-]-> 1
+   -[a--]-> 11
+   -[-c-]-> 40
+   -[-c-]-> 41
+   -[--d]-> 66
+ {n43}: res += tmp_2;
+   -[-c-]-> 1
+   -[a-d]-> 4
+   -[--d]-> 11
+   -[--d]-> 39
+   -[-c-]-> 40
+   -[--d]-> 42
+ {n44}: unspecified sequence
+   -[-c-]-> 1
+ {n45}: Call112-InCtrl : tmp_3 = test_goto_arriere();
+   -[-c-]-> 1
+   -[-c-]-> 44
+ {n46}: Call112-Out(G) : tmp_3 = test_goto_arriere();
+   -[-c-]-> 1
+   -[-c-]-> 44
+   -[-c-]-> 45
+   -[--d]-> 66
+ {n47}: Call112-OutRet : tmp_3 = test_goto_arriere();
+   -[-c-]-> 1
+   -[a--]-> 12
+   -[-c-]-> 44
+   -[-c-]-> 45
+   -[--d]-> 66
+ {n48}: res += tmp_3;
+   -[-c-]-> 1
+   -[a-d]-> 4
+   -[--d]-> 12
+   -[--d]-> 43
+   -[-c-]-> 44
+   -[--d]-> 47
+ {n49}: unspecified sequence
+   -[-c-]-> 1
+ {n50}: Call115-InCtrl : tmp_4 = test_goto_else();
+   -[-c-]-> 1
+   -[-c-]-> 49
+ {n51}: Call115-OutRet : tmp_4 = test_goto_else();
+   -[-c-]-> 1
+   -[a--]-> 13
+   -[-c-]-> 49
+   -[-c-]-> 50
+ {n52}: res += tmp_4;
+   -[-c-]-> 1
+   -[a-d]-> 4
+   -[--d]-> 13
+   -[--d]-> 48
+   -[-c-]-> 49
+   -[--d]-> 51
+ {n53}: unspecified sequence
+   -[-c-]-> 1
+ {n54}: Call118-InCtrl : tmp_5 = test_simple_loop(G);
+   -[-c-]-> 1
+   -[-c-]-> 53
+ {n55}: Call118-In1 : tmp_5 = test_simple_loop(G);
+   -[-c-]-> 1
+   -[--d](G)-> 46
+   -[-c-]-> 53
+   -[-c-]-> 54
+ {n56}: Call118-OutRet : tmp_5 = test_simple_loop(G);
+   -[-c-]-> 1
+   -[a--]-> 14
+   -[-c-]-> 53
+   -[-c-]-> 54
+   -[--d]-> 55
+ {n57}: res += tmp_5;
+   -[-c-]-> 1
+   -[a-d]-> 4
+   -[--d]-> 14
+   -[--d]-> 52
+   -[-c-]-> 53
+   -[--d]-> 56
+ {n58}: unspecified sequence
+   -[-c-]-> 1
+ {n59}: Call121-InCtrl : tmp_6 = multiple_global_inputs();
+   -[-c-]-> 1
+   -[-c-]-> 58
+ {n60}: Call121-OutRet : tmp_6 = multiple_global_inputs();
+   -[-c-]-> 1
+   -[a--]-> 15
+   -[--d](G)-> 46
+   -[-c-]-> 58
+   -[-c-]-> 59
+   -[--d]-> 65
+ {n61}: res += tmp_6;
+   -[-c-]-> 1
+   -[a-d]-> 4
+   -[--d]-> 15
+   -[--d]-> 57
+   -[-c-]-> 58
+   -[--d]-> 60
+ {n62}: __retres = *p + res;
+   -[-c-]-> 1
+   -[--d]-> 4
+   -[--d]-> 6
+   -[a--]-> 16
+   -[--d]-> 24
+   -[--d]-> 25
+   -[--d]-> 27
+   -[--d]-> 29
+   -[--d]-> 31
+   -[--d]-> 61
+ {n63}: return __retres;
+   -[-c-]-> 1
+   -[--d]-> 16
+   -[--d]-> 62
+ {n64}: OutRet
+   -[--d]-> 63
+ {n65}: In(S.a)
+ {n66}: In(G)

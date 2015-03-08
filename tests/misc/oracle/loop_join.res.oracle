@@ -1,0 +1,27 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/loop_join.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  U[0..9999] ∈ {0}
+tests/misc/loop_join.i:5:[value] entering loop for the first time
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  U[0..199] ∈ {0}
+   [200] ∈ {-1; 0}
+   [201..9999] ∈ {0}
+  i ∈ {400}
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  U[0..1000] FROM \nothing (and SELF)
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          U[0..1000]; i
+[inout] Inputs for function main:
+          \nothing

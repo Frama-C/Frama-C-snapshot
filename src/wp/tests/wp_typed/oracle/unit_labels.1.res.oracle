@@ -1,0 +1,36 @@
+# frama-c -wp -wp-model 'Typed (Ref)' [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_typed/unit_labels.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] Collecting variable usage
+------------------------------------------------------------
+  Function duplet
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_typed/unit_labels.i, line 5) in 'duplet':
+Assume {
+  (* Domain *)
+  Type: (is_sint32 pi_0) /\ (is_sint32 pj_0).
+  (* Heap *)
+  Have: (region (base a_0))<=0.
+}
+Prove: (P_is_duplet
+         Mint_1[(shift_sint32 a_0 pi_0)->Mint_1[(shift_sint32 a_0 pj_0)]] a_0
+         pi_0 pj_0).
+
+------------------------------------------------------------
+
+Goal Assertion 'PI' (file tests/wp_typed/unit_labels.i, line 9):
+Assume { (* Heap *) Have: (region (base a_2))<=0. }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assertion 'PJ' (file tests/wp_typed/unit_labels.i, line 10):
+Assume { (* Heap *) Have: (region (base a_2))<=0. }
+Prove: true.
+
+------------------------------------------------------------

@@ -1,0 +1,6 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/syntax/typedef_namespace_bts1500.c (with preprocessing)
+tests/syntax/typedef_namespace_bts1500.c:23:[kernel] user error: syntax error
+[kernel] user error: stopping on file "tests/syntax/typedef_namespace_bts1500.c" that has errors.
+                     Add '-kernel-msg-key pp' for preprocessing command.
+[kernel] Frama-C aborted: invalid user input.

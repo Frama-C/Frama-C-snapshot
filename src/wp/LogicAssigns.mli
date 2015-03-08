@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -40,9 +40,9 @@ sig
 end
 
 module Make
-  ( M : Memory.Model )
-  ( C : Code with type loc = M.loc )
-  ( L : Logic with type loc = M.loc ) :
+    ( M : Memory.Model )
+    ( C : Code with type loc = M.loc )
+    ( L : Logic with type loc = M.loc ) :
 sig
 
   open M

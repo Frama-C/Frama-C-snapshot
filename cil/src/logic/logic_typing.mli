@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -69,6 +69,12 @@ module Lenv : sig
   val empty : unit -> t
 end
 
+type type_namespace = Typedef | Struct | Union | Enum
+(** The different namespaces a C type can belong to, used when we are searching
+    a type by its name. *)
+
+module Type_namespace: Datatype.S with type t = type_namespace
+
 (** Functions that can be called when type-checking an extension of ACSL. *)
 type typing_context = {
   is_loop: unit -> bool;
@@ -77,9 +83,8 @@ type typing_context = {
   find_macro : string -> Logic_ptree.lexpr;
   find_var : string -> logic_var;
   find_enum_tag : string -> exp * typ;
-  find_comp_type : kind:string -> string -> typ;
   find_comp_field: compinfo -> string -> offset;
-  find_type : string -> typ;
+  find_type : type_namespace -> string -> typ;
   find_label : string -> stmt ref;
   remove_logic_function : string -> unit;
   remove_logic_type: string -> unit;
@@ -111,11 +116,13 @@ type typing_context = {
       bhv.b_extended <- ("FOO",42,
 			 [Logic_const.new_predicate 
                                 (typing_context.type_predicate 
-				 (typing_context.post_state Normal) 
+				 (typing_context.post_state [Normal]) 
 				 p)])
       ::bhv.b_extended
       | _ -> typing_context.error loc "expecting a predicate after keyword FOO"
     let () = register_behavior_extension "FOO" foo_typer
+
+    @plugin development guide
 
     @since Carbon-20101201
 *)
@@ -135,9 +142,8 @@ module Make
       val find_macro : string -> Logic_ptree.lexpr
       val find_var : string -> logic_var
       val find_enum_tag : string -> exp * typ
-      val find_comp_type : kind:string -> string -> typ
+      val find_type : type_namespace -> string -> typ
       val find_comp_field: compinfo -> string -> offset
-      val find_type : string -> typ
       val find_label : string -> stmt ref
 
       val remove_logic_function : string -> unit
@@ -217,6 +223,11 @@ val append_here_label: Lenv.t -> Lenv.t
 
 (** appends the "Pre" label in the environment *)
 val append_pre_label: Lenv.t -> Lenv.t
+
+(** appends the "Init" label in the environment     
+    @since Sodium-20150201 
+*)
+val append_init_label: Lenv.t -> Lenv.t
 
 
 (** adds a given variable in local environment. *)

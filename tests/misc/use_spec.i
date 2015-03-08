@@ -1,6 +1,6 @@
 /* run.config
- OPT: -val-use-spec f,g,h,i,k -val -inout -inout-callwise -calldeps
- OPT: -val-use-spec f,g,h,i,k -val -inout -inout-callwise -calldeps -show-indirect-deps
+ OPT: -val-use-spec f,h -val -inout -inout-callwise -calldeps
+ OPT: -val-use-spec f,h -val -inout -inout-callwise -calldeps -show-indirect-deps
 */
 
 

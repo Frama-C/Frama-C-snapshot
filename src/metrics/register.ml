@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -38,11 +38,9 @@ let syntactic () =
   end;
 
   SyntacticallyReachable.iter
-    (fun s ->
-      try let kf = Globals.Functions.find_by_name s in
-          Metrics_parameters.result
-	    "%a" Metrics_coverage.pp_reached_from_function kf
-      with Not_found -> Metrics_parameters.error "Unknown function %s" s)
+    (fun kf ->
+      Metrics_parameters.result "%a"
+        Metrics_coverage.pp_reached_from_function kf)
 
 let () = ValueCoverage.set_output_dependencies [Db.Value.self]
 

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -59,16 +59,6 @@ module Make
     val check : repr -> term -> term
     val check_unit : qed:term -> raw:term -> term
     val iter_checks : (qed:term -> raw:term -> unit) -> unit
-
-  (*
-  (** {2 Contextual Rewritings} *)
-
-  type context
-  val push : unit -> context (** Save current context. *)
-  val pop : context -> unit  (** Back to (any) previously pushed context. *)
-  val merge : term -> term -> unit (** Insert in current context the merge. *)
-  val rewrite : term -> term (** Rebuild recursively the input term. *)
-  *)
 
     (** {2 Context Release} *)
 

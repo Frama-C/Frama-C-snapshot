@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -203,11 +203,9 @@ let bitwise_extraction first_bit last_bit x =
   let of_int32 i = big_int_of_string (Int32.to_string i)
   let max_int64 = of_int64 Int64.max_int
   let min_int64 = of_int64 Int64.min_int
-  let bits_of_max_float = of_int64 (Int64.bits_of_float max_float)
-  let bits_of_most_negative_float =
-    of_int64 (Int64.bits_of_float (-. max_float))
 
-  let of_string = big_int_of_string
+  let of_string = big_int_of_string (* may raise Failure "sys_big_int_of_string"
+     or Failure "invalid digit". Let's leave the exact string unspecified *)
   let to_string = string_of_big_int
   let to_float = float_of_big_int
 

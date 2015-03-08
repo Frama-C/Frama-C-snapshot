@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -110,10 +110,10 @@ val no_infinite_array : c_object -> bool
 val array_dim : arrayinfo -> c_object * int
 val array_size : typ -> int option
 val array_dimensions : arrayinfo -> c_object * int option list
-  (** Returns the list of dimensions the array consists of.
-      None-dimension means undefined one. *)
+(** Returns the list of dimensions the array consists of.
+    None-dimension means undefined one. *)
 val dimension_of_object : c_object -> (int * int) option
-  (** Returns None for 1-dimension objects, and Some(d,N) for d-matrix with N cells *)
+(** Returns None for 1-dimension objects, and Some(d,N) for d-matrix with N cells *)
 
 val i_convert : c_int -> c_int -> c_int
 val f_convert : c_float -> c_float -> c_float
@@ -130,6 +130,8 @@ val merge : c_object -> c_object -> c_object
 val hash : c_object -> int
 val pretty : Format.formatter -> c_object -> unit
 
+module C_object: Datatype.S with type t = c_object
+
 module AinfoComparable :
 sig
   type t = arrayinfo
@@ -137,3 +139,6 @@ sig
   val equal : t -> t -> bool
   val hash : t -> int
 end
+
+val compare_ptr_conflated : c_object -> c_object -> int
+(** same as {!compare} but all PTR are considered the same *)

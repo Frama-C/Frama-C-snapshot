@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -val -cpp-command "gcc -C -E -Dprintf=Frama_C_show_each" -journal-disable
+   OPT: -val -cpp-extra-args="-Dprintf=Frama_C_show_each" -journal-disable
 */
 struct X50 {
  long long int z:50;

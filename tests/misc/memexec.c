@@ -88,6 +88,31 @@ void f4() {
   }
 }
 
+int g_f5_1, g_f5_2;
+
+void f5_aux (int x) {
+  //@ assert g_f5_1 <= 6;
+  int v = g_f5_2;
+  //@ assert g_f5_2 <= 7;
+
+  while (x <= 8);
+}
+
+void f5() {
+  int arg;
+
+  g_f5_1 = c;
+  g_f5_2 = c;
+  arg = c;
+  f5_aux(arg);
+  Frama_C_show_each_f5(arg, g_f5_1, g_f5_2);
+
+  g_f5_1 = c;
+  g_f5_2 = c;
+  arg = c;
+  f5_aux(arg);
+  Frama_C_show_each_f5(arg, g_f5_1, g_f5_2); // Cache, but reduce g_f5_* and arg after the call. Currently does not work for g_f5_1, because dependencies are not taken into account
+}
 
 void main () {
   f1 ();
@@ -95,6 +120,7 @@ void main () {
   f3 ();
   bug();
   f4();
+  f5();
 }
 
 

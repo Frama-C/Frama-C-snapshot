@@ -1,0 +1,87 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/long.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  i ∈ {0}
+  j ∈ {0}
+  k ∈ {0}
+tests/misc/long.i:11:[value] entering loop for the first time
+[value] computing for function f <- main.
+        Called from tests/misc/long.i:12.
+tests/misc/long.i:6:[value] entering loop for the first time
+[value] Recording results for f
+[value] Done for function f
+[value] computing for function f <- main.
+        Called from tests/misc/long.i:12.
+[value] Recording results for f
+[value] Done for function f
+[value] computing for function f <- main.
+        Called from tests/misc/long.i:12.
+[value] Recording results for f
+[value] Done for function f
+[value] computing for function f <- main.
+        Called from tests/misc/long.i:12.
+[value] Recording results for f
+[value] Done for function f
+[value] computing for function f <- main.
+        Called from tests/misc/long.i:12.
+[value] Recording results for f
+[value] Done for function f
+[value] computing for function f <- main.
+        Called from tests/misc/long.i:12.
+[value] Recording results for f
+[value] Done for function f
+[value] computing for function f <- main.
+        Called from tests/misc/long.i:12.
+[value] Recording results for f
+[value] Done for function f
+[value] computing for function f <- main.
+        Called from tests/misc/long.i:12.
+[value] Recording results for f
+[value] Done for function f
+[value] computing for function f <- main.
+        Called from tests/misc/long.i:12.
+[value] Recording results for f
+[value] Done for function f
+[value] computing for function f <- main.
+        Called from tests/misc/long.i:12.
+[value] Recording results for f
+[value] Done for function f
+[value] computing for function f <- main.
+        Called from tests/misc/long.i:12.
+[value] Recording results for f
+[value] Done for function f
+[value] computing for function f <- main.
+        Called from tests/misc/long.i:12.
+[value] Recording results for f
+[value] Done for function f
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function f:
+  i ∈ {1000}
+[value] Values at end of function main:
+  i ∈ {0; 1000}
+  j ∈ {1000}
+[from] Computing for function f
+[from] Done for function f
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function f:
+  i FROM \nothing
+[from] Function main:
+  i FROM \nothing (and SELF)
+  j FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function f:
+          i
+[inout] Inputs for function f:
+          i
+[inout] Out (internal) for function main:
+          i; j
+[inout] Inputs for function main:
+          i; j

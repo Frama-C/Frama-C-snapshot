@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -68,6 +68,13 @@ let set_module_name s = module_name_ref := s
 let argument_is_function_name_ref = ref false
 let argument_is_function_name () = argument_is_function_name_ref := true
 
+let argument_may_be_fundecl_ref = ref false
+let argument_may_be_fundecl () = argument_may_be_fundecl_ref := true
+
+let argument_must_be_existing_fun_ref = ref false
+let argument_must_be_existing_fun () =
+  argument_must_be_existing_fun_ref := true
+
 let group_ref = ref Cmdline.Group.default
 let set_group s = group_ref := s
 
@@ -79,6 +86,30 @@ let is_visible_ref = ref true
 let is_invisible () =
   is_visible_ref := false;
   do_not_iterate ()
+
+let use_category_ref = ref true
+let no_category () = use_category_ref := false
+
+let is_permissive_ref = ref false
+
+let find_kf_by_name: (string -> Cil_types.kernel_function) ref =
+  Extlib.mk_fun "Parameter_customize.find_kf_by_name"
+
+let plain_fct_finder s =
+  try
+    Cil_datatype.Kf.Set.singleton (!find_kf_by_name s)
+  with Not_found -> Cil_datatype.Kf.Set.empty
+
+let mangling_functions = ref [plain_fct_finder]
+
+let get_c_ified_functions s =
+  List.fold_left
+    (fun acc f -> Cil_datatype.Kf.Set.union (f s) acc)
+    Cil_datatype.Kf.Set.empty
+    !mangling_functions
+
+let add_function_name_transformation f =
+  mangling_functions := f :: !mangling_functions
 
 let reset () =
   cmdline_stage_ref := Cmdline.Configuring;
@@ -95,23 +126,10 @@ let reset () =
   do_iterate_ref := None;
   is_visible_ref := true;
   argument_is_function_name_ref := false;
-  reset_on_copy_ref:= true
-
-(* ************************************************************************* *)
-(** {2 Delayed Kernel Initialisation} *)
-(* ************************************************************************* *)
-
-let function_names_ref: (unit -> string list) ref = ref (fun () -> [])
-let set_function_names f = function_names_ref := f
-
-let no_ast_hook = fun _ -> ()
-let ast_hook: ((Cil_types.file -> unit) -> unit) ref = ref no_ast_hook
-let init_ast_hooks = ref []
-let set_ast_hook f = ast_hook := f
-let apply_ast_hook f =
-  let f _ = f (!function_names_ref ()) in
-  let ah = !ast_hook in
-  if ah == no_ast_hook then init_ast_hooks := f :: !init_ast_hooks else ah f
+  argument_may_be_fundecl_ref := false;
+  argument_must_be_existing_fun_ref := false;
+  reset_on_copy_ref := true;
+  use_category_ref := true
 
 (*
 Local Variables:

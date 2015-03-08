@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -789,7 +789,7 @@ and Poly_pair : sig
   module Make(T1: S)(T2: S) : S with type t = (T1.t, T2.t) poly
 end =
   struct
-  (* Split the functor argument in 2 modules such that ocaml is able to safely
+  (* Split the functor argument in 2 modules such that OCaml is able to safely
      evaluate the recursive modules *)
     include Polymorphic2(struct include Pair_arg include Pair_name end)
   end
@@ -1326,7 +1326,7 @@ let queue (type typ) (ty: typ Type.t) =
 
 module type Functor_info = sig val module_name: string end
 
-(* ocaml functors are generative *)
+(* OCaml functors are generative *)
 module Set
   (S: FCSet.S)(E: S with type t = S.elt)(Info: Functor_info) =
 struct
@@ -1518,7 +1518,7 @@ end
 (** {3 Hashtbl} *)
 (* ****************************************************************************)
 
-(* ocaml functors are generative *)
+(* OCaml functors are generative *)
 module Hashtbl
   (H: Hashtbl_with_descr)(Key: S with type t = H.key)(Info : Functor_info) =
 struct
@@ -1892,11 +1892,11 @@ module Formatter =
      end)
 let formatter = Formatter.ty
 
-module Big_int =
+module Integer =
   Make_with_collections
     (struct
       type t = Integer.t
-      let name = "Datatype.Big_int"
+      let name = "Datatype.Integer"
       let reprs = [ Integer.zero ]
       let structural_descr = Structural_descr.t_abstract
       let equal = Integer.equal
@@ -1908,15 +1908,18 @@ module Big_int =
         let pp fmt =
           Format.fprintf
             fmt
-            "Big_int.big_int_of_string %S"
+            "Integer.of_string %S"
             (Integer.to_string n)
         in
         Type.par par Type.Call fmt pp
+      (* TODO: this should take into account kernel's option -big-ints-hex *)
       let pretty = Integer.pretty ~hexa:false
-      let varname _ = "big_n"
+      let varname _ = "integer_n"
       let mem_project = never_any_project
      end)
-let big_int = Big_int.ty
+let integer = Integer.ty
+
+module Big_int = Integer
 
 (* ****************************************************************************)
 (** {3 Triple} *)
@@ -1980,7 +1983,7 @@ and Poly_triple : sig
   include Type.Polymorphic3 with type ('a,'b,'c) poly = 'a * 'b * 'c
   module Make(T1: S)(T2: S)(T3:S) :  S with type t = (T1.t, T2.t, T3.t) poly
 end =
-  (* Split the functor argument in 2 modules such that ocaml is able to safely
+  (* Split the functor argument in 2 modules such that OCaml is able to safely
      evaluate the recursive modules *)
   Polymorphic3(struct include Triple_arg include Triple_name end)
 
@@ -2085,7 +2088,7 @@ and Poly_quadruple : sig
     S with type t = (T1.t, T2.t, T3.t, T4.t) poly
 end =
   struct
-    (* Split the functor argument in 2 modules such that ocaml is able to safely
+    (* Split the functor argument in 2 modules such that OCaml is able to safely
        evaluate the recursive modules *)
     include Polymorphic4
       (struct include Quadruple_arg include Quadruple_name end)

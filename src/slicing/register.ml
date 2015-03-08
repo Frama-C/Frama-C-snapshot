@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -1197,14 +1197,11 @@ let main () =
       begin
  	SlicingParameters.warning "No internal slicing request from the command line." ;
 	if SlicingParameters.Mode.Callers.get () then
-	  let select_entry =
-	    let spare_mark =
-	      !Db.Slicing.Mark.make ~data:false ~addr:false ~ctrl:false
-	    in
-	    let kf_entry, _library = Globals.entry_point () in
-	      SlicingParameters.warning "Adding an extra request on the entry point of function: %a." Kernel_function.pretty kf_entry;
-	      !Db.Slicing.Select.select_entry_point_internal kf_entry spare_mark
-	  in !Db.Slicing.Request.add_selection_internal project select_entry
+          let kf_entry, _library = Globals.entry_point () in
+	  SlicingParameters.warning "Adding an extra request on the entry point of function: %a." Kernel_function.pretty kf_entry;
+	  let set = Db.Slicing.Select.empty_selects in
+	  let set = !Db.Slicing.Select.select_func_calls_into set true kf_entry in
+	  !Db.Slicing.Request.add_persistent_selection project set
       end;
 
     !Db.Slicing.Request.apply_all_internal project;

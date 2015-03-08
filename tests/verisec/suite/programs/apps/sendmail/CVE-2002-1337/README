@@ -1,0 +1,24 @@
+-= CVE-2002-1337 =-
+
+Vulnerable versions: Sendmail 5.79 to 8.12.7
+File: sendmail/headers.c
+Download from: ftp://ftp.sendmail.org/pub/sendmail/past-releases/sendmail.8.12.7.tar.gz
+
+Domain: Server
+
+_ Vulnerable Functions and Buffers _
+
+Function crackaddr copies the source string, addr, into the dest buffer, buf, but incorrectly computes the amount of space to reserve at the end of buf to insert angle brackets ('>') which are missing in the input. Specific inputs can lead to an overflow of buf. The patched version reserves more space at the end of buf.
+
+_ Decomposed Programs _
+
+close_angle/
+  close-angle_ptr_{no,one,two}_test*_{bad,ok}.c
+
+Variant no_test simply copies the input into the dest buffer and writes ">\0" at the end. Variant one_test additionally checks for '<' in the input and only writes '>' at the end if '<' was seen. Variant two_tests also keeps track of "skipping" mode, in which input is not copied into the dest buffer.
+
+_ Notes _
+
+This is from Zitser's sendmail/s1.
+
+BASE_SZ was originally 30.

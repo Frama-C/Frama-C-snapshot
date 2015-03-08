@@ -1,0 +1,32 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/spec/forall_value.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  t[0..9] ∈ {0}
+  j ∈ [--..--]
+tests/spec/forall_value.i:9:[value] Function main: precondition got status unknown.
+tests/spec/forall_value.i:11:[value] Assertion got status valid.
+tests/spec/forall_value.i:12:[value] Assertion got status unknown.
+tests/spec/forall_value.i:13:[value] Assertion got status valid.
+tests/spec/forall_value.i:15:[value] Assertion got status unknown.
+tests/spec/forall_value.i:16:[value] Assertion got status unknown.
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  t[0] ∈ {0}
+   [1] ∈ {2}
+   [2..9] ∈ {0}
+[inout] Out (internal) for function main:
+          t[1]
+[inout] Inputs for function main:
+          \nothing
+[inout] InOut (internal) for function main:
+        Operational inputs:
+          \nothing
+        Operational inputs on termination:
+          \nothing
+        Sure outputs:
+          t[1]

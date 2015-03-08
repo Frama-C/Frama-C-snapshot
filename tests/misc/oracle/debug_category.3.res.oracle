@@ -1,0 +1,8 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/debug_category.i (no preprocessing)
+[test:a] A is enabled
+[test:a:b:c] C is enabled
+[test:a] A is enabled
+[test:a:b:c] C is enabled
+[test:a] A is enabled
+[test:a:b:c] C is enabled

@@ -1,0 +1,35 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/unroll_simple.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  
+tests/misc/unroll_simple.i:8:[value] entering loop for the first time
+tests/misc/unroll_simple.i:11:[kernel] warning: signed overflow. assert -2147483648 ≤ j-1;
+tests/misc/unroll_simple.i:9:[kernel] warning: signed overflow. assert G+i ≤ 2147483647;
+tests/misc/unroll_simple.i:10:[kernel] warning: signed overflow. assert i+1 ≤ 2147483647;
+tests/misc/unroll_simple.i:16:[value] entering loop for the first time
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  c ∈ {0}
+  G ∈ [8772..2147483647]
+  i ∈ [257..2147483647]
+  MAX ∈ {12}
+  JMAX ∈ {5}
+  j ∈ [-2147483648..-1]
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  NO EFFECTS
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          c; G; i; MAX; JMAX; j; tmp; tmp_unroll_774; tmp_unroll_782; tmp_unroll_790;
+          tmp_unroll_798; tmp_unroll_806; tmp_unroll_814; tmp_unroll_822;
+          tmp_unroll_830; tmp_unroll_838; tmp_unroll_846
+[inout] Inputs for function main:
+          \nothing

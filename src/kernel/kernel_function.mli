@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -34,6 +34,10 @@ open Cil_types
 (* ************************************************************************* *)
 
 include Datatype.S_with_collections with type t = kernel_function
+                                    and module Set = Cil_datatype.Kf.Set
+                                    and module Map = Cil_datatype.Kf.Map
+                                    and module Hashtbl = Cil_datatype.Kf.Hashtbl
+
 val id: t -> int
 val auxiliary_kf_stmt_state: State.t
 
@@ -190,6 +194,8 @@ module Hptset : Hptset.S
 val register_stmt: t -> stmt -> block list -> unit
   (** Register a new statement in a kernel function, with the list of
       blocks that contain the statement (innermost first). *)
+
+val self: State.t
 
 (*
 Local Variables:

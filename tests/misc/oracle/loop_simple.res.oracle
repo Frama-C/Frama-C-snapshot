@@ -1,0 +1,41 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/loop_simple.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  i ∈ {0}
+  j ∈ {0}
+  k ∈ {0}
+  n ∈ {0}
+  r ∈ {0}
+tests/misc/loop_simple.i:24:[value] entering loop for the first time
+tests/misc/loop_simple.i:25:[value] entering loop for the first time
+tests/misc/loop_simple.i:26:[value] entering loop for the first time
+tests/misc/loop_simple.i:27:[kernel] warning: signed overflow. assert (int)((int)(i+j)+k)+r ≤ 2147483647;
+tests/misc/loop_simple.i:27:[kernel] warning: signed overflow. assert (int)((int)((int)(i+j)+k)+r)+1 ≤ 2147483647;
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  i ∈ {2}
+  j ∈ {0; 2}
+  k ∈ {0; 2}
+  n ∈ {2}
+  r ∈ [0..2147483647]
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  i FROM \nothing
+  j FROM \nothing (and SELF)
+  k FROM \nothing
+  n FROM \nothing
+  r FROM \nothing
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          i; j; k; n; r
+[inout] Inputs for function main:
+          i; j; k; n; r

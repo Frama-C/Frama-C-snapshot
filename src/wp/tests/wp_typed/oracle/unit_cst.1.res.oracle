@@ -1,0 +1,22 @@
+# frama-c -wp -wp-model 'Typed (Ref)' [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_typed/unit_cst.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function f
+------------------------------------------------------------
+
+Goal Post-condition 'A' in 'f':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'B' in 'f':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------

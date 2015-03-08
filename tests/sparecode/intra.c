@@ -1,9 +1,9 @@
 /* run.config
    OPT: -sparecode-debug 1 -sparecode-analysis -journal-disable
-   OPT: -slicing-level 2 -slice-return main -journal-disable -then-on 'Slicing export' -print
+   OPT: -slicing-level 2 -slice-return main -journal-disable -then-last -print
    OPT: -main main2 -sparecode-analysis -journal-disable
-   OPT: -main main2 -slice-return main2 -journal-disable -then-on 'Slicing export' -print
-   OPT: -main main2 -slice-return main2 -slice-assert f10 -journal-disable -then-on 'Slicing export' -print
+   OPT: -main main2 -slice-return main2 -journal-disable -then-last -print
+   OPT: -main main2 -slice-return main2 -slice-assert f10 -journal-disable -then-last -print
 */
 
 /* Waiting for results such as:

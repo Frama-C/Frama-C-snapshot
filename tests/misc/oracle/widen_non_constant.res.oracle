@@ -1,0 +1,165 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/widen_non_constant.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  N ∈ {24}
+  A[0..23] ∈ [--..--]
+  B[0..25] ∈ [--..--]
+  C[0..23] ∈ [--..--]
+  t[0..19] ∈ {0}
+  u[0..39] ∈ {0}
+[value] computing for function main1 <- main.
+        Called from tests/misc/widen_non_constant.i:84.
+tests/misc/widen_non_constant.i:10:[value] entering loop for the first time
+[value] Called Frama_C_show_each_out({0})
+tests/misc/widen_non_constant.i:12:[value] entering loop for the first time
+[value] Called Frama_C_show_each_in({0}, {1})
+[value] Called Frama_C_show_each_in({0}, {1; 2})
+[value] Called Frama_C_show_each_in({0}, {1; 2; 3})
+[value] Called Frama_C_show_each_in({0}, [1..15])
+[value] Called Frama_C_show_each_in({0}, [1..16])
+[value] Called Frama_C_show_each_in({0}, [1..23])
+[value] Called Frama_C_show_each_out({0; 1})
+[value] Called Frama_C_show_each_in({0; 1}, [1..23])
+[value] Called Frama_C_show_each_out({0; 1; 2})
+[value] Called Frama_C_show_each_in({0; 1; 2}, [1..23])
+[value] Called Frama_C_show_each_out({0; 1; 2; 3})
+[value] Called Frama_C_show_each_in({0; 1; 2; 3}, [1..23])
+[value] Called Frama_C_show_each_out({0; 1; 2; 3; 4})
+[value] Called Frama_C_show_each_in({0; 1; 2; 3; 4}, [1..23])
+[value] Called Frama_C_show_each_out([0..15])
+[value] Called Frama_C_show_each_in([0..15], [1..23])
+[value] Called Frama_C_show_each_out([0..16])
+[value] Called Frama_C_show_each_in([0..16], [1..23])
+[value] Called Frama_C_show_each_out([0..22])
+[value] Called Frama_C_show_each_in([0..23], [1..23])
+[value] Recording results for main1
+[value] Done for function main1
+[value] computing for function main2 <- main.
+        Called from tests/misc/widen_non_constant.i:85.
+tests/misc/widen_non_constant.i:26:[value] entering loop for the first time
+[value] Called Frama_C_show_each_out({0})
+tests/misc/widen_non_constant.i:28:[value] entering loop for the first time
+[value] Called Frama_C_show_each_in({0}, {1})
+[value] Called Frama_C_show_each_in({0}, {1; 2})
+[value] Called Frama_C_show_each_in({0}, {1; 2; 3})
+[value] Called Frama_C_show_each_in({0}, [1..15])
+[value] Called Frama_C_show_each_in({0}, [1..16])
+[value] Called Frama_C_show_each_in({0}, [1..23])
+[value] Called Frama_C_show_each_out({0; 1})
+[value] Called Frama_C_show_each_in({0; 1}, [1..23])
+[value] Called Frama_C_show_each_out({0; 1; 2})
+[value] Called Frama_C_show_each_in({0; 1; 2; 3}, [1..23])
+[value] Called Frama_C_show_each_out([0..15])
+[value] Called Frama_C_show_each_in([0..15], [1..23])
+[value] Called Frama_C_show_each_out([0..16])
+[value] Called Frama_C_show_each_in([0..25], [1..23])
+[value] Called Frama_C_show_each_out([0..22])
+[value] Recording results for main2
+[value] Done for function main2
+[value] computing for function main3 <- main.
+        Called from tests/misc/widen_non_constant.i:86.
+tests/misc/widen_non_constant.i:45:[value] entering loop for the first time
+[value] Called Frama_C_show_each_out({0})
+tests/misc/widen_non_constant.i:47:[value] entering loop for the first time
+[value] Called Frama_C_show_each_in({0}, {1})
+[value] Called Frama_C_show_each_in({0}, {1; 2})
+[value] Called Frama_C_show_each_in({0}, {1; 2; 3})
+[value] Called Frama_C_show_each_in({0}, [1..15])
+[value] Called Frama_C_show_each_in({0}, [1..16])
+[value] Called Frama_C_show_each_in({0}, [1..23])
+[value] Called Frama_C_show_each_out({0; 1})
+[value] Called Frama_C_show_each_in({0; 1}, [1..23])
+[value] Called Frama_C_show_each_out({0; 1; 2})
+[value] Called Frama_C_show_each_in({0; 1; 2; 3}, [1..23])
+[value] Called Frama_C_show_each_out([0..15])
+[value] Called Frama_C_show_each_in([0..15], [1..23])
+[value] Called Frama_C_show_each_out([0..16])
+[value] Called Frama_C_show_each_in([0..127], [1..23])
+tests/misc/widen_non_constant.i:49:[kernel] warning: out of bounds read. assert \valid_read(p+j);
+[value] Called Frama_C_show_each_out([0..22])
+[value] Recording results for main3
+[value] Done for function main3
+[value] computing for function main4 <- main.
+        Called from tests/misc/widen_non_constant.i:87.
+tests/misc/widen_non_constant.i:63:[value] entering loop for the first time
+tests/misc/widen_non_constant.i:69:[value] entering loop for the first time
+[value] Called Frama_C_show_each({43})
+tests/misc/widen_non_constant.i:75:[value] entering loop for the first time
+[value] Called Frama_C_show_each({35; 36; 37; 38; 39; 40; 41; 42})
+[value] Recording results for main4
+[value] Done for function main4
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main1:
+  i ∈ {24} or UNINITIALIZED
+  j ∈ {23; 24}
+[value] Values at end of function main2:
+  i ∈ {24; 25} or UNINITIALIZED
+  j ∈ {23; 24; 25; 26}
+[value] Values at end of function main3:
+  i ∈ [24..127] or UNINITIALIZED
+  j ∈ [23..512]
+  p ∈ {{ &C[0] }}
+[value] Values at end of function main4:
+  t[0] ∈ {-1}
+   [1..19] ∈ [0..18]
+  u[0..39] ∈ [0..42]
+  i ∈ {19}
+  j ∈ {35; 36; 37; 38; 39; 40; 41; 42}
+  maxi ∈ {19}
+  maxj ∈ {35}
+[value] Values at end of function main:
+  t[0] ∈ {-1}
+   [1..19] ∈ [0..18]
+  u[0..39] ∈ [0..42]
+[from] Computing for function main1
+[from] Done for function main1
+[from] Computing for function main2
+[from] Done for function main2
+[from] Computing for function main3
+[from] Done for function main3
+[from] Computing for function main4
+[from] Done for function main4
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main1:
+  NO EFFECTS
+[from] Function main2:
+  NO EFFECTS
+[from] Function main3:
+  NO EFFECTS
+[from] Function main4:
+  t[0] FROM \nothing
+   [1..19] FROM \nothing (and SELF)
+  u[0..39] FROM \nothing (and SELF)
+[from] Function main:
+  t[0] FROM \nothing
+   [1..19] FROM \nothing (and SELF)
+  u[0..39] FROM \nothing (and SELF)
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main1:
+          i; j
+[inout] Inputs for function main1:
+          N; A[0..23]
+[inout] Out (internal) for function main2:
+          i; j
+[inout] Inputs for function main2:
+          N; B[0..25]
+[inout] Out (internal) for function main3:
+          i; j; p
+[inout] Inputs for function main3:
+          N; C[0..23]
+[inout] Out (internal) for function main4:
+          t[0..19]; u[0..39]; i; j; maxi; maxj
+[inout] Inputs for function main4:
+          \nothing
+[inout] Out (internal) for function main:
+          t[0..19]; u[0..39]
+[inout] Inputs for function main:
+          N; A[0..23]; B[0..25]; C[0..23]

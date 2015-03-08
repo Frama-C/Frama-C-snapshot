@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -56,8 +56,7 @@ module StmtSetLattice = struct
 
   include Abstract_interp.Make_Hashconsed_Lattice_Set(StmtDefault)(Cil_datatype.Stmt.Hptset)
 
-  let default _v _a _b : t = empty
-  let defaultall _v : t = empty
+  let default: t = empty
 
   let empty = bottom
   let cardinal set = fold (fun _ n -> n+1) set 0
@@ -80,8 +79,7 @@ module InitSid = struct
 
   let add_zone ~exact lmap zone sid =
     let new_val = StmtSetLattice.single sid in
-    let lmap = LM.add_binding exact lmap zone new_val in
-      lmap
+    LM.add_binding ~reducing:false ~exact lmap zone new_val
 
   let test_and_merge old_lmap new_lmap =
     let new_lmap = LM.join old_lmap new_lmap in
@@ -307,16 +305,18 @@ module ForwardScope (X : sig val modified : stmt -> bool end ) = struct
   include State;;
 
   let transfer_stmt s state =
-    let map_on_all_succs new_state = List.map (fun x -> (x,new_state)) s.succs in
+    let map_on_all_succs new_state =
+      List.map (fun x -> (x,new_state)) s.succs
+    in
     match s.skind with
     | Instr _ -> map_on_all_succs (State.transfer (X.modified s) state)
     | If _ | Switch _ -> map_on_all_succs (State.transfer false state)
 
-    | Return _ -> []
+    | Return _ | Throw _ -> []
 
     | UnspecifiedSequence _ | Loop _ | Block _
     | Goto _ | Break _ | Continue _
-    | TryExcept _ | TryFinally _
+    | TryExcept _ | TryFinally _ | TryCatch _
       -> map_on_all_succs state
   ;;
 
@@ -342,10 +342,10 @@ Error: Error-enabled warnings (1 occurrences) *)
 let add_s s acc =
   (* we add only 'simple' statements *)
   match s.skind with
-    | Instr _ | Return _ | Continue _ | Break _ | Goto _
+    | Instr _ | Return _ | Continue _ | Break _ | Goto _ | Throw _
         -> Cil_datatype.Stmt.Hptset.add s acc
     | Block _ | Switch _ | If _ | UnspecifiedSequence _ | Loop _
-    | TryExcept _ | TryFinally _
+    | TryExcept _ | TryFinally _ | TryCatch _
         -> acc
 
 (** Do backward and then forward propagations and compute the 3 statement sets :
@@ -572,8 +572,8 @@ class rm_annot_visitor to_be_removed = object
     else (* is to be removed *)
       match annot.annot_content with
       | AAssert (_, p) ->
-          R.result ~dkey:cat_rm_asserts ~level:2
-            "removing redundant %a@." Printer.pp_code_annotation annot;
+          R.result ~current:true ~dkey:cat_rm_asserts ~level:2
+            "@[removing redundant@ %a@]" Printer.pp_code_annotation annot;
           let p = { p with content = Ptrue } in
           let aassert = AAssert ([], p) in
           let annot = { annot with annot_content = aassert } in

@@ -1,0 +1,69 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp/wp_behav.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+tests/wp/wp_behav.c:172:[wp] warning: Ignored specification 'for b1' (generalize to all behavior)
+[wp] warning: Missing RTE guards
+tests/wp/wp_behav.c:176:[wp] warning: Missing assigns clause (assigns 'everything' instead)
+tests/wp/wp_behav.c:154:[wp] warning: Missing assigns clause (assigns 'everything' instead)
+tests/wp/wp_behav.c:69:[wp] warning: Missing assigns clause (assigns 'everything' instead)
+tests/wp/wp_behav.c:81:[wp] warning: Missing assigns clause (assigns 'everything' instead)
+[wp] 37 goals scheduled
+[wp] [Alt-Ergo] Goal typed_assert_needed_assert_ko : Unknown
+[wp] [Qed] Goal typed_assert_needed_assert_qed_ok_ok_with_hyp : Valid
+[wp] [Alt-Ergo] Goal typed_bhv_complete_pos_neg : Valid
+[wp] [Qed] Goal typed_bhv_neg_post_qed_ok : Valid
+[wp] [Qed] Goal typed_bhv_pos_post_qed_ok : Valid
+[wp] [Alt-Ergo] Goal typed_bts0513_post_ko1 : Unknown
+[wp] [Alt-Ergo] Goal typed_bts0513_post_ko2 : Unknown
+[wp] [Qed] Goal typed_f_post_qed_ok : Valid
+[wp] [Qed] Goal typed_f_x1_post_qed_ok : Valid
+[wp] [Qed] Goal typed_f_assert_qed_ok_for_x1 : Valid
+[wp] [Qed] Goal typed_f_x2_post_qed_ok : Valid
+[wp] [Qed] Goal typed_f_assert_qed_ok_for_x2 : Valid
+[wp] [Qed] Goal typed_local_named_behavior_stmt_xpos_post_qed_ok : Valid
+[wp] [Qed] Goal typed_local_named_behavior_stmt_xpos_post_qed_ok_2 : Valid
+[wp] [Qed] Goal typed_min_complete_bx_by : Valid
+[wp] [Qed] Goal typed_min_disjoint_bx_by : Valid
+[wp] [Qed] Goal typed_min_bx_post_qed_ok : Valid
+[wp] [Qed] Goal typed_min_by_post_qed_ok : Valid
+[wp] [Qed] Goal typed_more_stmt_assigns_post_qed_ok_ok_with_hoare : Valid
+[wp] [Qed] Goal typed_more_stmt_assigns_stmt_blk_assign : Valid
+[wp] [Qed] Goal typed_part_stmt_bhv_b1_post_qed_ok : Valid
+[wp] [Alt-Ergo] Goal typed_part_stmt_bhv_stmt_bs_post : Unknown
+[wp] [Alt-Ergo] Goal typed_razT_loop_inv_qed_ok_preserved : Valid
+[wp] [Qed] Goal typed_razT_loop_inv_qed_ok_established : Valid
+[wp] [Alt-Ergo] Goal typed_razT_b1_post_e1 : Unknown
+[wp] [Qed] Goal typed_stmt_assigns_post : Valid
+[wp] [Alt-Ergo] Goal typed_stmt_assigns_stmt_assign : Unknown
+[wp] [Qed] Goal typed_stmt_contract_stmt_pre_qed_ok : Valid
+[wp] [Qed] Goal typed_stmt_contract_stmt_post_qed_ok : Valid
+[wp] [Qed] Goal typed_stmt_contract_ok_post_qed_ok : Valid
+[wp] [Qed] Goal typed_stmt_contract_assigns_stmt_pre_qed_ok : Valid
+[wp] [Qed] Goal typed_stmt_contract_assigns_stmt_post_qed_ok : Valid
+[wp] [Qed] Goal typed_stmt_contract_assigns_stmt_assign : Valid
+[wp] [Qed] Goal typed_stmt_contract_assigns_ok_post_qed_ok : Valid
+[wp] [Qed] Goal typed_stmt_contract_assigns_ok_asgn_post_qed_ok : Valid
+[wp] [Qed] Goal typed_stmt_contract_label_post_qed_ok : Valid
+[wp] [Qed] Goal typed_stmt_contract_label_stmt_post_qed_ok : Valid
+[wp] Proved goals:   31 / 37
+     Qed:            29 
+     Alt-Ergo:        2  (unknown: 6)
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+f                    5     -           5       100%
+min                  4     -           4       100%
+bhv                  2      1 (5)      3       100%
+stmt_contract        3     -           3       100%
+stmt_contract_label   2    -           2       100%
+stmt_contract_assigns   5   -          5       100%
+local_named_behavior   2   -           2       100%
+assert_needed        1     -           2      50.0%
+bts0513             -      -           2       0.0%
+stmt_assigns         1     -           2      50.0%
+razT                 1      1 (11)     3      66.7%
+more_stmt_assigns    2     -           2       100%
+part_stmt_bhv        1     -           2      50.0%
+----------------------------------------------------------

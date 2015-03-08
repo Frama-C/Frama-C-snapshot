@@ -1,0 +1,50 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/from_global.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  A ∈ {0}
+  B ∈ {0}
+  C ∈ {0}
+  D ∈ {0}
+  E ∈ {0}
+[value] computing for function f <- main.
+        Called from tests/misc/from_global.i:13.
+[value] Recording results for f
+[value] Done for function f
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function f:
+  B ∈ {0}
+  C ∈ {0}
+[value] Values at end of function main:
+  A ∈ {0}
+  B ∈ {0}
+  C ∈ {0}
+  __retres ∈ {0}
+[from] Computing for function f
+[from] Done for function f
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function f:
+  B FROM A
+  C FROM x
+  \result FROM x
+[from] Function main:
+  A FROM D
+  B FROM D
+  C FROM E
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function f:
+          B; C
+[inout] Inputs for function f:
+          A; C
+[inout] Out (internal) for function main:
+          A; B; C; __retres
+[inout] Inputs for function main:
+          A; C; D; E

@@ -1,0 +1,4 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/bug_0209.c (with preprocessing)
+[kernel] warning: no input file.
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)

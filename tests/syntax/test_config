@@ -1,0 +1,4 @@
+COMMENT: this directory is meant to test exclusively the front-end
+COMMENT: (parser, type-checker, linker, syntactic transformations)
+CMD: FRAMAC_PLUGIN=tests/.empty @frama-c@
+OPT: -print -journal-disable -check

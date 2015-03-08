@@ -69,25 +69,41 @@ end
 
 type ('key, 'value) tree =
     | Empty
-    | Leaf of 'key * 'value * bool
+    | Leaf of 'key * 'value * tag
     | Branch of int (** prefix *) *
                 Big_Endian.mask *
                 ('key, 'value) tree *
                 ('key, 'value) tree *
                 tag
 
+let hash_generic tr =
+  match tr with
+  | Empty -> 27
+  | Leaf (_, _, tag)
+  | Branch (_, _, _, _, tag) -> Tag_comp.get_tag tag
+
 module type Id_Datatype = sig  
     include Datatype.S
     val id: t -> int
+end
+
+module type V = sig
+  include Datatype.S
+  val pretty_debug: t Pretty_utils.formatter
 end
 
 module Shape(Key: Id_Datatype) = struct
   type 'b t = (Key.t, 'b) tree
 end
 
+type cache_type =
+| NoCache
+| PersistentCache of string
+| TemporaryCache of string
+
 module Make
   (Key: Id_Datatype)
-  (V : Datatype.S)
+  (V : V)
   (Compositional_bool : sig
      val e: bool
      val f : Key.t -> V.t -> bool
@@ -114,8 +130,9 @@ struct
     let rec pretty_debug fmt = function
       | Empty -> Format.fprintf fmt "Empty"
       | Leaf (k, v, comp) as t ->
-        Format.fprintf fmt "K<%d> (%a -> %a, %b)"
-          (Extlib.address_of_value t) Key.pretty k V.pretty v comp
+        Format.fprintf fmt "K<%d> (%a -><%d> %a, %a)"
+          (Extlib.address_of_value t) Key.pretty k
+          (Extlib.address_of_value v) V.pretty_debug v Tag_comp.pretty comp
       | Branch (prefix, mask, t1, t2, tag) ->
         Format.fprintf fmt"B@[<v>@[(p%d, m%d, t%a)@]@  @[%a@]@  @[%a@]@]"
           prefix mask Tag_comp.pretty tag pretty_debug t1 pretty_debug t2
@@ -125,7 +142,8 @@ struct
       if Key.compare == Datatype.undefined ||
         V.compare == Datatype.undefined 
       then (
-          Kernel.debug "(%s, %s) ptmap, missing comparison function: %b %b"
+        Cmdline.Kernel_log.debug
+          "(%s, %s) ptmap, missing comparison function: %b %b"
             (Type.name Key.ty) (Type.name V.ty)
             (Key.compare == Datatype.undefined)
             (V.compare == Datatype.undefined);
@@ -161,7 +179,7 @@ struct
     let compositional_bool t = 
       match t with
 	Empty -> Compositional_bool.e
-      | Leaf (_,_,c) -> c
+      | Leaf (_,_,tc)
       | Branch (_,_,_,_,tc) -> Tag_comp.get_comp tc
 
     let rec min_binding t =
@@ -229,8 +247,14 @@ struct
     let current_tag = ref current_tag_before_initial_values
 
     let initial_values =
+      let tc k v =
+        let b = Compositional_bool.f k v in
+        let tag = !current_tag in
+        incr current_tag;
+        Tag_comp.encode tag b
+      in
       List.map
-	(function [k,v] -> Leaf (k, v, Compositional_bool.f k v)
+	(function [k,v] -> Leaf (k, v, tc k v)
 	| [] -> Empty
 	| _ -> assert false)
 	Initial_Values.v
@@ -256,7 +280,7 @@ struct
 	  let reprs = [ Empty ]
 	  let equal = ( == )
 	  let compare = compare
-	  let hash = hash
+	  let hash = hash_generic
 	  let rehash x = !rehash_ref x
 	  let copy = Datatype.undefined
 	  let internal_pretty_code = Datatype.pp_fail
@@ -283,26 +307,18 @@ struct
 
     let self = PatriciaHashconsTbl.self
 
-(*    let inform_counter = ref 0
-
-    let inform() =
-      let n = succ !inform_counter in
-      inform_counter := n;
-      if n land 16383 = 0
-      then
-	let c = PatriciaHashconsTbl.count () in
-	Format.printf "%6d nodes %s@." c name
-*)
-
 
     let wrap_Leaf k v =
-  (*    inform(); *)
+      (* The test k < p+m and the implementation of [highest_bit] do not work
+         with negative keys. *)
       assert (Key.id k >= 0); 
-      (* The test k < p+m 
-	 and the implementation of [highest_bit]
-	 do not work with negative keys. *)
-      let new_tr = Leaf (k, v, Compositional_bool.f k v) in
-      PatriciaHashconsTbl.merge  new_tr
+      let b = Compositional_bool.f k v in
+      let tag = !current_tag in
+      let new_tr = Leaf (k, v, Tag_comp.encode tag b) in
+      let result = PatriciaHashconsTbl.merge new_tr in
+      if result == new_tr
+      then current_tag := (succ tag) land max_int ;
+      result
 
     let wrap_Branch p m l r =
       let open Compositional_bool in
@@ -322,17 +338,27 @@ struct
       then current_tag := (succ tag) land max_int ;
       result
 
-    let rehash_node = function
-      | Empty -> Empty
-      | Leaf (k, v, _) -> wrap_Leaf k v
-      | Branch (p,m,l,r,_) -> wrap_Branch p m l r
-
-    let () = rehash_ref := rehash_node
-
 
     (* This reference will contain a list of functions that will clear
        all the transient caches used in this module *)
     let clear_caches = ref []
+
+
+    (* The auxiliary function [match_prefix] tells whether a given key has a
+       given prefix. More specifically, [match_prefix k p m] returns [true] if
+       and only if the key [k] has prefix [p] up to bit [m].
+
+       Throughout our implementation of Patricia trees, prefixes are assumed to
+       be in normal form, i.e. their irrelevant bits are set to some
+       predictable value. Formally, we assume 
+       [Big_Endian.mask p m] equals [p] whenever
+       [p] is a prefix with [m] relevant bits. This allows implementing
+       [match_prefix] using only one call to [Big_Endian.mask]. 
+       On the other hand, this
+       requires normalizing prefixes, as done e.g. in [join] below, where
+       [Big_Endian.mask p0 m] has to be used instead of [p0]. *)
+    let match_prefix k p m =
+      Big_Endian.mask k m = p
 
 
     (* [find k m] looks up the value associated to the key [k] in the map [m],
@@ -343,7 +369,6 @@ struct
        query for a non-existent key shall be detected only when finally
        reaching a leaf, rather than higher up in the tree. This strategy is
        better when (most) queries are expected to be successful. *)
-
     let find key htr =
       let id = Key.id key in
       let rec find htr =
@@ -360,6 +385,26 @@ struct
       in
       find htr
 
+    (* Similar to [find], but checks the prefix found at the current node *)
+    let find_check_missing key htr =
+      let id = Key.id key in
+      let rec find htr =
+	match htr with
+	| Empty ->
+	    raise Not_found
+	| Leaf (key', data, _) ->
+	    if Key.equal key key' then
+	      data
+	    else
+	      raise Not_found
+	| Branch (prefix, mask, tree0, tree1, _) ->
+          if match_prefix id prefix mask then
+	    find (if (id land mask) = 0 then tree0 else tree1)
+          else raise Not_found
+      in
+      find htr
+
+
     let find_key key htr =
       let id = Key.id key in
       let rec find htr =
@@ -371,8 +416,10 @@ struct
 	      key'
 	    else
 	      raise Not_found
-	| Branch (_, mask, tree0, tree1, _) ->
+	| Branch (prefix, mask, tree0, tree1, _) ->
+          if match_prefix id prefix mask then
 	    find (if (id land mask) = 0 then tree0 else tree1)
+          else raise Not_found
       in
       find htr	
 
@@ -384,8 +431,10 @@ struct
             false
 	| Leaf (key', _, _) ->
 	    Key.equal key key'
-	| Branch (_, mask, tree0, tree1, _) ->
+	| Branch (prefix, mask, tree0, tree1, _) ->
+          if match_prefix id prefix mask then
 	    find (if (id land mask) = 0 then tree0 else tree1)
+          else false
       in
       find htr
 
@@ -424,22 +473,6 @@ struct
 	wrap_Branch p m t0 t1
       else
 	wrap_Branch p m t1 t0
-
-    (* The auxiliary function [match_prefix] tells whether a given key has a
-       given prefix. More specifically, [match_prefix k p m] returns [true] if
-       and only if the key [k] has prefix [p] up to bit [m].
-
-       Throughout our implementation of Patricia trees, prefixes are assumed to
-       be in normal form, i.e. their irrelevant bits are set to some
-       predictable value. Formally, we assume 
-       [Big_Endian.mask p m] equals [p] whenever
-       [p] is a prefix with [m] relevant bits. This allows implementing
-       [match_prefix] using only one call to [Big_Endian.mask]. 
-       On the other hand, this
-       requires normalizing prefixes, as done e.g. in [join] above, where
-       [Big_Endian.mask p0 m] has to be used instead of [p0]. *)
-    let match_prefix k p m =
-      Big_Endian.mask k m = p
 
     let pretty_prefix (p,m) fmt tree =
       let rec pretty_prefix_aux tree = 
@@ -511,7 +544,9 @@ struct
       match t with
 	Empty -> None
       | Leaf (k, _, c) -> 
-	  if Key.id k = p && m = -1 && c then Some t else None
+	  if Key.id k = p && m = -1 && (Tag_comp.get_comp c)
+          then Some t
+          else None
       | Branch (p1, m1, l, r, tc) ->
 	  if p1 = p && m1 = m 
 	  then (if Tag_comp.get_comp tc then Some t else None)
@@ -601,12 +636,16 @@ struct
 	    else
 	      raise Not_found
 	| Branch (prefix, mask, tree0, tree1,  _) ->
+          if match_prefix id prefix mask then
 	    if (id land mask) = 0 then
 	      let rtree0 = remove tree0 in
 	      match rtree0 with
 	      | Empty ->
 		  tree1
 	      | _ ->
+                if rtree0 == tree0 then
+                  htr
+                else
 		  wrap_Branch prefix mask rtree0 tree1
 	    else
 	      let rtree1 = remove tree1 in
@@ -614,7 +653,12 @@ struct
 	      | Empty ->
 		  tree0
 	      | _ ->
+                if rtree1 == tree1 then
+                  htr
+                else
 		  wrap_Branch prefix mask tree0 rtree1
+          else
+            raise Not_found
       in
       try
 	remove m
@@ -721,6 +765,21 @@ struct
       | Branch (_, _, tree0, tree1, _) ->
 	  fold_rev f tree0 (fold_rev f tree1 accu)
 
+    let rehash_node = function
+      | Empty -> Empty
+      | Leaf (k, v, _) -> wrap_Leaf k v
+      | Branch (p,m,l,r,_) ->
+        if Descr.is_abstract Key.descr then
+          (* The keys id have not been modified during de-marshalling.
+             The shapes of [l] and [r] are compatible, just merge them. *)
+          wrap_Branch p m l r
+        else
+          (* The ids may have been modified, the trees can overlap. Rebuild
+             everything from scratch. *)
+          fold add l r
+
+    let () = rehash_ref := rehash_node
+
 
     let rec for_all f m =
       match m with
@@ -739,9 +798,16 @@ struct
       | Empty ->
 	  Empty
       | Leaf (key, data, _) ->
-	  wrap_Leaf key (f data)
+          let data' = f data in
+          if data == data' then htr
+          else
+	    wrap_Leaf key data'
       | Branch (p, m, tree0, tree1, _) ->
-	  wrap_Branch p m (map f tree0) (map f tree1)
+          let tree0' = map f tree0 in
+          let tree1' = map f tree1 in
+          if tree0' == tree0 && tree1' == tree1 then htr
+          else
+	    wrap_Branch p m tree0' tree1'
 
     let rec map' f htr = match htr with
       | Empty ->
@@ -776,41 +842,55 @@ struct
 	  else
 	    wrap_Branch p m tree0' tree1'
 
-    let generic_fine_add decide k d m =
+    let generic_fine_add empty_neutral decide k d m =
       (* there is an implicit argument which is a tree with a single binding.
 	  Where the calls to [decide] are concerned, this implicit tree is the
 	  second one *)
-      let id = Key.id k in
       let rec add t =
 	match t with
-	|	Empty ->
+	| Empty ->
 	    wrap_Leaf k (decide k None (Some d))
-	|	Leaf (k0, d0, _) ->
+	| Leaf (k0, d0, _) ->
 	    if Key.equal k k0 then
 	      let d' = decide k (Some d0) (Some d) in
 	      if d'==d0 then t else wrap_Leaf k d'
 	    else
-	      let endo =
-		let decided = decide k0 (Some d0) None in
-		if decided == d0 then t else wrap_Leaf k0 decided
-	      in
-	      join id (wrap_Leaf k (decide k None (Some d))) (Key.id k0) endo
-	|	Branch (p, m, t0, t1, _) ->
-	    if match_prefix id p m then
-	      if (id land m) = 0 then
+              if empty_neutral then
+                join (Key.id k) (wrap_Leaf k d) (Key.id k0) t
+              else
+	        let t' =
+		  let decided = decide k0 (Some d0) None in
+		  if decided == d0 then t else wrap_Leaf k0 decided
+	        in
+	        join (Key.id k) (wrap_Leaf k (decide k None (Some d)))
+                     (Key.id k0) t'
+	| Branch (p, m, t0, t1, _) ->
+            let k_id = Key.id k in
+	    if match_prefix k_id p m then
+	      if (k_id land m) = 0 then
 		let a_t0 = add t0 in
-		let endo = endo_map (fun k x -> decide k (Some x) None) t1 in
-		if a_t0 == t0 && endo == t1 then t
-		else wrap_Branch p m a_t0 endo
+		let t1' =
+                  if empty_neutral
+                  then t1
+                  else endo_map (fun k x -> decide k (Some x) None) t1
+                in
+		if a_t0 == t0 && t1' == t1 then t
+		else wrap_Branch p m a_t0 t1'
 	      else
 		let a_t1 = add t1 in
-		let endo =  endo_map (fun k x -> decide k (Some x) None) t0
+		let t0' =
+                  if empty_neutral
+                  then t0
+                  else endo_map (fun k x -> decide k (Some x) None) t0
 		in
-		if a_t1 == t1 && endo == t0 then t
-		else wrap_Branch p m endo a_t1
+		if a_t1 == t1 && t0' == t0 then t
+		else wrap_Branch p m t0' a_t1
 	    else
-	      let endo = endo_map (fun k x -> decide k (Some x) None) t in
-	      join id (wrap_Leaf k (decide k None (Some d))) p endo
+              if empty_neutral then
+                join k_id (wrap_Leaf k d) p t
+              else
+	        let t' = endo_map (fun k x -> decide k (Some x) None) t in
+	        join k_id (wrap_Leaf k (decide k None (Some d))) p t'
       in
       add m
 
@@ -828,46 +908,61 @@ struct
 	let sentinel = Empty
       end
 
-      let symmetric_merge ~cache:_ ~decide_none ~decide_some =
+      let symmetric_merge ~cache:_ ~empty_neutral ~decide_none ~decide_some =
 	let symmetric_fine_add k d m =
 	  (* this function to be called when one of the trees
 	     is a single binding *)
-	  let id = Key.id k in
 	  let rec add t =
 	    match t with
 	    |	Empty ->
+                if empty_neutral then
+                  wrap_Leaf k d
+                else
 		  wrap_Leaf k (decide_none k d )
 	    |	Leaf (k0, d0, _) ->
 		  if Key.equal k k0 then
 		    let d' = decide_some d0 d in
 		    if d'==d0 then t else wrap_Leaf k d'
 		  else
-		    let endo =
-		      let decid = decide_none k0 d0 in
-		      if decid == d0 then t else wrap_Leaf k0 decid
-		    in
-		    join id (wrap_Leaf k (decide_none k d)) (Key.id k0) endo
+                    if empty_neutral then
+                      join (Key.id k) (wrap_Leaf k d) (Key.id k0) t
+                    else
+		      let endo =
+		        let decid = decide_none k0 d0 in
+		        if decid == d0 then t else wrap_Leaf k0 decid
+		      in
+		      join (Key.id k) (wrap_Leaf k (decide_none k d))
+                           (Key.id k0) endo
 	    |	Branch (p, m, t0, t1, _) ->
-		  if match_prefix id p m then
-		    if (id land m) = 0 then
+                  let k_id = Key.id k in
+		  if match_prefix k_id p m then
+		    if (k_id land m) = 0 then
 		      let a_t0 = add t0 in
-		      let endo = endo_map decide_none t1 in
-		      if a_t0 == t0 && endo == t1 then t
-		      else wrap_Branch p m a_t0 endo
+		      let t1' =
+                        if empty_neutral then t1
+                        else endo_map decide_none t1
+                      in
+		      if a_t0 == t0 && t1' == t1 then t
+		      else wrap_Branch p m a_t0 t1'
 		    else
 		      let a_t1 = add t1 in
-		      let endo =  endo_map decide_none t0
+		      let t0' =
+                        if empty_neutral then t0
+                        else endo_map decide_none t0
 		      in
-		      if a_t1 == t1 && endo == t0 then t
-		      else wrap_Branch p m endo a_t1
+		      if a_t1 == t1 && t0' == t0 then t
+		      else wrap_Branch p m t0' a_t1
 		  else
-		    let endo = endo_map decide_none t in
-		    join id (wrap_Leaf k (decide_none k d)) p endo in
-
+                    if empty_neutral then
+                      join k_id (wrap_Leaf k d) p t
+                    else
+		      let t' = endo_map decide_none t in
+		      join k_id (wrap_Leaf k (decide_none k d)) p t'
+          in
 	  add m
 	in
 	let module SymmetricCache =
-	  Binary_cache.Make_Symmetric(Cacheable)(R)
+	  Binary_cache.Symmetric_Binary(Cacheable)(R)
 	in
         clear_caches := SymmetricCache.clear :: !clear_caches;
 	let rec union s t =
@@ -876,22 +971,18 @@ struct
 	and uncached_union s t =
 	  match s, t with
 	  | Empty, t | t, Empty ->
-	      endo_map decide_none t
+              if empty_neutral then t else endo_map decide_none t
 	  | Leaf(key, value, _), t | t, Leaf(key, value, _) ->
 	      symmetric_fine_add key value t
 	  | Branch(p, m, s0, s1, _), Branch(q, n, t0, t1, _) ->
-	      if (p = q) && (m = n) 
-	      then
+	      if (p = q) && (m = n) then
   		(* The trees have the same prefix. Merge their sub-trees. *)
 		let u0 = union s0 t0
 		and u1 = union s1 t1 in
 		if t0 == u0 && t1 == u1 then t
 		else wrap_Branch p m u0 u1
-
 	      else if (Big_Endian.shorter m n) && (match_prefix q p m) then
-
   		(* [q] contains [p]. Merge [t] with a sub-tree of [s]. *)
-
 		if (q land m) = 0 then
 		  let s0_t = union s0 t in
 		  let s1_e = union s1 Empty in
@@ -902,11 +993,8 @@ struct
 		  let s1_t = union s1 t in
 		  if s0_e == s0 && s1_t == s1 then s
 		  else wrap_Branch p m s0_e s1_t
-
 	      else if (Big_Endian.shorter n m) && (match_prefix p q n) then
-
 		(* [p] contains [q]. Merge [s] with a sub-tree of [t]. *)
-
 		if (p land n) = 0 then
 		  let s_t0 = union s t0 in
 		  let e_t1 = union Empty t1 in
@@ -920,11 +1008,12 @@ struct
 	      else
 		(* The prefixes disagree. *)
 		join p (union s Empty) q (union Empty t)
-	in union
+	in
+        union
 
       let symmetric_inter ~cache:_ ~decide_some =
 	let module SymmetricCache =
-	  Binary_cache.Make_Symmetric(Cacheable)(R)
+	  Binary_cache.Symmetric_Binary(Cacheable)(R)
 	in
         clear_caches := SymmetricCache.clear :: !clear_caches;
 	let rec inter s t =
@@ -1019,33 +1108,41 @@ struct
           wrap_Branch p m (from_shape f t1) (from_shape f t2)
 
 
-      let generic_merge ~cache ~decide ~idempotent =
+      let generic_merge ~cache ~decide ~idempotent ~empty_neutral =
 	let _name, do_cache = cache in
 	let cache_merge =
 	  if do_cache then
             begin
-	      let module Cache = Binary_cache.Make_Asymmetric(Cacheable)(R) in
+	      let module Cache =
+                    Binary_cache.Arity_Two(Cacheable)(Cacheable)(R)
+              in
               clear_caches := Cache.clear :: !clear_caches;
 	      Cache.merge
 	    end
           else fun f x y -> f x y
 	in
-	let rec union s t =
-          if idempotent then
-            if s==t then s else cache_merge compute s t
+        let rec union s t =
+          if idempotent && s == t then s
           else
-            if s==Empty && t==Empty then s else cache_merge compute s t
+            cache_merge compute s t
 	and compute s t =
 	  match s, t with
+          | Empty, Empty -> Empty
+
 	  | Empty, _ ->
-	      endo_map (fun k x -> decide k None (Some x)) t
+              if empty_neutral then t
+              else
+	        endo_map (fun k x -> decide k None (Some x)) t
 	  | (Leaf _ | Branch _), Empty ->
-	      endo_map (fun k x -> decide k (Some x) None) s
+              if empty_neutral then s
+              else
+	        endo_map (fun k x -> decide k (Some x) None) s
 
 	  | Leaf(key, value, _), _ ->
-	      generic_fine_add (fun k v1 v2 -> decide k v2 v1) key value t
+	      generic_fine_add
+                empty_neutral (fun k v1 v2 -> decide k v2 v1) key value t
 	  | Branch _, Leaf(key, value, _) ->
-	      generic_fine_add decide key value s
+	      generic_fine_add empty_neutral decide key value s
 
 	  | Branch(p, m, s0, s1, _), Branch(q, n, t0, t1, _) ->
 	      if (p = q) && (m = n) then
@@ -1082,7 +1179,84 @@ struct
 		(* The prefixes disagree. *)
 		join p (union s Empty) q (union Empty t)
 	in
-	union
+        union
+
+  let fold2_join_heterogeneous (type arg) (type result) ~cache ~empty_left ~empty_right ~both ~join ~empty =
+    let cache_merge = match cache with
+      | NoCache -> (fun f x y -> f x y)
+      | PersistentCache _name | TemporaryCache _name ->
+        let module Arg = struct
+          type t = (Key.t, arg) tree
+	  let hash : t -> int = hash_generic
+	  let sentinel : t = Empty
+	  let equal : t -> t -> bool = (==)
+        end in
+        let module Result = struct
+          type t = result
+          let sentinel : t = empty
+        end in
+        let module Cache = Binary_cache.Arity_Two(Cacheable)(Arg)(Result) in
+        (match cache with
+        | PersistentCache _ ->
+          clear_caches := Cache.clear :: !clear_caches
+        | _ -> ());
+        Cache.merge
+    in
+    let rec compute s t = cache_merge aux s t
+    and aux s t =
+      match s, t with
+      | Empty, Empty -> empty
+      | Empty, t -> empty_left t
+      | s, Empty -> empty_right s
+
+      | Leaf (ks, vs, _), Leaf (kt, vt, _) ->
+        if Key.equal ks kt then
+          both ks vs vt
+        else
+          join (empty_left t) (empty_right s)
+
+      | Branch (p, m, s0, s1, _), Leaf(kt, _, _) ->
+        let k_id = Key.id kt in
+        if match_prefix k_id p m then
+          if (k_id land m) = 0 then
+            join (compute s0 t) (empty_right s1)
+          else
+            join (compute s1 t) (empty_right s0)
+        else
+          join (empty_right s) (empty_left t)
+
+      | Leaf (ks, _, _), Branch(q, n, t0, t1, _) ->
+        let k_id = Key.id ks in
+	if match_prefix k_id q n then
+	  if (k_id land n) = 0 then
+            join (compute s t0) (empty_left t1)
+	  else
+            join (compute s t1) (empty_left t0)
+	else
+          join (empty_right s) (empty_left t)
+
+      | Branch(p, m, s0, s1, _), Branch(q, n, t0, t1, _) ->
+	if (p = q) && (m = n) then
+	  (* The trees have the same prefix. recurse on the sub-trees *)
+          join (compute s0 t0) (compute s1 t1)
+	else if (Big_Endian.shorter m n) && (match_prefix q p m) then
+          (* [q] contains [p]. Merge [t] with a sub-tree of [s]. *)
+	  if (q land m) = 0 then
+	    join (compute s0 t) (empty_right s1)
+	  else
+            join (compute s1 t) (empty_right s0)
+	else if (Big_Endian.shorter n m) && (match_prefix p q n) then
+	  (* [p] contains [q]. Merge [s] with a sub-tree of [t]. *)
+	  if (p land n) = 0 then
+            join (compute s t0) (empty_left t1)
+	  else
+            join (compute s t1) (empty_left t0)
+	else
+	  (* The prefixes disagree. *)
+          join (empty_right s) (empty_left t)
+    in
+    fun s t -> compute s t
+
 
       type decide_fast = Done | Unknown
 
@@ -1180,7 +1354,7 @@ struct
 
     let generic_predicate exn ~cache:_ ~decide_fast ~decide_fst ~decide_snd ~decide_both =
       let module Cache =
-	Binary_cache.Make_Binary(Cacheable)(Cacheable)
+	Binary_cache.Binary_Predicate(Cacheable)(Cacheable)
       in
       clear_caches := Cache.clear :: !clear_caches;
       make_predicate Cache.merge exn
@@ -1188,7 +1362,7 @@ struct
 
     let generic_symmetric_predicate exn ~decide_fast ~decide_one ~decide_both =
       let module Cache =
-	Binary_cache.Make_Symmetric_Binary(Cacheable)
+	Binary_cache.Symmetric_Binary_Predicate(Cacheable)
       in 
       clear_caches := Cache.clear :: !clear_caches;
       make_predicate Cache.merge exn
@@ -1276,17 +1450,14 @@ struct
     in
     aux'
 
-  type cache_type =
-    | NoCache
-    | PersistentCache of string
-    | TemporaryCache of string
-
 
   let binary_predicate ct pt ~decide_fast ~decide_fst ~decide_snd ~decide_both =
     let cache_merge = match ct with
       | NoCache -> (fun f x y -> f x y)
       | PersistentCache _name | TemporaryCache _name ->
-        let module Cache = Binary_cache.Make_Binary(Cacheable)(Cacheable) in
+        let module Cache =
+              Binary_cache.Binary_Predicate(Cacheable)(Cacheable)
+        in
         (match ct with
           | PersistentCache _ ->
             clear_caches := Cache.clear :: !clear_caches
@@ -1300,7 +1471,7 @@ struct
     let cache_merge = match ct with
       | NoCache -> (fun f x y -> f x y)
       | PersistentCache _name | TemporaryCache _name ->
-        let module Cache = Binary_cache.Make_Symmetric_Binary(Cacheable) in
+        let module Cache = Binary_cache.Symmetric_Binary_Predicate(Cacheable) in
         (match ct with
           | PersistentCache _ ->
             clear_caches := Cache.clear :: !clear_caches
@@ -1391,6 +1562,9 @@ struct
             else
               (Empty, None, Empty)
       | Branch(_, mask, l, r, _) ->
+          (* TODO: this function is suboptimal because it recurses even when
+             the key will never be found: missing
+             [if match_prefix id prefix mask then] *)
           if (id land mask) = 0 then
             let (ll, pres, rl) = aux l in (ll, pres, union rl r)
           else

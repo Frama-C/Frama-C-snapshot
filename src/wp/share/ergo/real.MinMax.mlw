@@ -18,21 +18,37 @@
 (** The theory real_Real_ must be appended to this file*)
 logic min_real : real, real -> real
 
+axiom min_def :
+  (forall x:real. forall y:real. ((x <= y) -> (min_real(x, y) = x)))
+
+axiom min_def1 :
+  (forall x:real. forall y:real. ((not (x <= y)) -> (min_real(x, y) = y)))
+
 logic max_real : real, real -> real
 
-axiom Max_is_ge : (forall x:real. forall y:real. (x <= max_real(x, y)))
+axiom max_def :
+  (forall x:real. forall y:real. ((x <= y) -> (max_real(x, y) = y)))
 
-axiom Max_is_ge1 : (forall x:real. forall y:real. (y <= max_real(x, y)))
+axiom max_def1 :
+  (forall x:real. forall y:real. ((not (x <= y)) -> (max_real(x, y) = x)))
 
-axiom Max_is_some :
-  (forall x:real. forall y:real. ((max_real(x, y) = x) or (max_real(x,
-  y) = y)))
+axiom Min_r :
+  (forall x:real. forall y:real. ((y <= x) -> (min_real(x, y) = y)))
 
-axiom Min_is_le : (forall x:real. forall y:real. (min_real(x, y) <= x))
+axiom Max_l :
+  (forall x:real. forall y:real. ((y <= x) -> (max_real(x, y) = x)))
 
-axiom Min_is_le1 : (forall x:real. forall y:real. (min_real(x, y) <= y))
+axiom Min_comm :
+  (forall x:real. forall y:real. (min_real(x, y) = min_real(y, x)))
 
-axiom Min_is_some :
-  (forall x:real. forall y:real. ((min_real(x, y) = x) or (min_real(x,
-  y) = y)))
+axiom Max_comm :
+  (forall x:real. forall y:real. (max_real(x, y) = max_real(y, x)))
+
+axiom Min_assoc :
+  (forall x:real. forall y:real. forall z:real. (min_real(min_real(x, y),
+  z) = min_real(x, min_real(y, z))))
+
+axiom Max_assoc :
+  (forall x:real. forall y:real. forall z:real. (max_real(max_real(x, y),
+  z) = max_real(x, max_real(y, z))))
 

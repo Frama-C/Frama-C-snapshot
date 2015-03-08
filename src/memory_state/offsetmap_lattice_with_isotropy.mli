@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -26,8 +26,11 @@ open Lattice_type
 
 include Bounded_Join_Semi_Lattice
 include With_Top with type t := t
+include With_Narrow with type t := t
 include With_Widening with type t := t
 include With_Cardinal_One with type t := t
+
+val pretty_typ: Cil_types.typ option -> t Pretty_utils.formatter
 
 (** Are the bits independent? *)
 val is_isotropic : t -> bool
@@ -46,7 +49,7 @@ val extract_bits :
 val little_endian_merge_bits :
   topify:Origin.kind ->
   conflate_bottom:bool ->
-  total_length:int -> value:t -> offset:Integer.t -> t -> t
+  value:t -> offset:Integer.t -> t -> t
 
 val big_endian_merge_bits :
   topify:Origin.kind ->

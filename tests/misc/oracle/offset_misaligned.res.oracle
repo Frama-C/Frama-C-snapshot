@@ -1,0 +1,30 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/offset_misaligned.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  t[0..299] ∈ {0}
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  t[0] ∈ {1}
+   [bits 8 to 39] ∈ {2}
+   [5..9] ∈ {0}
+   [10..265] ∈ {0; 3}
+   [266..299] ∈ {0}
+  __retres ∈ {0}
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  t[0..4] FROM \nothing
+   [10..265] FROM u (and SELF)
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          t{[0..4]; [10..265]}; __retres
+[inout] Inputs for function main:
+          \nothing

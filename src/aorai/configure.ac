@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Aorai plug-in of Frama-C.                        #
 #                                                                        #
-#  Copyright (C) 2007-2014                                               #
+#  Copyright (C) 2007-2015                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #    INRIA (Institut National de Recherche en Informatique et en         #
@@ -38,11 +38,13 @@ m4_ifndef([FRAMAC_M4_MACROS],
 
 check_plugin(aorai,PLUGIN_RELATIVE_PATH(plugin_file),[support for Aorai plug-in],yes,yes)
 
+plugin_use_external(aorai,ltltoba)
+
 if test "$ENABLE_AORAI" != "no"; then
-  plugin_use_external(aorai,ltltoba)
   # ltl2ba library
   configure_tool([LTLTOBA],[ltl2ba],[ltl2ba not found.],no)
-  check_plugin_dependencies
 fi
+
+check_plugin_dependencies
 
 write_plugin_config(Makefile)

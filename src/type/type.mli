@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -101,7 +101,10 @@ val register:
     @modify Carbon-20101201 [value_name] is now [ml_name]. Must provide a
     structural descriptor. Argument [pp] does not exist anymore. *)
 
+exception No_abstract_type of string
+
 (** Apply this functor to access to the abstract type of the given name.
+    @raise No_abstract_type if no such abstract type was registered.
     @since Nitrogen-20111001 
     @plugin development guide *)
 module Abstract(T: sig val name: string end): sig
@@ -129,7 +132,7 @@ val ml_name: 'a t -> string
 val pp_ml_name: 'a t -> precedence -> Format.formatter -> unit
 val set_ml_name: 'a t -> string option -> unit
 val set_name: 'a t -> string -> unit
-(** @since Neon-20130301 *)
+(** @since Neon-20140301 *)
 
 (* ****************************************************************************)
 (** {2 Type values are comparable} *)

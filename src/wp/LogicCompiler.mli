@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -50,8 +50,8 @@ sig
 
   val frame : kernel_function -> frame
   val frame_copy : frame -> frame
-  val call_pre   : kernel_function -> value list -> sigma -> frame
-  val call_post  : kernel_function -> value list -> sigma sequence -> frame
+  val call_pre   : sigma -> kernel_function -> value list -> sigma -> frame
+  val call_post  : sigma -> kernel_function -> value list -> sigma sequence -> frame
 
   val formal : varinfo -> value option
   val return : unit -> typ

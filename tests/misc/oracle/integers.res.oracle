@@ -1,0 +1,33 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/integers.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  bin ∈ {0}
+  hex ∈ {0}
+  oct ∈ {0}
+  dec ∈ {0}
+tests/misc/integers.i:7:[value] Assertion got status valid.
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  bin ∈ {84}
+  hex ∈ {84}
+  oct ∈ {84}
+  dec ∈ {42}
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  bin FROM \nothing
+  hex FROM \nothing
+  oct FROM \nothing
+  dec FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          bin; hex; oct; dec
+[inout] Inputs for function main:
+          \nothing

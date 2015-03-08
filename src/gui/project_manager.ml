@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -131,7 +131,8 @@ let load_project (host_window: Design.main_window_extension_points) =
          | Some f ->
              (try ignore (Project.load f)
               with Project.IOError s | Failure s ->
-                host_window#error ~parent:(dialog:>GWindow.window_skel)
+                host_window#error
+                  ~reset:true ~parent:(dialog:>GWindow.window_skel)
                   "Cannot load: %s" s)
          end
      | `DELETE_EVENT | `CANCEL -> ());
@@ -150,7 +151,7 @@ let rename_project (main_ui: Design.main_window_extension_points) project =
       try
         ignore (Project.from_unique_name s);
         main_ui#error "Project of name %S already exists" s
-      with Not_found ->
+      with Project.Unknown_project ->
         Project.set_name project s
 
 let reset (menu: GMenu.menu) =
@@ -188,7 +189,9 @@ let reset (menu: GMenu.menu) =
   end
 
 let rec duplicate_project window menu project =
-  let new_p = Project.create_by_copy ~src:project (Project.get_name project) in
+  let new_p =
+    Project.create_by_copy ~last:false ~src:project (Project.get_name project)
+  in
   try
     (* update the menu *)
     let group =

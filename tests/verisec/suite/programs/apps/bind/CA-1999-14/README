@@ -1,0 +1,74 @@
+-= CA-1999-14 =-
+
+Vulnerable versions:
+  NXT: BIND [8.2, 8.2.2)
+  SIG: BIND [4.9.5, 8.x]
+File(s): src/bin/named/ns_resp.c
+Download from:
+  ftp://ftp.isc.org/isc/bind/src/DEPRECATED/8.2/bind-8.2-src.tar.gz
+
+Domain: DNS Server
+
+_ Vulnerable Functions and Buffers _
+
+There are two unrelated vulnerabilities in rrextract(), reported in
+the same CERT advisory. rrextract() processes a Resource Record in
+packet form, and extracts fields out of it to store in BIND's internal
+database format. (For the format of Resource Records, see
+http://en.wikipedia.org/wiki/Domain_Name_System and
+http://tools.ietf.org/html/rfc1035). The Resource Record packet is an
+array of unsigned chars, ie. bytes. The data read from the packet
+initializes many of rrextract()'s local variables.
+
+The "nxt bug" can overflow the local buffer data[] in rrextract() via
+a call to memcpy(). The size argument comes from a call to
+dn_expand(), and there is no check that this is less than or equal to
+the size of dest[]. Creating a path to this error is complicated by
+numerous reads of the input buffer, and much arithmetic on pointers
+into the buffer.
+
+The "sig bug" is similar -- the data[] buffer is also overflowed. This
+time, the size argument for memcpy() is a function of both a call to
+dn_expand(), and the dlen field read out of the input buffer. It is
+possible for this size to be a negative signed int, which causes
+memcpy() to interpret it as a large unsigned amount.
+
+** NOTE ** For a tool to find the "sig bug", it must have support for
+specific integer overflow semantics.
+
+The "nxt bug" is "b1" in Zitser's suite, and the "sig bug" is b2.
+
+These examples involve reading data "off-the-wire", offsets into
+packets which aren't necessarily related through IF conditions, and a
+bunch of pointer arithmetic based on these offsets. These factors make
+it difficult for SMC; hence, the current decompositions are
+significantly simpler than Zitser's.
+
+_ Simplifications _
+
+rrextract-nxt:
+  simp - aims for as little detail as possible while preserving the vulnerability
+  two-expands - calls dn_expand() a second time, and increments cp by the result
+  expand_vars - reads several fields out of the rrp packet
+
+rrextract-sig:
+  vars - reads a variable out of rrp
+  expand - uses dn_expand() and advances cp and cp1
+  simp - does neither of the above
+  both - does both of the above
+
+_ Decomposed Programs _
+
+bind.h
+bind.c
+
+rrextract-nxt/
+  simp_{ok,bad}.c
+  two_expands_{ok,bad}.c
+  expands_vars_{ok,bad}.c
+
+rrextract-sig/
+  simp_{ok,bad}.c
+  vars_{ok,bad}.c
+  expand_{ok,bad}.c
+  both_{ok,bad}.c

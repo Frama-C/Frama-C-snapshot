@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -97,8 +97,10 @@ module Vars = struct
   let iter_globals f l =
     let treat_global = function
       | GVar(vi,init,_) -> f vi init
-      | GVarDecl (_,vi,_) when not (Cil.isFunctionType vi.vtype) ->
-        f vi { init = None }
+      | GVarDecl (_,vi,_) when
+          not (Cil.isFunctionType vi.vtype) && not vi.vdefined
+        (** If it is defined it will appear with the right init later *)
+        -> f vi { init = None }
       | GType _ | GCompTag _ | GCompTagDecl _ | GEnumTag _ | GEnumTagDecl _
       | GVarDecl _ | GFun _ | GAsm _ | GPragma _ | GText _ | GAnnot _ -> ()
     in
@@ -107,8 +109,9 @@ module Vars = struct
   let fold_globals f acc l =
     let treat_global acc = function
       | GVar(vi,init,_) -> f vi init acc
-      | GVarDecl (_,vi,_) when not (Cil.isFunctionType vi.vtype) ->
-        f vi { init = None } acc
+      | GVarDecl (_,vi,_) when
+          not (Cil.isFunctionType vi.vtype) && not vi.vdefined
+        -> f vi { init = None } acc
       | GType _ | GCompTag _ | GCompTagDecl _ | GEnumTag _ | GEnumTagDecl _
       | GVarDecl _ | GFun _ | GAsm _ | GPragma _ | GText _ | GAnnot _ -> acc
     in
@@ -193,7 +196,13 @@ module Functions = struct
     register_declaration (fun f v -> Iterator.add v; State.memo f v)
 
   let update_kf kf fundec spec =
-    kf.fundec <- fundec;
+    (match kf.fundec, fundec with
+      (* we never update a definition with a declaration (see bug 1914).
+         If you really want to play this game, just mutate the kf in place and
+         hope for the best.
+       *)
+      | Definition _, Declaration(_,v,_,_) when v.vdefined -> ()
+      | _ -> kf.fundec <- fundec);
 (*    Kernel.feedback "UPDATE Spec of function %a (%a)" 
       Cil_datatype.Kf.pretty kf Printer.pp_funspec spec;*)
     let loc = match kf.fundec with
@@ -230,8 +239,6 @@ module Functions = struct
 	"@[<hov 2>Register definition %a with specification@. \"%a\"@]"
         Varinfo.pretty_vname n.svar Cil_printer.pp_funspec n.sspec ;
       replace_by_definition n.sspec n l;
-      (* Kernel.MainFunction.set_possible_values
-        (n.svar.vname :: Kernel.MainFunction.get_possible_values ()) *)
     | Declaration (spec, v,_,l) ->
       Kernel.debug ~dkey
 	"@[<hov 2>Register declaration %a with specification@ \"%a\"@]"
@@ -304,15 +311,9 @@ module Functions = struct
       raise Not_found
 
   let () =
-    Parameter_customize.set_function_names
-      (fun () -> 
-	State.fold
-	  (fun _ kf acc ->
-	    let f = kf.fundec in
-	    if Ast_info.Function.is_definition f
-            then Ast_info.Function.get_name f :: acc 
-	    else acc)
-	  [])
+    Parameter_builder.find_kf_by_name := find_by_name;
+    Parameter_builder.find_kf_def_by_name := find_def_by_name;
+    Parameter_customize.find_kf_by_name := find_by_name
 
   exception Found of kernel_function
   let get_astinfo vi =
@@ -344,6 +345,66 @@ module Functions = struct
     Vars.get_astinfo_ref := get_astinfo;
     Ast.add_linked_state State.self;
     Ast.add_linked_state Iterator.State.self
+
+  let category =
+    let o = object
+      method fold: 'a. (kernel_function -> 'a -> 'a) -> 'a -> 'a = fold
+      method mem kf = State.mem (get_vi kf)
+    end in
+    Parameter_category.create "functions" Cil_datatype.Kf.ty
+      ~register:true
+      [ self ]
+      o
+
+  let def_category =
+    let o = object
+      method fold: 'a. (kernel_function -> 'a -> 'a) -> 'a -> 'a =
+        fun f acc ->
+          fold
+            (fun kf acc -> match kf.fundec with
+            | Definition _ -> f kf acc
+            | Declaration _ -> acc)
+            acc
+      method mem kf =
+        State.mem (get_vi kf) && Ast_info.Function.is_definition kf.fundec
+    end in
+    Parameter_category.create "functions" Cil_datatype.Kf.ty
+      ~register:true
+      [ self ]
+      o
+
+  let fundec_category =
+    let o = object
+      method fold: 'a. (fundec -> 'a -> 'a) -> 'a -> 'a =
+        fun f acc ->
+          fold
+            (fun kf acc -> match kf.fundec with
+            | Definition(fundec, _) -> f fundec acc
+            | Declaration _ -> acc)
+            acc
+      method mem f = State.mem f.svar
+    end in
+    Parameter_category.create "functions" Cil_datatype.Fundec.ty
+      ~register:true
+      [ self ]
+      o
+
+  let string_category =
+    let o = object
+      method fold: 'a. (string -> 'a -> 'a) -> 'a -> 'a =
+        fun f -> Iterator.fold (fun v acc -> f v.vname acc)
+      method mem s = Datatype.String.Map.mem s (Iterator.State.get ())
+    end in
+    Parameter_category.create "functions" Datatype.string
+      ~register:true
+      [ self ]
+      o
+
+  let () =
+    Parameter_builder.kf_category := (fun () -> category);
+    Parameter_builder.kf_def_category := (fun () -> def_category);
+    Parameter_builder.kf_string_category := (fun () -> string_category);
+    Parameter_builder.fundec_category := (fun () -> fundec_category)
 
 end
 
@@ -507,6 +568,71 @@ module FileIndex = struct
 end
 
 (* ************************************************************************* *)
+(** {2 Types} *)
+(* ************************************************************************* *)
+
+module Types = struct
+
+  module PairsExpTyp = Datatype.Pair(Cil_datatype.Exp)(Cil_datatype.Typ)
+
+  (* Map from enum constant names to an expression containg the constant,
+     and its type. *)
+  module Enums = State_builder.Hashtbl(Datatype.String.Hashtbl)(PairsExpTyp)
+    (struct
+      let size = 137
+      let dependencies = [Ast.self]
+      let name = "Globals.Types.Enums"
+     end)
+
+  module Type_Name_Namespace =
+    Datatype.Pair_with_collections
+      (Datatype.String)(Logic_typing.Type_namespace)
+      (struct let module_name = "Globals.Types.Typ_Name_Namespace" end)
+
+  (* Maps from a type name and its namespace, to the Cil type. *)
+  module Types =
+    State_builder.Hashtbl(Type_Name_Namespace.Hashtbl)(Cil_datatype.Typ)
+      (struct
+        let size = 137
+        let dependencies = [Ast.self]
+        let name = "Logic_interp.Types"
+       end)
+
+  let resolve_types () =
+    let aux_glob = function
+      | GType (ti, _) ->
+        Types.replace (ti.tname, Logic_typing.Typedef) (TNamed (ti, []))
+
+      | GEnumTag (ei, _) | GEnumTagDecl (ei, _) ->
+        Types.add (ei.ename, Logic_typing.Enum) (TEnum (ei, []));
+        let aux_ei ei =
+          let exp = Cil.new_exp ~loc:ei.eiloc (Const (CEnum ei)) in
+          Enums.replace ei.einame (exp, Cil.typeOf ei.eival)
+        in
+        List.iter aux_ei ei.eitems
+
+      | GCompTag (ci, _) | GCompTagDecl (ci, _) ->
+        let kind = Logic_typing.(if ci.cstruct then Struct else Union) in
+        Types.add (ci.cname, kind) (TComp (ci, Cil.empty_size_cache (), []))
+      | _ -> ()
+    in
+    if not (Enums.is_computed ()) || not (Types.is_computed ()) then begin
+      List.iter aux_glob (Ast.get ()).globals;
+      Enums.mark_as_computed ();
+      Types.mark_as_computed ()
+    end
+
+  let find_enum_tag x =
+    resolve_types ();
+    Enums.find x
+
+  let find_type namespace s =
+    resolve_types ();
+    Types.find (s, namespace)
+
+end
+
+(* ************************************************************************* *)
 (** {2 Entry point} *)
 (* ************************************************************************* *)
 
@@ -515,16 +641,25 @@ exception No_such_entry_point of string
 let entry_point () =
   Ast.compute ();
   let kf_name, lib =
-    Kernel.MainFunction.get (), Kernel.LibEntry.get ()
+    Kernel.MainFunction.get_plain_string (), Kernel.LibEntry.get ()
   in
-  try Functions.find_by_name kf_name, lib
-  with Not_found ->
+  let fcts = Parameter_customize.get_c_ified_functions kf_name in
+  if (Cil_datatype.Kf.Set.is_empty fcts) then
     raise
       (No_such_entry_point
          (Format.sprintf
             "cannot find entry point `%s'.@;\
-Please use option `-main' for specifying a valid entry point."
+               Please use option `-main' for specifying a valid entry point."
             kf_name))
+  else begin
+    if (Cil_datatype.Kf.Set.cardinal fcts > 1) then
+      Kernel.warning
+        "Ambiguous function name: %s; \
+         choosing an arbitrary function whose name apply."
+        kf_name;
+    let kf = Cil_datatype.Kf.Set.choose fcts in
+    kf, lib
+  end
 
 let set_entry_point name lib =
   let clear_from_entry_point () =
@@ -536,7 +671,8 @@ let set_entry_point name lib =
     Project.clear ~selection ()
   in
   let has_changed =
-    lib <> Kernel.LibEntry.get () || name <> Kernel.MainFunction.get ()
+    lib <> Kernel.LibEntry.get ()
+    || name <> Kernel.MainFunction.get_plain_string ()
   in
   if has_changed then begin
     clear_from_entry_point ();
@@ -554,7 +690,8 @@ module Comments_global_cache =
     (Datatype.List(Datatype.String))
     (struct
       let name = "Comments_global_cache"
-      let dependencies = [ Cabshelper.Comments.self; FileIndex.self ]
+      let dependencies =
+        [ Cabshelper.Comments.self; FileIndex.self ]
       let size = 17
      end)
 

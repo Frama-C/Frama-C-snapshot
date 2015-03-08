@@ -1,0 +1,77 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_bts/bts_1382.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+tests/wp_bts/bts_1382.i:18:[wp] warning: Cast with incompatible pointers types (source: sint32*) (target: sint8*)
+tests/wp_bts/bts_1382.i:18:[wp] warning: Cast with incompatible pointers types (source: sint32*) (target: sint8*)
+tests/wp_bts/bts_1382.i:17:[wp] warning: Cast with incompatible pointers types (source: sint32*) (target: uint8*)
+------------------------------------------------------------
+  Function loop
+------------------------------------------------------------
+
+Goal Loop assigns (file tests/wp_bts/bts_1382.i, line 15) (1/3):
+tests/wp_bts/bts_1382.i:17: warning from Typed Model:
+ - Warning: Hide sub-term definition
+   Reason: Cast with incompatible pointers types (source: sint32*) (target: uint8*)
+tests/wp_bts/bts_1382.i:18: warning from Typed Model:
+ - Warning: Hide sub-term definition
+   Reason: Cast with incompatible pointers types (source: sint32*) (target: sint8*)
+tests/wp_bts/bts_1382.i:18: warning from Typed Model:
+ - Warning: Hide sub-term definition
+   Reason: Cast with incompatible pointers types (source: sint32*) (target: sint8*)
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Loop assigns (file tests/wp_bts/bts_1382.i, line 15) (2/3):
+Call Effect at line 17
+tests/wp_bts/bts_1382.i:17: warning from Typed Model:
+ - Warning: Hide sub-term definition
+   Reason: Cast with incompatible pointers types (source: sint32*) (target: uint8*)
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_0).
+  (* Goal *)
+  When: (valid_rd Malloc_0 w_7 1).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ (sconst Mchar_0).
+  (* tests/wp_bts/bts_1382.i:16: Then *)
+  Have: i_0<=99.
+  (* tests/wp_bts/bts_1382.i:18: Call Effects *)
+  Have: (havoc Mchar_0 Mchar_3 (shift_sint8 w_2 0) 4).
+}
+Prove: w_7=(shift_sint32 (global G_dest_87) 0).
+
+------------------------------------------------------------
+
+Goal Loop assigns (file tests/wp_bts/bts_1382.i, line 15) (3/3):
+Call Effect at line 18
+tests/wp_bts/bts_1382.i:17: warning from Typed Model:
+ - Warning: Hide sub-term definition
+   Reason: Cast with incompatible pointers types (source: sint32*) (target: uint8*)
+tests/wp_bts/bts_1382.i:18: warning from Typed Model:
+ - Warning: Hide sub-term definition
+   Reason: Cast with incompatible pointers types (source: sint32*) (target: sint8*)
+tests/wp_bts/bts_1382.i:18: warning from Typed Model:
+ - Warning: Hide sub-term definition
+   Reason: Cast with incompatible pointers types (source: sint32*) (target: sint8*)
+Let a_0 = (shift_sint8 w_2 0).
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_0).
+  (* Goal *)
+  When: (valid_rd Malloc_0 a_0 4).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ (sconst Mchar_0).
+  (* tests/wp_bts/bts_1382.i:16: Then *)
+  Have: i_0<=99.
+  (* tests/wp_bts/bts_1382.i:18: Call Effects *)
+  Have: (havoc Mchar_0 Mchar_3 a_0 4).
+}
+Prove: (included a_0 4 (shift_sint32 (global G_dest_87) 0) 1).
+
+------------------------------------------------------------

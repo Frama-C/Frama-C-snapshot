@@ -1,0 +1,28 @@
+# frama-c -wp -wp-model 'Typed (Ref)' [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_hoare/refguards.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] Collecting variable usage
+[wp] 9 goals scheduled
+[wp] [Qed] Goal typed_ref_f_post : Valid
+[wp] [Alt-Ergo] Goal typed_ref_g_post : Valid
+[wp] [Qed] Goal typed_ref_h_post : Valid
+[wp] [Qed] Goal typed_ref_s_post : Valid
+[wp] [Qed] Goal typed_ref_s_post_2 : Valid
+[wp] [Qed] Goal typed_ref_s_post_3 : Valid
+[wp] [Qed] Goal typed_ref_s_post_4 : Valid
+[wp] [Alt-Ergo] Goal typed_ref_s_post_5 : Unknown
+[wp] [Qed] Goal typed_ref_s_post_6 : Valid
+[wp] Proved goals:    8 / 9
+     Qed:             7 
+     Alt-Ergo:        1  (unknown: 1)
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+f                    1     -           1       100%
+g                   -       1 (12)     1       100%
+h                    1     -           1       100%
+s                    5     -           6      83.3%
+----------------------------------------------------------

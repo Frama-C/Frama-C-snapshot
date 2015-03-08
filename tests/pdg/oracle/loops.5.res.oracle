@@ -1,0 +1,133 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/pdg/loops.c (with preprocessing)
+[value] Analyzing an incomplete application starting at two_infinite_loops
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  after ∈ [--..--]
+tests/pdg/loops.c:99:[value] entering loop for the first time
+tests/pdg/loops.c:110:[kernel] warning: signed overflow. assert i1+2 ≤ 2147483647;
+tests/pdg/loops.c:105:[value] entering loop for the first time
+tests/pdg/loops.c:106:[kernel] warning: signed overflow. assert i2+1 ≤ 2147483647;
+[value] Recording results for two_infinite_loops
+[value] done for function two_infinite_loops
+[pdg] computing for function two_infinite_loops
+[pdg] done for function two_infinite_loops
+[pdg] PDG for two_infinite_loops
+ {n1}: InCtrl
+ {n2}: VarDecl : n
+   -[a--]-> 3
+ {n3}: In1
+   -[a--]-> 2
+ {n4}: VarDecl : s
+ {n5}: VarDecl : i1
+ {n6}: VarDecl : i2
+ {n7}: s = 0;
+   -[-c-]-> 1
+   -[a--]-> 4
+ {n8}: i1 = 0;
+   -[-c-]-> 1
+   -[a--]-> 5
+ {n9}: i2 = 0;
+   -[-c-]-> 1
+   -[a--]-> 6
+ {n10}: n > 0
+   -[-c-]-> 1
+   -[--d]-> 2
+   -[--d]-> 3
+ {n11}: while(1)
+   -[-c-]-> 1
+   -[-c-]-> 10
+   -[-c-]-> 11
+   -[-c-]-> 12
+   -[-c-]-> 14
+   -[-c-]-> 20
+ {n12}: block
+   -[-c-]-> 1
+   -[-c-]-> 10
+   -[-c-]-> 11
+   -[-c-]-> 12
+   -[-c-]-> 14
+   -[-c-]-> 20
+ {n13}: i1 ++;
+   -[-c-]-> 1
+   -[a-d]-> 5
+   -[--d]-> 8
+   -[-c-]-> 10
+   -[-c-]-> 11
+   -[-c-]-> 12
+   -[-c-]-> 14
+   -[--d]-> 16
+   -[-c-]-> 20
+ {n14}: s < 10
+   -[-c-]-> 1
+   -[--d]-> 4
+   -[--d]-> 7
+   -[-c-]-> 10
+   -[-c-]-> 11
+   -[-c-]-> 12
+   -[-c-]-> 14
+   -[--d]-> 15
+   -[-c-]-> 20
+ {n15}: s += 2;
+   -[-c-]-> 1
+   -[a-d]-> 4
+   -[--d]-> 7
+   -[-c-]-> 10
+   -[-c-]-> 11
+   -[-c-]-> 12
+   -[-c-]-> 14
+   -[--d]-> 15
+   -[-c-]-> 20
+ {n16}: i1 += 2;
+   -[-c-]-> 1
+   -[a-d]-> 5
+   -[-c-]-> 10
+   -[-c-]-> 11
+   -[-c-]-> 12
+   -[--d]-> 13
+   -[-c-]-> 14
+   -[-c-]-> 20
+ {n17}: s = 1;
+   -[a--]-> 4
+ {n18}: i2 = 0;
+   -[-c-]-> 1
+   -[a--]-> 6
+   -[-c-]-> 10
+   -[-c-]-> 11
+   -[-c-]-> 12
+   -[-c-]-> 14
+   -[-c-]-> 20
+ {n19}: after = 0;
+   -[-c-]-> 1
+ {n20}: while(1)
+   -[-c-]-> 1
+   -[-c-]-> 10
+   -[-c-]-> 11
+   -[-c-]-> 12
+   -[-c-]-> 14
+   -[-c-]-> 20
+ {n21}: block
+   -[-c-]-> 1
+   -[-c-]-> 10
+   -[-c-]-> 11
+   -[-c-]-> 12
+   -[-c-]-> 14
+   -[-c-]-> 20
+ {n22}: i2 ++;
+   -[-c-]-> 1
+   -[a-d]-> 6
+   -[-c-]-> 10
+   -[-c-]-> 11
+   -[-c-]-> 12
+   -[-c-]-> 14
+   -[--d]-> 18
+   -[-c-]-> 20
+   -[-c-]-> 21
+   -[--d]-> 22
+ {n23}: return s;
+   -[-c-]-> 1
+   -[--d]-> 4
+   -[--d]-> 17
+ {n24}: OutRet
+   -[--d]-> 23

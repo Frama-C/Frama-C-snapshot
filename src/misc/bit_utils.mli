@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -85,8 +85,27 @@ val pretty_bits:
   (** Pretty prints a range of bits in a type for the user.
       Tries to find field names and array indexes, whenever possible. *)
 
-val pretty_offset:
-  typ -> Integer.t -> Format.formatter -> unit
+
+(** {2 Mapping from numeric offsets to symbolic ones.} *)
+
+(** We want to find a symbolic offset that corresponds to a numeric one, with
+    one additional criterion: *)
+type offset_match =
+| MatchType of typ (** Offset that has this type (modulo attributes) *)
+| MatchSize of Integer.t (** Offset that has a type of this size *)
+| MatchFirst (** Return first symbolic offset that matches *)
+
+exception NoMatchingOffset
+
+(** [find_offset typ ~offset ~size] finds a subtype [t] of [typ] that describes
+    the type of the bits [offset..offset+size-1] in [typ]. May return a subtype
+    of [typ], or a type that is a sub-array of an array type in [typ].
+    Also returns a {!Cil_types.offset} [off] that corresponds to [offset].
+    (But we do not have the guarantee that [typeof(off) == typ], because of
+    sub-arrays.) 
+    @raise NoMatchingOffset when no offset matches. *)
+val find_offset:
+  typ -> offset:Integer.t -> offset_match -> Cil_types.offset * Cil_types.typ
 
 (*
 Local Variables:

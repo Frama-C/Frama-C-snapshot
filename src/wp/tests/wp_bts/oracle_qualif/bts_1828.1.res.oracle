@@ -1,0 +1,21 @@
+# frama-c -wp -wp-model 'Typed (Ref)' [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_bts/bts_1828.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] Collecting variable usage
+[wp] 4 goals scheduled
+[wp] [Alt-Ergo] Goal typed_ref_f_assert_ok : Valid
+[wp] [Qed] Goal typed_ref_frame_assert_ok_formal : Valid
+[wp] [Qed] Goal typed_ref_frame_assert_ok_global : Valid
+[wp] [Alt-Ergo] Goal typed_ref_frame_assert_ko : Unknown
+[wp] Proved goals:    3 / 4
+     Qed:             2 
+     Alt-Ergo:        1  (unknown: 1)
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+f                   -       1 (15)     1       100%
+frame                2     -           3      66.7%
+----------------------------------------------------------

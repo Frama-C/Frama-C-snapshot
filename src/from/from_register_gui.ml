@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,20 +20,24 @@
 (*                                                                        *)
 (**************************************************************************)
 
+open Cil_types
+
 let main (main_ui:Design.main_window_extension_points) =
-  let filetree_selector ~was_activated ~activating globals =
-    if Db.Value.is_computed () then begin
-      if not was_activated && activating then begin match globals with
-(* [JS 2009/30/03] GUI may become too slow if froms are displayed *)
-(*      | [GFun ({svar=v},_)] ->
-          begin try
-            let kf = Globals.Functions.get v in
-            if !From.is_computed kf then
-              let s = fprintf_to_string "@[Functional dependencies:@\n%a@]@." !From.pretty kf in
-              main_ui#annot_window#buffer#insert s
-          with Not_found -> ()
-          end*)
-      | _ -> ();
+  let filetree_selector ~was_activated ~activating node =
+    (* [JS 2009/30/03] GUI may become too slow if froms are displayed *)
+    if false && Db.Value.is_computed () then begin
+      if not was_activated && activating then begin
+        match node with
+        | Filetree.Global (Cil_types.GFun ({svar=v},_)) ->
+          begin
+            try
+              let kf = Globals.Functions.get v in
+              if !Db.From.is_computed kf then
+                main_ui#pretty_information
+                  "@[Functional dependencies:@\n%a@]@." !Db.From.pretty kf
+            with Not_found -> ()
+          end
+        | _ -> ();
       end;
     end
   in

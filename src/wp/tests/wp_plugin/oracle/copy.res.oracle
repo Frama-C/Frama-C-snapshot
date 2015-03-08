@@ -1,0 +1,374 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_plugin/copy.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function copy
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_plugin/copy.i, line 5) in 'copy':
+Let a_0 = (shift_sint32 a_3 0).
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_2) /\ (is_sint32 n_0).
+  (* Goal *)
+  When: (i_6<n_0) /\ (0<=i_6).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ ((region (base a_3))<=0)
+        /\ ((region (base b_2))<=0).
+  (* Pre-condition (file tests/wp_plugin/copy.i, line 3) in 'copy' *)
+  (* Pre-condition: *)
+  Have: 0<=n_0.
+  (* Pre-condition (file tests/wp_plugin/copy.i, line 4) in 'copy' *)
+  (* Pre-condition: *)
+  Have: (separated a_0 n_0 (shift_sint32 b_2 0) n_0).
+  (* tests/wp_plugin/copy.i:14: Assigns *)
+  (* tests/wp_plugin/copy.i:14: Loop assigns ...: *)
+  Have: (havoc Mint_5 Mint_3 a_0 n_0).
+  (* Invariant 'Copy' (file tests/wp_plugin/copy.i, line 11) *)
+  (* tests/wp_plugin/copy.i:14: Invariant 'Copy': *)
+  Have: forall i_0:int.
+        (i_0<i_2) -> (0<=i_0)
+        -> (Mint_3[(shift_sint32 a_3 i_0)]=Mint_3[(shift_sint32 b_2 i_0)]).
+  (* Invariant 'Range' (file tests/wp_plugin/copy.i, line 10) *)
+  (* tests/wp_plugin/copy.i:14: Invariant 'Range': *)
+  Have: (0<=i_2) /\ (i_2<=n_0).
+  (* tests/wp_plugin/copy.i:14: Else *)
+  Have: n_0<=i_2.
+}
+Prove: Mint_3[(shift_sint32 a_3 i_6)]=Mint_3[(shift_sint32 b_2 i_6)].
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant 'Copy' (file tests/wp_plugin/copy.i, line 11):
+Let m_0 = Mint_1[(shift_sint32 a_0 i_2)->Mint_1[(shift_sint32 b_0 i_2)]].
+Let a_1 = (shift_sint32 a_0 0).
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_2) /\ (is_sint32 n_0) /\ (is_sint32 (1+i_2)).
+  (* Goal *)
+  When: (0<=i_1) /\ (i_1<=i_2).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ ((region (base a_0))<=0)
+        /\ ((region (base b_0))<=0).
+  (* Pre-condition (file tests/wp_plugin/copy.i, line 3) in 'copy' *)
+  (* Pre-condition: *)
+  Have: 0<=n_0.
+  (* Pre-condition (file tests/wp_plugin/copy.i, line 4) in 'copy' *)
+  (* Pre-condition: *)
+  Have: (separated a_1 n_0 (shift_sint32 b_0 0) n_0).
+  (* tests/wp_plugin/copy.i:14: Assigns *)
+  (* tests/wp_plugin/copy.i:14: Loop assigns ...: *)
+  Have: (havoc Mint_5 Mint_1 a_1 n_0).
+  (* Invariant 'Copy' (file tests/wp_plugin/copy.i, line 11) *)
+  (* tests/wp_plugin/copy.i:14: Invariant 'Copy': *)
+  Have: forall i_0:int.
+        (i_0<i_2) -> (0<=i_0)
+        -> (Mint_1[(shift_sint32 a_0 i_0)]=Mint_1[(shift_sint32 b_0 i_0)]).
+  (* Invariant 'Range' (file tests/wp_plugin/copy.i, line 10) *)
+  (* tests/wp_plugin/copy.i:14: Invariant 'Range': *)
+  Have: (0<=i_2) /\ (i_2<=n_0).
+  (* tests/wp_plugin/copy.i:14: Then *)
+  Have: i_2<n_0.
+  (* Assertion 'A' (file tests/wp_plugin/copy.i, line 17) *)
+  (* tests/wp_plugin/copy.i:17: Assertion 'A': *)
+  Have: forall i_0:int.
+        let a_2 = (shift_sint32 a_0 i_0) in
+        (i_0<i_2) -> (0<=i_0) -> (Mint_1[a_2]=m_0[a_2]).
+  (* Assertion 'B' (file tests/wp_plugin/copy.i, line 18) *)
+  (* tests/wp_plugin/copy.i:18: Assertion 'B': *)
+  Have: forall i_0:int.
+        let a_2 = (shift_sint32 b_0 i_0) in
+        (i_0<i_2) -> (0<=i_0) -> (Mint_1[a_2]=m_0[a_2]).
+}
+Prove: m_0[(shift_sint32 a_0 i_1)]=m_0[(shift_sint32 b_0 i_1)].
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant 'Copy' (file tests/wp_plugin/copy.i, line 11):
+Assume { (* Goal *) When: false. }
+Prove: Mint_5[(shift_sint32 a_0 i_8)]=Mint_5[(shift_sint32 b_0 i_8)].
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant 'Range' (file tests/wp_plugin/copy.i, line 10):
+Let m_0 = Mint_1[(shift_sint32 a_0 i_2)->Mint_1[(shift_sint32 b_0 i_2)]].
+Let a_1 = (shift_sint32 a_0 0).
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_2) /\ (is_sint32 n_0) /\ (is_sint32 (1+i_2)).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ ((region (base a_0))<=0)
+        /\ ((region (base b_0))<=0).
+  (* Pre-condition (file tests/wp_plugin/copy.i, line 3) in 'copy' *)
+  (* Pre-condition: *)
+  Have: 0<=n_0.
+  (* Pre-condition (file tests/wp_plugin/copy.i, line 4) in 'copy' *)
+  (* Pre-condition: *)
+  Have: (separated a_1 n_0 (shift_sint32 b_0 0) n_0).
+  (* tests/wp_plugin/copy.i:14: Assigns *)
+  (* tests/wp_plugin/copy.i:14: Loop assigns ...: *)
+  Have: (havoc Mint_5 Mint_1 a_1 n_0).
+  (* Invariant 'Copy' (file tests/wp_plugin/copy.i, line 11) *)
+  (* tests/wp_plugin/copy.i:14: Invariant 'Copy': *)
+  Have: forall i_0:int.
+        (i_0<i_2) -> (0<=i_0)
+        -> (Mint_1[(shift_sint32 a_0 i_0)]=Mint_1[(shift_sint32 b_0 i_0)]).
+  (* Invariant 'Range' (file tests/wp_plugin/copy.i, line 10) *)
+  (* tests/wp_plugin/copy.i:14: Invariant 'Range': *)
+  Have: (0<=i_2) /\ (i_2<=n_0).
+  (* tests/wp_plugin/copy.i:14: Then *)
+  Have: i_2<n_0.
+  (* Assertion 'A' (file tests/wp_plugin/copy.i, line 17) *)
+  (* tests/wp_plugin/copy.i:17: Assertion 'A': *)
+  Have: forall i_0:int.
+        let a_2 = (shift_sint32 a_0 i_0) in
+        (i_0<i_2) -> (0<=i_0) -> (Mint_1[a_2]=m_0[a_2]).
+  (* Assertion 'B' (file tests/wp_plugin/copy.i, line 18) *)
+  (* tests/wp_plugin/copy.i:18: Assertion 'B': *)
+  Have: forall i_0:int.
+        let a_2 = (shift_sint32 b_0 i_0) in
+        (i_0<i_2) -> (0<=i_0) -> (Mint_1[a_2]=m_0[a_2]).
+}
+Prove: -1<=i_2.
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant 'Range' (file tests/wp_plugin/copy.i, line 10):
+Assume {
+  (* Domain *)
+  Type: (is_sint32 n_0).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ ((region (base a_0))<=0)
+        /\ ((region (base b_0))<=0).
+  (* Pre-condition (file tests/wp_plugin/copy.i, line 3) in 'copy' *)
+  (* Pre-condition: *)
+  Have: 0<=n_0.
+  (* Pre-condition (file tests/wp_plugin/copy.i, line 4) in 'copy' *)
+  (* Pre-condition: *)
+  Have: (separated (shift_sint32 a_0 0) n_0 (shift_sint32 b_0 0) n_0).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assertion 'A' (file tests/wp_plugin/copy.i, line 17):
+Let a_1 = (shift_sint32 a_0 i_4).
+Let a_2 = (shift_sint32 a_0 0).
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_2) /\ (is_sint32 n_0).
+  (* Goal *)
+  When: (i_4<i_2) /\ (0<=i_4).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ ((region (base a_0))<=0)
+        /\ ((region (base b_0))<=0).
+  (* Pre-condition (file tests/wp_plugin/copy.i, line 3) in 'copy' *)
+  (* Pre-condition: *)
+  Have: 0<=n_0.
+  (* Pre-condition (file tests/wp_plugin/copy.i, line 4) in 'copy' *)
+  (* Pre-condition: *)
+  Have: (separated a_2 n_0 (shift_sint32 b_0 0) n_0).
+  (* tests/wp_plugin/copy.i:14: Assigns *)
+  (* tests/wp_plugin/copy.i:14: Loop assigns ...: *)
+  Have: (havoc Mint_5 Mint_1 a_2 n_0).
+  (* Invariant 'Copy' (file tests/wp_plugin/copy.i, line 11) *)
+  (* tests/wp_plugin/copy.i:14: Invariant 'Copy': *)
+  Have: forall i_0:int.
+        (i_0<i_2) -> (0<=i_0)
+        -> (Mint_1[(shift_sint32 a_0 i_0)]=Mint_1[(shift_sint32 b_0 i_0)]).
+  (* Invariant 'Range' (file tests/wp_plugin/copy.i, line 10) *)
+  (* tests/wp_plugin/copy.i:14: Invariant 'Range': *)
+  Have: (0<=i_2) /\ (i_2<=n_0).
+  (* tests/wp_plugin/copy.i:14: Then *)
+  Have: i_2<n_0.
+}
+Prove: Mint_1[a_1]=
+       Mint_1[(shift_sint32 a_0 i_2)->Mint_1[(shift_sint32 b_0 i_2)]][a_1].
+
+------------------------------------------------------------
+
+Goal Assertion 'B' (file tests/wp_plugin/copy.i, line 18):
+Let a_1 = (shift_sint32 b_0 i_3).
+Let m_0 = Mint_1[(shift_sint32 a_0 i_2)->Mint_1[(shift_sint32 b_0 i_2)]].
+Let a_2 = (shift_sint32 a_0 0).
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_2) /\ (is_sint32 n_0).
+  (* Goal *)
+  When: (i_3<i_2) /\ (0<=i_3).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ ((region (base a_0))<=0)
+        /\ ((region (base b_0))<=0).
+  (* Pre-condition (file tests/wp_plugin/copy.i, line 3) in 'copy' *)
+  (* Pre-condition: *)
+  Have: 0<=n_0.
+  (* Pre-condition (file tests/wp_plugin/copy.i, line 4) in 'copy' *)
+  (* Pre-condition: *)
+  Have: (separated a_2 n_0 (shift_sint32 b_0 0) n_0).
+  (* tests/wp_plugin/copy.i:14: Assigns *)
+  (* tests/wp_plugin/copy.i:14: Loop assigns ...: *)
+  Have: (havoc Mint_5 Mint_1 a_2 n_0).
+  (* Invariant 'Copy' (file tests/wp_plugin/copy.i, line 11) *)
+  (* tests/wp_plugin/copy.i:14: Invariant 'Copy': *)
+  Have: forall i_0:int.
+        (i_0<i_2) -> (0<=i_0)
+        -> (Mint_1[(shift_sint32 a_0 i_0)]=Mint_1[(shift_sint32 b_0 i_0)]).
+  (* Invariant 'Range' (file tests/wp_plugin/copy.i, line 10) *)
+  (* tests/wp_plugin/copy.i:14: Invariant 'Range': *)
+  Have: (0<=i_2) /\ (i_2<=n_0).
+  (* tests/wp_plugin/copy.i:14: Then *)
+  Have: i_2<n_0.
+  (* Assertion 'A' (file tests/wp_plugin/copy.i, line 17) *)
+  (* tests/wp_plugin/copy.i:17: Assertion 'A': *)
+  Have: forall i_0:int.
+        let a_3 = (shift_sint32 a_0 i_0) in
+        (i_0<i_2) -> (0<=i_0) -> (Mint_1[a_3]=m_0[a_3]).
+}
+Prove: Mint_1[a_1]=m_0[a_1].
+
+------------------------------------------------------------
+
+Goal Loop assigns (file tests/wp_plugin/copy.i, line 12) (1/3):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Loop assigns (file tests/wp_plugin/copy.i, line 12) (2/3):
+Effect at line 14
+Let a_1 = (shift_sint32 a_0 0).
+Let m_0 = Mint_1[(shift_sint32 a_0 i_2)->Mint_1[(shift_sint32 b_0 i_2)]].
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_2) /\ (is_sint32 n_0).
+  (* Goal *)
+  When: (valid_rd Malloc_0 a_1 n_0).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ ((region (base a_0))<=0)
+        /\ ((region (base b_0))<=0).
+  (* Pre-condition (file tests/wp_plugin/copy.i, line 3) in 'copy' *)
+  (* Pre-condition: *)
+  Have: 0<=n_0.
+  (* Pre-condition (file tests/wp_plugin/copy.i, line 4) in 'copy' *)
+  (* Pre-condition: *)
+  Have: (separated a_1 n_0 (shift_sint32 b_0 0) n_0).
+  (* tests/wp_plugin/copy.i:14: Assigns *)
+  (* tests/wp_plugin/copy.i:14: Loop assigns ...: *)
+  Have: (havoc Mint_5 Mint_1 a_1 n_0).
+  (* Invariant 'Copy' (file tests/wp_plugin/copy.i, line 11) *)
+  (* tests/wp_plugin/copy.i:14: Invariant 'Copy': *)
+  Have: forall i_0:int.
+        (i_0<i_2) -> (0<=i_0)
+        -> (Mint_1[(shift_sint32 a_0 i_0)]=Mint_1[(shift_sint32 b_0 i_0)]).
+  (* Invariant 'Range' (file tests/wp_plugin/copy.i, line 10) *)
+  (* tests/wp_plugin/copy.i:14: Invariant 'Range': *)
+  Have: (0<=i_2) /\ (i_2<=n_0).
+  (* tests/wp_plugin/copy.i:14: Then *)
+  Have: i_2<n_0.
+  (* Assertion 'A' (file tests/wp_plugin/copy.i, line 17) *)
+  (* tests/wp_plugin/copy.i:17: Assertion 'A': *)
+  Have: forall i_0:int.
+        let a_2 = (shift_sint32 a_0 i_0) in
+        (i_0<i_2) -> (0<=i_0) -> (Mint_1[a_2]=m_0[a_2]).
+  (* Assertion 'B' (file tests/wp_plugin/copy.i, line 18) *)
+  (* tests/wp_plugin/copy.i:18: Assertion 'B': *)
+  Have: forall i_0:int.
+        let a_2 = (shift_sint32 b_0 i_0) in
+        (i_0<i_2) -> (0<=i_0) -> (Mint_1[a_2]=m_0[a_2]).
+}
+Prove: (included a_1 n_0 a_1 n_0).
+
+------------------------------------------------------------
+
+Goal Loop assigns (file tests/wp_plugin/copy.i, line 12) (3/3):
+Effect at line 16
+Let a_1 = (shift_sint32 a_0 i_2).
+Let a_2 = (shift_sint32 a_0 0).
+Let m_0 = Mint_1[a_1->Mint_1[(shift_sint32 b_0 i_2)]].
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_2) /\ (is_sint32 n_0).
+  (* Goal *)
+  When: (valid_rd Malloc_0 a_1 1).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ ((region (base a_0))<=0)
+        /\ ((region (base b_0))<=0).
+  (* Pre-condition (file tests/wp_plugin/copy.i, line 3) in 'copy' *)
+  (* Pre-condition: *)
+  Have: 0<=n_0.
+  (* Pre-condition (file tests/wp_plugin/copy.i, line 4) in 'copy' *)
+  (* Pre-condition: *)
+  Have: (separated a_2 n_0 (shift_sint32 b_0 0) n_0).
+  (* tests/wp_plugin/copy.i:14: Assigns *)
+  (* tests/wp_plugin/copy.i:14: Loop assigns ...: *)
+  Have: (havoc Mint_5 Mint_1 a_2 n_0).
+  (* Invariant 'Copy' (file tests/wp_plugin/copy.i, line 11) *)
+  (* tests/wp_plugin/copy.i:14: Invariant 'Copy': *)
+  Have: forall i_0:int.
+        (i_0<i_2) -> (0<=i_0)
+        -> (Mint_1[(shift_sint32 a_0 i_0)]=Mint_1[(shift_sint32 b_0 i_0)]).
+  (* Invariant 'Range' (file tests/wp_plugin/copy.i, line 10) *)
+  (* tests/wp_plugin/copy.i:14: Invariant 'Range': *)
+  Have: (0<=i_2) /\ (i_2<=n_0).
+  (* tests/wp_plugin/copy.i:14: Then *)
+  Have: i_2<n_0.
+  (* Assertion 'A' (file tests/wp_plugin/copy.i, line 17) *)
+  (* tests/wp_plugin/copy.i:17: Assertion 'A': *)
+  Have: forall i_0:int.
+        let a_3 = (shift_sint32 a_0 i_0) in
+        (i_0<i_2) -> (0<=i_0) -> (Mint_1[a_3]=m_0[a_3]).
+  (* Assertion 'B' (file tests/wp_plugin/copy.i, line 18) *)
+  (* tests/wp_plugin/copy.i:18: Assertion 'B': *)
+  Have: forall i_0:int.
+        let a_3 = (shift_sint32 b_0 i_0) in
+        (i_0<i_2) -> (0<=i_0) -> (Mint_1[a_3]=m_0[a_3]).
+}
+Prove: (included a_1 1 a_2 n_0).
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_plugin/copy.i, line 6) in 'copy' (1/2):
+Effect at line 14
+Assume {
+  (* Domain *)
+  Type: (is_sint32 n_0).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ ((region (base a_0))<=0)
+        /\ ((region (base b_0))<=0).
+  (* Pre-condition (file tests/wp_plugin/copy.i, line 3) in 'copy' *)
+  (* Pre-condition: *)
+  Have: 0<=n_0.
+  (* Pre-condition (file tests/wp_plugin/copy.i, line 4) in 'copy' *)
+  (* Pre-condition: *)
+  Have: (separated (shift_sint32 a_0 0) n_0 (shift_sint32 b_0 0) n_0).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_plugin/copy.i, line 6) in 'copy' (2/2):
+Effect at line 14
+Let a_1 = (shift_sint32 a_0 0).
+Assume {
+  (* Domain *)
+  Type: (is_sint32 n_0).
+  (* Heap *)
+  Have: (linked Malloc_1) /\ ((region (base a_0))<=0)
+        /\ ((region (base b_0))<=0).
+  (* Pre-condition (file tests/wp_plugin/copy.i, line 3) in 'copy' *)
+  (* Pre-condition: *)
+  Have: 0<=n_0.
+  (* Pre-condition (file tests/wp_plugin/copy.i, line 4) in 'copy' *)
+  (* Pre-condition: *)
+  Have: (separated a_1 n_0 (shift_sint32 b_0 0) n_0).
+  (* tests/wp_plugin/copy.i:14: Assigns *)
+  (* tests/wp_plugin/copy.i:14: Loop assigns ...: *)
+  Have: (havoc Mint_5 Mint_4 a_1 n_0).
+}
+Prove: (valid_rd Malloc_1 a_1 n_0) -> (included a_1 n_0 a_1 n_0).
+
+------------------------------------------------------------

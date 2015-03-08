@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -106,20 +106,23 @@ type inconsistent = private
     { valid: emitter_with_properties list; 
       invalid: emitter_with_properties list }
 
-(** Type of known precise status of a property. *)
+(** Type of the local status of a property. *)
 type status = private
   | Never_tried (** Nobody tries to verify the property *)
   | Best of 
-      emitted_status (** The know precise status *)
+      emitted_status (** The know more precise status *)
     * emitter_with_properties list (** who attempt the verification 
 				       under which hypotheses *)
-  | Inconsistent of inconsistent (** someone says the property is valid and
-				     someone else says it is invalid. *)
+  | Inconsistent of inconsistent (** someone locally says the property is valid
+                                     and someone else says it is invalid: only
+                                     the consolidated status may conclude. *)
 
 include Datatype.S with type t = status
 
 val get: Property.t -> status
-(** @return the most precise status and all its emitters. *)
+(** @return the most precise **local** status and all its emitters. Please
+    condiser to use {!Property_status.Consolidation.get} if you want to know the
+    consolidated status of the property. *)
 
 (* ************************************************************************ *)
 (** {2 Consolidated status} *)
@@ -232,7 +235,7 @@ val register: Property.t -> unit
 
 val register_property_add_hook: (Property.t -> unit) -> unit
 (** add an hook that will be called for any newly registred property
-    @since Neon-20130301 *)
+    @since Neon-20140301 *)
 
 val remove: Property.t -> unit
 (** Remove the property deeply. Must be called only when removing the
@@ -240,7 +243,7 @@ val remove: Property.t -> unit
 
 val register_property_remove_hook: (Property.t -> unit) -> unit
 (** Add and hook that will be called each time a property is removed.
-    @since Neon-20130301 *)
+    @since Neon-20140301 *)
 
 val merge: old:Property.t list  -> Property.t list -> unit
 (** [merge old new] registers properties in [new] which are not in [old] and

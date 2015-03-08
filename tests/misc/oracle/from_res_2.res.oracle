@@ -1,0 +1,104 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/from_res_2.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  G ∈ {0}
+  A ∈ {0}
+  B ∈ {0}
+  C ∈ {0}
+  x1 ∈ {0}
+  x2 ∈ {0}
+  x3 ∈ {0}
+  y1 ∈ {0}
+  y2 ∈ {0}
+  y3 ∈ {0}
+[value] computing for function f <- main.
+        Called from tests/misc/from_res_2.i:26.
+[value] Recording results for f
+[value] Done for function f
+[value] computing for function g1 <- main.
+        Called from tests/misc/from_res_2.i:30.
+[value] Recording results for g1
+[value] Done for function g1
+[value] computing for function g2 <- main.
+        Called from tests/misc/from_res_2.i:34.
+[value] Recording results for g2
+[value] Done for function g2
+[value] computing for function g3 <- main.
+        Called from tests/misc/from_res_2.i:38.
+[value] Recording results for g3
+[value] Done for function g3
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function f:
+  __retres ∈ {3}
+[value] Values at end of function g1:
+  
+[value] Values at end of function g2:
+  
+[value] Values at end of function g3:
+  
+[value] Values at end of function main:
+  G ∈ {3}
+  x1 ∈ {0}
+  x2 ∈ {0}
+  x3 ∈ {0}
+  y1 ∈ {0}
+  y2 ∈ {0}
+  y3 ∈ {0}
+  p ∈ {{ &G }}
+[from] Computing for function f
+[from] Done for function f
+[from] Computing for function g1
+[from] Done for function g1
+[from] Computing for function g2
+[from] Done for function g2
+[from] Computing for function g3
+[from] Done for function g3
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function f:
+  \result FROM left; right
+[from] Function g1:
+  \result FROM x1
+[from] Function g2:
+  \result FROM x2
+[from] Function g3:
+  \result FROM x3
+[from] Function main:
+  G FROM G
+  x1.a FROM A
+    .c FROM C
+  x2.a FROM A
+    .b FROM B
+  x3.b FROM B
+    .c FROM C
+  y1 FROM A; C; x1.b
+  y2 FROM A; B; x2.c
+  y3 FROM B; C; x3.a
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function f:
+          __retres
+[inout] Inputs for function f:
+          \nothing
+[inout] Out (internal) for function g1:
+          \nothing
+[inout] Inputs for function g1:
+          x1
+[inout] Out (internal) for function g2:
+          \nothing
+[inout] Inputs for function g2:
+          x2
+[inout] Out (internal) for function g3:
+          \nothing
+[inout] Inputs for function g3:
+          x3
+[inout] Out (internal) for function main:
+          G; x1{.a; .c}; x2{.a; .b}; x3{.b; .c}; y1; y2; y3; p
+[inout] Inputs for function main:
+          G; A; B; C; x1; x2; x3

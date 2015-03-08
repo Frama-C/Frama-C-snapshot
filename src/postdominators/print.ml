@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -63,7 +63,7 @@ module Printer = struct
 
   let graph_attributes (title, _) = [`Label title]
 
-  let default_vertex_attributes _g = [`Style [`Filled]]
+  let default_vertex_attributes _g = [`Style `Filled]
   let default_edge_attributes _g = []
 
   let vertex_attributes (s, has_postdom) =

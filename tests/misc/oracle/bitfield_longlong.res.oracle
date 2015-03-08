@@ -1,0 +1,21 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/bitfield_longlong.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  s50.z ∈ {2}
+     .[bits 50 to 63] ∈ {0}
+  s10.z ∈ {2}
+     .[bits 10 to 31] ∈ {0}
+  u32.z ∈ {4294967295}
+  s32.z ∈ {-1}
+[value] Called Frama_C_show_each({{ "%zu %zu %zu %zu\n" }}, {8}, {4}, {8}, {4})
+[value] Called Frama_C_show_each({{ "%d %d\n" }}, {1}, {0})
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  x ∈ {1}
+  y ∈ {0}
+  __retres ∈ {0}

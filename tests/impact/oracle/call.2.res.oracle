@@ -1,0 +1,50 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/impact/call.i (no preprocessing)
+[impact] beginning analysis
+[value] Analyzing a complete application starting at main3
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  G ∈ {0}
+  X ∈ {0}
+[value] computing for function call_test3 <- main3.
+        Called from tests/impact/call.i:55.
+[value] computing for function test3 <- call_test3 <- main3.
+        Called from tests/impact/call.i:49.
+[value] computing for function p3 <- test3 <- call_test3 <- main3.
+        Called from tests/impact/call.i:45.
+[value] using specification for function p3
+tests/impact/call.i:41:[value] warning: no \from part for clause 'assigns G;' of function p3
+[value] Done for function p3
+[value] computing for function p2 <- test3 <- call_test3 <- main3.
+        Called from tests/impact/call.i:45.
+tests/impact/call.i:45:[kernel] warning: Neither code nor specification for function p2, generating default assigns from the prototype
+[value] using specification for function p2
+[value] Done for function p2
+[value] Recording results for test3
+[value] Done for function test3
+[value] Recording results for call_test3
+[value] Done for function call_test3
+[value] Recording results for main3
+[value] done for function main3
+[pdg] computing for function main3
+[from] Computing for function call_test3
+[from] Computing for function test3 <-call_test3
+[from] Computing for function p3 <-test3 <-call_test3
+[from] Done for function p3
+[from] Computing for function p2 <-test3 <-call_test3
+[from] Done for function p2
+[from] Done for function test3
+[from] Done for function call_test3
+[pdg] done for function main3
+[pdg] computing for function call_test3
+[pdg] done for function call_test3
+[pdg] computing for function test3
+[pdg] done for function test3
+[pdg] computing for function p3
+[pdg] done for function p3
+[impact] impacted statements of stmt(s) 30 are:
+           tests/impact/call.i:45 (sid 22): p3(1);
+           tests/impact/call.i:49 (sid 26): test3();
+           tests/impact/call.i:55 (sid 31): call_test3();
+[impact] analysis done

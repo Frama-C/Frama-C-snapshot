@@ -339,15 +339,13 @@ let lex_comment remainder buffer lexbuf =
   (match buffer with None -> () | Some b -> Buffer.add_char b ch) ;
   remainder buffer lexbuf
 
-let do_lex_comment ?first_char remainder lexbuf =
+let do_lex_comment ?(first_string="") remainder lexbuf =
   let buffer =
-    if Kernel.PrintComments.get () then
-      Some(let b = Buffer.create 80 in
-           (match first_char with Some c ->
-             Buffer.add_char b c
-           | None -> ());
-           b)
-    else None
+    if Kernel.PrintComments.get () then begin
+      let b = Buffer.create 80 in
+      Buffer.add_string b first_string;
+      Some b
+    end else None
   in remainder buffer lexbuf ;
   match buffer with
     | Some b -> addComment (Buffer.contents b)
@@ -473,10 +471,17 @@ let no_parse_pragma =
              | "global_register" | "location"
 
 
-rule initial =
-  parse "/*"
+rule initial = parse
+| "/*" | "/*@{" | "/*@}" (* Skip special doxygen comments. Use of '@' instead
+                            of '!annot_char' is intentional *)
       {
-	do_lex_comment comment lexbuf ;
+        let s = Lexing.lexeme lexbuf in
+        let first_string =
+          if String.length s > 2 then
+            String.sub s 2 (String.length s - 2)
+          else ""
+        in
+	do_lex_comment ~first_string comment lexbuf ;
         initial lexbuf
       }
 
@@ -493,13 +498,20 @@ rule initial =
 	  "Skipping annotation"
       end else
 	begin
-	  do_lex_comment ~first_char:c comment lexbuf ;
+	  do_lex_comment ~first_string:(String.make 1 c) comment lexbuf ;
           initial lexbuf
 	end
     }
 
-| "//"
-    { do_lex_comment onelinecomment lexbuf ;
+| "//" | "//@{" | "//@}" (* See comment for "/*@{" above *)
+    { 
+      let s = Lexing.lexeme lexbuf in
+      let first_string =
+        if String.length s > 2 then
+          String.sub s 2 (String.length s - 2)
+        else ""
+      in
+      do_lex_comment ~first_string onelinecomment lexbuf ;
       E.newline();
       if is_oneline_ghost () then begin
         exit_oneline_ghost ();
@@ -521,7 +533,7 @@ rule initial =
 	  "Skipping annotation"
       end else
 	begin
-	  do_lex_comment ~first_char:c onelinecomment lexbuf ;
+	  do_lex_comment ~first_string:(String.make 1 c) onelinecomment lexbuf;
 	  E.newline();
 	  if is_oneline_ghost () then
 	    begin

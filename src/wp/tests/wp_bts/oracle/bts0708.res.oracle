@@ -1,0 +1,36 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_bts/bts0708.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function f
+------------------------------------------------------------
+
+Goal Post-condition 'A' in 'f':
+Let x_1 = 1+x_0.
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_0) /\ (is_sint32 x_1).
+  (* Pre-condition (file tests/wp_bts/bts0708.i, line 13) in 'f' *)
+  (* Pre-condition: *)
+  Have: (P_P x_0).
+}
+Prove: (P_P x_1).
+
+------------------------------------------------------------
+
+Goal Post-condition 'B' in 'f':
+Let x_1 = 2+x_0.
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_0) /\ (is_sint32 x_1).
+  (* Pre-condition (file tests/wp_bts/bts0708.i, line 13) in 'f' *)
+  (* Pre-condition: *)
+  Have: (P_P x_0).
+}
+Prove: (P_P x_1).
+
+------------------------------------------------------------

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -198,32 +198,51 @@ let select_entry_point_and_some_inputs_outputs set ~mark kf ~return ~outputs ~in
 
 (* apply [select ~spare] on each callsite of [kf] and add the returned selection
    to [set]. *)
-let generic_select_func_calls select set ~spare kf =
+let generic_select_func_calls select_stmt set ~spare kf =
   assert (Db.Value.is_computed ());
   let callers = !Db.Value.callers kf in
   let select_calls acc (caller, stmts) =
-    List.fold_left (fun acc s -> select acc ~spare s caller) acc stmts
+    List.fold_left (fun acc s -> select_stmt acc ~spare s caller) acc stmts
   in 
   List.fold_left select_calls set callers
-
+    
 (** Registered as a slicing selection function:
     Add a selection of calls to a [kf]. *)
-let select_func_calls_to = generic_select_func_calls select_stmt
-
-(** Registered as a slicing selection function:
-    Add a selection of calls to a [kf]. *)
-let select_func_calls_into =
-  let select_min_call set ~spare ki kf =
-    let nspare = not spare in
-    let stmt_mark =
+let select_func_calls_into set ~spare kf =
+  let add_to_select set ~spare select =
+    let mark =
+      let nspare = not spare in
       !Db.Slicing.Mark.make ~data:nspare ~addr:nspare ~ctrl:nspare
-    in
-    let selection = 
-      !Db.Slicing.Select.select_min_call_internal kf ki stmt_mark 
-    in
-    add_to_selection set selection
+    in add_to_selection set (select mark)
   in
-  generic_select_func_calls select_min_call
+  let kf_entry, _library = Globals.entry_point () in
+  if Kernel_function.equal kf_entry kf then
+    add_to_select set ~spare (!Db.Slicing.Select.select_entry_point_internal kf)
+  else
+    let select_min_call set ~spare ki kf =
+      add_to_select set ~spare (!Db.Slicing.Select.select_min_call_internal kf ki) 
+    in
+    generic_select_func_calls select_min_call set ~spare kf
+
+(** Registered as a slicing selection function:
+    Add a selection of calls to a [kf]. *)
+let select_func_calls_to set ~spare kf = 
+  let kf_entry, _library = Globals.entry_point () in
+  if Kernel_function.equal kf_entry kf then
+    begin
+      let mark =
+	let nspare = not spare in
+	!Db.Slicing.Mark.make ~data:nspare ~addr:nspare ~ctrl:nspare
+      in
+      assert (Db.Value.is_computed ());
+      let outputs = !Db.Outputs.get_external kf in
+      select_entry_point_and_some_inputs_outputs set ~mark kf
+	~return:true 
+	~outputs
+	~inputs:Locations.Zone.bottom
+    end
+  else
+    generic_select_func_calls select_stmt set ~spare kf
 
 (** Registered as a slicing selection function:
     Add selection of function ouputs. *)
@@ -595,8 +614,8 @@ let add_persistent_cmdline project =
       Globals.Functions.iter
         (fun kf ->
            let add_selection opt select  =
-             if Datatype.String.Set.mem (Kernel_function.get_name kf) (opt ())
-             then selection := select !selection ~spare:false kf
+             if Kernel_function.Set.mem kf (opt ()) then
+               selection := select !selection ~spare:false kf
            in
              add_selection
                SlicingParameters.Select.Return.get

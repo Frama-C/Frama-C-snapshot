@@ -1,0 +1,78 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_bts/bts_1828.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function f
+------------------------------------------------------------
+
+Goal Assertion 'ok' (file tests/wp_bts/bts_1828.i, line 9):
+Assume {
+  (* Heap *)
+  Have: (linked Malloc_2) /\ ((region (base one_0))<=0).
+  (* Pre-condition (file tests/wp_bts/bts_1828.i, line 6) in 'f' *)
+  (* Pre-condition: *)
+  Have: (valid_rw Malloc_2 one_0 1).
+}
+Prove: one_0!=(shift_sint32 (global L_two_71) 0).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function frame
+------------------------------------------------------------
+
+Goal Assertion 'ok,formal' (file tests/wp_bts/bts_1828.i, line 16):
+Assume {
+  (* Heap *)
+  Have: (linked Malloc_4) /\ ((region (base one_0))<=0)
+        /\ ((region (base zero_0))<=0).
+  (* Pre-condition (file tests/wp_bts/bts_1828.i, line 13) in 'frame' *)
+  (* Pre-condition: *)
+  Have: (valid_rw Malloc_4 one_0 1) /\ (valid_rw Malloc_4 zero_0 1).
+}
+Prove: (one_0!=(shift_sint32 (global L_two_79) 0))
+       /\ (one_0!=(shift_sint32 (global P_arg_77) 0)).
+
+------------------------------------------------------------
+
+Goal Assertion 'ok,global' (file tests/wp_bts/bts_1828.i, line 17):
+Let a_0 = (shift_sint32 (global L_two_79) 0).
+Let a_1 = (shift_sint32 (global P_arg_77) 0).
+Assume {
+  (* Heap *)
+  Have: (linked Malloc_4) /\ ((region (base one_0))<=0)
+        /\ ((region (base zero_0))<=0).
+  (* Pre-condition (file tests/wp_bts/bts_1828.i, line 13) in 'frame' *)
+  (* Pre-condition: *)
+  Have: (valid_rw Malloc_4 one_0 1) /\ (valid_rw Malloc_4 zero_0 1).
+  (* Assertion 'ok,formal' (file tests/wp_bts/bts_1828.i, line 16) *)
+  (* tests/wp_bts/bts_1828.i:16: Assertion 'ok,formal': *)
+  Have: (one_0!=a_0) /\ (one_0!=a_1).
+}
+Prove: (zero_0!=a_0) /\ (zero_0!=a_1).
+
+------------------------------------------------------------
+
+Goal Assertion 'ko' (file tests/wp_bts/bts_1828.i, line 20):
+Let a_0 = (shift_sint32 (global L_two_79) 0).
+Let a_1 = (shift_sint32 (global P_arg_77) 0).
+Assume {
+  (* Heap *)
+  Have: (linked Malloc_4) /\ ((region (base one_0))<=0)
+        /\ ((region (base zero_0))<=0).
+  (* Pre-condition (file tests/wp_bts/bts_1828.i, line 13) in 'frame' *)
+  (* Pre-condition: *)
+  Have: (valid_rw Malloc_4 one_0 1) /\ (valid_rw Malloc_4 zero_0 1).
+  (* Assertion 'ok,formal' (file tests/wp_bts/bts_1828.i, line 16) *)
+  (* tests/wp_bts/bts_1828.i:16: Assertion 'ok,formal': *)
+  Have: (one_0!=a_0) /\ (one_0!=a_1).
+  (* Assertion 'ok,global' (file tests/wp_bts/bts_1828.i, line 17) *)
+  (* tests/wp_bts/bts_1828.i:17: Assertion 'ok,global': *)
+  Have: (zero_0!=a_0) /\ (zero_0!=a_1).
+}
+Prove: one_0!=zero_0.
+
+------------------------------------------------------------

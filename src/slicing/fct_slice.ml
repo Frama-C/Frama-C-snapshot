@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -953,7 +953,7 @@ let get_called_needed_input called_kf need_out0 needed_out_zone =
   let in_zones =
     if need_out0 then
       let from0 = froms.Function_Froms.deps_return in
-      let z_return = Function_Froms.Memory.LOffset.collapse from0 in
+      let z_return = Function_Froms.Memory.collapse_return from0 in
         Locations.Zone.join in_zones z_return
     else in_zones
   in in_zones
@@ -1466,10 +1466,10 @@ let get_mark_from_src_fun proj kf =
 (** {2 Printing} (see also {!PrintSlice}) *)
 
 let print_ff_sig fmt ff =
-  Format.fprintf fmt "@[<hv>%s:@ " (SlicingMacros.ff_name ff);
+  Format.fprintf fmt "%s:@ " (SlicingMacros.ff_name ff);
   match FctMarks.get_sgn ff with
-    | None -> Format.fprintf fmt "<not computed>@]"
-    | Some s -> Format.fprintf fmt "%a@]" SlicingMarks.pretty_sig s
+    | None -> Format.fprintf fmt "<not computed>"
+    | Some s -> SlicingMarks.pretty_sig fmt s
 (*-----------------------------------------------------------------------*)
 
 (*

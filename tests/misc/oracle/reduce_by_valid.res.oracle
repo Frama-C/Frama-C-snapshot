@@ -1,0 +1,314 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/reduce_by_valid.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  t[0..4] ∈ {0}
+  u[0..4] ∈ {0}
+  v ∈ [--..--]
+  sv ∈ [--..--]
+  vs ∈ {{ NULL ; &S_vs[0] }}
+  S_vs[0].f1 ∈ {{ NULL ; &S_f1_0_S_vs[0] }}
+      [1].f1 ∈ {{ NULL ; &S_f1_1_S_vs[0] }}
+  S_f1_0_S_vs[0..1] ∈ [--..--]
+  S_f1_1_S_vs[0..1] ∈ [--..--]
+[value] computing for function main1 <- main.
+        Called from tests/misc/reduce_by_valid.i:260.
+tests/misc/reduce_by_valid.i:14:[value] Assertion got status unknown.
+tests/misc/reduce_by_valid.i:17:[value] Assertion got status unknown.
+[value] Recording results for main1
+[value] Done for function main1
+[value] computing for function main2 <- main.
+        Called from tests/misc/reduce_by_valid.i:261.
+tests/misc/reduce_by_valid.i:29:[value] Assertion got status unknown.
+tests/misc/reduce_by_valid.i:31:[value] Assertion got status unknown.
+tests/misc/reduce_by_valid.i:33:[value] Assertion got status unknown.
+tests/misc/reduce_by_valid.i:35:[value] Assertion got status unknown.
+[value] Recording results for main2
+[value] Done for function main2
+[value] computing for function main3 <- main.
+        Called from tests/misc/reduce_by_valid.i:262.
+tests/misc/reduce_by_valid.i:48:[value] Assertion got status valid.
+tests/misc/reduce_by_valid.i:49:[value] Assertion got status unknown.
+[value] Recording results for main3
+[value] Done for function main3
+[value] computing for function main4 <- main.
+        Called from tests/misc/reduce_by_valid.i:263.
+tests/misc/reduce_by_valid.i:54:[value] Assertion got status unknown.
+tests/misc/reduce_by_valid.i:55:[value] Assertion got status unknown.
+tests/misc/reduce_by_valid.i:57:[value] Assertion got status unknown.
+tests/misc/reduce_by_valid.i:59:[value] Assertion got status unknown.
+[value] Recording results for main4
+[value] Done for function main4
+[value] computing for function main5 <- main.
+        Called from tests/misc/reduce_by_valid.i:264.
+tests/misc/reduce_by_valid.i:72:[value] warning: locals {x} escaping the scope of a block of main5 through p
+tests/misc/reduce_by_valid.i:74:[value] Assertion got status valid.
+tests/misc/reduce_by_valid.i:75:[value] Assertion got status valid.
+tests/misc/reduce_by_valid.i:76:[value] Assertion got status valid.
+tests/misc/reduce_by_valid.i:80:[value] Assertion got status valid.
+tests/misc/reduce_by_valid.i:82:[value] Assertion got status valid.
+tests/misc/reduce_by_valid.i:85:[value] Assertion got status unknown.
+[value] Recording results for main5
+[value] Done for function main5
+[value] computing for function main6 <- main.
+        Called from tests/misc/reduce_by_valid.i:265.
+tests/misc/reduce_by_valid.i:95:[value] Function main6: precondition got status unknown.
+tests/misc/reduce_by_valid.i:96:[value] Function main6: precondition got status unknown.
+tests/misc/reduce_by_valid.i:97:[value] Function main6: precondition got status unknown.
+tests/misc/reduce_by_valid.i:98:[value] Function main6: precondition got status valid.
+tests/misc/reduce_by_valid.i:99:[value] Function main6: precondition got status unknown.
+tests/misc/reduce_by_valid.i:100:[value] Function main6: precondition got status valid.
+[value] Recording results for main6
+[value] Done for function main6
+[value] computing for function main7 <- main.
+        Called from tests/misc/reduce_by_valid.i:266.
+tests/misc/reduce_by_valid.i:111:[value] Assertion got status valid.
+tests/misc/reduce_by_valid.i:112:[value] Assertion got status valid.
+tests/misc/reduce_by_valid.i:113:[value] Assertion got status valid.
+tests/misc/reduce_by_valid.i:117:[value] Assertion got status valid.
+tests/misc/reduce_by_valid.i:120:[value] Assertion got status unknown.
+tests/misc/reduce_by_valid.i:121:[value] Assertion got status valid.
+[value] Recording results for main7
+[value] Done for function main7
+[value] computing for function main8 <- main.
+        Called from tests/misc/reduce_by_valid.i:267.
+tests/misc/reduce_by_valid.i:137:[value] Assertion got status unknown.
+tests/misc/reduce_by_valid.i:138:[value] Assertion got status valid.
+tests/misc/reduce_by_valid.i:141:[value] Assertion got status unknown.
+tests/misc/reduce_by_valid.i:142:[value] Assertion got status valid.
+tests/misc/reduce_by_valid.i:146:[value] Assertion got status unknown.
+tests/misc/reduce_by_valid.i:147:[value] Assertion got status unknown.
+[value] Recording results for main8
+[value] Done for function main8
+[value] computing for function main9 <- main.
+        Called from tests/misc/reduce_by_valid.i:268.
+tests/misc/reduce_by_valid.i:162:[value] Assertion got status unknown.
+tests/misc/reduce_by_valid.i:165:[value] Assertion got status valid.
+[value] Recording results for main9
+[value] Done for function main9
+[value] computing for function main10 <- main.
+        Called from tests/misc/reduce_by_valid.i:269.
+tests/misc/reduce_by_valid.i:176:[kernel] warning: out of bounds write. assert \valid((int *)p);
+[value] Called Frama_C_show_each_main10_1({{ &t_0 + [0..36] }})
+tests/misc/reduce_by_valid.i:178:[value] Assertion got status valid.
+tests/misc/reduce_by_valid.i:181:[kernel] warning: out of bounds write. assert \valid((int *)p+2);
+[value] Called Frama_C_show_each_main10_2({{ &t_0 + [-8..28] }})
+tests/misc/reduce_by_valid.i:183:[value] Assertion got status valid.
+tests/misc/reduce_by_valid.i:186:[kernel] warning: out of bounds write. assert \valid((int *)(p+2));
+[value] Called Frama_C_show_each_main10_3({{ &t_0 + [-2147483648..2147483647] }})
+tests/misc/reduce_by_valid.i:188:[value] Assertion got status unknown.
+tests/misc/reduce_by_valid.i:197:[kernel] warning: out of bounds write. assert \valid(&((struct s_1 *)p)->b);
+[value] Called Frama_C_show_each_main10_4({{ &t_0 + [-4..32] }})
+tests/misc/reduce_by_valid.i:200:[value] Assertion got status valid.
+tests/misc/reduce_by_valid.i:203:[kernel] warning: out of bounds write. assert \valid(&((struct s_1 *)p+2)->b);
+[value] Called Frama_C_show_each_main10_4({{ &t_0 + [-20..16] }})
+tests/misc/reduce_by_valid.i:206:[value] Assertion got status valid.
+tests/misc/reduce_by_valid.i:210:[kernel] warning: out of bounds write. assert \valid((char *)q);
+[value] Called Frama_C_show_each({{ &u_0 + [0..79] }})
+tests/misc/reduce_by_valid.i:213:[value] Assertion got status valid.
+tests/misc/reduce_by_valid.i:216:[kernel] warning: out of bounds write. assert \valid((char *)q+2);
+[value] Called Frama_C_show_each({{ &u_0 + [-2..77] }})
+tests/misc/reduce_by_valid.i:219:[value] Assertion got status valid.
+[value] Recording results for main10
+[value] Done for function main10
+[value] computing for function main11 <- main.
+        Called from tests/misc/reduce_by_valid.i:270.
+tests/misc/reduce_by_valid.i:228:[value] Assertion got status unknown.
+[value] Called Frama_C_show_each({{ &TC + [10..410] }})
+tests/misc/reduce_by_valid.i:231:[value] Assertion got status unknown.
+tests/misc/reduce_by_valid.i:237:[value] Assertion got status unknown.
+[value] Called Frama_C_show_each({{ &TU + [40..1640],0%4 }})
+tests/misc/reduce_by_valid.i:240:[value] Assertion got status unknown.
+tests/misc/reduce_by_valid.i:245:[value] Assertion got status unknown.
+[value] Called Frama_C_show_each({{ &TU + [40..840] }})
+tests/misc/reduce_by_valid.i:248:[value] Assertion got status unknown.
+tests/misc/reduce_by_valid.i:253:[value] Assertion got status unknown.
+[value] Called Frama_C_show_each({{ &TC + [10..410],2%4 }})
+tests/misc/reduce_by_valid.i:256:[value] Assertion got status unknown.
+[value] Recording results for main11
+[value] Done for function main11
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main1:
+  t[0..2] ∈ {0}
+   [3] ∈ {0; 1}
+   [4] ∈ {1}
+  p ∈ {{ &t{[0], [1]} }}
+  q ∈ {{ &t[1] }}
+[value] Values at end of function main10:
+  t_0[0..39] ∈ [--..--] or UNINITIALIZED
+  p ∈ {{ &t_0 + [-20..16] }}
+  u_0[0..19]# ∈ {1} or UNINITIALIZED repeated %8 
+  q ∈ {{ &u_0 + [-2..77] }}
+[value] Values at end of function main11:
+  p ∈ {{ &TU + [40..200] }}
+  off ∈ [0..100]
+  len ∈ [50..100]
+  q ∈ {{ &TC + [10..298],2%4 }}
+[value] Values at end of function main2:
+  u[0].a ∈ {0; 1}
+   [0].b ∈ {0; 2; 4}
+   [1].a ∈ {0; 1; 3}
+   [1].b ∈ {0; 2; 4}
+   [2].a ∈ {0; 1; 3}
+   [2].b ∈ {0; 2; 4}
+   [3].a ∈ {0; 1; 3}
+   [3].b ∈ {0; 2; 4}
+   [4].a ∈ {0; 1; 3}
+   [4].b ∈ {0; 2}
+  p ∈ {{ &u{[0], [1], [2], [3], [4]} }}
+  q ∈ {{ (ts *)&u{[0].b, [1].b, [2].b, [3].b, [4].b} }}
+  r ∈ {{ (ts *)&u{[0].b, [1].b, [2].b, [3].b} }}
+  s ∈ {{ (ts *)&u{[0].b, [1].b, [2].b, [3].b} }}
+[value] Values at end of function main3:
+  p ∈ {{ (int *)&t{[0], [1], [2], [3], [4]} }}
+  q ∈ {{ (int *)&c2 }}
+[value] Values at end of function main4:
+  c1 ∈ [--..--]
+  c2 ∈ [--..--]
+  c3 ∈ [--..--]
+  c4 ∈ [--..--]
+  p ∈ {{ (int *)&t }}
+  q ∈ {{ &u[0] }}
+[value] Values at end of function main5:
+  q ∈ {{ &y }}
+  p ∈ {0}
+  r ∈ {{ &y }} or UNINITIALIZED
+[value] Values at end of function main6:
+  S_f1_0_S_vs[0] ∈ {1}
+             [1] ∈ [--..--]
+[value] Values at end of function main7:
+  p ∈ {{ &t7_2 + [20..38996],0%4 }}
+[value] Values at end of function main8:
+  tp[0] ∈ {{ &t8_1[0] }}
+    [1] ∈ {{ &t8_1 + [0..17179869180],0%4 }}
+    [2] ∈ {{ &t8_2 + [0..17179869180],0%4 }}
+    [3] ∈ {{ &t8_1 + [0..17179869180],0%4 ; &t8_2 + [0..17179869180],0%4 }}
+  p ∈ {{ &tp[0] }}
+[value] Values at end of function main9:
+  tc[0..58] ∈ {1} or UNINITIALIZED
+    [59..98] ∈ UNINITIALIZED
+    [99..157] ∈ {2} or UNINITIALIZED
+  p ∈ {{ &tc + [-8..50] }}
+[value] Values at end of function main:
+  t[0..2] ∈ {0}
+   [3] ∈ {0; 1}
+   [4] ∈ {1}
+  u[0].a ∈ {0; 1}
+   [0].b ∈ {0; 2; 4}
+   [1].a ∈ {0; 1; 3}
+   [1].b ∈ {0; 2; 4}
+   [2].a ∈ {0; 1; 3}
+   [2].b ∈ {0; 2; 4}
+   [3].a ∈ {0; 1; 3}
+   [3].b ∈ {0; 2; 4}
+   [4].a ∈ {0; 1; 3}
+   [4].b ∈ {0; 2}
+  S_f1_0_S_vs[0] ∈ {1}
+             [1] ∈ [--..--]
+[from] Computing for function main1
+[from] Done for function main1
+[from] Computing for function main10
+[from] Done for function main10
+[from] Computing for function main11
+[from] Done for function main11
+[from] Computing for function main2
+[from] Done for function main2
+[from] Computing for function main3
+[from] Done for function main3
+[from] Computing for function main4
+[from] Done for function main4
+[from] Computing for function main5
+[from] Done for function main5
+[from] Computing for function main6
+[from] Done for function main6
+[from] Computing for function main7
+[from] Done for function main7
+[from] Computing for function main8
+[from] Done for function main8
+[from] Computing for function main9
+[from] Done for function main9
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main1:
+  t[3] FROM v (and SELF)
+   [4] FROM v
+[from] Function main10:
+  NO EFFECTS
+[from] Function main11:
+  NO EFFECTS
+[from] Function main2:
+  u[0..4] FROM v (and SELF)
+[from] Function main3:
+  NO EFFECTS
+[from] Function main4:
+  NO EFFECTS
+[from] Function main5:
+  NO EFFECTS
+[from] Function main6:
+  S_f1_0_S_vs[0] FROM p; S_vs[0]
+[from] Function main7:
+  NO EFFECTS
+[from] Function main8:
+  NO EFFECTS
+[from] Function main9:
+  NO EFFECTS
+[from] Function main:
+  t[3] FROM v (and SELF)
+   [4] FROM v
+  u[0..4] FROM v (and SELF)
+  S_f1_0_S_vs[0] FROM vs; S_vs[0]
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main1:
+          t[3..4]; p; q
+[inout] Inputs for function main1:
+          v
+[inout] Out (internal) for function main10:
+          t_0[0..39]; p; u_0[0..19]; q
+[inout] Inputs for function main10:
+          sv
+[inout] Out (internal) for function main11:
+          p; off; len; q
+[inout] Inputs for function main11:
+          v
+[inout] Out (internal) for function main2:
+          u[0..4]; p; q; r; s
+[inout] Inputs for function main2:
+          v
+[inout] Out (internal) for function main3:
+          p; q
+[inout] Inputs for function main3:
+          \nothing
+[inout] Out (internal) for function main4:
+          c1; c2; c3; c4; p; q
+[inout] Inputs for function main4:
+          \nothing
+[inout] Out (internal) for function main5:
+          q; p; r; x
+[inout] Inputs for function main5:
+          v
+[inout] Out (internal) for function main6:
+          S_f1_0_S_vs[0]
+[inout] Inputs for function main6:
+          S_vs[0]
+[inout] Out (internal) for function main7:
+          p
+[inout] Inputs for function main7:
+          v
+[inout] Out (internal) for function main8:
+          tp[0..3]; p
+[inout] Inputs for function main8:
+          v
+[inout] Out (internal) for function main9:
+          tc{[0..58]; [99..157]}; p
+[inout] Inputs for function main9:
+          v
+[inout] Out (internal) for function main:
+          t[3..4]; u[0..4]; S_f1_0_S_vs[0]
+[inout] Inputs for function main:
+          v; sv; vs; S_vs[0]

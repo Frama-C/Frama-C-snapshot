@@ -1,6 +1,6 @@
 /* run.config
-   OPT: -val -slevel 100 -cpp-command "gcc -C -E -DPTEST " -journal-disable -no-warn-signed-overflow
-   OPT: -val -slevel 100 -cpp-command "gcc -C -E -DPTEST " -journal-disable -machdep ppc_32 -no-warn-signed-overflow
+   OPT: -val -slevel 100 -cpp-extra-args="-DPTEST " -journal-disable -no-warn-signed-overflow
+   OPT: -val -slevel 100 -cpp-extra-args="-DPTEST " -journal-disable -machdep ppc_32 -no-warn-signed-overflow
 */
 
 #ifndef PTEST

@@ -1,0 +1,49 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/abstract_struct_1.c (with preprocessing)
+[kernel] Parsing tests/misc/abstract_struct_2.c (with preprocessing)
+[value] Analyzing an incomplete application starting at main
+[value] Computing initial state
+[value:initial_state] creating variable S_data_0_S_repositories with imprecise size (type struct abstracttype [2])
+tests/misc/abstract_struct_1.c:10:[value] warning: during initialization of variable 'repositories', size of
+                 type 'struct abstracttype' cannot be computed
+                 (abstract type 'struct abstracttype')
+[value:initial_state] creating variable S_data_1_S_repositories with imprecise size (type struct abstracttype [2])
+[value] Initial state computed
+[value] Values of globals at initialization
+  __fc_random_counter ∈ [--..--]
+  __fc_rand_max ∈ {32767}
+  __fc_heap_status ∈ [--..--]
+  repositories ∈ {{ NULL ; &S_repositories[0] }}
+  S_repositories[0].data ∈
+                {{ NULL ; (struct abstracttype *)&S_data_0_S_repositories }}
+                [1].data ∈
+                {{ NULL ; (struct abstracttype *)&S_data_1_S_repositories }}
+  S_data_0_S_repositories[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  S_data_1_S_repositories[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+[value] computing for function calloc <- main.
+        Called from tests/misc/abstract_struct_1.c:13.
+tests/misc/abstract_struct_1.c:13:[kernel] warning: Neither code nor specification for function calloc, generating default assigns from the prototype
+[value] using specification for function calloc
+[value] Done for function calloc
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  repositories ∈
+              {{ NULL + [--..--] ;
+                 &alloced_return_calloc + [0..2147483647] }}
+[from] Computing for function main
+[from] Computing for function calloc <-main
+[from] Done for function calloc
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function calloc:
+  \result FROM nmemb; size
+[from] Function main:
+  repositories FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          repositories
+[inout] Inputs for function main:
+          \nothing

@@ -5,7 +5,7 @@ let check name test =
     (fun () -> assert (test (Kernel.Files.get ()) [])) ()
 
 let main () =
-  ignore (Project.create_by_copy "foo");
+  ignore (Project.create_by_copy ~last:false "foo");
   ignore (Project.create "foobar");
   Project.save_all "foo.sav";
   check "foo" (<>);
@@ -14,7 +14,7 @@ let main () =
   Kernel.Files.set [];
   Project.load_all "foo.sav";
   Extlib.safe_remove "foo.sav";
-  ignore (Project.create_by_copy "bar");
+  ignore (Project.create_by_copy ~last:false "bar");
   assert
     (Project.equal (Project.current ()) (Project.from_unique_name "default"));
   check "foo" (<>);

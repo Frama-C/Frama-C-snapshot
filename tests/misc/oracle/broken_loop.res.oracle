@@ -1,0 +1,23 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/broken_loop.i (no preprocessing)
+[value] Analyzing a complete application starting at loop
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  X ∈ {0}
+[value] Recording results for loop
+[value] done for function loop
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function loop:
+  X ∈ {2}
+[from] Computing for function loop
+[from] Done for function loop
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function loop:
+  X FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function loop:
+          X
+[inout] Inputs for function loop:
+          \nothing

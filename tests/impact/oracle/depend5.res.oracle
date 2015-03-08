@@ -1,0 +1,123 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/impact/depend5.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  a ∈ {0}
+  b ∈ {0}
+  c ∈ {0}
+  d ∈ {0}
+  e ∈ {0}
+[value] computing for function f <- main.
+        Called from tests/impact/depend5.i:23.
+[value] Recording results for f
+[from] Computing for function f
+[from] Done for function f
+[value] Done for function f
+[value] computing for function g <- main.
+        Called from tests/impact/depend5.i:25.
+[value] computing for function f <- g <- main.
+        Called from tests/impact/depend5.i:18.
+[value] Recording results for f
+[from] Computing for function f
+[from] Done for function f
+[value] Done for function f
+[value] Recording results for g
+[from] Computing for function g
+[from] Done for function g
+[value] Done for function g
+[value] Recording results for main
+[from] Computing for function main
+[from] Done for function main
+[value] done for function main
+[from] ====== DISPLAYING CALLWISE DEPENDENCIES ======
+[from] call to f at tests/impact/depend5.i:18 (by g):
+  b FROM a; e
+[from] call to f at tests/impact/depend5.i:23 (by main):
+  c FROM a; d
+[from] call to g at tests/impact/depend5.i:25 (by main):
+  b FROM a
+  d FROM \nothing
+  e FROM \nothing
+[from] entry point:
+  a FROM \nothing
+  b FROM \nothing
+  c FROM d
+  d FROM \nothing
+  e FROM \nothing
+[from] ====== END OF CALLWISE DEPENDENCIES ======
+[impact] beginning analysis
+[pdg] computing for function g
+[pdg] done for function g
+[pdg] computing for function main
+[pdg] done for function main
+[pdg] computing for function f
+[pdg] done for function f
+[impact] impacted statements of stmt(s) 8 are:
+           tests/impact/depend5.i:9 (sid 3): c = d;
+           tests/impact/depend5.i:11 (sid 4): b = e;
+           tests/impact/depend5.i:17 (sid 9): e = d;
+           tests/impact/depend5.i:18 (sid 10): f();
+           tests/impact/depend5.i:25 (sid 16): g();
+[impact] analysis done
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  a ∈ {0}
+  b ∈ {0}
+  c ∈ {0}
+  d ∈ {0}
+  e ∈ {0}
+[value] computing for function f <- main.
+        Called from tests/impact/depend5.i:23.
+[value] Recording results for f
+[from] Computing for function f
+[from] Done for function f
+[value] Done for function f
+[value] computing for function g <- main.
+        Called from tests/impact/depend5.i:25.
+[value] computing for function f <- g <- main.
+        Called from tests/impact/depend5.i:18.
+[value] Recording results for f
+[from] Computing for function f
+[from] Done for function f
+[value] Done for function f
+[value] Recording results for g
+[from] Computing for function g
+[from] Done for function g
+[value] Done for function g
+[value] Recording results for main
+[from] Computing for function main
+[from] Done for function main
+[value] done for function main
+[from] ====== DISPLAYING CALLWISE DEPENDENCIES ======
+[from] call to f at tests/impact/depend5.i:18 (by g):
+  b FROM a; e
+[from] call to f at tests/impact/depend5.i:23 (by main):
+  c FROM a; d
+[from] call to g at tests/impact/depend5.i:25 (by main):
+  b FROM a
+  d FROM \nothing
+  e FROM \nothing
+[from] entry point:
+  a FROM \nothing
+  b FROM \nothing
+  c FROM d
+  d FROM \nothing
+  e FROM \nothing
+[from] ====== END OF CALLWISE DEPENDENCIES ======
+[impact] beginning analysis
+[pdg] computing for function g
+[pdg] done for function g
+[pdg] computing for function main
+[pdg] done for function main
+[pdg] computing for function f
+[pdg] done for function f
+[impact] impacted statements of stmt(s) 8 are:
+           tests/impact/depend5.i:11 (sid 4): b = e;
+           tests/impact/depend5.i:17 (sid 9): e = d;
+           tests/impact/depend5.i:18 (sid 10): f();
+           tests/impact/depend5.i:25 (sid 16): g();
+[impact] analysis done

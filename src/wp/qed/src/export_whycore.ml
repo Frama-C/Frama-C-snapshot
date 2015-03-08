@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,7 +27,6 @@
 open Logic
 open Format
 open Plib
-open Linker
 open Engine
 open Export
 
@@ -55,21 +54,10 @@ struct
         | [] -> full_triggers tgs
         | ts -> ts :: full_triggers tgs
 
-  module TauMap = Map.Make
-      (struct
-        type t = T.tau
-        let compare = Kind.compare_tau T.Field.compare T.ADT.compare
-      end)
-
   class virtual engine =
     object(self)
 
       inherit E.engine
-
-      initializer
-        begin
-          self#declare_all [ "int" ; "real" ; "bool" ; "prop" ] ;
-        end
 
       (* -------------------------------------------------------------------------- *)
       (* --- Types                                                              --- *)
@@ -145,10 +133,10 @@ struct
       (* --- Higher Order                                                       --- *)
       (* -------------------------------------------------------------------------- *)
 
-      method pp_param fmt x =
-        fprintf fmt "%a:%a" self#pp_var x self#pp_tau (T.tau_of_var x)
+      method pp_param fmt ((x,t) : string * tau) =
+        fprintf fmt "%a:%a" self#pp_var x self#pp_tau t
 
-      method pp_lambda (_:formatter) (_:var list) =
+      method pp_lambda (_:formatter) (_: (string * tau) list) =
         failwith "Qed.Export.Why : lambda abstraction"
 
       (* -------------------------------------------------------------------------- *)
@@ -187,13 +175,13 @@ struct
             end
 
       method pp_declare_symbol t fmt f =
-        let name = declare_name (self#link f) in
+        let name = link_name (self#link f) in
         match t with
         | Cprop -> fprintf fmt "predicate %s" name
         | Cterm -> fprintf fmt "function %s" name
 
       method virtual pp_trigger : trigger printer
-      method virtual pp_intros : tau -> var list printer (* forall with no separatyor *)
+      method virtual pp_intros : tau -> string list printer (* forall with no separatyor *)
 
       method declare_prop ~kind fmt lemma xs tgs (p : term) =
         self#global
@@ -201,13 +189,13 @@ struct
             fprintf fmt "@[<hv 2>%s %s:" kind lemma ;
             let groups = List.fold_left
                 (fun groups x ->
-                   self#bind x ;
+                   let a = self#bind x in
                    let t = T.tau_of_var x in
-                   let xs = try TauMap.find t groups with Not_found -> [] in
-                   TauMap.add t (x::xs) groups
-                ) TauMap.empty xs in
-            let order = TauMap.fold
-                (fun t xs order -> (t,List.sort Var.compare xs)::order)
+                   let xs = try E.TauMap.find t groups with Not_found -> [] in
+                   E.TauMap.add t (a::xs) groups
+                ) E.TauMap.empty xs in
+            let order = E.TauMap.fold
+                (fun t xs order -> (t,List.sort String.compare xs)::order)
                 groups [] in
             let tgs = full_triggers tgs in
             Plib.iteri

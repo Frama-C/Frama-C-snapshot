@@ -1,0 +1,15 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_plugin/params.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] 1 goal scheduled
+[wp] [Alt-Ergo] Goal typed_lemma_lem : Valid
+[wp] Proved goals:    1 / 1
+     Qed:             0 
+     Alt-Ergo:        1
+----------------------------------------------------------
+Axiomatics          WP   Alt-Ergo    Total   Success
+Lemma               -       1 (3)      1       100%
+----------------------------------------------------------

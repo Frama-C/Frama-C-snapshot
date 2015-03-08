@@ -496,6 +496,18 @@ and print_statement fmt stat =
             (pp_list ~sep:"@ " pp_print_string) tlist
             (pp_opt ~pre:":@ " print_details) details
 	end
+    | THROW(e,_) ->
+      fprintf fmt "@[<hov 2>throw%a@]"
+        (Pretty_utils.pp_opt ~pre:" (@;" ~suf:")" print_expression) e
+    | TRY_CATCH(s,l,_) ->
+      let print_one_catch fmt (e,s) =
+        fprintf fmt "@[<v 2>@[catch %a {@]@;%a@]@;}@;"
+          (Pretty_utils.pp_opt print_single_name) e
+          print_statement s
+      in
+      fprintf fmt "@[<v 2>@[try %a {@]@;%a@]@;}@;"
+        print_statement s
+        (Pretty_utils.pp_list ~sep:"@;" print_one_catch) l
     | TRY_FINALLY (b, h, _) ->
         fprintf fmt "__try@ @[%a@]@ __finally@ @[%a@]"
           print_block b print_block h

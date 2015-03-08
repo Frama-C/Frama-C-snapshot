@@ -1795,6 +1795,13 @@ EXTERNAL_PLUGINS=
 
 
 
+
+# Usage: plugin_disable([plugin],[reason])
+
+
+
+
+
 # Implementation of an ordering $1 < $2: "" < yes < partial < no
 lt_mark () {
   first=`echo "$1" | sed -e 's/ .*//' `
@@ -2130,12 +2137,13 @@ echo "aorai... $ENABLE"
 
 
 
-if test "$ENABLE_AORAI" != "no"; then
 
 
         USE_LTLTOBA=$USE_LTLTOBA" "aorai
 
 
+
+if test "$ENABLE_AORAI" != "no"; then
   # ltl2ba library
 
 
@@ -2200,6 +2208,8 @@ fi
 
 
 
+fi
+
 
   if test -n "$REQUIRE_LTLTOBA" -o -n "$USE_LTLTOBA" -o "$no" = "yes"; then
     if test "$HAS_LTLTOBA" = "no"; then
@@ -2250,7 +2260,6 @@ done
 # main call
 compute_dependency
 
-fi
 
 
 

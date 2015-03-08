@@ -1,0 +1,269 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/pdg/variadic.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  
+[value] computing for function f1 <- main.
+        Called from tests/pdg/variadic.c:37.
+[value] computing for function lib_f <- f1 <- main.
+        Called from tests/pdg/variadic.c:23.
+tests/pdg/variadic.c:23:[kernel] warning: Neither code nor specification for function lib_f, generating default assigns from the prototype
+[value] using specification for function lib_f
+[value] Done for function lib_f
+[value] Recording results for f1
+[value] Done for function f1
+[value] computing for function f2 <- main.
+        Called from tests/pdg/variadic.c:38.
+[value] computing for function lib_f <- f2 <- main.
+        Called from tests/pdg/variadic.c:27.
+[value] Done for function lib_f
+[value] Recording results for f2
+[value] Done for function f2
+[value] computing for function f3 <- main.
+        Called from tests/pdg/variadic.c:39.
+[value] computing for function lib_f <- f3 <- main.
+        Called from tests/pdg/variadic.c:31.
+[value] Done for function lib_f
+[value] Recording results for f3
+[value] Done for function f3
+[value] computing for function f2 <- main.
+        Called from tests/pdg/variadic.c:40.
+[value] computing for function lib_f <- f2 <- main.
+        Called from tests/pdg/variadic.c:27.
+[value] Done for function lib_f
+[value] Recording results for f2
+[value] Done for function f2
+[value] Recording results for main
+[value] done for function main
+[pdg] computing for function lib_f
+[pdg] warning: not implemented by pdg yet: variadic function
+[pdg] Top for function lib_f
+[pdg] computing for function f1
+[from] Computing for function lib_f
+[from] Done for function lib_f
+[pdg] done for function f1
+[pdg] computing for function f2
+[pdg] done for function f2
+[pdg] computing for function f3
+[pdg] done for function f3
+[pdg] computing for function main
+[from] Computing for function f1
+tests/pdg/variadic.c:23:[from] warning: variadic call detected. Using only 1 argument(s).
+[from] Done for function f1
+[from] Computing for function f2
+tests/pdg/variadic.c:27:[from] warning: variadic call detected. Using only 1 argument(s).
+[from] Done for function f2
+[from] Computing for function f3
+tests/pdg/variadic.c:31:[from] warning: variadic call detected. Using only 1 argument(s).
+[from] Done for function f3
+[pdg] done for function main
+[pdg] ====== PDG GRAPH COMPUTED ======
+[pdg] PDG for lib_f
+ Top PDG
+[pdg] PDG for f1
+ {n1}: InCtrl
+ {n2}: VarDecl : a
+   -[a--]-> 3
+ {n3}: In1
+   -[a--]-> 2
+ {n4}: VarDecl : tmp
+ {n5}: Call17-InCtrl : tmp = lib_f(1,a);
+   -[-c-]-> 1
+ {n6}: Call17-In1 : tmp = lib_f(1,a);
+   -[-c-]-> 1
+   -[-c-]-> 5
+ {n7}: Call17-In2 : tmp = lib_f(1,a);
+   -[-c-]-> 1
+   -[--d]-> 2
+   -[--d]-> 3
+ {n8}: Call17-OutRet : tmp = lib_f(1,a);
+   -[-c-]-> 1
+   -[a--]-> 4
+   -[-c-]-> 5
+   -[--d]-> 6
+ {n9}: return tmp;
+   -[-c-]-> 1
+   -[--d]-> 4
+   -[--d]-> 8
+ {n10}: OutRet
+   -[--d]-> 9
+[pdg] PDG for f2
+ {n11}: InCtrl
+ {n12}: VarDecl : a
+   -[a--]-> 13
+ {n13}: In1
+   -[a--]-> 12
+ {n14}: VarDecl : b
+   -[a--]-> 15
+ {n15}: In2
+   -[a--]-> 14
+ {n16}: VarDecl : tmp
+ {n17}: Call20-InCtrl : tmp = lib_f(2,a,b);
+   -[-c-]-> 11
+ {n18}: Call20-In1 : tmp = lib_f(2,a,b);
+   -[-c-]-> 11
+   -[-c-]-> 17
+ {n19}: Call20-In2 : tmp = lib_f(2,a,b);
+   -[-c-]-> 11
+   -[--d]-> 12
+   -[--d]-> 13
+ {n20}: Call20-In3 : tmp = lib_f(2,a,b);
+   -[-c-]-> 11
+   -[--d]-> 14
+   -[--d]-> 15
+ {n21}: Call20-OutRet : tmp = lib_f(2,a,b);
+   -[-c-]-> 11
+   -[a--]-> 16
+   -[-c-]-> 17
+   -[--d]-> 18
+ {n22}: return tmp;
+   -[-c-]-> 11
+   -[--d]-> 16
+   -[--d]-> 21
+ {n23}: OutRet
+   -[--d]-> 22
+[pdg] PDG for f3
+ {n24}: InCtrl
+ {n25}: VarDecl : a
+   -[a--]-> 26
+ {n26}: In1
+   -[a--]-> 25
+ {n27}: VarDecl : b
+   -[a--]-> 28
+ {n28}: In2
+   -[a--]-> 27
+ {n29}: VarDecl : c
+   -[a--]-> 30
+ {n30}: In3
+   -[a--]-> 29
+ {n31}: VarDecl : tmp
+ {n32}: Call23-InCtrl : tmp = lib_f(3,a,b,c);
+   -[-c-]-> 24
+ {n33}: Call23-In1 : tmp = lib_f(3,a,b,c);
+   -[-c-]-> 24
+   -[-c-]-> 32
+ {n34}: Call23-In2 : tmp = lib_f(3,a,b,c);
+   -[-c-]-> 24
+   -[--d]-> 25
+   -[--d]-> 26
+ {n35}: Call23-In3 : tmp = lib_f(3,a,b,c);
+   -[-c-]-> 24
+   -[--d]-> 27
+   -[--d]-> 28
+ {n36}: Call23-In4 : tmp = lib_f(3,a,b,c);
+   -[-c-]-> 24
+   -[--d]-> 29
+   -[--d]-> 30
+ {n37}: Call23-OutRet : tmp = lib_f(3,a,b,c);
+   -[-c-]-> 24
+   -[a--]-> 31
+   -[-c-]-> 32
+   -[--d]-> 33
+ {n38}: return tmp;
+   -[-c-]-> 24
+   -[--d]-> 31
+   -[--d]-> 37
+ {n39}: OutRet
+   -[--d]-> 38
+[pdg] PDG for main
+ {n40}: InCtrl
+ {n41}: VarDecl : a1
+ {n42}: VarDecl : a2
+ {n43}: VarDecl : a3
+ {n44}: VarDecl : a4
+ {n45}: VarDecl : a5
+ {n46}: VarDecl : a6
+ {n47}: VarDecl : s
+ {n48}: VarDecl : s1
+ {n49}: VarDecl : s2
+ {n50}: VarDecl : s3
+ {n51}: a1 = 1;
+   -[-c-]-> 40
+   -[a--]-> 41
+ {n52}: a2 = 2;
+   -[-c-]-> 40
+   -[a--]-> 42
+ {n53}: a3 = 3;
+   -[-c-]-> 40
+   -[a--]-> 43
+ {n54}: a4 = 4;
+   -[-c-]-> 40
+   -[a--]-> 44
+ {n55}: a5 = 5;
+   -[-c-]-> 40
+   -[a--]-> 45
+ {n56}: a6 = 6;
+   -[-c-]-> 40
+   -[a--]-> 46
+ {n57}: Call32-InCtrl : s1 = f1(a1);
+   -[-c-]-> 40
+ {n58}: Call32-In1 : s1 = f1(a1);
+   -[-c-]-> 40
+   -[--d]-> 41
+   -[--d]-> 51
+   -[-c-]-> 57
+ {n59}: Call32-OutRet : s1 = f1(a1);
+   -[-c-]-> 40
+   -[a--]-> 48
+   -[-c-]-> 57
+ {n60}: Call33-InCtrl : s2 = f2(a2,a3);
+   -[-c-]-> 40
+ {n61}: Call33-In1 : s2 = f2(a2,a3);
+   -[-c-]-> 40
+   -[--d]-> 42
+   -[--d]-> 52
+   -[-c-]-> 60
+ {n62}: Call33-In2 : s2 = f2(a2,a3);
+   -[-c-]-> 40
+   -[--d]-> 43
+   -[--d]-> 53
+   -[-c-]-> 60
+ {n63}: Call33-OutRet : s2 = f2(a2,a3);
+   -[-c-]-> 40
+   -[a--]-> 49
+   -[-c-]-> 60
+ {n64}: Call34-InCtrl : s3 = f3(a4,a5,a6);
+   -[-c-]-> 40
+ {n65}: Call34-In1 : s3 = f3(a4,a5,a6);
+   -[-c-]-> 40
+   -[--d]-> 44
+   -[--d]-> 54
+   -[-c-]-> 64
+ {n66}: Call34-In2 : s3 = f3(a4,a5,a6);
+   -[-c-]-> 40
+   -[--d]-> 45
+   -[--d]-> 55
+   -[-c-]-> 64
+ {n67}: Call34-In3 : s3 = f3(a4,a5,a6);
+   -[-c-]-> 40
+   -[--d]-> 46
+   -[--d]-> 56
+   -[-c-]-> 64
+ {n68}: Call34-OutRet : s3 = f3(a4,a5,a6);
+   -[-c-]-> 40
+   -[a--]-> 50
+   -[-c-]-> 64
+ {n69}: Call35-InCtrl : s = f2(s1,s2);
+   -[-c-]-> 40
+ {n70}: Call35-In1 : s = f2(s1,s2);
+   -[-c-]-> 40
+   -[--d]-> 48
+   -[--d]-> 59
+   -[-c-]-> 69
+ {n71}: Call35-In2 : s = f2(s1,s2);
+   -[-c-]-> 40
+   -[--d]-> 49
+   -[--d]-> 63
+   -[-c-]-> 69
+ {n72}: Call35-OutRet : s = f2(s1,s2);
+   -[-c-]-> 40
+   -[a--]-> 47
+   -[-c-]-> 69
+ {n73}: return s;
+   -[-c-]-> 40
+   -[--d]-> 47
+   -[--d]-> 72
+ {n74}: OutRet
+   -[--d]-> 73

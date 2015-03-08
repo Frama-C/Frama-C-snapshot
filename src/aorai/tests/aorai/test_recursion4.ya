@@ -1,0 +1,14 @@
+%init: Idle;
+%accept: End;
+
+
+Idle         : { isPresent().return==-1 } -> WillDoFoo
+             | { isPresent().return!=-1 } -> End
+             | { ! RETURN(isPresent) } -> Idle ;
+
+WillDoFoo 
+             : { isPresent().return==-1 } -> WillDoFoo
+             | { CALL(foo) } -> End;
+
+End   
+             : { !CALL(foo) && (!RETURN(isPresent) || isPresent().return!=-1) } -> End;

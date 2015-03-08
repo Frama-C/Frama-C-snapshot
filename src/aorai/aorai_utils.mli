@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Aorai plug-in of Frama-C.                        *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -79,7 +79,7 @@ val is_out_of_state_pred: state -> Cil_types.predicate Cil_types.named
     assigning auxiliary variable depending on the possible transitions made
     in the function.
     @since Nitrogen-20111001
-    @since Neon-20130301 adds kf argument
+    @since Neon-20140301 adds kf argument
  *)
 val aorai_assigns:
   Data_for_aorai.state ->
@@ -122,7 +122,7 @@ val possible_states_preds:
 
 (** Possible values of the given auxiliary variable under the current path,
     [start]ing from the given point
-    @since Neon-20130301 add logic_label argument
+    @since Neon-20140301 add logic_label argument
  *)
 val update_to_pred:
   start: Cil_types.logic_label ->

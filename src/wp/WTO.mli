@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -33,7 +33,7 @@ type succ = (int -> unit) -> int -> unit
 
 val partition : size:int -> succ:succ -> root:int -> partition
 (** Returns a weak partial order with Bourdoncle's algorithm. *)
-  
+
 val fixpoint : (level:int -> int -> bool) -> (int -> unit) -> partition -> unit
 (** Iterate over a weak partial order. 
     The first function is suppose to update the given node and return [true] when

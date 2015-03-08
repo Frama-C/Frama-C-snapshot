@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -244,6 +244,43 @@ let join t1 t2  = match t1,t2 with
   | Traces t1, Traces t2 -> Traces (join_intra t1 t2)
 ;;
 
+(* Note: mechanically translated from join_intra. *)
+let narrow_intra t1 t2 =
+  (* Kernel.debug "narrowing %a@. with %a@." pretty_intra t1 pretty_intra t2; *)
+  assert (t1.current_kf == t2.current_kf);
+  assert (match t1.current_stmt,t2.current_stmt with
+  | Some({sid=sid1}), Some { sid = sid2 } when sid1 == sid2 -> true
+  | _ -> false);
+  assert (compatible_trace_node t1.current_node t2.current_node);
+  let merged_dag =
+    let merge_fun _key set1 set2 = match set1, set2 with
+      | Some set1, Some set2 -> Some (Trace_Node_Set.inter set1 set2)
+      | None, _ | _, None -> None
+    in
+    Trace_Node_Map.merge merge_fun t1.dag t2.dag
+  in
+  let merged_execution_count =
+    let narrow_execution_count (a1,b1) (a2,b2) = (max a1 a2, min b1 b2) in
+    let merge_fun _key iv1 iv2 = match iv1, iv2 with
+      | Some iv1, Some iv2 -> Some (narrow_execution_count iv1 iv2)
+      | None, _ | _, None -> None
+    in
+    Cil_datatype.Stmt.Map.merge merge_fun t1.execution_count t2.execution_count
+  in
+  { dag = merged_dag;
+    current_kf = t1.current_kf; current_stmt = t1.current_stmt;
+    current_node = t1.current_node;
+    execution_count = merged_execution_count
+  }
+;;
+
+let narrow t1 t2  = match t1,t2 with
+  | Top, t | t, Top -> t
+  | Bottom, _ | _, Bottom -> Bottom
+  | Traces t1, Traces t2 -> Traces (narrow_intra t1 t2)
+;;
+
+
 (****************************************************************)
 (* Precedence. *)
 
@@ -422,3 +459,9 @@ let initial kf =
 	execution_count = Cil_datatype.Stmt.Map.empty
       }
 ;;
+
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

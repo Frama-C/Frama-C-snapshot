@@ -1,0 +1,69 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_plugin/loopentry.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+tests/wp_plugin/loopentry.i:12:[wp] warning: Missing assigns clause (assigns 'everything' instead)
+------------------------------------------------------------
+  Function f
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file tests/wp_plugin/loopentry.i, line 9):
+Let x_0 = n_3+r_1.
+Assume {
+  (* Domain *)
+  Type: (is_sint32 n_3) /\ (is_sint32 r_1) /\ (is_sint32 x_0)
+        /\ (is_sint32 (n_3+r_1-p_0)).
+  (* Pre-condition (file tests/wp_plugin/loopentry.i, line 2) in 'f' *)
+  (* Pre-condition: *)
+  Have: 0<x_0.
+  (* tests/wp_plugin/loopentry.i:12: Then *)
+  Have: 0!=n_3.
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file tests/wp_plugin/loopentry.i, line 9):
+Assume {
+  (* Domain *)
+  Type: (is_sint32 n_1) /\ (is_sint32 (n_1-p_1)).
+  (* Pre-condition (file tests/wp_plugin/loopentry.i, line 2) in 'f' *)
+  (* Pre-condition: *)
+  Have: 0<n_1.
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file tests/wp_plugin/loopentry.i, line 10):
+Let x_0 = n_0+p_0.
+Let x_1 = -r_1.
+Assume {
+  (* Domain *)
+  Type: (is_sint32 n_0) /\ (is_sint32 p_0) /\ (is_sint32 r_1)
+        /\ (is_sint32 (1+r_1)) /\ (is_sint32 x_0)
+        /\ (is_sint32 (n_0+p_0-r_1)) /\ (is_sint32 (n_0+p_0-1-r_1)).
+  (* Pre-condition (file tests/wp_plugin/loopentry.i, line 2) in 'f' *)
+  (* Pre-condition: *)
+  Have: 0<x_0.
+  (* tests/wp_plugin/loopentry.i:12: Then *)
+  Have: r_1!=x_0.
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file tests/wp_plugin/loopentry.i, line 10):
+Assume {
+  (* Domain *)
+  Type: (is_sint32 n_1) /\ (is_sint32 (n_1-p_1)).
+  (* Pre-condition (file tests/wp_plugin/loopentry.i, line 2) in 'f' *)
+  (* Pre-condition: *)
+  Have: 0<n_1.
+}
+Prove: true.
+
+------------------------------------------------------------

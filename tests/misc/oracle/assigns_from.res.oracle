@@ -1,0 +1,673 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/assigns_from.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  u ∈ {0}
+  v ∈ {0}
+  k ∈ {0}
+  a[0..9] ∈ {0}
+  constante ∈ {2}
+  t[0..99] ∈ {0}
+  p_t ∈ {{ &t[0] }}
+  t17[0..9] ∈ {0}
+[value] computing for function main1 <- main.
+        Called from tests/misc/assigns_from.i:203.
+[value] computing for function f <- main1 <- main.
+        Called from tests/misc/assigns_from.i:30.
+[value] Recording results for f
+[from] Computing for function f
+[from] Done for function f
+[value] Done for function f
+[value] Recording results for main1
+[from] Computing for function main1
+[from] Done for function main1
+tests/misc/assigns_from.i:12:[value] Function main1: assigns got status valid.
+tests/misc/assigns_from.i:15:[value] Function main1, behavior true: assigns got status valid.
+tests/misc/assigns_from.i:15:[value] Function main1, behavior true: \from ... part in assign clause got status valid.
+tests/misc/assigns_from.i:16:[value] Function main1, behavior true: \from ... part in assign clause got status valid.
+tests/misc/assigns_from.i:19:[value] Function main1, behavior ok_too_large: assigns got status valid.
+tests/misc/assigns_from.i:19:[value] Function main1, behavior ok_too_large: \from ... part in assign clause got status valid.
+tests/misc/assigns_from.i:20:[value] Function main1, behavior ok_too_large: \from ... part in assign clause got status valid.
+tests/misc/assigns_from.i:23:[value] Function main1, behavior wrong: assigns got status valid.
+tests/misc/assigns_from.i:23:[value] Function main1, behavior wrong: \from ... part in assign clause got status valid.
+tests/misc/assigns_from.i:24:[value] Function main1, behavior wrong: \from ... part in assign clause got status unknown.
+[value] Done for function main1
+[value] computing for function main15 <- main.
+        Called from tests/misc/assigns_from.i:204.
+[value] Recording results for main15
+[from] Computing for function main15
+[from] Done for function main15
+tests/misc/assigns_from.i:37:[value] Function main15: assigns got status valid.
+tests/misc/assigns_from.i:37:[value] Function main15: \from ... part in assign clause got status valid.
+tests/misc/assigns_from.i:37:[value] Function main15: \from ... part in assign clause got status valid.
+tests/misc/assigns_from.i:37:[value] Function main15: \from ... part in assign clause got status valid.
+[value] Done for function main15
+[value] computing for function main2 <- main.
+        Called from tests/misc/assigns_from.i:205.
+[value] Recording results for main2
+[from] Computing for function main2
+[from] Done for function main2
+tests/misc/assigns_from.i:45:[value] Function main2: assigns got status valid.
+tests/misc/assigns_from.i:45:[value] Function main2: \from ... part in assign clause got status valid.
+tests/misc/assigns_from.i:48:[value] Function main2, behavior true: assigns got status valid.
+tests/misc/assigns_from.i:48:[value] Function main2, behavior true: \from ... part in assign clause got status valid.
+tests/misc/assigns_from.i:52:[value] Function main2, behavior wrongassigns: assigns got status unknown.
+tests/misc/assigns_from.i:52:[value] Function main2, behavior wrongassigns: \from ... part in assign clause got status valid.
+tests/misc/assigns_from.i:56:[value] Function main2, behavior true2: assigns got status valid.
+tests/misc/assigns_from.i:56:[value] Function main2, behavior true2: \from ... part in assign clause got status valid.
+tests/misc/assigns_from.i:60:[value] Function main2, behavior wrongfrom: assigns got status valid.
+tests/misc/assigns_from.i:60:[value] Function main2, behavior wrongfrom: \from ... part in assign clause got status unknown.
+[value] Done for function main2
+[value] computing for function Frama_C_interval <- main.
+        Called from tests/misc/assigns_from.i:206.
+[value] using specification for function Frama_C_interval
+[value] Done for function Frama_C_interval
+[value] computing for function main3 <- main.
+        Called from tests/misc/assigns_from.i:207.
+[value] Recording results for main3
+[from] Computing for function main3
+[from] Done for function main3
+tests/misc/assigns_from.i:67:[value] Function main3: assigns got status valid.
+tests/misc/assigns_from.i:67:[value] Function main3: \from ... part in assign clause got status valid.
+[value] Done for function main3
+[value] computing for function main3 <- main.
+        Called from tests/misc/assigns_from.i:208.
+[value] Recording results for main3
+[from] Computing for function main3
+[from] Done for function main3
+tests/misc/assigns_from.i:67:[value] Function main3: assigns got status unknown.
+[value] Done for function main3
+[value] computing for function main4 <- main.
+        Called from tests/misc/assigns_from.i:209.
+[value] Recording results for main4
+[from] Computing for function main4
+[from] Done for function main4
+tests/misc/assigns_from.i:78:[value] Function main4, behavior true: assigns got status valid.
+tests/misc/assigns_from.i:78:[value] Function main4, behavior true: \from ... part in assign clause got status valid.
+tests/misc/assigns_from.i:82:[value] Function main4, behavior wrong: assigns got status valid.
+tests/misc/assigns_from.i:82:[value] Function main4, behavior wrong: \from ... part in assign clause got status unknown.
+[value] Done for function main4
+[value] computing for function main5 <- main.
+        Called from tests/misc/assigns_from.i:210.
+[value] Recording results for main5
+[from] Computing for function main5
+[from] Done for function main5
+tests/misc/assigns_from.i:92:[value] Function main5, behavior wrong: assigns got status valid.
+tests/misc/assigns_from.i:92:[value] Function main5, behavior wrong: \from ... part in assign clause got status unknown.
+tests/misc/assigns_from.i:95:[value] Function main5, behavior true: assigns got status valid.
+tests/misc/assigns_from.i:95:[value] Function main5, behavior true: \from ... part in assign clause got status valid.
+[value] Done for function main5
+[value] computing for function Frama_C_interval <- main.
+        Called from tests/misc/assigns_from.i:211.
+[value] Done for function Frama_C_interval
+[value] computing for function Frama_C_interval <- main.
+        Called from tests/misc/assigns_from.i:212.
+[value] Done for function Frama_C_interval
+[value] computing for function main6_right <- main.
+        Called from tests/misc/assigns_from.i:213.
+[value] Recording results for main6_right
+[from] Computing for function main6_right
+[from] Done for function main6_right
+tests/misc/assigns_from.i:111:[value] Function main6_right: assigns got status valid.
+[value] Done for function main6_right
+[value] computing for function main6_wrong <- main.
+        Called from tests/misc/assigns_from.i:214.
+[value] Recording results for main6_wrong
+[from] Computing for function main6_wrong
+[from] Done for function main6_wrong
+tests/misc/assigns_from.i:102:[value] Function main6_wrong: assigns got status unknown.
+[value] Done for function main6_wrong
+[value] computing for function main7 <- main.
+        Called from tests/misc/assigns_from.i:215.
+[value] Recording results for main7
+[from] Computing for function main7
+[from] Done for function main7
+tests/misc/assigns_from.i:119:[value] Function main7, behavior right: assigns got status valid.
+tests/misc/assigns_from.i:122:[value] Function main7, behavior wrong: assigns got status unknown.
+[value] Done for function main7
+[value] computing for function main8 <- main.
+        Called from tests/misc/assigns_from.i:218.
+[value] Recording results for main8
+[from] Computing for function main8
+[from] Done for function main8
+tests/misc/assigns_from.i:130:[value] Function main8: assigns got status valid.
+tests/misc/assigns_from.i:130:[value] Function main8: \from ... part in assign clause got status valid.
+[value] Done for function main8
+[value] computing for function main8 <- main.
+        Called from tests/misc/assigns_from.i:220.
+[value] Recording results for main8
+[from] Computing for function main8
+[from] Done for function main8
+tests/misc/assigns_from.i:130:[value] Function main8: assigns got status unknown.
+[value] Done for function main8
+[value] computing for function main9 <- main.
+        Called from tests/misc/assigns_from.i:222.
+[value] Recording results for main9
+[from] Computing for function main9
+[from] Done for function main9
+tests/misc/assigns_from.i:141:[kernel] warning: using size of 'void'
+tests/misc/assigns_from.i:135:[value] Function main9: assigns got status valid.
+[value] Done for function main9
+[value] computing for function main10 <- main.
+        Called from tests/misc/assigns_from.i:223.
+tests/misc/assigns_from.i:152:[value] entering loop for the first time
+tests/misc/assigns_from.i:152:[kernel] warning: Neither code nor specification for function c, generating default assigns from the prototype
+[value] computing for function c <- main10 <- main.
+        Called from tests/misc/assigns_from.i:152.
+[value] using specification for function c
+[value] Done for function c
+[value] computing for function c <- main10 <- main.
+        Called from tests/misc/assigns_from.i:152.
+[value] Done for function c
+[value] computing for function c <- main10 <- main.
+        Called from tests/misc/assigns_from.i:152.
+[value] Done for function c
+[value] computing for function c <- main10 <- main.
+        Called from tests/misc/assigns_from.i:152.
+[value] Done for function c
+[value] computing for function c <- main10 <- main.
+        Called from tests/misc/assigns_from.i:152.
+[value] Done for function c
+[value] computing for function c <- main10 <- main.
+        Called from tests/misc/assigns_from.i:152.
+[value] Done for function c
+[value] computing for function c <- main10 <- main.
+        Called from tests/misc/assigns_from.i:152.
+[value] Done for function c
+[value] computing for function c <- main10 <- main.
+        Called from tests/misc/assigns_from.i:152.
+[value] Done for function c
+[value] computing for function c <- main10 <- main.
+        Called from tests/misc/assigns_from.i:152.
+[value] Done for function c
+tests/misc/assigns_from.i:154:[value] Assertion got status unknown.
+[value] Recording results for main10
+[from] Computing for function main10
+[from] Done for function main10
+[value] Done for function main10
+[value] computing for function main11 <- main.
+        Called from tests/misc/assigns_from.i:224.
+[value] Recording results for main11
+[from] Computing for function main11
+[from] Done for function main11
+tests/misc/assigns_from.i:157:[value] Function main11: assigns got status valid.
+tests/misc/assigns_from.i:157:[value] Function main11: \from ... part in assign clause got status valid.
+[value] Done for function main11
+[value] computing for function main11 <- main.
+        Called from tests/misc/assigns_from.i:225.
+[value] Recording results for main11
+[from] Computing for function main11
+[from] Done for function main11
+tests/misc/assigns_from.i:157:[value] Function main11: assigns got status unknown.
+tests/misc/assigns_from.i:157:[value] Function main11: \from ... part in assign clause got status unknown.
+[value] Done for function main11
+[value] computing for function Frama_C_interval <- main.
+        Called from tests/misc/assigns_from.i:226.
+[value] Done for function Frama_C_interval
+[value] computing for function main11 <- main.
+        Called from tests/misc/assigns_from.i:226.
+[value] Recording results for main11
+[from] Computing for function main11
+[from] Done for function main11
+[value] Done for function main11
+[value] computing for function main12 <- main.
+        Called from tests/misc/assigns_from.i:227.
+[value] Recording results for main12
+[from] Computing for function main12
+[from] Done for function main12
+tests/misc/assigns_from.i:169:[value] Function main12, behavior ok: assigns got status valid.
+tests/misc/assigns_from.i:167:[value] Function main12, behavior ok: \from ... part in assign clause got status valid.
+[value] Done for function main12
+[value] computing for function main13 <- main.
+        Called from tests/misc/assigns_from.i:228.
+[value] Recording results for main13
+[from] Computing for function main13
+[from] Done for function main13
+tests/misc/assigns_from.i:179:[value] Function main13, behavior ok: assigns got status valid.
+tests/misc/assigns_from.i:174:[value] Function main13, behavior ok: \from ... part in assign clause got status valid.
+tests/misc/assigns_from.i:179:[value] Function main13, behavior bad: assigns got status valid.
+tests/misc/assigns_from.i:177:[value] Function main13, behavior bad: \from ... part in assign clause got status unknown.
+[value] Done for function main13
+[value] computing for function main14 <- main.
+        Called from tests/misc/assigns_from.i:229.
+tests/misc/assigns_from.i:183:[value] entering loop for the first time
+[value] Recording results for main14
+[from] Computing for function main14
+[from] Done for function main14
+tests/misc/assigns_from.i:181:[value] Function main14: assigns got status valid.
+tests/misc/assigns_from.i:181:[value] Function main14: \from ... part in assign clause got status unknown.
+[value] Done for function main14
+[value] computing for function main16 <- main.
+        Called from tests/misc/assigns_from.i:230.
+tests/misc/assigns_from.i:188:[value] entering loop for the first time
+[value] Recording results for main16
+[from] Computing for function main16
+[from] Done for function main16
+tests/misc/assigns_from.i:186:[value] Function main16: assigns got status valid.
+tests/misc/assigns_from.i:186:[value] Function main16: \from ... part in assign clause got status unknown.
+[value] Done for function main16
+[value] computing for function main17 <- main.
+        Called from tests/misc/assigns_from.i:231.
+tests/misc/assigns_from.i:195:[value] entering loop for the first time
+[value] Recording results for main17
+[from] Computing for function main17
+[from] Done for function main17
+tests/misc/assigns_from.i:193:[value] Function main17: assigns got status valid.
+tests/misc/assigns_from.i:193:[value] Function main17: \from ... part in assign clause got status unknown.
+[value] Done for function main17
+[value] Recording results for main
+[from] Computing for function main
+[from] Done for function main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function f:
+  k ∈ {0}
+[value] Values at end of function main1:
+  u ∈ {0}
+  k ∈ {3}
+[value] Values at end of function main10:
+  t10[0..13] ∈ {3} or UNINITIALIZED
+     [14..37] ∈ {3}
+     [38..49] ∈ {3} or UNINITIALIZED
+  i ∈ {50}
+[value] Values at end of function main11:
+  a[0..1] ∈ {0; 3}
+   [2] ∈ {3}
+   [3..8] ∈ {0}
+   [9] ∈ {0; 3}
+[value] Values at end of function main12:
+  __retres ∈ {{ &t[0] }}
+[value] Values at end of function main13:
+  
+[value] Values at end of function main14:
+  t[0..1] ∈ {0}
+   [2..38] ∈ [0..38]
+   [39..99] ∈ {0}
+  i ∈ {39}
+[value] Values at end of function main15:
+  a[0..2] ∈ {0}
+   [3] ∈ {2}
+   [4] ∈ {3}
+   [5] ∈ {4}
+   [6..9] ∈ {0}
+[value] Values at end of function main16:
+  t[0] ∈ {0}
+   [1] ∈ [0..19]
+   [2..38] ∈ [0..38]
+   [39..99] ∈ {0}
+  i ∈ {20}
+[value] Values at end of function main17:
+  t17[0][bits 0 to 7] ∈ [0..9]
+     [0][bits 8 to 31] ∈ {0}
+     [1][bits 0 to 7] ∈ [0..9]
+     [1][bits 8 to 31] ∈ {0}
+     [2][bits 0 to 7] ∈ [0..9]
+     [2][bits 8 to 31] ∈ {0}
+     [3][bits 0 to 7] ∈ [0..9]
+     [3][bits 8 to 31] ∈ {0}
+     [4][bits 0 to 7] ∈ [0..9]
+     [4][bits 8 to 31] ∈ {0}
+     [5][bits 0 to 7] ∈ [0..9]
+     [5][bits 8 to 31] ∈ {0}
+     [6][bits 0 to 7] ∈ [0..9]
+     [6][bits 8 to 31] ∈ {0}
+     [7][bits 0 to 7] ∈ [0..9]
+     [7][bits 8 to 31] ∈ {0}
+     [8][bits 0 to 7] ∈ [0..9]
+     [8][bits 8 to 31] ∈ {0}
+     [9][bits 0 to 7] ∈ [0..9]
+     [9][bits 8 to 31] ∈ {0}
+  j ∈ {10; 11; 12; 13; 14; 15}
+[value] Values at end of function main2:
+  a[0..2] ∈ {0}
+   [3] ∈ {2}
+   [4] ∈ {3}
+   [5] ∈ {4}
+   [6..9] ∈ {0}
+[value] Values at end of function main3:
+  a[0..2] ∈ {0; 3}
+   [3] ∈ {2; 3}
+   [4] ∈ {3}
+   [5] ∈ {3; 4}
+   [6] ∈ {3}
+   [7..9] ∈ {0; 3}
+[value] Values at end of function main4:
+  a[0..1] ∈ {0; 3}
+   [2] ∈ {3}
+   [3] ∈ {2; 3}
+   [4] ∈ {3}
+   [5] ∈ {3; 4}
+   [6] ∈ {3}
+   [7..9] ∈ {0; 3}
+[value] Values at end of function main5:
+  a[0..1] ∈ {0; 3}
+   [2] ∈ {3}
+   [3] ∈ {2; 3}
+   [4] ∈ {3}
+   [5] ∈ {3; 4}
+   [6] ∈ {3}
+   [7..9] ∈ {0; 3}
+[value] Values at end of function main6_right:
+  a[0..1] ∈ {0; 3}
+   [2] ∈ {3}
+   [3..5] ∈ {0}
+   [6] ∈ {3}
+   [7..9] ∈ {0; 3}
+[value] Values at end of function main6_wrong:
+  a[0..1] ∈ {0; 3}
+   [2..6] ∈ {0}
+   [7..9] ∈ {0; 3}
+[value] Values at end of function main7:
+  a[0..1] ∈ {0; 3}
+   [2..8] ∈ {0}
+   [9] ∈ {0; 3}
+[value] Values at end of function main8:
+  c_0 ∈ {4}
+  d ∈ {4} or UNINITIALIZED
+[value] Values at end of function main9:
+  
+[value] Values at end of function main:
+  u ∈ {0}
+  k ∈ {3}
+  a[0..1] ∈ {0; 3}
+   [2] ∈ {3}
+   [3..8] ∈ {0}
+   [9] ∈ {0; 3}
+  constante ∈ {2}
+  t[0] ∈ {0}
+   [1] ∈ [0..19]
+   [2..38] ∈ [0..38]
+   [39..99] ∈ {0}
+  t17[0][bits 0 to 7] ∈ [0..9]
+     [0][bits 8 to 31] ∈ {0}
+     [1][bits 0 to 7] ∈ [0..9]
+     [1][bits 8 to 31] ∈ {0}
+     [2][bits 0 to 7] ∈ [0..9]
+     [2][bits 8 to 31] ∈ {0}
+     [3][bits 0 to 7] ∈ [0..9]
+     [3][bits 8 to 31] ∈ {0}
+     [4][bits 0 to 7] ∈ [0..9]
+     [4][bits 8 to 31] ∈ {0}
+     [5][bits 0 to 7] ∈ [0..9]
+     [5][bits 8 to 31] ∈ {0}
+     [6][bits 0 to 7] ∈ [0..9]
+     [6][bits 8 to 31] ∈ {0}
+     [7][bits 0 to 7] ∈ [0..9]
+     [7][bits 8 to 31] ∈ {0}
+     [8][bits 0 to 7] ∈ [0..9]
+     [8][bits 8 to 31] ∈ {0}
+     [9][bits 0 to 7] ∈ [0..9]
+     [9][bits 8 to 31] ∈ {0}
+  j ∈ [0..9]
+  a_0 ∈ {0; 1; 2; 3}
+  b ∈ {6; 7; 8; 9}
+  c_0 ∈ {4}
+  d ∈ {4} or UNINITIALIZED
+  p ∈ {{ &c_0 ; &d }}
+[from] Computing for function f
+[from] Done for function f
+[from] Computing for function main1
+[from] Done for function main1
+[from] Computing for function main10
+[from] Computing for function c <-main10
+[from] Done for function c
+[from] Done for function main10
+[from] Computing for function main11
+[from] Done for function main11
+[from] Computing for function main12
+[from] Done for function main12
+[from] Computing for function main13
+[from] Done for function main13
+[from] Computing for function main14
+[from] Done for function main14
+[from] Computing for function main15
+[from] Done for function main15
+[from] Computing for function main16
+[from] Done for function main16
+[from] Computing for function main17
+[from] Done for function main17
+[from] Computing for function main2
+[from] Done for function main2
+[from] Computing for function main3
+[from] Done for function main3
+[from] Computing for function main4
+[from] Done for function main4
+[from] Computing for function main5
+[from] Done for function main5
+[from] Computing for function main6_right
+[from] Done for function main6_right
+[from] Computing for function main6_wrong
+[from] Done for function main6_wrong
+[from] Computing for function main7
+[from] Done for function main7
+[from] Computing for function main8
+[from] Done for function main8
+[from] Computing for function main9
+[from] Done for function main9
+[from] Computing for function main
+[from] Computing for function Frama_C_interval <-main
+[from] Done for function Frama_C_interval
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function Frama_C_interval:
+  \result FROM a; b
+[from] Function c:
+  \result FROM \nothing
+[from] Function f:
+  k FROM u
+[from] Function main1:
+  u FROM v
+  k FROM \nothing
+[from] Function main10:
+  NO EFFECTS
+[from] Function main11:
+  a[2] FROM \nothing
+[from] Function main12:
+  \result FROM \nothing
+[from] Function main13:
+  \result FROM p_t
+[from] Function main14:
+  t[2..38] FROM \nothing (and SELF)
+[from] Function main15:
+  a[3..5] FROM \nothing
+[from] Function main16:
+  t[1..19] FROM \nothing (and SELF)
+[from] Function main17:
+  t17{[0][bits 0 to 7]; [1][bits 0 to 7]; [2][bits 0 to 7]; [3][bits 0 to 7];
+      [4][bits 0 to 7]; [5][bits 0 to 7]; [6][bits 0 to 7]; [7][bits 0 to 7];
+      [8][bits 0 to 7]; [9][bits 0 to 7]}
+     FROM p; i (and SELF)
+[from] Function main2:
+  a[3..5] FROM \nothing
+[from] Function main3:
+  a[0..9] FROM i (and SELF)
+[from] Function main4:
+  a[2] FROM \nothing
+[from] Function main5:
+  a[2] FROM a[4]
+[from] Function main6_right:
+  a[3..5] FROM \nothing
+[from] Function main6_wrong:
+  a[2..6] FROM \nothing
+[from] Function main7:
+  a{[2]; [7..8]} FROM \nothing
+[from] Function main8:
+  c_0 FROM p (and SELF)
+  d FROM p (and SELF)
+[from] Function main9:
+  NO EFFECTS
+[from] Function main:
+  u FROM v
+  k FROM \nothing
+  a{[0..1]; [9]} FROM \nothing (and SELF)
+   [2..8] FROM \nothing
+  constante FROM \nothing
+  t[1..38] FROM \nothing (and SELF)
+  t17{[0][bits 0 to 7]; [1][bits 0 to 7]; [2][bits 0 to 7]; [3][bits 0 to 7];
+      [4][bits 0 to 7]; [5][bits 0 to 7]; [6][bits 0 to 7]; [7][bits 0 to 7];
+      [8][bits 0 to 7]; [9][bits 0 to 7]}
+     FROM \nothing (and SELF)
+[from] ====== END OF DEPENDENCIES ======
+[from] ====== DISPLAYING CALLWISE DEPENDENCIES ======
+[from] call to f at tests/misc/assigns_from.i:30 (by main1):
+  k FROM u
+[from] call to c at tests/misc/assigns_from.i:152 (by main10):
+  \result FROM \nothing
+[from] call to main1 at tests/misc/assigns_from.i:203 (by main):
+  u FROM v
+  k FROM \nothing
+[from] call to main15 at tests/misc/assigns_from.i:204 (by main):
+  a[3..5] FROM \nothing
+[from] call to main2 at tests/misc/assigns_from.i:205 (by main):
+  a[3..5] FROM \nothing
+[from] call to Frama_C_interval at tests/misc/assigns_from.i:206 (by main):
+  \result FROM a; b
+[from] call to main3 at tests/misc/assigns_from.i:207 (by main):
+  a[6] FROM i
+[from] call to main3 at tests/misc/assigns_from.i:208 (by main):
+  a[0..9] FROM i (and SELF)
+[from] call to main4 at tests/misc/assigns_from.i:209 (by main):
+  a[2] FROM \nothing
+[from] call to main5 at tests/misc/assigns_from.i:210 (by main):
+  a[2] FROM a[4]
+[from] call to Frama_C_interval at tests/misc/assigns_from.i:211 (by main):
+  \result FROM a; b
+[from] call to Frama_C_interval at tests/misc/assigns_from.i:212 (by main):
+  \result FROM a; b
+[from] call to main6_right at tests/misc/assigns_from.i:213 (by main):
+  a[3..5] FROM \nothing
+[from] call to main6_wrong at tests/misc/assigns_from.i:214 (by main):
+  a[2..6] FROM \nothing
+[from] call to main7 at tests/misc/assigns_from.i:215 (by main):
+  a{[2]; [7..8]} FROM \nothing
+[from] call to main8 at tests/misc/assigns_from.i:218 (by main):
+  c_0 FROM p
+[from] call to main8 at tests/misc/assigns_from.i:220 (by main):
+  c_0 FROM p (and SELF)
+  d FROM p (and SELF)
+[from] call to main9 at tests/misc/assigns_from.i:222 (by main):
+  NO EFFECTS
+[from] call to main10 at tests/misc/assigns_from.i:223 (by main):
+  NO EFFECTS
+[from] call to main11 at tests/misc/assigns_from.i:224 (by main):
+  a[2] FROM \nothing
+[from] call to main11 at tests/misc/assigns_from.i:225 (by main):
+  a[2] FROM \nothing
+[from] call to main11 at tests/misc/assigns_from.i:226 (by main):
+  a[2] FROM \nothing
+[from] call to Frama_C_interval at tests/misc/assigns_from.i:226 (by main):
+  \result FROM a; b
+[from] call to main12 at tests/misc/assigns_from.i:227 (by main):
+  \result FROM \nothing
+[from] call to main13 at tests/misc/assigns_from.i:228 (by main):
+  \result FROM p_t
+[from] call to main14 at tests/misc/assigns_from.i:229 (by main):
+  t[2..38] FROM \nothing (and SELF)
+[from] call to main16 at tests/misc/assigns_from.i:230 (by main):
+  t[1..19] FROM \nothing (and SELF)
+[from] call to main17 at tests/misc/assigns_from.i:231 (by main):
+  t17{[0][bits 0 to 7]; [1][bits 0 to 7]; [2][bits 0 to 7]; [3][bits 0 to 7];
+      [4][bits 0 to 7]; [5][bits 0 to 7]; [6][bits 0 to 7]; [7][bits 0 to 7];
+      [8][bits 0 to 7]; [9][bits 0 to 7]}
+     FROM p; i (and SELF)
+[from] entry point:
+  u FROM v
+  k FROM \nothing
+  a{[0..1]; [9]} FROM \nothing (and SELF)
+   [2..8] FROM \nothing
+  constante FROM \nothing
+  t[1..38] FROM \nothing (and SELF)
+  t17{[0][bits 0 to 7]; [1][bits 0 to 7]; [2][bits 0 to 7]; [3][bits 0 to 7];
+      [4][bits 0 to 7]; [5][bits 0 to 7]; [6][bits 0 to 7]; [7][bits 0 to 7];
+      [8][bits 0 to 7]; [9][bits 0 to 7]}
+     FROM \nothing (and SELF)
+[from] ====== END OF CALLWISE DEPENDENCIES ======
+[inout] Out (internal) for function f:
+          k
+[inout] Inputs for function f:
+          u
+[inout] Out (internal) for function main1:
+          u; k
+[inout] Inputs for function main1:
+          u; v
+[inout] Out (internal) for function main10:
+          t10[0..49]; i; tmp
+[inout] Inputs for function main10:
+          \nothing
+[inout] Out (internal) for function main11:
+          a[2]
+[inout] Inputs for function main11:
+          \nothing
+[inout] Out (internal) for function main12:
+          __retres
+[inout] Inputs for function main12:
+          \nothing
+[inout] Out (internal) for function main13:
+          \nothing
+[inout] Inputs for function main13:
+          p_t
+[inout] Out (internal) for function main14:
+          t[2..38]; i
+[inout] Inputs for function main14:
+          \nothing
+[inout] Out (internal) for function main15:
+          a[3..5]
+[inout] Inputs for function main15:
+          \nothing
+[inout] Out (internal) for function main16:
+          t[1..19]; i
+[inout] Inputs for function main16:
+          \nothing
+[inout] Out (internal) for function main17:
+          t17{[0][bits 0 to 7]; [1][bits 0 to 7]; [2][bits 0 to 7]; [3][bits 0 to 7];
+              [4][bits 0 to 7]; [5][bits 0 to 7]; [6][bits 0 to 7]; [7][bits 0 to 7];
+              [8][bits 0 to 7]; [9][bits 0 to 7]}; j
+[inout] Inputs for function main17:
+          \nothing
+[inout] Out (internal) for function main2:
+          a[3..5]
+[inout] Inputs for function main2:
+          \nothing
+[inout] Out (internal) for function main3:
+          a[0..9]
+[inout] Inputs for function main3:
+          \nothing
+[inout] Out (internal) for function main4:
+          a[2]
+[inout] Inputs for function main4:
+          \nothing
+[inout] Out (internal) for function main5:
+          a[2]
+[inout] Inputs for function main5:
+          a[4]
+[inout] Out (internal) for function main6_right:
+          a[3..5]
+[inout] Inputs for function main6_right:
+          \nothing
+[inout] Out (internal) for function main6_wrong:
+          a[2..6]
+[inout] Inputs for function main6_wrong:
+          \nothing
+[inout] Out (internal) for function main7:
+          a{[2]; [7..8]}
+[inout] Inputs for function main7:
+          \nothing
+[inout] Out (internal) for function main8:
+          c_0; d
+[inout] Inputs for function main8:
+          \nothing
+[inout] Out (internal) for function main9:
+          \nothing
+[inout] Inputs for function main9:
+          \nothing
+[inout] Out (internal) for function main:
+          u; k; a[0..9]; constante; t[1..38];
+          t17{[0][bits 0 to 7]; [1][bits 0 to 7]; [2][bits 0 to 7]; [3][bits 0 to 7];
+              [4][bits 0 to 7]; [5][bits 0 to 7]; [6][bits 0 to 7]; [7][bits 0 to 7];
+              [8][bits 0 to 7]; [9][bits 0 to 7]}; j; a_0; b; c_0; d; p; tmp_2; 
+          tmp_3
+[inout] Inputs for function main:
+          u; v; a[4]; p_t

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -39,5 +39,5 @@ val str_id : cst -> int (** Non-zero integer, unique for each different string l
 val char_at : cst -> term -> term
 
 val cluster : unit -> Definitions.cluster
-  (** The cluster where all strings are defined. *)
+(** The cluster where all strings are defined. *)
 

@@ -1,0 +1,22 @@
+%init: Si;
+%accept: Sf;
+%deterministic;
+
+Si: { CALL(main) } -> S0;
+
+S0: { real_main().c == 0 } -> S2
+  | { real_main().c != 0 } -> S1;
+  
+S1: { f().x == 4 } -> S3
+  | { f().return == 0 && X == 5 } -> S2;
+  
+S2: { RETURN(real_main) } -> Sf;
+
+S3: { g().x == 4 } -> S4
+  | { g().x == 5 } -> S5;
+
+S4: { RETURN(g) } -> S3;
+
+S5: { RETURN(g) } -> S1;
+
+Sf: -> Sf;

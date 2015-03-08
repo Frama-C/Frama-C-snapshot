@@ -1,0 +1,7 @@
+-= BIND =-
+
+Homepage: http://www.isc.org/sw/bind/
+Domain: DNS Server
+
+DNS is the Domain Name System. BIND (Berkeley Internet Name Daemon) is
+the most common DNS server.

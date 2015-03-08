@@ -1,0 +1,2 @@
+CMD: FRAMAC_PLUGIN=tests/.empty @frama-c@ -load-module lib/plugins/Impact
+STDOPT: -"-val" -"-out" -"-input" -"-deps" +"-impact-print"

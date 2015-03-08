@@ -1,0 +1,31 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/arg_array.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  
+tests/misc/arg_array.i:2:[kernel] warning: out of bounds write. assert \valid(T);
+tests/misc/arg_array.i:4:[kernel] warning: out of bounds write. assert \valid(ptr+1);
+tests/misc/arg_array.i:5:[kernel] warning: out of bounds write. assert \valid(ptr+2);
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  ptr ∈ {{ &S_T[0] }}
+  T ∈ {{ &S_T[0] }}
+  S_T[0] ∈ {0}
+     [1] ∈ {1}
+     [2] ∈ {2}
+     [3] ∈ [--..--]
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  S_T[0..2] FROM T
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          ptr; T; S_T[0..2]
+[inout] Inputs for function main:
+          \nothing

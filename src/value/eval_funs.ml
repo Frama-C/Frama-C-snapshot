@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -55,14 +55,8 @@ let compute_using_body (kf, f) ~call_kinstr ~with_formals =
         let active_behaviors = ab
        end)
   in
-  let module Compute = Dataflow2.Forwards(Computer) in
-  let start = Kernel_function.find_first_stmt kf in
-  (* Init the dataflow state for the first statement *)
-  let dinit = { Computer.to_propagate = with_locals} in
-  let dinit = Computer.computeFirstPredecessor start dinit in
-  Computer.StmtStartData.add start dinit;
   begin
-    try  Compute.compute [start]
+    try Computer.compute with_locals
     with Db.Value.Aborted as e ->
       (* analysis was aborted: pop the call stack and inform the caller *)
       Computer.mark_degeneration ();
@@ -114,9 +108,7 @@ let compute_assigns kf ab return_used ~with_formals =
          and add them to the current state of the evaluation in acc *)
       let one_from_contents acc { it_content = t } =
         let r = Eval_terms.eval_term ~with_alarms env t in
-        List.fold_left
-          (fun acc v -> Cvalue.V.join acc (Cvalue.V.topify_arith_origin v))
-          acc r.Eval_terms.evalue
+	Cvalue.V.join acc (Cvalue.V.topify_arith_origin r.Eval_terms.eover)
       in
       (* evaluation of the entire from clause *)
       let froms_contents =
@@ -135,14 +127,15 @@ let compute_assigns kf ab return_used ~with_formals =
       let treat_output_loc acc loc =
         let valid = Locations.valid_part ~for_writing:true loc in
         if Locations.is_bottom_loc valid then
-          (Value_parameters.warning ~current:true ~once:true
-             "@[Completely invalid destination@ for assigns@ clause %a.@ \
-                 Ignoring.@]" Printer.pp_term out;
-           acc)
+          (if  (not (Locations.is_bottom_loc loc))
+	   then (Value_parameters.warning ~current:true ~once:true
+		   "@[Completely invalid destination@ for assigns@ clause %a.@ \
+                 Ignoring.@]" Printer.pp_term out);
+	   acc)
         else (
           Locals_scoping.remember_if_locals_in_value clob loc froms_contents;
-	  let state' = Cvalue.Model.add_binding ~with_alarms
-            ~exact:false acc loc froms_contents
+	  let state' =
+            snd (Cvalue.Model.add_binding ~exact:false acc loc froms_contents)
 	  in
           if Cvalue.Model.equal Cvalue.Model.top state' then (
             Value_parameters.error ~once:true ~current:true
@@ -160,10 +153,8 @@ let compute_assigns kf ab return_used ~with_formals =
       ) else
         try
           (* TODO: warn about errors during evaluation *)
-          let locs, _deps =
-            Eval_terms.eval_tlval_as_locations ~with_alarms env out
-          in
-          List.fold_left treat_output_loc state locs
+	  let loc = Eval_terms.eval_tlval_as_location ~with_alarms env out in
+	  treat_output_loc state loc
         with
           | Eval_terms.LogicEvalError e ->
             warning_once_current
@@ -209,7 +200,7 @@ let compute_assigns kf ab return_used ~with_formals =
       else
         let offsetmap = Eval_op.offsetmap_of_v return_type !returned_value in
         let rvi, state =
-          Library_functions.add_retres_to_state ~with_alarms kf offsetmap state
+          Library_functions.add_retres_to_state kf offsetmap state
         in
         Some rvi, state
     in
@@ -218,9 +209,8 @@ let compute_assigns kf ab return_used ~with_formals =
 
 (** Evaluate [kf] in state [with_formals], first by reducing by the
     preconditions, then by evaluating the assigns, then by reducing
-    by the post-conditions. The resulting states contain formals only
-    if [clear_formals] is false. *)
-let compute_using_specification (kf, spec) ?(clear_formals=true) ~call_kinstr ~with_formals () =
+    by the post-conditions. *)
+let compute_using_specification (kf, spec) ~call_kinstr ~with_formals () =
   if Value_parameters.InterpreterMode.get()
   then begin
     warning_once_current "Library function call. Stopping.";
@@ -237,7 +227,8 @@ let compute_using_specification (kf, spec) ?(clear_formals=true) ~call_kinstr ~w
   let (with_formals,trace) = State_set.join stateset in
   let return_used = match call_kinstr with
     | Kglobal -> true
-    | Kstmt {skind = Instr (Call (lv, _, _, _))} -> lv <> None
+    | Kstmt {skind = Instr (Call (lv, _, _, _))} ->
+      lv <> None || Value_util.postconditions_mention_result spec
     | _ -> assert false
   in
   let retres_vi, result_state, sclob =
@@ -250,25 +241,18 @@ let compute_using_specification (kf, spec) ?(clear_formals=true) ~call_kinstr ~w
       Normal
   in
   let aux state =
-    let ret, state = match retres_vi with
+    match retres_vi with
       | None -> None, state
       | Some vi ->
-        if not (Cvalue.Model.is_reachable state) then 
-          (* This test prevents the call to Model.find_base that would
-             raise Not_found in this case. *)
-          None, state
-        else
+        match state with
+        | Cvalue.Model.Bottom -> None, state
+        | Cvalue.Model.Top -> Warn.warn_top ()
+        | Cvalue.Model.Map _ ->
           let retres_base = Base.of_varinfo vi in
           let without_ret = Cvalue.Model.remove_base retres_base state in
-          (Some (Cvalue.Model.find_base retres_base state)),
-          without_ret
-    in
-    if clear_formals then
-      let formals = Kernel_function.get_formals kf in
-      let without = Value_util.remove_formals_from_state formals state in
-      ret, without
-    else
-      ret, state
+          match Cvalue.Model.find_base retres_base state with
+          | `Map m -> Some m, without_ret
+          | `Bottom (*tested above*) | `Top (*state is not top*)-> assert false
   in
   { Value_types.c_values = List.map aux (State_set.to_list result_state);
     c_clobbered = sclob;
@@ -283,22 +267,20 @@ let compute_using_specification (kf, spec) ?(clear_formals=true) ~call_kinstr ~w
     the statuses of the preconditions of [kf]. If [show_progress] is true,
     the callstack and additional information are printed. *)
 let compute_using_spec_or_body ~with_formals ~call_kinstr ~show_progress kf =
-  Kf_state.mark_as_called kf;
+  Value_results.mark_kf_as_called kf;
   let pp = show_progress && Value_parameters.ValShowProgress.get() in
   let entry_time = if pp then Unix.time () else 0. in
   if pp then
     Value_parameters.feedback
       "@[computing for function %a.@\nCalled from %a.@]"
       pretty_call_stack_short (call_stack ())
-      Cil_datatype.Location.pretty
-	 (Cil_datatype.Kinstr.loc (CilE.current_stmt()));
+      Cil_datatype.Location.pretty (Cil_datatype.Kinstr.loc call_kinstr);
   let use_spec = match kf.fundec with
     | Declaration (_,_,_,_) -> `Spec (Annotations.funspec kf)
     | Definition (def, _) ->
-        if Datatype.String.Set.mem
-          def.svar.vname (Value_parameters.UsePrototype.get ())
-        then `Spec (Annotations.funspec kf)
-        else `Def def
+      if Kernel_function.Set.mem kf (Value_parameters.UsePrototype.get ())
+      then `Spec (Annotations.funspec kf)
+      else `Def def
   in
   let result =  match use_spec with
     | `Spec spec ->
@@ -325,7 +307,7 @@ let compute_from_entry_point () =
   let kf, library = Globals.entry_point () in
   clear_call_stack ();
   Stop_at_nth.clear ();
-  Kf_state.mark_as_called kf;
+  Value_results.mark_kf_as_called kf;
   Value_parameters.feedback "Analyzing a%scomplete application starting at %a"
     (if library then "n in" else " ")
     Kernel_function.pretty kf;
@@ -357,7 +339,6 @@ let compute_from_entry_point () =
                                initialization is not computable.";
   end 
   else begin
-    Mark_noresults.run();
     let with_formals = 
       match Db.Value.fun_get_args () with
       | None ->
@@ -374,8 +355,8 @@ let compute_from_entry_point () =
             initial_state_globals
             (List.map2 treat_one_formal formals actuals)
     in
-    Db.Value.merge_initial_state kf with_formals;
     push_call_stack kf Kglobal;
+    Db.Value.merge_initial_state (call_stack ()) with_formals;
     Db.Value.Call_Value_Callbacks.apply (with_formals, [ kf, Kglobal ]);
     ignore(compute_using_spec_or_body kf
              ~call_kinstr:Kglobal ~with_formals ~show_progress:false);
@@ -392,7 +373,7 @@ let compute_maybe_builtin kf ~state actuals =
      than the entire offsetmap *)
   let conv_arg with_alarms (exp, offsm) =
     let typ = typeOf exp in
-    CilE.set_syntactic_context (CilE.SyUnOp exp);
+    Valarms.set_syntactic_context (Valarms.SyUnOp exp);
     let v = Eval_op.v_of_offsetmap ~with_alarms ~typ offsm in
     (exp, v, offsm)
   in
@@ -408,10 +389,10 @@ let compute_maybe_builtin kf ~state actuals =
       (* Advanced builtins which override a Cil function with a Caml one, but
          use the Cil one as backup if the Caml one fails. (None by default) *)
       try
-        let name = Value_parameters.BuiltinsOverrides.find name in
+        let name = Value_parameters.BuiltinsOverrides.find kf in
         (* This is an interesting C function. Mark it as called, otherwise
            it would get skipped, eg. from the Gui. *)
-        Kf_state.mark_as_called kf;
+        Value_results.mark_kf_as_called kf;
         name, true
       with Not_found -> name, false
     in
@@ -452,7 +433,7 @@ let compute_non_recursive_call kf ~call_kinstr state actuals =
   push_call_stack kf call_kinstr;
   (* Store the initial state, but do not called mark_as_called. Uninteresting
      Value builtins are intentionally skipped *)
-  Db.Value.merge_initial_state kf with_formals;
+  Db.Value.merge_initial_state (call_stack ()) with_formals;
   try 
     let stack_with_call = call_stack () in
     Db.Value.Call_Value_Callbacks.apply (with_formals, stack_with_call);
@@ -476,8 +457,11 @@ let compute_non_recursive_call kf ~call_kinstr state actuals =
 	  | Some (res, i) ->
             (* Evaluate the preconditions of kf, to update the statuses
                at this call. *)
-            if Eval_annots.has_requires kf then begin
-              let ab = Eval_annots.ActiveBehaviors.create with_formals kf in
+            let spec = Annotations.funspec kf in
+            if Eval_annots.has_requires spec then begin
+              let ab =
+                Eval_annots.ActiveBehaviors.create_from_spec with_formals spec
+              in
               ignore (Eval_annots.check_fct_preconditions
                         kf ab call_kinstr with_formals);
             end;
@@ -501,14 +485,16 @@ let compute_non_recursive_call kf ~call_kinstr state actuals =
 
 let compute_recursive_call kf ~call_kinstr state actuals =
   push_call_stack kf call_kinstr;
-  (* Update formals. For formals that might be referenced, we must perform
-     a join with the previous values *)
-  let exact vi = not vi.vaddrof in
   let with_formals =
     Function_args.actualize_formals
-      ~check:Function_args.check_arg_size ~exact kf state actuals
+      ~check:Function_args.check_arg_size kf state actuals
   in
-  Db.Value.merge_initial_state kf with_formals;
+  (* For formals that might be referenced, we must perform a join with the
+     previous values *)
+  let with_formals =
+    Function_args.merge_referenced_formals kf state with_formals
+  in
+  Db.Value.merge_initial_state (call_stack ()) with_formals;
   let initial_spec = Annotations.funspec ~populate:false kf in
   let assigns_spec () =
     let assigns = Infer_annotations.assigns_from_prototype kf in
@@ -531,9 +517,7 @@ let compute_recursive_call kf ~call_kinstr state actuals =
             ~silent_about_merging_behav:true spec initial_spec;
           spec
   in
-  let r = compute_using_specification (kf, spec)
-    ~clear_formals:false ~call_kinstr ~with_formals ()
-  in
+  let r = compute_using_specification (kf, spec) ~call_kinstr ~with_formals() in
   pop_call_stack ();
   (* Restore one formal of [kf] to a correct value: either the value before
      the call if the variable cannot have been modified during this call,
@@ -546,12 +530,14 @@ let compute_recursive_call kf ~call_kinstr state actuals =
         (* Any copy of the formal may have been modified by the call, join
            the possible values *)
         let post = Cvalue.Model.find_base b post_state in
-        let r = Cvalue.V_Offsetmap.join old post in
+        let r = Cvalue.V_Offsetmap.join_top_bottom old post in
         r
       else
         old
     in
-    Cvalue.Model.add_base b offsm post_state
+    match offsm with
+    | `Top | `Bottom -> assert false
+    | `Map offsm -> Cvalue.Model.add_base b offsm post_state
   in
   let formals = Kernel_function.get_formals kf in
   let restore_formals state = List.fold_left restore_formal state formals in
@@ -562,13 +548,13 @@ let compute_recursive_call kf ~call_kinstr state actuals =
 
 
 (** Compute a call to [kf], called from [call_kinstr], in the state [state]. In
-   this state, the value of actuals in [actuals] are not yet bound to formals.*)
-let compute_call kf ~call_kinstr state actuals =
-  if Warn.check_no_recursive_call kf then
-    compute_non_recursive_call kf ~call_kinstr state actuals
-  else
+   this state, the value of actuals in [actuals] are not yet bound to formals.
+    [recursive] means that the call is recursive. *)
+let compute_call kf ~recursive ~call_kinstr state actuals =
+  if recursive then
     compute_recursive_call kf ~call_kinstr state actuals
-
+  else
+    compute_non_recursive_call kf ~call_kinstr state actuals
 
 
 let () = Eval_stmt.compute_call_ref := compute_call
@@ -578,47 +564,51 @@ let floats_ok () =
   let u = u /. 2. in
   0. < u && u < min_float
 
+let need_assigns kf =
+  let spec = Annotations.funspec ~populate:false kf in
+  match Cil.find_default_behavior spec with
+  | None -> true
+  | Some bhv -> bhv.b_assigns = WritesAny
+
 let options_ok () =
   (* Check that we can parse the values specified for the options that require
      advanced parsing. Just make a query, as this will force the kernel to
      parse them. *)
-  let check f = try ignore (f "") with Not_found -> () in
-  check Value_parameters.SplitReturnFunction.find;
-  check Value_parameters.BuiltinsOverrides.find;
-  check Value_parameters.SlevelFunction.find;
+  let check f = try ignore (f ()) with Not_found -> () in
+  check Value_parameters.SplitReturnFunction.get;
+  check Value_parameters.BuiltinsOverrides.get;
+  check Value_parameters.SlevelFunction.get;
+  let check_assigns kf =
+    if need_assigns kf then
+      Value_parameters.error "@[no assigns@ specified@ for function '%a',@ for \
+        which@ a builtin@ or the specification@ will be used.@ \
+        Potential unsoundness.@]" Kernel_function.pretty kf
+  in
+  Value_parameters.BuiltinsOverrides.iter (fun (kf, _) -> check_assigns kf);
+  Value_parameters.UsePrototype.iter (fun kf -> check_assigns kf);
+    
 ;;
 
 (* Preliminary checks before Value starts *)
 let check () =
   assert (floats_ok ());
   options_ok ();
+  Split_return.pretty_strategies ();
 ;;
-
 
 (* Do something tasteless in case the user did not put a spec on functions
    for which he set [-val-use-spec]:  generate an incorrect one ourselves *)
 let generate_specs () =
-  let aux kf_name =
-    try
-      let kf = Globals.Functions.find_by_name kf_name in
-      let spec = Annotations.funspec kf in
-      let open Cil_types in
-      let need_generation =
-        match Cil.find_default_behavior spec with
-        | None -> true
-        | Some bhv -> bhv.b_assigns = WritesAny
-      in
-      if need_generation then begin
-        Value_parameters.warning "Generating potentially incorrect assigns \
-          for function '%s' for which option %s is set"
-          kf_name Value_parameters.UsePrototype.option_name;
-        (* The function populate_spec may emit a warning. Position a loc. *)
-        Cil.CurrentLoc.set (Kernel_function.get_location kf);
-        ignore (!Annotations.populate_spec_ref kf spec)
-      end
-    with Not_found ->
-      Value_parameters.error "Unknown function '%s' for option %s"
-        kf_name Value_parameters.UsePrototype.option_name
+  let aux kf =
+    if need_assigns kf then begin
+      let spec = Annotations.funspec ~populate:false kf in
+      Value_parameters.warning "Generating potentially incorrect assigns \
+          for function '%a' for which option %s is set"
+        Kernel_function.pretty kf Value_parameters.UsePrototype.option_name;
+          (* The function populate_spec may emit a warning. Position a loc. *)
+      Cil.CurrentLoc.set (Kernel_function.get_location kf);
+      ignore (!Annotations.populate_spec_ref kf spec)
+    end
   in
   Value_parameters.UsePrototype.iter aux
 
@@ -632,6 +622,10 @@ let pre () =
 ;;
 
 let post_cleanup ~aborted =
+  (* Precompute consolidated states if required *)
+  if Value_parameters.JoinResults.get () then
+    Db.Value.Table_By_Callstack.iter
+      (fun s _ -> ignore (Db.Value.get_stmt_state s));
   if not aborted then begin
     (* Keep memexec results for users that want to resume the analysis *)
     Mem_exec.cleanup_results ();
@@ -661,9 +655,16 @@ let force_compute () =
     pre ();
     ignore (compute_from_entry_point ());
     Db.Value.mark_as_computed ();
-    (* Mark unreachable and RTE statuses. Do not do this in post_cleanup,
-       as all reachable code has not been analysed. *)
-    Eval_annots.mark_unreachable ();
+    (* Mark unreachable and RTE statuses. Only do this there, not when the
+       analysis was aborted (hence, not in post_cleanup), because the
+       propagation is incomplete. *)
+    if (Cvalue.Model.is_reachable (Db.Value.globals_state ())) then
+      (* Do not mark unreachable statutes if there is an alarm in the
+         initialisers, as we would mark the alarm as dead. *)
+      Eval_annots.mark_unreachable ();
+    (* Try to refine the 'Unknown' statuses that have been emitted during
+       this analysis. *)
+    Eval_annots.mark_green_and_red ();
     Eval_annots.mark_rte ();
     post_cleanup ~aborted:false;
     (* Remove redundant alarms *)

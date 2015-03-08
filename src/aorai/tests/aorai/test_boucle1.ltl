@@ -1,0 +1,13 @@
+_G_(
+  RETURN(main) ||
+  (((_X_ CALL(commit_trans))
+     => 
+    (RETURN(init_trans) && status)
+   )
+   &&
+   ((RETURN(init_trans) && status)
+     => 
+    (_X_ CALL(commit_trans))
+   )
+  ) 
+)

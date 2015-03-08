@@ -8,10 +8,7 @@
 /* This file presents the basic version of the allocator.                    */
 /*****************************************************************************/
 
-//#include <stdlib.h>
-//#include "../../share/libc.h"
-#define FRAMA_C_MALLOC_POSITION
-#include "share/libc/stdlib.c"
+#include "share/libc/stdlib.h"
 
 #define DEFAULT_BLOCK_SIZE 1000
 

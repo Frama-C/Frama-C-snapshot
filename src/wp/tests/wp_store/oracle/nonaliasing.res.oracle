@@ -1,0 +1,126 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_store/nonaliasing.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function f
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok,P' in 'f':
+Let x_0 = Mint_0[p_0].
+Let x_1 = 1+x_0.
+Let m_0 = Mint_0[p_0->x_1].
+Let x_2 = m_0[q_0].
+Let x_3 = 1+x_2.
+Let x_4 = m_0[q_0->x_3][p_0].
+Let x_5 = Mint_0[q_0].
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_0) /\ (is_sint32 x_5) /\ (is_sint32 x_2)
+        /\ (is_sint32 x_3) /\ (is_sint32 x_4).
+  (* Goal *)
+  When: p_0!=q_0.
+  (* Heap *)
+  Have: (linked Malloc_0) /\ ((region (base p_0))<=0)
+        /\ ((region (base q_0))<=0).
+  (* Pre-condition (file tests/wp_store/nonaliasing.i, line 12) in 'f' *)
+  (* Pre-condition: *)
+  Have: (valid_rw Malloc_0 p_0 1).
+  (* Pre-condition (file tests/wp_store/nonaliasing.i, line 13) in 'f' *)
+  (* Pre-condition: *)
+  Have: (valid_rw Malloc_0 q_0 1).
+  (* Pre-condition (file tests/wp_store/nonaliasing.i, line 14) in 'f' *)
+  (* Pre-condition: *)
+  Have: (0<=x_0) /\ (0<=x_5) /\ (x_0<=199) /\ (x_5<=199).
+}
+Prove: x_1=x_4.
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok,Q' in 'f':
+Let x_0 = Mint_0[q_0].
+Let x_1 = Mint_0[p_0].
+Let m_0 = Mint_0[p_0->1+x_1].
+Let x_2 = m_0[q_0].
+Let x_3 = 1+x_2.
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_1) /\ (is_sint32 x_0) /\ (is_sint32 x_2)
+        /\ (is_sint32 x_3) /\ (is_sint32 m_0[q_0->x_3][p_0]).
+  (* Goal *)
+  When: p_0!=q_0.
+  (* Heap *)
+  Have: (linked Malloc_0) /\ ((region (base p_0))<=0)
+        /\ ((region (base q_0))<=0).
+  (* Pre-condition (file tests/wp_store/nonaliasing.i, line 12) in 'f' *)
+  (* Pre-condition: *)
+  Have: (valid_rw Malloc_0 p_0 1).
+  (* Pre-condition (file tests/wp_store/nonaliasing.i, line 13) in 'f' *)
+  (* Pre-condition: *)
+  Have: (valid_rw Malloc_0 q_0 1).
+  (* Pre-condition (file tests/wp_store/nonaliasing.i, line 14) in 'f' *)
+  (* Pre-condition: *)
+  Have: (0<=x_1) /\ (0<=x_0) /\ (x_1<=199) /\ (x_0<=199).
+}
+Prove: x_0=x_2.
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ko,P_oracle_ko' in 'f':
+Let x_0 = Mint_0[p_0].
+Let x_1 = 1+x_0.
+Let m_0 = Mint_0[p_0->x_1].
+Let x_2 = m_0[q_0].
+Let x_3 = 1+x_2.
+Let x_4 = m_0[q_0->x_3][p_0].
+Let x_5 = Mint_0[q_0].
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_0) /\ (is_sint32 x_5) /\ (is_sint32 x_2)
+        /\ (is_sint32 x_3) /\ (is_sint32 x_4).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ ((region (base p_0))<=0)
+        /\ ((region (base q_0))<=0).
+  (* Pre-condition (file tests/wp_store/nonaliasing.i, line 12) in 'f' *)
+  (* Pre-condition: *)
+  Have: (valid_rw Malloc_0 p_0 1).
+  (* Pre-condition (file tests/wp_store/nonaliasing.i, line 13) in 'f' *)
+  (* Pre-condition: *)
+  Have: (valid_rw Malloc_0 q_0 1).
+  (* Pre-condition (file tests/wp_store/nonaliasing.i, line 14) in 'f' *)
+  (* Pre-condition: *)
+  Have: (0<=x_0) /\ (0<=x_5) /\ (x_0<=199) /\ (x_5<=199).
+}
+Prove: x_1=x_4.
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ko,Q_oracle_ko' in 'f':
+Let x_0 = Mint_0[q_0].
+Let x_1 = Mint_0[p_0].
+Let m_0 = Mint_0[p_0->1+x_1].
+Let x_2 = m_0[q_0].
+Let x_3 = 1+x_2.
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_1) /\ (is_sint32 x_0) /\ (is_sint32 x_2)
+        /\ (is_sint32 x_3) /\ (is_sint32 m_0[q_0->x_3][p_0]).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ ((region (base p_0))<=0)
+        /\ ((region (base q_0))<=0).
+  (* Pre-condition (file tests/wp_store/nonaliasing.i, line 12) in 'f' *)
+  (* Pre-condition: *)
+  Have: (valid_rw Malloc_0 p_0 1).
+  (* Pre-condition (file tests/wp_store/nonaliasing.i, line 13) in 'f' *)
+  (* Pre-condition: *)
+  Have: (valid_rw Malloc_0 q_0 1).
+  (* Pre-condition (file tests/wp_store/nonaliasing.i, line 14) in 'f' *)
+  (* Pre-condition: *)
+  Have: (0<=x_1) /\ (0<=x_0) /\ (x_1<=199) /\ (x_0<=199).
+}
+Prove: x_0=x_2.
+
+------------------------------------------------------------

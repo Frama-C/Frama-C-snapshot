@@ -1,0 +1,15 @@
+[wp] Running WP plugin...
+tests/wp_plugin/tutorial.i:202:[wp] warning: Proof obligation for property 'div_mod' not generated.
+tests/wp_plugin/tutorial.i:176:[wp] warning: Proof obligation for property 'pgcd_minus' not generated.
+tests/wp_plugin/tutorial.i:177:[wp] warning: Proof obligation for property 'pgcd_minus_2' not generated.
+tests/wp_plugin/tutorial.i:175:[wp] warning: Proof obligation for property 'pgcd_refl' not generated.
+[wp] warning: Missing RTE guards
+tests/wp_plugin/tutorial.i:160:[wp] warning: Missing assigns clause (assigns 'everything' instead)
+tests/wp_plugin/tutorial.i:143:[wp] warning: Missing assigns clause (assigns 'everything' instead)
+[wp] [Alt-Ergo] Goal store_absolue_post_qed_ok : Valid
+[wp] [Alt-Ergo] Goal store_comparer_loop_inv_qed_ok_established : Valid
+[wp] [Alt-Ergo] Goal store_comparer_loop_inv_qed_ok_preserved : Valid
+[wp] [Alt-Ergo] Goal store_echange_valeur_post_qed_ok : Valid
+[wp] [Alt-Ergo] Goal store_max_post_qed_ok : Valid
+[wp] [Alt-Ergo] Goal store_min_element_loop_inv_qed_ok_established : Valid
+[wp] [Alt-Ergo] Goal store_min_element_loop_inv_qed_ok_preserved : Valid

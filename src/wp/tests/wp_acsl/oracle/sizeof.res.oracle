@@ -1,0 +1,26 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_acsl/sizeof.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function foo
+------------------------------------------------------------
+
+Goal Assertion 'A' (file tests/wp_acsl/sizeof.i, line 10):
+Assume { }
+Prove: not (P_eq 12 9).
+
+------------------------------------------------------------
+
+Goal Assertion 'B' (file tests/wp_acsl/sizeof.i, line 11):
+Assume {
+  (* Assertion 'A' (file tests/wp_acsl/sizeof.i, line 10) *)
+  (* tests/wp_acsl/sizeof.i:10: Assertion 'A': *)
+  Have: not (P_eq 12 9).
+}
+Prove: (P_eq 48 48).
+
+------------------------------------------------------------

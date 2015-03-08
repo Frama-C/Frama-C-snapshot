@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2014                                               #
+#  Copyright (C) 2007-2015                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -363,6 +363,29 @@ define([plugin_use],
         m4_undefine([USE])
         m4_undefine([USED])
        ])
+
+# Usage: plugin_disable([plugin],[reason])
+define([plugin_disable],
+ [m4_define([PLUGIN_NAME],$1)
+  m4_define([MSG],$2)
+  m4_define([UP],[tovarname(PLUGIN_NAME)])
+  if test "[FORCE_]UP" = "yes"; then
+    AC_MSG_ERROR([PLUGIN_NAME requested but MSG]);
+  else
+    AC_MSG_WARN([PLUGIN_NAME disabled because MSG]);
+    [ENABLE_]UP=no;
+    [INFO_]UP=", MSG"
+  fi])
+
+define([has_pushed],0)
+define([after_plugin_dependencies],[
+        define([has_pushed],1)
+        m4_divert_push(frama_c_configure_tool)])
+define([end_after_plugin_dependencies],[
+        m4_if(has_pushed,1,
+                [m4_divert_pop(frama_c_configure_tool)]
+                m4_define([has_pushed],0)
+                )])
 # Implementation of an ordering $1 < $2: "" < yes < partial < no
 lt_mark () {
   first=`echo "$1" | sed -e 's/ .*//' `
@@ -591,9 +614,10 @@ define([check_frama_c_dependencies],
         compute_plugin_dependencies])
 
 define([check_plugin_dependencies],
-       [m4_ifdef([FRAMAC_MAIN_AUTOCONF],,
-       [m4_undivert(frama_c_configure_tool)
-        compute_plugin_dependencies])])
+       [m4_ifdef([FRAMAC_MAIN_AUTOCONF],
+        [after_plugin_dependencies],
+        [m4_undivert(frama_c_configure_tool)
+                compute_plugin_dependencies])])
 
 define([write_plugin_summary],
 [
@@ -627,6 +651,7 @@ define([write_plugin_config],
         AC_CONFIG_FILES(plugin_files,files_chmod)
         m4_ifdef(
          [FRAMAC_MAIN_AUTOCONF],
+         [end_after_plugin_dependencies]
          if test "$[ENABLE_]tovarname(PLUGIN_NAME)" != "no"; then
             [EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} plugin_prefix"];
          fi,

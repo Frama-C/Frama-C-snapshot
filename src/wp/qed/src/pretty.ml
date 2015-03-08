@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -53,6 +53,15 @@ struct
     else Kind.pp_tau pp_tvarn Field.pretty ADT.pretty fmt t
 
   (* -------------------------------------------------------------------------- *)
+  (* --- Shareable                                                          --- *)
+  (* -------------------------------------------------------------------------- *)
+
+  let shareable e = match T.repr e with
+    | And _ | Or _ | Not _ | Imply _ | Eq _ | Neq _ | Leq _ | Lt _ -> false
+    | Fun(f,_) -> (Fun.sort f <> Sprop && Fun.sort f <> Sbool)
+    | _ -> true
+
+  (* -------------------------------------------------------------------------- *)
   (* --- Variables                                                          --- *)
   (* -------------------------------------------------------------------------- *)
 
@@ -60,10 +69,10 @@ struct
   module Ids = Set.Make(String)
 
   type env = {
+    mutable bound : string Intmap.t ; (* bound var *)
     mutable named : string Tmap.t ; (* named terms *)
     mutable index : int Idx.t ;     (* index names *)
     mutable known : Ids.t ;         (* known names *)
-    mutable closed : Vars.t ;
   }
 
   (* -------------------------------------------------------------------------- *)
@@ -71,28 +80,42 @@ struct
   (* -------------------------------------------------------------------------- *)
 
   let empty = {
-    named=Tmap.empty ; 
-    index=Idx.empty ; 
-    known=Ids.empty ; 
-    closed=Vars.empty ;
+    bound = Intmap.empty ;
+    named = Tmap.empty ; 
+    index = Idx.empty ; 
+    known = Ids.empty ; 
   }    
 
-  let closed vars = 
-    { 
-      named=Tmap.empty ; 
-      index=Idx.empty ; 
-      known=Vars.fold
-          (fun x s -> Ids.add (Plib.to_string Var.pretty x) s)
-          vars Ids.empty ;
-      closed=vars ;
-    }
-
   let copy env = {
+    bound = env.bound ;
     named = env.named ;
     index = env.index ;
     known = env.known ;
-    closed = env.closed ;
   }
+
+  (* -------------------------------------------------------------------------- *)
+  (* --- Fresh                                                              --- *)
+  (* -------------------------------------------------------------------------- *)
+
+  let freshname env base =
+    let rec scan env base k =
+      let a = Printf.sprintf "%s_%d" base k in
+      if Ids.mem a env.known 
+      then scan env base (succ k) 
+      else (env.index <- Idx.add base (succ k) env.index ; a) in
+    scan env base 
+      (try Idx.find base env.index with Not_found -> 0)
+
+  let known env xs =
+    let env = copy env in
+    Vars.iter
+      (fun x -> 
+         let x = Plib.to_string Var.pretty x in
+         env.known <- Ids.add x env.known
+      ) xs ; env
+
+  let marks env = T.marks ~shareable
+      ~shared:(fun t -> Tmap.mem t env.named) ()
 
   let bind x t env =
     let env = copy env in
@@ -100,68 +123,47 @@ struct
     env.known <- Ids.add x env.known ;
     env
 
-  (* -------------------------------------------------------------------------- *)
-  (* --- Shareable                                                          --- *)
-  (* -------------------------------------------------------------------------- *)
-
-  let shareable e = match T.repr e with
-    | And _ | Or _ | Not _ | Imply _ | Eq _ | Neq _ | Leq _ | Lt _ -> false
-    | _ -> true
-
-  (* -------------------------------------------------------------------------- *)
-  (* --- Fresh                                                              --- *)
-  (* -------------------------------------------------------------------------- *)
-
-  let freshid env term ?id base =
-    let rec scan env base k =
-      let a = Printf.sprintf "%s_%d" base k in
-      if Ids.mem a env.known 
-      then scan env base (succ k) 
-      else (env.index <- Idx.add base (succ k) env.index ; a) in
-    let freshname env base = scan env base 
-        (try Idx.find base env.index with Not_found -> 0) in
-    let x =
-      match id with
-      | None -> freshname env base
-      | Some a -> if Ids.mem a env.known then freshname env base else a
-    in
-    env.known <- Ids.add x env.known ;
-    env.named <- Tmap.add term x env.named ; x
-
-  let marks env = T.marks ~shareable
-      ~shared:(fun t -> Tmap.mem t env.named) 
-      ~closed:env.closed ()
-
   let fresh env t = 
     let env = copy env in
-    let x = freshid env t (T.basename t) in
+    let x = freshname env (T.basename t) in
+    env.named <- Tmap.add t x env.named ;
+    env.known <- Ids.add x env.known ;
     x , env
 
+  let bind_var env k t =
+    let x = freshname env (Tau.basename t) in
+    env.known <- Ids.add x env.known ;
+    env.bound <- Intmap.add k x env.bound ; x
+
+  let find_var env k = 
+    try Intmap.find k env.bound
+    with Not_found -> Printf.sprintf "#%d" k
+
   (* -------------------------------------------------------------------------- *)
-  (* --- Bunch of Quantifier                                                --- *)
+  (* --- Groups of Quantifiers                                              --- *)
   (* -------------------------------------------------------------------------- *)
 
-  module TauMap = Map.Make
-      (struct
-        type t = T.tau
-        let compare = Kind.compare_tau T.Field.compare T.ADT.compare
-      end)
+  module TauMap = Map.Make(T.Tau)
 
-  let group_add m x =
-    let t = tau_of_var x in
-    let xs = try TauMap.find t m with Not_found -> [] in
-    TauMap.add t (x::xs) m
+  type group = binder * int list TauMap.t
 
-  let rec group_binders = function
+  let group_var t k = TauMap.add t [k] TauMap.empty
+
+  let group_add t k tks =
+    let ks = k :: try TauMap.find t tks with Not_found -> [] in
+    TauMap.add t ks tks
+
+  let rec group_binders k = function
     | [] -> []
-    | (q,x)::qxs ->
-        let m = TauMap.add (tau_of_var x) [x] TauMap.empty in
-        group_binder q m qxs
+    | (q,t)::qts -> group_collect q (succ k) (group_var t k) qts 
 
-  and group_binder q m = function
-    | (q0,y)::qxs when q0 = q -> 
-        group_binder q (group_add m y) qxs
-    | qxs -> (q,m)::group_binders qxs
+  and group_collect q k kts = function
+    | [] -> [q,kts]
+    | (q0,t) :: qts ->
+        if q = q0 && q0 <> Lambda then
+          group_collect q (succ k) (group_add t k kts) qts
+        else
+          (q,kts) :: group_collect q0 (succ k) (group_var t k) qts
 
   (* -------------------------------------------------------------------------- *)
   (* --- Output Form                                                        --- *)
@@ -179,9 +181,10 @@ struct
     | Closure of term * term list
     | Access of term * term
     | Update of term * term * term
-    | Abstraction of ( (binder * var) list * term )
     | Record of field list
     | GetField of term * Field.t
+    | Abstraction of (binder * tau) list * term
+    | Bind of int
 
   and field =
     | With  of term
@@ -195,12 +198,13 @@ struct
 
   let rec abstraction qxs e =
     match T.repr e with
-    | Bind(q,x,t) -> abstraction ((q,x)::qxs) t
+    | Logic.Bind(q,x,t) -> abstraction ((q,x)::qxs) (lc_repr t)
     | _ -> Abstraction( List.rev qxs , e )
 
   let out e =
     match T.repr e with
-    | Var x -> Atom( Plib.to_string Var.pretty x )
+    | Bvar(k,_) -> Bind k
+    | Fvar x -> Atom( Plib.to_string Var.pretty x )
     | True -> Atom "true"
     | False -> Atom "false"
     | Kint z -> Atom (Z.to_string z)
@@ -227,7 +231,7 @@ struct
     | If(c,a,b) -> Cond(c,a,b)
     | Aget(a,b) -> Access(a,b)
     | Aset(a,b,c) -> Update(a,b,c)
-    | Bind(q,x,t) -> abstraction [q,x] t
+    | Logic.Bind(q,x,e) -> abstraction [q,x] (lc_repr e)
     | Rget(e,f) -> GetField(e,f)
     | Rdef fvs -> Record 
                     begin
@@ -248,6 +252,7 @@ struct
     pp_atom_out env fmt (named_out env e)
 
   and pp_atom_out env fmt = function
+    | Bind k -> pp_print_string fmt (find_var env k)
     | Atom x -> pp_print_string fmt x
     | Call(f,es) -> pp_call env fmt f es
     | Sum es -> fprintf fmt "@[<hov 1>(%a)@]" (pp_sum false env) es
@@ -257,7 +262,7 @@ struct
     | Binop op -> fprintf fmt "@[<hov 3>(%a)@]" (pp_binop env) op
     | Cond c -> fprintf fmt "@[<hv 1>(%a)@]" (pp_cond env) c
     | Closure(e,es) -> pp_closure env fmt e es
-    | Abstraction abs -> fprintf fmt "@[<v 1>(%a)@]" (pp_abstraction env) abs
+    | Abstraction(qts,abs) -> fprintf fmt "@[<v 1>(%t)@]" (pp_abstraction env qts abs)
     | Access(a,b) -> fprintf fmt "@[<hov 2>%a@,[%a]@]" 
                        (pp_atom env) a (pp_free env) b
     | Update(a,b,c) -> fprintf fmt "@[<hov 2>%a@,[%a@,->%a]@]" 
@@ -266,6 +271,7 @@ struct
     | Record fs -> pp_fields env fmt fs
 
   and pp_free_out env fmt = function
+    | Bind k -> pp_print_string fmt (find_var env k)
     | Atom x -> pp_print_string fmt x
     | Call(f,es) -> pp_call env fmt f es
     | Sum es -> fprintf fmt "@[<hov 1>%a@]" (pp_sum true env) es
@@ -275,7 +281,7 @@ struct
     | Binop op -> fprintf fmt "@[<hov 2>%a@]" (pp_binop env) op
     | Cond c -> fprintf fmt "@[<hv 0>%a@]" (pp_cond env) c
     | Closure(e,es) -> pp_closure env fmt e es
-    | Abstraction abs -> fprintf fmt "@[<hv 0>%a@]" (pp_abstraction env) abs
+    | Abstraction(qts,abs) -> fprintf fmt "@[<hv 0>%t@]" (pp_abstraction env qts abs)
     | (Access _ | Update _ | Record _ | GetField _) as a -> pp_atom_out env fmt a
 
   and pp_fields (env:env) (fmt:formatter) fs =
@@ -375,31 +381,32 @@ struct
   (* --- Abstraction                                                        --- *)
   (* -------------------------------------------------------------------------- *)
 
-  and pp_abstraction (env:env) (fmt:formatter) (qxs,t) =
-    let groups = group_binders qxs in
+  and pp_abstraction (env:env) qts abs (fmt:formatter) =
+    let env = copy env in
+    let groups = group_binders 0 qts in
+    let size = List.length qts in
+    let last = Bvars.order (lc_vars abs) + size - 1 in
     List.iter
       (fun (q,m) ->
          match q with
-         | Forall -> fprintf fmt "@[<hov 4>forall %a.@]@ " (pp_group env) m 
-         | Exists -> fprintf fmt "@[<hov 4>exists %a.@]@ " (pp_group env) m
-         | Lambda -> fprintf fmt "@[<hov 4>fun %a ->@]@ " (pp_group env) m
+         | Forall -> fprintf fmt "@[<hov 4>forall %a.@]@ " (pp_group env last) m 
+         | Exists -> fprintf fmt "@[<hov 4>exists %a.@]@ " (pp_group env last) m
+         | Lambda -> fprintf fmt "@[<hov 4>fun %a ->@]@ " (pp_group env last) m
       ) groups ;
-    pp_share env fmt t
+    pp_share env fmt abs
 
-  and pp_group (env:env) (fmt:formatter) m =
+  and pp_group (env:env) (last:int) (fmt:formatter) m =
     let sep = ref false in
     TauMap.iter
-      (fun t xs ->
+      (fun t ks ->
          if !sep then fprintf fmt ",@," ;
          Plib.iteri
-           (fun idx x ->
-              let id = Plib.to_string Var.pretty x in
-              let a = freshid env (T.e_var x) ~id (Var.basename x) in
-              env.closed <- Vars.add x env.closed ;
+           (fun idx k ->
+              let x = bind_var env (last - k) t in
               match idx with
-              | Isingle | Ifirst -> pp_print_string fmt a
-              | Imiddle | Ilast -> fprintf fmt ",@,%s" a
-           ) (List.rev xs) ;
+              | Isingle | Ifirst -> pp_print_string fmt x
+              | Imiddle | Ilast -> fprintf fmt ",@,%s" x
+           ) (List.rev ks) ;
          fprintf fmt ":%a" pp_tau t ;
          sep := true ;
       ) m
@@ -411,16 +418,15 @@ struct
   and pp_share (env:env) (fmt:formatter) t =
     begin
       fprintf fmt "@[<hv 0>" ;
-      let ts = T.shared ~shareable
-          ~shared:(fun t -> Tmap.mem t env.named) 
-          ~closed:env.closed [t] 
-      in
-      List.iter
-        (fun t ->
-           let e0 = copy env in
-           let x = freshid env t (Kind.basename (T.sort t)) in
-           fprintf fmt "@[<hov 4>let %s =@ %a in@]@ " x (pp_atom e0) t
-        ) ts ;
+      let shared t = Tmap.mem t env.named in
+      let ts = T.shared ~shareable ~shared [t] in
+      let env = 
+        List.fold_left
+          (fun env t ->
+             let x,env_x = fresh env t in
+             fprintf fmt "@[<hov 4>let %s =@ %a in@]@ " x (pp_atom env) t ;
+             env_x)
+          env ts in
       pp_free env fmt t ;
       fprintf fmt "@]" ;
     end

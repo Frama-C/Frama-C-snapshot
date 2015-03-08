@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2014                                               #
+#  Copyright (C) 2007-2015                                               #
 #    CEA   (Commissariat à l'énergie atomique et aux énergies            #
 #           alternatives)                                                #
 #    INRIA (Institut National de Recherche en Informatique et en         #
@@ -126,6 +126,8 @@ case $OCAMLVERSION in
   3.11*) echo "${ECHO_T}Incompatible version! Use at least OCaml 3.12.1.";
          exit 2;;
   3.12.0*) echo "${ECHO_T}Incompatible version! Use at least OCaml 3.12.1.";
+           exit 2;;
+  4.02.0*) echo "${ECHO_T}Incompatible version. Use OCaml 4.02.1.";
            exit 2;;
   4.*) OCAML_ANNOT_OPTION="-annot -bin-annot";;
   *) echo "${ECHO_T}Incompatible version!"; exit 2;;
@@ -284,6 +286,16 @@ OCAMLGRAPH_EXISTS=no
 OCAMLGRAPH_INCLUDE=
 OCAMLGRAPH_CUSTOM=no
 
+# allow local ocamlgraph
+AC_ARG_ENABLE(
+  local-ocamlgraph,
+  [  --enable-local-ocamlgraph    force the user to use the local OcamlGraph version.
+  --disable-local-ocamlgraph   force the user to use an installed OCamlGraph version.
+],
+  ENABLE_LOCAL_OCAMLGRAPH=$enableval,
+  ENABLE_LOCAL_OCAMLGRAPH=auto, # default value
+)
+
 AC_ARG_WITH(
         ocamlgraph,
         AC_HELP_STRING(
@@ -294,89 +306,89 @@ AC_ARG_WITH(
          OCAMLGRAPH_CUSTOM=yes],
         [])
 
-if test "$OCAMLFIND" = "no" -o "$OCAMLGRAPH_CUSTOM" = "yes"; then
+if test "$ENABLE_LOCAL_OCAMLGRAPH" != "yes"; then
+  if test "$OCAMLFIND" = "no" -o "$OCAMLGRAPH_CUSTOM" = "yes"; then
 
-# check if any ocamlgraph is installed in the right place
-  AC_CHECK_FILE($OCAMLGRAPH_HOME/graph.$OBJ_SUFFIX,
-              OCAMLGRAPH_EXISTS="yes" OCAMLGRAPH_INCLUDE="-I +ocamlgraph")
+    # check if any ocamlgraph is installed in the right place
+    AC_CHECK_FILE($OCAMLGRAPH_HOME/graph.$OBJ_SUFFIX,
+                OCAMLGRAPH_EXISTS="yes" OCAMLGRAPH_INCLUDE="-I +ocamlgraph")
 
-  if test "$OCAMLGRAPH_EXISTS"="no" -a "$OCAMLGRAPH_CUSTOM" = "yes"; then
-    AC_MSG_ERROR(
-     [unable to find OCamlGraph in custom location $OCAMLGRAPH_HOME.
-      Please give an appropriate value, or use default OCamlGraph library]);
-  fi
-else
-  OCAMLGRAPH_HOME=$($OCAMLFIND query ocamlgraph 2>/dev/null \
-                          | tr -d '\r\n');
-  if test "$OCAMLGRAPH_HOME" != ""; then
-     OCAMLGRAPH_INCLUDE="-I $OCAMLGRAPH_HOME";
-     OCAMLGRAPH_EXISTS="yes";
-  else
-     AC_MSG_NOTICE(no package ocamlgraph in ocamlfind)
-  fi;
-fi
-
-ocamlgraph_error() {
-  if test "$OCAMLGRAPH_CUSTOM" = "yes"; then
-  AC_MSG_ERROR(
-   [Custom OCamlGraph library version $OCAMLGRAPH_VERSION is incompatible with
-    Frama-C. Please provide another location or use default OCamlGraph]);
-  else
-  AC_MSG_NOTICE([OcamlGraph $OCAMLGRAPH_VERSION is incompatible with Frama-C.])
-  OCAMLGRAPH_EXISTS=no
-  OCAMLGRAPH_INCLUDE=
-  :;
-  fi
-}
-
-# if any, check if it is a compatible version
-if test "$OCAMLGRAPH_EXISTS" = "yes"; then
-  test_ocamlgraph_version='print_string Graph.Version.version;;'
-  echo $test_ocamlgraph_version > test_ocamlgraph.ml
-  if $OCAMLC -o test_ocamlgraph $OCAMLGRAPH_INCLUDE graph.cmo \
-       test_ocamlgraph.ml 2> /dev/null; \
-  then
-    OCAMLGRAPH_VERSION=`./test_ocamlgraph`
-    case $OCAMLGRAPH_VERSION in
-    1.8.1) ocamlgraph_error;;
-    1.8.2) ocamlgraph_error;;
-    1.8.3) ocamlgraph_error;;
-    1.8.4) AC_MSG_NOTICE([OcamlGraph $OCAMLGRAPH_VERSION found: great!]);;
-    1.8.*) AC_MSG_NOTICE(
-      [OcamlGraph $OCAMLGRAPH_VERSION > 1.8.4 found: should be compatible, but no warranty. Use it at your own risk!]);;
-    *) ocamlgraph_error;;
-    esac
-    if test "$OCAMLGRAPH_EXISTS" = "yes"; then # current version is ok
-      if test "$OCAMLBEST" = "opt"; then 
-        if $OCAMLOPT -o test_ocamlgraph $OCAMLGRAPH_INCLUDE graph.cmxa \
-          test_ocamlgraph.ml 2> /dev/null; \
-        then
-          AC_MSG_NOTICE([OcamlGraph native version is ok])
-        else
-          AC_MSG_NOTICE([OcamlGraph native version is not ok])
-          ocamlgraph_error
-        fi
-      else
-        ocamlgraph_error
-      fi
+    if test "$OCAMLGRAPH_EXISTS" = "no" -a "$OCAMLGRAPH_CUSTOM" = "yes"; then
+      AC_MSG_ERROR(
+       [unable to find OCamlGraph in custom location $OCAMLGRAPH_HOME.
+        Please give an appropriate value, or use default OCamlGraph library]);
     fi
   else
-    ocamlgraph_error
+    OCAMLGRAPH_HOME=$($OCAMLFIND query ocamlgraph 2>/dev/null \
+                            | tr -d '\r\n');
+    if test "$OCAMLGRAPH_HOME" != ""; then
+       OCAMLGRAPH_INCLUDE="-I $OCAMLGRAPH_HOME";
+       OCAMLGRAPH_EXISTS="yes";
+    else
+       AC_MSG_NOTICE(no package ocamlgraph in ocamlfind)
+    fi;
   fi
-  rm -f test_ocamlgraph test_ocamlgraph.ml test_ocamlgraph.cm*
-fi
 
-# allow local ocamlgraph
-AC_ARG_ENABLE(
-  local-ocamlgraph,
-  [  --enable-local-ocamlgraph    allow the user to use the local OcamlGraph version],
-  ENABLE_LOCAL_OCAMLGRAPH=$enableval,
-  ENABLE_LOCAL_OCAMLGRAPH=yes, # default value
-)
+
+  ocamlgraph_error() {
+    if test "$OCAMLGRAPH_CUSTOM" = "yes"; then
+    AC_MSG_ERROR(
+     [Custom OCamlGraph library version $OCAMLGRAPH_VERSION is incompatible with
+      Frama-C. Please provide another location or use default OCamlGraph]);
+    else
+    AC_MSG_NOTICE([OcamlGraph $OCAMLGRAPH_VERSION is incompatible with Frama-C.])
+    OCAMLGRAPH_EXISTS=no
+    OCAMLGRAPH_INCLUDE=
+    :;
+    fi
+  }
+
+  # if any, check if it is a compatible version
+  if test "$OCAMLGRAPH_EXISTS" = "yes"; then
+    test_ocamlgraph_version='print_string Graph.Version.version;;'
+    echo $test_ocamlgraph_version > test_ocamlgraph.ml
+    if $OCAMLC -o test_ocamlgraph $OCAMLGRAPH_INCLUDE graph.cmo \
+         test_ocamlgraph.ml 2> /dev/null; \
+    then
+      OCAMLGRAPH_VERSION=`./test_ocamlgraph`
+      case $OCAMLGRAPH_VERSION in
+      1.8.1 | 1.8.1+dev \
+      | 1.8.2 | 1.8.2+dev \
+      | 1.8.3 | 1.8.3+dev \
+      | 1.8.4 | 1.8.4+dev)
+        ocamlgraph_error;;
+      1.8.5 | 1.8.6)
+        AC_MSG_NOTICE([OcamlGraph $OCAMLGRAPH_VERSION found: great!]);;
+      1.8.*)
+        AC_MSG_NOTICE(
+          [OcamlGraph $OCAMLGRAPH_VERSION > 1.8.5 found: should be compatible, but no warranty.
+           Consider using --enable-local-ocamlgraph.]);;
+      *) ocamlgraph_error;;
+      esac
+      if test "$OCAMLGRAPH_EXISTS" = "yes"; then # current version is ok
+        if test "$OCAMLBEST" = "opt"; then 
+          if $OCAMLOPT -o test_ocamlgraph $OCAMLGRAPH_INCLUDE graph.cmxa \
+            test_ocamlgraph.ml 2> /dev/null; \
+          then
+            AC_MSG_NOTICE([OcamlGraph native version is ok])
+          else
+            AC_MSG_NOTICE([OcamlGraph native version is not ok])
+            ocamlgraph_error
+          fi
+        else
+          ocamlgraph_error
+        fi
+      fi
+    else
+      ocamlgraph_error
+    fi
+    rm -f test_ocamlgraph test_ocamlgraph.ml test_ocamlgraph.cm*
+  fi
+fi; # ENABLE_LOCAL_OCAMLGRAPH != yes
 
 # revert back to local version of ocamlgraph
 if test "$OCAMLGRAPH_EXISTS" = "no"; then
-  if test "$ENABLE_LOCAL_OCAMLGRAPH" = "yes"; then
+  if test "$ENABLE_LOCAL_OCAMLGRAPH" != "no"; then
     AC_MSG_NOTICE([switching to OcamlGraph provided by Frama-C])
     OCAMLGRAPH_LOCAL=ocamlgraph
     OCAMLGRAPH_HOME=
@@ -518,6 +530,11 @@ AC_CHECK_HEADERS(signal.h)
 AC_CHECK_HEADERS(unistd.h)
 
 # Local machdep feature (to generate new platforms)
+AC_ARG_ENABLE(
+  localmachdep,
+  [  --enable-localmachdep    enable local machdep configuration],
+  LOCAL_MACHDEP=$enableval,
+  LOCAL_MACHDEP=no)
 
 if test "$LOCAL_MACHDEP" = yes ; then
 
@@ -575,11 +592,18 @@ AC_MSG_CHECKING([for gcc version])
 AC_CHECK_TYPE(__builtin_va_list,
               HAVE_BUILTIN_VA_LIST=true,
               HAVE_BUILTIN_VA_LIST=false)
+if test "$HAVE_BUILTIN_VA_LIST" = "true" ;then
+   AC_DEFINE_UNQUOTED(HAVE_BUILTIN_VA_LIST, 1)
+fi
+
 AC_MSG_CHECKING([if __thread is a keyword])
 AC_COMPILE_IFELSE([AC_LANG_SOURCE([int main(int __thread) { return 0; }])],
                   THREAD_IS_KEYWORD=false,
                   THREAD_IS_KEYWORD=true)
 AC_MSG_RESULT($THREAD_IS_KEYWORD)
+if test "$THREAD_IS_KEYWORD" = "true" ;then
+   AC_DEFINE_UNQUOTED(THREAD_IS_KEYWORD, 1)
+fi
 
 # Does gcc add underscores to identifiers to make assembly labels?
 # (I think MSVC always does)
@@ -588,6 +612,9 @@ AC_LINK_IFELSE([AC_LANG_SOURCE([int main() { __asm__("jmp _main"); }])],
                   UNDERSCORE_NAME=true,
                   UNDERSCORE_NAME=false)
 AC_MSG_RESULT($UNDERSCORE_NAME)
+if test "$UNDERSCORE_NAME" = "true" ;then
+   AC_DEFINE_UNQUOTED(UNDERSCORE_NAME, 1)
+fi
 
 fi # local machdep configuration
 
@@ -625,29 +652,43 @@ if test "$FC_MCPP" = no; then
 # $CC. Note that we want to keep comments in the output, so that AC_PROG_CPP
 # alone is not sufficient.
   if test -z "$FRAMAC_DEFAULT_CPP"; then
-# We should use AC_CHECK_PROG_CPP, but then we would end up with a slightly
-# different command line than before for pre-processing (swapping -C and -E)
-# and since we have the brilliant idea to put this command line in our 
-# test oracles, changing that would be painful.
-    CPP=$CC
-    CPPFLAGS="-C -E -I.";
+    AC_PROG_CPP
+    CPPFLAGS="-C -I.";
+    if test -n "$GCC"; then FRAMAC_GNU_CPP=true; else FRAMAC_GNU_CPP=false; fi
   else
     CPP=$FRAMAC_DEFAULT_CPP;
+    FRAMAC_GNU_CPP=true;
+    CPPFLAGS="-dD -nostdinc"
+    AC_PREPROC_IFELSE(
+        [AC_LANG_SOURCE([#define foo 0
+                         /* foo */
+                         ])],
+        FRAMAC_GNU_CPP=true,
+        FRAMAC_GNU_CPP=false)
     CPPFLAGS=
   fi
   AC_PREPROC_IFELSE(
     [AC_LANG_SOURCE([/* Check whether comments are kept in output */])],
-    [if grep -e kept conftest.i; then
+    [if test -e conftest.i; then
+      if grep -e kept conftest.i; then
       FRAMAC_DEFAULT_CPP="$CPP $CPPFLAGS";
       DEFAULT_CPP_KEEP_COMMENTS=true;
      else
       AC_MSG_WARN([Default pre-processing command '$CPP' do not preserve
-                   comments. Please use define an appropriate pre-processor 
+                     comments. Please define an appropriate pre-processor 
                    with --with-cpp, or you will only be able to use ACSL
                    annotations in already pre-processed files])
       FRAMAC_DEFAULT_CPP=$CPP;
       DEFAULT_CPP_KEEP_COMMENTS=false;
-     fi],
+      fi;
+      else # handling old version of autoconf (<2.67) that does not keep
+           # preprocessor result in conftest.i
+        AC_MSG_WARN([Unable to check whether $CPP preserves comments.
+                     Assuming everything is fine])
+        FRAMAC_DEFAULT_CPP="$CPP $CPPFLAGS";
+        DEFAULT_CPP_KEEP_COMMENTS=true;
+      fi
+    ],
      [AC_MSG_WARN([Unable to find a working pre-processor.
                    Please define one with --with-cpp, or you will be able
                    to launch Frama-C only on pre-processed files])];
@@ -793,7 +834,7 @@ check_plugin(postdominators,src/postdominators,
 # rte
 #####
 
-check_plugin(rte_annotation,src/rte,
+check_plugin(rtegen,src/rte,
              [support for runtime error annotation],yes,no)
 
 # scope
@@ -864,28 +905,32 @@ AC_ARG_ENABLE(external,
 [[  --enable-external=plugin
                           allows to compile directly from Frama-C kernel
                           some external plug-ins.]],
-[ if test -d $enableval; then
-    AC_MSG_NOTICE([external plug-in $enableval found.])
-    EXTRA_EXTERNAL_PLUGINS="$EXTRA_EXTERNAL_PLUGINS $enableval"
-    olddir=`pwd`
-    cd $enableval;
+[ 
+ for dir in $enableval; do
+  if test -d $dir; then
+    AC_MSG_NOTICE([external plug-in $dir found.])
+    EXTRA_EXTERNAL_PLUGINS="$EXTRA_EXTERNAL_PLUGINS $dir"
+    olddir=$(pwd)
+    cd $dir;
     if test -x ./configure; then
-      new_section "configure plug-in $enableval"
+      new_section "configure plug-in $dir"
       ./configure --prefix=$prefix --datarootdir=$datarootdir \
         --exec_prefix=$exec_prefix --bindir=$bindir --libdir=$datadir/frama-c \
         --host=$host --build=$build --mandir=$mandir \
       || \
-      AC_MSG_ERROR([cannot configure requested external plugin in $enableval])
+      AC_MSG_ERROR([cannot configure requested external plugin in $dir])
      fi;
      cd $olddir
   else
     AC_MSG_ERROR([--enable-external expects an existing directory as argument.])
-  fi
+  fi;
+ done
 ])
 
 define([KNOWN_SRC_DIRS],
        KNOWN_SRC_DIRS src/kernel src/project src/logic src/dummy src/toplevel \
-       src/lib src/misc src/qed src/type src/printer)
+       src/lib src/misc src/qed src/type src/printer \
+       src/ai src/memory_state)
 
 AC_FOREACH([__plugin],m4_esyscmd([ls src]),
   [ m4_if(m4_index(KNOWN_SRC_DIRS,__plugin),[-1],
@@ -899,15 +944,25 @@ AC_FOREACH([__plugin],m4_esyscmd([ls src]),
         m4_if(config_file,[no],
           [ m4_syscmd(test -r src/__plugin/Makefile)
             m4_if(m4_sysval,[0],
-              [ check_plugin(__plugin,src/__plugin,
-                             [support for __plugin plug-in],yes,yes)
-                if test "$[ENABLE_]tovarname(__plugin)" != "no"; then
-                  EXTERNAL_PLUGINS="$EXTERNAL_PLUGINS src/__plugin";
-                fi])],
-          [ m4_define([plugin_prefix],src/__plugin)
-            m4_include(config_file)
-            m4_syscmd(cd src/__plugin && [FRAMAC_SHARE]=../../share autoconf)
-            ])
+              [ m4_syscmd(test "$DISTRIB_CONF" = "yes" && \
+                           grep -q -e "PLUGIN_DISTRIBUTED *:= *no" \ 
+                                src/__plugin/Makefile
+                           )
+                m4_if(m4_sysval,[0],,
+                      [ check_plugin(__plugin,src/__plugin,
+                         [support for __plugin plug-in],yes,yes)
+                      if test "$[ENABLE_]tovarname(__plugin)" != "no"; then
+                         EXTERNAL_PLUGINS="$EXTERNAL_PLUGINS src/__plugin";
+                      fi])])],
+          [ m4_syscmd(test "$DISTRIB_CONF" = "yes" && \
+                      grep -q -e "PLUGIN_DISTRIBUTED:=no" \
+                            src/__plugin/Makefile.in)
+            m4_if(m4_sysval,[0],,
+              [ m4_define([plugin_prefix],src/__plugin)
+                m4_include(config_file)
+                m4_syscmd(cd src/__plugin && 
+                          [FRAMAC_SHARE]=../../share autoconf)])
+          ])
       ])
   ])
 
@@ -943,7 +998,6 @@ configure_library([LABLGTK],[$LABLGTKPATH_FOR_CONFIGURE/lablgtk.$LIB_SUFFIX],
                   [$LABLGTKPATH_FOR_CONFIGURE/lablgtk.$LIB_SUFFIX not found.],no)
 
 if test "$HAS_LABLGTK" = "yes"; then
-
 
   # Gtksourceview
   ###############
@@ -1098,8 +1152,10 @@ AC_SUBST(CYCLES_PER_USEC)
 AC_SUBST(LOCAL_MACHDEP)
 AC_SUBST(datarootdir)
 AC_SUBST(FRAMAC_DEFAULT_CPP)
+AC_SUBST(FRAMAC_GNU_CPP)
 AC_SUBST(DEFAULT_CPP_KEEP_COMMENTS)
 AC_SUBST(FC_MCPP)
+AC_SUBST(CC)
 
 AC_SUBST(EXTERNAL_PLUGINS)
 

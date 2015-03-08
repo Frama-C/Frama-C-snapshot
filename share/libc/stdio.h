@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2014                                               */
+/*  Copyright (C) 2007-2015                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -25,15 +25,12 @@
 #define __FC_STDIO
 #include "__fc_machdep.h"
 #include "stdarg.h"
+#include "stddef.h"
 #include "errno.h"
 #include "__fc_define_stat.h"
-#include "__fc_define_size_t.h"
 #include "__fc_define_restrict.h"
+#include "__fc_define_fpos_t.h"
 #include "__fc_define_file.h"
-
-struct __fc_pos_t { unsigned long __fc_stdio_position; };
-typedef struct __fc_pos_t fpos_t;
-
 #include "__fc_define_null.h"
 
 #define _IOFBF 0
@@ -88,13 +85,14 @@ int fclose(FILE *stream);
  */
 int fflush(FILE *stream);
 
-FILE __fc_fopen[2]; /* TODO: use __FC_FOPEN_MAX for size. Currently not
-                       possible because it is not possible to say that fopen
-                       returns one of the elements of __fc_fopen. */
+FILE __fc_fopen[__FC_FOPEN_MAX];
 const FILE* _p__fc_fopen = __fc_fopen;
 
-/*@ assigns \result \from filename[..],mode[..], _p__fc_fopen; 
-  ensures \result==\null || ((\result == &__fc_fopen[0] || \result == &__fc_fopen[1]) && \fresh(\result,sizeof(FILE))) ;
+/*@ 
+  assigns \result \from filename[..],mode[..], _p__fc_fopen; 
+  ensures 
+  \result==\null 
+  || (\valid(\result) && (\subset(\result,&__fc_fopen[0..]))) ;
 */ 
 FILE *fopen(const char * restrict filename,
      const char * restrict mode);

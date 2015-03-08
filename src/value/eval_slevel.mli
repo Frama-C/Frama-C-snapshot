@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -30,10 +30,9 @@ module Computer
      val active_behaviors : Eval_annots.ActiveBehaviors.t
    end) :
 sig
-  type u = { mutable to_propagate : State_set.t; }
-  include Dataflow2.ForwardsTransfer with type t = u
+  val compute: State_set.t -> unit
 
+  val results: unit -> Value_types.call_result
   val merge_results : unit -> unit
   val mark_degeneration : unit -> unit
-  val results: unit -> Value_types.call_result
 end

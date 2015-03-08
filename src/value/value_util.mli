@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -55,24 +55,41 @@ val get_slevel : Kernel_function.t -> Value_parameters.SlevelFunction.value
 val warn_indeterminate: Kernel_function.t -> bool
 val set_loc : kinstr -> unit
 module Got_Imprecise_Value : State_builder.Ref with type data = Datatype.Bool.t
-val pretty_actuals : Format.formatter -> ('a * Cvalue.V.t * 'b) list -> unit
+val pretty_actuals :
+  Format.formatter -> (Cil_types.exp * Cvalue.V.t * 'b) list -> unit
 val pretty_current_cfunction_name : Format.formatter -> unit
 val warning_once_current : ('a, Format.formatter, unit) format -> 'a
 val debug_result :
   Kernel_function.t ->
   Cvalue.V_Offsetmap.t option * 'a * Base.SetLattice.t -> unit
-val map_outputs :
-  (Cvalue.Model.t -> 'a) ->
-  (Cvalue.V_Offsetmap.t option * Cvalue.Model.t) list ->
-  (Cvalue.V_Offsetmap.t option * 'a) list
-val remove_formals_from_state :
-  varinfo list -> Cvalue.Model.t -> Cvalue.Model.t
+
 
 (* Statements for which the analysis has degenerated. [true] means that this is
    the statement on which the degeneration occurred, or a statement above in
    the callstack *)
 module DegenerationPoints:
   State_builder.Hashtbl with type key = stmt and type data = bool
+
+
+val create_new_var: string -> typ -> varinfo
+(** Create and register a new variable inside Frama-C. The variable
+    has its [vlogic] field set, meaning it is not a source variable. The
+    freshness of the name must be ensured by the user. *)
+
+val is_const_write_invalid: typ -> bool
+(** Detect that the type is const, and that option [-global-const] is set. In
+    this case, we forbid writing in a l-value that has this type. *)
+
+val float_kind: Cil_types.fkind -> Ival.Float_abstract.float_kind
+(** Classify a [Cil_types.fkind] as either a 32 or 64 floating-point type.
+    Emit a warning when the argument is [long double], and [long double]
+    is not equal to [double] *)
+
+val postconditions_mention_result: Cil_types.funspec -> bool
+(** Does the post-conditions of this specification mention [\result]? *)
+
+val written_formals: Cil_types.kernel_function -> Cil_types.varinfo list
+(** Over-approximation of its formals the given function may write into. *)
 
 (*
 Local Variables:

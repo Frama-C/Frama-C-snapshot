@@ -1,0 +1,70 @@
+[kernel] preprocessing with "gcc -C -E -I.  tests/libc/string.c"
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+[value] computing for function test_strcmp <- main.
+        Called from tests/libc/string.c:20.
+[value] computing for function strcmp <- test_strcmp <- main.
+        Called from tests/libc/string.c:5.
+[kernel] warning: Neither code nor specification for function strcmp, generating default assigns from the prototype
+[value] using specification for function strcmp
+[value] Done for function strcmp
+tests/libc/string.c:6:[value] Assertion got status unknown.
+[value] Recording results for test_strcmp
+[value] Done for function test_strcmp
+[value] computing for function test_strcat <- main.
+        Called from tests/libc/string.c:21.
+[value] computing for function strcat <- test_strcat <- main.
+        Called from tests/libc/string.c:13.
+[kernel] warning: Neither code nor specification for function strcat, generating default assigns from the prototype
+[value] using specification for function strcat
+[value] Done for function strcat
+[value] Recording results for test_strcat
+[value] Done for function test_strcat
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function test_strcat:
+          string[0] ∈ [--..--]
+                [1..9] ∈ UNINITIALIZED
+[value] Values at end of function test_strcmp:
+          res ∈ {0}
+[value] Values at end of function main:
+          __retres ∈ {0}
+[from] Computing for function test_strcat
+[from] Computing for function strcat <-test_strcat
+[from] Done for function strcat
+[from] Done for function test_strcat
+[from] Computing for function test_strcmp
+[from] Computing for function strcmp <-test_strcmp
+[from] Done for function strcmp
+[from] Done for function test_strcmp
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function strcat:
+         string[0] FROM string[0]; "hello"[bits 0 to 7]
+         \result FROM string[0]; "hello"[bits 0 to 7]
+[from] Function strcmp:
+         \result FROM "hello"[bits 0 to 7]; "world"[bits 0 to 7]
+[from] Function test_strcat:
+         NO EFFECTS
+[from] Function test_strcmp:
+         NO EFFECTS
+[from] Function main:
+         \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function test_strcat:
+          string[0]
+[inout] Inputs for function test_strcat:
+          "hello"[bits 0 to 7]
+[inout] Out (internal) for function test_strcmp:
+          res
+[inout] Inputs for function test_strcmp:
+          "hello"[bits 0 to 7]; "world"[bits 0 to 7]
+[inout] Out (internal) for function main:
+          __retres
+[inout] Inputs for function main:
+          "hello"[bits 0 to 7]; "world"[bits 0 to 7]; "hello"[bits 0 to 7]

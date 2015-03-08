@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -23,105 +23,132 @@
 (** Functors making map indexed by zone.
     @plugin development guide *)
 
-open Abstract_interp
-open Lattice_Interval_Set
 open Locations
 
 exception Bitwise_cannot_copy
 
 module type Location_map_bitwise = sig
 
-  type y
+  type v
 
-  include Datatype.S
+  type map
+
+  type lmap = Top | Map of map | Bottom
+
+  include Datatype.S with type t = lmap
   include Lattice_type.Bounded_Join_Semi_Lattice with type t := t
   include Lattice_type.With_Top with type t := t
 
-  module LOffset : sig
-    include Datatype.S
-    val map: ((bool * y) -> (bool * y)) -> t -> t
-    val fold :
-      (Int_Intervals.t -> bool * y -> 'a -> 'a) -> t -> 'a -> 'a
-    val fold_fuse_same :
-      (Int_Intervals.t -> bool * y -> 'a -> 'a) -> t -> 'a -> 'a
-    val join: t -> t -> t
-    val pretty_with_type:
-      Cil_types.typ option-> Format.formatter -> t -> unit
-    val collapse : t -> y
-    val empty : t
-    val degenerate: y -> t
-    val is_empty: t->bool
-    val add_iset : exact:bool -> Int_Intervals.t -> y -> t -> t
-  end
+  module LOffset :
+    module type of Offsetmap_bitwise_sig
+      with type v = v
+      and type intervals = Int_Intervals.t
 
-  val empty : t
   val is_empty : t -> bool
   val is_bottom : t -> bool
+  val empty : t
+  val empty_map: map
 
   val pretty_generic_printer:
-    y Pretty_utils.formatter -> string -> t Pretty_utils.formatter
+    ?pretty_v: v Pretty_utils.formatter ->
+    ?skip_v: (v -> bool) ->
+    sep:string ->
+    unit ->
+    t Pretty_utils.formatter
 
-  val add_binding : exact:bool -> t -> Zone.t -> y -> t
+  val add_binding : reducing:bool -> exact:bool -> t -> Zone.t -> v -> t
+  val add_binding_loc: reducing:bool -> exact:bool -> t -> location -> v -> t
+  val add_base: Base.t -> LOffset.t -> t -> t
 
-  val map_and_merge : (y -> y) -> t -> t -> t
-    (** [map_and_merge f m1 m2] maps [f] on values in [m1] and [add_exact]
-        all elements of the mapped [m1] to [m2] *)
+  val find : t -> Zone.t -> v
 
   val filter_base : (Base.t -> bool) -> t -> t
-  val find : t -> Zone.t -> y
-  val find_base: t -> Zone.t -> LOffset.t
-
-  exception Cannot_fold
-
-  val uninitialize: Cil_types.varinfo list -> t -> t
-    (** binds the given variables to bottom, keeps the other unchanged. *)
-
-  val fold : (Zone.t -> bool * y -> 'a -> 'a) -> t -> 'a -> 'a
-    (** [fold f m] folds a function [f] on bindings in [m].  Each binding
-        associates to a zone a boolean representing the possibility that the
-        zone was not modified, and a value of type y. May raise
-        [Cannot_fold]. *)
-  val fold_base : (Base.t -> LOffset.t -> 'a -> 'a) -> t -> 'a -> 'a
-
-  val fold_fuse_same : (Zone.t -> bool * y -> 'a -> 'a) -> t -> 'a -> 'a
-    (** Same behavior as [fold], except if two disjoint ranges [r1] and [r2] of
-        a given base are mapped to the same value and boolean. In this
-        case, [fold] will call its argument [f] on [r1], then on [r2].
-        [fold_fuse_same] will call it directly on [r1 U r2], where U
-        is the join on sets of intervals.
-
-        May raise [Cannot_fold].
-    *)
 
 
-  val map2 : ((bool * y) option -> (bool * y) option -> bool * y)
-    -> t -> t -> t
-    (** like for [fold], the boolean in [bool * y] indicates if it is possible
-        that the zone was not modified *)
+  (** {2 Iterators} *)
 
-  val copy_paste :
-    f:(bool * y -> bool * y) ->
-    location -> location -> t -> t
-  (** This function takes a function [f] to be applied to each bit of
-      the read slice. Otherwise, it has the same specification as
-      [copy_paste] for [Location_map.copy_paste]. It may raise
-      [Bitwise_cannot_copy].
-      Precondition : the two locations must have the same size *)
+  val map: (v -> v) -> t -> t
+
+  (** The following fold_* functions, as well as {!map2} take arguments
+      of type [map] to force their user to handle the cases Top and Bottom
+      explicitly. *)
+  val fold: (Zone.t -> v -> 'a -> 'a) -> map -> 'a -> 'a
+    (** [fold f m] folds a function [f] on the bindings in [m]. Contiguous
+        bits with the same value are merged into a single zone. Different bases
+        are presented in different zones. *)
+
+  val fold_base : (Base.t -> LOffset.t -> 'a -> 'a) -> map -> 'a -> 'a
+
+  val fold_fuse_same : (Zone.t -> v -> 'a -> 'a) -> map -> 'a -> 'a
+    (** Same behavior as [fold], except if two non-contiguous ranges [r1] and
+        [r2] of a given base are mapped to the same value.
+        [fold] will call its argument [f] on each range successively
+        (hence, in our example, on [r1] and [r2] separately).
+        Conversely, [fold_fuse_same] will call [f] directly on [r1 U r2],
+        U being the join on sets of intervals. *)
+
+  val fold_join_zone:
+    both:(Int_Intervals.t -> LOffset.t -> 'a) ->
+    conv:(Base.t -> 'a -> 'b) ->
+    empty_map:(Locations.Zone.t -> 'b) ->
+    join:('b -> 'b -> 'b) ->
+    empty:'b ->
+    Locations.Zone.t -> map -> 'b
+  (** [fold_join_zone ~both ~conv ~empty_map ~join ~empty z m] folds over the
+      intervals present in [z]. When a base [b] is present in both [z] and [m],
+      and bound respectively to [itvs] and [mb], [both itvs mb] is called.
+      The results obtained for this base [b] are then converted using [conv].
+      If a sub-zone [z'] is present in [z], but the corresponding bases are
+      not bound in [m], [empty_map z'] is called. All the sub-results (of type)
+      ['b] are joined using [join]. [empty] is used when an empty map or
+      sub-zone is encountered. It must be a neutral element for [join].
+
+      This function internally uses a cache, and {b must} be partially applied
+      to its named arguments. (This explains the somewhat contrived interface,
+      in particular the fact that [both] and [conv] are not fused.) *)
+
+  val map2:
+    Hptmap.cache_type -> idempotent:bool -> empty_neutral: bool ->
+    (LOffset.t -> LOffset.t -> LOffset.map2_decide) ->
+    (v -> v -> v) -> map -> map -> map
+  (** 'map'-like function between two interval maps, implemented as a
+      simultaneous descent in both maps.
+      [map2 cache ~idempotent ~empty_neutral decide_fast f m1 m2] computes the
+      map containing [k |-> f v_1 v_2] for all the keys [k] present in either
+      [m1] or [m2]. When a key is present, [v_i] is the corresponding value in
+      the map. When it is missing in one of the maps, a default value is
+      generated. (See argument [default] to functor {!Make_bitwise} below.)
+
+      [idempotent], [empty_neutral] and [decide_fast] are present for
+      optimisation purposes, to avoid visiting some trees. If [idempotent]
+      holds, [f v v = v] must also holds. Similarly, if [empty_neutral] holds,
+      [f v default = f default v = v] must hold. [decide_fast] is called before
+      visiting two subtrees, and can be used to stop the recursion early. See
+      the documentation of {!Offsetmap_sig.map2_decide}. 
+
+      Depending on the value of [cache], the results of this function will be
+      cached. *)
+
+  (** {2 Misc} *)
+
+  val shape: map -> LOffset.t Hptmap.Shape(Base.Base).t
+
+  val imprecise_write_msg: string ref
 
   (** Clear the caches local to this module. Beware that they are not
       project-aware, and that you must call them at every project switch. *)
   val clear_caches: unit -> unit
+
 end
 
-(** Lattice with default values on a range or on an entire base. *)
 module type With_default = sig
   include Lattice_type.Bounded_Join_Semi_Lattice
   include Lattice_type.With_Top with type t := t
-  val default : Base.t -> Int.t -> Int.t -> t
-  val defaultall : Base.t -> t
+  include Lattice_type.With_Narrow with type t := t
+  val default: t
 end
 
-module Make_bitwise(V : With_default) : Location_map_bitwise with type y = V.t
+module Make_bitwise(V : With_default) : Location_map_bitwise with type v = V.t
 
 (*
 Local Variables:

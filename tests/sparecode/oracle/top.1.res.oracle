@@ -1,0 +1,149 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/sparecode/top.c (with preprocessing)
+[sparecode] remove unused code...
+[sparecode] selecting function main_call_top outputs and entry point
+[value] Analyzing a complete application starting at main_call_top
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  
+[value] computing for function main_top <- main_call_top.
+        Called from tests/sparecode/top.c:26.
+[value] computing for function f <- main_top <- main_call_top.
+        Called from tests/sparecode/top.c:21.
+[value] Recording results for f
+[value] Done for function f
+[value] Recording results for main_top
+[value] Done for function main_top
+[value] computing for function not_used_in_main_top <- main_call_top.
+        Called from tests/sparecode/top.c:27.
+[value] computing for function print <- not_used_in_main_top <- main_call_top.
+        Called from tests/sparecode/top.c:10.
+tests/sparecode/top.c:10:[kernel] warning: Neither code nor specification for function print, generating default assigns from the prototype
+[value] using specification for function print
+[value] Done for function print
+[value] Recording results for not_used_in_main_top
+[value] Done for function not_used_in_main_top
+[value] Recording results for main_call_top
+[value] done for function main_call_top
+[pdg] computing for function main_call_top
+[from] Computing for function main_top
+[from] Computing for function f <-main_top
+[from] Done for function f
+[from] Done for function main_top
+[from] Computing for function not_used_in_main_top
+[from] Computing for function print <-not_used_in_main_top
+[from] Done for function print
+[from] Done for function not_used_in_main_top
+[pdg] done for function main_call_top
+[sparecode] add selection in function 'main_call_top'
+[sparecode] selecting output zones \nothing
+[sparecode] add selection in function 'main_call_top'
+[pdg] computing for function not_used_in_main_top
+[pdg] done for function not_used_in_main_top
+[pdg] computing for function main_top
+[pdg] warning: not implemented by pdg yet: variadic function
+[pdg] Top for function main_top
+[sparecode] memo call to TOP 'main_top'
+[sparecode] select 'main_top' as fully visible (top or called by top)
+[users] requiring again the computation of the value analysis
+[value] Analyzing a complete application starting at main_call_top
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  
+[value] computing for function main_top <- main_call_top.
+        Called from tests/sparecode/top.c:26.
+[value] computing for function f <- main_top <- main_call_top.
+        Called from tests/sparecode/top.c:21.
+[value] Recording results for f
+[value] Done for function f
+[value] Recording results for main_top
+[value] Done for function main_top
+[value] computing for function not_used_in_main_top <- main_call_top.
+        Called from tests/sparecode/top.c:27.
+[value] computing for function print <- not_used_in_main_top <- main_call_top.
+        Called from tests/sparecode/top.c:10.
+[value] Done for function print
+[value] Recording results for not_used_in_main_top
+[value] Done for function not_used_in_main_top
+[value] Recording results for main_call_top
+[value] done for function main_call_top
+[sparecode] select 'f' as fully visible (top or called by top)
+[sparecode] look for annotations in function Frama_C_bzero
+[pdg] computing for function Frama_C_bzero
+[from] Computing for function Frama_C_bzero
+[from] Done for function Frama_C_bzero
+[pdg] done for function Frama_C_bzero
+[sparecode] look for annotations in function Frama_C_copy_block
+[pdg] computing for function Frama_C_copy_block
+[from] Computing for function Frama_C_copy_block
+[from] Done for function Frama_C_copy_block
+[pdg] done for function Frama_C_copy_block
+[sparecode] look for annotations in function f
+[pdg] computing for function f
+[pdg] done for function f
+[sparecode] look for annotations in function main_call_top
+[pdg] computing for function main_call_top
+[from] Computing for function main_top
+[from] Computing for function f <-main_top
+[from] Done for function f
+[from] Done for function main_top
+[from] Computing for function not_used_in_main_top
+[from] Computing for function print <-not_used_in_main_top
+[from] Done for function print
+[from] Done for function not_used_in_main_top
+[pdg] done for function main_call_top
+[sparecode] look for annotations in function main_top
+[pdg] computing for function main_top
+[pdg] warning: not implemented by pdg yet: variadic function
+[pdg] Top for function main_top
+[sparecode] pdg top: skip annotations
+[sparecode] look for annotations in function main_top_not_used
+[pdg] computing for function main_top_not_used
+[pdg] warning: unreachable entry point (sid:18, function main_top_not_used)
+[pdg] Bottom for function main_top_not_used
+[sparecode] pdg bottom: skip annotations
+[sparecode] look for annotations in function not_used_in_main_top
+[pdg] computing for function not_used_in_main_top
+[pdg] done for function not_used_in_main_top
+[sparecode] look for annotations in function print
+[pdg] computing for function print
+[pdg] done for function print
+[sparecode] finalize call input propagation
+[sparecode] add selection in function 'main_call_top'
+[sparecode] remove unused global declarations...
+[sparecode] result in new project 'default without sparecode'.
+/* Generated by Frama-C */
+int not_used_in_main_top(int x)
+{
+  int __retres;
+  __retres = x + 2;
+  return __retres;
+}
+
+int f(int a)
+{
+  int __retres;
+  __retres = a + 1;
+  return __retres;
+}
+
+int main_top(int nb , ...)
+{
+  int x;
+  int y;
+  x = 3;
+  y = f(2);
+  return x;
+}
+
+int main_call_top(void)
+{
+  int x;
+  x = main_top(2,0,1);
+  x = not_used_in_main_top(x);
+  return x;
+}
+
+

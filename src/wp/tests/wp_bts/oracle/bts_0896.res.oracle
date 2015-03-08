@@ -1,0 +1,32 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_bts/bts_0896.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function f
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition 'r2' in 'g'' in 'f' at call 'g' (file tests/wp_bts/bts_0896.i, line 22)
+:
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function g
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_bts/bts_0896.i, line 18) in 'g':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_bts/bts_0896.i, line 18) in 'g':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------

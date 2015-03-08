@@ -1,0 +1,19 @@
+# frama-c -wp -wp-model 'Typed (Ref)' [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_typed/unit_loopscope.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] Collecting variable usage
+tests/wp_typed/unit_loopscope.i:14:[wp] warning: Missing assigns clause (assigns 'everything' instead)
+[wp] 2 goals scheduled
+[wp] [Qed] Goal typed_ref_f_loop_inv_preserved : Valid
+[wp] [Alt-Ergo] Goal typed_ref_f_loop_inv_established : Unknown
+[wp] Proved goals:    1 / 2
+     Qed:             1 
+     Alt-Ergo:        0  (unknown: 1)
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+f                    1     -           2      50.0%
+----------------------------------------------------------

@@ -1,0 +1,59 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/pdg/simple_call.c (with preprocessing)
+[value] Analyzing a complete application starting at call_mix_G1_G2
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  G ∈ [--..--]
+  G1 ∈ [--..--]
+  G2 ∈ [--..--]
+  S ∈ [--..--]
+[value] computing for function mix_G1_G2 <- call_mix_G1_G2.
+        Called from tests/pdg/simple_call.c:28.
+[value] Recording results for mix_G1_G2
+[value] Done for function mix_G1_G2
+tests/pdg/simple_call.c:31:[kernel] warning: signed overflow. assert -2147483648 ≤ x1+x2 ≤ 2147483647;
+[value] Recording results for call_mix_G1_G2
+[value] done for function call_mix_G1_G2
+[pdg] computing for function call_mix_G1_G2
+[from] Computing for function mix_G1_G2
+[from] Done for function mix_G1_G2
+[pdg] done for function call_mix_G1_G2
+[pdg] PDG for call_mix_G1_G2
+ {n1}: InCtrl
+ {n2}: VarDecl : x1
+ {n3}: VarDecl : x2
+ {n4}: VarDecl : __retres
+ {n5}: Call7-InCtrl : mix_G1_G2();
+   -[-c-]-> 1
+ {n6}: Call7-Out(G1) : mix_G1_G2();
+   -[-c-]-> 1
+   -[-c-]-> 5
+   -[--d]-> 14
+ {n7}: Call7-Out(G2) : mix_G1_G2();
+   -[-c-]-> 1
+   -[-c-]-> 5
+   -[--d]-> 13
+ {n8}: x1 = G1;
+   -[-c-]-> 1
+   -[a--]-> 2
+   -[--d](G1)-> 6
+ {n9}: x2 = G2;
+   -[-c-]-> 1
+   -[a--]-> 3
+   -[--d](G2)-> 7
+ {n10}: __retres = x1 + x2;
+   -[-c-]-> 1
+   -[--d]-> 2
+   -[--d]-> 3
+   -[a--]-> 4
+   -[--d]-> 8
+   -[--d]-> 9
+ {n11}: return __retres;
+   -[-c-]-> 1
+   -[--d]-> 4
+   -[--d]-> 10
+ {n12}: OutRet
+   -[--d]-> 11
+ {n13}: In(G1)
+ {n14}: In(G2)

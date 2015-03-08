@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -31,6 +31,16 @@ module type S = sig
     val shape: t -> unit shape
     val from_shape: 'a shape -> t
 
+    val fold2_join_heterogeneous:
+      cache:Hptmap.cache_type ->
+      empty_left:('a shape -> 'b) ->
+      empty_right:(t -> 'b) ->
+      both:(elt -> 'a -> 'b) ->
+      join:('b -> 'b -> 'b) ->
+      empty:'b ->
+      t -> 'a shape ->
+      'b
+
     val clear_caches: unit -> unit
 end
 
@@ -49,7 +59,7 @@ module Make(X: Hptmap.Id_Datatype)
   include
     Hptmap.Make
     (X)
-    (Datatype.Unit)
+    (struct include Datatype.Unit let pretty_debug = pretty end)
     (Hptmap.Comp_unused)
     (struct let v = List.map (List.map (fun k -> k, ())) Initial_Values.v end)
     (Datatype_deps)
@@ -95,7 +105,7 @@ module Make(X: Hptmap.Id_Datatype)
     in
     let i2 = inter s1 s2 in
     if not (i1 == i2) then
-      Kernel.error "%a@./@.%a@.->@.%a@./@.%a"
+      Cmdline.Kernel_log.error "%a@./@.%a@.->@.%a@./@.%a"
         pretty_debug s1 pretty_debug s2 pretty_debug i1 pretty_debug i2;
     i1
 
@@ -103,6 +113,7 @@ module Make(X: Hptmap.Id_Datatype)
     let name = Format.sprintf "Hptset(%s).union" X.name in
     symmetric_merge
       ~cache:(name, ())
+      ~empty_neutral:true
       ~decide_none:(fun _k () -> ())
       ~decide_some:(fun () () -> ())
 
@@ -114,7 +125,7 @@ module Make(X: Hptmap.Id_Datatype)
 
   let subset =
     let name = Format.sprintf "Hptset(%s).subset" X.name in
-    binary_predicate (PersistentCache name) UniversalPredicate
+    binary_predicate (Hptmap.PersistentCache name) UniversalPredicate
       ~decide_fast:decide_fast_inclusion
       ~decide_fst:(fun _ () -> false)
       ~decide_snd:(fun _ () -> true)
@@ -133,7 +144,9 @@ module Make(X: Hptmap.Id_Datatype)
 
   let intersects =
     let name = Pretty_utils.sfprintf "Hptset(%s).intersects" X.name in
-    symmetric_binary_predicate (PersistentCache name) ExistentialPredicate
+    symmetric_binary_predicate
+      (Hptmap.PersistentCache name)
+      ExistentialPredicate
       ~decide_fast:decide_fast_intersection
       ~decide_one:(fun _ () -> false)
       ~decide_both:(fun _ () () -> true)
@@ -141,6 +154,11 @@ module Make(X: Hptmap.Id_Datatype)
   let of_list l = List.fold_left (fun acc key -> add key acc) empty l
 
   let from_shape m = from_shape (fun _ _ -> ()) m
+
+  (* Partial application is needed becauses of caches *)
+  let fold2_join_heterogeneous ~cache ~empty_left ~empty_right ~both ~join ~empty =
+    let both k () v = both k v in
+    fold2_join_heterogeneous ~cache ~empty_left ~empty_right ~both ~join ~empty
 
 end
 

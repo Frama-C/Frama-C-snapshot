@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -242,6 +242,8 @@ let init =
             "\\round_float", ["m",  rounding_mode; "x", Lreal], float_type;
             "\\round_double", ["m", rounding_mode ; "x", Lreal], double_type;
             (*"\\round_quad", ["m",  rounding_mode; "x", Lreal], long_double_type;*)
+            "\\min", ["s", Ltype (set, [Linteger])], Linteger;
+            "\\max", ["s", Ltype (set, [Linteger])], Linteger;
           ]
     end
 

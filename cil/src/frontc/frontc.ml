@@ -54,7 +54,7 @@ let close_output _ =
       close_me := false
   end
 
-   (* Signal that we are in MS VC mode *)
+(* Signal that we are in MS VC mode *) (* BY: never called *)
 let setMSVCMode () =
   Cprint.msvcMode := true
 

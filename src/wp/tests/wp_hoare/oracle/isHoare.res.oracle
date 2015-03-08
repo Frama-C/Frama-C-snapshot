@@ -1,0 +1,17 @@
+# frama-c -wp -wp-model 'Typed (Ref)' [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_hoare/isHoare.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] Collecting variable usage
+------------------------------------------------------------
+  Function cmp_invalid_addr_as_int
+------------------------------------------------------------
+
+Goal Post-condition 'ok' in 'cmp_invalid_addr_as_int':
+Assume { (* Heap *) Have: (linked Malloc_4). }
+Prove: true.
+
+------------------------------------------------------------

@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2014                                               */
+/*  Copyright (C) 2007-2015                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -25,6 +25,9 @@
 #include "__fc_machdep.h"
 typedef __PTRDIFF_T ptrdiff_t;
 #include "__fc_define_size_t.h"
+#ifdef __GNU_C__
+#include "__fc_define_ssize_t.h"
+#endif
 #include "__fc_define_wchar_t.h"
 #include "__fc_define_null.h"
 #define offsetof(type, member) __builtin_offsetof(type,member)

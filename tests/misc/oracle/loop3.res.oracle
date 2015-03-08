@@ -1,0 +1,54 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/loop3.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  i ∈ {0}
+  j ∈ {0}
+  k ∈ {0}
+[value] computing for function any_int <- main.
+        Called from tests/misc/loop3.c:8.
+tests/misc/any_int.c:9:[value] entering loop for the first time
+tests/misc/any_int.c:9:[kernel] warning: signed overflow. assert y+1 ≤ 2147483647;
+tests/misc/any_int.c:9:[kernel] warning: signed overflow. assert y+1 ≤ 2147483647;
+tests/misc/any_int.c:9:[kernel] warning: signed overflow. assert -2147483648 ≤ y-1;
+tests/misc/any_int.c:9:[kernel] warning: signed overflow. assert x+1 ≤ 2147483647;
+tests/misc/any_int.c:9:[kernel] warning: signed overflow. assert -2147483648 ≤ x-1;
+[value] Recording results for any_int
+[value] Done for function any_int
+tests/misc/loop3.c:11:[value] entering loop for the first time
+tests/misc/loop3.c:11:[kernel] warning: signed overflow. assert j+3 ≤ 2147483647;
+tests/misc/loop3.c:11:[kernel] warning: signed overflow. assert k+8 ≤ 2147483647;
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function any_int:
+  y ∈ [--..--]
+  x ∈ [--..--]
+[value] Values at end of function main:
+  i ∈ {100}
+  j ∈ [0..2147483646],0%3
+  k ∈ [0..2147483640],0%8
+  b ∈ [--..--]
+[from] Computing for function any_int
+[from] Done for function any_int
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function any_int:
+  \result FROM \nothing
+[from] Function main:
+  i FROM \nothing
+  j FROM \nothing
+  k FROM k (and SELF)
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function any_int:
+          y; x
+[inout] Inputs for function any_int:
+          \nothing
+[inout] Out (internal) for function main:
+          i; j; k; b
+[inout] Inputs for function main:
+          i; j; k

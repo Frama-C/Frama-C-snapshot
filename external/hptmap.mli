@@ -37,6 +37,12 @@ module type Id_Datatype = sig
                          [equal k1 k2 ==> id k1 = id k2] *)
 end
 
+(** Values stored in the map *)
+module type V = sig
+  include Datatype.S
+  val pretty_debug: t Pretty_utils.formatter
+end
+
 (** This functor exports the {i shape} of the maps indexed by keys [Key].
     Those shapes can be used by various functions to efficiently build
     new maps whose shape are already known. *)
@@ -44,9 +50,22 @@ module Shape (Key : Id_Datatype): sig
   type 'value t
 end
 
+(** Some functions of this module may optionally use internal caches. It is
+    the responsibility of the use to choose whether or not to use a cache,
+    and whether this cache will be garbage-collectable by OCaml. *)
+type cache_type =
+| NoCache (** The results of the function will not be cached. *)
+| PersistentCache of string
+(** The results of the function will be cached, and the function that uses
+    the cache is a permanent closure (at the toplevel of an OCaml module).*)
+| TemporaryCache of string
+(** The results of the function will be cached, but the function itself
+    is a local function which is garbage-collectable. *)
+
+
 module Make
   (Key : Id_Datatype)
-  (V : Datatype.S (** Values stored in the map. *))
+  (V : V)
   (Compositional_bool : sig
      (** A boolean information is maintained for each tree, by composing the
          boolean on the subtrees and the value information present on each leaf.
@@ -95,7 +114,17 @@ sig
       for [k], it is overridden. *)
 
   val find : key -> t -> V.t
+  val find_check_missing: key -> t -> V.t
+  (** Both [find key m] and [find_check_missing key m] return the value
+      bound to [key] in [m], or raise [Not_found] is [key] is unbound.
+      [find] is optimised for the case where [key] is bound in [m], whereas
+      [find_check_missing] is more efficient for the cases where [m]
+      is big and [key] is missing. *)
+
   val find_key : key -> t -> key
+  (** This function is useful where there are multiple distinct keys that
+      are equal for [Key.equal]. *)
+
   val remove : key -> t -> t
   (** [remove k m] returns the map [m] deprived from any binding involving
       [k]. *)
@@ -130,20 +159,23 @@ sig
     cache:(string * bool) ->
     decide:(Key.t -> V.t option -> V.t option -> V.t) ->
     idempotent:bool ->
+    empty_neutral:bool ->
     t -> t -> t
   (** Merge of two trees, parameterized by a merge function. If [idempotent]
-      holds, the function must verify [merge x x == x]. If [snd cache] is
-      [true], an internal cache is used; thus the merge function must be pure.
+      holds, the function must verify [merge k (Some x) (Some x) = x]. If
+      [empty_neutral] holds, the function must verify [merge None (Some v) = v]
+      and [merge (Some v) None = v]. If [snd cache] is [true], an internal
+      cache is used; thus the merge function must be pure.
   *)
 
   val symmetric_merge :
     cache:(string * 'a) ->
+    empty_neutral:bool ->
     decide_none:(Key.t -> V.t -> V.t) ->
     decide_some:(V.t -> V.t -> V.t) ->
     t -> t -> t
-  (** Merge of two trees, parameterized by a merge function which is supposed
-      to verify [merge x y == merge y x], [merge x x == x], and which must
-      be pure (as an internal cache is used). *)
+  (** Same as [generic_merge], but we also assume that [merge x y = merge y x]
+      holds. *)
 
   val symmetric_inter :
     cache:(string * 'a) ->
@@ -202,17 +234,6 @@ sig
       is uncertain, and that the more aggressive analysis should be used. *)
   type predicate_result = PTrue | PFalse | PUnknown
 
-  (** Some functions of this module may optionally use internal caches. It is
-      the responsibility of the use to choose whether or not to use a cache,
-      and whether this cache will be garbage-collectable by OCaml. *)
-  type cache_type =
-    | NoCache (** The results of the function will not be cached. *)
-    | PersistentCache of string
-    (** The results of the function will be cached, and the function that uses
-        the cache is a permanent closure (at the toplevel of an OCaml module).*)
-    | TemporaryCache of string
-    (** The results of the function will be cached, but the function itself
-        is a local function which is garbage-collectable. *)
 
   val binary_predicate:
     cache_type ->
@@ -303,6 +324,26 @@ sig
   val shape: t -> V.t Shape(Key).t
   (** Export the map as a value suitable for functions {!inter_with_shape}
       and {!from_shape} *)
+
+  val fold2_join_heterogeneous:
+    cache:cache_type ->
+    empty_left:('a Shape(Key).t -> 'b) ->
+    empty_right:(t -> 'b) ->
+    both:(Key.t -> V.t -> 'a -> 'b) ->
+    join:('b -> 'b -> 'b) ->
+    empty:'b ->
+    t -> 'a Shape(Key).t ->
+    'b
+(** [fold2_join_heterogeneous ~cache ~empty_left ~empty_right ~both
+      ~join ~empty m1 m2] iterates simultaneously on [m1] and [m2]. If a subtree
+    [t] is present in [m1] but not in [m2] (resp. in [m2] but not in [m1]),
+    [empty_right t] (resp. [empty_left t]) is called. If a key [k] is present
+    in both trees, and bound to to [v1] and [v2] respectively, [both k v1 v2] is
+    called. If both trees are empty, [empty] is returned. The values of type
+    ['b] returned by the auxiliary functions are merged using [join], which is
+    called in an unspecified order. The results of the function may be cached,
+    depending on [cache]. *)
+
 
   (**/**) (* Undocumented. *)
   val hash_debug : t -> int

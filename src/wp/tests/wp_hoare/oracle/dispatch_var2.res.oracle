@@ -1,0 +1,499 @@
+# frama-c -wp -wp-model 'Typed (Ref)' -wp-no-let [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_hoare/dispatch_var2.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] Collecting variable usage
+------------------------------------------------------------
+  Function call_global
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_hoare/dispatch_var2.i, line 37) in 'call_global':
+Assume {
+  (* Domain *)
+  Type: (is_sint32 call_global_0) /\ (is_sint32 load_0) /\ (is_sint32 tmp_0)
+        /\ (is_sint32 x_0).
+  (* Block In *)
+  Have: not ta_tmp_3.
+  (* tests/wp_hoare/dispatch_var2.i:41: Call 'reset' *)
+  Have: 0=x_0.
+  (* tests/wp_hoare/dispatch_var2.i:42: Call 'load' *)
+  Have: (load_0=tmp_0) /\ (load_0=x_0).
+  (* tests/wp_hoare/dispatch_var2.i:42: Return *)
+  Have: call_global_0=tmp_0.
+}
+Prove: 0=call_global_0.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var2.i, line 36) in 'call_global':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var2.i, line 36) in 'call_global' (1/2):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var2.i, line 36) in 'call_global' (2/2):
+Call Result at line 42
+Assume {
+  (* Domain *)
+  Type: (is_sint32 load_0) /\ (is_sint32 tmp_0) /\ (is_sint32 x_0).
+  (* Control Flow *)
+  Have: ta_tmp_2=ta_tmp_3.
+  (* Block In *)
+  Have: not ta_tmp_3.
+  (* tests/wp_hoare/dispatch_var2.i:41: Call 'reset' *)
+  Have: 0=x_0.
+  (* tests/wp_hoare/dispatch_var2.i:42: Call 'load' *)
+  Have: load_0=x_0.
+}
+Prove: not ta_tmp_2.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_hoare/dispatch_var2.i, line 12) in 'reset'' in 'call_global' at call 'reset' (file tests/wp_hoare/dispatch_var2.i, line 41)
+:
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_hoare/dispatch_var2.i, line 27) in 'load'' in 'call_global' at call 'load' (file tests/wp_hoare/dispatch_var2.i, line 42)
+:
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function call_local
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_hoare/dispatch_var2.i, line 56) in 'call_local':
+Assume {
+  (* Domain *)
+  Type: (is_sint32 call_local_0) /\ (is_sint32 load_0) /\ (is_sint32 tmp_0)
+        /\ (is_sint32 z_0).
+  (* Block In *)
+  Have: (not ta_tmp_3) /\ (not ta_z_3).
+  (* tests/wp_hoare/dispatch_var2.i:61: Call 'reset' *)
+  Have: 0=z_0.
+  (* tests/wp_hoare/dispatch_var2.i:62: Call 'load' *)
+  Have: (load_0=tmp_0) /\ (load_0=z_0).
+  (* tests/wp_hoare/dispatch_var2.i:62: Return *)
+  Have: call_local_0=tmp_0.
+}
+Prove: 0=call_local_0.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'call_local' (1/2):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'call_local' (2/2):
+Call Effect at line 61
+Assume {
+  (* Domain *)
+  Type: (is_sint32 status_1) /\ (is_sint32 status_2) /\ (is_sint32 z_0).
+  (* Control Flow *)
+  Have: ta_z_2=ta_z_3.
+  (* Block In *)
+  Have: (not ta_tmp_3) /\ (not ta_z_3).
+  (* Merge *)Either {
+               Case:
+                 (* tests/wp_hoare/dispatch_var2.i:61: Call 'reset' *)
+                 Have: 0=z_0.
+               Case:
+             }
+}
+Prove: not ta_z_2.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'call_local' (1/3):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'call_local' (2/3):
+Call Effect at line 61
+Assume {
+  (* Domain *)
+  Type: (is_sint32 z_0).
+  (* Control Flow *)
+  Have: ta_z_2=ta_z_3.
+  (* Block In *)
+  Have: (not ta_tmp_3) /\ (not ta_z_3).
+  (* tests/wp_hoare/dispatch_var2.i:61: Call 'reset' *)
+  Have: 0=z_0.
+}
+Prove: not ta_z_2.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'call_local' (3/3):
+Call Result at line 62
+Assume {
+  (* Domain *)
+  Type: (is_sint32 load_0) /\ (is_sint32 tmp_0) /\ (is_sint32 z_0).
+  (* Control Flow *)
+  Have: ta_tmp_2=ta_tmp_3.
+  (* Block In *)
+  Have: (not ta_tmp_3) /\ (not ta_z_3).
+  (* tests/wp_hoare/dispatch_var2.i:61: Call 'reset' *)
+  Have: 0=z_0.
+  (* tests/wp_hoare/dispatch_var2.i:62: Call 'load' *)
+  Have: load_0=z_0.
+}
+Prove: not ta_tmp_2.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_hoare/dispatch_var2.i, line 12) in 'reset'' in 'call_local' at call 'reset' (file tests/wp_hoare/dispatch_var2.i, line 61)
+:
+Assume { (* Block In *) Have: ta_z_0 /\ (not ta_tmp_3) /\ (not ta_z_3). }
+Prove: ta_z_0.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_hoare/dispatch_var2.i, line 27) in 'load'' in 'call_local' at call 'load' (file tests/wp_hoare/dispatch_var2.i, line 62)
+:
+Assume {
+  (* Domain *)
+  Type: (is_sint32 z_0).
+  (* Block In *)
+  Have: ta_z_0 /\ (not ta_tmp_3) /\ (not ta_z_3).
+  (* tests/wp_hoare/dispatch_var2.i:61: Call 'reset' *)
+  Have: ta_z_0 /\ (0=z_0).
+}
+Prove: ta_z_0.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function call_param
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_hoare/dispatch_var2.i, line 47) in 'call_param':
+Assume {
+  (* Domain *)
+  Type: (is_sint32 call_param_0) /\ (is_sint32 load_0) /\ (is_sint32 tmp_0)
+        /\ (is_sint32 y_0).
+  (* Pre-condition (file tests/wp_hoare/dispatch_var2.i, line 45) in 'call_param' *)
+  (* Pre-condition: *)
+  Have: ta_y_8.
+  (* Function Frame *)
+  Have: ta_y_6 /\ (not ta_y_8).
+  (* Block In *)
+  Have: not ta_tmp_3.
+  (* Control Flow *)
+  Have: ta_y_4=ta_y_6.
+  (* tests/wp_hoare/dispatch_var2.i:51: Call 'reset' *)
+  Have: ta_y_6 /\ (0=y_0).
+  (* Control Flow *)
+  Have: ta_y_0=ta_y_4.
+  (* tests/wp_hoare/dispatch_var2.i:52: Call 'load' *)
+  Have: ta_y_4 /\ (load_0=tmp_0) /\ (load_0=y_0).
+  (* tests/wp_hoare/dispatch_var2.i:52: Return *)
+  Have: call_param_0=tmp_0.
+  (* Function Exit *)
+  Have: ta_y_0.
+}
+Prove: 0=call_param_0.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'call_param' (1/2):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'call_param' (2/2):
+Call Effect at line 51
+Assume {
+  (* Domain *)
+  Type: (is_sint32 status_1) /\ (is_sint32 status_2) /\ (is_sint32 y_0).
+  (* Control Flow *)
+  Have: ta_y_7=ta_y_8.
+  (* Pre-condition (file tests/wp_hoare/dispatch_var2.i, line 45) in 'call_param' *)
+  (* Pre-condition: *)
+  Have: ta_y_8.
+  (* Function Frame *)
+  Have: ta_y_6 /\ (not ta_y_8).
+  (* Block In *)
+  Have: not ta_tmp_3.
+  (* Merge *)Either {
+               Case:
+                 (* tests/wp_hoare/dispatch_var2.i:51: Call 'reset' *)
+                 Have: ta_y_6 /\ (0=y_0).
+               Case:
+                 (* tests/wp_hoare/dispatch_var2.i:51: Exit 'reset' *)
+                 Have: ta_y_6.
+             }
+}
+Prove: not ta_y_7.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'call_param' (1/3):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'call_param' (2/3):
+Call Effect at line 51
+Assume {
+  (* Domain *)
+  Type: (is_sint32 y_0).
+  (* Control Flow *)
+  Have: ta_y_7=ta_y_8.
+  (* Pre-condition (file tests/wp_hoare/dispatch_var2.i, line 45) in 'call_param' *)
+  (* Pre-condition: *)
+  Have: ta_y_8.
+  (* Function Frame *)
+  Have: ta_y_6 /\ (not ta_y_8).
+  (* Block In *)
+  Have: not ta_tmp_3.
+  (* tests/wp_hoare/dispatch_var2.i:51: Call 'reset' *)
+  Have: ta_y_6 /\ (0=y_0).
+}
+Prove: not ta_y_7.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'call_param' (3/3):
+Call Result at line 52
+Assume {
+  (* Domain *)
+  Type: (is_sint32 load_0) /\ (is_sint32 tmp_0) /\ (is_sint32 y_0).
+  (* Control Flow *)
+  Have: ta_tmp_2=ta_tmp_3.
+  (* Pre-condition (file tests/wp_hoare/dispatch_var2.i, line 45) in 'call_param' *)
+  (* Pre-condition: *)
+  Have: ta_y_8.
+  (* Function Frame *)
+  Have: ta_y_6 /\ (not ta_y_8).
+  (* Block In *)
+  Have: not ta_tmp_3.
+  (* Control Flow *)
+  Have: ta_y_4=ta_y_6.
+  (* tests/wp_hoare/dispatch_var2.i:51: Call 'reset' *)
+  Have: ta_y_6 /\ (0=y_0).
+  (* tests/wp_hoare/dispatch_var2.i:52: Call 'load' *)
+  Have: ta_y_4 /\ (load_0=y_0).
+}
+Prove: not ta_tmp_2.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_hoare/dispatch_var2.i, line 12) in 'reset'' in 'call_param' at call 'reset' (file tests/wp_hoare/dispatch_var2.i, line 51)
+:
+Assume {
+  (* Pre-condition (file tests/wp_hoare/dispatch_var2.i, line 45) in 'call_param' *)
+  (* Pre-condition: *)
+  Have: ta_y_8.
+  (* Function Frame *)
+  Have: ta_y_6 /\ (not ta_y_8).
+  (* Block In *)
+  Have: not ta_tmp_3.
+}
+Prove: ta_y_6.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_hoare/dispatch_var2.i, line 27) in 'load'' in 'call_param' at call 'load' (file tests/wp_hoare/dispatch_var2.i, line 52)
+:
+Assume {
+  (* Domain *)
+  Type: (is_sint32 y_0).
+  (* Pre-condition (file tests/wp_hoare/dispatch_var2.i, line 45) in 'call_param' *)
+  (* Pre-condition: *)
+  Have: ta_y_8.
+  (* Function Frame *)
+  Have: ta_y_6 /\ (not ta_y_8).
+  (* Block In *)
+  Have: not ta_tmp_3.
+  (* Control Flow *)
+  Have: ta_y_4=ta_y_6.
+  (* tests/wp_hoare/dispatch_var2.i:51: Call 'reset' *)
+  Have: ta_y_6 /\ (0=y_0).
+}
+Prove: ta_y_4.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function call_param_ref
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_hoare/dispatch_var2.i, line 68) in 'call_param_ref':
+Assume {
+  (* Domain *)
+  Type: (is_sint32 call_param_ref_0) /\ (is_sint32 load_0) /\ (is_sint32 q_0)
+        /\ (is_sint32 tmp_0).
+  (* Pre-condition (file tests/wp_hoare/dispatch_var2.i, line 66) in 'call_param_ref' *)
+  (* Pre-condition: *)
+  Have: ra_q_0.
+  (* Block In *)
+  Have: not ta_tmp_3.
+  (* tests/wp_hoare/dispatch_var2.i:72: Call 'reset' *)
+  Have: ra_q_0 /\ (0=q_0).
+  (* tests/wp_hoare/dispatch_var2.i:73: Call 'load' *)
+  Have: ra_q_0 /\ (load_0=q_0) /\ (load_0=tmp_0).
+  (* tests/wp_hoare/dispatch_var2.i:73: Return *)
+  Have: call_param_ref_0=tmp_0.
+}
+Prove: 0=call_param_ref_0.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var2.i, line 67) in 'call_param_ref':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var2.i, line 67) in 'call_param_ref' (1/2):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var2.i, line 67) in 'call_param_ref' (2/2):
+Call Result at line 73
+Assume {
+  (* Domain *)
+  Type: (is_sint32 load_0) /\ (is_sint32 q_0) /\ (is_sint32 tmp_0).
+  (* Control Flow *)
+  Have: ta_tmp_2=ta_tmp_3.
+  (* Pre-condition (file tests/wp_hoare/dispatch_var2.i, line 66) in 'call_param_ref' *)
+  (* Pre-condition: *)
+  Have: ra_q_0.
+  (* Block In *)
+  Have: not ta_tmp_3.
+  (* tests/wp_hoare/dispatch_var2.i:72: Call 'reset' *)
+  Have: ra_q_0 /\ (0=q_0).
+  (* tests/wp_hoare/dispatch_var2.i:73: Call 'load' *)
+  Have: ra_q_0 /\ (load_0=q_0).
+}
+Prove: not ta_tmp_2.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_hoare/dispatch_var2.i, line 12) in 'reset'' in 'call_param_ref' at call 'reset' (file tests/wp_hoare/dispatch_var2.i, line 72)
+:
+Assume {
+  (* Pre-condition (file tests/wp_hoare/dispatch_var2.i, line 66) in 'call_param_ref' *)
+  (* Pre-condition: *)
+  Have: ra_q_0.
+  (* Block In *)
+  Have: not ta_tmp_3.
+}
+Prove: ra_q_0.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_hoare/dispatch_var2.i, line 27) in 'load'' in 'call_param_ref' at call 'load' (file tests/wp_hoare/dispatch_var2.i, line 73)
+:
+Assume {
+  (* Domain *)
+  Type: (is_sint32 q_0).
+  (* Pre-condition (file tests/wp_hoare/dispatch_var2.i, line 66) in 'call_param_ref' *)
+  (* Pre-condition: *)
+  Have: ra_q_0.
+  (* Block In *)
+  Have: not ta_tmp_3.
+  (* tests/wp_hoare/dispatch_var2.i:72: Call 'reset' *)
+  Have: ra_q_0 /\ (0=q_0).
+}
+Prove: ra_q_0.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function incr
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_hoare/dispatch_var2.i, line 21) in 'incr':
+Assume {
+  (* Domain *)
+  Type: (is_sint32 ip_0) /\ (is_sint32 ip_1) /\ (is_sint32 ip_2).
+  (* Control Flow *)
+  Have: ip_0=ip_2.
+  (* Pre-condition (file tests/wp_hoare/dispatch_var2.i, line 19) in 'incr' *)
+  (* Pre-condition: *)
+  Have: ra_ip_1.
+  (* tests/wp_hoare/dispatch_var2.i:23: Assignment *)
+  Have: ip_1=(1+ip_2).
+}
+Prove: ip_1=(1+ip_0).
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var2.i, line 20) in 'incr':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function load
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_hoare/dispatch_var2.i, line 29) in 'load':
+Assume {
+  (* Domain *)
+  Type: (is_sint32 load_0) /\ (is_sint32 lp_0) /\ (is_sint32 retres_0).
+  (* Block In *)
+  Have: not ta_retres_3.
+  (* tests/wp_hoare/dispatch_var2.i:31: Assignment *)
+  Have: lp_0=retres_0.
+  (* tests/wp_hoare/dispatch_var2.i:31: Return *)
+  Have: load_0=retres_0.
+}
+Prove: load_0=lp_0.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'load':
+Effect at line 31
+Assume {
+  (* Control Flow *)
+  Have: ta_retres_2=ta_retres_3.
+  (* Block In *)
+  Have: not ta_retres_3.
+}
+Prove: not ta_retres_2.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function reset
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_hoare/dispatch_var2.i, line 14) in 'reset':
+Assume {
+  (* Domain *)
+  Type: (is_sint32 rp_0).
+  (* Pre-condition (file tests/wp_hoare/dispatch_var2.i, line 12) in 'reset' *)
+  (* Pre-condition: *)
+  Have: ra_rp_1.
+  (* tests/wp_hoare/dispatch_var2.i:16: Assignment *)
+  Have: 0=rp_0.
+}
+Prove: 0=rp_0.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var2.i, line 13) in 'reset':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------

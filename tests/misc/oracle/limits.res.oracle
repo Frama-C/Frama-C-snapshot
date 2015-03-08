@@ -1,0 +1,35 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/limits.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  cl ∈ {0}
+  cu ∈ {0}
+  ucu ∈ {0}
+  il ∈ {0}
+  iu ∈ {0}
+  uiu ∈ {0}
+  ll ∈ {0}
+  lu ∈ {0}
+  ulu ∈ {0}
+  lll ∈ {0}
+  llu ∈ {0}
+  ullu ∈ {0}
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  cl ∈ {-128}
+  cu ∈ {127}
+  ucu ∈ {255}
+  il ∈ {-2147483648}
+  iu ∈ {2147483647}
+  uiu ∈ {-1}
+  ll ∈ {-2147483648}
+  lu ∈ {2147483647}
+  ulu ∈ {4294967295}
+  lll ∈ {-9223372036854775808}
+  llu ∈ {9223372036854775807}
+  ullu ∈ {18446744073709551615}
+  __retres ∈ {0}

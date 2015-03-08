@@ -1,0 +1,27 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_bts/bts_1174.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function job
+------------------------------------------------------------
+
+Goal Assertion 'qed_ok' (file tests/wp_bts/bts_1174.i, line 11):
+Let r_0 = 2.*x_0.
+Assume {
+  (* Domain *)
+  Type: (is_float64 x_0) /\ (is_sint32 a_0) /\ (is_float64 r_0).
+  (* Goal *)
+  When: 0<=x_0.
+  (* Pre-condition (file tests/wp_bts/bts_1174.i, line 5) in 'job' *)
+  (* Pre-condition: *)
+  Have: (-10.<=x_0) /\ (x_0<=10.).
+  (* tests/wp_bts/bts_1174.i:9: Then *)
+  Have: 0!=a_0.
+}
+Prove: 0<=r_0.
+
+------------------------------------------------------------

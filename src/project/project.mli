@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -107,9 +107,11 @@ val set_name: t -> string -> unit
   (** Set the name of the given project.
       @since Boron-20100401 *)
 
+exception Unknown_project
 val from_unique_name: string -> t
   (** Return a project based on {!unique_name}.
-      @raise Not_found if no project has this unique name. *)
+      @raise Unknown_project if no project has this unique name.
+      @modify Sodium-20150201 *)
 
 val set_current: ?on:bool -> ?selection:State_selection.t -> t -> unit
   (** Set the current project with the given one.
@@ -143,15 +145,19 @@ val copy: ?selection:State_selection.t -> ?src:t -> t -> unit
       @modify Carbon-20101201 replace the optional arguments [only] and
       [except] by a single one [selection]. *)
 
-val create_by_copy: ?selection:State_selection.t -> ?src:t -> string -> t
+val create_by_copy:
+  ?selection:State_selection.t -> ?src:t -> last:bool -> string -> t
   (** Return a new project with the given name by copying some states from the
       project [src]. All the other states are initialized with their default
       values.
       Use the save/load mechanism for copying. Thus it does not require that
       the copy function of the copied state is implemented. All the hooks
       applied when loading a project are applied (see {!load}).
+      If [last], then remember that the returned project is the last created
+      one (see {!last_created_by_copy}).
       @modify Carbon-20101201 replace the optional arguments [only] and
-      [except] by a single one [selection]. *)
+      [except] by a single one [selection].
+      @modify Sodium-20150201 add the labeled argument [last]. *)
 
 val create_by_copy_hook: (t -> t -> unit) -> unit
   (** Register a hook to call at the end of {!create_by_copy}. The first

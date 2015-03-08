@@ -1,0 +1,25 @@
+-= CVE-2001-0653 =-
+
+Vulnerable version: Sendmail up to 8.12.9
+File: sendmail/parseaddr.c
+Download from: ftp://ftp.sendmail.org/pub/sendmail/past-releases/
+
+Domain: Server
+
+_ Vulnerable Functions and Buffers _
+
+Function tTflag parses a string of digits into two signed integers, first and last. If first <= last, first is used afterwards to index into an array. Since a signed integer is used to store the temporary values of the number being accumulated from the input, it is possible for arithmetic overflow to occur and a negative value is assigned to first. If this happens, first passes the comparison to last and is subsequently used to access negative indices of a local buffer. The patched version declares first and last as unsigned integers, thereby inhibiting the arithmetic overflow.
+
+_ Decomposed Programs _
+
+tTflag/
+  tTflag_arr_one_loop_{bad,ok}.c
+  tTflag_arr_two_loops_{bad,ok}.c
+
+Variant one_loop computes (lexes) a single int from the char input. Variant two_loops computs two ints from the input.
+
+_ Notes _
+
+This is Zitser's sendmail/s6, simplified.
+
+BASE_SZ originally 100.

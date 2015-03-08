@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -145,7 +145,7 @@ let check_no_recursive_call kf =
             Kernel_function.pretty kf
             pretty_call_stack (call_stack ())
             Value_parameters.IgnoreRecursiveCalls.option_name;
-          Value_parameters.not_yet_implemented "recursive call"
+          raise Db.Value.Aborted
 
         end
       end)
@@ -170,7 +170,7 @@ let warn_modified_result_loc ~with_alarms kf locret state lvret =
              if not (Location.equal validlocret validlocret') then
                let loc = Cil_datatype.Location.unknown in
                let exp = Cil.mkAddrOrStartOf ~loc lvret in
-               CilE.do_warn with_alarms.CilE.others
+               Valarms.do_warn with_alarms.CilE.others
                  (fun (_emit, suffix) ->
                     Value_parameters.warning ~current:true ~once:true
                       "@[possible@ side-effect@ modifying %a@ within@ call@ \
@@ -214,20 +214,22 @@ let warn_locals_escape_result fundec locals =
 let warn_imprecise_lval_read ~with_alarms lv loc contents =
   if with_alarms.CilE.imprecision_tracing.CilE.a_log <> None
   then
+  let pretty_gm fmt s =
+    let s = Base.SetLattice.(inject (O.remove Base.null s)) in
+    Base.SetLattice.pretty fmt s
+  in
   let pretty_param fmt param =
     match param with
     | Base.SetLattice.Top -> Format.fprintf fmt "is imprecise"
-    | Base.SetLattice.Set _s ->
-        Format.fprintf fmt "is a garbled mix of %a"
-          Base.SetLattice.pretty param
+    | Base.SetLattice.Set s ->
+        Format.fprintf fmt "is a garbled mix of %a" pretty_gm s
   in
   let pretty_param_b fmt param =
     match param with
     | Base.SetLattice.Top ->
         Format.fprintf fmt "The contents@ are imprecise"
-    | Base.SetLattice.Set _s ->
-          Format.fprintf fmt "It contains@ a garbled@ mix@ of@ %a"
-            Base.SetLattice.pretty param
+    | Base.SetLattice.Set s ->
+          Format.fprintf fmt "It contains@ a garbled@ mix@ of@ %a" pretty_gm s
   in
   let something_to_warn =
     match loc.loc with Location_Bits.Top _ -> true
@@ -236,7 +238,7 @@ let warn_imprecise_lval_read ~with_alarms lv loc contents =
           | Location_Bytes.Top _ -> true
           | Location_Bytes.Map _ -> false
   in
-  if something_to_warn then CilE.do_warn with_alarms.CilE.imprecision_tracing
+  if something_to_warn then Valarms.do_warn with_alarms.CilE.imprecision_tracing
     (fun  _ ->
     Value_parameters.result ~current:true ~once:true
       "@[<v>@[Reading left-value %a.@]@ %t%t%t@]"
@@ -268,13 +270,12 @@ let warn_imprecise_lval_read ~with_alarms lv loc contents =
          | Location_Bytes.Map _ -> ())
       pp_callstack)
 
-
 (* Auxiliary function for [do_assign] below. When computing the
    result of [lv = exp], warn if the evaluation of [exp] results in
    an imprecision. [loc_lv] is the location pointed to by [lv].
    [exp_val] is the part of the evaluation of [exp] that is imprecise. *)
 let warn_right_exp_imprecision ~with_alarms lv loc_lv exp_val =
-  CilE.do_warn with_alarms.CilE.imprecision_tracing
+  Valarms.do_warn with_alarms.CilE.imprecision_tracing
     (fun _ ->
        match exp_val with
          | Location_Bytes.Top(_topparam,origin) ->
@@ -283,7 +284,8 @@ let warn_right_exp_imprecision ~with_alarms lv loc_lv exp_val =
                Printer.pp_lval lv
                (fun fmt -> match lv with
                   | (Mem _, _) ->
-                      Format.fprintf fmt "@ (i.e. %a)" Locations.pretty loc_lv
+                    Format.fprintf fmt "@ (pointing to %a)"
+                      (Locations.pretty_english ~prefix:false) loc_lv
                   | (Var _, _) -> ())
                (fun fmt org ->
                   if not (Origin.is_top origin) then
@@ -292,17 +294,7 @@ let warn_right_exp_imprecision ~with_alarms lv loc_lv exp_val =
                       Origin.pretty org)
                origin
                pp_callstack
-         | Location_Bytes.Map _ ->
-             if not (Got_Imprecise_Value.get ()) &&
-               not (Cvalue.V.cardinal_zero_or_one exp_val)
-             then begin
-               Got_Imprecise_Value.set true;
-               if (Value_parameters.ValShowProgress.get())
-               then
-                 Value_parameters.result ~current:true
-                   "assigning non deterministic value for the first time";
-             end)
-
+         | Location_Bytes.Map _ -> ())
 
 (* Auxiliary function for do_assign (currently), that warns when the
    left-hand side and the right-hand side of an assignment overlap *)
@@ -316,8 +308,15 @@ let warn_overlap ~with_alarms (lv, left_loc) (exp_lv, right_loc) =
       | Int_Base.Value size when big_enough size ->
     	  if Location_Bits.partially_overlaps size right_loc.loc left_loc.loc
 	  then begin
-            CilE.set_syntactic_context (CilE.SySep (lv, exp_lv));
-            CilE.warn_overlap (left_loc, right_loc) with_alarms;
+            Valarms.set_syntactic_context (Valarms.SySep (lv, exp_lv));
+            let msg fmt =
+              Format.fprintf fmt  "@ (%a,@ size %a bits;@ %a,@ size %a bits)"
+                (Locations.pretty_english ~prefix:false) left_loc
+                Int_Base.pretty left_loc.Locations.size
+                (Locations.pretty_english ~prefix:false) right_loc
+                Int_Base.pretty right_loc.Locations.size
+            in
+            Valarms.warn_overlap msg with_alarms;
           end
       | _ -> ()
 
@@ -326,7 +325,7 @@ exception Got_imprecise of Cvalue.V.t
 let offsetmap_contains_imprecision offs =
   try
     Cvalue.V_Offsetmap.iter_on_values
-      (fun v _ ->
+      (fun v ->
          match Cvalue.V_Or_Uninitialized.get_v v with
            | Location_Bytes.Map _ -> ()
            | Location_Bytes.Top _ as v -> raise (Got_imprecise v)
@@ -334,16 +333,35 @@ let offsetmap_contains_imprecision offs =
     None
   with Got_imprecise v -> Some v
 
-let warn_indeterminate_offsetmap ~with_alarms typ offsm =
+let warn_reduce_indeterminate_offsetmap ~with_alarms typ offsm loc state =
   if Cil.isArithmeticOrPointerType typ then (
     let uninit = ref false in
     let escaping = ref false in
+    let res = ref offsm in
+    let reduce loc =
+      let size = Int_Base.project loc.size in
+      let _alarm, state =
+        Cvalue.Model.paste_offsetmap ~reducing:true ~from:!res
+          ~dst_loc:loc.loc ~size ~exact:true state
+      in
+      state
+    in
+    let reduce () =
+      match loc with
+      | `NoLoc -> state
+      | `PreciseLoc ploc ->
+        if Precise_locs.cardinal_zero_or_one ploc then
+          let loc = Precise_locs.imprecise_location ploc in
+          reduce loc
+        else state
+      | `Loc loc ->
+        if Locations.cardinal_zero_or_one loc then reduce loc else state
+    in
     let warn () =
-      if !uninit then CilE.warn_uninitialized with_alarms;
-      if !escaping then CilE.warn_escapingaddr with_alarms;
+      if !uninit then Valarms.warn_uninitialized with_alarms;
+      if !escaping then Valarms.warn_escapingaddr with_alarms;
     in
     try
-      let res = ref offsm in
       Cvalue.V_Offsetmap.iter
         (fun itv (v, size, offs) ->
           let open Cvalue.V_Or_Uninitialized in
@@ -360,27 +378,64 @@ let warn_indeterminate_offsetmap ~with_alarms typ offsm =
             res := Cvalue.V_Offsetmap.add itv (C_init_noesc v', size, offs) !res
         ) offsm;
       warn ();
-      Some !res
+      let state =  if !uninit || !escaping then reduce () else state in
+      `Res (!res, state)
     with Exit ->
       warn ();
-      None
+      `Bottom
   ) else
-    Some offsm
+    `Res (offsm, state)
 
+let maybe_warn_indeterminate ~with_alarms v =
+  let open Cvalue.V_Or_Uninitialized in
+  match v with
+  | C_uninit_esc _ ->
+    Valarms.warn_uninitialized with_alarms;
+    Valarms.warn_escapingaddr with_alarms;
+    true
+  | C_uninit_noesc _ ->
+    Valarms.warn_uninitialized with_alarms;
+    true
+  | C_init_esc _ ->
+    Valarms.warn_escapingaddr with_alarms;
+    true
+  | C_init_noesc _ -> false
+
+let maybe_warn_completely_indeterminate ~with_alarms loc vi v =
+  if Cvalue.V.is_bottom v && not (Cvalue.V_Or_Uninitialized.is_bottom vi) &&
+    with_alarms.CilE.unspecified.CilE.a_log <> None
+  then
+    Valarms.do_warn with_alarms.CilE.unspecified
+      (fun _ ->
+        Kernel.warning ~current:true ~once:true
+          "completely indeterminate value %a."
+          (Locations.pretty_english ~prefix:true) loc)
 
 let warn_float_addr ~with_alarms msg =
-  CilE.do_warn with_alarms.CilE.imprecision_tracing
+  Valarms.do_warn with_alarms.CilE.imprecision_tracing
     (fun (_, pp) ->
        Value_parameters.result ~once:true ~current:true
          "@[float@ value@ contains@ addresses (%t)]%t" msg pp
     );
 ;;
 
-let warn_float ~with_alarms ?(overflow=false) ?(addr=false) flkind msg =
+let warn_float ~with_alarms ?(non_finite=false) ?(addr=false) flkind msg =
   if addr then warn_float_addr ~with_alarms msg;
-  if addr || overflow then
-    CilE.warn_nan_infinite with_alarms flkind msg;
+  if addr || non_finite then
+    Valarms.warn_nan_infinite with_alarms flkind msg;
 ;;
+
+let maybe_warn_div ~with_alarms e =
+  if Cvalue.V.contains_zero e then
+    let addresses =
+      try ignore (Cvalue.V.project_ival e); false
+      with Cvalue.V.Not_based_on_null -> true
+    in
+    Valarms.warn_div with_alarms ~addresses
+
+let warn_top () =
+  Value_parameters.abort ~current:true ~once:true
+    "completely imprecise state during evaluation. Aborting."
 
 
 (*

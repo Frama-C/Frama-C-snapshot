@@ -26,4 +26,3 @@ let run () =
   feedback ~dkey "D is enabled"
 
 let () = Db.Main.extend run
-  

@@ -1,0 +1,187 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/pdg/postdom.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  
+tests/pdg/postdom.c:20:[value] entering loop for the first time
+[value] computing for function __VERIFIER_assert <- main.
+        Called from tests/pdg/postdom.c:23.
+[value] Recording results for __VERIFIER_assert
+[value] Done for function __VERIFIER_assert
+[value] computing for function __VERIFIER_assert <- main.
+        Called from tests/pdg/postdom.c:23.
+[value] Recording results for __VERIFIER_assert
+[value] Done for function __VERIFIER_assert
+[value] computing for function __VERIFIER_assert <- main.
+        Called from tests/pdg/postdom.c:23.
+[value] Recording results for __VERIFIER_assert
+[value] Done for function __VERIFIER_assert
+[value] computing for function __VERIFIER_assert <- main.
+        Called from tests/pdg/postdom.c:23.
+[value] Recording results for __VERIFIER_assert
+[value] Done for function __VERIFIER_assert
+[value] computing for function __VERIFIER_assert <- main.
+        Called from tests/pdg/postdom.c:23.
+[value] Recording results for __VERIFIER_assert
+[value] Done for function __VERIFIER_assert
+[value] computing for function __VERIFIER_assert <- main.
+        Called from tests/pdg/postdom.c:23.
+[value] Recording results for __VERIFIER_assert
+[value] Done for function __VERIFIER_assert
+[value] computing for function __VERIFIER_assert <- main.
+        Called from tests/pdg/postdom.c:23.
+[value] Recording results for __VERIFIER_assert
+[value] Done for function __VERIFIER_assert
+[value] computing for function __VERIFIER_assert <- main.
+        Called from tests/pdg/postdom.c:23.
+[value] Recording results for __VERIFIER_assert
+[value] Done for function __VERIFIER_assert
+[value] computing for function __VERIFIER_assert <- main.
+        Called from tests/pdg/postdom.c:23.
+[value] Recording results for __VERIFIER_assert
+[value] Done for function __VERIFIER_assert
+[value] computing for function __VERIFIER_assert <- main.
+        Called from tests/pdg/postdom.c:23.
+[value] Recording results for __VERIFIER_assert
+[value] Done for function __VERIFIER_assert
+[value] computing for function __VERIFIER_assert <- main.
+        Called from tests/pdg/postdom.c:23.
+[value] Recording results for __VERIFIER_assert
+[value] Done for function __VERIFIER_assert
+tests/pdg/postdom.c:21:[kernel] warning: signed overflow. assert sn+2 ≤ 2147483647;
+[value] computing for function __VERIFIER_assert <- main.
+        Called from tests/pdg/postdom.c:23.
+[value] Recording results for __VERIFIER_assert
+[value] Done for function __VERIFIER_assert
+[value] computing for function __VERIFIER_assert <- main.
+        Called from tests/pdg/postdom.c:23.
+[value] Recording results for __VERIFIER_assert
+[value] Done for function __VERIFIER_assert
+[value] computing for function __VERIFIER_assert <- main.
+        Called from tests/pdg/postdom.c:23.
+[value] Recording results for __VERIFIER_assert
+[value] Done for function __VERIFIER_assert
+[value] computing for function __VERIFIER_assert <- main.
+        Called from tests/pdg/postdom.c:23.
+[value] Recording results for __VERIFIER_assert
+[value] Done for function __VERIFIER_assert
+[value] computing for function __VERIFIER_assert <- main.
+        Called from tests/pdg/postdom.c:23.
+[value] Recording results for __VERIFIER_assert
+[value] Done for function __VERIFIER_assert
+[value] Recording results for main
+[value] done for function main
+[pdg] computing for function __VERIFIER_assert
+[pdg] done for function __VERIFIER_assert
+[pdg] computing for function main
+[from] Computing for function __VERIFIER_assert
+[from] Done for function __VERIFIER_assert
+tests/pdg/postdom.c:20:[pdg] warning: no final state. Probably unreachable...
+[pdg] done for function main
+[pdg] ====== PDG GRAPH COMPUTED ======
+[pdg] PDG for __VERIFIER_assert
+ {n1}: InCtrl
+ {n2}: VarDecl : cond
+   -[a--]-> 3
+ {n3}: In1
+   -[a--]-> 2
+ {n4}: ! cond
+   -[-c-]-> 1
+   -[--d]-> 2
+   -[--d]-> 3
+ {n5}: ERROR:
+   -[-c-]-> 1
+   -[-c-]-> 4
+   -[-c-]-> 6
+ {n6}: ERROR: goto ERROR;
+   -[-c-]-> 1
+   -[-c-]-> 4
+   -[-c-]-> 5
+   -[-c-]-> 6
+ {n7}: return;
+   -[-c-]-> 1
+[pdg] PDG for main
+ {n8}: InCtrl
+ {n9}: VarDecl : loop1
+   -[a--]-> 10
+ {n10}: In1
+   -[a--]-> 9
+ {n11}: VarDecl : m1
+   -[a--]-> 12
+ {n12}: In2
+   -[a--]-> 11
+ {n13}: VarDecl : sn
+ {n14}: VarDecl : x
+ {n15}: VarDecl : tmp
+ {n16}: VarDecl : __retres
+ {n17}: sn = 0;
+   -[-c-]-> 8
+   -[a--]-> 13
+ {n18}: return __retres;
+   -[-c-]-> 8
+   -[--d]-> 16
+ {n19}: OutRet
+ {n20}: x = (unsigned int)0;
+   -[-c-]-> 8
+   -[a--]-> 14
+ {n21}: while(1)
+   -[-c-]-> 8
+   -[-c-]-> 21
+ {n22}: block
+   -[-c-]-> 8
+   -[-c-]-> 21
+ {n23}: sn += 2;
+   -[-c-]-> 8
+   -[a-d]-> 13
+   -[--d]-> 17
+   -[-c-]-> 21
+   -[-c-]-> 22
+   -[--d]-> 23
+ {n24}: x ++;
+   -[-c-]-> 8
+   -[a-d]-> 14
+   -[--d]-> 20
+   -[-c-]-> 21
+   -[-c-]-> 22
+   -[--d]-> 24
+ {n25}: (unsigned int)sn == x * (unsigned int)2
+   -[-c-]-> 8
+   -[--d]-> 13
+   -[--d]-> 14
+   -[-c-]-> 21
+   -[-c-]-> 22
+   -[--d]-> 23
+   -[--d]-> 24
+ {n26}: tmp = 1;
+   -[-c-]-> 8
+   -[a--]-> 15
+   -[-c-]-> 21
+   -[-c-]-> 22
+   -[-c-]-> 25
+ {n27}: sn == 0
+   -[-c-]-> 8
+   -[--d]-> 13
+   -[-c-]-> 21
+   -[-c-]-> 22
+   -[--d]-> 23
+   -[-c-]-> 25
+ {n28}: tmp = 0;
+   -[-c-]-> 8
+   -[a--]-> 15
+   -[-c-]-> 21
+   -[-c-]-> 22
+   -[-c-]-> 25
+ {n29}: Call19-InCtrl : __VERIFIER_assert(tmp);
+   -[-c-]-> 8
+   -[-c-]-> 21
+   -[-c-]-> 22
+ {n30}: Call19-In1 : __VERIFIER_assert(tmp);
+   -[-c-]-> 8
+   -[--d]-> 15
+   -[-c-]-> 21
+   -[-c-]-> 22
+   -[--d]-> 26
+   -[--d]-> 28
+   -[-c-]-> 29

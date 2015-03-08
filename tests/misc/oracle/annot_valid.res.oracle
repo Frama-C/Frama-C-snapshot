@@ -1,0 +1,45 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/annot_valid.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  G ∈ {0}
+tests/misc/annot_valid.i:8:[value] Assertion got status valid.
+tests/misc/annot_valid.i:11:[value] Assertion got status invalid (stopping propagation).
+tests/misc/annot_valid.i:14:[value] Assertion got status valid.
+tests/misc/annot_valid.i:17:[value] Assertion got status valid.
+tests/misc/annot_valid.i:20:[value] Assertion got status valid.
+tests/misc/annot_valid.i:23:[value] Assertion got status invalid (stopping propagation).
+tests/misc/annot_valid.i:26:[value] Assertion got status invalid (stopping propagation).
+tests/misc/annot_valid.i:29:[value] Assertion got status unknown.
+tests/misc/annot_valid.i:32:[value] Assertion got status invalid (stopping propagation).
+tests/misc/annot_valid.i:35:[value] Assertion got status valid.
+tests/misc/annot_valid.i:38:[value] Assertion got status unknown.
+tests/misc/annot_valid.i:41:[value] Assertion got status valid.
+tests/misc/annot_valid.i:44:[value] Assertion got status invalid (stopping propagation).
+tests/misc/annot_valid.i:47:[value] Assertion got status valid.
+tests/misc/annot_valid.i:50:[value] Assertion got status invalid (stopping propagation).
+tests/misc/annot_valid.i:53:[value] Assertion got status valid.
+tests/misc/annot_valid.i:56:[value] Assertion got status valid.
+tests/misc/annot_valid.i:57:[value] cannot evaluate ACSL term, \at() on a C label is unsupported
+tests/misc/annot_valid.i:57:[value] Assertion got status unknown.
+tests/misc/annot_valid.i:62:[value] Assertion got status invalid (stopping propagation).
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  p ∈ {{ &G }}
+  c ∈ {{ (char *)&G }}
+  __retres ∈ {0}
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          p; c; __retres
+[inout] Inputs for function main:
+          \nothing

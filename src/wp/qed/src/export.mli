@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -29,7 +29,6 @@
 open Format
 open Logic
 open Plib
-open Linker
 open Engine
 
 val cmode : mode -> cmode
@@ -38,18 +37,21 @@ val pmode : mode -> pmode
 val tmode : ('a,'f) Logic.datatype -> mode
 val ctau  : ('a,'f) Logic.datatype -> cmode
 
-val declare_name : link -> string
+val is_ident : string -> bool
+val extract_ident : string -> string
+
 val debug : link -> string
+val link_name : link -> string
 
 module Make(T : Term) :
 sig
 
   open T
 
-  type tau = (Field.t,ADT.t) datatype
-  type record = (Field.t * term) list
   type trigger = (var,Fun.t) ftrigger
   type typedef = (tau,Field.t,Fun.t) ftypedef
+
+  module TauMap : Map.S with type key = tau
 
   class virtual engine :
     object
@@ -60,11 +62,10 @@ sig
       (** Allows to sanitize the basename used for in this engine for variable. *)
       method virtual link : Fun.t -> link
 
-      method declare : string -> unit
-      method declare_all : string list -> unit
-
       method local : (unit -> unit) -> unit
       method global : (unit -> unit) -> unit
+      method bind : var -> string
+      method find : var -> string
 
       method virtual t_int  : string
       method virtual t_real : string
@@ -128,11 +129,9 @@ sig
 
       method virtual pp_conditional : formatter -> term -> term -> term -> unit
 
-      method virtual pp_forall : tau -> var list printer
-      method virtual pp_exists : tau -> var list printer
-      method virtual pp_lambda : var list printer
-
-      method bind : var -> unit
+      method virtual pp_forall : tau -> string list printer
+      method virtual pp_exists : tau -> string list printer
+      method virtual pp_lambda : (string * tau) list printer
 
       method is_shareable : term -> bool
       method virtual pp_let : formatter -> pmode -> string -> term -> unit
@@ -140,7 +139,7 @@ sig
       method pp_flow : term printer
 
       method pp_tau : tau printer
-      method pp_var : var printer
+      method pp_var : string printer
       method pp_term : term printer
       method pp_prop : term printer
       method pp_expr : tau -> term printer

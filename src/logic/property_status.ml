@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -324,13 +324,15 @@ and register_as_kernel_logical_consequence ppt = match ppt with
     Kernel.fatal "reachability of a stmt without function"
   | Property.IPReachable(Some kf, Cil_types.Kglobal, Property.Before) ->
     let f = kf.Cil_types.fundec in
-    if Ast_info.Function.get_name f = Kernel.MainFunction.get ()
+    if Ast_info.Function.get_name f = Kernel.MainFunction.get_plain_string ()
       (* main is always reachable *)
     then emit_valid ppt
   | Property.IPOther _  | Property.IPReachable _
   | Property.IPPredicate _ | Property.IPCodeAnnot _ | Property.IPComplete _ 
   | Property.IPDisjoint _ | Property.IPAssigns _ | Property.IPFrom _ 
-  | Property.IPAllocation _ | Property.IPDecrease _ | Property.IPLemma _ ->
+  | Property.IPAllocation _ | Property.IPDecrease _ | Property.IPLemma _
+  | Property.IPPropertyInstance _
+  | Property.IPTypeInvariant _ | Property.IPGlobalInvariant _ ->
     ()
 
 (* the functions above and below MUST be synchronized *)
@@ -345,13 +347,15 @@ and is_kernel_logical_consequence ppt = match ppt with
     Kernel.fatal "reachability of a stmt without function"
   | Property.IPReachable(Some kf, Cil_types.Kglobal, Property.Before) ->
     let f = kf.Cil_types.fundec in (* main is always reachable *)
-    Ast_info.Function.get_name f = Kernel.MainFunction.get ()
+    Ast_info.Function.get_name f = Kernel.MainFunction.get_plain_string ()
   | Property.IPAxiom _
   | Property.IPAxiomatic _
   | Property.IPOther _  | Property.IPReachable _
   | Property.IPPredicate _ | Property.IPCodeAnnot _ | Property.IPComplete _
   | Property.IPDisjoint _ | Property.IPAssigns _ | Property.IPFrom _ 
-  | Property.IPAllocation _ | Property.IPDecrease _ | Property.IPLemma _ ->
+  | Property.IPAllocation _ | Property.IPDecrease _ | Property.IPLemma _
+  | Property.IPPropertyInstance _
+  | Property.IPTypeInvariant _ | Property.IPGlobalInvariant _ ->
     false
 
 and unsafe_emit_and_get e ~hyps ~auto ppt ?(distinct=false) s =
@@ -434,13 +438,15 @@ hypotheses: unsound!" Emitter.pretty e Property.pretty ppt));
        conjunctions ones (but conjunctions are automatically computed and so
        already registered) *)
     match ppt with
-    | Property.IPOther _ | Property.IPReachable _ -> 
+    | Property.IPOther _ | Property.IPReachable _
+    | Property.IPPropertyInstance _ ->
       register ppt; 
       unsafe_emit_and_get e ~hyps ~auto ppt ~distinct s
     | Property.IPPredicate _ | Property.IPCodeAnnot _ | Property.IPComplete _ 
     | Property.IPDisjoint _ | Property.IPAssigns _ | Property.IPFrom _ 
     | Property.IPAllocation _ | Property.IPDecrease _ | Property.IPBehavior _
-    | Property.IPAxiom _ | Property.IPAxiomatic _ | Property.IPLemma _ ->
+    | Property.IPAxiom _ | Property.IPAxiomatic _ | Property.IPLemma _
+    | Property.IPTypeInvariant _ | Property.IPGlobalInvariant _ ->
       Kernel.fatal "unregistered property %a" Property.pretty ppt
 
 and logical_consequence e ppt hyps = 
@@ -454,7 +460,7 @@ let () =
     register_as_kernel_logical_consequence
 
 let emit_and_get e ~hyps ppt ?distinct s =
-  (match ppt with
+  begin match ppt with
   | Property.IPBehavior _ | Property.IPAxiom _ | Property.IPAxiomatic _
   | Property.IPPredicate (Property.PKAssumes _, _, _, _) ->
     Kernel.fatal
@@ -464,7 +470,10 @@ let emit_and_get e ~hyps ppt ?distinct s =
   | Property.IPPredicate _ | Property.IPCodeAnnot _ | Property.IPComplete _ 
   | Property.IPDisjoint _ | Property.IPAssigns _ | Property.IPFrom _ 
   | Property.IPDecrease _ | Property.IPLemma _ | Property.IPReachable _
-  | Property.IPAllocation _ | Property.IPOther _ -> ());
+  | Property.IPAllocation _ | Property.IPOther _
+  | Property.IPPropertyInstance _
+  | Property.IPTypeInvariant _ | Property.IPGlobalInvariant _ -> ()
+  end;
   unsafe_emit_and_get e ~hyps ~auto:false ppt ?distinct s
 
 let emit e ~hyps ppt ?distinct s = ignore (emit_and_get e ~hyps ppt ?distinct s)
@@ -622,7 +631,8 @@ and get_status ?(must_register=true) ppt =
   with Not_found ->
     (* assume that all ACSL properties are registered, except non-ACSL ones *)
     match ppt with
-    | Property.IPOther _ | Property.IPReachable _ -> 
+    | Property.IPOther _ | Property.IPReachable _
+    | Property.IPPropertyInstance _ ->
       if must_register then begin
 	register ppt; 
 	if is_kernel_logical_consequence ppt then get_status ppt 
@@ -633,7 +643,8 @@ and get_status ?(must_register=true) ppt =
     | Property.IPPredicate _ | Property.IPCodeAnnot _ | Property.IPComplete _ 
     | Property.IPDisjoint _ | Property.IPAssigns _ | Property.IPFrom _ 
     | Property.IPDecrease _ | Property.IPAllocation _ 
-    | Property.IPAxiom _ | Property.IPAxiomatic _ | Property.IPLemma _ ->
+    | Property.IPAxiom _ | Property.IPAxiomatic _ | Property.IPLemma _
+    | Property.IPTypeInvariant _ | Property.IPGlobalInvariant _ ->
       Kernel.fatal "trying to get status of unregistered property `%a'.\n\
 That is forbidden (kernel invariant broken)." 
 	Property.pretty ppt
@@ -1481,12 +1492,12 @@ module Consolidation_graph = struct
                 let s = get_status p in
 		let color = status_color p s in
                 let style = match s with
-                  | Never_tried -> [`Style [`Bold]; `Width 0.8 ]
-                  | _ -> [`Style [`Filled]]
+                  | Never_tried -> [`Style `Bold; `Width 0.8 ]
+                  | _ -> [`Style `Filled]
                 in
 		style @ [ label v; `Color color; `Shape `Box ]
               | Emitter _ as v -> 
-		[ label v; `Shape `Diamond; `Color 0xb0c4de; `Style [`Filled] ]
+		[ label v; `Shape `Diamond; `Color 0xb0c4de; `Style `Filled ]
               | Tuning_parameter _ as v ->
 		[ label v; (*`Style `Dotted;*) `Color 0xb0c4de;  ]
 	      (*| Correctness_parameter _ (*as v*) -> assert false (*[ label v; `Color 0xb0c4de ]*)*)
@@ -1495,7 +1506,7 @@ module Consolidation_graph = struct
 	      | None -> []
 	      | Some s ->
 		let c = emitted_status_color s in
-		[ `Color c; `Fontcolor c; `Style [`Bold] ]
+		[ `Color c; `Fontcolor c; `Style `Bold ]
 
         let default_vertex_attributes _ = []
         let default_edge_attributes _ = []

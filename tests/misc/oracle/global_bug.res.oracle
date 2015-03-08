@@ -1,0 +1,38 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/global_bug.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+tests/misc/global_bug.i:6:[kernel] warning: invalid RHS operand for shift. assert 0 ≤ 63 < 32;
+tests/misc/global_bug.i:7:[value] Evaluation of initializer '99 << 63' failed
+[value] Initial state computed
+[value] Values of globals at initialization
+  NOT ACCESSIBLE
+[value] Value analysis not started because globals initialization is not computable.
+[value] ====== VALUES COMPUTED ======
+[from] Computing for function main
+[from] Non-terminating function main (no dependencies)
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  NON TERMINATING - NO EFFECTS
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          \nothing
+[inout] Inputs for function main:
+          \nothing
+[report] Computing properties status...
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'main'
+--------------------------------------------------------------------------------
+
+[    -    ] Assertion 'Value,shift' (file tests/misc/global_bug.i, line 7)
+            tried with Value.
+
+--------------------------------------------------------------------------------
+--- Status Report Summary
+--------------------------------------------------------------------------------
+     1 To be validated
+     1 Total
+--------------------------------------------------------------------------------

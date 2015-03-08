@@ -1,0 +1,25 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_acsl/looplabels.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] 10 goals scheduled
+[wp] [Alt-Ergo] Goal typed_copy_post : Valid
+[wp] [Alt-Ergo] Goal typed_copy_loop_inv_preserved : Valid
+[wp] [Qed] Goal typed_copy_loop_inv_established : Valid
+[wp] [Alt-Ergo] Goal typed_copy_loop_inv_2_preserved : Valid
+[wp] [Alt-Ergo] Goal typed_copy_loop_inv_2_established : Valid
+[wp] [Qed] Goal typed_copy_loop_assign_part1 : Valid
+[wp] [Alt-Ergo] Goal typed_copy_loop_assign_part2 : Valid
+[wp] [Alt-Ergo] Goal typed_copy_loop_assign_part3 : Valid
+[wp] [Qed] Goal typed_copy_assign_part1 : Valid
+[wp] [Alt-Ergo] Goal typed_copy_assign_part2 : Valid
+[wp] Proved goals:   10 / 10
+     Qed:             3 
+     Alt-Ergo:        7
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+copy                 3      7 (792)   10       100%
+----------------------------------------------------------

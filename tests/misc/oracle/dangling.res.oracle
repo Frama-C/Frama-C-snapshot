@@ -1,0 +1,34 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/dangling.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  v ∈ [--..--]
+tests/misc/dangling.i:9:[value] warning: locals {v_0} escaping the scope of a block of main through x
+tests/misc/dangling.i:15:[value] Assertion got status unknown.
+tests/misc/dangling.i:16:[value] Assertion got status valid.
+tests/misc/dangling.i:19:[kernel] warning: accessing left-value that contains escaping addresses:
+                  assert ¬\dangling(&x);
+tests/misc/dangling.i:23:[value] Assertion got status unknown.
+tests/misc/dangling.i:24:[kernel] warning: accessing left-value that contains escaping addresses:
+                  assert ¬\dangling(&x);
+tests/misc/dangling.i:24:[kernel] warning: completely indeterminate value in x.
+[value] Recording results for main
+[value] done for function main
+tests/misc/dangling.i:24:[value] Assertion 'Value,dangling_pointer' got final status invalid.
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  x ∈ {{ &y }} or ESCAPINGADDR
+  y ∈ {1}
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  NO EFFECTS
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          x; y; i; j; j_0
+[inout] Inputs for function main:
+          v

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -73,6 +73,8 @@ val ($) : ('b -> 'c) -> ('a -> 'b) -> 'a -> 'c
 val swap: ('a -> 'b -> 'c) -> 'b -> 'a -> 'c
   (** Swap arguments. *)
 
+val uncurry: ('a -> 'b -> 'c) -> ('a * 'b) -> 'c
+
 val iter_uncurry2:
   (('a -> 'b -> unit) -> 'c -> unit) ->
   (('a * 'b -> unit) -> 'c -> unit)
@@ -97,7 +99,7 @@ val replace: ('a -> 'a -> bool) -> 'a -> 'a list -> 'a list
   (** [replace cmp x l] replaces the first element [y] of [l] such that
       [cmp x y] is true by [x]. If no such element exists, [x] is added
       at the tail of [l].
-      @since Neon-20130301 
+      @since Neon-20140301 
    *)
 
 val filter_map: ('a -> bool) -> ('a -> 'b) -> 'a list -> 'b list
@@ -207,6 +209,9 @@ val opt_equal : ('a -> 'a -> bool) -> 'a option -> 'a option -> bool
 
 val opt_compare : ('a -> 'a -> int) -> 'a option -> 'a option -> int
   (** @since Boron-20100401 *)
+
+val opt_hash: ('a -> int) -> 'a option -> int
+  (** @since Sodium-20150201 *)
 
 (* ************************************************************************* *)
 (** {2 Booleans} *)

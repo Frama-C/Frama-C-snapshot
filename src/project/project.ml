@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -84,9 +84,10 @@ module States_operations = struct
       (fun s -> f s x)
       State_dependency_graph.graph
 
-  let iter_on_selection ?(selection=State_selection.full) f x =
+  let iter_on_selection
+      ?(iter=State_selection.iter) ?(selection=State_selection.full) f x =
     current_selection := selection;
-    State_selection.iter (fun s -> f s x) selection
+    iter (fun s -> f s x) selection
 
   let fold_on_selection ?(selection=State_selection.full) f x =
     current_selection := selection;
@@ -100,7 +101,12 @@ module States_operations = struct
     iter_on_selection ?selection (fun s -> (private_ops s).commit)
 
   let update ?selection =
-    iter_on_selection ?selection (fun s -> (private_ops s).update)
+    (* since the developer may add hooks on update which may depend on each
+       others, iterating in the dependencies order is required. *)
+    iter_on_selection
+      ~iter:State_selection.iter_in_order
+      ?selection
+      (fun s -> (private_ops s).update)
 
   let clear ?(selection=State_selection.full) p =
     let clear s = (private_ops s).clear in
@@ -249,13 +255,27 @@ let projects = Q.create ()
 let current () = Q.top projects
 let is_current p = equal p (current ())
 
+let last_created_by_copy_ref: t option ref = ref None
+let () =
+  Cmdline.last_project_created_by_copy :=
+    (fun () -> match !last_created_by_copy_ref with
+    | None -> None
+    | Some p -> Some p.unique_name)
+
 let iter_on_projects f = Q.iter f projects
 let fold_on_projects f acc = Q.fold f acc projects
 
 let find_all name = Q.filter (fun p -> p.name = name) projects
-let from_unique_name uname = Q.find (fun p -> p.unique_name = uname) projects
+
+exception Unknown_project
+let from_unique_name uname =
+  try Q.find (fun p -> p.unique_name = uname) projects
+  with Not_found -> raise Unknown_project
+
 module Mem = struct
-  let mem s = try ignore (from_unique_name s); true with Not_found -> false
+  let mem s =
+    try ignore (from_unique_name s); true 
+    with Unknown_project -> false
 end
 module Setter = Make_setter(Mem)
 
@@ -374,6 +394,10 @@ let unjournalized_remove project =
     States_operations.update c;
     Set_Current_Hook_User.apply c
   end;
+  (* if we removed the last created_by_copy project, there is no last one *)
+  Extlib.may
+    (fun p -> if equal project p then last_created_by_copy_ref := None)
+    !last_created_by_copy_ref;
   (* clear all the states of other projects referring to the delete project *)
   Q.iter (States_operations.clear_some_projects (equal project)) projects
 (*  Gc.major ()*)
@@ -392,6 +416,7 @@ let remove_all () =
     iter_on_projects Before_remove.apply;
     States_operations.clean ();
     Q.clear projects;
+    last_created_by_copy_ref := None;
     Gc.full_major ()
   with NoProject ->
     ()
@@ -472,8 +497,10 @@ let save_projects selection projects filename =
         []
         projects
     in
-    (* projects are stored on disk from the current one to the last project *)
-    output_value cout (List.rev states);
+    (* projects are stored on disk from the current one to the last project.
+       !last_created_by_copy_ref must be saved at the same time to share the
+       project on disk *)
+    output_value cout (List.rev states, !last_created_by_copy_ref);
     close_out cout;
   end else
     abort "saving a file is not supported in the 'no obj' mode"
@@ -592,7 +619,7 @@ module Descr = struct
         Descr.dynamic
           (fun () ->
             (* Local states must be up-to-date according to [p] when
-	       unmarshalling states of [p] *)
+	             unmarshalling states of [p] *)
             unjournalized_set_current true selection p;
             Before_load.apply ();
             Descr.t_list tbl_on_disk)
@@ -603,16 +630,20 @@ module Descr = struct
       Descr.transform
         one_state
         (fun (p, s as c) ->
-           (match name with None -> () | Some s -> set_name p s);
-           Project_tbl.add existing_projects p ();
-           (* At this point, the local states are always up-to-date according
-              to the current project, since we load first the old current
-              project *)
-           States_operations.unserialize ~selection p s;
-           After_load.apply ();
-           c)
+          (* if we provide an explicit name different of the current one, 
+             rename project [p] *)
+          (match name with Some s when s <> p.name -> set_name p s | _ -> ());
+          Project_tbl.add existing_projects p ();
+          (* At this point, the local states are always up-to-date according
+             to the current project, since we load first the old current
+             project *)
+          States_operations.unserialize ~selection p s;
+          After_load.apply ();
+          c)
     in
-    Descr.t_list final_one_state
+    Descr.t_pair
+      (Descr.t_list final_one_state)
+      (Descr.t_option D.descr) (* the last saved project *)
 
   let input_val = Descr.input_val
 
@@ -642,12 +673,13 @@ let load_projects ~project_under_copy selection ?name filename =
     check_magic cin (fun n -> "magic number " ^ string_of_int n) magic;
     let ocamlgraph_counter = read cin in
     let pre_existing_projects = Descr.init project_under_copy in
-    let loaded_states =
+    let loaded_states, last_created =
       gen_read
         (fun c -> Descr.input_val c (Descr.global_state name selection))
         cin
     in
     close_in cin;
+    last_created_by_copy_ref := last_created;
     Descr.finalize loaded_states selection;
     Graph.Blocks.after_unserialization ocamlgraph_counter;
     (* [set_current] done when unmarshalling and hooks may reorder
@@ -714,7 +746,7 @@ module Create_by_copy_hook = Hook.Build(struct type t = project * project end)
 let create_by_copy_hook f =
   Create_by_copy_hook.extend (fun (src, dst) -> f src dst)
 
-let unjournalized_create_by_copy selection src name =
+let unjournalized_create_by_copy selection src last name =
   guarded_feedback selection 2 "creating project %S by copying project %S"
     name (src.unique_name);
   let filename =
@@ -728,6 +760,7 @@ let unjournalized_create_by_copy selection src name =
         ~project_under_copy:(Some src) selection (Some name) filename
     in
     Extlib.safe_remove filename;
+    if last then last_created_by_copy_ref := Some prj;
     Create_by_copy_hook.apply (src, prj);
     prj
   with e ->
@@ -738,11 +771,14 @@ let journalized_create_by_copy =
   let lbl = Datatype.optlabel_func in
   Journal.register "Project.create_by_copy"
     (lbl "selection" dft_sel State_selection.ty
-       (lbl "src" current ty (Datatype.func Datatype.string ty)))
+       (lbl "src" current ty
+          (Datatype.func2
+             ~label1:("last", None) Datatype.bool Datatype.string ty)))
     unjournalized_create_by_copy
 
-let create_by_copy ?(selection=State_selection.full) ?(src=current()) name =
-  journalized_create_by_copy selection src name
+let create_by_copy
+    ?(selection=State_selection.full) ?(src=current()) ~last name =
+  journalized_create_by_copy selection src last name
 
 (* ************************************************************************** *)
 (** {2 Undoing} *)

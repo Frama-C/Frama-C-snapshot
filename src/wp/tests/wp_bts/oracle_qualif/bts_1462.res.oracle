@@ -1,0 +1,29 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_bts/bts_1462.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] 13 goals scheduled
+[wp] [Qed] Goal typed_local_loop_inv_preserved : Valid
+[wp] [Qed] Goal typed_local_loop_inv_established : Valid
+[wp] [Qed] Goal typed_local_loop_assign_part1 : Valid
+[wp] [Qed] Goal typed_local_loop_assign_part2 : Valid
+[wp] [Alt-Ergo] Goal typed_wrong_assert_for_value : Valid
+[wp] [Alt-Ergo] Goal typed_wrong_loop_inv_A_KO_preserved : Unknown
+[wp] [Qed] Goal typed_wrong_loop_inv_A_KO_established : Valid
+[wp] [Qed] Goal typed_wrong_loop_inv_B_preserved : Valid
+[wp] [Qed] Goal typed_wrong_loop_inv_B_established : Valid
+[wp] [Qed] Goal typed_wrong_loop_inv_C_preserved : Valid
+[wp] [Qed] Goal typed_wrong_loop_inv_C_established : Valid
+[wp] [Alt-Ergo] Goal typed_wrong_assert_consequence_of_false_invariant : Valid
+[wp] [Qed] Goal typed_wrong_loop_assign : Valid
+[wp] Proved goals:   12 / 13
+     Qed:            10 
+     Alt-Ergo:        2  (unknown: 1)
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+wrong                6      2 (6)      9      88.9%
+local                4     -           4       100%
+----------------------------------------------------------

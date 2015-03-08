@@ -1,0 +1,7 @@
+%init: S0;
+%accept: Sf;
+
+S0: { main::bhv() } -> Sf
+  | { main {{ c <= 0 }} (f()) {{ \result == 0 }} } -> Sf;
+
+Sf: -> Sf;

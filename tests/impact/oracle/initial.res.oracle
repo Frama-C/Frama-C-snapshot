@@ -1,0 +1,126 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/impact/initial.i (no preprocessing)
+[impact] beginning analysis
+[value] Analyzing a complete application starting at main1
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  x1 ∈ {0}
+  x2 ∈ {0}
+  y2 ∈ {0}
+  z2 ∈ {0}
+  x3 ∈ {0}
+  c ∈ [--..--]
+tests/impact/initial.i:24:[value] entering loop for the first time
+[value] computing for function g1 <- main1.
+        Called from tests/impact/initial.i:25.
+[value] computing for function f1 <- g1 <- main1.
+        Called from tests/impact/initial.i:19.
+[value] Recording results for f1
+[value] Done for function f1
+[value] Recording results for g1
+[value] Done for function g1
+[value] computing for function g1 <- main1.
+        Called from tests/impact/initial.i:25.
+[value] computing for function f1 <- g1 <- main1.
+        Called from tests/impact/initial.i:19.
+[value] Recording results for f1
+[value] Done for function f1
+[value] Recording results for g1
+[value] Done for function g1
+[value] Recording results for main1
+[value] done for function main1
+[from] Computing for function f1
+[from] Done for function f1
+[from] Computing for function g1
+[from] Done for function g1
+tests/impact/initial.i:24:[pdg] warning: no final state. Probably unreachable...
+[impact] impacted statements of stmt(s) 7 are:
+[impact] analysis done
+[impact] beginning analysis
+[value] Analyzing a complete application starting at main2
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  x1 ∈ {0}
+  x2 ∈ {0}
+  y2 ∈ {0}
+  z2 ∈ {0}
+  x3 ∈ {0}
+  c ∈ [--..--]
+tests/impact/initial.i:57:[value] entering loop for the first time
+[value] computing for function h2 <- main2.
+        Called from tests/impact/initial.i:58.
+[value] computing for function g2 <- h2 <- main2.
+        Called from tests/impact/initial.i:52.
+[value] computing for function f2 <- g2 <- h2 <- main2.
+        Called from tests/impact/initial.i:46.
+[value] Recording results for f2
+[value] Done for function f2
+[value] computing for function aux2 <- g2 <- h2 <- main2.
+        Called from tests/impact/initial.i:47.
+[value] Recording results for aux2
+[value] Done for function aux2
+[value] Recording results for g2
+[value] Done for function g2
+[value] Recording results for h2
+[value] Done for function h2
+[value] Recording results for main2
+[value] done for function main2
+[from] Computing for function f2
+[from] Done for function f2
+[from] Computing for function aux2
+[from] Done for function aux2
+[from] Computing for function g2
+[from] Done for function g2
+[from] Computing for function h2
+[from] Done for function h2
+tests/impact/initial.i:57:[pdg] warning: no final state. Probably unreachable...
+[impact] impacted statements of stmt(s) 24 are:
+           tests/impact/initial.i:35 (sid 15): x2 = y2;
+           tests/impact/initial.i:40 (sid 18): y2 = z2;
+           tests/impact/initial.i:46 (sid 24): f2();
+           tests/impact/initial.i:47 (sid 27): aux2();
+           tests/impact/initial.i:52 (sid 32): g2();
+           tests/impact/initial.i:53 (sid 33): z2 = x2;
+           tests/impact/initial.i:58 (sid 38): h2();
+[impact] analysis done
+[impact] beginning analysis
+[value] Analyzing a complete application starting at main3
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  x1 ∈ {0}
+  x2 ∈ {0}
+  y2 ∈ {0}
+  z2 ∈ {0}
+  x3 ∈ {0}
+  c ∈ [--..--]
+tests/impact/initial.i:80:[value] entering loop for the first time
+[value] computing for function g3 <- main3.
+        Called from tests/impact/initial.i:81.
+[value] computing for function f3 <- g3 <- main3.
+        Called from tests/impact/initial.i:69.
+[value] Recording results for f3
+[value] Done for function f3
+[value] Recording results for g3
+[value] Done for function g3
+[value] computing for function g3 <- main3.
+        Called from tests/impact/initial.i:81.
+[value] computing for function f3 <- g3 <- main3.
+        Called from tests/impact/initial.i:69.
+[value] Recording results for f3
+[value] Done for function f3
+[value] Recording results for g3
+[value] Done for function g3
+[value] Recording results for main3
+[value] done for function main3
+[from] Computing for function f3
+[from] Done for function f3
+[from] Computing for function g3
+[from] Done for function g3
+tests/impact/initial.i:80:[pdg] warning: no final state. Probably unreachable...
+[impact] impacted statements of stmt(s) 44 are:
+           tests/impact/initial.i:71 (sid 47): x3 = x3;
+           tests/impact/initial.i:81 (sid 53): g3();
+[impact] analysis done

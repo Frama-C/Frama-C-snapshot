@@ -1,0 +1,114 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/slevelex.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  c ∈ [--..--]
+tests/misc/slevelex.i:80:[value] Assertion got status unknown.
+[value] Called Frama_C_show_each_xy({1; 2}, {1; 2})
+[value] computing for function f <- main.
+        Called from tests/misc/slevelex.i:83.
+[value] Recording results for f
+[value] Done for function f
+tests/misc/slevelex.i:84:[value] Assertion got status valid.
+[value] computing for function gu <- main.
+        Called from tests/misc/slevelex.i:88.
+tests/misc/slevelex.i:26:[value] Assertion got status valid.
+[value] Called Frama_C_show_each_u({1})
+[value] Called Frama_C_show_each_u({2})
+[value] Called Frama_C_show_each_u({3})
+[value] Called Frama_C_show_each_u({4})
+[value] Called Frama_C_show_each_u({5})
+[value] Called Frama_C_show_each_u({6})
+[value] Called Frama_C_show_each_u({7})
+[value] Called Frama_C_show_each_u({8})
+[value] Called Frama_C_show_each_u({9})
+[value] Called Frama_C_show_each_u({10})
+[value] Called Frama_C_show_each_u({11})
+[value] Called Frama_C_show_each_u({12})
+[value] Called Frama_C_show_each_u({13})
+[value] Called Frama_C_show_each_u({14})
+[value] Called Frama_C_show_each_u({15})
+[value] Called Frama_C_show_each_u({16})
+[value] Called Frama_C_show_each_u({17})
+[value] Called Frama_C_show_each_u({18})
+[value] Called Frama_C_show_each_u({19})
+[value] Called Frama_C_show_each_u({20})
+[value] Recording results for gu
+[value] Done for function gu
+[value] computing for function ginc <- main.
+        Called from tests/misc/slevelex.i:89.
+tests/misc/slevelex.i:49:[value] Assertion got status valid.
+[value] Called Frama_C_show_each_inc({4})
+[value] Called Frama_C_show_each_inc({8})
+[value] Called Frama_C_show_each_inc({12})
+[value] Called Frama_C_show_each_inc({16})
+[value] Called Frama_C_show_each_inc({20})
+[value] Called Frama_C_show_each_inc({24})
+[value] Called Frama_C_show_each_inc({28})
+[value] Called Frama_C_show_each_inc({32})
+[value] Called Frama_C_show_each_inc({36})
+[value] Called Frama_C_show_each_inc({40})
+[value] Called Frama_C_show_each_inc({44})
+[value] Called Frama_C_show_each_inc({48})
+[value] Called Frama_C_show_each_inc({52})
+[value] Called Frama_C_show_each_inc({56})
+[value] Called Frama_C_show_each_inc({60})
+[value] Called Frama_C_show_each_inc({64})
+[value] Called Frama_C_show_each_inc({68})
+[value] Called Frama_C_show_each_inc({72})
+[value] Called Frama_C_show_each_inc({76})
+[value] Called Frama_C_show_each_inc({80})
+[value] Recording results for ginc
+[value] Done for function ginc
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function f:
+  x ∈ {1; 2}
+  y ∈ {1; 2}
+  __retres ∈ {0}
+[value] Values at end of function ginc:
+  inc ∈ [4..80],0%4
+[value] Values at end of function gu:
+  
+[value] Values at end of function main:
+  un ∈ [1..20]
+  x ∈ {0}
+  y ∈ {1; 2}
+[from] Computing for function f
+[from] Done for function f
+[from] Computing for function ginc
+[from] Done for function ginc
+[from] Computing for function gu
+[from] Done for function gu
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function f:
+  \result FROM c
+[from] Function ginc:
+  NO EFFECTS
+[from] Function gu:
+  NO EFFECTS
+[from] Function main:
+  NO EFFECTS
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function f:
+          x; y; __retres
+[inout] Inputs for function f:
+          c
+[inout] Out (internal) for function ginc:
+          inc
+[inout] Inputs for function ginc:
+          \nothing
+[inout] Out (internal) for function gu:
+          \nothing
+[inout] Inputs for function gu:
+          \nothing
+[inout] Out (internal) for function main:
+          un; x; y
+[inout] Inputs for function main:
+          c

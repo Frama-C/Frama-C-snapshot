@@ -1,0 +1,162 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_bts/bts_1020.i (no preprocessing)
+tests/wp_bts/bts_1020.i:9:[kernel] warning: parsing obsolete ACSL construct 'logic declaration'. 'an axiomatic block' should be used instead.
+tests/wp_bts/bts_1020.i:10:[kernel] warning: parsing obsolete ACSL construct 'logic declaration'. 'an axiomatic block' should be used instead.
+tests/wp_bts/bts_1020.i:11:[kernel] warning: parsing obsolete ACSL construct 'logic declaration'. 'an axiomatic block' should be used instead.
+tests/wp_bts/bts_1020.i:12:[kernel] warning: parsing obsolete ACSL construct 'logic declaration'. 'an axiomatic block' should be used instead.
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function f1
+------------------------------------------------------------
+
+Goal Invariant 'I' (file tests/wp_bts/bts_1020.i, line 24):
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_0).
+  (* tests/wp_bts/bts_1020.i:23: Then *)
+  Have: i_0<=9.
+  (* Invariant 'I' (file tests/wp_bts/bts_1020.i, line 24) *)
+  (* tests/wp_bts/bts_1020.i:24: Invariant 'I': *)
+  Have: (P_I i_0).
+  (* tests/wp_bts/bts_1020.i:25: Call 'g' *)
+  Have: (P_R i_0) /\ (P_E i_0 i_0).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Loop assigns 'loc':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition 'R' in 'g'' in 'f1' at call 'g' (file tests/wp_bts/bts_1020.i, line 25)
+:
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_3).
+  (* tests/wp_bts/bts_1020.i:23: Then *)
+  Have: i_3<=9.
+  (* Invariant 'I' (file tests/wp_bts/bts_1020.i, line 24) *)
+  (* tests/wp_bts/bts_1020.i:24: Invariant 'I': *)
+  Have: (P_I i_3).
+}
+Prove: (P_R i_3).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function f2
+------------------------------------------------------------
+
+Goal Invariant 'T' (file tests/wp_bts/bts_1020.i, line 32):
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_0).
+  (* tests/wp_bts/bts_1020.i:30: Then *)
+  Have: i_0<=9.
+  (* tests/wp_bts/bts_1020.i:31: Call 'g' *)
+  Have: (P_R i_0) /\ (P_E i_0 i_0).
+  (* Invariant 'T' (file tests/wp_bts/bts_1020.i, line 32) *)
+  (* tests/wp_bts/bts_1020.i:32: Invariant 'T': *)
+  Have: (P_I i_0).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Loop assigns 'loc':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition 'R' in 'g'' in 'f2' at call 'g' (file tests/wp_bts/bts_1020.i, line 31)
+:
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_3).
+  (* tests/wp_bts/bts_1020.i:30: Then *)
+  Have: i_3<=9.
+  (* tests/wp_bts/bts_1020.i:31: Call 'g' *)
+  Have: (P_R i_3) /\ (P_E i_3 i_3).
+  (* Invariant 'T' (file tests/wp_bts/bts_1020.i, line 32) *)
+  (* tests/wp_bts/bts_1020.i:32: Invariant 'T': *)
+  Have: (P_I i_3).
+}
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function f3
+------------------------------------------------------------
+
+Goal Invariant 'I' (file tests/wp_bts/bts_1020.i, line 40):
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_0).
+  (* tests/wp_bts/bts_1020.i:39: Then *)
+  Have: i_0<=9.
+}
+Prove: (P_I i_0).
+
+------------------------------------------------------------
+
+Goal Assertion 'A' (file tests/wp_bts/bts_1020.i, line 41):
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_1).
+  (* tests/wp_bts/bts_1020.i:39: Then *)
+  Have: i_1<=9.
+  (* Invariant 'I' (file tests/wp_bts/bts_1020.i, line 40) *)
+  (* tests/wp_bts/bts_1020.i:40: Invariant 'I': *)
+  Have: (P_I i_1).
+}
+Prove: (P_A i_1).
+
+------------------------------------------------------------
+
+Goal Loop assigns 'loc':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function f4
+------------------------------------------------------------
+
+Goal Assertion 'A' (file tests/wp_bts/bts_1020.i, line 49):
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_1).
+  (* tests/wp_bts/bts_1020.i:48: Then *)
+  Have: i_1<=9.
+}
+Prove: (P_A i_1).
+
+------------------------------------------------------------
+
+Goal Invariant 'I' (file tests/wp_bts/bts_1020.i, line 51):
+Let x_0 = 1+i_1.
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_1) /\ (is_sint32 x_0).
+  (* tests/wp_bts/bts_1020.i:48: Then *)
+  Have: i_1<=9.
+  (* Assertion 'A' (file tests/wp_bts/bts_1020.i, line 49) *)
+  (* tests/wp_bts/bts_1020.i:49: Assertion 'A': *)
+  Have: (P_A i_1).
+}
+Prove: (P_I x_0).
+
+------------------------------------------------------------
+
+Goal Loop assigns 'loc':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------

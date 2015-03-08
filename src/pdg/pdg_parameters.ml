@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -39,7 +39,7 @@ module BuildAll =
      end)
 
 module BuildFct =
-  StringSet
+  Kernel_function_set
     (struct
        let option_name = "-fct-pdg"
        let arg_name = ""
@@ -55,9 +55,15 @@ module PrintBw =
 
 let () = Parameter_customize.set_group output
 module DotBasename =
-  EmptyString
+  Empty_string
     (struct
        let option_name = "-pdg-dot"
        let arg_name = "basename"
        let help = "put the PDG of function <f> in basename.f.dot"
      end)
+
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

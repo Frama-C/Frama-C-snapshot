@@ -1,0 +1,4 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/split_return.i (no preprocessing)
+[value] user error: incorrect argument for option -slevel-function (no function 'NON_EXISTING').
+[kernel] Plug-in value aborted: invalid user input.

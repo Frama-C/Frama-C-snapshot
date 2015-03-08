@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -188,9 +188,6 @@ struct
 
   let sigma_opt = function None -> Sigma.create () | Some s -> s
   let sigma_at w = sigma_opt w.sigma
-  let sigma_any ~call w = match w.sigma with
-    | None -> Sigma.create ()
-    | Some s -> Sigma.havoc_any ~call s
   let sigma_union s1 s2 =
     match s1 , s2 with
     | None , s | s , None -> sigma_opt s , Passive.empty , Passive.empty
@@ -208,9 +205,10 @@ struct
   let intersect_vc vc p = 
     Vars.intersect (F.varsp p) vc.vars || Conditions.intersect p vc.hyps
 
-  let assume_vc ~descr ?hpid ?stmt ?warn hs vc =
-    if hs = [] && warn = None then vc 
-    else
+  let assume_vc ~descr ?hpid ?stmt ?warn ?(filter=false) hs vc =
+    if (hs = [] && warn = None) ||
+       (filter && not (List.exists (intersect_vc vc) hs))
+    then vc else
       let path = match stmt with
         | None -> vc.path
         | Some s -> S.add s vc.path in
@@ -346,6 +344,12 @@ struct
     vcs = Gmap.empty ;
   }
 
+  let has_init wenv =
+    let frame = wenv.frame in
+    let init = L.mem_at_frame frame Clabels.Init in
+    let domain = Sigma.domain init in
+    not (M.Heap.Set.is_empty domain)
+  
   let merge wenv wp1 wp2 =
     L.in_frame wenv.frame
       (fun () ->
@@ -373,7 +377,7 @@ struct
       (fun wp -> 
          match wp.sigma with
          | None -> 
-             let s = sigma_at wp in
+             let s = Sigma.create () in
              phi (L.move wenv.main s) { wp with sigma = Some s } 
          | Some s ->
              phi (L.move wenv.main s) wp) wp
@@ -384,7 +388,9 @@ struct
 
   let rec intros hs p = 
     match F.pred p with
-    | Logic.Bind(Logic.Forall,_,p) -> intros hs p
+    | Logic.Bind(Logic.Forall,t,p) -> 
+        let x = Lang.freshvar t in
+        intros hs (F.p_bool (F.lc_open x p))
     | Logic.Imply(hs2,p) -> intros (hs @ hs2) p
     | _ -> hs , p
 
@@ -577,7 +583,7 @@ struct
   let use_assigns wenv stmt hpid ainfo wp = in_wenv wenv wp 
       begin fun env wp ->
         match ainfo.a_assigns with
-        
+
         | WritesAny ->
             let sigma = Sigma.havoc_any ~call:false (L.sigma env) in
             let vcs = do_assigns_everything ?stmt wp.effects wp.vcs in
@@ -826,7 +832,7 @@ struct
          let warn,hyp = match outcome with
            | Warning.Failed warn -> warn , F.p_true
            | Warning.Result(warn , hyp) -> warn , hyp in
-         let vcs = gmap (assume_vc ~descr:"Initializer" ~warn [hyp]) wp.vcs in
+         let vcs = gmap (assume_vc ~filter:true ~descr:"Initializer" ~warn [hyp]) wp.vcs in
          { wp with vcs = vcs })
 
   let init_range wenv lv typ a b wp = in_wenv wenv wp
@@ -842,7 +848,17 @@ struct
          let warn,hyp = match outcome with
            | Warning.Failed warn -> warn , F.p_true
            | Warning.Result(warn , hyp) -> warn , hyp in
-         let vcs = gmap (assume_vc ~descr:"Initializer" ~warn [hyp]) wp.vcs in
+         let vcs = gmap (assume_vc ~filter:true ~descr:"Initializer" ~warn [hyp]) wp.vcs in
+         { wp with vcs = vcs })
+
+  let init_const wenv v wp = in_wenv wenv wp
+      (fun env wp ->
+         let obj = Ctypes.object_of v.vtype in
+         let loc = M.cvar v in
+         let value = M.load (L.sigma env) obj loc in
+         let init = M.load (L.mem_at env Clabels.Init) obj loc in
+         let hyp = F.p_equal (C.cval value) (C.cval init) in
+         let vcs = gmap (assume_vc ~filter:true ~descr:"Global Const" [hyp]) wp.vcs in
          { wp with vcs = vcs })
 
   (* -------------------------------------------------------------------------- *)
@@ -920,13 +936,14 @@ struct
                  wp.vcs pre
              in { wp with vcs = vcs }
          | Warning.Result(warn,vs) ->
+             let init = L.mem_at env Clabels.Init in
              let call_e = L.call sigma in
-             let call_f = L.call_pre kf vs sigma in
+             let call_f = L.call_pre init kf vs sigma in
              let vcs = List.fold_left
                  (fun vcs (gid,p) ->
                     let outcome = Warning.catch
                         ~severe:true ~effect:"Can not prove call precondition"
-                        (L.in_frame call_f (L.pred ~positive:false call_e)) p in
+                        (L.in_frame call_f (L.pred ~positive:true call_e)) p in
                     match outcome with
                     | Warning.Result(warn2,goal) ->
                         let warn = W.union warn warn2 in
@@ -968,7 +985,8 @@ struct
         let dummy = Sigma.create () in
         let vs = List.map (C.exp dummy) es in
         let env = L.move env0 dummy in
-        let frame = L.call_pre kf vs dummy in
+        let init = L.mem_at env0 Clabels.Init in
+        let frame = L.call_pre init kf vs dummy in
         Some (A.domain (L.in_frame frame (L.assigns_from env) froms))
 
   let cc_havoc d s = match d with
@@ -976,6 +994,7 @@ struct
     | Some domain -> { pre = Sigma.havoc s domain ; post = s }
 
   let cc_callenv env0 lvr kf es assigns wpost wexit =
+    let init = L.mem_at env0 Clabels.Init in
     let dom_call = cc_call_domain env0 kf es assigns in
     let dom_vret = cc_result_domain lvr in
     (* Sequences to be considered *)
@@ -999,9 +1018,9 @@ struct
       seq_exit = seq_exit ;
       seq_result = seq_result ;
       loc_result = result ;
-      frame_pre = L.call_pre kf formals sigma_pre ;
-      frame_post = L.call_post kf formals seq_post ;
-      frame_exit = L.call_post kf formals seq_exit ;
+      frame_pre = L.call_pre init kf formals sigma_pre ;
+      frame_post = L.call_post init kf formals seq_post ;
+      frame_exit = L.call_post init kf formals seq_exit ;
     }
 
   type call_vcs = {
@@ -1227,7 +1246,8 @@ struct
   (* --- WPO Grouper                                                        --- *)
   (* -------------------------------------------------------------------------- *)
 
-  module PMAP = FCMap.Make(P)
+  (* NOTE: bug in ocamldoc in OCaml 4.02 prevents usage of 'P' here *)
+  module PMAP = FCMap.Make(WpPropId.PropId) 
 
   type group = {
     mutable verifs : VC_Annot.t Bag.t ;
@@ -1326,8 +1346,8 @@ end
 (* -------------------------------------------------------------------------- *)
 
 let add_qed_check collection model ~qed ~raw ~goal =
-  let id = Printf.sprintf "Qed-%s-%d-%d" 
-      (Lang.F.head raw) (Lang.F.id qed) (Lang.F.id raw) in
+  let id = Printf.sprintf "Qed-%d-%d" 
+      (Lang.F.id qed) (Lang.F.id raw) in
   let pip = Property.ip_other id None Kglobal in
   let pid = WpPropId.mk_check pip in
   let vck = let open VC_Check in { raw ; qed ; goal } in

@@ -1,0 +1,30 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/any_int.c (with preprocessing)
+[value] Analyzing a complete application starting at any_int
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  
+tests/misc/any_int.c:9:[value] entering loop for the first time
+tests/misc/any_int.c:9:[kernel] warning: signed overflow. assert y+1 ≤ 2147483647;
+tests/misc/any_int.c:9:[kernel] warning: signed overflow. assert y+1 ≤ 2147483647;
+tests/misc/any_int.c:9:[kernel] warning: signed overflow. assert -2147483648 ≤ y-1;
+tests/misc/any_int.c:9:[kernel] warning: signed overflow. assert x+1 ≤ 2147483647;
+tests/misc/any_int.c:9:[kernel] warning: signed overflow. assert -2147483648 ≤ x-1;
+[value] Recording results for any_int
+[value] done for function any_int
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function any_int:
+  y ∈ [--..--]
+  x ∈ [--..--]
+[from] Computing for function any_int
+[from] Done for function any_int
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function any_int:
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function any_int:
+          y; x
+[inout] Inputs for function any_int:
+          \nothing

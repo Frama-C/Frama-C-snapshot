@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -302,26 +302,29 @@ let rec expr_to_term ~cast e =
     | AddrOf lv -> TAddrOf (lval_to_term_lval ~cast lv)
     | CastE (ty,e) -> (mk_cast (unrollType ty) (expr_to_term ~cast e)).term_node
     | BinOp (op, l, r, _) ->
-      let is_arith_cmp_op op =
-	match op with 
-	  | Cil_types.Lt | Cil_types.Gt 
-	  | Cil_types.Le | Cil_types.Ge 
-	  | Cil_types.Eq | Cil_types.Ne -> true 
-	  | _ -> false
+      let is_arith_cmp = match op with
+	| Cil_types.Lt | Cil_types.Gt 
+	| Cil_types.Le | Cil_types.Ge 
+	| Cil_types.Eq | Cil_types.Ne -> true 
+	| _ -> false
       in
       let nnode = TBinOp (op,expr_to_term ~cast l,expr_to_term ~cast r) in
       if (cast && (Cil.isIntegralType e_typ || Cil.isFloatingType e_typ))
-	|| is_arith_cmp_op op (* BTS 1175 *)
+        || is_arith_cmp (* BTS 1175 *)
       then
-	(mk_cast e_typ (Logic_const.term nnode (typ_to_logic_type e_typ))).term_node
+        let ty =
+          if is_arith_cmp then Logic_const.boolean_type
+          else typ_to_logic_type e_typ
+        in
+        (mk_cast e_typ (Logic_const.term nnode ty)).term_node
       else nnode
     | UnOp (op, e, _) ->
-	let nnode = TUnOp (op,expr_to_term ~cast e) in
-	if cast && (Cil.isIntegralType e_typ || Cil.isFloatingType e_typ)
-	then
-	  (mk_cast e_typ
-             (Logic_const.term nnode (typ_to_logic_type e_typ))).term_node
-	else nnode
+      let nnode = TUnOp (op,expr_to_term ~cast e) in
+      if cast && (Cil.isIntegralType e_typ || Cil.isFloatingType e_typ)
+      then
+	(mk_cast e_typ
+           (Logic_const.term nnode (typ_to_logic_type e_typ))).term_node
+      else nnode
     | AlignOfE e -> TAlignOfE (expr_to_term ~cast e)
     | AlignOf typ -> TAlignOf typ
     | Lval lv -> TLval (lval_to_term_lval ~cast lv)
@@ -344,7 +347,7 @@ and host_to_term_host ~cast = function
 and offset_to_term_offset ~cast:cast = function
   | NoOffset -> TNoOffset
   | Index (e,off) ->
-      TIndex (expr_to_term ~cast e,offset_to_term_offset ~cast off)
+    TIndex (expr_to_term ~cast e,offset_to_term_offset ~cast off)
   | Field (fi,off) -> TField(fi,offset_to_term_offset ~cast off)
 
 
@@ -574,10 +577,7 @@ let _compare_c c1 c2 =
    match c1, c2 with
      | CEnum e1, CEnum e2 ->
        e1.einame = e2.einame && e1.eihost.ename = e2.eihost.ename &&
-       (match 
-           isInteger (constFold true e1.eival),
-           isInteger (constFold true e2.eival)
-        with
+       (match constFoldToInt e1.eival, constFoldToInt e2.eival with
           | Some i1, Some i2 -> Integer.equal i1 i2
           | _ -> false)
      | CInt64 (i1,k1,_), CInt64(i2,k2,_) -> 
@@ -736,6 +736,8 @@ and is_same_predicate p1 p2 =
     | Pvalid_read (l1,t1), Pvalid_read (l2,t2)
     | Pinitialized (l1,t1), Pinitialized (l2,t2) -> 
 	is_same_logic_label l1 l2 && is_same_term t1 t2
+    | Pdangling (l1,t1), Pdangling (l2,t2) -> 
+	is_same_logic_label l1 l2 && is_same_term t1 t2
     | Pfresh (l1,m1,t1,n1), Pfresh (l2,m2,t2,n2) -> 
 	is_same_logic_label l1 l2 && is_same_logic_label m1 m2 &&
 	is_same_term t1 t2 && is_same_term n1 n2
@@ -746,7 +748,7 @@ and is_same_predicate p1 p2 =
          with Invalid_argument _ -> false)
     | (Pfalse | Ptrue | Papp _ | Prel _ | Pand _ | Por _ | Pimplies _
       | Piff _ | Pnot _ | Pif _ | Plet _ | Pforall _ | Pexists _
-      | Pat _ | Pvalid _ | Pvalid_read _ | Pinitialized _
+      | Pat _ | Pvalid _ | Pvalid_read _ | Pinitialized _ | Pdangling _
       | Pfresh _ | Pallocable _ | Pfreeable _ | Psubtype _ | Pxor _ | Pseparated _
       ), _ -> false
 
@@ -1048,6 +1050,8 @@ and is_same_lexpr l1 l2 =
     | PLblock_length (l1,e1), PLblock_length (l2,e2)
     | PLinitialized (l1,e1), PLinitialized (l2,e2) ->
 	l1=l2 && is_same_lexpr e1 e2
+    | PLdangling (l1,e1), PLdangling (l2,e2) ->
+	l1=l2 && is_same_lexpr e1 e2
     | PLseparated l1, PLseparated l2 ->
       is_same_list is_same_lexpr l1 l2
     | PLif(c1,t1,e1), PLif(c2,t2,e2) ->
@@ -1068,8 +1072,9 @@ and is_same_lexpr l1 l2 =
       | PLtrue | PLinitField _ | PLrel _ | PLand _ | PLor _ | PLxor _
       | PLimplies _ | PLiff _ | PLnot _ | PLif _ | PLforall _
       | PLexists _ | PLvalid _ | PLvalid_read _ | PLfreeable _ | PLallocable _ 
-      | PLinitialized _ | PLseparated _ | PLfresh _ | PLnamed _ | PLsubtype _
-      | PLcomprehension _ | PLunion _ | PLinter _ | PLsingleton _ | PLempty
+      | PLinitialized _ | PLdangling _ | PLseparated _ | PLfresh _ | PLnamed _
+      | PLsubtype _ | PLcomprehension _ | PLunion _ | PLinter _
+      | PLsingleton _ | PLempty
     ),_ -> false
 
 let hash_label l = 
@@ -1513,6 +1518,9 @@ and compare_predicate p1 p2 =
   | Pinitialized (l1,t1), Pinitialized (l2,t2) -> 
     let res = compare_logic_label l1 l2 in
     if res = 0 then compare_term t1 t2 else res
+  | Pdangling (l1,t1), Pdangling (l2,t2) -> 
+    let res = compare_logic_label l1 l2 in
+    if res = 0 then compare_term t1 t2 else res
   | Pallocable _, _ -> 1
   | _, Pallocable _ -> -1
   | Pfreeable _, _ -> 1
@@ -1523,6 +1531,8 @@ and compare_predicate p1 p2 =
   | _, Pvalid_read _ -> -1
   | Pinitialized _, _ -> 1
   | _, Pinitialized _ -> -1
+  | Pdangling _, _ -> 1
+  | _, Pdangling _ -> -1
   | Pfresh (l1,m1,t1,n1), Pfresh (l2,m2,t2,n2) -> 
     let res = compare_logic_label l1 l2 in
     if res = 0 then
@@ -1733,14 +1743,25 @@ let clear_funspec spec =
   spec.spec_disjoint_behaviors <- tmp.spec_disjoint_behaviors;
   spec.spec_variant <- tmp.spec_variant
 
-let lhost_c_type = function
-  | TVar v ->
-    (match v.lv_type with
-    | Ctype ty -> ty
-    | _ -> assert false)
+let lhost_c_type thost =
+  let extract_ctype lty =
+    let get = function
+      | Ctype typ -> Some typ
+      | Ltype _ | Lvar _ | Linteger | Lreal | Larrow _ -> None
+    in
+    match Logic_const.plain_or_set get lty with
+    | None ->
+      Kernel.fatal "[lhost_c_type] logic type %a does not represent a C type"
+        Cil_datatype.Logic_type.pretty lty
+    | Some ty ->
+      ty
+  in
+  match thost with
+  | TVar v -> extract_ctype v.lv_type
   | TMem t ->
-    (match t.term_type with
-    | Ctype (TPtr(ty,_)) -> ty
+    let ty = extract_ctype t.term_type in
+    (match Cil.unrollType ty with
+    | TPtr(ty, _) -> ty
     | _ -> assert false)
   | TResult ty -> ty
 
@@ -1900,6 +1921,187 @@ let points_to_valid_string ?loc s =
     [ pi ] ->
       Logic_const.unamed ?loc (Papp (pi, [], [s]))
   | _ -> assert false
+
+let is_min_max_function name li =
+  li.l_var_info.lv_name = name &&
+  match li.l_profile with
+  | [e] ->
+    Cil_datatype.Logic_type.equal e.lv_type (Logic_const.make_set_type Linteger)
+  | _ -> false
+let is_max_function li = is_min_max_function "\\max" li
+let is_min_function li = is_min_max_function "\\min" li
+
+
+let rec constFoldTermToInt ?(machdep=true) (e: term) : Integer.t option =
+  match e.term_node with
+  | TBinOp(bop, e1, e2) -> constFoldBinOpToInt ~machdep bop e1 e2
+  | TUnOp(unop, e) -> constFoldUnOpToInt ~machdep unop e
+  | TConst(LChr c) -> Some (charConstToInt c)
+  | TConst(LEnum {eival = v}) -> Cil.constFoldToInt ~machdep v
+  | TConst (Integer (i, _)) -> Some i
+  | TConst (LReal _ | LWStr _ | LStr _) -> None
+  | TSizeOf typ -> constFoldSizeOfToInt ~machdep typ
+  | TSizeOfE t -> begin
+    match unroll_type t.term_type with
+    | Ctype typ -> constFoldSizeOfToInt ~machdep typ
+    | _ -> None
+  end
+  | TSizeOfStr s -> Some (Integer.of_int (1 + String.length s))
+  | TAlignOf t -> begin
+    try Some (Integer.of_int (Cil.bytesAlignOf t))
+    with Cil.SizeOfError _ -> None
+  end
+  | TAlignOfE _ -> None (* exp case is very complex, and possibly incorrect *)
+  | TCastE (typ, e) -> constFoldCastToInt ~machdep typ e
+  | Toffset (_, t) -> if machdep then constFoldToffset t else None
+  | Tif (c, e1, e2) -> begin
+    match constFoldTermToInt ~machdep c with
+    | None -> None
+    | Some i ->
+      constFoldTermToInt ~machdep (if Integer.is_zero i then e2 else e1)
+  end
+  | TLogic_coerce (lt, e) ->
+    if lt = Linteger then constFoldTermToInt ~machdep e else None
+  | Tnull -> Some Integer.zero 
+  | Tapp (li, _, [{term_node = (Tunion args |
+                                TLogic_coerce (_, {term_node = Tunion args}))}])
+      when is_max_function li ->
+    constFoldMinMax ~machdep Integer.max args
+  | Tapp (li, _, [{term_node = (Tunion args |
+                                TLogic_coerce (_, {term_node = Tunion args}))}])
+      when is_min_function li ->
+    constFoldMinMax ~machdep Integer.min args
+
+  | TLval _ | TAddrOf _ | TStartOf _ | Tapp _ | Tlambda _ | TDataCons _
+  | Tat _ | Tbase_addr _ | Tblock_length _ | TCoerce _ | TCoerceE _
+  | TUpdate _ | Ttypeof _ | Ttype _ | Tempty_set | Tunion _ | Tinter _
+  | Tcomprehension _ | Trange _ | Tlet _ ->
+    None
+
+and constFoldCastToInt ~machdep typ e =
+  try
+    let ik = match Cil.unrollType typ with
+      | TInt (ik, _) -> ik
+      | TPtr _ -> theMachine.upointKind
+      | TEnum (ei,_) -> ei.ekind
+      | _ -> raise Exit
+    in
+    match constFoldTermToInt ~machdep e with
+    | Some i  -> Some (fst (Cil.truncateInteger64 ik i))
+    | _ -> None
+  with Exit -> None
+
+and constFoldSizeOfToInt ~machdep typ =
+  if machdep then
+    try Some (Integer.of_int (bytesSizeOf typ))
+    with SizeOfError _ -> None
+  else None
+
+and constFoldUnOpToInt ~machdep unop e =
+  let i = constFoldTermToInt ~machdep e in
+  match i with
+  | None -> None
+  | Some i ->
+    match unop with
+    | Neg -> Some (Integer.neg i)
+    | BNot -> Some (Integer.lognot i)
+    | LNot ->
+      Some (if Integer.equal i Integer.zero then Integer.one else Integer.zero)
+
+and constFoldBinOpToInt ~machdep bop e1 e2 =
+  match constFoldTermToInt ~machdep e1, constFoldTermToInt ~machdep e2 with
+  | Some i1, Some i2 -> begin
+    let comp op = Some (if op i1 i2 then Integer.one else Integer.zero) in
+    let logic op =
+      let b1 = not (Integer.is_zero i1) and b2 = not (Integer.is_zero i2) in
+      Some (if op b1 b2 then Integer.one else Integer.zero)
+    in
+    match bop with
+    | PlusA -> Some (Integer.add i1 i2)
+    | MinusA -> Some (Integer.sub i1 i2)
+    | PlusPI | IndexPI | MinusPI | MinusPP -> None
+    | Mult -> Some (Integer.mul i1 i2)
+    | Div ->
+      if Integer.(equal zero i2) && Integer.(is_zero (rem i1 i2)) then None
+      else Some (Integer.div i1 i2)
+    | Mod -> if Integer.(equal zero i2) then None else Some (Integer.rem i1 i2)
+    | BAnd -> Some (Integer.logand i1 i2)
+    | BOr -> Some (Integer.logor i1 i2)
+    | BXor -> Some (Integer.logxor i1 i2)
+
+    | Shiftlt when Integer.(ge i2 zero) -> Some (Integer.shift_left i1 i2)
+    | Shiftrt when Integer.(ge i2 zero) -> Some (Integer.shift_right i1 i2)
+    | Shiftlt | Shiftrt -> None
+
+    | Cil_types.Eq -> comp Integer.equal
+    | Cil_types.Ne -> comp (fun i1 i2 -> not (Integer.equal i1 i2))
+    | Cil_types.Le -> comp Integer.le
+    | Cil_types.Ge -> comp Integer.ge
+    | Cil_types.Lt -> comp Integer.lt
+    | Cil_types.Gt -> comp Integer.gt
+
+    | LAnd -> logic (&&)
+    | LOr -> logic (||)
+
+  end
+  | None, _ | _, None -> None
+
+(* [t] is the argument of [\offset] *)
+and constFoldToffset t =
+  match t.term_node with
+  | TStartOf (TVar v, offset) | TAddrOf (TVar v, offset) -> begin
+    try
+      let start, _width = bitsLogicOffset v.lv_type offset in
+      let size_char = Integer.eight in
+      if Integer.(is_zero (rem start size_char)) then
+        Some (Integer.div start size_char)
+      else None (* bitfields *)
+    with Cil.SizeOfError _ -> None
+  end
+  | _ -> None
+
+(* This function supposes that ~machdep is [true] *)
+and bitsLogicOffset ltyp off : Integer.t * Integer.t =
+  let rec loopOff typ width start = function
+    | TNoOffset -> start, width
+    | TIndex(e, off) -> begin
+      let ei = match constFoldTermToInt e with
+        | Some i -> i
+	| None -> raise (SizeOfError ("Index is not constant", typ))
+      in
+      let typ_e = Cil.typeOf_array_elem typ in
+      let size_e = Integer.of_int (Cil.bitsSizeOf typ_e) in
+      loopOff typ size_e (Integer.(add start (mul ei size_e))) off
+    end
+    | TField(f, off) ->
+      if f.fcomp.cstruct then begin
+        (* Force the computation of the fields fsize_in_bits and
+           foffset_in_bits *)
+        ignore (Cil.bitsOffset typ (Field (f, NoOffset)));
+        let size = Integer.of_int (Extlib.the f.fsize_in_bits) in
+        let offset_f = Integer.of_int (Extlib.the f.foffset_in_bits) in
+        loopOff f.ftype size (Integer.add start offset_f) off
+      end
+      else
+        (* All union fields start at offset 0 *)
+        loopOff f.ftype (Integer.of_int (Cil.bitsSizeOf f.ftype)) start off
+    | TModel _ -> raise (SizeOfError ("bitsLogicOffset on model field", typ))
+  in
+  match unroll_type ltyp with
+  | Ctype typ -> loopOff typ Integer.zero Integer.zero off
+  | _ -> raise (SizeOfError ("bitsLogicOffset on logic type", Cil.voidPtrType))
+
+(* Handle \min(\union(args)) or \max(\union(args)), depending on [f] *)
+and constFoldMinMax ~machdep f args =
+  match args with
+  | [] -> None (* meaningless, cannot simplify *)
+  | arg :: args ->
+    let aux res t =
+      match res, constFoldTermToInt ~machdep t with
+        | None, _ | _, None -> None
+        | Some i, Some i' -> Some (f i i')
+    in
+    List.fold_left aux (constFoldTermToInt ~machdep arg) args
 
 (*
 Local Variables:

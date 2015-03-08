@@ -1,0 +1,37 @@
+[kernel] warning: ignoring source files specified on the command line while loading a global initial context.
+[from] Computing for function f
+[from] Done for function f
+[from] Computing for function main
+[from] Computing for function printf <-main
+[from] Done for function printf
+tests/saveload/bool.c:27:[from] warning: variadic call detected. Using only 1 argument(s).
+tests/saveload/bool.c:29:[from] warning: variadic call detected. Using only 1 argument(s).
+tests/saveload/bool.c:31:[from] warning: variadic call detected. Using only 1 argument(s).
+tests/saveload/bool.c:33:[from] warning: variadic call detected. Using only 1 argument(s).
+tests/saveload/bool.c:35:[from] warning: variadic call detected. Using only 1 argument(s).
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function f:
+  \result FROM \nothing
+[from] Function printf:
+  S___fc_stdout[0]
+               FROM "%d\n"; "%d\n"; "%d,%d\n"[bits 0 to 55]; "%d\n";
+                    "%d\n" (and SELF)
+  \result FROM ANYTHING(origin:Unknown)
+[from] Function main:
+  x FROM \nothing
+  y FROM \nothing
+  S___fc_stdout[0]
+               FROM "%d\n"; "%d\n"; "%d,%d\n"[bits 0 to 55]; "%d\n";
+                    "%d\n" (and SELF)
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function f:
+          i; j; tmp; __retres
+[inout] Inputs for function f:
+          \nothing
+[inout] Out (internal) for function main:
+          x; y; S___fc_stdout[0]
+[inout] Inputs for function main:
+          x; y; "%d\n"; "%d\n"; "%d,%d\n"[bits 0 to 55]; "%d\n"; "%d\n"

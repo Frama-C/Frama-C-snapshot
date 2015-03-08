@@ -1,0 +1,75 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_plugin/frame.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function alias
+------------------------------------------------------------
+
+Goal Post-condition 'KO' in 'alias':
+Let a_0 = (shift_sint32 (global P_r_86) 0).
+Let x_0 = Mint_0[a_0].
+Let x_1 = Mint_1[a_0].
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_0) /\ (is_sint32 x_1).
+  (* Heap *)
+  Have: (linked Malloc_7).
+}
+Prove: x_0=x_1.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function global
+------------------------------------------------------------
+
+Goal Post-condition 'KO' in 'global':
+Assume { (* Domain *) Type: (is_sint32 g_0) /\ (is_sint32 global_0). }
+Prove: g_0=global_0.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function local
+------------------------------------------------------------
+
+Goal Post-condition 'FRAMED' in 'local':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'KO' in 'local':
+Assume { (* Domain *) Type: (is_sint32 g_0) /\ (is_sint32 local_0). }
+Prove: g_0=local_0.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function localref
+------------------------------------------------------------
+
+Goal Post-condition 'KO' in 'localref':
+Let x_0 = Mint_0[p_0].
+Let x_1 = Mint_1[p_0].
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_0) /\ (is_sint32 x_1).
+  (* Heap *)
+  Have: (region (base p_0))<=0.
+}
+Prove: x_0=x_1.
+
+------------------------------------------------------------
+
+Goal Assertion 'FRAMED' (file tests/wp_plugin/frame.i, line 28):
+Assume {
+  (* Domain *)
+  Type: (is_sint32 Mint_0[p_0]).
+  (* Heap *)
+  Have: (region (base p_0))<=0.
+}
+Prove: true.
+
+------------------------------------------------------------

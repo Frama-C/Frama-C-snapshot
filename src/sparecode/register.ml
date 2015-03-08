@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -84,7 +84,7 @@ let run select_annot select_slice_pragma =
   let new_proj_name = (old_proj_name^" without sparecode") in
 
   P.feedback "remove unused global declarations...";
-  let tmp_prj = Transform.Info.build_cil_file "tmp_prj" proj in
+  let tmp_prj = Transform.Info.build_cil_file ~last:false "tmp_prj" proj in
   let new_prj = Project.on tmp_prj Globs.rm_unused_decl new_proj_name in
 
   P.result "result in new project '%s'." (Project.get_name new_prj);

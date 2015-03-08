@@ -1,0 +1,101 @@
+# frama-c -wp -wp-model 'Typed (Ref)' [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_typed/unit_bitwise.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] Collecting variable usage
+[wp] 54 goals scheduled
+[wp] [Alt-Ergo] Goal typed_ref_lemma_band_sint8 : Valid
+[wp] [Alt-Ergo] Goal typed_ref_lemma_band_uint8 : Valid
+[wp] [Alt-Ergo] Goal typed_ref_lemma_blsr_sint8 : Valid
+[wp] [Alt-Ergo] Goal typed_ref_lemma_blsr_uint8 : Valid
+[wp] [Alt-Ergo] Goal typed_ref_lemma_bnot_sint8 : Valid
+[wp] [Alt-Ergo] Goal typed_ref_lemma_bor_sint8 : Valid
+[wp] [Alt-Ergo] Goal typed_ref_lemma_bor_uint8 : Valid
+[wp] [Alt-Ergo] Goal typed_ref_lemma_bxor_sint8 : Valid
+[wp] [Qed] Goal typed_ref_lemma_land_abs : Valid
+[wp] [Qed] Goal typed_ref_lemma_land_assoc : Valid
+[wp] [Qed] Goal typed_ref_lemma_land_com : Valid
+[wp] [Qed] Goal typed_ref_lemma_land_stb : Valid
+[wp] [Qed] Goal typed_ref_lemma_lor_assoc : Valid
+[wp] [Qed] Goal typed_ref_lemma_lor_com : Valid
+[wp] [Qed] Goal typed_ref_lemma_lor_neu : Valid
+[wp] [Qed] Goal typed_ref_lemma_lor_stb : Valid
+[wp] [Qed] Goal typed_ref_lemma_lxor_assoc : Valid
+[wp] [Qed] Goal typed_ref_lemma_lxor_com : Valid
+[wp] [Alt-Ergo] Goal typed_ref_lemma_btest_band : Unknown
+[wp] [Alt-Ergo] Goal typed_ref_lemma_btest_bnot : Unknown
+[wp] [Alt-Ergo] Goal typed_ref_lemma_btest_bor : Unknown
+[wp] [Alt-Ergo] Goal typed_ref_lemma_btest_bxor : Unknown
+[wp] [Alt-Ergo] Goal typed_ref_band1_uchar_assert_ok : Valid
+[wp] [Alt-Ergo] Goal typed_ref_band1_uchar_assert_ok_2 : Valid
+[wp] [Qed] Goal typed_ref_band1_uint_assert_ok : Valid
+[wp] [Alt-Ergo] Goal typed_ref_band1_uint_assert_ok_2 : Valid
+[wp] [Qed] Goal typed_ref_band1_ulong_assert_ok : Valid
+[wp] [Alt-Ergo] Goal typed_ref_band1_ulong_assert_ok_2 : Valid
+[wp] [Alt-Ergo] Goal typed_ref_band1_ushort_assert_ok : Valid
+[wp] [Alt-Ergo] Goal typed_ref_band1_ushort_assert_ok_2 : Valid
+[wp] [Alt-Ergo] Goal typed_ref_band_char_post_ok : Valid
+[wp] [Qed] Goal typed_ref_band_int_post_ok : Valid
+[wp] [Alt-Ergo] Goal typed_ref_band_uchar_post_ok : Valid
+[wp] [Qed] Goal typed_ref_band_uint_post_ok : Valid
+[wp] [Alt-Ergo] Goal typed_ref_bnot_char_post_ok : Valid
+[wp] [Qed] Goal typed_ref_bnot_int_post_ok : Valid
+[wp] [Qed] Goal typed_ref_bnot_uchar_post_ok : Valid
+[wp] [Qed] Goal typed_ref_bnot_uint_post_ok : Valid
+[wp] [Alt-Ergo] Goal typed_ref_bor_char_post_ok : Valid
+[wp] [Qed] Goal typed_ref_bor_int_post_ok : Valid
+[wp] [Alt-Ergo] Goal typed_ref_bor_uchar_post_ok : Valid
+[wp] [Qed] Goal typed_ref_bor_uint_post_ok : Valid
+[wp] [Alt-Ergo] Goal typed_ref_bxor_char_post_ok : Valid
+[wp] [Qed] Goal typed_ref_bxor_int_post_ok : Valid
+[wp] [Qed] Goal typed_ref_bxor_uchar_post_ok : Valid
+[wp] [Qed] Goal typed_ref_bxor_uint_post_ok : Valid
+[wp] [Alt-Ergo] Goal typed_ref_lshift_char_post_ok : Unknown
+[wp] [Qed] Goal typed_ref_lshift_int_post_ok : Valid
+[wp] [Alt-Ergo] Goal typed_ref_lshift_uchar_post_ok : Unknown
+[wp] [Qed] Goal typed_ref_lshift_uint_post_ok : Valid
+[wp] [Qed] Goal typed_ref_rshift_char_post_ok : Valid
+[wp] [Qed] Goal typed_ref_rshift_int_post_ok : Valid
+[wp] [Alt-Ergo] Goal typed_ref_rshift_uchar_post_ok : Valid
+[wp] [Qed] Goal typed_ref_rshift_uint_post_ok : Valid
+[wp] Proved goals:   48 / 54
+     Qed:            27 
+     Alt-Ergo:       21  (unknown: 6)
+----------------------------------------------------------
+Axiomatics          WP   Alt-Ergo    Total   Success
+Lemma               10      8 (12)    18       100%
+Axiomatic bits      -      -           4       0.0%
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+band_int             1     -           1       100%
+bor_int              1     -           1       100%
+bxor_int             1     -           1       100%
+bnot_int             1     -           1       100%
+lshift_int           1     -           1       100%
+rshift_int           1     -           1       100%
+band1_uint           1      1 (22)     2       100%
+band_uint            1     -           1       100%
+bor_uint             1     -           1       100%
+bxor_uint            1     -           1       100%
+bnot_uint            1     -           1       100%
+lshift_uint          1     -           1       100%
+rshift_uint          1     -           1       100%
+band_char           -       1 (12)     1       100%
+bor_char            -       1 (12)     1       100%
+bxor_char           -       1 (12)     1       100%
+bnot_char           -       1 (11)     1       100%
+lshift_char         -      -           1       0.0%
+rshift_char          1     -           1       100%
+band1_uchar         -       2 (21)     2       100%
+band_uchar          -       1 (12)     1       100%
+bor_uchar           -       1 (12)     1       100%
+bxor_uchar           1     -           1       100%
+bnot_uchar           1     -           1       100%
+lshift_uchar        -      -           1       0.0%
+rshift_uchar        -       1 (16)     1       100%
+band1_ushort        -       2 (21)     2       100%
+band1_ulong          1      1 (22)     2       100%
+----------------------------------------------------------

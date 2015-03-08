@@ -1,0 +1,99 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/val9.i (no preprocessing)
+[value] Analyzing a complete application starting at f
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  TT[0] ∈ {1}
+    [1] ∈ {2}
+    [2] ∈ {3}
+    [3..9] ∈ {0}
+  T[0] ∈ {1}
+   [1] ∈ {2}
+   [2] ∈ {3}
+   [3..9] ∈ {0}
+  i ∈ {0}
+  a ∈ {0}
+  b ∈ {0}
+  a7 ∈ {0}
+  b7 ∈ {0}
+  O1[0..19] ∈ {0}
+  O2[0..19] ∈ {0}
+  p ∈ {0}
+  x2 ∈ {0}
+  b2 ∈ {0}
+  a2 ∈ {0}
+tests/misc/val9.i:17:[value] entering loop for the first time
+tests/misc/val9.i:27:[value] entering loop for the first time
+[value] Recording results for f
+[value] done for function f
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function f:
+  TT[0][bits 0 to 7]# ∈ [0..8]%32, bits 0 to 7 
+    [bits 8 to 39]# ∈ [0..8] repeated %32, bits 8 to 39 
+    [bits 40 to 71]# ∈ [0..8] repeated %32, bits 8 to 39 
+    [bits 72 to 103]# ∈ [0..8] repeated %32, bits 8 to 39 
+    [bits 104 to 135]# ∈ [0..8] repeated %32, bits 8 to 39 
+    [bits 136 to 287]# ∈ [0..8] repeated %32, bits 8 to 159 
+    [9] ∈ {0}
+  T[0][bits 0 to 7]# ∈ {1}%32, bits 0 to 7 
+   [0][bits 8 to 31]# ∈ {0; 1}%32, bits 8 to 31 
+   [1][bits 0 to 7]# ∈ {0; 2}%32, bits 0 to 7 
+   [1][bits 8 to 31]# ∈ {0; 2}%32, bits 8 to 31 
+   [2][bits 0 to 7]# ∈ {0; 3}%32, bits 0 to 7 
+   [2][bits 8 to 31]# ∈ {0; 3}%32, bits 8 to 31 
+   [3..5] ∈ {0}
+   [6][bits 0 to 7]# ∈ {0; 7}%32, bits 0 to 7 
+   [6][bits 8 to 31]# ∈ {0; 7}%32, bits 8 to 31 
+   [7..9] ∈ {0}
+  i ∈ {9}
+  a[bits 0 to 7] ∈ {1; 6}
+   [bits 8 to 31]# ∈ {6}%32, bits 8 to 31 
+  b[bits 0 to 7] ∈ {0; 1}
+   [bits 8 to 31]# ∈ {0; 6}%32, bits 8 to 31 
+  a7[bits 0 to 7] ∈ {1}
+    [bits 8 to 31]# ∈ {97}%32, bits 8 to 31 
+  b7[bits 0 to 7] ∈ {1}
+    [bits 8 to 31]# ∈ {97}%32, bits 8 to 31 
+  O1[0][bits 0 to 7] ∈ {0}
+    [0][bits 8 to 15] ∈ {18}
+    [0][bits 16 to 31] ∈ {0}
+    [1] ∈ {17}
+    [2..8] ∈ {0}
+    [9] ∈ {1}
+    [10..19] ∈ {0}
+  O2[0][bits 0 to 7]# ∈ {10}%32, bits 0 to 7 
+    [0][bits 8 to 15] ∈ {11}
+    [0][bits 16 to 31]# ∈ {10}%32, bits 16 to 31 
+    [1..19] ∈ {0}
+  p ∈ {{ &O1[9] }}
+  x2 ∈ {1}
+  b2 ∈ {{ &x2 }}
+  a2 ∈ {{ (int)&x2 }}
+[from] Computing for function f
+[from] Done for function f
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function f:
+  TT{[0..8]; [9][bits 0 to 7]} FROM \nothing (and SELF)
+  T{{[0][bits 8 to 31]; [1..5]}; {[7..8]; [9][bits 0 to 7]}}
+   FROM \nothing (and SELF)
+   [6] FROM b
+  i FROM \nothing
+  a FROM b
+  b FROM b (and SELF)
+  a7 FROM \nothing
+  b7 FROM \nothing
+  O1{[0][bits 8 to 15]; [1]; [6]; [9]} FROM \nothing
+  O2[0] FROM \nothing
+  p FROM \nothing
+  x2 FROM \nothing
+  b2 FROM \nothing
+  a2 FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function f:
+          TT{[0..8]; [9][bits 0 to 7]};
+          T{[0][bits 8 to 31]; [1..8]; [9][bits 0 to 7]}; i; a; b; a7; b7;
+          O1{[0][bits 8 to 15]; [1]; [6]; [9]}; O2[0]; p; x2; b2; a2
+[inout] Inputs for function f:
+          i; a; b; a7; p; x2; b2; a2

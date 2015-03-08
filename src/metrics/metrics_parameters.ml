@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -44,7 +44,7 @@ module ByFunction =
      end)
 
 module OutputFile =
-  EmptyString
+  Empty_string
     (struct
       let option_name = "-metrics-output"
       let arg_name = "filename"
@@ -74,7 +74,7 @@ module AstType =
 let () = AstType.set_possible_values ["cil"; "cabs"; "acsl"]
 
 module SyntacticallyReachable =
-  StringSet
+  Kernel_function_set
     (struct
       let option_name = "-metrics-cover"
       let arg_name = "f1,..,fn"

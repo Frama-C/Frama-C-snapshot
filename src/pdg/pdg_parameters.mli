@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,8 +24,14 @@ include Plugin.S
 
 module BuildAll: Parameter_sig.With_output
 
-module BuildFct: Parameter_sig.String_set
+module BuildFct: Parameter_sig.Kernel_function_set
 
 module PrintBw: Parameter_sig.Bool
 
 module DotBasename: Parameter_sig.String
+
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

@@ -1,0 +1,211 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/precond.c (with preprocessing)
+[value] Analyzing an incomplete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  x ∈ [--..--]
+  pf2 ∈ {{ &f2 }}
+[value] computing for function f <- main.
+        Called from tests/misc/precond.c:31.
+tests/misc/precond.c:8:[value] Function f: precondition got status valid.
+tests/misc/precond.c:9:[value] Function f: precondition got status valid.
+[value] Recording results for f
+[value] Done for function f
+[value] computing for function f <- main.
+        Called from tests/misc/precond.c:32.
+[value] Recording results for f
+[value] Done for function f
+[value] computing for function g <- main.
+        Called from tests/misc/precond.c:34.
+tests/misc/precond.c:34:[kernel] warning: No code nor implicit assigns clause for function g, generating default assigns from the prototype
+[value] using specification for function g
+tests/misc/precond.c:24:[value] Function g: precondition got status unknown.
+[value] Done for function g
+[value] computing for function aux <- main.
+        Called from tests/misc/precond.c:36.
+[value] computing for function f2 <- aux <- main.
+        Called from tests/misc/precond.c:21.
+tests/misc/precond.c:21:[kernel] warning: No code nor implicit assigns clause for function f2, generating default assigns from the prototype
+[value] using specification for function f2
+tests/misc/precond.c:15:[value] Function f2: precondition got status valid.
+[value] Done for function f2
+[value] Recording results for aux
+[value] Done for function aux
+[value] computing for function aux <- main.
+        Called from tests/misc/precond.c:37.
+[value] computing for function f2 <- aux <- main.
+        Called from tests/misc/precond.c:21.
+tests/misc/precond.c:15:[value] Function f2: precondition got status unknown.
+[value] Done for function f2
+[value] Recording results for aux
+[value] Done for function aux
+[value] computing for function f <- main.
+        Called from tests/misc/precond.c:39.
+[value] Recording results for f
+[value] Done for function f
+[value] computing for function f <- main.
+        Called from tests/misc/precond.c:40.
+tests/misc/precond.c:9:[value] Function f: precondition got status invalid.
+[value] Recording results for f
+[value] Done for function f
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function f:
+  x ∈ {0; 1}
+[value] Values at end of function aux:
+  
+[value] Values at end of function main:
+  NON TERMINATING FUNCTION
+[report] Computing properties status...
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'f'
+--------------------------------------------------------------------------------
+
+[  Valid  ] Pre-condition (file tests/misc/precond.c, line 8)
+            requires i+1 ≥ 0
+            by Call Preconditions.
+[  Alarm  ] Pre-condition (file tests/misc/precond.c, line 9)
+            requires i ≥ 0
+            By Call Preconditions, with pending:
+             - Unreachable instruction (file tests/misc/precond.c, line 40)
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'f2'
+--------------------------------------------------------------------------------
+
+[    -    ] Pre-condition (file tests/misc/precond.c, line 15)
+            requires i ≥ 0
+            tried with Call Preconditions.
+[    -    ] Assigns nothing
+            assigns \nothing;
+            tried with Inferred annotations.
+[    -    ] Default behavior
+            default behavior
+            tried with Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'aux'
+--------------------------------------------------------------------------------
+
+[    -    ] Instance of 'Pre-condition (file tests/misc/precond.c, line 15)' at instruction (file tests/misc/precond.c, line 21)
+
+            status of 'requires i ≥ 0' of f2 at stmt 4
+            tried with Value.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'g'
+--------------------------------------------------------------------------------
+
+[    -    ] Pre-condition (file tests/misc/precond.c, line 24)
+            requires x ≤ 8
+            tried with Call Preconditions.
+[    -    ] Assigns nothing
+            assigns \nothing;
+            tried with Inferred annotations.
+[    -    ] Default behavior
+            default behavior
+            tried with Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'main'
+--------------------------------------------------------------------------------
+
+[  Valid  ] Instance of 'Pre-condition (file tests/misc/precond.c, line 8)' at call 'f' (file tests/misc/precond.c, line 31)
+
+            status of 'requires i+1 ≥ 0' of f at stmt 11
+            by Value.
+[  Valid  ] Instance of 'Pre-condition (file tests/misc/precond.c, line 9)' at call 'f' (file tests/misc/precond.c, line 31)
+
+            status of 'requires i ≥ 0' of f at stmt 11
+            by Value.
+[  Valid  ] Instance of 'Pre-condition (file tests/misc/precond.c, line 8)' at call 'f' (file tests/misc/precond.c, line 32)
+
+            status of 'requires i+1 ≥ 0' of f at stmt 14
+            by Value.
+[  Valid  ] Instance of 'Pre-condition (file tests/misc/precond.c, line 9)' at call 'f' (file tests/misc/precond.c, line 32)
+
+            status of 'requires i ≥ 0' of f at stmt 14
+            by Value.
+[    -    ] Instance of 'Pre-condition (file tests/misc/precond.c, line 24)' at call 'g' (file tests/misc/precond.c, line 34)
+
+            status of 'requires x ≤ 8' of g at stmt 17
+            tried with Value.
+[  Valid  ] Instance of 'Pre-condition (file tests/misc/precond.c, line 8)' at instruction (file tests/misc/precond.c, line 39)
+
+            status of 'requires i+1 ≥ 0' of f at stmt 20
+            by Value.
+[  Valid  ] Instance of 'Pre-condition (file tests/misc/precond.c, line 9)' at instruction (file tests/misc/precond.c, line 39)
+
+            status of 'requires i ≥ 0' of f at stmt 20
+            by Value.
+[  Valid  ] Instance of 'Pre-condition (file tests/misc/precond.c, line 8)' at instruction (file tests/misc/precond.c, line 40)
+
+            status of 'requires i+1 ≥ 0' of f at stmt 21
+            by Value.
+[  Alarm  ] Instance of 'Pre-condition (file tests/misc/precond.c, line 9)' at instruction (file tests/misc/precond.c, line 40)
+
+            status of 'requires i ≥ 0' of f at stmt 21
+            By Value, with pending:
+             - Unreachable instruction (file tests/misc/precond.c, line 40)
+
+--------------------------------------------------------------------------------
+--- Status Report Summary
+--------------------------------------------------------------------------------
+     8 Completely validated
+     8 To be validated
+     2 Alarms emitted
+    18 Total
+--------------------------------------------------------------------------------
+[report] Computing properties status...
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'f'
+--------------------------------------------------------------------------------
+
+[  Valid  ] Pre-condition (file tests/misc/precond.c, line 8)
+            requires i+1 ≥ 0
+            by Call Preconditions.
+[  Alarm  ] Pre-condition (file tests/misc/precond.c, line 9)
+            requires i ≥ 0
+            By Call Preconditions, with pending:
+             - Unreachable instruction (file tests/misc/precond.c, line 40)
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'f2'
+--------------------------------------------------------------------------------
+
+[    -    ] Pre-condition (file tests/misc/precond.c, line 15)
+            requires i ≥ 0
+            tried with Call Preconditions.
+[    -    ] Assigns nothing
+            assigns \nothing;
+            tried with Inferred annotations.
+[    -    ] Default behavior
+            default behavior
+            tried with Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'g'
+--------------------------------------------------------------------------------
+
+[    -    ] Pre-condition (file tests/misc/precond.c, line 24)
+            requires x ≤ 8
+            tried with Call Preconditions.
+[    -    ] Assigns nothing
+            assigns \nothing;
+            tried with Inferred annotations.
+[    -    ] Default behavior
+            default behavior
+            tried with Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Status Report Summary
+--------------------------------------------------------------------------------
+     1 Completely validated
+     6 To be validated
+     1 Alarm emitted
+     8 Total
+--------------------------------------------------------------------------------

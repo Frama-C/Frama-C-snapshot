@@ -1,0 +1,53 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/pdg/loops.c (with preprocessing)
+[value] Analyzing an incomplete application starting at infinite2
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  after ∈ [--..--]
+tests/pdg/loops.c:75:[value] entering loop for the first time
+tests/pdg/loops.c:76:[kernel] warning: signed overflow. assert s+2 ≤ 2147483647;
+[value] Recording results for infinite2
+[value] done for function infinite2
+[pdg] computing for function infinite2
+tests/pdg/loops.c:79:[pdg] warning: no final state. Probably unreachable...
+[pdg] done for function infinite2
+[pdg] PDG for infinite2
+ {n1}: InCtrl
+ {n2}: VarDecl : n
+   -[a--]-> 3
+ {n3}: In1
+   -[a--]-> 2
+ {n4}: VarDecl : s
+ {n5}: VarDecl : i
+ {n6}: s = 0;
+   -[-c-]-> 1
+   -[a--]-> 4
+ {n7}: i = 1;
+   -[-c-]-> 1
+   -[a--]-> 5
+ {n8}: while(1)
+   -[-c-]-> 1
+   -[-c-]-> 8
+ {n9}: i
+   -[-c-]-> 1
+   -[--d]-> 5
+   -[--d]-> 7
+   -[-c-]-> 8
+ {n10}: block
+   -[-c-]-> 1
+   -[-c-]-> 8
+ {n11}: s += 2;
+   -[-c-]-> 1
+   -[a-d]-> 4
+   -[--d]-> 6
+   -[-c-]-> 8
+   -[-c-]-> 10
+   -[--d]-> 11
+ {n12}: break;
+   -[-c-]-> 1
+   -[-c-]-> 8
+ {n13}: return s;
+   -[-c-]-> 1
+   -[--d]-> 4
+ {n14}: OutRet

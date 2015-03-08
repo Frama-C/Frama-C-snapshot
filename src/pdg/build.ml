@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -62,7 +62,6 @@ let is_variadic kf =
 (* -------------------------------------------------------------------------- *)
 (* --- Auxiliary functions                                                --- *)
 (* -------------------------------------------------------------------------- *)
-
 
   type arg_nodes = Node.t list
 
@@ -250,9 +249,10 @@ let is_variadic kf =
       let new_node = add_elem pdg (Key.param_key n) in
       add_decl_dpd pdg new_node Dpd.Addr decl_node ;
       add_decl_dpd pdg decl_node Dpd.Addr new_node ;
+      let z = Locations.zone_of_varinfo v in
       let new_state =
         Pdg_state.add_loc_node
-          state  ~exact:true (Locations.zone_of_varinfo v) new_node in
+          state ~initializing:true ~exact:true z new_node in
         (n+1, new_state)
     in
     let _next_in_num, new_state =
@@ -282,8 +282,8 @@ let is_variadic kf =
     let process_param state param arg =
       let new_node = arg in
       add_ctrl_dpd pdg new_node ctrl_node;
-        Pdg_state.add_loc_node
-          state (Locations.zone_of_varinfo param) new_node ~exact:true
+      let z = Locations.zone_of_varinfo param in
+      Pdg_state.add_loc_node ~initializing:true state z new_node ~exact:true
     in
     let rec do_param_arg state param_list (arg_nodes: arg_nodes) =
       match param_list, arg_nodes with
@@ -321,17 +321,13 @@ let is_variadic kf =
     add_dpds pdg new_node Dpd.Data state_before deps;
       state
 
-  let process_call_ouput pdg state_before_call state stmt numout out default from_out fct_dpds =
-    let exact =
-      (* TODO : Check this with Pascal !
-      * (Locations.Zone.cardinal_zero_or_one out) && *)
-      (not default) in
-    debug "call-%d Out%d : %a From %a (%sexact)@."
-      stmt.sid numout
+  let process_call_output pdg state_before_call state stmt out default from_out fct_dpds =
+    let exact = (not default) in
+    debug "call-%d Out : %a From %a (%sexact)@."
+      stmt.sid
       Locations.Zone.pretty out Locations.Zone.pretty from_out
       (if exact then "" else "not ");
-
-    let key = Key.call_output_key stmt (* numout *) out in
+    let key = Key.call_output_key stmt out in
     let new_node = create_call_output_node pdg state_before_call stmt
                                           key from_out fct_dpds in
     let state = Pdg_state.add_loc_node state exact out new_node
@@ -566,9 +562,14 @@ let is_variadic kf =
     | Some froms -> (* undefined function : add output 0 *)
       (* TODO : also add the nodes for the other from ! *)
       let state = match last_state with Some s -> s | None -> assert false in
-      let process_out out  (default, deps) s =
-        let from_out = Function_Froms.Deps.to_zone deps in
-        add_from pdg state s out (default, from_out)
+      let process_out out deps s =
+        let open Function_Froms.DepsOrUnassigned in
+        if (equal Unassigned deps)
+        then s
+        else
+          let from_out = to_zone deps in
+          let default = may_be_unassigned deps in
+          add_from pdg state s out (default, from_out)
       in
       let from_table = froms.Function_Froms.deps_table in
       let new_state =
@@ -576,17 +577,17 @@ let is_variadic kf =
           Pdg_state.bottom
         else
           let new_state =
-            try Function_Froms.Memory.fold_fuse_same
-                  process_out from_table state
-            with Function_Froms.Memory.Cannot_fold -> (* TOP in from_table *)
+	    match from_table with
+	    | Function_Froms.Memory.Top ->
               process_out 
-		Locations.Zone.top
-		(false, Function_Froms.Deps.top)
-		state
+		Locations.Zone.top Function_Froms.DepsOrUnassigned.top state
+	    | Function_Froms.Memory.Map m ->
+	      Function_Froms.Memory.fold_fuse_same process_out m state
+	    | Function_Froms.Memory.Bottom -> assert false (* checked above *)
           in
           if not (Kernel_function.returns_void pdg.fct) then begin
             let from0 = froms.Function_Froms.deps_return in
-            let deps_ret = Function_Froms.Memory.LOffset.collapse from0 in
+            let deps_ret = Function_Froms.Memory.collapse_return from0 in
             let deps_ret = Function_Froms.Deps.to_zone deps_ret in
             ignore
               (create_fun_output_node pdg (Some new_state) deps_ret)
@@ -654,32 +655,37 @@ let call_ouputs  pdg state_before_call state_with_inputs stmt
       Function_Froms.Memory.pretty from_table;
     if not (lvaloption = None) then
       Format.fprintf fmt "\t and \\result %a@."
-        Function_Froms.Memory.LOffset.pretty froms_deps_return
+        Function_Froms.Deps.pretty froms_deps_return
   in
   debug "%t" print_outputs;
-  let process_out out (default, deps) (state, numout) =
-    let from_out = Function_Froms.Deps.to_zone deps in
-    let new_state =
-      process_call_ouput pdg state_with_inputs state stmt
-                                  numout out default from_out fct_dpds in
-      (new_state, numout+1)
+
+  let process_out out deps state =
+    if Function_Froms.DepsOrUnassigned.(equal Unassigned deps) then
+      state
+    else
+      let from_out = Function_Froms.DepsOrUnassigned.to_zone deps in
+      let default = Function_Froms.DepsOrUnassigned.may_be_unassigned deps in
+      process_call_output
+        pdg state_with_inputs state stmt out default from_out fct_dpds
   in
   if Function_Froms.Memory.is_bottom from_table then
     Pdg_state.bottom
   else
-  let (state_with_outputs, _num) =
-    try 
-      Function_Froms.Memory.fold_fuse_same process_out from_table (state_before_call, 1)
-    with  Function_Froms.Memory.Cannot_fold -> (* TOP in from_table *)
-      process_out Locations.Zone.top (false, Function_Froms.Deps.top) 
-                                                   (state_before_call, 1)
+  let state_with_outputs =
+    let open Function_Froms in
+    match from_table with
+    | Memory.Top ->
+      process_out
+        Locations.Zone.top DepsOrUnassigned.top state_before_call
+    | Memory.Bottom -> assert false (* checked above *)
+    | Memory.Map m ->
+      Memory.fold_fuse_same process_out m state_before_call
   in
-  let new_state =
     match lvaloption with
       | None -> state_with_outputs
       | Some lval ->
           let r_dpds =
-            Function_Froms.Memory.LOffset.collapse froms_deps_return
+            Function_Froms.Memory.collapse_return froms_deps_return
           in
           let r_dpds = Function_Froms.Deps.to_zone r_dpds in
           let (l_loc, exact, l_dpds, l_decl) = get_lval_infos lval stmt in
@@ -689,7 +695,6 @@ let call_ouputs  pdg state_before_call state_with_inputs stmt
             state_with_inputs stmt
             ~l_loc ~exact ~l_dpds ~l_decl
             ~r_dpds fct_dpds
-  in new_state
 
 (** process call : {v lvaloption = funcexp (argl); v}
     Use the state at ki (before the call)
@@ -914,7 +919,8 @@ module Computer
       | Loop _ ->
           process_loop_stmt current_pdg ctrl_dpds_infos stmt;
 	map_on_all_succs state
-
+      | Throw _ | TryCatch _ ->
+        Pdg_parameters.fatal "Exception node in the AST"
       | TryExcept (_, _, _, _)
       | TryFinally (_, _, _) ->
 	map_on_all_succs state

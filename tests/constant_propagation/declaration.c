@@ -1,13 +1,30 @@
 /* run.config
-   DONTRUN: bugfix in progress
-   OPT: -val -semantic-const-folding -journal-disable
+   OPT: -val -scf -journal-disable -then-on propagated -check -scf
 */
 
-void f(int *x) { (*x)++; }
+void f(int *x, int *y, void (*p)(int *x, int *y)) {
+  (*x)++;
+  (*y)++;
+  p(x, y);
+}
 
-int Y = 42;
+void g(int *x, int *y, void (*p)(int *x, int *y)) {
+  (*x)++;
+  (*y)++;
+  p(x, y);
+}
+
+extern int X;
+
+int Y = -42;
+
+void h(int *x, int *y) {
+  *x += 2;
+  *y += 5;
+}
 
 int main () {
-  f(&Y);
+  f(&X, &Y, h);
+  g(&X, &Y, h);
   return Y;
 }

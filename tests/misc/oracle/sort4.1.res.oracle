@@ -1,0 +1,56 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/sort4.i (no preprocessing)
+tests/misc/sort4.i:25:[kernel] warning: parsing obsolete ACSL construct '\valid_range(addr,min,max)'. '\valid(addr+(min..max))' should be used instead.
+[value] Analyzing an incomplete application starting at sort4_4
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  a ∈ [--..--]
+  b ∈ [--..--]
+  c ∈ [--..--]
+  d ∈ [--..--]
+tests/misc/sort4.i:25:[value] Function sort4_4: precondition got status unknown.
+tests/misc/sort4.i:29:[kernel] warning: out of bounds read. assert \valid_read(t+1);
+tests/misc/sort4.i:29:[kernel] warning: out of bounds read. assert \valid_read(t+1);
+tests/misc/sort4.i:29:[kernel] warning: out of bounds write. assert \valid(t+1);
+tests/misc/sort4.i:30:[kernel] warning: out of bounds read. assert \valid_read(t+2);
+tests/misc/sort4.i:30:[kernel] warning: out of bounds read. assert \valid_read(t+3);
+tests/misc/sort4.i:30:[kernel] warning: out of bounds read. assert \valid_read(t+2);
+tests/misc/sort4.i:30:[kernel] warning: out of bounds write. assert \valid(t+2);
+tests/misc/sort4.i:30:[kernel] warning: out of bounds read. assert \valid_read(t+3);
+tests/misc/sort4.i:30:[kernel] warning: out of bounds write. assert \valid(t+3);
+tests/misc/sort4.i:31:[kernel] warning: out of bounds read. assert \valid_read(t+2);
+tests/misc/sort4.i:31:[kernel] warning: out of bounds read. assert \valid_read(t+2);
+tests/misc/sort4.i:31:[kernel] warning: out of bounds write. assert \valid(t+2);
+tests/misc/sort4.i:32:[kernel] warning: out of bounds read. assert \valid_read(t+1);
+tests/misc/sort4.i:32:[kernel] warning: out of bounds read. assert \valid_read(t+3);
+tests/misc/sort4.i:32:[kernel] warning: out of bounds read. assert \valid_read(t+1);
+tests/misc/sort4.i:32:[kernel] warning: out of bounds write. assert \valid(t+1);
+tests/misc/sort4.i:32:[kernel] warning: out of bounds read. assert \valid_read(t+3);
+tests/misc/sort4.i:32:[kernel] warning: out of bounds write. assert \valid(t+3);
+tests/misc/sort4.i:33:[kernel] warning: out of bounds read. assert \valid_read(t+1);
+tests/misc/sort4.i:33:[kernel] warning: out of bounds read. assert \valid_read(t+2);
+tests/misc/sort4.i:33:[kernel] warning: out of bounds read. assert \valid_read(t+1);
+tests/misc/sort4.i:33:[kernel] warning: out of bounds write. assert \valid(t+1);
+tests/misc/sort4.i:33:[kernel] warning: out of bounds read. assert \valid_read(t+2);
+tests/misc/sort4.i:33:[kernel] warning: out of bounds write. assert \valid(t+2);
+tests/misc/sort4.i:26:[value] Function sort4_4: postcondition got status unknown.
+[value] Recording results for sort4_4
+[value] done for function sort4_4
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function sort4_4:
+  tmp ∈ [-2147483647..2147483647] or UNINITIALIZED
+  S_t[0..3] ∈ [--..--]
+[from] Computing for function sort4_4
+[from] Done for function sort4_4
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function sort4_4:
+  S_t[0] FROM t; S_t[0..3] (and SELF)
+     [1..2] FROM t; S_t[0..3] (and SELF)
+     [3] FROM t; S_t[0..3] (and SELF)
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function sort4_4:
+          tmp; S_t[0..3]
+[inout] Inputs for function sort4_4:
+          S_t[0..3]

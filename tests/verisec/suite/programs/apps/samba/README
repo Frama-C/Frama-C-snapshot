@@ -1,0 +1,8 @@
+-= Samba =-
+
+Homepage: http://www.samba.org
+Domain: SMB (Server Message Block) Suite
+
+SMB is the Server Message Block protocol. It is an application-layer
+networking protocol for accessing files, printers, etc. on Microsoft
+Windows networks. Samba is an open-source SMB suite.

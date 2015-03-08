@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -49,10 +49,10 @@ let prover_of_name = function
   | "why3ide" -> Some Why3ide
   | s ->
       match Extlib.string_del_prefix "why3:" s with
-	| Some "" -> None
-	| Some "ide" -> Some Why3ide
-	| Some s' -> Some (Why3 s')
-	| None -> Some (Why3 s)
+      | Some "" -> None
+      | Some "ide" -> Some Why3ide
+      | Some s' -> Some (Why3 s')
+      | None -> Some (Why3 s)
 
 let name_of_prover = function
   | Why3ide -> "Why3"
@@ -60,7 +60,7 @@ let name_of_prover = function
   | AltErgo -> "Alt-Ergo"
   | Coq -> "Coq"
   | Qed -> "Qed"
- 
+
 let name_of_mode = function 
   | FixMode -> "Fix"
   | EditMode -> "Edit"
@@ -73,10 +73,10 @@ let sanitize_why3 s =
   String.iter
     (fun c ->
        let c = if 
-	 ('0' <= c && c <= '9') ||
-	 ('a' <= c && c <= 'z') ||
-	   ('A' <= c && c <= 'Z')
-       then c else '_'
+         ('0' <= c && c <= '9') ||
+         ('a' <= c && c <= 'z') ||
+         ('A' <= c && c <= 'Z')
+         then c else '_'
        in Buffer.add_char buffer c) s ;
   Buffer.contents buffer
 
@@ -114,19 +114,19 @@ let mode_of_prover_name = function
 
 let cmp_prover p q =
   match p,q with
-    | Qed , Qed -> 0
-    | Qed , _ -> (-1)
-    | _ , Qed -> 1
-    | AltErgo , AltErgo -> 0
-    | AltErgo , _ -> (-1)
-    | _ , AltErgo -> 1
-    | Coq , Coq -> 0
-    | Coq , _ -> (-1)
-    | _ , Coq -> 1
-    | Why3 p , Why3 q -> String.compare p q
-    | Why3 _, _ -> (-1)
-    | _, Why3 _ ->   1
-    | Why3ide, Why3ide -> 0
+  | Qed , Qed -> 0
+  | Qed , _ -> (-1)
+  | _ , Qed -> 1
+  | AltErgo , AltErgo -> 0
+  | AltErgo , _ -> (-1)
+  | _ , AltErgo -> 1
+  | Coq , Coq -> 0
+  | Coq , _ -> (-1)
+  | _ , Coq -> 1
+  | Why3 p , Why3 q -> String.compare p q
+  | Why3 _, _ -> (-1)
+  | _, Why3 _ ->   1
+  | Why3ide, Why3ide -> 0
 
 let pp_prover fmt = function
   | AltErgo -> Format.pp_print_string fmt "Alt-Ergo"
@@ -134,7 +134,7 @@ let pp_prover fmt = function
   | Coq -> Format.pp_print_string fmt "Coq"
   | Why3 smt ->
       if Wp_parameters.debug_atleast 1 then
-         Format.pp_print_string fmt ("Why:"^smt)
+        Format.pp_print_string fmt ("Why:"^smt)
       else
         Format.pp_print_string fmt smt
   | Qed -> Format.fprintf fmt "Qed"
@@ -209,11 +209,11 @@ let pp_perf fmt r =
 
 let pp_result fmt r = 
   match r.verdict with
-    | NoResult -> Format.pp_print_string fmt "-"
-    | Invalid -> Format.pp_print_string fmt "Invalid"
-    | Computing _ -> Format.pp_print_string fmt "Computing"
-    | Valid -> Format.fprintf fmt "Valid%a" pp_perf r
-    | Unknown -> Format.fprintf fmt "Unknown%a" pp_perf r
-    | Timeout -> Format.fprintf fmt "Timeout%a" pp_perf r
-    | Stepout -> Format.fprintf fmt "Step limit%a" pp_perf r
-    | Failed -> Format.fprintf fmt "Failed@\nError: %s" r.prover_errmsg
+  | NoResult -> Format.pp_print_string fmt "-"
+  | Invalid -> Format.pp_print_string fmt "Invalid"
+  | Computing _ -> Format.pp_print_string fmt "Computing"
+  | Valid -> Format.fprintf fmt "Valid%a" pp_perf r
+  | Unknown -> Format.fprintf fmt "Unknown%a" pp_perf r
+  | Timeout -> Format.fprintf fmt "Timeout%a" pp_perf r
+  | Stepout -> Format.fprintf fmt "Step limit%a" pp_perf r
+  | Failed -> Format.fprintf fmt "Failed@\nError: %s" r.prover_errmsg

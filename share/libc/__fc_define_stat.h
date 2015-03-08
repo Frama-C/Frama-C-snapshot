@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2014                                               */
+/*  Copyright (C) 2007-2015                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -65,8 +65,6 @@ struct stat {
   time_t    st_ctime;
   blksize_t st_blksize;
   blkcnt_t  st_blocks;
-  char *    __fc_real_data;
-  int       __fc_real_data_max_size;
 };
 
 #endif

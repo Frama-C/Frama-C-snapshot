@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -load-module lib/plugins/Report -lib-entry -val -then -report -report-print-properties
+   OPT: -load-module lib/plugins/Report -lib-entry -val -then -report -report-print-properties -then -report-no-specialized
 */
 
 

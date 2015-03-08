@@ -1,0 +1,83 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/pdg/loops.c (with preprocessing)
+[value] Analyzing an incomplete application starting at simple_with_break
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  after ∈ [--..--]
+tests/pdg/loops.c:51:[value] entering loop for the first time
+tests/pdg/loops.c:53:[kernel] warning: signed overflow. assert s+2 ≤ 2147483647;
+[value] Recording results for simple_with_break
+[value] done for function simple_with_break
+[pdg] computing for function simple_with_break
+[pdg] done for function simple_with_break
+[pdg] PDG for simple_with_break
+ {n1}: InCtrl
+ {n2}: VarDecl : n
+   -[a--]-> 3
+ {n3}: In1
+   -[a--]-> 2
+ {n4}: VarDecl : s
+ {n5}: VarDecl : i
+ {n6}: s = 0;
+   -[-c-]-> 1
+   -[a--]-> 4
+ {n7}: i = 0;
+   -[-c-]-> 1
+   -[a--]-> 5
+ {n8}: while(1)
+   -[-c-]-> 1
+   -[-c-]-> 8
+   -[-c-]-> 9
+   -[-c-]-> 10
+   -[-c-]-> 13
+ {n9}: block
+   -[-c-]-> 1
+   -[-c-]-> 8
+   -[-c-]-> 9
+   -[-c-]-> 10
+   -[-c-]-> 13
+ {n10}: i < n
+   -[-c-]-> 1
+   -[--d]-> 2
+   -[--d]-> 3
+   -[--d]-> 5
+   -[--d]-> 7
+   -[-c-]-> 8
+   -[-c-]-> 9
+   -[-c-]-> 10
+   -[--d]-> 12
+   -[-c-]-> 13
+ {n11}: s += 2;
+   -[-c-]-> 1
+   -[a-d]-> 4
+   -[--d]-> 6
+   -[-c-]-> 8
+   -[-c-]-> 9
+   -[-c-]-> 10
+   -[--d]-> 11
+   -[-c-]-> 13
+ {n12}: i ++;
+   -[-c-]-> 1
+   -[a-d]-> 5
+   -[--d]-> 7
+   -[-c-]-> 8
+   -[-c-]-> 9
+   -[-c-]-> 10
+   -[--d]-> 12
+   -[-c-]-> 13
+ {n13}: break;
+   -[-c-]-> 1
+   -[-c-]-> 8
+   -[-c-]-> 9
+   -[-c-]-> 10
+   -[-c-]-> 13
+ {n14}: after = 0;
+   -[-c-]-> 1
+ {n15}: return s;
+   -[-c-]-> 1
+   -[--d]-> 4
+   -[--d]-> 6
+   -[--d]-> 11
+ {n16}: OutRet
+   -[--d]-> 15

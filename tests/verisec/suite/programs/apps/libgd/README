@@ -1,0 +1,8 @@
+-= LibGD =-
+
+Homepage: http://www.libgd.org
+Domain: Graphics Library
+
+GD is an open source library for dynamically creating images. It is
+often used by higher-level languages, like PHP, to creates graphs,
+charts, etc.

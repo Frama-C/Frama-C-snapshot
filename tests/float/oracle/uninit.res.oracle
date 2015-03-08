@@ -1,0 +1,27 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/float/uninit.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  
+tests/float/uninit.i:5:[kernel] warning: accessing uninitialized left-value: assert \initialized(&f);
+tests/float/uninit.i:5:[kernel] warning: completely indeterminate value in f.
+[value] Recording results for main
+[value] done for function main
+tests/float/uninit.i:5:[value] Assertion 'Value,initialisation' got final status invalid.
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  f ∈ UNINITIALIZED
+  __retres ∈ {0}
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          f; __retres
+[inout] Inputs for function main:
+          \nothing

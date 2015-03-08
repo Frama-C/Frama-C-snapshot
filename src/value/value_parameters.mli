@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -34,23 +34,26 @@ module SeparateStmtOf:  Parameter_sig.Int
 module AllRoundingModes: Parameter_sig.Bool
 module AllRoundingModesConstants: Parameter_sig.Bool
 
-module NoResultsFunctions: Parameter_sig.String_set
+module NoResultsFunctions: Parameter_sig.Fundec_set
 module NoResultsAll: Parameter_sig.Bool
 
-module ResultsAfter: Parameter_sig.Bool
 module ResultsCallstack: Parameter_sig.Bool
+module JoinResults: Parameter_sig.Bool
 
 module WarnLeftShiftNegative: Parameter_sig.Bool
 module WarnPointerSubstraction: Parameter_sig.Bool
-module WarnCopyIndeterminate: Parameter_sig.String_set
+module WarnCopyIndeterminate: Parameter_sig.Kernel_function_set
 
 module IgnoreRecursiveCalls: Parameter_sig.Bool
 
 module MemoryFootprint: Parameter_sig.Int
 
 module SemanticUnrollingLevel: Parameter_sig.Int
-module SlevelFunction: Parameter_sig.String_hashtbl with type value = int
-module SlevelMergeAfterLoop: Parameter_sig.Bool
+module SlevelFunction:
+  Parameter_sig.Map with type key = Cil_types.kernel_function
+                    and type value = int
+
+module SlevelMergeAfterLoop: Parameter_sig.Kernel_function_set
 module WideningLevel: Parameter_sig.Int
 module ArrayPrecisionLevel: Parameter_sig.Int
 
@@ -60,14 +63,17 @@ module InitializedPaddingGlobals: Parameter_sig.Bool
 module UndefinedPointerComparisonPropagateAll: Parameter_sig.Bool
 
 
-module UsePrototype: Parameter_sig.String_set
+module UsePrototype: Parameter_sig.Kernel_function_set
 
 module RmAssert: Parameter_sig.Bool
 
 module Subdivide_float_in_expr: Parameter_sig.Int
-module BuiltinsOverrides: Parameter_sig.String_hashtbl with type value = string
-module SplitReturnFunction: Parameter_sig.String_hashtbl 
-  with type value = Split_strategy.t
+module BuiltinsOverrides:
+  Parameter_sig.Map with type key = Cil_types.kernel_function
+                    and type value = string
+module SplitReturnFunction:
+  Parameter_sig.Map with type key = Cil_types.kernel_function
+                    and type value = Split_strategy.t
 module SplitReturnAuto: Parameter_sig.Bool
 
 module ValShowProgress: Parameter_sig.Bool
@@ -82,7 +88,7 @@ module MemExecAll: Parameter_sig.Bool
 
 module InterpreterMode: Parameter_sig.Bool
 module ObviouslyTerminatesAll: Parameter_sig.Bool
-module ObviouslyTerminatesFunctions: Parameter_sig.String_set
+module ObviouslyTerminatesFunctions: Parameter_sig.Fundec_set
 module StopAtNthAlarm: Parameter_sig.Int
 
 

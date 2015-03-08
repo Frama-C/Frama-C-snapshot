@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2014                                               #
+#  Copyright (C) 2007-2015                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -40,34 +40,17 @@ USABLE_NATIVE_DYNLINK ?=no
 endif
 
 #Do not generate documentation for this.
-PLUGIN_UNDOC:=$(PLUGIN_UNDOC) ptests_local_config.ml
+PLUGIN_UNDOC:=$(PLUGIN_UNDOC)
 
 ifeq ($(FRAMAC_MAKE),yes)
 PLUGIN_RESET	:=yes
-
-.PHONY: $(PLUGIN_DIR)/TESTS $(PLUGIN_NAME)_TESTS
-
-$(PLUGIN_NAME)_TESTS: $(PLUGIN_DIR)/TESTS
-
-$(PLUGIN_DIR)/TESTS:
-	$(call external_make, $(dir $@), tests)
 
 else
 PLUGIN_RESET	:=no
 include $(MAKECONFIG_DIR)/Makefile.common
 include $(MAKECONFIG_DIR)/Makefile.dynamic_config
 
-#special goal for use by frama-c's main Makefile.
-run_tests:
-ifndef PLUGIN_NO_DEFAULT_TEST
-ifndef PLUGIN_NO_TEST
-	true
-else
-	false
-endif # PLUGIN_NO_TEST
-else
-	false
-endif #PLUGIN_NO_DEFAULT_TEST
+tests:: external_tests
 
 ifeq ($(PLUGIN_ENABLE),no)
 tests::
@@ -111,89 +94,74 @@ $(PLUGIN_NAME)_INSTALL_DOC: plugin-doc/$(PLUGIN_NAME)
                             $($(@:%_INSTALL_DOC=%_DOC_DIR))/*.png)) \
               $(DOC_DIR)/$(@:%_INSTALL_DOC=%)
 
-
-ifndef PLUGIN_INTERNAL_TEST
-ifndef PLUGIN_NO_TEST
-PTESTS_DEP=$(PLUGIN_DIR)/Makefile
-
-ifeq ($(FRAMAC_INTERNAL),yes)
-$(PLUGIN_DIR)/ptests_local_config.cmo: BFLAGS="-I $(call winpath,$(FRAMAC_SRC))/ptests" -g
-$(PLUGIN_DIR)/ptests_local_config.cmo: $(FRAMAC_SRC)/bin/ptests.byte
-
-# do not use the default rule: this file mustn't be compiled with -c
-# (incompatible with -shared)
-$(PLUGIN_DIR)/ptests_local_config.cmxs: $(PLUGIN_DIR)/ptests_local_config.ml \
-					$(FRAMAC_SRC)/bin/ptests.opt
-	$(OCAMLOPT) -I $(call winpath,$(FRAMAC_SRC))/ptests -g -shared -o $@ $<
-
-PTESTS_DEP+=$(FRAMAC_SHARE)/Makefile.dynamic \
-	    $(FRAMAC_SHARE)/Makefile.dynamic_config
-else
-$(PLUGIN_DIR)/ptests_local_config.cmo: BFLAGS=$(FRAMAC_INCLUDES)
-
-# do not use the default rule: this file mustn't be compiled with -c
-# (incompatible with -shared)
-$(PLUGIN_DIR)/ptests_local_config.cmxs: $(PLUGIN_DIR)/ptests_local_config.ml
-	$(OCAMLOPT) $(FRAMAC_INCLUDES) -shared -o $@ \
-		$(call winpath,$(FRAMAC_LIBDIR))/ptests_config.cmx \
-		$<
-endif #FRAMAC_INTERNAL
-
-$(PLUGIN_DIR)/ptests_local_config.ml: $(PTESTS_DEP)
-	$(PRINT_MAKING) $@
-	$(CHMOD_RW) $@
-	$(ECHO) \
-         "Ptests_config.default_suites:= [" $(PLUGIN_TESTS_DIRS:%='"%";') "];;" > $@
-	if test "$(USABLE_NATIVE_DYNLINK)" = "yes" \
-             -o "$(FRAMAC_INTERNAL)" = "yes"; then \
-	  $(ECHO) \
-	   "Ptests_config.toplevel_path :=\"$(FRAMAC_OPT)\";;" >> $@; \
-        else \
-          $(ECHO) "Ptests_config.toplevel_path :=" >> $@; \
-          $(ECHO) "  Filename.concat Filename.current_dir_name" >> $@; \
-          $(ECHO) "  \"frama-c-$(PLUGIN_NAME).$(OCAMLBEST)$(EXE)\";;" >> $@; \
-        fi
-	$(ECHO) \
-	"Ptests_config.framac_share :=\"$(FRAMAC_SHARE)\";;" >> $@
-	$(ECHO) \
-	"Ptests_config.framac_plugin :=\"$(PLUGIN_LIB_DIR)\";;" >> $@
-	$(ECHO) \
-	"Ptests_config.framac_plugin_gui :=\"$(PLUGIN_GUI_LIB_DIR)\";;" >> $@
-	$(ECHO) \
-	"Ptests_config.framac_lib :=\"$(FRAMAC_LIB)\";;" >> $@
-	$(CHMOD_RO) $@
-
-$(PLUGIN_NAME)_PTESTS_OPTS:=$(PLUGIN_PTESTS_OPTS)
-
-ifeq ($(PTESTSBEST),opt)
-PLC_EXT=.cmxs
-else
-PLC_EXT=.cmo
-endif
-PTESTS_LOCAL_CONFIG:=$(PLUGIN_DIR)/ptests_local_config$(PLC_EXT)
-
-.PHONY: plugin-test/$(PLUGIN_NAME)
-plugin-test/$(PLUGIN_NAME): $(TARGETS) $(TARGETS_GUI) \
-                            $(PTESTS_LOCAL_CONFIG)
-	$(PRINT) TESTING PLUG-IN $(notdir $@)
-	cd $($(notdir $@)_DIR) && \
-        time -p $(PTESTS) $(PTESTS_OPTS) $($(notdir $@)_PTESTS_OPTS)
-
-tests:: plugin-test/$(PLUGIN_NAME)
-
-else
-tests::
-endif #PLUGIN_NO_TEST
-else
-tests::
-endif #PLUGIN_INTERNAL_TEST
-
 endif #PLUGIN_ENABLE
 endif #FRAMAC_MAKE
 
+#Must be defined before section TESTS, because function call in make
+#replace not only $(1) but all the other $(..)
 PLUGIN_LIB_DIR	?= $(PLUGIN_DIR)
 PLUGIN_GUI_LIB_DIR ?= $(PLUGIN_DIR)/gui
 PLUGIN_INSTALL_DIR ?=$(DESTDIR)$(FRAMAC_PLUGINDIR)
+
+######################## TESTS #################
+.PHONY: $(PLUGIN_NAME)_TESTS plugins_ptests_config
+
+$(eval $(call assert_defined,PLUGIN_LIB_DIR))
+$(eval $(call assert_defined,FRAMAC_SHARE))
+$(eval $(call assert_defined,FRAMAC_LIB))
+
+# Do not generate tests-related rules when PLUGIN_NO_TEST is set to 'no' but
+# there is no 'tests' directory. Typically useful for plugins released without
+# their tests.
+HAS_TESTS_DIR:=$(shell if test \! -d $(PLUGIN_DIR)/tests; then echo KO; fi)
+
+ifneq (,$(HAS_TESTS_DIR)$(PLUGIN_INTERNAL_TEST)$(PLUGIN_NO_TEST))
+$(PLUGIN_NAME)_TESTS:
+
+else
+PTESTS_DEP:=$(PLUGIN_DIR)/Makefile
+
+plugins_ptests_config: $(PLUGIN_DIR)/tests/ptests_config
+
+define TESTS_template
+$(PLUGIN_DIR)/tests/ptests_config: $(PTESTS_DEP)
+	$(PRINT_MAKING) $$@
+	$(MKDIR) tests
+	$(RM) $$@
+	$(ECHO) "DEFAULT_SUITES=" $(PLUGIN_TESTS_DIRS) > $$@
+	if test "$(USABLE_NATIVE_DYNLINK)" = "yes" \
+	     -o "$(FRAMAC_INTERNAL)" = "yes"; then \
+	  $(ECHO) "TOPLEVEL_PATH=$(FRAMAC_OPT)" >> $$@; \
+	else \
+	  $(ECHO) "TOPLEVEL_PATH=./frama-c-$(PLUGIN_NAME).$(OCAMLBEST)$(EXE)\";;" >> $$@; \
+	fi
+	$(ECHO) "FRAMAC_SHARE=$(FRAMAC_SHARE)" >> $$@
+	$(ECHO) "FRAMAC_PLUGIN=$(PLUGIN_LIB_DIR)" >> $$@
+	$(ECHO) "FRAMAC_PLUGIN_GUI=$(PLUGIN_GUI_LIB_DIR)" >> $$@
+	$(ECHO) "FRAMAC_LIB=$(FRAMAC_LIB)" >> $$@
+	$(ECHO) "OCAMLRUNPARAM=" >> $$@
+	$(CHMOD_RO) $$@
+
+# $(PLUGIN_NAME)_DEFAULT_TESTS allows plugins to define rules that at
+# the same time depend on $(PLUGIN_NAME)_DEFAULT_TESTS and
+# $(PLUGIN_NAME)_TESTS depend on them
+
+.PHONY: $(PLUGIN_NAME)_DEFAULT_TESTS
+
+$(PLUGIN_NAME)_DEFAULT_TESTS: $$(TARGETS) $$(TARGETS_GUI) $(PLUGIN_DIR)/tests/ptests_config
+	$(PRINT) TESTING PLUG-IN $(PLUGIN_NAME)
+	cd $(PLUGIN_DIR) && \
+        time -p $(PTESTS) $(PTESTS_OPTS) $(PLUGIN_PTESTS_OPTS)
+
+$(PLUGIN_NAME)_TESTS: $(PLUGIN_NAME)_DEFAULT_TESTS
+
+endef
+$(eval $(call TESTS_template))
+
+external_tests: $(PLUGIN_NAME)_TESTS
+
+endif
+################################################
 
 PLUGIN_FLAGS:=$(FLAGS) $(DEBUG) $(FRAMAC_INCLUDES) $(OCAMLGRAPH_INCLUDE)
 PLUGIN_BFLAGS:=$(PLUGIN_FLAGS) $(PLUGIN_BFLAGS)
@@ -257,7 +225,7 @@ static:: $(PLUGIN_DIR)/frama-c-$(PLUGIN_NAME).byte$(EXE) \
 clean:: $(PLUGIN_NAME)_CLEAN_DYNAMIC
 
 $(PLUGIN_NAME)_CLEAN_DYNAMIC:
-	$(RM) $($(patsubst %_CLEAN_DYNAMIC,%_DIR,$@))/ptests_local_config.ml
+	$(RM) $($(patsubst %_CLEAN_DYNAMIC,%_DIR,$@))/tests/ptests_config
 	$(RM) frama-c-$($(patsubst %_CLEAN_DYNAMIC,,$@)) \
               frama-c-$($(patsubst %_CLEAN_DYNAMIC,,$@)).byte
 
@@ -270,7 +238,7 @@ STATIC=static
 else
 STATIC=
 endif
-all:: $(PLUGIN_DIR)/.depend byte $(OCAMLBEST) gui $(STATIC)
+all:: $(PLUGIN_DIR)/.depend byte $(OCAMLBEST) gui $(STATIC) plugins_ptests_config
 
 ifneq ($(PLUGIN_ENABLE),no)
 install::
@@ -312,7 +280,7 @@ uninstall::
 	$(PRINT_RM) installed $(PLUGIN_NAME) libraries
 	$(RM) $(PLUGIN_INSTALL_DIR)/$(PLUGIN_NAME).*
 	$(PRINT_RM) installed $(PLUGIN_NAME) dependencies
-	$(RM) $(PLUGIN_INSTALL_DIR)/dependencies/$(PLUGIN_NAME)_dependencies.*	
+	$(RM) $(PLUGIN_INSTALL_DIR)/dependencies/$(PLUGIN_NAME)_dependencies.*
 	$(PRINT_RM) installed $(PLUGIN_NAME) binaries
 	$(RM) $(BINDIR)/frama-c-$(PLUGIN_NAME).opt$(EXE) \
 		$(BINDIR)/frama-c-$(PLUGIN_NAME).byte$(EXE)

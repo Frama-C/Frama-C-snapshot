@@ -1,0 +1,45 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/annot.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  A ∈ {0}
+  B ∈ {0}
+  C ∈ {0}
+  u ∈ {0}
+  v ∈ {0}
+  w ∈ {0}
+tests/misc/annot.i:5:[value] Function main: precondition got status unknown.
+tests/misc/annot.i:15:[value] Assertion got status valid.
+[value] Called Frama_C_show_each_diff({1})
+tests/misc/annot.i:21:[value] Assertion got status valid.
+tests/misc/annot.i:28:[value] Assertion got status unknown.
+tests/misc/annot.i:33:[value] Assertion got status unknown.
+tests/misc/annot.i:38:[value] Assertion got status unknown.
+[value] Called Frama_C_show_each_elseif_A_B({0}, {2})
+[value] Called Frama_C_show_each_else_A_B({0; 1}, {0; 2})
+tests/misc/annot.i:42:[value] Assertion got status unknown.
+[value] Called Frama_C_show_each_mn([0..9], [0..9])
+tests/misc/annot.i:46:[value] Assertion got status valid.
+tests/misc/annot.i:47:[value] Assertion got status valid.
+tests/misc/annot.i:51:[value] Assertion got status unknown.
+tests/misc/annot.i:53:[value] Assertion got status invalid (stopping propagation).
+tests/misc/annot.i:7:[value] Function main: no state left in which to evaluate postcondition, status not computed.
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  NON TERMINATING FUNCTION
+[from] Computing for function main
+[from] Non-terminating function main (no dependencies)
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  NON TERMINATING - NO EFFECTS
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          A; B; x; y; z; a; b; tt[0]
+[inout] Inputs for function main:
+          A; B; u

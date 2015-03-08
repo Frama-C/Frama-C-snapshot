@@ -6,6 +6,6 @@ void main(int c) {
   int j=c?(-3):4;
   t[i] = i;
   t[j] = j;
-  l = *(int*)l;
+  if (l) l = *(int*)l;
   G=l;
 }

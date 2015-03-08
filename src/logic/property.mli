@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -96,6 +96,13 @@ and identified_lemma =
 
 and identified_axiom = identified_lemma
 
+(** Specialization of a property at a given point. *)
+and identified_instance = kernel_function option * kinstr * identified_property
+
+and identified_type_invariant = string * typ * predicate named * location
+
+and identified_global_invariant = string * predicate named * location
+
 and identified_property = private
   | IPPredicate of identified_predicate
   | IPAxiom of identified_axiom
@@ -110,6 +117,9 @@ and identified_property = private
   | IPFrom of identified_from
   | IPDecrease of identified_decrease
   | IPReachable of identified_reachable
+  | IPPropertyInstance of identified_instance
+  | IPTypeInvariant of identified_type_invariant
+  | IPGlobalInvariant of identified_global_invariant
   | IPOther of string * kernel_function option * kinstr
 
 include Datatype.S_with_collections with type t = identified_property
@@ -119,7 +129,7 @@ val short_pretty: Format.formatter -> t -> unit
     corresponding identified predicate when available)
     reverting back to the full ACSL formula if it can't find one.
     The name is not meant to uniquely identify the property.
-    @since Neon-20130301 
+    @since Neon-20140301 
  *)
 
 (** @since Oxygen-20120901 *)
@@ -280,6 +290,11 @@ val ip_post_cond_of_spec:
 val ip_of_spec:
   kernel_function -> kinstr -> funspec -> identified_property list
 
+(** Build a specialization of the given property at the given function and
+    stmt *)
+val ip_property_instance:
+  kernel_function option -> kinstr -> identified_property -> identified_property
+
 (** Builds an IPAxiom.
     @since Carbon-20110201 
     @modify Oxygen-20120901 takes an identified_axiom instead of a string
@@ -291,6 +306,12 @@ val ip_axiom: identified_axiom -> identified_property
     @modify Oxygen-20120901 takes an identified_lemma instead of a string
 *)
 val ip_lemma: identified_lemma -> identified_property
+
+(** Build an IPTypeInvariant. *)
+val ip_type_invariant: identified_type_invariant -> identified_property
+
+(** Build an IPGlobalInvariant. *)
+val ip_global_invariant: identified_global_invariant -> identified_property
 
 (** Builds all IP related to a given code annotation.
     @since Carbon-20110201 *)

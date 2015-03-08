@@ -1,0 +1,52 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_acsl/block_length.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function f
+------------------------------------------------------------
+
+Goal Post-condition 'Pt' in 'f':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'Psiz1' in 'f':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'Pmat1' in 'f':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'Psiz2' in 'f':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'Pmat2' in 'f':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'Ps' in 'f':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'Pts' in 'f':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------

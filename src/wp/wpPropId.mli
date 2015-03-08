@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,14 +27,14 @@ open LogicUsage
  * depending on which part of the computation is involved.
  * For instance, properties on loops are split in 2 parts : establishment and
  * preservation.
- *)
+*)
 
 (** Property.t information and kind of PO (establishment, preservation, etc) *)
 type prop_id
 
 (** returns the annotation which lead to the given PO.
     Dynamically exported.
- *)
+*)
 val property_of_id : prop_id -> Property.t
 
 val source_of_id : prop_id -> Lexing.position
@@ -53,12 +53,12 @@ val is_requires : Property.t -> bool
 val is_loop_preservation : prop_id -> stmt option
 
 (** test if the prop_id has to be selected for the asked name.
-* Also returns a debug message to explain then answer. *)
+ * Also returns a debug message to explain then answer. *)
 val select_by_name : string list -> prop_id -> bool
 
 (** test if the prop_id has to be selected when we want to select the call
-* precondition the the [stmt] call (None means all the call preconditions).
-* Also returns a debug message to explain then answer. *)
+ * precondition the the [stmt] call (None means all the call preconditions).
+ * Also returns a debug message to explain then answer. *)
 val select_call_pre : stmt -> Property.t option -> prop_id -> bool
 
 (*----------------------------------------------------------------------------*)
@@ -143,7 +143,7 @@ val mk_fct_post_id : kernel_function -> funbehavior ->
 
 (** [mk_call_pre_id called_kf s_call called_pre] *)
 val mk_call_pre_id : kernel_function -> stmt -> 
-    Property.t -> Property.t -> prop_id
+  Property.t -> Property.t -> prop_id
 
 val mk_property : Property.t -> prop_id
 
@@ -159,7 +159,7 @@ type assigns_desc = private {
   a_assigns : Cil_types.identified_term Cil_types.assigns ;
 }
 val pp_assigns_desc : Format.formatter -> assigns_desc -> unit
-  
+
 type effect_source = FromCode | FromCall | FromReturn
 type assigns_info = prop_id * assigns_desc
 val assigns_info_id : assigns_info -> prop_id
@@ -184,6 +184,8 @@ val mk_loop_assigns_desc : stmt -> identified_term from list -> assigns_desc
 val mk_stmt_assigns_desc : stmt -> identified_term from list -> assigns_desc
 
 val mk_kf_assigns_desc : identified_term from list -> assigns_desc
+
+val mk_init_assigns : assigns_desc
 
 val is_call_assigns : assigns_desc -> bool
 

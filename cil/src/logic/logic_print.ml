@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -120,7 +120,7 @@ let getParenthLevel e =
     | PLapp _ | PLold _ | PLat _ 
     | PLoffset _ | PLbase_addr _ | PLblock_length _
     | PLupdate _  | PLinitField _ | PLinitIndex _
-    | PLvalid _ | PLvalid_read _ | PLinitialized _ 
+    | PLvalid _ | PLvalid_read _ | PLinitialized _ | PLdangling _
     | PLallocable _ | PLfreeable _ | PLfresh _ 
     | PLseparated _ | PLsubtype _ | PLunion _ | PLinter _ -> 10
     | PLvar _ | PLconstant _ | PLresult | PLnull | PLtypeof _ | PLtype _
@@ -241,6 +241,9 @@ and print_lexpr_level n fmt e =
       | PLvalid_read (l,e) -> fprintf fmt "\\valid_read%a(@;@[%a@]@;)" print_label_1 l print_lexpr_plain e
       | PLinitialized (l,e) ->
           fprintf fmt "\\initialized%a(@;@[%a@]@;)" print_label_1 l print_lexpr_plain e
+      | PLdangling (l,e) ->
+          fprintf fmt "\\dangling%a(@;@[%a@]@;)"
+            print_label_1 l print_lexpr_plain e
       | PLseparated l ->
           fprintf fmt "\\separated(@;@[%a@]@;)"
             (pp_list ~sep:",@ " print_lexpr_plain) l

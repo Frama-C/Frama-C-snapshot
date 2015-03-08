@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -45,6 +45,7 @@ sig
   val find : key -> 'a t -> 'a
   val findk : key -> 'a t -> key * 'a
   val size : 'a t -> int
+  val is_empty : 'a t -> bool
 
   (** [insert (fun key v old -> ...) key v map] *)
   val insert : (key -> 'a -> 'a -> 'a) -> key -> 'a -> 'a t -> 'a t
@@ -91,6 +92,7 @@ sig
   val add : elt -> t -> t
   val singleton : elt -> t
   val elements : t -> elt list
+  val is_empty : t -> bool
 
   val mem : elt -> t -> bool
   val iter : (elt -> unit) -> t -> unit

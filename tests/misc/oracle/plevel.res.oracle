@@ -1,0 +1,130 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/plevel.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  t[0..0xFFFE] ∈ {0}
+  i ∈ [--..--]
+tests/misc/plevel.i:11:[value] Assertion got status unknown.
+tests/misc/plevel.i:13:[value] Assertion got status unknown.
+tests/misc/plevel.i:21:[kernel] more than 40(65) locations to update in array. Approximating.
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+tests/misc/plevel.i:21:[kernel] more than 40(65) elements to enumerate. Approximating.
+[value] Values at end of function main:
+  t[0..0xFF] ∈ {0}
+   [0x100..0x120] ∈ {0; 1}
+   [0x121..0x1FF] ∈ {0}
+   [0x200..0x240] ∈ {0; 2}
+   [0x241..0x2FF] ∈ {0}
+   [0x300] ∈ {0; 3}
+   [0x301] ∈ {0}
+   [0x302] ∈ {0; 3}
+   [0x303] ∈ {0}
+   [0x304] ∈ {0; 3}
+   [0x305] ∈ {0}
+   [0x306] ∈ {0; 3}
+   [0x307] ∈ {0}
+   [0x308] ∈ {0; 3}
+   [0x309] ∈ {0}
+   [0x30A] ∈ {0; 3}
+   [0x30B] ∈ {0}
+   [0x30C] ∈ {0; 3}
+   [0x30D] ∈ {0}
+   [0x30E] ∈ {0; 3}
+   [0x30F] ∈ {0}
+   [0x310] ∈ {0; 3}
+   [0x311] ∈ {0}
+   [0x312] ∈ {0; 3}
+   [0x313] ∈ {0}
+   [0x314] ∈ {0; 3}
+   [0x315] ∈ {0}
+   [0x316] ∈ {0; 3}
+   [0x317] ∈ {0}
+   [0x318] ∈ {0; 3}
+   [0x319] ∈ {0}
+   [0x31A] ∈ {0; 3}
+   [0x31B] ∈ {0}
+   [0x31C] ∈ {0; 3}
+   [0x31D] ∈ {0}
+   [0x31E] ∈ {0; 3}
+   [0x31F] ∈ {0}
+   [0x320] ∈ {0; 3}
+   [0x321] ∈ {0}
+   [0x322] ∈ {0; 3}
+   [0x323] ∈ {0}
+   [0x324] ∈ {0; 3}
+   [0x325] ∈ {0}
+   [0x326] ∈ {0; 3}
+   [0x327] ∈ {0}
+   [0x328] ∈ {0; 3}
+   [0x329] ∈ {0}
+   [0x32A] ∈ {0; 3}
+   [0x32B] ∈ {0}
+   [0x32C] ∈ {0; 3}
+   [0x32D] ∈ {0}
+   [0x32E] ∈ {0; 3}
+   [0x32F] ∈ {0}
+   [0x330] ∈ {0; 3}
+   [0x331] ∈ {0}
+   [0x332] ∈ {0; 3}
+   [0x333] ∈ {0}
+   [0x334] ∈ {0; 3}
+   [0x335] ∈ {0}
+   [0x336] ∈ {0; 3}
+   [0x337] ∈ {0}
+   [0x338] ∈ {0; 3}
+   [0x339] ∈ {0}
+   [0x33A] ∈ {0; 3}
+   [0x33B] ∈ {0}
+   [0x33C] ∈ {0; 3}
+   [0x33D] ∈ {0}
+   [0x33E] ∈ {0; 3}
+   [0x33F] ∈ {0}
+   [0x340] ∈ {0; 3}
+   [0x341..0x3FF] ∈ {0}
+   [0x400..0x480] ∈ {0; 4}
+   [0x481..0x4FF] ∈ {0}
+   [0x500][bits 0 to 15]# ∈ {0; 0x5555}%32, bits 0 to 15 
+   {[0x500][bits 16 to 31]; [0x501..0x520]} ∈ [--..--]
+   [0x521][bits 0 to 15]# ∈ {0; 0x5656}%32, bits 16 to 31 
+   {[0x521][bits 16 to 31]; [0x522..0x5FF]} ∈ {0}
+   [0x600][bits 0 to 15]# ∈ {0; 0x6666}%32, bits 0 to 15 
+   {[0x600][bits 16 to 31]; [0x601..0x640]} ∈ [--..--]
+   [0x641][bits 0 to 15]# ∈ {0; 0x6767}%32, bits 16 to 31 
+   {[0x641][bits 16 to 31]; [0x642..0x6FF]} ∈ {0}
+   [0x700..0x708] ∈ [--..--]
+   [0x709..0x7FF] ∈ {0}
+   [0x800..0x810] ∈ [--..--]
+   [0x811..0xFFFE] ∈ {0}
+  i1 ∈ [0..32]
+  i2 ∈ [0..64]
+  p ∈ {{ &t + [0x2000..0x2040] }}
+[from] Computing for function main
+tests/misc/plevel.i:21:[kernel] more than 40(65) dependencies to update. Approximating.
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  t{[0x100..0x120]; [0x200..0x240]; [0x300]; [0x302]; [0x304]; [0x306];
+    [0x308]; [0x30A]; [0x30C]; [0x30E]; [0x310]; [0x312]; [0x314]; [0x316];
+    [0x318]; [0x31A]; [0x31C]; [0x31E]; [0x320]; [0x322]; [0x324]; [0x326];
+    [0x328]; [0x32A]; [0x32C]; [0x32E]; [0x330]; [0x332]; [0x334]; [0x336];
+    [0x338]; [0x33A]; [0x33C]; [0x33E]; [0x340]; [0x400..0x480];
+    {[0x500..0x520]; [0x521][bits 0 to 15]};
+    {[0x600..0x640]; [0x641][bits 0 to 15]}; [0x700..0x708]; [0x800..0x810]}
+   FROM i (and SELF)
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          t{[0x100..0x120]; [0x200..0x240]; [0x300]; [0x302]; [0x304]; [0x306];
+            [0x308]; [0x30A]; [0x30C]; [0x30E]; [0x310]; [0x312]; [0x314]; [0x316];
+            [0x318]; [0x31A]; [0x31C]; [0x31E]; [0x320]; [0x322]; [0x324]; [0x326];
+            [0x328]; [0x32A]; [0x32C]; [0x32E]; [0x330]; [0x332]; [0x334]; [0x336];
+            [0x338]; [0x33A]; [0x33C]; [0x33E]; [0x340]; [0x400..0x480];
+            {[0x500..0x520]; [0x521][bits 0 to 15]};
+            {[0x600..0x640]; [0x641][bits 0 to 15]}; [0x700..0x708]; [0x800..0x810]};
+          i1; i2; p
+[inout] Inputs for function main:
+          i

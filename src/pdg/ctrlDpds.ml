@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -112,9 +112,9 @@ end = struct
                 let _ = add_links graph last_list stmt in
                   stmt::[]
           in prev_list
-
+      | TryCatch _ -> Pdg_parameters.fatal "Try/Catch node in the AST"
       | Instr _
-      | Return _ | Goto _ | Break _ | Continue _
+      | Return _ | Goto _ | Break _ | Continue _ | Throw _
       | TryFinally _ | TryExcept _
         -> let _ = add_links graph prev_list stmt in [stmt]
 

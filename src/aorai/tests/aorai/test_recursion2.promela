@@ -1,0 +1,23 @@
+never { /* []((callof_count -> X((callorreturnof_count U callof_sumOne))))
+ */
+
+T0_init:
+	if
+	:: (global_argc>0 && callof_count) -> goto S1
+	:: (!callof_count) -> goto T1
+	fi;
+T1: 
+	if
+	:: (!callorreturnof_count) -> goto T1
+	:: (returnof_main) -> goto accept_T2
+	:: (global_argc>0 && callof_count) -> goto S1
+	fi;
+S1:
+	if
+	:: (callorreturnof_count) -> goto S1
+	:: (callof_sumOne) -> goto T1
+	fi;
+
+accept_T2:
+	skip;
+}

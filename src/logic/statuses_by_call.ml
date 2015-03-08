@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -87,11 +87,7 @@ let rec precondition_at_call kf pid stmt =
   with Not_found ->
     let loc = (Cil_datatype.Stmt.loc stmt) in
     let kf_call = Kernel_function.find_englobing_kf stmt in
-    let name = Pretty_utils.sfprintf "%s: %a"
-      (Property.Names.get_prop_name_id pid)
-      (Description.pp_localized ~kf:`Never ~ki:false ~kloc:true) pid
-    in
-    let p = Property.ip_other name (Some kf_call) (Kstmt stmt) in
+    let p = Property.ip_property_instance (Some kf_call) (Kstmt stmt) pid in
     PreCondAt.add (pid, stmt) p;
     (match stmt.skind with
     | Instr(Call(_, e, _, _)) ->

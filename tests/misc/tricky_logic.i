@@ -21,6 +21,7 @@ void f2() {
   x = 4;
   y = 5;
   //@ assert \at(x == 2 && y == 3, Pre) && x == 4 && y == 5;
+  //@ assert x == 4+\at(x, Init);
 }
 
 
@@ -52,7 +53,7 @@ void f4() {
   //@ assert  \initialized{Pre}(q);
 }
 
-
+//@ requires x==\at(x,Init)==0;
 void main() {
   f1();
 

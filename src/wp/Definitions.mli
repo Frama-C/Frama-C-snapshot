@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -75,12 +75,11 @@ sig
   val of_term : term -> trigger
   val of_pred : pred -> trigger
   val vars : trigger -> Vars.t
-  val plug : trigger list list -> pred -> var list * pred
 end
 
 val define_symbol : dfun -> unit
 val update_symbol : dfun -> unit
-val find_lemma : logic_lemma -> dlemma (* raises Not_found *)
+val find_lemma : logic_lemma -> dlemma (** raises Not_found *)
 val compile_lemma  : (logic_lemma -> dlemma) -> logic_lemma -> unit
 val define_lemma  : dlemma -> unit
 val define_type   : cluster -> logic_type_info -> unit
@@ -91,41 +90,41 @@ val call_pred : lfun -> (lfun -> dfun) -> term list -> pred
 type axioms = cluster * logic_lemma list
 
 class virtual visitor : cluster ->
-object
+  object
 
-  (** {2 Locality} *)
+    (** {2 Locality} *)
 
-  method set_local : cluster -> unit
-  method do_local : cluster -> bool
+    method set_local : cluster -> unit
+    method do_local : cluster -> bool
 
-  (** {2 Visiting items} *)
+    (** {2 Visiting items} *)
 
-  method vadt : ADT.t -> unit
-  method vtype : logic_type_info -> unit
-  method vcomp : compinfo -> unit
-  method vfield : Field.t -> unit
-  method vtau : tau -> unit
-  method vparam : var -> unit
-  method vterm : term -> unit
-  method vpred : pred -> unit
-  method vsymbol : lfun -> unit
-  method vlemma : logic_lemma -> unit
-  method vcluster : cluster -> unit
-  method vlibrary : string -> unit
-  method vgoal : axioms option -> F.pred -> unit
-  method vself : unit
+    method vadt : ADT.t -> unit
+    method vtype : logic_type_info -> unit
+    method vcomp : compinfo -> unit
+    method vfield : Field.t -> unit
+    method vtau : tau -> unit
+    method vparam : var -> unit
+    method vterm : term -> unit
+    method vpred : pred -> unit
+    method vsymbol : lfun -> unit
+    method vlemma : logic_lemma -> unit
+    method vcluster : cluster -> unit
+    method vlibrary : string -> unit
+    method vgoal : axioms option -> F.pred -> unit
+    method vself : unit
 
-  (** {2 Visited definitions} *)
+    (** {2 Visited definitions} *)
 
-  method virtual section : string -> unit (** Comment *)
-  method virtual on_library : string -> unit (** External library to import *)
-  method virtual on_cluster : cluster -> unit (** Outer cluster to import *)
-  method virtual on_type : logic_type_info -> typedef -> unit (** This local type must be defined *)
-  method virtual on_comp : compinfo -> (field * tau) list -> unit (** This local compinfo must be defined *)
-  method virtual on_dlemma : dlemma -> unit (** This local lemma must be defined *)
-  method virtual on_dfun : dfun -> unit (** This local function must be defined *)
+    method virtual section : string -> unit (** Comment *)
+    method virtual on_library : string -> unit (** External library to import *)
+    method virtual on_cluster : cluster -> unit (** Outer cluster to import *)
+    method virtual on_type : logic_type_info -> typedef -> unit (** This local type must be defined *)
+    method virtual on_comp : compinfo -> (field * tau) list -> unit (** This local compinfo must be defined *)
+    method virtual on_dlemma : dlemma -> unit (** This local lemma must be defined *)
+    method virtual on_dfun : dfun -> unit (** This local function must be defined *)
 
-end
+  end
 
 
 

@@ -1,0 +1,49 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/syntax/unroll_property_status_bts1442.i (no preprocessing)
+[report] Computing properties status...
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'Frama_C_bzero'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Post-condition (file share/libc/__fc_builtin_for_normalization.i, line 32)
+            Unverifiable but considered Valid.
+[ Extern  ] Assigns (file share/libc/__fc_builtin_for_normalization.i, line 31)
+            Unverifiable but considered Valid.
+[ Extern  ] Froms (file share/libc/__fc_builtin_for_normalization.i, line 31)
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'main1'
+--------------------------------------------------------------------------------
+
+[  Valid  ] Post-condition for 'Frama_C_implicit_init' (file tests/syntax/unroll_property_status_bts1442.i, line 19) at block
+            by Frama-C kernel.
+[  Valid  ] Post-condition for 'Frama_C_implicit_init' (file tests/syntax/unroll_property_status_bts1442.i, line 19) at block
+            by Frama-C kernel.
+[  Valid  ] Post-condition for 'Frama_C_implicit_init' (file tests/syntax/unroll_property_status_bts1442.i, line 19) at block
+            by Frama-C kernel.
+[  Valid  ] Post-condition for 'Frama_C_implicit_init' (file tests/syntax/unroll_property_status_bts1442.i, line 19) at block
+            by Frama-C kernel.
+[  Valid  ] Post-condition for 'Frama_C_implicit_init' (file tests/syntax/unroll_property_status_bts1442.i, line 19) at block
+            by Frama-C kernel.
+[  Valid  ] Post-condition for 'Frama_C_implicit_init' (file tests/syntax/unroll_property_status_bts1442.i, line 19) at block
+            by Frama-C kernel.
+[  Valid  ] Post-condition for 'Frama_C_implicit_init' (file tests/syntax/unroll_property_status_bts1442.i, line 19) at block
+            by Frama-C kernel.
+[  Valid  ] Post-condition for 'Frama_C_implicit_init' (file tests/syntax/unroll_property_status_bts1442.i, line 19) at block
+            by Frama-C kernel.
+[  Valid  ] Assigns for 'Frama_C_implicit_init' (file tests/syntax/unroll_property_status_bts1442.i, line 19) at block
+            by Frama-C kernel.
+[  Valid  ] Behavior 'Frama_C_implicit_init' at block
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Status Report Summary
+--------------------------------------------------------------------------------
+    11 Completely validated
+     3 Considered valid
+    14 Total
+--------------------------------------------------------------------------------

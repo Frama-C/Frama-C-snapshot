@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -59,6 +59,7 @@ class type main_window_extension_points = object
 
   method launcher : unit -> unit
   method source_viewer : GSourceView2.source_view
+  method source_viewer_scroll : GBin.scrolled_window
   method display_globals : global list -> unit
   method register_source_selector :
     (GMenu.menu GMenu.factory -> main_window_extension_points -> button:int
@@ -76,9 +77,10 @@ class type main_window_extension_points = object
   method reactive_buffer: reactive_buffer option
   method original_source_viewer : Source_manager.t
   method reset : unit -> unit
-  method error :
-    'a. ?parent:GWindow.window_skel -> ('a, Format.formatter, unit) format
-    -> 'a
+  method error : 'a.
+    ?parent:GWindow.window_skel -> ?reset:bool ->
+    ('a, Format.formatter, unit) format ->
+    'a
   method push_info : 'a. ('a, Format.formatter, unit) format -> 'a
   method pop_info : unit -> unit
   method help_message : 'a 'b.
@@ -146,7 +148,8 @@ let filetree_selector
              main_ui#original_source_viewer
              ~filename:f ~line:1 () ;
            main_ui#display_globals l
-       | Filetree.Global g -> main_ui#display_globals [g]
+       | Filetree.Global g -> 
+         main_ui#display_globals [g];
     );
     source#scroll_to_mark ~use_align:true ~xalign:0. ~yalign:0.5 `INSERT;
     let print_one_global prefix (v,loc) =
@@ -171,21 +174,26 @@ let filetree_selector
                         other globals in the filetree *)
         end
     | Filetree.File (f, globals) ->
-        let first_global = ref None in
+      let max_length = 40 in
+      let cons_limit r g l = if !r >= max_length then l else (incr r;g::l) in
+      let gfun_c,gtyp_c,gcomptagdecl_c,genumtagdecl_c,gvardecl_c,gvar_c=
+        ref 0,ref 0,ref 0,ref 0,ref 0,ref 0 
+      in
         let (gfun,gtype,gcomp,genum,gvardecl,gvar) =
           List.fold_right
             (fun g (gfun,gtype,gcomp,genum,gvardecl,gvar) ->
               match g with
-              | GFun ({svar=v},loc) ->
-                  (match !first_global with
-                  | None -> first_global:=Some (v,loc)
-                  | Some _ -> ());
-                  (g::gfun,gtype,gcomp,genum,gvardecl,gvar)
-              | GType _ -> (gfun,g::gtype,gcomp,genum,gvardecl,gvar)
-              | GCompTagDecl _ -> (gfun,gtype,g::gcomp,genum,gvardecl,gvar)
-              | GEnumTagDecl _ -> (gfun,gtype,gcomp,g::genum,gvardecl,gvar)
-              | GVarDecl _ -> (gfun,gtype,gcomp,genum,g::gvardecl,gvar)
-              | GVar _ -> (gfun,gtype,gcomp,genum,gvardecl,g::gvar)
+              | GFun _ -> 
+                (cons_limit gfun_c g gfun,gtype,gcomp,genum,gvardecl,gvar)
+              | GType _ -> (gfun,cons_limit gtyp_c g gtype,gcomp,genum,gvardecl,gvar)
+              | GCompTagDecl _ -> 
+                (gfun,gtype,cons_limit gcomptagdecl_c g gcomp,genum,gvardecl,gvar)
+              | GEnumTagDecl _ -> 
+                (gfun,gtype,gcomp,cons_limit genumtagdecl_c g genum,gvardecl,gvar)
+              | GVarDecl _ -> 
+                (gfun,gtype,gcomp,genum,cons_limit gvardecl_c g gvardecl,gvar)
+              | GVar _ -> 
+                (gfun,gtype,gcomp,genum,gvardecl,cons_limit gvar_c g gvar)
               | _ -> (gfun,gtype,gcomp,genum,gvardecl,gvar))
             globals
             ([],[],[],[],[],[])
@@ -193,27 +201,32 @@ let filetree_selector
         main_ui#pretty_information "@[File %s@]@." f;
         let printing
             (head:string)
+            (ellipsis:bool)
             (f:Format.formatter -> 'a -> unit)
             (l:'a list)
             =
           if l <> [] then
-            main_ui#pretty_information "@[%s @[<hov>%a@]@]@." head
+            main_ui#pretty_information "@[%s @[<hov>%a@]%s@]@\n" head
               (Pretty_utils.pp_list ~sep:",@ " f) l
+              (if ellipsis then "..." else "") 
         in
           printing
             "Functions:"
+            (!gfun_c>=max_length)
             (fun fmt -> (function GFun ({svar=v},_) ->
                            Varinfo.pretty_vname fmt v
                            | _ -> assert false))
             gfun;
           printing
             "Types:"
+            (!gtyp_c>=max_length)
             (function fmt -> (function (GType ({tname=name},_)) ->
                                 Format.pp_print_string fmt name
                                 | _ -> assert false))
             gtype;
         printing
           "Composite types:"
+            (!gcomptagdecl_c>=max_length)
             (function fmt ->
                (function  GCompTagDecl
                     ({cname=name},_) |GCompTag ({cname=name},_)->
@@ -222,7 +235,8 @@ let filetree_selector
           gcomp;
         printing
           "Enums:"
-            (function fmt ->
+          (!genumtagdecl_c>=max_length)
+          (function fmt ->
                (function GEnumTagDecl
                     ({ename=name},_) | GEnumTag ({ename=name},_)->
                       Format.pp_print_string fmt name
@@ -230,6 +244,7 @@ let filetree_selector
           genum;
         printing
           "Declared variables:"
+          (!gvardecl_c>=max_length)
           (function fmt ->
              (function GVarDecl (_,v,_) ->
                 Varinfo.pretty_vname fmt v
@@ -237,10 +252,12 @@ let filetree_selector
           gvardecl;
         printing
           "Variables:"
+          (!gvar_c>=max_length)
           (fun fmt -> (function GVar(v,_,_) ->
                          Varinfo.pretty_vname fmt v
                          | _ -> assert false))
           gvar;
+        main_ui#pretty_information "%!"
     end
   end
 
@@ -306,7 +323,7 @@ let to_do_on_select
                 if Emitter.equal e Emitter.end_user then "user" else "alarm"
               in
               main_ui#pretty_information "@[%s(%s): @[<hov>%a@]@]@.%a@."
-                pos user Printer.pp_code_annotation a 
+                pos user Printer.pp_code_annotation a
                 (Pretty_utils.pp_list ~sep:"@\n" pretty_predicate_status)
                 (Property.ip_of_code_annot kf stmt a))
             stmt)
@@ -370,46 +387,59 @@ let to_do_on_select
       main_ui#pretty_information "This is an axiomatic.@.";
     | PIP(Property.IPLemma _) ->
       main_ui#pretty_information "This is a lemma.@.";
+    | PIP(Property.IPTypeInvariant _) ->
+      main_ui#pretty_information "This is a type invariant.@.";
+    | PIP(Property.IPGlobalInvariant _) ->
+      main_ui#pretty_information "This is a global invariant.@.";
     | PIP(Property.IPBehavior _) ->
       main_ui#pretty_information "This is a behavior.@.";
-    | PIP(Property.IPReachable _) | PIP(Property.IPOther _) ->
+    | PIP(Property.IPReachable _ | Property.IPOther _
+           | Property.IPPropertyInstance _) ->
       (* these properties are not selectable *)
       assert false
     | PGlobal _g -> main_ui#pretty_information "This is a global.@.";
 
     | PLval (kf, ki,lv) ->
-        begin try
-          let ty = typeOfLval lv in
-          if isFunctionType ty
-          then
-            main_ui#pretty_information "This is a C function of type %a@."
-	      Printer.pp_typ ty
-          else begin
-            current_statement_msg kf ki;
-	    match lv with 
-	    | Var vi,NoOffset -> 
-              main_ui#pretty_information
-                "Variable %a has type \"%a\".@\nIt is a %s.@\n\
-                   %tIt is %sreferenced and its address is %staken.@."
-                Varinfo.pretty_vname vi
-                Printer.pp_typ vi.vtype
-                (if vi.vglob then "global variable"
-                 else formal_or_local (Extlib.the kf) vi)
-                (fun fmt ->
-                  match vi.vdescr with None -> ()
-                    | Some s ->
-                      Format.fprintf fmt
-                        "This is a temporary variable for \"%s\".@\n" s)
-                (if vi.vreferenced then "" else "not ")
-                (if vi.vaddrof then "" else "not ")
-	    | _ -> main_ui#pretty_information "This is an lvalue of type %a@."
-	      Printer.pp_typ (typeOfLval lv)
-          end
-        with Not_found ->
-          main_ui#error "Error in lval Db.KernelFunction.find"
-        end
+      let ty = typeOfLval lv in
+      if isFunctionType ty then
+        main_ui#pretty_information "This is a C function of type %a@."
+	  Printer.pp_typ ty
+      else begin
+        current_statement_msg kf ki;
+	match lv with
+	| Var vi,NoOffset ->
+          main_ui#pretty_information
+            "Variable %a has type \"%a\".@\nIt is a %s.@\n\
+                 %tIt is %sreferenced and its address is %staken.@."
+            Varinfo.pretty_vname vi
+            Printer.pp_typ vi.vtype
+            (if vi.vglob then "global variable"
+             else formal_or_local (Extlib.the kf) vi)
+            (fun fmt ->
+              match vi.vdescr with
+              | None -> ()
+              | Some s ->
+                Format.fprintf fmt
+                  "This is a temporary variable for \"%s\".@\n" s)
+            (if vi.vreferenced then "" else "not ")
+            (if vi.vaddrof then "" else "not ")
+	| _ -> main_ui#pretty_information "This is an lvalue of type %a@."
+	  Printer.pp_typ (typeOfLval lv)
+      end
+
+    | PExp (_kf, _ki, e) ->
+      begin match constFoldToInt e with
+      | Some i ->
+	main_ui#pretty_information
+	  "This is a constant C expression of type %a, equal to %a.@."
+	  Printer.pp_typ (typeOf e) Datatype.Integer.pretty i
+      | None ->
+	main_ui#pretty_information "This is a pure C expression of type %a.@."
+	  Printer.pp_typ (typeOf e)
+      end
     | PTermLval _ ->
         main_ui#pretty_information "This is a logical left-value.@."
+
     | PVDecl (kf,vi) ->
         main_ui#view_original vi.vdecl;
         if vi.vglob
@@ -460,7 +490,7 @@ let to_do_on_select
              (* only simple literal calls can be resolved syntactically *)
              do_menu v
          | _  -> ())
-    | PTermLval _ | PGlobal _ | PIP _ -> ()
+    | PExp _ | PTermLval _ | PGlobal _ | PIP _ -> ()
   end
 
 (** Global selectors and highlighters *)
@@ -557,12 +587,12 @@ struct
     | F.Valid_under_hyp -> "valid_under_hyp"
     | F.Invalid_under_hyp -> "invalid_under_hyp"
     | F.Inconsistent -> "inconsistent"
-    
+
   let declare_markers (source:GSourceView2.source_view) =
     List.iter
       (fun v ->
-	source#set_mark_category_pixbuf 
-	  ~category:(category v) 
+	source#set_mark_category_pixbuf
+	  ~category:(category v)
 	  (Some (Gtk_helper.Icon.get (Gtk_helper.Icon.Feedback v))))
       [ F.Never_tried;
 	F.Considered_valid;
@@ -575,7 +605,7 @@ struct
 	F.Valid_under_hyp;
 	F.Invalid_under_hyp;
 	F.Inconsistent ]
-      
+
   let mark (source:GSourceView2.source_buffer) ~start ~stop:_ validity =
     begin
       let iter = source#get_iter_at_char start in
@@ -585,13 +615,13 @@ struct
     end
 
   let update (reactive_buffer:reactive_buffer) prop =
-    Extlib.may 
-      (fun loc_table -> 
+    Extlib.may
+      (fun loc_table ->
 	let validity = F.get prop in
 	let loc = Pretty_source.PIP prop in
 	let loc = locate_localizable loc_table loc in
-	Extlib.may 
-	  (fun (start,stop) -> 
+	Extlib.may
+	  (fun (start,stop) ->
 	    mark reactive_buffer#buffer ~start ~stop validity)
 	  loc)
       reactive_buffer#locs
@@ -728,19 +758,19 @@ class main_window () : main_window_extension_points =
   (* upper text view: source code *)
   let fr1 = GBin.frame ~shadow_type:`ETCHED_OUT ~packing:hb_sources#add1 () in
 
-  let sw = GBin.scrolled_window
+  let source_viewer_scroll = GBin.scrolled_window
     ~vpolicy:`AUTOMATIC
     ~hpolicy:`AUTOMATIC
     ~packing:fr1#add ()
   in
 
-  let source_viewer = Source_viewer.make ~packing:sw#add in
-  let () = 
+  let source_viewer = Source_viewer.make ~packing:source_viewer_scroll#add in
+  let () =
     begin
       source_viewer#set_show_line_numbers false ;
       source_viewer#set_show_line_marks true ;
       Feedback.declare_markers source_viewer ;
-    end 
+    end
   in
 
   let original_source_viewer = Source_manager.make ~packing:hb_sources#add2 ()
@@ -785,6 +815,7 @@ object (self:#main_window_extension_points)
     = pretty_information
 
   method source_viewer = source_viewer
+  method source_viewer_scroll = source_viewer_scroll
 
   method register_source_selector f = selector := f::!selector
   method register_source_highlighter f = highlighter := f::!highlighter
@@ -836,7 +867,7 @@ object (self:#main_window_extension_points)
         Extlib.may
           (fun refresh ->
             to_refresh:=
-              (fun ()-> 
+              (fun ()->
 		if !Gtk_helper.gui_unlocked && expander#expanded then
 		  refresh ())
 	    ::!to_refresh)
@@ -899,7 +930,6 @@ object (self:#main_window_extension_points)
     self#rehighlight () (* This should not be needed, but for some reason
                            gtk does not highlight the buffer by default *)
 
-
   (* Cf .mli doc. In the first case, the callbacks of the filetree are called,
      but not in the second case.  As of 2011-05-16, the only callback is
      registered here (in  design.ml) and calls filetree_selector *)
@@ -953,7 +983,9 @@ object (self:#main_window_extension_points)
            ignore (self#source_viewer#backward_display_line_start iter);
            self#source_viewer#buffer#place_cursor iter;
            ignore (self#source_viewer#scroll_to_mark
-                     ~use_align:true ~yalign:0.5 ~xalign:0. `INSERT)
+                     ~use_align:true ~yalign:0.5 ~xalign:0. `INSERT);
+           let adj = source_viewer_scroll#hadjustment in
+           adj#set_value adj#lower
          in
          match Pretty_source.locate_localizable (Extlib.the state#locs) loc with
            | Some (b,_) -> show b
@@ -1076,12 +1108,12 @@ object (self:#main_window_extension_points)
     self#set_reset self#reset;
     let menu_manager = self#menu_manager () (* create the menu_manager *) in
     main_window#add_accel_group menu_manager#factory#accel_group;
-
+    
     let lock_gui lock =
       (* lock left part of the GUI. *)
       filetree_panel_vpaned#misc#set_sensitive (not lock);
       if lock then
-        ignore (Glib.Timeout.add ~ms:25
+        ignore (Glib.Timeout.add ~ms:50
                   ~callback:(fun () ->
                     progress_bar#pulse ();
                     not !Gtk_helper.gui_unlocked));
@@ -1129,9 +1161,7 @@ object (self:#main_window_extension_points)
 
     file_tree <- Some (Filetree.make file_tree_view);
     self#file_tree#add_select_function (filetree_selector self#toplevel);
-
     process_extensions self#toplevel;
-
     self#register_source_selector to_do_on_select;
     self#initialize_panels ();
     main_window#show ();
@@ -1144,8 +1174,8 @@ object (self:#main_window_extension_points)
              ~tab_label:(GMisc.label ~text:"Messages" ())#coerce w)
       in
       let callback e _column =
-	Extlib.may 
-	  (fun pos -> 
+	Extlib.may
+	  (fun pos ->
             Extlib.may self#scroll (Pretty_source.loc_to_localizable pos);
             self#view_original (pos,pos))
 	  e.Log.evt_source
@@ -1242,16 +1272,19 @@ let toplevel play =
       new Gtk_helper.error_manager (splash_w:>GWindow.window_skel)
     in
     let init_crashed = ref true in
-    error_manager#protect 
+    error_manager#protect
       ~cancelable:true ~parent:(splash_w:>GWindow.window_skel)
       (fun () ->
-	(try 
+	(try
            play ();
            (* This is a good point to start using real asynchronous tasks
               management: plug-ins launched from command line have finished
               their asynchronous tasks thanks to the default Task.on_idle. *)
            Task.on_idle :=
              (fun f -> ignore (Glib.Timeout.add ~ms:50 ~callback:f));
+           let project_name = Gui_parameters.Project_name.get () in
+           if project_name <> "" then
+             Project.set_current (Project.from_unique_name project_name);
            Ast.compute ()
          with e -> (* An error occurred: we need to enforce the splash screen
 		      realization before we create the error dialog widget.*)

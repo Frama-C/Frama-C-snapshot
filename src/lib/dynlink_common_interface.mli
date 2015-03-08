@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -72,6 +72,10 @@ exception Unsupported_Feature of string
 val is_native: bool
 (** [true] if the program is native,
     [false] if the program is bytecode. *)
+
+val adapt_filename: string -> string
+(** In bytecode, the identity function. In native code, replace the last
+    extension with [.cmxs]. *)
 
 (** {6 Error reporting} *)
 

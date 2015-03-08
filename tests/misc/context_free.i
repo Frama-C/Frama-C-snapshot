@@ -1,6 +1,6 @@
 /* run.config
    GCC:
-   OPT: -val -lib-entry -main f -absolute-valid-range 0x200-0x199 -journal-disable
+   OPT: -val -lib-entry -main f -absolute-valid-range 0x200-0x199 -value-msg-key initial_state -journal-disable
 */
 
 
@@ -26,7 +26,7 @@ struct str_arith { int s1; int s2; float s3; } ;
 
 union uni_arith { int u1 ; struct str_arith u2 ; float u3 ; } uuu ;
 
-const int c_int = 34;
+int c_int = 34;
 
 extern struct {
   int f1;

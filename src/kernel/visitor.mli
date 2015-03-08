@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -89,6 +89,11 @@ class frama_c_copy: Project.t -> frama_c_visitor
       [fill_global_tables] is called inside this project.)
       See {!File.init_project_from_visitor} and [create_project_from_visitor]
       for possible uses. *)
+
+class frama_c_refresh: Project.t -> frama_c_visitor
+  (** Similar to {!frama_c_copy}, but ids will be refreshed in the copy.
+      @since Sodium-20150201
+   *)
 
 class generic_frama_c_visitor:
   Cil.visitor_behavior ->  frama_c_visitor

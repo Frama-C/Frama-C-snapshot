@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -341,10 +341,14 @@ val string: string Type.t
 
 module Formatter: S with type t = Format.formatter
 val formatter: Format.formatter Type.t
+  
+(* module Big_int: S_with_collections with type t = Integer.t *)
+(* val big_int: Big_int.t Type.t *)
+(** @deprecated use Integer instead. *)
 
-module Big_int: S_with_collections with type t = Integer.t
-val big_int: Big_int.t Type.t
-
+module Integer: S_with_collections with type t = Integer.t
+val integer: Integer.t Type.t
+  
 (* ****************************************************************************)
 (** {2 Generic functors for polymorphic types} *)
 (* ****************************************************************************)
@@ -546,17 +550,17 @@ val list: 'a Type.t -> 'a list Type.t
 (** @plugin development guide *)
 
 module Poly_array: Polymorphic with type 'a poly = 'a array
-(** @since Neon-20130301 *)
+(** @since Neon-20140301 *)
 
 module Array(T: S) : S with type t = T.t array
-(** @since Neon-20130301 *)
+(** @since Neon-20140301 *)
 
 module Array_with_collections(T:S)(Info:Functor_info):
   S_with_collections with type t = T.t array
-(** @since Neon-20130301 *)
+(** @since Neon-20140301 *)
 
 val array: 'a Type.t -> 'a array Type.t
-(** @since Neon-20130301 *)
+(** @since Neon-20140301 *)
 
 
 module Poly_queue: Polymorphic with type 'a poly = 'a Queue.t

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -25,5 +25,5 @@
 (* -------------------------------------------------------------------------- *)
 
 val load_driver : unit -> LogicBuiltins.driver
-  (** Memoized loading of drivers according to current 
-      WP options. Finally sets [LogicBuiltins.driver] and returns it. *)
+(** Memoized loading of drivers according to current 
+    WP options. Finally sets [LogicBuiltins.driver] and returns it. *)

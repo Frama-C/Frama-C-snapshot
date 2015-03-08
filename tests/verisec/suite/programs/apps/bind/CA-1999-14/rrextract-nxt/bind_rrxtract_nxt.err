@@ -1,0 +1,21 @@
+bind/CA-1999-14/rrextract-nxt/simp_bad.c:15: Warning: entering loop for the first time
+No code for function nondet_short, default assigns generated
+bind/CA-1999-14/rrextract-nxt/simp_bad.c:16: Warning: entering loop for the first time
+No code for function dn_expand, default assigns generated
+No code for function nondet_int, default assigns generated
+bind/CA-1999-14/rrextract-nxt/simp_bad.c:29: Warning: assigning non deterministic value for the first time
+../../lib/stubs.c:236: Warning: entering loop for the first time
+../../lib/stubs.c:236: Warning: (TODO: emit a proper alarm) accessing uninitialized left-value: *(s + i)
+../../lib/stubs.c:236: Warning: out of bounds read. assert \valid(s + i);
+                    
+../../lib/stubs.c:64: Warning: Assertion got status unknown.
+../../lib/stubs.c:67: Warning: entering loop for the first time
+../../lib/stubs.c:68: Warning: out of bounds read. assert \valid((char *)src + i);
+                    
+../../lib/stubs.c:68: Warning: (TODO: emit a proper alarm) accessing uninitialized left-value: *((char *)src + i)
+../../lib/stubs.c:68: Warning: out of bounds write. assert \valid((char *)dest + i);
+                     
+[dominators] computing for function r_memcpy
+[dominators] done for function r_memcpy
+[dominators] computing for function strlen
+[dominators] done for function strlen

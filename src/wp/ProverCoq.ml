@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -42,8 +42,8 @@ let cluster_file c =
 
 (* Applies to both WP resources from the Share, and User-defined libraries *)
 let option_file = LogicBuiltins.create_option
-                    (fun ~driver_dir x -> driver_dir ^ "/" ^ x)
-                    "coq" "file"
+    (fun ~driver_dir x -> driver_dir ^ "/" ^ x)
+    "coq" "file"
 
 type coqlib = {
   c_id : string ; (* Identifies the very original file. *)
@@ -74,14 +74,14 @@ let name_of_path path =
       let name = String.copy path in
       for i = 0 to String.length name - 1 do
         if name.[i] = '/' then name.[i] <- '.'
-	else if name.[i] = '\\' then name.[i] <- '.' 
+        else if name.[i] = '\\' then name.[i] <- '.' 
       done ; name
     end
 
 let find_nonwin_column opt =
   let p = String.rindex opt ':' in
   if String.length opt >= 3 &&
-    opt.[1] = ':' && (opt.[2] = '/' || opt.[2] = '\\') && p = 1 then
+     opt.[1] = ':' && (opt.[2] = '/' || opt.[2] = '\\') && p = 1 then
     (* windows absolute path, not <source>:<dir>/<file.v> format. *)
     raise Not_found
   else p
@@ -125,31 +125,31 @@ type depend =
 
 let engine = 
   let module E = Qed.Export_coq.Make(Lang.F) in
-object
-  inherit E.engine
-  inherit Lang.idprinting
+  object
+    inherit E.engine
+    inherit Lang.idprinting
 
-  method infoprover p = p.coq
-end
+    method infoprover p = p.coq
+  end
 
 
 class visitor fmt c =
-object(self)
-  
-  inherit Definitions.visitor c 
-  inherit ProverTask.printer fmt (cluster_title c)
+  object(self)
+
+    inherit Definitions.visitor c 
+    inherit ProverTask.printer fmt (cluster_title c)
 
     val mutable deps : depend list = []
 
-  (* --- Managing Formatter --- *)
+    (* --- Managing Formatter --- *)
 
-  method flush =
-    begin
-      Format.pp_print_newline fmt () ;
-      List.rev deps
-    end
+    method flush =
+      begin
+        Format.pp_print_newline fmt () ;
+        List.rev deps
+      end
 
-  (* --- Files, Theories and Clusters --- *)
+    (* --- Files, Theories and Clusters --- *)
 
     method add_coqfile opt =
       let clib = c_option opt in
@@ -159,58 +159,58 @@ object(self)
     method on_library thy =
       let files = LogicBuiltins.get_option option_file ~library:thy in
       List.iter self#add_coqfile files
-	  
-  method on_cluster c = 
-    self#lines ;
-    Format.fprintf fmt "Require Import %s.@\n" (cluster_id c) ;
-    deps <- (D_cluster c) :: deps
 
-
-
-  method on_type lt def =
-    begin
+    method on_cluster c = 
       self#lines ;
-      engine#declare_type fmt (Lang.atype lt) (List.length lt.lt_params) def ;
-    end
+      Format.fprintf fmt "Require Import %s.@\n" (cluster_id c) ;
+      deps <- (D_cluster c) :: deps
 
-  method on_comp c fts =
-    begin
-      self#paragraph ;
-      engine#declare_type fmt (Lang.comp c) 0 (Qed.Engine.Trec fts) ;
-    end
 
-  method on_dlemma l =
-    begin
-      self#paragraph ;
-      engine#declare_axiom fmt 
-	(Lang.lemma_id l.l_name) 
-	l.l_forall l.l_triggers
-	(F.e_prop l.l_lemma)
-    end
 
-  method on_dfun d =
-    begin
-      self#paragraph ;
-      match d.d_definition with
-	| Logic t ->
-	    engine#declare_signature fmt 
-	      d.d_lfun (List.map F.tau_of_var d.d_params) t ;
-	| Value(t,mu,v) ->
-	    let pp = match mu with
-	      | Rec -> engine#declare_fixpoint ~prefix:"Fix"
-	      | Def -> engine#declare_definition
-	    in pp fmt d.d_lfun d.d_params t v
-	| Predicate(mu,p) ->
-	    let pp = match mu with
-	      | Rec -> engine#declare_fixpoint ~prefix:"Fix"
-	      | Def -> engine#declare_definition
-	    in pp fmt d.d_lfun d.d_params Logic.Prop (F.e_prop p)
-	| Inductive _ ->
-	    engine#declare_signature fmt
-	      d.d_lfun (List.map F.tau_of_var d.d_params) Logic.Prop
-    end
+    method on_type lt def =
+      begin
+        self#lines ;
+        engine#declare_type fmt (Lang.atype lt) (List.length lt.lt_params) def ;
+      end
 
-end
+    method on_comp c fts =
+      begin
+        self#paragraph ;
+        engine#declare_type fmt (Lang.comp c) 0 (Qed.Engine.Trec fts) ;
+      end
+
+    method on_dlemma l =
+      begin
+        self#paragraph ;
+        engine#declare_axiom fmt 
+          (Lang.lemma_id l.l_name) 
+          l.l_forall l.l_triggers
+          (F.e_prop l.l_lemma)
+      end
+
+    method on_dfun d =
+      begin
+        self#paragraph ;
+        match d.d_definition with
+        | Logic t ->
+            engine#declare_signature fmt 
+              d.d_lfun (List.map F.tau_of_var d.d_params) t ;
+        | Value(t,mu,v) ->
+            let pp = match mu with
+              | Rec -> engine#declare_fixpoint ~prefix:"Fix"
+              | Def -> engine#declare_definition
+            in pp fmt d.d_lfun d.d_params t v
+        | Predicate(mu,p) ->
+            let pp = match mu with
+              | Rec -> engine#declare_fixpoint ~prefix:"Fix"
+              | Def -> engine#declare_definition
+            in pp fmt d.d_lfun d.d_params Logic.Prop (F.e_prop p)
+        | Inductive _ ->
+            engine#declare_signature fmt
+              d.d_lfun (List.map F.tau_of_var d.d_params) Logic.Prop
+      end
+
+  end
 
 let write_cluster c =
   let f = cluster_file c in
@@ -237,17 +237,17 @@ let need_recompile ~source ~target =
     let t_tgt = (Unix.stat target).Unix.st_mtime in
     t_src >= t_tgt
   with Unix.Unix_error _ -> true
-  
+
 (* Used to mark version of clusters already available *)
 
 module CLUSTERS = Model.Index
-  (struct
-     type key = cluster
-     type data = int * depend list
-     let name = "ProverCoq.FILES"
-     let compare = cluster_compare
-     let pretty = pp_cluster
-   end)
+    (struct
+      type key = cluster
+      type data = int * depend list
+      let name = "ProverCoq.FILES"
+      let compare = cluster_compare
+      let pretty = pp_cluster
+    end)
 
 (* Used to mark coqlib versions to use *)
 module Marked = Set.Make
@@ -301,21 +301,19 @@ and assemble_coqlib coqcc c =
   if Sys.file_exists compiled then
     let dir = Printf.sprintf "%s/%s" c.c_source c.c_path in
     add_include coqcc (dir,c.c_name)
-    else
-      begin
+  else
+    begin
       let tgtdir = Wp_parameters.get_output_dir "coqwp" in
       let source = Printf.sprintf "%s/%s" c.c_source c.c_file in
       let target = Printf.sprintf "%s/%s" tgtdir c.c_file in
       let dir = Printf.sprintf "%s/%s" tgtdir c.c_path in 
-      Format.printf "tgtdir:%s@\nsource:%s@\ntarget:%s@\ndir:%s@." 
-	tgtdir source target dir;
       if need_recompile ~source ~target then 
         begin
           Wp_parameters.make_output_dir dir ;
-	Command.copy source target ;
+          Command.copy source target ;
         end ;
       add_include coqcc (dir,c.c_name) ;
-	add_source coqcc target;
+      add_source coqcc target;
     end
 
 (* -------------------------------------------------------------------------- *)
@@ -329,27 +327,27 @@ let assemble_goal ~pid axioms prop =
   let file = Printf.sprintf "%s/%s.coq" model id in
   let goal = cluster ~id ~title () in
   let deps = Command.print_file file
-    begin fun fmt ->
-      let v = new visitor fmt goal in
-      v#printf "Require Import ZArith.@\n" ;
-      v#printf "Require Import Reals.@\n" ;
-      v#on_library "qed" ;
-      v#vgoal axioms prop ;
-      let libs = Wp_parameters.CoqLibs.get () in
-      if libs <> [] then
-	begin
-	  v#section "Additional Libraries" ;
+      begin fun fmt ->
+        let v = new visitor fmt goal in
+        v#printf "Require Import ZArith.@\n" ;
+        v#printf "Require Import Reals.@\n" ;
+        v#on_library "qed" ;
+        v#vgoal axioms prop ;
+        let libs = Wp_parameters.CoqLibs.get () in
+        if libs <> [] then
+          begin
+            v#section "Additional Libraries" ;
             List.iter v#add_coqfile libs ;
-	  v#hline ;
-	end ;
-      v#paragraph ;
-      engine#global
-	begin fun () ->
-	  v#printf "@[<hv 2>Goal@ %a.@]@."
-	    engine#pp_prop (F.e_prop prop) ;
-	end ;
-      v#flush
-    end in
+            v#hline ;
+          end ;
+        v#paragraph ;
+        engine#global
+          begin fun () ->
+            v#printf "@[<hv 2>Goal@ %a.@]@."
+              engine#pp_prop (F.e_prop prop) ;
+          end ;
+        v#flush
+      end in
   let coqcc = { marked = Marked.empty ; includes = [] ; sources = [] } in
   List.iter (assemble coqcc) deps ;
   let includes = (model , "") :: List.rev coqcc.includes in
@@ -369,68 +367,68 @@ let coq_timeout () =
   max coqtimeout gentimeout
 
 let coqidelock = Task.mutex ()
-    
+
 class runcoq includes source =
   let base = Filename.chop_extension source in
   let logout = base ^ "_Coq.out" in
   let logerr = base ^ "_Coq.err" in
-object(coq)
-  
-  inherit ProverTask.command "coq"
-    
-  initializer
-    begin
+  object(coq)
+
+    inherit ProverTask.command "coq"
+
+    initializer
+      begin
         List.iter
           (fun (dir,name) ->
              coq#add ["-I";dir] ;
              if name <> "" then coq#add ["-as";name]
           ) includes ;
-      coq#add [ "-noglob" ] ;
-    end
+        coq#add [ "-noglob" ] ;
+      end
 
-      
-  method failed : 'a. 'a task =
-    begin
-      let name = Filename.basename source in
-      Wp_parameters.feedback "[Coq] '%s' compilation failed." name ;
-      if Sys.file_exists logout then
-	Log.print_on_output (fun fmt -> Command.pp_from_file fmt logout) ;
-      if Sys.file_exists logerr then
-	Log.print_on_output (fun fmt -> Command.pp_from_file fmt logerr) ;
-      Task.failed "Compilation of '%s' failed." name ;
-    end
-      
-  method compile =
-    coq#set_command "coqc" ;
-    coq#add [ source ] ;
-    coq#timeout (coq_timeout ()) ;
-    Task.call 
-      (fun () ->
-        if not (Wp_parameters.Check.get ()) then
-	  let name = Filename.basename source in
-	  Wp_parameters.feedback "[Coq] Compiling '%s'." name) ()
-    >>= coq#run ~logout ~logerr 
-    >>= fun r ->
+
+    method failed : 'a. 'a task =
+      begin
+        let name = Filename.basename source in
+        Wp_parameters.feedback "[Coq] '%s' compilation failed." name ;
+        if Sys.file_exists logout then
+          Log.print_on_output (fun fmt -> Command.pp_from_file fmt logout) ;
+        if Sys.file_exists logerr then
+          Log.print_on_output (fun fmt -> Command.pp_from_file fmt logerr) ;
+        Task.failed "Compilation of '%s' failed." name ;
+      end
+
+    method compile =
+      coq#set_command "coqc" ;
+      coq#add [ source ] ;
+      coq#timeout (coq_timeout ()) ;
+      Task.call 
+        (fun () ->
+           if not (Wp_parameters.Check.get ()) then
+             let name = Filename.basename source in
+             Wp_parameters.feedback "[Coq] Compiling '%s'." name) ()
+      >>= coq#run ~logout ~logerr 
+      >>= fun r ->
       if r <> 0 then coq#failed 
       else Task.return ()
 
-  method check =
-    coq#set_command "coqc" ;
-    coq#add [ source ] ;
-    coq#timeout (coq_timeout ()) ;
-    coq#run ~logout ~logerr () >>= function
+    method check =
+      coq#set_command "coqc" ;
+      coq#add [ source ] ;
+      coq#timeout (coq_timeout ()) ;
+      coq#run ~logout ~logerr () >>= function
       | 0 -> Task.return true
       | 1 -> Task.return false
       | _ -> coq#failed
 
     method coqide =
-    coq#set_command "coqide" ;
-    coq#add [ source ] ;
-    let script = Wp_parameters.Script.get () in
-    if Sys.file_exists script then coq#add [ script ] ;
-    Task.sync coqidelock (coq#run ~logout ~logerr)
+      coq#set_command "coqide" ;
+      coq#add [ source ] ;
+      let script = Wp_parameters.Script.get () in
+      if Sys.file_exists script then coq#add [ script ] ;
+      Task.sync coqidelock (coq#run ~logout ~logerr)
 
-end
+  end
 
 (* -------------------------------------------------------------------------- *)
 (* --- Compilation Helpers                                                --- *)
@@ -444,13 +442,13 @@ let shared includes source =
   with Not_found -> 
     if !shared_demon then
       begin
-	shared_demon := false ;
-	let server = ProverTask.server () in
-	Task.on_server_stop server (fun () -> Hashtbl.clear shared_headers) ;
+        shared_demon := false ;
+        let server = ProverTask.server () in
+        Task.on_server_stop server (fun () -> Hashtbl.clear shared_headers) ;
       end ;
     let descr = Printf.sprintf "Coqc '%s'" source in
     let shared = Task.shared ~descr ~retry:true
-      (fun () -> (new runcoq includes source)#compile)
+        (fun () -> (new runcoq includes source)#compile)
     in Hashtbl.add shared_headers source shared ; shared
 
 let rec compile_headers includes forced = function
@@ -458,10 +456,10 @@ let rec compile_headers includes forced = function
   | source::headers ->
       let target = source ^ "o" in
       if forced || need_recompile ~source ~target then
-	begin
-	  let cc = shared includes source in
-	  Task.share cc >>= fun () -> compile_headers includes true headers
-	end
+        begin
+          let cc = shared includes source in
+          Task.share cc >>= fun () -> compile_headers includes true headers
+        end
       else compile_headers includes forced headers
 
 (* -------------------------------------------------------------------------- *)
@@ -498,53 +496,53 @@ let rec try_hints w = function
   | (kind,script) :: hints ->
       Wp_parameters.feedback "[Coq] Goal %s : %s" w.cw_gid kind ;
       try_script w script >>= fun succeed ->
-	if succeed then
-	  let required,hints = WpPropId.prop_id_keys w.cw_pid in
-	  let keys = List.merge String.compare required hints in
-	  Proof.add_script w.cw_gid keys script ; 
-	  Task.return true
-	else
-	  try_hints w hints
-	    
+      if succeed then
+        let required,hints = WpPropId.prop_id_keys w.cw_pid in
+        let keys = List.merge String.compare required hints in
+        Proof.add_script w.cw_gid keys script ; 
+        Task.return true
+      else
+        try_hints w hints
+
 let try_prove w =
   begin
     match Proof.script_for ~pid:w.cw_pid ~gid:w.cw_gid with
-      | Some script -> 
-	  Wp_parameters.feedback "[Coq] Goal %s : Saved script" w.cw_gid ;
-	  try_script w script
-      | None -> Task.return false
+    | Some script -> 
+        Wp_parameters.feedback "[Coq] Goal %s : Saved script" w.cw_gid ;
+        try_script w script
+    | None -> Task.return false
   end
   >>= fun succeed ->
-    if succeed then 
-      Task.return true
-    else
-      try_hints w (Proof.hints_for ~pid:w.cw_pid)
+  if succeed then 
+    Task.return true
+  else
+    try_hints w (Proof.hints_for ~pid:w.cw_pid)
 
 let try_coqide w =
   let script = Proof.script_for_ide ~pid:w.cw_pid ~gid:w.cw_gid in
   make_script w script ;
   (new runcoq w.cw_includes w.cw_script)#coqide >>= fun st ->
-    if st = 0 then
-      match Proof.parse_coqproof w.cw_script with
-        | None ->
-            Wp_parameters.feedback "[Coq] No proof found" ;
-            Task.return false
-        | Some script ->
-	    if Proof.is_empty script then
-	      begin
-		Proof.delete_script w.cw_gid ; 
-		Task.canceled () ;
-	      end
-	    else
-	      begin
-		let req,hs = WpPropId.prop_id_keys w.cw_pid in
-		let hints = List.merge String.compare req hs in
-		Proof.add_script w.cw_gid hints script ;
-		Wp_parameters.feedback "[Coq] Goal %s : Script" w.cw_gid ;
-		try_script w script
-	      end
-    else 
-      Task.failed "[Coq] coqide exit with status %d" st
+  if st = 0 then
+    match Proof.parse_coqproof w.cw_script with
+    | None ->
+        Wp_parameters.feedback "[Coq] No proof found" ;
+        Task.return false
+    | Some script ->
+        if Proof.is_empty script then
+          begin
+            Proof.delete_script w.cw_gid ; 
+            Task.canceled () ;
+          end
+        else
+          begin
+            let req,hs = WpPropId.prop_id_keys w.cw_pid in
+            let hints = List.merge String.compare req hs in
+            Proof.add_script w.cw_gid hints script ;
+            Wp_parameters.feedback "[Coq] Goal %s : Script" w.cw_gid ;
+            try_script w script
+          end
+  else 
+    Task.failed "[Coq] coqide exit with status %d" st
 
 let prove_session ~mode w =
   begin
@@ -556,8 +554,8 @@ let prove_session ~mode w =
       | FixMode ->
           begin
             try_prove w >>> function
-      | Task.Result true -> Task.return true
-      | Task.Failed e -> Task.raised e
+            | Task.Result true -> Task.return true
+            | Task.Failed e -> Task.raised e
             | Task.Canceled | Task.Timeout | Task.Result false -> try_coqide w
           end
     end
@@ -568,10 +566,10 @@ exception Admitted_not_proved
 
 let check_session w =
   compile_headers w.cw_includes false w.cw_headers >>=
-    (fun () -> try_script ~admitted:true w "") >>> function
-    | Task.Result true -> Task.return VCS.unknown
-    | Task.Failed e -> Task.raised e
-    | Task.Canceled | Task.Timeout | Task.Result false ->
+  (fun () -> try_script ~admitted:true w "") >>> function
+  | Task.Result true -> Task.return VCS.unknown
+  | Task.Failed e -> Task.raised e
+  | Task.Canceled | Task.Timeout | Task.Result false ->
       Task.raised Admitted_not_proved
 
 let prove_session ~mode w =
@@ -586,25 +584,26 @@ let prove_prop wpo ~mode ~axioms ~prop =
   let script = DISK.file_goal ~pid ~model ~prover:Coq in
   let includes , headers , goal = 
     Model.with_model model (assemble_goal ~pid axioms) prop
-  in 
+  in
+  Wp_parameters.print_generated script;
   if Wp_parameters.Generate.get () 
   then Task.return VCS.no_result
   else prove_session ~mode {
-    cw_pid = pid ;
-    cw_gid = gid ;
-    cw_goal = goal ;
-    cw_script = script ;
-    cw_headers = headers ;
-    cw_includes = includes ;
-  }
-    
+      cw_pid = pid ;
+      cw_gid = gid ;
+      cw_goal = goal ;
+      cw_script = script ;
+      cw_headers = headers ;
+      cw_includes = includes ;
+    }
+
 let prove_annot wpo vcq ~mode = 
   Task.todo
     begin fun () ->
       let prop = GOAL.compute_proof vcq.VC_Annot.goal in
       prove_prop wpo ~mode ~axioms:None ~prop
     end
-    
+
 let prove_lemma wpo vca ~mode = 
   Task.todo
     begin fun () ->
@@ -614,7 +613,7 @@ let prove_lemma wpo vca ~mode =
       let axioms = Some(lemma.l_cluster,depends) in
       prove_prop wpo ~mode ~axioms ~prop
     end
-    
+
 let prove_check wpo vck ~mode = 
   Task.todo
     begin fun () ->
@@ -625,6 +624,6 @@ let prove_check wpo vck ~mode =
 
 let prove mode wpo =
   match wpo.Wpo.po_formula with
-    | GoalAnnot vcq -> prove_annot wpo vcq ~mode
-    | GoalLemma vca -> prove_lemma wpo vca ~mode
-    | GoalCheck vck -> prove_check wpo vck ~mode
+  | GoalAnnot vcq -> prove_annot wpo vcq ~mode
+  | GoalLemma vca -> prove_lemma wpo vca ~mode
+  | GoalCheck vck -> prove_check wpo vck ~mode

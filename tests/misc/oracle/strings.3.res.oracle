@@ -1,0 +1,114 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/strings.i (no preprocessing)
+tests/misc/strings.i:58:[kernel] warning: Return statement with a value in function returning void
+[value] Analyzing a complete application starting at main8
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  s1[0] ∈ {104}
+    [1] ∈ {101}
+    [2..3] ∈ {108}
+    [4] ∈ {111}
+    [5] ∈ {0}
+    [6] ∈ {32}
+    [7] ∈ {119}
+    [8] ∈ {111}
+    [9] ∈ {114}
+    [10] ∈ {108}
+    [11] ∈ {100}
+    [12] ∈ {0}
+  s2[0] ∈ {104}
+    [1] ∈ {101}
+    [2..3] ∈ {108}
+    [4] ∈ {111}
+    [5] ∈ {0}
+  s5 ∈ {0}
+  s6 ∈ {0}
+  cc ∈ {97}
+  Q ∈ {0}
+  R ∈ {0}
+  S ∈ {0}
+  T ∈ {0}
+  U ∈ {0}
+  V ∈ {0}
+  W ∈ {0}
+  X ∈ {0}
+  Y ∈ {0}
+  Z ∈ {0}
+  s3 ∈ {{ "tutu" }}
+  s4 ∈ {{ "tutu" }}
+  s7 ∈ {{ "hello\000 world" }}
+  s8 ∈ {{ "hello" }}
+[value] computing for function assigns <- main8.
+        Called from tests/misc/strings.i:127.
+[value] using specification for function assigns
+tests/misc/strings.i:121:[value] warning: no \from part for clause 'assigns *(p+(0 .. s-1));' of function assigns
+[value] Done for function assigns
+[value] computing for function strcmp <- main8.
+        Called from tests/misc/strings.i:128.
+tests/misc/strings.i:114:[kernel] warning: out of bounds read. assert \valid_read(tmp_0);
+                                      (tmp_0 from s2_0++)
+[value] Recording results for strcmp
+[value] Done for function strcmp
+[value] Recording results for main8
+[value] done for function main8
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function strcmp:
+  s1_0 ∈ {{ &long_chain + [0..29] }}
+  s2_0 ∈ {{ &tc + [0..29] }}
+  __retres ∈ [-223..121]
+[value] Values at end of function main8:
+  tc[0..29] ∈ [--..--]
+  long_chain[0] ∈ {114}
+            [1] ∈ {101}
+            [2] ∈ {97}
+            [3..4] ∈ {108}
+            [5] ∈ {121}
+            [6] ∈ {32}
+            [7] ∈ {114}
+            [8] ∈ {101}
+            [9] ∈ {97}
+            [10..11] ∈ {108}
+            [12] ∈ {121}
+            [13] ∈ {32}
+            [14] ∈ {114}
+            [15] ∈ {101}
+            [16] ∈ {97}
+            [17..18] ∈ {108}
+            [19] ∈ {121}
+            [20] ∈ {32}
+            [21] ∈ {108}
+            [22] ∈ {111}
+            [23] ∈ {110}
+            [24] ∈ {103}
+            [25] ∈ {32}
+            [26] ∈ {99}
+            [27] ∈ {104}
+            [28] ∈ {97}
+            [29] ∈ {105}
+            [30] ∈ {110}
+            [31] ∈ {0}
+  x ∈ [-223..121]
+[from] Computing for function strcmp
+[from] Done for function strcmp
+[from] Computing for function main8
+[from] Computing for function assigns <-main8
+[from] Done for function assigns
+[from] Done for function main8
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function assigns:
+  tc[0..29] FROM ANYTHING(origin:Unknown) (and SELF)
+[from] Function strcmp:
+  \result FROM s1_0; s2_0; tc[0..29]; long_chain[0..30]
+[from] Function main8:
+  \result FROM ANYTHING(origin:Unknown)
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function strcmp:
+          s1_0; s2_0; tmp; tmp_0; __retres
+[inout] Inputs for function strcmp:
+          tc[0..29]; long_chain[0..30]
+[inout] Out (internal) for function main8:
+          tc[0..29]; long_chain[0..31]; x
+[inout] Inputs for function main8:
+          ANYTHING(origin:Unknown)

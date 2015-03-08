@@ -85,6 +85,7 @@ module Comments =
           let default () = MyTable.empty
          end)
     let self = MyState.self
+    let () = Cil.dependency_on_ast self
 
     (* What matters is the beginning of the comment. *)
     let add (first,last) comment =
@@ -189,6 +190,8 @@ begin
   | TRY_EXCEPT(_, _, _, loc) -> loc
   | TRY_FINALLY(_, _, loc) -> loc
   | (CODE_SPEC (_,l) |CODE_ANNOT (_,l)) -> l
+  | THROW(_,l) -> l
+  | TRY_CATCH(_,_,l) -> l
 end
 
 

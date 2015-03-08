@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -25,6 +25,7 @@ open Cvalue
 
 val compute_call_ref :
   (kernel_function ->
+   recursive:bool ->
    call_kinstr:kinstr ->
    Model.t ->
    (exp * V_Offsetmap.t) list ->

@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of WP plug-in of Frama-C.                           #
 #                                                                        #
-#  Copyright (C) 2007-2014                                               #
+#  Copyright (C) 2007-2015                                               #
 #    CEA (Commissariat a l'energie atomique et aux energies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -49,9 +49,13 @@ AC_ARG_ENABLE(
   WPWHY3COQ=yes
 )
 
+plugin_use(wp,gui)
+plugin_use(wp,rtegen)
+
+check_plugin_dependencies
+
+# NB: this would deserve to use plugin_requires mechanism
 if test "$ENABLE_WP" != "no"; then
-  plugin_use(wp,gui)
-  plugin_use(wp,rte_annotation)
 
   ## Configuring for WP-COQ
   if test "$WPCOQ" = "yes" ; then
@@ -81,7 +85,7 @@ if test "$ENABLE_WP" != "no"; then
     if test "$WHY3COQC" = "yes" ; then
       WHY3VERSION=`why3 --version | sed -n -e 's|.*version* *\([[^ ]]*\) .*$|\1|p' `
       case $WHY3VERSION in
-        0.82*)
+        0.85*)
           AC_MSG_RESULT(why3 version $WHY3VERSION found)
 	  WHY3LIB=`why3 --print-libdir`
 	  if test -f $WHY3LIB/coq/BuiltIn.vo ; then
@@ -92,19 +96,18 @@ if test "$ENABLE_WP" != "no"; then
           fi
           ;;
         *) 
-          AC_MSG_RESULT(wp needs needs why3 0.82, found $WHY3VERSION) 
+          AC_MSG_RESULT(wp needs why3 0.85, found $WHY3VERSION) 
           WHY3COQC="no"
           ;;
       esac
     else
-      AC_MSG_NOTICE(rerun configure to make wp using why3 0.82)
+      AC_MSG_NOTICE(rerun configure to make wp using why3 0.85)
     fi
   else
     WHY3COQC="no"
   fi
   AC_SUBST(WHY3COQC)
 
-  check_plugin_dependencies
 fi
 
 write_plugin_config(Makefile)

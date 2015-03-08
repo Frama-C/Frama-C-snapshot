@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -42,7 +42,7 @@ let scope_p_warn_tag = ("p_warn_scope",   [`BACKGROUND "#D5FFAb"])
 let empty_tag = ("", [])
 
 let add_msg (main_ui:Design.main_window_extension_points) txt =
-  main_ui#annot_window#buffer#insert (txt ^ "\n")
+  main_ui#pretty_information "%s@." txt
 
 let pretty_zone fmt z =
   Format.fprintf fmt "@[<h 1>%a@]" Locations.Zone.pretty z
@@ -94,7 +94,7 @@ module Kf_containing_highlighted_stmt =
       (struct
         let name = "Dpds_gui.Kf_containing_highlighted_stmt"
         let size = 7
-        let dependencies = 
+        let dependencies =
 	  [ (*Dependencies are managed manually by Make_StmtSetState*) ]
        end)
 
@@ -109,13 +109,13 @@ module Make_StmtSetState (Info:sig val name: string end) =
        let dependencies = [ Db.Value.self ]
        let default () = Stmt.Hptset.empty
      end)
-	
-   let set s = 
+
+   let set s =
      set s;
      Kf_containing_highlighted_stmt.clear ();
-     Stmt.Hptset.iter 
-       (fun stmt -> 
-	 Kf_containing_highlighted_stmt.replace 
+     Stmt.Hptset.iter
+       (fun stmt ->
+	 Kf_containing_highlighted_stmt.replace
 	   (Kernel_function.find_englobing_kf stmt) default_icon)
        s;
      !update_column `Contents
@@ -318,12 +318,12 @@ module Zones : (DpdCmdSig with type t_in = lval)  = struct
          let name = "Dpds_gui.Highlighter.ZonesState"
          let dependencies = [ Db.Value.self ]
        end)
-    let set s = 
+    let set s =
       set s;
       Kf_containing_highlighted_stmt.clear ();
-      Stmt.Hptset.iter 
-	(fun stmt -> 
-	  Kf_containing_highlighted_stmt.replace 
+      Stmt.Hptset.iter
+	(fun stmt ->
+	  Kf_containing_highlighted_stmt.replace
 	    (Kernel_function.find_englobing_kf stmt) default_icon)
 	(snd s);
      !update_column `Contents
@@ -400,10 +400,13 @@ let reset () =
 
 let callbacks ?(defs=false) ?(zones=false) ?(scope=false) ?(pscope=false)
     main_ui (kf, stmt, localizable) =
+  (* The messages printed here are (1) not really informative; (2) too short
+     lived: after the 'information' panel has been cleared, they are never
+     printed again. (And if the filetree filter is active, they are cleared just
+     after having been written.) Because of (1), no effort has been made to
+     correct (2). *)
   let compute f arg =
-
     let msg = f kf stmt arg in
-
     if msg <> "" then add_msg main_ui msg
   in
   let set_txt x =
@@ -414,7 +417,7 @@ let callbacks ?(defs=false) ?(zones=false) ?(scope=false) ?(pscope=false)
     DpdsState.set stmt;
     add_msg main_ui txt
   in
-  let _ =
+  begin
     if pscope then begin
       reset ();
       match get_annot_opt localizable with
@@ -437,7 +440,8 @@ let callbacks ?(defs=false) ?(zones=false) ?(scope=false) ?(pscope=false)
             if scope then compute DataScope.compute lval else DataScope.clear ()
           end
     end
-  in main_ui#rehighlight ()
+  end;
+  main_ui#rehighlight ()
 
 let highlighter (buffer:GSourceView2.source_buffer) localizable ~start ~stop =
   try
@@ -454,7 +458,7 @@ let highlighter (buffer:GSourceView2.source_buffer) localizable ~start ~stop =
       put_tag (ShowDef.tag_stmt stmt)
     | PIP (Property.IPCodeAnnot (_, _, annot)) ->
       put_tag (Pscope.tag_annot annot)
-    | PVDecl _ | PTermLval _ | PLval _ | PGlobal _ | PIP _ -> ()
+    | PExp _ | PVDecl _ | PTermLval _ | PLval _ | PGlobal _ | PIP _ -> ()
   with Not_found -> ()
 
 let check_value (main_ui:Design.main_window_extension_points) =
@@ -464,11 +468,13 @@ let check_value (main_ui:Design.main_window_extension_points) =
       ~title:("Need Value Analysis")
       ~buttons:[ "Run"; "Cancel" ]
       ("Value analysis has to be run first.\nThis can take some time.\n"
-       ^"Do you want to run the value analysis now ?")
+       ^"Do you want to run the Value analysis with its current settings now?")
     in
       if answer = 1 then
         match main_ui#full_protect ~cancelable:true !Db.Value.compute with
-          | Some _ -> true
+          | Some _ ->
+            main_ui#redisplay (); (* New alarms *)
+            true
           | None -> false
       else false
 
@@ -529,7 +535,7 @@ let selector (popup_factory:GMenu.menu GMenu.factory)
                         (fun _ -> reset () ; main_ui#rehighlight ())
     end
 
-let filetree_decorate main_ui = 
+let filetree_decorate main_ui =
   main_ui#file_tree#append_pixbuf_column
     ~title:"Scope"
     (fun globs ->
@@ -561,10 +567,10 @@ let filetree_decorate main_ui =
       List.map (fun icon -> `STOCK_ID icon) icons
     )
     (fun _ -> Kf_containing_highlighted_stmt.length () <>0)
-    
+
 let main main_ui =
   main_ui#register_source_selector selector;
   main_ui#register_source_highlighter highlighter;
   update_column := (filetree_decorate main_ui)
-    
+
 let () = Design.register_extension main

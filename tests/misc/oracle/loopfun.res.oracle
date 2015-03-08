@@ -1,0 +1,65 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/loopfun.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  a ∈ {7}
+[value] computing for function test <- main.
+        Called from tests/misc/loopfun.i:14.
+[value] Recording results for test
+[value] Done for function test
+[value] computing for function test <- main.
+        Called from tests/misc/loopfun.i:14.
+[value] Recording results for test
+[value] Done for function test
+[value] computing for function test <- main.
+        Called from tests/misc/loopfun.i:16.
+[value] Recording results for test
+[value] Done for function test
+[value] Called Frama_C_show_each_t({5})
+[value] computing for function test <- main.
+        Called from tests/misc/loopfun.i:14.
+[value] Recording results for test
+[value] Done for function test
+[value] computing for function test <- main.
+        Called from tests/misc/loopfun.i:14.
+[value] Recording results for test
+[value] Done for function test
+[value] computing for function test <- main.
+        Called from tests/misc/loopfun.i:16.
+[value] Recording results for test
+[value] Done for function test
+[value] Called Frama_C_show_each_t({2})
+[value] computing for function test <- main.
+        Called from tests/misc/loopfun.i:14.
+[value] Recording results for test
+[value] Done for function test
+[value] computing for function test <- main.
+        Called from tests/misc/loopfun.i:14.
+[value] Recording results for test
+[value] Done for function test
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[from] Computing for function test
+[from] Done for function test
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function test:
+  FROMTOP
+  \result FROM ANYTHING(origin:Unknown)
+[from] Function main:
+  FROMTOP
+  \result FROM ANYTHING(origin:Unknown)
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function test:
+          tmp; a
+[inout] Inputs for function test:
+          a
+[inout] Out (internal) for function main:
+          ANYTHING(origin:Unknown)
+[inout] Inputs for function main:
+          ANYTHING(origin:Unknown)

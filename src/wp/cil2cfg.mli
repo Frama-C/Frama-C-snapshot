@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -78,8 +78,8 @@ type node_type = private
   | Vtest of bool * stmt * exp
   | Vswitch of stmt * exp
   | Vloop of bool option * stmt 
-            (** boolean is is_natural.  None means the node has not been 
-              * detected as a loop. *)
+  (** boolean is is_natural.  None means the node has not been 
+    * detected as a loop. *)
   | Vloop2 of bool * int
 
 val node_type : node -> node_type
@@ -89,21 +89,21 @@ val node_stmt_opt : node -> stmt option
 val start_stmt_of_node : node -> stmt option
 
 (** @return the nodes that are unreachable from the 'start' node.
-* These nodes have been removed from the cfg already. *)
+ * These nodes have been removed from the cfg already. *)
 val unreachable_nodes : t -> node_type list
 
 (** similar to [succ_e g v]
-* but tests the branch to return (then-edge, else-edge)
+ * but tests the branch to return (then-edge, else-edge)
   * @raise Invalid_argument if the node is not a test.
-* *)
+ * *)
 val get_test_edges : t -> node -> edge * edge
 
 (** similar to [succ_e g v]
-but give the switch cases and the default edge *)
+    but give the switch cases and the default edge *)
 val get_switch_edges : t -> node -> (exp list * edge) list * edge
 
 (** similar to [succ_e g v]
-but gives the edge to VcallOut first and the edge to Vexit second. *)
+    but gives the edge to VcallOut first and the edge to Vexit second. *)
 val get_call_out_edges : t -> node -> edge * edge
 
 val blocks_closed_by_edge : t -> edge -> block list
@@ -111,13 +111,13 @@ val blocks_closed_by_edge : t -> edge -> block list
 val is_back_edge : edge -> bool
 
 (** detect is there are non natural loops or natural loops where we didn't
-* manage to compute back edges (see [mark_loops]). Must be empty in the mode
-* [-wp-no-invariants]. (see also [very_strange_loops]) *)
+ * manage to compute back edges (see [mark_loops]). Must be empty in the mode
+ * [-wp-no-invariants]. (see also [very_strange_loops]) *)
 val strange_loops : t -> node list
 
 (** detect is there are natural loops where we didn't manage to compute 
-* back edges (see [mark_loops]). At the moment, we are not able to handle those
-* loops. *)
+ * back edges (see [mark_loops]). At the moment, we are not able to handle those
+ * loops. *)
 val very_strange_loops : t -> node list
 
 (** @return the (normalized) labels at the program point of the edge. *)
@@ -130,31 +130,31 @@ val get_edge_next_stmt : t -> edge -> stmt option
 val has_exit : t -> bool
 
 (** Find the edges where the precondition of the node statement have to be
-* checked. *)
+ * checked. *)
 val get_pre_edges : t -> node -> edge list
 
 (** Find the edges where the postconditions of the node statement have to be
-* checked. *)
+ * checked. *)
 val get_post_edges : t -> node -> edge list
 
 (** Get the label to be used for the Post state of the node contract if any. *)
 val get_post_logic_label : t -> node -> logic_label option
 
 (** Find the edges [e] that goes to the [Vexit] node inside the statement
-* begining at node [n] *)
+ * begining at node [n] *)
 val get_exit_edges : t -> node -> edge list
 
 (** Find the edges [e] of the statement node [n] postcondition
-* and the set of edges that are inside the statement ([e] excluded).
-* For instance, for a single statement node, [e] is [succ_e n],
-* and the set is empty. For a test node, [e] are the last edges of the 2
-* branches, and the set contains all the edges between [n] and the [e] edges.
-* *)
+ * and the set of edges that are inside the statement ([e] excluded).
+ * For instance, for a single statement node, [e] is [succ_e n],
+ * and the set is empty. For a test node, [e] are the last edges of the 2
+ * branches, and the set contains all the edges between [n] and the [e] edges.
+ * *)
 val get_internal_edges : t -> node -> edge list * Eset.t
 
 val cfg_kf : t -> Kernel_function.t
 val cfg_spec_only : t -> bool
-  (** returns [true] is this CFG is degenerated (no code available) *)
+(** returns [true] is this CFG is degenerated (no code available) *)
 
 (** signature of a mapping table from cfg edges to some information. *)
 module type HEsig =

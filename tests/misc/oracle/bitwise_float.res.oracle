@@ -1,0 +1,25 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/bitwise_float.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  
+tests/misc/bitwise_float.c:1:[value] Function main: precondition got status unknown.
+[value] Called Frama_C_show_each_x([1028443341..1084227584])
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  x ∈ {0; 2}
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  \result FROM a
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          x
+[inout] Inputs for function main:
+          \nothing

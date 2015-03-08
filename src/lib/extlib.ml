@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -72,6 +72,8 @@ let mk_fun s = ref (fun _ -> mk_labeled_fun s)
 let ($) f g x = f (g x)
 
 let swap f x y = f y x
+
+let uncurry f x = f (fst x) (snd x)
 
 let iter_uncurry2 iter f v =
   iter (fun a b -> f (a, b)) v
@@ -217,6 +219,10 @@ let opt_compare f v1 v2 = match v1, v2 with
   | Some _, None -> 1
   | None, Some _ -> -1
   | Some v1, Some v2 -> f v1 v2
+
+let opt_hash hash v = match v with
+  | None -> 31179
+  | Some v -> hash v
 
 (* ************************************************************************* *)
 (** Booleans                                                                 *)

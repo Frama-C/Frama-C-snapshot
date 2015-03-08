@@ -1,0 +1,43 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/invalid_lval_arg.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  X ∈ {0}
+  p ∈ {0}
+tests/misc/invalid_lval_arg.i:15:[kernel] warning: out of bounds read. assert \valid_read((int **)0);
+tests/misc/invalid_lval_arg.i:15:[value] completely invalid location in evaluation of
+        argument *(*((int **)0))
+tests/misc/invalid_lval_arg.i:17:[kernel] warning: out of bounds read. assert \valid_read((int **)0);
+tests/misc/invalid_lval_arg.i:17:[value] completely invalid location in evaluation of
+        argument *(*((int **)0))
+tests/misc/invalid_lval_arg.i:19:[kernel] warning: out of bounds read. assert \valid_read((int **)0);
+tests/misc/invalid_lval_arg.i:19:[value] completely invalid location in evaluation of
+        argument *(*((int **)0))
+[value] Recording results for main
+[value] done for function main
+tests/misc/invalid_lval_arg.i:15:[value] Assertion 'Value,mem_access' got final status invalid.
+tests/misc/invalid_lval_arg.i:17:[value] Assertion 'Value,mem_access' got final status invalid.
+tests/misc/invalid_lval_arg.i:19:[value] Assertion 'Value,mem_access' got final status invalid.
+[value] ====== VALUES COMPUTED ======
+tests/misc/invalid_lval_arg.i:15:[kernel] warning: Neither code nor specification for function f, generating default assigns from the prototype
+[value] Values at end of function main:
+  NON TERMINATING FUNCTION
+[from] Computing for function main
+[from] Computing for function f <-main
+[from] Done for function f
+[from] Computing for function g <-main
+[from] Non-terminating function g (no dependencies)
+[from] Done for function g
+[from] Non-terminating function main (no dependencies)
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  NON TERMINATING - NO EFFECTS
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          p
+[inout] Inputs for function main:
+          p

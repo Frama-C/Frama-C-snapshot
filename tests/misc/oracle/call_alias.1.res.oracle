@@ -1,0 +1,49 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/call_alias.i (no preprocessing)
+[value] Analyzing a complete application starting at main1
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  X ∈ {0}
+  c ∈ {0}
+  u ∈ {0}
+  v ∈ {0}
+  w ∈ {0}
+  G ∈ {0}
+  H ∈ {0}
+  I ∈ {0}
+[value] computing for function incr <- main1.
+        Called from tests/misc/call_alias.i:28.
+[value] Recording results for incr
+[value] Done for function incr
+[value] Recording results for main1
+[value] done for function main1
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function incr:
+  G ∈ {2}
+  __retres ∈ {4}
+[value] Values at end of function main1:
+  G ∈ {2}
+  I ∈ {4}
+[from] Computing for function incr
+[from] Done for function incr
+[from] Computing for function main1
+[from] Done for function main1
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function incr:
+  G FROM G; a; b
+  \result FROM G; a; b
+[from] Function main1:
+  G FROM G
+  I FROM G
+  \result FROM G
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function incr:
+          G; __retres
+[inout] Inputs for function incr:
+          G
+[inout] Out (internal) for function main1:
+          G; I
+[inout] Inputs for function main1:
+          G; I

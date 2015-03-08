@@ -1,0 +1,28 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/array_degenerating_loop.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  t[0..1] ∈ {1}
+   [2..99] ∈ {0}
+tests/misc/array_degenerating_loop.i:8:[value] entering loop for the first time
+tests/misc/array_degenerating_loop.i:9:[kernel] warning: accessing out of bounds index [0..100]. assert i < 100;
+tests/misc/array_degenerating_loop.i:9:[kernel] warning: signed overflow. assert G+t[i] ≤ 2147483647;
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  G ∈ [55..2147483647]
+  i ∈ [0..100]
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  NO EFFECTS
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          G; i
+[inout] Inputs for function main:
+          t[0..99]

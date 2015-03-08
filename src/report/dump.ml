@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -54,6 +54,7 @@ object(self)
   val mutable st_dead     = 0 ; (* under invalid hyp *)
   val mutable st_maybe_unreachable  = 0 ; (* possible unreachable *)
   val mutable st_unreachable  = 0 ; (* confirmed unreachable *)
+  val mutable st_reachable  = 0 ; (* confirmed reachable *)
   val mutable st_inconsistent = 0 ; (* unsound *)
   val mutable kf : Description.kf = `Always
 
@@ -70,13 +71,15 @@ object(self)
   method category ip st =
     match ip, st with
       (* Special display for unreachable *)
-      | Property.IPReachable _, Invalid_under_hyp _ ->
-          st_maybe_unreachable <- succ st_maybe_unreachable;
-          "Possibly unreachable"
       | Property.IPReachable _, Invalid _ ->
           st_unreachable <- succ st_unreachable; "Unreachable"
+      | Property.IPReachable _, (Valid _ | Considered_valid) ->
+          st_reachable <- succ st_reachable; "Reachable"
+      | Property.IPReachable _, _ ->
+          st_maybe_unreachable <- succ st_maybe_unreachable;
+          "-r-"
 
-      (* All other cases, including some unreachable *)
+      (* All other cases *)
       | _, (Never_tried | Unknown _) -> st_unknown <- succ st_unknown ; "-"
       | _, Considered_valid -> st_extern <- succ st_extern ; "Extern"
       | _, Valid _ -> st_complete <- succ st_complete ; "Valid"
@@ -177,6 +180,8 @@ object(self)
       Format.fprintf out "  %4d Dead properties@\n" st_dead ;
     if st_dead = 1     then
       Format.fprintf out "     1 Dead property@\n" ;
+    if st_reachable > 0     then
+      Format.fprintf out "  %4d Reachable@\n" st_reachable ;
     if st_maybe_unreachable > 0     then
       Format.fprintf out "  %4d Unconfirmed unreachable@\n"
         st_maybe_unreachable ;
@@ -188,7 +193,8 @@ object(self)
     then Format.fprintf out "     1 Inconsistency@\n" ;
     let total =
       st_complete + st_partial + st_extern + st_unknown + st_alarm + st_bug 
-      + st_dead + st_inconsistent
+      + st_dead + st_reachable + st_unreachable + st_maybe_unreachable
+      + st_inconsistent
     in
     Format.fprintf out " %5d Total@\n%s@." total bar ;
 

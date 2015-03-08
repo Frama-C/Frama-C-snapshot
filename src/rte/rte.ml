@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -50,19 +50,7 @@ end
 (* Tries to evaluate expr as a constant value (Int64.t).
    Uses Cil constant folding (e.g. for (-0x7ffffff -1) => Some (-2147483648)) on
    32 bits *)
-let get_expr_val expr =
-  let cexpr = Cil.constFold true expr in
-  match cexpr.enode with
-  | Const c ->
-    let rec get_constant_expr_val e =
-      match e with
-      | CChr c -> get_constant_expr_val (Cil.charConstToInt c)
-      | CInt64 (d64,_,_) -> Some d64
-      | _ -> None
-    in 
-    get_constant_expr_val c
-  | _ -> 
-    None
+let get_expr_val expr = Cil.constFoldToInt expr
 
 (* Creates [0 <= e] and [e < size] assertions *)
 let valid_index ~remove_trivial kf kinstr e size =
@@ -535,10 +523,14 @@ let float_to_int_assertion ~remove_trivial ~warning kf kinstr (ty, exp) =
 	          local_printer#code_annotation a;
               true)
             else false
-          with Floating_point.Float_Non_representable_as_Int64 ->
-            (* One of the alarms is False, but which one? ... *)
-            full_alarms (); 
-	    true
+          with Floating_point.Float_Non_representable_as_Int64 sign ->
+            match sign with
+            | Floating_point.Neg ->
+              ignore (alarms Alarms.Lower_bound);
+              true
+            | Floating_point.Pos ->
+              ignore (alarms Alarms.Upper_bound);
+              true
         end
       | _ -> 
 	full_alarms (); 

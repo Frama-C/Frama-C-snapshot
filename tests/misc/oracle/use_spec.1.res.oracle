@@ -1,0 +1,77 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/use_spec.i (no preprocessing)
+[value] user error: no assigns specified for function 'f', for which a builtin
+                    or the specification will be used. Potential unsoundness.
+[value] warning: Generating potentially incorrect assigns for function 'f' for which option -val-use-spec is set
+tests/misc/use_spec.i:7:[kernel] warning: Neither code nor specification for function f, generating default assigns from the prototype
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  w ∈ {0}
+  x ∈ {0}
+  y ∈ {0}
+  z ∈ {0}
+[value] computing for function f <- main.
+        Called from tests/misc/use_spec.i:22.
+[value] using specification for function f
+[value] Done for function f
+tests/misc/use_spec.i:23:[kernel] warning: Neither code nor specification for function g, generating default assigns from the prototype
+[value] computing for function g <- main.
+        Called from tests/misc/use_spec.i:23.
+[value] using specification for function g
+[value] Done for function g
+[value] computing for function h <- main.
+        Called from tests/misc/use_spec.i:24.
+[value] using specification for function h
+[value] Done for function h
+[value] computing for function i <- main.
+        Called from tests/misc/use_spec.i:25.
+[value] using specification for function i
+[value] Done for function i
+[value] Recording results for main
+[from] Computing for function main
+[from] Done for function main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  w ∈ [--..--]
+  x ∈ [--..--]
+  y ∈ [--..--]
+  z ∈ [--..--]
+[from] ====== DISPLAYING CALLWISE DEPENDENCIES ======
+[from] call to f at tests/misc/use_spec.i:22 (by main):
+  x FROM direct: x (and SELF)
+[from] call to g at tests/misc/use_spec.i:23 (by main):
+  y FROM direct: y (and SELF)
+[from] call to h at tests/misc/use_spec.i:24 (by main):
+  z FROM \nothing
+[from] call to i at tests/misc/use_spec.i:25 (by main):
+  w FROM \nothing
+[from] entry point:
+  w FROM \nothing
+  x FROM direct: x (and SELF)
+  y FROM direct: y (and SELF)
+  z FROM \nothing
+[from] ====== END OF CALLWISE DEPENDENCIES ======
+[inout] InOut (internal) for function f:
+        Operational inputs:
+          x
+        Operational inputs on termination:
+          x
+        Sure outputs:
+          \nothing
+[inout] InOut (internal) for function h:
+        Operational inputs:
+          \nothing
+        Operational inputs on termination:
+          \nothing
+        Sure outputs:
+          z
+[inout] InOut (internal) for function main:
+        Operational inputs:
+          x; y
+        Operational inputs on termination:
+          x; y
+        Sure outputs:
+          w; z

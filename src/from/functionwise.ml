@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,7 +20,6 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open Cil_types
 open Locations
 
 
@@ -37,8 +36,9 @@ let () = From_parameters.ForceDeps.set_output_dependencies [Tbl.self]
 (* Forward reference to a function computing the from for a given function *)
 let force_compute = ref (fun _ -> assert false)
 
-module Functionwise_From_to_use =
-struct
+module To_Use = struct
+  let get_value_state = Db.Value.get_stmt_state
+
   let memo kf =
     Tbl.memo
       (fun kf ->
@@ -46,14 +46,13 @@ struct
          try Tbl.find kf
          with Not_found -> invalid_arg "could not compute dependencies")
       kf
-  let get kf _ = memo kf
-end
 
-module Recording_To_Do =
-struct
-  let accept_base_in_lmap kf = (* Eta-expansion required *)
+  let get_from_call kf _ = memo kf
+
+  let keep_base kf = (* Eta-expansion required *)
     !Db.Semantic_Callgraph.accept_base ~with_formals:false ~with_locals:false kf
-  let final_cleanup kf froms =
+
+  let cleanup kf froms =
     if Function_Froms.Memory.is_bottom froms.Function_Froms.deps_table
     then froms
     else
@@ -64,7 +63,7 @@ struct
       else Zone.bottom
     in
     let joiner = Zone.join in
-    let projection base = Base.valid_range (Base.validity base) in
+    let projection _ = Int_Intervals.top in
     let zone_substitution =
       Zone.cached_fold ~cache_name:"from cleanup" ~temporary:true
         ~f ~joiner ~empty:Zone.bottom ~projection
@@ -74,29 +73,20 @@ struct
         zone_substitution x
       with Zone.Error_Top -> Zone.top
     in
-    let subst = Function_Froms.Deps.subst zone_substitution in
+    let map_zone = Function_Froms.Deps.map zone_substitution in
+    let subst = Function_Froms.DepsOrUnassigned.subst map_zone  in
     let open Function_Froms in
-    { deps_table =
-        Memory.map_and_merge subst froms.deps_table Memory.empty;
-      deps_return =
-        Memory.LOffset.map (function b, d -> b, subst d) froms.deps_return;
+    { deps_table = Memory.map subst froms.deps_table;
+      deps_return = Deps.map zone_substitution froms.deps_return;
     }
-  let record_kf kf last_from = Tbl.add kf last_from
+
+  let cleanup_and_save kf froms =
+    let froms = cleanup kf froms in
+    Tbl.add kf froms;
+    froms
 end
 
-module Value_local = struct
-  let get_stmt_state = Db.Value.get_stmt_state
-  let access_expr s exp = !Db.Value.access_expr (Kstmt s) exp
-  let expr_to_kernel_function s ~deps exp =
-    !Db.Value.expr_to_kernel_function
-      (Kstmt s) ~with_alarms:CilE.warn_none_mode ~deps exp
-  let lval_to_zone_with_deps s ~deps ~for_writing lval =
-    !Db.Value.lval_to_zone_with_deps_state
-      (get_stmt_state s) ~for_writing ~deps lval
-end
-
-module From =
-  From_compute.Make(Value_local)(Functionwise_From_to_use)(Recording_To_Do)
+module From = From_compute.Make(To_Use)
 
 let () =
   force_compute := From.compute
@@ -114,11 +104,11 @@ let () =
   Db.From.self := Tbl.self;
   Db.From.is_computed := Tbl.mem;
   Db.From.compute :=
-    (fun kf -> ignore (Functionwise_From_to_use.memo kf));
-  Db.From.get := Functionwise_From_to_use.memo;
+    (fun kf -> ignore (To_Use.memo kf));
+  Db.From.get := To_Use.memo;
   Db.From.pretty :=
     (fun fmt v ->
-      let deps = Functionwise_From_to_use.memo v in
+      let deps = To_Use.memo v in
       Function_Froms.pretty_with_type (Kernel_function.get_type v) fmt deps);
   Db.From.find_deps_no_transitivity :=
     (fun stmt lv ->

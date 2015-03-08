@@ -1,0 +1,51 @@
+# frama-c -wp -wp-model 'Typed (Ref)' [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_typed/unit_tset.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] Collecting variable usage
+------------------------------------------------------------
+  Function complex
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_typed/unit_tset.i, line 6) in 'job'' in 'complex' at call 'job' (file tests/wp_typed/unit_tset.i, line 20)
+:
+Let x_0 = Mint_6[(shiftfield_F_S_size (shift_S (global P_s_79) 0))].
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_0).
+  (* Heap *)
+  Have: (linked Malloc_5).
+  (* Pre-condition (file tests/wp_typed/unit_tset.i, line 16) in 'complex' *)
+  (* Pre-condition: *)
+  Have: x_0<=49.
+}
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function complex with behavior default_for_stmt_2
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_typed/unit_tset.i, line 19) at call 'job' (file tests/wp_typed/unit_tset.i, line 20):
+Call Effect at line 20
+Let a_0 = (shift_S (global P_s_79) 0).
+Let x_0 = Mint_0[(shiftfield_F_S_size a_0)].
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_0).
+  (* Goal *)
+  When: (0<x_0) -> (x_0<=49).
+  (* Heap *)
+  Have: (linked Malloc_5).
+  (* Pre-condition (file tests/wp_typed/unit_tset.i, line 16) in 'complex' *)
+  (* Pre-condition: *)
+  Have: x_0<=49.
+  (* tests/wp_typed/unit_tset.i:20: Call Effects *)
+  Have: (havoc Mint_0 Mint_5 (shift_sint32 (shiftfield_F_S_value a_0) 1) x_0).
+}
+Prove: true.
+
+------------------------------------------------------------

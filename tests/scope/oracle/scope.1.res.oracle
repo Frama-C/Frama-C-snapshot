@@ -1,0 +1,16 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/scope/scope.c (with preprocessing)
+[value] Analyzing a complete application starting at f2
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  Frama_C_entropy_source ∈ [--..--]
+  S1 ∈ {0}
+  S2 ∈ {0}
+  T[0..99] ∈ {0}
+[value] Recording results for f2
+[value] done for function f2
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function f2:
+  x ∈ {1; 2}
+  y ∈ {3; 4}

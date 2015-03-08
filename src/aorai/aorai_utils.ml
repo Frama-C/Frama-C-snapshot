@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Aorai plug-in of Frama-C.                        *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -652,7 +652,7 @@ object(self)
           let f = Extlib.the self#current_func in
           let name = Data_for_aorai.loopInit ^ "_" ^ (string_of_int stmt.sid) in
           let var =
-            Cil.makeLocalVar f ~scope ~generated:true name Cil.intType
+            Cil.makeLocalVar f ~scope name Cil.intType
           in
           Data_for_aorai.set_varinfo name var
         | _ -> ()

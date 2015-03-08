@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -82,12 +82,17 @@ module type S = sig
   val return : t_env -> stmt -> exp option -> t_prop -> t_prop
   val test : t_env -> stmt -> exp -> t_prop -> t_prop -> t_prop
   val switch : t_env -> stmt -> exp -> (exp list * t_prop) list -> t_prop -> t_prop
+
+  val has_init : t_env -> bool
   val init_value : t_env -> lval -> typ -> exp option -> t_prop -> t_prop
-    (** init_value env lv t v_opt wp:
-        put value of type t (or default if None) in lv *)
+  (** init_value env lv t v_opt wp:
+      put value of type t (or default if None) in lv *)
   val init_range : t_env -> lval -> typ -> int64 -> int64 -> t_prop -> t_prop
-    (** init_range env lv t_elt a b wp :
-        put default values of type t_elt in lv[k] with a <= k < b *)
+  (** init_range env lv t_elt a b wp :
+      put default values of type t_elt in lv[k] with a <= k < b *)
+
+  val init_const : t_env -> varinfo -> t_prop -> t_prop
+    (** the (entire) variable has its initial value *)
 
   val loop_entry : t_prop -> t_prop
   val loop_step : t_prop -> t_prop

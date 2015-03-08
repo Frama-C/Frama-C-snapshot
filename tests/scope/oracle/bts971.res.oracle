@@ -1,0 +1,68 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/scope/bts971.c (with preprocessing)
+=== Tests for Scope.Defs
+--- Intraprocedural mode (-scope-no-defs-interproc)
+tests/scope/bts971.c:10:[kernel] warning: signed overflow. assert v+1 ≤ 2147483647;
+tests/scope/bts971.c:18:[kernel] warning: signed overflow. assert v+2 ≤ 2147483647;
+tests/scope/bts971.c:19:[kernel] warning: signed overflow. assert v+3 ≤ 2147483647;
+Current program point = first one in function 'f1'
+* Defs for (v) at current program point=
+no Defs found
+
+Current program point = first one in function 'g1'
+* Defs for (v) at current program point=
+no Defs found
+
+Current program point = 2d one in function 'g1'
+* Defs for (v) at current program point=
+tests/scope/bts971.c:18: v += 2;
+
+Current program point = first one in function 'f'
+* Defs for (v) at current program point=
+no Defs found
+
+--- Interprocedural mode (-scope-defs-interproc)
+Current program point = first one in function 'f1'
+* Defs for (v) at current program point=
+tests/scope/bts971.c:10: v ++;
+tests/scope/bts971.c:14: f1();
+tests/scope/bts971.c:19: v += 3;
+tests/scope/bts971.c:23: g1();
+tests/scope/bts971.c:27: v += 0;
+tests/scope/bts971.c:29: f();
+tests/scope/bts971.c:30: g();
+
+Current program point = first one in function 'g1'
+* Defs for (v) at current program point=
+tests/scope/bts971.c:10: v ++;
+tests/scope/bts971.c:14: f1();
+tests/scope/bts971.c:19: v += 3;
+tests/scope/bts971.c:23: g1();
+tests/scope/bts971.c:27: v += 0;
+tests/scope/bts971.c:29: f();
+tests/scope/bts971.c:30: g();
+
+Current program point = 2d one in function 'g1'
+* Defs for (v) at current program point=
+tests/scope/bts971.c:18: v += 2;
+
+Current program point = first one in function 'f'
+* Defs for (v) at current program point=
+tests/scope/bts971.c:10: v ++;
+tests/scope/bts971.c:14: f1();
+tests/scope/bts971.c:19: v += 3;
+tests/scope/bts971.c:23: g1();
+tests/scope/bts971.c:27: v += 0;
+tests/scope/bts971.c:29: f();
+tests/scope/bts971.c:30: g();
+
+=== Tests for Scope.Defs
+--- Intraprocedural mode (-scope-no-defs-interproc)
+* Defs for (t[1].a) at current program point=
+tests/scope/bts971.c:48: init();
+
+--- Interprocedural mode (-scope-defs-interproc)
+* Defs for (t[1].a) at current program point=
+tests/scope/bts971.c:43: t[1].a = 1;
+tests/scope/bts971.c:48: init();
+

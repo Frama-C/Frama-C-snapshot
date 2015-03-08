@@ -1,0 +1,46 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/journal/control2.c (with preprocessing)
+[value] Analyzing a complete application starting at f
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  x ∈ {0}
+  y ∈ {0}
+  c ∈ {0}
+  d ∈ {0}
+tests/journal/control2.c:12:[value] entering loop for the first time
+tests/journal/control2.c:15:[kernel] warning: signed overflow. assert x+1 ≤ 2147483647;
+[value] Recording results for f
+[value] done for function f
+[from] Computing for function f
+[from] Done for function f
+[kernel] warning: ignoring source files specified on the command line while loading a global initial context.
+[value] Analyzing an incomplete application starting at f
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  x ∈ [--..--]
+  y ∈ [--..--]
+  c ∈ [--..--]
+  d ∈ [--..--]
+tests/journal/control2.c:13:[kernel] warning: signed overflow. assert y+1 ≤ 2147483647;
+tests/journal/control2.c:13:[kernel] warning: signed overflow. assert x+1 ≤ 2147483647;
+tests/journal/control2.c:15:[kernel] warning: signed overflow. assert x+1 ≤ 2147483647;
+[value] Recording results for f
+[value] done for function f
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function f:
+  x ∈ [--..--]
+  y ∈ [--..--]
+  i ∈ {4}
+[from] Computing for function f
+[from] Done for function f
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function f:
+  x FROM x; c; d (and SELF)
+  y FROM y; c; d (and SELF)
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function f:
+          x; y; i
+[kernel] writing journal in file `tests/journal/result/control_journal_next2.ml'.

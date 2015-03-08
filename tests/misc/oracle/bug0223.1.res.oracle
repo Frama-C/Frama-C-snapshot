@@ -1,0 +1,65 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/bug0223.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  ch1 ∈ {{ NULL ; &S_ch1[0] }}
+  ch2 ∈ {{ NULL ; &S_ch2[0] }}
+  S_ch1[0..1] ∈ [--..--]
+  S_ch2[0..1] ∈ [--..--]
+[value] computing for function F <- main.
+        Called from tests/misc/bug0223.i:33.
+tests/misc/bug0223.i:33:[kernel] warning: Neither code nor specification for function F, generating default assigns from the prototype
+[value] using specification for function F
+[value] Done for function F
+[value] computing for function F <- main.
+        Called from tests/misc/bug0223.i:34.
+[value] Done for function F
+[value] computing for function h2 <- main.
+        Called from tests/misc/bug0223.i:35.
+[value] computing for function my_strcnmp <- h2 <- main.
+        Called from tests/misc/bug0223.i:16.
+tests/misc/bug0223.i:16:[kernel] warning: Neither code nor specification for function my_strcnmp, generating default assigns from the prototype
+[value] using specification for function my_strcnmp
+[value] Done for function my_strcnmp
+[value] Recording results for h2
+[value] Done for function h2
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function h2:
+  test ∈ {0; 1}
+[value] Values at end of function main:
+  i ∈ {0}
+  j ∈ {0; 1}
+  k ∈ {0}
+  l ∈ {0; 1}
+  p ∈ {{ &j }}
+[from] Computing for function h2
+[from] Computing for function my_strcnmp <-h2
+[from] Done for function my_strcnmp
+[from] Done for function h2
+[from] Computing for function main
+[from] Computing for function F <-main
+[from] Done for function F
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function F:
+  \result FROM \nothing
+[from] Function my_strcnmp:
+  \result FROM n
+[from] Function h2:
+  NO EFFECTS
+[from] Function main:
+  NO EFFECTS
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function h2:
+          test; tmp
+[inout] Inputs for function h2:
+          ch1; ch2
+[inout] Out (internal) for function main:
+          i; j; k; l; p; tmp; tmp_0
+[inout] Inputs for function main:
+          ch1; ch2

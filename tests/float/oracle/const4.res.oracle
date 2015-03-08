@@ -1,0 +1,26 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/float/const4.i (no preprocessing)
+tests/float/const4.i:6:[kernel] warning: Floating-point constant 3.4e38f is not represented exactly. Will use 0x1.ff933c0000000p127
+tests/float/const4.i:7:[kernel] warning: Floating-point constant 3.405e38f is not represented exactly. Will use inf
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+tests/float/const4.i:7:[kernel] warning: non-finite float value (INFINITY): assert \is_finite(3.405e38f);
+tests/float/const4.i:7:[value] Floating-point literal (or constant expression) is not finite. This path is assumed to be dead.
+tests/float/const4.i:7:[value] Evaluation of initializer '(double)3.405e38f' failed
+[value] Initial state computed
+[value] Values of globals at initialization
+  NOT ACCESSIBLE
+[value] Value analysis not started because globals initialization is not computable.
+[value] ====== VALUES COMPUTED ======
+[from] Computing for function main
+[from] Non-terminating function main (no dependencies)
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  NON TERMINATING - NO EFFECTS
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          \nothing
+[inout] Inputs for function main:
+          \nothing

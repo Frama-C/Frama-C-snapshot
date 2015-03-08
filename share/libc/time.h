@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2014                                               */
+/*  Copyright (C) 2007-2015                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -61,9 +61,13 @@ struct itimerspec {
 
 
 #define CLOCK_REALTIME 666
+#define CLOCK_MONOTONIC 1
 #define TIMER_ABSTIME 0
 
-/*@ assigns \nothing ; */
+unsigned int __fc_time_model __attribute__((FRAMA_C_MODEL));
+
+/*@ assigns __fc_time_model \from __fc_time_model;
+  assigns \result \from __fc_time_model; */
 clock_t clock(void);
 
 /*@ assigns \result \from time1, time0; */
@@ -72,7 +76,8 @@ double difftime(time_t time1, time_t time0);
 /*@ assigns *timeptr, \result \from *timeptr; */
 time_t mktime(struct tm *timeptr);
 
-/*@ assigns *timer, \result \from \nothing; */
+/*@ assigns __fc_time_model \from __fc_time_model;
+  assigns *timer, \result \from __fc_time_model; */
 time_t time(time_t *timer);
 
 char *asctime(const struct tm *timeptr);

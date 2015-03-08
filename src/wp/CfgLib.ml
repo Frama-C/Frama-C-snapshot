@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -36,7 +36,7 @@ struct
 
   type node = int
   type transition = node T.transition
-      
+
   type cfg = cell Vector.t
   and cell = {
     mutable pred : node list ;
@@ -53,15 +53,15 @@ struct
 
   let set_pred cfg n t =
     T.iter (fun p ->
-      let cell = Vector.get cfg p in
-      cell.pred <- n :: cell.pred
-    ) t
+        let cell = Vector.get cfg p in
+        cell.pred <- n :: cell.pred
+      ) t
 
   let del_pred cfg n t =
     T.iter (fun p ->
-      let cell = Vector.get cfg p in
-      cell.pred <- remove n cell.pred
-    ) t
+        let cell = Vector.get cfg p in
+        cell.pred <- remove n cell.pred
+      ) t
 
   let node cfg = Vector.addi cfg { next=T.empty ; pred=[] }
 
@@ -104,7 +104,7 @@ struct
     Format.kfprintf
       (fun fmt -> Format.fprintf fmt "] ;@.")
       fmt msg
-      
+
   let dot cfg label file =
     let name , format =
       let base = Filename.chop_extension file in
@@ -114,32 +114,32 @@ struct
     in
     let fdot,out = 
       if format = "dot" then
-	(file , open_out file)
+        (file , open_out file)
       else
-	Filename.open_temp_file "cfg" ".dot" in
+        Filename.open_temp_file "cfg" ".dot" in
     let fmt = Format.formatter_of_out_channel out in
     let s =
       try
-	Format.fprintf fmt "digraph %S {@\n" name ;
-	Format.fprintf fmt "  rankdir = TB ;@\n" ;
-	Format.fprintf fmt "  node [ style = filled, shape = box ] ;@\n" ;
-	iter (fun n t -> label fmt n t) cfg ;
-	Format.fprintf fmt "}@." ;
-	close_out out ;
-	if format = "dot" then 0 else
-	  let cmd = Printf.sprintf "dot -T%s %s > %s" format fdot file
-	  in Sys.command cmd
+        Format.fprintf fmt "digraph %S {@\n" name ;
+        Format.fprintf fmt "  rankdir = TB ;@\n" ;
+        Format.fprintf fmt "  node [ style = filled, shape = box ] ;@\n" ;
+        iter (fun n t -> label fmt n t) cfg ;
+        Format.fprintf fmt "}@." ;
+        close_out out ;
+        if format = "dot" then 0 else
+          let cmd = Printf.sprintf "dot -T%s %s > %s" format fdot file
+          in Sys.command cmd
       with e -> 
-	Format.pp_print_flush fmt () ;
-	close_out out ; 
-	raise e
+        Format.pp_print_flush fmt () ;
+        close_out out ; 
+        raise e
     in if s <> 0 then failwith ("CfgLib.dot exit " ^ string_of_int s)
 
 end
 
 module Attr(C : Cfg) =
 struct
-  
+
   type 'a t = 'a * 'a Vector.t
   let create cfg default = 
     let m = Vector.create () in

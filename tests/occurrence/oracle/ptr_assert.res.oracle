@@ -1,0 +1,34 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/occurrence/ptr_assert.i (no preprocessing)
+[occurrence] beginning analysis
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  x ∈ {0}
+  y ∈ {0}
+tests/occurrence/ptr_assert.i:11:[value] Assertion got status valid.
+tests/occurrence/ptr_assert.i:16:[value] Assertion got status valid.
+[value] Recording results for main
+[value] done for function main
+[occurrence] analysis done
+[occurrence] variable dest (parameter of Frama_C_bzero):
+               specification of Frama_C_bzero: dest
+             variable n (parameter of Frama_C_bzero):
+               specification of Frama_C_bzero: n
+             variable dest (parameter of Frama_C_copy_block):
+               specification of Frama_C_copy_block: dest
+             variable size (parameter of Frama_C_copy_block):
+               specification of Frama_C_copy_block: size
+             variable n (parameter of Frama_C_copy_block):
+               specification of Frama_C_copy_block: n
+             variable x (global):
+               sid 2: x
+             variable y (global):
+               sid 5: y
+             variable z (parameter of main):
+               sid 12: z
+             variable p (local of main):
+               sid 2: p
+             variable q (local of main):
+               sid 5: q

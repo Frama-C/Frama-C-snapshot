@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -34,10 +34,7 @@ let find_var kf x =
       try
         Globals.Vars.find_from_astinfo x (VFormal kf)
       with Not_found ->
-        try
-          Globals.Vars.find_from_astinfo x VGlobal
-        with Not_found ->
-          raise (Unbound ("Unbound variable " ^ x))
+        Globals.Vars.find_from_astinfo x VGlobal
   in
   cvar_to_lvar vi
 
@@ -60,19 +57,24 @@ end) =
 
          let find_macro _ = raise Not_found
 
-         let find_var x =
-           try find_var X.kf x
-           with Unbound s -> raise (Error (Stmt.loc X.stmt, s))
+         let find_var x = find_var X.kf x
 
-         let find_enum_tag _ = assert false (*TODO*)
-
-         let find_comp_type ~kind:_ _s = assert false (*TODO*)
+         let find_enum_tag x =
+           try
+             Globals.Types.find_enum_tag x
+           with Not_found ->
+             (* The ACSL typer tries to parse a string, first as a variable,
+                then as an enum. We report the "Unbound variable" message
+                here, as it is nicer for the user. However, this short-circuits
+                the later stages of resolution, for example global logic
+                variables. *)
+             raise (Unbound ("Unbound variable " ^ x))
 
          let find_comp_field info s =
            let field = Cil.getCompField info s in
            Field(field,NoOffset)
 
-         let find_type _s = assert false (*TODO*)
+         let find_type = Globals.Types.find_type
 
          let find_label s = Kernel_function.find_label X.kf s
          include Logic_env
@@ -250,8 +252,9 @@ and loc_to_exp ~result {term_node = lnode ; term_type = ltype; term_loc = loc} =
           Logic_utils.is_same_type
           (Logic_typing.type_of_set_elem set) t.term_type ->
     loc_to_exp ~result t
+  | Tnull -> [ Cil.mkCast (Cil.zero ~loc) (TPtr(TVoid [], [])) ]
 
- (* additional constructs *)
+  (* additional constructs *)
   | Tapp _ | Tlambda _ | Trange _   | Tlet _
   | TDataCons _
   | Tif _
@@ -259,7 +262,6 @@ and loc_to_exp ~result {term_node = lnode ; term_type = ltype; term_loc = loc} =
   | Tbase_addr _
   | Toffset _
   | Tblock_length _
-  | Tnull
   | TCoerce _ | TCoerceE _ | TUpdate _ | Ttypeof _ | Ttype _
   | TLogic_coerce _
     -> error_lval ()
@@ -701,7 +703,9 @@ function contracts."
       | Pseparated _ (* need only to preserve the values of each pointer *)
         -> DoChildren
 
-      | Pinitialized (lbl, t) ->
+      | Pinitialized (lbl, t) | Pdangling (lbl, t) ->
+          (* Dependencies of [\initialized(p)] or [\dangling(p)] are the
+             dependencies of [*p]. *)
           if is_same_label current_label lbl then (
             let typ = Logic_typing.type_of_pointed t.term_type in
             let tlv = Cil.mkTermMem t TNoOffset in
@@ -817,8 +821,6 @@ function contracts."
 
    (** Used by annotations entry points. *)
     let get_zone_from_annot a (ki,kf) loop_body_opt =
-      assert (!pragmas = empty_pragmas);
-      (* check before modification. Anne.*)
       let get_zone_from_term k x =
         (try
            ignore

@@ -1,0 +1,11 @@
+%init: init;
+%accept: OK;
+%deterministic;
+
+init: { CALL(main) } -> main;
+
+main:
+{ [f{{x==1}}(){{ x == 1}};g(){{y==2}}] } -> OK
+| { f{{x==3}}(){{x==3}} } -> OK;
+
+OK: -> OK;

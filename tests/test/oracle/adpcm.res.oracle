@@ -1,0 +1,1834 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/test/adpcm.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  tqmf[0..23] ∈ {0}
+  h[0] ∈ {12}
+   [1..2] ∈ {-44}
+   [3] ∈ {212}
+   [4] ∈ {48}
+   [5] ∈ {-624}
+   [6] ∈ {128}
+   [7] ∈ {1448}
+   [8] ∈ {-840}
+   [9] ∈ {-3220}
+   [10] ∈ {3804}
+   [11..12] ∈ {15504}
+   [13] ∈ {3804}
+   [14] ∈ {-3220}
+   [15] ∈ {-840}
+   [16] ∈ {1448}
+   [17] ∈ {128}
+   [18] ∈ {-624}
+   [19] ∈ {48}
+   [20] ∈ {212}
+   [21..22] ∈ {-44}
+   [23] ∈ {12}
+  xl ∈ {0}
+  xh ∈ {0}
+  accumc[0..10] ∈ {0}
+  accumd[0..10] ∈ {0}
+  xout1 ∈ {0}
+  xout2 ∈ {0}
+  xs ∈ {0}
+  xd ∈ {0}
+  il ∈ {0}
+  szl ∈ {0}
+  spl ∈ {0}
+  sl ∈ {0}
+  el ∈ {0}
+  qq4_code4_table[0] ∈ {0}
+                 [1] ∈ {-20456}
+                 [2] ∈ {-12896}
+                 [3] ∈ {-8968}
+                 [4] ∈ {-6288}
+                 [5] ∈ {-4240}
+                 [6] ∈ {-2584}
+                 [7] ∈ {-1200}
+                 [8] ∈ {20456}
+                 [9] ∈ {12896}
+                 [10] ∈ {8968}
+                 [11] ∈ {6288}
+                 [12] ∈ {4240}
+                 [13] ∈ {2584}
+                 [14] ∈ {1200}
+                 [15] ∈ {0}
+  qq5_code5_table[0..1] ∈ {-280}
+                 [2] ∈ {-23352}
+                 [3] ∈ {-17560}
+                 [4] ∈ {-14120}
+                 [5] ∈ {-11664}
+                 [6] ∈ {-9752}
+                 [7] ∈ {-8184}
+                 [8] ∈ {-6864}
+                 [9] ∈ {-5712}
+                 [10] ∈ {-4696}
+                 [11] ∈ {-3784}
+                 [12] ∈ {-2960}
+                 [13] ∈ {-2208}
+                 [14] ∈ {-1520}
+                 [15] ∈ {-880}
+                 [16] ∈ {23352}
+                 [17] ∈ {17560}
+                 [18] ∈ {14120}
+                 [19] ∈ {11664}
+                 [20] ∈ {9752}
+                 [21] ∈ {8184}
+                 [22] ∈ {6864}
+                 [23] ∈ {5712}
+                 [24] ∈ {4696}
+                 [25] ∈ {3784}
+                 [26] ∈ {2960}
+                 [27] ∈ {2208}
+                 [28] ∈ {1520}
+                 [29] ∈ {880}
+                 [30] ∈ {280}
+                 [31] ∈ {-280}
+  qq6_code6_table[0..3] ∈ {-136}
+                 [4] ∈ {-24808}
+                 [5] ∈ {-21904}
+                 [6] ∈ {-19008}
+                 [7] ∈ {-16704}
+                 [8] ∈ {-14984}
+                 [9] ∈ {-13512}
+                 [10] ∈ {-12280}
+                 [11] ∈ {-11192}
+                 [12] ∈ {-10232}
+                 [13] ∈ {-9360}
+                 [14] ∈ {-8576}
+                 [15] ∈ {-7856}
+                 [16] ∈ {-7192}
+                 [17] ∈ {-6576}
+                 [18] ∈ {-6000}
+                 [19] ∈ {-5456}
+                 [20] ∈ {-4944}
+                 [21] ∈ {-4464}
+                 [22] ∈ {-4008}
+                 [23] ∈ {-3576}
+                 [24] ∈ {-3168}
+                 [25] ∈ {-2776}
+                 [26] ∈ {-2400}
+                 [27] ∈ {-2032}
+                 [28] ∈ {-1688}
+                 [29] ∈ {-1360}
+                 [30] ∈ {-1040}
+                 [31] ∈ {-728}
+                 [32] ∈ {24808}
+                 [33] ∈ {21904}
+                 [34] ∈ {19008}
+                 [35] ∈ {16704}
+                 [36] ∈ {14984}
+                 [37] ∈ {13512}
+                 [38] ∈ {12280}
+                 [39] ∈ {11192}
+                 [40] ∈ {10232}
+                 [41] ∈ {9360}
+                 [42] ∈ {8576}
+                 [43] ∈ {7856}
+                 [44] ∈ {7192}
+                 [45] ∈ {6576}
+                 [46] ∈ {6000}
+                 [47] ∈ {5456}
+                 [48] ∈ {4944}
+                 [49] ∈ {4464}
+                 [50] ∈ {4008}
+                 [51] ∈ {3576}
+                 [52] ∈ {3168}
+                 [53] ∈ {2776}
+                 [54] ∈ {2400}
+                 [55] ∈ {2032}
+                 [56] ∈ {1688}
+                 [57] ∈ {1360}
+                 [58] ∈ {1040}
+                 [59] ∈ {728}
+                 [60] ∈ {432}
+                 [61] ∈ {136}
+                 [62] ∈ {-432}
+                 [63] ∈ {-136}
+  delay_bpl[0..5] ∈ {0}
+  delay_dltx[0..5] ∈ {0}
+  wl_code_table[0] ∈ {-60}
+               [1] ∈ {3042}
+               [2] ∈ {1198}
+               [3] ∈ {538}
+               [4] ∈ {334}
+               [5] ∈ {172}
+               [6] ∈ {58}
+               [7] ∈ {-30}
+               [8] ∈ {3042}
+               [9] ∈ {1198}
+               [10] ∈ {538}
+               [11] ∈ {334}
+               [12] ∈ {172}
+               [13] ∈ {58}
+               [14] ∈ {-30}
+               [15] ∈ {-60}
+  wl_table[0] ∈ {-60}
+          [1] ∈ {-30}
+          [2] ∈ {58}
+          [3] ∈ {172}
+          [4] ∈ {334}
+          [5] ∈ {538}
+          [6] ∈ {1198}
+          [7] ∈ {3042}
+  ilb_table[0] ∈ {2048}
+           [1] ∈ {2093}
+           [2] ∈ {2139}
+           [3] ∈ {2186}
+           [4] ∈ {2233}
+           [5] ∈ {2282}
+           [6] ∈ {2332}
+           [7] ∈ {2383}
+           [8] ∈ {2435}
+           [9] ∈ {2489}
+           [10] ∈ {2543}
+           [11] ∈ {2599}
+           [12] ∈ {2656}
+           [13] ∈ {2714}
+           [14] ∈ {2774}
+           [15] ∈ {2834}
+           [16] ∈ {2896}
+           [17] ∈ {2960}
+           [18] ∈ {3025}
+           [19] ∈ {3091}
+           [20] ∈ {3158}
+           [21] ∈ {3228}
+           [22] ∈ {3298}
+           [23] ∈ {3371}
+           [24] ∈ {3444}
+           [25] ∈ {3520}
+           [26] ∈ {3597}
+           [27] ∈ {3676}
+           [28] ∈ {3756}
+           [29] ∈ {3838}
+           [30] ∈ {3922}
+           [31] ∈ {4008}
+  nbl ∈ {0}
+  al1 ∈ {0}
+  al2 ∈ {0}
+  plt ∈ {0}
+  plt1 ∈ {0}
+  plt2 ∈ {0}
+  rs ∈ {0}
+  dlt ∈ {0}
+  rlt ∈ {0}
+  rlt1 ∈ {0}
+  rlt2 ∈ {0}
+  decis_levl[0] ∈ {280}
+            [1] ∈ {576}
+            [2] ∈ {880}
+            [3] ∈ {1200}
+            [4] ∈ {1520}
+            [5] ∈ {1864}
+            [6] ∈ {2208}
+            [7] ∈ {2584}
+            [8] ∈ {2960}
+            [9] ∈ {3376}
+            [10] ∈ {3784}
+            [11] ∈ {4240}
+            [12] ∈ {4696}
+            [13] ∈ {5200}
+            [14] ∈ {5712}
+            [15] ∈ {6288}
+            [16] ∈ {6864}
+            [17] ∈ {7520}
+            [18] ∈ {8184}
+            [19] ∈ {8968}
+            [20] ∈ {9752}
+            [21] ∈ {10712}
+            [22] ∈ {11664}
+            [23] ∈ {12896}
+            [24] ∈ {14120}
+            [25] ∈ {15840}
+            [26] ∈ {17560}
+            [27] ∈ {20456}
+            [28] ∈ {23352}
+            [29] ∈ {32767}
+  detl ∈ {0}
+  quant26bt_pos[0] ∈ {61}
+               [1] ∈ {60}
+               [2] ∈ {59}
+               [3] ∈ {58}
+               [4] ∈ {57}
+               [5] ∈ {56}
+               [6] ∈ {55}
+               [7] ∈ {54}
+               [8] ∈ {53}
+               [9] ∈ {52}
+               [10] ∈ {51}
+               [11] ∈ {50}
+               [12] ∈ {49}
+               [13] ∈ {48}
+               [14] ∈ {47}
+               [15] ∈ {46}
+               [16] ∈ {45}
+               [17] ∈ {44}
+               [18] ∈ {43}
+               [19] ∈ {42}
+               [20] ∈ {41}
+               [21] ∈ {40}
+               [22] ∈ {39}
+               [23] ∈ {38}
+               [24] ∈ {37}
+               [25] ∈ {36}
+               [26] ∈ {35}
+               [27] ∈ {34}
+               [28] ∈ {33}
+               [29..30] ∈ {32}
+  quant26bt_neg[0] ∈ {63}
+               [1] ∈ {62}
+               [2] ∈ {31}
+               [3] ∈ {30}
+               [4] ∈ {29}
+               [5] ∈ {28}
+               [6] ∈ {27}
+               [7] ∈ {26}
+               [8] ∈ {25}
+               [9] ∈ {24}
+               [10] ∈ {23}
+               [11] ∈ {22}
+               [12] ∈ {21}
+               [13] ∈ {20}
+               [14] ∈ {19}
+               [15] ∈ {18}
+               [16] ∈ {17}
+               [17] ∈ {16}
+               [18] ∈ {15}
+               [19] ∈ {14}
+               [20] ∈ {13}
+               [21] ∈ {12}
+               [22] ∈ {11}
+               [23] ∈ {10}
+               [24] ∈ {9}
+               [25] ∈ {8}
+               [26] ∈ {7}
+               [27] ∈ {6}
+               [28] ∈ {5}
+               [29..30] ∈ {4}
+  deth ∈ {0}
+  sh ∈ {0}
+  eh ∈ {0}
+  qq2_code2_table[0] ∈ {-7408}
+                 [1] ∈ {-1616}
+                 [2] ∈ {7408}
+                 [3] ∈ {1616}
+  wh_code_table[0] ∈ {798}
+               [1] ∈ {-214}
+               [2] ∈ {798}
+               [3] ∈ {-214}
+  dh ∈ {0}
+  ih ∈ {0}
+  nbh ∈ {0}
+  szh ∈ {0}
+  sph ∈ {0}
+  ph ∈ {0}
+  yh ∈ {0}
+  rh ∈ {0}
+  delay_dhx[0..5] ∈ {0}
+  delay_bph[0..5] ∈ {0}
+  ah1 ∈ {0}
+  ah2 ∈ {0}
+  ph1 ∈ {0}
+  ph2 ∈ {0}
+  rh1 ∈ {0}
+  rh2 ∈ {0}
+  ilr ∈ {0}
+  yl ∈ {0}
+  rl ∈ {0}
+  dec_deth ∈ {0}
+  dec_detl ∈ {0}
+  dec_dlt ∈ {0}
+  dec_del_bpl[0..5] ∈ {0}
+  dec_del_dltx[0..5] ∈ {0}
+  dec_plt ∈ {0}
+  dec_plt1 ∈ {0}
+  dec_plt2 ∈ {0}
+  dec_szl ∈ {0}
+  dec_spl ∈ {0}
+  dec_sl ∈ {0}
+  dec_rlt1 ∈ {0}
+  dec_rlt2 ∈ {0}
+  dec_rlt ∈ {0}
+  dec_al1 ∈ {0}
+  dec_al2 ∈ {0}
+  dl ∈ {0}
+  dec_nbl ∈ {0}
+  dec_yh ∈ {0}
+  dec_dh ∈ {0}
+  dec_nbh ∈ {0}
+  dec_del_bph[0..5] ∈ {0}
+  dec_del_dhx[0..5] ∈ {0}
+  dec_szh ∈ {0}
+  dec_rh1 ∈ {0}
+  dec_rh2 ∈ {0}
+  dec_ah1 ∈ {0}
+  dec_ah2 ∈ {0}
+  dec_ph ∈ {0}
+  dec_sph ∈ {0}
+  dec_sh ∈ {0}
+  dec_rh ∈ {0}
+  dec_ph1 ∈ {0}
+  dec_ph2 ∈ {0}
+  test_data[0] ∈ {1}
+           [1] ∈ {0}
+           [2] ∈ {1}
+           [3] ∈ {0}
+           [4..9] ∈ {1}
+  compressed[0..9] ∈ {0}
+[value] computing for function encode <- main.
+        Called from tests/test/adpcm.c:608.
+[value] computing for function filtez <- encode <- main.
+        Called from tests/test/adpcm.c:301.
+[value] Recording results for filtez
+[value] Done for function filtez
+[value] computing for function filtep <- encode <- main.
+        Called from tests/test/adpcm.c:304.
+[value] Recording results for filtep
+[value] Done for function filtep
+[value] computing for function quantl <- encode <- main.
+        Called from tests/test/adpcm.c:311.
+[value] computing for function abs <- quantl <- encode <- main.
+        Called from tests/test/adpcm.c:444.
+[value] Recording results for abs
+[value] Done for function abs
+[value] Recording results for quantl
+[value] Done for function quantl
+[value] computing for function logscl <- encode <- main.
+        Called from tests/test/adpcm.c:318.
+[value] Recording results for logscl
+[value] Done for function logscl
+[value] computing for function scalel <- encode <- main.
+        Called from tests/test/adpcm.c:322.
+[value] Recording results for scalel
+[value] Done for function scalel
+[value] computing for function upzero <- encode <- main.
+        Called from tests/test/adpcm.c:331.
+[value] Recording results for upzero
+[value] Done for function upzero
+[value] computing for function uppol2 <- encode <- main.
+        Called from tests/test/adpcm.c:335.
+[value] Recording results for uppol2
+[value] Done for function uppol2
+[value] computing for function uppol1 <- encode <- main.
+        Called from tests/test/adpcm.c:339.
+[value] Recording results for uppol1
+[value] Done for function uppol1
+[value] computing for function filtez <- encode <- main.
+        Called from tests/test/adpcm.c:352.
+[value] Recording results for filtez
+[value] Done for function filtez
+[value] computing for function filtep <- encode <- main.
+        Called from tests/test/adpcm.c:354.
+[value] Recording results for filtep
+[value] Done for function filtep
+[value] computing for function abs <- encode <- main.
+        Called from tests/test/adpcm.c:370.
+[value] Recording results for abs
+[value] Done for function abs
+[value] computing for function logsch <- encode <- main.
+        Called from tests/test/adpcm.c:376.
+[value] Recording results for logsch
+[value] Done for function logsch
+[value] computing for function scalel <- encode <- main.
+        Called from tests/test/adpcm.c:379.
+[value] Recording results for scalel
+[value] Done for function scalel
+[value] computing for function upzero <- encode <- main.
+        Called from tests/test/adpcm.c:387.
+[value] Recording results for upzero
+[value] Done for function upzero
+[value] computing for function uppol2 <- encode <- main.
+        Called from tests/test/adpcm.c:391.
+[value] Recording results for uppol2
+[value] Done for function uppol2
+[value] computing for function uppol1 <- encode <- main.
+        Called from tests/test/adpcm.c:394.
+[value] Recording results for uppol1
+[value] Done for function uppol1
+tests/test/adpcm.c:262:[value] Function encode: postcondition got status valid.
+[value] Recording results for encode
+[value] Done for function encode
+[value] computing for function encode <- main.
+        Called from tests/test/adpcm.c:608.
+[value] computing for function filtez <- encode <- main.
+        Called from tests/test/adpcm.c:301.
+[value] Recording results for filtez
+[value] Done for function filtez
+[value] computing for function filtep <- encode <- main.
+        Called from tests/test/adpcm.c:304.
+[value] Recording results for filtep
+[value] Done for function filtep
+[value] computing for function quantl <- encode <- main.
+        Called from tests/test/adpcm.c:311.
+[value] computing for function abs <- quantl <- encode <- main.
+        Called from tests/test/adpcm.c:444.
+[value] Recording results for abs
+[value] Done for function abs
+[value] Recording results for quantl
+[value] Done for function quantl
+[value] computing for function logscl <- encode <- main.
+        Called from tests/test/adpcm.c:318.
+[value] Recording results for logscl
+[value] Done for function logscl
+[value] computing for function scalel <- encode <- main.
+        Called from tests/test/adpcm.c:322.
+[value] Recording results for scalel
+[value] Done for function scalel
+[value] computing for function upzero <- encode <- main.
+        Called from tests/test/adpcm.c:331.
+[value] Recording results for upzero
+[value] Done for function upzero
+[value] computing for function uppol2 <- encode <- main.
+        Called from tests/test/adpcm.c:335.
+[value] Recording results for uppol2
+[value] Done for function uppol2
+[value] computing for function uppol1 <- encode <- main.
+        Called from tests/test/adpcm.c:339.
+[value] Recording results for uppol1
+[value] Done for function uppol1
+[value] computing for function filtez <- encode <- main.
+        Called from tests/test/adpcm.c:352.
+[value] Recording results for filtez
+[value] Done for function filtez
+[value] computing for function filtep <- encode <- main.
+        Called from tests/test/adpcm.c:354.
+[value] Recording results for filtep
+[value] Done for function filtep
+[value] computing for function abs <- encode <- main.
+        Called from tests/test/adpcm.c:370.
+[value] Recording results for abs
+[value] Done for function abs
+[value] computing for function logsch <- encode <- main.
+        Called from tests/test/adpcm.c:376.
+[value] Recording results for logsch
+[value] Done for function logsch
+[value] computing for function scalel <- encode <- main.
+        Called from tests/test/adpcm.c:379.
+[value] Recording results for scalel
+[value] Done for function scalel
+[value] computing for function upzero <- encode <- main.
+        Called from tests/test/adpcm.c:387.
+[value] Recording results for upzero
+[value] Done for function upzero
+[value] computing for function uppol2 <- encode <- main.
+        Called from tests/test/adpcm.c:391.
+[value] Recording results for uppol2
+[value] Done for function uppol2
+[value] computing for function uppol1 <- encode <- main.
+        Called from tests/test/adpcm.c:394.
+[value] Recording results for uppol1
+[value] Done for function uppol1
+[value] Recording results for encode
+[value] Done for function encode
+[value] computing for function encode <- main.
+        Called from tests/test/adpcm.c:608.
+[value] computing for function filtez <- encode <- main.
+        Called from tests/test/adpcm.c:301.
+[value] Recording results for filtez
+[value] Done for function filtez
+[value] computing for function filtep <- encode <- main.
+        Called from tests/test/adpcm.c:304.
+[value] Recording results for filtep
+[value] Done for function filtep
+[value] computing for function quantl <- encode <- main.
+        Called from tests/test/adpcm.c:311.
+[value] computing for function abs <- quantl <- encode <- main.
+        Called from tests/test/adpcm.c:444.
+[value] Recording results for abs
+[value] Done for function abs
+[value] Recording results for quantl
+[value] Done for function quantl
+[value] computing for function logscl <- encode <- main.
+        Called from tests/test/adpcm.c:318.
+[value] Recording results for logscl
+[value] Done for function logscl
+[value] computing for function scalel <- encode <- main.
+        Called from tests/test/adpcm.c:322.
+[value] Recording results for scalel
+[value] Done for function scalel
+[value] computing for function upzero <- encode <- main.
+        Called from tests/test/adpcm.c:331.
+[value] Recording results for upzero
+[value] Done for function upzero
+[value] computing for function uppol2 <- encode <- main.
+        Called from tests/test/adpcm.c:335.
+[value] Recording results for uppol2
+[value] Done for function uppol2
+[value] computing for function uppol1 <- encode <- main.
+        Called from tests/test/adpcm.c:339.
+[value] Recording results for uppol1
+[value] Done for function uppol1
+[value] computing for function filtez <- encode <- main.
+        Called from tests/test/adpcm.c:352.
+[value] Recording results for filtez
+[value] Done for function filtez
+[value] computing for function filtep <- encode <- main.
+        Called from tests/test/adpcm.c:354.
+[value] Recording results for filtep
+[value] Done for function filtep
+[value] computing for function abs <- encode <- main.
+        Called from tests/test/adpcm.c:370.
+[value] Recording results for abs
+[value] Done for function abs
+[value] computing for function logsch <- encode <- main.
+        Called from tests/test/adpcm.c:376.
+[value] Recording results for logsch
+[value] Done for function logsch
+[value] computing for function scalel <- encode <- main.
+        Called from tests/test/adpcm.c:379.
+[value] Recording results for scalel
+[value] Done for function scalel
+[value] computing for function upzero <- encode <- main.
+        Called from tests/test/adpcm.c:387.
+[value] Recording results for upzero
+[value] Done for function upzero
+[value] computing for function uppol2 <- encode <- main.
+        Called from tests/test/adpcm.c:391.
+[value] Recording results for uppol2
+[value] Done for function uppol2
+[value] computing for function uppol1 <- encode <- main.
+        Called from tests/test/adpcm.c:394.
+[value] Recording results for uppol1
+[value] Done for function uppol1
+[value] Recording results for encode
+[value] Done for function encode
+[value] computing for function encode <- main.
+        Called from tests/test/adpcm.c:608.
+[value] computing for function filtez <- encode <- main.
+        Called from tests/test/adpcm.c:301.
+[value] Recording results for filtez
+[value] Done for function filtez
+[value] computing for function filtep <- encode <- main.
+        Called from tests/test/adpcm.c:304.
+[value] Recording results for filtep
+[value] Done for function filtep
+[value] computing for function quantl <- encode <- main.
+        Called from tests/test/adpcm.c:311.
+[value] computing for function abs <- quantl <- encode <- main.
+        Called from tests/test/adpcm.c:444.
+[value] Recording results for abs
+[value] Done for function abs
+[value] Recording results for quantl
+[value] Done for function quantl
+[value] computing for function logscl <- encode <- main.
+        Called from tests/test/adpcm.c:318.
+[value] Recording results for logscl
+[value] Done for function logscl
+[value] computing for function scalel <- encode <- main.
+        Called from tests/test/adpcm.c:322.
+[value] Recording results for scalel
+[value] Done for function scalel
+[value] computing for function upzero <- encode <- main.
+        Called from tests/test/adpcm.c:331.
+[value] Recording results for upzero
+[value] Done for function upzero
+[value] computing for function uppol2 <- encode <- main.
+        Called from tests/test/adpcm.c:335.
+[value] Recording results for uppol2
+[value] Done for function uppol2
+[value] computing for function uppol1 <- encode <- main.
+        Called from tests/test/adpcm.c:339.
+[value] Recording results for uppol1
+[value] Done for function uppol1
+[value] computing for function filtez <- encode <- main.
+        Called from tests/test/adpcm.c:352.
+[value] Recording results for filtez
+[value] Done for function filtez
+[value] computing for function filtep <- encode <- main.
+        Called from tests/test/adpcm.c:354.
+[value] Recording results for filtep
+[value] Done for function filtep
+[value] computing for function abs <- encode <- main.
+        Called from tests/test/adpcm.c:370.
+[value] Recording results for abs
+[value] Done for function abs
+[value] computing for function logsch <- encode <- main.
+        Called from tests/test/adpcm.c:376.
+[value] Recording results for logsch
+[value] Done for function logsch
+[value] computing for function scalel <- encode <- main.
+        Called from tests/test/adpcm.c:379.
+[value] Recording results for scalel
+[value] Done for function scalel
+[value] computing for function upzero <- encode <- main.
+        Called from tests/test/adpcm.c:387.
+[value] Recording results for upzero
+[value] Done for function upzero
+[value] computing for function uppol2 <- encode <- main.
+        Called from tests/test/adpcm.c:391.
+[value] Recording results for uppol2
+[value] Done for function uppol2
+[value] computing for function uppol1 <- encode <- main.
+        Called from tests/test/adpcm.c:394.
+[value] Recording results for uppol1
+[value] Done for function uppol1
+[value] Recording results for encode
+[value] Done for function encode
+[value] computing for function encode <- main.
+        Called from tests/test/adpcm.c:608.
+[value] computing for function filtez <- encode <- main.
+        Called from tests/test/adpcm.c:301.
+[value] Recording results for filtez
+[value] Done for function filtez
+[value] computing for function filtep <- encode <- main.
+        Called from tests/test/adpcm.c:304.
+[value] Recording results for filtep
+[value] Done for function filtep
+[value] computing for function quantl <- encode <- main.
+        Called from tests/test/adpcm.c:311.
+[value] computing for function abs <- quantl <- encode <- main.
+        Called from tests/test/adpcm.c:444.
+[value] Recording results for abs
+[value] Done for function abs
+[value] Recording results for quantl
+[value] Done for function quantl
+[value] computing for function logscl <- encode <- main.
+        Called from tests/test/adpcm.c:318.
+[value] Recording results for logscl
+[value] Done for function logscl
+[value] computing for function scalel <- encode <- main.
+        Called from tests/test/adpcm.c:322.
+[value] Recording results for scalel
+[value] Done for function scalel
+[value] computing for function upzero <- encode <- main.
+        Called from tests/test/adpcm.c:331.
+[value] Recording results for upzero
+[value] Done for function upzero
+[value] computing for function uppol2 <- encode <- main.
+        Called from tests/test/adpcm.c:335.
+[value] Recording results for uppol2
+[value] Done for function uppol2
+[value] computing for function uppol1 <- encode <- main.
+        Called from tests/test/adpcm.c:339.
+[value] Recording results for uppol1
+[value] Done for function uppol1
+[value] computing for function filtez <- encode <- main.
+        Called from tests/test/adpcm.c:352.
+[value] Recording results for filtez
+[value] Done for function filtez
+[value] computing for function filtep <- encode <- main.
+        Called from tests/test/adpcm.c:354.
+[value] Recording results for filtep
+[value] Done for function filtep
+[value] computing for function abs <- encode <- main.
+        Called from tests/test/adpcm.c:370.
+[value] Recording results for abs
+[value] Done for function abs
+[value] computing for function logsch <- encode <- main.
+        Called from tests/test/adpcm.c:376.
+[value] Recording results for logsch
+[value] Done for function logsch
+[value] computing for function scalel <- encode <- main.
+        Called from tests/test/adpcm.c:379.
+[value] Recording results for scalel
+[value] Done for function scalel
+[value] computing for function upzero <- encode <- main.
+        Called from tests/test/adpcm.c:387.
+[value] Recording results for upzero
+[value] Done for function upzero
+[value] computing for function uppol2 <- encode <- main.
+        Called from tests/test/adpcm.c:391.
+[value] Recording results for uppol2
+[value] Done for function uppol2
+[value] computing for function uppol1 <- encode <- main.
+        Called from tests/test/adpcm.c:394.
+[value] Recording results for uppol1
+[value] Done for function uppol1
+[value] Recording results for encode
+[value] Done for function encode
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function abs:
+  m ∈ {0; 1; 2}
+[value] Values at end of function filtep:
+  pl ∈ {-2464; -1146; 0; 47584; 56154}
+  pl2 ∈ {-2; 0; 98}
+  __retres ∈ {-1; 0; 1}
+[value] Values at end of function filtez:
+  bpl ∈ {{ &delay_bpl[6] ; &delay_bph[6] }}
+  dlt_0 ∈ {{ &delay_dltx[6] ; &delay_dhx[6] }}
+  i ∈ {6}
+  zl ∈ {-256; -128; 0; 6223; 6272}
+  __retres ∈ {-1; 0}
+[value] Values at end of function logsch:
+  nbh_0 ∈ {0; 577; 798}
+  wd ∈ {0; 791}
+[value] Values at end of function logscl:
+  nbl_0 ∈ {2958; 3042; 5869; 5976; 8865}
+  wd ∈ {0; 2934; 3018; 5823; 5929}
+[value] Values at end of function quantl:
+  ril ∈ {4; 32; 63}
+  mil ∈ {0; 29}
+  wd ∈ {0; 1; 2}
+  decis ∈ {0; 1; 79; 223}
+[value] Values at end of function scalel:
+  wd1 ∈ {0; 9; 10; 12; 14; 15; 27; 29}
+  wd2 ∈ {0; 1; 2; 4}
+  wd3 ∈ {1; 10; 11; 28; 29; 79}
+  __retres ∈ {8; 80; 88; 224; 232; 632}
+[value] Values at end of function uppol1:
+  wd2 ∈ {0; 191; 381; 570; 759}
+  wd3 ∈ {14790; 14890; 14997; 15046; 15111; 15232}
+  apl1 ∈ {192; 383; 573; 762; 951}
+[value] Values at end of function uppol2:
+  wd2 ∈ {-24; -18; -12; -6; 0}
+  wd4 ∈ {-152; 104; 110; 116; 122; 128}
+  apl2 ∈ {128; 249; 314; 363; 470; 570}
+[value] Values at end of function upzero:
+  delay_bpl[0] ∈ {0; 127; 128; 254}
+           [1] ∈ {-2; 0; 127; 128}
+           [2..5] ∈ {0; 127; 128; 254}
+  delay_dltx[0] ∈ {-140; 0; 49}
+            [1] ∈ {0; 49}
+            [2..5] ∈ {0}
+  delay_dhx[0..1] ∈ {-1; 0; 1}
+           [2..5] ∈ {0}
+  delay_bph[0] ∈ {-1; 0; 128}
+           [1..5] ∈ {0; 128; 254; 255}
+  i ∈ {6}
+  wd2 ∈ {128} or UNINITIALIZED
+  wd3 ∈ {0; 126; 127} or UNINITIALIZED
+[value] Values at end of function encode:
+  tqmf[0] ∈ {0; 1}
+      [1] ∈ {1}
+      [2..5] ∈ {0; 1}
+      [6] ∈ {0}
+      [7] ∈ {0; 1}
+      [8] ∈ {0}
+      [9] ∈ {0; 1}
+      [10..23] ∈ {0}
+  xl ∈ {-1; 0}
+  xh ∈ {-1; 0}
+  il ∈ {4; 32; 63}
+  szl ∈ {0}
+  spl ∈ {0; 1}
+  sl ∈ {0; 1}
+  el ∈ {-2; -1; 0}
+  delay_bpl[0] ∈ {0; 127; 128; 254}
+           [1] ∈ {-2; 0; 127; 128}
+           [2..5] ∈ {0; 127; 128; 254}
+  delay_dltx[0] ∈ {-140; 0; 49}
+            [1] ∈ {0; 49}
+            [2..5] ∈ {0}
+  nbl ∈ {2958; 3042; 5869; 5976; 8865}
+  al1 ∈ {192; 383; 573; 762; 951}
+  al2 ∈ {128; 249; 314; 363; 470}
+  plt ∈ {-140; 0; 49}
+  plt1 ∈ {-140; 0; 49}
+  plt2 ∈ {0; 49}
+  dlt ∈ {-140; 0; 49}
+  rlt ∈ {-139; 0; 1; 49}
+  rlt1 ∈ {-139; 0; 1; 49}
+  rlt2 ∈ {0; 1; 49}
+  detl ∈ {80; 88; 224; 232; 632}
+  deth ∈ {8}
+  sh ∈ {-2; 0}
+  eh ∈ {-1; 0; 1; 2}
+  dh ∈ {-1; 0; 1}
+  ih ∈ {1; 2; 3}
+  nbh ∈ {0; 577; 798}
+  szh ∈ {-1; 0}
+  sph ∈ {-1; 0}
+  ph ∈ {-1; 0}
+  yh ∈ {-2; -1; 0}
+  delay_dhx[0..1] ∈ {-1; 0; 1}
+           [2..5] ∈ {0}
+  delay_bph[0] ∈ {-1; 0; 128}
+           [1..5] ∈ {0; 128; 254; 255}
+  ah1 ∈ {192; 383; 573; 762; 951}
+  ah2 ∈ {128; 249; 363; 470; 570}
+  ph1 ∈ {-1; 0}
+  ph2 ∈ {-1; 0}
+  rh1 ∈ {-2; -1; 0}
+  rh2 ∈ {-1; 0}
+  i ∈ {22}
+  h_ptr ∈ {{ &h[24] }}
+  tqmf_ptr ∈ {{ &tqmf[0] }}
+  tqmf_ptr1 ∈ {{ &tqmf[-1] }}
+  xa ∈ {-32; 0; 12}
+  xb ∈ {-456; -44; 0; 168; 992}
+  decis ∈ {0; 1}
+  __retres ∈ {96; 191; 196; 224; 255}
+[value] Values at end of function main:
+  tqmf[0..5] ∈ {1}
+      [6] ∈ {0}
+      [7] ∈ {1}
+      [8] ∈ {0}
+      [9] ∈ {1}
+      [10..23] ∈ {0}
+  xl ∈ {0}
+  xh ∈ {-1}
+  il ∈ {4}
+  szl ∈ {0}
+  spl ∈ {1}
+  sl ∈ {1}
+  el ∈ {-1}
+  delay_bpl[0] ∈ {254}
+           [1] ∈ {-2}
+           [2..5] ∈ {254}
+  delay_dltx[0] ∈ {-140}
+            [1..5] ∈ {0}
+  nbl ∈ {8865}
+  al1 ∈ {951}
+  al2 ∈ {314}
+  plt ∈ {-140}
+  plt1 ∈ {-140}
+  plt2 ∈ {0}
+  dlt ∈ {-140}
+  rlt ∈ {-139}
+  rlt1 ∈ {-139}
+  rlt2 ∈ {1}
+  detl ∈ {632}
+  deth ∈ {8}
+  sh ∈ {-2}
+  eh ∈ {1}
+  dh ∈ {0}
+  ih ∈ {3}
+  nbh ∈ {577}
+  szh ∈ {-1}
+  sph ∈ {-1}
+  ph ∈ {-1}
+  yh ∈ {-2}
+  delay_dhx[0] ∈ {0}
+           [1] ∈ {1}
+           [2..5] ∈ {0}
+  delay_bph[0] ∈ {-1}
+           [1..5] ∈ {254}
+  ah1 ∈ {951}
+  ah2 ∈ {570}
+  ph1 ∈ {-1}
+  ph2 ∈ {0}
+  rh1 ∈ {-2}
+  rh2 ∈ {-1}
+  compressed[0] ∈ {224}
+            [1] ∈ {255}
+            [2] ∈ {96}
+            [3] ∈ {191}
+            [4] ∈ {196}
+            [5..9] ∈ {0}
+  i ∈ {10}
+[from] Computing for function abs
+[from] Done for function abs
+[from] Computing for function filtep
+[from] Done for function filtep
+[from] Computing for function filtez
+[from] Done for function filtez
+[from] Computing for function logsch
+[from] Done for function logsch
+[from] Computing for function logscl
+[from] Done for function logscl
+[from] Computing for function quantl
+[from] Done for function quantl
+[from] Computing for function scalel
+[from] Done for function scalel
+[from] Computing for function uppol1
+[from] Done for function uppol1
+[from] Computing for function uppol2
+[from] Done for function uppol2
+[from] Computing for function upzero
+[from] Done for function upzero
+[from] Computing for function encode
+[from] Done for function encode
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function abs:
+  \result FROM x
+[from] Function filtep:
+  \result FROM rlt1_0; al1_0; rlt2_0; al2_0
+[from] Function filtez:
+  \result FROM delay_bpl[0..5]; delay_dltx[0..5]; delay_dhx[0..5];
+               delay_bph[0..5]; bpl; dlt_0
+[from] Function logsch:
+  \result FROM wh_code_table[1..3]; ih_0; nbh_0
+[from] Function logscl:
+  \result FROM wl_code_table{[1]; [8]; [15]}; il_0; nbl_0
+[from] Function quantl:
+  \result FROM decis_levl[0..28]; quant26bt_pos[29];
+               quant26bt_neg{[0]; [29]}; el_0; detl_0
+[from] Function scalel:
+  \result FROM ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; nbl_0;
+               shift_constant
+[from] Function uppol1:
+  \result FROM al1_0; plt_0; plt1_0
+[from] Function uppol2:
+  \result FROM al1_0; al2_0; plt_0; plt1_0; plt2_0
+[from] Function upzero:
+  delay_bpl[0]
+           FROM delay_bpl[0]; delay_dltx[0]; delay_dhx[0]; delay_bph[0];
+                dlt_0; dlti; bli (and SELF)
+           [1]
+           FROM delay_bpl[1]; delay_dltx[1]; delay_dhx[1]; delay_bph[1];
+                dlt_0; dlti; bli (and SELF)
+           [2]
+           FROM delay_bpl[2]; delay_dltx[2]; delay_dhx[2]; delay_bph[2];
+                dlt_0; dlti; bli (and SELF)
+           [3]
+           FROM delay_bpl[3]; delay_dltx[3]; delay_dhx[3]; delay_bph[3];
+                dlt_0; dlti; bli (and SELF)
+           [4]
+           FROM delay_bpl[4]; delay_dltx[4]; delay_dhx[4]; delay_bph[4];
+                dlt_0; dlti; bli (and SELF)
+           [5]
+           FROM delay_bpl[5]; delay_dltx[5]; delay_dhx[5]; delay_bph[5];
+                dlt_0; dlti; bli (and SELF)
+  delay_dltx[0] FROM dlt_0; dlti (and SELF)
+            [1] FROM delay_dltx[0]; delay_dhx[0]; dlti (and SELF)
+            [3] FROM delay_dltx[2]; delay_dhx[2]; dlti (and SELF)
+            [4] FROM delay_dltx[3]; delay_dhx[3]; dlti (and SELF)
+            [5] FROM delay_dltx[4]; delay_dhx[4]; dlti (and SELF)
+  delay_dhx[0] FROM dlt_0; dlti (and SELF)
+           [1] FROM delay_dltx[0]; delay_dhx[0]; dlti (and SELF)
+           [3] FROM delay_dltx[2]; delay_dhx[2]; dlti (and SELF)
+           [4] FROM delay_dltx[3]; delay_dhx[3]; dlti (and SELF)
+           [5] FROM delay_dltx[4]; delay_dhx[4]; dlti (and SELF)
+  delay_bph[0]
+           FROM delay_bpl[0]; delay_dltx[0]; delay_dhx[0]; delay_bph[0];
+                dlt_0; dlti; bli (and SELF)
+           [1]
+           FROM delay_bpl[1]; delay_dltx[1]; delay_dhx[1]; delay_bph[1];
+                dlt_0; dlti; bli (and SELF)
+           [2]
+           FROM delay_bpl[2]; delay_dltx[2]; delay_dhx[2]; delay_bph[2];
+                dlt_0; dlti; bli (and SELF)
+           [3]
+           FROM delay_bpl[3]; delay_dltx[3]; delay_dhx[3]; delay_bph[3];
+                dlt_0; dlti; bli (and SELF)
+           [4]
+           FROM delay_bpl[4]; delay_dltx[4]; delay_dhx[4]; delay_bph[4];
+                dlt_0; dlti; bli (and SELF)
+           [5]
+           FROM delay_bpl[5]; delay_dltx[5]; delay_dhx[5]; delay_bph[5];
+                dlt_0; dlti; bli (and SELF)
+[from] Function encode:
+  tqmf[0] FROM xin2
+      [1] FROM xin1
+      [2] FROM tqmf[0]
+      [3] FROM tqmf[1]
+      [4] FROM tqmf[2]
+      [5] FROM tqmf[3]
+      [6] FROM tqmf[4]
+      [7] FROM tqmf[5]
+      [8] FROM tqmf[6]
+      [9] FROM tqmf[7]
+      [10] FROM tqmf[8]
+      [11] FROM tqmf[9]
+      [12] FROM tqmf[10]
+      [13] FROM tqmf[11]
+      [14] FROM tqmf[12]
+      [15] FROM tqmf[13]
+      [16] FROM tqmf[14]
+      [17] FROM tqmf[15]
+      [18] FROM tqmf[16]
+      [19] FROM tqmf[17]
+      [20] FROM tqmf[18]
+      [21] FROM tqmf[19]
+      [22] FROM tqmf[20]
+      [23] FROM tqmf[21]
+  xl FROM tqmf[0..23]; h[0..23]
+  xh FROM tqmf[0..23]; h[0..23]
+  il FROM tqmf[0..23]; h[0..23]; delay_bpl[0..5]; delay_dltx[0..5]; al1; 
+          al2; rlt1; rlt2; decis_levl[0..28]; detl; quant26bt_pos[29];
+          quant26bt_neg{[0]; [29]}; delay_dhx[0..5]; delay_bph[0..5]
+  szl FROM delay_bpl[0..5]; delay_dltx[0..5]; delay_dhx[0..5];
+           delay_bph[0..5]
+  spl FROM al1; al2; rlt1; rlt2
+  sl FROM delay_bpl[0..5]; delay_dltx[0..5]; al1; al2; rlt1; rlt2;
+          delay_dhx[0..5]; delay_bph[0..5]
+  el FROM tqmf[0..23]; h[0..23]; delay_bpl[0..5]; delay_dltx[0..5]; al1; 
+          al2; rlt1; rlt2; delay_dhx[0..5]; delay_bph[0..5]
+  delay_bpl[0]
+           FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+                delay_bpl[0..5]; delay_dltx[0..5]; al1; al2; rlt1; rlt2;
+                decis_levl[0..28]; detl; quant26bt_pos[29];
+                quant26bt_neg{[0]; [29]}; deth; qq2_code2_table[1..3];
+                delay_dhx[0..5]; delay_bph[0..5]; ah1; ah2; rh1;
+                rh2 (and SELF)
+           [1]
+           FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+                delay_bpl[0..5]; delay_dltx[0..5]; al1; al2; rlt1; rlt2;
+                decis_levl[0..28]; detl; quant26bt_pos[29];
+                quant26bt_neg{[0]; [29]}; deth; qq2_code2_table[1..3];
+                delay_dhx[0..5]; delay_bph[0..5]; ah1; ah2; rh1;
+                rh2 (and SELF)
+           [2]
+           FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+                delay_bpl[0..5]; delay_dltx[0..5]; al1; al2; rlt1; rlt2;
+                decis_levl[0..28]; detl; quant26bt_pos[29];
+                quant26bt_neg{[0]; [29]}; deth; qq2_code2_table[1..3];
+                delay_dhx[0..5]; delay_bph[0..5]; ah1; ah2; rh1;
+                rh2 (and SELF)
+           [3]
+           FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+                delay_bpl[0..5]; delay_dltx[0..5]; al1; al2; rlt1; rlt2;
+                decis_levl[0..28]; detl; quant26bt_pos[29];
+                quant26bt_neg{[0]; [29]}; deth; qq2_code2_table[1..3];
+                delay_dhx[0..5]; delay_bph[0..5]; ah1; ah2; rh1;
+                rh2 (and SELF)
+           [4]
+           FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+                delay_bpl[0..5]; delay_dltx[0..5]; al1; al2; rlt1; rlt2;
+                decis_levl[0..28]; detl; quant26bt_pos[29];
+                quant26bt_neg{[0]; [29]}; deth; qq2_code2_table[1..3];
+                delay_dhx[0..5]; delay_bph[0..5]; ah1; ah2; rh1;
+                rh2 (and SELF)
+           [5]
+           FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+                delay_bpl[0..5]; delay_dltx[0..5]; al1; al2; rlt1; rlt2;
+                decis_levl[0..28]; detl; quant26bt_pos[29];
+                quant26bt_neg{[0]; [29]}; deth; qq2_code2_table[1..3];
+                delay_dhx[0..5]; delay_bph[0..5]; ah1; ah2; rh1;
+                rh2 (and SELF)
+  delay_dltx[0]
+            FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+                 delay_bpl[0..5]; delay_dltx[0..5]; al1; al2; rlt1; rlt2;
+                 decis_levl[0..28]; detl; quant26bt_pos[29];
+                 quant26bt_neg{[0]; [29]}; deth; qq2_code2_table[1..3];
+                 delay_dhx[0..5]; delay_bph[0..5]; ah1; ah2; rh1;
+                 rh2 (and SELF)
+            [1]
+            FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+                 delay_bpl[0..5]; delay_dltx[0..5]; al1; al2; rlt1; rlt2;
+                 decis_levl[0..28]; detl; quant26bt_pos[29];
+                 quant26bt_neg{[0]; [29]}; delay_dhx[0..5];
+                 delay_bph[0..5] (and SELF)
+            [3] FROM delay_dltx[2]; delay_dhx[2] (and SELF)
+            [4] FROM delay_dltx[2..3]; delay_dhx[2..3] (and SELF)
+            [5] FROM delay_dltx[3..4]; delay_dhx[3..4] (and SELF)
+  nbl FROM tqmf[0..23]; h[0..23]; delay_bpl[0..5]; delay_dltx[0..5];
+           wl_code_table{[1]; [8]; [15]}; nbl; al1; al2; rlt1; rlt2;
+           decis_levl[0..28]; detl; quant26bt_pos[29];
+           quant26bt_neg{[0]; [29]}; delay_dhx[0..5]; delay_bph[0..5]
+  al1 FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+           delay_bpl[0..5]; delay_dltx[0..5]; al1; al2; plt1; rlt1; rlt2;
+           decis_levl[0..28]; detl; quant26bt_pos[29];
+           quant26bt_neg{[0]; [29]}; delay_dhx[0..5]; delay_bph[0..5]
+  al2 FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+           delay_bpl[0..5]; delay_dltx[0..5]; al1; al2; plt1; plt2; rlt1;
+           rlt2; decis_levl[0..28]; detl; quant26bt_pos[29];
+           quant26bt_neg{[0]; [29]}; delay_dhx[0..5]; delay_bph[0..5]
+  plt FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+           delay_bpl[0..5]; delay_dltx[0..5]; al1; al2; rlt1; rlt2;
+           decis_levl[0..28]; detl; quant26bt_pos[29];
+           quant26bt_neg{[0]; [29]}; delay_dhx[0..5]; delay_bph[0..5]
+  plt1 FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+            delay_bpl[0..5]; delay_dltx[0..5]; al1; al2; rlt1; rlt2;
+            decis_levl[0..28]; detl; quant26bt_pos[29];
+            quant26bt_neg{[0]; [29]}; delay_dhx[0..5]; delay_bph[0..5]
+  plt2 FROM plt1
+  dlt FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+           delay_bpl[0..5]; delay_dltx[0..5]; al1; al2; rlt1; rlt2;
+           decis_levl[0..28]; detl; quant26bt_pos[29];
+           quant26bt_neg{[0]; [29]}; delay_dhx[0..5]; delay_bph[0..5]
+  rlt FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+           delay_bpl[0..5]; delay_dltx[0..5]; al1; al2; rlt1; rlt2;
+           decis_levl[0..28]; detl; quant26bt_pos[29];
+           quant26bt_neg{[0]; [29]}; delay_dhx[0..5]; delay_bph[0..5]
+  rlt1 FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+            delay_bpl[0..5]; delay_dltx[0..5]; al1; al2; rlt1; rlt2;
+            decis_levl[0..28]; detl; quant26bt_pos[29];
+            quant26bt_neg{[0]; [29]}; delay_dhx[0..5]; delay_bph[0..5]
+  rlt2 FROM rlt1
+  detl FROM tqmf[0..23]; h[0..23]; delay_bpl[0..5]; delay_dltx[0..5];
+            wl_code_table{[1]; [8]; [15]};
+            ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; nbl; 
+            al1; al2; rlt1; rlt2; decis_levl[0..28]; detl; quant26bt_pos[29];
+            quant26bt_neg{[0]; [29]}; delay_dhx[0..5]; delay_bph[0..5]
+  deth FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+            delay_bpl[0..5]; delay_dltx[0..5];
+            ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; al1; 
+            al2; rlt1; rlt2; decis_levl[0..28]; detl; quant26bt_pos[29];
+            quant26bt_neg{[0]; [29]}; deth; wh_code_table[1..3]; nbh;
+            delay_dhx[0..5]; delay_bph[0..5]; ah1; ah2; rh1; rh2
+  sh FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+          delay_bpl[0..5]; delay_dltx[0..5]; al1; al2; rlt1; rlt2;
+          decis_levl[0..28]; detl; quant26bt_pos[29];
+          quant26bt_neg{[0]; [29]}; delay_dhx[0..5]; delay_bph[0..5]; 
+          ah1; ah2; rh1; rh2
+  eh FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+          delay_bpl[0..5]; delay_dltx[0..5]; al1; al2; rlt1; rlt2;
+          decis_levl[0..28]; detl; quant26bt_pos[29];
+          quant26bt_neg{[0]; [29]}; delay_dhx[0..5]; delay_bph[0..5]; 
+          ah1; ah2; rh1; rh2
+  dh FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+          delay_bpl[0..5]; delay_dltx[0..5]; al1; al2; rlt1; rlt2;
+          decis_levl[0..28]; detl; quant26bt_pos[29];
+          quant26bt_neg{[0]; [29]}; deth; qq2_code2_table[1..3];
+          delay_dhx[0..5]; delay_bph[0..5]; ah1; ah2; rh1; rh2
+  ih FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+          delay_bpl[0..5]; delay_dltx[0..5]; al1; al2; rlt1; rlt2;
+          decis_levl[0..28]; detl; quant26bt_pos[29];
+          quant26bt_neg{[0]; [29]}; deth; delay_dhx[0..5]; delay_bph[0..5];
+          ah1; ah2; rh1; rh2
+  nbh FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+           delay_bpl[0..5]; delay_dltx[0..5]; al1; al2; rlt1; rlt2;
+           decis_levl[0..28]; detl; quant26bt_pos[29];
+           quant26bt_neg{[0]; [29]}; deth; wh_code_table[1..3]; nbh;
+           delay_dhx[0..5]; delay_bph[0..5]; ah1; ah2; rh1; rh2
+  szh FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+           delay_bpl[0..5]; delay_dltx[0..5]; al1; al2; rlt1; rlt2;
+           decis_levl[0..28]; detl; quant26bt_pos[29];
+           quant26bt_neg{[0]; [29]}; delay_dhx[0..5]; delay_bph[0..5]
+  sph FROM ah1; ah2; rh1; rh2
+  ph FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+          delay_bpl[0..5]; delay_dltx[0..5]; al1; al2; rlt1; rlt2;
+          decis_levl[0..28]; detl; quant26bt_pos[29];
+          quant26bt_neg{[0]; [29]}; deth; qq2_code2_table[1..3];
+          delay_dhx[0..5]; delay_bph[0..5]; ah1; ah2; rh1; rh2
+  yh FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+          delay_bpl[0..5]; delay_dltx[0..5]; al1; al2; rlt1; rlt2;
+          decis_levl[0..28]; detl; quant26bt_pos[29];
+          quant26bt_neg{[0]; [29]}; deth; qq2_code2_table[1..3];
+          delay_dhx[0..5]; delay_bph[0..5]; ah1; ah2; rh1; rh2
+  delay_dhx[0]
+           FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+                delay_bpl[0..5]; delay_dltx[0..5]; al1; al2; rlt1; rlt2;
+                decis_levl[0..28]; detl; quant26bt_pos[29];
+                quant26bt_neg{[0]; [29]}; deth; qq2_code2_table[1..3];
+                delay_dhx[0..5]; delay_bph[0..5]; ah1; ah2; rh1;
+                rh2 (and SELF)
+           [1]
+           FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+                delay_bpl[0..5]; delay_dltx[0..5]; al1; al2; rlt1; rlt2;
+                decis_levl[0..28]; detl; quant26bt_pos[29];
+                quant26bt_neg{[0]; [29]}; delay_dhx[0..5];
+                delay_bph[0..5] (and SELF)
+           [3] FROM delay_dltx[2]; delay_dhx[2] (and SELF)
+           [4] FROM delay_dltx[2..3]; delay_dhx[2..3] (and SELF)
+           [5] FROM delay_dltx[3..4]; delay_dhx[3..4] (and SELF)
+  delay_bph[0]
+           FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+                delay_bpl[0..5]; delay_dltx[0..5]; al1; al2; rlt1; rlt2;
+                decis_levl[0..28]; detl; quant26bt_pos[29];
+                quant26bt_neg{[0]; [29]}; deth; qq2_code2_table[1..3];
+                delay_dhx[0..5]; delay_bph[0..5]; ah1; ah2; rh1;
+                rh2 (and SELF)
+           [1]
+           FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+                delay_bpl[0..5]; delay_dltx[0..5]; al1; al2; rlt1; rlt2;
+                decis_levl[0..28]; detl; quant26bt_pos[29];
+                quant26bt_neg{[0]; [29]}; deth; qq2_code2_table[1..3];
+                delay_dhx[0..5]; delay_bph[0..5]; ah1; ah2; rh1;
+                rh2 (and SELF)
+           [2]
+           FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+                delay_bpl[0..5]; delay_dltx[0..5]; al1; al2; rlt1; rlt2;
+                decis_levl[0..28]; detl; quant26bt_pos[29];
+                quant26bt_neg{[0]; [29]}; deth; qq2_code2_table[1..3];
+                delay_dhx[0..5]; delay_bph[0..5]; ah1; ah2; rh1;
+                rh2 (and SELF)
+           [3]
+           FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+                delay_bpl[0..5]; delay_dltx[0..5]; al1; al2; rlt1; rlt2;
+                decis_levl[0..28]; detl; quant26bt_pos[29];
+                quant26bt_neg{[0]; [29]}; deth; qq2_code2_table[1..3];
+                delay_dhx[0..5]; delay_bph[0..5]; ah1; ah2; rh1;
+                rh2 (and SELF)
+           [4]
+           FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+                delay_bpl[0..5]; delay_dltx[0..5]; al1; al2; rlt1; rlt2;
+                decis_levl[0..28]; detl; quant26bt_pos[29];
+                quant26bt_neg{[0]; [29]}; deth; qq2_code2_table[1..3];
+                delay_dhx[0..5]; delay_bph[0..5]; ah1; ah2; rh1;
+                rh2 (and SELF)
+           [5]
+           FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+                delay_bpl[0..5]; delay_dltx[0..5]; al1; al2; rlt1; rlt2;
+                decis_levl[0..28]; detl; quant26bt_pos[29];
+                quant26bt_neg{[0]; [29]}; deth; qq2_code2_table[1..3];
+                delay_dhx[0..5]; delay_bph[0..5]; ah1; ah2; rh1;
+                rh2 (and SELF)
+  ah1 FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+           delay_bpl[0..5]; delay_dltx[0..5]; al1; al2; rlt1; rlt2;
+           decis_levl[0..28]; detl; quant26bt_pos[29];
+           quant26bt_neg{[0]; [29]}; deth; qq2_code2_table[1..3];
+           delay_dhx[0..5]; delay_bph[0..5]; ah1; ah2; ph1; rh1; rh2
+  ah2 FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+           delay_bpl[0..5]; delay_dltx[0..5]; al1; al2; rlt1; rlt2;
+           decis_levl[0..28]; detl; quant26bt_pos[29];
+           quant26bt_neg{[0]; [29]}; deth; qq2_code2_table[1..3];
+           delay_dhx[0..5]; delay_bph[0..5]; ah1; ah2; ph1; ph2; rh1; 
+           rh2
+  ph1 FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+           delay_bpl[0..5]; delay_dltx[0..5]; al1; al2; rlt1; rlt2;
+           decis_levl[0..28]; detl; quant26bt_pos[29];
+           quant26bt_neg{[0]; [29]}; deth; qq2_code2_table[1..3];
+           delay_dhx[0..5]; delay_bph[0..5]; ah1; ah2; rh1; rh2
+  ph2 FROM ph1
+  rh1 FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+           delay_bpl[0..5]; delay_dltx[0..5]; al1; al2; rlt1; rlt2;
+           decis_levl[0..28]; detl; quant26bt_pos[29];
+           quant26bt_neg{[0]; [29]}; deth; qq2_code2_table[1..3];
+           delay_dhx[0..5]; delay_bph[0..5]; ah1; ah2; rh1; rh2
+  rh2 FROM rh1
+  \result FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+               delay_bpl[0..5]; delay_dltx[0..5]; al1; al2; rlt1; rlt2;
+               decis_levl[0..28]; detl; quant26bt_pos[29];
+               quant26bt_neg{[0]; [29]}; deth; delay_dhx[0..5];
+               delay_bph[0..5]; ah1; ah2; rh1; rh2
+[from] Function main:
+  tqmf[0] FROM test_data[9]
+      [1] FROM test_data[8]
+      [2] FROM test_data[7]
+      [3] FROM test_data[6]
+      [4] FROM test_data[5]
+      [5] FROM test_data[4]
+      [6] FROM test_data[3]
+      [7] FROM test_data[2]
+      [8] FROM test_data[1]
+      [9] FROM test_data[0]
+      [10] FROM tqmf[0]
+      [11] FROM tqmf[1]
+      [12] FROM tqmf[2]
+      [13] FROM tqmf[3]
+      [14] FROM tqmf[4]
+      [15] FROM tqmf[5]
+      [16] FROM tqmf[6]
+      [17] FROM tqmf[7]
+      [18] FROM tqmf[8]
+      [19] FROM tqmf[9]
+      [20] FROM tqmf[10]
+      [21] FROM tqmf[11]
+      [22] FROM tqmf[12]
+      [23] FROM tqmf[13]
+  xl FROM tqmf[0..15]; h[0..23]; test_data[0..7]
+  xh FROM tqmf[0..15]; h[0..23]; test_data[0..7]
+  il FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+          delay_bpl[0..5]; delay_dltx[0..5]; wl_code_table{[1]; [8]; [15]};
+          ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; nbl; al1; 
+          al2; plt1; plt2; rlt1; rlt2; decis_levl[0..28]; detl;
+          quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth;
+          qq2_code2_table[1..3]; wh_code_table[1..3]; nbh; delay_dhx[0..5];
+          delay_bph[0..5]; ah1; ah2; ph1; ph2; rh1; rh2; test_data[0..7]
+  szl FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+           delay_bpl[0..5]; delay_dltx[0..5]; wl_code_table{[1]; [8]; [15]};
+           ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; nbl; 
+           al1; al2; plt1; plt2; rlt1; rlt2; decis_levl[0..28]; detl;
+           quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth;
+           qq2_code2_table[1..3]; wh_code_table[1..3]; nbh; delay_dhx[0..5];
+           delay_bph[0..5]; ah1; ah2; ph1; ph2; rh1; rh2; test_data[0..5]
+  spl FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+           delay_bpl[0..5]; delay_dltx[0..5]; wl_code_table{[1]; [8]; [15]};
+           ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; nbl; 
+           al1; al2; plt1; plt2; rlt1; rlt2; decis_levl[0..28]; detl;
+           quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth;
+           qq2_code2_table[1..3]; wh_code_table[1..3]; nbh; delay_dhx[0..5];
+           delay_bph[0..5]; ah1; ah2; ph1; ph2; rh1; rh2; test_data[0..5]
+  sl FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+          delay_bpl[0..5]; delay_dltx[0..5]; wl_code_table{[1]; [8]; [15]};
+          ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; nbl; al1; 
+          al2; plt1; plt2; rlt1; rlt2; decis_levl[0..28]; detl;
+          quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth;
+          qq2_code2_table[1..3]; wh_code_table[1..3]; nbh; delay_dhx[0..5];
+          delay_bph[0..5]; ah1; ah2; ph1; ph2; rh1; rh2; test_data[0..5]
+  el FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+          delay_bpl[0..5]; delay_dltx[0..5]; wl_code_table{[1]; [8]; [15]};
+          ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; nbl; al1; 
+          al2; plt1; plt2; rlt1; rlt2; decis_levl[0..28]; detl;
+          quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth;
+          qq2_code2_table[1..3]; wh_code_table[1..3]; nbh; delay_dhx[0..5];
+          delay_bph[0..5]; ah1; ah2; ph1; ph2; rh1; rh2; test_data[0..7]
+  delay_bpl[0]
+           FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+                delay_bpl[0..5]; delay_dltx[0..5];
+                wl_code_table{[1]; [8]; [15]};
+                ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; 
+                nbl; al1; al2; plt1; plt2; rlt1; rlt2; decis_levl[0..28];
+                detl; quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth;
+                qq2_code2_table[1..3]; wh_code_table[1..3]; nbh;
+                delay_dhx[0..5]; delay_bph[0..5]; ah1; ah2; ph1; ph2; 
+                rh1; rh2; test_data[0..7] (and SELF)
+           [1]
+           FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+                delay_bpl[0..5]; delay_dltx[0..5];
+                wl_code_table{[1]; [8]; [15]};
+                ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; 
+                nbl; al1; al2; plt1; plt2; rlt1; rlt2; decis_levl[0..28];
+                detl; quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth;
+                qq2_code2_table[1..3]; wh_code_table[1..3]; nbh;
+                delay_dhx[0..5]; delay_bph[0..5]; ah1; ah2; ph1; ph2; 
+                rh1; rh2; test_data[0..7] (and SELF)
+           [2]
+           FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+                delay_bpl[0..5]; delay_dltx[0..5];
+                wl_code_table{[1]; [8]; [15]};
+                ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; 
+                nbl; al1; al2; plt1; plt2; rlt1; rlt2; decis_levl[0..28];
+                detl; quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth;
+                qq2_code2_table[1..3]; wh_code_table[1..3]; nbh;
+                delay_dhx[0..5]; delay_bph[0..5]; ah1; ah2; ph1; ph2; 
+                rh1; rh2; test_data[0..7] (and SELF)
+           [3]
+           FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+                delay_bpl[0..5]; delay_dltx[0..5];
+                wl_code_table{[1]; [8]; [15]};
+                ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; 
+                nbl; al1; al2; plt1; plt2; rlt1; rlt2; decis_levl[0..28];
+                detl; quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth;
+                qq2_code2_table[1..3]; wh_code_table[1..3]; nbh;
+                delay_dhx[0..5]; delay_bph[0..5]; ah1; ah2; ph1; ph2; 
+                rh1; rh2; test_data[0..7] (and SELF)
+           [4]
+           FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+                delay_bpl[0..5]; delay_dltx[0..5];
+                wl_code_table{[1]; [8]; [15]};
+                ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; 
+                nbl; al1; al2; plt1; plt2; rlt1; rlt2; decis_levl[0..28];
+                detl; quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth;
+                qq2_code2_table[1..3]; wh_code_table[1..3]; nbh;
+                delay_dhx[0..5]; delay_bph[0..5]; ah1; ah2; ph1; ph2; 
+                rh1; rh2; test_data[0..7] (and SELF)
+           [5]
+           FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+                delay_bpl[0..5]; delay_dltx[0..5];
+                wl_code_table{[1]; [8]; [15]};
+                ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; 
+                nbl; al1; al2; plt1; plt2; rlt1; rlt2; decis_levl[0..28];
+                detl; quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth;
+                qq2_code2_table[1..3]; wh_code_table[1..3]; nbh;
+                delay_dhx[0..5]; delay_bph[0..5]; ah1; ah2; ph1; ph2; 
+                rh1; rh2; test_data[0..7] (and SELF)
+  delay_dltx[0]
+            FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+                 delay_bpl[0..5]; delay_dltx[0..5];
+                 wl_code_table{[1]; [8]; [15]};
+                 ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; 
+                 nbl; al1; al2; plt1; plt2; rlt1; rlt2; decis_levl[0..28];
+                 detl; quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth;
+                 qq2_code2_table[1..3]; wh_code_table[1..3]; nbh;
+                 delay_dhx[0..5]; delay_bph[0..5]; ah1; ah2; ph1; ph2; 
+                 rh1; rh2; test_data[0..7] (and SELF)
+            [1]
+            FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+                 delay_bpl[0..5]; delay_dltx[0..5];
+                 wl_code_table{[1]; [8]; [15]};
+                 ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; 
+                 nbl; al1; al2; plt1; plt2; rlt1; rlt2; decis_levl[0..28];
+                 detl; quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth;
+                 qq2_code2_table[1..3]; wh_code_table[1..3]; nbh;
+                 delay_dhx[0..5]; delay_bph[0..5]; ah1; ah2; ph1; ph2; 
+                 rh1; rh2; test_data[0..7] (and SELF)
+            [3] FROM delay_dltx[2]; delay_dhx[2] (and SELF)
+            [4] FROM delay_dltx[2..3]; delay_dhx[2..3] (and SELF)
+            [5] FROM delay_dltx[2..4]; delay_dhx[2..4] (and SELF)
+  nbl FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+           delay_bpl[0..5]; delay_dltx[0..5]; wl_code_table{[1]; [8]; [15]};
+           ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; nbl; 
+           al1; al2; plt1; plt2; rlt1; rlt2; decis_levl[0..28]; detl;
+           quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth;
+           qq2_code2_table[1..3]; wh_code_table[1..3]; nbh; delay_dhx[0..5];
+           delay_bph[0..5]; ah1; ah2; ph1; ph2; rh1; rh2; test_data[0..7]
+  al1 FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+           delay_bpl[0..5]; delay_dltx[0..5]; wl_code_table{[1]; [8]; [15]};
+           ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; nbl; 
+           al1; al2; plt1; plt2; rlt1; rlt2; decis_levl[0..28]; detl;
+           quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth;
+           qq2_code2_table[1..3]; wh_code_table[1..3]; nbh; delay_dhx[0..5];
+           delay_bph[0..5]; ah1; ah2; ph1; ph2; rh1; rh2; test_data[0..7]
+  al2 FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+           delay_bpl[0..5]; delay_dltx[0..5]; wl_code_table{[1]; [8]; [15]};
+           ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; nbl; 
+           al1; al2; plt1; plt2; rlt1; rlt2; decis_levl[0..28]; detl;
+           quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth;
+           qq2_code2_table[1..3]; wh_code_table[1..3]; nbh; delay_dhx[0..5];
+           delay_bph[0..5]; ah1; ah2; ph1; ph2; rh1; rh2; test_data[0..7]
+  plt FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+           delay_bpl[0..5]; delay_dltx[0..5]; wl_code_table{[1]; [8]; [15]};
+           ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; nbl; 
+           al1; al2; plt1; plt2; rlt1; rlt2; decis_levl[0..28]; detl;
+           quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth;
+           qq2_code2_table[1..3]; wh_code_table[1..3]; nbh; delay_dhx[0..5];
+           delay_bph[0..5]; ah1; ah2; ph1; ph2; rh1; rh2; test_data[0..7]
+  plt1 FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+            delay_bpl[0..5]; delay_dltx[0..5]; wl_code_table{[1]; [8]; [15]};
+            ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; nbl; 
+            al1; al2; plt1; plt2; rlt1; rlt2; decis_levl[0..28]; detl;
+            quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth;
+            qq2_code2_table[1..3]; wh_code_table[1..3]; nbh; delay_dhx[0..5];
+            delay_bph[0..5]; ah1; ah2; ph1; ph2; rh1; rh2; test_data[0..7]
+  plt2 FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+            delay_bpl[0..5]; delay_dltx[0..5]; wl_code_table{[1]; [8]; [15]};
+            ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; nbl; 
+            al1; al2; plt1; plt2; rlt1; rlt2; decis_levl[0..28]; detl;
+            quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth;
+            qq2_code2_table[1..3]; wh_code_table[1..3]; nbh; delay_dhx[0..5];
+            delay_bph[0..5]; ah1; ah2; ph1; ph2; rh1; rh2; test_data[0..5]
+  dlt FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+           delay_bpl[0..5]; delay_dltx[0..5]; wl_code_table{[1]; [8]; [15]};
+           ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; nbl; 
+           al1; al2; plt1; plt2; rlt1; rlt2; decis_levl[0..28]; detl;
+           quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth;
+           qq2_code2_table[1..3]; wh_code_table[1..3]; nbh; delay_dhx[0..5];
+           delay_bph[0..5]; ah1; ah2; ph1; ph2; rh1; rh2; test_data[0..7]
+  rlt FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+           delay_bpl[0..5]; delay_dltx[0..5]; wl_code_table{[1]; [8]; [15]};
+           ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; nbl; 
+           al1; al2; plt1; plt2; rlt1; rlt2; decis_levl[0..28]; detl;
+           quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth;
+           qq2_code2_table[1..3]; wh_code_table[1..3]; nbh; delay_dhx[0..5];
+           delay_bph[0..5]; ah1; ah2; ph1; ph2; rh1; rh2; test_data[0..7]
+  rlt1 FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+            delay_bpl[0..5]; delay_dltx[0..5]; wl_code_table{[1]; [8]; [15]};
+            ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; nbl; 
+            al1; al2; plt1; plt2; rlt1; rlt2; decis_levl[0..28]; detl;
+            quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth;
+            qq2_code2_table[1..3]; wh_code_table[1..3]; nbh; delay_dhx[0..5];
+            delay_bph[0..5]; ah1; ah2; ph1; ph2; rh1; rh2; test_data[0..7]
+  rlt2 FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+            delay_bpl[0..5]; delay_dltx[0..5]; wl_code_table{[1]; [8]; [15]};
+            ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; nbl; 
+            al1; al2; plt1; plt2; rlt1; rlt2; decis_levl[0..28]; detl;
+            quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth;
+            qq2_code2_table[1..3]; wh_code_table[1..3]; nbh; delay_dhx[0..5];
+            delay_bph[0..5]; ah1; ah2; ph1; ph2; rh1; rh2; test_data[0..5]
+  detl FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+            delay_bpl[0..5]; delay_dltx[0..5]; wl_code_table{[1]; [8]; [15]};
+            ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; nbl; 
+            al1; al2; plt1; plt2; rlt1; rlt2; decis_levl[0..28]; detl;
+            quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth;
+            qq2_code2_table[1..3]; wh_code_table[1..3]; nbh; delay_dhx[0..5];
+            delay_bph[0..5]; ah1; ah2; ph1; ph2; rh1; rh2; test_data[0..7]
+  deth FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+            delay_bpl[0..5]; delay_dltx[0..5]; wl_code_table{[1]; [8]; [15]};
+            ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; nbl; 
+            al1; al2; plt1; plt2; rlt1; rlt2; decis_levl[0..28]; detl;
+            quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth;
+            qq2_code2_table[1..3]; wh_code_table[1..3]; nbh; delay_dhx[0..5];
+            delay_bph[0..5]; ah1; ah2; ph1; ph2; rh1; rh2; test_data[0..7]
+  sh FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+          delay_bpl[0..5]; delay_dltx[0..5]; wl_code_table{[1]; [8]; [15]};
+          ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; nbl; al1; 
+          al2; plt1; plt2; rlt1; rlt2; decis_levl[0..28]; detl;
+          quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth;
+          qq2_code2_table[1..3]; wh_code_table[1..3]; nbh; delay_dhx[0..5];
+          delay_bph[0..5]; ah1; ah2; ph1; ph2; rh1; rh2; test_data[0..7]
+  eh FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+          delay_bpl[0..5]; delay_dltx[0..5]; wl_code_table{[1]; [8]; [15]};
+          ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; nbl; al1; 
+          al2; plt1; plt2; rlt1; rlt2; decis_levl[0..28]; detl;
+          quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth;
+          qq2_code2_table[1..3]; wh_code_table[1..3]; nbh; delay_dhx[0..5];
+          delay_bph[0..5]; ah1; ah2; ph1; ph2; rh1; rh2; test_data[0..7]
+  dh FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+          delay_bpl[0..5]; delay_dltx[0..5]; wl_code_table{[1]; [8]; [15]};
+          ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; nbl; al1; 
+          al2; plt1; plt2; rlt1; rlt2; decis_levl[0..28]; detl;
+          quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth;
+          qq2_code2_table[1..3]; wh_code_table[1..3]; nbh; delay_dhx[0..5];
+          delay_bph[0..5]; ah1; ah2; ph1; ph2; rh1; rh2; test_data[0..7]
+  ih FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+          delay_bpl[0..5]; delay_dltx[0..5]; wl_code_table{[1]; [8]; [15]};
+          ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; nbl; al1; 
+          al2; plt1; plt2; rlt1; rlt2; decis_levl[0..28]; detl;
+          quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth;
+          qq2_code2_table[1..3]; wh_code_table[1..3]; nbh; delay_dhx[0..5];
+          delay_bph[0..5]; ah1; ah2; ph1; ph2; rh1; rh2; test_data[0..7]
+  nbh FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+           delay_bpl[0..5]; delay_dltx[0..5]; wl_code_table{[1]; [8]; [15]};
+           ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; nbl; 
+           al1; al2; plt1; plt2; rlt1; rlt2; decis_levl[0..28]; detl;
+           quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth;
+           qq2_code2_table[1..3]; wh_code_table[1..3]; nbh; delay_dhx[0..5];
+           delay_bph[0..5]; ah1; ah2; ph1; ph2; rh1; rh2; test_data[0..7]
+  szh FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+           delay_bpl[0..5]; delay_dltx[0..5]; wl_code_table{[1]; [8]; [15]};
+           ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; nbl; 
+           al1; al2; plt1; plt2; rlt1; rlt2; decis_levl[0..28]; detl;
+           quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth;
+           qq2_code2_table[1..3]; wh_code_table[1..3]; nbh; delay_dhx[0..5];
+           delay_bph[0..5]; ah1; ah2; ph1; ph2; rh1; rh2; test_data[0..7]
+  sph FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+           delay_bpl[0..5]; delay_dltx[0..5]; wl_code_table{[1]; [8]; [15]};
+           ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; nbl; 
+           al1; al2; plt1; plt2; rlt1; rlt2; decis_levl[0..28]; detl;
+           quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth;
+           qq2_code2_table[1..3]; wh_code_table[1..3]; nbh; delay_dhx[0..5];
+           delay_bph[0..5]; ah1; ah2; ph1; ph2; rh1; rh2; test_data[0..5]
+  ph FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+          delay_bpl[0..5]; delay_dltx[0..5]; wl_code_table{[1]; [8]; [15]};
+          ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; nbl; al1; 
+          al2; plt1; plt2; rlt1; rlt2; decis_levl[0..28]; detl;
+          quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth;
+          qq2_code2_table[1..3]; wh_code_table[1..3]; nbh; delay_dhx[0..5];
+          delay_bph[0..5]; ah1; ah2; ph1; ph2; rh1; rh2; test_data[0..7]
+  yh FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+          delay_bpl[0..5]; delay_dltx[0..5]; wl_code_table{[1]; [8]; [15]};
+          ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; nbl; al1; 
+          al2; plt1; plt2; rlt1; rlt2; decis_levl[0..28]; detl;
+          quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth;
+          qq2_code2_table[1..3]; wh_code_table[1..3]; nbh; delay_dhx[0..5];
+          delay_bph[0..5]; ah1; ah2; ph1; ph2; rh1; rh2; test_data[0..7]
+  delay_dhx[0]
+           FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+                delay_bpl[0..5]; delay_dltx[0..5];
+                wl_code_table{[1]; [8]; [15]};
+                ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; 
+                nbl; al1; al2; plt1; plt2; rlt1; rlt2; decis_levl[0..28];
+                detl; quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth;
+                qq2_code2_table[1..3]; wh_code_table[1..3]; nbh;
+                delay_dhx[0..5]; delay_bph[0..5]; ah1; ah2; ph1; ph2; 
+                rh1; rh2; test_data[0..7] (and SELF)
+           [1]
+           FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+                delay_bpl[0..5]; delay_dltx[0..5];
+                wl_code_table{[1]; [8]; [15]};
+                ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; 
+                nbl; al1; al2; plt1; plt2; rlt1; rlt2; decis_levl[0..28];
+                detl; quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth;
+                qq2_code2_table[1..3]; wh_code_table[1..3]; nbh;
+                delay_dhx[0..5]; delay_bph[0..5]; ah1; ah2; ph1; ph2; 
+                rh1; rh2; test_data[0..7] (and SELF)
+           [3] FROM delay_dltx[2]; delay_dhx[2] (and SELF)
+           [4] FROM delay_dltx[2..3]; delay_dhx[2..3] (and SELF)
+           [5] FROM delay_dltx[2..4]; delay_dhx[2..4] (and SELF)
+  delay_bph[0]
+           FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+                delay_bpl[0..5]; delay_dltx[0..5];
+                wl_code_table{[1]; [8]; [15]};
+                ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; 
+                nbl; al1; al2; plt1; plt2; rlt1; rlt2; decis_levl[0..28];
+                detl; quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth;
+                qq2_code2_table[1..3]; wh_code_table[1..3]; nbh;
+                delay_dhx[0..5]; delay_bph[0..5]; ah1; ah2; ph1; ph2; 
+                rh1; rh2; test_data[0..7] (and SELF)
+           [1]
+           FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+                delay_bpl[0..5]; delay_dltx[0..5];
+                wl_code_table{[1]; [8]; [15]};
+                ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; 
+                nbl; al1; al2; plt1; plt2; rlt1; rlt2; decis_levl[0..28];
+                detl; quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth;
+                qq2_code2_table[1..3]; wh_code_table[1..3]; nbh;
+                delay_dhx[0..5]; delay_bph[0..5]; ah1; ah2; ph1; ph2; 
+                rh1; rh2; test_data[0..7] (and SELF)
+           [2]
+           FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+                delay_bpl[0..5]; delay_dltx[0..5];
+                wl_code_table{[1]; [8]; [15]};
+                ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; 
+                nbl; al1; al2; plt1; plt2; rlt1; rlt2; decis_levl[0..28];
+                detl; quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth;
+                qq2_code2_table[1..3]; wh_code_table[1..3]; nbh;
+                delay_dhx[0..5]; delay_bph[0..5]; ah1; ah2; ph1; ph2; 
+                rh1; rh2; test_data[0..7] (and SELF)
+           [3]
+           FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+                delay_bpl[0..5]; delay_dltx[0..5];
+                wl_code_table{[1]; [8]; [15]};
+                ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; 
+                nbl; al1; al2; plt1; plt2; rlt1; rlt2; decis_levl[0..28];
+                detl; quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth;
+                qq2_code2_table[1..3]; wh_code_table[1..3]; nbh;
+                delay_dhx[0..5]; delay_bph[0..5]; ah1; ah2; ph1; ph2; 
+                rh1; rh2; test_data[0..7] (and SELF)
+           [4]
+           FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+                delay_bpl[0..5]; delay_dltx[0..5];
+                wl_code_table{[1]; [8]; [15]};
+                ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; 
+                nbl; al1; al2; plt1; plt2; rlt1; rlt2; decis_levl[0..28];
+                detl; quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth;
+                qq2_code2_table[1..3]; wh_code_table[1..3]; nbh;
+                delay_dhx[0..5]; delay_bph[0..5]; ah1; ah2; ph1; ph2; 
+                rh1; rh2; test_data[0..7] (and SELF)
+           [5]
+           FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+                delay_bpl[0..5]; delay_dltx[0..5];
+                wl_code_table{[1]; [8]; [15]};
+                ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; 
+                nbl; al1; al2; plt1; plt2; rlt1; rlt2; decis_levl[0..28];
+                detl; quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth;
+                qq2_code2_table[1..3]; wh_code_table[1..3]; nbh;
+                delay_dhx[0..5]; delay_bph[0..5]; ah1; ah2; ph1; ph2; 
+                rh1; rh2; test_data[0..7] (and SELF)
+  ah1 FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+           delay_bpl[0..5]; delay_dltx[0..5]; wl_code_table{[1]; [8]; [15]};
+           ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; nbl; 
+           al1; al2; plt1; plt2; rlt1; rlt2; decis_levl[0..28]; detl;
+           quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth;
+           qq2_code2_table[1..3]; wh_code_table[1..3]; nbh; delay_dhx[0..5];
+           delay_bph[0..5]; ah1; ah2; ph1; ph2; rh1; rh2; test_data[0..7]
+  ah2 FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+           delay_bpl[0..5]; delay_dltx[0..5]; wl_code_table{[1]; [8]; [15]};
+           ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; nbl; 
+           al1; al2; plt1; plt2; rlt1; rlt2; decis_levl[0..28]; detl;
+           quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth;
+           qq2_code2_table[1..3]; wh_code_table[1..3]; nbh; delay_dhx[0..5];
+           delay_bph[0..5]; ah1; ah2; ph1; ph2; rh1; rh2; test_data[0..7]
+  ph1 FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+           delay_bpl[0..5]; delay_dltx[0..5]; wl_code_table{[1]; [8]; [15]};
+           ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; nbl; 
+           al1; al2; plt1; plt2; rlt1; rlt2; decis_levl[0..28]; detl;
+           quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth;
+           qq2_code2_table[1..3]; wh_code_table[1..3]; nbh; delay_dhx[0..5];
+           delay_bph[0..5]; ah1; ah2; ph1; ph2; rh1; rh2; test_data[0..7]
+  ph2 FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+           delay_bpl[0..5]; delay_dltx[0..5]; wl_code_table{[1]; [8]; [15]};
+           ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; nbl; 
+           al1; al2; plt1; plt2; rlt1; rlt2; decis_levl[0..28]; detl;
+           quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth;
+           qq2_code2_table[1..3]; wh_code_table[1..3]; nbh; delay_dhx[0..5];
+           delay_bph[0..5]; ah1; ah2; ph1; ph2; rh1; rh2; test_data[0..5]
+  rh1 FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+           delay_bpl[0..5]; delay_dltx[0..5]; wl_code_table{[1]; [8]; [15]};
+           ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; nbl; 
+           al1; al2; plt1; plt2; rlt1; rlt2; decis_levl[0..28]; detl;
+           quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth;
+           qq2_code2_table[1..3]; wh_code_table[1..3]; nbh; delay_dhx[0..5];
+           delay_bph[0..5]; ah1; ah2; ph1; ph2; rh1; rh2; test_data[0..7]
+  rh2 FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+           delay_bpl[0..5]; delay_dltx[0..5]; wl_code_table{[1]; [8]; [15]};
+           ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; nbl; 
+           al1; al2; plt1; plt2; rlt1; rlt2; decis_levl[0..28]; detl;
+           quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth;
+           qq2_code2_table[1..3]; wh_code_table[1..3]; nbh; delay_dhx[0..5];
+           delay_bph[0..5]; ah1; ah2; ph1; ph2; rh1; rh2; test_data[0..5]
+  compressed[0]
+            FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+                 delay_bpl[0..5]; delay_dltx[0..5]; al1; al2; rlt1; rlt2;
+                 decis_levl[0..28]; detl; quant26bt_pos[29];
+                 quant26bt_neg{[0]; [29]}; deth; delay_dhx[0..5];
+                 delay_bph[0..5]; ah1; ah2; rh1; rh2
+            [1]
+            FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+                 delay_bpl[0..5]; delay_dltx[0..5];
+                 wl_code_table{[1]; [8]; [15]};
+                 ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; 
+                 nbl; al1; al2; plt1; plt2; rlt1; rlt2; decis_levl[0..28];
+                 detl; quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth;
+                 qq2_code2_table[1..3]; wh_code_table[1..3]; nbh;
+                 delay_dhx[0..5]; delay_bph[0..5]; ah1; ah2; ph1; ph2; 
+                 rh1; rh2; test_data[0..1]
+            [2]
+            FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+                 delay_bpl[0..5]; delay_dltx[0..5];
+                 wl_code_table{[1]; [8]; [15]};
+                 ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; 
+                 nbl; al1; al2; plt1; plt2; rlt1; rlt2; decis_levl[0..28];
+                 detl; quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth;
+                 qq2_code2_table[1..3]; wh_code_table[1..3]; nbh;
+                 delay_dhx[0..5]; delay_bph[0..5]; ah1; ah2; ph1; ph2; 
+                 rh1; rh2; test_data[0..3]
+            [3]
+            FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+                 delay_bpl[0..5]; delay_dltx[0..5];
+                 wl_code_table{[1]; [8]; [15]};
+                 ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; 
+                 nbl; al1; al2; plt1; plt2; rlt1; rlt2; decis_levl[0..28];
+                 detl; quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth;
+                 qq2_code2_table[1..3]; wh_code_table[1..3]; nbh;
+                 delay_dhx[0..5]; delay_bph[0..5]; ah1; ah2; ph1; ph2; 
+                 rh1; rh2; test_data[0..5]
+            [4]
+            FROM tqmf[0..23]; h[0..23]; qq4_code4_table{[1]; [8]; [15]};
+                 delay_bpl[0..5]; delay_dltx[0..5];
+                 wl_code_table{[1]; [8]; [15]};
+                 ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; 
+                 nbl; al1; al2; plt1; plt2; rlt1; rlt2; decis_levl[0..28];
+                 detl; quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth;
+                 qq2_code2_table[1..3]; wh_code_table[1..3]; nbh;
+                 delay_dhx[0..5]; delay_bph[0..5]; ah1; ah2; ph1; ph2; 
+                 rh1; rh2; test_data[0..7]
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function abs:
+          m
+[inout] Inputs for function abs:
+          \nothing
+[inout] Out (internal) for function filtep:
+          pl; pl2; __retres
+[inout] Inputs for function filtep:
+          \nothing
+[inout] Out (internal) for function filtez:
+          bpl; dlt_0; i; zl; tmp; tmp_0; __retres; tmp_1_unroll_123;
+          tmp_2_unroll_123; tmp_1_unroll_126; tmp_2_unroll_126; tmp_1_unroll_129;
+          tmp_2_unroll_129; tmp_1_unroll_132; tmp_2_unroll_132; tmp_1_unroll_135;
+          tmp_2_unroll_135
+[inout] Inputs for function filtez:
+          delay_bpl[0..5]; delay_dltx[0..5]; delay_dhx[0..5]; delay_bph[0..5]
+[inout] Out (internal) for function logsch:
+          nbh_0; wd
+[inout] Inputs for function logsch:
+          wh_code_table[1..3]
+[inout] Out (internal) for function logscl:
+          nbl_0; wd
+[inout] Inputs for function logscl:
+          wl_code_table{[1]; [8]; [15]}
+[inout] Out (internal) for function quantl:
+          ril; mil; wd; decis
+[inout] Inputs for function quantl:
+          decis_levl[0..29]; quant26bt_pos[29]; quant26bt_neg{[0]; [29]}
+[inout] Out (internal) for function scalel:
+          wd1; wd2; wd3; __retres
+[inout] Inputs for function scalel:
+          ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}
+[inout] Out (internal) for function uppol1:
+          wd2; wd3; apl1
+[inout] Inputs for function uppol1:
+          \nothing
+[inout] Out (internal) for function uppol2:
+          wd2; wd4; apl2
+[inout] Inputs for function uppol2:
+          \nothing
+[inout] Out (internal) for function upzero:
+          delay_bpl[0..5]; delay_dltx{[0..1]; [3..5]}; delay_dhx{[0..1]; [3..5]};
+          delay_bph[0..5]; i; wd2; wd3
+[inout] Inputs for function upzero:
+          delay_bpl[0..5]; delay_dltx[0..5]; delay_dhx[0..5]; delay_bph[0..5]
+[inout] Out (internal) for function encode:
+          tqmf[0..23]; xl; xh; il; szl; spl; sl; el; delay_bpl[0..5];
+          delay_dltx{[0..1]; [3..5]}; nbl; al1; al2; plt; plt1; plt2; dlt; rlt; 
+          rlt1; rlt2; detl; deth; sh; eh; dh; ih; nbh; szh; sph; ph; yh;
+          delay_dhx{[0..1]; [3..5]}; delay_bph[0..5]; ah1; ah2; ph1; ph2; rh1; 
+          rh2; i; h_ptr; tqmf_ptr; tqmf_ptr1; xa; xb; decis; tmp; tmp_0; tmp_1;
+          tmp_2; tmp_7; tmp_8; tmp_9; tmp_12; tmp_13; __retres; tmp_3_unroll_8;
+          tmp_4_unroll_8; tmp_5_unroll_8; tmp_6_unroll_8; tmp_3_unroll_12;
+          tmp_4_unroll_12; tmp_5_unroll_12; tmp_6_unroll_12; tmp_3_unroll_16;
+          tmp_4_unroll_16; tmp_5_unroll_16; tmp_6_unroll_16; tmp_3_unroll_20;
+          tmp_4_unroll_20; tmp_5_unroll_20; tmp_6_unroll_20; tmp_3_unroll_24;
+          tmp_4_unroll_24; tmp_5_unroll_24; tmp_6_unroll_24; tmp_3_unroll_28;
+          tmp_4_unroll_28; tmp_5_unroll_28; tmp_6_unroll_28; tmp_3_unroll_32;
+          tmp_4_unroll_32; tmp_5_unroll_32; tmp_6_unroll_32; tmp_3_unroll_36;
+          tmp_4_unroll_36; tmp_5_unroll_36; tmp_6_unroll_36; tmp_3_unroll_40;
+          tmp_4_unroll_40; tmp_5_unroll_40; tmp_6_unroll_40; tmp_3_unroll_44;
+          tmp_4_unroll_44; tmp_5_unroll_44; tmp_6_unroll_44; tmp_10_unroll_51;
+          tmp_11_unroll_51; tmp_10_unroll_54; tmp_11_unroll_54; tmp_10_unroll_57;
+          tmp_11_unroll_57; tmp_10_unroll_60; tmp_11_unroll_60; tmp_10_unroll_63;
+          tmp_11_unroll_63; tmp_10_unroll_66; tmp_11_unroll_66; tmp_10_unroll_69;
+          tmp_11_unroll_69; tmp_10_unroll_72; tmp_11_unroll_72; tmp_10_unroll_75;
+          tmp_11_unroll_75; tmp_10_unroll_78; tmp_11_unroll_78; tmp_10_unroll_81;
+          tmp_11_unroll_81; tmp_10_unroll_84; tmp_11_unroll_84; tmp_10_unroll_87;
+          tmp_11_unroll_87; tmp_10_unroll_90; tmp_11_unroll_90; tmp_10_unroll_93;
+          tmp_11_unroll_93; tmp_10_unroll_96; tmp_11_unroll_96; tmp_10_unroll_99;
+          tmp_11_unroll_99; tmp_10_unroll_102; tmp_11_unroll_102; tmp_10_unroll_105;
+          tmp_11_unroll_105; tmp_10_unroll_108; tmp_11_unroll_108; tmp_10_unroll_111;
+          tmp_11_unroll_111; tmp_10_unroll_114; tmp_11_unroll_114
+[inout] Inputs for function encode:
+          tqmf[0..23]; h[0..23]; xl; xh; il; szl; spl; sl; el;
+          qq4_code4_table{[1]; [8]; [15]}; delay_bpl[0..5]; delay_dltx[0..5];
+          wl_code_table{[1]; [8]; [15]};
+          ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; nbl; al1; al2; 
+          plt; plt1; plt2; dlt; rlt; rlt1; rlt2; decis_levl[0..29]; detl;
+          quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth; sh; eh;
+          qq2_code2_table[1..3]; wh_code_table[1..3]; dh; ih; nbh; szh; sph; 
+          ph; yh; delay_dhx[0..5]; delay_bph[0..5]; ah1; ah2; ph1; ph2; rh1; 
+          rh2
+[inout] Out (internal) for function main:
+          tqmf[0..23]; xl; xh; il; szl; spl; sl; el; delay_bpl[0..5];
+          delay_dltx{[0..1]; [3..5]}; nbl; al1; al2; plt; plt1; plt2; dlt; rlt; 
+          rlt1; rlt2; detl; deth; sh; eh; dh; ih; nbh; szh; sph; ph; yh;
+          delay_dhx{[0..1]; [3..5]}; delay_bph[0..5]; ah1; ah2; ph1; ph2; rh1; 
+          rh2; compressed[0..4]; i
+[inout] Inputs for function main:
+          tqmf[0..23]; h[0..23]; xl; xh; il; szl; spl; sl; el;
+          qq4_code4_table{[1]; [8]; [15]}; delay_bpl[0..5]; delay_dltx[0..5];
+          wl_code_table{[1]; [8]; [15]};
+          ilb_table{[0]; [9..10]; [12]; [14..15]; [27]; [29]}; nbl; al1; al2; 
+          plt; plt1; plt2; dlt; rlt; rlt1; rlt2; decis_levl[0..29]; detl;
+          quant26bt_pos[29]; quant26bt_neg{[0]; [29]}; deth; sh; eh;
+          qq2_code2_table[1..3]; wh_code_table[1..3]; dh; ih; nbh; szh; sph; 
+          ph; yh; delay_dhx[0..5]; delay_bph[0..5]; ah1; ah2; ph1; ph2; rh1; 
+          rh2; test_data[0..9]

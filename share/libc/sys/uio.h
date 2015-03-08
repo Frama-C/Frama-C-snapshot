@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2014                                               */
+/*  Copyright (C) 2007-2015                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -27,7 +27,7 @@
 #include "../__fc_define_size_t.h"
 #include "../__fc_define_iovec.h"
 
-/*@ requires \valid( &iov[0..iovcnt-1] );
+/*@ requires \valid_read( &iov[0..iovcnt-1] );
 // Value cannot yet interpret the precise assigns clause; we use the weaker one as a fallback.
 //@ assigns { ((char *) iov[i].iov_base)[0..iov[i].iov_len - 1] | integer i; 0 <= i < iovcnt };
   @ assigns   ((char *) iov[0..iovcnt -1].iov_base)[0..];

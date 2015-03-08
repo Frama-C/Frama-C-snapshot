@@ -1,0 +1,56 @@
+# frama-c -wp -wp-model 'Typed (Ref)' -wp-no-let [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_hoare/dispatch_var2.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] Collecting variable usage
+[wp] 34 goals scheduled
+[wp] [Alt-Ergo] Goal typed_ref_call_global_post : Valid
+[wp] [Qed] Goal typed_ref_call_global_assign_exit : Valid
+[wp] [Qed] Goal typed_ref_call_global_assign_normal_part1 : Valid
+[wp] [Alt-Ergo] Goal typed_ref_call_global_assign_normal_part2 : Valid
+[wp] [Qed] Goal typed_ref_call_global_call_reset_pre : Valid
+[wp] [Qed] Goal typed_ref_call_global_call_load_pre : Valid
+[wp] [Alt-Ergo] Goal typed_ref_call_local_post : Valid
+[wp] [Qed] Goal typed_ref_call_local_assign_exit_part1 : Valid
+[wp] [Alt-Ergo] Goal typed_ref_call_local_assign_exit_part2 : Valid
+[wp] [Qed] Goal typed_ref_call_local_assign_normal_part1 : Valid
+[wp] [Alt-Ergo] Goal typed_ref_call_local_assign_normal_part2 : Valid
+[wp] [Alt-Ergo] Goal typed_ref_call_local_assign_normal_part3 : Valid
+[wp] [Qed] Goal typed_ref_call_local_call_reset_pre : Valid
+[wp] [Qed] Goal typed_ref_call_local_call_load_pre : Valid
+[wp] [Qed] Goal typed_ref_call_param_post : Valid
+[wp] [Qed] Goal typed_ref_call_param_assign_exit_part1 : Valid
+[wp] [Qed] Goal typed_ref_call_param_assign_exit_part2 : Valid
+[wp] [Qed] Goal typed_ref_call_param_assign_normal_part1 : Valid
+[wp] [Qed] Goal typed_ref_call_param_assign_normal_part2 : Valid
+[wp] [Qed] Goal typed_ref_call_param_assign_normal_part3 : Valid
+[wp] [Qed] Goal typed_ref_call_param_call_reset_pre : Valid
+[wp] [Qed] Goal typed_ref_call_param_call_load_pre : Valid
+[wp] [Alt-Ergo] Goal typed_ref_call_param_ref_post : Valid
+[wp] [Qed] Goal typed_ref_call_param_ref_assign_exit : Valid
+[wp] [Qed] Goal typed_ref_call_param_ref_assign_normal_part1 : Valid
+[wp] [Alt-Ergo] Goal typed_ref_call_param_ref_assign_normal_part2 : Valid
+[wp] [Qed] Goal typed_ref_call_param_ref_call_reset_pre : Valid
+[wp] [Qed] Goal typed_ref_call_param_ref_call_load_pre : Valid
+[wp] [Alt-Ergo] Goal typed_ref_incr_post : Valid
+[wp] [Qed] Goal typed_ref_incr_assign : Valid
+[wp] [Alt-Ergo] Goal typed_ref_load_post : Valid
+[wp] [Alt-Ergo] Goal typed_ref_load_assign : Valid
+[wp] [Qed] Goal typed_ref_reset_post : Valid
+[wp] [Qed] Goal typed_ref_reset_assign : Valid
+[wp] Proved goals:   34 / 34
+     Qed:            23 
+     Alt-Ergo:       11
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+reset                2     -           2       100%
+incr                 1      1 (8)      2       100%
+load                -       2 (8)      2       100%
+call_global          4      2 (11)     6       100%
+call_param           8     -           8       100%
+call_local           4      4 (12)     8       100%
+call_param_ref       4      2 (12)     6       100%
+----------------------------------------------------------

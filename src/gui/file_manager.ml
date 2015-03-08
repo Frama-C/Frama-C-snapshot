@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -38,15 +38,37 @@ let filename: string option ref = ref None
      [Some f] for saving in file [f] *)
 
 let reparse (host_window: Design.main_window_extension_points) =
-  host_window#protect ~cancelable:true
+  let old_helt = History.get_current () in
+  let old_scroll =
+    let adj = host_window#source_viewer_scroll#vadjustment in
+    (adj#value -. adj#lower ) /. (adj#upper -. adj#lower)
+  in
+  let succeeded = host_window#full_protect ~cancelable:true
     (fun () ->
       let files = Kernel.Files.get () in
       Kernel.Files.set [];
       Kernel.Files.set files;
       Ast.compute ();
       !Db.Main.play ();
-      Source_manager.clear host_window#original_source_viewer);
-  host_window#reset ()
+      Source_manager.clear host_window#original_source_viewer)
+  in
+  begin match old_helt, succeeded with
+    | None, _ -> (** no history available before reparsing *)
+      host_window#reset ()
+    | _, None -> (** the user stopped or an error occured  *)
+      host_window#reset ()
+    | Some old_helt, Some () ->
+      let new_helt = History.translate_history_elt old_helt in
+      Extlib.may History.push new_helt;
+      host_window#reset ();
+      (** The buffer is not ready yet, modification of its vadjustement
+          is unrealiable *)
+      let set () =
+        let adj = host_window#source_viewer_scroll#vadjustment in
+        adj#set_value (old_scroll *. (adj#upper-.adj#lower) +. adj#lower)
+      in
+      Gtk_helper.later set
+  end
 
 let save_in (host_window: Design.main_window_extension_points) parent name =
   try

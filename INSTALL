@@ -24,17 +24,6 @@
 			      AUTOMATIC INSTALLATION
 ===============================================================================
 
---------
-Mac OS X
---------
-
-Download the auto-installer from
-	 http://frama-c.com/download.html
-
-Then just run it!
-
-Note: this auto-installer is **not** provided for each Frama-C version.
-
 ----------------------------------------------------
 Debian >= Squeeze 6.0 and Ubuntu >= Lucid Lynx 10.04
 ----------------------------------------------------
@@ -47,6 +36,8 @@ a Frama-C package is provided:
 or, if you don't want the Gtk-based GUI:
   sudo apt-get install frama-c-base
 
+It might be **not** up-to-date with the latest Frama-C release.
+
 ------------
 Fedora >= 13
 ------------
@@ -54,6 +45,8 @@ Fedora >= 13
 If you are using Fedora >= 13 then a Frama-C package is provided:
 
   yum install frama-c
+
+It might be **not** up-to-date with the latest Frama-C release.
 
 ----
 Opam
@@ -69,13 +62,40 @@ Note however that you may need to install Gtk, GtkSourceView and GnomeCanvas
 separately. These are C libraries with OCaml bindings that are used by the
 GUI. Opam manages the binding but not the external libraries yet.
 
-----
-Wodi
-----
+-----------------
+Wodi (Windows OS)
+-----------------
 
 Wodi (http://wodi.forge.ocamlcore.org/) is a package manager for OCaml libraries
 and applications that specifically target the Windows platform. It features
 a GUI, so that you just have to select the Frama-C package from there.
+
+--------
+Mac OS X
+--------
+
+OPAM works perfectly on Mac OS via Homebrew.
+Recommended installation:
+
+# General Mac-OS Tools for OCaml:
+> xcode-select --install 
+> open http://brew.sh
+> brew install git autoconf meld opam 
+
+# Graphical User Interface:
+> brew install gtk+ --with-jasper
+> brew install gtksourceview libgnomecanvas graphviz
+> opam install lablgtk ocamlgraph 
+
+# Recommended for Frama-C:
+> brew install gmp
+> opam install zarith
+
+# Necessary for Frama-C/WP:
+> opam install alt-ergo
+
+# Also recommended for Frama-C/WP:
+> opam install altgr-ergo coq coqide why3
 
 ===============================================================================
 The remainder of these installation instructions is for building Frama-C from
@@ -108,17 +128,18 @@ See below for more detailed and specific instructions.
 ===============================================================================
 
 - GNU make version >= 3.81
-- Objective Caml >= 3.12.1;
+- Objective Caml >= 3.12.1 (except 4.02.0);
 - a C compiler with standard C and POSIX headers and libraries
 
 The Frama-C GUI also requires:
 - Gtk (>= 2.4)
 - GtkSourceView 2.x
 - GnomeCanvas 2.x
-- LablGtk >= 2.14.0
+- LablGtk >= 2.14.0 (and >= 2.18.2 if you use OCaml >= 4.02.1)
 
-If OcamlGraph 1.8.5 [1] is already installed, then it will be used by Frama-C.
-Otherwise the distributed local copy (directory ocamlgraph) will be used.
+If OcamlGraph 1.8.5 or 1.8.6 [1] is already installed, then it will be used by 
+Frama-C. Otherwise the distributed local copy (file ocamlgraph.tar.gz) will be 
+used.
 
 If Zarith [2] is installed, it will be used by Frama-C. Otherwise another 
 equivalent less efficient library will be use.
@@ -133,10 +154,11 @@ Consult their specific documentations for details.
 Ubuntu >= Lucid Lynx 10.04
 --------------------------
 
-If you are using Ubuntu >= Lucid Lynx 10.04 then an optimal list of packages is
-installed by:
+If you are using Ubuntu >= Precise Pangolin 12.04 then an optimal list of 
+packages is installed by:
 
 sudo apt-get install ocaml ocaml-native-compilers graphviz \
+             libzarith-ocaml-dev \
      	     liblablgtksourceview2-ocaml-dev liblablgtk2-gnome-ocaml-dev
 
 -------------------
@@ -203,7 +225,7 @@ Executables: (usually in /usr/local/bin)
 - frama-c-gui	    if available
 - frama-c.byte      bytecode version of frama-c
 - frama-c-gui.byte  bytecode version of frama-c-gui, if available
-- ptests.byte       testing tools for Frama-c
+- ptests.opt        testing tools for Frama-c
 - frama-c.toplevel  if 'make top' previously done
 
 Shared files: (usually in /usr/local/share/frama-c and subdirectories)

@@ -1,0 +1,36 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_typed/user_injector.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+tests/wp_typed/user_injector.i:61:[wp] warning: Validity of unsized array not implemented yet (considered valid).
+tests/wp_typed/user_injector.i:60:[wp] warning: Validity of unsized array not implemented yet (considered valid).
+[wp] 20 goals scheduled
+[wp] [Qed] Goal typed_job_post_SEQ : Valid
+[wp] [Qed] Goal typed_job_post_ID1 : Valid
+[wp] [Qed] Goal typed_job_post_ID2 : Valid
+[wp] [Qed] Goal typed_job_post_R1 : Valid
+[wp] [Qed] Goal typed_job_post_R2 : Valid
+[wp] [Qed] Goal typed_job_post_R0 : Valid
+[wp] [Qed] Goal typed_job_post_E1 : Valid
+[wp] [Qed] Goal typed_job_post_E2 : Valid
+[wp] [Qed] Goal typed_job_assign_exit_part1 : Valid
+[wp] [Qed] Goal typed_job_assign_exit_part2 : Valid
+[wp] [Qed] Goal typed_job_assign_exit_part3 : Valid
+[wp] [Qed] Goal typed_job_assign_normal_part1 : Valid
+[wp] [Qed] Goal typed_job_assign_normal_part2 : Valid
+[wp] [Qed] Goal typed_job_assign_normal_part3 : Valid
+[wp] [Qed] Goal typed_job_assign_normal_part4 : Valid
+[wp] [Qed] Goal typed_job_assign_normal_part5 : Valid
+[wp] [Qed] Goal typed_job_assign_normal_part6 : Valid
+[wp] [Qed] Goal typed_job_assign_normal_part7 : Valid
+[wp] [Qed] Goal typed_job_assign_normal_part8 : Valid
+[wp] [Qed] Goal typed_job_assign_normal_part9 : Valid
+[wp] Proved goals:   20 / 20
+     Qed:            20
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+job                 20     -          20       100%
+----------------------------------------------------------

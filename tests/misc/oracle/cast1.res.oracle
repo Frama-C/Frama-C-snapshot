@@ -1,0 +1,39 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/cast1.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  si ∈ {0}
+  i ∈ {0}
+  S[0] ∈ {1}
+   [1..4] ∈ {0}
+  I[0] ∈ {1}
+   [1..4] ∈ {0}
+tests/misc/cast1.i:7:[value] entering loop for the first time
+tests/misc/cast1.i:8:[value] entering loop for the first time
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  si ∈ {2}
+  i ∈ {2}
+  S[0] ∈ {1; 2}
+   [1..4] ∈ {0}
+  I[0] ∈ {1; 2}
+   [1] ∈ {0; 2}
+   [2..4] ∈ {0}
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  si FROM \nothing
+  i FROM \nothing
+  S[0] FROM i (and SELF)
+  I[0..1] FROM \nothing (and SELF)
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          si; i; S[0]; I[0..1]
+[inout] Inputs for function main:
+          si; i

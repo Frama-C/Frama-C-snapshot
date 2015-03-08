@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Aorai plug-in of Frama-C.                        *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -653,11 +653,10 @@ struct
   let find_macro _ = raise Not_found
   let find_var _ = raise Not_found
   let find_enum_tag _ = raise Not_found
-  let find_comp_type ~kind:_ _ = raise Not_found
   let find_comp_field info s =
     let field = Cil.getCompField info s in
     Field(field,NoOffset)
-  let find_type _ = raise Not_found
+  let find_type _ _ = raise Not_found
   let find_label _ = raise Not_found
 
   include Logic_env

@@ -63,11 +63,23 @@ void test_ull () {
   ull = ull - 1L;
 }
 
+float  f0, f1, f2, f3;
+double d0, d1, d2, d3;
+void test_float_double (void) {
+  d1 = d0;
+  d2 = d1 + d0;
+  d3 = d2 + 1.0;
+  f1 = f0;
+  f2 = f1 + f0;
+  f3 = f2 + 1.0;
+}
+
 void main(int a) {
   test_ull ();
   test_struct () ;
   test_struct_ptr () ;
   test_tab (13) ;
+  test_float_double ();
 
   int b = init(5);  // TODO: init(5); b = 0;
   z = add3 (a, 0, 0);

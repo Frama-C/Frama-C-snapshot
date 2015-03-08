@@ -1,0 +1,27 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp/wp_behav.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+tests/wp/wp_behav.c:172:[wp] warning: Ignored specification 'for b1' (generalize to all behavior)
+[wp] warning: Missing RTE guards
+tests/wp/wp_behav.c:69:[wp] warning: Missing assigns clause (assigns 'everything' instead)
+[wp] 8 goals scheduled
+[wp] [Alt-Ergo] Goal typed_f_post_qed_ko : Unknown
+[wp] [Alt-Ergo] Goal typed_f_x1_post_qed_ko : Unknown
+[wp] [Alt-Ergo] Goal typed_f_x2_post_qed_ko : Unknown
+[wp] [Alt-Ergo] Goal typed_min_bx_post_qed_ko : Unknown
+[wp] [Alt-Ergo] Goal typed_min_by_post_qed_ko : Unknown
+[wp] [Alt-Ergo] Goal typed_stmt_contract_ko_post_qed_ko : Unknown
+[wp] [Alt-Ergo] Goal typed_stmt_contract_ko_without_asgn_post_qed_ko : Unknown
+[wp] [Alt-Ergo] Goal typed_stmt_contract_assigns_ko_post_qed_ko : Unknown
+[wp] Proved goals:    0 / 8
+     Alt-Ergo:        0  (unknown: 8)
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+f                   -      -           3       0.0%
+min                 -      -           2       0.0%
+stmt_contract       -      -           2       0.0%
+stmt_contract_assigns  -    -          1       0.0%
+----------------------------------------------------------

@@ -1,6 +1,8 @@
 /* run.config
-   STDOPT: +"-slevel-function init:3,main1:3,f2:4,main2:4,f4:3,main5:3" +"-val-split-return-function f2:0,f3:-2,f4:4,f5:-2" +"-then -report"
-   STDOPT: +"-slevel 6" +"-val-split-return-auto" +"-then -report"
+   STDOPT: +"-slevel-function init:3,main1:3,f2:4,main2:4,f4:3,main5:3 -val-split-return-function f2:0,f3:-2:-4,f4:4,f5:-2,NON_EXISTING:4 -permissive -then -report"
+   STDOPT: +"-slevel 6 -val-split-return-auto -val-split-return-function f7:0:3 -then -report"
+   COMMENT: below command must fail, as -permissive is not set
+   STDOPT: +"-slevel-function NON_EXISTING:4"
  */
 /*@ assigns \result \from \nothing;
   assigns *p \from \nothing;
@@ -130,6 +132,23 @@ void main6() {
   }
 }
 
+volatile v;
+int v7;
+
+int* f7() {
+  if (v) { v7 = 0; return 0; }
+  else { v7 = 1; return &v; }
+}
+
+void main7() {
+  int* p = f7();
+  if (p == (void*)0) {
+
+  } else {
+  }
+  Frama_C_show_each_NULL(p, v7);
+}
+
 void main() {
   main1();
   main2();
@@ -137,4 +156,5 @@ void main() {
   main4(); // not enough slevel in main4. No warning
   main5(); // no need for slevel, because we do not fuse on return instr
   main6();
+  main7();
 }

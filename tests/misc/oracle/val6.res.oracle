@@ -1,0 +1,43 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/val6.i (no preprocessing)
+[value] Analyzing a complete application starting at f
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  NULL[rbits 8 to 8388607] ∈ [--..--]
+  c ∈ {0}
+  a ∈ {0}
+  b ∈ {0}
+  y ∈ {0}
+  x ∈ {0}
+[value] Recording results for f
+[value] done for function f
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function f:
+  NULL[rbits 8 to 143] ∈ [--..--]
+      [rbits 144 to 175] ∈ {{ (? *)&b }}
+      [rbits 176 to 8388607] ∈ [--..--]
+  c ∈ {{ &b }}
+  a ∈ {98}
+  b[bits 0 to 7] ∈ {97}
+   [bits 8 to 31]# ∈ {{ (? *)&a }}%32, bits 8 to 31 
+  y ∈ {{ &b }}
+  x ∈ {{ (int)&b }}
+  __retres ∈ {0}
+[from] Computing for function f
+[from] Done for function f
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function f:
+  NULL[18..21] FROM \nothing
+  c FROM \nothing
+  a FROM \nothing
+  b FROM \nothing
+  y FROM \nothing
+  x FROM \nothing
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function f:
+          NULL[18..21]; c; a; b; y; x; __retres
+[inout] Inputs for function f:
+          NULL[18..21]; c; x

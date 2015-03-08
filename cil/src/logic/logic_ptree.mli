@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -131,7 +131,10 @@ and lexpr_node =
   | PLvalid_read of string option * lexpr (** pointer is valid for reading. *)
   | PLallocable of string option * lexpr (** pointer is valid for malloc. *)
   | PLfreeable of string option * lexpr (** pointer is valid for free. *)
-  | PLinitialized of string option * lexpr (** l-value is guaranteed to be initalized *)
+  | PLinitialized of string option * lexpr (** pointer is guaranteed to be
+                                               initialized *)
+  | PLdangling of string option * lexpr (** pointer is guaranteed to be
+                                            dangling  *)
   | PLfresh of (string * string) option * lexpr * lexpr (** expression points to a newly allocated block. *)
   | PLseparated of lexpr list
       (** separation predicate. *)

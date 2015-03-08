@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -34,20 +34,20 @@ type annot_kind =
   | Agoal (* annotation is a goal,
              but not an hypothesis (see Aboth): A /\ ...*)
   | Aboth of bool 
-      (* annotation can be used as both hypothesis and goal :
-	 - with true : considerer as both : A /\ A=>..
-	 - with false : we just want to use it as hyp right now. *)
+  (* annotation can be used as both hypothesis and goal :
+     	 - with true : considerer as both : A /\ A=>..
+     	 - with false : we just want to use it as hyp right now. *)
   | AcutB of bool 
-      (* annotation is use as a cut :
-	 - with true (A is also a goal) -> A (+ proof obligation A => ...)
-	 - with false (A is an hyp only) -> True (+ proof obligation A => ...) *)
+  (* annotation is use as a cut :
+     	 - with true (A is also a goal) -> A (+ proof obligation A => ...)
+     	 - with false (A is an hyp only) -> True (+ proof obligation A => ...) *)
   | AcallHyp of kernel_function
-      (* annotation is a called function property to consider as an Hyp.
-       * The pre are not here but in AcallPre since they can also
-       * be considered as goals. *)
+  (* annotation is a called function property to consider as an Hyp.
+   * The pre are not here but in AcallPre since they can also
+   * be considered as goals. *)
   | AcallPre of bool * kernel_function
-      (* annotation is a called function precondition :
-         to be considered as hyp, and goal if bool=true *)
+  (* annotation is a called function precondition :
+     to be considered as hyp, and goal if bool=true *)
 
 (* -------------------------------------------------------------------------- *)
 (* --- Annotations for one program point.                                 --- *)
@@ -58,7 +58,7 @@ module ForCall = Kernel_function.Map
 (** Some elements can be used as both Hyp and Goal : because of the selection
  * mecanism, we need to add a boolean [as_goal] to tell if the element is to be
  * considered as a goal. If [false], the element can still be used as hypthesis.
- *)
+*)
 type annots = {
   p_hyp : WpPropId.pred_info list;
   p_goal : WpPropId.pred_info list;
@@ -94,24 +94,24 @@ let add_prop acc kind labels id p =
       let p = NormAtLabels.preproc_annot labels p in
       let _ =
         debug "take as %s (@[%a:@ %a@])@." debug_txt
-	  WpPropId.pretty id Printer.pp_predicate_named p
+          WpPropId.pretty id Printer.pp_predicate_named p
       in Some (WpPropId.mk_pred_info id p)
     with e -> NormAtLabels.catch_label_error e 
-      (WpPropId.get_propid id) "annotation"; None
+                (WpPropId.get_propid id) "annotation"; None
   in
   let add_hyp l = match get_p "hyp" with None -> l | Some p -> p::l in
   let add_goal l =
     (* if goal_to_select config id
-    then *) match get_p "goal" with None -> l
-      | Some p -> ( (* has_prop_goal := true; *) p::l )
-        (* else l *)
+       then *) match get_p "goal" with None -> l
+                                  | Some p -> ( (* has_prop_goal := true; *) p::l )
+                                  (* else l *)
   in
   let add_both goal l =
     match get_p ("both goal=" ^ if goal then "true" else "false") with 
-      | None -> l
-      | Some p ->
-            (* if goal then has_prop_goal := true;*)
-            (goal, p)::l
+    | None -> l
+    | Some p ->
+        (* if goal then has_prop_goal := true;*)
+        (goal, p)::l
   in
   let add_hyp_call fct calls =
     let l = try ForCall.find fct calls with Not_found -> [] in
@@ -121,20 +121,20 @@ let add_prop acc kind labels id p =
     ForCall.add fct (add_both goal l) calls in
   let info = acc.info in
   let goal, info = match kind with
-      | Ahyp -> 
-          false, { info with p_hyp = add_hyp info.p_hyp }
-      | Agoal -> 
-          true, { info with p_goal = add_goal info.p_goal }
-      | Aboth goal ->
-          goal, { info with p_both = add_both goal info.p_both }
-      | AcutB goal ->
-          goal, { info with p_cut = add_both goal info.p_cut }
-      | AcallHyp fct -> 
-          false, { info with call_hyp = add_hyp_call fct info.call_hyp }
-      | AcallPre (goal,fct) ->
-          goal, { info with call_pre = add_both_call fct goal info.call_pre }
+    | Ahyp -> 
+        false, { info with p_hyp = add_hyp info.p_hyp }
+    | Agoal -> 
+        true, { info with p_goal = add_goal info.p_goal }
+    | Aboth goal ->
+        goal, { info with p_both = add_both goal info.p_both }
+    | AcutB goal ->
+        goal, { info with p_cut = add_both goal info.p_cut }
+    | AcallHyp fct -> 
+        false, { info with call_hyp = add_hyp_call fct info.call_hyp }
+    | AcallPre (goal,fct) ->
+        goal, { info with call_pre = add_both_call fct goal info.call_pre }
   in let acc = { acc with info = info } in
-    if goal then { acc with has_prop_goal = true} else acc
+  if goal then { acc with has_prop_goal = true} else acc
 
 (* -------------------------------------------------------------------------- *)
 (* adding some specific properties. *)
@@ -144,17 +144,17 @@ let add_prop_fct_pre acc kind kf bhv ~assumes pre =
   let labels = NormAtLabels.labels_fct_pre in
   let p = Logic_const.pred_of_id_pred pre in
   let p = match assumes with None -> p
-    | Some assumes -> Logic_const.pimplies (assumes, p)
+                           | Some assumes -> Logic_const.pimplies (assumes, p)
   in
   let p = Logic_const.pat (p, Logic_const.pre_label) in
-    (* TODO: why this at ??? [2011-07-08-Anne] *)
-    add_prop acc kind labels id p
+  (* TODO: why this at ??? [2011-07-08-Anne] *)
+  add_prop acc kind labels id p
 
 let add_prop_fct_post acc kind kf  bhv tkind post =
   let id = WpPropId.mk_fct_post_id kf bhv (tkind, post) in
   let labels = NormAtLabels.labels_fct_post in
   let p = Logic_const.pred_of_id_pred post in
-    add_prop acc kind labels id p
+  add_prop acc kind labels id p
 
 let add_prop_fct_bhv_pre acc kind kf bhv ~impl_assumes =
   let assumes = 
@@ -162,23 +162,23 @@ let add_prop_fct_bhv_pre acc kind kf bhv ~impl_assumes =
   in 
   let add acc p = add_prop_fct_pre acc kind kf bhv ~assumes p in
   let acc = List.fold_left add acc bhv.b_requires in
-    if impl_assumes then acc
-    else List.fold_left add acc bhv.b_assumes
+  if impl_assumes then acc
+  else List.fold_left add acc bhv.b_assumes
 
 let add_prop_stmt_pre acc kind kf s bhv ~assumes pre =
   let id = WpPropId.mk_pre_id kf (Kstmt s) bhv pre in
   let labels = NormAtLabels.labels_stmt_pre s in
   let p = Logic_const.pred_of_id_pred pre in
   let p = match assumes with None -> p
-    | Some assumes -> Logic_const.pimplies (assumes, p)
+                           | Some assumes -> Logic_const.pimplies (assumes, p)
   in add_prop acc kind labels id p
 
 let add_prop_stmt_bhv_requires acc kind kf s bhv ~with_assumes =
   let assumes = 
     if with_assumes then Some (Ast_info.behavior_assumes bhv) else None
   in let add acc pre =
-      add_prop_stmt_pre acc kind kf s bhv ~assumes pre
-    in List.fold_left add acc bhv.b_requires
+    add_prop_stmt_pre acc kind kf s bhv ~assumes pre
+  in List.fold_left add acc bhv.b_requires
 
 (** Process the stmt spec precondition as an hypothesis for external properties.
  * Add [assumes => requires] for all the behaviors. *)
@@ -192,19 +192,19 @@ let add_prop_stmt_post acc kind kf s bhv tkind l_post ~assumes post =
   let labels = NormAtLabels.labels_stmt_post s l_post in
   let p = Logic_const.pred_of_id_pred post in
   let p = match assumes with None -> p
-    | Some assumes ->
-        let assumes = Logic_const.pold assumes in
-          (* can use old because label normalisation will be called *)
-          Logic_const.pimplies (assumes, p)
+                           | Some assumes ->
+                               let assumes = Logic_const.pold assumes in
+                               (* can use old because label normalisation will be called *)
+                               Logic_const.pimplies (assumes, p)
   in add_prop acc kind labels id p
 
 let add_prop_call_pre acc kind id ~assumes pre =
   (* TODO: we don't build the id here yet because of strange things in wpAnnot.
-  *        Find out how to deal with it. [2011-07-13-Anne] *)
+   *        Find out how to deal with it. [2011-07-13-Anne] *)
   let labels = NormAtLabels.labels_fct_pre in
   let p = Logic_const.pred_of_id_pred pre in
   let p = Logic_const.pimplies (assumes, p) in
-    add_prop acc kind labels id p
+  add_prop acc kind labels id p
 
 let add_prop_call_post acc kind called_kf bhv tkind ~assumes post =
   let id = WpPropId.mk_fct_post_id called_kf bhv (tkind, post) in
@@ -212,32 +212,32 @@ let add_prop_call_post acc kind called_kf bhv tkind ~assumes post =
   let p = Logic_const.pred_of_id_pred post in
   let assumes = Logic_const.pold assumes in
   let p = Logic_const.pimplies (assumes, p) in
-    add_prop acc kind labels id p
+  add_prop acc kind labels id p
 
 let add_prop_assert acc kind kf s ca p =
   let id = WpPropId.mk_assert_id kf s ca in
   let labels = NormAtLabels.labels_assert_before s in
-    add_prop acc kind labels id p
+  add_prop acc kind labels id p
 
 let add_prop_loop_inv acc kind s id p =
   let labels = NormAtLabels.labels_loop_inv s in
-    add_prop acc kind labels id p
+  add_prop acc kind labels id p
 
 (** apply [f_normal] on the [Normal] postconditions,
-* [f_exits] on the [Exits] postconditions, and warn on the others. *)
+ * [f_exits] on the [Exits] postconditions, and warn on the others. *)
 let fold_bhv_post_cond ~warn f_normal f_exits acc b =
   let add (p_acc, e_acc) ((termination_kind, pe) as e) =
     match termination_kind with
-      | Normal -> f_normal p_acc pe, e_acc
-      | Exits -> p_acc, f_exits e_acc pe
-      | (Breaks|Continues|Returns) -> (* TODO *)
-          begin
-            if warn then
-              Wp_parameters.warning
-                "Abrupt statement termination property ignored:@, %a"
-                Printer.pp_post_cond e;
-            p_acc, e_acc
-          end
+    | Normal -> f_normal p_acc pe, e_acc
+    | Exits -> p_acc, f_exits e_acc pe
+    | (Breaks|Continues|Returns) -> (* TODO *)
+        begin
+          if warn then
+            Wp_parameters.warning
+              "Abrupt statement termination property ignored:@, %a"
+              Printer.pp_post_cond e;
+          p_acc, e_acc
+        end
   in List.fold_left add acc b.b_post_cond
 
 (* -------------------------------------------------------------------------- *)
@@ -258,41 +258,41 @@ let add_assigns acc kind id a_desc =
     | Agoal -> true, {info with a_goal = take_assigns ()}
     | _ -> Wp_parameters.fatal "Assigns prop can only be Hyp or Goal"
   in let acc = { acc with info = info } in
-    if goal then { acc with has_asgn_goal = true} else acc
+  if goal then { acc with has_asgn_goal = true} else acc
 
 let add_assigns_any acc kind asgn =
   let take_call fct asgn info =
     { info with call_asgn = ForCall.add fct asgn info.call_asgn } in
   match kind with
-    | Ahyp ->  {acc with info = { acc.info with a_hyp = asgn}}
-    | AcallHyp fct -> {acc with info = take_call fct asgn acc.info}
-    | _ -> Wp_parameters.fatal "Assigns Any prop can only be Hyp"
-	
+  | Ahyp ->  {acc with info = { acc.info with a_hyp = asgn}}
+  | AcallHyp fct -> {acc with info = take_call fct asgn acc.info}
+  | _ -> Wp_parameters.fatal "Assigns Any prop can only be Hyp"
+
 let assigns_upper_bound spec =
   let bhvs = spec.spec_behavior in
   let upper a b =
     match a, b.b_assigns with
-        | None, Writes a when Cil.is_default_behavior b ->
-          Some (b,a) (* default behavior always applies. *)
-        | None, _ -> None (* WritesAny U X -> WritesAny *)
-        | Some (b,_), _ when Cil.is_default_behavior b ->
-          a (* default behavior prevails over other behaviors. *)
-        | Some _, WritesAny ->
-          None (* No default behavior and one behavior assigns everything. *)
-        | Some(b,a1), Writes a2 -> Some (b,a1 @ a2)
-          (* take the whole list of assigns. *)
+    | None, Writes a when Cil.is_default_behavior b ->
+        Some (b,a) (* default behavior always applies. *)
+    | None, _ -> None (* WritesAny U X -> WritesAny *)
+    | Some (b,_), _ when Cil.is_default_behavior b ->
+        a (* default behavior prevails over other behaviors. *)
+    | Some _, WritesAny ->
+        None (* No default behavior and one behavior assigns everything. *)
+    | Some(b,a1), Writes a2 -> Some (b,a1 @ a2)
+    (* take the whole list of assigns. *)
   in
   match bhvs with
-    | [] -> None
-    | bhv::bhvs ->
+  | [] -> None
+  | bhv::bhvs ->
       (* [VP 2011-02-04] Note that if there is no default and each
          behavior has a proper assigns clause we put dependencies only
          to the assigns of a more or less randomly selected behavior,
          but the datatypes above can't handle anything better.  *)
       let acc =
         match bhv.b_assigns with
-            WritesAny -> None
-          | Writes a -> Some(bhv,a)
+          WritesAny -> None
+        | Writes a -> Some(bhv,a)
       in
       List.fold_left upper acc bhvs
 
@@ -304,49 +304,49 @@ let assigns_upper_bound spec =
    [AP 2011-03-11] I think that the merge of all assigns properties
    is intended because we are using it as an hypothesis to skip the statement
    or the function call.
- *)
+*)
 let add_stmt_spec_assigns_hyp acc kf s l_post spec =
   match assigns_upper_bound spec with
-    | None ->
-        add_assigns_any acc Ahyp
-          (WpPropId.mk_stmt_any_assigns_info s)
-    | Some(bhv, assigns) ->
-        let id = WpPropId.mk_stmt_assigns_id kf s bhv assigns in
-        match id with
-          | None -> add_assigns_any acc Ahyp
-              (WpPropId.mk_stmt_any_assigns_info s)
-          | Some id ->
-              let labels = NormAtLabels.labels_stmt_assigns s l_post in
-              let assigns = NormAtLabels.preproc_assigns labels assigns in
-              let a_desc = WpPropId.mk_stmt_assigns_desc s assigns in
-              add_assigns acc Ahyp id a_desc
-		
+  | None ->
+      add_assigns_any acc Ahyp
+        (WpPropId.mk_stmt_any_assigns_info s)
+  | Some(bhv, assigns) ->
+      let id = WpPropId.mk_stmt_assigns_id kf s bhv assigns in
+      match id with
+      | None -> add_assigns_any acc Ahyp
+                  (WpPropId.mk_stmt_any_assigns_info s)
+      | Some id ->
+          let labels = NormAtLabels.labels_stmt_assigns s l_post in
+          let assigns = NormAtLabels.preproc_assigns labels assigns in
+          let a_desc = WpPropId.mk_stmt_assigns_desc s assigns in
+          add_assigns acc Ahyp id a_desc
+
 let add_call_assigns_any acc s =
   let asgn = WpPropId.mk_stmt_any_assigns_info s in
   {acc with info = { acc.info with a_call = asgn }}
 
 let add_call_assigns_hyp acc kf_caller s ~called_kf l_post spec_opt =
   match spec_opt with
-    | None ->
-        let pid = WpPropId.mk_stmt_any_assigns_info s in
-        add_assigns_any acc (AcallHyp called_kf) pid
-    | Some spec ->
-	match assigns_upper_bound spec with
+  | None ->
+      let pid = WpPropId.mk_stmt_any_assigns_info s in
+      add_assigns_any acc (AcallHyp called_kf) pid
+  | Some spec ->
+      match assigns_upper_bound spec with
+      | None ->
+          let asgn = WpPropId.mk_stmt_any_assigns_info s in
+          add_assigns_any acc (AcallHyp called_kf) asgn
+      | Some(bhv, assigns) ->
+          let id = WpPropId.mk_stmt_assigns_id kf_caller s bhv assigns in
+          match id with
           | None ->
               let asgn = WpPropId.mk_stmt_any_assigns_info s in
               add_assigns_any acc (AcallHyp called_kf) asgn
-          | Some(bhv, assigns) ->
-              let id = WpPropId.mk_stmt_assigns_id kf_caller s bhv assigns in
-              match id with
-                | None ->
-                    let asgn = WpPropId.mk_stmt_any_assigns_info s in
-                    add_assigns_any acc (AcallHyp called_kf) asgn
-                | Some pid ->
-                    let labels = NormAtLabels.labels_stmt_assigns s l_post in
-                    let assigns = NormAtLabels.preproc_assigns labels assigns in
-                    let a_desc = WpPropId.mk_stmt_assigns_desc s assigns in
-                    add_assigns acc (AcallHyp called_kf) pid a_desc
-		      
+          | Some pid ->
+              let labels = NormAtLabels.labels_stmt_assigns s l_post in
+              let assigns = NormAtLabels.preproc_assigns labels assigns in
+              let a_desc = WpPropId.mk_stmt_assigns_desc s assigns in
+              add_assigns acc (AcallHyp called_kf) pid a_desc
+
 (* [VP 2011-01-28] following old behavior, not sure it is correct:
    why should we give to add_assigns the assigns with unnormalized labels?
    [AP 2011-03-11] to answer VP question, the source assigns are only used to
@@ -356,18 +356,18 @@ let add_call_assigns_hyp acc kf_caller s ~called_kf l_post spec_opt =
 let add_loop_assigns_hyp acc kf s asgn_opt = match asgn_opt with
   | None ->
       let asgn = WpPropId.mk_loop_any_assigns_info s in
-        add_assigns_any acc Ahyp asgn
+      add_assigns_any acc Ahyp asgn
   | Some (ca, assigns) ->
       let id = WpPropId.mk_loop_assigns_id kf s ca assigns in
       match id with
-          | None ->
-            let asgn = WpPropId.mk_loop_any_assigns_info s in
-            add_assigns_any acc Ahyp asgn
-          | Some id ->
-            let labels = NormAtLabels.labels_loop_assigns s in
-            let assigns' = NormAtLabels.preproc_assigns labels assigns in
-            let a_desc = WpPropId.mk_loop_assigns_desc s assigns' in
-            add_assigns acc Ahyp id a_desc
+      | None ->
+          let asgn = WpPropId.mk_loop_any_assigns_info s in
+          add_assigns_any acc Ahyp asgn
+      | Some id ->
+          let labels = NormAtLabels.labels_loop_assigns s in
+          let assigns' = NormAtLabels.preproc_assigns labels assigns in
+          let a_desc = WpPropId.mk_loop_assigns_desc s assigns' in
+          add_assigns acc Ahyp id a_desc
 
 let add_fct_bhv_assigns_hyp acc kf tkind b = match b.b_assigns with
   | WritesAny ->
@@ -376,14 +376,14 @@ let add_fct_bhv_assigns_hyp acc kf tkind b = match b.b_assigns with
   | Writes assigns ->
       let id = WpPropId.mk_fct_assigns_id kf b tkind assigns in
       match id with
-          | None ->
-            let id = WpPropId.mk_kf_any_assigns_info () in
-            add_assigns_any acc Ahyp id
-          | Some id ->     
-            let labels = NormAtLabels.labels_fct_assigns in
-            let assigns' = NormAtLabels.preproc_assigns labels assigns in
-            let a_desc = WpPropId.mk_kf_assigns_desc assigns' in
-            add_assigns acc Ahyp id a_desc
+      | None ->
+          let id = WpPropId.mk_kf_any_assigns_info () in
+          add_assigns_any acc Ahyp id
+      | Some id ->     
+          let labels = NormAtLabels.labels_fct_assigns in
+          let assigns' = NormAtLabels.preproc_assigns labels assigns in
+          let a_desc = WpPropId.mk_kf_assigns_desc assigns' in
+          add_assigns acc Ahyp id a_desc
 
 (* --- Get annotations --- *)
 
@@ -429,28 +429,28 @@ let pp_annots fmt acc =
   let pp_pred_list k l = List.iter (fun p -> pp_pred k true p) l in
   let pp_pred_b_list k l = List.iter (fun (b, p) -> pp_pred k b p) l in
   begin
-     pp_pred_list "H" acc.p_hyp;
-     pp_pred_list "G" acc.p_goal;
-     pp_pred_b_list "H+G" acc.p_both;
-     pp_pred_b_list "C" acc.p_cut;
-     ForCall.iter
-       (fun kf hs -> 
-	  let name = "CallHyp:" ^ (Kernel_function.get_name kf) in
-	  pp_pred_list name hs)
-       acc.call_hyp;
-     ForCall.iter
-       (fun kf bhs ->
-	  let name = "CallPre:" ^ (Kernel_function.get_name kf) in
-	  pp_pred_b_list name bhs)
-       acc.call_pre;
-     ForCall.iter
-       (fun kf asgn ->
-	  let name = "CallAsgn:" ^ (Kernel_function.get_name kf) in
-	  WpPropId.pp_assign_info name fmt asgn)
-       acc.call_asgn;
-     WpPropId.pp_assign_info "DC" fmt acc.a_call;
-     WpPropId.pp_assign_info "HA" fmt acc.a_hyp;
-     WpPropId.pp_assign_info "GA" fmt acc.a_goal;
+    pp_pred_list "H" acc.p_hyp;
+    pp_pred_list "G" acc.p_goal;
+    pp_pred_b_list "H+G" acc.p_both;
+    pp_pred_b_list "C" acc.p_cut;
+    ForCall.iter
+      (fun kf hs -> 
+         let name = "CallHyp:" ^ (Kernel_function.get_name kf) in
+         pp_pred_list name hs)
+      acc.call_hyp;
+    ForCall.iter
+      (fun kf bhs ->
+         let name = "CallPre:" ^ (Kernel_function.get_name kf) in
+         pp_pred_b_list name bhs)
+      acc.call_pre;
+    ForCall.iter
+      (fun kf asgn ->
+         let name = "CallAsgn:" ^ (Kernel_function.get_name kf) in
+         WpPropId.pp_assign_info name fmt asgn)
+      acc.call_asgn;
+    WpPropId.pp_assign_info "DC" fmt acc.a_call;
+    WpPropId.pp_assign_info "HA" fmt acc.a_hyp;
+    WpPropId.pp_assign_info "GA" fmt acc.a_goal;
   end
 
 let merge_calls f call1 call2 =
@@ -462,26 +462,26 @@ let merge_calls f call1 call2 =
 
 (* TODO: it should be possible to do without this, but needs a big refactoring*)
 let merge_acc acc1 acc2 =
-{
-  p_hyp = acc1.p_hyp @ acc2.p_hyp;
-  p_goal = acc1.p_goal @ acc2.p_goal;
-  p_both = acc1.p_both @ acc2.p_both;
-  p_cut = acc1.p_cut @ acc2.p_cut;
-  call_hyp = merge_calls (@) acc1.call_hyp acc2.call_hyp;
-  call_pre = merge_calls (@) acc1.call_pre acc2.call_pre;
-  call_asgn = merge_calls WpPropId.merge_assign_info acc1.call_asgn acc2.call_asgn;
-  a_goal = WpPropId.merge_assign_info acc1.a_goal acc2.a_goal;
-  a_hyp = WpPropId.merge_assign_info acc1.a_hyp acc2.a_hyp;
-  a_call = WpPropId.merge_assign_info acc1.a_call acc2.a_call;
-}
+  {
+    p_hyp = acc1.p_hyp @ acc2.p_hyp;
+    p_goal = acc1.p_goal @ acc2.p_goal;
+    p_both = acc1.p_both @ acc2.p_both;
+    p_cut = acc1.p_cut @ acc2.p_cut;
+    call_hyp = merge_calls (@) acc1.call_hyp acc2.call_hyp;
+    call_pre = merge_calls (@) acc1.call_pre acc2.call_pre;
+    call_asgn = merge_calls WpPropId.merge_assign_info acc1.call_asgn acc2.call_asgn;
+    a_goal = WpPropId.merge_assign_info acc1.a_goal acc2.a_goal;
+    a_hyp = WpPropId.merge_assign_info acc1.a_hyp acc2.a_hyp;
+    a_call = WpPropId.merge_assign_info acc1.a_call acc2.a_call;
+  }
 
 (* -------------------------------------------------------------------------- *)
 (* --- Annotation table                                                   --- *)
 (* -------------------------------------------------------------------------- *)
-   
+
 (** This is an Hashtbl where some predicates are stored on CFG edges.
  * On each edge, we store hypotheses and goals.
- *)
+*)
 module Hannots = Cil2cfg.HE (struct type t = annots end)
 
 type annots_tbl = {
@@ -505,7 +505,7 @@ let add_on_edges tbl new_acc edges =
     let acc =
       try 
         let acc = Hannots.find tbl.tbl_annots e in 
-          merge_acc new_acc.info acc
+        merge_acc new_acc.info acc
       with Not_found -> new_acc.info
     in Hannots.replace tbl.tbl_annots e acc;
   in List.iter add_on_edge edges
@@ -516,35 +516,35 @@ let add_node_annots tbl cfg v (before, (post, exits)) =
   if post <> empty_acc then
     begin
       let edges_after = Cil2cfg.get_post_edges cfg v in
-        if edges_after = []
-        then Wp_parameters.warning ~once:true
-               "Ignoring annotation rooted after statement with no succ"
-        else add_on_edges tbl post edges_after
+      if edges_after = []
+      then Wp_parameters.warning ~once:true
+          "Ignoring annotation rooted after statement with no succ"
+      else add_on_edges tbl post edges_after
     end;
   if exits <> empty_acc then
     begin
       let edges_exits = Cil2cfg.get_exit_edges cfg v in
-        if edges_exits = []
-        then (* unreachable (see [process_unreached_annots]) *) ()
-        else add_on_edges tbl exits edges_exits
+      if edges_exits = []
+      then (* unreachable (see [process_unreached_annots]) *) ()
+      else add_on_edges tbl exits edges_exits
     end
 
 let add_loop_annots tbl cfg vloop ~entry ~back ~core =
   debug "[add_loop_annots] on %a@."Cil2cfg.pp_node vloop;
   let edges_to_head = Cil2cfg.succ_e cfg vloop in
-    debug "[add_loop_annots] %d edges_to_head" (List.length edges_to_head);
+  debug "[add_loop_annots] %d edges_to_head" (List.length edges_to_head);
   let edges_to_loop = Cil2cfg.pred_e cfg vloop in
-    debug "[add_loop_annots] %d edges_to_loop" (List.length edges_to_loop);
+  debug "[add_loop_annots] %d edges_to_loop" (List.length edges_to_loop);
   let back_edges, entry_edges =
     List.partition Cil2cfg.is_back_edge edges_to_loop
   in
-    debug "[add_loop_annots] %d back_edges + %d entry_edges" 
-      (List.length back_edges) (List.length entry_edges);
-      add_on_edges tbl entry entry_edges;
+  debug "[add_loop_annots] %d back_edges + %d entry_edges" 
+    (List.length back_edges) (List.length entry_edges);
+  add_on_edges tbl entry entry_edges;
   debug "[add_loop_annots on entry_edges ok]@.";
-      add_on_edges tbl back back_edges;
+  add_on_edges tbl back back_edges;
   debug "[add_loop_annots on back_edges ok]@.";
-      add_on_edges tbl core edges_to_head;
+  add_on_edges tbl core edges_to_head;
   debug "[add_loop_annots on edges_to_head ok]@."
 
 let add_axiom tbl lemma =
@@ -558,15 +558,15 @@ let add_axiom tbl lemma =
 
 let add_all_axioms tbl =
   let rec do_g g =
-      match g with
-        | Daxiomatic (_ax_name, globs,_) -> do_globs globs
-        | Dlemma (name,_,_,_,_,_) ->
-	    let lem = LogicUsage.logic_lemma name in
-	    add_axiom tbl lem
-      | _ -> ()
+    match g with
+    | Daxiomatic (_ax_name, globs,_) -> do_globs globs
+    | Dlemma (name,_,_,_,_,_) ->
+        let lem = LogicUsage.logic_lemma name in
+        add_axiom tbl lem
+    | _ -> ()
   and do_globs globs = List.iter do_g globs in
   Annotations.iter_global (fun _ -> do_g)
-  
+
 let get_annots tbl e =
   try (* TODO clean : this is not very nice ! *)
     let info = Hannots.find tbl.tbl_annots e in { empty_acc with info = info}
@@ -639,6 +639,11 @@ let is_main_init kf =
     debug "'%a' is %sthe main entry point@."
       Kernel_function.pretty kf (if is_main then "" else "NOT ");
     is_main
+
+let isInitConst () = Kernel.ConstReadonly.get () && Wp_parameters.Init.get ()
+
+let isGlobalInitConst var =
+  var.vglob && var.vstorage <> Extern && Cil.typeHasQualifier "const" var.vtype
 
 let mk_variant_properties kf s ca v =
   let vpos_id = WpPropId.mk_var_pos_id kf s ca in

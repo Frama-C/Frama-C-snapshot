@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Aorai plug-in of Frama-C.                        #
 #                                                                        #
-#  Copyright (C) 2007-2014                                               #
+#  Copyright (C) 2007-2015                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #    INRIA (Institut National de Recherche en Informatique et en         #
@@ -96,7 +96,7 @@ endif
 
 $(Aorai_DIR)/Makefile: $(Aorai_DIR)/Makefile.in \
 			$(CONFIG_STATUS_DIR)/config.status
-	cd $(CONFIG_STATUS_DIR) && ./config.status
+	cd $(CONFIG_STATUS_DIR) && ./config.status --file $@
 
 headers::
 	$(SED) $(FRAMAC_SRC)/headers/INSA_INRIA_LGPL \

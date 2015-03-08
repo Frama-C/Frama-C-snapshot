@@ -1,0 +1,123 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_bts/nupw-bcl-bts1120.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+tests/wp_bts/nupw-bcl-bts1120.i:54:[wp] warning: [cfg] Forget exits clause of node <blkIn-stmt:26>
+tests/wp_bts/nupw-bcl-bts1120.i:54:[wp] warning: [cfg] Forget exits clause of node <blkIn-stmt:26>
+[wp] [WP:unreachability] Goal unreachable_smt_with_contract_stmt_assign : Valid
+[wp] [WP:unreachability] Goal unreachable_smt_with_contract_stmt_exit_ok : Valid
+[wp] [WP:unreachability] Goal unreachable_smt_with_contract_stmt_post_ok : Valid
+[wp] [WP:unreachability] Goal unreachable_smt_with_contract_stmt_pre_ok : Valid
+[wp] [WP:unreachability] Goal unreachable_smt_with_contract_assert_ok : Valid
+[wp] [WP:unreachability] Goal unreachable_smt_with_contract_call_f_with_precond_pre_ok : Valid
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function cfg_domination_problem
+------------------------------------------------------------
+
+Goal Exit-condition 'e' in 'cfg_domination_problem':
+Assume {
+  (* tests/wp_bts/nupw-bcl-bts1120.i:62: Exit 'f' *)
+  Have: (P_ExitF 0).
+}
+Prove: (P_ExitP 0).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function cfg_domination_problem with behavior default_for_stmt_26
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_bts/nupw-bcl-bts1120.i, line 60) at block:
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function g
+------------------------------------------------------------
+
+Goal Exit-condition 'ok' in 'g':
+Assume {
+  (* Domain *)
+  Type: (is_sint32 max_1).
+  (* Pre-condition (file tests/wp_bts/nupw-bcl-bts1120.i, line 25) in 'g' *)
+  (* Pre-condition: *)
+  Have: (P_ExitF max_1) -> (P_ExitP max_1).
+  (* tests/wp_bts/nupw-bcl-bts1120.i:27: Exit 'f' *)
+  Have: (P_ExitF max_1).
+}
+Prove: (P_ExitP max_1).
+
+------------------------------------------------------------
+
+Goal Loop assigns 'ok':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'g':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'g' (1/3):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'g' (2/3):
+Call Result at line 27
+Assume {
+  (* Domain *)
+  Type: (is_sint32 max_0).
+  (* Pre-condition (file tests/wp_bts/nupw-bcl-bts1120.i, line 25) in 'g' *)
+  (* Pre-condition: *)
+  Have: (P_ExitF max_0) -> (P_ExitP max_0).
+  (* tests/wp_bts/nupw-bcl-bts1120.i:27: Call 'f' *)
+  Have: (P_PostF max_0).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'g' (3/3):
+Effect at line 29
+Assume {
+  (* Domain *)
+  Type: (is_sint32 max_0).
+  (* Pre-condition (file tests/wp_bts/nupw-bcl-bts1120.i, line 25) in 'g' *)
+  (* Pre-condition: *)
+  Have: (P_ExitF max_0) -> (P_ExitP max_0).
+  (* tests/wp_bts/nupw-bcl-bts1120.i:27: Call 'f' *)
+  Have: (P_PostF max_0).
+}
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function unreachable_smt_with_contract
+------------------------------------------------------------
+
+Goal Post-condition 'ok' in 'unreachable_smt_with_contract':
+Assume {
+  (* Domain *)
+  Type: (is_sint32 max_0).
+  (* Pre-condition (file tests/wp_bts/nupw-bcl-bts1120.i, line 38) in 'unreachable_smt_with_contract' *)
+  (* Pre-condition: *)
+  Have: (P_PostP max_0).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition 'ok' in 'f_with_precond'' in 'unreachable_smt_with_contract' at call 'f_with_precond' (file tests/wp_bts/nupw-bcl-bts1120.i, line 40)
+:
+Assume { }
+Prove: true.
+
+------------------------------------------------------------

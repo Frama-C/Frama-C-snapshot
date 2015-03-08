@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -62,6 +62,27 @@ Local Ltac unfold_hyp h :=
     | _ => idtac
   end.
 
+Lemma bool3_eq : forall b1 b2: bool, (forall b: bool, b1=b <-> b2=b) <-> b1=b2.
+Proof.
+  intros.
+  intuition.
+    rewrite H; auto.
+  rewrite <- H; auto.
+  rewrite H; auto.
+Qed.
+						      
+Lemma bool2_eq_true : forall b1 b2:bool, (b1=true <-> b2=true) <-> b1=b2.
+Proof.
+  intros. 
+  destruct b1.
+  destruct b2.
+  intuition.
+  intuition.
+  destruct b2.
+  intuition.
+  intuition.
+Qed.
+						      
 Lemma split_range: forall a x b: Z, 
   a <= x -> x < b -> a <= x < b.
 Proof.
@@ -961,6 +982,14 @@ Definition lsl (x : Z) (y : Z) : Z :=
   if Zle_bool 0 y then lsl_def x y
   else lsl_undef x y.
 
+Theorem lsl_pos: forall x n: Z,
+  0<=n -> lsl x n = lsl_def x n.
+Proof.
+  intros.
+  unfold lsl.
+  case_leq 0 n.
+Qed.									  
+
 (* Lemma test_compute: lsl 2 1 = 4. *)
 (* Proof. *)
 (* compute; reflexivity. *)
@@ -974,6 +1003,14 @@ Definition lsr_def (x:Z) (n:Z): Z :=
 Definition lsr (x : Z) (y : Z) : Z :=
   if Zle_bool 0 y then lsr_def x y
   else lsr_undef x y.
+
+Theorem lsr_pos: forall x n: Z,
+  0<=n -> lsr x n = lsr_def x n.
+Proof.
+  intros.
+  unfold lsr.
+  case_leq 0 n.
+Qed.									  
 
 (** ** Properties of shifting operators *)
 
@@ -1130,6 +1167,46 @@ Proof.
       apply beq_nat_false_iff; omega.
 Qed.
 
+Theorem Zbit_extraction_true : 
+forall (x:Z) (i:nat), 
+   (land x (lsl_shift_def 1 i) = (lsl_shift_def 1 i) <-> (Zbit x i) = true).
+Proof.
+  intros.
+  rewrite lsl_arithmetic_shift; unfold lsl_arithmetic_def.
+  replace (1 * two_power_nat i) with (two_power_nat i) by ring.
+  unfold land.
+  split.
+  (** 1st impl *)
+    intro H.
+    assert (Zbit (Z_bitwise andb x (two_power_nat i)) i = Zbit (two_power_nat i) i).
+      rewrite H; reflexivity.
+    (* assert done *)
+    rewrite Zbit_bitwise in H0.
+    rewrite Zbit_power in H0.
+    rewrite <- beq_nat_refl in H0.
+    rewrite Bool.andb_true_r in H0.
+    assumption.
+  (** 2sd impl *)
+    intro.
+    Zbit_ext k.
+    rewrite Zbit_bitwise; rewrite Zbit_power.
+    (** proof by case *)
+    case (lt_eq_lt_dec i k); intro cas. destruct cas.
+    (** i<k *)
+      rewrite Bool.andb_false_intro2; auto;
+      [symmetry| ];
+      apply beq_nat_false_iff; omega.
+    (** k=i *)
+      rewrite <- e.
+      rewrite H.
+      rewrite Bool.andb_true_l.
+      reflexivity.
+    (** k<i *)
+      rewrite Bool.andb_false_intro2; auto;
+      [symmetry| ];
+      apply beq_nat_false_iff; omega.
+Qed.
+				 
 (** ** Properties of lnot operator *)
 
 (** lnot x equals -(x+1) *)
@@ -1720,6 +1797,31 @@ Definition bit_testb (x:Z) (n:Z): bool :=
   if Zle_bool 0 n then zbit_test_def x n
   else zbit_test_undef x n.
 						       
+Theorem bit_testb_pos: forall x n: Z,
+  0<=n -> bit_testb x n = zbit_test_def x n.
+Proof.
+  intros.
+  unfold bit_testb.
+  case_leq 0 n.
+  intro. auto.
+Qed.						       				
+			  
+Theorem bit_testb_ext: forall x y: Z,
+  (forall n: Z, 0<=n -> bit_testb x n = bit_testb y n) -> x=y.
+Proof.
+  intros.
+  Zbit_ext j.
+  specialize (H (Z.of_nat j)).
+  specialize (H (Zle_0_nat j)).
+  rewrite bit_testb_pos in H.
+  rewrite bit_testb_pos in H.
+  unfold zbit_test_def in H.
+  rewrite Zabs2Nat.id in H.
+  auto.
+  apply (Zle_0_nat j).
+  apply (Zle_0_nat j).
+Qed.						       				
+			  
 (** Tactical *)
 Local Ltac bit_extraction bin_op :=
   intros; unfold zbit_test_def; unfold bin_op; rewrite Zbit_bitwise; auto. 

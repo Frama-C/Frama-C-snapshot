@@ -302,8 +302,11 @@ module Forwards(T : ForwardsTransfer) = struct
             | UnspecifiedSequence _
             | Goto _ | Break _ | Continue _
             | TryExcept _ | TryFinally _
-            | Loop _ | Return _ | Block _ ->
-                do_succs curr
+            | Loop _ | Return _ | Block _ -> do_succs curr
+
+            | Throw _ | TryCatch _ ->
+              Kernel.not_yet_implemented
+                "[dataflow] exception handling"
 
             | If (e, _, _, _) ->
                 let thenGuard, elseGuard = T.doGuard s e curr in

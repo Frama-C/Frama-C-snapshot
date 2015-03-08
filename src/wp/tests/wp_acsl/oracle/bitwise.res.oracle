@@ -1,0 +1,297 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_acsl/bitwise.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function band
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_acsl/bitwise.i, line 5) in 'band':
+Let x_0 = (land a_0 b_0 c_0).
+Assume {
+  (* Domain *)
+  Type: (is_sint32 a_0) /\ (is_sint32 b_0) /\ (is_sint32 c_0)
+        /\ (is_sint32 x_0).
+}
+Prove: x_0=(to_sint32 x_0).
+
+------------------------------------------------------------
+
+Goal Post-condition 'band0' in 'band':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function band with behavior bit0
+------------------------------------------------------------
+
+Goal Post-condition for 'bit0' 'band1' in 'band':
+Assume {
+  (* Domain *)
+  Type: (is_sint32 a_0) /\ (is_sint32 b_0) /\ (is_sint32 c_0)
+        /\ (is_sint32 (land a_0 b_0 c_0)).
+  (* Pre-condition for 'bit0' 'bit0' in 'band' *)
+  (* Pre-condition for 'bit0' 'bit0': *)
+  Have: (bit_test a_0 0) /\ (bit_test b_0 0) /\ (bit_test c_0 0).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition for 'bit0' 'band2' in 'band':
+Assume {
+  (* Domain *)
+  Type: (is_sint32 a_0) /\ (is_sint32 b_0) /\ (is_sint32 c_0)
+        /\ (is_sint32 (land a_0 b_0 c_0)).
+  (* Pre-condition for 'bit0' 'bit0' in 'band' *)
+  (* Pre-condition for 'bit0' 'bit0': *)
+  Have: (bit_test a_0 0) /\ (bit_test b_0 0) /\ (bit_test c_0 0).
+}
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function band with behavior bit1
+------------------------------------------------------------
+
+Goal Post-condition for 'bit1' 'band3' in 'band':
+Assume {
+  (* Domain *)
+  Type: (is_sint32 b_0) /\ (is_sint32 (land a_0 b_0 c_0)).
+  (* Pre-condition for 'bit1' 'bit1' in 'band' *)
+  (* Pre-condition for 'bit1' 'bit1': *)
+  Have: not (bit_test b_0 1).
+}
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function band with behavior bit2
+------------------------------------------------------------
+
+Goal Post-condition for 'bit2' 'band4' in 'band':
+Assume {
+  (* Domain *)
+  Type: (is_sint32 c_0) /\ (is_sint32 (land a_0 b_0 c_0)).
+  (* Pre-condition for 'bit2' 'bit2' in 'band' *)
+  (* Pre-condition for 'bit2' 'bit2': *)
+  Have: (bit_test c_0 2).
+}
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function band with behavior bit3
+------------------------------------------------------------
+
+Goal Post-condition for 'bit3' 'band5' in 'band':
+Assume {
+  (* Domain *)
+  Type: (is_sint32 a_0) /\ (is_sint32 b_0) /\ (is_sint32 c_0)
+        /\ (is_sint32 (land a_0 b_0 c_0)).
+  (* Pre-condition for 'bit3' 'bit3' in 'band' *)
+  (* Pre-condition for 'bit3' 'bit3': *)
+  Have: (not (bit_test a_0 1))
+        /\ ((not (bit_test a_0 0)) \/ (not (bit_test b_0 0)))
+        /\ ((not (bit_test b_0 1)) \/ (not (bit_test c_0 1))).
+}
+Prove: (not (bit_test a_0 0)) \/ (not (bit_test b_0 0)).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function band with behavior bit4
+------------------------------------------------------------
+
+Goal Post-condition for 'bit4' 'band6' in 'band':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function band with behavior bit5
+------------------------------------------------------------
+
+Goal Post-condition for 'bit5' 'band7,zbit' in 'band':
+Assume {
+  (* Domain *)
+  Type: (is_sint32 a_0) /\ (is_sint32 (land a_0 b_0 c_0)).
+  (* Goal *)
+  When: 85=(land 4095 a_0).
+}
+Prove: 21845!=(land 65535 a_0).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function bnot
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_acsl/bitwise.i, line 55) in 'bnot':
+Let x_0 = (lnot a_0).
+Assume { (* Domain *) Type: (is_sint32 a_0) /\ (is_sint32 x_0). }
+Prove: x_0=(to_sint32 x_0).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function bor
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_acsl/bitwise.i, line 28) in 'bor':
+Let x_0 = (lor a_0 b_0 c_0).
+Assume {
+  (* Domain *)
+  Type: (is_sint32 a_0) /\ (is_sint32 b_0) /\ (is_sint32 c_0)
+        /\ (is_sint32 x_0).
+}
+Prove: x_0=(to_sint32 x_0).
+
+------------------------------------------------------------
+
+Goal Post-condition 'bor0' in 'bor':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function bor with behavior bit1
+------------------------------------------------------------
+
+Goal Post-condition for 'bit1' 'bor1' in 'bor':
+Assume {
+  (* Domain *)
+  Type: (is_sint32 a_0) /\ (is_sint32 (lor a_0 b_0 c_0)).
+  (* Pre-condition for 'bit1' 'bit1' in 'bor' *)
+  (* Pre-condition for 'bit1' 'bit1': *)
+  Have: (bit_test a_0 1).
+}
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function bor with behavior bit2
+------------------------------------------------------------
+
+Goal Post-condition for 'bit2' 'bor2' in 'bor':
+Assume {
+  (* Domain *)
+  Type: (is_sint32 a_0) /\ (is_sint32 b_0) /\ (is_sint32 c_0)
+        /\ (is_sint32 (lor a_0 b_0 c_0)).
+  (* Pre-condition for 'bit2' 'bit2' in 'bor' *)
+  (* Pre-condition for 'bit2' 'bit2': *)
+  Have: (not (bit_test a_0 2)) /\ (not (bit_test b_0 2))
+        /\ (not (bit_test c_0 2)).
+}
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function bor with behavior bit3
+------------------------------------------------------------
+
+Goal Post-condition for 'bit3' 'bor3' in 'bor':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function bxor
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_acsl/bitwise.i, line 42) in 'bxor':
+Let x_0 = (lxor a_0 b_0).
+Assume {
+  (* Domain *)
+  Type: (is_sint32 a_0) /\ (is_sint32 b_0) /\ (is_sint32 x_0).
+}
+Prove: x_0=(to_sint32 x_0).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function bxor with behavior bit1
+------------------------------------------------------------
+
+Goal Post-condition for 'bit1' (file tests/wp_acsl/bitwise.i, line 45) in 'bxor':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function bxor with behavior bit2
+------------------------------------------------------------
+
+Goal Post-condition for 'bit2' (file tests/wp_acsl/bitwise.i, line 48) in 'bxor':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function bxor with behavior bit3
+------------------------------------------------------------
+
+Goal Post-condition for 'bit3' 'zbit' in 'bxor':
+Let x_0 = (lnot b_1).
+Assume {
+  (* Domain *)
+  Type: (is_sint32 b_1) /\ (is_sint32 x_0) /\ (is_sint32 (lxor b_1 x_0)).
+}
+Prove: b_1=(lnot x_0).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function lshift
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_acsl/bitwise.i, line 58) in 'lshift':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function lshift with behavior shift1
+------------------------------------------------------------
+
+Goal Post-condition for 'shift1' 'lsl1' in 'lshift':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition for 'shift1' 'lsl2' in 'lshift':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function lshift with behavior shift2
+------------------------------------------------------------
+
+Goal Post-condition for 'shift2' 'lsl3' in 'lshift':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function rshift
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_acsl/bitwise.i, line 69) in 'rshift':
+Let x_0 = (lsr a_0 n_0).
+Assume {
+  (* Domain *)
+  Type: (is_sint32 a_0) /\ (is_sint32 n_0) /\ (is_sint32 x_0).
+}
+Prove: x_0=(to_sint32 x_0).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function rshift with behavior shift1
+------------------------------------------------------------
+
+Goal Post-condition for 'shift1' 'lsr1' in 'rshift':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -28,7 +28,7 @@ include Plugin.Register
    end)
 
 module Pragma =
-  StringSet
+  Kernel_function_set
     (struct
        let option_name = "-impact-pragma"
        let arg_name = "f1, ..., fn"
@@ -58,7 +58,7 @@ module Slicing =
      end)
 
 module Skip =
-  StringSet
+  String_set
     (struct
        let arg_name = "v1,...,vn"
        let help = "consider that those variables are not impacted"

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -108,20 +108,6 @@ let add_parameter (box:GPack.box) p =
       in
       Kernel_hook.extend 
 	   (fun () -> if !widget_value <> old then set !widget_value))
-
-  | Typed_parameter.String_set { Typed_parameter.get = get; set = set }
-  | Typed_parameter.String_list { Typed_parameter.get = get; set = set } ->
-    let use_markup = is_set () in
-    let name = if use_markup then hname else name in
-    let old = get () in
-    let widget_value = ref old in
-    let w_set r = widget_value := r in
-    let w_get () = !widget_value in
-    let _refresh = 
-      on_string_set ~tooltip ~use_markup ~width:400 box name w_get w_set
-    in
-    Kernel_hook.extend 
-      (fun () -> if !widget_value <> old then set !widget_value)
   );
   use_markup
 

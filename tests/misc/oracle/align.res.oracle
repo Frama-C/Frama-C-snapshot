@@ -1,0 +1,30 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/align.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  c[0..4][0..9] ∈ {0}
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  c[0][0] ∈ {120}
+   {[0][1..9]; [1][0..9]; [2][0][bits 0 to 7]} ∈ {0}
+   [2][0][bits 8 to 15] ∈ {121}
+   {[2]{[0][bits 16 to 31]; [1..9]}; [3..4][0..9]} ∈ {0}
+  d ∈ {{ (char *)&c }}
+  l[bits 0 to 7] ∈ {2}
+   [bits 8 to 31] ∈ {0}
+  pl ∈ {{ &l }}
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  c{[0][0]; [2][0][bits 8 to 15]} FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          c{[0][0]; [2][0][bits 8 to 15]}; d; l; pl
+[inout] Inputs for function main:
+          \nothing

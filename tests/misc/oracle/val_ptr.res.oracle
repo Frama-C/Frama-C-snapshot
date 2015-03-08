@@ -1,0 +1,49 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/val_ptr.i (no preprocessing)
+[value] Analyzing a complete application starting at f
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  i ∈ {0}
+  j ∈ {0}
+  x ∈ {0}
+  k ∈ {0}
+  l ∈ {0}
+  m ∈ {0}
+  n ∈ {0}
+  d ∈ {0}
+  a ∈ {0}
+  b ∈ {0}
+  c ∈ {0}
+  p ∈ {0}
+  T[0..7] ∈ {0}
+[value] Recording results for f
+[value] done for function f
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function f:
+  i ∈ {10}
+  j ∈ {10; 12; 16}
+  k ∈ {10; 11; 12}
+  l ∈ {18}
+  d ∈ {13}
+  a ∈ {10; 11}
+  b ∈ {12}
+  p ∈ {{ &a ; &b }}
+[from] Computing for function f
+[from] Done for function f
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function f:
+  i FROM \nothing
+  j FROM c_0
+  k FROM c_0
+  l FROM \nothing
+  d FROM \nothing
+  a FROM c_0
+  b FROM \nothing
+  p FROM c_0
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function f:
+          i; j; k; l; d; a; b; p
+[inout] Inputs for function f:
+          d; a; b; p

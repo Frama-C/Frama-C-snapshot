@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -23,18 +23,33 @@
 (** Command line parsing. 
     @plugin development guide *)
 
+(* ************************************************************************** *)
 (** {2 Stage configurations}
+(* ************************************************************************** *)
 
     Frama-C uses several stages for parsing its command line.
     Each of them may be customized. *)
 
-type stage = 
-  | Early       (** @plugin development guide *)
-  | Extending   (** @plugin development guide *)
-  | Extended    (** @plugin development guide *) 
-  | Exiting     (** @plugin development guide *)
-  | Loading     (** @plugin development guide *)
-  | Configuring (** @plugin development guide *)
+type stage =
+  | Early       (** Initial stage for very specific almost hard-coded
+                    options. Do not use it.
+                    @plugin development guide *)
+  | Extending   (** Before loading plug-ins. Run only once.
+                    @plugin development guide *)
+  | Extended    (** The stage where plug-ins are loaded.
+                    It is also the first stage each time the Frama-C main
+                    loop is run (e.g. after each "-then").
+                    @plugin development guide *)
+  | Exiting     (** Run once when exiting Frama-C.
+                    @plugin development guide *)
+  | Loading     (** After {!Extended}, the stage where a previous Frama-C
+                    internal states is restored (e.g. the one specified by
+                    -load or by running the journal).
+                    @plugin development guide *)
+  | Configuring (** The stage where all the parameters which were not already
+                    set may be modified to take into account cmdline options.
+                    Just after this stage, Frama-C will run the plug-in mains.
+                    @plugin development guide *)
     (** The different stages, from the first to be executed to the last one.
         @since Beryllium-20090601-beta1 *)
 
@@ -93,6 +108,54 @@ val run_after_setting_files: (string list -> unit) -> unit
     @plugin development guide
     @since Carbon-20101201 *)
 
+val at_normal_exit: (unit -> unit) -> unit
+  (** Register a hook executed whenever Frama-C exits without error (the exit
+      code is 0).
+      @since Boron-20100401 *)
+
+val at_error_exit: (exn -> unit) -> unit
+  (** Register a hook executed whenever Frama-C exits with error (the exit
+      code is greater than 0). The argument of the hook is the exception at the
+      origin of the error.
+      @since Boron-20100401
+      @modify Neon-20130301 add the exception as argument of the
+      hook. *)
+
+(** Group of command line options.
+    @since Beryllium-20090901 *)
+module Group : sig
+  type t (** @since Beryllium-20090901 *)
+  val default: t (** @since Beryllium-20090901 *)
+  val name: t -> string
+    (** @since Beryllium-20090901 *)
+
+  (**/**)
+  (** Kernel internals *)
+
+  val add: ?memo:bool -> plugin:string -> string -> t * bool
+    (** Add a new group of options to the given plugin.
+        If [memo] is [true], just return the already registered group if any.
+        If [memo] is [false], cannot add twice a group with the same name.
+        @return the group corresponding to the given name. Also return [true]
+        iff the group has just been created.
+        @since Beryllium-20090901 *)
+  (**/**)
+
+end
+
+(**/**)
+
+(* ************************************************************************** *)
+(* ************************************************************************** *)
+(** From here: functions required by Kernel Internals only! 
+    You should not use them! *)
+(* ************************************************************************** *)
+(* ************************************************************************** *)
+
+(* ************************************************************************** *)
+(** {2 Handle Hooks} *)
+(* ************************************************************************** *)
+
 val protect: exn -> string
   (** Messages for exceptions raised by Frama-C
       @since Boron-20100401 *)
@@ -115,22 +178,9 @@ val catch_toplevel_run:
 	@modify Fluorine-20130601+Dev add the exception as argument of
 	[on_error]. *)
 
-val at_normal_exit: (unit -> unit) -> unit
-  (** Register a hook executed whenever Frama-C exits without error (the exit
-      code is 0).
-      @since Boron-20100401 *)
-
 val run_normal_exit_hook: unit -> unit
   (** Run all the hooks registered by {!at_normal_exit}.
       @since Boron-20100401 *)
-
-val at_error_exit: (exn -> unit) -> unit
-  (** Register a hook executed whenever Frama-C exits with error (the exit
-      code is greater than 0). The argument of the hook is the exception at the
-      origin of the error.
-      @since Boron-20100401
-      @modify Neon-20130301 add the exception as argument of the
-      hook. *)
 
 val run_error_exit_hook: exn -> unit
   (** Run all the hooks registered by {!at_normal_exit}.
@@ -148,22 +198,25 @@ val bail_out: unit -> 'a
   (** Stop Frama-C with exit 0.
       @since Boron-20100401 *)
 
+(* ************************************************************************** *)
 (** {2 Special functions}
+(* ************************************************************************** *)
 
     These functions should not be used by a standard plug-in developer. *)
 
 val parse_and_boot:
-  (string option -> (unit -> unit) -> unit) ->
+  (string -> (unit -> unit) -> unit) ->
   (unit -> (unit -> unit) -> unit) ->
   (unit -> unit) -> unit
 (** Not for casual users.
     [parse_and_boot on_from_name get_toplevel play] performs the
     parsing of the command line, then play the analysis with the good
     toplevel provided by [get_toplevel]. [on_from_name] is [Project.on] on the
-    project corresponding to the given (unique) name (or the default project if
-    [None]).
+    project corresponding to the given (unique) name.
     @since Beryllium-20090901
-    @modify Carbon-20101201 *)
+    @modify Carbon-20101201
+    @modify Sodium-20150201 the first argument of the first functional is no
+    more a string option, just a string *)
 
 val nb_given_options: unit -> int
   (** Number of options provided by the user on the command line.
@@ -173,21 +226,6 @@ val nb_given_options: unit -> int
 val use_cmdline_files: (string list -> unit) -> unit
   (** What to do with the list of files put on the command lines.
       @since Beryllium-20090601-beta1 *)
-
-(** @since Beryllium-20090901 *)
-module Group : sig
-  type t (** @since Beryllium-20090901 *)
-  val default: t (** @since Beryllium-20090901 *)
-  val add: ?memo:bool -> plugin:string -> string -> t * bool
-    (** Add a new group of options to the given plugin.
-        If [memo] is [true], just return the already registered group if any.
-        If [memo] is [false], cannot add twice a group with the same name.
-        @return the group corresponding to the given name. Also return [true]
-        iff the group has just been created.
-        @since Beryllium-20090901 *)
-  val name: t -> string
-    (** @since Beryllium-20090901 *)
-end
 
 val help: unit -> exit
   (** Display the help of Frama-C
@@ -269,7 +307,14 @@ val add_aliases:
     @Invalid_argument if an alias name is the empty string
     @since Carbon-20110201 *)
 
+val replace_option_setting: 
+  string -> plugin:string -> group:Group.t -> option_setting -> unit
+(** Replace the previously registered option setting. 
+    @since Neon-20140201+dev *)
+
+(* ************************************************************************** *)
 (** {2 Special parameters}
+(* ************************************************************************** *)
 
     Frama-c parameters depending on the command line argument and set at the
     very beginning of the Frama-C initialisation.
@@ -277,7 +322,7 @@ val add_aliases:
     They should not be used directly by a standard plug-in developer. *)
 
 module Kernel_log: Log.Messages
-(** @since Neon-20130301 *)
+(** @since Neon-20140301 *)
 
 (** @since Fluorine-20130401 *)
 module type Level = sig
@@ -320,6 +365,12 @@ val use_type: bool
 val quiet: bool
   (** Must not be used for something else that initializing values
       @since Beryllium-20090601-beta1 *)
+
+val last_project_created_by_copy: (unit -> string option) ref
+
+val load_all_plugins: (unit -> unit) ref
+
+(**/**)
 
 (*
   Local Variables:

@@ -1,0 +1,17 @@
+%init: S1;
+%accept: S1, S2, S3, S4, S5, S6, S7;
+
+S1 : { CALL(main)   } -> S2 
+   ;
+S2 : { opa().r>=0 } -> S3 
+   ;
+S3 : { opa().return<=5000 } -> S4
+   ;
+S4 : { !RETURN(opa) } -> S5
+   ;
+S5 : { RETURN(opb)  } -> S6
+	 ;
+S6 : { RETURN(main) } -> S7
+	 ;
+S7 :                  -> S7 	
+   ;

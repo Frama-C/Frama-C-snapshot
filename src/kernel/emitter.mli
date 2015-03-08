@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -127,6 +127,11 @@ sig
   val mem: H.key -> bool
   val iter: (H.key -> internal_tbl -> unit) -> unit
   val fold: (H.key -> internal_tbl -> 'a -> 'a) -> 'a -> 'a
+  val iter_sorted:
+    cmp: (H.key -> H.key -> int) -> (H.key -> internal_tbl -> unit) -> unit
+  val fold_sorted:
+    cmp: (H.key -> H.key -> int) ->
+    (H.key -> internal_tbl -> 'a -> 'a) -> 'a -> 'a
   val remove: H.key -> unit
   val add_hook_on_remove: (E.t -> H.key -> D.t -> unit) -> unit
 (** Register a hook to be applied whenever a binding is removed from the table.

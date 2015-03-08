@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -79,6 +79,8 @@ module Kf =
        let name = "KF"
        let dependencies = [ Ast.self ]
      end)
+
+let self = Kf.self
 
 let auxiliary_kf_stmt_state = Kf.self
 

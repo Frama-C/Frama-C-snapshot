@@ -1,0 +1,24 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_typed/unit_call.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+tests/wp_typed/unit_call.i:7:[kernel] warning: No code nor implicit assigns clause for function f, generating default assigns from the prototype
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function job
+------------------------------------------------------------
+
+Goal Assertion (file tests/wp_typed/unit_call.i, line 14):
+Assume {
+  (* Domain *)
+  Type: (is_sint32 r_0) /\ (is_sint32 r_1).
+  (* tests/wp_typed/unit_call.i:10: Call 'f' *)
+  Have: r_1<0.
+  (* tests/wp_typed/unit_call.i:12: Call 'f' *)
+  Have: 0<r_0.
+}
+Prove: r_0!=r_1.
+
+------------------------------------------------------------

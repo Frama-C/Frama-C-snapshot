@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -132,6 +132,22 @@ let rec pp_tau pvar pfield pdata fmt = function
   | Data(a,ts) -> pp_data pdata (pp_tau pvar pfield pdata) fmt a ts
   | Record fts -> pp_record pfield (pp_tau pvar pfield pdata) fmt fts
 
+let rec hash_tau hfield hadt = function
+  | Int -> 0
+  | Real -> 1
+  | Bool -> 2
+  | Prop -> 3
+  | Tvar k -> 4+k
+  | Array(tk,te) -> 
+      7 * Hcons.hash_pair (hash_tau hfield hadt tk) (hash_tau hfield hadt te)
+  | Data(a,te) -> 
+      11 * Hcons.hash_list (hash_tau hfield hadt) (hadt a) te
+  | Record fts ->
+      Hcons.hash_list (hash_field hfield hadt) 13 fts
+
+and hash_field hfield hadt (f,t) = 
+  Hcons.hash_pair (hfield f) (hash_tau hfield hadt t)
+
 let rec eq_tau cfield cadt t1 t2 =
   match t1 , t2 with
   | (Bool|Int|Real|Prop|Tvar _) , (Bool|Int|Real|Prop|Tvar _) -> t1 = t2
@@ -180,3 +196,39 @@ let rec compare_tau cfield cadt t1 t2 =
            let c = cfield f g in
            if c = 0 then compare_tau cfield cadt t t' else c
         ) fts gts
+
+module MakeTau(F : Field)(A : Data) =
+struct
+  
+  type t = (F.t,A.t) datatype
+
+  let equal = eq_tau F.equal A.equal
+  let compare = compare_tau F.compare A.compare
+  let hash = hash_tau F.hash A.hash
+  let pretty = pp_tau 
+    (fun fmt k -> Format.fprintf fmt "`%d" k)
+    F.pretty A.pretty
+
+  let debug f = 
+    let buffer = Buffer.create 80 in
+    let fmt = Format.formatter_of_buffer buffer in
+    pretty fmt f ;
+    Format.pp_print_flush fmt () ;
+    Buffer.contents buffer
+
+  let basename = function
+    | Int -> "i"
+    | Real -> "r"
+    | Prop -> "p"
+    | Bool -> "p"
+    | Data(a,_) -> A.basename a
+    | Array _ -> "t"
+    | Tvar 1 -> "a"
+    | Tvar 2 -> "b"
+    | Tvar 3 -> "c"
+    | Tvar 4 -> "d"
+    | Tvar 5 -> "e"
+    | Tvar _ -> "f"
+    | Record _ -> "r"
+
+end

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -37,7 +37,7 @@ module SemanticConstFolding =
 let () = SemanticConstFolding.add_aliases ["-semantic-const-folding"]
 
 module SemanticConstFold =
-  StringSet
+  Fundec_set
     (struct
        let option_name = "-scf-fct"
        let arg_name = "f1, ..., fn"
@@ -61,6 +61,15 @@ module ExpandLogicContext =
         let help = "replace values from logical context and create corresponding variables (HIGHLY EXPERIMENTAL)"
        end)
 let () = ExpandLogicContext.add_aliases ["-semantic-const-fold-logic"]
+
+module Project_name =
+  String
+    (struct
+      let option_name = "-scf-project-name"
+      let default = "propagated"
+      let arg_name = ""
+      let help = "name of the generated project (default is `propagated`)"
+     end)
 
 (*
 Local Variables:

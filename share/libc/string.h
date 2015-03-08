@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2014                                               */
+/*  Copyright (C) 2007-2015                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -33,7 +33,7 @@
 /*@ requires \valid_read(((char*)s1)+(0..n - 1));
   @ requires \valid_read(((char*)s2)+(0..n - 1));
   @ assigns \result \from ((char*)s1)[0.. n-1], ((char*)s2)[0.. n-1];
-  @ ensures \result == memcmp((char*)s1,(char*)s2,n);
+  @ ensures \result == memcmp{Pre,Pre}((char*)s1,(char*)s2,n);
   @*/
 extern int memcmp (const void *s1, const void *s2, size_t n);
 
@@ -56,7 +56,7 @@ extern void *memchr(const void *s, int c, size_t n);
   @ requires \separated(((char *)dest)+(0..n-1),((char *)src)+(0..n-1));
   @ assigns ((char*)dest)[0..n - 1] \from ((char*)src)[0..n-1];
   @ assigns \result \from dest;
-  @ ensures memcmp((char*)dest,(char*)src,n) == 0;
+  @ ensures memcmp{Post,Pre}((char*)dest,(char*)src,n) == 0;
   @ ensures \result == dest;
   @*/
 extern void *memcpy(void *restrict dest,
@@ -66,7 +66,7 @@ extern void *memcpy(void *restrict dest,
   @ requires valid_src: \valid_read(((char*)src)+(0..n - 1));
   @ assigns ((char*)dest)[0..n - 1] \from ((char*)src)[0..n-1];
   @ assigns \result \from dest;
-  @ ensures memcmp((char*)dest,(char*)src,n) == 0;
+  @ ensures memcmp{Post,Pre}((char*)dest,(char*)src,n) == 0;
   @ ensures \result == dest;
   @*/
 extern void *memmove(void *dest, const void *src, size_t n);
@@ -89,22 +89,29 @@ extern void *memset(void *s, int c, size_t n);
   @*/
 extern size_t strlen (const char *s);
 
-/*@ requires valid_string_src: valid_string(s1);
-  @ requires valid_string_src: valid_string(s2);
+/*@ requires valid_string_src: valid_string(s); // over-strong
+  @ assigns \result \from s[0..];
+  @ ensures \result == strlen(s) || \result == n;
+  @*/
+extern size_t strnlen (const char *s, size_t n);
+
+/*@ requires valid_string_s1: valid_string(s1);
+  @ requires valid_string_s2: valid_string(s2);
   @ assigns \result \from s1[0..], s2[0..];
   @ ensures \result == strcmp(s1,s2);
   @*/
 extern int strcmp (const char *s1, const char *s2);
 
-/*@ requires valid_string_src: valid_string(s1);
-  @ requires valid_string_src: valid_string(s2);
+/*@ requires valid_string_s1: valid_string(s1); // over-strong
+  @ requires valid_string_s2: valid_string(s2); // over-strong
   @ assigns \result \from s1[0 .. n-1], s2[0 ..n-1];
   @ ensures \result == strncmp(s1,s2,n);
   @*/
 extern int strncmp (const char *s1, const char *s2, size_t n);
 
-/*@ requires valid_string(s1) && valid_string(s2);
-  @ assigns \nothing;
+/*@ requires valid_string_s1: valid_string(s1); // over-strong
+  @ requires valid_string_s2: valid_string(s2); // over-strong
+  @ assigns \result \from s1[0..], s2[0..];
   @*/
 extern int strcoll (const char *s1, const char *s2);
 
@@ -140,34 +147,41 @@ extern char *strchr(const char *s, int c);
   @*/
 extern char *strrchr(const char *s, int c);
 
-/*@ requires valid_string(s) && valid_string(reject);
-  @ assigns \nothing;
+/*@ requires valid_string_src: valid_string(s);
+  @ requires valid_string_reject: valid_string(reject);
+  @ assigns \result \from s[0..], reject[0..];
   @ ensures 0 <= \result <= strlen(s);
   @*/
 extern size_t strcspn(const char *s, const char *reject);
 
-/*@ requires valid_string(s) && valid_string(accept);
-  @ assigns \nothing;
+/*@ requires valid_string_src: valid_string(s);
+  @ requires valid_string_accept: valid_string(accept);
+  @ assigns \result \from s[0..], accept[0..];
   @ ensures 0 <= \result <= strlen(s);
   @*/
 extern size_t strspn(const char *s, const char *accept);
 
-/*@ requires valid_string(s) && valid_string(accept);
-  @ assigns \nothing;
+/*@ requires valid_string_src: valid_string(s);
+  @ requires valid_string_accept: valid_string(accept);
+  @ assigns \result \from s, s[0..], accept[0..];
   @ ensures \result == 0 || \base_addr(\result) == \base_addr(s);
   @*/
 extern char *strpbrk(const char *s, const char *accept);
 
-/*@ requires valid_string(haystack) && valid_string(needle);
+/*@ requires valid_string_haystack: valid_string(haystack);
+  @ requires valid_string_needle: valid_string(needle);
   @ assigns \result \from haystack, haystack[0..], needle, needle[0..];
   @ ensures \result == 0
   @      || (\base_addr(\result) == \base_addr(haystack)
-  @          && memcmp(\result,needle,strlen(needle)) == 0);
+  @          && memcmp{Pre,Pre}(\result,needle,strlen(needle)) == 0);
   @*/
 extern char *strstr(const char *haystack, const char *needle);
 
-/*@ requires (valid_string(s) || s == \null) && valid_string(delim);
-  @ assigns \nothing;
+/*@ requires valid_string_src: valid_string_or_null(s);
+  @ requires valid_string_delim: valid_string(delim);
+  @ assigns \result \from s, s[0..], delim[0..];
+  @ ensures \result == \null
+            || \base_addr(\result) == \base_addr(s);
   @*/
 extern char *strtok(char *restrict s, const char *restrict delim);
 
@@ -197,16 +211,16 @@ extern char *strcpy(char *restrict dest, const char *restrict src);
 /*@ 
   @ requires valid_string_src: valid_string(src);
   @ // FIXME: min(...) requires room_nstring: \valid(dest+(0 .. n)); 
-  @ assigns dest[0..n - 1];
+  @ assigns dest[0..n - 1] \from src[0..n-1];
+  @ assigns \result \from dest;
   @ ensures \result == dest;
   @ behavior complete:
   @   assumes strlen(src) < n;
-  @   assigns dest[0..n - 1];
   @   ensures strcmp(dest,src) == 0;
   @ behavior partial:
   @   assumes n <= strlen(src);
   @   assigns dest[0..n - 1];
-  @   ensures memcmp(dest,src,n) == 0;
+  @   ensures memcmp{Post,Post}(dest,src,n) == 0;
   @*/
 extern char *strncpy(char *restrict dest,
 		     const char *restrict src, size_t n);
@@ -228,21 +242,27 @@ extern char *strcat(char *restrict dest, const char *restrict src);
   @ requires valid_string_dst: valid_string(dest);
   @ requires room_string: \valid(dest + (strlen(dest) .. strlen(dest) + n)) ;
   @ assigns dest[strlen(dest) .. strlen(dest) + n] \from src[0..n];
+  @ assigns \result \from dest;
   @ ensures \result == dest;
   @ behavior complete:
   @   assumes valid_string(src) && strlen(src) <= n;
   @   assigns dest[strlen(dest)..strlen(dest) + strlen(src)]
   @   \from src[0..strlen(src)];
+  @   assigns \result \from dest;
   @   ensures strlen(dest) == \old(strlen(dest) + strlen(src));
   @ behavior partial:
   @   assumes ! (valid_string(src) && strlen(src) <= n);
+  @   assigns dest[strlen(dest)..strlen(dest) + n]
+  @   \from src[0..strlen(src)];
+  @   assigns \result \from dest;
   @   ensures strlen(dest) == \old(strlen(dest)) + n;
   @*/
 extern char *strncat(char *restrict dest, const char *restrict src, size_t n);
 
-/*@ requires \valid(dest+(0..n - 1));
+/*@ requires valid_dest: \valid(dest+(0..n - 1));
   @ requires valid_string_src: valid_string(src);
-  @ assigns dest[0..n - 1];
+  @ assigns dest[0..n - 1] \from src[0..], n;
+  @ assigns \result \from dest;
   @*/
 extern size_t strxfrm (char *restrict dest,
 		       const char *restrict src, size_t n);
@@ -250,13 +270,13 @@ extern size_t strxfrm (char *restrict dest,
 // Allocate strings
 
 /*@ requires valid_string_src: valid_string(s);
-  @ assigns \nothing;
+  @ assigns \result; // FIXME
   @ ensures \valid(\result+(0..strlen(s))) && strcmp(\result,s) == 0;
   @*/
 extern char *strdup (const char *s);
 
 /*@ requires valid_string_src: valid_string(s); // FIXME
-  @ assigns \nothing;
+  @ assigns \result; // FIXME
   @ ensures \valid(\result+(0..minimum(strlen(s),n)))
   @         && valid_string(\result) && strlen(\result) <= n
   @         && strncmp(\result,s,n) == 0;

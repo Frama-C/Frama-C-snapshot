@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -60,11 +60,11 @@ let skind = function
 
 let rec lkind t = 
   match Logic_utils.unroll_type t with
-    | Ctype ty -> ckind ty
-    | Ltype({lt_name="set"},[t]) -> lkind t
-    | Lreal -> R
-    | Linteger -> Z
-    | Ltype _ | Larrow _ | Lvar _ -> A
+  | Ctype ty -> ckind ty
+  | Ltype({lt_name="set"},[t]) -> lkind t
+  | Lreal -> R
+  | Linteger -> Z
+  | Ltype _ | Larrow _ | Lvar _ -> A
 
 let pp_kind fmt = function
   | I i -> Ctypes.pp_int fmt i
@@ -125,23 +125,23 @@ let lookup name kinds =
     try List.assoc kinds sigs
     with Not_found ->
       Wp_parameters.feedback ~once:true 
-	"Use -wp-logs 'driver' for debugging drivers" ;
+        "Use -wp-logs 'driver' for debugging drivers" ;
       if kinds=[] 
       then W.error ~current:true "Builtin %s undefined as a constant" name
       else W.error ~current:true "Builtin %s undefined with signature %a" name
-	pp_kinds kinds ;
+          pp_kinds kinds ;
       ACSLDEF
-  with Not_found ->
-    if name.[0] == '\\' then 
-      W.error "Builtin %s%a not defined" name pp_kinds kinds ;
-    ACSLDEF
+    with Not_found ->
+        if name.[0] == '\\' then 
+          W.error "Builtin %s%a not defined" name pp_kinds kinds ;
+        ACSLDEF
 
 let register name kinds link =
   let sigs = try Hashtbl.find (cdriver ()).hlogic name with Not_found -> [] in
   begin
     if List.exists (fun (s,_) -> s = kinds) sigs then
       let msg = Pretty_utils.sfprintf "Builtin %s%a already defined" name 
-	pp_kinds kinds 
+          pp_kinds kinds 
       in failwith msg ;
   end ;
   let entry = (kinds,link) in
@@ -166,17 +166,17 @@ let dump () =
     begin fun fmt ->
       Format.fprintf fmt "Builtins:@\n" ;
       iter_libs
-	(fun (name,libs) -> Format.fprintf fmt " * Library %s%a@\n" 
-	   name pp_libs libs) ;
+        (fun (name,libs) -> Format.fprintf fmt " * Library %s%a@\n" 
+            name pp_libs libs) ;
       iter_table
-	(fun (name,k,lnk) -> Format.fprintf fmt " * Logic %s%a = %a@\n" 
-	   name pp_kinds k pp_link lnk) ;
+        (fun (name,k,lnk) -> Format.fprintf fmt " * Logic %s%a = %a@\n" 
+            name pp_kinds k pp_link lnk) ;
     end
 
 (* -------------------------------------------------------------------------- *)
 (* --- Implemented Builtins                                               --- *)
 (* -------------------------------------------------------------------------- *)
-  
+
 let logic phi = 
   lookup phi.l_var_info.lv_name 
     (List.map (fun v -> lkind v.lv_type) phi.l_profile)
@@ -204,7 +204,7 @@ let add_logic result name kinds ~library ?category ~link () =
   let params = List.map skind kinds in
   let lfun = Lang.extern_s ~library ?category ~sort ~params ~link name in
   register name kinds (LFUN lfun)
-    
+
 let add_predicate name kinds ~library ~link () =
   let params = List.map skind kinds in
   let lfun = Lang.extern_fp ~library ~params ~link name in
@@ -259,8 +259,8 @@ let find_lib file =
     let rec lookup file = function
       | [] -> Wp_parameters.abort "File '%s' not found (see -wp-include)" file
       | dir::dirs ->
-	  let path = Printf.sprintf "%s/%s" dir file in
-	  if Sys.file_exists path then path else lookup file dirs
+          let path = Printf.sprintf "%s/%s" dir file in
+          if Sys.file_exists path then path else lookup file dirs
     in
     lookup file (cdriver ()).includes
 

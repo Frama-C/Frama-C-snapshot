@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -43,6 +43,7 @@ val iter : (model -> unit) -> unit
 val with_model : model -> ('a -> 'b) -> 'a -> 'b
 val on_model : model -> (unit -> unit) -> unit
 val get_model : unit -> model (** Current model *)
+val is_model_defined : unit -> bool 
 
 val directory : unit -> string (** Current model in ["-wp-out"] directory *)
 
@@ -66,13 +67,13 @@ sig
   val find : key -> data
   val get : key -> data option
   val define : key -> data -> unit
-    (** no redefinition ; circularity protected *)
+  (** no redefinition ; circularity protected *)
   val update : key -> data -> unit
-    (** set current value, with no protection *)
+  (** set current value, with no protection *)
   val memoize : (key -> data) -> key -> data
-    (** with circularity protection *)
+  (** with circularity protection *)
   val compile : (key -> data) -> key -> unit
-    (** with circularity protection *)
+  (** with circularity protection *)
 
   val callback : (key -> data -> unit) -> unit
 
@@ -81,6 +82,10 @@ sig
 end    
 
 module Index(E : Entries) : Registry with module E = E
+(** projectified, depend on the model, not serialized *)
+
+module Static(E : Entries) : Registry with module E = E
+(** projectified, not serialized *)
 
 module type Key =
 sig
@@ -106,4 +111,4 @@ end
 
 module Generator(K : Key)(D : Data with type key = K.t) : Generator 
   with type key = D.key
-  and type data = D.data
+   and type data = D.data

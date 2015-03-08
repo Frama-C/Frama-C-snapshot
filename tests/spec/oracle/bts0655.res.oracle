@@ -1,0 +1,145 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/spec/bts0655.i (no preprocessing)
+[bts0655] term dest+(0 .. n-1) has type set<unsigned char *>
+[bts0655] term dest has type unsigned char *
+[bts0655] term 0 .. n-1 has type set<ℤ>
+[bts0655] term 0 has type ℤ
+[bts0655] term n-1 has type ℤ
+[bts0655] term n has type ℤ
+[bts0655] term n has type unsigned long
+[bts0655] term 1 has type ℤ
+[bts0655] term 0 has type ℤ
+[bts0655] term i has type ℤ
+[bts0655] term i has type ℤ
+[bts0655] term \old(n) has type ℤ
+[bts0655] term \old(n) has type unsigned long
+[bts0655] term n has type unsigned long
+[bts0655] term *(\old(dest)+i) has type ℤ
+[bts0655] term *(\old(dest)+i) has type unsigned char
+[bts0655] term \old(dest)+i has type unsigned char *
+[bts0655] term \old(dest) has type unsigned char *
+[bts0655] term dest has type unsigned char *
+[bts0655] term i has type ℤ
+[bts0655] term 0 has type ℤ
+[bts0655] term *(dest+(0 .. n-1)) has type set<unsigned char>
+[bts0655] term dest+(0 .. n-1) has type set<unsigned char *>
+[bts0655] term dest has type unsigned char *
+[bts0655] term 0 .. n-1 has type set<ℤ>
+[bts0655] term 0 has type ℤ
+[bts0655] term n-1 has type ℤ
+[bts0655] term n has type ℤ
+[bts0655] term n has type unsigned long
+[bts0655] term 1 has type ℤ
+[bts0655] term dest+(0 .. size*n-1) has type set<unsigned char *>
+[bts0655] term dest has type unsigned char *
+[bts0655] term 0 .. size*n-1 has type set<ℤ>
+[bts0655] term 0 has type ℤ
+[bts0655] term size*n-1 has type ℤ
+[bts0655] term size*n has type ℤ
+[bts0655] term size has type ℤ
+[bts0655] term size has type unsigned long
+[bts0655] term n has type ℤ
+[bts0655] term n has type unsigned long
+[bts0655] term 1 has type ℤ
+[bts0655] term n has type ℤ
+[bts0655] term n has type unsigned long
+[bts0655] term 1 has type ℤ
+[bts0655] term 0 has type ℤ
+[bts0655] term i has type ℤ
+[bts0655] term i has type ℤ
+[bts0655] term \old(size) has type ℤ
+[bts0655] term \old(size) has type unsigned long
+[bts0655] term size has type unsigned long
+[bts0655] term 1 has type ℤ
+[bts0655] term j has type ℤ
+[bts0655] term j has type ℤ
+[bts0655] term \old(n) has type ℤ
+[bts0655] term \old(n) has type unsigned long
+[bts0655] term n has type unsigned long
+[bts0655] term *(\old(dest)+(i+j*\old(size))) has type unsigned char
+[bts0655] term \old(dest)+(i+j*\old(size)) has type unsigned char *
+[bts0655] term \old(dest) has type unsigned char *
+[bts0655] term dest has type unsigned char *
+[bts0655] term i+j*\old(size) has type ℤ
+[bts0655] term i has type ℤ
+[bts0655] term j*\old(size) has type ℤ
+[bts0655] term j has type ℤ
+[bts0655] term \old(size) has type ℤ
+[bts0655] term \old(size) has type unsigned long
+[bts0655] term size has type unsigned long
+[bts0655] term *(\old(dest)+i) has type unsigned char
+[bts0655] term \old(dest)+i has type unsigned char *
+[bts0655] term \old(dest) has type unsigned char *
+[bts0655] term dest has type unsigned char *
+[bts0655] term i has type ℤ
+[bts0655] term *(dest+(size .. size*n-1)) has type set<unsigned char>
+[bts0655] term dest+(size .. size*n-1) has type set<unsigned char *>
+[bts0655] term dest has type unsigned char *
+[bts0655] term size .. size*n-1 has type set<ℤ>
+[bts0655] term size has type unsigned long
+[bts0655] term size*n-1 has type ℤ
+[bts0655] term size*n has type ℤ
+[bts0655] term size has type ℤ
+[bts0655] term size has type unsigned long
+[bts0655] term n has type ℤ
+[bts0655] term n has type unsigned long
+[bts0655] term 1 has type ℤ
+[bts0655] term *(dest+(0 .. size-1)) has type set<unsigned char>
+[bts0655] term dest+(0 .. size-1) has type set<unsigned char *>
+[bts0655] term dest has type unsigned char *
+[bts0655] term 0 .. size-1 has type set<ℤ>
+[bts0655] term 0 has type ℤ
+[bts0655] term size-1 has type ℤ
+[bts0655] term size has type ℤ
+[bts0655] term size has type unsigned long
+[bts0655] term 1 has type ℤ
+[bts0655] term i has type ℤ
+[bts0655] term i has type int
+[bts0655] term \max(\at(a,Pre), \at(b,Pre)) has type ℤ
+[bts0655] term \at(a,Pre) has type ℤ
+[bts0655] term \at(a,Pre) has type unsigned int
+[bts0655] term a has type unsigned int
+[bts0655] term \at(b,Pre) has type ℤ
+[bts0655] term \at(b,Pre) has type unsigned int
+[bts0655] term b has type unsigned int
+[bts0655] term \result has type ℤ
+[bts0655] term \result has type unsigned int
+[bts0655] term \max(\old(a), \old(b)) has type ℤ
+[bts0655] term \old(a) has type ℤ
+[bts0655] term \old(a) has type unsigned int
+[bts0655] term a has type unsigned int
+[bts0655] term \old(b) has type ℤ
+[bts0655] term \old(b) has type unsigned int
+[bts0655] term b has type unsigned int
+[bts0655] term \result has type ℤ
+[bts0655] term \result has type unsigned int
+[bts0655] term \min(\old(a), \old(b)) has type ℤ
+[bts0655] term \old(a) has type ℤ
+[bts0655] term \old(a) has type unsigned int
+[bts0655] term a has type unsigned int
+[bts0655] term \old(b) has type ℤ
+[bts0655] term \old(b) has type unsigned int
+[bts0655] term b has type unsigned int
+[bts0655] term \max(\old(a), \old(b)) has type ℤ
+[bts0655] term \old(a) has type ℤ
+[bts0655] term \old(a) has type unsigned int
+[bts0655] term a has type unsigned int
+[bts0655] term \old(b) has type ℤ
+[bts0655] term \old(b) has type unsigned int
+[bts0655] term b has type unsigned int
+[bts0655] term \min(\old(a)+1, \old(b)) has type ℤ
+[bts0655] term \old(a)+1 has type ℤ
+[bts0655] term \old(a) has type ℤ
+[bts0655] term \old(a) has type unsigned int
+[bts0655] term a has type unsigned int
+[bts0655] term 1 has type ℤ
+[bts0655] term \old(b) has type ℤ
+[bts0655] term \old(b) has type unsigned int
+[bts0655] term b has type unsigned int
+[bts0655] term \old(a) has type ℤ
+[bts0655] term \old(a) has type unsigned int
+[bts0655] term a has type unsigned int
+[bts0655] term \abs(\old(a)) has type ℤ
+[bts0655] term \old(a) has type ℤ
+[bts0655] term \old(a) has type unsigned int
+[bts0655] term a has type unsigned int

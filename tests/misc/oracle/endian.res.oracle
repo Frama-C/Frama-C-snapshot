@@ -1,0 +1,56 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/endian.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  v1 ∈ {0}
+  UU ∈ {0}
+  b0 ∈ {0}
+  b1 ∈ {0}
+  b2 ∈ {0}
+  b3 ∈ {0}
+  f ∈ {0}
+  G0 ∈ {0}
+  G1 ∈ {0}
+  G2 ∈ {0}
+  G3 ∈ {0}
+  G{.f0; .f1[bits 0 to 15]; .f2[bits 0 to 15]; .f3[bits 0 to 15]} ∈ {65532}
+   {.f0[bits 16 to 31]; .f1[bits 16 to 31]; .f2[bits 16 to 31]; .f3[bits 16 to 31]} ∈
+   {0}
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  b0 ∈ {1}
+  b1 ∈ {2}
+  b2 ∈ {3}
+  b3 ∈ {255}
+  f ∈ {4278387200}
+  G0 ∈ {65532}
+  G1[bits 0 to 15] ∈ {65532}
+    [bits 16 to 31] ∈ {0}
+  G2 ∈ {-4}
+  G3# ∈ {65532}%16, bits 0 to 7 
+  data0{.full[bits 0 to 7]; .part.a} ∈ {0}
+       {.full[bits 8 to 31]#; .part{.b#; .c#; .d#}} ∈
+       {4278387201}%32, bits 8 to 31 
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  b0 FROM \nothing
+  b1 FROM \nothing
+  b2 FROM \nothing
+  b3 FROM \nothing
+  f FROM \nothing
+  G0 FROM G{.f0; .f1[bits 0 to 15]; .f2[bits 0 to 15]; .f3[bits 0 to 15]}
+  G1 FROM G
+  G2 FROM G{.f0[bits 0 to 4]; .f1[bits 0 to 4]; .f2; .f3[bits 0 to 4]}
+  G3 FROM G{.f0[bits 0 to 7]; .f1[bits 0 to 7]; .f2[bits 0 to 7]; .f3}
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          b0; b1; b2; b3; f; G0; G1; G2; G3; data0
+[inout] Inputs for function main:
+          G

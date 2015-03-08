@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -65,8 +65,8 @@ let pp_assigns fmt asgns =
 
 let pp_string_list ?(sep=format_of_string "@ ") ~empty fmt l =
   match l with [] ->  Format.fprintf fmt "%s" empty
-  | _ -> Format.fprintf fmt "%a"
-           (Pretty_utils.pp_list ~sep Format.pp_print_string) l
+             | _ -> Format.fprintf fmt "%a"
+                      (Pretty_utils.pp_list ~sep Format.pp_print_string) l
 
 
 type 'a cc =
@@ -84,13 +84,13 @@ let protected = function
 
 let protect exn =
   match protected exn with
-    | Some(plugin,reason) -> plugin , reason
-    | None -> raise exn
+  | Some(plugin,reason) -> plugin , reason
+  | None -> raise exn
 
 let protect_warning exn =
   match protected exn with
-    | Some(src,reason) -> Warning(src,reason)
-    | None -> raise exn
+  | Some(src,reason) -> Warning(src,reason)
+  | None -> raise exn
 
 let protect_function f x =
   try Result (f x)
@@ -116,11 +116,11 @@ let rec protect_map f = function
   | [] -> Result []
   | x::xs ->
       match f x with
-        | Result y ->
-            ( match protect_map f xs with
-                | Result ys -> Result (y :: ys)
-                | Warning _ as w -> w )
-        | Warning(m,p) -> Warning(m,p)
+      | Result y ->
+          ( match protect_map f xs with
+            | Result ys -> Result (y :: ys)
+            | Warning _ as w -> w )
+      | Warning(m,p) -> Warning(m,p)
 
 let name = function
   | [] -> ""
@@ -130,6 +130,6 @@ let name = function
       Buffer.add_string buffer x ;
       List.iter
         (fun y -> if y <> "" then
-           ( Buffer.add_char buffer '-' ;
-             Buffer.add_string buffer y )) xs ;
+            ( Buffer.add_char buffer '-' ;
+              Buffer.add_string buffer y )) xs ;
       Buffer.contents buffer

@@ -1,0 +1,41 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/pointer_loop.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  base0 ∈ {7}
+  base1 ∈ {1}
+  base2 ∈ {2}
+  base_p[0] ∈ {{ &base1 }}
+        [1] ∈ {{ &base2 }}
+  Ctrl_p ∈ {0}
+  Ctrl[0..1] ∈ {0}
+  Slot[0].Elements ∈ {2}
+      [0].Ctrl_p ∈ {{ &ACtrl[0] }}
+      [1] ∈ {0}
+  ACtrl[0] ∈ {{ &Ctrl[0] }}
+       [1] ∈ {{ &Ctrl[1] }}
+tests/misc/pointer_loop.i:13:[value] entering loop for the first time
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  base1 ∈ {1; 3; 4}
+  base2 ∈ {2; 3; 4}
+  Ctrl_p ∈ {{ NULL ; &base1 ; &base2 }}
+  i ∈ {2}
+  Elements ∈ {2}
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  base1 FROM base_p[0..1] (and SELF)
+  base2 FROM base_p[0..1] (and SELF)
+  Ctrl_p FROM base_p[0..1] (and SELF)
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          base1; base2; Ctrl_p; i; Elements
+[inout] Inputs for function main:
+          base_p[0..1]; Ctrl_p

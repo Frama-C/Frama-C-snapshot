@@ -1,0 +1,22 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_acsl/assigns_range.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] 6 goals scheduled
+[wp] [Alt-Ergo] Goal typed_call_assigns_t1_assign_exit : Unknown
+[wp] [Alt-Ergo] Goal typed_call_assigns_t1_assign_normal : Unknown
+[wp] [Alt-Ergo] Goal typed_call_assigns_t2_assign_exit : Unknown
+[wp] [Alt-Ergo] Goal typed_call_assigns_t2_assign_normal : Unknown
+[wp] [Alt-Ergo] Goal typed_call_assigns_t4_assign_exit : Unknown
+[wp] [Alt-Ergo] Goal typed_call_assigns_t4_assign_normal : Unknown
+[wp] Proved goals:    0 / 6
+     Alt-Ergo:        0  (unknown: 6)
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+call_assigns_t1     -      -           2       0.0%
+call_assigns_t2     -      -           2       0.0%
+call_assigns_t4     -      -           2       0.0%
+----------------------------------------------------------

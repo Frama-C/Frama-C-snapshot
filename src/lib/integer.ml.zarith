@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -22,30 +22,13 @@
 
 type t = Z.t
 
-include Big_int_Z
-
 let equal = Z.equal
 
 let compare = Z.compare
 
-let shift_left_big_int x y = 
-    Z.shift_left x (Z.to_int y)
-
-let shift_right_big_int x y = 
-    Z.shift_right x (Z.to_int y)
 
 let two_power_of_int k =
   Z.shift_left Z.one k
-(*
-  let h = Hashtbl.create 7 in
-  fun k ->
-      try
-        Hashtbl.find h k
-      with Not_found ->
-        let p = power_int_positive_int 2 k in
-        Hashtbl.add h k p;
-        p
-*)
 
 let two_power y =
     try
@@ -53,20 +36,15 @@ let two_power y =
       two_power_of_int k
     with Z.Overflow -> assert false
 
-let log_shift_right_big_int x y = (* no meaning for negative value of x *)
-  if (lt_big_int x zero_big_int)
-  then raise (Invalid_argument "log_shift_right_big_int")
-  else shift_right_big_int x y
-
 let popcount = Z.popcount
 
 (* To export *)
 
-  let small_nums = Array.init 33 (fun i -> big_int_of_int i)
+  let small_nums = Array.init 33 (fun i -> Z.of_int i)
 
-  let zero = zero_big_int
-  let one = unit_big_int
-  let minus_one = minus_big_int unit_big_int
+  let zero = Z.zero
+  let one = Z.one
+  let minus_one = Z.minus_one
   let two = Z.of_int 2
   let four = Z.of_int 4
   let eight = Z.of_int 8
@@ -78,56 +56,63 @@ let popcount = Z.popcount
   let two_power_60 = two_power_of_int 60
   let two_power_64 = two_power_of_int 64
 
-  let is_zero v = (sign_big_int v) = 0
+  let is_zero v = Z.equal v Z.zero
 
-  let rem = mod_big_int
-  let div = div_big_int
-  let mul = mult_big_int
 
-  let sub = sub_big_int
+  let add = Z.add
+  let sub = Z.sub
+  let succ = Z.succ
+  let pred = Z.pred
+  let neg = Z.neg
 
-  let abs = abs_big_int
-  let succ = succ_big_int
-  let pred = pred_big_int
-  let neg = minus_big_int
+  let rem = Z.erem
+  let div = Z.ediv
+  let mul = Z.mul
 
-  let add = add_big_int
+  let abs = Z.abs
 
   let hash = Z.hash
 
-  let shift_right_logical = log_shift_right_big_int
-  let shift_right = shift_right_big_int
-  let shift_left = shift_left_big_int
+  let shift_left x y = Z.shift_left x (Z.to_int y)
+  let shift_right x y = Z.shift_right x (Z.to_int y)
+  let shift_right_logical x y = (* no meaning for negative value of x *)
+    if (Z.lt x Z.zero)      
+    then failwith "log_shift_right_big_int"
+    else Z.shift_right x (Z.to_int y)
 
   let logand = Z.logand
   let lognot = Z.lognot
   let logor = Z.logor
   let logxor = Z.logxor
 
-  let le = le_big_int
-  let lt = lt_big_int
-  let ge = ge_big_int
-  let gt = gt_big_int
+  let le a b = Z.compare a b <= 0
+  let ge a b = Z.compare a b >= 0
+  let lt a b = Z.compare a b < 0
+  let gt a b = Z.compare a b > 0
 
-  let to_int v =
-    try Z.to_int v
-    with Z.Overflow -> failwith "to_int"
 
   let of_int = Z.of_int
 
   let of_int64 = Z.of_int64
   let of_int32 = Z.of_int32
-  let to_int64 = Z.to_int64
+
+  (* Return the same exceptions as [Big_int] *)
+  let to_int = Big_int_Z.int_of_big_int
+  let to_int64 = Big_int_Z.int64_of_big_int
+  let of_string s =
+    try Z.of_string s
+    with Invalid_argument _ ->
+    (* We intentionally do NOT specify a string in the .mli, as Big_int
+       raises multiple [Failure _] exceptions *)
+      failwith "Integer.of_string"
+
 
   let max_int64 = of_int64 Int64.max_int
   let min_int64 = of_int64 Int64.min_int
-  let bits_of_max_float = of_int64 (Int64.bits_of_float max_float)
-  let bits_of_most_negative_float =
-    of_int64 (Int64.bits_of_float (-. max_float))
 
-  let of_string = big_int_of_string
-  let to_string = string_of_big_int
-  let to_float = float_of_big_int
+
+  let to_string = Z.to_string
+  let to_float = Z.to_float
 
   let add_2_64 x = add two_power_64 x
   let add_2_32 x = add two_power_32 x
@@ -135,7 +120,7 @@ let popcount = Z.popcount
   let pretty ?(hexa=false) fmt v =
     let rec aux v =
       if gt v two_power_60 then
-        let quo, rem = quomod_big_int v two_power_60 in
+        let quo, rem = Z.ediv_rem v two_power_60 in
         aux quo;
         Format.fprintf fmt "%015LX" (to_int64 rem)
       else
@@ -144,7 +129,7 @@ let popcount = Z.popcount
     if hexa then
       if equal v zero then Format.pp_print_string fmt "0"
       else if gt v zero then (Format.pp_print_string fmt "0x"; aux v)
-      else (Format.pp_print_string fmt "-0x"; aux (minus_big_int v))
+      else (Format.pp_print_string fmt "-0x"; aux (Z.neg v))
       else
         Format.pp_print_string fmt (to_string v)
 
@@ -199,7 +184,7 @@ let popcount = Z.popcount
     let r =
       if is_zero v
       then u
-      else gcd_big_int u v in
+      else Z.gcd u v in
       r
 
   let ppcm u v =
@@ -207,8 +192,8 @@ let popcount = Z.popcount
     then zero
     else native_div (mul u v) (pgcd u v)
 
-  let min = min_big_int
-  let max = max_big_int
+  let min = Z.min
+  let max = Z.max
 
   let round_down_to_zero v modu =
     mul (pos_div v modu) modu
@@ -226,3 +211,5 @@ let popcount = Z.popcount
   let to_num b = 
     Num.num_of_big_int
       (Big_int.big_int_of_string (Big_int_Z.string_of_big_int b))
+
+  let power_int_positive_int = Big_int_Z.power_int_positive_int

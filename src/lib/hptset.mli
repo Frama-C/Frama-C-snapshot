@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -49,6 +49,16 @@ module type S = sig
 
     val from_shape: 'a shape -> t
     (** Build a set from another [elt]-indexed map or set. *)
+
+    val fold2_join_heterogeneous:
+      cache:Hptmap.cache_type ->
+      empty_left:('a shape -> 'b) ->
+      empty_right:(t -> 'b) ->
+      both:(elt -> 'a -> 'b) ->
+      join:('b -> 'b -> 'b) ->
+      empty:'b ->
+      t -> 'a shape ->
+      'b
 
     (** Clear all the caches used internally by the functions of this module.
         Those caches are not project-aware, so this function must be called

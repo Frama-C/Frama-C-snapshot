@@ -1,0 +1,3 @@
+[kernel] warning: 1 state in saved file ignored. It is invalid in this Frama-C configuration.
+[kernel] warning: 1 state in memory reset to their default value. It is inconsistent in this Frama_C configuration.
+[kernel] warning: ignoring source files specified on the command line while loading a global initial context.

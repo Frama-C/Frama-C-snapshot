@@ -1,0 +1,6 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/syntax/bts0519.c (with preprocessing)
+tests/syntax/bts0519.c:9:[kernel] user error: static specifier inside array argument is allowed only in function argument
+[kernel] user error: stopping on file "tests/syntax/bts0519.c" that has errors. Add
+                     '-kernel-msg-key pp' for preprocessing command.
+[kernel] Frama-C aborted: invalid user input.

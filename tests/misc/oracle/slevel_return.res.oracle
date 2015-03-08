@@ -1,0 +1,68 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/slevel_return.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  x ∈ {0}
+  y ∈ {0}
+[value] computing for function main1 <- main.
+        Called from tests/misc/slevel_return.i:44.
+tests/misc/slevel_return.i:7:[value] Function main1: postcondition got status valid.
+[value] Recording results for main1
+[value] Done for function main1
+[value] computing for function main2 <- main.
+        Called from tests/misc/slevel_return.i:45.
+[value] DUMPING STATE of file tests/misc/slevel_return.i line 38
+        x ∈ {-3}
+        y ∈ {0; 1; 6}
+        c ∈ [--..--]
+        c ∈ [--..--]
+        =END OF DUMP==
+tests/misc/slevel_return.i:23:[value] Function main2: postcondition got status valid.
+[value] Recording results for main2
+[value] Done for function main2
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main1:
+  x ∈ {-3; 0; 5}
+  y ∈ {0; 1; 6}
+[value] Values at end of function main2:
+  x ∈ {-3; 0; 5}
+  y ∈ {0; 1; 6}
+[value] Values at end of function main:
+  x ∈ {-3; 0; 5}
+  y ∈ {0; 1; 6}
+[from] Computing for function main1
+[from] Done for function main1
+[from] Computing for function main2
+[from] Computing for function Frama_C_dump_each <-main2
+[from] Done for function Frama_C_dump_each
+[from] Done for function main2
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main1:
+  x FROM c
+  y FROM c (and SELF)
+[from] Function main2:
+  x FROM c
+  y FROM c (and SELF)
+[from] Function main:
+  x FROM c
+  y FROM c (and SELF)
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main1:
+          x; y
+[inout] Inputs for function main1:
+          \nothing
+[inout] Out (internal) for function main2:
+          x; y
+[inout] Inputs for function main2:
+          \nothing
+[inout] Out (internal) for function main:
+          x; y
+[inout] Inputs for function main:
+          \nothing

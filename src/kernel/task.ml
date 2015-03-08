@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -248,7 +248,7 @@ let rec wait task =
   (try !Db.progress () with Db.Cancel -> Monad.cancel task) ;
   match Monad.state task with
     | Finished r -> r
-    | _ -> Unix.sleep 1 ; wait task
+    | _ -> Extlib.usleep 100000 (* 0.1s *) ; wait task
 
 (* ------------------------------------------------------------------------ *)
 (* ---  System Commands                                                 --- *)
@@ -265,7 +265,7 @@ type cmd = {
 }
 
 let set_chrono cmd = match cmd.chrono with
-  | None -> () | Some r -> r := max !r (Unix.time () -. cmd.time_start)
+  | None -> () | Some r -> r := max !r (Unix.gettimeofday () -. cmd.time_start)
 
 let set_time cmd t = match cmd.chrono with
   | None -> () | Some r -> r := max !r t
@@ -278,7 +278,7 @@ let start_command ~timeout ?time ?stdout ?stderr cmd args =
 	 Array.iter
            (fun c -> Format.fprintf fmt "@ %s" c) args) ;
     let timed = timeout > 0 || time <> None in
-    let time_start = if timed then Unix.time () else 0.0 in
+    let time_start = if timed then Unix.gettimeofday () else 0.0 in
     let time_stop = if timeout > 0 then time_start +. float_of_int timeout else 0.0 in
     let async = Command.command_async ?stdout ?stderr cmd args in
     {
@@ -297,7 +297,7 @@ let ping_command cmd () =
     match cmd.async () with
 	
       | Command.Not_ready kill ->
-	  let time_now = if cmd.timed then Unix.time () else 0.0 in
+	  let time_now = if cmd.timed then Unix.gettimeofday () else 0.0 in
           if cmd.timeout > 0 && time_now > cmd.time_stop then
             begin
 	      set_time cmd (time_now -. cmd.time_start) ;

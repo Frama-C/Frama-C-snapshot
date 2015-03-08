@@ -1,0 +1,29 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/pointer4.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  NULL[rbits 0 to 63] ∈ [--..--]
+  d ∈ {0}
+  e[0..9] ∈ {0}
+  c ∈ {0}
+tests/misc/pointer4.i:12:[value] entering loop for the first time
+tests/misc/pointer4.i:15:[kernel] warning: out of bounds write. assert \valid((int *)0x0+c);
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  NON TERMINATING FUNCTION
+[from] Computing for function main
+[from] Non-terminating function main (no dependencies)
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  NON TERMINATING - NO EFFECTS
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          NULL[0..7]; d; e[0]; c
+[inout] Inputs for function main:
+          c

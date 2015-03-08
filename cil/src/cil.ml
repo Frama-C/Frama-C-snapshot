@@ -49,7 +49,6 @@
  *
  *)
 
-open Cil_const
 open Logic_const
 open Format
 open Cil_datatype
@@ -69,7 +68,7 @@ let () = Log.set_current_source (fun () -> fst (CurrentLoc.get ()))
 
 let pp_thisloc fmt = Location.pretty fmt (CurrentLoc.get ())
 
-let register_ast_dependencies, add_ast_dependency  =
+let set_dependencies_of_ast, dependency_on_ast  =
   let list_self = ref [] in
   (fun ast -> State_dependency_graph.add_dependencies ~from:ast !list_self),
   (fun state -> list_self := state :: !list_self)
@@ -103,10 +102,7 @@ let longDoubleType = TFloat (FLongDouble, [])
 let empty_size_cache () = {scache=Not_Computed}
 
 type theMachine =
-    { mutable msvcMode: bool; (** Whether the pretty printer should
-				  print output for the MS VC
-                                  compiler. Default is GCC *)
-      mutable useLogicalOperators: bool;
+    { mutable useLogicalOperators: bool;
       mutable theMachine: mach;
       (** Cil.initCil will set this to the current machine description. *)
       mutable lowerConstants: bool; (** Do lower constants (default true) *)
@@ -143,11 +139,10 @@ type miscState =
       mutable lineLength: int;
       mutable warnTruncate: bool }
 
-let default_machdep = Machdep_x86_32.gcc
+let default_machdep = Machdeps.x86_32
 
 let createMachine () = (* Contain dummy values *)
-  { msvcMode = false;
-    useLogicalOperators = false;
+  { useLogicalOperators = false;
     theMachine = default_machdep;
     lowerConstants = false(*true*);
     insertImplicitCasts = true;
@@ -160,10 +155,10 @@ let createMachine () = (* Contain dummy values *)
     ptrdiffKind = IChar;
     ptrdiffType = voidType;
     typeOfSizeOf = voidType;
-    kindOfSizeOf = IUInt }
+    kindOfSizeOf = IUInt;
+}
 
 let copyMachine src dst =
-  dst.msvcMode <- src.msvcMode;
   dst.useLogicalOperators <- src.useLogicalOperators;
   dst.theMachine <- src.theMachine;
   dst.lowerConstants <- src.lowerConstants;
@@ -181,6 +176,9 @@ let copyMachine src dst =
 
 (* A few globals that control the interpretation of C source *)
 let theMachine = createMachine ()
+
+let msvcMode () = (theMachine.theMachine.compiler = "msvc")
+let gccMode () = (theMachine.theMachine.compiler = "gcc")
 
 let theMachineProject = ref (createMachine ())
 
@@ -225,8 +223,6 @@ let () =
     Logic_env.builtin_states
 
 let selfMachine_is_computed = TheMachine.is_computed
-
-let set_msvcMode b = theMachine.msvcMode <- b
 
 let miscState =
   { lineDirectiveStyle = Some LinePreprocessorInput;
@@ -376,11 +372,18 @@ let mkStmt ?(ghost=false) ?(valid_sid=false) (sk: stmtkind) : stmt =
  let dropAttribute (an: string) (al: attributes) =
    List.filter (fun a -> attributeName a <> an) al
 
- let dropAttributes (anl: string list) (al: attributes) =
-   List.fold_left (fun acc an -> dropAttribute an acc) al anl
-
  let hasAttribute (s: string) (al: attribute list) : bool =
    List.exists (fun a -> attributeName a = s) al
+
+ let rec dropAttributes (anl: string list) (al: attributes) =
+   match al with
+   | [] -> []
+   | a :: q ->
+     let q' = dropAttributes anl q in
+     if List.mem (attributeName a) anl then
+       q' (* drop this attribute *)
+     else
+       if q' == q then al (* preserve sharing *) else a :: q'
 
  let filterAttributes (s: string) (al: attribute list) : attribute list =
    List.filter (fun a -> attributeName a = s) al
@@ -470,19 +473,59 @@ let mkStmt ?(ghost=false) ?(valid_sid=false) (sk: stmtkind) : stmt =
        TArray (arrayPushAttributes al bt, l, s, a)
    | t -> typeAddAttributes al t
 
- let typeRemoveAttributes (anl: string list) t =
-   let drop (al: attributes) = dropAttributes anl al in
+ let rec typeRemoveAttributes (anl: string list) t =
+   (* Try to preserve sharing. We use sharing to be more efficient, but also
+      to detect that we have removed an attribute under typedefs *)
+   let reshare al f =
+     let al' = dropAttributes anl al in
+     if al' == al then t else f al'
+   in
    match t with
-     TVoid a -> TVoid (drop a)
-   | TInt (ik, a) -> TInt (ik, drop a)
-   | TFloat (fk, a) -> TFloat (fk, drop a)
-   | TEnum (enum, a) -> TEnum (enum, drop a)
-   | TPtr (t, a) -> TPtr (t, drop a)
-   | TArray (t, l, s, a) -> TArray (t, l, s, drop a)
-   | TFun (t, args, isva, a) -> TFun(t, args, isva, drop a)
-   | TComp (comp, s, a) -> TComp (comp, s, drop a)
-   | TNamed (t, a) -> TNamed (t, drop a)
-   | TBuiltin_va_list a -> TBuiltin_va_list (drop a)
+   | TVoid a -> reshare a (fun a -> TVoid a)
+   | TInt (ik, a) -> reshare a (fun a -> TInt (ik, a))
+   | TFloat (fk, a) -> reshare a (fun a -> TFloat (fk, a))
+   | TEnum (enum, a) -> reshare a (fun a -> TEnum (enum, a))
+   | TPtr (t, a) -> reshare a (fun a -> TPtr (t, a))
+   | TArray (t, l, s, a) -> reshare a (fun a -> TArray (t, l, s, a))
+   | TFun (t, args, isva, a) -> reshare a (fun a -> TFun(t, args, isva, a))
+   | TComp (comp, s, a) -> reshare a (fun a -> TComp (comp, s, a))
+   | TBuiltin_va_list a -> reshare a (fun a -> TBuiltin_va_list a)
+   | TNamed (tn, a) ->
+     let tn' = typeRemoveAttributes anl tn.ttype in
+     if tn' == tn.ttype then
+       reshare a (fun a -> TNamed (tn, a))
+     else
+       typeAddAttributes (dropAttributes anl a) tn'
+
+ let rec typeRemoveAttributesDeep (anl: string list) t =
+   (* Try to preserve sharing. We use sharing to be more efficient, but also
+      to detect that we have removed an attribute under typedefs *)
+   let reshare al f =
+     let al' = dropAttributes anl al in
+     if al' == al then t else f al'
+   in
+   match t with
+   | TVoid a -> reshare a (fun a -> TVoid a)
+   | TInt (ik, a) -> reshare a (fun a -> TInt (ik, a))
+   | TFloat (fk, a) -> reshare a (fun a -> TFloat (fk, a))
+   | TEnum (enum, a) -> reshare a (fun a -> TEnum (enum, a))
+   | TPtr (t, a) ->
+     let t' = typeRemoveAttributesDeep anl t in
+     if t != t' then TPtr(t', dropAttributes anl a)
+     else reshare a (fun a -> TPtr(t,a))
+   | TArray (t, l, s, a) ->
+     let t' = typeRemoveAttributesDeep anl t in
+     if t!=t' then TArray(t', l, s, dropAttributes anl a)
+     else reshare a (fun a -> TArray (t, l, s, a))
+   | TFun (t, args, isva, a) -> reshare a (fun a -> TFun(t, args, isva, a))
+   | TComp (comp, s, a) -> reshare a (fun a -> TComp (comp, s, a))
+   | TBuiltin_va_list a -> reshare a (fun a -> TBuiltin_va_list a)
+   | TNamed (tn, a) ->
+     let tn' = typeRemoveAttributesDeep anl tn.ttype in
+     if tn' == tn.ttype then
+       reshare a (fun a -> TNamed (tn, a))
+     else
+       typeAddAttributes (dropAttributes anl a) tn'
 
 (* JS: build an attribute annotation from [s]. *)
 let mkAttrAnnot s = "/*@ " ^ s ^ " */"
@@ -491,6 +534,8 @@ let mkAttrAnnot s = "/*@ " ^ s ^ " */"
 let type_remove_qualifier_attributes = 
   typeRemoveAttributes qualifier_attributes
 
+let type_remove_qualifier_attributes_deep =
+  typeRemoveAttributesDeep qualifier_attributes
     
 type attributeClass =
    | AttrName of bool
@@ -573,7 +618,7 @@ type attributeClass =
    | _ -> false
 
  (* Make a varinfo. Used mostly as a helper function below  *)
- let makeVarinfo ?(logic=false) ?(generated=true) global formal name typ =
+ let makeVarinfo ?(source=true) ?(temp=false) global formal name typ =
    (* Strip const from type for locals *)
    let vi =
      { vorig_name = name;
@@ -582,7 +627,7 @@ type attributeClass =
        vglob = global;
        vdefined = false;
        vformal = formal;
-       vgenerated = generated;
+       vtemp = temp;
        vtype = if formal || global then typ
        else typeRemoveAttributes ["const"] typ;
        vdecl = Location.unknown;
@@ -594,11 +639,11 @@ type attributeClass =
        vdescr = None;
        vdescrpure = true;
        vghost = false;
-       vlogic = logic;
+       vsource = source;
        vlogic_var_assoc = None
      }
    in
-   set_vid vi;
+   Cil_const.set_vid vi;
    vi
 
  module FormalsDecl =
@@ -612,10 +657,10 @@ type attributeClass =
       end)
 
  let selfFormalsDecl = FormalsDecl.self
- let () = add_ast_dependency selfFormalsDecl
+ let () = dependency_on_ast selfFormalsDecl
 
  let makeFormalsVarDecl (n,t,a) =
-   let vi = makeVarinfo ~generated:false false true n t in
+   let vi = makeVarinfo ~temp:false false true n t in
    vi.vattr <- a;
    vi
 
@@ -682,6 +727,73 @@ let is_empty_behavior b =
   b.b_assumes = [] && b.b_requires = [] && b.b_post_cond = [] &&
   b.b_assigns = WritesAny && b.b_allocation = FreeAllocAny && b.b_extended = []
 
+ (** Get the full name of a comp *)
+ let compFullName comp =
+   (if comp.cstruct then "struct " else "union ") ^ comp.cname
+
+
+ let missingFieldName = "" (* "___missing_field_name"*)
+
+(* The next compindo identifier to use. Counts up. *)
+ let nextCompinfoKey =
+   let module M =
+         State_builder.SharedCounter(struct let name = "compinfokey" end)
+   in
+   M.next
+
+ (** Creates a (potentially recursive) composite type. Make sure you add a
+   * GTag for it to the file! **)
+ let mkCompInfo
+       (isstruct: bool)
+       (n: string)
+       ?(norig=n)
+       (* fspec is a function that when given a forward
+	* representation of the structure type constructs the type of
+	* the fields. The function can ignore this argument if not
+	* constructing a recursive type.  *)
+	(mkfspec: compinfo -> (string * typ * int option * attribute list *
+			      location) list)
+	(a: attribute list) : compinfo =
+
+   (* make a new name for anonymous structs *)
+   if n = "" then Kernel.fatal "mkCompInfo: missing structure name\n" ;
+   (* Make a new self cell and a forward reference *)
+   let comp =
+     { cstruct = isstruct;
+       corig_name = norig;
+       cname = n;
+       ckey = nextCompinfoKey ();
+       cfields = []; (* fields will be added afterwards. *)
+       cattr = a;
+       creferenced = false;
+       (* Make this compinfo undefined by default *)
+       cdefined = false; }
+   in
+   let flds =
+     List.map (fun (fn, ft, fb, fa, fl) ->
+		 { fcomp = comp;
+		   ftype = ft;
+		   forig_name = fn;
+		   fname = fn;
+		   fbitfield = fb;
+		   fattr = fa;
+		   floc = fl;
+		   faddrof = false;
+		   fsize_in_bits = None;
+		   foffset_in_bits = None;
+		   fpadding_in_bits = None;
+		 }) (mkfspec comp) in
+   comp.cfields <- flds;
+   if flds <> [] then comp.cdefined <- true;
+   comp
+
+ (** Make a copy of a compinfo, changing the name and the key *)
+ let copyCompInfo (ci: compinfo) (n: string) : compinfo =
+   let ci' = {ci with cname = n; ckey = nextCompinfoKey (); } in
+   (* Copy the fields and set the new pointers to parents *)
+   ci'.cfields <- List.map (fun f -> {f with fcomp = ci'}) ci'.cfields;
+   ci'
+
 (** Different visiting actions. 'a will be instantiated with [exp], [instr],
     etc.
     @see Plugin Development Guide *)
@@ -716,6 +828,8 @@ type visitor_behavior =
       cfunbehavior: funbehavior -> funbehavior;
       cidentified_term: identified_term -> identified_term;
       cidentified_predicate: identified_predicate -> identified_predicate;
+      cexpr: exp -> exp;
+      ccode_annotation: code_annotation -> code_annotation;
       (* get the copy of a shared value *)
       get_stmt: stmt -> stmt;
       get_compinfo: compinfo -> compinfo;
@@ -788,6 +902,7 @@ type visitor_behavior =
       memo_fundec: fundec -> fundec;
       (* is the behavior a copy behavior *)
       is_copy_behavior: bool;
+      is_fresh_behavior: bool;
       project: Project.t option;
       (* reset memoizing tables *)
       reset_behavior_varinfo: unit -> unit;
@@ -843,6 +958,8 @@ type visitor_behavior =
     }
 
 let is_copy_behavior b = b.is_copy_behavior
+
+let is_fresh_behavior b = b.is_fresh_behavior
 
 let memo_varinfo b = b.memo_varinfo
 let memo_compinfo b = b.memo_compinfo
@@ -998,7 +1115,10 @@ let inplace_visit () =
     cfunbehavior = id;
     cidentified_term = id;
     cidentified_predicate = id;
+    ccode_annotation = id;
+    cexpr = id;
     is_copy_behavior = false;
+    is_fresh_behavior = false;
     project = None;
     memo_varinfo = id;
     memo_compinfo = id;
@@ -1080,7 +1200,7 @@ let inplace_visit () =
     fold_visitor_fundec = alphabetabeta;
   }
 
-let copy_visit prj =
+let copy_visit_gen fresh prj =
   let varinfos = Cil_datatype.Varinfo.Hashtbl.create 103 in
   let compinfos = Cil_datatype.Compinfo.Hashtbl.create 17 in
   let enuminfos = Cil_datatype.Enuminfo.Hashtbl.create 17 in
@@ -1107,36 +1227,124 @@ let copy_visit prj =
   let orig_logic_vars = Cil_datatype.Logic_var.Hashtbl.create 17 in
   let orig_kernel_functions = Cil_datatype.Kf.Hashtbl.create 17 in
   let orig_fundecs = Cil_datatype.Varinfo.Hashtbl.create 17 in
+  let temp_set_logic_var x new_x =
+      Cil_datatype.Logic_var.Hashtbl.add logic_vars x new_x
+  in
+  let temp_set_orig_logic_var new_x x =
+      Cil_datatype.Logic_var.Hashtbl.add orig_logic_vars new_x x
+  in
   let temp_memo_logic_var x =
 (*    Format.printf "search for %s#%d@." x.lv_name x.lv_id;*)
     let res =
     try Cil_datatype.Logic_var.Hashtbl.find logic_vars x
     with Not_found ->
 (*      Format.printf "Not found@.";*)
-      let new_x = { x with lv_id = x.lv_id } in
-      Cil_datatype.Logic_var.Hashtbl.add logic_vars x new_x;
-      Cil_datatype.Logic_var.Hashtbl.add orig_logic_vars new_x x;
-      new_x
+      let id = if fresh then Cil_const.new_raw_id () else x.lv_id in
+      let new_x = { x with lv_id = id } in
+      temp_set_logic_var x new_x; temp_set_orig_logic_var new_x x; new_x
     in
 (*    Format.printf "res is %s#%d@." res.lv_name res.lv_id;*)
     res
   in
+  let temp_set_varinfo x new_x =
+    Cil_datatype.Varinfo.Hashtbl.add varinfos x new_x;
+    match x.vlogic_var_assoc, new_x.vlogic_var_assoc with
+          | None, _ | _, None -> ()
+          | Some lx, Some new_lx ->
+            Cil_datatype.Logic_var.Hashtbl.add logic_vars lx new_lx
+  in
+  let temp_set_orig_varinfo new_x x =
+    Cil_datatype.Varinfo.Hashtbl.add orig_varinfos new_x x;
+    match new_x.vlogic_var_assoc, x.vlogic_var_assoc with
+      | None, _ | _, None -> ()
+      | Some new_lx, Some lx ->
+        Cil_datatype.Logic_var.Hashtbl.add orig_logic_vars new_lx lx
+  in
   let temp_memo_varinfo x =
     try Cil_datatype.Varinfo.Hashtbl.find varinfos x
     with Not_found ->
-      let new_x = { x with vid = x.vid } in
-      Cil_datatype.Varinfo.Hashtbl.add varinfos x new_x;
-      Cil_datatype.Varinfo.Hashtbl.add orig_varinfos new_x x;
-      new_x
+      let new_x =
+        if fresh then Cil_const.copy_with_new_vid x else begin
+          let new_x = { x with vid = x.vid } in
+          (match x.vlogic_var_assoc with
+            | None -> ()
+            | Some lv ->
+              let new_lv = { lv with lv_origin = Some new_x } in
+              new_x.vlogic_var_assoc <- Some new_lv);
+          new_x
+        end
+      in
+      temp_set_varinfo x new_x; temp_set_orig_varinfo new_x x; new_x
+  in
+  let temp_set_fundec f new_f =
+    Cil_datatype.Varinfo.Hashtbl.add fundecs f.svar new_f
+  in
+  let temp_set_orig_fundec new_f f =
+    Cil_datatype.Varinfo.Hashtbl.add orig_fundecs new_f.svar f
   in
   let temp_memo_fundec f =
     try Cil_datatype.Varinfo.Hashtbl.find fundecs f.svar
     with Not_found ->
       let v = temp_memo_varinfo f.svar in
       let new_f = { f with svar = v } in
-      Cil_datatype.Varinfo.Hashtbl.add fundecs f.svar new_f;
-      Cil_datatype.Varinfo.Hashtbl.add orig_fundecs v f;
-      new_f
+      temp_set_fundec f new_f; temp_set_orig_fundec new_f f; new_f
+  in
+  let temp_set_kernel_function kf new_kf =
+    Cil_datatype.Kf.Hashtbl.replace kernel_functions kf new_kf;
+    match kf.fundec, new_kf.fundec with
+      | Declaration(_,vi,_,_), Declaration(_,new_vi,_,_)
+      | Declaration(_,vi,_,_), Definition({ svar = new_vi }, _)
+      | Definition({svar = vi},_), Declaration(_,new_vi,_,_) ->
+        temp_set_varinfo vi new_vi
+      | Definition (fundec,_), Definition(new_fundec,_) ->
+        temp_set_fundec fundec new_fundec
+  in
+  let temp_set_orig_kernel_function new_kf kf =
+    Cil_datatype.Kf.Hashtbl.replace orig_kernel_functions new_kf kf;
+    match new_kf.fundec, kf.fundec with
+      | Declaration(_,new_vi,_,_), Declaration(_,vi,_,_)
+      | Declaration(_,new_vi,_,_), Definition({ svar = vi }, _)
+      | Definition({svar = new_vi},_), Declaration(_,vi,_,_) ->
+        temp_set_orig_varinfo new_vi vi
+      | Definition (new_fundec,_), Definition(fundec,_) ->
+        temp_set_orig_fundec new_fundec fundec
+  in
+  let temp_memo_kernel_function kf =
+    try Cil_datatype.Kf.Hashtbl.find kernel_functions kf
+    with Not_found ->
+      let new_kf =
+        match kf.fundec with
+          | Declaration (spec,vi,prms,loc) ->
+            let new_vi = temp_memo_varinfo vi in
+            { kf with fundec = Declaration(spec,new_vi,prms,loc) }
+          | Definition(f,loc) ->
+            let new_f = temp_memo_fundec f in
+            { kf with fundec = Definition(new_f,loc) }
+      in
+      temp_set_kernel_function kf new_kf;
+      temp_set_orig_kernel_function new_kf kf;
+      new_kf
+  in
+  let temp_set_compinfo c new_c =
+    Cil_datatype.Compinfo.Hashtbl.add compinfos c new_c;
+    List.iter2
+      (fun f new_f -> Cil_datatype.Fieldinfo.Hashtbl.add fieldinfos f new_f)
+      c.cfields new_c.cfields
+  in
+  let temp_set_orig_compinfo new_c c =
+    Cil_datatype.Compinfo.Hashtbl.add orig_compinfos new_c c;
+      List.iter2
+        (fun new_f f ->
+          Cil_datatype.Fieldinfo.Hashtbl.add orig_fieldinfos new_f f)
+        new_c.cfields c.cfields
+  in
+  let temp_memo_compinfo c =
+    try Cil_datatype.Compinfo.Hashtbl.find compinfos c
+    with Not_found ->
+      let new_c =
+        if fresh then copyCompInfo c c.cname else { c with ckey = c.ckey }
+      in
+      temp_set_compinfo c new_c; temp_set_orig_compinfo new_c c; new_c
   in
   { cfile = (fun x -> { x with fileName = x.fileName });
     get_compinfo =
@@ -1239,9 +1447,20 @@ let copy_visit prj =
     cblock = (fun x -> { x with battrs = x.battrs });
     cfunspec = (fun x -> { x with spec_behavior = x.spec_behavior});
     cfunbehavior = (fun x -> { x with b_name = x.b_name});
-    cidentified_predicate = (fun x -> { x with ip_id = x.ip_id });
-    cidentified_term = (fun x -> { x with it_id = x.it_id});
+    ccode_annotation =
+      if fresh then Logic_const.refresh_code_annotation
+      else (fun x -> { x with annot_id = x.annot_id });
+    cidentified_predicate =
+      if fresh then Logic_const.refresh_predicate
+      else (fun x -> { x with ip_id = x.ip_id });
+    cidentified_term =
+      if fresh then Logic_const.refresh_identified_term
+      else (fun x -> { x with it_id = x.it_id});
+    cexpr =
+      (fun x ->
+        let id = if fresh then Eid.next () else x.eid in { x with eid = id });
     is_copy_behavior = true;
+    is_fresh_behavior = fresh;
     project = Some prj;
     reset_behavior_varinfo =
       (fun () ->
@@ -1296,14 +1515,7 @@ let copy_visit prj =
         Cil_datatype.Varinfo.Hashtbl.clear fundecs;
         Cil_datatype.Varinfo.Hashtbl.clear orig_fundecs);
     memo_varinfo = temp_memo_varinfo;
-    memo_compinfo =
-      (fun x ->
-         try Cil_datatype.Compinfo.Hashtbl.find compinfos x
-         with Not_found ->
-           let new_x = { x with ckey = x.ckey } in
-           Cil_datatype.Compinfo.Hashtbl.add compinfos x new_x;
-           Cil_datatype.Compinfo.Hashtbl.add orig_compinfos new_x x;
-           new_x);
+    memo_compinfo = temp_memo_compinfo;
     memo_enuminfo =
       (fun x ->
          try Cil_datatype.Enuminfo.Hashtbl.find enuminfos x
@@ -1350,7 +1562,8 @@ let copy_visit prj =
       (fun x ->
          try Cil_datatype.Stmt.Hashtbl.find stmts x
          with Not_found ->
-           let new_x = { x with sid = x.sid } in
+           let sid = if fresh then Sid.next () else x.sid in
+           let new_x = { x with sid = sid } in
            Cil_datatype.Stmt.Hashtbl.add stmts x new_x;
            Cil_datatype.Stmt.Hashtbl.add orig_stmts new_x x;
            new_x);
@@ -1358,7 +1571,9 @@ let copy_visit prj =
       (fun x ->
          try Cil_datatype.Fieldinfo.Hashtbl.find fieldinfos x
          with Not_found ->
-           let new_x = { x with fname = x.fname } in
+           let _ = temp_memo_compinfo x.fcomp in
+           (* memo_compinfo fills the field correspondance table as well *)
+           let new_x = Cil_datatype.Fieldinfo.Hashtbl.find fieldinfos x in
            Cil_datatype.Fieldinfo.Hashtbl.add fieldinfos x new_x;
            Cil_datatype.Fieldinfo.Hashtbl.add orig_fieldinfos new_x x;
            new_x);
@@ -1372,23 +1587,10 @@ let copy_visit prj =
           new_x
       );
     memo_logic_var = temp_memo_logic_var;
-    memo_kernel_function =
-      (fun x ->
-        try Cil_datatype.Kf.Hashtbl.find kernel_functions x
-        with Not_found ->
-          let fundec =
-            match x.fundec with
-              | Definition (f,l) -> Definition (temp_memo_fundec f,l)
-              | Declaration(s,v,p,l) ->
-                Declaration(s,temp_memo_varinfo v,p,l)
-          in
-          let new_x = { x with fundec = fundec } in
-          Cil_datatype.Kf.Hashtbl.add kernel_functions x new_x;
-          Cil_datatype.Kf.Hashtbl.add orig_kernel_functions new_x x;
-          new_x);
+    memo_kernel_function = temp_memo_kernel_function;
     memo_fundec = temp_memo_fundec;
-    set_varinfo = Cil_datatype.Varinfo.Hashtbl.replace varinfos;
-    set_compinfo = Cil_datatype.Compinfo.Hashtbl.replace compinfos;
+    set_varinfo = temp_set_varinfo;
+    set_compinfo = temp_set_compinfo;
     set_enuminfo = Cil_datatype.Enuminfo.Hashtbl.replace enuminfos;
     set_enumitem = Cil_datatype.Enumitem.Hashtbl.replace enumitems;
     set_typeinfo = Cil_datatype.Typeinfo.Hashtbl.replace typeinfos;
@@ -1398,12 +1600,11 @@ let copy_visit prj =
     set_stmt = Cil_datatype.Stmt.Hashtbl.replace stmts;
     set_fieldinfo = Cil_datatype.Fieldinfo.Hashtbl.replace fieldinfos;
     set_model_info = Cil_datatype.Model_info.Hashtbl.replace model_infos;
-    set_logic_var = Cil_datatype.Logic_var.Hashtbl.replace logic_vars;
-    set_kernel_function = Cil_datatype.Kf.Hashtbl.replace kernel_functions;
-    set_fundec =
-      (fun x y -> Cil_datatype.Varinfo.Hashtbl.replace fundecs x.svar y);
-    set_orig_varinfo = Cil_datatype.Varinfo.Hashtbl.replace orig_varinfos;
-    set_orig_compinfo = Cil_datatype.Compinfo.Hashtbl.replace orig_compinfos;
+    set_logic_var = temp_set_logic_var;
+    set_kernel_function = temp_set_kernel_function;
+    set_fundec = temp_set_fundec;
+    set_orig_varinfo = temp_set_orig_varinfo;
+    set_orig_compinfo = temp_set_orig_compinfo;
     set_orig_enuminfo = Cil_datatype.Enuminfo.Hashtbl.replace orig_enuminfos;
     set_orig_enumitem = Cil_datatype.Enumitem.Hashtbl.replace orig_enumitems;
     set_orig_typeinfo = Cil_datatype.Typeinfo.Hashtbl.replace orig_typeinfos;
@@ -1412,15 +1613,13 @@ let copy_visit prj =
     set_orig_logic_type_info =
       Cil_datatype.Logic_type_info.Hashtbl.replace orig_logic_type_infos;
     set_orig_stmt = Cil_datatype.Stmt.Hashtbl.replace orig_stmts;
-    set_orig_fieldinfo = 
+    set_orig_fieldinfo =
       Cil_datatype.Fieldinfo.Hashtbl.replace orig_fieldinfos;
     set_orig_model_info =
       Cil_datatype.Model_info.Hashtbl.replace orig_model_infos;
-    set_orig_logic_var = Cil_datatype.Logic_var.Hashtbl.replace orig_logic_vars;
-    set_orig_kernel_function =
-      Cil_datatype.Kf.Hashtbl.replace orig_kernel_functions;
-    set_orig_fundec = 
-      (fun x y -> Cil_datatype.Varinfo.Hashtbl.replace orig_fundecs x.svar y);
+    set_orig_logic_var = temp_set_orig_logic_var;
+    set_orig_kernel_function = temp_set_orig_kernel_function;
+    set_orig_fundec = temp_set_orig_fundec;
     iter_visitor_varinfo = 
       (fun f -> Cil_datatype.Varinfo.Hashtbl.iter f varinfos);
     iter_visitor_compinfo =
@@ -1490,6 +1689,14 @@ let copy_visit prj =
         in
         Cil_datatype.Varinfo.Hashtbl.fold f fundecs i);
   }
+
+let copy_visit = copy_visit_gen false
+
+let refresh_visit = copy_visit_gen true
+
+let visitor_tbl = Hashtbl.create 5
+
+let register_behavior_extension name ext = Hashtbl.add visitor_tbl name ext
 
 (* sm/gn: cil visitor interface for traversing Cil trees. *)
 (* Use visitCilStmt and/or visitCilFile to use this. *)
@@ -2453,6 +2660,10 @@ and visitCilLogicLabelApp vis (l1,l2 as p) =
 	 let s' = visitCilLogicLabel vis s in
 	 let t' = vTerm t in
 	 if t' != t || s != s' then Pinitialized (s',t') else p
+     | Pdangling (s,t) ->
+	 let s' = visitCilLogicLabel vis s in
+	 let t' = vTerm t in
+	 if t' != t || s != s' then Pdangling (s',t') else p
      | Pseparated seps ->
 	 let seps' = mapNoCopy vTerm seps in
 	 if seps' != seps then Pseparated seps' else p
@@ -2533,9 +2744,18 @@ and childrenBehavior vis b =
    b.b_extended <- mapNoCopy (visitCilExtended vis) b.b_extended;
    b
 
-and visitCilExtended vis (s,id,p as orig) =
+and visitCilExtended vis (s,i,p as orig) =
+  let visit =
+    try Hashtbl.find visitor_tbl s
+    with Not_found -> (fun _ _ -> DoChildren)
+  in
+  let pre = i,p in
+  let (i, p as res) = doVisitCil vis id (visit vis) childrenCilExtended pre in
+  if res == pre then orig else (s,i,p)
+
+and childrenCilExtended vis (i,p as orig) =
   let r = mapNoCopy (visitCilIdPredicate vis) p in
-  if r == p then orig else (s,id,r)
+  if r == p then orig else (i,r)
 
 and visitCilPredicates vis ps = mapNoCopy (visitCilIdPredicate vis) ps
 
@@ -2676,7 +2896,8 @@ and childrenSpec vis s =
 	 if l' != l then Daxiomatic(id,l',loc) else a
 
  and visitCilCodeAnnotation vis ca =
-   doVisitCil vis id vis#vcode_annot childrenCodeAnnot ca
+   doVisitCil
+     vis vis#behavior.ccode_annotation vis#vcode_annot childrenCodeAnnot ca
 
  and childrenCodeAnnot vis ca =
    let vPred p = visitCilPredicateNamed vis p in
@@ -2716,7 +2937,7 @@ and childrenSpec vis s =
 and visitCilExpr (vis: cilVisitor) (e: exp) : exp =
   let oldLoc = CurrentLoc.get () in
   CurrentLoc.set e.eloc;
-  let res = doVisitCil vis id vis#vexpr childrenExp e in
+  let res = doVisitCil vis vis#behavior.cexpr vis#vexpr childrenExp e in
   CurrentLoc.set oldLoc; res
 
 and childrenExp (vis: cilVisitor) (e: exp) : exp =
@@ -2973,6 +3194,23 @@ and childrenExp (vis: cilVisitor) (e: exp) : exp =
      | Block b ->
 	 let b' = fBlock b in
 	 if b' != b then Block b' else s.skind
+     | Throw (e,loc) ->
+       let visit (e,t as exc) =
+         let e' = fExp e in
+         let t' = visitCilType vis t in
+         if e != e' || t != t' then (e',t') else exc
+       in
+       let e' = optMapNoCopy visit e in
+       if e != e' then Throw (e,loc) else s.skind
+     | TryCatch (b,l,loc) ->
+       let b' = fBlock b in
+       let visit (v,b as catch) =
+         let v' = visitCilCatch_binder vis v in
+         let b' = fBlock b in
+         if v != v' || b != b' then (v', b') else catch
+       in
+       let l' = mapNoCopy visit l in
+       if b != b' || l != l' then TryCatch (b', l',loc) else s.skind
      | TryFinally (b, h, l) ->
 	 let b' = fBlock b in
 	 let h' = fBlock h in
@@ -3011,8 +3249,18 @@ and childrenExp (vis: cilVisitor) (e: exp) : exp =
    if labels' != s.labels then s.labels <- labels';
    s
 
-
-
+ and visitCilCatch_binder vis cb =
+  match cb with
+    | Catch_exn (v,l) ->
+      let visit_one_conversion (v, b as conv) =
+        let v' = visitCilVarDecl vis v in
+        let b' = visitCilBlock vis b in
+        if v != v' || b != b' then (v', b') else conv
+      in
+      let v' = visitCilVarDecl vis v in
+      let l' = mapNoCopy visit_one_conversion l in
+      if v != v' || l != l' then Catch_exn(v',l') else cb
+    | Catch_all -> cb
  and visitCilBlock (vis: cilVisitor) (b: block) : block =
    doVisitCil vis vis#behavior.cblock vis#vblock childrenBlock b
  and childrenBlock (vis: cilVisitor) (b: block) : block =
@@ -3092,10 +3340,15 @@ and childrenExp (vis: cilVisitor) (e: exp) : exp =
    in CurrentLoc.set oldloc; res
 
  and childrenVarDecl (vis : cilVisitor) (v : varinfo) : varinfo =
+  (* in case of refresh visitor, the associated new logic var has a different
+     id. We must visit the original logic var associated to it. *)
+  let visit_orig_var_assoc lv =
+    let o = vis#behavior.get_original_logic_var lv in
+    visitCilLogicVarDecl vis o
+  in
    v.vtype <- visitCilType vis v.vtype;
    v.vattr <- visitCilAttributes vis v.vattr;
-   v.vlogic_var_assoc <-
-     optMapNoCopy (visitCilLogicVarDecl vis) v.vlogic_var_assoc;
+   v.vlogic_var_assoc <- optMapNoCopy visit_orig_var_assoc v.vlogic_var_assoc;
    v
 
  and visitCilVarUse vis v =
@@ -3200,8 +3453,8 @@ and childrenExp (vis: cilVisitor) (e: exp) : exp =
    if debugVisit then Kernel.feedback "Visiting function %s" f.svar.vname ;
    assertEmptyQueue vis;
    vis#set_current_func f;
+   (* update fundec tables *)
    let f = vis#behavior.memo_fundec f in
-   f.svar <- vis#behavior.memo_varinfo f.svar; (* hit the function name *)
    let f =
      doVisitCil vis id (* copy has already been done *)
        vis#vfunc childrenFunction f
@@ -3218,7 +3471,17 @@ and childrenExp (vis: cilVisitor) (e: exp) : exp =
    f
 
  and childrenFunction (vis : cilVisitor) (f : fundec) : fundec =
-   f.svar <- visitCilVarDecl vis f.svar; (* hit the function name *)
+   (* we have already made a copy of the svar, but not visited it.
+      Use the original variable as argument of visitCilVarDecl,
+      update fundec table in case the vid gets changed. *)
+   let v = vis#behavior.get_original_varinfo f.svar in
+   let nv = visitCilVarDecl vis v in
+   if not (Cil_datatype.Varinfo.equal nv f.svar) then begin
+     Kernel.fatal
+       "Visiting the varinfo declared for function %a changes its id."
+       Cil_datatype.Varinfo.pretty nv
+   end;
+   f.svar <- nv; (* hit the function name *)
    (* visit local declarations *)
    f.slocals <- mapNoCopy (visitCilVarDecl vis) f.slocals;
    (* visit the formals *)
@@ -3240,12 +3503,14 @@ and childrenExp (vis: cilVisitor) (e: exp) : exp =
    f
 
  let childrenFieldInfo vis fi =
-   fi.fcomp <- vis#behavior.get_compinfo fi.fcomp;
+   (* already done at copy creation *)
+   (* fi.fcomp <- vis#behavior.get_compinfo fi.fcomp; *)
    fi.ftype <- visitCilType vis fi.ftype;
    fi.fattr <- visitCilAttributes vis fi.fattr;
    fi
 
  let visitCilFieldInfo vis f =
+   let f = vis#behavior.get_original_fieldinfo f in
    doVisitCil vis vis#behavior.memo_fieldinfo vis#vfieldinfo childrenFieldInfo f
 
  let childrenCompInfo vis comp =
@@ -3353,14 +3618,6 @@ let startsWith prefix s =
   let prefixLen = String.length prefix in
   String.length s >= prefixLen && String.sub s 0 prefixLen = prefix
 
-
-(* The next compindo identifier to use. Counts up. *)
-let nextCompinfoKey =
-  let module M =
-    State_builder.SharedCounter(struct let name = "compinfokey" end)
-  in
-  M.next
-
 let bytesSizeOfInt (ik: ikind): int =
   match ik with
   | IChar | ISChar | IUChar | IBool -> 1
@@ -3389,14 +3646,18 @@ let intKindForSize (s:int) (unsigned:bool) : ikind =
     else if s = theMachine.theMachine.sizeof_longlong then ILongLong
     else raise Not_found
 
+let uint64_t () = TInt(intKindForSize 8 true,[])
+let uint32_t () = TInt(intKindForSize 4 true,[])
+let uint16_t () = TInt(intKindForSize 2 true,[])
+let int64_t () = TInt(intKindForSize 8 false,[])
+let int32_t () = TInt(intKindForSize 4 false,[])
+let int16_t () = TInt(intKindForSize 2 false,[])
+
 let floatKindForSize (s:int) = 
   if s = theMachine.theMachine.sizeof_double then FDouble
   else if s = theMachine.theMachine.sizeof_float then FFloat
   else if s = theMachine.theMachine.sizeof_longdouble then FLongDouble
   else raise Not_found
-
-let int32Type () = TInt (intKindForSize 4 false,[])
-let int64Type () = TInt (intKindForSize 4 false,[])
 
 (** Returns true if and only if the given integer type is signed. *)
 let isSigned = function
@@ -3445,26 +3706,22 @@ let fitsInInt k i =
   let fits = Integer.le min_bound i && Integer.lt i max_strict_bound in
   if debugTruncation then
     Kernel.debug "Fits in %a %a : %b@."
-      !pp_ikind_ref k Datatype.Big_int.pretty i fits;
+      !pp_ikind_ref k Datatype.Integer.pretty i fits;
   fits
     
 (* Represents an integer as for a given kind.
    Returns a flag saying whether the value was changed
    during truncation (because it was too large to fit in k). *)
 let truncateInteger64 (k: ikind) i =
-  if debugTruncation then
-    Kernel.debug "Truncate to %a: %a@." 
-      !pp_ikind_ref k Datatype.Big_int.pretty i;
   if fitsInInt k i then 
-    i,false
+    i, false
   else
-    begin 
+    let i' = 
       let nrBits = Integer.of_int (8 * (bytesSizeOfInt k)) in
       let max_strict_bound = Integer.shift_left Integer.one nrBits in
       let modulo = Integer.pos_rem i max_strict_bound in
       let signed = isSigned k in
-      if signed 
-      then 
+      if signed then 
         let max_signed_strict_bound = 
           Integer.shift_right max_strict_bound Integer.one
         in
@@ -3478,8 +3735,11 @@ let truncateInteger64 (k: ikind) i =
             Integer.add modulo max_strict_bound
           else
             modulo
-    end,
-      true
+    in
+    if debugTruncation then
+      Kernel.debug ~level:3 "Truncate %a to %a: %a" 
+        Datatype.Integer.pretty i !pp_ikind_ref k Datatype.Integer.pretty i';
+    i', true
 
 exception Not_representable
 let intKindForValue i (unsigned: bool) = 
@@ -3498,21 +3758,28 @@ let intKindForValue i (unsigned: bool) =
     else if fitsInInt ILongLong i then ILongLong
     else raise Not_representable
 
-(* Construct an integer constant with possible truncation *)
-let kinteger64_repr ~loc (k: ikind) i repr =
+(* Construct an integer constant with possible truncation if the kind is not
+   specified  *)
+let kinteger64 ~loc ?repr ?kind i = 
   if debugTruncation then
-    Kernel.debug "kinteger64_repr %a" Datatype.Big_int.pretty i;
-  let i', truncated = truncateInteger64 k i in
-  if truncated then
-    if debugTruncation then
-      Kernel.debug ~level:3 "Truncating integer %a to %a"
-        Datatype.Big_int.pretty i Datatype.Big_int.pretty i';
-  new_exp ~loc (Const (CInt64(i' , k,  repr)))
-
-let kinteger64 ~loc k i = kinteger64_repr ~loc k i None
+    Kernel.debug ~level:3 "kinteger64 %a" Datatype.Integer.pretty i;
+  let kind = match kind with 
+    | None ->
+      (* compute the best ikind: [int] whenever possible and, if no signed type
+         is possible, try unsigned long long. *)
+      if fitsInInt IInt i then IInt
+      else begin
+        try intKindForValue i false 
+        with Not_representable as exn -> 
+          if fitsInInt IULongLong i then IULongLong else raise exn
+      end
+    | Some k -> k
+  in
+  let i', _truncated = truncateInteger64 kind i in
+  new_exp ~loc (Const (CInt64(i' , kind,  repr)))
 
 (* Construct an integer of a given kind. *)
-let kinteger ~loc (k: ikind) (i: int) = kinteger64 ~loc k (Integer.of_int i)
+let kinteger ~loc kind (i: int) = kinteger64 ~loc ~kind (Integer.of_int i)
 
 (* Construct an integer. Use only for values that fit on 31 bits *)
 let integer_constant i = CInt64(Integer.of_int i, IInt, None)
@@ -3538,23 +3805,21 @@ let lmone ?(loc=Location.unknown) () = lconstant ~loc (Integer.minus_one)
  (** Given the character c in a (CChr c), sign-extend it to 32 bits.
      (This is the official way of interpreting character constants, according 
      to ISO C 6.4.4.4.10, which says that character constants are chars cast 
-     to ints)
-     Returns CInt64(sign-extened c, IInt, None) *)
-let charConstToInt (c: char) : constant =
+     to ints) *)
+let charConstToInt c =
   let c' = Char.code c in
-  let value =
-    if c' < 128
-    then Integer.of_int c'
-    else Integer.of_int (c' - 256)
-  in
-  CInt64(value, IInt, None)
+  if c' < 128
+  then Integer.of_int c'
+  else Integer.of_int (c' - 256)
 
+let charConstToIntConstant c =
+  CInt64(charConstToInt c, IInt, None)
 
 let rec isInteger e = match e.enode with
 | Const(CInt64 (n,_,_)) -> Some n
-| Const(CChr c) -> isInteger (dummy_exp (Const (charConstToInt c)))
+| Const(CChr c) -> Some (charConstToInt c)
 | Const(CEnum {eival = v}) -> isInteger v
-| CastE(_, e) -> isInteger e
+| CastE(_, e) -> isInteger e (* BY: This is really strange... *)
 | _ -> None
 
 let isZero (e: exp) : bool = 
@@ -3612,6 +3877,13 @@ let parseIntAux (str:string) =
    * positive integers since the lexer takes care of the sign *)
   let rec toInt base (acc: Integer.t) (idx: int) : Integer.t =
     let doAcc what =
+      if Integer.ge what base 
+      then 
+	Kernel.fatal ~current:true 
+	  "Invalid digit %a in integer constant '%s' in base %a." 
+	  (Integer.pretty ~hexa:false) what
+	  str
+	  (Integer.pretty ~hexa:false) base;
       let acc' =
         Integer.add what (Integer.mul base acc) in
       toInt base acc' (idx + 1)
@@ -3650,23 +3922,20 @@ let parseIntLogic ~loc str =
   { term_node = TConst (Integer (i,Some str)) ; term_loc = loc;
     term_name = []; term_type = Linteger;}
   
-let parseIntExp ~loc (str: string) : exp =
+let parseIntExp ~loc repr =
   try
-  let i,kinds = parseIntAux str in
-  let res =
+    let i,kinds = parseIntAux repr in
     let rec loop = function
       | k::rest ->
         if fitsInInt k i then (* i fits in the current type. *)
-          kinteger64_repr ~loc k i (Some str)
+          kinteger64 ~loc ~repr ~kind:k i
         else loop rest
       | [] ->
-        Kernel.fatal ~source:(fst loc) "Cannot represent the integer %s" str
+        Kernel.fatal ~source:(fst loc) "Cannot represent the integer %s" repr
     in
     loop kinds
-  in
-  res
   with Failure "" as e ->
-    Kernel.warning "int_of_string %s (%s)\n" str (Printexc.to_string e);
+    Kernel.warning "int_of_string %s (%s)\n" repr (Printexc.to_string e);
     zero ~loc
 
  let mkStmtCfg ~before ~(new_stmtkind:stmtkind) ~(ref_stmt:stmt) : stmt =
@@ -3731,67 +4000,6 @@ let parseIntExp ~loc (str: string) : exp =
  let dummyInstr = Asm([], ["dummy statement!!"], [], [], [], [], Location.unknown)
  let dummyStmt = mkStmt (Instr dummyInstr)
 
-
- (** Get the full name of a comp *)
- let compFullName comp =
-   (if comp.cstruct then "struct " else "union ") ^ comp.cname
-
-
- let missingFieldName = "" (* "___missing_field_name"*)
-
- (** Creates a (potentially recursive) composite type. Make sure you add a
-   * GTag for it to the file! **)
- let mkCompInfo
-       (isstruct: bool)
-       (n: string)
-       ?(norig=n)
-       (* fspec is a function that when given a forward
-	* representation of the structure type constructs the type of
-	* the fields. The function can ignore this argument if not
-	* constructing a recursive type.  *)
-	(mkfspec: compinfo -> (string * typ * int option * attribute list *
-			      location) list)
-	(a: attribute list) : compinfo =
-
-   (* make a new name for anonymous structs *)
-   if n = "" then Kernel.fatal "mkCompInfo: missing structure name\n" ;
-   (* Make a new self cell and a forward reference *)
-   let comp =
-     { cstruct = isstruct;
-       corig_name = norig;
-       cname = n;
-       ckey = nextCompinfoKey ();
-       cfields = []; (* fields will be added afterwards. *)
-       cattr = a;
-       creferenced = false;
-       (* Make this compinfo undefined by default *)
-       cdefined = false; }
-   in
-   let flds =
-     List.map (fun (fn, ft, fb, fa, fl) ->
-		 { fcomp = comp;
-		   ftype = ft;
-		   forig_name = fn;
-		   fname = fn;
-		   fbitfield = fb;
-		   fattr = fa;
-		   floc = fl;
-		   faddrof = false;
-		   fsize_in_bits = None;
-		   foffset_in_bits = None;
-		   fpadding_in_bits = None;
-		 }) (mkfspec comp) in
-   comp.cfields <- flds;
-   if flds <> [] then comp.cdefined <- true;
-   comp
-
- (** Make a copy of a compinfo, changing the name and the key *)
- let copyCompInfo (ci: compinfo) (n: string) : compinfo =
-   let ci' = {ci with cname = n; ckey = nextCompinfoKey (); } in
-   (* Copy the fields and set the new pointers to parents *)
-   ci'.cfields <- List.map (fun f -> {f with fcomp = ci'}) ci'.cfields;
-   ci'
-
  let rec unrollTypeDeep (t: typ) : typ =
    let rec withAttrs (al: attributes) (t: typ) : typ =
      match t with
@@ -3833,12 +4041,12 @@ let parseIntExp ~loc (str: string) : exp =
 
  let mkWhile ~(guard:exp) ~(body: stmt list) : stmt list =
   (* Do it like this so that the pretty printer recognizes it *)
-  [ mkStmt
+  [ mkStmt ~valid_sid:true
       (Loop ([],
 	     mkBlock
-	       (mkStmt
+	       (mkStmt ~valid_sid:true
 		  (If(guard,
-                      mkBlock [ mkEmptyStmt () ],
+                      mkBlock [],
                       mkBlock [ mkStmt (Break guard.eloc)], guard.eloc)) ::
                   body), guard.eloc, None, None)) ]
 
@@ -3847,28 +4055,22 @@ let parseIntExp ~loc (str: string) : exp =
    (start @
       (mkWhile guard (body @ next)))
 
- let mkForIncr ~(iter : varinfo) ~(first: exp) ~stopat:(past: exp) ~(incr: exp)
+ let mkForIncr ~(iter : varinfo) ~(first: exp) ~(stopat: exp) ~(incr: exp)
      ~(body: stmt list) : stmt list =
   (* See what kind of operator we need *)
-   let compop, nextop =
-     match unrollTypeSkel iter.vtype with
-         TPtr _ -> Lt, PlusPI
-       | _ -> Lt, PlusA
+   let nextop = match unrollTypeSkel iter.vtype with
+     | TPtr _ -> PlusPI
+     | _ -> PlusA
    in
    mkFor
-     [ mkStmt (Instr (Set (var iter, first, first.eloc))) ]
-     (new_exp ~loc:past.eloc
-        (BinOp(compop, new_exp ~loc:past.eloc (Lval(var iter)), past, intType)))
-     [ mkStmt
-         (Instr
-            (Set
-               (var iter,
-                (new_exp ~loc:incr.eloc
-                   (BinOp(nextop,
-                          new_exp ~loc:past.eloc (Lval(var iter)),
-                          incr,
-                         iter.vtype))),
-                incr.eloc)))]
+     [ mkStmtOneInstr ~valid_sid:true (Set (var iter, first, first.eloc)) ]
+     (new_exp ~loc:stopat.eloc (BinOp(Lt, evar iter, stopat, intType)))
+     [ mkStmtOneInstr ~valid_sid:true
+         (Set
+            (var iter,
+             (new_exp ~loc:incr.eloc
+                (BinOp(nextop, evar iter, incr, iter.vtype))),
+             incr.eloc))]
      body
 
  let block_from_unspecified_sequence us =
@@ -3916,8 +4118,7 @@ let map_under_info f e = match e.enode with
      with Not_found -> false
    in
      let stom, rest = List.partition isstoragemod al in
-     if not theMachine.msvcMode then
-       stom, rest
+     if not (msvcMode ()) then stom, rest
      else
        (* Put back the declspec. Put it without the leading __ since these will
 	* be added later *)
@@ -3957,6 +4158,11 @@ let isCharPtrType t =
  let isIntegralType t =
    match unrollTypeSkel t with
      (TInt _ | TEnum _) -> true
+   | _ -> false
+
+ let isIntegralOrPointerType t =
+   match unrollTypeSkel t with
+   | TInt _ | TEnum _ | TPtr _ -> true
    | _ -> false
 
  let isLogicIntegralType t =
@@ -4043,7 +4249,7 @@ let isCharPtrType t =
  let typeOf_array_elem t =
    match unrollType t with
    | TArray (ty_elem, _, _, _) -> ty_elem
-   | _ -> assert false
+   | _ -> Kernel.fatal "Not an array type %a" !pp_typ_ref t
 
  (**** Compute the type of an expression ****)
  let rec typeOf (e: exp) : typ =
@@ -4067,7 +4273,9 @@ let isCharPtrType t =
 
    | Const(CEnum {eival=v}) -> typeOf v
 
-   | Lval(lv) -> typeOfLval lv
+      (* l-values used as r-values lose their qualifiers (C99 6.3.2.1:2) *)
+   | Lval(lv) -> type_remove_qualifier_attributes (typeOfLval lv)
+
    | SizeOf _ | SizeOfE _ | SizeOfStr _ -> theMachine.typeOfSizeOf
    | AlignOf _ | AlignOfE _ -> theMachine.typeOfSizeOf
    | UnOp (_, _, t) -> t
@@ -4214,7 +4422,17 @@ let isCharPtrType t =
 	   | Larrow _ -> Kernel.fatal ~current:true "typeTermOffset: Field on a function type"
        in Logic_const.transform_element elt_type basetyp
 
- (**** Look at at the presence of an attribute in a type ****)
+ (**** Look for the presence of an attribute in a type ****)
+
+ let typeHasAttribute attr typ = hasAttribute attr (typeAttrs typ)
+
+ let rec typeHasQualifier attr typ =
+   match typ with
+   | TNamed (t, a) ->
+     hasAttribute attr a || typeHasQualifier attr t.ttype
+   | TArray (t, _, _, a) ->
+     typeHasQualifier attr t || (* ill-formed type *) hasAttribute attr a
+   | _ -> hasAttribute attr (typeAttrs typ)
 
  let typeHasAttributeDeep a (ty:typ): bool =
    let f attrs = if hasAttribute a attrs then raise Exit in
@@ -4372,53 +4590,36 @@ let rec bytesAlignOf t =
       (fun sofar f ->
 	(* Bitfields with zero width do not contribute to the alignment in
 	 * GCC *)
-	if not theMachine.msvcMode && f.fbitfield = Some 0 then sofar else
+	if not (msvcMode ()) && f.fbitfield = Some 0 then sofar else
 	  max sofar (alignOfField f)) 1 fields
   (* These are some error cases *)
-  | TFun _ when not theMachine.msvcMode ->
+  | TFun _ when not (msvcMode ()) ->
     theMachine.theMachine.alignof_fun
   | TFun _ as t -> raise (SizeOfError ("Undefined sizeof on a function.", t))
   | TVoid _ as t -> raise (SizeOfError ("Undefined sizeof(void).", t))
   in
-  match filterAttributes "aligned" (typeAttrs t) with
-    [] -> 
-      (* no __aligned__ attribute, so get the default alignment *)
-      alignOfType ()
-  | _ when !ignoreAlignmentAttrs -> 
-    Kernel.warning "ignoring recursive align attributes on %a" 
-      !pp_typ_ref t;
-    alignOfType ()
-  | (Attr(_, [a]) as at)::rest -> begin
-    if rest <> [] then
-      Kernel.warning "ignoring duplicate align attributes on %a" 
-        !pp_typ_ref t;
-    match intOfAttrparam a with
-      Some n -> n
-    | None -> 
-      Kernel.warning "alignment attribute \"%a\" not understood on %a" 
-        !pp_attribute_ref at !pp_typ_ref t;
-      alignOfType ()
-  end
-  | Attr(_, [])::rest ->
-       (* aligned with no arg means a power of two at least as large as
-          any alignment on the system.*)
-    if rest <> [] then
-      Kernel.warning "ignoring duplicate align attributes on %a" 
-        !pp_typ_ref t;
-    theMachine.theMachine.alignof_aligned
-  | at::_ ->
-    Kernel.warning "alignment attribute \"%a\" not understood on %a" 
-      !pp_attribute_ref at !pp_typ_ref t;
-    alignOfType ()
+  process_aligned_attribute
+    (fun fmt -> !pp_typ_ref fmt t)
+    (typeAttrs t) alignOfType
 
-(* alignment of a possibly-packed struct field. *)
+(* alignment of a possibly-packed or aligned struct field. *)
 and alignOfField (fi: fieldinfo) =
   let fieldIsPacked = hasAttribute "packed" fi.fattr 
-    || hasAttribute "packed" fi.fcomp.cattr in
-  if fieldIsPacked then 1
-  else bytesAlignOf fi.ftype
+    || hasAttribute "packed" fi.fcomp.cattr
+  in
+  if fieldIsPacked then begin
+    if hasAttribute "aligned" fi.fattr then
+      Kernel.warning
+	"packed attribute overrules aligned attributes for file %s"
+	fi.fname ;
+    1
+  end else
+    process_aligned_attribute
+      (fun fmt -> Format.fprintf fmt "field %s" fi.fname)
+      fi.fattr
+      (fun () -> bytesAlignOf fi.ftype)
     
-and intOfAttrparam (a:attrparam) : int option = 
+and intOfAttrparam (a:attrparam) : int option =
   let rec doit a : int =
     match a with
     |  AInt(n) -> Integer.to_int n
@@ -4445,14 +4646,52 @@ and intOfAttrparam (a:attrparam) : int option =
   with Failure _ | SizeOfError _ -> (* Can't compile *)
     ignoreAlignmentAttrs := false;
     None
+and process_aligned_attribute (pp:Format.formatter->unit) attrs default_align = 
+  match filterAttributes "aligned" attrs with
+  | [] -> 
+      (* no __aligned__ attribute, so get the default alignment *)
+      default_align ()
+  | _ when !ignoreAlignmentAttrs -> 
+    Kernel.warning "ignoring recursive align attributes on %t" 
+      pp;
+    default_align ()
+  | (Attr(_, [a]) as at)::rest -> begin
+    if rest <> [] then
+      Kernel.warning "ignoring duplicate align attributes on %t" 
+        pp;
+    match intOfAttrparam a with
+      Some n -> n
+    | None -> 
+      Kernel.warning "alignment attribute \"%a\" not understood on %t" 
+        !pp_attribute_ref at pp;
+      default_align ()
+  end
+  | Attr(_, [])::rest ->
+       (* aligned with no arg means a power of two at least as large as
+          any alignment on the system.*)
+    if rest <> [] then
+      Kernel.warning "ignoring duplicate align attributes on %t" 
+        pp;
+    theMachine.theMachine.alignof_aligned
+  | at::_ ->
+    Kernel.warning "alignment attribute \"%a\" not understood on %t" 
+      !pp_attribute_ref at pp;
+    default_align ()
+
+ (* Computation of the offset of the field [fi], given the information [sofar]
+    computed for the previous fields. [last] indicates that we are considering
+    the last field of the struct. Set to [false] by default for unions. *)
+ and offsetOfFieldAcc ?(last=false) ~(fi: fieldinfo) ~(sofar: offsetAcc) : offsetAcc =
+   if msvcMode () then offsetOfFieldAcc_MSVC last fi sofar
+   else offsetOfFieldAcc_GCC last fi sofar
 
 (* GCC version *)
 (* Does not use the sofar.oaPrevBitPack *)
-and offsetOfFieldAcc_GCC (fi: fieldinfo) (sofar: offsetAcc) : offsetAcc =
+and offsetOfFieldAcc_GCC last (fi: fieldinfo) (sofar: offsetAcc) : offsetAcc =
    (* field type *)
    let ftype = unrollType fi.ftype in
    let ftypeAlign = 8 * alignOfField fi in
-   let ftypeBits = bitsSizeOf ftype in
+   let ftypeBits = (if last then bitsSizeOfEmptyArray else bitsSizeOf) ftype in
    match ftype, fi.fbitfield with
      (* A width of 0 means that we must end the current packing. It seems that
       * GCC pads only up to the alignment boundary for the type of this field.
@@ -4494,12 +4733,12 @@ and offsetOfFieldAcc_GCC (fi: fieldinfo) (sofar: offsetAcc) : offsetAcc =
        }
 
  (* MSVC version *)
- and offsetOfFieldAcc_MSVC (fi: fieldinfo)
+ and offsetOfFieldAcc_MSVC last (fi: fieldinfo)
      (sofar: offsetAcc) : offsetAcc =
    (* field type *)
    let ftype = unrollType fi.ftype in
    let ftypeAlign = 8 * alignOfField fi in
-   let ftypeBits = bitsSizeOf ftype in
+   let ftypeBits = (if last then bitsSizeOfEmptyArray else bitsSizeOf) ftype in
    match ftype, fi.fbitfield, sofar.oaPrevBitPack with
      (* Ignore zero-width bitfields that come after non-bitfields *)
    | TInt (_ikthis, _), Some 0, None ->
@@ -4516,7 +4755,7 @@ and offsetOfFieldAcc_GCC (fi: fieldinfo) (sofar: offsetAcc) : offsetAcc =
 	 if sofar.oaFirstFree = packstart then packstart else
 	   packstart + wdpack
        in
-       offsetOfFieldAcc_MSVC fi
+       offsetOfFieldAcc_MSVC last fi
 	 { oaFirstFree      = addTrailing firstFree ftypeAlign;
 	   oaLastFieldStart = sofar.oaLastFieldStart;
 	   oaLastFieldWidth = sofar.oaLastFieldWidth;
@@ -4551,7 +4790,7 @@ and offsetOfFieldAcc_GCC (fi: fieldinfo) (sofar: offsetAcc) : offsetAcc =
 	 if sofar.oaFirstFree = packstart then packstart else
 	   packstart + wdpack
        in
-       offsetOfFieldAcc_MSVC fi
+       offsetOfFieldAcc_MSVC last fi
 	 { oaFirstFree      = addTrailing firstFree ftypeAlign;
 	   oaLastFieldStart = sofar.oaLastFieldStart;
 	   oaLastFieldWidth = sofar.oaLastFieldWidth;
@@ -4577,10 +4816,21 @@ and offsetOfFieldAcc_GCC (fi: fieldinfo) (sofar: offsetAcc) : offsetAcc =
 
    | _, Some _, None -> Kernel.fatal ~current:true "offsetAcc"
 
-
- and offsetOfFieldAcc ~(fi: fieldinfo) ~(sofar: offsetAcc) : offsetAcc =
-   if theMachine.msvcMode then offsetOfFieldAcc_MSVC fi sofar
-   else offsetOfFieldAcc_GCC fi sofar
+ (** This is a special version of [bitsSizeOf] that accepts empty arrays.
+     Currently, we only use it for flexible array members *)
+ and bitsSizeOfEmptyArray typ =
+  match unrollType typ with
+  | TArray (_, None, _, _) -> 0
+  | TArray (_, Some e, _, _) -> begin
+    match constFoldToInt e with
+    | Some i when Integer.is_zero i ->
+      (* GCC extension. Cabs2Cil currently rewrites all such toplevel arrays as
+         having size 1. Hence this case can only appear for arrays within
+         structures *)
+      0
+    | _ -> bitsSizeOf typ
+  end
+  | _ -> bitsSizeOf typ
 
  (* The size of a type, in bits. If struct or array then trailing padding is
   * added *)
@@ -4600,7 +4850,7 @@ and offsetOfFieldAcc_GCC (fi: fieldinfo) (sofar: offsetAcc) : offsetAcc =
 	 scache
 	 (fun () -> begin
 	    (* Empty structs are allowed in msvc mode *)
-	    if not comp.cdefined && not theMachine.msvcMode then begin
+	    if not comp.cdefined && not (msvcMode ()) then begin
               raise
 		(SizeOfError
 		   (Format.sprintf "abstract type '%s'" (compFullName comp), t))
@@ -4620,10 +4870,11 @@ and offsetOfFieldAcc_GCC (fi: fieldinfo) (sofar: offsetAcc) : offsetAcc =
 		oaPrevBitPack = None;
 	      } in
 	    let lastoff =
-	      List.fold_left (fun acc fi -> offsetOfFieldAcc ~fi ~sofar:acc)
+	      fold_struct_fields
+                (fun ~last acc fi -> offsetOfFieldAcc ~last ~fi ~sofar:acc)
 		startAcc comp.cfields
 	    in
-	    if theMachine.msvcMode && lastoff.oaFirstFree = 0 && comp.cfields <> []
+	    if msvcMode () && lastoff.oaFirstFree = 0 && comp.cfields <> []
 	    then
 	      (* On MSVC if we have just a zero-width bitfields then the length
 	       * is 32 and is not padded  *)
@@ -4644,9 +4895,9 @@ and offsetOfFieldAcc_GCC (fi: fieldinfo) (sofar: offsetAcc) : offsetAcc =
 	      } in
 	    let max =
 	      List.fold_left (fun acc fi ->
-				let lastoff = offsetOfFieldAcc ~fi ~sofar:startAcc in
-				if lastoff.oaFirstFree > acc then
-				  lastoff.oaFirstFree else acc) 0 comp.cfields in
+		let lastoff = offsetOfFieldAcc ?last:None ~fi ~sofar:startAcc in
+		if lastoff.oaFirstFree > acc then
+		  lastoff.oaFirstFree else acc) 0 comp.cfields in
 	    (* Add trailing by simulating adding an extra field *)
 	    addTrailing max (8 * bytesAlignOf t))
 
@@ -4671,17 +4922,21 @@ and offsetOfFieldAcc_GCC (fi: fieldinfo) (sofar: offsetAcc) : offsetAcc =
 	    end)
    | TVoid _ -> 8 * theMachine.theMachine.sizeof_void
    | TFun _ ->
-       if not theMachine.msvcMode then
+       if not (msvcMode ()) then
          (* On GCC the size of a function is defined *)
          8 * theMachine.theMachine.sizeof_fun
        else
          raise (SizeOfError ("Undefined sizeof on a function.", t))
 
    | TArray (_, None, _, _) ->
-       (* it seems that on GCC the size of such an array is 0 *)
-       (* TODO: msvc case not handled *)
-       0
+       raise (SizeOfError ("Size of array without number of elements.", t))
 
+ (* Iterator on the fields of a structure, with additional information about
+    having reached the last field (for flexible member arrays) *)
+ and fold_struct_fields f acc l = match l with
+   | [] -> acc
+   | [fi_last] -> f ~last:true acc fi_last
+   | fi :: (_ :: _ as q) -> fold_struct_fields f (f ~last:false acc fi) q
 
  and addTrailing nrbits roundto =
    (nrbits + roundto - 1) land (lnot (roundto - 1))
@@ -4698,20 +4953,15 @@ and sizeOf ~loc t =
        NoOffset -> start, width
      | Index(e, off) -> begin
 	 let ei =
-	   match isInteger (constFold true e) with
+	   match constFoldToInt e with
            | Some i -> Integer.to_int i
 	   | None -> raise (SizeOfError ("Index is not constant", baset))
 	 in
-	 let bt =
-	   match unrollType baset with
-	   | TArray(bt, _, _, _) -> bt
-           | t -> 
-	     Kernel.fatal ~current:true "bitsOffset: Index on a non-array %a" !pp_typ_ref t
-	 in
+	 let bt = typeOf_array_elem baset in
 	 let bitsbt = bitsSizeOf bt in
 	 loopOff bt bitsbt (start + ei * bitsbt) off
        end
-     | Field(f, off) when not f.fcomp.cstruct ->
+     | Field(f, off) when not f.fcomp.cstruct (* union *) ->
          if check_invariants then
            assert (match unrollType baset with
                      | TComp (ci, _, _) -> ci == f.fcomp
@@ -4719,20 +4969,20 @@ and sizeOf ~loc t =
 	 (* All union fields start at offset 0 *)
 	 loopOff f.ftype (bitsSizeOf f.ftype) start off
 
-     | Field(f, off) ->
+     | Field(f, off) (* struct *) ->
          if check_invariants then
            assert (match unrollType baset with
                      | TComp (ci, _, _) -> ci == f.fcomp
                      | _ -> false);
          if f.foffset_in_bits = None then begin
-           let aux acc fi =
-             let acc' = offsetOfFieldAcc ~fi ~sofar:acc in
+           let aux ~last acc fi =
+             let acc' = offsetOfFieldAcc ~last ~fi ~sofar:acc in
              fi.fsize_in_bits <- Some acc'.oaLastFieldWidth;
              fi.foffset_in_bits <- Some acc'.oaLastFieldStart;
              acc'
            in
            ignore (
-	     List.fold_left aux
+	     fold_struct_fields aux
 	       { oaFirstFree      = 0;
 	         oaLastFieldStart = 0;
 	         oaLastFieldWidth = 0;
@@ -4770,8 +5020,8 @@ and constFold (machdep: bool) (e: exp) : exp =
             match unop with
               Neg ->
                 let repr = Extlib.opt_map (fun s -> "-" ^ s) repr in
-                kinteger64_repr ~loc tk (Integer.neg i) repr
-            | BNot -> kinteger64 ~loc tk (Integer.lognot i)
+                kinteger64 ~loc ?repr ~kind:tk (Integer.neg i)
+            | BNot -> kinteger64 ~loc ~kind:tk (Integer.lognot i)
             | LNot -> 
               if Integer.equal i Integer.zero then one ~loc
               else zero ~loc
@@ -4780,7 +5030,7 @@ and constFold (machdep: bool) (e: exp) : exp =
       with Not_found -> e
     end
       (* Characters are integers *)
-  | Const(CChr c) -> new_exp ~loc (Const(charConstToInt c))
+  | Const(CChr c) -> new_exp ~loc (Const(charConstToIntConstant c))
   | Const(CEnum {eival = v}) -> constFold machdep v
   | Const (CReal _ | CWStr _ | CStr _ | CInt64 _) -> e (* a constant *)
   | SizeOf t when machdep -> begin
@@ -4799,7 +5049,7 @@ and constFold (machdep: bool) (e: exp) : exp =
       (* The alignment of an expression is not always the alignment of its
        * type. I know that for strings this is not true *)
       match e.enode with
-        Const (CStr _) when not theMachine.msvcMode ->
+      | Const (CStr _) when not (msvcMode ()) ->
           kinteger ~loc
             theMachine.kindOfSizeOf theMachine.theMachine.alignof_str
             (* For an array, it is the alignment of the array ! *)
@@ -4808,6 +5058,7 @@ and constFold (machdep: bool) (e: exp) : exp =
    | AlignOfE _ | AlignOf _ | SizeOfStr _ | SizeOfE _ | SizeOf _ ->
      e (* Depends on machdep. Do not evaluate in this case*)
 
+   (* Special case to handle the C macro 'offsetof' *)
    | CastE(it,
 	   { enode = AddrOf (Mem ({enode = CastE(TPtr(bt, _), z)}), off)})
        when machdep && isZero z -> begin
@@ -4832,8 +5083,8 @@ and constFold (machdep: bool) (e: exp) : exp =
           when (dropAttributes ["const"] a) = [] ->
             if debugConstFold then
 	      Kernel.debug "ConstFold to %a : %a@." 
-		!pp_ikind_ref nk Datatype.Big_int.pretty i;
-            kinteger64 ~loc nk i
+		!pp_ikind_ref nk Datatype.Integer.pretty i;
+            kinteger64 ~loc ~kind:nk i
       | _, _ -> new_exp ~loc (CastE (t, e))
     end
   | Lval lv -> new_exp ~loc (Lval (constFoldLval machdep lv))
@@ -4863,13 +5114,13 @@ and constFoldBinOp ~loc (machdep: bool) bop e1 e2 tres =
       let rec mkInt e =
         let loc = e.eloc in
         match e.enode with
-            Const(CChr c) -> new_exp ~loc (Const(charConstToInt c))
+          | Const(CChr c) -> new_exp ~loc (Const(charConstToIntConstant c))
           | Const(CEnum {eival = v}) -> mkInt v
           | CastE(TInt (ik, ta), e) -> begin
               let exp = mkInt e in
               match exp.enode with
                   Const(CInt64(i, _, _)) ->
-                    kinteger64 ~loc ik i
+                    kinteger64 ~loc ~kind:ik i
                 | _ -> {exp with enode = CastE(TInt(ik, ta), exp)}
             end
           | _ -> e
@@ -4909,12 +5160,12 @@ and constFoldBinOp ~loc (machdep: bool) bop e1 e2 tres =
       | MinusPI, _, Const(CInt64(z,_,_)) 
         when Integer.equal z Integer.zero -> e1''
       | PlusA, Const(CInt64(i1,ik1,_)),Const(CInt64(i2,ik2,_)) when ik1 = ik2 ->
-          kinteger64 ~loc tk (Integer.add i1 i2)
+          kinteger64 ~loc ~kind:tk (Integer.add i1 i2)
       | MinusA, Const(CInt64(i1,ik1,_)),Const(CInt64(i2,ik2,_))
           when ik1 = ik2 ->
-          kinteger64 ~loc tk (Integer.sub i1 i2)
+          kinteger64 ~loc ~kind:tk (Integer.sub i1 i2)
       | Mult, Const(CInt64(i1,ik1,_)), Const(CInt64(i2,ik2,_)) when ik1 = ik2 ->
-          kinteger64 ~loc tk (Integer.mul i1 i2)
+          kinteger64 ~loc ~kind:tk (Integer.mul i1 i2)
       | Mult, Const(CInt64(z,_,_)), _
         when Integer.equal z Integer.zero -> zero ~loc
       | Mult, Const(CInt64(one,_,_)), _ 
@@ -4925,36 +5176,36 @@ and constFoldBinOp ~loc (machdep: bool) bop e1 e2 tres =
         when Integer.equal one Integer.one -> e1''
       | Div, Const(CInt64(i1,ik1,_)),Const(CInt64(i2,ik2,_)) when ik1 = ik2 ->
           begin
-            try kinteger64 ~loc tk (Integer.div i1 i2)
+            try kinteger64 ~loc ~kind:tk (Integer.div i1 i2)
             with Division_by_zero -> new_exp ~loc (BinOp(bop, e1', e2', tres))
           end
       | Div, Const(CInt64(i1,ik1,_)),Const(CInt64(i2,ik2,_))
           when bytesSizeOfInt ik1 = bytesSizeOfInt ik2 -> begin
-            try kinteger64 ~loc tk (Integer.div i1 i2)
+            try kinteger64 ~loc ~kind:tk (Integer.div i1 i2)
             with Division_by_zero -> new_exp ~loc (BinOp(bop, e1', e2', tres))
           end
       | Div, _, Const(CInt64(one,_,_)) 
          when Integer.equal one Integer.one -> e1''
       | Mod, Const(CInt64(i1,ik1,_)),Const(CInt64(i2,ik2,_)) when ik1 = ik2 ->
           begin
-            try kinteger64 ~loc tk (Integer.rem i1 i2)
+            try kinteger64 ~loc ~kind:tk (Integer.rem i1 i2)
             with Division_by_zero -> new_exp ~loc (BinOp(bop, e1', e2', tres))
           end
       | BAnd, Const(CInt64(i1,ik1,_)),Const(CInt64(i2,ik2,_)) when ik1 = ik2 ->
-          kinteger64 ~loc tk (Integer.logand i1 i2)
+          kinteger64 ~loc ~kind:tk (Integer.logand i1 i2)
       | BAnd, Const(CInt64(z,_,_)), _ 
         when Integer.equal z Integer.zero -> zero ~loc
       | BAnd, _, Const(CInt64(z,_,_)) 
         when Integer.equal z Integer.zero -> zero ~loc
       | BOr, Const(CInt64(i1,ik1,_)),Const(CInt64(i2,ik2,_)) when ik1 = ik2 ->
-          kinteger64 ~loc tk (Integer.logor i1 i2)
+          kinteger64 ~loc ~kind:tk (Integer.logor i1 i2)
       | BOr, _, _ when isZero e1' -> e2'
       | BOr, _, _ when isZero e2' -> e1'
       | BXor, Const(CInt64(i1,ik1,_)),Const(CInt64(i2,ik2,_)) when ik1 = ik2 ->
-          kinteger64 ~loc tk (Integer.logxor i1 i2)
+          kinteger64 ~loc ~kind:tk (Integer.logxor i1 i2)
       | Shiftlt, Const(CInt64(i1,_ik1,_)),Const(CInt64(i2,_,_))
           when shiftInBounds i2 ->
-          kinteger64 ~loc tk (Integer.shift_left i1 i2)
+          kinteger64 ~loc ~kind:tk (Integer.shift_left i1 i2)
       | Shiftlt, Const(CInt64(z,_,_)), _ 
         when Integer.equal z Integer.zero -> zero ~loc
       | Shiftlt, _, Const(CInt64(z,_,_)) 
@@ -4962,10 +5213,10 @@ and constFoldBinOp ~loc (machdep: bool) bop e1 e2 tres =
       | Shiftrt, Const(CInt64(i1,ik1,_)),Const(CInt64(i2,_,_))
           when shiftInBounds i2 ->
           if isunsigned ik1 then
-            kinteger64 ~loc tk 
+            kinteger64 ~loc ~kind:tk 
               (Integer.shift_right_logical i1 i2)
           else
-            kinteger64 ~loc tk (Integer.shift_right i1 i2)
+            kinteger64 ~loc ~kind:tk (Integer.shift_right i1 i2)
       | Shiftrt, Const(CInt64(z,_,_)), _ 
         when Integer.equal z Integer.zero -> zero ~loc
       | Shiftrt, _, Const(CInt64(z,_,_)) 
@@ -5009,7 +5260,19 @@ and constFoldBinOp ~loc (machdep: bool) bop e1 e2 tres =
   end else
     new_exp ~loc (BinOp(bop, e1', e2', tres))
 
-let () = pbitsSizeOf := bitsSizeOf
+and constFoldToInt ?(machdep=true) e =
+  match (constFold machdep e).enode with
+  | Const(CInt64(c,_,_)) -> Some c
+  | CastE (typ, e) when machdep && isPointerType typ -> begin
+    (* Those casts are left left by constFold *)
+    match constFoldToInt ~machdep e with
+    | None -> None
+    | Some i as r -> if fitsInInt theMachine.upointKind i then r else None
+  end
+  | _ -> None
+
+
+let () = constfoldtoint := constFoldToInt ~machdep:true
 
 let intTypeIncluded kind1 kind2 =
   let bitsize1 = bitsSizeOfInt kind1 in
@@ -5064,26 +5327,42 @@ let intTypeIncluded kind1 kind2 =
        (CInt64(Integer.of_int64 value,IULongLong,orig_rep)),(TInt(IULongLong,[]))
    end
 
- (*/CEA*)
-
-let smallest_kind ~signed ~bits_size = 
-  try 
-    List.find 
-      (fun kind -> isSigned kind=signed && bitsSizeOfInt kind = bits_size) 
-      [IBool; (* This list is ordered by size of types *)
-       IChar; ISChar; IUChar;
-       IShort; IUShort;
-       IInt; IUInt; 
-       ILong; IULong; 
-       ILongLong; IULongLong]
-  with Not_found -> Kernel.fatal ~current:true "Could not find a%signed type of size %d"
-    (if signed then " " else "n un") bits_size
-
-let uint64_t () = TInt(smallest_kind ~signed:false ~bits_size:64,[])
-let uint32_t () = TInt(smallest_kind ~signed:false ~bits_size:32,[])
-let uint16_t () = TInt(smallest_kind ~signed:false ~bits_size:16,[])
-
  let invalidStmt = mkStmt (Instr (Skip Location.unknown))
+ module Frama_c_builtins =
+   State_builder.Hashtbl
+   (Datatype.String.Hashtbl)
+   (Cil_datatype.Varinfo)
+   (struct
+     let name = "Cil.Frama_c_Builtins"
+     let dependencies = []
+     let size = 3
+    end)
+
+ let () = dependency_on_ast Frama_c_builtins.self
+
+ let is_builtin v = hasAttribute "FC_BUILTIN" v.vattr
+
+ let is_unused_builtin v = is_builtin v && not v.vreferenced
+
+
+(* [VP] Should we projectify this ?*)
+let special_builtins_table = ref Datatype.String.Set.empty
+let special_builtins = Queue.create ()
+
+let is_special_builtin s =
+  Queue.fold (fun res f -> res || f s) false special_builtins
+
+let add_special_builtin_family f = Queue.add f special_builtins
+
+let add_special_builtin s =
+  special_builtins_table := Datatype.String.Set.add s !special_builtins_table
+
+let () = add_special_builtin_family
+  (fun s -> Datatype.String.Set.mem s !special_builtins_table)
+
+let () = List.iter add_special_builtin
+  [ "__builtin_stdarg_start"; "__builtin_va_arg";
+    "__builtin_va_start"; "__builtin_expect"; "__builtin_next_arg"; ]
 
  module Builtin_functions =
    State_builder.Hashtbl
@@ -5095,19 +5374,15 @@ let uint16_t () = TInt(smallest_kind ~signed:false ~bits_size:16,[])
 	let size = 49
       end)
 
+ let add_builtin ?(prefix="__builtin_") s t l b =
+     Builtin_functions.add (prefix ^ s) (t, l, b)
+
  let () = registerAttribute "FC_BUILTIN" (AttrName true)
 
  (* Initialize the builtin functions after the machine has been initialized. *)
  let initGccBuiltins () : unit =
-   if not (TheMachine.is_computed ()) then
-     Kernel.fatal ~current:true "Call initCIL before initGccBuiltins" ;
-   if Builtin_functions.length () <> 0 then
-     Kernel.fatal ~current:true "builtins already initialized." ;
-   (* See if we have builtin_va_list *)
-   let hasbva = theMachine.theMachine.has__builtin_va_list in
    let sizeType = theMachine.upointType in
-   let add s t l b = Builtin_functions.add ("__builtin_" ^ s) (t, l, b) in
-
+   let add = add_builtin in
    add "__fprintf_chk"
      intType
      (* first argument is really FILE*, not void*, but we don't want to build in
@@ -5126,7 +5401,8 @@ let uint16_t () = TInt(smallest_kind ~signed:false ~bits_size:16,[])
      voidPtrType [ voidPtrType; intType; sizeType; sizeType ] false;
    add "__printf_chk" intType [ intType; charConstPtrType ] true;
    add "__snprintf_chk"
-     intType [ charPtrType; sizeType; intType; sizeType; charConstPtrType ] true;
+     intType [ charPtrType; sizeType; intType; sizeType; charConstPtrType ] 
+     true;
    add "__sprintf_chk"
      intType [ charPtrType; intType; sizeType; charConstPtrType ] true;
    add "__stpcpy_chk"
@@ -5176,11 +5452,14 @@ let uint16_t () = TInt(smallest_kind ~signed:false ~bits_size:16,[])
    add "atan2l" longDoubleType [ longDoubleType;
 						 longDoubleType ] false;
 
-   let int32t = int32Type () in
-   add "bswap32" int32t [int32t] false;
+   let uint16t = uint16_t () in
+   add "bswap16" uint16t [uint16t] false;
 
-   let int64t = int64Type () in
-   add "bswap64" int64t [int64t] false;
+   let uint32t = uint32_t () in
+   add "bswap32" uint32t [uint32t] false;
+
+   let uint64t = uint64_t () in
+   add "bswap64" uint64t [uint64t] false;
 
    add "ceil" doubleType [ doubleType ] false;
    add "ceilf" floatType [ floatType ] false;
@@ -5224,6 +5503,10 @@ let uint16_t () = TInt(smallest_kind ~signed:false ~bits_size:16,[])
    add "huge_val" doubleType [] false;
    add "huge_valf" floatType [] false;
    add "huge_vall" longDoubleType [] false;
+   add "ia32_lfence" voidType [] false;
+   add "ia32_mfence" voidType [] false;
+   add "ia32_sfence" voidType [] false;
+
    add "inf" doubleType [] false;
    add "inff" floatType [] false;
    add "infl" longDoubleType [] false;
@@ -5261,9 +5544,6 @@ let uint16_t () = TInt(smallest_kind ~signed:false ~bits_size:16,[])
    add "nans" doubleType [ charConstPtrType ] false;
    add "nansf" floatType [ charConstPtrType ] false;
    add "nansl" longDoubleType [ charConstPtrType ] false;
-   add "next_arg"
-     (* When we parse builtin_next_arg we drop the second argument *)
-     (if hasbva then TBuiltin_va_list [] else voidPtrType) [] false;
    add "object_size" sizeType [ voidPtrType; intType ] false;
 
    add "parity" intType [ uintType ] false;
@@ -5319,6 +5599,86 @@ let uint16_t () = TInt(smallest_kind ~signed:false ~bits_size:16,[])
 
    add "unreachable" voidType [ ] false;
 
+   let int8_t = Some scharType in
+   let int16_t = try Some (int16_t ()) with Not_found -> None in 
+   let int32_t = try Some (int32_t ()) with Not_found -> None in
+   let int64_t = try Some (int64_t ()) with Not_found -> None in
+   let uint8_t = Some ucharType in
+   let uint16_t = try Some (uint16_t ()) with Not_found -> None in
+   let uint32_t = try Some (uint32_t ()) with Not_found -> None in
+   let uint64_t = try Some (uint64_t ()) with Not_found -> None in
+
+   (* Binary monomorphic versions of atomic builtins *)
+   let atomic_instances = 
+     [int8_t, "_int8_t";
+      int16_t,"_int16_t";
+      int32_t,"_int32_t";
+      int64_t,"_int64_t";
+      uint8_t, "_uint8_t";
+      uint16_t,"_uint16_t";
+      uint32_t,"_uint32_t";
+      uint64_t,"_uint64_t"]
+   in
+   let add_sync (typ,name) f = 
+     match typ with 
+     | Some typ -> 
+       add ~prefix:"__sync_" (f^name) typ [ TPtr(typ,[]); typ] true
+     | None -> ()
+   in
+   let add_sync f = 
+     List.iter (fun typ -> add_sync typ f) atomic_instances
+   in
+   add_sync "fetch_and_add";
+   add_sync "fetch_and_sub";
+   add_sync "fetch_and_or";
+   add_sync "fetch_and_and";
+   add_sync "fetch_and_xor";
+   add_sync "fetch_and_nand";
+   add_sync "add_and_fetch";
+   add_sync "sub_and_fetch";
+   add_sync "or_and_fetch";
+   add_sync "and_and_fetch";
+   add_sync "xor_and_fetch";
+   add_sync "nand_and_fetch";
+   add_sync "lock_test_and_set";
+   List.iter (fun (typ,n) -> 
+     match typ with 
+     | Some typ -> 
+       add ~prefix:"" ("__sync_bool_compare_and_swap"^n)
+         intType
+         [ TPtr(typ,[]); typ ; typ] 
+         true
+     | None -> ())
+     atomic_instances;
+   List.iter (fun (typ,n) -> 
+     match typ with 
+     | Some typ -> 
+       add ~prefix:"" ("__sync_val_compare_and_swap"^n)
+         typ
+         [ TPtr(typ,[]); typ ; typ] 
+         true
+     | None -> ())
+     atomic_instances;
+   List.iter (fun (typ,n) -> 
+     match typ with 
+     | Some typ -> 
+       add ~prefix:"" ("__sync_lock_release"^n)
+         voidType
+         [ TPtr(typ,[]) ] 
+         true;
+     | None -> ())
+     atomic_instances;
+   add ~prefix:"" "__sync_synchronize" voidType [] true
+;;
+
+(* Builtins related to va_list. Added to all non-msvc machdeps, because
+   Cabs2cil supposes they exist. *)
+ let initVABuiltins () =
+   let hasbva = theMachine.theMachine.has__builtin_va_list in
+   let add = add_builtin in
+   add "next_arg"
+     (* When we parse builtin_next_arg we drop the second argument *)
+     (if hasbva then TBuiltin_va_list [] else voidPtrType) [] false;
    if hasbva then begin
      add "va_end" voidType [ TBuiltin_va_list [] ] false;
      add "varargs_start" voidType [ TBuiltin_va_list [] ] false;
@@ -5335,51 +5695,22 @@ let uint16_t () = TInt(smallest_kind ~signed:false ~bits_size:16,[])
      add "va_copy" voidType [ TBuiltin_va_list []; TBuiltin_va_list [] ] false;
    end
 
- module Frama_c_builtins =
-   State_builder.Hashtbl
-   (Datatype.String.Hashtbl)
-   (Cil_datatype.Varinfo)
-   (struct
-     let name = "Cil.Frama_c_Builtins"
-     let dependencies = []
-     let size = 3
-    end)
-
- let () = add_ast_dependency Frama_c_builtins.self
-
- let is_builtin v = hasAttribute "FC_BUILTIN" v.vattr
-
- let is_unused_builtin v = is_builtin v && not v.vreferenced
-
-
-(* [VP] Should we projectify this ?*)
-let special_builtins_table = ref Datatype.String.Set.empty
-let special_builtins = Queue.create ()
-
-let is_special_builtin s =
-  Queue.fold (fun res f -> res || f s) false special_builtins
-
-let add_special_builtin_family f = Queue.add f special_builtins
-
-let add_special_builtin s =
-  special_builtins_table := Datatype.String.Set.add s !special_builtins_table
-
-let () = add_special_builtin_family
-  (fun s -> Datatype.String.Set.mem s !special_builtins_table)
-
-let () = List.iter add_special_builtin
-  [ "__builtin_stdarg_start"; "__builtin_va_arg";
-    "__builtin_va_start"; "__builtin_expect"; "__builtin_next_arg"; ]
-
-(** Construct a hash with the builtins *)
 let initMsvcBuiltins () : unit =
-  if not (TheMachine.is_computed ()) then
-    Kernel.fatal ~current:true "Call initCIL before initMsvcBuiltins" ;
-  if Builtin_functions.length () <> 0 then
-    Kernel.fatal ~current:true "builtins already initialized." ;
   (** Take a number of wide string literals *)
-  Builtin_functions.add "__annotation" (voidType, [ ], true);
-  ()
+  Builtin_functions.add "__annotation" (voidType, [ ], true)
+;;
+
+let init_builtins () =
+  if not (TheMachine.is_computed ()) then
+    Kernel.fatal ~current:true "You must call initCIL before init_builtins" ;
+  if Builtin_functions.length () <> 0 then
+    Kernel.fatal ~current:true "Cil builtins already initialized." ;
+  if msvcMode () then
+    initMsvcBuiltins ()
+  else begin
+    initVABuiltins ();
+    if gccMode () then initGccBuiltins ();
+  end
 
  (** This is used as the location of the prototypes of builtin functions. *)
  let builtinLoc: location = Location.unknown
@@ -5392,10 +5723,7 @@ let initMsvcBuiltins () : unit =
    match c1, c2 with
      | CEnum e1, CEnum e2 ->
        e1.einame = e2.einame && e1.eihost.ename = e2.eihost.ename &&
-       (match 
-           isInteger (constFold true e1.eival),
-           isInteger (constFold true e2.eival)
-        with
+       (match constFoldToInt e1.eival, constFoldToInt e2.eival with
           | Some i1, Some i2 -> Integer.equal i1 i2
           | _ -> false)
      | CInt64 (i1,k1,_), CInt64(i2,k2,_) -> 
@@ -5554,7 +5882,7 @@ let need_cast ?(force=false) oldt newt =
    | Some lv -> lv
 
  let copyVarinfo (vi: varinfo) (newname: string) : varinfo =
-   let vi' = copy_with_new_vid vi in
+   let vi' = Cil_const.copy_with_new_vid vi in
    vi'.vname <- newname;
    (match vi.vlogic_var_assoc with
 	None -> ()
@@ -5575,17 +5903,17 @@ let need_cast ?(force=false) oldt newt =
      end else
        current_name
 
- let makeLocal ?(generated=true) ?(formal=false) fdec name typ =
+ let makeLocal ?(temp=false) ?(formal=false) fdec name typ =
    (* a helper function *)
    let name = findUniqueName fdec name in
    fdec.smaxid <- 1 + fdec.smaxid;
-   let vi = makeVarinfo ~generated false formal name typ in
+   let vi = makeVarinfo ~temp false formal name typ in
    vi
 
  (* Make a local variable and add it to a function *)
- let makeLocalVar fdec ?scope ?(generated=true) ?(insert = true) name typ =
+ let makeLocalVar fdec ?scope ?(temp=false) ?(insert = true) name typ =
    let typ = stripConstLocalType typ in
-   let vi = makeLocal ~generated fdec name typ in
+   let vi = makeLocal ~temp fdec name typ in
    if insert then
      begin
        fdec.slocals <- fdec.slocals @ [vi];
@@ -5600,17 +5928,10 @@ let need_cast ?(force=false) oldt newt =
 
  let makeTempVar fdec ?insert ?(name = "__cil_tmp") ?descr ?(descrpure = true)
 		 typ : varinfo =
-   let vi = makeLocalVar fdec ?insert name typ in
+   let vi = makeLocalVar fdec ~temp:true ?insert name typ in
    vi.vdescr <- descr;
    vi.vdescrpure <- descrpure;
    vi
-
- let makePseudoVar =
-   let counter = ref 0 in
-   function ty ->
-     incr counter;
-     let name = "@" ^ (string_of_int !counter) in
-     makeVarinfo ~logic:true (* global= *)false (* formal= *)false name ty
 
     (* Set the types of arguments and results as given by the function type
      * passed as the second argument *)
@@ -5679,9 +6000,8 @@ let need_cast ?(force=false) oldt newt =
 
     (* Make a global variable. Your responsibility to make sure that the name
      * is unique *)
- let makeGlobalVar ?logic ?generated name typ =
-   let vi = makeVarinfo ?logic ?generated true false name typ in
-   vi
+ let makeGlobalVar ?source ?temp name typ =
+   makeVarinfo ?source ?temp true false name typ
 
  let emptyFunctionFromVI vi =
    let r =
@@ -5701,7 +6021,7 @@ let need_cast ?(force=false) oldt newt =
  (* Make an empty function *)
  let emptyFunction name =
    let vi = 
-     makeGlobalVar ~generated:false name (TFun(voidType, Some [], false,[]))
+     makeGlobalVar ~temp:false name (TFun(voidType, Some [], false,[]))
    in emptyFunctionFromVI vi
 
  let dummyFile =
@@ -5833,7 +6153,7 @@ let need_cast ?(force=false) oldt newt =
        | _ :: rest -> search rest (* tail recursive *)
        | [] -> (*not found, so create one *)
 	   let t' = unrollTypeDeep t in
-	   let new_decl = makeGlobalVar ~generated:false name t' in
+	   let new_decl = makeGlobalVar ~temp:false name t' in
 	   setFormalsDecl new_decl t';
 	   f.globals <- GVarDecl(empty_funspec (), new_decl, Location.unknown) :: f.globals;
 	   new_decl
@@ -6033,6 +6353,9 @@ let childrenFileSameGlobals vis f =
        | Block b -> peepHole1 doone b.bstmts
        | UnspecifiedSequence seq ->
 	   peepHole1 doone (List.map (fun (x,_,_,_,_) -> x) seq)
+       | TryCatch(b,l,_) ->
+         peepHole1 doone b.bstmts;
+         List.iter (fun (_,b) -> peepHole1 doone b.bstmts) l
        | TryFinally (b, h, _l) ->
 	   peepHole1 doone b.bstmts;
 	   peepHole1 doone h.bstmts
@@ -6040,7 +6363,7 @@ let childrenFileSameGlobals vis f =
 	   peepHole1 doone b.bstmts;
 	   peepHole1 doone h.bstmts;
 	   s.skind <- TryExcept(b, (doInstrList il, e), h, l);
-       | Return _ | Goto _ | Break _ | Continue _ -> ())
+       | Return _ | Goto _ | Break _ | Continue _ | Throw _ -> ())
      ss
 
  (* Process two statements and possibly replace them both *)
@@ -6089,9 +6412,14 @@ let childrenFileSameGlobals vis f =
        | Switch (_e, b, _, _) -> b.bstmts <- peepHole2 ~agressive dotwo b.bstmts
        | Loop (_, b, _l, _, _) -> b.bstmts <- peepHole2 ~agressive dotwo b.bstmts
        | Block b -> b.bstmts <- doStmtList [] b.bstmts
+       | TryCatch (b,l,_) ->
+         b.bstmts <- peepHole2 ~agressive dotwo b.bstmts;
+         List.iter 
+           (fun (_,b) ->
+             b.bstmts <-  peepHole2 ~agressive dotwo b.bstmts)
+           l
        | TryFinally (b, h, _l) ->
-         b.bstmts <- 
-           peepHole2 ~agressive dotwo b.bstmts;
+         b.bstmts <- peepHole2 ~agressive dotwo b.bstmts;
 	 b.bstmts <- peepHole2 ~agressive dotwo h.bstmts
        | TryExcept (b, (_il, _e), h, _l) ->
 	   b.bstmts <- peepHole2 ~agressive dotwo b.bstmts;
@@ -6100,7 +6428,7 @@ let childrenFileSameGlobals vis f =
 
        | UnspecifiedSequence seq ->
 	   s.skind <- UnspecifiedSequence (doUnspecifiedStmtList seq)
-       | Return _ | Goto _ | Break _ | Continue _ -> ()
+       | Return _ | Goto _ | Break _ | Continue _ | Throw _ -> ()
    in
    if agressive then List.iter process ss;
    doStmtList [] ss
@@ -6175,12 +6503,14 @@ let childrenFileSameGlobals vis f =
  let rec integralPromotion ?(forComparison=false) (t : typ) : typ = (* c.f. ISO 6.3.1.1 *)
    match unrollType t with
    | TInt ((IShort|ISChar|IBool), a) -> TInt(IInt, a)
-   | TInt (IChar,a) when isSigned IChar -> TInt(IInt, a)
    | TInt (IUChar|IUShort as k, a) -> 
      if bitsSizeOfInt k < bitsSizeOf intType then 
        TInt(IInt, a)
      else
        TInt(IUInt,a)
+   | TInt (IChar,a) ->
+     let k = if isSigned IChar then ISChar else IUChar in
+     integralPromotion ~forComparison (TInt (k, a))
    | TInt (k,a) ->
      begin match findAttribute bitfield_attribute_name a with
      | [AInt size] ->
@@ -6327,7 +6657,8 @@ let mkCastT ?(force=false) ~(e: exp) ~(oldt: typ) ~(newt: typ) =
     match unrollType newt, e.enode with
     (* In the case were we have a representation for the literal,
        explicitly add the cast. *)
-    | TInt(newik, []), Const(CInt64(i, _, None)) -> kinteger64 ~loc newik i
+    | TInt(newik, []), Const(CInt64(i, _, None)) -> 
+      kinteger64 ~loc ~kind:newik i
     | TPtr _, CastE (_, e') ->
       (match unrollType (typeOf e') with
       | (TPtr _ as typ'') ->
@@ -6375,7 +6706,7 @@ let mkCastT ?(force=false) ~(e: exp) ~(oldt: typ) ~(newt: typ) =
      | (Mod|BAnd|BOr|BXor|LAnd|LOr) -> doIntegralArithmetic ()
      | (Shiftlt|Shiftrt) -> (* ISO 6.5.7. Only integral promotions. The result
                              * has the same type as the left hand side *)
-       if theMachine.msvcMode then
+       if msvcMode () then
         (* MSVC has a bug. We duplicate it here *)
          doIntegralArithmetic ()
        else
@@ -6468,8 +6799,7 @@ let mkCastT ?(force=false) ~(e: exp) ~(oldt: typ) ~(newt: typ) =
    let bop = if isPointerType et then PlusPI else PlusA in
    constFold
      false
-     (new_exp ~loc:e.eloc
-        (BinOp(bop, e, kinteger64 ~loc:e.eloc IULongLong i, et)))
+     (new_exp ~loc:e.eloc (BinOp(bop, e, kinteger64 ~loc:e.eloc i, et)))
 
  exception LenOfArray
  let lenOfArray64 eo =
@@ -6516,8 +6846,8 @@ let rec makeZeroInit ~loc (t: typ) : init =
                         makeZeroInit ~loc fieldToInit.ftype)])
   | TArray(bt, Some len, _, _) as t' ->
       let n =
-        match (constFold true len).enode with
-          Const(CInt64(n, _, _)) -> Integer.to_int n
+        match constFoldToInt len with
+        | Some n -> Integer.to_int n
         | _ -> Kernel.fatal ~current:true "Cannot understand length of array"
       in
       let initbt = makeZeroInit ~loc bt in
@@ -6692,23 +7022,10 @@ let is_case_label l = match l with
   | Case _ | Default _ -> true
   | _ -> false
 
-let init_builtins () =
-  if theMachine.msvcMode then
-    initMsvcBuiltins ()
-  else
-    initGccBuiltins ()
-
-module type Machdeps = sig
-  val gcc : Cil_types.mach 
-  val msvc : Cil_types.mach  
-end
-
 let initCIL ~initLogicBuiltins machdep =
   if not (TheMachine.is_computed ()) then begin
     (* Set the machine *)
-    let module Mach = (val machdep: Machdeps) in
-    theMachine.theMachine <-
-      if theMachine.msvcMode then Mach.msvc else Mach.gcc;
+    theMachine.theMachine <- machdep;
     (* Pick type for string literals *)
     theMachine.stringLiteralType <-
       if theMachine.theMachine.const_string_literals then charConstPtrType
@@ -6741,7 +7058,8 @@ let initCIL ~initLogicBuiltins machdep =
       else if name = "char" then IChar
       else if name = "unsigned char" then IUChar
       else
-	Kernel.fatal ~current:true "initCIL: cannot find the right ikind for type %s\n" name
+	Kernel.fatal
+          ~current:true "initCIL: cannot find the right ikind for type %s" name
     in
     theMachine.upointKind <- findIkindSz true theMachine.theMachine.sizeof_ptr;
     theMachine.upointType <- TInt(theMachine.upointKind, []);
@@ -6902,7 +7220,7 @@ let make_temp_logic_var =
   fun ty ->
     incr counter;
     let name = "__framac_tmp" ^ (string_of_int !counter) in
-    make_logic_var_local name ty
+    Cil_const.make_logic_var_local name ty
 
 let extract_varinfos_from_exp vexp =
   let visitor = object
@@ -7045,7 +7363,7 @@ and free_vars_predicate bound_vars p = match p.content with
 	Logic_var.Set.union (free_vars_term bound_vars t) acc)
       Logic_var.Set.empty tl
   | Pallocable (_,t) | Pfreeable (_,t)
-  | Pvalid (_,t) | Pvalid_read (_,t) | Pinitialized (_,t) -> 
+  | Pvalid (_,t) | Pvalid_read (_,t) | Pinitialized (_,t) | Pdangling (_,t) -> 
     free_vars_term bound_vars t
   | Pseparated seps ->
     List.fold_left
@@ -7291,24 +7609,26 @@ module Switch_cases =
        let dependencies = []
        let size = 49
      end)
-let () = add_ast_dependency Switch_cases.self
+let () = dependency_on_ast Switch_cases.self
 let separate_switch_succs = Switch_cases.memo separate_switch_succs
 
 class dropAttributes ?select () = object
   inherit genericCilVisitor (copy_visit (Project.current ()))
-  method! vattr a = 
+  method! vattr a =
     match select with
       | None -> ChangeTo []
       | Some l ->
           (match a with
             | (Attr (s,_) | AttrAnnot s) when List.mem s l -> ChangeTo []
             | Attr _ | AttrAnnot _ -> DoChildren)
-  method! vtype ty =
-    match ty with
-      | TNamed (ty, attrs) ->
-          ChangeDoChildrenPost (typeAddAttributes attrs ty.ttype, fun x -> x)
-      | TVoid _ | TInt _ | TFloat _ | TPtr _ | TArray _ | TFun _
-      | TComp _ | TEnum _ | TBuiltin_va_list _ -> DoChildren
+  method! vtype ty = match ty with
+    | TNamed (internal_ty, attrs) ->
+      let tty = typeAddAttributes attrs internal_ty.ttype in
+      (* keep the original type whenever possible *)
+      ChangeDoChildrenPost 
+        (tty, fun x -> if x == internal_ty.ttype then ty else x)
+    | TVoid _ | TInt _ | TFloat _ | TPtr _ | TArray _ | TFun _
+    | TComp _ | TEnum _ | TBuiltin_va_list _ -> DoChildren
 end
 
 let typeDeepDropAttributes select t =

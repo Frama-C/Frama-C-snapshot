@@ -1,0 +1,29 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/float/dr_infinity.i (no preprocessing)
+tests/float/dr_infinity.i:8:[kernel] warning: Floating-point constant 3.4028235677973366e+38f is not represented exactly. Will use 0x1.fffffe0000000p127
+tests/float/dr_infinity.i:10:[kernel] warning: Floating-point constant 3.402823567797366e+38 is not represented exactly. Will use 0x1.ffffff000004ep127
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  
+[value] Called Frama_C_show_each({0x1.fffffe0000000p127})
+tests/float/dr_infinity.i:10:[kernel] warning: non-finite float value ({0x1.ffffff000004ep127}):
+                  assert \is_finite((float)3.402823567797366e+38);
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  NON TERMINATING FUNCTION
+[from] Computing for function main
+[from] Non-terminating function main (no dependencies)
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  NON TERMINATING - NO EFFECTS
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          x; y
+[inout] Inputs for function main:
+          \nothing

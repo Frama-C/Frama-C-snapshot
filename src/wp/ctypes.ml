@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -74,18 +74,18 @@ let is_char = function
 let c_int ikind =
   let mach = Cil.theMachine.Cil.theMachine in
   match ikind with
-    | IBool -> make_c_int false mach.sizeof_int
-    | IChar -> if mach.char_is_unsigned then UInt8 else SInt8
-    | ISChar -> SInt8
-    | IUChar -> UInt8
-    | IInt -> make_c_int true mach.sizeof_int
-    | IUInt -> make_c_int false mach.sizeof_int
-    | IShort -> make_c_int true mach.sizeof_short
-    | IUShort -> make_c_int false mach.sizeof_short
-    | ILong -> make_c_int true mach.sizeof_long
-    | IULong -> make_c_int false mach.sizeof_long
-    | ILongLong -> make_c_int true mach.sizeof_longlong
-    | IULongLong -> make_c_int false mach.sizeof_longlong
+  | IBool -> make_c_int false mach.sizeof_int
+  | IChar -> if mach.char_is_unsigned then UInt8 else SInt8
+  | ISChar -> SInt8
+  | IUChar -> UInt8
+  | IInt -> make_c_int true mach.sizeof_int
+  | IUInt -> make_c_int false mach.sizeof_int
+  | IShort -> make_c_int true mach.sizeof_short
+  | IUShort -> make_c_int false mach.sizeof_short
+  | ILong -> make_c_int true mach.sizeof_long
+  | IULong -> make_c_int false mach.sizeof_long
+  | ILongLong -> make_c_int true mach.sizeof_longlong
+  | IULongLong -> make_c_int false mach.sizeof_longlong
 
 (* Bounds of an integer according to c_int ti :
    An integer i : i \in [c_int_bounds ti] if
@@ -100,14 +100,14 @@ let c_int_bounds =
   and uint64 = Integer.zero, Integer.of_string "18446744073709551616"
   and sint64 = Integer.of_string "-9223372036854775808", Integer.of_string "9223372036854775808"
   in function
-  | UInt8  -> uint8
-  | SInt8  -> sint8
-  | UInt16 -> uint16
-  | SInt16 -> sint16
-  | UInt32 -> uint32
-  | SInt32 -> sint32
-  | UInt64 -> uint64
-  | SInt64 -> sint64
+    | UInt8  -> uint8
+    | SInt8  -> sint8
+    | UInt16 -> uint16
+    | SInt16 -> sint16
+    | UInt32 -> uint32
+    | SInt32 -> sint32
+    | UInt64 -> uint64
+    | SInt64 -> sint64
 
 let c_int_all =   
   [ UInt8 ; SInt8 ; UInt16 ; SInt16 ; UInt32 ; SInt32 ; UInt64 ; SInt64 ]
@@ -119,7 +119,7 @@ let c_ptr () =
 
 let sub_c_int t1 t2 =
   if (signed t1 = signed t2) then i_bits t1 <= i_bits t2
- else (not(signed t1) && (i_bits t1 < i_bits t2))
+  else (not(signed t1) && (i_bits t1 < i_bits t2))
 
 type c_float =
   | Float32
@@ -143,9 +143,9 @@ let make_c_float = function
 let c_float fkind =
   let mach = Cil.theMachine.Cil.theMachine in
   match fkind with
-    | FFloat -> make_c_float mach.sizeof_float
-    | FDouble -> make_c_float mach.sizeof_double
-    | FLongDouble -> make_c_float mach.sizeof_longdouble
+  | FFloat -> make_c_float mach.sizeof_float
+  | FDouble -> make_c_float mach.sizeof_double
+  | FLongDouble -> make_c_float mach.sizeof_longdouble
 
 let sub_c_float f1 f2 = f_bits f1 <= f_bits f2
 
@@ -190,8 +190,8 @@ let imemo f =
   fun i ->
     let k = idx i in
     match m.(k) with
-      | Some r -> r
-      | None -> let r = f i in m.(k) <- Some r ; r
+    | Some r -> r
+    | None -> let r = f i in m.(k) <- Some r ; r
 
 let fdx = function
   | Float32 -> 0
@@ -202,15 +202,15 @@ let fmemo f =
   fun z ->
     let k = fdx z in
     match m.(k) with
-      | Some r -> r
-      | None -> let r = f z in m.(k) <- Some r ; r
+    | Some r -> r
+    | None -> let r = f z in m.(k) <- Some r ; r
 
 (* -------------------------------------------------------------------------- *)
 (* --- Pretty Printers                                                    --- *)
 (* -------------------------------------------------------------------------- *)
 
 let pp_int fmt i = Format.fprintf fmt "%cint%d"
-  (if signed i then 's' else 'u') (i_bits i)
+    (if signed i then 's' else 'u') (i_bits i)
 
 let pp_float fmt f = Format.fprintf fmt "float%d" (f_bits f)
 
@@ -225,28 +225,23 @@ let pp_object fmt = function
 (* --- Array Info                                                         --- *)
 (* -------------------------------------------------------------------------- *)
 
-let char c =
-  match Cil.charConstToInt c with
-    | CInt64(k,_,_) -> Integer.to_int64 k
-    | _ -> WpLog.fatal "char-const-to-int"
+let char c = Integer.to_int64 (Cil.charConstToInt c)
 
 let constant e =
   match (Cil.constFold true e).enode with
-    | Const(CInt64(k,_,_)) -> Integer.to_int64 k
-    | Const(CChr c) -> char c
-    | _ -> WpLog.fatal "Non-constant expression (%a)" Printer.pp_exp e
+  | Const(CInt64(k,_,_)) -> Integer.to_int64 k
+  | _ -> WpLog.fatal "Non-constant expression (%a)" Printer.pp_exp e
 
 let get_int e =
   match (Cil.constFold true e).enode with
-    | Const(CInt64(k,_,_)) -> Some (Integer.to_int64 k)
-    | Const(CChr c) -> Some (char c)
-    | _ -> None
+  | Const(CInt64(k,_,_)) -> Some (Integer.to_int64 k)
+  | _ -> None
 
 let dimension t =
   let rec flat k d = function
     | TNamed _ as t -> flat k d (Cil.unrollType t)
     | TArray(ty,Some e,_,_) ->
-      flat (succ k) (Int64.mul d (constant e)) ty
+        flat (succ k) (Int64.mul d (constant e)) ty
     | te -> k , d , te
   in flat 1 Int64.one t
 
@@ -260,51 +255,51 @@ let is_pointer = function
 
 let is_void typ =
   match Cil.unrollType typ with
-    | TVoid _ -> true
-    | _ -> false
+  | TVoid _ -> true
+  | _ -> false
 
 let object_of typ =
-   match Cil.unrollType typ with
-    | TInt(i,_) -> C_int (c_int i)
-    | TFloat(f,_) -> C_float (c_float f)
-    | TPtr(typ,_) ->
-        begin
-          match Cil.unrollType typ with
-            | TVoid _ -> C_pointer (TInt (IChar,[]))
-            | _ -> C_pointer typ
-        end
-    | TFun _ -> C_pointer (TVoid [])
-    | TEnum ({ekind=i},_) -> C_int (c_int i)
-    | TComp (comp,_,_) -> C_comp comp
-    | TArray (typ_elt,e_opt,_,_) ->
-        begin
-          match e_opt with
-            | None ->
-                C_array {
-                  arr_element = typ_elt;
-                  arr_flat = None;
-                }
+  match Cil.unrollType typ with
+  | TInt(i,_) -> C_int (c_int i)
+  | TFloat(f,_) -> C_float (c_float f)
+  | TPtr(typ,_) ->
+      begin
+        match Cil.unrollType typ with
+        | TVoid _ -> C_pointer (TInt (IChar,[]))
+        | _ -> C_pointer typ
+      end
+  | TFun _ -> C_pointer (TVoid [])
+  | TEnum ({ekind=i},_) -> C_int (c_int i)
+  | TComp (comp,_,_) -> C_comp comp
+  | TArray (typ_elt,e_opt,_,_) ->
+      begin
+        match e_opt with
+        | None ->
+            C_array {
+              arr_element = typ_elt;
+              arr_flat = None;
+            }
 
-            | Some e ->
-                let dim,ncells,ty_cell = dimension typ in
-                C_array {
-                  arr_element = typ_elt ;
-                  arr_flat = Some {
-                    arr_size = Int64.to_int (constant e) ;
-                    arr_dim = dim ;
-                    arr_cell = ty_cell ;
-                    arr_cell_nbr = Int64.to_int (ncells) ;
-                  }
+        | Some e ->
+            let dim,ncells,ty_cell = dimension typ in
+            C_array {
+              arr_element = typ_elt ;
+              arr_flat = Some {
+                  arr_size = Int64.to_int (constant e) ;
+                  arr_dim = dim ;
+                  arr_cell = ty_cell ;
+                  arr_cell_nbr = Int64.to_int (ncells) ;
                 }
-        end
-    | TBuiltin_va_list _ ->
-        WpLog.warning ~current:true ~once:true "variadyc type (considered as void*)" ;
-        C_pointer (TVoid [])
-    | TVoid _ ->
-        WpLog.warning ~current:true "void object" ;
-	C_int (c_int IInt)
-    | TNamed _  ->
-        WpLog.fatal "non-unrolled named type (%a)" Printer.pp_typ typ
+            }
+      end
+  | TBuiltin_va_list _ ->
+      WpLog.warning ~current:true ~once:true "variadyc type (considered as void*)" ;
+      C_pointer (TVoid [])
+  | TVoid _ ->
+      WpLog.warning ~current:true "void object" ;
+      C_int (c_int IInt)
+  | TNamed _  ->
+      WpLog.fatal "non-unrolled named type (%a)" Printer.pp_typ typ
 
 let object_of_pointed = function
     C_int _ | C_float _ | C_comp _ as o ->
@@ -317,49 +312,49 @@ let object_of_pointed = function
 let object_of_array_elem = function
   | C_array arr -> object_of arr.arr_element
   | o -> Wp_parameters.fatal ~current:true
-       "object_of_array_elem called on non-array %a." pp_object o
+           "object_of_array_elem called on non-array %a." pp_object o
 
 let rec object_of_logic_type t = 
   match Logic_utils.unroll_type t with
-    | Ctype ty -> object_of ty
-    | Ltype({lt_name="set"},[t]) -> object_of_logic_type t
-    | t -> Wp_parameters.fatal ~current:true 
-	"@[<hov 2>c-object of logic type@ (%a)@]"
-	  Printer.pp_logic_type t
-	  
+  | Ctype ty -> object_of ty
+  | Ltype({lt_name="set"},[t]) -> object_of_logic_type t
+  | t -> Wp_parameters.fatal ~current:true 
+           "@[<hov 2>c-object of logic type@ (%a)@]"
+           Printer.pp_logic_type t
+
 let rec object_of_logic_pointed t = 
   match Logic_utils.unroll_type t with
-    | Ctype ty -> object_of_pointed (object_of ty)
-    | Ltype({lt_name="set"},[t]) -> object_of_logic_pointed t
-    | t -> Wp_parameters.fatal ~current:true 
-	"@[<hov 2>pointed of logic type@ (%a)@]"
-	  Printer.pp_logic_type t
-	
+  | Ctype ty -> object_of_pointed (object_of ty)
+  | Ltype({lt_name="set"},[t]) -> object_of_logic_pointed t
+  | t -> Wp_parameters.fatal ~current:true 
+           "@[<hov 2>pointed of logic type@ (%a)@]"
+           Printer.pp_logic_type t
+
 let no_infinite_array = function 
-    | C_array {arr_flat = None} -> false 
-    | _ -> true
+  | C_array {arr_flat = None} -> false 
+  | _ -> true
 
 let array_dim arr =
   match arr.arr_flat with
-    | Some f -> object_of f.arr_cell , f.arr_dim - 1
-    | None ->
-	let rec collect_dim arr n =
-	  match object_of arr.arr_element with
-	    | C_array arr -> collect_dim arr (succ n)
-	    | te -> te,n
-	in collect_dim arr 1
+  | Some f -> object_of f.arr_cell , f.arr_dim - 1
+  | None ->
+      let rec collect_dim arr n =
+        match object_of arr.arr_element with
+        | C_array arr -> collect_dim arr (succ n)
+        | te -> te,n
+      in collect_dim arr 1
 
 let rec array_dimensions a =
   let te = object_of a.arr_element in
   let d = match a.arr_flat with None -> None | Some f -> Some f.arr_size in
   match te with
-    | C_array a -> let te,ds = array_dimensions a in te , d::ds
-    | _ -> te , [d]
+  | C_array a -> let te,ds = array_dimensions a in te , d::ds
+  | _ -> te , [d]
 
 let array_size typ =
   match object_of typ with
-    | C_array { arr_flat=Some { arr_size=s } } -> Some s
-    | _ -> None
+  | C_array { arr_flat=Some { arr_size=s } } -> Some s
+  | _ -> None
 
 let dimension_of_object = function
   | C_int _ | C_float _ | C_pointer _ | C_comp _ | C_array { arr_flat=None } -> None
@@ -369,23 +364,23 @@ let int64_max a b =
   if Int64.compare a b < 0 then b else a
 
 let rec sizeof_object = function
- | C_int i -> i_bytes i
- | C_float f -> f_bytes f
- | C_pointer _ty -> i_bytes (c_ptr())
- | C_comp cinfo ->
-     let ctype = TComp(cinfo,Cil.empty_size_cache(),[]) in
-     (Cil.bitsSizeOf ctype / 8)
- | C_array ainfo ->
-     match ainfo.arr_flat with
-       | Some a -> 
-	   let csize = Cil.integer ~loc:Cil.builtinLoc a.arr_cell_nbr in
-	   let ctype = TArray(a.arr_cell,Some csize,Cil.empty_size_cache(),[]) in
-	   (Cil.bitsSizeOf ctype / 8)
-       | None -> 
-	   if WpLog.ExternArrays.get () then
-	     max_int
-	   else
-	     WpLog.fatal ~current:true "Sizeof unknown-size array"
+  | C_int i -> i_bytes i
+  | C_float f -> f_bytes f
+  | C_pointer _ty -> i_bytes (c_ptr())
+  | C_comp cinfo ->
+      let ctype = TComp(cinfo,Cil.empty_size_cache(),[]) in
+      (Cil.bitsSizeOf ctype / 8)
+  | C_array ainfo ->
+      match ainfo.arr_flat with
+      | Some a -> 
+          let csize = Cil.integer ~loc:Cil.builtinLoc a.arr_cell_nbr in
+          let ctype = TArray(a.arr_cell,Some csize,Cil.empty_size_cache(),[]) in
+          (Cil.bitsSizeOf ctype / 8)
+      | None -> 
+          if WpLog.ExternArrays.get () then
+            max_int
+          else
+            WpLog.fatal ~current:true "Sizeof unknown-size array"
 
 let sizeof_typ t = Cil.bitsSizeOf t / 8
 
@@ -419,12 +414,12 @@ let f_convert t1 t2 = if f_bits t1 < f_bits t2 then t2 else t1
 
 let promote a1 a2 =
   match a1 , a2 with
-    | C_int i1 , C_int i2 -> C_int (i_convert i1 i2)
-    | C_float f1 , C_float f2 -> C_float (f_convert f1 f2)
-    | C_int _ , C_float _ -> a2
-    | C_float _ , C_int _ -> a1
-    | _ -> WpLog.not_yet_implemented
-        "promotion between arithmetics and pointer types"
+  | C_int i1 , C_int i2 -> C_int (i_convert i1 i2)
+  | C_float f1 , C_float f2 -> C_float (f_convert f1 f2)
+  | C_int _ , C_float _ -> a2
+  | C_float _ , C_int _ -> a1
+  | _ -> WpLog.not_yet_implemented
+           "promotion between arithmetics and pointer types"
 
 (* ------------------------------------------------------------------------ *)
 (* --- Comparable                                                       --- *)
@@ -440,10 +435,10 @@ module AinfoComparable = struct
     let obj_a = object_of a.arr_element in
     let obj_b = object_of b.arr_element in
     (!cmp obj_a obj_b = 0) && 
-      (match a.arr_flat , b.arr_flat with
-         | Some a , Some b -> a.arr_size = b.arr_size
-         | None , None -> true
-         | _ -> false)
+    (match a.arr_flat , b.arr_flat with
+     | Some a , Some b -> a.arr_size = b.arr_size
+     | None , None -> true
+     | _ -> false)
   let compare a b =
     let obj_a = object_of a.arr_element in
     let obj_b = object_of b.arr_element in
@@ -465,29 +460,29 @@ let hash = function
 
 let equal a b =
   match a,b with
-    | C_int i, C_int i' -> i=i'
-    | C_float f , C_float f' -> f=f'
-    | C_pointer te , C_pointer te' -> Typ.equal te te'
-    | C_comp c , C_comp c' -> Compinfo.equal c c'
-    | C_array a , C_array a' -> AinfoComparable.equal a a'
-    | _ -> false
+  | C_int i, C_int i' -> i=i'
+  | C_float f , C_float f' -> f=f'
+  | C_pointer te , C_pointer te' -> Typ.equal te te'
+  | C_comp c , C_comp c' -> Compinfo.equal c c'
+  | C_array a , C_array a' -> AinfoComparable.equal a a'
+  | _ -> false
 
 let compare a b =
   if a==b then 0 else
     match a,b with
-      | C_int i, C_int i' -> compare_c_int i i'
-      | C_int _ , _ -> (-1)
-      | _ , C_int _ -> 1
-      | C_float f , C_float f' -> compare_c_float f f'
-      | C_float _ , _ -> (-1)
-      | _ , C_float _ -> 1
-      | C_pointer te , C_pointer te' -> Typ.compare te te'
-      | C_pointer _ , _ -> (-1)
-      | _ , C_pointer _ -> 1
-      | C_comp c , C_comp c' -> Compinfo.compare c c'
-      | C_comp _ , _ -> (-1)
-      | _ , C_comp _ -> 1
-      | C_array a , C_array a' -> AinfoComparable.compare a a'
+    | C_int i, C_int i' -> compare_c_int i i'
+    | C_int _ , _ -> (-1)
+    | _ , C_int _ -> 1
+    | C_float f , C_float f' -> compare_c_float f f'
+    | C_float _ , _ -> (-1)
+    | _ , C_float _ -> 1
+    | C_pointer te , C_pointer te' -> Typ.compare te te'
+    | C_pointer _ , _ -> (-1)
+    | _ , C_pointer _ -> 1
+    | C_comp c , C_comp c' -> Compinfo.compare c c'
+    | C_comp _ , _ -> (-1)
+    | _ , C_comp _ -> 1
+    | C_array a , C_array a' -> AinfoComparable.compare a a'
 
 let () = 
   begin
@@ -497,9 +492,9 @@ let () =
 
 let merge a b =
   match a,b with
-    | C_int i, C_int i' -> if sub_c_int i' i then a else b
-    | C_float f , C_float f' -> if sub_c_float f' f then a else b
-    | _ -> assert (equal a b) ; a
+  | C_int i, C_int i' -> if sub_c_int i' i then a else b
+  | C_float f , C_float f' -> if sub_c_float f' f then a else b
+  | _ -> assert (equal a b) ; a
 
 let rec basename = function
   | C_int i -> Pretty_utils.sfprintf "%a" pp_int i
@@ -509,8 +504,8 @@ let rec basename = function
   | C_array a ->
       let te = basename (object_of a.arr_element) in
       match a.arr_flat with
-        | None -> te ^ "_array"
-        | Some f -> te ^ "_" ^ string_of_int f.arr_size
+      | None -> te ^ "_array"
+      | Some f -> te ^ "_" ^ string_of_int f.arr_size
 
 let rec pretty fmt = function
   | C_int i -> pp_int fmt i
@@ -520,5 +515,57 @@ let rec pretty fmt = function
   | C_array a ->
       let te = object_of a.arr_element in
       match a.arr_flat with
-        | None -> Format.fprintf fmt "%a[]" pretty te
-        | Some f -> Format.fprintf fmt "%a[%d]" pretty te f.arr_size
+      | None -> Format.fprintf fmt "%a[]" pretty te
+      | Some f -> Format.fprintf fmt "%a[%d]" pretty te f.arr_size
+
+
+module C_object = Datatype.Make(struct
+    type t = c_object
+    let name = "Ctypes.C_object"
+
+    let rehash = Datatype.Undefined.rehash
+    let structural_descr = Datatype.Undefined.structural_descr
+
+    let reprs = [C_int UInt8]
+
+    let equal = equal
+    let pretty = pretty
+    let hash = hash
+    let compare = compare
+
+    let copy = Datatype.Undefined.copy
+
+    let internal_pretty_code = Datatype.Undefined.internal_pretty_code
+    let mem_project = Datatype.Undefined.mem_project
+
+    let varname _ = "co"
+  end)
+
+let rec compare_ptr_conflated a b =
+  if a==b then 0 else
+    match a,b with
+    | C_int i, C_int i' -> compare_c_int i i'
+    | C_int _ , _ -> (-1)
+    | _ , C_int _ -> 1
+    | C_float f , C_float f' -> compare_c_float f f'
+    | C_float _ , _ -> (-1)
+    | _ , C_float _ -> 1
+    | C_pointer _ , C_pointer _ -> 0
+    | C_pointer _ , _ -> (-1)
+    | _ , C_pointer _ -> 1
+    | C_comp c , C_comp c' -> Compinfo.compare c c'
+    | C_comp _ , _ -> (-1)
+    | _ , C_comp _ -> 1
+    | C_array a , C_array a' -> compare_array_ptr_conflated a a'
+
+and compare_array_ptr_conflated a b =
+    let obj_a = object_of a.arr_element in
+    let obj_b = object_of b.arr_element in
+    let c = compare_ptr_conflated obj_a obj_b in
+    if c <> 0 then c
+    else match a.arr_flat , b.arr_flat with
+      | Some a , Some b -> Pervasives.compare a.arr_size b.arr_size
+      | None , Some _ -> (-1)
+      | Some _ , None -> 1
+      | None , None -> 0
+

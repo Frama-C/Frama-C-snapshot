@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -38,12 +38,9 @@ val get_selection: ?is_set:bool -> unit -> State_selection.t
 val get_reset_selection: ?is_set:bool -> unit -> State_selection.t
   (** Selection of resettable parameters in case of copy with a visitor.
       Not for casual user.
-      @since Neon-20130301 *)
+      @since Neon-20140301 *)
 
 (**/**)
-
-val extend_selection: bool -> State.t -> unit
-val extend_no_reset_selection: bool -> State.t -> unit
 
 (* ************************************************************************* *)
 (** {2 Generic implementation of command line option} *)

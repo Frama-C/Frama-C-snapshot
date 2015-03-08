@@ -1,0 +1,15 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_acsl/unit_bool.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+------------------------------------------------------------
+  Axiomatic 'Foo'
+------------------------------------------------------------
+
+Lemma f_1:
+Assume: 'f_def'
+Prove: (L_f 1)
+
+------------------------------------------------------------

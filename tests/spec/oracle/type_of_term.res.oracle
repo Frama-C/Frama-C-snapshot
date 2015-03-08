@@ -1,0 +1,261 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/spec/type_of_term.i (no preprocessing)
+[type_of_term] Term: dest+(0 .. n-1), type is set<unsigned char *>
+[type_of_term] Term: dest, type is unsigned char *
+[type_of_term] Host: dest, type is unsigned char *
+[type_of_term] Offset: , type is unsigned char *
+[type_of_term] Lval: dest, type is unsigned char *
+[type_of_term] Term: 0 .. n-1, type is set<ℤ>
+[type_of_term] Term: 0, type is ℤ
+[type_of_term] Term: n-1, type is ℤ
+[type_of_term] Term: n, type is ℤ
+[type_of_term] Term: n, type is unsigned long
+[type_of_term] Host: n, type is unsigned long
+[type_of_term] Offset: , type is unsigned long
+[type_of_term] Lval: n, type is unsigned long
+[type_of_term] Term: 1, type is ℤ
+[type_of_term] Term: 0, type is ℤ
+[type_of_term] Term: i, type is ℤ
+[type_of_term] Host: i, type is ℤ
+[type_of_term] Offset: , type is ℤ
+[type_of_term] Lval: i, type is ℤ
+[type_of_term] Term: i, type is ℤ
+[type_of_term] Host: i, type is ℤ
+[type_of_term] Offset: , type is ℤ
+[type_of_term] Lval: i, type is ℤ
+[type_of_term] Term: \old(n), type is ℤ
+[type_of_term] Term: \old(n), type is unsigned long
+[type_of_term] Term: n, type is unsigned long
+[type_of_term] Host: n, type is unsigned long
+[type_of_term] Offset: , type is unsigned long
+[type_of_term] Lval: n, type is unsigned long
+[type_of_term] Term: *(\old(dest)+i), type is ℤ
+[type_of_term] Term: *(\old(dest)+i), type is unsigned char
+[type_of_term] Host: *(\old(dest)+i), type is unsigned char
+[type_of_term] Offset: , type is unsigned char
+[type_of_term] Lval: *(\old(dest)+i), type is unsigned char
+[type_of_term] Term: \old(dest)+i, type is unsigned char *
+[type_of_term] Term: \old(dest), type is unsigned char *
+[type_of_term] Term: dest, type is unsigned char *
+[type_of_term] Host: dest, type is unsigned char *
+[type_of_term] Offset: , type is unsigned char *
+[type_of_term] Lval: dest, type is unsigned char *
+[type_of_term] Term: i, type is ℤ
+[type_of_term] Host: i, type is ℤ
+[type_of_term] Offset: , type is ℤ
+[type_of_term] Lval: i, type is ℤ
+[type_of_term] Term: 0, type is ℤ
+[type_of_term] Term: *(dest+(0 .. n-1)), type is set<unsigned char>
+[type_of_term] Host: *(dest+(0 .. n-1)), type is set<unsigned char>
+[type_of_term] Offset: , type is set<unsigned char>
+[type_of_term] Lval: *(dest+(0 .. n-1)), type is set<unsigned char>
+[type_of_term] Term: dest+(0 .. n-1), type is set<unsigned char *>
+[type_of_term] Term: dest, type is unsigned char *
+[type_of_term] Host: dest, type is unsigned char *
+[type_of_term] Offset: , type is unsigned char *
+[type_of_term] Lval: dest, type is unsigned char *
+[type_of_term] Term: 0 .. n-1, type is set<ℤ>
+[type_of_term] Term: 0, type is ℤ
+[type_of_term] Term: n-1, type is ℤ
+[type_of_term] Term: n, type is ℤ
+[type_of_term] Term: n, type is unsigned long
+[type_of_term] Host: n, type is unsigned long
+[type_of_term] Offset: , type is unsigned long
+[type_of_term] Lval: n, type is unsigned long
+[type_of_term] Term: 1, type is ℤ
+[type_of_term] Term: dest+(0 .. size*n-1), type is set<unsigned char *>
+[type_of_term] Term: dest, type is unsigned char *
+[type_of_term] Host: dest, type is unsigned char *
+[type_of_term] Offset: , type is unsigned char *
+[type_of_term] Lval: dest, type is unsigned char *
+[type_of_term] Term: 0 .. size*n-1, type is set<ℤ>
+[type_of_term] Term: 0, type is ℤ
+[type_of_term] Term: size*n-1, type is ℤ
+[type_of_term] Term: size*n, type is ℤ
+[type_of_term] Term: size, type is ℤ
+[type_of_term] Term: size, type is unsigned long
+[type_of_term] Host: size, type is unsigned long
+[type_of_term] Offset: , type is unsigned long
+[type_of_term] Lval: size, type is unsigned long
+[type_of_term] Term: n, type is ℤ
+[type_of_term] Term: n, type is unsigned long
+[type_of_term] Host: n, type is unsigned long
+[type_of_term] Offset: , type is unsigned long
+[type_of_term] Lval: n, type is unsigned long
+[type_of_term] Term: 1, type is ℤ
+[type_of_term] Term: n, type is ℤ
+[type_of_term] Term: n, type is unsigned long
+[type_of_term] Host: n, type is unsigned long
+[type_of_term] Offset: , type is unsigned long
+[type_of_term] Lval: n, type is unsigned long
+[type_of_term] Term: 1, type is ℤ
+[type_of_term] Term: 0, type is ℤ
+[type_of_term] Term: i, type is ℤ
+[type_of_term] Host: i, type is ℤ
+[type_of_term] Offset: , type is ℤ
+[type_of_term] Lval: i, type is ℤ
+[type_of_term] Term: i, type is ℤ
+[type_of_term] Host: i, type is ℤ
+[type_of_term] Offset: , type is ℤ
+[type_of_term] Lval: i, type is ℤ
+[type_of_term] Term: \old(size), type is ℤ
+[type_of_term] Term: \old(size), type is unsigned long
+[type_of_term] Term: size, type is unsigned long
+[type_of_term] Host: size, type is unsigned long
+[type_of_term] Offset: , type is unsigned long
+[type_of_term] Lval: size, type is unsigned long
+[type_of_term] Term: 1, type is ℤ
+[type_of_term] Term: j, type is ℤ
+[type_of_term] Host: j, type is ℤ
+[type_of_term] Offset: , type is ℤ
+[type_of_term] Lval: j, type is ℤ
+[type_of_term] Term: j, type is ℤ
+[type_of_term] Host: j, type is ℤ
+[type_of_term] Offset: , type is ℤ
+[type_of_term] Lval: j, type is ℤ
+[type_of_term] Term: \old(n), type is ℤ
+[type_of_term] Term: \old(n), type is unsigned long
+[type_of_term] Term: n, type is unsigned long
+[type_of_term] Host: n, type is unsigned long
+[type_of_term] Offset: , type is unsigned long
+[type_of_term] Lval: n, type is unsigned long
+[type_of_term] Term: *(\old(dest)+(i+j*\old(size))), type is unsigned char
+[type_of_term] Host: *(\old(dest)+(i+j*\old(size))), type is unsigned char
+[type_of_term] Offset: , type is unsigned char
+[type_of_term] Lval: *(\old(dest)+(i+j*\old(size))), type is unsigned char
+[type_of_term] Term: \old(dest)+(i+j*\old(size)), type is unsigned char *
+[type_of_term] Term: \old(dest), type is unsigned char *
+[type_of_term] Term: dest, type is unsigned char *
+[type_of_term] Host: dest, type is unsigned char *
+[type_of_term] Offset: , type is unsigned char *
+[type_of_term] Lval: dest, type is unsigned char *
+[type_of_term] Term: i+j*\old(size), type is ℤ
+[type_of_term] Term: i, type is ℤ
+[type_of_term] Host: i, type is ℤ
+[type_of_term] Offset: , type is ℤ
+[type_of_term] Lval: i, type is ℤ
+[type_of_term] Term: j*\old(size), type is ℤ
+[type_of_term] Term: j, type is ℤ
+[type_of_term] Host: j, type is ℤ
+[type_of_term] Offset: , type is ℤ
+[type_of_term] Lval: j, type is ℤ
+[type_of_term] Term: \old(size), type is ℤ
+[type_of_term] Term: \old(size), type is unsigned long
+[type_of_term] Term: size, type is unsigned long
+[type_of_term] Host: size, type is unsigned long
+[type_of_term] Offset: , type is unsigned long
+[type_of_term] Lval: size, type is unsigned long
+[type_of_term] Term: *(\old(dest)+i), type is unsigned char
+[type_of_term] Host: *(\old(dest)+i), type is unsigned char
+[type_of_term] Offset: , type is unsigned char
+[type_of_term] Lval: *(\old(dest)+i), type is unsigned char
+[type_of_term] Term: \old(dest)+i, type is unsigned char *
+[type_of_term] Term: \old(dest), type is unsigned char *
+[type_of_term] Term: dest, type is unsigned char *
+[type_of_term] Host: dest, type is unsigned char *
+[type_of_term] Offset: , type is unsigned char *
+[type_of_term] Lval: dest, type is unsigned char *
+[type_of_term] Term: i, type is ℤ
+[type_of_term] Host: i, type is ℤ
+[type_of_term] Offset: , type is ℤ
+[type_of_term] Lval: i, type is ℤ
+[type_of_term] Term: *(dest+(size .. size*n-1)), type is set<unsigned char>
+[type_of_term] Host: *(dest+(size .. size*n-1)), type is set<unsigned char>
+[type_of_term] Offset: , type is set<unsigned char>
+[type_of_term] Lval: *(dest+(size .. size*n-1)), type is set<unsigned char>
+[type_of_term] Term: dest+(size .. size*n-1), type is set<unsigned char *>
+[type_of_term] Term: dest, type is unsigned char *
+[type_of_term] Host: dest, type is unsigned char *
+[type_of_term] Offset: , type is unsigned char *
+[type_of_term] Lval: dest, type is unsigned char *
+[type_of_term] Term: size .. size*n-1, type is set<ℤ>
+[type_of_term] Term: size, type is unsigned long
+[type_of_term] Host: size, type is unsigned long
+[type_of_term] Offset: , type is unsigned long
+[type_of_term] Lval: size, type is unsigned long
+[type_of_term] Term: size*n-1, type is ℤ
+[type_of_term] Term: size*n, type is ℤ
+[type_of_term] Term: size, type is ℤ
+[type_of_term] Term: size, type is unsigned long
+[type_of_term] Host: size, type is unsigned long
+[type_of_term] Offset: , type is unsigned long
+[type_of_term] Lval: size, type is unsigned long
+[type_of_term] Term: n, type is ℤ
+[type_of_term] Term: n, type is unsigned long
+[type_of_term] Host: n, type is unsigned long
+[type_of_term] Offset: , type is unsigned long
+[type_of_term] Lval: n, type is unsigned long
+[type_of_term] Term: 1, type is ℤ
+[type_of_term] Term: *(dest+(0 .. size-1)), type is set<unsigned char>
+[type_of_term] Host: *(dest+(0 .. size-1)), type is set<unsigned char>
+[type_of_term] Offset: , type is set<unsigned char>
+[type_of_term] Lval: *(dest+(0 .. size-1)), type is set<unsigned char>
+[type_of_term] Term: dest+(0 .. size-1), type is set<unsigned char *>
+[type_of_term] Term: dest, type is unsigned char *
+[type_of_term] Host: dest, type is unsigned char *
+[type_of_term] Offset: , type is unsigned char *
+[type_of_term] Lval: dest, type is unsigned char *
+[type_of_term] Term: 0 .. size-1, type is set<ℤ>
+[type_of_term] Term: 0, type is ℤ
+[type_of_term] Term: size-1, type is ℤ
+[type_of_term] Term: size, type is ℤ
+[type_of_term] Term: size, type is unsigned long
+[type_of_term] Host: size, type is unsigned long
+[type_of_term] Offset: , type is unsigned long
+[type_of_term] Lval: size, type is unsigned long
+[type_of_term] Term: 1, type is ℤ
+[type_of_term] Term: *(p+(..)), type is set<int>
+[type_of_term] Host: *(p+(..)), type is set<int>
+[type_of_term] Offset: , type is set<int>
+[type_of_term] Lval: *(p+(..)), type is set<int>
+[type_of_term] Term: p+(..), type is set<int *>
+[type_of_term] Term: p, type is int *
+[type_of_term] Host: p, type is int *
+[type_of_term] Offset: , type is int *
+[type_of_term] Lval: p, type is int *
+[type_of_term] Term: .., type is set<ℤ>
+[type_of_term] Term: t[..], type is set<int>
+[type_of_term] Host: t, type is int [42]
+[type_of_term] Offset: [..], type is set<int>
+[type_of_term] Lval: t[..], type is set<int>
+[type_of_term] Term: .., type is set<ℤ>
+[type_of_term] Term: (s+(..))->x, type is set<int>
+[type_of_term] Host: *(s+(..)), type is set<struct S>
+[type_of_term] Offset: .x, type is set<int>
+[type_of_term] Lval: (s+(..))->x, type is set<int>
+[type_of_term] Term: s+(..), type is set<struct S *>
+[type_of_term] Term: s, type is struct S *
+[type_of_term] Host: s, type is struct S *
+[type_of_term] Offset: , type is struct S *
+[type_of_term] Lval: s, type is struct S *
+[type_of_term] Term: .., type is set<ℤ>
+[type_of_term] Term: (s+(..))->y[..], type is set<int>
+[type_of_term] Host: *(s+(..)), type is set<struct S>
+[type_of_term] Offset: .y[..], type is set<int>
+[type_of_term] Lval: (s+(..))->y[..], type is set<int>
+[type_of_term] Term: s+(..), type is set<struct S *>
+[type_of_term] Term: s, type is struct S *
+[type_of_term] Host: s, type is struct S *
+[type_of_term] Offset: , type is struct S *
+[type_of_term] Lval: s, type is struct S *
+[type_of_term] Term: .., type is set<ℤ>
+[type_of_term] Term: .., type is set<ℤ>
+/* Generated by Frama-C */
+struct S {
+   int x ;
+   int y[] ;
+};
+int t[42];
+struct S s;
+/*@ assigns *(p+(..)), t[..], (s+(..))->x, (s+(..))->y[..]; */
+extern void f(int *p, struct S *s);
+
+int main(void)
+{
+  int __retres;
+  f(t,& s);
+  __retres = 0;
+  return __retres;
+}
+
+

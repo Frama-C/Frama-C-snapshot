@@ -1,0 +1,39 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/assert_ptr.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  ptr ∈ {0}
+  q ∈ {0}
+  s_q ∈ {0}
+  a ∈ {0}
+  r ∈ {0}
+tests/misc/assert_ptr.i:8:[value] Assertion got status valid.
+[value] Called Frama_C_show_each_ptr({{ NULL ; &a }})
+tests/misc/assert_ptr.i:12:[value] Assertion got status unknown.
+[value] Called Frama_C_show_each_q({{ &a }})
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  ptr ∈ {{ NULL ; &a }}
+  q ∈ {{ (int **)&s_q }}
+  s_q ∈ {{ (int)&a }}
+  a ∈ {0; 1}
+  __retres ∈ {0}
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  ptr FROM c (and SELF)
+  q FROM \nothing
+  s_q FROM d; e (and SELF)
+  a FROM ptr; a; c (and SELF)
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          ptr; q; s_q; a; __retres
+[inout] Inputs for function main:
+          ptr; q; s_q; a

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -38,8 +38,6 @@ type typed_accessor =
   | Bool of bool accessor * string option (** the negative option, if any *)
   | Int of int accessor * (unit -> int * int) (** getting range *)
   | String of string accessor * (unit -> string list) (** possible values *)
-  | String_set of (string, Datatype.String.Set.t) gen_accessor
-  | String_list of (string, string list) gen_accessor
 
 type parameter = private
     { name: string; (** Name of the option corresponding to the parameter. 

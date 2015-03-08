@@ -1,0 +1,104 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/deps_unitialized_locals.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  maybe ∈ [--..--]
+  v1 ∈ {0}
+  v2 ∈ {0}
+  v ∈ {0}
+[value] computing for function f <- main.
+        Called from tests/misc/deps_unitialized_locals.i:33.
+[value] Recording results for f
+[from] Computing for function f
+[from] Done for function f
+[value] Done for function f
+[value] computing for function g <- main.
+        Called from tests/misc/deps_unitialized_locals.i:36.
+[value] Recording results for g
+[from] Computing for function g
+[from] Done for function g
+[value] Done for function g
+[value] computing for function h <- main.
+        Called from tests/misc/deps_unitialized_locals.i:39.
+[value] Recording results for h
+[from] Computing for function h
+[from] Done for function h
+[value] Done for function h
+[value] Recording results for main
+[from] Computing for function main
+[from] Done for function main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function f:
+  v1.ts ∈ {1}
+    .[bits 16 to 31] ∈ UNINITIALIZED
+    .ti ∈ {2}
+  ty.ts ∈ {1}
+    .[bits 16 to 31] ∈ UNINITIALIZED
+    .ti ∈ {2}
+[value] Values at end of function g:
+  v ∈ {1} or UNINITIALIZED
+  i ∈ {1} or UNINITIALIZED
+[value] Values at end of function h:
+  v ∈ {1}
+  i ∈ {1}
+[value] Values at end of function main:
+  v1.ts ∈ {1}
+    .[bits 16 to 31] ∈ UNINITIALIZED
+    .ti ∈ {2}
+  v2.ts ∈ {1}
+    .[bits 16 to 31] ∈ UNINITIALIZED
+    .ti ∈ {2}
+  v ∈ {1}
+  x ∈ {1}
+[from] Computing for function f
+[from] Done for function f
+[from] Computing for function g
+[from] Done for function g
+[from] Computing for function h
+[from] Done for function h
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function f:
+  v1 FROM \nothing
+[from] Function g:
+  v FROM maybe
+[from] Function h:
+  v FROM maybe; i
+[from] Function main:
+  v1 FROM \nothing
+  v2 FROM \nothing
+  v FROM maybe
+[from] ====== END OF DEPENDENCIES ======
+[from] ====== DISPLAYING CALLWISE DEPENDENCIES ======
+[from] call to f at tests/misc/deps_unitialized_locals.i:33 (by main):
+  v1 FROM \nothing
+[from] call to g at tests/misc/deps_unitialized_locals.i:36 (by main):
+  v FROM maybe
+[from] call to h at tests/misc/deps_unitialized_locals.i:39 (by main):
+  v FROM maybe; i
+[from] entry point:
+  v1 FROM \nothing
+  v2 FROM \nothing
+  v FROM maybe
+[from] ====== END OF CALLWISE DEPENDENCIES ======
+[inout] Out (internal) for function f:
+          v1; ty{.ts; .ti}
+[inout] Inputs for function f:
+          \nothing
+[inout] Out (internal) for function g:
+          v; i
+[inout] Inputs for function g:
+          maybe
+[inout] Out (internal) for function h:
+          v; i
+[inout] Inputs for function h:
+          maybe
+[inout] Out (internal) for function main:
+          v1; v2; v; x
+[inout] Inputs for function main:
+          maybe; v1

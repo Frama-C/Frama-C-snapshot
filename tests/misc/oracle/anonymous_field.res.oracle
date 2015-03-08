@@ -1,0 +1,43 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/anonymous_field.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  Sa ∈ {0}
+[value] computing for function set_anonymous_struct <- main.
+        Called from tests/misc/anonymous_field.i:19.
+tests/misc/anonymous_field.i:10:[value] Function set_anonymous_struct: postcondition got status valid.
+[value] Recording results for set_anonymous_struct
+[value] Done for function set_anonymous_struct
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function set_anonymous_struct:
+  Sa{.a; .__anonCompField1.gcc_a} ∈ {42}
+    {.__anonCompField1.gcc_b; .b} ∈ {3}
+[value] Values at end of function main:
+  Sa{.a; .__anonCompField1.gcc_a} ∈ {42}
+    {.__anonCompField1.gcc_b; .b} ∈ {3}
+  __retres ∈ {0}
+[from] Computing for function set_anonymous_struct
+[from] Done for function set_anonymous_struct
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function set_anonymous_struct:
+  Sa.__anonCompField1.gcc_a FROM Sa.a
+    .__anonCompField1.gcc_b FROM Sa.b
+[from] Function main:
+  Sa FROM \nothing
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function set_anonymous_struct:
+          Sa.__anonCompField1
+[inout] Inputs for function set_anonymous_struct:
+          Sa{.a; .b}
+[inout] Out (internal) for function main:
+          Sa; __retres
+[inout] Inputs for function main:
+          Sa{.a; .b}

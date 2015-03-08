@@ -1,0 +1,28 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/with_comment.i (no preprocessing)
+[value] Analyzing a complete application starting at main2
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  HHH ∈ {0}
+  G ∈ {0}
+tests/misc/with_comment.i:20:[value] entering loop for the first time
+tests/misc/with_comment.i:21:[kernel] warning: signed overflow. assert G+1 ≤ 2147483647;
+[value] Recording results for main2
+[value] done for function main2
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main2:
+  i ∈ {11}
+  G ∈ [0..2147483647]
+[from] Computing for function main2
+[from] Done for function main2
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main2:
+  G FROM \nothing
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main2:
+          i; j; G
+[inout] Inputs for function main2:
+          G

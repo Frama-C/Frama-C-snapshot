@@ -1,0 +1,44 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/addr.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  t[0..4] ∈ {0}
+  x ∈ {0}
+  p ∈ {0}
+  q ∈ {0}
+[value] computing for function f <- main.
+        Called from tests/misc/addr.i:20.
+[value] Recording results for f
+[value] Done for function f
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function f:
+  p ∈ {{ &t[2] }}
+[value] Values at end of function main:
+  t[0..1] ∈ {0}
+   [2] ∈ {77}
+   [3..4] ∈ {0}
+  p ∈ {{ &t[2] }}
+[from] Computing for function f
+[from] Done for function f
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function f:
+  p FROM i
+[from] Function main:
+  t[2] FROM \nothing
+  p FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function f:
+          p
+[inout] Inputs for function f:
+          \nothing
+[inout] Out (internal) for function main:
+          t[2]; p
+[inout] Inputs for function main:
+          \nothing

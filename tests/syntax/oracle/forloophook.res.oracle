@@ -1,0 +1,7 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/syntax/forloophook.i (no preprocessing)
+Found a for loop
+Local declaration
+Has a test
+Has an increment
+No body

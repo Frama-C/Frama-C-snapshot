@@ -1,0 +1,37 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/inversion2.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  T[0] ∈ {3}
+   [1] ∈ {1}
+   [2] ∈ {2}
+  TT[0][0..2] ∈ {3}
+    [0][3..4] ∈ {0}
+    [1][0] ∈ {1}
+    [1][1..4] ∈ {0}
+    [2][0..1] ∈ {2}
+    [2][2..4] ∈ {0}
+  G ∈ {99}
+tests/misc/inversion2.i:6:[value] entering loop for the first time
+tests/misc/inversion2.i:7:[value] entering loop for the first time
+tests/misc/inversion2.i:8:[kernel] warning: division by zero: assert TT[i][j] ≢ 0;
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  G ∈ {5; 7; 15; 99}
+  i ∈ {3}
+  j ∈ {1; 2; 3; 77}
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  G FROM T[0..2]; TT{[0][0..2]; [1][0..2]; [2][0..2]} (and SELF)
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          G; i; j
+[inout] Inputs for function main:
+          T[0..2]; TT{[0][0..2]; [1][0..2]; [2][0..2]}

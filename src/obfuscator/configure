@@ -1794,6 +1794,13 @@ EXTERNAL_PLUGINS=
 
 
 
+
+# Usage: plugin_disable([plugin],[reason])
+
+
+
+
+
 # Implementation of an ordering $1 < $2: "" < yes < partial < no
 lt_mark () {
   first=`echo "$1" | sed -e 's/ .*//' `

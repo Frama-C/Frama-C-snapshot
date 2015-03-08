@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -53,22 +53,22 @@ and theory = private
     theory_parent : file;
     theory_goals : goal Datatype.String.Hashtbl.t;
     mutable theory_verified : bool;
-    }
+  }
 
 and file = private
-    {
-      file_name : string;
-      file_format : string option;
-      file_parent : session;
-      file_theories: theory Datatype.String.Hashtbl.t;
-      (** Not mutated after the creation *)
-      mutable file_verified : bool;
-    }
+  {
+    file_name : string;
+    file_format : string option;
+    file_parent : session;
+    file_theories: theory Datatype.String.Hashtbl.t;
+    (** Not mutated after the creation *)
+    mutable file_verified : bool;
+  }
 
 and session = private
-    { session_files : file Datatype.String.Hashtbl.t;
-      session_dir   : string;
-    }
+  { session_files : file Datatype.String.Hashtbl.t;
+    session_dir   : string;
+  }
 
 (** {2 Read/Write} *)
 exception LoadError

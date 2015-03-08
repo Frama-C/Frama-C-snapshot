@@ -1,0 +1,25 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/vis_spec.i (no preprocessing)
+Starting visit
+Considering spec of function Frama_C_bzero
+Function prototype; Funspec is
+'requires \valid(dest+(0 .. n-1));
+ ensures ∀ ℤ i; 0 ≤ i < \old(n) ⇒ *(\old(dest)+i) ≡ 0;
+ assigns *(dest+(0 .. n-1));
+ assigns *(dest+(0 .. n-1)) \from \nothing;'
+Considering spec of function Frama_C_copy_block
+Function prototype; Funspec is
+'requires \valid(dest+(0 .. size*n-1));
+ requires n ≥ 1;
+ ensures
+   ∀ ℤ i, ℤ j;
+     0 ≤ i < \old(size) ∧ 1 ≤ j < \old(n) ⇒
+     *(\old(dest)+(i+j*\old(size))) ≡ *(\old(dest)+i);
+ assigns *(dest+(size .. size*n-1));
+ assigns *(dest+(size .. size*n-1)) \from *(dest+(0 .. size-1));'
+Considering spec of function g
+Function prototype; Funspec is 'assigns \nothing;'
+Considering spec of function f
+Funspec of f is 'assigns \nothing;' through visitor
+It is 'assigns \nothing;' through get_spec
+End visit

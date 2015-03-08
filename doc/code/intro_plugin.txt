@@ -2,7 +2,7 @@
 @ignore                                                                        
 @ignore  This file is part of Frama-C.                                         
 @ignore                                                                        
-@ignore  Copyright (C) 2007-2014                                               
+@ignore  Copyright (C) 2007-2015                                               
 @ignore    CEA (Commissariat à l'énergie atomique et aux énergies              
 @ignore         alternatives)                                                  
 @ignore                                                                        

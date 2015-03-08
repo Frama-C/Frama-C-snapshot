@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -102,8 +102,8 @@ module Service =
          let name = Kernel_function.get_name
          let attributes v =
            [ `Style
-               [if Kernel_function.is_definition v then `Bold
-                else `Dotted] ]
+               (if Kernel_function.is_definition v then `Bold
+                else `Dotted) ]
          let entry_point () =
            try Some (fst (Globals.entry_point ()))
            with Globals.No_such_entry_point _ -> None
@@ -126,19 +126,18 @@ module ServiceState =
 let get_init_funcs () =
   let init_funcs = InitFunc.get () in
   try
-    let callees =
-      let kf, _ = Globals.entry_point () in
-      !Db.Users.get kf
-    in
+    let kf_main, _ = Globals.entry_point () in
+    let callees = !Db.Users.get kf_main in
     (** add the entry point as root *)
-    let init_funcs =
-      Datatype.String.Set.add (Kernel.MainFunction.get ()) init_funcs
-    in
+    let init_funcs = Kernel_function.Set.add kf_main init_funcs in
     (* add the callees of entry point as roots *)
-    Kernel_function.Hptset.fold
+    let kfs =
+      Kernel_function.Hptset.fold Kernel_function.Set.add callees init_funcs
+    in
+    Kernel_function.Set.fold
       (fun kf acc -> Datatype.String.Set.add (Kernel_function.get_name kf) acc)
-      callees
-      init_funcs
+      kfs
+      Datatype.String.Set.empty
   with Globals.No_such_entry_point _ ->
     (* always an entry point for the semantic callgraph since value analysis has
        been computed. *)

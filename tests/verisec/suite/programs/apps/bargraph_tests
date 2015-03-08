@@ -1,0 +1,6 @@
+sendmail/CVE-2002-1337/close_angle/close-angle_ptr_no_test_ok.c
+sendmail/CVE-2002-1337/close_angle/close-angle_ptr_two_tests_bad.c
+sendmail/CVE-2002-1337/close_angle/close-angle_ptr_one_test_ok.c
+sendmail/CVE-2002-1337/close_angle/close-angle_ptr_one_test_bad.c
+sendmail/CVE-2002-1337/close_angle/close-angle_ptr_no_test_bad.c
+sendmail/CVE-2002-1337/close_angle/close-angle_ptr_two_tests_ok.c

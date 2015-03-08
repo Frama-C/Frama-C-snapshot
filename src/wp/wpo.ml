@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -249,7 +249,8 @@ struct
             vc.depends ;
           Format.fprintf fmt "@]@." ;
         end ;
-      Format.fprintf fmt "@{<bf>Prove@}: @[<hov 2>%a@]@." F.pp_pred vc.lemma.l_lemma ;
+      let env = F.env (List.fold_right F.Vars.add vc.lemma.l_forall F.Vars.empty) in
+      Format.fprintf fmt "@{<bf>Prove@}: @[<hov 2>%a@]@." (F.pp_epred env) vc.lemma.l_lemma ;
       List.iter
         (fun (prover,result) ->
            if result.verdict <> NoResult then
@@ -406,7 +407,7 @@ module PODatatype =
     (struct
       type t = po
       include Datatype.Undefined
-      let hash a = Hashtbl.hash a.po_gid
+      let hash a = FCHashtbl.hash a.po_gid
       let equal a b = (a.po_gid = b.po_gid)
       let compare a b =
         let c = Index.compare a.po_idx b.po_idx in
@@ -431,6 +432,8 @@ module PODatatype =
           po_formula = GoalAnnot VC_Annot.repr ;
         }]
     end)
+(* to get a "reasonable" API doc: *)
+let () = Type.set_ml_name PODatatype.ty (Some "Wpo.po")
 
 module ProverType =
   Datatype.Make
@@ -440,6 +443,8 @@ module ProverType =
       let name = "Wpo.prover"
       let reprs = [ AltErgo; Coq; Qed; Why3 "z3" ]
     end)
+(* to get a "reasonable" API doc: *)
+let () = Type.set_ml_name ProverType.ty (Some "Wpo.prover")
 
 module ResultType =
   Datatype.Make
@@ -451,6 +456,8 @@ module ResultType =
         List.map VCS.result
           [ Valid ; Invalid ; Unknown ; Timeout ; Failed ]
     end)
+(* to get a "reasonable" API doc *)
+let () = Type.set_ml_name ResultType.ty (Some "Wpo.result")
 
 (* -------------------------------------------------------------------------- *)
 (* --- Getters                                                            --- *)
@@ -485,26 +492,62 @@ module Hproof = Hashtbl.Make(Datatype.Pair(Datatype.String)(Property))
 
 module Results =
 struct
-  type t = (prover * result) list ref
-  let create () = ref []
-  let rec cancel = function
-    | (_,{verdict = VCS.Computing _})::rs -> cancel rs
-    | u::rs -> u :: cancel rs
-    | [] -> []
-  let rec filter p = function
-    | (q,_)::rs when p=q -> filter p rs
-    | u::rs -> u :: filter p rs
-    | [] -> []
-  let replace (rs:t) p r =
-    if p = Qed then
-      rs := (p,r) :: cancel !rs
-    else
-      rs := (p,r) :: filter p !rs
-  let get (rs:t) p = try List.assoc p !rs with Not_found -> VCS.no_result
-  let list (rs:t) =
-    List.sort 
-      (fun (p,_) (q,_) -> VCS.cmp_prover p q) 
-      (List.filter (fun (_,r) -> is_verdict r) !rs)
+
+  module Pmap = Map.Make
+      (struct
+        type t = VCS.prover
+        let compare = VCS.cmp_prover
+      end)
+
+  module Cmap = Map.Make(String)
+
+  type t = {
+    mutable dps : result Pmap.t ;
+    mutable cps : result Cmap.t ; 
+    (* result per class of Why3 provers *)
+  }
+
+  let not_computing _ r = 
+    match r.verdict with VCS.Computing _ -> false | _ -> true
+
+  let class_of_prover = function
+    | Qed | AltErgo | Coq | Why3ide -> None
+    | Why3 dp ->
+        let cp =
+          try String.sub dp 0 (String.index dp ':')
+          with Not_found -> dp
+        in Some (String.uppercase cp)
+
+  let create () = { dps = Pmap.empty ; cps = Cmap.empty }
+
+  let get w p =
+    try Pmap.find p w.dps
+    with Not_found ->
+      match class_of_prover p with
+      | None -> VCS.no_result
+      | Some cp ->
+          try Cmap.find cp w.cps
+          with Not_found -> VCS.no_result
+                              
+  let replace w p r =
+    begin
+      if p = Qed then
+        begin
+          w.dps <- Pmap.filter not_computing w.dps ;
+          w.cps <- Cmap.filter not_computing w.cps ;
+        end ;
+      w.dps <- Pmap.add p r w.dps ;
+      match class_of_prover p with 
+      | None -> () 
+      | Some c -> w.cps <- Cmap.add c r w.cps
+    end
+
+  let list w =
+    Pmap.fold
+      (fun p r w ->
+         if is_verdict r then (p,r)::w else w
+      ) w.dps []
+
 end
 
 (* -------------------------------------------------------------------------- *)

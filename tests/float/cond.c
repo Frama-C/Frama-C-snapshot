@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -val -cpp-command "gcc -C -E -I. " share/builtin.c -journal-disable -float-hex
+   OPT: -val share/builtin.c -journal-disable -float-hex
 */
 
 #include "share/builtin.h"

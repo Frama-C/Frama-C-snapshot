@@ -1,0 +1,70 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/degeneration2.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  v ∈ [--..--]
+tests/misc/degeneration2.i:14:[kernel] warning: accessing uninitialized left-value: assert \initialized(&A);
+tests/misc/degeneration2.i:14:[kernel] warning: signed overflow. assert -2147483648 ≤ -((int)A) ≤ 2147483647;
+tests/misc/degeneration2.i:14:[value] Assigning imprecise value to A.
+        The imprecision originates from Arithmetic {tests/misc/degeneration2.i:14}
+tests/misc/degeneration2.i:16:[value] entering loop for the first time
+tests/misc/degeneration2.i:17:[value] Reading left-value A.
+        It contains a garbled mix of {B} because of Arithmetic
+        {tests/misc/degeneration2.i:14}.
+tests/misc/degeneration2.i:17:[kernel] warning: accessing uninitialized left-value: assert \initialized((int *)A);
+tests/misc/degeneration2.i:17:[kernel] warning: out of bounds read. assert \valid_read((int *)A);
+tests/misc/degeneration2.i:17:[value] Reading left-value *((int *)A).
+        The location is {{ B -> {0} }}.
+        It contains a garbled mix of {C} because of Misaligned
+        {tests/misc/degeneration2.i:17}.
+tests/misc/degeneration2.i:17:[value] Assigning imprecise value to A.
+        The imprecision originates from Misaligned {tests/misc/degeneration2.i:17}
+tests/misc/degeneration2.i:17:[value] Reading left-value A.
+        It contains a garbled mix of {B; C} because of Misaligned
+        {tests/misc/degeneration2.i:17}.
+tests/misc/degeneration2.i:17:[value] Reading left-value *((int *)A).
+        The location is {{ B -> {0}; C -> {0} }}.
+        It contains a garbled mix of {C; D} because of Misaligned
+        {tests/misc/degeneration2.i:17}.
+tests/misc/degeneration2.i:17:[value] Reading left-value A.
+        It contains a garbled mix of {B; C; D} because of Misaligned
+        {tests/misc/degeneration2.i:17}.
+tests/misc/degeneration2.i:17:[value] Reading left-value *((int *)A).
+        The location is {{ B -> {0}; C -> {0}; D -> {0} }}.
+        It contains a garbled mix of {C; D; E} because of Misaligned
+        {tests/misc/degeneration2.i:17}.
+tests/misc/degeneration2.i:17:[value] Reading left-value A.
+        It contains a garbled mix of {B; C; D; E} because of Misaligned
+        {tests/misc/degeneration2.i:17}.
+tests/misc/degeneration2.i:17:[value] Reading left-value *((int *)A).
+        The location is {{ B -> {0}; C -> {0}; D -> {0}; E -> {0} }}.
+        It contains a garbled mix of {C; D; E} because of Misaligned
+        {tests/misc/degeneration2.i:17}.
+tests/misc/degeneration2.i:25:[kernel] warning: accessing out of bounds index [0..10]. assert x < 10;
+tests/misc/degeneration2.i:25:[kernel] warning: accessing uninitialized left-value: assert \initialized(&offset_uninit);
+tests/misc/degeneration2.i:25:[kernel] warning: completely indeterminate value in offset_uninit.
+[value] Recording results for main
+[value] done for function main
+tests/misc/degeneration2.i:25:[value] Assertion 'Value,initialisation' got final status invalid.
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  A ∈
+   {{ garbled mix of &{B; C; D; E}
+    (origin: Misaligned {tests/misc/degeneration2.i:17}) }}
+  B ∈ {{ (void *)&C }} or UNINITIALIZED
+  C ∈ {{ (void *)&D }} or UNINITIALIZED
+  D ∈ {{ (void *)&E }} or UNINITIALIZED
+  x ∈ [0..10]
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  NO EFFECTS
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          A; B; C; D; x; tmp; tmp_0; vv
+[inout] Inputs for function main:
+          v

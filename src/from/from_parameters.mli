@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -31,6 +31,9 @@ module ForceCallDeps: Parameter_sig.With_output
 
 (** Option -show-indirect-deps *)
 module ShowIndirectDeps: Parameter_sig.Bool
+
+(** Option -from-verify-assigns. *)
+module VerifyAssigns: Parameter_sig.Bool
 
 (** Option -experimental-path-deps *)
 module PathDeps: Parameter_sig.Bool

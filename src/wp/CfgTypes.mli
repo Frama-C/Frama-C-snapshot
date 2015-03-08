@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -72,11 +72,11 @@ sig
   val pp_node : dotter -> node -> ('a,Format.formatter,unit) format -> 'a
   (** Print the attributes of the node in the [.dot] file. 
       Typically : [G.pp_node n "label=\"Root\", color=red" ;] *)
-    
+
   val pp_edge : dotter -> node -> node -> ('a,Format.formatter,unit) format -> 'a
   (** Print the attributes of the edge in the [.dot] file. 
       Typically : [G.pp_node n "style=dotted" ;] *)
-    
+
   type pp_cfg = dotter -> node -> transition -> unit
 
   val dot : cfg -> pp_cfg -> string -> unit

@@ -1,0 +1,28 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/inout_formals.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  x ∈ {0}
+  y ∈ {0}
+tests/misc/inout_formals.i:7:[kernel] warning: out of bounds write. assert \valid(i);
+[value] Called Frama_C_show_each({{ &S_i }})
+[value] Recording results for main
+[value] done for function main
+[inout] InOut (internal) for function main:
+        Operational inputs:
+          x; y; i
+        Operational inputs on termination:
+          x; y; i
+        Sure outputs:
+          S_i[0]
+[inout] InOut (with formals) for function main:
+        Operational inputs:
+          x; y; i
+        Operational inputs on termination:
+          x; y; i
+        Sure outputs:
+          S_i[0]
+[inout] Inputs (with formals) for function main:
+          x; y; i; S_i[0]

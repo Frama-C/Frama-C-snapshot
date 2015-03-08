@@ -1,0 +1,22 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/change_main.i (no preprocessing)
+[value] Analyzing a complete application starting at f
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  
+[value] Recording results for f
+[value] done for function f
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function f:
+  
+[value] Analyzing a complete application starting at g
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  
+[value] Recording results for g
+[value] done for function g
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function g:
+  

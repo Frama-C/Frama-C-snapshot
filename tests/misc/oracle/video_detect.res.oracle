@@ -1,0 +1,47 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/video_detect.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  NULL[rbits 256 to 287] ∈ [--..--]
+  G ∈ {0}
+[value] computing for function detect_video <- main.
+        Called from tests/misc/video_detect.i:36.
+[value] Recording results for detect_video
+[value] Done for function detect_video
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function detect_video:
+  NULL[rbits 256 to 287] ∈ [--..--]
+  p ∈ {32}
+  saved1 ∈ [--..--]
+  saved2 ∈ [--..--]
+  video_found ∈ {0}
+[value] Values at end of function main:
+  NULL[rbits 256 to 287] ∈ [--..--]
+  ADDR ∈ {32}
+[from] Computing for function detect_video
+[from] Done for function detect_video
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function detect_video:
+  NULL[32..33] FROM NULL[32..33]; video_base
+      [34..35] FROM NULL[34..35]; video_base
+  \result FROM video_base
+[from] Function main:
+  NULL[32..33] FROM NULL[32..33]
+      [34..35] FROM NULL[34..35]
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function detect_video:
+          NULL[32..35]; p; saved1; saved2; video_found
+[inout] Inputs for function detect_video:
+          NULL[32..35]
+[inout] Out (internal) for function main:
+          NULL[32..35]; ADDR; tmp
+[inout] Inputs for function main:
+          NULL[32..35]

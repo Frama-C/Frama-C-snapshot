@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -46,7 +46,7 @@ let get = Retres.memo
     let typ = Cil.getReturnType vi.vtype in
     makeVarinfo false false "__retres" typ)
 
-let add_retres_to_state ~with_alarms kf offsetmap state =
+let add_retres_to_state kf offsetmap state =
   let retres_vi = get kf in
   let retres_base = Base.of_varinfo retres_vi in
   let loc = Location_Bits.inject retres_base Ival.zero in
@@ -56,8 +56,9 @@ let add_retres_to_state ~with_alarms kf offsetmap state =
       Value_parameters.abort "library function return type size unknown. \
                                 Please report"
   in
-  let state = Cvalue.Model.paste_offsetmap
-    with_alarms offsetmap loc Int.zero size true state
+  let state =
+    snd (Cvalue.Model.paste_offsetmap
+           ~reducing:true ~from:offsetmap ~dst_loc:loc ~size ~exact:true state)
   in
   retres_vi, state
 
@@ -74,11 +75,6 @@ module Returned_Val =
      end)
 let () = Ast.add_monotonic_state Returned_Val.self
 
-let register_new_var v typ =
-  if isFunctionType typ then
-    Globals.Functions.replace_by_declaration (Cil.empty_funspec()) v v.vdecl
-  else
-    Globals.Vars.add_decl v
 
 let returned_value kf state =
   (* Process return of function *)
@@ -94,14 +90,11 @@ let returned_value kf state =
              (* Value_parameters.warning
                "Undefined function returning a pointer: %a"
                 Kernel_function.pretty kf; *)
-             let new_varinfo =
-               makeGlobalVar
-                 ~logic:true ~generated:false
-                 (Cabs2cil.fresh_global
-                    ("alloced_return_" ^ Kernel_function.get_name kf))
-                 typ
+             let v_name =
+               Cabs2cil.fresh_global
+                 ("alloced_return_" ^ Kernel_function.get_name kf)
              in
-             register_new_var new_varinfo typ;
+             let new_varinfo = Value_util.create_new_var v_name typ in
 	     let validity = Base.Known (Int.zero, Int.pred size) in
              Base.register_memory_var new_varinfo validity
           ) kf
@@ -109,8 +102,11 @@ let returned_value kf state =
       let initial_value =
         match Cil.unrollType typ with
           | TInt _ | TEnum _ -> V.top_int
-          | TFloat (FFloat, _) -> V.top_single_precision_float
-          | TFloat ((FDouble | FLongDouble), _) -> V.top_float
+          | TFloat (fk, _) -> begin
+            match Value_util.float_kind fk with
+            | Ival.Float_abstract.Float32 -> V.top_single_precision_float
+            | Ival.Float_abstract.Float64 -> V.top_float
+          end
           | _ ->
               let origin = Origin.current Origin.K_Leaf in
               V.inject_top_origin origin (Base.Hptset.singleton new_base)
@@ -127,11 +123,8 @@ let returned_value kf state =
       let returned_base =
         Location_Bytes.inject
           new_base
-          (Ival.filter_ge_int (Some Int.zero)
-             (Ival.create_all_values
-                ~signed:true
-                ~modu:size_v
-                ~size:(sizeofpointer ())))
+          (Ival.create_all_values
+             ~signed:false ~modu:size_v ~size:(sizeofpointer()-1))
       in
       let returned_value = V.join V.top_int returned_base in
       let v = Cvalue.V_Or_Uninitialized.initialized initial_value in

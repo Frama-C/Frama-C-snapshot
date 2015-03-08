@@ -1,0 +1,158 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/slicing/csmith.c (with preprocessing)
+[value] Analyzing a complete application starting at bts906c
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  G1 ∈ {0}
+  G1b ∈ {0}
+  G2 ∈ {0}
+tests/slicing/csmith.c:189:[value] entering loop for the first time
+tests/slicing/csmith.c:190:[value] entering loop for the first time
+[value] Recording results for bts906c
+[value] done for function bts906c
+[pdg] computing for function bts906c
+[pdg] done for function bts906c
+[pdg] PDG for bts906c
+ {n1}: InCtrl
+ {n2}: VarDecl : x
+ {n3}: VarDecl : i
+ {n4}: VarDecl : __retres
+ {n5}: x = 0;
+   -[-c-]-> 1
+   -[a--]-> 2
+ {n6}: W:
+   -[-c-]-> 1
+   -[-c-]-> 9
+   -[-c-]-> 11
+   -[-c-]-> 13
+   -[-c-]-> 14
+   -[-c-]-> 15
+   -[-c-]-> 21
+ {n7}: goto W;
+   -[-c-]-> 1
+   -[-c-]-> 6
+   -[-c-]-> 9
+   -[-c-]-> 11
+   -[-c-]-> 13
+   -[-c-]-> 14
+   -[-c-]-> 15
+   -[-c-]-> 21
+ {n8}: i = 2;
+   -[-c-]-> 1
+   -[a--]-> 3
+ {n9}: while(1)
+   -[-c-]-> 1
+   -[-c-]-> 9
+   -[-c-]-> 11
+   -[-c-]-> 13
+   -[-c-]-> 14
+   -[-c-]-> 15
+ {n10}: i >= 0
+   -[-c-]-> 1
+   -[--d]-> 3
+   -[--d]-> 8
+   -[-c-]-> 9
+   -[-c-]-> 11
+   -[-c-]-> 13
+   -[-c-]-> 14
+   -[-c-]-> 15
+   -[--d]-> 17
+ {n11}: block
+   -[-c-]-> 1
+   -[-c-]-> 9
+   -[-c-]-> 11
+   -[-c-]-> 13
+   -[-c-]-> 14
+   -[-c-]-> 15
+ {n12}: while(1)
+   -[-c-]-> 1
+   -[-c-]-> 9
+   -[-c-]-> 11
+   -[-c-]-> 13
+   -[-c-]-> 14
+   -[-c-]-> 15
+ {n13}: block
+   -[-c-]-> 1
+   -[-c-]-> 9
+   -[-c-]-> 11
+   -[-c-]-> 13
+   -[-c-]-> 14
+   -[-c-]-> 15
+ {n14}: i
+   -[-c-]-> 1
+   -[--d]-> 3
+   -[--d]-> 8
+   -[-c-]-> 9
+   -[-c-]-> 11
+   -[-c-]-> 13
+   -[-c-]-> 14
+   -[-c-]-> 15
+   -[--d]-> 17
+ {n15}: goto B;
+   -[-c-]-> 1
+   -[-c-]-> 9
+   -[-c-]-> 11
+   -[-c-]-> 13
+   -[-c-]-> 14
+   -[-c-]-> 15
+   -[-c-]-> 16
+ {n16}: B:
+   -[-c-]-> 1
+   -[-c-]-> 9
+   -[-c-]-> 11
+   -[-c-]-> 13
+   -[-c-]-> 14
+   -[-c-]-> 15
+ {n17}: B: i --;
+   -[-c-]-> 1
+   -[a-d]-> 3
+   -[--d]-> 8
+   -[-c-]-> 9
+   -[-c-]-> 11
+   -[-c-]-> 13
+   -[-c-]-> 14
+   -[-c-]-> 15
+   -[--d]-> 17
+ {n18}: x ++;
+   -[-c-]-> 1
+   -[a-d]-> 2
+   -[--d]-> 5
+   -[-c-]-> 9
+   -[-c-]-> 11
+   -[-c-]-> 13
+   -[-c-]-> 14
+   -[-c-]-> 15
+ {n19}: break;
+   -[-c-]-> 1
+   -[-c-]-> 9
+   -[-c-]-> 11
+   -[-c-]-> 13
+   -[-c-]-> 14
+   -[-c-]-> 15
+ {n20}: __retres = x;
+   -[-c-]-> 1
+   -[--d]-> 2
+   -[a--]-> 4
+   -[-c-]-> 9
+   -[-c-]-> 11
+   -[-c-]-> 13
+   -[-c-]-> 14
+   -[-c-]-> 15
+   -[--d]-> 18
+ {n21}: goto return_label;
+   -[-c-]-> 1
+   -[-c-]-> 9
+   -[-c-]-> 11
+   -[-c-]-> 13
+   -[-c-]-> 14
+   -[-c-]-> 15
+   -[-c-]-> 22
+ {n22}: return_label:
+   -[-c-]-> 1
+ {n23}: return_label: return __retres;
+   -[-c-]-> 1
+   -[--d]-> 4
+   -[--d]-> 20
+ {n24}: OutRet
+   -[--d]-> 23

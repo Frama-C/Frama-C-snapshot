@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -42,6 +42,8 @@ struct
   type signature = (Field.t,ADT.t) Logic.funtype
   type path = int list
 
+  module Tau = Kind.MakeTau(Field)(ADT)
+
   module POOL = Pool.Make
       (struct
         type t = tau
@@ -56,17 +58,20 @@ struct
   module Vars = Idxset.Make(VID)
   module Vmap = Idxmap.Make(VID)
 
-  type 'a expression = (Z.t,Field.t,Fun.t,var,'a) term_repr
-
   type term = {
     id : int ;
     hash : int ;
     size : int ;
     vars : Vars.t ;
+    bind : Bvars.t ;
     sort : sort ;
     repr : repr ;
   }
-  and repr = term expression
+  and repr = (Z.t,Field.t,ADT.t,Fun.t,var,term,term) term_repr
+
+  type bind = term
+
+  type 'a expression = (Z.t,Field.t,ADT.t,Fun.t,var,bind,'a) term_repr
 
   (* ------------------------------------------------------------------------ *)
   (* ---  Term Set,Map and Vars                                           --- *)
@@ -107,22 +112,8 @@ struct
   (* -------------------------------------------------------------------------- *)
 
   let tau_of_var x = x.vtau
+  let sort_of_var x = Kind.of_tau x.vtau
   let base_of_var x = x.vbase
-
-  let base_of_tau = function
-    | Int -> "i"
-    | Real -> "r"
-    | Prop -> "p"
-    | Bool -> "p"
-    | Data(a,_) -> ADT.basename a
-    | Array _ -> "t"
-    | Tvar 1 -> "a"
-    | Tvar 2 -> "b"
-    | Tvar 3 -> "c"
-    | Tvar 4 -> "d"
-    | Tvar 5 -> "e"
-    | Tvar _ -> "f"
-    | Record _ -> "r"
 
   type pool = POOL.pool
   let pool = POOL.create
@@ -132,8 +123,9 @@ struct
   let add_term pool t = Vars.iter (POOL.add pool) t.vars
 
   let fresh pool ?basename tau =
-    let base = match basename with Some base -> base | None -> base_of_tau tau in
-    POOL.fresh pool base tau
+    let base = match basename with 
+      | Some base -> base | None -> Tau.basename tau 
+    in POOL.fresh pool base tau
 
   let alpha pool x = POOL.alpha pool x
 
@@ -168,10 +160,11 @@ struct
     | Rdef fxs -> 
         hash_list (fun (f,x) -> hash_pair (Field.hash f) x.hash) 0 fxs
     | Rget(e,f) -> hash_pair e.hash (Field.hash f)
-    | Var x -> Var.hash x
-    | Bind(Forall,x,e) -> 1 + 7 * Var.hash x + 31 * e.hash
-    | Bind(Exists,x,e) -> 2 + 7 * Var.hash x + 31 * e.hash
-    | Bind(Lambda,x,e) -> 3 + 7 * Var.hash x + 31 * e.hash
+    | Fvar x -> Var.hash x
+    | Bvar(k,_) -> k
+    | Bind(Forall,_,e) -> 1 + 31 * e.hash
+    | Bind(Exists,_,e) -> 2 + 31 * e.hash
+    | Bind(Lambda,_,e) -> 3 + 31 * e.hash
     | Apply(a,xs) -> hash_list hash a.hash xs
 
   let hash_head = function
@@ -194,13 +187,14 @@ struct
     | Imply _ -> 16
     | If _    -> 17
     | Fun _   -> 18
-    | Var _   -> 19
-    | Bind _  -> 20
-    | Apply _ -> 21
-    | Aset _  -> 22
-    | Aget _  -> 23
-    | Rdef _  -> 24
-    | Rget _  -> 25
+    | Fvar _  -> 19
+    | Bvar _  -> 20
+    | Bind _  -> 21
+    | Apply _ -> 22
+    | Aset _  -> 23
+    | Aget _  -> 24
+    | Rdef _  -> 25
+    | Rget _  -> 26
 
   let hash_repr t = hash_head t + 31 * hash_subterms t
 
@@ -227,8 +221,9 @@ struct
     | If(e,a,b) , If(e',a',b') 
     | Aset(e,a,b) , Aset(e',a',b') -> e==e' && a==a' && b==b'
     | Fun(f,xs) , Fun(g,ys) -> Fun.equal f g && eq_list xs ys
-    | Var x , Var y -> Var.equal x y
-    | Bind(q,x,e) , Bind(q',x',e') -> q=q' && Var.equal x x' && e==e'
+    | Fvar x , Fvar y -> Var.equal x y
+    | Bvar(k,t) , Bvar(k',t') -> k = k' && Tau.equal t t'
+    | Bind(q,t,e) , Bind(q',t',e') -> q=q' && Tau.equal t t' && e==e'
     | Apply(x,ys) , Apply(x',ys') -> x==x' && eq_list ys ys'
     | Rget(x,f) , Rget(x',g) -> x==x' && Field.equal f g
     | Rdef fxs , Rdef gys ->
@@ -238,6 +233,7 @@ struct
 
   let sort x = x.sort
   let vars x = x.vars
+  let bvars x = x.bind
 
   let vars_repr = function
     | True | False | Kint _ | Kreal _ -> Vars.empty
@@ -249,9 +245,25 @@ struct
     | Imply(xs,a) | Apply(a,xs) ->
         Hcons.fold_list Vars.union vars a.vars xs
     | If(e,a,b) | Aset(e,a,b) -> Vars.union e.vars (Vars.union a.vars b.vars)
-    | Var x -> Vars.singleton x
-    | Bind(_,x,e) -> Vars.remove x e.vars
+    | Fvar x -> Vars.singleton x
+    | Bvar _ -> Vars.empty
+    | Bind(_,_,e) -> e.vars
     | Rdef fxs -> List.fold_left (fun s (_,x) -> Vars.union s x.vars) Vars.empty fxs
+
+  let bind_repr = function
+    | True | False | Kint _ | Kreal _ -> Bvars.empty
+    | Times(_,x) | Not x | Rget(x,_) -> x.bind
+    | Add xs | Mul xs | And xs | Or xs | Fun(_,xs) ->
+        Hcons.fold_list Bvars.union (fun x -> x.bind) Bvars.empty xs
+    | Div(x,y) | Mod(x,y) | Eq(x,y) | Neq(x,y) | Leq(x,y) | Lt(x,y) | Aget(x,y) ->
+        Bvars.union x.bind y.bind
+    | Imply(xs,a) | Apply(a,xs) ->
+        Hcons.fold_list Bvars.union bvars a.bind xs
+    | If(e,a,b) | Aset(e,a,b) -> Bvars.union e.bind (Bvars.union a.bind b.bind)
+    | Bvar(k,_) -> Bvars.singleton k
+    | Fvar _ -> Bvars.empty
+    | Bind(_,_,e) -> Bvars.bind e.bind
+    | Rdef fxs -> List.fold_left (fun s (_,x) -> Bvars.union s x.bind) Bvars.empty fxs
 
   let sort_repr = function
     | True | False -> Sbool
@@ -272,7 +284,8 @@ struct
     | Eq(x,y) | Neq(x,y) -> Kind.merge x.sort y.sort
     | Apply(x,_) -> x.sort
     | If(_,a,b) -> Kind.merge a.sort b.sort
-    | Var x -> Kind.of_tau x.vtau
+    | Fvar x -> Kind.of_tau x.vtau
+    | Bvar(_,t) -> Kind.of_tau t
     | Bind((Forall|Exists),_,_) -> Sprop
     | Bind(Lambda,_,e) -> e.sort
 
@@ -286,7 +299,7 @@ struct
 
   let size_repr = function
     | True | False | Kint _ -> 0
-    | Var _ | Kreal _ -> 1
+    | Fvar _ | Bvar _ | Kreal _ -> 1
     | Times(_,x) -> succ x.size
     | Add xs | Mul xs | And xs | Or xs -> size_list 1 0 xs
     | Imply(hs,p) -> size_list 1 p.size hs
@@ -335,10 +348,13 @@ struct
       | Kreal _ , _ -> (-1)
       | _ , Kreal _ -> 1
 
-      | Var x , Var y -> Var.compare x y
-      | Var _ , _ -> (-1)
-      | _ , Var _ -> 1
+      | Fvar x , Fvar y -> Var.compare x y
+      | Fvar _ , _ -> (-1)
+      | _ , Fvar _ -> 1
 
+      | Bvar(k1,_) , Bvar(k2,_) -> k1 - k2
+      | Bvar _ , _ -> (-1)
+      | _ , Bvar _ -> 1
 
       | Eq(a1,b1) , Eq(a2,b2)
       | Neq(a1,b1) , Neq(a2,b2)
@@ -435,11 +451,12 @@ struct
       | Apply _ , _ -> (-1)
       | _ , Apply _ -> 1
 
-      | Bind(q1,x1,p1) , Bind(q2,x2,p2) ->
+      | Bind(q1,t1,p1) , Bind(q2,t2,p2) ->
           let cmp = cmp_bind q1 q2 in
           if cmp <> 0 then cmp else
             let cmp = phi p1 p2 in
-            if cmp <> 0 then cmp else Var.compare x1 x2
+            if cmp <> 0 then cmp else 
+              Tau.compare t1 t2
 
     let rec compare a b =
       if a == b then 0 else
@@ -550,27 +567,29 @@ struct
     let h = hash_repr r in
     (* Only [hash] and [repr] are significant for lookup in weak hmap *)
     let e0 = {
-      id=0 ;
-      hash=h ;
-      repr=r ;
-      size=0;
-      vars=Vars.empty ;
-      sort=Sdata ;
+      id = 0 ;
+      hash = h ;
+      repr = r ;
+      size = 0;
+      vars = Vars.empty ;
+      bind = Bvars.empty ;
+      sort = Sdata ;
     } in
     try W.find !state.weak e0
     with Not_found ->
-        let k = !state.kid in
-        !state.kid <- succ k ;
-        assert (k <> -1) ;
-        let e = {
-          id = k ;
-          hash = h ;
-          repr = r ;
-          vars = vars_repr r ;
-          sort = sort_repr r ;
-          size = size_repr r ;
-        } 
-        in W.add !state.weak e ; e
+      let k = !state.kid in
+      !state.kid <- succ k ;
+      assert (k <> -1) ;
+      let e = {
+        id = k ;
+        hash = h ;
+        repr = r ;
+        vars = vars_repr r ;
+        bind = bind_repr r ;
+        sort = sort_repr r ;
+        size = size_repr r ;
+      } 
+      in W.add !state.weak e ; e
 
   (* -------------------------------------------------------------------------- *)
   (* --- Checker                                                            --- *)
@@ -588,8 +607,8 @@ struct
     x
 
   let check_unit ~qed ~raw = 
-    let p = insert (Eq(qed,raw)) in
-    Vars.fold (fun x p -> insert (Bind(Forall,x,p))) p.vars p
+    let p = insert (Eq(qed,raw)) in p
+  (* TODO:VAR: Vars.fold (fun x p -> insert (Bind(Forall,x,p))) p.vars p *) 
 
   let iter_checks f = 
     Tmap.iter 
@@ -607,7 +626,8 @@ struct
   let e_int n  = insert (Kint (Z.of_int n))
   let e_zint z = insert (Kint z)
   let e_real x = insert (Kreal x)
-  let e_var x  = insert(Var x)
+  let e_var x  = insert(Fvar x)
+  let e_bvar k t = insert(Bvar(k,t))
 
   let c_div x y = insert (Div(x,y))
   let c_mod x y = insert (Mod(x,y))
@@ -655,7 +675,9 @@ struct
 
   let c_apply a es = if es=[] then a else insert(Apply(a,es))
 
-  let c_bind q x e = insert(Bind(q,x,e))
+  let c_bind q t e = 
+    if Bvars.closed e.bind then e else
+      insert(Bind(q,t,e))
 
   let c_get m k = insert(Aget(m,k))
 
@@ -676,7 +698,7 @@ struct
           let r = base fx in
           List.iter (fun gy -> if base gy != r then raise Exit) gys ; r
         with Exit ->
-            insert(Rdef (List.sort compare_field fxs))
+          insert(Rdef (List.sort compare_field fxs))
 
   let insert _ = assert false (* [insert] should not be used afterwards *)
 
@@ -684,7 +706,7 @@ struct
       [] -> e
     | n :: l ->
         let children = match e.repr with
-          | True | False | Kint _ | Kreal _ | Var _ -> []
+          | True | False | Kint _ | Kreal _ | Bvar _ | Fvar _ -> []
           | Times (n,e) -> [ e_zint n; e]
           | Add l | Mul l | And l | Or l | Fun (_,l) -> l
           | Div (e1,e2) | Mod (e1,e2) | Eq(e1,e2) | Neq(e1,e2)
@@ -716,8 +738,8 @@ struct
     match a.repr with
     | Fun(f,_) -> (try simplify f
                    with Not_found -> (match b.repr with
-	           | Fun(g,_) when not (Fun.equal f g) -> simplify g
-		   | _ -> raise Not_found))
+                       | Fun(g,_) when not (Fun.equal f g) -> simplify g
+                       | _ -> raise Not_found))
     | _ -> (match b.repr with | Fun(g,_) -> simplify g | _ -> raise Not_found)
 
   let builtin_eq a b =
@@ -726,8 +748,8 @@ struct
     match a.repr with
     | Fun(f,_) -> (try simplify f a b
                    with Not_found -> (match b.repr with
-	           | Fun(g,_) when not (Fun.equal f g) -> simplify g b a
-		   | _ -> raise Not_found))
+                       | Fun(g,_) when not (Fun.equal f g) -> simplify g b a
+                       | _ -> raise Not_found))
     | _ -> (match b.repr with | Fun(g,_) -> simplify g b a | _ -> raise Not_found)
 
 
@@ -748,11 +770,11 @@ struct
       | NEQ -> !extern_not (builtin_eq a b)
       | LT  -> !extern_not (builtin_leq b a)
     with Not_found -> 
-        match cmp with
-        | EQ  -> c_eq a b
-        | NEQ -> c_neq a b
-        | LT  -> c_lt a b
-        | LEQ -> c_leq a b
+      match cmp with
+      | EQ  -> c_eq a b
+      | NEQ -> c_neq a b
+      | LT  -> c_lt a b
+      | LEQ -> c_leq a b
 
   let dispatch = function
     | NOT p -> !cached_not p.repr
@@ -763,23 +785,23 @@ struct
   let distribute_if_over_operation op x y f a b =
     match a.repr, b.repr with
     | _, _ when true (* [PB] true: until alt-ergo 0.95.2 trouble *)
-	-> op x y
+      -> op x y
     | If(ac,a1,a2), _ when (is_primitive a1 || is_primitive a2) && is_primitive b
-	-> !extern_ite ac (f a1 b) (f a2 b)
+      -> !extern_ite ac (f a1 b) (f a2 b)
     | _, If(bc,b1,b2) when (is_primitive b1 || is_primitive b2) && is_primitive a
-	-> !extern_ite bc (f a b1) (f a b2)
+      -> !extern_ite bc (f a b1) (f a b2)
     | If(ac,a1,a2), If(bc,b1,b2) when ac == bc
-	-> !extern_ite ac (f a1 b1) (f a2 b2)
+      -> !extern_ite ac (f a1 b1) (f a2 b2)
     | If(ac,a1,a2), If(_,b1,b2) when (is_primitive a1 && is_primitive a2) && (is_primitive b1 || is_primitive b2)
-	-> !extern_ite ac (f a1 b) (f a2 b)
+      -> !extern_ite ac (f a1 b) (f a2 b)
     | If(_,a1,a2), If(bc,b1,b2) when (is_primitive a1 || is_primitive a2) && (is_primitive b1 && is_primitive b2)
-	-> !extern_ite bc (f a b1) (f a b2)
+      -> !extern_ite bc (f a b1) (f a b2)
     | _ -> op x y
 
   let c_builtin_fun f = function
     | x::[] as xs -> (match x.repr with
-			| If(c,a,b) ->  !extern_ite c (!extern_fun f [a]) (!extern_fun f [b])
-			| _ -> operation (FUN(f,xs)))
+        | If(c,a,b) ->  !extern_ite c (!extern_fun f [a]) (!extern_fun f [b])
+        | _ -> operation (FUN(f,xs)))
     | a::b::[] as xs ->   distribute_if_over_operation (fun f xs -> operation (FUN(f,xs))) f xs (fun a b -> !extern_fun f [a;b]) a b
     | xs -> operation (FUN(f,xs))
   let c_builtin_eq  a b = distribute_if_over_operation (fun a b -> operation (CMP(EQ ,a,b))) a b !extern_eq  a b
@@ -928,12 +950,12 @@ struct
 
   let is_atomic e =
     match e.repr with
-    | True | False | Kint _ | Kreal _ | Var _ -> true
+    | True | False | Kint _ | Kreal _ | Fvar _ | Bvar _ -> true
     | _ -> false
 
   let is_simple e =
     match e.repr with
-    | True | False | Kint _ | Kreal _ | Var _ | Fun(_,[]) -> true
+    | True | False | Kint _ | Kreal _ | Fvar _ | Bvar _ | Fun(_,[]) -> true
     | _ -> false
 
   let is_closed e = Vars.is_empty e.vars
@@ -1465,7 +1487,7 @@ struct
 
   let rebuild f e =
     match e.repr with
-    | Kint _ | Kreal _ | True | False -> e
+    | Kint _ | Kreal _ | Fvar _ | Bvar _ | True | False -> e
     | Not e -> e_not (f e)
     | Add xs -> addition (List.map f xs)
     | Mul xs -> multiplication (List.map f xs)
@@ -1485,130 +1507,132 @@ struct
     | Aset(x,y,z) -> e_set (f x) (f y) (f z)
     | Rget(x,g) -> e_getfield (f x) g
     | Rdef gxs -> e_record (List.map (fun (g,x) -> g, f x) gxs)
-    | Var _ | Bind _ | Apply _ -> assert false
+    | Apply(e,es) -> c_apply (f e) (List.map f es)
+    | Bind(q,t,e) -> c_bind q t (f e)
+
+  (* -------------------------------------------------------------------------- *)
+  (* --- Locally Memoized                                                   --- *)
+  (* -------------------------------------------------------------------------- *)
+
+  type sigma = term Tmap.t ref 
+
+  let sigma () = ref Tmap.empty
+
+  let cache_find m e = Tmap.find e !m
+  let cache_bind m e v = m := Tmap.add e v !m ; v
+
+  (* -------------------------------------------------------------------------- *)
+  (* --- Locally Nameless                                                   --- *)
+  (* -------------------------------------------------------------------------- *)
+
+  let rec lc_bind m x v e =
+    if not (Vars.mem x e.vars) then e else
+      match e.repr with
+      | Fvar y when Var.equal x y -> v
+      | _ ->
+          try cache_find m e
+          with Not_found -> cache_bind m e (rebuild (lc_bind m x v) e)
+
+  let lc_bind x e = 
+    let k = Bvars.order e.bind in
+    let t = tau_of_var x in
+    lc_bind (sigma ()) x (e_bvar k t) e
+      
+  let rec lc_open m k v e =
+    if not (Bvars.contains k e.bind) then e else
+      match e.repr with
+      | Bvar _ -> v
+      | _ ->
+          try cache_find m e
+          with Not_found -> cache_bind m e (rebuild (lc_open m k v) e)
+
+  let lc_open x e = 
+    let k = Bvars.order e.bind in
+    lc_open (sigma ()) k (e_var x) e
+        
+  let lc_closed e = Bvars.closed e.bind
+  let lc_closed_at n e = Bvars.closed_at n e.bind
+  let lc_vars e = e.bind
+  let lc_repr e = e
 
   (* -------------------------------------------------------------------------- *)
   (* --- Binders                                                            --- *)
   (* -------------------------------------------------------------------------- *)
 
-  exception Applies
-
   let e_bind q x a =
-    match q with
-    | (Forall | Exists) ->
-        if not (Vars.mem x a.vars) then a
-        else c_bind q x a 
-    | Lambda ->
-        c_bind q x a
+    assert (lc_closed a) ;
+    let do_bind = 
+      match q with Forall | Exists -> Vars.mem x a.vars | Lambda -> true in
+    if do_bind then c_bind q (tau_of_var x) (lc_bind x a) else a
 
-  let rec e_forall xs a = 
-    match xs with
-    | [] -> a
-    | x::xs ->
-        let a = e_forall xs a in
-        if Vars.mem x a.vars then c_bind Forall x a else a
+  let rec bind_xs q xs e = 
+    match xs with [] -> e | x::xs -> e_bind q x (bind_xs q xs e)
 
-  let rec e_exists xs a =
-    match xs with
-    | [] -> a
-    | x::xs ->
-        let a = e_exists xs a in
-        if Vars.mem x a.vars then c_bind Exists x a else a
-
-  let rec e_lambda xs a =
-    match xs with
-    | [] -> a
-    | x::xs -> e_bind Lambda x (e_lambda xs a)
+  let e_forall = bind_xs Forall
+  let e_exists = bind_xs Exists
+  let e_lambda = bind_xs Lambda
 
   (* -------------------------------------------------------------------------- *)
   (* --- Substitutions                                                      --- *)
   (* -------------------------------------------------------------------------- *)
 
-  (* substitution environment *)
-  type senv = {
-    pool : POOL.pool ;
-    mutable hmem : term Intmap.t ; (* memoization table *)
-    sigma : term Intmap.t ; (* substitution : var.id -> term *)
-    domain : Vars.t ; (* Domain(sigma) *)
-    codomain : Vars.t ; (* Codomain (sigma) *)
-  }
+  let r_apply = ref (fun _ _ _ -> assert false)
 
-  let senv pool = { 
-    pool = pool ;
-    hmem = Intmap.empty ; 
-    sigma = Intmap.empty ; 
-    domain = Vars.empty ;
-    codomain = Vars.empty ;
-  }
+  let rec subst sigma xs d e =
+    (* substitute bound variable d+i with xs.(i) for 0 <= i < xs.length *)
+    if not (Bvars.overlap d (Array.length xs) e.bind)
+    then e else
+      match e.repr with
+      | Bvar(k,_) -> xs.(k-d)
+      | _ -> 
+          try cache_find sigma e
+          with Not_found -> 
+            cache_bind sigma e
+              begin match e.repr with
+                | Apply(e,es) ->
+                    let e = subst sigma xs d e in
+                    let es = List.map (subst sigma xs d) es in
+                    !r_apply [] e es
+                | _ ->
+                    rebuild (subst sigma xs d) e
+              end
 
-  let rec e_apply ?pool (a:term) (xs:term list) : term = 
-    if xs=[] then a else 
-      let pool = match pool with Some p -> p | None ->
-          let p = POOL.create () in
-          add_term p a ; List.iter (add_term p) xs ; p
-      in
-      reduction (senv pool) a xs
-
-  and reduction senv (a:term) (args:term list) : term =
-    match a.repr , args with
-    | Bind(_,x,core) , arg::args -> 
-        let senv = 
-          { senv with
-            sigma = Intmap.add x.vid arg senv.sigma ;
-            domain = Vars.add x senv.domain ;
-            codomain = Vars.union arg.vars senv.codomain ;
-          } in
-        reduction senv core args
+  let rec apply xs a es = 
+    match a.repr , es with
+    | Bind(_,_,a) , e::es -> apply (e::xs) a es
     | _ ->
-        (* sigma is now as much as possible *)
-        if Vars.is_empty senv.domain 
-        then c_apply a args
-        else c_apply (apply_subst senv a) args
+        let core = 
+          if xs=[] then a else
+            let sigma = sigma () in
+            let xs = Array.of_list xs in
+            let d = Bvars.order a.bind + 1 - Array.length xs in
+            subst sigma xs d a 
+        in c_apply core es
 
-  and apply_subst senv (a:term) : term =
-    if not (Vars.intersect a.vars senv.domain) then a 
-    else
-      try Intmap.find a.id senv.hmem (* memoized *)
-      with Not_found ->
-          let result =
-            match a.repr with
-            | Var x -> 
-                (try Intmap.find x.vid senv.sigma with Not_found -> a)
-            | Bind(q,x,b) ->
-                if Vars.mem x senv.codomain then
-                  let y = POOL.alpha senv.pool x in
-                  let senv0 = {
-                    pool = senv.pool ;
-                    hmem = Intmap.empty ;
-                    domain = Vars.add x senv.domain ;
-                    codomain = Vars.add y senv.codomain ;
-                    sigma = Intmap.add x.vid (e_var y) senv.sigma 
-                  } in
-                  e_bind q y (apply_subst senv0 b) 
-                else
-                  e_bind q x (apply_subst senv b)
-            | Apply(phi,vs) -> 
-                let vs' = List.map (apply_subst senv) vs in
-                let phi' = apply_subst senv phi in
-                e_apply phi' vs'
-            | _ -> 
-                rebuild (apply_subst senv) a
-          in (* memoization *)
-          senv.hmem <- Intmap.add a.id result senv.hmem ; 
-          result
+  let () = r_apply := apply
 
-  let e_subst ?pool x a b =
-    let pool = match pool with Some p -> p | None ->
-        let p = POOL.create () in
-        add_var p x ; add_term p a ; add_term p b ; p in
-    let senv = {
-      pool = pool ;
-      hmem = Intmap.empty ;
-      domain = Vars.singleton x ;
-      codomain = a.vars ;
-      sigma = Intmap.add x.vid a Intmap.empty ;
-    } in
-    apply_subst senv b
+  let e_apply e es = apply [] e es
+
+  (* -------------------------------------------------------------------------- *)
+  (* --- General Substitutions                                              --- *)
+  (* -------------------------------------------------------------------------- *)
+
+  let rec gsubst mu sigma e =
+    match e.repr with
+    | True | False | Kint _ | Kreal _ | Bvar _ -> e
+    | _ ->
+        try cache_find mu e
+        with Not_found ->
+          cache_bind mu e
+            (if lc_closed e
+             then
+               try sigma e 
+               with Not_found -> rebuild (gsubst mu sigma) e
+             else rebuild (gsubst mu sigma) e)
+            
+  let e_subst ?sigma f e = 
+    let cache = match sigma with None -> ref Tmap.empty | Some c -> c in
+    gsubst cache f e
 
   (* -------------------------------------------------------------------------- *)
   (* --- Smart Constructors                                                 --- *)
@@ -1762,8 +1786,9 @@ struct
     | False -> e_false
     | Kint z -> e_zint z
     | Kreal r -> e_real r
-    | Var x -> e_var x
-    | Bind(q,x,e) -> e_bind q x e
+    | Fvar x -> e_var x
+    | Bvar(k,t) -> e_bvar k t
+    | Bind(q,t,e) -> c_bind q t e
     | Apply(a,xs) -> e_apply a xs
     | Times(k,e) -> e_times k e
     | Not e -> e_not e
@@ -1785,65 +1810,52 @@ struct
     | Rget(r,f) -> e_getfield r f
     | Rdef fvs -> e_record fvs
 
-  let e_map f e =
+  let e_map pool f e =
     match e.repr with
-    | Var _ -> e
     | Apply(a,xs) -> e_apply (f a) (List.map f xs)
-    | Bind _ -> raise (Invalid_argument "Qed.Term.e_map")
+    | Bind(q,t,e) ->
+        add_term pool e ;
+        let x = fresh pool t in
+        e_bind q x (f (lc_open x e))
     | _ -> rebuild f e
 
-  let f_map f xs e =
+  let f_map f n e =
     match e.repr with
-    | Var _ -> e
-    | Apply(a,ps) -> e_apply (f xs a) (List.map (f xs) ps)
-    | Bind(q,x,p) -> e_bind q x (f (Vars.add x xs) p)
-    | _ -> rebuild (f xs) e
+    | Bind(q,t,e) -> c_bind q t (f (succ n) e)
+    | Apply(a,xs) -> e_apply (f n a) (List.map (f n) xs)
+    | _ -> rebuild (f n) e
 
-  let r_map f = function
-    | True -> e_true
-    | False -> e_false
-    | Kint z -> e_zint z
-    | Kreal r -> e_real r
-    | Var x -> e_var x
+  let lc_map f e =
+    match e.repr with
     | Apply(a,xs) -> e_apply (f a) (List.map f xs)
-    | Bind _ -> raise (Invalid_argument "Qed.Term.r_map")
-    | Not e -> e_not (f e)
-    | Add xs -> addition (List.map f xs)
-    | Mul xs -> multiplication (List.map f xs)
-    | And xs -> e_and (List.map f xs)
-    | Or  xs -> e_or  (List.map f xs)
-    | Mod(x,y) -> e_mod (f x) (f y)
-    | Div(x,y) -> e_div (f x) (f y)
-    | Eq(x,y)  -> e_eq  (f x) (f y)
-    | Neq(x,y) -> e_neq (f x) (f y)
-    | Lt(x,y)  -> e_lt  (f x) (f y)
-    | Leq(x,y) -> e_leq (f x) (f y)
-    | Times(z,t) -> times z (f t)
-    | If(e,a,b) -> e_if (f e) (f a) (f b)
-    | Imply(hs,p) -> e_imply (List.map f hs) (f p)
-    | Fun(g,xs) -> e_fun g (List.map f xs)
-    | Aget(x,y) -> e_get (f x) (f y)
-    | Aset(x,y,z) -> e_set (f x) (f y) (f z)
-    | Rget(x,g) -> e_getfield (f x) g
-    | Rdef gxs -> e_record (List.map (fun (g,x) -> g, f x) gxs)
-
-  let e_iter f e =
+    | _ -> rebuild f e
+  
+  let lc_iter f e =
     match e.repr with
-    | True | False | Kint _ | Kreal _ | Var _ -> ()
-    | Times(_,e) | Not e | Bind(_,_,e) | Rget(e,_) -> f e
+    | True | False | Kint _ | Kreal _ | Fvar _ | Bvar _ -> ()
+    | Times(_,e) | Not e | Rget(e,_) -> f e
     | Add xs | Mul xs | And xs | Or xs -> List.iter f xs
     | Mod(x,y) | Div(x,y) | Eq(x,y) | Neq(x,y) | Leq(x,y) | Lt(x,y)
     | Aget(x,y) -> f x ; f y
     | Rdef fvs -> List.iter (fun (_,v) -> f v) fvs
     | If(e,a,b) | Aset(e,a,b) -> f e ; f a ; f b
     | Imply(xs,x) -> List.iter f xs ; f x
-    | Apply(x,xs) -> f x ; List.iter f xs
     | Fun(_,xs) -> List.iter f xs
-
-  let f_iter f xs e =
+    | Apply(x,xs) -> f x ; List.iter f xs
+    | Bind(_,_,e) -> f e
+             
+  let e_iter pool f e =
     match e.repr with
-    | Bind(_,x,e) -> f (Vars.add x xs) e
-    | _ -> e_iter (f xs) e
+    | Bind(_,t,e) -> 
+        add_term pool e ;
+        let x = fresh pool t in
+        lc_iter f (lc_open x e)
+    | _ -> lc_iter f e 
+
+  let f_iter f n e =
+    match e.repr with
+    | Bind(_,_,e) -> f (succ n) e
+    | _ -> lc_iter (f n) e
 
   (* -------------------------------------------------------------------------- *)
   (* --- Sub-terms                                                          --- *)
@@ -1864,7 +1876,7 @@ struct
         [] -> child
       | i::l -> begin
           match e.repr with
-          | True | False | Kint _ | Kreal _ | Var _ ->
+          | True | False | Kint _ | Kreal _ | Fvar _ | Bvar _ ->
               bad_position ()
           | Times (_,e) when i = 0 && l = [] -> 
               begin
@@ -1917,7 +1929,7 @@ struct
           | Rdef _ | Rget _ ->
               failwith "change in place for records not yet implemented"
           | Fun (f,ops) -> e_fun f (change_in_list ops i l)
-          | Bind(q,x,t) when i = 0 -> e_bind q x (aux t l)
+          | Bind(q,x,t) when i = 0 -> c_bind q x (aux t l)
           | Bind _ -> bad_position ()
           | Apply(f,args) when i = 0 ->
               e_apply (aux f l) args
@@ -1961,8 +1973,9 @@ struct
     | Not e -> Format.fprintf fmt "not%a" pp_id e
     | Fun(f,es) -> Format.fprintf fmt "fun %a%a" Fun.pretty f pp_ids es
     | Apply(phi,es) -> Format.fprintf fmt "apply%a%a" pp_id phi pp_ids es
-    | Var x -> Format.fprintf fmt "var %a" pp_var x
-    | Bind(q,x,e) -> Format.fprintf fmt "bind %a %a. %a" pp_bind q pp_var x pp_id e
+    | Fvar x -> Format.fprintf fmt "var %a" pp_var x
+    | Bvar(k,_) -> Format.fprintf fmt "bvar #%d" k
+    | Bind(q,t,e) -> Format.fprintf fmt "bind %a %a. %a" pp_bind q Tau.pretty t pp_id e
     | Rdef fxs -> Format.fprintf fmt "@[<hov 2>record {%a }@]" pp_record fxs
     | Rget(e,f) -> Format.fprintf fmt "field %a.%a" pp_id e Field.pretty f
     | Aset(m,k,v) -> Format.fprintf fmt "array%a[%a :=%a ]" pp_id m pp_id k pp_id v
@@ -1972,19 +1985,19 @@ struct
   let rec pp_debug disp fmt e =
     if not (Intset.mem e.id !disp) then
       begin
-        Format.fprintf fmt "%a = %a@." pp_id e pp_repr e.repr ;
+        Format.fprintf fmt "%a{%a} = %a@." 
+          pp_id e Bvars.pretty e.bind pp_repr e.repr ;
         disp := Intset.add e.id !disp ;
         pp_children disp fmt e ;
       end
 
-  and pp_children disp fmt e = e_iter (pp_debug disp fmt) e
+  and pp_children disp fmt e = lc_iter (pp_debug disp fmt) e
 
   let debug fmt e = 
     Format.fprintf fmt "%a with:@." pp_id e ;
     pp_debug (ref Intset.empty) fmt e
 
   let pretty = debug
-
 
   (* ------------------------------------------------------------------------ *)
   (* ---  Record Decomposition                                            --- *)
@@ -2021,6 +2034,20 @@ struct
         Some ( base , fothers )
 
   (* ------------------------------------------------------------------------ *)
+  (* ---  Symbol                                                          --- *)
+  (* ------------------------------------------------------------------------ *)
+
+  module Term =
+  struct
+    type t = term
+    let hash = hash
+    let equal = equal
+    let compare = compare
+    let pretty = pretty
+    let debug e = Printf.sprintf "E%03d" e.id
+  end
+
+  (* ------------------------------------------------------------------------ *)
   (* ---  Sizing Terms                                                    --- *)
   (* ------------------------------------------------------------------------ *)
 
@@ -2029,7 +2056,7 @@ struct
       begin
         incr k ;
         m := Tset.add e !m ;
-        e_iter (count k m) e ;
+        lc_iter (count k m) e ;
       end
 
   let size e = 
@@ -2045,7 +2072,6 @@ struct
     | Marked    (* finished *)
 
   type marks = {
-    closed : Vars.t ;            (* context-declared variables *)
     marked : (term -> bool) ;    (* context-letified terms *)
     shareable : (term -> bool) ; (* terms that can be shared *)
     mutable mark : mark Tmap.t ; (* current marks during traversal *)
@@ -2060,7 +2086,12 @@ struct
   let set_mark m e t =
     m.mark <- Tmap.add e t m.mark
 
-  let rec walk m xs e =
+  (* r is the order of the root term being marked, 
+     it is constant during the recursive traversal.
+     This is also the floor of bound variables ;
+     bvars k > r can not be shared, as they are not free in the term.
+  *)
+  let rec walk m r e =
     if not (is_simple e) then
       begin
         match get_mark m e with
@@ -2070,20 +2101,20 @@ struct
             else 
               begin
                 set_mark m e FirstMark ;
-                f_iter (walk m) xs e ;
+                lc_iter (walk m r) e ;
               end
         | FirstMark ->
-            if m.shareable e 
-            && Vars.subset e.vars m.closed 
-            && not (Vars.intersect e.vars xs)
-            then m.shared <- Tset.add e m.shared 
-            else f_iter (walk m) xs e ;
+            if m.shareable e && lc_closed_at r e
+            then m.shared <- Tset.add e m.shared
+            else lc_iter (walk m r) e ;
             set_mark m e Marked
         | Marked ->
             ()
       end
 
-  let mark m e = m.roots <- e :: m.roots ; walk m Vars.empty e
+  let mark m e = 
+    m.roots <- e :: m.roots ; 
+    walk m (Bvars.order e.bind) e
 
   type defs = {
     mutable stack : term list ;
@@ -2093,32 +2124,31 @@ struct
   let rec collect shared defs e =
     if not (Tset.mem e defs.defined) then
       begin
-        e_iter (collect shared defs) e ;
+        lc_iter (collect shared defs) e ;
         if Tset.mem e shared then 
           defs.stack <- e :: defs.stack ;
         defs.defined <- Tset.add e defs.defined ;
       end
 
-  let marks
-      ?(shared=fun _ -> false)
-      ?(shareable=fun _ -> true)
-      ?(closed=Vars.empty) 
-      () = {
-    closed = closed ;
-    marked = shared ;
-    shareable = shareable ;
-    shared = Tset.empty ;
-    mark = Tmap.empty ;
-    roots = [] ;
-  }
+  let none = fun _ -> false
+  let all = fun _ -> true
 
+  let marks ?(shared=none) ?(shareable=all) () =
+    {
+      shareable ;
+      marked = shared ;
+      shared = Tset.empty ;
+      mark = Tmap.empty ;
+      roots = [] ;
+    }
+    
   let defs m =
     let defines = { stack=[] ; defined=Tset.empty } in
     List.iter (collect m.shared defines) m.roots ; 
     List.rev defines.stack
 
-  let shared ?shared ?shareable ?closed es =
-    let m = marks ?shared ?shareable ?closed () in
+  let shared ?shared ?shareable es =
+    let m = marks ?shared ?shareable () in
     List.iter (mark m) es ; 
     defs m
 

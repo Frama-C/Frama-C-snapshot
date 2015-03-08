@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -31,7 +31,7 @@ include
      end)
 
 module Filename =
-  EmptyString
+  Empty_string
     (struct
        let option_name = "-scg"
        let arg_name = "filename"
@@ -40,7 +40,7 @@ module Filename =
      end)
 
 module InitFunc =
-  StringSet
+  Kernel_function_set
     (struct
        let option_name = "-scg-init-func"
        let arg_name = ""

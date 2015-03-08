@@ -1,0 +1,277 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/slicing/horwitz.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  
+tests/slicing/horwitz.c:26:[value] entering loop for the first time
+[value] computing for function A <- main.
+        Called from tests/slicing/horwitz.c:27.
+[value] computing for function add <- A <- main.
+        Called from tests/slicing/horwitz.c:18.
+[value] Recording results for add
+[value] Done for function add
+[value] computing for function incr <- A <- main.
+        Called from tests/slicing/horwitz.c:19.
+[value] computing for function add <- incr <- A <- main.
+        Called from tests/slicing/horwitz.c:15.
+[value] Recording results for add
+[value] Done for function add
+[value] Recording results for incr
+[value] Done for function incr
+[value] Recording results for A
+[value] Done for function A
+[value] computing for function A <- main.
+        Called from tests/slicing/horwitz.c:27.
+[value] computing for function add <- A <- main.
+        Called from tests/slicing/horwitz.c:18.
+[value] Recording results for add
+[value] Done for function add
+[value] computing for function incr <- A <- main.
+        Called from tests/slicing/horwitz.c:19.
+[value] computing for function add <- incr <- A <- main.
+        Called from tests/slicing/horwitz.c:15.
+[value] Recording results for add
+[value] Done for function add
+[value] Recording results for incr
+[value] Done for function incr
+[value] Recording results for A
+[value] Done for function A
+[value] computing for function A <- main.
+        Called from tests/slicing/horwitz.c:27.
+[value] computing for function add <- A <- main.
+        Called from tests/slicing/horwitz.c:18.
+[value] Recording results for add
+[value] Done for function add
+[value] computing for function incr <- A <- main.
+        Called from tests/slicing/horwitz.c:19.
+[value] computing for function add <- incr <- A <- main.
+        Called from tests/slicing/horwitz.c:15.
+[value] Recording results for add
+[value] Done for function add
+[value] Recording results for incr
+[value] Done for function incr
+[value] Recording results for A
+[value] Done for function A
+[value] computing for function A <- main.
+        Called from tests/slicing/horwitz.c:27.
+[value] computing for function add <- A <- main.
+        Called from tests/slicing/horwitz.c:18.
+[value] Recording results for add
+[value] Done for function add
+[value] computing for function incr <- A <- main.
+        Called from tests/slicing/horwitz.c:19.
+[value] computing for function add <- incr <- A <- main.
+        Called from tests/slicing/horwitz.c:15.
+[value] Recording results for add
+[value] Done for function add
+[value] Recording results for incr
+[value] Done for function incr
+[value] Recording results for A
+[value] Done for function A
+[value] computing for function A <- main.
+        Called from tests/slicing/horwitz.c:27.
+[value] computing for function add <- A <- main.
+        Called from tests/slicing/horwitz.c:18.
+[value] Recording results for add
+[value] Done for function add
+[value] computing for function incr <- A <- main.
+        Called from tests/slicing/horwitz.c:19.
+[value] computing for function add <- incr <- A <- main.
+        Called from tests/slicing/horwitz.c:15.
+[value] Recording results for add
+[value] Done for function add
+[value] Recording results for incr
+[value] Done for function incr
+[value] Recording results for A
+[value] Done for function A
+[value] computing for function A <- main.
+        Called from tests/slicing/horwitz.c:27.
+[value] computing for function add <- A <- main.
+        Called from tests/slicing/horwitz.c:18.
+[value] Recording results for add
+[value] Done for function add
+[value] computing for function incr <- A <- main.
+        Called from tests/slicing/horwitz.c:19.
+[value] computing for function add <- incr <- A <- main.
+        Called from tests/slicing/horwitz.c:15.
+[value] Recording results for add
+[value] Done for function add
+[value] Recording results for incr
+[value] Done for function incr
+[value] Recording results for A
+[value] Done for function A
+[value] computing for function A <- main.
+        Called from tests/slicing/horwitz.c:27.
+[value] computing for function add <- A <- main.
+        Called from tests/slicing/horwitz.c:18.
+[value] Recording results for add
+[value] Done for function add
+[value] computing for function incr <- A <- main.
+        Called from tests/slicing/horwitz.c:19.
+[value] computing for function add <- incr <- A <- main.
+        Called from tests/slicing/horwitz.c:15.
+[value] Recording results for add
+[value] Done for function add
+[value] Recording results for incr
+[value] Done for function incr
+[value] Recording results for A
+[value] Done for function A
+[value] computing for function A <- main.
+        Called from tests/slicing/horwitz.c:27.
+[value] computing for function add <- A <- main.
+        Called from tests/slicing/horwitz.c:18.
+[value] Recording results for add
+[value] Done for function add
+[value] computing for function incr <- A <- main.
+        Called from tests/slicing/horwitz.c:19.
+[value] computing for function add <- incr <- A <- main.
+        Called from tests/slicing/horwitz.c:15.
+[value] Recording results for add
+[value] Done for function add
+[value] Recording results for incr
+[value] Done for function incr
+[value] Recording results for A
+[value] Done for function A
+[value] computing for function A <- main.
+        Called from tests/slicing/horwitz.c:27.
+[value] computing for function add <- A <- main.
+        Called from tests/slicing/horwitz.c:18.
+[value] Recording results for add
+[value] Done for function add
+[value] computing for function incr <- A <- main.
+        Called from tests/slicing/horwitz.c:19.
+[value] computing for function add <- incr <- A <- main.
+        Called from tests/slicing/horwitz.c:15.
+[value] Recording results for add
+[value] Done for function add
+[value] Recording results for incr
+[value] Done for function incr
+[value] Recording results for A
+[value] Done for function A
+[value] computing for function A <- main.
+        Called from tests/slicing/horwitz.c:27.
+[value] computing for function add <- A <- main.
+        Called from tests/slicing/horwitz.c:18.
+[value] Recording results for add
+[value] Done for function add
+[value] computing for function incr <- A <- main.
+        Called from tests/slicing/horwitz.c:19.
+[value] computing for function add <- incr <- A <- main.
+        Called from tests/slicing/horwitz.c:15.
+[value] Recording results for add
+[value] Done for function add
+[value] Recording results for incr
+[value] Done for function incr
+[value] Recording results for A
+[value] Done for function A
+[value] computing for function A <- main.
+        Called from tests/slicing/horwitz.c:27.
+[value] computing for function add <- A <- main.
+        Called from tests/slicing/horwitz.c:18.
+[value] Recording results for add
+[value] Done for function add
+[value] computing for function incr <- A <- main.
+        Called from tests/slicing/horwitz.c:19.
+[value] computing for function add <- incr <- A <- main.
+        Called from tests/slicing/horwitz.c:15.
+[value] Recording results for add
+[value] Done for function add
+[value] Recording results for incr
+[value] Done for function incr
+[value] Recording results for A
+[value] Done for function A
+[value] computing for function A <- main.
+        Called from tests/slicing/horwitz.c:27.
+[value] computing for function add <- A <- main.
+        Called from tests/slicing/horwitz.c:18.
+tests/slicing/horwitz.c:12:[kernel] warning: signed overflow. assert a+b ≤ 2147483647;
+[value] Recording results for add
+[value] Done for function add
+[value] computing for function incr <- A <- main.
+        Called from tests/slicing/horwitz.c:19.
+[value] computing for function add <- incr <- A <- main.
+        Called from tests/slicing/horwitz.c:15.
+[value] Recording results for add
+[value] Done for function add
+[value] Recording results for incr
+[value] Done for function incr
+[value] Recording results for A
+[value] Done for function A
+[value] Recording results for main
+[value] done for function main
+[from] Computing for function add
+[from] Done for function add
+[from] Computing for function incr
+[from] Done for function incr
+[from] Computing for function A
+[from] Done for function A
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function add:
+  \result FROM a; b
+[from] Function incr:
+  i FROM pi; i
+[from] Function A:
+  i FROM py; i
+  \result FROM x; py; i
+[from] Function main:
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[slicing] making slicing project 'slicing_1'...
+[pdg] computing for function incr
+[pdg] done for function incr
+[slicing] applying all slicing requests...
+[slicing] applying 1 actions...
+[slicing] applying actions: 1/1...
+[pdg] computing for function A
+[pdg] done for function A
+[pdg] computing for function main
+[pdg] done for function main
+Slicing project worklist [default/slicing_1] =
+[main_slice_1 = change_call for call 23 -> A_slice_1][A_slice_1 = change_call for call 10 -> incr_slice_1]
+
+[slicing] exporting project to 'Sliced code'...
+[slicing] applying all slicing requests...
+[slicing] applying 2 actions...
+[slicing] applying actions: 1/2...
+[slicing] applying actions: 2/2...
+[sparecode] remove unused global declarations from project 'Sliced code tmp'
+[sparecode] removed unused global declarations in new project 'Sliced code'
+/* Generated by Frama-C */
+int add(int a, int b)
+{
+  int __retres;
+  __retres = a + b;
+  return __retres;
+}
+
+void incr_slice_1(char *pi)
+{
+  int tmp;
+  {
+    /*sequence*/
+    tmp = add((int)*pi,1);
+    *pi = (char)tmp;
+  }
+  return;
+}
+
+void A_slice_1(char *py)
+{
+  incr_slice_1(py);
+  return;
+}
+
+void main(void)
+{
+  char i;
+  i = (char)1;
+  while ((int)i < 11) A_slice_1(& i);
+  return;
+}
+
+

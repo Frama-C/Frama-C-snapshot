@@ -1,0 +1,45 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/find_ivaltop.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  t[0] ∈ {1}
+   [1] ∈ {2}
+   [2] ∈ {3}
+   [3] ∈ {4}
+   [4] ∈ {5}
+   [5] ∈ {6}
+   [6] ∈ {7}
+   [7] ∈ {8}
+   [8] ∈ {9}
+   [9] ∈ {0}
+   [10] ∈ {1}
+   [11] ∈ {2}
+   [12] ∈ {3}
+   [13] ∈ {4}
+   [14] ∈ {5}
+   [15] ∈ {6}
+   [16] ∈ {7}
+   [17] ∈ {8}
+   [18] ∈ {9}
+   [19] ∈ {0}
+tests/misc/find_ivaltop.i:6:[value] entering loop for the first time
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  i ∈ {8}
+  j ∈ {0; 1; 2; 3; 4; 5; 6; 7}
+  X ∈ {1; 2; 3; 4; 5; 6; 7; 8}
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  \result FROM t[0..7]
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          i; j; X
+[inout] Inputs for function main:
+          t[0..7]

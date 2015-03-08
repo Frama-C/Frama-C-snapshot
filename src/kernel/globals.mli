@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -49,10 +49,10 @@ module Vars: sig
   (** @since Fluorine-20130401 *)
 
   val iter_in_file_rev_order: (varinfo -> initinfo -> unit) -> unit
-  (** @since Neon-20130301 *)
+  (** @since Neon-20140301 *)
 
   val fold_in_file_rev_order: (varinfo -> initinfo -> 'a -> 'a) -> 'a -> 'a
-  (** @since Neon-20130301 *)
+  (** @since Neon-20140301 *)
 
   (** {2 Setters}
 
@@ -109,6 +109,10 @@ module Functions: sig
     (**TODO: remove this function and replace all calls by: *)
 
   val replace_by_declaration: funspec -> varinfo -> location -> unit
+    (** Note: if the varinfo is already registered and bound to a definition,
+        the definition will be erased only if [vdefined] is false. Otherwise,
+        you're trying to register a declaration for a varinfo that is supposed
+        to be defined, which does not look very good. *)
 
   val replace_by_definition: funspec -> fundec -> location -> unit
     (**TODO: do not take a funspec as argument *)
@@ -165,6 +169,25 @@ module FileIndex : sig
 end
 
 (* ************************************************************************* *)
+(** {2 Types} *)
+(* ************************************************************************* *)
+
+(** Types, or type-related information. *)
+module Types : sig
+
+  (** The two functions below are suitable for use in functor
+      {!Logic_typing.Make} *)
+
+  val find_enum_tag: string -> exp * typ
+  (** Find an enum constant from its name in the AST.
+      @raise Not_found when no such constant exists. *)
+
+  val find_type: Logic_typing.type_namespace -> string -> typ
+  (** Find a type from its name in the AST.
+      @raise Not_found when no such type  exists. *)
+end
+
+(* ************************************************************************* *)
 (** {2 Entry point} *)
 (* ************************************************************************* *)
 
@@ -206,10 +229,10 @@ val get_comments_global: global -> string list
 *)
 
 val get_comments_stmt: stmt -> string list
-(** Gets a list of comments associated to the given global. This function
+(** Gets a list of comments associated to the given statement. This function
     is useful only when -keep-comments is on.
 
-    A comment is associated to a global if it occurs after 
+    A comment is associated to a statement if it occurs after 
     the preceding statement and before the current statement ends (except for
     the last statement in a block, to which statements occuring before the end
     of the block are associated). Note that this function is experimental and

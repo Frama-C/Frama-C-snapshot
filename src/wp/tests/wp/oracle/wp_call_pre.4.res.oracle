@@ -1,0 +1,19 @@
+# frama-c -wp -wp-model 'Hoare' [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp/wp_call_pre.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+
+Goal Pre-condition 'qed_ok,Rstmt' at instruction (file tests/wp/wp_call_pre.c, line 47):
+Assume {
+  (* Domain *)
+  Type: (is_sint32 G_0).
+  (* Pre-condition (file tests/wp/wp_call_pre.c, line 43) in 'stmt_pre' *)
+  (* Pre-condition: *)
+  Have: 0<G_0.
+}
+Prove: 0<G_0.
+
+------------------------------------------------------------

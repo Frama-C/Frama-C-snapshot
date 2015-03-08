@@ -1,0 +1,30 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_store/natural.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function f
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok' in 'f':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'f' (1/2):
+Effect at line 12
+Assume { (* tests/wp_store/natural.i:12: Then *) Have: false. }
+Prove: not ta_retres_2.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'f' (2/2):
+Effect at line 12
+Assume { (* Heap *) Have: (linked Malloc_2). }
+Prove: true.
+
+------------------------------------------------------------

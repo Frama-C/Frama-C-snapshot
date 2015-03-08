@@ -1,0 +1,5 @@
+%init:		S;
+%accept:	S;
+S: { CALL(a) } -> T;
+T: { CALL(a) } -> S;
+

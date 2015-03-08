@@ -1,0 +1,70 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/ineq.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  G[0..9] ∈ {0}
+  g ∈ {0}
+  h ∈ {0}
+  i ∈ {0}
+  j ∈ {0}
+  k ∈ {1}
+  l ∈ {1}
+  m ∈ {-1}
+  n ∈ {-1}
+[value] computing for function any_int <- main.
+        Called from tests/misc/ineq.c:6.
+tests/misc/any_int.c:9:[value] entering loop for the first time
+tests/misc/any_int.c:9:[kernel] warning: signed overflow. assert y+1 ≤ 2147483647;
+tests/misc/any_int.c:9:[kernel] warning: signed overflow. assert y+1 ≤ 2147483647;
+tests/misc/any_int.c:9:[kernel] warning: signed overflow. assert -2147483648 ≤ y-1;
+tests/misc/any_int.c:9:[kernel] warning: signed overflow. assert x+1 ≤ 2147483647;
+tests/misc/any_int.c:9:[kernel] warning: signed overflow. assert -2147483648 ≤ x-1;
+[value] Recording results for any_int
+[value] Done for function any_int
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function any_int:
+  y ∈ [--..--]
+  x ∈ [--..--]
+[value] Values at end of function main:
+  G[0] ∈ {0; 7}
+   [1..9] ∈ {0}
+  g ∈ [0..2147483647]
+  h ∈ [-2147483648..0]
+  i ∈ [0..2147483647]
+  j ∈ [-2147483648..0]
+  k ∈ [1..2147483647]
+  l ∈ [1..2147483647]
+  m ∈ [-2147483648..-1]
+  n ∈ [-2147483648..-1]
+  x ∈ [--..--]
+[from] Computing for function any_int
+[from] Done for function any_int
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function any_int:
+  \result FROM \nothing
+[from] Function main:
+  G[0] FROM \nothing
+  g FROM \nothing (and SELF)
+  h FROM \nothing (and SELF)
+  i FROM \nothing (and SELF)
+  j FROM \nothing (and SELF)
+  k FROM \nothing (and SELF)
+  l FROM \nothing (and SELF)
+  m FROM \nothing (and SELF)
+  n FROM \nothing (and SELF)
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function any_int:
+          y; x
+[inout] Inputs for function any_int:
+          \nothing
+[inout] Out (internal) for function main:
+          G[0]; g; h; i; j; k; l; m; n; x
+[inout] Inputs for function main:
+          \nothing

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -75,13 +75,16 @@
   let rec conv_bal default (name,bal) =
     match bal with
     | `Default -> conv_bal default (name,default)
-    | `Nary  -> Qed.Engine.F_call name
     | `Left  -> Qed.Engine.F_left name
     | `Right -> Qed.Engine.F_right name
+    | `Nary  -> 
+        if Qed.Plib.is_template name 
+        then Qed.Engine.F_subst name
+        else Qed.Engine.F_call name
 
 }
 
-let blank = [ ' ' '\t' ]
+let blank = [ ' ' '\t' '\r' ]
 let ident = '\\'? [ 'a'-'z' 'A'-'Z' '_' '0'-'9' ]+
 
 rule tok = parse
@@ -275,11 +278,11 @@ and bal = parse
       | RECLINK l ->
         skip input ;
         begin try
-          {Lang.altergo = conv_bal def (List.assoc "alt-ergo" l);
+          {Lang.altergo = conv_bal def (List.assoc "altergo" l);
                 why3    = conv_bal def (List.assoc "why3" l);
                 coq     = conv_bal def (List.assoc "coq" l) }
         with Not_found ->
-          failwith "a link must contain an entry for alt-ergo, why3 and coq"
+          failwith "a link must contain an entry for 'altergo', 'why3' and 'coq'"
         end
       | _ -> failwith "Missing link symbol"
 
@@ -290,11 +293,11 @@ and bal = parse
       | `RecString l ->
         skip input ;
         begin try
-          {Lang.altergo = List.assoc "alt-ergo" l;
+          {Lang.altergo = List.assoc "altergo" l;
                 why3    = List.assoc "why3" l;
                 coq     = List.assoc "coq" l }
         with Not_found ->
-          failwith "a link must contain an entry for alt-ergo, why3 and coq"
+          failwith "a link must contain an entry for 'altergo', 'why3' and 'coq'"
         end
       | _ -> failwith "Missing link symbol"
 

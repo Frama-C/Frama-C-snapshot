@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2014                                               */
+/*  Copyright (C) 2007-2015                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -29,13 +29,13 @@
 #include "__fc_define_wchar_t.h"
 
 /*@ axiomatic MemCmp {
-  @ logic ℤ memcmp{L}(char *s1, char *s2, ℤ n)
-  @   reads s1[0..n - 1], s2[0..n - 1];
+  @ logic ℤ memcmp{L1,L2}(char *s1, char *s2, ℤ n)
+  @   reads \at(s1[0..n - 1],L1), \at(s2[0..n - 1],L2);
   @
-  @ axiom memcmp_zero{L}:
+  @ axiom memcmp_zero{L1,L2}:
   @   \forall char *s1, *s2; \forall ℤ n;
-  @      memcmp(s1,s2,n) == 0
-  @      <==> \forall ℤ i; 0 <= i < n ==> s1[i] == s2[i];
+  @      memcmp{L1,L2}(s1,s2,n) == 0
+  @      <==> \forall ℤ i; 0 <= i < n ==> \at(s1[i],L1) == \at(s2[i],L2);
   @
   @ }
   @*/
@@ -110,20 +110,20 @@
   @
   @ axiom memcmp_strlen_left{L}:
   @   \forall char *s1, *s2; \forall ℤ n;
-  @      memcmp(s1,s2,n) == 0 && strlen(s1) < n ==> strlen(s1) == strlen(s2);
+  @      memcmp{L,L}(s1,s2,n) == 0 && strlen(s1) < n ==> strlen(s1) == strlen(s2);
   @
   @ axiom memcmp_strlen_right{L}:
   @   \forall char *s1, *s2; \forall ℤ n;
-  @      memcmp(s1,s2,n) == 0 && strlen(s2) < n ==> strlen(s1) == strlen(s2);
+  @      memcmp{L,L}(s1,s2,n) == 0 && strlen(s2) < n ==> strlen(s1) == strlen(s2);
   @
   @ axiom memcmp_strlen_shift_left{L}:
   @   \forall char *s1, *s2; \forall ℤ k, n;
-  @      memcmp(s1,s2 + k,n) == 0 && 0 <= k && strlen(s1) < n ==>
+  @      memcmp{L,L}(s1,s2 + k,n) == 0 && 0 <= k && strlen(s1) < n ==>
   @        0 <= strlen(s2) <= k + strlen(s1);
   @
   @ axiom memcmp_strlen_shift_right{L}:
   @   \forall char *s1, *s2; \forall ℤ k, n;
-  @      memcmp(s1 + k,s2,n) == 0 && 0 <= k && strlen(s2) < n ==>
+  @      memcmp{L,L}(s1 + k,s2,n) == 0 && 0 <= k && strlen(s2) < n ==>
   @        0 <= strlen(s1) <= k + strlen(s2);
   @ }
   @*/

@@ -1,0 +1,42 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/struct_p_call.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  
+[value] computing for function f <- main.
+        Called from tests/misc/struct_p_call.i:14.
+[value] Recording results for f
+[value] Done for function f
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function f:
+  H1.v ∈ {1}
+    .[bits 8 to 31] ∈ UNINITIALIZED
+    .w ∈ {0}
+[value] Values at end of function main:
+  H1.v ∈ {1}
+    .[bits 8 to 31] ∈ UNINITIALIZED
+    .w ∈ {0}
+  __retres ∈ {1}
+[from] Computing for function f
+[from] Done for function f
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function f:
+  H1{.v; .w} FROM G1
+[from] Function main:
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function f:
+          H1{.v; .w}
+[inout] Inputs for function f:
+          \nothing
+[inout] Out (internal) for function main:
+          H1{.v; .w}; __retres
+[inout] Inputs for function main:
+          \nothing

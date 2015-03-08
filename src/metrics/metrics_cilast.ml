@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -182,7 +182,7 @@ class slocVisitor : sloc_visitor = object(self)
         if consider_function vi then
           global_metrics := incr_funcs !global_metrics;
       ) else (
-        if vi.vglob && not vi.vgenerated
+        if vi.vglob && not vi.vtemp
         then (
 	  global_metrics:= incr_glob_vars !global_metrics;
         )

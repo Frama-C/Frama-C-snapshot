@@ -314,43 +314,43 @@ let hasExportingAttribute funvar =
  *)
 
 let isExportedRoot global =
-  let result, _reason = match global with
+  let name, result, reason = match global with
   | GVar ({vstorage = Static} as v, _, _) when
       Cil.hasAttribute "FC_BUILTIN" v.vattr ->
-    true, "FC_BUILTIN attribute"
-  | GVar ({vstorage = Static}, _, _) -> false, "static variable"
-  | GVar _ ->
-    true, "non-static variable"
+    v.vname, true, "FC_BUILTIN attribute"
+  | GVar ({vstorage = Static; vname}, _, _) -> vname, false, "static variable"
+  | GVar (v,_,_) ->
+    v.vname, true, "non-static variable"
   | GFun ({svar = v}, _) -> begin
     if hasExportingAttribute v then
-      true, "constructor or destructor function"
+      v.vname,true, "constructor or destructor function"
     else if v.vstorage = Static then
-      not !rmUnusedStatic, "static function"
+      v.vname, not !rmUnusedStatic, "static function"
     else if v.vinline && v.vstorage != Extern
-         && (theMachine.msvcMode || !rmUnusedInlines) then
-      false, "inline function"
+         && (Cil.msvcMode () || !rmUnusedInlines) then
+      v.vname, false, "inline function"
     else
-      true, "other function"
+      v.vname, true, "other function"
   end
   | GVarDecl(_,v,_) when hasAttribute "alias" v.vattr ->
-    true, "has GCC alias attribute"
+    v.vname, true, "has GCC alias attribute"
   | GVarDecl(_,v,_) when hasAttribute "FC_BUILTIN" v.vattr ->
-    true, "has FC_BUILTIN attribute"
-  | GAnnot _ -> true, "global annotation"
+    v.vname, true, "has FC_BUILTIN attribute"
+  | GAnnot _ -> "", true, "global annotation"
   | GType (t, _) when
     Cil.hasAttribute "FC_BUILTIN" (Cil.typeAttr t.ttype) ->
-    true, "has FC_BUILTIN attribute"
+    t.tname, true, "has FC_BUILTIN attribute"
   | GCompTag (c,_) | GCompTagDecl (c,_) when
       Cil.hasAttribute "FC_BUILTIN" c.cattr ->
-    true, "has FC_BUILTIN attribute"
+    c.cname, true, "has FC_BUILTIN attribute"
   | GEnumTag (e, _) | GEnumTagDecl (e,_) when
       Cil.hasAttribute "FC_BUILTIN" e.eattr ->
-    true, "has FC_BUILTIN attribute"
+    e.ename, true, "has FC_BUILTIN attribute"
   | _ ->
-    false, "neither function nor variable nor annotation"
+    "", false, "neither function nor variable nor annotation"
   in
-  (*  trace (dprintf "isExportedRoot %a -> %b, %s@!"
-      d_shortglobal global result reason);*)
+  Kernel.debug
+    ~dkey "isExportedRoot %s -> %B, %s"  name result reason;
   result
 
 
@@ -417,7 +417,7 @@ class markReachableVisitor
 	SkipChildren
 
   method! vinst = function
-      Asm (_, tmpls, _, _, _, _,_) when theMachine.msvcMode ->
+    | Asm (_, tmpls, _, _, _, _,_) when Cil.msvcMode () ->
           (* If we have inline assembly on MSVC, we cannot tell which locals
            * are referenced. Keep thsem all *)
         (match !currentFunc with

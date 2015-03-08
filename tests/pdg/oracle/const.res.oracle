@@ -1,0 +1,164 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/pdg/const.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  G1 ∈ {0}
+  G2 ∈ {0}
+  G3 ∈ {0}
+  G4.M5 ∈ {{ &G1 }}
+  G5.M3 ∈ {{ &G2 }}
+    .M4 ∈ {{ &G3 }}
+[value] computing for function F2 <- main.
+        Called from tests/pdg/const.i:39.
+[value] Recording results for F2
+[from] Computing for function F2
+[from] Done for function F2
+[value] Done for function F2
+[value] computing for function F1 <- main.
+        Called from tests/pdg/const.i:41.
+[value] Recording results for F1
+[from] Computing for function F1
+[from] Done for function F1
+[value] Done for function F1
+[value] Recording results for main
+[from] Computing for function main
+[from] Done for function main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function F1:
+  G3 ∈ {0}
+[value] Values at end of function F2:
+  G1 ∈ {0}
+[value] Values at end of function main:
+  G1 ∈ {0}
+  G2 ∈ {0}
+  G3 ∈ {0}
+  V2 ∈ {0}
+[from] Computing for function F1
+[from] Done for function F1
+[from] Computing for function F2
+[from] Done for function F2
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function F1:
+  G3.M2 FROM G2.M2; f1; G5
+[from] Function F2:
+  G1.M1 FROM G4; f2
+  \result FROM \nothing
+[from] Function main:
+  G1.M1 FROM G4
+  G2 FROM G1.M2; G4
+  G3.M2 FROM G1.M2; G4; G5
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[from] ====== DISPLAYING CALLWISE DEPENDENCIES ======
+[from] call to F2 at tests/pdg/const.i:39 (by main):
+  G1.M1 FROM G4; f2
+  \result FROM \nothing
+[from] call to F1 at tests/pdg/const.i:41 (by main):
+  G3.M2 FROM G2.M2; f1; G5
+[from] entry point:
+  G1.M1 FROM G4
+  G2 FROM G1.M2; G4
+  G3.M2 FROM G1.M2; G4; G5
+  \result FROM \nothing
+[from] ====== END OF CALLWISE DEPENDENCIES ======
+[inout] Out (internal) for function F1:
+          G3.M2
+[inout] Inputs for function F1:
+          G2.M2; G5
+[inout] Out (internal) for function F2:
+          G1.M1
+[inout] Inputs for function F2:
+          G4
+[inout] Out (internal) for function main:
+          G1.M1; G2; G3.M2; V2
+[inout] Inputs for function main:
+          G1; G2.M2; G4; G5
+[pdg] computing for function F1
+[pdg] done for function F1
+[pdg] computing for function F2
+[pdg] done for function F2
+[pdg] computing for function main
+[pdg] done for function main
+[pdg] ====== PDG GRAPH COMPUTED ======
+[pdg] PDG for F1
+ {n1}: InCtrl
+ {n2}: VarDecl : f1
+   -[a--]-> 3
+ {n3}: In1
+   -[a--]-> 2
+ {n4}: (f1->M4)->M2 = (f1->M3)->M2;
+   -[-c-]-> 1
+   -[a-d]-> 2
+   -[a-d]-> 3
+   -[--d]-> 6
+   -[--d]-> 7
+   -[a--]-> 8
+ {n5}: return;
+   -[-c-]-> 1
+ {n6}: In(G2.M2)
+ {n7}: In(G5.M3)
+ {n8}: In(G5.M4)
+[pdg] PDG for F2
+ {n9}: InCtrl
+ {n10}: VarDecl : f2
+   -[a--]-> 11
+ {n11}: In1
+   -[a--]-> 10
+ {n12}: VarDecl : V1
+ {n13}: (f2->M5)->M1 = 0;
+   -[-c-]-> 9
+   -[a--]-> 10
+   -[a--]-> 11
+   -[a--]-> 16
+ {n14}: return V1;
+   -[-c-]-> 9
+   -[--d]-> 12
+ {n15}: OutRet
+   -[--d]-> 14
+ {n16}: In(G4)
+[pdg] PDG for main
+ {n17}: InCtrl
+ {n18}: VarDecl : V2
+ {n19}: Call8-InCtrl : F2((T5 *)(& G4));
+   -[-c-]-> 17
+ {n20}: Call8-In1 : F2((T5 *)(& G4));
+   -[-c-]-> 17
+   -[-c-]-> 19
+ {n21}: Call8-Out(G1.M1) : F2((T5 *)(& G4));
+   -[-c-]-> 17
+   -[-c-]-> 19
+   -[--d]-> 20
+   -[--d]-> 31
+ {n22}: G2 = G1;
+   -[-c-]-> 17
+   -[--d](G1.M1)-> 21
+   -[--d]-> 30
+ {n23}: Call10-InCtrl : F1((T3 *)(& G5));
+   -[-c-]-> 17
+ {n24}: Call10-In1 : F1((T3 *)(& G5));
+   -[-c-]-> 17
+   -[-c-]-> 23
+ {n25}: Call10-Out(G3.M2) : F1((T3 *)(& G5));
+   -[-c-]-> 17
+   -[--d]-> 22
+   -[-c-]-> 23
+   -[--d]-> 24
+   -[--d]-> 29
+ {n26}: V2 = 0;
+   -[-c-]-> 17
+   -[a--]-> 18
+ {n27}: return V2;
+   -[-c-]-> 17
+   -[--d]-> 18
+   -[--d]-> 26
+ {n28}: OutRet
+   -[--d]-> 27
+ {n29}: In(G5)
+ {n30}: In(G1.M2)
+ {n31}: In(G4)

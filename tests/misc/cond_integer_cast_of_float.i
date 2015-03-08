@@ -1,10 +1,12 @@
 /* run.config
    OPT: -val -no-results -then -float-hex -main mainbis
 */
+typedef double D;
+typedef float F;
 
 int b;
-extern float f1, f2, f3, f4;
-extern double d1, d2, d3;
+extern F f1, f2, f3, f4;
+extern D d1, d2, d3;
 extern int i;
 volatile unsigned int c;
 
@@ -72,14 +74,19 @@ void main1()
 }
 
 void main2() {
-  if ((double)f1 > 1.17) {
-    Frama_C_show_each_float_(f1);
+  if ((double)f1 > 1.17) { // f1 should be a float afterwards
+    Frama_C_dump_each(); // dump_each because show_each cast to float itself...
+    if (! ((double)f1 > 1.17)) Frama_C_show_each_not_ok_f1(f1);
+  } else {
+    Frama_C_dump_each();
   }
   if (d1 > (float)1.17) {
     Frama_C_show_each_double(d1);
+    if (! ((double)d1 > (float)1.17)) Frama_C_show_each_not_ok_d1(f1);
   }
   if (d2 > 1.17) {
     Frama_C_show_each_double(d2);
+    if (! ((double)d2 > 1.17)) Frama_C_show_each_not_ok_d2(f1);
   }
 }
 
@@ -115,6 +122,8 @@ void main() {
   case 2:
     main2 (); break;
   case 3:
+    main3 (); break;
+  case 4:
     main3 (); break;
   }
 }

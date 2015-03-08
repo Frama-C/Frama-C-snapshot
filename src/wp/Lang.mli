@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -154,6 +154,7 @@ val farray : tau -> tau -> tau
 
 val pointer : (typ -> tau) Context.value (** type of pointers *)
 val poly : string list Context.value (** polymorphism *)
+val parameters : (lfun -> sort list) -> unit (** definitions *)
 
 (** {2 Logic Formulae} *)
 
@@ -182,16 +183,14 @@ module F :
 sig
 
   (** {3 Expressions} *)
- 
+
   include Logic.Term with type Z.t = Integer.t
-		     and module ADT = ADT
-		     and module Field = Field
-		     and module Fun = Fun
+                      and module ADT = ADT
+                      and module Field = Field
+                      and module Fun = Fun
 
   type unop = term -> term
   type binop = term -> term -> term
-
-  val head : term -> string
 
   val e_zero : term
   val e_one : term
@@ -247,7 +246,7 @@ sig
 
   val p_conj : pred list -> pred
   val p_disj : pred list -> pred
-    
+
   val p_any : ('a -> pred) -> 'a list -> pred
   val p_all : ('a -> pred) -> 'a list -> pred
 
@@ -257,7 +256,8 @@ sig
   val p_exists : var list -> pred -> pred
   val p_bind : binder -> var -> pred -> pred
 
-  val p_subst : ?pool:pool -> var -> term -> pred -> pred
+  val e_subst : ?sigma:sigma -> (term -> term) -> term -> term
+  val p_subst : ?sigma:sigma -> (term -> term) -> pred -> pred
 
   val p_close : pred -> pred
 
@@ -275,8 +275,7 @@ sig
   val debugp : Format.formatter -> pred -> unit
 
   type env
-  val empty : env
-  val closed : Vars.t -> env
+  val env : Vars.t -> env
   val marker : env -> marks
   val mark_e : marks -> term -> unit
   val mark_p : marks -> pred -> unit
@@ -308,7 +307,7 @@ end
 (** {2 Fresh Variables and Constraints} *)
 
 open F
-  
+
 type gamma
 val new_pool : ?copy:pool -> unit -> pool
 val new_gamma : ?copy:gamma -> unit -> gamma
@@ -337,7 +336,7 @@ sig
   val create : unit -> t
   val get : t -> var -> var
   val iter : (var -> var -> unit) -> t -> unit
-    
+
   val convert : t -> term -> term
   val convertp : t -> pred -> pred
 

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -42,9 +42,14 @@ module V : sig
       with type t := t
       and type widen_hint := widen_hint
 
+  val pretty_typ: Cil_types.typ option -> t Pretty_utils.formatter
+
   exception Not_based_on_null
   val project_ival : t -> Ival.t
   (** Raises [Not_based_on_null] if the value may be a pointer. *)
+
+  val project_ival_bottom: t -> Ival.t
+  (* Temporary API, will be merged with project_ival later *)
 
   val min_and_max_float : t -> Ival.F.t * Ival.F.t
     
@@ -65,18 +70,10 @@ module V : sig
   val compare_min_int : t -> t -> int
   val compare_max_int : t -> t -> int
 
-  val filter_le : t -> cond_expr:t -> t
-  val filter_ge : t -> cond_expr:t -> t
-  val filter_lt : t -> cond_expr:t -> t
-  val filter_gt : t -> cond_expr:t -> t
-  val filter_le_float :
-    bool -> typ_loc:Cil_types.typ -> t -> cond_expr:t -> t
-  val filter_ge_float :
-    bool -> typ_loc:Cil_types.typ -> t -> cond_expr:t -> t
-  val filter_lt_float :
-    bool -> typ_loc:Cil_types.typ -> t -> cond_expr:t -> t
-  val filter_gt_float :
-    bool -> typ_loc:Cil_types.typ -> t -> cond_expr:t -> t
+  val filter_le_ge_lt_gt_int: Cil_types.binop -> t -> cond_expr:t -> t
+  val filter_le_ge_lt_gt_float :
+    Cil_types.binop ->
+    bool -> Ival.Float_abstract.float_kind -> t -> cond_expr:t -> t
 
   val eval_comp: signed:bool -> Cil_types.binop -> t -> t -> t
   (** Can only be called on the 6 comparison operators *)
@@ -84,35 +81,47 @@ module V : sig
   val inject_int : Int.t -> t
   val interp_boolean : contains_zero:bool -> contains_non_zero:bool -> t
 
+(** [cast ~size ~signed v] applies to the abstract value [v] the conversion 
+    to the integer type described by [size] and [signed]. The results
+    are [new_value, ok]. The boolean [ok], when true, indicates that no
+    imprecision was introduced.
+    Offsets of bases other than Null are not clipped. If they were clipped,
+    they should be clipped at the validity of the base. The C standard does
+    not say that [p+(1ULL<<32+1)] is the same as [p+1], it says that 
+    [p+(1ULL<<32+1)] is invalid. *)
   val cast: size:Int.t -> signed:bool -> t -> t * bool
+
   val cast_float:
     rounding_mode:Ival.Float_abstract.rounding_mode -> t -> bool * bool * t
   val cast_double: t -> bool * bool * t
   val cast_float_to_int :
     signed:bool -> size:int -> t ->
-    bool (** addresses *) * bool (** top *) * bool (** overflow *) * t
+    bool (** addresses *) *
+    bool (** non-finite *) *
+    (bool * bool) (** overflow, in both directions *) *
+    t
   val cast_float_to_int_inverse :
     single_precision:bool -> t -> t
   val cast_int_to_float :
     Ival.Float_abstract.rounding_mode -> t -> t * bool
 
   val add_untyped : Int_Base.t -> t -> t -> t
+  val add_untyped_under : Int_Base.t -> t -> t -> t
+
   val sub_untyped_pointwise: t -> t -> Ival.t * bool
   (** Substracts two pointers (assumed to have type [char*]) and returns the
       difference of their offsets. The two pointers are supposed to be pointing
       to the same base; the returned boolean indicates that this assumption
       might be incorrect. *)
 
-  val mul: with_alarms:CilE.warn_mode -> t -> t -> t
-  val div : with_alarms:CilE.warn_mode -> t -> t -> t
-  val c_rem : with_alarms:CilE.warn_mode -> t -> t -> t
-  val shift_right :
-    with_alarms:CilE.warn_mode -> size:(bool*int) option -> t -> t -> t
-  val shift_left :
-    with_alarms:CilE.warn_mode -> size:(bool*int) option -> t -> t -> t
-  val bitwise_and : signed:bool -> size:int -> t -> t -> t
-  val bitwise_xor: with_alarms:CilE.warn_mode -> t -> t -> t
-  val bitwise_or : with_alarms:CilE.warn_mode -> t -> t -> t
+  val mul: t -> t -> t
+  val div: t -> t -> t
+  val c_rem: t -> t -> t
+  val shift_right: t -> t -> t
+  val shift_left: t -> t -> t
+  val bitwise_and: signed:bool -> size:int -> t -> t -> t
+  val bitwise_xor: t -> t -> t
+  val bitwise_or : t -> t -> t
 
   val all_values : size:Int.t -> t -> bool
   val create_all_values :
@@ -133,19 +142,33 @@ module V_Or_Uninitialized : sig
   include Lattice_type.With_Under_Approximation with type t:= t
   include Lattice_type.With_Narrow with type t := t
 
-  val get_v : un_t -> V.t
-  external get_flags : un_t -> int = "caml_obj_tag" "noalloc"
+  val get_v : t -> V.t
 
-  val uninitialized: un_t
+  val is_bottom: t -> bool
+  val is_initialized : t -> bool
+  val is_noesc : t -> bool
+  val is_indeterminate: t -> bool
 
-  val initialized : V.t -> un_t
-  val change_initialized : bool -> un_t -> un_t
+  val uninitialized: t
+  val initialized : V.t -> t
 
-  val is_initialized : int -> bool
-  val is_noesc : int -> bool
+  val reduce_by_initializedness : bool -> t -> t
+  (** [reduce_by_initializedness initialized v] reduces [v] so that its result
+     [r] verifies [\initialized(r)] if [initialized] is [true], and
+     [!\initialized(r)] otherwise. *)
+
+  val reduce_by_danglingness : bool -> t -> t
+  (** [reduce_by_danglingness dangling v] reduces [v] so that its result [r]
+     verifies [\dangling(r)] if [dangling] is [true], and
+     [!\dangling(r)] otherwise. *)
+
+  val remove_indeterminateness: t -> t
+  (** Remove 'unitialized' and 'escaping addresses' flags from the argument *)
 
   val unspecify_escaping_locals : 
-    exact:bool -> (V.M.key -> bool) -> un_t -> Base.SetLattice.t * un_t
+    exact:bool -> (V.M.key -> bool) -> t -> Base.SetLattice.t * t
+
+  val map: (V.t -> V.t) -> t -> t
  end
 
 (** Memory slices. They are maps from intervals to values with
@@ -160,7 +183,7 @@ module V_Offsetmap:
 module Default_offsetmap: sig
   val create_initialized_var :
     Cil_types.varinfo -> Base.validity -> V_Offsetmap.t -> Base.t
-  val default_offsetmap : Base.t -> V_Offsetmap.t
+  val default_offsetmap : Base.t -> [ `Bottom | `Map of V_Offsetmap.t ]
 end
 
 (** Memories. They are maps from bases to memory slices *)
@@ -190,40 +213,37 @@ module Model: sig
       - if [conflate_bottom] is [false] and at least one bit pointed to by
         [l..l+loc.size-1] is not [V.bottom], the value is an approximation
         of the join of all the bits at [l..l+loc.size-1].
-      You usually want to use [conflate_bottom=false], unless your goal
-      is to test for the the fact that [loc] points to something undeterminate.
+      As a rule of thumb, you must set [conflate_bottom=true] when the
+      operation you abstract really accesses [loc.size] bits, and when
+      undeterminate values are an error. This is typically the case when
+      reading a scalar value. Conversely, if you are reading many bits at
+      once (for example, to approximate the entire contents of a struct),
+      set [conflate_bottom] to [false] -- to account for the possibility
+      of padding bits. The default value is [true]. The function
+      also returns [true] when the read location may be invalid.
   *)
   val find_unspecified :
-    with_alarms:CilE.warn_mode ->
-    conflate_bottom:bool -> t -> location -> V_Or_Uninitialized.t
+    ?conflate_bottom:bool -> t -> location -> bool * V_Or_Uninitialized.t
 
-  (** [find ~with_alarms state loc] returns the same value as
-      [find_indeterminate], but removes the flags from the result. If either
-      the "unitialized" or "escaping" address flag was present, the
-      corresponding alarm is raised by the function. *)
-  val find :
-    with_alarms:CilE.warn_mode ->
-    conflate_bottom:bool -> t -> location -> V.t
-
-  (** Similar to [find], but we expect a non-indeterminate result; if
-      the value returned had escaping or uninitialized flags, they are
-      removed in the state that is returned along with the cvalue. *)
-  val find_and_reduce_indeterminate :
-    with_alarms:CilE.warn_mode -> t -> location -> t * V.t
+  (** [find ?conflate_bottom state loc] returns the same value as
+      [find_indeterminate], but removes the indeterminate flags from the
+      result. The returned boolean indicates only a possibly invalid
+      location, not indeterminateness. *)
+  val find : ?conflate_bottom:bool -> t -> location -> bool * V.t
 
   (** {2 Writing values into the state} *)
 
   (** [add_binding state loc v] simulates the effect of writing [v] at location
       [loc] in [state]. If [loc] is not writable, {!bottom} is returned.
-
+      The returned boolean indicates that the location may be invalid.
       For this function, [v] is an initialized value; the function
       {!add_binding_unspecified} allows to write a possibly unspecified
       value to [state]. *)
   val add_binding :
-    with_alarms:CilE.warn_mode -> exact:bool -> t -> location -> V.t -> t
+    exact:bool -> t -> location -> V.t -> bool * t
 
   val add_binding_unspecified :
-    exact:bool -> t -> location -> V_Or_Uninitialized.t -> t
+    exact:bool -> t -> location -> V_Or_Uninitialized.t -> bool * t
 
 
   (** {2 Reducing the state} *)
@@ -255,12 +275,10 @@ module Model: sig
 
   (** {2 Misc} *)
 
-  val reduce_by_initialized_defined_loc :
-    (V_Or_Uninitialized.t -> V_Or_Uninitialized.t) ->
-    Locations.Location_Bits.t -> Int.t -> t -> t
-
   val uninitialize_blocks_locals : Cil_types.block list -> t -> t
-  val uninitialize_formals_locals : Cil_types.fundec -> t -> t
+  val remove_variables : Cil_types.varinfo list -> t -> t
+  (** For variables that are coming from the AST, this is equivalent to
+      uninitializing them. *)
 
 end
 

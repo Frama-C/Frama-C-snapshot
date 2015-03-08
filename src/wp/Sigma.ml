@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,8 +27,8 @@
 open Lang.F
 
 module Make
-  (C : Memory.Chunk)
-  (H : Qed.Collection.S with type t = C.t) :
+    (C : Memory.Chunk)
+    (H : Qed.Collection.S with type t = C.t) :
   Memory.Sigma with type chunk = C.t and type domain = H.set =
 struct
 
@@ -50,10 +50,10 @@ struct
     let pb = ref Passive.empty in
     let merge_chunk c x y =
       if Var.equal x y then x else
-	let z = newchunk c in
-	pa := Passive.bind ~fresh:z ~bound:x !pa ;
-	pb := Passive.bind ~fresh:z ~bound:y !pb ;
-	z in
+        let z = newchunk c in
+        pa := Passive.bind ~fresh:z ~bound:x !pa ;
+        pb := Passive.bind ~fresh:z ~bound:y !pb ;
+        z in
     let w = H.Map.union merge_chunk a.map b.map in
     build w , !pa , !pb
 
@@ -69,24 +69,24 @@ struct
     let p = ref Passive.empty in
     H.Map.iter2
       (fun chunk x y ->
-	 match x,y with
-	   | Some x , Some y -> p := Passive.join x y !p
-	   | Some x , None -> b.map <- H.Map.add chunk x b.map
-	   | None , Some y -> a.map <- H.Map.add chunk y a.map
-	   | None , None -> ())
+         match x,y with
+         | Some x , Some y -> p := Passive.join x y !p
+         | Some x , None -> b.map <- H.Map.add chunk x b.map
+         | None , Some y -> a.map <- H.Map.add chunk y a.map
+         | None , None -> ())
       a.map b.map ; !p
 
   let assigned a b written =
     let p = ref Bag.empty in
     H.Map.iter2
       (fun chunk x y ->
-	 if not (H.Set.mem chunk written) then
-	   match x,y with
-	     | Some x , Some y when x != y -> 
-		 p := Bag.add (p_equal (e_var x) (e_var y)) !p
-	     | Some x , None -> b.map <- H.Map.add chunk x b.map
-	     | None , Some y -> a.map <- H.Map.add chunk y a.map
-	     | _ -> ())
+         if not (H.Set.mem chunk written) then
+           match x,y with
+           | Some x , Some y when x != y -> 
+               p := Bag.add (p_equal (e_var x) (e_var y)) !p
+           | Some x , None -> b.map <- H.Map.add chunk x b.map
+           | None , Some y -> a.map <- H.Map.add chunk y a.map
+           | _ -> ())
       a.map b.map ; !p
 
   let value w c = e_var (get w c)
@@ -103,17 +103,17 @@ struct
     build (H.Map.add c x w.map)
 
   let havoc_any ~call w = 
-    let frame = 
-      if call 
-      then H.Map.filter (fun c _ -> C.is_framed c) w.map
-      else H.Map.empty
-    in build frame
-      
+    let framer c x = if call && C.is_framed c then x else newchunk c in
+    build (H.Map.mapi framer w.map)
+
   let domain w = H.Map.domain w.map
 
   let pretty fmt w =
-    Format.fprintf fmt "@@%s%d" C.self w.id ;
-    H.Map.iter 
-      (fun c x -> Format.fprintf fmt "@ %a:%a" C.pretty c Var.pretty x) w.map
+    begin
+      Format.fprintf fmt "@[<hov 2>@@%s%d[" C.self w.id ;
+      H.Map.iter 
+        (fun c x -> Format.fprintf fmt "@ %a:%a" C.pretty c Var.pretty x) w.map ;
+      Format.fprintf fmt " ]@]" ;
+    end
 
 end

@@ -1,0 +1,20 @@
+# frama-c -wp -wp-model 'Typed (Float)' [...]
+tests/wp_typed/unit_float.i:23:[kernel] warning: Floating-point constant 0.2 is not represented exactly. Will use 0x1.999999999999ap-3. See documentation for option -warn-decimal-float
+[wp] Running WP plugin...
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] 6 goals scheduled
+[wp] [Alt-Ergo] Goal typed_float_main_post_CST_F : Valid
+[wp] [Alt-Ergo] Goal typed_float_main_post_CST_D : Valid
+[wp] [Alt-Ergo] Goal typed_float_main_post_CNV_F : Unknown
+[wp] [Gappa] Goal typed_float_main_post_CNV_F : Valid
+[wp] [Alt-Ergo] Goal typed_float_main_post_CNV_D : Unknown
+[wp] [Gappa] Goal typed_float_main_post_CNV_D : Valid
+[wp] [Alt-Ergo] Goal typed_float_main_post_VAR_F : Unknown
+[wp] [Gappa] Goal typed_float_main_post_VAR_F : Valid
+[wp] [Qed] Goal typed_float_main_post_VAR_D : Valid
+[wp] [Qed] Goal typed_float_main_post_VAR_D : Valid
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+main                 2      2          6       100%
+----------------------------------------------------------

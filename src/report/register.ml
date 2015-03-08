@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -41,6 +41,7 @@ let print, _ =
     "Report.print_once"
     [ Report_parameters.Enabled.self; (* reprint if we explicitly ask for *)
       Report_parameters.PrintProperties.self; 
+      Report_parameters.Specialized.self;
       Property_status.self ]
     print
 

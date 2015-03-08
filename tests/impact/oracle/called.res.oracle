@@ -1,0 +1,31 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/impact/called.i (no preprocessing)
+[impact] beginning analysis
+[value] Analyzing an incomplete application starting at g
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  X ∈ [--..--]
+[value] computing for function f <- g.
+        Called from tests/impact/called.i:15.
+[value] Recording results for f
+[value] Done for function f
+[value] computing for function f <- g.
+        Called from tests/impact/called.i:17.
+[value] Recording results for f
+[value] Done for function f
+[value] Recording results for g
+[value] done for function g
+[pdg] computing for function g
+[from] Computing for function f
+[from] Done for function f
+[pdg] done for function g
+[pdg] computing for function f
+[pdg] done for function f
+[impact] impacted statements of stmt(s) 7 are:
+           tests/impact/called.i:8 (sid 1): X = x;
+           tests/impact/called.i:8 (sid 3): return y;
+           tests/impact/called.i:15 (sid 8): c = f(a,b);
+           tests/impact/called.i:16 (sid 9): d = X;
+           tests/impact/called.i:17 (sid 10): c = f(a,d);
+[impact] analysis done

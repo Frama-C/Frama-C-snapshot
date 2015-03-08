@@ -50,6 +50,7 @@ void main()
 
   int *p = &g + (int)&g;
   *p = 1;
+  p = &g + (int)&g;
   int vg = *p;
   *p = &vg;
 }

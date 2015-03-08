@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,32 +20,13 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open Cil_types
-
-class mark_visitor = object(_self)
-  inherit Cil.nopCilVisitor
-
-  method! vstmt s =
-    Db.Value.update_table s Cvalue.Model.top;
-    Cil.DoChildren
-
-end
-
-let should_memorize_function name =
-  not (Value_parameters.NoResultsAll.get() ||
-	  (Value_parameters.ObviouslyTerminatesAll.get()) || 
-	  let name = name.svar.vname in
-	  let mem = Datatype.String.Set.mem in
-	  mem name (Value_parameters.NoResultsFunctions.get ())
-	  || mem name (Value_parameters.ObviouslyTerminatesFunctions.get ()))
-
-let run () =
-  let visitor = new mark_visitor in
-  Globals.Functions.iter_on_fundecs
-      (fun afundec ->
-         if not (should_memorize_function afundec)
-         then
-           ignore (Cil.visitCilFunction (visitor:>Cil.cilVisitor) afundec))
+let should_memorize_function f =
+  not (Value_parameters.NoResultsAll.get()
+       || Value_parameters.ObviouslyTerminatesAll.get ()
+       || Cil_datatype.Fundec.Set.mem
+         f (Value_parameters.NoResultsFunctions.get ())
+       || Cil_datatype.Fundec.Set.mem
+         f (Value_parameters.ObviouslyTerminatesFunctions.get ()))
 
 let () = Db.Value.no_results :=
   (fun fd -> not (should_memorize_function fd))

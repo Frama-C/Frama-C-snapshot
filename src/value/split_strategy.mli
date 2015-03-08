@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -22,7 +22,7 @@
 
 type split_strategy =
   | NoSplit
-  | SplitEqList of Datatype.Big_int.t list
+  | SplitEqList of Datatype.Integer.t list
   | FullSplit
 
 include Datatype.S_with_collections with type t = split_strategy

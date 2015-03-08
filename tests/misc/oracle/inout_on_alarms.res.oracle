@@ -1,0 +1,85 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/inout_on_alarms.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  i ∈ {0}
+  t[0..9] ∈ {0}
+  p ∈ {0}
+  S[0..9] ∈ {0}
+  c ∈ [--..--]
+[value] computing for function f <- main.
+        Called from tests/misc/inout_on_alarms.i:32.
+tests/misc/inout_on_alarms.i:17:[kernel] warning: accessing out of bounds index {12}. assert p->i < 10;
+tests/misc/inout_on_alarms.i:17:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
+[value] Recording results for f
+[value] Done for function f
+[value] computing for function g <- main.
+        Called from tests/misc/inout_on_alarms.i:34.
+tests/misc/inout_on_alarms.i:21:[kernel] warning: accessing out of bounds index {12}. assert i < 10;
+tests/misc/inout_on_alarms.i:21:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
+[value] Recording results for g
+[value] Done for function g
+[value] Recording results for main
+[value] done for function main
+tests/misc/inout_on_alarms.i:17:[value] Assertion 'Value,index_bound' got final status invalid.
+tests/misc/inout_on_alarms.i:21:[value] Assertion 'Value,index_bound' got final status invalid.
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function f:
+  NON TERMINATING FUNCTION
+[value] Values at end of function g:
+  NON TERMINATING FUNCTION
+[value] Values at end of function main:
+  NON TERMINATING FUNCTION
+[from] Computing for function f
+[from] Non-terminating function f (no dependencies)
+[from] Done for function f
+[from] Computing for function g
+[from] Non-terminating function g (no dependencies)
+[from] Done for function g
+[from] Computing for function main
+[from] Non-terminating function main (no dependencies)
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function f:
+  NON TERMINATING - NO EFFECTS
+[from] Function g:
+  NON TERMINATING - NO EFFECTS
+[from] Function main:
+  NON TERMINATING - NO EFFECTS
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function f:
+          \nothing
+[inout] Inputs for function f:
+          p; S[8]
+[inout] InOut (internal) for function f:
+        Operational inputs:
+          p; S[8]
+        Operational inputs on termination:
+          \nothing
+        Sure outputs:
+          ANYTHING(origin:Unknown)
+[inout] Out (internal) for function g:
+          \nothing
+[inout] Inputs for function g:
+          i
+[inout] InOut (internal) for function g:
+        Operational inputs:
+          i
+        Operational inputs on termination:
+          \nothing
+        Sure outputs:
+          ANYTHING(origin:Unknown)
+[inout] Out (internal) for function main:
+          i; p; S[8]
+[inout] Inputs for function main:
+          i; p; S[8]; c
+[inout] InOut (internal) for function main:
+        Operational inputs:
+          c
+        Operational inputs on termination:
+          \nothing
+        Sure outputs:
+          ANYTHING(origin:Unknown)

@@ -1,0 +1,1 @@
+[preprocessing] running gcc -C -E -I. tests/spec/at_exit.c

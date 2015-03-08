@@ -1,0 +1,24 @@
+-= CVE-1999-0206 =-
+
+Vulnerable version: Sendmail 8.8.0 to ?
+File: sendmail/mime.c
+Download from: source not available anymore
+
+Domain: Server
+
+_ Vulnerable Functions and Buffers _
+
+Function mime7to8 (not shown in testcases) loops over fgets, passing each fgets'd string to function mime_fromqp which decodes input into a fixed sized buffer passed in from mime7to8. However, mime_fromqp's return value indicates to mime7to8 whether the current fgets string includes the continuation string "=\n", in which case the subsequent fgets'd string is also passed to mime_fromqp which continues writing into the buffer where it previously left off. Thus, a sufficiently long input where each substring between "=\n"s is not too long will yield an overflow. In the patched version, the pointer into the dest buffer is reset to the start of dest before mime_fromqp is called again.
+
+_ Decomposed Programs _
+
+mime_fromqp/
+  mime_fromqp_{arr,ptr}_{bad,ok}.c
+
+Variant arr replaces pointer operations with array operations.
+
+_ Notes _
+
+This is Zitser's sendmail/s3, simplified.
+
+BASE_SZ was originally 50.

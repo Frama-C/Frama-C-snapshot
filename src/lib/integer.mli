@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -95,9 +95,12 @@ val shift_right_logical : t -> t -> t
 val two_power_64 : t
 val max_int64 : t
 val min_int64 : t
-val bits_of_max_float : t
-val bits_of_most_negative_float : t
 val of_string : string -> t
+(** @raise Failure _ when the string cannot be parsed. *)
+(* Beware that non-decimal integers cannot be parsed when OCaml's Big_int
+   implementation is used. Zarith handles them, but we cannot assume it
+   is present. *)
+
 val to_string : t -> string
 val add_2_64 : t -> t
 val add_2_32 : t -> t

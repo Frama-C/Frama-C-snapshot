@@ -1,0 +1,29 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/bigarray.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  T[0] ∈ {2}
+   [1] ∈ {3}
+   [2..8388607] ∈ {0}
+  S ∈ {{ "uututututututu" }}
+tests/misc/bigarray.c:7:[kernel] warning: out of bounds write. assert \valid(S);
+tests/misc/bigarray.c:7:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
+[value] Recording results for main
+[value] done for function main
+tests/misc/bigarray.c:7:[value] Assertion 'Value,mem_access' got final status invalid.
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  __retres ∈ {0}
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          __retres
+[inout] Inputs for function main:
+          S

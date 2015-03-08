@@ -50,6 +50,7 @@ void origin_misalign_1(void) {
 void origin_misalign_2(void) {
   pm2  = *(int**)(2 + (char *) Tm2);
   qm2 = pm2+1;
+  Frama_C_show_each(qm2);
   *qm2 = (int)&a;
 }
 

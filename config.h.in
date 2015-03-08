@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2014                                               */
+/*  Copyright (C) 2007-2015                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -49,3 +49,9 @@
 #undef TYPE_WCHAR_T
 
 #undef TYPE_PTRDIFF_T
+
+#undef HAVE_BUILTIN_VA_LIST
+
+#undef THREAD_IS_KEYWORD
+
+#undef UNDERSCORE_NAME

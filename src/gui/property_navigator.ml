@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -67,7 +67,7 @@ let make_property ip =
   let status = Property_status.get ip in
   let status_name = Pretty_utils.sfprintf "%a" Property_status.pretty status in
   let con_status = Consolidation.get ip in
-  let consolidated_status_name = 
+  let consolidated_status_name =
     Pretty_utils.sfprintf "%a" Consolidation.pretty con_status
   in
   let function_name, module_name = match Property.get_kf ip with
@@ -76,11 +76,11 @@ let make_property ip =
                         enough information in the ast *)
     | Some kf -> kf_name_and_module kf
   in
-  let kind = 
-    Pretty_utils.sfprintf "@[<hov>%a@]" Property.pretty ip 
+  let kind =
+    Pretty_utils.sfprintf "@[<hov>%a@]" Property.pretty ip
   in
   let status_icon = Gtk_helper.Icon.Feedback (Feedback.get ip) in
-  { 
+  {
     module_name = module_name;
     function_name = function_name;
     visible = true;
@@ -107,7 +107,10 @@ module Refreshers: sig
   module StmtSpec: State_builder.Ref with type data = bool
   module Reachable: State_builder.Ref with type data = bool
   module Other: State_builder.Ref with type data = bool
+  module Instances: State_builder.Ref with type data = bool
   module Axiomatic: State_builder.Ref with type data = bool
+  module TypeInvariants: State_builder.Ref with type data = bool
+  module GlobalInvariants: State_builder.Ref with type data = bool
 (*module Pragma: State_builder.Ref with type data = bool*)
   module RteNotGenerated: State_builder.Ref with type data = bool
   module RteGenerated: State_builder.Ref with type data = bool
@@ -155,21 +158,21 @@ struct
     let first_extended_ref = ref true
     let first_exiting_ref = ref true
     let () =
-      Cmdline.run_after_extended_stage 
-	(fun () -> 
+      Cmdline.run_after_extended_stage
+	(fun () ->
 	  if !first_extended_ref then begin
 	    first_extended_ref := false;
 	    Configuration.load ()
 	  end);
-      Cmdline.run_after_loading_stage 
-	(fun () -> 
+      Cmdline.run_after_loading_stage
+	(fun () ->
 	  if !first_exiting_ref then begin
 	    first_exiting_ref := false;
 	    let v = Configuration.find_bool ~default:true key_name in
             set v
 	  end)
 
-    let set v = 
+    let set v =
       Configuration.set key_name (Configuration.ConfBool v);
       set v
 
@@ -222,6 +225,18 @@ struct
   module Reachable = Add(
     struct let name = "Reachable"
            let hint = "Show 'reachable' hypotheses" end)
+  module Instances = Add(
+    struct let name = "Instances"
+           let hint = "Show properties that are instances of root properties"
+    end)
+  module TypeInvariants = Add(
+    struct let name = "Type invariants"
+           let hint = "Show type invariants"
+    end)
+  module GlobalInvariants = Add(
+    struct let name = "Global invariants"
+           let hint = "Show global invariants"
+    end)
   module Other = Add(
     struct let name = "Other"
            let hint = "Show other properties" end)
@@ -280,6 +295,9 @@ struct
     Reachable.add hb;
     StmtSpec.add hb;
     Axiomatic.add hb;
+    TypeInvariants.add hb;
+    GlobalInvariants.add hb;
+    Instances.add hb;
     Other.add hb;
   (*Pragma.add hb;*)
     RteNotGenerated.add hb;
@@ -307,7 +325,7 @@ let aux_rte kf acc (name, _, rte_status_get: Db.RteGen.status_accessor) =
     | true, true, _
     | false, _, true ->
         (* Considered that leaf functions are not verified internally *)
-	let status_name, status = 
+	let status_name, status =
 	  if st then
             if Kernel_function.is_definition kf
             then "Generated", Feedback.Valid
@@ -316,7 +334,7 @@ let aux_rte kf acc (name, _, rte_status_get: Db.RteGen.status_accessor) =
 	in
         let function_name, module_name = kf_name_and_module kf in
         let status_icon = Gtk_helper.Icon.Feedback status in
-        let ip = Property.ip_other name None Kglobal in { 
+        let ip = Property.ip_other name None Kglobal in {
           module_name = module_name;
           function_name = function_name;
           visible = true;
@@ -342,7 +360,7 @@ let make_panel (main_ui:main_window_extension_points) =
   sc_buttons#add_with_viewport vb#coerce;
   container#pack sc_buttons#coerce;
 
-  let module MODEL =  
+  let module MODEL =
 	Gtk_helper.MAKE_CUSTOM_LIST(struct type t = property end)
   in
   let model = MODEL.custom_list () in
@@ -369,7 +387,7 @@ let make_panel (main_ui:main_window_extension_points) =
        ~callback:(fun path _col ->
 	 match model#custom_get_iter path with
 	 | Some { MODEL.finfo = { ip = ip } } ->
-	   let format_graph ppf = 
+	   let format_graph ppf =
 	     Consolidation_graph.dump (Consolidation_graph.get ip) ppf in
 	   Gtk_helper.graph_window_through_dot main_ui#main_window "Dependencies" format_graph
 	 | None -> ()));
@@ -439,6 +457,8 @@ let make_panel (main_ui:main_window_extension_points) =
         Ensures.get() && StmtSpec.get()
     | Property.IPPredicate(Property.PKTerminates,_,_,_) -> Terminates.get ()
     | Property.IPAxiom _ -> false
+    | Property.IPTypeInvariant _ -> TypeInvariants.get()
+    | Property.IPGlobalInvariant _ -> GlobalInvariants.get()
     | Property.IPAxiomatic _ -> Axiomatic.get () && not (OnlyCurrent.get ())
     | Property.IPLemma _ -> Axiomatic.get () && not (OnlyCurrent.get ())
     | Property.IPComplete _ -> Behaviors.get ()
@@ -454,7 +474,6 @@ let make_panel (main_ui:main_window_extension_points) =
         Allocations.get ()
     | Property.IPAllocation (_,Kstmt _,Property.Id_behavior _,_) ->
         Allocations.get() && StmtSpec.get()
-
     | Property.IPAssigns (_,Kglobal,_,_) -> Assigns.get ()
     | Property.IPAssigns (_,Kstmt _,Property.Id_code_annot _,_) ->
         Assigns.get ()
@@ -462,6 +481,7 @@ let make_panel (main_ui:main_window_extension_points) =
         Assigns.get() && StmtSpec.get()
     | Property.IPFrom _ -> From.get ()
     | Property.IPDecrease _ -> Variant.get ()
+    | Property.IPPropertyInstance _ -> Instances.get ()
   in
   let visible_status_aux = function
     | Consolidation.Never_tried -> Untried.get ()
@@ -578,7 +598,8 @@ let highlighter (buffer:GSourceView2.source_buffer) localizable ~start ~stop =
 
   | Pretty_source.PStmt _
   | Pretty_source.PGlobal _| Pretty_source.PVDecl _
-  | Pretty_source.PTermLval _| Pretty_source.PLval _ -> ()
+  | Pretty_source.PTermLval _| Pretty_source.PLval _
+  | Pretty_source.PExp _ -> ()
 
 
 

@@ -21,8 +21,7 @@
 /*  (enclosed in the file GPL).                                           */
 /*                                                                        */
 /**************************************************************************/
-#define FRAMA_C_MALLOC_INDIVIDUAL
-#include "share/libc/stdlib.c"
+#include "share/libc/stdlib.h"
 typedef struct purse {
   int balance;
 } purse;

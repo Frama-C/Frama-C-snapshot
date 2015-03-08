@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -140,7 +140,8 @@ let pp_stmt kloc fmt stmt =
     | Loop(_,_,loc,_,_) -> Format.fprintf fmt "loop%a" (pp_kloc kloc) loc
     | Block _ -> Format.fprintf fmt "block%a" pp_labels stmt
     | UnspecifiedSequence _ -> Format.fprintf fmt "instruction%a" pp_labels stmt
-    | TryFinally(_,_,loc) | TryExcept(_,_,_,loc) -> 
+    | Throw(_,loc) -> Format.fprintf fmt "throw%a" (pp_kloc kloc) loc
+    | TryFinally(_,_,loc) | TryExcept(_,_,_,loc) | TryCatch(_,_,loc)-> 
       Format.fprintf fmt "try-catch%a" (pp_kloc kloc) loc
 
 let pp_kinstr kloc fmt = function
@@ -176,9 +177,11 @@ let pp_context kfopt fmt = function
 	    if not (Kernel_function.equal kf0 kf) then 
 	      Format.fprintf fmt " of '%s'" (Kernel_function.get_name kf)
 
-let pp_prop kfopt kiopt kloc fmt = function
+let rec pp_prop kfopt kiopt kloc fmt = function
   | IPAxiom (s,_,_,_,_) -> Format.fprintf fmt "Axiom '%s'" s
   | IPLemma (s,_,_,_,_) -> Format.fprintf fmt "Lemma '%s'" s
+  | IPTypeInvariant (s,_,_,_) -> Format.fprintf fmt "Type invariant '%s'" s
+  | IPGlobalInvariant (s,_,_) -> Format.fprintf fmt "Global invariant '%s'" s
   | IPAxiomatic (s,_) -> Format.fprintf fmt "Axiomatic '%s'" s
   | IPOther(s,kf,ki) -> Format.fprintf fmt "%s%a%a" s 
     (pp_context kfopt) kf (pp_opt kiopt (pp_kinstr kloc)) ki
@@ -276,6 +279,13 @@ let pp_prop kfopt kiopt kloc fmt = function
   | IPReachable (Some kf, Kglobal, _) ->
     (* print "Unreachable": it seems that it is what the user want to see *)
     Format.fprintf fmt "Unreachable %a" Kernel_function.pretty kf
+  | IPPropertyInstance (kfo, ki, ip) ->
+    Format.fprintf fmt "Instance of '%a'%a%a@."
+      (pp_prop kfopt kiopt kloc) ip      
+      (pp_context kfopt) kfo
+      (pp_opt kiopt (pp_kinstr kloc)) ki
+      
+
 
 type kf = [ `Always | `Never | `Context of kernel_function ]
 
@@ -346,7 +356,7 @@ let loop_order = function
   | Id_behavior b -> [B b]
   | Id_code_annot _ -> []
       
-let ip_order = function
+let rec ip_order = function
   | IPAxiomatic(a,_) -> [I 0;S a]
   | IPAxiom(a,_,_,_,_) | IPLemma(a,_,_,_,_) -> [I 1;S a]
   | IPOther(s,None,ki) -> [I 3;K ki;S s]
@@ -363,6 +373,10 @@ let ip_order = function
   | IPDecrease(kf,ki,Some a,_) -> [I 14;F kf;K ki] @ annot_order a
   | IPReachable(None,_,_) -> [I 15]
   | IPReachable(Some kf,ki,_) -> [I 16;F kf;K ki]
+  | IPPropertyInstance (None,ki,ip) -> [I 17; K ki] @ ip_order ip
+  | IPPropertyInstance (Some kf,ki,ip) -> [I 17; F kf; K ki] @ ip_order ip
+  | IPTypeInvariant(a,_,_,_) -> [I 18; S a]
+  | IPGlobalInvariant(a,_,_) -> [I 19; S a]
 
 let pp_compare p q = cmp (ip_order p) (ip_order q)
 

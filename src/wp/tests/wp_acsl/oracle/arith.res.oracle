@@ -1,0 +1,181 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_acsl/arith.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Global
+------------------------------------------------------------
+
+Lemma ASSOC:
+Assume: 'L16' 'L15' 'L14' 'L30' 'L21' 'L20' 'L13' 'L12' 'L11' 'L10' 'L01'
+  'scN2' 'scN1' 'scL1' 'ucN2' 'ucN1' 'ucL4' 'ucL3' 'ucL2' 'ucL1'
+Prove: (x_0=(land y_0 z_0)) -> ((land t_0 x_0)=(land t_0 y_0 z_0))
+
+------------------------------------------------------------
+
+Lemma L01:
+Assume: 'scN2' 'scN1' 'scL1' 'ucN2' 'ucN1' 'ucL4' 'ucL3' 'ucL2' 'ucL1'
+Prove: true
+
+------------------------------------------------------------
+
+Lemma L10:
+Assume: 'L01' 'scN2' 'scN1' 'scL1' 'ucN2' 'ucN1' 'ucL4' 'ucL3' 'ucL2' 'ucL1'
+Prove: true
+
+------------------------------------------------------------
+
+Lemma L11:
+Assume: 'L10' 'L01' 'scN2' 'scN1' 'scL1' 'ucN2' 'ucN1' 'ucL4' 'ucL3' 'ucL2'
+  'ucL1'
+Prove: true
+
+------------------------------------------------------------
+
+Lemma L12:
+Assume: 'L11' 'L10' 'L01' 'scN2' 'scN1' 'scL1' 'ucN2' 'ucN1' 'ucL4' 'ucL3'
+  'ucL2' 'ucL1'
+Prove: true
+
+------------------------------------------------------------
+
+Lemma L13:
+Assume: 'L12' 'L11' 'L10' 'L01' 'scN2' 'scN1' 'scL1' 'ucN2' 'ucN1' 'ucL4'
+  'ucL3' 'ucL2' 'ucL1'
+Prove: true
+
+------------------------------------------------------------
+
+Lemma L14:
+Assume: 'L30' 'L21' 'L20' 'L13' 'L12' 'L11' 'L10' 'L01' 'scN2' 'scN1' 'scL1'
+  'ucN2' 'ucN1' 'ucL4' 'ucL3' 'ucL2' 'ucL1'
+Prove: true
+
+------------------------------------------------------------
+
+Lemma L15:
+Assume: 'L14' 'L30' 'L21' 'L20' 'L13' 'L12' 'L11' 'L10' 'L01' 'scN2' 'scN1'
+  'scL1' 'ucN2' 'ucN1' 'ucL4' 'ucL3' 'ucL2' 'ucL1'
+Prove: true
+
+------------------------------------------------------------
+
+Lemma L16:
+Assume: 'L15' 'L14' 'L30' 'L21' 'L20' 'L13' 'L12' 'L11' 'L10' 'L01' 'scN2'
+  'scN1' 'scL1' 'ucN2' 'ucN1' 'ucL4' 'ucL3' 'ucL2' 'ucL1'
+Prove: true
+
+------------------------------------------------------------
+
+Lemma L20:
+Assume: 'L13' 'L12' 'L11' 'L10' 'L01' 'scN2' 'scN1' 'scL1' 'ucN2' 'ucN1'
+  'ucL4' 'ucL3' 'ucL2' 'ucL1'
+Prove: true
+
+------------------------------------------------------------
+
+Lemma L21:
+Assume: 'L20' 'L13' 'L12' 'L11' 'L10' 'L01' 'scN2' 'scN1' 'scL1' 'ucN2'
+  'ucN1' 'ucL4' 'ucL3' 'ucL2' 'ucL1'
+Prove: true
+
+------------------------------------------------------------
+
+Lemma L30:
+Assume: 'L21' 'L20' 'L13' 'L12' 'L11' 'L10' 'L01' 'scN2' 'scN1' 'scL1' 'ucN2'
+  'ucN1' 'ucL4' 'ucL3' 'ucL2' 'ucL1'
+Prove: true
+
+------------------------------------------------------------
+
+Lemma scL1:
+Assume: 'ucN2' 'ucN1' 'ucL4' 'ucL3' 'ucL2' 'ucL1'
+Prove: true
+
+------------------------------------------------------------
+
+Lemma scN1:
+Assume: 'scL1' 'ucN2' 'ucN1' 'ucL4' 'ucL3' 'ucL2' 'ucL1'
+Prove: true
+
+------------------------------------------------------------
+
+Lemma scN2:
+Assume: 'scN1' 'scL1' 'ucN2' 'ucN1' 'ucL4' 'ucL3' 'ucL2' 'ucL1'
+Prove: true
+
+------------------------------------------------------------
+
+Lemma ucL1:
+Prove: true
+
+------------------------------------------------------------
+
+Lemma ucL2:
+Assume: 'ucL1'
+Prove: true
+
+------------------------------------------------------------
+
+Lemma ucL3:
+Assume: 'ucL2' 'ucL1'
+Prove: true
+
+------------------------------------------------------------
+
+Lemma ucL4:
+Assume: 'ucL3' 'ucL2' 'ucL1'
+Prove: true
+
+------------------------------------------------------------
+
+Lemma ucN1:
+Assume: 'ucL4' 'ucL3' 'ucL2' 'ucL1'
+Prove: true
+
+------------------------------------------------------------
+
+Lemma ucN2:
+Assume: 'ucN1' 'ucL4' 'ucL3' 'ucL2' 'ucL1'
+Prove: true
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function cast_sgn_usgn
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ko,KO' in 'cast_sgn_usgn':
+Assume { }
+Prove: false.
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok,nat' in 'cast_sgn_usgn':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function uchar_range
+------------------------------------------------------------
+
+Goal Assertion 'qed_ok,A1' (file tests/wp_acsl/arith.i, line 16):
+Assume { (* Domain *) Type: (is_uint8 i_0). }
+Prove: 0<=i_0.
+
+------------------------------------------------------------
+
+Goal Assertion 'qed_ok,A2' (file tests/wp_acsl/arith.i, line 17):
+Assume {
+  (* Domain *)
+  Type: (is_uint8 i_0).
+  (* Assertion 'qed_ok,A1' (file tests/wp_acsl/arith.i, line 16) *)
+  (* tests/wp_acsl/arith.i:16: Assertion 'qed_ok,A1': *)
+  Have: 0<=i_0.
+}
+Prove: i_0<=255.
+
+------------------------------------------------------------

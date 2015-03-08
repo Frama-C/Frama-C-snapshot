@@ -1,0 +1,14 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/syntax/get_astinfo_bts1136.i (no preprocessing)
+found variable vid:69 formal in f
+found variable vid:72 formal in g
+found variable vid:75 formal in h
+found variable vid:77 formal in i
+found variable vid:79 formal in j
+found variable vid:81 formal in k
+[do_v] vid:75 formal in h
+[do_v] vid:72 formal in g
+[do_v] vid:69 formal in f
+[do_v] vid:81 local in k
+[do_v] vid:79 local in j
+[do_v] vid:77 local in i

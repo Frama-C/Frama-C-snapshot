@@ -1,0 +1,288 @@
+[wp:var_kind] [incr_addr] t
+[wp:var_kind] [incr_addr] t
+[wp:var_kind] [incr_addr] t
+[wp:var_kind] [incr_addr] tt
+[wp:var_kind] [incr_addr] tt
+[wp:var_kind] [incr_addr] tt
+[wp:var_kind] [incr_addr] s
+[wp:var_kind] [incr_addr] sp
+[wp:var_kind] [incr_addr] sp
+[wp:var_kind] [ByARef] first step + (fp,1)
+[wp:var_kind] [ByARef] fp not yet
+[wp:var_kind] [ByARef] add (fp,1)
+[wp:var_kind] [ByARef] first step + (hp,1)
+[wp:var_kind] [ByARef] hp not yet
+[wp:var_kind] [ByARef] add (hp,1)
+[wp:var_kind] [ByARef] first step + (gp,1)
+[wp:var_kind] [ByARef] gp not yet
+[wp:var_kind] [ByARef] add (gp,1)
+[wp:var_kind] [ByARef] first step + (rp,1)
+[wp:var_kind] [ByARef] rp not yet
+[wp:var_kind] [ByARef] add (rp,1)
+[wp:var_kind] [ByARef] first step + (rp,1)
+[wp:var_kind] [ByARef] (rp,1) already
+[wp:var_kind] [ByARef] first step + (lp,1)
+[wp:var_kind] [ByARef] lp not yet
+[wp:var_kind] [ByARef] add (lp,1)
+[wp:var_kind] [ByARef] first step + (ap,1)
+[wp:var_kind] [ByARef] ap not yet
+[wp:var_kind] [ByARef] add (ap,1)
+[wp:var_kind] [ByPRef] first step + (sp,0)
+[wp:var_kind] [ByPRef] sp not yet
+[wp:var_kind] [ByPRef] add (sp,0)
+[wp:var_kind] [BuiltinCall] fp ByARef
+[wp:var_kind] [BuiltinCall] fp + call(Prop,0,not address taken)
+[wp:var_kind] [BuiltinCall] hp ByARef
+[wp:var_kind] [BuiltinCall] hp + call(Prop,0,not address taken)
+[wp:var_kind] [BuiltinCall] gp not yet ByPRef
+[wp:var_kind] [BuiltinCall] gp ByARef
+[wp:var_kind] [BuiltinCall] gp + call(Prop,1,not address taken)
+[wp:var_kind] [BuiltinCall] rp ByARef
+[wp:var_kind] [BuiltinCall] rp + call(Prop,0,not address taken)
+[wp:var_kind] [BuiltinCall] lp ByARef
+[wp:var_kind] [BuiltinCall] lp + call(Prop,0,not address taken)
+[wp:var_kind] [BuiltinCall] ap not yet ByPRef
+[wp:var_kind] [BuiltinCall] ap ByARef
+[wp:var_kind] [BuiltinCall] ap + call(Prop,1,not address taken)
+[wp:var_kind] [collect_calls] t not yet in ArgAref
+[wp:var_kind] [ArgARef] try + t
+[wp:var_kind] [ArgARef] + t
+[wp:var_kind] [collect_calls] t + call(hp,0,address taken)
+[wp:var_kind] [collect_calls] t ArfARef
+[wp:var_kind] [collect_calls] t + call(fp,0,address taken)
+[wp:var_kind] [collect_calls] t ArfARef
+[wp:var_kind] [collect_calls] t + call(gp,0,address taken)
+[wp:var_kind] [collect_calls] tt not yet in ArgAref
+[wp:var_kind] [ArgARef] try + tt
+[wp:var_kind] [ArgARef] + tt
+[wp:var_kind] [collect_calls] tt + call(lp,0,address taken)
+[wp:var_kind] [collect_calls] tt ArfARef
+[wp:var_kind] [collect_calls] tt + call(rp,0,address taken)
+[wp:var_kind] [collect_calls] tt ArfARef
+[wp:var_kind] [collect_calls] tt + call(ap,0,address taken)
+[wp:var_kind] [collect_calls] s not yet in ArgAref
+[wp:var_kind] [ArgARef] try + s
+[wp:var_kind] [ArgARef] + s
+[wp:var_kind] [collect_calls] s + call(hp,0,address taken)
+[wp:var_kind] [collect_calls] sp not yet ByARef
+[wp:var_kind] [ByARef] first step + (sp,0)
+[wp:var_kind] [ByARef] sp not yet
+[wp:var_kind] [ByARef] add (sp,0)
+[wp:var_kind] [collect_calls] sp + call(fp,0,address taken)
+[wp:var_kind] [BuiltinCall] sp ByPRef
+[wp:var_kind] [BuiltinCall] sp + call(Prop,0,address taken)
+[wp:var_kind] [by_array_reference] fp ByAref
+[wp:var_kind] [decr_addr] sp
+[wp:var_kind] [by_array_reference] sp ByAref
+[wp:var_kind] [by_array_reference] rp ByAref
+[wp:var_kind] [by_array_reference] hp ByAref
+[wp:var_kind] [by_array_reference] lp ByAref
+[wp:var_kind] [by_array_reference] fp ByAref
+[wp:var_kind] [by_array_reference] gp ByAref
+[wp:var_kind] [by_array_reference] ap ByAref
+[wp:var_kind] [decr_addr] sp
+[wp:var_kind] [by_ptr_reference] sp ByPref
+[wp:var_kind] [decr_addr] t
+[wp:var_kind] [decr_addr] t
+[wp:var_kind] [decr_addr] t
+[wp:var_kind] [array_reference arg] t ArgAref
+[wp:var_kind] [decr_addr] tt
+[wp:var_kind] [decr_addr] tt
+[wp:var_kind] [decr_addr] tt
+[wp:var_kind] [array_reference arg] tt ArgAref
+[wp:var_kind] [decr_addr] s
+[wp:var_kind] [array_reference arg] s ArgAref
+[wp:var_kind] [resolves addr taken] sp: remove addrtaken
+[wp:var_kind] [resolves addr taken] t: remove addrtaken
+[wp:var_kind] [resolves addr taken] tt: remove addrtaken
+[wp:var_kind] [resolves addr taken] s: remove addrtaken
+[kernel] warning: No code for function reset_5, default assigns generated for default behavior
+[wp] warning: Missing RTE guards
+[wp:var_kind] rp is a array ref param of arity 1
+[wp:var_kind] rp is a array ref param of arity 1
+[wp:var_kind] rp is a array ref param of arity 1
+[wp] warning: Assuming contracts of external functions
+[wp:var_kind] rp is a array ref param of arity 1
+[wp:var_kind] rp is a array ref param of arity 1
+[wp:var_kind] rp is a array ref param of arity 1
+[wp:var_kind] rp is a array ref param of arity 1
+[wp:var_kind] rp is a array ref param of arity 1
+[wp:var_kind] rp is a array ref param of arity 1
+[wp:var_kind] rp is a array ref param of arity 1
+[wp:var_kind] rp is a array ref param of arity 1
+[wp:var_kind] rp is a array ref param of arity 1
+[wp:var_kind] rp is a array ref param of arity 1
+[wp:var_kind] reg_load is a funvar
+[wp:var_kind] lp is a array ref param of arity 1
+[wp:var_kind] reg_load is a funvar
+[wp:var_kind] reg_load is a funvar
+[wp:var_kind] lp is a array ref param of arity 1
+[wp:var_kind] reg_load is a funvar
+[wp:var_kind] reg_load is a funvar
+[wp:var_kind] lp is a array ref param of arity 1
+[wp:var_kind] reg_load is a funvar
+[wp:var_kind] reg_load is a funvar
+[wp:var_kind] lp is a array ref param of arity 1
+[wp:var_kind] reg_load is a funvar
+[wp:var_kind] lp is a array ref param of arity 1
+[wp:var_kind] lp is a array ref param of arity 1
+[wp:var_kind] lp is a array ref param of arity 1
+[wp:var_kind] lp is a array ref param of arity 1
+[wp:var_kind] lp is a array ref param of arity 1
+[wp:var_kind] lp is a array ref param of arity 1
+[wp:var_kind] lp is a array ref param of arity 1
+[wp] [WP:simplified] Goal store_load_1_5_exit_assigns : Valid
+[wp] [WP:simplified] Goal store_load_1_5_normal_assigns : Valid
+[wp:var_kind] reg_add is a funvar
+[wp:var_kind] tt is a array refvar
+[wp:var_kind] tt is a array refvar
+[wp:var_kind] reg_load is a funvar
+[wp:var_kind] tt is a array refvar
+[wp:var_kind] reg_add is a funvar
+[wp:var_kind] reg_load is a funvar
+[wp:var_kind] reg_add is a funvar
+[wp:var_kind] reg_load is a funvar
+[wp:var_kind] tt is a array refvar
+[wp:var_kind] tt is a array refvar
+[wp:var_kind] tt is a array refvar
+[wp:var_kind] tt is a array refvar
+[wp:var_kind] tt is a array refvar
+[wp:var_kind] tt is a array refvar
+[wp:var_kind] tt is a array refvar
+[wp:var_kind] tt is a array refvar
+[wp:var_kind] tt is a array refvar
+[wp:var_kind] tt is a array refvar
+[wp:var_kind] tt is a array refvar
+[wp:var_kind] tt is a array refvar
+[wp:var_kind] tt is a array refvar
+[wp:var_kind] tt is a array refvar
+[wp:var_kind] tt is a array refvar
+[wp:var_kind] tt is a array refvar
+[wp:var_kind] tt is a array refvar
+[wp:var_kind] tt is a array refvar
+[wp:var_kind] tt is a array refvar
+[wp:var_kind] tt is a array refvar
+[wp:var_kind] tt is a array refvar
+[wp:var_kind] tt is a array refvar
+[wp:var_kind] tt is a array refvar
+[wp] warning: Use -wp-warnings for details about 'Stronger' and 'Degenerated' goals
+[wp] warning: Stronger goal store_calls_on_array_dim_2_post_16_Pload (3 warnings)
+[wp] warning: Stronger goal store_calls_on_array_dim_2_post_17_Preset (3 warnings)
+[wp] warning: Stronger goal store_calls_on_array_dim_2_post_18_Padd (3 warnings)
+[wp] warning: Stronger goal store_calls_on_array_dim_2_exit_assigns (5 warnings)
+[wp] warning: Stronger goal store_calls_on_array_dim_2_normal_assigns (3 warnings)
+[wp] warning: Stronger goal store_calls_on_array_dim_2_pre12_add_1_5_s17 (3 warnings)
+[wp] warning: Stronger goal store_calls_on_array_dim_2_pre10_load_1_5_s15 (1 warning)
+[wp] warning: Stronger goal store_calls_on_array_dim_2_pre8_reset_1_5_s16 (2 warnings)
+[wp:var_kind] reg_add is a funvar
+[wp:var_kind] t is a array refvar
+[wp:var_kind] t is a array refvar
+[wp:var_kind] reg_load is a funvar
+[wp:var_kind] t is a array refvar
+[wp:var_kind] reg_add is a funvar
+[wp:var_kind] reg_load is a funvar
+[wp:var_kind] reg_add is a funvar
+[wp:var_kind] reg_load is a funvar
+[wp:var_kind] t is a array refvar
+[wp:var_kind] reg_add is a funvar
+[wp:var_kind] reg_load is a funvar
+[wp:var_kind] reg_add is a funvar
+[wp:var_kind] t is a array refvar
+[wp:var_kind] reg_add is a funvar
+[wp:var_kind] reg_load is a funvar
+[wp:var_kind] reg_add is a funvar
+[wp:var_kind] t is a array refvar
+[wp:var_kind] reg_add is a funvar
+[wp:var_kind] reg_load is a funvar
+[wp:var_kind] reg_add is a funvar
+[wp:var_kind] t is a array refvar
+[wp:var_kind] reg_add is a funvar
+[wp:var_kind] reg_load is a funvar
+[wp:var_kind] reg_add is a funvar
+[wp:var_kind] t is a array refvar
+[wp:var_kind] reg_add is a funvar
+[wp:var_kind] t is a array refvar
+[wp:var_kind] t is a array refvar
+[wp:var_kind] t is a array refvar
+[wp:var_kind] t is a array refvar
+[wp:var_kind] t is a array refvar
+[wp:var_kind] t is a array refvar
+[wp:var_kind] t is a array refvar
+[wp:var_kind] t is a array refvar
+[wp:var_kind] t is a array refvar
+[wp:var_kind] t is a array refvar
+[wp:var_kind] reg_load is a funvar
+[wp:var_kind] reg_load is a funvar
+[wp:var_kind] t is a array refvar
+[wp:var_kind] reg_load is a funvar
+[wp:var_kind] reg_load is a funvar
+[wp:var_kind] t is a array refvar
+[wp:var_kind] reg_load is a funvar
+[wp:var_kind] reg_load is a funvar
+[wp:var_kind] t is a array refvar
+[wp:var_kind] reg_load is a funvar
+[wp:var_kind] reg_load is a funvar
+[wp:var_kind] t is a array refvar
+[wp:var_kind] reg_load is a funvar
+[wp:var_kind] reg_load is a funvar
+[wp:var_kind] t is a array refvar
+[wp:var_kind] reg_load is a funvar
+[wp:var_kind] reg_load is a funvar
+[wp:var_kind] t is a array refvar
+[wp:var_kind] reg_load is a funvar
+[wp:var_kind] reg_load is a funvar
+[wp:var_kind] t is a array refvar
+[wp:var_kind] reg_load is a funvar
+[wp:var_kind] t is a array refvar
+[wp:var_kind] reg_load is a funvar
+[wp:var_kind] s is a array refvar
+[wp:var_kind] reg_load is a funvar
+[wp:var_kind] reg_load is a funvar
+[wp:var_kind] s is a array refvar
+[wp:var_kind] reg_load is a funvar
+[wp:var_kind] reg_load is a funvar
+[wp:var_kind] s is a array refvar
+[wp:var_kind] reg_load is a funvar
+[wp:var_kind] reg_load is a funvar
+[wp:var_kind] s is a array refvar
+[wp:var_kind] reg_load is a funvar
+[wp:var_kind] s is a array refvar
+[wp] [WP:simplified] Goal store_call_on_array_in_struct_global_exit_assigns : Valid
+[wp] [WP:simplified] Goal store_call_on_array_in_struct_global_normal_assigns : Valid
+[wp:var_kind] sp is a ptr ref param of arity 0
+[wp:var_kind] sp is a ptr ref param of arity 0
+[wp:var_kind] sp is a ptr ref param of arity 0
+[wp:var_kind] sp is a ptr ref param of arity 0
+[wp:var_kind] sp is a ptr ref param of arity 0
+[wp:var_kind] sp is a ptr ref param of arity 0
+[wp:var_kind] sp is a ptr ref param of arity 0
+[wp:var_kind] sp is a ptr ref param of arity 0
+[wp:var_kind] sp is a ptr ref param of arity 0
+[wp:var_kind] sp is a ptr ref param of arity 0
+[wp:var_kind] sp is a ptr ref param of arity 0
+[wp:var_kind] sp is a ptr ref param of arity 0
+[wp:var_kind] sp is a ptr ref param of arity 0
+[wp:var_kind] reg_add is a funvar
+[wp:var_kind] ap is a array ref param of arity 1
+[wp:var_kind] reg_load is a funvar
+[wp:var_kind] reg_add is a funvar
+[wp:var_kind] reg_add is a funvar
+[wp:var_kind] ap is a array ref param of arity 1
+[wp:var_kind] reg_add is a funvar
+[wp:var_kind] reg_load is a funvar
+[wp:var_kind] reg_add is a funvar
+[wp:var_kind] ap is a array ref param of arity 1
+[wp:var_kind] reg_add is a funvar
+[wp:var_kind] reg_load is a funvar
+[wp:var_kind] reg_add is a funvar
+[wp:var_kind] ap is a array ref param of arity 1
+[wp:var_kind] reg_add is a funvar
+[wp:var_kind] ap is a array ref param of arity 1
+[wp:var_kind] ap is a array ref param of arity 1
+[wp:var_kind] ap is a array ref param of arity 1
+[wp:var_kind] ap is a array ref param of arity 1
+[wp:var_kind] ap is a array ref param of arity 1
+[wp:var_kind] ap is a array ref param of arity 1
+[wp:var_kind] ap is a array ref param of arity 1
+[wp] [WP:simplified] Goal store_add_1_5_exit_assigns : Valid
+[wp] [WP:simplified] Goal store_add_1_5_normal_assigns : Valid

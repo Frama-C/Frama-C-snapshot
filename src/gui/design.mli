@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -124,6 +124,9 @@ class type main_window_extension_points = object
   method source_viewer : GSourceView2.source_view
   (** The [GText.view] showing the AST. *)
 
+  method source_viewer_scroll : GBin.scrolled_window
+  (** The scrolling of the [GText.view] showing the AST. *)
+
   method reactive_buffer: reactive_buffer option
   (** The buffer containing the AST.
       @since Carbon-20101201 *)
@@ -140,8 +143,11 @@ class type main_window_extension_points = object
         opportunity to launch to the user *)
 
   method error :
-    'a. ?parent:GWindow.window_skel -> ('a, Format.formatter, unit) format -> 'a
-    (** Popup a modal dialog displaying an error message *)
+    'a. ?parent:GWindow.window_skel -> ?reset:bool ->
+    ('a, Format.formatter, unit) format -> 'a
+    (** Popup a modal dialog displaying an error message. If [reset] is true
+        (default is false), the gui is reset after the dialog has been
+        displayed. *)
 
   (** {3 Extension Points} *)
 

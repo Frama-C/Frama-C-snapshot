@@ -1,0 +1,64 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/eval_separated.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  x ∈ {0}
+  y ∈ {0}
+  t1[0..5] ∈ {0}
+  t2[0..5] ∈ {0}
+tests/misc/eval_separated.c:5:[value] Assertion got status valid.
+tests/misc/eval_separated.c:6:[value] Assertion got status valid.
+tests/misc/eval_separated.c:8:[value] Assertion got status valid.
+tests/misc/eval_separated.c:9:[value] Assertion got status valid.
+tests/misc/eval_separated.c:11:[value] warning: Operation {{ &q }} + {{ &q }} incurs a loss of precision
+tests/misc/eval_separated.c:11:[kernel] warning: signed overflow. assert -2147483648 ≤ (int)(&q)+(int)(&q) ≤ 2147483647;
+tests/misc/eval_separated.c:11:[value] Assigning imprecise value to q.
+        The imprecision originates from Arithmetic {tests/misc/eval_separated.c:11}
+tests/misc/eval_separated.c:12:[value] warning: Operation {{ &r }} + {{ &r }} incurs a loss of precision
+tests/misc/eval_separated.c:12:[kernel] warning: signed overflow. assert -2147483648 ≤ (int)(&r)+(int)(&r) ≤ 2147483647;
+tests/misc/eval_separated.c:12:[value] Assigning imprecise value to r.
+        The imprecision originates from Arithmetic {tests/misc/eval_separated.c:12}
+tests/misc/eval_separated.c:13:[value] Assertion got status unknown.
+tests/misc/eval_separated.c:14:[value] Assertion got status unknown.
+tests/misc/eval_separated.c:15:[value] Assertion got status unknown.
+tests/misc/eval_separated.c:17:[value] Assertion got status valid.
+tests/misc/eval_separated.c:18:[value] Assertion got status valid.
+tests/misc/eval_separated.c:20:[value] Assertion got status valid.
+tests/misc/eval_separated.c:21:[value] Assertion got status valid.
+tests/misc/eval_separated.c:23:[value] Assertion got status valid.
+tests/misc/eval_separated.c:24:[value] Assertion got status valid.
+tests/misc/eval_separated.c:26:[value] Assertion got status valid.
+tests/misc/eval_separated.c:27:[value] Assertion got status valid.
+tests/misc/eval_separated.c:28:[value] Assertion got status valid.
+tests/misc/eval_separated.c:30:[value] Assertion got status valid.
+tests/misc/eval_separated.c:31:[value] Assertion got status valid.
+tests/misc/eval_separated.c:33:[value] Assertion got status valid.
+tests/misc/eval_separated.c:36:[value] Assertion got status valid.
+tests/misc/eval_separated.c:38:[value] Assertion got status valid.
+tests/misc/eval_separated.c:41:[value] Assertion got status valid.
+tests/misc/eval_separated.c:43:[value] Assertion got status unknown.
+tests/misc/eval_separated.c:45:[value] Assertion got status unknown.
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  p ∈ {{ &t1 + [-8589934592..8589934588],0%4 }}
+  q ∈
+   {{ garbled mix of &{q}
+    (origin: Arithmetic {tests/misc/eval_separated.c:11}) }}
+  r ∈
+   {{ garbled mix of &{r}
+    (origin: Arithmetic {tests/misc/eval_separated.c:12}) }}
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  NO EFFECTS
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          p; q; r
+[inout] Inputs for function main:
+          \nothing

@@ -1,0 +1,61 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/pdg/pb_infinite_loop.c (with preprocessing)
+[value] Analyzing a complete application starting at test_exit
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  G ∈ [--..--]
+[value] computing for function exit <- test_exit.
+        Called from tests/pdg/pb_infinite_loop.c:48.
+tests/pdg/pb_infinite_loop.c:48:[kernel] warning: Neither code nor specification for function exit, generating default assigns from the prototype
+[value] using specification for function exit
+[value] Done for function exit
+[value] Recording results for test_exit
+[value] done for function test_exit
+[pdg] computing for function test_exit
+[from] Computing for function exit
+[from] Done for function exit
+[pdg] done for function test_exit
+[pdg] PDG for test_exit
+ {n1}: InCtrl
+ {n2}: VarDecl : c
+   -[a--]-> 3
+ {n3}: In1
+   -[a--]-> 2
+ {n4}: VarDecl : __retres
+ {n5}: c
+   -[-c-]-> 1
+   -[--d]-> 2
+   -[--d]-> 3
+ {n6}: __retres = 1;
+   -[-c-]-> 1
+   -[a--]-> 4
+   -[-c-]-> 5
+ {n7}: Call30-InCtrl : exit(1);
+   -[-c-]-> 1
+   -[-c-]-> 5
+ {n8}: Call30-In1 : exit(1);
+   -[-c-]-> 1
+   -[-c-]-> 5
+   -[-c-]-> 7
+ {n9}: goto return_label;
+   -[-c-]-> 1
+   -[-c-]-> 5
+   -[-c-]-> 10
+ {n10}: return_label:
+   -[-c-]-> 1
+ {n11}: __retres = 0;
+   -[-c-]-> 1
+   -[a--]-> 4
+   -[-c-]-> 5
+ {n12}: goto return_label;
+   -[-c-]-> 1
+   -[-c-]-> 5
+   -[-c-]-> 10
+ {n13}: return_label: return __retres;
+   -[-c-]-> 1
+   -[--d]-> 4
+   -[--d]-> 6
+   -[--d]-> 11
+ {n14}: OutRet
+   -[--d]-> 13

@@ -1,5 +1,6 @@
 /* run.config
-   STDOPT: +"-impact-pragma main" +"-then -main main1 -impact-pragma main1" +"-then -main main2 -impact-pragma main2" +"-then -main main3 -impact-pragma aux3" +"-then -main main4 -impact-pragma aux4" 
+   COMMENT: also tests the parsing of cmdline options of type string_set
+   STDOPT: +"-impact-pragma main" +"-then -main main1 -impact-pragma='-main,+main1'" +"-then -main main2 -impact-pragma='-@all,+main2'" +"-then -main main3 -impact-pragma='+aux3,-main2'" +"-then -main main4 -impact-pragma='-aux3,+aux4'" 
    */
 
 int f(int, ...);

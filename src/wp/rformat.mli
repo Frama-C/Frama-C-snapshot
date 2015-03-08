@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -25,11 +25,11 @@ open Format
 val epsilon : float
 
 val get_time : float array -> float -> int
-  (** [get_time T t] returns [k] such that [T[k-1] <= t <= T[k]],
-      [T] is extended with [T[-1]=0] and [T[N]=+oo]. *) 
+(** [get_time T t] returns [k] such that [T[k-1] <= t <= T[k]],
+    [T] is extended with [T[-1]=0] and [T[N]=+oo]. *) 
 
 val pp_time : formatter -> float -> unit
-  (** Pretty print time in hour, minutes, seconds, or milliseconds, as appropriate *)
+(** Pretty print time in hour, minutes, seconds, or milliseconds, as appropriate *)
 
 val pp_time_range : float array -> formatter -> float -> unit
 

@@ -1,0 +1,1 @@
+[preprocessing] running gcc -C -E -I. tests/spec/printf_assigns.c

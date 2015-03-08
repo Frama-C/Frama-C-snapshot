@@ -1,0 +1,28 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/metrics/cyclo_comp5.c (with preprocessing)
+[metrics] Defined functions (2)
+          =====================
+           complexity5 (1 call); main (0 call); 
+          
+          Undefined functions (1)
+          =======================
+           printf (4 calls); 
+          
+          Potential entry points (1)
+          ==========================
+           main; 
+          
+          Global metrics
+          ============== 
+          Sloc = 14
+          Decision point = 4
+          Global variables = 0
+          If = 1
+          Loop = 0
+          Goto = 0
+          Assignment = 0
+          Exit point = 2
+          Function = 3
+          Function call = 5
+          Pointer dereferencing = 0
+          Cyclomatic complexity = 4

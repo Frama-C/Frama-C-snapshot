@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -39,23 +39,23 @@ and call = {
 }
 
 class popup : unit ->
-object
-  method on_click : (selection -> unit) -> unit
-  method on_prove : (selection -> unit) -> unit
-  method register :
-    GMenu.menu GMenu.factory -> 
-    Design.main_window_extension_points -> 
-    button:int -> Pretty_source.localizable -> unit
-end
+  object
+    method on_click : (selection -> unit) -> unit
+    method on_prove : (selection -> unit) -> unit
+    method register :
+      GMenu.menu GMenu.factory -> 
+      Design.main_window_extension_points -> 
+      button:int -> Pretty_source.localizable -> unit
+  end
 
 class highlighter : Design.main_window_extension_points -> 
-object
-  
-  method set : Wpo.t option -> unit
-  method update : unit
-  method highlight : GSourceView2.source_buffer -> Pretty_source.localizable ->
-    start:int -> stop:int -> unit
+  object
 
-end
+    method set : Wpo.t option -> unit
+    method update : unit
+    method highlight : GSourceView2.source_buffer -> Pretty_source.localizable ->
+      start:int -> stop:int -> unit
+
+  end
 
 

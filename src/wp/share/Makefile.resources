@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of WP plug-in of Frama-C.                           #
 #                                                                        #
-#  Copyright (C) 2007-2014                                               #
+#  Copyright (C) 2007-2015                                               #
 #    CEA (Commissariat a l'energie atomique et aux energies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -100,18 +100,19 @@ ERGO_LIBS_INRIA:= \
 
 # Resource classes for license header files
 # These files are relatives to this directory
-ALL_CEA_RESOURCES+= \
+WP_SHARE_SRC_CEA_RESOURCES:= \
 	wp.driver \
 	why3/coq.drv \
-	install.ml \
-	Makefile.resources \
-	Makefile.coq \
-	why3/Makefile \
-	coqwp/Makefile \
 	$(addprefix why3/,  $(WHY3_LIBS_CEA)) \
 	$(addprefix why3/,  $(COQ_LIBS_CEA)) \
 	$(addprefix coqwp/, $(COQ_LIBS_CEA)) \
 	$(addprefix ergo/,  $(ERGO_LIBS_CEA))
+
+ALL_CEA_RESOURCES+= \
+	install.ml \
+	Makefile.resources \
+	Makefile \
+	$(WP_SHARE_SRC_CEA_RESOURCES)
 
 ALL_UNMODIFIED_WHY3_RESOURCES:= \
 	$(addprefix coqwp/, $(COQ_LIBS_INRIA))

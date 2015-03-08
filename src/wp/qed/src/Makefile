@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of WP plug-in of Frama-C.                           #
 #                                                                        #
-#  Copyright (C) 2007-2014                                               #
+#  Copyright (C) 2007-2015                                               #
 #    CEA (Commissariat a l'energie atomique et aux energies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -88,13 +88,14 @@ clean::
 distclean::
 	rm -f ../bin/Qed.*
 
+OPTML= -annot -w PSUZ+7-3 -warn-error PSUZ+7-3
 INCLUDES=
 OPTCMI=
-OPTCMO= -annot -w PSUZ+7 -warn-error PSUZ+7
+OPTCMO=
 ifeq ($(PACK),no)
-OPTCMX= -annot -w PSUZ+7 -warn-error PSUZ+7 -for-pack Qed
+OPTCMX= -for-pack Qed
 else
-OPTCMX= -annot -w PSUZ+7 -warn-error PSUZ+7 -for-pack $(PACK).Qed
+OPTCMX= -for-pack $(PACK).Qed
 endif
 
 include MakeOcaml

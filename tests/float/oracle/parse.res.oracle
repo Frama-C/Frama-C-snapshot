@@ -1,0 +1,32 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/float/parse.i (no preprocessing)
+tests/float/parse.i:25:[kernel] warning: Floating-point constant 0.00000000000000000000000000000000000000001e310 is not represented exactly. Will use 0x1.83a99c3ec7eb0p893
+tests/float/parse.i:30:[kernel] warning: Floating-point constant 0.0000001E9999999999999999999 is not represented exactly. Will use inf
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  v ∈ [--..--]
+[value] Called Frama_C_show_each({0}, {{ "reached" }})
+[value] Called Frama_C_show_each({0}, {{ "reached" }})
+[value] Called Frama_C_show_each({0}, {0}, {{ "reached" }})
+[value] Called Frama_C_show_each({0x1.83a99c3ec7eb0p893}, {{ "reached" }})
+tests/float/parse.i:30:[kernel] warning: non-finite double value (INFINITY):
+                  assert \is_finite(0.0000001E9999999999999999999);
+tests/float/parse.i:30:[value] Floating-point literal (or constant expression) is not finite. This path is assumed to be dead.
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  __retres ∈ {0}
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          d; d_0; d1; d2; d_1; d_2; __retres
+[inout] Inputs for function main:
+          v

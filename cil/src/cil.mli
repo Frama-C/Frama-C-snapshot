@@ -91,50 +91,41 @@ val add_special_builtin_family: (string -> bool) -> unit
     machine has been set. *)
 val init_builtins: unit -> unit
 
-(** Description of the machine as seen in GCC and MSVC modes. *)
-module type Machdeps = sig
-  val gcc : Cil_types.mach 
-  val msvc : Cil_types.mach  
-end
-
 (** Call this function to perform some initialization, and only after you have
     set [Cil.msvcMode]. [initLogicBuiltins] is the function to call to init
     logic builtins. The [Machdeps] argument is a description of the hardware
     platform and of the compiler used. *)
-val initCIL: initLogicBuiltins:(unit -> unit) -> (module Machdeps) -> unit
+val initCIL: initLogicBuiltins:(unit -> unit) -> Cil_types.mach -> unit
 
 (* ************************************************************************* *)
 (** {2 Customization} *)
 (* ************************************************************************* *)
 
 type theMachine = private
-    { (** Whether the pretty printer should print output for the MS VC
-	  compiler. Default is GCC *)
-      mutable msvcMode: bool;
+    { mutable useLogicalOperators: bool;
       (** Whether to use the logical operands LAnd and LOr. By default, do not
 	  use them because they are unlike other expressions and do not
 	  evaluate both of their operands *)
-      mutable useLogicalOperators: bool;
       mutable theMachine: mach;
       mutable lowerConstants: bool; (** Do lower constants (default true) *)
-      mutable insertImplicitCasts: bool; (** Do insert implicit casts
-					     (default true) *)
+      mutable insertImplicitCasts: bool;
+      (** Do insert implicit casts (default true) *)
+      mutable underscore_name: bool;
       (** Whether the compiler generates assembly labels by prepending "_" to
 	  the identifier. That is, will function foo() have the label "foo", or
 	  "_foo"? *)
-      mutable underscore_name: bool;
       mutable stringLiteralType: typ;
-      mutable upointKind: ikind (** An unsigned integer type that fits
-                                    pointers. *);
+      mutable upointKind: ikind
+      (** An unsigned integer type that fits pointers. *);
       mutable upointType: typ;
       mutable wcharKind: ikind; (** An integer type that fits wchar_t. *)
       mutable wcharType: typ;
       mutable ptrdiffKind: ikind; (** An integer type that fits ptrdiff_t. *)
       mutable ptrdiffType: typ;
-      mutable typeOfSizeOf: typ; (** An integer type that is the type of
-				      sizeof. *)
-      mutable kindOfSizeOf: ikind (** The integer kind of
-				      {!Cil.typeOfSizeOf}. *)
+      mutable typeOfSizeOf: typ;
+      (** An integer type that is the type of sizeof. *)
+      mutable kindOfSizeOf: ikind;
+      (** The integer kind of {!Cil.typeOfSizeOf}. *)
     }
 
 val theMachine : theMachine
@@ -145,14 +136,14 @@ val selfMachine: State.t
 val selfMachine_is_computed: ?project:Project.project -> unit -> bool
   (** whether current project has set its machine description. *)
 
-val set_msvcMode: bool -> unit
-  (** Must be called before {!Cil.initCIL}. *)
+val msvcMode: unit -> bool
+val gccMode: unit -> bool
 
 (** Styles of printing line directives *)
 type lineDirectiveStyle =
   | LineComment                (** Before every element, print the line
                                 * number in comments. This is ignored by
-                                * processing tools (thus errors are reproted
+                                * processing tools (thus errors are reported
                                 * in the CIL output), but useful for
                                 * visual inspection *)
   | LineCommentSparse          (** Like LineComment but only print a line
@@ -579,6 +570,9 @@ val isCharArrayType: typ -> bool
 (** True if the argument is an integral type (i.e. integer or enum) *)
 val isIntegralType: typ -> bool
 
+(** True if the argument is an integral or pointer type. *)
+val isIntegralOrPointerType: typ -> bool
+
 (** True if the argument is an integral type (i.e. integer or enum), either
     C or mathematical one *)
 val isLogicIntegralType: logic_type -> bool
@@ -679,32 +673,30 @@ val splitFunctionTypeVI:
 (**  LVALUES *)
 
 (** Make a varinfo. Use this (rarely) to make a raw varinfo. Use other
- * functions to make locals ({!Cil.makeLocalVar} or {!Cil.makeFormalVar} or
- * {!Cil.makeTempVar}) and globals ({!Cil.makeGlobalVar}). Note that this
- * function will assign a new identifier.
- * The [logic] argument defaults to [false]
- * and should be used to create a varinfo such that [varinfo.vlogic=true].
- * The [generated] argument defaults to [true] (in fact, only front-ends have
- * the need to set it to false), and tells whether the variable is generated
- * or comes directly from user input (the [vgenerated] flag).
- * The first unnmamed argument specifies whether the varinfo is for a global and
- * the second is for formals. *)
+  functions to make locals ({!Cil.makeLocalVar} or {!Cil.makeFormalVar} or
+  {!Cil.makeTempVar}) and globals ({!Cil.makeGlobalVar}). Note that this
+  function will assign a new identifier.
+  The [temp] argument defaults to [false], and corresponds to the
+  [vtemp] field in type {!Cil_types.varinfo}.
+  The [source] argument defaults to [true], and corresponds to the field
+  [vsource] .
+  The first unnmamed argument specifies whether the varinfo is for a global and
+  the second is for formals. *)
 val makeVarinfo:
-  ?logic:bool -> ?generated:bool -> bool -> bool -> string -> typ -> varinfo
+  ?source:bool -> ?temp:bool -> bool -> bool -> string -> typ -> varinfo
 
 (** Make a formal variable for a function declaration. Insert it in both the
     sformals and the type of the function. You can optionally specify where to
     insert this one. If where = "^" then it is inserted first. If where = "$"
     then it is inserted last. Otherwise where must be the name of a formal
     after which to insert this. By default it is inserted at the end.
-    A formal var is never generated.
 *)
 val makeFormalVar: fundec -> ?where:string -> string -> typ -> varinfo
 
 (** Make a local variable and add it to a function's slocals and to the given
     block (only if insert = true, which is the default).
-    Make sure you know what you are doing if you set insert=false.
-    [generated] is passed to {!Cil.makeVarinfo}.
+    Make sure you know what you are doing if you set [insert=false].
+    [temp] is passed to {!Cil.makeVarinfo}.
     The variable is attached to the toplevel block if [scope] is not specified.
 
     @since Nitrogen-20111001 This function will strip const attributes
@@ -712,12 +704,8 @@ val makeFormalVar: fundec -> ?where:string -> string -> typ -> varinfo
     least once.
 *)
 val makeLocalVar:
-  fundec -> ?scope:block -> ?generated:bool -> ?insert:bool
+  fundec -> ?scope:block -> ?temp:bool -> ?insert:bool
   -> string -> typ -> varinfo
-
-(** Make a pseudo-variable to use as placeholder in term to expression
-    conversions. Its logic field is set. They are always generated. *)
-val makePseudoVar: typ -> varinfo
 
 (** Make a temporary variable and add it to a function's slocals. The name of
     the temporary variable will be generated based on the given name hint so
@@ -732,8 +720,8 @@ val makeTempVar: fundec -> ?insert:bool -> ?name:string -> ?descr:string ->
                  ?descrpure:bool -> typ -> varinfo
 
 (** Make a global variable. Your responsibility to make sure that the name
-    is unique. [logic] defaults to [false]. [generated] defaults to [true].*)
-val makeGlobalVar: ?logic:bool -> ?generated:bool -> string -> typ -> varinfo
+    is unique. [source] defaults to [true]. [temp] defaults to [false].*)
+val makeGlobalVar: ?source:bool -> ?temp:bool -> string -> typ -> varinfo
 
 (** Make a shallow copy of a [varinfo] and assign a new identifier.
     If the original varinfo has an associated logic var, it is copied too and
@@ -742,7 +730,7 @@ val makeGlobalVar: ?logic:bool -> ?generated:bool -> string -> typ -> varinfo
 val copyVarinfo: varinfo -> string -> varinfo
 
 (** Changes the type of a varinfo and of its associated logic var if any.
-    @since Neon-20130301 *)
+    @since Neon-20140301 *)
 val update_var_type: varinfo -> typ -> unit
 
 (** Is an lvalue a bitfield? *)
@@ -813,14 +801,13 @@ val one: loc:Location.t -> exp
 (** -1 *)
 val mone: loc:Location.t -> exp
 
-
-(** Construct an integer of a given kind, using OCaml's int64 type. If needed
-  * it will truncate the integer to be within the representable range for the
-  * given kind. The integer can have an optional literal representation. *)
-val kinteger64_repr: loc:location -> ikind -> Integer.t -> string option -> exp
-
-(** Construct an integer of a given kind without literal representation. *)
-val kinteger64: loc:location -> ikind -> Integer.t -> exp
+(** Construct an integer of a given kind without literal representation.
+    Truncate the integer if [kind] is given, and the integer does not fit
+    inside the type. The integer can have an optional literal representation
+    [repr].
+    @raise Not_representable if no ikind is provided and the integer is not
+    representable. *)
+val kinteger64: loc:location -> ?repr:string -> ?kind:ikind -> Integer.t -> exp
 
 (** Construct an integer of a given kind. Converts the integer to int64 and
   * then uses kinteger64. This might truncate the value if you use a kind
@@ -871,7 +858,8 @@ val interpret_character_constant:
   (This is the official way of interpreting character constants, according to
   ISO C 6.4.4.4.10, which says that character constants are chars cast to ints)
   Returns CInt64(sign-extened c, IInt, None) *)
-val charConstToInt: char -> constant
+val charConstToInt: char -> Integer.t
+val charConstToIntConstant: char -> constant
 
 (** Do constant folding on an expression. If the first argument is [true] then
     will also compute compiler-dependent expressions such as sizeof.
@@ -879,12 +867,18 @@ val charConstToInt: char -> constant
     expressions in a given AST node. *)
 val constFold: bool -> exp -> exp
 
+(** Do constant folding on the given expression, just as [constFold] would. The
+    resulting integer value, if the const-folding was complete, is returned.
+    The [machdep] optional parameter, which is set to [true] by default,
+    forces the simplification of architecture-dependent expressions. *)
+val constFoldToInt: ?machdep:bool -> exp -> Integer.t option
+
 (** Do constant folding on an term at toplevel only.
     This uses compiler-dependent informations and will
     remove all sizeof and alignof. *)
 val constFoldTermNodeAtTop:  term_node -> term_node
 
-(** Do constant folding on an term at toplevel only.
+(** Do constant folding on an term.
     If the first argument is true then
     will also compute compiler-dependent expressions such as [sizeof]
     and [alignof]. *)
@@ -1191,6 +1185,19 @@ val typeAddAttributes: attribute list -> typ -> typ
     their uses *)
 val typeRemoveAttributes: string list -> typ -> typ
 
+val typeHasAttribute: string -> typ -> bool
+(** Does the type have the given attribute. Does
+    not recurse through pointer types, nor inside function prototypes.
+    @since Sodium-20150201 *)
+
+val typeHasQualifier: string -> typ -> bool
+(** Does the type have the given qualifier. Handles the case of arrays, for
+    which the qualifiers are actually carried by the type of the elements.
+    It is always correct to call this function instead of {!typeHasAttribute}.
+    For l-values, both functions return the same results, as l-values cannot
+    have array type.
+    @since Sodium-20150201 *)
+
 val typeHasAttributeDeep: string -> typ -> bool
 (** Does the type or one of its subtypes have the given attribute. Does
     not recurse through pointer types, nor inside function prototypes.
@@ -1200,6 +1207,12 @@ val typeHasAttributeDeep: string -> typ -> bool
     @since Nitrogen-20111001
  *)
 val type_remove_qualifier_attributes: typ -> typ
+
+(**
+  remove also qualifiers under Ptr and Arrays
+  @since Sodium-20150201
+*)
+val type_remove_qualifier_attributes_deep: typ -> typ
 
 (** Remove all attributes relative to const, volatile and restrict attributes
     when building a C cast
@@ -1316,6 +1329,20 @@ val copy_visit: Project.t -> visitor_behavior
       formals and local variables, and to keep the references to other
       globals in the function's body.
       @plugin development guide *)
+
+val refresh_visit: Project.t -> visitor_behavior
+  (** Makes fresh copies of the mutable structures and provides fresh id
+      for the structures that have ids. Note that as for {!copy_visit}, only
+      varinfo that are declared in the scope of the visit will be copied and
+      provided with a new id.
+      @since Sodium-20150201
+   *) 
+
+(** true iff the behavior provides fresh id for copied structs with id.
+    Always [false] for an inplace visitor.
+    @since Sodium-20150201 
+*)
+val is_fresh_behavior: visitor_behavior -> bool
 
 (** true iff the behavior is a copy behavior. *)
 val is_copy_behavior: visitor_behavior -> bool
@@ -1527,7 +1554,8 @@ class type cilVisitor = object
     (** a visitor who only does copies of the nodes according to [behavior] *)
 
   method vfile: file -> file visitAction
-  (** visit a whole file. *)
+  (** visit a whole file.
+      @plugin development guide *)
 
   method vvdec: varinfo -> varinfo visitAction
     (** Invoked for each variable declaration. The subtrees to be traversed
@@ -1732,6 +1760,19 @@ class type cilVisitor = object
       @plugin development guide *)
 
 end
+
+(** Indicates how an extended behavior clause is supposed to be visited.
+    The default behavior is [DoChildren], which ends up visiting 
+    each identified predicate in the list and leave the id as is.
+
+    @plugin development guide
+
+    @since Sodium-20150201
+*)
+val register_behavior_extension:
+  string ->
+  (cilVisitor -> (int * identified_predicate list) ->
+   (int * identified_predicate list) visitAction) -> unit
 
 (**/**)
 class internal_genericCilVisitor:
@@ -2231,9 +2272,14 @@ val separate_if_succs: stmt -> stmt * stmt
 
 (**/**)
 
-val register_ast_dependencies : State.t -> unit
-  (** Used to postpone some dependencies on [Ast.self], which is initialized
-      afterwards. *)
+val dependency_on_ast: State.t -> unit
+  (** indicates that the given state depends on the AST. *)
+
+val set_dependencies_of_ast : State.t -> unit
+  (** Makes all states that have been marked as depending on the AST by
+      {!dependency_on_ast} depend on the given state. Should only be used
+      once when creating the AST state. 
+   *)
 
 val pp_typ_ref: (Format.formatter -> typ -> unit) ref
 val pp_global_ref: (Format.formatter -> global -> unit) ref

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -123,24 +123,21 @@ let eval_assigns kf state assigns =
                not (Kernel_function.is_formal v kf)
            | Base.CLogic_Var _ | Base.Null | Base.String _ -> true)
     in
-    let outputs, deps =
+    let outputs_under, outputs_over, deps =
       try
         if Logic_utils.is_result out.it_content
-        then [], Zone.bottom
+        then (Zone.bottom, Zone.bottom, Zone.bottom)
         else
-          let locs_out, deps = !Db.Properties.Interp.loc_to_locs ~result:None
-            state out.it_content
+          let loc_out_under, loc_out_over, deps =
+	    !Db.Properties.Interp.loc_to_loc_under_over ~result:None state out.it_content
           in
-          let conv loc =
-            let z = enumerate_valid_bits ~for_writing:true loc in
-            let sure = Locations.cardinal_zero_or_one loc in
-            z, sure
-          in
-          List.map conv locs_out, clean_deps deps
+	  (enumerate_valid_bits_under ~for_writing:true loc_out_under,
+	   enumerate_valid_bits ~for_writing:true loc_out_over,
+	   clean_deps deps)
       with Invalid_argument _ ->
         Inout_parameters.warning ~current:true ~once:true
           "Failed to interpret assigns clause '%a'" Printer.pp_term out.it_content;
-        [Locations.Zone.top, false], Locations.Zone.top
+        (Zone.bottom, Zone.top, Zone.top)
     in
     (* Compute all inputs as a zone *)
     let inputs =
@@ -149,14 +146,11 @@ let eval_assigns kf state assigns =
           | FromAny -> Zone.top
           | From l ->
               let aux acc { it_content = from } =
-                let locs, deps =
-                  !Db.Properties.Interp.loc_to_locs None state from in
+                let _, loc, deps =
+		  !Db.Properties.Interp.loc_to_loc_under_over None state from in
                 let acc = Zone.join (clean_deps deps) acc in
-                List.fold_left
-                  (fun acc loc ->
-                     let z = enumerate_valid_bits ~for_writing:false loc in
-                     Zone.join z acc
-                  ) acc locs
+                let z = enumerate_valid_bits ~for_writing:false loc in
+		Zone.join z acc
               in
               List.fold_left aux deps l
       with Invalid_argument _ ->
@@ -165,28 +159,28 @@ let eval_assigns kf state assigns =
           Printer.pp_from asgn;
         Zone.top
     in
-    (* Fuse all outputs. An output is sure if it was certainly overwritten,
-       and if it is not amongst its from *)
-    let extract_sure (sure_out, all_out) (out, exact) =
-      let all_out' = Zone.join out all_out in
-      if exact then
-        let sure = Locations.Zone.diff out inputs in
-        Zone.join sure sure_out, all_out'
-      else
-        sure_out, all_out'
+    (* Fuse all outputs. An output is sure if it was certainly
+       overwritten (i.e. is in the left part of an assign clause,
+       and if it is not amongst its from.) *)
+    (* Note: here we remove an overapproximation from an
+       underapproximation to get an underapproximation, which is not
+       the usual direction. It works here because diff on non-top zones is
+       an exact operation. *)
+    let sure_out =
+      Zone.(if equal top inputs then bottom else diff outputs_under inputs)
     in
-    let sure_out, all_out =
-      List.fold_left extract_sure (Zone.bottom, Zone.bottom) outputs
-    in (* Join all three kinds of locations. The use a join (not a meet) for
-          under_outputs is correct here (and in fact required for precision) *)
     {
-      under_outputs_d = Zone.join acc.under_outputs_d sure_out;
+      under_outputs_d = Zone.link acc.under_outputs_d sure_out;
       over_inputs_d = Zone.join acc.over_inputs_d inputs;
-      over_outputs_d = Zone.join acc.over_outputs_d all_out;
+      over_outputs_d = Zone.join acc.over_outputs_d outputs_over;
     }
   in
   match assigns with
-    | WritesAny -> top
+    | WritesAny ->
+       Inout_parameters.warning "no assigns clauses@ for function %a.@ \
+                                 Results@ will be@ imprecise."
+                                Kernel_function.pretty kf;
+       top
     | Writes l  ->
         let init = { bottom with under_outputs_d = Zone.bottom } in
         let r = List.fold_left treat_one_zone init l in {
@@ -223,7 +217,7 @@ module CallsiteHash = Value_types.Callsite.Hashtbl
    which only the specification is used. *)
 module CallwiseResults =
   State_builder.Hashtbl
-  (CallsiteHash)
+  (Value_types.Callsite.Hashtbl)
   (Inout_type)
   (struct
     let size = 17
@@ -390,7 +384,8 @@ end) = struct
       assert (s.succs == []); []
     | Return(None,_) -> return_data := data;
       assert (s.succs == []); []
-
+    | Throw _ | TryCatch _ ->
+      Inout_parameters.fatal "Exception node in the AST"
     | UnspecifiedSequence _ | Loop _ | Block _
     | Goto _ | Break _ | Continue _
     | TryExcept _ | TryFinally _
@@ -591,7 +586,8 @@ module Callwise = struct
   let record_for_callwise_inout ((call_stack: Db.Value.callstack), value_res) =
     if compute_callwise () then
       let inout = match value_res with
-        | Value_types.Normal states | Value_types.NormalStore (states, _) ->
+        | Value_types.Normal (states, _after_states)
+        | Value_types.NormalStore ((states, _after_states), _) ->
             let kf = fst (List.hd call_stack) in
             let inout =
               if !Db.Value.no_results (Kernel_function.get_definition kf) then

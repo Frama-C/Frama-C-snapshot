@@ -1,0 +1,69 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/call_multi.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  G ∈ {0}
+[value] computing for function uppol2 <- main.
+        Called from tests/misc/call_multi.c:29.
+[value] computing for function printf <- uppol2 <- main.
+        Called from tests/misc/call_multi.c:23.
+[value] using specification for function printf
+[value] Done for function printf
+[value] Recording results for uppol2
+[value] Done for function uppol2
+[value] computing for function uppol2 <- main.
+        Called from tests/misc/call_multi.c:30.
+[value] computing for function printf <- uppol2 <- main.
+        Called from tests/misc/call_multi.c:23.
+[value] Done for function printf
+[value] Recording results for uppol2
+[value] Done for function uppol2
+[value] computing for function uppol2 <- main.
+        Called from tests/misc/call_multi.c:31.
+[value] computing for function printf <- uppol2 <- main.
+        Called from tests/misc/call_multi.c:23.
+[value] Done for function printf
+[value] Recording results for uppol2
+[value] Done for function uppol2
+[value] computing for function uppol2 <- main.
+        Called from tests/misc/call_multi.c:32.
+[value] computing for function printf <- uppol2 <- main.
+        Called from tests/misc/call_multi.c:23.
+[value] Done for function printf
+[value] Recording results for uppol2
+[value] Done for function uppol2
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function uppol2:
+  wd2 ∈ {0}
+  wd4 ∈ {-128; 128}
+  apl2 ∈ {-128; 128}
+[value] Values at end of function main:
+  G ∈ {256}
+[from] Computing for function uppol2
+[from] Computing for function printf <-uppol2
+[from] Done for function printf
+tests/misc/call_multi.c:23:[from] warning: variadic call detected. Using only 1 argument(s).
+[from] Done for function uppol2
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function printf:
+  \result FROM ANYTHING(origin:Unknown)
+[from] Function uppol2:
+  \result FROM al1; al2; plt; plt1; plt2
+[from] Function main:
+  G FROM G
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function uppol2:
+          wd2; wd4; apl2
+[inout] Inputs for function uppol2:
+          \nothing
+[inout] Out (internal) for function main:
+          G; tmp; tmp_0; tmp_1; tmp_2
+[inout] Inputs for function main:
+          G

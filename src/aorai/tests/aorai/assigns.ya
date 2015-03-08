@@ -1,0 +1,12 @@
+%init: S1;
+%accept: S2;
+
+S1: { CALL(main) } -> Sf;
+
+Sf: { CALL(f) } -> S_in_f;
+
+S_in_f: { RETURN(f) } -> in_main;
+
+in_main: { RETURN(main) } -> S2;
+
+S2: -> S2;

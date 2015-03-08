@@ -161,12 +161,19 @@ and cfgStmt (s: stmt) (next:stmt option) (break:stmt option) (cont:stmt option) 
       [] -> addSucc next
     | hd::_ -> addSucc hd
   in
+  let cfgCatch c next break cont =
+    match c with
+      | Catch_all -> ()
+      | Catch_exn(_,l) ->
+        let cfg_aux_clause (_,b) = cfgBlock b next break cont in
+        List.iter cfg_aux_clause l
+  in
   let instrFallsThrough (i : instr) : bool = match i with
       Call (_, {enode = Lval (Var vf, NoOffset)}, _, _) ->
         (* See if this has the noreturn attribute *)
         not (hasAttribute "noreturn" vf.vattr)
     | Call (_, f, _, _) ->
-        not (hasAttribute "noreturn" (typeAttrs (typeOf f)))
+        not (typeHasAttribute "noreturn" (typeOf f))
     | _ -> true
   in
   match s.skind with
@@ -175,7 +182,7 @@ and cfgStmt (s: stmt) (next:stmt option) (break:stmt option) (cont:stmt option) 
         addOptionSucc next
       else
         ()
-  | Return _  -> ()
+  | Return _  | Throw _ -> ()
   | Goto (p,_) -> addSucc !p
   | Break _ -> addOptionSucc break
   | Continue _ -> addOptionSucc cont
@@ -209,9 +216,27 @@ and cfgStmt (s: stmt) (next:stmt option) (break:stmt option) (cont:stmt option) 
   | Loop(_,blk,_,_,_) ->
       addBlockSuccFull s blk;
       cfgBlock blk (Some s) next (Some s)
-
   (* Since all loops have terminating condition true, we don't put
      any direct successor to stmt following the loop *)
+
+  | TryCatch(t,c,_) ->
+    (* we enter the try block, and perform cfg in all the catch blocks,
+       but there's no edge leading to a catch-block. This has to be
+       taken into account by inter-procedural analyses directly, even
+       if there is a throw directly in the function. See cil_types.mli
+       for more information. *)
+    addBlockSucc t;
+    cfgBlock t next break cont;
+    (* If there are some auxiliary types catched by the clause, the cfg
+       goes from the conversion block to the main block of the catch clause *)
+    List.iter
+      (fun (c,b) ->
+        let n =
+          match b.bstmts with
+            | [] -> next
+            | s::_ -> Some s
+        in
+        cfgCatch c n break cont; cfgBlock b next break cont) c;
   | TryExcept _ | TryFinally _ ->
       Kernel.fatal "try/except/finally"
 
@@ -246,6 +271,8 @@ let d_cfgnodelabel fmt (s : stmt) =
 	| Switch _ -> "switch"
 	| Block _ -> "block"
 	| Return _ -> "return"
+        | Throw _ -> "throw"
+        | TryCatch _ -> "try-catch"
 	| TryExcept _ -> "try-except"
 	| TryFinally _ -> "try-finally"
 	| UnspecifiedSequence _ -> "unspecifiedsequence"
@@ -328,6 +355,9 @@ class clear : cilVisitor = object
   method! vexpr _ = SkipChildren
   method! vtype _ = SkipChildren
   method! vinst _ = SkipChildren
+  method! vcode_annot _ = SkipChildren (* via Loop stmt *)
+  method! vlval _ = SkipChildren (* via UnspecifiedSequence stmt *)
+  method! vattr _ = SkipChildren (* via block stmt *)
 end
 
 let link source dest = begin
@@ -355,7 +385,7 @@ let rec succpred_block b fallthrough =
 and succpred_stmt s fallthrough =
   match s.skind with
       Instr _ -> trylink s fallthrough
-    | Return _ -> ()
+    | Return _ | Throw _ -> ()
     | Goto(dest,_) -> link s !dest
     | Break _
     | Continue _
@@ -388,6 +418,11 @@ and succpred_stmt s fallthrough =
       succpred_block (block_from_unspecified_sequence seq) fallthrough
     | UnspecifiedSequence [] ->
       trylink s fallthrough
+    | TryCatch (t,c,_) ->
+        (match t.bstmts with
+          | [] -> trylink s fallthrough
+          | hd :: _ -> link s hd; succpred_block t fallthrough);
+        List.iter (fun (_,b) -> succpred_block b fallthrough) c
     | TryExcept _ | TryFinally _ ->
       failwith "computeCFGInfo: structured exception handling not implemented"
 
@@ -519,7 +554,7 @@ let xform_switch_block ?(keepSwitch=false) b =
               s::
                 xform_switch_stmt
                 rest break_dest cont_dest label_index (popstack+1)
-            | Instr _ | Return _ | Goto _  ->
+            | Instr _ | Return _ | Goto _  | Throw _ ->
               popn popstack;
               s::
                 xform_switch_stmt
@@ -701,19 +736,24 @@ let xform_switch_block ?(keepSwitch=false) b =
                             "while_%d_break" label_index),l,false)] ;
               let cont_loc = fst_l, fst_l in
               let cont_stmt = mkStmt (Instr (Skip cont_loc)) in
-              cont_stmt.labels <-
-	        [Label
-                    (freshLabel
-                       (Printf.sprintf
-                          "while_%d_continue" label_index),l,false)] ;
               b.bstmts <- cont_stmt :: b.bstmts ;
               let my_break_dest () = ref break_stmt in
-              let my_cont_dest () = ref cont_stmt in
+              let use_continue = ref false in
+              let my_cont_dest () =
+                use_continue := true;
+                ref cont_stmt
+              in
               Stack.push (Stack.create ()) breaks_stack;
               Stack.push (Stack.create ()) continues_stack;
               let b =
                 xform_switch_block b my_break_dest my_cont_dest label_index
               in
+              if !use_continue then
+                cont_stmt.labels <-
+                  [Label
+                      (freshLabel
+                         (Printf.sprintf
+                            "while_%d_continue" label_index),l,false)] ;
               s.skind <- Loop(a,b,l,Some(cont_stmt),Some(break_stmt));
               break_stmt.succs <- s.succs ;
               ignore (Stack.pop breaks_stack);
@@ -725,6 +765,17 @@ let xform_switch_block ?(keepSwitch=false) b =
               let b = xform_switch_block b break_dest cont_dest label_index in
               popn popstack;
               s.skind <- Block b;
+              s :: xform_switch_stmt rest break_dest cont_dest label_index 0
+            | TryCatch (t,c,l) ->
+              let t' = xform_switch_block t break_dest cont_dest label_index in
+              let c' =
+                List.map
+                  (fun (e,b) ->
+                    (e, xform_switch_block b break_dest cont_dest label_index))
+                  c
+              in
+              s.skind <- TryCatch(t',c',l);
+              popn popstack;
               s :: xform_switch_stmt rest break_dest cont_dest label_index 0
             | UnspecifiedSequence seq ->
               let seq =
@@ -782,6 +833,9 @@ class registerLabelsVisitor : cilVisitor = object
   method! vexpr _ = SkipChildren
   method! vtype _ = SkipChildren
   method! vinst _ = SkipChildren
+  method! vcode_annot _ = SkipChildren (* via Loop stmt *)
+  method! vlval _ = SkipChildren (* via UnspecifiedSequence stmt *)
+  method! vattr _ = SkipChildren (* via block stmt *)
 end
 
 (* prepare a function for computeCFGInfo by removing break, continue,

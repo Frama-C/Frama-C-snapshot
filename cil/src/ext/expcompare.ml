@@ -109,7 +109,7 @@ class volatileFinderClass br = object
   inherit nopCilVisitor
 
   method! vtype (t : typ)  =
-    if hasAttribute "volatile" (typeAttrs t) then begin
+    if typeHasAttribute "volatile" t then begin
       br := true;
       SkipChildren
     end

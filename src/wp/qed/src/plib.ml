@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -159,11 +159,20 @@ let global_substitute_fmt regexp repl_fun fmt text =
   replace 0
 
 let regexp_arg_pos = Str.regexp "%\\([0-9]+\\)"
+
+let is_template p =
+  try let _ = Str.search_forward regexp_arg_pos p 0 in true
+  with Not_found -> false
+
 let substitute_list print s fmt l =
   let args = Array.of_list l in
   let repl_fun fmt grp =
     let i = int_of_string grp in
-    print fmt args.(i-1) in
+    let v = try args.(i-1) with Invalid_argument _ -> 
+      let msg =  "Qed.Plib.substitute_list %" ^ string_of_int (i-1) in
+      raise (Invalid_argument msg)
+    in print fmt v 
+  in
   global_substitute_fmt regexp_arg_pos repl_fun fmt s
 
 (** the regexp shouldn't match empty *)

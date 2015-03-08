@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,8 +24,6 @@ open Cil_types
 
 let debug_vid = Kernel.register_category "printer:vid"
 let debug_sid = Kernel.register_category "printer:sid"
-
-let cabsbranches_pp_comment = Extlib.mk_fun "Printer.debug_cabs"
 
 let compare_annotations la1 la2 =
   let total_order = Datatype.Int.compare la1.annot_id la2.annot_id in
@@ -221,10 +219,6 @@ class printer_with_annot () = object (self)
     (* print the labels *)
     self#stmt_labels fmt s;
     Format.pp_open_hvbox fmt 0;
-    (* print the Cabscond, if any *)
-    Cabscond.pp_comment fmt s;
-    (* JS TODO: should not depend on [Cabsbranches] *)
-    !cabsbranches_pp_comment fmt s; 
     if Kernel.PrintComments.get () then begin
       let comments = Globals.get_comments_stmt s in
       if comments <> [] then

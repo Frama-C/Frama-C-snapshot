@@ -1,0 +1,27 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/small_conditionals.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  Y ∈ {0}
+  Z ∈ {0}
+  U ∈ {0}
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  Y ∈ [--..--]
+  Z ∈ {4}
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  Y FROM X
+  Z FROM U
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          Y; Z; tmp
+[inout] Inputs for function main:
+          U

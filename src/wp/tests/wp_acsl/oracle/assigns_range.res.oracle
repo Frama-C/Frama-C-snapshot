@@ -1,0 +1,432 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_acsl/assigns_range.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function call_assigns_all
+------------------------------------------------------------
+
+Goal Assigns 'qed_ok' in 'call_assigns_all' (1/5):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns 'qed_ok' in 'call_assigns_all' (2/5):
+Call Effect at line 37
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_0) /\ (is_sint32 j_0).
+  (* Pre-condition (file tests/wp_acsl/assigns_range.i, line 32) in 'call_assigns_all' *)
+  (* Pre-condition: *)
+  Have: (0<=i_0) /\ (i_0<=j_0) /\ (j_0<=19).
+  (* Merge *)Either {
+               Case: (* Goal *) When: i_0<=19.
+               Case: (* Goal *) When: i_0<=19.
+             }
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns 'qed_ok' in 'call_assigns_all' (3/5):
+Call Effect at line 38
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_2) /\ (is_sint32 j_2).
+  (* Pre-condition (file tests/wp_acsl/assigns_range.i, line 32) in 'call_assigns_all' *)
+  (* Pre-condition: *)
+  Have: (0<=i_2) /\ (i_2<=j_2) /\ (j_2<=19).
+  (* tests/wp_acsl/assigns_range.i:37: Call 'assigns_t1_an_element' *)
+  Have: i_2<=19.
+  (* Merge *)Either {
+               Case:
+                 (* Control Flow *)
+                 Have: t2_0=t2_2.
+                 (* tests/wp_acsl/assigns_range.i:38: Call Effects *)
+                 Have: forall i_0:int.
+                       ((j_2<i_0) \/ (i_0<i_2)) -> (t2_0[i_0]=t2_3[i_0]).
+               Case:
+                 (* Control Flow *)
+                 Have: t2_1=t2_2.
+                 (* tests/wp_acsl/assigns_range.i:38: Exit Effects *)
+                 Have: forall i_0:int.
+                       ((j_2<i_0) \/ (i_0<i_2)) -> (t2_1[i_0]=t2_4[i_0]).
+             }
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns 'qed_ok' in 'call_assigns_all' (4/5):
+Call Effect at line 39
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_0) /\ (is_sint32 j_0).
+  (* Pre-condition (file tests/wp_acsl/assigns_range.i, line 32) in 'call_assigns_all' *)
+  (* Pre-condition: *)
+  Have: (0<=i_0) /\ (i_0<=j_0) /\ (j_0<=19).
+  (* tests/wp_acsl/assigns_range.i:37: Call 'assigns_t1_an_element' *)
+  Have: i_0<=19.
+  (* tests/wp_acsl/assigns_range.i:38: Call Effects *)
+  Have: forall i_1:int. ((j_0<i_1) \/ (i_1<i_0)) -> (t2_0[i_1]=t2_3[i_1]).
+  (* Merge *)Either {
+               Case:
+                 (* Control Flow *)
+                 Have: t3_0=t3_2.
+                 (* tests/wp_acsl/assigns_range.i:39: Call Effects *)
+                 Have: forall i_1:int.
+                       ((i_1<i_0) \/ (20<=i_1)) -> (t3_0[i_1]=t3_3[i_1]).
+               Case:
+                 (* Control Flow *)
+                 Have: t3_1=t3_2.
+                 (* tests/wp_acsl/assigns_range.i:39: Exit Effects *)
+                 Have: forall i_1:int.
+                       ((i_1<i_0) \/ (20<=i_1)) -> (t3_1[i_1]=t3_4[i_1]).
+             }
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns 'qed_ok' in 'call_assigns_all' (5/5):
+Call Effect at line 40
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_0) /\ (is_sint32 j_0).
+  (* Pre-condition (file tests/wp_acsl/assigns_range.i, line 32) in 'call_assigns_all' *)
+  (* Pre-condition: *)
+  Have: (0<=i_0) /\ (i_0<=j_0) /\ (j_0<=19).
+  (* tests/wp_acsl/assigns_range.i:37: Call 'assigns_t1_an_element' *)
+  Have: i_0<=19.
+  (* tests/wp_acsl/assigns_range.i:38: Call Effects *)
+  Have: forall i_1:int. ((j_0<i_1) \/ (i_1<i_0)) -> (t2_0[i_1]=t2_3[i_1]).
+  (* tests/wp_acsl/assigns_range.i:39: Call Effects *)
+  Have: forall i_1:int. ((i_1<i_0) \/ (20<=i_1)) -> (t3_0[i_1]=t3_3[i_1]).
+  (* Merge *)Either {
+               Case:
+                 (* Control Flow *)
+                 Have: t4_0=t4_2.
+                 (* tests/wp_acsl/assigns_range.i:40: Call 'assigns_t4_sup_bound' *)
+                 Have: 0<=j_0.
+                 (* tests/wp_acsl/assigns_range.i:40: Call Effects *)
+                 Have: forall i_1:int.
+                       ((j_0<i_1) \/ (i_1<0)) -> (t4_0[i_1]=t4_3[i_1]).
+               Case:
+                 (* Control Flow *)
+                 Have: t4_1=t4_2.
+                 (* tests/wp_acsl/assigns_range.i:40: Exit 'assigns_t4_sup_bound' *)
+                 Have: 0<=j_0.
+                 (* tests/wp_acsl/assigns_range.i:40: Exit Effects *)
+                 Have: forall i_1:int.
+                       ((j_0<i_1) \/ (i_1<0)) -> (t4_1[i_1]=t4_4[i_1]).
+             }
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns 'qed_ok' in 'call_assigns_all' (1/5):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns 'qed_ok' in 'call_assigns_all' (2/5):
+Call Effect at line 37
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_0) /\ (is_sint32 j_0).
+  (* Goal *)
+  When: (0<=i_0) /\ (i_0<=19).
+  (* Pre-condition (file tests/wp_acsl/assigns_range.i, line 32) in 'call_assigns_all' *)
+  (* Pre-condition: *)
+  Have: (i_0<=j_0) /\ (j_0<=19).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns 'qed_ok' in 'call_assigns_all' (3/5):
+Call Effect at line 38
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_2) /\ (is_sint32 j_2).
+  (* Goal *)
+  When: (i_2<=j_2) -> ((0<=i_2) /\ (j_2<=19)).
+  (* Pre-condition (file tests/wp_acsl/assigns_range.i, line 32) in 'call_assigns_all' *)
+  (* Pre-condition: *)
+  Have: (0<=i_2) /\ (i_2<=j_2) /\ (j_2<=19).
+  (* tests/wp_acsl/assigns_range.i:37: Call 'assigns_t1_an_element' *)
+  Have: i_2<=19.
+  (* tests/wp_acsl/assigns_range.i:38: Call Effects *)
+  Have: forall i_0:int. ((j_2<i_0) \/ (i_0<i_2)) -> (t2_0[i_0]=t2_3[i_0]).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns 'qed_ok' in 'call_assigns_all' (4/5):
+Call Effect at line 39
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_0) /\ (is_sint32 j_0).
+  (* Goal *)
+  When: (i_0<=19) -> (0<=i_0).
+  (* Pre-condition (file tests/wp_acsl/assigns_range.i, line 32) in 'call_assigns_all' *)
+  (* Pre-condition: *)
+  Have: (0<=i_0) /\ (i_0<=j_0) /\ (j_0<=19).
+  (* tests/wp_acsl/assigns_range.i:37: Call 'assigns_t1_an_element' *)
+  Have: i_0<=19.
+  (* tests/wp_acsl/assigns_range.i:38: Call Effects *)
+  Have: forall i_1:int. ((j_0<i_1) \/ (i_1<i_0)) -> (t2_0[i_1]=t2_3[i_1]).
+  (* tests/wp_acsl/assigns_range.i:39: Call Effects *)
+  Have: forall i_1:int. ((i_1<i_0) \/ (20<=i_1)) -> (t3_0[i_1]=t3_3[i_1]).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns 'qed_ok' in 'call_assigns_all' (5/5):
+Call Effect at line 40
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_0) /\ (is_sint32 j_0).
+  (* Goal *)
+  When: (0<=j_0) -> (j_0<=19).
+  (* Pre-condition (file tests/wp_acsl/assigns_range.i, line 32) in 'call_assigns_all' *)
+  (* Pre-condition: *)
+  Have: (0<=i_0) /\ (i_0<=j_0) /\ (j_0<=19).
+  (* tests/wp_acsl/assigns_range.i:37: Call 'assigns_t1_an_element' *)
+  Have: i_0<=19.
+  (* tests/wp_acsl/assigns_range.i:38: Call Effects *)
+  Have: forall i_1:int. ((j_0<i_1) \/ (i_1<i_0)) -> (t2_0[i_1]=t2_3[i_1]).
+  (* tests/wp_acsl/assigns_range.i:39: Call Effects *)
+  Have: forall i_1:int. ((i_1<i_0) \/ (20<=i_1)) -> (t3_0[i_1]=t3_3[i_1]).
+  (* tests/wp_acsl/assigns_range.i:40: Call 'assigns_t4_sup_bound' *)
+  Have: 0<=j_0.
+  (* tests/wp_acsl/assigns_range.i:40: Call Effects *)
+  Have: forall i_1:int. ((j_0<i_1) \/ (i_1<0)) -> (t4_0[i_1]=t4_3[i_1]).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_acsl/assigns_range.i, line 8) in 'assigns_t1_an_element'' in 'call_assigns_all' at call 'assigns_t1_an_element' (file tests/wp_acsl/assigns_range.i, line 37)
+:
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_2) /\ (is_sint32 j_0).
+  (* Pre-condition (file tests/wp_acsl/assigns_range.i, line 32) in 'call_assigns_all' *)
+  (* Pre-condition: *)
+  Have: (0<=i_2) /\ (i_2<=j_0) /\ (j_0<=19).
+}
+Prove: i_2<=19.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_acsl/assigns_range.i, line 13) in 'assigns_t2_bound'' in 'call_assigns_all' at call 'assigns_t2_bound' (file tests/wp_acsl/assigns_range.i, line 38)
+:
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_2) /\ (is_sint32 j_2).
+  (* Pre-condition (file tests/wp_acsl/assigns_range.i, line 32) in 'call_assigns_all' *)
+  (* Pre-condition: *)
+  Have: (0<=i_2) /\ (i_2<=j_2) /\ (j_2<=19).
+  (* tests/wp_acsl/assigns_range.i:37: Call 'assigns_t1_an_element' *)
+  Have: i_2<=19.
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_acsl/assigns_range.i, line 18) in 'assigns_t3_inf_bound'' in 'call_assigns_all' at call 'assigns_t3_inf_bound' (file tests/wp_acsl/assigns_range.i, line 39)
+:
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_2) /\ (is_sint32 j_0).
+  (* Pre-condition (file tests/wp_acsl/assigns_range.i, line 32) in 'call_assigns_all' *)
+  (* Pre-condition: *)
+  Have: (0<=i_2) /\ (i_2<=j_0) /\ (j_0<=19).
+  (* tests/wp_acsl/assigns_range.i:37: Call 'assigns_t1_an_element' *)
+  Have: i_2<=19.
+  (* tests/wp_acsl/assigns_range.i:38: Call Effects *)
+  Have: forall i_0:int. ((j_0<i_0) \/ (i_0<i_2)) -> (t2_0[i_0]=t2_3[i_0]).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_acsl/assigns_range.i, line 23) in 'assigns_t4_sup_bound'' in 'call_assigns_all' at call 'assigns_t4_sup_bound' (file tests/wp_acsl/assigns_range.i, line 40)
+:
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_0) /\ (is_sint32 j_2).
+  (* Pre-condition (file tests/wp_acsl/assigns_range.i, line 32) in 'call_assigns_all' *)
+  (* Pre-condition: *)
+  Have: (0<=i_0) /\ (i_0<=j_2) /\ (j_2<=19).
+  (* tests/wp_acsl/assigns_range.i:37: Call 'assigns_t1_an_element' *)
+  Have: i_0<=19.
+  (* tests/wp_acsl/assigns_range.i:38: Call Effects *)
+  Have: forall i_1:int. ((j_2<i_1) \/ (i_1<i_0)) -> (t2_0[i_1]=t2_3[i_1]).
+  (* tests/wp_acsl/assigns_range.i:39: Call Effects *)
+  Have: forall i_1:int. ((i_1<i_0) \/ (20<=i_1)) -> (t3_0[i_1]=t3_3[i_1]).
+}
+Prove: 0<=j_2.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function call_assigns_t1
+------------------------------------------------------------
+
+Goal Assigns 'qed_ko' in 'call_assigns_t1':
+Call Effect at line 49
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_0).
+  (* Goal *)
+  When: (0<=i_0) /\ (i_0<=19).
+  (* Pre-condition (file tests/wp_acsl/assigns_range.i, line 44) in 'call_assigns_t1' *)
+  (* Pre-condition: *)
+  Have: (5<=i_0) /\ (i_0<=7).
+}
+Prove: false.
+
+------------------------------------------------------------
+
+Goal Assigns 'qed_ko' in 'call_assigns_t1':
+Call Effect at line 49
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_0).
+  (* Goal *)
+  When: (0<=i_0) /\ (i_0<=19).
+  (* Pre-condition (file tests/wp_acsl/assigns_range.i, line 44) in 'call_assigns_t1' *)
+  (* Pre-condition: *)
+  Have: (5<=i_0) /\ (i_0<=7).
+}
+Prove: false.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_acsl/assigns_range.i, line 8) in 'assigns_t1_an_element'' in 'call_assigns_t1' at call 'assigns_t1_an_element' (file tests/wp_acsl/assigns_range.i, line 49)
+:
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_2).
+  (* Pre-condition (file tests/wp_acsl/assigns_range.i, line 44) in 'call_assigns_t1' *)
+  (* Pre-condition: *)
+  Have: (5<=i_2) /\ (i_2<=7).
+}
+Prove: (0<=i_2) /\ (i_2<=19).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function call_assigns_t2
+------------------------------------------------------------
+
+Goal Assigns 'qed_ko' in 'call_assigns_t2':
+Call Effect at line 57
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_2).
+  (* Pre-condition (file tests/wp_acsl/assigns_range.i, line 52) in 'call_assigns_t2' *)
+  (* Pre-condition: *)
+  Have: (5<=i_2) /\ (i_2<=7).
+  (* tests/wp_acsl/assigns_range.i:57: Exit 'assigns_t2_bound' *)
+  Have: (0<=i_2) /\ (i_2<=17).
+  (* tests/wp_acsl/assigns_range.i:57: Exit Effects *)
+  Have: forall i_0:int.
+        ((i_0<i_2) \/ ((3+i_2)<=i_0)) -> (t2_1[i_0]=t2_4[i_0]).
+}
+Prove: false.
+
+------------------------------------------------------------
+
+Goal Assigns 'qed_ko' in 'call_assigns_t2':
+Call Effect at line 57
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_2).
+  (* Pre-condition (file tests/wp_acsl/assigns_range.i, line 52) in 'call_assigns_t2' *)
+  (* Pre-condition: *)
+  Have: (5<=i_2) /\ (i_2<=7).
+  (* tests/wp_acsl/assigns_range.i:57: Call 'assigns_t2_bound' *)
+  Have: (0<=i_2) /\ (i_2<=17).
+  (* tests/wp_acsl/assigns_range.i:57: Call Effects *)
+  Have: forall i_0:int.
+        ((i_0<i_2) \/ ((3+i_2)<=i_0)) -> (t2_0[i_0]=t2_3[i_0]).
+}
+Prove: false.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_acsl/assigns_range.i, line 13) in 'assigns_t2_bound'' in 'call_assigns_t2' at call 'assigns_t2_bound' (file tests/wp_acsl/assigns_range.i, line 57)
+:
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_2).
+  (* Pre-condition (file tests/wp_acsl/assigns_range.i, line 52) in 'call_assigns_t2' *)
+  (* Pre-condition: *)
+  Have: (5<=i_2) /\ (i_2<=7).
+}
+Prove: (0<=i_2) /\ (i_2<=17).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function call_assigns_t4
+------------------------------------------------------------
+
+Goal Assigns 'qed_ko' in 'call_assigns_t4':
+Call Effect at line 65
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_0) /\ (is_sint32 j_1).
+  (* Goal *)
+  When: (0<=j_1) -> (j_1<=19).
+  (* Pre-condition (file tests/wp_acsl/assigns_range.i, line 60) in 'call_assigns_t4' *)
+  (* Pre-condition: *)
+  Have: (0<=i_0) /\ (i_0<=j_1) /\ (j_1<=19).
+  (* tests/wp_acsl/assigns_range.i:65: Exit 'assigns_t4_sup_bound' *)
+  Have: 0<=j_1.
+  (* tests/wp_acsl/assigns_range.i:65: Exit Effects *)
+  Have: forall i_1:int. ((j_1<i_1) \/ (i_1<0)) -> (t4_1[i_1]=t4_4[i_1]).
+}
+Prove: i_0<=0.
+
+------------------------------------------------------------
+
+Goal Assigns 'qed_ko' in 'call_assigns_t4':
+Call Effect at line 65
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_0) /\ (is_sint32 j_1).
+  (* Goal *)
+  When: (0<=j_1) -> (j_1<=19).
+  (* Pre-condition (file tests/wp_acsl/assigns_range.i, line 60) in 'call_assigns_t4' *)
+  (* Pre-condition: *)
+  Have: (0<=i_0) /\ (i_0<=j_1) /\ (j_1<=19).
+  (* tests/wp_acsl/assigns_range.i:65: Call 'assigns_t4_sup_bound' *)
+  Have: 0<=j_1.
+  (* tests/wp_acsl/assigns_range.i:65: Call Effects *)
+  Have: forall i_1:int. ((j_1<i_1) \/ (i_1<0)) -> (t4_0[i_1]=t4_3[i_1]).
+}
+Prove: i_0<=0.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_acsl/assigns_range.i, line 23) in 'assigns_t4_sup_bound'' in 'call_assigns_t4' at call 'assigns_t4_sup_bound' (file tests/wp_acsl/assigns_range.i, line 65)
+:
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_0) /\ (is_sint32 j_1).
+  (* Pre-condition (file tests/wp_acsl/assigns_range.i, line 60) in 'call_assigns_t4' *)
+  (* Pre-condition: *)
+  Have: (0<=i_0) /\ (i_0<=j_1) /\ (j_1<=19).
+}
+Prove: 0<=j_1.
+
+------------------------------------------------------------

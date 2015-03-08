@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -136,11 +136,11 @@ module WP_TypedRef = CfgWP.Computer(MTypedRef)
 
 let wp (s:setup) : Model.t -> Generator.computer =
   match s.mheap , s.mvar with
-    | Hoare , (Raw|Var) -> WP_HoareVar.create
-    | Hoare ,   Ref     -> WP_HoareRef.create
-    | Typed _ , Raw     -> WP_TypedRaw.create
-    | Typed _ , Var     -> WP_TypedVar.create
-    | Typed _ , Ref     -> WP_TypedRef.create
+  | Hoare , (Raw|Var) -> WP_HoareVar.create
+  | Hoare ,   Ref     -> WP_HoareRef.create
+  | Typed _ , Raw     -> WP_TypedRaw.create
+  | Typed _ , Var     -> WP_TypedVar.create
+  | Typed _ , Ref     -> WP_TypedRef.create
 
 (* -------------------------------------------------------------------------- *)
 (* --- Tuning                                                             --- *)
@@ -163,12 +163,12 @@ let configure (s:setup) (d:driver) () =
 (* -------------------------------------------------------------------------- *)
 
 module MODEL = FCMap.Make
-  (struct
-     type t = setup * driver 
-     let compare (s,d) (s',d') = 
-       let cmp = Pervasives.compare s s' in
-       if cmp <> 0 then cmp else LogicBuiltins.compare d d'
-   end)
+    (struct
+      type t = setup * driver 
+      let compare (s,d) (s',d') = 
+        let cmp = Pervasives.compare s s' in
+        if cmp <> 0 then cmp else LogicBuiltins.compare d d'
+    end)
 
 type instance = {
   model : Model.t ;
@@ -185,13 +185,13 @@ let instance (s:setup) (d:driver) =
     let id,descr = 
       if LogicBuiltins.is_default d then id,descr
       else 
-	( id ^ "_" ^ LogicBuiltins.id d ,
-	  descr ^ " (Driver " ^ LogicBuiltins.descr d ^ ")" )
+        ( id ^ "_" ^ LogicBuiltins.id d ,
+          descr ^ " (Driver " ^ LogicBuiltins.descr d ^ ")" )
     in
     let model = Model.register ~id ~descr ~tuning () in
     let instance = { model = model ; driver = d } in
     instances := MODEL.add (s,d) instance !instances ; instance
-      
+
 let ident s = fst (descr s)
 let descr s = snd (descr s)
 let computer (s:setup) (d:driver) = wp s (instance s d).model
@@ -202,17 +202,17 @@ let split (m:string) : string list =
   let flush () = 
     if Buffer.length buffer > 0 then
       begin
-	tk := !tk @ [Buffer.contents buffer] ; 
-	Buffer.clear buffer ;
+        tk := !tk @ [Buffer.contents buffer] ; 
+        Buffer.clear buffer ;
       end
   in
   String.iter
     (fun c -> 
        match c with
-	 | 'A' .. 'Z' -> Buffer.add_char buffer c
-	 | '_' | ',' | '@' | '+' | ' ' | '\t' | '\n' | '(' | ')' -> flush ()
-	 | _ -> Wp_parameters.error 
-	     "In model spec %S : unexpected character '%c'" m c
+       | 'A' .. 'Z' -> Buffer.add_char buffer c
+       | '_' | ',' | '@' | '+' | ' ' | '\t' | '\n' | '(' | ')' -> flush ()
+       | _ -> Wp_parameters.error 
+                "In model spec %S : unexpected character '%c'" m c
     ) (String.uppercase m) ;
   flush () ; !tk
 
@@ -229,14 +229,14 @@ let rec update_config m s = function
   | "REAL" -> { s with cfloat = Cfloat.Real }
   | "FLOAT" | "CFLOAT" -> { s with cfloat = Cfloat.Float }
   | t -> Wp_parameters.error 
-      "In model spec %S : unknown '%s' selector@." m t ; s
+           "In model spec %S : unknown '%s' selector@." m t ; s
 
 let apply_config (s:setup) m : setup =
   List.fold_left (update_config m) s (split m)
 
 let parse = List.fold_left apply_config {
-  mheap = Typed MemTyped.Fits ;
-  mvar = Var ;
-  cint = Cint.Natural ;
-  cfloat = Cfloat.Real ;
-}
+    mheap = Typed MemTyped.Fits ;
+    mvar = Var ;
+    cint = Cint.Natural ;
+    cfloat = Cfloat.Real ;
+  }

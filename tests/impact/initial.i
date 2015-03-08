@@ -1,5 +1,6 @@
 /* run.config
-   STDOPT: +"-pdg-verbose 0" +"-main main1 -impact-pragma g1" +"-then -main main2 -impact-pragma g2" +"-then -main main3 -impact-pragma g3" 
+   COMMENT: also tests the parsing of cmdline options of type string_set
+   STDOPT: +"-pdg-verbose 0" +"-main main1 -impact-pragma g1" +"-then -main main2 -impact-pragma='-@all,+g2'" +"-then -main main3 -impact-pragma='-g2,+g3'" 
 */
 
 int x1, x2, y2, z2, x3;

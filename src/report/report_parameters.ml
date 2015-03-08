@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -47,4 +47,12 @@ module Untried =
     (struct
       let option_name = "-report-untried"
       let help = "display properties which no plug-in tried to prove"
+     end)
+
+module Specialized =
+  True
+    (struct
+      let option_name = "-report-specialized"
+      let help = "display properties that are auxiliary instances of other \
+          properties."
      end)

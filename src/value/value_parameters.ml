@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,6 +27,9 @@ let kernel_parameters_correctness = [
   Kernel.AbsoluteValidRange.parameter;
   Kernel.SafeArrays.parameter;
   Kernel.UnspecifiedAccess.parameter;
+  Kernel.SignedOverflow.parameter;
+  Kernel.UnsignedOverflow.parameter;
+  Kernel.ConstReadonly.parameter;
 ]
 
 let parameters_correctness = ref []
@@ -69,22 +72,13 @@ let interpreter = add_group "Deterministic programs"
 let alarms = add_group "Propagation and alarms "
 
 (* -------------------------------------------------------------------------- *)
-(* --- Aux                                                                --- *)
-(* -------------------------------------------------------------------------- *)
-
-let check_c_function_exists ~f ~option ~arg =
-  try ignore (Globals.Functions.find_by_name f)
-  with Not_found ->
-    warning "option '%s %s': function '%s' does not exist" option arg f
-
-(* -------------------------------------------------------------------------- *)
 (* --- Performance options                                                --- *)
 (* -------------------------------------------------------------------------- *)
 
-let () = Parameter_customize.argument_is_function_name ()
 let () = Parameter_customize.set_group performance
+
 module NoResultsFunctions =
-  StringSet
+  Fundec_set
     (struct
        let option_name = "-no-results-function"
        let arg_name = "f"
@@ -105,24 +99,41 @@ program"
 let () = add_dep NoResultsAll.parameter
 
 let () = Parameter_customize.set_group performance
+let () = Parameter_customize.is_invisible ()
 module ResultsAfter =
   Bool
     (struct
        let option_name = "-val-after-results"
        let help = "record precisely the values obtained after the evaluation of each statement"
-       let default = !Fc_config.is_gui 
+       let default = true
      end)
-let () = add_dep ResultsAfter.parameter
+let () =
+  ResultsAfter.add_set_hook
+    (fun _ new_ ->
+      if new_ then
+        Kernel.feedback "@[Option -val-after-results is now always set.@]"
+      else
+        Kernel.warning "@[Option -val-after-results can no longer be unset.@]")
 
 let () = Parameter_customize.set_group performance
+let () = Parameter_customize.is_invisible ()
 module ResultsCallstack =
   Bool
     (struct
        let option_name = "-val-callstack-results"
-       let help = "record precisely the values obtained for each callstack leading to each statement"
+       let help = "always enabled, cannot be disabled: used to record precisely the values obtained for each callstack leading to each statement"
        let default = false
      end)
-let () = add_dep ResultsCallstack.parameter
+let () = add_precision_dep ResultsCallstack.parameter
+
+let () = Parameter_customize.set_group performance
+module JoinResults =
+  Bool
+    (struct
+       let option_name = "-val-join-results"
+       let help = "precompute consolidated states once value is computed"
+       let default = true
+     end)
 
 let () = Parameter_customize.set_group performance
 let () = Parameter_customize.is_invisible ()
@@ -224,16 +235,16 @@ module IgnoreRecursiveCalls =
      end)
 let () = add_correctness_dep IgnoreRecursiveCalls.parameter
 
-
 let () = Parameter_customize.set_group alarms
+
 module WarnCopyIndeterminate =
-  StringSet
+  Kernel_function_set
     (struct
        let option_name = "-val-warn-copy-indeterminate"
        let arg_name = "f | @all"
        let help = "warn when a statement of the specified functions copies a \
 value that may be indeterminate (uninitalized or containing escaping address). \
-Any number of function must be specified. If '@all' is present, this option \
+Any number of function may be specified. If '@all' is present, this option \
 becomes active for all functions. Inactive by default."
      end)
 let () = add_correctness_dep WarnCopyIndeterminate.parameter
@@ -337,85 +348,83 @@ module SemanticUnrollingLevel =
      end)
 let () = add_precision_dep SemanticUnrollingLevel.parameter
 
-let split_option =
-  let rx = Str.regexp_string ":" in
-  fun s ->
-    try
-      match Str.split rx s with
-        | [ f ; n ] -> (f, n)
-        | _ -> failwith ""
-    with _ -> failwith "split_option"
-
 let () = Parameter_customize.set_group precision_tuning
+let () = Parameter_customize.argument_may_be_fundecl ()
 module SlevelFunction =
-  StringHashtbl
+  Kernel_function_map
+    (struct
+      include Datatype.Int
+      type key = Cil_types.kernel_function
+      let of_string ~key:_ ~prev:_ s =
+        Extlib.opt_map
+          (fun s ->
+            try int_of_string s
+            with Failure _ ->
+              raise (Cannot_build ("'" ^ s ^ "' is not an integer")))
+          s
+      let to_string ~key:_ = Extlib.opt_map string_of_int
+     end)
     (struct
        let option_name = "-slevel-function"
        let arg_name = "f:n"
        let help = "override slevel with <n> when analyzing <f>"
+       let default = Kernel_function.Map.empty
      end)
-    (struct
-      include Datatype.Int
-
-      let parse s =
-        try
-          let f, n =  split_option s in
-          check_c_function_exists ~f:f ~option:"-slevel-function" ~arg:s;
-          let n = int_of_string n in
-          f, n
-        with
-       | Failure _ -> abort "Could not parse option \"-slevel-function %s\"" s
-      let redefine_binding _k ~old:_ new_v = new_v
-      let no_binding _ = SemanticUnrollingLevel.get ()
-    end)
 let () = add_precision_dep SlevelFunction.parameter
 
 let () = Parameter_customize.set_group precision_tuning
 module SlevelMergeAfterLoop =
-  False
+  Kernel_function_set
     (struct
-       let option_name = "-slevel-merge-after-loop"
+       let option_name = "-val-slevel-merge-after-loop"
+       let arg_name = "f | @all"
        let help =
          "when set, the different execution paths that originate from the body \
           of a loop are merged before entering the next excution. Experimental."
      end)
 let () = add_precision_dep SemanticUnrollingLevel.parameter
 
-let split_option_multiple =
-  let rx = Str.regexp_string ":" in
-  fun s ->
-    try
-      match Str.split rx s with
-        | f :: q -> f, q
-        | _ -> failwith ""
-    with _ -> failwith "split_option"
-
 let () = Parameter_customize.set_group precision_tuning
+let () = Parameter_customize.argument_may_be_fundecl ()
 module SplitReturnFunction =
-  StringHashtbl
+  Kernel_function_map
+    (struct
+      (* this type is ad-hoc: cannot use Kernel_function_multiple_map here *)
+      include Split_strategy
+      type key = Cil_types.kernel_function
+      let of_string =
+        let r = Str.regexp ":" in
+        fun ~key:_ ~prev:_ s ->
+          Extlib.opt_map
+            (fun s ->
+              if s = "" then NoSplit
+              else if s = "full" then FullSplit
+              else
+                let conv s =
+                  try Integer.of_string s
+                  with Failure _ ->
+                    raise (Cannot_build ("'" ^ s ^ "' is not an integer"))
+                in
+                SplitEqList (List.map conv (Str.split r s)))
+            s
+      let to_string ~key:_ v =
+        Extlib.opt_map
+          (function
+          | NoSplit -> ""
+          | FullSplit -> "full"
+          | SplitEqList l ->
+            Pretty_utils.sfprintf "%t"
+              (fun fmt ->
+                Pretty_utils.pp_list ~sep:":" Datatype.Integer.pretty fmt l))
+          v
+     end)
     (struct
        let option_name = "-val-split-return-function"
        let arg_name = "f:n"
        let help = "split return states of function <f> according to \
                      \\result == n and \\result != n"
+       let default = Kernel_function.Map.empty
      end)
-    (struct
-      include Split_strategy
-      let parse s =
-        try
-          let f, l = split_option_multiple s in
-          check_c_function_exists
-            ~f:f ~option:"-val-split-return-function" ~arg:s;
-	  ( match l with
-	    [ "full" ] -> f, FullSplit
-	  | _ ->	      
-            let l = List.map Integer.of_string l in
-            f, SplitEqList l)
-        with Failure _ -> 
-	  abort "Could not parse option \"-val-split-return %s\"" s
-      let redefine_binding _k ~old:_ new_v = new_v
-      let no_binding _ = raise Not_found
-    end)
 let () = add_precision_dep SplitReturnFunction.parameter
 
 let () = Parameter_customize.set_group precision_tuning
@@ -429,26 +438,30 @@ module SplitReturnAuto =
 let () = add_precision_dep SplitReturnAuto.parameter
 
 let () = Parameter_customize.set_group precision_tuning
+let () = Parameter_customize.argument_may_be_fundecl ()
 module BuiltinsOverrides =
-  StringHashtbl
+  Kernel_function_map
+    (struct
+      include Datatype.String
+      type key = Cil_types.kernel_function
+      let of_string ~key:kf ~prev:_ nameopt =
+        begin match nameopt with
+        | Some name ->
+           if not (!Db.Value.mem_builtin name) then
+             abort "option '-val-builtin %a:%s': undeclared builtin '%s'"
+                   Kernel_function.pretty kf name name;
+        | _ -> ()
+        end;
+        nameopt
+      let to_string ~key:_ name = name
+     end)
     (struct
        let option_name = "-val-builtin"
        let arg_name = "f:ffc"
-       let help = "when analyzing function <f>, try to use Frama-C builtin <ffc> instead. Fall back to <f> if <ffc> cannot handle its arguments (experimental)."
-     end)
-    (struct
-        include Datatype.String
-        let parse s =
-          try
-            let (fc, focaml) as r = split_option s in
-            if not (!Db.Value.mem_builtin focaml) then
-              abort "option '-val-builtin %s': undeclared builtin '%s'"
-                s focaml;
-            check_c_function_exists ~f:fc ~option:"-val-builtin" ~arg:s;
-            r
-          with Failure _ -> abort "Could not parse option \"-val-builtin %s\"" s
-        let redefine_binding _k ~old:_ new_v = new_v
-        let no_binding _ = raise Not_found
+       let help = "when analyzing function <f>, try to use Frama-C builtin \
+<ffc> instead. Fall back to <f> if <ffc> cannot handle its arguments \
+(experimental)."
+       let default = Kernel_function.Map.empty
      end)
 let () = add_precision_dep BuiltinsOverrides.parameter
 
@@ -463,10 +476,9 @@ module Subdivide_float_in_expr =
     end)
 let () = add_precision_dep Subdivide_float_in_expr.parameter
 
-let () = Parameter_customize.argument_is_function_name ()
 let () = Parameter_customize.set_group precision_tuning
 module UsePrototype =
-  StringSet
+  Kernel_function_set
     (struct
       let option_name = "-val-use-spec"
       let arg_name = "f1,..,fn"
@@ -513,11 +525,11 @@ less than n values. (defaults to 200)"
      end)
 let () = add_precision_dep ArrayPrecisionLevel.parameter
 let () = ArrayPrecisionLevel.add_update_hook
-  (fun _ v -> Lattice_Interval_Set.plevel := v)
+  (fun _ v -> Offsetmap.set_plevel v)
 
 let () = Parameter_customize.set_group precision_tuning
 module SeparateStmtStart =
-  StringSet
+  String_set
     (struct
        let option_name = "-separate-stmts"
        let arg_name = "n1,..,nk"
@@ -626,10 +638,10 @@ module InterpreterMode =
 arguments, on undecided branches"
      end)
 
-let () = Parameter_customize.argument_is_function_name ()
 let () = Parameter_customize.set_group interpreter
+
 module ObviouslyTerminatesFunctions =
-  StringSet
+  Fundec_set
     (struct
        let option_name = "-obviously-terminates-function"
        let arg_name = "f"

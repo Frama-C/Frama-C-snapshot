@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -23,7 +23,6 @@
 open Cil_types
 open Cil
 open Abstract_interp
-open Lattice_Interval_Set
 
 module Initial_Values = struct
   let v = [ [Base.null,Ival.singleton_zero];
@@ -46,12 +45,7 @@ end
 
 module MapLatticeIval =
   Map_Lattice.Make
-    (Base.Base)(Base.SetLattice)(Ival)(Comp_cardinal_0_1)(Initial_Values)(
-      struct
-        let zone = false
-        let null = Base.null
-        let is_null = Base.is_null
-      end)
+    (Base.Base)(Base.SetLattice)(Ival)(Comp_cardinal_0_1)(Initial_Values)
 
 module Location_Bytes = struct
 
@@ -60,6 +54,9 @@ module Location_Bytes = struct
   type z = tt =
     | Top of Base.SetLattice.t * Origin.t
     | Map of M.t
+    (* Invariant :
+       [Top (s, _) must always contain NULL, _and_ at least another base.
+       Top ({Null}, _) is replaced by Top_int]. See inject_top_origin below. *)
 
   let inject_ival i = inject Base.null i
 
@@ -68,22 +65,34 @@ module Location_Bytes = struct
       (Ival.inject_float
 	  (Ival.Float_abstract.inject_singleton f))
 
-  let top_float = inject_ival Ival.top_float
-
-  let top_single_precision_float = inject_ival Ival.top_single_precision_float
-
+  (** Check that those values correspond to {!Initial_Values} above. *)
   let singleton_zero = inject_ival Ival.singleton_zero
   let singleton_one = inject_ival Ival.singleton_one
   let zero_or_one = inject_ival Ival.zero_or_one
+  let top_int = inject_ival Ival.top
+  let top_float = inject_ival Ival.top_float
+  let top_single_precision_float = inject_ival Ival.top_single_precision_float
 
   (* true iff [v] is exactly 0 *)
   let is_zero v = equal v singleton_zero
 
   (* [shift offset l] is the location [l] shifted by [offset] *)
   let shift offset l =
+    if Ival.is_bottom offset then bottom else
     try
       map_offsets (Ival.add_int offset) l
     with Error_Top -> l
+
+  (* [shift_under offset l] is the location [l] (an
+     under-approximation) shifted by [offset] (another
+     under-approximation); returns an underapproximation. *)
+  let shift_under offset l =
+    if Ival.is_bottom offset then bottom else
+    try
+      map_offsets (Ival.add_int_under offset) l
+    (* Note: having an under-approximation at top is probably
+       wrong. *)
+    with Error_Top -> assert false
 
   (* Override the function coming from MapLattice, we can do better *)
   let cardinal_zero_or_one = function
@@ -101,6 +110,22 @@ module Location_Bytes = struct
 
   let top_with_origin origin =
     Top(Base.SetLattice.top, origin)
+
+  let inject_top_origin o b =
+    if Base.Hptset.(equal b empty || equal b Base.null_set) then
+      top_int
+    else
+      Top (Base.SetLattice.inject (Base.Hptset.add Base.null b), o)
+
+  (** some functions can reduce a garbled mix, make sure to normalize
+      the result when only NULL remains *)
+  let normalize_top m =
+    match m with
+    | Top (Base.SetLattice.Top, _) | Map _ -> m
+    | Top (Base.SetLattice.Set s, o) -> inject_top_origin o s
+
+  let narrow m1 m2 = normalize_top (narrow m1 m2)
+  let meet m1 m2 = normalize_top (meet m1 m2)
 
  let topify_with_origin o v =
    match v with
@@ -124,7 +149,6 @@ module Location_Bytes = struct
    try
      let b,_ = find_lonely_binding m in
      match Base.validity b with
-     | Base.Periodic _ -> false
      | Base.Known _ | Base.Unknown _ | Base.Invalid -> true
    with Not_found -> false
 
@@ -179,37 +203,22 @@ module Location_Bytes = struct
    if Base.is_null base then true
    else
      match loc with
-     | Top (toparam,_) ->
-         Base.SetLattice.is_included (Base.SetLattice.inject_singleton base) toparam
+     | Top (Base.SetLattice.Top, _) -> true
+     | Top (Base.SetLattice.Set s,_) ->
+         Base.Hptset.mem base s
      | Map m -> try
          ignore (M.find base m);
          true
        with Not_found -> false
 
- let contains_addresses_of_locals is_local =
-   let f base _offsets = is_local base in
-   let projection _base = Ival.top in
-   let cached_f =
-     cached_fold
-       ~cache_name:"loc_top_locals"
-       ~temporary:true
-       ~f
-       ~projection
-       ~joiner:(||)
-       ~empty:false
-   in
-   fun loc ->
-     try
-       cached_f loc
-     with Error_Top ->
-       assert (match loc with
-       | Top (Base.SetLattice.Top,_) -> true
-       | Top (Base.SetLattice.Set _top_param,_orig) ->
-           false
-       | Map _ -> false);
-       true
+ let contains_addresses_of_locals is_local l =
+   match l with
+   | Top (Base.SetLattice.Top,_) -> true
+   | Top (Base.SetLattice.Set s, _) ->
+     Base.SetLattice.O.exists is_local s
+   | Map m ->
+     M.exists (fun b _ -> is_local b) m
 
- (**  TODO: merge with above function *)
    let remove_escaping_locals is_local v =
     match v with
     | Top (Base.SetLattice.Top as t,_) -> t, v
@@ -280,7 +289,7 @@ module Location_Bytes = struct
            let name = Pretty_utils.sfprintf "Locations.Overlap(%d)" size_int in
 	   let f = 
 	     M.symmetric_binary_predicate
-               (M.TemporaryCache name) M.ExistentialPredicate
+               (Hptmap.TemporaryCache name) M.ExistentialPredicate
 	       ~decide_fast:(fun _ _ -> M.PUnknown)
 	       ~decide_one:(fun _ _ -> false)
 	       ~decide_both:(fun _ x y -> Ival.partially_overlaps size x y)
@@ -303,14 +312,6 @@ module Zone = struct
   (Int_Intervals)
   (Hptmap.Comp_unused)
   (Initial_Values)
-  (struct
-    let zone = true
-    let null = Base.null
-    let is_null = Base.is_null
-   end)
-
-  let default base bi ei = inject base (Int_Intervals.inject [bi,ei])
-  let defaultall base = inject base Int_Intervals.top
 
   let pretty fmt m =
     match m with
@@ -340,6 +341,32 @@ module Zone = struct
    | Map m -> M.mem b m
 
  let shape = M.shape
+
+ let fold2_join_heterogeneous ~cache ~empty_left ~empty_right ~both ~join ~empty =
+   let f_top =
+     (* Build a zone corresponding to the garbled mix. Do not add NULL, we
+        are reasoning on zones. Inefficient if empty_right does not use
+        its argument, though... *)
+     let build_z set =
+       let aux b z = M.add b Int_Intervals.top z in
+       Map (Base.Hptset.fold aux set M.empty)
+     in
+     let empty_right set = empty_right (build_z set) in
+     let both base v = both base Int_Intervals.top v in
+     Base.SetLattice.O.fold2_join_heterogeneous
+       ~cache ~empty_left ~empty_right ~both ~join ~empty
+   in
+   let f_map =
+     let empty_right m = empty_right (Map m) in
+     let both base itvs v = both base itvs v in
+     M.fold2_join_heterogeneous
+       ~cache ~empty_left ~empty_right ~both ~join ~empty
+   in
+   fun z ->
+     match z with
+     | Top (Base.SetLattice.Top, _) -> raise Error_Top
+     | Top (Base.SetLattice.Set s, _) -> f_top s
+     | Map mm -> f_map mm
 
 end
 
@@ -381,9 +408,7 @@ let reduce_offset_by_validity ~for_writing base offsets size =
     match Base.validity base, size with
       | Base.Invalid, _ -> Ival.bottom
       | _, Int_Base.Top -> offsets
-      | ( Base.Known (minv,maxv)
-        | Base.Unknown (minv,_,maxv)
-        | Base.Periodic (minv, maxv, _)),
+      | (Base.Known (minv,maxv) | Base.Unknown (minv,_,maxv)),
         Int_Base.Value size ->
           let maxv = Int.succ (Int.sub maxv size) in
           let range = Ival.inject_range (Some minv) (Some maxv) in
@@ -402,6 +427,8 @@ let valid_cardinal_zero_or_one ~for_writing {loc=loc;size=size} =
     match loc with
       | Location_Bits.Top _ -> false
       | Location_Bits.Map m ->
+        if Int_Base.is_top size then false
+        else begin
           Location_Bits.M.iter
             (fun base offsets ->
                let valid_offsets =
@@ -415,6 +442,7 @@ let valid_cardinal_zero_or_one ~for_writing {loc=loc;size=size} =
                else raise Found_two
             ) m;
           true
+        end
     with
       | Int_Base.Error_Top | Found_two -> false
 
@@ -433,6 +461,14 @@ let loc_bits_to_loc_bytes x =
           Location_Bits.map_offsets
             (Ival.scale_div ~pos:true (Bit_utils.sizeofchar())) x
       | Location_Bits.Top _ -> x
+
+let loc_bits_to_loc_bytes_under x =
+    match x with
+      | Location_Bits.Map _ ->
+          Location_Bits.map_offsets
+            (Ival.scale_div_under ~pos:true (Bit_utils.sizeofchar())) x
+      | Location_Bits.Top _ -> x
+
 
 let loc_to_loc_without_size {loc = loc} = loc_bits_to_loc_bytes loc
 let loc_size { size = size } = size
@@ -532,19 +568,36 @@ let pretty_english ~prefix fmt { loc = m ; size = size } =
 	(fun f -> Location_Bits.M.iter (fun k v -> f (k, v)))
         print_binding fmt off
 
-let enumerate_valid_bits ~for_writing {loc = loc_bits; size = size}=
+(* Case [Top (Top, _)] must be handled by caller. *)
+let enumerate_valid_bits_under_over under_over ~for_writing {loc; size} =
   let compute_offset base offs acc =
     let valid_offset = reduce_offset_by_validity ~for_writing base offs size in
     if Ival.is_bottom valid_offset then
       acc
     else
-      let valid_itvs = Int_Intervals.from_ival_size valid_offset size in
+      let valid_itvs = under_over valid_offset size in
       Zone.M.add base valid_itvs acc
   in
-  match loc_bits with
+  Zone.Map (Location_Bits.fold_topset_ok compute_offset loc Zone.M.empty)
+
+let enumerate_valid_bits ~for_writing loc =
+  match loc.loc with
   | Location_Bits.Top (Base.SetLattice.Top, _) -> Zone.top
   | _ ->
-    Zone.Map (Location_Bits.fold_topset_ok compute_offset loc_bits Zone.M.empty)
+    enumerate_valid_bits_under_over
+      Int_Intervals.from_ival_size ~for_writing loc
+;;
+
+let enumerate_valid_bits_under ~for_writing loc = 
+  match loc.size with
+  | Int_Base.Top -> Zone.bottom
+  | Int_Base.Value _ ->
+    match loc.loc with
+    | Location_Bits.Top _ -> Zone.bottom
+    | Location_Bits.Map _ ->
+        enumerate_valid_bits_under_over
+          Int_Intervals.from_ival_size_under ~for_writing loc
+;;
 
 (** [valid_part l] is an over-approximation of the valid part
    of the location [l] *)
@@ -560,27 +613,34 @@ let valid_part ~for_writing {loc = loc; size = size } =
     match loc with
       | Location_Bits.Top (Base.SetLattice.Top, _) -> loc
       | Location_Bits.Top (Base.SetLattice.Set _, _) ->
-          (* We do not reduce garbled mixes. This makes them disappear after
-             one memory access. *)
-          if false then
-            Location_Bits.(Map (fold_topset_ok compute_loc loc M.empty))
-          else
-            loc
+          Location_Bits.(Map (fold_topset_ok compute_loc loc M.empty))
       | Location_Bits.Map m ->
           Location_Bits.inject_map
             (Location_Bits.M.fold compute_loc m Location_Bits.M.empty)
   in
   make_loc locbits size
 
-let enumerate_bits ({loc = loc_bits; size = size} as _arg)=
+let enumerate_bits_under_over under_over {loc; size} =
   let compute_offset base offs acc =
-    let valid_offset = Int_Intervals.from_ival_size offs size in
-    Zone.M.add base valid_offset acc
+    let valid_offset = under_over offs size in
+    if Int_Intervals.(equal valid_offset bottom) then
+      acc (* Should not occur, as this means that [loc] maps something
+             to Bottom *)
+    else
+      Zone.M.add base valid_offset acc
   in
-  match loc_bits with
+  Zone.Map (Location_Bits.fold_topset_ok compute_offset loc Zone.M.empty)
+
+let enumerate_bits loc =
+  match loc.loc with
   | Location_Bits.Top (Base.SetLattice.Top, _) -> Zone.top
-  | _ ->
-    Zone.Map (Location_Bits.fold_topset_ok compute_offset loc_bits Zone.M.empty)
+  | _ -> enumerate_bits_under_over Int_Intervals.from_ival_size loc
+
+let enumerate_bits_under loc =
+  match loc.loc, loc.size with
+  | Location_Bits.Top _, _ | _, Int_Base.Top -> Zone.bottom
+  | _ -> enumerate_bits_under_over Int_Intervals.from_ival_size_under loc
+
 
 let zone_of_varinfo var = enumerate_bits (loc_of_varinfo var)
 

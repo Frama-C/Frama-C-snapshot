@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -25,12 +25,12 @@
 (* -------------------------------------------------------------------------- *)
 
 class type computer =
-object
-  method lemma : bool
-  method add_strategy : WpStrategy.strategy -> unit
-  method add_lemma : LogicUsage.logic_lemma -> unit
-  method compute : Wpo.t Bag.t
-end
+  object
+    method lemma : bool
+    method add_strategy : WpStrategy.strategy -> unit
+    method add_lemma : LogicUsage.logic_lemma -> unit
+    method compute : Wpo.t Bag.t
+  end
 
 type functions =
   | F_All

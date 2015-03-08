@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,8 +20,38 @@
 (*                                                                        *)
 (**************************************************************************)
 
+open Cil_types
+
 module D = Datatype (* hide after applying Parameter_state.Make *)
 let empty_string = ""
+
+let find_kf_by_name
+    : (string -> kernel_function) ref
+    = Extlib.mk_fun "Parameter_builder.find_kf_by_name"
+
+let find_kf_def_by_name
+    : (string -> kernel_function) ref
+    = Extlib.mk_fun "Parameter_builder.find_kf_def_by_name"
+
+let kf_category
+    : (unit -> kernel_function Parameter_category.t) ref
+    = Extlib.mk_fun "Parameter_builder.kf_category"
+
+let kf_def_category
+    : (unit -> kernel_function Parameter_category.t) ref
+    = Extlib.mk_fun "Parameter_builder.kf_def_category"
+
+let fundec_category
+    : (unit -> fundec Parameter_category.t) ref
+    = Extlib.mk_fun "Parameter_builder.fundec_category"
+
+let kf_string_category
+    : (unit -> string Parameter_category.t) ref
+    = Extlib.mk_fun "Parameter_builder.kf_string_category"
+
+let force_ast_compute
+    : (unit -> unit) ref
+    = Extlib.mk_fun "Parameter_builder.force_ast_compute"
 
 (* ************************************************************************* *)
 (** {2 Specific functors} *)
@@ -40,7 +70,7 @@ module Make
   (P: sig
     val shortname: string
     val parameters: (string, Typed_parameter.t list) Hashtbl.t
-    module L: sig 
+    module L: sig
       val abort: ('a,'b) Log.pretty_aborter
       val warning: 'a Log.pretty_printer
     end
@@ -311,10 +341,45 @@ struct
     let set_possible_values s = possible_values := s
     let get_possible_values () = !possible_values
 
-    let () =
-      if !Parameter_customize.argument_is_function_name_ref then begin
-	Parameter_customize.apply_ast_hook set_possible_values
-      end
+    let get_function_name =
+      let allow_fundecl = !Parameter_customize.argument_may_be_fundecl_ref in
+      fun () ->
+        let s = get () in
+        (* Using a parameter that is in fact a function name only makes sense
+           if we have an AST somewhere. *)
+        !force_ast_compute();
+        let possible_funcs = Parameter_customize.get_c_ified_functions s in
+        let possible_funcs =
+          if allow_fundecl then possible_funcs
+          else
+            Cil_datatype.Kf.Set.filter
+              (fun s ->
+                match s.fundec with
+                  | Definition _ -> true
+                  | Declaration _ -> false)
+              possible_funcs
+        in
+        if Cil_datatype.Kf.Set.is_empty possible_funcs then
+          P.L.abort
+            "'%s' is not a %sfunction. \
+             Please choose a valid function name for option %s"
+            s (if allow_fundecl then "" else "defined ") name
+        else begin
+          if Cil_datatype.Kf.Set.cardinal possible_funcs > 1 then
+            P.L.warning
+              "ambiguous function name %s for option %s. \
+               Choosing arbitrary function with corresponding name."
+              s name;
+          (Cil_datatype.Kf.vi
+             (Cil_datatype.Kf.Set.choose possible_funcs)).vname
+        end
+
+    let get_plain_string = get
+
+    let get =
+      if !Parameter_customize.argument_is_function_name_ref then
+        get_function_name
+      else get
 
     let parameter =
       add_set_hook
@@ -322,10 +387,10 @@ struct
           match !possible_values with
           | [] -> ()
           | v when List.mem s v -> ()
-          | _ -> P.L.abort "invalid input `%s' for %s" s name);
+          | _ -> P.L.abort "invalid input '%s' for option %s." s name);
       let accessor =
 	Typed_parameter.String
-          ({ Typed_parameter.get = get; set = set;
+          ({ Typed_parameter.get = get_plain_string; set = set;
              add_set_hook = add_set_hook; add_update_hook = add_update_hook },
            get_possible_values)
       in
@@ -344,393 +409,985 @@ struct
 	  
   end
 
-  module EmptyString(X: Parameter_sig.Input_with_arg) =
+  module Empty_string(X: Parameter_sig.Input_with_arg) =
     String(struct include X let default = empty_string end)
 
   (* ************************************************************************ *)
-  (** {3 String set and string list} *)
+  (** {3 Collections} *)
   (* ************************************************************************ *)
 
-  module Build_string_set
-    (S: sig
-      include Datatype.S
+  type collect_action = Add | Remove
+
+  exception Cannot_build of string
+
+  let cannot_build msg = raise (Cannot_build msg)
+  let no_element_of_string msg = cannot_build msg
+
+  module Make_collection
+    (E: sig (* element in the collection *)
+      type t
+      val ty: t Type.t
+      val of_string: string -> t (* may raise [Cannot_build] *)
+      val to_string: t -> string
+    end)
+    (C: sig (* the collection, as a persistent datastructure *)
+      type t
+      val equal: t -> t -> bool
       val empty: t
       val is_empty: t -> bool
-      val add: string -> t -> t
-      val remove: string -> t -> t
-      val mem: string -> t -> bool
-      val for_all: (string -> bool) -> t -> bool
-      val fold: (string -> 'acc -> 'acc) -> t -> 'acc -> 'acc
-      val iter: (string -> unit) -> t -> unit
-      val exists: (string -> bool) -> t -> bool
-      val functor_name: string
-      val default: unit -> t
+      val add: E.t -> t -> t
+      val remove: E.t -> t -> t
+      val iter: (E.t -> unit) -> t -> unit
+      val fold: (E.t -> 'a -> 'a) -> t -> 'a -> 'a
+      val of_singleton_string: string -> t 
+      (* For specific ways to parse a collection from a single string.
+         If physically equal to [no_element_of_string], we revert back to
+         using [E.of_string]
+       *)
+      val reorder: t -> t 
+      (* Used after having parsed a comma-separated string representing 
+         parameters. The add actions are done in the reverse order with
+         respect to the list. Can be [Extlib.id] for unordered collections.
+       *)
     end)
-  (X:Parameter_sig.Input_with_arg) =
-  struct
-
-    include Build(struct include S include X end)
-      
-    let add =
-      let add x = set (S.add x (get ())) in
-      let add = gen_journalized "add" D.string add in
-      register_dynamic "add" D.string D.unit add
-
-    let remove =
-      let remove x = set (S.remove x (get ())) in
-      let remove = gen_journalized "remove" D.string remove in
-      register_dynamic "remove" D.string D.unit remove
-
-    let split_set = Str.split (Str.regexp "[ \t]*,[ \t]*")
-
-    let possible_values = ref []
-    let set_possible_values s = possible_values := s
-    let get_possible_values () = !possible_values
-
-    let () =
-      if !Parameter_customize.argument_is_function_name_ref then
-	Parameter_customize.apply_ast_hook set_possible_values
-
-    let guarded_set_set x =
-      match split_set x with
-      | [] when not (S.is_empty (get ())) ->
-	set S.empty
-      | l ->
-	List.iter
-          (fun s ->
-            if !possible_values != [] then
-              if not (List.mem s !possible_values) then
-		P.L.abort "invalid input `%s' for %s" s name)
-          l;
-	if not (List.for_all (fun s -> S.mem s (get ())) l) ||
-          not (S.for_all (fun s -> List.mem s l) (get ()))
-	then
-          set (List.fold_right S.add l S.empty)
-
-    let get_set ?(sep=", ") () =
-      S.fold
-	(fun s acc -> if acc <> empty_string then s ^ sep ^ acc else s)
-	(get ())
-	empty_string
-
-    let is_empty =
-      let is_empty () = S.is_empty (get ()) in
-      register_dynamic "is_empty" D.unit D.bool is_empty
-
-    let iter =
-      let iter f = S.iter f (get ()) in
-      register_dynamic "iter" (D.func D.string D.unit) D.unit iter
-
-    let fold f = S.fold f (get ())
-      
-    let exists =
-      let exists f = S.exists f (get()) in
-      register_dynamic "exists" (D.func D.string D.bool) D.bool exists
-
-    let add_generic_option name help f =
-      Cmdline.add_option
-	name
-	~plugin:P.shortname
-	~group
-	~argname:X.arg_name
-	~help
-	~visible:is_visible
-	~ext_help:!Parameter_customize.optional_help_ref
-	stage
-	(Cmdline.String_list (List.iter f))
-        
-    let add_option name help = add_generic_option name help add
-    let add_option_unset name help = add_generic_option name help remove
-	
-  end
-
-  module FilledStringSet
-    (X: sig
+    (S: sig (* the collection, as a state *)
+      include State_builder.S
+      val memo: (unit -> C.t) -> C.t
+      val clear: unit -> unit
+    end)
+    (X: (* standard option builder *) sig
       include Parameter_sig.Input_with_arg
-      val default: Datatype.String.Set.t
-    end) =
+      val default: C.t
+    end)
+    =
   struct
 
-    include Build_string_set
-      (struct
-	include Datatype.String.Set
-	let functor_name = "StringSet"
-	let default () = X.default
-       end)
-      (X)
+    type t = C.t
+    type elt = E.t
 
-    let parameter =
-      let accessor =
-	Typed_parameter.String_set
-          { Typed_parameter.get = get_set;
-            set = guarded_set_set;
-            add_set_hook = add_set_hook;
-            add_update_hook = add_update_hook }
-      in
-      let p =
-	Typed_parameter.create ~name ~help:X.help ~accessor:accessor ~is_set
-      in
-      add_parameter !Parameter_customize.group_ref stage p;
-      add_option X.option_name X.help;
-      if !Parameter_customize.unset_option_name_ref <> empty_string then begin
-	let help =
-          if !Parameter_customize.unset_option_help_ref = empty_string then
-            "opposite of option " ^ X.option_name
-          else !Parameter_customize.unset_option_help_ref
-	in
-	add_option_unset !Parameter_customize.unset_option_name_ref help
-      end;
-      Parameter_customize.reset ();
-      if is_dynamic then
-	let plugin = empty_string in
-	Dynamic.register
-	  ~plugin X.option_name Typed_parameter.ty ~journalize:false p
-      else
-	p
+    (* ********************************************************************** *)
+    (* Categories *)
+    (* ********************************************************************** *)
 
-  end
+    type category = E.t Parameter_category.t
 
-  module StringSet(X: Parameter_sig.Input_with_arg) =
-    FilledStringSet
-      (struct
-	include X
-	let default = Datatype.String.Set.empty
-       end)
-    
-  module StringList(X: Parameter_sig.Input_with_arg) = struct
+    (* the available custom categories for this option *)
+    let available_categories
+	: category Datatype.String.Hashtbl.t
+	= Datatype.String.Hashtbl.create 7
 
-    include Build_string_set
-      (struct
-	include Datatype.List(Datatype.String)
-	let empty = []
-	let is_empty = equal []
-	let add s l = l @ [ s ]
-	let remove s l = List.filter ((<>) s) l
-	let mem s = List.exists (((=) : string -> _) s)
-	let for_all = List.for_all
-	let fold f l acc = List.fold_left (fun acc x -> f x acc) acc l
-	let iter = List.iter
-	let exists = List.exists
-	let functor_name = "StringList"
-	let default () = []
-       end)
-      (X)
+    module Category = struct
 
-    let append_before = 
-      let append_before l = set (l @ get ()) in
-      register_dynamic "append_before" (D.list D.string) D.unit append_before
-
-    let append_after =
-      let append_after l = set (get() @ l) in
-      register_dynamic "append_after" (D.list D.string) D.unit append_after
-
-    let parameter =
-      let accessor =
-	Typed_parameter.String_list
-          { Typed_parameter.get = get_set;
-            set = guarded_set_set;
-            add_set_hook = add_set_hook;
-            add_update_hook = add_update_hook }
-      in
-      let p =
-	Typed_parameter.create ~name ~help:X.help ~accessor:accessor ~is_set
-      in
-      add_parameter !Parameter_customize.group_ref stage p;
-      add_option X.option_name X.help;
-      Parameter_customize.reset ();
-      if is_dynamic then
-	let plugin = empty_string in
-	Dynamic.register
-	  ~plugin X.option_name Typed_parameter.ty ~journalize:false p
-      else p
-
-  end
-
-  module StringHashtbl
-    (X: Parameter_sig.Input_with_arg)
-    (V: sig
-      include Datatype.S
-      val parse: string -> string * t
-      val redefine_binding: string -> old:t -> t -> t
-      val no_binding: string -> t
-    end) =
-  struct
-    
-    module Initial_Datatype = Datatype
-    include StringSet(X)
-
-    module H =
-      State_builder.Hashtbl
-	(Initial_Datatype.String.Hashtbl)
-	(V)
-	(struct
-          let name = X.option_name ^ " (hashtbl)"
-          let size = 7
-          let dependencies = [ self ]
-	 end)
-
-    type value = V.t
-    let self = H.self
-
-    let parse () =
-      iter
-	(fun s ->
-          let k, v = V.parse s in
-	  let v = try
-		    let old = H.find k
-		    in V.redefine_binding k ~old v 
-	    with Not_found -> v
-	  in H.replace k v);
-      H.mark_as_computed ()
-
-    let find s =
-      if not (H.is_computed ()) then parse ();
-      try H.find s
-      with Not_found -> V.no_binding s
-
-  end
-
-  (* ************************************************************************ *)
-  (** {3 Complex values indexed by strings} *)
-  (* ************************************************************************ *)
-
-  module IndexedVal(V: Parameter_sig.Indexed_val_input): 
-    Parameter_sig.Indexed_val with type value = V.t =
-  struct
-
-    type value = V.t
-
-    let is_dynamic = true
-    
-    let options = Hashtbl.create 13
-    let add_choice k v  = Hashtbl.add options k v
-    let () = add_choice V.default_key V.default_val
+      type elt = E.t
+      type t = category
       
-    let create () = ref V.default_key
-      
-    let curr_choice = ref (create ())
+      let check_category_name s =
+	if Datatype.String.Hashtbl.mem available_categories s
+          || Datatype.String.equal s "all"
+          || Datatype.String.equal s ""
+          || Datatype.String.equal s "default"
+	then
+	  P.L.abort "invalid category name '%s'" s
 
-    module StateAux = struct
-      let name = V.option_name
-      let unique_name = V.option_name
-      let create = create
+      let use categories = 
+	List.iter
+	  (fun c -> 
+	    Parameter_category.use S.self c;
+	    Datatype.String.Hashtbl.add
+	      available_categories
+	      (Parameter_category.get_name c)
+	      c)
+	  categories
 
-      type t = string ref
+      let unsafe_add name states accessor =
+        let c =
+          Parameter_category.create name E.ty ~register:false states accessor
+        in
+        use [ c ];
+        c
 
-      let get () = !curr_choice
-      let set s =
-	if s != get () then
-          let v = !s in
-          if Hashtbl.mem options v then curr_choice := s
-          else P.L.abort "invalid input %s for %s" v V.option_name
+      let add name states get_values =
+        check_category_name name;
+        unsafe_add name states get_values
 
-      let clear tbl = tbl := V.default_key
-      let dependencies = []
-      let clear_some_projects _ _ = false (* a parameter cannot be a project *)
+      let none =
+        let o = object
+          method fold: 'b. ('a -> 'b -> 'b) -> 'b -> 'b = (fun _ acc -> acc);
+          method mem = fun _ -> false
+        end in
+        unsafe_add "" [] o
+
+      let default_ref = ref none
+      let () = Datatype.String.Hashtbl.add available_categories "default" none
+
+      let default () = !default_ref
+      let set_default c =
+        Datatype.String.Hashtbl.replace available_categories "default" c;
+        default_ref := c
+
+      let all_ref: t option ref = ref None
+      let all () = !all_ref
+
+      let on_enable_all c =
+        (* interpretation may have change:
+           reset the state to force the interpretation again *)
+        S.clear ();
+        all_ref := Some c
+
+      let enable_all_as c =
+        use [ c ];
+        let all = Parameter_category.copy_and_rename "all" ~register:false c in
+        Datatype.String.Hashtbl.add available_categories "all" all;
+        on_enable_all all
+
+      let enable_all states get_values =
+        let all = unsafe_add "all" states get_values in
+        on_enable_all all;
+        all
+
     end
 
-    module State =
-      State_builder.Register(Datatype.Ref(Datatype.String))(StateAux)(StateAux)
-    include State
+    (* ********************************************************************** *)
+    (* Parsing *)
+    (* ********************************************************************** *)
 
-    let () = 
-      Parameter_state.extend_selection false self;
-      if not !Parameter_customize.reset_on_copy_ref then
-	Parameter_state.extend_no_reset_selection false self
+    let use_category = !Parameter_customize.use_category_ref
 
-    type t = string
+    (* parsing builds a list of triples  (action, is_category?, word) *)
 
-    let equal : t -> t -> _ = (=)
+    let add_action a = function
+      | (_, _, None) :: _ -> assert false
+      | l -> (a, false, None) :: l
 
-    let get () = !(!curr_choice)
-    let get_val () = Hashtbl.find options (get())
+    let add_char c = function
+      | [] -> assert false
+      | (a, f, None) :: l ->
+	(* first char of a new word *)
+	let b = Buffer.create 7 in
+	Buffer.add_char b c;
+	(a, f, Some b) :: l
+      | ((_, _, Some b) :: _) as l ->
+	(* extend the current word *)
+	Buffer.add_char b c;
+	l
 
-    module Set_hook = Hook.Build(struct type t = string * string end)
-    let add_set_hook f = Set_hook.extend (fun (old, x) -> f old x)
+    let set_category_flag = function
+      | (a, false, None) :: l -> (a, true, None) :: l
+      | _ -> assert false
 
-    let add_update_hook f =
-      add_set_hook f;
-      add_hook_on_update
-	(fun x ->
-        (* this hook is applied just **before** the value is set *)
-          let old = get () in
-          let new_ = !x in
-          if old <> new_ then f old new_)
+    type position =
+      | Start (* the very beginning or after a comma *)
+      | Word of (* action already specified, word is being read *)
+	  bool (* [true] iff beginning a category with '@' is allowed *)
+      | Escaped (* the next char is escaped in the current word *)
 
-    let unguarded_set s =
-      if Hashtbl.mem options s then begin
-	let old = !(!curr_choice) in
-	!curr_choice := s;
-	Set_hook.apply (old, s)
-      end else
-	P.L.warning
-          "identifier %s is not a valid index for parameter %s. \
-Option is unchanged.\n" s V.option_name
+    let parse_error msg =
+      P.L.abort "@[@[incorrect argument for option %s@ (%s).@]"
+        X.option_name msg
 
-    let set s = if s <> get () then unguarded_set s
-      
-    let clear () = !curr_choice := V.default_key
+    (* return the list of tokens, in reverse order *)
+    let parse s = 
+      let len = Pervasives_string.length s in
+      let rec aux acc pos i s =
+	if i = len then acc
+	else 
+	  let next = i + 1 in
+	  let read_char_in_word f_acc new_pos =
+            (* assume 'Add' by default *)
+            let acc = if pos = Start then add_action Add acc else acc in
+	    aux (f_acc acc) new_pos next s
+	  in
+	  let read_std_char_in_word c =
+	    read_char_in_word (add_char c) (Word false)
+	  in
+	  match Pervasives_string.get s i, pos with
+          | '+', Start when use_category ->
+            aux (add_action Add acc) (Word true) next s
+          | '-', Start when use_category ->
+            aux (add_action Remove acc) (Word true) next s
+          | '\\', (Start | Word _) -> read_char_in_word (fun x -> x) Escaped
+	  | ',', (Start | Word _) -> read_char_in_word (fun x -> x) Start
+	  | (' ' | '\t' | '\n' | '\r'), Start -> 
+	    (* ignore whitespaces at beginnning of words (must be escaped) *)
+	    aux acc pos next s
+	  | '@', (Start | Word true) when use_category ->
+	    read_char_in_word set_category_flag (Word false)
+	  | c, (Start | Word _) -> read_std_char_in_word c
+	  | (',' | '\\' as c), Escaped -> read_std_char_in_word c
+	  | ('+' | '-' | '@' | ' ' | '\t' | '\n' | '\r' as c), 
+	    Escaped when i = 1 ->
+            if use_category then read_std_char_in_word c
+            else
+              parse_error
+                ("invalid escaped char '" ^ Pervasives_string.make 1 c ^ "'")
+	  | c, Escaped ->
+	    parse_error
+              ("invalid escaped char '" ^ Pervasives_string.make 1 c ^ "'")
+      in
+      aux [] Start 0 s
 
-    (* [JS 2009/04/17] TODO: reimplement is_set according to its new
-       specification *)
-    let is_set () = (*!(!curr_choice) <> V.default_key*) assert false
-    let is_default () = !(!curr_choice) = V.default_key
+    (* ********************************************************************** *)
+    (* The parameter itself, as a special string option *)
+    (* ********************************************************************** *)
 
-    let unsafe_set = set
+    let string_of_collection c =
+      if C.is_empty c then ""
+      else
+        let b = Buffer.create 17 in
+        let first = ref true in
+        C.iter
+          (fun e ->
+            let s = E.to_string e in
+            if !first then begin if s <> "" then first := false end
+            else Buffer.add_string b ",";
+            Buffer.add_string b (E.to_string e))
+          c;
+        Buffer.contents b
 
-    let stage = !Parameter_customize.cmdline_stage_ref
-    let group = !Parameter_customize.group_ref
+    (* a collection is a standard string option... *)
+    module As_string = 
+      String(struct
+	include X
+	let default = string_of_collection X.default
+      end)
 
-    let add_option name =
-      Cmdline.add_option
-	name
+    (* ... which is cumulative, when set from the cmdline (but uniquely from
+       this way since it is very counter-intuitive from the other ways
+       (i.e. programmatically or the GUI). *)
+    let () =
+      Cmdline.replace_option_setting 
+	X.option_name
 	~plugin:P.shortname
-	~group
-	~argname:V.arg_name
-	~help:V.help
-	~visible:!Parameter_customize.is_visible_ref
-	~ext_help:!Parameter_customize.optional_help_ref
-	stage
-	(Cmdline.String unguarded_set)
+	~group:As_string.group
+	(Cmdline.String
+	   (fun s ->
+	     let old = As_string.get () in
+	     As_string.set 
+	       (if Datatype.String.equal old empty_string then s 
+		else old ^ "," ^ s)))
 
-    let possible_values = ref []
-    let set_possible_values s = possible_values := s
-    let get_possible_values () = !possible_values
+    (* JS personal note: I'm still not fully convinced by this cumulative
+       semantics. *)
 
-    let option_name = V.option_name
-
-    let add_aliases = 
-      Cmdline.add_aliases option_name ~plugin:P.shortname ~group stage
-
-    let print_help fmt =
-      Cmdline.print_option_help fmt ~plugin:P.shortname ~group V.option_name
-
-    let parameter =
-      let accessor =
-	Typed_parameter.String
-          ({ Typed_parameter.get = get; set = set;
-             add_set_hook = add_set_hook; add_update_hook = add_update_hook },
-           (fun () -> []))
-      in
-      let p =
-	Typed_parameter.create
-          ~name:V.option_name
-          ~help:V.help
-          ~accessor
-          ~is_set
-      in
-      if is_dynamic then
-	Dynamic.register
-          ~plugin:empty_string 
-	  V.option_name 
-	  Typed_parameter.ty 
-	  ~journalize:false 
-	  p
-      else p
+    (* Note: no dependency between [As_string] and [State], but consistency
+       handles by the hook below. Setting a dependency between those states
+       would break [Parameter_state.get_selection_context]. *)
 
     let () =
-      add_option V.option_name;
-      Parameter_customize.reset ()
+      (* reset the state, but delayed its computation untill its first access
+         to get the correct interpretation. *)
+      As_string.add_update_hook (fun _ _ -> S.clear ())
+
+    let check_possible_value elt = match Category.all () with
+      | None -> ()
+      | Some a ->
+	if not (Parameter_category.get_mem a elt) then
+          parse_error ("impossible value " ^  E.to_string elt)
+
+    (* may be costly: use it with parsimony *)
+    let collection_of_string ~check s =
+      (*        Format.printf "READING %s: %s@." X.option_name s;*)
+      let tokens = parse s in
+      (* remember: tokens are in reverse order. So handle the last one
+         first. *)
+      let unparsable, col =
+        List.fold_right
+          (fun (action, is_category, word) (unparsable, col) ->
+            let extend = match action with
+              | Add -> C.add
+              | Remove -> C.remove
+            in
+            let word = match word with
+              | None -> "" 
+              | Some b -> Buffer.contents b 
+            in
+              (*              Format.printf "TOKEN %s@." word;*)
+            if is_category then
+              try
+                let c =
+                  Datatype.String.Hashtbl.find available_categories word
+                in
+                if word = "all" then
+                  match action with
+                  | Add ->
+                    unparsable, Parameter_category.get_fold c C.add C.empty
+                  | Remove ->
+                      (* -@all is always equal to the emptyset, even if there
+                         were previous elements which are now impossible *)
+                      None, C.empty
+                else
+                    unparsable, Parameter_category.get_fold c extend col
+              with Not_found ->
+                parse_error ("unknown category '" ^ word ^ "'")
+            else (* not is_category *)
+                try
+                  if C.of_singleton_string == no_element_of_string then begin
+                    let elt = E.of_string word in
+                    unparsable, extend elt col
+                  end else begin
+                    let elts = C.of_singleton_string word in
+                    unparsable, C.fold extend elts col
+                  end
+                with Cannot_build msg ->
+                  Some msg, col)
+            tokens
+            (None, C.empty)
+        in
+        let col = C.reorder col in
+        (* check each element after parsing all of them,
+           since an element may be added, then removed later (e.g +h,-@all):
+           that has to be accepted *)
+        if check then begin
+          Extlib.may parse_error unparsable;
+          C.iter check_possible_value col
+        end;
+        col
+
+    (* ********************************************************************** *)
+    (* Memoized access to the state *)
+    (* ********************************************************************** *)
+
+    let get_nomemo () = S.memo (fun () -> raise Not_found)
+
+    let get () =
+      S.memo
+        (fun () ->
+          (*let c = *)collection_of_string ~check:true (As_string.get ()) (*in
+          Format.printf "GET %s@." (As_string.get ());
+          C.iter (fun s -> Format.printf "ELT %s@." (E.to_string s)) c;
+          c*))
+
+    (* ********************************************************************** *)
+    (* Implement the state, by overseded [As_string]:
+
+       not the more efficient, but the simplest way that prevent to introduce
+       subtle bugs *)
+    (* ********************************************************************** *)
+
+    let set c = As_string.set (string_of_collection c)
+    let unsafe_set c = As_string.unsafe_set (string_of_collection c)
+
+    let convert_and_apply f = fun old new_ ->
+      f
+        (collection_of_string ~check:false old)
+        (collection_of_string ~check:true new_)
+
+    let add_set_hook f = As_string.add_set_hook (convert_and_apply f)
+    let add_update_hook f = As_string.add_update_hook (convert_and_apply f)
+
+    (* ********************************************************************** *)
+    (* Implement operations *)
+    (* ********************************************************************** *)
+
+    let add e = set (C.add e (get ()))
+    let is_empty () = C.is_empty (get ())
+    let iter f = C.iter f (get ())
+    let fold f acc = C.fold f (get ()) acc
+
+    (* ********************************************************************** *)
+    (* Re-export values *)
+    (* ********************************************************************** *)
+
+    let name = As_string.name
+    let option_name = As_string.option_name
+    let is_default = As_string.is_default
+    let is_set = As_string.is_set
+    let clear = As_string.clear
+    let print_help = As_string.print_help
+    let add_aliases = As_string.add_aliases
+    let self = As_string.self
+    let parameter = As_string.parameter
+
+    let equal = C.equal
+    let is_computed = S.is_computed
+    let mark_as_computed = S.mark_as_computed
+
+    (* [Datatype] is fully abstract from outside anyway *)
+    module Datatype = As_string.Datatype
+
+    (* cannot be called anyway since [Datatype] is abstract *)
+    let howto_marshal _marshal _unmarshal =
+      P.L.abort "[how_to_marshal] cannot be implemented for %s." X.option_name
+
+    (* same as above *)
+    let add_hook_on_update _ =
+      P.L.abort "[add_hook_on_update] cannot be implemented for %s." 
+	X.option_name
+
+  end
+
+  module Make_set
+    (E: Parameter_sig.String_datatype_with_collections)
+    (X: sig 
+      include Parameter_sig.Input_with_arg
+      val default: E.Set.t
+    end):
+    Parameter_sig.Set with type elt = E.t and type t = E.Set.t =
+  struct
+
+    module C = struct
+      include E.Set
+      let reorder = Extlib.id
+      let of_singleton_string = E.of_singleton_string
+    end
+
+    module S = struct
+
+      include State_builder.Option_ref
+	(E.Set)
+	(struct 
+	  let name = X.option_name ^ " set"
+	  let dependencies = [] 
+	 end)
+
+      let memo f = memo f (* ignore the optional argument *)
+    end
+
+    include Make_collection(E)(C)(S)(X)
+
+    (* ********************************************************************** *)
+    (* Accessors *)
+    (* ********************************************************************** *)
+
+    let mem e = E.Set.mem e (get ())
+    let exists f = E.Set.exists f (get ())
+
+  end
+
+  module String_for_collection = struct
+    include Datatype.String
+    let of_string = Datatype.identity
+    let to_string = Datatype.identity
+    let of_singleton_string = no_element_of_string
+  end
+
+  module String_set(X: Parameter_sig.Input_with_arg) =
+    Make_set
+      (String_for_collection)
+      (struct include X let default = Datatype.String.Set.empty end)
+
+  module Filled_string_set = Make_set(String_for_collection)
+
+  let check_function s must_exist no_function set =
+    if no_function set then
+      let error s = cannot_build (Pretty_utils.sfprintf "no function '%s'" s) in
+      if must_exist then
+        error s
+      else
+        if !Parameter_customize.is_permissive_ref then begin
+          P.L.warning "ignoring non-existing function '%s'." s;
+          set
+        end else
+          error s
+    else
+      set
+
+  module Kernel_function_string(
+    A: sig val accept_fundecl: bool
+           val must_exist: bool
+    end) =
+  struct
+
+    include Cil_datatype.Kf
+
+    let of_string s =
+      try
+        (if A.accept_fundecl then !find_kf_by_name else !find_kf_def_by_name) s
+      with Not_found ->
+        cannot_build
+          (Pretty_utils.sfprintf "no%s function '%s'"
+             (if A.accept_fundecl then "" else " defined")
+             s)
+
+    (* Cannot reuse any code to implement [to_string] without forward
+       reference. Prefer small code duplication here. *)
+    let to_string kf = match kf.fundec with
+      | Definition(d, _) -> d.svar.vname
+      | Declaration(_, vi, _, _) -> vi.vname
+
+    let of_singleton_string s =
+      let fcts = Parameter_customize.get_c_ified_functions s in
+      let res =
+        if A.accept_fundecl then fcts else
+          Set.filter
+            (fun s ->
+              match s.fundec with
+                | Definition _ -> true
+                | Declaration _ -> false)
+            fcts
+      in
+      check_function s A.must_exist Set.is_empty res
+
+  end
+
+  module Kernel_function_set(X: Parameter_sig.Input_with_arg) = struct
+
+    module A = struct
+      let accept_fundecl = !Parameter_customize.argument_may_be_fundecl_ref
+      let must_exist = !Parameter_customize.argument_must_be_existing_fun_ref
+    end
+
+    include Make_set
+    (Kernel_function_string(A))
+    (struct include X let default = Cil_datatype.Kf.Set.empty end)
+
+    let () =
+      if A.accept_fundecl then Category.enable_all_as (!kf_category ())
+      else Category.enable_all_as (!kf_def_category ())
+
+  end
+
+  module Fundec_set(X: Parameter_sig.Input_with_arg) = struct
+    let must_exist = !Parameter_customize.argument_must_be_existing_fun_ref
+
+    include Make_set
+    (struct
+      include Cil_datatype.Fundec
+      let of_string s =
+        try
+          let kf = !find_kf_def_by_name s in
+          match kf.fundec with
+          | Definition (f, _) -> f
+          | Declaration _ -> assert false
+        with Not_found ->
+          cannot_build (Pretty_utils.sfprintf "no defined function '%s'" s)
+
+      let to_string f = f.svar.vname
+
+      let of_singleton_string s =
+        let fcts = Parameter_customize.get_c_ified_functions s in
+        let defs = 
+          Cil_datatype.Kf.Set.fold
+            (fun s acc ->
+              match s.fundec with
+                | Definition(f,_) -> Set.add f acc
+                | Declaration _ -> acc)
+            fcts Set.empty
+        in
+        check_function s must_exist Set.is_empty defs
+
+     end)
+    (struct include X let default = Cil_datatype.Fundec.Set.empty end)
+
+    let () = Category.enable_all_as (!fundec_category ())
+
+  end
+
+  module Make_list
+    (E: sig
+      include Parameter_sig.String_datatype
+      val of_singleton_string: string -> t list
+    end)
+    (X: sig include Parameter_sig.Input_with_arg val default: E.t list end):
+    Parameter_sig.List with type elt = E.t and type t = E.t list =
+  struct
+
+    module C = struct
+      include Datatype.List(E)
+      let empty = []
+      let is_empty l = l == []
+      let add (x:E.t) l = x :: l
+      let remove x l = List.filter (fun y -> not (E.equal x y)) l
+      let iter = List.iter
+      let fold f l acc = List.fold_left (fun acc x -> f x acc) acc l
+      let reorder = List.rev
+      let of_singleton_string = E.of_singleton_string
+    end
+
+    module S = struct
+
+      include State_builder.Option_ref
+        (C)
+        (struct
+          let name = X.option_name ^ " list"
+          let dependencies = []
+         end)
+
+      let memo f = memo f (* ignore the optional argument *)
+
+    end
+
+    include Make_collection(E)(C)(S)(X)
+
+    (* ********************************************************************** *)
+    (* Accessors *)
+    (* ********************************************************************** *)
+
+    let append_before l = set (l @ get ())
+    let append_after l = set (get () @ l)
+
+  end
+
+  module String_list(X: Parameter_sig.Input_with_arg) =
+    Make_list
+      (String_for_collection)
+      (struct include X let default = [] end)
+
+  module Make_map
+    (K: Parameter_sig.String_datatype_with_collections)
+    (V: Parameter_sig.Value_datatype with type key = K.t)
+    (X: sig include Parameter_sig.Input_with_arg val default: V.t K.Map.t end) =
+  struct
+
+    type key = K.t
+    type value = V.t
+
+    let find_ref = ref (fun _ -> assert false)
+
+    let of_val ~key k ~prev v =
+      try V.of_string ~key ~prev v
+      with Cannot_build s ->
+        cannot_build
+          (Pretty_utils.sfprintf "@[value bound to '%s':@ %s@]" k s)
+
+    module Pair = struct
+      include Datatype.Pair(K)(Datatype.Option(V))
+      let of_string =
+        let r = Str.regexp_string ":" in
+        fun s ->
+          match Str.bounded_split_delim r s 2 with
+          | [] -> cannot_build ("cannot interpret '" ^ s ^ "'")
+          | [ k ] ->
+            let key = K.of_string k in
+            let prev = try Some (!find_ref key) with Not_found -> None in
+            key, of_val ~key k ~prev None
+          | [ k; v ] ->
+            let key = K.of_string k in
+            let prev = try Some (!find_ref key) with Not_found -> None in
+            key, of_val ~key k ~prev (Some v)
+          | _ :: _ :: _ :: _ ->
+            (* by definition of [Str.bounded_split_delim]: *)
+            assert false
+      let to_string (key, v) =
+        let v = V.to_string ~key v in
+        let delim, v = match v with
+          | None -> "", ""
+          | Some v -> ":", v
+        in
+        Pretty_utils.sfprintf "%s%s%s" (K.to_string key) delim v
+    end
+
+    module C = struct
+      type t = V.t K.Map.t
+      let equal = K.Map.equal V.equal
+      let empty = K.Map.empty
+      let is_empty = K.Map.is_empty
+      let add (k, v) m = match v with
+        | None ->
+          (* no value associated to the key: remove the previous binding *)
+          K.Map.remove k m
+        | Some v ->
+          try
+            let old = K.Map.find k m in
+            if V.equal old v then
+              m
+            else begin
+              P.L.warning "@[option %s:@ '%a' previously bound to '%a';@ \
+now bound to '%a'.@]"
+                X.option_name K.pretty k V.pretty old V.pretty v;
+              K.Map.add k v m
+            end
+          with Not_found ->
+            K.Map.add k v m
+      let remove (k, _v) m = K.Map.remove k m
+      let iter f m = K.Map.iter (fun k v -> f (k, Some v)) m
+      let fold f m acc = K.Map.fold (fun k v -> f (k, Some v)) m acc
+      let reorder = Extlib.id
+
+      exception Found of V.t
+      let of_singleton_string =
+	let r = Str.regexp "\\([^:]\\|^\\):\\([^:]\\|$\\)" in
+        (* delimiter is no more than 3 characters long, the first belonging to
+           the element before it, the third belonging to the element after it.
+           Treats :: as part of a word to be able to handle C++ function names
+           in a non too awkward manner.
+         *)
+        let split_delim d = (* handle different possible lenght of the delimiter *)
+          let rbis = Str.regexp ":" in
+	  match Str.bounded_full_split rbis d 2 with
+          | [ Str.Delim _] -> (empty_string, empty_string)
+          | [ Str.Delim _; Str.Text t2 ] -> (empty_string, t2)
+          | [ Str.Text t1; Str.Delim _; ] -> (t1, empty_string)
+          | [ Str.Text t1; Str.Delim _; Str.Text t2 ] -> (t1, t2)
+          | _ -> (* impossible case *)
+            raise (Cannot_build ("delimiter="^d))
+        in
+	let k_of_singleton_string = 
+	  if (K.of_singleton_string==no_element_of_string) 
+	  then (fun x -> K.Set.singleton (K.of_string x)) 
+	  else K.of_singleton_string
+	in
+        fun s ->
+          let (keys, value) =
+            let get_pairing k v_opt =
+              let keys = k_of_singleton_string k in
+              let key = ref None in
+              let prev =
+                try
+                  K.Set.iter
+                    (fun k ->
+                      key := Some k;
+                    (* choose any previous value, whatever it is:
+                       don't know which clear semantics one would like *)
+                      try raise (Found (!find_ref k)) with Not_found -> ())
+                    keys;
+                  (* assume there is always at least a key *)
+                  None
+                with Found v ->
+                  Some v
+              in
+              match !key with
+              | None -> K.Set.empty, None
+              | Some key -> keys, of_val ~key k ~prev v_opt
+            in
+            match Str.bounded_full_split r s 2 with
+            | ([] | [ Str.Text _ ]) ->  (* no delimiter ':' *)
+              get_pairing s None
+            | [ Str.Delim d ] ->
+              let (f,s) = split_delim d in
+              get_pairing f (Some s)
+            | [ Str.Delim d; Str.Text t ] ->
+              let (f,s) = split_delim d in
+              get_pairing f (Some (s ^ t))
+            | [ Str.Text t1; Str.Delim d; Str.Text t2 ] ->
+              let (f,s) = split_delim d in
+              get_pairing (t1 ^ f) (Some (s ^ t2))
+            | [ Str.Text t; Str.Delim d] ->
+              let (f,s) = split_delim d in
+              get_pairing (t ^ f) (Some s)
+            | _ -> (* by definition of [Str.bounded_full_split]: *)
+              assert false
+          in
+          K.Set.fold (fun key map -> add (key, value) map) keys K.Map.empty
+    end
+
+    module S = struct
+
+      include State_builder.Option_ref
+        (K.Map.Make(V))
+        (struct
+          let name = X.option_name ^ " map"
+          let dependencies = []
+         end)
+
+      let memo f = memo f (* ignore the optional argument *)
+
+    end
+
+    include Make_collection(Pair)(C)(S)(X)
+
+    (* ********************************************************************** *)
+    (* Accessors *)
+    (* ********************************************************************** *)
+
+    let find k = K.Map.find k (get ())
+    let mem k = K.Map.mem k (get ())
+    let () = find_ref := (fun k -> K.Map.find k (get_nomemo ()))
+
+  end
+
+  module String_map = Make_map(String_for_collection)
+
+  module Kernel_function_map
+    (V: Parameter_sig.Value_datatype with type key = kernel_function)
+    (X: sig
+      include Parameter_sig.Input_with_arg
+      val default: V.t Cil_datatype.Kf.Map.t
+    end) =
+  struct
+
+    module A = struct
+      let accept_fundecl = !Parameter_customize.argument_may_be_fundecl_ref
+      let must_exist = !Parameter_customize.argument_must_be_existing_fun_ref
+    end
+
+    include Make_map(Kernel_function_string(A))(V)(X)
+
+  end
+
+  module Make_multiple_map
+    (K: Parameter_sig.String_datatype_with_collections)
+    (V: Parameter_sig.Multiple_value_datatype with type key = K.t)
+    (X: sig
+      include Parameter_sig.Input_with_arg
+      val default: V.t list K.Map.t
+    end) =
+  struct
+
+    type key = K.t
+    type value = V.t
+
+    let find_ref = ref (fun _ -> assert false)
+
+    let of_val ~key k ~prev v =
+      try V.of_string ~key ~prev v
+      with Cannot_build s ->
+        cannot_build
+          (Pretty_utils.sfprintf "@[value bound to '%s':@ %s@]" k s)
+
+    module Pair = struct
+      include Datatype.Pair(K)(Datatype.List(V))
+
+      let of_string =
+        let r = Str.regexp_string ":" in
+        fun s -> match Str.split_delim r s with
+        | [] -> cannot_build ("cannot interpret '" ^ s ^ "'")
+        | k :: l ->
+          let key = K.of_string k in
+          let prev = try Some (!find_ref key) with Not_found -> None in
+          let l = match l with
+            | [] ->
+              (match of_val ~key k ~prev None with
+              | None -> []
+              | Some v -> [ v ])
+            | _ :: _ ->
+              List.fold_right (* preserve order *)
+                (fun v acc -> match of_val ~key k ~prev (Some v) with
+                | None -> acc
+                | Some v -> v :: acc)
+                l
+                []
+          in
+          key, l
+
+      let to_string (key, l) =
+        Pretty_utils.sfprintf "%s%t"
+          (K.to_string key)
+          (fun fmt ->
+            let rec pp_custom_list = function
+              | [] -> ()
+              | v :: l ->
+                Extlib.may
+                  (fun v -> Format.fprintf fmt ":%s" v)
+                  (V.to_string ~key (Some v));
+                pp_custom_list l
+            in
+            pp_custom_list l)
+    end
+
+    module C = struct
+      type t = V.t list K.Map.t
+      let equal = K.Map.equal (List.for_all2 V.equal)
+      let empty = K.Map.empty
+      let is_empty = K.Map.is_empty
+      let add (k, l) m =
+        try
+          let l' = K.Map.find k m in
+          K.Map.add k (l @ l') m
+        with Not_found ->
+          K.Map.add k l m
+      let remove (k, _) m = K.Map.remove k m
+      let iter f m = K.Map.iter (fun k l -> f (k, l)) m
+      let fold f m acc = K.Map.fold (fun k v -> f (k, v)) m acc
+      let reorder = Extlib.id
+
+      exception Found of V.t list
+
+      let of_singleton_string =
+        let r = Str.regexp "[^:]:[^:]" in
+        let split_delim d =
+          (Pervasives_string.sub d 0 1, Pervasives_string.sub d 2 1)
+        in
+        let remove_none_and_rev l =
+          List.fold_left
+            (fun acc v -> match v with None -> acc | Some v -> v :: acc)
+            []
+            l
+        in
+        let rec parse_values ~key k ~prev acc s = function
+          | [] -> remove_none_and_rev (of_val ~key k ~prev (Some s) :: acc)
+          | [Str.Text t] ->
+            remove_none_and_rev (of_val ~key k ~prev (Some (s ^ t)) :: acc)
+          | Str.Text t :: Str.Delim d :: l ->
+            let (suf, pre) = split_delim d in
+            let v = of_val ~key k ~prev (Some (s ^ t ^ suf)) in
+            parse_values ~key k ~prev (v :: acc) pre l
+          | Str.Delim d :: l ->
+            let (suf,pre) = split_delim d in
+            let v = of_val ~key k ~prev (Some (s ^ suf)) in
+            parse_values ~key k ~prev (v :: acc) pre l
+          | Str.Text _ :: Str.Text _ :: _ ->
+            (* By construction, there must be a Delim between two consecutive
+               Text in the value returned by full_split *)
+            assert false
+        in
+        fun s ->
+          let (keys, values) =
+            let get_pairing k v l =
+              let keys = K.of_singleton_string k in
+              let key = ref None in
+              let prev =
+                try
+                  K.Set.iter
+                    (fun k ->
+                      key := Some k;
+                      (* choose any previous value, whatever it is:
+                         don't know which clear semantics one would like *)
+                      try raise (Found (!find_ref k)) with Not_found -> ())
+                    keys;
+                  None
+                with Found v ->
+                  Some v
+              in
+              match !key with
+              | None -> K.Set.empty, []
+              | Some key -> keys, parse_values ~key k ~prev [] v l
+            in
+            match Str.full_split r s with
+            | [] -> cannot_build ("cannot interpret '" ^ s ^ "'")
+            | [Str.Text t] -> K.of_singleton_string t, []
+            | Str.Delim d :: l ->
+              let (f,s) = split_delim d in
+              get_pairing f s l
+            | Str.Text t :: Str.Delim d :: l ->
+              let (f,s) = split_delim d in
+              get_pairing (t ^ f) s l
+            | Str.Text _ :: Str.Text _ :: _ -> (* see above *) assert false
+          in
+          K.Set.fold (fun key map -> K.Map.add key values map) keys K.Map.empty
+    end
+
+    module S = struct
+
+      include State_builder.Option_ref
+        (K.Map.Make(Datatype.List(V)))
+        (struct
+          let name = X.option_name ^ " map"
+          let dependencies = []
+         end)
+
+      let memo f = memo f (* ignore the optional argument *)
+
+    end
+
+    include Make_collection(Pair)(C)(S)(X)
+
+    (* ********************************************************************** *)
+    (* Accessors *)
+    (* ********************************************************************** *)
+
+    let find k = K.Map.find k (get ())
+    let mem k = K.Map.mem k (get ())
+    let () = find_ref := (fun k -> K.Map.find k (get_nomemo ()))
+
+  end
+
+  module String_multiple_map = Make_multiple_map(String_for_collection)
+
+  module Kernel_function_multiple_map
+    (V: Parameter_sig.Multiple_value_datatype with type key = kernel_function)
+    (X: sig
+      include Parameter_sig.Input_with_arg
+      val default: V.t list Cil_datatype.Kf.Map.t
+    end) =
+  struct
+
+    module A = struct
+      let accept_fundecl = !Parameter_customize.argument_may_be_fundecl_ref
+      let must_exist = !Parameter_customize.argument_must_be_existing_fun_ref
+    end
+
+    include Make_multiple_map(Kernel_function_string(A))(V)(X)
 
   end
 

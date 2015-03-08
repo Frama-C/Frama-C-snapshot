@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -58,23 +58,31 @@ module Icon = struct
 
   module F = Property_status.Feedback
 
+  type theme_file =
+  | ThemeSpecific of string
+  | ThemeGeneric of string
+
   let builtins =
-    [(Frama_C,"frama-c.ico");
-     (Unmark,"unmark.png");
-     (Feedback F.Never_tried,"feedback/never_tried.png");
-     (Feedback F.Unknown,"feedback/unknown.png");
-     (Feedback F.Valid,"feedback/surely_valid.png");
-     (Feedback F.Invalid,"feedback/surely_invalid.png");
-     (Feedback F.Considered_valid,"feedback/considered_valid.png");
-     (Feedback F.Valid_under_hyp,"feedback/valid_under_hyp.png");
-     (Feedback F.Invalid_under_hyp,"feedback/invalid_under_hyp.png");
-     (Feedback F.Invalid_but_dead,"feedback/invalid_but_dead.png");
-     (Feedback F.Unknown_but_dead,"feedback/unknown_but_dead.png");
-     (Feedback F.Valid_but_dead,"feedback/valid_but_dead.png");
-     (Feedback F.Inconsistent,"feedback/inconsistent.png");
+    [(Frama_C,                      ThemeGeneric "frama-c.ico");
+     (Unmark,                       ThemeGeneric "unmark.png");
+     (Feedback F.Never_tried,       ThemeSpecific "never_tried.png");
+     (Feedback F.Unknown,           ThemeSpecific "unknown.png");
+     (Feedback F.Valid,             ThemeSpecific "surely_valid.png");
+     (Feedback F.Invalid,           ThemeSpecific "surely_invalid.png");
+     (Feedback F.Considered_valid,  ThemeSpecific "considered_valid.png");
+     (Feedback F.Valid_under_hyp,   ThemeSpecific "valid_under_hyp.png");
+     (Feedback F.Invalid_under_hyp, ThemeSpecific "invalid_under_hyp.png");
+     (Feedback F.Invalid_but_dead,  ThemeSpecific "invalid_but_dead.png");
+     (Feedback F.Unknown_but_dead,  ThemeSpecific "unknown_but_dead.png");
+     (Feedback F.Valid_but_dead,    ThemeSpecific "valid_but_dead.png");
+     (Feedback F.Inconsistent,      ThemeSpecific "inconsistent.png");
     ]
 
-  type icon = Filename of string | Pixbuf of GdkPixbuf.pixbuf
+  let get_file_in_theme = function
+    | ThemeSpecific x -> "theme/" ^ (Gui_parameters.Theme.get()) ^ "/" ^ x
+    | ThemeGeneric x -> x
+
+  type icon = Filename of theme_file | Pixbuf of GdkPixbuf.pixbuf
 
   let h = Hashtbl.create 7
 
@@ -87,19 +95,21 @@ module Icon = struct
 
   let get k =
     try match Hashtbl.find h k with
-      | Filename f ->
-	  let p =
-	    try GdkPixbuf.from_file (Config.datadir ^ "/" ^ f)
-	    with Glib.GError _ ->
-              Gui_parameters.warning ~once:true
-		"Frama-C images not found. Is FRAMAC_SHARE correctly set?";
-	      default ()
-	  in
-	  Hashtbl.replace h k (Pixbuf p); p
+      | Filename f' ->
+	let f = get_file_in_theme f' in
+	let p =
+	  try GdkPixbuf.from_file (Config.datadir ^ "/" ^ f)
+	  with Glib.GError _ ->
+            Gui_parameters.warning ~once:true
+	      "Frama-C images not found. Is FRAMAC_SHARE correctly set?";
+	    default ()
+	in
+	Hashtbl.replace h k (Pixbuf p); p
       | Pixbuf p -> p
     with Not_found -> assert false
       
-  let register ~name ~file = Hashtbl.replace h (Custom name) (Filename file)
+  let register ~name ~file = Hashtbl.replace h (Custom name)
+    (Filename (ThemeGeneric file))
 
 end
 
@@ -672,7 +682,7 @@ end
 (**  A utility class to catch exceptions and report proper error messages. *)
 class type host = object
   method error:
-    'a. ?parent:GWindow.window_skel -> ('a, Format.formatter, unit) format -> 'a
+    'a. ?parent:GWindow.window_skel -> ?reset:bool -> ('a, Format.formatter, unit) format -> 'a
   method full_protect :
     'a. cancelable:bool -> ?parent:GWindow.window_skel -> (unit -> 'a) ->
     'a option
@@ -684,13 +694,13 @@ end
 class error_manager ?reset (o_parent:GWindow.window_skel) : host = 
 object (self: #host)
 
-  val mutable reset = match reset with 
+  val mutable f_reset = match reset with
   | None -> fun () -> ()
   | Some f -> f
 
-  method private set_reset f = reset <- f
+  method private set_reset f = f_reset <- f
 
-  method private error_string ?parent message =
+  method private error_string ?parent ~reset message =
     let w = GWindow.message_dialog
       ~message
       ~message_type:`ERROR
@@ -705,23 +715,23 @@ object (self: #host)
     w#present ();
     ignore (w#run ());
     w#destroy ();
-    reset ()
+    if reset then f_reset ()
 
-  method error ?parent fmt =
+  method error ?parent ?(reset=false) fmt =
     let b = Buffer.create 80 in
     let bfmt = Format.formatter_of_buffer b in
     Format.kfprintf
       (function fmt ->
         Format.pp_print_flush fmt ();
         let content = Buffer.contents b in
-        self#error_string ?parent content)
+        self#error_string ?parent ~reset content)
       bfmt
       fmt
 
   method private display_toplevel_error ?parent ~cancelable e =
     Cmdline.error_occurred e;
     if cancelable then Project.Undo.restore ();
-    self#error ?parent "%s" (Cmdline.protect e)
+    self#error ?parent ~reset:true "%s" (Cmdline.protect e);
 
   method protect ~cancelable ?(parent:GWindow.window_skel option) f =
     ignore (self#full_protect ~cancelable ?parent f)
@@ -753,7 +763,8 @@ object (self: #host)
       None
     | Sys.Break | Db.Cancel ->
       if cancelable then Project.Undo.restore ();
-      self#error ?parent "Stopping current computation on user request.";
+      self#error ?parent ~reset:true
+        "Stopping current computation on user request.";
       None
     | Globals.No_such_entry_point msg ->
       (try Gui_parameters.abort "%s" msg
@@ -807,7 +818,15 @@ let make_text_page ?pos (notebook:GPack.notebook) title =
   in
   reparent_page, w
 
-let refresh_gui () = while Glib.Main.iteration false do () done
+exception Too_many_events
+let refresh_gui () = 
+  let counter = ref 0 in
+  try 
+    while Glib.Main.iteration false do 
+      if !counter >= 10 then raise Too_many_events 
+      else incr counter
+    done
+  with Too_many_events -> ()
 
 (* ************************************************************************* *)
 (** {2 Source File Chooser} *)
@@ -874,18 +893,22 @@ let source_files_chooser (main_ui: source_files_chooser_host) defaults f =
   ignore (add_button#connect#pressed ~callback:add_selected_files);
   ignore (remove_button#connect#pressed ~callback:remove);
   ignore (filechooser#connect#file_activated ~callback:add_selected_files);
-  (match dialog#run () with
-   | `OPEN ->
-       main_ui#protect
-         ~cancelable:true
-         ~parent:(dialog :> GWindow.window_skel)
-         (fun () -> f (get_all ()))
-   | `DELETE_EVENT | `CANCEL ->
-       ());
-  Extlib.may (fun f -> 
-    Configuration.set "last_opened_dir" 
-      (Configuration.ConfString f)) filechooser#current_folder;
-  dialog#destroy ()
+  let response r = (match r with
+    | `OPEN ->
+      main_ui#protect
+        ~cancelable:true
+        ~parent:(dialog :> GWindow.window_skel)
+        (fun () -> f (get_all ()))
+    | `DELETE_EVENT | `CANCEL ->
+      ());
+    Extlib.may (fun f ->
+      Configuration.set "last_opened_dir"
+        (Configuration.ConfString f)) filechooser#current_folder;
+    dialog#destroy ()
+  in
+  let (_:GtkSignal.id) = dialog#connect#response ~callback:response in
+  dialog#show ();
+  ()
 
 let later f =
   let for_idle () = f () ; false in

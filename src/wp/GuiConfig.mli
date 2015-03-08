@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -32,14 +32,14 @@ class dp_chooser :
   main:Design.main_window_extension_points ->
   available:provers ->
   enabled:provers ->
-object
-  method run : unit -> unit (** Edit enabled provers *)
-end
+  object
+    method run : unit -> unit (** Edit enabled provers *)
+  end
 
 class dp_button :
   available:provers ->
   enabled:provers ->
-object
-  inherit Toolbox.widget
-  method update : unit -> unit
-end
+  object
+    inherit Toolbox.widget
+    method update : unit -> unit
+  end

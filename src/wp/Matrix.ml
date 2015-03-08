@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -41,17 +41,17 @@ struct
     | Some _,None -> (-1)
     | None,Some _ -> 1
     | Some _,Some _ -> 0
-	
+
   let compare (e1,ds1) (e2,ds2) =
     let cmp = E.compare e1 e2 in
     if cmp = 0 then Qed.Hcons.compare_list compare_dim ds1 ds2 else cmp
-      
+
   let pretty fmt (obj,ds) =
     Ctypes.pretty fmt obj ;
     List.iter
       (function
-	 | None -> Format.pp_print_string fmt "[]"
-	 | Some d -> Format.fprintf fmt "[%d]" d
+        | None -> Format.pp_print_string fmt "[]"
+        | Some d -> Format.fprintf fmt "[%d]" d
       ) ds
 end
 
@@ -106,13 +106,13 @@ type denv = {
 let rec collect rank = function
   | [] -> 
       {
-	size_var = [] ;
-	size_val = [] ;
-	index_var = [] ;
-	index_val = [] ;
-	index_range = [] ;
-	index_offset = [] ;
-	monotonic = true ;
+        size_var = [] ;
+        size_val = [] ;
+        index_var = [] ;
+        index_val = [] ;
+        index_range = [] ;
+        index_offset = [] ;
+        monotonic = true ;
       }
   | d::ds ->
       let denv = collect (succ rank) ds in
@@ -121,29 +121,29 @@ let rec collect rank = function
       let k_val = e_var k_var in
       let k_ofs = e_prod (k_val :: denv.size_val) in
       match d with
-	| None ->
-	    { denv with
-		index_var = k_var :: denv.index_var ;
-		index_val = k_val :: denv.index_val ;
-		index_offset = k_ofs :: denv.index_offset ;
-		monotonic = false ;
-	    }
-	| Some _ ->
-	    let n_base = match rank with 0 -> "n" | 1 -> "m" | _ -> "d" in
-	    let n_var = Lang.freshvar ~basename:n_base Qed.Logic.Int in
-	    let n_val = e_var n_var in
-	    let k_inf = p_leq e_zero k_val in
-	    let k_sup = p_lt k_val n_val in
-	    { 
-	      size_var = n_var :: denv.size_var ;
-	      size_val = n_val :: denv.size_val ;
-	      index_var = k_var :: denv.index_var ;
-	      index_val = k_val :: denv.index_val ;
-	      index_offset = k_ofs :: denv.index_offset ;
-	      index_range = k_inf :: k_sup :: denv.index_range ;
-	      monotonic = denv.monotonic ;
-	    }
-	      
+      | None ->
+          { denv with
+            index_var = k_var :: denv.index_var ;
+            index_val = k_val :: denv.index_val ;
+            index_offset = k_ofs :: denv.index_offset ;
+            monotonic = false ;
+          }
+      | Some _ ->
+          let n_base = match rank with 0 -> "n" | 1 -> "m" | _ -> "d" in
+          let n_var = Lang.freshvar ~basename:n_base Qed.Logic.Int in
+          let n_val = e_var n_var in
+          let k_inf = p_leq e_zero k_val in
+          let k_sup = p_lt k_val n_val in
+          { 
+            size_var = n_var :: denv.size_var ;
+            size_val = n_val :: denv.size_val ;
+            index_var = k_var :: denv.index_var ;
+            index_val = k_val :: denv.index_val ;
+            index_offset = k_ofs :: denv.index_offset ;
+            index_range = k_inf :: k_sup :: denv.index_range ;
+            monotonic = denv.monotonic ;
+          }
+
 let denv = collect 0
 let rec dval = function
   | [] -> []
@@ -156,13 +156,13 @@ let rec tau obj = function
 
 let rec do_merge ds1 ds2 =
   match ds1 , ds2 with
-    | [] , [] -> []
-    | [] , _ | _ , [] -> raise Exit
-    | d1::ds1 , d2::ds2 ->
-	let d = match d1 , d2 with
-	  | None , _ | _ , None -> None
-	  | Some n1 , Some n2 -> if n1=n2 then d1 else raise Exit
-	in d :: do_merge ds1 ds2
+  | [] , [] -> []
+  | [] , _ | _ , [] -> raise Exit
+  | d1::ds1 , d2::ds2 ->
+      let d = match d1 , d2 with
+        | None , _ | _ , None -> None
+        | Some n1 , Some n2 -> if n1=n2 then d1 else raise Exit
+      in d :: do_merge ds1 ds2
 
 let merge ds1 ds2 = 
   try Some(do_merge ds1 ds2)

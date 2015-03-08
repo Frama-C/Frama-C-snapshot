@@ -1,0 +1,57 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/struct_incl.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  tabst[0..9] ∈ {0}
+  tabst2[0..9] ∈ {0}
+  tab_s[0..1] ∈ {0}
+  tab_s1[0..1] ∈ {0}
+  tab_s2[0..1] ∈ {0}
+  tab_s3[0..1] ∈ {0}
+  tab_s4[0..1] ∈ {0}
+  s1 ∈ {0}
+  s2 ∈ {0}
+  s4 ∈ {0}
+  s5 ∈ {0}
+  s6 ∈ {0}
+  s8 ∈ {0}
+  s7 ∈ {0}
+  x ∈ {0}
+  y ∈ {0}
+  z ∈ {0}
+  t ∈ {0}
+  v ∈ [--..--]
+tests/misc/struct_incl.i:48:[kernel] warning: accessing out of bounds index {10}. assert 10 < 10;
+tests/misc/struct_incl.i:48:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
+[value] Recording results for main
+[value] done for function main
+tests/misc/struct_incl.i:48:[value] Assertion 'Value,index_bound' got final status invalid.
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  s1{.a; .d[0..2]} ∈ {2}
+    .d[3..4] ∈ {0}
+    .d[5] ∈ {7}
+    .d[6..7] ∈ {0}
+    .d[8..9] ∈ {8}
+    .b.a ∈ {3}
+    {.b.b; .e[0..9]} ∈ {0}
+    .c ∈ {{ &s1 }}
+  x ∈ {{ (long)&s1.d[9] }}
+  y ∈ {{ (long)&s1.b }}
+  z ∈ {{ (long)&s1.b }}
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  s1{{.a; .d[0..2]}; .d[5]; {.d[8..9]; .b.a}; .c} FROM \nothing
+  x FROM \nothing
+  y FROM \nothing
+  z FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          s1{{.a; .d[0..2]}; .d[5]; {.d[8..9]; .b.a}; .c}; x; y; z
+[inout] Inputs for function main:
+          v

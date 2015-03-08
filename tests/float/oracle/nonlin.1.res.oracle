@@ -1,0 +1,181 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/float/nonlin.c (with preprocessing)
+[kernel] Parsing share/builtin.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  Frama_C_entropy_source ∈ {0}
+  a ∈ {0}
+  b ∈ {0}
+  c ∈ {0}
+  r1 ∈ {0}
+  r2 ∈ {0}
+  d ∈ {0}
+  i ∈ {0}
+  s ∈ {0}
+  zf ∈ {0}
+  s2 ∈ {0}
+  sq ∈ {0}
+  h ∈ {0}
+  t[0] ∈ {1}
+   [1] ∈ {2}
+   [2] ∈ {3}
+   [3] ∈ {4}
+   [4] ∈ {5}
+   [5] ∈ {6}
+   [6] ∈ {7}
+   [7] ∈ {8}
+   [8] ∈ {9}
+   [9] ∈ {10}
+  r ∈ {0}
+  z ∈ {0}
+  rbits1 ∈ {0}
+  rbits2 ∈ {0}
+[value] computing for function nonlin_f <- main.
+        Called from tests/float/nonlin.c:59.
+[value] computing for function Frama_C_float_interval <- nonlin_f <- main.
+        Called from tests/float/nonlin.c:16.
+share/builtin.h:54:[value] Function Frama_C_float_interval: precondition got status valid.
+[value] computing for function Frama_C_update_entropy <- Frama_C_float_interval <- 
+                                nonlin_f <- main.
+        Called from share/builtin.c:55.
+[value] using specification for function Frama_C_update_entropy
+[value] Done for function Frama_C_update_entropy
+share/builtin.h:55:[value] Function Frama_C_float_interval: postcondition got status valid.
+[value] Recording results for Frama_C_float_interval
+[value] Done for function Frama_C_float_interval
+[value] computing for function Frama_C_float_interval <- nonlin_f <- main.
+        Called from tests/float/nonlin.c:17.
+[value] computing for function Frama_C_update_entropy <- Frama_C_float_interval <- 
+                                nonlin_f <- main.
+        Called from share/builtin.c:55.
+[value] Done for function Frama_C_update_entropy
+[value] Recording results for Frama_C_float_interval
+[value] Done for function Frama_C_float_interval
+tests/float/nonlin.c:20:[value] Assertion got status valid.
+tests/float/nonlin.c:24:[value] Assertion got status valid.
+[value] Called Frama_C_show_each_a_r2({{ "a" }},
+                                      [0x1.4000000000000p2 .. 0x1.4800000000000p2],
+                                      {{ "r2" }},
+                                      [0x1.4000000000000p2 .. 0x1.c0fffffffffffp2])
+[value] Called Frama_C_show_each_a_r2({{ "a" }},
+                                      [0x1.4800000000000p2 .. 0x1.5000000000000p2],
+                                      {{ "r2" }},
+                                      [0x1.4800000000000p2 .. 0x1.c0fffffffffffp2])
+[value] Called Frama_C_show_each_a_r2({{ "a" }},
+                                      [0x1.5000000000000p2 .. 0x1.5800000000000p2],
+                                      {{ "r2" }},
+                                      [0x1.5000000000000p2 .. 0x1.c0fffffffffffp2])
+[value] Called Frama_C_show_each_a_r2({{ "a" }},
+                                      [0x1.5800000000000p2 .. 0x1.6000000000000p2],
+                                      {{ "r2" }},
+                                      [0x1.5800000000000p2 .. 0x1.c0fffffffffffp2])
+[value] Called Frama_C_show_each_a_r2({{ "a" }},
+                                      [0x1.6000000000000p2 .. 0x1.6800000000000p2],
+                                      {{ "r2" }},
+                                      [0x1.6000000000000p2 .. 0x1.c0fffffffffffp2])
+[value] Called Frama_C_show_each_a_r2({{ "a" }},
+                                      [0x1.6800000000000p2 .. 0x1.7000000000000p2],
+                                      {{ "r2" }},
+                                      [0x1.6800000000000p2 .. 0x1.c0fffffffffffp2])
+[value] Called Frama_C_show_each_a_r2({{ "a" }},
+                                      [0x1.7000000000000p2 .. 0x1.7800000000000p2],
+                                      {{ "r2" }},
+                                      [0x1.7000000000000p2 .. 0x1.c0fffffffffffp2])
+[value] Called Frama_C_show_each_a_r2({{ "a" }},
+                                      [0x1.7800000000000p2 .. 0x1.8000000000000p2],
+                                      {{ "r2" }},
+                                      [0x1.7800000000000p2 .. 0x1.c0fffffffffffp2])
+[value] Called Frama_C_show_each_a_r2({{ "a" }},
+                                      [0x1.8000000000000p2 .. 0x1.8800000000000p2],
+                                      {{ "r2" }},
+                                      [0x1.8000000000000p2 .. 0x1.c0fffffffffffp2])
+[value] Called Frama_C_show_each_a_r2({{ "a" }},
+                                      [0x1.8800000000000p2 .. 0x1.9000000000000p2],
+                                      {{ "r2" }},
+                                      [0x1.8800000000000p2 .. 0x1.c0fffffffffffp2])
+[value] Called Frama_C_show_each_a_r2({{ "a" }},
+                                      [0x1.9000000000000p2 .. 0x1.9800000000000p2],
+                                      {{ "r2" }},
+                                      [0x1.9000000000000p2 .. 0x1.c0fffffffffffp2])
+[value] Called Frama_C_show_each_a_r2({{ "a" }},
+                                      [0x1.9800000000000p2 .. 0x1.a000000000000p2],
+                                      {{ "r2" }},
+                                      [0x1.9800000000000p2 .. 0x1.c0fffffffffffp2])
+[value] Called Frama_C_show_each_a_r2({{ "a" }},
+                                      [0x1.a000000000000p2 .. 0x1.a800000000000p2],
+                                      {{ "r2" }},
+                                      [0x1.a000000000000p2 .. 0x1.c0fffffffffffp2])
+[value] Called Frama_C_show_each_a_r2({{ "a" }},
+                                      [0x1.a800000000000p2 .. 0x1.b000000000000p2],
+                                      {{ "r2" }},
+                                      [0x1.a800000000000p2 .. 0x1.c0fffffffffffp2])
+[value] Called Frama_C_show_each_a_r2({{ "a" }},
+                                      [0x1.b000000000000p2 .. 0x1.b800000000000p2],
+                                      {{ "r2" }},
+                                      [0x1.b000000000000p2 .. 0x1.c0fffffffffffp2])
+[value] Called Frama_C_show_each_a_r2({{ "a" }},
+                                      [0x1.b800000000000p2 .. 0x1.c000000000000p2],
+                                      {{ "r2" }},
+                                      [0x1.b800000000000p2 .. 0x1.c0fffffffffffp2])
+[value] Recording results for nonlin_f
+[value] Done for function nonlin_f
+[value] computing for function Frama_C_float_interval <- main.
+        Called from tests/float/nonlin.c:61.
+[value] computing for function Frama_C_update_entropy <- Frama_C_float_interval <- 
+                                main.
+        Called from share/builtin.c:55.
+[value] Done for function Frama_C_update_entropy
+[value] Recording results for Frama_C_float_interval
+[value] Done for function Frama_C_float_interval
+[value] computing for function Frama_C_float_interval <- main.
+        Called from tests/float/nonlin.c:62.
+[value] computing for function Frama_C_update_entropy <- Frama_C_float_interval <- 
+                                main.
+        Called from share/builtin.c:55.
+[value] Done for function Frama_C_update_entropy
+[value] Recording results for Frama_C_float_interval
+[value] Done for function Frama_C_float_interval
+tests/float/nonlin.c:63:[kernel] warning: accessing out of bounds index [-18884..20166].
+                  assert 0 ≤ (int)((double)((double)(i*i)+2.0)) < 10;
+[value] computing for function access_bits <- main.
+        Called from tests/float/nonlin.c:69.
+[value] Recording results for access_bits
+[value] Done for function access_bits
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function Frama_C_float_interval:
+  Frama_C_entropy_source ∈ [--..--]
+[value] Values at end of function access_bits:
+  rbits1 ∈ {0; 1; 2}
+  x0 ∈ [--..--]
+  __retres ∈ {0; 1}
+[value] Values at end of function nonlin_f:
+  Frama_C_entropy_source ∈ [--..--]
+  a ∈ [0x1.4000000000000p2 .. 0x1.c000000000000p2]
+  b ∈ [0x0.0000000000000p-1022 .. 0x1.0000000000000p0]
+  c ∈ {0x1.c000000000000p2}
+  r1 ∈ [0x1.4000000000000p2 .. 0x1.cffffffffffffp2]
+  r2 ∈ [0x1.4000000000000p2 .. 0x1.c0fffffffffffp2]
+  d ∈ [0x1.4000000000000p2 .. 0x1.c000000000000p2]
+[value] Values at end of function main:
+  Frama_C_entropy_source ∈ [--..--]
+  a ∈ [0x1.4000000000000p2 .. 0x1.c000000000000p2]
+  b ∈ [0x0.0000000000000p-1022 .. 0x1.0000000000000p0]
+  c ∈ {0x1.c000000000000p2}
+  r1 ∈ [0x1.4000000000000p2 .. 0x1.cffffffffffffp2]
+  r2 ∈ [0x1.4000000000000p2 .. 0x1.c0fffffffffffp2]
+  d ∈ [0x1.4000000000000p2 .. 0x1.c000000000000p2]
+  i ∈ [-0x1.05ffffffffffbp2 .. 0x1.6a10080000004p1]
+  s ∈ [-0x1.0a00000000000p7 .. 0x1.1c00000000000p7]
+  zf ∈ [-0x1.12ffffffffffep4 .. 0x1.12ffffffffffep4]
+  s2 ∈ [-0x1.0a00000000000p8 .. 0x1.1c00000000000p8]
+  sq ∈ [-0x1.b37ffffffff34p-7 .. 0x1.3b10000000000p14]
+  h ∈ [-0x1.38d8000000000p14 .. 0x1.3250000000034p-1]
+  r ∈ [3..11]
+  z ∈ [-171874..171874]
+  rbits1 ∈ {0; 1; 2}
+  rbits2 ∈ {0; 1}
+  __retres ∈ {0}

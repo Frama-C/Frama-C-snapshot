@@ -1,0 +1,81 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/join_misaligned.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  t[0..4] ∈ {0}
+  u[0..4] ∈ {1}
+  v[0..2] ∈ {0x22222222}
+   [3..6] ∈ {1}
+  w[0..6] ∈ {0}
+  x[0..4] ∈ {0}
+  y[0..2] ∈ {0x22222222}
+   [3..6] ∈ {1}
+  z[0..4] ∈ {255}
+  a ∈ {0}
+  va ∈ [--..--]
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  t{[0]; [1][bits 0 to 15]} ∈ {0}
+   [1][bits 16 to 23] ∈ {97; 98}
+   {[1][bits 24 to 31]; [2..4]} ∈ {0}
+  u{[0]; [1][bits 0 to 15]#} ∈ {1} repeated %32, bits 0 to 47 
+   [1][bits 16 to 23] ∈ {99; 100}
+   [bits 56 to 159]# ∈ {1} repeated %32, bits 24 to 127 
+  v{[0]; [1][bits 0 to 15]#} ∈ {0x22222222} repeated %32, bits 0 to 47 
+   [1][bits 16 to 23] ∈ {34; 68}
+   [1][bits 24 to 31] ∈ {68; 85}
+   [2][bits 0 to 7] ∈ {34; 85}
+   [2][bits 8 to 31]# ∈ {0x22222222}%32, bits 8 to 31 
+   [3..6] ∈ {1}
+  w{[0]; [1][bits 0 to 15]} ∈ {0}
+   [1][bits 16 to 23]# ∈ {0; 57}%16, bits 0 to 7 
+   [1][bits 24 to 31] ∈ {0; 59}
+   [2][bits 0 to 7]# ∈ {0; 59}%16, bits 8 to 15 
+   {[2][bits 8 to 31]; [3..6]} ∈ {0}
+  x[0] ∈ {0; 1}
+   [1] ∈ {0}
+   [2] ∈ {0; 1}
+   [3..4] ∈ {0}
+  y{[0]; [1][bits 0 to 15]#} ∈ {0x22222222} repeated %32, bits 0 to 47 
+   [1][bits 16 to 23] ∈
+   {{ garbled mix of &{t}
+    (origin: Merge {tests/misc/join_misaligned.i:42}) }}
+   {[1][bits 24 to 31]; [2][bits 0 to 15]} ∈
+   {{ garbled mix of &{t; u}
+    (origin: Merge {tests/misc/join_misaligned.i:42}) }}
+   [2][bits 16 to 23] ∈
+   {{ garbled mix of &{u}
+    (origin: Merge {tests/misc/join_misaligned.i:42}) }}
+   [2][bits 24 to 31]# ∈ {0x22222222}%32, bits 24 to 31 
+   [3..6] ∈ {1}
+  z[0..2] ∈ {255}
+   [bits 24 to 39] ∈ {0x1111; 0xFFFF}
+  a ∈ [0xFFF..0xFFFFFFFF],0xFFF%0x1000
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  t[1][bits 16 to 23] FROM c
+  u[1][bits 16 to 23] FROM c
+  v{[1][bits 16 to 23]; [2][bits 0 to 7]} FROM c (and SELF)
+   [1][bits 24 to 31] FROM c
+  w{[1][bits 16 to 23]; [2][bits 0 to 7]} FROM c (and SELF)
+   [1][bits 24 to 31] FROM c
+  x[0..2] FROM c (and SELF)
+  y{[1][bits 16 to 23]; [2][bits 16 to 23]} FROM c (and SELF)
+   {[1][bits 24 to 31]; [2][bits 0 to 15]} FROM c
+  z[3..4] FROM c (and SELF)
+  a FROM va; c
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          t[1][bits 16 to 23]; u[1][bits 16 to 23];
+          v{[1][bits 16 to 31]; [2][bits 0 to 7]};
+          w{[1][bits 16 to 31]; [2][bits 0 to 7]}; x[0..2];
+          y{[1][bits 16 to 31]; [2][bits 0 to 23]}; z[3..4]; a
+[inout] Inputs for function main:
+          a; va

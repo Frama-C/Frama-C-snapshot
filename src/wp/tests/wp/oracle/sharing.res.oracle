@@ -1,0 +1,829 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp/sharing.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] 1 goal scheduled
+[wp:print-generated] (**************************************************************************)
+                     (*                                                                        *)
+                     (*  The Why3 Verification Platform   /   The Why3 Development Team        *)
+                     (*  Copyright 2010-2013   --   INRIA - CNRS - Paris-Sud University        *)
+                     (*                                                                        *)
+                     (*  This software is distributed under the terms of the GNU Lesser        *)
+                     (*  General Public License version 2.1, with the special exception        *)
+                     (*  on linking described in file LICENSE.                                 *)
+                     (*                                                                        *)
+                     (*  File modified by CEA (Commissariat à l'énergie atomique et aux        *)
+                     (*                        énergies alternatives).                         *)
+                     (*                                                                        *)
+                     (**************************************************************************)
+                     
+                     (* this is a prelude for Alt-Ergo*)
+                     (* this is a prelude for Alt-Ergo integer arithmetic *)
+                     (** The theory BuiltIn_ must be appended to this file*)
+                     (** The theory Bool_ must be appended to this file*)
+                     (**************************************************************************)
+                     (*                                                                        *)
+                     (*  The Why3 Verification Platform   /   The Why3 Development Team        *)
+                     (*  Copyright 2010-2013   --   INRIA - CNRS - Paris-Sud University        *)
+                     (*                                                                        *)
+                     (*  This software is distributed under the terms of the GNU Lesser        *)
+                     (*  General Public License version 2.1, with the special exception        *)
+                     (*  on linking described in file LICENSE.                                 *)
+                     (*                                                                        *)
+                     (*  File modified by CEA (Commissariat à l'énergie atomique et aux        *)
+                     (*                        énergies alternatives).                         *)
+                     (*                                                                        *)
+                     (**************************************************************************)
+                     
+                     (* this is a prelude for Alt-Ergo*)
+                     (** The theory BuiltIn_ must be appended to this file*)
+                     (** The theory Bool_ must be appended to this file*)
+                     (** The theory int_Int_ must be appended to this file*)
+                     logic abs_int : int -> int
+                     
+                     axiom abs_def : (forall x:int. ((0 <= x) -> (abs_int(x) = x)))
+                     
+                     axiom abs_def1 : (forall x:int. ((not (0 <= x)) -> (abs_int(x) = (-x))))
+                     
+                     axiom Abs_le :
+                       (forall x:int. forall y:int. ((abs_int(x) <= y) -> ((-y) <= x)))
+                     
+                     axiom Abs_le1 : (forall x:int. forall y:int. ((abs_int(x) <= y) -> (x <= y)))
+                     
+                     axiom Abs_le2 :
+                       (forall x:int. forall y:int. ((((-y) <= x) and (x <= y)) ->
+                       (abs_int(x) <= y)))
+                     
+                     axiom Abs_pos : (forall x:int. (0 <= abs_int(x)))
+                     
+                     (**************************************************************************)
+                     (*                                                                        *)
+                     (*  The Why3 Verification Platform   /   The Why3 Development Team        *)
+                     (*  Copyright 2010-2013   --   INRIA - CNRS - Paris-Sud University        *)
+                     (*                                                                        *)
+                     (*  This software is distributed under the terms of the GNU Lesser        *)
+                     (*  General Public License version 2.1, with the special exception        *)
+                     (*  on linking described in file LICENSE.                                 *)
+                     (*                                                                        *)
+                     (*  File modified by CEA (Commissariat à l'énergie atomique et aux        *)
+                     (*                        énergies alternatives).                         *)
+                     (*                                                                        *)
+                     (**************************************************************************)
+                     
+                     (* this is a prelude for Alt-Ergo*)
+                     logic safe_comp_div: int, int -> int
+                     axiom safe_comp_div_def: forall x, y:int. x >= 0 and y > 0 -> safe_comp_div(x,y) = x / y
+                     logic safe_comp_mod: int, int -> int
+                     axiom safe_comp_mod_def: forall x, y:int. x >= 0 and y > 0 -> safe_comp_mod(x,y) = x % y
+                     (** The theory BuiltIn_ must be appended to this file*)
+                     (** The theory Bool_ must be appended to this file*)
+                     (** The theory int_Int_ must be appended to this file*)
+                     (** The theory int_Abs_ must be appended to this file*)
+                     axiom Div_bound :
+                       (forall x:int. forall y:int. (((0 <= x) and (0 <  y)) ->
+                       (0 <= safe_comp_div(x,y))))
+                     
+                     axiom Div_bound1 :
+                       (forall x:int. forall y:int. (((0 <= x) and (0 <  y)) ->
+                       (safe_comp_div(x,y) <= x)))
+                     
+                     axiom Div_1 : (forall x:int. (safe_comp_div(x,1) = x))
+                     
+                     axiom Mod_1 : (forall x:int. (safe_comp_mod(x,1) = 0))
+                     
+                     axiom Div_inf :
+                       (forall x:int. forall y:int. (((0 <= x) and (x <  y)) ->
+                       (safe_comp_div(x,y) = 0)))
+                     
+                     axiom Mod_inf :
+                       (forall x:int. forall y:int. (((0 <= x) and (x <  y)) ->
+                       (safe_comp_mod(x,y) = x)))
+                     
+                     axiom Div_mult :
+                       (forall x:int. forall y:int. forall z:int [safe_comp_div(((x * y) + z),x)].
+                       (((0 <  x) and ((0 <= y) and (0 <= z))) ->
+                       (safe_comp_div(((x * y) + z),x) = (y + safe_comp_div(z,x)))))
+                     
+                     axiom Mod_mult :
+                       (forall x:int. forall y:int. forall z:int [safe_comp_mod(((x * y) + z),x)].
+                       (((0 <  x) and ((0 <= y) and (0 <= z))) ->
+                       (safe_comp_mod(((x * y) + z),x) = safe_comp_mod(z,x))))
+                     
+                     (**************************************************************************)
+                     (*                                                                        *)
+                     (*  The Why3 Verification Platform   /   The Why3 Development Team        *)
+                     (*  Copyright 2010-2013   --   INRIA - CNRS - Paris-Sud University        *)
+                     (*                                                                        *)
+                     (*  This software is distributed under the terms of the GNU Lesser        *)
+                     (*  General Public License version 2.1, with the special exception        *)
+                     (*  on linking described in file LICENSE.                                 *)
+                     (*                                                                        *)
+                     (*  File modified by CEA (Commissariat à l'énergie atomique et aux        *)
+                     (*                        énergies alternatives).                         *)
+                     (*                                                                        *)
+                     (**************************************************************************)
+                     
+                     (* this is a prelude for Alt-Ergo*)
+                     (* this is a prelude for Alt-Ergo real arithmetic *)
+                     (** The theory BuiltIn_ must be appended to this file*)
+                     (** The theory Bool_ must be appended to this file*)
+                     axiom add_div :
+                       (forall x:real. forall y:real. forall z:real. ((not (z = 0.0)) ->
+                       (((x + y) / z) = ((x / z) + (y / z)))))
+                     
+                     axiom sub_div :
+                       (forall x:real. forall y:real. forall z:real. ((not (z = 0.0)) ->
+                       (((x - y) / z) = ((x / z) - (y / z)))))
+                     
+                     axiom neg_div :
+                       (forall x:real. forall y:real. ((not (y = 0.0)) ->
+                       (((-x) / y) = (-(x / y)))))
+                     
+                     axiom assoc_mul_div :
+                       (forall x:real. forall y:real. forall z:real. ((not (z = 0.0)) ->
+                       (((x * y) / z) = (x * (y / z)))))
+                     
+                     axiom assoc_div_mul :
+                       (forall x:real. forall y:real. forall z:real. (((not (y = 0.0)) and
+                       (not (z = 0.0))) -> (((x / y) / z) = (x / (y * z)))))
+                     
+                     axiom assoc_div_div :
+                       (forall x:real. forall y:real. forall z:real. (((not (y = 0.0)) and
+                       (not (z = 0.0))) -> ((x / (y / z)) = ((x * z) / y))))
+                     
+                     (**************************************************************************)
+                     (*                                                                        *)
+                     (*  The Why3 Verification Platform   /   The Why3 Development Team        *)
+                     (*  Copyright 2010-2013   --   INRIA - CNRS - Paris-Sud University        *)
+                     (*                                                                        *)
+                     (*  This software is distributed under the terms of the GNU Lesser        *)
+                     (*  General Public License version 2.1, with the special exception        *)
+                     (*  on linking described in file LICENSE.                                 *)
+                     (*                                                                        *)
+                     (*  File modified by CEA (Commissariat à l'énergie atomique et aux        *)
+                     (*                        énergies alternatives).                         *)
+                     (*                                                                        *)
+                     (**************************************************************************)
+                     
+                     (* this is a prelude for Alt-Ergo*)
+                     (** The theory BuiltIn_ must be appended to this file*)
+                     (** The theory Bool_ must be appended to this file*)
+                     (** The theory real_Real_ must be appended to this file*)
+                     (**************************************************************************)
+                     (*                                                                        *)
+                     (*  The Why3 Verification Platform   /   The Why3 Development Team        *)
+                     (*  Copyright 2010-2013   --   INRIA - CNRS - Paris-Sud University        *)
+                     (*                                                                        *)
+                     (*  This software is distributed under the terms of the GNU Lesser        *)
+                     (*  General Public License version 2.1, with the special exception        *)
+                     (*  on linking described in file LICENSE.                                 *)
+                     (*                                                                        *)
+                     (*  File modified by CEA (Commissariat à l'énergie atomique et aux        *)
+                     (*                        énergies alternatives).                         *)
+                     (*                                                                        *)
+                     (**************************************************************************)
+                     
+                     (* this is a prelude for Alt-Ergo*)
+                     (** The theory BuiltIn_ must be appended to this file*)
+                     (** The theory Bool_ must be appended to this file*)
+                     (** The theory int_Int_ must be appended to this file*)
+                     (** The theory real_Real_ must be appended to this file*)
+                     logic from_int : int -> real
+                     
+                     axiom Zero : (from_int(0) = 0.0)
+                     
+                     axiom One : (from_int(1) = 1.0)
+                     
+                     axiom Add :
+                       (forall x:int. forall y:int.
+                       (from_int((x + y)) = (from_int(x) + from_int(y))))
+                     
+                     axiom Sub :
+                       (forall x:int. forall y:int.
+                       (from_int((x - y)) = (from_int(x) - from_int(y))))
+                     
+                     axiom Mul :
+                       (forall x:int. forall y:int.
+                       (from_int((x * y)) = (from_int(x) * from_int(y))))
+                     
+                     axiom Neg : (forall x:int. (from_int((-x)) = (-from_int(x))))
+                     
+                     (**************************************************************************)
+                     (*                                                                        *)
+                     (*  This file is part of WP plug-in of Frama-C.                           *)
+                     (*                                                                        *)
+                     (*  Copyright (C) 2007-2015                                               *)
+                     (*    CEA (Commissariat a l'energie atomique et aux energies              *)
+                     (*         alternatives)                                                  *)
+                     (*                                                                        *)
+                     (*  you can redistribute it and/or modify it under the terms of the GNU   *)
+                     (*  Lesser General Public License as published by the Free Software       *)
+                     (*  Foundation, version 2.1.                                              *)
+                     (*                                                                        *)
+                     (*  It is distributed in the hope that it will be useful,                 *)
+                     (*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
+                     (*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
+                     (*  GNU Lesser General Public License for more details.                   *)
+                     (*                                                                        *)
+                     (*  See the GNU Lesser General Public License version 2.1                 *)
+                     (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
+                     (*                                                                        *)
+                     (**************************************************************************)
+                     
+                     (* this is a prelude for Alt-Ergo*)
+                     (** The theory BuiltIn_ must be appended to this file*)
+                     (** The theory Bool_ must be appended to this file*)
+                     (** The theory bool_Bool_ must be appended to this file*)
+                     (** The theory int_Int_ must be appended to this file*)
+                     (** The theory int_Abs_ must be appended to this file*)
+                     (** The theory int_ComputerDivision_ must be appended to this file*)
+                     (** The theory real_Real_ must be appended to this file*)
+                     (** The theory real_RealInfix_ must be appended to this file*)
+                     (** The theory real_FromInt_ must be appended to this file*)
+                     logic ite : bool, 'a, 'a -> 'a
+                     
+                     axiom ite1 :
+                       (forall p:bool. forall x:'a. forall y:'a [ite(p, x, y)]. (((p = true) and
+                       (ite(p, x, y) = x)) or ((p = false) and (ite(p, x, y) = y))))
+                     
+                     logic eqb : 'a, 'a -> bool
+                     
+                     axiom eqb1 : (forall x:'a. forall y:'a. ((eqb(x, y) = true) -> (x = y)))
+                     
+                     axiom eqb2 : (forall x:'a. forall y:'a. ((x = y) -> (eqb(x, y) = true)))
+                     
+                     logic neqb : 'a, 'a -> bool
+                     
+                     axiom neqb1 :
+                       (forall x:'a. forall y:'a. ((neqb(x, y) = true) -> (not (x = y))))
+                     
+                     axiom neqb2 :
+                       (forall x:'a. forall y:'a. ((not (x = y)) -> (neqb(x, y) = true)))
+                     
+                     logic zlt : int, int -> bool
+                     
+                     logic zleq : int, int -> bool
+                     
+                     axiom zlt1 : (forall x:int. forall y:int. ((zlt(x, y) = true) -> (x <  y)))
+                     
+                     axiom zlt2 : (forall x:int. forall y:int. ((x <  y) -> (zlt(x, y) = true)))
+                     
+                     axiom zleq1 : (forall x:int. forall y:int. ((zleq(x, y) = true) -> (x <= y)))
+                     
+                     axiom zleq2 : (forall x:int. forall y:int. ((x <= y) -> (zleq(x, y) = true)))
+                     
+                     logic rlt : real, real -> bool
+                     
+                     logic rleq : real, real -> bool
+                     
+                     axiom rlt1 : (forall x:real. forall y:real. ((rlt(x, y) = true) -> (x <  y)))
+                     
+                     axiom rlt2 : (forall x:real. forall y:real. ((x <  y) -> (rlt(x, y) = true)))
+                     
+                     axiom rleq1 :
+                       (forall x:real. forall y:real. ((rleq(x, y) = true) -> (x <= y)))
+                     
+                     axiom rleq2 :
+                       (forall x:real. forall y:real. ((x <= y) -> (rleq(x, y) = true)))
+                     
+                     logic truncate : real -> int
+                     
+                     function real_of_int(x: int) : real = from_int(x)
+                     
+                     axiom truncate_of_int : (forall x:int. (truncate(real_of_int(x)) = x))
+                     
+                     axiom c_euclidian :
+                       (forall n:int. forall d:int [safe_comp_div(n,d), safe_comp_mod(n,d)].
+                       ((not (d = 0)) -> (n = ((safe_comp_div(n,d) * d) + safe_comp_mod(n,d)))))
+                     
+                     axiom cdiv_cases :
+                       (forall n:int. forall d:int [safe_comp_div(n,d)]. ((0 <= n) -> ((0 <  d) ->
+                       (safe_comp_div(n,d) = (n / d)))))
+                     
+                     axiom cdiv_cases1 :
+                       (forall n:int. forall d:int [safe_comp_div(n,d)]. ((n <= 0) -> ((0 <  d) ->
+                       (safe_comp_div(n,d) = (-((-n) / d))))))
+                     
+                     axiom cdiv_cases2 :
+                       (forall n:int. forall d:int [safe_comp_div(n,d)]. ((0 <= n) -> ((d <  0) ->
+                       (safe_comp_div(n,d) = (-(n / (-d)))))))
+                     
+                     axiom cdiv_cases3 :
+                       (forall n:int. forall d:int [safe_comp_div(n,d)]. ((n <= 0) -> ((d <  0) ->
+                       (safe_comp_div(n,d) = ((-n) / (-d))))))
+                     
+                     axiom cmod_cases :
+                       (forall n:int. forall d:int [safe_comp_mod(n,d)]. ((0 <= n) -> ((0 <  d) ->
+                       (safe_comp_mod(n,d) = (n % d)))))
+                     
+                     axiom cmod_cases1 :
+                       (forall n:int. forall d:int [safe_comp_mod(n,d)]. ((n <= 0) -> ((0 <  d) ->
+                       (safe_comp_mod(n,d) = (-((-n) % d))))))
+                     
+                     axiom cmod_cases2 :
+                       (forall n:int. forall d:int [safe_comp_mod(n,d)]. ((0 <= n) -> ((d <  0) ->
+                       (safe_comp_mod(n,d) = (n % (-d))))))
+                     
+                     axiom cmod_cases3 :
+                       (forall n:int. forall d:int [safe_comp_mod(n,d)]. ((n <= 0) -> ((d <  0) ->
+                       (safe_comp_mod(n,d) = (-((-n) % (-d)))))))
+                     
+                     axiom cmod_remainder :
+                       (forall n:int. forall d:int [safe_comp_mod(n,d)]. ((0 <= n) -> ((0 <  d) ->
+                       (0 <= safe_comp_mod(n,d)))))
+                     
+                     axiom cmod_remainder1 :
+                       (forall n:int. forall d:int [safe_comp_mod(n,d)]. ((0 <= n) -> ((0 <  d) ->
+                       (safe_comp_mod(n,d) <  d))))
+                     
+                     axiom cmod_remainder2 :
+                       (forall n:int. forall d:int [safe_comp_mod(n,d)]. ((n <= 0) -> ((0 <  d) ->
+                       ((-d) <  safe_comp_mod(n,d)))))
+                     
+                     axiom cmod_remainder3 :
+                       (forall n:int. forall d:int [safe_comp_mod(n,d)]. ((n <= 0) -> ((0 <  d) ->
+                       (safe_comp_mod(n,d) <= 0))))
+                     
+                     axiom cmod_remainder4 :
+                       (forall n:int. forall d:int [safe_comp_mod(n,d)]. ((0 <= n) -> ((d <  0) ->
+                       (0 <= safe_comp_mod(n,d)))))
+                     
+                     axiom cmod_remainder5 :
+                       (forall n:int. forall d:int [safe_comp_mod(n,d)]. ((0 <= n) -> ((d <  0) ->
+                       (safe_comp_mod(n,d) <  (-d)))))
+                     
+                     axiom cmod_remainder6 :
+                       (forall n:int. forall d:int [safe_comp_mod(n,d)]. ((n <= 0) -> ((d <  0) ->
+                       (d <  safe_comp_mod(n,d)))))
+                     
+                     axiom cmod_remainder7 :
+                       (forall n:int. forall d:int [safe_comp_mod(n,d)]. ((n <= 0) -> ((d <  0) ->
+                       (safe_comp_mod(n,d) <= 0))))
+                     
+                     axiom cdiv_neutral :
+                       (forall a:int [safe_comp_div(a,1)]. (safe_comp_div(a,1) = a))
+                     
+                     axiom cdiv_inv :
+                       (forall a:int [safe_comp_div(a,a)]. ((not (a = 0)) ->
+                       (safe_comp_div(a,a) = 1)))
+                     
+                     (**************************************************************************)
+                     (*                                                                        *)
+                     (*  This file is part of WP plug-in of Frama-C.                           *)
+                     (*                                                                        *)
+                     (*  Copyright (C) 2007-2015                                               *)
+                     (*    CEA (Commissariat a l'energie atomique et aux energies              *)
+                     (*         alternatives)                                                  *)
+                     (*                                                                        *)
+                     (*  you can redistribute it and/or modify it under the terms of the GNU   *)
+                     (*  Lesser General Public License as published by the Free Software       *)
+                     (*  Foundation, version 2.1.                                              *)
+                     (*                                                                        *)
+                     (*  It is distributed in the hope that it will be useful,                 *)
+                     (*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
+                     (*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
+                     (*  GNU Lesser General Public License for more details.                   *)
+                     (*                                                                        *)
+                     (*  See the GNU Lesser General Public License version 2.1                 *)
+                     (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
+                     (*                                                                        *)
+                     (**************************************************************************)
+                     
+                     (* this is a prelude for Alt-Ergo*)
+                     (** The theory BuiltIn_ must be appended to this file*)
+                     (** The theory Bool_ must be appended to this file*)
+                     (** The theory bool_Bool_ must be appended to this file*)
+                     (** The theory int_Int_ must be appended to this file*)
+                     (** The theory map_Map_ must be appended to this file*)
+                     type addr = { base : int; offset : int
+                     }
+                     
+                     logic addr_le : addr, addr -> prop
+                     
+                     logic addr_lt : addr, addr -> prop
+                     
+                     logic addr_le_bool : addr, addr -> bool
+                     
+                     logic addr_lt_bool : addr, addr -> bool
+                     
+                     axiom addr_le_def :
+                       (forall p:addr. forall q:addr [addr_le(p, q)]. (((p).base = (q).base) ->
+                       (addr_le(p, q) -> ((p).offset <= (q).offset))))
+                     
+                     axiom addr_le_def1 :
+                       (forall p:addr. forall q:addr [addr_le(p, q)]. (((p).base = (q).base) ->
+                       (((p).offset <= (q).offset) -> addr_le(p, q))))
+                     
+                     axiom addr_lt_def :
+                       (forall p:addr. forall q:addr [addr_lt(p, q)]. (((p).base = (q).base) ->
+                       (addr_lt(p, q) -> ((p).offset <  (q).offset))))
+                     
+                     axiom addr_lt_def1 :
+                       (forall p:addr. forall q:addr [addr_lt(p, q)]. (((p).base = (q).base) ->
+                       (((p).offset <  (q).offset) -> addr_lt(p, q))))
+                     
+                     axiom addr_le_bool_def :
+                       (forall p:addr. forall q:addr [addr_le_bool(p, q)]. (addr_le(p, q) ->
+                       (addr_le_bool(p, q) = true)))
+                     
+                     axiom addr_le_bool_def1 :
+                       (forall p:addr. forall q:addr [addr_le_bool(p, q)]. ((addr_le_bool(p,
+                       q) = true) -> addr_le(p, q)))
+                     
+                     axiom addr_lt_bool_def :
+                       (forall p:addr. forall q:addr [addr_lt_bool(p, q)]. (addr_lt(p, q) ->
+                       (addr_lt_bool(p, q) = true)))
+                     
+                     axiom addr_lt_bool_def1 :
+                       (forall p:addr. forall q:addr [addr_lt_bool(p, q)]. ((addr_lt_bool(p,
+                       q) = true) -> addr_lt(p, q)))
+                     
+                     function null() : addr = { base = 0; offset = 0 }
+                     
+                     function global(b: int) : addr = { base = b; offset = 0 }
+                     
+                     function shift(p: addr, k: int) : addr = { base = (p).base; offset =
+                       ((p).offset + k) }
+                     
+                     predicate included(p: addr, a: int, q: addr, b: int) = ((0 <  a) ->
+                       ((0 <= b) and (((p).base = (q).base) and (((q).offset <= (p).offset) and
+                       (((p).offset + a) <= ((q).offset + b))))))
+                     
+                     predicate separated(p: addr, a: int, q: addr, b: int) = ((a <= 0) or
+                       ((b <= 0) or ((not ((p).base = (q).base)) or
+                       ((((q).offset + b) <= (p).offset) or (((p).offset + a) <= (q).offset)))))
+                     
+                     predicate eqmem(m1: (addr,'a) farray, m2: (addr,'a) farray, p: addr,
+                       a1: int) =
+                       (forall q:addr [(m1[p])| (m2[q])]. (included(q, 1, p, a1) ->
+                       ((m1[q]) = (m2[q]))))
+                     
+                     predicate havoc(m1: (addr,'a) farray, m2: (addr,'a) farray, p: addr,
+                       a1: int) =
+                       (forall q:addr [(m1[p])| (m2[q])]. (separated(q, 1, p, a1) ->
+                       ((m1[q]) = (m2[q]))))
+                     
+                     predicate valid_rd(m: (int,int) farray, p: addr, n: int) = ((0 <  n) ->
+                       ((0 <= (p).offset) and (((p).offset + n) <= (m[(p).base]))))
+                     
+                     predicate valid_rw(m: (int,int) farray, p: addr, n: int) = ((0 <  n) ->
+                       ((0 <  (p).base) and ((0 <= (p).offset) and
+                       (((p).offset + n) <= (m[(p).base])))))
+                     
+                     axiom valid_rw_rd :
+                       (forall m:(int,int) farray.
+                       (forall p:addr. (forall n:int. (valid_rw(m, p, n) -> valid_rd(m, p, n)))))
+                     
+                     axiom valid_string :
+                       (forall m:(int,int) farray.
+                       (forall p:addr. (((p).base <  0) -> (((0 <= (p).offset) and
+                       ((p).offset <  (m[(p).base]))) -> valid_rd(m, p, 1)))))
+                     
+                     axiom valid_string1 :
+                       (forall m:(int,int) farray.
+                       (forall p:addr. (((p).base <  0) -> (((0 <= (p).offset) and
+                       ((p).offset <  (m[(p).base]))) -> (not valid_rw(m, p, 1))))))
+                     
+                     axiom separated_1 :
+                       (forall p:addr. forall q:addr.
+                       (forall a:int. forall b:int. forall i:int. forall j:int [separated(p, a, q,
+                       b), { base = (p).base; offset = i }, { base = (q).base; offset = j }].
+                       (separated(p, a, q, b) -> ((((p).offset <= i) and
+                       (i <  ((p).offset + a))) -> ((((q).offset <= j) and
+                       (j <  ((q).offset + b))) -> (not ({ base = (p).base; offset = i } = {
+                       base = (q).base; offset = j })))))))
+                     
+                     logic region : int -> int
+                     
+                     logic linked : (int,int) farray -> prop
+                     
+                     logic sconst : (addr,int) farray -> prop
+                     
+                     predicate framed(m: (addr,addr) farray) =
+                       (forall p:addr [(m[p])]. (region(((m[p])).base) <= 0))
+                     
+                     axiom separated_included :
+                       (forall p:addr. forall q:addr.
+                       (forall a:int. forall b:int [separated(p, a, q, b), included(p, a, q, b)].
+                       ((0 <  a) -> ((0 <  b) -> (separated(p, a, q, b) -> (not included(p, a, q,
+                       b)))))))
+                     
+                     axiom included_trans :
+                       (forall p:addr. forall q:addr. forall r:addr.
+                       (forall a:int. forall b:int. forall c:int [included(p, a, q, b),
+                       included(q, b, r, c)]. (included(p, a, q, b) -> (included(q, b, r, c) ->
+                       included(p, a, r, c)))))
+                     
+                     axiom separated_trans :
+                       (forall p:addr. forall q:addr. forall r:addr.
+                       (forall a:int. forall b:int. forall c:int [included(p, a, q, b),
+                       separated(q, b, r, c)]. (included(p, a, q, b) -> (separated(q, b, r, c) ->
+                       separated(p, a, r, c)))))
+                     
+                     axiom separated_sym :
+                       (forall p:addr. forall q:addr.
+                       (forall a:int. forall b:int [separated(p, a, q, b)]. (separated(p, a, q,
+                       b) -> separated(q, b, p, a))))
+                     
+                     axiom separated_sym1 :
+                       (forall p:addr. forall q:addr.
+                       (forall a:int. forall b:int [separated(p, a, q, b)]. (separated(q, b, p,
+                       a) -> separated(p, a, q, b))))
+                     
+                     axiom eqmem_included :
+                       (forall m1:(addr,'a) farray. forall m2:(addr,'a) farray.
+                       (forall p:addr. forall q:addr.
+                       (forall a1:int. forall b:int [eqmem(m1, m2, p, a1), eqmem(m1, m2, q, b)].
+                       (included(p, a1, q, b) -> (eqmem(m1, m2, q, b) -> eqmem(m1, m2, p, a1))))))
+                     
+                     axiom eqmem_sym :
+                       (forall m1:(addr,'a) farray. forall m2:(addr,'a) farray.
+                       (forall p:addr.
+                       (forall a1:int. (eqmem(m1, m2, p, a1) -> eqmem(m2, m1, p, a1)))))
+                     
+                     axiom havoc_sym :
+                       (forall m1:(addr,'a) farray. forall m2:(addr,'a) farray.
+                       (forall p:addr.
+                       (forall a1:int. (havoc(m1, m2, p, a1) -> havoc(m2, m1, p, a1)))))
+                     
+                     logic cast : addr -> int
+                     
+                     axiom cast_injective :
+                       (forall p:addr. forall q:addr [cast(p), cast(q)]. ((cast(p) = cast(q)) ->
+                       (p = q)))
+                     
+                     logic hardware : int -> int
+                     
+                     axiom hardnull : (hardware(0) = 0)
+                     
+                     (**************************************************************************)
+                     (*                                                                        *)
+                     (*  This file is part of WP plug-in of Frama-C.                           *)
+                     (*                                                                        *)
+                     (*  Copyright (C) 2007-2015                                               *)
+                     (*    CEA (Commissariat a l'energie atomique et aux energies              *)
+                     (*         alternatives)                                                  *)
+                     (*                                                                        *)
+                     (*  you can redistribute it and/or modify it under the terms of the GNU   *)
+                     (*  Lesser General Public License as published by the Free Software       *)
+                     (*  Foundation, version 2.1.                                              *)
+                     (*                                                                        *)
+                     (*  It is distributed in the hope that it will be useful,                 *)
+                     (*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
+                     (*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
+                     (*  GNU Lesser General Public License for more details.                   *)
+                     (*                                                                        *)
+                     (*  See the GNU Lesser General Public License version 2.1                 *)
+                     (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
+                     (*                                                                        *)
+                     (**************************************************************************)
+                     
+                     (* this is a prelude for Alt-Ergo*)
+                     (** The theory BuiltIn_ must be appended to this file*)
+                     (** The theory Bool_ must be appended to this file*)
+                     (** The theory bool_Bool_ must be appended to this file*)
+                     (** The theory int_Int_ must be appended to this file*)
+                     logic is_uint8 : int -> prop
+                     
+                     axiom is_uint8_def : (forall x:int [is_uint8(x)]. (is_uint8(x) -> (0 <= x)))
+                     
+                     axiom is_uint8_def1 :
+                       (forall x:int [is_uint8(x)]. (is_uint8(x) -> (x <  256)))
+                     
+                     axiom is_uint8_def2 :
+                       (forall x:int [is_uint8(x)]. (((0 <= x) and (x <  256)) -> is_uint8(x)))
+                     
+                     logic is_sint8 : int -> prop
+                     
+                     axiom is_sint8_def :
+                       (forall x:int [is_sint8(x)]. (is_sint8(x) -> ((-128) <= x)))
+                     
+                     axiom is_sint8_def1 :
+                       (forall x:int [is_sint8(x)]. (is_sint8(x) -> (x <  128)))
+                     
+                     axiom is_sint8_def2 :
+                       (forall x:int [is_sint8(x)]. ((((-128) <= x) and (x <  128)) ->
+                       is_sint8(x)))
+                     
+                     logic is_uint16 : int -> prop
+                     
+                     axiom is_uint16_def :
+                       (forall x:int [is_uint16(x)]. (is_uint16(x) -> (0 <= x)))
+                     
+                     axiom is_uint16_def1 :
+                       (forall x:int [is_uint16(x)]. (is_uint16(x) -> (x <  65536)))
+                     
+                     axiom is_uint16_def2 :
+                       (forall x:int [is_uint16(x)]. (((0 <= x) and (x <  65536)) ->
+                       is_uint16(x)))
+                     
+                     predicate is_sint16(x: int) = (((-32768) <= x) and (x <  32768))
+                     
+                     logic is_uint32 : int -> prop
+                     
+                     axiom is_uint32_def :
+                       (forall x:int [is_uint32(x)]. (is_uint32(x) -> (0 <= x)))
+                     
+                     axiom is_uint32_def1 :
+                       (forall x:int [is_uint32(x)]. (is_uint32(x) -> (x <  4294967296)))
+                     
+                     axiom is_uint32_def2 :
+                       (forall x:int [is_uint32(x)]. (((0 <= x) and (x <  4294967296)) ->
+                       is_uint32(x)))
+                     
+                     logic is_sint32 : int -> prop
+                     
+                     axiom is_sint32_def :
+                       (forall x:int [is_sint32(x)]. (is_sint32(x) -> ((-2147483648) <= x)))
+                     
+                     axiom is_sint32_def1 :
+                       (forall x:int [is_sint32(x)]. (is_sint32(x) -> (x <  2147483648)))
+                     
+                     axiom is_sint32_def2 :
+                       (forall x:int [is_sint32(x)]. ((((-2147483648) <= x) and
+                       (x <  2147483648)) -> is_sint32(x)))
+                     
+                     logic is_uint64 : int -> prop
+                     
+                     axiom is_uint64_def :
+                       (forall x:int [is_uint64(x)]. (is_uint64(x) -> (0 <= x)))
+                     
+                     axiom is_uint64_def1 :
+                       (forall x:int [is_uint64(x)]. (is_uint64(x) ->
+                       (x <  18446744073709551616)))
+                     
+                     axiom is_uint64_def2 :
+                       (forall x:int [is_uint64(x)]. (((0 <= x) and
+                       (x <  18446744073709551616)) -> is_uint64(x)))
+                     
+                     logic is_sint64 : int -> prop
+                     
+                     axiom is_sint64_def :
+                       (forall x:int [is_sint64(x)]. (is_sint64(x) ->
+                       ((-9223372036854775808) <= x)))
+                     
+                     axiom is_sint64_def1 :
+                       (forall x:int [is_sint64(x)]. (is_sint64(x) -> (x <  9223372036854775808)))
+                     
+                     axiom is_sint64_def2 :
+                       (forall x:int [is_sint64(x)]. ((((-9223372036854775808) <= x) and
+                       (x <  9223372036854775808)) -> is_sint64(x)))
+                     
+                     logic to_uint8 : int -> int
+                     
+                     logic to_sint8 : int -> int
+                     
+                     logic to_uint16 : int -> int
+                     
+                     logic to_sint16 : int -> int
+                     
+                     logic to_uint32 : int -> int
+                     
+                     logic to_sint32 : int -> int
+                     
+                     logic to_uint64 : int -> int
+                     
+                     logic to_sint64 : int -> int
+                     
+                     axiom is_to_uint8 :
+                       (forall x:int [is_uint8(to_uint8(x))]. is_uint8(to_uint8(x)))
+                     
+                     axiom is_to_sint8 :
+                       (forall x:int [is_sint8(to_sint8(x))]. is_sint8(to_sint8(x)))
+                     
+                     axiom is_to_uint16 :
+                       (forall x:int [is_uint16(to_uint16(x))]. is_uint16(to_uint16(x)))
+                     
+                     axiom is_to_sint16 :
+                       (forall x:int [is_sint16(to_sint16(x))]. is_sint16(to_sint16(x)))
+                     
+                     axiom is_to_uint32 :
+                       (forall x:int [is_uint32(to_uint32(x))]. is_uint32(to_uint32(x)))
+                     
+                     axiom is_to_sint32 :
+                       (forall x:int [is_sint32(to_sint32(x))]. is_sint32(to_sint32(x)))
+                     
+                     axiom is_to_uint64 :
+                       (forall x:int [is_uint64(to_uint64(x))]. is_uint64(to_uint64(x)))
+                     
+                     axiom is_to_sint64 :
+                       (forall x:int [is_sint64(to_sint64(x))]. is_sint64(to_sint64(x)))
+                     
+                     axiom id_uint8 :
+                       (forall x:int [to_uint8(x)]. (((0 <= x) and (x <  256)) ->
+                       (to_uint8(x) = x)))
+                     
+                     axiom id_sint8 :
+                       (forall x:int [to_sint8(x)]. ((((-128) <= x) and (x <  128)) ->
+                       (to_sint8(x) = x)))
+                     
+                     axiom id_uint16 :
+                       (forall x:int [to_uint16(x)]. (((0 <= x) and (x <  65536)) ->
+                       (to_uint16(x) = x)))
+                     
+                     axiom id_sint16 :
+                       (forall x:int [to_sint16(x)]. ((((-32768) <= x) and (x <  32768)) ->
+                       (to_sint16(x) = x)))
+                     
+                     axiom id_uint32 :
+                       (forall x:int [to_uint32(x)]. (((0 <= x) and (x <  4294967296)) ->
+                       (to_uint32(x) = x)))
+                     
+                     axiom id_sint32 :
+                       (forall x:int [to_sint32(x)]. ((((-2147483648) <= x) and
+                       (x <  2147483648)) -> (to_sint32(x) = x)))
+                     
+                     axiom id_uint64 :
+                       (forall x:int [to_uint64(x)]. (((0 <= x) and
+                       (x <  18446744073709551616)) -> (to_uint64(x) = x)))
+                     
+                     axiom id_sint64 :
+                       (forall x:int [to_sint64(x)]. ((((-9223372036854775808) <= x) and
+                       (x <  9223372036854775808)) -> (to_sint64(x) = x)))
+                     
+                     logic lnot : int -> int
+                     
+                     logic ac land : int, int -> int
+                     
+                     logic ac lxor : int, int -> int
+                     
+                     logic ac lor : int, int -> int
+                     
+                     logic lsl : int, int -> int
+                     
+                     logic lsr : int, int -> int
+                     
+                     logic bit_testb : int, int -> bool
+                     
+                     logic bit_test : int, int -> prop
+                     
+                     (* ---------------------------------------------------------- *)
+                     (* --- Memory Compound Updates                            --- *)
+                     (* ---------------------------------------------------------- *)
+                     
+                     function shift_sint32(p:addr, k:int) : addr = shift(p, k)
+                     
+                     (* ---------------------------------------------------------- *)
+                     (* --- Post-condition (file tests/wp/sharing.c, line 8) in 'f' --- *)
+                     (* ---------------------------------------------------------- *)
+                     
+                     goal f_post:
+                       forall i_1,i : int.
+                       forall t : int farray.
+                       forall t_1 : (addr,int) farray.
+                       forall a : addr.
+                       let a_1 = shift_sint32(a, 0) : addr in
+                       let a_2 = shift_sint32(a, i) : addr in
+                       let m = t_1[a_1 <- t_1[a_2]] : (addr,int) farray in
+                       let m_1 = m[shift_sint32(a, 1) <- m[a_2]] : (addr,int) farray in
+                       let m_2 = m_1[shift_sint32(a, 2) <- m_1[a_2]] : (addr,int) farray in
+                       let m_3 = m_2[shift_sint32(a, 3) <- m_2[a_2]] : (addr,int) farray in
+                       (0 <= i) ->
+                       (0 <= i_1) ->
+                       (i <= 9) ->
+                       (i_1 <= 9) ->
+                       linked(t) ->
+                       is_sint32(i) ->
+                       (region(a.base) <= 0) ->
+                       valid_rw(t, a_1, 10) ->
+                       (forall i_2 : int. (0 <= i_2) -> (i_2 <= 9) ->
+                        (0 <= t_1[shift_sint32(a, i_2)])) ->
+                       (0 <= m_3[shift_sint32(a, 4) <- m_3[a_2]][shift_sint32(a, i_1)])
+[wp] [Alt-Ergo] Goal typed_f_post : Typechecked
+[wp] Proved goals:    0 / 1
+     Alt-Ergo:        0  (unknown: 1)
+------------------------------------------------------------
+  Function f
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp/sharing.c, line 8) in 'f':
+Let a_0 = (shift_sint32 t_0 0).
+Let a_1 = (shift_sint32 t_0 x_0).
+Let m_0 = Mint_5[a_0->Mint_5[a_1]].
+Let m_1 = m_0[(shift_sint32 t_0 1)->m_0[a_1]].
+Let m_2 = m_1[(shift_sint32 t_0 2)->m_1[a_1]].
+Let m_3 = m_2[(shift_sint32 t_0 3)->m_2[a_1]].
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_0).
+  (* Goal *)
+  When: (0<=i_0) /\ (i_0<=9).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ ((region (base t_0))<=0).
+  (* Pre-condition (file tests/wp/sharing.c, line 5) in 'f' *)
+  (* Pre-condition: *)
+  Have: (valid_rw Malloc_0 a_0 10).
+  (* Pre-condition (file tests/wp/sharing.c, line 6) in 'f' *)
+  (* Pre-condition: *)
+  Have: (0<=x_0) /\ (x_0<=9).
+  (* Pre-condition (file tests/wp/sharing.c, line 7) in 'f' *)
+  (* Pre-condition: *)
+  Have: forall i_1:int.
+        (0<=i_1) -> (i_1<=9) -> (0<=Mint_5[(shift_sint32 t_0 i_1)]).
+}
+Prove: 0<=m_3[(shift_sint32 t_0 4)->m_3[a_1]][(shift_sint32 t_0 i_0)].
+
+------------------------------------------------------------

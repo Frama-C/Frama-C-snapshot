@@ -1,0 +1,100 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/dead_inout.i (no preprocessing)
+[value] Analyzing a complete application starting at main_all
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  a ∈ {0}
+  b ∈ {0}
+[value] computing for function main <- main_all.
+        Called from tests/misc/dead_inout.i:40.
+[value] computing for function f <- main <- main_all.
+        Called from tests/misc/dead_inout.i:18.
+[value] Recording results for f
+[value] Done for function f
+[value] computing for function g <- main <- main_all.
+        Called from tests/misc/dead_inout.i:19.
+[value] Recording results for g
+[value] Done for function g
+[value] Recording results for main
+[value] Done for function main
+[value] computing for function main2 <- main_all.
+        Called from tests/misc/dead_inout.i:41.
+[value] computing for function f2 <- main2 <- main_all.
+        Called from tests/misc/dead_inout.i:33.
+[value] Recording results for f2
+[value] Done for function f2
+[value] computing for function f2 <- main2 <- main_all.
+        Called from tests/misc/dead_inout.i:34.
+[value] Recording results for f2
+[value] Done for function f2
+[value] Recording results for main2
+[value] Done for function main2
+[value] Recording results for main_all
+[value] done for function main_all
+[inout] Out (internal) for function f:
+          a
+[inout] Inputs for function f:
+          b
+[inout] InOut (internal) for function f:
+        Operational inputs:
+          b
+        Operational inputs on termination:
+          b
+        Sure outputs:
+          a
+[inout] Out (internal) for function f2:
+          x; y
+[inout] Inputs for function f2:
+          \nothing
+[inout] InOut (internal) for function f2:
+        Operational inputs:
+          v; p; q
+        Operational inputs on termination:
+          v; p; q
+        Sure outputs:
+          \nothing
+[inout] Out (internal) for function g:
+          x
+[inout] Inputs for function g:
+          \nothing
+[inout] InOut (internal) for function g:
+        Operational inputs:
+          \nothing
+        Operational inputs on termination:
+          \nothing
+        Sure outputs:
+          x
+[inout] Out (internal) for function main:
+          a
+[inout] Inputs for function main:
+          b
+[inout] InOut (internal) for function main:
+        Operational inputs:
+          b
+        Operational inputs on termination:
+          b
+        Sure outputs:
+          a
+[inout] Out (internal) for function main2:
+          x; y
+[inout] Inputs for function main2:
+          \nothing
+[inout] InOut (internal) for function main2:
+        Operational inputs:
+          \nothing
+        Operational inputs on termination:
+          \nothing
+        Sure outputs:
+          x; y
+[inout] Out (internal) for function main_all:
+          a
+[inout] Inputs for function main_all:
+          b
+[inout] InOut (internal) for function main_all:
+        Operational inputs:
+          b
+        Operational inputs on termination:
+          b
+        Sure outputs:
+          a

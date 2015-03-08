@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -37,6 +37,14 @@ axiom bit_test_extraction : forall x:int, k:int [Cint.land x (Cint.lsl 1 k)|
   Cint.land (Cint.lsl 1 k) x]. (Int.(<=) (0) (k)) -> not ((Cint.land x
   (Cint.lsl 1 k)) = (0)) <-> Cint.bit_test x k
 
+axiom lsl_1_0 : ((Cint.lsl 1 0) = (1))
+
+axiom bit_test_extraction_bis : forall x:int [Cint.land x 1| Cint.land 1 x].
+  not ((Cint.land 1 x) = (0)) -> Cint.bit_test x 0
+
+axiom bit_test_extraction_bis_eq : forall x:int [Cint.land x 1| Cint.land 1
+  x]. Cint.bit_test x 0 -> ((Cint.land 1 x) = (1))
+
 axiom lnot_extraction : forall x:int, i:int [Cint.bit_test (Cint.lnot x) i].
   (Int.(<=) (0) (i)) -> Cint.bit_test (Cint.lnot x) i <-> not Cint.bit_test x
   i
@@ -52,6 +60,12 @@ axiom lor_extraction : forall x:int, y:int, i:int [Cint.bit_test (Cint.lor x
 axiom lxor_extraction : forall x:int, y:int, i:int [Cint.bit_test (Cint.lxor
   x y) i]. (Int.(<=) (0) (i)) -> Cint.bit_test (Cint.lxor x y) i <->
   Cint.bit_test x i <-> not Cint.bit_test y i
+
+axiom land_1_lsl_1 : forall a:int, x:int, n:int [Cint.lsl 1
+  (Int.(+) (1) (n)), Cint.lsl 1 n, (Int.(+) ((Int.(*) (2) (a))) (Cint.land 1
+  x))]. (Int.(<=) (0) (n)) -> (Int.(<) (a) (Cint.lsl 1 n)) ->
+  (Int.(<) ((Int.(+) ((Int.(*) (2) (a))) (Cint.land 1 x))) (Cint.lsl 1
+  (Int.(+) (1) (n))))
 
 axiom lsl_extraction_sup : forall x:int, n:int, m:int [Cint.bit_test
   (Cint.lsl x n) m]. (Int.(<=) (0) (n)) -> (Int.(<=) (0) (m)) ->

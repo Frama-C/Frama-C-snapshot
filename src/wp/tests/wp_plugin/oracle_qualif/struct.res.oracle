@@ -1,0 +1,35 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_plugin/struct.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] 18 goals scheduled
+[wp] [Qed] Goal typed_f_post_qed_ok_E0 : Valid
+[wp] [Qed] Goal typed_f_post_qed_ok_E1 : Valid
+[wp] [Qed] Goal typed_f_post_qed_ok_E2 : Valid
+[wp] [Qed] Goal typed_f_post_qed_ok_E3 : Valid
+[wp] [Qed] Goal typed_f_post_qed_ok_E4 : Valid
+[wp] [Qed] Goal typed_f_post_qed_ok_E5 : Valid
+[wp] [Qed] Goal typed_f_post_qed_ok_E6 : Valid
+[wp] [Qed] Goal typed_f_post_qed_ok_E7 : Valid
+[wp] [Qed] Goal typed_f_post_qed_ok_E8 : Valid
+[wp] [Qed] Goal typed_f_post_qed_ok_E9 : Valid
+[wp] [Qed] Goal typed_f_post_qed_ok_E10 : Valid
+[wp] [Qed] Goal typed_f_post_qed_ok_E11 : Valid
+[wp] [Qed] Goal typed_g_post_qed_ok_P3 : Valid
+[wp] [Qed] Goal typed_g_post_qed_ok_P4 : Valid
+[wp] [Alt-Ergo] Goal typed_g_post_qed_ok_P5 : Valid
+[wp] [Qed] Goal typed_g_assign : Valid
+[wp] [Qed] Goal typed_id_post_qed_ok_P1 : Valid
+[wp] [Qed] Goal typed_id_post_qed_ok_P2 : Valid
+[wp] Proved goals:   18 / 18
+     Qed:            17 
+     Alt-Ergo:        1
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+id                   2     -           2       100%
+g                    3      1 (15)     4       100%
+f                   12     -          12       100%
+----------------------------------------------------------

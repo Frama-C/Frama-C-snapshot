@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -64,7 +64,7 @@ struct
           (match f k v with
            | None -> (* remove *) aux ((rev_append_until i rest res),resti) resti
            | Some v' -> 
-               if v' = v then (* add idem *) aux acc resti 
+               if v'==v then (* add idem *) aux acc resti 
                else (* add new *) aux (((k,v')::(rev_append_until i rest res)),resti) resti)
     in aux ([],l) l
 

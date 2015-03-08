@@ -1,0 +1,46 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/array_loop.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  t[0] ∈ {17}
+   [1] ∈ {18}
+   [2] ∈ {19}
+   [3] ∈ {20}
+   [4] ∈ {21}
+   [5] ∈ {22}
+   [6] ∈ {23}
+   [7] ∈ {24}
+   [8..17] ∈ {1}
+   [18..19] ∈ {0}
+  tt[0] ∈ {17}
+    [1] ∈ {18}
+    [2] ∈ {19}
+    [3] ∈ {20}
+    [4] ∈ {21}
+    [5] ∈ {22}
+    [6] ∈ {23}
+    [7] ∈ {24}
+    [8..17] ∈ {1}
+    [18..19] ∈ {0}
+tests/misc/array_loop.i:7:[value] entering loop for the first time
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  t[0..7] ∈ [-14..24]
+   [8..17] ∈ {1}
+   [18..19] ∈ {0}
+  i ∈ {16}
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  t[0..7] FROM tt[0..15] (and SELF)
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          t[0..7]; i
+[inout] Inputs for function main:
+          tt[0..15]

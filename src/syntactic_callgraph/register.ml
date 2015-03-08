@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,7 +20,6 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open Cil_types
 open Callgraph
 open Options
 
@@ -37,8 +36,8 @@ module Service =
          let name v = nodeName v.cnInfo
          let attributes v =
            [ match v.cnInfo with
-             | NIVar (_,b) when not !b -> `Style [`Dotted]
-             | _ -> `Style [`Bold] ]
+             | NIVar (_,b) when not !b -> `Style `Dotted
+             | _ -> `Style `Bold ]
          let equal v1 v2 = id v1 = id v2
 	 let compare v1 v2 = 
 	   let i1 = id v1 in
@@ -61,34 +60,41 @@ module CG =
        let dependencies = [ Ast.self ]
      end)
 
-let get_init_funcs main_name cg =
-  match main_name with
+let get_init_funcs main cg =
+  match main with
   | None -> InitFunc.get ()
-  | Some s ->
+  | Some kf ->
     (* the entry point is always a root *)
-    let init_funcs = Datatype.String.Set.add s (InitFunc.get ()) in
+    let init_funcs = Kernel_function.Set.add kf (InitFunc.get ()) in
     (* Add the callees of entry point as roots *)
-    Datatype.String.Set.union
+    Kernel_function.Set.union
       (try
-         let callees = (Hashtbl.find cg s).Callgraph.cnCallees in
+         let kf_name = Kernel_function.get_name kf in
+         let callees = (Hashtbl.find cg kf_name).Callgraph.cnCallees in
          Datatype.Int.Hashtbl.fold
            (fun _ v acc -> match v.Callgraph.cnInfo with
-           | Callgraph.NIVar ({vname=n},_) -> Datatype.String.Set.add n acc
+           | Callgraph.NIVar (vi,_) ->
+             let kf =
+               try Globals.Functions.get vi
+               with Not_found -> assert false
+             in
+             Kernel_function.Set.add kf acc
            | _ -> acc)
            callees
-           Datatype.String.Set.empty
+           Kernel_function.Set.empty
        with Not_found ->
-         Datatype.String.Set.empty)
+         Kernel_function.Set.empty)
       init_funcs
 
 let compute () =
   feedback "beginning analysis";
   let p = Ast.get () in
   let cg = computeGraph p in
-  let main = Kernel.MainFunction.get () in
-  let main_name =
+  let main, _ = Globals.entry_point () in
+  let main =
     try
-      entry_point_ref := Some (Hashtbl.find cg main);
+      let name = Kernel_function.get_name main in
+      entry_point_ref := Some (Hashtbl.find cg name);
       Some main
     with Not_found ->
       warning "no entry point available: services could be less precise. \
@@ -96,7 +102,13 @@ Use option `-main' to improve them.";
       entry_point_ref := None;
       None
   in
-  let init_funcs = get_init_funcs main_name cg in
+  let init_funcs = get_init_funcs main cg in
+  let init_funcs =
+    Kernel_function.Set.fold
+      (fun kf acc -> Datatype.String.Set.add (Kernel_function.get_name kf) acc)
+      init_funcs
+      Datatype.String.Set.empty
+  in
   let cg = Service.compute cg init_funcs in
   CG.mark_as_computed ();
   feedback "analysis done";

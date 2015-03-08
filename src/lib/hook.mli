@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -71,7 +71,7 @@ module type Comparable = sig
 end
 
 (** hook with a notion of priority.
-    @since Neon-20130301 *)
+    @since Neon-20140301 *)
 module type S_ordered = sig
     include S
     type key
@@ -96,15 +96,15 @@ module Make(X:sig end) : S with type param = unit and type result = unit
 
 module Fold(P: sig type t end): S with type param = P.t and type result = P.t
 
-(** @since Neon-20130301 *)
+(** @since Neon-20140301 *)
 module Build_ordered (P: sig module Id:Comparable type t end): 
   S_ordered with type key = P.Id.t and type param = P.t and type result = unit
 
-(** @since Neon-20130301 *)
+(** @since Neon-20140301 *)
 module Make_ordered(P:sig module Id:Comparable end):
   S_ordered with type key = P.Id.t and type param = unit and type result = unit
 
-(** @since Neon-20130301 *)
+(** @since Neon-20140301 *)
 module Fold_ordered(P: sig module Id:Comparable type t end):
   S_ordered with type key = P.Id.t and type param = P.t and type result = P.t
 

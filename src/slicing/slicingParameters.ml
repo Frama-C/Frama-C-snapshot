@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -33,8 +33,9 @@ include Plugin.Register
 
 module Select = struct
 
+  let () = Parameter_customize.argument_may_be_fundecl ()
   module Calls =
-    StringSet
+    Kernel_function_set
       (struct
          let option_name = "-slice-calls"
          let arg_name = "f1, ..., fn"
@@ -42,8 +43,9 @@ module Select = struct
            "select every calls to functions f1,...,fn, and all their effect"
        end)
 
+  let () = Parameter_customize.argument_may_be_fundecl ()
   module Return =
-    StringSet
+    Kernel_function_set
       (struct
          let option_name = "-slice-return"
          let arg_name = "f1, ..., fn"
@@ -51,8 +53,9 @@ module Select = struct
            "select the result (returned value) of functions f1,...,fn"
        end)
 
+  let () = Parameter_customize.argument_may_be_fundecl ()
   module Threat =
-    StringSet
+    Kernel_function_set
       (struct
          let option_name = "-slice-threat"
          let arg_name = "f1, ..., fn"
@@ -60,7 +63,7 @@ module Select = struct
        end)
 
   module Assert =
-    StringSet
+    Kernel_function_set
       (struct
          let option_name = "-slice-assert"
          let arg_name = "f1, ..., fn"
@@ -68,7 +71,7 @@ module Select = struct
        end)
 
   module LoopInv =
-    StringSet
+    Kernel_function_set
       (struct
          let option_name = "-slice-loop-inv"
          let arg_name = "f1, ..., fn"
@@ -76,7 +79,7 @@ module Select = struct
        end)
 
   module LoopVar =
-    StringSet
+    Kernel_function_set
       (struct
          let option_name = "-slice-loop-var"
          let arg_name = "f1, ..., fn"
@@ -84,7 +87,7 @@ module Select = struct
        end)
 
   module Pragma =
-    StringSet
+    Kernel_function_set
       (struct
          let option_name = "-slice-pragma"
          let arg_name = "f1, ..., fn"
@@ -96,36 +99,40 @@ slicing criteria:\n\
 this control-flow point\n\
 //@ slice pragma stmt;  to preserve the effect of the next statement"
          end)
-    module RdAccess =
-      StringSet
-        (struct
-           let option_name = "-slice-rd"
-           let arg_name = "v1, ..., vn"
-           let help =
-             "select the read accesses to left-values v1,...,vn \
+
+  module RdAccess =
+    String_set
+      (struct
+        let option_name = "-slice-rd"
+        let arg_name = "v1, ..., vn"
+        let help =
+          "select the read accesses to left-values v1,...,vn \
          (addresses are evaluated at the beginning of the function given as \
 entry point)"
          end)
-    module WrAccess =
-      StringSet
-        (struct
-           let option_name = "-slice-wr"
-           let arg_name = "v1, ..., vn"
-           let help =
-             "select the write accesses to left-values v1,...,vn \
+
+  module WrAccess =
+    String_set
+      (struct
+        let option_name = "-slice-wr"
+        let arg_name = "v1, ..., vn"
+        let help =
+          "select the write accesses to left-values v1,...,vn \
          (addresses are evaluated at the beginning of the function given as\
  entry point)"
-         end)
-    module Value =
-      StringSet
-        (struct
-           let option_name = "-slice-value"
-           let arg_name = "v1, ..., vn"
-           let help =
-             "select the result of left-values v1,...,vn at the end of the \
+       end)
+
+  module Value =
+    String_set
+      (struct
+        let option_name = "-slice-value"
+        let arg_name = "v1, ..., vn"
+        let help =
+          "select the result of left-values v1,...,vn at the end of the \
 function given as entry point (addresses are evaluated at the beginning of \
 the function given as entry point)"
-         end)
+       end)
+
 end
 
 module Mode = struct

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -121,7 +121,7 @@ module Ref
   end)
   : Ref with type data = Data.t
 
-(** Output signature of [OptionRef]. Note that [get] will raise [Not_found]
+(** Output signature of [Option_ref]. Note that [get] will raise [Not_found]
     if the stored data is [None]. Use [get_option] if you want to have
     access to the option.
  *)
@@ -340,7 +340,7 @@ module type Set_ref = sig
   include Ref
   type elt
   val add: elt -> unit
-  val remove: elt -> unit (** @since Neon-20130301 *)
+  val remove: elt -> unit (** @since Neon-20140301 *)
   val is_empty: unit -> bool
   val mem: elt -> bool
   val fold: (elt -> 'a -> 'a) -> 'a -> 'a

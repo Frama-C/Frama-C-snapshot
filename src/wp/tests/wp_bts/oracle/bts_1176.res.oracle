@@ -1,0 +1,24 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_bts/bts_1176.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function f
+------------------------------------------------------------
+
+Goal Assertion 'qed_ok' (file tests/wp_bts/bts_1176.i, line 17):
+Let r_0 = Mflt_2[(shiftfield_F_las_b p_0)].
+Assume {
+  (* Domain *)
+  Type: (is_float64 v_0) /\ (is_float64 r_0).
+  (* Heap *)
+  Have: (region (base p_0))<=0.
+  (* tests/wp_bts/bts_1176.i:16: Call 'g' *)
+  Have: r_0<=v_0.
+}
+Prove: true.
+
+------------------------------------------------------------

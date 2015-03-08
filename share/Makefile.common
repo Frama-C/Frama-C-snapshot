@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2014                                               #
+#  Copyright (C) 2007-2015                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -46,7 +46,7 @@ FRAMAC_SRC_DIRS=$(UNPACKED_DIRS) $(CIL_DIRS)
 
 ifeq ($(OCAMLWIN32),yes)
 ifneq ($(CYGPATH),no)
-winpath=$(shell $(CYGPATH) -m $(1))
+winpath=$(shell $(CYGPATH) -m "$(1)")
 else
 winpath=$(1)
 endif #CYGPATH
@@ -63,8 +63,18 @@ endif #OCAMLWIN32
 # the condition
 ifneq ($(findstring 3.12,$(OCAMLVERSION)),) # 3.12
   HAS_OCAML4 = no
+  HAS_OCAML402 = no
 else  # >=4
   HAS_OCAML4 = yes
+  ifneq ($(findstring 4.00,$(OCAMLVERSION)),) # 4.00
+    HAS_OCAML402 = no
+  else
+    ifneq ($(findstring 4.01,$(OCAMLVERSION)),) # 4.01
+      HAS_OCAML402 = no
+    else # >= 4.02
+      HAS_OCAML402 = yes
+    endif
+  endif
 endif
 
 # All warnings are activated by default: this could grow up the chance of
@@ -72,7 +82,7 @@ endif
 # BUT that is only the case of the SVN version since the distrib is not
 # compiled with -warn-error.
 # See BTS #310 and #638.
-WARNINGS= -w +a-4-6-9-41-44-45 #-strict-sequence 
+WARNINGS= -w +a-3-4-6-9-41-44-45-48
 
 FLAGS	= $(WARNINGS) $(OCAML_ANNOT_OPTION) $(OPTIM)
 DEBUG	= -g
@@ -153,6 +163,19 @@ SED	= LC_ALL=C sed
 RM	= rm -f
 TAR	= tar
 TOUCH	= touch
+GIT	= git
+
+##################
+# Make commands #
+##################
+
+map=$(foreach a,$(2),$(call $(1),$(a)))
+
+define assert_defined
+ifndef $(1)
+$$(error Undefined variable $(1) please report.)
+endif
+endef
 
 ###########################
 # Command pretty printing #
@@ -170,6 +193,7 @@ PRINT_CAMLP4   	=$(PRINT) 'Camlp4      '#
 PRINT_PACKING  	=$(PRINT) 'Packing     '#
 PRINT_LINKING  	=$(PRINT) 'Linking     '#
 PRINT_INFERRING	=$(PRINT) 'Inferring   '#
+PRINT_CC   	=$(PRINT) 'CC          '#
 
 PRINT_MAKING   	=$(PRINT) 'Generating  '#
 PRINT_MV       	=$(PRINT) 'Moving to   '#

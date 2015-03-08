@@ -1,0 +1,148 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/undefined_sequence.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  G[0..9] ∈ {0}
+  c ∈ [--..--]
+  r ∈ {0}
+  H ∈ {0}
+tests/misc/undefined_sequence.i:36:[value] entering loop for the first time
+tests/misc/undefined_sequence.i:38:[value] entering loop for the first time
+tests/misc/undefined_sequence.i:40:[value] entering loop for the first time
+tests/misc/undefined_sequence.i:40:[kernel] warning: signed overflow.
+                  assert G[tmp_2]+G[tmp_3] ≤ 2147483647;
+                  (tmp_2 from j++, tmp_3 from i++)
+tests/misc/undefined_sequence.i:43:[value] entering loop for the first time
+tests/misc/undefined_sequence.i:49:[value] entering loop for the first time
+tests/misc/undefined_sequence.i:50:[kernel] warning: signed overflow. assert G[j]+G[tmp_6] ≤ 2147483647;
+                                   (tmp_6 from j++)
+tests/misc/undefined_sequence.i:51:[kernel] warning: signed overflow. assert G[tmp_7]+G[i] ≤ 2147483647;
+                                   (tmp_7 from i++)
+[value] computing for function g <- main.
+        Called from tests/misc/undefined_sequence.i:53.
+[value] Recording results for g
+[value] Done for function g
+[value] computing for function f <- main.
+        Called from tests/misc/undefined_sequence.i:53.
+[value] Recording results for f
+[value] Done for function f
+[value] computing for function g <- main.
+        Called from tests/misc/undefined_sequence.i:54.
+[value] Recording results for g
+[value] Done for function g
+[value] computing for function f <- main.
+        Called from tests/misc/undefined_sequence.i:54.
+[value] Recording results for f
+[value] Done for function f
+[value] computing for function h <- main.
+        Called from tests/misc/undefined_sequence.i:56.
+[value] Recording results for h
+[value] Done for function h
+[value] computing for function h <- main.
+        Called from tests/misc/undefined_sequence.i:56.
+[value] Recording results for h
+[value] Done for function h
+[value] computing for function func <- main.
+        Called from tests/misc/undefined_sequence.i:60.
+[value] Recording results for func
+[value] Done for function func
+[value] computing for function ub_ret <- main.
+        Called from tests/misc/undefined_sequence.i:65.
+[value] Recording results for ub_ret
+[value] Done for function ub_ret
+[value] computing for function f <- main.
+        Called from tests/misc/undefined_sequence.i:67.
+[value] Recording results for f
+[value] Done for function f
+[value] computing for function g <- main.
+        Called from tests/misc/undefined_sequence.i:67.
+[value] Recording results for g
+[value] Done for function g
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function f:
+  __retres ∈ {2; 6; 7; 8}
+[value] Values at end of function func:
+  __retres ∈ {5; 6}
+[value] Values at end of function g:
+  __retres ∈ {4; 5}
+[value] Values at end of function h:
+  r ∈ {1; 2}
+  H ∈ {0; 1}
+  i ∈ {0; 1}
+[value] Values at end of function ub_ret:
+  d ∈ {0}
+  __retres ∈ {0}
+[value] Values at end of function main:
+  G[0..1] ∈ [0..2147483647]
+   [2] ∈ {0; 1}
+   [3..9] ∈ [0..2147483647]
+  r ∈ {0; 1}
+  H ∈ {0; 1}
+  x ∈ {6; 7; 8}
+  y ∈ {{ &G[2] }}
+  i ∈ [0..9]
+  j ∈ [0..9]
+  my_f ∈ {{ &f ; &g }}
+[from] Computing for function f
+[from] Done for function f
+[from] Computing for function func
+[from] Done for function func
+[from] Computing for function g
+[from] Done for function g
+[from] Computing for function h
+[from] Done for function h
+[from] Computing for function ub_ret
+[from] Done for function ub_ret
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function f:
+  \result FROM x
+[from] Function func:
+  \result FROM x; y
+[from] Function g:
+  \result FROM x
+[from] Function h:
+  r FROM c; r
+  H FROM c; r
+  \result FROM c; r
+[from] Function ub_ret:
+  \result FROM \nothing
+[from] Function main:
+  G{[0..1]; [3..9]} FROM G[0..9]; c (and SELF)
+   [2] FROM G[0..9]; c
+  r FROM c; r; a (and SELF)
+  H FROM c; r; a (and SELF)
+  \result FROM c
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function f:
+          __retres
+[inout] Inputs for function f:
+          \nothing
+[inout] Out (internal) for function func:
+          __retres
+[inout] Inputs for function func:
+          \nothing
+[inout] Out (internal) for function g:
+          __retres
+[inout] Inputs for function g:
+          \nothing
+[inout] Out (internal) for function h:
+          r; H; i; tmp; tmp_0
+[inout] Inputs for function h:
+          c; r
+[inout] Out (internal) for function ub_ret:
+          d; __retres
+[inout] Inputs for function ub_ret:
+          \nothing
+[inout] Out (internal) for function main:
+          G[0..9]; r; H; x; y; i; j; tmp; tmp_0; tmp_1; tmp_2; tmp_3; tmp_4; 
+          tmp_5; tmp_6; tmp_7; tmp_8; tmp_9; tmp_10; tmp_11; tmp_12; tmp_13; 
+          tmp_14; tmp_15; my_f; tmp_16; tmp_17; tmp_18
+[inout] Inputs for function main:
+          G[0..9]; c; r

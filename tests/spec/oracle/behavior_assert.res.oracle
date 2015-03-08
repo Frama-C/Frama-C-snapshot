@@ -1,0 +1,125 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/spec/behavior_assert.c (with preprocessing)
+[value] Analyzing an incomplete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  e ∈ [--..--]
+  G ∈ [--..--]
+  c ∈ [--..--]
+[value] computing for function f <- main.
+        Called from tests/spec/behavior_assert.c:90.
+tests/spec/behavior_assert.c:14:[value] Assertion got status invalid.
+tests/spec/behavior_assert.c:16:[value] Assertion got status valid.
+[value] Recording results for f
+[value] Done for function f
+[value] computing for function g <- main.
+        Called from tests/spec/behavior_assert.c:91.
+tests/spec/behavior_assert.c:28:[value] entering loop for the first time
+tests/spec/behavior_assert.c:30:[value] Assertion got status valid.
+tests/spec/behavior_assert.c:24:[value] Function g, behavior be: postcondition got status valid. (Behavior may be inactive, no reduction performed.)
+[value] Recording results for g
+[value] Done for function g
+[value] computing for function h2 <- main.
+        Called from tests/spec/behavior_assert.c:92.
+tests/spec/behavior_assert.c:64:[kernel] warning: signed overflow. assert c+1 ≤ 2147483647;
+tests/spec/behavior_assert.c:65:[kernel] warning: signed overflow. assert c+2 ≤ 2147483647;
+[value] computing for function h1 <- h2 <- main.
+        Called from tests/spec/behavior_assert.c:73.
+[value] computing for function abs <- h1 <- h2 <- main.
+        Called from tests/spec/behavior_assert.c:52.
+[value] Recording results for abs
+[value] Done for function abs
+tests/spec/behavior_assert.c:55:[value] Assertion got status unknown.
+tests/spec/behavior_assert.c:45:[value] Function h1, behavior not_null: postcondition got status valid.
+tests/spec/behavior_assert.c:48:[value] Function h1, behavior null: assumes got status invalid; postcondition not evaluated.
+[value] Recording results for h1
+[value] Done for function h1
+tests/spec/behavior_assert.c:74:[value] Assertion got status valid.
+[value] Recording results for h2
+[value] Done for function h2
+[value] computing for function k <- main.
+        Called from tests/spec/behavior_assert.c:93.
+tests/spec/behavior_assert.c:85:[value] Assertion got status valid.
+tests/spec/behavior_assert.c:86:[value] Assertion got status invalid.
+[value] Recording results for k
+[value] Done for function k
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function abs:
+  __retres ∈ [0..11]
+[value] Values at end of function f:
+  x ∈ {3}
+[value] Values at end of function g:
+  G ∈ {3}
+  i ∈ {3}
+[value] Values at end of function h1:
+  r ∈ [1..11]
+  r2 ∈ [0..11]
+[value] Values at end of function h2:
+  a ∈ {-4; -2; -1; 3}
+  b ∈ [1..11]
+[value] Values at end of function k:
+  
+[value] Values at end of function main:
+  G ∈ {3}
+[from] Computing for function abs
+[from] Done for function abs
+[from] Computing for function f
+[from] Done for function f
+[from] Computing for function g
+[from] Done for function g
+[from] Computing for function h1
+[from] Done for function h1
+[from] Computing for function h2
+[from] Done for function h2
+[from] Computing for function k
+[from] Done for function k
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function abs:
+  \result FROM x
+[from] Function f:
+  NO EFFECTS
+[from] Function g:
+  G FROM \nothing
+[from] Function h1:
+  \result FROM a
+[from] Function h2:
+  NO EFFECTS
+[from] Function k:
+  NO EFFECTS
+[from] Function main:
+  G FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function abs:
+          __retres
+[inout] Inputs for function abs:
+          \nothing
+[inout] Out (internal) for function f:
+          x
+[inout] Inputs for function f:
+          \nothing
+[inout] Out (internal) for function g:
+          G; i
+[inout] Inputs for function g:
+          \nothing
+[inout] Out (internal) for function h1:
+          r; r2
+[inout] Inputs for function h1:
+          \nothing
+[inout] Out (internal) for function h2:
+          a; b
+[inout] Inputs for function h2:
+          c
+[inout] Out (internal) for function k:
+          \nothing
+[inout] Inputs for function k:
+          \nothing
+[inout] Out (internal) for function main:
+          G
+[inout] Inputs for function main:
+          c

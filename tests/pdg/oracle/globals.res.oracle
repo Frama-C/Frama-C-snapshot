@@ -1,0 +1,39 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/pdg/globals.c (with preprocessing)
+[value] Analyzing a complete application starting at g
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  X ∈ {3}
+  S ∈ [--..--]
+  P ∈ {{ &X }}
+[value] computing for function f <- g.
+        Called from tests/pdg/globals.c:15.
+[value] Recording results for f
+[value] Done for function f
+[value] Recording results for g
+[value] done for function g
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function f:
+  
+[value] Values at end of function g:
+  
+[from] Computing for function f
+[from] Done for function f
+[from] Computing for function g
+[from] Done for function g
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function f:
+  \result FROM X; p
+[from] Function g:
+  \result FROM X
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function f:
+          tmp
+[inout] Inputs for function f:
+          X
+[inout] Out (internal) for function g:
+          tmp
+[inout] Inputs for function g:
+          X

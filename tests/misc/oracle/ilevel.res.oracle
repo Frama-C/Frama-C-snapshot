@@ -1,0 +1,104 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/ilevel.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  v ∈ [--..--]
+  i ∈ {0}
+  j ∈ {0}
+  k ∈ {0}
+  l ∈ {0}
+tests/misc/ilevel.i:9:[value] entering loop for the first time
+tests/misc/ilevel.i:12:[value] entering loop for the first time
+tests/misc/ilevel.i:20:[value] Assertion got status unknown.
+tests/misc/ilevel.i:22:[value] Assertion got status unknown.
+[value] Called Frama_C_show_each([0..9])
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  i ∈ {0; 1; 2; 3; 4; 5; 6; 7}
+  j ∈ [0..16]
+  k ∈ [0..15]
+  l ∈ [0..9]
+  __retres ∈ [0..47]
+[slicing] slicing requests in progress...
+[slicing] making slicing project 'Slicing'...
+[slicing] interpreting slicing requests from the command line...
+[pdg] computing for function main
+[from] Computing for function Frama_C_show_each
+[from] Done for function Frama_C_show_each
+[pdg] done for function main
+[slicing] applying all slicing requests...
+[slicing] applying 0 actions...
+[slicing] applying all slicing requests...
+[slicing] applying 1 actions...
+[slicing] applying actions: 1/1...
+[slicing] exporting project to 'Slicing export'...
+[slicing] applying all slicing requests...
+[slicing] applying 0 actions...
+[sparecode] remove unused global declarations from project 'Slicing export tmp'
+[sparecode] removed unused global declarations in new project 'Slicing export'
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  v ∈ [--..--]
+  i ∈ {0}
+  j ∈ {0}
+  k ∈ {0}
+  l ∈ {0}
+tests/misc/ilevel.i:9:[value] entering loop for the first time
+tests/misc/ilevel.i:12:[value] entering loop for the first time
+tests/misc/ilevel.i:26:[kernel] warning: signed overflow. assert (int)((int)(i+j)+k)+l ≤ 2147483647;
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  i ∈ {0; 1; 2; 3; 4; 5; 6; 7}
+  j ∈ [0..16]
+  k ∈ {0; 1; 2; 3; 4; 5; 6; 7; 8; 9; 10; 11; 12; 13; 14; 15}
+  l ∈ [--..--]
+  __retres ∈ [--..--]
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  v ∈ [--..--]
+  i ∈ {0}
+  j ∈ {0}
+  k ∈ {0}
+  l ∈ {0}
+[value] Called Frama_C_show_each({0; 1; 2; 3; 4; 6; 7; 8; 9})
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  i ∈ {0; 1; 2; 3; 4; 5; 6; 7}
+  j ∈ {0; 1; 2; 3; 4; 5; 6; 7; 8; 9; 10; 11; 12; 13; 14; 15; 16}
+  k ∈ {0; 1; 2; 3; 4; 5; 6; 7; 8; 9; 10; 11; 12; 13; 14; 15}
+  l ∈ {0; 1; 2; 3; 4; 6; 7; 8; 9}
+  __retres ∈ [0..47]
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  v ∈ [--..--]
+  i ∈ {0}
+  j ∈ {0}
+  k ∈ {0}
+  l ∈ {0}
+[value] Called Frama_C_show_each({0; 1; 2; 3; 4; 6; 7; 8; 9})
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  i ∈ {0; 1; 2; 3; 4; 5; 6; 7}
+  j ∈ {0; 1; 2; 3; 4; 5; 6; 7; 8; 9; 10; 11; 12; 13; 14; 15; 16}
+  k ∈ {0; 1; 2; 3; 4; 5; 6; 7; 8; 9; 10; 11; 12; 13; 14; 15}
+  l ∈ {0; 1; 2; 3; 4; 6; 7; 8; 9}
+  __retres ∈
+          {0; 1; 2; 3; 4; 5; 6; 7; 8; 9; 10; 11; 12; 13; 14; 15; 16; 17; 18;
+           19; 20; 21; 22; 23; 24; 25; 26; 27; 28; 29; 30; 31; 32; 33; 34;
+           35; 36; 37; 38; 39; 40; 41; 42; 43; 44; 45; 46; 47}

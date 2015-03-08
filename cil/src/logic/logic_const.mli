@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -43,6 +43,11 @@ val fresh_code_annotation: unit -> int
 (** set a fresh id to an existing code annotation*)
 val refresh_code_annotation: code_annotation -> code_annotation
 
+(** set fresh id to properties of an existing funspec
+    @since Sodium-20150201
+*)
+val refresh_spec: funspec -> funspec
+
 (** creates a new identified predicate with a fresh id. *)
 val new_predicate: predicate named -> identified_predicate
 
@@ -77,6 +82,9 @@ val here_label: logic_label
 val old_label: logic_label
 val loop_current_label: logic_label
 val loop_entry_label: logic_label
+
+(** @since Sodium-20150201 *)
+val init_label: logic_label
 
 (* ************************************************************************** *)
 (** {2 Predicates} *)
@@ -160,6 +168,9 @@ val pvalid: ?loc:location -> logic_label * term -> predicate named
 (** \initialized *)
 val pinitialized: ?loc:location -> logic_label * term -> predicate named
 
+(** \dangling *)
+val pdangling: ?loc:location -> logic_label * term -> predicate named
+
 (** \at *)
 val pat: ?loc:location -> predicate named * logic_label -> predicate named
 
@@ -180,7 +191,7 @@ val pseparated: ?loc:location -> term list -> predicate named
 (* ************************************************************************** *)
 
 (** returns [true] if the type is a set<t>.
-    @since Neon-20130301 *)
+    @since Neon-20140301 *)
 val is_set_type: logic_type -> bool
 
 (** [set_conversion ty1 ty2] returns a set type as soon as [ty1] and/or [ty2]
@@ -211,6 +222,9 @@ val is_plain_type: logic_type -> bool
 
 val is_boolean_type: logic_type -> bool
 (** @return true if the argument is the boolean type *)
+
+val boolean_type: logic_type
+(** @since Sodium-20150201 *)
 
 (* ************************************************************************** *)
 (** {1 Logic Terms} *)
@@ -255,6 +269,9 @@ val tvar: ?loc:Location.t -> logic_var -> term
 
 (** \result *)
 val tresult: ?loc:Location.t -> typ -> term
+
+(** coercion to the given logic type *)
+val tlogic_coerce: ?loc:Location.t -> term -> logic_type -> term
 
 (** [true] if the term is \result (potentially enclosed in \at)*)
 val is_result: term -> bool

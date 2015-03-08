@@ -1,0 +1,51 @@
+[wp:var_kind] [incr_addr] tt
+[wp:var_kind] [ByARef] first step + (p1,1)
+[wp:var_kind] [ByARef] p1 not yet
+[wp:var_kind] [ByARef] add (p1,1)
+[wp:var_kind] [collect_calls] tt not yet in ArgAref
+[wp:var_kind] [ArgARef] try + tt
+[wp:var_kind] [ArgARef] + tt
+[wp:var_kind] [collect_calls] tt + call(p1,0,address taken)
+[wp:var_kind] [by_array_reference] p1 ByAref
+[wp:var_kind] [decr_addr] tt
+[wp:var_kind] [array_reference arg] tt ArgAref
+[wp:var_kind] [resolves addr taken] tt: remove addrtaken
+[wp] warning: Missing RTE guards
+[wp:var_kind] tmp is a funvar
+[wp] warning: Assuming contracts of external functions
+[wp:var_kind] tt is a array refvar
+[wp:var_kind] tmp is a funvar
+[wp:var_kind] tt is a array refvar
+------------------------------------------------------------
+  Proof Environment Store_env1
+------------------------------------------------------------
+
+----------------------------------------
+--- Logic Definitions
+----------------------------------------
+
+Type constraint for Array sint32[][]
+Declaration
+predicate IsArray_sint32_d2 (a:int farray farray) =
+  forall i:int.
+  forall i_0:int.
+  is_in_format(sint32_format, a[i][i_0])
+
+
+------------------------------------------------------------
+  Function call_f1
+------------------------------------------------------------
+
+Proof Obligation post_2:
+Environment: Store_env1
+ - Assume calling Function 'f1' is consistent with Store-LogicVar
+Goal store_call_f1_post_2:
+  forall tt_0:int farray farray.
+  IsArray_sint32_d2(tt_0) ->
+  (let tt_1 = tt_0[0->tt_0[0][3->5]] in
+   forall result_0:int.
+   is_in_format(sint32_format, result_0) ->
+   (result_0 = tt_1[0][3]) ->
+   (result_0 = 5))
+
+------------------------------------------------------------

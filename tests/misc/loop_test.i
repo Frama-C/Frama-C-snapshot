@@ -1,7 +1,7 @@
 /* run.config
-   DONTRUN: cannot find entry point: cent_onzes
+
    OPT: -val -main test_onzes -journal-disable
-   OPT: -val -main cent_onzes -journal-disable
+   OPT: -val -main test_cent_onzes -journal-disable
 */
 
 /***************** var CMP cste **********************/

@@ -1,0 +1,52 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/cert_exp35_c.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  
+[value] computing for function addressee <- main.
+        Called from tests/misc/cert_exp35_c.i:11.
+[value] Recording results for addressee
+[value] Done for function addressee
+[value] computing for function printf <- main.
+        Called from tests/misc/cert_exp35_c.i:11.
+tests/misc/cert_exp35_c.i:11:[kernel] warning: Neither code nor specification for function printf, generating default assigns from the prototype
+[value] using specification for function printf
+[value] Done for function printf
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function addressee:
+  result.a[0] ∈ {119}
+        .a[1] ∈ {111}
+        .a[2] ∈ {114}
+        .a[3] ∈ {108}
+        .a[4] ∈ {100}
+        .a[5] ∈ {0}
+[value] Values at end of function main:
+  __retres ∈ {0}
+[from] Computing for function addressee
+[from] Done for function addressee
+[from] Computing for function main
+[from] Computing for function printf <-main
+[from] Done for function printf
+tests/misc/cert_exp35_c.i:11:[from] warning: variadic call detected. Using only 1 argument(s).
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function addressee:
+  \result FROM \nothing
+[from] Function printf:
+  NO EFFECTS
+[from] Function main:
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function addressee:
+          result
+[inout] Inputs for function addressee:
+          \nothing
+[inout] Out (internal) for function main:
+          tmp; __retres
+[inout] Inputs for function main:
+          \nothing

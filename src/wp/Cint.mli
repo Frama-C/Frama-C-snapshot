@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -44,7 +44,7 @@ val isub : c_int -> binop
 val imul : c_int -> binop
 val idiv : c_int -> binop
 val imod : c_int -> binop
-    
+
 val bnot : c_int -> unop
 val band : c_int -> binop
 val bxor : c_int -> binop

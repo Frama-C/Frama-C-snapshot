@@ -1,0 +1,274 @@
+# frama-c -wp -wp-model 'Typed (Ref)' [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_hoare/dispatch_var2.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] Collecting variable usage
+------------------------------------------------------------
+  Function call_global
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_hoare/dispatch_var2.i, line 37) in 'call_global':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var2.i, line 36) in 'call_global':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var2.i, line 36) in 'call_global' (1/2):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var2.i, line 36) in 'call_global' (2/2):
+Call Result at line 42
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_hoare/dispatch_var2.i, line 12) in 'reset'' in 'call_global' at call 'reset' (file tests/wp_hoare/dispatch_var2.i, line 41)
+:
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_hoare/dispatch_var2.i, line 27) in 'load'' in 'call_global' at call 'load' (file tests/wp_hoare/dispatch_var2.i, line 42)
+:
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function call_local
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_hoare/dispatch_var2.i, line 56) in 'call_local':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'call_local' (1/2):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'call_local' (2/2):
+Call Effect at line 61
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'call_local' (1/3):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'call_local' (2/3):
+Call Effect at line 61
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'call_local' (3/3):
+Call Result at line 62
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_hoare/dispatch_var2.i, line 12) in 'reset'' in 'call_local' at call 'reset' (file tests/wp_hoare/dispatch_var2.i, line 61)
+:
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_hoare/dispatch_var2.i, line 27) in 'load'' in 'call_local' at call 'load' (file tests/wp_hoare/dispatch_var2.i, line 62)
+:
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function call_param
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_hoare/dispatch_var2.i, line 47) in 'call_param':
+Assume {
+  (* Pre-condition (file tests/wp_hoare/dispatch_var2.i, line 45) in 'call_param' *)
+  (* Pre-condition: *)
+  Have: false.
+}
+Prove: 0=call_param_0.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'call_param' (1/2):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'call_param' (2/2):
+Call Effect at line 51
+Assume {
+  (* Pre-condition (file tests/wp_hoare/dispatch_var2.i, line 45) in 'call_param' *)
+  (* Pre-condition: *)
+  Have: false.
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'call_param' (1/3):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'call_param' (2/3):
+Call Effect at line 51
+Assume {
+  (* Pre-condition (file tests/wp_hoare/dispatch_var2.i, line 45) in 'call_param' *)
+  (* Pre-condition: *)
+  Have: false.
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'call_param' (3/3):
+Call Result at line 52
+Assume {
+  (* Pre-condition (file tests/wp_hoare/dispatch_var2.i, line 45) in 'call_param' *)
+  (* Pre-condition: *)
+  Have: false.
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_hoare/dispatch_var2.i, line 12) in 'reset'' in 'call_param' at call 'reset' (file tests/wp_hoare/dispatch_var2.i, line 51)
+:
+Assume {
+  (* Pre-condition (file tests/wp_hoare/dispatch_var2.i, line 45) in 'call_param' *)
+  (* Pre-condition: *)
+  Have: false.
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_hoare/dispatch_var2.i, line 27) in 'load'' in 'call_param' at call 'load' (file tests/wp_hoare/dispatch_var2.i, line 52)
+:
+Assume {
+  (* Pre-condition (file tests/wp_hoare/dispatch_var2.i, line 45) in 'call_param' *)
+  (* Pre-condition: *)
+  Have: false.
+}
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function call_param_ref
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_hoare/dispatch_var2.i, line 68) in 'call_param_ref':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var2.i, line 67) in 'call_param_ref':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var2.i, line 67) in 'call_param_ref' (1/2):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var2.i, line 67) in 'call_param_ref' (2/2):
+Call Result at line 73
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_hoare/dispatch_var2.i, line 12) in 'reset'' in 'call_param_ref' at call 'reset' (file tests/wp_hoare/dispatch_var2.i, line 72)
+:
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_hoare/dispatch_var2.i, line 27) in 'load'' in 'call_param_ref' at call 'load' (file tests/wp_hoare/dispatch_var2.i, line 73)
+:
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function incr
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_hoare/dispatch_var2.i, line 21) in 'incr':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var2.i, line 20) in 'incr':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function load
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_hoare/dispatch_var2.i, line 29) in 'load':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'load':
+Effect at line 31
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function reset
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_hoare/dispatch_var2.i, line 14) in 'reset':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var2.i, line 13) in 'reset':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------

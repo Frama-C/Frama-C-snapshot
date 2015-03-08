@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -23,6 +23,8 @@
 open Extlib
 open Cil
 open Cil_types
+
+let dkey = Kernel.register_category "visitor"
 
 (* ************************************************************************* *)
 (** {2 Visitors} *)
@@ -66,8 +68,9 @@ object(self)
   method current_kf = !current_kf
 
   method! private vstmt stmt =
+    let orig_stmt = Cil.get_original_stmt self#behavior stmt in
     let annots =
-      Annotations.fold_code_annot (fun e a acc -> (e, a) :: acc) stmt []
+      Annotations.fold_code_annot (fun e a acc -> (e, a) :: acc) orig_stmt []
     in
     let res = self#vstmt_aux stmt in
     (* Annotations will be visited and more importantly added in the
@@ -159,7 +162,13 @@ object(self)
     let old_ensures = fold_elt Annotations.fold_ensures in
     let old_assigns = fold_elt Annotations.fold_assigns in
     let old_allocates = fold_elt Annotations.fold_allocates in
-    let res = self#vbehavior b in
+    let old_extended = fold_elt Annotations.fold_extended in
+    let b' =
+      if Cil.is_copy_behavior self#behavior then
+        { b with b_name = b.b_name }
+      else b
+    in
+    let res = self#vbehavior b' in
     let new_kf = Cil.get_kernel_function self#behavior kf in
     let add_queue a = Queue.add a self#get_filling_actions in
     let visit_clauses vis f =
@@ -190,7 +199,7 @@ object(self)
       in
       let fold_elt fold visit remove add append dft =
         let (changed, res) =
-          fold.Fold.apply (check_elt visit) kf b.b_name (false,[])
+          fold.Fold.apply (check_elt visit) kf b'.b_name (false,[])
         in
         if changed then begin
           add_queue
@@ -201,8 +210,8 @@ object(self)
                     | None -> remove e' new_kf x
                     | Some e when Emitter.equal e e' -> remove e' new_kf x
                     | _ -> ())
-                new_kf b.b_name ();
-              List.iter (fun (e,x) -> add e new_kf b.b_name x) res)
+                new_kf b'.b_name ();
+              List.iter (fun (e,x) -> add e new_kf b'.b_name x) res)
         end;
         List.fold_left (fun acc (_,x) -> append x acc) dft res
       in
@@ -214,7 +223,7 @@ object(self)
           (fun e kf b r -> Annotations.add_requires e kf b [r])
           (fun x l -> x :: l) []
       in
-      b.b_requires <- req;
+      b'.b_requires <- req;
       let assumes =
         fold_elt
           { Fold.apply = Annotations.fold_assumes }
@@ -223,7 +232,7 @@ object(self)
           (fun e kf b a -> Annotations.add_assumes e kf b [a])
           (fun x l -> x :: l) []
       in
-      b.b_assumes <- assumes;
+      b'.b_assumes <- assumes;
       let visit_ensures vis (k,p as e) =
         let new_p = Cil.visitCilIdPredicate (vis:>Cil.cilVisitor) p in
         if p != new_p then (k,new_p) else e
@@ -236,7 +245,7 @@ object(self)
           (fun e kf b p -> Annotations.add_ensures e kf b [p])
           (fun x l -> x :: l) []
       in
-      b.b_post_cond <- ensures;
+      b'.b_post_cond <- ensures;
       let add_assigns e kf b a =
         match a with
           | WritesAny -> ()
@@ -256,7 +265,7 @@ object(self)
           concat_assigns
           WritesAny
       in
-      b.b_assigns <- a;
+      b'.b_assigns <- a;
       let concat_allocation new_a a =
         match new_a, a with
           | FreeAllocAny, a | a, FreeAllocAny -> a
@@ -271,8 +280,18 @@ object(self)
           concat_allocation
           FreeAllocAny
       in
-      b.b_allocation <- a;
-      f b
+      b'.b_allocation <- a;
+      let ext =
+        fold_elt
+          { Fold.apply = Annotations.fold_extended }
+          Cil.visitCilExtended
+          Annotations.remove_extended
+          Annotations.add_extended
+          (fun x y -> x::y)
+          []
+      in
+      b'.b_extended <- ext;
+      f b'
     in
     let remove_and_add get remove add fold old b =
       let emitter = match e with None -> Emitter.end_user | Some e -> e in
@@ -299,7 +318,7 @@ object(self)
                 add e new_kf b.b_name x))
         (List.rev elts);
     in
-    let register_annots b f =
+    let register_annots b' f =
       add_queue
         (fun () -> ignore (Annotations.behaviors ~populate:false new_kf));
       remove_and_add
@@ -307,19 +326,19 @@ object(self)
         Annotations.remove_requires
         (fun e kf b r -> Annotations.add_requires e kf b [r])
         Annotations.fold_requires
-        old_requires b;
+        old_requires b';
       remove_and_add
         (fun b -> b.b_assumes)
         Annotations.remove_assumes
         (fun e kf b r -> Annotations.add_assumes e kf b [r])
         Annotations.fold_assumes
-        old_assumes b;
+        old_assumes b';
       remove_and_add
         (fun b -> b.b_post_cond)
         Annotations.remove_ensures
         (fun e kf b r -> Annotations.add_ensures e kf b [r])
         Annotations.fold_ensures
-        old_ensures b;
+        old_ensures b';
       remove_and_add
         (fun b -> match b.b_assigns with WritesAny -> [] | a -> [a])
         Annotations.remove_assigns
@@ -328,14 +347,20 @@ object(self)
             | WritesAny -> ()
             | Writes _ -> Annotations.add_assigns ~keep_empty:false e kf b a)
         Annotations.fold_assigns
-        old_assigns b;
+        old_assigns b';
       remove_and_add
         (fun b -> match b.b_allocation with FreeAllocAny -> [] | a -> [a])
         Annotations.remove_allocates
         Annotations.add_allocates
         Annotations.fold_allocates
-        old_allocates b;
-      f b
+        old_allocates b';
+      remove_and_add
+        (fun b -> b.b_extended)
+        Annotations.remove_extended
+        Annotations.add_extended
+        Annotations.fold_extended
+        old_extended b';
+      f b'
     in
     match res with
       | SkipChildren -> b
@@ -590,7 +615,8 @@ object(self)
   method! vglob g =
     let fundec, has_kf = match g with
       | GVarDecl(_,v,_) when isFunctionType v.vtype ->
-        let kf = try Globals.Functions.get v with Not_found ->
+        let ov = Cil.get_original_varinfo self#behavior v in
+        let kf = try Globals.Functions.get ov with Not_found ->
           Kernel.fatal "No kernel function for %s(%d)" v.vname v.vid
         in
         (* Just make a copy of current kernel function in case it is needed *)
@@ -719,7 +745,7 @@ object(self)
                 let new_kf = Cil.get_kernel_function self#behavior kf in
                 Queue.add
                   (fun () ->
-                    Kernel.debug
+                    Kernel.debug ~dkey
                       "@[Adding definition %s (vid: %d) for project %s@\n\
                          body: %a@\n@]@."
                       f.svar.vname f.svar.vid
@@ -811,8 +837,9 @@ class generic_frama_c_visitor bhv =
 
 class frama_c_copy prj = generic_frama_c_visitor (copy_visit prj)
 
-class frama_c_inplace =
-  generic_frama_c_visitor (inplace_visit())
+class frama_c_refresh prj = generic_frama_c_visitor (refresh_visit prj)
+
+class frama_c_inplace = generic_frama_c_visitor (inplace_visit())
 
 let visitFramacFileCopy vis f = visitCilFileCopy (vis:>cilVisitor) f
 
@@ -826,9 +853,12 @@ let visitFramacGlobal vis g =
   vis#fill_global_tables; g'
 
 let visitFramacFunction vis f =
-  vis#set_current_kf (Globals.Functions.get f.svar);
+  let orig_var = Cil.get_original_varinfo vis#behavior f.svar in
+  let old_current_kf = vis#current_kf in
+  vis#set_current_kf (Globals.Functions.get orig_var);
   let f' = visitCilFunction (vis:>cilVisitor) f in
   vis#reset_current_kf ();
+  Extlib.may vis#set_current_kf old_current_kf;
   vis#fill_global_tables; f'
 
 let visitFramacExpr vis e =

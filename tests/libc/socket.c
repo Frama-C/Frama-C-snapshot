@@ -1,6 +1,6 @@
 /* run.config
-   STDOPT: +"-val-builtin memset:Frama_C_memset"
-   STDOPT: +"-val-builtin memset:Frama_C_memset -cpp-extra-args='-D__FRAMA_C_MACHDEP_X86_64'"
+   STDOPT: +"-val-builtin bzero:Frama_C_bzero"
+   STDOPT: +"-val-builtin bzero:Frama_C_bzero -machdep x86_64"
 */
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <sys/uio.h>
+#include <strings.h>
 
 const char* sent_msg = "World";
 #define SIZEOF_SENT_MSG 6
@@ -38,7 +39,7 @@ int socket_fd[2];
 /* Clears rcv_buffers and writes data to send_socket. */
 void init_reception(void)
 {
-  memset( rcv_buffer, 0, SIZEOF_RCV_BUFFER);
+  bzero( rcv_buffer, SIZEOF_RCV_BUFFER);
   write( send_socket, sent_msg, SIZEOF_SENT_MSG);
 }
 
@@ -103,10 +104,3 @@ int main(int argc, char **argv)
 
   return 0;
 }
-
-
-/*
-Local Variables:
-compile-command: "cd ../.. && ptests.byte -show -config gcc tests/libc/socket.c"
-End:
-*/

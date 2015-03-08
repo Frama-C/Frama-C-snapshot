@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -141,6 +141,8 @@ let on_current_history () =
   let h = CurrentHistory.get () in
   fun f -> CurrentHistory.set h; f ()
 
+let get_current () = (CurrentHistory.get ()).current
+
 let push cur =
   let h = CurrentHistory.get () in
   let h' = match h.current with
@@ -174,6 +176,107 @@ let create_buttons (menu_manager : Menu_manager.menu_manager) =
          (Menu_manager.Unit_callback (fun () -> forward (); refresh ()));
      ]
 
+
+exception Found_global of global
+
+let translate_history_elt old_helt =
+  let test_name_file old_name new_name old_loc new_loc =
+    old_name = new_name &&
+    (fst old_loc).Lexing.pos_fname = (fst new_loc).Lexing.pos_fname
+  in
+  let global old_g =
+    let iter new_g =
+      let open Cil_types in
+      (** In the same file, same constructor and same original name *)
+      match old_g,
+            new_g with
+      | (GType(                      {torig_name = old_name},          old_loc),
+         GType(                      {torig_name = new_name},          new_loc))
+      | (GEnumTag(                   {eorig_name = old_name},          old_loc),
+         GEnumTag(                   {eorig_name = new_name},          new_loc))
+      | (GEnumTagDecl(               {eorig_name = old_name},          old_loc),
+         GEnumTagDecl(               {eorig_name = new_name},          new_loc))
+      | (GCompTag(                   {corig_name = old_name},          old_loc),
+         GCompTag(                   {corig_name = new_name},          new_loc))
+      | (GCompTagDecl(               {corig_name = old_name},          old_loc),
+         GCompTagDecl(               {corig_name = new_name},          new_loc))
+      | (GVarDecl(_,                 {vorig_name = old_name},          old_loc),
+         GVarDecl(_,                 {vorig_name = new_name},          new_loc))
+      | (GVar(                       {vorig_name = old_name},_,        old_loc),
+         GVar(                       {vorig_name = new_name},_,        new_loc))
+      | (GFun({svar=                 {vorig_name = old_name}},         old_loc),
+         GFun({svar=                 {vorig_name = new_name}},         new_loc))
+      | (GAnnot(Dtype(                  {lt_name = old_name},_),       old_loc),
+         GAnnot(Dtype(                  {lt_name = new_name},_),       new_loc))
+      | (GAnnot(Daxiomatic(                        old_name,_,_),      old_loc),
+         GAnnot(Daxiomatic(                        new_name,_,_),      new_loc))
+      | (GAnnot(Dlemma(                            old_name,_,_,_,_,_),old_loc),
+         GAnnot(Dlemma(                            new_name,_,_,_,_,_),new_loc))
+      | (GAnnot(Dfun_or_pred({l_var_info= {lv_name=old_name}},_),      old_loc),
+         GAnnot(Dfun_or_pred({l_var_info= {lv_name=new_name}},_),      new_loc))
+
+        when test_name_file old_name new_name old_loc new_loc ->
+        raise (Found_global new_g)
+
+      | GAsm _, GAsm _
+      | GText _, GText _
+      | GPragma _, GPragma _
+      | GAnnot(Dvolatile _,_),     GAnnot(Dvolatile _,_)
+      | GAnnot(Dinvariant _,_),    GAnnot(Dinvariant _,_)
+      | GAnnot(Dtype_annot _,_),   GAnnot(Dtype_annot _,_)
+      | GAnnot(Dmodel_annot _,_),  GAnnot(Dmodel_annot _,_)
+      | GAnnot(Dcustom_annot _,_), GAnnot(Dcustom_annot _,_)
+        -> (** they have no names *) ()
+      | _ -> (** different constructors *) ()
+    in
+    try
+      List.iter iter (Ast.get ()).globals;
+      None
+    with Found_global new_g -> Some new_g
+  in
+  let open Pretty_source in
+  let open Cil_datatype in
+  let global_Global g = Extlib.opt_map (fun x -> Global x) (global g) in
+  match old_helt with
+  | Global old_g -> global_Global old_g
+  | Localizable (PGlobal old_g) -> global_Global old_g
+  | Localizable(PVDecl(Some kf,_)) ->
+    global_Global (Kernel_function.get_global kf)
+  | Localizable ( PStmt(kf,_) | PLval(Some kf,_,_) | PExp(Some kf,_,_)
+                | PTermLval(Some kf,_,_) as loc) ->
+    begin match global (Kernel_function.get_global kf) with
+    | None ->
+      (** The kernel function can't be found nothing to say *)
+      None
+    | Some g ->
+      (** Try to stay at the same offset in the function *)
+      let old_kf_loc = fst (Kernel_function.get_location kf) in
+      let old_loc = fst (Kinstr.loc (ki_of_localizable loc)) in
+      let offset = old_loc.Lexing.pos_lnum - old_kf_loc.Lexing.pos_lnum in
+      let new_kf_loc = fst (Global.loc g) in
+      let new_loc = {new_kf_loc with
+                     Lexing.pos_lnum = new_kf_loc.Lexing.pos_lnum + offset;
+                     Lexing.pos_cnum = old_loc.Lexing.pos_cnum;
+                    }
+      in
+      match Pretty_source.loc_to_localizable new_loc with
+      | None -> (** the line is unknown *)
+        Some (Global g)
+      | Some locali ->
+        begin match kf_of_localizable locali with
+          | None -> (** not in a kf so return the start of the function *)
+            Some (Global g)
+          | Some kf when not (Global.equal (Kernel_function.get_global kf) g) ->
+            (** Fall in the wrong global, so return the start of the function *)
+            Some (Global g)
+          | _ ->
+            (** Fall in the correct global *)
+            Some (Localizable locali)
+      end
+    end
+  | Localizable (PLval(None,_,_) | PExp(None,_,_) | PTermLval(None,_,_)
+                | PVDecl(None,_)) -> (** no names useful? *) None
+  | Localizable (PIP _ ) -> (** no names available *) None
 
 (*
 Local Variables:

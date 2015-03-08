@@ -1,0 +1,311 @@
+<!DOCTYPE HTML PUBLIC >
+<html>
+<head>
+</head>
+<body>
+<div style="text-align: left;">
+<h1><span style="font-weight: bold;">Metrics</span></h1>
+<h2>Synthetic results</h2>
+<br>
+<span style="font-weight: bold;">Defined function</span> (18):<br>
+
+&nbsp; Timer_start  (3 calls); main  (0 call); Timer_elapsedTime  (2 calls);
+       Timer_tick  (2 calls); Limiter_out  (3 calls); Ramp_out  (2 calls);
+       Ramp_getDir  (1 call); Sleep  (1 call); PT1_Filter  (3 calls);
+       Time  (3 calls); Ramp_getValue  (0 call);
+       Ramp_targetReached  (0 call); RoCo_init  (1 call);
+       RoCo_process  (1 call); Sim_process  (1 call);
+       Interpolate_from_curve  (3 calls); Sim_init  (1 call);
+       Turn_on_delay  (3 calls); 
+<br>
+<br>
+<span style="font-weight: bold;">Undefined functions</span> (3):<br>
+
+&nbsp; fabs  (9 calls); fprintf  (2 calls); exp  (1 call); 
+<br>
+<br>
+<span style="font-weight: bold;">Potential entry points</span> (3):<br>
+
+&nbsp; main; Ramp_getValue; Ramp_targetReached; 
+<br>
+<br>
+<span style="font-weight: bold;">SLOC:</span> (420)<br>
+<span style="font-weight: bold;">Number of if statements:</span> (100)<br>
+<span style="font-weight: bold;">Number of assignments:</span> (207)<br>
+<span style="font-weight: bold;">Number of loops:</span> (2)<br>
+<span style="font-weight: bold;">Number of calls:</span> (42)<br>
+<span style="font-weight: bold;">Number of gotos:</span> (13)<br>
+<span style="font-weight: bold;">Number of pointer access:</span> (50)<br>
+<br>
+<h2>Detailed results</h2>
+<br>
+<h3> sim.c </h3>
+	<br>
+<table style="width: 252px; height: 81px;" border="1">
+  <tbody>
+    <tr>
+      <th>Function</th>
+      <th>#If stmts<br>
+      <th>#Assignments<br>
+      <th>#Loops<br>
+      <th>#Calls<br>
+      <th>#Gotos<br>
+      <th>#Pointer accesses<br>
+      <th>#Exits<br>
+      <th>Cyclomatic value<br>
+      </th>
+    </tr>
+<tr>
+<td> Sim_process </td>
+<td> 4 </td>
+<td> 22 </td>
+<td> 0 </td>
+<td> 2 </td>
+<td> 1 </td>
+<td> 0 </td>
+<td> 1 </td>
+<td> 5 </td>
+</tr>
+<tr>
+<td> Sim_init </td>
+<td> 0 </td>
+<td> 11 </td>
+<td> 0 </td>
+<td> 0 </td>
+<td> 0 </td>
+<td> 0 </td>
+<td> 1 </td>
+<td> 1 </td>
+</tr>
+  </tbody>
+</table>
+<h3> roco.c </h3>
+	<br>
+<table style="width: 252px; height: 81px;" border="1">
+  <tbody>
+    <tr>
+      <th>Function</th>
+      <th>#If stmts<br>
+      <th>#Assignments<br>
+      <th>#Loops<br>
+      <th>#Calls<br>
+      <th>#Gotos<br>
+      <th>#Pointer accesses<br>
+      <th>#Exits<br>
+      <th>Cyclomatic value<br>
+      </th>
+    </tr>
+<tr>
+<td> RoCo_init </td>
+<td> 0 </td>
+<td> 34 </td>
+<td> 0 </td>
+<td> 0 </td>
+<td> 0 </td>
+<td> 0 </td>
+<td> 1 </td>
+<td> 1 </td>
+</tr>
+<tr>
+<td> RoCo_process </td>
+<td> 71 </td>
+<td> 85 </td>
+<td> 0 </td>
+<td> 29 </td>
+<td> 11 </td>
+<td> 0 </td>
+<td> 1 </td>
+<td> 72 </td>
+</tr>
+  </tbody>
+</table>
+<h3> main.c </h3>
+	<br>
+<table style="width: 252px; height: 81px;" border="1">
+  <tbody>
+    <tr>
+      <th>Function</th>
+      <th>#If stmts<br>
+      <th>#Assignments<br>
+      <th>#Loops<br>
+      <th>#Calls<br>
+      <th>#Gotos<br>
+      <th>#Pointer accesses<br>
+      <th>#Exits<br>
+      <th>Cyclomatic value<br>
+      </th>
+    </tr>
+<tr>
+<td> main </td>
+<td> 7 </td>
+<td> 20 </td>
+<td> 1 </td>
+<td> 10 </td>
+<td> 0 </td>
+<td> 0 </td>
+<td> 1 </td>
+<td> 9 </td>
+</tr>
+  </tbody>
+</table>
+<h3> impls.c </h3>
+	<br>
+<table style="width: 252px; height: 81px;" border="1">
+  <tbody>
+    <tr>
+      <th>Function</th>
+      <th>#If stmts<br>
+      <th>#Assignments<br>
+      <th>#Loops<br>
+      <th>#Calls<br>
+      <th>#Gotos<br>
+      <th>#Pointer accesses<br>
+      <th>#Exits<br>
+      <th>Cyclomatic value<br>
+      </th>
+    </tr>
+<tr>
+<td> PT1_Filter </td>
+<td> 1 </td>
+<td> 3 </td>
+<td> 0 </td>
+<td> 1 </td>
+<td> 0 </td>
+<td> 4 </td>
+<td> 1 </td>
+<td> 2 </td>
+</tr>
+<tr>
+<td> Interpolate_from_curve </td>
+<td> 4 </td>
+<td> 6 </td>
+<td> 1 </td>
+<td> 0 </td>
+<td> 0 </td>
+<td> 14 </td>
+<td> 1 </td>
+<td> 6 </td>
+</tr>
+<tr>
+<td> Turn_on_delay </td>
+<td> 2 </td>
+<td> 5 </td>
+<td> 0 </td>
+<td> 0 </td>
+<td> 0 </td>
+<td> 4 </td>
+<td> 1 </td>
+<td> 3 </td>
+</tr>
+<tr>
+<td> Timer_start </td>
+<td> 0 </td>
+<td> 1 </td>
+<td> 0 </td>
+<td> 0 </td>
+<td> 0 </td>
+<td> 1 </td>
+<td> 1 </td>
+<td> 1 </td>
+</tr>
+<tr>
+<td> Timer_elapsedTime </td>
+<td> 0 </td>
+<td> 1 </td>
+<td> 0 </td>
+<td> 0 </td>
+<td> 0 </td>
+<td> 1 </td>
+<td> 1 </td>
+<td> 1 </td>
+</tr>
+<tr>
+<td> Timer_tick </td>
+<td> 0 </td>
+<td> 1 </td>
+<td> 0 </td>
+<td> 0 </td>
+<td> 0 </td>
+<td> 2 </td>
+<td> 1 </td>
+<td> 1 </td>
+</tr>
+<tr>
+<td> Sleep </td>
+<td> 0 </td>
+<td> 1 </td>
+<td> 0 </td>
+<td> 0 </td>
+<td> 0 </td>
+<td> 0 </td>
+<td> 1 </td>
+<td> 1 </td>
+</tr>
+<tr>
+<td> Time </td>
+<td> 0 </td>
+<td> 0 </td>
+<td> 0 </td>
+<td> 0 </td>
+<td> 0 </td>
+<td> 0 </td>
+<td> 1 </td>
+<td> 1 </td>
+</tr>
+<tr>
+<td> Ramp_out </td>
+<td> 9 </td>
+<td> 11 </td>
+<td> 0 </td>
+<td> 0 </td>
+<td> 1 </td>
+<td> 20 </td>
+<td> 1 </td>
+<td> 10 </td>
+</tr>
+<tr>
+<td> Ramp_getDir </td>
+<td> 0 </td>
+<td> 1 </td>
+<td> 0 </td>
+<td> 0 </td>
+<td> 0 </td>
+<td> 1 </td>
+<td> 1 </td>
+<td> 1 </td>
+</tr>
+<tr>
+<td> Ramp_getValue </td>
+<td> 0 </td>
+<td> 1 </td>
+<td> 0 </td>
+<td> 0 </td>
+<td> 0 </td>
+<td> 1 </td>
+<td> 1 </td>
+<td> 1 </td>
+</tr>
+<tr>
+<td> Ramp_targetReached </td>
+<td> 0 </td>
+<td> 1 </td>
+<td> 0 </td>
+<td> 0 </td>
+<td> 0 </td>
+<td> 2 </td>
+<td> 1 </td>
+<td> 1 </td>
+</tr>
+<tr>
+<td> Limiter_out </td>
+<td> 2 </td>
+<td> 3 </td>
+<td> 0 </td>
+<td> 0 </td>
+<td> 0 </td>
+<td> 0 </td>
+<td> 1 </td>
+<td> 3 </td>
+</tr>
+  </tbody>
+</table>

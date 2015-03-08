@@ -1,0 +1,41 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/relations_difficult.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  x ∈ {0}
+  y ∈ {0}
+  p ∈ {0}
+  A ∈ {0}
+  B ∈ {0}
+  C ∈ {0}
+  Z ∈ {0}
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  x ∈ {4}
+  y ∈ {1; 2}
+  p ∈ {{ &x ; &y }}
+  A ∈ {1; 2; 3}
+  B ∈ {1; 2; 4}
+  C ∈ {1; 2; 4}
+  __retres ∈ {0}
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  x FROM \nothing
+  y FROM c
+  p FROM c
+  A FROM c
+  B FROM Z; c
+  C FROM c
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          x; y; p; A; B; C; __retres
+[inout] Inputs for function main:
+          x; y; p; Z

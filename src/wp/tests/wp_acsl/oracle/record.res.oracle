@@ -1,0 +1,97 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_acsl/record.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function f
+------------------------------------------------------------
+
+Goal Post-condition 'M1,qed_ok' in 'f':
+Let x_0 = s2_0.F_T_i.
+Assume {
+  (* Domain *)
+  Type: (IsS_T s1_0) /\ (IsS_T s2_0) /\ (is_sint32 s1_0.F_T_j)
+        /\ (is_sint32 x_0) /\ (is_sint32 s2_0.F_T_j).
+  (* Goal *)
+  When: (EqS_T s1_0 s2_0).
+}
+Prove: s1_0.F_T_i=x_0.
+
+------------------------------------------------------------
+
+Goal Post-condition 'M2,qed_ok' in 'f':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'M3,qed_ok' in 'f':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'M4,qed_ok' in 'f':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'M5,qed_ok' in 'f':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'M6,qed_ok' in 'f':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'P1,qed_ok' in 'f':
+Assume {
+  (* Domain *)
+  Type: (IsS_T s2_0) /\ (is_sint32 s2_0.F_T_i) /\ (is_sint32 s2_0.F_T_j).
+}
+Prove: (EqS_T s2_0 s2_0).
+
+------------------------------------------------------------
+
+Goal Post-condition 'P2,qed_ok' in 'f':
+Assume {
+  (* Domain *)
+  Type: (IsArray1_sint32 t1_0) /\ (IsArray1_sint32 t2_0).
+  (* Goal *)
+  When: forall i_0:int. (0<=i_0) -> (i_0<=9) -> (t1_0[i_0]=t2_0[i_0]).
+}
+Prove: (EqArray1_int 10 t1_0 t2_0).
+
+------------------------------------------------------------
+
+Goal Post-condition 'P3,qed_ok' in 'f':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'P4,qed_ok' in 'f':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'P5,qed_ok' in 'f':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'KP5,qed_ko' in 'f':
+Assume { }
+Prove: false.
+
+------------------------------------------------------------

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -45,10 +45,10 @@ let trim name =
       let p = first name 0 n in
       let q = last name (pred n) in
       if p <= q then 
-	let name = String.sub name p (q+1-p) in
-	match name.[0] with
-	  | '0' .. '9' -> "_" ^ name
-	  | _ -> name
+        let name = String.sub name p (q+1-p) in
+        match name.[0] with
+        | '0' .. '9' -> "_" ^ name
+        | _ -> name
       else "_"
     else name
   else "_"
@@ -127,19 +127,19 @@ let empty_database () = {
 }
 
 module DatabaseType = Datatype.Make
-  (struct
-     type t = database
-     include Datatype.Serializable_undefined
-     let reprs = [empty_database ()]
-     let name = "Wp.LogicUsage.DatabaseType"
-   end)
+    (struct
+      type t = database
+      include Datatype.Serializable_undefined
+      let reprs = [empty_database ()]
+      let name = "Wp.LogicUsage.DatabaseType"
+    end)
 
 module Database = State_builder.Ref(DatabaseType)
-  (struct
-     let name = "Wp.LogicUsage.Database"
-     let dependencies = [Ast.self;Annotations.code_annot_state]
-     let default = empty_database
-   end)
+    (struct
+      let name = "Wp.LogicUsage.Database"
+      let dependencies = [Ast.self;Annotations.code_annot_state]
+      let default = empty_database
+    end)
 
 let pp_logic fmt l = Printer.pp_logic_var fmt l.l_var_info
 
@@ -159,15 +159,15 @@ let compute_logicname l =
       with Not_found -> LSet.empty (*TODO: Undected usage -> overloading issue *)
     in
     match LSet.elements over with
-      | [] | [_] -> d.names <- LMap.add l base d.names ; base
-      | symbols ->
-	  let rec register k = function
-	    | l::ls ->
-		let name = Printf.sprintf "%s_%d_" base k in
-		d.names <- LMap.add l name d.names ;
-		register (succ k) ls
-	    | [] -> ()
-	  in register 1 symbols ; LMap.find l d.names
+    | [] | [_] -> d.names <- LMap.add l base d.names ; base
+    | symbols ->
+        let rec register k = function
+          | l::ls ->
+              let name = Printf.sprintf "%s_%d_" base k in
+              d.names <- LMap.add l name d.names ;
+              register (succ k) ls
+          | [] -> ()
+        in register 1 symbols ; LMap.find l d.names
 
 let is_overloaded l =
   let d = Database.get () in
@@ -177,14 +177,14 @@ let is_overloaded l =
 let pp_profile fmt l =
   Format.fprintf fmt "%s" l.l_var_info.lv_name ;
   match l.l_profile with
-    | [] -> ()
-    | x::xs -> 
-	Format.fprintf fmt "@[<hov 1>(%a" Printer.pp_logic_type x.lv_type ;
-	List.iter
-	  (fun y -> Format.fprintf fmt ",@,%a" 
-	     Printer.pp_logic_type y.lv_type)
-	  xs ;
-	Format.fprintf fmt ")@]"
+  | [] -> ()
+  | x::xs -> 
+      Format.fprintf fmt "@[<hov 1>(%a" Printer.pp_logic_type x.lv_type ;
+      List.iter
+        (fun y -> Format.fprintf fmt ",@,%a" 
+            Printer.pp_logic_type y.lv_type)
+        xs ;
+      Format.fprintf fmt ")@]"
 
 (* -------------------------------------------------------------------------- *)
 (* --- Utilities                                                          --- *)
@@ -194,7 +194,7 @@ let ip_lemma l =
   (if l.lem_axiom then Property.ip_axiom else Property.ip_lemma)
     (l.lem_name,l.lem_labels,l.lem_types,
      l.lem_property,(l.lem_position,l.lem_position))
-    
+
 let lemma_of_global proof = function
   | Dlemma(name,axiom,labels,types,pred,loc) -> {
       lem_name = name ;
@@ -215,17 +215,17 @@ let populate a proof = function
 
 let ip_of_axiomatic g =
   match Property.ip_of_global_annotation_single g with
-    | None -> assert false
-    | Some ip -> ip
+  | None -> assert false
+  | Some ip -> ip
 
 let axiomatic_of_global proof = function
   | Daxiomatic(name,globals,loc) as g ->
       let a = {
-	ax_name = name ;
-	ax_position = fst loc ;
-	ax_property = ip_of_axiomatic g ;
-	ax_reads = Varinfo.Set.empty ;
-	ax_types = [] ; ax_lemmas = [] ; ax_logics = [] ;
+        ax_name = name ;
+        ax_position = fst loc ;
+        ax_property = ip_of_axiomatic g ;
+        ax_reads = Varinfo.Set.empty ;
+        ax_types = [] ; ax_lemmas = [] ; ax_logics = [] ;
       } in
       List.iter (populate a proof) globals ;
       a.ax_types <- List.rev a.ax_types ;
@@ -287,125 +287,125 @@ let add_call calls (l_a,l_b) =
 (* -------------------------------------------------------------------------- *)
 
 class visitor =
-object(self)
+  object(self)
 
-  inherit Visitor.frama_c_inplace
+    inherit Visitor.frama_c_inplace
 
-  val database = Database.get ()
-  val mutable caller : logic_info option = None
-  val mutable axiomatic : axiomatic option = None
-  val mutable inductive : inductive_case option = None
-  val mutable toplevel = 0
+    val database = Database.get ()
+    val mutable caller : logic_info option = None
+    val mutable axiomatic : axiomatic option = None
+    val mutable inductive : inductive_case option = None
+    val mutable toplevel = 0
 
-  method private section = 
-    match axiomatic with
+    method private section = 
+      match axiomatic with
       | None -> Toplevel toplevel
       | Some a -> Axiomatic a
 
-  method private do_var x =
-    match axiomatic with
+    method private do_var x =
+      match axiomatic with
       | None -> ()
       | Some a -> a.ax_reads <- Varinfo.Set.add x a.ax_reads
 
-  method private do_lvar x =
-    try self#do_call (Logic_env.find_logic_cons x) []
-    with Not_found -> ()
+    method private do_lvar x =
+      try self#do_call (Logic_env.find_logic_cons x) []
+      with Not_found -> ()
 
-  method private do_call l labels =
-    match inductive with
+    method private do_call l labels =
+      match inductive with
       | Some case ->
-	if Logic_info.equal l case.ind_logic then
-	  case.ind_call <- List.fold_left add_call case.ind_call labels
+          if Logic_info.equal l case.ind_logic then
+            case.ind_call <- List.fold_left add_call case.ind_call labels
       | None ->
-	  match caller with
-	    | None -> ()
-	    | Some f ->
-		if Logic_info.equal f l then
-		  database.recursives <- LSet.add f database.recursives
-		    
-  method private do_case l (case,_labels,_types,pnamed) =
-    begin
-      let indcase = {
-	ind_logic = l ;
-	ind_case = case ;
-	ind_call = LabelMap.empty ;
-      } in
-      inductive <- Some indcase ;
-      ignore (visitFramacPredicateNamed (self :> frama_c_visitor) pnamed) ;
-      inductive <- None ; indcase
-    end
+          match caller with
+          | None -> ()
+          | Some f ->
+              if Logic_info.equal f l then
+                database.recursives <- LSet.add f database.recursives
 
-  (* --- LVALUES --- *)
+    method private do_case l (case,_labels,_types,pnamed) =
+      begin
+        let indcase = {
+          ind_logic = l ;
+          ind_case = case ;
+          ind_call = LabelMap.empty ;
+        } in
+        inductive <- Some indcase ;
+        ignore (visitFramacPredicateNamed (self :> frama_c_visitor) pnamed) ;
+        inductive <- None ; indcase
+      end
 
-  method! vlval = function
-    | (Var x,_) -> self#do_var x ; DoChildren
-    | _ -> DoChildren
+    (* --- LVALUES --- *)
 
-  method! vterm_lval = function
-    | (TVar { lv_origin=Some x } , _ ) -> self#do_var x ; DoChildren
-    | (TVar x , _ ) -> self#do_lvar x ; DoChildren 
-    | _ -> DoChildren
+    method! vlval = function
+      | (Var x,_) -> self#do_var x ; DoChildren
+      | _ -> DoChildren
 
-  (* --- TERMS --- *)
+    method! vterm_lval = function
+      | (TVar { lv_origin=Some x } , _ ) -> self#do_var x ; DoChildren
+      | (TVar x , _ ) -> self#do_lvar x ; DoChildren 
+      | _ -> DoChildren
 
-  method! vterm_node = function
-    | Tapp(l,labels,_) -> self#do_call l labels ; DoChildren
-    | _ -> DoChildren
+    (* --- TERMS --- *)
 
-  (* --- PREDICATE --- *)
+    method! vterm_node = function
+      | Tapp(l,labels,_) -> self#do_call l labels ; DoChildren
+      | _ -> DoChildren
 
-  method! vpredicate = function
-    | Papp(l,labels,_) -> self#do_call l labels ; DoChildren
-    | _ -> DoChildren
+    (* --- PREDICATE --- *)
 
-  method! vannotation global =
-    match global with
+    method! vpredicate = function
+      | Papp(l,labels,_) -> self#do_call l labels ; DoChildren
+      | _ -> DoChildren
+
+    method! vannotation global =
+      match global with
 
       (* --- AXIOMATICS --- *)
 
       | Daxiomatic _ -> 
-	  begin
-	    let pf = database.proofcontext in
-	    let ax = axiomatic_of_global pf global in
-	    register_axiomatic database ax ;
-	    axiomatic <- Some ax ;
-	    DoChildrenPost 
-	      (fun g -> 
-		 if not (is_global_axiomatic ax) then
-		   database.proofcontext <- pf ;
-		 axiomatic <- None ;
-		 toplevel <- succ toplevel ;
-		 g)
-	  end
+          begin
+            let pf = database.proofcontext in
+            let ax = axiomatic_of_global pf global in
+            register_axiomatic database ax ;
+            axiomatic <- Some ax ;
+            DoChildrenPost 
+              (fun g -> 
+                 if not (is_global_axiomatic ax) then
+                   database.proofcontext <- pf ;
+                 axiomatic <- None ;
+                 toplevel <- succ toplevel ;
+                 g)
+          end
 
       (* --- LOGIC INFO --- *)
 
       | Dfun_or_pred(l,_) ->
-	  begin
-	    register_logic database self#section l ;
-	    match l.l_body with
-	      | LBnone when axiomatic = None -> SkipChildren
+          begin
+            register_logic database self#section l ;
+            match l.l_body with
+            | LBnone when axiomatic = None -> SkipChildren
 
-	      | LBnone | LBreads _ | LBterm _ | LBpred _ ->
-		  caller <- Some l ;
-		  DoChildrenPost (fun g -> caller <- None ; g)
+            | LBnone | LBreads _ | LBterm _ | LBpred _ ->
+                caller <- Some l ;
+                DoChildrenPost (fun g -> caller <- None ; g)
 
-	      | LBinductive cases ->
-		  register_cases l (List.map (self#do_case l) cases) ;
-		  SkipChildren
-	  end
+            | LBinductive cases ->
+                register_cases l (List.map (self#do_case l) cases) ;
+                SkipChildren
+          end
 
       (* --- LEMMAS --- *)
-	    
+
       | Dlemma _ ->
-	  let lem = lemma_of_global database.proofcontext global in
-	  register_lemma database self#section lem ;
-	  database.proofcontext <- lem :: database.proofcontext ;
-	  SkipChildren
+          let lem = lemma_of_global database.proofcontext global in
+          register_lemma database self#section lem ;
+          database.proofcontext <- lem :: database.proofcontext ;
+          SkipChildren
 
       | Dtype(t,_) ->
-	  register_type database self#section t ;
-	  SkipChildren
+          register_type database self#section t ;
+          SkipChildren
 
       (* --- OTHERS --- *)
 
@@ -414,11 +414,11 @@ object(self)
       | Dtype_annot _
       | Dmodel_annot _
       | Dcustom_annot _ 
-	-> SkipChildren
+        -> SkipChildren
 
-  method! vfunc _ = SkipChildren
-	  
-end
+    method! vfunc _ = SkipChildren
+
+  end
 
 let compute () =
   Wp_parameters.feedback "Collecting axiomatic usage" ;
@@ -445,9 +445,9 @@ let get_induction_labels l case =
     try (List.find (fun i -> i.ind_case = case) cases).ind_call
     with Not_found ->
       Wp_parameters.fatal "No case '%s' for inductive '%s'"
-	case l.l_var_info.lv_name
-  with Not_found ->
-    Wp_parameters.fatal "Non-inductive '%s'" l.l_var_info.lv_name
+        case l.l_var_info.lv_name
+    with Not_found ->
+        Wp_parameters.fatal "Non-inductive '%s'" l.l_var_info.lv_name
 
 let axiomatic a =
   compute () ;
@@ -516,17 +516,17 @@ let dump_logic fmt d l =
       let cases = LMap.find l d.cases in
       dump_profile fmt "inductive" l ;
       List.iter
-	(fun ind ->
-	   Format.fprintf fmt "   @[case %s:" ind.ind_case ;
-	   LabelMap.iter
-	     (fun l s ->
-		Format.fprintf fmt "@ @[<hov 2>{%a:" Clabels.pretty l ;
-		LabelSet.iter (fun l -> Format.fprintf fmt "@ %a" 
-				 Clabels.pretty l) s ;
-		Format.fprintf fmt "}@]"
-	     ) ind.ind_call ;
-	   Format.fprintf fmt "@]@\n"
-	) cases ;
+        (fun ind ->
+           Format.fprintf fmt "   @[case %s:" ind.ind_case ;
+           LabelMap.iter
+             (fun l s ->
+                Format.fprintf fmt "@ @[<hov 2>{%a:" Clabels.pretty l ;
+                LabelSet.iter (fun l -> Format.fprintf fmt "@ %a" 
+                                  Clabels.pretty l) s ;
+                Format.fprintf fmt "}@]"
+             ) ind.ind_call ;
+           Format.fprintf fmt "@]@\n"
+        ) cases ;
     with Not_found ->
       let kind = if l.l_type = None then "predicate" else "function" in
       dump_profile fmt kind l ;
@@ -551,28 +551,28 @@ let dump () =
     begin fun fmt ->
       let d = Database.get () in
       SMap.iter
-	(fun _ a -> 
-	   Format.fprintf fmt "Axiomatic %s {@\n" a.ax_name ;
-	   List.iter (dump_type fmt) a.ax_types ;
-	   List.iter (dump_logic fmt d) a.ax_logics ;
-	   List.iter (dump_lemma fmt) a.ax_lemmas ;
-	   Format.fprintf fmt "}@\n"
-	) d.axiomatics ;
+        (fun _ a -> 
+           Format.fprintf fmt "Axiomatic %s {@\n" a.ax_name ;
+           List.iter (dump_type fmt) a.ax_types ;
+           List.iter (dump_logic fmt d) a.ax_logics ;
+           List.iter (dump_lemma fmt) a.ax_lemmas ;
+           Format.fprintf fmt "}@\n"
+        ) d.axiomatics ;
       TMap.iter
-	(fun t s ->
-	   Format.fprintf fmt " * type '%s' in %a@\n"
-	     t.lt_name pp_section s)
-	d.types ;
+        (fun t s ->
+           Format.fprintf fmt " * type '%s' in %a@\n"
+             t.lt_name pp_section s)
+        d.types ;
       LMap.iter
-	(fun l s -> 
-	   Format.fprintf fmt " * logic '%a' in %a@\n" 
-	     pp_logic l pp_section s)
-	d.logics ;
+        (fun l s -> 
+           Format.fprintf fmt " * logic '%a' in %a@\n" 
+             pp_logic l pp_section s)
+        d.logics ;
       SMap.iter
-	(fun l (lem,s) ->
-	   Format.fprintf fmt " * %s '%s' in %a@\n"
-	     (if lem.lem_axiom then "axiom" else "lemma")
-	     l pp_section s)
-	d.lemmas ;
+        (fun l (lem,s) ->
+           Format.fprintf fmt " * %s '%s' in %a@\n"
+             (if lem.lem_axiom then "axiom" else "lemma")
+             l pp_section s)
+        d.lemmas ;
       Format.fprintf fmt "-------------------------------------------------@." ;
     end

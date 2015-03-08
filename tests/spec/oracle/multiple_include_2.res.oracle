@@ -1,0 +1,5 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/spec/multiple_include_2.c (with preprocessing)
+[kernel] Parsing tests/spec/multiple_include_1.c (with preprocessing)
+[kernel] user error: multiple inclusion of logic function p referring to a static variable
+[kernel] Frama-C aborted: invalid user input.

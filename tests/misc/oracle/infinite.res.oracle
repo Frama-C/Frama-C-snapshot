@@ -1,0 +1,34 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/infinite.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  G ∈ {0}
+tests/misc/infinite.i:6:[value] entering loop for the first time
+[value] computing for function pause <- main.
+        Called from tests/misc/infinite.i:9.
+tests/misc/infinite.i:9:[kernel] warning: Neither code nor specification for function pause, generating default assigns from the prototype
+[value] using specification for function pause
+[value] Done for function pause
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  NON TERMINATING FUNCTION
+[from] Computing for function main
+[from] Computing for function pause <-main
+[from] Done for function pause
+[from] Non-terminating function main (no dependencies)
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function pause:
+  NO EFFECTS
+[from] Function main:
+  NON TERMINATING - NO EFFECTS
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          G
+[inout] Inputs for function main:
+          G

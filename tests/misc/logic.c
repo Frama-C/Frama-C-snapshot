@@ -33,7 +33,7 @@ void eq_tsets () {
 
   //@ assert &s3[0..1].f2 != 0;
   //@ assert &s3[0 .. -1].f1 != &s3[0..1].f2;
-  //@ assert &s3[0 .. 1].f1 != &s3[0..1].f1;
+  //@ assert &s3[0 .. 1].f1 == &s3[0..1].f1;
 
   //@ assert s1 == s2; // True at link-time
   //@ assert t != u; // false
@@ -60,8 +60,21 @@ void casts() {
   //@ assert (double)5 == 5.;
 }
 
+/*@ requires r1: \valid (input + (0..l-1));
+    requires r2: \valid (&input[0..l-1]);
+    assigns input[0..l-1] \from \nothing; */
+void f_empty_tset (unsigned char * input, int l);
+
+void empty_tset () {
+  unsigned char T[1] = {2};
+  f_empty_tset (T, 0);
+  //@ assert T[0] == 2;
+}
+
+
 void main () {
   eq_tsets();
   eq_char();
   casts();
+  empty_tset();
 }

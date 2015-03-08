@@ -1,0 +1,130 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_plugin/struct.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function f
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok,E0' in 'f':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok,E1' in 'f':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok,E2' in 'f':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok,E3' in 'f':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok,E4' in 'f':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok,E5' in 'f':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok,E6' in 'f':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok,E7' in 'f':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok,E8' in 'f':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok,E9' in 'f':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok,E10' in 'f':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok,E11' in 'f':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function g
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok,P3' in 'g':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok,P4' in 'g':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok,P5' in 'g':
+Let a_0 = p_0.F_T_a.
+Let a_1 = p_0.F_T_b.
+Assume {
+  (* Domain *)
+  Type: (IsS_T p_0) /\ (is_sint32 a_0.F_S_i) /\ (is_sint32 a_0.F_S_j)
+        /\ (is_sint32 a_1.F_S_i) /\ (is_sint32 a_1.F_S_j).
+}
+Prove: (EqS_T p_0 p_0).
+
+------------------------------------------------------------
+
+Goal Assigns 'qed_ok' in 'g':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function id
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok,P1' in 'id':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok,P2' in 'id':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------

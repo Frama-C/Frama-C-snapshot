@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -499,7 +499,7 @@ module Cfg (W : Mcfg.S) = struct
     | Switch _-> assert false
     | Block _-> assert false
     | UnspecifiedSequence _-> assert false
-    | TryExcept _ | TryFinally _ -> assert false
+    | TryExcept _ | TryFinally _ | Throw _ | TryCatch _ -> assert false
 
   let wp_scope wenv vars scope obj =
     debug "[wp_scope] %s : %a@."
@@ -667,32 +667,57 @@ module Cfg (W : Mcfg.S) = struct
              let lv = Cil.addOffsetLval off lv in
              init_global_variable wenv lv init obj)
           implicit_defaults (List.rev initl)
+        
+  let compute_global_init wenv filter obj =
+    Globals.Vars.fold_in_file_order
+      (fun var initinfo obj ->
+         if var.vstorage = Extern then obj else
+           let do_init = match filter with 
+             | `All -> true 
+             | `InitConst -> WpStrategy.isGlobalInitConst var 
+           in if not do_init then obj 
+           else
+             let old_loc = Cil.CurrentLoc.get () in
+             Cil.CurrentLoc.set var.vdecl ;
+             let obj =
+               match initinfo.init with
+               | None ->
+                   W.init_value
+                     wenv (Var var,NoOffset) var.vtype None obj
+               | Some init ->
+                   let lv = Var var, NoOffset in
+                   init_global_variable wenv lv init obj
+             in Cil.CurrentLoc.set old_loc ; obj
+      ) obj
 
+  let process_global_const wenv obj =
+    Globals.Vars.fold_in_file_order
+      (fun var _initinfo obj ->
+         if WpStrategy.isGlobalInitConst var
+         then W.init_const wenv var obj
+         else obj
+      ) obj
 
   (* WP of global initialisations. *)
   let process_global_init wenv kf obj =
-    if WpStrategy.is_main_init kf then
-      List.fold_left
-        (fun obj global ->
-           match global with
-           | GVar (var, initinfo, loc) ->
-               if var.vstorage = Extern then obj
-               else
-                 let old_loc = Cil.CurrentLoc.get () in
-                 Cil.CurrentLoc.set loc ;
-                 let obj =
-                   match initinfo.init with
-                   | None ->
-                       W.init_value
-                         wenv (Var var,NoOffset) var.vtype None obj
-                   | Some init ->
-                       let lv = Var var, NoOffset in
-                       init_global_variable wenv lv init obj
-                 in Cil.CurrentLoc.set old_loc ; obj
-           | _ -> obj
-        ) obj (Ast.get()).globals
+    if WpStrategy.is_main_init kf then 
+      begin
+        let obj = W.label wenv Clabels.Init obj in
+        compute_global_init wenv `All obj
+      end
+    else if W.has_init wenv then
+      begin
+        let obj = 
+          if WpStrategy.isInitConst () 
+          then process_global_const wenv obj else obj in
+        let obj = W.use_assigns wenv None None WpPropId.mk_init_assigns obj in
+        let obj = W.label wenv Clabels.Init obj in
+        compute_global_init wenv `All obj
+      end
     else
-      obj
+      if WpStrategy.isInitConst () 
+      then compute_global_init wenv `InitConst obj
+      else obj
 
   let get_weakest_precondition cfg ((kf, _g, strategy, res, wenv) as env) =
     debug "[wp-cfg] start Pass1";

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -40,15 +40,14 @@ let check_signals, signal_abort =
     end),
   (fun () -> signal_emitted := true)
 
- module Computer
-   (AnalysisParam:sig
-     val kf: kernel_function
-     val initial_states : State_set.t
-     val active_behaviors: Eval_annots.ActiveBehaviors.t
-     end) =
- struct
-   let debug = false
-   let name = "Values analysis"
+module type Arg = sig
+  val kf: kernel_function
+  val initial_states : State_set.t
+  val active_behaviors: Eval_annots.ActiveBehaviors.t
+end
+
+module Computer(AnalysisParam: Arg) =
+struct
 
    let current_kf = AnalysisParam.kf
    let current_fundec = Kernel_function.get_definition current_kf
@@ -70,8 +69,6 @@ let check_signals, signal_abort =
        (fun s ->
          is_natural_loop s || is_basic_loop s || Stmt.Set.mem s non_natural)
 
-   let slevel_merge_after_loop = Value_parameters.SlevelMergeAfterLoop.get ()
-
    let obviously_terminates = 
      Value_parameters.ObviouslyTerminatesAll.get() (* TODO: by function *)      
 
@@ -86,7 +83,105 @@ let check_signals, signal_abort =
 
    let (initial_state,_) = State_set.join AnalysisParam.initial_states
 
-   let current_table = Current_table.create ()
+   (** State propagated by the dataflow, that contains only 'new' states
+       (i.e. not propagated before). All the states that have been seen so far
+       are stored in an object of type *)
+   type diff = { mutable to_propagate : State_set.t ; }
+
+   (** The real state for a given statement, used in particular to detect
+       convergence. Stored by us, not by the dataflow itself. *)
+   type stmt_state = {
+     (** All the state that have been propagated separately, by slevel *)
+     superposition : State_imp.t;
+     (** Bottom if we have never consumed all the slevel allocated. If no
+         more slevel is available, the state that is being propgated. This
+         state is *not* present in [superposition]. *)
+     mutable widening_state : Cvalue.Model.t ;
+     (** should we widen the statement at the current iteration.
+         [widening_state] is decremented each time we visit the statement,
+         unless it is equal to zero. (In which case we widen, and set
+         [widening_state] to a non-zero value, currently 1.) *)
+     mutable widening : int;
+     (** Number of states that were put in [superposition]; i.e. the
+	 sum of the cardinals of the state sets that were added with
+	 [update_and_tell_if_changed]. It may be different
+	 (i.e. larger) from the cardinal of [state_imp], that merge
+	 states that are equal. *)
+     mutable counter_unroll : int ;
+   }
+
+   let empty_record () = {
+     superposition = State_imp.empty () ;
+     widening = Value_parameters.WideningLevel.get () ;
+     widening_state = Cvalue.Model.bottom ;
+     counter_unroll = 0;
+   }
+
+   type t = stmt_state Stmt.Hashtbl.t
+
+   let current_table : t = Stmt.Hashtbl.create 128
+
+   let stmt_state s =
+     try Stmt.Hashtbl.find current_table s
+     with Not_found ->
+       let record = empty_record () in
+       Stmt.Hashtbl.add current_table s record;
+       record
+
+   let stmt_widening_info s =
+     let r = stmt_state s in
+     r.widening, r.widening_state
+
+   (* merges [set] into the state associated to [stmt], and returns the subset
+      of [set] that was not already in the superposition. *)
+   let update_stmt_states stmt set =
+     let record = stmt_state stmt in
+     if Cvalue.Model.is_reachable record.widening_state
+     then
+       let (state, tr) = State_set.join set in
+       if Cvalue.Model.is_included state record.widening_state
+       then State_set.empty
+       else State_set.singleton (state, tr)
+     else
+       State_imp.merge_set_return_new set record.superposition
+
+   let update_stmt_widening_info kinstr wcounter wstate =
+     let record = stmt_state kinstr in
+     record.widening <- wcounter;
+     record.widening_state <- wstate
+
+   let states_unmerged_for_callbacks () =
+     let r = Stmt.Hashtbl.create (Stmt.Hashtbl.length current_table) in
+     let aux stmt record =
+       let states = State_imp.to_list record.superposition in
+       let states =
+         if Cvalue.Model.is_reachable record.widening_state
+         then record.widening_state :: states
+         else states
+       in
+       Stmt.Hashtbl.add r stmt states
+     in
+     Stmt.Hashtbl.iter aux current_table;
+     r
+
+   let states_for_callbacks () =
+     let r = Stmt.Hashtbl.create (Stmt.Hashtbl.length current_table) in
+     let aux stmt record =
+       Stmt.Hashtbl.add r stmt
+         (Cvalue.Model.join
+            (State_imp.join record.superposition)
+            record.widening_state)
+     in
+     Stmt.Hashtbl.iter aux current_table;
+     r
+
+   let states_unmerged s =
+     let record = stmt_state s in
+     let s = State_imp.to_set record.superposition in
+     if Cvalue.Model.is_reachable record.widening_state
+       (* Forget about the trace. TODO: preserve the trace. *)
+     then State_set.add (record.widening_state, Trace.top) s
+     else s
 
    let states_after = Cil_datatype.Stmt.Hashtbl.create 5
 
@@ -135,47 +230,28 @@ let check_signals, signal_abort =
        states_after
      )
 
-   (* Merging of 'after statement' states in the global table *)
-   let merge_after after_full callstack =
-     Cil_datatype.Stmt.Hashtbl.iter
-       (fun stmt st ->
-	 begin 
-	   try
-	     let prev = Db.Value.AfterTable.find stmt in
-	     Db.Value.AfterTable.replace stmt (Cvalue.Model.join prev st)
-	   with Not_found ->
-	     Db.Value.AfterTable.add stmt st
-	 end;
-	 if Value_parameters.ResultsCallstack.get () then 
-	   Db.Value.update_callstack_table ~after:true stmt callstack st) 
-       (Lazy.force after_full)
-
    (* Table storing whether conditions on 'if' have been evaluated
       to true or false *)
    let conditions_table = Cil_datatype.Stmt.Hashtbl.create 5
 
    let merge_results () =
-     let superposed = lazy (Current_table.states current_table) in
+     let superposed = lazy (states_for_callbacks ()) in
      let after_full = local_after_states superposed in
      let stack_for_callbacks = call_stack () in
      if Mark_noresults.should_memorize_function current_fundec then begin
-       Current_table.merge_db_table superposed stack_for_callbacks;
+       Value_results.merge_states_in_db superposed stack_for_callbacks;
        Db.Value.merge_conditions conditions_table;
-       if Value_parameters.ResultsAfter.get () then 
-         merge_after after_full stack_for_callbacks;
+       Value_results.merge_after_states_in_db after_full stack_for_callbacks;
      end;
      if not (Db.Value.Record_Value_Superposition_Callbacks.is_empty ())
      then begin
-       let current_superpositions =
-	 lazy (Current_table.superpositions current_table)
-       in
+       let current_superpositions = lazy (states_unmerged_for_callbacks ()) in
        if Value_parameters.ValShowProgress.get () then
 	 Value_parameters.debug ~dkey:dkey_callbacks
 	   "now calling Record_Value_Superposition callbacks";
        Db.Value.Record_Value_Superposition_Callbacks.apply
 	 (stack_for_callbacks, current_superpositions);
      end ;
-
      if not (Db.Value.Record_Value_Callbacks.is_empty ())
      then begin
        if Value_parameters.ValShowProgress.get () then
@@ -184,17 +260,21 @@ let check_signals, signal_abort =
        Db.Value.Record_Value_Callbacks.apply
 	 (stack_for_callbacks, superposed)
      end;
-
      if not (Db.Value.Record_Value_Callbacks_New.is_empty ())
      then begin
        if Value_parameters.ValShowProgress.get () then
 	 Value_parameters.debug ~dkey:dkey_callbacks
            "now calling Record_Value_New callbacks";
-       Db.Value.Record_Value_Callbacks_New.apply
-         (stack_for_callbacks,
-          Value_types.NormalStore (superposed, (Mem_exec.new_counter ())))
+       if Value_parameters.MemExecAll.get () then
+         Db.Value.Record_Value_Callbacks_New.apply
+           (stack_for_callbacks,
+            Value_types.NormalStore ((superposed, after_full),
+                                     (Mem_exec.new_counter ())))
+       else
+         Db.Value.Record_Value_Callbacks_New.apply
+           (stack_for_callbacks,
+            Value_types.Normal (superposed, after_full))
      end;
-
      if not (Db.Value.Record_Value_After_Callbacks.is_empty ())
      then begin
        if Value_parameters.ValShowProgress.get () then
@@ -205,34 +285,20 @@ let check_signals, signal_abort =
      end;
    ;;
 
-   type u =
-       { mutable to_propagate : State_set.t ; (* This mutable field is there to
-         avoid re-propagating previously seens states. It contains only the
-         new states that must be propagated on this statement, not all the
-         states that have been seen so far (that are stored through module
-         Current_table). *)
-       } 
+  (** Clobbered list for bases containing addresses of local variables. *)
+  let clob = Locals_scoping.bottom ()
+
+  let cacheable = ref Value_types.Cacheable
+
+  module DataflowArg: Dataflow2.ForwardsTransfer with type t = diff = struct
+
+   let debug = false
+   let name = "Values analysis"
 
    module StmtStartData =
-     Dataflow2.StartData(struct type t = u let size = 107 end)
+     Dataflow2.StartData(struct type t = diff let size = 107 end)
 
-   (* Walk through all the statements for which [to_propagate] is not empty.
-      Those statements are marked as "not fully propagated", for ulterior
-      display in the gui. Also mark the current statement as root if relevant.*)
-   let mark_degeneration () =
-     StmtStartData.iter
-       (fun stmt v ->
-         if not (State_set.is_empty v.to_propagate) then
-           Value_util.DegenerationPoints.replace stmt false);
-     match CilE.current_stmt () with
-       | Kglobal -> ()
-       | Kstmt s ->
-         let kf = Kernel_function.find_englobing_kf s in
-         if Kernel_function.equal kf current_kf then (
-           Value_util.DegenerationPoints.replace s true;
-           CilE.end_stmt ())
-
-   type t = u
+   type t = diff
 
    let copy (d: t) = d
 
@@ -271,8 +337,8 @@ let check_signals, signal_abort =
 	  thus we need to add the statement here (instead of e.g. in doStmt,
 	  which would be too late). *)
        let new_v = State_set.add_statement new_v s in
-       let current_info = Current_table.find_current current_table s in
-       let old_counter = current_info.Current_table.counter_unroll in
+       let current_info = stmt_state s in
+       let old_counter = current_info.counter_unroll in
        (* Check whether there is enough slevel available. If not, merge all
           states together. However, do not perform merge on return
           instructions. This needelessly degrades precision for
@@ -302,7 +368,7 @@ let check_signals, signal_abort =
 		 reached;
 	     counter_unroll_target := reached + period;
 	     end;
-	     current_info.Current_table.counter_unroll <- new_counter_unroll;
+	     current_info.counter_unroll <- new_counter_unroll;
              old.to_propagate <- merged;
 	     Some old
 	   with State_set.Unchanged -> None
@@ -311,11 +377,6 @@ let check_signals, signal_abort =
        Cil.CurrentLoc.set old_loc;
        r
      end
-
-  (** Clobbered list for bases containing addresses of local variables. *)
-  let clob = Locals_scoping.bottom ()
-
-  let cacheable = ref Value_types.Cacheable
 
   let interp_call stmt lval_to_assign funcexp argl d_value =
     let with_alarms = warn_all_quiet_mode () in
@@ -334,7 +395,7 @@ let check_signals, signal_abort =
 
   let doInstr stmt (i: instr) (d: t) =
     !Db.progress ();
-    CilE.start_stmt (Kstmt stmt);
+    Valarms.start_stmt (Kstmt stmt);
     let d_states = d.to_propagate in
     let unreachable = State_set.is_empty d_states in
     let result =
@@ -371,8 +432,8 @@ let check_signals, signal_abort =
               apply_each_state
                 (fun state ->
                    let loc = Eval_exprs.lval_to_loc ~with_alarms state lv in
-                   CilE.set_syntactic_context (CilE.SyMem lv);
-                   Model.add_binding ~with_alarms
+                   Valarms.set_syntactic_context (Valarms.SyMem lv);
+                   Eval_op.add_binding ~with_alarms
                      ~exact:true state loc V.top_int 
                 )
           | Call (_,
@@ -393,7 +454,7 @@ let check_signals, signal_abort =
                    let locbytes = eval_expr ~with_alarms state dst in
                    let locbits = Locations.loc_bytes_to_loc_bits locbytes in
                    let loc = Locations.make_loc locbits size in
-                   Model.add_binding ~with_alarms
+                   Eval_op.add_binding ~with_alarms
                      ~exact:true state loc V.top_int
                 )
           | Call (lval_to_assign,funcexp,argl,_loc) ->
@@ -408,14 +469,14 @@ let check_signals, signal_abort =
                                      annotation table *)
         end
     in
-    CilE.end_stmt ();
+    Valarms.end_stmt ();
     result
 
   let doStmtSpecific s _d states =
     match s.skind with
       | Loop _ ->
-	  let current_info = Current_table.find_current current_table s in
-	  let counter = current_info.Current_table.counter_unroll in
+	  let current_info = stmt_state s in
+	  let counter = current_info.counter_unroll in
           if counter >= slevel s then
             Value_parameters.result ~level:1 ~once:true ~current:true
               "entering loop for the first time";
@@ -439,27 +500,31 @@ let check_signals, signal_abort =
      along the back edges of the loop. Since this is not currently easy, we
      use an approximation that consists in merging all the states on the
      loop node. *)
-  let merge_if_loop s (d: t) =
+  let maybe_merge_loop s (d: t) =
     match s.skind with
     | Loop _ ->
-      d.to_propagate <-
-        State_set.singleton (State_set.join d.to_propagate)
+       let kf = Kernel_function.find_englobing_kf s in
+       if Kernel_function.Set.mem kf
+         (Value_parameters.SlevelMergeAfterLoop.get ())
+       then
+         d.to_propagate <-
+           State_set.singleton (State_set.join d.to_propagate)
     | _ -> ()
 
 
   let doStmt (s: stmt) (d: t) =
+    Valarms.start_stmt (Kstmt s);
     check_signals ();
-    if slevel_merge_after_loop then merge_if_loop s d;
+    maybe_merge_loop s d;
     let states = d.to_propagate in
     Db.Value.Compute_Statement_Callbacks.apply (s, call_stack(), 
 						State_set.to_list states);
-    CilE.start_stmt (Kstmt s);
     (* Cleanup function, to be called on all exit paths *)
     let ret result =
       (* Do this as late as possible, as a non-empty to_propagate field
          is shown in a special way in case of degeneration *)
       d.to_propagate <- State_set.empty;
-      CilE.end_stmt ();
+      Valarms.end_stmt ();
       result
     in
     if State_set.is_empty states then ret Dataflow2.SDefault
@@ -467,7 +532,7 @@ let check_signals, signal_abort =
     let states = (* Remove states already present *)
       if obviously_terminates
       then states
-      else Current_table.update_and_tell_if_changed current_table s states
+      else update_stmt_states s states
     in
     if State_set.is_empty states then ret Dataflow2.SDefault
     else
@@ -490,15 +555,13 @@ let check_signals, signal_abort =
     if State_set.is_empty states then ret Dataflow2.SDefault
     else
     let is_return = is_return s in
-    let current_info = Current_table.find_current current_table s in
-    let old_counter = current_info.Current_table.counter_unroll in
+    let current_info = stmt_state s in
+    let old_counter = current_info.counter_unroll in
     let new_states =
       if (old_counter >= slevel && not is_return)
         || (is_return && obviously_terminates)
       then (* No slevel left, perform some join and/or widening *)
-        let curr_wcounter, curr_wstate =
-          Current_table.find_widening_info current_table s
-	in
+        let curr_wcounter, curr_wstate = stmt_widening_info s in
 	(* Note: curr_wstate is the previous widening state, so there is no
 	   need to attach any trace to it: it would just be a prefix of the
 	   currently propagated trace. *)
@@ -510,7 +573,7 @@ let check_signals, signal_abort =
         else
 	  if obviously_terminates
 	  then begin
-	    Current_table.update_widening_info current_table s 0 joined;
+	    update_stmt_widening_info s 0 joined;
 	    states
 	  end
 	  else
@@ -526,7 +589,7 @@ let check_signals, signal_abort =
             in
             let new_state = State_set.singleton (r, trace) in
             if Cvalue.Model.equal r joined then (
-	      Current_table.update_widening_info current_table s new_wcounter r;
+	      update_stmt_widening_info s new_wcounter r;
 	      new_state)
             else begin (* Try to correct over-widenings *)
 	      let new_states =
@@ -537,8 +600,7 @@ let check_signals, signal_abort =
                 List.fold_left (interp_annot false) new_state annots
               in
               let (new_joined,tr) = State_set.join new_states in
-              Current_table.update_widening_info
-                current_table s new_wcounter new_joined;
+              update_stmt_widening_info s new_wcounter new_joined;
               State_set.singleton (new_joined,tr)
             end
       else states
@@ -551,13 +613,11 @@ let check_signals, signal_abort =
   let doEdge s succ d =
     let kinstr = Kstmt s in
     let states = d.to_propagate in
-    CilE.start_stmt kinstr;
+    Valarms.start_stmt kinstr;
     (* We store the state after the execution of [s] for the callback
        {Value.Record_Value_After_Callbacks}. This is done here
        because we want to see the values of the variables local to the block *)
-    if (Value_parameters.ResultsAfter.get () ||
-        not (Db.Value.Record_Value_After_Callbacks.is_empty ()))
-      && (store_state_after_during_dataflow s succ)
+    if store_state_after_during_dataflow s succ
     then (
       let old =
         try Cil_datatype.Stmt.Hashtbl.find states_after s
@@ -585,61 +645,15 @@ let check_signals, signal_abort =
               State_set.empty
               states;
     in
-    CilE.end_stmt ();
+    Valarms.end_stmt ();
     d.to_propagate <- states;
     d
-
-  (* Check that the dataflow is indeed finished *)
-  let checkConvergence () =
-    StmtStartData.iter (fun k v ->
-      if not (State_set.is_empty (v.to_propagate)) then
-        Value_parameters.fatal "sid:%d@\n%a@\n"
-          k.sid State_set.pretty v.to_propagate
-    )
-
-  (* Final states of the function, reduced by the post-condition *)
-  let final_states () =
-    let states = Current_table.find_superposition current_table return in
-    (* Reduce final states according to the function postcondition *)
-    let result = match return_lv with
-      | Some (Var v, NoOffset) -> Some v
-      | Some _ -> assert false
-      | None -> None
-    in
-    Eval_annots.check_fct_postconditions
-      current_kf AnalysisParam.active_behaviors 
-      ~result 
-      ~init_state:initial_state
-      ~post_states:states
-      Normal (* termination kind*)
-
-  let externalize states =
-    CilE.start_stmt (Kstmt return);
-    let with_alarms = warn_all_quiet_mode () in
-    (* Partial application is useful, do not inline *)
-    let externalize =
-      Eval_stmt.externalize ~with_alarms current_kf ~return_lv clob
-    in
-    let states =
-      Split_return.join_final_states current_kf ~return_lv states in
-    let r = List.map externalize states in
-    CilE.end_stmt ();
-    r
-
-  let results () =
-    if debug then checkConvergence ();
-    let final_states = final_states () in
-    let externalized = externalize final_states in {
-      Value_types.c_values = externalized;
-      c_clobbered = clob.Locals_scoping.clob;
-      c_cacheable = !cacheable;
-    }
 
   let doGuardOneCond stmt context exp t =
     if State_set.is_empty (t.to_propagate)
     then Dataflow2.GUnreachable
     else begin
-        CilE.start_stmt (Kstmt stmt);
+        Valarms.start_stmt (Kstmt stmt);
         let with_alarms = warn_all_quiet_mode () in
         let new_values =
           State_set.fold
@@ -647,7 +661,7 @@ let check_signals, signal_abort =
               let state, _, test =
                 eval_expr_with_deps_state None ~with_alarms state exp
               in
-              CilE.set_syntactic_context context;
+              Valarms.set_syntactic_context context;
               let warn = Warn.check_not_comparable Eq V.singleton_zero test in
               let do_it =
                 (warn && Value_parameters.UndefinedPointerComparisonPropagateAll.get ()) ||
@@ -670,7 +684,7 @@ let check_signals, signal_abort =
           if State_set.is_empty new_values then Dataflow2.GUnreachable
           else Dataflow2.GUse { to_propagate = new_values}
         in
-        CilE.end_stmt ();
+        Valarms.end_stmt ();
         result
       end
 
@@ -681,7 +695,7 @@ let check_signals, signal_abort =
   let doGuard stmt exp t =
     let not_exp = new_exp ~loc:exp.eloc (UnOp(LNot, exp, intType)) in
     let th, el as thel =
-      let context = CilE.SyUnOp exp in
+      let context = Valarms.SyUnOp exp in
       doGuardOneCond stmt context exp t, doGuardOneCond stmt context not_exp t
     in
     let th_reachable =
@@ -711,7 +725,83 @@ let check_signals, signal_abort =
     if new_status <> 0
     then Cil_datatype.Stmt.Hashtbl.replace conditions_table stmt new_status;
     Separate.filter_if stmt thel
+
+  end
+
+  module Dataflow = Dataflow2.Forwards(DataflowArg)
+
+  (* Walk through all the statements for which [to_propagate] is not empty.
+     Those statements are marked as "not fully propagated", for ulterior
+     display in the gui. Also mark the current statement as root if relevant.*)
+  let mark_degeneration () =
+    DataflowArg.StmtStartData.iter
+      (fun stmt v ->
+        if not (State_set.is_empty v.to_propagate) then
+          Value_util.DegenerationPoints.replace stmt false);
+    match Valarms.current_stmt () with
+    | Kglobal -> ()
+    | Kstmt s ->
+      let kf = Kernel_function.find_englobing_kf s in
+      if Kernel_function.equal kf current_kf then (
+        Value_util.DegenerationPoints.replace s true;
+        Valarms.end_stmt ())
+
+
+  (* Check that the dataflow is indeed finished *)
+  let checkConvergence () =
+    DataflowArg.StmtStartData.iter (fun k v ->
+      if not (State_set.is_empty (v.to_propagate)) then
+        Value_parameters.fatal "sid:%d@\n%a@\n"
+          k.sid State_set.pretty v.to_propagate
+    )
+
+  (* Final states of the function, reduced by the post-condition *)
+  let final_states () =
+    let states = states_unmerged return in
+    (* Reduce final states according to the function postcondition *)
+    let result = match return_lv with
+      | Some (Var v, NoOffset) -> Some v
+      | Some _ -> assert false
+      | None -> None
+    in
+    Eval_annots.check_fct_postconditions
+      current_kf AnalysisParam.active_behaviors
+      ~result
+      ~init_state:initial_state
+      ~post_states:states
+      Normal (* termination kind*)
+
+  let externalize states =
+    Valarms.start_stmt (Kstmt return);
+    let with_alarms = warn_all_quiet_mode () in
+    (* Partial application is useful, do not inline *)
+    let externalize =
+      Eval_stmt.externalize ~with_alarms current_kf ~return_lv clob
+    in
+    let states = Split_return.join_final_states current_kf ~return_lv states in
+    let r = List.map externalize states in
+    Valarms.end_stmt ();
+    r
+
+  let results () =
+    if DataflowArg.debug then checkConvergence ();
+    let final_states = final_states () in
+    let externalized = externalize final_states in {
+      Value_types.c_values = externalized;
+      c_clobbered = clob.Locals_scoping.clob;
+      c_cacheable = !cacheable;
+    }
+
+  let compute states =
+    let start = Kernel_function.find_first_stmt AnalysisParam.kf in
+    (* Init the dataflow state for the first statement *)
+    let dinit = { to_propagate = states} in
+    let dinit = DataflowArg.computeFirstPredecessor start dinit in
+    DataflowArg.StmtStartData.add start dinit;
+    Dataflow.compute [start]
+
 end
+
 
 
 (*

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -25,12 +25,12 @@
 (* -------------------------------------------------------------------------- *)
 
 class type computer =
-object
-  method lemma : bool
-  method add_strategy : WpStrategy.strategy -> unit
-  method add_lemma : LogicUsage.logic_lemma -> unit
-  method compute : Wpo.t Bag.t
-end
+  object
+    method lemma : bool
+    method add_strategy : WpStrategy.strategy -> unit
+    method add_lemma : LogicUsage.logic_lemma -> unit
+    method compute : Wpo.t Bag.t
+  end
 
 (* -------------------------------------------------------------------------- *)
 (* --- Property Entry Point                                               --- *)
@@ -38,40 +38,43 @@ end
 
 let compute_ip cc ip =
   match ip with
-    | Property.IPLemma _ 
-    | Property.IPAxiomatic _ 
-      ->
-	let rec iter cc = function
-	  | Property.IPLemma(name,_,_,_,_) -> cc#add_lemma (LogicUsage.logic_lemma name)
-	  | Property.IPAxiomatic(_,ips) -> List.iter (iter cc) ips
-	  | _ -> ()
-	in iter cc ip ;
-	cc#compute
-	  
-    | Property.IPBehavior (kf,_,b)  ->
+  | Property.IPLemma _ 
+  | Property.IPAxiomatic _ 
+    ->
+      let rec iter cc = function
+        | Property.IPLemma(name,_,_,_,_) -> cc#add_lemma (LogicUsage.logic_lemma name)
+        | Property.IPAxiomatic(_,ips) -> List.iter (iter cc) ips
+        | _ -> ()
+      in iter cc ip ;
+      cc#compute
+
+  | Property.IPBehavior (kf,_,b)  ->
       let bhv = [b.Cil_types.b_name] in
       List.iter cc#add_strategy
-	(WpAnnot.get_function_strategies ~assigns:WpAnnot.WithAssigns ~bhv kf) ;
+        (WpAnnot.get_function_strategies ~assigns:WpAnnot.WithAssigns ~bhv kf) ;
       cc#compute
-    | Property.IPComplete _ 
-    | Property.IPDisjoint _
-    | Property.IPCodeAnnot _
-    | Property.IPAllocation _
-    | Property.IPAssigns _
-    | Property.IPDecrease _
-    | Property.IPPredicate _ 
-      ->
-	List.iter cc#add_strategy 
-	  (WpAnnot.get_id_prop_strategies ~assigns:WpAnnot.WithAssigns ip) ;
-	cc#compute
+  | Property.IPComplete _ 
+  | Property.IPDisjoint _
+  | Property.IPCodeAnnot _
+  | Property.IPAllocation _
+  | Property.IPAssigns _
+  | Property.IPDecrease _
+  | Property.IPPredicate _ 
+    ->
+      List.iter cc#add_strategy 
+        (WpAnnot.get_id_prop_strategies ~assigns:WpAnnot.WithAssigns ip) ;
+      cc#compute
 
-    | Property.IPFrom _
-    | Property.IPAxiom _
-    | Property.IPReachable _
-    | Property.IPOther _
-      ->
-	Wp_parameters.result "Nothing to compute for '%a'" Property.pretty ip ; 
-	Bag.empty
+  | Property.IPFrom _
+  | Property.IPAxiom _
+  | Property.IPReachable _
+  | Property.IPPropertyInstance _
+  | Property.IPOther _
+  | Property.IPTypeInvariant _
+  | Property.IPGlobalInvariant _
+    ->
+      Wp_parameters.result "Nothing to compute for '%a'" Property.pretty ip ; 
+      Bag.empty
 
 (* -------------------------------------------------------------------------- *)
 (* --- Annotations Entry Point                                            --- *)
@@ -89,16 +92,16 @@ let iter_kf phi = function
 let iter_fct phi = function
   | F_All -> Globals.Functions.iter phi
   | F_Skip fs -> Globals.Functions.iter 
-      (fun kf ->
-	 let f = Kernel_function.get_name kf in
-	 if not (List.mem f fs) then phi kf)
+                   (fun kf ->
+                      let f = Kernel_function.get_name kf in
+                      if not (List.mem f fs) then phi kf)
   | F_List fs -> List.iter
-      (fun f -> 
-	 try phi (Globals.Functions.find_by_name f)
-	 with Not_found -> 
-	   Wp_parameters.error "Unknown function '%s' (skipped)" f
-      ) fs
-    
+                   (fun f -> 
+                      try phi (Globals.Functions.find_by_name f)
+                      with Not_found -> 
+                        Wp_parameters.error "Unknown function '%s' (skipped)" f
+                   ) fs
+
 let add_kf cc ?bhv ?prop kf =
   List.iter cc#add_strategy 
     (WpAnnot.get_function_strategies ~assigns:WpAnnot.WithAssigns ?bhv ?prop kf)
@@ -115,19 +118,19 @@ let compute_selection cc ?(fct=F_All) ?bhv ?prop () =
   begin
     if do_lemmas fct then
       begin
-	match prop with
-	  | None | Some[] -> 
-	      LogicUsage.iter_lemmas
-		(fun lem ->
-		   let idp = WpPropId.mk_lemma_id lem in
-		   if WpAnnot.filter_status idp then cc#add_lemma lem)
-	  | Some ps -> 
-	      if List.mem "-@lemmas" ps then () 
-	      else LogicUsage.iter_lemmas
-		(fun lem ->
-		   let idp = WpPropId.mk_lemma_id lem in
-		   if WpAnnot.filter_status idp && WpPropId.select_by_name ps idp
-		   then cc#add_lemma lem)
+        match prop with
+        | None | Some[] -> 
+            LogicUsage.iter_lemmas
+              (fun lem ->
+                 let idp = WpPropId.mk_lemma_id lem in
+                 if WpAnnot.filter_status idp then cc#add_lemma lem)
+        | Some ps -> 
+            if List.mem "-@lemmas" ps then () 
+            else LogicUsage.iter_lemmas
+                (fun lem ->
+                   let idp = WpPropId.mk_lemma_id lem in
+                   if WpAnnot.filter_status idp && WpPropId.select_by_name ps idp
+                   then cc#add_lemma lem)
       end ;
     iter_fct (add_kf cc ?bhv ?prop) fct ;
     cc#compute

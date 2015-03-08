@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -50,22 +50,22 @@ and theory =
     theory_parent : file;
     theory_goals : goal Datatype.String.Hashtbl.t;
     mutable theory_verified : bool;
-    }
+  }
 
 and file =
-    {
-      file_name : string;
-      file_format : string option;
-      file_parent : session;
-      file_theories: theory Datatype.String.Hashtbl.t;
-      (** Not mutated after the creation *)
-      mutable file_verified : bool;
-    }
+  {
+    file_name : string;
+    file_format : string option;
+    file_parent : session;
+    file_theories: theory Datatype.String.Hashtbl.t;
+    (** Not mutated after the creation *)
+    mutable file_verified : bool;
+  }
 
 and session =
-    { session_files : file Datatype.String.Hashtbl.t;
-      session_dir   : string;
-    }
+  { session_files : file Datatype.String.Hashtbl.t;
+    session_dir   : string;
+  }
 
 (** 2 Create a session *)
 let db_filename = "why3session.xml"
@@ -119,9 +119,9 @@ exception LoadError
 let bool_attribute field r def =
   try
     match List.assoc field r.Xml.attributes with
-      | "true" -> true
-      | "false" -> false
-      | _ -> assert false
+    | "true" -> true
+    | "false" -> false
+    | _ -> assert false
   with Not_found -> def
 
 let int_attribute_def field r def =
@@ -162,56 +162,56 @@ let load_ident elt =
 
 let rec load_goal parent g =
   match g.Xml.name with
-    | "goal" ->
-        let gname = load_ident g in
-        let verified = bool_attribute "proved" g false in
-        let mg =
-          raw_add_no_task parent gname
-        in
-        mg.goal_verified <- verified
-    | "label" -> ()
-    | s ->
-	Wp_parameters.debug
-          "[Why3ide] Session.load_goal: unexpected element '%s'@." s
+  | "goal" ->
+      let gname = load_ident g in
+      let verified = bool_attribute "proved" g false in
+      let mg =
+        raw_add_no_task parent gname
+      in
+      mg.goal_verified <- verified
+  | "label" -> ()
+  | s ->
+      Wp_parameters.debug
+        "[Why3ide] Session.load_goal: unexpected element '%s'@." s
 
 let load_theory mf th =
   match th.Xml.name with
-    | "theory" ->
-        let thname = load_ident th in
-        let verified = bool_attribute "verified" th false in
-        let mth = raw_add_theory mf thname in
-        List.iter (load_goal mth) th.Xml.elements;
-        mth.theory_verified <- verified
-    | s ->
-	Wp_parameters.debug
-          "[Why3ide] Session.load_theory: unexpected element '%s'@." s
-	  
+  | "theory" ->
+      let thname = load_ident th in
+      let verified = bool_attribute "verified" th false in
+      let mth = raw_add_theory mf thname in
+      List.iter (load_goal mth) th.Xml.elements;
+      mth.theory_verified <- verified
+  | s ->
+      Wp_parameters.debug
+        "[Why3ide] Session.load_theory: unexpected element '%s'@." s
+
 let load_file session f =
   match f.Xml.name with
-    | "file" ->
-        let fn = string_attribute "name" f in
-        let fmt = load_option "format" f in
-        let verified = bool_attribute "verified" f false in
-        let mf = raw_add_file session fn fmt in
-        List.iter (load_theory mf) f.Xml.elements;
-        mf.file_verified <- verified
-    | "prover" -> ()
-    | s ->
-	Wp_parameters.debug
-          "[Why3ide] Session.load_file: unexpected element '%s'@." s
-	  
+  | "file" ->
+      let fn = string_attribute "name" f in
+      let fmt = load_option "format" f in
+      let verified = bool_attribute "verified" f false in
+      let mf = raw_add_file session fn fmt in
+      List.iter (load_theory mf) f.Xml.elements;
+      mf.file_verified <- verified
+  | "prover" -> ()
+  | s ->
+      Wp_parameters.debug
+        "[Why3ide] Session.load_file: unexpected element '%s'@." s
+
 let load_session session xml =
   match xml.Xml.name with
-    | "why3session" ->
-	(* dprintf debug "[Info] load_session: shape version is %d@\n"
-           shape_version; *)
-	(* just to keep the old_provers somewhere *)
-	List.iter (load_file session) xml.Xml.elements;
-	(* dprintf debug "[Info] load_session: done@\n" *)
-    | s ->
-	Wp_parameters.debug
-          "[Why3ide] Session.load_session: unexpected element '%s'@." s
-	  
+  | "why3session" ->
+      (* dprintf debug "[Info] load_session: shape version is %d@\n"
+                shape_version; *)
+      (* just to keep the old_provers somewhere *)
+      List.iter (load_file session) xml.Xml.elements;
+      (* dprintf debug "[Info] load_session: done@\n" *)
+  | s ->
+      Wp_parameters.debug
+        "[Why3ide] Session.load_session: unexpected element '%s'@." s
+
 type notask = unit
 let read_session dir =
   if not (Sys.file_exists dir && Sys.is_directory dir) then
@@ -230,17 +230,17 @@ let read_session dir =
         load_session session xml.Xml.content;
       with Sys_error msg ->
         failwith ("Open session: sys error " ^ msg)
-    with
+      with
       | Sys_error _msg ->
-	  (* xml does not exist yet *)
+          (* xml does not exist yet *)
           Wp_parameters.failure
             "[Why3ide] Can't open %s" xml_filename
       | Xml.Parse_error s ->
           Wp_parameters.failure
             "[Why3ide] XML database corrupted, ignored (%s)@." s;
-	  (* failwith
-             ("Open session: XML database corrupted (%s)@." ^ s) *)
+          (* failwith
+                    ("Open session: XML database corrupted (%s)@." ^ s) *)
           raise LoadError
   end;
   session
-    
+

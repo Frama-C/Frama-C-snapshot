@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,7 +27,6 @@
 open Logic
 open Format
 open Plib
-open Linker
 open Engine
 open Export
 
@@ -64,15 +63,6 @@ struct
     object(self)
 
       inherit E.engine as super
-
-      initializer
-        begin
-          self#declare_all [
-            "type" ; "logic" ; "predicate" ; "function" ;
-            "axiom" ; "goal" ;
-            "farray" ; "true" ; "false" ;
-          ] ;
-        end
 
       (* -------------------------------------------------------------------------- *)
       (* --- Types                                                              --- *)
@@ -114,8 +104,8 @@ struct
       (* -------------------------------------------------------------------------- *)
 
       method pp_int amode fmt z = match amode with
-        | Aint -> Z.pretty fmt z
-        | Areal -> fprintf fmt "%a.0" Z.pretty z
+        | Aint -> pp_print_string fmt (Z.to_string z)
+        | Areal -> fprintf fmt "%s.0" (Z.to_string z)
 
       method pp_cst fmt cst = 
         let open Numbers in
@@ -244,7 +234,7 @@ struct
         | Sprop -> raise Not_found
         | Sdata | Sarray _ ->
             match T.repr e with
-            | Var x -> tau_of_var x
+            | Fvar x -> tau_of_var x
             | Aset(m,k,v) ->
                 (try self#typecheck m
                  with Not_found -> Array(self#typecheck k,self#typecheck v))
@@ -279,7 +269,7 @@ struct
                 x self#pp_tau tau x self#pp_flow e
           | _ -> 
               fprintf fmt "@[<hov 4>let %s = %a : %a in@]@ " 
-                x self#pp_flow e self#pp_tau tau
+                x self#pp_atom e self#pp_tau tau
         with Not_found ->
             fprintf fmt "@[<hov 4>let %s = %a in@]@ " 
               x self#pp_flow e
@@ -312,7 +302,7 @@ struct
       method pp_trigger fmt t = 
         let rec pretty fmt = function
           | TgAny -> assert false
-          | TgVar x -> self#pp_var fmt x
+          | TgVar x -> self#pp_var fmt (self#find x)
           | TgGet(t,k) -> fprintf fmt "@[<hov 2>%a[%a]@]" pretty t pretty k
           | TgSet(t,k,v) -> fprintf fmt "@[<hov 2>%a[%a@ <- %a]@]" pretty t pretty k pretty v
           | TgFun(f,ts) -> call Cterm f fmt ts
@@ -330,22 +320,7 @@ struct
 
         in fprintf fmt "@[<hov 2>%a@]" pretty t
 
-      method pp_goal ~model fmt p =
-        if model <= 0 then self#pp_prop fmt p
-        else
-          begin
-            let rec intros xs p = match T.repr p with
-              | Bind(Forall,x,p) -> intros (x::xs) p
-              | _ -> xs , p in
-            let xs,p = intros [] p in
-            List.iter
-              (fun x -> 
-                 self#bind x ;
-                 fprintf fmt "@[<hov 2>forall %a \"model:%d\" : %a.@]@ "
-                   self#pp_var x model self#pp_tau (tau_of_var x))
-              (List.rev xs) ;
-            self#pp_prop fmt p ;
-          end
+      method pp_goal fmt p = self#pp_prop fmt p
 
       (* -------------------------------------------------------------------------- *)
       (* --- Declarations                                                       --- *)
@@ -378,9 +353,9 @@ struct
             Plib.iteri
               (fun index (c,_) -> match index with
                  | Ifirst | Isingle ->
-                     fprintf fmt " = %s" (declare_name (self#link c))
+                     fprintf fmt " = %s" (link_name (self#link c))
                  | Imiddle | Ilast ->
-                     fprintf fmt "@ | %s" (declare_name (self#link c))
+                     fprintf fmt "@ | %s" (link_name (self#link c))
               ) cases ;
             fprintf fmt "@]"
           end
@@ -403,7 +378,7 @@ struct
                         fprintf fmt "forall x%d:%a.@ " k self#pp_tau t ;
                         Printf.sprintf "x%d" k) ts
                  in
-                 let f = declare_name (self#link c) in
+                 let f = link_name (self#link c) in
                  fprintf fmt "%s(%a)=%d@]@\n" rank
                    (Plib.pp_call_var ~f pp_print_string)
                    xs k
@@ -412,7 +387,7 @@ struct
 
       method declare_signature fmt f ts t =
         begin
-          fprintf fmt "@[<hv 4>logic %s :@ " (declare_name (self#link f)) ;
+          fprintf fmt "@[<hv 4>logic %s :@ " (link_name (self#link f)) ;
           if ts <> [] then
             begin
               Plib.pp_listcompact ~sep:"," self#pp_tau fmt ts ;
@@ -428,9 +403,9 @@ struct
             fprintf fmt "@[<hv 4>%a@,(" (self#pp_declare_symbol cmode) f ;
             Plib.pp_listsep ~sep:"," 
               (fun fmt x ->
-                 self#bind x ;
+                 let a = self#bind x in
                  let t = T.tau_of_var x in
-                 fprintf fmt "%a:%a" self#pp_var x self#pp_tau t
+                 fprintf fmt "%a:%a" self#pp_var a self#pp_tau t
               ) fmt xs ;
             match cmode with
             | Cprop -> 

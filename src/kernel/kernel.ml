@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -97,21 +97,21 @@ module String
      end)
 
 module EmptyString(X: Input_with_arg) =
-  P.EmptyString
+  P.Empty_string
     (struct
       let () = Parameter_customize.set_module_name X.module_name 
       include X 
      end)
 
-module StringSet(X: Input_with_arg) =
-  P.StringSet
+module String_set(X: Input_with_arg) =
+  P.String_set
     (struct
       let () = Parameter_customize.set_module_name X.module_name 
       include X 
      end)
 
-module StringList(X: Input_with_arg) =
-  P.StringList
+module String_list(X: Input_with_arg) =
+  P.String_list
     (struct
       let () = Parameter_customize.set_module_name X.module_name 
       include X 
@@ -186,9 +186,8 @@ module PrintPluginPath =
 let () = Parameter_customize.set_group help
 let () = Parameter_customize.set_negative_option_name ""
 module DumpDependencies =
-  EmptyString
+  P.Empty_string
     (struct
-       let module_name = "DumpDependencies"
        let option_name = "-dump-dependencies"
        let help = ""
        let arg_name = ""
@@ -269,6 +268,23 @@ let () =
     (fun _ b -> assert b; GeneralVerbose.set 0; GeneralDebug.set 0)
 
 let () = Parameter_customize.set_group messages
+let () = Parameter_customize.set_cmdline_stage Cmdline.Early
+let () = Parameter_customize.do_not_projectify ()
+let () = Parameter_customize.do_not_journalize ()
+module Permissive =
+  Bool
+    (struct
+        let default = !Parameter_customize.is_permissive_ref
+        let option_name = "-permissive"
+        let module_name = "Permissive"
+        let help =
+          "performs less verification on validity of command-line options"
+     end)
+let () =
+  Permissive.add_set_hook
+    (fun _ b -> Parameter_customize.is_permissive_ref := b)
+
+let () = Parameter_customize.set_group messages
 let () = Parameter_customize.set_cmdline_stage Cmdline.Extended
 let () = Parameter_customize.do_not_journalize ()
 let () = Parameter_customize.do_not_projectify ()
@@ -302,9 +318,8 @@ end
 let () = Parameter_customize.set_group messages
 let () = Parameter_customize.do_not_projectify ()
 module Time =
-  EmptyString
+  P.Empty_string
     (struct
-       let module_name = "Time"
        let option_name = "-time"
        let arg_name = "filename"
        let help = "append process time and timestamp to <filename> at exit"
@@ -324,6 +339,20 @@ the GUI (set by default iff the GUI is launched)"
       let default = !Fc_config.is_gui
      (* ok: Config.is_gui already initialised by Gui_init *)
      end)
+
+let () = Parameter_customize.set_group messages
+let () = Parameter_customize.do_not_projectify ()
+module SymbolicPath =
+  String_set (* TODO: to be replaced by an hashtbl *)
+    (struct
+       let option_name = "-add-symbolic-path"
+       let module_name = "SymbolicPath"
+       let arg_name = "name_1:path_1,...,name_n:path_n"
+       let help =
+         "When displaying file locations, replace (absolute) path by the \
+          corresponding symbolic name"
+     end)
+
 
 (* ************************************************************************* *)
 (** {2 Input / Output Source Code} *)
@@ -353,9 +382,8 @@ module PrintComments =
 module CodeOutput = struct
 
   let () = Parameter_customize.set_group inout_source
-  include EmptyString
+  include P.Empty_string
     (struct
-       let module_name = "CodeOutput"
        let option_name = "-ocode"
        let arg_name = "filename"
        let help =
@@ -399,19 +427,6 @@ module CodeOutput = struct
   let () = at_exit close_all
 
 end
-
-let () = Parameter_customize.set_group inout_source
-let () = Parameter_customize.do_not_projectify ()
-module SymbolicPath =
-  StringSet
-    (struct
-       let option_name = "-add-symbolic-path"
-       let module_name = "SymbolicPath"
-       let arg_name = "name_1:path_1,...,name_n:path_n"
-       let help =
-         "When displaying file locations, replace (absolute) path by the \
-          corresponding symbolic name"
-     end)
 
 let add_path s =
   try
@@ -480,9 +495,8 @@ let saveload = add_group "Saving or Loading Data"
 let () = Parameter_customize.set_group saveload
 let () = Parameter_customize.do_not_projectify ()
 module SaveState =
-  EmptyString
+  P.Empty_string
     (struct
-       let module_name = "SaveState"
        let option_name = "-save"
        let arg_name = "filename"
        let help = "at exit, save the session into file <filename>"
@@ -494,9 +508,8 @@ let () = Parameter_customize.set_cmdline_stage Cmdline.Loading
    reset *) 
 (*let () = Parameter_customize.do_not_projectify ()*)
 module LoadState =
-  EmptyString
+  P.Empty_string
     (struct
-       let module_name = "LoadState"
        let option_name = "-load"
        let arg_name = "filename"
        let help = "load a previously-saved session from file <filename>"
@@ -506,7 +519,7 @@ let () = Parameter_customize.set_group saveload
 let () = Parameter_customize.set_cmdline_stage Cmdline.Extending
 let () = Parameter_customize.do_not_projectify ()
 module AddPath =
-  StringList
+  String_list
     (struct
        let option_name = "-add-path"
        let module_name = "AddPath"
@@ -521,7 +534,7 @@ let () = Parameter_customize.set_group saveload
 let () = Parameter_customize.set_cmdline_stage Cmdline.Extending
 let () = Parameter_customize.do_not_projectify ()
 module LoadModule =
-  StringSet
+  String_set
     (struct
        let option_name = "-load-module"
        let module_name = "LoadModule"
@@ -547,7 +560,7 @@ let () = Parameter_customize.set_group saveload
 let () = Parameter_customize.set_cmdline_stage Cmdline.Extending
 let () = Parameter_customize.do_not_projectify ()
 module LoadScript =
-  StringSet
+  String_set
     (struct
       let option_name = "-load-script"
       let module_name = "LoadScript"
@@ -598,9 +611,8 @@ let () = Parameter_customize.set_cmdline_stage Cmdline.Extending
 let () = Parameter_customize.set_group saveload
 let () = Parameter_customize.do_not_projectify ()
 module Session_dir =
-  EmptyString
+  P.Empty_string
     (struct
-      let module_name = "Session_dir"
       let option_name = "-session"
       let arg_name = ""
       let help = "directory in which session files are searched"
@@ -612,15 +624,150 @@ let () = Parameter_customize.set_cmdline_stage Cmdline.Extending
 let () = Parameter_customize.set_group saveload
 let () = Parameter_customize.do_not_projectify ()
 module Config_dir =
-  EmptyString
+  P.Empty_string
     (struct
-      let module_name = "Config_dir"
       let option_name = "-config"
       let arg_name = ""
       let help = "directory in which configuration files are searched"
      end)
 let () = Plugin.config_is_set_ref := Config_dir.is_set
 let () = Plugin.config_ref := Config_dir.get
+
+(* ************************************************************************* *)
+(** {2 Parsing} *)
+(* ************************************************************************* *)
+
+let parsing = add_group "Parsing"
+
+let () = Parameter_customize.set_group parsing
+let () = Parameter_customize.do_not_reset_on_copy ()
+let () = Parameter_customize.set_cmdline_stage Cmdline.Extended
+module Machdep =
+  String
+    (struct
+       let module_name = "Machdep"
+       let option_name = "-machdep"
+       let default = "x86_32"
+       let arg_name = "machine"
+       let help =
+         "use <machine> as the current machine dependent configuration. \
+          See \"-machdep help\" for a list"
+     end)
+
+let () = Parameter_customize.set_group parsing
+let () = Parameter_customize.do_not_reset_on_copy ()
+module ReadAnnot =
+  True(struct
+         let module_name = "ReadAnnot"
+         let option_name = "-annot"
+         let help = "read and parse annotations"
+       end)
+
+let () = Parameter_customize.set_group parsing
+let () = Parameter_customize.do_not_reset_on_copy ()
+module PreprocessAnnot =
+  False(struct
+          let module_name = "PreprocessAnnot"
+          let option_name = "-pp-annot"
+          let help =
+            "pre-process annotations (if they are read). Set by default if \
+             the pre-processor is GNU-like (see option -cpp-gnu-like)"
+        end)
+
+let () = Parameter_customize.set_group parsing
+let () = Parameter_customize.do_not_reset_on_copy ()
+module CppCommand =
+  P.Empty_string
+    (struct
+       let option_name = "-cpp-command"
+       let arg_name = "cmd"
+       let help = "<cmd> is used to build the preprocessing command.\n\
+Default to $CPP environment variable or else \"gcc -C -E -I.\".\n\
+If unset, the command is built as follow:\n\
+  CPP -o <preprocessed file> <source file>\n\
+%1 and %2 can be used into CPP string to mark the position of <source file> \
+and <preprocessed file> respectively"
+     end)
+
+let () = Parameter_customize.set_group parsing
+let () = Parameter_customize.do_not_reset_on_copy ()
+let () = Parameter_customize.no_category ()
+module CppExtraArgs =
+  String_list
+    (struct
+       let module_name = "CppExtraArgs"
+       let option_name = "-cpp-extra-args"
+       let arg_name = "args"
+       let help = "additional arguments passed to the preprocessor while \
+preprocessing the C code but not while preprocessing annotations"
+     end)
+
+let () = Parameter_customize.set_group parsing
+let () = Parameter_customize.do_not_reset_on_copy ()
+module CppGnuLike =
+  True
+    (struct
+      let module_name = "CppGnuLike"
+      let option_name = "-cpp-gnu-like"
+      let help = 
+        "indicates that a custom pre-processor (see option -cpp-command) \
+         accepts the same set of options as GNU cpp. Set it to false if you \
+         have pre-processing issues with a custom pre-processor."
+    end)
+
+let () = Parameter_customize.set_group parsing
+let () = Parameter_customize.do_not_reset_on_copy ()
+module FramaCStdLib =
+  True
+    (struct
+      let module_name = "FramaCStdLib"
+      let option_name = "-frama-c-stdlib"
+      let help =
+        "adds -I$FRAMAC_SHARE/libc to the options given to the cpp command. \
+         If -cpp-gnu-like is not false, also adds -nostdinc to prevent \
+         inconsistent mix of system and Frama-C header files"
+    end)
+
+let () = Parameter_customize.set_group parsing
+let () = Parameter_customize.do_not_reset_on_copy ()
+module ContinueOnAnnotError =
+  False(struct
+          let module_name = "ContinueOnAnnotError"
+          let option_name = "-continue-annot-error"
+          let help = "When an annotation fails to type-check, emit \
+                         a warning and discard the annotation instead of \
+                         generating an error (errors in C are still fatal)"
+        end)
+
+let () = Parameter_customize.set_group parsing
+module Orig_name =
+  False(struct
+    let option_name = "-orig-name"
+    let module_name = "Orig_name"
+    let help = "prints a message each time a variable is renamed"
+  end)
+
+let () = Parameter_customize.set_group parsing
+let () = Parameter_customize.do_not_reset_on_copy ()
+module WarnUndeclared =
+  True(struct
+    let option_name = "-warn-undeclared-callee"
+    let help = "Warn when a function is called before it has been declared."
+    let module_name = "WarnUndeclared"
+  end)
+
+let () = Parameter_customize.set_group parsing
+let () = Parameter_customize.do_not_reset_on_copy ()
+module WarnDecimalFloat =
+  String(struct
+    let option_name = "-warn-decimal-float"
+    let arg_name = "freq"
+    let help = "Warn when floating-point constants cannot be exactly \
+              represented; freq must be one of none, once or all"
+    let default = "once"
+    let module_name = "WarnDecimalFloat"
+  end)
+let () = WarnDecimalFloat.set_possible_values ["none"; "once"; "all"]
 
 (* ************************************************************************* *)
 (** {2 Customizing Normalization} *)
@@ -653,25 +800,9 @@ module UnrollingForce =
 
 let () = Parameter_customize.set_group normalisation
 let () = Parameter_customize.do_not_reset_on_copy ()
-let () = Parameter_customize.set_cmdline_stage Cmdline.Extended
-module Machdep =
-  String
-    (struct
-       let module_name = "Machdep"
-       let option_name = "-machdep"
-       let default = "x86_32"
-       let arg_name = "machine"
-       let help =
-         "use <machine> as the current machine dependent configuration. \
-          See \"-machdep help\" for a list"
-     end)
-
-let () = Parameter_customize.set_group normalisation
-let () = Parameter_customize.do_not_reset_on_copy ()
 module Enums =
-  EmptyString
+  P.Empty_string
     (struct
-      let module_name = "Enums"
       let option_name = "-enums"
       let arg_name = "repr"
       let help = 
@@ -686,72 +817,6 @@ let () =
         feedback "Possible enums representation are: %a"
           (Pretty_utils.pp_list ~sep:", " Format.pp_print_string)
           enum_reprs)
-
-let () = Parameter_customize.set_group normalisation
-let () = Parameter_customize.do_not_reset_on_copy ()
-module ReadAnnot =
-  True(struct
-         let module_name = "ReadAnnot"
-         let option_name = "-annot"
-         let help = "read annotation"
-       end)
-
-let () = Parameter_customize.set_group normalisation
-let () = Parameter_customize.do_not_reset_on_copy ()
-module PreprocessAnnot =
-  False(struct
-          let module_name = "PreprocessAnnot"
-          let option_name = "-pp-annot"
-          let help = "pre-process annotations (if they are read)"
-        end)
-
-let () = Parameter_customize.set_group normalisation
-let () = Parameter_customize.do_not_reset_on_copy ()
-module CppCommand =
-  EmptyString
-    (struct
-       let module_name = "CppCommand"
-       let option_name = "-cpp-command"
-       let arg_name = "cmd"
-       let help = "<cmd> is used to build the preprocessing command.\n\
-Default to $CPP environment variable or else \"gcc -C -E -I.\".\n\
-If unset, the command is built as follow:\n\
-  CPP -o <preprocessed file> <source file>\n\
-%1 and %2 can be used into CPP string to mark the position of <source file> \
-and <preprocessed file> respectively"
-     end)
-
-let () = Parameter_customize.set_group normalisation
-let () = Parameter_customize.do_not_reset_on_copy ()
-module CppExtraArgs =
-  StringList
-    (struct
-       let module_name = "CppExtraArgs"
-       let option_name = "-cpp-extra-args"
-       let arg_name = "args"
-       let help = "additional arguments passed to the preprocessor while \
-preprocessing the C code but not while preprocessing annotations"
-     end)
-
-let () = Parameter_customize.set_group normalisation
-let () = Parameter_customize.set_negative_option_name ""
-module TypeCheck =
-  True(struct
-          let module_name = "TypeCheck"
-          let option_name = "-typecheck"
-          let help = "forces typechecking of the source files"
-        end)
-
-let () = Parameter_customize.set_group normalisation
-let () = Parameter_customize.do_not_reset_on_copy ()
-module ContinueOnAnnotError =
-  False(struct
-          let module_name = "ContinueOnAnnotError"
-          let option_name = "-continue-annot-error"
-          let help = "When an annotation fails to type-check, emit \
-                         a warning and discard the annotation instead of \
-                         generating an error (errors in C are still fatal)"
-        end)
 
 let () = Parameter_customize.set_group normalisation
 module SimplifyCfg =
@@ -810,18 +875,31 @@ module InitializedPaddingLocals =
      end)
 
 let () = Parameter_customize.set_group normalisation
-module AgressiveMerging =
+module AggressiveMerging =
   False
     (struct
-       let option_name = "-agressive-merging"
-       let module_name = "AgressiveMerging"
+       let option_name = "-aggressive-merging"
+       let module_name = "AggressiveMerging"
        let help = "merge function definitions modulo renaming"
+     end)
+
+let () = Parameter_customize.set_group normalisation
+module RemoveExn =
+  False
+    (struct
+        let option_name = "-remove-exn"
+        let module_name = "RemoveExn"
+        let help =
+          "transforms throw and try/catch statements to normal C functions. \
+           Disabled by default, unless input source language has \
+           has an exception mechanism."
      end)
 
 module Files = struct
 
   let () = Parameter_customize.is_invisible ()
-  include StringList
+  let () = Parameter_customize.no_category ()
+  include String_list
     (struct
        let option_name = ""
        let module_name = "Files"
@@ -829,33 +907,6 @@ module Files = struct
        let help = ""
      end)
   let () = Cmdline.use_cmdline_files set
-
-  let () = Parameter_customize.set_group normalisation
-  let () = Parameter_customize.do_not_reset_on_copy ()
-  module Check =
-    False(struct
-            let option_name = "-check"
-            let module_name = "Files.Check"
-            let help = "performs consistency checks over the Abstract Syntax \
-                        Tree"
-          end)
-
-  let () = Parameter_customize.set_group normalisation
-  module Copy =
-    False(struct
-            let option_name = "-copy"
-            let module_name = "Files.Copy"
-            let help =
-              "always perform a copy of the original AST before analysis begin"
-          end)
-
-  let () = Parameter_customize.set_group normalisation
-  module Orig_name =
-    False(struct
-            let option_name = "-orig-name"
-            let module_name = "Files.Orig_name"
-            let help = "prints a message each time a variable is renamed"
-          end)
 
 end
 
@@ -887,28 +938,6 @@ module ForceRLArgEval =
                               arguments of function calls"
   end)
 
-let () = Parameter_customize.set_group normalisation
-let () = Parameter_customize.do_not_reset_on_copy ()
-module WarnUndeclared =
-  True(struct
-    let option_name = "-warn-undeclared-callee"
-    let help = "Warn when a function is called before it has been declared."
-    let module_name = "WarnUndeclared"
-  end)
-
-let () = Parameter_customize.set_group normalisation
-let () = Parameter_customize.do_not_reset_on_copy ()
-module WarnDecimalFloat =
-  String(struct
-    let option_name = "-warn-decimal-float"
-    let arg_name = "freq"
-    let help = "Warn when floating-point constants cannot be exactly \
-              represented; freq must be one of none, once or all"
-    let default = "once"
-    let module_name = "WarnDecimalFloat"
-  end)
-let () = WarnDecimalFloat.set_possible_values ["none"; "once"; "all"]
-
 let normalization_parameters = [
   ForceRLArgEval.parameter;
   UnrollingLevel.parameter;
@@ -930,7 +959,6 @@ let normalization_parameters = [
 let analysis_options = add_group "Analysis Options"
 
 let () = Parameter_customize.set_group analysis_options
-let () = Parameter_customize.argument_is_function_name ()
 module MainFunction =
   String
     (struct
@@ -949,6 +977,16 @@ module LibEntry =
        let module_name = "LibEntry"
        let option_name = "-lib-entry"
        let help ="run analysis for an incomplete application e.g. an API call. See the -main option to set the entry point"
+     end)
+
+let () = Parameter_customize.set_group analysis_options
+let () = Parameter_customize.set_negative_option_name "-const-writable"
+module ConstReadonly =
+  True
+    (struct
+       let module_name = "ConstReadonly"
+       let option_name = "-const-readonly"
+       let help = "variables with the 'const' qualifier must be actually constant"
      end)
 
 let () = Parameter_customize.set_group analysis_options
@@ -1051,6 +1089,17 @@ accordingly, then parse options after `-then' and re-execute Frama-C"
 
 let () =
   Cmdline.add_option_without_action
+    "-then-last"
+    ~plugin:""
+    ~group:(misc :> Cmdline.Group.t)
+    ~help:"like `-then', but the second group of actions is executed \
+on the last project created by a program transformer."
+    ~visible:true
+    ~ext_help:""
+    ()
+
+let () =
+  Cmdline.add_option_without_action
     "-then-on"
     ~plugin:""
     ~argname:"p"
@@ -1084,6 +1133,41 @@ module NoObj =
        let option_name = "-no-obj"
        let help = ""
      end)
+
+(* ************************************************************************* *)
+(** {2 Checks} *)
+(* ************************************************************************* *)
+
+let checks = add_group "Checks"
+
+let () = Parameter_customize.set_group checks
+let () = Parameter_customize.do_not_reset_on_copy ()
+module Check =
+  False(struct
+    let option_name = "-check"
+    let module_name = "Check"
+    let help = "performs consistency checks over the Abstract Syntax \
+                        Tree"
+  end)
+
+let () = Parameter_customize.set_group checks
+module Copy =
+  False(struct
+    let option_name = "-copy"
+    let module_name = "Copy"
+    let help =
+      "always perform a copy of the original AST before analysis begin"
+  end)
+
+let () = Parameter_customize.set_group checks
+let () = Parameter_customize.set_negative_option_name ""
+module TypeCheck =
+  True(struct
+          let module_name = "TypeCheck"
+          let option_name = "-typecheck"
+          let help = "forces typechecking of the source files"
+        end)
+
 
 (*
 Local Variables:

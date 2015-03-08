@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -52,21 +52,21 @@ sig
 end
 
 val bind : Sigma.t -> Defs.t -> Vars.t -> Sigma.t
-  (** [bind sigma defs xs] select definitions in [defs]
-      targeting variables [xs]. The result is a new substitution that
-      potentially augment [sigma] with definitions for [xs] (and others). *)
+(** [bind sigma defs xs] select definitions in [defs]
+    targeting variables [xs]. The result is a new substitution that
+    potentially augment [sigma] with definitions for [xs] (and others). *)
 
 val add_definitions : Sigma.t -> Defs.t -> Vars.t -> pred list -> pred list
-  (** [add_definitions sigma defs xs ps] keep all
-      definitions of variables [xs] from [sigma] that comes from [defs].
-      They are added to [ps]. *)
+(** [add_definitions sigma defs xs ps] keep all
+    definitions of variables [xs] from [sigma] that comes from [defs].
+    They are added to [ps]. *)
 
 (** Pruning strategy ; selects most occuring literals to split cases. *)
 module Split :
 sig
-	
+
   type occur
-    
+
   val create : unit -> occur
   val add : occur -> pred -> unit
   val select : occur -> (pred * int) list

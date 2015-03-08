@@ -1,0 +1,6 @@
+library "abs":
+logic integer ABS (integer) = "my_abs" ;
+
+coq.file := "Abs.v";
+altergo.file := "abs.mlw";
+why3.file := "abs.why";

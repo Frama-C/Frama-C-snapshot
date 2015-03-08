@@ -1,0 +1,101 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/recursion.i (no preprocessing)
+[value] Analyzing an incomplete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  G ∈ [--..--]
+  x ∈ [--..--]
+  c ∈ [--..--]
+  s ∈ [--..--]
+  pg ∈ {{ NULL ; &S_pg[0] }}
+  S_pg[0..1] ∈ [--..--]
+[value] computing for function ff <- main.
+        Called from tests/misc/recursion.i:67.
+tests/misc/recursion.i:8:[value] warning: recursive call during value analysis
+                 of ff (ff <- ff :: tests/misc/recursion.i:67 <- main).
+                 Using specification of ff.
+[value] user error: Recursive call on an unspecified function. Using potentially invalid
+                    inferred assigns 'assigns \result \from \nothing;'
+[value] using specification for function ff
+[value] Recording results for ff
+[value] Done for function ff
+[value] computing for function g <- main.
+        Called from tests/misc/recursion.i:68.
+tests/misc/recursion.i:39:[value] warning: recursive call during value analysis
+                 of g (g <- g :: tests/misc/recursion.i:68 <- main). Using specification of g.
+[value] user error: Recursive call on an unspecified function. Using potentially invalid
+                    inferred assigns 'assigns \nothing'
+[value] using specification for function g
+[value] Recording results for g
+[value] Done for function g
+[value] computing for function h <- main.
+        Called from tests/misc/recursion.i:70.
+tests/misc/recursion.i:44:[value] warning: recursive call during value analysis
+                 of h (h <- h :: tests/misc/recursion.i:70 <- main). Using specification of h.
+[value] user error: Recursive call on an unspecified function. Using potentially invalid
+                    inferred assigns 'assigns *p1 \from *p1, *p2; assigns *p2 \from *p1, *p2;'
+[value] using specification for function h
+[value] Recording results for h
+[value] Done for function h
+[value] Called Frama_C_show_each([-2147483648..2147483647], [-2147483648..2147483647])
+[value] computing for function escaping_formal <- main.
+        Called from tests/misc/recursion.i:72.
+tests/misc/recursion.i:52:[value] Function escaping_formal: precondition got status valid.
+[value] Called Frama_C_show_each({{ &i }}, {10}, {0}, {10})
+tests/misc/recursion.i:59:[value] warning: recursive call during value analysis
+                 of escaping_formal (escaping_formal <- escaping_formal :: tests/misc/recursion.i:72 <-
+                                                        main).
+                 Using specification of escaping_formal.
+[value] using specification for function escaping_formal
+tests/misc/recursion.i:52:[value] Function escaping_formal: precondition got status unknown.
+tests/misc/recursion.i:54:[value] Function escaping_formal: postcondition got status unknown.
+[value] Called Frama_C_show_each({{ &i }},
+                                 [-2147483648..2147483647],
+                                 {0},
+                                 [-2147483648..2147483647])
+tests/misc/recursion.i:54:[value] Function escaping_formal: postcondition got status valid.
+[value] Recording results for escaping_formal
+[value] Done for function escaping_formal
+[value] computing for function f <- main.
+        Called from tests/misc/recursion.i:73.
+[value] Called Frama_C_show_each({2}, {0})
+tests/misc/recursion.i:30:[value] warning: recursive call during value analysis
+                 of f (f <- f :: tests/misc/recursion.i:73 <- main). Using specification of f.
+[value] using specification for function f
+[value] Called Frama_C_show_each([-2147483648..2147483647], {0})
+[value] Recording results for f
+[value] Done for function f
+[value] Called Frama_C_show_each([-2147483648..2147483647])
+tests/misc/recursion.i:75:[kernel] warning: signed overflow. assert r.f1+1 ≤ 2147483647;
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+tests/misc/recursion.i:59:[inout] warning: During inout context analysis of escaping_formal:
+                 ignoring probable recursive call.
+[value] Values at end of function escaping_formal:
+  pg ∈ {0}
+tests/misc/recursion.i:30:[inout] warning: During inout context analysis of f:
+                 ignoring probable recursive call.
+[value] Values at end of function f:
+  x ∈ [--..--]
+  s ∈ [--..--]
+tests/misc/recursion.i:8:[inout] warning: During inout context analysis of ff:
+                 ignoring probable recursive call.
+[value] Values at end of function ff:
+  __retres ∈ {5}
+tests/misc/recursion.i:39:[inout] warning: During inout context analysis of g:
+                 ignoring probable recursive call.
+[value] Values at end of function g:
+  
+tests/misc/recursion.i:44:[inout] warning: During inout context analysis of h:
+                 ignoring probable recursive call.
+[value] Values at end of function h:
+  
+[value] Values at end of function main:
+  G ∈ {5}
+  x ∈ [--..--]
+  s ∈ [--..--]
+  pg ∈ {0}
+  r ∈ [--..--]
+  __retres ∈ [-2147483647..2147483647]

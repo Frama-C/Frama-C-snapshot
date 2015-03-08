@@ -1,0 +1,93 @@
+This file present the tests in ppc/tests/slicing.
+For the Program Dependence Graph tests, see  ppc/tests/pdg.
+
+** tests/slicing/simple_intra_slice.c & tests/slicing/simple_intra_slice.ml
+   First slicing test. Still use internal functions of the Slicing module
+   to test internal features (select with a statement number for instance).
+   Many small tests for intra-procedural slicing.
+
+** tests/slicing/select_by_annot.c & tests/slicing/select_by_annot.ml
+   At first, there were no internal means to build a location for a data at a
+   given program point, so test the slicing on a data using annotation in the
+   source code.
+
+** tests/slicing/libSelect.ml
+   Library used in other tests to have higher level functions.
+   Also includes a try to have a 'load_source_file' function in order to be
+   able to change the project without exiting the tool, but it doesn't work
+   at the moment because of CIL problems.
+
+** tests/slicing/select_simple.c & tests/slicing/select_simple.ml
+   Same source code than simple_intra_slice.c but test it with a user
+   point of view using Select module (above) functions.
+
+** tests/slicing/switch.c & tests/slicing/switch.ml
+   One very small test on a switch. Should do more...
+
+** tests/slicing/ex_spec_interproc.c & tests/slicing/ex_spec_interproc.ml
+   Example given by Patrick for the specification of the inter-procedural
+   slicing. Test the example using different slicing modes.
+   See the documentation for more information.
+
+** tests/slicing/horwitz.c & tests/slicing/horwitz.ml
+   Example from a paper of Horwitz about inter-procedural slicing.
+   Check if we have the same result than her with her System Dependence Graph.
+
+** tests/slicing/adpcm.c & tests/slicing/adpcm.ml
+   source code from tests/test/adpcm.c. To have a bigger example...
+
+** tests/slicing/ptr_fct.c
+   Example given by Patrick for the specification/documentation 
+   of Db.Slicing.Project.is_directly_called_internal.
+
+** tests/slicing/sizeof.c
+   Example given by Patrick.
+   Tests the slicing 
+   different slicing modes with and without propagation to the callers.
+   This is done using options of the command line:
+   -slice-print, -slicing-return.
+
+** tests/slicing/select_return.c
+** tests/slicing/select_return_bis.c
+   Example given by Patrick for the specification of the inter-procedural
+   slicing including the propagation to the callers. Tests the example using
+   different slicing modes with and without propagation to the callers.
+   This is done using options of the command line:
+   -slice-print, -slicing-level, -slicing-return and -slice-calls,
+   with/without -slice-callers.
+   Some tests for -slice-value have been added.
+
+** tests/slicing/select_call.c
+   Example given by Julien for the specification of property analysis about
+   data confidentiality. Test -slice-calls option.
+
+** tests/slicing/mark_all_slices.c
+   tests for the newly created (04/2007) persistant selection.
+
+** tests/slicing/min_call.c
+   the source code is included from tests/slicing/select_return.c,
+   but le .ml command file is to test the propagation to the callers. 
+   It use the new (04/2007) [select_min_call]
+   function that can be used to select a call to be visible without choosing 
+   the version of the function to call.
+
+** tests/slicing/libAnim.ml
+   Usefull functions to view graphically the building process of a slicing
+   project.
+
+** tests/slicing/anim.ml
+   Small example to see how to use tests/slicing/libAnim.ml
+   (see the header lines to launch it)
+
+** tests/slicing/merge.c
+   Basic test for merging slices (to be enhance...)
+
+** tests/slicing/variadic.c
+   Same source file than tests/pdg/variadic.c (#include).
+   Slicing variadic functions and calls to variadic functions.
+
+** tests/slicing/unravel-flavors.c
+** tests/slicing/unravel-point.c
+** tests/slicing/unravel-variance.c
+   Small example derived from examples given for UNRAVEL slicing tool.
+

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -157,7 +157,7 @@ module CyclomaticMetricsGUI = struct
           | _  -> ()
       end
 
-    method cyclo_selector (popup_factory:GMenu.menu GMenu.factory) _main_ui ~button localizable =
+    method cyclo_selector (popup_factory:GMenu.menu GMenu.factory) main_ui ~button localizable =
       if button = 3 && Db.Value.is_computed () then
         match localizable with
           | PVDecl (Some kf, _) ->
@@ -223,7 +223,9 @@ module ValueCoverageGUI = struct
   let compute () =
     begin
       match !result with
-        | None -> result := Some (fst (Metrics_coverage.compute ()))
+        | None ->
+          !Db.Value.compute ();
+          result := Some (fst (Metrics_coverage.compute ()))
         | Some _ -> ()
     end;
     Extlib.the !result
@@ -291,7 +293,7 @@ module ValueCoverageGUI = struct
 end
   
 let register_final main_ui =
-  let box = Metrics_gui.init_panel () in
+  let box = Metrics_gui.init_panel main_ui in
   Design.register_reset_extension Metrics_gui.reset_panel;
   HalsteadMetricsGUI.register main_ui;
   CyclomaticMetricsGUI.register main_ui;

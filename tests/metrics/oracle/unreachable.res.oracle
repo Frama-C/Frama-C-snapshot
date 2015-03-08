@@ -1,0 +1,66 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/metrics/unreachable.c (with preprocessing)
+[metrics] Defined functions (2)
+          =====================
+           foo (1 call); main (0 call); 
+          
+          Undefined functions (0)
+          =======================
+           
+          
+          Potential entry points (1)
+          ==========================
+           main; 
+          
+          Global metrics
+          ============== 
+          Sloc = 10
+          Decision point = 1
+          Global variables = 0
+          If = 1
+          Loop = 0
+          Goto = 2
+          Assignment = 4
+          Exit point = 2
+          Function = 2
+          Function call = 1
+          Pointer dereferencing = 0
+          Cyclomatic complexity = 1
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  
+[value] Recording results for main
+[value] done for function main
+[metrics] Value coverage statistics
+          =========================
+          Syntactically reachable functions = 2 (out of 2)
+          Semantically reached functions = 1
+          Coverage estimation = 50.0% 
+          
+          Unseen functions (1) =
+            <tests/metrics/unreachable.c>: foo;
+[metrics] References to non-analyzed functions
+          ------------------------------------
+          Function main calls foo (at tests/metrics/unreachable.c:16)
+[metrics] Statements analyzed by Value
+          ----------------------------
+          8 stmts in analyzed functions, 5 stmts analyzed (62.5%)
+          main: 5 stmts out of 8 (62.5%)
+[value] Analyzing a complete application starting at foo
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  
+[value] Recording results for foo
+[value] done for function foo
+[metrics] Value coverage statistics
+          =========================
+          Syntactically reachable functions = 1 (out of 2)
+          Semantically reached functions = 1
+          Coverage estimation = 100.0%
+[metrics] Statements analyzed by Value
+          ----------------------------
+          2 stmts in analyzed functions, 2 stmts analyzed (100.0%)
+          foo: 2 stmts out of 2 (100.0%)

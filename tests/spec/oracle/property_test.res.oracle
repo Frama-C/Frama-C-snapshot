@@ -1,0 +1,52 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/spec/property_test.i (no preprocessing)
+In project project "default":
+Status of assert X ≥ \at(X,Pre);: no verification attempted
+Status of assigns *(dest+(0 .. n-1)) \from \nothing;: no verification attempted
+Status of assigns *(dest+(0 .. n-1));: no verification attempted
+Status of assigns *(dest+(size .. size*n-1)) \from *(dest+(0 .. size-1));: no verification attempted
+Status of assigns *(dest+(size .. size*n-1));: no verification attempted
+Status of default behavior: VALID according to Frama-C kernel (under hypotheses)
+Status of default behavior: no verification attempted
+Status of ensures
+X ≥ 0: no verification attempted
+Status of ensures
+∀ ℤ i, ℤ j;
+  0 ≤ i < \old(size) ∧ 1 ≤ j < \old(n) ⇒
+  *(\old(dest)+(i+j*\old(size))) ≡ *(\old(dest)+i): no verification attempted
+Status of ensures
+∀ ℤ i; 0 ≤ i < \old(n) ⇒ *(\old(dest)+i) ≡ 0: no verification attempted
+Status of requires
+X ≥ 0: no verification attempted
+Status of requires
+\valid(dest+(0 .. n-1)): no verification attempted
+Status of requires
+\valid(dest+(0 .. size*n-1)): no verification attempted
+Status of requires
+n ≥ 1: no verification attempted
+In project project "property_test":
+Status of assert X ≥ \at(X,Pre);: no verification attempted
+Status of assigns *(dest+(0 .. n-1)) \from \nothing;: no verification attempted
+Status of assigns *(dest+(0 .. n-1));: no verification attempted
+Status of assigns *(dest+(size .. size*n-1)) \from *(dest+(0 .. size-1));: no verification attempted
+Status of assigns *(dest+(size .. size*n-1));: no verification attempted
+Status of assigns X \from X, c;: no verification attempted
+Status of assigns X;: no verification attempted
+Status of default behavior: VALID according to Frama-C kernel (under hypotheses)
+Status of default behavior: no verification attempted
+Status of ensures
+X ≥ 0: no verification attempted
+Status of ensures
+∀ ℤ i, ℤ j;
+  0 ≤ i < \old(size) ∧ 1 ≤ j < \old(n) ⇒
+  *(\old(dest)+(i+j*\old(size))) ≡ *(\old(dest)+i): no verification attempted
+Status of ensures
+∀ ℤ i; 0 ≤ i < \old(n) ⇒ *(\old(dest)+i) ≡ 0: no verification attempted
+Status of requires
+X ≥ 0: no verification attempted
+Status of requires
+\valid(dest+(0 .. n-1)): no verification attempted
+Status of requires
+\valid(dest+(0 .. size*n-1)): no verification attempted
+Status of requires
+n ≥ 1: no verification attempted

@@ -1,0 +1,24 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_plugin/abs.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Loading driver 'tests/wp_plugin/abs.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function abs
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_plugin/abs.i, line 13) in 'abs':
+Assume {
+  (* Domain *)
+  Type: (is_sint32 abs_0) /\ (is_sint32 x_0).
+  (* tests/wp_plugin/abs.i:16: Conditional *)
+  If: x_0<0
+  Then { (* Control Flow *) Have: 0=(abs_0+x_0). }
+  Else { (* Control Flow *) Have: abs_0=x_0. }
+}
+Prove: abs_0=(ABS x_0).
+
+------------------------------------------------------------

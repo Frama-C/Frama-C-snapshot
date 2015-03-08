@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2014                                               #
+#  Copyright (C) 2007-2015                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -94,13 +94,13 @@ endif
 
 .mll.ml:
 	$(PRINT_OCAMLLEX) $@
-	$(CHMOD_RW) $@
+	$(RM) $@
 	$(OCAMLLEX) $<
 	$(CHMOD_RO) $@
 
 %.mli %.ml: %.mly
 	$(PRINT_OCAMLYACC) $@
-	$(CHMOD_RW) $(<:.mly=.ml) $(<:.mly=.mli)
+	$(RM) $(<:.mly=.ml) $(<:.mly=.mli)
 	$(OCAMLYACC) -v $<
 	$(CHMOD_RO) $(<:.mly=.ml) $(<:.mly=.mli)
 

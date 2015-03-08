@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -68,7 +68,7 @@ end
 
 module F (Info : RemoveInfo) : sig
 
-  val build_cil_file : string ->  Info.proj -> Project.t
+  val build_cil_file: ?last:bool -> string -> Info.proj -> Project.t
 
 end = struct
 
@@ -179,7 +179,7 @@ end = struct
             let _ = change loc s in ()
         | Continue loc when cont  && Info.inst_visible finfo s -> 
             let _ = change loc s in ()
-        | Instr _ | Return _ | Break _ | Continue _ | Goto _ -> ()
+        | Instr _ | Return _ | Break _ | Continue _ | Goto _ | Throw _ -> ()
         | If (_, bthen, belse, _) ->
             List.iter (rm_aux cont break) bthen.bstmts;
             List.iter (rm_aux cont break) belse.bstmts;
@@ -194,7 +194,7 @@ end = struct
             (* if change [continue] do it, but stop changing [break] *)
             if cont then 
               let break = false in List.iter (rm_aux cont break) blk.bstmts
-        | TryFinally _ | TryExcept _ -> (* TODO ? *) ()
+        | TryFinally _ | TryExcept _ | TryCatch _ -> (* TODO ? *) ()
     in List.iter (rm_aux cont break) blk.bstmts
 
   (** filter [params] according to [ff] input visibility.
@@ -889,10 +889,10 @@ end = struct
       | _ -> Cil.DoChildren
   end
 
-  let build_cil_file new_proj_name pinfo =
+  let build_cil_file ?last new_proj_name pinfo =
     debug1 "[build_cil_file] in %s@." new_proj_name;
     let visitor = new filter_visitor pinfo in
-    let prj = FC_file.create_project_from_visitor new_proj_name visitor in
+    let prj = FC_file.create_project_from_visitor ?last new_proj_name visitor in
     debug1 "[build_cil_file] done.@.";
     prj
 

@@ -1,0 +1,61 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/jacques.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  t[0..3] ∈ {0}
+  p ∈ {0}
+  q ∈ {0}
+  A ∈ {0}
+  B ∈ {0}
+  C ∈ {0}
+[value] Called CEA_f({{ NULL ; &S_pp }})
+tests/misc/jacques.i:23:[value] Assertion got status unknown.
+[value] Called CEA_f({{ &S_pp }})
+tests/misc/jacques.i:29:[value] Assertion got status valid.
+[value] computing for function f <- main.
+        Called from tests/misc/jacques.i:36.
+[value] Recording results for f
+[value] Done for function f
+[value] computing for function f <- main.
+        Called from tests/misc/jacques.i:40.
+[value] Recording results for f
+[value] Done for function f
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function f:
+  A ∈ {4; 5}
+  B ∈ {5}
+[value] Values at end of function main:
+  p ∈ {{ &A }}
+  q ∈ {{ &A }}
+  A ∈ {5}
+  B ∈ {5}
+  S_pp[0] ∈ {5}
+      [1] ∈ [--..--]
+[from] Computing for function f
+[from] Done for function f
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function f:
+  A FROM p; q
+  B FROM q (and SELF)
+[from] Function main:
+  p FROM \nothing
+  q FROM \nothing
+  A FROM \nothing
+  B FROM \nothing
+  S_pp[0] FROM pp
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function f:
+          A; B
+[inout] Inputs for function f:
+          p; q
+[inout] Out (internal) for function main:
+          p; q; A; B; S_pp[0]
+[inout] Inputs for function main:
+          p; q

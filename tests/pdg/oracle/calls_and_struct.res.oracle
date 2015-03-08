@@ -1,0 +1,176 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/pdg/calls_and_struct.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  S ∈ {0}
+  A ∈ {0}
+  B ∈ {0}
+  C ∈ {0}
+[value] computing for function asgn_struct <- main.
+        Called from tests/pdg/calls_and_struct.c:23.
+[value] Recording results for asgn_struct
+[value] Done for function asgn_struct
+[value] computing for function f <- main.
+        Called from tests/pdg/calls_and_struct.c:27.
+[value] Recording results for f
+[value] Done for function f
+[value] Recording results for main
+[value] done for function main
+[from] Computing for function asgn_struct
+[from] Done for function asgn_struct
+[from] Computing for function f
+[from] Done for function f
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function asgn_struct:
+  \result FROM S
+[from] Function f:
+  S.a FROM S.b
+  A FROM A; s.a
+  \result FROM s.b
+[from] Function main:
+  S.a FROM S.b
+  A FROM S
+  B FROM \nothing
+  C FROM \nothing
+  \result FROM S
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function asgn_struct:
+          s; __retres
+[inout] Inputs for function asgn_struct:
+          S
+[inout] InOut (internal) for function asgn_struct:
+        Operational inputs:
+          S
+        Operational inputs on termination:
+          S
+        Sure outputs:
+          s; __retres
+[inout] Out (internal) for function f:
+          S.a; A; __retres
+[inout] Inputs for function f:
+          S.b; A
+[inout] InOut (internal) for function f:
+        Operational inputs:
+          S.b; A; s{.a; .b}
+        Operational inputs on termination:
+          S.b; A; s{.a; .b}
+        Sure outputs:
+          S.a; A; __retres
+[inout] Out (internal) for function main:
+          S.a; A; B; C; a; tmp_0
+[inout] Inputs for function main:
+          S; A
+[inout] InOut (internal) for function main:
+        Operational inputs:
+          S
+        Operational inputs on termination:
+          S
+        Sure outputs:
+          S.a; A; B; C; a; tmp_0
+[pdg] computing for function asgn_struct
+[pdg] done for function asgn_struct
+[pdg] computing for function f
+[pdg] done for function f
+[pdg] computing for function main
+[pdg] done for function main
+[pdg] ====== PDG GRAPH COMPUTED ======
+[pdg] PDG for asgn_struct
+ {n1}: InCtrl
+ {n2}: VarDecl : s
+ {n3}: VarDecl : __retres
+ {n4}: s = S;
+   -[-c-]-> 1
+   -[a--]-> 2
+   -[--d]-> 8
+ {n5}: __retres = s.a;
+   -[-c-]-> 1
+   -[--d]-> 2
+   -[a--]-> 3
+   -[--d]-> 4
+ {n6}: return __retres;
+   -[-c-]-> 1
+   -[--d]-> 3
+   -[--d]-> 5
+ {n7}: OutRet
+   -[--d]-> 6
+ {n8}: In(S)
+[pdg] PDG for f
+ {n9}: InCtrl
+ {n10}: VarDecl : s
+   -[a--]-> 11
+ {n11}: In1
+   -[a--]-> 10
+ {n12}: VarDecl : __retres
+ {n13}: A += s.a;
+   -[-c-]-> 9
+   -[--d]-> 10
+   -[--d]-> 11
+   -[--d]-> 19
+ {n14}: S.a = S.b;
+   -[-c-]-> 9
+   -[--d]-> 18
+ {n15}: __retres = s.b;
+   -[-c-]-> 9
+   -[--d]-> 10
+   -[--d]-> 11
+   -[a--]-> 12
+ {n16}: return __retres;
+   -[-c-]-> 9
+   -[--d]-> 12
+   -[--d]-> 15
+ {n17}: OutRet
+   -[--d]-> 16
+ {n18}: In(S.b)
+ {n19}: In(A)
+[pdg] PDG for main
+ {n20}: InCtrl
+ {n21}: VarDecl : a
+ {n22}: VarDecl : tmp_0
+ {n23}: Call11-InCtrl : a = asgn_struct();
+   -[-c-]-> 20
+ {n24}: Call11-OutRet : a = asgn_struct();
+   -[-c-]-> 20
+   -[a--]-> 21
+   -[-c-]-> 23
+   -[--d]-> 36
+ {n25}: A = a;
+   -[-c-]-> 20
+   -[--d]-> 21
+   -[--d]-> 24
+ {n26}: B = 2;
+   -[-c-]-> 20
+ {n27}: C = 3;
+   -[-c-]-> 20
+ {n28}: Call15-InCtrl : tmp_0 = f(S);
+   -[-c-]-> 20
+ {n29}: Call15-In1 : tmp_0 = f(S);
+   -[-c-]-> 20
+   -[-c-]-> 28
+   -[--d]-> 36
+ {n30}: Call15-Out(S.a) : tmp_0 = f(S);
+   -[-c-]-> 20
+   -[-c-]-> 28
+   -[--d]-> 35
+ {n31}: Call15-Out(A) : tmp_0 = f(S);
+   -[-c-]-> 20
+   -[--d]-> 25
+   -[-c-]-> 28
+   -[--d]-> 29
+ {n32}: Call15-OutRet : tmp_0 = f(S);
+   -[-c-]-> 20
+   -[a--]-> 22
+   -[-c-]-> 28
+   -[--d]-> 29
+ {n33}: return tmp_0;
+   -[-c-]-> 20
+   -[--d]-> 22
+   -[--d]-> 32
+ {n34}: OutRet
+   -[--d]-> 33
+ {n35}: In(S.b)
+ {n36}: In(S)

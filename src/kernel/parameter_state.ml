@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -122,7 +122,7 @@ struct
        let clear x = if projectify then x := X.default ()
        let set x =
          if projectify then state := x (* else there is already an alias *)
-       let clear_some_projects _ _ = false (* parameters cannot be projects *)
+       let clear_some_projects = Datatype.never_any_project
      end)
     (struct
       let name = X.pretty_name
@@ -139,9 +139,12 @@ struct
     Option_state_builder
       (struct
         include X
-        let unique_name = X.option_name
-        let pretty_name =
+        (* Hack for the parsing of the command line: C files are recognized
+           as an argument of the option with name '""' (empty string). *)
+        let option_name =
           if X.option_name = "" then "Input C files" else X.option_name
+        let unique_name = option_name
+        let pretty_name = option_name
        end)
 
   module D = Datatype

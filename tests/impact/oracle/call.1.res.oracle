@@ -1,0 +1,53 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/impact/call.i (no preprocessing)
+[impact] beginning analysis
+[value] Analyzing a complete application starting at main2
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  G ∈ {0}
+  X ∈ {0}
+[value] computing for function call_test <- main2.
+        Called from tests/impact/call.i:36.
+[value] computing for function test <- call_test <- main2.
+        Called from tests/impact/call.i:30.
+[value] computing for function p1 <- test <- call_test <- main2.
+        Called from tests/impact/call.i:16.
+[value] using specification for function p1
+[value] Done for function p1
+[value] computing for function p2 <- test <- call_test <- main2.
+        Called from tests/impact/call.i:16.
+tests/impact/call.i:16:[kernel] warning: Neither code nor specification for function p2, generating default assigns from the prototype
+[value] using specification for function p2
+[value] Done for function p2
+[value] Recording results for test
+[value] Done for function test
+[value] Recording results for call_test
+[value] Done for function call_test
+[value] Recording results for main2
+[value] done for function main2
+[pdg] computing for function main2
+[from] Computing for function call_test
+[from] Computing for function test <-call_test
+[from] Computing for function p1 <-test <-call_test
+[from] Done for function p1
+[from] Computing for function p2 <-test <-call_test
+[from] Done for function p2
+[from] Done for function test
+[from] Done for function call_test
+[pdg] done for function main2
+[pdg] computing for function call_test
+[pdg] done for function call_test
+[pdg] computing for function test
+[pdg] done for function test
+[pdg] computing for function p1
+[pdg] done for function p1
+[pdg] computing for function p2
+[pdg] done for function p2
+[impact] impacted statements of stmt(s) 16 are:
+           tests/impact/call.i:16 (sid 2): if(X) <..>
+           tests/impact/call.i:16 (sid 3): p1(1);
+           tests/impact/call.i:16 (sid 4): p2(0);
+           tests/impact/call.i:30 (sid 12): test();
+           tests/impact/call.i:36 (sid 17): call_test();
+[impact] analysis done

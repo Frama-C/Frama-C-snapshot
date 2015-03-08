@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -38,46 +38,44 @@ end
 
 module Dfs = Graph.Traverse.Dfs(G)
 
-module LocalSlevelId = State_builder.SharedCounter(struct
-  let name = "Local_slevel.LocalSlevelId"
-end)
+(* We use the following encoding to store the directives in the AST
+   [slevel i] => predicate <i = i>
+   [slevel default] => predicate <True> *)
 
-module LocalSlevelAnnots =
-  State_builder.Int_hashtbl
-    (Datatype.Option(Datatype.Int))
-    (struct
-      let name = "Local_slevel.LocalSlevelAnnots"
-      let dependencies = [Ast.self]
-      let size = 17
-     end)
-(* Link this state to the AST. Otherwise, it gets removed when parsing hooks
-   (such as loop unrolling) are used. *)
-let () = Ast.add_linked_state LocalSlevelAnnots.self
-(* TODO: it would be great to be able to add annotations dynamically during
-   analysis. We must find to allow the user to fill this table. *)
-
-let retrieve_annot i =
-  try LocalSlevelAnnots.find i
-  with Not_found -> assert false (*This table is always filled at parsing time*)
-
+let retrieve_annot lp =
+  match lp with
+  | [{ip_content = Prel (_, {term_node = TConst (Integer (i, _))}, _)}] ->
+    Some (Integer.to_int i)
+  | [{ip_content = Ptrue}] -> None
+  | _ -> None (* be kind. Someone is bound to write a visitor that will
+                 simplify our term into something unrecognizable... *)
 
 let () = Logic_typing.register_behavior_extension "slevel"
   (fun ~typing_context:_ ~loc bhv args ->
-    let id = LocalSlevelId.next () in
+    let abort () =
+      Value_parameters.abort ~source:(fst loc) "Invalid slevel directive"
+    in
     let open Logic_ptree in
-    bhv.b_extended <- ("slevel", id, []) :: bhv.b_extended;
-    match args with
+    let p = match args with
     | [{lexpr_node = PLvar "default"}] ->
-      LocalSlevelAnnots.add id None;
+      Logic_const.(new_predicate ptrue)
     | [{lexpr_node = PLconstant (IntConstant i)}] ->
-      LocalSlevelAnnots.add id (Some (int_of_string i))
-    | _ -> Value_parameters.abort ~source:(fst loc)
-      "Invalid slevel directive"
+      begin
+        try
+          let i = int_of_string i in
+          if i < 0 then abort ();
+          let i = Logic_const.tinteger i in
+          Logic_const.(new_predicate (prel (Req, i, i)))
+        with Failure _ -> abort ()
+      end
+    | _ -> abort ()
+    in
+    bhv.b_extended <- ("slevel", 0, [p]) :: bhv.b_extended;
   )
 
 let () = Cil_printer.register_behavior_extension "slevel"
-  (fun _pp fmt (i, _) ->
-    match retrieve_annot i with
+  (fun _pp fmt (_, lp) ->
+    match retrieve_annot lp with
     | None -> Format.pp_print_string fmt "default"
     | Some i -> Format.pp_print_int fmt i
   )
@@ -99,8 +97,8 @@ let extract_slevel_directive s =
     match l with
     | [] -> None
     | {annot_content =
-        AStmtSpec (_, { spec_behavior = [{b_extended = ["slevel", i, _]}]})}
-      :: _ -> Some (retrieve_annot i)
+        AStmtSpec (_, { spec_behavior = [{b_extended = ["slevel", _, lp]}]})}
+      :: _ -> Some (retrieve_annot lp)
     | _ :: q -> find_one q
   in
   find_one (Annotations.code_annot s)
@@ -171,9 +169,7 @@ module ForKf = Kernel_function.Make_Table
   (struct
     let size = 17
     let dependencies =
-      [LocalSlevelAnnots.self;
-       Value_parameters.SemanticUnrollingLevel.self;
-       Value_parameters.ShowSlevel.self]
+      [Ast.self; Value_parameters.SemanticUnrollingLevel.self;]
     let name = "Value.Local_slevel.ForKf"
    end)
 

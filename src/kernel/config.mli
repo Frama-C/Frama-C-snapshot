@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -70,6 +70,13 @@ val preprocessor: string
       else use the built-in default from autoconf. Usually this is
       "gcc -C -E -I."
       @since Oxygen-20120901 *)
+
+val preprocessor_is_gnu_like: bool
+  (** whether the default preprocessor accepts the same options as gcc
+      (i.e. is either gcc or clang), when this is the case, the default
+      command line for pre-processing contains more options.
+      @since Sodium-20150201
+   *)
 
 val preprocessor_keep_comments: bool
   (** [true] if the default preprocessor selected during compilation is

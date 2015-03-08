@@ -1,0 +1,28 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/saveload/multi_project.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  
+[value] computing for function f <- main.
+        Called from tests/saveload/multi_project.i:14.
+[value] Recording results for f
+[value] Done for function f
+tests/saveload/multi_project.i:15:[value] Assertion got status valid.
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function f:
+  __retres ∈ {4}
+[value] Values at end of function main:
+  x ∈ {2}
+  y ∈ {4}
+  __retres ∈ {8}
+[kernel] Checking "foo"
+[kernel] Checking "foobar"
+[kernel] Checking "default"
+[kernel] Checking "foo"
+[kernel] Checking "foobar"
+[kernel] Checking "default"
+[kernel] Checking "bar"

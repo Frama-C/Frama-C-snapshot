@@ -1,0 +1,28 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/pointer_int_cast.i (no preprocessing)
+[value] Analyzing a complete application starting at g
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  q ∈ {0}
+  x ∈ {0}
+  y ∈ {0}
+[value] Recording results for g
+[value] done for function g
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function g:
+  q ∈ {{ &y }}
+  y ∈ {0}
+  i ∈ {{ (int)&y }}
+[from] Computing for function g
+[from] Done for function g
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function g:
+  q FROM y
+  y FROM x; y
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function g:
+          q; y; i
+[inout] Inputs for function g:
+          q; x; y

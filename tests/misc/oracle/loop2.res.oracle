@@ -1,0 +1,44 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/loop2.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  i ∈ {0}
+  j ∈ {0}
+  k ∈ {0}
+  l ∈ {0}
+  n ∈ {0}
+  r ∈ {0}
+  G[0..4] ∈ {0}
+  Reg5 ∈ {0}
+tests/misc/loop2.i:8:[value] entering loop for the first time
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  i ∈ {5}
+  n ∈ {5}
+  G[0].a ∈ {0; 55; 56; 57; 58; 59}
+   [0].b ∈ {0; 57; 58; 59; 60; 61}
+   [1].a ∈ {0; 55; 56; 57; 58; 59}
+   [1].b ∈ {0; 57; 58; 59; 60; 61}
+   [2].a ∈ {0; 55; 56; 57; 58; 59}
+   [2].b ∈ {0; 57; 58; 59; 60; 61}
+   [3].a ∈ {0; 55; 56; 57; 58; 59}
+   [3].b ∈ {0; 57; 58; 59; 60; 61}
+   [4].a ∈ {0; 55; 56; 57; 58; 59}
+   [4].b ∈ {0; 57; 58; 59; 60; 61}
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  i FROM \nothing
+  n FROM \nothing
+  G[0..4] FROM \nothing (and SELF)
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          i; n; G[0..4]
+[inout] Inputs for function main:
+          i; n

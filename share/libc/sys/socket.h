@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2014                                               */
+/*  Copyright (C) 2007-2015                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -85,6 +85,7 @@ struct msghdr {
 #define AF_HYLINK       15              /* NSC Hyperchannel */
 #define AF_APPLETALK    16              /* AppleTalk */
 #define AF_NETBIOS      17              /* NetBios-style addresses */
+#define AF_INET6        18              /* IP version 6 */
 
 #define AF_MAX          32
 /*
@@ -138,6 +139,12 @@ int     getpeername(int, struct sockaddr *, socklen_t *);
 int     getsockname(int, struct sockaddr *, socklen_t *);
 int     getsockopt(int, int, int, void *, socklen_t *);
 int     listen(int, int);
+
+/* Flags for passing to recv() and others */
+#define MSG_OOB 1
+#define MSG_PEEK 2
+#define MSG_DONTROUTE 4
+#define MSG_DONTWAIT 64
 
 /*@ 
   ensures -1 <= \result <= length ;

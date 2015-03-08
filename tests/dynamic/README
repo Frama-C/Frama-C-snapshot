@@ -1,0 +1,30 @@
+This file is an empty file in order to test dynamic plugin engine.
+For this purpose, we test four part in this engine:
+I.   Test path loading engine
+II.  Test file loading engine
+III. Test registering engine 
+IV.  Test dynamic command line engine
+
+I.   Test path loading engine 
+    In the dynamic plugin engine, we can add a path to load modules, but this 
+  path must be a directory path.So we tempt to add a file path and a unknown 
+  path in order to raise errors. We tempt to add a directory path to check if 
+  the engine runs.
+ 
+II.  Test file loading engine
+    If the path loading engine pass tests, we will make sure that only file with
+  extension .cmo and .cmi are loaded by the engine. So we tempt to load files 
+  ".cm[oi]" and "<all_names>.cm[oi]<all_names>". I propose to test with empty 
+  file to prevent Dynlink error. 
+  Warning: with toplevel, loaded files are only .cm[oi] without _gui.cm[oi] 
+  files
+ 
+III. Test registering engine
+    In this part, we try to register some functions with dynamic engine and
+  to apply them. For this purpose, we test with a mutual recursive function
+  separated in two files. This test is also an example of how to write a good 
+  dynamic plugin.
+ 
+IV.  Test dynamic command line engine
+    Similar to the previous part but in this case we test command line 
+  registering engine.

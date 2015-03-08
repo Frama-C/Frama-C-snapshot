@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -33,7 +33,7 @@ module DoCalledPrecond : Parameter_sig.Bool
 
 module Trivial : Parameter_sig.Bool
 module Warn : Parameter_sig.Bool
-module FunctionSelection : Parameter_sig.String_set
+module FunctionSelection: Parameter_sig.Kernel_function_set
 
 val warn: ?source:Lexing.position -> ('a, Format.formatter, unit) format -> 'a
 

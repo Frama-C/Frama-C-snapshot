@@ -1,0 +1,47 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/undef_behavior_bts1059.i (no preprocessing)
+tests/misc/undef_behavior_bts1059.i:15:[kernel] warning: Unspecified sequence with side effect:
+                  /* a <- 
+                  */
+                  
+                  if (b) tmp = 1;
+                  else {
+                    a ++;
+                    if (a == 2) tmp = 1; else tmp = 0;
+                  }
+                  /* a <-  */
+                  a = tmp;
+tests/misc/undef_behavior_bts1059.i:23:[kernel] warning: Unspecified sequence with side effect:
+                  /*  <-  */
+                  tmp_4 = a;
+                  /* a <-  */
+                  a ++;
+                  /* a <- tmp_4 */
+                  a = tmp_4;
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  c ∈ [--..--]
+tests/misc/undef_behavior_bts1059.i:15:[kernel] warning: undefined multiple accesses in expression. assert \separated(&a, &a);
+tests/misc/undef_behavior_bts1059.i:23:[kernel] warning: undefined multiple accesses in expression. assert \separated(&a, &a);
+[value] Recording results for main
+[value] done for function main
+tests/misc/undef_behavior_bts1059.i:15:[value] Assertion 'Value,separation' got final status invalid.
+tests/misc/undef_behavior_bts1059.i:23:[value] Assertion 'Value,separation' got final status invalid.
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  a ∈ {1}
+  b ∈ {2}
+  __retres ∈ {0}
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          a; b; tmp_0; tmp_1; tmp_2; tmp_3; __retres
+[inout] Inputs for function main:
+          c

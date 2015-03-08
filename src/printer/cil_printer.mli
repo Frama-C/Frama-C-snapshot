@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -39,7 +39,9 @@ val register_behavior_extension:
   string -> 
   (Printer_api.extensible_printer_type -> Format.formatter -> 
    int * Cil_types.identified_predicate list -> unit) -> unit
-(** Register a pretty-printer used for behavior extensione. *)
+(** Register a pretty-printer used for behavior extension. 
+    @plugin development guide
+ *)
 
 val state: Printer_api.state
 

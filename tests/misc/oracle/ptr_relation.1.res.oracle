@@ -1,0 +1,39 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/ptr_relation.i (no preprocessing)
+[value] Analyzing a complete application starting at main1
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  i ∈ {0}
+  j ∈ {0}
+  x ∈ {0}
+  k ∈ {0}
+  l ∈ {0}
+  m ∈ {0}
+  n ∈ {0}
+  d ∈ {0}
+  a ∈ {0}
+  b ∈ {0}
+  ptr ∈ {0}
+  tab_ptr_fct2[0] ∈ {{ &f2 }}
+              [1] ∈ {{ &g2 }}
+[value] Recording results for main1
+[value] done for function main1
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main1:
+  i ∈ {3; 4}
+  j ∈ {-1; 0; 1}
+  x ∈ {3; 4}
+[from] Computing for function main1
+[from] Done for function main1
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main1:
+  i FROM c
+  j FROM c
+  x FROM c
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main1:
+          i; j; x
+[inout] Inputs for function main1:
+          i; x

@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2014                                               */
+/*  Copyright (C) 2007-2015                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -63,46 +63,79 @@ long int atol(const char *nptr);
 long long int atoll(const char *nptr);
 
 /* See ISO C: 7.20.1.3 to complete these specifications */
-/*@ assigns \result,*endptr \from nptr[0..],nptr ; */
+
+/*@ assigns \result \from nptr[0..]; 
+    assigns *endptr \from nptr, nptr[0..]; 
+*/
 double strtod(const char * restrict nptr,
      char ** restrict endptr);
-/*@ assigns \result,*endptr \from nptr[0..],nptr ; */
+
+/*@ assigns \result \from nptr[0..]; 
+    assigns *endptr \from nptr, nptr[0..]; 
+*/
 float strtof(const char * restrict nptr,
      char ** restrict endptr);
-/*@ assigns \result,*endptr \from nptr[0..],nptr ; */
+
+/*@ assigns \result \from nptr[0..]; 
+    assigns *endptr \from nptr, nptr[0..]; 
+*/
 long double strtold(const char * restrict nptr,
      char ** restrict endptr);
 
 /* TODO: See ISO C 7.20.1.4 to complete these specifications */
-/*@ assigns \result,*endptr \from nptr[0..]; */
+/*@ assigns \result \from nptr[0..], base; 
+    assigns *endptr \from nptr, nptr[0..], base; 
+*/
 long int strtol(
      const char * restrict nptr,
      char ** restrict endptr,
      int base);
-/*@ assigns \result,*endptr \from nptr[0..]; */
+
+/*@ assigns \result \from nptr[0..], base; 
+    assigns *endptr \from nptr, nptr[0..], base; 
+*/
 long long int strtoll(
      const char * restrict nptr,
      char ** restrict endptr,
      int base);
-/*@ assigns \result,*endptr \from nptr[0..]; */
+
+/*@ assigns \result \from nptr[0..], base; 
+    assigns *endptr \from nptr, nptr[0..], base; 
+*/
 unsigned long int strtoul(
      const char * restrict nptr,
      char ** restrict endptr,
      int base);
-/*@ assigns \result,*endptr \from nptr[0..]; */
+
+/*@ assigns \result \from nptr[0..], base; 
+    assigns *endptr \from nptr, nptr[0..], base; 
+*/
 unsigned long long int strtoull(
      const char * restrict nptr,
      char ** restrict endptr,
      int base);
 
-int __fc_random_counter __attribute__((unused));
+int __fc_random_counter __attribute__((unused)) __attribute__((FRAMA_C_MODEL));
 const unsigned long __fc_rand_max = __FC_RAND_MAX;
 /* ISO C: 7.20.2 */
 /*@ assigns \result \from __fc_random_counter ;
-  @ assigns __fc_random_counter ;
+  @ assigns __fc_random_counter \from __fc_random_counter ;
   @ ensures 0 <= \result <= __fc_rand_max ;
 */
 int rand(void);
+
+#ifdef _POSIX_C_SOURCE
+# if _POSIX_C_SOURCE >= 200112L
+/*@ assigns \result \from __fc_random_counter ;
+  @ assigns __fc_random_counter \from __fc_random_counter ;
+  @ ensures 0 <= \result < 2147483648 ;
+*/
+long int lrand48 (void);
+
+/*@ assigns __fc_random_counter \from seed ; */
+void srand48 (long int seed);
+# endif
+#endif
 
 /*@ assigns __fc_random_counter \from seed ; */
 void srand(unsigned int seed);
@@ -110,7 +143,7 @@ void srand(unsigned int seed);
 /* ISO C: 7.20.3.1 */
 void *calloc(size_t nmemb, size_t size);
 
-/*@ ghost extern int __fc_heap_status; */
+/*@ ghost extern int __fc_heap_status __attribute__((FRAMA_C_MODEL)); */
 /*@ axiomatic dynamic_allocation {
   @ predicate is_allocable(size_t n) // Can a block of n bytes be allocated?
   @ reads __fc_heap_status; 
@@ -187,10 +220,17 @@ void exit(int status);
 */
 void _Exit(int status);
 
-/*@ assigns \nothing ;
+/*@
+  assigns \result \from name;
   ensures \result == \null || \valid(\result) ;
  */
 char *getenv(const char *name);
+
+int putenv(char *string);
+
+int setenv(const char *name, const char *value, int overwrite);
+
+int unsetenv(const char *name);
 
 /*@
   assigns \nothing;

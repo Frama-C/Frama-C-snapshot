@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -35,7 +35,10 @@ end
 module Make_without_cardinal
   (K : Key)
   (Top_Param : Lattice_type.Lattice_Hashconsed_Set with type O.elt=K.t)
-  (V : Lattice_type.Full_Lattice)
+  (V : sig
+    include Lattice_type.Full_Lattice
+    val pretty_debug: t Pretty_utils.formatter
+  end)
   (Comp: sig (** See {!Hptmap} for the documentation of this option *)
      val e: bool
      val f : K.t -> V.t -> bool
@@ -43,11 +46,6 @@ module Make_without_cardinal
      val default:bool
   end)
   (L: sig val v : (K.t * V.t) list list end)
-  (Null_Behavior: sig
-    val null : K.t
-    val is_null : K.t -> bool
-    val zone: bool
-  end)
   =
 struct
 
@@ -56,7 +54,7 @@ struct
       (K)
       (V)
       (Comp)
-      (struct let v = [] :: [Null_Behavior.null,V.top]::L.v end)
+      (struct let v = [] :: L.v end)
       (struct let l = [ Ast.self ] end) (* TODO: this should be an argument of the functor *)
   let () = Ast.add_monotonic_state M.self
 
@@ -65,9 +63,8 @@ struct
 
   type map_t = M.t
   type tt = Top of Top_Param.t * Origin.t | Map of map_t
-    (* Invariant :
-       [Top (s,_)] ok if [Top_Param.null] is not in [s]
-       [Top (emptyset,_)] is injected to [Map (Null,Top)] *)
+  (** No function of this module creates a [Top] out of a [Map]. [Top] are
+      always derived from an existing [Top] value. *)
 
   let top = Top(Top_Param.top, Origin.top)
 
@@ -86,26 +83,15 @@ struct
     then M.remove k m
     else M.add k v m
 
+  let add k v m = match m with
+    | Top (Top_Param.Top, _) -> m
+    | Top (Top_Param.Set s, o) -> Top (Top_Param.(inject (O.add k s)), o)
+    | Map m -> Map (add_or_bottom k v m)
+
   let bottom = Map M.empty
 
   let inject k v =
     Map (add_or_bottom k v M.empty)
-
-  let top_int = inject Null_Behavior.null V.top
-
-  let inject_top_origin origin t =
-    if Null_Behavior.zone
-    then
-      Top (Top_Param.inject t, origin)
-    else
-      let s = Top_Param.O.remove Null_Behavior.null t in
-      if Top_Param.O.is_empty s
-      then top_int
-      else Top (Top_Param.inject s, origin)
-
-  let is_in_topset set elt =
-    (Null_Behavior.is_null elt && not Null_Behavior.zone) ||
-      Top_Param.O.mem elt set
 
   let pretty fmt m =
     match m with
@@ -122,10 +108,22 @@ struct
           (fun fmt (k, v) -> Format.fprintf fmt "%a -> %a" K.pretty k V.pretty v)
           fmt m
 
+  let pretty_debug fmt m =
+    match m with
+    | Top (t, a) ->
+        Format.fprintf fmt "@[<hov 2>{{ mix of %a.@ Origin: %a}}@]"
+          Top_Param.pretty t
+          Origin.pretty a
+    | Map m ->
+      M.pretty_debug fmt m
+
 
   let find_or_bottom k m =
     try
-      M.find k m
+      M.find_check_missing k m (* locations are usually small, so the difference
+        between [M.find] and [M.find_check_missing] is usually unimportant.
+        However, [find_check_missing] is more efficient when we query NULL,
+        which is a very common case. *)
     with
       Not_found -> V.bottom
 
@@ -145,9 +143,6 @@ struct
     (M.fold (fun k _ acc -> Top_Param.O.add k acc) map Top_Param.O.empty)
 
   exception Error_Top
-
-  let decide_none _k v = v
-  let decide_some v1 v2 = V.join v1 v2
 
   let equal m1 m2 =
     m1 == m2 ||
@@ -186,9 +181,12 @@ struct
   let check_join_assert = ref 0
 
   let join =
+    let decide_none _k v = v in
+    let decide_some v1 v2 = V.join v1 v2 in
+    let name = Printf.sprintf "Map_Lattice(%s).join" V.name in
     let symmetric_merge =
       M.symmetric_merge
-        ~cache:("map_Lattice", ()) ~decide_none ~decide_some
+        ~cache:(name, ()) ~empty_neutral:true ~decide_none ~decide_some
     in
     fun m1 m2 ->
       if m1 == m2 then m1 else
@@ -198,15 +196,12 @@ struct
           | Top (Top_Param.Top,_) as x, Map _
           | Map _, (Top (Top_Param.Top,_) as x) ->
               x
-          | Top (Top_Param.Set t,a), Map m | Map m, Top (Top_Param.Set t,a) ->
-              inject_top_origin a
-                (M.fold
-                   (fun k _ acc -> Top_Param.O.add k acc)
-                   m
-                   t)
+          | Top (Top_Param.Set t, o), Map m | Map m, Top (Top_Param.Set t, o) ->
+            let s = M.fold (fun k _ acc -> Top_Param.O.add k acc) m t in
+            Top (Top_Param.inject s, o)
           | Map mm1, Map mm2 ->
               let mresult = symmetric_merge mm1 mm2 in
-              assert (
+              assert (true ||
                 let n = succ !check_join_assert in
                 check_join_assert := n;
                 n land 63 <> 0  ||
@@ -219,9 +214,10 @@ struct
                   else begin
                     let pp_one fmt mm =
                       Format.fprintf fmt "%a (%d;%x)@."
-                        M.pretty mm (M.hash mm) (Extlib.address_of_value mm)
+                        M.pretty_debug mm (M.hash mm)
+                        (Extlib.address_of_value mm)
                     in
-                    Format.printf "Map_Lattice.join incorrect@. %a+%a->@.#%a&%a"
+                    Format.printf "Map_Lattice.join incorrect@. %a+%a->@. %a/%a"
                       pp_one mm1 pp_one mm2 pp_one mresult pp_one mr';
                     false;
                   end);
@@ -249,19 +245,24 @@ struct
   (** Over-approximation of the filter (in the case [Top Top])*)
   let filter_base f m =
     match m with
-    | Top (t, a) ->
-        (try
-           inject_top_origin a
-             (Top_Param.fold
-                (fun v acc -> if f v then Top_Param.O.add v acc else acc)
-                t
-                Top_Param.O.empty)
-         with Top_Param.Error_Top -> top)
+    | Top (t, o) -> begin
+      try
+        let add v acc = if f v then Top_Param.O.add v acc else acc in
+        let s = Top_Param.fold add t Top_Param.O.empty in
+        Top (Top_Param.inject s, o)
+      with Top_Param.Error_Top -> top
+    end
     | Map m ->
         Map (M.fold (fun k _ acc -> if f k then acc else M.remove k acc) m m)
 
-  let meet m1 m2 =
-    if m1 == m2 then m1 else
+  let meet =
+    let decide_some _k v1 v2 =
+      let r = V.meet v1 v2 in
+      if V.equal V.bottom r then None else Some r
+    in
+    let name = Printf.sprintf "Map_Lattice(%s).meet" V.name in
+    let merge = M.symmetric_inter ~cache:(name, ()) ~decide_some in
+    fun m1 m2 ->
       match m1, m2 with
       | Top (x1, a1), Top (x2, a2) ->
           let meet_topparam = Top_Param.meet x1 x2 in
@@ -270,24 +271,24 @@ struct
       | (Map _ as x),Top (Top_Param.Top, _) -> x
       | Top (Top_Param.Set set, _), (Map _ as x)
       | (Map _ as x), Top (Top_Param.Set set, _) ->
-          filter_base (fun v -> is_in_topset set v) x
-      | Map m1, Map m2 ->
-          let merge_key k v acc =
-            add_or_bottom k (V.meet v (find_or_bottom k m2)) acc
-          in
-          Map (M.fold merge_key m1 M.empty)
+          filter_base (fun v -> Top_Param.O.mem v set) x
+      | Map m1, Map m2 -> Map (merge m1 m2)
 
-
-  let narrow m1 m2 =
+  let narrow =
     let compute_origin_narrow x1 a1 x2 a2 =
       if Top_Param.equal x1 x2 then Origin.narrow a1 a2 (* equals a1 currently*)
       else if Top_Param.is_included x1 x2 then a1
       else if Top_Param.is_included x2 x1 then a2
       else Origin.top
     in
-    let r =
-      if m1 == m2 then m1 else
-        match m1, m2 with
+    let decide_some _k v1 v2 =
+      let r = V.narrow v1 v2 in
+      if V.equal V.bottom r then None else Some r
+    in
+    let name = Printf.sprintf "Map_Lattice(%s).narrow" V.name in
+    let merge = M.symmetric_inter ~cache:(name, ()) ~decide_some in
+    fun m1 m2 ->
+      match m1, m2 with
         | Top (x1, a1), Top (x2, a2) ->
             Top (Top_Param.narrow x1 x2,
                  compute_origin_narrow x1 a1 x2 a2)
@@ -295,24 +296,8 @@ struct
         | (Map _ as x),Top (Top_Param.Top, _) -> x
         | Top (Top_Param.Set set, _), (Map _ as x)
         | (Map _ as x), Top (Top_Param.Set set, _) ->
-            filter_base (fun v -> is_in_topset set v) x
-        | Map m1, Map m2 ->
-            let merge_key k v acc =
-              add_or_bottom k (V.narrow v (find_or_bottom k m2)) acc in
-            Map (M.fold merge_key m1 M.empty)
-    in
-(*     Format.printf "Map_Lattice.narrow %a and %a ===> %a@\n"
-       pretty x pretty y pretty r;  *)
-    r
-
-  let equal m1 m2 =
-    m1 == m2 ||
-      match m1, m2 with
-      | Top (s, a), Top (s', a') ->
-          Top_Param.equal s s' && Origin.equal a a'
-      | Map m1, Map m2 ->
-          M.equal m1 m2
-      | _ -> false
+            filter_base (fun v -> Top_Param.O.mem v set) x
+        | Map m1, Map m2 -> Map (merge m1 m2)
 
   let is_included =
     let name =
@@ -323,7 +308,7 @@ struct
     let decide_both _ v1 v2 = V.is_included v1 v2 in
     let decide_fast = M.decide_fast_inclusion in
     let map_is_included =
-      M.binary_predicate (M.PersistentCache name) M.UniversalPredicate
+      M.binary_predicate (Hptmap.PersistentCache name) M.UniversalPredicate
         ~decide_fast ~decide_fst ~decide_snd ~decide_both
     in
     fun m1 m2 ->
@@ -333,36 +318,30 @@ struct
              Origin.is_included a a'
          | Map _, Top (Top_Param.Top, _) -> true
          | Map m, Top (Top_Param.Set set, _) ->
-             M.for_all (fun k _ -> is_in_topset set k) m
+             M.for_all (fun k _ -> Top_Param.O.mem k set) m
          | Top _, Map _ -> false
          | Map m1, Map m2 -> map_is_included m1 m2)
 
   let join_and_is_included a b =
     let ab = join a b in (ab, equal a b)
 
-
   (* under-approximation of union *)
-  let link m1 m2 =
-    if is_included m1 m2 then m2      (* exact *)
-    else if is_included m2 m1 then m1 (* exact *)
-    else match m1, m2 with
+  let link =
+    let decide_none _k v = v in
+    let decide_some v1 v2 = V.link v1 v2 in
+    let name = Printf.sprintf "Map_Lattice(%s).link" V.name in
+    let merge =
+      M.symmetric_merge
+        ~cache:(name, ()) ~empty_neutral:true ~decide_none ~decide_some
+    in
+    fun m1 m2 -> match m1, m2 with
     | Top _, Map _ -> m1 (* may be approximated *)
     | Map _, Top _ -> m2 (* may be approximated *)
     | Top (s,_), Top (s',_) ->
         if Top_Param.is_included s s' then m2 (* may be approximated *)
         else if Top_Param.is_included s' s then m1 (* may be approximated *)
         else m1  (* very approximated *)
-    | Map mm1, Map mm2 ->
-        let map =
-          M.fold
-            (fun k v1 acc ->
-               let v2 = find_or_bottom k mm2 in
-               let link_v = V.link v1 v2 in
-               M.add k link_v acc)
-            mm1
-            mm2
-        in
-        Map map
+    | Map mm1, Map mm2 -> Map (merge mm1 mm2)
 
   let intersects =
     let name =
@@ -370,7 +349,7 @@ struct
     in
     let map_intersects =
       M.symmetric_binary_predicate
-        (M.PersistentCache name) M.ExistentialPredicate
+        (Hptmap.PersistentCache name) M.ExistentialPredicate
 	~decide_fast:M.decide_fast_intersection
 	~decide_one:(fun _ _ -> false)
 	~decide_both:(fun _ x y -> V.intersects x y)
@@ -378,11 +357,11 @@ struct
     fun mm1 mm2 ->
       match mm1, mm2 with
       | Top (s1, _), Top (s2, _) ->
-        not Null_Behavior.zone || Top_Param.intersects s1 s2
+        Top_Param.intersects s1 s2
       | Top (Top_Param.Top, _), Map m | Map m, Top (Top_Param.Top, _) ->
         not (M.equal m M.empty)
       | Top (Top_Param.Set s, _), Map m | Map m, Top (Top_Param.Set s, _) ->
-        M.exists (fun b _ -> is_in_topset s b) m
+        M.exists (fun b _ -> Top_Param.O.mem b s) m
       | Map m1, Map m2 -> map_intersects m1 m2
 
   (** if there is only one key [k] in map [m], then returns the pair [k,v]
@@ -427,10 +406,7 @@ struct
 
   let fold_bases f m acc =
     match m with
-      Top(Top_Param.Set t, _) ->
-        let acc = if Null_Behavior.zone then acc
-          else f Null_Behavior.null acc
-        in
+    | Top(Top_Param.Set t, _) ->
         Top_Param.O.fold f t acc
     | Top(Top_Param.Top, _) ->
         raise Error_Top
@@ -453,14 +429,8 @@ struct
 
   let fold_topset_ok f m acc =
     match m with
-      Top(Top_Param.Set t, _) ->
-        let acc =
-          if Null_Behavior.zone then acc else f Null_Behavior.null V.top acc
-        in
-        Top_Param.O.fold
-          (fun x acc -> f x V.top acc)
-          t
-          acc
+    | Top(Top_Param.Set t, _) ->
+        Top_Param.O.fold (fun x acc -> f x V.top acc) t acc
     | Top(Top_Param.Top, _) ->
         raise Error_Top
     | Map m ->
@@ -494,7 +464,10 @@ end
 module Make
   (K : Key)
   (Top_Param : Lattice_type.Lattice_Hashconsed_Set with type O.elt=K.t)
-  (V : Lattice_type.Full_AI_Lattice_with_cardinality)
+  (V : sig
+    include Lattice_type.Full_AI_Lattice_with_cardinality
+    val pretty_debug: t Pretty_utils.formatter
+  end)
   (Comp: sig (** See {!Hptmap} for the documentation of this option *)
      val e: bool
      val f : K.t -> V.t -> bool
@@ -502,14 +475,9 @@ module Make
      val default:bool
   end)
   (L: sig val v : (K.t * V.t) list list end)
-  (Null_Behavior: sig
-    val null : K.t
-    val is_null : K.t -> bool
-    val zone: bool
-  end)
   =
 struct
-  include Make_without_cardinal(K)(Top_Param)(V)(Comp)(L)(Null_Behavior)
+  include Make_without_cardinal(K)(Top_Param)(V)(Comp)(L)
 
   type widen_hint = K.t -> V.widen_hint
 
@@ -530,6 +498,7 @@ struct
       ~cache:("", false (* No cache, because of wh *))
       ~decide
       ~idempotent:true
+      ~empty_neutral:true
     in
     fun m1 m2 ->
       match m1, m2 with

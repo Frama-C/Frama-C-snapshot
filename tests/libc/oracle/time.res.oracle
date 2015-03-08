@@ -1,0 +1,29 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/libc/time.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  __fc_time ∈ [--..--]
+  __fc_tz ∈ [--..--]
+[value] computing for function test_gettimeofday <- main.
+        Called from tests/libc/time.c:13.
+[value] computing for function gettimeofday <- test_gettimeofday <- main.
+        Called from tests/libc/time.c:6.
+tests/libc/time.c:6:[kernel] warning: No code nor explicit assigns clause for function gettimeofday, generating default assigns from the specification
+[value] using specification for function gettimeofday
+tests/libc/time.c:6:[value] warning: Completely invalid destination for assigns clause *tz. Ignoring.
+share/libc/sys/time.h:60:[value] Function gettimeofday, behavior tz_not_null: assumes got status invalid; postcondition not evaluated.
+share/libc/sys/time.h:67:[value] Function gettimeofday, behavior tv_and_tz_not_null: assumes got status invalid; postcondition not evaluated.
+[value] Done for function gettimeofday
+tests/libc/time.c:7:[value] Assertion got status valid.
+tests/libc/time.c:8:[value] Assertion got status valid.
+[value] Recording results for test_gettimeofday
+[value] Done for function test_gettimeofday
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function test_gettimeofday:
+  tv ∈ [--..--]
+[value] Values at end of function main:
+  __retres ∈ {0}

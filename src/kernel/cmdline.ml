@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -75,6 +75,8 @@ let journal_enable_ref = ref !Config.is_gui
 let journal_isset_ref = ref false
 let use_obj_ref = ref true
 let use_type_ref = ref true
+
+let last_project_created_by_copy = ref (fun () -> assert false)
 
 (* ************************************************************************* *)
 (** {2 Handling errors} *)
@@ -178,8 +180,8 @@ let exit_code = function
 
 let bail_out_ref = ref (fun _ -> assert false)
 let bail_out () =
-  !bail_out_ref (); (* bail_out_ref must call exit 0 *)
-  assert false
+  !bail_out_ref (); (* bail_out_ref must exit 0 *)
+  Kernel_log.fatal "Cmdline.bail_out must `exit 0'."
 
 let catch_toplevel_run ~f ~quit ~at_normal_exit ~on_error =
   (* both functions below handle errors at exit hooks *)
@@ -259,6 +261,11 @@ let get_option_and_arg option arg =
   with Not_found ->
     option, arg, false
 
+type then_argument =
+  | Default
+  | Last
+  | Name of string
+
 let parse known_options_list then_expected options_list =
   let known_options = Hashtbl.create 17 in
   List.iter (fun (n, s) -> Hashtbl.add known_options n s) known_options_list;
@@ -299,11 +306,11 @@ let parse known_options_list then_expected options_list =
   in
   let rec go unknown_options nb_used = function
     | [] -> unknown_options, nb_used, None
-    | [ "-then" ] when then_expected ->
-      Kernel_log.warning "ignoring last option `-then'";
+    | [ "-then" | "-then-last" as then_name ] when then_expected ->
+      Kernel_log.warning "ignoring last option `%s'." then_name;
       unknown_options, nb_used, None
     | [ "-then-on" ] when then_expected ->
-      raise_error "-then-on" "requires a string as argument"
+      raise_error "-then-on" "requires a string as argument."
     | [ option ] ->
       let unknown, use_arg, is_used =
         parse_one_option unknown_options option ""
@@ -311,9 +318,11 @@ let parse known_options_list then_expected options_list =
       assert (not use_arg);
       unknown, (if is_used then succ nb_used else nb_used), None
     | "-then" :: then_options when then_expected ->
-      unknown_options, nb_used, Some (then_options, None)
+      unknown_options, nb_used, Some (then_options, Default)
+    | "-then-last" :: then_options when then_expected ->
+      unknown_options, nb_used, Some (then_options, Last)
     | "-then-on" :: project_name :: then_options when then_expected ->
-      unknown_options, nb_used, Some (then_options, Some project_name)
+      unknown_options, nb_used, Some (then_options, Name project_name)
     | option :: (arg :: next_options as arg_next) ->
       let unknown, use_arg, is_used =
         parse_one_option unknown_options option arg
@@ -395,7 +404,7 @@ type cmdline_option =
       ohelp: string;
       ovisible: bool;
       ext_help: (unit,Format.formatter,unit) format;
-      setting: option_setting }
+      mutable setting: option_setting }
 
 module Plugin: sig
   type t = private
@@ -409,6 +418,8 @@ module Plugin: sig
   val add_option: string -> group:string -> cmdline_option -> unit
   val add_aliases:
     orig:string -> string -> group:string -> string list -> cmdline_option list
+  val replace_option_setting: 
+    string -> plugin:string -> group:string -> option_setting -> unit
   val find: string -> t
   val find_option_aliases: cmdline_option -> cmdline_option list
   val is_option_alias: cmdline_option -> bool
@@ -510,6 +521,19 @@ end = struct
     try !(Hashtbl.find aliases_tbl o.oname) with Not_found -> []
 
   let is_option_alias o = Option_names.is_option_alias o.oname
+
+  let replace_option_setting option ~plugin ~group setting =
+    if option <> "" then
+      let options_in_group = find_group plugin group in
+      let rec replace = function
+        | [] ->
+          Kernel_log.fatal
+            "no option %s in plugin %s ((group of options %s)."
+            option plugin group
+        | o :: _ when o.oname = option -> o.setting <- setting
+        | _ :: l -> replace l
+      in
+      replace !options_in_group
 
 end
 
@@ -673,6 +697,8 @@ let add_aliases orig ~plugin ~group stage aliases =
   in
   List.iter add l
 
+let replace_option_setting = Plugin.replace_option_setting
+
 module On_Files = Hook.Build(struct type t = string list end)
 let use_cmdline_files = On_Files.extend
 
@@ -705,6 +731,8 @@ let nb_given_options () =
        !nb_used_relevant "function `nb_given_options' called too early");
   !nb_used_ref
 
+let load_all_plugins = ref (fun () -> assert false)
+
 let rec play_in_toplevel on_from_name nb_used play options =
   let options, nb_used_extended, then_options_extended =
     Extended_Stage.parse options
@@ -735,10 +763,20 @@ let rec play_in_toplevel on_from_name nb_used play options =
   play ();
   match then_options_extended with
   | None -> ()
-  | Some(options, project_name) ->
-    on_from_name
-      project_name
-      (fun () -> play_in_toplevel on_from_name nb_used play options)
+  | Some(options, then_argument) ->
+    match then_argument with
+    | Default -> play_in_toplevel on_from_name nb_used play options
+    | Last ->
+      (match !last_project_created_by_copy () with
+      | None -> Kernel_log.abort "no known last created project."
+      | Some p ->
+        on_from_name
+          p
+          (fun () -> play_in_toplevel on_from_name nb_used play options))
+    | Name p ->
+      on_from_name
+        p
+        (fun () -> play_in_toplevel on_from_name nb_used play options)
 
 let parse_and_boot on_from_name get_toplevel play =
   let options, nb_used_early, then_options_early =
@@ -748,6 +786,7 @@ let parse_and_boot on_from_name get_toplevel play =
   let options, nb_used_extending, then_options_extending =
     Extending_Stage.parse options
   in
+  !load_all_plugins ();
   assert (then_options_extending = None);
   get_toplevel
     ()

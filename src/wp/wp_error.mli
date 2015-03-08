@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -29,8 +29,8 @@ val name : string list -> string
 open Cil_types
 
 exception Error of string * string
-  (** To be raised a feature of C/ACSL cannot be supported by a memory model
-      or is not implemented, or ... *)
+(** To be raised a feature of C/ACSL cannot be supported by a memory model
+    or is not implemented, or ... *)
 
 val set_model : string -> unit
 

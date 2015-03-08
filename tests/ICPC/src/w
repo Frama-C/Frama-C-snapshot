@@ -1,0 +1,249 @@
+The following study was made with the April development version of Frama-C, which
+differs from the last released version in a number of bugfixes ([list of reported issues|http://bts.frama-c.com/|en]) and minor new
+features. Specifically, we used the value analysis and dependencies
+computations (documented in [this manual|http://frama-c.com/download/frama-c-value-analysis.pdf|en]) and
+[code navigation features|http://frama-c.com/scope.html|en]. The latter reuse
+building blocks that were implemented for [slicing|http://frama-c.com/slicing.html|en].
+
+%%%
+
+The first step, as documented in the tutorial (also part of the [manual|http://frama-c.com/download/frama-c-value-analysis.pdf|en]), is to
+identify library functions the program depends on:
+
+///
+frama-c impls.c main.c roco.c sim.c main_testcase_1.c -metrics -cpp-command "gcc -DTESTCASE=1 -C -E"
+
+...
+Undefined functions (10):
+ __builtin_inf  (15 calls); __builtin_inff  (15 calls); fprintf  (2 calls);
+ __swbuf  (10 calls); __builtin_fabsf  (15 calls); exp  (1 call);
+ __builtin_infl  (15 calls); __builtin_fabsl  (15 calls);
+ __builtin_fabs  (15 calls); fabs  (9 calls); 
+...
+///
+
+The host computer's standard headers have been used, hence the
+confusing @@__builtin_@@ prefixes. Better not rely on them: the robot's
+operating system probably bears little resemblance to the host's.
+Placeholder headers provided with Frama-C can be used instead:
+
+///
+frama-c impls.c main.c roco.c sim.c main_testcase_1.c -metrics -cpp-command "gcc -DTESTCASE=1 -C -E -nostdinc -I. -I/usr/local/share/frama-c/libc"
+
+...
+Undefined functions (3):
+ exp  (1 call); fabs  (9 calls); fprintf  (2 calls); 
+...
+///
+
+Standard functions @@exp@@ and @@fabs@@ are missing form the Carbon release, but
+have been added to the development version. With the latter, one 
+simply needs to list @@/usr/local/share/frama-c/libc/math.c@@ as a file of
+the analysis project. Calls to @@fprintf()@@, that do not have any
+repercussions on the continuing execution, can be replaced with
+calls to the @@Frama_C_show_each()@@ built-in.
+
+We are now ready to launch the value analysis.
+Since we anticipate testcases 2 and 3 to be very similar, we write a short
+script:
+
+///
+#!/bin/bash
+
+export CPP="gcc -Dfprintf=Frama_C_show_each -DTESTCASE=$1 -C -E -nostdinc -I. -I/usr/local/share/frama-c/libc"
+FILES="/usr/local/share/frama-c/libc/math.c impls.c main.c roco.c sim.c"
+TESTCASE="main_testcase_$1.c"
+
+exec frama-c ${FILES} ${TESTCASE} -val -slevel 50000 -val-signed-overflow-alarms -calldeps -save state$1
+///
+
+About ten minutes after running @@script.sh 1 > log1@@,
+we obtain a log (long:\~70MiB) and a state (\~1MiB).
+The log is long because it contains progression messages that are only intended to help identify
+analysis issues, and can be ignored most of the time. The state contains all the information
+that has been computed about the program, including values of variables,
+in a very compact format.
+
+%%%
+
+The analysis is completely unrolled (because of option @@-slevel 50000@@)
+and precise until the end. This means that the value analysis has in
+effect simulated the execution of the program with the inputs
+provided in @@main_testcase_1.c@@.
+
+The log, despite its size, __does not warn about any of the undefined or unspecified behaviors__ that the
+value analysis is guaranteed to
+identify (uninitialized access, use of a dangling pointer,
+overflows in signed integer arithmetics, invalid memory access, invalid
+comparison of pointers, division by zero,
+undefined logical shift, overflows in conversions from
+floating-point to integer, infinite or NaN resulting from a
+floating-point operation, undefined side-effects in expressions). 
+This is very important. It means that we can rest assured
+that the strange behavior in the execution we are going to investigate
+is not caused by the misuse of one of C's dangerous
+constructs. Nothing would be more frustating than to track the value
+of a variable which, according to the source code, is not supposed to
+change, but is modified through a buffer overflow.  The value analysis
+guarantees we won't have to do that for this execution. 
+
+%%%
+
+The values computed and stored in @@state1@@ can be observed in
+Frama-C's GUI, but the GUI can also be used to identify the definition
+site(s) of a variable. Here, it is the value of variable @@RoCo_engineVoltage@@
+as displayed by the call to @@fprintf()@@ (that we transformed into a call
+to @@Frama_C_show_each()@@) that is wrong, so we request the definition site(s)
+of that value:
+
+[((/public/ICPC11/.s1_m.jpg|s1.png|C|s1.png, avr. 2011))|/public/ICPC11/s1.png||s1.png]
+
+The GUI has pointed us to a call to function @@RoCo_Process()@@ (using the yellow mark),
+so we now request the definition
+sites of @@RoCo_engineVoltage@@ by the @@return;@@ statement of that function.
+We obtain the two sites identified below:
+
+[((/public/ICPC11/.s2_m.jpg|s2.png|C|s2.png, avr. 2011))|/public/ICPC11/s2.png||s2.png]
+
+The condition that decides which branch is executing is the one shown in the screenshot
+below. 
+
+[((/public/ICPC11/.s3_m.jpg|s3.png|C|s3.png, avr. 2011))|/public/ICPC11/s3.png||s3.png]
+
+The value analysis tell us the value of @@RoCo_isActive@@ can be either @@0@@ or @@1@@
+at this point during execution, but this variable is one of the variable whose value is printed in
+the log, and its value was @@1@@ at the instant we are interested in. We therefore focus
+on the definition site where the value assigned to @@RoCo_engineVoltage@@ is computed
+in a call to @@PT1_Filter()@@.
+
+The dependencies of the particular call to @@PT1_Filter()@@ we are
+interested in were computed by option -calldeps and can be found in the log.
+The call we are interested in is at statement 433. The log contains:
+
+///
+call PT1_Filter at statement 433:
+ voltageFilter FROM state; x; t1; dt; voltageFilter
+ \result FROM state; x; t1; dt; voltageFilter
+///
+
+Apart from reading its arguments @@state@@, @@x@@, @@t1@@, and @@dt@@, the call accesses
+a static variable @@voltageFilter@@. The address of @@voltageFilter@@ is taken,
+so we have to be careful: this variable could be modified erroneously
+through a pointer (although the address-taking appears to be only to 
+pass it to @@PT1_Filter()@@, which is innocent enough).
+
+In fact, at this point, we have no idea which of the variables involved
+in the computation of the result of this call to @@PT1_Filter()@@ is wrong.
+Clicking on a variable in the GUI provides the set of values for this
+variable at this program point, but this is still too imprecise here,
+since it mixes all 10000 or so passages through the statement.
+
+Let us take advantage of the "blackboard" structure of the analyzed
+program and dump the entire program state at this statement,
+by inserting a call to @@Frama_C_dump_each()@@.
+See [this previous post|/index.php?post/2011/04/21/Frama_C_dump_each] for
+a list of advantages of this built-in function over using @@printf()@@ or a
+debugger.
+
+///
+--- roco.c	(revision 12956)
++++ roco.c	(working copy)
+@@ -293,6 +293,7 @@
+                 desiredEngineVoltage, Engine_maxVoltage_PARAM);
+         limitationActive = (Engine_maxVoltage_PARAM == desiredEngineVoltage) ||
+                              (Engine_minVoltage_PARAM == desiredEngineVoltage);
++	Frama_C_dump_each();
+         RoCo_engineVoltage = PT1_Filter (&voltageFilter, desiredEngineVoltage,
+                 t13, dT);
+         wasInit = init;
+///
+
+We need to launch the analysis again and find something to do for 10 minutes.
+This is a good time to start looking at bugs 2 and 3.
+
+The log now contains state dumps for each passage through the statement
+where @@RoCo_engineVoltage@@ is computed. The dump at which lastTime contains 50000
+and the next few ones show that of @@RoCo_engineVoltage@@'s dependencies, 
+variable @@desiredEngineVoltage@@ is the one with the erroneous value: it is only
+@@-0.8@@. We are therefore left with the sub-problem of identifying why
+this variable has this value at this program point. We use the same tools we have already
+used for @@RoCo_engineVoltage@@, this time applied to variable @@desiredEngineVoltage@@
+and this program point. The screenshot below shows the definitions sites for that value.
+
+[((/public/ICPC11/.s4_m.jpg|s4.png|C|s4.png, avr. 2011))|/public/ICPC11/s4.png||s4.png]
+
+The value of variable @@desiredEngineVoltage@@ is defined by the call to function @@Limiter_Out()@@,
+whose argument is in turn defined by the call to @@Interpolate_from_curve()@@ above.
+
+Option -calldeps computed the implicit inputs of this call, which can be found in the log:
+///
+call Interpolate_from_curve at statement 423:
+ \result FROM curve; x;
+              EngineSpeedToVoltage_CURVE{.numPoints; .x[0..4]; .y[1..3]; }
+///
+
+The state dump in which @@lastTime==50000@@ shows that a low value for
+@@angleDiffRequest@@ is the cause for the low value of @@desiredEngineVoltage@@.
+
+The "show defs" action in the GUI finds three possible definition sites for
+this value of @@angleDiffRequest@@, shown in the screenshots below.
+
+[((/public/ICPC11/.s5_m.jpg|s5.png|C|s5.png, avr. 2011))|/public/ICPC11/s5.png||s5.png]
+
+[((/public/ICPC11/.s6_m.jpg|s6.png|C|s6.png, avr. 2011))|/public/ICPC11/s6.png||s6.png]
+
+[((/public/ICPC11/.s7_m.jpg|s7.png|C|s7.png, avr. 2011))|/public/ICPC11/s7.png||s7.png]
+
+We find in the log that variable @@rampValue@@ remains at @@0@@ in the cycles
+that follow instant @@50000@@. The value we observe for @@angleDiffRequest@@
+is compatible with the algorithm and values of variables at lines
+264-277 of file roco.c. So it looks like the cause of the issue
+is the value of variable @@rampValue@@. Action "show defs" in the GUI
+indicates that this value is computed by the call to @@Ramp_out()@@ at line 240.
+The value of @@rampTarget@@ is computed as @@0.0@@ or @@1.0@@ from a number of
+variables, and of these variables, @@RoCo_legAngleValid@@ was always 1,
+and @@direction@@ was always @@0@@ or @@1@@. The latter is suspicious, since
+in this execution, orders are given to move in both directions:
+
+[((/public/ICPC11/.s8_m.jpg|s8.png|C|s8.png, avr. 2011))|/public/ICPC11/s8.png||s8.png]
+
+The command "show defs" applied to variable @@direction@@ shows that indeed,
+the variable may have been set to @@0@@ or @@1@@ in three different sites.
+
+[((/public/ICPC11/.s9_m.jpg|s9.png|C|s9.png, avr. 2011))|/public/ICPC11/s9.png||s9.png]
+
+The site that corresponds to the MoveByAngle command, the middle one in the screenshot above,
+is suspicious: in the file main_testcase_1.c, the angle passed to this command is negative.
+This is not just a strange convention, because the computation below for the third
+definition site determined the direction for the other commands, that are all in
+the opposite direction, and variable @@direction@@ was assigned @@1@@ again there.
+
+This suggests the fix below.
+///
+--- roco.c	(revision 13019)
++++ roco.c	(working copy)
+@@ -211,7 +211,7 @@
+                     direction = 0;
+                 }
+                 else {
+-                    direction = (RoCo_desiredDeltaAngle > 0.0) ? -1 : 1;
++                    direction = (RoCo_desiredDeltaAngle > 0.0) ? 1 : -1;
+                 }
+                 RoCo_commandMoveByAngle = FALSE;
+             }
+///
+
+%%%
+
+Looking at the source code for related issues, one may notice that the value given to @@direction@@
+is also affected by the piece of code below. It would be worth the time testing different values of
+@@t9@@ and @@RoCo_hasMinMaxAngles_PARAM@@, although that complex computation is
+only active when using commands other than MoveByAngle.
+
+///
+            if ((fabs(t9) > t11) && (direction == 0)) {
+                direction = ((((!RoCo_hasMinMaxAngles_PARAM) ||
+                               (fabs(t9) >= 180.0))
+                              ? t9 : -t9) > 0.0) ? 1 : -1;
+            }
+///

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,7 +20,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
-include Plugin.S
+include Plugin.General_services
 module Enabled : Parameter_sig.Bool
 module PrintProperties: Parameter_sig.Bool
 module Untried: Parameter_sig.Bool
+module Specialized: Parameter_sig.Bool

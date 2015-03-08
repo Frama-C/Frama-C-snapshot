@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -132,8 +132,8 @@ let warn_all_quiet_mode () =
       { warn_all_mode with CilE.imprecision_tracing = CilE.a_ignore }
 
 let get_slevel kf =
-  let name = Kernel_function.get_name kf in
-  Value_parameters.SlevelFunction.find name
+  try Value_parameters.SlevelFunction.find kf
+  with Not_found -> Value_parameters.SemanticUnrollingLevel.get ()
 
 let set_loc kinstr =
   match kinstr with
@@ -150,8 +150,8 @@ module Got_Imprecise_Value =
      end)
 
 let pretty_actuals fmt actuals =
-  Pretty_utils.pp_flowlist (fun fmt (_,x,_) -> Cvalue.V.pretty fmt x)
-    fmt actuals
+  let pp fmt (e,x,_) = Cvalue.V.pretty_typ (Some (Cil.typeOf e)) fmt x in
+  Pretty_utils.pp_flowlist pp fmt actuals
 
 let pretty_current_cfunction_name fmt =
   Kernel_function.pretty fmt (current_kf())
@@ -171,17 +171,6 @@ let debug_result kf (last_ret,_,last_clob) =
     Base.SetLattice.pretty last_clob
 
 
-let map_outputs f =
-  List.map
-    (fun ((res: Cvalue.V_Offsetmap.t option), (out: Cvalue.Model.t)) -> (res, f out))
-
-
-let remove_formals_from_state formals state =
-  if formals <> [] then
-    let formals = List.map Base.of_varinfo formals in
-    let cleanup acc v = Cvalue.Model.remove_base v acc in
-    List.fold_left cleanup state formals
-  else state
 
 
 module DegenerationPoints =
@@ -195,10 +184,86 @@ module DegenerationPoints =
 
 let warn_indeterminate kf =
   let params = Value_parameters.WarnCopyIndeterminate.get () in
-  if Datatype.String.Set.mem "@all" params then
-    not (Datatype.String.Set.mem ("-" ^ Kernel_function.get_name kf) params)
+  Kernel_function.Set.mem kf params
+
+let register_new_var v typ =
+  if Cil.isFunctionType typ then
+    Globals.Functions.replace_by_declaration (Cil.empty_funspec()) v v.vdecl
   else
-    Datatype.String.Set.mem (Kernel_function.get_name kf) params
+    Globals.Vars.add_decl v
+
+let create_new_var name typ =
+  let vi = Cil.makeGlobalVar ~source:false ~temp:false name typ in
+  register_new_var vi typ;
+  vi
+
+let is_const_write_invalid typ =
+  Kernel.ConstReadonly.get () && Cil.typeHasQualifier "const" typ
+
+let float_kind = function
+  | FFloat -> Ival.Float_abstract.Float32
+  | FDouble -> Ival.Float_abstract.Float64
+  | FLongDouble ->
+    if Cil.theMachine.Cil.theMachine.sizeof_longdouble <> 8 then
+      Value_parameters.error ~once:true
+        "type long double not implemented. Using double instead";
+    Ival.Float_abstract.Float64
+
+(** Find if a postcondition contains [\result] *)
+class postconditions_mention_result = object
+  inherit Visitor.frama_c_inplace
+
+  method! vterm_lhost = function
+  | TResult _ -> raise Exit
+  | _ -> Cil.DoChildren
+end
+let postconditions_mention_result spec =
+  let vis = new postconditions_mention_result in
+  let aux_bhv bhv =
+    let aux (_, post) = ignore (Visitor.visitFramacIdPredicate vis post) in
+    List.iter aux bhv.b_post_cond
+  in
+  try
+    List.iter aux_bhv spec.spec_behavior;
+    false
+  with Exit -> true
+
+let written_formals kf =
+  let module S = Cil_datatype.Varinfo.Set in
+  match kf.fundec with
+  | Declaration _ -> []
+  | Definition (fdec,  _) ->
+    let add_addr_taken acc vi = if vi.vaddrof then S.add vi acc else acc in
+    let referenced_formals =
+      ref (List.fold_left add_addr_taken S.empty fdec.sformals)
+    in
+    let obj = object
+      inherit Visitor.frama_c_inplace
+
+      method! vinst i =
+        begin match i with
+        | Call (Some (Var vi, _), _, _, _)
+        | Set ((Var vi, _), _, _) ->
+          if Kernel_function.is_formal vi kf then
+            referenced_formals := S.add vi !referenced_formals
+        | _ -> ()
+        end;
+        Cil.SkipChildren
+    end
+    in
+    ignore (Visitor.visitFramacFunction (obj :> Visitor.frama_c_visitor) fdec);
+    S.elements !referenced_formals
+
+module WrittenFormals =
+  Kernel_function.Make_Table(Datatype.List(Cil_datatype.Varinfo))
+    (struct
+      let size = 17
+      let dependencies = [Ast.self]
+      let name = "Value_util.WrittenFormals"
+     end)
+
+let written_formals = WrittenFormals.memo written_formals
+
 
 (*
 Local Variables:

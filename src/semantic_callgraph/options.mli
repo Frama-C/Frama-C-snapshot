@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,7 +24,7 @@ include Plugin.S
 
 val name: string
 module Filename: Parameter_sig.String
-module InitFunc: Parameter_sig.String_set
+module InitFunc: Parameter_sig.Kernel_function_set
 
 (*
 Local Variables:

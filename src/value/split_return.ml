@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -36,7 +36,7 @@ module ReturnUsage = struct
   type return_usage_by_lv = {
     ret_callees: Kernel_function.Hptset.t (* all the functions that put their
                                              results in this lvalue *);
-    ret_compared: Datatype.Big_int.Set.t (* all the constant values this
+    ret_compared: Datatype.Integer.Set.t (* all the constant values this
                                             lvalue is compared against *);
   }
   (* Per-function usage: all interesting lvalues are mapped to the way
@@ -44,15 +44,15 @@ module ReturnUsage = struct
   and return_usage_per_fun = return_usage_by_lv MapLval.t
   (* Per-program usage. Lvalues are no longer used, functions are mapped
      to the values their return code is compared against *)
-  and return_usage = Datatype.Big_int.Set.t Kernel_function.Map.t
+  and return_usage = Datatype.Integer.Set.t Kernel_function.Map.t
 
-  module RUDatatype = Kernel_function.Map.Make(Datatype.Big_int.Set)
+  module RUDatatype = Kernel_function.Map.Make(Datatype.Integer.Set)
 
   let find_or_default uf lv =
     try MapLval.find lv uf
     with Not_found -> {
       ret_callees = Kernel_function.Hptset.empty;
-      ret_compared = Datatype.Big_int.Set.empty;
+      ret_compared = Datatype.Integer.Set.empty;
     }
 
   (* Treat a [Call] instruction. Immediate calls (no functions pointers)
@@ -60,7 +60,7 @@ module ReturnUsage = struct
   let add_call (uf: return_usage_per_fun) lv_opt e_fun =
     match e_fun.enode, lv_opt with
       | Lval (Var vi, NoOffset), Some lv
-        when Cil.isIntegralType (Cil.typeOfLval lv) ->
+        when Cil.isIntegralOrPointerType (Cil.typeOfLval lv) ->
           let kf = Globals.Functions.get vi in
           let u = find_or_default uf lv in
           let funs = Kernel_function.Hptset.add kf u.ret_callees in
@@ -75,7 +75,8 @@ module ReturnUsage = struct
   let add_alias (uf: return_usage_per_fun) lv_dest e =
     match e.enode with
       | CastE (typ, { enode = Lval lve })
-          when Cil.isIntegralType typ && Cil.isIntegralType (Cil.typeOfLval lve)
+          when Cil.isIntegralOrPointerType typ &&
+            Cil.isIntegralOrPointerType (Cil.typeOfLval lve)
         ->
           let u = find_or_default uf lve in
           MapLval.add lv_dest u uf
@@ -83,9 +84,9 @@ module ReturnUsage = struct
 
   (* add a comparison with the integer [i] to the lvalue [lv] *)
   let add_compare_ct uf i lv =
-    if Cil.isIntegralType (Cil.typeOfLval lv) then
+    if Cil.isIntegralOrPointerType (Cil.typeOfLval lv) then
       let u = find_or_default uf lv in
-      let v = Datatype.Big_int.Set.add i u.ret_compared in
+      let v = Datatype.Integer.Set.add i u.ret_compared in
       let u = { u with ret_compared = v } in
       if debug then Format.printf
         "[Usage] Comparing %a to %a@." Printer.pp_lval lv Int.pretty i;
@@ -99,8 +100,8 @@ module ReturnUsage = struct
   let add_compare (uf: return_usage_per_fun) cond =
     (* if [ct] is an integer constant, memoize it is compared to [lv] *)
     let add ct lv =
-      (match (Cil.constFold true ct).enode with
-        | Const (CInt64 (i, _, _)) -> add_compare_ct uf i lv
+      (match Cil.constFoldToInt ct with
+        | Some i -> add_compare_ct uf i lv
         | _ -> uf)
     in
     match cond.enode with
@@ -109,15 +110,17 @@ module ReturnUsage = struct
 
       | BinOp ((Eq | Ne), {enode = CastE (typ, {enode = Lval lv})}, ct, _)
       | BinOp ((Eq | Ne), ct, {enode = CastE (typ, {enode = Lval lv})}, _)
-        when Cil.isIntegralType typ && Cil.isIntegralType (Cil.typeOfLval lv) ->
-          add ct lv
+        when Cil.isIntegralOrPointerType typ &&
+          Cil.isIntegralOrPointerType (Cil.typeOfLval lv) ->
+        add ct lv
 
       | UnOp (LNot, {enode = Lval lv}, _) ->
           add_compare_ct uf Int.zero lv
 
       | UnOp (LNot, {enode = CastE (typ, {enode = Lval lv})}, _)
-        when Cil.isIntegralType typ && Cil.isIntegralType (Cil.typeOfLval lv) ->
-          add_compare_ct uf Int.zero lv
+        when Cil.isIntegralOrPointerType typ &&
+          Cil.isIntegralOrPointerType (Cil.typeOfLval lv) ->
+        add_compare_ct uf Int.zero lv
 
       | _ -> uf
 
@@ -132,7 +135,8 @@ module ReturnUsage = struct
       add_compare_ct uf Int.zero lv
 
     | CastE (typ, {enode = Lval lv})
-        when Cil.isIntegralType typ && Cil.isIntegralType (Cil.typeOfLval lv) ->
+        when Cil.isIntegralOrPointerType typ &&
+          Cil.isIntegralOrPointerType (Cil.typeOfLval lv) ->
       add_compare_ct uf Int.zero lv
 
     | BinOp ((LAnd | LOr), e1, e2, _) ->
@@ -146,14 +150,14 @@ module ReturnUsage = struct
      are tested against *)
   let summarize (uf: return_usage_per_fun) =
     let aux _lv u acc =
-      if Datatype.Big_int.Set.is_empty u.ret_compared then acc
+      if Datatype.Integer.Set.is_empty u.ret_compared then acc
       else
         let aux' kf (acc:return_usage) : return_usage =
           let cur =
             try Kernel_function.Map.find kf acc
-            with Not_found -> Datatype.Big_int.Set.empty
+            with Not_found -> Datatype.Integer.Set.empty
           in
-          let s = Datatype.Big_int.Set.union cur u.ret_compared in
+          let s = Datatype.Integer.Set.union cur u.ret_compared in
           Kernel_function.Map.add kf s acc
       in
       Kernel_function.Hptset.fold aux' u.ret_callees acc
@@ -198,19 +202,7 @@ module ReturnUsage = struct
     Visitor.visitFramacFileSameGlobals (vis:> Visitor.frama_c_visitor) file;
     vis#result ()
 
-  let pretty_usage fmt u =
-    let pp_set =
-      Pretty_utils.pp_iter ~sep:",@ " Datatype.Big_int.Set.iter Int.pretty in
-    let pp kf s =
-      Format.fprintf fmt "@[\\return(%a) == %a@]@ "
-        Kernel_function.pretty kf pp_set s
-    in
-    Format.fprintf fmt "@[<v>";
-    Kernel_function.Map.iter pp u;
-    Format.fprintf fmt "@]"
-
 end
-
 
 module AutoStrategy = State_builder.Option_ref
   (ReturnUsage.RUDatatype)
@@ -227,33 +219,29 @@ module KfStrategy = Kernel_function.Make_Table(Split_strategy)
     let name = "Value.Split_return.Kfstrategy"
    end)
 
+(* Inference (and saving) of strategies when -split-return-auto is set *)
+let auto_strategy () =
+  match AutoStrategy.get_option () with
+  | None ->
+    let v =
+      if Value_parameters.SplitReturnAuto.get ()
+      then ReturnUsage.compute (Ast.get ())
+      else Kernel_function.Map.empty
+    in
+    AutoStrategy.set v;
+    v
+  | Some v -> v
 
 let strategy =
   KfStrategy.memo
     (fun kf ->
-      let name = Kernel_function.get_name kf in
-      try
-	Value_parameters.SplitReturnFunction.find name
+      (* User strategies take precedence *)
+      try Value_parameters.SplitReturnFunction.find kf
       with Not_found ->
-        let auto =
-          match AutoStrategy.get_option () with
-            | None ->
-                let v =
-                  if Value_parameters.SplitReturnAuto.get () then
-                    let ast = Ast.get () in
-                    let v = ReturnUsage.compute ast in
-                    Value_parameters.result "Splitting return states on:@.%a"
-                      ReturnUsage.pretty_usage v;
-                    v
-                  else Kernel_function.Map.empty
-                in
-                AutoStrategy.set v;
-                v
-            | Some v -> v
-        in
+        let auto = auto_strategy () in
         try
           let set = Kernel_function.Map.find kf auto in
-          let li = Datatype.Big_int.Set.fold (fun i acc -> i :: acc) set [] in
+          let li = Datatype.Integer.Set.fold (fun i acc -> i :: acc) set [] in
           Split_strategy.SplitEqList li
         with Not_found -> Split_strategy.NoSplit)
 
@@ -268,7 +256,7 @@ let split_eq_aux kf return_lv i states =
   let (eq, neq, mess) = List.fold_left
     (fun (eq, neq, mess) state ->
       if Model.is_reachable state then
-        let v' = Model.find ~with_alarms ~conflate_bottom:false state loc in
+        let _, v' = Model.find state loc in
         (*Format.printf "## vi %a, v %a@." V.pretty v_i V.pretty v'; *)
         if V.equal v_i v' then
           (Model.join state eq, neq, mess)
@@ -306,7 +294,7 @@ let join_final_states kf ~return_lv states =
     match return_lv with
       | None -> default states
       | Some (Var v, NoOffset as lv) ->
-          if Cil.isIntegralType v.vtype then
+          if Cil.isIntegralOrPointerType v.vtype then
             split_eq_multiple kf lv i states
           else
             default states
@@ -317,6 +305,36 @@ let join_final_states kf ~return_lv states =
     | Split_strategy.NoSplit -> default states
     | Split_strategy.FullSplit -> State_set.to_list states
 
+
+let pretty_strategies fmt =
+  Format.fprintf fmt "@[<v>";
+  let pp_set =
+    Pretty_utils.pp_iter ~sep:",@ " Datatype.Integer.Set.iter Int.pretty in
+  let pp_list = Pretty_utils.pp_list ~sep:",@ " Int.pretty in
+  let pp_user (kf, strategy) =
+    match strategy with
+    | Some (Split_strategy.NoSplit) | None -> ()
+    | Some (Split_strategy.SplitEqList l) ->
+      Format.fprintf fmt "@[\\return(%a) == %a (user)@]@ "
+        Kernel_function.pretty kf pp_list l
+    | Some Split_strategy.FullSplit ->
+      Format.fprintf fmt "@[\\full_split(%a) (user)@]@ "
+        Kernel_function.pretty kf
+  in
+  Value_parameters.SplitReturnFunction.iter pp_user;
+  let pp_auto kf s =
+    if not (Value_parameters.SplitReturnFunction.mem kf) then
+      Format.fprintf fmt "@[\\return(%a) == %a (auto)@]@ "
+        Kernel_function.pretty kf pp_set s
+  in
+  Kernel_function.Map.iter pp_auto (auto_strategy ());
+  Format.fprintf fmt "@]"
+
+let pretty_strategies () =
+  if not (Value_parameters.SplitReturnFunction.is_empty ()) ||
+    Value_parameters.SplitReturnAuto.is_set ()
+  then
+    Value_parameters.result "Splitting return states on:@.%t" pretty_strategies
 
 
 

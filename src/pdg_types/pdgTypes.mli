@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -103,12 +103,11 @@ end
 
 module NodeSetLattice : sig
   include Lattice_type.Lattice_Set with type O.elt=Node.t
-  val default : Base.t -> Abstract_interp.Int.t -> Abstract_interp.Int.t -> t
-  val defaultall : Base.t -> t
+  val default: t
 end
 
 module LocInfo :
-  Lmap_bitwise.Location_map_bitwise with type y = NodeSetLattice.t
+  Lmap_bitwise.Location_map_bitwise with type v = NodeSetLattice.t
 
 (** a [data_state] object is associated with a program point
     and provides a mapping between a location and some nodes in the PDG

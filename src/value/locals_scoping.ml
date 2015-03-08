@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -41,7 +41,7 @@ let remember_if_locals_in_value clob left_loc v =
 let remember_if_locals_in_offsetmap clob left_loc offm =
   try
     Cvalue.V_Offsetmap.iter_on_values
-      (fun v _ ->
+      (fun v ->
          if Cvalue.V.contains_addresses_of_any_locals
            (Cvalue.V_Or_Uninitialized.get_v v)
          then
@@ -67,7 +67,6 @@ type topify_state = Cvalue.Model.t -> Cvalue.Model.t
    [snd (topify v)], and gather [fst (topify v)] within [acc_locals] *)
 let top_gather_locals test topify join acc_locals : topify_offsetmap =
   fun offsm ->
-  assert (not (Cvalue.V_Offsetmap.is_empty offsm));
   Cvalue.V_Offsetmap.fold
     (fun (_,_ as i) (v, m, r) (acc_locals, acc_o as acc) ->
        if test v
@@ -86,9 +85,6 @@ let offsetmap_top_addresses_of_locals is_local : topify_offsetmap_approx =
   (* Partial application is important, this function has a cache *)
   let is_local_bytes = Location_Bytes.contains_addresses_of_locals is_local in
   fun ~exact offsetmap ->
-    if Cvalue.V_Offsetmap.is_empty offsetmap
-    then Base.SetLattice.top, offsetmap
-    else
       let loc_contains_addresses_of_locals t =
 	let v = Cvalue.V_Or_Uninitialized.get_v t in
 	is_local_bytes v
@@ -118,19 +114,19 @@ let state_top_addresses_of_locals ~exact fwarn_escape (topify_offsetmap:topify_o
   (* Clean the locals in the offsetmap bound to [base] in [state] *)
   let aux' base state =
     try
-      let offsm = Cvalue.Model.find_base base state in
-      aux base offsm state
+      match Cvalue.Model.find_base base state with
+      | `Top | `Bottom -> state
+      | `Map offsm -> aux base offsm state
     with Not_found -> state
   in
   try (* Iterate on all the bases that might contain a local, and clean them*)
     Base.SetLattice.fold aux' bases.clob (aux' Base.null state)
   with Base.SetLattice.Error_Top ->
-    begin (* [bases] is too imprecise. Iterate on the entire memory state
-             instead, which is much slower *)
-      try
-        Cvalue.Model.fold_base_offsetmap aux state state
-      with Cvalue.Model.Error_Bottom -> Cvalue.Model.bottom
-    end
+    (* [bases] is too imprecise. Iterate on the entire memory state instead,
+       which is much slower *)
+    match state with
+    | Cvalue.Model.Top | Cvalue.Model.Bottom -> state
+    | Cvalue.Model.Map m -> Cvalue.Model.fold aux m state
 
 (* Topifies all references to the locals and formals of [fdec]*)
 let top_addresses_of_locals fdec clob =
@@ -156,7 +152,7 @@ let top_addresses_of_locals fdec clob =
 let block_top_addresses_of_locals fdec clob blocks =
   (* no need to topify references to [v] if it is not referenced, or if it
      a Cil temporary *)
-  let safe_var v = v.vgenerated || not v.vreferenced in
+  let safe_var v = v.vtemp || not v.vreferenced in
   if List.for_all (fun b -> List.for_all safe_var b.blocals) blocks then
     fun x -> x
   else

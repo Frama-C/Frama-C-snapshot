@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -49,6 +49,18 @@ False
        let option_name = "-show-indirect-deps"
        let help = "experimental"
      end)
+
+module VerifyAssigns =
+False
+    (struct
+       let option_name = "-from-verify-assigns"
+       let help = "verification of assigns/from clauses for functions with \
+         bodies. Implies -calldeps"
+     end)
+let () =
+  VerifyAssigns.add_set_hook
+    (fun _ new_ ->
+      if new_ then ForceCallDeps.set true)
 
 module PathDeps =
 False

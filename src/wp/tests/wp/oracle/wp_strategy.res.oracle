@@ -1,0 +1,229 @@
+# frama-c -wp -wp-model 'Hoare' [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp/wp_strategy.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function bts0513
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ko,ko1' in 'bts0513':
+Assume { }
+Prove: false.
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ko,ko2' in 'bts0513':
+Assume { }
+Prove: false.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function bts0513_bis
+------------------------------------------------------------
+
+Goal Assertion 'qed_ko,ko1' (file tests/wp/wp_strategy.c, line 27):
+Assume { (* Domain *) Type: (is_sint32 x_0). }
+Prove: 0<x_0.
+
+------------------------------------------------------------
+
+Goal Assertion 'qed_ok,ok' (file tests/wp/wp_strategy.c, line 28):
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_0).
+  (* Assertion 'qed_ko,ko1' (file tests/wp/wp_strategy.c, line 27) *)
+  (* tests/wp/wp_strategy.c:27: Assertion 'qed_ko,ko1': *)
+  Have: 0<x_0.
+}
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function default_behaviors
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok' in 'default_behaviors':
+Assume {
+  (* Domain *)
+  Type: (is_sint32 c_0) /\ (is_sint32 default_behaviors_0) /\ (is_sint32 x_7).
+  (* Pre-condition (file tests/wp/wp_strategy.c, line 87) in 'default_behaviors' *)
+  (* Pre-condition: *)
+  Have: (0=c_0) -> (0<=x_7).
+  (* Post-condition 'qed_ok,stmt_p' at block *)
+  (* tests/wp/wp_strategy.c:92: Post-condition 'qed_ok,stmt_p' at block: *)
+  Have: 0<default_behaviors_0.
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assertion 'qed_ok' (file tests/wp/wp_strategy.c, line 98):
+Assume {
+  (* Domain *)
+  Type: (is_sint32 c_0) /\ (is_sint32 x_0) /\ (is_sint32 x_7).
+  (* Pre-condition (file tests/wp/wp_strategy.c, line 87) in 'default_behaviors' *)
+  (* Pre-condition: *)
+  Have: (0=c_0) -> (0<=x_7).
+  (* Post-condition 'qed_ok,stmt_p' at block *)
+  (* tests/wp/wp_strategy.c:92: Post-condition 'qed_ok,stmt_p' at block: *)
+  Have: 0<x_0.
+}
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function default_behaviors with behavior default_for_stmt_55
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok,stmt_p' at block:
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assertion 'qed_ok' (file tests/wp/wp_strategy.c, line 94):
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_2).
+  (* Pre-condition (file tests/wp/wp_strategy.c, line 87) in 'default_behaviors' *)
+  (* Pre-condition: *)
+  Have: 0<=x_2.
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns 'qed_ok' at block:
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function dpd1
+------------------------------------------------------------
+
+Goal Assertion 'qed_ok,A' (file tests/wp/wp_strategy.c, line 38):
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_0).
+  (* Post-condition 'qed_ko,Eko' at program point (file tests/wp/wp_strategy.c, line 37) *)
+  (* tests/wp/wp_strategy.c:37: Post-condition 'qed_ko,Eko' at program point: *)
+  Have: 0<x_0.
+}
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function dpd1 with behavior default_for_stmt_11
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ko,Eko' at program point (file tests/wp/wp_strategy.c, line 37):
+Assume { (* Domain *) Type: (is_sint32 x_0). }
+Prove: 0<x_0.
+
+------------------------------------------------------------
+
+Goal Assigns 'qed_ok' at program point (file tests/wp/wp_strategy.c, line 37):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function dpd2 with behavior P
+------------------------------------------------------------
+
+Goal Assertion for 'P' 'qed_ok,A' (file tests/wp/wp_strategy.c, line 46):
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_0).
+  (* Post-condition 'qed_ko,Eko' at program point (file tests/wp/wp_strategy.c, line 45) *)
+  (* tests/wp/wp_strategy.c:45: Post-condition 'qed_ko,Eko' at program point: *)
+  Have: 0<x_0.
+}
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function dpd2 with behavior default_for_stmt_16
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ko,Eko' at program point (file tests/wp/wp_strategy.c, line 45):
+Assume { (* Domain *) Type: (is_sint32 x_0). }
+Prove: 0<x_0.
+
+------------------------------------------------------------
+
+Goal Assigns 'qed_ok' at program point (file tests/wp/wp_strategy.c, line 45):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function spec_if
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok' in 'spec_if':
+Assume {
+  (* Domain *)
+  Type: (is_sint32 v_6).
+  (* Post-condition 'qed_ok' at block *)
+  (* tests/wp/wp_strategy.c:61: Post-condition 'qed_ok' at block: *)
+  Have: 0<v_6.
+}
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function spec_if with behavior default_for_stmt_21
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok' at block:
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns 'qed_ok' at block:
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function spec_if with behavior default_for_stmt_27
+------------------------------------------------------------
+
+Goal Assigns 'qed_ok' at block:
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function spec_if with behavior default_for_stmt_33
+------------------------------------------------------------
+
+Goal Assigns 'qed_ok' at block:
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function spec_if_cond with behavior default_for_stmt_41
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok' at block:
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function spec_if_not_cond with behavior default_for_stmt_49
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok' at if-then-else (file tests/wp/wp_strategy.c, line 80):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------

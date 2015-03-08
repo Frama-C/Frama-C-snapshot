@@ -1,0 +1,28 @@
+# frama-c -wp -wp-model 'Typed (Ref)' [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_hoare/logicref_simple.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] Collecting variable usage
+[wp] 9 goals scheduled
+[wp] [Alt-Ergo] Goal typed_ref_fsimple_post : Unknown
+[wp] [Qed] Goal typed_ref_fsimple_assign : Valid
+[wp] [Alt-Ergo] Goal typed_ref_fsimple_array_post : Unknown
+[wp] [Qed] Goal typed_ref_fsimple_array_assign : Valid
+[wp] [Alt-Ergo] Goal typed_ref_ftwo_star_post : Unknown
+[wp] [Qed] Goal typed_ref_ftwo_star_assign : Valid
+[wp] [Qed] Goal typed_ref_fvpositive_post : Valid
+[wp] [Alt-Ergo] Goal typed_ref_fvpositive_assert_todo : Unknown
+[wp] [Qed] Goal typed_ref_fvpositive_assign : Valid
+[wp] Proved goals:    5 / 9
+     Qed:             5 
+     Alt-Ergo:        0  (unknown: 4)
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+fsimple              1     -           2      50.0%
+fsimple_array        1     -           2      50.0%
+ftwo_star            1     -           2      50.0%
+fvpositive           2     -           3      66.7%
+----------------------------------------------------------

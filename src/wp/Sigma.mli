@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -25,7 +25,7 @@
 (* -------------------------------------------------------------------------- *)
 
 module Make
-  (C : Memory.Chunk)
-  (H : Qed.Collection.S with type t = C.t) :
+    (C : Memory.Chunk)
+    (H : Qed.Collection.S with type t = C.t) :
   Memory.Sigma with type chunk = C.t 
-	       and type domain = H.set
+                and type domain = H.set

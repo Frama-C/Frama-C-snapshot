@@ -5,6 +5,7 @@ let run () =
   let p_default =
     Project.create_by_copy
       ~src:(Project.from_unique_name "default")
+      ~last:false
       "default"
   in
   !Db.Value.compute ();

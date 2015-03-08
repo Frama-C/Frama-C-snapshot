@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -41,7 +41,7 @@ sig
   val mem : key -> bool
   val property : key -> Property.t
   val add_hook : (key -> Property.t -> unit) -> unit
-    (** Hooks are executed once at property creation *)
+  (** Hooks are executed once at property creation *)
 end
 
 module type Indexed2 =
@@ -51,7 +51,7 @@ sig
   val mem : key1 -> key2 -> bool
   val property : key1 -> key2 -> Property.t
   val add_hook : (key1 -> key2 -> Property.t -> unit) -> unit
-    (** Hooks are executed once at property creation *)
+  (** Hooks are executed once at property creation *)
 end
 
 (* ------------------------------------------------------------------------ *)
@@ -59,12 +59,12 @@ end
 (* ------------------------------------------------------------------------ *)
 
 module Indexed
-  (Key:Datatype.S_with_collections)
-  (Info:Info with type key = Key.t) :
+    (Key:Datatype.S_with_collections)
+    (Info:Info with type key = Key.t) :
   Indexed with type key = Key.t
 
 module Indexed2
-  (Key1:Datatype.S_with_collections)
-  (Key2:Datatype.S_with_collections)
-  (Info:Info with type key = Key1.t * Key2.t) :
+    (Key1:Datatype.S_with_collections)
+    (Key2:Datatype.S_with_collections)
+    (Info:Info with type key = Key1.t * Key2.t) :
   Indexed2 with type key1 = Key1.t and type key2 = Key2.t

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -28,6 +28,134 @@ open Visitor
 
 let dkey = Kernel.register_category "ulevel"
 
+let rec fold_itv f b e acc =
+  if Integer.equal b e then f acc b
+  else fold_itv f (Integer.succ b) e (f acc b)
+
+(* Find the initializer for index [i] in [init] *)
+let find_init_by_index init i =
+  let same_offset (off, _) = match off with
+    | Index (i', NoOffset) ->
+      Integer.equal i (Extlib.the (Cil.isInteger i'))
+    | _ -> false
+  in
+  snd (List.find same_offset init)
+
+(* Find the initializer for field [f] in [init] *)
+let find_init_by_field init f =
+  let same_offset (off, _) = match off with
+    | Field (f', NoOffset) -> f == f'
+    | _ -> false
+  in
+  snd (List.find same_offset init)
+
+exception CannotSimplify
+
+(* Evaluate the bounds of the range [b..e] as constants. The array being
+   indexed has type [typ]. If [b] or [e] are not specified, use default
+   values. *)
+let const_fold_trange_bounds typ b e =
+  let extract = function None -> raise CannotSimplify | Some i -> i in
+  let b = match b with
+    | Some tb -> extract (Logic_utils.constFoldTermToInt tb)
+    | None -> Integer.zero
+  in
+  let e = match e with
+    | Some te -> extract (Logic_utils.constFoldTermToInt te)
+    | None ->
+      match Cil.unrollType typ with
+      | TArray (_, Some size, _, _) ->
+        Integer.pred (extract (Cil.isInteger size))
+      | _ -> raise CannotSimplify
+  in
+  b, e
+
+(** Find the value corresponding to the logic offset [loff] inside the
+    initialiser [init]. Zero is used as a default value when the initialiser is
+    incomplete. [loff] must have an integral type. Returns a set of values
+    when [loff] contains ranges. *)
+let find_initial_value init loff =
+  let module S = Datatype.Integer.Set in
+  let extract = function None -> raise CannotSimplify | Some i -> i in
+  let rec aux loff init =
+    match loff, init with
+    | TNoOffset, SingleInit e -> S.singleton (extract (Cil.constFoldToInt e))
+    | TIndex (i, loff), CompoundInit (typ, l) -> begin
+      (* Add the initializer at offset [Index(i, loff)] to [acc]. *)
+      let add_index acc i =
+        let vi =
+          try aux loff (find_init_by_index l i)
+          with Not_found -> S.singleton Integer.zero
+        in
+        S.union acc vi
+      in
+      match i.term_node with
+      | Tunion tl ->
+        let conv t = extract (Logic_utils.constFoldTermToInt t) in
+        List.fold_left add_index S.empty (List.map conv tl)
+      | Trange (b, e) ->
+        let b, e = const_fold_trange_bounds typ b e in
+        fold_itv add_index b e S.empty
+      | _ ->
+        let i = extract (Logic_utils.constFoldTermToInt i) in
+        add_index S.empty i
+    end
+    | TField (f, loff), CompoundInit (_, l) ->
+      if f.fcomp.cstruct then
+        try aux loff (find_init_by_field l f)
+        with Not_found -> S.singleton Integer.zero
+      else (* too complex, a value might be written through another field *)
+        raise CannotSimplify
+    | TNoOffset, CompoundInit _
+    | (TIndex _ | TField _), SingleInit _ -> assert false
+    | TModel _, _ -> raise CannotSimplify
+  in
+  try
+    match init with
+    | None -> Some (S.singleton Integer.zero)
+    | Some init -> Some (aux loff init)
+  with CannotSimplify -> None
+
+
+(** Evaluate the given term l-value in the initial state *)
+let eval_term_lval (lhost, loff) =
+  match lhost with
+  | TVar lvi -> begin
+    (** See if we can evaluate the l-value using the initializer of lvi*)
+    let off_type = Cil.typeTermOffset lvi.lv_type loff in
+    if Logic_const.plain_or_set Cil.isLogicIntegralType off_type then
+      match lvi.lv_origin with
+      | Some vi when vi.vglob && Cil.typeHasQualifier "const" vi.vtype ->
+        find_initial_value (Globals.Vars.find vi).init loff
+      | _ -> None
+    else None
+  end
+  | _ -> None
+
+class simplify_const_lval = object (self)
+  inherit Visitor.frama_c_copy (Project.current ())
+
+  method! vterm t =
+    match t.term_node with
+    | TLval tlv -> begin
+      (* simplify recursively tlv before attempting evaluation *)
+      let tlv = Visitor.(visitFramacTermLval (self:>frama_c_visitor) tlv) in
+      match eval_term_lval tlv with
+      | None -> Cil.SkipChildren
+      | Some itvs ->
+        (* Replace the value/set of values found by something that has the
+           expected logic type (plain/Set) *)
+        let typ = Logic_const.plain_or_set Extlib.id t.term_type in
+        let aux i l = Logic_const.term (TConst (Integer (i,None))) typ :: l in
+        let l = Datatype.Integer.Set.fold aux itvs [] in
+        match l, Logic_const.is_plain_type t.term_type with
+        | [i], true -> Cil.ChangeTo i
+        | _, false -> Cil.ChangeTo (Logic_const.term (Tunion l) t.term_type)
+        | _ -> Cil.SkipChildren
+    end
+    | _ -> Cil.DoChildren
+end
+
 type loop_pragmas_info =
   { unroll_number: int option;
     total_unroll: Emitter.t option;
@@ -46,14 +174,14 @@ let update_info emitter info spec =
       end else begin
 	try
 	  begin
-            let i =
-              Cil.constFold true(!Db.Properties.Interp.term_to_exp None spec)
-            in
-	    match isInteger i with
+            let t = Visitor.visitFramacTerm (new simplify_const_lval) spec in
+            let i = Logic_utils.constFoldTermToInt t in
+	    match i with
 	      | Some i -> { info with unroll_number = Some (Integer.to_int i) }
 	      | None ->
                 Kernel.warning ~once:true ~current:true
-		  "ignoring unrolling directive (not a constant expression)";
+		  "ignoring unrolling directive (not an understood constant \
+                     expression)";
                 info
 	  end
 	with Invalid_argument s -> 
@@ -68,7 +196,10 @@ let update_info emitter info spec =
           "found two total unroll pragmas";
         info
       end else { info with total_unroll = Some emitter }
-    | _ -> info
+    | _ ->
+	Kernel.warning ~once:true ~current:true
+	  "ignoring invalid unrolling directive";
+      info
 
 let extract_from_pragmas s =
   let filter _ a = Logic_utils.is_loop_pragma a in
@@ -98,6 +229,11 @@ let fresh_label =
 
 let copy_var =
   let counter = ref (-1) in
+  (* [VP] I fail too see the purpose of this argument instead of changing
+     the counter at each variable's copy: copy_var () is called once per
+     copy of block with local variables, bearing no relationship with the
+     number of unrolling. counter could thus be an arbitrary integer as well.
+   *)
   fun () ->
     decr counter;
     fun vi ->
@@ -106,7 +242,7 @@ let copy_var =
       Cil_const.change_varinfo_name vi' name;
       vi'
 
-let refresh_vars new_var old_var =
+let refresh_vars old_var new_var =
   let assoc = List.combine old_var new_var in
   let visit = object
     inherit Visitor.frama_c_inplace
@@ -114,7 +250,8 @@ let refresh_vars new_var old_var =
       try ChangeTo (snd (List.find (fun (x,_) -> x.vid = vi.vid) assoc))
       with Not_found -> SkipChildren
   end
-  in Visitor.visitFramacStmt visit
+  in
+  fun b -> ignore (Visitor.visitFramacBlock visit b)
 
 (* Takes care of local gotos and labels into C. *)
 let update_gotos sid_tbl block =
@@ -331,7 +468,8 @@ let copy_block kf break_continue_must_change bl =
     and copy_stmtkind
       break_continue_must_change labelled_stmt_tbl calls_tbl stkind =
       match stkind with
-      |(Instr _ | Return _) as keep -> keep,labelled_stmt_tbl,calls_tbl
+      | (Instr _ | Return _ | Throw _) as keep -> 
+        keep,labelled_stmt_tbl,calls_tbl
       | Goto (stmt_ref, loc) -> Goto (ref !stmt_ref, loc),labelled_stmt_tbl,calls_tbl
       | If (exp,bl1,bl2,loc) ->
         CurrentLoc.set loc;
@@ -398,6 +536,42 @@ let copy_block kf break_continue_must_change bl =
             (fun s -> Cil_datatype.Stmt.Map.find s new_labelled_stmt_tbl) stmts
         in
         Switch(e,new_block,stmts',loc),new_labelled_stmt_tbl,calls_tbl
+      | TryCatch(t,c,loc) ->
+        let t', labs, calls =
+          copy_block break_continue_must_change labelled_stmt_tbl calls_tbl t
+        in
+        let treat_one_extra_binding mv mv' (bindings, labs, calls) (v,b) =
+          let v' = copy_var () v in
+          assoc := (v,v')::!assoc;
+          let b', labs', calls' =
+            copy_block break_continue_must_change labs calls b
+          in
+          refresh_vars [mv; v] [mv'; v'] b';
+          (v',b')::bindings, labs', calls'
+        in
+        let treat_one_catch (catches, labs, calls) (v,b) =
+          let v', vorig, vnew, labs', calls' =
+            match v with
+              | Catch_all -> Catch_all, [], [], labs, calls
+              | Catch_exn(v,l) ->
+                let v' = copy_var () v in
+                assoc:=(v,v')::!assoc;
+                let l', labs', calls' =
+                  List.fold_left
+                    (treat_one_extra_binding v v') ([],labs, calls) l
+                in
+                Catch_exn(v', List.rev l'), [v], [v'], labs', calls'
+          in
+          let (b', labs', calls') =
+            copy_block break_continue_must_change labs' calls' b
+          in
+          refresh_vars vorig vnew b';
+          (v', b')::catches, labs', calls'
+        in
+        let c', labs', calls' =
+          List.fold_left treat_one_catch ([],labs, calls) c
+        in
+        TryCatch(t',List.rev c',loc), labs', calls'
       | TryFinally _ | TryExcept _ -> assert false
 
     and copy_block break_continue_must_change labelled_stmt_tbl calls_tbl bl =
@@ -416,9 +590,8 @@ let copy_block kf break_continue_must_change bl =
       in
       fundec.slocals <- fundec.slocals @ new_locals;
       assoc:=(List.combine bl.blocals new_locals) @ !assoc;
-      let new_block = 
-        mkBlock (List.rev_map (refresh_vars new_locals bl.blocals) new_stmts)
-      in
+      let new_block = mkBlock (List.rev new_stmts) in
+      refresh_vars bl.blocals new_locals new_block;
       new_block.blocals <- new_locals;
       new_block,labelled_stmt_tbl,calls_tbl
   in

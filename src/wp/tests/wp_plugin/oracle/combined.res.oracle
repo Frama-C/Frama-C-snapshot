@@ -1,0 +1,353 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_plugin/combined.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function job
+------------------------------------------------------------
+
+Goal Assertion (file tests/wp_plugin/combined.c, line 26):
+Assume {
+  (* Domain *)
+  Type: (is_sint32 A_0).
+  (* Heap *)
+  Have: (linked Malloc_1) /\ ((region (base t_7))<=0).
+}
+Prove: (50<=A_0) /\ (A_0<=100).
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file tests/wp_plugin/combined.c, line 28):
+Assume {
+  (* Domain *)
+  Type: (is_sint32 A_0) /\ (is_sint32 i_2) /\ (is_sint32 v_0)
+        /\ (is_sint32 (1+i_2)).
+  (* Heap *)
+  Have: (linked Malloc_1) /\ ((region (base t_0))<=0).
+  (* Assertion (file tests/wp_plugin/combined.c, line 26) *)
+  (* tests/wp_plugin/combined.c:26: Assertion: *)
+  Have: (50<=A_0) /\ (A_0<=100).
+  (* tests/wp_plugin/combined.c:32: Assigns *)
+  (* tests/wp_plugin/combined.c:32: Loop assigns ...: *)
+  Have: (havoc Mint_9 Mint_1 (shift_sint32 t_0 0) 50).
+  (* Invariant (file tests/wp_plugin/combined.c, line 29) *)
+  (* tests/wp_plugin/combined.c:32: Invariant: *)
+  Have: forall i_0:int.
+        (i_0<i_2) -> (0<=i_0) -> (P_P Mint_1[(shift_sint32 t_0 i_0)]).
+  (* Invariant (file tests/wp_plugin/combined.c, line 28) *)
+  (* tests/wp_plugin/combined.c:32: Invariant: *)
+  Have: (0<=i_2) /\ (i_2<=50).
+  (* tests/wp_plugin/combined.c:32: Then *)
+  Have: i_2<=49.
+  (* tests/wp_plugin/combined.c:32: Call 'f' *)
+  Have: (P_P v_0).
+}
+Prove: -1<=i_2.
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file tests/wp_plugin/combined.c, line 28):
+Assume {
+  (* Domain *)
+  Type: (is_sint32 A_0).
+  (* Heap *)
+  Have: (linked Malloc_1) /\ ((region (base t_7))<=0).
+  (* Assertion (file tests/wp_plugin/combined.c, line 26) *)
+  (* tests/wp_plugin/combined.c:26: Assertion: *)
+  Have: (50<=A_0) /\ (A_0<=100).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file tests/wp_plugin/combined.c, line 29):
+Assume {
+  (* Domain *)
+  Type: (is_sint32 A_0) /\ (is_sint32 i_2) /\ (is_sint32 v_0)
+        /\ (is_sint32 (1+i_2)).
+  (* Goal *)
+  When: (0<=i_1) /\ (i_1<=i_2).
+  (* Heap *)
+  Have: (linked Malloc_1) /\ ((region (base t_0))<=0).
+  (* Assertion (file tests/wp_plugin/combined.c, line 26) *)
+  (* tests/wp_plugin/combined.c:26: Assertion: *)
+  Have: (50<=A_0) /\ (A_0<=100).
+  (* tests/wp_plugin/combined.c:32: Assigns *)
+  (* tests/wp_plugin/combined.c:32: Loop assigns ...: *)
+  Have: (havoc Mint_9 Mint_1 (shift_sint32 t_0 0) 50).
+  (* Invariant (file tests/wp_plugin/combined.c, line 29) *)
+  (* tests/wp_plugin/combined.c:32: Invariant: *)
+  Have: forall i_0:int.
+        (i_0<i_2) -> (0<=i_0) -> (P_P Mint_1[(shift_sint32 t_0 i_0)]).
+  (* Invariant (file tests/wp_plugin/combined.c, line 28) *)
+  (* tests/wp_plugin/combined.c:32: Invariant: *)
+  Have: (0<=i_2) /\ (i_2<=50).
+  (* tests/wp_plugin/combined.c:32: Then *)
+  Have: i_2<=49.
+  (* tests/wp_plugin/combined.c:32: Call 'f' *)
+  Have: (P_P v_0).
+}
+Prove: (P_P Mint_1[(shift_sint32 t_0 i_2)->v_0][(shift_sint32 t_0 i_1)]).
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file tests/wp_plugin/combined.c, line 29):
+Assume { (* Goal *) When: false. }
+Prove: (P_P Mint_9[(shift_sint32 t_7 i_7)]).
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file tests/wp_plugin/combined.c, line 34):
+Let x_0 = 1+j_1.
+Assume {
+  (* Domain *)
+  Type: (is_sint32 A_0) /\ (is_sint32 i_2) /\ (is_sint32 j_1)
+        /\ (is_sint32 x_0).
+  (* Heap *)
+  Have: (linked Malloc_1) /\ ((region (base t_2))<=0).
+  (* Assertion (file tests/wp_plugin/combined.c, line 26) *)
+  (* tests/wp_plugin/combined.c:26: Assertion: *)
+  Have: (50<=A_0) /\ (A_0<=100).
+  (* tests/wp_plugin/combined.c:32: Assigns *)
+  (* tests/wp_plugin/combined.c:32: Loop assigns ...: *)
+  Have: (havoc Mint_9 Mint_6 (shift_sint32 t_2 0) 50).
+  (* Invariant (file tests/wp_plugin/combined.c, line 29) *)
+  (* tests/wp_plugin/combined.c:32: Invariant: *)
+  Have: forall i_0:int.
+        (i_0<i_2) -> (0<=i_0) -> (P_P Mint_6[(shift_sint32 t_2 i_0)]).
+  (* Invariant (file tests/wp_plugin/combined.c, line 28) *)
+  (* tests/wp_plugin/combined.c:32: Invariant: *)
+  Have: (0<=i_2) /\ (i_2<=50).
+  (* tests/wp_plugin/combined.c:32: Else *)
+  Have: 50<=i_2.
+  (* tests/wp_plugin/combined.c:37: Assigns *)
+  (* tests/wp_plugin/combined.c:37: Loop assigns ...: *)
+  Have: (havoc Mint_6 Mint_2 (shift_sint32 t_2 A_0) (100-A_0)).
+  (* Invariant (file tests/wp_plugin/combined.c, line 34) *)
+  (* tests/wp_plugin/combined.c:37: Invariant: *)
+  Have: (A_0<=j_1) /\ (j_1<=100).
+  (* tests/wp_plugin/combined.c:37: Then *)
+  Have: j_1<=99.
+}
+Prove: A_0<=x_0.
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file tests/wp_plugin/combined.c, line 34):
+Assume {
+  (* Domain *)
+  Type: (is_sint32 A_0) /\ (is_sint32 i_2).
+  (* Heap *)
+  Have: (linked Malloc_1) /\ ((region (base t_7))<=0).
+  (* Assertion (file tests/wp_plugin/combined.c, line 26) *)
+  (* tests/wp_plugin/combined.c:26: Assertion: *)
+  Have: (50<=A_0) /\ (A_0<=100).
+  (* tests/wp_plugin/combined.c:32: Assigns *)
+  (* tests/wp_plugin/combined.c:32: Loop assigns ...: *)
+  Have: (havoc Mint_9 Mint_8 (shift_sint32 t_7 0) 50).
+  (* Invariant (file tests/wp_plugin/combined.c, line 29) *)
+  (* tests/wp_plugin/combined.c:32: Invariant: *)
+  Have: forall i_0:int.
+        (i_0<i_2) -> (0<=i_0) -> (P_P Mint_8[(shift_sint32 t_7 i_0)]).
+  (* Invariant (file tests/wp_plugin/combined.c, line 28) *)
+  (* tests/wp_plugin/combined.c:32: Invariant: *)
+  Have: (0<=i_2) /\ (i_2<=50).
+  (* tests/wp_plugin/combined.c:32: Else *)
+  Have: 50<=i_2.
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assertion (file tests/wp_plugin/combined.c, line 39):
+Assume {
+  (* Domain *)
+  Type: (is_sint32 A_0) /\ (is_sint32 i_2) /\ (is_sint32 j_1).
+  (* Goal *)
+  When: (0<=i_5) /\ (i_5<=49).
+  (* Heap *)
+  Have: (linked Malloc_1) /\ ((region (base t_4))<=0).
+  (* Assertion (file tests/wp_plugin/combined.c, line 26) *)
+  (* tests/wp_plugin/combined.c:26: Assertion: *)
+  Have: (50<=A_0) /\ (A_0<=100).
+  (* tests/wp_plugin/combined.c:32: Assigns *)
+  (* tests/wp_plugin/combined.c:32: Loop assigns ...: *)
+  Have: (havoc Mint_9 Mint_6 (shift_sint32 t_4 0) 50).
+  (* Invariant (file tests/wp_plugin/combined.c, line 29) *)
+  (* tests/wp_plugin/combined.c:32: Invariant: *)
+  Have: forall i_0:int.
+        (i_0<i_2) -> (0<=i_0) -> (P_P Mint_6[(shift_sint32 t_4 i_0)]).
+  (* Invariant (file tests/wp_plugin/combined.c, line 28) *)
+  (* tests/wp_plugin/combined.c:32: Invariant: *)
+  Have: (0<=i_2) /\ (i_2<=50).
+  (* tests/wp_plugin/combined.c:32: Else *)
+  Have: 50<=i_2.
+  (* tests/wp_plugin/combined.c:37: Assigns *)
+  (* tests/wp_plugin/combined.c:37: Loop assigns ...: *)
+  Have: (havoc Mint_6 Mint_4 (shift_sint32 t_4 A_0) (100-A_0)).
+  (* Invariant (file tests/wp_plugin/combined.c, line 34) *)
+  (* tests/wp_plugin/combined.c:37: Invariant: *)
+  Have: (A_0<=j_1) /\ (j_1<=100).
+  (* tests/wp_plugin/combined.c:37: Else *)
+  Have: 100<=j_1.
+}
+Prove: (P_P Mint_4[(shift_sint32 t_4 i_5)]).
+
+------------------------------------------------------------
+
+Goal Loop assigns (file tests/wp_plugin/combined.c, line 30) (1/3):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Loop assigns (file tests/wp_plugin/combined.c, line 30) (2/3):
+Effect at line 32
+Let a_0 = (shift_sint32 t_0 0).
+Assume {
+  (* Domain *)
+  Type: (is_sint32 A_0) /\ (is_sint32 i_2) /\ (is_sint32 v_0).
+  (* Goal *)
+  When: (valid_rd Malloc_0 a_0 50).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ ((region (base t_0))<=0).
+  (* Assertion (file tests/wp_plugin/combined.c, line 26) *)
+  (* tests/wp_plugin/combined.c:26: Assertion: *)
+  Have: (50<=A_0) /\ (A_0<=100).
+  (* tests/wp_plugin/combined.c:32: Assigns *)
+  (* tests/wp_plugin/combined.c:32: Loop assigns ...: *)
+  Have: (havoc Mint_9 Mint_1 a_0 50).
+  (* Invariant (file tests/wp_plugin/combined.c, line 29) *)
+  (* tests/wp_plugin/combined.c:32: Invariant: *)
+  Have: forall i_0:int.
+        (i_0<i_2) -> (0<=i_0) -> (P_P Mint_1[(shift_sint32 t_0 i_0)]).
+  (* Invariant (file tests/wp_plugin/combined.c, line 28) *)
+  (* tests/wp_plugin/combined.c:32: Invariant: *)
+  Have: (0<=i_2) /\ (i_2<=50).
+  (* tests/wp_plugin/combined.c:32: Then *)
+  Have: i_2<=49.
+  (* tests/wp_plugin/combined.c:32: Call 'f' *)
+  Have: (P_P v_0).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Loop assigns (file tests/wp_plugin/combined.c, line 30) (3/3):
+Call Result at line 32
+Assume {
+  (* Domain *)
+  Type: (is_sint32 A_0) /\ (is_sint32 i_2) /\ (is_sint32 v_0).
+  (* Goal *)
+  When: (valid_rd Malloc_0 (shift_sint32 t_0 i_2) 1).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ ((region (base t_0))<=0).
+  (* Assertion (file tests/wp_plugin/combined.c, line 26) *)
+  (* tests/wp_plugin/combined.c:26: Assertion: *)
+  Have: (50<=A_0) /\ (A_0<=100).
+  (* tests/wp_plugin/combined.c:32: Assigns *)
+  (* tests/wp_plugin/combined.c:32: Loop assigns ...: *)
+  Have: (havoc Mint_9 Mint_1 (shift_sint32 t_0 0) 50).
+  (* Invariant (file tests/wp_plugin/combined.c, line 29) *)
+  (* tests/wp_plugin/combined.c:32: Invariant: *)
+  Have: forall i_0:int.
+        (i_0<i_2) -> (0<=i_0) -> (P_P Mint_1[(shift_sint32 t_0 i_0)]).
+  (* Invariant (file tests/wp_plugin/combined.c, line 28) *)
+  (* tests/wp_plugin/combined.c:32: Invariant: *)
+  Have: (0<=i_2) /\ (i_2<=50).
+  (* tests/wp_plugin/combined.c:32: Then *)
+  Have: i_2<=49.
+  (* tests/wp_plugin/combined.c:32: Call 'f' *)
+  Have: (P_P v_0).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Loop assigns (file tests/wp_plugin/combined.c, line 35) (1/3):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Loop assigns (file tests/wp_plugin/combined.c, line 35) (2/3):
+Effect at line 37
+Let a_0 = (shift_sint32 t_2 A_0).
+Let x_0 = 100-A_0.
+Assume {
+  (* Domain *)
+  Type: (is_sint32 A_0) /\ (is_sint32 i_2) /\ (is_sint32 j_1).
+  (* Goal *)
+  When: (valid_rd Malloc_0 a_0 x_0).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ ((region (base t_2))<=0).
+  (* Assertion (file tests/wp_plugin/combined.c, line 26) *)
+  (* tests/wp_plugin/combined.c:26: Assertion: *)
+  Have: (50<=A_0) /\ (A_0<=100).
+  (* tests/wp_plugin/combined.c:32: Assigns *)
+  (* tests/wp_plugin/combined.c:32: Loop assigns ...: *)
+  Have: (havoc Mint_9 Mint_6 (shift_sint32 t_2 0) 50).
+  (* Invariant (file tests/wp_plugin/combined.c, line 29) *)
+  (* tests/wp_plugin/combined.c:32: Invariant: *)
+  Have: forall i_0:int.
+        (i_0<i_2) -> (0<=i_0) -> (P_P Mint_6[(shift_sint32 t_2 i_0)]).
+  (* Invariant (file tests/wp_plugin/combined.c, line 28) *)
+  (* tests/wp_plugin/combined.c:32: Invariant: *)
+  Have: (0<=i_2) /\ (i_2<=50).
+  (* tests/wp_plugin/combined.c:32: Else *)
+  Have: 50<=i_2.
+  (* tests/wp_plugin/combined.c:37: Assigns *)
+  (* tests/wp_plugin/combined.c:37: Loop assigns ...: *)
+  Have: (havoc Mint_6 Mint_2 a_0 x_0).
+  (* Invariant (file tests/wp_plugin/combined.c, line 34) *)
+  (* tests/wp_plugin/combined.c:37: Invariant: *)
+  Have: (A_0<=j_1) /\ (j_1<=100).
+  (* tests/wp_plugin/combined.c:37: Then *)
+  Have: j_1<=99.
+}
+Prove: (included a_0 x_0 a_0 x_0).
+
+------------------------------------------------------------
+
+Goal Loop assigns (file tests/wp_plugin/combined.c, line 35) (3/3):
+Call Result at line 37
+Let a_0 = (shift_sint32 t_2 j_1).
+Let a_1 = (shift_sint32 t_2 A_0).
+Let x_0 = 100-A_0.
+Assume {
+  (* Domain *)
+  Type: (is_sint32 A_0) /\ (is_sint32 i_2) /\ (is_sint32 j_1).
+  (* Goal *)
+  When: (valid_rd Malloc_0 a_0 1).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ ((region (base t_2))<=0).
+  (* Assertion (file tests/wp_plugin/combined.c, line 26) *)
+  (* tests/wp_plugin/combined.c:26: Assertion: *)
+  Have: (50<=A_0) /\ (A_0<=100).
+  (* tests/wp_plugin/combined.c:32: Assigns *)
+  (* tests/wp_plugin/combined.c:32: Loop assigns ...: *)
+  Have: (havoc Mint_9 Mint_6 (shift_sint32 t_2 0) 50).
+  (* Invariant (file tests/wp_plugin/combined.c, line 29) *)
+  (* tests/wp_plugin/combined.c:32: Invariant: *)
+  Have: forall i_0:int.
+        (i_0<i_2) -> (0<=i_0) -> (P_P Mint_6[(shift_sint32 t_2 i_0)]).
+  (* Invariant (file tests/wp_plugin/combined.c, line 28) *)
+  (* tests/wp_plugin/combined.c:32: Invariant: *)
+  Have: (0<=i_2) /\ (i_2<=50).
+  (* tests/wp_plugin/combined.c:32: Else *)
+  Have: 50<=i_2.
+  (* tests/wp_plugin/combined.c:37: Assigns *)
+  (* tests/wp_plugin/combined.c:37: Loop assigns ...: *)
+  Have: (havoc Mint_6 Mint_2 a_1 x_0).
+  (* Invariant (file tests/wp_plugin/combined.c, line 34) *)
+  (* tests/wp_plugin/combined.c:37: Invariant: *)
+  Have: (A_0<=j_1) /\ (j_1<=100).
+  (* tests/wp_plugin/combined.c:37: Then *)
+  Have: j_1<=99.
+}
+Prove: (included a_0 1 a_1 x_0).
+
+------------------------------------------------------------

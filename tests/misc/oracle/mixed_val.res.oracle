@@ -1,0 +1,36 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/mixed_val.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  T[0] ∈ {97}
+   [1..9] ∈ {0}
+  a ∈ {0}
+  b ∈ {0}
+  c ∈ {0}
+  d ∈ {0}
+  e ∈ {0}
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  T[0]# ∈ {128073}%32, bits 0 to 15 
+   [1..9] ∈ {0}
+  a ∈ {128073}
+  d ∈ {128073}
+  __retres ∈ {0}
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  T[0] FROM c
+  a FROM c
+  d FROM e
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          T[0]; a; d; __retres
+[inout] Inputs for function main:
+          a[bits 0 to 15]; c; e

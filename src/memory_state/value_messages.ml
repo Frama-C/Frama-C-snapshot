@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,9 +20,11 @@
 (*                                                                        *)
 (**************************************************************************)
 
+(** UNDOCUMENTED. *)
+
 open Cil_types;;
 
-(* Warnings can either emit ACSL (Alarm), or do not emit ACSL
+(** Warnings can either emit ACSL (Alarm), or do not emit ACSL
    (others). *)
 type warning =
 | Alarm of Alarms.t * Property_status.emitted_status
@@ -39,7 +41,7 @@ and precision_loss_message =
 | Garbled_mix_creation of Cil_types.exp (* Expression that creates the garbled mix. *)
 | Garbled_mix_propagation
 
-(* Temporary: avoid a circular dependency while CilE is used.  *)
+(** Temporary: avoid a circular dependency while CilE is used.  *)
 type callstack = unit (* Value_types.callstack;; *)
 type state = unit (* Cvalue.Model.t;; *)
 

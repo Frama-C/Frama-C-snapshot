@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -93,7 +93,7 @@ val mk_logic_StartOf : term -> term
 
 (** creates an AddrOf from a TLval. The given logic type is the
     type of the lval.
-    @since Neon-20130301 *)
+    @since Neon-20140301 *)
 val mk_logic_AddrOf: ?loc:Cil_types.location -> term_lval -> logic_type -> term
 
 (** [true] if the term is a pointer. *)
@@ -128,7 +128,7 @@ val pointer_comparable: ?loc:location -> term -> term -> predicate named
 
 val points_to_valid_string: ?loc:location -> term -> predicate named
 (** \points_to_valid_string
-    @since Neon-20130301 *)
+    @since Neon-20140301 *)
 
 (** {3 Conversion from exp to term}*)
 (** translates a C expression into an "equivalent" logical term.
@@ -346,11 +346,16 @@ val extract_loop_pragma :
 val extract_contract :
   code_annotation list -> (string list * funspec) list
 
+(** {2 Constant folding} *)
+
+val constFoldTermToInt: ?machdep:bool -> term -> Integer.t option
+
+
 (** {2 Type-checking hackery} *)
 
 (** give complete types to terms that refer to a variable whose type
     has been completed after its use in an annotation. Internal use only.
-    @since Neon-20130301 *)
+    @since Neon-20140301 *)
 val complete_types: file -> unit
 
 (** {2 Parsing hackery} *)

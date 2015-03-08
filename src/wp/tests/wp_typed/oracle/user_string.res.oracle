@@ -1,0 +1,338 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_typed/user_string.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function strlen
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_typed/user_string.i, line 23) in 'strlen':
+Let x_0 = (offset ss_3).
+Let x_1 = (offset s_3).
+Let x_2 = x_0-x_1.
+Let x_3 = Mchar_1[ss_3].
+Let x_4 = (base s_3).
+Assume {
+  (* Domain *)
+  Type: (is_sint8 x_3) /\ (is_sint32 x_2).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ (sconst Mchar_1) /\ ((region x_4)<=0).
+  (* Pre-condition (file tests/wp_typed/user_string.i, line 21) in 'strlen' *)
+  (* Pre-condition: *)
+  Have: exists i_0:int. (P_Length_of_str_is Malloc_0 Mchar_1 s_3 i_0).
+  (* Invariant 'ZERO' (file tests/wp_typed/user_string.i, line 30) *)
+  (* tests/wp_typed/user_string.i:34: Invariant 'ZERO': *)
+  Have: forall i_0:int.
+        (0<=i_0) -> ((i_0+x_1)<x_0) -> (0!=Mchar_1[(shift_sint8 s_3 i_0)]).
+  (* Invariant 'RANGE' (file tests/wp_typed/user_string.i, line 29) *)
+  (* tests/wp_typed/user_string.i:34: Invariant 'RANGE': *)
+  Have: (addr_le s_3 ss_3)
+        /\ (addr_le ss_3 (shift_sint8 s_3 (L_Length Mchar_1 s_3))).
+  (* Invariant 'BASE' (file tests/wp_typed/user_string.i, line 28) *)
+  (* tests/wp_typed/user_string.i:34: Invariant 'BASE': *)
+  Have: x_4=(base ss_3).
+  (* tests/wp_typed/user_string.i:34: Else *)
+  Have: 0=x_3.
+  (* Assertion 'END' (file tests/wp_typed/user_string.i, line 37) *)
+  (* tests/wp_typed/user_string.i:37: Assertion 'END': *)
+  Have: (P_Length_of_str_is Malloc_0 Mchar_1 s_3 x_2).
+}
+Prove: exists i_0:int.
+       (P_Length_of_str_is Malloc_0 Mchar_1 s_3 i_0) /\ (x_0=(i_0+x_1)).
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant 'BASE' (file tests/wp_typed/user_string.i, line 28):
+Let x_0 = Mchar_3[ss_2].
+Let x_1 = (base s_0).
+Assume {
+  (* Domain *)
+  Type: (is_sint8 x_0).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ (sconst Mchar_3) /\ ((region x_1)<=0).
+  (* Pre-condition (file tests/wp_typed/user_string.i, line 21) in 'strlen' *)
+  (* Pre-condition: *)
+  Have: exists i_0:int. (P_Length_of_str_is Malloc_0 Mchar_3 s_0 i_0).
+  (* Invariant 'ZERO' (file tests/wp_typed/user_string.i, line 30) *)
+  (* tests/wp_typed/user_string.i:34: Invariant 'ZERO': *)
+  Have: forall i_0:int.
+        (0<=i_0) -> ((i_0+(offset s_0))<(offset ss_2))
+        -> (0!=Mchar_3[(shift_sint8 s_0 i_0)]).
+  (* Invariant 'RANGE' (file tests/wp_typed/user_string.i, line 29) *)
+  (* tests/wp_typed/user_string.i:34: Invariant 'RANGE': *)
+  Have: (addr_le s_0 ss_2)
+        /\ (addr_le ss_2 (shift_sint8 s_0 (L_Length Mchar_3 s_0))).
+  (* Invariant 'BASE' (file tests/wp_typed/user_string.i, line 28) *)
+  (* tests/wp_typed/user_string.i:34: Invariant 'BASE': *)
+  Have: x_1=(base ss_2).
+  (* tests/wp_typed/user_string.i:34: Then *)
+  Have: 0!=x_0.
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant 'BASE' (file tests/wp_typed/user_string.i, line 28):
+Assume {
+  (* Domain *)
+  Type: (is_sint8 Mchar_3[ss_4]).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ (sconst Mchar_3) /\ ((region (base s_4))<=0).
+  (* Pre-condition (file tests/wp_typed/user_string.i, line 21) in 'strlen' *)
+  (* Pre-condition: *)
+  Have: exists i_0:int. (P_Length_of_str_is Malloc_0 Mchar_3 s_4 i_0).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant 'RANGE' (file tests/wp_typed/user_string.i, line 29):
+Let a_0 = (shift_sint8 ss_2 1).
+Let a_1 = (shift_sint8 s_0 (L_Length Mchar_0 s_0)).
+Let x_0 = Mchar_0[ss_2].
+Let x_1 = (base s_0).
+Assume {
+  (* Domain *)
+  Type: (is_sint8 x_0).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ (sconst Mchar_0) /\ ((region x_1)<=0).
+  (* Pre-condition (file tests/wp_typed/user_string.i, line 21) in 'strlen' *)
+  (* Pre-condition: *)
+  Have: exists i_0:int. (P_Length_of_str_is Malloc_0 Mchar_0 s_0 i_0).
+  (* Invariant 'ZERO' (file tests/wp_typed/user_string.i, line 30) *)
+  (* tests/wp_typed/user_string.i:34: Invariant 'ZERO': *)
+  Have: forall i_0:int.
+        (0<=i_0) -> ((i_0+(offset s_0))<(offset ss_2))
+        -> (0!=Mchar_0[(shift_sint8 s_0 i_0)]).
+  (* Invariant 'RANGE' (file tests/wp_typed/user_string.i, line 29) *)
+  (* tests/wp_typed/user_string.i:34: Invariant 'RANGE': *)
+  Have: (addr_le s_0 ss_2) /\ (addr_le ss_2 a_1).
+  (* Invariant 'BASE' (file tests/wp_typed/user_string.i, line 28) *)
+  (* tests/wp_typed/user_string.i:34: Invariant 'BASE': *)
+  Have: x_1=(base ss_2).
+  (* tests/wp_typed/user_string.i:34: Then *)
+  Have: 0!=x_0.
+}
+Prove: (addr_le s_0 a_0) /\ (addr_le a_0 a_1).
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant 'RANGE' (file tests/wp_typed/user_string.i, line 29):
+Assume {
+  (* Domain *)
+  Type: (is_sint8 Mchar_3[ss_4]).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ (sconst Mchar_3) /\ ((region (base s_4))<=0).
+  (* Pre-condition (file tests/wp_typed/user_string.i, line 21) in 'strlen' *)
+  (* Pre-condition: *)
+  Have: exists i_0:int. (P_Length_of_str_is Malloc_0 Mchar_3 s_4 i_0).
+}
+Prove: (addr_le s_4 s_4)
+       /\ (addr_le s_4 (shift_sint8 s_4 (L_Length Mchar_3 s_4))).
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant 'ZERO' (file tests/wp_typed/user_string.i, line 30):
+Let x_0 = Mchar_0[ss_2].
+Let x_1 = (base s_0).
+Let x_2 = (offset s_0).
+Let x_3 = (offset ss_2).
+Assume {
+  (* Domain *)
+  Type: (is_sint8 x_0).
+  (* Goal *)
+  When: (0<=i_1) /\ ((i_1+x_2)<=x_3).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ (sconst Mchar_0) /\ ((region x_1)<=0).
+  (* Pre-condition (file tests/wp_typed/user_string.i, line 21) in 'strlen' *)
+  (* Pre-condition: *)
+  Have: exists i_0:int. (P_Length_of_str_is Malloc_0 Mchar_0 s_0 i_0).
+  (* Invariant 'ZERO' (file tests/wp_typed/user_string.i, line 30) *)
+  (* tests/wp_typed/user_string.i:34: Invariant 'ZERO': *)
+  Have: forall i_0:int.
+        (0<=i_0) -> ((i_0+x_2)<x_3) -> (0!=Mchar_0[(shift_sint8 s_0 i_0)]).
+  (* Invariant 'RANGE' (file tests/wp_typed/user_string.i, line 29) *)
+  (* tests/wp_typed/user_string.i:34: Invariant 'RANGE': *)
+  Have: (addr_le s_0 ss_2)
+        /\ (addr_le ss_2 (shift_sint8 s_0 (L_Length Mchar_0 s_0))).
+  (* Invariant 'BASE' (file tests/wp_typed/user_string.i, line 28) *)
+  (* tests/wp_typed/user_string.i:34: Invariant 'BASE': *)
+  Have: x_1=(base ss_2).
+  (* tests/wp_typed/user_string.i:34: Then *)
+  Have: 0!=x_0.
+}
+Prove: 0!=Mchar_0[(shift_sint8 s_0 i_1)].
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant 'ZERO' (file tests/wp_typed/user_string.i, line 30):
+Assume { (* Goal *) When: false. }
+Prove: 0!=Mchar_3[(shift_sint8 s_4 i_5)].
+
+------------------------------------------------------------
+
+Goal Assertion 'END' (file tests/wp_typed/user_string.i, line 37):
+Let x_0 = (offset ss_3).
+Let x_1 = (offset s_3).
+Let x_2 = Mchar_2[ss_3].
+Let x_3 = (base s_3).
+Assume {
+  (* Domain *)
+  Type: (is_sint8 x_2).
+  (* Heap *)
+  Have: (linked Malloc_1) /\ (sconst Mchar_2) /\ ((region x_3)<=0).
+  (* Pre-condition (file tests/wp_typed/user_string.i, line 21) in 'strlen' *)
+  (* Pre-condition: *)
+  Have: exists i_0:int. (P_Length_of_str_is Malloc_1 Mchar_2 s_3 i_0).
+  (* Invariant 'ZERO' (file tests/wp_typed/user_string.i, line 30) *)
+  (* tests/wp_typed/user_string.i:34: Invariant 'ZERO': *)
+  Have: forall i_0:int.
+        (0<=i_0) -> ((i_0+x_1)<x_0) -> (0!=Mchar_2[(shift_sint8 s_3 i_0)]).
+  (* Invariant 'RANGE' (file tests/wp_typed/user_string.i, line 29) *)
+  (* tests/wp_typed/user_string.i:34: Invariant 'RANGE': *)
+  Have: (addr_le s_3 ss_3)
+        /\ (addr_le ss_3 (shift_sint8 s_3 (L_Length Mchar_2 s_3))).
+  (* Invariant 'BASE' (file tests/wp_typed/user_string.i, line 28) *)
+  (* tests/wp_typed/user_string.i:34: Invariant 'BASE': *)
+  Have: x_3=(base ss_3).
+  (* tests/wp_typed/user_string.i:34: Else *)
+  Have: 0=x_2.
+}
+Prove: (P_Length_of_str_is Malloc_1 Mchar_2 s_3 (x_0-x_1)).
+
+------------------------------------------------------------
+
+Goal Loop assigns (file tests/wp_typed/user_string.i, line 31):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'strlen' (1/3):
+Effect at line 26
+Assume {
+  (* Domain *)
+  Type: (is_sint8 Mchar_3[ss_4]).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ (sconst Mchar_3) /\ ((region (base s_2))<=0).
+  (* Pre-condition (file tests/wp_typed/user_string.i, line 21) in 'strlen' *)
+  (* Pre-condition: *)
+  Have: exists i_0:int. (P_Length_of_str_is Malloc_0 Mchar_3 s_2 i_0).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'strlen' (2/3):
+Effect at line 34
+Assume {
+  (* Domain *)
+  Type: (is_sint8 Mchar_3[ss_4]).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ (sconst Mchar_3) /\ ((region (base s_2))<=0).
+  (* Pre-condition (file tests/wp_typed/user_string.i, line 21) in 'strlen' *)
+  (* Pre-condition: *)
+  Have: exists i_0:int. (P_Length_of_str_is Malloc_0 Mchar_3 s_2 i_0).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'strlen' (3/3):
+Effect at line 38
+Let x_0 = (offset ss_3).
+Let x_1 = (offset s_3).
+Let x_2 = Mchar_1[ss_3].
+Let x_3 = (base s_3).
+Assume {
+  (* Domain *)
+  Type: (is_sint8 x_2).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ (sconst Mchar_1) /\ ((region x_3)<=0).
+  (* Pre-condition (file tests/wp_typed/user_string.i, line 21) in 'strlen' *)
+  (* Pre-condition: *)
+  Have: exists i_0:int. (P_Length_of_str_is Malloc_0 Mchar_1 s_3 i_0).
+  (* Invariant 'ZERO' (file tests/wp_typed/user_string.i, line 30) *)
+  (* tests/wp_typed/user_string.i:34: Invariant 'ZERO': *)
+  Have: forall i_0:int.
+        (0<=i_0) -> ((i_0+x_1)<x_0) -> (0!=Mchar_1[(shift_sint8 s_3 i_0)]).
+  (* Invariant 'RANGE' (file tests/wp_typed/user_string.i, line 29) *)
+  (* tests/wp_typed/user_string.i:34: Invariant 'RANGE': *)
+  Have: (addr_le s_3 ss_3)
+        /\ (addr_le ss_3 (shift_sint8 s_3 (L_Length Mchar_1 s_3))).
+  (* Invariant 'BASE' (file tests/wp_typed/user_string.i, line 28) *)
+  (* tests/wp_typed/user_string.i:34: Invariant 'BASE': *)
+  Have: x_3=(base ss_3).
+  (* tests/wp_typed/user_string.i:34: Else *)
+  Have: 0=x_2.
+  (* Assertion 'END' (file tests/wp_typed/user_string.i, line 37) *)
+  (* tests/wp_typed/user_string.i:37: Assertion 'END': *)
+  Have: (P_Length_of_str_is Malloc_0 Mchar_1 s_3 (x_0-x_1)).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Decreasing of Loop variant at loop (file tests/wp_typed/user_string.i, line 34):
+Let x_0 = Mchar_0[ss_2].
+Let x_1 = (base s_0).
+Assume {
+  (* Domain *)
+  Type: (is_sint8 x_0).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ (sconst Mchar_0) /\ ((region x_1)<=0).
+  (* Pre-condition (file tests/wp_typed/user_string.i, line 21) in 'strlen' *)
+  (* Pre-condition: *)
+  Have: exists i_0:int. (P_Length_of_str_is Malloc_0 Mchar_0 s_0 i_0).
+  (* Invariant 'ZERO' (file tests/wp_typed/user_string.i, line 30) *)
+  (* tests/wp_typed/user_string.i:34: Invariant 'ZERO': *)
+  Have: forall i_0:int.
+        (0<=i_0) -> ((i_0+(offset s_0))<(offset ss_2))
+        -> (0!=Mchar_0[(shift_sint8 s_0 i_0)]).
+  (* Invariant 'RANGE' (file tests/wp_typed/user_string.i, line 29) *)
+  (* tests/wp_typed/user_string.i:34: Invariant 'RANGE': *)
+  Have: (addr_le s_0 ss_2)
+        /\ (addr_le ss_2 (shift_sint8 s_0 (L_Length Mchar_0 s_0))).
+  (* Invariant 'BASE' (file tests/wp_typed/user_string.i, line 28) *)
+  (* tests/wp_typed/user_string.i:34: Invariant 'BASE': *)
+  Have: x_1=(base ss_2).
+  (* tests/wp_typed/user_string.i:34: Then *)
+  Have: 0!=x_0.
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Positivity of Loop variant at loop (file tests/wp_typed/user_string.i, line 34):
+Let x_0 = (offset ss_1).
+Let x_1 = (offset s_1).
+Let x_2 = (L_Length Mchar_0 s_1).
+Let x_3 = Mchar_0[ss_1].
+Let x_4 = (base s_1).
+Assume {
+  (* Domain *)
+  Type: (is_sint8 x_3).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ (sconst Mchar_0) /\ ((region x_4)<=0).
+  (* Pre-condition (file tests/wp_typed/user_string.i, line 21) in 'strlen' *)
+  (* Pre-condition: *)
+  Have: exists i_0:int. (P_Length_of_str_is Malloc_0 Mchar_0 s_1 i_0).
+  (* Invariant 'ZERO' (file tests/wp_typed/user_string.i, line 30) *)
+  (* tests/wp_typed/user_string.i:34: Invariant 'ZERO': *)
+  Have: forall i_0:int.
+        (0<=i_0) -> ((i_0+x_1)<x_0) -> (0!=Mchar_0[(shift_sint8 s_1 i_0)]).
+  (* Invariant 'RANGE' (file tests/wp_typed/user_string.i, line 29) *)
+  (* tests/wp_typed/user_string.i:34: Invariant 'RANGE': *)
+  Have: (addr_le s_1 ss_1) /\ (addr_le ss_1 (shift_sint8 s_1 x_2)).
+  (* Invariant 'BASE' (file tests/wp_typed/user_string.i, line 28) *)
+  (* tests/wp_typed/user_string.i:34: Invariant 'BASE': *)
+  Have: x_4=(base ss_1).
+  (* tests/wp_typed/user_string.i:34: Then *)
+  Have: 0!=x_3.
+}
+Prove: x_0<=(x_1+x_2).
+
+------------------------------------------------------------

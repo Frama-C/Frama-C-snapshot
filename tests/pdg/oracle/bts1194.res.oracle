@@ -1,0 +1,259 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/pdg/bts1194.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  Y ∈ {0}
+  X ∈ {0}
+  v ∈ [--..--]
+[value] computing for function f <- main.
+        Called from tests/pdg/bts1194.c:32.
+[value] computing for function input <- f <- main.
+        Called from tests/pdg/bts1194.c:13.
+[value] using specification for function input
+[value] Done for function input
+tests/pdg/bts1194.c:17:[value] Assertion got status unknown.
+[value] Recording results for f
+[from] Computing for function f
+[from] Done for function f
+[value] Done for function f
+[value] computing for function h <- main.
+        Called from tests/pdg/bts1194.c:33.
+[value] computing for function g <- h <- main.
+        Called from tests/pdg/bts1194.c:26.
+tests/pdg/bts1194.c:22:[value] entering loop for the first time
+tests/pdg/bts1194.c:20:[value] Function g: no state left in which to evaluate postcondition, status not computed.
+[value] Recording results for g
+[from] Computing for function g
+[from] Non-terminating function g (no dependencies)
+[from] Done for function g
+[value] Done for function g
+[value] Recording results for h
+[from] Computing for function h
+[from] Done for function h
+[value] Done for function h
+[value] Recording results for main
+[from] Computing for function main
+[from] Done for function main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function g:
+  NON TERMINATING FUNCTION
+[value] Values at end of function h:
+  X ∈ {2}
+[value] Values at end of function f:
+  Y ∈ [1..2147483647]
+  l ∈ {0}
+[value] Values at end of function main:
+  Y ∈ [1..2147483647]
+  X ∈ {2}
+[from] Computing for function g
+[from] Non-terminating function g (no dependencies)
+[from] Done for function g
+[from] Computing for function h
+[from] Done for function h
+[from] Computing for function f
+[from] Computing for function input <-f
+[from] Done for function input
+[from] Done for function f
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function g:
+  NON TERMINATING - NO EFFECTS
+[from] Function h:
+  X FROM X; v
+[from] Function input:
+  \result FROM \nothing
+[from] Function f:
+  Y FROM \nothing
+[from] Function main:
+  Y FROM \nothing
+  X FROM X; v
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[from] ====== DISPLAYING CALLWISE DEPENDENCIES ======
+[from] call to g at tests/pdg/bts1194.c:26 (by h):
+  NON TERMINATING - NO EFFECTS
+[from] call to input at tests/pdg/bts1194.c:13 (by f):
+  \result FROM \nothing
+[from] call to f at tests/pdg/bts1194.c:32 (by main):
+  Y FROM \nothing
+[from] call to h at tests/pdg/bts1194.c:33 (by main):
+  X FROM X; v
+[from] entry point:
+  Y FROM \nothing
+  X FROM X; v
+  \result FROM \nothing
+[from] ====== END OF CALLWISE DEPENDENCIES ======
+[inout] InOut (internal) for function g:
+        Operational inputs:
+          \nothing
+        Operational inputs on termination:
+          \nothing
+        Sure outputs:
+          ANYTHING(origin:Unknown)
+[inout] InOut (internal) for function h:
+        Operational inputs:
+          X; v
+        Operational inputs on termination:
+          X; v
+        Sure outputs:
+          X
+[inout] InOut (internal) for function f:
+        Operational inputs:
+          \nothing
+        Operational inputs on termination:
+          \nothing
+        Sure outputs:
+          Y; l
+[inout] InOut (internal) for function main:
+        Operational inputs:
+          X; v
+        Operational inputs on termination:
+          X; v
+        Sure outputs:
+          Y; X
+[pdg] computing for function g
+tests/pdg/bts1194.c:22:[pdg] warning: no final state. Probably unreachable...
+[pdg] done for function g
+[pdg] computing for function h
+[pdg] done for function h
+[pdg] computing for function input
+[pdg] done for function input
+[pdg] computing for function f
+[pdg] done for function f
+[pdg] computing for function main
+[pdg] done for function main
+[pdg] ====== PDG GRAPH COMPUTED ======
+[pdg] PDG for g
+ {n1}: InCtrl
+ {n2}: while(1)
+   -[-c-]-> 1
+   -[-c-]-> 2
+ {n3}: return;
+   -[-c-]-> 1
+[pdg] PDG for h
+ {n4}: InCtrl
+ {n5}: v
+   -[-c-]-> 4
+   -[--d]-> 10
+ {n6}: Call15-InCtrl : g();
+   -[-c-]-> 4
+   -[-c-]-> 5
+ {n7}: X += 2;
+   -[-c-]-> 4
+   -[-c-]-> 5
+   -[--d]-> 9
+ {n8}: return;
+   -[-c-]-> 4
+ {n9}: In(X)
+ {n10}: In(v)
+[pdg] PDG for input
+ {n11}: InCtrl
+ {n12}: OutRet
+[pdg] PDG for f
+ {n13}: InCtrl
+ {n14}: VarDecl : l
+ {n15}: l = 0;
+   -[-c-]-> 13
+   -[a--]-> 14
+ {n16}: Call2-InCtrl : Y = input();
+   -[-c-]-> 13
+ {n17}: Call2-OutRet : Y = input();
+   -[-c-]-> 13
+   -[-c-]-> 16
+ {n18}: l > 0
+   -[-c-]-> 13
+   -[--d]-> 14
+   -[--d]-> 15
+ {n19}: ;
+   -[-c-]-> 13
+ {n20}: return;
+   -[-c-]-> 13
+[pdg] PDG for main
+ {n21}: InCtrl
+ {n22}: Y = 3;
+   -[-c-]-> 21
+ {n23}: Call20-InCtrl : f();
+   -[-c-]-> 21
+ {n24}: Call20-Out(Y) : f();
+   -[-c-]-> 21
+   -[-c-]-> 23
+ {n25}: Call21-InCtrl : h();
+   -[-c-]-> 21
+ {n26}: Call21-Out(X) : h();
+   -[-c-]-> 21
+   -[-c-]-> 25
+   -[--d]-> 29
+   -[--d]-> 30
+ {n27}: return Y;
+   -[-c-]-> 21
+   -[--d](Y)-> 24
+ {n28}: OutRet
+   -[--d]-> 27
+ {n29}: In(X)
+ {n30}: In(v)
+[slicing] slicing requests in progress...
+[slicing] making slicing project 'Slicing'...
+[slicing] interpreting slicing requests from the command line...
+[slicing] applying all slicing requests...
+[slicing] applying 0 actions...
+[slicing] applying all slicing requests...
+[slicing] applying 1 actions...
+[slicing] applying actions: 1/1...
+[slicing] exporting project to 'Slicing export'...
+[slicing] applying all slicing requests...
+[slicing] applying 0 actions...
+[sparecode] remove unused global declarations from project 'Slicing export tmp'
+[sparecode] removed unused global declarations in new project 'Slicing export'
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  Y ∈ {0}
+[value] computing for function f_slice_1 <- main.
+        Called from tests/pdg/bts1194.c:32.
+tests/pdg/bts1194.c:13:[kernel] warning: Neither code nor specification for function input, generating default assigns from the prototype
+[value] computing for function input <- f_slice_1 <- main.
+        Called from tests/pdg/bts1194.c:13.
+[value] using specification for function input
+[value] Done for function input
+tests/pdg/bts1194.c:17:[value] Assertion got status unknown.
+[value] Recording results for f_slice_1
+[value] Done for function f_slice_1
+[value] Recording results for main
+[value] done for function main
+[pdg] computing for function input
+[from] Computing for function input
+[from] Done for function input
+[pdg] done for function input
+[pdg] computing for function f_slice_1
+[pdg] done for function f_slice_1
+[pdg] computing for function main
+[from] Computing for function f_slice_1
+[from] Done for function f_slice_1
+[pdg] done for function main
+[pdg] ====== PDG GRAPH COMPUTED ======
+/* Generated by Frama-C */
+int Y;
+/*@ assigns \result;
+    assigns \result \from \nothing; */
+extern int input();
+
+void f_slice_1(void)
+{
+  Y = input();
+  /*@ assert Y > 0; */ ;
+  return;
+}
+
+int main(void)
+{
+  f_slice_1();
+  return Y;
+}
+
+

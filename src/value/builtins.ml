@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -45,6 +45,19 @@ let overridden_by_builtin s =
   with Not_found -> false
 
 
+(* Helper function to create the best type for a new base.
+   Builds an array type with the appropriate number of elements if needed *)
+let type_from_nb_elems ~loc typ nb_elems =
+  if Int.equal Int.one nb_elems
+  then typ
+  else 
+    try
+      let esize_arr = Cil.kinteger64 ~loc nb_elems in
+      TArray (typ, Some esize_arr, Cil.empty_size_cache (), [])
+    with Cil.Not_representable ->
+      Value_parameters.fatal
+        "Allocation size is too large for malloc %a." Int.pretty nb_elems
+
 let double_double_fun name caml_fun state actuals =
   match actuals with
     [_, arg, _] ->
@@ -69,24 +82,20 @@ let double_double_fun name caml_fun state actuals =
         ("Invalid argument for " ^ name ^ " function");
       raise Db.Value.Aborted
 
-
-let frama_C_cos = double_double_fun "Frama_C_cos" Ival.Float_abstract.cos_float
+let frama_C_cos = double_double_fun "Frama_C_cos" Ival.Float_abstract.cos
 let frama_C_cos_precise = 
-  double_double_fun "Frama_C_cos_precise" Ival.Float_abstract.cos_float_precise
+  double_double_fun "Frama_C_cos_precise" Ival.Float_abstract.cos_precise
 
 let () = register_builtin "Frama_C_cos" frama_C_cos
 
 let () = register_builtin "Frama_C_cos_precise" frama_C_cos_precise
 
-let frama_C_sin = double_double_fun "Frama_C_sin" Ival.Float_abstract.sin_float
+let frama_C_sin = double_double_fun "Frama_C_sin" Ival.Float_abstract.sin
 let () = register_builtin "Frama_C_sin" frama_C_sin
 
 let frama_C_sin_precise = 
-  double_double_fun "Frama_C_sin_precise" Ival.Float_abstract.sin_float_precise
+  double_double_fun "Frama_C_sin_precise" Ival.Float_abstract.sin_precise
 let () = register_builtin "Frama_C_sin_precise" frama_C_sin_precise
-
-let frama_C_exp = double_double_fun "Frama_C_exp" Ival.Float_abstract.exp_float
-let () = register_builtin "Frama_C_exp" frama_C_exp
 
 (*
 external cos_rd : float -> float = "caml_cos_rd"
@@ -148,42 +157,68 @@ let frama_C_compare_cos state actuals =
 
 let () = register_builtin "Frama_C_compare_cos" frama_C_compare_cos
 
-let frama_C_sqrt state actuals =
+let float_or_double_fun_alarm name caml_fun state actuals =
   match actuals with
-    [_, arg, _] -> begin
-        let r =
-          try
-            let i = Cvalue.V.project_ival arg in
-            let f = Ival.project_float i in
-            let result_alarm, f =
-              Ival.Float_abstract.sqrt_float (get_rounding_mode()) f
-            in
-            if result_alarm
-            then
-              Value_parameters.result ~once:true ~current:true
-                "float sqrt: assert (Ook)";
-            Cvalue.V.inject_ival (Ival.inject_float f)
+  | [_, arg, _] -> begin
+    let warn () =
+        Value_parameters.warning ~once:true ~current:true
+          "out-of-range argument %a for function %s" V.pretty arg name
+    in
+    let r =
+      try
+        let i = Cvalue.V.project_ival arg in
+        let f = Ival.project_float i in
+        let nearest_even = Ival.Float_abstract.Nearest_Even in
+        let rounding_mode = Value_util.get_rounding_mode () in
+        if rounding_mode <> nearest_even then
+          Value_parameters.warning ~once:true "option -all-rounding-modes \
+            is not supported for builtin %s" name;
+        let alarm, f' = caml_fun nearest_even f in
+        if alarm then warn ();
+        Cvalue.V.inject_ival (Ival.inject_float f')
+      with
+      | Ival.Float_abstract.Nan_or_infinite ->
+        Value_parameters.result ~once:true ~current:true
+          "@[Invalid@ (integer)@ argument %a@ for@ builtin %s.@ Probably@ \
+            missing@ declaration@ 'double %s(double);@]'"
+          V.pretty arg name name;
+        warn ();
+        Cvalue.V.topify_arith_origin arg
+      | Cvalue.V.Not_based_on_null ->
+        if Cvalue.V.is_bottom arg then begin
+          (* Probably does not occur, should be caught earlier by Value *)
+          warn ();
+          V.bottom
+        end else begin
+          warn ();
+          Value_parameters.result ~once:true ~current:true
+            "function %s applied to address" name;
+          Cvalue.V.topify_arith_origin arg
+        end
+      | Ival.Float_abstract.Bottom ->
+        warn ();
+        V.bottom
+    in
+    { Value_types.c_values =
+        if V.is_bottom r then []
+        else [Eval_op.wrap_double r, state ];
+      c_clobbered = Base.SetLattice.bottom;
+      c_cacheable = Value_types.Cacheable; }
+  end
+  | _ ->
+    Value_parameters.error "%s"
+      ("Invalid argument for " ^ name ^ " function");
+    raise Db.Value.Aborted
 
-          with
-            Cvalue.V.Not_based_on_null ->
-              Value_parameters.result ~once:true ~current:true
-                "float sqrt applied to address";
-              Cvalue.V.topify_arith_origin arg
-          | Ival.Float_abstract.Bottom ->
-            Value_parameters.warning ~once:true ~current:true
-              "invalid float sqrt: assert(Ook)";
-            V.bottom
-        in
-	{ Value_types.c_values = [ Eval_op.wrap_double r, state] ; 
-	  c_clobbered = Base.SetLattice.bottom;
-          c_cacheable = Value_types.Cacheable;
-        }
-      end
-  | _ -> Value_parameters.error
-      "Invalid argument for Frama_C_sqrt function";
-      raise Db.Value.Aborted
+let register name f =
+  let name = "Frama_C_" ^ name in
+  register_builtin name (float_or_double_fun_alarm name f);
+;;
 
-let () = register_builtin "Frama_C_sqrt" frama_C_sqrt
+let () = register "log" Ival.Float_abstract.log
+let () = register "log10" Ival.Float_abstract.log10
+let () = register "exp" Ival.Float_abstract.exp
+let () = register "sqrt" Ival.Float_abstract.sqrt
 
 let frama_C_assert state actuals =
   let do_bottom () =
@@ -240,7 +275,7 @@ let frama_c_bzero state actuals =
         in
         let term_size = Logic_utils.expr_to_term ~cast:true exp_size in
         let array_dst = Logic_utils.array_with_range exp_dst term_size in
-        CilE.set_syntactic_context (CilE.SyMemLogic array_dst);
+        Valarms.set_syntactic_context (Valarms.SyMemLogic array_dst);
         if not (Cvalue.V.cardinal_zero_or_one dst)
         then raise Db.Value.Outside_builtin_possibilities;
         let left = loc_bytes_to_loc_bits dst
@@ -250,9 +285,8 @@ let frama_c_bzero state actuals =
         in
         let state =
           if Int.gt size Int.zero then
-            Cvalue.Model.paste_offsetmap ~with_alarms
-              ~from:offsm_repeat ~dst_loc:left ~start:Int.zero ~size:size
-              ~exact:true state
+            Eval_op.paste_offsetmap ~reducing:false ~with_alarms
+              ~from:offsm_repeat ~dst_loc:left ~size:size ~exact:true state
           else state
         in
         { Value_types.c_values = [ None, state ] ;
@@ -326,10 +360,10 @@ let dump_args name initial_state actuals =
   let pp_one fmt (actual, v, offsm) =
     (* YYY: catch pointers to arrays, and print the contents of the array *)
     Format.fprintf fmt "@[";
-    let card = Cvalue.V_Offsetmap.fold_on_values (fun _ _ -> succ) offsm 0 in
+    let card = Cvalue.V_Offsetmap.fold_on_values (fun _ n -> n+1) offsm 0 in
     (match Cil.unrollType (Cil.typeOf actual) with
       | TComp _  as typ when card > 1 ->
-        V_Offsetmap.pretty_typ (Some typ) fmt offsm
+        V_Offsetmap.pretty_generic ~typ:typ () fmt offsm
       | _ -> V.pretty fmt v
     );
     Format.fprintf fmt "@]";

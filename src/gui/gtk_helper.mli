@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -247,10 +247,13 @@ val on_combo:
 (** {2 Error manager} *)
 (* ************************************************************************** *)
 
-(**  A utility class to catch exceptions and report proper error messages. *)
+(**  A utility class to catch exceptions and report proper error messages.
+     See the documentations of the methods in
+     {!Design.main_window_extension_points}, which inherits from this
+     class. *)
 class type host = object
   method error:
-    'a. ?parent:GWindow.window_skel -> ('a, Format.formatter, unit) format -> 'a
+    'a. ?parent:GWindow.window_skel -> ?reset:bool -> ('a, Format.formatter, unit) format -> 'a
   method full_protect :
     'a. cancelable:bool -> ?parent:GWindow.window_skel -> (unit -> 'a) ->
     'a option
@@ -291,7 +294,7 @@ val source_files_chooser:
 val later : (unit -> unit) -> unit
 
 val refresh_gui: unit -> unit
-  (** Process pending events in the main Glib loop.
+  (** Process some pending events in the main Glib loop.
       This is intended to be called only when [!gui_unlocked == false].
       @since Beryllium-20090901 *)
 

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -25,12 +25,12 @@
 (* -------------------------------------------------------------------------- *)
 
 class pane : unit ->
-object
+  object
 
-  method select : Wpo.t option -> unit
-  method update : unit
-  method coerce : GObj.widget
-  method on_run : (Wpo.t -> VCS.prover -> unit) -> unit
-  method on_src : (Wpo.t option -> unit) -> unit
-    
-end
+    method select : Wpo.t option -> unit
+    method update : unit
+    method coerce : GObj.widget
+    method on_run : (Wpo.t -> VCS.prover -> unit) -> unit
+    method on_src : (Wpo.t option -> unit) -> unit
+
+  end

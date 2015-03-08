@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -44,7 +44,7 @@ module Rte_generated =
       let name = "GuiSource.Rte_generated"
       let size = 7
       let dependencies = [ Ast.self ]
-     end)
+    end)
 
 let kf_of_selection = function
   | S_none -> None
@@ -54,32 +54,32 @@ let kf_of_selection = function
 
 let rte_generated s =
   match kf_of_selection s with
-    | None -> false
-    | Some kf -> 
-	if Wp_parameters.RTE.get () then
-	  let mem = Rte_generated.mem kf in
-	  if not mem then
-	    Rte_generated.add kf () ;
-	  not mem
-	else false
+  | None -> false
+  | Some kf -> 
+      if Wp_parameters.RTE.get () then
+        let mem = Rte_generated.mem kf in
+        if not mem then
+          Rte_generated.add kf () ;
+        not mem
+      else false
 
 let run_and_prove 
     (main:Design.main_window_extension_points) 
     (selection:GuiSource.selection)
-    =
+  =
   begin
     try
       begin
-	match selection with
-          | S_none -> raise Stop
-	  | S_fun kf -> Register.wp_compute_kf (Some kf) [] []
-          | S_prop ip -> Register.wp_compute_ip ip
-          | S_call s -> Register.wp_compute_call s.s_stmt
+        match selection with
+        | S_none -> raise Stop
+        | S_fun kf -> Register.wp_compute_kf (Some kf) [] []
+        | S_prop ip -> Register.wp_compute_ip ip
+        | S_call s -> Register.wp_compute_call s.s_stmt
       end ;
       if rte_generated selection then
-	main#redisplay ()
+        main#redisplay ()
       else
-	reload ()
+        reload ()
     with Stop -> ()
   end
 
@@ -100,63 +100,63 @@ class model_selector (main : Design.main_window_extension_points) =
   let c_cint   = new Toolbox.checkbox ~label:"Machine Integers" () in
   let c_cfloat = new Toolbox.checkbox ~label:"Floating Points" () in
   let m_label  = new Toolbox.label ~style:`Title () in
-object(self)
-  
-  initializer
-    begin
-      dialog#add_row r_hoare#coerce ;
-      dialog#add_row r_typed#coerce ;
-      dialog#add_row c_casts#coerce ;
-      dialog#add_row c_byref#coerce ;
-      dialog#add_row c_cint#coerce ;
-      dialog#add_row c_cfloat#coerce ;
-      dialog#add_row m_label#coerce ;
-      dialog#button ~label:"Cancel" ~icon:`CANCEL ~action:(`CANCEL) () ;
-      dialog#button ~label:"Apply"  ~icon:`APPLY  ~action:(`APPLY) () ;
-      memory#on_check TYPED c_casts#set_enabled ;
-      memory#on_event self#connect ;
-      c_casts#on_event self#connect ;
-      c_byref#on_event self#connect ;
-      c_cint#on_event self#connect ;
-      c_cfloat#on_event self#connect ;
-      dialog#on_value `APPLY self#update ;
-    end
+  object(self)
 
-  method update () = Wp_parameters.Model.set [Factory.ident self#get]
+    initializer
+      begin
+        dialog#add_row r_hoare#coerce ;
+        dialog#add_row r_typed#coerce ;
+        dialog#add_row c_casts#coerce ;
+        dialog#add_row c_byref#coerce ;
+        dialog#add_row c_cint#coerce ;
+        dialog#add_row c_cfloat#coerce ;
+        dialog#add_row m_label#coerce ;
+        dialog#button ~label:"Cancel" ~icon:`CANCEL ~action:(`CANCEL) () ;
+        dialog#button ~label:"Apply"  ~icon:`APPLY  ~action:(`APPLY) () ;
+        memory#on_check TYPED c_casts#set_enabled ;
+        memory#on_event self#connect ;
+        c_casts#on_event self#connect ;
+        c_byref#on_event self#connect ;
+        c_cint#on_event self#connect ;
+        c_cfloat#on_event self#connect ;
+        dialog#on_value `APPLY self#update ;
+      end
 
-  method set (s:setup) =
-    begin
-      (match s.mheap with 
-	 | Hoare -> memory#set HOARE
-	 | Typed m -> memory#set TYPED ; c_casts#set (m = MemTyped.Unsafe)) ;
-      c_byref#set (s.mvar = Ref) ;
-      c_cint#set (s.cint = Cint.Machine) ;
-      c_cfloat#set (s.cfloat = Cfloat.Float) ;
-    end
+    method update () = Wp_parameters.Model.set [Factory.ident self#get]
 
-  method get : setup =
-    let m = match memory#get with 
-      | HOARE -> Hoare 
-      | TYPED -> Typed
-	  (if c_casts#get then MemTyped.Unsafe else MemTyped.Fits) 
-    in {
-      mheap = m ;
-      mvar = if c_byref#get then Ref else Var ;
-      cint = if c_cint#get then Cint.Machine else Cint.Natural ;
-      cfloat = if c_cfloat#get then Cfloat.Float else Cfloat.Real ;
-    }
+    method set (s:setup) =
+      begin
+        (match s.mheap with 
+         | Hoare -> memory#set HOARE
+         | Typed m -> memory#set TYPED ; c_casts#set (m = MemTyped.Unsafe)) ;
+        c_byref#set (s.mvar = Ref) ;
+        c_cint#set (s.cint = Cint.Machine) ;
+        c_cfloat#set (s.cfloat = Cfloat.Float) ;
+      end
 
-  method connect () = m_label#set_text (Factory.descr self#get)
+    method get : setup =
+      let m = match memory#get with 
+        | HOARE -> Hoare 
+        | TYPED -> Typed
+                     (if c_casts#get then MemTyped.Unsafe else MemTyped.Fits) 
+      in {
+        mheap = m ;
+        mvar = if c_byref#get then Ref else Var ;
+        cint = if c_cint#get then Cint.Machine else Cint.Natural ;
+        cfloat = if c_cfloat#get then Cfloat.Float else Cfloat.Real ;
+      }
 
-  method run =
-    begin
-      let s = Factory.parse (Wp_parameters.Model.get ()) in
-      self#set s ;
-      self#connect () ;
-      dialog#run () ;
-    end
+    method connect () = m_label#set_text (Factory.descr self#get)
 
-end
+    method run =
+      begin
+        let s = Factory.parse (Wp_parameters.Model.get ()) in
+        self#set s ;
+        self#connect () ;
+        dialog#run () ;
+      end
+
+  end
 
 (* ------------------------------------------------------------------------ *)
 (* ---  WP Panel                                                        --- *)
@@ -166,12 +166,12 @@ let wp_dir = ref (Sys.getcwd())
 
 let wp_script () =
   let file = GToolbox.select_file
-    ~title:"Script File for Coq proofs"
-    ~dir:wp_dir ~filename:"wp.script" ()
+      ~title:"Script File for Coq proofs"
+      ~dir:wp_dir ~filename:"wp.script" ()
   in
   match file with
-    | Some f -> Wp_parameters.Script.set f
-    | None -> ()
+  | Some f -> Wp_parameters.Script.set f
+  | None -> ()
 
 let wp_update_model label () =
   let s = Factory.parse (Wp_parameters.Model.get ()) in
@@ -193,7 +193,7 @@ let wp_panel
     ~(available_provers:GuiConfig.provers)
     ~(enabled_provers:GuiConfig.provers)
     ~(configure_provers:unit -> unit) 
-    =
+  =
   let vbox = GPack.vbox () in
   let demon = Gtk_form.demon () in
   let packing = vbox#pack in
@@ -252,7 +252,7 @@ let wp_panel
     ~packing:options#pack
     Wp_parameters.Invariants.get Wp_parameters.Invariants.set demon ;
 
-  let control = GPack.table ~columns:4 ~col_spacings:8 ~rows:2 ~packing () in
+  let control = GPack.table ~columns:2 ~col_spacings:8 ~rows:4 ~packing () in
   let addcontrol line col w = control#attach ~left:(col-1) ~top:(line-1) ~expand:`NONE w in
 
   Gtk_form.label ~text:"Steps" ~packing:(addcontrol 1 1) () ;
@@ -261,27 +261,27 @@ let wp_panel
     ~packing:(addcontrol 1 2)
     Wp_parameters.Steps.get Wp_parameters.Steps.set demon ;
 
-  Gtk_form.label ~text:"Depth" ~packing:(addcontrol 1 3) () ;
+  Gtk_form.label ~text:"Depth" ~packing:(addcontrol 2 1) () ;
   Gtk_form.spinner ~lower:0 ~upper:100000
     ~tooltip:"Search space bound for alt-ergo prover"
-    ~packing:(addcontrol 1 4)
+    ~packing:(addcontrol 2 2)
     Wp_parameters.Depth.get Wp_parameters.Depth.set demon ;
 
-  Gtk_form.label ~text:"Timeout" ~packing:(addcontrol 2 1) () ;
+  Gtk_form.label ~text:"Timeout" ~packing:(addcontrol 3 1) () ;
   Gtk_form.spinner ~lower:0 ~upper:100000
     ~tooltip:"Timeout for proving one proof obligation"
-    ~packing:(addcontrol 2 2)
+    ~packing:(addcontrol 3 2)
     Wp_parameters.Timeout.get Wp_parameters.Timeout.set demon ;
 
-  Gtk_form.label ~text:"Process" ~packing:(addcontrol 2 3) () ;
+  Gtk_form.label ~text:"Process" ~packing:(addcontrol 4 1) () ;
   Gtk_form.spinner ~lower:1 ~upper:32
     ~tooltip:"Maximum number of parallel running provers"
-    ~packing:(addcontrol 2 4)
+    ~packing:(addcontrol 4 2)
     Wp_parameters.Procs.get
     (fun n ->
        Wp_parameters.Procs.set n ;
        ignore (ProverTask.server ()) 
-	 (* to make server procs updated is server exists *)
+       (* to make server procs updated is server exists *)
     ) demon ;
 
   let pbox = GPack.hbox ~packing ~show:false () in

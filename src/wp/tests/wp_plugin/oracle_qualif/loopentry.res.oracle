@@ -1,0 +1,19 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_plugin/loopentry.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+tests/wp_plugin/loopentry.i:12:[wp] warning: Missing assigns clause (assigns 'everything' instead)
+[wp] 4 goals scheduled
+[wp] [Qed] Goal typed_f_loop_inv_preserved : Valid
+[wp] [Qed] Goal typed_f_loop_inv_established : Valid
+[wp] [Qed] Goal typed_f_loop_inv_2_preserved : Valid
+[wp] [Qed] Goal typed_f_loop_inv_2_established : Valid
+[wp] Proved goals:    4 / 4
+     Qed:             4
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+f                    4     -           4       100%
+----------------------------------------------------------

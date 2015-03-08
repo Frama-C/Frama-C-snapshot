@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -114,6 +114,8 @@ let refresh_code_annotation annot =
 (** {2 pre-defined logic labels} *)
 (* empty line for ocamldoc *)
 
+let init_label = LogicLabel (None, "Init")
+
 let pre_label = LogicLabel (None, "Pre")
 
 let post_label = LogicLabel (None, "Post")
@@ -166,6 +168,8 @@ let is_plain_type = function
 let is_boolean_type = function
   | Ltype ({ lt_name = s }, []) when s = Utf8_logic.boolean -> true
   | _ -> false
+
+let boolean_type = Ltype ({ lt_name = Utf8_logic.boolean ; lt_params = [] ; lt_def = None } , [])
 
 (** {2 Offsets} *)
 
@@ -235,6 +239,9 @@ let tat ?(loc=Cil_datatype.Location.unknown) (t,label) =
   term ~loc (Tat(t,label)) t.term_type
 
 let told ?(loc=Cil_datatype.Location.unknown) t = tat ~loc (t,old_label)
+
+let tlogic_coerce ?(loc=Cil_datatype.Location.unknown) t lt =
+  term ~loc (TLogic_coerce (lt, t)) lt
 
 let tvar ?(loc=Cil_datatype.Location.unknown) lv =
   term ~loc (TLval(TVar lv,TNoOffset)) lv.lv_type
@@ -368,6 +375,8 @@ let pvalid_range ?(loc=Cil_datatype.Location.unknown) (l,t1,b1,b2) =
 let pat ?(loc=Cil_datatype.Location.unknown) (p,q) = unamed ~loc (Pat (p,q))
 let pinitialized ?(loc=Cil_datatype.Location.unknown) (l,p) =
   unamed ~loc (Pinitialized (l,p))
+let pdangling ?(loc=Cil_datatype.Location.unknown) (l,p) =
+  unamed ~loc (Pdangling (l,p))
 let psubtype ?(loc=Cil_datatype.Location.unknown) (p,q) =
   unamed ~loc (Psubtype (p,q))
 

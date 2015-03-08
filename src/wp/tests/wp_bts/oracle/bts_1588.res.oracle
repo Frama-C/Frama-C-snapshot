@@ -1,0 +1,44 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_bts/bts_1588.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+tests/wp_bts/bts_1588.i:19:[wp] warning: Missing assigns clause (assigns 'everything' instead)
+tests/wp_bts/bts_1588.i:5:[wp] warning: Missing assigns clause (assigns 'everything' instead)
+------------------------------------------------------------
+  Function f
+------------------------------------------------------------
+
+Goal Preservation of Invariant 'l1_2' (file tests/wp_bts/bts_1588.i, line 4):
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_1) /\ (is_sint32 n_0) /\ (is_sint32 (1+i_1)).
+  (* Heap *)
+  Have: (region (base d_1))<=0.
+  (* tests/wp_bts/bts_1588.i:5: Then *)
+  Have: i_1<n_0.
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant 'l1_2' (file tests/wp_bts/bts_1588.i, line 4):
+Assume { (* Heap *) Have: (region (base d_1))<=0. }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assertion 'a1' (file tests/wp_bts/bts_1588.i, line 8):
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_1) /\ (is_sint32 n_0).
+  (* Heap *)
+  Have: (region (base d_1))<=0.
+  (* tests/wp_bts/bts_1588.i:5: Then *)
+  Have: i_1<n_0.
+}
+Prove: true.
+
+------------------------------------------------------------

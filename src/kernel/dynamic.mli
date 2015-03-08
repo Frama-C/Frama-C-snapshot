@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -138,33 +138,25 @@ module Parameter : sig
     include Common with type t = string list
     val add: string -> string  -> unit
     val append_before: string -> string list -> unit
-      (** @since Neon-20130301 *)
+      (** @since Neon-20140301 *)
     val append_after: string -> string list -> unit
-      (** @since Neon-20130301 *)
+      (** @since Neon-20140301 *)
     val remove: string -> string -> unit
     val is_empty: string -> unit -> bool
     val iter: string -> (string -> unit) -> unit
   end
 
-(*
-    module IndexedVal(X: sig val ty_name: string end) : sig
-      include Common with type t = string
-      type value
-      val add_choice: string -> string -> value -> unit
-      val get_val: string -> value
-    end
-*)
-
 end
 
+(**/**)
 (* ************************************************************************* *)
 (** {2 Kernel materials} *)
 (* ************************************************************************* *)
 
-val object_file_extension: string
+val object_file_extension_regexp: string
   (** Object file extension used when loading a module. See function
       {!load_module}.
-      @since Boron-20100401 *)
+      @since Sodium-20150201 *)
 
 val add_path: string -> bool
 (** Add a path into the search paths, if it is not already in the list.
@@ -193,7 +185,8 @@ val set_default: bool -> unit
 val add_dependencies: from:string -> string -> unit
 (** [add_dependencies ~from p] indicates that the plugin [from] must be loaded
     before [p].
-    @since Neon-20130301 *)
+    @since Neon-20140301 *)
+(**/**)
 
 (*
   Local Variables:

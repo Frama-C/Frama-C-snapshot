@@ -1,0 +1,107 @@
+# frama-c -wp -wp-model 'Typed (Ref)' [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_hoare/dispatch_var.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] Collecting variable usage
+[wp] 80 goals scheduled
+[wp] [Qed] Goal typed_ref_array_in_struct_param_post_Pload2 : Valid
+[wp] [Qed] Goal typed_ref_array_in_struct_param_assign : Valid
+[wp] [Qed] Goal typed_ref_call_no_ref_bd_post_Mem_n5_nr6 : Valid
+[wp] [Qed] Goal typed_ref_call_no_ref_bd_assign_exit_part1 : Valid
+[wp] [Qed] Goal typed_ref_call_no_ref_bd_assign_exit_part2 : Valid
+[wp] [Qed] Goal typed_ref_call_no_ref_bd_assign_exit_part3 : Valid
+[wp] [Qed] Goal typed_ref_call_no_ref_bd_assign_normal_part1 : Valid
+[wp] [Qed] Goal typed_ref_call_no_ref_bd_assign_normal_part2 : Valid
+[wp] [Qed] Goal typed_ref_call_no_ref_bd_assign_normal_part3 : Valid
+[wp] [Qed] Goal typed_ref_call_no_ref_bd_assign_normal_part4 : Valid
+[wp] [Qed] Goal typed_ref_call_no_ref_bd_assign_normal_part5 : Valid
+[wp] [Qed] Goal typed_ref_call_ref_bd_post_Ref_r2 : Valid
+[wp] [Qed] Goal typed_ref_call_ref_bd_assign_exit : Valid
+[wp] [Qed] Goal typed_ref_call_ref_bd_assign_normal_part1 : Valid
+[wp] [Qed] Goal typed_ref_call_ref_bd_assign_normal_part2 : Valid
+[wp] [Qed] Goal typed_ref_call_ref_bd2_post_Mem_n2 : Valid
+[wp] [Qed] Goal typed_ref_call_ref_bd2_assign_exit_part1 : Valid
+[wp] [Qed] Goal typed_ref_call_ref_bd2_assign_exit_part2 : Valid
+[wp] [Qed] Goal typed_ref_call_ref_bd2_assign_normal_part1 : Valid
+[wp] [Qed] Goal typed_ref_call_ref_bd2_assign_normal_part2 : Valid
+[wp] [Qed] Goal typed_ref_call_ref_bd2_assign_normal_part3 : Valid
+[wp] [Qed] Goal typed_ref_call_ref_bd2_assign_normal_part4 : Valid
+[wp] [Qed] Goal typed_ref_call_ref_bd2_assign_normal_part5 : Valid
+[wp] [Qed] Goal typed_ref_call_ref_ctr_post_Ref_r1 : Valid
+[wp] [Qed] Goal typed_ref_call_ref_ctr_assign_exit : Valid
+[wp] [Qed] Goal typed_ref_call_ref_ctr_assign_normal_part1 : Valid
+[wp] [Qed] Goal typed_ref_call_ref_ctr_assign_normal_part2 : Valid
+[wp] [Qed] Goal typed_ref_call_ref_ctr2_post_Mem_n1 : Valid
+[wp] [Qed] Goal typed_ref_call_ref_ctr2_assign_exit_part1 : Valid
+[wp] [Qed] Goal typed_ref_call_ref_ctr2_assign_exit_part2 : Valid
+[wp] [Qed] Goal typed_ref_call_ref_ctr2_assign_normal_part1 : Valid
+[wp] [Qed] Goal typed_ref_call_ref_ctr2_assign_normal_part2 : Valid
+[wp] [Qed] Goal typed_ref_call_ref_ctr2_assign_normal_part3 : Valid
+[wp] [Qed] Goal typed_ref_call_ref_ctr2_assign_normal_part4 : Valid
+[wp] [Qed] Goal typed_ref_call_ref_ctr2_assign_normal_part5 : Valid
+[wp] [Qed] Goal typed_ref_call_ref_ctr_nr_post_R_R_R : Valid
+[wp] [Qed] Goal typed_ref_call_ref_ctr_nr_post_R_R_R_2 : Valid
+[wp] [Qed] Goal typed_ref_call_ref_ctr_nr_assign_exit_part1 : Valid
+[wp] [Qed] Goal typed_ref_call_ref_ctr_nr_assign_exit_part2 : Valid
+[wp] [Qed] Goal typed_ref_call_ref_ctr_nr_assign_exit_part3 : Valid
+[wp] [Qed] Goal typed_ref_call_ref_ctr_nr_assign_normal_part1 : Valid
+[wp] [Qed] Goal typed_ref_call_ref_ctr_nr_assign_normal_part2 : Valid
+[wp] [Qed] Goal typed_ref_call_ref_ctr_nr_assign_normal_part3 : Valid
+[wp] [Qed] Goal typed_ref_call_ref_ctr_nr_assign_normal_part4 : Valid
+[wp] [Qed] Goal typed_ref_call_ref_ctr_nr_call_ref_ctr_nr_pre : Valid
+[wp] [Qed] Goal typed_ref_call_ref_ctr_nstars_post : Valid
+[wp] [Qed] Goal typed_ref_call_ref_ctr_nstars_assign_exit_part1 : Valid
+[wp] [Qed] Goal typed_ref_call_ref_ctr_nstars_assign_exit_part2 : Valid
+[wp] [Qed] Goal typed_ref_call_ref_ctr_nstars_assign_exit_part3 : Valid
+[wp] [Qed] Goal typed_ref_call_ref_ctr_nstars_assign_normal_part1 : Valid
+[wp] [Qed] Goal typed_ref_call_ref_ctr_nstars_assign_normal_part2 : Valid
+[wp] [Qed] Goal typed_ref_call_ref_ctr_nstars_assign_normal_part3 : Valid
+[wp] [Qed] Goal typed_ref_call_ref_ctr_nstars_assign_normal_part4 : Valid
+[wp] [Qed] Goal typed_ref_call_ref_valid_post_R7_N4 : Valid
+[wp] [Qed] Goal typed_ref_call_ref_valid_assign_exit_part1 : Valid
+[wp] [Qed] Goal typed_ref_call_ref_valid_assign_exit_part2 : Valid
+[wp] [Qed] Goal typed_ref_call_ref_valid_assign_exit_part3 : Valid
+[wp] [Qed] Goal typed_ref_call_ref_valid_assign_normal_part1 : Valid
+[wp] [Qed] Goal typed_ref_call_ref_valid_assign_normal_part2 : Valid
+[wp] [Qed] Goal typed_ref_call_ref_valid_assign_normal_part3 : Valid
+[wp] [Qed] Goal typed_ref_call_ref_valid_assign_normal_part4 : Valid
+[wp] [Qed] Goal typed_ref_call_ref_valid_assign_normal_part5 : Valid
+[wp] [Qed] Goal typed_ref_call_ref_valid_call_ref_valid_pre : Valid
+[wp] [Qed] Goal typed_ref_call_ref_valid_call_ref_valid_pre_2 : Valid
+[wp] [Qed] Goal typed_ref_call_two_ref_post : Valid
+[wp] [Qed] Goal typed_ref_call_two_ref_assign_exit_part1 : Valid
+[wp] [Qed] Goal typed_ref_call_two_ref_assign_exit_part2 : Valid
+[wp] [Qed] Goal typed_ref_call_two_ref_assign_normal_part1 : Valid
+[wp] [Qed] Goal typed_ref_call_two_ref_assign_normal_part2 : Valid
+[wp] [Qed] Goal typed_ref_call_two_ref_assign_normal_part3 : Valid
+[wp] [Qed] Goal typed_ref_call_two_ref_assign_normal_part4 : Valid
+[wp] [Qed] Goal typed_ref_g_post : Valid
+[wp] [Qed] Goal typed_ref_g_assign_exit : Valid
+[wp] [Qed] Goal typed_ref_g_assign_normal_part1 : Valid
+[wp] [Qed] Goal typed_ref_g_assign_normal_part2 : Valid
+[wp] [Qed] Goal typed_ref_no_ref_bd_post : Valid
+[wp] [Qed] Goal typed_ref_no_ref_bd_assign_part1 : Valid
+[wp] [Qed] Goal typed_ref_no_ref_bd_assign_part2 : Valid
+[wp] [Qed] Goal typed_ref_ref_bd_post : Valid
+[wp] [Qed] Goal typed_ref_ref_bd_assign : Valid
+[wp] Proved goals:   80 / 80
+     Qed:            80
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+call_ref_ctr         4     -           4       100%
+call_ref_ctr2        8     -           8       100%
+ref_bd               2     -           2       100%
+call_ref_bd          4     -           4       100%
+call_ref_bd2         8     -           8       100%
+call_ref_valid      11     -          11       100%
+no_ref_bd            3     -           3       100%
+call_no_ref_bd       9     -           9       100%
+call_ref_ctr_nr     10     -          10       100%
+call_ref_ctr_nstars   8    -           8       100%
+call_two_ref         7     -           7       100%
+g                    4     -           4       100%
+array_in_struct_param   2   -          2       100%
+----------------------------------------------------------

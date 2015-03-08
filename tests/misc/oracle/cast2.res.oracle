@@ -1,0 +1,81 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/cast2.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  G ∈ {255}
+[value] computing for function g <- main.
+        Called from tests/misc/cast2.i:28.
+[value] computing for function any_int <- g <- main.
+        Called from tests/misc/cast2.i:7.
+tests/misc/cast2.i:7:[kernel] warning: Neither code nor specification for function any_int, generating default assigns from the prototype
+[value] using specification for function any_int
+[value] Done for function any_int
+tests/misc/cast2.i:9:[kernel] warning: signed overflow. assert t+1 ≤ 2147483647;
+[value] Recording results for g
+[value] Done for function g
+[value] computing for function h <- main.
+        Called from tests/misc/cast2.i:29.
+[value] Recording results for h
+[value] Done for function h
+[value] computing for function passcast <- main.
+        Called from tests/misc/cast2.i:30.
+[value] computing for function any_int <- passcast <- main.
+        Called from tests/misc/cast2.i:20.
+[value] Done for function any_int
+[value] Called Frama_C_show_each([-128..100])
+tests/misc/cast2.i:24:[value] entering loop for the first time
+[value] Recording results for passcast
+[value] Done for function passcast
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function g:
+  t ∈ [-2147483647..2147483647]
+  G_0 ∈ [--..--]
+[value] Values at end of function h:
+  G ∈ {1}
+[value] Values at end of function passcast:
+  i ∈ [-128..100]
+[value] Values at end of function main:
+  G ∈ {1}
+[from] Computing for function g
+[from] Computing for function any_int <-g
+[from] Done for function any_int
+[from] Done for function g
+[from] Computing for function h
+[from] Done for function h
+[from] Computing for function passcast
+[from] Done for function passcast
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function any_int:
+  \result FROM \nothing
+[from] Function g:
+  NO EFFECTS
+[from] Function h:
+  G FROM \nothing
+[from] Function passcast:
+  NO EFFECTS
+[from] Function main:
+  G FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function g:
+          t; G_0
+[inout] Inputs for function g:
+          \nothing
+[inout] Out (internal) for function h:
+          G
+[inout] Inputs for function h:
+          \nothing
+[inout] Out (internal) for function passcast:
+          i; tmp
+[inout] Inputs for function passcast:
+          \nothing
+[inout] Out (internal) for function main:
+          G
+[inout] Inputs for function main:
+          \nothing

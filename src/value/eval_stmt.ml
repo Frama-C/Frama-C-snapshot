@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -26,7 +26,6 @@ open Cil_types
 open Cil
 open Locations
 open Abstract_interp
-open Bit_utils
 open Cvalue
 open Value_util
 open Eval_exprs
@@ -45,73 +44,14 @@ let need_cast t1 t2 =
     | _ -> true
 
 
-(** Precondition: the type of [v] and the type of [loc_lv] may be different
-    only through a truncation or an extension.
-    This function will not perform any conversion (float->int, int->float, ...)
-    [exp] should not be bottom (for optimization purposes in the caller). *)
-  let do_assign_abstract_value ~with_alarms state typ_lv loc_lv v =
-    assert (not (Cvalue.V.is_bottom v));
-    (* Or one may propagate bottoms uselessly for too long. *)
-    let exp = (* truncate the value if the [lv] is too small: this may
-                 happen when the [lv] is a bit-field. Otherwise, the
-                 cast is explicit thanks to Cil and no truncation is
-                 necessary. *)
-      try
-        (* if it is a bit-field, the size is statically known. *)
-        let size = Int_Base.project loc_lv.size in (* TODOBY: ignore this case*)
-        try
-          ignore (V.project_ival v);
-          Eval_op.cast_lval_bitfield typ_lv loc_lv.size v
-        with
-        | V.Not_based_on_null (* from [project_ival] *) ->
-            (* The exp is a pointer: check there are enough bits in
-               the bit-field to contain it. *)
-            if Int.ge size (Int.of_int (sizeofpointer ())) || V.is_imprecise v
-            then v
-            else begin
-              Value_parameters.result 
-		"casting address to a bit-field of %s bits: this is smaller than sizeof(void*)" 
-		(Int.to_string size);
-              V.topify_arith_origin v
-            end
-        | Neither_Int_Nor_Enum_Nor_Pointer
-            (* from [signof_typeof_lval] *) -> v
-      with
-      | Int_Base.Error_Top (* from Int_Base.project *) ->
-          (* Imprecise location, handled below *) v
-    in
-    (match loc_lv.loc with
-    | Location_Bits.Top (Base.SetLattice.Top, orig) ->
-        Value_parameters.result
-          "State before degeneration:@\n======%a@\n======="
-          Cvalue.Model.pretty state;
-	warning_once_current
-          "writing at a completely unknown address@[%a@].@\nAborting."
-          Origin.pretty_as_reason orig;
-        raise Db.Value.Aborted
-
-    | Location_Bits.Top((Base.SetLattice.Set _) as param,orig) ->
-        Value_parameters.result ~current:true ~once:true
-          "writing somewhere in @[%a@]@[%a@]."
-          Base.SetLattice.pretty param
-          Origin.pretty_as_reason orig
-    
-    | Location_Bits.Map _ -> (* everything is normal *) ()
-    );
-    let exact = valid_cardinal_zero_or_one ~for_writing:true loc_lv in
-    let value = Cvalue.Model.add_binding ~with_alarms ~exact state loc_lv exp in
-    value
-
-
   exception Do_assign_imprecise_copy
 
-  (* Assigns [exp] to [lv] in [state]. [lv_is_volatile] and [typ_lv] are
-     information about [lv] that are computed by the caller. [left_loc] is
-     one of the locations [lv] evaluates to. Returns [state] modified by
+  (* Assigns [exp] to [lv] in [state]. [typ_lv] is the type if [lv]. [left_loc]
+     is one of the locations [lv] evaluates to. Returns [state] modified by
      the assignment, and whether [left_loc] was at least partially valid.
      If [warn_indeterminate] is [true], indetermine values inside [exp] are
      caught, signaled to the user, and removed. *)
-  let do_assign_one_loc ~with_alarms clob ~warn_indeterminate state  lv lv_is_volatile typ_lv exp left_loc =
+  let do_assign_one_loc ~with_alarms clob ~warn_indeterminate state lv typ_lv exp left_loc =
     let state, left_loc =
       if Locations.is_bottom_loc left_loc then
         Model.bottom, left_loc
@@ -133,11 +73,7 @@ let need_cast t1 t2 =
         Locations.is_bottom_loc left_loc  ||
         not (Cvalue.Model.is_reachable state)
       then Cvalue.Model.bottom
-      else begin
-        CilE.set_syntactic_context (CilE.SyMem lv);
-	let v = if lv_is_volatile then Eval_op.light_topify v else v in
-        do_assign_abstract_value ~with_alarms state typ_lv left_loc v
-      end
+      else Eval_op.write_abstract_value ~with_alarms state lv typ_lv left_loc v
     in
     (* More precise copy, in case exp is in fact an lval (and has a known size).
        We copy the entire lval in one operation. This is typically useful for
@@ -157,36 +93,48 @@ let need_cast t1 t2 =
         if not (Cvalue.Model.is_reachable state)
         then Cvalue.Model.bottom
         else begin
-          (* tested before this function is called, in which case the imprecise
-             mode is used *)
+          (* top size is tested before this function is called, in which case
+             the imprecise copy mode is used *)
           let size = Int_Base.project right_loc.size in
-          CilE.set_syntactic_context (CilE.SyMem exp_lv);
+          Valarms.set_syntactic_context (Valarms.SyMem exp_lv);
           let offsetmap =
-            Cvalue.Model.copy_offsetmap ~with_alarms right_loc state
+            Eval_op.copy_offsetmap ~with_alarms right_loc.loc size state
           in
-          let offsetmap =
-            Extlib.opt_bind
-              (fun o ->
-                if warn_indeterminate
-                then Warn.warn_indeterminate_offsetmap ~with_alarms typ_lv o
-                else Some o)
-              offsetmap
+          let make_volatile = 
+            typeHasQualifier "volatile" typ_lv  ||
+            typeHasQualifier "volatile" (Cil.typeOfLval exp_lv)
           in
-          match offsetmap with
-            | None -> Model.bottom
-            | Some offsetmap ->
-              assert (not (Cvalue.V_Offsetmap.is_empty offsetmap));
+          let offsetmap_state = match offsetmap with
+            | `Map o ->
+              let o =
+                (* TODO: this is the good place to handle partially volatile
+                   struct, whether as source or destination *)
+                if make_volatile then begin
+                  V_Offsetmap.map_on_values
+                    (V_Or_Uninitialized.map Eval_op.make_volatile) o
+                end else o
+              in
+              (* Warn for unitialized/escaping addresses. May return bottom
+                 when a part of the offsetmap contains no value. *)
+              if warn_indeterminate then
+                Warn.warn_reduce_indeterminate_offsetmap
+                  ~with_alarms typ_lv o (`Loc right_loc) state
+              else `Res (o, state)
+            | `Top -> Warn.warn_top ();
+            | `Bottom -> `Bottom
+          in
+          match offsetmap_state with
+            | `Bottom -> Model.bottom
+            | `Res (offsetmap, state) ->
               Locals_scoping.remember_if_locals_in_offsetmap
                 clob left_loc offsetmap;
-              (* TODO: message "assigning non deterministic value for
-                 the first time" *)
               (match Warn.offsetmap_contains_imprecision offsetmap with
                 | Some v ->
                   Warn.warn_right_exp_imprecision ~with_alarms lv left_loc v
                 | _ -> ());
-              CilE.set_syntactic_context (CilE.SyMem lv);
-              Cvalue.Model.paste_offsetmap with_alarms
-                offsetmap left_loc.loc Int.zero size true state
+              Valarms.set_syntactic_context (Valarms.SyMem lv);
+              Eval_op.paste_offsetmap ~reducing:false ~with_alarms
+                ~from:offsetmap ~dst_loc:left_loc.loc ~size ~exact:true state
         end
       in
       if Locations.is_bottom_loc left_loc
@@ -211,28 +159,38 @@ let need_cast t1 t2 =
     in
     let state_res =
       try
-        if lv_is_volatile || Eval_op.is_bitfield typ_lv
+        if Eval_op.is_bitfield typ_lv
         then default ()
         else
           (* An lval assignement might be hidden by a dummy cast *)
-          let exp_lv = find_lv ~with_alarms state exp in
+          let exp_lv = find_lv state exp in
           right_is_lval exp_lv
       with Cannot_find_lv | Do_assign_imprecise_copy -> default ()
     in
     state_res, not (Locations.is_bottom_loc left_loc)
 
+  (* Evaluate a location with the intent of writing in it. Signal an error
+     if the lvalue is constant *)
+  let lval_to_precise_loc_state_for_writing ~with_alarms state lv =
+    let (_, _, typ as r) = lval_to_precise_loc_state ~with_alarms state lv in
+    if Value_util.is_const_write_invalid typ then begin
+      Valarms.set_syntactic_context (Valarms.SyMem lv);
+      Valarms.warn_mem_write with_alarms;
+      Model.bottom, Precise_locs.loc_bottom, typ
+    end else
+      r
+
   (* Assigns [exp] to [lv] in [state] *)
   let do_assign ~with_alarms kf clob state lv exp =
     assert (Cvalue.Model.is_reachable state);
     let state, precise_left_loc, typ_lv =
-      lval_to_precise_loc_state ~with_alarms state lv
+      lval_to_precise_loc_state_for_writing ~with_alarms state lv
     in
-    let lv_is_volatile = hasAttribute  "volatile" (typeAttrs typ_lv) in
     let warn_indeterminate = Value_util.warn_indeterminate kf in
     let aux_loc loc (acc_state, acc_non_bottom_loc) =
       let state', non_bottom_loc =
         do_assign_one_loc ~with_alarms
-          clob ~warn_indeterminate state lv lv_is_volatile typ_lv exp loc
+          clob ~warn_indeterminate state lv typ_lv exp loc
       in
       Model.join acc_state state', non_bottom_loc || acc_non_bottom_loc
     in
@@ -240,7 +198,7 @@ let need_cast t1 t2 =
       Precise_locs.fold aux_loc precise_left_loc (Model.bottom, false)
     in
     if not non_bottom_loc then
-      CilE.do_warn with_alarms.CilE.imprecision_tracing
+      Valarms.do_warn with_alarms.CilE.imprecision_tracing
         (fun _ -> Kernel.warning ~current:true ~once:true
           "@[<v>@[all target addresses were invalid. This path is \
               assumed to be dead.@]%t@]" pp_callstack
@@ -262,13 +220,7 @@ let need_cast t1 t2 =
             try
               if not (List.exists (fun x -> Locations.loc_equal v x) tail)
               then raise Too_linear;
-              let value =
-                Cvalue.Model.find
-                  ~conflate_bottom:true
-                  ~with_alarms:CilE.warn_none_mode
-                  state
-                  v
-              in
+              let _, value = Cvalue.Model.find state v in
               if Location_Bytes.is_included value Location_Bytes.top_float
               then raise Too_linear;
               (* any value is possible, provided it is not too hight *)
@@ -304,70 +256,100 @@ let need_cast t1 t2 =
         ~for_writing:true state loc lv
     in
     if Locations.is_bottom_loc loc then
-      state, false
+      state
     else
-      let is_bitfield = Eval_op.is_bitfield lvtyp in
-      if not (is_bitfield) && not (need_cast lvtyp rettype) then
+      if not (Eval_op.is_bitfield lvtyp) && not (need_cast lvtyp rettype) then
         (* Direct paste *)
         let size = Int_Base.project loc.size in
-        CilE.set_syntactic_context (CilE.SyMem lv);
+        Valarms.set_syntactic_context (Valarms.SyMem lv);
         let result =
-          Cvalue.Model.paste_offsetmap with_alarms
-            return loc.loc Int.zero size true state
+          Eval_op.paste_offsetmap ~with_alarms ~reducing:false
+            ~from:return ~dst_loc:loc.loc ~size ~exact:true state
         in
         Locals_scoping.remember_if_locals_in_offsetmap clob loc return;
-        result, false
+        result
       else (* Size mismatch. We read then cast the returned value *)
         let size = Int.of_int (bitsSizeOf rettype) in
         let validity = Base.Known (Int.zero, Int.pred size) in
-        let value_with_init =
-          V_Offsetmap.find
-            ~conflate_bottom:false ~validity ~with_alarms:CilE.warn_none_mode
-            ~offsets:Ival.zero ~size return
+        let alarm, value_with_init =
+          V_Offsetmap.find ~validity ~offsets:Ival.zero ~size return
         in
-        let flags = V_Or_Uninitialized.get_flags value_with_init in
-        let init = V_Or_Uninitialized.is_initialized flags in
-        let no_esc = V_Or_Uninitialized.is_noesc flags in
+        if alarm then Valarms.warn_mem_read with_alarms;
         let value = V_Or_Uninitialized.get_v value_with_init in
         (* Cf. bts #997 and #1024 for the syntactic context below *)
-        CilE.set_syntactic_context CilE.SyCallResult;
+        Valarms.set_syntactic_context Valarms.SyCallResult;
         let evaled_exp = Eval_op.reinterpret ~with_alarms rettype value in
-        if not init then CilE.warn_uninitialized with_alarms;
-        if not no_esc then CilE.warn_escapingaddr with_alarms;
-        let exact = valid_cardinal_zero_or_one ~for_writing:true loc in
+        ignore (Warn.maybe_warn_indeterminate ~with_alarms value_with_init);
         (* Type of [lv] and [return] might differ, perform a cast (bug #798) *)
-        let evaled_exp =
-          if is_bitfield
-          then Eval_op.cast_lval_bitfield lvtyp loc.size evaled_exp
-          else
-            let msg fmt =
-              Format.fprintf fmt "call result (%a)" V.pretty evaled_exp
-            in
-            Eval_op.do_promotion ~with_alarms (get_rounding_mode())
-              ~src_typ:rettype ~dst_typ:lvtyp evaled_exp msg
+        let v_exp =
+          let msg fmt =
+            Format.fprintf fmt "call result (%a)" V.pretty evaled_exp
+          in
+          Eval_op.do_promotion ~with_alarms (get_rounding_mode())
+            ~src_typ:rettype ~dst_typ:lvtyp evaled_exp msg
         in
-        Locals_scoping.remember_if_locals_in_value clob loc evaled_exp;
-        CilE.set_syntactic_context (CilE.SyMem lv);
-        let res = Model.add_binding ~with_alarms ~exact state loc evaled_exp in
-        let failed = Cvalue.V.is_bottom value && not (init && no_esc) in
-        res, failed
+        Locals_scoping.remember_if_locals_in_value clob loc v_exp;
+        Eval_op.write_abstract_value ~with_alarms state lv lvtyp loc v_exp
 
   (* Same as function above, but for multiple locations. *)
   let assign_return_to_lv ~with_alarms clob rettype (lv, ploc, lvtyp) return state =
-    let aux loc (acc_state, acc_failed) =
-      let state, failed =
+    let aux loc acc_state =
+      let state =
         assign_return_to_lv_one_loc ~with_alarms
           clob rettype (lv, loc, lvtyp) return state
       in
-      Model.join acc_state state, acc_failed || failed
+      Model.join acc_state state
     in
-    let state, failed = Precise_locs.fold aux ploc (Model.bottom, false) in
-    if failed then
-      Value_parameters.result ~current:true
-        "Function call returned an unspecified value. \
-            This path is assumed to be dead.";
-    state
+    Precise_locs.fold aux ploc Model.bottom
 
+  (** This function unbinds [formals] in [state]. Also, when possible, given
+      a formal [f], it reduces the corresponding actual [act_f] to the value
+      of [f] in [state]. It it is used after a call to clean up the state,
+      and to gain some informations on the actuals.  *)
+  let reduce_actuals_by_formals formals actuals state =
+    let rec find_actual_varinfo e = match e.enode with
+      | Lval (Var vi, NoOffset) ->
+         if not vi.vaddrof && not (Cil.typeHasQualifier "volatile" vi.vtype)
+         then Some vi else None
+      | CastE (typ, e') -> begin
+        match find_actual_varinfo e' with
+        | None -> None
+        | Some vi as ovi ->
+           (* we can ignore casts, but only if they have no effect on the
+              abstract value *)
+           match Cil.unrollType typ, Cil.unrollType vi.vtype with
+           | (TInt (ik, _) | TEnum ({ekind = ik}, _)),
+             (TInt (ik', _) | TEnum ({ekind = ik'}, _)) ->
+              if Cil.bytesSizeOfInt ik = Cil.bytesSizeOfInt ik' &&
+                 Cil.isSigned ik = Cil.isSigned ik'
+              then ovi else None
+           | TPtr _, TPtr _ -> ovi
+           | TFloat (fk, _), TFloat (fk', _) ->
+              if fk = fk' then ovi else None
+           | _ -> None
+      end
+      | _ -> None
+    in
+    let cleanup acc exp v =
+      let b = Base.of_varinfo v in
+      let reduced = match find_actual_varinfo exp with
+        | Some vi -> begin
+          (* Replace [vi] by [b] when the latter is is bound in [state]. This
+             is sound because, had [b] been written during the call, it would
+             have been removed. (see {!externalize} below). Thus, either [b]
+             is equal to [vi], or it has been reduced during the call (in which
+             case it is useful to reduce [vi]). *)
+          try
+            match Model.find_base b acc with
+            | `Bottom | `Top -> acc
+            | `Map offsm -> Model.add_base (Base.of_varinfo vi) offsm acc
+          with Not_found -> acc
+        end
+        | None -> acc
+      in
+      Cvalue.Model.remove_base b reduced
+    in
+    Function_args.fold_left2_best_effort cleanup state actuals formals
 
   let interp_call ~with_alarms clob stmt lval_to_assign funcexp argl state =
     let cacheable = ref Value_types.Cacheable in
@@ -388,10 +370,14 @@ let need_cast t1 t2 =
         let warn_indeterminate =
           Kernel_function.Hptset.exists warn_indeterminate functions
         in
-        let compute_actual =
-          Function_args.compute_actual ~with_alarms ~warn_indeterminate
+        let aux_actual e (state, actuals) =
+          let offsm, state =
+            Function_args.compute_actual
+              ~with_alarms ~warn_indeterminate state e
+          in
+          state, (e, offsm) :: actuals
         in
-        let actuals = List.map (compute_actual state) argl in
+        let state, actuals = List.fold_right aux_actual argl (state, []) in
         (* TODO: check that lval_to_assign is not modified during the call:
            evaluate its dependencies here, and intersect them with the outs of
            the called function. The code below is not sound. *)
@@ -414,15 +400,16 @@ let need_cast t1 t2 =
         in *)
         let caller = current_kf (), stmt in
         (* Remove bottom state from results, assigns result to retlv *)
-        let treat_one_result res (return, state) =
+        let treat_one_result formals res (return, state) =
           if not (Cvalue.Model.is_reachable state)
           then res
           else
+            let state = reduce_actuals_by_formals formals argl state in
             match lval_to_assign with
               | None -> state :: res
               | Some lv ->
                 let state, ploc, typlv =
-                  lval_to_precise_loc_state ~with_alarms state lv
+                  lval_to_precise_loc_state_for_writing ~with_alarms state lv
                 in
                 (* See comments above.
                 Warn.warn_modified_result_loc with_alarms kf locret state lvret;
@@ -443,16 +430,23 @@ let need_cast t1 t2 =
         in
         let treat_one_function f acc_rt_res =
 	  try
-            Kf_state.add_caller f ~caller;
+            Value_results.add_kf_caller f ~caller;
             let call_kinstr = Kstmt stmt in
-            let res = !compute_call_ref f ~call_kinstr state actuals in
+            let recursive = not (Warn.check_no_recursive_call f) in
+            let res =
+              !compute_call_ref f ~recursive ~call_kinstr state actuals in
             CurrentLoc.set call_site_loc; (* Changed by compute_call_ref *)
             if res.Value_types.c_cacheable = Value_types.NoCacheCallers then
               (* Propagate info that callers cannot be cached either *)
               cacheable := Value_types.NoCacheCallers;
             Locals_scoping.remember_bases_with_locals
               clob res.Value_types.c_clobbered;
-            List.fold_left treat_one_result acc_rt_res res.Value_types.c_values
+            (* If the call is recursive, we must not remove the formals: they
+               have been restored to their values during the original call. *)
+            let formals =
+              if recursive then [] else Kernel_function.get_formals f in
+            let treat = treat_one_result formals in
+            List.fold_left treat acc_rt_res res.Value_types.c_values
 	  with
             | Function_args.WrongFunctionType ->
                 warning_once_current
@@ -464,7 +458,6 @@ let need_cast t1 t2 =
         let results =
           Kernel_function.Hptset.fold treat_one_function functions []
         in
-        if results <> [] then Value_results.mark_call_terminating stmt;
         results, !cacheable
       with
         | Function_args.Actual_is_bottom -> (* from compute_actual *)
@@ -478,7 +471,9 @@ let need_cast t1 t2 =
     let conv lv =
       let loc = lval_to_precise_loc ~with_alarms:CilE.warn_none_mode state lv in
       let for_writing = false in
-      let exact = lazy (Precise_locs.cardinal_zero_or_one ~for_writing loc) in
+      let exact =
+        lazy (Precise_locs.valid_cardinal_zero_or_one ~for_writing loc)
+      in
       let z = Precise_locs.enumerate_valid_bits ~for_writing loc in
       lv, exact, z
     in
@@ -489,8 +484,8 @@ let need_cast t1 t2 =
          List.iter
            (fun (lv2, exact2, z2) ->
               if Locations.Zone.intersects z1 z2 then begin
-                CilE.set_syntactic_context (CilE.SySep(lv1, lv2));
-                CilE.warn_separated warn_all_mode;
+                Valarms.set_syntactic_context (Valarms.SySep(lv1, lv2));
+                Valarms.warn_separated warn_all_mode;
                 if Lazy.force exact1 && Lazy.force exact2 then
                   raise AlwaysOverlap
               end;
@@ -521,7 +516,8 @@ let need_cast t1 t2 =
     List.iter (fun x -> check_one_stmt x seq) seq
 
 
-  (* Remove locals from the given, and extract the content of \result *)
+  (* Remove locals and overwritten variables from the given state, and extract
+     the content of \result. *)
   let externalize ~with_alarms kf ~return_lv clob =
     let fundec = Kernel_function.get_definition kf in
     let offsetmap_top_addresses_of_locals, state_top_addresses_of_locals =
@@ -534,30 +530,42 @@ let need_cast t1 t2 =
             state, None
           | Some lv ->
             let typ_ret = Cil.typeOfLval lv in
-            let _loc, state, oret = 
-              Eval_exprs.offsetmap_of_lv ~with_alarms state lv
+            let _loc, state, oret =
+              try
+                Eval_exprs.offsetmap_of_lv ~with_alarms state lv
+              with Int_Base.Error_Top ->
+                Value_parameters.abort ~current:true
+                  "Function %a returns a value of unknown size. Aborting"
+                  Kernel_function.pretty kf
             in
             match oret with
-              | None ->
+              | `Bottom ->
                 assert (Model.equal Model.bottom state);
                 state, None
-              | Some oret ->
-                CilE.set_syntactic_context (CilE.SyMem lv);
-                let o =
+              | `Top -> Warn.warn_top ();
+              | `Map oret ->
+                Valarms.set_syntactic_context (Valarms.SyMem lv);
+                let offsetmap_state =
                   if Value_util.warn_indeterminate kf then
-                    Warn.warn_indeterminate_offsetmap ~with_alarms typ_ret oret
-                  else Some oret
+                    Warn.warn_reduce_indeterminate_offsetmap
+                      ~with_alarms typ_ret oret `NoLoc state
+                  else `Res (oret, state)
                 in
-                match o with
-                  | None -> (* Completely indeterminate return *)
+                match offsetmap_state with
+                  | `Bottom -> (* Completely indeterminate return *)
                     Model.bottom, None
-                  | Some ret_val ->
+                  | `Res (ret_val, state) ->
                     let locals, r = offsetmap_top_addresses_of_locals ret_val in
                     if not (Cvalue.V_Offsetmap.equal r ret_val) then
                       Warn.warn_locals_escape_result fundec locals;
                     state, Some r
       in
-      let state = Cvalue.Model.uninitialize_formals_locals fundec state in
+      let state = Cvalue.Model.remove_variables fundec.slocals state in
+      (* We only remove from [state] the locals that have been overwritten
+         during the call. The other ones will be used by the caller. See
+         {!reduce_actuals_by_formals} above. *)
+      let written_formals = Value_util.written_formals kf in
+      let state = Cvalue.Model.remove_variables written_formals state in
       let state = state_top_addresses_of_locals state in
       ret_val, state    
 

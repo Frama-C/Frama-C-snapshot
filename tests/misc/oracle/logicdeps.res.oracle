@@ -1,0 +1,106 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/logicdeps.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  t[0..49] ∈ {0}
+  p ∈ {0}
+  y ∈ [--..--]
+  z ∈ [--..--]
+tests/misc/logicdeps.i:19:[value] Assertion got status unknown.
+tests/misc/logicdeps.i:20:[value] Assertion got status unknown.
+[value] computing for function g <- main.
+        Called from tests/misc/logicdeps.i:23.
+[value] computing for function f <- g <- main.
+        Called from tests/misc/logicdeps.i:13.
+[value] using specification for function f
+[value] Done for function f
+[value] Recording results for g
+[from] Computing for function g
+[from] Done for function g
+[value] Done for function g
+[value] computing for function g <- main.
+        Called from tests/misc/logicdeps.i:24.
+[value] computing for function f <- g <- main.
+        Called from tests/misc/logicdeps.i:13.
+[value] Done for function f
+[value] Recording results for g
+[from] Computing for function g
+[from] Done for function g
+[value] Done for function g
+tests/misc/logicdeps.i:25:[value] Reusing old results for call to g
+tests/misc/logicdeps.i:27:[value] Assertion got status valid.
+[value] computing for function g <- main.
+        Called from tests/misc/logicdeps.i:30.
+[value] computing for function f <- g <- main.
+        Called from tests/misc/logicdeps.i:13.
+[value] Done for function f
+[value] Recording results for g
+[from] Computing for function g
+[from] Done for function g
+[value] Done for function g
+[value] computing for function g <- main.
+        Called from tests/misc/logicdeps.i:31.
+[value] computing for function f <- g <- main.
+        Called from tests/misc/logicdeps.i:13.
+[value] Done for function f
+[value] Recording results for g
+[from] Computing for function g
+[from] Done for function g
+[value] Done for function g
+tests/misc/logicdeps.i:32:[value] Reusing old results for call to g
+[value] Recording results for main
+[from] Computing for function main
+[from] Done for function main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function g:
+  t[0..19] ∈ {0}
+   [20..40] ∈ [--..--]
+   [41..49] ∈ {0}
+[value] Values at end of function main:
+  t[0..19] ∈ {0}
+   [20..40] ∈ [--..--]
+   [41..49] ∈ {0}
+  p ∈ {{ &z }}
+[from] ====== DISPLAYING CALLWISE DEPENDENCIES ======
+[from] call to f at tests/misc/logicdeps.i:13 (by g):
+  t[20..40] FROM t[0..20] (and SELF)
+[from] call to g at tests/misc/logicdeps.i:23 (by main):
+  t[20] FROM t[0..10]
+   [21..30] FROM t[0..10] (and SELF)
+[from] call to g at tests/misc/logicdeps.i:24 (by main):
+  t[20] FROM t[0..10]
+   [21..30] FROM t[0..10] (and SELF)
+[from] call to g at tests/misc/logicdeps.i:25 (by main):
+  t[20] FROM t[0..10]
+   [21..30] FROM t[0..10] (and SELF)
+[from] call to g at tests/misc/logicdeps.i:30 (by main):
+  t{[20]; [36..40]} FROM t[0..20] (and SELF)
+   [21..35] FROM t[0..20]
+[from] call to g at tests/misc/logicdeps.i:31 (by main):
+  t{[20]; [36..40]} FROM t[0..20] (and SELF)
+   [21..35] FROM t[0..20]
+[from] call to g at tests/misc/logicdeps.i:32 (by main):
+  t{[20]; [36..40]} FROM t[0..20] (and SELF)
+   [21..35] FROM t[0..20]
+[from] entry point:
+  t[20..35] FROM t[0..19]
+   [36..40] FROM t[0..19] (and SELF)
+  p FROM \nothing
+[from] ====== END OF CALLWISE DEPENDENCIES ======
+[inout] InOut (internal) for function g:
+        Operational inputs:
+          t[0..20]; p; y; z
+        Operational inputs on termination:
+          t[0..20]; p; y; z
+        Sure outputs:
+          \nothing
+[inout] InOut (internal) for function main:
+        Operational inputs:
+          t[0..19]; y; z
+        Operational inputs on termination:
+          t[0..19]; y; z
+        Sure outputs:
+          t[20..35]; p

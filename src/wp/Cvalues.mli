@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -30,7 +30,8 @@ open Memory
 open Lang.F
 
 (** {2 Int-As-Boolans} *)
-  
+
+val bool_val : unop
 val bool_eq : binop
 val bool_lt : binop
 val bool_neq : binop

@@ -1,0 +1,29 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/from_pb.i (no preprocessing)
+[value] Analyzing a complete application starting at main1
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  k ∈ {0}
+  i ∈ {0}
+  j ∈ {0}
+  x ∈ {0}
+  c ∈ {0}
+  d ∈ {0}
+  T[0..9] ∈ {0}
+[value] Recording results for main1
+[value] done for function main1
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main1:
+  x ∈ {0}
+[from] Computing for function main1
+[from] Done for function main1
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main1:
+  x FROM k; j
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main1:
+          x
+[inout] Inputs for function main1:
+          k; j

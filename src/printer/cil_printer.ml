@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -31,19 +31,22 @@ let debug_sid = Kernel.register_category "printer:sid"
 let debug_unspecified = Kernel.register_category "printer:unspecified"
 
 module Behavior_extensions = struct
+
   let printer_tbl = Hashtbl.create 5
+
   let register name printer =
     Hashtbl.add printer_tbl name printer
+
+  let default_pp printer fmt (_,preds) =
+    Pretty_utils.pp_list ~sep:",@ " printer#identified_predicate fmt preds
+    
   let pp (printer:extensible_printer_type) fmt (name, code, preds) =
-    try 
-      let pp = Hashtbl.find printer_tbl name in
-      Format.fprintf fmt "@[<hov 2>%s %a;@]" name (pp printer) (code, preds)
-    with Not_found -> 
-      (* default pretty-printer *)
-      Format.fprintf fmt "@[<hov 2>%s %a;@]"
-	name
-	(Pretty_utils.pp_list ~sep:",@ " printer#identified_predicate) 
-	preds;
+    let pp = 
+      try
+        Hashtbl.find printer_tbl name
+      with Not_found -> default_pp
+    in
+    Format.fprintf fmt "@[<hov 2>%s %a;@]" name (pp printer) (code, preds)
 
 end
 let register_behavior_extension = Behavior_extensions.register
@@ -83,9 +86,9 @@ let pretty_C_constant suffix k fmt i =
      (* in gcc this avoids a warning, but it might avoid a real 
         problem on another compiler or a 64-bit architecture *)
     Format.fprintf fmt "(-%a-1)" 
-      Datatype.Big_int.pretty (Integer.pred max_strict_signed)
+      Datatype.Integer.pretty (Integer.pred max_strict_signed)
   else
-    Format.fprintf fmt "%a%s" Datatype.Big_int.pretty i suffix
+    Format.fprintf fmt "%a%s" Datatype.Integer.pretty i suffix
 
 let pred_body = function
   | LBpred a -> a
@@ -116,6 +119,14 @@ module Precedence = struct
   let comparativeLevel = 70
   let bitwiseLevel = 75
   let logic_level = 77
+
+  (* Be careful if you change the relative order of these 3 levels *)
+  let and_level = 83
+  let or_level = 84
+  let xor_level = 85
+  let assoc_connector_level x =
+    and_level <= x && x <= xor_level
+
   let binderLevel = 90
   let questionLevel = 100
   let upperLevel = 110
@@ -129,21 +140,36 @@ module Precedence = struct
    | Pvalid _
    | Pvalid_read _
    | Pinitialized _
+   | Pdangling _
    | Pseparated _
    | Pat _
    | Pfresh _ -> 0
    | Pnot _ -> 30
    | Psubtype _ -> 75
-   | Pand _
-   | Por _
-   | Pxor _ -> 85
-   | Pimplies _ -> 88
+   | Pand _ -> and_level
+   | Por _ -> or_level
+   | Pxor _ -> xor_level
+   | Pimplies _ -> 87 (* and 88 for positive side *)
    | Piff _ -> 89
    | Pif _ -> questionLevel
    | Prel _ -> comparativeLevel
    | Plet _
    | Pforall _
    | Pexists _ -> binderLevel
+
+  let compareLevel x y =
+    if assoc_connector_level x && assoc_connector_level y then 0
+    else compare x y
+
+  let needParens thisLevel contextprec =
+    let c = compareLevel thisLevel contextprec in
+    if c != 0
+    then c > 0
+    else
+      not (thisLevel == binderLevel ||
+           thisLevel == 89 (* Piff *) ||
+            (assoc_connector_level thisLevel && thisLevel == contextprec
+             && not Cil.miscState.Cil.printCilAsIs))
 
  let getParenthLevel e = match (Cil.stripInfo e).enode with
    | Info _ -> assert false
@@ -234,11 +260,81 @@ module Precedence = struct
    | ADot _ | AIndex _ | AStar _ -> 20
    | AQuestion _ -> questionLevel
 
+ let needIndent current pred fmt =
+   let nextLevel = getParenthLevelPred pred.content in
+   let need = not (current == binderLevel && nextLevel == binderLevel) in
+   if need then begin
+     pp_open_box fmt 2;
+     kfprintf (fun fmt -> pp_close_box fmt ()) fmt
+   end
+   else
+     fprintf fmt
+
+
 end
 
 let get_termination_kind_name = function
   | Normal -> "ensures" | Exits -> "exits" | Breaks -> "breaks"
   | Continues -> "continues" | Returns -> "returns"
+
+let rec get_pand_list pred l =
+  match pred.content with
+    | Pand(p1,p2) -> get_pand_list p1 (p2::l)
+    | _ -> pred::l
+
+let rec get_tand_list term l =
+  match term.term_node with
+    | TBinOp(LAnd,t1,t2) -> get_tand_list t1 (t2::l)
+    | _ -> term::l
+
+let is_compatible_rel_binop op1 op2 =
+  match op1, op2 with
+    | (Lt | Le | Eq), (Lt | Le | Eq) -> true
+    | (Gt | Ge | Eq), (Gt | Ge | Eq) -> true
+    | _ -> false
+
+let is_compatible_relation op1 op2 =
+  match op1, op2 with
+    | (Rlt | Rle | Req), (Rlt | Rle | Req) -> true
+    | (Rgt | Rge | Req), (Rgt | Rge | Req) -> true
+    | _ -> false
+
+type direction = Nothing | Less | Greater | Both
+
+let update_direction_binop dir op =
+  match dir, op with
+    | _, Eq -> dir
+    | (Both | Less), (Lt | Le) -> Less
+    | (Both | Greater), (Gt | Ge) -> Greater
+    | _ -> Nothing
+
+let update_direction_rel dir op =
+  match dir, op with
+    | _, Req -> dir
+    | (Both | Less), (Rlt | Rle) -> Less
+    | (Both | Greater), (Rgt | Rge) -> Greater
+    | _ -> Nothing
+
+let is_same_direction_binop dir op =
+  update_direction_binop dir op <> Nothing
+
+let is_same_direction_rel dir op =
+  update_direction_rel dir op <> Nothing
+
+(* when pretty-printing relation chains, a < b && b' < c, it can happen that
+   b has a coercion and b' hasn't or vice-versa (bc c is an integer and a and
+   b are ints for instance). We nevertheless want to 
+   pretty-print that as a < b < c. For that, we compare b and b' after having
+   removed any existing head coercion.
+*)
+let equal_mod_coercion t1 t2 =
+  let t1 =
+    match t1.term_node with TLogic_coerce(_,t1) -> t1 | _ -> t1
+  in
+  let t2 =
+    match t2.term_node with TLogic_coerce(_,t2) -> t2 | _ -> t2
+  in
+  Cil_datatype.Term.equal t1 t2
 
 (* Grab one of the labels of a statement *)
 let rec pickLabel = function
@@ -330,8 +426,8 @@ class cil_printer () = object (self)
       | IUInt -> "U"
       | ILong -> "L"
       | IULong -> "UL"
-      | ILongLong -> if Cil.theMachine.Cil.msvcMode then "L" else "LL"
-      | IULongLong -> if Cil.theMachine.Cil.msvcMode then "UL" else "ULL"
+      | ILongLong -> if Cil.msvcMode () then "L" else "LL"
+      | IULongLong -> if Cil.msvcMode () then "UL" else "ULL"
       | IInt | IBool | IShort | IUShort | IChar | ISChar | IUChar -> ""
     in
     let prefix =
@@ -430,8 +526,14 @@ class cil_printer () = object (self)
     else
       self#lval fmt lv
 
+  (* used to check whether StartOf x can be printed as x
+     or must be rendered as &x[0]. *)
+  val mutable parent_non_decay = false
+
   (*** EXPRESSIONS ***)
   method exp fmt (e: exp) =
+    let non_decay = parent_non_decay in
+    parent_non_decay <- false;
     let level = Precedence.getParenthLevel e in
     match (Cil.stripInfo e).enode with
     | Info _ -> assert false
@@ -455,14 +557,17 @@ class cil_printer () = object (self)
     | CastE(t,e) ->
       fprintf fmt "(%a)%a" (self#typ None) t (self#exp_prec level) e
     | SizeOf t -> fprintf fmt "sizeof(%a)" (self#typ None) t
-    | SizeOfE e -> fprintf fmt "sizeof(%a)" self#exp e
+    | SizeOfE e -> fprintf fmt "sizeof(%a)" self#exp_non_decay e
     | SizeOfStr s -> fprintf fmt "sizeof(%a)" self#constant (CStr s)
     | AlignOf t -> fprintf fmt "__alignof__(%a)" (self#typ None) t
-    | AlignOfE e -> fprintf fmt "__alignof__(%a)" self#exp e
+    | AlignOfE e -> fprintf fmt "__alignof__(%a)" self#exp_non_decay e
     | AddrOf lv -> fprintf fmt "& %a" (self#lval_prec Precedence.addrOfLevel) lv
     | StartOf(lv) ->
-      if state.print_cil_as_is then fprintf fmt "&(%a[0])" self#lval lv
+      if state.print_cil_as_is || non_decay then
+        fprintf fmt "&(%a[0])" self#lval lv
       else self#lval fmt lv
+
+  method private exp_non_decay fmt e = parent_non_decay <- true; self#exp fmt e
 
   method unop fmt u =
     fprintf fmt "%s"
@@ -534,7 +639,7 @@ class cil_printer () = object (self)
       let print_index prev_index (designator,init as di) =
         let curr_index =
           match designator with
-            | Index(e,NoOffset) -> Cil.isInteger (Cil.constFold false e)
+            | Index(e,NoOffset) -> Cil.constFoldToInt ~machdep:false e
             | _ -> None
         in
         let designator_needed =
@@ -708,7 +813,7 @@ the arguments."
     | Asm(attrs, tmpls, outs, ins, clobs, labels, l) ->
       self#line_directive fmt l;
       let goto = if labels=[] then "" else " goto" in
-      if Cil.theMachine.Cil.msvcMode then
+      if Cil.msvcMode () then
 	fprintf fmt "__asm%s {@[%a@]}%s"
 	  goto
 	  (Pretty_utils.pp_list ~sep:"@\n"
@@ -950,7 +1055,7 @@ the arguments."
     | Some style  ->
       let directive = match style with
 	| Line_comment | Line_comment_sparse -> "//#line "
-	| Line_preprocessor_output when not Cil.theMachine.Cil.msvcMode -> "#"
+	| Line_preprocessor_output when not (Cil.msvcMode ()) -> "#"
 	| Line_preprocessor_output | Line_preprocessor_input -> "#line"
       in
       lastLineNumber <- (fst l).Lexing.pos_lnum;
@@ -1086,7 +1191,7 @@ the arguments."
       try
 	let rec skipEmpty = function
 	  | [] -> []
-	  | {skind=Instr (Skip _);labels=[]} as h :: rest
+          | { skind = Instr (Skip _) } as h :: rest
 	      when self#may_be_skipped h-> skipEmpty rest
 	  | x -> x
 	in
@@ -1097,12 +1202,19 @@ the arguments."
 	      when not state.print_cil_as_is
 		&& self#may_be_skipped to_skip ->
 	    (match skipEmpty tb.bstmts, skipEmpty fb.bstmts with
-	    | [], [{ skind = Break _; labels = [] } as s]
-              when self#may_be_skipped s ->
+            | [], [ { skind = Break _ } as s ] when self#may_be_skipped s ->
               e, rest
-	    | [{ skind = Break _; labels = [] } as s], []
-              when self#may_be_skipped s ->
+            | [], [ { skind = Goto(sref, _) } as s ]
+              when self#may_be_skipped s
+                && Cil_datatype.Stmt.equal !sref next ->
+              e, rest
+            | [ { skind = Break _ } as s ], [] when self#may_be_skipped s ->
 	      Cil.dummy_exp (UnOp(LNot, e, Cil.intType)), rest
+            | [ { skind = Goto(sref, _) } as s ], []
+              when self#may_be_skipped s
+                && Cil_datatype.Stmt.equal !sref next ->
+              Cil.dummy_exp (UnOp(LNot, e, Cil.intType)), rest
+
 	    | _ -> raise Not_found)
 	  | _ -> raise Not_found
 	in
@@ -1153,6 +1265,29 @@ the arguments."
     instr_terminator <- ";";
     fprintf fmt "%a) @]@ %a@]" self#exp e (fun fmt -> self#block fmt) h
 
+  | Throw (e,_) ->
+    let print_expr fmt (e,_) = self#exp fmt e in
+    fprintf fmt "@[<hov 2>throw@ %a;@]" 
+      (Pretty_utils.pp_opt ~pre:"(" ~suf:")" print_expr) e
+  | TryCatch(body,catch,_) ->
+    let print_var_catch_all fmt v =
+      match v with
+        | Catch_all -> pp_print_string fmt "..."
+        | Catch_exn(v,l) -> 
+          fprintf fmt "@[<v 2>@[%a@]%a@]"
+            self#vdecl v
+            (Pretty_utils.pp_list ~pre:"@;" ~sep:"@;"
+               (fun fmt (v,_) -> self#vdecl fmt v)) l
+    in
+    let braces = false in
+    let print_one_catch fmt (v,b) =
+      fprintf fmt "@[<v 2>@[catch (@;%a@;)@] {@;%a@]@;}"
+        print_var_catch_all v
+        (self#block ~braces) b
+    in
+    fprintf fmt "@[<v 2>try@ @[%a@]@]@\n@[<v 2>%a@]"
+      (self#block ~braces) body
+      (Pretty_utils.pp_list ~sep:"@;" print_one_catch) catch
   (*** GLOBALS ***)
   method global fmt (g:global) =
     match g with
@@ -1277,7 +1412,7 @@ the arguments."
       (* nor 'cilnoremove' *)
       let suppress =
 	not state.print_cil_input
-	&& not Cil.theMachine.Cil.msvcMode
+	&& not (Cil.msvcMode ())
 	&& (Cil.startsWith "box" an
 	    || Cil.startsWith "ccured" an
 	    || an = "merger" 
@@ -1379,10 +1514,10 @@ the arguments."
       | ILong -> "long"
       | IULong -> "unsigned long"
       | ILongLong ->
-	if Cil.theMachine.Cil.msvcMode then "__int64" else "long long"
+	if Cil.msvcMode () then "__int64" else "long long"
       | IULongLong ->
-	if Cil.theMachine.Cil.msvcMode then "unsigned __int64"
-	else "unsigned long long")
+	if Cil.msvcMode () then "unsigned __int64" else "unsigned long long"
+      )
 
   method typ ?fundecl nameOpt
     fmt (t:typ) =
@@ -1392,9 +1527,7 @@ the arguments."
     in
     let printAttributes fmt (a: attributes) =
       match nameOpt with
-      | None when not state.print_cil_input
-	  && not Cil.theMachine.Cil.msvcMode ->
-	()
+      | None when not state.print_cil_input && not (Cil.msvcMode ()) -> ()
       (* Cannot print the attributes in this case because gcc does not like them
 	 here, except if we are printing for CIL, or for MSVC.  In fact, for
 	 MSVC we MUST print attributes such as __stdcall *)
@@ -1431,7 +1564,7 @@ the arguments."
        * the parenthesis. *)
       let (paren: (formatter -> unit) option), (bt': typ) =
 	match bt with
-	| TFun(rt, args, isva, fa) when Cil.theMachine.Cil.msvcMode ->
+	| TFun(rt, args, isva, fa) when Cil.msvcMode () ->
 	  let an, af', at = Cil.partitionAttributes ~default:Cil.AttrType fa in
 	    (* We take the af' and we put them into the parentheses *)
 	  Some
@@ -1485,62 +1618,40 @@ the arguments."
 
     | TFun (restyp, args, isvararg, a) ->
       let name' fmt =
-	if a = [] then pname fmt false 
-	else if nameOpt = None then printAttributes fmt a
- 	else fprintf fmt "(%a%a)" printAttributes a pname (a <> [])
+        if a = [] then pname fmt false 
+        else if nameOpt = None then printAttributes fmt a
+        else fprintf fmt "(%a%a)" printAttributes a pname (a <> [])
       in
-      let module Args
-	  (A:sig 
-	    type t
-	    val args: t list option
-	    val pp_args: Format.formatter -> t -> unit
-	  end)
-	  =
-	  struct
-	    let pp_prms fmt =
-	      fprintf fmt "%t(@[%t@])" name'
-		(fun fmt ->
-		  match A.args with
-		  | (None | Some []) when isvararg -> fprintf fmt "..."
-		  | None -> ()
-		  | Some [] -> fprintf fmt "void"
-		  | Some args ->
-		    Pretty_utils.pp_list ~sep:",@ " A.pp_args fmt args;
-		    if isvararg then fprintf fmt "@ , ...")
-	  end
+      let pp_params fmt args pp_args =
+        fprintf fmt "%t(@[%t@])" name'
+          (fun fmt ->
+            match args with
+            | (None | Some []) when isvararg -> fprintf fmt "..."
+            | None -> ()
+            | Some [] -> fprintf fmt "void"
+            | Some args ->
+              Pretty_utils.pp_list ~sep:",@ " pp_args fmt args;
+              if isvararg then fprintf fmt "@ , ...")
       in
-      let pp_prms = match fundecl with
-	| None ->
-	  let module Args =
-		Args(struct
-		  type t = (string * typ * attributes)
-		  let args = args
-		  let pp_args fmt (aname,atype,aattr) =
-		    let stom, rest = Cil.separateStorageModifiers aattr in
-		    (* First the storage modifiers *)
-		    fprintf fmt
-		      "%a%a%a"
-		      self#attributes stom
-		      (self#typ
-			 (Some (fun fmt -> fprintf fmt "%s" aname))) 
-		      atype
-                      self#attributes rest
-		end)
-	  in 
-	  Args.pp_prms
-	| Some fundecl ->
-	  let module Args =
-		Args(struct
-		  type t = varinfo
-		  let args =
-		    try Some (Cil.getFormalsDecl fundecl)
-		    with Not_found -> None
-		  let pp_args = self#vdecl
-		end)
-	  in 
-	  Args.pp_prms
+      let pp_params fmt = match fundecl with
+        | None ->
+          let pp_args fmt (aname,atype,aattr) =
+            (* The storage modifiers come first *)
+            let stom, rest = Cil.separateStorageModifiers aattr in
+            fprintf fmt "%a%a%a"
+              self#attributes stom
+              (self#typ (Some (fun fmt -> fprintf fmt "%s" aname))) atype
+              self#attributes rest
+          in
+          pp_params fmt args pp_args
+        | Some fundecl ->
+          let args =
+            try Some (Cil.getFormalsDecl fundecl) with Not_found -> None
+          in
+          pp_params fmt args self#vdecl
       in
-      self#typ (Some pp_prms) fmt restyp
+      self#typ (Some pp_params) fmt restyp
+
     | TNamed (t, a) ->
       fprintf fmt "%a%a%a"
 	self#varname t.tname
@@ -1563,29 +1674,24 @@ the arguments."
     (match an, args with
     | "const", [] -> fprintf fmt "const"; false
     (* Put the aconst inside the attribute list *)
-    | "aconst", [] when not Cil.theMachine.Cil.msvcMode ->
-      fprintf fmt "__const__"; true
-    | "thread", [] when not Cil.theMachine.Cil.msvcMode ->
-      fprintf fmt "__thread"; false
-    (*
-      | "used", [] when not !msvcMode -> text "__attribute_used__", false
-     *)
+    | "aconst", [] when not (Cil.msvcMode ()) -> fprintf fmt "__const__"; true
+    | "thread", [] when not (Cil.msvcMode ()) -> fprintf fmt "__thread"; false
     | "volatile", [] -> fprintf fmt "volatile"; false
     | "restrict", [] -> fprintf fmt "__restrict"; false
     | "missingproto", [] -> 
       if self#display_comment () then fprintf fmt "/* missing proto */"; 
       false
-    | "cdecl", [] when Cil.theMachine.Cil.msvcMode -> 
+    | "cdecl", [] when Cil.msvcMode () -> 
       fprintf fmt "__cdecl"; false
-    | "stdcall", [] when Cil.theMachine.Cil.msvcMode ->
+    | "stdcall", [] when Cil.msvcMode () ->
       fprintf fmt "__stdcall"; false
-    | "fastcall", [] when Cil.theMachine.Cil.msvcMode -> 
+    | "fastcall", [] when Cil.msvcMode () -> 
       fprintf fmt "__fastcall"; false
-    | "declspec", args when Cil.theMachine.Cil.msvcMode ->
+    | "declspec", args when Cil.msvcMode () ->
       fprintf fmt "__declspec(%a)"
 	(Pretty_utils.pp_list ~sep:"" self#attrparam) args;
       false
-    | "w64", [] when Cil.theMachine.Cil.msvcMode -> 
+    | "w64", [] when Cil.msvcMode () -> 
       fprintf fmt "__w64"; false
     | "asm", args ->
       fprintf fmt "__asm__(%a)"
@@ -1628,7 +1734,7 @@ the arguments."
     | _ -> (* This is the dafault case *)
       (* Add underscores to the name *)
       let an' =
-	if Cil.theMachine.Cil.msvcMode then "__" ^ an else "__" ^ an ^ "__"
+	if Cil.msvcMode () then "__" ^ an else "__" ^ an ^ "__"
       in
       (match args with
       | [] -> fprintf fmt "%s" an'
@@ -1658,7 +1764,7 @@ the arguments."
   method attrparam fmt a =
     let level = Precedence.getParenthLevelAttrParam a in
     match a with
-    | AInt n -> fprintf fmt "%a" Datatype.Big_int.pretty n
+    | AInt n -> fprintf fmt "%a" Datatype.Integer.pretty n
     | AStr s -> fprintf fmt "\"%s\"" (Escape.escape_string s)
     | ACons(s, []) -> fprintf fmt "%s" s
     | ACons(s,al) ->
@@ -1740,7 +1846,7 @@ the arguments."
   | Integer(_, Some s) when print_as_source s ->
     fprintf fmt "%s" s (* Always print the text if there is one, unless
                           we want to print it as hexa *)
-  | Integer(i, _) ->  Datatype.Big_int.pretty fmt i
+  | Integer(i, _) ->  Datatype.Integer.pretty fmt i
   | LStr(s) -> fprintf fmt "\"%s\"" (Escape.escape_string s)
   | LWStr(s) ->
        (* text ("L\"" ^ escape_string s ^ "\"")  *)
@@ -1865,6 +1971,43 @@ the arguments."
       | Req -> if Kernel.Unicode.get () then Utf8_logic.eq else "=="
       | Rneq -> if Kernel.Unicode.get () then Utf8_logic.neq else "!=")
 
+  method private tand_list fmt l =
+    match l with
+      | [] -> ()
+      | [ t ] -> self#term_prec Precedence.and_level fmt t
+      | { term_node = TBinOp(op1,low,mid1) } ::
+        { term_node = TBinOp(op2,mid2,up) } :: l
+        when is_compatible_rel_binop op1 op2
+          && equal_mod_coercion mid1 mid2 ->
+        fprintf fmt "@[%a %a@ %a %a@ %a"
+          (self#term_prec Precedence.comparativeLevel) low
+          self#term_binop op1
+          (self#term_prec Precedence.comparativeLevel) mid1
+          self#term_binop op2
+          (self#term_prec Precedence.comparativeLevel) up;
+        let dir =
+          update_direction_binop (update_direction_binop Both op1) op2
+        in
+        let rec rel_list dir t =
+          function
+            | [] -> fprintf fmt "@]"
+            | { term_node = TBinOp(op,t',up) } :: l
+              when is_same_direction_binop dir op
+                && equal_mod_coercion t t' ->
+              fprintf fmt " %a@ %a"
+                self#term_binop op
+                (self#term_prec Precedence.comparativeLevel) up;
+              rel_list (update_direction_binop dir op) up l
+            | l ->
+              fprintf fmt "@] %a@ %a" self#term_binop LAnd self#tand_list l
+        in
+        rel_list dir up l
+      | t :: l ->
+        fprintf fmt "%a %a@ %a"
+          (self#term_prec Precedence.and_level) t
+          self#term_binop LAnd
+          self#tand_list l
+
   method term_node fmt t =
     let current_level = Precedence.getParenthLevelLogic t.term_node in
     match t.term_node with
@@ -1881,6 +2024,8 @@ the arguments."
     | TAlignOfE e -> fprintf fmt "alignof(%a)" self#term e
     | TUnOp (op,e) -> fprintf fmt "%a%a"
       self#unop op (self#term_prec current_level) e
+    | TBinOp (LAnd, l, r) when not Cil.miscState.Cil.printCilAsIs ->
+      fprintf fmt "@[%a@]" self#tand_list (get_tand_list l [r])
     | TBinOp (op,l,r) ->
       fprintf fmt "%a%a%a"
 	(self#term_prec current_level) l
@@ -2036,7 +2181,7 @@ the arguments."
 
   method private pred_prec fmt (contextprec,p) =
     let thisLevel = Precedence.getParenthLevelPred p in
-    let needParens = thisLevel >= contextprec in
+    let needParens = Precedence.needParens thisLevel contextprec in
     if needParens then fprintf fmt "@[<hov 2>(%a)@]" self#predicate p
     else self#predicate fmt p
       
@@ -2070,7 +2215,34 @@ the arguments."
     Pretty_utils.pp_list ~suf:"@]@\n" ~sep:"@\n"
       (fun fmt p ->
 	fprintf fmt "@[%s %a;@]" kw self#identified_predicate p) fmt l
-      
+
+  method private pand_list fmt l =
+    let term = self#term_prec Precedence.comparativeLevel in
+    let pred fmt p = self#pred_prec_named fmt (Precedence.and_level,p) in
+    match l with
+      | [] -> ()
+      | [p] -> pred fmt p
+      | { content = Prel(rel1, low, mid1) } ::
+        { content = Prel(rel2, mid2, up)  } :: l
+        when is_compatible_relation rel1 rel2 &&
+          equal_mod_coercion mid1 mid2 ->
+        fprintf fmt "@[%a@ %a@ %a@ %a@ %a"
+          term low self#relation rel1 term mid1 self#relation rel2 term up;
+        let dir = update_direction_rel (update_direction_rel Both rel1) rel2 in
+        let rec rel_list dir t =
+          function
+            | [] -> fprintf fmt "@]"
+            | { content = Prel(rel,t',up) } :: l
+              when is_same_direction_rel dir rel && equal_mod_coercion t t' ->
+              fprintf fmt " %a@ %a" self#relation rel term up;
+              rel_list (update_direction_rel dir rel) up l
+            | l ->
+              fprintf fmt "@] %a@ %a" self#term_binop LAnd self#pand_list l
+        in
+        rel_list dir up l
+      | p :: l ->
+        fprintf fmt "%a %a@ %a" pred p self#term_binop LAnd self#pand_list l
+
   method predicate fmt p =
     let current_level = Precedence.getParenthLevelPred p in
     let term = self#term_prec current_level in
@@ -2084,28 +2256,30 @@ the arguments."
 	(Pretty_utils.pp_list ~pre:"@[(" ~suf:")@]" ~sep:",@ " self#term) l
     | Prel (rel,l,r) ->
       fprintf fmt "@[%a@ %a@ %a@]" term l self#relation rel term r
-    | Pand (p1, p2) ->
-      fprintf fmt "@[%a@ %a@ %a@]"
+    | Pand (p1, p2) when not Cil.miscState.Cil.printCilAsIs ->
+      fprintf fmt "@[%a@]" self#pand_list (get_pand_list p1 [p2])
+    | Pand (p1,p2) ->
+      fprintf fmt "@[%a %a@ %a@]"
 	self#pred_prec_named (current_level,p1)
 	self#term_binop LAnd
 	self#pred_prec_named (current_level,p2)
     | Por (p1, p2) ->
-      fprintf fmt "@[%a@ %a@ %a@]"
+      fprintf fmt "@[%a %a@ %a@]"
 	self#pred_prec_named (current_level,p1)
 	self#term_binop LOr
 	self#pred_prec_named (current_level,p2)
     | Pxor (p1, p2) ->
-      fprintf fmt "@[%a@ %s@ %a@]"
+      fprintf fmt "@[%a %s@ %a@]"
 	self#pred_prec_named (current_level,p1)
 	(if Kernel.Unicode.get () then Utf8_logic.x_or else "^^")
 	self#pred_prec_named (current_level,p2)
     | Pimplies (p1,p2) ->
-      fprintf fmt "@[%a@ %s@ %a@]"
+      fprintf fmt "@[%a %s@ %a@]"
 	self#pred_prec_named (current_level,p1)
 	(if Kernel.Unicode.get () then Utf8_logic.implies else "==>")
-	self#pred_prec_named (current_level,p2)
+	self#pred_prec_named (current_level+1,p2)
     | Piff (p1,p2) ->
-      fprintf fmt "@[%a@ %s@ %a@]"
+      fprintf fmt "@[%a %s@ %a@]"
 	self#pred_prec_named (current_level,p1)
 	(if Kernel.Unicode.get () then Utf8_logic.iff else "<==>")
 	self#pred_prec_named (current_level,p2)
@@ -2133,7 +2307,8 @@ the arguments."
 	| LBreads _ | LBinductive _ -> 
 	  Kernel.fatal "invalid logic local definition"
       in
-      fprintf fmt "@[\\let@ %a@ =@ %t%t;@ %a@]"
+      Precedence.needIndent current_level p fmt
+      "@[<hov 2>\\let@ %a =@ %t%t;@]@ %a"
 	self#logic_var v
 	(fun fmt ->
 	  if args <> [] then
@@ -2141,13 +2316,15 @@ the arguments."
 	pp_defn
 	self#pred_prec_named (current_level,p)
     | Pforall (quant,pred) ->
-      fprintf fmt "@[<hv 2>@[%s %a;@]@ %a@]"
-	(if Kernel.Unicode.get () then Utf8_logic.forall else "\\forall")
-	self#quantifiers quant self#pred_prec_named (current_level,pred)
+      Precedence.needIndent current_level pred fmt
+        "@[%s %a;@]@ %a"
+        (if Kernel.Unicode.get () then Utf8_logic.forall else "\\forall")
+        self#quantifiers quant self#pred_prec_named (current_level,pred)
     | Pexists (quant,pred) ->
-      fprintf fmt "@[<hv 2>@[%s %a;@]@ %a@]"
-	(if Kernel.Unicode.get () then  Utf8_logic.exists else "\\exists")
-	self#quantifiers quant self#pred_prec_named (current_level,pred)
+      Precedence.needIndent current_level pred fmt
+        "@[%s %a;@]@ %a"
+        (if Kernel.Unicode.get () then  Utf8_logic.exists else "\\exists")
+        self#quantifiers quant self#pred_prec_named (current_level,pred)
     | Pfreeable (l,p) ->
       fprintf fmt "@[\\freeable%a(@[%a@])@]" self#labels [l] self#term p
     | Pallocable (l,p) ->
@@ -2158,6 +2335,9 @@ the arguments."
       fprintf fmt "@[\\valid_read%a(@[%a@])@]" self#labels [l] self#term p
     | Pinitialized (l,p) ->
       fprintf fmt "@[\\initialized%a(@[%a@])@]" self#labels [l] self#term p
+    | Pdangling (l,p) ->
+      fprintf fmt "@[\\dangling%a(@[%a@])@]"
+        self#labels [l] self#term p
     | Pfresh (l1,l2,e1,e2) -> 
       fprintf fmt "@[\\fresh%a(@[%a@],@[%a@])@]" 
 	self#labels [l1;l2] self#term e1 self#term e2
@@ -2470,9 +2650,9 @@ the arguments."
 
   method global_annotation fmt = function
   | Dtype_annot (a,_) ->
-    fprintf fmt "@[type invariant @[%a%a=@ %a@,;@]@]@\n"
+    fprintf fmt "@[<hv 2>@[type invariant %a%a=@]@ %a;@]@\n"
       self#logic_var a.l_var_info
-      (Pretty_utils.pp_list ~pre:"@[(" ~suf:")@]@ " ~sep:",@ " 
+      (Pretty_utils.pp_list ~pre:"@[(" ~suf:")@] " ~sep:",@ " 
 	 self#logicPrms) a.l_profile
       self#identified_pred (pred_body a.l_body)
   | Dmodel_annot (mfi,_) ->
@@ -2480,55 +2660,56 @@ the arguments."
   | Dcustom_annot(_c, n ,_) ->
     fprintf fmt "@[custom %s: <...>@]@\n" n
   | Dinvariant (pred,_) ->
-    fprintf fmt "@[global@ invariant %a:@[@ %a;@]@]@\n"
+    fprintf fmt "@[<hv 2>@[global invariant %a:@]@ %a;@]@\n"
       self#logic_var pred.l_var_info
       self#identified_pred (pred_body pred.l_body)
   | Dlemma(name, is_axiom, labels, tvars, pred,_) ->
-    fprintf fmt "@[%s@ %a%a%a:@[@ %a;@]@]@\n"
+    fprintf fmt "@[<hv 2>@[<hov 1>%s %a%a%a:@]@ %a;@]@\n"
       (if is_axiom then "axiom" else "lemma")
       self#varname name
       self#labels labels
       self#typeKernel tvars
       self#identified_pred pred
   | Dtype (ti,_) ->
-    fprintf fmt "@[type@ %a%a%a;@]@\n"
+    fprintf fmt "@[<hv 2>@[type %a%a%a;@]@\n"
       self#varname ti.lt_name self#typeKernel ti.lt_params
-      (Pretty_utils.pp_opt
-	 (fun fmt d -> fprintf fmt "@ =@ @[%a@]" self#logic_type_def d))
+      (fun fmt -> function
+         | None -> fprintf fmt "@]"
+         | Some d -> fprintf fmt " =@]@ %a" self#logic_type_def d)
       ti.lt_def
   | Dfun_or_pred (li,_) ->
     (match li.l_type with
     | Some rt ->
-      fprintf fmt "@[<hov 2>logic %a"
+      fprintf fmt "@[<hov 2>@[logic %a"
 	(self#logic_type None) rt
     | None ->
       (match li.l_body with
-      | LBinductive _ -> fprintf fmt "@[<hov 2>inductive"
-      | _ -> fprintf fmt "@[<hov 2>predicate"));
-    fprintf fmt " %a%a%a%a"
+      | LBinductive _ -> fprintf fmt "@[<hv 2>@[inductive"
+      | _ -> fprintf fmt "@[<hv 2>@[<hov 2>predicate"));
+    fprintf fmt "@ %a@,%a@,%a@,%a"
       self#logic_var li.l_var_info
       self#labels li.l_labels
       self#typeKernel li.l_tparams
-      (Pretty_utils.pp_list ~pre:"@[(" ~suf:")@]@ " ~sep:",@ "
-	 self#logicPrms) 
+      (Pretty_utils.pp_list ~pre:"@[(" ~suf:")@] " ~sep:",@ "
+	 self#logicPrms)
       li.l_profile;
     (match li.l_body with
     | LBnone ->
-      fprintf fmt ";"
+      fprintf fmt ";@]"
     | LBreads reads ->
       (match reads with
-      | [] -> fprintf fmt "@\n@[reads \\nothing;@]"
-      | _ -> 
+      | [] -> fprintf fmt "@]@\n@[reads \\nothing;@]"
+      | _ ->
 	fprintf fmt "%a;"
 	  (Pretty_utils.pp_list
-	     ~pre:"@\n@[reads@ "
+	     ~pre:"@]@\n@[reads@ "
 	     ~sep:",@ "
 	     (fun fmt x -> self#term fmt x.it_content)) reads)
     | LBpred def ->
-      fprintf fmt "=@ %a;"
+      fprintf fmt "=@]@ %a;"
 	self#identified_pred def
     | LBinductive indcases ->
-      fprintf fmt "{@ %a}"
+      fprintf fmt "{@]@ %a}"
 	(Pretty_utils.pp_list ~pre:"@[<v 0>" ~suf:"@]@\n" ~sep:"@\n"
 	   (fun fmt (id,labels,tvars,p) ->
 	     Format.fprintf fmt "case %s%a%a: @[%a@];" id
@@ -2536,7 +2717,7 @@ the arguments."
 	       self#typeKernel tvars
 	       self#identified_pred p)) indcases
     | LBterm def ->
-      fprintf fmt "=@ %a;"
+      fprintf fmt "=@]@ %a;"
 	self#term def);
     fprintf fmt "@]@\n"
   | Dvolatile(tsets,rvi_opt,wvi_opt,_) ->
@@ -2551,7 +2732,7 @@ the arguments."
       (pp_vol "reads") rvi_opt
       (pp_vol "writes") wvi_opt ;
   | Daxiomatic(id,decls,_) ->
-    fprintf fmt "@[<v 2>axiomatic@ %s {@\n%a}@]@\n" id
+    fprintf fmt "@[<v 2>@[axiomatic %s {@]@\n%a}@]@\n" id
       (Pretty_utils.pp_list ~pre:"@[<v 0>" ~suf:"@]@\n" ~sep:"@\n"
 	 self#global_annotation)
       decls

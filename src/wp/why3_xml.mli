@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -37,24 +37,24 @@
 
 
 type element =
-    { name : string;
-      attributes : (string * string) list;
-      elements : element list;
-    }
+  { name : string;
+    attributes : (string * string) list;
+    elements : element list;
+  }
 
 type t =
-    { version : string;
-      encoding : string;
-      doctype : string;
-      dtd : string;
-      content : element;
-    }
+  { version : string;
+    encoding : string;
+    doctype : string;
+    dtd : string;
+    content : element;
+  }
 
 exception Parse_error of string
 
 val from_file : string -> t
-  (** returns the list of XML elements from the given file.
-      raise [Sys_error] if the file cannot be opened.
-      raise [Parse_error] if the file does not follow XML syntax
-  *)
+(** returns the list of XML elements from the given file.
+    raise [Sys_error] if the file cannot be opened.
+    raise [Parse_error] if the file does not follow XML syntax
+*)
 

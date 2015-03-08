@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Aorai plug-in of Frama-C.                        *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -540,7 +540,7 @@ let compute_func_aux stack call_site kf init_state =
   end else begin
     let module Init =
         struct 
-          let kf = kf 
+          let kf = kf
           let stack = (kf, ref false) :: stack
           let initial_state =
             match Kernel_function.find_first_stmt kf with

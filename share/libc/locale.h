@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2014                                               */
+/*  Copyright (C) 2007-2015                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -85,6 +85,7 @@ struct lconv
 };
 
 #include "__fc_define_null.h"
+#include "__fc_string_axiomatic.h"
 
 #define LC_ALL 0
 #define LC_COLLATE 1
@@ -97,7 +98,7 @@ extern struct lconv* __frama_c_locale;
 extern char*__frama_c_locale_names[];
 
 /*@ 
-  requires \valid(locale);
+  requires locale == \null || valid_string(locale);
   assigns __frama_c_locale \from category, locale[..];
   assigns \result \from __frama_c_locale,category, locale[..];
   ensures \result==\null

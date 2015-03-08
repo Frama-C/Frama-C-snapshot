@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -77,6 +77,9 @@ val iter_group : Str.regexp -> (string -> unit) -> string -> unit
 val substitute_list  : 'a printer -> string -> 'a list printer
 (** [substitute_list templ print_arg fmt l] prints in the formatter [fmt]
      the list [l] using the template [templ] and the printer [print_arg].
-    The template use %[0-9]+ hole.
+    The template use [%[0-9]+] hole.
 *)
 
+val is_template : string -> bool
+(** Check whether the string contains [%[0-9]+] holes to be used
+    with [substitute_list]. *)

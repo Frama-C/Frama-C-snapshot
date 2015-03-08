@@ -1,0 +1,41 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/slicing/bts0190.c (with preprocessing)
+[slicing] slicing requests in progress...
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  
+[value] computing for function x <- main.
+        Called from tests/slicing/bts0190.c:15.
+tests/slicing/bts0190.c:8:[value] Assertion got status valid.
+tests/slicing/bts0190.c:9:[value] Assertion got status valid.
+[value] computing for function z1 <- x <- main.
+        Called from tests/slicing/bts0190.c:10.
+[value] Recording results for z1
+[value] Done for function z1
+[value] Recording results for x
+[value] Done for function x
+[value] Recording results for main
+[value] done for function main
+[slicing] making slicing project 'Slicing'...
+[slicing] interpreting slicing requests from the command line...
+[slicing] user error: Unbound variable y. Slicing requests from the command line are ignored.
+[slicing] warning: No internal slicing request from the command line.
+[slicing] warning: Adding an extra request on the entry point of function: main.
+[pdg] computing for function main
+[from] Computing for function x
+[from] Computing for function z1 <-x
+[from] Done for function z1
+[from] Done for function x
+[pdg] done for function main
+[slicing] applying all slicing requests...
+[slicing] applying 0 actions...
+[slicing] applying all slicing requests...
+[slicing] applying 1 actions...
+[slicing] applying actions: 1/1...
+[slicing] exporting project to 'Slicing export'...
+[slicing] applying all slicing requests...
+[slicing] applying 0 actions...
+[sparecode] remove unused global declarations from project 'Slicing export tmp'
+[sparecode] removed unused global declarations in new project 'Slicing export'

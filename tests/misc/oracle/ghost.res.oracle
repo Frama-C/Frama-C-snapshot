@@ -1,0 +1,31 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/ghost.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  G ∈ {0}
+  GHOST ∈ {0}
+  H ∈ {0}
+tests/misc/ghost.i:16:[value] entering loop for the first time
+tests/misc/ghost.i:17:[kernel] warning: signed overflow. assert G+1 ≤ 2147483647;
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  G ∈ [0..2147483647]
+  GHOST ∈ {0}
+  i ∈ {11}
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  G FROM \nothing
+  GHOST FROM \nothing
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          G; GHOST; i; j
+[inout] Inputs for function main:
+          G

@@ -1,0 +1,4 @@
+[kernel] preprocessing with "gcc -C -E -I.  tests/cil/bts342.c"
+[kernel] failure: x[i] is neither a pointer nor a C array
+[kernel] user error: skipping file "tests/cil/bts342.c" that has errors.
+[kernel] Frama-C aborted because of an invalid user input.

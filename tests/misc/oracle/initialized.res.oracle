@@ -1,0 +1,334 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/initialized.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  Frama_C_entropy_source ∈ [--..--]
+  b1 ∈ [--..--]
+  b2 ∈ [--..--]
+  b3 ∈ [--..--]
+  b4 ∈ [--..--]
+  b5 ∈ [--..--]
+  b6 ∈ [--..--]
+  rand ∈ [--..--]
+  v1 ∈ {0}
+  i6 ∈ [--..--]
+[value] computing for function g1 <- main.
+        Called from tests/misc/initialized.c:153.
+tests/misc/initialized.c:19:[value] entering loop for the first time
+tests/misc/initialized.c:21:[value] Assertion got status unknown.
+tests/misc/initialized.c:22:[value] Assertion got status unknown.
+[value] computing for function Frama_C_interval <- g1 <- main.
+        Called from tests/misc/initialized.c:24.
+[value] using specification for function Frama_C_interval
+share/builtin.h:46:[value] Function Frama_C_interval: precondition got status valid.
+[value] Done for function Frama_C_interval
+[value] computing for function Frama_C_interval <- g1 <- main.
+        Called from tests/misc/initialized.c:25.
+[value] Done for function Frama_C_interval
+tests/misc/initialized.c:26:[value] Assertion got status unknown.
+[value] computing for function Frama_C_interval <- g1 <- main.
+        Called from tests/misc/initialized.c:28.
+[value] Done for function Frama_C_interval
+[value] computing for function Frama_C_interval <- g1 <- main.
+        Called from tests/misc/initialized.c:29.
+[value] Done for function Frama_C_interval
+tests/misc/initialized.c:30:[value] Assertion got status unknown.
+[value] computing for function Frama_C_interval <- g1 <- main.
+        Called from tests/misc/initialized.c:32.
+[value] Done for function Frama_C_interval
+[value] computing for function Frama_C_interval <- g1 <- main.
+        Called from tests/misc/initialized.c:33.
+[value] Done for function Frama_C_interval
+tests/misc/initialized.c:34:[value] Assertion got status valid.
+[value] computing for function Frama_C_interval <- g1 <- main.
+        Called from tests/misc/initialized.c:36.
+[value] Done for function Frama_C_interval
+[value] computing for function Frama_C_interval <- g1 <- main.
+        Called from tests/misc/initialized.c:37.
+[value] Done for function Frama_C_interval
+tests/misc/initialized.c:38:[value] Assertion got status unknown.
+[value] Recording results for g1
+[value] Done for function g1
+[value] computing for function g2 <- main.
+        Called from tests/misc/initialized.c:154.
+tests/misc/initialized.c:50:[value] warning: Operation {{ &b4 }} + {{ &b4 }} incurs a loss of precision
+tests/misc/initialized.c:50:[kernel] warning: signed overflow. assert -2147483648 ≤ (int)(&b4)+(int)(&b4) ≤ 2147483647;
+tests/misc/initialized.c:50:[value] Assigning imprecise value to t[6].
+        The imprecision originates from Arithmetic {tests/misc/initialized.c:50}
+tests/misc/initialized.c:51:[value] Assigning imprecise value to t[7].
+        The imprecision originates from Arithmetic {tests/misc/initialized.c:50}
+[value] DUMPING STATE of file tests/misc/initialized.c line 63
+        Frama_C_entropy_source ∈ [--..--]
+        b1 ∈ [--..--]
+        b2 ∈ [--..--]
+        b3 ∈ [--..--]
+        b4 ∈ [--..--]
+        b5 ∈ [--..--]
+        b6 ∈ [--..--]
+        rand ∈ [--..--]
+        t[0..1] ∈ {0x11223344} or UNINITIALIZED
+         [2..3] ∈ {0x55667788} or UNINITIALIZED
+         [4..5] ∈ {0x12345678; 0x23456789} or UNINITIALIZED
+         [6..7] ∈
+         {{ garbled mix of &{b4}
+          (origin: Arithmetic {tests/misc/initialized.c:50}) }} or UNINITIALIZED
+         [8..9] ∈ {1; 2} or UNINITIALIZED
+         [10][bits 0 to 23] ∈ {0} or UNINITIALIZED
+         {[10][bits 24 to 31]#; [11][bits 0 to 23]#} ∈
+         {0x11111111} or UNINITIALIZED
+         {[11][bits 24 to 31]; [12][bits 0 to 23]} ∈ {0} or UNINITIALIZED
+         {[12][bits 24 to 31]#; [13][bits 0 to 23]#} ∈
+         {0x11111111; 0x22222222} or UNINITIALIZED
+         [13][bits 24 to 31] ∈ {0} or UNINITIALIZED
+        v1 ∈ {0}
+        i6 ∈ [--..--]
+        =END OF DUMP==
+tests/misc/initialized.c:66:[value] Assertion got status unknown.
+[value] DUMPING STATE of file tests/misc/initialized.c line 68
+        Frama_C_entropy_source ∈ [--..--]
+        b1 ∈ [--..--]
+        b2 ∈ [--..--]
+        b3 ∈ [--..--]
+        b4 ∈ [--..--]
+        b5 ∈ [--..--]
+        b6 ∈ [--..--]
+        rand ∈ [--..--]
+        t{[0]; [1][bits 0 to 23]#} ∈
+         {0x11223344} or UNINITIALIZED repeated %32, bits 0 to 55 
+         [1][bits 24 to 31]# ∈ {0x11223344}%32, bits 24 to 31 
+         [2][bits 0 to 23]# ∈ {0x55667788}%32, bits 0 to 23 
+         [bits 88 to 127]# ∈
+         {0x55667788} or UNINITIALIZED repeated %32, bits 24 to 63 
+         [4..5] ∈ {0x12345678; 0x23456789} or UNINITIALIZED
+         [6..7] ∈
+         {{ garbled mix of &{b4}
+          (origin: Arithmetic {tests/misc/initialized.c:50}) }} or UNINITIALIZED
+         [8..9] ∈ {1; 2} or UNINITIALIZED
+         [10][bits 0 to 23] ∈ {0} or UNINITIALIZED
+         {[10][bits 24 to 31]#; [11][bits 0 to 23]#} ∈
+         {0x11111111} or UNINITIALIZED
+         {[11][bits 24 to 31]; [12][bits 0 to 23]} ∈ {0} or UNINITIALIZED
+         {[12][bits 24 to 31]#; [13][bits 0 to 23]#} ∈
+         {0x11111111; 0x22222222} or UNINITIALIZED
+         [13][bits 24 to 31] ∈ {0} or UNINITIALIZED
+        p_0 ∈ {{ &t + {7} }}
+        v1 ∈ {0}
+        i6 ∈ [--..--]
+        =END OF DUMP==
+[value] Called Frama_C_show_each({0x66778811})
+tests/misc/initialized.c:72:[value] Assertion got status unknown.
+tests/misc/initialized.c:74:[value] Assertion got status unknown.
+tests/misc/initialized.c:76:[value] Assertion got status unknown.
+tests/misc/initialized.c:78:[value] Assertion got status unknown.
+tests/misc/initialized.c:80:[value] Assertion got status unknown.
+[value] Recording results for g2
+[value] Done for function g2
+[value] computing for function g3 <- main.
+        Called from tests/misc/initialized.c:155.
+tests/misc/initialized.c:89:[value] Assertion got status unknown.
+tests/misc/initialized.c:93:[kernel] warning: accessing uninitialized left-value: assert \initialized(&r2);
+tests/misc/initialized.c:93:[kernel] warning: completely indeterminate value in r2.
+tests/misc/initialized.c:96:[kernel] warning: accessing uninitialized left-value: assert \initialized(&x3);
+[value] computing for function f <- g3 <- main.
+        Called from tests/misc/initialized.c:98.
+tests/misc/initialized.c:11:[value] entering loop for the first time
+tests/misc/initialized.c:8:[value] Function f: postcondition got status unknown.
+[value] Recording results for f
+[value] Done for function f
+[value] computing for function f <- g3 <- main.
+        Called from tests/misc/initialized.c:99.
+[value] Recording results for f
+[value] Done for function f
+[value] Recording results for g3
+[value] Done for function g3
+[value] computing for function g4 <- main.
+        Called from tests/misc/initialized.c:156.
+tests/misc/initialized.c:104:[kernel] warning: accessing uninitialized left-value: assert \initialized(&y);
+tests/misc/initialized.c:104:[kernel] warning: completely indeterminate value in y.
+[value] Recording results for g4
+[value] Done for function g4
+[value] computing for function g5 <- main.
+        Called from tests/misc/initialized.c:157.
+[value] computing for function wrong_assigns <- g5 <- main.
+        Called from tests/misc/initialized.c:127.
+[value] using specification for function wrong_assigns
+tests/misc/initialized.c:114:[value] Function wrong_assigns: this postcondition evaluates to false in this
+        context. If it is valid, either a precondition was not verified for this
+        call, or some assigns/from clauses are incomplete (or incorrect).
+[value] Done for function wrong_assigns
+tests/misc/initialized.c:130:[value] Assertion got status valid.
+tests/misc/initialized.c:131:[value] Assertion got status valid.
+tests/misc/initialized.c:133:[value] Assertion got status unknown.
+[value] Recording results for g5
+[value] Done for function g5
+[value] computing for function g6 <- main.
+        Called from tests/misc/initialized.c:158.
+tests/misc/initialized.c:143:[value] Assertion got status unknown.
+tests/misc/initialized.c:144:[value] Assertion got status unknown.
+tests/misc/initialized.c:145:[value] Assertion got status unknown.
+tests/misc/initialized.c:146:[value] Assertion got status valid.
+tests/misc/initialized.c:147:[value] Assertion got status unknown.
+tests/misc/initialized.c:148:[value] Assertion got status valid.
+[value] Recording results for g6
+[value] Done for function g6
+[value] Recording results for main
+[value] done for function main
+tests/misc/initialized.c:93:[value] Assertion 'Value,initialisation' got final status invalid.
+tests/misc/initialized.c:104:[value] Assertion 'Value,initialisation' got final status invalid.
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function f:
+  t1[0] ∈ UNINITIALIZED
+    [1..2] ∈ {1; 2} or UNINITIALIZED
+    [3..4] ∈ UNINITIALIZED
+  t2[0] ∈ UNINITIALIZED
+    [1..248] ∈ [1..248] or UNINITIALIZED
+    [249] ∈ UNINITIALIZED
+[value] Values at end of function g1:
+  Frama_C_entropy_source ∈ [--..--]
+  t1[0..19] ∈ {1}
+  t2[0..3] ∈ {2} or UNINITIALIZED
+    [4..19] ∈ {2}
+  t3[0..5] ∈ {3} or UNINITIALIZED
+    [6..12] ∈ {3}
+    [13..19] ∈ {3} or UNINITIALIZED
+  t4[0..6] ∈ {4} or UNINITIALIZED
+    [7] ∈ {4}
+    [8..19] ∈ {4} or UNINITIALIZED
+  t5[0..19] ∈ {5} or UNINITIALIZED
+  t6[0..19] ∈ {6} or UNINITIALIZED
+  i ∈ {7; 8; 9}
+  j ∈ {4; 5; 6; 7}
+[value] Values at end of function g2:
+  t{[0]; [1][bits 0 to 23]#} ∈
+   {0x11223344} or UNINITIALIZED repeated %32, bits 0 to 55 
+   [1][bits 24 to 31]# ∈ {0x11223344}%32, bits 24 to 31 
+   [2][bits 0 to 23]# ∈ {0x55667788}%32, bits 0 to 23 
+   [bits 88 to 119]# ∈
+   {0x55667788} or UNINITIALIZED repeated %32, bits 24 to 55 
+   [3][bits 24 to 31]# ∈ {0x55667788}%32, bits 24 to 31 
+   [4..5] ∈ {0x12345678; 0x23456789} or UNINITIALIZED
+   [6][bits 0 to 23] ∈
+   {{ garbled mix of &{b4}
+    (origin: Arithmetic {tests/misc/initialized.c:50}) }}
+   {[6][bits 24 to 31]; [7]} ∈
+   {{ garbled mix of &{b4}
+    (origin: Arithmetic {tests/misc/initialized.c:50}) }} or UNINITIALIZED
+   [8] ∈ {1; 2} or UNINITIALIZED
+   [9] ∈ {1; 2}
+   [10][bits 0 to 23] ∈ {0} or UNINITIALIZED
+   [10][bits 24 to 31]# ∈ {0x11111111} or UNINITIALIZED%32, bits 0 to 7 
+   [11][bits 0 to 23]# ∈ {0x11111111}%32, bits 8 to 31 
+   [11][bits 24 to 31] ∈ {0}
+   [12][bits 0 to 23] ∈ {0} or UNINITIALIZED
+   {[12][bits 24 to 31]#; [13][bits 0 to 23]#} ∈
+   {0x11111111; 0x22222222} or UNINITIALIZED
+   [13][bits 24 to 31] ∈ {0}
+  p_0 ∈ {{ &t + {7} }}
+[value] Values at end of function g3:
+  r1 ∈ {2}
+  x1 ∈ {1}
+  x2 ∈ UNINITIALIZED
+  x3 ∈ {1}
+  r3 ∈ {2}
+  t1[0] ∈ UNINITIALIZED
+    [1..2] ∈ {1; 2}
+    [3..4] ∈ UNINITIALIZED
+  t2[0] ∈ UNINITIALIZED
+    [1..248] ∈ [1..248] or UNINITIALIZED
+    [249] ∈ UNINITIALIZED
+[value] Values at end of function g4:
+  NON TERMINATING FUNCTION
+[value] Values at end of function g6:
+  i6 ∈ UNINITIALIZED
+[value] Values at end of function g5:
+  v ∈ UNINITIALIZED
+  p ∈ {{ &v1 ; &v2 }}
+[value] Values at end of function main:
+  Frama_C_entropy_source ∈ [--..--]
+  i6 ∈ UNINITIALIZED
+  __retres ∈ {0}
+[from] Computing for function f
+[from] Done for function f
+[from] Computing for function g1
+[from] Computing for function Frama_C_interval <-g1
+[from] Done for function Frama_C_interval
+[from] Done for function g1
+[from] Computing for function g2
+[from] Computing for function Frama_C_dump_each <-g2
+[from] Done for function Frama_C_dump_each
+[from] Done for function g2
+[from] Computing for function g3
+[from] Done for function g3
+[from] Computing for function g4
+[from] Non-terminating function g4 (no dependencies)
+[from] Done for function g4
+[from] Computing for function g6
+[from] Done for function g6
+[from] Computing for function g5
+[from] Computing for function wrong_assigns <-g5
+[from] Done for function wrong_assigns
+[from] Done for function g5
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function Frama_C_interval:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  \result FROM Frama_C_entropy_source; min; max
+[from] Function f:
+  t1[1..4] FROM m; t; n (and SELF)
+  t2[1..248] FROM m; t; n (and SELF)
+[from] Function g1:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+[from] Function g2:
+  NO EFFECTS
+[from] Function g3:
+  NO EFFECTS
+[from] Function g4:
+  NON TERMINATING - NO EFFECTS
+[from] Function g6:
+  i6 FROM rand (and SELF)
+[from] Function wrong_assigns:
+  v{.a; .b} FROM \nothing
+[from] Function g5:
+  NO EFFECTS
+[from] Function main:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  i6 FROM rand (and SELF)
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function f:
+          i; t1[1..4]; t2[1..248]
+[inout] Inputs for function f:
+          \nothing
+[inout] Out (internal) for function g1:
+          Frama_C_entropy_source; t1[0..19]; t2[0..19]; t3[0..19]; t4[0..19];
+          t5[0..19]; t6[0..19]; i; j; i_0
+[inout] Inputs for function g1:
+          Frama_C_entropy_source; rand
+[inout] Out (internal) for function g2:
+          t[0..13]; p; p_0
+[inout] Inputs for function g2:
+          b4; b5
+[inout] Out (internal) for function g3:
+          r1; x1; x2; x3; r3; t1[1..2]; t2[1..248]
+[inout] Inputs for function g3:
+          b1; b2; b3; b6
+[inout] Out (internal) for function g4:
+          x
+[inout] Inputs for function g4:
+          \nothing
+[inout] Out (internal) for function g6:
+          i6
+[inout] Inputs for function g6:
+          rand
+[inout] Out (internal) for function g5:
+          v{.a; .b}; p; tmp
+[inout] Inputs for function g5:
+          rand
+[inout] Out (internal) for function main:
+          Frama_C_entropy_source; i6; __retres
+[inout] Inputs for function main:
+          Frama_C_entropy_source; b1; b2; b3; b4; b5; b6; rand

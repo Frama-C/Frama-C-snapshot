@@ -1,0 +1,20 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/spec/comparison.i (no preprocessing)
+[kernel] Predicate comparison between 0 of type ℤ and i of type ℤ
+[kernel] Predicate comparison between i of type ℤ and \old(n) of type ℤ
+[kernel] Predicate comparison between *(\old(dest)+i) of type ℤ and 0 of type ℤ
+[kernel] Predicate comparison between n of type ℤ and 1 of type ℤ
+[kernel] Predicate comparison between 0 of type ℤ and i of type ℤ
+[kernel] Predicate comparison between i of type ℤ and \old(size) of type ℤ
+[kernel] Predicate comparison between 1 of type ℤ and j of type ℤ
+[kernel] Predicate comparison between j of type ℤ and \old(n) of type ℤ
+[kernel] Predicate comparison between *(\old(dest)+(i+j*\old(size))) of type unsigned char and *
+         (\old(dest)+i) of type unsigned char
+[kernel] Predicate comparison between a of type 𝔹 and b of type 𝔹
+[kernel] Predicate comparison between x of type int and y of type int
+[kernel] Predicate comparison between (long)x of type long and z of type long
+[kernel] Predicate comparison between (long)x of type long and z of type long
+[kernel] Term comparison between x of type int and y of type int
+[kernel] Term comparison between (long)x of type long and z of type long
+[kernel] Term comparison between z of type long and (long)y of type long
+[kernel] Term comparison between y of type int and x of type int

@@ -1,0 +1,130 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_bts/bts_1601.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function foo
+------------------------------------------------------------
+
+Goal Assertion (file tests/wp_bts/bts_1601.c, line 72):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assertion (file tests/wp_bts/bts_1601.c, line 84):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assertion (file tests/wp_bts/bts_1601.c, line 104):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assertion (file tests/wp_bts/bts_1601.c, line 136):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assertion (file tests/wp_bts/bts_1601.c, line 147):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assertion (file tests/wp_bts/bts_1601.c, line 153):
+Assume {
+  (* Domain *)
+  Type: (is_float32 fCaValue_0) /\ (is_float32 mfAp_0)
+        /\ (is_float32 mfNewAp_0) /\ (is_uint8 RESP_STATE_0)
+        /\ (is_uint8 bApAlmC_0) /\ (is_uint8 bRAp_0)
+        /\ (is_uint8 gbCaMStatus_0) /\ (is_uint8 gbCaaStatus_0)
+        /\ (is_uint8 mnPb_2) /\ (is_uint16 F_MIN_R_0) /\ (is_uint16 nApLRL_0)
+        /\ (is_uint16 nCaLRL_0).
+  (* tests/wp_bts/bts_1601.c:64: Conditional *)
+  If: 1=mnPb_2
+  Then {
+    (* tests/wp_bts/bts_1601.c:66: Assignment *)
+    Have: mfAp_0=(real_of_int RESP_STATE_0).
+  }
+  (* tests/wp_bts/bts_1601.c:74: Conditional *)
+  If: (real_of_int F_MIN_R_0)<=mfAp_0
+  Then {
+    (* tests/wp_bts/bts_1601.c:75: Conditional *)
+    If: 1=gbCaMStatus_0
+    Then {
+      (* tests/wp_bts/bts_1601.c:75: Conditional *)
+      If: 0=gbCaaStatus_0
+      Then { (* tests/wp_bts/bts_1601.c:77: Assignment *) Have: 1=bApAlmC_0.
+      }
+      Else { (* Control Flow *) Have: 0=bApAlmC_0. }
+    }
+    Else { (* Control Flow *) Have: 0=bApAlmC_0. }
+  }
+  Else { (* Control Flow *) Have: 0=bApAlmC_0. }
+  (* tests/wp_bts/bts_1601.c:117: Conditional *)
+  If: 1=bApAlmC_0
+  Then {
+    (* tests/wp_bts/bts_1601.c:117: Conditional *)
+    If: (real_of_int nCaLRL_0)<=fCaValue_0
+    Then {
+      (* tests/wp_bts/bts_1601.c:126: Conditional *)
+      If: mfNewAp_0<=mfAp_0
+      Then { (* tests/wp_bts/bts_1601.c:127: Assignment *) Have: 1=bRAp_0. }
+      Else { (* tests/wp_bts/bts_1601.c:129: Assignment *) Have: 0=bRAp_0. }
+    }
+    Else { (* Control Flow *) Have: 0=bRAp_0. }
+  }
+  Else { (* Control Flow *) Have: 0=bRAp_0. }
+  (* tests/wp_bts/bts_1601.c:148: Conditional *)
+  If: (real_of_int nApLRL_0)<=mfAp_0
+  Else {
+    (* tests/wp_bts/bts_1601.c:149: Conditional *)
+    If: 1=bApAlmC_0
+    Then {
+      (* tests/wp_bts/bts_1601.c:149: Conditional *)
+      If: fCaValue_0<(real_of_int nCaLRL_0)
+      Else {
+        (* tests/wp_bts/bts_1601.c:150: Then *)
+        Have: 1=bRAp_0.
+        (* tests/wp_bts/bts_1601.c:151: Then *)
+        Have: 1=gbCaMStatus_0.
+        (* tests/wp_bts/bts_1601.c:151: Then *)
+        Have: 0=gbCaaStatus_0.
+      }
+    }
+    Else {
+      (* tests/wp_bts/bts_1601.c:150: Then *)
+      Have: 1=bRAp_0.
+      (* tests/wp_bts/bts_1601.c:151: Then *)
+      Have: 1=gbCaMStatus_0.
+      (* tests/wp_bts/bts_1601.c:151: Then *)
+      Have: 0=gbCaaStatus_0.
+    }
+  }
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assertion (file tests/wp_bts/bts_1601.c, line 157):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function foo with behavior basic
+------------------------------------------------------------
+
+Goal Post-condition for 'basic' (file tests/wp_bts/bts_1601.c, line 46) in 'foo':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------

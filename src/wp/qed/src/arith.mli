@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -47,7 +47,6 @@ sig
   val of_int : int -> t
   val of_string : string -> t
   val to_string : t -> string
-  val pretty : Format.formatter -> t -> unit
 
   val hash : t -> int
   val compare : t -> t -> int

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -24,142 +24,150 @@
 
 {
   open Lexing
-  type state = NORMAL | SLASH | INCOMMENT
   type end_of_buffer = NEWLINE | SPACE | CHAR
-  let buf = Buffer.create 1024
-  let macros = Buffer.create 1024
+  let preprocess_buffer = Buffer.create 1024
+  let output_buffer = Buffer.create 1024
   let beg_of_line = Buffer.create 8
   let blacklisted_macros = [ "__STDC__"; "__STDC_HOSTED__"; "assert"]
   let is_newline = ref CHAR
   let curr_file = ref ""
   let curr_line = ref 1
-  let is_ghost = ref false
-  let begin_annot_line = ref 1
+  let has_annot = ref false
 
   let reset () =
-    Buffer.clear buf;
-    Buffer.clear macros;
+    Buffer.clear preprocess_buffer;
+    Buffer.clear output_buffer;
     Buffer.clear beg_of_line;
     is_newline := CHAR;
     curr_file := "";
     curr_line := 1;
-    is_ghost := false;
-    begin_annot_line := 1
+    has_annot := false
 
-  let backslash = "__BACKSLASH__"
+  let backslash = "__ANNOT_BACKSLASH__"
+  let annot_content = "__ANNOT_CONTENT__"
 
-  let abort_preprocess reason outfile =
+  let re_backslash = Str.regexp_string backslash
+  let re_annot_content = Str.regexp_string annot_content
+
+  (* Delimiters for the various annotations in the preprocessing buffer.
+     We have one delimiter for the beginning of an annotation (to discard
+     #defines along the way), and three delimiters for the various ways
+     an annotation can end:
+      - on a normal line
+      - with a newline
+      - with a newline inside a comment (only for one-line annotations)
+     When preprocessed annotations are inserted back in the main file, this will
+     result in distinct translation to preserve line numbers while avoiding
+     ill-formed annotations.
+  *)
+  let annot_beg =         "////////////////__ANNOT_BEG__"
+  let annot_end =         "////////////////__ANNOT_END__"
+  let annot_end_nl  =     "////////////////__ANNOT_END_NL__"
+  let annot_end_comment = "////////////////__ANNOT_END_COMMENT__"
+
+  let abort_preprocess reason =
     let source = {Lexing.dummy_pos with Lexing.pos_fname = !curr_file;
                   pos_lnum = !curr_line;}
     in
     Kernel.error ~source
-      "Can't preprocess annotation: %s\nAnnotation will be kept as is"
-      reason;
-    Buffer.output_buffer outfile buf
+      "Can't preprocess annotation: %s\nSome annotations will be kept as is"
+      reason
 
-  let preprocess_annot suffix cpp outfile =
-    (*Printf.printf "Preprocessing annotation:\n%!";
-    Buffer.output_buffer stdout buf;
-    print_newline(); *)
-    let debug =
-      Kernel.debug_atleast 3 ||
-      Kernel.Debug_category.exists (fun x -> x = "parser")
+  let next_preprocessed file =
+    let content = Buffer.create 80 in
+    let rec ignore_content () =
+      let s = input_line file in
+      if s <> annot_beg then ignore_content ()
     in
-    let ppname =
-      try Extlib.temp_file_cleanup_at_exit ~debug "ppannot" suffix
-      with Extlib.Temp_file_error s ->
-        Kernel.abort
-          "Could not open temporary file for logic pre-processing: %s" s
+    let rec get_annot first =
+      let s = input_line file in
+      if s = annot_end then false, Buffer.contents content
+      else if s = annot_end_nl then true, Buffer.contents content
+      else if s = annot_end_comment then begin
+        Buffer.add_char content '\n';
+        false, Buffer.contents content
+      end else begin
+        if not first then Buffer.add_char content '\n';
+        Buffer.add_string content s;
+        get_annot false
+      end
     in
-    let ppfile = open_out ppname in
-    Buffer.output_buffer ppfile macros;
-    (* NB: the three extra spaces replace the beginning of the annotation
-       in order to keep the columns count accurate (at least until there's
-       a macro expansion).
-    *)
-    Printf.fprintf ppfile "# %d %s \n   " !begin_annot_line !curr_file;
-    Buffer.output_buffer ppfile beg_of_line;
-    Buffer.output_buffer ppfile buf;
-    (* cpp complains if the temp file does not end with a newline *)
-    Buffer.clear beg_of_line;
-    if not (!is_newline = NEWLINE) then output_char ppfile '\n';
-    close_out ppfile;
-    let cppname = Extlib.temp_file_cleanup_at_exit ~debug "cppannot" suffix in
-    let res = Sys.command (cpp ppname cppname) in
-    if not debug then Extlib.safe_remove ppname;
-    output_string outfile "/*@";
-    if !is_ghost then output_string outfile " ghost\n";
-    if res <> 0 then begin
-      abort_preprocess "Preprocessor call exited with an error" outfile;
-      if not debug then Extlib.safe_remove cppname
-    end else begin
+    let replace_backslash s = Str.global_replace re_backslash "\\\\" s in
     try
-      let tmp = open_in_bin cppname in
-      let tmp_buf = Buffer.create 1024 in
-      Buffer.clear tmp_buf;
-      let x = ref (input_char tmp) in
-      let state = ref NORMAL in
-      (try
-         while true do
-           (* we have to remove the spurious \n at the end of buffer*)
-           let c = input_char tmp in
-           (match !x with
-                '/' ->
-                  (match !state with
-                       NORMAL -> state:=SLASH
-                     | SLASH ->state:=INCOMMENT
-                     | INCOMMENT -> ()
-                  )
-              | '\n' -> state:=NORMAL
-              | _ -> (match !state with
-                          SLASH->state:=NORMAL
-                        | NORMAL | INCOMMENT -> ())
-           );
-           Buffer.add_char tmp_buf !x;
-           x:=c;
-         done;
-         assert false
-       with
-           End_of_file ->
-             if !is_newline <> CHAR
-             then Buffer.add_char tmp_buf !x;
-             (* one-line annotations get a new line anyway. *)
-             if !state = INCOMMENT then
-             Buffer.add_char tmp_buf '\n';
-             let res = Buffer.contents tmp_buf in
-             let res =
-               Str.global_replace (Str.regexp_string backslash) "\\\\" res
-             in
-             (* Printf.printf "after preprocessing:\n%s%!" res; *)
-             output_string outfile res;
-             close_in tmp;
-             if not debug then Sys.remove cppname)
-    with
-      | End_of_file ->
-        if not debug then (try Sys.remove cppname with Sys_error _ -> ());
-        abort_preprocess "Empty result in annotation pre-processing" outfile
-      | Sys_error e ->
-          if not debug then (try Sys.remove cppname with Sys_error _ -> ());
-          abort_preprocess ("System error: " ^ e) outfile
+      ignore_content ();
+      ignore (input_line file); (* ignore the #line directive *)
+      let with_nl, content = get_annot true in
+      with_nl, replace_backslash content
+    with End_of_file ->
+      Kernel.fatal
+        "too few annotations in result file while pre-processing annotations"
 
+  let output_result outfile preprocessed content =
+    let rec aux = function
+      | [] -> ()
+      | [s] -> output_string outfile s
+      | content :: rem ->
+          output_string outfile content;
+          output_string outfile "/*@";
+          let with_nl, pp_content = next_preprocessed preprocessed in
+          output_string outfile pp_content;
+          output_string outfile "*/";
+          if with_nl then output_char outfile '\n';
+          aux rem
+    in aux content
+
+  let preprocess_annots suffix cpp outfile =
+    if !has_annot then begin
+      let debug =
+        Kernel.debug_atleast 3 ||
+          Kernel.Debug_category.exists (fun x -> x = "parser")
+      in
+      let ppname =
+        try Extlib.temp_file_cleanup_at_exit ~debug "ppannot" suffix
+        with Extlib.Temp_file_error s ->
+          Kernel.abort
+            "Could not open temporary file for logic pre-processing: %s" s
+      in
+      let ppfile = open_out ppname in
+      Buffer.output_buffer ppfile preprocess_buffer;
+      close_out ppfile;
+      let cppname = Extlib.temp_file_cleanup_at_exit ~debug "cppannot" suffix in
+      let res = Sys.command (cpp ppname cppname) in
+      let result_file =
+        if res <> 0 then begin
+          abort_preprocess "Preprocessor call exited with an error";
+          if not debug then Extlib.safe_remove cppname;
+          ppname
+        end else cppname
+      in
+      let result = open_in result_file in
+      let content =
+        Str.split_delim re_annot_content (Buffer.contents output_buffer)
+      in
+      output_result outfile result content;
+    end else begin
+      Buffer.output_buffer outfile output_buffer
     end;
-    Printf.fprintf outfile "*/\n# %d %s\n%!" !curr_line !curr_file;
-    Buffer.clear buf
+    flush outfile
+
+  let add_preprocess_line_info () =
+    Printf.bprintf
+      preprocess_buffer "# %d %s \n%s   "
+      !curr_line !curr_file (Buffer.contents beg_of_line);
+    Buffer.clear beg_of_line
 
   let make_newline () =
     incr curr_line;
     Buffer.clear beg_of_line
 }
 
-rule main suffix cpp outfile = parse
+rule main = parse
   | ("#define"|"#undef") [' ''\t']* ((['a'-'z''A'-'Z''0'-'9''_'])* as m)
-      [^'\n']* '\n'
       {
-        if not (List.mem m blacklisted_macros) then
-          Buffer.add_string macros (lexeme lexbuf);
-	output_char outfile '\n';
-        make_newline ();
-        main suffix cpp outfile lexbuf
+        let blacklisted = List.mem m blacklisted_macros in
+        if not blacklisted then
+          Buffer.add_string preprocess_buffer (lexeme lexbuf);
+        macro blacklisted lexbuf
       }
   | "#"  [' ''\t']* "line"?  [' ''\t']* (['0'-'9']+ as line)
     [' ''\t']* (('"' [^'"']+ '"') as file)  [^'\n']* "\n"
@@ -167,250 +175,281 @@ rule main suffix cpp outfile = parse
         curr_line := (int_of_string line) -1
        with Failure "int_of_string" -> curr_line:= -1);
       if file <> "" then curr_file := file;
-      output_string outfile (lexeme lexbuf);
+      Buffer.add_string output_buffer (lexeme lexbuf);
       make_newline();
-      main suffix cpp outfile lexbuf
+      main lexbuf
     }
+  | "/*@" ('{' | '}' as c) { (* Skip special doxygen comments. Use of '@'
+                                instead of !Clexer.annot_char is intentional *)
+        Buffer.add_string beg_of_line "   ";
+        Buffer.add_string output_buffer (lexeme lexbuf);
+        comment c lexbuf;}
   | "/*"  (_ as c) {
       if c = !Clexer.annot_char then begin
         is_newline:=CHAR;
-        begin_annot_line := ! curr_line;
-        Buffer.clear buf;
-        maybe_ghost suffix cpp outfile lexbuf
+        has_annot := true;
+        Buffer.add_string output_buffer annot_content;
+        Buffer.add_string preprocess_buffer annot_beg;
+        Buffer.add_char preprocess_buffer '\n';
+        add_preprocess_line_info();
+        annot lexbuf
       end else begin
-        output_string outfile (lexeme lexbuf);
-        if c = '\n' then make_newline();
-        Buffer.add_string beg_of_line "   ";
-        comment suffix cpp outfile c lexbuf;
+        if c = '\n' then make_newline()
+        else Buffer.add_string beg_of_line "   ";
+        Buffer.add_string output_buffer (lexeme lexbuf);
+        comment c lexbuf;
       end}
+  | "//@" ('{' | '}') { (* See comments for "/*@{" above *)
+        Buffer.add_string output_buffer (lexeme lexbuf);
+        oneline_comment lexbuf;
+      } 
   | "//"  (_ as c) {
       if c = !Clexer.annot_char then begin
-        Buffer.clear buf;
-        begin_annot_line := !curr_line;
         is_newline:=CHAR;
-        maybe_oneline_ghost suffix cpp outfile lexbuf
+        has_annot:=true;
+        Buffer.add_string output_buffer annot_content;
+        Buffer.add_string preprocess_buffer annot_beg;
+        Buffer.add_char preprocess_buffer '\n';
+        add_preprocess_line_info();
+        oneline_annot lexbuf
       end
       else if c = '\n' then begin
         make_newline ();
-        output_string outfile (lexeme lexbuf);
-        main suffix cpp outfile lexbuf
+        Buffer.add_string output_buffer (lexeme lexbuf);
+        main lexbuf
       end
       else begin
-        output_string outfile (lexeme lexbuf);
-        oneline_comment suffix cpp outfile lexbuf;
+        Buffer.add_string output_buffer (lexeme lexbuf);
+        oneline_comment lexbuf;
       end}
-  | eof  { flush outfile }
   | '\n' {
-      make_newline ();
-      output_char outfile '\n';
-      main suffix cpp outfile lexbuf }
-  | '"' { 
+      make_newline (); Buffer.add_char output_buffer '\n'; main lexbuf }
+  | eof  { }
+  | '"' {
       Buffer.add_char beg_of_line ' ';
-      output_char outfile '"'; 
-      c_string suffix cpp outfile lexbuf }
+      Buffer.add_char output_buffer '"'; 
+      c_string lexbuf }
   | "'" { 
       Buffer.add_char beg_of_line ' ';
-      output_char outfile '\'';
-      c_char suffix cpp outfile lexbuf }
+      Buffer.add_char output_buffer '\'';
+      c_char lexbuf }
   | _ as c {
       Buffer.add_char beg_of_line ' ';
-      output_char outfile c;
-      main suffix cpp outfile lexbuf }
+      Buffer.add_char output_buffer c;
+      main lexbuf }
+and macro blacklisted = parse
+| "\\\n" {
+      if not blacklisted then
+        Buffer.add_string preprocess_buffer (lexeme lexbuf);
+      make_newline ();
+      Buffer.add_char output_buffer '\n';
+      macro blacklisted lexbuf
+    }
+(* we ignore comments in macro definition, as their expansion 
+   in ACSL annotations would lead to ill-formed ACSL. *)
+| "/*" { macro_comment blacklisted lexbuf }
+| "\n" {
+      if not blacklisted then
+        Buffer.add_char preprocess_buffer '\n';
+      make_newline ();
+      Buffer.add_char output_buffer '\n';
+      main lexbuf
+    }
+| _ as c {
+           if not blacklisted then
+             Buffer.add_char preprocess_buffer c;
+           macro blacklisted lexbuf
+         }
+and macro_comment blacklisted = parse
+| '\n' {
+      make_newline ();
 
-and c_string suffix cpp outfile = parse
+      macro_comment blacklisted lexbuf
+    }
+| "*/" { macro blacklisted lexbuf }
+| _  { macro_comment blacklisted lexbuf }
+and c_string = parse
 | "\\\"" { Buffer.add_string beg_of_line "  ";
-           output_string outfile (lexeme lexbuf);
-           c_string suffix cpp outfile lexbuf }
+           Buffer.add_string output_buffer (lexeme lexbuf);
+           c_string lexbuf }
 | "\"" { Buffer.add_char beg_of_line ' '; 
-         output_char outfile '"';
-         main suffix cpp outfile lexbuf }
+         Buffer.add_char output_buffer '"';
+         main lexbuf }
 | '\n' { make_newline ();
-         output_char outfile '\n';
-         c_string suffix cpp outfile lexbuf
+         Buffer.add_char output_buffer '\n';
+         c_string lexbuf
        }
 | "\\\\" { Buffer.add_string beg_of_line "  ";
-           output_string outfile (lexeme lexbuf);
-           c_string suffix cpp outfile lexbuf }
+           Buffer.add_string output_buffer (lexeme lexbuf);
+           c_string lexbuf }
 | _ as c { Buffer.add_char beg_of_line ' ';
-           output_char outfile c;
-           c_string suffix cpp outfile lexbuf }
+           Buffer.add_char output_buffer c;
+           c_string lexbuf }
 (* C syntax allows for multiple char character constants *)
-and c_char suffix cpp outfile = parse
+and c_char = parse
 | "\\\'" { Buffer.add_string beg_of_line "  ";
-           output_string outfile (lexeme lexbuf);
-           c_char suffix cpp outfile lexbuf }
+           Buffer.add_string output_buffer (lexeme lexbuf);
+           c_char lexbuf }
 | "'" { Buffer.add_char beg_of_line ' '; 
-         output_char outfile '\'';
-         main suffix cpp outfile lexbuf }
+         Buffer.add_char output_buffer '\'';
+         main lexbuf }
 | '\n' { make_newline ();
-         output_char outfile '\n';
-         c_char suffix cpp outfile lexbuf
+         Buffer.add_char output_buffer '\n';
+         c_char lexbuf
        }
 | "\\\\" { Buffer.add_string beg_of_line "  ";
-           output_string outfile (lexeme lexbuf);
-           c_char suffix cpp outfile lexbuf }
+           Buffer.add_string output_buffer (lexeme lexbuf);
+           c_char lexbuf }
 | _ as c { Buffer.add_char beg_of_line ' ';
-           output_char outfile c;
-           c_char suffix cpp outfile lexbuf }
+           Buffer.add_char output_buffer c;
+           c_char lexbuf }
 
-and maybe_ghost suffix cpp outfile = parse
-   [' ''\t']+ as space{
-     Buffer.add_string buf space;
-     maybe_ghost suffix cpp outfile lexbuf }
-  | '\n' {
-      is_newline := NEWLINE;
-      incr curr_line;
-      Buffer.add_char buf '\n';
-      maybe_ghost suffix cpp outfile lexbuf
-    }
-  | "ghost"
-      { is_ghost := true;
-        Buffer.add_string buf "     ";
-        annot suffix cpp outfile lexbuf
-      }
-  (* silently skipping an empty annotation *)
-  | "*/" { main suffix cpp outfile lexbuf }
-  | _ as c { Buffer.add_char buf c; is_ghost:=false;
-             annot suffix cpp outfile lexbuf}
-and maybe_oneline_ghost suffix cpp outfile = parse
-   [' ''\t']+ as space{
-     Buffer.add_string buf space;
-     maybe_oneline_ghost suffix cpp outfile lexbuf }
-  | '\n' {
-      incr curr_line;
-      main suffix cpp outfile lexbuf
-    }
-  | "ghost"
-      { is_ghost := true;
-        Buffer.add_string buf "     ";
-        oneline_annot suffix cpp outfile lexbuf
-      }
-  | _ as c
-      {
-        Buffer.add_char buf c;
-        is_ghost:=false;
-        oneline_annot suffix cpp outfile lexbuf
-      }
-and annot suffix cpp outfile = parse
-    "*/"  { preprocess_annot suffix cpp outfile;
-            main suffix cpp outfile lexbuf }
+and annot = parse
+    "*/"  {
+      if !is_newline = NEWLINE then
+        Buffer.add_string preprocess_buffer annot_end_nl
+      else begin
+        Buffer.add_char preprocess_buffer '\n';
+        Buffer.add_string preprocess_buffer annot_end;
+      end;
+      Buffer.add_char preprocess_buffer '\n';
+      main lexbuf }
   | '\n' { is_newline := NEWLINE;
            incr curr_line;
-           Buffer.add_char buf '\n';
-           annot suffix cpp outfile lexbuf }
-  | "//" { Buffer.add_string buf "//";
-           annot_comment suffix cpp outfile lexbuf }
+           Buffer.add_char preprocess_buffer '\n';
+           annot lexbuf }
+  | "//" { Buffer.add_string preprocess_buffer "//";
+           annot_comment lexbuf }
   | '@' {
       if !is_newline = NEWLINE then is_newline:=SPACE;
-      Buffer.add_char buf ' ';
-      annot suffix cpp outfile lexbuf }
+      Buffer.add_char preprocess_buffer ' ';
+      annot lexbuf }
   | ' '  {
       if !is_newline = NEWLINE then is_newline:=SPACE;
-      Buffer.add_char buf ' ';
-      annot suffix cpp outfile lexbuf }
+      Buffer.add_char preprocess_buffer ' ';
+      annot lexbuf }
   (* We're not respecting char count here. Maybe using '$' would do it,
      as cpp is likely to count it as part of an identifier, but this would
      imply that we can not speak about $ ident in annotations.
    *)
-  | '\\' { Buffer.add_string buf backslash;
-           annot suffix cpp outfile lexbuf }
-  | '\'' { Buffer.add_char buf '\'';
-           char suffix annot cpp outfile lexbuf }
-  | '"'  { Buffer.add_char buf '"';
-           string suffix annot cpp outfile lexbuf }
+  | '\\' { 
+        is_newline := CHAR;
+        Buffer.add_string preprocess_buffer backslash;
+        annot lexbuf }
+  | '\'' {
+        is_newline := CHAR;
+        Buffer.add_char preprocess_buffer '\'';
+        char annot lexbuf }
+  | '"'  {
+        is_newline:=CHAR;
+        Buffer.add_char preprocess_buffer '"';
+        string annot lexbuf }
   | _ as c { is_newline := CHAR;
-             Buffer.add_char buf c;
-             annot suffix cpp outfile lexbuf }
+             Buffer.add_char preprocess_buffer c;
+             annot lexbuf }
 
-and annot_comment suffix cpp outfile = parse
+and annot_comment = parse
   | '\n' { incr curr_line; is_newline:=NEWLINE;
-           Buffer.add_char buf '\n';
-           annot suffix cpp outfile lexbuf
+           Buffer.add_char preprocess_buffer '\n';
+           annot lexbuf
          }
-  | "*/" { preprocess_annot suffix cpp outfile;
-           main suffix cpp outfile lexbuf }
-  | eof { abort_preprocess "eof in the middle of a comment" outfile }
+  | "*/" {
+        Buffer.add_char preprocess_buffer '\n';
+        Buffer.add_string preprocess_buffer annot_end;
+        Buffer.add_char preprocess_buffer '\n';
+        main lexbuf }
+  | eof { abort_preprocess "eof in the middle of a comment" }
   | _ as c {
-    Buffer.add_char buf c;
-    annot_comment suffix cpp outfile lexbuf }
+    Buffer.add_char preprocess_buffer c; annot_comment lexbuf }
 
-and char suffix annot cpp outfile = parse
+and char annot = parse
 
   | '\n' { incr curr_line; is_newline:=NEWLINE;
-           Buffer.add_char buf '\n';
-           char suffix annot cpp outfile lexbuf
+           Buffer.add_char preprocess_buffer '\n';
+           char annot lexbuf
          }
   | '\'' { is_newline:=CHAR;
-           Buffer.add_char buf '\'';
-           annot suffix cpp outfile lexbuf }
+           Buffer.add_char preprocess_buffer '\'';
+           annot lexbuf }
   | "\\'" { is_newline:=CHAR;
-            Buffer.add_string buf "\\'";
-            char suffix annot cpp outfile lexbuf }
+            Buffer.add_string preprocess_buffer "\\'";
+            char annot lexbuf }
   | "\\\\" { is_newline:=CHAR;
-            Buffer.add_string buf "\\\\";
-            char suffix annot cpp outfile lexbuf }
-  | eof { abort_preprocess "eof while parsing a char literal" outfile }
+            Buffer.add_string preprocess_buffer "\\\\";
+            char annot lexbuf }
+  | eof { abort_preprocess "eof while parsing a char literal" }
   | _ as c { is_newline:=CHAR;
-             Buffer.add_char buf c;
-             char suffix annot cpp outfile lexbuf }
+             Buffer.add_char preprocess_buffer c;
+             char annot lexbuf }
 
-and string suffix annot cpp outfile = parse
+and string annot = parse
   | '\n' { incr curr_line; is_newline:=NEWLINE;
-           Buffer.add_char buf '\n'; string suffix annot cpp outfile lexbuf
+           Buffer.add_char preprocess_buffer '\n'; string annot lexbuf
          }
-  | '"' { is_newline:=CHAR; Buffer.add_char buf '"';
-          annot suffix cpp outfile lexbuf }
+  | '"' { is_newline:=CHAR;
+          Buffer.add_char preprocess_buffer '"'; annot lexbuf }
   | "\\\"" { is_newline:=CHAR;
-             Buffer.add_string buf "\\\"";
-             string suffix annot cpp outfile lexbuf }
-  | eof { abort_preprocess "eof while parsing a string literal" outfile }
+             Buffer.add_string preprocess_buffer "\\\"";
+             string annot lexbuf }
+  | eof { abort_preprocess "eof while parsing a string literal" }
   | _ as c { is_newline:=CHAR;
-             Buffer.add_char buf c;
-             string suffix annot cpp outfile lexbuf }
+             Buffer.add_char preprocess_buffer c;
+             string annot lexbuf }
 
-and comment suffix cpp outfile c =
+and comment c =
 parse
     "/" {
       Buffer.add_char beg_of_line ' ';
-      output_string outfile (lexeme lexbuf);
+      Buffer.add_char output_buffer  '/';
       if c = '*' then
-        main suffix cpp outfile lexbuf
+        main lexbuf
       else
-        comment suffix cpp outfile '/' lexbuf
+        comment '/' lexbuf
       }
-  | '\n' { make_newline (); output_char outfile '\n';
-           comment suffix cpp outfile '\n' lexbuf }
-  | eof { abort_preprocess "eof while parsing C comment" outfile}
+  | '\n' { make_newline (); Buffer.add_char output_buffer '\n';
+           comment '\n' lexbuf }
+  | eof { abort_preprocess "eof while parsing C comment" }
   | _ as c {
       Buffer.add_char beg_of_line ' ';
-      output_char outfile c;
-      comment suffix cpp outfile c lexbuf}
+      Buffer.add_char output_buffer c;
+      comment c lexbuf}
 
-and oneline_annot suffix cpp outfile = parse
+and oneline_annot = parse
     "\n"|eof {
       incr curr_line;
-      preprocess_annot suffix cpp outfile;
-      main suffix cpp outfile lexbuf }
-  | '@'  { Buffer.add_char buf ' ';
-           oneline_annot suffix cpp outfile lexbuf
-         }
-  | '\\' { Buffer.add_string buf backslash;
-           oneline_annot suffix cpp outfile lexbuf }
-  | '\'' { Buffer.add_char buf '\'';
-           char suffix oneline_annot cpp outfile lexbuf }
-  | '"'  { Buffer.add_char buf '"';
-           string suffix oneline_annot cpp outfile lexbuf }
-  | _ as c { Buffer.add_char buf c;
-             oneline_annot suffix cpp outfile lexbuf }
+      Buffer.add_char preprocess_buffer '\n';
+      Buffer.add_string preprocess_buffer annot_end_nl;
+      Buffer.add_char preprocess_buffer '\n';
+      main lexbuf }
+  | '\\' { Buffer.add_string preprocess_buffer backslash;
+           oneline_annot lexbuf }
+  | '\'' { Buffer.add_char preprocess_buffer '\'';
+           char oneline_annot lexbuf }
+  | '"'  { Buffer.add_char preprocess_buffer '"';
+           string oneline_annot lexbuf }
+  | "//" { Buffer.add_string preprocess_buffer "//";
+           oneline_annot_comment lexbuf }
+  | _ as c { Buffer.add_char preprocess_buffer c;
+             oneline_annot lexbuf }
 
-and oneline_comment suffix cpp outfile =
+and oneline_annot_comment = parse
+    "\n"|eof {
+       incr curr_line;
+       Buffer.add_char preprocess_buffer '\n';
+       Buffer.add_string preprocess_buffer annot_end_comment;
+       Buffer.add_char preprocess_buffer '\n';
+       main lexbuf }
+  | _ as c { Buffer.add_char preprocess_buffer c;
+             oneline_annot_comment lexbuf }
+
+and oneline_comment =
 parse
     "\n"|eof
       { make_newline();
-        output_string outfile (lexeme lexbuf);
-        main suffix cpp outfile lexbuf}
-  | _ as c { output_char outfile c;
-             oneline_comment suffix cpp outfile lexbuf}
+        Buffer.add_string output_buffer (lexeme lexbuf);
+        main lexbuf}
+  | _ as c { Buffer.add_char output_buffer c;
+             oneline_comment lexbuf}
 
 {
   let file suffix cpp filename =
@@ -423,7 +462,8 @@ parse
         (Filename.basename filename) ".pp"
     in
     let ppfile = open_out ppname in
-    main suffix cpp ppfile lex;
+    main lex;
+    preprocess_annots suffix cpp ppfile;
     close_in inchan;
     close_out ppfile;
     ppname

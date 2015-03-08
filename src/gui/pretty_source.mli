@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -29,6 +29,7 @@ open Cil_types
 type localizable =
   | PStmt of (kernel_function * stmt)
   | PLval of (kernel_function option * kinstr * lval)
+  | PExp of (kernel_function option * kinstr * exp)
   | PTermLval of (kernel_function option * kinstr * term_lval)
   | PVDecl of (kernel_function option * varinfo)
       (** Declaration and definition of variables and function. Check the type

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -43,12 +43,12 @@ module ActiveBehaviors = struct
     if not (Cil.is_default_behavior b)
     then Format.fprintf fmt ", behavior %s" b.b_name
 
-  let is_active_aux init_state b =
+  let is_active_aux pre_state b =
     let assumes =
       (Logic_const.pands
          (List.map Logic_const.pred_of_id_pred b.b_assumes))
     in
-    eval_predicate (env_pre_f ~init:init_state ()) assumes
+    eval_predicate (env_pre_f ~pre:pre_state ()) assumes
 
   type t = {
     init_state: Cvalue.Model.t;
@@ -96,12 +96,9 @@ module ActiveBehaviors = struct
 
 end
 
-(* Does the given function has any requires to evaluate. Use kf.spec as
-   a shortcut. *)
-let has_requires kf =
+let has_requires spec =
   let behav_has_requires b = b.b_requires <> [] in
-  List.exists behav_has_requires kf.spec.spec_behavior
-
+  List.exists behav_has_requires spec.spec_behavior
 
 let conv_status = function
   | False -> Property_status.False_if_reachable;
@@ -255,6 +252,129 @@ let check_fct_postconditions kf ab ~result ~init_state ~post_states kind =
   in
   List.fold_left incorporate_behavior post_states behaviors
 
+let check_fct_assigns kf ab ~pre_state found_froms =
+  let open Locations in
+  let behaviors = Annotations.behaviors kf in
+
+  (* Eval: under-approximation of the term.  Note that ACSL states
+     that assigns clauses are evaluated in the pre-state. We skip [\result]:
+     it is meaningless when evaluating the 'assigns' part, and treated
+     specially in the 'from' part. *)
+  let eval it =
+    let term = it.it_content in
+    if Logic_utils.is_result it.it_content then
+      Zone.bottom
+    else
+      let eval_env = Eval_terms.env_assigns pre_state in
+      fst (Eval_terms.eval_tlval_as_zone_under_over
+             ~with_alarms:CilE.warn_none_mode ~for_writing:false eval_env term)
+  in
+  (* Under-approximation of the union. *)
+  let link zones = List.fold_left Zone.link Zone.bottom zones in
+
+  let outputs = Function_Froms.outputs found_froms in
+
+  let check_for_behavior b =
+    let activity = ActiveBehaviors.active ab b in
+    match activity with
+    | False -> ()
+    | True | Unknown ->
+      let pp_activity fmt activity = match activity with
+	| False -> assert false
+	| True -> ()
+	(* If unknown, the error may be because we did not notice
+	   that the behavior is inactive.  *)
+	| Unknown -> Format.fprintf fmt "(the behavior may be inactive)"
+      in
+
+      (match b.b_assigns with
+      | WritesAny -> ()
+      | Writes(assigns_deps) ->
+        let bol = Property.Id_behavior b in
+        let ip = Extlib.the (Property.ip_of_assigns kf Kglobal bol b.b_assigns)
+        in
+        let source = fst (Property.location ip) in
+
+	(* First, check the assigns. *)
+	let assigns = List.map fst assigns_deps in
+	let assigns_zones = List.map eval assigns in
+	let assigns_union = link assigns_zones in
+        let status_txt,status =
+	  if not (Zone.is_included outputs assigns_union)
+	  then (
+	    Value_parameters.debug "found_assigns %a stated_assigns %a"
+	      Zone.pretty outputs Zone.pretty assigns_union;
+            "unknown",Property_status.Dont_know)
+          else "valid",Property_status.True
+        in
+	Value_parameters.result ~once:true ~source
+	  "%a: assigns got status %s.%a%t"
+          (pp_header kf) b
+          status_txt
+          pp_activity activity
+          Value_util.pp_callstack;
+        emit_status ip status;
+        notify_status ip status pre_state;
+
+	(* Now, checks the individual froms. *)
+	let check_from ((asgn,deps) as from) assigns_zone =
+	  match deps with
+	  | FromAny -> ()
+	  | From(deps) ->
+            let source = fst (asgn.it_content.term_loc) in
+            let ip = Property.ip_of_from kf Kglobal bol from in
+            (* Note: narrowing the stated assigns (in [assigns_zone])
+               with the ones really found (in [outputs]) allows to
+               have less dependencies. But this is sound only if the
+               assigns from express a weak update.
+
+               For instance for the function void f(){ a[2] = b;} the
+               contract assigns a[1..2] \from b is incorrect (and
+               would be incorrectly proved by this optimization)
+               whereas assigns a[1..2] \from a,b could be safely
+               optimized. 
+
+               let assigns_zone = Zone.narrow assigns_zone outputs in
+            *)
+	    let found_deps =
+              if Logic_utils.is_result asgn.it_content then
+                Function_Froms.(Deps.to_zone found_froms.deps_return)
+              else
+                Function_Froms.Memory.find
+	          found_froms.Function_Froms.deps_table assigns_zone
+	    in
+            let stated_deps = link (List.map eval deps) in
+
+            let status_txt,status =
+	      if not (Zone.is_included found_deps stated_deps)
+	      then (
+	        Value_parameters.debug "found_deps %a stated_deps %a"
+		  Zone.pretty found_deps Zone.pretty stated_deps;
+                "unknown",Property_status.Dont_know)
+              else "valid",Property_status.True
+            in
+	    Value_parameters.result ~once:true ~source
+              "%a: \\from ... part in assign clause got status %s.%a%t"
+              (pp_header kf) b
+              status_txt
+              pp_activity activity
+              Value_util.pp_callstack;
+            emit_status ip status;
+            notify_status ip status pre_state;
+	in
+	List.iter2 check_from assigns_deps assigns_zones)
+
+  in List.iter check_for_behavior behaviors
+;;
+
+let verify_assigns_from kf ~pre froms =
+  let ab = ActiveBehaviors.create pre kf in
+  check_fct_assigns kf ab ~pre_state:pre froms
+;;
+
+Db.Value.verify_assigns_froms := verify_assigns_from;;
+
+
 (** Check the precondition of [kf]. This may result in splitting [init_state]
     into multiple states if the precondition contains disjunctions. *)
 let check_fct_preconditions kf ab call_ki init_state =
@@ -277,25 +397,33 @@ let check_fct_preconditions kf ab call_ki init_state =
               let ip_call = Statuses_by_call.precondition_at_call kf ip_precondition stmt in
 	      ip_call
       in
-      let build_env init = env_pre_f ~init () in
+      let build_env pre = env_pre_f ~pre () in
       eval_and_reduce_pre_post
         kf ab b Precondition b.b_requires states build_prop build_env
   in
   List.fold_left incorporate_behavior init_states spec.spec_behavior
 
+let code_annotation_text ca =
+  match ca.annot_content with
+  | AAssert _ ->  "Assertion"
+  | AInvariant _ ->  "Loop invariant"
+  | APragma _  | AVariant _ | AAssigns _ | AAllocation _ | AStmtSpec _ ->
+    assert false (* currently not treated by Value *)
+
+let code_annotation_source ca =
+  match Cil_datatype.Code_annotation.loc ca with
+  | Some loc when not (Cil_datatype.Location.(equal loc unknown)) -> fst loc
+  | _ -> fst (Cil.CurrentLoc.get ()) (* fallback: current statement *)
 
 (* Reduce the given states according to the given code annotations.
    If [record] is true, update the proof state of the code annotation.
    DO NOT PASS record=false unless you know what your are doing *)
 let interp_annot kf ab initial_state slevel states stmt ca record =
   let ips = Property.ip_of_code_annot kf stmt ca in
-  let source = match Cil_datatype.Code_annotation.loc ca with
-    | Some loc when not (Cil_datatype.Location.equal
-                           loc Cil_datatype.Location.unknown)
-        -> fst loc
-    | _ -> fst (Cil.CurrentLoc.get ()) (* fallback: current statement *)
-  in
-  let aux_interp text behav p ip =
+  let source = code_annotation_source ca in
+  let aux_interp ca behav p =
+    let ip = Property.ip_of_code_annot_single kf stmt ca in
+    let text = code_annotation_text ca in
     let in_behavior =
       match behav with
         | [] -> `True
@@ -366,21 +494,21 @@ let interp_annot kf ab initial_state slevel states stmt ca record =
          'nice' ordering *)
       State_set.reorder reduced_states
   in
-  let aux text behav p ip =
+  let aux ca behav p =
     if State_set.is_empty states then (
-      if record then
+      if record then begin
+        let text = code_annotation_text ca in
         Value_parameters.result ~once:true ~source
           "no state left in which to evaluate %s, status not \
          computed.%t" (String.lowercase text) Value_util.pp_callstack;
+      end;
       states
     ) else
-      aux_interp text behav p ip
+      aux_interp ca behav p
   in
   match ca.annot_content with
-    | AAssert (behav,p) ->
-      aux "Assertion" behav p (Property.ip_of_code_annot_single kf stmt ca)
-    | AInvariant (behav, true, p) ->
-      aux "Loop invariant" behav p (Property.ip_of_code_annot_single kf stmt ca)
+    | AAssert (behav,p)
+    | AInvariant (behav, true, p) -> aux ca behav p
     | APragma _
     | AInvariant (_, false, _)
     | AVariant _ | AAssigns _ | AAllocation _
@@ -419,6 +547,10 @@ let mark_unreachable () =
           | Instr (Call (_, e, _, _)) ->
             (match Kernel_function.get_called e with
               | Some kf ->
+                (* Setup all precondition statuses for [kf]: maybe it has
+                   never been called anywhere. *)
+                Statuses_by_call.setup_all_preconditions_proxies kf;
+                (* Now mark the statuses at this particular statement as dead *)
                 let preconds =
                   Statuses_by_call.all_call_preconditions_at
                     ~warn_missing:false kf stmt
@@ -451,6 +583,80 @@ let mark_rte () =
         unsigned_ovf kf unsigned;
       )
     )
+
+(* Evaluates [p] at [stmt], using the most precise states available:
+   per-callstacks if possible, or the synthetic state otherwise. *)
+let eval_by_callstack kf stmt p =
+  (* This is actually irrelevant for alarms: they never use \old *)
+  let pre = Db.Value.get_initial_state kf in
+  let aux_callstack _callstack state acc_status =
+    let env = Eval_terms.env_annot ~pre ~here:state () in
+    let status = Eval_terms.eval_predicate env p in
+    let open Eval_terms in
+    (* Join: unknown anywhere or True+False means unknown *)
+    match status, acc_status with
+    | Unknown, _ | True, Some False | False, Some True | _, Some Unknown ->
+      raise Exit
+    | (True | False), None -> Some status
+    | True, Some True | False, Some False -> acc_status
+  in
+  match Db.Value.get_stmt_state_callstack ~after:false stmt with
+  | None -> (* per-callstacks results unavailable *)
+    let state = Db.Value.get_stmt_state stmt in
+    if Cvalue.Model.is_reachable state then begin
+      let env = Eval_terms.env_annot ~pre ~here:state () in
+      Eval_terms.eval_predicate env p
+    end
+    else Unknown (* Do not evaluate. An 'unreachable' status is better. *)
+  | Some states -> begin (* Per-callstacks results available *)
+    try
+      match Value_types.Callstack.Hashtbl.fold aux_callstack states None with
+      | None -> Eval_terms.Unknown (* probably never reached *)
+      | Some status -> status
+    with Exit -> Eval_terms.Unknown
+  end
+
+(* Re-evaluate all alarms, and see if we can put a 'green' or 'red' status,
+   which would be more precise than those we have emitted during the current
+   analysis. *)
+let mark_green_and_red () =
+  let do_code_annot stmt _e ca  =
+    match Alarms.find ca with
+    | None -> () (* Not an alarm. Do nothing, as we already put a status on this
+                    assert each time value visited the statement. *)
+    | Some _ ->
+      match ca.annot_content with
+      | AAssert (_, p) | AInvariant (_, true, p) ->
+        let kf = Kernel_function.find_englobing_kf stmt in
+        let ip = Property.ip_of_code_annot_single kf stmt ca in
+        (* This status is exact: we are _not_ refining the statuses previously
+           emitted, but writing a synthetic more precise status. *)
+        let distinct = false in
+        let emit status =
+          let status, text_status = match status with
+            | `True -> Property_status.True, "valid"
+            | `False -> Property_status.False_if_reachable, "invalid"
+          in
+          Property_status.emit ~distinct Value_util.emitter ~hyps:[] ip status;
+          let source = code_annotation_source ca in
+          let text_ca = code_annotation_text ca in
+          Value_parameters.result ~once:true ~source "%s%a got final status %s."
+            text_ca Description.pp_named p text_status;
+        in
+        begin
+          match eval_by_callstack kf stmt p with
+          | Eval_terms.False -> emit `False
+          | Eval_terms.True -> (* should not happen for an alarm that has been
+              emitted during this Value analysis. However, this is perfectly
+              possible for an 'old' alarm. *)
+            emit `True
+          | Eval_terms.Unknown -> ()
+        end
+      | AInvariant (_, false, _) | AStmtSpec _ | AVariant _ | AAssigns _
+      | AAllocation _ | APragma _ -> ()
+  in
+  Annotations.iter_all_code_annot do_code_annot
+
 
 let () =
   Db.Value.valid_behaviors :=

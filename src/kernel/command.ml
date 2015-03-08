@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -245,14 +245,16 @@ let command ?(timeout=0) ?stdout ?stderr cmd args =
   if !Config.is_gui || timeout > 0 then
     let f = command_generic ~async:true ?stdout ?stderr cmd args in
     let res = ref(Unix.WEXITED 99) in
-    let elapsed = ref 0 in
+    let ftimeout = float_of_int timeout in
+    let start = ref (Unix.gettimeofday ()) in
     let running () =
       match f () with
         | Not_ready terminate ->
             begin
               try
                 !Db.progress () ;
-                if timeout > 0 && !elapsed > timeout then raise Db.Cancel ;
+                if timeout > 0 && Unix.gettimeofday () -. !start > ftimeout then
+                  raise Db.Cancel ;
                 true
               with Db.Cancel as e ->
                 terminate ();
@@ -261,7 +263,7 @@ let command ?(timeout=0) ?stdout ?stderr cmd args =
         | Result r ->
             res := r;
             false
-    in while running () do Unix.sleep 1 done ; !res
+    in while running () do Extlib.usleep 100000 (* 0.1s *) done ; !res
   else
     let f = command_generic ~async:false ?stdout ?stderr cmd args in
     match f () with

@@ -213,6 +213,28 @@ let fourth4 (_,_,_,result) = result
    into     :  (size_t) (&(type * ) 0)->member
  *)
 
+let sizeofType () =
+  let findSpecifier name =
+    let convert_one_specifier s =
+      if s = "int" then Cabs.Tint
+      else if s = "unsigned" then Cabs.Tunsigned
+      else if s = "long" then Cabs.Tlong
+      else if s = "short" then Cabs.Tshort
+      else if s = "char" then Cabs.Tchar
+      else
+        Kernel.fatal
+          ~current:true
+          "initCIL: cannot find the right specifier for type %s" name
+    in
+    let add_one_specifier s acc =
+      (Cabs.SpecType (convert_one_specifier s)) :: acc
+    in
+    let specs = Str.split (Str.regexp " +") name in
+    List.fold_right add_one_specifier specs []
+  in
+  findSpecifier Cil.theMachine.Cil.theMachine.Cil_types.size_t
+
+
 let transformOffsetOf (speclist, dtype) member =
   let mk_expr e = { expr_loc = member.expr_loc; expr_node = e } in
   let rec addPointer = function
@@ -245,8 +267,7 @@ let transformOffsetOf (speclist, dtype) member =
   in
   let memberExpr = replaceBase member in
   let addrExpr = { memberExpr with expr_node = UNARY (ADDROF, memberExpr)} in
-  (* slight cheat: hard-coded assumption that size_t == unsigned int *)
-  let sizeofType = [SpecType Tunsigned], JUSTBASE in
+  let sizeofType = sizeofType(), JUSTBASE in
   { addrExpr with expr_node = CAST (sizeofType, SINGLE_INIT addrExpr)}
 
 let no_ghost_stmt s = {stmt_ghost = false ; stmt_node = s}

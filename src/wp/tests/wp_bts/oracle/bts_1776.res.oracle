@@ -1,0 +1,21 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_bts/bts_1776.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function f
+------------------------------------------------------------
+
+Goal Assertion 'KO,ax2' (file tests/wp_bts/bts_1776.i, line 14):
+Assume {
+  (* Domain *)
+  Type: (is_sint32 X_0) /\ (is_sint32 X_2) /\ (is_sint32 x_0).
+  (* tests/wp_bts/bts_1776.i:12: Then *)
+  Have: X_2<x_0.
+}
+Prove: X_0<x_0.
+
+------------------------------------------------------------

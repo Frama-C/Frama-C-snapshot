@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -124,7 +124,7 @@ type ('f,'a) funtype = {
   params : ('f,'a) datatype list ; (** Type of parameters *)
 }
 
-type ('z,'f,'d,'x,'e) term_repr =
+type ('z,'f,'a,'d,'x,'b,'e) term_repr =
   | True
   | False
   | Kint  of 'z
@@ -148,9 +148,10 @@ type ('z,'f,'d,'x,'e) term_repr =
   | Imply of 'e list * 'e
   | If    of 'e * 'e * 'e
   | Fun   of 'd * 'e list
-  | Var   of 'x
+  | Fvar  of 'x
+  | Bvar  of int * ('f,'a) datatype
   | Apply of 'e * 'e list
-  | Bind  of binder * 'x * 'e
+  | Bind  of binder * ('f,'a) datatype * 'b
 
 type ('z,'a) affine = { constant : 'z ; factors : ('z * 'a) list }
 
@@ -165,6 +166,7 @@ sig
   module Var : Variable
 
   type term
+  type bind
 
   (** {3 Variables} *)
 
@@ -172,6 +174,7 @@ sig
   type tau = (Field.t,ADT.t) datatype
   type signature = (Field.t,ADT.t) funtype
 
+  module Tau : Data with type t = tau
   module Vars : Idxset.S with type elt = var
   module Vmap : Idxmap.S with type key = var
 
@@ -186,11 +189,12 @@ sig
   val alpha : pool -> var -> var
 
   val tau_of_var : var -> tau
+  val sort_of_var : var -> sort
   val base_of_var : var -> string
 
   (** {3 Terms} *)
 
-  type 'a expression = (Z.t,Field.t,Fun.t,var,'a) term_repr
+  type 'a expression = (Z.t,Field.t,ADT.t,Fun.t,var,bind,'a) term_repr
 
   type repr = term expression
   type path = int list (** position of a subterm in a term. *)
@@ -260,25 +264,34 @@ sig
   val e_exists : var list -> term -> term
   val e_lambda : var list -> term -> term
   val e_bind : binder -> var -> term -> term
-  val e_subst : ?pool:pool -> var -> term -> term -> term
-  val e_apply : ?pool:pool -> term -> term list -> term
+  val e_apply : term -> term list -> term
+
+  (** {3 Generalized Substitutions} *)
+
+  type sigma
+  val sigma : unit -> sigma
+
+  val e_subst : ?sigma:sigma -> (term -> term) -> term -> term
+
+  (** {3 Localy Nameless Representation} *)
+  
+  val lc_bind : var -> term -> bind (** Close [x] as a new bound variable *)
+  val lc_open : var -> bind -> term (** Instanciate top bound variable *)
+  val lc_closed : term -> bool
+  val lc_closed_at : int -> term -> bool
+  val lc_vars : term -> Bvars.t
+  val lc_repr : bind -> term
 
   (** {3 Recursion Scheme} *)
 
-  val r_map : ('a -> term) -> 'a expression -> term
-  (** @raise Invalid_argument on Bind constructor *)
+  val e_map  : pool -> (term -> term) -> term -> term
+  val e_iter : pool -> (term -> unit) -> term -> unit
 
-  val e_map  : (term -> term) -> term -> term
-  (** @raise Invalid_argument on Bind constructor *)
+  val f_map  : (int -> term -> term) -> int -> term -> term
+  val f_iter : (int -> term -> unit) -> int -> term -> unit
 
-  val e_iter : (term -> unit) -> term -> unit
-  (** Also goes into Bind constructor *)
-
-  val f_map  : (Vars.t -> term -> term) -> Vars.t -> term -> term
-  (** Pass the bound variables in context *)
-
-  val f_iter  : (Vars.t -> term -> unit) -> Vars.t -> term -> unit
-  (** Pass the bound variables in context *)
+  val lc_map : (term -> term) -> term -> term
+  val lc_iter : (term -> unit) -> term -> unit
 
   (** {3 Support for Builtins} *)
 
@@ -353,6 +366,7 @@ sig
   val pp_rid : Format.formatter -> t -> unit (** head symbol with children id's *)
   val pp_repr : Format.formatter -> repr -> unit (** head symbol with children id's *)
 
+  module Term : Symbol with type t = term
   module Tset : Idxset.S with type elt = term
   module Tmap : Idxmap.S with type key = term
 
@@ -361,7 +375,6 @@ sig
   val shared : 
     ?shared:(term -> bool) -> 
     ?shareable:(term -> bool) -> 
-    ?closed:Vars.t -> 
     term list -> term list
   (** Computes the sub-terms that appear several times.
       	[shared marked linked e] returns the shared subterms of [e].
@@ -372,7 +385,6 @@ sig
       	The traversal is controled by two optional arguments:
       	- [atomic] those terms are not traversed (considered as atomic)
       	- [shareable] those terms that can be shared (all by default)
-      	- [closed] free variables of [t] authorized in sub-terms
   *)
 
   (** Low-level shared primitives: [shared] is actually a combination of
@@ -384,7 +396,6 @@ sig
   val marks :
     ?shared:(term -> bool) -> 
     ?shareable:(term -> bool) -> 
-    ?closed:Vars.t -> 
     unit -> marks
   val mark : marks -> term -> unit
   val defs : marks -> term list

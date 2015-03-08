@@ -1,0 +1,19 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_plugin/abs.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Loading driver 'tests/wp_plugin/abs.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] 1 goal scheduled
+[wp] [Coq] Compiling 'Abs.v'.
+[wp] [Coq] Goal typed_abs_abs_post : Saved script
+[wp] [Coq] Goal typed_abs_abs_post : Valid
+[wp] Proved goals:    1 / 1
+     Qed:             0 
+     Coq:             1
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+abs                 -      -           1       100%
+----------------------------------------------------------

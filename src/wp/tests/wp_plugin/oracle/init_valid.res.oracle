@@ -1,0 +1,37 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_plugin/init_valid.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function validA
+------------------------------------------------------------
+
+Goal Assertion 'OK' (file tests/wp_plugin/init_valid.i, line 6):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assertion 'OK' (file tests/wp_plugin/init_valid.i, line 7):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function validB
+------------------------------------------------------------
+
+Goal Assertion 'OK' (file tests/wp_plugin/init_valid.i, line 13):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assertion 'KO' (file tests/wp_plugin/init_valid.i, line 14):
+Assume { }
+Prove: false.
+
+------------------------------------------------------------

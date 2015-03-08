@@ -1,0 +1,50 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/array_overlap.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  T[0..2] ∈ {1}
+   [3..4] ∈ {2}
+   [5] ∈ {3}
+   [6..9] ∈ {0}
+  U[0..2] ∈ {1}
+   [3..4] ∈ {2}
+   [5] ∈ {3}
+   [6..9] ∈ {0}
+tests/misc/array_overlap.i:11:[kernel] warning: partially overlapping lvalue assignment (T with offsets {8}, size <48> bits;
+                  T with offsets {0}, size <48> bits).
+                  assert
+                  ptr ≡ (struct S *)((char *)T) ∨ \separated(ptr, (struct S *)((char *)T));
+tests/misc/array_overlap.i:16:[kernel] warning: partially overlapping lvalue assignment (U with offsets {0; 8},
+                  size <48> bits; U with offsets {0}, size <48> bits).
+                  assert
+                  ptr ≡ (struct S *)((char *)U) ∨ \separated(ptr, (struct S *)((char *)U));
+[value] Recording results for main
+[value] done for function main
+tests/misc/array_overlap.i:11:[value] Assertion 'Value,overlap' got final status invalid.
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  T[0..3] ∈ {1}
+   [4..5] ∈ {2}
+   [6] ∈ {3}
+   [7..9] ∈ {0}
+  U[0..2] ∈ {1}
+   [3] ∈ {1; 2}
+   [4] ∈ {2}
+   [5] ∈ {2; 3}
+   [6] ∈ {0; 3}
+   [7..9] ∈ {0}
+  ptr ∈ {{ (struct S *)&U{[0], [1]} }}
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  T[1..6] FROM T[0..5]
+  U[0..6] FROM U[0..5]; c (and SELF)
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          T[1..6]; U[0..6]; ptr; i
+[inout] Inputs for function main:
+          T[0..5]; U[0..5]

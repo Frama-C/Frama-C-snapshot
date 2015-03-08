@@ -1,3 +1,7 @@
+/* run.config
+STDOPT: +"-machdep gcc_x86_32"
+*/
+
 extern __attribute__((const, noreturn))
 int ____ilog2_NaN(void);
 
@@ -19,3 +23,5 @@ void main(int z) {
    
   
 }
+
+int T[__builtin_types_compatible_p(int,int)+__builtin_types_compatible_p(int,float)];

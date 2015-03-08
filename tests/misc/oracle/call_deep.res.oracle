@@ -1,0 +1,87 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/call_deep.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  R ∈ {77}
+  G ∈ {0}
+  pG ∈ {0}
+  F0 ∈ {0}
+  F1 ∈ {0}
+  H ∈ {0}
+  XX ∈ {0}
+  Fmain ∈ {0}
+[value] computing for function f1 <- main.
+        Called from tests/misc/call_deep.i:31.
+[value] computing for function f0 <- f1 <- main.
+        Called from tests/misc/call_deep.i:17.
+[value] Recording results for f0
+[value] Done for function f0
+[value] Recording results for f1
+[value] Done for function f1
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function f0:
+  G ∈ {77}
+  F0 ∈ {77}
+[value] Values at end of function f1:
+  G ∈ {77}
+  F0 ∈ {77}
+  F1 ∈ {77}
+  H ∈ {77}
+  ph ∈ {{ &G }}
+  __retres ∈ {77}
+[value] Values at end of function main:
+  G ∈ {77}
+  pG ∈ {{ &G }}
+  F0 ∈ {77}
+  F1 ∈ {77}
+  H ∈ {77}
+  XX ∈ {0}
+  Fmain ∈ {77}
+  ph ∈ {{ &G }}
+  pph ∈ {{ &ph }}
+  __retres ∈ {0}
+[from] Computing for function f0
+[from] Done for function f0
+[from] Computing for function f1
+[from] Done for function f1
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function f0:
+  G FROM R; p0
+  F0 FROM R
+  \result FROM R
+[from] Function f1:
+  G FROM R; pG
+  F0 FROM R
+  F1 FROM R
+  H FROM R; pp1; ph
+  ph FROM pG; pp1
+  \result FROM R; pG; pp1
+[from] Function main:
+  G FROM R
+  pG FROM \nothing
+  F0 FROM R
+  F1 FROM R
+  H FROM R
+  XX FROM \nothing
+  Fmain FROM R
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function f0:
+          G; F0
+[inout] Inputs for function f0:
+          R
+[inout] Out (internal) for function f1:
+          G; F0; F1; H; ph; __retres
+[inout] Inputs for function f1:
+          R; G; pG; ph
+[inout] Out (internal) for function main:
+          G; pG; F0; F1; H; XX; Fmain; ph; pph; __retres
+[inout] Inputs for function main:
+          R; G; pG

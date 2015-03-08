@@ -1,0 +1,513 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/pdg/top_pdg_input.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  tab[0] ∈ {0}
+     [1] ∈ {7}
+  S ∈ {0}
+  G ∈ {0}
+[value] computing for function f1 <- main.
+        Called from tests/pdg/top_pdg_input.c:38.
+[value] computing for function top_input <- f1 <- main.
+        Called from tests/pdg/top_pdg_input.c:13.
+tests/pdg/top_pdg_input.c:13:[kernel] warning: Neither code nor specification for function top_input, generating default assigns from the prototype
+[value] using specification for function top_input
+[value] Done for function top_input
+tests/pdg/top_pdg_input.c:13:[kernel] warning: out of bounds read. assert \valid_read(tmp);
+                                      (tmp from top_input())
+tests/pdg/top_pdg_input.c:13:[value] Reading left-value *tmp.
+        The location is {{ alloced_return_top_input -> [0..17179868928],0%256 }}.
+        It contains a garbled mix of {alloced_return_top_input} because of
+        Library function {tests/pdg/top_pdg_input.c:13}.
+tests/pdg/top_pdg_input.c:13:[kernel] warning: out of bounds read. assert \valid_read(*tmp);
+                                      (tmp from top_input())
+tests/pdg/top_pdg_input.c:13:[value] Assigning imprecise value to i.
+        The imprecision originates from Library function
+        {tests/pdg/top_pdg_input.c:13}
+tests/pdg/top_pdg_input.c:14:[value] Reading left-value i.
+        It contains a garbled mix of {alloced_return_top_input} because of
+        Library function {tests/pdg/top_pdg_input.c:13}.
+tests/pdg/top_pdg_input.c:14:[kernel] warning: out of bounds read. assert \valid_read(&tab[i]);
+tests/pdg/top_pdg_input.c:14:[value] Assigning imprecise value to v.
+        The imprecision originates from Library function
+        {tests/pdg/top_pdg_input.c:13}
+[value] Recording results for f1
+[value] Done for function f1
+[value] computing for function f2 <- main.
+        Called from tests/pdg/top_pdg_input.c:39.
+[value] computing for function top_input <- f2 <- main.
+        Called from tests/pdg/top_pdg_input.c:20.
+[value] Done for function top_input
+tests/pdg/top_pdg_input.c:20:[kernel] warning: out of bounds read. assert \valid_read(tmp);
+                                      (tmp from top_input())
+tests/pdg/top_pdg_input.c:20:[value] Reading left-value *tmp.
+        The location is {{ alloced_return_top_input -> [0..17179868928],0%256 }}.
+        It contains a garbled mix of {alloced_return_top_input} because of
+        Library function {tests/pdg/top_pdg_input.c:20}.
+tests/pdg/top_pdg_input.c:20:[kernel] warning: out of bounds read. assert \valid_read(*tmp);
+                                      (tmp from top_input())
+tests/pdg/top_pdg_input.c:20:[value] Assigning imprecise value to i.
+        The imprecision originates from Library function
+        {tests/pdg/top_pdg_input.c:20}
+tests/pdg/top_pdg_input.c:24:[value] Reading left-value i.
+        It contains a garbled mix of {alloced_return_top_input} because of
+        Library function {tests/pdg/top_pdg_input.c:20}.
+tests/pdg/top_pdg_input.c:24:[kernel] warning: out of bounds read. assert \valid_read(&s.t[i]);
+tests/pdg/top_pdg_input.c:24:[value] Reading left-value s.t[i].
+        It contains a garbled mix of {alloced_return_top_input} because of
+        Library function {tests/pdg/top_pdg_input.c:20}.
+tests/pdg/top_pdg_input.c:24:[kernel] warning: signed overflow. assert -2147483648 ≤ s.a+s.t[i] ≤ 2147483647;
+tests/pdg/top_pdg_input.c:24:[value] Assigning imprecise value to __retres.
+        The imprecision originates from Library function
+        {tests/pdg/top_pdg_input.c:20}
+[value] Recording results for f2
+[value] Done for function f2
+tests/pdg/top_pdg_input.c:39:[value] Reading left-value i.
+        It contains a garbled mix of {alloced_return_top_input} because of
+        Library function {tests/pdg/top_pdg_input.c:13}.
+tests/pdg/top_pdg_input.c:39:[value] Reading left-value tmp_0.
+        It contains a garbled mix of {alloced_return_top_input} because of
+        Library function {tests/pdg/top_pdg_input.c:20}.
+tests/pdg/top_pdg_input.c:39:[kernel] warning: signed overflow.
+                  assert -2147483648 ≤ i+tmp_0 ≤ 2147483647;
+                  (tmp_0 from f2())
+tests/pdg/top_pdg_input.c:39:[value] Assigning imprecise value to i.
+        The imprecision originates from Library function
+        {tests/pdg/top_pdg_input.c:13; tests/pdg/top_pdg_input.c:20}
+tests/pdg/top_pdg_input.c:40:[value] Reading left-value i.
+        It contains a garbled mix of {alloced_return_top_input} because of
+        Library function {tests/pdg/top_pdg_input.c:13;
+        tests/pdg/top_pdg_input.c:20}.
+tests/pdg/top_pdg_input.c:40:[kernel] warning: out of bounds read. assert \valid_read(p_str+i);
+tests/pdg/top_pdg_input.c:40:[value] Reading left-value *(p_str + i).
+        The location is a garbled mix of {S_p_str; alloced_return_top_input}
+        because of Library function {tests/pdg/top_pdg_input.c:13;
+        tests/pdg/top_pdg_input.c:20}.
+        It contains a garbled mix of
+        {S_0_S_p_str; S_1_S_p_str; alloced_return_top_input} because of Misaligned
+        {tests/pdg/top_pdg_input.c:40}.
+[value] computing for function strlen <- main.
+        Called from tests/pdg/top_pdg_input.c:40.
+tests/pdg/top_pdg_input.c:31:[value] Assigning imprecise value to q.
+        The imprecision originates from Misaligned {tests/pdg/top_pdg_input.c:40}
+tests/pdg/top_pdg_input.c:31:[value] entering loop for the first time
+tests/pdg/top_pdg_input.c:31:[value] Reading left-value q.
+        It contains a garbled mix of
+        {S_0_S_p_str; S_1_S_p_str; alloced_return_top_input} because of Misaligned
+        {tests/pdg/top_pdg_input.c:40}.
+tests/pdg/top_pdg_input.c:31:[kernel] warning: out of bounds read. assert \valid_read(q);
+tests/pdg/top_pdg_input.c:31:[value] Reading left-value *q.
+        The location is {{ S_0_S_p_str -> [0..8];
+                           S_1_S_p_str -> [0..8];
+                           alloced_return_top_input -> [0..34359738360] }}.
+        It contains a garbled mix of {alloced_return_top_input} because of
+        Library function {tests/pdg/top_pdg_input.c:20}.
+tests/pdg/top_pdg_input.c:31:[kernel] warning: pointer comparison: assert \pointer_comparable((void *)0, (void *)*q);
+tests/pdg/top_pdg_input.c:31:[kernel] warning: signed overflow. assert k+1 ≤ 2147483647;
+[value] Recording results for strlen
+[value] Done for function strlen
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function strlen:
+  q ∈
+   {{ &S_0_S_p_str{[0], [1]} ; &S_1_S_p_str{[0], [1]} ;
+      &alloced_return_top_input + [0..4294967295] }}
+  k ∈ [0..2147483647]
+[value] Values at end of function f1:
+  G ∈ {1}
+  i ∈
+   {{ garbled mix of &{alloced_return_top_input}
+    (origin: Library function {tests/pdg/top_pdg_input.c:13}) }}
+  v ∈
+   {{ garbled mix of &{alloced_return_top_input}
+    (origin: Library function {tests/pdg/top_pdg_input.c:13}) }}
+[value] Values at end of function f2:
+  S.a ∈ {2}
+   .t[0..4] ∈ {0}
+  i ∈
+   {{ garbled mix of &{alloced_return_top_input}
+    (origin: Library function {tests/pdg/top_pdg_input.c:20}) }}
+  s.a ∈ {2}
+   .t[0..4] ∈ {0}
+  __retres ∈
+          {{ garbled mix of &{alloced_return_top_input}
+           (origin: Library function {tests/pdg/top_pdg_input.c:20}) }}
+tests/pdg/top_pdg_input.c:13:[kernel] more than 200(67108864) elements to enumerate. Approximating.
+[value] Values at end of function main:
+  S.a ∈ {2}
+   .t[0..4] ∈ {0}
+  G ∈ {1}
+  i ∈
+   {{ garbled mix of &{alloced_return_top_input}
+    (origin: Library function {tests/pdg/top_pdg_input.c:13;
+    tests/pdg/top_pdg_input.c:20}) }}
+[from] Computing for function strlen
+[from] Done for function strlen
+[from] Computing for function f1
+[from] Computing for function top_input <-f1
+[from] Done for function top_input
+[from] Done for function f1
+[from] Computing for function f2
+[from] Done for function f2
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function strlen:
+  \result FROM p; S_0_S_p_str[0..1]; S_1_S_p_str[0..1];
+               alloced_return_top_input[bits 0 to ..]
+[from] Function top_input:
+  \result FROM \nothing
+[from] Function f1:
+  G FROM G
+  \result FROM tab[0..1]; alloced_return_top_input[bits 0 to ..]
+[from] Function f2:
+  S.a FROM \nothing
+  \result FROM S.t[0..4]; alloced_return_top_input[bits 0 to ..]
+[from] Function main:
+  S.a FROM \nothing
+  G FROM G
+  \result FROM tab[0..1]; S.t[0..4]; p_str; S_p_str[0..1]; S_0_S_p_str[0..1];
+               S_1_S_p_str[0..1]; alloced_return_top_input[bits 0 to ..]
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function strlen:
+          q; k
+[inout] Inputs for function strlen:
+          S_0_S_p_str[0..1]; S_1_S_p_str[0..1];
+          alloced_return_top_input[bits 0 to ..]
+[inout] Out (internal) for function f1:
+          G; i; tmp; v
+[inout] Inputs for function f1:
+          tab[0..1]; G; alloced_return_top_input[bits 0 to ..]
+[inout] Out (internal) for function f2:
+          S.a; i; tmp; s; __retres
+[inout] Inputs for function f2:
+          S; alloced_return_top_input[bits 0 to ..]
+[inout] Out (internal) for function main:
+          S.a; G; i; tmp_0; tmp_1
+[inout] Inputs for function main:
+          tab[0..1]; S; G; S_p_str[0..1]; S_0_S_p_str[0..1]; S_1_S_p_str[0..1];
+          alloced_return_top_input[bits 0 to ..]
+[pdg] computing for function strlen
+[pdg] done for function strlen
+[pdg] computing for function top_input
+[pdg] done for function top_input
+[pdg] computing for function f1
+[pdg] done for function f1
+[pdg] computing for function f2
+[pdg] done for function f2
+[pdg] computing for function main
+[pdg] done for function main
+[pdg] ====== PDG GRAPH COMPUTED ======
+[pdg] PDG for strlen
+ {n1}: InCtrl
+ {n2}: VarDecl : p
+   -[a--]-> 3
+ {n3}: In1
+   -[a--]-> 2
+ {n4}: VarDecl : q
+ {n5}: VarDecl : k
+ {n6}: k = 0;
+   -[-c-]-> 1
+   -[a--]-> 5
+ {n7}: q = p;
+   -[-c-]-> 1
+   -[--d]-> 2
+   -[--d]-> 3
+   -[a--]-> 4
+ {n8}: while(1)
+   -[-c-]-> 1
+   -[-c-]-> 8
+   -[-c-]-> 9
+   -[-c-]-> 12
+ {n9}: *q
+   -[-c-]-> 1
+   -[--d]-> 4
+   -[--d]-> 7
+   -[-c-]-> 8
+   -[-c-]-> 9
+   -[--d]-> 11
+   -[-c-]-> 12
+   -[--d]-> 15
+   -[--d]-> 16
+   -[--d]-> 17
+ {n10}: k ++;
+   -[-c-]-> 1
+   -[a-d]-> 5
+   -[--d]-> 6
+   -[-c-]-> 8
+   -[-c-]-> 9
+   -[--d]-> 10
+   -[-c-]-> 12
+ {n11}: q ++;
+   -[-c-]-> 1
+   -[a-d]-> 4
+   -[--d]-> 7
+   -[-c-]-> 8
+   -[-c-]-> 9
+   -[--d]-> 11
+   -[-c-]-> 12
+ {n12}: break;
+   -[-c-]-> 1
+   -[-c-]-> 8
+   -[-c-]-> 9
+   -[-c-]-> 12
+ {n13}: return k;
+   -[-c-]-> 1
+   -[--d]-> 5
+   -[--d]-> 6
+   -[--d]-> 10
+ {n14}: OutRet
+   -[--d]-> 13
+ {n15}: In(S_0_S_p_str[0..1])
+ {n16}: In(S_1_S_p_str[0..1])
+ {n17}: In(alloced_return_top_input[bits 0 to ..])
+[pdg] PDG for top_input
+ {n18}: InCtrl
+ {n19}: OutRet
+[pdg] PDG for f1
+ {n20}: InCtrl
+ {n21}: VarDecl : i
+ {n22}: VarDecl : tmp
+ {n23}: VarDecl : v
+ {n24}: Call1-InCtrl : tmp = top_input();
+   -[-c-]-> 20
+ {n25}: Call1-OutRet : tmp = top_input();
+   -[-c-]-> 20
+   -[a--]-> 22
+   -[-c-]-> 24
+ {n26}: i = *(*tmp);
+   -[-c-]-> 20
+   -[a--]-> 21
+   -[--d]-> 22
+   -[--d]-> 25
+   -[--d]-> 33
+ {n27}: v = tab[i];
+   -[-c-]-> 20
+   -[--d]-> 21
+   -[a--]-> 23
+   -[--d]-> 26
+   -[--d]-> 32
+   -[--d]-> 33
+ {n28}: G ++;
+   -[-c-]-> 20
+   -[--d]-> 31
+ {n29}: return v;
+   -[-c-]-> 20
+   -[--d]-> 23
+   -[--d]-> 27
+ {n30}: OutRet
+   -[--d]-> 29
+ {n31}: In(G)
+ {n32}: In(tab[0..1])
+ {n33}: In(alloced_return_top_input[bits 0 to ..])
+[pdg] PDG for f2
+ {n34}: InCtrl
+ {n35}: VarDecl : i
+ {n36}: VarDecl : tmp
+ {n37}: VarDecl : s
+ {n38}: VarDecl : __retres
+ {n39}: Call10-InCtrl : tmp = top_input();
+   -[-c-]-> 34
+ {n40}: Call10-OutRet : tmp = top_input();
+   -[-c-]-> 34
+   -[a--]-> 36
+   -[-c-]-> 39
+ {n41}: i = *(*tmp);
+   -[-c-]-> 34
+   -[a--]-> 35
+   -[--d]-> 36
+   -[--d]-> 40
+   -[--d]-> 47
+ {n42}: S.a = 2;
+   -[-c-]-> 34
+ {n43}: s = S;
+   -[-c-]-> 34
+   -[a--]-> 37
+   -[--d]-> 42
+   -[--d]-> 48
+ {n44}: __retres = s.a + s.t[i];
+   -[-c-]-> 34
+   -[--d]-> 35
+   -[--d]-> 37
+   -[a--]-> 38
+   -[--d]-> 41
+   -[--d]-> 43
+   -[--d]-> 47
+ {n45}: return __retres;
+   -[-c-]-> 34
+   -[--d]-> 38
+   -[--d]-> 44
+ {n46}: OutRet
+   -[--d]-> 45
+ {n47}: In(alloced_return_top_input[bits 0 to ..])
+ {n48}: In(S.t[0..4])
+[pdg] PDG for main
+ {n49}: InCtrl
+ {n50}: VarDecl : p_str
+   -[a--]-> 51
+ {n51}: In1
+   -[a--]-> 50
+ {n52}: VarDecl : i
+ {n53}: VarDecl : tmp_0
+ {n54}: VarDecl : tmp_1
+ {n55}: Call30-InCtrl : i = f1();
+   -[-c-]-> 49
+ {n56}: Call30-Out(G) : i = f1();
+   -[-c-]-> 49
+   -[-c-]-> 55
+   -[--d]-> 74
+ {n57}: Call30-OutRet : i = f1();
+   -[-c-]-> 49
+   -[a--]-> 52
+   -[-c-]-> 55
+   -[--d]-> 70
+   -[--d]-> 73
+ {n58}: unspecified sequence
+   -[-c-]-> 49
+ {n59}: Call32-InCtrl : tmp_0 = f2();
+   -[-c-]-> 49
+   -[-c-]-> 58
+ {n60}: Call32-Out(S.a) : tmp_0 = f2();
+   -[-c-]-> 49
+   -[-c-]-> 58
+   -[-c-]-> 59
+ {n61}: Call32-OutRet : tmp_0 = f2();
+   -[-c-]-> 49
+   -[a--]-> 53
+   -[-c-]-> 58
+   -[-c-]-> 59
+   -[--d]-> 70
+   -[--d]-> 72
+ {n62}: i += tmp_0;
+   -[-c-]-> 49
+   -[a-d]-> 52
+   -[--d]-> 53
+   -[--d]-> 57
+   -[-c-]-> 58
+   -[--d]-> 61
+ {n63}: Call34-InCtrl : tmp_1 = strlen(*(p_str + i));
+   -[-c-]-> 49
+ {n64}: Call34-In1 : tmp_1 = strlen(*(p_str + i));
+   -[-c-]-> 49
+   -[--d]-> 50
+   -[--d]-> 51
+   -[--d]-> 52
+   -[--d]-> 62
+   -[-c-]-> 63
+   -[--d]-> 70
+   -[--d]-> 71
+ {n65}: Call34-OutRet : tmp_1 = strlen(*(p_str + i));
+   -[-c-]-> 49
+   -[a--]-> 54
+   -[-c-]-> 63
+   -[--d]-> 64
+   -[--d]-> 68
+   -[--d]-> 69
+   -[--d]-> 70
+ {n66}: return tmp_1;
+   -[-c-]-> 49
+   -[--d]-> 54
+   -[--d]-> 65
+ {n67}: OutRet
+   -[--d]-> 66
+ {n68}: In(S_0_S_p_str[0..1])
+ {n69}: In(S_1_S_p_str[0..1])
+ {n70}: In(alloced_return_top_input[bits 0 to ..])
+ {n71}: In(S_p_str[0..1])
+ {n72}: In(S.t[0..4])
+ {n73}: In(tab[0..1])
+ {n74}: In(G)
+[value] Analyzing a complete application starting at main_asm
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  tab[0] ∈ {0}
+     [1] ∈ {7}
+  S ∈ {0}
+  G ∈ {0}
+[value] computing for function fun_asm <- main_asm.
+        Called from tests/pdg/top_pdg_input.c:51.
+tests/pdg/top_pdg_input.c:45:[value] warning: assuming assembly code has no effects in function fun_asm
+[value] Recording results for fun_asm
+[value] Done for function fun_asm
+[value] Recording results for main_asm
+[value] done for function main_asm
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function fun_asm:
+  __retres ∈ {4}
+[value] Values at end of function main_asm:
+  j ∈ {3}
+[from] Computing for function fun_asm
+[from] Done for function fun_asm
+[from] Computing for function main_asm
+[from] Done for function main_asm
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function fun_asm:
+  \result FROM i
+[from] Function main_asm:
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function fun_asm:
+          __retres
+[inout] Inputs for function fun_asm:
+          \nothing
+[inout] Out (internal) for function main_asm:
+          j; tmp
+[inout] Inputs for function main_asm:
+          \nothing
+[pdg] computing for function fun_asm
+tests/pdg/top_pdg_input.c:45:[pdg] warning: Ignoring inline assembly code
+[pdg] done for function fun_asm
+[pdg] computing for function main_asm
+[pdg] done for function main_asm
+[pdg] ====== PDG GRAPH COMPUTED ======
+[pdg] PDG for fun_asm
+ {n75}: InCtrl
+ {n76}: VarDecl : i
+   -[a--]-> 77
+ {n77}: In1
+   -[a--]-> 76
+ {n78}: VarDecl : __retres
+ {n79}: __asm__ ("BLA":);
+   -[-c-]-> 75
+ {n80}: __retres = i + 1;
+   -[-c-]-> 75
+   -[--d]-> 76
+   -[--d]-> 77
+   -[a--]-> 78
+ {n81}: return __retres;
+   -[-c-]-> 75
+   -[--d]-> 78
+   -[--d]-> 80
+ {n82}: OutRet
+   -[--d]-> 81
+[pdg] PDG for main_asm
+ {n83}: InCtrl
+ {n84}: VarDecl : j
+ {n85}: VarDecl : tmp
+ {n86}: j = 3;
+   -[-c-]-> 83
+   -[a--]-> 84
+ {n87}: Call42-InCtrl : tmp = fun_asm(j);
+   -[-c-]-> 83
+ {n88}: Call42-In1 : tmp = fun_asm(j);
+   -[-c-]-> 83
+   -[--d]-> 84
+   -[--d]-> 86
+   -[-c-]-> 87
+ {n89}: Call42-OutRet : tmp = fun_asm(j);
+   -[-c-]-> 83
+   -[a--]-> 85
+   -[-c-]-> 87
+   -[--d]-> 88
+ {n90}: return tmp;
+   -[-c-]-> 83
+   -[--d]-> 85
+   -[--d]-> 89
+ {n91}: OutRet
+   -[--d]-> 90

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -56,17 +56,6 @@ struct
 
       inherit E.engine as super
 
-      initializer
-        begin
-          self#declare_all [ 
-            "theory" ; "use" ; "import" ; "clone" ; "namespace" ; "end" ; "as" ;
-            "type" ; "function" ; "predicate" ; "inductive" ;
-            "axiom" ; "lemma" ; "goal" ;
-            "map" ; "get" ; "set" ;
-            "true" ; "false" ; "True" ; "False" ; "from_int" ;
-          ] ;
-        end
-
       method! basename s =
         (** TODO: better uncapitalization of the first letter? utf8? *)
         let lower0 = Char.lowercase s.[0] in
@@ -113,13 +102,13 @@ struct
       (* -------------------------------------------------------------------------- *)
 
       method pp_int amode fmt k = match amode with
-        | Aint -> Z.pretty fmt k
+        | Aint -> pp_print_string fmt (Z.to_string k)
         | Areal -> 
           if Z.lt k Z.zero then
             (* unary minus is -. instead of - in Why3... *)
-            fprintf fmt "-.%a.0" Z.pretty (Z.neg k)
+            fprintf fmt "-.%s.0" (Z.to_string (Z.neg k))
           else
-            fprintf fmt "%a.0" Z.pretty k
+            fprintf fmt "%s.0" (Z.to_string k)
 
       method pp_cst fmt cst = 
         let open Numbers in
@@ -238,7 +227,7 @@ struct
       method pp_trigger fmt t = 
         let rec pretty fmt = function
           | TgAny -> assert false
-          | TgVar x -> self#pp_var fmt x
+          | TgVar x -> self#pp_var fmt (self#find x)
           | TgGet(t,k) -> fprintf fmt "@[<hov 2>%a[%a]@]" pretty t pretty k
           | TgSet(t,k,v) -> fprintf fmt "@[<hov 2>%a[%a@ <- %a]@]" pretty t pretty k pretty v
           | TgFun(f,ts) -> call Cterm f fmt ts
@@ -253,7 +242,6 @@ struct
           | F_right f, _ -> Plib.pp_fold_apply_rev ~f pretty fmt (List.rev ts)
           | F_assoc op, _ -> Plib.pp_assoc ~op pretty fmt ts
           | F_subst s, _ -> Plib.substitute_list pretty s fmt ts
-
         in fprintf fmt "@[<hov 2>%a@]" pretty t
 
       (* -------------------------------------------------------------------------- *)
@@ -279,7 +267,7 @@ struct
           self#pp_declare_adt fmt adt n ;
           List.iter 
             (fun (c,ts) ->
-               fprintf fmt "@ @[<hov 4>| %s@]" (declare_name (self#link c)) ;
+               fprintf fmt "@ @[<hov 4>| %s@]" (link_name (self#link c)) ;
                List.iter (fun t -> fprintf fmt "@ %a" self#pp_tau t) ts ;
             ) cases ;
           fprintf fmt "@]"
@@ -302,9 +290,9 @@ struct
             fprintf fmt "@[<hov 4>%a" (self#pp_declare_symbol cmode) f ;
             List.iter 
               (fun x -> 
-                 self#bind x ;
+                 let a = self#bind x in
                  let t = T.tau_of_var x in
-                 fprintf fmt "@ (%a : %a)" self#pp_var x self#pp_tau t
+                 fprintf fmt "@ (%a : %a)" self#pp_var a self#pp_tau t
               ) xs ;
             match cmode with
             | Cprop -> 
@@ -318,7 +306,7 @@ struct
       method declare_fixpoint ~prefix fmt f xs t e =
         begin
           self#declare_signature fmt f (List.map tau_of_var xs) t ;
-          let fix = prefix ^ (declare_name (self#link f)) in
+          let fix = prefix ^ (link_name (self#link f)) in
           self#declare_axiom fmt fix xs [] (e_eq (e_fun f (List.map e_var xs)) e) ;
         end
 

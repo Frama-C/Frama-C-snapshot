@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2014                                               */
+/*  Copyright (C) 2007-2015                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -27,6 +27,13 @@
 
 extern int Frama_C_entropy_source;
 
+/*@ requires \valid(p + (0 .. l-1));
+    assigns p[0 .. l-1] \from Frama_C_entropy_source;
+    assigns Frama_C_entropy_source \from Frama_C_entropy_source;
+    ensures \initialized(p + (0 .. l-1));
+*/
+void Frama_C_make_unknown(char *p, size_t l);
+
 /*@ assigns \result \from a, b, Frama_C_entropy_source;
     assigns Frama_C_entropy_source \from Frama_C_entropy_source;
     ensures \result == a || \result == b ;
@@ -45,34 +52,40 @@ void *Frama_C_nondet_ptr(void *a, void *b);
  */
 int Frama_C_interval(int min, int max);
 
+/*@ assigns \result \from min, max, Frama_C_entropy_source;
+    assigns Frama_C_entropy_source \from Frama_C_entropy_source;
+    ensures min <= \result <= max ;
+ */
+int Frama_C_interval_split(int min, int max);
+
 /*@ 
     assigns \result \from min, max, Frama_C_entropy_source;
     assigns Frama_C_entropy_source \from Frama_C_entropy_source;
     ensures min <= \result <= max ;
  */
 unsigned char Frama_C_unsigned_char_interval
-  (unsigned char min, unsigned char  max);
+  (unsigned char min, unsigned char max);
 
 /*@ 
     assigns \result \from min, max, Frama_C_entropy_source;
     assigns Frama_C_entropy_source \from Frama_C_entropy_source;
     ensures min <= \result <= max ;
  */
-char Frama_C_char_interval(char min, char  max);
+char Frama_C_char_interval(char min, char max);
 
 /*@ 
     assigns \result \from min, max, Frama_C_entropy_source;
     assigns Frama_C_entropy_source \from Frama_C_entropy_source;
     ensures min <= \result <= max ;
  */
-unsigned short Frama_C_unsigned_short_interval(unsigned short min, unsigned short  max);
+unsigned short Frama_C_unsigned_short_interval(unsigned short min, unsigned short max);
 
 /*@ 
     assigns \result \from min, max, Frama_C_entropy_source;
     assigns Frama_C_entropy_source \from Frama_C_entropy_source;
     ensures min <= \result <= max ;
  */
-short Frama_C_short_interval(short min, short  max);
+short Frama_C_short_interval(short min, short max);
 
 
 /*@ 
@@ -80,14 +93,30 @@ short Frama_C_short_interval(short min, short  max);
     assigns Frama_C_entropy_source \from Frama_C_entropy_source;
     ensures min <= \result <= max ;
  */
-unsigned int Frama_C_unsigned_int_interval(unsigned int min, unsigned int  max);
+unsigned int Frama_C_unsigned_int_interval(unsigned int min, unsigned int max);
 
 /*@ 
     assigns \result \from min, max, Frama_C_entropy_source;
     assigns Frama_C_entropy_source \from Frama_C_entropy_source;
     ensures min <= \result <= max ;
  */
-int Frama_C_int_interval(int min, int  max);
+int Frama_C_int_interval(int min, int max);
+
+
+/*@ 
+    assigns \result \from min, max, Frama_C_entropy_source;
+    assigns Frama_C_entropy_source \from Frama_C_entropy_source;
+    ensures min <= \result <= max ;
+ */
+unsigned long Frama_C_unsigned_long_interval
+     (unsigned long min, unsigned long max);
+
+/*@ 
+    assigns \result \from min, max, Frama_C_entropy_source;
+    assigns Frama_C_entropy_source \from Frama_C_entropy_source;
+    ensures min <= \result <= max ;
+ */
+long Frama_C_long_interval(long min, long max);
 
 
 /*@ 
@@ -96,14 +125,14 @@ int Frama_C_int_interval(int min, int  max);
     ensures min <= \result <= max ;
  */
 unsigned long long Frama_C_unsigned_long_long_interval
-     (unsigned long long min, unsigned long long  max);
+     (unsigned long long min, unsigned long long max);
 
 /*@ 
     assigns \result \from min, max, Frama_C_entropy_source;
     assigns Frama_C_entropy_source \from Frama_C_entropy_source;
     ensures min <= \result <= max ;
  */
-long long Frama_C_long_long_interval(long long min, long long  max);
+long long Frama_C_long_long_interval(long long min, long long max);
 
 
 /*@ assigns \result \from min, max, Frama_C_entropy_source;

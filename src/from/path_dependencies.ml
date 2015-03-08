@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -63,9 +63,9 @@ object(self)
         DoChildren (* for the statements and the expression *)
       | Instr _ ->
         DoChildren (* for Calls *)
-      | Return _ | Goto _ | Break _ | Continue _ ->
+      | Return _ | Goto _ | Break _ | Continue _ | Throw _ ->
         SkipChildren
-      | TryExcept _ | TryFinally _ -> assert false
+      | TryExcept _ | TryFinally _ | TryCatch _ -> assert false
     end
     else SkipChildren
 

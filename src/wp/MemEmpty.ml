@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -98,6 +98,7 @@ let loc_diff _ _ _ = no_pointer ()
 
 let valid _sigma _l = Warning.error ~source "No validity"
 let scope sigma _s _xs = sigma , []
+let global _sigma _p = p_true
 
 let included _s1 _s2 = no_pointer ()
 let separated _s1 _s2 = no_pointer ()

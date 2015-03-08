@@ -1,0 +1,1 @@
+CALL(main) && _X_ ((x == 0 && CALL(f) && _X_ (RETURN(f) && _X_ (CALL(g) && _X_ RETURN(g)))) || (x!=0 && (CALL(g) && _X_ RETURN(g))))

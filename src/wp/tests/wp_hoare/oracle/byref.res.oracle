@@ -1,0 +1,102 @@
+# frama-c -wp -wp-model 'Typed (Ref)' [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_hoare/byref.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] Collecting variable usage
+------------------------------------------------------------
+  Function correct
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok' in 'correct':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition 'qed_ok' in 'f'' in 'correct' at call 'f' (file tests/wp_hoare/byref.i, line 27)
+:
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function f
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok' in 'f':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns 'qed_ok' in 'f':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function f_ko
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok' in 'f_ko':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns 'qed_ok' in 'f_ko':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function formal
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok' in 'formal':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition 'qed_ok' in 'f'' in 'formal' at call 'f' (file tests/wp_hoare/byref.i, line 42)
+:
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function local
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok' in 'local':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition 'qed_ok' in 'f'' in 'local' at call 'f' (file tests/wp_hoare/byref.i, line 35)
+:
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function wrong
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok' in 'wrong':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition 'qed_ko' in 'f_ko'' in 'wrong' at call 'f_ko' (file tests/wp_hoare/byref.i, line 20)
+:
+Assume { }
+Prove: ra_q_0.
+
+------------------------------------------------------------

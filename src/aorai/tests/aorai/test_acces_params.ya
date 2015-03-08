@@ -1,0 +1,16 @@
+%init: mainst;
+%accept: SF;
+
+mainst : { CALL(main) } -> S1
+       ;
+S1     : { opa().i>=0 } -> S2
+       ;
+S2     : { !CALL(opb) } -> S3
+       ;
+S3     : { !CALL(opa) } -> S4
+       ;
+S4     : { opb().return>0 } -> SF
+       ;
+SF     : { RETURN(main) } -> SF
+       ;
+

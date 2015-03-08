@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -47,7 +47,7 @@ let pretty fmt state =
     LocInfo.pretty state.loc_info
     Locations.Zone.pretty state.under_outputs
 
-let add_loc_node state ~exact loc node =
+let add_loc_node state ?(initializing=false) ~exact loc node =
   P.debug ~dkey ~level:2 "add_loc_node (%s) : node %a -> %a@."
       (if exact then "exact" else "merge")
       PdgTypes.Node.pretty node
@@ -58,7 +58,9 @@ let add_loc_node state ~exact loc node =
     state
   else
     let new_info = NodeSetLattice.inject_singleton node in
-    let new_loc_info = LocInfo.add_binding exact state.loc_info loc new_info in
+    let reducing = initializing in
+    let new_loc_info =
+      LocInfo.add_binding ~exact ~reducing state.loc_info loc new_info in
     let new_outputs = (* Zone.link in the under-approx version of Zone.join *)
       if exact then Locations.Zone.link state.under_outputs loc
       else state.under_outputs
@@ -77,7 +79,8 @@ let add_init_state_input state loc node =
   | _ ->
       let new_info = NodeSetLattice.inject_singleton node in
       let new_loc_info =
-        LocInfo.add_binding false state.loc_info loc new_info
+        LocInfo.add_binding
+          ~reducing:true ~exact:false state.loc_info loc new_info
       in
       let new_outputs = Locations.Zone.link state.under_outputs loc in
       make new_loc_info new_outputs
@@ -105,7 +108,7 @@ let test_and_merge ~old new_ =
 * @raise Cannot_fold if the state is top (TODO : something better ?)
 * *)
 let get_loc_nodes_and_part state loc =
-  let process z (_default, nodes) acc =
+  let process z nodes acc =
     if Locations.Zone.intersects z loc then
       let z =
         if Locations.Zone.equal loc z
@@ -126,8 +129,10 @@ let get_loc_nodes_and_part state loc =
     else
       acc
   in
-  try LocInfo.fold process state.loc_info []
-  with LocInfo.Cannot_fold -> raise Cannot_fold
+  match state.loc_info with
+  | LocInfo.Top -> raise Cannot_fold
+  | LocInfo.Bottom -> []
+  | LocInfo.Map m -> LocInfo.fold process m []
 
 (** @raise Cannot_fold (see [get_loc_nodes_and_part]) *)
 let get_loc_nodes state loc =

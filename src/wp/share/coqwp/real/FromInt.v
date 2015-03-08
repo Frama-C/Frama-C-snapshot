@@ -16,35 +16,39 @@ Require int.Int.
 Require real.Real.
 
 (* Why3 comment *)
-(* from_int is replaced with (IZR x) by the coq driver *)
+(* from_int is replaced with (Reals.Raxioms.IZR x) by the coq driver *)
 
 (* Why3 goal *)
-Lemma Zero : ((IZR 0%Z) = 0%R).
+Lemma Zero : ((Reals.Raxioms.IZR 0%Z) = 0%R).
 split.
 Qed.
 
 (* Why3 goal *)
-Lemma One : ((IZR 1%Z) = 1%R).
+Lemma One : ((Reals.Raxioms.IZR 1%Z) = 1%R).
 split.
 Qed.
 
 (* Why3 goal *)
-Lemma Add : forall (x:Z) (y:Z), ((IZR (x + y)%Z) = ((IZR x) + (IZR y))%R).
+Lemma Add : forall (x:Z) (y:Z),
+  ((Reals.Raxioms.IZR (x + y)%Z) = ((Reals.Raxioms.IZR x) + (Reals.Raxioms.IZR y))%R).
 exact plus_IZR.
 Qed.
 
 (* Why3 goal *)
-Lemma Sub : forall (x:Z) (y:Z), ((IZR (x - y)%Z) = ((IZR x) - (IZR y))%R).
+Lemma Sub : forall (x:Z) (y:Z),
+  ((Reals.Raxioms.IZR (x - y)%Z) = ((Reals.Raxioms.IZR x) - (Reals.Raxioms.IZR y))%R).
 exact minus_IZR.
 Qed.
 
 (* Why3 goal *)
-Lemma Mul : forall (x:Z) (y:Z), ((IZR (x * y)%Z) = ((IZR x) * (IZR y))%R).
+Lemma Mul : forall (x:Z) (y:Z),
+  ((Reals.Raxioms.IZR (x * y)%Z) = ((Reals.Raxioms.IZR x) * (Reals.Raxioms.IZR y))%R).
 exact mult_IZR.
 Qed.
 
 (* Why3 goal *)
-Lemma Neg : forall (x:Z), ((IZR (-x)%Z) = (-(IZR x))%R).
+Lemma Neg : forall (x:Z),
+  ((Reals.Raxioms.IZR (-x)%Z) = (-(Reals.Raxioms.IZR x))%R).
 exact opp_IZR.
 Qed.
 

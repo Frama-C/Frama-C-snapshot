@@ -1,0 +1,3 @@
+%init:		S;
+%accept:	S;
+S:  -> S;

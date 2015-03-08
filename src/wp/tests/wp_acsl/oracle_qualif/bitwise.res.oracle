@@ -1,0 +1,43 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_acsl/bitwise.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] 23 goals scheduled
+[wp] [Alt-Ergo] Goal typed_band_post : Valid
+[wp] [Qed] Goal typed_band_post_band0 : Valid
+[wp] [Qed] Goal typed_band_bit0_post_band1 : Valid
+[wp] [Qed] Goal typed_band_bit0_post_band2 : Valid
+[wp] [Qed] Goal typed_band_bit1_post_band3 : Valid
+[wp] [Qed] Goal typed_band_bit2_post_band4 : Valid
+[wp] [Qed] Goal typed_band_bit3_post_band5 : Valid
+[wp] [Qed] Goal typed_band_bit4_post_band6 : Valid
+[wp] [Alt-Ergo] Goal typed_bnot_post : Valid
+[wp] [Alt-Ergo] Goal typed_bor_post : Valid
+[wp] [Qed] Goal typed_bor_post_bor0 : Valid
+[wp] [Qed] Goal typed_bor_bit1_post_bor1 : Valid
+[wp] [Qed] Goal typed_bor_bit2_post_bor2 : Valid
+[wp] [Qed] Goal typed_bor_bit3_post_bor3 : Valid
+[wp] [Alt-Ergo] Goal typed_bxor_post : Valid
+[wp] [Qed] Goal typed_bxor_bit1_post : Valid
+[wp] [Qed] Goal typed_bxor_bit2_post : Valid
+[wp] [Qed] Goal typed_lshift_post : Valid
+[wp] [Qed] Goal typed_lshift_shift1_post_lsl1 : Valid
+[wp] [Qed] Goal typed_lshift_shift1_post_lsl2 : Valid
+[wp] [Qed] Goal typed_lshift_shift2_post_lsl3 : Valid
+[wp] [Alt-Ergo] Goal typed_rshift_post : Valid
+[wp] [Qed] Goal typed_rshift_shift1_post_lsr1 : Valid
+[wp] Proved goals:   23 / 23
+     Qed:            18 
+     Alt-Ergo:        5
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+band                 7      1 (21)     8       100%
+bor                  4      1 (21)     5       100%
+bxor                 2      1 (12)     3       100%
+bnot                -       1 (11)     1       100%
+lshift               4     -           4       100%
+rshift               1      1 (21)     2       100%
+----------------------------------------------------------

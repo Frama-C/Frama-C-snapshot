@@ -1,45 +1,24 @@
-(****************************************************************************)
-(*                                                                          *)
-(*  Copyright (C) 2001-2003                                                 *)
-(*   George C. Necula    <necula@cs.berkeley.edu>                           *)
-(*   Scott McPeak        <smcpeak@cs.berkeley.edu>                          *)
-(*   Wes Weimer          <weimer@cs.berkeley.edu>                           *)
-(*   Ben Liblit          <liblit@cs.berkeley.edu>                           *)
-(*  All rights reserved.                                                    *)
-(*                                                                          *)
-(*  Redistribution and use in source and binary forms, with or without      *)
-(*  modification, are permitted provided that the following conditions      *)
-(*  are met:                                                                *)
-(*                                                                          *)
-(*  1. Redistributions of source code must retain the above copyright       *)
-(*  notice, this list of conditions and the following disclaimer.           *)
-(*                                                                          *)
-(*  2. Redistributions in binary form must reproduce the above copyright    *)
-(*  notice, this list of conditions and the following disclaimer in the     *)
-(*  documentation and/or other materials provided with the distribution.    *)
-(*                                                                          *)
-(*  3. The names of the contributors may not be used to endorse or          *)
-(*  promote products derived from this software without specific prior      *)
-(*  written permission.                                                     *)
-(*                                                                          *)
-(*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS     *)
-(*  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT       *)
-(*  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS       *)
-(*  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE          *)
-(*  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,     *)
-(*  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,    *)
-(*  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;        *)
-(*  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER        *)
-(*  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT      *)
-(*  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN       *)
-(*  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE         *)
-(*  POSSIBILITY OF SUCH DAMAGE.                                             *)
-(*                                                                          *)
-(*  File modified by CEA (Commissariat à l'énergie atomique et aux          *)
-(*                        énergies alternatives)                            *)
-(*               and INRIA (Institut National de Recherche en Informatique  *)
-(*                          et Automatique).                                *)
-(****************************************************************************)
+(**************************************************************************)
+(*                                                                        *)
+(*  This file is part of Frama-C.                                         *)
+(*                                                                        *)
+(*  Copyright (C) 2007-2015                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
+(*                                                                        *)
+(*  you can redistribute it and/or modify it under the terms of the GNU   *)
+(*  Lesser General Public License as published by the Free Software       *)
+(*  Foundation, version 2.1.                                              *)
+(*                                                                        *)
+(*  It is distributed in the hope that it will be useful,                 *)
+(*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
+(*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
+(*  GNU Lesser General Public License for more details.                   *)
+(*                                                                        *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
+(*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
+(*                                                                        *)
+(**************************************************************************)
 
 open Cil_types
 let (=?=) = Extlib.compare_basic
@@ -289,7 +268,8 @@ module Stmt = struct
   let rec loc_skind = function
     | Return(_, l) | Goto(_, l) | Break(l) | Continue l | If(_, _, _, l)
     | Switch (_, _, _, l) | Loop (_, _, l, _, _)
-    | TryFinally (_, _, l) | TryExcept (_, _, _, l) -> l
+    | TryFinally (_, _, l) | TryExcept (_, _, _, l) 
+    | Throw (_,l) | TryCatch(_,_,l) -> l
     | Instr hd -> Instr.loc hd
     | Block b -> (match b.bstmts with [] -> Location.unknown | s :: _ -> loc s)
     | UnspecifiedSequence ((s,_,_,_,_) :: _) -> loc s
@@ -367,11 +347,12 @@ let index_typ = function
   | TEnum _ -> 8
   | TBuiltin_va_list _ -> 9
 
-let pbitsSizeOf = ref (fun _ -> failwith "pbitsSizeOf not yet defined")
+let constfoldtoint = ref (fun _ -> failwith "constfoldtoint not yet defined")
 let punrollType =
   ref (fun _ -> failwith "punrollType not yet defined")
-
 let drop_non_logic_attributes = ref (fun a -> a)
+let compare_exp_struct_eq =
+  ref (fun _ -> failwith "compare_exp_struct_eq not yet defined")
 
 type type_compare_config =
     { by_name : bool;
@@ -428,6 +409,17 @@ and compare_attrparam config a1 a2 = match a1, a2 with
         AAlignOf _ | AAlignOfE _ | AUnOp _ | ABinOp _ | ADot _ |
         AStar _ | AAddrOf _ | AIndex _ | AQuestion _ as a1), a2 ->
       index_attrparam a1 - index_attrparam a2
+and compare_array_sizes e1o e2o =
+  let compare_non_empty_size e1 e2 =
+    let i1 = !constfoldtoint e1 in
+    let i2 = !constfoldtoint e2 in
+    match i1, i2 with
+    | None, None -> (* inconclusive. do not return 0 *)
+      !compare_exp_struct_eq e1 e2
+    | _ -> Extlib.opt_compare Integer.compare i1 i2
+  in
+  Extlib.opt_compare compare_non_empty_size e1o e2o
+
 and compare_type config t1 t2 =
   if t1 == t2 then 0
   else
@@ -445,10 +437,8 @@ and compare_type config t1 t2 =
           compare_chain
             (compare_type config) t1 t2
             (compare_attributes config) l1 l2
-      | TArray (t1', _, _, l1), TArray (t2', _, _, l2) ->
-          (* bitsSizeOf is here to compare the size of the arrays *)
-          compare_chain (=?=)
-            (!pbitsSizeOf t1) (!pbitsSizeOf t2)
+      | TArray (t1', e1, _, l1), TArray (t2', e2, _, l2) ->
+          compare_chain compare_array_sizes e1 e2
           (compare_chain
             (compare_type config) t1' t2'
             (compare_attributes config)) l1 l2
@@ -672,11 +662,11 @@ module Varinfo_Id = struct
       vid = -1;
       vaddrof = false;
       vreferenced = false;
-      vgenerated = false;
+      vtemp = false;
       vdescr = None;
       vdescrpure = false;
       vghost = false;
-      vlogic = false;
+      vsource = false;
       vlogic_var_assoc = None }
 
   include Make_with_collections
@@ -890,7 +880,8 @@ module StructEq =
         | StartOf _, _ -> 1
         | _, StartOf _ -> -1
         | Info _, Info _ ->
-            Kernel.fatal "[exp_compare] Info node is obsolete. Do not use it"
+          Cmdline.Kernel_log.fatal
+            "[exp_compare] Info node is obsolete. Do not use it"
 
     and compare_lval (h1,o1) (h2,o2) =
       let res = compare_lhost h1 h2 in
@@ -938,7 +929,8 @@ module StructEq =
         | AddrOf lv -> hash_lval (prime*acc lxor 329) lv
         | StartOf lv -> hash_lval (prime*acc lxor 431) lv
         | Info _ ->
-            Kernel.fatal "Info node is deprecated and should not be used"
+          Cmdline.Kernel_log.fatal
+            "Info node is deprecated and should not be used@."
     and hash_lval acc (h,o) =
       hash_offset ((prime * acc) lxor hash_lhost 856 h) o
     and hash_lhost acc = function
@@ -984,6 +976,7 @@ module ExpStructEq =
       let equal = Datatype.from_compare
       let pretty fmt t = !Exp.pretty_ref fmt t
      end)
+let () = compare_exp_struct_eq := ExpStructEq.compare
 
 module Block = struct
   let pretty_ref = Extlib.mk_fun "Cil_datatype.Block.pretty_ref"
@@ -1837,8 +1830,9 @@ module Global_annotation = struct
 
       let rec hash g = match g with
         | Dfun_or_pred (l,_) -> 2 * Logic_info.hash l
-        | Dvolatile ([],_,_,(source,_)) ->
-          Kernel.fatal ~source "Empty location list for volatile annotation"
+        | Dvolatile ([],_,_,(_source,_)) ->
+          Cmdline.Kernel_log.fatal
+            "Empty location list for volatile annotation@."
         | Dvolatile (t::_,_,_,_) -> 3 * Identified_term.hash t
         | Daxiomatic (_,[],_) -> 5
         (* Empty axiomatic is weird but authorized. *)
@@ -1998,14 +1992,15 @@ module Kf = struct
 	Location.reprs
     let compare k1 k2 = Datatype.Int.compare (id k1) (id k2)
     let equal k1 k2 =
-      if k1 != k2 then (
-        if (id k1) = (id k2) then
-          Kernel.fatal "Two kf for %a (%d) and %a (%d) (%d)"
+      if k1 != k2 then begin
+        if id k1 = id k2 then begin
+          Cmdline.Kernel_log.fatal "Two kf for %a (%d) and %a (%d) (%d)@."
             Varinfo.pretty (vi k1) (Extlib.address_of_value k1)
-	    Varinfo.pretty (vi k2) (Extlib.address_of_value k2)
-	    (id k1);
-        false)
-      else true
+            Varinfo.pretty (vi k2) (Extlib.address_of_value k2)
+            (id k1)
+        end;
+        false
+      end else true
     let hash = id
     let copy = Datatype.undefined
     let rehash x = match x.fundec with
@@ -2055,6 +2050,55 @@ module Code_annotation = struct
 
 end
 
+module Predicate_named = 
+  Make
+    (struct
+      type t = predicate named
+      let name = "Predicate_named"
+      let reprs = 
+	[ { name = [ "" ]; loc = Location.unknown; content = Pfalse } ]
+      let internal_pretty_code = Datatype.undefined
+      let pretty = Datatype.undefined
+      let varname _ = "p"
+     end)
+
+module Identified_predicate =
+  Make_with_collections
+    (struct
+        type t = identified_predicate
+        let name = "Identified_predicate"
+        let reprs =
+          [ { ip_name = [ "" ]; 
+	      ip_loc = Location.unknown; 
+	      ip_content = Pfalse; 
+	      ip_id = -1} ]
+        let compare x y = Extlib.compare_basic x.ip_id y.ip_id
+        let equal x y = x.ip_id = y.ip_id
+        let copy = Datatype.undefined
+        let hash x = x.ip_id
+        let internal_pretty_code = Datatype.undefined
+        let pretty = Datatype.undefined
+        let varname _ = "id_predyes"
+     end)
+
+module Funbehavior =
+  Datatype.Make
+    (struct
+      include Datatype.Serializable_undefined
+      type t = funbehavior
+      let name = "Funbehavior"
+      let reprs =
+	[ {  b_name = "default!"; (* Cil.default_behavior_name *)
+	     b_requires = Identified_predicate.reprs;
+	     b_assumes = Identified_predicate.reprs;
+	     b_post_cond =
+	       List.map (fun x -> Normal, x) Identified_predicate.reprs;
+	     b_assigns = WritesAny;
+	     b_allocation = FreeAllocAny;
+	     b_extended = [ "toto", 4, Identified_predicate.reprs ]; } ]
+      let mem_project = Datatype.never_any_project
+     end)
+
 module Funspec =
   Datatype.Make
     (struct
@@ -2062,7 +2106,7 @@ module Funspec =
       type t = funspec
       let name = "Funspec"
       let reprs =
-	[ { spec_behavior = [];
+	[ { spec_behavior = Funbehavior.reprs;
 	    spec_variant = None;
 	    spec_terminates = None;
 	    spec_complete_behaviors = [];
@@ -2106,36 +2150,6 @@ module Fundec = struct
    end)
 end
 
-module Predicate_named = 
-  Make
-    (struct
-      type t = predicate named
-      let name = "Predicate_named"
-      let reprs = 
-	[ { name = [ "" ]; loc = Location.unknown; content = Pfalse } ]
-      let internal_pretty_code = Datatype.undefined
-      let pretty = Datatype.undefined
-      let varname _ = "p"
-     end)
-
-module Identified_predicate =
-  Make_with_collections
-    (struct
-        type t = identified_predicate
-        let name = "Identified_predicate"
-        let reprs =
-          [ { ip_name = [ "" ]; 
-	      ip_loc = Location.unknown; 
-	      ip_content = Pfalse; 
-	      ip_id = -1} ]
-        let compare x y = Extlib.compare_basic x.ip_id y.ip_id
-        let equal x y = x.ip_id = y.ip_id
-        let copy = Datatype.undefined
-        let hash x = x.ip_id
-        let internal_pretty_code = Datatype.undefined
-        let pretty = Datatype.undefined
-        let varname _ = "id_predyes"
-     end)
 
 (**************************************************************************)
 (** {3 Logic_ptree}

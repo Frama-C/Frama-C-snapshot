@@ -1,0 +1,63 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/from1.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  G ∈ {0}
+  cx ∈ {0}
+  cy ∈ {0}
+  cz ∈ {0}
+  sx ∈ {0}
+  sy ∈ {0}
+  s ∈ {0}
+[value] computing for function f <- main.
+        Called from tests/misc/from1.i:23.
+[value] Recording results for f
+[value] Done for function f
+[value] computing for function sf <- main.
+        Called from tests/misc/from1.i:25.
+[value] Recording results for sf
+[value] Done for function sf
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function f:
+  cy ∈ {0}
+[value] Values at end of function sf:
+  __retres ∈ {0}
+[value] Values at end of function main:
+  G ∈ [--..--]
+  cx ∈ {0}
+  cy ∈ {0}
+  s_0 ∈ {0}
+[from] Computing for function f
+[from] Done for function f
+[from] Computing for function sf
+[from] Done for function sf
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function f:
+  cy FROM cx
+[from] Function sf:
+  \result FROM ps; s_0.a
+[from] Function main:
+  G FROM x; y (and SELF)
+  cx FROM cz
+  cy FROM cz
+  \result FROM sx
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function f:
+          cy
+[inout] Inputs for function f:
+          cx
+[inout] Out (internal) for function sf:
+          __retres
+[inout] Inputs for function sf:
+          s_0.a
+[inout] Out (internal) for function main:
+          G; cx; cy; s_0; tmp
+[inout] Inputs for function main:
+          cx; cz; sx; sy

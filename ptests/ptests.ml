@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -92,20 +92,23 @@ let print_default_env fmt =
         Format.fprintf fmt "@]"
 
 let default_env var value =
-  try ignore (Unix.getenv var) with Not_found -> add_env var value
-
-let test_paths = [ "tests"; "../../tests" ]
-
-exception Path of string
-let test_path =
   try
-    List.iter
-      (fun p -> if Sys.file_exists p && Sys.is_directory p then raise (Path p))
-      test_paths;
-    Format.eprintf "No test path found@.";
-    exit 1
-  with Path p ->
-    p
+    let v = Unix.getenv var in
+    add_default_env (var ^ " (set from outside)") v 
+  with Not_found -> add_env var value
+
+let test_path =
+  if Sys.file_exists "tests" && Sys.is_directory "tests" then "tests"
+  else
+    if try Array.iter (fun x -> if x = "-help" then raise Exit) Sys.argv; false
+      with Exit -> true
+    then
+      (* no error when "-help" is specified on the command line *)
+      ""
+    else begin
+      Format.eprintf "No test path found. Aborting@.";
+      exit 1
+    end
 
 (** the name of the directory-wide configuration file*)
 let dir_config_file = "test_config"
@@ -149,10 +152,6 @@ let base_path = Filename.current_dir_name
         Filename.parent_dir_name)
 *)
 
-let ptests_config = 
-  "ptests_local_config." 
-  ^ if Ptests_config.no_native_dynlink then "cmo" else "cmxs"
-
 (** Command-line flags *)
 
 type behavior = Examine | Update | Run | Show
@@ -191,28 +190,55 @@ let lock_eprintf s = lock_fprintf Format.err_formatter s
 let make_test_suite s =
   suites := s :: !suites
 
-let () =
-  if Sys.file_exists ptests_config then
-    try
-      Dynlink.loadfile ptests_config
-    with Dynlink.Error e ->
-      Format.eprintf "Could not load dynamic configuration %s: %s@."
-        ptests_config (Dynlink.error_message e)
-;;
+(* Those variables are read from a ptests_config file *)
+let default_suites = ref []
+let toplevel_path = ref ""
+
+let parse_config_line =
+  let regexp_blank = Str.regexp "[ ]+" in
+  fun (key, value) ->
+    match key with
+    | "DEFAULT_SUITES" ->
+      let l = Str.split regexp_blank value in
+      default_suites := l
+    | "TOPLEVEL_PATH" ->
+      toplevel_path := value
+    | _ -> default_env key value (* Environnement variable that Frama-C reads*)
 
 let () =
-  default_env "FRAMAC_SESSION" !Ptests_config.framac_session;
-  default_env "FRAMAC_SHARE" !Ptests_config.framac_share;
-  default_env "FRAMAC_PLUGIN" !Ptests_config.framac_plugin;
-  default_env "FRAMAC_LIB" !Ptests_config.framac_lib;
-  default_env "FRAMAC_PLUGIN_GUI" !Ptests_config.framac_plugin_gui;
-  default_env "OCAMLRUNPARAM" "";
-  default_env "FRAMAC_OPT" !Ptests_config.toplevel_path;
-  default_env "FRAMAC_BYTE" (opt_to_byte !Ptests_config.toplevel_path);
+  let config = "tests/ptests_config" in
+  if Sys.file_exists config then begin
+    try
+      (*Parse the plugin configuration file for tests. Format is 'Key=value' *)
+      let ch = open_in config in
+      let regexp = Str.regexp "\\([^=]+\\)=\\(.*\\)" in
+      while true do
+        let line = input_line ch in
+        if Str.string_match regexp line 0 then
+          let key = Str.matched_group 1 line in
+          let value = Str.matched_group 2 line in
+          parse_config_line (key, value)
+        else begin
+          Format.eprintf "Cannot interpret line '%s' in ptests_config@." line;
+          exit 1
+        end
+      done
+    with
+    | End_of_file ->
+      if !toplevel_path = "" then begin
+        Format.eprintf "Missign TOPLEVEL_PATH variable. Aborting.@.";
+        exit 1
+      end
+  end
+  else begin
+    Format.eprintf
+      "Cannot find configuration file tests/ptests_config. Aborting.@.";
+    exit 1
+  end
+
+let () =
   Unix.putenv "LC_ALL" "C" (* some oracles, especially in Jessie, depend on the
                               locale *)
-;;
-
 let example_msg =
   Format.sprintf
     "@.@[<v 0>\
@@ -305,6 +331,10 @@ let () =
     make_test_suite umsg
 ;;
 
+let fail s =
+  Format.printf "Error: %s@." s;
+  exit 2
+
 (* redefine name if special configuration expected *)
 let redefine_name name =
   if !special_config = "" then name else
@@ -320,9 +350,9 @@ module SubDir: sig
 
   val get: t -> string
 
-  val create: string (** dirname *) -> t
-  (** create the needed subdirectories if absent.
-      Fail if the given dirname doesn't exists *)
+  val create: ?with_subdir:bool -> string (** dirname *) -> t
+  (** By default, creates the needed subdirectories if absent.
+      Anyway, fails if the given dirname doesn't exists *)
 
   val make_oracle_file: t -> string -> string
   val make_result_file: t -> string -> string
@@ -336,8 +366,7 @@ end = struct
     if not (Sys.file_exists dir)
     then Unix.mkdir dir 0o750 (** rwxr-w--- *)
     else if not (Sys.is_directory dir)
-    then failwith (Printf.sprintf "The file %s exists but is not a directory" dir)
-
+    then fail (Printf.sprintf "the file %s exists but is not a directory" dir)
 
   let oracle_dirname = redefine_name "oracle"
   let result_dirname = redefine_name "result"
@@ -346,11 +375,13 @@ end = struct
   let make_oracle_file = gen_make_file oracle_dirname
   let make_file = Filename.concat
 
-  let create dir =
+  let create ?(with_subdir=true) dir =
     if not (Sys.file_exists dir && Sys.is_directory dir)
-    then failwith (Printf.sprintf "The directory %s must be an existing directory" dir);
-    create_if_absent (Filename.concat dir result_dirname);
-    create_if_absent (Filename.concat dir oracle_dirname);
+    then fail (Printf.sprintf "the directory %s must be an existing directory" dir);
+    if (with_subdir) then begin
+      create_if_absent (Filename.concat dir result_dirname);
+      create_if_absent (Filename.concat dir oracle_dirname)
+    end;
     dir
 
 end
@@ -388,15 +419,15 @@ type config =
     }
 
 let default_macros () =
-  StringMap.add "frama-c" !Ptests_config.toplevel_path StringMap.empty
+  StringMap.add "frama-c" !toplevel_path StringMap.empty
 
 let default_config () =
   { dc_test_regexp = test_file_regexp ;
     dc_macros = default_macros ();
     dc_execnow = [];
     dc_filter = None ;
-    dc_default_toplevel = !Ptests_config.toplevel_path;
-    dc_toplevels = [ !Ptests_config.toplevel_path, default_options ];
+    dc_default_toplevel = !toplevel_path;
+    dc_toplevels = [ !toplevel_path, default_options ];
     dc_dont_run = false;
     dc_is_explicit_test = false
   }
@@ -478,8 +509,8 @@ let scan_execnow dir (s:string) =
   aux { ex_cmd = s; ex_log = []; ex_bin = []; ex_dir = dir }
 
 (* the default toplevel for the current level of options. *)
-let current_default_toplevel = ref !Ptests_config.toplevel_path
-let current_default_cmds = ref [!Ptests_config.toplevel_path,default_options]
+let current_default_toplevel = ref !toplevel_path
+let current_default_cmds = ref [!toplevel_path,default_options]
 
 let make_custom_opts =
   let space = Str.regexp " " in
@@ -713,7 +744,7 @@ let name_without_extension command =
     (Filename.chop_extension command.file)
   with
     Invalid_argument _ ->
-      failwith ("This test file does not have any extension: " ^
+      fail ("this test file does not have any extension: " ^
                    command.file)
 
 let gen_prefix gen_file cmd =
@@ -1015,6 +1046,9 @@ let do_command command =
                 else
                   execnow.ex_cmd
               in
+              if !verbosity >= 1 then begin
+                lock_printf "%% launch %s" cmd;
+              end;
               let r = launch cmd in
               continue r
             end
@@ -1222,7 +1256,7 @@ let default_config () =
   if Sys.file_exists general_config_file
   then begin
     let scan_buffer = Scanf.Scanning.from_file general_config_file in
-    scan_options (SubDir.create Filename.current_dir_name) scan_buffer (default_config ())
+    scan_options (SubDir.create ~with_subdir:false Filename.current_dir_name) scan_buffer (default_config ())
   end
   else default_config ()
 
@@ -1232,7 +1266,7 @@ let () =
     match !suites with
       [] ->
         let priority = "idct" in
-        let default = !Ptests_config.default_suites in
+        let default = !default_suites in
         if List.mem priority default
         then priority :: (List.filter (fun name -> name <> priority) default)
         else default

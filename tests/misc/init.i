@@ -6,7 +6,7 @@ STDOPT: +"-uninitialized-padding-globals"
 const char S[5] = "12345";
 
 struct t1 { int x; int y; int name[10];} v1;
-struct t1 TS[29] = {1,3,01234567890};
+struct t1 TS[29] = {1,3,01234570110};
 struct t2 { int x2; short int y2; char *ptr;} v2;
 char C;
 char PC[]= "lkjlj";

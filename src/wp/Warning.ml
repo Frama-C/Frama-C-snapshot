@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -34,22 +34,22 @@ struct
     reason : string ;
     effect : string ;
   }
-      
+
   let compare w1 w2 =
     if w1 == w2 then 0 else
       let f1 = w1.loc.Lexing.pos_fname in
       let f2 = w2.loc.Lexing.pos_fname in
       let fc = String.compare f1 f2 in
       if fc <> 0 then fc else
-	let l1 = w1.loc.Lexing.pos_lnum in
-	let l2 = w2.loc.Lexing.pos_lnum in
-	let lc = l1 - l2 in
-	if lc <> 0 then lc else
-	  match w1.severe , w2.severe with
-	    | true , false -> (-1)
-	    | false , true -> 1
-	    | _ -> Pervasives.compare w1 w2
-		
+        let l1 = w1.loc.Lexing.pos_lnum in
+        let l2 = w2.loc.Lexing.pos_lnum in
+        let lc = l1 - l2 in
+        if lc <> 0 then lc else
+          match w1.severe , w2.severe with
+          | true , false -> (-1)
+          | false , true -> 1
+          | _ -> Pervasives.compare w1 w2
+
 end
 
 include SELF
@@ -94,9 +94,9 @@ let error ?(source="wp") text =
        Format.pp_print_flush fmt () ;
        let text = Buffer.contents buffer in
        if Context.defined collector then
-	 raise (Error (source,text))
+         raise (Error (source,text))
        else
-	 Wp_parameters.abort ~current:true "%s" text
+         Wp_parameters.abort ~current:true "%s" text
     ) (Format.formatter_of_buffer buffer) text
 
 
@@ -122,16 +122,16 @@ let emit ?(severe=false) ?source ~effect message =
   let buffer = Buffer.create 80 in
   Format.kfprintf 
     (fun fmt ->
-      Format.pp_print_flush fmt () ;
-      let text = Buffer.contents buffer in
-      let loc = Cil_const.CurrentLoc.get () in
-      add { 
-	loc = fst loc ; 
-	severe = severe ; 
-	source = source ;
-	effect = effect ; 
-	reason = text ;
-      })
+       Format.pp_print_flush fmt () ;
+       let text = Buffer.contents buffer in
+       let loc = Cil_const.CurrentLoc.get () in
+       add { 
+         loc = fst loc ; 
+         severe = severe ; 
+         source = source ;
+         effect = effect ; 
+         reason = text ;
+       })
     (Format.formatter_of_buffer buffer)
     message
 
@@ -141,10 +141,10 @@ let handle ?(severe=false) ~effect ~handler cc x =
     if Context.defined collector then
       ( emit ~severe ~source ~effect "%s" reason ; handler x )
     else
-      if source <> "wp" then
-	Wp_parameters.fatal ~current:true "[%s] %s" source reason
-      else
-	Wp_parameters.fatal ~current:true "%s" reason
+    if source <> "wp" then
+      Wp_parameters.fatal ~current:true "[%s] %s" source reason
+    else
+      Wp_parameters.fatal ~current:true "%s" reason
 
 type 'a outcome =
   | Result of Set.t * 'a

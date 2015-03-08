@@ -1,0 +1,115 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/alias.i (no preprocessing)
+[value] Analyzing a complete application starting at main3
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  A ∈ {0}
+  B ∈ {0}
+  C ∈ {0}
+  D ∈ {0}
+  E ∈ {0}
+  F ∈ {0}
+  G ∈ {0}
+  p[0..4] ∈ {0}
+  q[0] ∈ {1}
+   [1] ∈ {2}
+   [2] ∈ {3}
+   [3] ∈ {4}
+   [4] ∈ {5}
+  p2[0..4] ∈ {0}
+  q2[0] ∈ {1}
+    [1] ∈ {2}
+    [2] ∈ {3}
+    [3] ∈ {4}
+    [4] ∈ {5}
+  p3[0..4] ∈ {0}
+  t ∈ {0}
+  u ∈ {0}
+  v ∈ {0}
+  w ∈ {0}
+  x ∈ {0}
+  y ∈ {0}
+  z ∈ {0}
+  t2 ∈ {0}
+  v2 ∈ {0}
+  PTR1 ∈ {0}
+  PTR2 ∈ {0}
+  PTR3 ∈ {0}
+  PTR4 ∈ {0}
+  PTR5 ∈ {0}
+  PTR6 ∈ {0}
+  c ∈ [--..--]
+  c1 ∈ [--..--]
+  c2 ∈ [--..--]
+  c3 ∈ [--..--]
+  c4 ∈ [--..--]
+  e ∈ {0}
+  g ∈ {0}
+  h ∈ {0}
+  i ∈ {0}
+  tz1 ∈ {0}
+  tz2 ∈ {0}
+  tz3 ∈ {0}
+  tx ∈ {0}
+  ty ∈ {0}
+  tz ∈ {0}
+  U ∈ {0}
+  char1 ∈ {0}
+  ll1 ∈ {0}
+tests/misc/alias.i:97:[kernel] warning: signed overflow. assert c+1 ≤ 2147483647;
+tests/misc/alias.i:105:[kernel] warning: signed overflow. assert c+1 ≤ 2147483647;
+tests/misc/alias.i:105:[kernel] warning: signed overflow. assert c+2 ≤ 2147483647;
+tests/misc/alias.i:107:[kernel] warning: signed overflow. assert c+10 ≤ 2147483647;
+tests/misc/alias.i:107:[kernel] warning: signed overflow. assert c+11 ≤ 2147483647;
+tests/misc/alias.i:108:[kernel] warning: signed overflow. assert c+3 ≤ 2147483647;
+tests/misc/alias.i:108:[kernel] warning: signed overflow. assert c+4 ≤ 2147483647;
+[value] Recording results for main3
+[value] done for function main3
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main3:
+  p2[0] ∈ {0; 96; 97; 98}
+    [1..2] ∈ {0; 96; 97; 98; 99}
+    [3] ∈ {0}
+    [4] ∈ {0; 99}
+  t ∈ {3; 4}
+  u ∈ {0; 1}
+  v ∈ {0; 1}
+  x ∈ {0; 96; 97; 98; 99}
+  z ∈ {0; 1; 2}
+  t2 ∈ {0; 96; 97; 98; 99}
+  v2 ∈ {-1; 0; 1; 2; 3; 4}
+  PTR1 ∈ {{ &p2{[0], [1], [2]} }}
+  PTR2 ∈ {{ &p2{[1], [2]} }}
+  PTR3 ∈ {{ &p2{[1], [2], [4]} }}
+  PTR4 ∈ {{ &p2{[1], [2]} }}
+  p_0 ∈ {{ &s1 ; &s2 }}
+  s1.a ∈ {2; 7}
+    .b ∈ {4}
+    .c ∈ {6}
+  s2.a ∈ {1; 7}
+    .b ∈ {3}
+    .c ∈ {5}
+[from] Computing for function main3
+[from] Done for function main3
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main3:
+  p2{[0..2]; [4]} FROM c (and SELF)
+  t FROM c
+  u FROM c
+  v FROM c
+  x FROM p2[0..2]; c
+  z FROM w; c
+  t2 FROM p2[0..2]; c
+  v2 FROM c
+  PTR1 FROM c
+  PTR2 FROM c
+  PTR3 FROM c
+  PTR4 FROM c
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main3:
+          p2{[0..2]; [4]}; t; u; v; x; z; t2; v2; PTR1; PTR2; PTR3; PTR4; p_0; 
+          s1; s2; tmp; tmp_0; tmp_1; tmp_2; tmp_3
+[inout] Inputs for function main3:
+          p2[0..2]; u; v; w; PTR1; PTR2; PTR3; PTR4; c

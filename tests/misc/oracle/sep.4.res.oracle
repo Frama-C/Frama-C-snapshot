@@ -1,0 +1,31 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/sep.i (no preprocessing)
+[value] Splitting return states on:
+        \return(init2) == 0, 1 (auto)
+        \return(init1) == 0 (auto)
+[value] Analyzing an incomplete application starting at f1
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  index ∈ [--..--]
+  tab[0..4] ∈ [--..--]
+tests/misc/sep.i:36:[value] Function f1: precondition got status unknown.
+[value] computing for function init1 <- f1.
+        Called from tests/misc/sep.i:41.
+[value] computing for function init2 <- init1 <- f1.
+        Called from tests/misc/sep.i:18.
+tests/misc/sep.i:18:[kernel] warning: No code nor implicit assigns clause for function init2, generating default assigns from the prototype
+[value] using specification for function init2
+[value] Done for function init2
+[value] Recording results for init1
+[value] Done for function init1
+[value] Recording results for f1
+[value] done for function f1
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function init1:
+  index ∈ [--..--]
+  res ∈ {-1; 0}
+[value] Values at end of function f1:
+  index ∈ [--..--]
+  res ∈ {-1; 0}
+  __retres ∈ [--..--]

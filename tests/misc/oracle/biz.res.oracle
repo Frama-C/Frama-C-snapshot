@@ -1,0 +1,28 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/biz.i (no preprocessing)
+[value] Analyzing a complete application starting at f2
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  p ∈ {0}
+  q ∈ {0}
+  G ∈ {0}
+[value] Recording results for f2
+[value] done for function f2
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function f2:
+  p ∈ {{ &G + {1} }}
+  G[bits 0 to 7] ∈ {3}
+   [bits 8 to 31] ∈ {0}
+[from] Computing for function f2
+[from] Done for function f2
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function f2:
+  p FROM \nothing
+  G[bits 0 to 7] FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function f2:
+          p; G[bits 0 to 7]; tmp
+[inout] Inputs for function f2:
+          p

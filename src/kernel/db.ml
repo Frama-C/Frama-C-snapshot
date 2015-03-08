@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -292,14 +292,14 @@ module Value = struct
       (struct
         let name = "Value analysis results"
         let size = size
-        let dependencies = dependencies
+        let dependencies = [ Table_By_Callstack.self ]
        end)
   (* Clear Value's various caches each time [Db.Value.is_computed] is updated,
      including when it is set, reset, or during project change. Some operations
      of Value depend on -ilevel, -plevel, etc, so clearing those caches when
      Value ends ensures that those options will have an effect between two runs
      of Value. *)
-  let () = Table.add_hook_on_update
+  let () = Table_By_Callstack.add_hook_on_update
     (fun _ ->
        Cvalue.V_Offsetmap.clear_caches ();
        Cvalue.Model.clear_caches ();
@@ -309,13 +309,6 @@ module Value = struct
     )
 
 
-  module AfterTable =
-    Cil_state_builder.Stmt_hashtbl(Cvalue.Model)
-    (struct
-       let name = "Value analysis after states"
-       let dependencies = [Table.self]
-       let size = size
-     end)
   module AfterTable_By_Callstack = 
     Cil_state_builder.Stmt_hashtbl(States_by_callstack)
       (struct
@@ -323,17 +316,24 @@ module Value = struct
         let size = size
         let dependencies = dependencies
        end)
+  module AfterTable =
+    Cil_state_builder.Stmt_hashtbl(Cvalue.Model)
+    (struct
+       let name = "Value analysis after states"
+       let dependencies = [AfterTable_By_Callstack.self]
+       let size = size
+     end)
 
 
-  let self = Table.self
+  let self = Table_By_Callstack.self
   let only_self = [ self ]
 
   let mark_as_computed =
     Journal.register "Db.Value.mark_as_computed"
       (Datatype.func Datatype.unit Datatype.unit)
-      Table.mark_as_computed
+      Table_By_Callstack.mark_as_computed
 
-  let is_computed () = Table.is_computed ()
+  let is_computed () = Table_By_Callstack.is_computed ()
 
   module Conditions_table =
     Cil_state_builder.Stmt_hashtbl
@@ -377,13 +377,22 @@ module Value = struct
   let recursive_call_occurred kf =
     RecursiveCallsFound.add kf
 
-  module Called_Functions =
-    Cil_state_builder.Varinfo_hashtbl
+  module Called_Functions_By_Callstack =
+    State_builder.Hashtbl(Value_types.Callstack.Hashtbl)
       (Cvalue.Model)
       (struct
-         let name = "called_functions"
+         let name = "called_functions_by_callstack"
          let size = 11
          let dependencies = only_self
+       end)
+
+  module Called_Functions_Memo =
+    State_builder.Hashtbl(Kernel_function.Hashtbl)
+      (Cvalue.Model)
+      (struct
+         let name = "called_functions_memo"
+         let size = 11
+         let dependencies = [ Called_Functions_By_Callstack.self ]
        end)
 
 (*
@@ -415,8 +424,10 @@ module Value = struct
   module Record_Value_Callbacks_New =
     Hook.Build
       (struct
-         type t = (kernel_function * kinstr) list *
-                  (state Stmt.Hashtbl.t) Lazy.t Value_types.callback_result
+         type t =
+           (kernel_function * kinstr) list *
+           ((state Stmt.Hashtbl.t) Lazy.t  * (state Stmt.Hashtbl.t) Lazy.t)
+             Value_types.callback_result
        end)
 
   module Record_Value_After_Callbacks =
@@ -460,35 +471,51 @@ module Value = struct
       let r = Callstack.Hashtbl.create 7 in
       Callstack.Hashtbl.add r callstack v;
       add stmt r
-	    
-  let update_table stmt v =
-    try
-      let old = Table.find stmt in
-      let joined_global = Cvalue.Model.join old v in
-      Table.replace stmt joined_global;
-    with
-      Not_found -> Table.add stmt v
 
-  let merge_initial_state kf state =
-    let vi = Kernel_function.get_vi kf in
+  let merge_initial_state cs state =
     try
-      let old = Called_Functions.find vi in
-      Called_Functions.replace vi (Cvalue.Model.join old state)
+      let old = Called_Functions_By_Callstack.find cs in
+      Called_Functions_By_Callstack.replace cs (Cvalue.Model.join old state)
     with
-      Not_found -> Called_Functions.add vi state
+      Not_found -> Called_Functions_By_Callstack.add cs state
+
 
   let get_initial_state kf =
-    try
-      Called_Functions.find (Kernel_function.get_vi kf)
+    assert (is_computed ()); (* this assertion fails during value analysis *)
+    try Called_Functions_Memo.find kf
     with Not_found ->
-      Cvalue.Model.bottom
+      let state =
+        Called_Functions_By_Callstack.fold (fun cs state acc ->
+          match cs with
+          | (kf', _) :: _ when Kernel_function.equal kf kf' ->
+            Cvalue.Model.join acc state
+          | _ -> acc
+        ) Cvalue.Model.bottom
+      in
+      Called_Functions_Memo.add kf state;
+      state
 
   let valid_behaviors = mk_fun "Value.get_valid_behaviors"
 
   let add_formals_to_state = mk_fun "add_formals_to_state"
 
   let noassert_get_stmt_state s =
-    try Table.find s with Not_found -> Cvalue.Model.bottom
+    if !no_results (Kernel_function.(get_definition (find_englobing_kf s)))
+    then Cvalue.Model.top
+    else
+      try Table.find s
+      with Not_found ->
+        let ho = try Some (Table_By_Callstack.find s) with Not_found -> None in
+        let state =
+          match ho with
+          | None -> Cvalue.Model.bottom
+          | Some h ->
+            Value_types.Callstack.Hashtbl.fold (fun _cs state acc ->
+              Cvalue.Model.join acc state
+            ) h Cvalue.Model.bottom
+        in
+        Table.add s state;
+        state
 
   let noassert_get_state k =
     match k with
@@ -512,23 +539,28 @@ module Value = struct
 
   let is_reachable = Cvalue.Model.is_reachable
 
-  let is_accessible ki =
-    let st = get_state ki in
-    Cvalue.Model.is_reachable st
-
   let is_reachable_stmt stmt =
-    Cvalue.Model.is_reachable (get_stmt_state stmt)
+    if !no_results (Kernel_function.(get_definition (find_englobing_kf stmt)))
+    then true
+    else
+      let ho = try Some (Table_By_Callstack.find stmt) with Not_found -> None in
+      match ho with
+      | None -> false
+      | Some h ->
+        Value_types.Callstack.Hashtbl.fold (fun _cs state acc ->
+          acc || Cvalue.Model.is_reachable state) h false
 
+  let is_accessible ki =
+    match ki with
+    | Kglobal -> Cvalue.Model.is_reachable (globals_state ())
+    | Kstmt stmt -> is_reachable_stmt stmt
 
   let is_called = mk_fun "Value.is_called"
   let callers = mk_fun "Value.callers"
 
   let access_location = mk_fun "Value.access_location"
 
-  let find =
-    Cvalue.Model.find
-      ~with_alarms:CilE.warn_none_mode
-      ~conflate_bottom:true
+  let find state loc = snd (Cvalue.Model.find state loc)
 
   let access =  mk_fun "Value.access"
   let access_expr =  mk_fun "Value.access_expr"
@@ -555,8 +587,7 @@ module Value = struct
   let eval_expr_with_state =
     ref (fun ~with_alarms:_ _ -> mk_labeled_fun "Value.eval_expr_with_state")
 
-  let find_lv_plus =
-    ref (fun ~with_alarms:_ _ -> mk_labeled_fun "Value.find_lv_plus")
+  let find_lv_plus = mk_fun "Value.find_lv_plus"
 
   let pretty_state = Cvalue.Model.pretty
 
@@ -590,9 +621,12 @@ module Value = struct
   let lval_to_zone = mk_fun "Value.lval_to_zone"
   let lval_to_zone_state = mk_fun "Value.lval_to_zone_state"
   let lval_to_zone_with_deps_state = mk_fun "Value.lval_to_zone_with_deps_state"
+  let lval_to_precise_loc_with_deps_state =
+    mk_fun "Value.lval_to_precise_loc_with_deps_state"
   let assigns_inputs_to_zone = mk_fun "Value.assigns_inputs_to_zone"
   let assigns_outputs_to_zone = mk_fun "Value.assigns_outputs_to_zone"
   let assigns_outputs_to_locations = mk_fun "Value.assigns_outputs_to_locations"
+  let verify_assigns_froms = mk_fun "Value.verify_assigns_froms"
 
   module Logic = struct
     let eval_predicate =
@@ -659,13 +693,6 @@ module From = struct
     let iter = mk_fun "From.Callwise.iter"
     let find = mk_fun "From.Callwise.find"
   end
-end
-
-module Access_path = struct
-  type t = (Locations.Zone.t * Locations.Location_Bits.t) Base.Map.t
-  let compute = mk_fun "Access_path.compute"
-  let filter = mk_fun "Access_path.filter"
-  let pretty = mk_fun "Access_path.pretty"
 end
 
 module Users = struct
@@ -985,7 +1012,7 @@ module Properties = struct
     (* loc_to_loc and loc_to_locs are defined in Value/Eval_logic, not
        in Logic_interp *)
     let loc_to_loc = mk_resultfun "Properties.Interp.loc_to_loc"
-    let loc_to_locs = mk_resultfun "Properties.Interp.loc_to_locs"
+    let loc_to_loc_under_over = mk_resultfun "Properties.Interp.loc_to_loc_with_deps"
     let loc_to_offset = mk_resultfun "Properties.Interp.loc_to_offset"
     let loc_to_exp = mk_resultfun "Properties.Interp.loc_to_exp"
     let term_offset_to_offset =

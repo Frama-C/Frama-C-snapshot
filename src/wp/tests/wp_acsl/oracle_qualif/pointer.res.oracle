@@ -1,0 +1,30 @@
+# frama-c -wp -wp-model 'Typed (Ref)' [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_acsl/pointer.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] Collecting variable usage
+tests/wp_acsl/pointer.i:50:[wp] warning: Uncomparable locations ptr(p_0) and mem(t)
+tests/wp_acsl/pointer.i:49:[wp] warning: Uncomparable locations ptr(p_0) and mem(t)
+[wp] 9 goals scheduled
+[wp] [Alt-Ergo] Goal typed_ref_absurd_post_qed_ko_Base_oracle_ko : Unknown
+[wp] [Alt-Ergo] Goal typed_ref_absurd_post_qed_ko_Comp_oracle_ko : Unknown
+[wp] [Alt-Ergo] Goal typed_ref_array_post_Lt : Valid
+[wp] [Alt-Ergo] Goal typed_ref_array_post_Le : Valid
+[wp] [Qed] Goal typed_ref_array_post_Eq : Valid
+[wp] [Alt-Ergo] Goal typed_ref_mixed_array_pointer_post_qed_ko_Le_oracle_ko : Unknown (Stronger)
+[wp] [Alt-Ergo] Goal typed_ref_mixed_array_pointer_post_qed_ko_Lt_oracle_ko : Unknown (Stronger)
+[wp] [Alt-Ergo] Goal typed_ref_pointer_post_qed_ko_Le_oracle_ko : Unknown
+[wp] [Alt-Ergo] Goal typed_ref_pointer_post_qed_ko_Eq_oracle_ko : Unknown
+[wp] Proved goals:    3 / 9
+     Qed:             1 
+     Alt-Ergo:        2  (unknown: 6)
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+array                1      2 (3)      3       100%
+pointer             -      -           2       0.0%
+mixed_array_pointer  -     -           2       0.0%
+absurd              -      -           2       0.0%
+----------------------------------------------------------

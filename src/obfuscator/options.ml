@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -36,7 +36,7 @@ Disable any other Frama-C analysis."
      end)
 
 module Dictionary =
-  EmptyString
+  Empty_string
     (struct
       let option_name = "-obfuscator-dictionary"
       let arg_name = "f"
@@ -44,7 +44,7 @@ module Dictionary =
      end)
 
 module Literal_string =
-  EmptyString
+  Empty_string
     (struct
       let option_name = "-obfuscator-string-dictionary"
       let arg_name = "f"

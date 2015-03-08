@@ -1,0 +1,39 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/switch_cast.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  x ∈ [--..--]
+[value] computing for function g <- main.
+        Called from tests/misc/switch_cast.i:70.
+[value] Called Frama_C_show_each([1..241],1%2)
+[value] Recording results for g
+[value] Done for function g
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function g:
+  x ∈ [0..15]
+  y ∈ [1..241],1%2
+[value] Values at end of function main:
+  x ∈ [0..15]
+[from] Computing for function g
+[from] Done for function g
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function g:
+  x FROM x
+[from] Function main:
+  x FROM x
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function g:
+          x; y
+[inout] Inputs for function g:
+          x
+[inout] Out (internal) for function main:
+          x
+[inout] Inputs for function main:
+          x

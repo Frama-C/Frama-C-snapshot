@@ -1,0 +1,49 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/pdg/loops.c (with preprocessing)
+[value] Analyzing an incomplete application starting at dead_code
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  after ∈ [--..--]
+[value] Recording results for dead_code
+[value] done for function dead_code
+[pdg] computing for function dead_code
+[pdg] done for function dead_code
+[pdg] PDG for dead_code
+ {n1}: InCtrl
+ {n2}: VarDecl : n
+   -[a--]-> 3
+ {n3}: In1
+   -[a--]-> 2
+ {n4}: VarDecl : x
+ {n5}: x = 0;
+   -[-c-]-> 1
+   -[a--]-> 4
+ {n6}: W:
+   -[-c-]-> 1
+   -[-c-]-> 9
+ {n7}: n > 0
+   -[-c-]-> 1
+   -[--d]-> 2
+   -[-c-]-> 9
+ {n8}: goto W;
+   -[-c-]-> 1
+   -[-c-]-> 6
+   -[-c-]-> 9
+ {n9}: goto L;
+   -[-c-]-> 1
+   -[-c-]-> 10
+ {n10}: L:
+   -[-c-]-> 1
+ {n11}: L: x += n;
+   -[-c-]-> 1
+   -[--d]-> 2
+   -[--d]-> 3
+   -[a-d]-> 4
+   -[--d]-> 5
+ {n12}: return x;
+   -[-c-]-> 1
+   -[--d]-> 4
+   -[--d]-> 11
+ {n13}: OutRet
+   -[--d]-> 12

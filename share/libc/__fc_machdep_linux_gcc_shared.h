@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2014                                               */
+/*  Copyright (C) 2007-2015                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -69,6 +69,7 @@
 #define __FC_LLONG_MIN (-LLONG_MAX -1LL)
 #define __FC_LLONG_MAX 9223372036854775807LL
 #define __FC_ULLONG_MAX 18446744073709551615ULL
+#define __FC_PATH_MAX 256
 
 /* Unused at this time */
 #define __FC_umax(n) ((uint##n##_t)(-1))

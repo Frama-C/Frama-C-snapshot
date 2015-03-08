@@ -1,0 +1,29 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_plugin/init_extern.i (no preprocessing)
+[kernel] Parsing tests/wp_plugin/init_linker.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function f
+------------------------------------------------------------
+
+Goal Post-condition 'OK' in 'f':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'KO' in 'f':
+Assume { }
+Prove: false.
+
+------------------------------------------------------------
+
+Goal Post-condition 'KO' in 'f':
+Assume { (* Domain *) Type: (is_sint32 b_0). }
+Prove: 0=b_0.
+
+------------------------------------------------------------

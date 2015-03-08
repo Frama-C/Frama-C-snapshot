@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -371,12 +371,12 @@ let assemble_wpo wpo =
                 age_max := max (!age_max) (Wpo.age wpo);
                 match wpo.Wpo.po_formula with
                 | Wpo.GoalAnnot vcq ->
-                  let prop =  Wpo.GOAL.compute_proof vcq.Wpo.VC_Annot.goal in
-                  if Lang.F.p_true != prop then
-                    let id = WpPropId.get_propid pid in
-                    let title = Pretty_utils.to_string WpPropId.pretty pid in
-                    let axioms = None in
-                    assemble_goal ~pid ~id ~title ~axioms prop fmt
+                    let prop =  Wpo.GOAL.compute_proof vcq.Wpo.VC_Annot.goal in
+                    if Lang.F.p_true != prop then
+                      let id = WpPropId.get_propid pid in
+                      let title = Pretty_utils.to_string WpPropId.pretty pid in
+                      let axioms = None in
+                      assemble_goal ~pid ~id ~title ~axioms prop fmt
                 | Wpo.GoalLemma _ | Wpo.GoalCheck _ -> assert false
               end in
             Command.print_file file
@@ -413,10 +413,10 @@ let assemble_check wpo vck =
 let assemble_wpo wpo =
   match wpo.Wpo.po_formula with
   | Wpo.GoalCheck vck ->
-    Some (Model.with_model wpo.Wpo.po_model (assemble_check wpo) vck)
+      Some (Model.with_model wpo.Wpo.po_model (assemble_check wpo) vck)
   | Wpo.GoalAnnot vcq
     when Lang.F.p_true == Wpo.GOAL.compute_proof vcq.Wpo.VC_Annot.goal ->
-    (** The wpo is trivial *)
+      (** The wpo is trivial *)
       None
   | _ ->
       Some (Model.with_model wpo.Wpo.po_model assemble_wpo wpo)
@@ -520,6 +520,7 @@ class why3 ~prover ~pid ~file ~includes ~logout ~logerr =
             end
 
     method prove =
+      why#add [ "prove" ] ;
       let time = Wp_parameters.Timeout.get () in
       if Wp_parameters.Check.get () then why#add ["--type-only"] ;
       why#add ["--extra-config"; Wp_parameters.Share.file "why3/why3.conf"];
@@ -534,8 +535,8 @@ class why3 ~prover ~pid ~file ~includes ~logout ~logerr =
            	 when it is implemented. *)
         why#add ["--debug"; "call_prover"];
       why#timeout time ;
-      why#add_list ~name:"-I" includes;
-      why#add ["-I";Wp_parameters.Share.file "why3"];
+      why#add_list ~name:"-L" includes;
+      why#add ["-L";Wp_parameters.Share.file "why3"];
       why#validate_time why#time ;
       (* The order is important. Warning are detected as error 
          which they are not. *)
@@ -561,6 +562,7 @@ let prove_prop ~prover ~wpo =
   match assemble_wpo wpo with
   | None -> Task.return VCS.no_result
   | Some (includes,file) ->
+    Wp_parameters.print_generated file.gfile;
       if Wp_parameters.Generate.get () 
       then Task.return VCS.no_result
       else
@@ -580,13 +582,14 @@ let prove wpo ~prover =
 class why3ide ~includes ~files ~session =
   object(why)
 
-    inherit ProverTask.command "why3ide"
+    inherit ProverTask.command "why3"
 
     method start () =
+      why#add [ "ide" ] ;
       why#add ["--extra-config"; Wp_parameters.Share.file "why3/why3.conf"];
       why#add (Wp_parameters.WhyFlags.get ()) ;
-      why#add_list ~name:"-I" includes;
-      why#add ["-I";Wp_parameters.Share.file "why3"];
+      why#add_list ~name:"-L" includes;
+      why#add ["-L";Wp_parameters.Share.file "why3"];
       why#add [session];
       why#add files;
       why#run ~echo:true ()
@@ -594,6 +597,7 @@ class why3ide ~includes ~files ~session =
   end
 
 let call_ide ~includes ~files ~session =
+  List.iter Wp_parameters.print_generated files;
   if Wp_parameters.Generate.get ()
   then Task.return false
   else

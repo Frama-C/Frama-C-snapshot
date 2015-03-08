@@ -1,0 +1,91 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/semaphore.i (no preprocessing)
+[value] Analyzing a complete application starting at g
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  Sa ∈ {0}
+  Sb ∈ {0}
+tests/misc/semaphore.i:28:[value] entering loop for the first time
+tests/misc/semaphore.i:29:[value] entering loop for the first time
+[value] computing for function V <- g.
+        Called from tests/misc/semaphore.i:31.
+tests/misc/semaphore.i:31:[kernel] warning: Neither code nor specification for function V, generating default assigns from the prototype
+[value] using specification for function V
+[value] Done for function V
+[value] computing for function V <- g.
+        Called from tests/misc/semaphore.i:31.
+[value] Done for function V
+[value] computing for function V <- g.
+        Called from tests/misc/semaphore.i:31.
+[value] Done for function V
+[value] computing for function V <- g.
+        Called from tests/misc/semaphore.i:31.
+[value] Done for function V
+[value] computing for function P <- g.
+        Called from tests/misc/semaphore.i:34.
+tests/misc/semaphore.i:34:[kernel] warning: Neither code nor specification for function P, generating default assigns from the prototype
+[value] using specification for function P
+[value] Done for function P
+[value] computing for function P <- g.
+        Called from tests/misc/semaphore.i:35.
+[value] Done for function P
+[value] computing for function V <- g.
+        Called from tests/misc/semaphore.i:37.
+[value] Done for function V
+[value] computing for function V <- g.
+        Called from tests/misc/semaphore.i:38.
+[value] Done for function V
+[value] computing for function f <- g.
+        Called from tests/misc/semaphore.i:40.
+[value] computing for function P <- f <- g.
+        Called from tests/misc/semaphore.i:14.
+[value] Done for function P
+[value] computing for function P <- f <- g.
+        Called from tests/misc/semaphore.i:16.
+[value] Done for function P
+[value] computing for function P <- f <- g.
+        Called from tests/misc/semaphore.i:17.
+[value] Done for function P
+[value] computing for function V <- f <- g.
+        Called from tests/misc/semaphore.i:19.
+[value] Done for function V
+[value] computing for function V <- f <- g.
+        Called from tests/misc/semaphore.i:20.
+[value] Done for function V
+[value] Recording results for f
+[value] Done for function f
+[value] Recording results for g
+[value] done for function g
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function f:
+  c ∈ {12}
+[value] Values at end of function g:
+  c ∈ {-26; -1}
+[from] Computing for function f
+[from] Computing for function P <-f
+[from] Done for function P
+[from] Computing for function V <-f
+[from] Done for function V
+[from] Done for function f
+[from] Computing for function g
+[from] Done for function g
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function P:
+  NO EFFECTS
+[from] Function V:
+  NO EFFECTS
+[from] Function f:
+  NO EFFECTS
+[from] Function g:
+  NO EFFECTS
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function f:
+          c
+[inout] Inputs for function f:
+          Sa; Sb
+[inout] Out (internal) for function g:
+          c; tmp
+[inout] Inputs for function g:
+          Sa; Sb

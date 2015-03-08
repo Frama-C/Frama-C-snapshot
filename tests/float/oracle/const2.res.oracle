@@ -1,0 +1,25 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/float/const2.i (no preprocessing)
+tests/float/const2.i:1:[kernel] warning: Floating-point constant 1e-40f is not represented exactly. Will use 0x1.16c2000000000p-133. See documentation for option -warn-decimal-float
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+tests/float/const2.i:2:[kernel] warning: non-finite float value (INFINITY): assert \is_finite(1e40f);
+tests/float/const2.i:2:[value] Floating-point literal (or constant expression) is not finite. This path is assumed to be dead.
+tests/float/const2.i:2:[value] Evaluation of initializer '1e40f' failed
+[value] Initial state computed
+[value] Values of globals at initialization
+  NOT ACCESSIBLE
+[value] Value analysis not started because globals initialization is not computable.
+[value] ====== VALUES COMPUTED ======
+[from] Computing for function main
+[from] Non-terminating function main (no dependencies)
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  NON TERMINATING - NO EFFECTS
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          \nothing
+[inout] Inputs for function main:
+          \nothing

@@ -1,0 +1,652 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/slicing/select_by_annot.c (with preprocessing)
+[value] Analyzing an incomplete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  S ∈ [--..--]
+  Sa ∈ [--..--]
+  X9 ∈ [--..--]
+  Y9 ∈ [--..--]
+  Z9 ∈ [--..--]
+  d ∈ [--..--]
+tests/slicing/select_by_annot.c:133:[value] Assertion got status valid.
+tests/slicing/select_by_annot.c:137:[kernel] warning: signed overflow. assert (int)((int)(a+b)+c)+d ≤ 2147483647;
+[value] computing for function modifS <- main.
+        Called from tests/slicing/select_by_annot.c:138.
+tests/slicing/select_by_annot.c:122:[kernel] warning: signed overflow. assert S.a+a ≤ 2147483647;
+[value] Recording results for modifS
+[value] Done for function modifS
+[value] computing for function new_int <- main.
+        Called from tests/slicing/select_by_annot.c:140.
+tests/slicing/select_by_annot.c:140:[kernel] warning: Neither code nor specification for function new_int, generating default assigns from the prototype
+[value] using specification for function new_int
+[value] Done for function new_int
+[value] computing for function f1 <- main.
+        Called from tests/slicing/select_by_annot.c:141.
+tests/slicing/select_by_annot.c:29:[value] Assertion got status unknown.
+[value] Recording results for f1
+[value] Done for function f1
+[value] computing for function f2 <- main.
+        Called from tests/slicing/select_by_annot.c:142.
+tests/slicing/select_by_annot.c:39:[value] Assertion got status unknown.
+[value] Recording results for f2
+[value] Done for function f2
+[value] computing for function f3 <- main.
+        Called from tests/slicing/select_by_annot.c:143.
+[value] Recording results for f3
+[value] Done for function f3
+[value] computing for function f4 <- main.
+        Called from tests/slicing/select_by_annot.c:144.
+[value] Recording results for f4
+[value] Done for function f4
+[value] computing for function f5 <- main.
+        Called from tests/slicing/select_by_annot.c:145.
+[value] Recording results for f5
+[value] Done for function f5
+[value] computing for function f6 <- main.
+        Called from tests/slicing/select_by_annot.c:146.
+tests/slicing/select_by_annot.c:77:[kernel] warning: signed overflow. assert Sa+1 ≤ 2147483647;
+[value] Recording results for f6
+[value] Done for function f6
+[value] computing for function f7 <- main.
+        Called from tests/slicing/select_by_annot.c:147.
+tests/slicing/select_by_annot.c:88:[kernel] warning: signed overflow. assert Sa+1 ≤ 2147483647;
+[value] Recording results for f7
+[value] Done for function f7
+[value] computing for function f8 <- main.
+        Called from tests/slicing/select_by_annot.c:148.
+tests/slicing/select_by_annot.c:97:[value] Loop invariant got status unknown.
+tests/slicing/select_by_annot.c:99:[value] entering loop for the first time
+tests/slicing/select_by_annot.c:100:[value] Assertion got status unknown.
+tests/slicing/select_by_annot.c:104:[kernel] warning: signed overflow. assert S.a+1 ≤ 2147483647;
+[value] Recording results for f8
+[value] Done for function f8
+[value] computing for function f9 <- main.
+        Called from tests/slicing/select_by_annot.c:149.
+[value] Recording results for f9
+[value] Done for function f9
+[value] Recording results for main
+[value] done for function main
+[from] Computing for function f1
+[from] Done for function f1
+[from] Computing for function f2
+[from] Done for function f2
+[from] Computing for function f3
+[from] Done for function f3
+[from] Computing for function f4
+[from] Done for function f4
+[from] Computing for function f5
+[from] Done for function f5
+[from] Computing for function f6
+[from] Done for function f6
+[from] Computing for function f7
+[from] Done for function f7
+[from] Computing for function f8
+[from] Done for function f8
+[from] Computing for function f9
+[from] Done for function f9
+[from] Computing for function modifS
+[from] Done for function modifS
+[from] Computing for function main
+[from] Computing for function new_int <-main
+[from] Done for function new_int
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function f1:
+  Sa FROM S.a; cond (and SELF)
+  \result FROM S.a; Sa; cond
+[from] Function f2:
+  Sa FROM S.a; cond (and SELF)
+  \result FROM S.a; Sa; cond
+[from] Function f3:
+  Sa FROM S.a; cond (and SELF)
+  \result FROM S.a; Sa; cond
+[from] Function f4:
+  Sa FROM S.a; cond (and SELF)
+  \result FROM S.a; Sa; cond
+[from] Function f5:
+  Sa FROM S.a; cond (and SELF)
+  \result FROM S.a; Sa; cond
+[from] Function f6:
+  Sa FROM S.a; cond (and SELF)
+  \result FROM S.a; Sa; cond
+[from] Function f7:
+  Sa FROM S.a; cond (and SELF)
+  \result FROM S.a; Sa; cond
+[from] Function f8:
+  S.a FROM S.a; cond (and SELF)
+  Sa FROM S.a; cond (and SELF)
+  \result FROM S.a; Sa; cond
+[from] Function f9:
+  X9 FROM c1; c2
+  Y9 FROM Z9
+  Z9 FROM c2
+[from] Function modifS:
+  S.a FROM S.a; a
+   .b FROM S.b; b
+[from] Function new_int:
+  \result FROM \nothing
+[from] Function main:
+  S.a FROM S.a; d
+   .b FROM S.b
+  Sa FROM S.a; d (and SELF)
+  X9 FROM d
+  Y9 FROM Z9
+  Z9 FROM d
+  d FROM \nothing
+  \result FROM d
+[from] ====== END OF DEPENDENCIES ======
+[slicing] making slicing project 'slicing_1'...
+[pdg] computing for function main
+[pdg] done for function main
+[slicing] applying all slicing requests...
+[slicing] applying 0 actions...
+RESULT for main:
+ {n1}: InCtrl
+ {n2}: VarDecl : a
+ {n3}: VarDecl : b
+ {n4}: VarDecl : c
+ {n5}: VarDecl : x
+ {n6}: a = 0;
+   -[-c-]-> 1
+   -[a--]-> 2
+ {n7}: b = 0;
+   -[-c-]-> 1
+   -[a--]-> 3
+ {n8}: c = 0;
+   -[-c-]-> 1
+   -[a--]-> 4
+ {n9}: d > 0
+   -[-c-]-> 1
+   -[--d]-> 58
+ {n10}: ;
+   -[-c-]-> 1
+   -[-c-]-> 9
+ {n11}: a = 1;
+   -[-c-]-> 1
+   -[a--]-> 2
+   -[-c-]-> 9
+ {n12}: ;
+   -[-c-]-> 1
+ {n13}: block
+   -[-c-]-> 1
+ {n14}: x = ((a + b) + c) + d;
+   -[-c-]-> 1
+   -[--d]-> 2
+   -[--d]-> 3
+   -[--d]-> 4
+   -[a--]-> 5
+   -[--d]-> 6
+   -[--d]-> 7
+   -[--d]-> 8
+   -[--d]-> 11
+   -[-c-]-> 13
+   -[--d]-> 58
+ {n15}: Call123-InCtrl : modifS(a,b);
+   -[-c-]-> 1
+ {n16}: Call123-In1 : modifS(a,b);
+   -[-c-]-> 1
+   -[--d]-> 2
+   -[--d]-> 6
+   -[--d]-> 11
+   -[-c-]-> 15
+ {n17}: Call123-In2 : modifS(a,b);
+   -[-c-]-> 1
+   -[--d]-> 3
+   -[--d]-> 7
+   -[-c-]-> 15
+ {n18}: Call123-Out(S.a) : modifS(a,b);
+   -[-c-]-> 1
+   -[-c-]-> 15
+   -[--d]-> 16
+   -[--d]-> 57
+ {n19}: Call123-Out(S.b) : modifS(a,b);
+   -[-c-]-> 1
+   -[-c-]-> 15
+   -[--d]-> 17
+   -[--d]-> 56
+ {n20}: Call124-InCtrl : d = new_int();
+   -[-c-]-> 1
+ {n21}: Call124-OutRet : d = new_int();
+   -[-c-]-> 1
+   -[-c-]-> 20
+ {n22}: Call125-InCtrl : f1(d);
+   -[-c-]-> 1
+ {n23}: Call125-In1 : f1(d);
+   -[-c-]-> 1
+   -[--d]-> 21
+   -[-c-]-> 22
+ {n24}: Call125-Out(Sa) : f1(d);
+   -[-c-]-> 1
+   -[--d](S.a)-> 18
+   -[-c-]-> 22
+   -[--d]-> 23
+ {n25}: Call126-InCtrl : f2(d);
+   -[-c-]-> 1
+ {n26}: Call126-In1 : f2(d);
+   -[-c-]-> 1
+   -[--d]-> 21
+   -[-c-]-> 25
+ {n27}: Call126-Out(Sa) : f2(d);
+   -[-c-]-> 1
+   -[--d](S.a)-> 18
+   -[-c-]-> 25
+   -[--d]-> 26
+ {n28}: Call127-InCtrl : f3(d);
+   -[-c-]-> 1
+ {n29}: Call127-In1 : f3(d);
+   -[-c-]-> 1
+   -[--d]-> 21
+   -[-c-]-> 28
+ {n30}: Call127-Out(Sa) : f3(d);
+   -[-c-]-> 1
+   -[--d](S.a)-> 18
+   -[-c-]-> 28
+   -[--d]-> 29
+ {n31}: Call128-InCtrl : f4(d);
+   -[-c-]-> 1
+ {n32}: Call128-In1 : f4(d);
+   -[-c-]-> 1
+   -[--d]-> 21
+   -[-c-]-> 31
+ {n33}: Call128-Out(Sa) : f4(d);
+   -[-c-]-> 1
+   -[--d](S.a)-> 18
+   -[-c-]-> 31
+   -[--d]-> 32
+ {n34}: Call129-InCtrl : f5(d);
+   -[-c-]-> 1
+ {n35}: Call129-In1 : f5(d);
+   -[-c-]-> 1
+   -[--d]-> 21
+   -[-c-]-> 34
+ {n36}: Call129-Out(Sa) : f5(d);
+   -[-c-]-> 1
+   -[--d](S.a)-> 18
+   -[-c-]-> 34
+   -[--d]-> 35
+ {n37}: Call130-InCtrl : f6(d);
+   -[-c-]-> 1
+ {n38}: Call130-In1 : f6(d);
+   -[-c-]-> 1
+   -[--d]-> 21
+   -[-c-]-> 37
+ {n39}: Call130-Out(Sa) : f6(d);
+   -[-c-]-> 1
+   -[--d](S.a)-> 18
+   -[-c-]-> 37
+   -[--d]-> 38
+ {n40}: Call131-InCtrl : f7(d);
+   -[-c-]-> 1
+ {n41}: Call131-In1 : f7(d);
+   -[-c-]-> 1
+   -[--d]-> 21
+   -[-c-]-> 40
+ {n42}: Call131-Out(Sa) : f7(d);
+   -[-c-]-> 1
+   -[--d](S.a)-> 18
+   -[-c-]-> 40
+   -[--d]-> 41
+ {n43}: Call132-InCtrl : f8(d);
+   -[-c-]-> 1
+ {n44}: Call132-In1 : f8(d);
+   -[-c-]-> 1
+   -[--d]-> 21
+   -[-c-]-> 43
+ {n45}: Call132-Out(S.a) : f8(d);
+   -[-c-]-> 1
+   -[--d](S.a)-> 18
+   -[-c-]-> 43
+   -[--d]-> 44
+ {n46}: Call132-Out(Sa) : f8(d);
+   -[-c-]-> 1
+   -[--d](S.a)-> 18
+   -[-c-]-> 43
+   -[--d]-> 44
+ {n47}: Call133-InCtrl : f9(d,a);
+   -[-c-]-> 1
+ {n48}: Call133-In1 : f9(d,a);
+   -[-c-]-> 1
+   -[--d]-> 21
+   -[-c-]-> 47
+ {n49}: Call133-In2 : f9(d,a);
+   -[-c-]-> 1
+   -[--d]-> 2
+   -[--d]-> 6
+   -[--d]-> 11
+   -[-c-]-> 47
+ {n50}: Call133-Out(X9) : f9(d,a);
+   -[-c-]-> 1
+   -[-c-]-> 47
+   -[--d]-> 48
+   -[--d]-> 49
+ {n51}: Call133-Out(Y9) : f9(d,a);
+   -[-c-]-> 1
+   -[-c-]-> 47
+   -[--d]-> 55
+ {n52}: Call133-Out(Z9) : f9(d,a);
+   -[-c-]-> 1
+   -[-c-]-> 47
+   -[--d]-> 49
+ {n53}: return x;
+   -[-c-]-> 1
+   -[--d]-> 5
+   -[--d]-> 14
+ {n54}: OutRet
+   -[--d]-> 53
+ {n55}: In(Z9)
+ {n56}: In(S.b)
+ {n57}: In(S.a)
+ {n58}: In(d)
+[pdg] computing for function modifS
+[pdg] done for function modifS
+[slicing] applying all slicing requests...
+[slicing] applying 1 actions...
+[slicing] applying actions: 1/1...
+RESULT for modifS:
+ {n59}: InCtrl
+ {n60}: VarDecl : a
+   -[a--]-> 61
+ {n61}: In1
+   -[a--]-> 60
+ {n62}: VarDecl : b
+   -[a--]-> 63
+ {n63}: In2
+   -[a--]-> 62
+ {n64}: S.a += a;
+   -[-c-]-> 59
+   -[--d]-> 60
+   -[--d]-> 61
+   -[--d]-> 69
+ {n65}: S.b -= b;
+   -[-c-]-> 59
+   -[--d]-> 62
+   -[--d]-> 63
+   -[--d]-> 68
+ {n66}: ;
+   -[-c-]-> 59
+ {n67}: return;
+   -[-c-]-> 59
+ {n68}: In(S.b)
+ {n69}: In(S.a)
+Slicing project worklist [default/slicing_1] =
+[modifS = (n:66 ,<[ S ], [---]>)(n:64(restrict to S.a) ,<[--d], [---]>)(n:66 ,
+<[ S ],
+[---]>)]
+
+[slicing] applying all slicing requests...
+[slicing] applying 1 actions...
+[slicing] applying actions: 1/1...
+struct Tstr {
+   int a ;
+   int b ;
+};
+struct Tstr S;
+int Sa;
+int X9;
+int Y9;
+int Z9;
+Print slice =
+modifS_slice_1:
+(InCtrl: <[--d], [---]>)
+(In1: <[--d], [---]>)
+(In(S.a): <[--d], [---]>)
+
+/**/void modifS(/* <[--d], [---]> */ int a, /* <[---], [---]> */ int b)
+{
+  /*@ assert Value: signed_overflow: S.a+a ≤ 2147483647; */
+  /* <[--d], [---]> */
+  S.a += a;
+  /* <[---], [---]> */
+  S.b -= b;
+  /*@ slice pragma expr S.a; */ /* <[ S ], [---]> */
+                                ;
+  /* <[---], [---]> */
+  return;
+}
+
+/*@ assigns \result;
+    assigns \result \from \nothing; */
+extern int new_int(void);
+
+int d;
+Print slice =
+main_slice_1:
+(InCtrl: <[--d], [---]>)
+(In(d): <[--d], [---]>)
+(In(S.a): <[--d], [---]>)
+
+/**/int main(void)
+{
+  /* <[--d], [---]> */ int a;
+  /* <[--d], [---]> */ int b;
+  /* <[---], [---]> */ int c;
+  /* <[---], [---]> */ int x;
+  /* <[--d], [---]> */
+  a = 0;
+  /* <[--d], [---]> */
+  b = 0;
+  /* <[---], [---]> */
+  c = 0;
+  /* <[--d], [---]> */
+  if (d > 0) {
+    /*@ assert b ≡ 0; */ /* <[---], [---]> */
+                           ;
+    /* <[--d], [---]> */
+    a = 1;
+  }
+  /*@ slice pragma expr a+b; */ /* <[ S ], [---]> */
+                                ;
+  /* <[---], [ S ]> */
+  /*@ assert Value: signed_overflow: (int)((int)(a+b)+c)+d ≤ 2147483647; */
+  /* <[---], [---]> */
+  x = ((a + b) + c) + d;
+  /* sig call: (InCtrl: <[--d], [---]>)
+               (In1: <[--d], [---]>) */
+  /* call to modifS_slice_1:
+    (InCtrl: <[--d], [---]>)
+    (In1: <[--d], [---]>)
+    (In(S.a): <[--d], [---]>) */
+  /* <[--d], [---]> */
+  modifS(a,b);
+  /* invisible call */ /* <[---], [---]> */
+  d = new_int();
+  /* invisible call */ /* <[---], [---]> */
+  f1(d);
+  /* invisible call */ /* <[---], [---]> */
+  f2(d);
+  /* invisible call */ /* <[---], [---]> */
+  f3(d);
+  /* invisible call */ /* <[---], [---]> */
+  f4(d);
+  /* invisible call */ /* <[---], [---]> */
+  f5(d);
+  /* invisible call */ /* <[---], [---]> */
+  f6(d);
+  /* invisible call */ /* <[---], [---]> */
+  f7(d);
+  /* invisible call */ /* <[---], [---]> */
+  f8(d);
+  /* invisible call */ /* <[---], [---]> */
+  f9(d,a);
+  /* <[---], [---]> */
+  return x;
+}
+
+Slicing project worklist [default/slicing_1] =
+
+
+[slicing] exporting project to 'Sliced code'...
+[slicing] applying all slicing requests...
+[slicing] applying 0 actions...
+[sparecode] remove unused global declarations from project 'Sliced code tmp'
+[sparecode] removed unused global declarations in new project 'Sliced code'
+/* Generated by Frama-C */
+struct Tstr {
+   int a ;
+   int b ;
+};
+struct Tstr S;
+void modifS_slice_1(int a)
+{
+  S.a += a;
+  /*@ slice pragma expr S.a; */ ;
+  return;
+}
+
+int d;
+void main(void)
+{
+  int a;
+  int b;
+  a = 0;
+  b = 0;
+  if (d > 0) {
+    /*@ assert b ≡ 0; */ ;
+    a = 1;
+  }
+  /*@ slice pragma expr a+b; */ ;
+  modifS_slice_1(a);
+  return;
+}
+
+
+[slicing] applying all slicing requests...
+[slicing] applying 1 actions...
+[slicing] applying actions: 1/1...
+struct Tstr {
+   int a ;
+   int b ;
+};
+struct Tstr S;
+int Sa;
+int X9;
+int Y9;
+int Z9;
+Print slice =
+modifS_slice_1:
+(InCtrl: <[--d], [---]>)
+(In1: <[--d], [---]>)
+(In(S.a): <[--d], [---]>)
+
+/**/void modifS(/* <[--d], [---]> */ int a, /* <[---], [---]> */ int b)
+{
+  /*@ assert Value: signed_overflow: S.a+a ≤ 2147483647; */
+  /* <[--d], [---]> */
+  S.a += a;
+  /* <[---], [---]> */
+  S.b -= b;
+  /*@ slice pragma expr S.a; */ /* <[ S ], [---]> */
+                                ;
+  /* <[---], [---]> */
+  return;
+}
+
+/*@ assigns \result;
+    assigns \result \from \nothing; */
+extern int new_int(void);
+
+int d;
+Print slice =
+main_slice_1:
+(InCtrl: <[--d], [---]>)
+(In(d): <[--d], [---]>)
+(In(S.a): <[--d], [---]>)
+
+/**/int main(void)
+{
+  /* <[--d], [---]> */ int a;
+  /* <[--d], [---]> */ int b;
+  /* <[---], [---]> */ int c;
+  /* <[---], [---]> */ int x;
+  /* <[--d], [---]> */
+  a = 0;
+  /* <[--d], [---]> */
+  b = 0;
+  /* <[---], [---]> */
+  c = 0;
+  /* <[--d], [---]> */
+  if (d > 0) {
+    /*@ assert b ≡ 0; */ /* <[---], [---]> */
+                           ;
+    /* <[--d], [---]> */
+    a = 1;
+  }
+  /*@ slice pragma expr a+b; */ /* <[ S ], [---]> */
+                                ;
+  /* <[---], [ S ]> */
+  /*@ assert Value: signed_overflow: (int)((int)(a+b)+c)+d ≤ 2147483647; */
+  /* <[---], [---]> */
+  x = ((a + b) + c) + d;
+  /* sig call: (InCtrl: <[--d], [---]>)
+               (In1: <[--d], [---]>) */
+  /* call to modifS_slice_1:
+    (InCtrl: <[--d], [---]>)
+    (In1: <[--d], [---]>)
+    (In(S.a): <[--d], [---]>) */
+  /* <[--d], [---]> */
+  modifS(a,b);
+  /* invisible call */ /* <[---], [---]> */
+  d = new_int();
+  /* invisible call */ /* <[---], [---]> */
+  f1(d);
+  /* invisible call */ /* <[---], [---]> */
+  f2(d);
+  /* invisible call */ /* <[---], [---]> */
+  f3(d);
+  /* invisible call */ /* <[---], [---]> */
+  f4(d);
+  /* invisible call */ /* <[---], [---]> */
+  f5(d);
+  /* invisible call */ /* <[---], [---]> */
+  f6(d);
+  /* invisible call */ /* <[---], [---]> */
+  f7(d);
+  /* invisible call */ /* <[---], [---]> */
+  f8(d);
+  /* invisible call */ /* <[---], [---]> */
+  f9(d,a);
+  /* <[---], [---]> */
+  return x;
+}
+
+Slicing project worklist [default/slicing_1] =
+
+
+[slicing] exporting project to 'Sliced code'...
+[slicing] applying all slicing requests...
+[slicing] applying 0 actions...
+[sparecode] remove unused global declarations from project 'Sliced code tmp'
+[sparecode] removed unused global declarations in new project 'Sliced code'
+/* Generated by Frama-C */
+struct Tstr {
+   int a ;
+   int b ;
+};
+struct Tstr S;
+void modifS_slice_1(int a)
+{
+  S.a += a;
+  /*@ slice pragma expr S.a; */ ;
+  return;
+}
+
+int d;
+void main(void)
+{
+  int a;
+  int b;
+  a = 0;
+  b = 0;
+  if (d > 0) {
+    /*@ assert b ≡ 0; */ ;
+    a = 1;
+  }
+  /*@ slice pragma expr a+b; */ ;
+  modifS_slice_1(a);
+  return;
+}
+
+

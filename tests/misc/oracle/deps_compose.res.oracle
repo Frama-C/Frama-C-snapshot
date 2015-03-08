@@ -1,0 +1,86 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/deps_compose.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  c ∈ {1}
+  z ∈ {0}
+  x1 ∈ {0}
+  y1 ∈ {0}
+  x2 ∈ {0}
+  y2 ∈ {0}
+  x3 ∈ {0}
+  y3 ∈ {0}
+  x4 ∈ {0}
+  y4 ∈ {0}
+  x5 ∈ {0}
+  y5 ∈ {0}
+  x6 ∈ {0}
+  y6 ∈ {0}
+[value] computing for function f <- main.
+        Called from tests/misc/deps_compose.i:17.
+[value] Recording results for f
+[value] Done for function f
+[value] computing for function f <- main.
+        Called from tests/misc/deps_compose.i:26.
+[value] Recording results for f
+[value] Done for function f
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function f:
+  x1 ∈ {0}
+  x2 ∈ {0}
+  x3 ∈ {0}
+  x4 ∈ {0}
+  x5 ∈ {0}
+  x6 ∈ {0}
+[value] Values at end of function main:
+  x1 ∈ {0}
+  y1 ∈ {0}
+  x2 ∈ {0}
+  y2 ∈ {0}
+  x3 ∈ {0}
+  y3 ∈ {0}
+  x4 ∈ {0}
+  y4 ∈ {0}
+  x5 ∈ {0}
+  y5 ∈ {0}
+  x6 ∈ {0}
+  y6 ∈ {0}
+[from] Computing for function f
+[from] Done for function f
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function f:
+  x1 FROM c; y1
+  x2 FROM c; y2
+  x3 FROM c; y3
+  x4 FROM c; y4
+  x5 FROM c; y5
+  x6 FROM c; y6
+[from] Function main:
+  x1 FROM c; z
+  y1 FROM z
+  x2 FROM c; z
+  y2 FROM z
+  x3 FROM c; z
+  y3 FROM z
+  x4 FROM c; z
+  y4 FROM z
+  x5 FROM c; z
+  y5 FROM z
+  x6 FROM c; z
+  y6 FROM z
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function f:
+          x1; x2; x3; x4; x5; x6
+[inout] Inputs for function f:
+          c; y1; y2; y3; y4; y5; y6
+[inout] Out (internal) for function main:
+          x1; y1; x2; y2; x3; y3; x4; y4; x5; y5; x6; y6
+[inout] Inputs for function main:
+          c; z; y1; y2; y3; y4; y5; y6

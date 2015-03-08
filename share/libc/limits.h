@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2014                                               */
+/*  Copyright (C) 2007-2015                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -75,6 +75,10 @@
 
 /* Maximum value an `unsigned long long int' can hold.  (Minimum is 0.)  */
 #   define ULLONG_MAX	__FC_ULLONG_MAX
+
+/* Maximum number of bytes in a pathname, including the terminating
+   null character. (Minimum is 256.) */
+#define PATH_MAX  __FC_PATH_MAX
 
 #endif
 

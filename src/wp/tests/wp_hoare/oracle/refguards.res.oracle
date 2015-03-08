@@ -1,0 +1,85 @@
+# frama-c -wp -wp-model 'Typed (Ref)' [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_hoare/refguards.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] Collecting variable usage
+------------------------------------------------------------
+  Function f
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_hoare/refguards.i, line 9) in 'f':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function g
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_hoare/refguards.i, line 17) in 'g':
+Let a_1 = (shift_sint32 b_0 k_0).
+Let x_0 = Mint_1[a_1].
+Let x_1 = Mint_1[(shift_sint32 a_0 k_0)->x_0][a_1].
+Assume {
+  (* Domain *)
+  Type: (is_sint32 k_0) /\ (is_sint32 x_0) /\ (is_sint32 x_1).
+  (* Heap *)
+  Have: ((region (base a_0))<=0) /\ ((region (base b_0))<=0).
+}
+Prove: x_0=x_1.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function h
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_hoare/refguards.i, line 24) in 'h':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function s
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_hoare/refguards.i, line 32) in 's':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_hoare/refguards.i, line 33) in 's':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_hoare/refguards.i, line 34) in 's':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_hoare/refguards.i, line 35) in 's':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_hoare/refguards.i, line 36) in 's':
+Assume {
+  (* Heap *)
+  Have: ((region (base c_0))<=0) /\ ((region (base d_0))<=0).
+}
+Prove: c_0!=d_0.
+
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_hoare/refguards.i, line 37) in 's':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------

@@ -1,3 +1,7 @@
+/* run.config
+   STDOPT: +"-absolute-valid-range 0x20-0x23"
+*/
+
 int G;
 
 typedef short u16;

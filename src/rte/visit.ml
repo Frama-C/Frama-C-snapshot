@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -920,15 +920,11 @@ let compute () =
   Ast.compute () ;
   let include_function kf =
     let fsel = Options.FunctionSelection.get () in
-    Datatype.String.Set.is_empty fsel
-    || 
-      let name = Kernel_function.get_name kf in
-      Datatype.String.Set.mem name fsel
+    Kernel_function.Set.is_empty fsel
+    || Kernel_function.Set.mem kf fsel
   in
   Globals.Functions.iter
-    (fun kf ->
-      if include_function kf && Kernel_function.is_definition kf then
-	!Db.RteGen.annotate_kf kf)
+    (fun kf -> if include_function kf then !Db.RteGen.annotate_kf kf)
 
 (*
 Local Variables:

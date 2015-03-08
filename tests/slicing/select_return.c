@@ -7,9 +7,9 @@
   OPT: -check -slice-calls send,send_bis -lib-entry -main g -slicing-level 1 -no-slice-callers -journal-disable -then-on 'Slicing export' -print
   OPT: -check -slice-calls send,send_bis -lib-entry -main g -slicing-level 2 -no-slice-callers -journal-disable -then-on 'Slicing export' -print
   OPT: -check -slice-calls send,send_bis -lib-entry -main g -slicing-level 3 -no-slice-callers -journal-disable -then-on 'Slicing export' -print
-  OPT: -check -slice-calls "send , send_bis" -lib-entry -main g -slicing-level 1 -journal-disable -then-on 'Slicing export' -print
+  OPT: -check -slice-calls "send, send_bis" -lib-entry -main g -slicing-level 1 -journal-disable -then-on 'Slicing export' -print
   OPT: -check -slice-calls "send, send_bis" -lib-entry -main g -slicing-level 2 -journal-disable -then-on 'Slicing export' -print
-  OPT: -check -slice-calls "send ,send_bis" -lib-entry -main g -slicing-level 3 -journal-disable -then-on 'Slicing export' -print
+  OPT: -check -slice-calls "send,send_bis" -lib-entry -main g -slicing-level 3 -journal-disable -then-on 'Slicing export' -print
   OPT: -check -slice-return f   -lib-entry -main g -slicing-level 0 -no-slice-callers -journal-disable -then-on 'Slicing export' -print
   OPT: -check -slice-return f   -lib-entry -main g -slicing-level 1 -no-slice-callers -journal-disable -then-on 'Slicing export' -print
   OPT: -check -slice-return f   -lib-entry -main g -slicing-level 2 -no-slice-callers -journal-disable -then-on 'Slicing export' -print

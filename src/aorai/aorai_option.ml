@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Aorai plug-in of Frama-C.                        *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -31,7 +31,7 @@ include Plugin.Register
    end)
 
 module Ltl_File =
-  EmptyString
+  Empty_string
     (struct
        let option_name = "-aorai-ltl"
        let arg_name = ""
@@ -39,7 +39,7 @@ module Ltl_File =
      end)
 
 module To_Buchi =
-  EmptyString
+  Empty_string
     (struct
        let option_name = "-aorai-to-buchi"
        let arg_name = "f"
@@ -48,7 +48,7 @@ module To_Buchi =
      end)
 
 module Buchi =
-  EmptyString
+  Empty_string
     (struct
        let option_name = "-aorai-buchi"
        let arg_name = "f"
@@ -57,7 +57,7 @@ module Buchi =
      end)
 
 module Ya =
-  EmptyString
+  Empty_string
     (struct
        let option_name = "-aorai-automata"
        let arg_name = "f"
@@ -74,7 +74,7 @@ module Output_Spec =
         end)
 
 module Output_C_File =
-  EmptyString
+  Empty_string
     (struct
        let option_name = "-aorai-output-c-file"
        let arg_name = ""

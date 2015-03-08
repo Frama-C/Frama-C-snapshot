@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,25 +20,36 @@
 (*                                                                        *)
 (**************************************************************************)
 
+(** Traces. *)
+
+(* [JS 2015/01/27] would be nice to better define what lattice this module
+   defines. *)
+
 open Cil_types
 
-(* Type of traces. *)
+(** Type of traces. *)
 type t;;
 val pretty : Format.formatter -> t -> unit;;
 
-(* No trace. Should be used only as a base case for a no-op join. *)
+(** No trace. Should be used only as a base case for a no-op join. *)
 val bottom: t;;
-(* Unknown trace. Should be used only to forget a trace. *)
+
+(** Unknown trace. Should be used only to forget a trace. *)
 val top: t;;
 
 val join: t -> t -> t;;
+val narrow: t -> t -> t;;
 
-(* Create a trace, or add an element at the end of a trace.  *)
+(** Create a trace, or add an element at the end of a trace.  *)
 val initial: kernel_function -> t;;
 val add_disjunction: Property.t -> predicate named -> t -> t;;
 val add_statement: stmt -> t -> t;;
 
-(* Set to false to set all traces to top. *)
+(** Set to false to set all traces to top. *)
 val set_compute_trace: bool -> unit;;
 
-
+(*
+Local Variables:
+compile-command: "make -C ../.."
+End:
+*)

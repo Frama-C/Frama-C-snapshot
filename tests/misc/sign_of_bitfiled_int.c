@@ -1,6 +1,6 @@
 /* run.config
-   OPT: -val -cpp-command "gcc -C -E -DPTEST"  -journal-disable
-   OPT: -machdep ppc_32 -val -cpp-command "gcc -C -E -DPTEST" -journal-disable
+   OPT: -val -cpp-extra-args="-DPTEST"  -journal-disable
+   OPT: -machdep ppc_32 -val -cpp-extra-args="-DPTEST" -journal-disable
 */
 
 

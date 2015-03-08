@@ -1,0 +1,206 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_acsl/assigns_path.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function job
+------------------------------------------------------------
+
+Goal Post-condition 'N' in 'job':
+Let x_0 = p_2.F_S_n.
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_2) /\ (is_sint32 x_0).
+  (* Heap *)
+  Have: (region (base b_0))<=0.
+  (* Pre-condition (file tests/wp_acsl/assigns_path.i, line 6) in 'job' *)
+  (* Pre-condition: *)
+  Have: (0<=x_0) /\ (x_0<=3).
+  (* Invariant (file tests/wp_acsl/assigns_path.i, line 17) *)
+  (* tests/wp_acsl/assigns_path.i:20: Invariant: *)
+  Have: forall i_0:int.
+        (i_0<i_2) -> (0<=i_0)
+        -> (p_2.F_S_a[i_0]=Mint_2[(shift_sint32 b_0 i_0)]).
+  (* Invariant (file tests/wp_acsl/assigns_path.i, line 16) *)
+  (* tests/wp_acsl/assigns_path.i:20: Invariant: *)
+  Have: (0<=i_2) /\ (i_2<=x_0).
+  (* tests/wp_acsl/assigns_path.i:20: Else *)
+  Have: x_0<=i_2.
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'A' in 'job':
+Let a_0 = p_2.F_S_a.
+Let x_0 = p_2.F_S_n.
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_2) /\ (is_sint32 x_0).
+  (* Goal *)
+  When: (0<=i_4) /\ (i_4<x_0).
+  (* Heap *)
+  Have: (region (base b_1))<=0.
+  (* Pre-condition (file tests/wp_acsl/assigns_path.i, line 6) in 'job' *)
+  (* Pre-condition: *)
+  Have: (0<=x_0) /\ (x_0<=3).
+  (* Invariant (file tests/wp_acsl/assigns_path.i, line 17) *)
+  (* tests/wp_acsl/assigns_path.i:20: Invariant: *)
+  Have: forall i_0:int.
+        (i_0<i_2) -> (0<=i_0) -> (a_0[i_0]=Mint_1[(shift_sint32 b_1 i_0)]).
+  (* Invariant (file tests/wp_acsl/assigns_path.i, line 16) *)
+  (* tests/wp_acsl/assigns_path.i:20: Invariant: *)
+  Have: (0<=i_2) /\ (i_2<=x_0).
+  (* tests/wp_acsl/assigns_path.i:20: Else *)
+  Have: x_0<=i_2.
+}
+Prove: a_0[i_4]=Mint_1[(shift_sint32 b_1 i_4)].
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file tests/wp_acsl/assigns_path.i, line 16):
+Let x_0 = p_3.F_S_n.
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_2) /\ (is_sint32 x_0) /\ (is_sint32 (1+i_2)).
+  (* Heap *)
+  Have: (region (base b_0))<=0.
+  (* Pre-condition (file tests/wp_acsl/assigns_path.i, line 6) in 'job' *)
+  (* Pre-condition: *)
+  Have: (0<=x_0) /\ (x_0<=3).
+  (* Invariant (file tests/wp_acsl/assigns_path.i, line 17) *)
+  (* tests/wp_acsl/assigns_path.i:20: Invariant: *)
+  Have: forall i_0:int.
+        (i_0<i_2) -> (0<=i_0)
+        -> (p_3.F_S_a[i_0]=Mint_2[(shift_sint32 b_0 i_0)]).
+  (* Invariant (file tests/wp_acsl/assigns_path.i, line 16) *)
+  (* tests/wp_acsl/assigns_path.i:20: Invariant: *)
+  Have: (0<=i_2) /\ (i_2<=x_0).
+  (* tests/wp_acsl/assigns_path.i:20: Then *)
+  Have: i_2<x_0.
+}
+Prove: -1<=i_2.
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file tests/wp_acsl/assigns_path.i, line 16):
+Assume {
+  (* Domain *)
+  Type: (is_sint32 n_0).
+  (* Heap *)
+  Have: (region (base b_0))<=0.
+  (* Pre-condition (file tests/wp_acsl/assigns_path.i, line 6) in 'job' *)
+  (* Pre-condition: *)
+  Have: (0<=n_0) /\ (n_0<=3).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file tests/wp_acsl/assigns_path.i, line 17):
+Let a_0 = p_1.F_S_a.
+Let x_0 = p_1.F_S_n.
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_2) /\ (is_sint32 x_0) /\ (is_sint32 (1+i_2)).
+  (* Goal *)
+  When: (0<=i_1) /\ (i_1<=i_2).
+  (* Heap *)
+  Have: (region (base b_0))<=0.
+  (* Pre-condition (file tests/wp_acsl/assigns_path.i, line 6) in 'job' *)
+  (* Pre-condition: *)
+  Have: (0<=x_0) /\ (x_0<=3).
+  (* Invariant (file tests/wp_acsl/assigns_path.i, line 17) *)
+  (* tests/wp_acsl/assigns_path.i:20: Invariant: *)
+  Have: forall i_0:int.
+        (i_0<i_2) -> (0<=i_0) -> (a_0[i_0]=Mint_0[(shift_sint32 b_0 i_0)]).
+  (* Invariant (file tests/wp_acsl/assigns_path.i, line 16) *)
+  (* tests/wp_acsl/assigns_path.i:20: Invariant: *)
+  Have: (0<=i_2) /\ (i_2<=x_0).
+  (* tests/wp_acsl/assigns_path.i:20: Then *)
+  Have: i_2<x_0.
+}
+Prove: Mint_0[(shift_sint32 b_0 i_1)]=
+       a_0[i_2->Mint_0[(shift_sint32 b_0 i_2)]][i_1].
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file tests/wp_acsl/assigns_path.i, line 17):
+Assume { (* Goal *) When: false. }
+Prove: p_6.F_S_a[i_6]=Mint_2[(shift_sint32 b_0 i_6)].
+
+------------------------------------------------------------
+
+Goal Loop assigns (file tests/wp_acsl/assigns_path.i, line 18) (1/2):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Loop assigns (file tests/wp_acsl/assigns_path.i, line 18) (2/2):
+Effect at line 20
+Let x_0 = p_3.F_S_n.
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_2) /\ (is_sint32 x_0).
+  (* Goal *)
+  When: (0<=i_2) /\ (i_2<=3).
+  (* Heap *)
+  Have: (region (base b_0))<=0.
+  (* Pre-condition (file tests/wp_acsl/assigns_path.i, line 6) in 'job' *)
+  (* Pre-condition: *)
+  Have: (0<=x_0) /\ (x_0<=3).
+  (* Invariant (file tests/wp_acsl/assigns_path.i, line 17) *)
+  (* tests/wp_acsl/assigns_path.i:20: Invariant: *)
+  Have: forall i_0:int.
+        (i_0<i_2) -> (0<=i_0)
+        -> (p_3.F_S_a[i_0]=Mint_2[(shift_sint32 b_0 i_0)]).
+  (* Invariant (file tests/wp_acsl/assigns_path.i, line 16) *)
+  (* tests/wp_acsl/assigns_path.i:20: Invariant: *)
+  Have: i_2<=x_0.
+  (* tests/wp_acsl/assigns_path.i:20: Then *)
+  Have: i_2<x_0.
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_acsl/assigns_path.i, line 9) in 'job' (1/3):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_acsl/assigns_path.i, line 9) in 'job' (2/3):
+Effect at line 20
+Assume {
+  (* Domain *)
+  Type: (is_sint32 n_0).
+  (* Heap *)
+  Have: (region (base b_0))<=0.
+  (* Pre-condition (file tests/wp_acsl/assigns_path.i, line 6) in 'job' *)
+  (* Pre-condition: *)
+  Have: (0<=n_0) /\ (n_0<=3).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_acsl/assigns_path.i, line 9) in 'job' (3/3):
+Effect at line 20
+Let x_0 = p_3.F_S_n.
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_0).
+  (* Heap *)
+  Have: (region (base b_0))<=0.
+  (* Pre-condition (file tests/wp_acsl/assigns_path.i, line 6) in 'job' *)
+  (* Pre-condition: *)
+  Have: (0<=x_0) /\ (x_0<=3).
+}
+Prove: true.
+
+------------------------------------------------------------

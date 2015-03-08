@@ -77,14 +77,13 @@ let mergeInlinesRepeat = mergeInlines && true
 (* The default value has been changed to false after Boron to fix bts#524.
    But this behavior is very convenient to parse the Linux kernel. *)
 let mergeInlinesWithAlphaConvert () = 
-  mergeInlines && Kernel.AgressiveMerging.get ()
+  mergeInlines && Kernel.AggressiveMerging.get ()
 
 
 (* when true, merge duplicate definitions of externally-visible functions;
  * this uses a mechanism which is faster than the one for inline functions,
  * but only probabilistically accurate *)
 let mergeGlobals = true
-
 
 (* Return true if 's' starts with the prefix 'p' *)
 let prefix p s =
@@ -461,9 +460,8 @@ module ModelMerging =
      end)
 
 let same_int64 e1 e2 =
-  match (constFold true e1).enode, (constFold true e2).enode with
-    | Const(CInt64(i, _, _)), Const(CInt64(i', _, _)) -> 
-      Integer.equal i i'
+  match constFoldToInt e1, constFoldToInt e2 with
+    | Some i, Some i' -> Integer.equal i i'
     | _ -> false
 
 let compare_int e1 e2 =
@@ -830,7 +828,7 @@ let rec combineTypes (what: combineWhat)
         else
             (* GCC allows a function definition to have a more precise integer
              * type than a prototype that says "int" *)
-          if not theMachine.msvcMode && oldk = IInt && bitsSizeOf t <= 32
+          if Cil.gccMode () && oldk = IInt && bitsSizeOf t <= 32
           && (what = CombineFunarg || what = CombineFunret)
           then
             k
@@ -849,8 +847,8 @@ let rec combineTypes (what: combineWhat)
       if oldk == k then oldk else
           (* GCC allows a function definition to have a more precise integer
            * type than a prototype that says "double" *)
-        if not theMachine.msvcMode && oldk = FDouble && k = FFloat
-                                           && (what = CombineFunarg || what = CombineFunret)
+        if Cil.gccMode () && oldk = FDouble && k = FFloat &&
+          (what = CombineFunarg || what = CombineFunret)
         then
           k
         else
@@ -1390,8 +1388,8 @@ let oneFilePass1 (f:file) : unit =
       (* We do not want to turn non-"const" globals into "const" one. That
        * can happen if one file declares the variable a non-const while
        * others declare it as "const". *)
-      if hasAttribute "const" (typeAttrs vi.vtype) !=
-        hasAttribute "const" (typeAttrs oldvi.vtype) then begin
+      if typeHasAttribute "const" vi.vtype !=
+        typeHasAttribute "const" oldvi.vtype then begin
           Cil.update_var_type
             newrep.ndata (typeRemoveAttributes ["const"] newtype);
         end else Cil.update_var_type newrep.ndata newtype;
@@ -2061,6 +2059,11 @@ begin
         67 + 83*(stmtListSum b.bstmts) + 97*(stmtListSum h.bstmts)
     | TryFinally (b, h, _) ->
         103 + 113*(stmtListSum b.bstmts) + 119*(stmtListSum h.bstmts)
+    | Throw(_,_) -> 137
+    | TryCatch (b,l,_) ->
+      139 + 149*(stmtListSum b.bstmts) + 
+        151 *
+        (List.fold_left (fun acc (_,b) -> acc + stmtListSum b.bstmts) 0 l)
   in
 
   (* disabled 2nd and 3rd measure because they appear to get different
@@ -2336,6 +2339,7 @@ let oneFilePass2 (f: file) =
           (* We apply the renaming *)
           let vi = processVarinfo fdec.svar l in
           if fdec.svar != vi then begin
+            Kernel.debug ~dkey "%s: %d -> %d" vi.vname fdec.svar.vid vi.vid;
 	    (try add_alpha_renaming vi (Cil.getFormalsDecl vi) fdec.sformals
 	     with Not_found -> ());
             fdec.svar <- vi
@@ -2359,6 +2363,10 @@ let oneFilePass2 (f: file) =
             with Not_found -> begin
               [], false
             end
+          in
+          let defn_formals = 
+            try Some (Cil.getFormalsDecl fdec.svar)
+            with Not_found -> None
           in
           if foundthem then begin
             let _argl = argsToList args in
@@ -2482,7 +2490,15 @@ let oneFilePass2 (f: file) =
               let curSum = (functionChecksum fdec') in
               try
                 let _prevFun, prevLoc, prevSum =
-                  (H.find emittedFunDefn fdec'.svar.vname) in
+                  (H.find emittedFunDefn fdec'.svar.vname)
+                in
+                (* restore old binding for vi, as we are about to drop
+                   the new definition and its formals.
+                 *)
+                Cil_datatype.Varinfo.Hashtbl.remove formals_renaming vi;
+                (* Restore the formals from the old definition. We always have
+                   Some l from getFormalsDecl in case of a defined function. *)
+                Cil.setFormals fdec (Extlib.the defn_formals);
                 (* previous was found *)
                 if (curSum = prevSum) then
                   Kernel.warning ~current:true
@@ -2699,6 +2715,12 @@ let merge_specs orig to_merge =
 
 let global_merge_spec g =
   Kernel.debug ~dkey "Merging global %a" Cil_printer.pp_global g;
+  let rename v spec =
+    try
+      let alpha = Cil_datatype.Varinfo.Hashtbl.find formals_renaming v in
+      ignore (visitCilFunspec alpha spec)
+    with Not_found -> ()
+  in
   match g with
   | GFun(fdec,loc) ->
     (try
@@ -2707,21 +2729,19 @@ let global_merge_spec g =
        let specs = Cil_datatype.Varinfo.Hashtbl.find spec_to_merge fdec.svar in
        List.iter
 	 (fun s -> 
-	   Kernel.debug ~dkey "Found spec to merge %a" Cil_printer.pp_funspec s)
+	   Kernel.debug ~dkey "Found spec to merge %a" Cil_printer.pp_funspec s;
+           rename fdec.svar s;
+           Kernel.debug ~dkey "After renaming:@\n%a" Cil_printer.pp_funspec s)
          specs;
        Kernel.debug ~dkey "Merging with %a" Cil_printer.pp_funspec fdec.sspec ;
        Cil.CurrentLoc.set loc;
+       rename fdec.svar fdec.sspec;
        merge_specs fdec.sspec specs
-     with Not_found -> 
-       Kernel.debug ~dkey "No spec_to_merge")
+     with Not_found ->
+       Kernel.debug ~dkey "No spec_to_merge";
+       rename fdec.svar fdec.sspec)
   | GVarDecl(spec,v,loc) ->
     Kernel.debug ~dkey "Merging global declaration %a" Cil_printer.pp_global g;
-    let rename spec =
-      try
-        let alpha = Cil_datatype.Varinfo.Hashtbl.find formals_renaming v in
-        ignore (visitCilFunspec alpha spec)
-      with Not_found -> ()
-    in
     (try
        let specs = Cil_datatype.Varinfo.Hashtbl.find spec_to_merge v in
        List.iter
@@ -2729,17 +2749,17 @@ let global_merge_spec g =
 	   Kernel.debug ~dkey "Found spec to merge %a" Cil_printer.pp_funspec s)
          specs;
        Kernel.debug "Renaming %a" Cil_printer.pp_funspec spec ;
-       rename spec;
+       rename v spec;
        (* The registered specs might also need renaming up to 
           definition's formals instead of declaration's ones. *)
-       List.iter rename specs;
+       List.iter (rename v) specs;
        Kernel.debug ~dkey "Renamed to %a" Cil_printer.pp_funspec spec;
        Cil.CurrentLoc.set loc;
        merge_specs spec specs;
        Kernel.debug ~dkey "Merged into %a" Cil_printer.pp_funspec spec ;
      with Not_found -> 
        Kernel.debug ~dkey "No spec_to_merge for declaration" ;
-       rename spec;
+       rename v spec;
        Kernel.debug ~dkey "Renamed to %a" Cil_printer.pp_funspec spec ;
     )
   | _ -> ()

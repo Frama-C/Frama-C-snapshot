@@ -1,0 +1,44 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/bug0245.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  R ∈ {0}
+  p ∈ {0}
+  S ∈ {0}
+  q ∈ {0}
+tests/misc/bug0245.i:20:[value] warning: locals {u} escaping the scope of a block of main through p
+tests/misc/bug0245.i:20:[value] warning: locals {v} escaping the scope of a block of main through q
+tests/misc/bug0245.i:23:[kernel] warning: accessing left-value that contains escaping addresses:
+                  assert ¬\dangling(&p);
+tests/misc/bug0245.i:23:[kernel] warning: completely indeterminate value in p.
+tests/misc/bug0245.i:24:[kernel] warning: accessing left-value that contains escaping addresses:
+                  assert ¬\dangling(&q);
+tests/misc/bug0245.i:24:[kernel] warning: completely indeterminate value in q.
+[value] Recording results for main
+[value] done for function main
+tests/misc/bug0245.i:23:[value] Assertion 'Value,dangling_pointer' got final status invalid.
+tests/misc/bug0245.i:24:[value] Assertion 'Value,dangling_pointer' got final status invalid.
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  R ∈ {0}
+  p ∈ ESCAPINGADDR
+  S ∈ {0}
+  q ∈ ESCAPINGADDR
+  a ∈ {2}
+  i ∈ {2}
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  R FROM c (and SELF)
+  p FROM \nothing
+  S FROM d (and SELF)
+  q FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          R; p; S; q; a; i; u; v
+[inout] Inputs for function main:
+          p; q

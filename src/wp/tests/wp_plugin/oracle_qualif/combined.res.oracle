@@ -1,0 +1,164 @@
+[kernel] preprocessing with "gcc -C -E -I.  tests/wp_plugin/combined.c"
+[kernel] warning: ignoring status of axiomatic `A'
+[wp] warning: Missing RTE guards
+[wp] warning: Assuming contracts of external functions
+[wp] [WP:simplified] Goal store_job_loop_assigns_4 : Valid
+[wp] [WP:simplified] Goal store_job_loop_assigns_13 : Valid
+[wp] [WP:simplified] Goal store_job_loop_inv_2_established : Valid
+[wp] [Alt-Ergo] Goal store_job_assert_7 : Valid
+[wp] [Alt-Ergo] Goal store_job_loop_inv_5_established : Valid
+[wp] [Alt-Ergo] Goal store_job_loop_inv_5_preserved : Valid
+[wp] [Alt-Ergo] Goal store_job_loop_inv_3_established : Valid
+[wp] [Alt-Ergo] Goal store_job_loop_inv_3_preserved : Valid
+[wp] [Alt-Ergo] Goal store_job_loop_inv_2_preserved : Valid
+[wp] [Alt-Ergo] Goal store_job_assert_1 : Unknown
+[report] Computing properties status...
+------------------------------------------------------------
+   Global Properties
+------------------------------------------------------------
+
+[ Valid ]  Loop Invariants (sid:13)
+[ Valid ]  Loop Invariants (sid:4)
+
+------------------------------------------------------------
+   Properties for Function 'f'
+------------------------------------------------------------
+
+[ Unverifiable, considered valid ]  ensures P(\result)
+[ Unverifiable, considered valid ]  assigns \nothing;
+[ Unknown ]  behavior default! of function f
+
+------------------------------------------------------------
+   Properties for Function 'g'
+------------------------------------------------------------
+
+[ Unverifiable, considered valid ]  assigns \nothing;
+[ Unknown ]  behavior default! of function g
+
+------------------------------------------------------------
+   Properties for Function 'job'
+------------------------------------------------------------
+
+[ Partial ]  assigns i, *(t+(0..49));
+[ Partial ]  assigns j, *(t+(A..99));
+[ Unknown ]  assert 50 ≤ A ∧ A ≤ 100;
+[ Valid ]  loop invariant 0 ≤ i ∧ i ≤ 50;
+[ Partial ]  loop invariant ∀ ℤ k; 0 ≤ k ∧ k < i ⇒ P(*(t+k));
+[ Partial ]  loop invariant A ≤ j ∧ j ≤ 100;
+[ Partial ]  assert ∀ ℤ k; 0 ≤ k ∧ k < 50 ⇒ P(*(t+k));
+
+------------------------------------------------------------
+  No proofs       :    3
+  Unverifiable    :    3
+  Partial proofs  :    5
+  Complete proofs :    3
+  Total           :   14
+------------------------------------------------------------
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+        T[0..99] ∈ {0}
+[value] computing for function job <- main.
+        Called from tests/wp_plugin/combined.c:42.
+tests/wp_plugin/combined.c:22:[value] Assertion got status valid.
+tests/wp_plugin/combined.c:28:[value] entering loop for the first time
+[value] computing for function f <- job <- main.
+        Called from tests/wp_plugin/combined.c:28.
+tests/wp_plugin/combined.c:13:[value] Function f: postcondition got status unknown
+[value] Done for function f
+[value] computing for function f <- job <- main.
+        Called from tests/wp_plugin/combined.c:28.
+[value] Done for function f
+tests/wp_plugin/combined.c:28:[value] assigning non deterministic value for the first time
+[value] computing for function f <- job <- main.
+        Called from tests/wp_plugin/combined.c:28.
+[value] Done for function f
+[value] computing for function f <- job <- main.
+        Called from tests/wp_plugin/combined.c:28.
+[value] Done for function f
+[value] computing for function f <- job <- main.
+        Called from tests/wp_plugin/combined.c:28.
+[value] Done for function f
+[value] computing for function f <- job <- main.
+        Called from tests/wp_plugin/combined.c:28.
+[value] Done for function f
+[value] computing for function f <- job <- main.
+        Called from tests/wp_plugin/combined.c:28.
+[value] Done for function f
+[value] computing for function f <- job <- main.
+        Called from tests/wp_plugin/combined.c:28.
+[value] Done for function f
+[value] computing for function f <- job <- main.
+        Called from tests/wp_plugin/combined.c:28.
+[value] Done for function f
+tests/wp_plugin/combined.c:33:[value] entering loop for the first time
+[value] computing for function g <- job <- main.
+        Called from tests/wp_plugin/combined.c:33.
+[value] Done for function g
+[value] computing for function g <- job <- main.
+        Called from tests/wp_plugin/combined.c:33.
+[value] Done for function g
+[value] computing for function g <- job <- main.
+        Called from tests/wp_plugin/combined.c:33.
+[value] Done for function g
+[value] computing for function g <- job <- main.
+        Called from tests/wp_plugin/combined.c:33.
+[value] Done for function g
+[value] computing for function g <- job <- main.
+        Called from tests/wp_plugin/combined.c:33.
+[value] Done for function g
+tests/wp_plugin/combined.c:35:[value] Assertion got status unknown.
+[value] Recording results for job
+[value] Done for function job
+[value] Recording results for main
+[value] done for function main
+[from] Computing for function f
+[from] Done for function f
+[from] Computing for function g
+[from] Done for function g
+[scope] warning: [get_annot_zone] don't know how to compute zone: skip this annotation
+[report] Computing properties status...
+------------------------------------------------------------
+   Global Properties
+------------------------------------------------------------
+
+[ Unverifiable, considered valid ]  Function 'f' is consistent with Store-LogicVar
+[ Unverifiable, considered valid ]  Function 'g' is consistent with Store-LogicVar
+[ Valid ]  Loop Invariants (sid:13)
+[ Valid ]  Loop Invariants (sid:4)
+
+------------------------------------------------------------
+   Properties for Function 'f'
+------------------------------------------------------------
+
+[ Unverifiable, considered valid ]  ensures P(\result)
+[ Unverifiable, considered valid ]  assigns \nothing;
+[ Unknown ]  behavior default! of function f
+
+------------------------------------------------------------
+   Properties for Function 'g'
+------------------------------------------------------------
+
+[ Unverifiable, considered valid ]  assigns \nothing;
+[ Unknown ]  behavior default! of function g
+
+------------------------------------------------------------
+   Properties for Function 'job'
+------------------------------------------------------------
+
+[ Valid ]  assigns i, *(t+(0..49));
+[ Valid ]  assigns j, *(t+(A..99));
+[ Valid ]  assert 50 ≤ A ∧ A ≤ 100;
+[ Valid ]  loop invariant 0 ≤ i ∧ i ≤ 50;
+[ Valid ]  loop invariant ∀ ℤ k; 0 ≤ k ∧ k < i ⇒ P(*(t+k));
+[ Valid ]  loop invariant A ≤ j ∧ j ≤ 100;
+[ Valid ]  assert ∀ ℤ k; 0 ≤ k ∧ k < 50 ⇒ P(*(t+k));
+
+------------------------------------------------------------
+  No proofs       :    2
+  Unverifiable    :    5
+  Partial proofs  :    0
+  Complete proofs :    9
+  Total           :   16
+------------------------------------------------------------

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,42 +24,25 @@
 
 open Cil_types
 
-(** Signature of the module explaining how to find the Froms for a given call
-    during the analysis. *)
-module type Froms_To_Use_Sig =
+(** Computations of From can be done Functionwise (one result per function),
+    or Callwise (one result by call). The signature [To_Use] is used to
+    describe the functions that are different between the two implementations.*)
+module type To_Use =
 sig
-  val get : kernel_function -> kinstr -> Function_Froms.t
-end
+  (** How to find the Froms for a given call during the analysis. *)
+  val get_from_call : kernel_function -> stmt -> Function_Froms.t
 
-(** Signature of the module explaining how to evaluatue some values during the
-    analysis. This is typically Db.Value, or a specialized versions of
-    Db.Value on more precise state. *)
-module type Values_To_Use_Sig =
-sig
-  val lval_to_zone_with_deps :
-    stmt ->
-    deps:Locations.Zone.t option ->
-    for_writing:bool ->
-    lval ->
-    Locations.Zone.t * Locations.Zone.t * bool
+  (** How to find the state of Value at a given statement during the analysis.*)
+  val get_value_state : stmt -> Db.Value.state
 
-  val expr_to_kernel_function :
-    stmt ->
-    deps:Locations.Zone.t option ->
-    exp -> Locations.Zone.t * Kernel_function.Hptset.t
+  val keep_base : kernel_function -> Base.t -> bool
+  (** Return true if the given base is in scope after a call to the given
+      function. (In particular, formals and locals of the function must result
+      in [false].) *)
 
-  val get_stmt_state : stmt -> Db.Value.state
-
-  val access_expr : stmt -> exp -> Db.Value.t
-end
-
-(** Module explaining how results should be recorded. *)
-module type Recording_Sig =
-sig
-  val accept_base_in_lmap : kernel_function -> Base.t -> bool
-  val final_cleanup :
-    kernel_function -> Function_Froms.t -> Function_Froms.t
-  val record_kf : kernel_function -> Function_Froms.t -> unit
+  (** Clean the given from (that have been computed for the given function),
+      optionally save them, and return the cleant result. *)
+  val cleanup_and_save : kernel_function -> Function_Froms.t -> Function_Froms.t
 end
 
 (** Function that compute the Froms from a given prototype, called
@@ -78,12 +61,7 @@ val find_deps_lval_no_transitivity :
 
 (** Functor computing the functional dependencies, according to the three
     modules above. *)
-module Make :
-  functor (Values_To_Use : Values_To_Use_Sig) ->
-  functor (Froms_To_Use : Froms_To_Use_Sig) ->
-  functor (Recording_To_Do : Recording_Sig) ->
-sig
-
+module Make (To_Use: To_Use) : sig
   (** Compute the dependencies of the given function, and return them *)
   val compute_and_return : Kernel_function.t -> Function_Froms.t
   (** Compute the dependencies of the given function *)

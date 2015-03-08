@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -36,16 +36,16 @@ val split : ( WpPropId.prop_id -> 'a -> unit ) -> WpPropId.prop_id ->
 type proof
 
 val create_proof : WpPropId.prop_id -> proof
-  (** to be used only once for one of the related prop_id *)
+(** to be used only once for one of the related prop_id *)
 
 val add_proof : proof -> WpPropId.prop_id -> Property.t list -> unit
-  (** accumulate in the proof the partial proof for this prop_id *)
+(** accumulate in the proof the partial proof for this prop_id *)
 
 val is_composed : proof -> bool
-  (** whether a proof needs several lemma to be complete *)
+(** whether a proof needs several lemma to be complete *)
 
 val is_proved : proof -> bool
-  (** wether all partial proofs have been accumulated or not *)
+(** wether all partial proofs have been accumulated or not *)
 
 val target : proof -> Property.t
 val dependencies : proof -> Property.t list

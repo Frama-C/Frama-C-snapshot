@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -55,7 +55,10 @@ let run_script =
   run "Execute an OCaml script" "OCaml sources" ".ml" Dynamic.load_script
 
 let run_module =
-  run "Load an OCaml object file" "OCaml objects" Dynamic.object_file_extension
+  run
+    "Load an OCaml object file"
+    "OCaml objects"
+    Dynamic.object_file_extension_regexp
     Dynamic.load_module
 
 let insert (main_ui: Design.main_window_extension_points) =

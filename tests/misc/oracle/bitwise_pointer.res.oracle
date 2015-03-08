@@ -1,0 +1,80 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/bitwise_pointer.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  t[0] ∈ {0}
+   [1] ∈ {1}
+   [2] ∈ {2}
+   [3] ∈ {3}
+   [4] ∈ {4}
+   [5] ∈ {5}
+   [6] ∈ {6}
+   [7] ∈ {7}
+   [8] ∈ {8}
+   [9] ∈ {9}
+   [10..99] ∈ {0}
+  p ∈ {0}
+  x ∈ {0}
+  t1[0] ∈ {0}
+    [1] ∈ {1}
+    [2] ∈ {2}
+    [3] ∈ {3}
+    [4] ∈ {4}
+    [5] ∈ {5}
+    [6] ∈ {6}
+    [7] ∈ {7}
+    [8] ∈ {8}
+    [9] ∈ {9}
+    [10..99] ∈ {0}
+  p1 ∈ {0}
+  x1 ∈ {0}
+tests/misc/bitwise_pointer.i:18:[value] warning: Operation {{ &t + {7} }} & {-8} incurs a loss of precision
+tests/misc/bitwise_pointer.i:18:[value] Assigning imprecise value to p.
+        The imprecision originates from Arithmetic {tests/misc/bitwise_pointer.i:18}
+tests/misc/bitwise_pointer.i:19:[value] Reading left-value p.
+        It contains a garbled mix of {t} because of Arithmetic
+        {tests/misc/bitwise_pointer.i:18}.
+tests/misc/bitwise_pointer.i:19:[kernel] warning: out of bounds write. assert \valid(p);
+tests/misc/bitwise_pointer.i:22:[value] warning: Operation {{ &t1 + {7} }} & {-8} incurs a loss of precision
+tests/misc/bitwise_pointer.i:22:[value] Assigning imprecise value to p1.
+        The imprecision originates from Arithmetic {tests/misc/bitwise_pointer.i:22}
+tests/misc/bitwise_pointer.i:23:[value] Reading left-value p1.
+        It contains a garbled mix of {t1} because of Arithmetic
+        {tests/misc/bitwise_pointer.i:22}.
+tests/misc/bitwise_pointer.i:23:[kernel] warning: out of bounds write. assert \valid(p1);
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  t[0..99] ∈ [--..--]
+  p ∈ {{ &t + [0..99] }}
+  x ∈ [-128..127]
+  t1[0..99] ∈ [--..--]
+  p1 ∈ {{ &t1 + [0..99] }}
+  x1 ∈ [-128..127]
+  mask ∈ {7}
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  t[0..99] FROM \nothing (and SELF)
+  p FROM \nothing
+  x FROM t[0..99]
+  t1[0..99] FROM \nothing (and SELF)
+  p1 FROM \nothing
+  x1 FROM t1[0..99]
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          t[0..99]; p; x; t1[0..99]; p1; x1; mask
+[inout] Inputs for function main:
+          t[0..99]; p; t1[0..99]; p1
+[inout] InOut (internal) for function main:
+        Operational inputs:
+          t[0..99]; t1[0..99]
+        Operational inputs on termination:
+          t[0..99]; t1[0..99]
+        Sure outputs:
+          p; x; p1; x1; mask

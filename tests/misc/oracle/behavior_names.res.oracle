@@ -1,0 +1,5 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/behavior_names.i (no preprocessing)
+stmt: bli bar
+new1: foo_0
+new2: bla

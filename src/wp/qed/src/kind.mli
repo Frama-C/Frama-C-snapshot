@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -71,4 +71,7 @@ val compare_tau:
   ('f -> 'f -> int) ->
   ('a -> 'a -> int) ->
   ('f,'a) datatype -> ('f,'a) datatype -> int
+
+module MakeTau(F : Field)(A : Data) : 
+  Data with type t = (F.t,A.t) datatype
 

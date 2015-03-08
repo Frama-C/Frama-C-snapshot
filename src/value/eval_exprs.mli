@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -45,7 +45,6 @@ val eval_expr_with_deps_state_subdiv :
   Cvalue.Model.t * Zone.t option * Location_Bytes.t
 
 val eval_lval :
-  conflate_bottom:bool ->
   with_alarms:CilE.warn_mode ->
   Zone.t option ->
   Cvalue.Model.t ->
@@ -105,10 +104,6 @@ val reduce_by_cond : Cvalue.Model.t -> cond -> Cvalue.Model.t
 
 (** Reduction by accesses *)
 
-val reduce_by_valid_loc :
-  positive:bool ->
-  for_writing:bool -> location -> typ -> Cvalue.Model.t -> Cvalue.Model.t
-
 val reduce_by_accessed_loc : 
   for_writing:bool ->
   Cvalue.Model.t -> Cil_types.lval -> Locations.location ->
@@ -119,9 +114,7 @@ val reduce_by_accessed_loc :
 
 exception Cannot_find_lv
 
-val find_lv :
-  with_alarms:CilE.warn_mode ->
-  Cvalue.Model.t -> exp -> lval
+val find_lv : Cvalue.Model.t -> exp -> lval
 
 val get_influential_vars :
   Cvalue.Model.t -> exp -> location list
@@ -157,8 +150,8 @@ val resolv_func_vinfo :
 val offsetmap_of_lv:
   with_alarms:CilE.warn_mode ->
   Cvalue.Model.t -> lval ->
-  Precise_locs.precise_location * Cvalue.Model.t * Cvalue.V_Offsetmap.t option
-
+  Precise_locs.precise_location * Cvalue.Model.t * Cvalue.V_Offsetmap.t_top_bottom
+(** May raise [Int_Base.Error_Top] *)
 
 (*
 Local Variables:

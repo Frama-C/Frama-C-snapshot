@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -264,12 +264,12 @@ class behavior
       match popup_target with
       | Some(w,Some p) -> (popup_target <- None ; self#prove ~mode w p)
       | _ -> popup_target <- None
-            
+
     method private popup_why3ide () =
       match popup_target with
       | Some(w,_) -> (popup_target <- None ; self#prove w VCS.Why3ide)
       | _ -> popup_target <- None
-          
+
     method private popup_proofmodes popup modes =
       List.iter
         (fun (label,mode) ->

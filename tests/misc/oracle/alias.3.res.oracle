@@ -1,0 +1,108 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/alias.i (no preprocessing)
+[value] Analyzing a complete application starting at main5
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  A ∈ {0}
+  B ∈ {0}
+  C ∈ {0}
+  D ∈ {0}
+  E ∈ {0}
+  F ∈ {0}
+  G ∈ {0}
+  p[0..4] ∈ {0}
+  q[0] ∈ {1}
+   [1] ∈ {2}
+   [2] ∈ {3}
+   [3] ∈ {4}
+   [4] ∈ {5}
+  p2[0..4] ∈ {0}
+  q2[0] ∈ {1}
+    [1] ∈ {2}
+    [2] ∈ {3}
+    [3] ∈ {4}
+    [4] ∈ {5}
+  p3[0..4] ∈ {0}
+  t ∈ {0}
+  u ∈ {0}
+  v ∈ {0}
+  w ∈ {0}
+  x ∈ {0}
+  y ∈ {0}
+  z ∈ {0}
+  t2 ∈ {0}
+  v2 ∈ {0}
+  PTR1 ∈ {0}
+  PTR2 ∈ {0}
+  PTR3 ∈ {0}
+  PTR4 ∈ {0}
+  PTR5 ∈ {0}
+  PTR6 ∈ {0}
+  c ∈ [--..--]
+  c1 ∈ [--..--]
+  c2 ∈ [--..--]
+  c3 ∈ [--..--]
+  c4 ∈ [--..--]
+  e ∈ {0}
+  g ∈ {0}
+  h ∈ {0}
+  i ∈ {0}
+  tz1 ∈ {0}
+  tz2 ∈ {0}
+  tz3 ∈ {0}
+  tx ∈ {0}
+  ty ∈ {0}
+  tz ∈ {0}
+  U ∈ {0}
+  char1 ∈ {0}
+  ll1 ∈ {0}
+tests/misc/alias.i:171:[kernel] warning: signed overflow. assert c+1 ≤ 2147483647;
+[value] Recording results for main5
+[value] done for function main5
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main5:
+  u ∈ {0; 1}
+  v ∈ {0; 1}
+  z ∈ {0; 1; 2}
+  sss.a ∈ {4; 27}
+     .b ∈ {5; 28; 888; 999}
+     .c ∈ {6; 29}
+  pt ∈ {{ (struct T *)&t1.s2 ; (struct T *)&t2_0.s3 }}
+  t1.s1.a ∈ {1}
+    .s1.b ∈ {2}
+    .s1.c ∈ {3}
+    .s2.a ∈ {4}
+    .s2.b ∈ {5; 888}
+    .s2.c ∈ {6}
+    .s3.a ∈ {7}
+    .s3.b ∈ {8}
+    .s3.c ∈ {9}
+    .s4.a ∈ {10}
+    .s4.b ∈ {11}
+    .s4.c ∈ {12}
+  t2_0.s1.a ∈ {21}
+      .s1.b ∈ {22}
+      .s1.c ∈ {23}
+      .s2.a ∈ {24}
+      .s2.b ∈ {25}
+      .s2.c ∈ {26}
+      .s3.a ∈ {27}
+      .s3.b ∈ {28; 999}
+      .s3.c ∈ {29}
+      .s4.a ∈ {30}
+      .s4.b ∈ {31}
+      .s4.c ∈ {32}
+[from] Computing for function main5
+[from] Done for function main5
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main5:
+  u FROM c
+  v FROM c
+  z FROM w; c
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main5:
+          u; v; z; sss; pt; t1; t2_0
+[inout] Inputs for function main5:
+          u; v; w; c

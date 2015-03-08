@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -29,7 +29,10 @@ module Make_LOffset
   (Offsetmap: module type of Offsetmap_sig
               with type v = V.t
               and type widen_hint = V.widen_hint)
-  (Default_offsetmap: sig val default_offsetmap : Base.t -> Offsetmap.t end):
+  (Default_offsetmap: sig
+    val default_offsetmap : Base.t -> [`Bottom | `Map of Offsetmap.t]
+    val is_default_offsetmap: Base.t -> Offsetmap.t -> bool
+  end):
   module type of Lmap_sig
     with type v = V.t
     and type widen_hint_base = V.widen_hint

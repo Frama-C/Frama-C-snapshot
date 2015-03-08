@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -49,8 +49,8 @@ let defined env = match env.current with None -> false | Some _ -> true
 
 let get env =
   match env.current with
-    | Some e -> e
-    | None -> Wp_parameters.fatal "Context '%s' non-initialized." env.name
+  | Some e -> e
+  | None -> Wp_parameters.fatal "Context '%s' non-initialized." env.name
 
 let set env s =
   env.current <- Some s
@@ -60,8 +60,8 @@ let clear env =
 
 let update env f =
   match env.current with
-    | Some e -> env.current <- Some (f e)
-    | None -> Wp_parameters.fatal "Context '%s' non-initialized." env.name
+  | Some e -> env.current <- Some (f e)
+  | None -> Wp_parameters.fatal "Context '%s' non-initialized." env.name
 
 let bind_with env w f e =
   let tmp = env.current in env.current <- w ;

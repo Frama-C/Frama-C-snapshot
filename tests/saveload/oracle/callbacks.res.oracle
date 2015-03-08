@@ -1,0 +1,111 @@
+[kernel] warning: ignoring source files specified on the command line while loading a global initial context.
+[value] Analyzing a complete application starting at main2
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  x ∈ {0}
+  y ∈ {0}
+[value] computing for function g1 <- main2.
+        Called from tests/saveload/callbacks.i:30.
+[value] computing for function f <- g1 <- main2.
+        Called from tests/saveload/callbacks.i:16.
+[value] Recording results for f
+[from] Computing for function f
+[from] Done for function f
+[value] Done for function f
+[value] Recording results for g1
+[from] Computing for function g1
+[from] Done for function g1
+[value] Done for function g1
+[value] computing for function g2 <- main2.
+        Called from tests/saveload/callbacks.i:31.
+[value] computing for function f <- g2 <- main2.
+        Called from tests/saveload/callbacks.i:21.
+[value] Recording results for f
+[from] Computing for function f
+[from] Done for function f
+[value] Done for function f
+[value] Recording results for g2
+[from] Computing for function g2
+[from] Done for function g2
+[value] Done for function g2
+[value] Recording results for main2
+[from] Computing for function main2
+[from] Done for function main2
+[value] done for function main2
+[from] ====== DISPLAYING CALLWISE DEPENDENCIES ======
+[from] call to f at tests/saveload/callbacks.i:16 (by g1):
+  x FROM p
+[from] call to f at tests/saveload/callbacks.i:21 (by g2):
+  y FROM p
+[from] call to g1 at tests/saveload/callbacks.i:30 (by main2):
+  x FROM \nothing
+[from] call to g2 at tests/saveload/callbacks.i:31 (by main2):
+  y FROM \nothing
+[from] entry point:
+  x FROM \nothing
+  y FROM \nothing
+[from] ====== END OF CALLWISE DEPENDENCIES ======
+[inout] Out (internal) for function f:
+          x; y
+[inout] Out (internal) for function g1:
+          x
+[inout] Out (internal) for function g2:
+          y
+[inout] Out (internal) for function main2:
+          x; y
+[value] Analyzing a complete application starting at main3
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  x ∈ {0}
+  y ∈ {0}
+[value] computing for function g1 <- main3.
+        Called from tests/saveload/callbacks.i:35.
+[value] computing for function f <- g1 <- main3.
+        Called from tests/saveload/callbacks.i:16.
+[value] Recording results for f
+[from] Computing for function f
+[from] Done for function f
+[value] Done for function f
+[value] Recording results for g1
+[from] Computing for function g1
+[from] Done for function g1
+[value] Done for function g1
+[value] computing for function g2 <- main3.
+        Called from tests/saveload/callbacks.i:36.
+[value] computing for function f <- g2 <- main3.
+        Called from tests/saveload/callbacks.i:21.
+[value] Recording results for f
+[from] Computing for function f
+[from] Done for function f
+[value] Done for function f
+[value] Recording results for g2
+[from] Computing for function g2
+[from] Done for function g2
+[value] Done for function g2
+[value] Recording results for main3
+[from] Computing for function main3
+[from] Done for function main3
+[value] done for function main3
+[from] ====== DISPLAYING CALLWISE DEPENDENCIES ======
+[from] call to f at tests/saveload/callbacks.i:16 (by g1):
+  x FROM p
+[from] call to f at tests/saveload/callbacks.i:21 (by g2):
+  y FROM p
+[from] call to g1 at tests/saveload/callbacks.i:35 (by main3):
+  x FROM \nothing
+[from] call to g2 at tests/saveload/callbacks.i:36 (by main3):
+  y FROM \nothing
+[from] entry point:
+  x FROM \nothing
+  y FROM \nothing
+[from] ====== END OF CALLWISE DEPENDENCIES ======
+[inout] Out (internal) for function f:
+          x; y
+[inout] Out (internal) for function g1:
+          x
+[inout] Out (internal) for function g2:
+          y
+[inout] Out (internal) for function main3:
+          x; y

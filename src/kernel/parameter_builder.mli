@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -37,6 +37,20 @@ module Make
     val messages_group: Cmdline.Group.t
   end):
   Parameter_sig.Builder
+
+(* ************************************************************************* *)
+(** {2 Internal use only} *)
+(* ************************************************************************* *)
+
+open Cil_types
+
+val find_kf_by_name: (string -> kernel_function) ref
+val find_kf_def_by_name: (string -> kernel_function) ref
+val kf_category: (unit -> kernel_function Parameter_category.t) ref
+val kf_def_category: (unit -> kernel_function Parameter_category.t) ref
+val kf_string_category: (unit -> string Parameter_category.t) ref
+val fundec_category: (unit -> fundec Parameter_category.t) ref
+val force_ast_compute: (unit -> unit) ref
 
 (*
 Local Variables:

@@ -1,0 +1,32 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/float/cte_overflow.i (no preprocessing)
+tests/float/cte_overflow.i:12:[kernel] warning: Floating-point constant 1e500 is not represented exactly. Will use inf
+tests/float/cte_overflow.i:12:[kernel] warning: Floating-point constant 1e500 is not represented exactly. Will use inf
+tests/float/cte_overflow.i:17:[kernel] warning: Floating-point constant 1e80f is not represented exactly. Will use inf
+tests/float/cte_overflow.i:17:[kernel] warning: Floating-point constant 1e500f is not represented exactly. Will use inf
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  v ∈ [--..--]
+tests/float/cte_overflow.i:12:[kernel] warning: non-finite double value (INFINITY): assert \is_finite(1e500);
+tests/float/cte_overflow.i:12:[value] Floating-point literal (or constant expression) is not finite. This path is assumed to be dead.
+tests/float/cte_overflow.i:17:[kernel] warning: non-finite float value (INFINITY): assert \is_finite(1e80f);
+tests/float/cte_overflow.i:17:[value] Floating-point literal (or constant expression) is not finite. This path is assumed to be dead.
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  t ∈ {0}
+  __retres ∈ {0}
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          t; __retres
+[inout] Inputs for function main:
+          v

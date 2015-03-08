@@ -1,0 +1,17 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_acsl/sizeof.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] 2 goals scheduled
+[wp] [Alt-Ergo] Goal typed_foo_assert_A : Valid
+[wp] [Alt-Ergo] Goal typed_foo_assert_B : Valid
+[wp] Proved goals:    2 / 2
+     Qed:             0 
+     Alt-Ergo:        2
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+foo                 -       2 (4)      2       100%
+----------------------------------------------------------

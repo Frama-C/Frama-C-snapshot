@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -39,14 +39,14 @@ let typecheck cmd ~typing_context ~loc bhv ps =
   let fs = 
     List.map
       (fun p ->
-	 let loc = p.lexpr_loc in
-	 match p.lexpr_node with
-	   | PLvar f -> 
-	       let fv = find_call typing_context loc f in
-	       Logic_const.term ~loc (TLval(TVar fv,TNoOffset)) fv.lv_type
-	   | _ -> 
-	       typing_context.error loc "Function name expected for calls" ;
-	       assert false
+         let loc = p.lexpr_loc in
+         match p.lexpr_node with
+         | PLvar f -> 
+             let fv = find_call typing_context loc f in
+             Logic_const.term ~loc (TLval(TVar fv,TNoOffset)) fv.lv_type
+         | _ -> 
+             typing_context.error loc "Function name expected for calls" ;
+             assert false
       ) ps in
   let kfs = Logic_const.pseparated ~loc fs in
   let ext = cmd,0,[Logic_const.new_predicate kfs] in
@@ -68,8 +68,8 @@ let rec either loc = function
 let get_called_kf (p : identified_predicate) : kernel_function list = 
   try
     match p.ip_content with
-      | Pseparated ts -> List.map get_call ts
-      | _ -> raise Not_found
+    | Pseparated ts -> List.map get_call ts
+    | _ -> raise Not_found
   with Not_found ->
     let source = fst p.ip_loc in
     Wp_parameters.failure ~source "Calls annotation not well-formed" ; []
@@ -79,11 +79,11 @@ let get_calls ecmd bhvs : (string * Kernel_function.t list) list =
     (fun bhv calls ->
        let fs = ref [] in
        List.iter
-	 (function 
-	    | cmd,_,ps when cmd = ecmd ->
-		List.iter (fun p -> fs := !fs @ get_called_kf p) ps
-	    | _ -> ())
-	 bhv.b_extended ;
+         (function 
+           | cmd,_,ps when cmd = ecmd ->
+               List.iter (fun p -> fs := !fs @ get_called_kf p) ps
+           | _ -> ())
+         bhv.b_extended ;
        let fs = !fs in 
        if fs <> [] then (bhv.b_name , fs) :: calls else calls
     ) bhvs []
@@ -122,63 +122,63 @@ let property ~kf ?bhv ~stmt ~calls =
 let dkey = Wp_parameters.register_category "calls"
 
 class dyncall =
-object(self)
-  inherit Visitor.frama_c_inplace
+  object(self)
+    inherit Visitor.frama_c_inplace
 
-  val mutable count = 0
-  val mutable scope = []
+    val mutable count = 0
+    val mutable scope = []
 
-  method count = count
+    method count = count
 
-  method private stmt = 
-    match self#current_stmt with None -> assert false | Some stmt -> stmt
-    
-  method! vfunc _ =
-    scope <- [] ;
-    DoChildren
-      
-  method! vspec spec =
-    let calls = get_calls "wp:calls" spec.spec_behavior in
-    if calls <> [] && scope <> [] then
-      List.iter
-	(fun stmt ->
-	   count <- succ count ;
-	   List.iter
-	     (fun (bhv,kfs) ->
-		begin
-		  if Wp_parameters.has_dkey "calls" then
-		    let source = snd (Stmt.loc stmt) in
-		    if Cil.default_behavior_name = bhv then
-		      Wp_parameters.result ~source 
-			"@[<hov 2>Calls%a@]" pp_calls kfs
-		    else
-		      Wp_parameters.result ~source
-			"@[<hov 2>Calls (for %s)%a@]" bhv pp_calls kfs
-		end ;
-		CallPoints.add (bhv,stmt) kfs
-	     ) calls
-	) scope ;
-    scope <- [] ;
-    let calls = get_calls "wp:instanceof" spec.spec_behavior in
-    if calls <> [] then
-      begin
-	match self#current_kf with None -> () | Some kf ->
-	  List.iter
-	    (fun (bhv,kfs) ->
-	       Wp_parameters.result
-		 "@[<hov 2>%a for %s instance of%a" 
-		 Kernel_function.pretty kf bhv pp_calls kfs)
-	    calls
-      end ;
-    DoChildren
+    method private stmt = 
+      match self#current_stmt with None -> assert false | Some stmt -> stmt
 
-  method! vinst = function
-    | Call( _ , fct , _ , _ ) when Kernel_function.get_called fct = None ->
-	scope <- self#stmt :: scope ; 
-	SkipChildren
-    | _ -> SkipChildren
+    method! vfunc _ =
+      scope <- [] ;
+      DoChildren
 
-end
+    method! vspec spec =
+      let calls = get_calls "wp:calls" spec.spec_behavior in
+      if calls <> [] && scope <> [] then
+        List.iter
+          (fun stmt ->
+             count <- succ count ;
+             List.iter
+               (fun (bhv,kfs) ->
+                  begin
+                    if Wp_parameters.has_dkey "calls" then
+                      let source = snd (Stmt.loc stmt) in
+                      if Cil.default_behavior_name = bhv then
+                        Wp_parameters.result ~source 
+                          "@[<hov 2>Calls%a@]" pp_calls kfs
+                      else
+                        Wp_parameters.result ~source
+                          "@[<hov 2>Calls (for %s)%a@]" bhv pp_calls kfs
+                  end ;
+                  CallPoints.add (bhv,stmt) kfs
+               ) calls
+          ) scope ;
+      scope <- [] ;
+      let calls = get_calls "wp:instanceof" spec.spec_behavior in
+      if calls <> [] then
+        begin
+          match self#current_kf with None -> () | Some kf ->
+            List.iter
+              (fun (bhv,kfs) ->
+                 Wp_parameters.result
+                   "@[<hov 2>%a for %s instance of%a" 
+                   Kernel_function.pretty kf bhv pp_calls kfs)
+              calls
+        end ;
+      DoChildren
+
+    method! vinst = function
+      | Call( _ , fct , _ , _ ) when Kernel_function.get_called fct = None ->
+          scope <- self#stmt :: scope ; 
+          SkipChildren
+      | _ -> SkipChildren
+
+  end
 
 let once = ref false
 
@@ -191,9 +191,9 @@ let compute () =
       Visitor .visitFramacFile (d :> Visitor.frama_c_visitor) (Ast.get()) ;
       let n = d#count in
       if n > 0 then
-	Wp_parameters.feedback "Dynamic call(s): %d." n
+        Wp_parameters.feedback "Dynamic call(s): %d." n
       else
-	Wp_parameters.feedback "No dynamic call."
+        Wp_parameters.feedback "No dynamic call."
     end
 
 (* -------------------------------------------------------------------------- *)

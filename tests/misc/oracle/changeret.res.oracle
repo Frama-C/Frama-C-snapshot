@@ -1,0 +1,94 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/changeret.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  x ∈ {0}
+  y ∈ {0}
+  p ∈ {0}
+  v ∈ [--..--]
+[value] computing for function main1 <- main.
+        Called from tests/misc/changeret.i:31.
+[value] computing for function f <- main1 <- main.
+        Called from tests/misc/changeret.i:15.
+[value] Recording results for f
+[value] Done for function f
+[value] Recording results for main1
+[value] Done for function main1
+[value] computing for function main2 <- main.
+        Called from tests/misc/changeret.i:32.
+[value] computing for function g <- main2 <- main.
+        Called from tests/misc/changeret.i:27.
+tests/misc/changeret.i:19:[kernel] warning: out of bounds read. assert \valid_read(p);
+[value] Recording results for g
+[value] Done for function g
+[value] Recording results for main2
+[value] Done for function main2
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function f:
+  p ∈ {{ &y }}
+  __retres ∈ {1}
+[value] Values at end of function g:
+  z ∈ {1}
+  __retres ∈ {1}
+[value] Values at end of function main1:
+  x ∈ {0}
+  p ∈ {{ &y }}
+[value] Values at end of function main2:
+  y ∈ {1}
+  p ∈ {{ &y }}
+[value] Values at end of function main:
+  x ∈ {0}
+  y ∈ {1}
+  p ∈ {{ &y }}
+[from] Computing for function f
+[from] Done for function f
+[from] Computing for function g
+[from] Done for function g
+[from] Computing for function main1
+[from] Done for function main1
+[from] Computing for function main2
+[from] Done for function main2
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function f:
+  p FROM \nothing
+  \result FROM \nothing
+[from] Function g:
+  \result FROM \nothing
+[from] Function main1:
+  x FROM \nothing
+  p FROM \nothing
+[from] Function main2:
+  y FROM v
+  p FROM v
+[from] Function main:
+  x FROM \nothing
+  y FROM v
+  p FROM v
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function f:
+          p; __retres
+[inout] Inputs for function f:
+          \nothing
+[inout] Out (internal) for function g:
+          z; __retres
+[inout] Inputs for function g:
+          y; p
+[inout] Out (internal) for function main1:
+          x; p
+[inout] Inputs for function main1:
+          p
+[inout] Out (internal) for function main2:
+          y; p
+[inout] Inputs for function main2:
+          y; p; v
+[inout] Out (internal) for function main:
+          x; y; p
+[inout] Inputs for function main:
+          y; p; v

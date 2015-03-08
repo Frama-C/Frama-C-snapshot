@@ -1,0 +1,22 @@
+# frama-c -wp -wp-model 'Typed (Ref)' [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_typed/unit_bitwise.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] Collecting variable usage
+[wp] 4 goals scheduled
+[wp] [Alt-Ergo] Goal typed_ref_bnot_uchar_post_ko : Unknown
+[wp] [Alt-Ergo] Goal typed_ref_bnot_uint_post_ko : Unknown
+[wp] [Alt-Ergo] Goal typed_ref_bxor_uchar_post_ko : Unknown
+[wp] [Alt-Ergo] Goal typed_ref_bxor_uint_post_ko : Unknown
+[wp] Proved goals:    0 / 4
+     Alt-Ergo:        0  (unknown: 4)
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+bxor_uint           -      -           1       0.0%
+bnot_uint           -      -           1       0.0%
+bxor_uchar          -      -           1       0.0%
+bnot_uchar          -      -           1       0.0%
+----------------------------------------------------------

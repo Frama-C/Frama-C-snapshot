@@ -1,0 +1,4 @@
+COMMENT: This test config is not run by default. It allows a simple test to the tests,
+COMMENT: by compiling the file and running it.
+CMD: ./tests/libc/compile_and_run.sh
+OPT:

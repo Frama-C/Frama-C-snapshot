@@ -1,0 +1,170 @@
+# frama-c -wp -wp-model 'Typed (Ref)' [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_hoare/reference.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] Collecting variable usage
+------------------------------------------------------------
+  Function call_f2
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_hoare/reference.i, line 35) in 'call_f2':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'call_f2' (1/3):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'call_f2' (2/3):
+Effect at line 39
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'call_f2' (3/3):
+Effect at line 39
+Assume { }
+Prove: false.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'call_f2' (1/4):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'call_f2' (2/4):
+Effect at line 39
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'call_f2' (3/4):
+Effect at line 39
+Assume { }
+Prove: false.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'call_f2' (4/4):
+Call Result at line 40
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_hoare/reference.i, line 26) in 'f2'' in 'call_f2' at call 'f2' (file tests/wp_hoare/reference.i, line 40)
+:
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function call_global
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_hoare/reference.i, line 46) in 'call_global':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'call_global':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'call_global' (1/2):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'call_global' (2/2):
+Call Result at line 49
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_hoare/reference.i, line 10) in 'f'' in 'call_global' at call 'f' (file tests/wp_hoare/reference.i, line 49)
+:
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function g
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_hoare/reference.i, line 18) in 'g':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'g' (1/2):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'g' (2/2):
+Effect at line 21
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'g' (1/3):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'g' (2/3):
+Effect at line 21
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'g' (3/3):
+Call Result at line 22
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_hoare/reference.i, line 10) in 'f'' in 'g' at call 'f' (file tests/wp_hoare/reference.i, line 22)
+:
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function write
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_hoare/reference.i, line 58) in 'write':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/reference.i, line 57) in 'write':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------

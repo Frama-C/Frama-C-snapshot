@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Aorai plug-in of Frama-C.                        *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -365,7 +365,7 @@ let run () =
     (* Step 2 : Work in our own project, initialized by a copy of the main
        one. *)
     let work_prj =
-      File.create_project_from_visitor "aorai_tmp"
+      File.create_project_from_visitor ~last:false "aorai_tmp"
 	(fun prj -> new Visitor.frama_c_copy prj)
     in
     Project.copy ~selection:(Parameter_state.get_selection ()) work_prj;

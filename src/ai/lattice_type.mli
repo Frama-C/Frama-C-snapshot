@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -64,6 +64,26 @@ module type With_Under_Approximation = sig
   val link: t -> t -> t (** under-approximation of union *)
   val meet: t -> t -> t (** under-approximation of intersection *)
 end
+
+(** {2 Over- and under-approximations}
+
+  Nearly all abstract operations implemented in the lattices of Frama-C
+  are *over-approximations*: the (abstract) operation assumes that its operands
+  are already over-approximations, and returns a result that over-approximates
+  (abstracts) the results that would have been given by the concrete operation
+  on the concretization of the arguments.
+
+  Conversely, some functions, suffixed by [_under] assumes that their arguments
+  are under-approximations, and returns a result that under-approximates the
+  concrete operation. The functions [link] and [meet] in
+  {With_Under_Approximation} are exceptions, that are not suffixed by [_under].
+
+  Finally, some functions are *exact*, in the sense that they preserve the
+  concretization of the concrete function. Hence, they implement
+  over-approximations when given over-approximated arguments, and
+  under-approximations when given under-approximated ones. This 'exact'
+  property is usually mentioned in the comments for the function. *)
+
 
 module type With_Intersects = sig
   type t

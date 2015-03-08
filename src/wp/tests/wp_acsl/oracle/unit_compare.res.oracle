@@ -1,0 +1,118 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_acsl/unit_compare.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function main
+------------------------------------------------------------
+
+Goal Pre-condition 'LE_X_Y' in 'main':
+Assume { (* Domain *) Type: (is_sint32 x_0) /\ (is_sint32 y_0). }
+Prove: x_0<=y_0.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'LE_X1_Y' in 'main':
+Assume { (* Domain *) Type: (is_sint32 x_0) /\ (is_sint32 y_0). }
+Prove: x_0<y_0.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'LE_X_Y1' in 'main':
+Assume { (* Domain *) Type: (is_sint32 x_0) /\ (is_sint32 y_0). }
+Prove: x_0<=(1+y_0).
+
+------------------------------------------------------------
+
+Goal Pre-condition 'LE_X1_Y1' in 'main':
+Assume { (* Domain *) Type: (is_sint32 x_0) /\ (is_sint32 y_0). }
+Prove: x_0<=y_0.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'LE_Xm1_Y' in 'main':
+Assume { (* Domain *) Type: (is_sint32 x_0) /\ (is_sint32 y_0). }
+Prove: x_0<=(1+y_0).
+
+------------------------------------------------------------
+
+Goal Pre-condition 'LE_X_Ym1' in 'main':
+Assume { (* Domain *) Type: (is_sint32 x_0) /\ (is_sint32 y_0). }
+Prove: x_0<y_0.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'LE_Xm1_Ym1' in 'main':
+Assume { (* Domain *) Type: (is_sint32 x_0) /\ (is_sint32 y_0). }
+Prove: x_0<=y_0.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'LE_X1_Ym1' in 'main':
+Assume { (* Domain *) Type: (is_sint32 x_0) /\ (is_sint32 y_0). }
+Prove: (2+x_0)<=y_0.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'LE_Xm1_Y1' in 'main':
+Assume { (* Domain *) Type: (is_sint32 x_0) /\ (is_sint32 y_0). }
+Prove: x_0<=(2+y_0).
+
+------------------------------------------------------------
+
+Goal Pre-condition 'LT_X_Y' in 'main':
+Assume { (* Domain *) Type: (is_sint32 x_0) /\ (is_sint32 y_0). }
+Prove: x_0<y_0.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'LT_X1_Y' in 'main':
+Assume { (* Domain *) Type: (is_sint32 x_0) /\ (is_sint32 y_0). }
+Prove: (2+x_0)<=y_0.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'LT_X_Y1' in 'main':
+Assume { (* Domain *) Type: (is_sint32 x_0) /\ (is_sint32 y_0). }
+Prove: x_0<=y_0.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'LT_X1_Y1' in 'main':
+Assume { (* Domain *) Type: (is_sint32 x_0) /\ (is_sint32 y_0). }
+Prove: x_0<y_0.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'LT_Xm1_Y' in 'main':
+Assume { (* Domain *) Type: (is_sint32 x_0) /\ (is_sint32 y_0). }
+Prove: x_0<=y_0.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'LT_X_Ym1' in 'main':
+Assume { (* Domain *) Type: (is_sint32 x_0) /\ (is_sint32 y_0). }
+Prove: (2+x_0)<=y_0.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'LT_Xm1_Ym1' in 'main':
+Assume { (* Domain *) Type: (is_sint32 x_0) /\ (is_sint32 y_0). }
+Prove: x_0<y_0.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'LT_X1_Ym1' in 'main':
+Assume { (* Domain *) Type: (is_sint32 x_0) /\ (is_sint32 y_0). }
+Prove: (3+x_0)<=y_0.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'LT_Xm1_Y1' in 'main':
+Assume { (* Domain *) Type: (is_sint32 x_0) /\ (is_sint32 y_0). }
+Prove: x_0<=(1+y_0).
+
+------------------------------------------------------------

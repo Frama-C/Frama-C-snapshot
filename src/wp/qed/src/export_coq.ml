@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,7 +27,6 @@
 open Logic
 open Format
 open Plib
-open Linker
 open Engine
 open Export
 
@@ -53,17 +52,6 @@ struct
     object(self)
 
       inherit E.engine
-
-      initializer
-        begin
-          self#declare_all ["Z";"Real";"bool";"Prop";"array";"farray"] ;
-          for i=1 to 26 do 
-            let c = int_of_char 'A' + i - 1 in
-            self#declare (Printf.sprintf "%c" (char_of_int c))
-          done ;
-          self#declare_all ["true";"false";"True";"False"] ;
-          self#declare_all ["IZT"] ;
-        end
 
       (* -------------------------------------------------------------------------- *)
       (* --- Types                                                              --- *)
@@ -106,7 +94,7 @@ struct
       method callstyle = CallApply
       method op_scope = function Aint -> Some "%Z" | Areal -> Some "%R"
 
-      method pp_int _amode fmt z = Z.pretty fmt z
+      method pp_int _amode fmt z = pp_print_string fmt (Z.to_string z)
       method pp_cst fmt cst =
         let open Numbers in
         let man,exp = significant cst in
@@ -248,8 +236,8 @@ struct
           fprintf fmt ")@]"
         end
 
-      method private pp_param fmt x =
-        fprintf fmt "(%a : %a)" self#pp_var x self#pp_tau (T.tau_of_var x)
+      method private pp_param fmt (x,t) =
+        fprintf fmt "(%a : %a)" self#pp_var x self#pp_tau t
 
       method pp_forall tau fmt = function
         | [] -> ()
@@ -325,7 +313,7 @@ struct
               let result = Data(adt,Kind.type_params n) in
               List.iter
                 (fun (c,ts) ->
-                   fprintf fmt "@ | @[<hov 2>%s : " (declare_name (self#link c)) ;
+                   fprintf fmt "@ | @[<hov 2>%s : " (link_name (self#link c)) ;
                    List.iter (fun t -> fprintf fmt "@ %a ->" self#pp_tau t) ts ;
                    fprintf fmt "@ %a.@]" self#pp_tau result ;
                 ) cases ;
@@ -334,7 +322,7 @@ struct
 
       method declare_signature fmt f ts t =
         begin
-          fprintf fmt "@[<hov 4>Parameter %s :" (declare_name (self#link f)) ;
+          fprintf fmt "@[<hov 4>Parameter %s :" (link_name (self#link f)) ;
           List.iter (fun t -> fprintf fmt "@ %a ->" self#pp_tau t) ts ;
           fprintf fmt "@ %a.@]@\n" self#pp_tau t ;
         end
@@ -342,12 +330,12 @@ struct
       method declare_definition fmt f xs t e =
         self#global 
           begin fun () ->
-            fprintf fmt "@[<hov 4>Definition %s" (declare_name (self#link f)) ;
+            fprintf fmt "@[<hov 4>Definition %s" (link_name (self#link f)) ;
             List.iter
               (fun x -> 
-                 self#bind x ;
+                 let a = self#bind x in
                  let t = T.tau_of_var x in
-                 fprintf fmt "@ (%a : %a)" self#pp_var x self#pp_tau t
+                 fprintf fmt "@ (%a : %a)" self#pp_var a self#pp_tau t
               ) xs ;
             fprintf fmt "@ : %a :=@ " self#pp_tau t ; 
             fprintf fmt "@[<hov 2>%a@]@].@\n" (self#pp_expr t) e ;
@@ -356,7 +344,7 @@ struct
       method declare_fixpoint ~prefix fmt f xs t e =
         begin
           self#declare_signature fmt f (List.map tau_of_var xs) t ;
-          let fix = prefix ^ (declare_name (self#link f)) in
+          let fix = prefix ^ (link_name (self#link f)) in
           self#declare_axiom fmt fix xs [] (e_eq (e_fun f (List.map e_var xs)) e) ;
         end
 

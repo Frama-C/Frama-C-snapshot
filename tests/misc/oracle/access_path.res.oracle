@@ -1,0 +1,29 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/access_path.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  
+tests/misc/access_path.i:2:[kernel] warning: out of bounds read. assert \valid_read(p);
+tests/misc/access_path.i:2:[kernel] warning: out of bounds write. assert \valid(*p);
+tests/misc/access_path.i:2:[kernel] warning: signed overflow. assert *(*p)+1 ≤ 2147483647;
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  __retres ∈ {0}
+  S_0_S_p[0] ∈ [-2147483647..2147483647]
+         [1] ∈ [--..--]
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  S_0_S_p[0] FROM p; S_p[0]; S_0_S_p[0]
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          __retres; S_0_S_p[0]
+[inout] Inputs for function main:
+          S_p[0]; S_0_S_p[0]

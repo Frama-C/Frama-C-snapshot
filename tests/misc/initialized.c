@@ -23,19 +23,19 @@ void g1 (){
 
   i=Frama_C_interval(3,6);
   j=Frama_C_interval(12,15);
-  //@ assert \initialized(&t3[i..j]);
+  //@ assert \initialized(&t3[i..j]); // under: t3[6..12]; over t3[3..15]
 
   i=Frama_C_interval(3,7);
   j=Frama_C_interval(7,15);
-  //@ assert \initialized(&t4[i..j]);
+  //@ assert \initialized(&t4[i..j]); // under t4[7]; over t4[3..15]
 
   i=Frama_C_interval(7,9);
   j=Frama_C_interval(4,6);
-  //@ assert \initialized(&t5[i..j]);
+  //@ assert \initialized(&t5[i..j]); // Empty range
 
   i=Frama_C_interval(7,9);
   j=Frama_C_interval(4,7);
-  //@ assert \initialized(&t6[i..j]);
+  //@ assert \initialized(&t6[i..j]); // t6[7] or empty
 }
 
 void g2() {
@@ -96,7 +96,7 @@ void g3() {
   r3 = x3 + 1;
 
   f(b6, &t1, 4);
-  f(b6, &t2, 250);
+  f(b6, &t2, 250); // above plevel
 }
 
 void g4() {
@@ -133,11 +133,28 @@ void g5() {
   //@ assert \initialized(p);
 }
 
+extern int i6;
+
+void g6() {
+  int i;
+
+  if (rand)
+    i6 = i;
+  //@ assert !\initialized(&i6) || i6 >= 3; // Does not work
+  //@ assert !\initialized(&i6) || i6 >= 3;
+  //@ assert !\initialized(&i6) || (\initialized(&i6) && i6 >= 3);
+  //@ assert !\initialized(&i6) || (\initialized(&i6) && i6 >= 3);
+  //@ assert !\initialized(&i6);
+  //@ assert !\initialized(&i6);
+}
+
+
 int main () {
   g1();
   g2();
   g3();
   if (rand) g4();
   g5();
+  g6();
   return 0;
 }

@@ -1,0 +1,36 @@
+# frama-c -wp -wp-model 'Hoare' [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp/wp_call_pre.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+tests/wp/wp_call_pre.c:53:[kernel] warning: No code nor implicit assigns clause for function f, generating default assigns from the prototype
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+
+Goal Instance of 'Pre-condition 'qed_ok,Rf' in 'f'' in 'double_call' at call 'f' (file tests/wp/wp_call_pre.c, line 26)
+:
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_1).
+  (* Pre-condition 'Rd' in 'double_call' *)
+  (* Pre-condition 'Rd': *)
+  Have: 0<=x_1.
+}
+Prove: 0<=x_1.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition 'qed_ok,Rf' in 'f'' in 'double_call' at call 'f' (file tests/wp/wp_call_pre.c, line 27)
+:
+Assume {
+  (* Domain *)
+  Type: (is_sint32 f_1) /\ (is_sint32 x_1).
+  (* Pre-condition 'Rd' in 'double_call' *)
+  (* Pre-condition 'Rd': *)
+  Have: 0<=x_1.
+  (* tests/wp/wp_call_pre.c:26: Call 'f' *)
+  Have: (0<f_1) /\ (0<=x_1).
+}
+Prove: -1<=x_1.
+
+------------------------------------------------------------

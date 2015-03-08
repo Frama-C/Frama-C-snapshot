@@ -1,0 +1,26 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/raz.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  h ∈ [--..--]
+tests/misc/raz.i:8:[value] entering loop for the first time
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  n ∈ {0; 10}
+  r ∈ {0; 1}
+  i ∈ [0..15]
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  \result FROM h
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          n; tmp; r; i
+[inout] Inputs for function main:
+          h

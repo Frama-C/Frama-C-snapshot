@@ -1,0 +1,28 @@
+# frama-c -wp -wp-model 'Hoare' [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp/wp_call_pre.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+tests/wp/wp_call_pre.c:53:[kernel] warning: No code nor implicit assigns clause for function g, generating default assigns from the prototype
+tests/wp/wp_call_pre.c:53:[kernel] warning: No code nor implicit assigns clause for function f, generating default assigns from the prototype
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function call_main
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition 'qed_ok,Rmain' in 'main'' in 'call_main' at call 'main' (file tests/wp/wp_call_pre.c, line 40)
+:
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function main
+------------------------------------------------------------
+
+Goal Pre-condition 'qed_ok,Rmain' in 'main':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------

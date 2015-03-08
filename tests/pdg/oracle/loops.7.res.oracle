@@ -1,0 +1,74 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/pdg/loops.c (with preprocessing)
+[value] Analyzing an incomplete application starting at non_natural_loop
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  after ∈ [--..--]
+tests/pdg/loops.c:139:[kernel] warning: Non-natural loop detected.
+[value] Recording results for non_natural_loop
+[value] done for function non_natural_loop
+[pdg] computing for function non_natural_loop
+[pdg] done for function non_natural_loop
+[pdg] PDG for non_natural_loop
+ {n1}: InCtrl
+ {n2}: VarDecl : n
+   -[a--]-> 3
+ {n3}: In1
+   -[a--]-> 2
+ {n4}: VarDecl : x
+ {n5}: x = 1;
+   -[-c-]-> 1
+   -[a--]-> 4
+ {n6}: n < 0
+   -[-c-]-> 1
+   -[--d]-> 2
+   -[--d]-> 3
+ {n7}: x = 0;
+   -[-c-]-> 1
+   -[a--]-> 4
+   -[-c-]-> 6
+ {n8}: n = 20;
+   -[-c-]-> 1
+   -[a--]-> 2
+   -[-c-]-> 6
+ {n9}: n = 10;
+   -[-c-]-> 1
+   -[a--]-> 2
+   -[-c-]-> 6
+ {n10}: L:
+   -[-c-]-> 1
+   -[-c-]-> 6
+   -[-c-]-> 12
+   -[-c-]-> 13
+ {n11}: L: x += 2;
+   -[-c-]-> 1
+   -[a-d]-> 4
+   -[--d]-> 5
+   -[-c-]-> 6
+   -[--d]-> 7
+   -[--d]-> 11
+   -[-c-]-> 12
+   -[-c-]-> 13
+ {n12}: x < n
+   -[-c-]-> 1
+   -[--d]-> 2
+   -[--d]-> 4
+   -[--d]-> 7
+   -[--d]-> 8
+   -[--d]-> 9
+   -[--d]-> 11
+   -[-c-]-> 12
+   -[-c-]-> 13
+ {n13}: goto L;
+   -[-c-]-> 1
+   -[-c-]-> 10
+   -[-c-]-> 12
+   -[-c-]-> 13
+ {n14}: return x;
+   -[-c-]-> 1
+   -[--d]-> 4
+   -[--d]-> 7
+   -[--d]-> 11
+ {n15}: OutRet
+   -[--d]-> 14

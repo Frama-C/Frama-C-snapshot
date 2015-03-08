@@ -1,0 +1,44 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/occurrence/decl_func.i (no preprocessing)
+[occurrence] beginning analysis
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  x ∈ {0}
+  y ∈ {0}
+[value] computing for function f <- main.
+        Called from tests/occurrence/decl_func.i:16.
+[value] using specification for function f
+[value] Done for function f
+[value] computing for function f <- main.
+        Called from tests/occurrence/decl_func.i:17.
+[value] Done for function f
+[value] computing for function f <- main.
+        Called from tests/occurrence/decl_func.i:18.
+[value] Done for function f
+[value] Recording results for main
+[value] done for function main
+[occurrence] analysis done
+[occurrence] variable dest (parameter of Frama_C_bzero):
+               specification of Frama_C_bzero: dest
+             variable n (parameter of Frama_C_bzero):
+               specification of Frama_C_bzero: n
+             variable dest (parameter of Frama_C_copy_block):
+               specification of Frama_C_copy_block: dest
+             variable size (parameter of Frama_C_copy_block):
+               specification of Frama_C_copy_block: size
+             variable n (parameter of Frama_C_copy_block):
+               specification of Frama_C_copy_block: n
+             variable x (global):
+               global: x
+             variable y (global):
+               global: y
+             variable x (parameter of f):
+               specification of f: x
+             variable y_0 (local of main):
+               sid 1: y_0
+             variable z (local of main):
+               sid 2: z
+             variable tmp_0 (local of main):
+               sid 4: tmp_0

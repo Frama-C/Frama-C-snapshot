@@ -1,3 +1,7 @@
+/* run.config
+   STDOPT: +"-value-msg-key initial_state -journal-disable"
+*/
+
 // Cf. Bts 856
 
 volatile int v;

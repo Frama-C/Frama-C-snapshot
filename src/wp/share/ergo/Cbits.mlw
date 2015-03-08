@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -47,6 +47,16 @@ axiom bit_test_extraction :
 axiom bit_test_extraction1 :
   (forall x:int. forall k:int [land(x, lsl(1, k))| land(lsl(1, k), x)].
   ((0 <= k) -> (bit_test(x, k) -> (not (land(x, lsl(1, k)) = 0)))))
+
+axiom lsl_1_0 : (lsl(1, 0) = 1)
+
+axiom bit_test_extraction_bis :
+  (forall x:int [land(x, 1)| land(1, x)]. ((not (land(1, x) = 0)) ->
+  bit_test(x, 0)))
+
+axiom bit_test_extraction_bis_eq :
+  (forall x:int [land(x, 1)| land(1, x)]. (bit_test(x, 0) -> (land(1,
+  x) = 1)))
 
 axiom lnot_extraction :
   (forall x:int. forall i:int [bit_test(lnot(x), i)]. ((0 <= i) ->
@@ -93,6 +103,11 @@ axiom lxor_extraction2 :
   (forall x:int. forall y:int. forall i:int [bit_test(lxor(x, y), i)].
   ((0 <= i) -> ((bit_test(x, i) <-> (not bit_test(y, i))) -> bit_test(lxor(x,
   y), i))))
+
+axiom land_1_lsl_1 :
+  (forall a:int. forall x:int. forall n:int [lsl(1, (1 + n)), lsl(1, n),
+  ((2 * a) + land(1, x))]. ((0 <= n) -> ((a <  lsl(1, n)) ->
+  (((2 * a) + land(1, x)) <  lsl(1, (1 + n))))))
 
 axiom lsl_extraction_sup :
   (forall x:int. forall n:int. forall m:int [bit_test(lsl(x, n), m)].

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -26,13 +26,13 @@ include Plugin.S
 
 (* modules related to the command line options *)
 module Select : sig
-  module Calls: Parameter_sig.String_set
-  module Return: Parameter_sig.String_set
-  module Threat: Parameter_sig.String_set
-  module Assert: Parameter_sig.String_set
-  module Pragma: Parameter_sig.String_set
-  module LoopInv: Parameter_sig.String_set
-  module LoopVar: Parameter_sig.String_set
+  module Calls: Parameter_sig.Kernel_function_set
+  module Return: Parameter_sig.Kernel_function_set
+  module Threat: Parameter_sig.Kernel_function_set
+  module Assert: Parameter_sig.Kernel_function_set
+  module Pragma: Parameter_sig.Kernel_function_set
+  module LoopInv: Parameter_sig.Kernel_function_set
+  module LoopVar: Parameter_sig.Kernel_function_set
   module RdAccess: Parameter_sig.String_set
   module WrAccess: Parameter_sig.String_set
   module Value: Parameter_sig.String_set

@@ -260,7 +260,7 @@ val compatibleTypesp: Cil_types.typ -> Cil_types.typ -> bool
 (** Check that the two given types are compatible (C99, 6.2.7), and
     return a boolean.
 
-    @since Neon-20130301
+    @since Neon-20140301
 *)
 
 (*

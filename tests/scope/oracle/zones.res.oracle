@@ -1,0 +1,208 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/scope/zones.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  T[0..9] ∈ {0}
+  S ∈ {0}
+  X ∈ {0}
+  Y ∈ {0}
+  Z ∈ {0}
+  Xf ∈ {0}
+  Xg ∈ {0}
+  Yf ∈ {0}
+  Yg ∈ {0}
+[value] computing for function simple <- main.
+        Called from tests/scope/zones.c:73.
+tests/scope/zones.c:15:[kernel] warning: signed overflow. assert x+1 ≤ 2147483647;
+tests/scope/zones.c:16:[kernel] warning: signed overflow. assert y+z ≤ 2147483647;
+[value] Recording results for simple
+[value] Done for function simple
+[value] computing for function array1 <- main.
+        Called from tests/scope/zones.c:74.
+tests/scope/zones.c:21:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert 0 ≤ x < 10;
+tests/scope/zones.c:22:[kernel] warning: signed overflow. assert T[0]+y ≤ 2147483647;
+[value] Recording results for array1
+[value] Done for function array1
+[value] computing for function struct1 <- main.
+        Called from tests/scope/zones.c:75.
+[value] Recording results for struct1
+[value] Done for function struct1
+[value] computing for function ctrl1 <- main.
+        Called from tests/scope/zones.c:76.
+[value] Recording results for ctrl1
+[value] Done for function ctrl1
+[value] computing for function caller <- main.
+        Called from tests/scope/zones.c:78.
+[value] computing for function f <- caller <- main.
+        Called from tests/scope/zones.c:66.
+[value] Recording results for f
+[value] Done for function f
+[value] computing for function g <- caller <- main.
+        Called from tests/scope/zones.c:67.
+[value] Recording results for g
+[value] Done for function g
+[value] computing for function f <- caller <- main.
+        Called from tests/scope/zones.c:68.
+tests/scope/zones.c:54:[kernel] warning: signed overflow. assert x+y ≤ 2147483647;
+[value] Recording results for f
+[value] Done for function f
+[value] computing for function g <- caller <- main.
+        Called from tests/scope/zones.c:68.
+tests/scope/zones.c:60:[kernel] warning: signed overflow. assert a+b ≤ 2147483647;
+[value] Recording results for g
+[value] Done for function g
+[value] Recording results for caller
+[value] Done for function caller
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function array1:
+  T[0] ∈ [--..--]
+   [1..9] ∈ {0; 3}
+  __retres ∈ [--..--]
+[value] Values at end of function ctrl1:
+  a ∈ [--..--]
+[value] Values at end of function f:
+  Xf ∈ [0..9]
+  Yf ∈ [--..--]
+  __retres ∈ [--..--]
+[value] Values at end of function g:
+  Xg ∈ [--..--]
+  Yg ∈ [--..--]
+  __retres ∈ [--..--]
+[value] Values at end of function caller:
+  Xf ∈ [0..9]
+  Xg ∈ [--..--]
+  Yf ∈ [--..--]
+  Yg ∈ [--..--]
+  x1 ∈ {0}
+  y1 ∈ {0}
+  z1 ∈ {0}
+  a1 ∈ {0}
+  b1 ∈ {0}
+  c1 ∈ {0}
+  pf ∈ {{ &f ; &g }}
+[value] Values at end of function simple:
+  x ∈ [-2147483645..2147483647]
+  y ∈ {3}
+[value] Values at end of function struct1:
+  s.a ∈ [0..9]
+   .b ∈ [--..--]
+  __retres ∈ [0..9]
+[value] Values at end of function main:
+  T[0] ∈ [--..--]
+   [1..9] ∈ {0; 3}
+  Xf ∈ [0..9]
+  Xg ∈ [--..--]
+  Yf ∈ [--..--]
+  Yg ∈ [--..--]
+  __retres ∈ {0}
+[pdg] computing for function simple
+[pdg] done for function simple
+Current program point = return in function simple
+Zones for x at current program point =
+Stmt:1 -> z
+Stmt:2 -> y; z
+Stmt:3 -> y; z
+Stmt:5 -> x
+[pdg] computing for function array1
+[pdg] done for function array1
+
+
+Current program point = return in function array1
+Zones for T[0] at current program point =
+Stmt:7 -> T[0]; x; y
+Stmt:8 -> T[0]; y
+Stmt:10 -> T[0]
+Stmt:61 -> T[0]
+
+
+Zones for T[1] at current program point =
+Stmt:7 -> T[1]; x
+Stmt:8 -> T[1]
+Stmt:10 -> T[1]
+Stmt:61 -> T[1]
+
+
+Zones for T[x] at current program point =
+Stmt:7 -> T[0..9]; x; y
+Stmt:8 -> T[0..9]; x; y
+Stmt:10 -> T[0..9]; x
+Stmt:61 -> T[0..9]; x
+[pdg] computing for function struct1
+[pdg] done for function struct1
+
+
+Current program point = return in function struct1
+Zones for s.a at current program point =
+Stmt:12 -> x
+Stmt:13 -> x
+Stmt:14 -> s.a
+Stmt:16 -> s.a
+Stmt:63 -> s.a
+
+
+Zones for s.b at current program point =
+Stmt:12 -> S; y
+Stmt:13 -> y; s.b
+Stmt:14 -> y; s.b
+Stmt:16 -> s.b
+Stmt:63 -> s.b
+
+
+Zones for s at current program point =
+Stmt:12 -> S; x; y
+Stmt:13 -> x; y; s.b
+Stmt:14 -> y; s
+Stmt:16 -> s
+Stmt:63 -> s
+[pdg] computing for function ctrl1
+[pdg] done for function ctrl1
+
+
+Current program point = return in function ctrl1
+Zones for a at current program point =
+Stmt:19 -> x; y; z
+Stmt:20 -> y
+Stmt:21 -> a
+Stmt:22 -> a
+Stmt:23 -> z
+Stmt:25 -> a
+
+
+Current program point = label Lt2 in function ctrl1
+Zones for a at current program point =
+Stmt:19 -> x; y
+Stmt:20 -> y
+Stmt:21 -> a
+Stmt:22 -> a
+Stmt:23 -> \nothing
+Stmt:25 -> \nothing
+[from] Computing for function f
+[from] Done for function f
+[from] Computing for function g
+[from] Done for function g
+[pdg] computing for function caller
+[pdg] done for function caller
+
+
+Current program point = return in function caller
+Zones for Yf at current program point =
+Stmt:37 -> cond; v
+Stmt:38 -> cond; v
+Stmt:39 -> cond; v
+Stmt:40 -> cond; v; z1
+Stmt:41 -> cond; v; z1
+Stmt:42 -> cond; v; z1
+Stmt:44 -> cond; v; z1
+Stmt:45 -> v; z1
+Stmt:46 -> v; z1
+Stmt:47 -> v; z1; tmp
+Stmt:48 -> v; z1; pf
+Stmt:49 -> Yf; v; pf
+Stmt:50 -> Yf; v; pf
+Stmt:51 -> Yf
+
+

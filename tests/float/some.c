@@ -1,6 +1,6 @@
 /* run.config
-   OPT: -val-show-slevel 10 -slevel 100 -val -cpp-command "gcc -C -E -DFLOAT=double -DN=55 -I. " -float-normal -journal-disable -no-results
-   OPT: -slevel 100 -val -cpp-command "gcc -C -E -DFLOAT=float -DN=26 -I. "  -float-normal -journal-disable -no-results
+   OPT: -val-show-slevel 10 -slevel 100 -val -cpp-extra-args="-DFLOAT=double -DN=55" -float-normal -journal-disable -no-results
+   OPT: -slevel 100 -val -cpp-extra-args="-DFLOAT=float -DN=26"  -float-normal -journal-disable -no-results
 */
 
 FLOAT t[N] = { 1. } ;

@@ -1,0 +1,47 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/lock.i (no preprocessing)
+[value] Analyzing a complete application starting at locks0_good
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  ghost_loctable[0..99] ∈ {0}
+  pmutex ∈ {0}
+tests/misc/lock.i:48:[value] Function locks0_good: precondition got status unknown.
+[value] computing for function acquire_lock <- locks0_good.
+        Called from tests/misc/lock.i:51.
+[value] using specification for function acquire_lock
+tests/misc/lock.i:19:[value] Function acquire_lock: precondition got status unknown.
+tests/misc/lock.i:21:[value] warning: no \from part for clause 'assigns ghost_loctable[0 .. 99];' of
+                 function acquire_lock
+[value] Done for function acquire_lock
+[value] computing for function release_lock <- locks0_good.
+        Called from tests/misc/lock.i:52.
+[value] using specification for function release_lock
+tests/misc/lock.i:27:[value] Function release_lock: precondition got status unknown.
+tests/misc/lock.i:29:[value] warning: no \from part for clause 'assigns ghost_loctable[..];' of
+                 function release_lock
+[value] Done for function release_lock
+[value] Recording results for locks0_good
+[value] done for function locks0_good
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function locks0_good:
+  ghost_loctable[0..99] ∈ [--..--]
+[from] Computing for function locks0_good
+[from] Computing for function acquire_lock <-locks0_good
+[from] Done for function acquire_lock
+[from] Computing for function release_lock <-locks0_good
+[from] Done for function release_lock
+[from] Done for function locks0_good
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function acquire_lock:
+  ghost_loctable[0..99] FROM ANYTHING(origin:Unknown) (and SELF)
+[from] Function release_lock:
+  ghost_loctable[0..99] FROM ANYTHING(origin:Unknown) (and SELF)
+[from] Function locks0_good:
+  ghost_loctable[0..99] FROM ANYTHING(origin:Unknown) (and SELF)
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function locks0_good:
+          ghost_loctable[0..99]
+[inout] Inputs for function locks0_good:
+          ANYTHING(origin:Unknown)

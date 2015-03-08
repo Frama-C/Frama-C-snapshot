@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -print tests/spec/multiple_include_1.c -journal-disable
+   OPT: -continue-annot-error -print tests/spec/multiple_include_1.c -journal-disable
 */
 #include "multiple_include.h"
 

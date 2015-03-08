@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -253,6 +253,8 @@ module Signature = struct
     in
     fold_all_outputs (fun acc (n, info) -> f acc (Out n, info)) acc sgn
 
+  let iter f sgn = fold (fun () v -> f v) () sgn
+
   let merge sgn1 sgn2 merge_info =
     let merge_elem lst (k, info) = add_in_list lst k info merge_info in
     let inputs = fold_num_inputs merge_elem sgn1.in_params sgn2 in
@@ -288,10 +290,10 @@ module Signature = struct
     | Out key -> pretty_out_key fmt key
 
   let pretty pp fmt sgn =
-    let print _ (k,i) = 
-      Format.fprintf fmt "@[<hv>(%a:@ %a)@]" pretty_key k pp i 
-    in
-    fold print () sgn
+    Pretty_utils.pp_iter ~pre:"@[<v>" ~suf:"@]" ~sep:"@," iter
+      (fun fmt (k,i) ->
+        Format.fprintf fmt "@[<hv>(%a:@ %a)@]" pretty_key k pp i)
+      fmt sgn
 
 end
 
@@ -346,19 +348,18 @@ module Key = struct
   (* see PrintPdg.pretty_key : can't be here because it uses Db... *)
   let pretty_node fmt k =
     let print_stmt fmt s =
-      let str =
-        match s.skind with
-        | Switch (exp,_,_,_) | If (exp,_,_,_) ->
-          Pretty_utils.to_string Printer.pp_exp exp
-        | Loop _ -> "while(1)"
-        | Block _ -> "block"
-        | Goto _ | Break _ | Continue _ | Return _ | Instr _ ->
-          Pretty_utils.sfprintf "@[<h 1>%a@]" 
-	    (Printer.without_annot Printer.pp_stmt) s
-        | UnspecifiedSequence _ -> "unspecified sequence"
-        | TryExcept _ | TryFinally _  -> "ERROR"
-      in
-      Format.fprintf fmt "%s" str
+      match s.skind with
+      | Switch (exp,_,_,_) | If (exp,_,_,_) ->
+        Printer.pp_exp fmt exp
+      | Loop _ -> Format.pp_print_string fmt "while(1)"
+      | Block _ -> Format.pp_print_string fmt "block"
+      | Goto _ | Break _ | Continue _ | Return _ | Instr _ | Throw _ ->
+        Format.fprintf fmt "@[<h 1>%a@]"
+	  (Printer.without_annot Printer.pp_stmt) s
+      | UnspecifiedSequence _ ->
+        Format.pp_print_string fmt "unspecified sequence"
+      | TryExcept _ | TryFinally _  | TryCatch _ ->
+        Format.pp_print_string fmt "ERROR"
     in
     match k with
     | CallStmt call ->

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -58,6 +58,7 @@ type alarm =
   | Not_separated of lval * lval
   | Overlap of lval * lval
   | Uninitialized of lval
+  | Dangling of lval
   | Is_nan_or_infinite of exp * fkind
   | Valid_string of exp
 
@@ -83,6 +84,7 @@ module D =
         | Float_to_int _ -> 11
         | Differing_blocks _ -> 12
         | Valid_string _ -> 13
+	| Dangling _ -> 14
 
       let compare a1 a2 = match a1, a2 with
 	| Division_by_zero e1, Division_by_zero e2 -> Exp.compare e1 e2
@@ -131,6 +133,7 @@ module D =
 	  let n = Lval.compare lv11 lv21 in
 	  if n = 0 then Lval.compare lv12 lv22 else n
 	| Uninitialized lv1, Uninitialized lv2 -> Lval.compare lv1 lv2
+	| Dangling lv1, Dangling lv2 -> Lval.compare lv1 lv2
         | Differing_blocks (e11, e12), Differing_blocks (e21, e22) ->
           let n = Exp.compare e11 e21 in
 	  if n = 0 then Exp.compare e12 e22 else n
@@ -139,8 +142,8 @@ module D =
 	| _, (Division_by_zero _ | Memory_access _ | Logic_memory_access _  |
               Index_out_of_bound _ | Invalid_shift _ | Pointer_comparison _ |
               Overflow _ | Not_separated _ | Overlap _ | Uninitialized _ |
-              Is_nan_or_infinite _ | Float_to_int _ | Differing_blocks _ |
-              Valid_string _)
+              Dangling _ | Is_nan_or_infinite _ | Float_to_int _ |
+              Differing_blocks _ | Valid_string _)
           ->
 	  let n = rank a1 - rank a2 in
 	  assert (n <> 0);
@@ -184,6 +187,7 @@ module D =
 	| Not_separated(lv1, lv2) | Overlap(lv1, lv2) -> 
 	  Hashtbl.hash (rank a, Lval.hash lv1, Lval.hash lv2)
 	| Uninitialized lv -> Hashtbl.hash (rank a, Lval.hash lv)
+	| Dangling lv -> Hashtbl.hash (rank a, Lval.hash lv)
         | Valid_string(e) -> Hashtbl.hash (rank a, Exp.hash e)
 
       let structural_descr = Structural_descr.t_abstract
@@ -227,12 +231,12 @@ module D =
 	    (String.capitalize (string_of_overflow_kind s))
 	    Printer.pp_exp e
 	    (match b with Lower_bound -> ">=" | Upper_bound -> "<=")
-	    Datatype.Big_int.pretty n
+	    Datatype.Integer.pretty n
 	| Float_to_int(e, n, b) ->
 	  Format.fprintf fmt "Float_to_int(@[%a@]@ %s@ @[%a@])"
 	    Printer.pp_exp e
 	    (match b with Lower_bound -> ">" | Upper_bound -> "<")
-	    Datatype.Big_int.pretty
+	    Datatype.Integer.pretty
             ((match b with
 	    | Lower_bound -> Integer.sub
 	    | Upper_bound -> Integer.add) n Integer.one)
@@ -244,6 +248,8 @@ module D =
 	    Lval.pretty lv1 Lval.pretty lv2
 	| Uninitialized lv ->
 	  Format.fprintf fmt "Uninitialized(@[%a@])" Lval.pretty lv
+	| Dangling lv ->
+	  Format.fprintf fmt "Unspecified(@[%a@])" Lval.pretty lv
         | Valid_string e ->
           Format.fprintf fmt "Valid_string(@[%a@])" Exp.pretty e
 
@@ -346,6 +352,7 @@ let get_name = function
   | Not_separated _ -> "separation"
   | Overlap _ -> "overlap"
   | Uninitialized _ -> "initialisation"
+  | Dangling _ -> "dangling_pointer"
   | Is_nan_or_infinite _ -> "is_nan_or_infinite"
   | Float_to_int _ -> "float_to_int"
   | Valid_string _ -> "valid_string"
@@ -449,12 +456,12 @@ let create_predicate ?(loc=Location.unknown) alarm =
   | Float_to_int(e, n, bound) -> 
     (* n < e or e < n according to bound *)
     let loc = e.eloc in
-    let t = overflowed_expr_to_term e in
+    let t = Logic_const.tlogic_coerce ~loc (overflowed_expr_to_term e) Lreal in
     let n = 
       (match bound with Lower_bound -> Integer.sub | Upper_bound -> Integer.add)
 	n Integer.one 
     in
-    let tn = Logic_const.tint ~loc n in
+    let tn = Logic_const.tlogic_coerce ~loc (Logic_const.tint ~loc n) Lreal in
     Logic_const.prel ~loc
       (match bound with Lower_bound -> Rlt, tn, t | Upper_bound -> Rlt, t, tn)
 
@@ -481,6 +488,12 @@ let create_predicate ?(loc=Location.unknown) alarm =
     let e = Cil.mkAddrOrStartOf ~loc lv in
     let t = Logic_utils.expr_to_term ~cast:false e in
     Logic_const.pinitialized ~loc (Logic_const.here_label, t)
+
+  | Dangling lv -> 
+    (* !\dangling(lv) *)
+    let e = Cil.mkAddrOrStartOf ~loc lv in
+    let t = Logic_utils.expr_to_term ~cast:false e in
+    Logic_const.(pnot ~loc (pdangling ~loc (Logic_const.here_label, t)))
 
   | Is_nan_or_infinite (e, fkind) -> 
     (* \is_finite((fkind)e) *)

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -33,7 +33,8 @@ let find_sub_stmts st = match st.skind with
 | TryFinally (bl1, bl2, _) -> bl1.bstmts@bl2.bstmts
 | Block bl | Loop (_,bl, _, _, _) | Switch (_, bl, _, _) ->  bl.bstmts
 | UnspecifiedSequence seq -> List.map (fun (x,_,_,_,_) -> x) seq
-| Continue _|Break _|Goto (_, _)|Return (_, _)|Instr _  -> []
+| TryCatch(t,c,_) -> List.fold_left (fun acc (_,b) -> acc @ b.bstmts) t.bstmts c
+| Continue _|Break _|Goto (_, _)|Return (_, _)|Instr _|Throw _  -> []
 
 let str_call_sig ff call fmt =
   try
@@ -43,12 +44,12 @@ let str_call_sig ff call fmt =
       | None
       | Some (None) -> Format.fprintf fmt "@[/* undetermined call */@]"
       | Some (Some (SlicingInternals.CallSlice ff)) ->
-        Format.fprintf fmt "@[/* call to@ %a */@]"
+        Format.fprintf fmt "@[<hov 2>/* call to %a */@]"
           Fct_slice.print_ff_sig ff
       | Some (Some(SlicingInternals.CallSrc _)) ->
         Format.fprintf fmt "@[/* call to source function */@]"
     in
-    Format.fprintf fmt "@[<v>@[/* sig call:@ %a */@]@ %t@]"
+    Format.fprintf fmt "@[<v>@[<hov 2>/* sig call:@ %a */@]@ %t@]"
       SlicingMarks.pretty_sig sgn print_called
   with Not_found -> 
     Format.fprintf fmt "@[/* invisible call */@]"
@@ -109,6 +110,8 @@ class printerClass optional_ff = object(self)
     Format.fprintf fmt "@[<hv>/* %s */@ %a@]"
       label_info
       super#label l
+
+  method! private require_braces ?has_annot:_ _ = true
 end
 
 let print_fct_from_pdg fmt ?ff pdg  =
@@ -227,7 +230,7 @@ module PrintProject = struct
 
   let graph_attributes (name, _) = [`Label name]
 
-  let default_vertex_attributes _ = [`Style [`Filled]]
+  let default_vertex_attributes _ = [`Style `Filled]
 
   let vertex_name v = match v with
     | Src fi -> SlicingMacros.fi_name fi
@@ -280,16 +283,16 @@ module PrintProject = struct
 
   let edge_attributes (e, call) =
     let attrib = match e with
-    | (Src _, Src _) -> [`Style [`Invis]]
-    | (OptSliceCallers _, _) -> [`Style [`Invis]]
-    | (_, OptSliceCallers _) -> [`Style [`Invis]]
+    | (Src _, Src _) -> [`Style `Invis]
+    | (OptSliceCallers _, _) -> [`Style `Invis]
+    | (_, OptSliceCallers _) -> [`Style `Invis]
     | _ -> []
     in match call with None -> attrib
       | Some call -> (`Label (string_of_int call.sid)):: attrib
 
   let get_subgraph v =
     let mk_subgraph name attrib =
-      let attrib = (*(`Label name) ::*) (`Style [`Filled]) :: attrib in
+      let attrib = (*(`Label name) ::*) (`Style `Filled) :: attrib in
           Some { Graph.Graphviz.DotAttributes.sg_name= name;
                  sg_parent = None;
                  sg_attributes = attrib }

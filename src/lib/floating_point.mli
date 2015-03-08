@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -56,11 +56,23 @@ val pretty_normal : use_hex : bool -> Format.formatter -> float -> unit
 val pretty : Format.formatter -> float -> unit
 
 
-exception Float_Non_representable_as_Int64
+type sign = Neg | Pos
+
+exception Float_Non_representable_as_Int64 of sign
 
 val truncate_to_integer: float -> Integer.t
 (** Raises [Float_Non_representable_as_Int64] if the float value cannot
     be represented as an Int64 or as an unsigned Int64. *)
+
+
+(** binary representation of -DBL_MAX and DBL_MAX as 64 bits signed integers *)
+val bits_of_max_double : Integer.t
+val bits_of_most_negative_double : Integer.t
+
+(** binary representation of -FLT_MAX and FLT_MAX as 32 bits signed integers *)
+val bits_of_max_float : Integer.t
+val bits_of_most_negative_float : Integer.t
+
 
 (*
 Local Variables:

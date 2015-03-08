@@ -1,0 +1,8 @@
+%init: main;
+%accept: main, S1;
+
+main : { nobody.Age == 0 } -> S1
+     ;
+S1   : { nobody.Age == 1 } -> S1
+     ;
+

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -62,6 +62,7 @@ type alarm =
   | Overlap of lval * lval (** overlapping read/write: the two lvalues must be
                                separated or equal *)
   | Uninitialized of lval
+  | Dangling of lval
   | Is_nan_or_infinite of exp * fkind
   | Valid_string of exp
 
@@ -117,6 +118,9 @@ val remove: ?filter:(alarm -> bool) -> ?kinstr:kinstr -> Emitter.t -> unit
 val create_predicate: ?loc:location -> t -> predicate named
 (** Generate the predicate corresponding to a given alarm. 
     @since Fluorine-20130401 *)
+
+val get_name: t -> string
+(** Short name of the alarm, used to prefix the assertion in the AST. *)
 
 (*
 Local Variables:

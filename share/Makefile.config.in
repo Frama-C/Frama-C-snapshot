@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2014                                               #
+#  Copyright (C) 2007-2015                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -54,8 +54,10 @@ FRAMAC_PLUGINDIR ?=$(FRAMAC_LIBDIR)/plugins
 FRAMAC_DATADIR 	?=$(DATADIR)/frama-c
 EMACS_DATADIR	?=$(DATADIR)/emacs/site-lisp
 FRAMAC_DEFAULT_CPP ?=@FRAMAC_DEFAULT_CPP@
+FRAMAC_GNU_CPP ?=@FRAMAC_GNU_CPP@
 DEFAULT_CPP_KEEP_COMMENTS?=@DEFAULT_CPP_KEEP_COMMENTS@
 FC_MCPP ?=@FC_MCPP@
+CC =@CC@
 
 ###############
 # Ocaml stuff #
@@ -140,7 +142,7 @@ THREAD_IS_KEYWORD ?=@THREAD_IS_KEYWORD@
 EXTERNAL_PLUGINS ?=@EXTERNAL_PLUGINS@
 
 # Integrated plugins
-ENABLE_FROM_ANALYSIS              ?=@ENABLE_FROM_ANALYSIS@
+ENABLE_FROM                       ?=@ENABLE_FROM_ANALYSIS@
 ENABLE_GUI	                  ?=@ENABLE_GUI@
 ENABLE_IMPACT	                  ?=@ENABLE_IMPACT@
 ENABLE_INOUT	                  ?=@ENABLE_INOUT@
@@ -148,16 +150,15 @@ ENABLE_METRICS	                  ?=@ENABLE_METRICS@
 ENABLE_OCCURRENCE                 ?=@ENABLE_OCCURRENCE@
 ENABLE_PDG	                  ?=@ENABLE_PDG@
 ENABLE_POSTDOMINATORS             ?=@ENABLE_POSTDOMINATORS@
-ENABLE_REPORT                     ?=@ENABLE_REPORT@
-ENABLE_RTE_ANNOTATION             ?=@ENABLE_RTE_ANNOTATION@
+ENABLE_RTEGEN                     ?=@ENABLE_RTEGEN@
 ENABLE_SCOPE	                  ?=@ENABLE_SCOPE@
 ENABLE_SEMANTIC_CALLGRAPH         ?=@ENABLE_SEMANTIC_CALLGRAPH@
-ENABLE_SEMANTIC_CONSTANT_FOLDING  ?=@ENABLE_SEMANTIC_CONSTANT_FOLDING@
+ENABLE_CONSTANT_PROPAGATION       ?=@ENABLE_SEMANTIC_CONSTANT_FOLDING@
 ENABLE_SLICING	                  ?=@ENABLE_SLICING@
 ENABLE_SPARECODE                  ?=@ENABLE_SPARECODE@
 ENABLE_SYNTACTIC_CALLGRAPH        ?=@ENABLE_SYNTACTIC_CALLGRAPH@
 ENABLE_USERS	                  ?=@ENABLE_USERS@
-ENABLE_VALUE_ANALYSIS             ?=@ENABLE_VALUE_ANALYSIS@
+ENABLE_VALUE                      ?=@ENABLE_VALUE_ANALYSIS@
 
 
 ##########################################################################

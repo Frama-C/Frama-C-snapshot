@@ -64,7 +64,7 @@ let main _ =
   *)
 
   !Db.Value.compute ();
-  let all = Datatype.String.Set.empty in
+  let all = Cil_datatype.Fundec.Set.empty in
   let proj3 = !Db.Constant_Propagation.get all ~cast_intro:true in
   Project.set_current proj3;
   Format.printf "After Constant propagation :@.";

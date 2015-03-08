@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -91,11 +91,11 @@ struct
     let y = var.(x) in
     if y != 0 then y else
       begin
-	var.(x) <- x ;
-	r.join <- map (visit sys var) r.join ;
-	if r.fct = [] then
-	  match r.join with [e] -> var.(x) <- e ; e | _ -> x
-	else x
+        var.(x) <- x ;
+        r.join <- map (visit sys var) r.join ;
+        if r.fct = [] then
+          match r.join with [e] -> var.(x) <- e ; e | _ -> x
+        else x
       end
 
   let rec id var x =
@@ -134,7 +134,7 @@ struct
   type fixpoint = D.t array
 
   let get = Array.get
-      
+
   let fixpoint ~system ~root ~timeout =
     let size = Vector.size system in
     let var = Array.create size 0 in
@@ -142,10 +142,10 @@ struct
     let deps = Array.create size [] in
     for x = 0 to size-1 do
       if var.(x) == x then
-	let r = Vector.get system x in
-	let depx = depend var deps x in
-	r.join <- List.map depx r.join ;
-	r.fct <- List.map (fmap depx) r.fct ;
+        let r = Vector.get system x in
+        let depx = depend var deps x in
+        r.join <- List.map depx r.join ;
+        r.fct <- List.map (fmap depx) r.fct ;
     done ;
     let succ f e = List.iter f deps.(e) in
     let root = id var root in
@@ -157,5 +157,5 @@ struct
       (fun x y -> if x!=y then domain.(x) <- domain.(y))
       var ; 
     domain
-    
+
 end

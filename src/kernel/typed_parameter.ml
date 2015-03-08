@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -32,8 +32,6 @@ type typed_accessor =
   | Bool of bool accessor * string option (** the negative option, if any *)
   | Int of int accessor * (unit -> int * int) (** getting range *)
   | String of string accessor * (unit -> string list) (** possible values *)
-  | String_set of (string, Datatype.String.Set.t) gen_accessor
-  | String_list of (string, string list) gen_accessor
 
 type parameter = 
     { name: string; 
@@ -85,10 +83,7 @@ let get = Datatype.String.Hashtbl.find parameters
 let pretty_value fmt p = match p.accessor with
   | Bool(a, _) -> Format.fprintf fmt "%b" (a.get ())
   | Int(a, _) -> Format.fprintf fmt "%d" (a.get ())
-  (* factorisation requires GADT (OCaml 4.01) *)
   | String(a, _) -> Format.fprintf fmt "%s" (a.get ())
-  | String_set a -> Format.fprintf fmt "%s" (a.get ())
-  | String_list a -> Format.fprintf fmt "%s" (a.get ())
 
 let get_value p = Pretty_utils.sfprintf "%a" pretty_value p
  

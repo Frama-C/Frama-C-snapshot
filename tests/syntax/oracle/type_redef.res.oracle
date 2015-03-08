@@ -1,0 +1,5 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/syntax/type_redef.i (no preprocessing)
+tests/syntax/type_redef.i:2:[kernel] user error: redefinition of 'ftest_t' in the same scope. Previous declaration was at tests/syntax/type_redef.i:1
+[kernel] user error: stopping on file "tests/syntax/type_redef.i" that has errors.
+[kernel] Frama-C aborted: invalid user input.

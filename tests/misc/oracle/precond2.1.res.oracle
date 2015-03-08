@@ -1,0 +1,99 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/precond2.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  x ∈ {0}
+[value] computing for function f <- main.
+        Called from tests/misc/precond2.c:21.
+tests/misc/precond2.c:9:[value] Function f: precondition got status valid.
+tests/misc/precond2.c:10:[value] Function f: precondition got status valid.
+[value] Recording results for f
+[value] Done for function f
+[value] computing for function f <- main.
+        Called from tests/misc/precond2.c:22.
+tests/misc/precond2.c:10:[value] Function f: precondition got status invalid.
+[value] Recording results for f
+[value] Done for function f
+[value] computing for function g <- main.
+        Called from tests/misc/precond2.c:24.
+tests/misc/precond2.c:24:[kernel] warning: No code nor implicit assigns clause for function g, generating default assigns from the prototype
+[value] using specification for function g
+tests/misc/precond2.c:16:[value] Function g: precondition got status valid.
+[value] Done for function g
+[value] computing for function g <- main.
+        Called from tests/misc/precond2.c:24.
+[value] Done for function g
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function f:
+  x ∈ {1}
+[value] Values at end of function main:
+  x ∈ {0; 1}
+[rte] annotating function f
+[rte] annotating function main
+[report] Computing properties status...
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'g'
+--------------------------------------------------------------------------------
+
+[    -    ] Assigns nothing
+            assigns \nothing;
+            tried with Inferred annotations.
+[    -    ] Default behavior
+            default behavior
+            tried with Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'main'
+--------------------------------------------------------------------------------
+
+[  Valid  ] Default behavior at call 'f' (file tests/misc/precond2.c, line 21)
+            default behavior for statement 6
+            by Frama-C kernel.
+[  Valid  ] Default behavior at call 'f' (file tests/misc/precond2.c, line 22)
+            default behavior for statement 9
+            by Frama-C kernel.
+[  Valid  ] Default behavior at call 'g' (file tests/misc/precond2.c, line 24)
+            default behavior for statement 12
+            by Frama-C kernel.
+[  Valid  ] Default behavior at call 'g' (file tests/misc/precond2.c, line 24)
+            default behavior for statement 13
+            by Frama-C kernel.
+[  Valid  ] Instance of 'Pre-condition (file tests/misc/precond2.c, line 9)' at call 'f' (file tests/misc/precond2.c, line 21)
+
+            status of 'requires i+1 ≥ 0' of f at stmt 6
+            by Value.
+[  Valid  ] Instance of 'Pre-condition (file tests/misc/precond2.c, line 10)' at call 'f' (file tests/misc/precond2.c, line 21)
+
+            status of 'requires i ≥ 0' of f at stmt 6
+            by Value.
+[  Valid  ] Instance of 'Pre-condition (file tests/misc/precond2.c, line 9)' at call 'f' (file tests/misc/precond2.c, line 22)
+
+            status of 'requires i+1 ≥ 0' of f at stmt 9
+            by Value.
+[  Alarm  ] Instance of 'Pre-condition (file tests/misc/precond2.c, line 10)' at call 'f' (file tests/misc/precond2.c, line 22)
+
+            status of 'requires i ≥ 0' of f at stmt 9
+            By Value, with pending:
+             - Unreachable call 'f' (file tests/misc/precond2.c, line 22)
+[  Valid  ] Instance of 'Pre-condition (file tests/misc/precond2.c, line 16)' at call 'g' (file tests/misc/precond2.c, line 24)
+
+            status of 'requires x ≤ 8' of g at stmt 12
+            by Value.
+[  Valid  ] Instance of 'Pre-condition (file tests/misc/precond2.c, line 16)' at call 'g' (file tests/misc/precond2.c, line 24)
+
+            status of 'requires x ≤ 8' of g at stmt 13
+            by Value.
+
+--------------------------------------------------------------------------------
+--- Status Report Summary
+--------------------------------------------------------------------------------
+     9 Completely validated
+     2 To be validated
+     1 Alarm emitted
+    12 Total
+--------------------------------------------------------------------------------

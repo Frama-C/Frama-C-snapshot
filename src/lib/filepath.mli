@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -32,7 +32,7 @@ val normalize: string -> string
     {!Sysutil.absolutize_filename} if you want to obtain the absolute path
     of a given file.
 
-    @since Neon-20130301
+    @since Neon-20140301
 *)
 val pretty: string -> string
 

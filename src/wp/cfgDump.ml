@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -36,9 +36,9 @@ struct
   let init kf bhv = 
     begin
       let name =
-	match bhv with
-	  | None -> Kernel_function.get_name kf
-	  | Some bname -> Kernel_function.get_name kf ^ "_" ^ bname
+        match bhv with
+        | None -> Kernel_function.get_name kf
+        | Some bname -> Kernel_function.get_name kf ^ "_" ^ bname
       in
       let file = Filename.concat (Wp_parameters.get_output ()) name in
       Wp_parameters.feedback "CFG %a -> %s@." Kernel_function.pretty kf name ;
@@ -56,11 +56,11 @@ struct
       Format.fprintf !out "}@." ;
       out := Format.std_formatter ;
       match !fc with
-	| None -> ()
-	| Some (fout,file) -> 
-	    close_out fout ;
-	    ignore (Sys.command 
-		      (Printf.sprintf "dot -Tpdf %s.dot > %s.pdf" file file))
+      | None -> ()
+      | Some (fout,file) -> 
+          close_out fout ;
+          ignore (Sys.command 
+                    (Printf.sprintf "dot -Tpdf %s.dot > %s.pdf" file file))
     end
 
   (* -------------------------------------------------------------------------- *)
@@ -78,12 +78,14 @@ struct
 
   let merge _env k1 k2 = 
     if k1=0 then k2 else 
-      if k2=0 then k1 else
-	let u = node () in
-	Format.fprintf !out "  %a [ label=\"\" , shape=circle ] ;@." pretty u ;
-	link u k1 ; link u k2 ; u
+    if k2=0 then k1 else
+      let u = node () in
+      Format.fprintf !out "  %a [ label=\"\" , shape=circle ] ;@." pretty u ;
+      link u k1 ; link u k2 ; u
 
   let empty = 0
+
+  let has_init _ = false
 
   type t_env = Kernel_function.t
 
@@ -106,14 +108,14 @@ struct
     let u = node () in
     Format.fprintf !out "  %a [ color=red , label=\"Assigns %a\" ] ;@." pretty u WpPropId.pp_propid pid ;
     merge env u k
-    
+
   let use_assigns _env _stmt region _ k =
     let u = node () in
     begin match region with
       | None ->
-	  Format.fprintf !out "  %a [ color=orange , label=\"Havoc All\" ] ;@." pretty u
+          Format.fprintf !out "  %a [ color=orange , label=\"Havoc All\" ] ;@." pretty u
       | Some pid ->
-	  Format.fprintf !out "  %a [ color=orange , label=\"Havoc %a\" ] ;@." pretty u WpPropId.pp_propid pid
+          Format.fprintf !out "  %a [ color=orange , label=\"Havoc %a\" ] ;@." pretty u WpPropId.pp_propid pid
     end ;
     link u k ; u
 
@@ -133,11 +135,11 @@ struct
     let u = node () in
     begin
       match r with
-	| None ->
-	    Format.fprintf !out "  %a [ color=orange , label=\"Return\" ] ;@." pretty u
-	| Some e -> 
-	    Format.fprintf !out "  %a [ color=orange , label=\"Return %a\" ] ;@." pretty u
-	      Printer.pp_exp e
+      | None ->
+          Format.fprintf !out "  %a [ color=orange , label=\"Return\" ] ;@." pretty u
+      | Some e -> 
+          Format.fprintf !out "  %a [ color=orange , label=\"Return %a\" ] ;@." pretty u
+            Printer.pp_exp e
     end ;
     link u k ; u
 
@@ -154,15 +156,16 @@ struct
 
   let init_value _ _ _ _ k = k
   let init_range _ _ _ _ _ k = k
+  let init_const _ _ k = k
 
   let tag s k =
     let u = node () in
     Format.fprintf !out "  %a [ color=cyan , label=\"Tag %s\" ] ;@." pretty u s ;
     link u k ; u
-    
+
   let loop_entry w = tag "BeforeLoop" w
   let loop_step w = tag "InLoop" w
- 
+
   let call_dynamic _env _stmt _pid fct calls =
     let u = node () in
     Format.fprintf !out "  %a [ color=red , label \"CallPtr %a\" ];@." pretty u 
@@ -174,14 +177,14 @@ struct
     Format.fprintf !out "  %a [ color=red , label=\"Prove PreCond %a\" ] ;@." pretty u 
       Kernel_function.pretty kf ;
     ignore pre ; merge env u k
-        
+
   let call _env _stmt _r kf _es ~pre ~post ~pexit ~assigns ~p_post ~p_exit =
     let u = node () in
     Format.fprintf !out "  %a [ color=orange , label=\"Call %a\" ] ;@." pretty u
       Kernel_function.pretty kf ;
     ignore pre ; ignore post ; ignore pexit ; ignore assigns ;
     link u p_post ; link u p_exit ; u
-      
+
   let pp_scope sc fmt xs =
     let title = match sc with
       | Mcfg.SC_Global -> "Global"
@@ -201,7 +204,7 @@ struct
     Format.fprintf !out "  %a [ color=lightblue , label=\"%a\" ] ;@." pretty u
       (pp_scope scope) xs ;
     link u k ; u
-    
+
   let close kfenv k = 
     let u = node () in
     Format.fprintf !out "  %a [ color=cyan , label=\"Function %a\" ] ;@." pretty u
@@ -219,35 +222,35 @@ module WP = Calculus.Cfg(VC)
 (* ------------------------------------------------------------------------ *)
 
 class computer =
-object
-  
-  val mutable wptasks = []
+  object
 
-  method lemma = true
-  method add_lemma (_ : LogicUsage.logic_lemma) = ()
-    
-  method add_strategy strategy =
-    wptasks <- strategy :: wptasks
-      
-  method compute : Wpo.t Bag.t =
-    begin
-      
-      (* Generates Wpos and accumulate exported goals *)
-      List.iter
-        (fun strategy ->
-	   let cfg = WpStrategy.cfg_of_strategy strategy in
-	   let kf = Cil2cfg.cfg_kf cfg in
-	   let bhv = WpStrategy.behavior_name_of_strategy strategy in
-	   VC.init kf bhv ;
-	   try ignore (WP.compute cfg strategy) ; VC.flush ()
-	   with err -> VC.flush () ; raise err
-	) wptasks ;
-      wptasks <- [] ;
-      Bag.empty
-	
-    end (* method compute *)
-      
-end (* class computer *)
-  
+    val mutable wptasks = []
+
+    method lemma = true
+    method add_lemma (_ : LogicUsage.logic_lemma) = ()
+
+    method add_strategy strategy =
+      wptasks <- strategy :: wptasks
+
+    method compute : Wpo.t Bag.t =
+      begin
+
+        (* Generates Wpos and accumulate exported goals *)
+        List.iter
+          (fun strategy ->
+             let cfg = WpStrategy.cfg_of_strategy strategy in
+             let kf = Cil2cfg.cfg_kf cfg in
+             let bhv = WpStrategy.behavior_name_of_strategy strategy in
+             VC.init kf bhv ;
+             try ignore (WP.compute cfg strategy) ; VC.flush ()
+             with err -> VC.flush () ; raise err
+          ) wptasks ;
+        wptasks <- [] ;
+        Bag.empty
+
+      end (* method compute *)
+
+  end (* class computer *)
+
 let create () = (new computer :> Generator.computer)
 

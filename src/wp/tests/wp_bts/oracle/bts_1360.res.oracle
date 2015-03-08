@@ -1,0 +1,277 @@
+# frama-c -wp -wp-rte [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_bts/bts_1360.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[rte] annotating function foo_correct
+[rte] annotating function foo_wrong
+------------------------------------------------------------
+  Function foo_correct
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_bts/bts_1360.i, line 24) in 'foo_correct':
+Let x_0 = Mint_0[a_0].
+Let x_1 = Mint_0[b_0].
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_0) /\ (is_sint32 x_1) /\ (is_sint32 (land x_0 x_1)).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ ((region (base a_0))<=0)
+        /\ ((region (base b_0))<=0).
+  (* Pre-condition (file tests/wp_bts/bts_1360.i, line 22) in 'foo_correct' *)
+  (* Pre-condition: *)
+  Have: (valid_rd Malloc_0 b_0 1) /\ (valid_rw Malloc_0 a_0 1).
+  (* Pre-condition (file tests/wp_bts/bts_1360.i, line 23) in 'foo_correct' *)
+  (* Pre-condition: *)
+  Have: a_0!=b_0.
+  (* Assertion 'rte,mem_access' (file tests/wp_bts/bts_1360.i, line 29) *)
+  (* tests/wp_bts/bts_1360.i:29: Assertion 'rte,mem_access': *)
+  Have: (valid_rd Malloc_0 a_0 1).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assertion 'rte,mem_access' (file tests/wp_bts/bts_1360.i, line 29):
+Assume {
+  (* Domain *)
+  Type: (is_sint32 Mint_0[a_2]) /\ (is_sint32 Mint_0[b_0])
+        /\ (is_sint32 Mint_1[a_2]) /\ (is_sint32 Mint_2[a_2])
+        /\ (is_sint32 Mint_2[b_0]).
+  (* Heap *)
+  Have: (linked Malloc_1) /\ ((region (base a_2))<=0)
+        /\ ((region (base b_0))<=0).
+  (* Pre-condition (file tests/wp_bts/bts_1360.i, line 22) in 'foo_correct' *)
+  (* Pre-condition: *)
+  Have: (valid_rd Malloc_1 b_0 1) /\ (valid_rw Malloc_1 a_2 1).
+  (* Pre-condition (file tests/wp_bts/bts_1360.i, line 23) in 'foo_correct' *)
+  (* Pre-condition: *)
+  Have: a_2!=b_0.
+}
+Prove: (valid_rd Malloc_1 a_2 1).
+
+------------------------------------------------------------
+
+Goal Assertion 'rte,mem_access' (file tests/wp_bts/bts_1360.i, line 29):
+Assume {
+  (* Domain *)
+  Type: (is_sint32 Mint_0[a_0]) /\ (is_sint32 Mint_0[b_1])
+        /\ (is_sint32 Mint_1[a_0]) /\ (is_sint32 Mint_2[a_0])
+        /\ (is_sint32 Mint_2[b_1]).
+  (* Heap *)
+  Have: (linked Malloc_1) /\ ((region (base a_0))<=0)
+        /\ ((region (base b_1))<=0).
+  (* Pre-condition (file tests/wp_bts/bts_1360.i, line 22) in 'foo_correct' *)
+  (* Pre-condition: *)
+  Have: (valid_rd Malloc_1 b_1 1) /\ (valid_rw Malloc_1 a_0 1).
+  (* Pre-condition (file tests/wp_bts/bts_1360.i, line 23) in 'foo_correct' *)
+  (* Pre-condition: *)
+  Have: a_0!=b_1.
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assertion 'rte,mem_access' (file tests/wp_bts/bts_1360.i, line 30):
+Assume {
+  (* Domain *)
+  Type: (is_sint32 Mint_0[a_2]) /\ (is_sint32 Mint_0[b_0])
+        /\ (is_sint32 Mint_1[a_2]) /\ (is_sint32 Mint_2[a_2])
+        /\ (is_sint32 Mint_2[b_0]).
+  (* Heap *)
+  Have: (linked Malloc_1) /\ ((region (base a_2))<=0)
+        /\ ((region (base b_0))<=0).
+  (* Pre-condition (file tests/wp_bts/bts_1360.i, line 22) in 'foo_correct' *)
+  (* Pre-condition: *)
+  Have: (valid_rd Malloc_1 b_0 1) /\ (valid_rw Malloc_1 a_2 1).
+  (* Pre-condition (file tests/wp_bts/bts_1360.i, line 23) in 'foo_correct' *)
+  (* Pre-condition: *)
+  Have: a_2!=b_0.
+  (* Assertion 'rte,mem_access' (file tests/wp_bts/bts_1360.i, line 29) *)
+  (* tests/wp_bts/bts_1360.i:29: Assertion 'rte,mem_access': *)
+  Have: (valid_rd Malloc_1 a_2 1).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_bts/bts_1360.i, line 25) in 'foo_correct' (1/2):
+Effect at line 29
+Assume {
+  (* Domain *)
+  Type: (is_sint32 Mint_0[a_0]) /\ (is_sint32 Mint_0[b_0])
+        /\ (is_sint32 Mint_1[a_0]) /\ (is_sint32 Mint_2[a_0])
+        /\ (is_sint32 Mint_2[b_0]).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ ((region (base a_0))<=0)
+        /\ ((region (base b_0))<=0).
+  (* Pre-condition (file tests/wp_bts/bts_1360.i, line 22) in 'foo_correct' *)
+  (* Pre-condition: *)
+  Have: (valid_rd Malloc_0 b_0 1) /\ (valid_rw Malloc_0 a_0 1).
+  (* Pre-condition (file tests/wp_bts/bts_1360.i, line 23) in 'foo_correct' *)
+  (* Pre-condition: *)
+  Have: a_0!=b_0.
+  (* Assertion 'rte,mem_access' (file tests/wp_bts/bts_1360.i, line 29) *)
+  (* tests/wp_bts/bts_1360.i:29: Assertion 'rte,mem_access': *)
+  Have: (valid_rd Malloc_0 a_0 1).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_bts/bts_1360.i, line 25) in 'foo_correct' (2/2):
+Effect at line 30
+Assume {
+  (* Domain *)
+  Type: (is_sint32 Mint_0[a_0]) /\ (is_sint32 Mint_0[b_0])
+        /\ (is_sint32 Mint_1[a_0]) /\ (is_sint32 Mint_2[a_0])
+        /\ (is_sint32 Mint_2[b_0]).
+  (* Goal *)
+  When: (valid_rd Malloc_0 a_0 1).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ ((region (base a_0))<=0)
+        /\ ((region (base b_0))<=0).
+  (* Pre-condition (file tests/wp_bts/bts_1360.i, line 22) in 'foo_correct' *)
+  (* Pre-condition: *)
+  Have: (valid_rd Malloc_0 b_0 1) /\ (valid_rw Malloc_0 a_0 1).
+  (* Pre-condition (file tests/wp_bts/bts_1360.i, line 23) in 'foo_correct' *)
+  (* Pre-condition: *)
+  Have: a_0!=b_0.
+}
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function foo_wrong
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_bts/bts_1360.i, line 13) in 'foo_wrong':
+Let x_0 = Mint_0[a_0].
+Let x_1 = Mint_0[b_0].
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_0) /\ (is_sint32 x_1) /\ (is_sint32 (land x_0 x_1)).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ ((region (base a_0))<=0)
+        /\ ((region (base b_0))<=0).
+  (* Pre-condition (file tests/wp_bts/bts_1360.i, line 11) in 'foo_wrong' *)
+  (* Pre-condition: *)
+  Have: (valid_rd Malloc_0 a_0 1) /\ (valid_rd Malloc_0 b_0 1).
+  (* Pre-condition (file tests/wp_bts/bts_1360.i, line 12) in 'foo_wrong' *)
+  (* Pre-condition: *)
+  Have: a_0!=b_0.
+  (* Assertion 'rte,mem_access' (file tests/wp_bts/bts_1360.i, line 19) *)
+  (* tests/wp_bts/bts_1360.i:19: Assertion 'rte,mem_access': *)
+  Have: (valid_rw Malloc_0 a_0 1).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assertion 'rte,mem_access' (file tests/wp_bts/bts_1360.i, line 18):
+Assume {
+  (* Domain *)
+  Type: (is_sint32 Mint_0[a_2]) /\ (is_sint32 Mint_0[b_0])
+        /\ (is_sint32 Mint_1[a_2]) /\ (is_sint32 Mint_2[a_2])
+        /\ (is_sint32 Mint_2[b_0]).
+  (* Heap *)
+  Have: (linked Malloc_1) /\ ((region (base a_2))<=0)
+        /\ ((region (base b_0))<=0).
+  (* Pre-condition (file tests/wp_bts/bts_1360.i, line 11) in 'foo_wrong' *)
+  (* Pre-condition: *)
+  Have: (valid_rd Malloc_1 a_2 1) /\ (valid_rd Malloc_1 b_0 1).
+  (* Pre-condition (file tests/wp_bts/bts_1360.i, line 12) in 'foo_wrong' *)
+  (* Pre-condition: *)
+  Have: a_2!=b_0.
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assertion 'rte,mem_access' (file tests/wp_bts/bts_1360.i, line 18):
+Assume {
+  (* Domain *)
+  Type: (is_sint32 Mint_0[a_0]) /\ (is_sint32 Mint_0[b_1])
+        /\ (is_sint32 Mint_1[a_0]) /\ (is_sint32 Mint_2[a_0])
+        /\ (is_sint32 Mint_2[b_1]).
+  (* Heap *)
+  Have: (linked Malloc_1) /\ ((region (base a_0))<=0)
+        /\ ((region (base b_1))<=0).
+  (* Pre-condition (file tests/wp_bts/bts_1360.i, line 11) in 'foo_wrong' *)
+  (* Pre-condition: *)
+  Have: (valid_rd Malloc_1 a_0 1) /\ (valid_rd Malloc_1 b_1 1).
+  (* Pre-condition (file tests/wp_bts/bts_1360.i, line 12) in 'foo_wrong' *)
+  (* Pre-condition: *)
+  Have: a_0!=b_1.
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assertion 'rte,mem_access' (file tests/wp_bts/bts_1360.i, line 19):
+Assume {
+  (* Domain *)
+  Type: (is_sint32 Mint_0[a_2]) /\ (is_sint32 Mint_0[b_0])
+        /\ (is_sint32 Mint_1[a_2]) /\ (is_sint32 Mint_2[a_2])
+        /\ (is_sint32 Mint_2[b_0]).
+  (* Heap *)
+  Have: (linked Malloc_1) /\ ((region (base a_2))<=0)
+        /\ ((region (base b_0))<=0).
+  (* Pre-condition (file tests/wp_bts/bts_1360.i, line 11) in 'foo_wrong' *)
+  (* Pre-condition: *)
+  Have: (valid_rd Malloc_1 a_2 1) /\ (valid_rd Malloc_1 b_0 1).
+  (* Pre-condition (file tests/wp_bts/bts_1360.i, line 12) in 'foo_wrong' *)
+  (* Pre-condition: *)
+  Have: a_2!=b_0.
+}
+Prove: (valid_rw Malloc_1 a_2 1).
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_bts/bts_1360.i, line 14) in 'foo_wrong' (1/2):
+Effect at line 18
+Assume {
+  (* Domain *)
+  Type: (is_sint32 Mint_0[a_0]) /\ (is_sint32 Mint_0[b_0])
+        /\ (is_sint32 Mint_1[a_0]) /\ (is_sint32 Mint_2[a_0])
+        /\ (is_sint32 Mint_2[b_0]).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ ((region (base a_0))<=0)
+        /\ ((region (base b_0))<=0).
+  (* Pre-condition (file tests/wp_bts/bts_1360.i, line 11) in 'foo_wrong' *)
+  (* Pre-condition: *)
+  Have: (valid_rd Malloc_0 a_0 1) /\ (valid_rd Malloc_0 b_0 1).
+  (* Pre-condition (file tests/wp_bts/bts_1360.i, line 12) in 'foo_wrong' *)
+  (* Pre-condition: *)
+  Have: a_0!=b_0.
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_bts/bts_1360.i, line 14) in 'foo_wrong' (2/2):
+Effect at line 19
+Assume {
+  (* Domain *)
+  Type: (is_sint32 Mint_0[a_0]) /\ (is_sint32 Mint_0[b_0])
+        /\ (is_sint32 Mint_1[a_0]) /\ (is_sint32 Mint_2[a_0])
+        /\ (is_sint32 Mint_2[b_0]).
+  (* Goal *)
+  When: (valid_rd Malloc_0 a_0 1).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ ((region (base a_0))<=0)
+        /\ ((region (base b_0))<=0).
+  (* Pre-condition (file tests/wp_bts/bts_1360.i, line 11) in 'foo_wrong' *)
+  (* Pre-condition: *)
+  Have: (valid_rd Malloc_0 b_0 1).
+  (* Pre-condition (file tests/wp_bts/bts_1360.i, line 12) in 'foo_wrong' *)
+  (* Pre-condition: *)
+  Have: a_0!=b_0.
+  (* Assertion 'rte,mem_access' (file tests/wp_bts/bts_1360.i, line 19) *)
+  (* tests/wp_bts/bts_1360.i:19: Assertion 'rte,mem_access': *)
+  Have: (valid_rw Malloc_0 a_0 1).
+}
+Prove: true.
+
+------------------------------------------------------------

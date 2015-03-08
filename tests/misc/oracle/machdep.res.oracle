@@ -1,0 +1,66 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/machdep.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  
+[value] computing for function test1 <- main.
+        Called from tests/misc/machdep.c:25.
+[value] Recording results for test1
+[value] Done for function test1
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function test1:
+  u ∈ {18446744073709551615}
+  w ∈ {4294967295}
+  q ∈ {4294967295}
+  c1 ∈ {0}
+  c2 ∈ {0}
+[value] Values at end of function main:
+  
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/machdep.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  
+[value] computing for function test1 <- main.
+        Called from tests/misc/machdep.c:25.
+[value] Recording results for test1
+[value] Done for function test1
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function test1:
+  u ∈ {18446744073709551615}
+  w ∈ {18446744073709551615}
+  q ∈ {18446744073709551615}
+  c1 ∈ {1}
+  c2 ∈ {1}
+[value] Values at end of function main:
+  
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/machdep.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  
+[value] computing for function test1 <- main.
+        Called from tests/misc/machdep.c:25.
+[value] Recording results for test1
+[value] Done for function test1
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function test1:
+  u ∈ {18446744073709551615}
+  w ∈ {4294967295}
+  q ∈ {4294967295}
+  c1 ∈ {0}
+  c2 ∈ {0}
+[value] Values at end of function main:
+  

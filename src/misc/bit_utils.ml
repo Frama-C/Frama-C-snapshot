@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -189,10 +189,7 @@ let rec pretty_bits_internal env bfinfo typ ~align ~start ~stop =
       (if Kernel.debug_atleast 1 then String.make 1 c else "")
       (fun fmt ->
          if Int.equal stop (max_bit_address ()) then
-           if Int.equal start Int.zero then
-             Format.pp_print_string fmt "..."
-           else
-             Format.fprintf fmt "bits %a to ..." Int.pretty start
+           Format.fprintf fmt "bits %a to .." Int.pretty start
          else
            Format.fprintf fmt "bits %a to %a" Int.pretty start Int.pretty stop
       )
@@ -411,139 +408,6 @@ let rec pretty_bits_internal env bfinfo typ ~align ~start ~stop =
                   raw_bits 'a' start stop)
 
 
-let rec pretty_offset_internal env typ ~start =
-
-  let update_types typ = env.types <- update_types env.types typ in
-
-  let raw_offset start =
-    let cond = false in
-    Format.fprintf env.fmt "[%t]%s"
-      (fun fmt -> Format.fprintf fmt "bit %a" Int.pretty start)
-      (if cond then (env.misaligned <- true ; "#") else "")
-  in
-  match (unrollType typ) with
-    | TInt (_ , _) | TPtr (_, _) | TEnum (_, _)  | TFloat (_, _)
-    | TVoid _ | TBuiltin_va_list _ | TNamed _ | TFun (_, _, _, _) as typ ->
-        if Int.is_zero start then
-             (** pretty print a full offset *)
-             ( update_types typ)
-        else begin 
-	  env.types <- Mixed;
-          raw_offset start
-	end        
-
-    | TComp (compinfo, _, _) as typ ->
-        if (not env.use_align)
-        then
-          update_types typ (* do not print sub-fields if the size is exactly
-                            the right one and the alignement is not important *)
-        else begin
-        try
-          let full_fields_to_print = List.fold_left
-            (fun acc field ->
-               let current_offset = Field (field,NoOffset) in
-               let start_o,width_o = bitsOffset typ current_offset in
-               let start_o,width_o = Int.of_int start_o, Int.of_int width_o in
-	       let diff = Int.sub start start_o in
-               if Int.le start_o start && Int.le diff width_o then
-		 let new_bfinfo = match field.fbitfield with
-                   | None -> Other
-                   | Some i -> Bitfield (Int.to_int64 (Int.of_int i))
-		 in
-		 let new_align = Int.zero
-		 in
-                 let name = Pretty_utils.sfprintf "%a" Printer.pp_field field in
-                 NamedField( name ,
-                             new_bfinfo , field.ftype ,
-                             new_align , diff , diff ) :: acc
-               else
-                 acc)
-            []
-            compinfo.cfields
-          in
-          (** find non covered intervals in structs *)
-          let non_covered,succ_last =
-            if compinfo.cstruct then
-              List.fold_left
-                (fun ((s,last_field_offset) as acc) field ->
-                   let current_offset = Field (field,NoOffset) in
-                   let start_o,width_o = bitsOffset typ current_offset in
-                   let start_o,width_o =
-                     Int.of_int start_o, Int.of_int width_o
-                   in
-                   let succ_stop_o = Int.add start_o width_o in
-                   if Int.gt start_o start then acc
-                   else if Int.le succ_stop_o start then acc
-                   else if Int.gt start_o last_field_offset then
-                     (* found a hole *)
-                     (RawField('c', last_field_offset,Int.pred start_o)::s,
-                      succ_stop_o)
-                   else
-                     (s,succ_stop_o)
-                )
-                (full_fields_to_print,start)
-                compinfo.cfields
-            else full_fields_to_print, Int.zero
-          in
-          let overflowing =
-            if compinfo.cstruct && Int.le succ_last start
-            then RawField('o',Int.max start succ_last,start)::non_covered
-            else non_covered
-          in
-          let pretty_one_field = function
-            | NamedField(name,_bf,ftyp,_align,start,_stop) ->
-                Format.fprintf env.fmt ".%s" name ;
-                pretty_offset_internal env ftyp ~start
-            | RawField(_c,start,_stop) ->
-                env.types <- Mixed;
-                Format.pp_print_char env.fmt '.' ;
-                raw_offset start
-          in
-          let rec pretty_all_fields = function
-            | [] -> ()
-            | [f] -> pretty_one_field f
-            | f::fs ->
-                pretty_all_fields fs ;
-                Format.pp_print_string env.fmt "; ";
-                pretty_one_field f ;
-          in
-          match overflowing with
-            | [] -> Format.pp_print_string env.fmt "{}"
-            | [f] -> pretty_one_field f
-            | fs ->
-                Format.pp_print_char env.fmt '{' ;
-                pretty_all_fields fs ;
-                Format.pp_print_char env.fmt '}'
-        with Cil.SizeOfError _ ->
-          raw_offset start
-        end
-
-      | TArray (typ, _, _, _) ->
-          let size =
-            try Int.of_int (bitsSizeOf typ)
-            with Cil.SizeOfError _ -> Int.zero
-          in
-          if Int.is_zero size then
-            raw_offset start
-          else
-          let start_case = Int.pos_div start size in
-          let rem_start_size = Int.pos_rem start size in
-            Format.fprintf env.fmt "[%a]" Int.pretty start_case ;
-            pretty_offset_internal env typ
-              ~start:rem_start_size
-
-let pretty_offset typ start fmt = 
-    let env =
-      {
-	fmt = fmt ;
-	rh_size = Int.zero ;
-	use_align = true ;
-	misaligned = false ;
-	types = NoneYet ;}
-    in
-    pretty_offset_internal env typ start
-
-
 let pretty_bits typ ~use_align ~align ~rh_size ~start ~stop fmt =
   (* It is simpler to perform all computation using an absolute offset:
      Cil easily gives offset information in terms of offset since the start,
@@ -569,9 +433,127 @@ let pretty_bits typ ~use_align ~align ~rh_size ~start ~stop fmt =
       | Mixed | NoneYet -> None
       | SomeType t -> Some t)
 
+(* -------------------------------------------------------------------------- *)
+(* --- Mapping numeric offset -> symbolic one                             --- *)
+(* -------------------------------------------------------------------------- *)
+
+exception NoMatchingOffset
+
+type offset_match =
+| MatchType of typ
+| MatchSize of Integer.t
+| MatchFirst
+
+(* Comparaison of the shape of two types.  Attributes are completely ignored. *)
+let rec equal_type_no_attribute t1 t2 =
+  match Cil.unrollType t1, Cil.unrollType t2 with
+  | TVoid _, TVoid _ -> true
+  | TInt (i1, _), TInt (i2, _) -> i1 = i2 
+  | TFloat (f1, _), TFloat (f2, _) -> f1 = f2
+  | TPtr (t1, _), TPtr (t2, _) -> equal_type_no_attribute t1 t2
+  | TArray (t1', s1, _, _), TArray (t2', s2, _, _) ->
+    equal_type_no_attribute t1' t2' &&
+      (s1 == s2 || try Int.equal (Cil.lenOfArray64 s1) (Cil.lenOfArray64 s2)
+                   with Cil.LenOfArray -> false)
+  | TFun (r1, a1, v1, _), TFun (r2, a2, v2, _) ->
+    v1 = v2 && equal_type_no_attribute r1 r2 &&
+    (match a1, a2 with
+    | None, _ | _, None -> true
+    | Some l1, Some l2 ->
+      try
+        List.for_all2
+          (fun (_, t1, _) (_, t2, _) -> equal_type_no_attribute t1 t2) l1 l2
+      with Invalid_argument _ -> false)
+  | TNamed _, TNamed _ -> assert false
+  | TComp (c1, _, _), TComp (c2, _, _) -> c1.ckey = c2.ckey
+  | TEnum (e1, _), TEnum (e2, _) -> e1.ename = e2.ename
+  | TBuiltin_va_list _, TBuiltin_va_list _ -> true
+  | (TVoid _ | TInt _ | TFloat _ | TPtr _ | TArray _ | TFun _ | TNamed _ |
+      TComp _ | TEnum _ | TBuiltin_va_list _), _ ->
+    false
+
+(* We have found a possible matching offset of type [typ] for [om], do we stop
+   here? *)
+let offset_matches om typ =
+  match om with
+  | MatchFirst -> true
+  | MatchSize size -> Int.equal size (Int.of_int (Cil.bitsSizeOf typ))
+  | MatchType typ' -> equal_type_no_attribute typ typ'
+
+(* Can we match [om] inside a cell of an array whose elements have size
+   [size_elt] *)
+let offset_match_cell om size_elt =
+  match om with
+  | MatchFirst -> true
+  | MatchSize size -> Int.le size size_elt
+  | MatchType typ' -> Int.le (Int.of_int (Cil.bitsSizeOf typ')) size_elt
+
+let rec find_offset typ ~offset om =
+  (* Format.printf "Searching offset %a in %a, size %a@."
+     Int.pretty offset Printer.pp_typ typ Int.pretty size; *)
+  let loc = Cil_datatype.Location.unknown in
+  if Int.is_zero offset && offset_matches om typ then
+    NoOffset, typ
+  else
+    match Cil.unrollType typ with
+    | TArray (typ_elt, _, _, _) ->
+      let size_elt = Int.of_int (Cil.bitsSizeOf typ_elt) in
+      let start = Integer.pos_div offset size_elt in
+      let exp_start = Cil.kinteger64 ~loc start in
+      let rem = Integer.pos_rem offset size_elt in
+      if offset_match_cell om size_elt then
+        (* [size] covers at most one cell; we continue in the relevant one *)
+        let off, typ = find_offset typ_elt rem om in
+        Index (exp_start, off), typ
+      else begin
+        match om with
+        | MatchFirst | MatchType _ -> raise NoMatchingOffset
+        | MatchSize size ->
+          if Int.is_zero rem && Int.is_zero (Int.rem size size_elt) then
+            (* We cover more than one cell, but we are aligned. *)
+            let nb = Int.div size size_elt in
+            let exp_nb = Cil.kinteger64 ~loc nb in
+            let typ =
+              TArray (typ_elt, Some exp_nb, Cil.empty_size_cache (),[])
+            in
+            Index (exp_start, NoOffset), typ
+          else (* We match different parts of multiple cells: too imprecise. *)
+            raise NoMatchingOffset
+      end
+
+    | TComp (ci, _, _) ->
+      let rec find_field = function
+        | [] -> raise NoMatchingOffset
+        | fi :: q ->
+          try
+            let off_fi, len_fi = Cil.bitsOffset typ (Field (fi, NoOffset)) in
+            let off_fi, len_fi = Int.of_int off_fi, Int.of_int len_fi in
+            if Integer.(ge offset (add off_fi len_fi)) then
+              (* [offset] is not in the interval occupied by [fi]. Try the next
+                 one (including for union: maybe the next fields are larger). *)
+              find_field q
+            else
+              let off, typ =
+                find_offset fi.ftype (Int.sub offset off_fi) om
+              in
+              Field (fi, off), typ
+          with NoMatchingOffset when not ci.cstruct ->
+            (* Mismatch between [offset] and the structure of [fi.ftype]. In the
+               union case, we try the other fields. In the struct case, the
+               other fields are too far and we abort. *)
+            find_field q
+      in
+      find_field ci.cfields
+
+    | _ -> raise NoMatchingOffset
+
+let find_offset typ ~offset om =
+  try
+    find_offset typ ~offset om
+  with Cil.SizeOfError _ | Cil.Not_representable -> raise NoMatchingOffset
 
 (*
-Local Variables:
-compile-command: "make -C ../.."
-End:
-*)
+  Local Variables:
+  compile-command: "make -C ../.."
+  End:
+ *)

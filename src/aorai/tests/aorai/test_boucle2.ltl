@@ -1,0 +1,10 @@
+CALL(main) && 
+_X_ 
+  (CALL_OR_RETURN(opa) 
+   _U_ 
+   (rr==51 && 
+    _X_ (
+      !CALL_OR_RETURN(opa) && 
+      _X_ (
+        RETURN(opb) && 
+        _X_ (RETURN(main))))))

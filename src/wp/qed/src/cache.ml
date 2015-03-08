@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -43,14 +43,14 @@ end
 let rec log2up n a b =
   let c = (a+b) / 2 in
   let s = 1 lsl c in
-  if s = n then s else
-  if c = a then 1 lsl b else
+  if s = n then c else
+  if c = a then b else
   if s < n then log2up n c b else log2up n a c
 
-let alloc size =
-  if size >= Sys.max_array_length 
-  then Sys.max_array_length
-  else log2up size 0 (Sys.word_size - 3)
+let max_cache_log = 
+  log2up Sys.max_array_length 0 (Sys.word_size - 3) - 1
+
+let alloc size = 1 lsl (log2up size 0 max_cache_log)
 
 module Unary(A : S) =
 struct

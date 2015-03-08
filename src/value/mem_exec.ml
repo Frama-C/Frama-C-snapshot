@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -19,8 +19,6 @@
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
-
-open Cil_types
 
 exception TooImprecise
 
@@ -102,6 +100,11 @@ let cleanup_results () =
 ;;
 
 
+let map_to_outputs f =
+  List.map
+    (fun ((res: Cvalue.V_Offsetmap.t option), (out: Cvalue.Model.t)) ->
+      (res, f out))
+
 let register_callback () =
   if Value_parameters.MemExecAll.get () then
     Db.Operational_inputs.Record_Inout_Callbacks.extend_once
@@ -131,10 +134,10 @@ let store_computed_call (callsite: Value_types.call_site) input_state actuals ca
         (* TODO. add only outputs that are not completely overwritten *)
         let input_bases = Base.Hptset.union input_bases output_bases in
         let state_input =  filter_state input_bases input_state in
-        let clear = filter_state output_bases in
-        let outputs =
-          Value_util.map_outputs clear callres.Value_types.c_values
-        in
+        (* Outputs bases, that is bases that are copy-pasted, also include
+           input bases. Indeed, those may get reduced during the call. *)
+        let clear state = filter_state input_bases state in
+        let outputs = map_to_outputs clear callres.Value_types.c_values in
         let call_number = current_counter () in
         let map_a =
           try PreviousStates.find kf
@@ -166,43 +169,41 @@ let store_computed_call (callsite: Value_types.call_site) input_state actuals ca
 
 exception Result_found of ValueOutputs.t * int
 
-let previous_matches st (map_inputs: MapBasesInputsPrevious.t) =
-  let aux binputs hstates =
-    let st_filtered = filter_state binputs st in
+(** Find a previous execution in [map_inputs] that matches [st].
+    raise [Result_found] when this execution exists, or do nothing. *)
+let find_match_in_previous (map_inputs: MapBasesInputsPrevious.t) state =
+  let aux_previous_call binputs hstates =
+    (* restrict [state] to the inputs of this call *)
+    let st_filtered = filter_state binputs state in
     try
-      let old = Cvalue.Model.Hashtbl.find hstates st_filtered in
-      let (outputs, clobbered), i = old in
-      let aux st_outputs =
-        if Cvalue.Model.is_reachable st_outputs then
-          Cvalue.Model.fold_base_offsetmap
-            Cvalue.Model.add_base st_outputs st(*=acc*)
-        else st_outputs
+      let (outputs, clobbered), i =
+        Cvalue.Model.Hashtbl.find hstates st_filtered
       in
-      let outputs = Value_util.map_outputs aux outputs in
+      (* We have found a previous execution, in which the outputs are
+         [outputs]. Copy them in [state] and return this result. *)
+      let aux = function
+        | Cvalue.Model.Bottom | Cvalue.Model.Top as state -> state
+        | Cvalue.Model.Map outputs ->
+          Cvalue.Model.fold Cvalue.Model.add_base outputs state(*=acc*)
+      in
+      let outputs = map_to_outputs aux outputs in
       raise (Result_found ((outputs, clobbered), i))
     with Not_found -> ()
   in
-  Base.Hptset.Hashtbl.iter aux map_inputs
+  Base.Hptset.Hashtbl.iter aux_previous_call map_inputs
 
 
 let reuse_previous_call (kf, _ as _callsite: Value_types.call_site) state actuals =
   try
     let previous_kf = PreviousStates.find kf in
     let previous = ActualsList.Map.find actuals previous_kf in
-    previous_matches state previous;
+    find_match_in_previous previous state;
     None
   with
     | Not_found -> None
     | Result_found ((out, clob), i) ->
-      (* TODO: check this. Do we record the result too early? *)
-        let st_without_formals = match kf.fundec with
-          | Definition (fdec, _) ->
-              Value_util.map_outputs
-                (Value_util.remove_formals_from_state fdec.sformals) out
-          | Declaration _ -> out
-        in
         let res_call = {
-          Value_types.c_values = st_without_formals;
+          Value_types.c_values = out;
           c_clobbered = clob;
           c_cacheable = Value_types.Cacheable
             (* call can be cached since it was cached once *);

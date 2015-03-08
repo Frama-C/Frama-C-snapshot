@@ -1,0 +1,137 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/alias.i (no preprocessing)
+[value] Analyzing a complete application starting at main8
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  NULL[rbits 0 to 2047] ∈ [--..--]
+  A ∈ {0}
+  B ∈ {0}
+  C ∈ {0}
+  D ∈ {0}
+  E ∈ {0}
+  F ∈ {0}
+  G ∈ {0}
+  p[0..4] ∈ {0}
+  q[0] ∈ {1}
+   [1] ∈ {2}
+   [2] ∈ {3}
+   [3] ∈ {4}
+   [4] ∈ {5}
+  p2[0..4] ∈ {0}
+  q2[0] ∈ {1}
+    [1] ∈ {2}
+    [2] ∈ {3}
+    [3] ∈ {4}
+    [4] ∈ {5}
+  p3[0..4] ∈ {0}
+  t ∈ {0}
+  u ∈ {0}
+  v ∈ {0}
+  w ∈ {0}
+  x ∈ {0}
+  y ∈ {0}
+  z ∈ {0}
+  t2 ∈ {0}
+  v2 ∈ {0}
+  PTR1 ∈ {0}
+  PTR2 ∈ {0}
+  PTR3 ∈ {0}
+  PTR4 ∈ {0}
+  PTR5 ∈ {0}
+  PTR6 ∈ {0}
+  c ∈ [--..--]
+  c1 ∈ [--..--]
+  c2 ∈ [--..--]
+  c3 ∈ [--..--]
+  c4 ∈ [--..--]
+  e ∈ {0}
+  g ∈ {0}
+  h ∈ {0}
+  i ∈ {0}
+  tz1 ∈ {0}
+  tz2 ∈ {0}
+  tz3 ∈ {0}
+  tx ∈ {0}
+  ty ∈ {0}
+  tz ∈ {0}
+  U ∈ {0}
+  char1 ∈ {0}
+  ll1 ∈ {0}
+[value] Recording results for main8
+[value] done for function main8
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main8:
+  A ∈ {3; 4}
+  B ∈ {4; 5}
+  C ∈ {2; 3; 33; 44}
+  D ∈ {0; 4; 5; 33; 44}
+  p[0..1] ∈ {0}
+   [2] ∈ {0; 33}
+   [3] ∈ {0; 44}
+   [4] ∈ {0}
+  q[0] ∈ {1}
+   [1] ∈ {2}
+   [2] ∈ {3}
+   [3] ∈ {4; 33}
+   [4] ∈ {5; 44}
+  q2[0] ∈ {1}
+    [1] ∈ {2; 33}
+    [2] ∈ {3; 44}
+    [3] ∈ {4}
+    [4] ∈ {5}
+  t ∈ {4; 5; 6}
+  u ∈ {0; 5}
+  v ∈ {0; 5; 44}
+  w ∈ {0; 4}
+  x ∈ {0; 4; 33}
+  y ∈ {0; 1}
+  z ∈ {0; 4; 33}
+  PTR1 ∈ {{ &p[2] ; &q[3] }}
+  PTR2 ∈ {{ &p[3] ; &q[4] }}
+  PTR3 ∈ {{ &p[2] ; &q[3] }}
+  PTR4 ∈ {{ &q2{[1], [2]} }}
+  PTR5 ∈ {{ &p{[2], [3]} ; &q{[3], [4]} }}
+  tz1 ∈ {0; 1}
+  tz2 ∈ {0; 1}
+  tz3 ∈ {0; 1}
+  tx ∈ {2; 3}
+  ty ∈ {3; 4}
+  tz ∈ {5; 6}
+[from] Computing for function main8
+[from] Done for function main8
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main8:
+  A FROM c1
+  B FROM c1
+  C FROM q2[1..2]; c3
+  D FROM p[2..3]; q[3..4]; c2; c3
+  p[2..3] FROM c2 (and SELF)
+  q[3..4] FROM c2 (and SELF)
+  q2[1..2] FROM c3 (and SELF)
+  t FROM c1
+  u FROM p[3]; q[4]; c2
+  v FROM p[3]; q[4]; c2
+  w FROM p[2]; q[3]; c2
+  x FROM p[2]; q[3]; c2
+  y FROM c1
+  z FROM p[2]; q[3]; c2
+  PTR1 FROM c2
+  PTR2 FROM c2
+  PTR3 FROM c2
+  PTR4 FROM c3
+  PTR5 FROM c2; c3
+  tz1 FROM c
+  tz2 FROM c
+  tz3 FROM c
+  tx FROM c
+  ty FROM c
+  tz FROM c
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main8:
+          A; B; C; D; p[2..3]; q[3..4]; q2[1..2]; t; u; v; w; x; y; z; PTR1; 
+          PTR2; PTR3; PTR4; PTR5; tz1; tz2; tz3; tx; ty; tz
+[inout] Inputs for function main8:
+          A; B; p[2..3]; q[3..4]; q2[1..2]; PTR1; PTR2; PTR3; PTR4; PTR5; c; 
+          c1; c2; c3; tx; ty; tz

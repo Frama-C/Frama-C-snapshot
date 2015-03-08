@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -53,11 +53,7 @@ let make_float ~num ~den ~exp ~man_size ~min_exp ~max_exp =
   assert (Integer.gt den Integer.zero);
 (*
   Format.printf "make_float: num den exp:@\n%a@\n@\n%a@\n@\n%d@.min_exp:%d max_exp:%d@."
-    (Integer.pretty ~hexa:false) num 
-    (Integer.pretty ~hexa:false) den
-    exp
-    min_exp
-    max_exp;
+    Datatype.Integer.pretty num Datatype.Integer.pretty den exp min_exp max_exp;
 *)
   let size_bi = Integer.of_int man_size in
   let ssize_bi = Integer.of_int (succ man_size) in
@@ -85,9 +81,7 @@ let make_float ~num ~den ~exp ~man_size ~min_exp ~max_exp =
   let exp = !exp in
 (* 
   Format.printf "make_float2: num den exp:@\n%a@\n@\n%a@\n@\n%d@."
-    (Integer.pretty ~hexa:false) num 
-    (Integer.pretty ~hexa:false) den
-    exp;
+    Datatype.Integer.pretty num Datatype.Integer.pretty den exp;
 *)
   if exp > max_exp - man_size then inf ~man_size ~max_exp
   else
@@ -100,10 +94,8 @@ let make_float ~num ~den ~exp ~man_size ~min_exp ~max_exp =
     in
     let man = Integer.to_int64 man in
 (* Format.printf "pre-round: num den man rem:@\n%a@\n@\n%a@\n@\n%Ld@\n@\n%a@."
-        (Integer.pretty ~hexa:false) num 
-        (Integer.pretty ~hexa:false) den
-        man
-        (Integer.pretty ~hexa:false) rem; *)
+        Datatype.Integer.pretty num Datatype.Integer.pretty den
+        man Datatype.Integer.pretty rem; *)
     let lowb = ldexp (Int64.to_float man) exp in
     if Integer.is_zero rem2 then {
       f_lower = lowb ;
@@ -321,7 +313,9 @@ let pretty fmt f =
     end
 
 
-exception Float_Non_representable_as_Int64
+type sign = Neg | Pos
+
+exception Float_Non_representable_as_Int64 of sign
 
 (* If the argument [x] is not in the range [min_64_float, 2*max_64_float],
    raise Float_Non_representable_as_Int64. This is the most reasonable as
@@ -334,17 +328,31 @@ let truncate_to_integer =
 (*    let open Int64 in
     float_of_bits (pred (bits_of_float (to_float max_int))) *)
   in
-  let float_non_representable_as_int64 = Float_Non_representable_as_Int64 in
   fun x ->
     let max_64_float = Extlib.id max_64_float in
-    if x < min_64_float || x > (max_64_float +. max_64_float)
-    then raise float_non_representable_as_int64;
+    if x < min_64_float
+    then raise (Float_Non_representable_as_Int64 Neg);
+    if x > (max_64_float +. max_64_float)
+    then raise (Float_Non_representable_as_Int64 Pos);
     if x <= max_64_float then
       Integer.of_int64 (Int64.of_float x)
     else 
       Integer.add 
 	(Integer.of_int64 (Int64.of_float (x +. min_64_float)))
 	(Integer.two_power_of_int 63)
+
+let bits_of_max_double =
+  Integer.of_int64 (Int64.bits_of_float max_float)
+let bits_of_most_negative_double =
+  Integer.of_int64 (Int64.bits_of_float (-. max_float))
+
+(** See e.g. http://www.h-schmidt.net/FloatConverter/IEEE754.html *)
+let bits_of_max_float = Integer.of_int64 0x7F7FFFFFL
+let bits_of_most_negative_float =
+  let v = Int64.of_int32 0xFF7FFFFFl in(* cast to int32 to get negative value *)
+  Integer.of_int64 v
+
+
 
 (*
 Local Variables:

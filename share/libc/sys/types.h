@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2014                                               */
+/*  Copyright (C) 2007-2015                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -39,4 +39,5 @@
 #include "../__fc_define_off_t.h"
 typedef unsigned int u_int;
 typedef unsigned char u_char;
+dev_t makedev(int maj, int min);
 #endif

@@ -1,0 +1,260 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/non_natural.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  v ∈ [--..--]
+[value] computing for function main1 <- main.
+        Called from tests/misc/non_natural.i:63.
+tests/misc/non_natural.i:13:[kernel] warning: Non-natural loop detected.
+[value] Called Frama_C_show_each({0})
+[value] Called Frama_C_show_each({0; 1})
+[value] Called Frama_C_show_each({0; 1; 2})
+[value] Called Frama_C_show_each({0; 1; 2; 3})
+[value] Called Frama_C_show_each({0; 1; 2; 3; 4})
+[value] Called Frama_C_show_each({0; 1; 2; 3; 4; 5})
+[value] Called Frama_C_show_each([0..16])
+[value] Called Frama_C_show_each([0..17])
+[value] Called Frama_C_show_each([0..128])
+[value] Called Frama_C_show_each([0..129])
+[value] Called Frama_C_show_each([0..513])
+[value] Called Frama_C_show_each([0..514])
+[value] Called Frama_C_show_each([0..32768])
+[value] Called Frama_C_show_each([0..32769])
+[value] Called Frama_C_show_each([0..999999])
+[value] Recording results for main1
+[value] Done for function main1
+[value] computing for function main2 <- main.
+        Called from tests/misc/non_natural.i:64.
+[value] computing for function duff1 <- main2 <- main.
+        Called from tests/misc/non_natural.i:57.
+tests/misc/non_natural.i:21:[kernel] warning: Non-natural loop detected.
+tests/misc/non_natural.i:21:[value] entering loop for the first time
+[value] Called Frama_C_show_each({{ &p2 }})
+[value] Called Frama_C_show_each({{ &p2 + {0; 32} }})
+[value] Called Frama_C_show_each({{ &p2 + {0; 32; 64} }})
+[value] Called Frama_C_show_each({{ &p2 + {0; 32; 64; 96} }})
+[value] Called Frama_C_show_each({{ &p2 + {0; 32; 64; 96; 128} }})
+[value] Called Frama_C_show_each({{ &p2 + {0; 32; 64; 96; 128; 160} }})
+[value] Called Frama_C_show_each({{ &p2 + {0; 32; 64; 96; 128; 160; 192} }})
+[value] Called Frama_C_show_each({{ &p2 + {0; 32; 64; 96; 128; 160; 192; 224} }})
+[value] Called Frama_C_show_each({{ &p2 + [0..256],0%32 }})
+[value] Called Frama_C_show_each({{ &p2 + [0..288],0%32 }})
+[value] Called Frama_C_show_each({{ &p2 + [0..320],0%32 }})
+[value] Called Frama_C_show_each({{ &p2 + [0..352],0%32 }})
+[value] Called Frama_C_show_each({{ &p2 + [0..384],0%32 }})
+[value] Called Frama_C_show_each({{ &p2 + [0..399968],0%32 }})
+tests/misc/non_natural.i:23:[kernel] more than 200(12500) locations to update in array. Approximating.
+tests/misc/non_natural.i:24:[kernel] more than 200(12500) locations to update in array. Approximating.
+tests/misc/non_natural.i:25:[kernel] warning: out of bounds read. assert \valid_read(tmp_4);
+                                      (tmp_4 from from++)
+tests/misc/non_natural.i:25:[kernel] more than 200(12500) locations to update in array. Approximating.
+tests/misc/non_natural.i:26:[kernel] warning: out of bounds read. assert \valid_read(tmp_6);
+                                      (tmp_6 from from++)
+tests/misc/non_natural.i:26:[kernel] more than 200(12500) locations to update in array. Approximating.
+tests/misc/non_natural.i:27:[kernel] warning: out of bounds read. assert \valid_read(tmp_8);
+                                      (tmp_8 from from++)
+tests/misc/non_natural.i:27:[kernel] more than 200(12500) locations to update in array. Approximating.
+tests/misc/non_natural.i:28:[kernel] warning: out of bounds read. assert \valid_read(tmp_10);
+                                      (tmp_10 from from++)
+tests/misc/non_natural.i:28:[kernel] more than 200(12500) locations to update in array. Approximating.
+tests/misc/non_natural.i:29:[kernel] warning: out of bounds read. assert \valid_read(tmp_12);
+                                      (tmp_12 from from++)
+tests/misc/non_natural.i:29:[kernel] more than 200(12500) locations to update in array. Approximating.
+tests/misc/non_natural.i:30:[kernel] warning: out of bounds read. assert \valid_read(tmp_14);
+                                      (tmp_14 from from++)
+tests/misc/non_natural.i:30:[kernel] more than 200(12500) locations to update in array. Approximating.
+[value] Called Frama_C_show_each({{ &p2 + [0..400000],0%32 }})
+tests/misc/non_natural.i:23:[kernel] warning: out of bounds write. assert \valid(tmp);
+                                       (tmp from to++)
+tests/misc/non_natural.i:23:[kernel] warning: out of bounds read. assert \valid_read(tmp_0);
+                                      (tmp_0 from from++)
+tests/misc/non_natural.i:24:[kernel] warning: out of bounds write. assert \valid(tmp_1);
+                                       (tmp_1 from to++)
+tests/misc/non_natural.i:24:[kernel] warning: out of bounds read. assert \valid_read(tmp_2);
+                                      (tmp_2 from from++)
+tests/misc/non_natural.i:25:[kernel] warning: out of bounds write. assert \valid(tmp_3);
+                                       (tmp_3 from to++)
+tests/misc/non_natural.i:26:[kernel] warning: out of bounds write. assert \valid(tmp_5);
+                                       (tmp_5 from to++)
+tests/misc/non_natural.i:27:[kernel] warning: out of bounds write. assert \valid(tmp_7);
+                                       (tmp_7 from to++)
+tests/misc/non_natural.i:28:[kernel] warning: out of bounds write. assert \valid(tmp_9);
+                                       (tmp_9 from to++)
+tests/misc/non_natural.i:29:[kernel] warning: out of bounds write. assert \valid(tmp_11);
+                                       (tmp_11 from to++)
+tests/misc/non_natural.i:30:[kernel] warning: out of bounds write. assert \valid(tmp_13);
+                                       (tmp_13 from to++)
+[value] Called Frama_C_show_each({{ &p2 + [0..--],0%32 }})
+[value] Recording results for duff1
+[value] Done for function duff1
+tests/misc/non_natural.i:58:[kernel] warning: accessing out of bounds index [-2147483648..2147483647].
+                  assert 0 ≤ o < 100002;
+[value] computing for function duff2 <- main2 <- main.
+        Called from tests/misc/non_natural.i:59.
+tests/misc/non_natural.i:38:[kernel] warning: Non-natural loop detected.
+[value] Called Frama_C_show_each({{ &p2 }})
+[value] Called Frama_C_show_each({{ &p2 + {0; 32} }})
+[value] Called Frama_C_show_each({{ &p2 + {0; 32; 64} }})
+[value] Called Frama_C_show_each({{ &p2 + [0..399968],0%32 }})
+tests/misc/non_natural.i:39:[kernel] more than 200(12500) locations to update in array. Approximating.
+tests/misc/non_natural.i:40:[kernel] more than 200(12500) locations to update in array. Approximating.
+tests/misc/non_natural.i:41:[kernel] warning: out of bounds read. assert \valid_read(tmp_4);
+                                      (tmp_4 from from++)
+tests/misc/non_natural.i:41:[kernel] more than 200(12500) locations to update in array. Approximating.
+tests/misc/non_natural.i:42:[kernel] warning: out of bounds read. assert \valid_read(tmp_6);
+                                      (tmp_6 from from++)
+tests/misc/non_natural.i:42:[kernel] more than 200(12500) locations to update in array. Approximating.
+tests/misc/non_natural.i:43:[kernel] warning: out of bounds read. assert \valid_read(tmp_8);
+                                      (tmp_8 from from++)
+tests/misc/non_natural.i:43:[kernel] more than 200(12500) locations to update in array. Approximating.
+tests/misc/non_natural.i:44:[kernel] warning: out of bounds read. assert \valid_read(tmp_10);
+                                      (tmp_10 from from++)
+tests/misc/non_natural.i:44:[kernel] more than 200(12500) locations to update in array. Approximating.
+tests/misc/non_natural.i:45:[kernel] warning: out of bounds read. assert \valid_read(tmp_12);
+                                      (tmp_12 from from++)
+tests/misc/non_natural.i:45:[kernel] more than 200(12500) locations to update in array. Approximating.
+tests/misc/non_natural.i:46:[kernel] warning: out of bounds read. assert \valid_read(tmp_14);
+                                      (tmp_14 from from++)
+tests/misc/non_natural.i:46:[kernel] more than 200(12500) locations to update in array. Approximating.
+[value] Called Frama_C_show_each({{ &p2 + [0..400000],0%32 }})
+tests/misc/non_natural.i:39:[kernel] warning: out of bounds write. assert \valid(tmp);
+                                       (tmp from to++)
+tests/misc/non_natural.i:39:[kernel] warning: out of bounds read. assert \valid_read(tmp_0);
+                                      (tmp_0 from from++)
+tests/misc/non_natural.i:40:[kernel] warning: out of bounds write. assert \valid(tmp_1);
+                                       (tmp_1 from to++)
+tests/misc/non_natural.i:40:[kernel] warning: out of bounds read. assert \valid_read(tmp_2);
+                                      (tmp_2 from from++)
+tests/misc/non_natural.i:41:[kernel] warning: out of bounds write. assert \valid(tmp_3);
+                                       (tmp_3 from to++)
+tests/misc/non_natural.i:42:[kernel] warning: out of bounds write. assert \valid(tmp_5);
+                                       (tmp_5 from to++)
+tests/misc/non_natural.i:43:[kernel] warning: out of bounds write. assert \valid(tmp_7);
+                                       (tmp_7 from to++)
+tests/misc/non_natural.i:44:[kernel] warning: out of bounds write. assert \valid(tmp_9);
+                                       (tmp_9 from to++)
+tests/misc/non_natural.i:45:[kernel] warning: out of bounds write. assert \valid(tmp_11);
+                                       (tmp_11 from to++)
+tests/misc/non_natural.i:46:[kernel] warning: out of bounds write. assert \valid(tmp_13);
+                                       (tmp_13 from to++)
+[value] Called Frama_C_show_each({{ &p2 + [0..--],0%32 }})
+[value] Called Frama_C_show_each({{ &p2 + [0..--],0%32 }})
+[value] Called Frama_C_show_each({{ &p2 + [0..--],0%32 }})
+[value] Called Frama_C_show_each({{ &p2 + [0..--],0%32 }})
+[value] Called Frama_C_show_each({{ &p2 + [0..--],0%32 }})
+[value] Called Frama_C_show_each({{ &p2 + [0..--],0%32 }})
+[value] Called Frama_C_show_each({{ &p2 + [0..--],0%32 }})
+[value] Recording results for duff2
+[value] Done for function duff2
+[value] Recording results for main2
+[value] Done for function main2
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+tests/misc/non_natural.i:23:[kernel] more than 200(12500) elements to enumerate. Approximating.
+tests/misc/non_natural.i:24:[kernel] more than 200(12500) elements to enumerate. Approximating.
+tests/misc/non_natural.i:25:[kernel] more than 200(12500) elements to enumerate. Approximating.
+tests/misc/non_natural.i:26:[kernel] more than 200(12500) elements to enumerate. Approximating.
+tests/misc/non_natural.i:27:[kernel] more than 200(12500) elements to enumerate. Approximating.
+tests/misc/non_natural.i:28:[kernel] more than 200(12500) elements to enumerate. Approximating.
+tests/misc/non_natural.i:29:[kernel] more than 200(12500) elements to enumerate. Approximating.
+tests/misc/non_natural.i:30:[kernel] more than 200(12500) elements to enumerate. Approximating.
+[value] Values at end of function duff1:
+  to ∈ {{ &p2 + [32..--],0%32 }}
+  from ∈ {{ &p1 + [32..--],0%32 }}
+  n ∈ {0}
+  p2[0..99999] ∈ {1} or UNINITIALIZED
+[value] Values at end of function duff2:
+  to ∈ {{ &p2 + [32..--],0%32 }}
+  from ∈ {{ &p1 + [32..--],0%32 }}
+  n ∈ {0}
+  p2[0..99999] ∈ {1; 2} or UNINITIALIZED
+[value] Values at end of function main1:
+  c ∈ {1000000}
+tests/misc/non_natural.i:23:[kernel] more than 200(12501) elements to enumerate. Approximating.
+tests/misc/non_natural.i:24:[kernel] more than 200(12501) elements to enumerate. Approximating.
+[value] Values at end of function main2:
+  p1[0..100001] ∈ {1; 2} or UNINITIALIZED
+  p2[0..99999] ∈ {1; 2} or UNINITIALIZED
+  o ∈ [0..100001]
+[value] Values at end of function main:
+  
+[from] Computing for function duff1
+tests/misc/non_natural.i:23:[kernel] more than 200(12500) dependencies to update. Approximating.
+tests/misc/non_natural.i:24:[kernel] more than 200(12500) dependencies to update. Approximating.
+tests/misc/non_natural.i:25:[kernel] more than 200(12500) dependencies to update. Approximating.
+tests/misc/non_natural.i:26:[kernel] more than 200(12500) dependencies to update. Approximating.
+tests/misc/non_natural.i:27:[kernel] more than 200(12500) dependencies to update. Approximating.
+tests/misc/non_natural.i:28:[kernel] more than 200(12500) dependencies to update. Approximating.
+tests/misc/non_natural.i:29:[kernel] more than 200(12500) dependencies to update. Approximating.
+tests/misc/non_natural.i:30:[kernel] more than 200(12500) dependencies to update. Approximating.
+[from] Done for function duff1
+[from] Computing for function duff2
+tests/misc/non_natural.i:39:[kernel] more than 200(12500) dependencies to update. Approximating.
+tests/misc/non_natural.i:40:[kernel] more than 200(12500) dependencies to update. Approximating.
+tests/misc/non_natural.i:41:[kernel] more than 200(12500) dependencies to update. Approximating.
+tests/misc/non_natural.i:42:[kernel] more than 200(12500) dependencies to update. Approximating.
+tests/misc/non_natural.i:43:[kernel] more than 200(12500) dependencies to update. Approximating.
+tests/misc/non_natural.i:44:[kernel] more than 200(12500) dependencies to update. Approximating.
+tests/misc/non_natural.i:45:[kernel] more than 200(12500) dependencies to update. Approximating.
+tests/misc/non_natural.i:46:[kernel] more than 200(12500) dependencies to update. Approximating.
+[from] Done for function duff2
+[from] Computing for function main1
+[from] Done for function main1
+[from] Computing for function main2
+[from] Done for function main2
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function duff1:
+  p2[0] FROM to; from; count; p1[0..100000] (and SELF)
+    [1..99992] FROM to; from; count; p1[0..100001] (and SELF)
+    [99993] FROM to; from; count; p1[1..100001] (and SELF)
+    [99994] FROM to; from; count; p1[2..99999] (and SELF)
+    [99995] FROM to; from; count; p1[3..99999] (and SELF)
+    [99996] FROM to; from; count; p1[4..99999] (and SELF)
+    [99997] FROM to; from; count; p1[5..99999] (and SELF)
+    [99998] FROM to; from; count; p1[6..99999] (and SELF)
+    [99999] FROM to; from; count; p1[7..99999] (and SELF)
+[from] Function duff2:
+  p2[0] FROM to; from; count; p1[0..100000] (and SELF)
+    [1..99992] FROM to; from; count; p1[0..100001] (and SELF)
+    [99993] FROM to; from; count; p1[1..100001] (and SELF)
+    [99994] FROM to; from; count; p1[2..99999] (and SELF)
+    [99995] FROM to; from; count; p1[3..99999] (and SELF)
+    [99996] FROM to; from; count; p1[4..99999] (and SELF)
+    [99997] FROM to; from; count; p1[5..99999] (and SELF)
+    [99998] FROM to; from; count; p1[6..99999] (and SELF)
+    [99999] FROM to; from; count; p1[7..99999] (and SELF)
+[from] Function main1:
+  NO EFFECTS
+[from] Function main2:
+  NO EFFECTS
+[from] Function main:
+  NO EFFECTS
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function duff1:
+          to; from; n; tmp; tmp_0; tmp_1; tmp_2; tmp_3; tmp_4; tmp_5; tmp_6; 
+          tmp_7; tmp_8; tmp_9; tmp_10; tmp_11; tmp_12; tmp_13; tmp_14; p2[0..99999]
+[inout] Inputs for function duff1:
+          p1[0..100001]
+[inout] Out (internal) for function duff2:
+          to; from; n; tmp; tmp_0; tmp_1; tmp_2; tmp_3; tmp_4; tmp_5; tmp_6; 
+          tmp_7; tmp_8; tmp_9; tmp_10; tmp_11; tmp_12; tmp_13; tmp_14; p2[0..99999]
+[inout] Inputs for function duff2:
+          p1[0..100001]
+[inout] Out (internal) for function main1:
+          c
+[inout] Inputs for function main1:
+          v
+[inout] Out (internal) for function main2:
+          p1[0..100001]; p2[0..99999]; o
+[inout] Inputs for function main2:
+          v
+[inout] Out (internal) for function main:
+          \nothing
+[inout] Inputs for function main:
+          v

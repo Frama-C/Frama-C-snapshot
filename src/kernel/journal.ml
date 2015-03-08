@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -295,7 +295,16 @@ let never_write name f =
   if Cmdline.journal_enable && Cmdline.use_type then
     if Obj.tag (Obj.repr f) = Obj.closure_tag then
       Obj.magic
-        (fun y -> if !started then Obj.magic f y else raise (Not_writable name))
+        (fun y ->
+          if !started then Obj.magic f y
+          else
+            let msg =
+              Pretty_utils.sfprintf
+                "a call to the function %s has to be written in the journal, \
+but this function was never journalized."
+                name
+            in
+            raise (Not_writable msg))
     else
       invalid_arg ("[Journal.never_write] " ^ name ^ " is not a closure")
   else

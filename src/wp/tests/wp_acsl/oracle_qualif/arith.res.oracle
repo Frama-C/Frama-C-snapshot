@@ -1,0 +1,43 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_acsl/arith.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] 24 goals scheduled
+[wp] [Alt-Ergo] Goal typed_lemma_ASSOC_land_qed_ok : Valid
+[wp] [Qed] Goal typed_lemma_L01_lnot_qed_ok : Valid
+[wp] [Qed] Goal typed_lemma_L10_land_neutral_qed_ok : Valid
+[wp] [Qed] Goal typed_lemma_L11_land_absorbant_qed_ok : Valid
+[wp] [Qed] Goal typed_lemma_L12_land_qed_ok : Valid
+[wp] [Qed] Goal typed_lemma_L13_land_qed_ok : Valid
+[wp] [Qed] Goal typed_lemma_L14_land_absorbant_qed_ok : Valid
+[wp] [Qed] Goal typed_lemma_L15_land_qed_ok : Valid
+[wp] [Qed] Goal typed_lemma_L16_land_qed_ok : Valid
+[wp] [Qed] Goal typed_lemma_L20_lor_neutral_qed_ok : Valid
+[wp] [Qed] Goal typed_lemma_L21_lor_absorbant_qed_ok : Valid
+[wp] [Qed] Goal typed_lemma_L30_lxor_neutral_qed_ok : Valid
+[wp] [Qed] Goal typed_lemma_scL1_qed_ok : Valid
+[wp] [Qed] Goal typed_lemma_scN1_qed_ok : Valid
+[wp] [Qed] Goal typed_lemma_scN2_qed_ok : Valid
+[wp] [Qed] Goal typed_lemma_ucL1_qed_ok : Valid
+[wp] [Qed] Goal typed_lemma_ucL2_qed_ok : Valid
+[wp] [Qed] Goal typed_lemma_ucL3_qed_ok : Valid
+[wp] [Qed] Goal typed_lemma_ucL4_qed_ok : Valid
+[wp] [Qed] Goal typed_lemma_ucN1_qed_ok : Valid
+[wp] [Qed] Goal typed_lemma_ucN2_qed_ok : Valid
+[wp] [Qed] Goal typed_cast_sgn_usgn_post_qed_ok_nat : Valid
+[wp] [Alt-Ergo] Goal typed_uchar_range_assert_qed_ok_A1 : Valid
+[wp] [Alt-Ergo] Goal typed_uchar_range_assert_qed_ok_A2 : Valid
+[wp] Proved goals:   24 / 24
+     Qed:            21 
+     Alt-Ergo:        3
+----------------------------------------------------------
+Axiomatics          WP   Alt-Ergo    Total   Success
+Lemma               20      1 (9)     21       100%
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+cast_sgn_usgn        1     -           1       100%
+uchar_range         -       2 (13)     2       100%
+----------------------------------------------------------

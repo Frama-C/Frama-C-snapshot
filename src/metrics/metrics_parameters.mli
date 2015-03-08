@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -43,8 +43,8 @@ module OutputFile: Parameter_sig.String
     "txt" or "text" for text
 *)
 
-module SyntacticallyReachable: Parameter_sig.String_set
-(** List of functions for which we compute the functions they may call *)
+module SyntacticallyReachable: Parameter_sig.Kernel_function_set
+(** Set of functions for which we compute the functions they may call *)
 
 (*
 Local Variables:

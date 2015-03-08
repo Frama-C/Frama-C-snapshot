@@ -1,0 +1,55 @@
+# frama-c -wp -wp-model 'Hoare' [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp/wp_strategy.c (with preprocessing)
+[rte] annotating function bts0513
+[rte] annotating function bts0513_bis
+[rte] annotating function default_behaviors
+[rte] annotating function dpd1
+[rte] annotating function dpd2
+[rte] annotating function spec_if
+[rte] annotating function spec_if_cond
+[rte] annotating function spec_if_not_cond
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] 25 goals scheduled
+[wp] [Alt-Ergo] Goal hoare_bts0513_post_qed_ko_ko1 : Unknown
+[wp] [Alt-Ergo] Goal hoare_bts0513_post_qed_ko_ko2 : Unknown
+[wp] [Alt-Ergo] Goal hoare_bts0513_bis_assert_qed_ko_ko1 : Unknown
+[wp] [Qed] Goal hoare_bts0513_bis_assert_qed_ok_ok : Valid
+[wp] [Qed] Goal hoare_default_behaviors_post_qed_ok : Valid
+[wp] [Qed] Goal hoare_default_behaviors_assert_qed_ok_2 : Valid
+[wp] [Qed] Goal hoare_default_behaviors_stmt_post_qed_ok_stmt_p : Valid
+[wp] [Qed] Goal hoare_default_behaviors_assert_qed_ok : Valid
+[wp] [Alt-Ergo] Goal hoare_default_behaviors_assert_rte_signed_overflow : Unknown
+[wp] [Qed] Goal hoare_default_behaviors_stmt_assign : Valid
+[wp] [Qed] Goal hoare_dpd1_assert_qed_ok_A : Valid
+[wp] [Alt-Ergo] Goal hoare_dpd1_stmt_post_qed_ko_Eko : Unknown
+[wp] [Qed] Goal hoare_dpd1_stmt_assign : Valid
+[wp] [Qed] Goal hoare_dpd2_assert_qed_ok_A_for_P : Valid
+[wp] [Alt-Ergo] Goal hoare_dpd2_stmt_post_qed_ko_Eko : Unknown
+[wp] [Qed] Goal hoare_dpd2_stmt_assign : Valid
+[wp] [Qed] Goal hoare_spec_if_post_qed_ok : Valid
+[wp] [Qed] Goal hoare_spec_if_stmt_post_qed_ok : Valid
+[wp] [Qed] Goal hoare_spec_if_stmt_assign : Valid
+[wp] [Alt-Ergo] Goal hoare_spec_if_assert_rte_signed_overflow : Unknown
+[wp] [Qed] Goal hoare_spec_if_stmt_assign_2 : Valid
+[wp] [Alt-Ergo] Goal hoare_spec_if_assert_rte_signed_overflow_2 : Unknown
+[wp] [Qed] Goal hoare_spec_if_stmt_assign_3 : Valid
+[wp] [Qed] Goal hoare_spec_if_cond_stmt_post_qed_ok : Valid
+[wp] [Qed] Goal hoare_spec_if_not_cond_stmt_post_qed_ok : Valid
+[wp] Proved goals:   17 / 25
+     Qed:            17 
+     Alt-Ergo:        0  (unknown: 8)
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+bts0513             -      -           2       0.0%
+bts0513_bis          1     -           2      50.0%
+dpd1                 2     -           3      66.7%
+dpd2                 2     -           3      66.7%
+spec_if              5     -           7      71.4%
+spec_if_cond         1     -           1       100%
+spec_if_not_cond     1     -           1       100%
+default_behaviors    5     -           6      83.3%
+----------------------------------------------------------

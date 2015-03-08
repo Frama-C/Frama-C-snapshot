@@ -1,0 +1,18 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_typed/unit_labels.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] 3 goals scheduled
+[wp] [Alt-Ergo] Goal typed_duplet_post : Valid
+[wp] [Alt-Ergo] Goal typed_duplet_assert_PI : Valid
+[wp] [Alt-Ergo] Goal typed_duplet_assert_PJ : Valid
+[wp] Proved goals:    3 / 3
+     Qed:             0 
+     Alt-Ergo:        3
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+duplet              -       3 (23)     3       100%
+----------------------------------------------------------

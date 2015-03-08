@@ -1,0 +1,22 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_acsl/user_def_type_guard.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function f
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok' in 'f':
+Assume { }
+Prove: (0<=L_t) /\ (L_t<=255).
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ko' in 'f':
+Assume { }
+Prove: (0<=L_t) /\ (L_t<=127).
+
+------------------------------------------------------------

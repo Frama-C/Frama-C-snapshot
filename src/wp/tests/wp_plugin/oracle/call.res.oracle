@@ -1,0 +1,171 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_plugin/call.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function main
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_plugin/call.i, line 17) in 'main':
+Assume {
+  (* Domain *)
+  Type: (is_sint32 main_0) /\ (is_sint32 x_3) /\ (is_sint32 y_3).
+  (* Residual *)
+  When: y_3<=x_3.
+  (* tests/wp_plugin/call.i:29: Conditional *)
+  If: y_3<x_3
+  Then { (* tests/wp_plugin/call.i:29: Call 'job' *) Have: 0<main_0. }
+  Else { (* tests/wp_plugin/call.i:30: Assignment *) Have: 0=main_0. }
+}
+Prove: 0<=main_0.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'main':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'main' (1/6):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'main' (2/6):
+Call Result at line 28
+Assume {
+  (* Domain *)
+  Type: (is_sint32 job_0) /\ (is_sint32 x_1) /\ (is_sint32 y_1).
+  (* tests/wp_plugin/call.i:28: Then *)
+  Have: x_1<y_1.
+  (* tests/wp_plugin/call.i:28: Call 'job' *)
+  Have: 0<job_0.
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'main' (3/6):
+Effect at line 28
+Assume {
+  (* Domain *)
+  Type: (is_sint32 job_0) /\ (is_sint32 x_1) /\ (is_sint32 y_1).
+  (* tests/wp_plugin/call.i:28: Then *)
+  Have: x_1<y_1.
+  (* tests/wp_plugin/call.i:28: Call 'job' *)
+  Have: 0<job_0.
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'main' (4/6):
+Call Result at line 29
+Assume {
+  (* Domain *)
+  Type: (is_sint32 job_1) /\ (is_sint32 x_3) /\ (is_sint32 y_3).
+  (* tests/wp_plugin/call.i:28: Else *)
+  Have: y_3<=x_3.
+  (* tests/wp_plugin/call.i:29: Then *)
+  Have: y_3<x_3.
+  (* tests/wp_plugin/call.i:29: Call 'job' *)
+  Have: 0<job_1.
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'main' (5/6):
+Effect at line 29
+Assume {
+  (* Domain *)
+  Type: (is_sint32 job_1) /\ (is_sint32 x_3) /\ (is_sint32 y_3).
+  (* tests/wp_plugin/call.i:28: Else *)
+  Have: y_3<=x_3.
+  (* tests/wp_plugin/call.i:29: Then *)
+  Have: y_3<x_3.
+  (* tests/wp_plugin/call.i:29: Call 'job' *)
+  Have: 0<job_1.
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'main' (6/6):
+Effect at line 30
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_3) /\ (is_sint32 y_3).
+  (* tests/wp_plugin/call.i:28: Else *)
+  Have: y_3<=x_3.
+  (* tests/wp_plugin/call.i:29: Else *)
+  Have: x_3<=y_3.
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_plugin/call.i, line 13) in 'job'' in 'main' at call 'job' (file tests/wp_plugin/call.i, line 28)
+:
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_1) /\ (is_sint32 y_1).
+  (* tests/wp_plugin/call.i:28: Then *)
+  Have: x_1<y_1.
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_plugin/call.i, line 13) in 'job'' in 'main' at call 'job' (file tests/wp_plugin/call.i, line 29)
+:
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_3) /\ (is_sint32 y_3).
+  (* tests/wp_plugin/call.i:28: Else *)
+  Have: y_3<=x_3.
+  (* tests/wp_plugin/call.i:29: Then *)
+  Have: y_3<x_3.
+}
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function main with behavior A
+------------------------------------------------------------
+
+Goal Post-condition for 'A' (file tests/wp_plugin/call.i, line 21) in 'main':
+Assume {
+  (* Domain *)
+  Type: (is_sint32 main_0) /\ (is_sint32 x_1) /\ (is_sint32 y_1).
+  (* Pre-condition for 'A' (file tests/wp_plugin/call.i, line 20) in 'main' *)
+  (* Pre-condition for 'A': *)
+  Have: x_1<y_1.
+  (* tests/wp_plugin/call.i:28: Call 'job' *)
+  Have: 0<main_0.
+}
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function main with behavior B
+------------------------------------------------------------
+
+Goal Post-condition for 'B' (file tests/wp_plugin/call.i, line 24) in 'main':
+Assume {
+  (* Domain *)
+  Type: (is_sint32 main_0) /\ (is_sint32 x_3) /\ (is_sint32 y_3).
+  (* Pre-condition for 'B' (file tests/wp_plugin/call.i, line 23) in 'main' *)
+  (* Pre-condition for 'B': *)
+  Have: y_3<x_3.
+  (* tests/wp_plugin/call.i:29: Call 'job' *)
+  Have: 0<main_0.
+}
+Prove: true.
+
+------------------------------------------------------------

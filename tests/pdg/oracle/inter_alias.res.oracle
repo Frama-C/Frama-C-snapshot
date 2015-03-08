@@ -1,0 +1,149 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/pdg/inter_alias.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  G ∈ {0}
+[value] computing for function f1 <- main.
+        Called from tests/pdg/inter_alias.c:15.
+[value] Recording results for f1
+[from] Computing for function f1
+[from] Done for function f1
+[value] Done for function f1
+[value] computing for function f1 <- main.
+        Called from tests/pdg/inter_alias.c:16.
+[value] Recording results for f1
+[from] Computing for function f1
+[from] Done for function f1
+[value] Done for function f1
+[value] Recording results for main
+[from] Computing for function main
+[from] Done for function main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function f1:
+  a ∈ {3}
+  b ∈ {0; 4}
+  __retres ∈ {3; 4}
+[value] Values at end of function main:
+  a ∈ {3}
+  b ∈ {4}
+  __retres ∈ {7}
+[from] ====== DISPLAYING CALLWISE DEPENDENCIES ======
+[from] call to f1 at tests/pdg/inter_alias.c:15 (by main):
+  a FROM G; p1; x1; a
+  \result FROM G; p1; x1; a
+[from] call to f1 at tests/pdg/inter_alias.c:16 (by main):
+  b FROM G; p1; x1; b
+  \result FROM G; p1; x1; b
+[from] entry point:
+  \result FROM G
+[from] ====== END OF CALLWISE DEPENDENCIES ======
+[inout] Out (internal) for function f1:
+          a; b; __retres
+[inout] Inputs for function f1:
+          G; a; b
+[inout] Out (internal) for function main:
+          a; b; __retres
+[inout] Inputs for function main:
+          G
+[pdg] computing for function f1
+[pdg] done for function f1
+[pdg] computing for function main
+[pdg] done for function main
+[pdg] ====== PDG GRAPH COMPUTED ======
+[pdg] PDG for f1
+ {n1}: InCtrl
+ {n2}: VarDecl : p1
+   -[a--]-> 3
+ {n3}: In1
+   -[a--]-> 2
+ {n4}: VarDecl : x1
+   -[a--]-> 5
+ {n5}: In2
+   -[a--]-> 4
+ {n6}: VarDecl : __retres
+ {n7}: *p1 += G + x1;
+   -[-c-]-> 1
+   -[a-d]-> 2
+   -[a-d]-> 3
+   -[--d]-> 4
+   -[--d]-> 5
+   -[--d]-> 11
+   -[--d]-> 12
+   -[--d]-> 13
+ {n8}: __retres = *p1;
+   -[-c-]-> 1
+   -[--d]-> 2
+   -[--d]-> 3
+   -[a--]-> 6
+   -[--d]-> 7
+   -[--d]-> 11
+   -[--d]-> 12
+ {n9}: return __retres;
+   -[-c-]-> 1
+   -[--d]-> 6
+   -[--d]-> 8
+ {n10}: OutRet
+   -[--d]-> 9
+ {n11}: In(a)
+ {n12}: In(b)
+ {n13}: In(G)
+[pdg] PDG for main
+ {n14}: InCtrl
+ {n15}: VarDecl : a
+ {n16}: VarDecl : b
+ {n17}: VarDecl : __retres
+ {n18}: a = 0;
+   -[-c-]-> 14
+   -[a--]-> 15
+ {n19}: b = 0;
+   -[-c-]-> 14
+   -[a--]-> 16
+ {n20}: Call7-InCtrl : f1(& a,3);
+   -[-c-]-> 14
+ {n21}: Call7-In1 : f1(& a,3);
+   -[-c-]-> 14
+   -[--d]-> 15
+   -[-c-]-> 20
+ {n22}: Call7-In2 : f1(& a,3);
+   -[-c-]-> 14
+   -[-c-]-> 20
+ {n23}: Call7-Out(a) : f1(& a,3);
+   -[-c-]-> 14
+   -[--d]-> 18
+   -[-c-]-> 20
+   -[--d]-> 21
+   -[--d]-> 22
+   -[--d]-> 31
+ {n24}: Call8-InCtrl : f1(& b,4);
+   -[-c-]-> 14
+ {n25}: Call8-In1 : f1(& b,4);
+   -[-c-]-> 14
+   -[--d]-> 16
+   -[-c-]-> 24
+ {n26}: Call8-In2 : f1(& b,4);
+   -[-c-]-> 14
+   -[-c-]-> 24
+ {n27}: Call8-Out(b) : f1(& b,4);
+   -[-c-]-> 14
+   -[--d]-> 19
+   -[-c-]-> 24
+   -[--d]-> 25
+   -[--d]-> 26
+   -[--d]-> 31
+ {n28}: __retres = a + b;
+   -[-c-]-> 14
+   -[--d]-> 15
+   -[--d]-> 16
+   -[a--]-> 17
+   -[--d](a)-> 23
+   -[--d](b)-> 27
+ {n29}: return __retres;
+   -[-c-]-> 14
+   -[--d]-> 17
+   -[--d]-> 28
+ {n30}: OutRet
+   -[--d]-> 29
+ {n31}: In(G)

@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2014                                               */
+/*  Copyright (C) 2007-2015                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -25,7 +25,11 @@
 #include "__fc_define_size_t.h"
 int    bcmp(const void *, const void *, size_t);
 void   bcopy(const void *, void *, size_t);
-void   bzero(void *, size_t);
+
+
+/*@ requires \valid (((char*) s)+(0 .. n-1));
+  assigns ((char*) s)[0 .. n-1]; */
+void   bzero(void *s, size_t n);
 int    ffs(int);
 char   *index(const char *, int);
 char   *rindex(const char *, int);

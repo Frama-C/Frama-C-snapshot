@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -369,16 +369,11 @@ let () =
 	  Typed_parameter.Hashtbl.add parameter_hooks p tbl;
 	  let update () = Datatype.String.Hashtbl.iter (fun _ f -> f ()) tbl in
 	  match p.Typed_parameter.accessor with
-	  (* factorisation requires GADT (OCaml 4.01) *)
 	  | Typed_parameter.Bool(a, _) -> 
 	    a.Typed_parameter.add_set_hook (fun _ _ -> update ())
 	  | Typed_parameter.Int(a, _) ->  
 	    a.Typed_parameter.add_set_hook (fun _ _ -> update ())
 	  | Typed_parameter.String(a, _) -> 
-	    a.Typed_parameter.add_set_hook (fun _ _ -> update ())
-	  | Typed_parameter.String_set a -> 
-	    a.Typed_parameter.add_set_hook (fun _ _ -> update ())
-	  | Typed_parameter.String_list a -> 
 	    a.Typed_parameter.add_set_hook (fun _ _ -> update ()))
 	(* [JS 2012/02/07] should be limited to
 	   [Option_functor.get_selection_context], but it is not possible while
@@ -604,6 +599,8 @@ struct
   let mem key = H.mem !state key
   let iter f = H.iter f !state
   let fold f acc = H.fold f !state acc
+  let iter_sorted ~cmp f = H.iter_sorted ~cmp f !state
+  let fold_sorted ~cmp f acc = H.fold_sorted ~cmp f !state acc
   let remove key = 
     if not (Remove_hooks.is_empty ()) then begin
       try

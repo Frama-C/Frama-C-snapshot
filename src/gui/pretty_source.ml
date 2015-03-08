@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -29,11 +29,11 @@ open Cil_datatype
 type localizable =
   | PStmt of (kernel_function * stmt)
   | PLval of (kernel_function option * kinstr * lval)
+  | PExp of (kernel_function option * kinstr * exp)
   | PTermLval of (kernel_function option * kinstr * term_lval)
   | PVDecl of (kernel_function option * varinfo)
   | PGlobal of global
   | PIP of Property.t
-
 module Localizable =
   Datatype.Make
     (struct
@@ -49,17 +49,23 @@ module Localizable =
           Kinstr.equal ki1 ki2 && Logic_utils.is_same_tlval lv1 lv2
         (* [JS 2008/01/21] term_lval are not shared: cannot use == *)
         | PVDecl (_,v1), PVDecl (_,v2) -> Varinfo.equal v1 v2
+	| PExp (_,_,e1), PExp(_,_,e2) -> Cil_datatype.Exp.equal e1 e2
         | PIP ip1, PIP ip2 -> Property.equal ip1 ip2
         | PGlobal g1, PGlobal g2 -> Cil_datatype.Global.equal g1 g2
-        | (PStmt _ | PLval _ | PTermLval _ | PVDecl _ | PIP _ | PGlobal _), _
+        | (PStmt _ | PLval _ | PExp _ | PTermLval _ | PVDecl _
+	      | PIP _ | PGlobal _), _
           ->  false
       let mem_project = Datatype.never_any_project
       let pretty fmt = function
         | PStmt (_, s) -> Format.fprintf fmt "LocalizableStmt %d (%a)"
             s.sid Printer.pp_location (Cil_datatype.Stmt.loc s)
-        | PLval (_, ki, lv) -> 
+        | PLval (_, ki, lv) ->
 	  Format.fprintf fmt "LocalizableLval %a (%a)"
-            Printer.pp_lval lv 
+            Printer.pp_lval lv
+	    Cil_datatype.Location.pretty (Cil_datatype.Kinstr.loc ki)
+        | PExp (_, ki, lv) ->
+	  Format.fprintf fmt "LocalizableExp %a (%a)"
+            Printer.pp_exp lv
 	    Cil_datatype.Location.pretty (Cil_datatype.Kinstr.loc ki)
         | PTermLval (_, ki, tlv) ->
             Format.fprintf fmt "LocalizableTermLval %a (%a)"
@@ -75,6 +81,7 @@ module Localizable =
 
 let kf_of_localizable loc = match loc with
     | PLval (kf_opt, _, _)
+    | PExp (kf_opt,_,_)
     | PTermLval(kf_opt, _,_)
     | PVDecl (kf_opt, _) -> kf_opt
     | PStmt (kf, _) -> Some kf
@@ -84,6 +91,7 @@ let kf_of_localizable loc = match loc with
 
 let ki_of_localizable loc = match loc with
     | PLval (_, ki, _)
+    | PExp (_, ki, _)
     | PTermLval(_, ki,_) -> ki
     | PVDecl (_, _) -> Kglobal
     | PStmt (_, st) -> Kstmt st
@@ -183,26 +191,26 @@ struct
    before loc2, or loc1 and loc2 start at the same position but
    loc1 spawns further than loc2.
 *)
-   
+
   type t = ((int*int) * localizable option) array
-      
-  let create state = 
+
+  let create state =
     let arr = Array.make (Locs.size state) ((0,0), None) in
-    let index = ref 0 in 
-    Locs.iter 
+    let index = ref 0 in
+    Locs.iter
       state
       (fun (pb,pe) v ->
 	Array.set arr !index ((pb,pe), Some v) ;
 	incr index
       )
     ;
-    Array.sort 
+    Array.sort
       (fun ((pb1,pe1),_) ((pb2,pe2),_) ->
-	if (pb1 = pb2) then 
+	if (pb1 = pb2) then
 	  if (pe1 = pe2) then 0
-	  else 
+	  else
 	    (* most englobing comes first *)
-	    Pervasives.compare pe2 pe1 
+	    Pervasives.compare pe2 pe1
 	else Pervasives.compare pb1 pb2
       ) arr
     ;
@@ -212,18 +220,18 @@ struct
 
   (* get loc at index i;
      raises Not_found if none exists *)
-  let get arr i = 
+  let get arr i =
     if i >= Array.length arr then raise Not_found
-    else 
+    else
       match Array.get arr i with
 	| ((_,_),None) -> raise Not_found
 	| ((pb,pe),Some v) -> ((pb,pe),v)
-	  
+
   (* find the next loc in array starting at index i
-     which satifies the predicate; 
+     which satifies the predicate;
      raises Not_found if none exists *)
-  let find_next arr i predicate = 
-    let rec fnext i = 
+  let find_next arr i predicate =
+    let rec fnext i =
       let ((pb',_pe'),v) = get arr i in
       if predicate v then pb'
       else fnext (i+1)
@@ -249,6 +257,7 @@ module Tag = struct
 
   let encode_stmt,decode_stmt = make_modem 's'
   let encode_lval,decode_lval = make_modem 'l'
+  let encode_exp,decode_exp = make_modem 'e'
   let encode_termlval,decode_termlval = make_modem 't'
   let encode_vdecl,decode_vdecl = make_modem 'd'
   let encode_global,decode_global = make_modem 'g'
@@ -257,6 +266,7 @@ module Tag = struct
   let create = function
     | PStmt sid -> encode_stmt sid
     | PLval lval -> encode_lval lval
+    | PExp e -> encode_exp e
     | PTermLval lval -> encode_termlval lval
     | PVDecl vi -> encode_vdecl vi
     | PGlobal g -> encode_global g
@@ -264,6 +274,8 @@ module Tag = struct
 
   let get s =
     try
+      PExp (decode_exp s)
+    with Wrong_decoder -> try
       PStmt (decode_stmt s)
     with Wrong_decoder -> try
       PLval (decode_lval s)
@@ -331,21 +343,35 @@ class tagPrinterClass : Printer.extensible_printer = object(self)
         );
         Format.fprintf fmt "@}"
 
+  method! exp fmt e =
+    match e.enode with
+    | Lval lv ->
+      (* Do not mark immediate l-values as they would not be
+	 selectable anyway because of the embedded tags of self#lval.
+	 This is only an optimization. *)
+      self#lval fmt lv
+    | _ ->
+      Format.fprintf fmt "@{<%s>"
+	(Tag.create (PExp (self#current_kf,self#current_kinstr,e)));
+      super#exp fmt e;
+      Format.fprintf fmt "@}"
+
   method! term_lval fmt lv =
-    (* similar to pLval *)
-    match self#current_kinstr with
-    | Kglobal -> super#term_lval fmt lv
-        (* Do not highlight the lvals in initializers. *)
-    | Kstmt _ as ki ->
-        Format.fprintf fmt "@{<%s>"
-          (Tag.create (PTermLval (self#current_kf,ki,lv)));
-        (match lv with
-           | TVar vi, (TField _| TIndex _ as o) ->
-               self#term_lval fmt (TVar vi, TNoOffset);
-               self#term_offset fmt o
-           | _ -> super#term_lval fmt lv
-        );
-        Format.fprintf fmt "@}"
+    (* similar to pLval, except that term_lval can appear in specifications
+       of functions (ki = None, kf <> None). Initializers are ignored. *)
+    if self#current_kinstr = Kglobal && self#current_kf = None then begin
+      super#term_lval fmt lv (* Do not highlight the lvals in initializers. *)
+    end else begin
+      Format.fprintf fmt "@{<%s>"
+        (Tag.create (PTermLval (self#current_kf, self#current_kinstr, lv)));
+      (match lv with
+      | TVar vi, (TField _| TIndex _ as o) ->
+        self#term_lval fmt (TVar vi, TNoOffset);
+        self#term_offset fmt o
+      | _ -> super#term_lval fmt lv
+      );
+      Format.fprintf fmt "@}"
+    end
 
   method! vdecl fmt vi =
     Format.fprintf fmt "@{<%s>%a@}"
@@ -372,7 +398,7 @@ class tagPrinterClass : Printer.extensible_printer = object(self)
       | AStmtSpec _ ->
         (* tags will be set in the inner nodes. *)
         super#code_annotation fmt ca
-      | AAllocation _ 
+      | AAllocation _
       | AAssigns _  ->
         (* tags will be set in the inner nodes. *)
         current_ca <- Some ca;
@@ -487,11 +513,11 @@ class tagPrinterClass : Printer.extensible_printer = object(self)
               Format.fprintf fmt "@{<%s>%a@}"
               (Tag.create (PIP ip)) (super#from s) from
 
-  method! global_annotation fmt a = 
+  method! global_annotation fmt a =
     match Property.ip_of_global_annotation_single a with
     | None -> super#global_annotation fmt a
     | Some ip ->
-      Format.fprintf fmt "@{<%s>%a@}" 
+      Format.fprintf fmt "@{<%s>%a@}"
 	(Tag.create (PIP ip)) super#global_annotation a
 
   method! allocation ~isloop fmt a =
@@ -550,7 +576,8 @@ let locate_localizable state loc =
 
 let localizable_from_locs state ~file ~line =
   let loc_localizable = function
-    | PStmt (_,st) | PLval (_,Kstmt st,_) | PTermLval(_,Kstmt st,_) ->
+    | PStmt (_,st) | PLval (_,Kstmt st,_) | PExp(_,Kstmt st, _)
+    | PTermLval(_,Kstmt st,_) ->
       Stmt.loc st
     | PIP ip ->
       (match Property.get_kinstr ip with
@@ -561,7 +588,7 @@ let localizable_from_locs state ~file ~line =
       | Kstmt st -> Stmt.loc st)
     | PVDecl (_,vi) -> vi.vdecl
     | PGlobal g -> Global.loc g
-    | (PLval _ | PTermLval _) as localize ->
+    | (PLval _ | PTermLval _ | PExp _) as localize ->
       (match kf_of_localizable localize with
       | None -> Location.unknown
       | Some kf -> Kernel_function.get_location kf)
@@ -604,17 +631,16 @@ let buffer_formatter state source =
   Format.pp_set_margin gtk_fmt 79;
   gtk_fmt
 
-let display_source globals 
-    (source:GSourceView2.source_buffer) ~(host:Gtk_helper.host) 
+let display_source globals
+    (source:GSourceView2.source_buffer) ~(host:Gtk_helper.host)
     ~highlighter ~selector =
   let state = Locs.create () in
 (*  let highlighter _ ~start:_ ~stop:_ = () in *)
   host#protect
     ~cancelable:false
     (fun () ->
-       Gtk_helper.refresh_gui  ();
        source#set_text "";
-       source#remove_source_marks 
+       source#remove_source_marks
          ~start:source#start_iter ~stop:source#end_iter ();
        let hiliter () =
          let event_tag = Gtk_helper.make_tag source ~name:"events" [] in
@@ -623,15 +649,14 @@ let display_source globals
 	 let index_max =  LocsArray.length locs_array in
 	 let index = ref 0 in
 	 while(!index < index_max) do (
-	   try	     
+	   try
 	     let ((pb,pe),v) = LocsArray.get locs_array !index in
-	     Gtk_helper.refresh_gui  ();
              match v with
 	       | PStmt (_,ki) ->
                  (try
                     let pb,pe = match ki with
 		      | {skind = Instr _ | Return _ | Goto _
-			    | Break _ | Continue _} -> pb,pe
+			    | Break _ | Continue _ | Throw _ } -> pb,pe
 		      | {skind = If _ | Loop _
 			    | Switch _ } ->
                           (* These statements contain other statements.
@@ -644,7 +669,7 @@ let display_source globals
 				 | _ -> false (* Do not stop on expressions*))
 			 with Not_found -> pb+1)
 		      | {skind = Block _ | TryExcept _ | TryFinally _
-			    | UnspecifiedSequence _} ->
+			    | UnspecifiedSequence _ | TryCatch _ } ->
                           pb,
                         (try LocsArray.find_next locs_array (!index+1) (fun _ -> true)
                          with Not_found -> pb+1)
@@ -652,24 +677,22 @@ let display_source globals
                     highlighter v ~start:pb ~stop:pe
                   with Not_found -> ())
 	       | PTermLval _ | PLval _ | PVDecl _ | PGlobal _
-	       | PIP _ ->
-                 highlighter v  ~start:pb ~stop:pe	       
+	       | PIP _ | PExp _ ->
+                 highlighter v  ~start:pb ~stop:pe
 	   with Not_found -> () ) ;
 	   incr index
 	 done;
          (*  Kernel.debug "Highlighting done (%d occurrences)" (Locs.size ());*)
-	 
+
          (* React to events on the text *)
          source#apply_tag ~start:source#start_iter ~stop:source#end_iter event_tag;
          (*  Kernel.debug "Event tag done";*)
        in
        Locs.set_hilite state hiliter;
-
        (*  Kernel.debug "Display source starts";*)
        let gtk_fmt = buffer_formatter state (source:>GText.buffer) in
        let tagPrinter = new tagPrinterClass in
        let display_global g =
-         Gtk_helper.refresh_gui  ();
          tagPrinter#global gtk_fmt g;
          Format.pp_print_flush gtk_fmt ()
        in
@@ -694,7 +717,6 @@ let display_source globals
            ()) ca *)
        end;
        (*  Kernel.debug "Displayed globals";*)
-
        source#place_cursor source#start_iter;
        (* Highlight the localizable *)
        hiliter ();

@@ -1,0 +1,21 @@
+JESSIE=frama-c -jessie "-cpp-extra-args=-I/usr/local/share/frama-c/jessie"
+
+default: evoting
+
+evoting: evoting.c check_specs.h
+	gcc -DNO_FRAMA_C -Wall -o $@ $<
+
+clean:
+	-rm evoting
+
+test: evoting candidates.txt
+	./evoting candidates.txt
+
+check: evoting.c check_specs.h
+	$(JESSIE) $<
+
+gen-only: evoting.c check_specs.h
+	$(JESSIE) -jessie-gen-only $<
+
+gui: evoting.c check_specs.h
+	$(JESSIE) -jessie-gui $<

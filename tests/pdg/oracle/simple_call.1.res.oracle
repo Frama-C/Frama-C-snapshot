@@ -1,0 +1,191 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/pdg/simple_call.c (with preprocessing)
+[value] Analyzing a complete application starting at call_in_loop
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  G ∈ [--..--]
+  G1 ∈ [--..--]
+  G2 ∈ [--..--]
+  S ∈ [--..--]
+tests/pdg/simple_call.c:51:[value] entering loop for the first time
+[value] computing for function call <- call_in_loop.
+        Called from tests/pdg/simple_call.c:52.
+tests/pdg/simple_call.c:45:[kernel] warning: signed overflow. assert G+y ≤ 2147483647;
+[value] Recording results for call
+[value] Done for function call
+[value] computing for function call <- call_in_loop.
+        Called from tests/pdg/simple_call.c:52.
+[value] Recording results for call
+[value] Done for function call
+[value] computing for function call <- call_in_loop.
+        Called from tests/pdg/simple_call.c:52.
+[value] Recording results for call
+[value] Done for function call
+[value] computing for function call <- call_in_loop.
+        Called from tests/pdg/simple_call.c:52.
+[value] Recording results for call
+[value] Done for function call
+[value] computing for function call <- call_in_loop.
+        Called from tests/pdg/simple_call.c:52.
+[value] Recording results for call
+[value] Done for function call
+[value] computing for function call <- call_in_loop.
+        Called from tests/pdg/simple_call.c:52.
+[value] Recording results for call
+[value] Done for function call
+[value] computing for function call <- call_in_loop.
+        Called from tests/pdg/simple_call.c:52.
+[value] Recording results for call
+[value] Done for function call
+[value] computing for function call <- call_in_loop.
+        Called from tests/pdg/simple_call.c:52.
+[value] Recording results for call
+[value] Done for function call
+[value] computing for function call <- call_in_loop.
+        Called from tests/pdg/simple_call.c:52.
+[value] Recording results for call
+[value] Done for function call
+[value] computing for function call <- call_in_loop.
+        Called from tests/pdg/simple_call.c:52.
+[value] Recording results for call
+[value] Done for function call
+[value] computing for function call <- call_in_loop.
+        Called from tests/pdg/simple_call.c:52.
+[value] Recording results for call
+[value] Done for function call
+[value] computing for function call <- call_in_loop.
+        Called from tests/pdg/simple_call.c:52.
+[value] Recording results for call
+[value] Done for function call
+[value] computing for function call <- call_in_loop.
+        Called from tests/pdg/simple_call.c:52.
+[value] Recording results for call
+[value] Done for function call
+[value] computing for function call <- call_in_loop.
+        Called from tests/pdg/simple_call.c:52.
+[value] Recording results for call
+[value] Done for function call
+tests/pdg/simple_call.c:52:[kernel] warning: signed overflow. assert a+tmp ≤ 2147483647;
+                                   (tmp from call(i, c))
+[value] computing for function call <- call_in_loop.
+        Called from tests/pdg/simple_call.c:52.
+[value] Recording results for call
+[value] Done for function call
+[value] Recording results for call_in_loop
+[value] done for function call_in_loop
+[pdg] computing for function call_in_loop
+[from] Computing for function call
+[from] Done for function call
+[pdg] done for function call_in_loop
+[pdg] PDG for call_in_loop
+ {n1}: InCtrl
+ {n2}: VarDecl : c
+   -[a--]-> 3
+ {n3}: In1
+   -[a--]-> 2
+ {n4}: VarDecl : i
+ {n5}: VarDecl : a
+ {n6}: VarDecl : tmp
+ {n7}: a = 0;
+   -[-c-]-> 1
+   -[a--]-> 5
+ {n8}: i = 0;
+   -[-c-]-> 1
+   -[a--]-> 4
+ {n9}: while(1)
+   -[-c-]-> 1
+   -[-c-]-> 9
+   -[-c-]-> 10
+   -[-c-]-> 19
+ {n10}: i < G
+   -[-c-]-> 1
+   -[--d]-> 4
+   -[--d]-> 8
+   -[-c-]-> 9
+   -[-c-]-> 10
+   -[--d](G)-> 15
+   -[--d]-> 18
+   -[-c-]-> 19
+   -[--d]-> 22
+ {n11}: unspecified sequence
+   -[-c-]-> 1
+   -[-c-]-> 9
+   -[-c-]-> 10
+   -[-c-]-> 19
+ {n12}: Call31-InCtrl : tmp = call(i,c);
+   -[-c-]-> 1
+   -[-c-]-> 9
+   -[-c-]-> 10
+   -[-c-]-> 11
+   -[-c-]-> 19
+ {n13}: Call31-In1 : tmp = call(i,c);
+   -[-c-]-> 1
+   -[--d]-> 4
+   -[--d]-> 8
+   -[-c-]-> 9
+   -[-c-]-> 10
+   -[-c-]-> 11
+   -[-c-]-> 12
+   -[--d]-> 18
+   -[-c-]-> 19
+ {n14}: Call31-In2 : tmp = call(i,c);
+   -[-c-]-> 1
+   -[--d]-> 2
+   -[--d]-> 3
+   -[-c-]-> 9
+   -[-c-]-> 10
+   -[-c-]-> 11
+   -[-c-]-> 12
+   -[-c-]-> 19
+ {n15}: Call31-Out(G) : tmp = call(i,c);
+   -[-c-]-> 1
+   -[-c-]-> 9
+   -[-c-]-> 10
+   -[-c-]-> 11
+   -[-c-]-> 12
+   -[--d]-> 14
+   -[--d](G)-> 15
+   -[-c-]-> 19
+   -[--d]-> 22
+ {n16}: Call31-OutRet : tmp = call(i,c);
+   -[-c-]-> 1
+   -[a--]-> 6
+   -[-c-]-> 9
+   -[-c-]-> 10
+   -[-c-]-> 11
+   -[-c-]-> 12
+   -[--d]-> 13
+   -[-c-]-> 19
+ {n17}: a += tmp;
+   -[-c-]-> 1
+   -[a-d]-> 5
+   -[--d]-> 6
+   -[--d]-> 7
+   -[-c-]-> 9
+   -[-c-]-> 10
+   -[-c-]-> 11
+   -[--d]-> 16
+   -[--d]-> 17
+   -[-c-]-> 19
+ {n18}: i ++;
+   -[-c-]-> 1
+   -[a-d]-> 4
+   -[--d]-> 8
+   -[-c-]-> 9
+   -[-c-]-> 10
+   -[--d]-> 18
+   -[-c-]-> 19
+ {n19}: break;
+   -[-c-]-> 1
+   -[-c-]-> 9
+   -[-c-]-> 10
+   -[-c-]-> 19
+ {n20}: return a;
+   -[-c-]-> 1
+   -[--d]-> 5
+   -[--d]-> 7
+   -[--d]-> 17
+ {n21}: OutRet
+   -[--d]-> 20
+ {n22}: In(G)

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -38,7 +38,9 @@ module NS = struct
     let name = "Impact.Pdg_aux.NS.intersects" in
     let z_intersects _ z1 z2 = Locations.Zone.intersects z1 z2 in
     let map_intersects =
-      symmetric_binary_predicate (PersistentCache name) ExistentialPredicate
+      symmetric_binary_predicate
+        (Hptmap.PersistentCache name)
+        ExistentialPredicate
 	~decide_fast:decide_fast_intersection
 	~decide_one:(fun _ _ -> false)
 	~decide_both:z_intersects
@@ -62,7 +64,8 @@ module NS = struct
     let decide_none _ n = n in
     let decide_some z1 z2 = Zone.join z1 z2 in
     let merge =
-      symmetric_merge ~cache:("Pdg_aux.NS.union", ()) ~decide_none ~decide_some
+      symmetric_merge ~cache:("Pdg_aux.NS.union", ())
+        ~empty_neutral:true ~decide_none ~decide_some
     in
     fun m1 m2 -> merge m1 m2
 
@@ -109,7 +112,7 @@ module NS = struct
     fold (fun n z -> f (n, z))
 
 
-  let () = Db.Value.Table.add_hook_on_update (fun _ -> clear_caches ())
+  let () = Db.Value.Table_By_Callstack.add_hook_on_update (fun _ -> clear_caches ())
 end
 
 type call_interface = (PdgTypes.Node.t * NS.t) list

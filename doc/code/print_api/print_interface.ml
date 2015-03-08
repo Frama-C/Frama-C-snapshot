@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -273,11 +273,11 @@ let print_plugin fmt =
   in
   let rec print_types fmt sp = function
     | [] -> ()
-    | (h, long_h) :: q -> 
+    | (h, long_h) :: q ->
       Format.fprintf fmt "@\n%stype %s@\n%s  \
 (** @@call by writing [T.ty] where [T] has previously been defined by: \
-[let module T = Type.Make(struct let name = %s end)] *)" 
-	sp h sp long_h; 
+[module T = Type.Abstract(struct let name = %s end)]. Be careful to replace occurrences of %s by T.ty anywhere else in this doc. *)"
+        sp h sp long_h long_h;
       print_types fmt sp q
   in
   let rec print_one_plugin fmt i key1 =

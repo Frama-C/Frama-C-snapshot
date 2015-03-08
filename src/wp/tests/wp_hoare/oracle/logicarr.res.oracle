@@ -1,0 +1,42 @@
+# frama-c -wp -wp-model 'Typed (Ref)' [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_hoare/logicarr.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+tests/wp_hoare/logicarr.i:27:[wp] warning: Cast from (int [10]) to (int []) not implemented yet
+[wp] Collecting variable usage
+tests/wp_hoare/logicarr.i:26:[wp] warning: Cast from (int [10]) to (int []) not implemented yet
+tests/wp_hoare/logicarr.i:26:[wp] warning: Cast from (int [10]) to (int []) not implemented yet
+------------------------------------------------------------
+  Function job
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok,PTR,todo' in 'job':
+Assume { (* Domain *) Type: (is_sint32 i_0) /\ (is_sint32 j_0). }
+Prove: (P_p_pointer Mint_0 Mint_0 (shift_A10_sint32 (global G_arr_80) 0) i_0
+         j_0).
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok,ARR,todo' in 'job':
+tests/wp_hoare/logicarr.i:26: warning from wp:
+ - Warning: Hide sub-term definition
+   Reason: Cast from (int [10]) to (int []) not implemented yet
+tests/wp_hoare/logicarr.i:26: warning from wp:
+ - Warning: Hide sub-term definition
+   Reason: Cast from (int [10]) to (int []) not implemented yet
+Assume { (* Domain *) Type: (is_sint32 i_0) /\ (is_sint32 j_0). }
+Prove: (P_p_arrays w_1 i_0 w_2 j_0).
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok,DUM,todo' in 'job':
+tests/wp_hoare/logicarr.i:27: warning from wp:
+ - Warning: Hide sub-term definition
+   Reason: Cast from (int [10]) to (int []) not implemented yet
+Assume { (* Domain *) Type: (is_sint32 j_0) /\ (is_sint32 k_0). }
+Prove: (P_p_dummy w_0 j_0 k_0).
+
+------------------------------------------------------------

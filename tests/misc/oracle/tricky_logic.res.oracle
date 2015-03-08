@@ -1,0 +1,117 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/tricky_logic.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  vol ∈ [--..--]
+  str ∈ {{ "abc" }}
+  x ∈ {0}
+  y ∈ {0}
+tests/misc/tricky_logic.i:56:[value] Function main: precondition got status valid.
+[value] computing for function f1 <- main.
+        Called from tests/misc/tricky_logic.i:58.
+tests/misc/tricky_logic.i:15:[value] Assertion got status valid.
+tests/misc/tricky_logic.i:16:[value] Assertion got status valid.
+[value] Recording results for f1
+[value] Done for function f1
+[value] computing for function f2 <- main.
+        Called from tests/misc/tricky_logic.i:62.
+tests/misc/tricky_logic.i:23:[value] Assertion got status valid.
+tests/misc/tricky_logic.i:24:[value] Assertion got status valid.
+[value] Recording results for f2
+[value] Done for function f2
+[value] computing for function f3 <- main.
+        Called from tests/misc/tricky_logic.i:65.
+tests/misc/tricky_logic.i:29:[value] Assertion got status valid.
+tests/misc/tricky_logic.i:30:[value] Assertion got status valid.
+tests/misc/tricky_logic.i:31:[value] Assertion got status unknown.
+[value] Recording results for f3
+[value] Done for function f3
+[value] computing for function f4 <- main.
+        Called from tests/misc/tricky_logic.i:67.
+[value] computing for function g4 <- f4 <- main.
+        Called from tests/misc/tricky_logic.i:51.
+tests/misc/tricky_logic.i:38:[value] Assertion got status valid.
+tests/misc/tricky_logic.i:39:[value] Assertion got status unknown.
+[value] Recording results for g4
+[value] Done for function g4
+tests/misc/tricky_logic.i:52:[value] Assertion got status valid.
+tests/misc/tricky_logic.i:53:[value] Assertion got status valid.
+[value] Recording results for f4
+[value] Done for function f4
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function f1:
+  
+[value] Values at end of function f2:
+  x ∈ {4}
+  y ∈ {5}
+[value] Values at end of function f3:
+  
+[value] Values at end of function g4:
+  s.i1 ∈ {3}
+   .i2 ∈ {2} or UNINITIALIZED
+  x_0 ∈ {1}
+[value] Values at end of function f4:
+  p ∈ {{ &z }}
+  q ∈ {{ &x }}
+  s.i1 ∈ {1} or UNINITIALIZED
+   .i2 ∈ {2} or UNINITIALIZED
+[value] Values at end of function main:
+  x ∈ {2; 3}
+  y ∈ {5}
+[from] Computing for function f1
+[from] Done for function f1
+[from] Computing for function f2
+[from] Done for function f2
+[from] Computing for function f3
+[from] Done for function f3
+[from] Computing for function g4
+[from] Done for function g4
+[from] Computing for function f4
+[from] Done for function f4
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function f1:
+  NO EFFECTS
+[from] Function f2:
+  x FROM \nothing
+  y FROM \nothing
+[from] Function f3:
+  NO EFFECTS
+[from] Function g4:
+  NO EFFECTS
+[from] Function f4:
+  NO EFFECTS
+[from] Function main:
+  x FROM vol
+  y FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function f1:
+          \nothing
+[inout] Inputs for function f1:
+          \nothing
+[inout] Out (internal) for function f2:
+          x; y
+[inout] Inputs for function f2:
+          \nothing
+[inout] Out (internal) for function f3:
+          \nothing
+[inout] Inputs for function f3:
+          \nothing
+[inout] Out (internal) for function g4:
+          s.i1; x_0
+[inout] Inputs for function g4:
+          \nothing
+[inout] Out (internal) for function f4:
+          p; q; s
+[inout] Inputs for function f4:
+          vol
+[inout] Out (internal) for function main:
+          x; y
+[inout] Inputs for function main:
+          vol

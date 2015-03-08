@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -41,10 +41,10 @@ let link f = Lang.infoprover (Qed.Engine.F_call f)
 
 let make_fun_float name f =
   extern_f ~library ~result ~params "%s_%a" name Ctypes.pp_float f
-    
+
 let make_pred_float name f =
   extern_f ~library ~result:Logic.Prop ~params "%s_%a" name Ctypes.pp_float f
-  
+
 let f_of_int = 
   extern_f ~library:"qed" ~result "real_of_int"
 
@@ -90,15 +90,15 @@ type model = Real | Float
 
 let model = Context.create ~default:Real "Cfloat.model"
 let configure = Context.set model 
-  
+
 (* -------------------------------------------------------------------------- *)
 (* --- Litterals                                                          --- *)
 (* -------------------------------------------------------------------------- *)
 
 let code_lit f =
   match Context.get model with
-    | Real  -> e_mthfloat f
-    | Float -> e_hexfloat f
+  | Real  -> e_mthfloat f
+  | Float -> e_hexfloat f
 
 let suffixed r_literal =
   let n = String.length r_literal in
@@ -110,12 +110,12 @@ let acsl_lit =
   let open Cil_types in
   function { r_literal ; r_nearest } ->
     match Context.get model with
-      | Float ->
-	  if suffixed r_literal
-	  then e_hexfloat r_nearest 
-	  else e_real (R.of_string r_literal)
-      | Real -> 
-	  e_mthfloat r_nearest
+    | Float ->
+        if suffixed r_literal
+        then e_hexfloat r_nearest 
+        else e_real (R.of_string r_literal)
+    | Real -> 
+        e_mthfloat r_nearest
 
 let round_lit flt r =
   let open Floating_point in
@@ -212,10 +212,10 @@ let () = let open LogicBuiltins in
   begin
     add_builtin "\\model" [F Float32] f_model ;
     add_builtin "\\model" [F Float64] f_model ;
-    add_builtin "\\delta" [F Float32] f_model ;
-    add_builtin "\\delta" [F Float64] f_model ;
-    add_builtin "\\epsilon" [F Float32] f_model ;
-    add_builtin "\\epsilon" [F Float64] f_model ;
+    add_builtin "\\delta" [F Float32] f_delta ;
+    add_builtin "\\delta" [F Float64] f_delta ;
+    add_builtin "\\epsilon" [F Float32] f_epsilon ;
+    add_builtin "\\epsilon" [F Float64] f_epsilon ;
   end
 
 (* -------------------------------------------------------------------------- *)
@@ -297,24 +297,24 @@ let fconvert =
 
 let real_of_int a = e_fun f_of_int [a]
 let float_of_int f a = fconvert f (real_of_int a)
-    
+
 let frange =
   let is_float = Ctypes.fmemo (make_pred_float "is") in
   fun f a -> p_call (is_float f) [a]
-               
+
 (* -------------------------------------------------------------------------- *)
 (* --- Float Arithmetics                                                  --- *)
 (* -------------------------------------------------------------------------- *)
-      
+
 let runop op f x =
   match Context.get model with
-    | Real -> op x
-    | Float -> e_fun f [x]
+  | Real -> op x
+  | Float -> e_fun f [x]
 
 let rbinop op f x y =
   match Context.get model with
-    | Real -> op x y
-    | Float -> e_fun f [x;y]
+  | Real -> op x y
+  | Float -> e_fun f [x;y]
 
 let funop op f x = fconvert f (op x)
 
@@ -337,16 +337,16 @@ let fsub f x y = fadd f x (e_opp y)
 let compute_f_of_int = function
   | [e] ->
       begin
-	match F.repr e with
-	  | Qed.Logic.Kint k -> 
-	      let m = Z.to_string k in
-	      let r = R.of_string (m ^ ".") in
-	      F.e_real r
-	  | _ -> raise Not_found
+        match F.repr e with
+        | Qed.Logic.Kint k -> 
+            let m = Z.to_string k in
+            let r = R.of_string (m ^ ".") in
+            F.e_real r
+        | _ -> raise Not_found
       end
   | _ -> raise Not_found
 
 let () =
   F.set_builtin f_of_int compute_f_of_int ;
 
-(* -------------------------------------------------------------------------- *)
+  (* -------------------------------------------------------------------------- *)

@@ -1,0 +1,11 @@
+# frama-c -wp [...]
+[wp] Running WP plugin...
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] 6 goals scheduled
+[wp] [Alt-Ergo] Goal store_absurd_post_qed_ko_Base_oracle_ko : Unknown
+[wp] [Alt-Ergo] Goal store_absurd_post_qed_ko_Comp_oracle_ko : Unknown
+[wp] [Alt-Ergo] Goal store_mixed_array_pointer_post_qed_ko_Le_oracle_ko : Timeout
+[wp] [Alt-Ergo] Goal store_mixed_array_pointer_post_qed_ko_Lt_oracle_ko : Unknown
+[wp] [Alt-Ergo] Goal store_pointer_post_qed_ko_Le_oracle_ko : Unknown
+[wp] [Alt-Ergo] Goal store_pointer_post_qed_ko_Eq_oracle_ko : Timeout

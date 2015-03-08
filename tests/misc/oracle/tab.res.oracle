@@ -1,0 +1,64 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/tab.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  x ∈ {55}
+  y ∈ {77}
+  t[0..3] ∈ {0}
+  TT[0][0] ∈ {0}
+    [0][1..2] ∈ {1}
+    {[0][3..4]; [1][0..4]; [2][0]} ∈ {0}
+    [2][1] ∈ {1}
+    {[2][2..4]; [3..4][0..4]} ∈ {0}
+  TTT[0][0] ∈ {1}
+     [0][1] ∈ {2}
+     [0][2] ∈ {3}
+     [0][3] ∈ {4}
+     [0][4] ∈ {5}
+     [1][0..4] ∈ {0}
+     [2][0] ∈ {1}
+     {[2][1..4]; [3..4][0..4]} ∈ {0}
+[value] computing for function any_int <- main.
+        Called from tests/misc/tab.c:11.
+tests/misc/any_int.c:9:[value] entering loop for the first time
+tests/misc/any_int.c:9:[kernel] warning: signed overflow. assert y_0+1 ≤ 2147483647;
+tests/misc/any_int.c:9:[kernel] warning: signed overflow. assert y_0+1 ≤ 2147483647;
+tests/misc/any_int.c:9:[kernel] warning: signed overflow. assert -2147483648 ≤ y_0-1;
+tests/misc/any_int.c:9:[kernel] warning: signed overflow. assert x_0+1 ≤ 2147483647;
+tests/misc/any_int.c:9:[kernel] warning: signed overflow. assert -2147483648 ≤ x_0-1;
+[value] Recording results for any_int
+[value] Done for function any_int
+tests/misc/tab.c:12:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert 0 ≤ i < 4;
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function any_int:
+  y_0 ∈ [--..--]
+  x_0 ∈ [--..--]
+[value] Values at end of function main:
+  t[0] ∈ {0; 1}
+   [1] ∈ {77}
+   [2..3] ∈ {0; 1}
+  i ∈ {0; 1; 2; 3}
+[from] Computing for function any_int
+[from] Done for function any_int
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function any_int:
+  \result FROM \nothing
+[from] Function main:
+  t{[0]; [2..3]} FROM \nothing (and SELF)
+   [1] FROM y
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function any_int:
+          y_0; x_0
+[inout] Inputs for function any_int:
+          \nothing
+[inout] Out (internal) for function main:
+          t[0..3]; i
+[inout] Inputs for function main:
+          y

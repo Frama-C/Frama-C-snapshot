@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,7 +27,6 @@ open Abstract_interp
 type validity =
   | Known of Int.t * Int.t
   | Unknown of Int.t * Int.t option * Int.t
-  | Periodic of Int.t * Int.t * Int.t
   | Invalid
 
 let pretty_validity fmt v =
@@ -37,10 +36,6 @@ let pretty_validity fmt v =
 	Int.pretty b (Pretty_utils.pp_opt Int.pretty) k Int.pretty e
   | Known (b,e)  -> Format.fprintf fmt "Known %a-%a" Int.pretty b Int.pretty e
   | Invalid -> Format.fprintf fmt "Invalid"
-  | Periodic (b,e,p)  ->
-      Format.fprintf fmt "Periodic %a-%a (%a)"
-        Int.pretty b Int.pretty e
-        Int.pretty p
 
 module Validity = Datatype.Make
   (struct
@@ -48,9 +43,31 @@ module Validity = Datatype.Make
     let name = "Base.validity"
     let structural_descr = Structural_descr.t_abstract
     let reprs = [ Known (Int.zero, Int.one) ]
-    let equal = Datatype.undefined
-    let compare = Datatype.undefined
-    let hash = Datatype.undefined
+
+    let compare v1 v2 = match v1, v2 with
+      | Unknown (b1, m1, e1), Unknown (b2, m2, e2) ->
+        let c = Int.compare b1 b2 in
+        if c = 0 then
+          let c = Extlib.opt_compare Int.compare m1 m2 in
+          if c = 0 then Int.compare e1 e2 else 0
+        else c
+      | Invalid, Invalid -> 0
+      | Known (b1, e1), Known (b2, e2) ->
+        let c = Int.compare b1 b2 in
+        if c = 0 then Int.compare e1 e2 else 0
+      | Known _, (Unknown _ | Invalid)
+      | Unknown _, Invalid -> -1
+      | Invalid, (Unknown _ | Known _)
+      | Unknown _, Known _ -> 1
+
+    let equal = Datatype.from_compare
+
+    let hash v = match v with
+      | Invalid -> 37
+      | Known (b, e) -> Hashtbl.hash (3, Int.hash b, Int.hash e)
+      | Unknown (b, m, e) ->
+        Hashtbl.hash (7, Int.hash b, Extlib.opt_hash Int.hash m, Int.hash e)
+
     let pretty = pretty_validity
     let mem_project = Datatype.never_any_project
     let internal_pretty_code = Datatype.pp_fail
@@ -80,11 +97,6 @@ let hash = id
 let null = Null
 
 let is_null x = match x with Null -> true | _ -> false
-
-let _is_special_variable v =
-  match v with
-    Var (s,_) when s.vlogic -> true
-  | _ -> false
 
 let pretty fmt t = 
   match t with
@@ -199,8 +211,9 @@ exception Not_valid_offset
 
 let is_read_only base =
   match base with
-    String _ -> true
-  | _ -> false (* TODO: completely const types *)
+  | String _ -> true
+  | Var (v,_) -> Kernel.ConstReadonly.get () && typeHasQualifier "const" v.vtype
+  | _ -> false
 
 let is_valid_offset ~for_writing size base offset =
   if for_writing && (is_read_only base)
@@ -208,8 +221,8 @@ let is_valid_offset ~for_writing size base offset =
   match validity base with
   | Invalid -> raise Not_valid_offset
   | Known (min_valid,max_valid)
-  | Periodic (min_valid, max_valid, _)
   | Unknown (min_valid, Some max_valid, _) ->
+    if not (Ival.is_bottom offset) then
       let min = Ival.min_int offset in
       begin match min with
       | None -> raise Not_valid_offset
@@ -229,8 +242,7 @@ let is_valid_offset ~for_writing size base offset =
   | Unknown (_, None, _) -> raise Not_valid_offset
 
 let validity_max_offset = function
-  | Known (_, ma)
-  | Periodic (_, ma, _) -> Ival.inject_singleton ma
+  | Known (_, ma) -> Ival.inject_singleton ma
   | Unknown (mi, None, ma) -> Ival.inject_range (Some mi) (Some ma)
   | Unknown (_, Some mi, ma) -> Ival.inject_range (Some (Int.succ mi)) (Some ma)
   | Invalid -> Ival.bottom
@@ -259,14 +271,14 @@ let is_aligned_by b alignment =
 
 let is_any_formal_or_local v =
   match v with
-  | Var (v,_) | Initialized_Var (v,_) -> not v.vlogic && not v.vglob
+  | Var (v,_) | Initialized_Var (v,_) -> v.vsource && not v.vglob
   | CLogic_Var _ -> false
   | Null | String _ -> false
 
 let is_any_local v =
   match v with
   | Var (v,_) | Initialized_Var (v,_) ->
-      not v.vlogic && not v.vglob && not v.vformal
+    v.vsource && not v.vglob && not v.vformal
   | CLogic_Var _ -> false
   | Null | String _ -> false
 
@@ -323,11 +335,9 @@ let validity_from_type v =
       Unknown (Int.zero, None, Bit_utils.max_bit_address ())
 
 let valid_range = function
-  | Invalid -> Lattice_Interval_Set.Int_Intervals.bottom
-  | Periodic (min_valid, max_valid, _)
+  | Invalid -> None
   | Known (min_valid,max_valid)
-  | Unknown (min_valid,_,max_valid)->
-    Lattice_Interval_Set.Int_Intervals.inject_bounds min_valid max_valid
+  | Unknown (min_valid,_,max_valid)-> Some (min_valid, max_valid)
 
 
 module Base = struct
@@ -354,12 +364,14 @@ include Base
 
 module Hptset = Hptset.Make
   (Base)
-  (struct let v = [ [ ] ] end)
+  (struct let v = [ [ ]; [Null] ] end)
   (struct let l = [ Ast.self ] end)
 let () = Ast.add_monotonic_state Hptset.self
 let () = Ast.add_hook_on_update Hptset.clear_caches
 
-module VarinfoLogic =
+let null_set = Hptset.singleton Null
+
+module VarinfoNotSource =
   Cil_state_builder.Varinfo_hashtbl
     (Base)
     (struct
@@ -367,39 +379,11 @@ module VarinfoLogic =
        let dependencies = [ Ast.self ]
        let size = 89
      end)
-let () = Ast.add_monotonic_state VarinfoLogic.self
+let () = Ast.add_monotonic_state VarinfoNotSource.self
 
-let regexp = Str.regexp "Frama_C_periodic[^0-9]*\\([0-9]+\\)"
-
-let create_varinfo varinfo =
-  assert (not varinfo.vlogic);
+let base_of_varinfo varinfo =
+  assert varinfo.vsource;
   let validity = validity_from_type varinfo in
-  let name = varinfo.vname in
-  let periodic period =
-    Kernel.feedback ~current:true ~once:true
-      "Periodic variable %s of period %d@." name period;
-    match validity with
-    | Known(mn, mx) ->
-        assert (Int.is_zero mn);
-        Periodic(mn, mx, Int.of_int period)
-    | _ -> assert false
-  in
-  let validity =
-    if Str.string_match regexp name 0 then
-      let period = Str.matched_group 1 name in
-      let period = int_of_string period in
-      periodic period
-    else
-      match Cil.unrollType varinfo.vtype with
-        | TArray (typ, _, _, attrs) when
-            Cil.hasAttribute "Frama_C_periodic" varinfo.vattr ||
-            Cil.hasAttribute "Frama_C_periodic" attrs ->
-          (try
-             let size = Cil.bitsSizeOf typ in
-             periodic size
-           with Cil.SizeOfError _ -> validity)
-        | _ -> validity
-  in
   Var (varinfo, validity)
 
 module Validities =
@@ -414,18 +398,18 @@ module Validities =
      end)
 let () = Ast.add_monotonic_state Validities.self
 
-let of_varinfo_aux = Validities.memo create_varinfo
+let of_varinfo_aux = Validities.memo base_of_varinfo
 
 let register_memory_var varinfo validity =
-  assert (varinfo.vlogic && not (VarinfoLogic.mem varinfo));
+  assert (not varinfo.vsource && not (VarinfoNotSource.mem varinfo));
   let base = Var (varinfo,validity) in
-  VarinfoLogic.add varinfo base;
+  VarinfoNotSource.add varinfo base;
   base
 
 let register_initialized_var varinfo validity =
-  assert varinfo.vlogic;
+  assert (not varinfo.vsource);
   let base = Initialized_Var (varinfo,validity) in
-  VarinfoLogic.add varinfo base;
+  VarinfoNotSource.add varinfo base;
   base
 
 let of_c_logic_var lv =
@@ -435,8 +419,13 @@ let of_c_logic_var lv =
     | _ -> Kernel.fatal "Logic variable with a non-C type %s" lv.lv_name
 
 let of_varinfo varinfo =
-  if varinfo.vlogic then VarinfoLogic.find varinfo
-  else of_varinfo_aux varinfo
+  if varinfo.vsource
+  then of_varinfo_aux varinfo
+  else
+    try VarinfoNotSource.find varinfo
+    with Not_found ->
+      Kernel.fatal "Querying base for unknown non-source variable %a"
+        Printer.pp_varinfo varinfo
 
 exception Not_a_C_variable
 

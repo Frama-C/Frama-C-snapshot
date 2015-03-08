@@ -1,0 +1,2 @@
+[kernel] warning: 2 states in saved file ignored. They are invalid in this Frama-C configuration.
+[kernel] warning: ignoring source files specified on the command line while loading a global initial context.

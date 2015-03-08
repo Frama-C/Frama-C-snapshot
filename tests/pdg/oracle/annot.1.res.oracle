@@ -1,0 +1,72 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/pdg/annot.c (with preprocessing)
+[value] Analyzing a complete application starting at loop
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  G ∈ {0}
+tests/pdg/annot.c:22:[value] Loop invariant got status unknown.
+tests/pdg/annot.c:25:[value] entering loop for the first time
+tests/pdg/annot.c:22:[value] Loop invariant got status valid.
+tests/pdg/annot.c:26:[kernel] warning: signed overflow. assert s+2 ≤ 2147483647;
+[value] Recording results for loop
+[value] done for function loop
+[pdg] computing for function loop
+[pdg] done for function loop
+[pdg] PDG for loop
+ {n1}: InCtrl
+ {n2}: VarDecl : n
+   -[a--]-> 3
+ {n3}: In1
+   -[a--]-> 2
+ {n4}: VarDecl : i
+ {n5}: VarDecl : s
+ {n6}: s = 0;
+   -[-c-]-> 1
+   -[a--]-> 5
+ {n7}: i = 0;
+   -[-c-]-> 1
+   -[a--]-> 4
+ {n8}: while(1)
+   -[-c-]-> 1
+   -[-c-]-> 8
+   -[-c-]-> 9
+   -[-c-]-> 12
+ {n9}: i < n
+   -[-c-]-> 1
+   -[--d]-> 2
+   -[--d]-> 3
+   -[--d]-> 4
+   -[--d]-> 7
+   -[-c-]-> 8
+   -[-c-]-> 9
+   -[--d]-> 11
+   -[-c-]-> 12
+ {n10}: s += 2;
+   -[-c-]-> 1
+   -[a-d]-> 5
+   -[--d]-> 6
+   -[-c-]-> 8
+   -[-c-]-> 9
+   -[--d]-> 10
+   -[-c-]-> 12
+ {n11}: i ++;
+   -[-c-]-> 1
+   -[a-d]-> 4
+   -[--d]-> 7
+   -[-c-]-> 8
+   -[-c-]-> 9
+   -[--d]-> 11
+   -[-c-]-> 12
+ {n12}: break;
+   -[-c-]-> 1
+   -[-c-]-> 8
+   -[-c-]-> 9
+   -[-c-]-> 12
+ {n13}: return s;
+   -[-c-]-> 1
+   -[--d]-> 5
+   -[--d]-> 6
+   -[--d]-> 10
+ {n14}: OutRet
+   -[--d]-> 13

@@ -1,0 +1,1 @@
+CALL(main) && _X_ (CALL(opa) && _X_ (!RETURN(opb) && _X_ (!CALL(opa) && _X_ (RETURN(opb) && _X_ (RETURN(main))))))

@@ -1,0 +1,86 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/cond.i (no preprocessing)
+tests/misc/cond.i:34:[kernel] warning: Calling undeclared function unknf. Old style K&R code?
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  G ∈ {0}
+  x ∈ {0}
+  y ∈ {0}
+  i ∈ {0}
+  t[0] ∈ {1}
+   [1] ∈ {2}
+   [2] ∈ {3}
+   [3] ∈ {4}
+   [4] ∈ {5}
+   [5] ∈ {6}
+   [6] ∈ {7}
+   [7] ∈ {8}
+  p ∈ {0}
+  z ∈ {0}
+  R ∈ {0}
+tests/misc/cond.i:14:[kernel] warning: out of bounds read. assert \valid_read(argv);
+tests/misc/cond.i:14:[kernel] warning: out of bounds read. assert \valid_read(*argv);
+[value] computing for function f <- main.
+        Called from tests/misc/cond.i:20.
+[value] Recording results for f
+[value] Done for function f
+[value] computing for function unknf <- main.
+        Called from tests/misc/cond.i:34.
+tests/misc/cond.i:34:[kernel] warning: Neither code nor specification for function unknf, generating default assigns from the prototype
+[value] using specification for function unknf
+[value] Done for function unknf
+[value] Called Frama_C_show_each_2({0; 1; 2; 4; 5; 6; 7; 8})
+[value] Called Frama_C_show_each_3([0..8])
+[value] Called Frama_C_show_each_4([0..16],0%2)
+[value] Called Frama_C_show_each_5([0..16],0%2)
+[value] Called Frama_C_show_each_6({0; 2; 4; 6; 8; 12; 14; 16})
+[value] Called Frama_C_show_each_7([0..16],0%2)
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function f:
+  
+[value] Values at end of function main:
+  x ∈ [-128..0]
+  y ∈ [-10..32767]
+  i ∈ {1; 2; 3; 4; 5; 6; 7}
+  p ∈ {{ &t }}
+  z ∈ {0; 2}
+  R ∈ {0; 3}
+  r ∈ {-51}
+  inRet ∈ {-51}
+  c ∈ [--..--]
+  s ∈ [--..--]
+  u ∈ [0..8]
+  v ∈ [0..16],0%2
+[from] Computing for function f
+[from] Done for function f
+[from] Computing for function main
+[from] Computing for function unknf <-main
+[from] Done for function unknf
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function f:
+  \result FROM G
+[from] Function unknf:
+  \result FROM \nothing
+[from] Function main:
+  x FROM argv; S_argv[0]; S_0_S_argv[0] (and SELF)
+  y FROM argc (and SELF)
+  i FROM argc
+  p FROM \nothing
+  z FROM t[1..3]; argc (and SELF)
+  R FROM t[1..7]; argc (and SELF)
+  \result FROM G
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function f:
+          tmp
+[inout] Inputs for function f:
+          G
+[inout] Out (internal) for function main:
+          x; y; i; p; z; R; r; inRet; c; s; tmp; tmp_0; u; tmp_1; v
+[inout] Inputs for function main:
+          G; i; t[1..7]; p; S_argv[0]; S_0_S_argv[0]

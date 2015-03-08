@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -53,6 +53,7 @@ module Literals : Parameter_sig.Bool
 
 (** {2 Computation Strategies} *)
 
+module Init: Parameter_sig.Bool
 module RTE: Parameter_sig.Bool
 module Simpl: Parameter_sig.Bool
 module Let: Parameter_sig.Bool
@@ -89,6 +90,7 @@ module AltErgoFlags: Parameter_sig.String_list
 
 (** {2 Proof Obligations} *)
 
+module TruncPropIdFileName: Parameter_sig.Int
 module Print: Parameter_sig.Bool
 module Report: Parameter_sig.String_list
 module ReportName: Parameter_sig.String
@@ -103,6 +105,12 @@ val get_output : unit -> string
 val get_output_dir : string -> string
 val get_includes: unit -> string list
 val make_output_dir: string -> unit
+
+(** {2 Debugging Categories} *)
+val print_generated: string -> unit
+(** print the given file if the debugging category
+    "print-generated" is set *)
+
 
 (*
 Local Variables:

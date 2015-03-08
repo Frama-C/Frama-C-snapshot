@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2014                                               */
+/*  Copyright (C) 2007-2015                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -23,5 +23,8 @@
 #ifndef __FC_DEFINE_WCHAR_T
 #define __FC_DEFINE_WCHAR_T
 #include "__fc_machdep.h"
+#if !defined(__cplusplus)
+/* wchar_t is a keyword in C++ and shall not be a typedef. */
 typedef __WCHAR_T wchar_t;
+#endif
 #endif

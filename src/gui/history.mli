@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -48,6 +48,11 @@ val push: history_elt -> unit
 (** Add the element to the current history; clears the forward history,
     and push the old current element to the past history. *)
 
+val get_current: unit -> history_elt option
+(** return the current history point, if available
+    @since Sodium-20150201
+*)
+
 val show_current: unit -> unit
 (** Redisplay the current history point, if available. Useful to
     refresh the gui. *)
@@ -60,6 +65,11 @@ val on_current_history: unit -> ((unit -> unit) -> unit)
 val apply_on_selected: (Pretty_source.localizable -> unit) -> unit
   (** [apply_on_selected f] applies [f] to the currently selected
       [Pretty_source.localizable]. Does nothing if nothing is selected. *)
+
+val translate_history_elt: history_elt -> history_elt option
+(** try to translate the history_elt of one project to the current one
+    @since Sodium-20150201
+ *)
 
 (**/**)
 val set_display_elt_callback: (history_elt -> unit) -> unit

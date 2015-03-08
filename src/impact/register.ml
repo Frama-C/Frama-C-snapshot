@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -28,7 +28,7 @@ open Options
 
 let rec pp_stmt fmt s = match s.skind with
   | Instr _ | Return _ | Goto _ | Break _ | Continue _ | TryFinally _
-  | TryExcept _ -> 
+  | TryExcept _ | Throw _ | TryCatch _ -> 
     Printer.without_annot Printer.pp_stmt fmt s
   | If (e, _, _, _) ->
     Format.fprintf fmt "if(%a) <..>" Printer.pp_exp e
@@ -127,17 +127,12 @@ let compute_pragmas () =
   in
   (* fill [pragmas] with all the pragmas of all the selected functions *)
   let pragmas = Pragma.fold
-    (fun f acc ->
-       try
-         let kf = Globals.Functions.find_def_by_name f in
-         match kf.fundec with
-         | Definition(f, _) ->
-             ignore (visitFramacFunction visitor f);
-             if !pragmas != [] then (kf, !pragmas) :: acc else acc
-         | Declaration _ -> assert false
-       with Not_found ->
-         abort "function %s not found." f
-    ) []
+    (fun kf acc ->
+      (* Pragma option only accept defined functions. *)
+      let f = Kernel_function.get_definition kf in
+      ignore (visitFramacFunction visitor f);
+      if !pragmas != [] then (kf, !pragmas) :: acc else acc)
+    []
   in
   let skip = Compute_impact.skip () in
   (* compute impact analyses on each kf *)

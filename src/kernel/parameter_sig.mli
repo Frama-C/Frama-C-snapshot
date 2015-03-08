@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -49,10 +49,88 @@ module type Input_with_arg = sig
         If empty, a generic arg_name is generated. *)
 end
 
+(** Signature required to build custom collection parameters in which elements
+    are convertible to string.
+    @since Sodium-20150201 *)
+module type String_datatype = sig
+  include Datatype.S
+
+  val of_string: string -> t
+  (** @raise Cannot_build if there is no element corresponding to the given
+      string. *)
+
+  val to_string: t -> string
+end
+
+val no_element_of_string: string -> 'a
+(**
+   @raise Cannot_build for any entry
+   @since Sodium-20150201
+ *)
+
+(** Signature requires to build custom collection parameters in which elements
+    are convertible to string.
+    @since Sodium-20150201 *)
+module type String_datatype_with_collections = sig
+  include Datatype.S_with_collections
+
+  val of_string: string -> t
+  (** @raise Cannot_build if there is no element corresponding to the given
+      string. *)
+
+  val of_singleton_string: string -> Set.t
+  (** If a single string can be mapped to several elements. Can
+      default to {!no_element_of_string} to indicate that each string [s] is
+      mapped exactly to [of_string s].
+   *)
+
+  val to_string: t -> string
+end
+
+(** Signature of the optional value associated to the key and required to build
+    map parameters.
+    @since Sodium-20150201 *)
+module type Value_datatype = sig
+  include Datatype.S
+  type key
+
+  val of_string: key:key -> prev:t option -> string option -> t option
+  (** [key] is the key associated to this value, while [prev] is the previous
+      value associated to this key (if any). The optional string is [None] if
+      there is no value associated to the key, and [Some v] (potentially [v =
+      ""]) otherwise.
+      @return None if there is no value to associate to the key or [Some v]
+      otherwise.
+      @raise Cannot_build if there is no element corresponding to the given
+      string. *)
+
+  val to_string: key:key -> t option -> string option
+(** [key] is the key associated to this value. The optional string is [None] if
+    there is no value associated to the key, and [Some v] (potentially [v =
+    ""]) otherwise.
+    @return None if there is no value to associate to the key or [Some v]
+    otherwise. *)
+
+end
+
+(** Signature of the optional value associated to the key and required to build
+    multiple map parameters. Almost similar to {!Value_datatype}.
+    @since Sodium-20150201 *)
+module type Multiple_value_datatype = sig
+  include Datatype.S
+  type key
+  val of_string: key:key -> prev:t list option -> string option -> t option
+  val to_string: key:key -> t option -> string option
+end
+
 (* ************************************************************************** *)
 (** {2 Output signatures} 
 
     Signatures corresponding to a command line option of a specific type. *)
+(* ************************************************************************** *)
+
+(* ************************************************************************** *)
+(** {3 Generic signatures} *)
 (* ************************************************************************** *)
 
 (** Generic signature of a parameter, without [parameter]. *)
@@ -127,6 +205,9 @@ module type S = sig
   (** @since Nitrogen-20111001 *)
 end
 
+(* ************************************************************************** *)
+(** {3 Signatures for simple datatypes} *)
+(* ************************************************************************** *)
 
 (** Signature for a boolean parameter.
     @plugin development guide *)
@@ -140,20 +221,6 @@ module type Bool = sig
   val off: unit -> unit
     (** Set the boolean to [false]. *)
 
-end
-
-(** Signature for a boolean parameter that causes something to be output. *)
-module type With_output = sig
-  include Bool
-
-  val set_output_dependencies: State.t list -> unit
-  (** Set the dependencies for the output of the option. Two successive
-      calls to [output] below will cause only one output, unless some
-      of the supplied dependencies have changed between the two calls. *)
-
-  val output: (unit -> unit) -> unit
-  (** To be used by the plugin to output the results of the option
-      in a controlled way. See [set_output_dependencies] details. *)
 end
 
 (** Signature for an integer parameter.
@@ -190,92 +257,38 @@ module type String = sig
         If the returned list is empty, then all values are acceptable.
         @since Beryllium-20090901 *)
 
-end
+  val get_function_name: unit -> string
+    (** returns the given argument only if it is a valid function name
+        (see {!Parameter_customize.get_c_ified_functions} for more information),
+        and abort otherwise.
 
-(** Signature for a generic set of strings option. *)
-module type String_collection = sig
-
-  include S
-
-  val add: string -> unit
-    (** Add a string to the string set option. *)
-
-  val remove: string -> unit
-    (** Remove a string from the option. *)
-
-  val is_empty: unit -> bool
-    (** Check if the set is empty. *)
-
-  val get_set: ?sep:string -> unit -> string
-    (** Get a string which concatenates each string in the set with a
-        separator. The default separator is ", ". *)
-
-  val iter: (string -> unit) -> unit
-    (** Iter on each string in the set. *)
-
-  val fold: (string -> 'a -> 'a) -> 'a -> 'a
-    (** Fold on each string in the set.
-        @since Oxygen-20120901 *)
-
-  val exists: (string -> bool) -> bool
-    (** Checks if at least one element of the set satisfies the predicate.
-    @since Carbon-20101201 *)
-
-  val set_possible_values: string list -> unit
-    (** Set what are the acceptable values for this parameter.
-        If the given list is empty, then all values are acceptable.
-        @since Oxygen-20120901 *)
-
-  val get_possible_values: unit -> string list
-    (** What are the acceptable values for this parameter.
-        If the returned list is empty, then all values are acceptable.
-        @since Oxygen-20120901 *)
-
-end
-
-(** @plugin development guide *)
-module type String_set = String_collection with type t = Datatype.String.Set.t
-module type String_list = 
-  sig
-    include String_collection with type t = string list
-    val append_before: string list -> unit
-    (** append a list in front of the current state
-        @since Neon-20130301
+        Requires that the AST has been computed. Default getter when
+        {!Parameter_customize.argument_is_function_name} has been called.
+        @since Sodium-20150201
      *)
 
-    val append_after: string list -> unit
-    (** append a list at the end of the current state
-        @since Neon-20130301 *)
-  end
-
-(** @since Boron-20100401 *)
-module type String_hashtbl = sig
-  include String_collection with type t = Datatype.String.Set.t
-  type value
-    (** @since Boron-20100401 *)
-  val find: string -> value
-    (** @since Boron-20100401 *)
+  val get_plain_string: unit -> string
+  (** always return the argument, even if the argument is not a function name.
+      @since Sodium-20150201
+   *)
 end
 
-(** {3 Complex values indexed by strings} *)
+(* ************************************************************************** *)
+(** {3 Custom signatures} *)
+(* ************************************************************************** *)
 
-(** option interface *)
-module type Indexed_val = sig
-  include String
-  type value (** the real type for the option*)
-  val add_choice: string -> value -> unit
-    (** adds a new choice for the option. *)
-  val get_val: unit -> value
-    (** the currently selected value. *)
-end
+(** Signature for a boolean parameter that causes something to be output. *)
+module type With_output = sig
+  include Bool
 
-(** input signature for [IndexedVal] *)
-module type Indexed_val_input = sig
-  include Input_with_arg
-  type t (** the type to be serialized *)
-  val default_val: t (** the default value *)
-  val default_key: string (** the default index *)
-  val ty: t Type.t
+  val set_output_dependencies: State.t list -> unit
+  (** Set the dependencies for the output of the option. Two successive
+      calls to [output] below will cause only one output, unless some
+      of the supplied dependencies have changed between the two calls. *)
+
+  val output: (unit -> unit) -> unit
+  (** To be used by the plugin to output the results of the option
+      in a controlled way. See [set_output_dependencies] details. *)
 end
 
 (** signature for searching files in a specific directory. *)
@@ -288,7 +301,7 @@ module type Specific_dir = sig
       creates the directory if it does not exist (or raises No_dir if the
       directory cannot be created). Otherwise ([force_dir =
       false]), raise No_dir if [error] is [false]. 
-      @since Neon-20130301 *) 
+      @since Neon-20140301 *) 
 
   val dir: ?error:bool -> unit -> string
     (** [dir ~error ()] returns the specific directory name, if
@@ -298,15 +311,167 @@ module type Specific_dir = sig
         error] and [not force_dir]. *)
 
   val file: ?error:bool -> string -> string
-(** [file basename] returns the complete filename of a file stored in [dir
-    ()]. If there is no such directory, Frama-C halts on an user error if
-    [error] orelse the behavior depends on [force_dir]. Default of [error] is
-    [true].
-    @raise No_dir if there is no share directory for this plug-in and [not
-    error] and [not force_dir].  *)
+  (** [file basename] returns the complete filename of a file stored in [dir
+      ()]. If there is no such directory, Frama-C halts on an user error if
+      [error] orelse the behavior depends on [force_dir]. Default of [error] is
+      [true].
+      @raise No_dir if there is no share directory for this plug-in and [not
+      error] and [not force_dir].  *)
 
   module Dir_name: String
-  (** Option [-<short-name>-<specific-dir>]. *)
+(** Option [-<short-name>-<specific-dir>]. *)
+
+end
+
+(* ************************************************************************** *)
+(** {3 Collections} *)
+(* ************************************************************************** *)
+
+(** Signature for a category over a collection.
+    @since Sodium-20150201 *)
+module type Collection_category = sig
+  type elt (** Element in the category *)
+  type t = elt Parameter_category.t
+
+  val none: t
+  (** The category '\@none' *)
+
+  val default: unit -> t
+  (** The '\@default' category. By default, it is {!none}. *)
+
+  val set_default: t -> unit
+  (** Modify the '\@default' category. *)
+
+  val add: string -> State.t list -> elt Parameter_category.accessor -> t
+  (** Adds a new category for this collection with the given name, accessor and
+      dependencies. *)
+
+  val enable_all: State.t list -> elt Parameter_category.accessor -> t
+  (** The category '\@all' is enabled in positive occurrences, with the given
+      interpretation. In negative occurrences, it is always enabled and '-\@all'
+      means 'empty'. *)
+
+  val enable_all_as: t -> unit
+  (** The category '\@all' is equivalent to the given category. *)
+
+end
+
+(** Common signature to all collections.
+    @since Sodium-20150201 *)
+module type Collection = sig
+
+  include S
+  (** A collection is a standard command line parameter. *)
+
+  type elt
+  (** Element in the collection. *)
+
+  val is_empty: unit -> bool
+  (** Is the collection empty? *)
+
+  val iter: (elt -> unit) -> unit
+  (** Iterate over all the elements of the collection. *)
+
+  val fold: (elt -> 'a -> 'a) -> 'a -> 'a
+  (** Fold over all the elements of the collection. *)
+
+  val add: elt -> unit
+  (** Add an element to the collection *)
+
+  module As_string: String
+  (** A collection is a standard string parameter *)
+
+  module Category: Collection_category with type elt = elt
+(** Categories for this collection. *)
+end
+
+(** Signature for sets as command line parameters.
+    @since Sodium-20150201 *)
+module type Set = sig
+
+  include Collection
+  (** A set is a collection. *)
+
+  (** {3 Additional accessors to the set.} *)
+
+  val mem: elt -> bool
+  (** Does the given element belong to the set? *)
+
+  val exists: (elt -> bool) -> bool
+(** Is there some element satisfying the given predicate? *)
+
+end
+
+(** @plugin development guide
+    @modify Sodium-20150201 *)
+module type String_set =
+  Set with type elt = string and type t = Datatype.String.Set.t
+
+(** Set of defined kernel functions. If you want to also include pure
+    prototype, use {!Parameter_customize.argument_may_be_fundecl}.
+
+    @since Sodium-20150201 *)
+module type Kernel_function_set =
+  Set with type elt = Cil_types.kernel_function
+      and type t = Cil_datatype.Kf.Set.t
+
+(** @since Sodium-20150201 *)
+module type Fundec_set =
+  Set with type elt = Cil_types.fundec
+      and type t = Cil_datatype.Fundec.Set.t
+
+(** Signature for lists as command line parameters.
+    @since Sodium-20150201 *)
+module type List =  sig
+
+  include Collection
+  (** A list is a collection. *)
+
+  (** {3 Additional accessors to the list.} *)
+
+  val append_before: t -> unit
+    (** append a list in front of the current state
+        @since Neon-20140301 *)
+
+  val append_after: t -> unit
+  (** append a list at the end of the current state
+      @since Neon-20140301 *)
+
+end
+
+(** @modify Sodium-20150201 *)
+module type String_list = List with type elt = string and type t = string list
+
+(** Signature for maps as command line parameters.
+    @since Sodium-20150201 *)
+module type Map = sig
+
+  type key (** Type of keys of the map. *)
+  type value (** Type of the values associated to the keys. *)
+
+  include Collection with type elt = key * value option
+  (** A map is a collection in which elements are pairs [(key, value)], but some
+      values may be missing. *)
+
+  (** {3 Additional accessors to the map.} *)
+
+  val find: key -> value
+(** Search a given key in the map.
+    @raise Not_found if there is no such key in the map. *)
+
+  val mem: key -> bool
+
+end
+
+(** Signature for multiple maps as command line parameters. Almost similar to
+    {!Map}.
+    @since Sodium-20150201 *)
+module type Multiple_map = sig
+  type key
+  type value
+  include Collection with type elt = key * value list
+  val find: key -> value list
+  val mem: key -> bool
 end
 
 (* ************************************************************************** *)
@@ -341,33 +506,103 @@ module type Builder = sig
   module String(X: sig include Input_with_arg val default: string end): String
 
   (** @plugin development guide *)
-  module EmptyString(X: Input_with_arg): String
+  module Empty_string(X: Input_with_arg): String
+
+  exception Cannot_build of string
+  module Make_set
+    (E:
+      sig
+        include String_datatype_with_collections
+        val of_singleton_string: string -> Set.t
+      end)
+    (X: sig include Input_with_arg val default: E.Set.t end):
+    Set with type elt = E.t and type t = E.Set.t
 
   (** @plugin development guide *)
-  module StringSet(X: Input_with_arg): String_set
-  
-  module FilledStringSet
-    (X: sig 
+  module String_set(X: Input_with_arg): String_set
+
+  module Filled_string_set
+    (X: sig
       include Input_with_arg
-      val default: Datatype.String.Set.t 
-    end): 
-    String_set
+      val default: Datatype.String.Set.t
+    end): String_set
 
-  module StringList(X: Input_with_arg): String_list
+  (** @plugin development guide *)
+  module Kernel_function_set(X: Input_with_arg): Kernel_function_set
+  module Fundec_set(X: Input_with_arg): Fundec_set
 
-  module IndexedVal(V: Indexed_val_input): Indexed_val with type value = V.t
+  module Make_list
+    (E:
+      sig
+        include String_datatype
+        val of_singleton_string: string -> t list
+      end)
+    (X: sig include Input_with_arg val default: E.t list end):
+    List with type elt = E.t and type t = E.t list
 
-  module StringHashtbl
-    (X: Input_with_arg)
-    (V: sig
-      include Datatype.S
-      val parse: string -> string * t
-      val redefine_binding: string -> old:t -> t -> t
-      val no_binding: string -> t
-    end) :
-    String_hashtbl with type value = V.t
+  module String_list(X: Input_with_arg): String_list
 
-  val parameters: unit -> Typed_parameter.t list    
+  (** Parameter is a map where multibindings are **not** allowed. *)
+  module Make_map
+    (K: String_datatype_with_collections)
+    (V: Value_datatype with type key = K.t)
+    (X: sig include Input_with_arg val default: V.t K.Map.t end):
+    Map
+    with type key = K.t and type value = V.t and type t = V.t K.Map.t
+
+  module String_map
+    (V: Value_datatype with type key = string)
+    (X: sig include Input_with_arg val default: V.t Datatype.String.Map.t end):
+    Map
+    with type key = string
+    and type value = V.t
+    and type t = V.t Datatype.String.Map.t
+
+  (** As for Kernel_function_set, by default keys can only be defined functions.
+      Use {!Parameter_customize.argument_may_be_fundecl} to also include
+      pure prototypes. *)
+  module Kernel_function_map
+    (V: Value_datatype with type key = Cil_types.kernel_function)
+    (X: sig include Input_with_arg val default: V.t Cil_datatype.Kf.Map.t end):
+    Map
+    with type key = Cil_types.kernel_function
+    and type value = V.t
+    and type t = V.t Cil_datatype.Kf.Map.t
+
+  (** Parameter is a map where multibindings are allowed. *)
+  module Make_multiple_map
+    (K: String_datatype_with_collections)
+    (V: Multiple_value_datatype with type key = K.t)
+    (X: sig include Input_with_arg val default: V.t list K.Map.t end):
+    Multiple_map
+    with type key = K.t and type value = V.t and type t = V.t list K.Map.t
+
+  module String_multiple_map
+    (V: Multiple_value_datatype with type key = string)
+    (X: sig
+      include Input_with_arg
+      val default: V.t list Datatype.String.Map.t
+    end):
+    Multiple_map
+    with type key = string
+    and type value = V.t
+    and type t = V.t list Datatype.String.Map.t
+
+  (** As for Kernel_function_set, by default keys can only be defined functions.
+      Use {!Parameter_customize.argument_may_be_fundecl} to also include
+      pure prototypes. *)
+  module Kernel_function_multiple_map
+    (V: Multiple_value_datatype with type key = Cil_types.kernel_function)
+    (X: sig
+      include Input_with_arg
+      val default: V.t list Cil_datatype.Kf.Map.t
+    end):
+    Multiple_map
+    with type key = Cil_types.kernel_function
+    and type value = V.t
+    and type t = V.t list Cil_datatype.Kf.Map.t
+
+  val parameters: unit -> Typed_parameter.t list
 
 end
 

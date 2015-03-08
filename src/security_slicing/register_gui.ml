@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -56,7 +56,7 @@ let security_highlighter buffer loc ~start ~stop =
       if List.exists (fun k -> k.sid=s.sid) d then begin
         let tag = make_tag buffer"direct" [`BACKGROUND  "green" ] in
         apply_tag buffer tag start stop end
-  | PVDecl _ | PTermLval _ | PLval _ | PGlobal _ | PIP _ -> ()
+  | PExp _ | PVDecl _ | PTermLval _ | PLval _ | PGlobal _ | PIP _ -> ()
 
 let security_selector
     (popup_factory:GMenu.menu GMenu.factory) main_ui ~button localizable =

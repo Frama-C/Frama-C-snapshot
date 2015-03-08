@@ -1,6 +1,7 @@
-This is the main source of documentation for the Frama-C distribution.
+The main source of documentation for the Frama-C distribution can be downloaded
+by running `make` in the directory of this README.
 
-The manuals directory contains the following manuals
+Then the manuals directory will contain the following manuals
  * acsl is the reference manual of the specification manual
  * acsl-implementation is a copy of the ACSL reference manual with
    some implementation-specific remarks. In particular, it explains which

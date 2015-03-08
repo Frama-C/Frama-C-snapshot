@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -695,7 +695,10 @@ let impact_in_kf (res: result) kf = kfmns_find_default kf res
 
 (** Computation of the [skip] field from a list of variables *)
 let skip_bases vars =
-  let aux acc v = Locations.Zone.join acc (Locations.Zone.defaultall v) in
+  let aux acc v =
+    let z = Locations.Zone.inject v Int_Intervals.top in
+    Locations.Zone.join z acc
+  in
   List.fold_left aux Locations.Zone.bottom vars
 
 (** Computation of the [skip] field from the [-impact-skip] option *)

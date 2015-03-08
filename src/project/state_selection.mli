@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -86,13 +86,14 @@ module type S = sig
 
   val with_dependencies: State.t -> t
   (** The selection containing the given state and all its dependencies.
-      @since Carbon-20101201 
+      @since Carbon-20101201
       @plugin development guide *)
 
   val only_dependencies: State.t -> t
   (** The selection containing all the dependencies of the given state (but not
       this state itself).
-      @since Carbon-20101201 *)
+      @since Carbon-20101201
+      @plugin development guide *)
 
   val with_codependencies: State.t -> t
   (** The selection containing the given state and all its co-dependencies.

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -64,13 +64,13 @@ val section_of_lemma : string -> logic_section
 val section_of_type : logic_type_info -> logic_section
 val section_of_logic : logic_info -> logic_section
 val proof_context : unit -> logic_lemma list
-  (** Lemmas that are not in an axiomatic. *)
+(** Lemmas that are not in an axiomatic. *)
 
 val is_recursive : logic_info -> bool
 val get_induction_labels : logic_info -> string -> LabelSet.t LabelMap.t
-  (** Given an inductive [phi{...A...}].
-      Whenever in [case C{...B...}] we have a call to [phi{...B...}],
-      then [A] belongs to [(induction phi C).[B]]. *)
+(** Given an inductive [phi{...A...}].
+    Whenever in [case C{...B...}] we have a call to [phi{...B...}],
+    then [A] belongs to [(induction phi C).[B]]. *)
 
 val get_name : logic_info -> string
 val pp_profile : Format.formatter -> logic_info -> unit

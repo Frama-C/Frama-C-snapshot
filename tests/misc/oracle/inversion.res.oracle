@@ -1,0 +1,57 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/inversion.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  x ∈ {0}
+  y ∈ {0}
+  z ∈ {0}
+  pz ∈ {{ &z }}
+  px ∈ {{ &x }}
+  py ∈ {{ &y }}
+  X ∈ {0}
+  pX ∈ {0}
+  t[0] ∈ {0}
+   [1].ok ∈ {1}
+   [1].p ∈ {{ &pz }}
+   [2].ok ∈ {1}
+   [2].p ∈ {{ &py }}
+   [3..4] ∈ {0}
+  t2[0..1] ∈ {0}
+    [2].ok ∈ {1}
+    [2].p ∈ {{ &px }}
+    [3..4] ∈ {0}
+  ii[0..1] ∈ {0}
+tests/misc/inversion.i:23:[value] entering loop for the first time
+tests/misc/inversion.i:30:[value] entering loop for the first time
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  x ∈ {0; 2}
+  y ∈ {0; 1; 2}
+  z ∈ {0; 1; 2}
+  X ∈ {0; 1; 2; 3; 4}
+  pX ∈ {{ NULL ; &X }}
+  ii[0] ∈ {0}
+    [1] ∈ {5}
+  i ∈ {5}
+  k ∈ [--..--]
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  x FROM px; t2{[0].ok; [1].ok; {[2]; [3].ok}; [4].ok} (and SELF)
+  y FROM pz; py; t{[0].ok; {[1..2]; [3].ok}; [4].ok} (and SELF)
+  z FROM pz; py; t{[0].ok; {[1..2]; [3].ok}; [4].ok} (and SELF)
+  X FROM \nothing (and SELF)
+  pX FROM \nothing
+  ii[1] FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          x; y; z; X; pX; ii[1]; i; k
+[inout] Inputs for function main:
+          pz; px; py; t{[0].ok; {[1..2]; [3].ok}; [4].ok};
+          t2{[0].ok; [1].ok; {[2]; [3].ok}; [4].ok}; ii[1]

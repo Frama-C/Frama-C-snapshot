@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2014                                               *)
+(*  Copyright (C) 2007-2015                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -165,6 +165,9 @@ let add s =
        (not (Datatype.String.Hashtbl.mem states uname))
        "state %S already exists."
        uname);
+  assert
+    (Project_skeleton.Output.verify (uname <> "")
+       "state should have a non-empty name");
   Datatype.String.Hashtbl.add states uname s
 
 let unique_name_from_name =

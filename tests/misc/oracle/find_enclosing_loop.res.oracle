@@ -1,0 +1,3 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/find_enclosing_loop.c (with preprocessing)
+tests/misc/find_enclosing_loop.c:15:[kernel] warning: Body of function f falls-through. Adding a return statement

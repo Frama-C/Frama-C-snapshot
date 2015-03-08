@@ -1,0 +1,93 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/disjoint_status.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  x ∈ {0}
+tests/misc/disjoint_status.i:13:[value] Function main: precondition got status unknown.
+tests/misc/disjoint_status.i:14:[value] Function main: precondition got status unknown.
+[value] computing for function f <- main.
+        Called from tests/misc/disjoint_status.i:18.
+tests/misc/disjoint_status.i:6:[value] Function f: precondition 'ReqTrue' got status valid.
+tests/misc/disjoint_status.i:8:[value] Assertion 'A1' got status invalid (stopping propagation).
+tests/misc/disjoint_status.i:6:[value] Function f: no state left in which to evaluate postcondition, status 'PostTrue' not computed.
+[value] Recording results for f
+[value] Done for function f
+tests/misc/disjoint_status.i:19:[value] Assertion got status unknown.
+[value] computing for function f <- main.
+        Called from tests/misc/disjoint_status.i:20.
+tests/misc/disjoint_status.i:8:[value] Assertion 'A1' got status valid.
+tests/misc/disjoint_status.i:9:[value] Assertion 'A2' got status valid.
+tests/misc/disjoint_status.i:6:[value] Function f: postcondition 'PostTrue' got status valid.
+[value] Recording results for f
+[value] Done for function f
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function f:
+  x ∈ {0}
+[value] Values at end of function main:
+  x ∈ {0}
+[from] Computing for function f
+[from] Done for function f
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function f:
+  x FROM c; d
+[from] Function main:
+  x FROM c; d
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function f:
+          x
+[inout] Inputs for function f:
+          \nothing
+[inout] Out (internal) for function main:
+          x
+[inout] Inputs for function main:
+          \nothing
+[report] Computing properties status...
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'f'
+--------------------------------------------------------------------------------
+
+[  Valid  ] Post-condition 'PostTrue'
+            by Value.
+[  Valid  ] Pre-condition 'ReqTrue'
+            by Call Preconditions.
+[    -    ] Assertion 'A1' (file tests/misc/disjoint_status.i, line 8)
+            tried with Value.
+[  Valid  ] Assertion 'A2' (file tests/misc/disjoint_status.i, line 9)
+            by Value.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'main'
+--------------------------------------------------------------------------------
+
+[    -    ] Pre-condition (file tests/misc/disjoint_status.i, line 13)
+            tried with Value.
+[    -    ] Pre-condition (file tests/misc/disjoint_status.i, line 14)
+            tried with Value.
+[    -    ] Assertion (file tests/misc/disjoint_status.i, line 19)
+            tried with Value.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+[  Valid  ] Instance of 'Pre-condition 'ReqTrue'' at call 'f' (file tests/misc/disjoint_status.i, line 18)
+
+            by Value.
+[  Valid  ] Instance of 'Pre-condition 'ReqTrue'' at call 'f' (file tests/misc/disjoint_status.i, line 20)
+
+            by Value.
+
+--------------------------------------------------------------------------------
+--- Status Report Summary
+--------------------------------------------------------------------------------
+     7 Completely validated
+     4 To be validated
+    11 Total
+--------------------------------------------------------------------------------

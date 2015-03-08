@@ -1,0 +1,24 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_typed/user_swap.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] 8 goals scheduled
+[wp] [Qed] Goal typed_main_assert : Valid
+[wp] [Qed] Goal typed_main_call_swap_pre : Valid
+[wp] [Qed] Goal typed_main_call_swap_pre_2 : Valid
+[wp] [Alt-Ergo] Goal typed_swap_post_A : Valid
+[wp] [Qed] Goal typed_swap_post_B : Valid
+[wp] [Qed] Goal typed_swap_assign_part1 : Valid
+[wp] [Qed] Goal typed_swap_assign_part2 : Valid
+[wp] [Qed] Goal typed_swap_assign_part3 : Valid
+[wp] Proved goals:    8 / 8
+     Qed:             7 
+     Alt-Ergo:        1
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+swap                 4      1 (15)     5       100%
+main                 3     -           3       100%
+----------------------------------------------------------

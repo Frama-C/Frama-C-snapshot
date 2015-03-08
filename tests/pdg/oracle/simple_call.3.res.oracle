@@ -1,0 +1,53 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/pdg/simple_call.c (with preprocessing)
+[value] Analyzing a complete application starting at call_multiple_global_outputs
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  G ∈ [--..--]
+  G1 ∈ [--..--]
+  G2 ∈ [--..--]
+  S ∈ [--..--]
+[value] computing for function multiple_global_outputs <- 
+                                call_multiple_global_outputs.
+        Called from tests/pdg/simple_call.c:39.
+[value] Recording results for multiple_global_outputs
+[value] Done for function multiple_global_outputs
+[value] Recording results for call_multiple_global_outputs
+[value] done for function call_multiple_global_outputs
+[pdg] computing for function call_multiple_global_outputs
+[from] Computing for function multiple_global_outputs
+[from] Done for function multiple_global_outputs
+[pdg] done for function call_multiple_global_outputs
+[pdg] PDG for call_multiple_global_outputs
+ {n1}: InCtrl
+ {n2}: VarDecl : x
+   -[a--]-> 3
+ {n3}: In1
+   -[a--]-> 2
+ {n4}: VarDecl : y
+   -[a--]-> 5
+ {n5}: In2
+   -[a--]-> 4
+ {n6}: Call17-InCtrl : multiple_global_outputs(x,y);
+   -[-c-]-> 1
+ {n7}: Call17-In1 : multiple_global_outputs(x,y);
+   -[-c-]-> 1
+   -[--d]-> 2
+   -[--d]-> 3
+   -[-c-]-> 6
+ {n8}: Call17-In2 : multiple_global_outputs(x,y);
+   -[-c-]-> 1
+   -[--d]-> 4
+   -[--d]-> 5
+   -[-c-]-> 6
+ {n9}: Call17-Out(G) : multiple_global_outputs(x,y);
+   -[-c-]-> 1
+   -[-c-]-> 6
+   -[--d]-> 8
+ {n10}: Call17-Out(S.a) : multiple_global_outputs(x,y);
+   -[-c-]-> 1
+   -[-c-]-> 6
+   -[--d]-> 7
+ {n11}: return;
+   -[-c-]-> 1

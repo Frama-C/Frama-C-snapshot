@@ -1,7 +1,7 @@
 /* run.config
-   STDOPT: +"-print"
+   STDOPT: +"-print -inout -inout-callwise"
 */
-
+volatile int v;
 int G;
 
 //@ assigns s[..] \from s[..];
@@ -91,8 +91,24 @@ int t_main3_2[3][4][5];
 
 int main3(int a[][8], int b[3][4][5]);
 
+ts t_main4[1000];
+ts u_main4[100];
+
+//@ assigns t_main4[i].f1 \from \nothing; assigns u_main4[i].f1 \from \nothing;
+void f_main4_1(int i);
+
+//@ assigns t_main4[0..999].f1 \from \nothing; assigns u_main4[0..99].f1 \from \nothing;
+void f_main4_2();
+
+void main4() {
+  f_main4_1(v);
+  f_main4_2();
+}
+
+
 void main() {
   main1();
   main2();
   main3(t_main3_1, t_main3_2);
+  main4();
 }

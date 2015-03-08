@@ -1,0 +1,3 @@
+_G_ (
+    CALL(factorial) => _X_ (CALL_OR_RETURN(factorial))
+)

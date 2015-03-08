@@ -1,0 +1,28 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/journal/control.i (no preprocessing)
+[value] Analyzing a complete application starting at f
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  x ∈ {0}
+  y ∈ {0}
+  c ∈ {0}
+  d ∈ {0}
+tests/journal/control.i:18:[value] entering loop for the first time
+tests/journal/control.i:21:[kernel] warning: signed overflow. assert x+1 ≤ 2147483647;
+[value] Recording results for f
+[value] done for function f
+[from] Computing for function f
+[from] Done for function f
+[kernel] warning: ignoring source files specified on the command line while loading a global initial context.
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function f:
+  x ∈ [0..2147483647]
+  i ∈ {4}
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function f:
+  x FROM x (and SELF)
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function f:
+          x; i

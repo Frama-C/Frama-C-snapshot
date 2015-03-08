@@ -1,0 +1,309 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/slicing/call_accuracy.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  S1 ∈ {0}
+  S2 ∈ {0}
+  S3 ∈ {0}
+  S4 ∈ {0}
+[value] computing for function test_struct <- main.
+        Called from tests/slicing/call_accuracy.c:62.
+[value] Recording results for test_struct
+[from] Computing for function test_struct
+[from] Done for function test_struct
+[value] Done for function test_struct
+[value] computing for function test_cond <- main.
+        Called from tests/slicing/call_accuracy.c:63.
+tests/slicing/call_accuracy.c:11:[kernel] warning: signed overflow. assert x+1 ≤ 2147483647;
+tests/slicing/call_accuracy.c:12:[kernel] warning: signed overflow. assert y+1 ≤ 2147483647;
+tests/slicing/call_accuracy.c:13:[kernel] warning: signed overflow. assert z+1 ≤ 2147483647;
+[value] computing for function f_cond <- test_cond <- main.
+        Called from tests/slicing/call_accuracy.c:14.
+tests/slicing/call_accuracy.c:5:[kernel] warning: signed overflow. assert a+1 ≤ 2147483647;
+tests/slicing/call_accuracy.c:6:[kernel] warning: signed overflow. assert b+1 ≤ 2147483647;
+[value] Recording results for f_cond
+[from] Computing for function f_cond
+[from] Done for function f_cond
+[value] Done for function f_cond
+tests/slicing/call_accuracy.c:15:[kernel] warning: signed overflow. assert y+1 ≤ 2147483647;
+tests/slicing/call_accuracy.c:16:[kernel] warning: signed overflow. assert x+1 ≤ 2147483647;
+tests/slicing/call_accuracy.c:17:[kernel] warning: signed overflow. assert z+1 ≤ 2147483647;
+[value] computing for function f_cond <- test_cond <- main.
+        Called from tests/slicing/call_accuracy.c:18.
+[value] Recording results for f_cond
+[from] Computing for function f_cond
+[from] Done for function f_cond
+[value] Done for function f_cond
+[value] Recording results for test_cond
+[from] Computing for function test_cond
+[from] Done for function test_cond
+[value] Done for function test_cond
+[value] computing for function test_set <- main.
+        Called from tests/slicing/call_accuracy.c:64.
+[value] computing for function f_set <- test_set <- main.
+        Called from tests/slicing/call_accuracy.c:32.
+[value] Recording results for f_set
+[from] Computing for function f_set
+[from] Done for function f_set
+[value] Done for function f_set
+[value] computing for function f_set <- test_set <- main.
+        Called from tests/slicing/call_accuracy.c:33.
+[value] Recording results for f_set
+[from] Computing for function f_set
+[from] Done for function f_set
+[value] Done for function f_set
+[value] computing for function f_set <- test_set <- main.
+        Called from tests/slicing/call_accuracy.c:34.
+[value] Recording results for f_set
+[from] Computing for function f_set
+[from] Done for function f_set
+[value] Done for function f_set
+[value] computing for function f_set <- test_set <- main.
+        Called from tests/slicing/call_accuracy.c:35.
+[value] Recording results for f_set
+[from] Computing for function f_set
+[from] Done for function f_set
+[value] Done for function f_set
+[value] computing for function f_set <- test_set <- main.
+        Called from tests/slicing/call_accuracy.c:36.
+[value] Recording results for f_set
+[from] Computing for function f_set
+[from] Done for function f_set
+[value] Done for function f_set
+[value] computing for function f_set <- test_set <- main.
+        Called from tests/slicing/call_accuracy.c:37.
+[value] Recording results for f_set
+[from] Computing for function f_set
+[from] Done for function f_set
+[value] Done for function f_set
+[value] computing for function f_set <- test_set <- main.
+        Called from tests/slicing/call_accuracy.c:38.
+[value] Recording results for f_set
+[from] Computing for function f_set
+[from] Done for function f_set
+[value] Done for function f_set
+[value] computing for function f_set <- test_set <- main.
+        Called from tests/slicing/call_accuracy.c:39.
+[value] Recording results for f_set
+[from] Computing for function f_set
+[from] Done for function f_set
+[value] Done for function f_set
+[value] computing for function f_set <- test_set <- main.
+        Called from tests/slicing/call_accuracy.c:40.
+[value] Recording results for f_set
+[from] Computing for function f_set
+[from] Done for function f_set
+[value] Done for function f_set
+[value] computing for function f_set <- test_set <- main.
+        Called from tests/slicing/call_accuracy.c:41.
+[value] Recording results for f_set
+[from] Computing for function f_set
+[from] Done for function f_set
+[value] Done for function f_set
+[value] computing for function f_set <- test_set <- main.
+        Called from tests/slicing/call_accuracy.c:42.
+[value] Recording results for f_set
+[from] Computing for function f_set
+[from] Done for function f_set
+[value] Done for function f_set
+[value] computing for function f_set <- test_set <- main.
+        Called from tests/slicing/call_accuracy.c:43.
+[value] Recording results for f_set
+[from] Computing for function f_set
+[from] Done for function f_set
+[value] Done for function f_set
+[value] computing for function f_set <- test_set <- main.
+        Called from tests/slicing/call_accuracy.c:44.
+[value] Recording results for f_set
+[from] Computing for function f_set
+[from] Done for function f_set
+[value] Done for function f_set
+[value] computing for function f_set <- test_set <- main.
+        Called from tests/slicing/call_accuracy.c:45.
+[value] Recording results for f_set
+[from] Computing for function f_set
+[from] Done for function f_set
+[value] Done for function f_set
+tests/slicing/call_accuracy.c:49:[kernel] warning: signed overflow. assert -2147483648 ≤ b+s1.b ≤ 2147483647;
+tests/slicing/call_accuracy.c:49:[kernel] warning: signed overflow. assert (int)(b+s1.b)+s3.b ≤ 2147483647;
+tests/slicing/call_accuracy.c:49:[kernel] warning: signed overflow.
+                  assert -2147483648 ≤ (int)((int)(b+s1.b)+s3.b)+tab[1] ≤ 2147483647;
+tests/slicing/call_accuracy.c:49:[kernel] warning: signed overflow.
+                  assert
+                  -2147483648 ≤ (int)((int)((int)(b+s1.b)+s3.b)+tab[1])+S1.b ≤ 2147483647;
+tests/slicing/call_accuracy.c:49:[kernel] warning: signed overflow.
+                  assert
+                  -2147483648 ≤ (int)((int)((int)((int)(b+s1.b)+s3.b)+tab[1])+S1.b)+S2.b ≤
+                  2147483647;
+[value] Recording results for test_set
+[from] Computing for function test_set
+[from] Done for function test_set
+[value] Done for function test_set
+tests/slicing/call_accuracy.c:65:[kernel] warning: signed overflow. assert r1+r2 ≤ 2147483647;
+tests/slicing/call_accuracy.c:65:[kernel] warning: signed overflow. assert -2147483648 ≤ (int)(r1+r2)+r3 ≤ 2147483647;
+tests/slicing/call_accuracy.c:65:[kernel] warning: signed overflow. assert (int)((int)(r1+r2)+r3)+S3.b ≤ 2147483647;
+[value] Recording results for main
+[from] Computing for function main
+[from] Done for function main
+[value] done for function main
+[from] ====== DISPLAYING CALLWISE DEPENDENCIES ======
+[from] call to f_cond at tests/slicing/call_accuracy.c:14 (by test_cond):
+  \result FROM c; a
+[from] call to f_cond at tests/slicing/call_accuracy.c:18 (by test_cond):
+  \result FROM c; b
+[from] call to f_set at tests/slicing/call_accuracy.c:32 (by test_set):
+  a FROM p; v
+[from] call to f_set at tests/slicing/call_accuracy.c:33 (by test_set):
+  b FROM p; v
+[from] call to f_set at tests/slicing/call_accuracy.c:34 (by test_set):
+  s1.a FROM p; v
+[from] call to f_set at tests/slicing/call_accuracy.c:35 (by test_set):
+  s1.b FROM p; v
+[from] call to f_set at tests/slicing/call_accuracy.c:36 (by test_set):
+  s2.a FROM p; v
+[from] call to f_set at tests/slicing/call_accuracy.c:37 (by test_set):
+  s2.b FROM p; v
+[from] call to f_set at tests/slicing/call_accuracy.c:38 (by test_set):
+  s3.a FROM p; v
+[from] call to f_set at tests/slicing/call_accuracy.c:39 (by test_set):
+  tab[0] FROM p; v
+[from] call to f_set at tests/slicing/call_accuracy.c:40 (by test_set):
+  tab[1] FROM p; v
+[from] call to f_set at tests/slicing/call_accuracy.c:41 (by test_set):
+  tab[2] FROM p; v
+[from] call to f_set at tests/slicing/call_accuracy.c:42 (by test_set):
+  S1.a FROM p; v
+[from] call to f_set at tests/slicing/call_accuracy.c:43 (by test_set):
+  S1.b FROM p; v
+[from] call to f_set at tests/slicing/call_accuracy.c:44 (by test_set):
+  S2.a FROM p; v
+[from] call to f_set at tests/slicing/call_accuracy.c:45 (by test_set):
+  S2.b FROM p; v
+[from] call to test_struct at tests/slicing/call_accuracy.c:62 (by main):
+  S1 FROM \nothing
+  S2 FROM \nothing
+  \result FROM \nothing
+[from] call to test_cond at tests/slicing/call_accuracy.c:63 (by main):
+  \result FROM x
+[from] call to test_set at tests/slicing/call_accuracy.c:64 (by main):
+  S1.a FROM x
+    .b FROM y
+  S2.a FROM x
+    .b FROM y
+  S3 FROM \nothing
+  S4.a FROM \nothing
+  \result FROM y
+[from] entry point:
+  S1.a FROM x
+    .b FROM y
+  S2.a FROM x
+    .b FROM y
+  S3 FROM \nothing
+  S4.a FROM \nothing
+  \result FROM S4.b; x; y
+[from] ====== END OF CALLWISE DEPENDENCIES ======
+[slicing] slicing requests in progress...
+[slicing] making slicing project 'Slicing'...
+[slicing] interpreting slicing requests from the command line...
+[pdg] computing for function main
+[pdg] done for function main
+[slicing] applying all slicing requests...
+[slicing] applying 0 actions...
+[slicing] applying all slicing requests...
+[slicing] applying 1 actions...
+[slicing] applying actions: 1/1...
+[pdg] computing for function test_set
+[pdg] done for function test_set
+[pdg] computing for function f_set
+[pdg] done for function f_set
+[pdg] computing for function test_cond
+[pdg] done for function test_cond
+[pdg] computing for function f_cond
+[pdg] done for function f_cond
+[pdg] computing for function test_struct
+[pdg] done for function test_struct
+[slicing] exporting project to 'Slicing export'...
+[slicing] applying all slicing requests...
+[slicing] applying 0 actions...
+[sparecode] remove unused global declarations from project 'Slicing export tmp'
+[sparecode] removed unused global declarations in new project 'Slicing export'
+/* Generated by Frama-C */
+struct st {
+   int a ;
+   int b ;
+};
+int f_cond_slice_1(int c, int a, int b)
+{
+  int tmp;
+  a ++;
+  b ++;
+  if (c) tmp = a; else tmp = b;
+  return tmp;
+}
+
+int test_cond_slice_1(int x, int y, int z)
+{
+  int tmp;
+  x ++;
+  y ++;
+  z = f_cond_slice_1(1,x,y);
+  y ++;
+  z ++;
+  tmp = f_cond_slice_1(0,y,z);
+  return tmp;
+}
+
+void f_set_slice_1(int *p, int v)
+{
+  *p = v;
+  return;
+}
+
+struct st S1;
+struct st S2;
+struct st S3;
+struct st S4;
+int test_set_slice_1(int y)
+{
+  int __retres;
+  int b;
+  struct st s1;
+  struct st s3;
+  int tab[5];
+  s3.b = 2;
+  f_set_slice_1(& b,y);
+  f_set_slice_1(& s1.b,y);
+  f_set_slice_1(& tab[1],y);
+  f_set_slice_1(& S1.b,y);
+  f_set_slice_1(& S2.b,y);
+  S3.b = 2;
+  __retres = ((((b + s1.b) + s3.b) + tab[1]) + S1.b) + S2.b;
+  return __retres;
+}
+
+int test_struct_slice_1(void)
+{
+  int __retres;
+  S1.a = 1;
+  S1.b = 2;
+  S2 = S1;
+  __retres = S2.b;
+  return __retres;
+}
+
+int main(int x, int y, int z)
+{
+  int __retres;
+  int r1;
+  int r2;
+  int r3;
+  r1 = test_struct_slice_1();
+  r2 = test_cond_slice_1(x,y,z);
+  r3 = test_set_slice_1(y);
+  __retres = (((r1 + r2) + r3) + S3.b) + S4.b;
+  return __retres;
+}
+
+

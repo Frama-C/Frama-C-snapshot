@@ -1,0 +1,6 @@
+# frama-c -wp [...]
+[wp] Running WP plugin...
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] 1 goal scheduled
+[wp] [Alt-Ergo] Goal typed_echange_valeur_false_post_qed_ko : Unknown

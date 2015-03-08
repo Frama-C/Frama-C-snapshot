@@ -1,0 +1,1304 @@
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/report/hyp.i (no preprocessing)
+[report] Computing properties status...
+
+--------------------------------------------------------------------------------
+--- Status Report Summary
+--------------------------------------------------------------------------------
+     0 Total
+--------------------------------------------------------------------------------
+tests/report/hyp.i:25:[kernel] warning: Neither code nor specification for function f, generating default assigns from the prototype
+[kernel] SETTING STATUS OF assert \false; TO unknown
+[report] Computing properties status...
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'f'
+--------------------------------------------------------------------------------
+
+[    -    ] Assigns nothing
+            tried with Inferred annotations.
+[    -    ] Default behavior
+            tried with Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'h'
+--------------------------------------------------------------------------------
+
+[    -    ] Assertion (file tests/report/hyp.i, line 14)
+            tried with Test.
+
+--------------------------------------------------------------------------------
+--- Status Report Summary
+--------------------------------------------------------------------------------
+     3 To be validated
+     3 Total
+--------------------------------------------------------------------------------
+[kernel] SETTING STATUS OF assert \false; TO VALID
+[report] Computing properties status...
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'f'
+--------------------------------------------------------------------------------
+
+[    -    ] Assigns nothing
+            tried with Inferred annotations.
+[    -    ] Default behavior
+            tried with Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'h'
+--------------------------------------------------------------------------------
+
+[ Partial ] Assertion (file tests/report/hyp.i, line 14)
+            By Test, with pending:
+             - Assertion (file tests/report/hyp.i, line 26)
+
+--------------------------------------------------------------------------------
+--- Status Report Summary
+--------------------------------------------------------------------------------
+     1 Locally validated
+     2 To be validated
+     3 Total
+--------------------------------------------------------------------------------
+[kernel] CLEARING
+[kernel] SETTING STATUS OF assert \false; TO **NOT** VALID
+[report] Computing properties status...
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'f'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Assigns nothing
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'h'
+--------------------------------------------------------------------------------
+
+[   Bug   ] Assertion (file tests/report/hyp.i, line 14)
+            by Test.
+
+--------------------------------------------------------------------------------
+--- Status Report Summary
+--------------------------------------------------------------------------------
+     1 Completely validated
+     1 Considered valid
+     1 Bugs found
+     3 Total
+--------------------------------------------------------------------------------
+[kernel] CLEARING
+[kernel] SETTING STATUS OF assert \false; TO unknown
+[report] Computing properties status...
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'f'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Assigns nothing
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'h'
+--------------------------------------------------------------------------------
+
+[    -    ] Assertion (file tests/report/hyp.i, line 14)
+            tried with Test.
+
+--------------------------------------------------------------------------------
+--- Status Report Summary
+--------------------------------------------------------------------------------
+     1 Completely validated
+     1 Considered valid
+     1 To be validated
+     3 Total
+--------------------------------------------------------------------------------
+[kernel] SETTING STATUS OF assert \false; TO VALID
+[report] Computing properties status...
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'f'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Assigns nothing
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'h'
+--------------------------------------------------------------------------------
+
+[  Valid  ] Assertion (file tests/report/hyp.i, line 14)
+            by Test.
+
+--------------------------------------------------------------------------------
+--- Status Report Summary
+--------------------------------------------------------------------------------
+     2 Completely validated
+     1 Considered valid
+     3 Total
+--------------------------------------------------------------------------------
+[kernel] CLEARING
+[kernel] SETTING STATUS OF assert \false; TO **NOT** VALID
+[report] Computing properties status...
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'f'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Assigns nothing
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'h'
+--------------------------------------------------------------------------------
+
+[   Bug   ] Assertion (file tests/report/hyp.i, line 14)
+            by Test.
+
+--------------------------------------------------------------------------------
+--- Status Report Summary
+--------------------------------------------------------------------------------
+     1 Completely validated
+     1 Considered valid
+     1 Bugs found
+     3 Total
+--------------------------------------------------------------------------------
+[kernel] CLEARING
+[kernel] SETTING STATUS OF assert 0 ≡ 1; TO VALID
+[kernel] SETTING STATUS OF assert \false; TO unknown
+[report] Computing properties status...
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'f'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Assigns nothing
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'h'
+--------------------------------------------------------------------------------
+
+[    -    ] Assertion (file tests/report/hyp.i, line 14)
+            tried with Test.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'main'
+--------------------------------------------------------------------------------
+
+[  Valid  ] Assertion (file tests/report/hyp.i, line 26)
+            by Test.
+
+--------------------------------------------------------------------------------
+--- Status Report Summary
+--------------------------------------------------------------------------------
+     2 Completely validated
+     1 Considered valid
+     1 To be validated
+     4 Total
+--------------------------------------------------------------------------------
+[kernel] SETTING STATUS OF assert \false; TO VALID
+[report] Computing properties status...
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'f'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Assigns nothing
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'h'
+--------------------------------------------------------------------------------
+
+[  Valid  ] Assertion (file tests/report/hyp.i, line 14)
+            by Test.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'main'
+--------------------------------------------------------------------------------
+
+[  Valid  ] Assertion (file tests/report/hyp.i, line 26)
+            by Test.
+
+--------------------------------------------------------------------------------
+--- Status Report Summary
+--------------------------------------------------------------------------------
+     3 Completely validated
+     1 Considered valid
+     4 Total
+--------------------------------------------------------------------------------
+[kernel] CLEARING
+[kernel] SETTING STATUS OF assert 0 ≡ 1; TO VALID
+[kernel] SETTING STATUS OF assert \false; TO **NOT** VALID
+[report] Computing properties status...
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'f'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Assigns nothing
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'h'
+--------------------------------------------------------------------------------
+
+[   Bug   ] Assertion (file tests/report/hyp.i, line 14)
+            by Test.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'main'
+--------------------------------------------------------------------------------
+
+[  Valid  ] Assertion (file tests/report/hyp.i, line 26)
+            by Test.
+
+--------------------------------------------------------------------------------
+--- Status Report Summary
+--------------------------------------------------------------------------------
+     2 Completely validated
+     1 Considered valid
+     1 Bugs found
+     4 Total
+--------------------------------------------------------------------------------
+[kernel] CLEARING
+[kernel] SETTING STATUS OF assert \true; TO unknown
+[kernel] SETTING STATUS OF assert 0 ≡ 1; TO VALID
+[kernel] SETTING STATUS OF assert \false; TO unknown
+[report] Computing properties status...
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'f'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Assigns nothing
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'g'
+--------------------------------------------------------------------------------
+
+[    -    ] Assertion (file tests/report/hyp.i, line 10)
+            tried with Test.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'h'
+--------------------------------------------------------------------------------
+
+[    -    ] Assertion (file tests/report/hyp.i, line 14)
+            tried with Test.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'main'
+--------------------------------------------------------------------------------
+
+[ Partial ] Assertion (file tests/report/hyp.i, line 26)
+            By Test, with pending:
+             - Assertion (file tests/report/hyp.i, line 10)
+
+--------------------------------------------------------------------------------
+--- Status Report Summary
+--------------------------------------------------------------------------------
+     1 Completely validated
+     1 Locally validated
+     1 Considered valid
+     2 To be validated
+     5 Total
+--------------------------------------------------------------------------------
+[kernel] SETTING STATUS OF assert \false; TO VALID
+[report] Computing properties status...
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'f'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Assigns nothing
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'g'
+--------------------------------------------------------------------------------
+
+[    -    ] Assertion (file tests/report/hyp.i, line 10)
+            tried with Test.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'h'
+--------------------------------------------------------------------------------
+
+[ Partial ] Assertion (file tests/report/hyp.i, line 14)
+            By Test, with pending:
+             - Assertion (file tests/report/hyp.i, line 10)
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'main'
+--------------------------------------------------------------------------------
+
+[ Partial ] Assertion (file tests/report/hyp.i, line 26)
+            By Test, with pending:
+             - Assertion (file tests/report/hyp.i, line 10)
+
+--------------------------------------------------------------------------------
+--- Status Report Summary
+--------------------------------------------------------------------------------
+     1 Completely validated
+     2 Locally validated
+     1 Considered valid
+     1 To be validated
+     5 Total
+--------------------------------------------------------------------------------
+[kernel] CLEARING
+[kernel] SETTING STATUS OF assert \true; TO unknown
+[kernel] SETTING STATUS OF assert 0 ≡ 1; TO VALID
+[kernel] SETTING STATUS OF assert \false; TO **NOT** VALID
+[report] Computing properties status...
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'f'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Assigns nothing
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'g'
+--------------------------------------------------------------------------------
+
+[    -    ] Assertion (file tests/report/hyp.i, line 10)
+            tried with Test.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'h'
+--------------------------------------------------------------------------------
+
+[   Bug   ] Assertion (file tests/report/hyp.i, line 14)
+            by Test.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'main'
+--------------------------------------------------------------------------------
+
+[ Partial ] Assertion (file tests/report/hyp.i, line 26)
+            By Test, with pending:
+             - Assertion (file tests/report/hyp.i, line 10)
+
+--------------------------------------------------------------------------------
+--- Status Report Summary
+--------------------------------------------------------------------------------
+     1 Completely validated
+     1 Locally validated
+     1 Considered valid
+     1 To be validated
+     1 Bugs found
+     5 Total
+--------------------------------------------------------------------------------
+[kernel] CLEARING
+[kernel] SETTING STATUS OF assert 0 ≡ 1; TO unknown
+[kernel] SETTING STATUS OF assert \false; TO unknown
+[report] Computing properties status...
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'f'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Assigns nothing
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'h'
+--------------------------------------------------------------------------------
+
+[    -    ] Assertion (file tests/report/hyp.i, line 14)
+            tried with Test.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'main'
+--------------------------------------------------------------------------------
+
+[    -    ] Assertion (file tests/report/hyp.i, line 26)
+            tried with Test.
+
+--------------------------------------------------------------------------------
+--- Status Report Summary
+--------------------------------------------------------------------------------
+     1 Completely validated
+     1 Considered valid
+     2 To be validated
+     4 Total
+--------------------------------------------------------------------------------
+[kernel] SETTING STATUS OF assert \false; TO VALID
+[report] Computing properties status...
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'f'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Assigns nothing
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'h'
+--------------------------------------------------------------------------------
+
+[ Partial ] Assertion (file tests/report/hyp.i, line 14)
+            By Test, with pending:
+             - Assertion (file tests/report/hyp.i, line 26)
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'main'
+--------------------------------------------------------------------------------
+
+[    -    ] Assertion (file tests/report/hyp.i, line 26)
+            tried with Test.
+
+--------------------------------------------------------------------------------
+--- Status Report Summary
+--------------------------------------------------------------------------------
+     1 Completely validated
+     1 Locally validated
+     1 Considered valid
+     1 To be validated
+     4 Total
+--------------------------------------------------------------------------------
+[kernel] CLEARING
+[kernel] SETTING STATUS OF assert 0 ≡ 1; TO unknown
+[kernel] SETTING STATUS OF assert \false; TO **NOT** VALID
+[report] Computing properties status...
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'f'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Assigns nothing
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'h'
+--------------------------------------------------------------------------------
+
+[   Bug   ] Assertion (file tests/report/hyp.i, line 14)
+            by Test.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'main'
+--------------------------------------------------------------------------------
+
+[    -    ] Assertion (file tests/report/hyp.i, line 26)
+            tried with Test.
+
+--------------------------------------------------------------------------------
+--- Status Report Summary
+--------------------------------------------------------------------------------
+     1 Completely validated
+     1 Considered valid
+     1 To be validated
+     1 Bugs found
+     4 Total
+--------------------------------------------------------------------------------
+[kernel] CLEARING
+[kernel] SETTING STATUS OF assert 0 ≡ 1; TO **NOT** VALID
+[kernel] SETTING STATUS OF assert \false; TO unknown
+[report] Computing properties status...
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'f'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Assigns nothing
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'h'
+--------------------------------------------------------------------------------
+
+[  Dead   ] Assertion (file tests/report/hyp.i, line 14)
+            Locally unknown, but unreachable.
+            By Test because:
+             - Assertion (file tests/report/hyp.i, line 26)
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'main'
+--------------------------------------------------------------------------------
+
+[   Bug   ] Assertion (file tests/report/hyp.i, line 26)
+            by Test.
+
+--------------------------------------------------------------------------------
+--- Status Report Summary
+--------------------------------------------------------------------------------
+     1 Completely validated
+     1 Considered valid
+     1 Bugs found
+     1 Dead property
+     4 Total
+--------------------------------------------------------------------------------
+[kernel] SETTING STATUS OF assert \false; TO VALID
+[report] Computing properties status...
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'f'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Assigns nothing
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'h'
+--------------------------------------------------------------------------------
+
+[  Dead   ] Assertion (file tests/report/hyp.i, line 14)
+            Locally valid, but unreachable.
+            By Test because:
+             - Assertion (file tests/report/hyp.i, line 26)
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'main'
+--------------------------------------------------------------------------------
+
+[   Bug   ] Assertion (file tests/report/hyp.i, line 26)
+            by Test.
+
+--------------------------------------------------------------------------------
+--- Status Report Summary
+--------------------------------------------------------------------------------
+     1 Completely validated
+     1 Considered valid
+     1 Bugs found
+     1 Dead property
+     4 Total
+--------------------------------------------------------------------------------
+[kernel] CLEARING
+[kernel] SETTING STATUS OF assert 0 ≡ 1; TO **NOT** VALID
+[kernel] SETTING STATUS OF assert \false; TO **NOT** VALID
+[report] Computing properties status...
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'f'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Assigns nothing
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'h'
+--------------------------------------------------------------------------------
+
+[   Bug   ] Assertion (file tests/report/hyp.i, line 14)
+            by Test.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'main'
+--------------------------------------------------------------------------------
+
+[   Bug   ] Assertion (file tests/report/hyp.i, line 26)
+            by Test.
+
+--------------------------------------------------------------------------------
+--- Status Report Summary
+--------------------------------------------------------------------------------
+     1 Completely validated
+     1 Considered valid
+     2 Bugs found
+     4 Total
+--------------------------------------------------------------------------------
+[kernel] CLEARING
+[kernel] SETTING STATUS OF assert \true; TO unknown
+[kernel] SETTING STATUS OF assert 0 ≡ 1; TO **NOT** VALID
+[kernel] SETTING STATUS OF assert \false; TO unknown
+[report] Computing properties status...
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'f'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Assigns nothing
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'g'
+--------------------------------------------------------------------------------
+
+[    -    ] Assertion (file tests/report/hyp.i, line 10)
+            tried with Test.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'h'
+--------------------------------------------------------------------------------
+
+[  Dead   ] Assertion (file tests/report/hyp.i, line 14)
+            Locally unknown, but unreachable.
+            By Test because:
+             - Assertion (file tests/report/hyp.i, line 26)
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'main'
+--------------------------------------------------------------------------------
+
+[   Bug   ] Assertion (file tests/report/hyp.i, line 26)
+            by Test.
+
+--------------------------------------------------------------------------------
+--- Status Report Summary
+--------------------------------------------------------------------------------
+     1 Completely validated
+     1 Considered valid
+     1 To be validated
+     1 Bugs found
+     1 Dead property
+     5 Total
+--------------------------------------------------------------------------------
+[kernel] SETTING STATUS OF assert \false; TO VALID
+[report] Computing properties status...
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'f'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Assigns nothing
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'g'
+--------------------------------------------------------------------------------
+
+[    -    ] Assertion (file tests/report/hyp.i, line 10)
+            tried with Test.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'h'
+--------------------------------------------------------------------------------
+
+[  Dead   ] Assertion (file tests/report/hyp.i, line 14)
+            Locally valid, but unreachable.
+            By Test because:
+             - Assertion (file tests/report/hyp.i, line 26)
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'main'
+--------------------------------------------------------------------------------
+
+[   Bug   ] Assertion (file tests/report/hyp.i, line 26)
+            by Test.
+
+--------------------------------------------------------------------------------
+--- Status Report Summary
+--------------------------------------------------------------------------------
+     1 Completely validated
+     1 Considered valid
+     1 To be validated
+     1 Bugs found
+     1 Dead property
+     5 Total
+--------------------------------------------------------------------------------
+[kernel] CLEARING
+[kernel] SETTING STATUS OF assert \true; TO unknown
+[kernel] SETTING STATUS OF assert 0 ≡ 1; TO **NOT** VALID
+[kernel] SETTING STATUS OF assert \false; TO **NOT** VALID
+[report] Computing properties status...
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'f'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Assigns nothing
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'g'
+--------------------------------------------------------------------------------
+
+[    -    ] Assertion (file tests/report/hyp.i, line 10)
+            tried with Test.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'h'
+--------------------------------------------------------------------------------
+
+[   Bug   ] Assertion (file tests/report/hyp.i, line 14)
+            by Test.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'main'
+--------------------------------------------------------------------------------
+
+[   Bug   ] Assertion (file tests/report/hyp.i, line 26)
+            by Test.
+
+--------------------------------------------------------------------------------
+--- Status Report Summary
+--------------------------------------------------------------------------------
+     1 Completely validated
+     1 Considered valid
+     1 To be validated
+     2 Bugs found
+     5 Total
+--------------------------------------------------------------------------------
+[kernel] CLEARING
+[kernel] SETTING STATUS OF assert \true; TO **NOT** VALID
+[kernel] SETTING STATUS OF assert 0 ≡ 1; TO **NOT** VALID
+[kernel] SETTING STATUS OF assert \false; TO unknown
+[report] Computing properties status...
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'f'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Assigns nothing
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'g'
+--------------------------------------------------------------------------------
+
+[   Bug   ] Assertion (file tests/report/hyp.i, line 10)
+            by Test.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'h'
+--------------------------------------------------------------------------------
+
+[  Dead   ] Assertion (file tests/report/hyp.i, line 14)
+            Locally unknown, but unreachable.
+            By Test because:
+             - Assertion (file tests/report/hyp.i, line 26)
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'main'
+--------------------------------------------------------------------------------
+
+[   Bug   ] Assertion (file tests/report/hyp.i, line 26)
+            by Test.
+
+--------------------------------------------------------------------------------
+--- Status Report Summary
+--------------------------------------------------------------------------------
+     1 Completely validated
+     1 Considered valid
+     2 Bugs found
+     1 Dead property
+     5 Total
+--------------------------------------------------------------------------------
+[kernel] SETTING STATUS OF assert \false; TO VALID
+[report] Computing properties status...
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'f'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Assigns nothing
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'g'
+--------------------------------------------------------------------------------
+
+[   Bug   ] Assertion (file tests/report/hyp.i, line 10)
+            by Test.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'h'
+--------------------------------------------------------------------------------
+
+[  Dead   ] Assertion (file tests/report/hyp.i, line 14)
+            Locally valid, but unreachable.
+            By Test because:
+             - Assertion (file tests/report/hyp.i, line 26)
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'main'
+--------------------------------------------------------------------------------
+
+[   Bug   ] Assertion (file tests/report/hyp.i, line 26)
+            by Test.
+
+--------------------------------------------------------------------------------
+--- Status Report Summary
+--------------------------------------------------------------------------------
+     1 Completely validated
+     1 Considered valid
+     2 Bugs found
+     1 Dead property
+     5 Total
+--------------------------------------------------------------------------------
+[kernel] CLEARING
+[kernel] SETTING STATUS OF assert \true; TO **NOT** VALID
+[kernel] SETTING STATUS OF assert 0 ≡ 1; TO **NOT** VALID
+[kernel] SETTING STATUS OF assert \false; TO **NOT** VALID
+[report] Computing properties status...
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'f'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Assigns nothing
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'g'
+--------------------------------------------------------------------------------
+
+[   Bug   ] Assertion (file tests/report/hyp.i, line 10)
+            by Test.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'h'
+--------------------------------------------------------------------------------
+
+[   Bug   ] Assertion (file tests/report/hyp.i, line 14)
+            by Test.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'main'
+--------------------------------------------------------------------------------
+
+[   Bug   ] Assertion (file tests/report/hyp.i, line 26)
+            by Test.
+
+--------------------------------------------------------------------------------
+--- Status Report Summary
+--------------------------------------------------------------------------------
+     1 Completely validated
+     1 Considered valid
+     3 Bugs found
+     5 Total
+--------------------------------------------------------------------------------
+[kernel] CLEARING
+[kernel] SETTING STATUS OF assert \true; TO **NOT** VALID
+[kernel] SETTING STATUS OF assert 0 ≡ 1; TO VALID
+[kernel] SETTING STATUS OF assert \false; TO unknown
+[report] Computing properties status...
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'f'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Assigns nothing
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'g'
+--------------------------------------------------------------------------------
+
+[   Bug   ] Assertion (file tests/report/hyp.i, line 10)
+            by Test.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'h'
+--------------------------------------------------------------------------------
+
+[    -    ] Assertion (file tests/report/hyp.i, line 14)
+            tried with Test.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'main'
+--------------------------------------------------------------------------------
+
+[  Dead   ] Assertion (file tests/report/hyp.i, line 26)
+            Locally valid, but unreachable.
+            By Test because:
+             - Assertion (file tests/report/hyp.i, line 10)
+
+--------------------------------------------------------------------------------
+--- Status Report Summary
+--------------------------------------------------------------------------------
+     1 Completely validated
+     1 Considered valid
+     1 To be validated
+     1 Bugs found
+     1 Dead property
+     5 Total
+--------------------------------------------------------------------------------
+[kernel] SETTING STATUS OF assert \false; TO VALID
+[report] Computing properties status...
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'f'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Assigns nothing
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'g'
+--------------------------------------------------------------------------------
+
+[   Bug   ] Assertion (file tests/report/hyp.i, line 10)
+            by Test.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'h'
+--------------------------------------------------------------------------------
+
+[  Valid  ] Assertion (file tests/report/hyp.i, line 14)
+            by Test.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'main'
+--------------------------------------------------------------------------------
+
+[  Dead   ] Assertion (file tests/report/hyp.i, line 26)
+            Locally valid, but unreachable.
+            By Test because:
+             - Assertion (file tests/report/hyp.i, line 10)
+
+--------------------------------------------------------------------------------
+--- Status Report Summary
+--------------------------------------------------------------------------------
+     2 Completely validated
+     1 Considered valid
+     1 Bugs found
+     1 Dead property
+     5 Total
+--------------------------------------------------------------------------------
+[kernel] CLEARING
+[kernel] SETTING STATUS OF assert \true; TO **NOT** VALID
+[kernel] SETTING STATUS OF assert 0 ≡ 1; TO VALID
+[kernel] SETTING STATUS OF assert \false; TO **NOT** VALID
+[report] Computing properties status...
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'f'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Assigns nothing
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'g'
+--------------------------------------------------------------------------------
+
+[   Bug   ] Assertion (file tests/report/hyp.i, line 10)
+            by Test.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'h'
+--------------------------------------------------------------------------------
+
+[   Bug   ] Assertion (file tests/report/hyp.i, line 14)
+            by Test.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'main'
+--------------------------------------------------------------------------------
+
+[  Dead   ] Assertion (file tests/report/hyp.i, line 26)
+            Locally valid, but unreachable.
+            By Test because:
+             - Assertion (file tests/report/hyp.i, line 10)
+
+--------------------------------------------------------------------------------
+--- Status Report Summary
+--------------------------------------------------------------------------------
+     1 Completely validated
+     1 Considered valid
+     2 Bugs found
+     1 Dead property
+     5 Total
+--------------------------------------------------------------------------------
+[kernel] CLEARING
+[kernel] SETTING STATUS OF assert \true; TO **NOT** VALID
+[kernel] SETTING STATUS OF assert 0 ≡ 1; TO unknown
+[kernel] SETTING STATUS OF assert \false; TO unknown
+[report] Computing properties status...
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'f'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Assigns nothing
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'g'
+--------------------------------------------------------------------------------
+
+[   Bug   ] Assertion (file tests/report/hyp.i, line 10)
+            by Test.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'h'
+--------------------------------------------------------------------------------
+
+[    -    ] Assertion (file tests/report/hyp.i, line 14)
+            tried with Test.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'main'
+--------------------------------------------------------------------------------
+
+[  Dead   ] Assertion (file tests/report/hyp.i, line 26)
+            Locally unknown, but unreachable.
+            By Test because:
+             - Assertion (file tests/report/hyp.i, line 10)
+
+--------------------------------------------------------------------------------
+--- Status Report Summary
+--------------------------------------------------------------------------------
+     1 Completely validated
+     1 Considered valid
+     1 To be validated
+     1 Bugs found
+     1 Dead property
+     5 Total
+--------------------------------------------------------------------------------
+[kernel] SETTING STATUS OF assert \false; TO VALID
+[report] Computing properties status...
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'f'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Assigns nothing
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'g'
+--------------------------------------------------------------------------------
+
+[   Bug   ] Assertion (file tests/report/hyp.i, line 10)
+            by Test.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'h'
+--------------------------------------------------------------------------------
+
+[  Valid  ] Assertion (file tests/report/hyp.i, line 14)
+            by Test.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'main'
+--------------------------------------------------------------------------------
+
+[  Dead   ] Assertion (file tests/report/hyp.i, line 26)
+            Locally unknown, but unreachable.
+            By Test because:
+             - Assertion (file tests/report/hyp.i, line 10)
+
+--------------------------------------------------------------------------------
+--- Status Report Summary
+--------------------------------------------------------------------------------
+     2 Completely validated
+     1 Considered valid
+     1 Bugs found
+     1 Dead property
+     5 Total
+--------------------------------------------------------------------------------
+[kernel] CLEARING
+[kernel] SETTING STATUS OF assert \true; TO **NOT** VALID
+[kernel] SETTING STATUS OF assert 0 ≡ 1; TO unknown
+[kernel] SETTING STATUS OF assert \false; TO **NOT** VALID
+[report] Computing properties status...
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'f'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Assigns nothing
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'g'
+--------------------------------------------------------------------------------
+
+[   Bug   ] Assertion (file tests/report/hyp.i, line 10)
+            by Test.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'h'
+--------------------------------------------------------------------------------
+
+[   Bug   ] Assertion (file tests/report/hyp.i, line 14)
+            by Test.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'main'
+--------------------------------------------------------------------------------
+
+[  Dead   ] Assertion (file tests/report/hyp.i, line 26)
+            Locally unknown, but unreachable.
+            By Test because:
+             - Assertion (file tests/report/hyp.i, line 10)
+
+--------------------------------------------------------------------------------
+--- Status Report Summary
+--------------------------------------------------------------------------------
+     1 Completely validated
+     1 Considered valid
+     2 Bugs found
+     1 Dead property
+     5 Total
+--------------------------------------------------------------------------------
+[kernel] CLEARING
+[kernel] SETTING STATUS OF assert 0 ≡ 1; TO VALID
+[kernel] SETTING STATUS OF assert 0 ≡ 1; TO **NOT** VALID
+[kernel] SETTING STATUS OF assert \false; TO unknown
+[report] Computing properties status...
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'f'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Assigns nothing
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'h'
+--------------------------------------------------------------------------------
+
+[    -    ] Assertion (file tests/report/hyp.i, line 14)
+            tried with Test.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'main'
+--------------------------------------------------------------------------------
+
+[ Unsound ] Assertion (file tests/report/hyp.i, line 26)
+            inconsistent status:
+              VALID according to Test
+              but **NOT** VALID according to Test2
+
+--------------------------------------------------------------------------------
+--- Status Report Summary
+--------------------------------------------------------------------------------
+     1 Completely validated
+     1 Considered valid
+     1 To be validated
+     1 Inconsistency
+     4 Total
+--------------------------------------------------------------------------------
+[kernel] SETTING STATUS OF assert \false; TO VALID
+[report] Computing properties status...
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'f'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Assigns nothing
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'h'
+--------------------------------------------------------------------------------
+
+[ Partial ] Assertion (file tests/report/hyp.i, line 14)
+            By Test, with pending:
+             - Assertion (file tests/report/hyp.i, line 26)
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'main'
+--------------------------------------------------------------------------------
+
+[ Unsound ] Assertion (file tests/report/hyp.i, line 26)
+            inconsistent status:
+              VALID according to Test
+              but **NOT** VALID according to Test2
+
+--------------------------------------------------------------------------------
+--- Status Report Summary
+--------------------------------------------------------------------------------
+     1 Completely validated
+     1 Locally validated
+     1 Considered valid
+     1 Inconsistency
+     4 Total
+--------------------------------------------------------------------------------
+[kernel] CLEARING
+[kernel] SETTING STATUS OF assert 0 ≡ 1; TO VALID
+[kernel] SETTING STATUS OF assert 0 ≡ 1; TO **NOT** VALID
+[kernel] SETTING STATUS OF assert \false; TO **NOT** VALID
+[report] Computing properties status...
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'f'
+--------------------------------------------------------------------------------
+
+[ Extern  ] Assigns nothing
+            Unverifiable but considered Valid.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'h'
+--------------------------------------------------------------------------------
+
+[   Bug   ] Assertion (file tests/report/hyp.i, line 14)
+            by Test.
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'main'
+--------------------------------------------------------------------------------
+
+[ Unsound ] Assertion (file tests/report/hyp.i, line 26)
+            inconsistent status:
+              VALID according to Test
+              but **NOT** VALID according to Test2
+
+--------------------------------------------------------------------------------
+--- Status Report Summary
+--------------------------------------------------------------------------------
+     1 Completely validated
+     1 Considered valid
+     1 Bugs found
+     1 Inconsistency
+     4 Total
+--------------------------------------------------------------------------------
