@@ -1,0 +1,548 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_typed/unit_bitwise.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Global
+------------------------------------------------------------
+
+Lemma band_sint8:
+Assume: 'bor_sint8' 'bxor_sint8' 'bnot_sint8'
+Prove: let x_1 = (land x_0 y_0) in
+       (is_sint8 x_0) -> (is_sint8 y_0) -> (x_1=(to_sint8 x_1))
+
+------------------------------------------------------------
+
+Lemma band_uint8:
+Assume: 'bor_uint8' 'blsr_sint8' 'band_sint8' 'bor_sint8' 'bxor_sint8'
+  'bnot_sint8'
+Prove: let x_1 = (land x_0 y_0) in
+       (is_uint8 x_0) -> (is_uint8 y_0) -> (x_1=(to_uint8 x_1))
+
+------------------------------------------------------------
+
+Lemma blsr_sint8:
+Assume: 'band_sint8' 'bor_sint8' 'bxor_sint8' 'bnot_sint8'
+Prove: let x_1 = (lsr x_0 y_0) in
+       (0<=y_0) -> (is_sint8 x_0) -> (is_sint8 y_0) -> (x_1=(to_sint8 x_1))
+
+------------------------------------------------------------
+
+Lemma blsr_uint8:
+Assume: 'band_uint8' 'bor_uint8' 'blsr_sint8' 'band_sint8' 'bor_sint8'
+  'bxor_sint8' 'bnot_sint8'
+Prove: let x_1 = (lsr x_0 y_0) in
+       (0<=y_0) -> (is_uint8 x_0) -> (is_uint8 y_0) -> (x_1=(to_uint8 x_1))
+
+------------------------------------------------------------
+
+Lemma bnot_sint8:
+Prove: let x_1 = (lnot x_0) in (is_sint8 x_0) -> (x_1=(to_sint8 x_1))
+
+------------------------------------------------------------
+
+Lemma bor_sint8:
+Assume: 'bxor_sint8' 'bnot_sint8'
+Prove: let x_1 = (lor x_0 y_0) in
+       (is_sint8 x_0) -> (is_sint8 y_0) -> (x_1=(to_sint8 x_1))
+
+------------------------------------------------------------
+
+Lemma bor_uint8:
+Assume: 'blsr_sint8' 'band_sint8' 'bor_sint8' 'bxor_sint8' 'bnot_sint8'
+Prove: (is_uint8 x_0) -> (is_uint8 y_0)
+       -> ((lor x_0 y_0)=(lor (to_uint8 x_0) (to_uint8 y_0)))
+
+------------------------------------------------------------
+
+Lemma bxor_sint8:
+Assume: 'bnot_sint8'
+Prove: let x_1 = (lxor x_0 y_0) in
+       (is_sint8 x_0) -> (is_sint8 y_0) -> (x_1=(to_sint8 x_1))
+
+------------------------------------------------------------
+
+Lemma land_abs:
+Assume: 'land_com' 'land_assoc' 'blsr_uint8' 'band_uint8' 'bor_uint8'
+  'blsr_sint8' 'band_sint8' 'bor_sint8' 'bxor_sint8' 'bnot_sint8'
+Prove: true
+
+------------------------------------------------------------
+
+Lemma land_assoc:
+Assume: 'blsr_uint8' 'band_uint8' 'bor_uint8' 'blsr_sint8' 'band_sint8'
+  'bor_sint8' 'bxor_sint8' 'bnot_sint8'
+Prove: true
+
+------------------------------------------------------------
+
+Lemma land_com:
+Assume: 'land_assoc' 'blsr_uint8' 'band_uint8' 'bor_uint8' 'blsr_sint8'
+  'band_sint8' 'bor_sint8' 'bxor_sint8' 'bnot_sint8'
+Prove: true
+
+------------------------------------------------------------
+
+Lemma land_stb:
+Assume: 'land_abs' 'land_com' 'land_assoc' 'blsr_uint8' 'band_uint8'
+  'bor_uint8' 'blsr_sint8' 'band_sint8' 'bor_sint8' 'bxor_sint8' 'bnot_sint8'
+Prove: true
+
+------------------------------------------------------------
+
+Lemma lor_assoc:
+Assume: 'land_stb' 'land_abs' 'land_com' 'land_assoc' 'blsr_uint8'
+  'band_uint8' 'bor_uint8' 'blsr_sint8' 'band_sint8' 'bor_sint8' 'bxor_sint8'
+  'bnot_sint8'
+Prove: true
+
+------------------------------------------------------------
+
+Lemma lor_com:
+Assume: 'lor_assoc' 'land_stb' 'land_abs' 'land_com' 'land_assoc'
+  'blsr_uint8' 'band_uint8' 'bor_uint8' 'blsr_sint8' 'band_sint8' 'bor_sint8'
+  'bxor_sint8' 'bnot_sint8'
+Prove: true
+
+------------------------------------------------------------
+
+Lemma lor_neu:
+Assume: 'lor_com' 'lor_assoc' 'land_stb' 'land_abs' 'land_com' 'land_assoc'
+  'blsr_uint8' 'band_uint8' 'bor_uint8' 'blsr_sint8' 'band_sint8' 'bor_sint8'
+  'bxor_sint8' 'bnot_sint8'
+Prove: true
+
+------------------------------------------------------------
+
+Lemma lor_stb:
+Assume: 'lor_neu' 'lor_com' 'lor_assoc' 'land_stb' 'land_abs' 'land_com'
+  'land_assoc' 'blsr_uint8' 'band_uint8' 'bor_uint8' 'blsr_sint8'
+  'band_sint8' 'bor_sint8' 'bxor_sint8' 'bnot_sint8'
+Prove: true
+
+------------------------------------------------------------
+
+Lemma lxor_assoc:
+Assume: 'lor_stb' 'lor_neu' 'lor_com' 'lor_assoc' 'land_stb' 'land_abs'
+  'land_com' 'land_assoc' 'blsr_uint8' 'band_uint8' 'bor_uint8' 'blsr_sint8'
+  'band_sint8' 'bor_sint8' 'bxor_sint8' 'bnot_sint8'
+Prove: true
+
+------------------------------------------------------------
+
+Lemma lxor_com:
+Assume: 'lxor_assoc' 'lor_stb' 'lor_neu' 'lor_com' 'lor_assoc' 'land_stb'
+  'land_abs' 'land_com' 'land_assoc' 'blsr_uint8' 'band_uint8' 'bor_uint8'
+  'blsr_sint8' 'band_sint8' 'bor_sint8' 'bxor_sint8' 'bnot_sint8'
+Prove: true
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function band1_uchar
+------------------------------------------------------------
+
+Goal Assertion 'ok' (file tests/wp_typed/unit_bitwise.c, line 116):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assertion 'ok' (file tests/wp_typed/unit_bitwise.c, line 117):
+Let x_0 = (land 1 a_0).
+Assume { (* Domain *) Type: (is_uint8 a_0) /\ (is_uint8 x_0). }
+Prove: 0<=x_0.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function band1_uint
+------------------------------------------------------------
+
+Goal Assertion 'ok' (file tests/wp_typed/unit_bitwise.c, line 51):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assertion 'ok' (file tests/wp_typed/unit_bitwise.c, line 52):
+Let x_0 = (land 1 a_0).
+Assume { (* Domain *) Type: (is_uint32 a_0) /\ (is_uint32 x_0). }
+Prove: 0<=x_0.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function band1_ulong
+------------------------------------------------------------
+
+Goal Assertion 'ok' (file tests/wp_typed/unit_bitwise.c, line 169):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assertion 'ok' (file tests/wp_typed/unit_bitwise.c, line 170):
+Let x_0 = (land 1 a_0).
+Assume { (* Domain *) Type: (is_uint32 a_0) /\ (is_uint32 x_0). }
+Prove: 0<=x_0.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function band1_ushort
+------------------------------------------------------------
+
+Goal Assertion 'ok' (file tests/wp_typed/unit_bitwise.c, line 164):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assertion 'ok' (file tests/wp_typed/unit_bitwise.c, line 165):
+Let x_0 = (land 1 a_0).
+Assume { (* Domain *) Type: (is_uint16 a_0) /\ (is_uint16 x_0). }
+Prove: 0<=x_0.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function band_char
+------------------------------------------------------------
+
+Goal Post-condition 'ok' in 'band_char':
+Let x_0 = (land a_0 b_0).
+Assume { (* Domain *) Type: (is_sint8 a_0) /\ (is_sint8 b_0). }
+Prove: x_0=(to_sint8 x_0).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function band_int
+------------------------------------------------------------
+
+Goal Post-condition 'ok' in 'band_int':
+Assume {
+  (* Domain *)
+  Type: (is_sint32 a_0) /\ (is_sint32 (land a_0 b_0)).
+  (* Assertion 'ko' (file tests/wp_typed/unit_bitwise.c, line 20) *)
+  (* tests/wp_typed/unit_bitwise.c:20: Assertion 'ko': *)
+  Have: (land 281 a_0)<=172.
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assertion 'ok' (file tests/wp_typed/unit_bitwise.c, line 19):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assertion 'ko' (file tests/wp_typed/unit_bitwise.c, line 20):
+Assume { (* Domain *) Type: (is_sint32 a_1). }
+Prove: (land 281 a_1)<=172.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function band_uchar
+------------------------------------------------------------
+
+Goal Post-condition 'ok' in 'band_uchar':
+Let x_0 = (land a_0 b_0).
+Assume { (* Domain *) Type: (is_uint8 a_0) /\ (is_uint8 b_0). }
+Prove: x_0=(to_uint8 x_0).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function band_uint
+------------------------------------------------------------
+
+Goal Post-condition 'ok' in 'band_uint':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function bnot_char
+------------------------------------------------------------
+
+Goal Post-condition 'ok' in 'bnot_char':
+Let x_0 = (lnot a_0).
+Assume { (* Domain *) Type: (is_sint8 a_0). }
+Prove: x_0=(to_sint8 x_0).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function bnot_int
+------------------------------------------------------------
+
+Goal Post-condition 'ok' in 'bnot_int':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function bnot_uchar
+------------------------------------------------------------
+
+Goal Post-condition 'ok' in 'bnot_uchar':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'ko' in 'bnot_uchar':
+Let x_0 = (lnot a_0).
+Assume { (* Domain *) Type: (is_uint8 a_0). }
+Prove: x_0=(to_uint8 x_0).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function bnot_uint
+------------------------------------------------------------
+
+Goal Post-condition 'ok' in 'bnot_uint':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'ko' in 'bnot_uint':
+Let x_0 = (lnot a_0).
+Assume { (* Domain *) Type: (is_uint32 a_0). }
+Prove: x_0=(to_uint32 x_0).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function bor_char
+------------------------------------------------------------
+
+Goal Post-condition 'ok' in 'bor_char':
+Let x_0 = (lor a_0 b_0).
+Assume { (* Domain *) Type: (is_sint8 a_0) /\ (is_sint8 b_0). }
+Prove: x_0=(to_sint8 x_0).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function bor_int
+------------------------------------------------------------
+
+Goal Post-condition 'ok' in 'bor_int':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function bor_uchar
+------------------------------------------------------------
+
+Goal Post-condition 'ok' in 'bor_uchar':
+Assume { (* Domain *) Type: (is_uint8 a_0) /\ (is_uint8 b_0). }
+Prove: (lor a_0 b_0)=(lor (to_uint8 a_0) (to_uint8 b_0)).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function bor_uint
+------------------------------------------------------------
+
+Goal Post-condition 'ok' in 'bor_uint':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function bxor_char
+------------------------------------------------------------
+
+Goal Post-condition 'ok' in 'bxor_char':
+Let x_0 = (lxor a_0 b_0).
+Assume { (* Domain *) Type: (is_sint8 a_0) /\ (is_sint8 b_0). }
+Prove: x_0=(to_sint8 x_0).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function bxor_int
+------------------------------------------------------------
+
+Goal Post-condition 'ok' in 'bxor_int':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function bxor_uchar
+------------------------------------------------------------
+
+Goal Post-condition 'ok' in 'bxor_uchar':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'ko' in 'bxor_uchar':
+Let x_0 = (lxor a_0 b_0).
+Assume { (* Domain *) Type: (is_uint8 a_0) /\ (is_uint8 b_0). }
+Prove: x_0=(to_uint8 x_0).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function bxor_uint
+------------------------------------------------------------
+
+Goal Post-condition 'ok' in 'bxor_uint':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'ko' in 'bxor_uint':
+Let x_0 = (lxor a_0 b_0).
+Assume { (* Domain *) Type: (is_uint32 a_0) /\ (is_uint32 b_0). }
+Prove: x_0=(to_uint32 x_0).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function cast
+------------------------------------------------------------
+
+Goal Post-condition 'ok' in 'cast':
+Let x_0 = (to_sint8 c_0).
+Assume {
+  (* Domain *)
+  Type: (is_uint8 c_0) /\ (is_uint32 i_0).
+  (* Assertion 'ok' (file tests/wp_typed/unit_bitwise.c, line 176) *)
+  (* tests/wp_typed/unit_bitwise.c:176: Assertion 'ok': *)
+  Have: i_0=(to_uint32 i_0).
+  (* Assertion 'ko' (file tests/wp_typed/unit_bitwise.c, line 186) *)
+  (* tests/wp_typed/unit_bitwise.c:186: Assertion 'ko': *)
+  Have: x_0=(to_uint32 x_0).
+}
+Prove: c_0=(to_uint8 c_0).
+
+------------------------------------------------------------
+
+Goal Assertion 'ok' (file tests/wp_typed/unit_bitwise.c, line 176):
+Assume { (* Domain *) Type: (is_uint32 i_0). }
+Prove: i_0=(to_uint32 i_0).
+
+------------------------------------------------------------
+
+Goal Assertion 'ok' (file tests/wp_typed/unit_bitwise.c, line 177):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assertion 'ok' (file tests/wp_typed/unit_bitwise.c, line 178):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assertion 'ok' (file tests/wp_typed/unit_bitwise.c, line 180):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assertion 'ok' (file tests/wp_typed/unit_bitwise.c, line 181):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assertion 'ok' (file tests/wp_typed/unit_bitwise.c, line 182):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assertion 'ok' (file tests/wp_typed/unit_bitwise.c, line 184):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assertion 'ko' (file tests/wp_typed/unit_bitwise.c, line 186):
+Let x_0 = (to_sint8 c_1).
+Assume {
+  (* Domain *)
+  Type: (is_uint8 c_1) /\ (is_uint32 i_0).
+  (* Assertion 'ok' (file tests/wp_typed/unit_bitwise.c, line 176) *)
+  (* tests/wp_typed/unit_bitwise.c:176: Assertion 'ok': *)
+  Have: i_0=(to_uint32 i_0).
+}
+Prove: x_0=(to_uint32 x_0).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function lshift_char
+------------------------------------------------------------
+
+Goal Post-condition 'ok' in 'lshift_char':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function lshift_int
+------------------------------------------------------------
+
+Goal Post-condition 'ok' in 'lshift_int':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function lshift_uchar
+------------------------------------------------------------
+
+Goal Post-condition 'ok' in 'lshift_uchar':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function lshift_uint
+------------------------------------------------------------
+
+Goal Post-condition 'ok' in 'lshift_uint':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function rshift_char
+------------------------------------------------------------
+
+Goal Post-condition 'ok' in 'rshift_char':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function rshift_int
+------------------------------------------------------------
+
+Goal Post-condition 'ok' in 'rshift_int':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function rshift_uchar
+------------------------------------------------------------
+
+Goal Post-condition 'ok' in 'rshift_uchar':
+Let x_0 = (lsr a_0 n_0).
+Assume { (* Domain *) Type: (is_uint8 a_0) /\ (is_uint8 n_0). }
+Prove: x_0=(to_uint8 x_0).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function rshift_uint
+------------------------------------------------------------
+
+Goal Post-condition 'ok' in 'rshift_uint':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------

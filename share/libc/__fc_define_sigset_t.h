@@ -22,6 +22,9 @@
 
 #ifndef __FC_DEFINE_SIGSET_T
 #define __FC_DEFINE_SIGSET_T
+#include "features.h"
+__BEGIN_DECLS
 typedef unsigned long sigset_t;
+__END_DECLS
 #endif
 

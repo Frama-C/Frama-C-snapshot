@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -val -scf -journal-disable -then-on propagated -check -scf
+   OPT: -val -then -scf -then-on propagated -check -scf
 */
 
 void f(int *x, int *y, void (*p)(int *x, int *y)) {

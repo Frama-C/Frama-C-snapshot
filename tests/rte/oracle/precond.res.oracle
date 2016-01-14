@@ -159,8 +159,7 @@ int main(void)
   b = 3;
   c.val = 20;
   c.next = (struct cell *)0;
-  {
-    /*sequence*/
+  { /* sequence */
     ;
     ;
     ;

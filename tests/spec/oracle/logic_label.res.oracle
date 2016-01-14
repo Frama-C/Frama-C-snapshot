@@ -43,8 +43,7 @@ int u(int *x)
 {
   int __retres;
   int *tmp;
-  {
-    /*sequence*/
+  { /* sequence */
     tmp = x;
     x ++;
     *tmp = 0;

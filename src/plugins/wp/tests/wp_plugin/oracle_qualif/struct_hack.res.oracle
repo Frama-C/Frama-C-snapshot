@@ -1,0 +1,29 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_plugin/struct_hack.i (no preprocessing)
+tests/wp_plugin/struct_hack.i:46:[kernel] warning: parsing obsolete ACSL construct '\valid_range(addr,min,max)'. '\valid(addr+(min..max))' should be used instead.
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+tests/wp_plugin/struct_hack.i:37:[wp] warning: Missing assigns clause (assigns 'everything' instead)
+tests/wp_plugin/struct_hack.i:53:[wp] warning: Missing assigns clause (assigns 'everything' instead)
+[wp] 10 goals scheduled
+[wp] [Alt-Ergo] Goal typed_f0_loop_inv_qed_ok_preserved : Valid
+[wp] [Qed] Goal typed_f0_loop_inv_qed_ok_established : Valid
+[wp] [Alt-Ergo] Goal typed_f0_assert_qed_ok : Valid
+[wp] [Qed] Goal typed_f0_loop_term_decrease : Valid
+[wp] [Qed] Goal typed_f0_loop_term_positive : Valid
+[wp] [Qed] Goal typed_f1_loop_inv_qed_ok_preserved : Valid
+[wp] [Qed] Goal typed_f1_loop_inv_qed_ok_established : Valid
+[wp] [Qed] Goal typed_f1_assert_qed_ok : Valid
+[wp] [Qed] Goal typed_f1_loop_term_decrease : Valid
+[wp] [Qed] Goal typed_f1_loop_term_positive : Valid
+[wp] Proved goals:   10 / 10
+     Qed:             8 
+     Alt-Ergo:        2
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+f0                   3      2 (22)     5       100%
+f1                   5     -           5       100%
+----------------------------------------------------------

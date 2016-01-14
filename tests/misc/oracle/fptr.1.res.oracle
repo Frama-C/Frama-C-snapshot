@@ -12,7 +12,7 @@
   G ∈ {0}
   TA ∈ {0}
 tests/misc/fptr.i:66:[value] entering loop for the first time
-[value] Called CEA_F({{ &h }})
+[value] Called Frama_C_show_each_F({{ &h }})
 [value] computing for function f <- main_uninit.
         Called from tests/misc/fptr.i:68.
 [value] computing for function h <- f <- main_uninit.
@@ -21,7 +21,7 @@ tests/misc/fptr.i:66:[value] entering loop for the first time
 [value] Done for function h
 [value] Recording results for f
 [value] Done for function f
-[value] Called CEA_F({{ &h ; &hh }})
+[value] Called Frama_C_show_each_F({{ &h ; &hh }})
 [value] computing for function f <- main_uninit.
         Called from tests/misc/fptr.i:68.
 [value] computing for function h <- f <- main_uninit.
@@ -34,7 +34,7 @@ tests/misc/fptr.i:66:[value] entering loop for the first time
 [value] Done for function hh
 [value] Recording results for f
 [value] Done for function f
-[value] Called CEA_F({{ NULL + [0..4294967295] ; &h ; &hh }})
+[value] Called Frama_C_show_each_F({{ NULL + [0..4294967295] ; &h ; &hh }})
 [value] computing for function f <- main_uninit.
         Called from tests/misc/fptr.i:68.
 tests/misc/fptr.i:9:[value] warning: Function pointer call at absolute position in memory: ignoring this particular value: assert(\valid_fun_pointer(*ptr))

@@ -22,6 +22,7 @@
 
 #ifndef __FC_FCNTL
 #define __FC_FCNTL
+#include "features.h"
 
 #include "__fc_define_off_t.h"
 #include "__fc_define_pid_t.h"
@@ -35,6 +36,9 @@
 /* For old implementation of bsd flock().  */
 #define F_EXLCK		4	/* or 3 */
 #define F_SHLCK		8	/* or 4 */
+
+__BEGIN_DECLS
+
 struct flock
   {
     short int l_type;	/* Type of lock: F_RDLCK, F_WRLCK, or F_UNLCK.	*/
@@ -106,9 +110,45 @@ struct flock
 #define	O_NOCTTY	0x8000		/* don't assign controlling terminal */
 
 /*@ assigns \result \from filename[0..], mode ; */
-int  creat(const char * filename, mode_t mode);
-int  fcntl(int, int, ...);
-/*@ assigns \result \from filename[0..], mode ; */
-int  open(const char * filename, int mode, ...);
+int creat(const char *filename, mode_t mode);
+/*@ assigns \result \from fd, cmd ; */
+int fcntl(int fd, int cmd, ...);
+/*@ assigns \result \from filename[0..], flags ; */
+int open(const char *filename, int flags, ...);
+/*@ assigns \result \from dirfd, filename[0..], flags ; */
+int openat(int dirfd, const char *filename, int flags, ...);
+
+
+
+/* The following functions are "fixed-argument" versions of open/fcntl. They
+   are used when the translation of variadic function to fixed-adic is
+   enabled */
+
+/*@ requires valid_cmd: cmd == F_GETFD || cmd == F_GETFL ||
+                        cmd == F_GETOWN ;
+    assigns \result \from fd, cmd ; */
+int __va_fcntl_void(int fd, int cmd);
+/*@ requires valid_cmd: cmd == F_DUPFD || cmd == F_SETFD ||
+                        cmd == F_SETFL || cmd == F_SETOWN ;
+    assigns \result \from fd, cmd, arg ;*/
+int __va_fcntl_int(int fd, int cmd, int arg);
+/*@ requires valid_cmd: cmd == F_GETLK || cmd == F_SETLK ||
+                        cmd == F_SETLKW ;
+    requires valid_arg: \valid(arg) ; 
+    assigns \result, *arg \from fd, cmd, *arg ; */
+int __va_fcntl_flock(int fd, int cmd, struct flock *arg);
+/*@ requires valid_flag: !(flags & O_CREAT) ;
+    assigns \result \from filename[0..], flags ; */
+int __va_open_void(const char *filename, int flags);
+/*@ assigns \result \from filename[0..], flags, mode ; */
+int __va_open_mode_t(const char *filename, int flags, mode_t mode);
+/*@ requires valid_flag: !(flags & O_CREAT) ;
+    assigns \result \from dirfd, filename[0..], flags ; */
+int __va_openat_void(int dirfd, const char *filename, int flags);
+/*@ assigns \result \from dirfd, filename[0..], flags, mode ; */
+int __va_openat_mode_t(int dirfd, const char *filename, int flags, mode_t mode);
+
+
+__END_DECLS
 
 #endif

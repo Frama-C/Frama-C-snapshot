@@ -40,12 +40,14 @@ tests/misc/volatile2.i:59:[value] Assertion got status valid.
         Called from tests/misc/volatile2.i:106.
 tests/misc/volatile2.i:76:[kernel] warning: signed overflow. assert i+1 ≤ 32767;
 tests/misc/volatile2.i:76:[kernel] warning: signed overflow. assert j+1 ≤ 32767;
-tests/misc/volatile2.i:76:[kernel] warning: signed overflow.
-                  assert -32768 ≤ tmp+tmp_0 ≤ 32767;
-                  (tmp from i++, tmp_0 from j++)
+tests/misc/volatile2.i:76:[kernel] warning: signed overflow. assert -32768 ≤ tmp+tmp_0;
+                                   (tmp from i++, tmp_0 from j++)
+tests/misc/volatile2.i:76:[kernel] warning: signed overflow. assert tmp+tmp_0 ≤ 32767;
+                                   (tmp from i++, tmp_0 from j++)
 tests/misc/volatile2.i:78:[kernel] warning: signed overflow. assert i+1 ≤ 32767;
 tests/misc/volatile2.i:78:[kernel] warning: signed overflow. assert j+1 ≤ 32767;
-tests/misc/volatile2.i:78:[kernel] warning: signed overflow. assert -32768 ≤ i+j ≤ 32767;
+tests/misc/volatile2.i:78:[kernel] warning: signed overflow. assert -32768 ≤ i+j;
+tests/misc/volatile2.i:78:[kernel] warning: signed overflow. assert i+j ≤ 32767;
 [value] DUMPING STATE of file tests/misc/volatile2.i line 80
         t[0..9] ∈ [--..--]
         u ∈ [--..--]
@@ -194,8 +196,7 @@ void main5(void)
   int l;
   i = 0;
   j = 0;
-  {
-    /*sequence*/
+  { /* sequence */
     tmp = i;
     /*@ assert Value: signed_overflow: i+1 ≤ 32767; */
     i ++;
@@ -204,18 +205,17 @@ void main5(void)
     j ++;
     ;
   }
-  /*@ assert Value: signed_overflow: tmp+tmp_0 ≤ 32767; */
   /*@ assert Value: signed_overflow: -32768 ≤ tmp+tmp_0; */
+  /*@ assert Value: signed_overflow: tmp+tmp_0 ≤ 32767; */
   k = tmp + tmp_0;
-  {
-    /*sequence*/
+  { /* sequence */
     /*@ assert Value: signed_overflow: i+1 ≤ 32767; */
     i ++;
     /*@ assert Value: signed_overflow: j+1 ≤ 32767; */
     j ++;
   }
-  /*@ assert Value: signed_overflow: i+j ≤ 32767; */
   /*@ assert Value: signed_overflow: -32768 ≤ i+j; */
+  /*@ assert Value: signed_overflow: i+j ≤ 32767; */
   l = i + j;
   Frama_C_dump_each();
   return;

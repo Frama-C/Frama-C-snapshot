@@ -22,6 +22,9 @@
 
 #ifndef __FC_DEFINE_BLKSIZE_T
 #define __FC_DEFINE_BLKSIZE_T
+#include "features.h"
+__BEGIN_DECLS
 typedef unsigned int blksize_t;
+__END_DECLS
 #endif
 

@@ -21,7 +21,8 @@
      [7] ∈ {102}
      [8] ∈ {101}
 tests/misc/relation_reduction.i:9:[kernel] warning: signed overflow. assert y+10 ≤ 2147483647;
-tests/misc/relation_reduction.i:20:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert 0 ≤ y < 9;
+tests/misc/relation_reduction.i:20:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert 0 ≤ y;
+tests/misc/relation_reduction.i:20:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert y < 9;
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======

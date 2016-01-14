@@ -116,6 +116,7 @@ void if1(int *p)
 {
   /*@ assert Value: mem_access: \valid_read(p); */
   if (*p > 0) 
+    /*@ assert Value: mem_access: \valid_read(p); */
     v = *p;
   return;
 }
@@ -139,6 +140,7 @@ void loop1(int *p)
   n = *p;
   i = 0;
   while (i < n) {
+    /*@ assert Value: mem_access: \valid_read(p); */
     v = *p;
     i ++;
   }
@@ -168,6 +170,7 @@ void out_string(char const *value)
   while (1) {
     /*@ assert Value: mem_access: \valid_read(value); */
     if (! *value) break;
+    /*@ assert Value: mem_access: \valid_read(value); */
     out_char(*value);
     value ++;
   }
@@ -181,20 +184,28 @@ int fstruct(Tstruct *ps)
   ps->a = 3;
   /*@ assert Value: mem_access: \valid(&ps->b); */
   ps->b = 5;
+  /*@ assert Value: mem_access: \valid(&ps->a); */
   /*@ assert Value: mem_access: \valid_read(&ps->b); */
   ps->a = ps->b;
+  /*@ assert Value: mem_access: \valid(&ps->b); */
   /*@ assert Value: mem_access: \valid_read(&ps->a); */
   ps->b = ps->a;
+  /*@ assert Value: mem_access: \valid_read(&ps->a); */
+  /*@ assert Value: mem_access: \valid_read(&ps->b); */
   x = ps->a + ps->b;
   ps ++;
   /*@ assert Value: mem_access: \valid(&ps->a); */
   ps->a = 3;
   /*@ assert Value: mem_access: \valid(&ps->b); */
   ps->b = 5;
+  /*@ assert Value: mem_access: \valid(&ps->a); */
   /*@ assert Value: mem_access: \valid_read(&ps->b); */
   ps->a = ps->b;
+  /*@ assert Value: mem_access: \valid(&ps->b); */
   /*@ assert Value: mem_access: \valid_read(&ps->a); */
   ps->b = ps->a;
+  /*@ assert Value: mem_access: \valid_read(&ps->a); */
+  /*@ assert Value: mem_access: \valid_read(&ps->b); */
   x += ps->a + ps->b;
   return x;
 }
@@ -205,14 +216,14 @@ int main(int *p, Tstruct *ps)
   int tmp;
   /*@ assert Value: mem_access: \valid_read(p+1); */
   x = *(p + 1);
+  /*@ assert Value: mem_access: \valid_read(p+1); */
   v = *(p + 1);
   if1(p + 1);
   if2(x,p + 1);
   loop1(p + 1);
   loop2(x,p + 1);
   out_string((char const *)(p + 1));
-  {
-    /*sequence*/
+  { /* sequence */
     tmp = fstruct(ps + 1);
     /*@ assert Value: signed_overflow: x+tmp ≤ 2147483647; */
     x += tmp;

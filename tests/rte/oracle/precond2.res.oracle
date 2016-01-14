@@ -26,8 +26,7 @@ int main(void)
   int tmp;
   a = 2;
   b = 3;
-  {
-    /*sequence*/
+  { /* sequence */
     tmp = g(a,b);
     ;
   }
@@ -73,8 +72,7 @@ int main(void)
   int tmp;
   a = 2;
   b = 3;
-  {
-    /*sequence*/
+  { /* sequence */
     tmp = g(a,b);
     ;
   }
@@ -125,8 +123,7 @@ int main(void)
   int tmp;
   a = 2;
   b = 3;
-  {
-    /*sequence*/
+  { /* sequence */
     tmp = g(a,b);
     ;
   }
@@ -173,8 +170,7 @@ int main(void)
   int tmp;
   a = 2;
   b = 3;
-  {
-    /*sequence*/
+  { /* sequence */
     tmp = g(a,b);
     ;
   }

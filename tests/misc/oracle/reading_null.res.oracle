@@ -20,12 +20,12 @@
   S_0_T[0..1] ∈ [--..--]
   S_1_T[0..1] ∈ [--..--]
 tests/misc/reading_null.i:24:[value] entering loop for the first time
-[value] Called CEA_F([-2147483648..2147483647], {0})
-[value] Called CEA_F([-2147483648..2147483647], {0; 1})
-[value] Called CEA_F([-2147483648..2147483647], {0; 1; 2})
-[value] Called CEA_F([-2147483648..2147483647], {0; 1; 2; 3})
-[value] Called CEA_F([-2147483648..2147483647], {0; 1; 2; 3; 4})
-[value] Called CEA_F([-2147483648..2147483647], [0..9])
+[value] Called Frama_C_show_each_F([-2147483648..2147483647], {0})
+[value] Called Frama_C_show_each_F([-2147483648..2147483647], {0; 1})
+[value] Called Frama_C_show_each_F([-2147483648..2147483647], {0; 1; 2})
+[value] Called Frama_C_show_each_F([-2147483648..2147483647], {0; 1; 2; 3})
+[value] Called Frama_C_show_each_F([-2147483648..2147483647], {0; 1; 2; 3; 4})
+[value] Called Frama_C_show_each_F([-2147483648..2147483647], [0..9])
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======

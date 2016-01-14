@@ -15,8 +15,7 @@ int g(void)
   int __retres;
   int tmp;
   int tmp_0;
-  {
-    /*sequence*/
+  { /* sequence */
     tmp = f(0);
     tmp_0 = h(1);
   }

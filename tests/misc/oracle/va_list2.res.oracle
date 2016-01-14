@@ -8,7 +8,9 @@
 tests/misc/va_list2.c:8:[value] entering loop for the first time
 tests/misc/va_list2.c:8:[kernel] warning: out of bounds read. assert \valid_read(fmt);
 [value] Called Frama_C_show_each_i([-2147483648..2147483647])
-tests/misc/va_list2.c:17:[kernel] warning: non-finite float value ([--..--]): assert \is_finite(f);
+tests/misc/va_list2.c:16:[kernel] warning: non-finite float value ([--..--]):
+                  assert \is_finite(tmp_0);
+                  (tmp_0 from vararg)
 [value] Called Frama_C_show_each_f([-3.40282346639e+38 .. 3.40282346639e+38])
 tests/misc/va_list2.c:9:[kernel] warning: out of bounds read. assert \valid_read(fmt);
 [value] Called Frama_C_show_each_i([-2147483648..2147483647])

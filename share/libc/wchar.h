@@ -27,6 +27,9 @@
 #include "__fc_define_wchar_t.h"
 #include "__fc_define_size_t.h"
 #include "__fc_define_file.h"
+#include "features.h"
+
+__BEGIN_DECLS
 
 wchar_t * wmemchr(const wchar_t *s, wchar_t c, size_t n);
 
@@ -83,5 +86,9 @@ int wscanf(const wchar_t * format, ...);
 int fwscanf(FILE * stream, const wchar_t * format, ...);
 
 int swscanf(const wchar_t * str, const wchar_t * format, ...);
+
+typedef struct { int __count; char __value[4]; } mbstate_t;
+
+__END_DECLS
 
 #endif

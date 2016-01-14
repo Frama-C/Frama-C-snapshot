@@ -22,5 +22,8 @@
 
 #ifndef __FC_DEFINE_TIME_T
 #define __FC_DEFINE_TIME_T
+#include "features.h"
+__BEGIN_DECLS
 typedef long int time_t;
+__END_DECLS
 #endif

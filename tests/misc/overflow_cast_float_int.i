@@ -1,5 +1,5 @@
 /* run.config
-   STDOPT: +" -all-rounding-modes -then -no-all-rounding-modes"
+   STDOPT: #"-all-rounding-modes" +"-then -no-all-rounding-modes"
 */
 
 volatile v;
@@ -19,5 +19,10 @@ int main()
   if (v) {
     c2 = -2147483649.5;
   }
+  double dd = v ? -0x1.967ae928d56b0p66 : -0x1.c5e2546cfeb1ap34;
+  if (v) {
+    double k = (int)dd;
+  }
+
 }
 

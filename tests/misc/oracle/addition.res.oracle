@@ -54,7 +54,8 @@
   ttt[0..4][0..5] ∈ {0}
   square ∈ {0}
 tests/misc/addition.i:34:[value] warning: Operation {{ &p2 }} - {{ &p3 }} incurs a loss of precision
-tests/misc/addition.i:34:[kernel] warning: signed overflow. assert -2147483648 ≤ &p2-&p3 ≤ 2147483647;
+tests/misc/addition.i:34:[kernel] warning: signed overflow. assert -2147483648 ≤ &p2-&p3;
+tests/misc/addition.i:34:[kernel] warning: signed overflow. assert &p2-&p3 ≤ 2147483647;
 tests/misc/addition.i:34:[value] Assigning imprecise value to p1.
         The imprecision originates from Arithmetic {tests/misc/addition.i:34}
 tests/misc/addition.i:36:[value] Assigning imprecise value to p2.
@@ -75,9 +76,11 @@ tests/misc/addition.i:44:[value] Assigning imprecise value to p6.
 tests/misc/addition.i:46:[kernel] warning: casting address to a type smaller than sizeof(void*): {{ &p2 }}
 tests/misc/addition.i:46:[value] Assigning imprecise value to p7.
         The imprecision originates from Arithmetic {tests/misc/addition.i:46}
-tests/misc/addition.i:48:[kernel] warning: pointer comparison: assert \pointer_comparable(&p1+1, &p2);
+tests/misc/addition.i:48:[kernel] warning: pointer comparison:
+                  assert \pointer_comparable((void *)(&p1+1), (void *)(&p2));
 tests/misc/addition.i:50:[value] warning: Operation {{ &p1 }} / {2} incurs a loss of precision
-tests/misc/addition.i:50:[kernel] warning: signed overflow. assert -2147483648 ≤ (int)(&p1)/2 ≤ 2147483647;
+tests/misc/addition.i:50:[kernel] warning: signed overflow. assert -2147483648 ≤ (int)(&p1)/2;
+tests/misc/addition.i:50:[kernel] warning: signed overflow. assert (int)(&p1)/2 ≤ 2147483647;
 tests/misc/addition.i:50:[value] Assigning imprecise value to p9.
         The imprecision originates from Arithmetic {tests/misc/addition.i:50}
 tests/misc/addition.i:52:[value] warning: Operation {12} & {{ &p1 }} incurs a loss of precision
@@ -90,20 +93,20 @@ tests/misc/addition.i:59:[value] Reading left-value *((char *)(& q1)).
         The location is {{ q1 -> {0} }}.
         It contains a garbled mix of {p1} because of Misaligned
         {tests/misc/addition.i:59}.
-tests/misc/addition.i:59:[kernel] warning: signed overflow.
-                  assert -2147483648 ≤ (int)*((char *)(&q1))+2 ≤ 2147483647;
+tests/misc/addition.i:59:[kernel] warning: signed overflow. assert -2147483648 ≤ (int)*((char *)(&q1))+2;
+tests/misc/addition.i:59:[kernel] warning: signed overflow. assert (int)*((char *)(&q1))+2 ≤ 2147483647;
 tests/misc/addition.i:59:[value] Assigning imprecise value to p13.
         The imprecision originates from Misaligned {tests/misc/addition.i:59}
 tests/misc/addition.i:61:[value] Reading left-value *((char *)(& q1)).
         The location is {{ q1 -> {0} }}.
         It contains a garbled mix of {p1} because of Misaligned
         {tests/misc/addition.i:61}.
-tests/misc/addition.i:61:[kernel] warning: signed overflow.
-                  assert -2147483648 ≤ (int)*((char *)(&q1))+2 ≤ 2147483647;
+tests/misc/addition.i:61:[kernel] warning: signed overflow. assert -2147483648 ≤ (int)*((char *)(&q1))+2;
+tests/misc/addition.i:61:[kernel] warning: signed overflow. assert (int)*((char *)(&q1))+2 ≤ 2147483647;
 tests/misc/addition.i:61:[value] Assigning imprecise value to p14.
         The imprecision originates from Misaligned {tests/misc/addition.i:61}
 tests/misc/addition.i:66:[kernel] warning: out of bounds read. assert \valid_read(*((int **)45));
-[value] Called CEA_1([-10..15])
+[value] Called Frama_C_show_each_1([-10..15])
 tests/misc/addition.i:88:[value] Assertion got status valid.
 [value] Recording results for main
 [value] done for function main
@@ -295,15 +298,18 @@ tests/misc/addition.i:88:[value] Assertion got status valid.
   tt[0..4] ∈ {0}
   ttt[0..4][0..5] ∈ {0}
   square ∈ {0}
-tests/misc/addition.i:34:[kernel] warning: signed overflow. assert -2147483648 ≤ &p2-&p3 ≤ 2147483647;
-tests/misc/addition.i:48:[kernel] warning: pointer comparison: assert \pointer_comparable(&p1+1, &p2);
-tests/misc/addition.i:50:[kernel] warning: signed overflow. assert -2147483648 ≤ (int)(&p1)/2 ≤ 2147483647;
-tests/misc/addition.i:59:[kernel] warning: signed overflow.
-                  assert -2147483648 ≤ (int)*((char *)(&q1))+2 ≤ 2147483647;
-tests/misc/addition.i:61:[kernel] warning: signed overflow.
-                  assert -2147483648 ≤ (int)*((char *)(&q1))+2 ≤ 2147483647;
+tests/misc/addition.i:34:[kernel] warning: signed overflow. assert -2147483648 ≤ &p2-&p3;
+tests/misc/addition.i:34:[kernel] warning: signed overflow. assert &p2-&p3 ≤ 2147483647;
+tests/misc/addition.i:48:[kernel] warning: pointer comparison:
+                  assert \pointer_comparable((void *)(&p1+1), (void *)(&p2));
+tests/misc/addition.i:50:[kernel] warning: signed overflow. assert -2147483648 ≤ (int)(&p1)/2;
+tests/misc/addition.i:50:[kernel] warning: signed overflow. assert (int)(&p1)/2 ≤ 2147483647;
+tests/misc/addition.i:59:[kernel] warning: signed overflow. assert -2147483648 ≤ (int)*((char *)(&q1))+2;
+tests/misc/addition.i:59:[kernel] warning: signed overflow. assert (int)*((char *)(&q1))+2 ≤ 2147483647;
+tests/misc/addition.i:61:[kernel] warning: signed overflow. assert -2147483648 ≤ (int)*((char *)(&q1))+2;
+tests/misc/addition.i:61:[kernel] warning: signed overflow. assert (int)*((char *)(&q1))+2 ≤ 2147483647;
 tests/misc/addition.i:66:[kernel] warning: out of bounds read. assert \valid_read(*((int **)45));
-[value] Called CEA_1([-10..15])
+[value] Called Frama_C_show_each_1([-10..15])
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======

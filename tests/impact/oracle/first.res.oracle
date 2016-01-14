@@ -14,9 +14,12 @@
   z ∈ [--..--]
   f ∈ [--..--]
   w ∈ [--..--]
-tests/impact/first.i:12:[kernel] warning: signed overflow. assert -2147483648 ≤ b+c ≤ 2147483647;
-tests/impact/first.i:13:[kernel] warning: signed overflow. assert -2147483648 ≤ x+e ≤ 2147483647;
-tests/impact/first.i:17:[kernel] warning: signed overflow. assert -2147483648 ≤ y+f ≤ 2147483647;
+tests/impact/first.i:12:[kernel] warning: signed overflow. assert -2147483648 ≤ b+c;
+tests/impact/first.i:12:[kernel] warning: signed overflow. assert b+c ≤ 2147483647;
+tests/impact/first.i:13:[kernel] warning: signed overflow. assert -2147483648 ≤ x+e;
+tests/impact/first.i:13:[kernel] warning: signed overflow. assert x+e ≤ 2147483647;
+tests/impact/first.i:17:[kernel] warning: signed overflow. assert -2147483648 ≤ y+f;
+tests/impact/first.i:17:[kernel] warning: signed overflow. assert y+f ≤ 2147483647;
 [value] Recording results for impact
 [value] done for function impact
 [pdg] computing for function impact

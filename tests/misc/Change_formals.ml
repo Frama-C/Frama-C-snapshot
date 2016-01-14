@@ -28,13 +28,11 @@ class transform prj = object(_self)
       Cil.ChangeDoChildrenPost( [g], mk_formal)
    
 
-    | GVarDecl (_fspec, _vi, _loc) as g ->
+    | GFunDecl (_fspec, _vi, _loc) as g ->
       let mk_gvar_decl = function l -> 
 	begin match l with
-	  | (GVarDecl (_fspec, vi, _loc) as g) :: [] ->
-	    if (Cil.isFunctionType vi.vtype && 
-		  not (Cil.Frama_c_builtins.mem vi.vname))
-	    then
+	  | (GFunDecl (_fspec, vi, _loc) as g) :: [] ->
+	    if not (Cil.Frama_c_builtins.mem vi.vname) then
 	      begin match vi.vtype with
 		| TFun(typ, args, varity, attr) ->
 		  let vtype = Cil.argsToList args in
@@ -55,6 +53,7 @@ class transform prj = object(_self)
 	end
       in
       Cil.ChangeDoChildrenPost ([g], mk_gvar_decl)
+  | GVarDecl _
   | GVar _
   | GType _
   | GCompTag _

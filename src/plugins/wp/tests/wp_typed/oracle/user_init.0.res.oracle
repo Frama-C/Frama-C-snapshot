@@ -1,0 +1,240 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_typed/user_init.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function init
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_typed/user_init.i, line 3) in 'init':
+Let a_0 = (shift_sint32 a_2 0).
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_2) /\ (is_sint32 n_0).
+  (* Goal *)
+  When: (i_4<n_0) /\ (0<=i_4) /\ (is_sint32 i_4).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ ((region (base a_2))<=0).
+  (* Pre-condition (file tests/wp_typed/user_init.i, line 1) in 'init' *)
+  (* Pre-condition: *)
+  Have: (valid_rw Malloc_0 a_0 n_0).
+  (* Pre-condition (file tests/wp_typed/user_init.i, line 2) in 'init' *)
+  (* Pre-condition: *)
+  Have: 0<=n_0.
+  (* tests/wp_typed/user_init.i:12: Assigns *)
+  (* tests/wp_typed/user_init.i:12: Loop assigns ...: *)
+  Have: (havoc Mint_4 Mint_2 a_0 n_0).
+  (* Invariant 'Partial' (file tests/wp_typed/user_init.i, line 9) *)
+  (* tests/wp_typed/user_init.i:12: Invariant 'Partial': *)
+  Have: forall i_0:int.
+        (i_0<i_2) -> (0<=i_0) -> (v_1=Mint_2[(shift_sint32 a_2 i_0)]).
+  (* Invariant 'Range' (file tests/wp_typed/user_init.i, line 8) *)
+  (* tests/wp_typed/user_init.i:12: Invariant 'Range': *)
+  Have: (0<=i_2) /\ (i_2<=n_0).
+  (* tests/wp_typed/user_init.i:12: Else *)
+  Have: n_0<=i_2.
+}
+Prove: v_1=Mint_2[(shift_sint32 a_2 i_4)].
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant 'Partial' (file tests/wp_typed/user_init.i, line 9):
+Let a_1 = (shift_sint32 a_0 0).
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_2) /\ (is_sint32 n_0) /\ (is_sint32 (1+i_2)).
+  (* Goal *)
+  When: (0<=i_1) /\ (i_1<=i_2) /\ (is_sint32 i_1).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ ((region (base a_0))<=0).
+  (* Pre-condition (file tests/wp_typed/user_init.i, line 1) in 'init' *)
+  (* Pre-condition: *)
+  Have: (valid_rw Malloc_0 a_1 n_0).
+  (* Pre-condition (file tests/wp_typed/user_init.i, line 2) in 'init' *)
+  (* Pre-condition: *)
+  Have: 0<=n_0.
+  (* tests/wp_typed/user_init.i:12: Assigns *)
+  (* tests/wp_typed/user_init.i:12: Loop assigns ...: *)
+  Have: (havoc Mint_4 Mint_1 a_1 n_0).
+  (* Invariant 'Partial' (file tests/wp_typed/user_init.i, line 9) *)
+  (* tests/wp_typed/user_init.i:12: Invariant 'Partial': *)
+  Have: forall i_0:int.
+        (i_0<i_2) -> (0<=i_0) -> (v_0=Mint_1[(shift_sint32 a_0 i_0)]).
+  (* Invariant 'Range' (file tests/wp_typed/user_init.i, line 8) *)
+  (* tests/wp_typed/user_init.i:12: Invariant 'Range': *)
+  Have: (0<=i_2) /\ (i_2<=n_0).
+  (* tests/wp_typed/user_init.i:12: Then *)
+  Have: i_2<n_0.
+}
+Prove: v_0=Mint_1[(shift_sint32 a_0 i_2)->v_0][(shift_sint32 a_0 i_1)].
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant 'Partial' (file tests/wp_typed/user_init.i, line 9):
+Assume { (* Goal *) When: false. }
+Prove: v_0=Mint_4[(shift_sint32 a_0 i_6)].
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant 'Range' (file tests/wp_typed/user_init.i, line 8):
+Let a_1 = (shift_sint32 a_0 0).
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_2) /\ (is_sint32 n_0) /\ (is_sint32 (1+i_2)).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ ((region (base a_0))<=0).
+  (* Pre-condition (file tests/wp_typed/user_init.i, line 1) in 'init' *)
+  (* Pre-condition: *)
+  Have: (valid_rw Malloc_0 a_1 n_0).
+  (* Pre-condition (file tests/wp_typed/user_init.i, line 2) in 'init' *)
+  (* Pre-condition: *)
+  Have: 0<=n_0.
+  (* tests/wp_typed/user_init.i:12: Assigns *)
+  (* tests/wp_typed/user_init.i:12: Loop assigns ...: *)
+  Have: (havoc Mint_4 Mint_3 a_1 n_0).
+  (* Invariant 'Partial' (file tests/wp_typed/user_init.i, line 9) *)
+  (* tests/wp_typed/user_init.i:12: Invariant 'Partial': *)
+  Have: forall i_0:int.
+        (i_0<i_2) -> (0<=i_0) -> (v_0=Mint_3[(shift_sint32 a_0 i_0)]).
+  (* Invariant 'Range' (file tests/wp_typed/user_init.i, line 8) *)
+  (* tests/wp_typed/user_init.i:12: Invariant 'Range': *)
+  Have: (0<=i_2) /\ (i_2<=n_0).
+  (* tests/wp_typed/user_init.i:12: Then *)
+  Have: i_2<n_0.
+}
+Prove: -1<=i_2.
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant 'Range' (file tests/wp_typed/user_init.i, line 8):
+Assume {
+  (* Domain *)
+  Type: (is_sint32 n_0).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ ((region (base a_0))<=0).
+  (* Pre-condition (file tests/wp_typed/user_init.i, line 1) in 'init' *)
+  (* Pre-condition: *)
+  Have: (valid_rw Malloc_0 (shift_sint32 a_0 0) n_0).
+  (* Pre-condition (file tests/wp_typed/user_init.i, line 2) in 'init' *)
+  (* Pre-condition: *)
+  Have: 0<=n_0.
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Loop assigns (file tests/wp_typed/user_init.i, line 10) (1/3):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Loop assigns (file tests/wp_typed/user_init.i, line 10) (2/3):
+Effect at line 12
+Let a_1 = (shift_sint32 a_0 0).
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_2) /\ (is_sint32 n_0).
+  (* Goal *)
+  When: (valid_rd Malloc_0 a_1 n_0).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ ((region (base a_0))<=0).
+  (* Pre-condition (file tests/wp_typed/user_init.i, line 1) in 'init' *)
+  (* Pre-condition: *)
+  Have: (valid_rw Malloc_0 a_1 n_0).
+  (* Pre-condition (file tests/wp_typed/user_init.i, line 2) in 'init' *)
+  (* Pre-condition: *)
+  Have: 0<=n_0.
+  (* tests/wp_typed/user_init.i:12: Assigns *)
+  (* tests/wp_typed/user_init.i:12: Loop assigns ...: *)
+  Have: (havoc Mint_4 Mint_3 a_1 n_0).
+  (* Invariant 'Partial' (file tests/wp_typed/user_init.i, line 9) *)
+  (* tests/wp_typed/user_init.i:12: Invariant 'Partial': *)
+  Have: forall i_0:int.
+        (i_0<i_2) -> (0<=i_0) -> (v_0=Mint_3[(shift_sint32 a_0 i_0)]).
+  (* Invariant 'Range' (file tests/wp_typed/user_init.i, line 8) *)
+  (* tests/wp_typed/user_init.i:12: Invariant 'Range': *)
+  Have: (0<=i_2) /\ (i_2<=n_0).
+  (* tests/wp_typed/user_init.i:12: Then *)
+  Have: i_2<n_0.
+}
+Prove: (included a_1 n_0 a_1 n_0).
+
+------------------------------------------------------------
+
+Goal Loop assigns (file tests/wp_typed/user_init.i, line 10) (3/3):
+Effect at line 12
+Let a_1 = (shift_sint32 a_0 i_2).
+Let a_2 = (shift_sint32 a_0 0).
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_2) /\ (is_sint32 n_0).
+  (* Goal *)
+  When: (valid_rd Malloc_0 a_1 1).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ ((region (base a_0))<=0).
+  (* Pre-condition (file tests/wp_typed/user_init.i, line 1) in 'init' *)
+  (* Pre-condition: *)
+  Have: (valid_rw Malloc_0 a_2 n_0).
+  (* Pre-condition (file tests/wp_typed/user_init.i, line 2) in 'init' *)
+  (* Pre-condition: *)
+  Have: 0<=n_0.
+  (* tests/wp_typed/user_init.i:12: Assigns *)
+  (* tests/wp_typed/user_init.i:12: Loop assigns ...: *)
+  Have: (havoc Mint_4 Mint_3 a_2 n_0).
+  (* Invariant 'Partial' (file tests/wp_typed/user_init.i, line 9) *)
+  (* tests/wp_typed/user_init.i:12: Invariant 'Partial': *)
+  Have: forall i_0:int.
+        (i_0<i_2) -> (0<=i_0) -> (v_0=Mint_3[(shift_sint32 a_0 i_0)]).
+  (* Invariant 'Range' (file tests/wp_typed/user_init.i, line 8) *)
+  (* tests/wp_typed/user_init.i:12: Invariant 'Range': *)
+  Have: (0<=i_2) /\ (i_2<=n_0).
+  (* tests/wp_typed/user_init.i:12: Then *)
+  Have: i_2<n_0.
+}
+Prove: (included a_1 1 a_2 n_0).
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_typed/user_init.i, line 4) in 'init' (1/2):
+Effect at line 12
+Assume {
+  (* Domain *)
+  Type: (is_sint32 n_0).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ ((region (base a_0))<=0).
+  (* Pre-condition (file tests/wp_typed/user_init.i, line 1) in 'init' *)
+  (* Pre-condition: *)
+  Have: (valid_rw Malloc_0 (shift_sint32 a_0 0) n_0).
+  (* Pre-condition (file tests/wp_typed/user_init.i, line 2) in 'init' *)
+  (* Pre-condition: *)
+  Have: 0<=n_0.
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_typed/user_init.i, line 4) in 'init' (2/2):
+Effect at line 12
+Let a_1 = (shift_sint32 a_0 0).
+Assume {
+  (* Domain *)
+  Type: (is_sint32 n_0).
+  (* Heap *)
+  Have: (linked Malloc_1) /\ ((region (base a_0))<=0).
+  (* Pre-condition (file tests/wp_typed/user_init.i, line 1) in 'init' *)
+  (* Pre-condition: *)
+  Have: (valid_rw Malloc_1 a_1 n_0).
+  (* Pre-condition (file tests/wp_typed/user_init.i, line 2) in 'init' *)
+  (* Pre-condition: *)
+  Have: 0<=n_0.
+  (* tests/wp_typed/user_init.i:12: Assigns *)
+  (* tests/wp_typed/user_init.i:12: Loop assigns ...: *)
+  Have: (havoc Mint_4 Mint_3 a_1 n_0).
+}
+Prove: (valid_rd Malloc_1 a_1 n_0) -> (included a_1 n_0 a_1 n_0).
+
+------------------------------------------------------------

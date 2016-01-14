@@ -8,8 +8,7 @@ int X;
 void f(int *x)
 {
   int *tmp;
-  {
-    /*sequence*/
+  { /* sequence */
     tmp = x;
     x ++;
     ;

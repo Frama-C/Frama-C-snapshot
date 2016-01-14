@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -val -deps -out -input -journal-disable -inout -inout-callwise
+   STDOPT: #"-inout-callwise" +"-inout"
 */
 int w(int *, int*); int unkn(void);
 int A,B,C,D,R,S;

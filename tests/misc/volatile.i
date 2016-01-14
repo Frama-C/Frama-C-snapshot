@@ -1,3 +1,7 @@
+/* run.config
+   OPT: -val -val-initialization-padding-globals maybe
+*/
+
 int volatile G = 1;
 volatile int F, E, X, Y, *pV;
 
@@ -21,6 +25,12 @@ int fn1(int x, int y)
   Frama_C_show_each_2(y);
   return x + y;
 }
+
+struct { struct ss1 { int a; volatile int b;};
+         volatile struct ss2 { short c; volatile int d;};
+         volatile char t[12];
+         short e;}
+  nested = { {1}, 0};
 
 int R1, R2;
 

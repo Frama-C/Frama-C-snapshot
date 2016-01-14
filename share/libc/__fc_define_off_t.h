@@ -22,10 +22,11 @@
 
 #ifndef __FC_DEFINE_OFF_T
 #define __FC_DEFINE_OFF_T
-
+#include "features.h"
 #include "__fc_machdep.h"
-
+__BEGIN_DECLS
 typedef long int off_t;
 typedef __INT64_T off64_t;
+__END_DECLS
 #endif
 

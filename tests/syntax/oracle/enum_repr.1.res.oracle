@@ -139,28 +139,23 @@ int g(void)
   int tmp_4;
   x = (enum __anonenum_foo_1)A;
   res = f1((unsigned int)x);
-  {
-    /*sequence*/
+  { /* sequence */
     tmp_0 = f2((unsigned int)x);
     res += tmp_0;
   }
-  {
-    /*sequence*/
+  { /* sequence */
     tmp_1 = f3((unsigned int)x);
     res += tmp_1;
   }
-  {
-    /*sequence*/
+  { /* sequence */
     tmp_2 = h1((enum __anonenum_foo_1)((unsigned int)x));
     res += tmp_2;
   }
-  {
-    /*sequence*/
+  { /* sequence */
     tmp_3 = h2((enum __anonenum_foo_1)((unsigned int)x));
     res += tmp_3;
   }
-  {
-    /*sequence*/
+  { /* sequence */
     tmp_4 = h3(x);
     res += tmp_4;
   }

@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -load-script tests/misc/vis_spec.i
+   OPT: -load-script tests/misc/vis_spec.ml
 */
 
 //@ assigns \nothing;

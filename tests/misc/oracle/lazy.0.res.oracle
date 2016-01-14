@@ -1,0 +1,42 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/lazy.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  a ∈ {-1}
+  b ∈ {0}
+  d ∈ {0}
+  q ∈ {0}
+  r ∈ {0}
+  s ∈ {0}
+  t ∈ {0}
+tests/misc/lazy.i:11:[kernel] warning: pointer comparison: assert \pointer_comparable((void *)0, (void *)q);
+tests/misc/lazy.i:14:[kernel] warning: pointer comparison: assert \pointer_comparable((void *)0, (void *)s);
+tests/misc/lazy.i:19:[kernel] warning: pointer comparison: assert \pointer_comparable((void *)0, (void *)(&a+2));
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  a ∈ {6}
+  b ∈ {1}
+  q ∈ {{ &a + {-4; 0} }}
+  r ∈ {{ &a + {-4; 0} }}
+  s ∈ {{ &a + {-4; 0} }}
+  S_p[0..1] ∈ [--..--]
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  a FROM \nothing
+  b FROM \nothing
+  q FROM c
+  r FROM c (and SELF)
+  s FROM d_0
+  S_p[0] FROM p; S_p[0] (and SELF)
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          a; b; q; r; s; S_p[0]
+[inout] Inputs for function main:
+          a; q; s; S_p[0]

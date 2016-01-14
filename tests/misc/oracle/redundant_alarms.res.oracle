@@ -7,7 +7,7 @@
 [value] Values of globals at initialization
   v ∈ [--..--]
 [value] computing for function main1 <- main.
-        Called from tests/misc/redundant_alarms.c:26.
+        Called from tests/misc/redundant_alarms.c:50.
 tests/misc/redundant_alarms.c:11:[kernel] warning: accessing uninitialized left-value: assert \initialized(p);
 tests/misc/redundant_alarms.c:12:[kernel] warning: accessing uninitialized left-value: assert \initialized(p);
 tests/misc/redundant_alarms.c:15:[kernel] warning: accessing uninitialized left-value: assert \initialized(p);
@@ -16,16 +16,35 @@ tests/misc/redundant_alarms.c:15:[kernel] warning: completely indeterminate valu
 [value] Recording results for main1
 [value] Done for function main1
 [value] computing for function main2 <- main.
-        Called from tests/misc/redundant_alarms.c:27.
-tests/misc/redundant_alarms.c:20:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert 0 ≤ i < 10;
+        Called from tests/misc/redundant_alarms.c:51.
+tests/misc/redundant_alarms.c:20:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert 0 ≤ i;
+tests/misc/redundant_alarms.c:20:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert i < 10;
 tests/misc/redundant_alarms.c:21:[kernel] warning: accessing uninitialized left-value: assert \initialized(&t[i]);
 tests/misc/redundant_alarms.c:22:[kernel] warning: accessing uninitialized left-value: assert \initialized(&t[i]);
 [value] Recording results for main2
 [value] Done for function main2
+[value] computing for function main3 <- main.
+        Called from tests/misc/redundant_alarms.c:52.
+tests/misc/redundant_alarms.c:25:[value] Function main3: precondition got status unknown.
+tests/misc/redundant_alarms.c:31:[kernel] warning: accessing uninitialized left-value: assert \initialized(&t[i]);
+tests/misc/redundant_alarms.c:31:[kernel] warning: accessing uninitialized left-value: assert \initialized(&t[j]);
+tests/misc/redundant_alarms.c:32:[kernel] warning: accessing uninitialized left-value: assert \initialized(&t[j]);
+tests/misc/redundant_alarms.c:33:[kernel] warning: accessing uninitialized left-value: assert \initialized(&t[i]);
+[value] Recording results for main3
+[value] Done for function main3
+[value] computing for function main4 <- main.
+        Called from tests/misc/redundant_alarms.c:53.
+tests/misc/redundant_alarms.c:39:[value] entering loop for the first time
+tests/misc/redundant_alarms.c:41:[value] Assertion got status unknown.
+[value] Recording results for main4
+[value] Done for function main4
 [value] Recording results for main
 [value] done for function main
 tests/misc/redundant_alarms.c:15:[value] Assertion 'Value,initialisation' got final status invalid.
-[scope:rm_asserts] removing 1 assertion(s)
+[scope:rm_asserts] removing 3 assertion(s)
+tests/misc/redundant_alarms.c:12:[scope:rm_asserts] removing redundant assert Value: initialisation: \initialized(p);
+tests/misc/redundant_alarms.c:32:[scope:rm_asserts] removing redundant assert Value: initialisation: \initialized(&t[j]);
+tests/misc/redundant_alarms.c:33:[scope:rm_asserts] removing redundant assert Value: initialisation: \initialized(&t[i]);
 [slicing] making slicing project 'Slicing'...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function main1
@@ -40,6 +59,11 @@ tests/misc/redundant_alarms.c:15:[value] Assertion 'Value,initialisation' got fi
 [from] Done for function main1
 [from] Computing for function main2
 [from] Done for function main2
+[from] Computing for function main3
+[from] Done for function main3
+[from] Computing for function main4
+[from] Non-terminating function main4 (no dependencies)
+[from] Done for function main4
 [pdg] done for function main
 [slicing] exporting project to 'Slicing export'...
 [slicing] applying all slicing requests...
@@ -62,6 +86,7 @@ void main1(int c)
   *p = 1;
   /*@ assert Value: initialisation: \initialized(p); */
   z = *p + 1;
+  /*@ assert Value: initialisation: \initialized(p); */
   w = *p + 2;
   x = t;
   y = t;
@@ -85,10 +110,48 @@ void main2(int i)
   return;
 }
 
+/*@ requires i < 10 ∧ j < 10; */
+void main3(unsigned int i, unsigned int j)
+{
+  int t[10];
+  if (v) t[i] = v;
+  /*@ assert Value: initialisation: \initialized(&t[i]); */
+  /*@ assert Value: initialisation: \initialized(&t[j]); */
+  if (t[i] < t[j]) {
+    int tmp;
+    /*@ assert Value: initialisation: \initialized(&t[j]); */
+    tmp = t[j];
+    /*@ assert Value: initialisation: \initialized(&t[i]); */
+    t[j] = t[i];
+    t[i] = tmp;
+  }
+  return;
+}
+
+void main4(int i)
+{
+  while (1) {
+    {
+      int j;
+      int k;
+      int z;
+      int w;
+      j = 0;
+      /*@ assert i ≤ 0; */ ;
+      k = 0;
+      z = 0;
+      w = 0;
+    }
+  }
+  return;
+}
+
 void main(void)
 {
   if (v) main1(v);
   main2(v);
+  main3((unsigned int)v,(unsigned int)v);
+  if (v) main4(v);
   return;
 }
 
@@ -103,10 +166,12 @@ void main1_slice_1(int c)
   int *p;
   int *tmp;
   int z;
+  int w;
   if (c) tmp = & x; else tmp = & y;
   p = tmp;
   *p = 1;
   z = *p + 1;
+  w = *p + 2;
   y = t;
   x = t;
   if (v) z = *p + 2;

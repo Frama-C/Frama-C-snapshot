@@ -10,10 +10,14 @@ tests/float/builtins.c:55:[kernel] warning: Floating-point constant 2.72 is not 
 [value] computing for function Frama_C_float_interval <- main.
         Called from tests/float/builtins.c:11.
 [value] using specification for function Frama_C_float_interval
+share/libc/__fc_builtin.h:142:[value] Function Frama_C_float_interval: precondition got status valid.
+share/libc/__fc_builtin.h:143:[value] Function Frama_C_float_interval: precondition got status valid.
 [value] Done for function Frama_C_float_interval
 [value] computing for function Frama_C_double_interval <- main.
         Called from tests/float/builtins.c:12.
 [value] using specification for function Frama_C_double_interval
+share/libc/__fc_builtin.h:150:[value] Function Frama_C_double_interval: precondition got status valid.
+share/libc/__fc_builtin.h:151:[value] Function Frama_C_double_interval: precondition got status valid.
 [value] Done for function Frama_C_double_interval
 [value] Recording results for main
 [value] done for function main
@@ -131,8 +135,8 @@ tests/float/builtins.c:26:[value] Reading left-value d.
         {tests/float/builtins.c:107}.
 tests/float/builtins.c:26:[kernel] warning: non-finite double value ({{ garbled mix of &{d}
                   (origin: Arithmetic {tests/float/builtins.c:107}) }}): assert \is_finite(d);
-tests/float/builtins.c:26:[value] warning: out-of-range argument {{ garbled mix of &{d}
-                 (origin: Arithmetic {tests/float/builtins.c:26; tests/float/builtins.c:107}) }} for function Frama_C_log
+tests/float/builtins.c:26:[value] warning: builtin Frama_C_log: out-of-range argument {{ garbled mix of &{d}
+                 (origin: Arithmetic) }}
 tests/float/builtins.c:26:[value] function Frama_C_log applied to address
 tests/float/builtins.c:24:[value] Function log: postcondition got status unknown.
 [value] Recording results for log
@@ -158,10 +162,7 @@ tests/float/builtins.c:111:[value] Assertion 'Value,initialisation' got final st
   l4 ∈ [2.30258509299 .. 4.60517018599] or UNINITIALIZED
   l5 ∈ [-744.440071921 .. 709.782712893] or UNINITIALIZED
   l6 ∈ UNINITIALIZED
-  l7 ∈
-    {{ garbled mix of &{d}
-     (origin: Arithmetic {tests/float/builtins.c:26;
-     tests/float/builtins.c:107}) }} or UNINITIALIZED
+  l7 ∈ {{ garbled mix of &{d} (origin: Arithmetic) }} or UNINITIALIZED
   l8 ∈ UNINITIALIZED
   m1 ∈ {0} or UNINITIALIZED
   m2 ∈ {1.} or UNINITIALIZED
@@ -217,12 +218,14 @@ tests/float/builtins.c:111:[value] Assertion 'Value,initialisation' got final st
 [value] Done for function log10
 [value] computing for function log <- main_log_exp.
         Called from tests/float/builtins.c:72.
-tests/float/builtins.c:26:[value] warning: out-of-range argument [-0. .. 1.79769313486e+308] for function Frama_C_log
+tests/float/builtins.c:26:[value] warning: builtin Frama_C_log: out-of-range argument ([-0. .. 1.79769313486e+308]):
+                 negative argument, computation may result in NaN
 [value] Recording results for log
 [value] Done for function log
 [value] computing for function log10 <- main_log_exp.
         Called from tests/float/builtins.c:75.
-tests/float/builtins.c:33:[value] warning: out-of-range argument [-0. .. 1.79769313486e+308] for function Frama_C_log10
+tests/float/builtins.c:33:[value] warning: builtin Frama_C_log10: out-of-range argument ([-0. .. 1.79769313486e+308]):
+                 negative argument, computation may result in NaN
 [value] Recording results for log10
 [value] Done for function log10
 [value] computing for function log <- main_log_exp.
@@ -258,8 +261,11 @@ tests/float/builtins.c:33:[value] warning: out-of-range argument [-0. .. 1.79769
         Called from tests/float/builtins.c:102.
 [value] Recording results for log
 [value] Done for function log
+tests/float/builtins.c:107:[kernel] warning: non-finite double value ({{ &d }}): assert \is_finite((double)((int)(&d)));
 [value] computing for function log <- main_log_exp.
         Called from tests/float/builtins.c:107.
+tests/float/builtins.c:26:[kernel] warning: non-finite double value ({{ garbled mix of &{d}
+                  (origin: Arithmetic {tests/float/builtins.c:107}) }}): assert \is_finite(d);
 [value] Recording results for log
 [value] Done for function log
 tests/float/builtins.c:111:[kernel] warning: accessing uninitialized left-value: assert \initialized(&x);
@@ -279,10 +285,7 @@ tests/float/builtins.c:111:[kernel] warning: accessing uninitialized left-value:
   l4 ∈ [2.30258509299 .. 4.60517018599] or UNINITIALIZED
   l5 ∈ [-744.440071921 .. 709.782712893] or UNINITIALIZED
   l6 ∈ UNINITIALIZED
-  l7 ∈
-    {{ garbled mix of &{d}
-     (origin: Arithmetic {tests/float/builtins.c:26;
-     tests/float/builtins.c:107}) }} or UNINITIALIZED
+  l7 ∈ {{ garbled mix of &{d} (origin: Arithmetic) }} or UNINITIALIZED
   l8 ∈ UNINITIALIZED
   m1 ∈ {0} or UNINITIALIZED
   m2 ∈ {1.} or UNINITIALIZED

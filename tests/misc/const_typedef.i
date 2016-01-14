@@ -4,7 +4,7 @@
 
 typedef int INT[3][3];
 typedef int INT2[][3];
-typedef int INT3[2][];
+typedef int INT3[2][7];
 
 const __attribute__((BLA)) INT x1 = {1, 2, 3, 4, 5, 6, 7};
 const __attribute__((BLA)) INT x1bis;

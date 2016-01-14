@@ -1,3 +1,0 @@
-COMMENT: Prepare all tests and set command
-EXECNOW: make -s tests/dynamic/all
-CMD: FRAMAC_PLUGIN=tests/dynamic bin/toplevel.byte

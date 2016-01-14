@@ -40,13 +40,11 @@ void main(void)
       {
         int tmp;
         d += f[b] * a;
-        {
-          /*sequence*/
+        { /* sequence */
           g --;
           f[b] = d % g;
         }
-        {
-          /*sequence*/
+        { /* sequence */
           tmp = g;
           g --;
           d /= tmp;

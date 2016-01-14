@@ -1,0 +1,20 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/case_analysis.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  sq ∈ {0}
+  s ∈ {0}
+  rq ∈ {0}
+  r ∈ {0}
+tests/misc/case_analysis.i:14:[value] Assertion got status valid.
+tests/misc/case_analysis.i:17:[value] Assertion got status valid.
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  sq ∈ [0..100]
+  s ∈ [-10..10]
+  rq ∈ [-0.0000000000000000 .. 100.0000000000000000]
+  r ∈ [-10.0000000000000000 .. 10.0000000000000000]

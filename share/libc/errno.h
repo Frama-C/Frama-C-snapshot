@@ -23,6 +23,7 @@
 /* ISO C: 7.5 */
 #ifndef __FC_ERRNO
 #define __FC_ERRNO
+#include "features.h"
 #include "__fc_machdep.h"
 
 /* Mandatory */
@@ -149,6 +150,8 @@
 #define EXDEV __FC_EXDEV
 #define EXFULL __FC_EXFULL
 
+__BEGIN_DECLS
+
 extern int __FC_errno;
 
 #define errno __FC_errno
@@ -156,5 +159,7 @@ extern int __FC_errno;
 /* _GNU_SOURCE */
 extern char *program_invocation_name;
 extern char *program_invocation_short_name;
+
+__END_DECLS
 
 #endif

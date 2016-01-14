@@ -8,15 +8,20 @@
 tests/float/sqrt.i:12:[value] Assertion got status valid.
 tests/float/sqrt.i:14:[value] Assertion got status valid.
 [value] DUMPING STATE of file tests/float/sqrt.i line 19
+        k ∈ UNINITIALIZED
         i ∈ {-0.}
         j ∈ {-0.}
+        r ∈ UNINITIALIZED
         p ∈ {{ (unsigned long long *)&j }}
+        c[0..7] ∈ UNINITIALIZED
         =END OF DUMP==
 [value] DUMPING STATE of file tests/float/sqrt.i line 23
+        k ∈ UNINITIALIZED
         i ∈ {-0.}
         j ∈ {-0.}
         r ∈ {-0x8000000000000000}
         p ∈ {{ (unsigned long long *)&j }}
+        c[0..7] ∈ UNINITIALIZED
         =END OF DUMP==
 [value] Called Frama_C_show_each_long_long({-0x8000000000000000})
 [value] Called Frama_C_show_each_double({-0.})

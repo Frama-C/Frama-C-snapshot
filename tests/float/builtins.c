@@ -2,7 +2,7 @@
    OPT: -val -then -main main_log_exp -then -all-rounding-modes
 */
 
-#include <share/libc/__fc_builtin.h>
+#include <__fc_builtin.h>
 
 void main(int c, char **v)
 {

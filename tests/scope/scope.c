@@ -1,15 +1,15 @@
 /* run.config
-   OPT: -val -main f share/builtin.c -journal-disable
+   OPT: -val -main f -journal-disable
    OPT: -val -main f2 -journal-disable
    OPT: -val -main loop -journal-disable
 */
 /*
- * bin/viewer.byte -main f tests/scope/scope.c -val share/builtin.c
+ * bin/viewer.byte -main f tests/scope/scope.c -val
  * bin/viewer.byte -main f2 tests/scope/scope.c -val
  * bin/viewer.byte -main loop tests/scope/scope.c -val
  */
 
-#include "share/builtin.h"
+#include "__fc_builtin.h"
 
 typedef struct {int a; int b; } Tstr;
 Tstr S1, S2;

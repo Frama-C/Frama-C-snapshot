@@ -14,6 +14,7 @@ tests/slicing/bts679.i:8:[value] cannot evaluate ACSL term, \at() on a C label i
 tests/slicing/bts679.i:8:[value] Assertion got status unknown.
 [value] Recording results for main
 [value] done for function main
+tests/slicing/bts679.i:8:[value] Assertion got final status valid.
 [slicing] making slicing project 'Slicing'...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function main

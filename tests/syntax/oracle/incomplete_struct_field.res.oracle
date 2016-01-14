@@ -1,0 +1,6 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/syntax/incomplete_struct_field.i (no preprocessing)
+tests/syntax/incomplete_struct_field.i:1:[kernel] user error: attempt to declare an array over incomplete type struct _s
+[kernel] user error: type struct _s is circular
+[kernel] user error: stopping on file "tests/syntax/incomplete_struct_field.i" that has errors.
+[kernel] Frama-C aborted: invalid user input.

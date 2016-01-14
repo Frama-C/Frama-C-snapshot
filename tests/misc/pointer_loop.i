@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -val -out -input -deps -journal-disable
+   COMMENT: this line preserves location...
  */
 int base0=7;
 int base1=1;

@@ -41,7 +41,7 @@
 #   OCAMLWIN32    "yes"/"no" depending on Sys.os_type = "Win32"
 #   EXE           ".exe" if OCAMLWIN32=yes, "" otherwise
 
-AC_INIT(src/kernel)
+AC_INIT(src/kernel_internals/runtime/boot.ml)
 
 define([FRAMAC_MAIN_AUTOCONF])
 m4_include(share/configure.ac)
@@ -85,14 +85,6 @@ fi
 # Check for Ocaml compilers #
 #############################
 
-# Specifically allow 3.10.0
-UNSUPPORTED_OCAML=no
-AC_ARG_ENABLE(
-  unsupported-ocaml,
-  [  --enable-unsupported-ocaml attempt to compile even against unsupported ocaml version],
-  UNSUPPORTED_OCAML=$enableval,
-  UNSUPPORTED_OCAML=no)
-
 new_section "configure ocaml compilers"
 
 # we first look for ocamlc in the path; if not present, we fail
@@ -101,36 +93,22 @@ if test "$OCAMLC" = no ; then
         AC_MSG_ERROR(Cannot find ocamlc.)
 fi
 
-# Let user shoot himself in the foot if he so wishes
-warn_or_die () {
-if test "$UNSUPPORTED_OCAML" = "yes"; then
-  echo "Compile at your own risks";
-else
-  echo "If you want to compile Frama-C with this version, use the \
---enable-unsupported-ocaml option of configure";
-  exit 2;
-fi
-}
-
 # we extract Ocaml version number and library path
 # "sed -n" is the posix version of "sed --quiet"
-AC_MSG_CHECKING([version of OCaml])
+AC_MSG_CHECKING(version of OCaml)
 OCAMLVERSION=`$OCAMLC -v | sed -n -e 's|.*version *\(.*\)$|\1|p' `
 AC_MSG_RESULT($OCAMLVERSION)
 case $OCAMLVERSION in
-  3.12.1*) OCAML_ANNOT_OPTION="-annot";;
-  3.0*) echo "${ECHO_T}Incompatible version! Use at least OCaml 3.12.1.";
-        exit 2;;
-  3.10*) echo "${ECHO_T}Incompatible version! Use at least OCaml 3.12.1.";
-         exit 2;;
-  3.11*) echo "${ECHO_T}Incompatible version! Use at least OCaml 3.12.1.";
-         exit 2;;
-  3.12.0*) echo "${ECHO_T}Incompatible version! Use at least OCaml 3.12.1.";
-           exit 2;;
-  4.02.0*) echo "${ECHO_T}Incompatible version. Use OCaml 4.02.1.";
-           exit 2;;
-  4.*) OCAML_ANNOT_OPTION="-annot -bin-annot";;
-  *) echo "${ECHO_T}Incompatible version!"; exit 2;;
+  0.*|1.*|2.*|3.*)
+     AC_MSG_ERROR(Incompatible OCaml version; use 4.0+ (except 4.02.2, 4.02.0 and 4.00.0).);;
+   4.00.0)
+     AC_MSG_ERROR(Incompatible OCaml version; use at least 4.00.1 instead.);;
+   4.02.0)
+     AC_MSG_ERROR(Incompatible OCaml version; use at least 4.02.1 instead.);;
+   4.02.2)
+     AC_MSG_ERROR(Incompatible OCaml version; use at least 4.02.3 instead.);;
+   *)
+     OCAML_ANNOT_OPTION="-bin-annot";;
 esac
 
 # Ocaml library path
@@ -230,6 +208,10 @@ if test "$OCAMLYACC" = no ; then
         AC_MSG_ERROR(Cannot find ocamlyacc.)
 fi
 
+AC_CHECK_PROG(OCAMLFIND,ocamlfind,ocamlfind,no)
+if test "$OCAMLFIND" = no ; then
+   	AC_MSG_ERROR(Cannot find ocamlfind.)
+fi
 
 #################################################
 # Check for other (optional) tools/libraries    #
@@ -260,21 +242,6 @@ if test "$OCAMLCP" = no ; then
 fi
 
 AC_CHECK_PROG(OTAGS,otags,otags,)
-
-AC_CHECK_PROG(OCAMLFIND,ocamlfind,ocamlfind,no)
-if test "$OCAMLFIND" = "no" ; then
-   echo "No ocamlfind detected"
-else
-   OCAMLLIB_BY_FINDLIB=`ocamlfind printconf stdlib | tr -d '\\r'`
-   if test "$OCAMLLIB_BY_FINDLIB" = "$OCAMLLIB" ; then
-      echo "OCamlfind detected and enabled"
-   else
-      echo "OCamlfind detected but disabled. Standard libraries differ:"
-      echo "  ocamlc: '$OCAMLLIB'"
-      echo "  ocamlfind: '$OCAMLLIB_BY_FINDLIB'"
-      OCAMLFIND="no"
-   fi
-fi
 
 ##############
 # ocamlgraph #
@@ -307,7 +274,7 @@ AC_ARG_WITH(
         [])
 
 if test "$ENABLE_LOCAL_OCAMLGRAPH" != "yes"; then
-  if test "$OCAMLFIND" = "no" -o "$OCAMLGRAPH_CUSTOM" = "yes"; then
+  if test "$OCAMLGRAPH_CUSTOM" = "yes"; then
 
     # check if any ocamlgraph is installed in the right place
     AC_CHECK_FILE($OCAMLGRAPH_HOME/graph.$OBJ_SUFFIX,
@@ -366,7 +333,7 @@ if test "$ENABLE_LOCAL_OCAMLGRAPH" != "yes"; then
       *) ocamlgraph_error;;
       esac
       if test "$OCAMLGRAPH_EXISTS" = "yes"; then # current version is ok
-        if test "$OCAMLBEST" = "opt"; then 
+        if test "$OCAMLBEST" = "opt"; then
           if $OCAMLOPT -o test_ocamlgraph $OCAMLGRAPH_INCLUDE graph.cmxa \
             test_ocamlgraph.ml 2> /dev/null; \
           then
@@ -447,17 +414,12 @@ AC_ARG_ENABLE(
 if test -z "$ZARITH_PATH"; then
   # standard installation procedure of zarith diverges according to
   # ocamlfind installation (see zarith's README)
-  if test "$OCAMLFIND" = no ; then
-    ZARITH_PATH=$OCAMLLIB
-    AC_CHECK_FILE($ZARITH_PATH/zarith.$LIB_SUFFIX,HAS_ZARITH=yes,HAS_ZARITH=no)
-  else
     ZARITH_PATH=$($OCAMLFIND query zarith 2>/dev/null | tr -d '\r\n')
     if test -z "$ZARITH_PATH"; then
       HAS_ZARITH="no";
     else
       HAS_ZARITH="yes";
     fi;
-  fi
   if test "$HAS_ZARITH" = "no"; then
     AC_MSG_WARN(Zarith not found: will use the default less efficient library instead)
   fi
@@ -675,7 +637,7 @@ if test "$FC_MCPP" = no; then
       DEFAULT_CPP_KEEP_COMMENTS=true;
      else
       AC_MSG_WARN([Default pre-processing command '$CPP' do not preserve
-                     comments. Please define an appropriate pre-processor 
+                     comments. Please define an appropriate pre-processor
                    with --with-cpp, or you will only be able to use ACSL
                    annotations in already pre-processed files])
       FRAMAC_DEFAULT_CPP=$CPP;
@@ -760,35 +722,46 @@ PLUGINS_FORCE_LIST=
 #                                                                             #
 ###############################################################################
 
+# callgraph
+###########
+
+check_plugin(callgraph, src/plugins/callgraph,
+             [support for callgraph plugin], yes, yes)
+
+plugin_use_external(callgraph,dot)
+plugin_use(callgraph,gui)
+plugin_use(callgraph,value_analysis)
+
 # constant propagation
 ######################
 
-check_plugin(semantic_constant_folding, src/constant_propagation,
-             [support for constant propagation plugin], yes, no)
+check_plugin(semantic_constant_folding, src/plugins/constant_propagation,
+             [support for constant propagation plugin],yes,yes)
 
 plugin_require(semantic_constant_folding,value_analysis)
 
 # from
 ######
 
-check_plugin(from_analysis,src/from,[support for from analysis],yes,no)
+check_plugin(from_analysis,src/plugins/from,[support for from analysis],yes,yes)
 
 plugin_require(from_analysis,value_analysis)
-plugin_require(from_analysis,semantic_callgraph)
+plugin_require(from_analysis,callgraph)
 
 # gui
 #####
 
-check_plugin(gui,src/gui,[support for gui],yes,no)
+check_plugin(gui,src/plugins/gui,[support for gui],yes,no)
 
 plugin_require_external(gui,lablgtk)
 plugin_require_external(gui,gnomecanvas)
+plugin_require_external(gui,gtksourceview)
 plugin_use_external(gui,dot)
 
 # impact
 ########
 
-check_plugin(impact,src/impact,[support for impact plugin],yes,no)
+check_plugin(impact,src/plugins/impact,[support for impact plugin],yes,yes)
 
 plugin_use(impact,gui)
 plugin_use(impact,slicing)
@@ -799,101 +772,90 @@ plugin_require(impact,inout)
 # inout
 #######
 
-check_plugin(inout,src/inout,[support for inout analysis],yes,no)
+check_plugin(inout,src/plugins/inout,[support for inout analysis],yes,yes)
 plugin_require(inout,from_analysis)
 plugin_require(inout,value_analysis)
-plugin_require(inout,semantic_callgraph)
+plugin_require(inout,callgraph)
 
 # metrics
 #########
 
-check_plugin(metrics,src/metrics,[support for metrics analysis],yes,no)
+check_plugin(metrics,src/plugins/metrics,[support for metrics analysis],yes,yes)
 plugin_use(metrics,value_analysis)
 plugin_use(metrics,gui)
 
 # occurrence
 ############
 
-check_plugin(occurrence,src/occurrence,[support for occurrence analysis],yes,no)
+check_plugin(occurrence,src/plugins/occurrence,
+             [support for occurrence analysis],yes,yes)
 plugin_use(occurrence,gui)
 plugin_require(occurrence,value_analysis)
 
 # pdg
 #####
 
-check_plugin(pdg,src/pdg,[support for pdg plugin],yes,no,pdg_types)
+check_plugin(pdg,src/plugins/pdg,[support for pdg plugin],yes,yes,pdg_types)
 plugin_require(pdg,from_analysis)
 plugin_require(pdg,value_analysis)
+plugin_require(pdg,callgraph)
 
 # postdominators
 ################
 
-check_plugin(postdominators,src/postdominators,
+check_plugin(postdominators,src/plugins/postdominators,
              [support for postdominators plugin],yes,no)
 
 # rte
 #####
 
-check_plugin(rtegen,src/rte,
+check_plugin(rtegen,src/plugins/rte,
              [support for runtime error annotation],yes,no)
 
 # scope
 ############
 
-check_plugin(scope,src/scope,[support for scope plugin],yes,no)
+check_plugin(scope,src/plugins/scope,[support for scope plugin],yes,yes)
 plugin_require(scope,postdominators)
 plugin_require(scope,value_analysis)
 plugin_require(scope,from_analysis)
 plugin_require(scope,pdg)
 plugin_use(scope,gui)
 
-# semantic callgraph
-####################
-
-check_plugin(semantic_callgraph,src/semantic_callgraph,
-             [support for semantic callgraph],yes,no)
-plugin_require(semantic_callgraph,value_analysis)
-plugin_require(semantic_callgraph,users)
-
 # slicing
 #########
 
-check_plugin(slicing,src/slicing,[support for slicing plugin],yes,no,
+check_plugin(slicing,src/plugins/slicing,[support for slicing plugin],yes,yes,
              src/slicing_types)
 plugin_require(slicing,from_analysis)
 plugin_require(slicing,pdg)
 plugin_require(slicing,value_analysis)
+plugin_require(slicing,callgraph)
 plugin_use(slicing,gui)
 
 # spare code
 ############
 
-check_plugin(sparecode,src/sparecode,[support for sparecode plugin],yes,no)
+check_plugin(sparecode,src/plugins/sparecode,
+             [support for sparecode plugin],yes,yes)
 plugin_require(sparecode,pdg)
 plugin_require(sparecode,value_analysis)
-
-# syntactic callgraph
-#####################
-
-check_plugin(syntactic_callgraph, src/syntactic_callgraph,
-             [support for callgraph plugin], yes, no)
-
-plugin_use_external(syntactic_callgraph,dot)
-plugin_use(syntactic_callgraph,gui)
 
 # users
 #######
 
-check_plugin(users,src/users,[support for users analysis],yes,no)
+check_plugin(users,src/plugins/users,[support for users analysis],yes,yes)
 plugin_require(users,value_analysis)
+plugin_use(users,callgraph)
 
 # value
 #######
 
-check_plugin(value_analysis,src/value,[support for value analysis],yes,no,
-             [src/ai src/buckx])
+check_plugin(value_analysis,src/plugins/value,
+             [support for value analysis],yes,yes)
 plugin_use(value_analysis,gui)
 plugin_use(value_analysis,scope)
+plugin_use(value_analysis,callgraph)
 
 ####################
 # External plugins #
@@ -905,7 +867,7 @@ AC_ARG_ENABLE(external,
 [[  --enable-external=plugin
                           allows to compile directly from Frama-C kernel
                           some external plug-ins.]],
-[ 
+[
  for dir in $enableval; do
   if test -d $dir; then
     AC_MSG_NOTICE([external plug-in $dir found.])
@@ -927,41 +889,36 @@ AC_ARG_ENABLE(external,
  done
 ])
 
-define([KNOWN_SRC_DIRS],
-       KNOWN_SRC_DIRS src/kernel src/project src/logic src/dummy src/toplevel \
-       src/lib src/misc src/qed src/type src/printer \
-       src/ai src/memory_state)
-
-AC_FOREACH([__plugin],m4_esyscmd([ls src]),
+AC_FOREACH([__plugin],m4_esyscmd([ls src/plugins]),
   [ m4_if(m4_index(KNOWN_SRC_DIRS,__plugin),[-1],
-      [ m4_syscmd(test -r src/__plugin/configure.in)
+      [ m4_syscmd(test -r src/plugins/__plugin/configure.in)
         m4_define([is_configure_in],m4_sysval)
-        m4_syscmd(test -r src/__plugin/configure.ac)
+        m4_syscmd(test -r src/plugins/__plugin/configure.ac)
         m4_define([is_configure_ac],m4_sysval)
         m4_define([config_file],
-          [m4_if(is_configure_in,0,src/__plugin/configure.in,
-             m4_if(is_configure_ac,0,src/__plugin/configure.ac,no))])
+          [m4_if(is_configure_in,0,src/plugins/__plugin/configure.in,
+             m4_if(is_configure_ac,0,src/plugins/__plugin/configure.ac,no))])
         m4_if(config_file,[no],
-          [ m4_syscmd(test -r src/__plugin/Makefile)
+          [ m4_syscmd(test -r src/plugins/__plugin/Makefile)
             m4_if(m4_sysval,[0],
               [ m4_syscmd(test "$DISTRIB_CONF" = "yes" && \
-                           grep -q -e "PLUGIN_DISTRIBUTED *:= *no" \ 
-                                src/__plugin/Makefile
+                           grep -q -e "PLUGIN_DISTRIBUTED *:= *no" \
+                                src/plugins/__plugin/Makefile
                            )
                 m4_if(m4_sysval,[0],,
-                      [ check_plugin(__plugin,src/__plugin,
+                      [ check_plugin(__plugin,src/plugins/__plugin,
                          [support for __plugin plug-in],yes,yes)
                       if test "$[ENABLE_]tovarname(__plugin)" != "no"; then
-                         EXTERNAL_PLUGINS="$EXTERNAL_PLUGINS src/__plugin";
+                         EXTERNAL_PLUGINS="$EXTERNAL_PLUGINS src/plugins/__plugin";
                       fi])])],
           [ m4_syscmd(test "$DISTRIB_CONF" = "yes" && \
                       grep -q -e "PLUGIN_DISTRIBUTED:=no" \
-                            src/__plugin/Makefile.in)
+                            src/plugins/__plugin/Makefile.in)
             m4_if(m4_sysval,[0],,
-              [ m4_define([plugin_prefix],src/__plugin)
+              [ m4_define([plugin_prefix],src/plugins/__plugin)
                 m4_include(config_file)
-                m4_syscmd(cd src/__plugin && 
-                          [FRAMAC_SHARE]=../../share autoconf)])
+                m4_syscmd(cd src/plugins/__plugin && \
+                          [FRAMAC_SHARE]=../../../share autoconf)])
           ])
       ])
   ])
@@ -978,11 +935,6 @@ new_section "configure tools and libraries used by some plug-ins"
 REQUIRE_LABLGTK="$REQUIRE_LABLGTK$REQUIRE_GNOMECANVAS"
 USE_LABLGTK="$USE_LABLGTK$USE_GNOMECANVAS"
 
-if test "$OCAMLFIND" = "no" ; then
-  echo "No Ocamlfind. Using +lablgtk2."
-  LABLGTK_PATH=+lablgtk2
-  LABLGTKPATH_FOR_CONFIGURE=$OCAMLLIB/lablgtk2
-else
   LABLGTK_PATH=`ocamlfind query lablgtk2 | tr -d '\\r\\n'`
   if test "$LABLGTK_PATH" = "" -o "$LABLGTK_PATH" -ef "$OCAMLLIB/lablgtk2" ; then
      echo "Ocamlfind -> using +lablgtk2.($LABLGTK_PATH,$OCAMLLIB/lablgtk2)"
@@ -992,41 +944,21 @@ else
      echo "Ocamlfind -> using $LABLGTK_PATH"
      LABLGTKPATH_FOR_CONFIGURE=$LABLGTK_PATH
   fi
-fi
 
-configure_library([LABLGTK],[$LABLGTKPATH_FOR_CONFIGURE/lablgtk.$LIB_SUFFIX],
-                  [$LABLGTKPATH_FOR_CONFIGURE/lablgtk.$LIB_SUFFIX not found.],no)
+configure_library([GTKSOURCEVIEW],
+                  [$LABLGTKPATH_FOR_CONFIGURE/lablgtksourceview2.$LIB_SUFFIX],
+                  [lablgtksourceview2.$LIB_SUFFIX not found],
+                  no)
 
-if test "$HAS_LABLGTK" = "yes"; then
+configure_library([GNOMECANVAS],
+                  [$LABLGTKPATH_FOR_CONFIGURE/lablgnomecanvas.$LIB_SUFFIX],
+                  [lablgnomecanvas.$LIB_SUFFIX not found],
+                  no)
 
-  # Gtksourceview
-  ###############
-  REQUIRE_GTKSOURCEVIEW=
-  USE_GTKSOURCEVIEW=
-  HAS_GTKSOURCEVIEW=
-  FORCE_GTKSOURCEVIEW="yes"
-
-  if test "$FORCE_GTKSOURCEVIEW" = "yes"; then
-    REQUIRE_GTKSOURCEVIEW="$REQUIRE_LABLGTK"
-    USE_GTKSOURCEVIEW="$USE_LABLGTK"
-  else
-    if test "$has" = "yes"; then
-      USE_GTKSOURCEVIEW="$REQUIRE_LABLGTK$USE_LABLGTK"
-    fi
-  fi
-
-  configure_library([GTKSOURCEVIEW],
-                    [$LABLGTKPATH_FOR_CONFIGURE/lablgtksourceview2.$LIB_SUFFIX],
-                    [lablgtksourceview2.$LIB_SUFFIX not found],
-                    no)
-
-  # Gnomecanvas
-  #############
-  configure_library([GNOMECANVAS],[$LABLGTKPATH_FOR_CONFIGURE/lablgnomecanvas.$LIB_SUFFIX],
-                    [lablgnomecanvas.$LIB_SUFFIX not found],
-                    no)
-
-fi # $HAS_LABLGTK=yes
+configure_library([LABLGTK],
+                  [$LABLGTKPATH_FOR_CONFIGURE/lablgtk.$LIB_SUFFIX],
+                  [$LABLGTKPATH_FOR_CONFIGURE/lablgtk.$LIB_SUFFIX not found.],
+                  no)
 
 # dot and xdot tools
 ####################

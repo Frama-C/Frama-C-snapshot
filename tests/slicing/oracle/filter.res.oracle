@@ -68,8 +68,7 @@ int unspec_slice_1(void)
   int __retres;
   {
     int tmp_0;
-    {
-      /*sequence*/
+    { /* sequence */
       tmp_0 = f(T[2]);
       T[2] += tmp_0;
     }
@@ -84,13 +83,11 @@ int main(void)
   int tmp;
   int tmp_0;
   r = 0;
-  {
-    /*sequence*/
+  { /* sequence */
     tmp = bts806_slice_1();
     r += tmp;
   }
-  {
-    /*sequence*/
+  { /* sequence */
     tmp_0 = unspec_slice_1();
     r += tmp_0;
   }

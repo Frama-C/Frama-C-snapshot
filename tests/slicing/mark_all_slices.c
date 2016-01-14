@@ -1,6 +1,6 @@
 /* run.config
-   EXECNOW: make -s tests/slicing/mark_all_slices.opt
-   CMD: tests/slicing/mark_all_slices.opt
+   EXECNOW: make -s tests/slicing/mark_all_slices.cmxs
+   CMD: @frama-c@ -load-module tests/slicing/libSelect.cmxs -load-module tests/slicing/mark_all_slices.cmxs
    OPT: -check -deps -slicing-level 3 -no-slice-callers -journal-disable
 */
 int A, B, C, D;

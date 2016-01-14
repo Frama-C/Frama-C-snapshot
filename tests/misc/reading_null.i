@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -val -deps -out -input -lib-entry -main main -journal-disable
+   STDOPT: #"-lib-entry"
 */
 
 unsigned short AutoTest[1000]={0};
@@ -22,7 +22,7 @@ void main(int c){
 //   X = *p;
 
   while(count<10) {
-    CEA_F(X,count);
+    Frama_C_show_each_F(X,count);
     switch (count) {
       case 0: X = X1;
       break;

@@ -128,7 +128,7 @@ tests/misc/alias.i:260:[value] entering loop for the first time
 tests/misc/alias.i:271:[kernel] warning: signed overflow. assert c2+1 ≤ 2147483647;
 tests/misc/alias.i:273:[kernel] warning: signed overflow. assert c2+2 ≤ 2147483647;
 tests/misc/alias.i:279:[value] entering loop for the first time
-tests/misc/alias.i:285:[kernel] warning: pointer comparison: assert \pointer_comparable(PTR2, (char *)PTR1);
+tests/misc/alias.i:285:[kernel] warning: pointer comparison: assert \pointer_comparable((void *)PTR2, (void *)PTR1);
 tests/misc/alias.i:292:[value] entering loop for the first time
 tests/misc/alias.i:292:[kernel] warning: signed overflow. assert c1+1 ≤ 2147483647;
 [value] Recording results for main11

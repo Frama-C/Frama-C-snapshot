@@ -1,5 +1,5 @@
 /* run.config
-STDOPT: +"-unspecified-access"
+STDOPT: #"-unspecified-access"
 */
 struct S { int a; int b; };
 

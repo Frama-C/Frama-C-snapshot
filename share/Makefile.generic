@@ -62,14 +62,16 @@ else
 	@$(ECHO) "dot missing: generation of $@ skipped."
 endif
 
+# the two rules below are used for .cmi. The first one will be preferred
+# by make when a .mli exists (see GNU Make manual 10.5.4), the second is a
+# fallback for mli-less (boo) source files.
+
 %.cmi: %.mli
 	$(PRINT_OCAMLC) $@
 	$(OCAMLC) -c $(BFLAGS) $<
 
-%.cmi: %.ml
-	$(PRINT_OCAMLC) $@
-	if `test -e $<i`; then $(OCAMLC) -c $(BFLAGS) $<i; \
-	else $(MAKE) $(patsubst %.ml,%.cmo,$<); fi
+%.cmi: %.cmo
+	:
 
 %.cmo: %.ml
 	$(PRINT_OCAMLC) $@

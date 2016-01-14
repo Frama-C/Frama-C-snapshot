@@ -21,7 +21,8 @@ tests/scope/zones.c:16:[kernel] warning: signed overflow. assert y+z ≤ 2147483
 [value] Done for function simple
 [value] computing for function array1 <- main.
         Called from tests/scope/zones.c:74.
-tests/scope/zones.c:21:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert 0 ≤ x < 10;
+tests/scope/zones.c:21:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert 0 ≤ x;
+tests/scope/zones.c:21:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert x < 10;
 tests/scope/zones.c:22:[kernel] warning: signed overflow. assert T[0]+y ≤ 2147483647;
 [value] Recording results for array1
 [value] Done for function array1

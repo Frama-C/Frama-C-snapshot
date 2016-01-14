@@ -22,8 +22,11 @@
 
 #ifndef FC_IFADDRS
 #define FC_IFADDRS
+#include "features.h"
 
 #include "__fc_define_sockaddr.h"
+
+__BEGIN_DECLS
 
 /* Linux header */
 struct ifaddrs {
@@ -47,5 +50,7 @@ int getifaddrs(struct ifaddrs **);
 void freeifaddrs(struct ifaddrs *);
 int getifmaddrs(struct ifmaddrs **);
 void freeifmaddrs(struct ifmaddrs *);
+
+__END_DECLS
 
 #endif

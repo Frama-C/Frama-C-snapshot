@@ -1,11 +1,11 @@
 /* run.config
-   EXECNOW: BIN absorb.sav LOG absorb_sav.res LOG absorb_sav.err FRAMAC_PLUGIN=tests/.empty @frama-c@ -journal-disable share/builtin.c -save @PTEST_DIR@/result/absorb.sav @PTEST_FILE@ > @PTEST_DIR@/result/absorb_sav.res 2> @PTEST_DIR@/result/absorb_sav.err
-   EXECNOW: BIN absorb.sav2 LOG absorb_sav2.res LOG absorb_sav2.err FRAMAC_PLUGIN=tests/.empty @frama-c@ -load @PTEST_DIR@/result/absorb.sav -val -journal-disable -float-hex -save @PTEST_DIR@/result/absorb.sav2 > @PTEST_DIR@/result/absorb_sav2.res 2> @PTEST_DIR@/result/absorb_sav2.err
+   EXECNOW: BIN absorb.sav LOG absorb_sav.res LOG absorb_sav.err FRAMAC_PLUGIN=tests/.empty @frama-c@ -journal-disable -save @PTEST_DIR@/result/absorb.sav @PTEST_FILE@ > @PTEST_DIR@/result/absorb_sav.res 2> @PTEST_DIR@/result/absorb_sav.err
+   EXECNOW: BIN absorb.sav2 LOG absorb_sav2.res LOG absorb_sav2.err @frama-c@ -load @PTEST_DIR@/result/absorb.sav -val -journal-disable -float-hex -save @PTEST_DIR@/result/absorb.sav2 > @PTEST_DIR@/result/absorb_sav2.res 2> @PTEST_DIR@/result/absorb_sav2.err
    OPT: -load @PTEST_DIR@/result/absorb.sav2 -deps -out -input
-   OPT: -all-rounding-modes -val -deps -out -input -journal-disable -float-hex share/builtin.c
+   OPT: -all-rounding-modes -val -deps -out -input -journal-disable -float-hex 
 */
 
-#include "share/builtin.h"
+#include "__fc_builtin.h"
 
 float x = 1.0, y = 0.0, z, t, min_f, min_fl, den;
 

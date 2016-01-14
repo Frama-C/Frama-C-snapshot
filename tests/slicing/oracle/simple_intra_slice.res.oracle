@@ -40,7 +40,8 @@ tests/slicing/simple_intra_slice.c:101:[kernel] warning: signed overflow. assert
 [value] computing for function f6 <- main.
         Called from tests/slicing/simple_intra_slice.c:107.
 tests/slicing/simple_intra_slice.c:59:[value] entering loop for the first time
-tests/slicing/simple_intra_slice.c:71:[kernel] warning: signed overflow. assert -2147483648 ≤ 10*n ≤ 2147483647;
+tests/slicing/simple_intra_slice.c:71:[kernel] warning: signed overflow. assert -2147483648 ≤ 10*n;
+tests/slicing/simple_intra_slice.c:71:[kernel] warning: signed overflow. assert 10*n ≤ 2147483647;
 [value] Recording results for f6
 [value] Done for function f6
 tests/slicing/simple_intra_slice.c:107:[kernel] warning: signed overflow. assert res+tmp_3 ≤ 2147483647;
@@ -927,8 +928,8 @@ int f6(int n)
     goto return_label;
   }
   else {
-    /*@ assert Value: signed_overflow: 10*n ≤ 2147483647; */
     /*@ assert Value: signed_overflow: -2147483648 ≤ 10*n; */
+    /*@ assert Value: signed_overflow: 10*n ≤ 2147483647; */
     /* 69 */
     __retres = 10 * n;
     /* 133 */
@@ -981,8 +982,8 @@ f6_slice_1:
     goto return_label;
   }
   else {
-    /*@ assert Value: signed_overflow: 10*n ≤ 2147483647; */
     /*@ assert Value: signed_overflow: -2147483648 ≤ 10*n; */
+    /*@ assert Value: signed_overflow: 10*n ≤ 2147483647; */
     /* <[---], [---]> */
     __retres = 10 * n;
     /* <[---], [---]> */
@@ -1267,8 +1268,8 @@ f6_slice_1:
     goto return_label;
   }
   else {
-    /*@ assert Value: signed_overflow: 10*n ≤ 2147483647; */
     /*@ assert Value: signed_overflow: -2147483648 ≤ 10*n; */
+    /*@ assert Value: signed_overflow: 10*n ≤ 2147483647; */
     /* <[---], [---]> */
     __retres = 10 * n;
     /* <[---], [---]> */

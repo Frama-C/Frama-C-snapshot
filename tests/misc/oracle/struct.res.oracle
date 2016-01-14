@@ -13,7 +13,8 @@
   R1 ∈ {0}
   R2 ∈ {0}
   G ∈ {0}
-tests/misc/struct.i:47:[kernel] warning: signed overflow. assert -2147483648 ≤ a+b ≤ 2147483647;
+tests/misc/struct.i:47:[kernel] warning: signed overflow. assert -2147483648 ≤ a+b;
+tests/misc/struct.i:47:[kernel] warning: signed overflow. assert a+b ≤ 2147483647;
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======

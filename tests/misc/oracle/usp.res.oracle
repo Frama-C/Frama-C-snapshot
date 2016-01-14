@@ -23,6 +23,7 @@
         Z ∈ {-1; 0}
         T ∈ {0; 5}
         c ∈ [--..--]
+        __retres ∈ UNINITIALIZED
         =END OF DUMP==
 [value] Recording results for main
 [value] done for function main

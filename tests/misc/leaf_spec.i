@@ -1,6 +1,6 @@
 /* run.config
-   OPT: -val -deps -out -input  -journal-disable
-   OPT: -val -deps -out -input  -main main1 -journal-disable
+   STDOPT: #"-main main"
+   STDOPT: #"-main main1"
 */
 
 void f(int * x, int * y, int **z, int a, char b);

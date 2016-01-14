@@ -22,7 +22,10 @@
 
 #ifndef __FC_DEFINE_SIZE_T
 #define __FC_DEFINE_SIZE_T
+#include "features.h"
 #include "__fc_machdep.h"
+__BEGIN_DECLS
 typedef __SIZE_T size_t;
+__END_DECLS
 #endif
 

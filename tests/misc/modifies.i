@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -val -deps -out -input -lib-entry -main main -journal-disable
+   STDOPT: #"-lib-entry"
 */
 
 int TAB[10];

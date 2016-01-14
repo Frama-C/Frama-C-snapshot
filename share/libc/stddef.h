@@ -23,7 +23,10 @@
 #ifndef __FC_STDDEF
 #define __FC_STDDEF
 #include "__fc_machdep.h"
+#include "features.h"
+__BEGIN_DECLS
 typedef __PTRDIFF_T ptrdiff_t;
+__END_DECLS
 #include "__fc_define_size_t.h"
 #ifdef __GNU_C__
 #include "__fc_define_ssize_t.h"

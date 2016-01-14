@@ -1,5 +1,5 @@
 /* run.config
-   STDOPT: +"-unspecified-access"
+   STDOPT: #"-unspecified-access"
 */
 /* based on an example from J. Regehr on the why list */
 /* precondition: false */

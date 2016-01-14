@@ -42,18 +42,26 @@
   v ∈ [--..--]
   Tab[0..9] ∈ {0}
   P ∈ {0}
-tests/misc/struct2.i:74:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert 0 ≤ i < 2;
+tests/misc/struct2.i:74:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert 0 ≤ i;
+tests/misc/struct2.i:74:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert i < 2;
 tests/misc/struct2.i:76:[kernel] warning: signed overflow. assert i+j ≤ 2147483647;
 tests/misc/struct2.i:76:[kernel] warning: accessing out of bounds index [-2147483648..2147483647].
-                  assert 0 ≤ (int)(i+j) < 2;
+                  assert 0 ≤ (int)(i+j);
+tests/misc/struct2.i:76:[kernel] warning: accessing out of bounds index [-2147483648..2147483647].
+                  assert (int)(i+j) < 2;
 tests/misc/struct2.i:78:[kernel] warning: accessing out of bounds index {0; 2}. assert tab2[i] < 2;
 tests/misc/struct2.i:80:[kernel] warning: accessing out of bounds index {0; 2}. assert tab2[1] < 2;
 tests/misc/struct2.i:82:[kernel] warning: signed overflow. assert tab2[i]+j ≤ 2147483647;
 tests/misc/struct2.i:82:[kernel] warning: accessing out of bounds index [-2147483648..2147483647].
-                  assert 0 ≤ (int)(tab2[i]+j) < 2;
+                  assert 0 ≤ (int)(tab2[i]+j);
+tests/misc/struct2.i:82:[kernel] warning: accessing out of bounds index [-2147483648..2147483647].
+                  assert (int)(tab2[i]+j) < 2;
 tests/misc/struct2.i:99:[kernel] warning: accessing out of bounds index [-2147483648..2147483647].
-                  assert 0 ≤ (int)(tabl[i]+x) < 2;
-tests/misc/struct2.i:117:[kernel] warning: signed overflow. assert -2147483648 ≤ *p+x ≤ 2147483647;
+                  assert 0 ≤ (int)(tabl[i]+x);
+tests/misc/struct2.i:99:[kernel] warning: accessing out of bounds index [-2147483648..2147483647].
+                  assert (int)(tabl[i]+x) < 2;
+tests/misc/struct2.i:117:[kernel] warning: signed overflow. assert -2147483648 ≤ *p+x;
+tests/misc/struct2.i:117:[kernel] warning: signed overflow. assert *p+x ≤ 2147483647;
 tests/misc/struct2.i:124:[kernel] warning: out of bounds read. assert \valid_read(r);
 tests/misc/struct2.i:124:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
 tests/misc/struct2.i:130:[kernel] warning: out of bounds read. assert \valid_read(p3+2);
@@ -61,12 +69,19 @@ tests/misc/struct2.i:138:[kernel] warning: signed overflow. assert *((int *)0x10
 tests/misc/struct2.i:149:[kernel] warning: out of bounds write. assert \valid(*t+i);
 tests/misc/struct2.i:185:[kernel] warning: signed overflow. assert i+j ≤ 2147483647;
 tests/misc/struct2.i:185:[kernel] warning: accessing out of bounds index [-2147483648..2147483647].
-                  assert 0 ≤ (int)(i+j) < 2;
-tests/misc/struct2.i:185:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert 0 ≤ l < 2;
-tests/misc/struct2.i:185:[kernel] warning: signed overflow. assert -2147483648 ≤ tab3[l]+m ≤ 2147483647;
+                  assert 0 ≤ (int)(i+j);
 tests/misc/struct2.i:185:[kernel] warning: accessing out of bounds index [-2147483648..2147483647].
-                  assert 0 ≤ (int)(tab3[l]+m) < 10;
-tests/misc/struct2.i:185:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert 0 ≤ k < 2;
+                  assert (int)(i+j) < 2;
+tests/misc/struct2.i:185:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert 0 ≤ l;
+tests/misc/struct2.i:185:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert l < 2;
+tests/misc/struct2.i:185:[kernel] warning: signed overflow. assert -2147483648 ≤ tab3[l]+m;
+tests/misc/struct2.i:185:[kernel] warning: signed overflow. assert tab3[l]+m ≤ 2147483647;
+tests/misc/struct2.i:185:[kernel] warning: accessing out of bounds index [-2147483648..2147483647].
+                  assert 0 ≤ (int)(tab3[l]+m);
+tests/misc/struct2.i:185:[kernel] warning: accessing out of bounds index [-2147483648..2147483647].
+                  assert (int)(tab3[l]+m) < 10;
+tests/misc/struct2.i:185:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert 0 ≤ k;
+tests/misc/struct2.i:185:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert k < 2;
 [value] Recording results for f_precis
 [value] done for function f_precis
 tests/misc/struct2.i:124:[value] Assertion 'Value,mem_access' got final status invalid.

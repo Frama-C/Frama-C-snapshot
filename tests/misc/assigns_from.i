@@ -1,5 +1,5 @@
 /* run.config
-   STDOPT: +"-from-verify-assigns"
+   STDOPT: #"-from-verify-assigns"
 */
 int u;
 int v;

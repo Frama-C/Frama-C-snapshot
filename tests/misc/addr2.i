@@ -1,7 +1,7 @@
 
 int x  ;
 int t[13]  ;
-extern void CEA_F(int  ) ;
+extern void Frama_C_show_each_F(int  ) ;
 void main(void)
 { int i ;
 
@@ -16,7 +16,7 @@ void main(void)
     } else {
       goto L;
     }
-    CEA_F(i);
+    Frama_C_show_each_F(i);
     i += 1;
   }
   }

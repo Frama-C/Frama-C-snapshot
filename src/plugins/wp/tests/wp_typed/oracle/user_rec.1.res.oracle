@@ -1,0 +1,269 @@
+# frama-c -wp -wp-model 'Typed (Ref)' [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_typed/user_rec.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] Collecting variable usage
+------------------------------------------------------------
+  Global
+------------------------------------------------------------
+
+Lemma fact_ge1:
+Prove: 0<(L_fact n_0)
+
+------------------------------------------------------------
+
+Lemma fact_next:
+Assume: 'fact_ge1'
+Prove: let x_0 = (L_fact m_0) in
+       (0<n_0) -> (n_0<=m_0)
+       -> ((n_0*(x_0 div (L_fact n_0)))=(x_0 div (L_fact (n_0-1))))
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function F1
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_typed/user_rec.i, line 6) in 'F1':
+Assume {
+  (* Domain *)
+  Type: (is_sint32 F1_0) /\ (is_sint32 i_1) /\ (is_sint32 i_2)
+        /\ (is_sint32 n_0).
+  (* tests/wp_typed/user_rec.i:9: Conditional *)
+  If: n_0<=1
+  Then { (* tests/wp_typed/user_rec.i:9: Assignment *) Have: 1=F1_0. }
+  Else {
+    (* Invariant (file tests/wp_typed/user_rec.i, line 13) *)
+    (* tests/wp_typed/user_rec.i:16: Invariant: *)
+    Have: F1_0=(L_fact (i_1-1)).
+    (* Invariant (file tests/wp_typed/user_rec.i, line 12) *)
+    (* tests/wp_typed/user_rec.i:16: Invariant: *)
+    Have: (2<=i_1) /\ (i_1<=(1+n_0)).
+    (* tests/wp_typed/user_rec.i:16: Else *)
+    Have: n_0<i_1.
+  }
+}
+Prove: F1_0=(L_fact n_0).
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file tests/wp_typed/user_rec.i, line 12):
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_1) /\ (is_sint32 n_1) /\ (is_sint32 (1+i_1))
+        /\ (is_sint32 (L_fact (i_1-1))).
+  (* tests/wp_typed/user_rec.i:9: Else *)
+  Have: 2<=n_1.
+  (* Invariant (file tests/wp_typed/user_rec.i, line 12) *)
+  (* tests/wp_typed/user_rec.i:16: Invariant: *)
+  Have: (2<=i_1) /\ (i_1<=(1+n_1)).
+  (* tests/wp_typed/user_rec.i:16: Then *)
+  Have: i_1<=n_1.
+}
+Prove: 0<i_1.
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file tests/wp_typed/user_rec.i, line 12):
+Assume {
+  (* Domain *)
+  Type: (is_sint32 n_1).
+  (* tests/wp_typed/user_rec.i:9: Else *)
+  Have: 2<=n_1.
+}
+Prove: 0<n_1.
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file tests/wp_typed/user_rec.i, line 13):
+Let x_0 = (L_fact (i_1-1)).
+Let x_1 = i_1*x_0.
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_1) /\ (is_sint32 n_0) /\ (is_sint32 (1+i_1))
+        /\ (is_sint32 x_0) /\ (is_sint32 x_1).
+  (* tests/wp_typed/user_rec.i:9: Else *)
+  Have: 2<=n_0.
+  (* Invariant (file tests/wp_typed/user_rec.i, line 12) *)
+  (* tests/wp_typed/user_rec.i:16: Invariant: *)
+  Have: (2<=i_1) /\ (i_1<=(1+n_0)).
+  (* tests/wp_typed/user_rec.i:16: Then *)
+  Have: i_1<=n_0.
+}
+Prove: (L_fact i_1)=x_1.
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file tests/wp_typed/user_rec.i, line 13):
+Assume {
+  (* Domain *)
+  Type: (is_sint32 n_0).
+  (* tests/wp_typed/user_rec.i:9: Else *)
+  Have: 2<=n_0.
+}
+Prove: 1=(L_fact 1).
+
+------------------------------------------------------------
+
+Goal Loop assigns (file tests/wp_typed/user_rec.i, line 14):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function F2
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_typed/user_rec.i, line 20) in 'F2':
+Assume {
+  (* Domain *)
+  Type: (is_sint32 F2_0) /\ (is_sint32 i_1) /\ (is_sint32 n_1).
+  (* Invariant 'PART' (file tests/wp_typed/user_rec.i, line 26) *)
+  (* tests/wp_typed/user_rec.i:29: Invariant 'PART': *)
+  Have: if (n_1<=1) then (1=F2_0) else (F2_0=(L_fact (i_1-1))).
+  (* Invariant 'RANGE' (file tests/wp_typed/user_rec.i, line 25) *)
+  (* tests/wp_typed/user_rec.i:29: Invariant 'RANGE': *)
+  Have: if (n_1<=1) then (2=i_1) else ((2<=i_1) /\ (i_1<=(1+n_1))).
+  (* tests/wp_typed/user_rec.i:29: Else *)
+  Have: n_1<i_1.
+}
+Prove: F2_0=(L_fact n_1).
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant 'PART' (file tests/wp_typed/user_rec.i, line 26):
+Let x_0 = i_1*p_1.
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_1) /\ (is_sint32 n_0) /\ (is_sint32 p_1)
+        /\ (is_sint32 (1+i_1)) /\ (is_sint32 x_0).
+  (* Invariant 'PART' (file tests/wp_typed/user_rec.i, line 26) *)
+  (* tests/wp_typed/user_rec.i:29: Invariant 'PART': *)
+  Have: if (n_0<=1) then (1=p_1) else (p_1=(L_fact (i_1-1))).
+  (* Invariant 'RANGE' (file tests/wp_typed/user_rec.i, line 25) *)
+  (* tests/wp_typed/user_rec.i:29: Invariant 'RANGE': *)
+  Have: if (n_0<=1) then (2=i_1) else ((2<=i_1) /\ (i_1<=(1+n_0))).
+  (* tests/wp_typed/user_rec.i:29: Then *)
+  Have: i_1<=n_0.
+}
+Prove: if (n_0<=1) then (1=x_0) else ((L_fact i_1)=x_0).
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant 'PART' (file tests/wp_typed/user_rec.i, line 26):
+Assume { (* Domain *) Type: (is_sint32 n_0). }
+Prove: (n_0<=1) \/ (1=(L_fact 1)).
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant 'RANGE' (file tests/wp_typed/user_rec.i, line 25):
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_1) /\ (is_sint32 n_0) /\ (is_sint32 p_3)
+        /\ (is_sint32 (1+i_1)).
+  (* Invariant 'PART' (file tests/wp_typed/user_rec.i, line 26) *)
+  (* tests/wp_typed/user_rec.i:29: Invariant 'PART': *)
+  Have: if (n_0<=1) then (1=p_3) else (p_3=(L_fact (i_1-1))).
+  (* Invariant 'RANGE' (file tests/wp_typed/user_rec.i, line 25) *)
+  (* tests/wp_typed/user_rec.i:29: Invariant 'RANGE': *)
+  Have: if (n_0<=1) then (2=i_1) else ((2<=i_1) /\ (i_1<=(1+n_0))).
+  (* tests/wp_typed/user_rec.i:29: Then *)
+  Have: i_1<=n_0.
+}
+Prove: if (n_0<=1) then (1=i_1) else (0<i_1).
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant 'RANGE' (file tests/wp_typed/user_rec.i, line 25):
+Assume { (* Domain *) Type: (is_sint32 n_0). }
+Prove: (0<n_0) \/ (n_0<=1).
+
+------------------------------------------------------------
+
+Goal Loop assigns (file tests/wp_typed/user_rec.i, line 27):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function F4
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_typed/user_rec.i, line 33) in 'F4':
+Let x_0 = (L_fact n_0).
+Assume {
+  (* Domain *)
+  Type: (is_sint32 F4_0) /\ (is_sint32 n_0) /\ (is_sint32 n_2).
+  (* Invariant 'NEVER' (file tests/wp_typed/user_rec.i, line 39) *)
+  (* tests/wp_typed/user_rec.i:42: Invariant 'NEVER': *)
+  Have: if (n_0<=1) then (1=F4_0) else (F4_0=(x_0 div (L_fact n_2))).
+  (* Invariant 'RANGE' (file tests/wp_typed/user_rec.i, line 38) *)
+  (* tests/wp_typed/user_rec.i:42: Invariant 'RANGE': *)
+  Have: if (n_0<=1) then (n_0=n_2) else ((0<n_2) /\ (n_2<=n_0)).
+  (* tests/wp_typed/user_rec.i:42: Else *)
+  Have: n_2<=1.
+}
+Prove: F4_0=x_0.
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant 'NEVER' (file tests/wp_typed/user_rec.i, line 39):
+Let x_0 = n_2*p_1.
+Let x_1 = (L_fact n_0).
+Let x_2 = n_2-1.
+Assume {
+  (* Domain *)
+  Type: (is_sint32 n_0) /\ (is_sint32 n_2) /\ (is_sint32 p_1)
+        /\ (is_sint32 x_2) /\ (is_sint32 x_0).
+  (* Invariant 'NEVER' (file tests/wp_typed/user_rec.i, line 39) *)
+  (* tests/wp_typed/user_rec.i:42: Invariant 'NEVER': *)
+  Have: if (n_0<=1) then (1=p_1) else (p_1=(x_1 div (L_fact n_2))).
+  (* Invariant 'RANGE' (file tests/wp_typed/user_rec.i, line 38) *)
+  (* tests/wp_typed/user_rec.i:42: Invariant 'RANGE': *)
+  Have: if (n_0<=1) then (n_0=n_2) else ((0<n_2) /\ (n_2<=n_0)).
+  (* tests/wp_typed/user_rec.i:42: Then *)
+  Have: 2<=n_2.
+}
+Prove: if (n_0<=1) then (1=x_0) else (x_0=(x_1 div (L_fact x_2))).
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant 'NEVER' (file tests/wp_typed/user_rec.i, line 39):
+Let x_0 = (L_fact n_0).
+Assume { (* Domain *) Type: (is_sint32 n_0). }
+Prove: (n_0<=1) \/ (1=(x_0 div x_0)).
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant 'RANGE' (file tests/wp_typed/user_rec.i, line 38):
+Let x_0 = 1+n_0.
+Assume {
+  (* Domain *)
+  Type: (is_sint32 n_0) /\ (is_sint32 n_2) /\ (is_sint32 p_3)
+        /\ (is_sint32 (n_2-1)).
+  (* Invariant 'NEVER' (file tests/wp_typed/user_rec.i, line 39) *)
+  (* tests/wp_typed/user_rec.i:42: Invariant 'NEVER': *)
+  Have: if (n_0<=1) then (1=p_3) else (p_3=((L_fact n_0) div (L_fact n_2))).
+  (* Invariant 'RANGE' (file tests/wp_typed/user_rec.i, line 38) *)
+  (* tests/wp_typed/user_rec.i:42: Invariant 'RANGE': *)
+  Have: if (n_0<=1) then (n_0=n_2) else ((0<n_2) /\ (n_2<=n_0)).
+  (* tests/wp_typed/user_rec.i:42: Then *)
+  Have: 2<=n_2.
+}
+Prove: if (n_0<=1) then (n_2=x_0) else (n_2<=x_0).
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant 'RANGE' (file tests/wp_typed/user_rec.i, line 38):
+Assume { (* Domain *) Type: (is_sint32 n_0). }
+Prove: (0<n_0) \/ (n_0<=1).
+
+------------------------------------------------------------
+
+Goal Loop assigns (file tests/wp_typed/user_rec.i, line 40):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------

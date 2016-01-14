@@ -484,20 +484,33 @@ tests/test/adpcm.c:506:[value] entering loop for the first time
 [value] computing for function encode <- main.
         Called from tests/test/adpcm.c:608.
 tests/test/adpcm.c:278:[kernel] warning: signed overflow.
-                  assert -2147483648 ≤ xa+(long)((long)*tmp_3*(long)*tmp_4) ≤ 2147483647;
+                  assert -2147483648 ≤ xa+(long)((long)*tmp_3*(long)*tmp_4);
+                  (tmp_3 from tqmf_ptr++, tmp_4 from h_ptr++)
+tests/test/adpcm.c:278:[kernel] warning: signed overflow.
+                  assert xa+(long)((long)*tmp_3*(long)*tmp_4) ≤ 2147483647;
                   (tmp_3 from tqmf_ptr++, tmp_4 from h_ptr++)
 tests/test/adpcm.c:279:[kernel] warning: signed overflow.
-                  assert -2147483648 ≤ xb+(long)((long)*tmp_5*(long)*tmp_6) ≤ 2147483647;
+                  assert -2147483648 ≤ xb+(long)((long)*tmp_5*(long)*tmp_6);
+                  (tmp_5 from tqmf_ptr++, tmp_6 from h_ptr++)
+tests/test/adpcm.c:279:[kernel] warning: signed overflow.
+                  assert xb+(long)((long)*tmp_5*(long)*tmp_6) ≤ 2147483647;
                   (tmp_5 from tqmf_ptr++, tmp_6 from h_ptr++)
 tests/test/adpcm.c:282:[kernel] warning: signed overflow.
-                  assert -2147483648 ≤ xa+(long)((long)*tmp_7*(long)*tmp_8) ≤ 2147483647;
+                  assert -2147483648 ≤ xa+(long)((long)*tmp_7*(long)*tmp_8);
+                  (tmp_7 from tqmf_ptr++, tmp_8 from h_ptr++)
+tests/test/adpcm.c:282:[kernel] warning: signed overflow.
+                  assert xa+(long)((long)*tmp_7*(long)*tmp_8) ≤ 2147483647;
                   (tmp_7 from tqmf_ptr++, tmp_8 from h_ptr++)
 tests/test/adpcm.c:283:[kernel] warning: signed overflow.
-                  assert
-                  -2147483648 ≤ xb+(long)((long)*tqmf_ptr*(long)*tmp_9) ≤ 2147483647;
+                  assert -2147483648 ≤ xb+(long)((long)*tqmf_ptr*(long)*tmp_9);
                   (tmp_9 from h_ptr++)
-tests/test/adpcm.c:293:[kernel] warning: signed overflow. assert -2147483648 ≤ xa+xb ≤ 2147483647;
-tests/test/adpcm.c:294:[kernel] warning: signed overflow. assert -2147483648 ≤ xa-xb ≤ 2147483647;
+tests/test/adpcm.c:283:[kernel] warning: signed overflow.
+                  assert xb+(long)((long)*tqmf_ptr*(long)*tmp_9) ≤ 2147483647;
+                  (tmp_9 from h_ptr++)
+tests/test/adpcm.c:293:[kernel] warning: signed overflow. assert -2147483648 ≤ xa+xb;
+tests/test/adpcm.c:293:[kernel] warning: signed overflow. assert xa+xb ≤ 2147483647;
+tests/test/adpcm.c:294:[kernel] warning: signed overflow. assert -2147483648 ≤ xa-xb;
+tests/test/adpcm.c:294:[kernel] warning: signed overflow. assert xa-xb ≤ 2147483647;
 [value] computing for function filtez <- encode <- main.
         Called from tests/test/adpcm.c:301.
 [value] Recording results for filtez
@@ -597,7 +610,8 @@ tests/test/adpcm.c:512:[value] entering loop for the first time
 [value] Done for function scalel
 [value] computing for function upzero <- encode <- main.
         Called from tests/test/adpcm.c:331.
-tests/test/adpcm.c:514:[kernel] warning: signed overflow. assert -2147483648 ≤ 255L*(long)*(bli+i) ≤ 2147483647;
+tests/test/adpcm.c:514:[kernel] warning: signed overflow. assert -2147483648 ≤ 255L*(long)*(bli+i);
+tests/test/adpcm.c:514:[kernel] warning: signed overflow. assert 255L*(long)*(bli+i) ≤ 2147483647;
 [value] Recording results for upzero
 [value] Done for function upzero
 [value] computing for function uppol2 <- encode <- main.
@@ -647,13 +661,22 @@ tests/test/adpcm.c:514:[kernel] warning: signed overflow. assert -2147483648 ≤
 [value] computing for function filtez <- encode <- main.
         Called from tests/test/adpcm.c:301.
 tests/test/adpcm.c:416:[kernel] warning: signed overflow.
-                  assert -2147483648 ≤ (long)*tmp*(long)*tmp_0 ≤ 2147483647;
+                  assert -2147483648 ≤ (long)*tmp*(long)*tmp_0;
+                  (tmp from bpl++, tmp_0 from dlt_0++)
+tests/test/adpcm.c:416:[kernel] warning: signed overflow.
+                  assert (long)*tmp*(long)*tmp_0 ≤ 2147483647;
                   (tmp from bpl++, tmp_0 from dlt_0++)
 tests/test/adpcm.c:419:[kernel] warning: signed overflow.
-                  assert -2147483648 ≤ (long)*tmp_1*(long)*tmp_2 ≤ 2147483647;
+                  assert -2147483648 ≤ (long)*tmp_1*(long)*tmp_2;
                   (tmp_1 from bpl++, tmp_2 from dlt_0++)
 tests/test/adpcm.c:419:[kernel] warning: signed overflow.
-                  assert -2147483648 ≤ zl+(long)((long)*tmp_1*(long)*tmp_2) ≤ 2147483647;
+                  assert (long)*tmp_1*(long)*tmp_2 ≤ 2147483647;
+                  (tmp_1 from bpl++, tmp_2 from dlt_0++)
+tests/test/adpcm.c:419:[kernel] warning: signed overflow.
+                  assert -2147483648 ≤ zl+(long)((long)*tmp_1*(long)*tmp_2);
+                  (tmp_1 from bpl++, tmp_2 from dlt_0++)
+tests/test/adpcm.c:419:[kernel] warning: signed overflow.
+                  assert zl+(long)((long)*tmp_1*(long)*tmp_2) ≤ 2147483647;
                   (tmp_1 from bpl++, tmp_2 from dlt_0++)
 [value] Recording results for filtez
 [value] Done for function filtez
@@ -679,7 +702,8 @@ tests/test/adpcm.c:419:[kernel] warning: signed overflow.
 [value] Done for function scalel
 [value] computing for function upzero <- encode <- main.
         Called from tests/test/adpcm.c:331.
-tests/test/adpcm.c:507:[kernel] warning: signed overflow. assert -2147483648 ≤ 255L*(long)*(bli+i) ≤ 2147483647;
+tests/test/adpcm.c:507:[kernel] warning: signed overflow. assert -2147483648 ≤ 255L*(long)*(bli+i);
+tests/test/adpcm.c:507:[kernel] warning: signed overflow. assert 255L*(long)*(bli+i) ≤ 2147483647;
 [value] Recording results for upzero
 [value] Done for function upzero
 [value] computing for function uppol2 <- encode <- main.
@@ -756,14 +780,14 @@ tests/test/adpcm.c:507:[kernel] warning: signed overflow. assert -2147483648 ≤
 [value] Done for function upzero
 [value] computing for function uppol2 <- encode <- main.
         Called from tests/test/adpcm.c:335.
-tests/test/adpcm.c:534:[kernel] warning: signed overflow.
-                  assert -2147483648 ≤ (long)plt_0*(long)plt1_0 ≤ 2147483647;
+tests/test/adpcm.c:534:[kernel] warning: signed overflow. assert -2147483648 ≤ (long)plt_0*(long)plt1_0;
+tests/test/adpcm.c:534:[kernel] warning: signed overflow. assert (long)plt_0*(long)plt1_0 ≤ 2147483647;
 [value] Recording results for uppol2
 [value] Done for function uppol2
 [value] computing for function uppol1 <- encode <- main.
         Called from tests/test/adpcm.c:339.
-tests/test/adpcm.c:558:[kernel] warning: signed overflow.
-                  assert -2147483648 ≤ (long)plt_0*(long)plt1_0 ≤ 2147483647;
+tests/test/adpcm.c:558:[kernel] warning: signed overflow. assert -2147483648 ≤ (long)plt_0*(long)plt1_0;
+tests/test/adpcm.c:558:[kernel] warning: signed overflow. assert (long)plt_0*(long)plt1_0 ≤ 2147483647;
 [value] Recording results for uppol1
 [value] Done for function uppol1
 [value] computing for function filtez <- encode <- main.
@@ -808,12 +832,16 @@ tests/test/adpcm.c:558:[kernel] warning: signed overflow.
 [value] Done for function filtez
 [value] computing for function filtep <- encode <- main.
         Called from tests/test/adpcm.c:304.
-tests/test/adpcm.c:430:[kernel] warning: signed overflow. assert -2147483648 ≤ 2*rlt1_0 ≤ 2147483647;
-tests/test/adpcm.c:431:[kernel] warning: signed overflow. assert -2147483648 ≤ (long)al1_0*pl ≤ 2147483647;
-tests/test/adpcm.c:432:[kernel] warning: signed overflow. assert -2147483648 ≤ 2*rlt2_0 ≤ 2147483647;
-tests/test/adpcm.c:433:[kernel] warning: signed overflow. assert -2147483648 ≤ (long)al2_0*pl2 ≤ 2147483647;
-tests/test/adpcm.c:433:[kernel] warning: signed overflow.
-                  assert -2147483648 ≤ pl+(long)((long)al2_0*pl2) ≤ 2147483647;
+tests/test/adpcm.c:430:[kernel] warning: signed overflow. assert -2147483648 ≤ 2*rlt1_0;
+tests/test/adpcm.c:430:[kernel] warning: signed overflow. assert 2*rlt1_0 ≤ 2147483647;
+tests/test/adpcm.c:431:[kernel] warning: signed overflow. assert -2147483648 ≤ (long)al1_0*pl;
+tests/test/adpcm.c:431:[kernel] warning: signed overflow. assert (long)al1_0*pl ≤ 2147483647;
+tests/test/adpcm.c:432:[kernel] warning: signed overflow. assert -2147483648 ≤ 2*rlt2_0;
+tests/test/adpcm.c:432:[kernel] warning: signed overflow. assert 2*rlt2_0 ≤ 2147483647;
+tests/test/adpcm.c:433:[kernel] warning: signed overflow. assert -2147483648 ≤ (long)al2_0*pl2;
+tests/test/adpcm.c:433:[kernel] warning: signed overflow. assert (long)al2_0*pl2 ≤ 2147483647;
+tests/test/adpcm.c:433:[kernel] warning: signed overflow. assert -2147483648 ≤ pl+(long)((long)al2_0*pl2);
+tests/test/adpcm.c:433:[kernel] warning: signed overflow. assert pl+(long)((long)al2_0*pl2) ≤ 2147483647;
 [value] Recording results for filtep
 [value] Done for function filtep
 [value] computing for function quantl <- encode <- main.
@@ -834,22 +862,25 @@ tests/test/adpcm.c:433:[kernel] warning: signed overflow.
 [value] Done for function scalel
 [value] computing for function upzero <- encode <- main.
         Called from tests/test/adpcm.c:331.
-tests/test/adpcm.c:513:[kernel] warning: signed overflow.
-                  assert -2147483648 ≤ (long)dlt_0*(long)*(dlti+i) ≤ 2147483647;
+tests/test/adpcm.c:513:[kernel] warning: signed overflow. assert -2147483648 ≤ (long)dlt_0*(long)*(dlti+i);
+tests/test/adpcm.c:513:[kernel] warning: signed overflow. assert (long)dlt_0*(long)*(dlti+i) ≤ 2147483647;
 [value] Recording results for upzero
 [value] Done for function upzero
 [value] computing for function uppol2 <- encode <- main.
         Called from tests/test/adpcm.c:335.
-tests/test/adpcm.c:533:[kernel] warning: signed overflow. assert -2147483648 ≤ 4L*(long)al1_0 ≤ 2147483647;
+tests/test/adpcm.c:533:[kernel] warning: signed overflow. assert -2147483648 ≤ 4L*(long)al1_0;
+tests/test/adpcm.c:533:[kernel] warning: signed overflow. assert 4L*(long)al1_0 ≤ 2147483647;
 tests/test/adpcm.c:534:[kernel] warning: signed overflow. assert -wd2 ≤ 2147483647;
-tests/test/adpcm.c:536:[kernel] warning: signed overflow.
-                  assert -2147483648 ≤ (long)plt_0*(long)plt2_0 ≤ 2147483647;
-tests/test/adpcm.c:542:[kernel] warning: signed overflow. assert -2147483648 ≤ 127L*(long)al2_0 ≤ 2147483647;
+tests/test/adpcm.c:536:[kernel] warning: signed overflow. assert -2147483648 ≤ (long)plt_0*(long)plt2_0;
+tests/test/adpcm.c:536:[kernel] warning: signed overflow. assert (long)plt_0*(long)plt2_0 ≤ 2147483647;
+tests/test/adpcm.c:542:[kernel] warning: signed overflow. assert -2147483648 ≤ 127L*(long)al2_0;
+tests/test/adpcm.c:542:[kernel] warning: signed overflow. assert 127L*(long)al2_0 ≤ 2147483647;
 [value] Recording results for uppol2
 [value] Done for function uppol2
 [value] computing for function uppol1 <- encode <- main.
         Called from tests/test/adpcm.c:339.
-tests/test/adpcm.c:557:[kernel] warning: signed overflow. assert -2147483648 ≤ (long)al1_0*255L ≤ 2147483647;
+tests/test/adpcm.c:557:[kernel] warning: signed overflow. assert -2147483648 ≤ (long)al1_0*255L;
+tests/test/adpcm.c:557:[kernel] warning: signed overflow. assert (long)al1_0*255L ≤ 2147483647;
 [value] Recording results for uppol1
 [value] Done for function uppol1
 [value] computing for function filtez <- encode <- main.
@@ -1683,10 +1714,31 @@ int uppol1_slice_1(int al1_0, int apl2, int plt_0, int plt1_0);
 int logsch_slice_1(int ih_0, int nbh_0);
 
 int tqmf[24];
-int h[24] =   
-              {12, -44, -44, 212, 48, -624, 128, 1448, -840, -3220, 3804,
-               15504, 15504, 3804, -3220, -840, 1448, 128, -624, 48, 212,
-               -44, -44, 12};
+int h[24] =
+  {12,
+   -44,
+   -44,
+   212,
+   48,
+   -624,
+   128,
+   1448,
+   -840,
+   -3220,
+   3804,
+   15504,
+   15504,
+   3804,
+   -3220,
+   -840,
+   1448,
+   128,
+   -624,
+   48,
+   212,
+   -44,
+   -44,
+   12};
 int xl;
 int xh;
 int il;
@@ -1694,20 +1746,75 @@ int szl;
 int spl;
 int sl;
 int el;
-int qq4_code4_table[16] =   
-                            {0, -20456, -12896, -8968, -6288, -4240, -2584,
-                             -1200, 20456, 12896, 8968, 6288, 4240, 2584,
-                             1200, 0};
+int qq4_code4_table[16] =
+  {0,
+   -20456,
+   -12896,
+   -8968,
+   -6288,
+   -4240,
+   -2584,
+   -1200,
+   20456,
+   12896,
+   8968,
+   6288,
+   4240,
+   2584,
+   1200,
+   0};
 int delay_bpl[6];
 int delay_dltx[6];
-int wl_code_table[16] =   
-                          {-60, 3042, 1198, 538, 334, 172, 58, -30, 3042,
-                           1198, 538, 334, 172, 58, -30, -60};
-int ilb_table[32] =   
-                      {2048, 2093, 2139, 2186, 2233, 2282, 2332, 2383, 2435,
-                       2489, 2543, 2599, 2656, 2714, 2774, 2834, 2896, 2960,
-                       3025, 3091, 3158, 3228, 3298, 3371, 3444, 3520, 3597,
-                       3676, 3756, 3838, 3922, 4008};
+int wl_code_table[16] =
+  {-60,
+   3042,
+   1198,
+   538,
+   334,
+   172,
+   58,
+   -30,
+   3042,
+   1198,
+   538,
+   334,
+   172,
+   58,
+   -30,
+   -60};
+int ilb_table[32] =
+  {2048,
+   2093,
+   2139,
+   2186,
+   2233,
+   2282,
+   2332,
+   2383,
+   2435,
+   2489,
+   2543,
+   2599,
+   2656,
+   2714,
+   2774,
+   2834,
+   2896,
+   2960,
+   3025,
+   3091,
+   3158,
+   3228,
+   3298,
+   3371,
+   3444,
+   3520,
+   3597,
+   3676,
+   3756,
+   3838,
+   3922,
+   4008};
 int nbl;
 int al1;
 int al2;
@@ -1718,20 +1825,102 @@ int dlt;
 int rlt;
 int rlt1;
 int rlt2;
-int decis_levl[30] =   
-                       {280, 576, 880, 1200, 1520, 1864, 2208, 2584, 2960,
-                        3376, 3784, 4240, 4696, 5200, 5712, 6288, 6864, 7520,
-                        8184, 8968, 9752, 10712, 11664, 12896, 14120, 15840,
-                        17560, 20456, 23352, 32767};
+int decis_levl[30] =
+  {280,
+   576,
+   880,
+   1200,
+   1520,
+   1864,
+   2208,
+   2584,
+   2960,
+   3376,
+   3784,
+   4240,
+   4696,
+   5200,
+   5712,
+   6288,
+   6864,
+   7520,
+   8184,
+   8968,
+   9752,
+   10712,
+   11664,
+   12896,
+   14120,
+   15840,
+   17560,
+   20456,
+   23352,
+   32767};
 int detl;
-int quant26bt_pos[31] =   
-                          {61, 60, 59, 58, 57, 56, 55, 54, 53, 52, 51, 50,
-                           49, 48, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38,
-                           37, 36, 35, 34, 33, 32, 32};
-int quant26bt_neg[31] =   
-                          {63, 62, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22,
-                           21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9,
-                           8, 7, 6, 5, 4, 4};
+int quant26bt_pos[31] =
+  {61,
+   60,
+   59,
+   58,
+   57,
+   56,
+   55,
+   54,
+   53,
+   52,
+   51,
+   50,
+   49,
+   48,
+   47,
+   46,
+   45,
+   44,
+   43,
+   42,
+   41,
+   40,
+   39,
+   38,
+   37,
+   36,
+   35,
+   34,
+   33,
+   32,
+   32};
+int quant26bt_neg[31] =
+  {63,
+   62,
+   31,
+   30,
+   29,
+   28,
+   27,
+   26,
+   25,
+   24,
+   23,
+   22,
+   21,
+   20,
+   19,
+   18,
+   17,
+   16,
+   15,
+   14,
+   13,
+   12,
+   11,
+   10,
+   9,
+   8,
+   7,
+   6,
+   5,
+   4,
+   4};
 int deth;
 int sh;
 int eh;
@@ -1779,16 +1968,14 @@ void encode_slice_1(int xin1, int xin2)
   int tmp_13;
   h_ptr = h;
   tqmf_ptr = tqmf;
-  {
-    /*sequence*/
+  { /* sequence */
     tmp = tqmf_ptr;
     tqmf_ptr ++;
     tmp_0 = h_ptr;
     h_ptr ++;
     xa = (long)*tmp * (long)*tmp_0;
   }
-  {
-    /*sequence*/
+  { /* sequence */
     tmp_1 = tqmf_ptr;
     tqmf_ptr ++;
     tmp_2 = h_ptr;
@@ -1802,16 +1989,14 @@ void encode_slice_1(int xin1, int xin2)
       int *tmp_4;
       int *tmp_5;
       int *tmp_6;
-      {
-        /*sequence*/
+      { /* sequence */
         tmp_3 = tqmf_ptr;
         tqmf_ptr ++;
         tmp_4 = h_ptr;
         h_ptr ++;
         xa += (long)*tmp_3 * (long)*tmp_4;
       }
-      {
-        /*sequence*/
+      { /* sequence */
         tmp_5 = tqmf_ptr;
         tqmf_ptr ++;
         tmp_6 = h_ptr;
@@ -1821,16 +2006,14 @@ void encode_slice_1(int xin1, int xin2)
     }
     i ++;
   }
-  {
-    /*sequence*/
+  { /* sequence */
     tmp_7 = tqmf_ptr;
     tqmf_ptr ++;
     tmp_8 = h_ptr;
     h_ptr ++;
     xa += (long)*tmp_7 * (long)*tmp_8;
   }
-  {
-    /*sequence*/
+  { /* sequence */
     tmp_9 = h_ptr;
     xb += (long)*tqmf_ptr * (long)*tmp_9;
   }
@@ -1839,8 +2022,7 @@ void encode_slice_1(int xin1, int xin2)
   while (i < 22) {
     int *tmp_10;
     int *tmp_11;
-    {
-      /*sequence*/
+    { /* sequence */
       tmp_10 = tqmf_ptr;
       tqmf_ptr --;
       tmp_11 = tqmf_ptr1;
@@ -1849,8 +2031,7 @@ void encode_slice_1(int xin1, int xin2)
     }
     i ++;
   }
-  {
-    /*sequence*/
+  { /* sequence */
     tmp_12 = tqmf_ptr;
     tqmf_ptr --;
     *tmp_12 = xin1;
@@ -1881,8 +2062,7 @@ void encode_slice_1(int xin1, int xin2)
   eh = xh - sh;
   if (eh >= 0) ih = 3; else ih = 1;
   decis = (int)(564L * (long)deth >> 12L);
-  {
-    /*sequence*/
+  { /* sequence */
     tmp_13 = abs_slice_1(eh);
   }
   if (tmp_13 > decis) ih --;
@@ -1908,8 +2088,7 @@ int filtez_slice_1(int *bpl, int *dlt_0)
   long zl;
   int *tmp;
   int *tmp_0;
-  {
-    /*sequence*/
+  { /* sequence */
     tmp = bpl;
     bpl ++;
     tmp_0 = dlt_0;
@@ -1920,8 +2099,7 @@ int filtez_slice_1(int *bpl, int *dlt_0)
   while (i < 6) {
     int *tmp_1;
     int *tmp_2;
-    {
-      /*sequence*/
+    { /* sequence */
       tmp_1 = bpl;
       bpl ++;
       tmp_2 = dlt_0;
@@ -2061,8 +2239,7 @@ int logsch_slice_1(int ih_0, int nbh_0)
   return nbh_0;
 }
 
-int test_data[10] =   
-                      {1, 0, 1, 0, 1, 1, 1, 1, 1, 1};
+int test_data[10] = {1, 0, 1, 0, 1, 1, 1, 1, 1, 1};
 void main(void)
 {
   int i;

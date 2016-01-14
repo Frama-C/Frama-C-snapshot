@@ -26,7 +26,8 @@ tests/slicing/unravel-point.c:71:[kernel] warning: accessing uninitialized left-
 tests/slicing/unravel-point.c:71:[kernel] warning: signed overflow. assert *z+1 ≤ 2147483647;
 tests/slicing/unravel-point.c:72:[kernel] warning: accessing uninitialized left-value: assert \initialized(y);
 tests/slicing/unravel-point.c:72:[kernel] warning: accessing uninitialized left-value: assert \initialized(x);
-tests/slicing/unravel-point.c:72:[kernel] warning: signed overflow. assert -2147483648 ≤ *y+*x ≤ 2147483647;
+tests/slicing/unravel-point.c:72:[kernel] warning: signed overflow. assert -2147483648 ≤ *y+*x;
+tests/slicing/unravel-point.c:72:[kernel] warning: signed overflow. assert *y+*x ≤ 2147483647;
 [value] computing for function send1 <- main.
         Called from tests/slicing/unravel-point.c:75.
 tests/slicing/unravel-point.c:36:[kernel] warning: Neither code nor specification for function printf, generating default assigns from the prototype
@@ -151,7 +152,8 @@ tests/slicing/unravel-point.c:59:[kernel] warning: Neither code nor specificatio
 tests/slicing/unravel-point.c:68:[kernel] warning: accessing uninitialized left-value: assert \initialized(&cond1);
 tests/slicing/unravel-point.c:72:[kernel] warning: accessing uninitialized left-value: assert \initialized(y);
 tests/slicing/unravel-point.c:72:[kernel] warning: accessing uninitialized left-value: assert \initialized(x);
-tests/slicing/unravel-point.c:72:[kernel] warning: signed overflow. assert -2147483648 ≤ *y+*x ≤ 2147483647;
+tests/slicing/unravel-point.c:72:[kernel] warning: signed overflow. assert -2147483648 ≤ *y+*x;
+tests/slicing/unravel-point.c:72:[kernel] warning: signed overflow. assert *y+*x ≤ 2147483647;
 [value] computing for function send1_slice_1 <- main.
         Called from tests/slicing/unravel-point.c:75.
 [value] Recording results for send1_slice_1
@@ -253,8 +255,8 @@ void main(void)
   z = & b;
   /*@ assert Value: initialisation: \initialized(y); */
   /*@ assert Value: initialisation: \initialized(x); */
-  /*@ assert Value: signed_overflow: *y+*x ≤ 2147483647; */
   /*@ assert Value: signed_overflow: -2147483648 ≤ *y+*x; */
+  /*@ assert Value: signed_overflow: *y+*x ≤ 2147483647; */
   *z = *y + *x;
   output1 = *z;
   send1_slice_1(output1);

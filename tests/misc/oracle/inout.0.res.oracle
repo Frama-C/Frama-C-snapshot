@@ -1,0 +1,47 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/inout.i (no preprocessing)
+[value] Analyzing a complete application starting at inout_11_0
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  Xt ∈ {0}
+  Xs ∈ {0}
+  Xs_I ∈ {0}
+  Ys ∈ {0}
+  Ys_I ∈ {0}
+  Z ∈ {0}
+  I ∈ {0}
+  I_size ∈ {8}
+  Itab[0] ∈ {-40}
+      [1] ∈ {-25}
+      [2] ∈ {-15}
+      [3] ∈ {-5}
+      [4] ∈ {5}
+      [5] ∈ {15}
+      [6] ∈ {25}
+      [7] ∈ {40}
+  I5_nt ∈ {0}
+tests/misc/inout.i:16:[kernel] warning: signed overflow. assert -2147483648 ≤ i1+i2;
+tests/misc/inout.i:16:[kernel] warning: signed overflow. assert i1+i2 ≤ 2147483647;
+tests/misc/inout.i:18:[kernel] warning: out of bounds write. assert \valid(i);
+[value] Recording results for inout_11_0
+[value] done for function inout_11_0
+[from] Computing for function inout_11_0
+[from] Done for function inout_11_0
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function inout_11_0:
+  Xt FROM I
+  Xs FROM i1
+  Xs_I FROM Xs_I
+  Ys FROM i1; i2
+  Z FROM i
+  S_i[0] FROM i
+[from] ====== END OF DEPENDENCIES ======
+[inout] InOut (internal) for function inout_11_0:
+        Operational inputs:
+          Xs_I; I; i1; i2; i
+        Operational inputs on termination:
+          Xs_I; I; i1; i2; i
+        Sure outputs:
+          Xt; Xs; Xs_I; Ys; Z; S_i[0]

@@ -6,8 +6,9 @@
 [value] Values of globals at initialization
   a ∈ {0}
 tests/misc/context_width.i:17:[value] Assertion got status invalid (stopping propagation).
-tests/misc/context_width.i:10:[kernel] warning: pointer comparison: assert \pointer_comparable(p+2, (int *)0);
-tests/misc/context_width.i:12:[kernel] warning: pointer comparison: assert \pointer_comparable(p+1, &a);
+tests/misc/context_width.i:10:[kernel] warning: pointer comparison:
+                  assert \pointer_comparable((void *)(p+2), (void *)((int *)0));
+tests/misc/context_width.i:12:[kernel] warning: pointer comparison: assert \pointer_comparable((void *)(p+1), (void *)(&a));
 tests/misc/context_width.i:15:[kernel] warning: out of bounds write. assert \valid(p+1);
 tests/misc/context_width.i:16:[kernel] warning: out of bounds write. assert \valid(p+2);
 [value] Recording results for main
@@ -34,10 +35,15 @@ void main(int *p)
 {
   if (! (p == (int *)0)) {
     if (! (p + 1 == (int *)0)) 
-      /*@ assert Value: ptr_comparison: \pointer_comparable(p+2, (int *)0);
+      /*@ assert
+          Value: ptr_comparison:
+            \pointer_comparable((void *)(p+2), (void *)((int *)0));
       */
       if (! (p + 2 == (int *)0)) ;
-    /*@ assert Value: ptr_comparison: \pointer_comparable(p+1, &a); */
+    /*@ assert
+        Value: ptr_comparison:
+          \pointer_comparable((void *)(p+1), (void *)(&a));
+    */
     if (p + 1 == & a) ;
     *p = 1;
     /*@ assert Value: mem_access: \valid(p+1); */
@@ -56,8 +62,9 @@ void main(int *p)
 [value] Initial state computed
 [value] Values of globals at initialization
   a ∈ {0}
-tests/misc/context_width.i:10:[kernel] warning: pointer comparison: assert \pointer_comparable(p+2, (int *)0);
-tests/misc/context_width.i:12:[kernel] warning: pointer comparison: assert \pointer_comparable(p+1, &a);
+tests/misc/context_width.i:10:[kernel] warning: pointer comparison:
+                  assert \pointer_comparable((void *)(p+2), (void *)((int *)0));
+tests/misc/context_width.i:12:[kernel] warning: pointer comparison: assert \pointer_comparable((void *)(p+1), (void *)(&a));
 tests/misc/context_width.i:15:[kernel] warning: out of bounds write. assert \valid(p+1);
 tests/misc/context_width.i:15:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
 [value] Recording results for main
@@ -84,10 +91,15 @@ void main(int *p)
 {
   if (! (p == (int *)0)) {
     if (! (p + 1 == (int *)0)) 
-      /*@ assert Value: ptr_comparison: \pointer_comparable(p+2, (int *)0);
+      /*@ assert
+          Value: ptr_comparison:
+            \pointer_comparable((void *)(p+2), (void *)((int *)0));
       */
       if (! (p + 2 == (int *)0)) ;
-    /*@ assert Value: ptr_comparison: \pointer_comparable(p+1, &a); */
+    /*@ assert
+        Value: ptr_comparison:
+          \pointer_comparable((void *)(p+1), (void *)(&a));
+    */
     if (p + 1 == & a) ;
     *p = 1;
     /*@ assert Value: mem_access: \valid(p+1); */

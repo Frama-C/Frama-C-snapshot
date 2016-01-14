@@ -22,6 +22,9 @@
 
 #ifndef __FC_DEFINE_ID_T
 #define __FC_DEFINE_ID_T
+#include "features.h"
+__BEGIN_DECLS
 typedef unsigned int id_t;
+__END_DECLS
 #endif
 

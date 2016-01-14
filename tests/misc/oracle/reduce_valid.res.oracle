@@ -12,7 +12,7 @@
   A ∈ {0}
   offs ∈ {0}
 tests/misc/reduce_valid.i:9:[kernel] warning: out of bounds write. assert \valid(p);
-[value] Called CEA_ici({0})
+[value] Called Frama_C_show_each_ici({0})
 tests/misc/reduce_valid.i:17:[kernel] warning: out of bounds write. assert \valid(q);
 tests/misc/reduce_valid.i:17:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
 tests/misc/reduce_valid.i:24:[kernel] warning: out of bounds read. assert \valid_read(r+offs);

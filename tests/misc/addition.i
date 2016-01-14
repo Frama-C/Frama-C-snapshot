@@ -1,6 +1,6 @@
 /* run.config
    GCC:
-   OPT: -val -deps -out -input -absolute-valid-range 0x2D-0x30 -journal-disable -no-val-warn-pointer-subtraction -then -absolute-valid-range 0x2D-0x31
+   STDOPT: #"-absolute-valid-range 0x2D-0x30 -no-val-warn-pointer-subtraction" +"-then -absolute-valid-range 0x2D-0x31"
 */
 
 
@@ -84,7 +84,7 @@ int main(int u2, int u3, int u4)
     ll2 = (long long)(5*s+1) + 0x100000003L;
     c1 = (int)ll1;
     c2 = (int)ll2;
-    CEA_1(s);
+    Frama_C_show_each_1(s);
     //@ assert  (s >= 0) || (s < 0) ;
     square = s * s;
   }

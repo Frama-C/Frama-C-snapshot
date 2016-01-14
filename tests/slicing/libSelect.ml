@@ -28,8 +28,9 @@ let fmt =  Format.std_formatter;;
 
 (* affichage des numéros d'instructions
 * pour servir d'entrée à d'autres commandes*)
-let print_stmt project kf = Slicing.PrintSlice.print_fct_stmts fmt (project, kf)
-;;
+let print_stmt project kf =
+  Slicing.PrintSlice.print_fct_stmts fmt (project, kf)
+
 (* affichage de debug du PDG *)
 let print_pdg _project kf = !Db.Pdg.pretty fmt (!Db.Pdg.get kf) ;;
 
@@ -80,7 +81,7 @@ let get_stmt sid = fst (Kernel_function.find_from_sid sid)
 
 (** build the [zone] which represents [data] before [kinst] *)
 let get_zones str_data (kinst, kf) =
-  let lval_term = !Db.Properties.Interp.lval kf kinst str_data in
+  let lval_term = !Db.Properties.Interp.term_lval kf str_data in
   let lval = !Db.Properties.Interp.term_lval_to_lval ~result:None lval_term in
   let loc = !Db.Value.lval_to_loc ~with_alarms:CilE.warn_none_mode (Cil_types.Kstmt kinst) lval in
     Locations.enumerate_valid_bits ~for_writing:false loc

@@ -8,6 +8,7 @@
         \return(f4) == 4 (auto)
         \return(f5) == -2 (auto)
         \return(f6) == 0 (auto)
+        \return(f8) == 0 (auto)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
@@ -19,82 +20,92 @@
   v ∈ [--..--]
   v7 ∈ {0}
 [value] computing for function main1 <- main.
-        Called from tests/misc/split_return.i:153.
+        Called from tests/misc/split_return.i:177.
 [value] computing for function init <- main1 <- main.
-        Called from tests/misc/split_return.i:14.
+        Called from tests/misc/split_return.i:19.
 [value] using specification for function init
 [value] Done for function init
 [value] Recording results for main1
 [value] Done for function main1
 [value] computing for function main2 <- main.
-        Called from tests/misc/split_return.i:154.
+        Called from tests/misc/split_return.i:178.
 [value] computing for function f2 <- main2 <- main.
-        Called from tests/misc/split_return.i:44.
+        Called from tests/misc/split_return.i:49.
 [value] Recording results for f2
 [value] Done for function f2
 [value] Called Frama_C_show_each_f2({5; 7}, {5})
 [value] Called Frama_C_show_each_f2({0}, {0})
-tests/misc/split_return.i:47:[value] Assertion got status valid.
+tests/misc/split_return.i:52:[value] Assertion got status valid.
 [value] Called Frama_C_show_each_f2_2({5; 7}, {5})
-tests/misc/split_return.i:50:[value] Assertion got status valid.
+tests/misc/split_return.i:55:[value] Assertion got status valid.
 [value] Recording results for main2
 [value] Done for function main2
 [value] computing for function main3 <- main.
-        Called from tests/misc/split_return.i:155.
+        Called from tests/misc/split_return.i:179.
 [value] computing for function f3 <- main3 <- main.
-        Called from tests/misc/split_return.i:69.
+        Called from tests/misc/split_return.i:74.
 [value] Recording results for f3
 [value] Done for function f3
 [value] Called Frama_C_show_each_f3({7}, {5})
 [value] Called Frama_C_show_each_f3({-2}, {0})
-tests/misc/split_return.i:72:[value] Assertion got status valid.
-tests/misc/split_return.i:74:[value] Assertion got status valid.
+tests/misc/split_return.i:77:[value] Assertion got status valid.
+tests/misc/split_return.i:79:[value] Assertion got status valid.
 [value] Recording results for main3
 [value] Done for function main3
 [value] computing for function main4 <- main.
-        Called from tests/misc/split_return.i:156.
+        Called from tests/misc/split_return.i:180.
 [value] computing for function f4 <- main4 <- main.
-        Called from tests/misc/split_return.i:90.
+        Called from tests/misc/split_return.i:95.
 [value] Recording results for f4
 [value] Done for function f4
 [value] Called Frama_C_show_each_f4({7}, {5})
 [value] Called Frama_C_show_each_f4({4}, {0})
-tests/misc/split_return.i:93:[value] Assertion got status valid.
-tests/misc/split_return.i:95:[value] Assertion got status valid.
+tests/misc/split_return.i:98:[value] Assertion got status valid.
+tests/misc/split_return.i:100:[value] Assertion got status valid.
 [value] Recording results for main4
 [value] Done for function main4
 [value] computing for function main5 <- main.
-        Called from tests/misc/split_return.i:157.
+        Called from tests/misc/split_return.i:181.
 [value] computing for function f5 <- main5 <- main.
-        Called from tests/misc/split_return.i:113.
+        Called from tests/misc/split_return.i:118.
 [value] Recording results for f5
 [value] Done for function f5
 [value] Called Frama_C_show_each_f5({7}, {5})
 [value] Called Frama_C_show_each_f5({-2}, {0})
-tests/misc/split_return.i:116:[value] Assertion got status valid.
-tests/misc/split_return.i:118:[value] Assertion got status valid.
+tests/misc/split_return.i:121:[value] Assertion got status valid.
+tests/misc/split_return.i:123:[value] Assertion got status valid.
 [value] Recording results for main5
 [value] Done for function main5
 [value] computing for function main6 <- main.
-        Called from tests/misc/split_return.i:158.
+        Called from tests/misc/split_return.i:182.
 [value] computing for function f6 <- main6 <- main.
-        Called from tests/misc/split_return.i:131.
-tests/misc/split_return.i:126:[value] Assertion got status unknown.
-tests/misc/split_return.i:127:[value] f6: cannot properly split on \result == 0
+        Called from tests/misc/split_return.i:136.
+tests/misc/split_return.i:131:[value] Assertion got status unknown.
+tests/misc/split_return.i:132:[value] f6: cannot properly split on \result == 0
 [value] Recording results for f6
 [value] Done for function f6
 [value] Recording results for main6
 [value] Done for function main6
 [value] computing for function main7 <- main.
-        Called from tests/misc/split_return.i:159.
+        Called from tests/misc/split_return.i:183.
 [value] computing for function f7 <- main7 <- main.
-        Called from tests/misc/split_return.i:144.
+        Called from tests/misc/split_return.i:149.
 [value] Recording results for f7
 [value] Done for function f7
 [value] Called Frama_C_show_each_NULL({0}, {0})
 [value] Called Frama_C_show_each_NULL({{ &v }}, {1})
 [value] Recording results for main7
 [value] Done for function main7
+[value] computing for function main8 <- main.
+        Called from tests/misc/split_return.i:184.
+[value] computing for function f8 <- main8 <- main.
+        Called from tests/misc/split_return.i:172.
+[value] Recording results for f8
+[value] Done for function f8
+[value] Called Frama_C_show_each_then8({4}, {{ &x }})
+[value] Called Frama_C_show_each_then8({-1}, {0})
+[value] Recording results for main8
+[value] Done for function main8
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -116,6 +127,9 @@ tests/misc/split_return.i:127:[value] f6: cannot properly split on \result == 0
 [value] Values at end of function f7:
   v7 ∈ {0; 1}
   __retres ∈ {{ NULL ; &v }}
+[value] Values at end of function f8:
+  x ∈ {-1; 4}
+  __retres ∈ {{ NULL ; &x }}
 [value] Values at end of function main1:
   x ∈ [0..2147483649]
   r ∈ {0; 1}
@@ -136,6 +150,10 @@ tests/misc/split_return.i:127:[value] f6: cannot properly split on \result == 0
 [value] Values at end of function main7:
   v7 ∈ {0; 1}
   p ∈ {{ NULL ; &v }}
+[value] Values at end of function main8:
+  x ∈ {-1; 4}
+  pf ∈ {{ &f8 }}
+  p ∈ {{ NULL ; &x }}
 [value] Values at end of function main:
   i2 ∈ {0; 5}
   i3 ∈ {0; 5}
@@ -154,6 +172,8 @@ tests/misc/split_return.i:127:[value] f6: cannot properly split on \result == 0
 [from] Done for function f6
 [from] Computing for function f7
 [from] Done for function f7
+[from] Computing for function f8
+[from] Done for function f8
 [from] Computing for function main1
 [from] Computing for function init <-main1
 [from] Done for function init
@@ -170,6 +190,8 @@ tests/misc/split_return.i:127:[value] f6: cannot properly split on \result == 0
 [from] Done for function main6
 [from] Computing for function main7
 [from] Done for function main7
+[from] Computing for function main8
+[from] Done for function main8
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
@@ -191,6 +213,9 @@ tests/misc/split_return.i:127:[value] f6: cannot properly split on \result == 0
 [from] Function f7:
   v7 FROM v
   \result FROM v
+[from] Function f8:
+  x FROM v; p
+  \result FROM v; p
 [from] Function init:
   x FROM \nothing
   \result FROM \nothing
@@ -208,6 +233,8 @@ tests/misc/split_return.i:127:[value] f6: cannot properly split on \result == 0
   NO EFFECTS
 [from] Function main7:
   v7 FROM v
+[from] Function main8:
+  NO EFFECTS
 [from] Function main:
   i2 FROM i2
   i3 FROM i3
@@ -239,6 +266,10 @@ tests/misc/split_return.i:127:[value] f6: cannot properly split on \result == 0
           v7; __retres
 [inout] Inputs for function f7:
           v
+[inout] Out (internal) for function f8:
+          x; __retres
+[inout] Inputs for function f8:
+          v
 [inout] Out (internal) for function main1:
           x; r
 [inout] Inputs for function main1:
@@ -267,6 +298,10 @@ tests/misc/split_return.i:127:[value] f6: cannot properly split on \result == 0
           v7; p
 [inout] Inputs for function main7:
           v; v7
+[inout] Out (internal) for function main8:
+          x; pf; p
+[inout] Inputs for function main8:
+          v
 [inout] Out (internal) for function main:
           i2; i3; i4; i5; v7
 [inout] Inputs for function main:
@@ -277,13 +312,13 @@ tests/misc/split_return.i:127:[value] f6: cannot properly split on \result == 0
 --- Properties of Function 'init'
 --------------------------------------------------------------------------------
 
-[ Extern  ] Post-condition (file tests/misc/split_return.i, line 9)
+[ Extern  ] Post-condition (file tests/misc/split_return.i, line 14)
             Unverifiable but considered Valid.
-[ Extern  ] Assigns (file tests/misc/split_return.i, line 7)
+[ Extern  ] Assigns (file tests/misc/split_return.i, line 12)
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file tests/misc/split_return.i, line 7)
+[ Extern  ] Froms (file tests/misc/split_return.i, line 12)
             Unverifiable but considered Valid.
-[ Extern  ] Froms (file tests/misc/split_return.i, line 8)
+[ Extern  ] Froms (file tests/misc/split_return.i, line 13)
             Unverifiable but considered Valid.
 [  Valid  ] Default behavior
             by Frama-C kernel.
@@ -292,54 +327,54 @@ tests/misc/split_return.i:127:[value] f6: cannot properly split on \result == 0
 --- Properties of Function 'main1'
 --------------------------------------------------------------------------------
 
-[  Dead   ] Assertion (file tests/misc/split_return.i, line 24)
+[  Dead   ] Assertion (file tests/misc/split_return.i, line 29)
             Locally valid, but unreachable.
             By Value because:
-             - Unreachable program point (file tests/misc/split_return.i, line 24)
-[Unreachable] Unreachable program point (file tests/misc/split_return.i, line 24)
+             - Unreachable program point (file tests/misc/split_return.i, line 29)
+[Unreachable] Unreachable program point (file tests/misc/split_return.i, line 29)
             by Value.
 
 --------------------------------------------------------------------------------
 --- Properties of Function 'main2'
 --------------------------------------------------------------------------------
 
-[  Valid  ] Assertion (file tests/misc/split_return.i, line 47)
+[  Valid  ] Assertion (file tests/misc/split_return.i, line 52)
             by Value.
-[  Valid  ] Assertion (file tests/misc/split_return.i, line 50)
+[  Valid  ] Assertion (file tests/misc/split_return.i, line 55)
             by Value.
 
 --------------------------------------------------------------------------------
 --- Properties of Function 'main3'
 --------------------------------------------------------------------------------
 
-[  Valid  ] Assertion (file tests/misc/split_return.i, line 72)
+[  Valid  ] Assertion (file tests/misc/split_return.i, line 77)
             by Value.
-[  Valid  ] Assertion (file tests/misc/split_return.i, line 74)
+[  Valid  ] Assertion (file tests/misc/split_return.i, line 79)
             by Value.
 
 --------------------------------------------------------------------------------
 --- Properties of Function 'main4'
 --------------------------------------------------------------------------------
 
-[  Valid  ] Assertion (file tests/misc/split_return.i, line 93)
+[  Valid  ] Assertion (file tests/misc/split_return.i, line 98)
             by Value.
-[  Valid  ] Assertion (file tests/misc/split_return.i, line 95)
+[  Valid  ] Assertion (file tests/misc/split_return.i, line 100)
             by Value.
 
 --------------------------------------------------------------------------------
 --- Properties of Function 'main5'
 --------------------------------------------------------------------------------
 
-[  Valid  ] Assertion (file tests/misc/split_return.i, line 116)
+[  Valid  ] Assertion (file tests/misc/split_return.i, line 121)
             by Value.
-[  Valid  ] Assertion (file tests/misc/split_return.i, line 118)
+[  Valid  ] Assertion (file tests/misc/split_return.i, line 123)
             by Value.
 
 --------------------------------------------------------------------------------
 --- Properties of Function 'f6'
 --------------------------------------------------------------------------------
 
-[    -    ] Assertion (file tests/misc/split_return.i, line 126)
+[    -    ] Assertion (file tests/misc/split_return.i, line 131)
             tried with Value.
 
 --------------------------------------------------------------------------------

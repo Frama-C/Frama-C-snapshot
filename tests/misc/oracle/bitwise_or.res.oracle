@@ -1,11 +1,10 @@
 [kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/misc/bitwise_or.c (with preprocessing)
-[kernel] Parsing share/builtin.c (with preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
 [value] Values of globals at initialization
-  Frama_C_entropy_source ∈ {0}
+  Frama_C_entropy_source ∈ [--..--]
   or1 ∈ {0}
   or2 ∈ {0}
   or3 ∈ {0}
@@ -30,35 +29,18 @@
   s ∈ [--..--]
 [value] computing for function Frama_C_interval <- main.
         Called from tests/misc/bitwise_or.c:13.
-share/builtin.h:46:[value] Function Frama_C_interval: precondition got status valid.
-[value] computing for function Frama_C_update_entropy <- Frama_C_interval <- main.
-        Called from share/builtin.c:44.
-[value] using specification for function Frama_C_update_entropy
-[value] Done for function Frama_C_update_entropy
-share/builtin.h:47:[value] Function Frama_C_interval: postcondition got status valid.
-[value] Recording results for Frama_C_interval
+[value] using specification for function Frama_C_interval
+share/libc/__fc_builtin.h:51:[value] Function Frama_C_interval: precondition got status valid.
 [value] Done for function Frama_C_interval
 [value] computing for function Frama_C_interval <- main.
         Called from tests/misc/bitwise_or.c:14.
-[value] computing for function Frama_C_update_entropy <- Frama_C_interval <- main.
-        Called from share/builtin.c:44.
-[value] Done for function Frama_C_update_entropy
-[value] Recording results for Frama_C_interval
 [value] Done for function Frama_C_interval
 [value] computing for function Frama_C_interval <- main.
         Called from tests/misc/bitwise_or.c:15.
-[value] computing for function Frama_C_update_entropy <- Frama_C_interval <- main.
-        Called from share/builtin.c:44.
-[value] Done for function Frama_C_update_entropy
-[value] Recording results for Frama_C_interval
 [value] Done for function Frama_C_interval
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function Frama_C_interval:
-  Frama_C_entropy_source ∈ [--..--]
-  r ∈ [-3..27]
-  aux ∈ [--..--]
 [value] Values at end of function main:
   Frama_C_entropy_source ∈ [--..--]
   or1 ∈ [--..--]

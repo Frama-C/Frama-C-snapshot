@@ -16,8 +16,7 @@ void put(char *p, char *q, int n)
       char *tmp;
       char *tmp_0;
       /*@ assert \separated(p, q); */ ;
-      {
-        /*sequence*/
+      { /* sequence */
         tmp = p;
         p ++;
         tmp_0 = q;

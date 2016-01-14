@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -val -out -input -deps -pdg -journal-disable  -pdg-print -pdg-verbose 2 -then -main main_asm
+   STDOPT: +"-pdg -journal-disable  -pdg-print -pdg-verbose 2 -then -main main_asm"
 */
 
 int ** top_input() ;

@@ -1,0 +1,16 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_bts/ex5.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function dummy
+------------------------------------------------------------
+
+Goal Assertion (file tests/wp_bts/ex5.i, line 7):
+Assume { }
+Prove: exists i_0,i_1,i_2,i_3,i_4:int. 7=(i_4+i_3+i_2+i_1+i_0).
+
+------------------------------------------------------------

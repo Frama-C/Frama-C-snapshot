@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -val -memexec-all -inout -inout-callwise -calldeps -no-deps -no-input -no-out
+   OPT: -val -memexec-all -inout-callwise -calldeps -no-deps -no-input -no-out -then -inout
 */
 
 int t[50];

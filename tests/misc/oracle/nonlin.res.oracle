@@ -1,0 +1,31 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/nonlin.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  v ∈ [--..--]
+tests/misc/nonlin.c:10:[value:nonlin] non-linear '((int)z + 675) * ((int)z + 675)', lv 'z'
+tests/misc/nonlin.c:11:[value:nonlin] non-linear '((int)z + 17817) * ((int)z + 17817)', lv 'z'
+tests/misc/nonlin.c:11:[kernel] warning: signed overflow.
+                  assert (int)((int)z+17817)*(int)((int)z+17817) ≤ 2147483647;
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  z ∈ [-32768..28523]
+  k ∈ [-2..1118367364]
+  l ∈ [0..2147395600]
+  x ∈ {8}
+  p ∈ {{ &x + {32} }}
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  NO EFFECTS
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          z; k; l; x; p
+[inout] Inputs for function main:
+          v

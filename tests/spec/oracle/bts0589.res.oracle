@@ -7,8 +7,7 @@ int g(void)
   int a;
   int tmp;
   /*@ assigns a, x; */
-  {
-    /*sequence*/
+  { /* sequence */
     tmp = x;
     x ++;
     a = tmp;

@@ -4,26 +4,18 @@
 struct P {
    int val[2][2] ;
 };
-char t[8];
-
 struct __anonstruct_A_1 {
-   int A[sizeof(t)] ;
+   int A[8U] ;
    int i ;
 };
-char t[8];
-
 struct __anonstruct_S_2 {
-   int A[sizeof(&(t[0]))] ;
+   int A[4U] ;
    int i ;
 };
-char t[8];
-
 struct __anonstruct_V_3 {
-   int A[sizeof(&(t[0]))] ;
+   int A[4U] ;
    int i ;
 };
-char t[8];
-
 void multi_dim_array_decay(void)
 {
   struct P *pp;

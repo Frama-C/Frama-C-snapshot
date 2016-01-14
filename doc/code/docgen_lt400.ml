@@ -179,20 +179,27 @@ class gen = object (self)
 	let d = Filename.dirname f in
 	String.capitalize (Filename.basename d)
       in
-      try Chapter(2,"C & ACSL","cil") , chop "cil/" f
+      try
+        Chapter(1,"Kernel Services","src/kernel_services"),
+        chop "kernel_services/" f
       with Not_found ->
-	try Chapter(1,"Frama-C","src") , chop "src/" f
-	with Not_found ->
-	  let d = Filename.dirname f in
-	  Directory (Filename.basename (Filename.dirname d)) ,
-	  String.capitalize (Filename.basename d)
+        try Chapter(2,"Libraries","src/libraries"), chop "libraries/" f
+        with Not_found ->
+          try
+            Chapter(3,"Kernel Internals","src/kernel_internals"),
+            chop "kernel_internals/" f
+          with Not_found ->
+            let d = Filename.dirname f in
+            Directory (Filename.basename (Filename.dirname d)) ,
+            String.capitalize (Filename.basename d)
     in
     let structured_modules (* chapter, section, module *) =
       (List.map
-	 (fun name ->
-	   let m = List.find (fun m -> m.m_name = name) self#list_modules
-	   in let dir,name = dir m.m_file in
-	      dir,name,m) l)
+         (fun name ->
+           let m = List.find (fun m -> m.m_name = name) self#list_modules in
+           let dir,name = dir m.m_file in
+           dir,name,m)
+         l)
     in
     let toc_modules (* chapter/section/modules *) =
       merge3 compare_chapter compare compare structured_modules

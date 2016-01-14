@@ -32,8 +32,7 @@ extern int NB;
 extern int G_i;
 
 int aorai_CurStates[7] = {1, 0, 0, 0, 0, 0, 0};
-int aorai_CurTrans[9] =   
-                          {1, 0, 0, 0, 0, 0, 0, 0, 0};
+int aorai_CurTrans[9] = {1, 0, 0, 0, 0, 0, 0, 0, 0};
 int aorai_CurStates_old[7] = {0, 1, 0, 0, 0, 0, 0};
 enum aorai_ListOper aorai_CurOperation = op_f;
 enum aorai_OpStatusList aorai_CurOpStatus = aorai_Called;
@@ -196,8 +195,7 @@ int g(int x)
   aorai_CurTrans[0] = 0;
   aorai_CurTrans[1] = 0;
   aorai_CurTrans[2] = 0;
-  {
-    /*sequence*/
+  { /* sequence */
     if (G_i == 0) 
       if (g_calls < NB) 
         if (aorai_CurStates_old[3]) tmp_0 = 1; else tmp_0 = 0;
@@ -205,8 +203,7 @@ int g(int x)
     else tmp_0 = 0;
     aorai_CurTrans[3] = tmp_0;
   }
-  {
-    /*sequence*/
+  { /* sequence */
     if (G_i == 0) 
       if (g_calls == NB) 
         if (aorai_CurStates_old[3]) tmp_1 = 1; else tmp_1 = 0;
@@ -214,8 +211,7 @@ int g(int x)
     else tmp_1 = 0;
     aorai_CurTrans[4] = tmp_1;
   }
-  {
-    /*sequence*/
+  { /* sequence */
     if (G_i != 0) 
       if (aorai_CurStates_old[3]) tmp_2 = 1; else tmp_2 = 0;
     else tmp_2 = 0;
@@ -366,8 +362,7 @@ void f(int N)
       aorai_CurStates_old[S0] = 0;
       aorai_CurTrans[0] = 0;
       aorai_CurTrans[1] = 0;
-      {
-        /*sequence*/
+      { /* sequence */
         if (NB > 0) 
           if (g_calls < NB) 
             if (0 <= g_calls) 
@@ -435,8 +430,7 @@ void f(int N)
   aorai_CurStates_old[OK] = 0;
   aorai_CurStates_old[S0] = 0;
   aorai_CurTrans[0] = 0;
-  {
-    /*sequence*/
+  { /* sequence */
     if (NB <= 0) 
       if (aorai_CurStates_old[0]) tmp_0 = 1; else tmp_0 = 0;
     else tmp_0 = 0;
@@ -454,8 +448,7 @@ void f(int N)
   aorai_CurStates[S3] = 0;
   aorai_CurStates[S2] = 0;
   aorai_CurStates[S1] = 0;
-  {
-    /*sequence*/
+  { /* sequence */
     if (aorai_CurTrans[8]) tmp_1 = 1;
     else 
       if (aorai_CurTrans[1]) tmp_1 = 1; else tmp_1 = 0;

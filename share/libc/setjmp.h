@@ -22,16 +22,36 @@
 
 #ifndef __FC_SETJMP
 #define __FC_SETJMP
-typedef char jmp_buf[5];
+#include "features.h"
+__BEGIN_DECLS
 
-/*@ 
-  assigns env[0..5];
-*/
+/* Note: setjmp/longjmp/sigsetjmp/siglongjmp are currently unsupported
+   by Frama-C and should not be used. */
+
+typedef int jmp_buf[5]; // arbitrary size
+
+/*@ assigns env[0..4]; // unsound - should "assigns \anything" */
 int setjmp(jmp_buf env);
 
 /*@
- terminates \false; // Unsupported anyway...
- assigns \nothing ;
+ assigns \nothing;
+ ensures \false; // never terminates
 */
 void longjmp(jmp_buf env, int val);
+
+#include "__fc_define_sigset_t.h"
+typedef struct {jmp_buf buf; sigset_t sigs;} sigjmp_buf;
+
+/*@ assigns env.buf[0..4]; // unsound - should "assigns \anything" */
+int sigsetjmp(sigjmp_buf env, int savesigs);
+
+/*@
+ assigns \nothing;
+ ensures \false; // never terminates
+*/
+void siglongjmp(sigjmp_buf env, int val);
+
+
+__END_DECLS
+
 #endif

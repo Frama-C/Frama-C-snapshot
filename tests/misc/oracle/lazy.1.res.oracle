@@ -11,9 +11,9 @@
   r ∈ {0}
   s ∈ {0}
   t ∈ {0}
-tests/misc/lazy.i:11:[kernel] warning: pointer comparison: assert \pointer_comparable((void *)0, q);
-tests/misc/lazy.i:14:[kernel] warning: pointer comparison: assert \pointer_comparable((void *)0, s);
-tests/misc/lazy.i:19:[kernel] warning: pointer comparison: assert \pointer_comparable((void *)0, &a+2);
+tests/misc/lazy.i:11:[kernel] warning: pointer comparison: assert \pointer_comparable((void *)0, (void *)q);
+tests/misc/lazy.i:14:[kernel] warning: pointer comparison: assert \pointer_comparable((void *)0, (void *)s);
+tests/misc/lazy.i:19:[kernel] warning: pointer comparison: assert \pointer_comparable((void *)0, (void *)(&a+2));
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======

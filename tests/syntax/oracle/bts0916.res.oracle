@@ -43,8 +43,7 @@ void main(void)
   /*  wait for pin3 - Not compliant, no white-space char after ;  */
   while (1) {
     int tmp;
-    {
-      /*sequence*/
+    { /* sequence */
       tmp = port;
       port --;
       ;

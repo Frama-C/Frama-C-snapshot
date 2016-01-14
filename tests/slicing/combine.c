@@ -1,6 +1,6 @@
 /* run.config
-   EXECNOW: make -s tests/slicing/combine.opt
-   CMD: tests/slicing/combine.opt
+   EXECNOW: make -s tests/slicing/combine.cmxs
+   CMD: @frama-c@ -load-module tests/slicing/libSelect.cmxs -load-module tests/slicing/combine.cmxs
    OPT: -check -deps -journal-disable
 */
 

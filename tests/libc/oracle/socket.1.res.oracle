@@ -4,26 +4,32 @@
 [value] Computing initial state
 [value] Initial state computed
 [value] Values of globals at initialization
+  __fc_sockfds[0..1023] ∈ {0}
   __fc_socket_counter ∈ [--..--]
+  __fc_open_sock_fds ∈ [--..--]
   __FC_errno ∈ [--..--]
   __fc_stderr ∈ {{ NULL ; &S___fc_stderr[0] }}
   __fc_stdin ∈ {{ NULL ; &S___fc_stdin[0] }}
   __fc_stdout ∈ {{ NULL ; &S___fc_stdout[0] }}
   __fc_fopen[0..511] ∈ {0}
-  _p__fc_fopen ∈ {{ &__fc_fopen[0] }}
+  __p_fc_fopen ∈ {{ &__fc_fopen[0] }}
   __fc_random_counter ∈ {0}
   __fc_rand_max ∈ {32767}
   __fc_heap_status ∈ [--..--]
-  __fc_time_model ∈ {0}
+  __fc_time ∈ [--..--]
   __fc_time_tm ∈ {0}
-  __fc_time_tm_ptr ∈ {{ &__fc_time_tm }}
+  __p_fc_time_tm ∈ {{ &__fc_time_tm }}
   optarg ∈ {{ NULL ; &S_optarg[0] }}
   optind ∈ [--..--]
   opterr ∈ [--..--]
   optopt ∈ [--..--]
+  __fc_fds[0..1023] ∈ {0}
+  in6addr_any ∈ {0}
+  in6addr_loopback.s6_addr[0..15] ∈ {255}
   sent_msg ∈ {{ "World" }}
   rcv_buffer[0..9] ∈ {0}
   socket_fd[0..1] ∈ {0}
+  nondet ∈ [--..--]
   S___fc_stderr[0].__fc_stdio_id ∈ [--..--]
                [0].[bits 32 to 63] ∈ UNINITIALIZED
                [0]{.__fc_position; .__fc_error; .__fc_eof} ∈ [--..--]
@@ -144,113 +150,160 @@
   S___fc_real_data_1_S___fc_stdout[0..1] ∈ [--..--]
   S_optarg[0..1] ∈ [--..--]
 [value] computing for function init_sockets <- main.
-        Called from tests/libc/socket.c:100.
+        Called from tests/libc/socket.c:125.
 [value] computing for function socketpair <- init_sockets <- main.
-        Called from tests/libc/socket.c:49.
+        Called from tests/libc/socket.c:50.
 [value] using specification for function socketpair
-share/libc/sys/socket.h:183:[value] Function socketpair: precondition got status valid.
-share/libc/sys/socket.h:187:[value] warning: no 'assigns \result \from ...' clause specified for function socketpair
+share/libc/sys/socket.h:265:[value] Function socketpair: precondition got status valid.
 [value] Done for function socketpair
 [value] computing for function fprintf <- init_sockets <- main.
-        Called from tests/libc/socket.c:51.
-[value] using specification for function fprintf
-share/libc/stdio.h:121:[value] warning: no \from part for clause 'assigns *stream;' of function fprintf
-[value] Done for function fprintf
-[value] computing for function exit <- init_sockets <- main.
         Called from tests/libc/socket.c:52.
+[value] using specification for function fprintf
+[value] Done for function fprintf
+tests/libc/socket.c:55:[value] Assertion got status valid.
+[value] computing for function exit <- init_sockets <- main.
+        Called from tests/libc/socket.c:53.
 [value] using specification for function exit
+share/libc/stdlib.h:249:[value] Function exit: no state left in which to evaluate postcondition, status not computed.
 [value] Done for function exit
-tests/libc/socket.c:54:[value] Assertion got status valid.
 [value] Recording results for init_sockets
 [value] Done for function init_sockets
 [value] computing for function test_read <- main.
-        Called from tests/libc/socket.c:101.
+        Called from tests/libc/socket.c:126.
 [value] computing for function init_reception <- test_read <- main.
-        Called from tests/libc/socket.c:59.
+        Called from tests/libc/socket.c:60.
 [value] Call to builtin bzero(({{ (void *)&rcv_buffer }},{10}))
 [value] computing for function write <- init_reception <- test_read <- main.
-        Called from tests/libc/socket.c:43.
-tests/libc/socket.c:43:[kernel] warning: Neither code nor specification for function write, generating default assigns from the prototype
+        Called from tests/libc/socket.c:44.
 [value] using specification for function write
+share/libc/unistd.h:858:[value] Function write: precondition got status valid.
+share/libc/unistd.h:859:[value] Function write: precondition got status valid.
 [value] Done for function write
 [value] Recording results for init_reception
 [value] Done for function init_reception
 [value] computing for function read <- test_read <- main.
-        Called from tests/libc/socket.c:60.
-tests/libc/socket.c:60:[kernel] warning: Neither code nor specification for function read, generating default assigns from the prototype
+        Called from tests/libc/socket.c:61.
 [value] using specification for function read
+share/libc/unistd.h:821:[value] Function read: precondition got status valid.
+share/libc/unistd.h:822:[value] Function read: precondition got status valid.
 [value] Done for function read
 [value] computing for function printf <- test_read <- main.
-        Called from tests/libc/socket.c:61.
+        Called from tests/libc/socket.c:62.
 [value] using specification for function printf
 [value] Done for function printf
 [value] Recording results for test_read
 [value] Done for function test_read
 [value] computing for function test_readv <- main.
-        Called from tests/libc/socket.c:102.
+        Called from tests/libc/socket.c:127.
 [value] computing for function init_reception <- test_readv <- main.
-        Called from tests/libc/socket.c:67.
+        Called from tests/libc/socket.c:68.
 [value] Call to builtin bzero(({{ (void *)&rcv_buffer }},{10}))
 [value] computing for function write <- init_reception <- test_readv <- main.
-        Called from tests/libc/socket.c:43.
+        Called from tests/libc/socket.c:44.
 [value] Done for function write
 [value] Recording results for init_reception
 [value] Done for function init_reception
 [value] computing for function readv <- test_readv <- main.
-        Called from tests/libc/socket.c:68.
+        Called from tests/libc/socket.c:69.
 [value] using specification for function readv
-share/libc/sys/uio.h:30:[value] Function readv: precondition got status valid.
-share/libc/sys/uio.h:33:[value] warning: no \from part
+share/libc/sys/uio.h:33:[value] Function readv: precondition got status valid.
+share/libc/sys/uio.h:36:[value] warning: no \from part
                  for clause 'assigns *((char *)(iov+(0 .. iovcnt-1))->iov_base+(0 ..));' of
                  function readv
 [value] Done for function readv
-tests/libc/socket.c:71:[kernel] warning: accessing uninitialized left-value:
+tests/libc/socket.c:72:[kernel] warning: accessing uninitialized left-value:
                   assert \initialized((char *)rcv_buffer_scattered1);
 [value] computing for function printf <- test_readv <- main.
-        Called from tests/libc/socket.c:74.
+        Called from tests/libc/socket.c:75.
 [value] Done for function printf
 [value] Recording results for test_readv
 [value] Done for function test_readv
 [value] computing for function test_recvmsg <- main.
-        Called from tests/libc/socket.c:103.
+        Called from tests/libc/socket.c:128.
 [value] computing for function init_reception <- test_recvmsg <- main.
-        Called from tests/libc/socket.c:81.
+        Called from tests/libc/socket.c:82.
 [value] Call to builtin bzero(({{ (void *)&rcv_buffer }},{10}))
 [value] computing for function write <- init_reception <- test_recvmsg <- main.
-        Called from tests/libc/socket.c:43.
+        Called from tests/libc/socket.c:44.
 [value] Done for function write
 [value] Recording results for init_reception
 [value] Done for function init_reception
 [value] computing for function recvmsg <- test_recvmsg <- main.
-        Called from tests/libc/socket.c:89.
+        Called from tests/libc/socket.c:90.
 [value] using specification for function recvmsg
-share/libc/sys/socket.h:158:[value] Function recvmsg: precondition got status valid.
-share/libc/sys/socket.h:159:[value] Function recvmsg: precondition got status valid.
-share/libc/sys/socket.h:160:[value] Function recvmsg: precondition got status valid.
-share/libc/sys/socket.h:162:[value] warning: no \from part
-                 for clause 'assigns *((char *)hdr->msg_name+(0 .. hdr->msg_namelen-1)),
-                                     hdr->msg_namelen,
-                                     *((char *)(hdr->msg_iov+(0 .. hdr->msg_iovlen-1))->iov_base+
-                                        (0 ..)),
-                                     *((char *)hdr->msg_control+(0 ..)), hdr->msg_controllen,
-                                     hdr->msg_flags;' of
-                 function recvmsg
-tests/libc/socket.c:89:[value] warning: Completely invalid destination for assigns
-                 clause *((char *)hdr->msg_control+(0 ..)). Ignoring.
+share/libc/sys/socket.h:214:[value] Function recvmsg: precondition got status valid.
+share/libc/sys/socket.h:215:[value] Function recvmsg: precondition got status valid.
+share/libc/sys/socket.h:216:[value] Function recvmsg: precondition got status valid.
+share/libc/sys/socket.h:217:[value] Function recvmsg: precondition got status valid.
 [value] Done for function recvmsg
-tests/libc/socket.c:91:[kernel] warning: accessing uninitialized left-value:
+tests/libc/socket.c:92:[kernel] warning: accessing uninitialized left-value:
                   assert \initialized((char *)rcv_buffer_scattered1);
 [value] computing for function printf <- test_recvmsg <- main.
-        Called from tests/libc/socket.c:94.
+        Called from tests/libc/socket.c:95.
 [value] Done for function printf
 [value] Recording results for test_recvmsg
 [value] Done for function test_recvmsg
+[value] computing for function test_server_echo <- main.
+        Called from tests/libc/socket.c:129.
+[value] computing for function socket <- test_server_echo <- main.
+        Called from tests/libc/socket.c:100.
+[value] using specification for function socket
+[value] Done for function socket
+[value] computing for function memset <- test_server_echo <- main.
+        Called from tests/libc/socket.c:103.
+[value] using specification for function memset
+share/libc/string.h:78:[value] Function memset: precondition got status valid.
+tests/libc/socket.c:103:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
+[value] Done for function memset
+[value] computing for function bind <- test_server_echo <- main.
+        Called from tests/libc/socket.c:107.
+[value] using specification for function bind
+share/libc/sys/socket.h:174:[value] Function bind: precondition got status valid.
+share/libc/sys/socket.h:175:[value] Function bind: precondition got status valid.
+[value] Done for function bind
+[value] computing for function listen <- test_server_echo <- main.
+        Called from tests/libc/socket.c:108.
+[value] using specification for function listen
+share/libc/sys/socket.h:188:[value] Function listen: precondition got status valid.
+[value] Done for function listen
+[value] computing for function accept <- test_server_echo <- main.
+        Called from tests/libc/socket.c:111.
+[value] using specification for function accept
+share/libc/sys/socket.h:155:[value] Function accept: precondition got status valid.
+share/libc/sys/socket.h:161:[value] Function accept, behavior addr_null: assumes got status invalid; precondition not evaluated.
+share/libc/sys/socket.h:165:[value] Function accept, behavior addr_not_null: precondition got status valid.
+share/libc/sys/socket.h:166:[value] Function accept, behavior addr_not_null: precondition got status valid.
+[value] Done for function accept
+[value] computing for function accept <- test_server_echo <- main.
+        Called from tests/libc/socket.c:112.
+share/libc/sys/socket.h:161:[value] Function accept, behavior addr_null: precondition got status valid.
+share/libc/sys/socket.h:165:[value] Function accept, behavior addr_not_null: assumes got status invalid; precondition not evaluated.
+tests/libc/socket.c:112:[value] warning: Completely invalid destination for assigns
+                 clause *((char *)addr+(0 .. *addrlen-1)). Ignoring.
+share/libc/sys/socket.h:167:[value] Function accept, behavior addr_not_null: assumes got status invalid; postcondition not evaluated.
+[value] Done for function accept
+[value] computing for function read <- test_server_echo <- main.
+        Called from tests/libc/socket.c:115.
+[value] Done for function read
+[value] computing for function write <- test_server_echo <- main.
+        Called from tests/libc/socket.c:117.
+[value] Done for function write
+[value] computing for function close <- test_server_echo <- main.
+        Called from tests/libc/socket.c:118.
+[value] using specification for function close
+share/libc/unistd.h:728:[value] Function close: precondition got status valid.
+[value] Done for function close
+[value] computing for function close <- test_server_echo <- main.
+        Called from tests/libc/socket.c:119.
+[value] Done for function close
+[value] Recording results for test_server_echo
+[value] Done for function test_server_echo
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
 [value] Values at end of function init_sockets:
   __fc_socket_counter ∈ [--..--]
-  socket_fd[0..1] ∈ [--..--]
+  socket_fd[0..1] ∈ [0..1023]
   S___fc_stderr[0].__fc_stdio_id ∈ [--..--]
                [0].[bits 32 to 63] ∈ UNINITIALIZED
                [0]{.__fc_position; .__fc_error; .__fc_eof} ∈ [--..--]
@@ -274,9 +327,11 @@ tests/libc/socket.c:91:[kernel] warning: accessing uninitialized left-value:
                [1].__fc_real_data_max_size ∈ [--..--]
                [1].[bits 352 to 383] ∈ UNINITIALIZED
 [value] Values at end of function init_reception:
+  __fc_fds[0..1023] ∈ [--..--]
   rcv_buffer[0..9] ∈ {0}
 [value] Values at end of function test_read:
-  rcv_buffer[0..9] ∈ {0}
+  __fc_fds[0..1023] ∈ [--..--]
+  rcv_buffer[0..9] ∈ [--..--]
   S___fc_stdout[0].__fc_stdio_id ∈ [--..--]
                [0].[bits 32 to 63] ∈ [--..--] or UNINITIALIZED
                [0]{.__fc_position; .__fc_error; .__fc_eof} ∈ [--..--]
@@ -300,6 +355,7 @@ tests/libc/socket.c:91:[kernel] warning: accessing uninitialized left-value:
                [1].__fc_real_data_max_size ∈ [--..--]
                [1].[bits 352 to 383] ∈ UNINITIALIZED
 [value] Values at end of function test_readv:
+  __fc_fds[0..1023] ∈ [--..--]
   rcv_buffer[0..9] ∈ {0}
   rcv_buffer_scattered1[0] ∈ [--..--]
                        [1] ∈ [--..--] or UNINITIALIZED
@@ -337,6 +393,8 @@ tests/libc/socket.c:91:[kernel] warning: accessing uninitialized left-value:
                [1].__fc_real_data_max_size ∈ [--..--]
                [1].[bits 352 to 383] ∈ UNINITIALIZED
 [value] Values at end of function test_recvmsg:
+  __fc_sockfds[0..1023] ∈ [--..--]
+  __fc_fds[0..1023] ∈ [--..--]
   rcv_buffer[0..9] ∈ {0}
   rcv_buffer_scattered1[0] ∈ [--..--]
                        [1] ∈ [--..--] or UNINITIALIZED
@@ -382,10 +440,24 @@ tests/libc/socket.c:91:[kernel] warning: accessing uninitialized left-value:
                {{ NULL ; &S___fc_real_data_1_S___fc_stdout[0] }}
                [1].__fc_real_data_max_size ∈ [--..--]
                [1].[bits 352 to 383] ∈ UNINITIALIZED
-[value] Values at end of function main:
+[value] Values at end of function test_server_echo:
+  __fc_sockfds[0..1023] ∈ [--..--]
   __fc_socket_counter ∈ [--..--]
+  __fc_fds[0..1023] ∈ [--..--]
+  fd ∈ [-1..1023]
+  addr ∈ [--..--] or UNINITIALIZED
+  addrlen ∈ {8} or UNINITIALIZED
+  client_fd ∈ [-1..1023] or UNINITIALIZED
+  buf[0..63] ∈ [--..--] or UNINITIALIZED
+  r ∈ [-1..64] or UNINITIALIZED
+  __retres ∈ {0; 1; 5; 20; 100; 200; 300; 400}
+[value] Values at end of function main:
+  __fc_sockfds[0..1023] ∈ [--..--]
+  __fc_socket_counter ∈ [--..--]
+  __fc_fds[0..1023] ∈ [--..--]
   rcv_buffer[0..9] ∈ {0}
-  socket_fd[0..1] ∈ [--..--]
+  socket_fd[0..1] ∈ [0..1023]
+  r ∈ {0; 1; 5; 20; 100; 200; 300; 400}
   __retres ∈ {0}
   S___fc_stderr[0].__fc_stdio_id ∈ [--..--]
                [0].[bits 32 to 63] ∈ UNINITIALIZED

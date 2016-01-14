@@ -582,7 +582,7 @@ PACKAGE_STRING=
 PACKAGE_BUGREPORT=
 PACKAGE_URL=
 
-ac_unique_file="src/kernel"
+ac_unique_file="src/kernel_internals/runtime/boot.ml"
 # Factoring default headers for most tests.
 ac_includes_default="\
 #include <stdio.h>
@@ -655,12 +655,12 @@ HAS_NATIVE_DYNLINK
 NATIVE_DYNLINK
 DOT
 HAS_DOT
+HAS_LABLGTK
+LABLGTK
 HAS_GNOMECANVAS
 GNOMECANVAS
 HAS_GTKSOURCEVIEW
 GTKSOURCEVIEW
-HAS_LABLGTK
-LABLGTK
 WHY3COQC
 COQC
 DYNAMIC_WP
@@ -679,14 +679,10 @@ DYNAMIC_VALUE_ANALYSIS
 ENABLE_VALUE_ANALYSIS
 DYNAMIC_USERS
 ENABLE_USERS
-DYNAMIC_SYNTACTIC_CALLGRAPH
-ENABLE_SYNTACTIC_CALLGRAPH
 DYNAMIC_SPARECODE
 ENABLE_SPARECODE
 DYNAMIC_SLICING
 ENABLE_SLICING
-DYNAMIC_SEMANTIC_CALLGRAPH
-ENABLE_SEMANTIC_CALLGRAPH
 DYNAMIC_SCOPE
 ENABLE_SCOPE
 DYNAMIC_RTEGEN
@@ -709,6 +705,8 @@ DYNAMIC_FROM_ANALYSIS
 ENABLE_FROM_ANALYSIS
 DYNAMIC_SEMANTIC_CONSTANT_FOLDING
 ENABLE_SEMANTIC_CONSTANT_FOLDING
+DYNAMIC_CALLGRAPH
+ENABLE_CALLGRAPH
 EGREP
 GREP
 CPP
@@ -720,12 +718,12 @@ LDFLAGS
 CFLAGS
 CC
 CYGPATH
-OCAMLFIND
 OTAGS
 OCAMLCP
 OCAMLMKTOP
 OCAMLDOCOPT
 OCAMLDOC
+OCAMLFIND
 OCAMLYACC
 OCAMLLEXDOTOPT
 OCAMLLEX
@@ -756,6 +754,7 @@ infodir
 docdir
 oldincludedir
 includedir
+runstatedir
 localstatedir
 sharedstatedir
 sysconfdir
@@ -779,7 +778,6 @@ ac_subst_files=''
 ac_user_opts='
 enable_option_checking
 enable_verbosemake
-enable_unsupported_ocaml
 enable_local_ocamlgraph
 with_ocamlgraph
 enable_zarith
@@ -789,23 +787,35 @@ enable_mcpp
 with_cpp
 with_all_static
 with_no_plugin
+enable_callgraph
+with_callgraph_static
 enable_semantic_constant_folding
+with_semantic_constant_folding_static
 enable_from_analysis
+with_from_analysis_static
 enable_gui
 enable_impact
+with_impact_static
 enable_inout
+with_inout_static
 enable_metrics
+with_metrics_static
 enable_occurrence
+with_occurrence_static
 enable_pdg
+with_pdg_static
 enable_postdominators
 enable_rtegen
 enable_scope
-enable_semantic_callgraph
+with_scope_static
 enable_slicing
+with_slicing_static
 enable_sparecode
-enable_syntactic_callgraph
+with_sparecode_static
 enable_users
+with_users_static
 enable_value_analysis
+with_value_analysis_static
 enable_external
 enable_aorai
 with_aorai_static
@@ -867,6 +877,7 @@ datadir='${datarootdir}'
 sysconfdir='${prefix}/etc'
 sharedstatedir='${prefix}/com'
 localstatedir='${prefix}/var'
+runstatedir='${localstatedir}/run'
 includedir='${prefix}/include'
 oldincludedir='/usr/include'
 docdir='${datarootdir}/doc/${PACKAGE}'
@@ -1119,6 +1130,15 @@ do
   | -silent | --silent | --silen | --sile | --sil)
     silent=yes ;;
 
+  -runstatedir | --runstatedir | --runstatedi | --runstated \
+  | --runstate | --runstat | --runsta | --runst | --runs \
+  | --run | --ru | --r)
+    ac_prev=runstatedir ;;
+  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
+  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
+  | --run=* | --ru=* | --r=*)
+    runstatedir=$ac_optarg ;;
+
   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
     ac_prev=sbindir ;;
   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
@@ -1256,7 +1276,7 @@ fi
 for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
 		datadir sysconfdir sharedstatedir localstatedir includedir \
 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
-		libdir localedir mandir
+		libdir localedir mandir runstatedir
 do
   eval ac_val=\$$ac_var
   # Remove trailing slashes.
@@ -1409,6 +1429,7 @@ Fine tuning of the installation directories:
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
+  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
@@ -1437,13 +1458,13 @@ Optional Features:
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --enable-verbosemake    verbose makefile commands
-  --enable-unsupported-ocaml attempt to compile even against unsupported ocaml version
   --enable-local-ocamlgraph    force the user to use the local OcamlGraph version.
   --disable-local-ocamlgraph   force the user to use an installed OCamlGraph version.
 
   --enable-zarith=<dir> use ZArith library
   --enable-localmachdep    enable local machdep configuration
   --enable-mcpp           use Frama-C's mcpp
+  --enable-callgraph      support for callgraph plugin (default: yes)
   --enable-semantic_constant_folding
                           support for constant propagation plugin (default: yes)
   --enable-from_analysis  support for from analysis (default: yes)
@@ -1456,12 +1477,8 @@ Optional Features:
   --enable-postdominators support for postdominators plugin (default: yes)
   --enable-rtegen         support for runtime error annotation (default: yes)
   --enable-scope          support for scope plugin (default: yes)
-  --enable-semantic_callgraph
-                          support for semantic callgraph (default: yes)
   --enable-slicing        support for slicing plugin (default: yes)
   --enable-sparecode      support for sparecode plugin (default: yes)
-  --enable-syntactic_callgraph
-                          support for callgraph plugin (default: yes)
   --enable-users          support for users analysis (default: yes)
   --enable-value_analysis support for value analysis (default: yes)
   --enable-external=plugin
@@ -1486,6 +1503,23 @@ specifies a custom C compiler and pre-processor
   --with-cpp             customize defaut preprocessor for Frama-C
   --with-all-static       link all plug-ins statically (default: no)
   --with-no-plugin        disable all plug-ins (default: no)
+  --with-callgraph-static link callgraph statically (default: no)
+  --with-semantic_constant_folding-static
+                          link semantic_constant_folding statically (default: no)
+  --with-from_analysis-static
+                          link from_analysis statically (default: no)
+  --with-impact-static    link impact statically (default: no)
+  --with-inout-static     link inout statically (default: no)
+  --with-metrics-static   link metrics statically (default: no)
+  --with-occurrence-static
+                          link occurrence statically (default: no)
+  --with-pdg-static       link pdg statically (default: no)
+  --with-scope-static     link scope statically (default: no)
+  --with-slicing-static   link slicing statically (default: no)
+  --with-sparecode-static link sparecode statically (default: no)
+  --with-users-static     link users statically (default: no)
+  --with-value_analysis-static
+                          link value_analysis statically (default: no)
   --with-aorai-static     link aorai statically (default: no)
   --with-obfuscator-static
                           link obfuscator statically (default: no)
@@ -2683,16 +2717,6 @@ fi
 # Check for Ocaml compilers #
 #############################
 
-# Specifically allow 3.10.0
-UNSUPPORTED_OCAML=no
-# Check whether --enable-unsupported-ocaml was given.
-if test "${enable_unsupported_ocaml+set}" = set; then :
-  enableval=$enable_unsupported_ocaml; UNSUPPORTED_OCAML=$enableval
-else
-  UNSUPPORTED_OCAML=no
-fi
-
-
 new_section "configure ocaml compilers"
 
 # we first look for ocamlc in the path; if not present, we fail
@@ -2738,17 +2762,6 @@ if test "$OCAMLC" = no ; then
         as_fn_error $? "Cannot find ocamlc." "$LINENO" 5
 fi
 
-# Let user shoot himself in the foot if he so wishes
-warn_or_die () {
-if test "$UNSUPPORTED_OCAML" = "yes"; then
-  echo "Compile at your own risks";
-else
-  echo "If you want to compile Frama-C with this version, use the \
---enable-unsupported-ocaml option of configure";
-  exit 2;
-fi
-}
-
 # we extract Ocaml version number and library path
 # "sed -n" is the posix version of "sed --quiet"
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking version of OCaml" >&5
@@ -2757,19 +2770,16 @@ OCAMLVERSION=`$OCAMLC -v | sed -n -e 's|.*version *\(.*\)$|\1|p' `
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $OCAMLVERSION" >&5
 $as_echo "$OCAMLVERSION" >&6; }
 case $OCAMLVERSION in
-  3.12.1*) OCAML_ANNOT_OPTION="-annot";;
-  3.0*) echo "${ECHO_T}Incompatible version! Use at least OCaml 3.12.1.";
-        exit 2;;
-  3.10*) echo "${ECHO_T}Incompatible version! Use at least OCaml 3.12.1.";
-         exit 2;;
-  3.11*) echo "${ECHO_T}Incompatible version! Use at least OCaml 3.12.1.";
-         exit 2;;
-  3.12.0*) echo "${ECHO_T}Incompatible version! Use at least OCaml 3.12.1.";
-           exit 2;;
-  4.02.0*) echo "${ECHO_T}Incompatible version. Use OCaml 4.02.1.";
-           exit 2;;
-  4.*) OCAML_ANNOT_OPTION="-annot -bin-annot";;
-  *) echo "${ECHO_T}Incompatible version!"; exit 2;;
+  0.*|1.*|2.*|3.*)
+     as_fn_error $? "Incompatible OCaml version; use 4.0+ (except 4.02.2, 4.02.0 and 4.00.0)." "$LINENO" 5;;
+   4.00.0)
+     as_fn_error $? "Incompatible OCaml version; use at least 4.00.1 instead." "$LINENO" 5;;
+   4.02.0)
+     as_fn_error $? "Incompatible OCaml version; use at least 4.02.1 instead." "$LINENO" 5;;
+   4.02.2)
+     as_fn_error $? "Incompatible OCaml version; use at least 4.02.3 instead." "$LINENO" 5;;
+   *)
+     OCAML_ANNOT_OPTION="-bin-annot";;
 esac
 
 # Ocaml library path
@@ -3177,6 +3187,47 @@ if test "$OCAMLYACC" = no ; then
         as_fn_error $? "Cannot find ocamlyacc." "$LINENO" 5
 fi
 
+# Extract the first word of "ocamlfind", so it can be a program name with args.
+set dummy ocamlfind; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_prog_OCAMLFIND+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test -n "$OCAMLFIND"; then
+  ac_cv_prog_OCAMLFIND="$OCAMLFIND" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_prog_OCAMLFIND="ocamlfind"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_prog_OCAMLFIND" && ac_cv_prog_OCAMLFIND="no"
+fi
+fi
+OCAMLFIND=$ac_cv_prog_OCAMLFIND
+if test -n "$OCAMLFIND"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $OCAMLFIND" >&5
+$as_echo "$OCAMLFIND" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+if test "$OCAMLFIND" = no ; then
+   	as_fn_error $? "Cannot find ocamlfind." "$LINENO" 5
+fi
 
 #################################################
 # Check for other (optional) tools/libraries    #
@@ -3394,58 +3445,6 @@ fi
 
 
 
-# Extract the first word of "ocamlfind", so it can be a program name with args.
-set dummy ocamlfind; ac_word=$2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_prog_OCAMLFIND+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  if test -n "$OCAMLFIND"; then
-  ac_cv_prog_OCAMLFIND="$OCAMLFIND" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_prog_OCAMLFIND="ocamlfind"
-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-  test -z "$ac_cv_prog_OCAMLFIND" && ac_cv_prog_OCAMLFIND="no"
-fi
-fi
-OCAMLFIND=$ac_cv_prog_OCAMLFIND
-if test -n "$OCAMLFIND"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $OCAMLFIND" >&5
-$as_echo "$OCAMLFIND" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-
-if test "$OCAMLFIND" = "no" ; then
-   echo "No ocamlfind detected"
-else
-   OCAMLLIB_BY_FINDLIB=`ocamlfind printconf stdlib | tr -d '\\r'`
-   if test "$OCAMLLIB_BY_FINDLIB" = "$OCAMLLIB" ; then
-      echo "OCamlfind detected and enabled"
-   else
-      echo "OCamlfind detected but disabled. Standard libraries differ:"
-      echo "  ocamlc: '$OCAMLLIB'"
-      echo "  ocamlfind: '$OCAMLLIB_BY_FINDLIB'"
-      OCAMLFIND="no"
-   fi
-fi
-
 ##############
 # ocamlgraph #
 ##############
@@ -3474,7 +3473,7 @@ fi
 
 
 if test "$ENABLE_LOCAL_OCAMLGRAPH" != "yes"; then
-  if test "$OCAMLFIND" = "no" -o "$OCAMLGRAPH_CUSTOM" = "yes"; then
+  if test "$OCAMLGRAPH_CUSTOM" = "yes"; then
 
     # check if any ocamlgraph is installed in the right place
     as_ac_File=`$as_echo "ac_cv_file_$OCAMLGRAPH_HOME/graph.$OBJ_SUFFIX" | $as_tr_sh`
@@ -3698,39 +3697,12 @@ fi
 if test -z "$ZARITH_PATH"; then
   # standard installation procedure of zarith diverges according to
   # ocamlfind installation (see zarith's README)
-  if test "$OCAMLFIND" = no ; then
-    ZARITH_PATH=$OCAMLLIB
-    as_ac_File=`$as_echo "ac_cv_file_$ZARITH_PATH/zarith.$LIB_SUFFIX" | $as_tr_sh`
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ZARITH_PATH/zarith.$LIB_SUFFIX" >&5
-$as_echo_n "checking for $ZARITH_PATH/zarith.$LIB_SUFFIX... " >&6; }
-if eval \${$as_ac_File+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  test "$cross_compiling" = yes &&
-  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
-if test -r "$ZARITH_PATH/zarith.$LIB_SUFFIX"; then
-  eval "$as_ac_File=yes"
-else
-  eval "$as_ac_File=no"
-fi
-fi
-eval ac_res=\$$as_ac_File
-	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
-$as_echo "$ac_res" >&6; }
-if eval test \"x\$"$as_ac_File"\" = x"yes"; then :
-  HAS_ZARITH=yes
-else
-  HAS_ZARITH=no
-fi
-
-  else
     ZARITH_PATH=$($OCAMLFIND query zarith 2>/dev/null | tr -d '\r\n')
     if test -z "$ZARITH_PATH"; then
       HAS_ZARITH="no";
     else
       HAS_ZARITH="yes";
     fi;
-  fi
   if test "$HAS_ZARITH" = "no"; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Zarith not found: will use the default less efficient library instead" >&5
 $as_echo "$as_me: WARNING: Zarith not found: will use the default less efficient library instead" >&2;}
@@ -5596,6 +5568,147 @@ PLUGINS_FORCE_LIST=
 #                                                                             #
 ###############################################################################
 
+# callgraph
+###########
+
+
+
+
+
+
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/callgraph" >&5
+$as_echo_n "checking for src/plugins/callgraph... " >&6; }
+if ${ac_cv_file_src_plugins_callgraph+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  test "$cross_compiling" = yes &&
+  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
+if test -r "src/plugins/callgraph"; then
+  ac_cv_file_src_plugins_callgraph=yes
+else
+  ac_cv_file_src_plugins_callgraph=no
+fi
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_plugins_callgraph" >&5
+$as_echo "$ac_cv_file_src_plugins_callgraph" >&6; }
+if test "x$ac_cv_file_src_plugins_callgraph" = xyes; then :
+  default=yes;plugin_present=yes
+else
+  plugin_present=no;default=no
+fi
+
+
+FORCE=no
+
+# Check whether --enable-callgraph was given.
+if test "${enable_callgraph+set}" = set; then :
+  enableval=$enable_callgraph; ENABLE=$enableval;FORCE=$enableval
+else
+  ENABLE=$default
+
+fi
+
+
+if test "$ONLY_KERNEL" = "yes" -a "$FORCE" = "no"; then
+  ENABLE=no
+fi
+
+
+
+# Test to change for static plugin, dynamic option
+#default_dyn=no
+#define([PLUGIN_HELP_DYN],
+#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
+#                     [PLUGIN_MSG (default: static)])
+#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
+#AC_ARG_ENABLE(
+# [PLUGIN_NAME_DYN],
+#  PLUGIN_HELP_DYN,
+#  ENABLE=$enableval;
+#  FORCE=$enableval
+#  ENABLE=$default_dyn
+#)
+#eval ENABLE_DYNAMIC_$up=\$ENABLE
+
+if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
+  as_fn_error $? "callgraph is not available" "$LINENO" 5
+fi
+
+FORCE_CALLGRAPH=$FORCE
+PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_CALLGRAPH
+
+ENABLE_CALLGRAPH=$ENABLE
+NAME_CALLGRAPH=callgraph
+if test "$default" = "no" -a "$FORCE" = "no"; then
+  INFO_CALLGRAPH=" (not available by default)"
+fi
+
+# Dynamic plug-ins configuration
+
+
+# Check whether --with-callgraph-static was given.
+if test "${with_callgraph_static+set}" = set; then :
+  withval=$with_callgraph_static; is_static=$withval
+else
+  is_static=$IS_ALL_STATIC
+fi
+
+
+   # is_static = "yes" iff the user forces the plug-in to be static
+   # is_static = "no"  iff the user forces the plug-in to be dynamic
+   # is_static = "" in others cases (no special instruction)
+   STATIC_CALLGRAPH=$is_static
+   if test "$is_static" != "yes"; then
+     USE_NATIVE_DYNLINK="${USE_NATIVE_DYNLINK} callgraph"
+     DYNAMIC_CALLGRAPH=yes
+   else
+     DYNAMIC_CALLGRAPH=no
+   fi
+
+
+
+echo "callgraph... $ENABLE"
+# kept defined for write_plugin_config. A bit ugly, but not more than
+# usual autoconf stuff.
+# m4_undefine([PLUGIN_NAME])
+
+
+
+
+
+
+
+
+
+
+        USE_DOT=$USE_DOT" "callgraph
+
+
+
+
+
+
+        USE_GUI=$USE_GUI" "callgraph
+        USED_CALLGRAPH=$USED_CALLGRAPH" "gui
+
+
+
+
+
+
+
+
+
+        USE_VALUE_ANALYSIS=$USE_VALUE_ANALYSIS" "callgraph
+        USED_CALLGRAPH=$USED_CALLGRAPH" "value_analysis
+
+
+
+
+
+
 # constant propagation
 ######################
 
@@ -5606,22 +5719,22 @@ PLUGINS_FORCE_LIST=
 
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/constant_propagation" >&5
-$as_echo_n "checking for src/constant_propagation... " >&6; }
-if ${ac_cv_file_src_constant_propagation+:} false; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/constant_propagation" >&5
+$as_echo_n "checking for src/plugins/constant_propagation... " >&6; }
+if ${ac_cv_file_src_plugins_constant_propagation+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   test "$cross_compiling" = yes &&
   as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
-if test -r "src/constant_propagation"; then
-  ac_cv_file_src_constant_propagation=yes
+if test -r "src/plugins/constant_propagation"; then
+  ac_cv_file_src_plugins_constant_propagation=yes
 else
-  ac_cv_file_src_constant_propagation=no
+  ac_cv_file_src_plugins_constant_propagation=no
 fi
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_constant_propagation" >&5
-$as_echo "$ac_cv_file_src_constant_propagation" >&6; }
-if test "x$ac_cv_file_src_constant_propagation" = xyes; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_plugins_constant_propagation" >&5
+$as_echo "$ac_cv_file_src_plugins_constant_propagation" >&6; }
+if test "x$ac_cv_file_src_plugins_constant_propagation" = xyes; then :
   default=yes;plugin_present=yes
 else
   plugin_present=no;default=no
@@ -5674,8 +5787,26 @@ if test "$default" = "no" -a "$FORCE" = "no"; then
 fi
 
 # Dynamic plug-ins configuration
-# static plug-in
-   DYNAMIC_SEMANTIC_CONSTANT_FOLDING=no
+
+
+# Check whether --with-semantic_constant_folding-static was given.
+if test "${with_semantic_constant_folding_static+set}" = set; then :
+  withval=$with_semantic_constant_folding_static; is_static=$withval
+else
+  is_static=$IS_ALL_STATIC
+fi
+
+
+   # is_static = "yes" iff the user forces the plug-in to be static
+   # is_static = "no"  iff the user forces the plug-in to be dynamic
+   # is_static = "" in others cases (no special instruction)
+   STATIC_SEMANTIC_CONSTANT_FOLDING=$is_static
+   if test "$is_static" != "yes"; then
+     USE_NATIVE_DYNLINK="${USE_NATIVE_DYNLINK} semantic_constant_folding"
+     DYNAMIC_SEMANTIC_CONSTANT_FOLDING=yes
+   else
+     DYNAMIC_SEMANTIC_CONSTANT_FOLDING=no
+   fi
 
 
 
@@ -5713,22 +5844,22 @@ echo "semantic_constant_folding... $ENABLE"
 
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/from" >&5
-$as_echo_n "checking for src/from... " >&6; }
-if ${ac_cv_file_src_from+:} false; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/from" >&5
+$as_echo_n "checking for src/plugins/from... " >&6; }
+if ${ac_cv_file_src_plugins_from+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   test "$cross_compiling" = yes &&
   as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
-if test -r "src/from"; then
-  ac_cv_file_src_from=yes
+if test -r "src/plugins/from"; then
+  ac_cv_file_src_plugins_from=yes
 else
-  ac_cv_file_src_from=no
+  ac_cv_file_src_plugins_from=no
 fi
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_from" >&5
-$as_echo "$ac_cv_file_src_from" >&6; }
-if test "x$ac_cv_file_src_from" = xyes; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_plugins_from" >&5
+$as_echo "$ac_cv_file_src_plugins_from" >&6; }
+if test "x$ac_cv_file_src_plugins_from" = xyes; then :
   default=yes;plugin_present=yes
 else
   plugin_present=no;default=no
@@ -5781,8 +5912,26 @@ if test "$default" = "no" -a "$FORCE" = "no"; then
 fi
 
 # Dynamic plug-ins configuration
-# static plug-in
-   DYNAMIC_FROM_ANALYSIS=no
+
+
+# Check whether --with-from_analysis-static was given.
+if test "${with_from_analysis_static+set}" = set; then :
+  withval=$with_from_analysis_static; is_static=$withval
+else
+  is_static=$IS_ALL_STATIC
+fi
+
+
+   # is_static = "yes" iff the user forces the plug-in to be static
+   # is_static = "no"  iff the user forces the plug-in to be dynamic
+   # is_static = "" in others cases (no special instruction)
+   STATIC_FROM_ANALYSIS=$is_static
+   if test "$is_static" != "yes"; then
+     USE_NATIVE_DYNLINK="${USE_NATIVE_DYNLINK} from_analysis"
+     DYNAMIC_FROM_ANALYSIS=yes
+   else
+     DYNAMIC_FROM_ANALYSIS=no
+   fi
 
 
 
@@ -5813,8 +5962,8 @@ echo "from_analysis... $ENABLE"
 
 
 
-        REQUIRE_SEMANTIC_CALLGRAPH=$REQUIRE_SEMANTIC_CALLGRAPH" "from_analysis
-        REQUIRED_FROM_ANALYSIS=$REQUIRED_FROM_ANALYSIS" "semantic_callgraph
+        REQUIRE_CALLGRAPH=$REQUIRE_CALLGRAPH" "from_analysis
+        REQUIRED_FROM_ANALYSIS=$REQUIRED_FROM_ANALYSIS" "callgraph
 
 
 
@@ -5831,22 +5980,22 @@ echo "from_analysis... $ENABLE"
 
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/gui" >&5
-$as_echo_n "checking for src/gui... " >&6; }
-if ${ac_cv_file_src_gui+:} false; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/gui" >&5
+$as_echo_n "checking for src/plugins/gui... " >&6; }
+if ${ac_cv_file_src_plugins_gui+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   test "$cross_compiling" = yes &&
   as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
-if test -r "src/gui"; then
-  ac_cv_file_src_gui=yes
+if test -r "src/plugins/gui"; then
+  ac_cv_file_src_plugins_gui=yes
 else
-  ac_cv_file_src_gui=no
+  ac_cv_file_src_plugins_gui=no
 fi
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_gui" >&5
-$as_echo "$ac_cv_file_src_gui" >&6; }
-if test "x$ac_cv_file_src_gui" = xyes; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_plugins_gui" >&5
+$as_echo "$ac_cv_file_src_plugins_gui" >&6; }
+if test "x$ac_cv_file_src_plugins_gui" = xyes; then :
   default=yes;plugin_present=yes
 else
   plugin_present=no;default=no
@@ -5928,6 +6077,11 @@ echo "gui... $ENABLE"
 
 
 
+        REQUIRE_GTKSOURCEVIEW=$REQUIRE_GTKSOURCEVIEW" "gui
+
+
+
+
         USE_DOT=$USE_DOT" "gui
 
 
@@ -5942,22 +6096,22 @@ echo "gui... $ENABLE"
 
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/impact" >&5
-$as_echo_n "checking for src/impact... " >&6; }
-if ${ac_cv_file_src_impact+:} false; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/impact" >&5
+$as_echo_n "checking for src/plugins/impact... " >&6; }
+if ${ac_cv_file_src_plugins_impact+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   test "$cross_compiling" = yes &&
   as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
-if test -r "src/impact"; then
-  ac_cv_file_src_impact=yes
+if test -r "src/plugins/impact"; then
+  ac_cv_file_src_plugins_impact=yes
 else
-  ac_cv_file_src_impact=no
+  ac_cv_file_src_plugins_impact=no
 fi
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_impact" >&5
-$as_echo "$ac_cv_file_src_impact" >&6; }
-if test "x$ac_cv_file_src_impact" = xyes; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_plugins_impact" >&5
+$as_echo "$ac_cv_file_src_plugins_impact" >&6; }
+if test "x$ac_cv_file_src_plugins_impact" = xyes; then :
   default=yes;plugin_present=yes
 else
   plugin_present=no;default=no
@@ -6010,8 +6164,26 @@ if test "$default" = "no" -a "$FORCE" = "no"; then
 fi
 
 # Dynamic plug-ins configuration
-# static plug-in
-   DYNAMIC_IMPACT=no
+
+
+# Check whether --with-impact-static was given.
+if test "${with_impact_static+set}" = set; then :
+  withval=$with_impact_static; is_static=$withval
+else
+  is_static=$IS_ALL_STATIC
+fi
+
+
+   # is_static = "yes" iff the user forces the plug-in to be static
+   # is_static = "no"  iff the user forces the plug-in to be dynamic
+   # is_static = "" in others cases (no special instruction)
+   STATIC_IMPACT=$is_static
+   if test "$is_static" != "yes"; then
+     USE_NATIVE_DYNLINK="${USE_NATIVE_DYNLINK} impact"
+     DYNAMIC_IMPACT=yes
+   else
+     DYNAMIC_IMPACT=no
+   fi
 
 
 
@@ -6093,22 +6265,22 @@ echo "impact... $ENABLE"
 
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/inout" >&5
-$as_echo_n "checking for src/inout... " >&6; }
-if ${ac_cv_file_src_inout+:} false; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/inout" >&5
+$as_echo_n "checking for src/plugins/inout... " >&6; }
+if ${ac_cv_file_src_plugins_inout+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   test "$cross_compiling" = yes &&
   as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
-if test -r "src/inout"; then
-  ac_cv_file_src_inout=yes
+if test -r "src/plugins/inout"; then
+  ac_cv_file_src_plugins_inout=yes
 else
-  ac_cv_file_src_inout=no
+  ac_cv_file_src_plugins_inout=no
 fi
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_inout" >&5
-$as_echo "$ac_cv_file_src_inout" >&6; }
-if test "x$ac_cv_file_src_inout" = xyes; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_plugins_inout" >&5
+$as_echo "$ac_cv_file_src_plugins_inout" >&6; }
+if test "x$ac_cv_file_src_plugins_inout" = xyes; then :
   default=yes;plugin_present=yes
 else
   plugin_present=no;default=no
@@ -6161,8 +6333,26 @@ if test "$default" = "no" -a "$FORCE" = "no"; then
 fi
 
 # Dynamic plug-ins configuration
-# static plug-in
-   DYNAMIC_INOUT=no
+
+
+# Check whether --with-inout-static was given.
+if test "${with_inout_static+set}" = set; then :
+  withval=$with_inout_static; is_static=$withval
+else
+  is_static=$IS_ALL_STATIC
+fi
+
+
+   # is_static = "yes" iff the user forces the plug-in to be static
+   # is_static = "no"  iff the user forces the plug-in to be dynamic
+   # is_static = "" in others cases (no special instruction)
+   STATIC_INOUT=$is_static
+   if test "$is_static" != "yes"; then
+     USE_NATIVE_DYNLINK="${USE_NATIVE_DYNLINK} inout"
+     DYNAMIC_INOUT=yes
+   else
+     DYNAMIC_INOUT=no
+   fi
 
 
 
@@ -6203,8 +6393,8 @@ echo "inout... $ENABLE"
 
 
 
-        REQUIRE_SEMANTIC_CALLGRAPH=$REQUIRE_SEMANTIC_CALLGRAPH" "inout
-        REQUIRED_INOUT=$REQUIRED_INOUT" "semantic_callgraph
+        REQUIRE_CALLGRAPH=$REQUIRE_CALLGRAPH" "inout
+        REQUIRED_INOUT=$REQUIRED_INOUT" "callgraph
 
 
 
@@ -6221,22 +6411,22 @@ echo "inout... $ENABLE"
 
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/metrics" >&5
-$as_echo_n "checking for src/metrics... " >&6; }
-if ${ac_cv_file_src_metrics+:} false; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/metrics" >&5
+$as_echo_n "checking for src/plugins/metrics... " >&6; }
+if ${ac_cv_file_src_plugins_metrics+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   test "$cross_compiling" = yes &&
   as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
-if test -r "src/metrics"; then
-  ac_cv_file_src_metrics=yes
+if test -r "src/plugins/metrics"; then
+  ac_cv_file_src_plugins_metrics=yes
 else
-  ac_cv_file_src_metrics=no
+  ac_cv_file_src_plugins_metrics=no
 fi
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_metrics" >&5
-$as_echo "$ac_cv_file_src_metrics" >&6; }
-if test "x$ac_cv_file_src_metrics" = xyes; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_plugins_metrics" >&5
+$as_echo "$ac_cv_file_src_plugins_metrics" >&6; }
+if test "x$ac_cv_file_src_plugins_metrics" = xyes; then :
   default=yes;plugin_present=yes
 else
   plugin_present=no;default=no
@@ -6289,8 +6479,26 @@ if test "$default" = "no" -a "$FORCE" = "no"; then
 fi
 
 # Dynamic plug-ins configuration
-# static plug-in
-   DYNAMIC_METRICS=no
+
+
+# Check whether --with-metrics-static was given.
+if test "${with_metrics_static+set}" = set; then :
+  withval=$with_metrics_static; is_static=$withval
+else
+  is_static=$IS_ALL_STATIC
+fi
+
+
+   # is_static = "yes" iff the user forces the plug-in to be static
+   # is_static = "no"  iff the user forces the plug-in to be dynamic
+   # is_static = "" in others cases (no special instruction)
+   STATIC_METRICS=$is_static
+   if test "$is_static" != "yes"; then
+     USE_NATIVE_DYNLINK="${USE_NATIVE_DYNLINK} metrics"
+     DYNAMIC_METRICS=yes
+   else
+     DYNAMIC_METRICS=no
+   fi
 
 
 
@@ -6338,22 +6546,22 @@ echo "metrics... $ENABLE"
 
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/occurrence" >&5
-$as_echo_n "checking for src/occurrence... " >&6; }
-if ${ac_cv_file_src_occurrence+:} false; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/occurrence" >&5
+$as_echo_n "checking for src/plugins/occurrence... " >&6; }
+if ${ac_cv_file_src_plugins_occurrence+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   test "$cross_compiling" = yes &&
   as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
-if test -r "src/occurrence"; then
-  ac_cv_file_src_occurrence=yes
+if test -r "src/plugins/occurrence"; then
+  ac_cv_file_src_plugins_occurrence=yes
 else
-  ac_cv_file_src_occurrence=no
+  ac_cv_file_src_plugins_occurrence=no
 fi
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_occurrence" >&5
-$as_echo "$ac_cv_file_src_occurrence" >&6; }
-if test "x$ac_cv_file_src_occurrence" = xyes; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_plugins_occurrence" >&5
+$as_echo "$ac_cv_file_src_plugins_occurrence" >&6; }
+if test "x$ac_cv_file_src_plugins_occurrence" = xyes; then :
   default=yes;plugin_present=yes
 else
   plugin_present=no;default=no
@@ -6406,8 +6614,26 @@ if test "$default" = "no" -a "$FORCE" = "no"; then
 fi
 
 # Dynamic plug-ins configuration
-# static plug-in
-   DYNAMIC_OCCURRENCE=no
+
+
+# Check whether --with-occurrence-static was given.
+if test "${with_occurrence_static+set}" = set; then :
+  withval=$with_occurrence_static; is_static=$withval
+else
+  is_static=$IS_ALL_STATIC
+fi
+
+
+   # is_static = "yes" iff the user forces the plug-in to be static
+   # is_static = "no"  iff the user forces the plug-in to be dynamic
+   # is_static = "" in others cases (no special instruction)
+   STATIC_OCCURRENCE=$is_static
+   if test "$is_static" != "yes"; then
+     USE_NATIVE_DYNLINK="${USE_NATIVE_DYNLINK} occurrence"
+     DYNAMIC_OCCURRENCE=yes
+   else
+     DYNAMIC_OCCURRENCE=no
+   fi
 
 
 
@@ -6455,22 +6681,22 @@ echo "occurrence... $ENABLE"
 
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/pdg" >&5
-$as_echo_n "checking for src/pdg... " >&6; }
-if ${ac_cv_file_src_pdg+:} false; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/pdg" >&5
+$as_echo_n "checking for src/plugins/pdg... " >&6; }
+if ${ac_cv_file_src_plugins_pdg+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   test "$cross_compiling" = yes &&
   as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
-if test -r "src/pdg"; then
-  ac_cv_file_src_pdg=yes
+if test -r "src/plugins/pdg"; then
+  ac_cv_file_src_plugins_pdg=yes
 else
-  ac_cv_file_src_pdg=no
+  ac_cv_file_src_plugins_pdg=no
 fi
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_pdg" >&5
-$as_echo "$ac_cv_file_src_pdg" >&6; }
-if test "x$ac_cv_file_src_pdg" = xyes; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_plugins_pdg" >&5
+$as_echo "$ac_cv_file_src_plugins_pdg" >&6; }
+if test "x$ac_cv_file_src_plugins_pdg" = xyes; then :
   default=yes;plugin_present=yes
 else
   plugin_present=no;default=no
@@ -6523,8 +6749,26 @@ if test "$default" = "no" -a "$FORCE" = "no"; then
 fi
 
 # Dynamic plug-ins configuration
-# static plug-in
-   DYNAMIC_PDG=no
+
+
+# Check whether --with-pdg-static was given.
+if test "${with_pdg_static+set}" = set; then :
+  withval=$with_pdg_static; is_static=$withval
+else
+  is_static=$IS_ALL_STATIC
+fi
+
+
+   # is_static = "yes" iff the user forces the plug-in to be static
+   # is_static = "no"  iff the user forces the plug-in to be dynamic
+   # is_static = "" in others cases (no special instruction)
+   STATIC_PDG=$is_static
+   if test "$is_static" != "yes"; then
+     USE_NATIVE_DYNLINK="${USE_NATIVE_DYNLINK} pdg"
+     DYNAMIC_PDG=yes
+   else
+     DYNAMIC_PDG=no
+   fi
 
 
 
@@ -6562,6 +6806,17 @@ echo "pdg... $ENABLE"
 
 
 
+
+
+
+        REQUIRE_CALLGRAPH=$REQUIRE_CALLGRAPH" "pdg
+        REQUIRED_PDG=$REQUIRED_PDG" "callgraph
+
+
+
+
+
+
 # postdominators
 ################
 
@@ -6572,22 +6827,22 @@ echo "pdg... $ENABLE"
 
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/postdominators" >&5
-$as_echo_n "checking for src/postdominators... " >&6; }
-if ${ac_cv_file_src_postdominators+:} false; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/postdominators" >&5
+$as_echo_n "checking for src/plugins/postdominators... " >&6; }
+if ${ac_cv_file_src_plugins_postdominators+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   test "$cross_compiling" = yes &&
   as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
-if test -r "src/postdominators"; then
-  ac_cv_file_src_postdominators=yes
+if test -r "src/plugins/postdominators"; then
+  ac_cv_file_src_plugins_postdominators=yes
 else
-  ac_cv_file_src_postdominators=no
+  ac_cv_file_src_plugins_postdominators=no
 fi
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_postdominators" >&5
-$as_echo "$ac_cv_file_src_postdominators" >&6; }
-if test "x$ac_cv_file_src_postdominators" = xyes; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_plugins_postdominators" >&5
+$as_echo "$ac_cv_file_src_plugins_postdominators" >&6; }
+if test "x$ac_cv_file_src_plugins_postdominators" = xyes; then :
   default=yes;plugin_present=yes
 else
   plugin_present=no;default=no
@@ -6667,22 +6922,22 @@ echo "postdominators... $ENABLE"
 
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/rte" >&5
-$as_echo_n "checking for src/rte... " >&6; }
-if ${ac_cv_file_src_rte+:} false; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/rte" >&5
+$as_echo_n "checking for src/plugins/rte... " >&6; }
+if ${ac_cv_file_src_plugins_rte+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   test "$cross_compiling" = yes &&
   as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
-if test -r "src/rte"; then
-  ac_cv_file_src_rte=yes
+if test -r "src/plugins/rte"; then
+  ac_cv_file_src_plugins_rte=yes
 else
-  ac_cv_file_src_rte=no
+  ac_cv_file_src_plugins_rte=no
 fi
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_rte" >&5
-$as_echo "$ac_cv_file_src_rte" >&6; }
-if test "x$ac_cv_file_src_rte" = xyes; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_plugins_rte" >&5
+$as_echo "$ac_cv_file_src_plugins_rte" >&6; }
+if test "x$ac_cv_file_src_plugins_rte" = xyes; then :
   default=yes;plugin_present=yes
 else
   plugin_present=no;default=no
@@ -6762,22 +7017,22 @@ echo "rtegen... $ENABLE"
 
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/scope" >&5
-$as_echo_n "checking for src/scope... " >&6; }
-if ${ac_cv_file_src_scope+:} false; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/scope" >&5
+$as_echo_n "checking for src/plugins/scope... " >&6; }
+if ${ac_cv_file_src_plugins_scope+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   test "$cross_compiling" = yes &&
   as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
-if test -r "src/scope"; then
-  ac_cv_file_src_scope=yes
+if test -r "src/plugins/scope"; then
+  ac_cv_file_src_plugins_scope=yes
 else
-  ac_cv_file_src_scope=no
+  ac_cv_file_src_plugins_scope=no
 fi
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_scope" >&5
-$as_echo "$ac_cv_file_src_scope" >&6; }
-if test "x$ac_cv_file_src_scope" = xyes; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_plugins_scope" >&5
+$as_echo "$ac_cv_file_src_plugins_scope" >&6; }
+if test "x$ac_cv_file_src_plugins_scope" = xyes; then :
   default=yes;plugin_present=yes
 else
   plugin_present=no;default=no
@@ -6830,8 +7085,26 @@ if test "$default" = "no" -a "$FORCE" = "no"; then
 fi
 
 # Dynamic plug-ins configuration
-# static plug-in
-   DYNAMIC_SCOPE=no
+
+
+# Check whether --with-scope-static was given.
+if test "${with_scope_static+set}" = set; then :
+  withval=$with_scope_static; is_static=$withval
+else
+  is_static=$IS_ALL_STATIC
+fi
+
+
+   # is_static = "yes" iff the user forces the plug-in to be static
+   # is_static = "no"  iff the user forces the plug-in to be dynamic
+   # is_static = "" in others cases (no special instruction)
+   STATIC_SCOPE=$is_static
+   if test "$is_static" != "yes"; then
+     USE_NATIVE_DYNLINK="${USE_NATIVE_DYNLINK} scope"
+     DYNAMIC_SCOPE=yes
+   else
+     DYNAMIC_SCOPE=no
+   fi
 
 
 
@@ -6902,123 +7175,6 @@ echo "scope... $ENABLE"
 
 
 
-# semantic callgraph
-####################
-
-
-
-
-
-
-
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/semantic_callgraph" >&5
-$as_echo_n "checking for src/semantic_callgraph... " >&6; }
-if ${ac_cv_file_src_semantic_callgraph+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  test "$cross_compiling" = yes &&
-  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
-if test -r "src/semantic_callgraph"; then
-  ac_cv_file_src_semantic_callgraph=yes
-else
-  ac_cv_file_src_semantic_callgraph=no
-fi
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_semantic_callgraph" >&5
-$as_echo "$ac_cv_file_src_semantic_callgraph" >&6; }
-if test "x$ac_cv_file_src_semantic_callgraph" = xyes; then :
-  default=yes;plugin_present=yes
-else
-  plugin_present=no;default=no
-fi
-
-
-FORCE=no
-
-# Check whether --enable-semantic_callgraph was given.
-if test "${enable_semantic_callgraph+set}" = set; then :
-  enableval=$enable_semantic_callgraph; ENABLE=$enableval;FORCE=$enableval
-else
-  ENABLE=$default
-
-fi
-
-
-if test "$ONLY_KERNEL" = "yes" -a "$FORCE" = "no"; then
-  ENABLE=no
-fi
-
-
-
-# Test to change for static plugin, dynamic option
-#default_dyn=no
-#define([PLUGIN_HELP_DYN],
-#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
-#                     [PLUGIN_MSG (default: static)])
-#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
-#AC_ARG_ENABLE(
-# [PLUGIN_NAME_DYN],
-#  PLUGIN_HELP_DYN,
-#  ENABLE=$enableval;
-#  FORCE=$enableval
-#  ENABLE=$default_dyn
-#)
-#eval ENABLE_DYNAMIC_$up=\$ENABLE
-
-if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
-  as_fn_error $? "semantic_callgraph is not available" "$LINENO" 5
-fi
-
-FORCE_SEMANTIC_CALLGRAPH=$FORCE
-PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_SEMANTIC_CALLGRAPH
-
-ENABLE_SEMANTIC_CALLGRAPH=$ENABLE
-NAME_SEMANTIC_CALLGRAPH=semantic_callgraph
-if test "$default" = "no" -a "$FORCE" = "no"; then
-  INFO_SEMANTIC_CALLGRAPH=" (not available by default)"
-fi
-
-# Dynamic plug-ins configuration
-# static plug-in
-   DYNAMIC_SEMANTIC_CALLGRAPH=no
-
-
-
-echo "semantic_callgraph... $ENABLE"
-# kept defined for write_plugin_config. A bit ugly, but not more than
-# usual autoconf stuff.
-# m4_undefine([PLUGIN_NAME])
-
-
-
-
-
-
-
-
-
-
-
-        REQUIRE_VALUE_ANALYSIS=$REQUIRE_VALUE_ANALYSIS" "semantic_callgraph
-        REQUIRED_SEMANTIC_CALLGRAPH=$REQUIRED_SEMANTIC_CALLGRAPH" "value_analysis
-
-
-
-
-
-
-
-
-
-        REQUIRE_USERS=$REQUIRE_USERS" "semantic_callgraph
-        REQUIRED_SEMANTIC_CALLGRAPH=$REQUIRED_SEMANTIC_CALLGRAPH" "users
-
-
-
-
-
-
 # slicing
 #########
 
@@ -7029,22 +7185,22 @@ echo "semantic_callgraph... $ENABLE"
 
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/slicing" >&5
-$as_echo_n "checking for src/slicing... " >&6; }
-if ${ac_cv_file_src_slicing+:} false; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/slicing" >&5
+$as_echo_n "checking for src/plugins/slicing... " >&6; }
+if ${ac_cv_file_src_plugins_slicing+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   test "$cross_compiling" = yes &&
   as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
-if test -r "src/slicing"; then
-  ac_cv_file_src_slicing=yes
+if test -r "src/plugins/slicing"; then
+  ac_cv_file_src_plugins_slicing=yes
 else
-  ac_cv_file_src_slicing=no
+  ac_cv_file_src_plugins_slicing=no
 fi
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_slicing" >&5
-$as_echo "$ac_cv_file_src_slicing" >&6; }
-if test "x$ac_cv_file_src_slicing" = xyes; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_plugins_slicing" >&5
+$as_echo "$ac_cv_file_src_plugins_slicing" >&6; }
+if test "x$ac_cv_file_src_plugins_slicing" = xyes; then :
   default=yes;plugin_present=yes
 else
   plugin_present=no;default=no
@@ -7097,8 +7253,26 @@ if test "$default" = "no" -a "$FORCE" = "no"; then
 fi
 
 # Dynamic plug-ins configuration
-# static plug-in
-   DYNAMIC_SLICING=no
+
+
+# Check whether --with-slicing-static was given.
+if test "${with_slicing_static+set}" = set; then :
+  withval=$with_slicing_static; is_static=$withval
+else
+  is_static=$IS_ALL_STATIC
+fi
+
+
+   # is_static = "yes" iff the user forces the plug-in to be static
+   # is_static = "no"  iff the user forces the plug-in to be dynamic
+   # is_static = "" in others cases (no special instruction)
+   STATIC_SLICING=$is_static
+   if test "$is_static" != "yes"; then
+     USE_NATIVE_DYNLINK="${USE_NATIVE_DYNLINK} slicing"
+     DYNAMIC_SLICING=yes
+   else
+     DYNAMIC_SLICING=no
+   fi
 
 
 
@@ -7150,6 +7324,17 @@ echo "slicing... $ENABLE"
 
 
 
+        REQUIRE_CALLGRAPH=$REQUIRE_CALLGRAPH" "slicing
+        REQUIRED_SLICING=$REQUIRED_SLICING" "callgraph
+
+
+
+
+
+
+
+
+
         USE_GUI=$USE_GUI" "slicing
         USED_SLICING=$USED_SLICING" "gui
 
@@ -7168,22 +7353,22 @@ echo "slicing... $ENABLE"
 
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/sparecode" >&5
-$as_echo_n "checking for src/sparecode... " >&6; }
-if ${ac_cv_file_src_sparecode+:} false; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/sparecode" >&5
+$as_echo_n "checking for src/plugins/sparecode... " >&6; }
+if ${ac_cv_file_src_plugins_sparecode+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   test "$cross_compiling" = yes &&
   as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
-if test -r "src/sparecode"; then
-  ac_cv_file_src_sparecode=yes
+if test -r "src/plugins/sparecode"; then
+  ac_cv_file_src_plugins_sparecode=yes
 else
-  ac_cv_file_src_sparecode=no
+  ac_cv_file_src_plugins_sparecode=no
 fi
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_sparecode" >&5
-$as_echo "$ac_cv_file_src_sparecode" >&6; }
-if test "x$ac_cv_file_src_sparecode" = xyes; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_plugins_sparecode" >&5
+$as_echo "$ac_cv_file_src_plugins_sparecode" >&6; }
+if test "x$ac_cv_file_src_plugins_sparecode" = xyes; then :
   default=yes;plugin_present=yes
 else
   plugin_present=no;default=no
@@ -7236,8 +7421,26 @@ if test "$default" = "no" -a "$FORCE" = "no"; then
 fi
 
 # Dynamic plug-ins configuration
-# static plug-in
-   DYNAMIC_SPARECODE=no
+
+
+# Check whether --with-sparecode-static was given.
+if test "${with_sparecode_static+set}" = set; then :
+  withval=$with_sparecode_static; is_static=$withval
+else
+  is_static=$IS_ALL_STATIC
+fi
+
+
+   # is_static = "yes" iff the user forces the plug-in to be static
+   # is_static = "no"  iff the user forces the plug-in to be dynamic
+   # is_static = "" in others cases (no special instruction)
+   STATIC_SPARECODE=$is_static
+   if test "$is_static" != "yes"; then
+     USE_NATIVE_DYNLINK="${USE_NATIVE_DYNLINK} sparecode"
+     DYNAMIC_SPARECODE=yes
+   else
+     DYNAMIC_SPARECODE=no
+   fi
 
 
 
@@ -7275,118 +7478,6 @@ echo "sparecode... $ENABLE"
 
 
 
-# syntactic callgraph
-#####################
-
-
-
-
-
-
-
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/syntactic_callgraph" >&5
-$as_echo_n "checking for src/syntactic_callgraph... " >&6; }
-if ${ac_cv_file_src_syntactic_callgraph+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  test "$cross_compiling" = yes &&
-  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
-if test -r "src/syntactic_callgraph"; then
-  ac_cv_file_src_syntactic_callgraph=yes
-else
-  ac_cv_file_src_syntactic_callgraph=no
-fi
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_syntactic_callgraph" >&5
-$as_echo "$ac_cv_file_src_syntactic_callgraph" >&6; }
-if test "x$ac_cv_file_src_syntactic_callgraph" = xyes; then :
-  default=yes;plugin_present=yes
-else
-  plugin_present=no;default=no
-fi
-
-
-FORCE=no
-
-# Check whether --enable-syntactic_callgraph was given.
-if test "${enable_syntactic_callgraph+set}" = set; then :
-  enableval=$enable_syntactic_callgraph; ENABLE=$enableval;FORCE=$enableval
-else
-  ENABLE=$default
-
-fi
-
-
-if test "$ONLY_KERNEL" = "yes" -a "$FORCE" = "no"; then
-  ENABLE=no
-fi
-
-
-
-# Test to change for static plugin, dynamic option
-#default_dyn=no
-#define([PLUGIN_HELP_DYN],
-#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
-#                     [PLUGIN_MSG (default: static)])
-#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
-#AC_ARG_ENABLE(
-# [PLUGIN_NAME_DYN],
-#  PLUGIN_HELP_DYN,
-#  ENABLE=$enableval;
-#  FORCE=$enableval
-#  ENABLE=$default_dyn
-#)
-#eval ENABLE_DYNAMIC_$up=\$ENABLE
-
-if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
-  as_fn_error $? "syntactic_callgraph is not available" "$LINENO" 5
-fi
-
-FORCE_SYNTACTIC_CALLGRAPH=$FORCE
-PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_SYNTACTIC_CALLGRAPH
-
-ENABLE_SYNTACTIC_CALLGRAPH=$ENABLE
-NAME_SYNTACTIC_CALLGRAPH=syntactic_callgraph
-if test "$default" = "no" -a "$FORCE" = "no"; then
-  INFO_SYNTACTIC_CALLGRAPH=" (not available by default)"
-fi
-
-# Dynamic plug-ins configuration
-# static plug-in
-   DYNAMIC_SYNTACTIC_CALLGRAPH=no
-
-
-
-echo "syntactic_callgraph... $ENABLE"
-# kept defined for write_plugin_config. A bit ugly, but not more than
-# usual autoconf stuff.
-# m4_undefine([PLUGIN_NAME])
-
-
-
-
-
-
-
-
-
-
-        USE_DOT=$USE_DOT" "syntactic_callgraph
-
-
-
-
-
-
-        USE_GUI=$USE_GUI" "syntactic_callgraph
-        USED_SYNTACTIC_CALLGRAPH=$USED_SYNTACTIC_CALLGRAPH" "gui
-
-
-
-
-
-
 # users
 #######
 
@@ -7397,22 +7488,22 @@ echo "syntactic_callgraph... $ENABLE"
 
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/users" >&5
-$as_echo_n "checking for src/users... " >&6; }
-if ${ac_cv_file_src_users+:} false; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/users" >&5
+$as_echo_n "checking for src/plugins/users... " >&6; }
+if ${ac_cv_file_src_plugins_users+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   test "$cross_compiling" = yes &&
   as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
-if test -r "src/users"; then
-  ac_cv_file_src_users=yes
+if test -r "src/plugins/users"; then
+  ac_cv_file_src_plugins_users=yes
 else
-  ac_cv_file_src_users=no
+  ac_cv_file_src_plugins_users=no
 fi
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_users" >&5
-$as_echo "$ac_cv_file_src_users" >&6; }
-if test "x$ac_cv_file_src_users" = xyes; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_plugins_users" >&5
+$as_echo "$ac_cv_file_src_plugins_users" >&6; }
+if test "x$ac_cv_file_src_plugins_users" = xyes; then :
   default=yes;plugin_present=yes
 else
   plugin_present=no;default=no
@@ -7465,8 +7556,26 @@ if test "$default" = "no" -a "$FORCE" = "no"; then
 fi
 
 # Dynamic plug-ins configuration
-# static plug-in
-   DYNAMIC_USERS=no
+
+
+# Check whether --with-users-static was given.
+if test "${with_users_static+set}" = set; then :
+  withval=$with_users_static; is_static=$withval
+else
+  is_static=$IS_ALL_STATIC
+fi
+
+
+   # is_static = "yes" iff the user forces the plug-in to be static
+   # is_static = "no"  iff the user forces the plug-in to be dynamic
+   # is_static = "" in others cases (no special instruction)
+   STATIC_USERS=$is_static
+   if test "$is_static" != "yes"; then
+     USE_NATIVE_DYNLINK="${USE_NATIVE_DYNLINK} users"
+     DYNAMIC_USERS=yes
+   else
+     DYNAMIC_USERS=no
+   fi
 
 
 
@@ -7493,6 +7602,17 @@ echo "users... $ENABLE"
 
 
 
+
+
+
+        USE_CALLGRAPH=$USE_CALLGRAPH" "users
+        USED_USERS=$USED_USERS" "callgraph
+
+
+
+
+
+
 # value
 #######
 
@@ -7503,22 +7623,22 @@ echo "users... $ENABLE"
 
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/value" >&5
-$as_echo_n "checking for src/value... " >&6; }
-if ${ac_cv_file_src_value+:} false; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/value" >&5
+$as_echo_n "checking for src/plugins/value... " >&6; }
+if ${ac_cv_file_src_plugins_value+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   test "$cross_compiling" = yes &&
   as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
-if test -r "src/value"; then
-  ac_cv_file_src_value=yes
+if test -r "src/plugins/value"; then
+  ac_cv_file_src_plugins_value=yes
 else
-  ac_cv_file_src_value=no
+  ac_cv_file_src_plugins_value=no
 fi
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_value" >&5
-$as_echo "$ac_cv_file_src_value" >&6; }
-if test "x$ac_cv_file_src_value" = xyes; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_plugins_value" >&5
+$as_echo "$ac_cv_file_src_plugins_value" >&6; }
+if test "x$ac_cv_file_src_plugins_value" = xyes; then :
   default=yes;plugin_present=yes
 else
   plugin_present=no;default=no
@@ -7571,8 +7691,26 @@ if test "$default" = "no" -a "$FORCE" = "no"; then
 fi
 
 # Dynamic plug-ins configuration
-# static plug-in
-   DYNAMIC_VALUE_ANALYSIS=no
+
+
+# Check whether --with-value_analysis-static was given.
+if test "${with_value_analysis_static+set}" = set; then :
+  withval=$with_value_analysis_static; is_static=$withval
+else
+  is_static=$IS_ALL_STATIC
+fi
+
+
+   # is_static = "yes" iff the user forces the plug-in to be static
+   # is_static = "no"  iff the user forces the plug-in to be dynamic
+   # is_static = "" in others cases (no special instruction)
+   STATIC_VALUE_ANALYSIS=$is_static
+   if test "$is_static" != "yes"; then
+     USE_NATIVE_DYNLINK="${USE_NATIVE_DYNLINK} value_analysis"
+     DYNAMIC_VALUE_ANALYSIS=yes
+   else
+     DYNAMIC_VALUE_ANALYSIS=no
+   fi
 
 
 
@@ -7610,6 +7748,17 @@ echo "value_analysis... $ENABLE"
 
 
 
+
+
+
+        USE_CALLGRAPH=$USE_CALLGRAPH" "value_analysis
+        USED_VALUE_ANALYSIS=$USED_VALUE_ANALYSIS" "callgraph
+
+
+
+
+
+
 ####################
 # External plugins #
 ####################
@@ -7641,9 +7790,6 @@ $as_echo "$as_me: external plug-in $dir found." >&6;}
  done
 
 fi
-
-
-
 
 
 
@@ -7693,22 +7839,22 @@ fi
 
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/aorai/Makefile.in" >&5
-$as_echo_n "checking for src/aorai/Makefile.in... " >&6; }
-if ${ac_cv_file_src_aorai_Makefile_in+:} false; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/aorai/Makefile.in" >&5
+$as_echo_n "checking for src/plugins/aorai/Makefile.in... " >&6; }
+if ${ac_cv_file_src_plugins_aorai_Makefile_in+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   test "$cross_compiling" = yes &&
   as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
-if test -r "src/aorai/Makefile.in"; then
-  ac_cv_file_src_aorai_Makefile_in=yes
+if test -r "src/plugins/aorai/Makefile.in"; then
+  ac_cv_file_src_plugins_aorai_Makefile_in=yes
 else
-  ac_cv_file_src_aorai_Makefile_in=no
+  ac_cv_file_src_plugins_aorai_Makefile_in=no
 fi
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_aorai_Makefile_in" >&5
-$as_echo "$ac_cv_file_src_aorai_Makefile_in" >&6; }
-if test "x$ac_cv_file_src_aorai_Makefile_in" = xyes; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_plugins_aorai_Makefile_in" >&5
+$as_echo "$ac_cv_file_src_plugins_aorai_Makefile_in" >&6; }
+if test "x$ac_cv_file_src_plugins_aorai_Makefile_in" = xyes; then :
   default=yes;plugin_present=yes
 else
   plugin_present=no;default=no
@@ -7875,8 +8021,10 @@ fi
 
 
          if test "$ENABLE_AORAI" != "no"; then
-            EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} src/aorai";
+            EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} src/plugins/aorai";
          fi
+
+
 
 
 
@@ -7939,22 +8087,22 @@ fi
 
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/obfuscator/Makefile.in" >&5
-$as_echo_n "checking for src/obfuscator/Makefile.in... " >&6; }
-if ${ac_cv_file_src_obfuscator_Makefile_in+:} false; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/obfuscator/Makefile.in" >&5
+$as_echo_n "checking for src/plugins/obfuscator/Makefile.in... " >&6; }
+if ${ac_cv_file_src_plugins_obfuscator_Makefile_in+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   test "$cross_compiling" = yes &&
   as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
-if test -r "src/obfuscator/Makefile.in"; then
-  ac_cv_file_src_obfuscator_Makefile_in=yes
+if test -r "src/plugins/obfuscator/Makefile.in"; then
+  ac_cv_file_src_plugins_obfuscator_Makefile_in=yes
 else
-  ac_cv_file_src_obfuscator_Makefile_in=no
+  ac_cv_file_src_plugins_obfuscator_Makefile_in=no
 fi
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_obfuscator_Makefile_in" >&5
-$as_echo "$ac_cv_file_src_obfuscator_Makefile_in" >&6; }
-if test "x$ac_cv_file_src_obfuscator_Makefile_in" = xyes; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_plugins_obfuscator_Makefile_in" >&5
+$as_echo "$ac_cv_file_src_plugins_obfuscator_Makefile_in" >&6; }
+if test "x$ac_cv_file_src_plugins_obfuscator_Makefile_in" = xyes; then :
   default=yes;plugin_present=yes
 else
   plugin_present=no;default=no
@@ -8045,15 +8193,13 @@ echo "obfuscator... $ENABLE"
 
 
 
-        ac_config_files="$ac_config_files src/obfuscator/Makefile"
+        ac_config_files="$ac_config_files src/plugins/obfuscator/Makefile"
 
 
 
          if test "$ENABLE_OBFUSCATOR" != "no"; then
-            EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} src/obfuscator";
+            EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} src/plugins/obfuscator";
          fi
-
-
 
 
 
@@ -8111,22 +8257,22 @@ echo "obfuscator... $ENABLE"
 
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/report/Makefile.in" >&5
-$as_echo_n "checking for src/report/Makefile.in... " >&6; }
-if ${ac_cv_file_src_report_Makefile_in+:} false; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/report/Makefile.in" >&5
+$as_echo_n "checking for src/plugins/report/Makefile.in... " >&6; }
+if ${ac_cv_file_src_plugins_report_Makefile_in+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   test "$cross_compiling" = yes &&
   as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
-if test -r "src/report/Makefile.in"; then
-  ac_cv_file_src_report_Makefile_in=yes
+if test -r "src/plugins/report/Makefile.in"; then
+  ac_cv_file_src_plugins_report_Makefile_in=yes
 else
-  ac_cv_file_src_report_Makefile_in=no
+  ac_cv_file_src_plugins_report_Makefile_in=no
 fi
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_report_Makefile_in" >&5
-$as_echo "$ac_cv_file_src_report_Makefile_in" >&6; }
-if test "x$ac_cv_file_src_report_Makefile_in" = xyes; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_plugins_report_Makefile_in" >&5
+$as_echo "$ac_cv_file_src_plugins_report_Makefile_in" >&6; }
+if test "x$ac_cv_file_src_plugins_report_Makefile_in" = xyes; then :
   default=yes;plugin_present=yes
 else
   plugin_present=no;default=no
@@ -8221,12 +8367,12 @@ echo "report... $ENABLE"
 
 
 
-        ac_config_files="$ac_config_files src/report/Makefile"
+        ac_config_files="$ac_config_files src/plugins/report/Makefile"
 
 
 
          if test "$ENABLE_REPORT" != "no"; then
-            EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} src/report";
+            EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} src/plugins/report";
          fi
 
 
@@ -8279,22 +8425,22 @@ echo "report... $ENABLE"
 
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/security_slicing/Makefile.in" >&5
-$as_echo_n "checking for src/security_slicing/Makefile.in... " >&6; }
-if ${ac_cv_file_src_security_slicing_Makefile_in+:} false; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/security_slicing/Makefile.in" >&5
+$as_echo_n "checking for src/plugins/security_slicing/Makefile.in... " >&6; }
+if ${ac_cv_file_src_plugins_security_slicing_Makefile_in+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   test "$cross_compiling" = yes &&
   as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
-if test -r "src/security_slicing/Makefile.in"; then
-  ac_cv_file_src_security_slicing_Makefile_in=yes
+if test -r "src/plugins/security_slicing/Makefile.in"; then
+  ac_cv_file_src_plugins_security_slicing_Makefile_in=yes
 else
-  ac_cv_file_src_security_slicing_Makefile_in=no
+  ac_cv_file_src_plugins_security_slicing_Makefile_in=no
 fi
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_security_slicing_Makefile_in" >&5
-$as_echo "$ac_cv_file_src_security_slicing_Makefile_in" >&6; }
-if test "x$ac_cv_file_src_security_slicing_Makefile_in" = xyes; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_plugins_security_slicing_Makefile_in" >&5
+$as_echo "$ac_cv_file_src_plugins_security_slicing_Makefile_in" >&6; }
+if test "x$ac_cv_file_src_plugins_security_slicing_Makefile_in" = xyes; then :
   default=yes;plugin_present=yes
 else
   plugin_present=no;default=no
@@ -8432,8 +8578,12 @@ echo "security_slicing... $ENABLE"
 
 
          if test "$ENABLE_SECURITY_SLICING" != "no"; then
-            EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} src/security_slicing";
+            EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} src/plugins/security_slicing";
          fi
+
+
+
+
 
 
 
@@ -8492,22 +8642,22 @@ echo "security_slicing... $ENABLE"
 
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/wp/Makefile.in" >&5
-$as_echo_n "checking for src/wp/Makefile.in... " >&6; }
-if ${ac_cv_file_src_wp_Makefile_in+:} false; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/wp/Makefile.in" >&5
+$as_echo_n "checking for src/plugins/wp/Makefile.in... " >&6; }
+if ${ac_cv_file_src_plugins_wp_Makefile_in+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   test "$cross_compiling" = yes &&
   as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
-if test -r "src/wp/Makefile.in"; then
-  ac_cv_file_src_wp_Makefile_in=yes
+if test -r "src/plugins/wp/Makefile.in"; then
+  ac_cv_file_src_plugins_wp_Makefile_in=yes
 else
-  ac_cv_file_src_wp_Makefile_in=no
+  ac_cv_file_src_plugins_wp_Makefile_in=no
 fi
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_wp_Makefile_in" >&5
-$as_echo "$ac_cv_file_src_wp_Makefile_in" >&6; }
-if test "x$ac_cv_file_src_wp_Makefile_in" = xyes; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_plugins_wp_Makefile_in" >&5
+$as_echo "$ac_cv_file_src_plugins_wp_Makefile_in" >&6; }
+if test "x$ac_cv_file_src_plugins_wp_Makefile_in" = xyes; then :
   default=yes;plugin_present=yes
 else
   plugin_present=no;default=no
@@ -8642,7 +8792,7 @@ fi
 
 
          if test "$ENABLE_WP" != "no"; then
-            EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} src/wp";
+            EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} src/plugins/wp";
          fi
 
 
@@ -8664,11 +8814,6 @@ new_section "configure tools and libraries used by some plug-ins"
 REQUIRE_LABLGTK="$REQUIRE_LABLGTK$REQUIRE_GNOMECANVAS"
 USE_LABLGTK="$USE_LABLGTK$USE_GNOMECANVAS"
 
-if test "$OCAMLFIND" = "no" ; then
-  echo "No Ocamlfind. Using +lablgtk2."
-  LABLGTK_PATH=+lablgtk2
-  LABLGTKPATH_FOR_CONFIGURE=$OCAMLLIB/lablgtk2
-else
   LABLGTK_PATH=`ocamlfind query lablgtk2 | tr -d '\\r\\n'`
   if test "$LABLGTK_PATH" = "" -o "$LABLGTK_PATH" -ef "$OCAMLLIB/lablgtk2" ; then
      echo "Ocamlfind -> using +lablgtk2.($LABLGTK_PATH,$OCAMLLIB/lablgtk2)"
@@ -8677,83 +8822,6 @@ else
   else
      echo "Ocamlfind -> using $LABLGTK_PATH"
      LABLGTKPATH_FOR_CONFIGURE=$LABLGTK_PATH
-  fi
-fi
-
-
-# No need to check the same thing multiple times.
-
-
-
-
-
-
-
-
-
-# [JS 2009/06/02] sh tests and m4 variables do not mix well together.
-# It works by chance but it is not robust enough.
-# Should be rewritten
-    HAS_LABLGTK=no
-    if test "$HAS_LABLGTK" != "yes"; then
-          as_ac_File=`$as_echo "ac_cv_file_$LABLGTKPATH_FOR_CONFIGURE/lablgtk.$LIB_SUFFIX" | $as_tr_sh`
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $LABLGTKPATH_FOR_CONFIGURE/lablgtk.$LIB_SUFFIX" >&5
-$as_echo_n "checking for $LABLGTKPATH_FOR_CONFIGURE/lablgtk.$LIB_SUFFIX... " >&6; }
-if eval \${$as_ac_File+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  test "$cross_compiling" = yes &&
-  as_fn_error $? "cannot check for $LABLGTKPATH_FOR_CONFIGURE/lablgtk.$LIB_SUFFIX existence when cross compiling" "$LINENO" 5
-if test -r "$LABLGTKPATH_FOR_CONFIGURE/lablgtk.$LIB_SUFFIX"; then
-  eval "$as_ac_File=yes"
-else
-  eval "$as_ac_File=no"
-fi
-fi
-eval ac_res=\$$as_ac_File
-	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
-$as_echo "$ac_res" >&6; }
-if eval test \"x\$"$as_ac_File"\" = x"yes"; then :
-  HAS_LABLGTK=yes
-else
-  HAS_LABLGTK=no
-fi
-
-          if test "$HAS_LABLGTK" = "yes"; then SELECTED_LABLGTK=$LABLGTKPATH_FOR_CONFIGURE/lablgtk.$LIB_SUFFIX
-          fi
-       fi
-
-    LABLGTK=$SELECTED_LABLGTK
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-if test "$HAS_LABLGTK" = "yes"; then
-
-  # Gtksourceview
-  ###############
-  REQUIRE_GTKSOURCEVIEW=
-  USE_GTKSOURCEVIEW=
-  HAS_GTKSOURCEVIEW=
-  FORCE_GTKSOURCEVIEW="yes"
-
-  if test "$FORCE_GTKSOURCEVIEW" = "yes"; then
-    REQUIRE_GTKSOURCEVIEW="$REQUIRE_LABLGTK"
-    USE_GTKSOURCEVIEW="$USE_LABLGTK"
-  else
-    if test "$has" = "yes"; then
-      USE_GTKSOURCEVIEW="$REQUIRE_LABLGTK$USE_LABLGTK"
-    fi
   fi
 
 
@@ -8814,8 +8882,6 @@ fi
 
 
 
-  # Gnomecanvas
-  #############
 
 # No need to check the same thing multiple times.
 
@@ -8874,7 +8940,63 @@ fi
 
 
 
-fi # $HAS_LABLGTK=yes
+
+# No need to check the same thing multiple times.
+
+
+
+
+
+
+
+
+
+# [JS 2009/06/02] sh tests and m4 variables do not mix well together.
+# It works by chance but it is not robust enough.
+# Should be rewritten
+    HAS_LABLGTK=no
+    if test "$HAS_LABLGTK" != "yes"; then
+          as_ac_File=`$as_echo "ac_cv_file_$LABLGTKPATH_FOR_CONFIGURE/lablgtk.$LIB_SUFFIX" | $as_tr_sh`
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $LABLGTKPATH_FOR_CONFIGURE/lablgtk.$LIB_SUFFIX" >&5
+$as_echo_n "checking for $LABLGTKPATH_FOR_CONFIGURE/lablgtk.$LIB_SUFFIX... " >&6; }
+if eval \${$as_ac_File+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  test "$cross_compiling" = yes &&
+  as_fn_error $? "cannot check for $LABLGTKPATH_FOR_CONFIGURE/lablgtk.$LIB_SUFFIX existence when cross compiling" "$LINENO" 5
+if test -r "$LABLGTKPATH_FOR_CONFIGURE/lablgtk.$LIB_SUFFIX"; then
+  eval "$as_ac_File=yes"
+else
+  eval "$as_ac_File=no"
+fi
+fi
+eval ac_res=\$$as_ac_File
+	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+$as_echo "$ac_res" >&6; }
+if eval test \"x\$"$as_ac_File"\" = x"yes"; then :
+  HAS_LABLGTK=yes
+else
+  HAS_LABLGTK=no
+fi
+
+          if test "$HAS_LABLGTK" = "yes"; then SELECTED_LABLGTK=$LABLGTKPATH_FOR_CONFIGURE/lablgtk.$LIB_SUFFIX
+          fi
+       fi
+
+    LABLGTK=$SELECTED_LABLGTK
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # dot and xdot tools
 ####################
@@ -9153,7 +9275,7 @@ $as_echo "$as_me: WARNING: $p partially enabled because $reason." >&2;}
 
 
 
-        ac_config_files="$ac_config_files src/aorai/Makefile"
+        ac_config_files="$ac_config_files src/plugins/aorai/Makefile"
 
 
 
@@ -9161,7 +9283,7 @@ $as_echo "$as_me: WARNING: $p partially enabled because $reason." >&2;}
 
 
 
-        ac_config_files="$ac_config_files src/security_slicing/Makefile"
+        ac_config_files="$ac_config_files src/plugins/security_slicing/Makefile"
 
 
 
@@ -9307,44 +9429,9 @@ fi
 
 
 
-        ac_config_files="$ac_config_files src/wp/Makefile"
+        ac_config_files="$ac_config_files src/plugins/wp/Makefile"
 
 
-
-    if test -n "$REQUIRE_LABLGTK" -o -n "$USE_LABLGTK" -o "$no" = "yes"; then
-      if test "$HAS_LABLGTK" = "no"; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: $LABLGTKPATH_FOR_CONFIGURE/lablgtk.$LIB_SUFFIX not found." >&5
-$as_echo "$as_me: WARNING: $LABLGTKPATH_FOR_CONFIGURE/lablgtk.$LIB_SUFFIX not found." >&2;}
-        reason="$LABLGTKPATH_FOR_CONFIGURE/lablgtk.$LIB_SUFFIX missing"
-
-        for p in $REQUIRE_LABLGTK; do
-	  up=`upper "$p"`
-          ep=ENABLE_$up
-          eval enable_p=\$$ep
-          if test "$enable_p" != "no"; then
-            fp=FORCE_`upper "$p"`
-	    if eval test "\$$fp" = "yes"; then
-	      as_fn_error $? "$p requested but $reason." "$LINENO" 5
-	    fi
-	    eval $ep="no\ \(see\ warning\ about\ $LABLGTKPATH_FOR_CONFIGURE/lablgtk.$LIB_SUFFIX\)"
-            { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: $p disabled because $reason." >&5
-$as_echo "$as_me: WARNING: $p disabled because $reason." >&2;}
-	    eval INFO_$up=\", $reason\"
-          fi
-        done
-        for p in $USE_LABLGTK; do
-          up=`upper "$p"`
-          ep=ENABLE_$up
-          eval eep="\$$ep"
-	  if test "`echo $eep | sed -e 's/ .*//' `" != "no"; then
-	    eval $ep="partial\ \(see\ warning\ about\ $LABLGTKPATH_FOR_CONFIGURE/lablgtk.$LIB_SUFFIX\)"
-            { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: $p partially enabled because $reason." >&5
-$as_echo "$as_me: WARNING: $p partially enabled because $reason." >&2;}
-	    eval INFO_$up=\", $reason\"
-          fi
-        done
-      fi
-    fi
 
     if test -n "$REQUIRE_GTKSOURCEVIEW" -o -n "$USE_GTKSOURCEVIEW" -o "$no" = "yes"; then
       if test "$HAS_GTKSOURCEVIEW" = "no"; then
@@ -9416,6 +9503,41 @@ $as_echo "$as_me: WARNING: $p partially enabled because $reason." >&2;}
       fi
     fi
 
+    if test -n "$REQUIRE_LABLGTK" -o -n "$USE_LABLGTK" -o "$no" = "yes"; then
+      if test "$HAS_LABLGTK" = "no"; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: $LABLGTKPATH_FOR_CONFIGURE/lablgtk.$LIB_SUFFIX not found." >&5
+$as_echo "$as_me: WARNING: $LABLGTKPATH_FOR_CONFIGURE/lablgtk.$LIB_SUFFIX not found." >&2;}
+        reason="$LABLGTKPATH_FOR_CONFIGURE/lablgtk.$LIB_SUFFIX missing"
+
+        for p in $REQUIRE_LABLGTK; do
+	  up=`upper "$p"`
+          ep=ENABLE_$up
+          eval enable_p=\$$ep
+          if test "$enable_p" != "no"; then
+            fp=FORCE_`upper "$p"`
+	    if eval test "\$$fp" = "yes"; then
+	      as_fn_error $? "$p requested but $reason." "$LINENO" 5
+	    fi
+	    eval $ep="no\ \(see\ warning\ about\ $LABLGTKPATH_FOR_CONFIGURE/lablgtk.$LIB_SUFFIX\)"
+            { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: $p disabled because $reason." >&5
+$as_echo "$as_me: WARNING: $p disabled because $reason." >&2;}
+	    eval INFO_$up=\", $reason\"
+          fi
+        done
+        for p in $USE_LABLGTK; do
+          up=`upper "$p"`
+          ep=ENABLE_$up
+          eval eep="\$$ep"
+	  if test "`echo $eep | sed -e 's/ .*//' `" != "no"; then
+	    eval $ep="partial\ \(see\ warning\ about\ $LABLGTKPATH_FOR_CONFIGURE/lablgtk.$LIB_SUFFIX\)"
+            { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: $p partially enabled because $reason." >&5
+$as_echo "$as_me: WARNING: $p partially enabled because $reason." >&2;}
+	    eval INFO_$up=\", $reason\"
+          fi
+        done
+      fi
+    fi
+
   if test -n "$REQUIRE_DOT" -o -n "$USE_DOT" -o "$no" = "yes"; then
     if test "$HAS_DOT" = "no"; then
       { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: dot not found: you should install GraphViz" >&5
@@ -9460,7 +9582,7 @@ $as_echo "$as_me: WARNING: native dynlink unavailable" >&2;}
         # compile statically all dynamic plug-ins
    # except contrary instructions
    USE_NATIVE_DYNLINK="";
-   for plugin in  SEMANTIC_CONSTANT_FOLDING FROM_ANALYSIS GUI IMPACT INOUT METRICS OCCURRENCE PDG POSTDOMINATORS RTEGEN SCOPE SEMANTIC_CALLGRAPH SLICING SPARECODE SYNTACTIC_CALLGRAPH USERS VALUE_ANALYSIS AORAI OBFUSCATOR REPORT SECURITY_SLICING WP; do
+   for plugin in  CALLGRAPH SEMANTIC_CONSTANT_FOLDING FROM_ANALYSIS GUI IMPACT INOUT METRICS OCCURRENCE PDG POSTDOMINATORS RTEGEN SCOPE SLICING SPARECODE USERS VALUE_ANALYSIS AORAI OBFUSCATOR REPORT SECURITY_SLICING WP; do
      n=NAME_$plugin
      d=DYNAMIC_$plugin
      s=STATIC_$plugin
@@ -9514,7 +9636,7 @@ $as_echo "$as_me: WARNING: native dynlink unsupported on this platform" >&2;}
         # compile statically all dynamic plug-ins
    # except contrary instructions
    USE_NATIVE_DYNLINK="";
-   for plugin in  SEMANTIC_CONSTANT_FOLDING FROM_ANALYSIS GUI IMPACT INOUT METRICS OCCURRENCE PDG POSTDOMINATORS RTEGEN SCOPE SEMANTIC_CALLGRAPH SLICING SPARECODE SYNTACTIC_CALLGRAPH USERS VALUE_ANALYSIS AORAI OBFUSCATOR REPORT SECURITY_SLICING WP; do
+   for plugin in  CALLGRAPH SEMANTIC_CONSTANT_FOLDING FROM_ANALYSIS GUI IMPACT INOUT METRICS OCCURRENCE PDG POSTDOMINATORS RTEGEN SCOPE SLICING SPARECODE USERS VALUE_ANALYSIS AORAI OBFUSCATOR REPORT SECURITY_SLICING WP; do
      n=NAME_$plugin
      d=DYNAMIC_$plugin
      s=STATIC_$plugin
@@ -9619,8 +9741,6 @@ EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} ${EXTRA_EXTERNAL_PLUGINS}"
 
 # m4_foreach_w is not supported in some old autoconf versions.
 # Sadly AC_FOREACH is deprecated now...
-
-
 
 
 
@@ -10364,11 +10484,11 @@ for ac_config_target in $ac_config_targets
 do
   case $ac_config_target in
     "config.h") CONFIG_HEADERS="$CONFIG_HEADERS config.h" ;;
-    "src/aorai/Makefile") CONFIG_FILES="$CONFIG_FILES src/aorai/Makefile" ;;
-    "src/obfuscator/Makefile") CONFIG_FILES="$CONFIG_FILES src/obfuscator/Makefile" ;;
-    "src/report/Makefile") CONFIG_FILES="$CONFIG_FILES src/report/Makefile" ;;
-    "src/security_slicing/Makefile") CONFIG_FILES="$CONFIG_FILES src/security_slicing/Makefile" ;;
-    "src/wp/Makefile") CONFIG_FILES="$CONFIG_FILES src/wp/Makefile" ;;
+    "src/plugins/aorai/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/aorai/Makefile" ;;
+    "src/plugins/obfuscator/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/obfuscator/Makefile" ;;
+    "src/plugins/report/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/report/Makefile" ;;
+    "src/plugins/security_slicing/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/security_slicing/Makefile" ;;
+    "src/plugins/wp/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/wp/Makefile" ;;
     "share/Makefile.config") CONFIG_FILES="$CONFIG_FILES share/Makefile.config" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
@@ -10917,11 +11037,11 @@ $as_echo "$as_me: $ac_file is unchanged" >&6;}
 
 
   case $ac_file$ac_mode in
-    "src/aorai/Makefile":F) chmod -w src/aorai/Makefile ;;
-    "src/obfuscator/Makefile":F) chmod -w src/obfuscator/Makefile ;;
-    "src/report/Makefile":F) chmod -w src/report/Makefile ;;
-    "src/security_slicing/Makefile":F) chmod -w src/security_slicing/Makefile ;;
-    "src/wp/Makefile":F) chmod -w src/wp/Makefile ;;
+    "src/plugins/aorai/Makefile":F) chmod -w src/plugins/aorai/Makefile ;;
+    "src/plugins/obfuscator/Makefile":F) chmod -w src/plugins/obfuscator/Makefile ;;
+    "src/plugins/report/Makefile":F) chmod -w src/plugins/report/Makefile ;;
+    "src/plugins/security_slicing/Makefile":F) chmod -w src/plugins/security_slicing/Makefile ;;
+    "src/plugins/wp/Makefile":F) chmod -w src/plugins/wp/Makefile ;;
     "share/Makefile.config":F) chmod a-w share/Makefile.config ;;
 
   esac
@@ -10968,7 +11088,7 @@ fi
 
 new_section "summary: plug-ins available"
 
-for plugin in  SEMANTIC_CONSTANT_FOLDING FROM_ANALYSIS GUI IMPACT INOUT METRICS OCCURRENCE PDG POSTDOMINATORS RTEGEN SCOPE SEMANTIC_CALLGRAPH SLICING SPARECODE SYNTACTIC_CALLGRAPH USERS VALUE_ANALYSIS AORAI OBFUSCATOR REPORT SECURITY_SLICING WP; do
+for plugin in  CALLGRAPH SEMANTIC_CONSTANT_FOLDING FROM_ANALYSIS GUI IMPACT INOUT METRICS OCCURRENCE PDG POSTDOMINATORS RTEGEN SCOPE SLICING SPARECODE USERS VALUE_ANALYSIS AORAI OBFUSCATOR REPORT SECURITY_SLICING WP; do
   n=NAME_$plugin
   e=ENABLE_$plugin
   d=DYNAMIC_$plugin

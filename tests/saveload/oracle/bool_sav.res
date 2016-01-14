@@ -8,7 +8,7 @@
   __fc_stdin ∈ {{ NULL ; &S___fc_stdin[0] }}
   __fc_stdout ∈ {{ NULL ; &S___fc_stdout[0] }}
   __fc_fopen[0..511] ∈ {0}
-  _p__fc_fopen ∈ {{ &__fc_fopen[0] }}
+  __p_fc_fopen ∈ {{ &__fc_fopen[0] }}
   x ∈ {0}
   y ∈ {0}
   S___fc_stdin[0]{.__fc_stdio_id; .__fc_position; .__fc_error; .__fc_eof} ∈

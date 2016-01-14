@@ -1,0 +1,123 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_typed/shift_lemma.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function f
+------------------------------------------------------------
+
+Goal Assertion (file tests/wp_typed/shift_lemma.i, line 21):
+Let x_0 = Mint_0[(shiftfield_F_s_d p_0)].
+Let a_0 = (shiftfield_F_s_u p_0).
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_0) /\ (is_sint32 Mint_0[(shiftfield_F_s_e p_0)])
+        /\ (is_sint32 Mint_0[(shiftfield_F_t_c (shift_t a_0 0))])
+        /\ (is_sint32 Mint_0[(shiftfield_F_t_c (shift_t a_0 1))]).
+  (* Heap *)
+  Have: (region (base p_0))<=0.
+  (* Pre-condition (file tests/wp_typed/shift_lemma.i, line 18) in 'f' *)
+  (* Pre-condition: *)
+  Have: (P_inv Mint_0 p_0).
+}
+Prove: 0=x_0.
+
+------------------------------------------------------------
+
+Goal Assertion (file tests/wp_typed/shift_lemma.i, line 22):
+Let a_0 = (shiftfield_F_s_u p_0).
+Assume {
+  (* Domain *)
+  Type: (is_sint32 Mint_0[(shiftfield_F_s_e p_0)])
+        /\ (is_sint32 Mint_0[(shiftfield_F_t_c (shift_t a_0 0))])
+        /\ (is_sint32 Mint_0[(shiftfield_F_t_c (shift_t a_0 1))]).
+  (* Goal *)
+  When: (0<=i_2) /\ (i_2<=9) /\ (is_sint32 i_2).
+  (* Heap *)
+  Have: (region (base p_0))<=0.
+  (* Pre-condition (file tests/wp_typed/shift_lemma.i, line 18) in 'f' *)
+  (* Pre-condition: *)
+  Have: (P_inv Mint_0 p_0).
+  (* Assertion (file tests/wp_typed/shift_lemma.i, line 21) *)
+  (* tests/wp_typed/shift_lemma.i:21: Assertion: *)
+  Have: 0=Mint_0[(shiftfield_F_s_d p_0)].
+}
+Prove: 0=Mint_0[(shiftfield_F_t_c (shift_t a_0 i_2))].
+
+------------------------------------------------------------
+
+Goal Assertion (file tests/wp_typed/shift_lemma.i, line 23):
+Let a_0 = (shiftfield_F_s_u p_0).
+Assume {
+  (* Domain *)
+  Type: (is_sint32 Mint_0[(shiftfield_F_s_e p_0)])
+        /\ (is_sint32 Mint_0[(shiftfield_F_t_c (shift_t a_0 0))])
+        /\ (is_sint32 Mint_0[(shiftfield_F_t_c (shift_t a_0 1))]).
+  (* Heap *)
+  Have: (region (base p_0))<=0.
+  (* Pre-condition (file tests/wp_typed/shift_lemma.i, line 18) in 'f' *)
+  (* Pre-condition: *)
+  Have: (P_inv Mint_0 p_0).
+  (* Assertion (file tests/wp_typed/shift_lemma.i, line 21) *)
+  (* tests/wp_typed/shift_lemma.i:21: Assertion: *)
+  Have: 0=Mint_0[(shiftfield_F_s_d p_0)].
+  (* Assertion (file tests/wp_typed/shift_lemma.i, line 22) *)
+  (* tests/wp_typed/shift_lemma.i:22: Assertion: *)
+  Have: forall i_0:int.
+        (0<=i_0) -> (i_0<=9)
+        -> (0=Mint_0[(shiftfield_F_t_c (shift_t a_0 i_0))]).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assertion (file tests/wp_typed/shift_lemma.i, line 24):
+Let a_0 = (shiftfield_F_s_u p_0).
+Assume {
+  (* Domain *)
+  Type: (is_sint32 Mint_0[(shiftfield_F_s_e p_0)])
+        /\ (is_sint32 Mint_0[(shiftfield_F_t_c (shift_t a_0 1))]).
+  (* Heap *)
+  Have: (region (base p_0))<=0.
+  (* Pre-condition (file tests/wp_typed/shift_lemma.i, line 18) in 'f' *)
+  (* Pre-condition: *)
+  Have: (P_inv Mint_0 p_0).
+  (* Assertion (file tests/wp_typed/shift_lemma.i, line 21) *)
+  (* tests/wp_typed/shift_lemma.i:21: Assertion: *)
+  Have: 0=Mint_0[(shiftfield_F_s_d p_0)].
+  (* Assertion (file tests/wp_typed/shift_lemma.i, line 22) *)
+  (* tests/wp_typed/shift_lemma.i:22: Assertion: *)
+  Have: forall i_0:int.
+        (0<=i_0) -> (i_0<=9)
+        -> (0=Mint_0[(shiftfield_F_t_c (shift_t a_0 i_0))]).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assertion (file tests/wp_typed/shift_lemma.i, line 25):
+Let x_0 = Mint_0[(shiftfield_F_s_e p_0)].
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_0).
+  (* Heap *)
+  Have: (region (base p_0))<=0.
+  (* Pre-condition (file tests/wp_typed/shift_lemma.i, line 18) in 'f' *)
+  (* Pre-condition: *)
+  Have: (P_inv Mint_0 p_0).
+  (* Assertion (file tests/wp_typed/shift_lemma.i, line 21) *)
+  (* tests/wp_typed/shift_lemma.i:21: Assertion: *)
+  Have: 0=Mint_0[(shiftfield_F_s_d p_0)].
+  (* Assertion (file tests/wp_typed/shift_lemma.i, line 22) *)
+  (* tests/wp_typed/shift_lemma.i:22: Assertion: *)
+  Have: forall i_0:int.
+        (0<=i_0) -> (i_0<=9)
+        -> (0=
+            Mint_0[(shiftfield_F_t_c (shift_t (shiftfield_F_s_u p_0) i_0))]).
+}
+Prove: 0=x_0.
+
+------------------------------------------------------------

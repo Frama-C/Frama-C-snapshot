@@ -1,0 +1,16 @@
+succ=5
+1.050000
+n=1
+v1=2
+params = 1 1.050000
+b1=true
+params = 2 1.050000
+b2=false
+print:
+ppu 3.000000
+A.ho has type (int -> int) -> A.t -> A.u but is used with type (A.t -> int) -> A.t -> A.u
+ppu 1.050000
+ppu 1.000000
+ppu 1.000000
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/dynamic/dynamic.i (no preprocessing)

@@ -9,7 +9,8 @@
 tests/pdg/dpds_intra.c:113:[kernel] warning: signed overflow. assert b+1 ≤ 2147483647;
 tests/pdg/dpds_intra.c:113:[kernel] warning: signed overflow. assert tmp+s.a ≤ 2147483647;
                                    (tmp from b++)
-tests/pdg/dpds_intra.c:114:[kernel] warning: signed overflow. assert -2147483648 ≤ 2*a ≤ 2147483647;
+tests/pdg/dpds_intra.c:114:[kernel] warning: signed overflow. assert -2147483648 ≤ 2*a;
+tests/pdg/dpds_intra.c:114:[kernel] warning: signed overflow. assert 2*a ≤ 2147483647;
 tests/pdg/dpds_intra.c:124:[kernel] warning: signed overflow. assert *p+1 ≤ 2147483647;
 [value] computing for function test_struct <- main.
         Called from tests/pdg/dpds_intra.c:126.
@@ -53,13 +54,15 @@ tests/pdg/dpds_intra.c:131:[kernel] warning: signed overflow.
                   (tmp_5 from test_simple_loop(G))
 [value] computing for function multiple_global_inputs <- main.
         Called from tests/pdg/dpds_intra.c:132.
-tests/pdg/dpds_intra.c:35:[kernel] warning: signed overflow. assert -2147483648 ≤ S.a+G ≤ 2147483647;
+tests/pdg/dpds_intra.c:35:[kernel] warning: signed overflow. assert -2147483648 ≤ S.a+G;
+tests/pdg/dpds_intra.c:35:[kernel] warning: signed overflow. assert S.a+G ≤ 2147483647;
 [value] Recording results for multiple_global_inputs
 [value] Done for function multiple_global_inputs
 tests/pdg/dpds_intra.c:132:[kernel] warning: signed overflow.
                   assert res+tmp_6 ≤ 2147483647;
                   (tmp_6 from multiple_global_inputs())
-tests/pdg/dpds_intra.c:134:[kernel] warning: signed overflow. assert -2147483648 ≤ *p+res ≤ 2147483647;
+tests/pdg/dpds_intra.c:134:[kernel] warning: signed overflow. assert -2147483648 ≤ *p+res;
+tests/pdg/dpds_intra.c:134:[kernel] warning: signed overflow. assert *p+res ≤ 2147483647;
 [value] Recording results for main
 [value] done for function main
 [pdg] computing for function multiple_global_inputs

@@ -12,17 +12,216 @@
 # '#?nnn'  : OLD-BTS entry #nnn                                               #
 ###############################################################################
 
+######################################
+Open Source Release Magnesium-20151002
+######################################
+
+o! Kernel     [2016/01/03] Modules Dataflow is deprecated, and will be removed
+              in Aluminium. Module Dataflow2 offers a very similar but simpler
+              API.
+-  Doc        [2015/11/16] Fixed typo in the manual (Thx Mihaela Sighireanu)
+-* Kernel     [2015/10/12] Fix clearing of old statuses and hypotheses when a
+              new status is emitted or an annotation is removed.
+-! Kernel     [2015/09/07] Removed support for OCaml 3.12.1
+-  Value      [2015/09/03] Assertions containing \at(P, L), where L is a C
+              label, can now be evaluated. Evaluation is done once Value has
+               run; thus, it ignores option -slevel
+-* Value      [2015/09/03] pointer_comparable alarms are now emitted with
+              arguments properly cast to void* or void (*)()
+-  Value      [2015/08/10] The alarms raised when evaluating a global
+              initializer that leads to an undefined behavior are now marked
+              with an "Invalid" status
+-  Report     [2015/08/10] Reports in csv format now honor option
+              -report-specialized (previously, preconditions at a
+              callsite were always skipped)
+-* Libc       [2015/08/26] Fix bug in the specifications of readir, opendir,
+              closedir and fopen functions, that would cause incorrect analysis
+              in -lib-entry-mode
+-! Value      [2015/08/03] WIDEN_HINTS directive are now cumulative with
+              automatically inferred bounds. Fixes bug #876
+-* Cil        [2015/08/03] Fix bug #1553, related to nested initialisations
+              of structures containing pointers
+-! Value      [2015/08/03] All plugins that depend on Value, plus Value itself
+              are now dynamic. Custom plugins must specify in their Makefile the
+              plugins they depend on (e.g. PLUGIN_DEPENDENCIES:=Inout Value)
+-* Cil        [2015/07/29] Cil transformation can introduce assertion to ensure
+	      that size expressions in an array declarations evaluated at
+	      program execution time are positive and do not overflow.
+o  Ptests     [2015/07/29] New LOG: directive
+-  Value      [2015/07/19] Garbled mix origins now include at most one source
+	      location
+-  Report     [2015/07/19] New option -report-proven to control the display
+	      of proven properties
+-  Report     [2015/07/19] New export format (.csv), through option -report-csv
+o! Callgraph  [2015/07/16] Remove Cil.Callgraph, Db.Syntactic_callgraph and 
+              Db.Semantic_callgraph which are all replaced by the single
+              plug-in Callgraph. See Changelog_detailled.md for further detail
+              about this change.
+-! Callgraph  [2015/07/16] New plug-in callgraph which merges the old
+	      Syntactic_callgraph and Semantic_callgraph plug-ins (now
+	      removed). Either this plug-in uses Value if already computed, or
+	      computes the syntactic callgraph otherwise. This new plug-in
+	      unifies the behavior of its two ancestors. In particular,
+	      the edges of callgraph computed with the help of Value are
+	      now directed in the same way as the syntactic callgraph (was
+	      reversed before) and so the computed services are now
+	      equivalent. Also, the uncalled functions are now displayed
+	      by default. For plug-in developers, the callgraph is easily
+	      accessible via an API (bts #755).
+-! Value      [2015/07/14] Float operations that are guaranteed to lead
+	      to +/-infty (e.g. x = FLT_MAX*10.) now stop propagation.
+              Previous behavior was to continue with an imprecise value for x.
+-  Kernel     [2015-07-09] New option -custom-char-annot for changing the
+              character introducing ACSL annotations (instead of '@')
+-  Value      [2015/07/09] Do not emit pointer_comparable alarms on valid
+	      pointer comparisons involving objects of size 0
+-  Value      [2015/07/07] The semantics of copying a lvalue has been changed
+	      when a type mismatch occurs between the destination and the copied
+	      value. A bitwise reinterpretation of the value to the destination
+	      type is now performed during the copy.
+o! Kernel     [2015/07/01] Ival.Float_abstract renamed to Fval.
+	      Fval.inject_r now may raise Fval.Non_finite instead of the old
+	      Float_abstract.Bottom.
+-  Value      [2015/06/29] Option -val-split-return-auto now always split
+	      between NULL/non-NULL pointers
+-* Value      [2015/06/26] Check the validity of the operands of the ACSL
+	      operators /, %, << and >> when evaluating a predicate
+o! Value      [2015/06/25] Remove duplicate values Ival.singleton_zero and
+	      Ival.singleton_one. Use script sodium2magnesium.sh for automatic
+	      migration
+-*  Logic     [2015/06/15] Fix typing bug when converting into a term an
+	      expression containing a pointer substraction
+-* Value      [2015/06/09] Pointer comparisons using relational operators (<,
+	      >=, etc) between a pointer and NULL is now flagged as undefined.
+o! Kernel     [2015/06/09] Remove support of plug-ins without .mli.
+-*  Cil       [2015/05/29] Better typing of '?' operator. Fixes bug #2117.
+o! Kernel     [2015/05/29] Remove long-obsoleted functions Cfg.computeCFGInfo
+	      Cfg.printCfgFilename, and Cfg.printCfgChannel
+-  Value      [2015/05/28] Functions call using a function pointer are now
+	      treated more leniently when too many arguments are supplied. An
+	      alarm is emitted, but execution continues with the right number
+	      of arguments.
+-  Value      [2015/05/12] Improved reduction by predicate \initialized when
+	      the left argument is a range of locations
+-  Impact     [2015/05/12] Removed function Db.Impact.slice, that was actually
+	      unrelated to Impact. You can use the functions contained in
+	      Db.Slicing.Select, in particular Db.Slicing.Select.select_stmt,
+	      to obtain the same result.
+-  Makefile   [2015/05/06] Dynamic plug-ins are now declared as Findlib
+   	      packages. Use variables PLUGIN_REQUIRES and PLUGIN_DEPENDENCIES.
+	      Loading a plug-in automatically loads all necessary dependencies.
+	      Plugin "MyPlugin" is register under "frama-c-myplugin" package.
+-! Kernel     [2015/05/06] Dynamic now rely on Findlib. Small changes in API.
+   	      Option -load-module can now load any Findlib package and its
+	      dependencies as well.
+-  Kernel     [2015/05/06] Reformulated help messages.
+	      Option -help is more concise.
+	      Option -version only prints version number.
+              Options -print-xxx uniformized.
+	      New options -plugins, -print-config.
+-   Value     [2015/05/29] Added built-ins for mathematical functions: atan2,
+	      fmod, pow, expf, logf, log10f, powf, sqrtf, floor, floorf,
+	      ceil, ceilf, round, roundf, trunc, truncf.
+-*  Value     [2015/05/03] In -lib-entry mode, allow the generation of initial
+	      states with 0-sized bitfields
+-* Metrics    [2015/05/05] Fix computation of global cyclomatic complexity.
+	      Fixes bug #!2089.
+-   Scope     [2015/04/22] Assertions previously removed by
+	      -remove-redundant-alarms are now marked as proven, but remain in
+	      the AST
+-   Value     [2015/04/22] New GUI panel 'Values', that displays nearly all the
+	      information previously available under the 'Information' panel
+o!  Logic     [2015/04/08] Functions Db.Properties.Interp.lval and
+	      Db.Properties.Interp.expr have been renamed (into term_lval
+	      and term, respectively), and have a new signature
+-* Cil        [2015/04/19] Fix parsing of packing directives of the form
+	      '#pragma pack(push, N)'
+-! Value      [2015/04/13] In -lib-entry mode, functions pointers no longer
+	      force the generation of dummy functions. Instead, they are
+	      initialized to NULL. Fixes bug #!2104.
+-  Kernel     [2015/04/01] New API for backward dataflow propagation in file
+	      Dataflows
+-  Metrics    [2015/03/25] New category 'Extern global variables', that can
+	      be used to check whether some files are missing
+-  Metrics    [2015/03/24] Functions from Frama-C standard library are now
+	      hidden by default
+-* Cil	      [2015/03/26] Switch statements in which some cases are not
+	      constant expressions are now completely disallowed, as per the
+	      C standard.
+-! Cil        [2015/03/21] Parsing no longer accepts structures containing
+	      incomplete types. Fixes bug #!2091
+-  Kernel     [2015/03/24] Special functions CEA_ have been removed
+-! Libc       [2015/03/19] Most .c and .h files under /share have been merged
+              into /share/libc. Inclusions of builtin.h should be replaced by
+              __fc_builtin.h
+-  Kernel     [2015/03/18] New ACSL predicate \valid_read_string in
+	      share/libc/__fc_string_axiomatic.h
+-! Value      [2015/03/12] Terms involving l-values that are bit-fields are now
+	      correctly handled
+-  Cil        [2015/03/19] Fix incorrect simplifications of '!E' to 0 when
+	      E is either an enum with value 0 (bug #2090), or an expression
+	      whose value wraps.
+-  Kernel     [2015/03/10] macro __FRAMAC__ is defined when pre-processing
+	      C files in Frama-C
+o! Kernel     [2015/03/10] AST change: split GVarDecl into GVarDecl and GFunDecl
+o!  GUI       [2015/04/04] Constructor Pretty_source.PTermLval now has an
+	      additional argument, the property in which the term appears
+-   Defs      [2015/04/04] L-values for which defs are queried are now evaluated
+	      only for the callstacks that are currently active, resulting
+	      in possibly less locations
+-!  Value     [2015/03/08] Fix bug in -memexec-all option in presence of
+	      instructions where evaluation was guaranteed to fail
+-! Inout      [2015/03/08] The inputs of an instruction whose evaluation always
+	      fail include the sub-expressions for which evaluation succeeds
+-  Kernel     [2015/02/26] Added -no-tty option to disable terminal capabilities
+-  Value      [2015/02/23] Faster treatment of imprecise struct copying and
+	      left shifts in the logic
+o! Kernel     [2015/02/22] Function Integer.two_power now raises an exception
+	      for overly big arguments
+-  Kernel     [2015/02/20] Add new suffix '.ci' for pre-processed files
+              containing ACSL annotations to be pre-processed
+-! Value      [2015/02/18] In synthetic results, for local variables that are
+	      not those of the current function, the approximated values
+	      encompass only the callstacks for which the variables were
+	      in scope in one of the callers
+-  Value      [2015/02/18] Local variables that are in scope but not yet
+	      initialized are now present in the environment
+-! Value      [2015/02/15] Option -subdivide-float-var has been renamed into
+	      -val-subdivide-non-linear, and has now an effect on non-linear
+	      integer expressions
+o! Value      [2015/02/15] Removed function Cvalue.V.min_and_max_float. Use
+	      Cvalue.V.project_ival and Ival.min_and_max_float
+-  Cil        [2015/02/11] Function Printer.change_printer now allows composing
+	      printers, and is called Printer.update_printer
+-  GUI        [2015/02/11] Variables are now left- and right- clickable in
+	      the 'information' panel.
+-  Value      [2015/01/31] Improved reduction by assertions of the form
+	      \initialized(&t[0..N]) when N is above -plevel
+o! Kernel     [2015/30/01] Fixed bug #!2012 about combining
+	      Ast.is_last_decl and Kernel_function.get_global.
+-  Value      [2015/01/26] New option -val-initialization-padding-globals to
+	      specify how padding bits should be initialized. Option
+	      -initialized-padding-globals is deprecated
+-* Value      [2015/01/26] Fix initial state in which some volatile qualifiers
+	      for nested types were ignored
+-* Value      [2015/01/26] Fix incorrect initialization of padding bits.
+	      Option -initialized-padding was ignored in some cases
+-* Cil        [2014/01/26] Fix iterators on C99 designated initializers
+-  Value      [2015/01/26] Improvements to option -subdivide-float-var, when
+	      subdividing may avoid the emission of an alarm
+-  Value      [2015/01/21] Support for \subset predicate
+
 ###################################
 Open Source Release Sodium-20150201
 ###################################
 
 -  Kernel     [2015/02/01] Tests are added to the distrib (make tests)
+-* Logic      [2015/02/09] The ACSL parser accepts qualifiers in logic C types.
 -  Value      [2015/01/07] Special functions CEA_ are deprecated. Use
 	      Frama_C_show_each or Frama_C_dump_each instead.
 -  Kernel     [2014/12/28] Improve pretty-printing of some loops.
 -* Kernel     [2014/12/16] -load-module M now works fine if M uses the API
 	      of another plug-in (bts #!1824).
-
 -! Cil        [2014/12/09] Default preprocessing command now includes Frama-C's
 	      standard library, and when possible sets option '-nostdinc'.
 	      See options -frama-c-stdlib and -cpp-gnu-like.
@@ -2734,3 +2933,11 @@ First Open Source Release Hydrogen-20080301
 ###########################################
 
 - First release
+
+
+
+###################
+# Local Variables:
+# mode: text
+# End:
+###################

@@ -89,8 +89,8 @@ tests/misc/non_natural.i:30:[kernel] warning: out of bounds write. assert \valid
 [value] Called Frama_C_show_each({{ &p2 + [0..--],0%32 }})
 [value] Recording results for duff1
 [value] Done for function duff1
-tests/misc/non_natural.i:58:[kernel] warning: accessing out of bounds index [-2147483648..2147483647].
-                  assert 0 ≤ o < 100002;
+tests/misc/non_natural.i:58:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert 0 ≤ o;
+tests/misc/non_natural.i:58:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert o < 100002;
 [value] computing for function duff2 <- main2 <- main.
         Called from tests/misc/non_natural.i:59.
 tests/misc/non_natural.i:38:[kernel] warning: Non-natural loop detected.

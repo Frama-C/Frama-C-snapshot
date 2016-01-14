@@ -1,6 +1,6 @@
 /* run.config
    STDOPT: +"-print -then -val-warn-copy-indeterminate @all -no-print"
-   STDOPT:  +"-print -no-collapse-call-cast"
+   STDOPT: #"-print -no-collapse-call-cast"
 */
 
 extern int i;

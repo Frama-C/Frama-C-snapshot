@@ -4,5 +4,5 @@
 */
 void main(int*p) {
   *p = 0;
-  CEA_DUMP();
+  Frama_C_dump_each();
 }

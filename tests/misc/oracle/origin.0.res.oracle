@@ -1,0 +1,373 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/origin.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  a ∈ {0}
+  b ∈ {0}
+  aa2 ∈ {0}
+  p ∈ {0}
+  pa1 ∈ {0}
+  pa2 ∈ {0}
+  qa2 ∈ {0}
+  pa3 ∈ {0}
+  q ∈ {0}
+  t[0..11] ∈ {0}
+  tt[0..9] ∈ {0}
+  ta1[0..9] ∈ {0}
+  ta2[0..9] ∈ {0}
+  ta3[0..9] ∈ {0}
+  tta2[0..9] ∈ {0}
+  l1 ∈ {0}
+  l2 ∈ {0}
+  l3 ∈ {0}
+  pl ∈ {0}
+  Tm1[0] ∈ {{ &a }}
+     [1] ∈ {{ &b }}
+  Tm2[0] ∈ {{ &a }}
+     [1] ∈ {{ &b }}
+  Tm3[0] ∈ {{ &a }}
+     [1] ∈ {{ &b }}
+  Tm4[0] ∈ {{ &a }}
+     [1] ∈ {{ &b }}
+  pm1 ∈ {0}
+  pm2 ∈ {0}
+  qm2 ∈ {0}
+  pun ∈ {0}
+  pun2 ∈ {0}
+  qun2 ∈ {0}
+  random ∈ [--..--]
+  esc1 ∈ {0}
+  esc2 ∈ {0}
+  esc3 ∈ {0}
+  esc4 ∈ {0}
+  esc5 ∈ {0}
+  x ∈ {0}
+  y ∈ {0}
+  v.c ∈ {1}
+   .[bits 8 to 15] ∈ {0}
+   .i ∈ {2}
+   .p ∈ {{ &x }}
+   .t[0] ∈ {{ &y }}
+   .t[1] ∈ {0}
+[value] computing for function origin_arithmetic_1 <- main.
+        Called from tests/misc/origin.i:92.
+tests/misc/origin.i:14:[kernel] warning: signed overflow. assert -2147483648 ≤ -((int)((int *)ta1));
+tests/misc/origin.i:14:[kernel] warning: signed overflow. assert -((int)((int *)ta1)) ≤ 2147483647;
+tests/misc/origin.i:14:[value] Assigning imprecise value to pa1.
+        The imprecision originates from Arithmetic {tests/misc/origin.i:14}
+tests/misc/origin.i:15:[value] Reading left-value pa1.
+        It contains a garbled mix of {ta1} because of Arithmetic
+        {tests/misc/origin.i:14}.
+tests/misc/origin.i:15:[kernel] warning: out of bounds write. assert \valid(pa1);
+[value] Recording results for origin_arithmetic_1
+[value] Done for function origin_arithmetic_1
+[value] computing for function origin_arithmetic_2 <- main.
+        Called from tests/misc/origin.i:93.
+tests/misc/origin.i:19:[kernel] warning: signed overflow. assert -2147483648 ≤ -((int)((int *)ta2));
+tests/misc/origin.i:19:[kernel] warning: signed overflow. assert -((int)((int *)ta2)) ≤ 2147483647;
+tests/misc/origin.i:19:[value] Assigning imprecise value to pa2.
+        The imprecision originates from Arithmetic {tests/misc/origin.i:19}
+tests/misc/origin.i:20:[value] Assigning imprecise value to qa2.
+        The imprecision originates from Arithmetic {tests/misc/origin.i:19}
+tests/misc/origin.i:20:[kernel] warning: signed overflow. assert -2147483648 ≤ -((int)((int *)tta2));
+tests/misc/origin.i:20:[kernel] warning: signed overflow. assert -((int)((int *)tta2)) ≤ 2147483647;
+tests/misc/origin.i:20:[value] Assigning imprecise value to qa2.
+        The imprecision originates from Arithmetic {tests/misc/origin.i:20}
+tests/misc/origin.i:21:[value] Reading left-value qa2.
+        It contains a garbled mix of {ta2; tta2} because of Arithmetic.
+tests/misc/origin.i:21:[kernel] warning: out of bounds write. assert \valid(qa2);
+[value] Recording results for origin_arithmetic_2
+[value] Done for function origin_arithmetic_2
+[value] computing for function origin_arithmetic_3 <- main.
+        Called from tests/misc/origin.i:94.
+tests/misc/origin.i:25:[kernel] warning: signed overflow. assert -2147483648 ≤ -((int)((int *)ta3));
+tests/misc/origin.i:25:[kernel] warning: signed overflow. assert -((int)((int *)ta3)) ≤ 2147483647;
+tests/misc/origin.i:25:[value] Assigning imprecise value to pa3.
+        The imprecision originates from Arithmetic {tests/misc/origin.i:25}
+tests/misc/origin.i:26:[value] Reading left-value pa3.
+        It contains a garbled mix of {ta3} because of Arithmetic
+        {tests/misc/origin.i:25}.
+tests/misc/origin.i:26:[kernel] warning: out of bounds write. assert \valid(pa3);
+[value] Recording results for origin_arithmetic_3
+[value] Done for function origin_arithmetic_3
+[value] computing for function origin_leaf_1 <- main.
+        Called from tests/misc/origin.i:95.
+[value] computing for function g <- origin_leaf_1 <- main.
+        Called from tests/misc/origin.i:36.
+tests/misc/origin.i:36:[kernel] warning: Neither code nor specification for function g, generating default assigns from the prototype
+[value] using specification for function g
+[value] Done for function g
+[value] Recording results for origin_leaf_1
+[value] Done for function origin_leaf_1
+[value] computing for function g <- main.
+        Called from tests/misc/origin.i:97.
+[value] Done for function g
+tests/misc/origin.i:97:[kernel] warning: signed overflow. assert -2147483648 ≤ l2+tmp;
+                                   (tmp from g())
+tests/misc/origin.i:97:[kernel] warning: signed overflow. assert l2+tmp ≤ 2147483647;
+                                   (tmp from g())
+[value] computing for function gp <- main.
+        Called from tests/misc/origin.i:98.
+tests/misc/origin.i:98:[kernel] warning: Neither code nor specification for function gp, generating default assigns from the prototype
+[value] using specification for function gp
+[value] Done for function gp
+tests/misc/origin.i:99:[kernel] warning: out of bounds read. assert \valid_read(pl);
+[value] computing for function origin_misalign_1 <- main.
+        Called from tests/misc/origin.i:100.
+tests/misc/origin.i:47:[value] Reading left-value pm1.
+        It contains a garbled mix of {a; b} because of Misaligned
+        {tests/misc/origin.i:47}.
+tests/misc/origin.i:47:[kernel] warning: out of bounds write. assert \valid(pm1);
+[value] Recording results for origin_misalign_1
+[value] Done for function origin_misalign_1
+[value] computing for function origin_misalign_2 <- main.
+        Called from tests/misc/origin.i:101.
+tests/misc/origin.i:52:[value] Reading left-value pm2.
+        It contains a garbled mix of {a; b} because of Misaligned
+        {tests/misc/origin.i:52}.
+tests/misc/origin.i:52:[value] Assigning imprecise value to qm2.
+        The imprecision originates from Misaligned {tests/misc/origin.i:52}
+tests/misc/origin.i:53:[value] Reading left-value qm2.
+        It contains a garbled mix of {a; b} because of Misaligned
+        {tests/misc/origin.i:52}.
+[value] Called Frama_C_show_each({{ garbled mix of &{a; b}
+                                 (origin: Misaligned {tests/misc/origin.i:52}) }})
+tests/misc/origin.i:54:[value] Reading left-value qm2.
+        It contains a garbled mix of {a; b} because of Misaligned
+        {tests/misc/origin.i:52}.
+tests/misc/origin.i:54:[kernel] warning: out of bounds write. assert \valid(qm2);
+[value] Recording results for origin_misalign_2
+[value] Done for function origin_misalign_2
+[value] computing for function origin_uninitialized_1 <- main.
+        Called from tests/misc/origin.i:104.
+[value] Recording results for origin_uninitialized_1
+[value] Done for function origin_uninitialized_1
+[value] computing for function origin_uninitialized_2 <- main.
+        Called from tests/misc/origin.i:105.
+tests/misc/origin.i:73:[kernel] warning: accessing uninitialized left-value: assert \initialized(&pun2);
+tests/misc/origin.i:73:[kernel] warning: accessing uninitialized left-value: assert \initialized(&i);
+tests/misc/origin.i:73:[kernel] warning: completely indeterminate value in i.
+[value] Recording results for origin_uninitialized_2
+[value] Done for function origin_uninitialized_2
+[value] computing for function local_escape_1 <- main.
+        Called from tests/misc/origin.i:106.
+tests/misc/origin.i:83:[kernel] warning: signed overflow. assert -2147483648 ≤ -((int)(&arg));
+tests/misc/origin.i:83:[kernel] warning: signed overflow. assert -((int)(&arg)) ≤ 2147483647;
+tests/misc/origin.i:83:[value] Assigning imprecise value to esc3.
+        The imprecision originates from Arithmetic {tests/misc/origin.i:83}
+tests/misc/origin.i:87:[value] warning: locals {arg} escaping the scope of local_escape_1 through esc1
+tests/misc/origin.i:87:[value] warning: locals {local1} escaping the scope of local_escape_1 through esc2
+tests/misc/origin.i:87:[value] warning: locals {arg} escaping the scope of local_escape_1 through esc3
+tests/misc/origin.i:87:[value] warning: locals {local1} escaping the scope of local_escape_1 through esc4
+[value] Recording results for local_escape_1
+[value] Done for function local_escape_1
+[value] Recording results for main
+[value] done for function main
+tests/misc/origin.i:73:[value] Assertion 'Value,initialisation' got final status invalid.
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function local_escape_1:
+  esc1 ∈ {{ (int)&arg }}
+  esc2 ∈ {{ (int)&local1 }}
+  esc3 ∈
+      {{ garbled mix of &{arg}
+       (origin: Arithmetic {tests/misc/origin.i:83}) }}
+  esc4 ∈ {{ NULL + {12} ; (int)&local1 }}
+  esc5 ∈ {{ (int)&esc1 }}
+  local2 ∈ {{ (int)&local1 }}
+[value] Values at end of function origin_arithmetic_1:
+  pa1 ∈ {{ &ta1 + [0..36] }}
+  ta1[0..9] ∈ {0}
+[value] Values at end of function origin_arithmetic_2:
+  pa2 ∈
+     {{ garbled mix of &{ta2}
+      (origin: Arithmetic {tests/misc/origin.i:19}) }}
+  qa2 ∈ {{ &ta2 + [0..36] ; &tta2 + [0..36] }}
+  ta2[0..9] ∈
+     {{ garbled mix of &{aa2}
+      (origin: Misaligned {tests/misc/origin.i:21}) }}
+  tta2[0..9] ∈
+      {{ garbled mix of &{aa2}
+       (origin: Misaligned {tests/misc/origin.i:21}) }}
+[value] Values at end of function origin_arithmetic_3:
+  pa3 ∈ {{ &ta3 + [0..36] }}
+  ta3[0..9] ∈ [--..--]
+[value] Values at end of function origin_leaf_1:
+  l1 ∈ [--..--]
+[value] Values at end of function origin_misalign_1:
+  a ∈ {0; 1}
+  b ∈ {0; 1}
+  pm1 ∈ {{ &a ; &b }}
+[value] Values at end of function origin_misalign_2:
+  a ∈ {{ NULL + {0; 1} ; (int)&a }}
+  b ∈ {{ NULL + {0; 1} ; (int)&a }}
+  pm2[bits 0 to 15]# ∈ {{ (? *)&a }}%32, bits 16 to 31 
+     [bits 16 to 31]# ∈ {{ (? *)&b }}%32, bits 0 to 15 
+  qm2 ∈ {{ &a ; &b }}
+[value] Values at end of function origin_uninitialized_1:
+  pun ∈ {{ &a }} or UNINITIALIZED
+  pi ∈ {{ &a }} or UNINITIALIZED
+[value] Values at end of function origin_uninitialized_2:
+  pun2 ∈ {{ &a }} or UNINITIALIZED
+  qun2 ∈ {0}
+  pi ∈ {{ &a }} or UNINITIALIZED
+[value] Values at end of function main:
+  a ∈ {{ NULL + {0; 1} ; (int)&a }}
+  b ∈ {{ NULL + {0; 1} ; (int)&a }}
+  p[bits 0 to 15]# ∈ {{ (? *)&a }}%32, bits 16 to 31 
+   [bits 16 to 31]# ∈ {{ (? *)&b }}%32, bits 0 to 15 
+  pa1 ∈ {{ &ta1 + [0..36] }}
+  pa2 ∈
+     {{ garbled mix of &{ta2}
+      (origin: Arithmetic {tests/misc/origin.i:19}) }}
+  qa2 ∈ {{ &ta2 + [0..36] ; &tta2 + [0..36] }}
+  pa3 ∈ {{ &ta3 + [0..36] }}
+  q[bits 0 to 7] ∈
+   {{ garbled mix of &{a} (origin: Merge {tests/misc/origin.i:104}) }}
+   [bits 8 to 15] ∈
+   {{ garbled mix of &{a; b} (origin: Merge {tests/misc/origin.i:104}) }}
+   [bits 16 to 31] ∈
+   {{ garbled mix of &{b} (origin: Merge {tests/misc/origin.i:104}) }}
+  ta1[0..9] ∈ {0}
+  ta2[0..9] ∈
+     {{ garbled mix of &{aa2}
+      (origin: Misaligned {tests/misc/origin.i:21}) }}
+  ta3[0..9] ∈ [--..--]
+  tta2[0..9] ∈
+      {{ garbled mix of &{aa2}
+       (origin: Misaligned {tests/misc/origin.i:21}) }}
+  l1 ∈ [--..--]
+  l2 ∈ [--..--]
+  l3 ∈ [--..--]
+  pl ∈ {{ &alloced_return_gp + [0..2147483616],0%32 }}
+  pm1 ∈ {{ &a ; &b }}
+  pm2[bits 0 to 15]# ∈ {{ (? *)&a }}%32, bits 16 to 31 
+     [bits 16 to 31]# ∈ {{ (? *)&b }}%32, bits 0 to 15 
+  qm2 ∈ {{ &a ; &b }}
+  pun ∈ {{ &a }} or UNINITIALIZED
+  pun2 ∈ {{ &a }} or UNINITIALIZED
+  qun2 ∈ {0}
+  esc1 ∈ ESCAPINGADDR
+  esc2 ∈ ESCAPINGADDR
+  esc3 ∈ [--..--] or ESCAPINGADDR
+  esc4 ∈ {12} or ESCAPINGADDR
+  esc5 ∈ {{ (int)&esc1 }}
+[from] Computing for function local_escape_1
+[from] Done for function local_escape_1
+[from] Computing for function origin_arithmetic_1
+[from] Done for function origin_arithmetic_1
+[from] Computing for function origin_arithmetic_2
+[from] Done for function origin_arithmetic_2
+[from] Computing for function origin_arithmetic_3
+[from] Done for function origin_arithmetic_3
+[from] Computing for function origin_leaf_1
+[from] Computing for function g <-origin_leaf_1
+[from] Done for function g
+[from] Done for function origin_leaf_1
+[from] Computing for function origin_misalign_1
+[from] Done for function origin_misalign_1
+[from] Computing for function origin_misalign_2
+[from] Done for function origin_misalign_2
+[from] Computing for function origin_uninitialized_1
+[from] Done for function origin_uninitialized_1
+[from] Computing for function origin_uninitialized_2
+[from] Done for function origin_uninitialized_2
+[from] Computing for function main
+[from] Computing for function gp <-main
+[from] Done for function gp
+tests/misc/origin.i:99:[kernel] more than 200(67108864) elements to enumerate. Approximating.
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function g:
+  \result FROM \nothing
+[from] Function gp:
+  \result FROM \nothing
+[from] Function local_escape_1:
+  esc1 FROM \nothing
+  esc2 FROM \nothing
+  esc3 FROM \nothing
+  esc4 FROM random
+  esc5 FROM \nothing
+[from] Function origin_arithmetic_1:
+  pa1 FROM \nothing
+  ta1[0..9] FROM \nothing (and SELF)
+[from] Function origin_arithmetic_2:
+  pa2 FROM \nothing
+  qa2 FROM c1
+  ta2[0..9] FROM c1 (and SELF)
+  tta2[0..9] FROM c1 (and SELF)
+[from] Function origin_arithmetic_3:
+  pa3 FROM \nothing
+  ta3[0..9] FROM \nothing (and SELF)
+[from] Function origin_leaf_1:
+  l1 FROM \nothing
+[from] Function origin_misalign_1:
+  a FROM Tm1{[0][bits 16 to 31]; [1][bits 0 to 15]} (and SELF)
+  b FROM Tm1{[0][bits 16 to 31]; [1][bits 0 to 15]} (and SELF)
+  pm1 FROM Tm1{[0][bits 16 to 31]; [1][bits 0 to 15]}
+[from] Function origin_misalign_2:
+  a FROM Tm2{[0][bits 16 to 31]; [1][bits 0 to 15]} (and SELF)
+  b FROM Tm2{[0][bits 16 to 31]; [1][bits 0 to 15]} (and SELF)
+  pm2 FROM Tm2{[0][bits 16 to 31]; [1][bits 0 to 15]}
+  qm2 FROM Tm2{[0][bits 16 to 31]; [1][bits 0 to 15]}
+[from] Function origin_uninitialized_1:
+  pun FROM c1
+[from] Function origin_uninitialized_2:
+  pun2 FROM c1
+  qun2 FROM c1; c2 (and SELF)
+[from] Function main:
+  a FROM Tm1{[0][bits 16 to 31]; [1][bits 0 to 15]};
+         Tm2{[0][bits 16 to 31]; [1][bits 0 to 15]} (and SELF)
+  b FROM Tm1{[0][bits 16 to 31]; [1][bits 0 to 15]};
+         Tm2{[0][bits 16 to 31]; [1][bits 0 to 15]} (and SELF)
+  p FROM Tm3{[0][bits 16 to 31]; [1][bits 0 to 15]}
+  pa1 FROM \nothing
+  pa2 FROM \nothing
+  qa2 FROM c1
+  pa3 FROM \nothing
+  q FROM Tm3{[0][bits 16 to 31]; [1][bits 0 to 15]};
+         Tm4{[0][bits 24 to 31]; [1][bits 0 to 23]}; c1
+  ta1[0..9] FROM \nothing (and SELF)
+  ta2[0..9] FROM c1 (and SELF)
+  ta3[0..9] FROM \nothing (and SELF)
+  tta2[0..9] FROM c1 (and SELF)
+  l1 FROM \nothing
+  l2 FROM \nothing
+  l3 FROM alloced_return_gp[bits 0 to 17179868959]
+  pl FROM \nothing
+  pm1 FROM Tm1{[0][bits 16 to 31]; [1][bits 0 to 15]}
+  pm2 FROM Tm2{[0][bits 16 to 31]; [1][bits 0 to 15]}
+  qm2 FROM Tm2{[0][bits 16 to 31]; [1][bits 0 to 15]}
+  pun FROM c1
+  pun2 FROM c1
+  qun2 FROM c1; c2 (and SELF)
+  esc1 FROM \nothing
+  esc2 FROM \nothing
+  esc3 FROM \nothing
+  esc4 FROM random
+  esc5 FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function local_escape_1:
+          esc1; esc2; esc3; esc4; esc5; local2
+[inout] Out (internal) for function origin_arithmetic_1:
+          pa1; ta1[0..9]
+[inout] Out (internal) for function origin_arithmetic_2:
+          pa2; qa2; ta2[0..9]; tta2[0..9]
+[inout] Out (internal) for function origin_arithmetic_3:
+          pa3; ta3[0..9]
+[inout] Out (internal) for function origin_leaf_1:
+          l1
+[inout] Out (internal) for function origin_misalign_1:
+          a; b; pm1
+[inout] Out (internal) for function origin_misalign_2:
+          a; b; pm2; qm2
+[inout] Out (internal) for function origin_uninitialized_1:
+          pun; pi
+[inout] Out (internal) for function origin_uninitialized_2:
+          pun2; qun2; pi
+[inout] Out (internal) for function main:
+          a; b; p; pa1; pa2; qa2; pa3; q; ta1[0..9]; ta2[0..9]; ta3[0..9];
+          tta2[0..9]; l1; l2; l3; pl; pm1; pm2; qm2; pun; pun2; qun2; esc1; esc2;
+          esc3; esc4; esc5; tmp

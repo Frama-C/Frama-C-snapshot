@@ -1,10 +1,10 @@
 /* run.config
-   GCC:
-   OPT: -no-annot -val -journal-disable
-   OPT: -val -journal-disable
+   OPT: -no-annot -val -then -annot -val -journal-disable
+   OPT: -val -main main3 -journal-disable
    OPT: -val -main main_err1 -journal-disable
    OPT: -val -main main_err2 -journal-disable
 */
+
 
 int i,j;
 
@@ -40,4 +40,20 @@ void main_err2(void)
     {
       j = 4 * i + 7;
     }
+}
+
+
+void main3 () {
+  int max = 25;
+  int next = 0;
+  int i;
+
+/*@ loop pragma WIDEN_HINTS next, 24; */ // This pragma is unhelpful, but used to interfere with the bound for i.
+  for (i=0;i<30;i++) {
+    int vsize = max;
+    int vnext = next;
+
+    if(vsize > vnext)
+      next++;
+  }
 }

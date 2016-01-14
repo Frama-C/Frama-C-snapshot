@@ -1,0 +1,202 @@
+# frama-c -wp -wp-model 'Typed (Ref)' [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_typed/user_bitwise.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] Collecting variable usage
+------------------------------------------------------------
+  Function rl1
+------------------------------------------------------------
+
+Goal Post-condition 'b0' in 'rl1':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'bk' in 'rl1':
+Let x_1 = (lsr x_0 31).
+Assume {
+  (* Domain *)
+  Type: (is_uint32 x_0) /\ (is_uint32 x_1).
+  (* Goal *)
+  When: (0<=i_0) /\ (i_0<=30) /\ (is_sint32 i_0).
+}
+Prove: (0!=(land x_0 (lsl 1 i_0)))=
+       (0!=(land (lsl 1 (1+i_0)) (lor x_1 (to_uint32 (lsl x_0 1))))).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function rln32
+------------------------------------------------------------
+
+Goal Post-condition 'b1' in 'rln32':
+Let x_1 = -n_0.
+Let x_2 = (lsr x_0 (32-n_0)).
+Assume {
+  (* Domain *)
+  Type: (is_uint32 n_0) /\ (is_uint32 x_0) /\ (is_uint32 x_2).
+  (* Goal *)
+  When: (i_1<n_0) /\ (0<=i_1) /\ (is_sint32 i_1).
+  (* Pre-condition 'r' in 'rln32' *)
+  (* Pre-condition 'r': *)
+  Have: (0<n_0) /\ (n_0<=31).
+}
+Prove: (0!=(land x_0 (lsl 1 (32+i_1-n_0))))=
+       (0!=(land (lsl 1 i_1) (lor (to_uint32 (lsl x_0 n_0)) x_2))).
+
+------------------------------------------------------------
+
+Goal Post-condition 'b2' in 'rln32':
+Let x_1 = i_0+n_0.
+Let x_2 = (lsr x_0 (32-n_0)).
+Assume {
+  (* Domain *)
+  Type: (is_uint32 n_0) /\ (is_uint32 x_0) /\ (is_uint32 x_2).
+  (* Goal *)
+  When: (0<=i_0) /\ (is_sint32 i_0) /\ (x_1<=31).
+  (* Pre-condition 'r' in 'rln32' *)
+  (* Pre-condition 'r': *)
+  Have: (0<n_0) /\ (n_0<=31).
+}
+Prove: (0!=(land x_0 (lsl 1 i_0)))=
+       (0!=(land (lsl 1 x_1) (lor (to_uint32 (lsl x_0 n_0)) x_2))).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function rln64
+------------------------------------------------------------
+
+Goal Post-condition 'b1' in 'rln64':
+Let x_1 = -n_0.
+Let x_2 = (lsr x_0 (64-n_0)).
+Assume {
+  (* Domain *)
+  Type: (is_uint64 n_0) /\ (is_uint64 x_0) /\ (is_uint64 x_2).
+  (* Goal *)
+  When: (i_1<n_0) /\ (0<=i_1) /\ (is_sint32 i_1).
+  (* Pre-condition 'r' in 'rln64' *)
+  (* Pre-condition 'r': *)
+  Have: (0<n_0) /\ (n_0<=63).
+}
+Prove: (0!=(land x_0 (lsl 1 (64+i_1-n_0))))=
+       (0!=(land (lsl 1 i_1) (lor (to_uint64 (lsl x_0 n_0)) x_2))).
+
+------------------------------------------------------------
+
+Goal Post-condition 'b2' in 'rln64':
+Let x_1 = i_0+n_0.
+Let x_2 = (lsr x_0 (64-n_0)).
+Assume {
+  (* Domain *)
+  Type: (is_uint64 n_0) /\ (is_uint64 x_0) /\ (is_uint64 x_2).
+  (* Goal *)
+  When: (0<=i_0) /\ (is_sint32 i_0) /\ (x_1<=63).
+  (* Pre-condition 'r' in 'rln64' *)
+  (* Pre-condition 'r': *)
+  Have: (0<n_0) /\ (n_0<=63).
+}
+Prove: (0!=(land x_0 (lsl 1 i_0)))=
+       (0!=(land (lsl 1 x_1) (lor (to_uint64 (lsl x_0 n_0)) x_2))).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function rr1
+------------------------------------------------------------
+
+Goal Post-condition 'b0' in 'rr1':
+Assume { (* Domain *) Type: (is_uint32 x_0) /\ (is_uint32 (lsr x_0 1)). }
+Prove: (bit_test x_0 0) <-> ((bit_test x_0 0) \/ (bit_test x_0 32)).
+
+------------------------------------------------------------
+
+Goal Post-condition 'bk' in 'rr1':
+Let x_1 = (lsr x_0 1).
+Assume {
+  (* Domain *)
+  Type: (is_uint32 x_0) /\ (is_uint32 x_1).
+  (* Goal *)
+  When: (0<=i_0) /\ (i_0<=30) /\ (is_sint32 i_0).
+}
+Prove: (0!=(land x_0 (lsl 1 (1+i_0))))=
+       (0!=(land (lsl 1 i_0) (lor x_1 (to_uint32 (lsl x_0 31))))).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function rrn32
+------------------------------------------------------------
+
+Goal Post-condition 'b1' in 'rrn32':
+Let x_1 = -n_0.
+Let x_2 = (lsr x_0 n_0).
+Assume {
+  (* Domain *)
+  Type: (is_uint32 n_0) /\ (is_uint32 x_0) /\ (is_uint32 x_2).
+  (* Goal *)
+  When: (i_1<n_0) /\ (0<=i_1) /\ (is_sint32 i_1).
+  (* Pre-condition 'r' in 'rrn32' *)
+  (* Pre-condition 'r': *)
+  Have: (0<n_0) /\ (n_0<=31).
+}
+Prove: (0!=(land x_0 (lsl 1 i_1)))=
+       (0!=
+        (land (lsl 1 (32+i_1-n_0)) (lor x_2 (to_uint32 (lsl x_0 (32-n_0)))))).
+
+------------------------------------------------------------
+
+Goal Post-condition 'b2' in 'rrn32':
+Let x_1 = i_0+n_0.
+Let x_2 = (lsr x_0 n_0).
+Assume {
+  (* Domain *)
+  Type: (is_uint32 n_0) /\ (is_uint32 x_0) /\ (is_uint32 x_2).
+  (* Goal *)
+  When: (0<=i_0) /\ (is_sint32 i_0) /\ (x_1<=31).
+  (* Pre-condition 'r' in 'rrn32' *)
+  (* Pre-condition 'r': *)
+  Have: (0<n_0) /\ (n_0<=31).
+}
+Prove: (0!=(land x_0 (lsl 1 x_1)))=
+       (0!=(land (lsl 1 i_0) (lor x_2 (to_uint32 (lsl x_0 (32-n_0)))))).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function rrn64
+------------------------------------------------------------
+
+Goal Post-condition 'b1' in 'rrn64':
+Let x_1 = -n_0.
+Let x_2 = (lsr x_0 n_0).
+Assume {
+  (* Domain *)
+  Type: (is_uint64 n_0) /\ (is_uint64 x_0) /\ (is_uint64 x_2).
+  (* Goal *)
+  When: (i_1<n_0) /\ (0<=i_1) /\ (is_sint32 i_1).
+  (* Pre-condition 'r' in 'rrn64' *)
+  (* Pre-condition 'r': *)
+  Have: (0<n_0) /\ (n_0<=63).
+}
+Prove: (0!=(land x_0 (lsl 1 i_1)))=
+       (0!=
+        (land (lsl 1 (64+i_1-n_0)) (lor x_2 (to_uint64 (lsl x_0 (64-n_0)))))).
+
+------------------------------------------------------------
+
+Goal Post-condition 'b2' in 'rrn64':
+Let x_1 = i_0+n_0.
+Let x_2 = (lsr x_0 n_0).
+Assume {
+  (* Domain *)
+  Type: (is_uint64 n_0) /\ (is_uint64 x_0) /\ (is_uint64 x_2).
+  (* Goal *)
+  When: (0<=i_0) /\ (is_sint32 i_0) /\ (x_1<=63).
+  (* Pre-condition 'r' in 'rrn64' *)
+  (* Pre-condition 'r': *)
+  Have: (0<n_0) /\ (n_0<=63).
+}
+Prove: (0!=(land x_0 (lsl 1 x_1)))=
+       (0!=(land (lsl 1 i_0) (lor x_2 (to_uint64 (lsl x_0 (64-n_0)))))).
+
+------------------------------------------------------------

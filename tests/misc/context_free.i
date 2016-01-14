@@ -4,7 +4,7 @@
 */
 
 
-int a,b,c;
+int a,b,c; volatile int vol;
 
 int star_p, star_w___500;
 
@@ -36,7 +36,7 @@ extern struct {
 extern void *qvoid; // void* pointer: valid, size unknown
 
 
-int f(int x, float y, int **p, int (*g)(char *), void *vv, void **vvv, int ta[5])
+void f(int x, float y, int **p, int (*g)(char *), void *vv, void **vvv, int ta[5])
 {
   if (x >= 0) a = x;
   b = s.s1 ;
@@ -59,6 +59,6 @@ int f(int x, float y, int **p, int (*g)(char *), void *vv, void **vvv, int ta[5]
   *pvoid = 1;
   pvoid = qvoid;
   *pvoid = &pvoid;
-  return g("toto");
+  if (vol) { g("toto"); }
 
 }

@@ -1,0 +1,65 @@
+(**************************************************************************)
+(*                                                                        *)
+(*  This file is part of Frama-C.                                         *)
+(*                                                                        *)
+(*  Copyright (C) 2007-2015                                               *)
+(*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
+(*         alternatives)                                                  *)
+(*                                                                        *)
+(*  you can redistribute it and/or modify it under the terms of the GNU   *)
+(*  Lesser General Public License as published by the Free Software       *)
+(*  Foundation, version 2.1.                                              *)
+(*                                                                        *)
+(*  It is distributed in the hope that it will be useful,                 *)
+(*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
+(*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
+(*  GNU Lesser General Public License for more details.                   *)
+(*                                                                        *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
+(*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
+(*                                                                        *)
+(**************************************************************************)
+
+# 24 "src/kernel_internals/runtime/frama_c_config.ml.in"
+
+(** This file is *not* linked in Frama-C. Instead, is it is concatenated
+    to Config, to create a standalone executable *)
+
+let version _ =
+  Format.printf
+    "Frama-C %s@\n\
+     Compiled on %s@\n\
+     Environment:@\n  \
+       FRAMAC_SHARE  = %S@\n  \
+       FRAMAC_LIB    = %S@\n  \
+       FRAMAC_PLUGIN = %S@."
+    Config.version
+    Config.date
+    Config.datadir Config.libdir Config.plugin_path
+  ;
+  exit 0
+
+let options = Arg.([
+  "-print-share-path",
+  Unit (fun _ -> Format.printf "%s%!" Config.datadir; exit 0),
+  " Print the path of Frama-C share directory";
+
+  "-print-libpath",
+  Unit (fun _ -> Format.printf "%s%!" Config.libdir; exit 0),
+  " Print the path of Frama-C kernel library";
+
+  "-print-plugin-path",
+  Unit (fun _ -> Format.printf "%s%!" Config.plugin_path; exit 0),
+  " Print the path where Frama-C dynamic plug-ins are searched for";
+
+  "-version",
+  Unit version,
+  " Display Frama-C version";
+])
+
+let usage = "\
+Usage:  frama-c-config <option>"
+
+let () =
+  Arg.parse options (fun _ -> ()) usage;
+  version () (* We only get here if no option has been specified *)

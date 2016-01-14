@@ -1,6 +1,6 @@
 /* run.config
    GCC:
-   OPT: -val -deps -out -input -ulevel 22 -journal-disable -then -no-val-warn-pointer-subtraction
+   STDOPT: #"-ulevel 22" +"-then -no-val-warn-pointer-subtraction"
 */
 
 // #include <stdio.h>

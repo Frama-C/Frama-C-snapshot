@@ -1,0 +1,262 @@
+# frama-c -wp -wp-model 'Typed (Ref)' [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_typed/user_injector.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] Collecting variable usage
+tests/wp_typed/user_injector.i:61:[wp] warning: Validity of unsized array not implemented yet (considered valid).
+tests/wp_typed/user_injector.i:60:[wp] warning: Validity of unsized array not implemented yet (considered valid).
+------------------------------------------------------------
+  Function job
+------------------------------------------------------------
+
+Goal Post-condition 'SEQ' in 'job':
+Let x_0 = service_cpt_4-1.
+Let x_1 = service_result_0[x_0].
+Let m_0 = service_id_6[x_0->a_0].
+Assume {
+  (* Domain *)
+  Type: (is_sint32 job_0) /\ (is_sint32 service_cpt_4)
+        /\ (is_sint32 service_result_0[service_cpt_4])
+        /\ (is_sint32 (service_cpt_4-2)) /\ (is_sint32 x_0)
+        /\ (IsArray1_sint32 m_0) /\ (is_sint32 x_1)
+        /\ (IsArray1_sint32 m_0[service_cpt_4->b_0]).
+  (* tests/wp_typed/user_injector.i:66: Conditional *)
+  If: 0!=x_1
+  Then {
+    (* tests/wp_typed/user_injector.i:66: Conditional *)
+    If: 0!=service_result_0[service_cpt_4]
+    Then { (* tests/wp_typed/user_injector.i:66: Assignment *) Have: 1=job_0.
+    }
+    Else { (* tests/wp_typed/user_injector.i:66: Assignment *) Have: 0=job_0.
+    }
+  }
+  Else { (* tests/wp_typed/user_injector.i:66: Assignment *) Have: 0=job_0. }
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'ID1' in 'job':
+Let x_0 = service_result_0[service_cpt_1].
+Let m_0 = service_id_6[service_cpt_1->a_0].
+Let x_1 = 1+service_cpt_1.
+Assume {
+  (* Domain *)
+  Type: (is_sint32 job_0) /\ (is_sint32 service_cpt_1)
+        /\ (IsArray1_sint32 m_0) /\ (is_sint32 x_0)
+        /\ (is_sint32 (service_cpt_1-1)) /\ (is_sint32 x_1)
+        /\ (IsArray1_sint32 m_0[x_1->b_0])
+        /\ (is_sint32 service_result_0[x_1]).
+  (* tests/wp_typed/user_injector.i:66: Conditional *)
+  If: 0!=x_0
+  Then {
+    (* tests/wp_typed/user_injector.i:66: Conditional *)
+    If: 0!=service_result_0[x_1]
+    Then { (* tests/wp_typed/user_injector.i:66: Assignment *) Have: 1=job_0.
+    }
+    Else { (* tests/wp_typed/user_injector.i:66: Assignment *) Have: 0=job_0.
+    }
+  }
+  Else { (* tests/wp_typed/user_injector.i:66: Assignment *) Have: 0=job_0. }
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'ID2' in 'job':
+Let x_0 = service_result_0[service_cpt_1].
+Let m_0 = service_id_6[service_cpt_1->a_0].
+Let x_1 = 1+service_cpt_1.
+Assume {
+  (* Domain *)
+  Type: (is_sint32 job_0) /\ (is_sint32 service_cpt_1)
+        /\ (IsArray1_sint32 m_0) /\ (is_sint32 x_0)
+        /\ (is_sint32 (service_cpt_1-1)) /\ (is_sint32 x_1)
+        /\ (IsArray1_sint32 m_0[x_1->b_0])
+        /\ (is_sint32 service_result_0[x_1]).
+  (* tests/wp_typed/user_injector.i:66: Conditional *)
+  If: 0!=x_0
+  Then {
+    (* tests/wp_typed/user_injector.i:66: Conditional *)
+    If: 0!=service_result_0[x_1]
+    Then { (* tests/wp_typed/user_injector.i:66: Assignment *) Have: 1=job_0.
+    }
+    Else { (* tests/wp_typed/user_injector.i:66: Assignment *) Have: 0=job_0.
+    }
+  }
+  Else { (* tests/wp_typed/user_injector.i:66: Assignment *) Have: 0=job_0. }
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'R1' in 'job':
+Let x_0 = service_result_0[service_cpt_4].
+Let x_1 = service_cpt_4-1.
+Let x_2 = service_result_0[x_1].
+Let m_0 = service_id_6[x_1->a_0].
+Assume {
+  (* Domain *)
+  Type: (is_sint32 service_cpt_4) /\ (is_sint32 x_0)
+        /\ (is_sint32 (service_cpt_4-2)) /\ (is_sint32 x_1)
+        /\ (IsArray1_sint32 m_0) /\ (is_sint32 x_2)
+        /\ (IsArray1_sint32 m_0[service_cpt_4->b_0]).
+  (* tests/wp_typed/user_injector.i:66: Conditional *)
+  Have: 0!=x_2.
+  (* tests/wp_typed/user_injector.i:66: Conditional *)
+  Have: 0!=x_0.
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'R2' in 'job':
+Let x_0 = service_result_0[service_cpt_4].
+Let x_1 = service_cpt_4-1.
+Let x_2 = service_result_0[x_1].
+Let m_0 = service_id_6[x_1->a_0].
+Assume {
+  (* Domain *)
+  Type: (is_sint32 service_cpt_4) /\ (is_sint32 x_0)
+        /\ (is_sint32 (service_cpt_4-2)) /\ (is_sint32 x_1)
+        /\ (IsArray1_sint32 m_0) /\ (is_sint32 x_2)
+        /\ (IsArray1_sint32 m_0[service_cpt_4->b_0]).
+  (* tests/wp_typed/user_injector.i:66: Conditional *)
+  Have: 0!=x_2.
+  (* tests/wp_typed/user_injector.i:66: Conditional *)
+  Have: 0!=x_0.
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'R0' in 'job':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'E1' in 'job':
+Let x_0 = service_cpt_4-1.
+Let m_0 = service_id_6[x_0->a_0].
+Assume {
+  (* Domain *)
+  Type: (is_sint32 service_cpt_4)
+        /\ (is_sint32 service_result_0[service_cpt_4])
+        /\ (is_sint32 (service_cpt_4-2)) /\ (is_sint32 x_0)
+        /\ (IsArray1_sint32 m_0) /\ (IsArray1_sint32 m_0[service_cpt_4->b_0]).
+  (* Goal *)
+  When: 0=service_result_0[x_0].
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'E2' in 'job':
+Let x_0 = service_cpt_4-1.
+Let x_1 = service_result_0[x_0].
+Let m_0 = service_id_6[x_0->a_0].
+Assume {
+  (* Domain *)
+  Type: (is_sint32 service_cpt_4) /\ (is_sint32 (service_cpt_4-2))
+        /\ (is_sint32 x_0) /\ (IsArray1_sint32 m_0) /\ (is_sint32 x_1)
+        /\ (IsArray1_sint32 m_0[service_cpt_4->b_0]).
+  (* Goal *)
+  When: (0=service_result_0[service_cpt_4]) /\ (0!=x_1).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns 'A' in 'job' (1/2):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns 'A' in 'job' (2/2):
+Call Result at line 60
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns 'A' in 'job' (1/6):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns 'A' in 'job' (2/6):
+Call Result at line 60
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns 'A' in 'job' (3/6):
+Call Result at line 61
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns 'A' in 'job' (4/6):
+Effect at line 66
+Let x_0 = service_result_0[service_cpt_4].
+Let x_1 = service_cpt_4-1.
+Let x_2 = service_result_0[x_1].
+Let m_0 = service_id_6[x_1->a_0].
+Assume {
+  (* Domain *)
+  Type: (is_sint32 service_cpt_4) /\ (is_sint32 x_0)
+        /\ (is_sint32 (service_cpt_4-2)) /\ (is_sint32 x_1)
+        /\ (IsArray1_sint32 m_0) /\ (is_sint32 x_2)
+        /\ (IsArray1_sint32 m_0[service_cpt_4->b_0]).
+  (* tests/wp_typed/user_injector.i:66: Then *)
+  Have: 0!=x_2.
+  (* tests/wp_typed/user_injector.i:66: Then *)
+  Have: 0!=x_0.
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns 'A' in 'job' (5/6):
+Effect at line 66
+Let x_0 = service_cpt_4-1.
+Let x_1 = service_result_0[x_0].
+Let m_0 = service_id_6[x_0->a_0].
+Assume {
+  (* Domain *)
+  Type: (is_sint32 service_cpt_4) /\ (is_sint32 (service_cpt_4-2))
+        /\ (is_sint32 x_0) /\ (IsArray1_sint32 m_0) /\ (is_sint32 x_1)
+        /\ (IsArray1_sint32 m_0[service_cpt_4->b_0]).
+  (* tests/wp_typed/user_injector.i:61: Call 'service' *)
+  Have: 0=service_result_0[service_cpt_4].
+  (* tests/wp_typed/user_injector.i:66: Then *)
+  Have: 0!=x_1.
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns 'A' in 'job' (6/6):
+Effect at line 66
+Let x_0 = service_cpt_4-1.
+Let m_0 = service_id_6[x_0->a_0].
+Assume {
+  (* Domain *)
+  Type: (is_sint32 service_cpt_4)
+        /\ (is_sint32 service_result_0[service_cpt_4])
+        /\ (is_sint32 (service_cpt_4-2)) /\ (is_sint32 x_0)
+        /\ (IsArray1_sint32 m_0) /\ (IsArray1_sint32 m_0[service_cpt_4->b_0]).
+  (* tests/wp_typed/user_injector.i:60: Call 'service' *)
+  Have: 0=service_result_0[x_0].
+}
+Prove: true.
+
+------------------------------------------------------------

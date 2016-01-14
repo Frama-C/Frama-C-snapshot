@@ -7,12 +7,16 @@ int t[10];
 int u[8+3];
 int v[16][17];
 
+struct s_arr {
+  int t[15];
+};
+
 typedef struct _s {
   int t[15];
   struct {
     int u[12];
   } s;
-  struct _s v[12];
+  struct s_arr v[12];
 } ts;
 
 ts s;

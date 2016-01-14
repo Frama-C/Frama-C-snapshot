@@ -24,10 +24,13 @@
 #define __FC_SYS_RESOURCE_H__
 #include "time.h"
 #include "../__fc_define_id_t.h"
+#include "../features.h"
 
 #define PRIO_PROCESS    0
 #define PRIO_PGRP       1
 #define PRIO_USER       2
+
+__BEGIN_DECLS
 
 typedef unsigned long rlim_t;
 struct rlimit {
@@ -77,4 +80,5 @@ int getrusage(int r, struct rusage *ru);
 */
 int setrlimit(int r, const struct rlimit * rl);
 
+__END_DECLS
 #endif

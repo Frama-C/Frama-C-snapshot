@@ -23,6 +23,9 @@
 #ifndef __FC_SYSLOG_H
 #define __FC_SYSLOG_H
 #include "__fc_define_null.h"
+#include "features.h"
+
+__BEGIN_DECLS
 
 typedef struct _code {
 	const char	*c_name;
@@ -135,4 +138,7 @@ void  openlog(const char *, int, int);
 int   setlogmask(int);
 /*@ assigns \nothing ; */
 void  syslog(int, const char *, ...);
+
+__END_DECLS
+
 #endif

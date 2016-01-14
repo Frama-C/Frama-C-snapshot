@@ -22,7 +22,7 @@
 [value] ====== VALUES COMPUTED ======
 [value] Values at end of function f:
   t[0] ∈ UNINITIALIZED
-   [1] ∈ {12} or UNINITIALIZED
+   [1] ∈ {12}
   lmain[0] ∈ UNINITIALIZED
        [1] ∈ {12}
 [value] Values at end of function g:

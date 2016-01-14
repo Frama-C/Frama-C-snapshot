@@ -22,10 +22,13 @@
 
 #ifndef __FC_NETDB
 #define __FC_NETDB
+#include "features.h"
 
 #include "netinet/in.h"
 #include "sys/socket.h"
 #include "inttypes.h"
+
+__BEGIN_DECLS
 
 struct hostent
 {
@@ -133,5 +136,8 @@ void sethostent(int);
 void setnetent(int);
 void setprotoent(int);
 void setservent(int);
+
+__END_DECLS
+
 #endif
 

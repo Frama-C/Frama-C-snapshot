@@ -1,5 +1,5 @@
 /* run.config 
-OPT: -load-module lib/plugins/Report -slevel-function main2:20 -pp-annot -val -then -report
+OPT: -slevel-function main2:20 -pp-annot -val -then -report
 */
 
 /*@ requires \valid(&t[0..s-1]);

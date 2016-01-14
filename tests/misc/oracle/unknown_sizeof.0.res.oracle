@@ -1,0 +1,19 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/unknown_sizeof.i (no preprocessing)
+[value] Analyzing a complete application starting at main1
+[value] Computing initial state
+tests/misc/unknown_sizeof.i:8:[value] warning: during initialization of variable 's', size of type 'struct s' cannot be
+                 computed (abstract type 'struct s')
+tests/misc/unknown_sizeof.i:8:[kernel] imprecise size for variable s
+[value] Initial state computed
+[value] Values of globals at initialization
+  s.[bits 0 to ..] ∈ {0} or UNINITIALIZED
+[value] computing for function g <- main1.
+        Called from tests/misc/unknown_sizeof.i:19.
+tests/misc/unknown_sizeof.i:19:[kernel] imprecise size for variable __retres
+tests/misc/unknown_sizeof.i:15:[kernel] warning: out of bounds write. assert \valid(&__retres);
+tests/misc/unknown_sizeof.i:15:[kernel] warning: accessing uninitialized left-value:
+                  assert \initialized((struct s *)((char *)(&s)+1));
+tests/misc/unknown_sizeof.i:15:[kernel] warning: out of bounds read. assert \valid_read((struct s *)((char *)(&s)+1));
+tests/misc/unknown_sizeof.i:15:[value] user error: Function g returns a value of unknown size. Aborting
+[kernel] Plug-in value aborted: invalid user input.

@@ -1,0 +1,4 @@
+[kernel] warning: cannot load 'tests/dynamic/none' (not a directory)
+[kernel] warning: cannot load 'tests/dynamic/file_path' (not a directory)
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/dynamic/dynamic.i (no preprocessing)

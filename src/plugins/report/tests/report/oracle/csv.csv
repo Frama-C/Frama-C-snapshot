@@ -1,0 +1,12 @@
+directory	file	line	function	property kind	status	property
+tests/report	csv.c	11	main1	signed_overflow	Unknown	-2147483648 ≤ x*x
+tests/report	csv.c	11	main1	signed_overflow	Unknown	x*x ≤ 2147483647
+tests/report	csv.c	12	main1	index_bound	Unknown	0 ≤ x
+tests/report	csv.c	12	main1	index_bound	Unknown	x < 15
+tests/report	csv.c	13	main1	initialisation	Unknown	\initialized(&u[x])
+tests/report	csv.c	17	f	precondition	Unknown	x ≥ 1
+tests/report	csv.c	18	f	assigns clause	Unknown	assigns \nothing;
+tests/report	csv.c	18	f	from clause	Unknown	assigns \result \from x;
+tests/report	csv.c	21	main2	precondition of f	Unknown	x ≥ 1
+tests/report	csv.c	22	main2	precondition of f	Unknown	x ≥ 1
+tests/report	csv.c	23	main2	precondition of f	Unknown	x ≥ 1

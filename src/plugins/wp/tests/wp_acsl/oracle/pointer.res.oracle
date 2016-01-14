@@ -1,0 +1,308 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_acsl/pointer.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+tests/wp_acsl/pointer.i:50:[wp] warning: Uncomparable locations ptr(p_0) and mem(t)
+tests/wp_acsl/pointer.i:49:[wp] warning: Uncomparable locations ptr(p_0) and mem(t)
+tests/wp_acsl/pointer.i:48:[wp] warning: Uncomparable locations ptr(p_0) and mem(t)
+tests/wp_acsl/pointer.i:47:[wp] warning: Uncomparable locations ptr(p_0) and mem(t)
+tests/wp_acsl/pointer.i:46:[wp] warning: Uncomparable locations ptr(p_0) and mem(t)
+tests/wp_acsl/pointer.i:45:[wp] warning: Uncomparable locations ptr(p_0) and mem(t)
+------------------------------------------------------------
+  Function absurd
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ko,Base_oracle_ko' in 'absurd':
+Let x_0 = (base p_0).
+Assume {
+  (* Goal *)
+  When: (offset q_0)<(offset p_0).
+  (* Heap *)
+  Have: ((region x_0)<=0) /\ ((region (base q_0))<=0).
+  (* Pre-condition (file tests/wp_acsl/pointer.i, line 69) in 'absurd' *)
+  (* Pre-condition: *)
+  Have: G_t_68=x_0.
+}
+Prove: (addr_lt q_0 p_0).
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ko,Comp_oracle_ko' in 'absurd':
+Let x_0 = (base p_0).
+Assume {
+  (* Goal *)
+  When: i_1<=i_2.
+  (* Heap *)
+  Have: ((region x_0)<=0) /\ ((region (base q_0))<=0).
+  (* Pre-condition (file tests/wp_acsl/pointer.i, line 69) in 'absurd' *)
+  (* Pre-condition: *)
+  Have: G_t_68=x_0.
+}
+Prove: (4*i_2)<=(4*i_1).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function array
+------------------------------------------------------------
+
+Goal Post-condition 'Lt' in 'array':
+Assume { (* Goal *) When: i_5<i_6. }
+Prove: (4*i_5)<(4*i_6).
+
+------------------------------------------------------------
+
+Goal Post-condition 'Le' in 'array':
+Assume { (* Goal *) When: i_2<=i_3. }
+Prove: (4*i_2)<=(4*i_3).
+
+------------------------------------------------------------
+
+Goal Post-condition 'Eq' in 'array':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function compare
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok,Lt' in 'compare':
+Let x_0 = (base p_0).
+Let x_1 = (base q_0).
+Assume {
+  (* Goal *)
+  When: (offset q_0)<(offset p_0).
+  (* Heap *)
+  Have: ((region x_0)<=0) /\ ((region x_1)<=0).
+  (* Pre-condition (file tests/wp_acsl/pointer.i, line 58) in 'compare' *)
+  (* Pre-condition: *)
+  Have: x_0=x_1.
+}
+Prove: (addr_lt q_0 p_0).
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok,Le' in 'compare':
+Let x_0 = (base p_0).
+Let x_1 = (base q_0).
+Assume {
+  (* Goal *)
+  When: (offset q_0)<=(offset p_0).
+  (* Heap *)
+  Have: ((region x_0)<=0) /\ ((region x_1)<=0).
+  (* Pre-condition (file tests/wp_acsl/pointer.i, line 58) in 'compare' *)
+  (* Pre-condition: *)
+  Have: x_0=x_1.
+}
+Prove: (addr_le q_0 p_0).
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok,Eq' in 'compare':
+Let x_0 = (base p_0).
+Let x_1 = (base q_0).
+Assume {
+  (* Goal *)
+  When: (offset p_0)=(offset q_0).
+  (* Heap *)
+  Have: ((region x_0)<=0) /\ ((region x_1)<=0).
+  (* Pre-condition (file tests/wp_acsl/pointer.i, line 58) in 'compare' *)
+  (* Pre-condition: *)
+  Have: x_0=x_1.
+}
+Prove: p_0=q_0.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function mixed_array_pointer
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok,Lt' in 'mixed_array_pointer':
+tests/wp_acsl/pointer.i:45: warning from Reference Variable Model:
+ - Warning: Hide sub-term definition
+   Reason: Uncomparable locations ptr(p_0) and mem(t)
+Let x_0 = (base p_0).
+Assume {
+  (* Goal *)
+  When: 0<w_5.
+  (* Heap *)
+  Have: (region x_0)<=0.
+  (* Pre-condition (file tests/wp_acsl/pointer.i, line 44) in 'mixed_array_pointer' *)
+  (* Pre-condition: *)
+  Have: G_t_68=x_0.
+}
+Prove: (addr_lt (shift_A10_sint32 (global G_t_68) 0) p_0).
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok,Le' in 'mixed_array_pointer':
+tests/wp_acsl/pointer.i:46: warning from Reference Variable Model:
+ - Warning: Hide sub-term definition
+   Reason: Uncomparable locations ptr(p_0) and mem(t)
+Let x_0 = (base p_0).
+Assume {
+  (* Goal *)
+  When: 0<=w_4.
+  (* Heap *)
+  Have: (region x_0)<=0.
+  (* Pre-condition (file tests/wp_acsl/pointer.i, line 44) in 'mixed_array_pointer' *)
+  (* Pre-condition: *)
+  Have: G_t_68=x_0.
+}
+Prove: (addr_le (shift_A10_sint32 (global G_t_68) 0) p_0).
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok,Eq' in 'mixed_array_pointer':
+tests/wp_acsl/pointer.i:47: warning from Reference Variable Model:
+ - Warning: Hide sub-term definition
+   Reason: Uncomparable locations ptr(p_0) and mem(t)
+Let x_0 = (base p_0).
+Assume {
+  (* Heap *)
+  Have: (region x_0)<=0.
+  (* Pre-condition (file tests/wp_acsl/pointer.i, line 44) in 'mixed_array_pointer' *)
+  (* Pre-condition: *)
+  Have: G_t_68=x_0.
+}
+Prove: p_0=(shift_A10_sint32 (global G_t_68) 0).
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok,Ne' in 'mixed_array_pointer':
+tests/wp_acsl/pointer.i:48: warning from Reference Variable Model:
+ - Warning: Hide sub-term definition
+   Reason: Uncomparable locations ptr(p_0) and mem(t)
+Let x_0 = (base p_0).
+Assume {
+  (* Goal *)
+  When: 0!=w_2.
+  (* Heap *)
+  Have: (region x_0)<=0.
+  (* Pre-condition (file tests/wp_acsl/pointer.i, line 44) in 'mixed_array_pointer' *)
+  (* Pre-condition: *)
+  Have: G_t_68=x_0.
+}
+Prove: p_0!=(shift_A10_sint32 (global G_t_68) 0).
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ko,Le_oracle_ko' in 'mixed_array_pointer':
+tests/wp_acsl/pointer.i:49: warning from Reference Variable Model:
+ - Warning: Hide sub-term definition
+   Reason: Uncomparable locations ptr(p_0) and mem(t)
+Let x_0 = (base p_0).
+Assume {
+  (* Goal *)
+  When: 0<=w_1.
+  (* Heap *)
+  Have: (region x_0)<=0.
+  (* Pre-condition (file tests/wp_acsl/pointer.i, line 44) in 'mixed_array_pointer' *)
+  (* Pre-condition: *)
+  Have: G_t_68=x_0.
+}
+Prove: (addr_lt (shift_A10_sint32 (global G_t_68) 0) p_0).
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ko,Lt_oracle_ko' in 'mixed_array_pointer':
+tests/wp_acsl/pointer.i:50: warning from Reference Variable Model:
+ - Warning: Hide sub-term definition
+   Reason: Uncomparable locations ptr(p_0) and mem(t)
+Let x_0 = (base p_0).
+Assume {
+  (* Goal *)
+  When: 0<w_0.
+  (* Heap *)
+  Have: (region x_0)<=0.
+  (* Pre-condition (file tests/wp_acsl/pointer.i, line 44) in 'mixed_array_pointer' *)
+  (* Pre-condition: *)
+  Have: G_t_68=x_0.
+}
+Prove: (addr_le p_0 (shift_A10_sint32 (global G_t_68) 0)).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function null
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok,Bool' in 'null':
+Let x_0 = (cast p_0).
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_0).
+  (* Heap *)
+  Have: (region (base p_0))<=0.
+}
+Prove: (p_0!=null)=(0!=x_0).
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok,NotNull' in 'null':
+Let x_0 = (cast p_0).
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_0).
+  (* Goal *)
+  When: p_0!=null.
+  (* Heap *)
+  Have: (region (base p_0))<=0.
+}
+Prove: 0!=x_0.
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok,IsNull' in 'null':
+Assume { (* Heap *) Have: (region 0)<=0. }
+Prove: 0=(cast null).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function pointer
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok,Lt' in 'pointer':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok,Le' in 'pointer':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok,Eq' in 'pointer':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok,Eq_0' in 'pointer':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok,Eq_0_bis' in 'pointer':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ko,Le_oracle_ko' in 'pointer':
+Assume { (* Goal *) When: i_2<=i_3. (* Heap *) Have: (region (base p_0))<=0.
+}
+Prove: i_2<i_3.
+
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ko,Eq_oracle_ko' in 'pointer':
+Assume { (* Heap *) Have: (region (base p_0))<=0. }
+Prove: false.
+
+------------------------------------------------------------

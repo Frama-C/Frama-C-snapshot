@@ -2,18 +2,23 @@
 [kernel] Parsing tests/misc/extern.i (no preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
-tests/misc/extern.i:4:[value] no size specified for array, assuming 0
-tests/misc/extern.i:5:[value] no size specified for array, assuming 0
+tests/misc/extern.i:4:[kernel] imprecise size for variable T3
+tests/misc/extern.i:4:[value] warning: during initialization of variable 'T3', size of type 'int []' cannot be
+                 computed (Size of array without number of elements.)
+tests/misc/extern.i:5:[kernel] imprecise size for variable T4
+tests/misc/extern.i:5:[value] warning: during initialization of variable 'T4', size of type 'int const []' cannot be
+                 computed (Size of array without number of elements.)
 tests/misc/extern.i:14:[value] no size specified for array, assuming 0
 [value] Initial state computed
 [value] Values of globals at initialization
   T1 ∈ [--..--]
   T2 ∈ [--..--]
+  T3[0..1073741823] ∈ [--..--] or UNINITIALIZED
+  T4[0..1073741823] ∈ [--..--] or UNINITIALIZED
   T5[0..2] ∈ [--..--]
   T6[0..2] ∈ [--..--]
   c ∈ [--..--]
-  s.nb ∈ [--..--]
-   .[bits 8 to 31] ∈ UNINITIALIZED
+  s ∈ [--..--]
 tests/misc/extern.i:19:[kernel] warning: out of bounds read. assert \valid_read(&T3[3]);
 tests/misc/extern.i:20:[kernel] warning: out of bounds write. assert \valid(&T2);
 tests/misc/extern.i:20:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.

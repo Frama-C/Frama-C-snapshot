@@ -36,7 +36,8 @@ axiomatic MemCmp {
  */
 /*@
 axiomatic MemChr {
-  logic 𝔹 memchr{L}(char *s, ℤ c, ℤ n) ;
+  logic 𝔹 memchr{L}(char *s, ℤ c, ℤ n) 
+    reads *(s+(0 .. n-1));
   
   axiom memchr_def{L}:
     ∀ char *s;
@@ -49,7 +50,8 @@ axiomatic MemChr {
  */
 /*@
 axiomatic MemSet {
-  logic 𝔹 memset{L}(char *s, ℤ c, ℤ n) ;
+  logic 𝔹 memset{L}(char *s, ℤ c, ℤ n) 
+    reads *(s+(0 .. n-1));
   
   axiom memset_def{L}:
     ∀ char *s;
@@ -62,7 +64,8 @@ axiomatic MemSet {
  */
 /*@
 axiomatic StrLen {
-  logic ℤ strlen{L}(char *s) ;
+  logic ℤ strlen{L}(char *s) 
+    reads *(s+(0 ..));
   
   axiom strlen_pos_or_null{L}:
     ∀ char *s;
@@ -137,7 +140,8 @@ axiomatic StrLen {
  */
 /*@
 axiomatic StrCmp {
-  logic ℤ strcmp{L}(char *s1, char *s2) ;
+  logic ℤ strcmp{L}(char *s1, char *s2) 
+    reads *(s1+(0 .. strlen{L}(s1))), *(s2+(0 .. strlen{L}(s2)));
   
   axiom strcmp_zero{L}:
     ∀ char *s1, char *s2;
@@ -149,7 +153,8 @@ axiomatic StrCmp {
  */
 /*@
 axiomatic StrNCmp {
-  logic ℤ strncmp{L}(char *s1, char *s2, ℤ n) ;
+  logic ℤ strncmp{L}(char *s1, char *s2, ℤ n) 
+    reads *(s1+(0 .. n-1)), *(s2+(0 .. n-1));
   
   axiom strncmp_zero{L}:
     ∀ char *s1, char *s2;
@@ -162,7 +167,8 @@ axiomatic StrNCmp {
  */
 /*@
 axiomatic StrChr {
-  logic 𝔹 strchr{L}(char *s, ℤ c) ;
+  logic 𝔹 strchr{L}(char *s, ℤ c) 
+    reads *(s+(0 .. strlen{L}(s)));
   
   axiom strchr_def{L}:
     ∀ char *s;
@@ -174,7 +180,8 @@ axiomatic StrChr {
  */
 /*@
 axiomatic WcsLen {
-  logic ℤ wcslen{L}(wchar_t *s) ;
+  logic ℤ wcslen{L}(wchar_t *s) 
+    reads *(s+(0 ..));
   
   axiom wcslen_pos_or_null{L}:
     ∀ wchar_t *s;
@@ -224,7 +231,8 @@ axiomatic WcsLen {
  */
 /*@
 axiomatic WcsCmp {
-  logic ℤ wcscmp{L}(wchar_t *s1, wchar_t *s2) ;
+  logic ℤ wcscmp{L}(wchar_t *s1, wchar_t *s2) 
+    reads *(s1+(0 .. wcslen{L}(s1))), *(s2+(0 .. wcslen{L}(s2)));
   
   axiom wcscmp_zero{L}:
     ∀ wchar_t *s1, wchar_t *s2;
@@ -236,7 +244,8 @@ axiomatic WcsCmp {
  */
 /*@
 axiomatic WcsNCmp {
-  logic ℤ wcsncmp{L}(wchar_t *s1, wchar_t *s2, ℤ n) ;
+  logic ℤ wcsncmp{L}(wchar_t *s1, wchar_t *s2, ℤ n) 
+    reads *(s1+(0 .. n-1)), *(s2+(0 .. n-1));
   
   axiom wcsncmp_zero{L}:
     ∀ wchar_t *s1, wchar_t *s2;
@@ -254,6 +263,10 @@ axiomatic WcsNCmp {
 /*@
 predicate valid_string{L}(char *s) =
   0 ≤ strlen{L}(s) ∧ \valid{L}(s+(0 .. strlen{L}(s)));
+ */
+/*@
+predicate valid_read_string{L}(char *s) =
+  0 ≤ strlen{L}(s) ∧ \valid_read{L}(s+(0 .. strlen{L}(s)));
  */
 /*@
 predicate valid_string_or_null{L}(char *s) =
@@ -324,44 +337,44 @@ extern void *memmove(void *dest, void const *src, size_t n);
  */
 extern void *memset(void *s, int c, size_t n);
 
-/*@ requires valid_string_src: valid_string(s);
+/*@ requires valid_string_src: valid_read_string(s);
     ensures \result ≡ strlen(\old(s));
     assigns \result;
     assigns \result \from *(s+(0 ..));
  */
 extern size_t strlen(char const *s);
 
-/*@ requires valid_string_src: valid_string(s);
+/*@ requires valid_string_src: valid_read_string(s);
     ensures \result ≡ strlen(\old(s)) ∨ \result ≡ \old(n);
     assigns \result;
     assigns \result \from *(s+(0 ..));
  */
 extern size_t strnlen(char const *s, size_t n);
 
-/*@ requires valid_string_s1: valid_string(s1);
-    requires valid_string_s2: valid_string(s2);
+/*@ requires valid_string_s1: valid_read_string(s1);
+    requires valid_string_s2: valid_read_string(s2);
     ensures \result ≡ strcmp(\old(s1), \old(s2));
     assigns \result;
     assigns \result \from *(s1+(0 ..)), *(s2+(0 ..));
  */
 extern int strcmp(char const *s1, char const *s2);
 
-/*@ requires valid_string_s1: valid_string(s1);
-    requires valid_string_s2: valid_string(s2);
+/*@ requires valid_string_s1: valid_read_string(s1);
+    requires valid_string_s2: valid_read_string(s2);
     ensures \result ≡ strncmp(\old(s1), \old(s2), \old(n));
     assigns \result;
     assigns \result \from *(s1+(0 .. n-1)), *(s2+(0 .. n-1));
  */
 extern int strncmp(char const *s1, char const *s2, size_t n);
 
-/*@ requires valid_string_s1: valid_string(s1);
-    requires valid_string_s2: valid_string(s2);
+/*@ requires valid_string_s1: valid_read_string(s1);
+    requires valid_string_s2: valid_read_string(s2);
     assigns \result;
     assigns \result \from *(s1+(0 ..)), *(s2+(0 ..));
  */
 extern int strcoll(char const *s1, char const *s2);
 
-/*@ requires valid_string_src: valid_string(s);
+/*@ requires valid_string_src: valid_read_string(s);
     assigns \result;
     assigns \result \from s, *(s+(0 ..)), c;
     
@@ -370,7 +383,7 @@ extern int strcoll(char const *s1, char const *s2);
       ensures (int)*\result ≡ \old(c);
       ensures \base_addr(\result) ≡ \base_addr(\old(s));
       ensures \old(s) ≤ \result < \old(s)+strlen(\old(s));
-      ensures valid_string(\result);
+      ensures valid_read_string(\result);
       ensures ∀ char *p; \old(s) ≤ p < \result ⇒ (int)*p ≢ \old(c);
     
     behavior not_found:
@@ -383,7 +396,7 @@ extern int strcoll(char const *s1, char const *s2);
  */
 extern char *strchr(char const *s, int c);
 
-/*@ requires valid_string_src: valid_string(s);
+/*@ requires valid_string_src: valid_read_string(s);
     assigns \result;
     assigns \result \from s, *(s+(0 ..)), c;
     
@@ -391,7 +404,7 @@ extern char *strchr(char const *s, int c);
       assumes strchr(s, c) ≡ \true;
       ensures (int)*\result ≡ \old(c);
       ensures \base_addr(\result) ≡ \base_addr(\old(s));
-      ensures valid_string(\result);
+      ensures valid_read_string(\result);
     
     behavior not_found:
       assumes ¬(strchr(s, c) ≡ \true);
@@ -403,24 +416,24 @@ extern char *strchr(char const *s, int c);
  */
 extern char *strrchr(char const *s, int c);
 
-/*@ requires valid_string_src: valid_string(s);
-    requires valid_string_reject: valid_string(reject);
+/*@ requires valid_string_src: valid_read_string(s);
+    requires valid_string_reject: valid_read_string(reject);
     ensures 0 ≤ \result ≤ strlen(\old(s));
     assigns \result;
     assigns \result \from *(s+(0 ..)), *(reject+(0 ..));
  */
 extern size_t strcspn(char const *s, char const *reject);
 
-/*@ requires valid_string_src: valid_string(s);
-    requires valid_string_accept: valid_string(accept);
+/*@ requires valid_string_src: valid_read_string(s);
+    requires valid_string_accept: valid_read_string(accept);
     ensures 0 ≤ \result ≤ strlen(\old(s));
     assigns \result;
     assigns \result \from *(s+(0 ..)), *(accept+(0 ..));
  */
 extern size_t strspn(char const *s, char const *accept);
 
-/*@ requires valid_string_src: valid_string(s);
-    requires valid_string_accept: valid_string(accept);
+/*@ requires valid_string_src: valid_read_string(s);
+    requires valid_string_accept: valid_read_string(accept);
     ensures
       \result ≡ (char *)0 ∨ \base_addr(\result) ≡ \base_addr(\old(s));
     assigns \result;
@@ -428,20 +441,19 @@ extern size_t strspn(char const *s, char const *accept);
  */
 extern char *strpbrk(char const *s, char const *accept);
 
-/*@ requires valid_string_haystack: valid_string(haystack);
-    requires valid_string_needle: valid_string(needle);
+/*@ requires valid_string_haystack: valid_read_string(haystack);
+    requires valid_string_needle: valid_read_string(needle);
     ensures
       \result ≡ (char *)0 ∨
-      (\base_addr(\result) ≡ \base_addr(\old(haystack)) ∧
+      (\subset(\result, \old(haystack)+(0 ..)) ∧ \valid_read(\result) ∧
        memcmp{Pre, Pre}(\result, \old(needle), strlen(\old(needle))) ≡ 0);
     assigns \result;
-    assigns \result
-      \from haystack, *(haystack+(0 ..)), needle, *(needle+(0 ..));
+    assigns \result \from haystack, *(haystack+(0 ..)), *(needle+(0 ..));
  */
 extern char *strstr(char const *haystack, char const *needle);
 
 /*@ requires valid_string_src: valid_string_or_null(s);
-    requires valid_string_delim: valid_string(delim);
+    requires valid_string_delim: valid_read_string(delim);
     ensures
       \result ≡ \null ∨ \base_addr(\result) ≡ \base_addr(\old(s));
     assigns \result;
@@ -449,21 +461,21 @@ extern char *strstr(char const *haystack, char const *needle);
  */
 extern char *strtok(char *s, char const *delim);
 
-/*@ requires
-      \valid(stringp) ∧ valid_string(*stringp) ∧ valid_string(delim);
+/*@ requires valid_string_src: \valid(stringp) ∧ valid_string(*stringp);
+    requires valid_string_delim: valid_read_string(delim);
     assigns *stringp, \result;
     assigns *stringp \from *(delim+(..)), *(*(stringp+(..)));
     assigns \result \from *(delim+(..)), *(*(stringp+(..)));
  */
 extern char *strsep(char **stringp, char const *delim);
 
-/*@ ensures valid_string(\result);
+/*@ ensures valid_read_string(\result);
     assigns \result;
     assigns \result \from errnum;
  */
 extern char *strerror(int errnum);
 
-/*@ requires valid_string_src: valid_string(src);
+/*@ requires valid_string_src: valid_read_string(src);
     requires room_string: \valid(dest+(0 .. strlen(src)));
     ensures strcmp(\old(dest), \old(src)) ≡ 0;
     ensures \result ≡ \old(dest);
@@ -474,7 +486,7 @@ extern char *strerror(int errnum);
  */
 extern char *strcpy(char *dest, char const *src);
 
-/*@ requires valid_string_src: valid_string(src);
+/*@ requires valid_string_src: valid_read_string(src);
     ensures \result ≡ \old(dest);
     assigns *(dest+(0 .. n-1)), \result;
     assigns *(dest+(0 .. n-1)) \from *(src+(0 .. n-1));
@@ -491,7 +503,7 @@ extern char *strcpy(char *dest, char const *src);
  */
 extern char *strncpy(char *dest, char const *src, size_t n);
 
-/*@ requires valid_string_src: valid_string(src);
+/*@ requires valid_string_src: valid_read_string(src);
     requires valid_string_dst: valid_string(dest);
     requires room_string: \valid(dest+(0 .. strlen(dest)+strlen(src)));
     ensures strlen(\old(dest)) ≡ \old(strlen(dest)+strlen(src));
@@ -504,7 +516,9 @@ extern char *strncpy(char *dest, char const *src, size_t n);
  */
 extern char *strcat(char *dest, char const *src);
 
-/*@ requires valid_string_src: valid_string(src) ∨ \valid(src+(0 .. n-1));
+/*@ requires
+      valid_string_src:
+        valid_read_string(src) ∨ \valid_read(src+(0 .. n-1));
     requires valid_string_dst: valid_string(dest);
     requires room_string: \valid(dest+(strlen(dest) .. strlen(dest)+n));
     ensures \result ≡ \old(dest);
@@ -514,7 +528,7 @@ extern char *strcat(char *dest, char const *src);
     assigns \result \from dest;
     
     behavior complete:
-      assumes valid_string(src) ∧ strlen(src) ≤ n;
+      assumes valid_read_string(src) ∧ strlen(src) ≤ n;
       ensures strlen(\old(dest)) ≡ \old(strlen(dest)+strlen(src));
       assigns *(dest+(strlen{Old}(dest) .. strlen{Old}(dest)+strlen{Old}(src))),
               \result;
@@ -524,7 +538,7 @@ extern char *strcat(char *dest, char const *src);
       assigns \result \from dest;
     
     behavior partial:
-      assumes ¬(valid_string(src) ∧ strlen(src) ≤ n);
+      assumes ¬(valid_read_string(src) ∧ strlen(src) ≤ n);
       ensures strlen(\old(dest)) ≡ \old(strlen(dest))+\old(n);
       assigns *(dest+(strlen{Old}(dest) .. strlen{Old}(dest)+n)), \result;
       assigns *(dest+(strlen{Old}(dest) .. strlen{Old}(dest)+n))
@@ -534,7 +548,7 @@ extern char *strcat(char *dest, char const *src);
 extern char *strncat(char *dest, char const *src, size_t n);
 
 /*@ requires valid_dest: \valid(dest+(0 .. n-1));
-    requires valid_string_src: valid_string(src);
+    requires valid_string_src: valid_read_string(src);
     assigns *(dest+(0 .. n-1)), \result;
     assigns *(dest+(0 .. n-1)) \from *(src+(0 ..)), n;
     assigns \result \from dest;
@@ -543,7 +557,7 @@ extern size_t strxfrm(char *dest, char const *src, size_t n);
 
 char *strdup(char const *str);
 
-/*@ requires valid_string_src: valid_string(s);
+/*@ requires valid_string_src: valid_read_string(s);
     ensures
       \valid(\result+(0 .. minimum(strlen(\old(s)), \old(n)))) ∧
       valid_string(\result) ∧ strlen(\result) ≤ \old(n) ∧
@@ -553,7 +567,9 @@ char *strdup(char const *str);
 extern char *strndup(char const *s, size_t n);
 
 /*@ requires \valid((char *)s+(0 .. n-1));
-    assigns *((char *)s+(0 .. n-1)); */
+    assigns *((char *)s+(0 .. n-1));
+    assigns *((char *)s+(0 .. n-1)) \from \nothing;
+ */
 extern void bzero(void *s, size_t n);
 
 /*@ assigns \result;
@@ -614,7 +630,8 @@ extern unsigned long strtoul(char const *nptr, char **endptr, int base);
  */
 extern unsigned long long strtoull(char const *nptr, char **endptr, int base);
 
-int __fc_random_counter __attribute__((__unused__, __FRAMA_C_MODEL__));
+/*@ ghost
+  int __fc_random_counter __attribute__((__unused__, __FRAMA_C_MODEL__)); */
 unsigned long const __fc_rand_max = (unsigned long)32767;
 /*@ ensures 0 ≤ \result ≤ __fc_rand_max;
     assigns \result, __fc_random_counter;
@@ -681,6 +698,41 @@ extern void *malloc(size_t size);
  */
 extern void free(void *p);
 
+/*@ requires ptr ≡ \null ∨ \freeable(ptr);
+    assigns __fc_heap_status, \result;
+    assigns __fc_heap_status \from __fc_heap_status;
+    assigns \result \from size, ptr, __fc_heap_status;
+    frees ptr;
+    allocates \result;
+    
+    behavior alloc:
+      assumes is_allocable(size);
+      ensures \fresh{Old, Here}(\result,\old(size));
+      assigns \result;
+      assigns \result \from size, __fc_heap_status;
+      allocates \result;
+    
+    behavior dealloc:
+      assumes ptr ≢ \null;
+      assumes is_allocable(size);
+      requires \freeable(ptr);
+      ensures \allocable(\old(ptr));
+      ensures \result ≡ \null ∨ \freeable(\result);
+      frees ptr;
+    
+    behavior fail:
+      assumes ¬is_allocable(size);
+      ensures \result ≡ \null;
+      assigns \result;
+      assigns \result \from size, __fc_heap_status;
+      allocates \nothing;
+    
+    complete behaviors fail, dealloc, alloc;
+    disjoint behaviors alloc, fail;
+    disjoint behaviors dealloc, fail;
+ */
+extern void *realloc(void *ptr, size_t size);
+
 /*@ ensures \false;
     assigns \nothing; */
 extern void abort(void);
@@ -695,11 +747,11 @@ extern int at_quick_exit(void (*func)(void));
 
 /*@ ensures \false;
     assigns \nothing; */
-extern void exit(int status);
+extern  __attribute__((__noreturn__)) void exit(int status);
 
 /*@ ensures \false;
     assigns \nothing; */
-extern void _Exit(int status);
+extern  __attribute__((__noreturn__)) void _Exit(int status);
 
 /*@ ensures \result ≡ \null ∨ \valid(\result);
     assigns \result;
@@ -709,7 +761,7 @@ extern char *getenv(char const *name);
 
 /*@ ensures \false;
     assigns \nothing; */
-extern void quick_exit(int status);
+extern  __attribute__((__noreturn__)) void quick_exit(int status);
 
 /*@ assigns \result;
     assigns \result \from *(string+(..)); */
@@ -787,7 +839,7 @@ extern size_t mbstowcs(wchar_t *pwcs, char const *s, size_t n);
  */
 extern size_t wcstombs(char *s, wchar_t const *pwcs, size_t n);
 
-/*@ requires valid_string_src: valid_string(str);
+/*@ requires valid_string_src: valid_read_string(str);
     ensures
       \valid(\result+(0 .. strlen(\old(str)))) ∧
       strcmp(\result, \old(str)) ≡ 0;

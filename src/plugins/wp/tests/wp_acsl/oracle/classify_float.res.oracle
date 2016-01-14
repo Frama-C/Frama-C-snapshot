@@ -1,0 +1,37 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_acsl/classify_float.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+FRAMAC_SHARE/libc/math.h:412:[kernel] warning: No code nor implicit assigns clause for function acos, generating default assigns from the specification
+FRAMAC_SHARE/libc/math.h:412:[kernel] warning: No code nor implicit assigns clause for function acosf, generating default assigns from the specification
+FRAMAC_SHARE/libc/math.h:412:[kernel] warning: No code nor implicit assigns clause for function acosh, generating default assigns from the specification
+FRAMAC_SHARE/libc/math.h:412:[kernel] warning: No code nor implicit assigns clause for function acoshf, generating default assigns from the specification
+FRAMAC_SHARE/libc/math.h:412:[kernel] warning: No code nor implicit assigns clause for function acoshl, generating default assigns from the specification
+FRAMAC_SHARE/libc/math.h:412:[kernel] warning: No code nor implicit assigns clause for function acosl, generating default assigns from the specification
+FRAMAC_SHARE/libc/math.h:412:[kernel] warning: No code nor implicit assigns clause for function asin, generating default assigns from the specification
+FRAMAC_SHARE/libc/math.h:412:[kernel] warning: No code nor implicit assigns clause for function asinf, generating default assigns from the specification
+FRAMAC_SHARE/libc/math.h:412:[kernel] warning: No code nor implicit assigns clause for function asinl, generating default assigns from the specification
+------------------------------------------------------------
+  Global
+------------------------------------------------------------
+
+Lemma InfN_not_finite:
+Assume: 'InfP_not_finite' 'NaN_not_finite'
+Prove: (is_float64 x_0)
+       -> ((not (\is_finite x_0)) \/ (not (\is_minus_infinity x_0)))
+
+------------------------------------------------------------
+
+Lemma InfP_not_finite:
+Assume: 'NaN_not_finite'
+Prove: (is_float64 x_0)
+       -> ((not (\is_finite x_0)) \/ (not (\is_plus_infinity x_0)))
+
+------------------------------------------------------------
+
+Lemma NaN_not_finite:
+Prove: (is_float64 x_0) -> ((not (\is_finite x_0)) \/ (not (\is_NaN x_0)))
+
+------------------------------------------------------------

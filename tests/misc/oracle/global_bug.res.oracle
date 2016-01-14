@@ -27,12 +27,12 @@ tests/misc/global_bug.i:7:[value] Evaluation of initializer '99 << 63' failed
 --- Properties of Function 'main'
 --------------------------------------------------------------------------------
 
-[    -    ] Assertion 'Value,shift' (file tests/misc/global_bug.i, line 7)
-            tried with Value.
+[   Bug   ] Assertion 'Value,shift' (file tests/misc/global_bug.i, line 7)
+            by Value.
 
 --------------------------------------------------------------------------------
 --- Status Report Summary
 --------------------------------------------------------------------------------
-     1 To be validated
+     1 Bugs found
      1 Total
 --------------------------------------------------------------------------------

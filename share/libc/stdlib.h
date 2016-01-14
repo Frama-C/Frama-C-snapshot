@@ -25,7 +25,9 @@
 #define __FC_STDLIB
 #include "__fc_define_size_t.h"
 #include "__fc_define_wchar_t.h"
-#include "__fc_define_restrict.h"
+#include "features.h"
+
+__BEGIN_DECLS
 
 typedef struct __fc_div_t {
   int quot;              /* Quotient.  */
@@ -115,7 +117,7 @@ unsigned long long int strtoull(
      char ** restrict endptr,
      int base);
 
-int __fc_random_counter __attribute__((unused)) __attribute__((FRAMA_C_MODEL));
+//@ ghost int __fc_random_counter __attribute__((unused)) __attribute__((FRAMA_C_MODEL));
 const unsigned long __fc_rand_max = __FC_RAND_MAX;
 /* ISO C: 7.20.2 */
 /*@ assigns \result \from __fc_random_counter ;
@@ -144,6 +146,7 @@ void srand(unsigned int seed);
 void *calloc(size_t nmemb, size_t size);
 
 /*@ ghost extern int __fc_heap_status __attribute__((FRAMA_C_MODEL)); */
+
 /*@ axiomatic dynamic_allocation {
   @ predicate is_allocable(size_t n) // Can a block of n bytes be allocated?
   @ reads __fc_heap_status; 
@@ -194,7 +197,40 @@ void *__Frama_C_malloc_at_pos(size_t size,const char* file);
 void __Frama_C_free_at_pos(void* ptr,const char* pos);
 #endif
 
+/*@
+   requires ptr == \null || \freeable(ptr);
+   allocates \result;
+   frees     ptr;
+   assigns   __fc_heap_status \from __fc_heap_status;
+   assigns   \result \from size, ptr, __fc_heap_status;
+
+   behavior alloc:
+     assumes   is_allocable(size);
+     allocates \result;
+     assigns   \result \from size, __fc_heap_status;
+     ensures   \fresh(\result,size);
+
+   behavior dealloc:
+     assumes   ptr != \null;
+     assumes   is_allocable(size);
+     requires  \freeable(ptr);
+     frees     ptr;
+     ensures   \allocable(ptr);
+     ensures   \result == \null || \freeable(\result);
+
+   behavior fail:
+     assumes !is_allocable(size);
+     allocates \nothing;
+     frees     \nothing;
+     assigns   \result \from size, __fc_heap_status;
+     ensures   \result == \null;
+
+   complete behaviors;
+   disjoint behaviors alloc, fail;
+   disjoint behaviors dealloc, fail;
+  */
 void *realloc(void *ptr, size_t size);
+
 
 /* ISO C: 7.20.4 */
 
@@ -212,13 +248,13 @@ int at_quick_exit(void (*func)(void));
   assigns \nothing;
   ensures \false;
 */
-void exit(int status);
+void exit(int status) __attribute__ ((noreturn));
 
 /*@
   assigns \nothing;
   ensures \false;
 */
-void _Exit(int status);
+void _Exit(int status) __attribute__ ((__noreturn__));
 
 /*@
   assigns \result \from name;
@@ -235,7 +271,7 @@ int unsetenv(const char *name);
 /*@
   assigns \nothing;
   ensures \false; */
-void quick_exit(int status);
+void quick_exit(int status) __attribute__ ((__noreturn__));
 
 /*@ assigns \result \from string[..]; */
 int system(const char *string);
@@ -304,5 +340,7 @@ size_t wcstombs(char * restrict s,
      const wchar_t * restrict pwcs,
      size_t n);
 
+
+__END_DECLS
 
 #endif

@@ -1,0 +1,168 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/sparecode/bts324_bis.c (with preprocessing)
+[sparecode] remove unused code...
+[sparecode] selecting function main outputs and entry point
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  ki[0..1] ∈ {0}
+  k ∈ {0}
+  e0 ∈ [--..--]
+  e1 ∈ [--..--]
+  s0 ∈ {0}
+  s1 ∈ {0}
+  is_ok ∈ {0}
+  si[0..1] ∈ {0}
+  so[0..1] ∈ {0}
+[value] computing for function init <- main.
+        Called from tests/sparecode/bts324_bis.c:37.
+[value] Recording results for init
+[value] Done for function init
+tests/sparecode/bts324_bis.c:39:[value] entering loop for the first time
+[value] computing for function loop_body <- main.
+        Called from tests/sparecode/bts324_bis.c:40.
+[value] computing for function f <- loop_body <- main.
+        Called from tests/sparecode/bts324_bis.c:22.
+tests/sparecode/bts324_bis.c:10:[kernel] warning: signed overflow. assert -2147483648 ≤ ki[i]*(int)(vi-si[i]);
+tests/sparecode/bts324_bis.c:10:[kernel] warning: signed overflow. assert ki[i]*(int)(vi-si[i]) ≤ 2147483647;
+[value] Recording results for f
+[value] Done for function f
+[value] computing for function f <- loop_body <- main.
+        Called from tests/sparecode/bts324_bis.c:23.
+[value] Recording results for f
+[value] Done for function f
+[value] Recording results for loop_body
+[value] Done for function loop_body
+[value] computing for function loop_body <- main.
+        Called from tests/sparecode/bts324_bis.c:40.
+[value] computing for function f <- loop_body <- main.
+        Called from tests/sparecode/bts324_bis.c:22.
+tests/sparecode/bts324_bis.c:10:[kernel] warning: signed overflow. assert -2147483648 ≤ vi-si[i];
+tests/sparecode/bts324_bis.c:10:[kernel] warning: signed overflow. assert vi-si[i] ≤ 2147483647;
+tests/sparecode/bts324_bis.c:10:[kernel] warning: signed overflow.
+                  assert -2147483648 ≤ (int)(so[i]/k)+(int)(ki[i]*(int)(vi-si[i]));
+tests/sparecode/bts324_bis.c:10:[kernel] warning: signed overflow.
+                  assert (int)(so[i]/k)+(int)(ki[i]*(int)(vi-si[i])) ≤ 2147483647;
+[value] Recording results for f
+[value] Done for function f
+[value] computing for function f <- loop_body <- main.
+        Called from tests/sparecode/bts324_bis.c:23.
+[value] Recording results for f
+[value] Done for function f
+[value] Recording results for loop_body
+[value] Done for function loop_body
+[value] computing for function loop_body <- main.
+        Called from tests/sparecode/bts324_bis.c:40.
+[value] computing for function f <- loop_body <- main.
+        Called from tests/sparecode/bts324_bis.c:22.
+[value] Recording results for f
+[value] Done for function f
+[value] computing for function f <- loop_body <- main.
+        Called from tests/sparecode/bts324_bis.c:23.
+[value] Recording results for f
+[value] Done for function f
+[value] Recording results for loop_body
+[value] Done for function loop_body
+[value] Recording results for main
+[value] done for function main
+[pdg] computing for function main
+[from] Computing for function init
+[from] Done for function init
+[from] Computing for function loop_body
+[from] Computing for function f <-loop_body
+[from] Done for function f
+[from] Done for function loop_body
+tests/sparecode/bts324_bis.c:47:[pdg] warning: no final state. Probably unreachable...
+[pdg] done for function main
+[sparecode] add selection in function 'main'
+[sparecode] selecting output zones ki[0..1]; k; s0; s1; is_ok; si[0..1];
+[sparecode] so[0..1]
+[sparecode] look for annotations in function Frama_C_bzero
+[pdg] computing for function Frama_C_bzero
+[from] Computing for function Frama_C_bzero
+[from] Done for function Frama_C_bzero
+[pdg] done for function Frama_C_bzero
+[sparecode] look for annotations in function Frama_C_copy_block
+[pdg] computing for function Frama_C_copy_block
+[from] Computing for function Frama_C_copy_block
+[from] Done for function Frama_C_copy_block
+[pdg] done for function Frama_C_copy_block
+[sparecode] look for annotations in function f
+[pdg] computing for function f
+[pdg] done for function f
+[sparecode] look for annotations in function init
+[pdg] computing for function init
+[pdg] done for function init
+[sparecode] look for annotations in function loop_body
+[pdg] computing for function loop_body
+[pdg] done for function loop_body
+[sparecode] look for annotations in function main
+[sparecode] selecting annotation : impact pragma expr s0;
+[sparecode] selecting annotation : slice pragma expr s1;
+[sparecode] add selection in function 'main'
+[sparecode] look for annotations in function main_bis
+[pdg] computing for function main_bis
+[pdg] warning: unreachable entry point (sid:35, function main_bis)
+[pdg] Bottom for function main_bis
+[sparecode] pdg bottom: skip annotations
+[sparecode] finalize call input propagation
+[sparecode] add selection in function 'loop_body'
+[sparecode] add selection in function 'main'
+[sparecode] remove unused global declarations...
+[sparecode] result in new project 'default without sparecode'.
+/* Generated by Frama-C */
+int ki[2];
+int k;
+int f(int vi, int i);
+
+static int si[2] = {0};
+static int so[2] = {0};
+int f(int vi, int i)
+{
+  int vo;
+  vo = so[i] / k + ki[i] * (vi - si[i]);
+  so[i] = vo;
+  si[i] = vi;
+  return vo;
+}
+
+int volatile e0;
+int volatile e1;
+int s0;
+int s1;
+void loop_body(void)
+{
+  int acq0;
+  int acq1;
+  int val0;
+  int val1;
+  acq0 = e0;
+  acq1 = e1;
+  val0 = f(acq0,0);
+  val1 = f(acq1,1);
+  s0 = val0;
+  s1 = val1;
+  return;
+}
+
+void init(void)
+{
+  ki[0] = 2;
+  ki[1] = 4;
+  k = 8;
+  return;
+}
+
+void main(void)
+{
+  init();
+  while (1) {
+    loop_body();
+    /*@ impact pragma expr s0; */ ;
+    /*@ slice pragma expr s1; */ ;
+  }
+  return;
+}
+
+

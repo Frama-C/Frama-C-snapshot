@@ -1,0 +1,43 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_acsl/post_result.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function correct
+------------------------------------------------------------
+
+Goal Assertion 'OK' (file tests/wp_acsl/post_result.i, line 16):
+Let a_0 = (shift_A5_sint32 (global G_a_67) 0).
+Let a_1 = (shift_sint32 a_0 3).
+Let x_0 = Mint_1[a_1].
+Let x_1 = Mint_2[a_1].
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_0) /\ (is_sint32 x_1).
+  (* tests/wp_acsl/post_result.i:15: Call Effects *)
+  Have: (havoc Mint_2 Mint_1 (shift_sint32 a_0 0) 3).
+}
+Prove: x_0=x_1.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function wrong
+------------------------------------------------------------
+
+Goal Assertion 'KO' (file tests/wp_acsl/post_result.i, line 22):
+Let a_0 = (shift_A5_sint32 (global G_a_67) 0).
+Let a_1 = (shift_sint32 a_0 1).
+Let x_0 = Mint_1[a_1].
+Let x_1 = Mint_2[a_1].
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_0) /\ (is_sint32 x_1).
+  (* tests/wp_acsl/post_result.i:21: Call Effects *)
+  Have: (havoc Mint_2 Mint_1 (shift_sint32 a_0 0) 3).
+}
+Prove: x_0=x_1.
+
+------------------------------------------------------------

@@ -71,6 +71,33 @@ void imprecise_bts_1671 ()
     }
 }
 
+struct bitf {
+  unsigned v0_3: 3;
+  unsigned v4: 1;
+  unsigned v5_31: 28;
+};
+
+extern struct bitf y;
+
+void logic() {
+  if (y.v4) {
+    y.v4 = 0;
+    Frama_C_show_each(y);
+  } else
+  Frama_C_show_each(y);
+  Frama_C_show_each(y.v4);
+  //@ assert y.v4 == 0;
+
+  Frama_C_show_each(*((unsigned *) &y));
+
+  struct bitf w;
+  w.v0_3 = 1;
+  //@ assert ! \initialized(&w.v4);
+  if (foo) {
+    int wc = w.v4 + 1;
+  }
+}
+
 int main (int a, int b){
   struct t1 v,w;
 
@@ -102,4 +129,6 @@ int main (int a, int b){
   G=g();
 
   imprecise_bts_1671();
+
+  logic();
 }

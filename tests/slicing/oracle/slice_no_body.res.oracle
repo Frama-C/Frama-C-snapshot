@@ -22,7 +22,8 @@ tests/slicing/slice_no_body.c:21:[kernel] warning: Neither code nor specificatio
 [value] computing for function g <- h.
         Called from tests/slicing/slice_no_body.c:26.
 tests/slicing/slice_no_body.c:12:[kernel] warning: signed overflow. assert c+1 ≤ 2147483647;
-tests/slicing/slice_no_body.c:13:[kernel] warning: signed overflow. assert -2147483648 ≤ c*2 ≤ 2147483647;
+tests/slicing/slice_no_body.c:13:[kernel] warning: signed overflow. assert -2147483648 ≤ c*2;
+tests/slicing/slice_no_body.c:13:[kernel] warning: signed overflow. assert c*2 ≤ 2147483647;
 [value] computing for function f <- g <- h.
         Called from tests/slicing/slice_no_body.c:15.
 [value] Done for function f
@@ -66,8 +67,8 @@ Print slice = g_slice_1:
   /*@ assert Value: signed_overflow: c+1 ≤ 2147483647; */
   /* <[---], [---]> */
   x = c + 1;
-  /*@ assert Value: signed_overflow: c*2 ≤ 2147483647; */
   /*@ assert Value: signed_overflow: -2147483648 ≤ c*2; */
+  /*@ assert Value: signed_overflow: c*2 ≤ 2147483647; */
   /* <[---], [---]> */
   y = c * 2;
   /* <[---], [---]> */
@@ -185,8 +186,8 @@ Print slice = g_slice_1: (InCtrl: <[---], [ S ]>)
   /*@ assert Value: signed_overflow: c+1 ≤ 2147483647; */
   /* <[---], [ S ]> */
   x = c + 1;
-  /*@ assert Value: signed_overflow: c*2 ≤ 2147483647; */
   /*@ assert Value: signed_overflow: -2147483648 ≤ c*2; */
+  /*@ assert Value: signed_overflow: c*2 ≤ 2147483647; */
   /* <[---], [---]> */
   y = c * 2;
   /* <[---], [ S ]> */

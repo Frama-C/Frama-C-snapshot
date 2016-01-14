@@ -23,6 +23,7 @@
 #ifndef __FC_SYS_TYPES_H__
 #define __FC_SYS_TYPES_H__
 
+#include "../features.h"
 #include "../__fc_machdep.h"
 #include "../__fc_define_id_t.h"
 #include "../__fc_define_pid_t.h"
@@ -37,7 +38,13 @@
 #include "../__fc_define_mode_t.h"
 #include "../__fc_define_nlink_t.h"
 #include "../__fc_define_off_t.h"
+
+__BEGIN_DECLS
+
 typedef unsigned int u_int;
 typedef unsigned char u_char;
 dev_t makedev(int maj, int min);
+
+__END_DECLS
+
 #endif

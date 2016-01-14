@@ -17,7 +17,8 @@
   m3 ∈ {0}
   G ∈ {0}
 tests/misc/test_arith.c:16:[kernel] warning: signed overflow. assert n+1 ≤ 2147483647;
-tests/misc/test_arith.c:18:[kernel] warning: signed overflow. assert -2147483648 ≤ (int)ptr+1 ≤ 2147483647;
+tests/misc/test_arith.c:18:[kernel] warning: signed overflow. assert -2147483648 ≤ (int)ptr+1;
+tests/misc/test_arith.c:18:[kernel] warning: signed overflow. assert (int)ptr+1 ≤ 2147483647;
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======

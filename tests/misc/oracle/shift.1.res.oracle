@@ -40,12 +40,12 @@ tests/misc/shift.i:53:[value] Reading left-value r.
         It contains a garbled mix of {t} because of Arithmetic
         {tests/misc/shift.i:52}.
 tests/misc/shift.i:53:[value] warning: Operation {{ &t }} << {8} incurs a loss of precision
-tests/misc/shift.i:53:[kernel] warning: signed overflow. assert -2147483648 ≤ (long)((char *)t)<<8 ≤ 2147483647;
-tests/misc/shift.i:53:[kernel] warning: signed overflow.
-                  assert -2147483648 ≤ (long)r+(long)((long)((char *)t)<<8) ≤ 2147483647;
+tests/misc/shift.i:53:[kernel] warning: signed overflow. assert -2147483648 ≤ (long)((char *)t)<<8;
+tests/misc/shift.i:53:[kernel] warning: signed overflow. assert (long)((char *)t)<<8 ≤ 2147483647;
+tests/misc/shift.i:53:[kernel] warning: signed overflow. assert -2147483648 ≤ (long)r+(long)((long)((char *)t)<<8);
+tests/misc/shift.i:53:[kernel] warning: signed overflow. assert (long)r+(long)((long)((char *)t)<<8) ≤ 2147483647;
 tests/misc/shift.i:53:[value] Assigning imprecise value to r.
-        The imprecision originates from Arithmetic {tests/misc/shift.i:52;
-        tests/misc/shift.i:53}
+        The imprecision originates from Arithmetic
 [value] Recording results for main
 [value] done for function main
 tests/misc/shift.i:35:[value] Assertion 'Value,shift' got final status invalid.

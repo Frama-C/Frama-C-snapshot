@@ -1,0 +1,593 @@
+# frama-c -wp -wp-model 'Typed (Ref)' [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_hoare/dispatch_var.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] Collecting variable usage
+------------------------------------------------------------
+  Function array_in_struct_param
+------------------------------------------------------------
+
+Goal Post-condition 'Pload2' in 'array_in_struct_param':
+Let a_0 = (shift_S (global P_sf_184) 0).
+Assume {
+  (* Pre-condition (file tests/wp_hoare/dispatch_var.i, line 203) in 'array_in_struct_param' *)
+  (* Pre-condition: *)
+  Have: false.
+}
+Prove: (Load_S_S a_0 Mint_0).F_S_tab[i_0]=
+       (Array1_int (shiftfield_F_S_tab a_0) 10 Mint_0)[i_0].
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'array_in_struct_param':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function call_no_ref_bd
+------------------------------------------------------------
+
+Goal Post-condition 'Mem_n5_nr6' in 'call_no_ref_bd':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var.i, line 114) in 'call_no_ref_bd' (1/3):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var.i, line 114) in 'call_no_ref_bd' (2/3):
+Effect at line 121
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var.i, line 114) in 'call_no_ref_bd' (3/3):
+Call Result at line 122
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var.i, line 114) in 'call_no_ref_bd' (1/5):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var.i, line 114) in 'call_no_ref_bd' (2/5):
+Effect at line 121
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var.i, line 114) in 'call_no_ref_bd' (3/5):
+Call Result at line 122
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var.i, line 114) in 'call_no_ref_bd' (4/5):
+Call Result at line 123
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var.i, line 114) in 'call_no_ref_bd' (5/5):
+Effect at line 122
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function call_ref_bd
+------------------------------------------------------------
+
+Goal Post-condition 'Ref_r2' in 'call_ref_bd':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var.i, line 51) in 'call_ref_bd':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var.i, line 51) in 'call_ref_bd' (1/2):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var.i, line 51) in 'call_ref_bd' (2/2):
+Call Result at line 57
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function call_ref_bd2
+------------------------------------------------------------
+
+Goal Post-condition 'Mem_n2' in 'call_ref_bd2':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var.i, line 63) in 'call_ref_bd2' (1/2):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var.i, line 63) in 'call_ref_bd2' (2/2):
+Effect at line 68
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var.i, line 63) in 'call_ref_bd2' (1/5):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var.i, line 63) in 'call_ref_bd2' (2/5):
+Effect at line 68
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var.i, line 63) in 'call_ref_bd2' (3/5):
+Call Result at line 70
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var.i, line 63) in 'call_ref_bd2' (4/5):
+Effect at line 70
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var.i, line 63) in 'call_ref_bd2' (5/5):
+Effect at line 71
+Assume { (* tests/wp_hoare/dispatch_var.i:70: Else *) Have: false. }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function call_ref_ctr
+------------------------------------------------------------
+
+Goal Post-condition 'Ref_r1' in 'call_ref_ctr':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var.i, line 17) in 'call_ref_ctr':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var.i, line 17) in 'call_ref_ctr' (1/2):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var.i, line 17) in 'call_ref_ctr' (2/2):
+Call Result at line 23
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function call_ref_ctr2
+------------------------------------------------------------
+
+Goal Post-condition 'Mem_n1' in 'call_ref_ctr2':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var.i, line 28) in 'call_ref_ctr2' (1/2):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var.i, line 28) in 'call_ref_ctr2' (2/2):
+Effect at line 33
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var.i, line 28) in 'call_ref_ctr2' (1/5):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var.i, line 28) in 'call_ref_ctr2' (2/5):
+Effect at line 33
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var.i, line 28) in 'call_ref_ctr2' (3/5):
+Call Result at line 35
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var.i, line 28) in 'call_ref_ctr2' (4/5):
+Effect at line 35
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var.i, line 28) in 'call_ref_ctr2' (5/5):
+Effect at line 36
+Assume { (* tests/wp_hoare/dispatch_var.i:35: Else *) Have: false. }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function call_ref_ctr_nr
+------------------------------------------------------------
+
+Goal Post-condition 'R_R_R' in 'call_ref_ctr_nr':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'R_R_R' in 'call_ref_ctr_nr':
+Assume { (* Domain *) Type: (is_sint32 r5_0). (* Goal *) When: 0!=r5_0. }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var.i, line 139) in 'call_ref_ctr_nr' (1/3):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var.i, line 139) in 'call_ref_ctr_nr' (2/3):
+Effect at line 147
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var.i, line 139) in 'call_ref_ctr_nr' (3/3):
+Effect at line 147
+Assume {
+  (* Domain *)
+  Type: (is_sint32 r5_0).
+  (* tests/wp_hoare/dispatch_var.i:147: Else *)
+  Have: 0!=r5_0.
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var.i, line 139) in 'call_ref_ctr_nr' (1/4):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var.i, line 139) in 'call_ref_ctr_nr' (2/4):
+Effect at line 147
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var.i, line 139) in 'call_ref_ctr_nr' (3/4):
+Effect at line 147
+Assume {
+  (* Domain *)
+  Type: (is_sint32 r5_0).
+  (* tests/wp_hoare/dispatch_var.i:147: Else *)
+  Have: 0!=r5_0.
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var.i, line 139) in 'call_ref_ctr_nr' (4/4):
+Call Result at line 148
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_hoare/dispatch_var.i, line 129) in 'ref_ctr_nr'' in 'call_ref_ctr_nr' at call 'ref_ctr_nr' (file tests/wp_hoare/dispatch_var.i, line 148)
+:
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function call_ref_ctr_nstars
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_hoare/dispatch_var.i, line 162) in 'call_ref_ctr_nstars':
+Assume { (* Heap *) Have: (linked Malloc_2). }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'call_ref_ctr_nstars' (1/3):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'call_ref_ctr_nstars' (2/3):
+Effect at line 167
+Assume { (* Heap *) Have: (linked Malloc_2). }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'call_ref_ctr_nstars' (3/3):
+Effect at line 168
+Assume { (* Heap *) Have: (linked Malloc_2). }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'call_ref_ctr_nstars' (1/4):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'call_ref_ctr_nstars' (2/4):
+Effect at line 167
+Assume { (* Heap *) Have: (linked Malloc_2). }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'call_ref_ctr_nstars' (3/4):
+Effect at line 168
+Assume { (* Heap *) Have: (linked Malloc_2). }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'call_ref_ctr_nstars' (4/4):
+Call Result at line 169
+Assume { (* Heap *) Have: (linked Malloc_2). }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function call_ref_valid
+------------------------------------------------------------
+
+Goal Post-condition 'R7_N4' in 'call_ref_valid':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var.i, line 87) in 'call_ref_valid' (1/3):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var.i, line 87) in 'call_ref_valid' (2/3):
+Effect at line 94
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var.i, line 87) in 'call_ref_valid' (3/3):
+Call Result at line 95
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var.i, line 87) in 'call_ref_valid' (1/5):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var.i, line 87) in 'call_ref_valid' (2/5):
+Effect at line 94
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var.i, line 87) in 'call_ref_valid' (3/5):
+Call Result at line 95
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var.i, line 87) in 'call_ref_valid' (4/5):
+Call Result at line 96
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var.i, line 87) in 'call_ref_valid' (5/5):
+Effect at line 95
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_hoare/dispatch_var.i, line 79) in 'ref_valid'' in 'call_ref_valid' at call 'ref_valid' (file tests/wp_hoare/dispatch_var.i, line 95)
+:
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_hoare/dispatch_var.i, line 79) in 'ref_valid'' in 'call_ref_valid' at call 'ref_valid' (file tests/wp_hoare/dispatch_var.i, line 96)
+:
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function call_two_ref
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_hoare/dispatch_var.i, line 177) in 'call_two_ref':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var.i, line 176) in 'call_two_ref' (1/2):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var.i, line 176) in 'call_two_ref' (2/2):
+Call Result at line 182
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var.i, line 176) in 'call_two_ref' (1/4):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var.i, line 176) in 'call_two_ref' (2/4):
+Call Result at line 182
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var.i, line 176) in 'call_two_ref' (3/4):
+Call Result at line 182
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_hoare/dispatch_var.i, line 176) in 'call_two_ref' (4/4):
+Effect at line 182
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function g
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_hoare/dispatch_var.i, line 192) in 'g':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'g':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'g' (1/2):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'g' (2/2):
+Call Result at line 195
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function no_ref_bd
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_hoare/dispatch_var.i, line 104) in 'no_ref_bd':
+Assume {
+  (* Domain *)
+  Type: (is_sint32 Mint_0[q1_0]).
+  (* Heap *)
+  Have: (region (base q1_0))<=0.
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'no_ref_bd' (1/2):
+Effect at line 108
+Assume { (* Heap *) Have: (region (base q1_1))<=0. }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'no_ref_bd' (2/2):
+Effect at line 109
+Assume { (* Heap *) Have: (region (base q1_1))<=0. }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function ref_bd
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_hoare/dispatch_var.i, line 42) in 'ref_bd':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns nothing in 'ref_bd':
+Effect at line 46
+Assume { }
+Prove: true.
+
+------------------------------------------------------------

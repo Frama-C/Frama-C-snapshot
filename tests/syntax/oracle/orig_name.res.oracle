@@ -12,8 +12,7 @@ int f(int x_0)
     int x_1;
     int tmp;
     x_1 = 3;
-    {
-      /*sequence*/
+    { /* sequence */
       tmp = x_1;
       x_1 ++;
       y = tmp;

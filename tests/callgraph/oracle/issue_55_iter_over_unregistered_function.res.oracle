@@ -1,0 +1,20 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/callgraph/issue_55_iter_over_unregistered_function.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  
+tests/callgraph/issue_55_iter_over_unregistered_function.i:12:[kernel] warning: accessing uninitialized left-value: assert \initialized(&q);
+tests/callgraph/issue_55_iter_over_unregistered_function.i:12:[value] completely invalid value in evaluation of
+        argument q
+[value] Recording results for main
+[value] done for function main
+tests/callgraph/issue_55_iter_over_unregistered_function.i:12:[value] Assertion 'Value,initialisation' got final status invalid.
+[inout] InOut (internal) for function main:
+        Operational inputs:
+          q
+        Operational inputs on termination:
+          \nothing
+        Sure outputs:
+          ANYTHING(origin:Unknown)

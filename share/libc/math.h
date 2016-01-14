@@ -23,15 +23,22 @@
 /* ISO C: 7.12 */
 #ifndef __FC_MATH
 #define __FC_MATH
+#include "features.h"
 
 #include "__fc_string_axiomatic.h"
 #include "errno.h"
+
+__BEGIN_DECLS
 
 typedef float float_t;
 typedef double double_t;
 
 #define MATH_ERRNO	1
 #define MATH_ERREXCEPT	2
+
+#define HUGE_VAL  0x1.0p2047
+#define HUGE_VALF 0x1.0p255f
+#define HUGE_VALL 0x1.0p32767L
 
 /* The following specifications will set errno. */
 #define math_errhandling	MATH_ERRNO
@@ -118,14 +125,17 @@ float atanf(float x);
 double atan(double x);
 long double atanl(long double x);
 
+/*@ assigns \result \from y, x; */
 double atan2(double y, double x);
 float atan2f(float y, float x);
 long double atan2l(long double y, long double x);
 
+/*@ assigns \result \from x; */
 double cos(double x);
 float cosf(float x);
 long double cosl(long double x);
 
+/*@ assigns \result \from x; */
 double sin(double x);
 float sinf(float x);
 long double sinl(long double x);
@@ -205,7 +215,10 @@ double tanh(double x);
 float tanhf(float x);
 long double tanhl(long double x);
 
+/*@ assigns \result \from x; */
 double exp(double x);
+
+/*@ assigns \result \from x; */
 float expf(float x);
 long double expl(long double x);
 
@@ -229,11 +242,17 @@ double ldexp(double x, int exp);
 float ldexpf(float x, int exp);
 long double ldexpl(long double x, int exp);
 
+/*@ assigns \result \from x; */
 double log(double x);
+
+/*@ assigns \result \from x; */
 float logf(float x);
 long double logl(long double x);
 
+/*@ assigns \result \from x; */
 double log10(double x);
+
+/*@ assigns \result \from x; */
 float log10f(float x);
 long double log10l(long double x);
 
@@ -273,11 +292,17 @@ double hypot(double x, double y);
 float hypotf(float x, float y);
 long double hypotl(long double x, long double y);
 
+/*@ assigns \result \from x, y; */
 double pow(double x, double y);
+
+/*@ assigns \result \from x, y; */
 float powf(float x, float y);
 long double powl(long double x, long double y);
 
+/*@ assigns \result \from x; */
 double sqrt(double x);
+
+/*@ assigns \result \from x; */
 float sqrtf(float x);
 long double sqrtl(long double x);
 
@@ -297,12 +322,20 @@ double tgamma(double x);
 float tgammaf(float x);
 long double tgammal(long double x);
 
+/*@ assigns \result \from x; */
 double ceil(double x);
+
+/*@ assigns \result \from x; */
 float ceilf(float x);
+
 long double ceill(long double x);
 
+/*@ assigns \result \from x; */
 double floor(double x);
+
+/*@ assigns \result \from x; */
 float floorf(float x);
+
 long double floorl(long double x);
 
 double nearbyint(double x);
@@ -321,8 +354,12 @@ long long int llrint(double x);
 long long int llrintf(float x);
 long long int llrintl(long double x);
 
+/*@ assigns \result \from x; */
 double round(double x);
+
+/*@ assigns \result \from x; */
 float roundf(float x);
+
 long double roundl(long double x);
 
 long int lround(double x);
@@ -333,10 +370,15 @@ long long int llround(double x);
 long long int llroundf(float x);
 long long int llroundl(long double x);
 
+/*@ assigns \result \from x; */
 double trunc(double x);
+
+/*@ assigns \result \from x; */
 float truncf(float x);
+
 long double truncl(long double x);
 
+/*@ assigns \result \from x, y; */
 double fmod(double x, double y);
 float fmodf(float x, float y);
 long double fmodl(long double x, long double y);
@@ -354,21 +396,21 @@ float copysignf(float x, float y);
 long double copysignl(long double x, long double y);
 
 /*@
-  requires valid_string(tagp);
+  requires valid_read_string(tagp);
   assigns \nothing;
   ensures \is_NaN(\result);
  */
 double nan(const char *tagp);
 
 /*@
-  requires valid_string(tagp);
+  requires valid_read_string(tagp);
   assigns \nothing;
   ensures \is_NaN(\result);
  */
 float nanf(const char *tagp);
 
 /*@
-  requires valid_string(tagp);
+  requires valid_read_string(tagp);
   assigns \nothing;
   ensures \is_NaN(\result);
  */
@@ -397,5 +439,7 @@ long double fminl(long double x, long double y);
 double fma(double x, double y, double z);
 float fmaf(float x, float y, float z);
 long double fmal(long double x, long double y, long double z);
+
+__END_DECLS
 
 #endif

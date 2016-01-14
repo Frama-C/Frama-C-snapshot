@@ -27,6 +27,7 @@
 #define _TERMIOS_H
 
 #include "__fc_define_pid_t.h"
+#include "features.h"
 #define IGNBRK	0000001
 #define BRKINT	0000002
 #define IGNPAR	0000004
@@ -128,9 +129,13 @@
 #define	TCSADRAIN	1
 #define	TCSAFLUSH	2
 
+__BEGIN_DECLS
+
 typedef unsigned int tcflag_t;
 typedef unsigned char cc_t;
 typedef unsigned int speed_t;
+
+__END_DECLS
 
 // cc_c characters
 #define NCCS 32
@@ -152,6 +157,8 @@ typedef unsigned int speed_t;
 #define VLNEXT 15
 #define VEOL2 16
 
+__BEGIN_DECLS
+
 struct termios {
   tcflag_t c_iflag;    /* input specific flags (bitmask) */
   tcflag_t c_oflag;    /* output specific flags (bitmask) */
@@ -171,5 +178,7 @@ int     tcgetattr(int, struct termios *);
 pid_t   tcgetsid(int);
 int     tcsendbreak(int, int);
 int     tcsetattr(int, int, struct termios *);
+
+__END_DECLS
 
 #endif

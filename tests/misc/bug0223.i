@@ -1,6 +1,6 @@
 /* run.config
-STDOPT: +"-unspecified-access"
-STDOPT: +"-no-unspecified-access"
+STDOPT: #"-unspecified-access"
+STDOPT: #"-no-unspecified-access"
 */
 
 // No warning should be raised: we can syntactically ensure that

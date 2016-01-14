@@ -58,7 +58,7 @@ let run () =
   File.reorder_ast ();
   File.pretty_ast ();
   Visitor.visitFramacFileSameGlobals
-    (new File.check_file "reordered")
+    (new Filecheck.check "reordered")
     (Ast.get())
 
 let () = Db.Main.extend run

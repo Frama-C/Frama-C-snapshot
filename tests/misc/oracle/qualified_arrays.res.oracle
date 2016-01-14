@@ -2,7 +2,7 @@
 [kernel] Parsing tests/misc/qualified_arrays.i (no preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
-tests/misc/qualified_arrays.i:9:[value] warning: global initialization of volatile value ignored
+tests/misc/qualified_arrays.i:9:[value] warning: global initialization of volatile variable f ignored
 [value] Initial state computed
 [value] Values of globals at initialization
   volatile_tab_120_2[0..1][0..119] ∈ [--..--]

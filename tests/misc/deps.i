@@ -1,8 +1,8 @@
 /* run.config
    GCC:
-   OPT: -val -deps -out -input -main f -journal-disable
-   OPT: -val -deps -out -input -main fonc1 -journal-disable
-   OPT: -val -deps -out -input -main fonc2 -journal-disable
+   STDOPT: #"-main f"
+   STDOPT: #"-main fonc1"
+   STDOPT: #"-main fonc2"
 */
 int f (int a, int b,int c){
   int w,d;

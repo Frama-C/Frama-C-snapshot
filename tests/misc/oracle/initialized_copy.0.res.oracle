@@ -1,0 +1,183 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/initialized_copy.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  w[0..9] ∈ {0}
+  v ∈ [--..--]
+tests/misc/initialized_copy.i:29:[kernel] warning: accessing uninitialized left-value: assert \initialized(&b);
+tests/misc/initialized_copy.i:37:[kernel] warning: accessing uninitialized left-value: assert \initialized(&b_0);
+[value] DUMPING STATE of file tests/misc/initialized_copy.i line 38
+        w[0..9] ∈ {0}
+        v ∈ [--..--]
+        b_0 ∈ {1}
+        a_0 ∈ {1}
+        __retres ∈ UNINITIALIZED
+        =END OF DUMP==
+tests/misc/initialized_copy.i:47:[kernel] warning: accessing uninitialized left-value: assert \initialized(&c);
+tests/misc/initialized_copy.i:64:[kernel] warning: accessing uninitialized left-value: assert \initialized(&c_0);
+[value] DUMPING STATE of file tests/misc/initialized_copy.i line 65
+        w[0..9] ∈ {0}
+        v ∈ [--..--]
+        c_0[bits 0 to 7] ∈ {1}
+           [bits 8 to 15] ∈ {2}
+           [bits 16 to 23] ∈ {3}
+           [bits 24 to 31] ∈ {4}
+        p_0 ∈ {{ &c_0 + {3} }}
+        a_2[bits 0 to 7] ∈ {1}
+           [bits 8 to 15] ∈ {2}
+           [bits 16 to 23] ∈ {3}
+           [bits 24 to 31] ∈ {4}
+        __retres ∈ UNINITIALIZED
+        =END OF DUMP==
+[value] Called Frama_C_show_each(.c ∈ {1}
+                                 .[bits 8 to 31] ∈ UNINITIALIZED
+                                 .i ∈ {5})
+[value] Called Frama_C_show_each({{  }})
+[value] Called Frama_C_show_each(.i1 ∈ {1}
+                                 .i2 ∈ UNINITIALIZED)
+tests/misc/initialized_copy.i:90:[value] Assertion got status unknown.
+tests/misc/initialized_copy.i:92:[kernel] warning: accessing uninitialized left-value: assert \initialized(&v_0[i]);
+tests/misc/initialized_copy.i:98:[value] Assertion got status unknown.
+tests/misc/initialized_copy.i:101:[kernel] warning: accessing uninitialized left-value: assert \initialized(&v_1[i_0]);
+[value] DUMPING STATE of file tests/misc/initialized_copy.i line 102
+        w[0..9] ∈ {0}
+        v ∈ [--..--]
+        i_0 ∈ [0..9]
+        t_0[0..9] ∈ {1} or UNINITIALIZED
+        v_1[0] ∈ UNINITIALIZED
+           [1] ∈ {1}
+           [2..9] ∈ UNINITIALIZED
+        __retres ∈ UNINITIALIZED
+        =END OF DUMP==
+tests/misc/initialized_copy.i:108:[value] Assertion got status unknown.
+tests/misc/initialized_copy.i:111:[kernel] warning: accessing uninitialized left-value: assert \initialized(&v_2[i_1]);
+[value] DUMPING STATE of file tests/misc/initialized_copy.i line 112
+        w[0..9] ∈ {0; 12}
+        v ∈ [--..--]
+        i_1 ∈ [0..9]
+        v_2[0] ∈ UNINITIALIZED
+           [1] ∈ {12}
+           [2..9] ∈ UNINITIALIZED
+        __retres ∈ UNINITIALIZED
+        =END OF DUMP==
+tests/misc/initialized_copy.i:117:[kernel] warning: accessing uninitialized left-value: assert \initialized(&a_3);
+tests/misc/initialized_copy.i:129:[kernel] warning: accessing uninitialized left-value: assert \initialized(&a_5);
+tests/misc/initialized_copy.i:129:[value] completely invalid value in evaluation of
+        argument a_5
+tests/misc/initialized_copy.i:124:[kernel] warning: accessing uninitialized left-value: assert \initialized(&a_4);
+tests/misc/initialized_copy.i:135:[kernel] warning: accessing uninitialized left-value: assert \initialized(&a_6);
+tests/misc/initialized_copy.i:135:[value] completely invalid value in evaluation of
+        argument a_6
+tests/misc/initialized_copy.i:143:[kernel] warning: accessing uninitialized left-value: assert \initialized(&a_7);
+[value] computing for function f <- main.
+        Called from tests/misc/initialized_copy.i:143.
+[value] Recording results for f
+[value] Done for function f
+[value] DUMPING STATE of file tests/misc/initialized_copy.i line 144
+        w[0..9] ∈ {0; 12}
+        v ∈ [--..--]
+        a_7 ∈ {1}
+        __retres ∈ UNINITIALIZED
+        =END OF DUMP==
+tests/misc/initialized_copy.i:151:[kernel] warning: accessing uninitialized left-value: assert \initialized(&a_8);
+[value] computing for function g <- main.
+        Called from tests/misc/initialized_copy.i:151.
+tests/misc/initialized_copy.i:151:[kernel] warning: Neither code nor specification for function g, generating default assigns from the prototype
+[value] using specification for function g
+[value] Done for function g
+[value] DUMPING STATE of file tests/misc/initialized_copy.i line 152
+        w[0..9] ∈ {0; 12}
+        v ∈ [--..--]
+        a_8 ∈ {1}
+        __retres ∈ UNINITIALIZED
+        =END OF DUMP==
+[value] Recording results for main
+[value] done for function main
+tests/misc/initialized_copy.i:29:[value] Assertion 'Value,initialisation' got final status invalid.
+tests/misc/initialized_copy.i:47:[value] Assertion 'Value,initialisation' got final status invalid.
+tests/misc/initialized_copy.i:92:[value] Assertion 'Value,initialisation' got final status invalid.
+tests/misc/initialized_copy.i:117:[value] Assertion 'Value,initialisation' got final status invalid.
+tests/misc/initialized_copy.i:129:[value] Assertion 'Value,initialisation' got final status invalid.
+tests/misc/initialized_copy.i:135:[value] Assertion 'Value,initialisation' got final status invalid.
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function f:
+  
+[value] Values at end of function main:
+  w[0..9] ∈ {0; 12}
+  __retres ∈ {0; 8}
+[from] Computing for function f
+[from] Done for function f
+[from] Computing for function main
+[from] Computing for function Frama_C_dump_each <-main
+[from] Done for function Frama_C_dump_each
+[from] Computing for function g <-main
+[from] Done for function g
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function f:
+  NO EFFECTS
+[from] Function g:
+  NO EFFECTS
+[from] Function main:
+  w[0..9] FROM v (and SELF)
+  \result FROM v
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function f:
+          \nothing
+[inout] Inputs for function f:
+          \nothing
+[inout] Out (internal) for function main:
+          w[0..9]; a; b_0; a_0; c[bits 0 to 7]; p; a_1; c_0; p_0; a_2; s1{.c; .i};
+          s2; sv1; sv1_0; sv2_0.i1; i; t[0..9]; i_0; t_0[0..9]; v_1[1]; i_1; 
+          v_2[1]; a_4; a_7; a_8; __retres
+[inout] Inputs for function main:
+          v
+[value] Analyzing a complete application starting at main2
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  w[0..9] ∈ {0}
+  v ∈ [--..--]
+tests/misc/initialized_copy.i:160:[kernel] warning: accessing uninitialized left-value: assert \initialized(&x);
+[value] Recording results for main2
+[value] done for function main2
+tests/misc/initialized_copy.i:160:[value] Assertion 'Value,initialisation' got final status invalid.
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main2:
+  
+[from] Computing for function main2
+[from] Done for function main2
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main2:
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main2:
+          \nothing
+[inout] Inputs for function main2:
+          \nothing
+[value] Analyzing a complete application starting at main2
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  w[0..9] ∈ {0}
+  v ∈ [--..--]
+[value] Recording results for main2
+[value] done for function main2
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main2:
+  
+[from] Computing for function main2
+[from] Done for function main2
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main2:
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main2:
+          \nothing
+[inout] Inputs for function main2:
+          \nothing

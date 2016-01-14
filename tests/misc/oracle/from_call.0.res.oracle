@@ -1,0 +1,347 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/from_call.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  a ∈ {0}
+  b ∈ {0}
+  c ∈ {0}
+  d ∈ {0}
+  x ∈ {0}
+  y ∈ {0}
+  z ∈ {0}
+  t ∈ {0}
+  A1 ∈ {0}
+  A2 ∈ {0}
+  A3 ∈ {0}
+  A4 ∈ {0}
+  A5 ∈ {0}
+  A6 ∈ {0}
+  A7 ∈ {0}
+  A8 ∈ {0}
+  R1 ∈ {0}
+  R2 ∈ {0}
+  R3 ∈ {0}
+  S1 ∈ {0}
+  S2 ∈ {0}
+  S3 ∈ {0}
+  T0 ∈ {0}
+  T1 ∈ {0}
+  T2 ∈ {0}
+  tab[0..4] ∈ {0}
+  AA ∈ {0}
+  AR ∈ {0}
+  AS ∈ {0}
+  At[0] ∈ {{ (int)&AA }}
+    [1] ∈ {0}
+  Ar[0] ∈ {{ (int)&AA }}
+    [1] ∈ {0}
+  Ap ∈ {{ &At[0] }}
+  previous ∈ {{ &a }}
+[value] computing for function f <- main.
+        Called from tests/misc/from_call.i:81.
+tests/misc/from_call.i:20:[kernel] warning: Neither code nor specification for function h, generating default assigns from the prototype
+[value] computing for function h <- f <- main.
+        Called from tests/misc/from_call.i:20.
+[value] using specification for function h
+[value] Done for function h
+[value] computing for function g <- f <- main.
+        Called from tests/misc/from_call.i:20.
+[value] Recording results for g
+[from] Computing for function g
+[from] Done for function g
+[value] Done for function g
+[value] Recording results for f
+[from] Computing for function f
+[from] Done for function f
+[value] Done for function f
+[value] computing for function f <- main.
+        Called from tests/misc/from_call.i:82.
+[value] computing for function h <- f <- main.
+        Called from tests/misc/from_call.i:20.
+[value] Done for function h
+[value] computing for function g <- f <- main.
+        Called from tests/misc/from_call.i:20.
+[value] Recording results for g
+[from] Computing for function g
+[from] Done for function g
+[value] Done for function g
+[value] Recording results for f
+[from] Computing for function f
+[from] Done for function f
+[value] Done for function f
+[value] computing for function f <- main.
+        Called from tests/misc/from_call.i:82.
+[value] computing for function h <- f <- main.
+        Called from tests/misc/from_call.i:20.
+[value] Done for function h
+[value] computing for function g <- f <- main.
+        Called from tests/misc/from_call.i:20.
+[value] Recording results for g
+[from] Computing for function g
+[from] Done for function g
+[value] Done for function g
+[value] Recording results for f
+[from] Computing for function f
+[from] Done for function f
+[value] Done for function f
+tests/misc/from_call.i:82:[kernel] warning: signed overflow.
+                  assert -2147483648 ≤ tmp+tmp_0;
+                  (tmp from f(& c), tmp_0 from f(& d))
+tests/misc/from_call.i:82:[kernel] warning: signed overflow.
+                  assert tmp+tmp_0 ≤ 2147483647;
+                  (tmp from f(& c), tmp_0 from f(& d))
+[value] computing for function dispatcher <- main.
+        Called from tests/misc/from_call.i:83.
+[value] Recording results for dispatcher
+[from] Computing for function dispatcher
+[from] Done for function dispatcher
+[value] Done for function dispatcher
+[value] computing for function dispatcher <- main.
+        Called from tests/misc/from_call.i:84.
+[value] Recording results for dispatcher
+[from] Computing for function dispatcher
+[from] Done for function dispatcher
+[value] Done for function dispatcher
+[value] computing for function dispatcher <- main.
+        Called from tests/misc/from_call.i:85.
+[value] Recording results for dispatcher
+[from] Computing for function dispatcher
+[from] Done for function dispatcher
+[value] Done for function dispatcher
+[value] computing for function call_dispatcher2_1 <- main.
+        Called from tests/misc/from_call.i:86.
+[value] computing for function dispatcher2 <- call_dispatcher2_1 <- main.
+        Called from tests/misc/from_call.i:49.
+[value] computing for function return_A1 <- dispatcher2 <- call_dispatcher2_1 <- main.
+        Called from tests/misc/from_call.i:44.
+[value] Recording results for return_A1
+[from] Computing for function return_A1
+[from] Done for function return_A1
+[value] Done for function return_A1
+[value] Recording results for dispatcher2
+[from] Computing for function dispatcher2
+[from] Done for function dispatcher2
+[value] Done for function dispatcher2
+[value] Recording results for call_dispatcher2_1
+[from] Computing for function call_dispatcher2_1
+[from] Done for function call_dispatcher2_1
+[value] Done for function call_dispatcher2_1
+[value] computing for function call_dispatcher2_0 <- main.
+        Called from tests/misc/from_call.i:87.
+[value] computing for function dispatcher2 <- call_dispatcher2_0 <- main.
+        Called from tests/misc/from_call.i:54.
+[value] computing for function return_A2 <- dispatcher2 <- call_dispatcher2_0 <- main.
+        Called from tests/misc/from_call.i:44.
+[value] Recording results for return_A2
+[from] Computing for function return_A2
+[from] Done for function return_A2
+[value] Done for function return_A2
+[value] Recording results for dispatcher2
+[from] Computing for function dispatcher2
+[from] Done for function dispatcher2
+[value] Done for function dispatcher2
+[value] Recording results for call_dispatcher2_0
+[from] Computing for function call_dispatcher2_0
+[from] Done for function call_dispatcher2_0
+[value] Done for function call_dispatcher2_0
+[value] computing for function call_dispatcher2 <- main.
+        Called from tests/misc/from_call.i:88.
+[value] computing for function dispatcher2 <- call_dispatcher2 <- main.
+        Called from tests/misc/from_call.i:59.
+[value] computing for function return_A1 <- dispatcher2 <- call_dispatcher2 <- main.
+        Called from tests/misc/from_call.i:44.
+[value] Recording results for return_A1
+[from] Computing for function return_A1
+[from] Done for function return_A1
+[value] Done for function return_A1
+[value] computing for function return_A2 <- dispatcher2 <- call_dispatcher2 <- main.
+        Called from tests/misc/from_call.i:44.
+[value] Recording results for return_A2
+[from] Computing for function return_A2
+[from] Done for function return_A2
+[value] Done for function return_A2
+[value] Recording results for dispatcher2
+[from] Computing for function dispatcher2
+[from] Done for function dispatcher2
+[value] Done for function dispatcher2
+[value] Recording results for call_dispatcher2
+[from] Computing for function call_dispatcher2
+[from] Done for function call_dispatcher2
+[value] Done for function call_dispatcher2
+[value] computing for function access_tab <- main.
+        Called from tests/misc/from_call.i:92.
+[value] Recording results for access_tab
+[from] Computing for function access_tab
+[from] Done for function access_tab
+[value] Done for function access_tab
+[value] computing for function access_tab <- main.
+        Called from tests/misc/from_call.i:93.
+[value] Recording results for access_tab
+[from] Computing for function access_tab
+[from] Done for function access_tab
+[value] Done for function access_tab
+[value] computing for function access_tab <- main.
+        Called from tests/misc/from_call.i:94.
+[value] Recording results for access_tab
+[from] Computing for function access_tab
+[from] Done for function access_tab
+[value] Done for function access_tab
+[value] computing for function unavailable_f <- main.
+        Called from tests/misc/from_call.i:96.
+[value] using specification for function unavailable_f
+[value] Done for function unavailable_f
+[value] Recording results for main
+[from] Computing for function main
+[from] Done for function main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function access_tab:
+  __retres ∈ {0}
+[value] Values at end of function dispatcher:
+  
+[value] Values at end of function g:
+  __retres ∈ [--..--]
+[value] Values at end of function f:
+  b ∈ {0}
+  c ∈ {0}
+  d ∈ {0}
+  previous ∈ {{ &b ; &c ; &d }}
+[value] Values at end of function return_A1:
+  
+[value] Values at end of function return_A2:
+  
+[value] Values at end of function dispatcher2:
+  
+[value] Values at end of function call_dispatcher2:
+  
+[value] Values at end of function call_dispatcher2_0:
+  
+[value] Values at end of function call_dispatcher2_1:
+  
+[value] Values at end of function main:
+  b ∈ {0}
+  c ∈ {0}
+  d ∈ {0}
+  y ∈ [--..--]
+  z ∈ [--..--]
+  R1 ∈ {0}
+  R2 ∈ {0}
+  R3 ∈ {0}
+  S1 ∈ {0}
+  S2 ∈ {0}
+  S3 ∈ {0}
+  T0 ∈ {0}
+  T1 ∈ {0}
+  T2 ∈ {0}
+  tab[0..4] ∈ {0}
+  AR ∈
+    {{ garbled mix of &{AA}
+     (origin: Arithmetic {tests/misc/from_call.i:96}) }}
+  AS ∈
+    {{ garbled mix of &{AA}
+     (origin: Arithmetic {tests/misc/from_call.i:96}) }}
+  previous ∈ {{ &d }}
+[from] ====== DISPLAYING CALLWISE DEPENDENCIES ======
+[from] call to g at tests/misc/from_call.i:20 (by f):
+  \result FROM t; w
+[from] call to h at tests/misc/from_call.i:20 (by f):
+  \result FROM \nothing
+[from] call to return_A1 at tests/misc/from_call.i:44 (by dispatcher2):
+  \result FROM A1
+[from] call to return_A2 at tests/misc/from_call.i:44 (by dispatcher2):
+  \result FROM A2
+[from] call to dispatcher2 at tests/misc/from_call.i:59 (by call_dispatcher2):
+  \result FROM A1; A2; c_0
+[from] call to dispatcher2 at tests/misc/from_call.i:54 (by call_dispatcher2_0):
+  \result FROM A2; c_0
+[from] call to dispatcher2 at tests/misc/from_call.i:49 (by call_dispatcher2_1):
+  \result FROM A1; c_0
+[from] call to f at tests/misc/from_call.i:81 (by main):
+  b FROM a; p; previous
+  previous FROM p
+  \result FROM a; t; p; previous
+[from] call to f at tests/misc/from_call.i:82 (by main):
+  c FROM b; p; previous
+  previous FROM p
+  \result FROM b; t; p; previous
+[from] call to f at tests/misc/from_call.i:82 (by main):
+  d FROM c; p; previous
+  previous FROM p
+  \result FROM c; t; p; previous
+[from] call to dispatcher at tests/misc/from_call.i:83 (by main):
+  \result FROM c_0; y_0
+[from] call to dispatcher at tests/misc/from_call.i:84 (by main):
+  \result FROM c_0; z_0
+[from] call to dispatcher at tests/misc/from_call.i:85 (by main):
+  \result FROM c_0; y_0; z_0
+[from] call to call_dispatcher2_1 at tests/misc/from_call.i:86 (by main):
+  \result FROM A1
+[from] call to call_dispatcher2_0 at tests/misc/from_call.i:87 (by main):
+  \result FROM A2
+[from] call to call_dispatcher2 at tests/misc/from_call.i:88 (by main):
+  \result FROM A1; A2; r
+[from] call to access_tab at tests/misc/from_call.i:92 (by main):
+  \result FROM tab[0]; ind
+[from] call to access_tab at tests/misc/from_call.i:93 (by main):
+  \result FROM tab[1]; ind
+[from] call to access_tab at tests/misc/from_call.i:94 (by main):
+  \result FROM tab[2]; ind
+[from] call to unavailable_f at tests/misc/from_call.i:96 (by main):
+  AR FROM At[0..1]
+  AS FROM Ar[0..1]
+[from] entry point:
+  b FROM a; previous
+  c FROM a; previous
+  d FROM a; previous
+  y FROM a; t; previous
+  z FROM a; t; previous
+  R1 FROM A1
+  R2 FROM A4
+  R3 FROM A4; A5; r
+  S1 FROM A1
+  S2 FROM A2
+  S3 FROM A1; A2; r
+  T0 FROM A1
+  T1 FROM A2; A3
+  T2 FROM A4
+  tab[0] FROM A1
+     [1] FROM A2; A3
+     [2] FROM A4
+  AR FROM At[0..1]
+  AS FROM Ar[0..1]
+  previous FROM \nothing
+[from] ====== END OF CALLWISE DEPENDENCIES ======
+[users] ====== DISPLAYING USERS ======
+        f: g h
+        dispatcher2: return_A1 return_A2
+        call_dispatcher2: return_A1 return_A2 dispatcher2
+        call_dispatcher2_0: return_A2 dispatcher2
+        call_dispatcher2_1: return_A1 dispatcher2
+        main: g h f dispatcher return_A1 return_A2 dispatcher2 call_dispatcher2_1
+            call_dispatcher2_0 call_dispatcher2 access_tab unavailable_f
+        ====== END OF USERS ==========
+[inout] Inputs for function access_tab:
+          tab[0..2]
+[inout] Inputs for function dispatcher:
+          \nothing
+[inout] Inputs for function g:
+          t
+[inout] Inputs for function f:
+          a; b; c; d; x; t; previous
+[inout] Inputs for function return_A1:
+          A1
+[inout] Inputs for function return_A2:
+          A2
+[inout] Inputs for function dispatcher2:
+          A1; A2
+[inout] Inputs for function call_dispatcher2:
+          A1; A2
+[inout] Inputs for function call_dispatcher2_0:
+          A1; A2
+[inout] Inputs for function call_dispatcher2_1:
+          A1; A2
+[inout] Inputs for function main:
+          a; b; c; d; x; t; A1; A2; A3; A4; A5; A6; A7; tab[0..2]; At[0..1];
+          Ar[0..1]; previous

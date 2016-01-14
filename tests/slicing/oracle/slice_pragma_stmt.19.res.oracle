@@ -32,8 +32,7 @@ void test6(int c1, int c2)
   if (c1 < c2) goto L;
   c1 = c2;
   L: /*@ slice pragma stmt; */
-     {
-       /*sequence*/
+     { /* sequence */
        tmp = c1;
        c1 ++;
        x = tmp;

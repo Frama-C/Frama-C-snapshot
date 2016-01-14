@@ -1,0 +1,21 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_acsl/init_value.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] 6 goals scheduled
+[wp] [Alt-Ergo] Goal typed_main_pre_qed_ko_Sc_eq_ko : Valid
+[wp] [Alt-Ergo] Goal typed_main_pre_qed_ko_Sc_t : Unknown
+[wp] [Alt-Ergo] Goal typed_main_pre_qed_ko_Sc_c_2 : Unknown
+[wp] [Alt-Ergo] Goal typed_main_pre_qed_ko_Tab_no_init : Unknown
+[wp] [Alt-Ergo] Goal typed_main_pre_qed_ko_With_Array_Struct_3 : Unknown
+[wp] [Alt-Ergo] Goal typed_main_pre_qed_ko_Simple_Array_1 : Unknown
+[wp] Proved goals:    1 / 6
+     Qed:             0 
+     Alt-Ergo:        1  (unknown: 5)
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+main                -       1 (36)     6      16.7%
+----------------------------------------------------------

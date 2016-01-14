@@ -53,8 +53,7 @@ int main(void)
   pppp = & ppp;
   p.next = pp;
   p.znexts = pppp;
-  {
-    /*sequence*/
+  { /* sequence */
     tmp = pp;
     /*@ assert rte: index_bound: 0 ≤ i2; */
     /*@ assert rte: index_bound: i2 < 8; */
@@ -262,8 +261,7 @@ int main(void)
   pppp = & ppp;
   p.next = pp;
   p.znexts = pppp;
-  {
-    /*sequence*/
+  { /* sequence */
     tmp = pp;
     /*@ assert rte: mem_access: \valid(&p.nexts[i2][i3]); */
     p.nexts[i2][i3] = tmp;

@@ -51,13 +51,15 @@ tests/misc/assigns.i:48:[value] entering loop for the first time
         Called from tests/misc/assigns.i:49.
 [value] Done for function f
 tests/misc/assigns.i:51:[value] warning: Operation {2} * {{ &T }} incurs a loss of precision
-tests/misc/assigns.i:51:[kernel] warning: signed overflow. assert -2147483648 ≤ 2*(int)(&T) ≤ 2147483647;
+tests/misc/assigns.i:51:[kernel] warning: signed overflow. assert -2147483648 ≤ 2*(int)(&T);
+tests/misc/assigns.i:51:[kernel] warning: signed overflow. assert 2*(int)(&T) ≤ 2147483647;
 [value] computing for function g <- main1 <- main.
         Called from tests/misc/assigns.i:51.
 [value] using specification for function g
 [value] Done for function g
 tests/misc/assigns.i:52:[value] warning: Operation {2} * {{ &t3 }} incurs a loss of precision
-tests/misc/assigns.i:52:[kernel] warning: signed overflow. assert -2147483648 ≤ 2*(int)(&t3) ≤ 2147483647;
+tests/misc/assigns.i:52:[kernel] warning: signed overflow. assert -2147483648 ≤ 2*(int)(&t3);
+tests/misc/assigns.i:52:[kernel] warning: signed overflow. assert 2*(int)(&t3) ≤ 2147483647;
 [value] computing for function h <- main1 <- main.
         Called from tests/misc/assigns.i:52.
 [value] using specification for function h
@@ -115,7 +117,7 @@ tests/misc/assigns.i:82:[kernel] warning: Neither code nor specification for fun
 [value] using specification for function ff2_bis
 tests/misc/assigns.i:64:[value] warning: no 'assigns \result \from ...' clause specified for function ff2_bis
 [value] Done for function ff2_bis
-tests/misc/assigns.i:84:[kernel] warning: pointer comparison: assert \pointer_comparable(p, &x);
+tests/misc/assigns.i:84:[kernel] warning: pointer comparison: assert \pointer_comparable((void *)p, (void *)(&x));
 [value] Recording results for main2
 [value] Done for function main2
 tests/misc/assigns.i:112:[kernel] warning: Neither code nor specification for function main3, generating default assigns from the prototype
@@ -916,11 +918,11 @@ void main1(void)
       i ++;
     }
   }
-  /*@ assert Value: signed_overflow: 2*(int)(&T) ≤ 2147483647; */
   /*@ assert Value: signed_overflow: -2147483648 ≤ 2*(int)(&T); */
+  /*@ assert Value: signed_overflow: 2*(int)(&T) ≤ 2147483647; */
   g(2 * (int)(& T));
-  /*@ assert Value: signed_overflow: 2*(int)(&t3) ≤ 2147483647; */
   /*@ assert Value: signed_overflow: -2147483648 ≤ 2*(int)(&t3); */
+  /*@ assert Value: signed_overflow: 2*(int)(&t3) ≤ 2147483647; */
   h((int *)(2 * (int)(& t3)));
   j((int *)(& T[9]));
   assigns_post(18);
@@ -963,7 +965,9 @@ int main2(void)
   ff5();
   p = ff2();
   q = ff2_bis();
-  /*@ assert Value: ptr_comparison: \pointer_comparable(p, &x); */
+  /*@ assert
+      Value: ptr_comparison: \pointer_comparable((void *)p, (void *)(&x));
+  */
   if (p != & x) {
     __retres = 1;
     goto return_label;

@@ -1,6 +1,6 @@
 /* run.config
-OPT: -load-module lib/plugins/Report -report
-OPT: -load-module lib/plugins/Report -ulevel -1 -report
+OPT: -report
+OPT: -ulevel -1 -report
 */
 
 int u(void);

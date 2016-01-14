@@ -22,6 +22,9 @@
 
 #ifndef __FC_DEFINE_DEV_T
 #define __FC_DEFINE_DEV_T
+#include "features.h"
+__BEGIN_DECLS
 typedef unsigned int dev_t;
+__END_DECLS
 #endif
 

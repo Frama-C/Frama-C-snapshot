@@ -1,5 +1,5 @@
 /* run.config
-   STDOPT: +"-slevel-function pgcd1:100,pgcd2:100,pgcd3:100"
+   STDOPT: #"-slevel-function pgcd1:100,pgcd2:100,pgcd3:100"
 */
 int A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R;
 extern int i;

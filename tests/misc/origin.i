@@ -1,7 +1,7 @@
 /* run.config
    GCC:
-   OPT: -val -out -deps -main main -journal-disable
-   OPT: -val -out -deps -main origin -journal-disable
+   OPT: -val -main main -journal-disable -then -out -deps
+   OPT: -val -main origin -journal-disable -then -out -deps
 
 */
 char f();

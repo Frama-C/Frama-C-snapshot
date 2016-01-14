@@ -25,6 +25,7 @@ void main(tt const *p1)
     /*@ assert Value: mem_access: \valid_read(&(p1+1)->v); */
     switch ((p1 + 1)->v) {
       case 1: case 2: case 3: case 4: ;
+      /*@ assert Value: mem_access: \valid_read(&(p1+1)->v); */
       if ((p1 + 1)->v) ;
       break;
     }

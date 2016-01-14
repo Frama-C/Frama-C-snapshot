@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -calldeps -users -val -journal-disable -input
+   OPT: -calldeps -val -journal-disable -users -then -input
    OPT: -deps -show-indirect-deps -journal-disable
 */
 int a,b,c,d;

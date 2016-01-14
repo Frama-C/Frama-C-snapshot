@@ -1,0 +1,2 @@
+CMD: @frama-c@ -wp -wp-no-filter -wp-par 1 -wp-share ./share -wp-log shell,no-time-info,no-step-info -wp-report tests/qualif.report
+OPT:

@@ -35,8 +35,7 @@ int main(int i)
   void (*fp1)();
   int (*fp2)(int );
   fptr ma[2];
-  {
-    /*sequence*/
+  { /* sequence */
     ;
     ;
   }

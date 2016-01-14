@@ -13,10 +13,10 @@ void main(int c, int d, int e, int f, int g, unsigned short h)
   q = (void*)0;
   if (d)
     {
-      CEA_ici(0);
+      Frama_C_show_each_ici(0);
       *q = 3;
       *q = 4;
-      CEA_la(0);
+      Frama_C_show_each_la(0);
     }
   
   r = e ? (f ? t : t+1) : (void*)0;

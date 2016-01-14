@@ -1,0 +1,25 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_typed/unit_bitwise.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] 6 goals scheduled
+[wp] [Alt-Ergo] Goal typed_band_int_assert_ko : Unknown
+[wp] [Alt-Ergo] Goal typed_bnot_uchar_post_ko : Unknown
+[wp] [Alt-Ergo] Goal typed_bnot_uint_post_ko : Unknown
+[wp] [Alt-Ergo] Goal typed_bxor_uchar_post_ko : Unknown
+[wp] [Alt-Ergo] Goal typed_bxor_uint_post_ko : Unknown
+[wp] [Alt-Ergo] Goal typed_cast_assert_ko : Unknown
+[wp] Proved goals:    0 / 6
+     Alt-Ergo:        0  (unknown: 6)
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+band_int            -      -           1       0.0%
+bxor_uint           -      -           1       0.0%
+bnot_uint           -      -           1       0.0%
+bxor_uchar          -      -           1       0.0%
+bnot_uchar          -      -           1       0.0%
+cast                -      -           1       0.0%
+----------------------------------------------------------

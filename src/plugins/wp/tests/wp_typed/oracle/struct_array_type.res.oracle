@@ -1,0 +1,67 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_typed/struct_array_type.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] 1 goal scheduled
+[wp:print-generated] (* ---------------------------------------------------------- *)
+                     (* --- Post-condition (file tests/wp_typed/struct_array_type.i, line 16) in 'f' --- *)
+                     (* ---------------------------------------------------------- *)
+                     
+                     goal f_post:
+                       forall i_3,i_2,i_1,i : int.
+                       forall t : S_s farray.
+                       let a = t[i] : S_s in
+                       let a_1 = t[i_1] : S_s in
+                       let a_2 = t[i_2] : S_s in
+                       let a_3 = (a_2.F_s_a)[0] : int in
+                       let a_4 = (a_2.F_s_b)[0] : int in
+                       (0 <= i_2) ->
+                       (i_2 <= 9) ->
+                       is_sint32(i_3) ->
+                       is_uint32(i_2) ->
+                       is_sint32((a.F_s_a)[0]) ->
+                       is_sint32((a.F_s_b)[0]) ->
+                       is_sint32((a_1.F_s_a)[0]) ->
+                       is_sint32((a_1.F_s_b)[0]) ->
+                       is_sint32(a_3) ->
+                       is_sint32(a_4) ->
+                       (((a_3 <= a_4) -> ((i_3 + a_3) = (1 + (2 * a_4)))) and
+                        ((a_4 < a_3) -> ((i_3 + a_4) = (1 + (2 * a_3))))) ->
+                       (a_4 < i_3)
+[wp] 1 goal generated
+------------------------------------------------------------
+  Function f
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_typed/struct_array_type.i, line 16) in 'f':
+Let a_0 = t_0[SynchroId_0].
+Let a_1 = a_0.F_s_b[0].
+Let a_2 = a_0.F_s_a[0].
+Let a_3 = t_0[SynchroId_1].
+Let a_4 = t_0[SynchroId_2].
+Assume {
+  (* Domain *)
+  Type: (is_sint32 f_0) /\ (is_uint32 SynchroId_0) /\ (is_sint32 a_2)
+        /\ (is_sint32 a_1) /\ (is_sint32 a_3.F_s_a[0])
+        /\ (is_sint32 a_3.F_s_b[0]) /\ (is_sint32 a_4.F_s_a[0])
+        /\ (is_sint32 a_4.F_s_b[0]).
+  (* Pre-condition (file tests/wp_typed/struct_array_type.i, line 15) in 'f' *)
+  (* Pre-condition: *)
+  Have: (0<=SynchroId_0) /\ (SynchroId_0<=9).
+  (* tests/wp_typed/struct_array_type.i:19: Conditional *)
+  If: a_1<a_2
+  Then {
+    (* tests/wp_typed/struct_array_type.i:20: Assignment *)
+    Have: (f_0+a_1)=(1+(2*a_2)).
+  }
+  Else {
+    (* tests/wp_typed/struct_array_type.i:22: Assignment *)
+    Have: (f_0+a_2)=(1+(2*a_1)).
+  }
+}
+Prove: a_1<f_0.
+
+------------------------------------------------------------

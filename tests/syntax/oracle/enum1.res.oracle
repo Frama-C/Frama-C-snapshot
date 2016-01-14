@@ -17,6 +17,11 @@ enum __anonenum_2 {
     I1 = 0,
     I2 = 1
 };
+enum Foo {
+    EN1 = 0,
+    EN2 = 1,
+    EN3 = 2
+};
 enum __anonenum_5 {
     K21 = 0,
     K22 = 1
@@ -46,6 +51,20 @@ int i1(void)
 {
   int __retres;
   __retres = I1;
+  return __retres;
+}
+
+int f(void)
+{
+  int __retres;
+  __retres = 1;
+  return __retres;
+}
+
+int g(void)
+{
+  int __retres;
+  __retres = EN1;
   return __retres;
 }
 

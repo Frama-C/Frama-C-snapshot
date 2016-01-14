@@ -1,5 +1,5 @@
 /* run.config
-  STDOPT: +"-calldeps -pdg -pdg-print"
+  STDOPT: #"-calldeps -pdg -pdg-print"
 */
 
 struct T1 {

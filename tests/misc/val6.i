@@ -1,7 +1,7 @@
 /* run.config
    GCC:
-   OPT: -val -deps -out -input -main f -absolute-valid-range 0x1-0xFFFFF -journal-disable
-   OPT: -val -deps -out -input -main f1 -absolute-valid-range 0x1-0xFFFFF -journal-disable
+   STDOPT: #"-main f -absolute-valid-range 0x1-0xFFFFF"
+   STDOPT: #"-main f1 -absolute-valid-range 0x1-0xFFFFF"
 */
 char **c,a,*b,**y;
 int x;

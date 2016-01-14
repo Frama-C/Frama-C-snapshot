@@ -54,8 +54,7 @@ int main(void)
     if (y > 0) {
       int tmp_0;
       int tmp_1;
-      {
-        /*sequence*/
+      { /* sequence */
         tmp_0 = f(x,y);
         tmp_1 = g(x,y);
       }
@@ -141,8 +140,7 @@ int main(void)
     if (y > 0) {
       int tmp_0;
       int tmp_1;
-      {
-        /*sequence*/
+      { /* sequence */
         tmp_0 = f(x,y);
         tmp_1 = g(x,y);
       }
@@ -226,8 +224,7 @@ int main(void)
     if (y > 0) {
       int tmp_0;
       int tmp_1;
-      {
-        /*sequence*/
+      { /* sequence */
         tmp_0 = f(x,y);
         tmp_1 = g(x,y);
       }
@@ -317,8 +314,7 @@ int main(void)
     if (y > 0) {
       int tmp_0;
       int tmp_1;
-      {
-        /*sequence*/
+      { /* sequence */
         tmp_0 = f(x,y);
         tmp_1 = g(x,y);
       }

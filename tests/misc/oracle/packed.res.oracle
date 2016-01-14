@@ -4,8 +4,8 @@
 [value] Computing initial state
 [value] Initial state computed
 [value] Values of globals at initialization
-  x ∈ {0}
-  y ∈ {0}
+  x ∈ [--..--]
+  y ∈ [--..--]
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======

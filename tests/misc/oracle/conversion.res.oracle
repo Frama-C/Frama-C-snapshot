@@ -1,0 +1,95 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/conversion.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  v ∈ [--..--]
+[value] DUMPING STATE of file tests/misc/conversion.i line 10
+        v ∈ [--..--]
+        x ∈ {1}
+        y ∈ UNINITIALIZED
+        f ∈ {1.40129846432e-45}
+        l ∈ UNINITIALIZED
+        =END OF DUMP==
+tests/misc/conversion.i:13:[value] Assertion 'ASSUME' got status unknown.
+[value] DUMPING STATE of file tests/misc/conversion.i line 15
+        v ∈ [--..--]
+        x ∈ [0..1120000000]
+        y ∈ UNINITIALIZED
+        f ∈ [0. .. 96.921875]
+        l ∈ UNINITIALIZED
+        =END OF DUMP==
+tests/misc/conversion.i:18:[value] Assertion 'ASSUME' got status unknown.
+tests/misc/conversion.i:19:[kernel] warning: non-finite float value ([-10..10]): assert \is_finite(*((float *)(&x)));
+[value] DUMPING STATE of file tests/misc/conversion.i line 20
+        v ∈ [--..--]
+        x ∈ [-10..10]
+        y ∈ UNINITIALIZED
+        f ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
+        l ∈ UNINITIALIZED
+        =END OF DUMP==
+tests/misc/conversion.i:23:[value] Assertion 'ASSUME' got status unknown.
+[value] DUMPING STATE of file tests/misc/conversion.i line 25
+        v ∈ [--..--]
+        x ∈ [-10..10]
+        y ∈ [-10..10]
+        f ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
+        l ∈ UNINITIALIZED
+        =END OF DUMP==
+tests/misc/conversion.i:28:[value] Assertion 'ASSUME' got status unknown.
+[value] DUMPING STATE of file tests/misc/conversion.i line 30
+        v ∈ [--..--]
+        x ∈ [1077936128..1084227584]
+        y ∈ [-10..10]
+        f ∈ [3. .. 5.]
+        l ∈ UNINITIALIZED
+        =END OF DUMP==
+[value] DUMPING STATE of file tests/misc/conversion.i line 34
+        v ∈ [--..--]
+        x ∈ {{ (int)&x }}
+        y ∈ [-10..10]
+        f ∈ {{ (float)&x }}
+        l ∈ UNINITIALIZED
+        =END OF DUMP==
+[value] DUMPING STATE of file tests/misc/conversion.i line 39
+        v ∈ [--..--]
+        x[bits 0 to 15] ∈ {1}
+         [bits 16 to 31] ∈ {2}
+        y ∈ [-10..10]
+        f[bits 0 to 15] ∈ {1}
+         [bits 16 to 31] ∈ {2}
+        l ∈ UNINITIALIZED
+        =END OF DUMP==
+tests/misc/conversion.i:44:[value] Assertion 'ASSUME' got status unknown.
+tests/misc/conversion.i:46:[kernel] warning: accessing uninitialized left-value: assert \initialized((float *)(&l));
+[value] DUMPING STATE of file tests/misc/conversion.i line 47
+        v ∈ [--..--]
+        x[bits 0 to 15] ∈ {1}
+         [bits 16 to 31] ∈ {2}
+        y ∈ [-10..10]
+        f ∈ [7.00649232162e-45 .. 2.10194769649e-44]
+        l ∈ [5..15]
+        =END OF DUMP==
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  x[bits 0 to 15] ∈ {1}
+   [bits 16 to 31] ∈ {2}
+  y ∈ [-10..10]
+  f ∈ [7.00649232162e-45 .. 2.10194769649e-44]
+  l ∈ [5..15]
+[from] Computing for function main
+[from] Computing for function Frama_C_dump_each <-main
+[from] Done for function Frama_C_dump_each
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  NO EFFECTS
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          x; y; f; l
+[inout] Inputs for function main:
+          v

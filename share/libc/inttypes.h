@@ -22,10 +22,10 @@
 
 #ifndef __FC_INTTYPES
 #define __FC_INTTYPES
+#include "features.h"
 /* ISO C: 7.8 */
 #include "stdint.h"
 #include "errno.h"
-#include "__fc_define_restrict.h"
 
 /* ISO C: 7.8.1 */
 # if __WORDSIZE == 64
@@ -250,6 +250,8 @@
 # define SCNuPTR	__PRIPTR_PREFIX "u"
 # define SCNxPTR	__PRIPTR_PREFIX "x"
 
+__BEGIN_DECLS
+
 #if __WORDSIZE == 64
 
 /* We have to define the `uintmax_t' type using `ldiv_t'.  */
@@ -298,6 +300,8 @@ intmax_t wcstoimax(const wchar_t * restrict nptr,
      wchar_t ** restrict endptr, int base);
 uintmax_t wcstoumax(const wchar_t * restrict nptr,
      wchar_t ** restrict endptr, int base);
+
+__END_DECLS
 
 #endif
 

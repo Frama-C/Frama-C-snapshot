@@ -1,6 +1,6 @@
 /* run.config
-   OPT: -val -deps -out -input -journal-disable
-   OPT: -val -deps -out -input -journal-disable -undefined-pointer-comparison-propagate-all
+   STDOPT: #"-main main"
+   STDOPT: #"-undefined-pointer-comparison-propagate-all"
 */
 
 int *p,T[10]={0,1,2,3,4,5,6,7,8,9};
@@ -28,5 +28,7 @@ int main (int u) {
   t = (1 + (int)(u?&f:&g)) == 0;
         
   r = (T-1) == 0;
+
+  if(&f+3) {}
 }
 

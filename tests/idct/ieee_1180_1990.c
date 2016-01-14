@@ -1,6 +1,6 @@
 /* run.config
    GCC:
-   OPT: -float-normal -no-warn-signed-overflow -val -deps -out -input tests/idct/idct.c share/math.c -journal-disable -remove-redundant-alarms -memexec-all -val-builtin sqrt:Frama_C_sqrt,cos:Frama_C_cos_precise -then -report -report-print-properties
+   STDOPT: #"-float-normal -no-warn-signed-overflow tests/idct/idct.c -remove-redundant-alarms -memexec-all -val-builtin sqrt:Frama_C_sqrt,cos:Frama_C_cos_precise" +"-then -report -report-print-properties"
 */
 /* IEEE_1180_1990: a testbed for IDCT accuracy
  * Copyright (C) 2001  Renaud Pacalet
@@ -34,13 +34,13 @@
 
 
 
-#include "share/libc/stdio.h"
-#include "share/math.h"
+#include "stdio.h"
+#include "math.h"
 
 
 
-//@ assigns \nothing;
-void exit (int x);
+
+
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -403,7 +403,7 @@ int main()
     fprintf(stderr, "Your IDCT meets the IEEE Std 1180-1990 accuracy ");
     fprintf(stderr, "requirements.\n");
     */
-    exit(0);
+    return (0);
     }
   else
     {
@@ -411,6 +411,6 @@ int main()
     fprintf(stderr, "Your IDCT does not meet the IEEE Std 1180-1990 accuracy ");
     fprintf(stderr, "requirements.\n");
     */
-    exit(1);
+    return (1);
     }
   }

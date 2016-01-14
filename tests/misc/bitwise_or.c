@@ -1,7 +1,7 @@
 /* run.config
-   OPT: -big-ints-hex 256 -val -journal-disable share/builtin.c 
+   OPT: -big-ints-hex 256 -val -journal-disable
 */
-#include "../../share/builtin.h"
+#include "__fc_builtin.h"
 
 int or1, or2, or3, or4, or5;
 int and1, and2, and3, and4, xor1, xor2;

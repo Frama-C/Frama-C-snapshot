@@ -75,7 +75,10 @@ tests/misc/from_call.i:20:[kernel] warning: Neither code nor specification for f
 [value] Recording results for f
 [value] Done for function f
 tests/misc/from_call.i:82:[kernel] warning: signed overflow.
-                  assert -2147483648 ≤ tmp+tmp_0 ≤ 2147483647;
+                  assert -2147483648 ≤ tmp+tmp_0;
+                  (tmp from f(& c), tmp_0 from f(& d))
+tests/misc/from_call.i:82:[kernel] warning: signed overflow.
+                  assert tmp+tmp_0 ≤ 2147483647;
                   (tmp from f(& c), tmp_0 from f(& d))
 [value] computing for function dispatcher <- main.
         Called from tests/misc/from_call.i:83.

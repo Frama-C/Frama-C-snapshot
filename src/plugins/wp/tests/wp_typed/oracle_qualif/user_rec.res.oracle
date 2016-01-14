@@ -1,0 +1,40 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_typed/user_rec.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] 20 goals scheduled
+[wp] [Alt-Ergo] Goal typed_lemma_fact_ge1 : Timeout
+[wp] [Alt-Ergo] Goal typed_lemma_fact_next : Timeout
+[wp] [Alt-Ergo] Goal typed_F1_post : Valid
+[wp] [Alt-Ergo] Goal typed_F1_loop_inv_preserved : Valid
+[wp] [Alt-Ergo] Goal typed_F1_loop_inv_established : Valid
+[wp] [Alt-Ergo] Goal typed_F1_loop_inv_2_preserved : Valid
+[wp] [Alt-Ergo] Goal typed_F1_loop_inv_2_established : Valid
+[wp] [Qed] Goal typed_F1_loop_assign : Valid
+[wp] [Alt-Ergo] Goal typed_F2_post : Valid
+[wp] [Alt-Ergo] Goal typed_F2_loop_inv_PART_preserved : Valid
+[wp] [Alt-Ergo] Goal typed_F2_loop_inv_PART_established : Valid
+[wp] [Alt-Ergo] Goal typed_F2_loop_inv_RANGE_preserved : Valid
+[wp] [Alt-Ergo] Goal typed_F2_loop_inv_RANGE_established : Valid
+[wp] [Qed] Goal typed_F2_loop_assign : Valid
+[wp] [Alt-Ergo] Goal typed_F4_post : Valid
+[wp] [Alt-Ergo] Goal typed_F4_loop_inv_NEVER_preserved : Valid
+[wp] [Alt-Ergo] Goal typed_F4_loop_inv_NEVER_established : Valid
+[wp] [Alt-Ergo] Goal typed_F4_loop_inv_RANGE_preserved : Valid
+[wp] [Alt-Ergo] Goal typed_F4_loop_inv_RANGE_established : Valid
+[wp] [Qed] Goal typed_F4_loop_assign : Valid
+[wp] Proved goals:   18 / 20
+     Qed:             3 
+     Alt-Ergo:       15  (interrupted: 2)
+----------------------------------------------------------
+Axiomatics          WP   Alt-Ergo    Total   Success
+Lemma               -      -           2       0.0%
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+F1                   1      5 (26)     6       100%
+F2                   1      5 (29)     6       100%
+F4                   1      5 (84)     6       100%
+----------------------------------------------------------

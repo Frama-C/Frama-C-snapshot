@@ -10,6 +10,7 @@
 #include <string.h>
 #include <sys/uio.h>
 #include <strings.h>
+#include <netinet/in.h>
 
 const char* sent_msg = "World";
 #define SIZEOF_SENT_MSG 6
@@ -94,6 +95,30 @@ void test_recvmsg(void)
   printf( "Hello %.2s%.3s\n", rcv_buffer_scattered1, rcv_buffer_scattered2);
 }
 
+volatile int nondet;
+int test_server_echo() {
+  int fd = socket(AF_INET, SOCK_STREAM, 0);
+  if (fd == -1) return 1;
+  struct sockaddr_in addr;
+  memset(&addr, 0, sizeof(addr));
+  addr.sin_family = AF_INET;
+  addr.sin_addr.s_addr = INADDR_ANY;
+  addr.sin_port = 0x2222;
+  if (bind(fd, (struct sockaddr*)&addr, sizeof(addr))) return 5;
+  if (listen(fd, 10)) return 20;
+  socklen_t addrlen = sizeof(addr);
+  int client_fd = nondet ?
+    accept(fd, (struct sockaddr*)&addr, &addrlen) :
+    accept(fd, NULL, NULL);
+  if (client_fd == -1) return 100;
+  char buf[64];
+  int r = read(client_fd, buf, 64);
+  if (r == -1) return 200;
+  if (write(client_fd, buf, r) < r) return 300;
+  if (close(client_fd)) return 400;
+  if (close(fd)) return 400;
+  return 0;
+}
 
 int main(int argc, char **argv)
 {
@@ -101,6 +126,6 @@ int main(int argc, char **argv)
   test_read();
   test_readv();
   test_recvmsg();
-
+  int r = test_server_echo();
   return 0;
 }

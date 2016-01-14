@@ -10,9 +10,9 @@
   A ∈ {0}
   B ∈ {0}
   C ∈ {0}
-[value] Called CEA_f({{ NULL ; &S_pp }})
+[value] Called Frama_C_show_each_f({{ NULL ; &S_pp }})
 tests/misc/jacques.i:23:[value] Assertion got status unknown.
-[value] Called CEA_f({{ &S_pp }})
+[value] Called Frama_C_show_each_f({{ &S_pp }})
 tests/misc/jacques.i:29:[value] Assertion got status valid.
 [value] computing for function f <- main.
         Called from tests/misc/jacques.i:36.

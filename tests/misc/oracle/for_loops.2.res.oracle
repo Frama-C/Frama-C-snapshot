@@ -9,10 +9,13 @@
 [value] computing for function Frama_C_interval <- g.
         Called from tests/misc/for_loops.c:37.
 [value] using specification for function Frama_C_interval
+share/libc/__fc_builtin.h:51:[value] Function Frama_C_interval: precondition got status valid.
 [value] Done for function Frama_C_interval
 [value] DUMPING STATE of file tests/misc/for_loops.c line 39
         Frama_C_entropy_source ∈ [--..--]
         x ∈ {0}
+        j ∈ UNINITIALIZED
+        T[0..999] ∈ UNINITIALIZED
         nSelectors ∈ [0..1000]
         w ∈ {0}
         =END OF DUMP==
@@ -40,6 +43,8 @@ tests/misc/for_loops.c:42:[kernel] warning: signed overflow. assert w+T[j] ≤ 2
 [from] Computing for function g
 [from] Computing for function Frama_C_interval <-g
 [from] Done for function Frama_C_interval
+[from] Computing for function Frama_C_dump_each <-g
+[from] Done for function Frama_C_dump_each
 [from] Done for function g
 [from] ====== DEPENDENCIES COMPUTED ======
        These dependencies hold at termination for the executions that terminate:

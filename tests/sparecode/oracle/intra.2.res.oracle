@@ -87,8 +87,7 @@ int main2(void)
   int tmp_0;
   Y10 = 0;
   X10.b = 0;
-  {
-    /*sequence*/
+  { /* sequence */
     tmp_0 = f10(3);
     X10.a.y += tmp_0;
   }

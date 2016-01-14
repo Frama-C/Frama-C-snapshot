@@ -1,6 +1,6 @@
 /* run.config
-   OPT: -load-module lib/plugins/Report -rte -rte-precond -then -val -then -report -report-print-properties
-   OPT: -load-module lib/plugins/Report -val -then -rte -rte-precond -then -report -report-print-properties
+   OPT: -rte -rte-precond -then -val -then -report -report-print-properties
+   OPT: -val -then -rte -rte-precond -then -report -report-print-properties
 */
 
 // Fuse with precond.c when bts #1208 is solved

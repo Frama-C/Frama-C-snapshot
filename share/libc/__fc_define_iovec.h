@@ -23,9 +23,12 @@
 #ifndef __FC_DEFINE_IOVEC
 #define __FC_DEFINE_IOVEC
 #include "__fc_define_size_t.h"
+#include "features.h"
+__BEGIN_DECLS
 struct iovec {
   void   *iov_base;
   size_t  iov_len;
 };
+__END_DECLS
 #endif
 

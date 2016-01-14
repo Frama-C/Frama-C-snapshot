@@ -22,8 +22,12 @@
 
 #ifndef __FC_DEFINE_MODE_T
 #define __FC_DEFINE_MODE_T
+#include "features.h"
+__BEGIN_DECLS
 
 typedef unsigned int mode_t;
+
+__END_DECLS
 
 #define S_IFMT   0170000
 

@@ -1,0 +1,68 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_acsl/range.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function test
+------------------------------------------------------------
+
+Goal Post-condition 'P1,ok' in 'test':
+Assume { (* Goal *) When: false. }
+Prove: (((11+b_0)<=d_0) \/ ((11+d_0)<=b_0))
+       /\ (valid_rw Malloc_0 (shift_sint32 r_0 (b_0-10)) (11+d_0-b_0)).
+
+------------------------------------------------------------
+
+Goal Post-condition 'P2,ok' in 'test':
+Assume { (* Goal *) When: false. }
+Prove: (((11+b_0)<=d_0) \/ ((11+d_0)<=b_0))
+       /\ (valid_rw Malloc_0 (shift_sint32 r_0 (d_0-10)) (11+b_0-d_0)).
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition 'HP,ok' in 'val_assigns_p'' in 'test' at call 'val_assigns_p' (file tests/wp_acsl/range.i, line 32)
+:
+Assume {
+  (* Domain *)
+  Type: (is_sint32 b_0) /\ (is_sint32 d_0) /\ (is_sint32 (b_0-10))
+        /\ (is_sint32 (d_0-10)).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ ((region (base r_0))<=0).
+  (* Pre-condition 'H1' in 'test' *)
+  (* Pre-condition 'H1': *)
+  Have: 10<=b_0.
+  (* Pre-condition 'H2' in 'test' *)
+  (* Pre-condition 'H2': *)
+  Have: 10<=d_0.
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition 'HQ,ok' in 'val_assigns_q'' in 'test' at call 'val_assigns_q' (file tests/wp_acsl/range.i, line 33)
+:
+Let x_0 = b_0-10.
+Let a_0 = (shift_sint32 r_0 x_0).
+Assume {
+  (* Domain *)
+  Type: (is_sint32 b_0) /\ (is_sint32 d_0) /\ (is_sint32 x_0)
+        /\ (is_sint32 (d_0-10)).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ ((region (base r_0))<=0).
+  (* Pre-condition 'H1' in 'test' *)
+  (* Pre-condition 'H1': *)
+  Have: 10<=b_0.
+  (* Pre-condition 'H2' in 'test' *)
+  (* Pre-condition 'H2': *)
+  Have: 10<=d_0.
+  (* tests/wp_acsl/range.i:32: Call 'val_assigns_p' *)
+  Have: (valid_rw Malloc_0 a_0 11).
+  (* tests/wp_acsl/range.i:32: Call Effects *)
+  Have: (havoc Mint_5 Mint_2 a_0 11).
+}
+Prove: true.
+
+------------------------------------------------------------

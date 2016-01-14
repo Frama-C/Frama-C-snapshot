@@ -1,5 +1,5 @@
 /* run.config
-   STDOPT: +"-main locks0_good"
+   STDOPT: #"-main locks0_good"
  */
 
 /*@ ghost int ghost_loctable[100] ;*/

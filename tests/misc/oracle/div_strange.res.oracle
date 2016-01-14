@@ -5,7 +5,7 @@
 [value] Initial state computed
 [value] Values of globals at initialization
   
-[value] Called CEA_F({1073741823})
+[value] Called Frama_C_show_each_F({1073741823})
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======

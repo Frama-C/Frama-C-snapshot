@@ -22,13 +22,16 @@
 
 #ifndef __FC_SELECT__
 #define __FC_SELECT__
-
+#include "features.h"
 #include "__fc_define_time_t.h"
 #include "__fc_define_suseconds_t.h"
 #include "__fc_define_fd_set_t.h"
 #include "__fc_define_sigset_t.h"
 
 #include "time.h"
+
+__BEGIN_DECLS
+
 /* assigns \result \from nfds, *readfds, *writefds,*errorfds,*timeout,*sigmask;
  */
 int pselect(int nfds, fd_set * readfds,
@@ -40,5 +43,7 @@ int pselect(int nfds, fd_set * readfds,
 int select(int nfds, fd_set * readfds,
        fd_set * writefds, fd_set * errorfds,
        struct timeval * timeout);
+
+__END_DECLS
 
 #endif

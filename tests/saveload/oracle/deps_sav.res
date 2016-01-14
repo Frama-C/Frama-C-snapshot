@@ -5,8 +5,8 @@
 [value] Initial state computed
 [value] Values of globals at initialization
   
-tests/saveload/deps.i:20:[value] entering loop for the first time
-tests/saveload/deps.i:20:[kernel] warning: signed overflow. assert -2147483648 ≤ i-1;
+tests/saveload/deps.i:15:[value] entering loop for the first time
+tests/saveload/deps.i:15:[kernel] warning: signed overflow. assert -2147483648 ≤ i-1;
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======

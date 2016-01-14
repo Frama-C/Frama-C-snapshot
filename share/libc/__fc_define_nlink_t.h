@@ -22,6 +22,9 @@
 
 #ifndef __FC_DEFINE_NLINK_T
 #define __FC_DEFINE_NLINK_T
+#include "features.h"
+__BEGIN_DECLS
 typedef unsigned int nlink_t;
+__END_DECLS
 #endif
 

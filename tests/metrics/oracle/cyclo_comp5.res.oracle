@@ -8,6 +8,10 @@
           =======================
            printf (4 calls); 
           
+          'Extern' global variables (0)
+          =============================
+           
+          
           Potential entry points (1)
           ==========================
            main; 
@@ -25,4 +29,4 @@
           Function = 3
           Function call = 5
           Pointer dereferencing = 0
-          Cyclomatic complexity = 4
+          Cyclomatic complexity = 6

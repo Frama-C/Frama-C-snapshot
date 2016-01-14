@@ -167,23 +167,19 @@ int main(void)
   res = 0;
   spare_ref = 3;
   y = 2;
-  {
-    /*sequence*/
+  { /* sequence */
     tmp_0 = param_slice_1(2);
     res += tmp_0;
   }
-  {
-    /*sequence*/
+  { /* sequence */
     tmp_1 = tmp_slice_1(4);
     res += tmp_1;
   }
-  {
-    /*sequence*/
+  { /* sequence */
     tmp_2 = call_two_outputs_slice_1();
     res += tmp_2;
   }
-  {
-    /*sequence*/
+  { /* sequence */
     tmp_3 = loop_slice_1(10);
     res += tmp_3;
   }

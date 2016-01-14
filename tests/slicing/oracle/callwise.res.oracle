@@ -212,13 +212,11 @@ int main(void)
   n = 2;
   m = 3;
   f_slice_1(& a,& b);
-  {
-    /*sequence*/
+  { /* sequence */
     tmp = choose_slice_1(1,n,m);
     a += tmp;
   }
-  {
-    /*sequence*/
+  { /* sequence */
     tmp_0 = fs163_main_slice_1();
     a += tmp_0;
   }

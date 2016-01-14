@@ -30,6 +30,7 @@ tests/slicing/unravel-variance.c:36:[kernel] warning: non-finite float value
 tests/slicing/unravel-variance.c:37:[kernel] warning: accessing uninitialized left-value: assert \initialized(&x[i]);
 tests/slicing/unravel-variance.c:37:[kernel] warning: non-finite float value ([--..--]): assert \is_finite(x[i]);
 tests/slicing/unravel-variance.c:37:[kernel] warning: accessing uninitialized left-value: assert \initialized(&x[i]);
+tests/slicing/unravel-variance.c:37:[kernel] warning: non-finite float value ([--..--]): assert \is_finite(x[i]);
 tests/slicing/unravel-variance.c:37:[kernel] warning: non-finite float value
                   ([-1.9999998807907104*2^128 .. 1.9999998807907104*2^128]):
                   assert \is_finite((float)(ssq+(float)(x[i]*x[i])));
@@ -67,7 +68,8 @@ tests/slicing/unravel-variance.c:37:[kernel] warning: non-finite float value
         Called from tests/slicing/unravel-variance.c:35.
 [value] Done for function scanf
 tests/slicing/unravel-variance.c:36:[kernel] warning: accessing out of bounds index [0..1024]. assert i < 1024;
-tests/slicing/unravel-variance.c:39:[kernel] warning: non-finite float value ([--..--]): assert \is_finite((float)(t1/(float)n));
+tests/slicing/unravel-variance.c:39:[kernel] warning: non-finite float value ([--. .. --.]):
+                  assert \is_finite((float)(t1/(float)n));
 tests/slicing/unravel-variance.c:40:[kernel] warning: non-finite float value
                   ([-1.9999998807907104*2^158 .. 1.9999998807907104*2^158]):
                   assert \is_finite((float)((float)n*avg));
@@ -78,7 +80,7 @@ tests/slicing/unravel-variance.c:40:[kernel] warning: non-finite float value
                   ([-1.9999998807907104*2^128 .. 1.9999998807907104*2^128]):
                   assert \is_finite((float)(ssq-(float)((float)((float)n*avg)*avg)));
 tests/slicing/unravel-variance.c:40:[kernel] warning: signed overflow. assert -2147483648 ≤ n-1;
-tests/slicing/unravel-variance.c:40:[kernel] warning: non-finite float value ([--..--]):
+tests/slicing/unravel-variance.c:40:[kernel] warning: non-finite float value ([--. .. --.]):
                   assert
                   \is_finite((float)((float)(ssq-(float)((float)((float)n*avg)*avg))/(float)
                                       ((int)(n-1))));
@@ -89,18 +91,18 @@ tests/slicing/unravel-variance.c:41:[kernel] warning: non-finite float value
                   ([-1.9999998807907104*2^128 .. 1.9999998807907104*2^128]):
                   assert \is_finite((float)(ssq-(float)(t1*avg)));
 tests/slicing/unravel-variance.c:41:[kernel] warning: signed overflow. assert -2147483648 ≤ n-1;
-tests/slicing/unravel-variance.c:41:[kernel] warning: non-finite float value ([--..--]):
+tests/slicing/unravel-variance.c:41:[kernel] warning: non-finite float value ([--. .. --.]):
                   assert \is_finite((float)((float)(ssq-(float)(t1*avg))/(float)((int)(n-1))));
 tests/slicing/unravel-variance.c:42:[kernel] warning: non-finite float value
                   ([-1.9999997615814280*2^255 .. 1.9999997615814280*2^255]):
                   assert \is_finite((float)(t1*t1));
-tests/slicing/unravel-variance.c:42:[kernel] warning: non-finite float value ([--..--]):
+tests/slicing/unravel-variance.c:42:[kernel] warning: non-finite float value ([--. .. --.]):
                   assert \is_finite((float)((float)(t1*t1)/(float)n));
 tests/slicing/unravel-variance.c:43:[kernel] warning: non-finite float value
                   ([-1.9999998807907104*2^128 .. 1.9999998807907104*2^128]):
                   assert \is_finite((float)(ssq-t1));
 tests/slicing/unravel-variance.c:43:[kernel] warning: signed overflow. assert -2147483648 ≤ n-1;
-tests/slicing/unravel-variance.c:43:[kernel] warning: non-finite float value ([--..--]):
+tests/slicing/unravel-variance.c:43:[kernel] warning: non-finite float value ([--. .. --.]):
                   assert \is_finite((float)((float)(ssq-t1)/(float)((int)(n-1))));
 tests/slicing/unravel-variance.c:45:[value] entering loop for the first time
 tests/slicing/unravel-variance.c:47:[kernel] warning: accessing uninitialized left-value: assert \initialized(&x[i]);
@@ -120,22 +122,25 @@ tests/slicing/unravel-variance.c:49:[kernel] warning: non-finite float value
 tests/slicing/unravel-variance.c:51:[kernel] warning: non-finite float value
                   ([-1.9999997615814280*2^255 .. 1.9999997615814280*2^255]):
                   assert \is_finite((float)(t2*t2));
-tests/slicing/unravel-variance.c:51:[kernel] warning: non-finite float value ([--..--]):
+tests/slicing/unravel-variance.c:51:[kernel] warning: non-finite float value ([--. .. --.]):
                   assert \is_finite((float)((float)(t2*t2)/(float)n));
 tests/slicing/unravel-variance.c:51:[kernel] warning: non-finite float value
                   ([-1.9999998807907104*2^128 .. 1.9999998807907104*2^128]):
                   assert \is_finite((float)(t1-(float)((float)(t2*t2)/(float)n)));
 tests/slicing/unravel-variance.c:51:[kernel] warning: signed overflow. assert -2147483648 ≤ n-1;
-tests/slicing/unravel-variance.c:51:[kernel] warning: non-finite float value ([--..--]):
+tests/slicing/unravel-variance.c:51:[kernel] warning: non-finite float value ([--. .. --.]):
                   assert
                   \is_finite((float)((float)(t1-(float)((float)(t2*t2)/(float)n))/(float)
                                       ((int)(n-1))));
 tests/slicing/unravel-variance.c:52:[kernel] warning: signed overflow. assert -2147483648 ≤ n-1;
-tests/slicing/unravel-variance.c:52:[kernel] warning: non-finite float value ([--..--]):
+tests/slicing/unravel-variance.c:52:[kernel] warning: non-finite float value ([--. .. --.]):
                   assert \is_finite((float)(t1/(float)((int)(n-1))));
 tests/slicing/unravel-variance.c:53:[kernel] warning: overflow in conversion
                   of var2 ([-1.9999998807907104*2^127 .. 1.9999998807907104*2^127]) from
-                  floating-point to integer. assert -2147483649 < var2 < 2147483648;
+                  floating-point to integer. assert -2147483649 < var2;
+tests/slicing/unravel-variance.c:53:[kernel] warning: overflow in conversion
+                  of var2 ([-1.9999998807907104*2^127 .. 1.9999998807907104*2^127]) from
+                  floating-point to integer. assert var2 < 2147483648;
 [value] computing for function printf1 <- main.
         Called from tests/slicing/unravel-variance.c:53.
 tests/slicing/unravel-variance.c:53:[kernel] warning: Neither code nor specification for function printf1, generating default assigns from the prototype
@@ -143,7 +148,10 @@ tests/slicing/unravel-variance.c:53:[kernel] warning: Neither code nor specifica
 [value] Done for function printf1
 tests/slicing/unravel-variance.c:54:[kernel] warning: overflow in conversion
                   of var3 ([-1.9999998807907104*2^127 .. 1.9999998807907104*2^127]) from
-                  floating-point to integer. assert -2147483649 < var3 < 2147483648;
+                  floating-point to integer. assert -2147483649 < var3;
+tests/slicing/unravel-variance.c:54:[kernel] warning: overflow in conversion
+                  of var3 ([-1.9999998807907104*2^127 .. 1.9999998807907104*2^127]) from
+                  floating-point to integer. assert var3 < 2147483648;
 [value] computing for function printf2 <- main.
         Called from tests/slicing/unravel-variance.c:54.
 tests/slicing/unravel-variance.c:54:[kernel] warning: Neither code nor specification for function printf2, generating default assigns from the prototype
@@ -151,7 +159,10 @@ tests/slicing/unravel-variance.c:54:[kernel] warning: Neither code nor specifica
 [value] Done for function printf2
 tests/slicing/unravel-variance.c:55:[kernel] warning: overflow in conversion
                   of var4 ([-1.9999998807907104*2^127 .. 1.9999998807907104*2^127]) from
-                  floating-point to integer. assert -2147483649 < var4 < 2147483648;
+                  floating-point to integer. assert -2147483649 < var4;
+tests/slicing/unravel-variance.c:55:[kernel] warning: overflow in conversion
+                  of var4 ([-1.9999998807907104*2^127 .. 1.9999998807907104*2^127]) from
+                  floating-point to integer. assert var4 < 2147483648;
 [value] computing for function printf3 <- main.
         Called from tests/slicing/unravel-variance.c:55.
 tests/slicing/unravel-variance.c:55:[kernel] warning: Neither code nor specification for function printf3, generating default assigns from the prototype
@@ -159,7 +170,10 @@ tests/slicing/unravel-variance.c:55:[kernel] warning: Neither code nor specifica
 [value] Done for function printf3
 tests/slicing/unravel-variance.c:56:[kernel] warning: overflow in conversion
                   of var5 ([-1.9999998807907104*2^127 .. 1.9999998807907104*2^127]) from
-                  floating-point to integer. assert -2147483649 < var5 < 2147483648;
+                  floating-point to integer. assert -2147483649 < var5;
+tests/slicing/unravel-variance.c:56:[kernel] warning: overflow in conversion
+                  of var5 ([-1.9999998807907104*2^127 .. 1.9999998807907104*2^127]) from
+                  floating-point to integer. assert var5 < 2147483648;
 [value] computing for function printf4 <- main.
         Called from tests/slicing/unravel-variance.c:56.
 tests/slicing/unravel-variance.c:56:[kernel] warning: Neither code nor specification for function printf4, generating default assigns from the prototype
@@ -167,7 +181,10 @@ tests/slicing/unravel-variance.c:56:[kernel] warning: Neither code nor specifica
 [value] Done for function printf4
 tests/slicing/unravel-variance.c:57:[kernel] warning: overflow in conversion
                   of var1 ([-1.9999998807907104*2^127 .. 1.9999998807907104*2^127]) from
-                  floating-point to integer. assert -2147483649 < var1 < 2147483648;
+                  floating-point to integer. assert -2147483649 < var1;
+tests/slicing/unravel-variance.c:57:[kernel] warning: overflow in conversion
+                  of var1 ([-1.9999998807907104*2^127 .. 1.9999998807907104*2^127]) from
+                  floating-point to integer. assert var1 < 2147483648;
 [value] computing for function printf5 <- main.
         Called from tests/slicing/unravel-variance.c:57.
 tests/slicing/unravel-variance.c:57:[kernel] warning: Neither code nor specification for function printf5, generating default assigns from the prototype

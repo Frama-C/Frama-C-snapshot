@@ -252,8 +252,7 @@ int add(int a, int b)
 void incr_slice_1(char *pi)
 {
   int tmp;
-  {
-    /*sequence*/
+  { /* sequence */
     tmp = add((int)*pi,1);
     *pi = (char)tmp;
   }

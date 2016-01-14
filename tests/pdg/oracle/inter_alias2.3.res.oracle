@@ -30,7 +30,8 @@ tests/pdg/inter_alias2.c:9:[kernel] warning: signed overflow. assert *p+1 ≤ 21
 [from] Computing for function f2
 [from] Done for function f2
 [value] Done for function f2
-tests/pdg/inter_alias2.c:26:[kernel] warning: signed overflow. assert -2147483648 ≤ v1+v2 ≤ 2147483647;
+tests/pdg/inter_alias2.c:26:[kernel] warning: signed overflow. assert -2147483648 ≤ v1+v2;
+tests/pdg/inter_alias2.c:26:[kernel] warning: signed overflow. assert v1+v2 ≤ 2147483647;
 [value] Recording results for main
 [from] Computing for function main
 [from] Done for function main

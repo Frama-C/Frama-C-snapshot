@@ -14,8 +14,7 @@ void main(void)
   int tmp_0;
   p1 = & v[i];
   p2 = & v[j];
-  {
-    /*sequence*/
+  { /* sequence */
     tmp = *p1;
     /*effects: (t[i])  <- */
     (*p1) ++;
@@ -23,8 +22,7 @@ void main(void)
     t[i] += tmp + *p2;
     /*effects: (t[i]) t[i] <- i, tmp, *p2, p2*/
   }
-  {
-    /*sequence*/
+  { /* sequence */
     tmp_0 = v[i];
     /*effects: (t[i])  <- */
     (v[i]) ++;

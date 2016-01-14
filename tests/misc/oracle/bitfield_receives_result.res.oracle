@@ -12,6 +12,7 @@
 [value] DUMPING STATE of file tests/misc/bitfield_receives_result.i line 10
         s.b ∈ {-1}
          .[bits 31 to 31] ∈ {0}
+        __retres ∈ UNINITIALIZED
         =END OF DUMP==
 [value] Recording results for main
 [value] done for function main

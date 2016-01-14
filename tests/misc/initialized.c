@@ -1,7 +1,7 @@
 /* run.config
-   STDOPT: +"-big-ints-hex 257" +"-inout-callwise"
+   STDOPT: #"-big-ints-hex 257 -inout-callwise"
 */
-#include "../../share/builtin.h"
+#include "__fc_builtin.h"
 
 extern int b1, b2, b3, b4, b5, b6;
 
@@ -96,7 +96,7 @@ void g3() {
   r3 = x3 + 1;
 
   f(b6, &t1, 4);
-  f(b6, &t2, 250); // above plevel
+  f(b6, &t2, 250); // above plevel. Works because the location is contiguous
 }
 
 void g4() {

@@ -22,6 +22,11 @@ void g() {
   t[i-3] = 3;
 }
 
+void h(int *q) {
+  if (*q == 1)
+    q = 0;
+}
+
 volatile int c;
 
 void main(int *v) {
@@ -30,7 +35,12 @@ void main(int *v) {
   i = 12;
   if (c) {
     f();
-  } else {
+  }
+  if (c) {
     g();
+  }
+  if (c) {
+    int z;
+    h(&z);
   }
 }

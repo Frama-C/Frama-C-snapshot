@@ -1,0 +1,263 @@
+# frama-c -wp -wp-model 'Typed (Ref)' [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_acsl/funvar_inv.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] Collecting variable usage
+------------------------------------------------------------
+  Function f
+------------------------------------------------------------
+
+Goal Post-condition 'P_startof' in 'f':
+Let a_0 = (shift_A4_sint32 (global G_G_67) 0).
+Assume {
+  (* Domain *)
+  Type: (is_sint32 v_0) /\ (is_sint32 Mint_6[(shift_sint32 a_0 1)]).
+  (* Goal *)
+  When: 0=Mint_6[(shift_sint32 a_0 0)].
+  (* Heap *)
+  Have: (linked Malloc_2).
+  (* tests/wp_acsl/funvar_inv.i:30: Conditional *)
+  If: v_0<=3
+  Then {
+    Let a_1 = (shift_sint32 a_0 v_0).
+    (* tests/wp_acsl/funvar_inv.i:30: Else *)
+    Have: 0=Mint_6[a_1].
+    (* tests/wp_acsl/funvar_inv.i:32: Assignment *)
+    Have: f_0=a_1.
+  }
+  Else {
+    (* tests/wp_acsl/funvar_inv.i:31: Assignment *)
+    Have: f_0=(shift_sint32 (global L_i_72) 0).
+  }
+}
+Prove: f_0=a_0.
+
+------------------------------------------------------------
+
+Goal Post-condition 'P_addr' in 'f':
+Let a_0 = (shift_A4_sint32 (global G_G_67) 0).
+Let a_1 = (shift_sint32 a_0 1).
+Let x_0 = Mint_6[(shift_sint32 a_0 0)].
+Assume {
+  (* Domain *)
+  Type: (is_sint32 v_0) /\ (is_sint32 x_0).
+  (* Goal *)
+  When: (0=Mint_6[a_1]) /\ (0!=x_0).
+  (* Heap *)
+  Have: (linked Malloc_2).
+  (* tests/wp_acsl/funvar_inv.i:30: Conditional *)
+  If: v_0<=3
+  Then {
+    Let a_2 = (shift_sint32 a_0 v_0).
+    (* tests/wp_acsl/funvar_inv.i:30: Else *)
+    Have: 0=Mint_6[a_2].
+    (* tests/wp_acsl/funvar_inv.i:32: Assignment *)
+    Have: f_0=a_2.
+  }
+  Else {
+    (* tests/wp_acsl/funvar_inv.i:31: Assignment *)
+    Have: f_0=(shift_sint32 (global L_i_72) 0).
+  }
+}
+Prove: f_0=a_1.
+
+------------------------------------------------------------
+
+Goal Loop assigns 'qed_ok,index':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function f2
+------------------------------------------------------------
+
+Goal Post-condition 'P_startof_shift' in 'f2':
+Let a_0 = (shift_A4_sint32 (global G_G_67) 0).
+Assume {
+  (* Domain *)
+  Type: (is_sint32 v_0) /\ (is_sint32 Mint_6[(shift_sint32 a_0 1)]).
+  (* Goal *)
+  When: 0=Mint_6[(shift_sint32 a_0 0)].
+  (* Heap *)
+  Have: (linked Malloc_2).
+  (* tests/wp_acsl/funvar_inv.i:44: Conditional *)
+  If: (4*v_0)<=15
+  Then {
+    (* tests/wp_acsl/funvar_inv.i:44: Else *)
+    Have: 0=Mint_6[(shift_sint32 a_0 v_0)].
+    (* tests/wp_acsl/funvar_inv.i:45: Conditional *)
+    If: 4<=v_0
+    Then {
+      (* tests/wp_acsl/funvar_inv.i:45: Assignment *)
+      Have: f2_0=(shift_sint32 (global L_i_77) 0).
+    }
+    Else {
+      (* tests/wp_acsl/funvar_inv.i:46: Assignment *)
+      Have: f2_0=(shift_sint32 a_0 v_0).
+    }
+  }
+  Else {
+    (* tests/wp_acsl/funvar_inv.i:45: Conditional *)
+    If: 4<=v_0
+    Then {
+      (* tests/wp_acsl/funvar_inv.i:45: Assignment *)
+      Have: f2_0=(shift_sint32 (global L_i_77) 0).
+    }
+    Else {
+      (* tests/wp_acsl/funvar_inv.i:46: Assignment *)
+      Have: f2_0=(shift_sint32 a_0 v_0).
+    }
+  }
+}
+Prove: f2_0=a_0.
+
+------------------------------------------------------------
+
+Goal Post-condition 'P_addr_shift' in 'f2':
+Let a_0 = (shift_A4_sint32 (global G_G_67) 0).
+Let a_1 = (shift_sint32 a_0 1).
+Let x_0 = Mint_6[(shift_sint32 a_0 0)].
+Assume {
+  (* Domain *)
+  Type: (is_sint32 v_0) /\ (is_sint32 x_0).
+  (* Goal *)
+  When: (0=Mint_6[a_1]) /\ (0!=x_0).
+  (* Heap *)
+  Have: (linked Malloc_2).
+  (* tests/wp_acsl/funvar_inv.i:44: Conditional *)
+  If: (4*v_0)<=15
+  Then {
+    (* tests/wp_acsl/funvar_inv.i:44: Else *)
+    Have: 0=Mint_6[(shift_sint32 a_0 v_0)].
+    (* tests/wp_acsl/funvar_inv.i:45: Conditional *)
+    If: 4<=v_0
+    Then {
+      (* tests/wp_acsl/funvar_inv.i:45: Assignment *)
+      Have: f2_0=(shift_sint32 (global L_i_77) 0).
+    }
+    Else {
+      (* tests/wp_acsl/funvar_inv.i:46: Assignment *)
+      Have: f2_0=(shift_sint32 a_0 v_0).
+    }
+  }
+  Else {
+    (* tests/wp_acsl/funvar_inv.i:45: Conditional *)
+    If: 4<=v_0
+    Then {
+      (* tests/wp_acsl/funvar_inv.i:45: Assignment *)
+      Have: f2_0=(shift_sint32 (global L_i_77) 0).
+    }
+    Else {
+      (* tests/wp_acsl/funvar_inv.i:46: Assignment *)
+      Have: f2_0=(shift_sint32 a_0 v_0).
+    }
+  }
+}
+Prove: f2_0=a_1.
+
+------------------------------------------------------------
+
+Goal Loop assigns 'qed_ok,index':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function g
+------------------------------------------------------------
+
+Goal Post-condition 'P_addr_startof_shift' in 'g':
+Let a_0 = (shift_A4_sint32 (global G_G_67) 0).
+Assume {
+  (* Domain *)
+  Type: (is_sint32 v_0) /\ (is_sint32 Mint_6[(shift_sint32 a_0 1)]).
+  (* Goal *)
+  When: 0=Mint_6[(shift_sint32 a_0 0)].
+  (* Heap *)
+  Have: (linked Malloc_2).
+  (* tests/wp_acsl/funvar_inv.i:59: Conditional *)
+  If: (16*v_0)<=63
+  Then {
+    (* tests/wp_acsl/funvar_inv.i:59: Else *)
+    Have: 0=Mint_6[(shift_sint32 a_0 v_0)].
+    (* tests/wp_acsl/funvar_inv.i:60: Conditional *)
+    If: 4<=v_0
+    Then {
+      (* tests/wp_acsl/funvar_inv.i:60: Assignment *)
+      Have: g_0=(shift_sint32 (global L_i_82) 0).
+    }
+    Else {
+      (* tests/wp_acsl/funvar_inv.i:61: Assignment *)
+      Have: g_0=(shift_sint32 a_0 v_0).
+    }
+  }
+  Else {
+    (* tests/wp_acsl/funvar_inv.i:60: Conditional *)
+    If: 4<=v_0
+    Then {
+      (* tests/wp_acsl/funvar_inv.i:60: Assignment *)
+      Have: g_0=(shift_sint32 (global L_i_82) 0).
+    }
+    Else {
+      (* tests/wp_acsl/funvar_inv.i:61: Assignment *)
+      Have: g_0=(shift_sint32 a_0 v_0).
+    }
+  }
+}
+Prove: g_0=a_0.
+
+------------------------------------------------------------
+
+Goal Post-condition 'P_addr_addr_shift' in 'g':
+Let a_0 = (shift_A4_sint32 (global G_G_67) 0).
+Let a_1 = (shift_sint32 a_0 1).
+Let x_0 = Mint_6[(shift_sint32 a_0 0)].
+Assume {
+  (* Domain *)
+  Type: (is_sint32 v_0) /\ (is_sint32 x_0).
+  (* Goal *)
+  When: (0=Mint_6[a_1]) /\ (0!=x_0).
+  (* Heap *)
+  Have: (linked Malloc_2).
+  (* tests/wp_acsl/funvar_inv.i:59: Conditional *)
+  If: (16*v_0)<=63
+  Then {
+    (* tests/wp_acsl/funvar_inv.i:59: Else *)
+    Have: 0=Mint_6[(shift_sint32 a_0 v_0)].
+    (* tests/wp_acsl/funvar_inv.i:60: Conditional *)
+    If: 4<=v_0
+    Then {
+      (* tests/wp_acsl/funvar_inv.i:60: Assignment *)
+      Have: g_0=(shift_sint32 (global L_i_82) 0).
+    }
+    Else {
+      (* tests/wp_acsl/funvar_inv.i:61: Assignment *)
+      Have: g_0=(shift_sint32 a_0 v_0).
+    }
+  }
+  Else {
+    (* tests/wp_acsl/funvar_inv.i:60: Conditional *)
+    If: 4<=v_0
+    Then {
+      (* tests/wp_acsl/funvar_inv.i:60: Assignment *)
+      Have: g_0=(shift_sint32 (global L_i_82) 0).
+    }
+    Else {
+      (* tests/wp_acsl/funvar_inv.i:61: Assignment *)
+      Have: g_0=(shift_sint32 a_0 v_0).
+    }
+  }
+}
+Prove: g_0=a_1.
+
+------------------------------------------------------------
+
+Goal Loop assigns 'qed_ok':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------

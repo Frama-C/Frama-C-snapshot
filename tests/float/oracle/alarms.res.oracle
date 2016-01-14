@@ -22,6 +22,13 @@ tests/float/alarms.i:11:[kernel] warning: non-finite double value ([--..--]): as
         big ∈ {0}
         ull ∈ {0}
         l ∈ [--..--]
+        vf ∈ UNINITIALIZED
+        tmp ∈ UNINITIALIZED
+        vd ∈ UNINITIALIZED
+        i ∈ UNINITIALIZED
+        j ∈ UNINITIALIZED
+        mvd ∈ UNINITIALIZED
+        __retres ∈ UNINITIALIZED
         =END OF DUMP==
 [value] computing for function fd <- main.
         Called from tests/float/alarms.i:14.
@@ -38,11 +45,13 @@ tests/float/alarms.i:14:[kernel] warning: non-finite float value ([-1.7976931348
 [value] Done for function fd
 tests/float/alarms.i:16:[kernel] warning: non-finite double value ([--..--]): assert \is_finite(vd);
 tests/float/alarms.i:16:[kernel] warning: overflow in conversion of vd ([-1.79769313486e+308 .. 1.79769313486e+308])
-                  from floating-point to integer.
-                  assert -9223372036854775809 < vd < 9223372036854775808;
+                  from floating-point to integer. assert -9223372036854775809 < vd;
+tests/float/alarms.i:16:[kernel] warning: overflow in conversion of vd ([-1.79769313486e+308 .. 1.79769313486e+308])
+                  from floating-point to integer. assert vd < 9223372036854775808;
 tests/float/alarms.i:17:[kernel] warning: overflow in conversion of vf ([-3.40282346639e+38 .. 3.40282346639e+38]) from
-                  floating-point to integer.
-                  assert -9223372036854775809 < vf < 9223372036854775808;
+                  floating-point to integer. assert -9223372036854775809 < vf;
+tests/float/alarms.i:17:[kernel] warning: overflow in conversion of vf ([-3.40282346639e+38 .. 3.40282346639e+38]) from
+                  floating-point to integer. assert vf < 9223372036854775808;
 [value] computing for function fd <- main.
         Called from tests/float/alarms.i:18.
 [value] Done for function fd

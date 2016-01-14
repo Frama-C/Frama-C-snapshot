@@ -1,6 +1,6 @@
 /* run.config
-STDOPT: +"-initialized-padding-globals"
-STDOPT: +"-uninitialized-padding-globals"
+STDOPT: #"-initialized-padding-globals"
+STDOPT: #"-uninitialized-padding-globals"
 */
 
 const char S[5] = "12345";

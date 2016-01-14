@@ -6,20 +6,27 @@
 tests/misc/library.i:44:[value] warning: during initialization of variable 'ss', size of type 'struct ss' cannot be
                  computed (abstract type 'struct ss')
 [value:initial_state] creating variable S_1_p_ss with imprecise size (type struct ss [2])
-[value:initial_state] creating variable S_q_ss with imprecise size (type struct ss [2][8])
+[value:initial_state] creating variable S_0_0_S_q_ss with imprecise size (type struct ss [2])
+[value:initial_state] creating variable S_1_0_S_q_ss with imprecise size (type struct ss [2])
+[value:initial_state] creating variable S_0_1_S_q_ss with imprecise size (type struct ss [2])
+[value:initial_state] creating variable S_1_1_S_q_ss with imprecise size (type struct ss [2])
 [value] Initial state computed
 [value] Values of globals at initialization
   G ∈ {{ NULL ; &S_G[0] }}
+  v ∈ [--..--]
   G0 ∈ [--..--]
   G1 ∈ {{ NULL ; &S_G1[0] }}
-  f ∈ {{ garbled mix of &{S_f_0} (origin: Well) }}
-  s.f[0] ∈ {{ garbled mix of &{S_0_f_s} (origin: Well) }}
-   .f[1] ∈ {{ garbled mix of &{S_1_f_s} (origin: Well) }}
+  f ∈ {0}
+  s ∈ {0}
   ss.p[0] ∈ {{ NULL ; (struct ss *)&S_0_p_ss }}
     .p[1] ∈ {{ NULL ; (struct ss *)&S_1_p_ss }}
     .p[2..7] ∈ {{ NULL ; (struct ss *)&S_0_p_ss ; (struct ss *)&S_1_p_ss }}
-    .q ∈ {{ NULL ; (struct ss (*)[8])&S_q_ss }}
-  ff ∈ {{ garbled mix of &{S_ff} (origin: Well) }}
+    .q ∈ {{ NULL ; &S_q_ss[0] }}
+  ff ∈ {0}
+  s_bitfield.bf1 ∈ [--..--]
+            .[bits 5 to 15] ∈ UNINITIALIZED
+            .control ∈ [--..--]
+            .[bits 30 to 31] ∈ UNINITIALIZED
   S_G[0] ∈ {{ NULL ; &S_0_S_G[0] }}
      [1] ∈ {{ NULL ; &S_1_S_G[0] }}
   S_0_S_G[0] ∈ {{ NULL ; &S_0_S_0_S_G[0] }}
@@ -45,7 +52,18 @@ tests/misc/library.i:44:[value] warning: during initialization of variable 'ss',
   S_G1[0..1] ∈ [--..--]
   S_0_p_ss[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
   S_1_p_ss[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
-  S_q_ss[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  S_q_ss[0][0] ∈ {{ NULL ; (struct ss *)&S_0_0_S_q_ss }}
+        [0][1] ∈ {{ NULL ; (struct ss *)&S_1_0_S_q_ss }}
+        [0][2..7] ∈
+        {{ NULL ; (struct ss *)&S_0_0_S_q_ss ; (struct ss *)&S_1_0_S_q_ss }}
+        [1][0] ∈ {{ NULL ; (struct ss *)&S_0_1_S_q_ss }}
+        [1][1] ∈ {{ NULL ; (struct ss *)&S_1_1_S_q_ss }}
+        [1][2..7] ∈
+        {{ NULL ; (struct ss *)&S_0_1_S_q_ss ; (struct ss *)&S_1_1_S_q_ss }}
+  S_0_0_S_q_ss[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  S_1_0_S_q_ss[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  S_0_1_S_q_ss[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  S_1_1_S_q_ss[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
 [value] computing for function f_int <- main.
         Called from tests/misc/library.i:17.
 tests/misc/library.i:17:[kernel] warning: Neither code nor specification for function f_int, generating default assigns from the prototype
@@ -67,22 +85,8 @@ tests/misc/library.i:20:[kernel] warning: out of bounds write. assert \valid(*(*
 tests/misc/library.i:24:[kernel] warning: Neither code nor specification for function gen, generating default assigns from the prototype
 [value] using specification for function gen
 [value] Done for function gen
-tests/misc/library.i:25:[value] Reading left-value f.
-        It contains a garbled mix of {S_f_0} because of Well.
-tests/misc/library.i:25:[value] warning: Function pointer for call is imprecise: assert(\valid_fun_pointer(*f))
-[value] computing for function S_f_0 <- main.
-        Called from tests/misc/library.i:25.
-tests/misc/library.i:25:[kernel] warning: Neither code nor specification for function S_f_0, generating default assigns from the prototype
-[value] using specification for function S_f_0
-[value] Done for function S_f_0
-tests/misc/library.i:26:[value] Reading left-value g.
-        It contains a garbled mix of {S_g} because of Well.
-tests/misc/library.i:26:[value] warning: Function pointer for call is imprecise: assert(\valid_fun_pointer(*g))
-[value] computing for function S_g <- main.
-        Called from tests/misc/library.i:26.
-tests/misc/library.i:26:[kernel] warning: Neither code nor specification for function S_g, generating default assigns from the prototype
-[value] using specification for function S_g
-[value] Done for function S_g
+tests/misc/library.i:25:[value] warning: Function pointer call at absolute position in memory: ignoring this particular value: assert(\valid_fun_pointer(*f))
+tests/misc/library.i:26:[value] warning: Function pointer call at absolute position in memory: ignoring this particular value: assert(\valid_fun_pointer(*g))
 tests/misc/library.i:27:[value] warning: Function pointer call at absolute position in memory: ignoring this particular value: assert(\valid_fun_pointer(*h))
 tests/misc/library.i:27:[value] warning: Function pointer evaluates to function address plus offset: ignoring this particular value: assert(\valid_fun_pointer(*h))
 [value] computing for function alloced_return_gen <- main.
@@ -109,7 +113,7 @@ tests/misc/library.i:33:[kernel] warning: out of bounds write. assert \valid(pd)
 tests/misc/library.i:33:[kernel] more than 200(33554432) locations to update in array. Approximating.
 [value] Recording results for main
 [value] done for function main
-tests/misc/library.i:34:[kernel] more than 200(67108864) elements to enumerate. Approximating.
+tests/misc/library.i:31:[kernel] more than 200(67108864) elements to enumerate. Approximating.
 [value] ====== VALUES COMPUTED ======
 tests/misc/library.i:33:[kernel] more than 200(33554432) elements to enumerate. Approximating.
 [value] Values at end of function main:
@@ -118,8 +122,6 @@ tests/misc/library.i:33:[kernel] more than 200(33554432) elements to enumerate. 
   x ∈ [--..--]
   y ∈ {4}
   h ∈ {{ NULL + [--..--] ; &alloced_return_gen + [0..2147483640],0%8 }}
-  z1 ∈ [--..--]
-  z2 ∈ [--..--]
   z3 ∈ [--..--]
   pf ∈ {{ &alloced_return_i + [0..2147483616],0%32 }}
   vf ∈ [-3.40282346639e+38 .. 3.40282346639e+38]
@@ -139,10 +141,6 @@ tests/misc/library.i:33:[kernel] more than 200(33554432) elements to enumerate. 
 tests/misc/library.i:19:[kernel] more than 200(67108864) dependencies to update. Approximating.
 [from] Computing for function gen <-main
 [from] Done for function gen
-[from] Computing for function S_f_0 <-main
-[from] Done for function S_f_0
-[from] Computing for function S_g <-main
-[from] Done for function S_g
 [from] Computing for function alloced_return_gen <-main
 [from] Done for function alloced_return_gen
 [from] Computing for function i <-main
@@ -155,12 +153,6 @@ tests/misc/library.i:33:[kernel] more than 200(33554432) dependencies to update.
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
        These dependencies hold at termination for the executions that terminate:
-[from] Function S_f_0:
-  x FROM x; y (and SELF)
-  \result FROM x; y
-[from] Function S_g:
-  x FROM x; y (and SELF)
-  \result FROM x; y
 [from] Function alloced_return_gen:
   x FROM x; y (and SELF)
   \result FROM x; y
@@ -189,23 +181,27 @@ tests/misc/library.i:33:[kernel] more than 200(33554432) dependencies to update.
           alloced_return_i[bits 0 to 17179868959];
           alloced_return_k[bits 0 to 17179868735]
 [inout] Inputs for function main:
-          G; G1; f; S_G[0]; S_0_S_G[0]; S_0_S_0_S_G[0];
+          G; v; G1; f; S_G[0]; S_0_S_G[0]; S_0_S_0_S_G[0];
           alloced_return_i[bits 0 to 17179868959]
 [value] Analyzing an incomplete application starting at main2
 [value] Computing initial state
 [value] Initial state computed
 [value] Values of globals at initialization
   G ∈ {{ NULL ; &S_G[0] }}
+  v ∈ [--..--]
   G0 ∈ [--..--]
   G1 ∈ {{ NULL ; &S_G1[0] }}
-  f ∈ {{ garbled mix of &{S_f_0} (origin: Well) }}
-  s.f[0] ∈ {{ garbled mix of &{S_0_f_s} (origin: Well) }}
-   .f[1] ∈ {{ garbled mix of &{S_1_f_s} (origin: Well) }}
+  f ∈ {0}
+  s ∈ {0}
   ss.p[0] ∈ {{ NULL ; (struct ss *)&S_0_p_ss }}
     .p[1] ∈ {{ NULL ; (struct ss *)&S_1_p_ss }}
     .p[2..7] ∈ {{ NULL ; (struct ss *)&S_0_p_ss ; (struct ss *)&S_1_p_ss }}
-    .q ∈ {{ NULL ; (struct ss (*)[8])&S_q_ss }}
-  ff ∈ {{ garbled mix of &{S_ff} (origin: Well) }}
+    .q ∈ {{ NULL ; &S_q_ss[0] }}
+  ff ∈ {0}
+  s_bitfield.bf1 ∈ [--..--]
+            .[bits 5 to 15] ∈ UNINITIALIZED
+            .control ∈ [--..--]
+            .[bits 30 to 31] ∈ UNINITIALIZED
   S_G[0] ∈ {{ NULL ; &S_0_S_G[0] }}
      [1] ∈ {{ NULL ; &S_1_S_G[0] }}
   S_0_S_G[0] ∈ {{ NULL ; &S_0_S_0_S_G[0] }}
@@ -231,7 +227,18 @@ tests/misc/library.i:33:[kernel] more than 200(33554432) dependencies to update.
   S_G1[0..1] ∈ [--..--]
   S_0_p_ss[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
   S_1_p_ss[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
-  S_q_ss[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  S_q_ss[0][0] ∈ {{ NULL ; (struct ss *)&S_0_0_S_q_ss }}
+        [0][1] ∈ {{ NULL ; (struct ss *)&S_1_0_S_q_ss }}
+        [0][2..7] ∈
+        {{ NULL ; (struct ss *)&S_0_0_S_q_ss ; (struct ss *)&S_1_0_S_q_ss }}
+        [1][0] ∈ {{ NULL ; (struct ss *)&S_0_1_S_q_ss }}
+        [1][1] ∈ {{ NULL ; (struct ss *)&S_1_1_S_q_ss }}
+        [1][2..7] ∈
+        {{ NULL ; (struct ss *)&S_0_1_S_q_ss ; (struct ss *)&S_1_1_S_q_ss }}
+  S_0_0_S_q_ss[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  S_1_0_S_q_ss[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  S_0_1_S_q_ss[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  S_1_1_S_q_ss[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
 [value] Recording results for main2
 [value] done for function main2
 [value] ====== VALUES COMPUTED ======
@@ -254,15 +261,30 @@ tests/misc/library.i:33:[kernel] more than 200(33554432) dependencies to update.
 [value:initial_state] creating variable S_1_p_ss_0 with imprecise size (type struct ss [4])
 [value:initial_state] creating variable S_2_p_ss with imprecise size (type struct ss [4])
 [value:initial_state] creating variable S_3_p_ss with imprecise size (type struct ss [4])
-[value:initial_state] creating variable S_q_ss_0 with imprecise size (type struct ss [4][8])
+[value:initial_state] creating variable S_0_0_S_q_ss_0 with imprecise size (type struct ss [4])
+[value:initial_state] creating variable S_1_0_S_q_ss_0 with imprecise size (type struct ss [4])
+[value:initial_state] creating variable S_2_0_S_q_ss_0 with imprecise size (type struct ss [4])
+[value:initial_state] creating variable S_3_0_S_q_ss_0 with imprecise size (type struct ss [4])
+[value:initial_state] creating variable S_0_1_S_q_ss_0 with imprecise size (type struct ss [4])
+[value:initial_state] creating variable S_1_1_S_q_ss_0 with imprecise size (type struct ss [4])
+[value:initial_state] creating variable S_2_1_S_q_ss_0 with imprecise size (type struct ss [4])
+[value:initial_state] creating variable S_3_1_S_q_ss_0 with imprecise size (type struct ss [4])
+[value:initial_state] creating variable S_0_2_S_q_ss_0 with imprecise size (type struct ss [4])
+[value:initial_state] creating variable S_1_2_S_q_ss_0 with imprecise size (type struct ss [4])
+[value:initial_state] creating variable S_2_2_S_q_ss_0 with imprecise size (type struct ss [4])
+[value:initial_state] creating variable S_3_2_S_q_ss_0 with imprecise size (type struct ss [4])
+[value:initial_state] creating variable S_0_3_S_q_ss_0 with imprecise size (type struct ss [4])
+[value:initial_state] creating variable S_1_3_S_q_ss_0 with imprecise size (type struct ss [4])
+[value:initial_state] creating variable S_2_3_S_q_ss_0 with imprecise size (type struct ss [4])
+[value:initial_state] creating variable S_3_3_S_q_ss_0 with imprecise size (type struct ss [4])
 [value] Initial state computed
 [value] Values of globals at initialization
   G ∈ {{ NULL ; &S_G_0[0] }}
+  v ∈ [--..--]
   G0 ∈ [--..--]
   G1 ∈ {{ NULL ; &S_G1_0[0] }}
-  f ∈ {{ garbled mix of &{S_f_1} (origin: Well) }}
-  s.f[0] ∈ {{ garbled mix of &{S_0_f_s_0} (origin: Well) }}
-   .f[1] ∈ {{ garbled mix of &{S_1_f_s_0} (origin: Well) }}
+  f ∈ {0}
+  s ∈ {0}
   ss.p[0] ∈ {{ NULL ; (struct ss *)&S_0_p_ss_0 }}
     .p[1] ∈ {{ NULL ; (struct ss *)&S_1_p_ss_0 }}
     .p[2] ∈ {{ NULL ; (struct ss *)&S_2_p_ss }}
@@ -270,8 +292,12 @@ tests/misc/library.i:33:[kernel] more than 200(33554432) dependencies to update.
     .p[4..7] ∈
     {{ NULL ; (struct ss *)&S_0_p_ss_0 ; (struct ss *)&S_1_p_ss_0 ;
        (struct ss *)&S_2_p_ss ; (struct ss *)&S_3_p_ss }}
-    .q ∈ {{ NULL ; (struct ss (*)[8])&S_q_ss_0 }}
-  ff ∈ {{ garbled mix of &{S_ff_0} (origin: Well) }}
+    .q ∈ {{ NULL ; &S_q_ss_0[0] }}
+  ff ∈ {0}
+  s_bitfield.bf1 ∈ [--..--]
+            .[bits 5 to 15] ∈ UNINITIALIZED
+            .control ∈ [--..--]
+            .[bits 30 to 31] ∈ UNINITIALIZED
   S_G_0[0] ∈ {{ NULL ; &S_0_S_G_0[0] }}
        [1] ∈ {{ NULL ; &S_1_S_G_0[0] }}
        [2] ∈ {{ NULL ; &S_2_S_G_0[0] }}
@@ -425,7 +451,54 @@ tests/misc/library.i:33:[kernel] more than 200(33554432) dependencies to update.
   S_1_p_ss_0[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
   S_2_p_ss[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
   S_3_p_ss[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
-  S_q_ss_0[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  S_q_ss_0[0][0] ∈ {{ NULL ; (struct ss *)&S_0_0_S_q_ss_0 }}
+          [0][1] ∈ {{ NULL ; (struct ss *)&S_1_0_S_q_ss_0 }}
+          [0][2] ∈ {{ NULL ; (struct ss *)&S_2_0_S_q_ss_0 }}
+          [0][3] ∈ {{ NULL ; (struct ss *)&S_3_0_S_q_ss_0 }}
+          [0][4..7] ∈
+          {{ NULL ; (struct ss *)&S_0_0_S_q_ss_0 ;
+             (struct ss *)&S_1_0_S_q_ss_0 ; (struct ss *)&S_2_0_S_q_ss_0 ;
+             (struct ss *)&S_3_0_S_q_ss_0 }}
+          [1][0] ∈ {{ NULL ; (struct ss *)&S_0_1_S_q_ss_0 }}
+          [1][1] ∈ {{ NULL ; (struct ss *)&S_1_1_S_q_ss_0 }}
+          [1][2] ∈ {{ NULL ; (struct ss *)&S_2_1_S_q_ss_0 }}
+          [1][3] ∈ {{ NULL ; (struct ss *)&S_3_1_S_q_ss_0 }}
+          [1][4..7] ∈
+          {{ NULL ; (struct ss *)&S_0_1_S_q_ss_0 ;
+             (struct ss *)&S_1_1_S_q_ss_0 ; (struct ss *)&S_2_1_S_q_ss_0 ;
+             (struct ss *)&S_3_1_S_q_ss_0 }}
+          [2][0] ∈ {{ NULL ; (struct ss *)&S_0_2_S_q_ss_0 }}
+          [2][1] ∈ {{ NULL ; (struct ss *)&S_1_2_S_q_ss_0 }}
+          [2][2] ∈ {{ NULL ; (struct ss *)&S_2_2_S_q_ss_0 }}
+          [2][3] ∈ {{ NULL ; (struct ss *)&S_3_2_S_q_ss_0 }}
+          [2][4..7] ∈
+          {{ NULL ; (struct ss *)&S_0_2_S_q_ss_0 ;
+             (struct ss *)&S_1_2_S_q_ss_0 ; (struct ss *)&S_2_2_S_q_ss_0 ;
+             (struct ss *)&S_3_2_S_q_ss_0 }}
+          [3][0] ∈ {{ NULL ; (struct ss *)&S_0_3_S_q_ss_0 }}
+          [3][1] ∈ {{ NULL ; (struct ss *)&S_1_3_S_q_ss_0 }}
+          [3][2] ∈ {{ NULL ; (struct ss *)&S_2_3_S_q_ss_0 }}
+          [3][3] ∈ {{ NULL ; (struct ss *)&S_3_3_S_q_ss_0 }}
+          [3][4..7] ∈
+          {{ NULL ; (struct ss *)&S_0_3_S_q_ss_0 ;
+             (struct ss *)&S_1_3_S_q_ss_0 ; (struct ss *)&S_2_3_S_q_ss_0 ;
+             (struct ss *)&S_3_3_S_q_ss_0 }}
+  S_0_0_S_q_ss_0[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  S_1_0_S_q_ss_0[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  S_2_0_S_q_ss_0[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  S_3_0_S_q_ss_0[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  S_0_1_S_q_ss_0[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  S_1_1_S_q_ss_0[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  S_2_1_S_q_ss_0[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  S_3_1_S_q_ss_0[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  S_0_2_S_q_ss_0[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  S_1_2_S_q_ss_0[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  S_2_2_S_q_ss_0[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  S_3_2_S_q_ss_0[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  S_0_3_S_q_ss_0[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  S_1_3_S_q_ss_0[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  S_2_3_S_q_ss_0[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
+  S_3_3_S_q_ss_0[bits 0 to ..] ∈ [--..--] or UNINITIALIZED
 [value] Recording results for main2
 [value] done for function main2
 [value] ====== VALUES COMPUTED ======

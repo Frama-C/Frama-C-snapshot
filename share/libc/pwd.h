@@ -22,11 +22,14 @@
 
 #ifndef __FC_PWD_H__
 #define __FC_PWD_H__
+#include "features.h"
 
 #include "__fc_define_uid_and_gid.h"
 
 // for size_t
 #include "stddef.h"
+
+__BEGIN_DECLS
 
 struct passwd {
   char    *pw_name;
@@ -45,5 +48,7 @@ int            getpwuid_r(uid_t, struct passwd *, char *,
 void           endpwent(void);
 struct passwd *getpwent(void);
 void           setpwent(void);
+
+__END_DECLS
 
 #endif

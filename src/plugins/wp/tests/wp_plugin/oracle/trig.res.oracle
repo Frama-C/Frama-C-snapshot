@@ -1,0 +1,90 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_plugin/trig.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function foo
+------------------------------------------------------------
+
+Goal Assertion 'qed_ok,S' (file tests/wp_plugin/trig.i, line 39):
+Let x_0 = c_0.F_MSG_size.
+Let a_1 = c_0.F_MSG_text.
+Assume {
+  (* Domain *)
+  Type: (IsS_MSG a_0) /\ (IsS_MSG b_0) /\ (IsS_MSG c_0) /\ (is_sint32 x_0)
+        /\ (is_uint8 a_0.F_MSG_text[2]) /\ (is_uint8 b_0.F_MSG_text[2])
+        /\ (is_uint8 a_1[2]) /\ (is_uint8 a_1[7]).
+  (* Pre-condition (file tests/wp_plugin/trig.i, line 35) in 'foo' *)
+  (* Pre-condition: *)
+  Have: (5=a_0.F_MSG_size) /\ (5=b_0.F_MSG_size).
+  (* tests/wp_plugin/trig.i:38: Call 'fconcat' *)
+  Have: (EqS_MSG c_0 (L_concat a_0 b_0)).
+}
+Prove: 10=x_0.
+
+------------------------------------------------------------
+
+Goal Assertion 'qed_ok,A' (file tests/wp_plugin/trig.i, line 40):
+Let a_1 = a_0.F_MSG_text[2].
+Let a_2 = c_0.F_MSG_text.
+Let a_3 = a_2[2].
+Assume {
+  (* Domain *)
+  Type: (IsS_MSG a_0) /\ (IsS_MSG b_0) /\ (IsS_MSG c_0) /\ (is_uint8 a_1)
+        /\ (is_uint8 b_0.F_MSG_text[2]) /\ (is_uint8 a_3)
+        /\ (is_uint8 a_2[7]).
+  (* Pre-condition (file tests/wp_plugin/trig.i, line 35) in 'foo' *)
+  (* Pre-condition: *)
+  Have: (5=a_0.F_MSG_size) /\ (5=b_0.F_MSG_size).
+  (* tests/wp_plugin/trig.i:38: Call 'fconcat' *)
+  Have: (EqS_MSG c_0 (L_concat a_0 b_0)).
+  (* Assertion 'qed_ok,S' (file tests/wp_plugin/trig.i, line 39) *)
+  (* tests/wp_plugin/trig.i:39: Assertion 'qed_ok,S': *)
+  Have: 10=c_0.F_MSG_size.
+}
+Prove: a_1=a_3.
+
+------------------------------------------------------------
+
+Goal Assertion 'qed_ok,B' (file tests/wp_plugin/trig.i, line 41):
+Let a_1 = b_0.F_MSG_text[2].
+Let a_2 = c_0.F_MSG_text.
+Let a_3 = a_2[7].
+Let a_4 = a_0.F_MSG_text[2].
+Let a_5 = a_2[2].
+Assume {
+  (* Domain *)
+  Type: (IsS_MSG a_0) /\ (IsS_MSG b_0) /\ (IsS_MSG c_0) /\ (is_uint8 a_4)
+        /\ (is_uint8 a_1) /\ (is_uint8 a_5) /\ (is_uint8 a_3).
+  (* Pre-condition (file tests/wp_plugin/trig.i, line 35) in 'foo' *)
+  (* Pre-condition: *)
+  Have: (5=a_0.F_MSG_size) /\ (5=b_0.F_MSG_size).
+  (* tests/wp_plugin/trig.i:38: Call 'fconcat' *)
+  Have: (EqS_MSG c_0 (L_concat a_0 b_0)).
+  (* Assertion 'qed_ok,S' (file tests/wp_plugin/trig.i, line 39) *)
+  (* tests/wp_plugin/trig.i:39: Assertion 'qed_ok,S': *)
+  Have: 10=c_0.F_MSG_size.
+  (* Assertion 'qed_ok,A' (file tests/wp_plugin/trig.i, line 40) *)
+  (* tests/wp_plugin/trig.i:40: Assertion 'qed_ok,A': *)
+  Have: a_4=a_5.
+}
+Prove: a_1=a_3.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition 'qed_ok' in 'fconcat'' in 'foo' at call 'fconcat' (file tests/wp_plugin/trig.i, line 38)
+:
+Assume {
+  (* Domain *)
+  Type: (IsS_MSG a_0) /\ (IsS_MSG b_0) /\ (is_uint8 a_0.F_MSG_text[2])
+        /\ (is_uint8 b_0.F_MSG_text[2]).
+  (* Pre-condition (file tests/wp_plugin/trig.i, line 35) in 'foo' *)
+  (* Pre-condition: *)
+  Have: (5=a_0.F_MSG_size) /\ (5=b_0.F_MSG_size).
+}
+Prove: true.
+
+------------------------------------------------------------

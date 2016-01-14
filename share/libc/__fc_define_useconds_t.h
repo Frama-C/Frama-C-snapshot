@@ -23,5 +23,8 @@
 
 #ifndef __FC_DEFINE_USECONDS_T
 #define __FC_DEFINE_USECONDS_T
+#include "features.h"
+__BEGIN_DECLS
 typedef unsigned int useconds_t;
+__END_DECLS
 #endif

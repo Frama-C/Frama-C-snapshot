@@ -34,45 +34,45 @@
         Called from tests/misc/reduce_index.i:11.
 [value] Recording results for f1_aux
 [value] Done for function f1_aux
-tests/misc/reduce_index.i:11:[kernel] warning: accessing out of bounds index [-2147483648..2147483647].
-                  assert 0 ≤ c1 < 10;
+tests/misc/reduce_index.i:11:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert 0 ≤ c1;
+tests/misc/reduce_index.i:11:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert c1 < 10;
 [value] Recording results for f1
 [value] Done for function f1
 [value] computing for function f2 <- main.
         Called from tests/misc/reduce_index.i:131.
-tests/misc/reduce_index.i:17:[kernel] warning: accessing out of bounds index [-2147483648..2147483647].
-                  assert 0 ≤ c2 < 10;
+tests/misc/reduce_index.i:17:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert 0 ≤ c2;
+tests/misc/reduce_index.i:17:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert c2 < 10;
 [value] Recording results for f2
 [value] Done for function f2
 [value] computing for function f3 <- main.
         Called from tests/misc/reduce_index.i:132.
-tests/misc/reduce_index.i:21:[kernel] warning: accessing out of bounds index [-2147483648..2147483647].
-                  assert 0 ≤ c3 < 10;
+tests/misc/reduce_index.i:21:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert 0 ≤ c3;
+tests/misc/reduce_index.i:21:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert c3 < 10;
 [value] Recording results for f3
 [value] Done for function f3
 [value] computing for function f4 <- main.
         Called from tests/misc/reduce_index.i:133.
-tests/misc/reduce_index.i:27:[kernel] warning: accessing out of bounds index [-2147483648..2147483647].
-                  assert 0 ≤ c4 < 10;
+tests/misc/reduce_index.i:27:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert 0 ≤ c4;
+tests/misc/reduce_index.i:27:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert c4 < 10;
 [value] Recording results for f4
 [value] Done for function f4
 [value] computing for function f5 <- main.
         Called from tests/misc/reduce_index.i:134.
-tests/misc/reduce_index.i:35:[kernel] warning: accessing out of bounds index [-2147483648..2147483647].
-                  assert 0 ≤ c5 < 10;
+tests/misc/reduce_index.i:35:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert 0 ≤ c5;
+tests/misc/reduce_index.i:35:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert c5 < 10;
 [value] Recording results for f5
 [value] Done for function f5
 [value] computing for function f6 <- main.
         Called from tests/misc/reduce_index.i:135.
-tests/misc/reduce_index.i:42:[kernel] warning: accessing out of bounds index [-2147483648..2147483647].
-                  assert 0 ≤ c6 < 11;
+tests/misc/reduce_index.i:42:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert 0 ≤ c6;
+tests/misc/reduce_index.i:42:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert c6 < 11;
 tests/misc/reduce_index.i:42:[kernel] warning: accessing out of bounds index [0..10]. assert c6 < 10;
 [value] Recording results for f6
 [value] Done for function f6
 [value] computing for function f7 <- main.
         Called from tests/misc/reduce_index.i:136.
-tests/misc/reduce_index.i:48:[kernel] warning: accessing out of bounds index [-2147483648..2147483647].
-                  assert 0 ≤ c7 < 10;
+tests/misc/reduce_index.i:48:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert 0 ≤ c7;
+tests/misc/reduce_index.i:48:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert c7 < 10;
 [value] Recording results for f7
 [value] Done for function f7
 [value] computing for function f8 <- main.
@@ -82,27 +82,27 @@ tests/misc/reduce_index.i:64:[kernel] warning: out of bounds write. assert \vali
 [value] Done for function f8
 [value] computing for function f9 <- main.
         Called from tests/misc/reduce_index.i:138.
-tests/misc/reduce_index.i:72:[kernel] warning: accessing out of bounds index [-2147483648..2147483647].
-                  assert 0 ≤ c9 < 10;
+tests/misc/reduce_index.i:72:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert 0 ≤ c9;
+tests/misc/reduce_index.i:72:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert c9 < 10;
 [value] Recording results for f9
 [value] Done for function f9
 [value] computing for function f10 <- main.
         Called from tests/misc/reduce_index.i:139.
-tests/misc/reduce_index.i:86:[kernel] warning: accessing out of bounds index [-2147483648..2147483647].
-                  assert 0 ≤ c10 < 7;
+tests/misc/reduce_index.i:86:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert 0 ≤ c10;
+tests/misc/reduce_index.i:86:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert c10 < 7;
 [value] Recording results for f10
 [value] Done for function f10
 [value] computing for function f11 <- main.
         Called from tests/misc/reduce_index.i:140.
-tests/misc/reduce_index.i:93:[kernel] warning: accessing out of bounds index [-2147483648..2147483647].
-                  assert 0 ≤ c11 < 7;
+tests/misc/reduce_index.i:93:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert 0 ≤ c11;
+tests/misc/reduce_index.i:93:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert c11 < 7;
 tests/misc/reduce_index.i:93:[kernel] warning: out of bounds write. assert \valid(&(*p7)[c11]);
 [value] Recording results for f11
 [value] Done for function f11
 [value] computing for function f12 <- main.
         Called from tests/misc/reduce_index.i:141.
-tests/misc/reduce_index.i:100:[kernel] warning: accessing out of bounds index [-2147483648..2147483647].
-                  assert 0 ≤ c12 < 4;
+tests/misc/reduce_index.i:100:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert 0 ≤ c12;
+tests/misc/reduce_index.i:100:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert c12 < 4;
 [value] Recording results for f12
 [value] Done for function f12
 [value] computing for function pointer_index <- main.

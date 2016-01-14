@@ -1,0 +1,39 @@
+# frama-c -wp -wp-model 'Typed (Ref)' [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_hoare/reference_array_simple.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] Collecting variable usage
+------------------------------------------------------------
+  Function call_f1
+------------------------------------------------------------
+
+Goal Post-condition 'todo' in 'call_f1':
+Let x_0 = Mint_0[(shift_sint32 (shift_A10_A5_sint32 (global G_tt_67) 0) 3)].
+Assume { (* Domain *) Type: (is_sint32 x_0). }
+Prove: 5=x_0.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function call_f2
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_hoare/reference_array_simple.i, line 25) in 'call_f2':
+Assume {
+  (* tests/wp_hoare/reference_array_simple.i:29: Call 'f2' *)
+  Have: 5=Mint_0[(shift_sint32 f2_0 3)].
+}
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function call_f3
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_hoare/reference_array_simple.i, line 39) in 'call_f3':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------

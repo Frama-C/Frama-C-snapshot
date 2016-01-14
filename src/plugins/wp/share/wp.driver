@@ -1,0 +1,122 @@
+/**************************************************************************/
+/*                                                                        */
+/*  This file is part of WP plug-in of Frama-C.                           */
+/*                                                                        */
+/*  Copyright (C) 2007-2015                                               */
+/*    CEA (Commissariat a l'energie atomique et aux energies              */
+/*         alternatives)                                                  */
+/*                                                                        */
+/*  you can redistribute it and/or modify it under the terms of the GNU   */
+/*  Lesser General Public License as published by the Free Software       */
+/*  Foundation, version 2.1.                                              */
+/*                                                                        */
+/*  It is distributed in the hope that it will be useful,                 */
+/*  but WITHOUT ANY WARRANTY; without even the implied warranty of        */
+/*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         */
+/*  GNU Lesser General Public License for more details.                   */
+/*                                                                        */
+/*  See the GNU Lesser General Public License version 2.1                 */
+/*  for more details (enclosed in the file licenses/LGPLv2.1).            */
+/*                                                                        */
+/**************************************************************************/
+
+library qed:
+coq.file += "coqwp/BuiltIn.v";
+coq.file += "coqwp:bool/Bool.v";
+coq.file += "coqwp:int/Int.v";
+coq.file += "coqwp:int/Abs.v";
+coq.file += "coqwp:int/ComputerDivision.v";
+coq.file += "coqwp:real/Real.v";
+coq.file += "coqwp:real/RealInfix.v";
+coq.file += "coqwp:real/FromInt.v";
+coq.file += "coqwp:map/Map.v";
+coq.file += "coqwp/Qedlib.v";
+coq.file += "coqwp/Qed.v";
+why3.import += "int.Abs:IAbs";
+why3.file += "why3/Qed.why";
+altergo.file += "ergo/int.Int.mlw";
+altergo.file += "ergo/int.Abs.mlw";
+altergo.file += "ergo/int.ComputerDivision.mlw";
+altergo.file += "ergo/real.Real.mlw";
+altergo.file += "ergo/real.RealInfix.mlw";
+altergo.file += "ergo/real.FromInt.mlw";
+altergo.file += "ergo/Qed.mlw";
+
+library minmax_int:
+coq.file += "coqwp:int/MinMax.v";
+altergo.file += "ergo/int.MinMax.mlw";
+why3.import += "int.MinMax:Ig";
+logic integer "\\max"(integer,integer) =
+      commutative:associative:idempotent:
+      {coq="Zmax";altergo="max_int";why3="Ig.max"};
+logic integer "\\min"(integer,integer) =
+      commutative:associative:idempotent:
+      {coq="Zmin";altergo="min_int";why3="Ig.min"};
+
+library minmax_real:
+coq.file += "coqwp:real/MinMax.v";
+altergo.file += "ergo/real.MinMax.mlw";
+why3.import += "real.MinMax:Rg";
+logic real "\\max"(real,real) =
+      commutative:associative:idempotent:
+      {coq="Rmax";altergo="max_real";why3="Rg.max"};
+logic real "\\min"(real,real) =
+      commutative:associative:idempotent:
+      {coq="Rmin";altergo="min_real";why3="Rg.min"};
+
+library cint:
+coq.file += "coqwp/Cint.v";
+why3.file += "why3/Cint.why";
+altergo.file += "ergo/Cint.mlw";
+
+library cbits: cint
+coq.file += "coqwp/Bits.v";
+coq.file += "coqwp/Zbits.v";
+coq.file += "coqwp/Cbits.v";
+altergo.file += "ergo/Cbits.mlw";
+why3.file += "why3/Cbits.why";
+
+library cfloat: cmath
+coq.file += "coqwp/Cfloat.v";
+why3.import += "real.Abs:RAbs";
+why3.file += "why3/Cfloat.why";
+altergo.file += "ergo/real.Square.mlw";
+altergo.file += "ergo/real.Abs.mlw";
+altergo.file += "ergo/Cfloat.mlw";
+type "rounding_mode"   = "rounding_mode";
+ctor "Up"()            = "Up";
+ctor "Down"()          = "Down";
+ctor "ToZero"()        = "ToZero";
+ctor "NearestAway"()   = "NearestTiesToAway";
+ctor "NearestEven"()   = "NearestTiesToEven";
+predicate "\\is_finite"(float32) = "is_finite32";
+predicate "\\is_finite"(float64) = "is_finite64";
+predicate "\\is_NaN"(float32) = "is_NaN";
+predicate "\\is_NaN"(float64) = "is_NaN";
+predicate "\\is_infinite"(float32) = "is_infinite" ;
+predicate "\\is_infinite"(float64) = "is_infinite" ;
+predicate "\\is_plus_infinity"(float32) = "is_positive_infinite";
+predicate "\\is_plus_infinity"(float64) = "is_positive_infinite";
+predicate "\\is_minus_infinity"(float32) = "is_negative_infinite";
+predicate "\\is_minus_infinity"(float64) = "is_negative_infinite";
+logic bool "\\round_float"(rounding_mode,real) = "round_float";
+logic bool "\\round_double"(rounding_mode,real) = "round_double";
+
+library vset:
+coq.file := "coqwp/Vset.v";
+why3.file := "why3/Vset.why";
+altergo.file := "ergo/Vset.mlw";
+
+
+library memory:
+coq.file := "coqwp/Memory.v";
+why3.file := "why3/Memory.why";
+altergo.file := "ergo/Memory.mlw";
+
+
+library cmath: qed
+coq.file := "coqwp/Cmath.v";
+coq.file := "coqwp:real/Square.v";
+why3.file := "why3/Cmath.why";
+altergo.file := "ergo/real.Square.mlw";
+altergo.file += "ergo/Cmath.mlw";

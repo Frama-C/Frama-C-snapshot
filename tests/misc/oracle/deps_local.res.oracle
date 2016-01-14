@@ -26,8 +26,8 @@
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
 [value] Values at end of function h:
-  ga ∈ {0} or UNINITIALIZED
-  fa ∈ {0} or UNINITIALIZED
+  ga ∈ {0}
+  fa ∈ {0}
 [value] Values at end of function f:
   fa ∈ {0}
   __retres ∈ {0}

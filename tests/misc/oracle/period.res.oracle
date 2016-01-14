@@ -76,6 +76,8 @@
         Ft ∈ {2}
         Gt ∈ {12}
         Ht ∈ {1}
+        p ∈ UNINITIALIZED
+        vg ∈ UNINITIALIZED
         =END OF DUMP==
 tests/misc/period.c:51:[value] warning: Operation {{ &g }} + {{ &g }} incurs a loss of precision
 tests/misc/period.c:51:[value] Assigning imprecise value to p.

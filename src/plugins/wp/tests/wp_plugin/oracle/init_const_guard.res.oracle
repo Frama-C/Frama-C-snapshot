@@ -1,0 +1,82 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_plugin/init_const_guard.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function f
+------------------------------------------------------------
+
+Goal Post-condition 'Const' in 'f':
+Assume {
+  (* Initializer *)
+  Init: (shift_sint32 (global G_x_67) 0)=
+        Mptr_0[(shift_PTR (global K_q_68) 0)].
+  (* Heap *)
+  Have: (framed Mptr_0) /\ (linked Malloc_0).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'Pointed_Valid' in 'f':
+Let a_0 = (shift_sint32 (global G_x_67) 0).
+Assume {
+  (* Initializer *)
+  Init: a_0=Mptr_0[(shift_PTR (global K_q_68) 0)].
+  (* Heap *)
+  Have: (framed Mptr_0) /\ (linked Malloc_0).
+}
+Prove: (valid_rw Malloc_0 a_0 1).
+
+------------------------------------------------------------
+
+Goal Post-condition 'Q_ReadOnly' in 'f':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'Q_NotWrite' in 'f':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function g
+------------------------------------------------------------
+
+Goal Post-condition 'P_not_Const' in 'g':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assertion 'Read' (file tests/wp_plugin/init_const_guard.i, line 31):
+Let a_0 = (shift_sint32 (global G_x_67) 0).
+Assume {
+  (* Initializer *)
+  Init: a_0=Mptr_2[(shift_PTR (global K_q_68) 0)].
+  (* Heap *)
+  Have: (framed Mptr_2) /\ (linked Malloc_0).
+}
+Prove: (valid_rd Malloc_0 a_0 1).
+
+------------------------------------------------------------
+
+Goal Assertion 'Guard_against_Const' (file tests/wp_plugin/init_const_guard.i, line 32):
+Let a_0 = (shift_sint32 (global G_x_67) 0).
+Assume {
+  (* Initializer *)
+  Init: a_0=Mptr_2[(shift_PTR (global K_q_68) 0)].
+  (* Heap *)
+  Have: (framed Mptr_2) /\ (linked Malloc_0).
+  (* Assertion 'Read' (file tests/wp_plugin/init_const_guard.i, line 31) *)
+  (* tests/wp_plugin/init_const_guard.i:31: Assertion 'Read': *)
+  Have: (valid_rd Malloc_0 a_0 1).
+}
+Prove: not (valid_rw Malloc_0 a_0 1).
+
+------------------------------------------------------------

@@ -24,6 +24,9 @@
 #ifndef __FC_STDINT
 #define __FC_STDINT
 #include "__fc_machdep.h"
+#include "features.h"
+
+__BEGIN_DECLS
 
 /* ISO C: 7.18.1.1 */
 #ifdef __INT8_T
@@ -122,5 +125,7 @@ typedef __UINT_MAX_T uintmax_t;
 
 #define INTMAX_C(c) (c ## LL)
 #define UINTMAX_C(c) (c ## ULL)
+
+__END_DECLS
 
 #endif

@@ -75,7 +75,7 @@ int main2(int c,signed char nr_map) {
     unsigned long long size = biosmap->size;
     unsigned long long end = start + size;
     unsigned long type = biosmap->type;
-    CEA_F(nr_map);
+    Frama_C_show_each_F(nr_map);
     if (start>end) return -1;
     if (c) {
       start = 0x100000L;

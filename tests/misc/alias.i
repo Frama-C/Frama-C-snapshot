@@ -1,11 +1,11 @@
 /* run.config
-   OPT: -val -deps -out -input -journal-disable -no-results-function f
-   OPT: -val -deps -out -input  -main main3 -journal-disable
-   OPT: -val -deps -out -input  -main main4 -absolute-valid-range 0-0xFF -journal-disable
-   OPT: -val -deps -out -input  -main main5 -journal-disable
-   OPT: -val -deps -out -input  -main main6 -absolute-valid-range 0-0xFF -journal-disable
-   OPT: -val -deps -out -input  -main main11  -absolute-valid-range 0-0xFF -journal-disable
-   OPT: -val -deps -out -input  -main main8  -absolute-valid-range 0-0xFF -journal-disable
+   STDOPT: #"-no-results-function f"
+   STDOPT: #"-main main3"
+   STDOPT: #"-main main4 -absolute-valid-range 0-0xFF"
+   STDOPT: #"-main main5"
+   STDOPT: #"-main main6 -absolute-valid-range 0-0xFF"
+   STDOPT: #"-main main11  -absolute-valid-range 0-0xFF"
+   STDOPT: #"-main main8  -absolute-valid-range 0-0xFF"
 
 */
 void f(char*x,int*y) {

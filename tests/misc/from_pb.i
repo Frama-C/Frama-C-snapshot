@@ -1,13 +1,13 @@
 /* run.config
   GCC:
-  OPT: -val -deps -out -input  -main main0 -journal-disable
-  OPT: -val -deps -out -input  -main main1 -journal-disable
-  OPT: -val -deps -out -input  -main main2 -journal-disable
-  OPT: -val -deps -out -input  -main main3 -journal-disable
-  OPT: -val -deps -out -input  -main main4 -journal-disable
-  OPT: -val -deps -out -input  -main main4bis -journal-disable
-  OPT: -val -deps -out -input  -main main5 -journal-disable
-  OPT: -val -deps -out -input  -main main5bis -journal-disable
+  STDOPT: #"-main main0"
+  STDOPT: #"-main main1"
+  STDOPT: #"-main main2"
+  STDOPT: #"-main main3"
+  STDOPT: #"-main main4"
+  STDOPT: #"-main main4bis"
+  STDOPT: #"-main main5"
+  STDOPT: #"-main main5bis"
 */
 
 int k,i,j,x,c,d,T[10];

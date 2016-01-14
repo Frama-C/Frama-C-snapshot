@@ -17,13 +17,19 @@
   s1 ∈ {0}
   s2[0..7] ∈ {0}
   NULL ∈ {0}
-tests/misc/pointer_comp.c:33:[kernel] warning: pointer comparison: assert \pointer_comparable(&s2[9], NULL);
-tests/misc/pointer_comp.c:34:[kernel] warning: pointer comparison: assert \pointer_comparable(&s2[9], &s2[9]);
-tests/misc/pointer_comp.c:37:[kernel] warning: pointer comparison: assert \pointer_comparable(&str1, &str2);
-tests/misc/pointer_comp.c:38:[kernel] warning: pointer comparison: assert \pointer_comparable(&s1, &s2);
+tests/misc/pointer_comp.c:33:[kernel] warning: pointer comparison: assert \pointer_comparable((void *)(&s2[9]), NULL);
+tests/misc/pointer_comp.c:34:[kernel] warning: pointer comparison:
+                  assert \pointer_comparable((void *)(&s2[9]), (void *)(&s2[9]));
+tests/misc/pointer_comp.c:37:[kernel] warning: pointer comparison:
+                  assert \pointer_comparable((void *)(&str1), (void *)(&str2));
+tests/misc/pointer_comp.c:38:[kernel] warning: pointer comparison: assert \pointer_comparable((void *)(&s1), (void *)(&s2));
 tests/misc/pointer_comp.c:39:[kernel] warning: pointer comparison:
                   assert \pointer_comparable((void (*)())(&f), (void (*)())(&g));
-tests/misc/pointer_comp.c:46:[kernel] warning: pointer comparison: assert \pointer_comparable((void (*)())p, NULL);
+tests/misc/pointer_comp.c:42:[kernel] warning: pointer comparison: assert \pointer_comparable((void *)(&s1), NULL);
+tests/misc/pointer_comp.c:43:[kernel] warning: pointer comparison: assert \pointer_comparable((void *)(&s1+1), NULL);
+tests/misc/pointer_comp.c:44:[kernel] warning: pointer comparison: assert \pointer_comparable((void *)(&s2[8]), NULL);
+tests/misc/pointer_comp.c:46:[kernel] warning: pointer comparison: assert \pointer_comparable((void (*)())(&f), NULL);
+tests/misc/pointer_comp.c:47:[kernel] warning: pointer comparison: assert \pointer_comparable((void (*)())p, NULL);
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======

@@ -1,6 +1,6 @@
 /* run.config
-   OPT: -val -deps -out -input -journal-disable
-   OPT: -unsafe-arrays -val -deps -out -input -journal-disable
+   STDOPT: #"-main main"
+   STDOPT: #"-unsafe-arrays"
 */
 
 volatile int c;

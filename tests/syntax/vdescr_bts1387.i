@@ -1,5 +1,5 @@
 /* run.config
-OPT: -load-script tests/syntax/vdescr_bts1387.i 
+OPT: -load-script tests/syntax/vdescr_bts1387.ml
 */
 int f(int);
 int g(int);

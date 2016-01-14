@@ -27,6 +27,9 @@
 
 #include "__fc_define_pid_t.h"
 #include "__fc_define_uid_and_gid.h"
+#include "features.h"
+
+__BEGIN_DECLS
 
 /* TODO: put sig_atomic_t in machdep */
 typedef volatile int sig_atomic_t;
@@ -136,5 +139,7 @@ int sigaction(int signum, const struct sigaction *act,
 int sigprocmask(int how, const sigset_t *set, sigset_t *oldset);
 
 int kill(pid_t pid, int sig);
+
+__END_DECLS
 
 #endif

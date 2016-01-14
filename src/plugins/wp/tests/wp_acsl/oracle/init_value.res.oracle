@@ -1,0 +1,350 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_acsl/init_value.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function main
+------------------------------------------------------------
+
+Goal Pre-condition 'qed_ok,Struct_Simple_a' in 'main':
+Assume {
+  (* Initializer *)
+  Init: 2=s_0.F_S_a.
+  (* Initializer *)
+  Init: 0=s_0.F_S_b.
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'qed_ok,Struct_Simple_b' in 'main':
+Assume {
+  (* Initializer *)
+  Init: 2=s_0.F_S_a.
+  (* Initializer *)
+  Init: 0=s_0.F_S_b.
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'qed_ok,Simple_Array_0' in 'main':
+Assume {
+  (* Domain *)
+  Type: (is_sint32 t_0[1]).
+  (* Initializer *)
+  Init: 1=t_0[0].
+  (* Initializer *)
+  Init: forall i_0:int. (0<i_0) -> (i_0<=1) -> (0=t_0[i_0]).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'qed_ok,Simple_Array_1' in 'main':
+Let x_0 = t_0[1].
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_0).
+  (* Initializer *)
+  Init: 1=t_0[0].
+  (* Initializer *)
+  Init: forall i_0:int. (0<i_0) -> (i_0<=1) -> (0=t_0[i_0]).
+}
+Prove: 0=x_0.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'qed_ok,With_Array_Struct_5' in 'main':
+Let a_0 = st_0.F_St_tab.
+Assume {
+  (* Domain *)
+  Type: (is_sint32 a_0[5]).
+  (* Initializer *)
+  Init: 1=a_0[0].
+  (* Initializer *)
+  Init: 2=a_0[1].
+  (* Initializer *)
+  Init: 3=a_0[2].
+  (* Initializer *)
+  Init: 4=a_0[3].
+  (* Initializer *)
+  Init: forall i_0:int. (4<=i_0) -> (i_0<=9) -> (0=a_0[i_0]).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'qed_ok,With_Array_Struct_3' in 'main':
+Let a_0 = st_0.F_St_tab.
+Assume {
+  (* Domain *)
+  Type: (is_sint32 a_0[5]).
+  (* Initializer *)
+  Init: 1=a_0[0].
+  (* Initializer *)
+  Init: 2=a_0[1].
+  (* Initializer *)
+  Init: 3=a_0[2].
+  (* Initializer *)
+  Init: 4=a_0[3].
+  (* Initializer *)
+  Init: forall i_0:int. (4<=i_0) -> (i_0<=9) -> (0=a_0[i_0]).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'qed_ok,Sc_eq' in 'main':
+Let a_0 = sc0_0.F_Sc_b.
+Let a_1 = sc1_0.F_Sc_b.
+Assume {
+  (* Domain *)
+  Type: (IsS_Sc sc0_0) /\ (IsS_Sc sc1_0).
+  (* Initializer *)
+  Init: 1=sc1_0.F_Sc_a.
+  (* Initializer *)
+  Init: 2=a_1[0].
+  (* Initializer *)
+  Init: 3=a_1[1].
+  (* Initializer *)
+  Init: 4=a_1[2].
+  (* Initializer *)
+  Init: 5=sc1_0.F_Sc_c.
+  (* Initializer *)
+  Init: 1=sc0_0.F_Sc_a.
+  (* Initializer *)
+  Init: 2=a_0[0].
+  (* Initializer *)
+  Init: 3=a_0[1].
+  (* Initializer *)
+  Init: 4=a_0[2].
+  (* Initializer *)
+  Init: 5=sc0_0.F_Sc_c.
+}
+Prove: (EqS_Sc sc1_0 sc0_0).
+
+------------------------------------------------------------
+
+Goal Pre-condition 'qed_ok,Sc_t' in 'main':
+Let a_0 = sc2_0.F_Sc_b.
+Assume {
+  (* Domain *)
+  Type: (IsS_Sc sc2_0) /\ (is_sint32 a_0[2]).
+  (* Initializer *)
+  Init: 1=sc2_0.F_Sc_a.
+  (* Initializer *)
+  Init: 2=a_0[0].
+  (* Initializer *)
+  Init: 3=a_0[1].
+  (* Initializer *)
+  Init: forall i_0:int. (2<=i_0) -> (i_0<=2) -> (0=a_0[i_0]).
+  (* Initializer *)
+  Init: 4=sc2_0.F_Sc_c.
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'qed_ok,Sc_t' in 'main':
+Let a_0 = sc3_0.F_Sc_b.
+Assume {
+  (* Domain *)
+  Type: (IsS_Sc sc3_0).
+  (* Initializer *)
+  Init: 1=sc3_0.F_Sc_a.
+  (* Initializer *)
+  Init: 2=a_0[0].
+  (* Initializer *)
+  Init: 3=a_0[1].
+  (* Initializer *)
+  Init: 4=a_0[2].
+  (* Initializer *)
+  Init: 0=sc3_0.F_Sc_c.
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'qed_ok,Sc_c_2' in 'main':
+Let a_0 = sc2_0.F_Sc_b.
+Assume {
+  (* Domain *)
+  Type: (IsS_Sc sc2_0) /\ (is_sint32 a_0[2]).
+  (* Initializer *)
+  Init: 1=sc2_0.F_Sc_a.
+  (* Initializer *)
+  Init: 2=a_0[0].
+  (* Initializer *)
+  Init: 3=a_0[1].
+  (* Initializer *)
+  Init: forall i_0:int. (2<=i_0) -> (i_0<=2) -> (0=a_0[i_0]).
+  (* Initializer *)
+  Init: 4=sc2_0.F_Sc_c.
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'qed_ok,Sc_c_3' in 'main':
+Let a_0 = sc3_0.F_Sc_b.
+Assume {
+  (* Domain *)
+  Type: (IsS_Sc sc3_0).
+  (* Initializer *)
+  Init: 1=sc3_0.F_Sc_a.
+  (* Initializer *)
+  Init: 2=a_0[0].
+  (* Initializer *)
+  Init: 3=a_0[1].
+  (* Initializer *)
+  Init: 4=a_0[2].
+  (* Initializer *)
+  Init: 0=sc3_0.F_Sc_c.
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'qed_ok,Tab_no_init' in 'main':
+Assume {
+  (* Domain *)
+  Type: (is_uint8 tab_0[5]).
+  (* Initializer *)
+  Init: forall i_0:int. (0<=i_0) -> (i_0<=31) -> (0=tab_0[i_0]).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'qed_ok,Tab_todo' in 'main':
+Assume {
+  (* Domain *)
+  Type: (is_uint8 tab_0[5]).
+  (* Goal *)
+  When: (0<=i_2) /\ (i_2<=31) /\ (is_sint32 i_2).
+  (* Initializer *)
+  Init: forall i_0:int. (0<=i_0) -> (i_0<=31) -> (0=tab_0[i_0]).
+}
+Prove: tab_0[i_2]<=255.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'qed_ko,Sc_eq_ko' in 'main':
+Let a_0 = sc2_0.F_Sc_b.
+Let a_1 = sc3_0.F_Sc_b.
+Assume {
+  (* Domain *)
+  Type: (IsS_Sc sc2_0) /\ (IsS_Sc sc3_0) /\ (is_sint32 a_0[2]).
+  (* Initializer *)
+  Init: 1=sc3_0.F_Sc_a.
+  (* Initializer *)
+  Init: 2=a_1[0].
+  (* Initializer *)
+  Init: 3=a_1[1].
+  (* Initializer *)
+  Init: 4=a_1[2].
+  (* Initializer *)
+  Init: 0=sc3_0.F_Sc_c.
+  (* Initializer *)
+  Init: 1=sc2_0.F_Sc_a.
+  (* Initializer *)
+  Init: 2=a_0[0].
+  (* Initializer *)
+  Init: 3=a_0[1].
+  (* Initializer *)
+  Init: forall i_0:int. (2<=i_0) -> (i_0<=2) -> (0=a_0[i_0]).
+  (* Initializer *)
+  Init: 4=sc2_0.F_Sc_c.
+}
+Prove: (EqS_Sc sc2_0 sc3_0).
+
+------------------------------------------------------------
+
+Goal Pre-condition 'qed_ko,Sc_t' in 'main':
+Let a_0 = sc3_0.F_Sc_b.
+Assume {
+  (* Domain *)
+  Type: (IsS_Sc sc3_0).
+  (* Initializer *)
+  Init: 1=sc3_0.F_Sc_a.
+  (* Initializer *)
+  Init: 2=a_0[0].
+  (* Initializer *)
+  Init: 3=a_0[1].
+  (* Initializer *)
+  Init: 4=a_0[2].
+  (* Initializer *)
+  Init: 0=sc3_0.F_Sc_c.
+}
+Prove: false.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'qed_ko,Sc_c_2' in 'main':
+Let a_0 = sc2_0.F_Sc_b.
+Assume {
+  (* Domain *)
+  Type: (IsS_Sc sc2_0) /\ (is_sint32 a_0[2]).
+  (* Initializer *)
+  Init: 1=sc2_0.F_Sc_a.
+  (* Initializer *)
+  Init: 2=a_0[0].
+  (* Initializer *)
+  Init: 3=a_0[1].
+  (* Initializer *)
+  Init: forall i_0:int. (2<=i_0) -> (i_0<=2) -> (0=a_0[i_0]).
+  (* Initializer *)
+  Init: 4=sc2_0.F_Sc_c.
+}
+Prove: false.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'qed_ko,Tab_no_init' in 'main':
+Assume {
+  (* Domain *)
+  Type: (is_uint8 tab_0[5]).
+  (* Initializer *)
+  Init: forall i_0:int. (0<=i_0) -> (i_0<=31) -> (0=tab_0[i_0]).
+}
+Prove: false.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'qed_ko,With_Array_Struct_3' in 'main':
+Let a_0 = st_0.F_St_tab.
+Assume {
+  (* Domain *)
+  Type: (is_sint32 a_0[5]).
+  (* Initializer *)
+  Init: 1=a_0[0].
+  (* Initializer *)
+  Init: 2=a_0[1].
+  (* Initializer *)
+  Init: 3=a_0[2].
+  (* Initializer *)
+  Init: 4=a_0[3].
+  (* Initializer *)
+  Init: forall i_0:int. (4<=i_0) -> (i_0<=9) -> (0=a_0[i_0]).
+}
+Prove: false.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'qed_ko,Simple_Array_1' in 'main':
+Let x_0 = t_0[1].
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_0).
+  (* Initializer *)
+  Init: 1=t_0[0].
+  (* Initializer *)
+  Init: forall i_0:int. (0<i_0) -> (i_0<=1) -> (0=t_0[i_0]).
+}
+Prove: 1=x_0.
+
+------------------------------------------------------------

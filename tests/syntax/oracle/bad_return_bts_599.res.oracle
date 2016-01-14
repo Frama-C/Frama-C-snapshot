@@ -9,8 +9,7 @@ int BadReturn1(int *p)
 {
   int __retres;
   int *tmp;
-  {
-    /*sequence*/
+  { /* sequence */
     tmp = p;
     p ++;
     ;
@@ -22,8 +21,7 @@ int BadReturn2(int *p)
 {
   int __retres;
   int *tmp;
-  {
-    /*sequence*/
+  { /* sequence */
     tmp = p;
     p ++;
     ;

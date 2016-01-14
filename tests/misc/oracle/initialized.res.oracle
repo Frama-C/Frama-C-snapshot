@@ -22,7 +22,7 @@ tests/misc/initialized.c:22:[value] Assertion got status unknown.
 [value] computing for function Frama_C_interval <- g1 <- main.
         Called from tests/misc/initialized.c:24.
 [value] using specification for function Frama_C_interval
-share/builtin.h:46:[value] Function Frama_C_interval: precondition got status valid.
+share/libc/__fc_builtin.h:51:[value] Function Frama_C_interval: precondition got status valid.
 [value] Done for function Frama_C_interval
 [value] computing for function Frama_C_interval <- g1 <- main.
         Called from tests/misc/initialized.c:25.
@@ -54,7 +54,8 @@ tests/misc/initialized.c:38:[value] Assertion got status unknown.
 [value] computing for function g2 <- main.
         Called from tests/misc/initialized.c:154.
 tests/misc/initialized.c:50:[value] warning: Operation {{ &b4 }} + {{ &b4 }} incurs a loss of precision
-tests/misc/initialized.c:50:[kernel] warning: signed overflow. assert -2147483648 ≤ (int)(&b4)+(int)(&b4) ≤ 2147483647;
+tests/misc/initialized.c:50:[kernel] warning: signed overflow. assert -2147483648 ≤ (int)(&b4)+(int)(&b4);
+tests/misc/initialized.c:50:[kernel] warning: signed overflow. assert (int)(&b4)+(int)(&b4) ≤ 2147483647;
 tests/misc/initialized.c:50:[value] Assigning imprecise value to t[6].
         The imprecision originates from Arithmetic {tests/misc/initialized.c:50}
 tests/misc/initialized.c:51:[value] Assigning imprecise value to t[7].
@@ -82,8 +83,10 @@ tests/misc/initialized.c:51:[value] Assigning imprecise value to t[7].
          {[12][bits 24 to 31]#; [13][bits 0 to 23]#} ∈
          {0x11111111; 0x22222222} or UNINITIALIZED
          [13][bits 24 to 31] ∈ {0} or UNINITIALIZED
+        p_0 ∈ UNINITIALIZED
         v1 ∈ {0}
         i6 ∈ [--..--]
+        __retres ∈ UNINITIALIZED
         =END OF DUMP==
 tests/misc/initialized.c:66:[value] Assertion got status unknown.
 [value] DUMPING STATE of file tests/misc/initialized.c line 68
@@ -116,8 +119,11 @@ tests/misc/initialized.c:66:[value] Assertion got status unknown.
         p_0 ∈ {{ &t + {7} }}
         v1 ∈ {0}
         i6 ∈ [--..--]
+        __retres ∈ UNINITIALIZED
         =END OF DUMP==
-[value] Called Frama_C_show_each({0x66778811})
+[value] Called Frama_C_show_each([bits 0 to 7]# ∈ {0x11223344}%32, bits 24 to 31 
+                                 [bits 8 to 31]# ∈ {0x55667788}%32, bits 0 to 23 
+                                 This amounts to: {0x66778811})
 tests/misc/initialized.c:72:[value] Assertion got status unknown.
 tests/misc/initialized.c:74:[value] Assertion got status unknown.
 tests/misc/initialized.c:76:[value] Assertion got status unknown.
@@ -236,7 +242,7 @@ tests/misc/initialized.c:104:[value] Assertion 'Value,initialisation' got final 
     [1..2] ∈ {1; 2}
     [3..4] ∈ UNINITIALIZED
   t2[0] ∈ UNINITIALIZED
-    [1..248] ∈ [1..248] or UNINITIALIZED
+    [1..248] ∈ [1..248]
     [249] ∈ UNINITIALIZED
 [value] Values at end of function g4:
   NON TERMINATING FUNCTION

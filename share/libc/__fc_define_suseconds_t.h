@@ -22,5 +22,8 @@
 
 #ifndef __FC_DEFINE_SUSECONDS_T
 #define __FC_DEFINE_SUSECONDS_T
+#include "features.h"
+__BEGIN_DECLS
 typedef signed int suseconds_t;
+__END_DECLS
 #endif

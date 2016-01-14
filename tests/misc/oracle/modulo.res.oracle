@@ -57,8 +57,10 @@ tests/misc/modulo.i:63:[kernel] warning: division by zero: assert b_0 ≢ 0;
 [value] Done for function pgcd3
 [value] computing for function main2 <- main.
         Called from tests/misc/modulo.i:155.
-tests/misc/modulo.i:9:[kernel] warning: signed overflow. assert -2147483648 ≤ 4*i ≤ 2147483647;
-tests/misc/modulo.i:10:[kernel] warning: signed overflow. assert -2147483648 ≤ 4*i ≤ 2147483647;
+tests/misc/modulo.i:9:[kernel] warning: signed overflow. assert -2147483648 ≤ 4*i;
+tests/misc/modulo.i:9:[kernel] warning: signed overflow. assert 4*i ≤ 2147483647;
+tests/misc/modulo.i:10:[kernel] warning: signed overflow. assert -2147483648 ≤ 4*i;
+tests/misc/modulo.i:10:[kernel] warning: signed overflow. assert 4*i ≤ 2147483647;
 tests/misc/modulo.i:11:[value] Assertion got status unknown.
 tests/misc/modulo.i:13:[value] Assertion got status unknown.
 tests/misc/modulo.i:27:[kernel] warning: division by zero: assert G ≢ 0;

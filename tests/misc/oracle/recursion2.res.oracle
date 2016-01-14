@@ -27,9 +27,9 @@
 [value] ====== VALUES COMPUTED ======
 [value] Values at end of function h1:
   r ∈ {0}
-  q ∈ {0} or UNINITIALIZED
+  q ∈ {0}
 [value] Values at end of function h2:
-  r ∈ {0} or UNINITIALIZED
+  r ∈ {0}
   q ∈ {0}
 [value] Values at end of function main:
   

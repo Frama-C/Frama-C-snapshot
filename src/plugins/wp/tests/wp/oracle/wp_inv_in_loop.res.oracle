@@ -1,0 +1,455 @@
+# frama-c -wp -wp-model 'Hoare' [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp/wp_inv_in_loop.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+tests/wp/wp_inv_in_loop.c:99:[wp] warning: Missing assigns clause (assigns 'everything' instead)
+tests/wp/wp_inv_in_loop.c:169:[wp] warning: calculus failed on strategy
+              for 'double_entry', behavior 'default!', all properties, both assigns or not
+              because unsupported non-natural loop without invariant property. (abort)
+tests/wp/wp_inv_in_loop.c:45:[wp] warning: Missing assigns clause (assigns 'everything' instead)
+tests/wp/wp_inv_in_loop.c:185:[wp] warning: Missing assigns clause (assigns 'everything' instead)
+tests/wp/wp_inv_in_loop.c:82:[wp] warning: Missing assigns clause (assigns 'everything' instead)
+tests/wp/wp_inv_in_loop.c:62:[wp] warning: Missing assigns clause (assigns 'everything' instead)
+tests/wp/wp_inv_in_loop.c:17:[wp] warning: Missing assigns clause (assigns 'everything' instead)
+------------------------------------------------------------
+  Function bts618
+------------------------------------------------------------
+
+Goal Invariant 'qed_ok' (file tests/wp/wp_inv_in_loop.c, line 101):
+Assume {
+  (* Domain *)
+  Type: (is_sint32 c_0).
+  (* Pre-condition (file tests/wp/wp_inv_in_loop.c, line 96) in 'bts618' *)
+  (* Pre-condition: *)
+  Have: 0<c_0.
+}
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function caveat_inv
+------------------------------------------------------------
+
+Goal Invariant 'qed_ok' (file tests/wp/wp_inv_in_loop.c, line 38):
+Assume {
+  (* Domain *)
+  Type: (is_sint32 n_0).
+  (* tests/wp/wp_inv_in_loop.c:37: Then *)
+  Have: 0<n_0.
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Loop assigns 'qed_ok':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function double_loop
+------------------------------------------------------------
+
+Goal Invariant 'qed_ok' (file tests/wp/wp_inv_in_loop.c, line 46):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Invariant 'qed_ok' (file tests/wp/wp_inv_in_loop.c, line 49):
+Assume { (* tests/wp/wp_inv_in_loop.c:48: Then *) Have: false. }
+Prove: false.
+
+------------------------------------------------------------
+
+Goal Loop assigns 'qed_ok':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function goto_natural_loop with behavior qed_ok
+------------------------------------------------------------
+
+Goal Post-condition for 'qed_ok' 'qed_ok,ok' in 'goto_natural_loop':
+Assume { (* tests/wp/wp_inv_in_loop.c:185: Then *) Have: false. }
+Prove: false.
+
+------------------------------------------------------------
+
+Goal Invariant for 'qed_ok' 'qed_ok' (file tests/wp/wp_inv_in_loop.c, line 186):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function goto_natural_loop with behavior without_inv
+------------------------------------------------------------
+
+Goal Post-condition for 'without_inv' 'qed_ko' in 'goto_natural_loop':
+Assume { (* tests/wp/wp_inv_in_loop.c:185: Then *) Have: false. }
+Prove: false.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function inv_from_init
+------------------------------------------------------------
+
+Goal Invariant 'qed_ok,I' (file tests/wp/wp_inv_in_loop.c, line 28):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Loop assigns 'qed_ok':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function non_natural_loop with behavior n_neg
+------------------------------------------------------------
+
+Goal Post-condition for 'n_neg' (file tests/wp/wp_inv_in_loop.c, line 121) in 'non_natural_loop':
+Assume {
+  (* Domain *)
+  Type: (is_sint32 n_0) /\ (is_sint32 n_3) /\ (is_sint32 n_4)
+        /\ (is_sint32 non_natural_loop_0) /\ (is_sint32 x_3)
+        /\ (is_sint32 x_6).
+  (* Pre-condition for 'n_neg' (file tests/wp/wp_inv_in_loop.c, line 120) in 'non_natural_loop' *)
+  (* Pre-condition for 'n_neg': *)
+  Have: n_4<0.
+  (* Merge *)Either {
+               Case:
+                 Let x_0 = 2+x_3.
+                 (* Domain *)
+                 Type: (is_sint32 x_3) /\ (is_sint32 x_0).
+                 (* Control Flow *)
+                 Have: (10=n_0) /\ (10=n_4).
+                 (* Invariant for 'n_neg' (file tests/wp/wp_inv_in_loop.c, line 137) *)
+                 (* tests/wp/wp_inv_in_loop.c:137: Invariant for 'n_neg': *)
+                 Have: (10=n_0) /\ (x_3<=9) /\ (0=(x_3 mod 2)).
+                 (* tests/wp/wp_inv_in_loop.c:134: Assignment *)
+                 Have: non_natural_loop_0=x_0.
+               Case:
+                 (* Control Flow *)
+                 Have: n_3=n_4.
+                 (* tests/wp/wp_inv_in_loop.c:128: Conditional *)
+                 If: n_3<0
+                 Then {
+                   (* tests/wp/wp_inv_in_loop.c:129: Assignment *)
+                   Have: 0=non_natural_loop_0.
+                   (* tests/wp/wp_inv_in_loop.c:130: Assignment *)
+                   Have: 10=n_0.
+                 }
+                 Else {
+                   (* Control Flow *)
+                   Have: 1=x_3.
+                   (* tests/wp/wp_inv_in_loop.c:133: Assignment *)
+                   Have: 20=n_0.
+                   (* Control Flow *)
+                   Have: 1=x_3.
+                   (* tests/wp/wp_inv_in_loop.c:134: Assignment *)
+                   Have: (1=x_3) /\ (3=non_natural_loop_0).
+                 }
+             }
+  (* tests/wp/wp_inv_in_loop.c:136: Else *)
+  Have: n_0<=non_natural_loop_0.
+}
+Prove: 10=non_natural_loop_0.
+
+------------------------------------------------------------
+
+Goal Invariant for 'n_neg' (file tests/wp/wp_inv_in_loop.c, line 137):
+Assume {
+  (* Domain *)
+  Type: (is_sint32 n_0) /\ (is_sint32 n_3) /\ (is_sint32 n_4)
+        /\ (is_sint32 x_0) /\ (is_sint32 x_3) /\ (is_sint32 x_6).
+  (* Pre-condition for 'n_neg' (file tests/wp/wp_inv_in_loop.c, line 120) in 'non_natural_loop' *)
+  (* Pre-condition for 'n_neg': *)
+  Have: n_4<0.
+  (* Merge *)Either {
+               Case:
+                 Let x_1 = 2+x_3.
+                 (* Domain *)
+                 Type: (is_sint32 x_3) /\ (is_sint32 x_1).
+                 (* Control Flow *)
+                 Have: (10=n_0) /\ (10=n_4).
+                 (* Invariant for 'n_neg' (file tests/wp/wp_inv_in_loop.c, line 137) *)
+                 (* tests/wp/wp_inv_in_loop.c:137: Invariant for 'n_neg': *)
+                 Have: (10=n_0) /\ (x_3<=9) /\ (0=(x_3 mod 2)).
+                 (* tests/wp/wp_inv_in_loop.c:134: Assignment *)
+                 Have: x_0=x_1.
+               Case:
+                 (* Control Flow *)
+                 Have: n_3=n_4.
+                 (* tests/wp/wp_inv_in_loop.c:128: Conditional *)
+                 If: n_3<0
+                 Then {
+                   (* tests/wp/wp_inv_in_loop.c:129: Assignment *)
+                   Have: 0=x_0.
+                   (* tests/wp/wp_inv_in_loop.c:130: Assignment *)
+                   Have: 10=n_0.
+                 }
+                 Else {
+                   (* Control Flow *)
+                   Have: 1=x_3.
+                   (* tests/wp/wp_inv_in_loop.c:133: Assignment *)
+                   Have: 20=n_0.
+                   (* Control Flow *)
+                   Have: 1=x_3.
+                   (* tests/wp/wp_inv_in_loop.c:134: Assignment *)
+                   Have: (1=x_3) /\ (3=x_0).
+                 }
+             }
+  (* tests/wp/wp_inv_in_loop.c:136: Then *)
+  Have: x_0<n_0.
+}
+Prove: (10=n_0) /\ (0=(x_0 mod 2)).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function non_natural_loop with behavior n_pos
+------------------------------------------------------------
+
+Goal Post-condition for 'n_pos' (file tests/wp/wp_inv_in_loop.c, line 124) in 'non_natural_loop':
+Assume {
+  (* Domain *)
+  Type: (is_sint32 n_0) /\ (is_sint32 n_3) /\ (is_sint32 n_4)
+        /\ (is_sint32 non_natural_loop_0) /\ (is_sint32 x_1)
+        /\ (is_sint32 x_3).
+  (* Pre-condition for 'n_pos' (file tests/wp/wp_inv_in_loop.c, line 123) in 'non_natural_loop' *)
+  (* Pre-condition for 'n_pos': *)
+  Have: 0<=n_4.
+  (* Merge *)Either {
+               Case:
+                 Let x_0 = 2+x_1.
+                 (* Domain *)
+                 Type: (is_sint32 x_1) /\ (is_sint32 x_0).
+                 (* Control Flow *)
+                 Have: (20=n_0) /\ (20=n_4).
+                 (* Invariant for 'n_pos' 'qed_ok' (file tests/wp/wp_inv_in_loop.c, line 139) *)
+                 (* tests/wp/wp_inv_in_loop.c:139: Invariant for 'n_pos' 'qed_ok': *)
+                 Have: 20=n_0.
+                 (* tests/wp/wp_inv_in_loop.c:134: Assignment *)
+                 Have: non_natural_loop_0=x_0.
+               Case:
+                 (* Control Flow *)
+                 Have: n_3=n_4.
+                 (* tests/wp/wp_inv_in_loop.c:128: Conditional *)
+                 If: n_3<0
+                 Then {
+                   (* tests/wp/wp_inv_in_loop.c:129: Assignment *)
+                   Have: 0=non_natural_loop_0.
+                   (* tests/wp/wp_inv_in_loop.c:130: Assignment *)
+                   Have: 10=n_0.
+                 }
+                 Else {
+                   (* Control Flow *)
+                   Have: 1=x_1.
+                   (* tests/wp/wp_inv_in_loop.c:133: Assignment *)
+                   Have: 20=n_0.
+                   (* Control Flow *)
+                   Have: 1=x_1.
+                   (* tests/wp/wp_inv_in_loop.c:134: Assignment *)
+                   Have: (1=x_1) /\ (3=non_natural_loop_0).
+                 }
+             }
+  (* tests/wp/wp_inv_in_loop.c:136: Else *)
+  Have: n_0<=non_natural_loop_0.
+}
+Prove: 21=non_natural_loop_0.
+
+------------------------------------------------------------
+
+Goal Invariant for 'n_pos' 'qed_ok' (file tests/wp/wp_inv_in_loop.c, line 139):
+Assume {
+  (* Domain *)
+  Type: (is_sint32 n_0) /\ (is_sint32 n_3) /\ (is_sint32 n_4)
+        /\ (is_sint32 x_0) /\ (is_sint32 x_1) /\ (is_sint32 x_3).
+  (* Pre-condition for 'n_pos' (file tests/wp/wp_inv_in_loop.c, line 123) in 'non_natural_loop' *)
+  (* Pre-condition for 'n_pos': *)
+  Have: 0<=n_4.
+  (* Merge *)Either {
+               Case:
+                 Let x_2 = 2+x_1.
+                 (* Domain *)
+                 Type: (is_sint32 x_1) /\ (is_sint32 x_2).
+                 (* Control Flow *)
+                 Have: (20=n_0) /\ (20=n_4).
+                 (* Invariant for 'n_pos' 'qed_ok' (file tests/wp/wp_inv_in_loop.c, line 139) *)
+                 (* tests/wp/wp_inv_in_loop.c:139: Invariant for 'n_pos' 'qed_ok': *)
+                 Have: 20=n_0.
+                 (* tests/wp/wp_inv_in_loop.c:134: Assignment *)
+                 Have: x_0=x_2.
+               Case:
+                 (* Control Flow *)
+                 Have: n_3=n_4.
+                 (* tests/wp/wp_inv_in_loop.c:128: Conditional *)
+                 If: n_3<0
+                 Then {
+                   (* tests/wp/wp_inv_in_loop.c:129: Assignment *)
+                   Have: 0=x_0.
+                   (* tests/wp/wp_inv_in_loop.c:130: Assignment *)
+                   Have: 10=n_0.
+                 }
+                 Else {
+                   (* Control Flow *)
+                   Have: 1=x_1.
+                   (* tests/wp/wp_inv_in_loop.c:133: Assignment *)
+                   Have: 20=n_0.
+                   (* Control Flow *)
+                   Have: 1=x_1.
+                   (* tests/wp/wp_inv_in_loop.c:134: Assignment *)
+                   Have: (1=x_1) /\ (3=x_0).
+                 }
+             }
+  (* tests/wp/wp_inv_in_loop.c:136: Then *)
+  Have: x_0<n_0.
+}
+Prove: 20=n_0.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function razT2
+------------------------------------------------------------
+
+Goal Post-condition 'post' in 'razT2':
+Assume { (* tests/wp/wp_inv_in_loop.c:82: Else *) Have: false. }
+Prove: 0=T2_3[i_9][i_10].
+
+------------------------------------------------------------
+
+Goal Invariant 'Ii' (file tests/wp/wp_inv_in_loop.c, line 83):
+Assume { (* Goal *) When: false. }
+Prove: 0=T2_0[i_1][i_2].
+
+------------------------------------------------------------
+
+Goal Invariant (file tests/wp/wp_inv_in_loop.c, line 88):
+Assume { (* Goal *) When: false. }
+Prove: 0=T2_1[i_4][i_5].
+
+------------------------------------------------------------
+
+Goal Invariant (file tests/wp/wp_inv_in_loop.c, line 90):
+Assume { (* Goal *) When: false. }
+Prove: 0=T2_2[0][i_7].
+
+------------------------------------------------------------
+
+Goal Loop assigns (file tests/wp/wp_inv_in_loop.c, line 86) (1/3):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Loop assigns (file tests/wp/wp_inv_in_loop.c, line 86) (2/3):
+Effect at line 87
+Assume { (* Goal *) When: false. }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Loop assigns (file tests/wp/wp_inv_in_loop.c, line 86) (3/3):
+Effect at line 91
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function razT2simple
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok,post' in 'razT2simple':
+Assume { (* tests/wp/wp_inv_in_loop.c:62: Else *) Have: false. }
+Prove: 0=T2_2[i_4][i_5].
+
+------------------------------------------------------------
+
+Goal Invariant 'qed_ok,I1' (file tests/wp/wp_inv_in_loop.c, line 63):
+Assume { (* Goal *) When: false. }
+Prove: 0=T2_0[i_1][i_2].
+
+------------------------------------------------------------
+
+Goal Invariant 'qed_ok,I2' (file tests/wp/wp_inv_in_loop.c, line 70):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Loop assigns (file tests/wp/wp_inv_in_loop.c, line 67) (1/3):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Loop assigns (file tests/wp/wp_inv_in_loop.c, line 67) (2/3):
+Effect at line 68
+Assume { (* Goal *) When: false. }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Loop assigns (file tests/wp/wp_inv_in_loop.c, line 67) (3/3):
+Effect at line 73
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function simple_inv
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok' in 'simple_inv':
+Assume { (* tests/wp/wp_inv_in_loop.c:17: Else *) Have: false. }
+Prove: false.
+
+------------------------------------------------------------
+
+Goal Invariant 'qed_ok' (file tests/wp/wp_inv_in_loop.c, line 18):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function test_for_tag
+------------------------------------------------------------
+
+Goal Post-condition 'qed_ok' in 'test_for_tag':
+Assume {
+  (* Domain *)
+  Type: (is_sint32 n_1).
+  (* Pre-condition (file tests/wp/wp_inv_in_loop.c, line 146) in 'test_for_tag' *)
+  (* Pre-condition: *)
+  Have: 0<=n_1.
+  (* tests/wp/wp_inv_in_loop.c:150: Else *)
+  Have: n_1<=0.
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Invariant 'qed_ok' (file tests/wp/wp_inv_in_loop.c, line 152):
+Assume {
+  (* Domain *)
+  Type: (is_sint32 n_0).
+  (* Pre-condition (file tests/wp/wp_inv_in_loop.c, line 146) in 'test_for_tag' *)
+  (* Pre-condition: *)
+  Have: 0<=n_0.
+  (* tests/wp/wp_inv_in_loop.c:150: Then *)
+  Have: 0<n_0.
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Loop assigns 'qed_ok':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------

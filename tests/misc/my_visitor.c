@@ -1,6 +1,6 @@
 /* run.config
-EXECNOW: make -s tests/misc/my_visitor_plugin/my_visitor.opt
-CMD: ./tests/misc/my_visitor_plugin/my_visitor.opt
+EXECNOW: make -s tests/misc/my_visitor_plugin/my_visitor.cmxs
+CMD: @frama-c@ -load-module ./tests/misc/my_visitor_plugin/my_visitor
 OPT: -main f
 */
 int f() {

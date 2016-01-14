@@ -1,0 +1,17 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_typed/unit_cast.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+tests/wp_typed/unit_cast.i:4:[wp] warning: Cast with incompatible pointers types (source: sint32*) (target: sint8*)
+[wp] 1 goal scheduled
+[wp] [Alt-Ergo] Goal typed_f_assert_OUT : Valid
+[wp] Proved goals:    1 / 1
+     Qed:             0 
+     Alt-Ergo:        1
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+f                   -       1 (13)     1       100%
+----------------------------------------------------------

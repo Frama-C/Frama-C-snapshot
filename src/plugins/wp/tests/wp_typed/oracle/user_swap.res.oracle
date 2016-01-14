@@ -1,0 +1,157 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_typed/user_swap.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function main
+------------------------------------------------------------
+
+Goal Assertion (file tests/wp_typed/user_swap.i, line 25):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_typed/user_swap.i, line 6) in 'swap'' in 'main' at call 'swap' (file tests/wp_typed/user_swap.i, line 24)
+:
+Let x_0 = Mint_7[(shift_sint32 (global P_b_78) 0)].
+Let x_1 = Mint_7[(shift_sint32 (global P_a_77) 0)].
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_1) /\ (is_sint32 x_0).
+  (* Heap *)
+  Have: (linked Malloc_6).
+  (* tests/wp_typed/user_swap.i:24: Then *)
+  Have: x_0<=x_1.
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_typed/user_swap.i, line 7) in 'swap'' in 'main' at call 'swap' (file tests/wp_typed/user_swap.i, line 24)
+:
+Let x_0 = Mint_7[(shift_sint32 (global P_b_78) 0)].
+Let x_1 = Mint_7[(shift_sint32 (global P_a_77) 0)].
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_1) /\ (is_sint32 x_0).
+  (* Heap *)
+  Have: (linked Malloc_6).
+  (* tests/wp_typed/user_swap.i:24: Then *)
+  Have: x_0<=x_1.
+}
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function swap
+------------------------------------------------------------
+
+Goal Post-condition 'A' in 'swap':
+Let x_0 = Mint_0[b_0].
+Let x_1 = Mint_0[a_0].
+Let x_2 = Mint_0[a_0->x_0][b_0->x_1][a_0].
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_1) /\ (is_sint32 x_0) /\ (is_sint32 x_2).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ ((region (base a_0))<=0)
+        /\ ((region (base b_0))<=0).
+  (* Pre-condition (file tests/wp_typed/user_swap.i, line 6) in 'swap' *)
+  (* Pre-condition: *)
+  Have: (valid_rw Malloc_0 a_0 1).
+  (* Pre-condition (file tests/wp_typed/user_swap.i, line 7) in 'swap' *)
+  (* Pre-condition: *)
+  Have: (valid_rw Malloc_0 b_0 1).
+}
+Prove: x_0=x_2.
+
+------------------------------------------------------------
+
+Goal Post-condition 'B' in 'swap':
+Let x_0 = Mint_0[a_0].
+Let x_1 = Mint_0[b_0].
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_0) /\ (is_sint32 x_1)
+        /\ (is_sint32 Mint_0[a_0->x_1][b_0->x_0][a_0]).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ ((region (base a_0))<=0)
+        /\ ((region (base b_0))<=0).
+  (* Pre-condition (file tests/wp_typed/user_swap.i, line 6) in 'swap' *)
+  (* Pre-condition: *)
+  Have: (valid_rw Malloc_0 a_0 1).
+  (* Pre-condition (file tests/wp_typed/user_swap.i, line 7) in 'swap' *)
+  (* Pre-condition: *)
+  Have: (valid_rw Malloc_0 b_0 1).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns 'E' in 'swap' (1/3):
+Effect at line 15
+Assume {
+  (* Domain *)
+  Type: (is_sint32 Mint_0[a_0]) /\ (is_sint32 Mint_0[b_0])
+        /\ (is_sint32 Mint_1[a_0]) /\ (is_sint32 Mint_1[b_0]).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ ((region (base a_0))<=0)
+        /\ ((region (base b_0))<=0).
+  (* Pre-condition (file tests/wp_typed/user_swap.i, line 6) in 'swap' *)
+  (* Pre-condition: *)
+  Have: (valid_rw Malloc_0 a_0 1).
+  (* Pre-condition (file tests/wp_typed/user_swap.i, line 7) in 'swap' *)
+  (* Pre-condition: *)
+  Have: (valid_rw Malloc_0 b_0 1).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns 'E' in 'swap' (2/3):
+Effect at line 16
+Assume {
+  (* Domain *)
+  Type: (is_sint32 Mint_0[a_0]) /\ (is_sint32 Mint_0[b_0])
+        /\ (is_sint32 Mint_1[a_0]) /\ (is_sint32 Mint_1[b_0]).
+  (* Goal *)
+  When: (valid_rd Malloc_0 a_0 1).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ ((region (base a_0))<=0)
+        /\ ((region (base b_0))<=0).
+  (* Pre-condition (file tests/wp_typed/user_swap.i, line 6) in 'swap' *)
+  (* Pre-condition: *)
+  Have: (valid_rw Malloc_0 a_0 1).
+  (* Pre-condition (file tests/wp_typed/user_swap.i, line 7) in 'swap' *)
+  (* Pre-condition: *)
+  Have: (valid_rw Malloc_0 b_0 1).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns 'E' in 'swap' (3/3):
+Effect at line 17
+Assume {
+  (* Domain *)
+  Type: (is_sint32 Mint_0[a_0]) /\ (is_sint32 Mint_0[b_0])
+        /\ (is_sint32 Mint_1[a_0]) /\ (is_sint32 Mint_1[b_0]).
+  (* Goal *)
+  When: (valid_rd Malloc_0 b_0 1).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ ((region (base a_0))<=0)
+        /\ ((region (base b_0))<=0).
+  (* Pre-condition (file tests/wp_typed/user_swap.i, line 6) in 'swap' *)
+  (* Pre-condition: *)
+  Have: (valid_rw Malloc_0 a_0 1).
+  (* Pre-condition (file tests/wp_typed/user_swap.i, line 7) in 'swap' *)
+  (* Pre-condition: *)
+  Have: (valid_rw Malloc_0 b_0 1).
+}
+Prove: true.
+
+------------------------------------------------------------

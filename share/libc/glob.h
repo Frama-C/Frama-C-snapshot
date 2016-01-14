@@ -22,6 +22,7 @@
 
 #ifndef __FC_GLOB_H
 #define __FC_GLOB_H
+#include "features.h"
 
 #include "__fc_machdep.h"
 
@@ -38,6 +39,8 @@
 #define	GLOB_ABORTED	2	/* Read error.  */
 #define	GLOB_NOMATCH	3	/* No matches found.  */
 #define GLOB_NOSYS	4	/* Not implemented.  */
+
+__BEGIN_DECLS
 
 typedef struct {
   __SIZE_T gl_pathc;		/* Count of paths matched by the pattern.  */
@@ -63,5 +66,6 @@ typedef struct {
 #endif
 } glob_t;
 
+__END_DECLS
 
 #endif

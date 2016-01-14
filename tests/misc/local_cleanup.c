@@ -1,5 +1,5 @@
 /* run.config
-   STDOPT:  +"-inout-callwise"
+   STDOPT: #"-inout-callwise"
 */
 
 void f(int *p){

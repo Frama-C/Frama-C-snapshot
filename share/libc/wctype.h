@@ -25,6 +25,9 @@
 #define __FC_WCTYPE_H
 
 #include "__fc_define_wint_t.h"
+#include "features.h"
+
+__BEGIN_DECLS
 
 int iswalnum(wint_t wc);
 
@@ -63,5 +66,7 @@ int iswspecial(wint_t wc);
 int iswupper(wint_t wc);
 
 int iswxdigit(wint_t wc);
+
+__END_DECLS
 
 #endif

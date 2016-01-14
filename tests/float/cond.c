@@ -1,8 +1,8 @@
 /* run.config
-   OPT: -val share/builtin.c -journal-disable -float-hex
+   OPT: -val -journal-disable -float-hex
 */
 
-#include "share/builtin.h"
+#include "__fc_builtin.h"
 
 float x, y, z;
 double dx, dy, dz, dt;

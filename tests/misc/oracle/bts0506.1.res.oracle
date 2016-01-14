@@ -264,8 +264,7 @@ void main(void)
   short x;
   int tmp;
   x = (short)4;
-  {
-    /*sequence*/
+  { /* sequence */
     tmp = f(42);
     x = (short)tmp;
   }

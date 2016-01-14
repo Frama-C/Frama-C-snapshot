@@ -24,7 +24,7 @@
 #define __FC_TIME_H
 #include "__fc_define_null.h"
 #include "__fc_define_size_t.h"
-#include "__fc_define_restrict.h"
+#include "features.h"
 
 /*
  * Names of the interval timers, and structure
@@ -34,6 +34,8 @@
 #define	ITIMER_VIRTUAL		1
 #define	ITIMER_PROF		2
 
+
+__BEGIN_DECLS
 
 typedef unsigned int clock_t;
 #include "__fc_define_time_t.h"
@@ -64,10 +66,9 @@ struct itimerspec {
 #define CLOCK_MONOTONIC 1
 #define TIMER_ABSTIME 0
 
-unsigned int __fc_time_model __attribute__((FRAMA_C_MODEL));
+//@ ghost volatile unsigned int __fc_time __attribute__((FRAMA_C_MODEL));
 
-/*@ assigns __fc_time_model \from __fc_time_model;
-  assigns \result \from __fc_time_model; */
+/*@ assigns \result \from __fc_time; */
 clock_t clock(void);
 
 /*@ assigns \result \from time1, time0; */
@@ -76,8 +77,19 @@ double difftime(time_t time1, time_t time0);
 /*@ assigns *timeptr, \result \from *timeptr; */
 time_t mktime(struct tm *timeptr);
 
-/*@ assigns __fc_time_model \from __fc_time_model;
-  assigns *timer, \result \from __fc_time_model; */
+/*@
+  assigns *timer, \result \from __fc_time;
+  behavior null:
+    assumes timer == \null;
+    assigns \result \from __fc_time;
+  behavior not_null:
+    assumes timer != \null;
+    requires \valid(timer);
+    assigns *timer, \result \from __fc_time;
+    ensures \initialized(timer);
+  complete behaviors;
+  disjoint behaviors;
+*/
 time_t time(time_t *timer);
 
 char *asctime(const struct tm *timeptr);
@@ -85,15 +97,15 @@ char *asctime(const struct tm *timeptr);
 char *ctime(const time_t *timer);
 
 struct tm __fc_time_tm;
-struct tm * const  __fc_time_tm_ptr=&__fc_time_tm;
+struct tm * const  __p_fc_time_tm = &__fc_time_tm;
 
-/*@ assigns \result \from __fc_time_tm_ptr;
+/*@ assigns \result \from __p_fc_time_tm;
   assigns __fc_time_tm \from *timer;
   ensures \result == &__fc_time_tm || \result == \null ;
 */
 struct tm *gmtime(const time_t *timer);
 
-/*@ assigns \result \from __fc_time_tm_ptr;
+/*@ assigns \result \from __p_fc_time_tm;
   assigns __fc_time_tm \from *timer;
   ensures \result == &__fc_time_tm || \result == \null;
 */
@@ -112,5 +124,7 @@ extern long timezone;
 extern char *tzname[2];
 /* assigns tzname[0..1][0..] \from \nothing ;*/
 void tzset(void); 
+
+__END_DECLS
 
 #endif

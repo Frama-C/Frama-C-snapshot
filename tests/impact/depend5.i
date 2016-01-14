@@ -1,5 +1,5 @@
 /* run.config
-   STDOPT: +"-calldeps" +"-then" +"-impact-pragma g" +"-then" +"-inout-callwise"
+   STDOPT: #"-calldeps" +"-then -impact-pragma g -then -inout-callwise"
    */
 
 int a, b, c, d, e;

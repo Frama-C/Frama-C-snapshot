@@ -1,5 +1,5 @@
 /* run.config
-   STDOPT: +"-print -inout -inout-callwise"
+   STDOPT: #" -inout-callwise" +"-print -inout"
 */
 volatile int v;
 int G;

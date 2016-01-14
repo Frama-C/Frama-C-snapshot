@@ -38,10 +38,10 @@ tests/misc/leaf.i:43:[kernel] warning: Neither code nor specification for functi
 [value] using specification for function f_int_star_int
 [value] Done for function f_int_star_int
 tests/misc/leaf.i:44:[kernel] warning: out of bounds read. assert \valid_read(p);
-[value] Called CEA_F([-2147483648..2147483647])
+[value] Called Frama_C_show_each_F([-2147483648..2147483647])
 tests/misc/leaf.i:45:[kernel] warning: out of bounds write. assert \valid(p);
 tests/misc/leaf.i:45:[kernel] more than 200(67108864) locations to update in array. Approximating.
-[value] Called CEA_F([-2147483648..2147483647])
+[value] Called Frama_C_show_each_F([-2147483648..2147483647])
 [value] computing for function f_int_star_int_star_int <- main.
         Called from tests/misc/leaf.i:48.
 tests/misc/leaf.i:48:[kernel] warning: Neither code nor specification for function f_int_star_int_star_int, generating default assigns from the prototype
@@ -53,8 +53,8 @@ tests/misc/leaf.i:49:[value] Reading left-value *pp.
                            alloced_return_f_int_star_int_star_int -> [0..17179868928],0%256 }}.
         It contains a garbled mix of {alloced_return_f_int_star_int_star_int}
         because of Library function {tests/misc/leaf.i:48}.
-[value] Called CEA_G({{ garbled mix of &{alloced_return_f_int_star_int_star_int}
-                     (origin: Library function {tests/misc/leaf.i:48}) }})
+[value] Called Frama_C_show_each_G({{ garbled mix of &{alloced_return_f_int_star_int_star_int}
+                                   (origin: Library function {tests/misc/leaf.i:48}) }})
 tests/misc/leaf.i:50:[kernel] warning: out of bounds read. assert \valid_read(pp);
 tests/misc/leaf.i:50:[value] Reading left-value *pp.
         The location is {{ alloced_return_f_int_star_int_star_int -> [0..17179868928],0%256 }}.
@@ -66,14 +66,14 @@ tests/misc/leaf.i:50:[value] Reading left-value *(*pp).
         because of Library function {tests/misc/leaf.i:48}.
         It contains a garbled mix of {alloced_return_f_int_star_int_star_int}
         because of Library function {tests/misc/leaf.i:48}.
-[value] Called CEA_F({{ garbled mix of &{alloced_return_f_int_star_int_star_int}
-                     (origin: Library function {tests/misc/leaf.i:48}) }})
+[value] Called Frama_C_show_each_F({{ garbled mix of &{alloced_return_f_int_star_int_star_int}
+                                   (origin: Library function {tests/misc/leaf.i:48}) }})
 tests/misc/leaf.i:52:[value] Reading left-value *pp.
         The location is {{ alloced_return_f_int_star_int_star_int -> [0..17179868928],0%256 }}.
         It contains a garbled mix of {alloced_return_f_int_star_int_star_int}
         because of Library function {tests/misc/leaf.i:48}.
-[value] Called CEA_G({{ garbled mix of &{alloced_return_f_int_star_int_star_int}
-                     (origin: Library function {tests/misc/leaf.i:48}) }})
+[value] Called Frama_C_show_each_G({{ garbled mix of &{alloced_return_f_int_star_int_star_int}
+                                   (origin: Library function {tests/misc/leaf.i:48}) }})
 tests/misc/leaf.i:53:[value] Reading left-value *pp.
         The location is {{ alloced_return_f_int_star_int_star_int -> [0..17179868928],0%256 }}.
         It contains a garbled mix of {alloced_return_f_int_star_int_star_int}
@@ -84,8 +84,8 @@ tests/misc/leaf.i:53:[value] Reading left-value *(*pp).
         because of Library function {tests/misc/leaf.i:48}.
         It contains a garbled mix of {alloced_return_f_int_star_int_star_int}
         because of Library function {tests/misc/leaf.i:48}.
-[value] Called CEA_F({{ garbled mix of &{alloced_return_f_int_star_int_star_int}
-                     (origin: Library function {tests/misc/leaf.i:48}) }})
+[value] Called Frama_C_show_each_F({{ garbled mix of &{alloced_return_f_int_star_int_star_int}
+                                   (origin: Library function {tests/misc/leaf.i:48}) }})
 [value] computing for function f_star_int_cint <- main.
         Called from tests/misc/leaf.i:55.
 tests/misc/leaf.i:55:[kernel] warning: Neither code nor specification for function f_star_int_cint, generating default assigns from the prototype

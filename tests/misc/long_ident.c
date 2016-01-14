@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -load-module lib/plugins/Obfuscator -obfuscate -journal-disable
+   OPT: -obfuscate -journal-disable
 */
 
 /*@ ensures \valid(q);  // <-- obfuscation error [bts#404]

@@ -54,6 +54,10 @@
           =======================
            
           
+          'Extern' global variables (0)
+          =============================
+           
+          
           Potential entry points (1)
           ==========================
            main; 
@@ -71,7 +75,7 @@
           Function = 3
           Function call = 1
           Pointer dereferencing = 1
-          Cyclomatic complexity = 0
+          Cyclomatic complexity = 4
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed

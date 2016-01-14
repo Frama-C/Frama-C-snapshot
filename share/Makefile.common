@@ -33,16 +33,24 @@ include $(MAKECONFIG_DIR)/Makefile.config
 #######################
 
 # Frama-C kernel directories
-UNPACKED_DIRS= misc ai memory_state toplevel slicing_types pdg_types \
-	       kernel logic lib printer project type buckx gui
-UNPACKED_DIRS:= $(addprefix src/, $(UNPACKED_DIRS))
-UNPACKED_DIRS+= external
-
-CIL_PATH= cil/src
-CIL_DIRS= $(CIL_PATH) $(CIL_PATH)/ext $(CIL_PATH)/frontc $(CIL_PATH)/logic \
-	cil/ocamlutil
-
-FRAMAC_SRC_DIRS=$(UNPACKED_DIRS) $(CIL_DIRS)
+FRAMAC_SRC_DIRS= plugins/slicing_types plugins/pdg_types plugins/value_types \
+	       libraries/stdlib libraries/utils \
+	       libraries/project libraries/datatype \
+	       kernel_internals/parsing \
+	       kernel_internals/typing \
+	       kernel_internals/runtime \
+	       kernel_services/parsetree \
+	       kernel_services/ast_data \
+	       kernel_services/ast_queries \
+	       kernel_services/ast_printing \
+	       kernel_services/cmdline_parameters \
+	       kernel_services/plugin_entry_points \
+	       kernel_services/abstract_interp \
+	       kernel_services/visitors \
+	       kernel_services/analysis \
+	       kernel_services/ast_transformations \
+	       plugins/gui
+FRAMAC_SRC_DIRS:= $(addprefix src/, $(FRAMAC_SRC_DIRS))
 
 ifeq ($(OCAMLWIN32),yes)
 ifneq ($(CYGPATH),no)
@@ -77,12 +85,12 @@ else  # >=4
   endif
 endif
 
-# All warnings are activated by default: this could grow up the chance of
-# compatibility breaks with future versions of the caml compilers.
-# BUT that is only the case of the SVN version since the distrib is not
-# compiled with -warn-error.
-# See BTS #310 and #638.
-WARNINGS= -w +a-3-4-6-9-41-44-45-48
+# Most warnings are activated by default. The few that are deactivated are
+# impossible to silence with the current Frama-C. Those settings are inherited
+# in the compilation of external plugins. Note that -warn-error is not used
+# here: it is only set for Frama-C itself (and the standard plugins), and is
+# defined in the root Makefile
+WARNINGS= -w +a-3-4-6-9-41-44-45-48-50
 
 FLAGS	= $(WARNINGS) $(OCAML_ANNOT_OPTION) $(OPTIM)
 DEBUG	= -g
@@ -279,5 +287,6 @@ endif
 
 ##########################################################################
 # Local Variables:
+# compile-command: "make"
 # mode: makefile
 # End:

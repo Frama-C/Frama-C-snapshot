@@ -2,7 +2,7 @@
 [kernel] Parsing tests/misc/noreturn.i (no preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
-tests/misc/noreturn.i:22:[value] warning: global initialization of volatile value ignored
+tests/misc/noreturn.i:22:[value] warning: global initialization of volatile variable v ignored
 [value] Initial state computed
 [value] Values of globals at initialization
   v ∈ [--..--]

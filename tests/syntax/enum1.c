@@ -20,3 +20,10 @@ int k1() {
 int i1() {
   return I1;
 }
+
+// Bug 2090
+enum Foo { EN1, EN2, EN3 };
+
+int f() { return !EN1; }
+
+int g() { return EN1; }

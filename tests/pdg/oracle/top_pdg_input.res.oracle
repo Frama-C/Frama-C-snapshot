@@ -58,7 +58,8 @@ tests/pdg/top_pdg_input.c:24:[kernel] warning: out of bounds read. assert \valid
 tests/pdg/top_pdg_input.c:24:[value] Reading left-value s.t[i].
         It contains a garbled mix of {alloced_return_top_input} because of
         Library function {tests/pdg/top_pdg_input.c:20}.
-tests/pdg/top_pdg_input.c:24:[kernel] warning: signed overflow. assert -2147483648 ≤ s.a+s.t[i] ≤ 2147483647;
+tests/pdg/top_pdg_input.c:24:[kernel] warning: signed overflow. assert -2147483648 ≤ s.a+s.t[i];
+tests/pdg/top_pdg_input.c:24:[kernel] warning: signed overflow. assert s.a+s.t[i] ≤ 2147483647;
 tests/pdg/top_pdg_input.c:24:[value] Assigning imprecise value to __retres.
         The imprecision originates from Library function
         {tests/pdg/top_pdg_input.c:20}
@@ -70,21 +71,19 @@ tests/pdg/top_pdg_input.c:39:[value] Reading left-value i.
 tests/pdg/top_pdg_input.c:39:[value] Reading left-value tmp_0.
         It contains a garbled mix of {alloced_return_top_input} because of
         Library function {tests/pdg/top_pdg_input.c:20}.
-tests/pdg/top_pdg_input.c:39:[kernel] warning: signed overflow.
-                  assert -2147483648 ≤ i+tmp_0 ≤ 2147483647;
-                  (tmp_0 from f2())
+tests/pdg/top_pdg_input.c:39:[kernel] warning: signed overflow. assert -2147483648 ≤ i+tmp_0;
+                                   (tmp_0 from f2())
+tests/pdg/top_pdg_input.c:39:[kernel] warning: signed overflow. assert i+tmp_0 ≤ 2147483647;
+                                   (tmp_0 from f2())
 tests/pdg/top_pdg_input.c:39:[value] Assigning imprecise value to i.
         The imprecision originates from Library function
-        {tests/pdg/top_pdg_input.c:13; tests/pdg/top_pdg_input.c:20}
 tests/pdg/top_pdg_input.c:40:[value] Reading left-value i.
         It contains a garbled mix of {alloced_return_top_input} because of
-        Library function {tests/pdg/top_pdg_input.c:13;
-        tests/pdg/top_pdg_input.c:20}.
+        Library function.
 tests/pdg/top_pdg_input.c:40:[kernel] warning: out of bounds read. assert \valid_read(p_str+i);
 tests/pdg/top_pdg_input.c:40:[value] Reading left-value *(p_str + i).
         The location is a garbled mix of {S_p_str; alloced_return_top_input}
-        because of Library function {tests/pdg/top_pdg_input.c:13;
-        tests/pdg/top_pdg_input.c:20}.
+        because of Library function.
         It contains a garbled mix of
         {S_0_S_p_str; S_1_S_p_str; alloced_return_top_input} because of Misaligned
         {tests/pdg/top_pdg_input.c:40}.
@@ -142,8 +141,7 @@ tests/pdg/top_pdg_input.c:13:[kernel] more than 200(67108864) elements to enumer
   G ∈ {1}
   i ∈
    {{ garbled mix of &{alloced_return_top_input}
-    (origin: Library function {tests/pdg/top_pdg_input.c:13;
-    tests/pdg/top_pdg_input.c:20}) }}
+    (origin: Library function) }}
 [from] Computing for function strlen
 [from] Done for function strlen
 [from] Computing for function f1

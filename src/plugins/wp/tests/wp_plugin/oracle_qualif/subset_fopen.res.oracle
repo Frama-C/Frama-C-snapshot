@@ -1,0 +1,20 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_plugin/subset_fopen.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] 5 goals scheduled
+[wp] [Alt-Ergo] Goal typed_f_assert_Ok_A : Unknown
+[wp] [Qed] Goal typed_f_assert_Ok_B : Valid
+[wp] [Qed] Goal typed_f_assert_Ok_C : Valid
+[wp] [Qed] Goal typed_f_assert_Ok_D : Valid
+[wp] [Alt-Ergo] Goal typed_f_assert_Ok_E : Valid
+[wp] Proved goals:    4 / 5
+     Qed:             3 
+     Alt-Ergo:        1  (unknown: 1)
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+f                    3      1 (67)     5      80.0%
+----------------------------------------------------------

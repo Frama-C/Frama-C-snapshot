@@ -1,12 +1,11 @@
 [kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/float/absorb.c (with preprocessing)
 tests/float/absorb.c:15:[kernel] warning: Floating-point constant 1e-286 is not represented exactly. Will use 0x1.e74404f3daadbp-951. See documentation for option -warn-decimal-float
-[kernel] Parsing share/builtin.c (with preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
 [value] Values of globals at initialization
-  Frama_C_entropy_source ∈ {0}
+  Frama_C_entropy_source ∈ [--..--]
   x ∈ {0x1.0000000000000p0}
   y ∈ {0}
   z ∈ {0}
@@ -16,13 +15,8 @@ tests/float/absorb.c:15:[kernel] warning: Floating-point constant 1e-286 is not 
   den ∈ {0}
 [value] computing for function Frama_C_interval <- main.
         Called from tests/float/absorb.c:13.
-share/builtin.h:46:[value] Function Frama_C_interval: precondition got status valid.
-[value] computing for function Frama_C_update_entropy <- Frama_C_interval <- main.
-        Called from share/builtin.c:44.
-[value] using specification for function Frama_C_update_entropy
-[value] Done for function Frama_C_update_entropy
-share/builtin.h:47:[value] Function Frama_C_interval: postcondition got status valid.
-[value] Recording results for Frama_C_interval
+[value] using specification for function Frama_C_interval
+share/libc/__fc_builtin.h:51:[value] Function Frama_C_interval: precondition got status valid.
 [value] Done for function Frama_C_interval
 tests/float/absorb.c:16:[value] entering loop for the first time
 tests/float/absorb.c:18:[kernel] warning: non-finite float value ([0x1.0000000000000p0 .. 0x1.fffffe0000001p127]):
@@ -30,10 +24,6 @@ tests/float/absorb.c:18:[kernel] warning: non-finite float value ([0x1.000000000
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
-[value] Values at end of function Frama_C_interval:
-  Frama_C_entropy_source ∈ [--..--]
-  r ∈ [-2000000001..2000000001]
-  aux ∈ [--..--]
 [value] Values at end of function main:
   Frama_C_entropy_source ∈ [--..--]
   x ∈ [0x1.0000000000000p0 .. 0x1.fffffe0000000p127]
@@ -44,16 +34,12 @@ tests/float/absorb.c:18:[kernel] warning: non-finite float value ([0x1.000000000
   min_fl ∈ [-0x1.0000000000000p-126 .. -0x1.fffffc0000000p-127]
   den ∈ [0x1.0000000000000p-133 .. 0x1.0001000000000p-133]
   b ∈ [-4000000004000000001..4000000004000000001]
-[from] Computing for function Frama_C_interval
-[from] Computing for function Frama_C_update_entropy <-Frama_C_interval
-[from] Done for function Frama_C_update_entropy
-[from] Done for function Frama_C_interval
 [from] Computing for function main
+[from] Computing for function Frama_C_interval <-main
+[from] Done for function Frama_C_interval
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======
        These dependencies hold at termination for the executions that terminate:
-[from] Function Frama_C_update_entropy:
-  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
 [from] Function Frama_C_interval:
   Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
   \result FROM Frama_C_entropy_source; min; max
@@ -67,10 +53,6 @@ tests/float/absorb.c:18:[kernel] warning: non-finite float value ([0x1.000000000
   min_fl FROM \nothing
   den FROM \nothing
 [from] ====== END OF DEPENDENCIES ======
-[inout] Out (internal) for function Frama_C_interval:
-          Frama_C_entropy_source; r; aux
-[inout] Inputs for function Frama_C_interval:
-          Frama_C_entropy_source
 [inout] Out (internal) for function main:
           Frama_C_entropy_source; x; y; z; t; min_f; min_fl; den; b
 [inout] Inputs for function main:

@@ -4,8 +4,8 @@
 tests/rte/divmod_typedef.c:15:[rte] warning: signed overflow assert broken: (int)((int)(-2147483647)-1)/(int)(-1) ≤
                                               2147483647
 tests/rte/divmod_typedef.c:18:[rte] warning: divisor assert broken: 0 ≢ 0
-tests/rte/divmod_typedef.c:19:[rte] warning: divisor assert broken: (unsigned int)(0xffffffff+(unsigned int)1) ≢ 0
-tests/rte/divmod_typedef.c:26:[rte] warning: divisor assert broken: (unsigned int)(0xffffffff+(unsigned int)1) ≢ 0
+tests/rte/divmod_typedef.c:19:[rte] warning: divisor assert broken: (unsigned int)(0xffffffff+1) ≢ 0
+tests/rte/divmod_typedef.c:26:[rte] warning: divisor assert broken: (unsigned int)(0xffffffff+1) ≢ 0
 tests/rte/divmod_typedef.c:27:[rte] warning: signed overflow assert broken: (int)((int)(-0x7fffffff)-1)/(int)(-1) ≤
                                               2147483647
 tests/rte/divmod_typedef.c:38:[rte] warning: signed downcast assert broken: (long long)(-2147483648L)/(long long)((long)
@@ -37,9 +37,7 @@ int main(void)
   z = (-2147483647 - 1) % -1;
   /*@ assert rte: division_by_zero: 0 ≢ 0; */
   uz = (unsigned int)(1 / 0);
-  /*@ assert
-      rte: division_by_zero: (unsigned int)(0xffffffff+(unsigned int)1) ≢ 0;
-  */
+  /*@ assert rte: division_by_zero: (unsigned int)(0xffffffff+1) ≢ 0; */
   uz = (unsigned int)1 / (0xffffffff + (unsigned int)1);
   ux = 0x80000000;
   uy = 0xffffffff;
@@ -50,9 +48,7 @@ int main(void)
   uz = (unsigned int)((int)ux / (int)uy);
   /*@ assert rte: division_by_zero: uy ≢ 0; */
   uz = ux / uy;
-  /*@ assert
-      rte: division_by_zero: (unsigned int)(0xffffffff+(unsigned int)1) ≢ 0;
-  */
+  /*@ assert rte: division_by_zero: (unsigned int)(0xffffffff+1) ≢ 0; */
   uz = 0x80000000 / (0xffffffff + (unsigned int)1);
   /*@ assert
       rte: signed_overflow:

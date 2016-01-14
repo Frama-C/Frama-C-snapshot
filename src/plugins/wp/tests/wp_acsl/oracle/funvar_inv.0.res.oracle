@@ -1,0 +1,145 @@
+# frama-c -wp -wp-model 'Hoare' [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_acsl/funvar_inv.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+tests/wp_acsl/funvar_inv.i:24:[wp] warning: Can not compare pointers in Empty model
+tests/wp_acsl/funvar_inv.i:23:[wp] warning: Can not compare pointers in Empty model
+tests/wp_acsl/funvar_inv.i:38:[wp] warning: Can not compare pointers in Empty model
+tests/wp_acsl/funvar_inv.i:37:[wp] warning: Can not compare pointers in Empty model
+tests/wp_acsl/funvar_inv.i:53:[wp] warning: Can not compare pointers in Empty model
+tests/wp_acsl/funvar_inv.i:52:[wp] warning: Can not compare pointers in Empty model
+------------------------------------------------------------
+  Function f
+------------------------------------------------------------
+
+Goal Post-condition 'P_startof' in 'f':
+tests/wp_acsl/funvar_inv.i:23: warning from Empty Model:
+ - Warning: Target turned to false, looking for context inconsistency
+   Reason: Can not compare pointers in Empty model
+Let x_0 = G_0[0].
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_2) /\ (is_sint32 x_0) /\ (is_sint32 G_0[1])
+        /\ (is_sint32 G_0[i_3]).
+  (* tests/wp_acsl/funvar_inv.i:30: Conditional *)
+  If: i_2<=3
+  Then { (* tests/wp_acsl/funvar_inv.i:30: Else *) Have: 0=G_0[i_2]. }
+}
+Prove: 0!=x_0.
+
+------------------------------------------------------------
+
+Goal Post-condition 'P_addr' in 'f':
+tests/wp_acsl/funvar_inv.i:24: warning from Empty Model:
+ - Warning: Target turned to false, looking for context inconsistency
+   Reason: Can not compare pointers in Empty model
+Let x_0 = G_0[0].
+Let x_1 = G_0[1].
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_2) /\ (is_sint32 x_0) /\ (is_sint32 x_1)
+        /\ (is_sint32 G_0[i_3]).
+  (* tests/wp_acsl/funvar_inv.i:30: Conditional *)
+  If: i_2<=3
+  Then { (* tests/wp_acsl/funvar_inv.i:30: Else *) Have: 0=G_0[i_2]. }
+}
+Prove: (0=x_0) \/ (0!=x_1).
+
+------------------------------------------------------------
+
+Goal Loop assigns 'qed_ok,index':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function f2
+------------------------------------------------------------
+
+Goal Post-condition 'P_startof_shift' in 'f2':
+tests/wp_acsl/funvar_inv.i:37: warning from Empty Model:
+ - Warning: Target turned to false, looking for context inconsistency
+   Reason: Can not compare pointers in Empty model
+Let x_0 = G_0[0].
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_2) /\ (is_sint32 x_0) /\ (is_sint32 G_0[1])
+        /\ (is_sint32 G_0[i_3]).
+  (* tests/wp_acsl/funvar_inv.i:44: Conditional *)
+  If: (4*i_2)<=15
+  Then { (* tests/wp_acsl/funvar_inv.i:44: Else *) Have: 0=G_0[i_2]. }
+}
+Prove: 0!=x_0.
+
+------------------------------------------------------------
+
+Goal Post-condition 'P_addr_shift' in 'f2':
+tests/wp_acsl/funvar_inv.i:38: warning from Empty Model:
+ - Warning: Target turned to false, looking for context inconsistency
+   Reason: Can not compare pointers in Empty model
+Let x_0 = G_0[0].
+Let x_1 = G_0[1].
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_2) /\ (is_sint32 x_0) /\ (is_sint32 x_1)
+        /\ (is_sint32 G_0[i_3]).
+  (* tests/wp_acsl/funvar_inv.i:44: Conditional *)
+  If: (4*i_2)<=15
+  Then { (* tests/wp_acsl/funvar_inv.i:44: Else *) Have: 0=G_0[i_2]. }
+}
+Prove: (0=x_0) \/ (0!=x_1).
+
+------------------------------------------------------------
+
+Goal Loop assigns 'qed_ok,index':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function g
+------------------------------------------------------------
+
+Goal Post-condition 'P_addr_startof_shift' in 'g':
+tests/wp_acsl/funvar_inv.i:52: warning from Empty Model:
+ - Warning: Target turned to false, looking for context inconsistency
+   Reason: Can not compare pointers in Empty model
+Let x_0 = G_0[0].
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_2) /\ (is_sint32 x_0) /\ (is_sint32 G_0[1])
+        /\ (is_sint32 G_0[i_3]).
+  (* tests/wp_acsl/funvar_inv.i:59: Conditional *)
+  If: (16*i_2)<=63
+  Then { (* tests/wp_acsl/funvar_inv.i:59: Else *) Have: 0=G_0[i_2]. }
+}
+Prove: 0!=x_0.
+
+------------------------------------------------------------
+
+Goal Post-condition 'P_addr_addr_shift' in 'g':
+tests/wp_acsl/funvar_inv.i:53: warning from Empty Model:
+ - Warning: Target turned to false, looking for context inconsistency
+   Reason: Can not compare pointers in Empty model
+Let x_0 = G_0[0].
+Let x_1 = G_0[1].
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_2) /\ (is_sint32 x_0) /\ (is_sint32 x_1)
+        /\ (is_sint32 G_0[i_3]).
+  (* tests/wp_acsl/funvar_inv.i:59: Conditional *)
+  If: (16*i_2)<=63
+  Then { (* tests/wp_acsl/funvar_inv.i:59: Else *) Have: 0=G_0[i_2]. }
+}
+Prove: (0=x_0) \/ (0!=x_1).
+
+------------------------------------------------------------
+
+Goal Loop assigns 'qed_ok':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------

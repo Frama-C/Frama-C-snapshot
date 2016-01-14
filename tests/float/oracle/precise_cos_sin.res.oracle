@@ -1,19 +1,15 @@
 [kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
-[kernel] Parsing tests/float/precise_cos_sin.i (no preprocessing)
-[kernel] Parsing share/builtin.c (with preprocessing)
+[kernel] Parsing tests/float/precise_cos_sin.c (with preprocessing)
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
 [value] Values of globals at initialization
-  Frama_C_entropy_source ∈ {0}
+  Frama_C_entropy_source ∈ [--..--]
 [value] computing for function Frama_C_float_interval <- main.
-        Called from tests/float/precise_cos_sin.i:10.
-[value] computing for function Frama_C_update_entropy <- Frama_C_float_interval <- 
-                                main.
-        Called from share/builtin.c:55.
-[value] using specification for function Frama_C_update_entropy
-[value] Done for function Frama_C_update_entropy
-[value] Recording results for Frama_C_float_interval
+        Called from tests/float/precise_cos_sin.c:12.
+[value] using specification for function Frama_C_float_interval
+share/libc/__fc_builtin.h:142:[value] Function Frama_C_float_interval: precondition got status valid.
+share/libc/__fc_builtin.h:143:[value] Function Frama_C_float_interval: precondition got status valid.
 [value] Done for function Frama_C_float_interval
 [value] Called Frama_C_show_each_s([-1.6214298009872436*2^-3 .. 1.4685190916061401*2^-5])
 [value] Called Frama_C_show_each_c([-1.0000000000000000 .. -1.9584906101226807*2^-1])

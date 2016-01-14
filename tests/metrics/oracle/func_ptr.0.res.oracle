@@ -1,0 +1,65 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/metrics/func_ptr.c (with preprocessing)
+tests/metrics/func_ptr.c:28:[kernel] warning: Calling undeclared function exit. Old style K&R code?
+[metrics] Defined functions (4)
+          =====================
+           baz (address taken) (0 call); foo (address taken) (0 call); foobar (0 call);
+           main (0 call); 
+          
+          Undefined functions (1)
+          =======================
+           exit (1 call); 
+          
+          'Extern' global variables (1)
+          =============================
+           bar_extern
+          
+          Potential entry points (2)
+          ==========================
+           foobar; main; 
+          
+          Global metrics
+          ============== 
+          Sloc = 18
+          Decision point = 2
+          Global variables = 2
+          If = 2
+          Loop = 0
+          Goto = 2
+          Assignment = 7
+          Exit point = 4
+          Function = 5
+          Function call = 3
+          Pointer dereferencing = 2
+          Cyclomatic complexity = 6
+[metrics] Functions syntactically reachable from main: 3
+          ----------------------------------------------
+          <tests/metrics/func_ptr.c>: foo; main; exit; 
+          
+          Functions syntactically unreachable from main: 2
+          ------------------------------------------------
+          <tests/metrics/func_ptr.c>: baz; foobar;
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  bar ∈ {0}
+  bar_extern ∈ {0}
+[value] Recording results for main
+[value] done for function main
+[metrics] Value coverage statistics
+          =========================
+          Syntactically reachable functions = 3 (out of 5)
+          Semantically reached functions = 1
+          Coverage estimation = 33.3% 
+          
+          Unseen functions (2) =
+            <tests/metrics/func_ptr.c>: foo; exit;
+[metrics] References to non-analyzed functions
+          ------------------------------------
+          Function main calls exit (at tests/metrics/func_ptr.c:28)
+          Function main references foo (at tests/metrics/func_ptr.c:29)
+[metrics] Statements analyzed by Value
+          ----------------------------
+          11 stmts in analyzed functions, 5 stmts analyzed (45.5%)
+          main: 5 stmts out of 11 (45.5%)

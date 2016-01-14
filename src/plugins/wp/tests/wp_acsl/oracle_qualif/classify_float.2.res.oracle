@@ -1,0 +1,29 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_acsl/classify_float.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+FRAMAC_SHARE/libc/math.h:412:[kernel] warning: No code nor implicit assigns clause for function acos, generating default assigns from the specification
+FRAMAC_SHARE/libc/math.h:412:[kernel] warning: No code nor implicit assigns clause for function acosf, generating default assigns from the specification
+FRAMAC_SHARE/libc/math.h:412:[kernel] warning: No code nor implicit assigns clause for function acosh, generating default assigns from the specification
+FRAMAC_SHARE/libc/math.h:412:[kernel] warning: No code nor implicit assigns clause for function acoshf, generating default assigns from the specification
+FRAMAC_SHARE/libc/math.h:412:[kernel] warning: No code nor implicit assigns clause for function acoshl, generating default assigns from the specification
+FRAMAC_SHARE/libc/math.h:412:[kernel] warning: No code nor implicit assigns clause for function acosl, generating default assigns from the specification
+FRAMAC_SHARE/libc/math.h:412:[kernel] warning: No code nor implicit assigns clause for function asin, generating default assigns from the specification
+FRAMAC_SHARE/libc/math.h:412:[kernel] warning: No code nor implicit assigns clause for function asinf, generating default assigns from the specification
+FRAMAC_SHARE/libc/math.h:412:[kernel] warning: No code nor implicit assigns clause for function asinl, generating default assigns from the specification
+[wp] 3 goals scheduled
+[wp] [Coq] Goal typed_lemma_InfN_not_finite : Saved script
+[wp] [Coq] Goal typed_lemma_InfN_not_finite : Valid
+[wp] [Coq] Goal typed_lemma_InfP_not_finite : Saved script
+[wp] [Coq] Goal typed_lemma_InfP_not_finite : Valid
+[wp] [Coq] Goal typed_lemma_NaN_not_finite : Saved script
+[wp] [Coq] Goal typed_lemma_NaN_not_finite : Valid
+[wp] Proved goals:    3 / 3
+     Qed:             0 
+     Coq:             3
+----------------------------------------------------------
+Axiomatics          WP   Alt-Ergo    Total   Success
+Lemma               -      -           3       100%
+----------------------------------------------------------

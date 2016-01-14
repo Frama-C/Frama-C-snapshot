@@ -36,16 +36,21 @@
 [value] Recording results for fetch
 [value] Done for function fetch
 tests/slicing/unravel-flavors.c:51:[kernel] warning: accessing uninitialized left-value: assert \initialized(&red);
-tests/slicing/unravel-flavors.c:51:[kernel] warning: signed overflow. assert -2147483648 ≤ 2*red ≤ 2147483647;
+tests/slicing/unravel-flavors.c:51:[kernel] warning: signed overflow. assert -2147483648 ≤ 2*red;
+tests/slicing/unravel-flavors.c:51:[kernel] warning: signed overflow. assert 2*red ≤ 2147483647;
 tests/slicing/unravel-flavors.c:52:[kernel] warning: accessing uninitialized left-value: assert \initialized(&green);
-tests/slicing/unravel-flavors.c:52:[kernel] warning: signed overflow. assert -2147483648 ≤ red*green ≤ 2147483647;
+tests/slicing/unravel-flavors.c:52:[kernel] warning: signed overflow. assert -2147483648 ≤ red*green;
+tests/slicing/unravel-flavors.c:52:[kernel] warning: signed overflow. assert red*green ≤ 2147483647;
 tests/slicing/unravel-flavors.c:54:[value] entering loop for the first time
-tests/slicing/unravel-flavors.c:55:[kernel] warning: signed overflow. assert -2147483648 ≤ sour+green ≤ 2147483647;
+tests/slicing/unravel-flavors.c:55:[kernel] warning: signed overflow. assert -2147483648 ≤ sour+green;
+tests/slicing/unravel-flavors.c:55:[kernel] warning: signed overflow. assert sour+green ≤ 2147483647;
 tests/slicing/unravel-flavors.c:56:[kernel] warning: accessing uninitialized left-value: assert \initialized(&blue);
 tests/slicing/unravel-flavors.c:56:[kernel] warning: accessing uninitialized left-value: assert \initialized(&yellow);
-tests/slicing/unravel-flavors.c:56:[kernel] warning: signed overflow. assert -2147483648 ≤ blue+yellow ≤ 2147483647;
+tests/slicing/unravel-flavors.c:56:[kernel] warning: signed overflow. assert -2147483648 ≤ blue+yellow;
+tests/slicing/unravel-flavors.c:56:[kernel] warning: signed overflow. assert blue+yellow ≤ 2147483647;
 tests/slicing/unravel-flavors.c:57:[kernel] warning: signed overflow. assert green+1 ≤ 2147483647;
-tests/slicing/unravel-flavors.c:58:[kernel] warning: signed overflow. assert -2147483648 ≤ yellow+green ≤ 2147483647;
+tests/slicing/unravel-flavors.c:58:[kernel] warning: signed overflow. assert -2147483648 ≤ yellow+green;
+tests/slicing/unravel-flavors.c:58:[kernel] warning: signed overflow. assert yellow+green ≤ 2147483647;
 [value] computing for function send1 <- main.
         Called from tests/slicing/unravel-flavors.c:60.
 [value] computing for function printf <- send1 <- main.

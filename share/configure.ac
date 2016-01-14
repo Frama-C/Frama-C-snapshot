@@ -34,17 +34,15 @@ m4_ifdef([FRAMAC_MAIN_AUTOCONF],,
          [m4_ifdef([plugin_file],
              [AC_INIT(plugin_file)],
              [AC_INIT(aclocal.m4)])
-          [KNOWN_PLUGINS=$(frama-c -help | \
-            sed -e '0,/^\*\*\*\*\*/ d' \
-                -e 's/\([^ ][^ ]*\( [^ ][^ ]*\)*\)  .*/\1/' \
+          [KNOWN_PLUGINS=$(frama-c -plugins | \
+            sed -e '/\[kernel\]/d' -e 's/\([^ ][^ ]*\( [^ ][^ ]*\)*\)  .*/\1/' \
                 -e '/^ /d' -e '/^$/d' | \
             tr "a-z- " "A-Z__")
           for plugin in ${KNOWN_PLUGINS}; do
             export $(echo ENABLE_$plugin)=yes
           done
           ]
-          AC_SUBST([FRAMAC_VERSION],
-                   [`frama-c -version | sed -n -e "s|^Version: *\(.*\)$|\1|p"`])
+          AC_SUBST([FRAMAC_VERSION],[`frama-c -version`])
           AC_CHECK_PROG(ENABLE_GUI,[frama-c-gui],[yes],[no])
          ])
 

@@ -5,7 +5,8 @@
 [value] Initial state computed
 [value] Values of globals at initialization
   
-tests/misc/call_2.i:15:[kernel] warning: signed overflow. assert -2147483648 ≤ i+j ≤ 2147483647;
+tests/misc/call_2.i:15:[kernel] warning: signed overflow. assert -2147483648 ≤ i+j;
+tests/misc/call_2.i:15:[kernel] warning: signed overflow. assert i+j ≤ 2147483647;
 [value] computing for function ff <- main.
         Called from tests/misc/call_2.i:15.
 tests/misc/call_2.i:6:[kernel] warning: non-finite float value ([--..--]): assert \is_finite(f);

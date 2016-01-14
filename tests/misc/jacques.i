@@ -18,11 +18,11 @@ int A,B,C;
 void main(int a, int b, int *pp)
 {
 
-  CEA_f(pp);
+  Frama_C_show_each_f(pp);
 
   //@ assert \valid(pp);
 
-  CEA_f(pp);
+  Frama_C_show_each_f(pp);
 
   *pp = 5;
 

@@ -1,0 +1,12 @@
+/* run.config
+OPT: -cpp-command="gcc -C -E -DFOO=42" -print
+*/
+
+/*@ ensures \result == FOO; */
+int foo() { int FOO = 42; return FOO; }
+
+/*
+Local Variables:
+mode: C
+End:
+*/

@@ -23,9 +23,12 @@
 #ifndef FC_UIO
 #define FC_UIO
 
+#include "../features.h"
 #include "../__fc_define_ssize_t.h"
 #include "../__fc_define_size_t.h"
 #include "../__fc_define_iovec.h"
+
+__BEGIN_DECLS
 
 /*@ requires \valid_read( &iov[0..iovcnt-1] );
 // Value cannot yet interpret the precise assigns clause; we use the weaker one as a fallback.
@@ -34,5 +37,7 @@
  */
 ssize_t readv(int fd, const struct iovec *iov, int iovcnt);
 ssize_t writev(int fd, const struct iovec *iov, int iovcnt);
+
+__END_DECLS
 
 #endif

@@ -4,7 +4,7 @@ int main() {
 
   x /= sizeof(unsigned int);
 
-  CEA_F(x);
+  Frama_C_show_each_F(x);
 
 }
 

@@ -42,7 +42,8 @@ void main () {
   i = (&s1 > NULL);
   i = (&s1+1 > NULL);
   i = (&s2[8] > NULL);
-  i = (&f > NULL);
+  i = (&f == NULL); // Cabs2cil typing bug here
+  i = (&f > NULL); // Same
   i = (p > NULL);
 
 }

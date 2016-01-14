@@ -1,8 +1,8 @@
 /* run.config
    GCC:
-   OPT: -val -deps -out -input -journal-disable
-   OPT: -val -deps -out -input -main main2 -journal-disable
-   OPT: -val -deps -out -input -main main3 -journal-disable
+   STDOPT: #"-main main"
+   STDOPT: #"-main main2"
+   STDOPT: #"-main main3"
 */
 
 
@@ -10,7 +10,7 @@ char StaticAllocHEAP[10000]={2,2,2,2};
 void *LIB_MEM_StaticAlloc(int size, int hint) {
 
   static int next_free=0;
-  CEA_ALLOCATION_WITH_STATIC_ALLOC(size);
+  Frama_C_show_each_ALLOCATION_WITH_STATIC_ALLOC(size);
   void * new = &(StaticAllocHEAP[next_free]);
 /* Enforce a 4 byte boundary for allocation */
   next_free += (size%4==0)?size:size+4-size%4;
@@ -24,7 +24,7 @@ void main() {
   v = (struct S(*)[MAX]) LIB_MEM_StaticAlloc(sizeof(struct S) * MAX, 0);
   int i = 29;
   do {
-    CEA_I(i);
+    Frama_C_show_each_I(i);
     v[0][i].snd=1;}
   while (i-- > -1);
 
@@ -43,8 +43,8 @@ void main2(void)
   {
 
   while (1) {
-    CEA_TMP(tmp___0);
-    CEA_I(i);
+    Frama_C_show_each_TMP(tmp___0);
+    Frama_C_show_each_I(i);
     (*(v + 0))[i].snd = (char)1;
     tmp___0 = i;
     i --;

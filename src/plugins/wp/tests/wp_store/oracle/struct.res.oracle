@@ -1,0 +1,118 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_store/struct.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function f
+------------------------------------------------------------
+
+Goal Assertion 'qed_ok' (file tests/wp_store/struct.i, line 21):
+Let a_1 = (shift_sint32 (shiftfield_F_t_tab a_0) 0).
+Assume {
+  (* Heap *)
+  Have: (linked Malloc_0) /\ ((region (base a_0))<=0).
+  (* Pre-condition (file tests/wp_store/struct.i, line 18) in 'f' *)
+  (* Pre-condition: *)
+  Have: (valid_rw Malloc_0 a_0 5) /\ (valid_rw Malloc_0 a_1 5).
+  (* tests/wp_store/struct.i:20: Call 'g' *)
+  Have: (valid_rw Malloc_0 a_1 1).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_store/struct.i, line 10) in 'g'' in 'f' at call 'g' (file tests/wp_store/struct.i, line 20)
+:
+Let a_1 = (shift_sint32 (shiftfield_F_t_tab a_0) 0).
+Assume {
+  (* Domain *)
+  Type: (is_sint32 Mint_0[a_1]).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ ((region (base a_0))<=0).
+  (* Pre-condition (file tests/wp_store/struct.i, line 18) in 'f' *)
+  (* Pre-condition: *)
+  Have: (valid_rw Malloc_0 a_0 5) /\ (valid_rw Malloc_0 a_1 5).
+}
+Prove: (valid_rw Malloc_0 a_1 1).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function g
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_store/struct.i, line 11) in 'g':
+Assume {
+  (* Heap *)
+  Have: (linked Malloc_0) /\ ((region (base i_0))<=0).
+  (* Pre-condition (file tests/wp_store/struct.i, line 10) in 'g' *)
+  (* Pre-condition: *)
+  Have: (valid_rw Malloc_0 i_0 1).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_store/struct.i, line 12) in 'g':
+Effect at line 15
+Assume {
+  (* Domain *)
+  Type: (is_sint32 Mint_0[i_0]).
+  (* Goal *)
+  When: (valid_rd Malloc_0 i_0 1).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ ((region (base i_0))<=0).
+  (* Pre-condition (file tests/wp_store/struct.i, line 10) in 'g' *)
+  (* Pre-condition: *)
+  Have: (valid_rw Malloc_0 i_0 1).
+}
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function main
+------------------------------------------------------------
+
+Goal Post-condition 'P,qed_ok' in 'main':
+Let a_0 = (shift_St (global G_v_75) 0).
+Let a_1 = (Load_S_St a_0 Mint_0).
+Assume {
+  (* Domain *)
+  Type: (IsS_St w_0) /\ (IsS_St a_1).
+  (* Initializer *)
+  Init: 1=w_0.F_St_a.
+  (* Initializer *)
+  Init: 2=w_0.F_St_b.
+  (* Initializer *)
+  Init: 1=Mint_0[(shiftfield_F_St_a a_0)].
+  (* Initializer *)
+  Init: 2=Mint_0[(shiftfield_F_St_b a_0)].
+  (* Heap *)
+  Have: (region G_v_75)<=0.
+}
+Prove: (EqS_St a_1 w_0).
+
+------------------------------------------------------------
+
+Goal Post-condition 'Q,qed_ok' in 'main':
+Let a_0 = (shift_St (global G_v_75) 0).
+Let a_1 = (Load_S_St a_0 Mint_0).
+Assume {
+  (* Domain *)
+  Type: (IsS_St w_0) /\ (IsS_St a_1).
+  (* Initializer *)
+  Init: 1=w_0.F_St_a.
+  (* Initializer *)
+  Init: 2=w_0.F_St_b.
+  (* Initializer *)
+  Init: 1=Mint_0[(shiftfield_F_St_a a_0)].
+  (* Initializer *)
+  Init: 2=Mint_0[(shiftfield_F_St_b a_0)].
+  (* Heap *)
+  Have: (region G_v_75)<=0.
+}
+Prove: (EqS_St a_1 w_0).
+
+------------------------------------------------------------

@@ -8,11 +8,11 @@
   p ∈ {{ (char *)&a }}
   q ∈ {{ &a }}
 tests/misc/cmp_ptr_follow_all_branches.i:14:[kernel] warning: pointer comparison:
-                  assert \pointer_comparable(p+(unsigned int)((int)(-5)), p);
+                  assert \pointer_comparable((void *)(p+(unsigned int)((int)(-5))), (void *)p);
 [value] Called Frama_C_show_each_1()
 [value] Called Frama_C_show_each_2()
 tests/misc/cmp_ptr_follow_all_branches.i:15:[kernel] warning: pointer comparison:
-                  assert \pointer_comparable(q+(unsigned int)((int)(-5)), q);
+                  assert \pointer_comparable((void *)(q+(unsigned int)((int)(-5))), (void *)q);
 [value] Called Frama_C_show_each_3()
 [value] Called Frama_C_show_each_4()
 [value] Recording results for main

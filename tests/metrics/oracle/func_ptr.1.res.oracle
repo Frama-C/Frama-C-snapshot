@@ -1,13 +1,18 @@
 [kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/metrics/func_ptr.c (with preprocessing)
+tests/metrics/func_ptr.c:28:[kernel] warning: Calling undeclared function exit. Old style K&R code?
 [metrics] Defined functions (4)
           =====================
-           baz (address taken) (0 call); foobar (0 call); foo (address taken) (0 call);
+           baz (address taken) (0 call); foo (address taken) (0 call); foobar (0 call);
            main (0 call); 
           
-          Undefined functions (0)
+          Undefined functions (1)
           =======================
-           
+           exit (1 call); 
+          
+          'Extern' global variables (1)
+          =============================
+           bar_extern
           
           Potential entry points (2)
           ==========================
@@ -15,30 +20,31 @@
           
           Global metrics
           ============== 
-          Sloc = 16
-          Decision point = 1
-          Global variables = 1
-          If = 1
+          Sloc = 18
+          Decision point = 2
+          Global variables = 2
+          If = 2
           Loop = 0
           Goto = 2
           Assignment = 7
           Exit point = 4
-          Function = 4
-          Function call = 2
+          Function = 5
+          Function call = 3
           Pointer dereferencing = 2
-          Cyclomatic complexity = -1
+          Cyclomatic complexity = 6
 [metrics] Functions syntactically reachable from foobar: 2
           ------------------------------------------------
           <tests/metrics/func_ptr.c>: baz; foobar; 
           
-          Functions syntactically unreachable from foobar: 2
+          Functions syntactically unreachable from foobar: 3
           --------------------------------------------------
-          <tests/metrics/func_ptr.c>: foo; main;
+          <tests/metrics/func_ptr.c>: foo; main; exit;
 [value] Analyzing a complete application starting at foobar
 [value] Computing initial state
 [value] Initial state computed
 [value] Values of globals at initialization
   bar ∈ {0}
+  bar_extern ∈ {0}
 [value] computing for function baz <- foobar.
         Called from tests/metrics/func_ptr.c:12.
 [value] Recording results for baz
@@ -47,7 +53,7 @@
 [value] done for function foobar
 [metrics] Value coverage statistics
           =========================
-          Syntactically reachable functions = 2 (out of 4)
+          Syntactically reachable functions = 2 (out of 5)
           Semantically reached functions = 2
           Coverage estimation = 100.0%
 [metrics] Statements analyzed by Value

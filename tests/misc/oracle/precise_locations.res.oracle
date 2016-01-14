@@ -20,6 +20,7 @@ tests/misc/precise_locations.i:29:[value] entering loop for the first time
         q ∈ {0}
         r ∈ {0}
         v ∈ [--..--]
+        __retres ∈ UNINITIALIZED
         =END OF DUMP==
 tests/misc/precise_locations.i:34:[value] entering loop for the first time
 tests/misc/precise_locations.i:37:[value] entering loop for the first time
@@ -436,6 +437,7 @@ tests/misc/precise_locations.i:38:[value] entering loop for the first time
         q ∈ {0}
         r ∈ {0}
         v ∈ [--..--]
+        __retres ∈ UNINITIALIZED
         =END OF DUMP==
 tests/misc/precise_locations.i:44:[value] entering loop for the first time
 tests/misc/precise_locations.i:45:[value] entering loop for the first time
@@ -519,7 +521,8 @@ tests/misc/precise_locations.i:49:[kernel] warning: signed overflow. assert t[j]
         Called from tests/misc/precise_locations.i:49.
 tests/misc/precise_locations.i:21:[value] Function g: precondition got status unknown.
 [value] Done for function g
-tests/misc/precise_locations.i:52:[kernel] warning: signed overflow. assert -2147483648 ≤ q+r ≤ 2147483647;
+tests/misc/precise_locations.i:52:[kernel] warning: signed overflow. assert -2147483648 ≤ q+r;
+tests/misc/precise_locations.i:52:[kernel] warning: signed overflow. assert q+r ≤ 2147483647;
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -912,24 +915,10 @@ tests/misc/precise_locations.i:52:[kernel] warning: signed overflow. assert -214
           __retres
 [inout] Inputs for function ct:
           \nothing
-[inout] InOut (internal) for function ct:
-        Operational inputs:
-          \nothing
-        Operational inputs on termination:
-          \nothing
-        Sure outputs:
-          __retres
 [inout] Out (internal) for function main:
           t{{[0..48]; [49].f1[0..4]}; [49].f2}; i; j; q; r; __retres
 [inout] Inputs for function main:
           t{[0..48]; [49].f1[0..4]}; i; j; q; r
-[inout] InOut (internal) for function main:
-        Operational inputs:
-          t{[0..48]; [49].f1[0..4]}; q; r
-        Operational inputs on termination:
-          t{[0..48]; [49].f1[0..4]}; q; r
-        Sure outputs:
-          i; j; __retres
 [report] Computing properties status...
 
 --------------------------------------------------------------------------------
@@ -1096,6 +1085,7 @@ tests/misc/precise_locations.i:52:[kernel] warning: signed overflow. assert -214
         q ∈ {0}
         r ∈ {0}
         v ∈ [--..--]
+        __retres ∈ UNINITIALIZED
         =END OF DUMP==
 [value] computing for function ct <- main.
         Called from tests/misc/precise_locations.i:39.
@@ -1509,6 +1499,7 @@ tests/misc/precise_locations.i:52:[kernel] warning: signed overflow. assert -214
         q ∈ {0}
         r ∈ {0}
         v ∈ [--..--]
+        __retres ∈ UNINITIALIZED
         =END OF DUMP==
 [value] computing for function f <- main.
         Called from tests/misc/precise_locations.i:48.
@@ -2263,6 +2254,7 @@ tests/misc/precise_locations.i:52:[value] Assertion 'Value,signed_overflow' got 
         q ∈ {0}
         r ∈ {0}
         v ∈ [--..--]
+        __retres ∈ UNINITIALIZED
         =END OF DUMP==
 [value] computing for function ct <- main.
         Called from tests/misc/precise_locations.i:39.
@@ -2694,6 +2686,7 @@ tests/misc/precise_locations.i:52:[value] Assertion 'Value,signed_overflow' got 
         q ∈ {0}
         r ∈ {0}
         v ∈ [--..--]
+        __retres ∈ UNINITIALIZED
         =END OF DUMP==
 [value] computing for function f <- main.
         Called from tests/misc/precise_locations.i:48.

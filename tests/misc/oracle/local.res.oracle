@@ -33,6 +33,7 @@ tests/misc/local.i:15:[value] warning: locals {d} escaping the scope of g throug
         T ∈ ESCAPINGADDR
         U ∈ ESCAPINGADDR
         V ∈ {0}
+        e ∈ UNINITIALIZED
         =END OF DUMP==
 [value] computing for function h <- main.
         Called from tests/misc/local.i:29.

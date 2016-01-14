@@ -31,8 +31,7 @@ void double_effect2(void)
   /*@ slice pragma stmt; */
   {
     int tmp;
-    {
-      /*sequence*/
+    { /* sequence */
       tmp = y;
       y ++;
       x += tmp;

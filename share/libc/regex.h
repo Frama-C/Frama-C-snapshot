@@ -22,8 +22,10 @@
 
 #ifndef _REGEX_H
 #define _REGEX_H 1
-#include "__fc_define_restrict.h"
+#include "features.h"
 #include "__fc_define_size_t.h"
+
+__BEGIN_DECLS
 
 struct re_pattern_buffer { size_t re_nsub;  };
 
@@ -73,5 +75,7 @@ int    regcomp(regex_t *, const char *, int);
 int    regexec(const regex_t *, const char *, size_t, regmatch_t[], int);
 size_t regerror(int, const regex_t *, char *, size_t);
 void   regfree(regex_t *);
+
+__END_DECLS
 
 #endif

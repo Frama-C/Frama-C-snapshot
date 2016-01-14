@@ -4,6 +4,7 @@
 [value] Computing initial state
 tests/misc/unknown_sizeof.i:8:[value] warning: during initialization of variable 's', size of type 'struct s' cannot be
                  computed (abstract type 'struct s')
+tests/misc/unknown_sizeof.i:8:[kernel] imprecise size for variable s
 [value] Initial state computed
 [value] Values of globals at initialization
   s.[bits 0 to ..] ∈ {0} or UNINITIALIZED

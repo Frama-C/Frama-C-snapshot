@@ -13,11 +13,13 @@ tests/misc/eval_separated.c:6:[value] Assertion got status valid.
 tests/misc/eval_separated.c:8:[value] Assertion got status valid.
 tests/misc/eval_separated.c:9:[value] Assertion got status valid.
 tests/misc/eval_separated.c:11:[value] warning: Operation {{ &q }} + {{ &q }} incurs a loss of precision
-tests/misc/eval_separated.c:11:[kernel] warning: signed overflow. assert -2147483648 ≤ (int)(&q)+(int)(&q) ≤ 2147483647;
+tests/misc/eval_separated.c:11:[kernel] warning: signed overflow. assert -2147483648 ≤ (int)(&q)+(int)(&q);
+tests/misc/eval_separated.c:11:[kernel] warning: signed overflow. assert (int)(&q)+(int)(&q) ≤ 2147483647;
 tests/misc/eval_separated.c:11:[value] Assigning imprecise value to q.
         The imprecision originates from Arithmetic {tests/misc/eval_separated.c:11}
 tests/misc/eval_separated.c:12:[value] warning: Operation {{ &r }} + {{ &r }} incurs a loss of precision
-tests/misc/eval_separated.c:12:[kernel] warning: signed overflow. assert -2147483648 ≤ (int)(&r)+(int)(&r) ≤ 2147483647;
+tests/misc/eval_separated.c:12:[kernel] warning: signed overflow. assert -2147483648 ≤ (int)(&r)+(int)(&r);
+tests/misc/eval_separated.c:12:[kernel] warning: signed overflow. assert (int)(&r)+(int)(&r) ≤ 2147483647;
 tests/misc/eval_separated.c:12:[value] Assigning imprecise value to r.
         The imprecision originates from Arithmetic {tests/misc/eval_separated.c:12}
 tests/misc/eval_separated.c:13:[value] Assertion got status unknown.

@@ -125,6 +125,13 @@ void main2(void)
         \valid(&p->t[(unsigned int)(sizeof(s1.t)-(unsigned int)i)]);
   */
   p->t[sizeof(s1.t) - (unsigned int)i] = 1;
+  /*@ assert
+      Value: index_bound: (unsigned int)(sizeof(s1.t)-(unsigned int)i) < 10;
+  */
+  /*@ assert
+      Value: mem_access:
+        \valid(&p->t[(unsigned int)(sizeof(s1.t)-(unsigned int)i)]);
+  */
   p->t[sizeof(s1.t) - (unsigned int)i] = 2;
   return;
 }

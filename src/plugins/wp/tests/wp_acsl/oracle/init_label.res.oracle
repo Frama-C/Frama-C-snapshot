@@ -1,0 +1,82 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_acsl/init_label.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+tests/wp_acsl/init_label.i:21:[kernel] warning: No code nor implicit assigns clause for function main, generating default assigns from the prototype
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function extra
+------------------------------------------------------------
+
+Goal Post-condition 'KO' in 'extra':
+Let x_0 = A_0[2].
+Assume { (* Domain *) Type: (is_sint32 x_0). }
+Prove: 12=x_0.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function foreign
+------------------------------------------------------------
+
+Goal Post-condition 'OK' in 'foreign':
+Assume {
+  (* Domain *)
+  Type: (is_sint32 A_0[8]).
+  (* Initializer *)
+  Init: 10=A_0[0].
+  (* Initializer *)
+  Init: 11=A_0[1].
+  (* Initializer *)
+  Init: 12=A_0[2].
+  (* Initializer *)
+  Init: forall i_0:int. (3<=i_0) -> (i_0<=19) -> (0=A_0[i_0]).
+}
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function job
+------------------------------------------------------------
+
+Goal Post-condition 'OK' in 'job':
+Let x_0 = A_0[2].
+Assume {
+  (* Domain *)
+  Type: (IsArray1_sint32 A_0) /\ (IsArray1_sint32 A_2) /\ (is_sint32 x_0).
+  (* Initializer *)
+  Init: 10=A_2[0].
+  (* Initializer *)
+  Init: 11=A_2[1].
+  (* Initializer *)
+  Init: 12=A_2[2].
+  (* Initializer *)
+  Init: forall i_0:int. (3<=i_0) -> (i_0<=19) -> (0=A_2[i_0]).
+  (* Pre-condition 'Init' in 'job' *)
+  (* Pre-condition 'Init': *)
+  Have: (EqArray1_int 20 A_0 A_2).
+}
+Prove: 12=x_0.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function main
+------------------------------------------------------------
+
+Goal Pre-condition 'OK' in 'main':
+Assume {
+  (* Domain *)
+  Type: (is_sint32 A_0[19]).
+  (* Initializer *)
+  Init: 10=A_0[0].
+  (* Initializer *)
+  Init: 11=A_0[1].
+  (* Initializer *)
+  Init: 12=A_0[2].
+  (* Initializer *)
+  Init: forall i_0:int. (3<=i_0) -> (i_0<=19) -> (0=A_0[i_0]).
+}
+Prove: true.
+
+------------------------------------------------------------

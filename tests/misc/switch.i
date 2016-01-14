@@ -1,6 +1,6 @@
 /* run.config
-   OPT: -float-normal -val -deps -out -input -journal-disable
-   OPT: -float-normal -val -deps -out -input -journal-disable -simplify-cfg
+   STDOPT: #"-float-normal"
+   STDOPT: #"-float-normal -simplify-cfg"
 */
 
 int result1, result3, result4;
@@ -26,7 +26,7 @@ int main (int c, int d, int e, int f, double d1, long l) {
 
   switch(c)
     {
-    case 0: CEA_F(c); return c;
+    case 0: Frama_C_show_each_F(c); return c;
     case 2: return c;
     }
 

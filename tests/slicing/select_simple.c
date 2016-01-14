@@ -1,6 +1,6 @@
 /* run.config
-   EXECNOW: make -s tests/slicing/select_simple.opt
-   CMD: tests/slicing/select_simple.opt
+   EXECNOW: make -s tests/slicing/select_simple.cmxs
+   CMD: @frama-c@ -load-module tests/slicing/libSelect.cmxs -load-module tests/slicing/select_simple.cmxs
    OPT: -check -deps -journal-disable
 */
 

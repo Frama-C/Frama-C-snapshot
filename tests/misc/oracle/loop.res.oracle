@@ -11,18 +11,18 @@
   r ∈ {0}
   G ∈ {0}
 tests/misc/loop.i:7:[value] entering loop for the first time
-[value] Called CEA_F({0})
-[value] Called CEA_F({0; 2})
-[value] Called CEA_F({0; 2; 4})
-[value] Called CEA_F({0; 2; 4; 6; 8; 10; 12; 14})
-[value] Called CEA_F([0..16],0%2)
-[value] Called CEA_F([0..48],0%2)
-[value] Called CEA_F([0..48],0%2)
-[value] Called CEA_F([0..48],0%2)
-[value] Called CEA_F([0..48],0%2)
-[value] Called CEA_F([0..48],0%2)
-[value] Called CEA_F([0..48],0%2)
-[value] Called CEA_F([0..48],0%2)
+[value] Called Frama_C_show_each_F({0})
+[value] Called Frama_C_show_each_F({0; 2})
+[value] Called Frama_C_show_each_F({0; 2; 4})
+[value] Called Frama_C_show_each_F({0; 2; 4; 6; 8; 10; 12; 14})
+[value] Called Frama_C_show_each_F([0..16],0%2)
+[value] Called Frama_C_show_each_F([0..48],0%2)
+[value] Called Frama_C_show_each_F([0..48],0%2)
+[value] Called Frama_C_show_each_F([0..48],0%2)
+[value] Called Frama_C_show_each_F([0..48],0%2)
+[value] Called Frama_C_show_each_F([0..48],0%2)
+[value] Called Frama_C_show_each_F([0..48],0%2)
+[value] Called Frama_C_show_each_F([0..48],0%2)
 tests/misc/loop.i:9:[kernel] warning: signed overflow. assert i_0+r ≤ 2147483647;
 [value] Recording results for main
 [value] done for function main

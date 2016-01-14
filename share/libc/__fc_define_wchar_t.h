@@ -26,5 +26,7 @@
 #if !defined(__cplusplus)
 /* wchar_t is a keyword in C++ and shall not be a typedef. */
 typedef __WCHAR_T wchar_t;
+#else
+typedef __WCHAR_T fc_wchar_t;
 #endif
 #endif

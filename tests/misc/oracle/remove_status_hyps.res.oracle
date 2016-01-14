@@ -1,0 +1,17 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/remove_status_hyps.i (no preprocessing)
+[rsh] initial statuses
+[rsh] assert P1: \true;: unknown (hyps: )
+[rsh] assert P2: \true;: unknown (hyps: assert P1: \true;)
+[rsh] assert P3: \true;: unknown (hyps: )
+[rsh] assert P4: \true;: unknown (hyps: assert P3: \true;assert P2: \true;
+                                        assert P1: \true;)
+[rsh] P4 only depends on P2
+[rsh] assert P1: \true;: unknown (hyps: )
+[rsh] assert P2: \true;: unknown (hyps: assert P1: \true;)
+[rsh] assert P3: \true;: unknown (hyps: )
+[rsh] assert P4: \true;: VALID (hyps: assert P2: \true;)
+[rsh] removing P1
+[rsh] assert P2: \true;: no try
+[rsh] assert P3: \true;: unknown (hyps: )
+[rsh] assert P4: \true;: VALID (hyps: assert P2: \true;)

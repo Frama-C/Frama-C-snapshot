@@ -1,5 +1,5 @@
 /* run.config
-   STDOPT: +"-load-module lib/plugins/Report -report -then -slevel 10"
+   STDOPT: +"-report -then -slevel 10"
 */
 
 

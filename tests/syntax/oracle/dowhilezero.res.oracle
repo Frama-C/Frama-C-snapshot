@@ -91,4 +91,10 @@ void f7(void)
   return;
 }
 
+void f8(int v)
+{
+  if (v == 0) ;
+  return;
+}
+
 

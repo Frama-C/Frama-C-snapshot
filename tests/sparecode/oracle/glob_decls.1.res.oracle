@@ -17,15 +17,15 @@
   X ∈ [--..--]
   Y ∈ [--..--]
   use_in_PX_init ∈ [--..--]
-  PX ∈ {{ NULL ; &S_PX_0[0] }}
+  PX ∈ {{ NULL ; &S_PX[0] }}
   S_PG1[0..1] ∈ [--..--]
   S_GPs[0..1] ∈ [--..--]
   S_PX[0..1] ∈ [--..--]
-  S_PX_0[0..1] ∈ [--..--]
 tests/sparecode/glob_decls.c:42:[value] Function main: precondition got status unknown.
 tests/sparecode/glob_decls.c:46:[kernel] warning: signed overflow. assert y+Y ≤ 2147483647;
 tests/sparecode/glob_decls.c:47:[kernel] warning: out of bounds read. assert \valid_read(PX);
-tests/sparecode/glob_decls.c:47:[kernel] warning: signed overflow. assert -2147483648 ≤ y+*PX ≤ 2147483647;
+tests/sparecode/glob_decls.c:47:[kernel] warning: signed overflow. assert -2147483648 ≤ y+*PX;
+tests/sparecode/glob_decls.c:47:[kernel] warning: signed overflow. assert y+*PX ≤ 2147483647;
 tests/sparecode/glob_decls.c:48:[value] Assertion got status unknown.
 tests/sparecode/glob_decls.c:49:[kernel] warning: signed overflow. assert X+x ≤ 2147483647;
 [value] Recording results for main

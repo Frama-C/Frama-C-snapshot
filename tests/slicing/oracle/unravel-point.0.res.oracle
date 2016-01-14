@@ -1,0 +1,165 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/slicing/unravel-point.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  
+[value] computing for function scanf <- main.
+        Called from tests/slicing/unravel-point.c:59.
+[value] using specification for function scanf
+[value] Done for function scanf
+[value] computing for function scanf <- main.
+        Called from tests/slicing/unravel-point.c:61.
+[value] Done for function scanf
+[value] computing for function scanf <- main.
+        Called from tests/slicing/unravel-point.c:63.
+[value] Done for function scanf
+[value] computing for function scanf <- main.
+        Called from tests/slicing/unravel-point.c:65.
+[value] Done for function scanf
+[value] computing for function scanf <- main.
+        Called from tests/slicing/unravel-point.c:66.
+[value] Done for function scanf
+tests/slicing/unravel-point.c:68:[kernel] warning: accessing uninitialized left-value: assert \initialized(&cond1);
+tests/slicing/unravel-point.c:71:[kernel] warning: accessing uninitialized left-value: assert \initialized(z);
+tests/slicing/unravel-point.c:71:[kernel] warning: signed overflow. assert *z+1 ≤ 2147483647;
+tests/slicing/unravel-point.c:72:[kernel] warning: accessing uninitialized left-value: assert \initialized(y);
+tests/slicing/unravel-point.c:72:[kernel] warning: accessing uninitialized left-value: assert \initialized(x);
+tests/slicing/unravel-point.c:72:[kernel] warning: signed overflow. assert -2147483648 ≤ *y+*x;
+tests/slicing/unravel-point.c:72:[kernel] warning: signed overflow. assert *y+*x ≤ 2147483647;
+[value] computing for function send1 <- main.
+        Called from tests/slicing/unravel-point.c:75.
+tests/slicing/unravel-point.c:36:[kernel] warning: Neither code nor specification for function printf, generating default assigns from the prototype
+[value] computing for function printf <- send1 <- main.
+        Called from tests/slicing/unravel-point.c:36.
+[value] using specification for function printf
+[value] Done for function printf
+[value] Recording results for send1
+[from] Computing for function send1
+[from] Done for function send1
+[value] Done for function send1
+[value] computing for function send2 <- main.
+        Called from tests/slicing/unravel-point.c:76.
+[value] computing for function printf <- send2 <- main.
+        Called from tests/slicing/unravel-point.c:40.
+[value] Done for function printf
+[value] Recording results for send2
+[from] Computing for function send2
+[from] Done for function send2
+[value] Done for function send2
+[value] computing for function send3 <- main.
+        Called from tests/slicing/unravel-point.c:77.
+tests/slicing/unravel-point.c:44:[kernel] warning: accessing uninitialized left-value: assert \initialized(&x);
+[value] computing for function printf <- send3 <- main.
+        Called from tests/slicing/unravel-point.c:44.
+[value] Done for function printf
+[value] Recording results for send3
+[from] Computing for function send3
+[from] Done for function send3
+[value] Done for function send3
+[value] computing for function send4 <- main.
+        Called from tests/slicing/unravel-point.c:78.
+tests/slicing/unravel-point.c:48:[kernel] warning: accessing uninitialized left-value: assert \initialized(&x);
+[value] computing for function printf <- send4 <- main.
+        Called from tests/slicing/unravel-point.c:48.
+[value] Done for function printf
+[value] Recording results for send4
+[from] Computing for function send4
+[from] Done for function send4
+[value] Done for function send4
+[value] Recording results for main
+[from] Computing for function main
+[from] Done for function main
+[value] done for function main
+[from] ====== DISPLAYING CALLWISE DEPENDENCIES ======
+[from] call to printf at tests/slicing/unravel-point.c:36 (by send1):
+  \result FROM \nothing
+[from] call to printf at tests/slicing/unravel-point.c:40 (by send2):
+  \result FROM \nothing
+[from] call to printf at tests/slicing/unravel-point.c:44 (by send3):
+  \result FROM \nothing
+[from] call to printf at tests/slicing/unravel-point.c:48 (by send4):
+  \result FROM \nothing
+[from] call to scanf at tests/slicing/unravel-point.c:59 (by main):
+  input1 FROM \nothing
+  \result FROM ANYTHING(origin:Unknown)
+[from] call to scanf at tests/slicing/unravel-point.c:61 (by main):
+  input2 FROM \nothing
+  \result FROM ANYTHING(origin:Unknown)
+[from] call to scanf at tests/slicing/unravel-point.c:63 (by main):
+  input3 FROM \nothing
+  \result FROM ANYTHING(origin:Unknown)
+[from] call to scanf at tests/slicing/unravel-point.c:65 (by main):
+  cond1 FROM \nothing
+  \result FROM ANYTHING(origin:Unknown)
+[from] call to scanf at tests/slicing/unravel-point.c:66 (by main):
+  cond2 FROM \nothing
+  \result FROM ANYTHING(origin:Unknown)
+[from] call to send1 at tests/slicing/unravel-point.c:75 (by main):
+  \result FROM x
+[from] call to send2 at tests/slicing/unravel-point.c:76 (by main):
+  \result FROM x
+[from] call to send3 at tests/slicing/unravel-point.c:77 (by main):
+  \result FROM x
+[from] call to send4 at tests/slicing/unravel-point.c:78 (by main):
+  \result FROM x
+[from] entry point:
+  \result FROM \nothing
+[from] ====== END OF CALLWISE DEPENDENCIES ======
+[slicing] slicing requests in progress...
+[slicing] making slicing project 'Slicing'...
+[slicing] interpreting slicing requests from the command line...
+[pdg] computing for function send1
+[pdg] done for function send1
+[slicing] applying all slicing requests...
+[slicing] applying 0 actions...
+[slicing] applying all slicing requests...
+[slicing] applying 1 actions...
+[slicing] applying actions: 1/1...
+[pdg] computing for function main
+[pdg] done for function main
+[slicing] exporting project to 'Slicing export'...
+[slicing] applying all slicing requests...
+[slicing] applying 0 actions...
+[sparecode] remove unused global declarations from project 'Slicing export tmp'
+[sparecode] removed unused global declarations in new project 'Slicing export'
+/* Generated by Frama-C */
+extern int scanf(char const *, int *p);
+
+int send1_slice_1(int x)
+{
+  return x;
+}
+
+void main(void)
+{
+  int input1;
+  int input2;
+  int input3;
+  int cond1;
+  int a;
+  int b;
+  int c;
+  int *x;
+  int *y;
+  int *z;
+  int output1;
+  scanf("%d",& input1);
+  a = input1;
+  scanf("%d",& input2);
+  b = input2;
+  scanf("%d",& input3);
+  c = input3;
+  scanf("%d",& cond1);
+  x = & a;
+  if (cond1) x = & b;
+  y = & c;
+  z = & b;
+  *z = *y + *x;
+  output1 = *z;
+  send1_slice_1(output1);
+  return;
+}
+
+

@@ -15,7 +15,8 @@ struct s {
    struct v v ;
 };
 int const t[4] = {4, 2};
-struct __anonstruct_u_1 const u[3] = {{.i1 = 2, .i2 = 5}, {.i1 = 3, .i2 = 7}};
+struct __anonstruct_u_1 const u[3] =
+  {{.i1 = 2, .i2 = 5}, {.i1 = 3, .i2 = 7}};
 struct s const s = {.i = 5, .j = 8, .v = {.k = 3, .l = 0}};
 int volatile c;
 void main(void)

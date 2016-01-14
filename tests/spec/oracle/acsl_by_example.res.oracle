@@ -163,8 +163,7 @@ int find_first_of(int const *a, int m, int const *b, int n)
     */
     while (i < m) {
       int tmp;
-      {
-        /*sequence*/
+      { /* sequence */
         tmp = find(b,n,*(a + i));
         ;
       }
@@ -234,8 +233,7 @@ int max_seq(int const *p, int n)
 {
   int __retres;
   int tmp;
-  {
-    /*sequence*/
+  { /* sequence */
     tmp = max_element(p,n);
     ;
   }
@@ -430,8 +428,7 @@ int remove_copy(int const *a, int n, int *b, int val)
     while (i < n) {
       if (*(a + i) != val) {
         int tmp;
-        {
-          /*sequence*/
+        { /* sequence */
           tmp = j;
           j ++;
           *(b + tmp) = *(a + i);

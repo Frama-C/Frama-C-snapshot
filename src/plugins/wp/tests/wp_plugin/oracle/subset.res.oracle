@@ -1,0 +1,35 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_plugin/subset.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function mem
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_plugin/subset.i, line 4) in 'mem':
+Let x_0 = (base a_0).
+Let x_1 = (base b_0).
+Assume {
+  (* Domain *)
+  Type: (is_sint32 mem_0) /\ (is_sint32 n_0).
+  (* Heap *)
+  Have: ((region x_0)<=0) /\ ((region x_1)<=0).
+  (* Pre-condition (file tests/wp_plugin/subset.i, line 3) in 'mem' *)
+  (* Pre-condition: *)
+  Have: x_0=x_1.
+  (* tests/wp_plugin/subset.i:8: Conditional *)
+  If: (addr_le b_0 a_0)
+  Then {
+    (* tests/wp_plugin/subset.i:8: Conditional *)
+    If: (addr_le a_0 (shift_sint32 b_0 n_0))
+    Then { (* tests/wp_plugin/subset.i:8: Assignment *) Have: 1=mem_0. }
+    Else { (* tests/wp_plugin/subset.i:8: Assignment *) Have: 0=mem_0. }
+  }
+  Else { (* tests/wp_plugin/subset.i:8: Assignment *) Have: 0=mem_0. }
+}
+Prove: (0!=mem_0) <-> (included a_0 1 (shift_sint32 b_0 0) (1+n_0)).
+
+------------------------------------------------------------

@@ -2,5 +2,4 @@ COMMENT: for now, this directory mainly tests the annotations syntax,
 COMMENT: no analysis is performed.
 COMMENT: we continue on annotation errors, as this allows to put
 COMMENT: various variations of the same test in one file.
-CMD: FRAMAC_PLUGIN=tests/.empty @frama-c@
 OPT: -pp-annot -print -journal-disable -continue-annot-error -check

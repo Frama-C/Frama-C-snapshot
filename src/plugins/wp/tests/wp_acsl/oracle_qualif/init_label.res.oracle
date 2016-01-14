@@ -1,0 +1,23 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_acsl/init_label.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+tests/wp_acsl/init_label.i:21:[kernel] warning: No code nor implicit assigns clause for function main, generating default assigns from the prototype
+[wp] warning: Missing RTE guards
+[wp] 4 goals scheduled
+[wp] [Alt-Ergo] Goal typed_extra_post_KO : Unknown
+[wp] [Qed] Goal typed_foreign_post_OK : Valid
+[wp] [Alt-Ergo] Goal typed_job_post_OK : Valid
+[wp] [Qed] Goal typed_main_pre_OK : Valid
+[wp] Proved goals:    3 / 4
+     Qed:             2 
+     Alt-Ergo:        1  (unknown: 1)
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+main                 1     -           1       100%
+job                 -       1 (19)     1       100%
+foreign              1     -           1       100%
+extra               -      -           1       0.0%
+----------------------------------------------------------

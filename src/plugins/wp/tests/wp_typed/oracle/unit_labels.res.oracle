@@ -1,0 +1,84 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_typed/unit_labels.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function duplet
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_typed/unit_labels.i, line 5) in 'duplet':
+Let x_0 = Mint_2[pi_0].
+Let a_1 = (shift_sint32 a_0 x_0).
+Let x_1 = Mint_2[pj_0].
+Let m_0 = Mint_2[a_1->Mint_2[(shift_sint32 a_0 x_1)]].
+Let x_2 = m_0[pi_0].
+Let x_3 = m_0[pj_0].
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_0) /\ (is_sint32 x_1) /\ (is_sint32 x_2)
+        /\ (is_sint32 x_3).
+  (* Heap *)
+  Have: ((region (base a_0))<=0) /\ ((region (base pi_0))<=0)
+        /\ ((region (base pj_0))<=0).
+  (* Pre-condition (file tests/wp_typed/unit_labels.i, line 4) in 'duplet' *)
+  (* Pre-condition: *)
+  Have: (pi_0!=pj_0) /\ (pi_0!=a_1) /\ (pj_0!=a_1).
+  (* Assertion 'PI' (file tests/wp_typed/unit_labels.i, line 9) *)
+  (* tests/wp_typed/unit_labels.i:9: Assertion 'PI': *)
+  Have: x_0=x_2.
+  (* Assertion 'PJ' (file tests/wp_typed/unit_labels.i, line 10) *)
+  (* tests/wp_typed/unit_labels.i:10: Assertion 'PJ': *)
+  Have: x_1=x_3.
+}
+Prove: (P_is_duplet m_0 a_0 x_2 x_3).
+
+------------------------------------------------------------
+
+Goal Assertion 'PI' (file tests/wp_typed/unit_labels.i, line 9):
+Let x_0 = Mint_2[pi_0].
+Let a_1 = (shift_sint32 a_0 x_0).
+Let x_1 = Mint_2[pj_0].
+Let m_0 = Mint_2[a_1->Mint_2[(shift_sint32 a_0 x_1)]].
+Let x_2 = m_0[pi_0].
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_0) /\ (is_sint32 x_1) /\ (is_sint32 x_2)
+        /\ (is_sint32 m_0[pj_0]).
+  (* Heap *)
+  Have: ((region (base a_0))<=0) /\ ((region (base pi_0))<=0)
+        /\ ((region (base pj_0))<=0).
+  (* Pre-condition (file tests/wp_typed/unit_labels.i, line 4) in 'duplet' *)
+  (* Pre-condition: *)
+  Have: (pi_0!=pj_0) /\ (pi_0!=a_1) /\ (pj_0!=a_1).
+}
+Prove: x_0=x_2.
+
+------------------------------------------------------------
+
+Goal Assertion 'PJ' (file tests/wp_typed/unit_labels.i, line 10):
+Let x_0 = Mint_2[pj_0].
+Let x_1 = Mint_2[pi_0].
+Let a_1 = (shift_sint32 a_0 x_1).
+Let m_0 = Mint_2[a_1->Mint_2[(shift_sint32 a_0 x_0)]].
+Let x_2 = m_0[pj_0].
+Let x_3 = m_0[pi_0].
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_1) /\ (is_sint32 x_0) /\ (is_sint32 x_3)
+        /\ (is_sint32 x_2).
+  (* Heap *)
+  Have: ((region (base a_0))<=0) /\ ((region (base pi_0))<=0)
+        /\ ((region (base pj_0))<=0).
+  (* Pre-condition (file tests/wp_typed/unit_labels.i, line 4) in 'duplet' *)
+  (* Pre-condition: *)
+  Have: (pi_0!=pj_0) /\ (pi_0!=a_1) /\ (pj_0!=a_1).
+  (* Assertion 'PI' (file tests/wp_typed/unit_labels.i, line 9) *)
+  (* tests/wp_typed/unit_labels.i:9: Assertion 'PI': *)
+  Have: x_1=x_3.
+}
+Prove: x_0=x_2.
+
+------------------------------------------------------------

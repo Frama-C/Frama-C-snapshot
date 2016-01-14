@@ -23,6 +23,7 @@
 #ifndef __FC_UNISTD
 #define __FC_UNISTD
 
+#include "__fc_string_axiomatic.h"
 #include "__fc_define_size_t.h"
 #include "__fc_define_null.h"
 #include "__fc_define_ssize_t.h"
@@ -32,6 +33,7 @@
 #include "__fc_define_useconds_t.h"
 #include "__fc_define_intptr_t.h"
 #include "__fc_select.h"
+#include "features.h"
 
 #include <getopt.h>
 
@@ -49,7 +51,7 @@
 
 #include "__fc_define_seek_macros.h"
 
-
+__BEGIN_DECLS
 
 /* Values for the NAME argument to `pathconf' and `fpathconf'.  */
 enum
@@ -706,6 +708,14 @@ enum
   };
 
 
+// arbitrary number
+#define __FC_MAX_OPEN_FILES 1024
+
+// __fc_fds represents the state of open file descriptors.
+//@ ghost int __fc_fds[__FC_MAX_OPEN_FILES];
+// TODO: Model the state of some functions more precisely.
+// TODO: define __fc_fds as volatile.
+
 
 int          access(const char *, int);
 unsigned int alarm(unsigned int);
@@ -713,7 +723,13 @@ int          brk(void *);
 int          chdir(const char *path);
 int          chroot(const char *path);
 int          chown(const char *, uid_t, gid_t);
-int          close(int);
+
+/*@
+  requires 0 <= fd < __FC_MAX_OPEN_FILES;
+  assigns \result, __fc_fds[fd] \from fd, __fc_fds[fd];
+  ensures \result == 0 || \result == -1;
+*/
+int          close(int fd);
 size_t       confstr(int, char *, size_t);
 char        *crypt(const char *, const char *);
 char        *ctermid(char *);
@@ -721,13 +737,45 @@ char        *cuserid(char *s);
 int          dup(int);
 int          dup2(int, int);
 void         encrypt(char[64], int);
-int          execl(const char *, const char *, ...);
-int          execle(const char *, const char *, ...);
-int          execlp(const char *, const char *, ...);
-int          execv(const char *, char *const []);
-int          execve(const char *, char *const [], char *const []);
-int          execvp(const char *, char *const []);
-void        _exit(int);
+
+/*@ requires arg != \null;
+    requires valid_read_string(path);
+    requires valid_read_string(arg);
+    assigns \result \from path[0..], arg[0..];
+*/
+int          execl(const char *path, const char *arg, ...);
+/*@ requires arg != \null;
+    requires valid_read_string(path);
+    requires valid_read_string(arg);
+    assigns \result \from path[0..], arg[0..];
+*/
+int          execle(const char *path, const char *arg, ...);
+/*@ requires arg != \null;
+    requires valid_read_string(path);
+    requires valid_read_string(arg);
+    assigns \result \from path[0..], arg[0..];
+*/
+int          execlp(const char *path, const char *arg, ...);
+/*@ requires argv[0] != \null;
+    requires valid_read_string(path);
+    requires valid_read_string(argv[0]);
+    assigns \result \from path[0..], argv[0..];
+*/
+int          execv(const char *path, char *const argv[]);
+/*@ requires argv[0] != \null;
+    requires valid_read_string(path);
+    requires valid_read_string(argv[0]);
+    assigns \result \from path[0..], argv[0..];
+*/
+int          execve(const char *path, char *const argv[], char *const env[]);
+/*@ requires argv[0] != \null;
+    requires valid_read_string(path);
+    requires valid_read_string(argv[0]);
+    assigns \result \from path[0..], argv[0..];
+*/
+int          execvp(const char *path, char *const argv[]);
+
+void         _exit(int) __attribute__ ((__noreturn__));
 int          fchown(int, uid_t, gid_t);
 int          fchdir(int);
 int          fdatasync(int);
@@ -768,7 +816,17 @@ ssize_t      pread(int, void *, size_t, off_t);
 int          pthread_atfork(void (*)(void), void (*)(void),
                  void(*)(void));
 ssize_t      pwrite(int, const void *, size_t, off_t);
-ssize_t      read(int, void *, size_t);
+
+/*@
+  requires 0 <= fd < __FC_MAX_OPEN_FILES;
+  requires \valid((char *)buf+(0..count-1));
+  assigns  \result, *((char *)buf+(0..count-1)), __fc_fds[fd]
+           \from __fc_fds[fd], count;
+  ensures  0 <= \result <= count || \result == -1;
+  ensures  \initialized(((char*)buf)+(0..\result-1));
+*/
+ssize_t      read(int fd, void *buf, size_t count);
+
 int          readlink(const char *, char *, size_t);
 int          rmdir(const char *);
 void        *sbrk(intptr_t);
@@ -795,6 +853,15 @@ useconds_t   ualarm(useconds_t, useconds_t);
 int          unlink(const char *);
 int          usleep(useconds_t);
 pid_t        vfork(void);
-ssize_t      write(int, const void *, size_t);
+
+/*@
+  requires 0 <= fd < __FC_MAX_OPEN_FILES;
+  requires \valid_read(((char *)buf)+(0..count-1));
+  assigns  \result, __fc_fds[fd] \from fd, count, __fc_fds[fd];
+  ensures -1 <= \result <= count;
+*/
+ssize_t      write(int fd, const void *buf, size_t count);
+
+__END_DECLS
 
 #endif

@@ -21,16 +21,18 @@
 ##########################################################################
 
 export FRAMAC_INTERNAL=yes
-export FRAMAC_PLUGIN_TEST=$(FRAMAC_TOP_SRCDIR)/lib/plugins
-export FRAMAC_PLUGIN_GUI_TEST=$(FRAMAC_TOP_SRCDIR)/lib/plugins/gui
+
 export FRAMAC_OPT=$(FRAMAC_TOP_SRCDIR)/bin/toplevel.opt$(EXE)
 export FRAMAC_BYTE=$(FRAMAC_TOP_SRCDIR)/bin/toplevel.byte$(EXE)
+
 export FRAMAC_INCLUDES=$(addprefix -I $(call winpath,$(FRAMAC_TOP_SRCDIR))/,$(FRAMAC_SRC_DIRS) lib)
+
 export PTESTS=$(FRAMAC_TOP_SRCDIR)/bin/ptests.$(PTESTSBEST)$(EXE)
-export PLUGIN_LIB_DIR=$(FRAMAC_TOP_SRCDIR)/lib/plugins
+
 export FRAMAC_LIB=$(FRAMAC_TOP_SRCDIR)/lib/fc
 export DOC_DIR=$(FRAMAC_TOP_SRCDIR)/doc/code
 
+export PLUGIN_LIB_DIR=$(FRAMAC_TOP_SRCDIR)/lib/plugins
 
 ##########################################################################
 # Local Variables:

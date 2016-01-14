@@ -1,0 +1,33 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_typed/unit_loopscope.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+tests/wp_typed/unit_loopscope.i:14:[wp] warning: Missing assigns clause (assigns 'everything' instead)
+------------------------------------------------------------
+  Function f
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file tests/wp_typed/unit_loopscope.i, line 13):
+Assume {
+  (* Invariant (file tests/wp_typed/unit_loopscope.i, line 13) *)
+  (* tests/wp_typed/unit_loopscope.i:14: Invariant: *)
+  Have: false.
+}
+Prove: false.
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file tests/wp_typed/unit_loopscope.i, line 13):
+Assume {
+  (* Heap *)
+  Have: (linked Malloc_0) /\ ((region (base written_1))<=0).
+  (* Pre-condition (file tests/wp_typed/unit_loopscope.i, line 8) in 'f' *)
+  (* Pre-condition: *)
+  Have: (valid_rw Malloc_0 written_1 1).
+}
+Prove: false.
+
+------------------------------------------------------------

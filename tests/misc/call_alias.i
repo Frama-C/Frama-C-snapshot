@@ -1,8 +1,8 @@
 /* run.config
   GCC:
-  OPT: -val -deps -out -input  -main main0 -journal-disable
-  OPT: -val -deps -out -input  -main main1 -journal-disable
-  OPT: -val -deps -out -input  -main main2 -journal-disable
+  STDOPT: #"-main main0"
+  STDOPT: #"-main main1"
+  STDOPT: #"-main main2"
 */
 
 int X,c,u,v,w,G;

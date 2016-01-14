@@ -1,7 +1,7 @@
 /* run.config
-   EXECNOW: make -s tests/constant_propagation/introduction_of_non_explicit_cast.opt
-   CMD: tests/constant_propagation/introduction_of_non_explicit_cast.opt
-   OPT: -deps -journal-disable
+   EXECNOW: make -s tests/constant_propagation/introduction_of_non_explicit_cast.cmxs
+   CMD: @frama-c@ -load-module tests/constant_propagation/introduction_of_non_explicit_cast
+   OPT: -val -deps -journal-disable
 */
 int x,y,z;
 int TAB[10];

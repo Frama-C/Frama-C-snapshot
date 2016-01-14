@@ -44,8 +44,8 @@ tests/misc/local_variables.i:47:[kernel] warning: out of bounds read. assert \va
 [value] ====== VALUES COMPUTED ======
 [value] Values at end of function w:
   B ∈ {0}
-  wu ∈ {0} or UNINITIALIZED
-  wv ∈ {0} or UNINITIALIZED
+  wu ∈ {0}
+  wv ∈ {0}
   __retres ∈ {0}
 [value] Values at end of function u:
   B ∈ {0}

@@ -16,14 +16,14 @@
   overlapread2 ∈ {0}
   overlapread3 ∈ {0}
   overlapread4 ∈ {0}
-tests/misc/align_char_array.c:25:[kernel] warning: signed overflow.
-                  assert -2147483648 ≤ (int)((char (*)[10])t)+3 ≤ 2147483647;
-tests/misc/align_char_array.c:26:[kernel] warning: signed overflow.
-                  assert -2147483648 ≤ (int)((char (*)[10])t)+3 ≤ 2147483647;
-tests/misc/align_char_array.c:27:[kernel] warning: signed overflow.
-                  assert -2147483648 ≤ (int)((char (*)[10])t)+2 ≤ 2147483647;
-tests/misc/align_char_array.c:28:[kernel] warning: signed overflow.
-                  assert -2147483648 ≤ (int)((char (*)[10])t)+2 ≤ 2147483647;
+tests/misc/align_char_array.c:25:[kernel] warning: signed overflow. assert -2147483648 ≤ (int)((char (*)[10])t)+3;
+tests/misc/align_char_array.c:25:[kernel] warning: signed overflow. assert (int)((char (*)[10])t)+3 ≤ 2147483647;
+tests/misc/align_char_array.c:26:[kernel] warning: signed overflow. assert -2147483648 ≤ (int)((char (*)[10])t)+3;
+tests/misc/align_char_array.c:26:[kernel] warning: signed overflow. assert (int)((char (*)[10])t)+3 ≤ 2147483647;
+tests/misc/align_char_array.c:27:[kernel] warning: signed overflow. assert -2147483648 ≤ (int)((char (*)[10])t)+2;
+tests/misc/align_char_array.c:27:[kernel] warning: signed overflow. assert (int)((char (*)[10])t)+2 ≤ 2147483647;
+tests/misc/align_char_array.c:28:[kernel] warning: signed overflow. assert -2147483648 ≤ (int)((char (*)[10])t)+2;
+tests/misc/align_char_array.c:28:[kernel] warning: signed overflow. assert (int)((char (*)[10])t)+2 ≤ 2147483647;
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======

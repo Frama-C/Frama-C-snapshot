@@ -1,0 +1,88 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_usage/core.i (no preprocessing)
+tests/wp_usage/core.i:11:[kernel] warning: parsing obsolete ACSL construct 'logic declaration'. 'an axiomatic block' should be used instead.
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+tests/wp_usage/core.i:24:[wp] warning: Missing assigns clause (assigns 'everything' instead)
+tests/wp_usage/core.i:20:[wp] warning: Missing assigns clause (assigns 'everything' instead)
+tests/wp_usage/core.i:17:[wp] warning: Missing assigns clause (assigns 'everything' instead)
+------------------------------------------------------------
+  Function f
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_usage/core.i, line 12) in 'f':
+Assume {
+  (* Domain *)
+  Type: (is_sint32 a_0) /\ (is_sint32 b_0) /\ (is_sint32 c_0)
+        /\ (is_sint32 x_0) /\ (is_sint32 x_1) /\ (is_sint32 x_5)
+        /\ (is_sint32 x_8).
+  (* tests/wp_usage/core.i:15: Conditional *)
+  If: 0!=a_0
+  Then { (* Control Flow *) Have: x_0=x_8. }
+  Else { (* Control Flow *) Have: x_0=x_8. }
+  (* tests/wp_usage/core.i:18: Conditional *)
+  If: 0!=b_0
+  Then { (* Control Flow *) Have: x_5=x_8. }
+  Else { (* Control Flow *) Have: x_5=x_8. }
+  (* tests/wp_usage/core.i:22: Conditional *)
+  If: 0!=c_0
+  Then { (* Control Flow *) Have: x_1=(1+x_5). }
+  Else { (* Control Flow *) Have: x_1=(1+x_5). }
+}
+Prove: (P_OBS x_0 x_1).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function f with behavior default_for_stmt_15
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_usage/core.i, line 23) at instruction (file tests/wp_usage/core.i, line 24):
+Assume {
+  (* Domain *)
+  Type: (is_sint32 b_0) /\ (is_sint32 c_2) /\ (is_sint32 x_0)
+        /\ (is_sint32 x_3) /\ (is_sint32 x_5) /\ (is_sint32 (x_0-1)).
+  (* tests/wp_usage/core.i:18: Conditional *)
+  If: 0!=b_0
+  Then {
+    (* Post-condition (file tests/wp_usage/core.i, line 19) at instruction (file tests/wp_usage/core.i, line 20) *)
+    (* tests/wp_usage/core.i:20: Post-condition at instruction: *)
+    Have: x_0=(1+x_3).
+  }
+  Else { (* Control Flow *) Have: x_0=(1+x_5). }
+  (* tests/wp_usage/core.i:22: Then *)
+  Have: 0!=c_2.
+}
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function f with behavior default_for_stmt_4
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_usage/core.i, line 16) at instruction (file tests/wp_usage/core.i, line 17):
+Assume {
+  (* Domain *)
+  Type: (is_sint32 a_2).
+  (* tests/wp_usage/core.i:15: Then *)
+  Have: 0!=a_2.
+}
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function f with behavior default_for_stmt_9
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_usage/core.i, line 19) at instruction (file tests/wp_usage/core.i, line 20):
+Assume {
+  (* Domain *)
+  Type: (is_sint32 b_2).
+  (* tests/wp_usage/core.i:18: Then *)
+  Have: 0!=b_2.
+}
+Prove: true.
+
+------------------------------------------------------------

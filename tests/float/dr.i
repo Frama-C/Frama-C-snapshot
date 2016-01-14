@@ -1,6 +1,6 @@
 /* run.config
-  STDOPT: +"-val"
-  STDOPT: +"-val -float-hex"
+  STDOPT:
+  STDOPT: #"-float-hex"
 */
 
 float big  = 100e30f;

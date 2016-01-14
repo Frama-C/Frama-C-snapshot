@@ -9,7 +9,8 @@
 tests/misc/threat_array.i:5:[value] Assertion got status unknown.
 tests/misc/threat_array.i:7:[value] Assertion got status valid.
 tests/misc/threat_array.i:12:[value] Assertion got status valid.
-tests/misc/threat_array.i:15:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert 0 ≤ c < 10;
+tests/misc/threat_array.i:15:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert 0 ≤ c;
+tests/misc/threat_array.i:15:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert c < 10;
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======

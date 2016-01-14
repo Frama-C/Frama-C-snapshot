@@ -22,6 +22,9 @@
 
 #ifndef __FC_DEFINE_PID_T
 #define __FC_DEFINE_PID_T
+#include "features.h"
+__BEGIN_DECLS
 typedef unsigned int pid_t ;
+__END_DECLS
 #endif
 

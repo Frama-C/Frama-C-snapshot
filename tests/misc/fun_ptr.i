@@ -40,17 +40,51 @@ double h(short a, short b) {
 
 volatile int v;
 
-main(int c){
-  test1(!(c&1));
-  test2(!(c&2));
-  if (c&4) test3(!(c&8));
+void benign(int j, void *p) {
+  int *q = p;
+  *q = j; // j is has not been cast as an int here
+  int k = j+0; 
+}
+
+void test_benign () {
+  int x;
+  void (*p) (unsigned, short *) = &benign; // We accept this cast, because the arguments are compatible size-wise. An (unprovable) alarm is still emitted
+  (*p)(1U << 31U, &x);
+}
+
+void too_much(int i) {
+  int j = i;
+}
+
+void too_much2(int i, int j, int k) {
+  int l = i+j+k;
+}
+
+void test_too_much_benign () {
+  int x;
+  void (*p) (int, int) = &too_much;
+  (*p)(1, 2); // Accepted (with an alarm)
+  if (v) {
+    p = &too_much2;
+    (*p)(1, 2); // Failure    
+  }
+}
+
+main(){
+  test1(!v);
+  test2(!v);
+  if (v) test3(!v);
   double (*ph)() = h;
-  if (c&16)
+  if (v)
     ph(1., 2.);
-  if (c&32)
+  if (v)
     ph();
-  if (c&64)
+  if (v)
     ph((short)1, (short)2);
+
+  test_benign();
+  test_too_much_benign();
 
   return 0;
 }
+

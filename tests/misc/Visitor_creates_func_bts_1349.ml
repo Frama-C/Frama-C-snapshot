@@ -19,7 +19,7 @@ class test prj = object(self)
           (Cil.empty_funspec()) f Cil_datatype.Location.unknown)
       self#get_filling_actions
     ;
-    [GVarDecl(Cil.empty_funspec(),f.svar,Cil_datatype.Location.unknown);
+    [GFunDecl(Cil.empty_funspec(),f.svar,Cil_datatype.Location.unknown);
      GFun(f,Cil_datatype.Location.unknown)]
 
   method vglob_aux = function

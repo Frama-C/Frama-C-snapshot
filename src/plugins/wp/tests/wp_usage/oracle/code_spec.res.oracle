@@ -1,0 +1,207 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_usage/code_spec.i (no preprocessing)
+[wp] Running WP plugin...
+tests/wp_usage/code_spec.i:154:[kernel] warning: No code nor implicit assigns clause for function by_addr_in_spec, generating default assigns from the prototype
+tests/wp_usage/code_spec.i:154:[kernel] warning: No code nor implicit assigns clause for function by_array_in_spec, generating default assigns from the prototype
+.................................................
+... Ref Usage
+.................................................
+... Initial state
+  Nothing
+............
+... Function no_access
+  Nothing
+............
+... Function by_value_in_code
+   x0
+   x1
+   x2
+   x3
+   x4
+   x5
+   x6
+   x7
+   x8
+   x9
+   y0
+   y1
+   y2
+   y3
+   y4
+   y5
+   y6
+   y7
+   y8
+   y9
+   z0
+   z1
+   z2
+   tab
+   ptr
+   x
+   z
+............
+... Function by_reference_in_code
+  *p1
+  *p
+  *qq
+............
+... Function by_addr_in_code
+  &x0
+  &s0
+  &tab
+  &v1
+  &s2
+  &s3
+............
+... Function by_array_in_code
+   p1[_]
+   p2[_]
+   p3[_]
+   p4[_]
+   p5[_]
+   ptr[_]
+   p[_]
+   q[_]
+............
+... Function by_value_in_code_annotation
+   x1
+   x2
+   x3
+   x4
+   x5
+   x6
+   x7
+   x8
+   x9
+   tab
+   v
+   p
+   q
+............
+... Function by_reference_in_code_annotation
+  *p1
+  *p2
+  *p3
+  *p4
+  *p5
+  *p6
+  *p
+............
+... Function by_addr_in_code_annotation
+  &x0
+  &s0
+  &tab
+............
+... Function by_array_in_code_annotation
+   p1[_]
+   p2[_]
+   p3[_]
+   p4[_]
+   p5[_]
+   ptr[_]
+   p[_]
+   q[_]
+............
+... Function by_value_in_spec
+   x0
+   x1
+   p0
+   p1
+   p2
+............
+... Function by_reference_in_spec
+  *p0
+  *p1
+  *p2
+  *p3
+  *p4
+  *p5
+  *p6
+  *p
+............
+... Function by_addr_in_spec
+  &x0
+  &s0
+  &tab
+............
+... Function by_array_in_spec
+   p1[_]
+   p2[_]
+   p3[_]
+   p4[_]
+   p5[_]
+   ptr[_]
+   p[_]
+   q[_]
+............
+... Function global_spec
+   val
+  *ref
+  *ref_bis
+  &addr
+   array[_]
+   val_for_tab
+   not_imported
+............
+... Function params_spec
+   not_imported
+   val_arg0
+  &addr_arg0
+   val_arg1
+   val_arg2
+   val_arg3
+  *ref_arg1
+  *ref_arg2
+  *ref_arg3
+   array_arg1[_]
+   array_arg2[_]
+   array_arg3[_]
+............
+... Function global_and_param_spec
+   not_imported
+   val1
+   v
+............
+... Function calling_spec
+   val
+  *ref
+  *ref_bis
+  &addr
+   array[_]
+   val_for_tab
+   global_spec
+   params_spec
+   val1
+   global_and_param_spec
+   val0
+  &addr_val1
+   val_val2
+   val_val3
+   val_ref1
+  *ref_ref2
+   array_ref3[_]
+   v1
+   v2
+   v3
+   v4
+   val_array1
+   array_array2[_]
+   array_array3[_]
+............
+... Function cup
+   val
+  *ref
+  &addr
+   array[_]
+  &addr_value
+   val_ref
+   array_ref[_]
+   value_array
+.................................................
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] [WP:unreachability] Goal by_reference_in_code_annotation_no_exit_exit : Valid
+[wp] warning: Missing RTE guards
+[wp] No proof obligations

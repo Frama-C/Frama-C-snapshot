@@ -1,0 +1,28 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_acsl/init_value.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] 13 goals scheduled
+[wp] [Qed] Goal typed_main_pre_qed_ok_Struct_Simple_a : Valid
+[wp] [Qed] Goal typed_main_pre_qed_ok_Struct_Simple_b : Valid
+[wp] [Qed] Goal typed_main_pre_qed_ok_Simple_Array_0 : Valid
+[wp] [Alt-Ergo] Goal typed_main_pre_qed_ok_Simple_Array_1 : Valid
+[wp] [Qed] Goal typed_main_pre_qed_ok_With_Array_Struct_5 : Valid
+[wp] [Qed] Goal typed_main_pre_qed_ok_With_Array_Struct_3 : Valid
+[wp] [Alt-Ergo] Goal typed_main_pre_qed_ok_Sc_eq : Valid
+[wp] [Qed] Goal typed_main_pre_qed_ok_Sc_t : Valid
+[wp] [Qed] Goal typed_main_pre_qed_ok_Sc_t_2 : Valid
+[wp] [Qed] Goal typed_main_pre_qed_ok_Sc_c_2 : Valid
+[wp] [Qed] Goal typed_main_pre_qed_ok_Sc_c_3 : Valid
+[wp] [Qed] Goal typed_main_pre_qed_ok_Tab_no_init : Valid
+[wp] [Alt-Ergo] Goal typed_main_pre_qed_ok_Tab_todo : Valid
+[wp] Proved goals:   13 / 13
+     Qed:            10 
+     Alt-Ergo:        3
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+main                10      3 (26)    13       100%
+----------------------------------------------------------

@@ -1,0 +1,31 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/cmp_ptr_follow_all_branches.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  a ∈ {0}
+  p ∈ {{ (char *)&a }}
+  q ∈ {{ &a }}
+tests/misc/cmp_ptr_follow_all_branches.i:14:[kernel] warning: pointer comparison:
+                  assert \pointer_comparable((void *)(p+(unsigned int)((int)(-5))), (void *)p);
+[value] Called Frama_C_show_each_2()
+tests/misc/cmp_ptr_follow_all_branches.i:15:[kernel] warning: pointer comparison:
+                  assert \pointer_comparable((void *)(q+(unsigned int)((int)(-5))), (void *)q);
+[value] Called Frama_C_show_each_4()
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  __retres ∈ {0}
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          __retres
+[inout] Inputs for function main:
+          p; q

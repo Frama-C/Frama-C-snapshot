@@ -22,11 +22,19 @@
 
 #ifndef __FC_ASSERT
 #define __FC_ASSERT
+#include "features.h"
+
+__BEGIN_DECLS
+
 /*@ 
+  requires \false;
   terminates \false; 
   assigns \nothing;
 */
 void __FC_assert(const char* file,int line,const char*expr);
+
+__END_DECLS
+
 #endif
 
 #undef assert

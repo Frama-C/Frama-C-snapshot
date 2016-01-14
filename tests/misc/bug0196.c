@@ -1,5 +1,5 @@
 /*run.config
-  STDOPT: +"-simplify-cfg" +"-check" +"-print"
+  STDOPT: #"-simplify-cfg" #"-check" +"-print"
  */
 
 int fact(int n) {

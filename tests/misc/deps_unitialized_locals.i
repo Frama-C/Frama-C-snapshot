@@ -1,5 +1,5 @@
 /* run.config
-   STDOPT: +"-calldeps"
+   STDOPT: #"-calldeps"
 */
 volatile maybe;
 

@@ -7,13 +7,13 @@ int fact(int n)
   r = 1;
   while (n > 0) {
     int tmp;
-    before: /*@ ensures n ≥ 0; */
-            {
-              /*sequence*/
-              tmp = n;
-              n --;
-              r *= tmp;
-            }
+    before:
+      /*@ ensures n ≥ 0; */
+      { /* sequence */
+        tmp = n;
+        n --;
+        r *= tmp;
+      }
     /*@ assert r ≡ \at(r*n,before); */ ;
   }
   return r;

@@ -46,7 +46,7 @@
   x ∈ {0}
   y ∈ {0}
   v.c ∈ {1}
-   .[bits 8 to 15] ∈ UNINITIALIZED
+   .[bits 8 to 15] ∈ {0}
    .i ∈ {2}
    .p ∈ {{ &x }}
    .t[0] ∈ {{ &y }}
@@ -64,7 +64,8 @@ tests/misc/origin.i:124:[value] Assigning imprecise value to r.p.
         The imprecision originates from Misaligned {tests/misc/origin.i:124}
 tests/misc/origin.i:127:[value] Assigning imprecise value to r.t[0].
         The imprecision originates from Merge {tests/misc/origin.i:127}
-tests/misc/origin.i:128:[kernel] warning: signed overflow. assert -2147483648 ≤ -((int)(&x)) ≤ 2147483647;
+tests/misc/origin.i:128:[kernel] warning: signed overflow. assert -2147483648 ≤ -((int)(&x));
+tests/misc/origin.i:128:[kernel] warning: signed overflow. assert -((int)(&x)) ≤ 2147483647;
 tests/misc/origin.i:128:[value] Assigning imprecise value to r.t[1].
         The imprecision originates from Arithmetic {tests/misc/origin.i:128}
 [value] Recording results for origin

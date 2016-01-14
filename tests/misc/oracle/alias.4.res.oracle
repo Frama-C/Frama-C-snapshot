@@ -59,7 +59,7 @@
   char1 ∈ {0}
   ll1 ∈ {0}
 tests/misc/alias.i:185:[value] entering loop for the first time
-tests/misc/alias.i:191:[kernel] warning: pointer comparison: assert \pointer_comparable(PTR2, (char *)PTR1);
+tests/misc/alias.i:191:[kernel] warning: pointer comparison: assert \pointer_comparable((void *)PTR2, (void *)PTR1);
 tests/misc/alias.i:199:[kernel] warning: signed overflow. assert c+1 ≤ 2147483647;
 [value] Recording results for main6
 [value] done for function main6

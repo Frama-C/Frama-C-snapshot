@@ -36,6 +36,7 @@
         vic ∈ {0}
         c ∈ [-185..-5],4%9
         rc ∈ [-185..-5],4%9 or UNINITIALIZED
+        __retres ∈ UNINITIALIZED
         =END OF DUMP==
 [value] Called Frama_C_show_each_should({-1})
 [value] Recording results for main

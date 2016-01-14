@@ -227,6 +227,9 @@
 #define __FC_EXDEV 119
 #define __FC_EXFULL 120
 
+#define __FC_EOWNERDEAD 165
+#define __FC_ENOTRECOVERABLE 166
+
 /* sys/un.h */
 #define __FC_SOCKADDR_SUN_SUN_PATH 108
 

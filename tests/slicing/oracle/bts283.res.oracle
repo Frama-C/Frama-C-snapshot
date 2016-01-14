@@ -89,8 +89,7 @@ int main(void)
   int tmp;
   x = 1;
   z = f_slice_1();
-  {
-    /*sequence*/
+  { /* sequence */
     tmp = g_slice_1(1);
     z += tmp;
   }

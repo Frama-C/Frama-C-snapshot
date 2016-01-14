@@ -1,6 +1,6 @@
 /* run.config
-   OPT: -val -deps -out -input -journal-disable
-   OPT: -val -deps -out -input -journal-disable -undefined-pointer-comparison-propagate-all
+   STDOPT:
+   STDOPT: #"-undefined-pointer-comparison-propagate-all"
 */
 int a=-1;
 int b, d;

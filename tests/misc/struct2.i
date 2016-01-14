@@ -1,6 +1,6 @@
 /* run.config
   GCC:
-  OPT: -val -deps -out -input  -main f_precis -journal-disable -absolute-valid-range 0x1000-0x2000
+  STDOPT: #"-main f_precis -absolute-valid-range 0x1000-0x2000"
 */
 struct st1 {
  int a;

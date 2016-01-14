@@ -16,7 +16,7 @@ void main (int x,int y,int z,int t,int *p,int q[2]) {
   r2 = z-y;
   r3 = *(q-1);
   r4 = *q;  
-   CEA_DUMP();
+   Frama_C_dump_each();
 }
 
 void main1 (int x,int y,int z,int t,int *p,int *q) {
@@ -24,5 +24,5 @@ void main1 (int x,int y,int z,int t,int *p,int *q) {
   q++;
   r3 = *(q-1);
   r4 = *q;  
-   CEA_DUMP();
+   Frama_C_dump_each();
 }

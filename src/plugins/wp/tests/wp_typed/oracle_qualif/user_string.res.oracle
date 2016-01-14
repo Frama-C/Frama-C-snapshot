@@ -1,0 +1,29 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_typed/user_string.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] 14 goals scheduled
+[wp] [Alt-Ergo] Goal typed_strlen_post : Valid
+[wp] [Qed] Goal typed_strlen_loop_inv_BASE_preserved : Valid
+[wp] [Qed] Goal typed_strlen_loop_inv_BASE_established : Valid
+[wp] [Alt-Ergo] Goal typed_strlen_loop_inv_RANGE_preserved : Valid
+[wp] [Alt-Ergo] Goal typed_strlen_loop_inv_RANGE_established : Valid
+[wp] [Alt-Ergo] Goal typed_strlen_loop_inv_ZERO_preserved : Valid
+[wp] [Qed] Goal typed_strlen_loop_inv_ZERO_established : Valid
+[wp] [Alt-Ergo] Goal typed_strlen_assert_END : Valid
+[wp] [Qed] Goal typed_strlen_loop_assign : Valid
+[wp] [Qed] Goal typed_strlen_assign_part1 : Valid
+[wp] [Qed] Goal typed_strlen_assign_part2 : Valid
+[wp] [Qed] Goal typed_strlen_assign_part3 : Valid
+[wp] [Qed] Goal typed_strlen_loop_term_decrease : Valid
+[wp] [Alt-Ergo] Goal typed_strlen_loop_term_positive : Valid
+[wp] Proved goals:   14 / 14
+     Qed:             8 
+     Alt-Ergo:        6
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+strlen               8      6 (174)   14       100%
+----------------------------------------------------------

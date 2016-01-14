@@ -22,6 +22,9 @@
 
 #ifndef __FC_DEFINE_INO_T
 #define __FC_DEFINE_INO_T
+#include "features.h"
+__BEGIN_DECLS
 typedef unsigned int ino_t;
+__END_DECLS
 #endif
 

@@ -1,0 +1,234 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/sparecode/intra.c (with preprocessing)
+[sparecode] remove unused code...
+[sparecode] selecting function main outputs and entry point
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  G ∈ {0}
+  X10 ∈ {0}
+  Y10 ∈ {0}
+[value] computing for function param <- main.
+        Called from tests/sparecode/intra.c:82.
+[value] Recording results for param
+[value] Done for function param
+[value] computing for function tmp <- main.
+        Called from tests/sparecode/intra.c:83.
+tests/sparecode/intra.c:21:[value] Assertion got status valid.
+tests/sparecode/intra.c:23:[value] Assertion got status valid.
+[value] Recording results for tmp
+[value] Done for function tmp
+[value] computing for function spare_called_fct <- main.
+        Called from tests/sparecode/intra.c:84.
+[value] Recording results for spare_called_fct
+[value] Done for function spare_called_fct
+[value] computing for function call_two_outputs <- main.
+        Called from tests/sparecode/intra.c:85.
+[value] computing for function two_outputs <- call_two_outputs <- main.
+        Called from tests/sparecode/intra.c:49.
+[value] Recording results for two_outputs
+[value] Done for function two_outputs
+[value] computing for function two_outputs <- call_two_outputs <- main.
+        Called from tests/sparecode/intra.c:53.
+[value] Recording results for two_outputs
+[value] Done for function two_outputs
+[value] Recording results for call_two_outputs
+[value] Done for function call_two_outputs
+[value] computing for function loop <- main.
+        Called from tests/sparecode/intra.c:86.
+tests/sparecode/intra.c:64:[value] Assertion got status valid.
+tests/sparecode/intra.c:65:[value] Loop invariant got status valid.
+tests/sparecode/intra.c:67:[value] entering loop for the first time
+[value] Recording results for loop
+[value] Done for function loop
+[value] computing for function assign <- main.
+        Called from tests/sparecode/intra.c:87.
+[value] Recording results for assign
+[value] Done for function assign
+[value] computing for function assign <- main.
+        Called from tests/sparecode/intra.c:88.
+[value] Recording results for assign
+[value] Done for function assign
+[value] computing for function stop <- main.
+        Called from tests/sparecode/intra.c:91.
+tests/sparecode/intra.c:91:[kernel] warning: Neither code nor specification for function stop, generating default assigns from the prototype
+[value] using specification for function stop
+[value] Done for function stop
+tests/sparecode/intra.c:93:[value] entering loop for the first time
+[value] Recording results for main
+[value] done for function main
+[pdg] computing for function main
+[from] Computing for function param
+[from] Done for function param
+[from] Computing for function tmp
+[from] Done for function tmp
+[from] Computing for function spare_called_fct
+[from] Done for function spare_called_fct
+[from] Computing for function call_two_outputs
+[from] Computing for function two_outputs <-call_two_outputs
+[from] Done for function two_outputs
+[from] Done for function call_two_outputs
+[from] Computing for function loop
+[from] Done for function loop
+[from] Computing for function assign
+[from] Done for function assign
+[from] Computing for function stop
+[from] Done for function stop
+[pdg] done for function main
+[sparecode] add selection in function 'main'
+[sparecode] selecting output zones G
+[sparecode] add selection in function 'main'
+[pdg] computing for function call_two_outputs
+[pdg] done for function call_two_outputs
+[pdg] computing for function assign
+[pdg] done for function assign
+[pdg] computing for function loop
+[pdg] done for function loop
+[pdg] computing for function tmp
+[pdg] done for function tmp
+[pdg] computing for function param
+[pdg] done for function param
+[pdg] computing for function two_outputs
+[pdg] done for function two_outputs
+[sparecode] look for annotations in function Frama_C_bzero
+[pdg] computing for function Frama_C_bzero
+[from] Computing for function Frama_C_bzero
+[from] Done for function Frama_C_bzero
+[pdg] done for function Frama_C_bzero
+[sparecode] look for annotations in function Frama_C_copy_block
+[pdg] computing for function Frama_C_copy_block
+[from] Computing for function Frama_C_copy_block
+[from] Done for function Frama_C_copy_block
+[pdg] done for function Frama_C_copy_block
+[sparecode] look for annotations in function assign
+[sparecode] look for annotations in function call_two_outputs
+[sparecode] look for annotations in function f10
+[pdg] computing for function f10
+[pdg] warning: unreachable entry point (sid:83, function f10)
+[pdg] Bottom for function f10
+[sparecode] pdg bottom: skip annotations
+[sparecode] look for annotations in function loop
+[sparecode] selecting annotation : assert i < z;
+[sparecode] selecting annotation : loop invariant i < y;
+[sparecode] add selection in function 'loop'
+[sparecode] look for annotations in function main
+[sparecode] selecting annotation : assert \false;
+[sparecode] look for annotations in function main2
+[pdg] computing for function main2
+[pdg] warning: unreachable entry point (sid:92, function main2)
+[pdg] Bottom for function main2
+[sparecode] pdg bottom: skip annotations
+[sparecode] look for annotations in function param
+[sparecode] look for annotations in function spare_called_fct
+[pdg] computing for function spare_called_fct
+[pdg] done for function spare_called_fct
+[sparecode] look for annotations in function stop
+[pdg] computing for function stop
+[pdg] done for function stop
+[sparecode] look for annotations in function tmp
+[sparecode] selecting annotation : assert x ≡ a;
+[sparecode] selecting annotation : assert w ≡ 1;
+[sparecode] add selection in function 'tmp'
+[sparecode] look for annotations in function two_outputs
+[sparecode] finalize call input propagation
+[sparecode] add selection in function 'call_two_outputs'
+[sparecode] add selection in function 'main'
+[sparecode] add selection in function 'main'
+[sparecode] remove unused global declarations...
+[sparecode] result in new project 'default without sparecode'.
+/* Generated by Frama-C */
+int G;
+int tmp(int a)
+{
+  int x;
+  int w;
+  x = a;
+  /*@ assert x ≡ a; */ ;
+  w = 1;
+  /*@ assert w ≡ 1; */ ;
+  return x;
+}
+
+int param(int a)
+{
+  return a;
+}
+
+int two_outputs(int a, int b)
+{
+  G += b;
+  return a;
+}
+
+int call_two_outputs(void)
+{
+  int x;
+  int any_b;
+  int any_a;
+  int a;
+  int b;
+  any_b = 1;
+  any_a = 2;
+  a = 1;
+  b = any_b;
+  x = two_outputs(a,b);
+  G = 1;
+  b = 2;
+  a = any_a;
+  two_outputs(a,b);
+  return x;
+}
+
+void assign(int *p, int *q)
+{
+  *p = *q;
+  return;
+}
+
+int loop(int x, int y, int z)
+{
+  int i;
+  i = 0;
+  /*@ assert i < z; */ ;
+  /*@ loop invariant i < y; */
+  while (i < x) i ++;
+  return i;
+}
+
+int main(void)
+{
+  int __retres;
+  int res;
+  int spare_ref;
+  int x;
+  int y;
+  int tmp_0;
+  int tmp_1;
+  int tmp_2;
+  int tmp_3;
+  res = 0;
+  spare_ref = 3;
+  y = 2;
+  { /* sequence */
+    tmp_0 = param(2);
+    res += tmp_0;
+  }
+  { /* sequence */
+    tmp_1 = tmp(4);
+    res += tmp_1;
+  }
+  { /* sequence */
+    tmp_2 = call_two_outputs();
+    res += tmp_2;
+  }
+  { /* sequence */
+    tmp_3 = loop(10,15,20);
+    res += tmp_3;
+  }
+  assign(& x,& y);
+  __retres = (res + G) + x;
+  return __retres;
+}
+
+

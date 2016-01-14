@@ -9,9 +9,7 @@
   g_2 ∈ {0}
   g_7[0]{.f0; .f1[bits 0 to 6]; .f2[bits 0 to 6]; .f3.f0[bits 0 to 6]} ∈
      {52}
-     [0]{.f0[bits 7 to 31]; .f1[bits 7 to 31]; .f2[bits 7 to 31]; .f3.f0[bits 7 to 31]} ∈
-     UNINITIALIZED
-     [0]{.f0[bits 32 to 159]; .f1[bits 32 to 159]; .f2[bits 32 to 159]; .f3{.f1; .f2; .f3; .[bits 48 to 63]; .[bits 90 to 95]}} ∈
+     [0]{.f0[bits 7 to 159]; .f1[bits 7 to 159]; .f2[bits 7 to 159]; .f3{.f0[bits 7 to 31]; .f1; .f2; .f3; .[bits 48 to 63]; .[bits 90 to 95]}} ∈
      {0}
 [value] Called Frama_C_show_each({21668890})
 [value] Recording results for main
@@ -23,9 +21,7 @@
   l_16 ∈ {3175785498}
   g_7[0]{.f0; .f1[bits 0 to 6]; .f2[bits 0 to 6]; .f3.f0[bits 0 to 6]} ∈
      {52}
-     [0]{.f0[bits 7 to 31]; .f1[bits 7 to 31]; .f2[bits 7 to 31]; .f3.f0[bits 7 to 31]} ∈
-     UNINITIALIZED
-     [0]{.f0[bits 32 to 63]; .f1[bits 32 to 63]; .f2[bits 32 to 63]; .f3{.f1; .[bits 48 to 63]}} ∈
+     [0]{.f0[bits 7 to 63]; .f1[bits 7 to 63]; .f2[bits 7 to 63]; .f3{.f0[bits 7 to 31]; .f1; .[bits 48 to 63]}} ∈
      {0}
      [0]{.f0[bits 64 to 89]; .f1[bits 64 to 89]; .f2[bits 64 to 89]; .f3.f2} ∈
      {21668890}

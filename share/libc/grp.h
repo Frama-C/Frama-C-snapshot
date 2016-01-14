@@ -22,8 +22,12 @@
 
 #ifndef __FC_GRP_H
 #define __FC_GRP_H
+#include "features.h"
 #include "__fc_define_uid_and_gid.h"
 #include "__fc_define_size_t.h"
+
+__BEGIN_DECLS
+
 struct group {
   char   *gr_name;
   gid_t   gr_gid;
@@ -42,6 +46,8 @@ void setgrent(void);
 
 /* BSD function */
 int initgroups (const char *user, gid_t group);
+
+__END_DECLS
 
 #endif
 

@@ -41,6 +41,13 @@ struct lconv {
    char int_p_sign_posn ;
    char int_n_sign_posn ;
 };
+typedef int jmp_buf[5];
+typedef unsigned long sigset_t;
+struct __anonstruct_sigjmp_buf_2 {
+   jmp_buf buf ;
+   sigset_t sigs ;
+};
+typedef struct __anonstruct_sigjmp_buf_2 sigjmp_buf;
 typedef unsigned int gid_t;
 typedef unsigned int uid_t;
 typedef __builtin_va_list va_list;
@@ -133,21 +140,24 @@ extern int Frama_C_nondet(int a, int b);
  */
 extern void *Frama_C_nondet_ptr(void *a, void *b);
 
-/*@ ensures \old(min) ≤ \result ≤ \old(max);
+/*@ requires min ≤ max;
+    ensures \old(min) ≤ \result ≤ \old(max);
     assigns \result, Frama_C_entropy_source;
     assigns \result \from min, max, Frama_C_entropy_source;
     assigns Frama_C_entropy_source \from Frama_C_entropy_source;
  */
 extern int Frama_C_interval(int min, int max);
 
-/*@ ensures \old(min) ≤ \result ≤ \old(max);
+/*@ requires min ≤ max;
+    ensures \old(min) ≤ \result ≤ \old(max);
     assigns \result, Frama_C_entropy_source;
     assigns \result \from min, max, Frama_C_entropy_source;
     assigns Frama_C_entropy_source \from Frama_C_entropy_source;
  */
 extern int Frama_C_interval_split(int min, int max);
 
-/*@ ensures \old(min) ≤ \result ≤ \old(max);
+/*@ requires min ≤ max;
+    ensures \old(min) ≤ \result ≤ \old(max);
     assigns \result, Frama_C_entropy_source;
     assigns \result \from min, max, Frama_C_entropy_source;
     assigns Frama_C_entropy_source \from Frama_C_entropy_source;
@@ -155,14 +165,16 @@ extern int Frama_C_interval_split(int min, int max);
 extern unsigned char Frama_C_unsigned_char_interval(unsigned char min,
                                                     unsigned char max);
 
-/*@ ensures \old(min) ≤ \result ≤ \old(max);
+/*@ requires min ≤ max;
+    ensures \old(min) ≤ \result ≤ \old(max);
     assigns \result, Frama_C_entropy_source;
     assigns \result \from min, max, Frama_C_entropy_source;
     assigns Frama_C_entropy_source \from Frama_C_entropy_source;
  */
 extern char Frama_C_char_interval(char min, char max);
 
-/*@ ensures \old(min) ≤ \result ≤ \old(max);
+/*@ requires min ≤ max;
+    ensures \old(min) ≤ \result ≤ \old(max);
     assigns \result, Frama_C_entropy_source;
     assigns \result \from min, max, Frama_C_entropy_source;
     assigns Frama_C_entropy_source \from Frama_C_entropy_source;
@@ -170,14 +182,16 @@ extern char Frama_C_char_interval(char min, char max);
 extern unsigned short Frama_C_unsigned_short_interval(unsigned short min,
                                                       unsigned short max);
 
-/*@ ensures \old(min) ≤ \result ≤ \old(max);
+/*@ requires min ≤ max;
+    ensures \old(min) ≤ \result ≤ \old(max);
     assigns \result, Frama_C_entropy_source;
     assigns \result \from min, max, Frama_C_entropy_source;
     assigns Frama_C_entropy_source \from Frama_C_entropy_source;
  */
 extern short Frama_C_short_interval(short min, short max);
 
-/*@ ensures \old(min) ≤ \result ≤ \old(max);
+/*@ requires min ≤ max;
+    ensures \old(min) ≤ \result ≤ \old(max);
     assigns \result, Frama_C_entropy_source;
     assigns \result \from min, max, Frama_C_entropy_source;
     assigns Frama_C_entropy_source \from Frama_C_entropy_source;
@@ -185,14 +199,16 @@ extern short Frama_C_short_interval(short min, short max);
 extern unsigned int Frama_C_unsigned_int_interval(unsigned int min,
                                                   unsigned int max);
 
-/*@ ensures \old(min) ≤ \result ≤ \old(max);
+/*@ requires min ≤ max;
+    ensures \old(min) ≤ \result ≤ \old(max);
     assigns \result, Frama_C_entropy_source;
     assigns \result \from min, max, Frama_C_entropy_source;
     assigns Frama_C_entropy_source \from Frama_C_entropy_source;
  */
 extern int Frama_C_int_interval(int min, int max);
 
-/*@ ensures \old(min) ≤ \result ≤ \old(max);
+/*@ requires min ≤ max;
+    ensures \old(min) ≤ \result ≤ \old(max);
     assigns \result, Frama_C_entropy_source;
     assigns \result \from min, max, Frama_C_entropy_source;
     assigns Frama_C_entropy_source \from Frama_C_entropy_source;
@@ -200,14 +216,16 @@ extern int Frama_C_int_interval(int min, int max);
 extern unsigned long Frama_C_unsigned_long_interval(unsigned long min,
                                                     unsigned long max);
 
-/*@ ensures \old(min) ≤ \result ≤ \old(max);
+/*@ requires min ≤ max;
+    ensures \old(min) ≤ \result ≤ \old(max);
     assigns \result, Frama_C_entropy_source;
     assigns \result \from min, max, Frama_C_entropy_source;
     assigns Frama_C_entropy_source \from Frama_C_entropy_source;
  */
 extern long Frama_C_long_interval(long min, long max);
 
-/*@ ensures \old(min) ≤ \result ≤ \old(max);
+/*@ requires min ≤ max;
+    ensures \old(min) ≤ \result ≤ \old(max);
     assigns \result, Frama_C_entropy_source;
     assigns \result \from min, max, Frama_C_entropy_source;
     assigns Frama_C_entropy_source \from Frama_C_entropy_source;
@@ -215,44 +233,57 @@ extern long Frama_C_long_interval(long min, long max);
 extern unsigned long long Frama_C_unsigned_long_long_interval(unsigned long long min,
                                                               unsigned long long max);
 
-/*@ ensures \old(min) ≤ \result ≤ \old(max);
+/*@ requires min ≤ max;
+    ensures \old(min) ≤ \result ≤ \old(max);
     assigns \result, Frama_C_entropy_source;
     assigns \result \from min, max, Frama_C_entropy_source;
     assigns Frama_C_entropy_source \from Frama_C_entropy_source;
  */
 extern long long Frama_C_long_long_interval(long long min, long long max);
 
-/*@ ensures \is_finite(\result) ∧ \old(min) ≤ \result ≤ \old(max);
+/*@ requires \is_finite(min) ∧ \is_finite(max);
+    requires min ≤ max;
+    ensures \is_finite(\result) ∧ \old(min) ≤ \result ≤ \old(max);
     assigns \result, Frama_C_entropy_source;
     assigns \result \from min, max, Frama_C_entropy_source;
     assigns Frama_C_entropy_source \from Frama_C_entropy_source;
  */
 extern float Frama_C_float_interval(float min, float max);
 
-/*@ ensures \is_finite(\result) ∧ \old(min) ≤ \result ≤ \old(max);
+/*@ requires \is_finite(min) ∧ \is_finite(max);
+    requires min ≤ max;
+    ensures \is_finite(\result) ∧ \old(min) ≤ \result ≤ \old(max);
     assigns \result, Frama_C_entropy_source;
     assigns \result \from min, max, Frama_C_entropy_source;
     assigns Frama_C_entropy_source \from Frama_C_entropy_source;
  */
 extern double Frama_C_double_interval(double min, double max);
 
-/*@ ensures *(\old(dest)+(0 .. \old(n))) ≡ *(\old(src)+(0 .. \old(n)));
-    assigns *(dest+(0 .. n-1)), \result;
-    assigns *(dest+(0 .. n-1)) \from *(src+(0 .. n-1));
+/*@ assigns *((char *)dest+(0 .. n-1)), \result;
+    assigns *((char *)dest+(0 .. n-1)) \from *((char *)src+(0 .. n-1));
     assigns \result \from dest;
  */
-extern void *Frama_C_memcpy(char *dest, char const *src, unsigned long n);
+extern void *Frama_C_memcpy(void *dest, void const *src, size_t n);
+
+/*@ assigns *((char *)p+(0 .. s-1)), \result;
+    assigns *((char *)p+(0 .. s-1)) \from c;
+    assigns \result \from p;
+ */
+extern void *Frama_C_memset(void *p, int c, size_t s);
 
 /*@ ensures \false;
     assigns \nothing; */
 extern  __attribute__((__noreturn__)) void Frama_C_abort(void);
 
-/*@ assigns *((char *)p+(0 .. s-1));
-    assigns *((char *)p+(0 .. s-1)) \from c;
- */
-extern void Frama_C_memset(void *p, int c, size_t s);
+/*@ assigns \result;
+    assigns \result \from p; */
+extern size_t Frama_C_offset(void const *p);
 
-/*@ terminates \false;
+/*@ assigns \nothing; */
+extern void Frama_C_show_each_warning(char const * , ...);
+
+/*@ requires \false;
+    terminates \false;
     assigns \nothing; */
 extern void __FC_assert(char const *file, int line, char const *expr);
 
@@ -420,7 +451,8 @@ axiomatic MemCmp {
  */
 /*@
 axiomatic MemChr {
-  logic 𝔹 memchr{L}(char *s, ℤ c, ℤ n) ;
+  logic 𝔹 memchr{L}(char *s, ℤ c, ℤ n) 
+    reads *(s+(0 .. n-1));
   
   axiom memchr_def{L}:
     ∀ char *s;
@@ -433,7 +465,8 @@ axiomatic MemChr {
  */
 /*@
 axiomatic MemSet {
-  logic 𝔹 memset{L}(char *s, ℤ c, ℤ n) ;
+  logic 𝔹 memset{L}(char *s, ℤ c, ℤ n) 
+    reads *(s+(0 .. n-1));
   
   axiom memset_def{L}:
     ∀ char *s;
@@ -446,7 +479,8 @@ axiomatic MemSet {
  */
 /*@
 axiomatic StrLen {
-  logic ℤ strlen{L}(char *s) ;
+  logic ℤ strlen{L}(char *s) 
+    reads *(s+(0 ..));
   
   axiom strlen_pos_or_null{L}:
     ∀ char *s;
@@ -521,7 +555,8 @@ axiomatic StrLen {
  */
 /*@
 axiomatic StrCmp {
-  logic ℤ strcmp{L}(char *s1, char *s2) ;
+  logic ℤ strcmp{L}(char *s1, char *s2) 
+    reads *(s1+(0 .. strlen{L}(s1))), *(s2+(0 .. strlen{L}(s2)));
   
   axiom strcmp_zero{L}:
     ∀ char *s1, char *s2;
@@ -533,7 +568,8 @@ axiomatic StrCmp {
  */
 /*@
 axiomatic StrNCmp {
-  logic ℤ strncmp{L}(char *s1, char *s2, ℤ n) ;
+  logic ℤ strncmp{L}(char *s1, char *s2, ℤ n) 
+    reads *(s1+(0 .. n-1)), *(s2+(0 .. n-1));
   
   axiom strncmp_zero{L}:
     ∀ char *s1, char *s2;
@@ -546,7 +582,8 @@ axiomatic StrNCmp {
  */
 /*@
 axiomatic StrChr {
-  logic 𝔹 strchr{L}(char *s, ℤ c) ;
+  logic 𝔹 strchr{L}(char *s, ℤ c) 
+    reads *(s+(0 .. strlen{L}(s)));
   
   axiom strchr_def{L}:
     ∀ char *s;
@@ -558,7 +595,8 @@ axiomatic StrChr {
  */
 /*@
 axiomatic WcsLen {
-  logic ℤ wcslen{L}(wchar_t *s) ;
+  logic ℤ wcslen{L}(wchar_t *s) 
+    reads *(s+(0 ..));
   
   axiom wcslen_pos_or_null{L}:
     ∀ wchar_t *s;
@@ -608,7 +646,8 @@ axiomatic WcsLen {
  */
 /*@
 axiomatic WcsCmp {
-  logic ℤ wcscmp{L}(wchar_t *s1, wchar_t *s2) ;
+  logic ℤ wcscmp{L}(wchar_t *s1, wchar_t *s2) 
+    reads *(s1+(0 .. wcslen{L}(s1))), *(s2+(0 .. wcslen{L}(s2)));
   
   axiom wcscmp_zero{L}:
     ∀ wchar_t *s1, wchar_t *s2;
@@ -620,7 +659,8 @@ axiomatic WcsCmp {
  */
 /*@
 axiomatic WcsNCmp {
-  logic ℤ wcsncmp{L}(wchar_t *s1, wchar_t *s2, ℤ n) ;
+  logic ℤ wcsncmp{L}(wchar_t *s1, wchar_t *s2, ℤ n) 
+    reads *(s1+(0 .. n-1)), *(s2+(0 .. n-1));
   
   axiom wcsncmp_zero{L}:
     ∀ wchar_t *s1, wchar_t *s2;
@@ -640,6 +680,10 @@ predicate valid_string{L}(char *s) =
   0 ≤ strlen{L}(s) ∧ \valid{L}(s+(0 .. strlen{L}(s)));
  */
 /*@
+predicate valid_read_string{L}(char *s) =
+  0 ≤ strlen{L}(s) ∧ \valid_read{L}(s+(0 .. strlen{L}(s)));
+ */
+/*@
 predicate valid_string_or_null{L}(char *s) =
   s ≡ \null ∨ valid_string{L}(s);
  */
@@ -655,7 +699,7 @@ extern struct lconv *__frama_c_locale;
 
 extern char *__frama_c_locale_names[];
 
-/*@ requires locale ≡ \null ∨ valid_string(locale);
+/*@ requires locale ≡ \null ∨ valid_read_string(locale);
     ensures
       \result ≡ \null ∨
       (\valid(\result) ∧ (∃ ℤ i; \result ≡ __frama_c_locale_names[i]));
@@ -753,6 +797,18 @@ extern float asinf(float x);
  */
 extern long double asinl(long double x);
 
+/*@ assigns \result;
+    assigns \result \from y, x; */
+extern double atan2(double y, double x);
+
+/*@ assigns \result;
+    assigns \result \from x; */
+extern double cos(double x);
+
+/*@ assigns \result;
+    assigns \result \from x; */
+extern double sin(double x);
+
 /*@ behavior normal:
       assumes \is_finite(x) ∧ x ≥ 1;
       ensures \is_finite(\result) ∧ \result ≥ 0;
@@ -810,27 +866,113 @@ extern float acoshf(float x);
  */
 extern long double acoshl(long double x);
 
-/*@ requires valid_string(tagp);
+/*@ assigns \result;
+    assigns \result \from x; */
+extern double exp(double x);
+
+/*@ assigns \result;
+    assigns \result \from x; */
+extern float expf(float x);
+
+/*@ assigns \result;
+    assigns \result \from x; */
+extern double log(double x);
+
+/*@ assigns \result;
+    assigns \result \from x; */
+extern float logf(float x);
+
+/*@ assigns \result;
+    assigns \result \from x; */
+extern double log10(double x);
+
+/*@ assigns \result;
+    assigns \result \from x; */
+extern float log10f(float x);
+
+/*@ assigns \result;
+    assigns \result \from x, y; */
+extern double pow(double x, double y);
+
+/*@ assigns \result;
+    assigns \result \from x, y; */
+extern float powf(float x, float y);
+
+/*@ assigns \result;
+    assigns \result \from x; */
+extern double sqrt(double x);
+
+/*@ assigns \result;
+    assigns \result \from x; */
+extern float sqrtf(float x);
+
+/*@ assigns \result;
+    assigns \result \from x; */
+extern double ceil(double x);
+
+/*@ assigns \result;
+    assigns \result \from x; */
+extern float ceilf(float x);
+
+/*@ assigns \result;
+    assigns \result \from x; */
+extern double floor(double x);
+
+/*@ assigns \result;
+    assigns \result \from x; */
+extern float floorf(float x);
+
+/*@ assigns \result;
+    assigns \result \from x; */
+extern double round(double x);
+
+/*@ assigns \result;
+    assigns \result \from x; */
+extern float roundf(float x);
+
+/*@ assigns \result;
+    assigns \result \from x; */
+extern double trunc(double x);
+
+/*@ assigns \result;
+    assigns \result \from x; */
+extern float truncf(float x);
+
+/*@ assigns \result;
+    assigns \result \from x, y; */
+extern double fmod(double x, double y);
+
+/*@ requires valid_read_string(tagp);
     ensures \is_NaN(\result);
-    assigns \nothing; */
+    assigns \nothing;
+ */
 extern double nan(char const *tagp);
 
-/*@ requires valid_string(tagp);
+/*@ requires valid_read_string(tagp);
     ensures \is_NaN(\result);
-    assigns \nothing; */
+    assigns \nothing;
+ */
 extern float nanf(char const *tagp);
 
-/*@ requires valid_string(tagp);
+/*@ requires valid_read_string(tagp);
     ensures \is_NaN(\result);
-    assigns \nothing; */
+    assigns \nothing;
+ */
 extern long double nanl(char const *tagp);
 
-/*@ assigns *(env+(0 .. 5)); */
-extern int setjmp(char * /*[5]*/ env);
+/*@ assigns *(env+(0 .. 4)); */
+extern int setjmp(int * /*[5]*/ env);
 
-/*@ terminates \false;
+/*@ ensures \false;
     assigns \nothing; */
-extern void longjmp(char * /*[5]*/ env, int val);
+extern void longjmp(int * /*[5]*/ env, int val);
+
+/*@ assigns env.buf[0 .. 4]; */
+extern int sigsetjmp(sigjmp_buf env, int savesigs);
+
+/*@ ensures \false;
+    assigns \nothing; */
+extern void siglongjmp(sigjmp_buf env, int val);
 
 /*@ assigns \nothing; */
 extern void (*signal(int sig, void (*func)(int )))(int );
@@ -847,7 +989,7 @@ extern FILE *__fc_stdout;
 extern int remove(char const *filename);
 
 /*@ assigns \nothing; */
-extern int rename(char const *old, char const *new);
+extern int rename(char const *old_name, char const *new_name);
 
 /*@ ensures
       \result ≡ \null ∨
@@ -862,25 +1004,25 @@ extern FILE *tmpfile(void);
  */
 extern char *tmpnam(char *s);
 
-/*@ ensures \result ≡ 0 ∨ \result ≡ -1;
-    assigns *stream;
-    assigns *stream \from \nothing;
+/*@ requires \valid(stream);
+    ensures \result ≡ 0 ∨ \result ≡ -1;
+    assigns \result;
+    assigns \result \from stream, stream->__fc_stdio_id;
  */
 extern int fclose(FILE *stream);
 
-/*@ ensures \result ≡ 0 ∨ \result ≡ -1;
-    assigns *stream;
-    assigns *stream \from \nothing;
+/*@ requires stream ≡ \null ∨ \valid_read(stream);
+    ensures \result ≡ 0 ∨ \result ≡ -1;
+    assigns \result;
+    assigns \result \from stream, stream->__fc_stdio_id;
  */
 extern int fflush(FILE *stream);
 
 FILE __fc_fopen[512];
-FILE const *_p__fc_fopen = (FILE const *)(__fc_fopen);
-/*@ ensures
-      \result ≡ \null ∨
-      (\valid(\result) ∧ \subset(\result, &__fc_fopen[0 ..]));
+FILE * const __p_fc_fopen = __fc_fopen;
+/*@ ensures \result ≡ \null ∨ \subset(\result, &__fc_fopen[0 .. 512-1]);
     assigns \result;
-    assigns \result \from *(filename+(..)), *(mode+(..)), _p__fc_fopen;
+    assigns \result \from *(filename+(..)), *(mode+(..)), __p_fc_fopen;
  */
 extern FILE *fopen(char const *filename, char const *mode);
 
@@ -905,10 +1047,12 @@ extern void setbuf(FILE *stream, char *buf);
     assigns *stream \from buf, mode, size; */
 extern int setvbuf(FILE *stream, char *buf, int mode, size_t size);
 
-/*@ assigns *stream; */
+/*@ assigns *stream;
+    assigns *stream \from stream->__fc_stdio_id; */
 extern int fprintf(FILE *stream, char const *format , ...);
 
-/*@ assigns *stream; */
+/*@ assigns *stream;
+    assigns *stream \from stream->__fc_stdio_id; */
 extern int fscanf(FILE *stream, char const *format , ...);
 
 /*@ assigns *__fc_stdout;
@@ -1000,13 +1144,22 @@ extern int puts(char const *s);
     assigns *stream \from c; */
 extern int ungetc(int c, FILE *stream);
 
-/*@ assigns *((char *)ptr+(0 .. nmemb*size-1));
-    assigns *((char *)ptr+(0 .. nmemb*size-1)) \from *stream;
+/*@ requires \valid((char *)ptr+(0 .. nmemb*size-1));
+    requires \valid(stream);
+    ensures \result ≤ \old(nmemb);
+    ensures \initialized((char *)\old(ptr)+(0 .. \result*\old(size)-1));
+    assigns *((char *)ptr+(0 .. nmemb*size-1)), \result;
+    assigns *((char *)ptr+(0 .. nmemb*size-1)) \from size, nmemb, *stream;
+    assigns \result \from size, *stream;
  */
 extern size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream);
 
-/*@ assigns *stream;
+/*@ requires \valid_read((char *)ptr+(0 .. nmemb*size-1));
+    requires \valid(stream);
+    ensures \result ≤ \old(nmemb);
+    assigns *stream, \result;
     assigns *stream \from *((char *)ptr+(0 .. nmemb*size-1));
+    assigns \result \from *((char *)ptr+(0 .. nmemb*size-1));
  */
 extern size_t fwrite(void const *ptr, size_t size, size_t nmemb, FILE *stream);
 
@@ -1158,7 +1311,8 @@ extern unsigned long strtoul(char const *nptr, char **endptr, int base);
  */
 extern unsigned long long strtoull(char const *nptr, char **endptr, int base);
 
-int __fc_random_counter __attribute__((__unused__, __FRAMA_C_MODEL__));
+/*@ ghost
+  int __fc_random_counter __attribute__((__unused__, __FRAMA_C_MODEL__)); */
 unsigned long const __fc_rand_max = (unsigned long)32767;
 /*@ ensures 0 ≤ \result ≤ __fc_rand_max;
     assigns \result, __fc_random_counter;
@@ -1225,6 +1379,41 @@ extern void *malloc(size_t size);
  */
 extern void free(void *p);
 
+/*@ requires ptr ≡ \null ∨ \freeable(ptr);
+    assigns __fc_heap_status, \result;
+    assigns __fc_heap_status \from __fc_heap_status;
+    assigns \result \from size, ptr, __fc_heap_status;
+    frees ptr;
+    allocates \result;
+    
+    behavior alloc:
+      assumes is_allocable(size);
+      ensures \fresh{Old, Here}(\result,\old(size));
+      assigns \result;
+      assigns \result \from size, __fc_heap_status;
+      allocates \result;
+    
+    behavior dealloc:
+      assumes ptr ≢ \null;
+      assumes is_allocable(size);
+      requires \freeable(ptr);
+      ensures \allocable(\old(ptr));
+      ensures \result ≡ \null ∨ \freeable(\result);
+      frees ptr;
+    
+    behavior fail:
+      assumes ¬is_allocable(size);
+      ensures \result ≡ \null;
+      assigns \result;
+      assigns \result \from size, __fc_heap_status;
+      allocates \nothing;
+    
+    complete behaviors fail, dealloc, alloc;
+    disjoint behaviors alloc, fail;
+    disjoint behaviors dealloc, fail;
+ */
+extern void *realloc(void *ptr, size_t size);
+
 /*@ ensures \false;
     assigns \nothing; */
 extern void abort(void);
@@ -1239,11 +1428,11 @@ extern int at_quick_exit(void (*func)(void));
 
 /*@ ensures \false;
     assigns \nothing; */
-extern void exit(int status);
+extern  __attribute__((__noreturn__)) void exit(int status);
 
 /*@ ensures \false;
     assigns \nothing; */
-extern void _Exit(int status);
+extern  __attribute__((__noreturn__)) void _Exit(int status);
 
 /*@ ensures \result ≡ \null ∨ \valid(\result);
     assigns \result;
@@ -1253,7 +1442,7 @@ extern char *getenv(char const *name);
 
 /*@ ensures \false;
     assigns \nothing; */
-extern void quick_exit(int status);
+extern  __attribute__((__noreturn__)) void quick_exit(int status);
 
 /*@ assigns \result;
     assigns \result \from *(string+(..)); */
@@ -1388,44 +1577,44 @@ extern void *memmove(void *dest, void const *src, size_t n);
  */
 extern void *memset(void *s, int c, size_t n);
 
-/*@ requires valid_string_src: valid_string(s);
+/*@ requires valid_string_src: valid_read_string(s);
     ensures \result ≡ strlen(\old(s));
     assigns \result;
     assigns \result \from *(s+(0 ..));
  */
 extern size_t strlen(char const *s);
 
-/*@ requires valid_string_src: valid_string(s);
+/*@ requires valid_string_src: valid_read_string(s);
     ensures \result ≡ strlen(\old(s)) ∨ \result ≡ \old(n);
     assigns \result;
     assigns \result \from *(s+(0 ..));
  */
 extern size_t strnlen(char const *s, size_t n);
 
-/*@ requires valid_string_s1: valid_string(s1);
-    requires valid_string_s2: valid_string(s2);
+/*@ requires valid_string_s1: valid_read_string(s1);
+    requires valid_string_s2: valid_read_string(s2);
     ensures \result ≡ strcmp(\old(s1), \old(s2));
     assigns \result;
     assigns \result \from *(s1+(0 ..)), *(s2+(0 ..));
  */
 extern int strcmp(char const *s1, char const *s2);
 
-/*@ requires valid_string_s1: valid_string(s1);
-    requires valid_string_s2: valid_string(s2);
+/*@ requires valid_string_s1: valid_read_string(s1);
+    requires valid_string_s2: valid_read_string(s2);
     ensures \result ≡ strncmp(\old(s1), \old(s2), \old(n));
     assigns \result;
     assigns \result \from *(s1+(0 .. n-1)), *(s2+(0 .. n-1));
  */
 extern int strncmp(char const *s1, char const *s2, size_t n);
 
-/*@ requires valid_string_s1: valid_string(s1);
-    requires valid_string_s2: valid_string(s2);
+/*@ requires valid_string_s1: valid_read_string(s1);
+    requires valid_string_s2: valid_read_string(s2);
     assigns \result;
     assigns \result \from *(s1+(0 ..)), *(s2+(0 ..));
  */
 extern int strcoll(char const *s1, char const *s2);
 
-/*@ requires valid_string_src: valid_string(s);
+/*@ requires valid_string_src: valid_read_string(s);
     assigns \result;
     assigns \result \from s, *(s+(0 ..)), c;
     
@@ -1434,7 +1623,7 @@ extern int strcoll(char const *s1, char const *s2);
       ensures (int)*\result ≡ \old(c);
       ensures \base_addr(\result) ≡ \base_addr(\old(s));
       ensures \old(s) ≤ \result < \old(s)+strlen(\old(s));
-      ensures valid_string(\result);
+      ensures valid_read_string(\result);
       ensures ∀ char *p; \old(s) ≤ p < \result ⇒ (int)*p ≢ \old(c);
     
     behavior not_found:
@@ -1447,7 +1636,7 @@ extern int strcoll(char const *s1, char const *s2);
  */
 extern char *strchr(char const *s, int c);
 
-/*@ requires valid_string_src: valid_string(s);
+/*@ requires valid_string_src: valid_read_string(s);
     assigns \result;
     assigns \result \from s, *(s+(0 ..)), c;
     
@@ -1455,7 +1644,7 @@ extern char *strchr(char const *s, int c);
       assumes strchr(s, c) ≡ \true;
       ensures (int)*\result ≡ \old(c);
       ensures \base_addr(\result) ≡ \base_addr(\old(s));
-      ensures valid_string(\result);
+      ensures valid_read_string(\result);
     
     behavior not_found:
       assumes ¬(strchr(s, c) ≡ \true);
@@ -1467,24 +1656,24 @@ extern char *strchr(char const *s, int c);
  */
 extern char *strrchr(char const *s, int c);
 
-/*@ requires valid_string_src: valid_string(s);
-    requires valid_string_reject: valid_string(reject);
+/*@ requires valid_string_src: valid_read_string(s);
+    requires valid_string_reject: valid_read_string(reject);
     ensures 0 ≤ \result ≤ strlen(\old(s));
     assigns \result;
     assigns \result \from *(s+(0 ..)), *(reject+(0 ..));
  */
 extern size_t strcspn(char const *s, char const *reject);
 
-/*@ requires valid_string_src: valid_string(s);
-    requires valid_string_accept: valid_string(accept);
+/*@ requires valid_string_src: valid_read_string(s);
+    requires valid_string_accept: valid_read_string(accept);
     ensures 0 ≤ \result ≤ strlen(\old(s));
     assigns \result;
     assigns \result \from *(s+(0 ..)), *(accept+(0 ..));
  */
 extern size_t strspn(char const *s, char const *accept);
 
-/*@ requires valid_string_src: valid_string(s);
-    requires valid_string_accept: valid_string(accept);
+/*@ requires valid_string_src: valid_read_string(s);
+    requires valid_string_accept: valid_read_string(accept);
     ensures
       \result ≡ (char *)0 ∨ \base_addr(\result) ≡ \base_addr(\old(s));
     assigns \result;
@@ -1492,20 +1681,19 @@ extern size_t strspn(char const *s, char const *accept);
  */
 extern char *strpbrk(char const *s, char const *accept);
 
-/*@ requires valid_string_haystack: valid_string(haystack);
-    requires valid_string_needle: valid_string(needle);
+/*@ requires valid_string_haystack: valid_read_string(haystack);
+    requires valid_string_needle: valid_read_string(needle);
     ensures
       \result ≡ (char *)0 ∨
-      (\base_addr(\result) ≡ \base_addr(\old(haystack)) ∧
+      (\subset(\result, \old(haystack)+(0 ..)) ∧ \valid_read(\result) ∧
        memcmp{Pre, Pre}(\result, \old(needle), strlen(\old(needle))) ≡ 0);
     assigns \result;
-    assigns \result
-      \from haystack, *(haystack+(0 ..)), needle, *(needle+(0 ..));
+    assigns \result \from haystack, *(haystack+(0 ..)), *(needle+(0 ..));
  */
 extern char *strstr(char const *haystack, char const *needle);
 
 /*@ requires valid_string_src: valid_string_or_null(s);
-    requires valid_string_delim: valid_string(delim);
+    requires valid_string_delim: valid_read_string(delim);
     ensures
       \result ≡ \null ∨ \base_addr(\result) ≡ \base_addr(\old(s));
     assigns \result;
@@ -1513,21 +1701,21 @@ extern char *strstr(char const *haystack, char const *needle);
  */
 extern char *strtok(char *s, char const *delim);
 
-/*@ requires
-      \valid(stringp) ∧ valid_string(*stringp) ∧ valid_string(delim);
+/*@ requires valid_string_src: \valid(stringp) ∧ valid_string(*stringp);
+    requires valid_string_delim: valid_read_string(delim);
     assigns *stringp, \result;
     assigns *stringp \from *(delim+(..)), *(*(stringp+(..)));
     assigns \result \from *(delim+(..)), *(*(stringp+(..)));
  */
 extern char *strsep(char **stringp, char const *delim);
 
-/*@ ensures valid_string(\result);
+/*@ ensures valid_read_string(\result);
     assigns \result;
     assigns \result \from errnum;
  */
 extern char *strerror(int errnum);
 
-/*@ requires valid_string_src: valid_string(src);
+/*@ requires valid_string_src: valid_read_string(src);
     requires room_string: \valid(dest+(0 .. strlen(src)));
     ensures strcmp(\old(dest), \old(src)) ≡ 0;
     ensures \result ≡ \old(dest);
@@ -1538,7 +1726,7 @@ extern char *strerror(int errnum);
  */
 extern char *strcpy(char *dest, char const *src);
 
-/*@ requires valid_string_src: valid_string(src);
+/*@ requires valid_string_src: valid_read_string(src);
     ensures \result ≡ \old(dest);
     assigns *(dest+(0 .. n-1)), \result;
     assigns *(dest+(0 .. n-1)) \from *(src+(0 .. n-1));
@@ -1555,7 +1743,7 @@ extern char *strcpy(char *dest, char const *src);
  */
 extern char *strncpy(char *dest, char const *src, size_t n);
 
-/*@ requires valid_string_src: valid_string(src);
+/*@ requires valid_string_src: valid_read_string(src);
     requires valid_string_dst: valid_string(dest);
     requires room_string: \valid(dest+(0 .. strlen(dest)+strlen(src)));
     ensures strlen(\old(dest)) ≡ \old(strlen(dest)+strlen(src));
@@ -1568,7 +1756,9 @@ extern char *strncpy(char *dest, char const *src, size_t n);
  */
 extern char *strcat(char *dest, char const *src);
 
-/*@ requires valid_string_src: valid_string(src) ∨ \valid(src+(0 .. n-1));
+/*@ requires
+      valid_string_src:
+        valid_read_string(src) ∨ \valid_read(src+(0 .. n-1));
     requires valid_string_dst: valid_string(dest);
     requires room_string: \valid(dest+(strlen(dest) .. strlen(dest)+n));
     ensures \result ≡ \old(dest);
@@ -1578,7 +1768,7 @@ extern char *strcat(char *dest, char const *src);
     assigns \result \from dest;
     
     behavior complete:
-      assumes valid_string(src) ∧ strlen(src) ≤ n;
+      assumes valid_read_string(src) ∧ strlen(src) ≤ n;
       ensures strlen(\old(dest)) ≡ \old(strlen(dest)+strlen(src));
       assigns *(dest+(strlen{Old}(dest) .. strlen{Old}(dest)+strlen{Old}(src))),
               \result;
@@ -1588,7 +1778,7 @@ extern char *strcat(char *dest, char const *src);
       assigns \result \from dest;
     
     behavior partial:
-      assumes ¬(valid_string(src) ∧ strlen(src) ≤ n);
+      assumes ¬(valid_read_string(src) ∧ strlen(src) ≤ n);
       ensures strlen(\old(dest)) ≡ \old(strlen(dest))+\old(n);
       assigns *(dest+(strlen{Old}(dest) .. strlen{Old}(dest)+n)), \result;
       assigns *(dest+(strlen{Old}(dest) .. strlen{Old}(dest)+n))
@@ -1598,14 +1788,14 @@ extern char *strcat(char *dest, char const *src);
 extern char *strncat(char *dest, char const *src, size_t n);
 
 /*@ requires valid_dest: \valid(dest+(0 .. n-1));
-    requires valid_string_src: valid_string(src);
+    requires valid_string_src: valid_read_string(src);
     assigns *(dest+(0 .. n-1)), \result;
     assigns *(dest+(0 .. n-1)) \from *(src+(0 ..)), n;
     assigns \result \from dest;
  */
 extern size_t strxfrm(char *dest, char const *src, size_t n);
 
-/*@ requires valid_string_src: valid_string(s);
+/*@ requires valid_string_src: valid_read_string(s);
     ensures
       \valid(\result+(0 .. strlen(\old(s)))) ∧
       strcmp(\result, \old(s)) ≡ 0;
@@ -1613,7 +1803,7 @@ extern size_t strxfrm(char *dest, char const *src, size_t n);
  */
 extern char *strdup(char const *s);
 
-/*@ requires valid_string_src: valid_string(s);
+/*@ requires valid_string_src: valid_read_string(s);
     ensures
       \valid(\result+(0 .. minimum(strlen(\old(s)), \old(n)))) ∧
       valid_string(\result) ∧ strlen(\result) ≤ \old(n) ∧
@@ -1623,14 +1813,15 @@ extern char *strdup(char const *s);
 extern char *strndup(char const *s, size_t n);
 
 /*@ requires \valid((char *)s+(0 .. n-1));
-    assigns *((char *)s+(0 .. n-1)); */
+    assigns *((char *)s+(0 .. n-1));
+    assigns *((char *)s+(0 .. n-1)) \from \nothing;
+ */
 extern void bzero(void *s, size_t n);
 
-unsigned int __fc_time_model __attribute__((__FRAMA_C_MODEL__));
-/*@ assigns __fc_time_model, \result;
-    assigns __fc_time_model \from __fc_time_model;
-    assigns \result \from __fc_time_model;
- */
+/*@ ghost unsigned int volatile __fc_time __attribute__((__FRAMA_C_MODEL__));
+  */
+/*@ assigns \result;
+    assigns \result \from __fc_time; */
 extern clock_t clock(void);
 
 /*@ assigns \result;
@@ -1643,25 +1834,40 @@ extern double difftime(time_t time1, time_t time0);
  */
 extern time_t mktime(struct tm *timeptr);
 
-/*@ assigns __fc_time_model, *timer, \result;
-    assigns __fc_time_model \from __fc_time_model;
-    assigns *timer \from __fc_time_model;
-    assigns \result \from __fc_time_model;
+/*@ assigns *timer, \result;
+    assigns *timer \from __fc_time;
+    assigns \result \from __fc_time;
+    
+    behavior null:
+      assumes timer ≡ \null;
+      assigns \result;
+      assigns \result \from __fc_time;
+    
+    behavior not_null:
+      assumes timer ≢ \null;
+      requires \valid(timer);
+      ensures \initialized(\old(timer));
+      assigns *timer, \result;
+      assigns *timer \from __fc_time;
+      assigns \result \from __fc_time;
+    
+    complete behaviors not_null, null;
+    disjoint behaviors not_null, null;
  */
 extern time_t time(time_t *timer);
 
 struct tm __fc_time_tm;
-struct tm * const __fc_time_tm_ptr = & __fc_time_tm;
+struct tm * const __p_fc_time_tm = & __fc_time_tm;
 /*@ ensures \result ≡ &__fc_time_tm ∨ \result ≡ \null;
     assigns \result, __fc_time_tm;
-    assigns \result \from __fc_time_tm_ptr;
+    assigns \result \from __p_fc_time_tm;
     assigns __fc_time_tm \from *timer;
  */
 extern struct tm *gmtime(time_t const *timer);
 
 /*@ ensures \result ≡ &__fc_time_tm ∨ \result ≡ \null;
     assigns \result, __fc_time_tm;
-    assigns \result \from __fc_time_tm_ptr;
+    assigns \result \from __p_fc_time_tm;
     assigns __fc_time_tm \from *timer;
  */
 extern struct tm *localtime(time_t const *timer);
@@ -1711,6 +1917,13 @@ struct lconv {
    char int_p_sign_posn ;
    char int_n_sign_posn ;
 };
+typedef int jmp_buf[5];
+typedef unsigned long sigset_t;
+struct __anonstruct_sigjmp_buf_2 {
+   jmp_buf buf ;
+   sigset_t sigs ;
+};
+typedef struct __anonstruct_sigjmp_buf_2 sigjmp_buf;
 typedef unsigned int gid_t;
 typedef unsigned int uid_t;
 typedef __builtin_va_list va_list;
@@ -1803,21 +2016,24 @@ extern int Frama_C_nondet(int a, int b);
  */
 extern void *Frama_C_nondet_ptr(void *a, void *b);
 
-/*@ ensures \old(min) ≤ \result ≤ \old(max);
+/*@ requires min ≤ max;
+    ensures \old(min) ≤ \result ≤ \old(max);
     assigns \result, Frama_C_entropy_source;
     assigns \result \from min, max, Frama_C_entropy_source;
     assigns Frama_C_entropy_source \from Frama_C_entropy_source;
  */
 extern int Frama_C_interval(int min, int max);
 
-/*@ ensures \old(min) ≤ \result ≤ \old(max);
+/*@ requires min ≤ max;
+    ensures \old(min) ≤ \result ≤ \old(max);
     assigns \result, Frama_C_entropy_source;
     assigns \result \from min, max, Frama_C_entropy_source;
     assigns Frama_C_entropy_source \from Frama_C_entropy_source;
  */
 extern int Frama_C_interval_split(int min, int max);
 
-/*@ ensures \old(min) ≤ \result ≤ \old(max);
+/*@ requires min ≤ max;
+    ensures \old(min) ≤ \result ≤ \old(max);
     assigns \result, Frama_C_entropy_source;
     assigns \result \from min, max, Frama_C_entropy_source;
     assigns Frama_C_entropy_source \from Frama_C_entropy_source;
@@ -1825,14 +2041,16 @@ extern int Frama_C_interval_split(int min, int max);
 extern unsigned char Frama_C_unsigned_char_interval(unsigned char min,
                                                     unsigned char max);
 
-/*@ ensures \old(min) ≤ \result ≤ \old(max);
+/*@ requires min ≤ max;
+    ensures \old(min) ≤ \result ≤ \old(max);
     assigns \result, Frama_C_entropy_source;
     assigns \result \from min, max, Frama_C_entropy_source;
     assigns Frama_C_entropy_source \from Frama_C_entropy_source;
  */
 extern char Frama_C_char_interval(char min, char max);
 
-/*@ ensures \old(min) ≤ \result ≤ \old(max);
+/*@ requires min ≤ max;
+    ensures \old(min) ≤ \result ≤ \old(max);
     assigns \result, Frama_C_entropy_source;
     assigns \result \from min, max, Frama_C_entropy_source;
     assigns Frama_C_entropy_source \from Frama_C_entropy_source;
@@ -1840,14 +2058,16 @@ extern char Frama_C_char_interval(char min, char max);
 extern unsigned short Frama_C_unsigned_short_interval(unsigned short min,
                                                       unsigned short max);
 
-/*@ ensures \old(min) ≤ \result ≤ \old(max);
+/*@ requires min ≤ max;
+    ensures \old(min) ≤ \result ≤ \old(max);
     assigns \result, Frama_C_entropy_source;
     assigns \result \from min, max, Frama_C_entropy_source;
     assigns Frama_C_entropy_source \from Frama_C_entropy_source;
  */
 extern short Frama_C_short_interval(short min, short max);
 
-/*@ ensures \old(min) ≤ \result ≤ \old(max);
+/*@ requires min ≤ max;
+    ensures \old(min) ≤ \result ≤ \old(max);
     assigns \result, Frama_C_entropy_source;
     assigns \result \from min, max, Frama_C_entropy_source;
     assigns Frama_C_entropy_source \from Frama_C_entropy_source;
@@ -1855,14 +2075,16 @@ extern short Frama_C_short_interval(short min, short max);
 extern unsigned int Frama_C_unsigned_int_interval(unsigned int min,
                                                   unsigned int max);
 
-/*@ ensures \old(min) ≤ \result ≤ \old(max);
+/*@ requires min ≤ max;
+    ensures \old(min) ≤ \result ≤ \old(max);
     assigns \result, Frama_C_entropy_source;
     assigns \result \from min, max, Frama_C_entropy_source;
     assigns Frama_C_entropy_source \from Frama_C_entropy_source;
  */
 extern int Frama_C_int_interval(int min, int max);
 
-/*@ ensures \old(min) ≤ \result ≤ \old(max);
+/*@ requires min ≤ max;
+    ensures \old(min) ≤ \result ≤ \old(max);
     assigns \result, Frama_C_entropy_source;
     assigns \result \from min, max, Frama_C_entropy_source;
     assigns Frama_C_entropy_source \from Frama_C_entropy_source;
@@ -1870,14 +2092,16 @@ extern int Frama_C_int_interval(int min, int max);
 extern unsigned long Frama_C_unsigned_long_interval(unsigned long min,
                                                     unsigned long max);
 
-/*@ ensures \old(min) ≤ \result ≤ \old(max);
+/*@ requires min ≤ max;
+    ensures \old(min) ≤ \result ≤ \old(max);
     assigns \result, Frama_C_entropy_source;
     assigns \result \from min, max, Frama_C_entropy_source;
     assigns Frama_C_entropy_source \from Frama_C_entropy_source;
  */
 extern long Frama_C_long_interval(long min, long max);
 
-/*@ ensures \old(min) ≤ \result ≤ \old(max);
+/*@ requires min ≤ max;
+    ensures \old(min) ≤ \result ≤ \old(max);
     assigns \result, Frama_C_entropy_source;
     assigns \result \from min, max, Frama_C_entropy_source;
     assigns Frama_C_entropy_source \from Frama_C_entropy_source;
@@ -1885,44 +2109,57 @@ extern long Frama_C_long_interval(long min, long max);
 extern unsigned long long Frama_C_unsigned_long_long_interval(unsigned long long min,
                                                               unsigned long long max);
 
-/*@ ensures \old(min) ≤ \result ≤ \old(max);
+/*@ requires min ≤ max;
+    ensures \old(min) ≤ \result ≤ \old(max);
     assigns \result, Frama_C_entropy_source;
     assigns \result \from min, max, Frama_C_entropy_source;
     assigns Frama_C_entropy_source \from Frama_C_entropy_source;
  */
 extern long long Frama_C_long_long_interval(long long min, long long max);
 
-/*@ ensures \is_finite(\result) ∧ \old(min) ≤ \result ≤ \old(max);
+/*@ requires \is_finite(min) ∧ \is_finite(max);
+    requires min ≤ max;
+    ensures \is_finite(\result) ∧ \old(min) ≤ \result ≤ \old(max);
     assigns \result, Frama_C_entropy_source;
     assigns \result \from min, max, Frama_C_entropy_source;
     assigns Frama_C_entropy_source \from Frama_C_entropy_source;
  */
 extern float Frama_C_float_interval(float min, float max);
 
-/*@ ensures \is_finite(\result) ∧ \old(min) ≤ \result ≤ \old(max);
+/*@ requires \is_finite(min) ∧ \is_finite(max);
+    requires min ≤ max;
+    ensures \is_finite(\result) ∧ \old(min) ≤ \result ≤ \old(max);
     assigns \result, Frama_C_entropy_source;
     assigns \result \from min, max, Frama_C_entropy_source;
     assigns Frama_C_entropy_source \from Frama_C_entropy_source;
  */
 extern double Frama_C_double_interval(double min, double max);
 
-/*@ ensures *(\old(dest)+(0 .. \old(n))) ≡ *(\old(src)+(0 .. \old(n)));
-    assigns *(dest+(0 .. n-1)), \result;
-    assigns *(dest+(0 .. n-1)) \from *(src+(0 .. n-1));
+/*@ assigns *((char *)dest+(0 .. n-1)), \result;
+    assigns *((char *)dest+(0 .. n-1)) \from *((char *)src+(0 .. n-1));
     assigns \result \from dest;
  */
-extern void *Frama_C_memcpy(char *dest, char const *src, unsigned long n);
+extern void *Frama_C_memcpy(void *dest, void const *src, size_t n);
+
+/*@ assigns *((char *)p+(0 .. s-1)), \result;
+    assigns *((char *)p+(0 .. s-1)) \from c;
+    assigns \result \from p;
+ */
+extern void *Frama_C_memset(void *p, int c, size_t s);
 
 /*@ ensures \false;
     assigns \nothing; */
 extern  __attribute__((__noreturn__)) void Frama_C_abort(void);
 
-/*@ assigns *((char *)p+(0 .. s-1));
-    assigns *((char *)p+(0 .. s-1)) \from c;
- */
-extern void Frama_C_memset(void *p, int c, size_t s);
+/*@ assigns \result;
+    assigns \result \from p; */
+extern size_t Frama_C_offset(void const *p);
 
-/*@ terminates \false;
+/*@ assigns \nothing; */
+extern void Frama_C_show_each_warning(char const * , ...);
+
+/*@ requires \false;
+    terminates \false;
     assigns \nothing; */
 extern void __FC_assert(char const *file, int line, char const *expr);
 
@@ -2090,7 +2327,8 @@ axiomatic MemCmp {
  */
 /*@
 axiomatic MemChr {
-  logic 𝔹 memchr{L}(char *s, ℤ c, ℤ n) ;
+  logic 𝔹 memchr{L}(char *s, ℤ c, ℤ n) 
+    reads *(s+(0 .. n-1));
   
   axiom memchr_def{L}:
     ∀ char *s;
@@ -2103,7 +2341,8 @@ axiomatic MemChr {
  */
 /*@
 axiomatic MemSet {
-  logic 𝔹 memset{L}(char *s, ℤ c, ℤ n) ;
+  logic 𝔹 memset{L}(char *s, ℤ c, ℤ n) 
+    reads *(s+(0 .. n-1));
   
   axiom memset_def{L}:
     ∀ char *s;
@@ -2116,7 +2355,8 @@ axiomatic MemSet {
  */
 /*@
 axiomatic StrLen {
-  logic ℤ strlen{L}(char *s) ;
+  logic ℤ strlen{L}(char *s) 
+    reads *(s+(0 ..));
   
   axiom strlen_pos_or_null{L}:
     ∀ char *s;
@@ -2191,7 +2431,8 @@ axiomatic StrLen {
  */
 /*@
 axiomatic StrCmp {
-  logic ℤ strcmp{L}(char *s1, char *s2) ;
+  logic ℤ strcmp{L}(char *s1, char *s2) 
+    reads *(s1+(0 .. strlen{L}(s1))), *(s2+(0 .. strlen{L}(s2)));
   
   axiom strcmp_zero{L}:
     ∀ char *s1, char *s2;
@@ -2203,7 +2444,8 @@ axiomatic StrCmp {
  */
 /*@
 axiomatic StrNCmp {
-  logic ℤ strncmp{L}(char *s1, char *s2, ℤ n) ;
+  logic ℤ strncmp{L}(char *s1, char *s2, ℤ n) 
+    reads *(s1+(0 .. n-1)), *(s2+(0 .. n-1));
   
   axiom strncmp_zero{L}:
     ∀ char *s1, char *s2;
@@ -2216,7 +2458,8 @@ axiomatic StrNCmp {
  */
 /*@
 axiomatic StrChr {
-  logic 𝔹 strchr{L}(char *s, ℤ c) ;
+  logic 𝔹 strchr{L}(char *s, ℤ c) 
+    reads *(s+(0 .. strlen{L}(s)));
   
   axiom strchr_def{L}:
     ∀ char *s;
@@ -2228,7 +2471,8 @@ axiomatic StrChr {
  */
 /*@
 axiomatic WcsLen {
-  logic ℤ wcslen{L}(wchar_t *s) ;
+  logic ℤ wcslen{L}(wchar_t *s) 
+    reads *(s+(0 ..));
   
   axiom wcslen_pos_or_null{L}:
     ∀ wchar_t *s;
@@ -2278,7 +2522,8 @@ axiomatic WcsLen {
  */
 /*@
 axiomatic WcsCmp {
-  logic ℤ wcscmp{L}(wchar_t *s1, wchar_t *s2) ;
+  logic ℤ wcscmp{L}(wchar_t *s1, wchar_t *s2) 
+    reads *(s1+(0 .. wcslen{L}(s1))), *(s2+(0 .. wcslen{L}(s2)));
   
   axiom wcscmp_zero{L}:
     ∀ wchar_t *s1, wchar_t *s2;
@@ -2290,7 +2535,8 @@ axiomatic WcsCmp {
  */
 /*@
 axiomatic WcsNCmp {
-  logic ℤ wcsncmp{L}(wchar_t *s1, wchar_t *s2, ℤ n) ;
+  logic ℤ wcsncmp{L}(wchar_t *s1, wchar_t *s2, ℤ n) 
+    reads *(s1+(0 .. n-1)), *(s2+(0 .. n-1));
   
   axiom wcsncmp_zero{L}:
     ∀ wchar_t *s1, wchar_t *s2;
@@ -2310,6 +2556,10 @@ predicate valid_string{L}(char *s) =
   0 ≤ strlen{L}(s) ∧ \valid{L}(s+(0 .. strlen{L}(s)));
  */
 /*@
+predicate valid_read_string{L}(char *s) =
+  0 ≤ strlen{L}(s) ∧ \valid_read{L}(s+(0 .. strlen{L}(s)));
+ */
+/*@
 predicate valid_string_or_null{L}(char *s) =
   s ≡ \null ∨ valid_string{L}(s);
  */
@@ -2325,7 +2575,7 @@ extern struct lconv *__frama_c_locale;
 
 extern char *__frama_c_locale_names[];
 
-/*@ requires locale ≡ \null ∨ valid_string(locale);
+/*@ requires locale ≡ \null ∨ valid_read_string(locale);
     ensures
       \result ≡ \null ∨
       (\valid(\result) ∧ (∃ ℤ i; \result ≡ __frama_c_locale_names[i]));
@@ -2423,6 +2673,18 @@ extern float asinf(float x);
  */
 extern long double asinl(long double x);
 
+/*@ assigns \result;
+    assigns \result \from y, x; */
+extern double atan2(double y, double x);
+
+/*@ assigns \result;
+    assigns \result \from x; */
+extern double cos(double x);
+
+/*@ assigns \result;
+    assigns \result \from x; */
+extern double sin(double x);
+
 /*@ behavior normal:
       assumes \is_finite(x) ∧ x ≥ 1;
       ensures \is_finite(\result) ∧ \result ≥ 0;
@@ -2480,27 +2742,113 @@ extern float acoshf(float x);
  */
 extern long double acoshl(long double x);
 
-/*@ requires valid_string(tagp);
+/*@ assigns \result;
+    assigns \result \from x; */
+extern double exp(double x);
+
+/*@ assigns \result;
+    assigns \result \from x; */
+extern float expf(float x);
+
+/*@ assigns \result;
+    assigns \result \from x; */
+extern double log(double x);
+
+/*@ assigns \result;
+    assigns \result \from x; */
+extern float logf(float x);
+
+/*@ assigns \result;
+    assigns \result \from x; */
+extern double log10(double x);
+
+/*@ assigns \result;
+    assigns \result \from x; */
+extern float log10f(float x);
+
+/*@ assigns \result;
+    assigns \result \from x, y; */
+extern double pow(double x, double y);
+
+/*@ assigns \result;
+    assigns \result \from x, y; */
+extern float powf(float x, float y);
+
+/*@ assigns \result;
+    assigns \result \from x; */
+extern double sqrt(double x);
+
+/*@ assigns \result;
+    assigns \result \from x; */
+extern float sqrtf(float x);
+
+/*@ assigns \result;
+    assigns \result \from x; */
+extern double ceil(double x);
+
+/*@ assigns \result;
+    assigns \result \from x; */
+extern float ceilf(float x);
+
+/*@ assigns \result;
+    assigns \result \from x; */
+extern double floor(double x);
+
+/*@ assigns \result;
+    assigns \result \from x; */
+extern float floorf(float x);
+
+/*@ assigns \result;
+    assigns \result \from x; */
+extern double round(double x);
+
+/*@ assigns \result;
+    assigns \result \from x; */
+extern float roundf(float x);
+
+/*@ assigns \result;
+    assigns \result \from x; */
+extern double trunc(double x);
+
+/*@ assigns \result;
+    assigns \result \from x; */
+extern float truncf(float x);
+
+/*@ assigns \result;
+    assigns \result \from x, y; */
+extern double fmod(double x, double y);
+
+/*@ requires valid_read_string(tagp);
     ensures \is_NaN(\result);
-    assigns \nothing; */
+    assigns \nothing;
+ */
 extern double nan(char const *tagp);
 
-/*@ requires valid_string(tagp);
+/*@ requires valid_read_string(tagp);
     ensures \is_NaN(\result);
-    assigns \nothing; */
+    assigns \nothing;
+ */
 extern float nanf(char const *tagp);
 
-/*@ requires valid_string(tagp);
+/*@ requires valid_read_string(tagp);
     ensures \is_NaN(\result);
-    assigns \nothing; */
+    assigns \nothing;
+ */
 extern long double nanl(char const *tagp);
 
-/*@ assigns *(env+(0 .. 5)); */
-extern int setjmp(char * /*[5]*/ env);
+/*@ assigns *(env+(0 .. 4)); */
+extern int setjmp(int * /*[5]*/ env);
 
-/*@ terminates \false;
+/*@ ensures \false;
     assigns \nothing; */
-extern void longjmp(char * /*[5]*/ env, int val);
+extern void longjmp(int * /*[5]*/ env, int val);
+
+/*@ assigns env.buf[0 .. 4]; */
+extern int sigsetjmp(sigjmp_buf env, int savesigs);
+
+/*@ ensures \false;
+    assigns \nothing; */
+extern void siglongjmp(sigjmp_buf env, int val);
 
 /*@ assigns \nothing; */
 extern void (*signal(int sig, void (*func)(int )))(int );
@@ -2517,7 +2865,7 @@ extern FILE *__fc_stdout;
 extern int remove(char const *filename);
 
 /*@ assigns \nothing; */
-extern int rename(char const *old, char const *new);
+extern int rename(char const *old_name, char const *new_name);
 
 /*@ ensures
       \result ≡ \null ∨
@@ -2532,25 +2880,25 @@ extern FILE *tmpfile(void);
  */
 extern char *tmpnam(char *s);
 
-/*@ ensures \result ≡ 0 ∨ \result ≡ -1;
-    assigns *stream;
-    assigns *stream \from \nothing;
+/*@ requires \valid(stream);
+    ensures \result ≡ 0 ∨ \result ≡ -1;
+    assigns \result;
+    assigns \result \from stream, stream->__fc_stdio_id;
  */
 extern int fclose(FILE *stream);
 
-/*@ ensures \result ≡ 0 ∨ \result ≡ -1;
-    assigns *stream;
-    assigns *stream \from \nothing;
+/*@ requires stream ≡ \null ∨ \valid_read(stream);
+    ensures \result ≡ 0 ∨ \result ≡ -1;
+    assigns \result;
+    assigns \result \from stream, stream->__fc_stdio_id;
  */
 extern int fflush(FILE *stream);
 
 FILE __fc_fopen[512];
-FILE const *_p__fc_fopen = (FILE const *)(__fc_fopen);
-/*@ ensures
-      \result ≡ \null ∨
-      (\valid(\result) ∧ \subset(\result, &__fc_fopen[0 ..]));
+FILE * const __p_fc_fopen = __fc_fopen;
+/*@ ensures \result ≡ \null ∨ \subset(\result, &__fc_fopen[0 .. 512-1]);
     assigns \result;
-    assigns \result \from *(filename+(..)), *(mode+(..)), _p__fc_fopen;
+    assigns \result \from *(filename+(..)), *(mode+(..)), __p_fc_fopen;
  */
 extern FILE *fopen(char const *filename, char const *mode);
 
@@ -2575,10 +2923,12 @@ extern void setbuf(FILE *stream, char *buf);
     assigns *stream \from buf, mode, size; */
 extern int setvbuf(FILE *stream, char *buf, int mode, size_t size);
 
-/*@ assigns *stream; */
+/*@ assigns *stream;
+    assigns *stream \from stream->__fc_stdio_id; */
 extern int fprintf(FILE *stream, char const *format , ...);
 
-/*@ assigns *stream; */
+/*@ assigns *stream;
+    assigns *stream \from stream->__fc_stdio_id; */
 extern int fscanf(FILE *stream, char const *format , ...);
 
 /*@ assigns *__fc_stdout;
@@ -2670,13 +3020,22 @@ extern int puts(char const *s);
     assigns *stream \from c; */
 extern int ungetc(int c, FILE *stream);
 
-/*@ assigns *((char *)ptr+(0 .. nmemb*size-1));
-    assigns *((char *)ptr+(0 .. nmemb*size-1)) \from *stream;
+/*@ requires \valid((char *)ptr+(0 .. nmemb*size-1));
+    requires \valid(stream);
+    ensures \result ≤ \old(nmemb);
+    ensures \initialized((char *)\old(ptr)+(0 .. \result*\old(size)-1));
+    assigns *((char *)ptr+(0 .. nmemb*size-1)), \result;
+    assigns *((char *)ptr+(0 .. nmemb*size-1)) \from size, nmemb, *stream;
+    assigns \result \from size, *stream;
  */
 extern size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream);
 
-/*@ assigns *stream;
+/*@ requires \valid_read((char *)ptr+(0 .. nmemb*size-1));
+    requires \valid(stream);
+    ensures \result ≤ \old(nmemb);
+    assigns *stream, \result;
     assigns *stream \from *((char *)ptr+(0 .. nmemb*size-1));
+    assigns \result \from *((char *)ptr+(0 .. nmemb*size-1));
  */
 extern size_t fwrite(void const *ptr, size_t size, size_t nmemb, FILE *stream);
 
@@ -2828,7 +3187,8 @@ extern unsigned long strtoul(char const *nptr, char **endptr, int base);
  */
 extern unsigned long long strtoull(char const *nptr, char **endptr, int base);
 
-int __fc_random_counter __attribute__((__unused__, __FRAMA_C_MODEL__));
+/*@ ghost
+  int __fc_random_counter __attribute__((__unused__, __FRAMA_C_MODEL__)); */
 unsigned long const __fc_rand_max = (unsigned long)32767;
 /*@ ensures 0 ≤ \result ≤ __fc_rand_max;
     assigns \result, __fc_random_counter;
@@ -2895,6 +3255,41 @@ extern void *malloc(size_t size);
  */
 extern void free(void *p);
 
+/*@ requires ptr ≡ \null ∨ \freeable(ptr);
+    assigns __fc_heap_status, \result;
+    assigns __fc_heap_status \from __fc_heap_status;
+    assigns \result \from size, ptr, __fc_heap_status;
+    frees ptr;
+    allocates \result;
+    
+    behavior alloc:
+      assumes is_allocable(size);
+      ensures \fresh{Old, Here}(\result,\old(size));
+      assigns \result;
+      assigns \result \from size, __fc_heap_status;
+      allocates \result;
+    
+    behavior dealloc:
+      assumes ptr ≢ \null;
+      assumes is_allocable(size);
+      requires \freeable(ptr);
+      ensures \allocable(\old(ptr));
+      ensures \result ≡ \null ∨ \freeable(\result);
+      frees ptr;
+    
+    behavior fail:
+      assumes ¬is_allocable(size);
+      ensures \result ≡ \null;
+      assigns \result;
+      assigns \result \from size, __fc_heap_status;
+      allocates \nothing;
+    
+    complete behaviors fail, dealloc, alloc;
+    disjoint behaviors alloc, fail;
+    disjoint behaviors dealloc, fail;
+ */
+extern void *realloc(void *ptr, size_t size);
+
 /*@ ensures \false;
     assigns \nothing; */
 extern void abort(void);
@@ -2909,11 +3304,11 @@ extern int at_quick_exit(void (*func)(void));
 
 /*@ ensures \false;
     assigns \nothing; */
-extern void exit(int status);
+extern  __attribute__((__noreturn__)) void exit(int status);
 
 /*@ ensures \false;
     assigns \nothing; */
-extern void _Exit(int status);
+extern  __attribute__((__noreturn__)) void _Exit(int status);
 
 /*@ ensures \result ≡ \null ∨ \valid(\result);
     assigns \result;
@@ -2923,7 +3318,7 @@ extern char *getenv(char const *name);
 
 /*@ ensures \false;
     assigns \nothing; */
-extern void quick_exit(int status);
+extern  __attribute__((__noreturn__)) void quick_exit(int status);
 
 /*@ assigns \result;
     assigns \result \from *(string+(..)); */
@@ -3058,44 +3453,44 @@ extern void *memmove(void *dest, void const *src, size_t n);
  */
 extern void *memset(void *s, int c, size_t n);
 
-/*@ requires valid_string_src: valid_string(s);
+/*@ requires valid_string_src: valid_read_string(s);
     ensures \result ≡ strlen(\old(s));
     assigns \result;
     assigns \result \from *(s+(0 ..));
  */
 extern size_t strlen(char const *s);
 
-/*@ requires valid_string_src: valid_string(s);
+/*@ requires valid_string_src: valid_read_string(s);
     ensures \result ≡ strlen(\old(s)) ∨ \result ≡ \old(n);
     assigns \result;
     assigns \result \from *(s+(0 ..));
  */
 extern size_t strnlen(char const *s, size_t n);
 
-/*@ requires valid_string_s1: valid_string(s1);
-    requires valid_string_s2: valid_string(s2);
+/*@ requires valid_string_s1: valid_read_string(s1);
+    requires valid_string_s2: valid_read_string(s2);
     ensures \result ≡ strcmp(\old(s1), \old(s2));
     assigns \result;
     assigns \result \from *(s1+(0 ..)), *(s2+(0 ..));
  */
 extern int strcmp(char const *s1, char const *s2);
 
-/*@ requires valid_string_s1: valid_string(s1);
-    requires valid_string_s2: valid_string(s2);
+/*@ requires valid_string_s1: valid_read_string(s1);
+    requires valid_string_s2: valid_read_string(s2);
     ensures \result ≡ strncmp(\old(s1), \old(s2), \old(n));
     assigns \result;
     assigns \result \from *(s1+(0 .. n-1)), *(s2+(0 .. n-1));
  */
 extern int strncmp(char const *s1, char const *s2, size_t n);
 
-/*@ requires valid_string_s1: valid_string(s1);
-    requires valid_string_s2: valid_string(s2);
+/*@ requires valid_string_s1: valid_read_string(s1);
+    requires valid_string_s2: valid_read_string(s2);
     assigns \result;
     assigns \result \from *(s1+(0 ..)), *(s2+(0 ..));
  */
 extern int strcoll(char const *s1, char const *s2);
 
-/*@ requires valid_string_src: valid_string(s);
+/*@ requires valid_string_src: valid_read_string(s);
     assigns \result;
     assigns \result \from s, *(s+(0 ..)), c;
     
@@ -3104,7 +3499,7 @@ extern int strcoll(char const *s1, char const *s2);
       ensures (int)*\result ≡ \old(c);
       ensures \base_addr(\result) ≡ \base_addr(\old(s));
       ensures \old(s) ≤ \result < \old(s)+strlen(\old(s));
-      ensures valid_string(\result);
+      ensures valid_read_string(\result);
       ensures ∀ char *p; \old(s) ≤ p < \result ⇒ (int)*p ≢ \old(c);
     
     behavior not_found:
@@ -3117,7 +3512,7 @@ extern int strcoll(char const *s1, char const *s2);
  */
 extern char *strchr(char const *s, int c);
 
-/*@ requires valid_string_src: valid_string(s);
+/*@ requires valid_string_src: valid_read_string(s);
     assigns \result;
     assigns \result \from s, *(s+(0 ..)), c;
     
@@ -3125,7 +3520,7 @@ extern char *strchr(char const *s, int c);
       assumes strchr(s, c) ≡ \true;
       ensures (int)*\result ≡ \old(c);
       ensures \base_addr(\result) ≡ \base_addr(\old(s));
-      ensures valid_string(\result);
+      ensures valid_read_string(\result);
     
     behavior not_found:
       assumes ¬(strchr(s, c) ≡ \true);
@@ -3137,24 +3532,24 @@ extern char *strchr(char const *s, int c);
  */
 extern char *strrchr(char const *s, int c);
 
-/*@ requires valid_string_src: valid_string(s);
-    requires valid_string_reject: valid_string(reject);
+/*@ requires valid_string_src: valid_read_string(s);
+    requires valid_string_reject: valid_read_string(reject);
     ensures 0 ≤ \result ≤ strlen(\old(s));
     assigns \result;
     assigns \result \from *(s+(0 ..)), *(reject+(0 ..));
  */
 extern size_t strcspn(char const *s, char const *reject);
 
-/*@ requires valid_string_src: valid_string(s);
-    requires valid_string_accept: valid_string(accept);
+/*@ requires valid_string_src: valid_read_string(s);
+    requires valid_string_accept: valid_read_string(accept);
     ensures 0 ≤ \result ≤ strlen(\old(s));
     assigns \result;
     assigns \result \from *(s+(0 ..)), *(accept+(0 ..));
  */
 extern size_t strspn(char const *s, char const *accept);
 
-/*@ requires valid_string_src: valid_string(s);
-    requires valid_string_accept: valid_string(accept);
+/*@ requires valid_string_src: valid_read_string(s);
+    requires valid_string_accept: valid_read_string(accept);
     ensures
       \result ≡ (char *)0 ∨ \base_addr(\result) ≡ \base_addr(\old(s));
     assigns \result;
@@ -3162,20 +3557,19 @@ extern size_t strspn(char const *s, char const *accept);
  */
 extern char *strpbrk(char const *s, char const *accept);
 
-/*@ requires valid_string_haystack: valid_string(haystack);
-    requires valid_string_needle: valid_string(needle);
+/*@ requires valid_string_haystack: valid_read_string(haystack);
+    requires valid_string_needle: valid_read_string(needle);
     ensures
       \result ≡ (char *)0 ∨
-      (\base_addr(\result) ≡ \base_addr(\old(haystack)) ∧
+      (\subset(\result, \old(haystack)+(0 ..)) ∧ \valid_read(\result) ∧
        memcmp{Pre, Pre}(\result, \old(needle), strlen(\old(needle))) ≡ 0);
     assigns \result;
-    assigns \result
-      \from haystack, *(haystack+(0 ..)), needle, *(needle+(0 ..));
+    assigns \result \from haystack, *(haystack+(0 ..)), *(needle+(0 ..));
  */
 extern char *strstr(char const *haystack, char const *needle);
 
 /*@ requires valid_string_src: valid_string_or_null(s);
-    requires valid_string_delim: valid_string(delim);
+    requires valid_string_delim: valid_read_string(delim);
     ensures
       \result ≡ \null ∨ \base_addr(\result) ≡ \base_addr(\old(s));
     assigns \result;
@@ -3183,21 +3577,21 @@ extern char *strstr(char const *haystack, char const *needle);
  */
 extern char *strtok(char *s, char const *delim);
 
-/*@ requires
-      \valid(stringp) ∧ valid_string(*stringp) ∧ valid_string(delim);
+/*@ requires valid_string_src: \valid(stringp) ∧ valid_string(*stringp);
+    requires valid_string_delim: valid_read_string(delim);
     assigns *stringp, \result;
     assigns *stringp \from *(delim+(..)), *(*(stringp+(..)));
     assigns \result \from *(delim+(..)), *(*(stringp+(..)));
  */
 extern char *strsep(char **stringp, char const *delim);
 
-/*@ ensures valid_string(\result);
+/*@ ensures valid_read_string(\result);
     assigns \result;
     assigns \result \from errnum;
  */
 extern char *strerror(int errnum);
 
-/*@ requires valid_string_src: valid_string(src);
+/*@ requires valid_string_src: valid_read_string(src);
     requires room_string: \valid(dest+(0 .. strlen(src)));
     ensures strcmp(\old(dest), \old(src)) ≡ 0;
     ensures \result ≡ \old(dest);
@@ -3208,7 +3602,7 @@ extern char *strerror(int errnum);
  */
 extern char *strcpy(char *dest, char const *src);
 
-/*@ requires valid_string_src: valid_string(src);
+/*@ requires valid_string_src: valid_read_string(src);
     ensures \result ≡ \old(dest);
     assigns *(dest+(0 .. n-1)), \result;
     assigns *(dest+(0 .. n-1)) \from *(src+(0 .. n-1));
@@ -3225,7 +3619,7 @@ extern char *strcpy(char *dest, char const *src);
  */
 extern char *strncpy(char *dest, char const *src, size_t n);
 
-/*@ requires valid_string_src: valid_string(src);
+/*@ requires valid_string_src: valid_read_string(src);
     requires valid_string_dst: valid_string(dest);
     requires room_string: \valid(dest+(0 .. strlen(dest)+strlen(src)));
     ensures strlen(\old(dest)) ≡ \old(strlen(dest)+strlen(src));
@@ -3238,7 +3632,9 @@ extern char *strncpy(char *dest, char const *src, size_t n);
  */
 extern char *strcat(char *dest, char const *src);
 
-/*@ requires valid_string_src: valid_string(src) ∨ \valid(src+(0 .. n-1));
+/*@ requires
+      valid_string_src:
+        valid_read_string(src) ∨ \valid_read(src+(0 .. n-1));
     requires valid_string_dst: valid_string(dest);
     requires room_string: \valid(dest+(strlen(dest) .. strlen(dest)+n));
     ensures \result ≡ \old(dest);
@@ -3248,7 +3644,7 @@ extern char *strcat(char *dest, char const *src);
     assigns \result \from dest;
     
     behavior complete:
-      assumes valid_string(src) ∧ strlen(src) ≤ n;
+      assumes valid_read_string(src) ∧ strlen(src) ≤ n;
       ensures strlen(\old(dest)) ≡ \old(strlen(dest)+strlen(src));
       assigns *(dest+(strlen{Old}(dest) .. strlen{Old}(dest)+strlen{Old}(src))),
               \result;
@@ -3258,7 +3654,7 @@ extern char *strcat(char *dest, char const *src);
       assigns \result \from dest;
     
     behavior partial:
-      assumes ¬(valid_string(src) ∧ strlen(src) ≤ n);
+      assumes ¬(valid_read_string(src) ∧ strlen(src) ≤ n);
       ensures strlen(\old(dest)) ≡ \old(strlen(dest))+\old(n);
       assigns *(dest+(strlen{Old}(dest) .. strlen{Old}(dest)+n)), \result;
       assigns *(dest+(strlen{Old}(dest) .. strlen{Old}(dest)+n))
@@ -3268,14 +3664,14 @@ extern char *strcat(char *dest, char const *src);
 extern char *strncat(char *dest, char const *src, size_t n);
 
 /*@ requires valid_dest: \valid(dest+(0 .. n-1));
-    requires valid_string_src: valid_string(src);
+    requires valid_string_src: valid_read_string(src);
     assigns *(dest+(0 .. n-1)), \result;
     assigns *(dest+(0 .. n-1)) \from *(src+(0 ..)), n;
     assigns \result \from dest;
  */
 extern size_t strxfrm(char *dest, char const *src, size_t n);
 
-/*@ requires valid_string_src: valid_string(s);
+/*@ requires valid_string_src: valid_read_string(s);
     ensures
       \valid(\result+(0 .. strlen(\old(s)))) ∧
       strcmp(\result, \old(s)) ≡ 0;
@@ -3283,7 +3679,7 @@ extern size_t strxfrm(char *dest, char const *src, size_t n);
  */
 extern char *strdup(char const *s);
 
-/*@ requires valid_string_src: valid_string(s);
+/*@ requires valid_string_src: valid_read_string(s);
     ensures
       \valid(\result+(0 .. minimum(strlen(\old(s)), \old(n)))) ∧
       valid_string(\result) ∧ strlen(\result) ≤ \old(n) ∧
@@ -3293,14 +3689,15 @@ extern char *strdup(char const *s);
 extern char *strndup(char const *s, size_t n);
 
 /*@ requires \valid((char *)s+(0 .. n-1));
-    assigns *((char *)s+(0 .. n-1)); */
+    assigns *((char *)s+(0 .. n-1));
+    assigns *((char *)s+(0 .. n-1)) \from \nothing;
+ */
 extern void bzero(void *s, size_t n);
 
-unsigned int __fc_time_model __attribute__((__FRAMA_C_MODEL__));
-/*@ assigns __fc_time_model, \result;
-    assigns __fc_time_model \from __fc_time_model;
-    assigns \result \from __fc_time_model;
- */
+/*@ ghost unsigned int volatile __fc_time __attribute__((__FRAMA_C_MODEL__));
+  */
+/*@ assigns \result;
+    assigns \result \from __fc_time; */
 extern clock_t clock(void);
 
 /*@ assigns \result;
@@ -3313,25 +3710,40 @@ extern double difftime(time_t time1, time_t time0);
  */
 extern time_t mktime(struct tm *timeptr);
 
-/*@ assigns __fc_time_model, *timer, \result;
-    assigns __fc_time_model \from __fc_time_model;
-    assigns *timer \from __fc_time_model;
-    assigns \result \from __fc_time_model;
+/*@ assigns *timer, \result;
+    assigns *timer \from __fc_time;
+    assigns \result \from __fc_time;
+    
+    behavior null:
+      assumes timer ≡ \null;
+      assigns \result;
+      assigns \result \from __fc_time;
+    
+    behavior not_null:
+      assumes timer ≢ \null;
+      requires \valid(timer);
+      ensures \initialized(\old(timer));
+      assigns *timer, \result;
+      assigns *timer \from __fc_time;
+      assigns \result \from __fc_time;
+    
+    complete behaviors not_null, null;
+    disjoint behaviors not_null, null;
  */
 extern time_t time(time_t *timer);
 
 struct tm __fc_time_tm;
-struct tm * const __fc_time_tm_ptr = & __fc_time_tm;
+struct tm * const __p_fc_time_tm = & __fc_time_tm;
 /*@ ensures \result ≡ &__fc_time_tm ∨ \result ≡ \null;
     assigns \result, __fc_time_tm;
-    assigns \result \from __fc_time_tm_ptr;
+    assigns \result \from __p_fc_time_tm;
     assigns __fc_time_tm \from *timer;
  */
 extern struct tm *gmtime(time_t const *timer);
 
 /*@ ensures \result ≡ &__fc_time_tm ∨ \result ≡ \null;
     assigns \result, __fc_time_tm;
-    assigns \result \from __fc_time_tm_ptr;
+    assigns \result \from __p_fc_time_tm;
     assigns __fc_time_tm \from *timer;
  */
 extern struct tm *localtime(time_t const *timer);

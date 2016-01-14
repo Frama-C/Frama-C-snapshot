@@ -22,8 +22,11 @@
 
 #ifndef __FC_DEFINE_TIMESPEC
 #define __FC_DEFINE_TIMESPEC
+#include "features.h"
+__BEGIN_DECLS
 struct timespec {
   long    tv_sec;
   long    tv_nsec;
 };
+__END_DECLS
 #endif

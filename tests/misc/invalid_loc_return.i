@@ -1,5 +1,5 @@
 /* run.config
-   STDOPT: +"-main main1 -then -slevel 3 -main main2"
+   STDOPT: #"-main main1" +"-then -slevel 3 -main main2"
 */
 
 int foo() {

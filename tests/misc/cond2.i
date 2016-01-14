@@ -1,7 +1,7 @@
 /* run.config
   GCC:
-  OPT: -val -deps -out -out-external -input  -main zero_ou_un_0 -journal-disable
-  OPT: -val -deps -out -out-external -input  -main un_1 -journal-disable
+  OPT: -val -main zero_ou_un_0 -journal-disable -then -deps -out -out-external -input
+  OPT: -val -main un_1 -journal-disable -then -deps -out -out-external -input
 
 */
 

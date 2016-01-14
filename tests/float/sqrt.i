@@ -1,6 +1,6 @@
 /* run.config
-   STDOPT: +"-slevel 10 -big-ints-hex 257"
-   STDOPT: +"-slevel 10 -big-ints-hex 257 -machdep ppc_32"
+   STDOPT: #"-slevel 10 -big-ints-hex 257"
+   STDOPT: #"-slevel 10 -big-ints-hex 257 -machdep ppc_32"
 */
 
 double Frama_C_sqrt(double d);

@@ -22,6 +22,9 @@
 
 #ifndef __FC_DEFINE_WINT_T
 #define __FC_DEFINE_WINT_T
+#include "features.h"
 #include "__fc_machdep.h"
+__BEGIN_DECLS
 typedef __WINT_T wint_t;
+__END_DECLS
 #endif

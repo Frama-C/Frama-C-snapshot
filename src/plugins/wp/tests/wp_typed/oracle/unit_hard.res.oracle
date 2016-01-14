@@ -1,0 +1,28 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_typed/unit_hard.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function main
+------------------------------------------------------------
+
+Goal Pre-condition 'p_is_33FF' in 'main':
+Assume { (* Heap *) Have: (region 0)<=0. }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'q_is_66F0' in 'main':
+Assume { (* Heap *) Have: (region 0)<=0. }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Pre-condition 'r_is_q1_ko' in 'main':
+Assume { (* Heap *) Have: (region 0)<=0. }
+Prove: (hardware 26360)=(1+(hardware 26352)).
+
+------------------------------------------------------------

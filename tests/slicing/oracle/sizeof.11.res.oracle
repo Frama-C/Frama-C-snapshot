@@ -235,53 +235,43 @@ void main(void)
   r = 0;
   r = (int)((unsigned int)r + sizeof(struct St));
   /*@ assert r ≢ 0; */ ;
-  {
-    /*sequence*/
+  { /* sequence */
     tmp = SizeOf_1_slice_1();
     r = (int)((unsigned int)r + tmp);
   }
-  {
-    /*sequence*/
+  { /* sequence */
     tmp_0 = SizeOf_2_slice_1();
     r = (int)((unsigned int)r + tmp_0);
   }
-  {
-    /*sequence*/
+  { /* sequence */
     tmp_1 = SizeOfE_pt1_slice_1();
     r = (int)((unsigned int)r + tmp_1);
   }
-  {
-    /*sequence*/
+  { /* sequence */
     tmp_2 = SizeOfE_pt2_slice_1();
     r = (int)((unsigned int)r + tmp_2);
   }
-  {
-    /*sequence*/
+  { /* sequence */
     tmp_3 = SizeOfE_pt3_slice_1();
     r = (int)((unsigned int)r + tmp_3);
   }
-  {
-    /*sequence*/
+  { /* sequence */
     tmp_4 = SizeOfE_pt_deref_1_slice_1();
     r = (int)((unsigned int)r + tmp_4);
   }
-  {
-    /*sequence*/
+  { /* sequence */
     tmp_5 = SizeOfE_tab_1_slice_1();
     r = (int)((unsigned int)r + tmp_5);
   }
-  {
-    /*sequence*/
+  { /* sequence */
     tmp_6 = SizeOfE_pt_tab_1_slice_1();
     r = (int)((unsigned int)r + tmp_6);
   }
-  {
-    /*sequence*/
+  { /* sequence */
     tmp_7 = SizeOfE_pt_tab_2_slice_1();
     r = (int)((unsigned int)r + tmp_7);
   }
-  {
-    /*sequence*/
+  { /* sequence */
     tmp_8 = SizeOfE_tab_acces_1_slice_1();
     r = (int)((unsigned int)r + tmp_8);
   }

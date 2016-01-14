@@ -1,6 +1,6 @@
 /* run.config
-   STDOPT: +"-no-warn-signed-overflow"
-   STDOPT: +"-warn-signed-overflow"
+   STDOPT: #"-no-warn-signed-overflow"
+   STDOPT: #"-warn-signed-overflow"
 */
 
 long long int LL_ABS(long long int a) {
@@ -32,7 +32,7 @@ void main(long long int v1, long long int v2) {
  unsigned long long i;
  i = 0xFFFF804000000000UL;
  unsigned long j= ((((((256ULL) >> 8) * 0xffff000000000000UL) | (256ULL << 39) )) + (1ULL << 39)/2ULL); 
- CEA_f(sizeof(long),i,j);
+ Frama_C_show_each_f(sizeof(long),i,j);
 
  div64(v1, v2);
 }

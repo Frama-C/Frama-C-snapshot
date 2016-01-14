@@ -3,7 +3,7 @@
    OPT: -val -slevel 10 -lib-entry -main f1 -separate-n 1 -separate-of 3 
    OPT: -val -slevel 10 -lib-entry -main f1 -separate-n 2 -separate-of 3 
    OPT: -val -slevel 10 -lib-entry -main f1 -separate-n 3 -separate-of 3 
-   OPT: -val -slevel 10 -lib-entry -main f1 -val-split-return-auto
+   OPT: -val -slevel 10 -lib-entry -main f1 -val-split-return auto
 */
 int index;
 int tab[5];

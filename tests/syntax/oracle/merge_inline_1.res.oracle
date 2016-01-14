@@ -16,8 +16,7 @@ int main(void)
 {
   int __retres;
   int tmp;
-  {
-    /*sequence*/
+  { /* sequence */
     tmp = getfoo2();
     ;
   }

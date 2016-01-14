@@ -1,6 +1,6 @@
 /* run.config
-  STDOPT: +"-warn-decimal-float all"
-  STDOPT: +"-warn-decimal-float all -all-rounding-modes-constants"
+  STDOPT: #"-warn-decimal-float all"
+  STDOPT: #"-warn-decimal-float all -all-rounding-modes-constants"
 */
 
 double f1 = 3.4e38f;

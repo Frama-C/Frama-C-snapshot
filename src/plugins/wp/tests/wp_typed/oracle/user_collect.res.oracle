@@ -1,0 +1,528 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_typed/user_collect.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function caller
+------------------------------------------------------------
+
+Goal Post-condition 'K' in 'caller':
+Let x_0 = k_3-1.
+Let m_0 = p_6[x_0->v_2].
+Let m_1 = m_0[k_3->v_0].
+Assume {
+  (* Domain *)
+  Type: (IsArray1_sint32 p_6) /\ (is_sint32 k_3) /\ (is_sint32 v_0)
+        /\ (is_sint32 v_2) /\ (is_sint32 x1_0) /\ (is_sint32 x2_0)
+        /\ (is_sint32 x_0) /\ (is_sint32 (1+k_3)) /\ (IsArray1_sint32 m_0)
+        /\ (IsArray1_sint32 m_1).
+  (* Pre-condition (file tests/wp_typed/user_collect.i, line 45) in 'caller' *)
+  (* Pre-condition: *)
+  Have: (0<k_3) /\ (k_3<=9).
+  (* tests/wp_typed/user_collect.i:52: Call 'job' *)
+  Have: (k_3<=10) /\ (EqArray1_int 10 m_0 p_6[x_0->x1_0]).
+  (* tests/wp_typed/user_collect.i:53: Call 'job' *)
+  Have: (EqArray1_int 10 m_1 m_0[k_3->x2_0]).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'P1' in 'caller':
+Let x_0 = k_3-1.
+Let m_0 = p_6[x_0->v_2].
+Let m_1 = m_0[k_3->v_0].
+Assume {
+  (* Domain *)
+  Type: (IsArray1_sint32 p_6) /\ (is_sint32 k_3) /\ (is_sint32 v_0)
+        /\ (is_sint32 v_2) /\ (is_sint32 x1_0) /\ (is_sint32 x2_0)
+        /\ (is_sint32 x_0) /\ (is_sint32 (1+k_3)) /\ (IsArray1_sint32 m_0)
+        /\ (IsArray1_sint32 m_1).
+  (* Pre-condition (file tests/wp_typed/user_collect.i, line 45) in 'caller' *)
+  (* Pre-condition: *)
+  Have: (0<k_3) /\ (k_3<=9).
+  (* tests/wp_typed/user_collect.i:52: Call 'job' *)
+  Have: (k_3<=10) /\ (EqArray1_int 10 m_0 p_6[x_0->x1_0]).
+  (* tests/wp_typed/user_collect.i:53: Call 'job' *)
+  Have: (EqArray1_int 10 m_1 m_0[k_3->x2_0]).
+}
+Prove: v_2=x1_0.
+
+------------------------------------------------------------
+
+Goal Post-condition 'P2' in 'caller':
+Let x_0 = k_3-1.
+Let m_0 = p_6[x_0->v_2].
+Let m_1 = m_0[k_3->v_0].
+Assume {
+  (* Domain *)
+  Type: (IsArray1_sint32 p_6) /\ (is_sint32 k_3) /\ (is_sint32 v_0)
+        /\ (is_sint32 v_2) /\ (is_sint32 x1_0) /\ (is_sint32 x2_0)
+        /\ (is_sint32 x_0) /\ (is_sint32 (1+k_3)) /\ (IsArray1_sint32 m_0)
+        /\ (IsArray1_sint32 m_1).
+  (* Pre-condition (file tests/wp_typed/user_collect.i, line 45) in 'caller' *)
+  (* Pre-condition: *)
+  Have: (0<k_3) /\ (k_3<=9).
+  (* tests/wp_typed/user_collect.i:52: Call 'job' *)
+  Have: (k_3<=10) /\ (EqArray1_int 10 m_0 p_6[x_0->x1_0]).
+  (* tests/wp_typed/user_collect.i:53: Call 'job' *)
+  Have: (EqArray1_int 10 m_1 m_0[k_3->x2_0]).
+}
+Prove: v_0=x2_0.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_typed/user_collect.i, line 10) in 'job'' in 'caller' at call 'job' (file tests/wp_typed/user_collect.i, line 52)
+:
+Assume {
+  (* Domain *)
+  Type: (is_sint32 k_9) /\ (is_sint32 p_0[k_9]) /\ (is_sint32 p_0[1+k_9]).
+  (* Pre-condition (file tests/wp_typed/user_collect.i, line 45) in 'caller' *)
+  (* Pre-condition: *)
+  Have: (0<=k_9) /\ (k_9<=8).
+}
+Prove: k_9<=9.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_typed/user_collect.i, line 10) in 'job'' in 'caller' at call 'job' (file tests/wp_typed/user_collect.i, line 53)
+:
+Let m_0 = p_9[k_7->v_2].
+Let x_0 = 1+k_7.
+Assume {
+  (* Domain *)
+  Type: (IsArray1_sint32 p_9) /\ (is_sint32 k_7) /\ (is_sint32 x1_0)
+        /\ (IsArray1_sint32 m_0) /\ (is_sint32 p_0[k_7]) /\ (is_sint32 x_0)
+        /\ (is_sint32 p_0[x_0]).
+  (* Pre-condition (file tests/wp_typed/user_collect.i, line 45) in 'caller' *)
+  (* Pre-condition: *)
+  Have: (0<=k_7) /\ (k_7<=8).
+  (* tests/wp_typed/user_collect.i:52: Call 'job' *)
+  Have: (k_7<=9) /\ (EqArray1_int 10 m_0 p_9[k_7->x1_0]).
+}
+Prove: -1<=k_7.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function caller2
+------------------------------------------------------------
+
+Goal Post-condition 'K' in 'caller2':
+Let x_0 = k_3-1.
+Let m_0 = q_7[x_0->v_2].
+Let m_1 = m_0[k_3->v_0].
+Assume {
+  (* Domain *)
+  Type: (IsArray1S_S q_7) /\ (IsS_S s1_0) /\ (IsS_S s2_0) /\ (IsS_S v_0)
+        /\ (IsS_S v_2) /\ (is_sint32 k_3) /\ (is_sint32 x_0)
+        /\ (is_sint32 (1+k_3)) /\ (IsArray1S_S m_0) /\ (IsArray1S_S m_1).
+  (* Pre-condition (file tests/wp_typed/user_collect.i, line 57) in 'caller2' *)
+  (* Pre-condition: *)
+  Have: (0<k_3) /\ (k_3<=9).
+  (* tests/wp_typed/user_collect.i:65: Call 'job2' *)
+  Have: (k_3<=10) /\ (EqArray1_S_S 10 m_0 q_7[x_0->s1_0]).
+  (* tests/wp_typed/user_collect.i:66: Call 'job2' *)
+  Have: (EqArray1_S_S 10 m_1 m_0[k_3->s2_0]).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'Q1' in 'caller2':
+Let x_0 = k_3-1.
+Let m_0 = q_7[x_0->v_2].
+Let m_1 = m_0[k_3->v_0].
+Assume {
+  (* Domain *)
+  Type: (IsArray1S_S q_7) /\ (IsS_S s1_0) /\ (IsS_S s2_0) /\ (IsS_S v_0)
+        /\ (IsS_S v_2) /\ (is_sint32 k_3) /\ (is_sint32 x_0)
+        /\ (is_sint32 (1+k_3)) /\ (IsArray1S_S m_0) /\ (IsArray1S_S m_1).
+  (* Pre-condition (file tests/wp_typed/user_collect.i, line 57) in 'caller2' *)
+  (* Pre-condition: *)
+  Have: (0<k_3) /\ (k_3<=9).
+  (* tests/wp_typed/user_collect.i:65: Call 'job2' *)
+  Have: (k_3<=10) /\ (EqArray1_S_S 10 m_0 q_7[x_0->s1_0]).
+  (* tests/wp_typed/user_collect.i:66: Call 'job2' *)
+  Have: (EqArray1_S_S 10 m_1 m_0[k_3->s2_0]).
+}
+Prove: (EqS_S v_2 s1_0).
+
+------------------------------------------------------------
+
+Goal Post-condition 'Q2' in 'caller2':
+Let x_0 = k_3-1.
+Let m_0 = q_7[x_0->v_2].
+Let m_1 = m_0[k_3->v_0].
+Assume {
+  (* Domain *)
+  Type: (IsArray1S_S q_7) /\ (IsS_S s1_0) /\ (IsS_S s2_0) /\ (IsS_S v_0)
+        /\ (IsS_S v_2) /\ (is_sint32 k_3) /\ (is_sint32 x_0)
+        /\ (is_sint32 (1+k_3)) /\ (IsArray1S_S m_0) /\ (IsArray1S_S m_1).
+  (* Pre-condition (file tests/wp_typed/user_collect.i, line 57) in 'caller2' *)
+  (* Pre-condition: *)
+  Have: (0<k_3) /\ (k_3<=9).
+  (* tests/wp_typed/user_collect.i:65: Call 'job2' *)
+  Have: (k_3<=10) /\ (EqArray1_S_S 10 m_0 q_7[x_0->s1_0]).
+  (* tests/wp_typed/user_collect.i:66: Call 'job2' *)
+  Have: (EqArray1_S_S 10 m_1 m_0[k_3->s2_0]).
+}
+Prove: (EqS_S v_0 s2_0).
+
+------------------------------------------------------------
+
+Goal Post-condition 'R' in 'caller2':
+Let x_0 = k_3-1.
+Let m_0 = q_7[x_0->v_2].
+Let m_1 = m_0[k_3->v_0].
+Let m_2 = q_7[x_0->s1_0].
+Assume {
+  (* Domain *)
+  Type: (IsArray1S_S q_7) /\ (IsS_S s1_0) /\ (IsS_S s2_0) /\ (IsS_S v_0)
+        /\ (IsS_S v_2) /\ (is_sint32 k_3) /\ (is_sint32 x_0)
+        /\ (is_sint32 (1+k_3)) /\ (IsArray1S_S m_0) /\ (IsArray1S_S m_1).
+  (* Pre-condition (file tests/wp_typed/user_collect.i, line 57) in 'caller2' *)
+  (* Pre-condition: *)
+  Have: (0<k_3) /\ (k_3<=9).
+  (* tests/wp_typed/user_collect.i:65: Call 'job2' *)
+  Have: (k_3<=10) /\ (EqArray1_S_S 10 m_0 m_2).
+  (* tests/wp_typed/user_collect.i:66: Call 'job2' *)
+  Have: (EqArray1_S_S 10 m_1 m_0[k_3->s2_0]).
+}
+Prove: (EqArray1_S_S 10 m_1 m_2[k_3->s2_0]).
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_typed/user_collect.i, line 21) in 'job2'' in 'caller2' at call 'job2' (file tests/wp_typed/user_collect.i, line 65)
+:
+Assume {
+  (* Domain *)
+  Type: (is_sint32 k_9) /\ (IsS_S q_0[k_9]) /\ (IsS_S q_0[1+k_9]).
+  (* Pre-condition (file tests/wp_typed/user_collect.i, line 57) in 'caller2' *)
+  (* Pre-condition: *)
+  Have: (0<=k_9) /\ (k_9<=8).
+}
+Prove: k_9<=9.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_typed/user_collect.i, line 21) in 'job2'' in 'caller2' at call 'job2' (file tests/wp_typed/user_collect.i, line 66)
+:
+Let m_0 = q_10[k_7->v_2].
+Let x_0 = 1+k_7.
+Assume {
+  (* Domain *)
+  Type: (IsArray1S_S q_10) /\ (IsS_S s1_0) /\ (is_sint32 k_7)
+        /\ (IsArray1S_S m_0) /\ (IsS_S q_0[k_7]) /\ (is_sint32 x_0)
+        /\ (IsS_S q_0[x_0]).
+  (* Pre-condition (file tests/wp_typed/user_collect.i, line 57) in 'caller2' *)
+  (* Pre-condition: *)
+  Have: (0<=k_7) /\ (k_7<=8).
+  (* tests/wp_typed/user_collect.i:65: Call 'job2' *)
+  Have: (k_7<=9) /\ (EqArray1_S_S 10 m_0 q_10[k_7->s1_0]).
+}
+Prove: -1<=k_7.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function caller3
+------------------------------------------------------------
+
+Goal Post-condition 'K' in 'caller3':
+Let x_0 = k_3-1.
+Let m_0 = q_7[x_0->v_2].
+Let m_1 = m_0[k_3->v_0].
+Assume {
+  (* Domain *)
+  Type: (IsArray1S_S q_7) /\ (IsS_S s1_0) /\ (IsS_S s2_0) /\ (IsS_S v_0)
+        /\ (IsS_S v_2) /\ (is_sint32 k_3) /\ (is_sint32 x_0)
+        /\ (is_sint32 (1+k_3)) /\ (IsArray1S_S m_0) /\ (IsArray1S_S m_1).
+  (* Pre-condition (file tests/wp_typed/user_collect.i, line 70) in 'caller3' *)
+  (* Pre-condition: *)
+  Have: (0<k_3) /\ (k_3<=9).
+  (* tests/wp_typed/user_collect.i:78: Call 'job3' *)
+  Have: (k_3<=10) /\ (EqArray1_S_S 10 m_0 q_7[x_0->s1_0]).
+  (* tests/wp_typed/user_collect.i:79: Call 'job3' *)
+  Have: (EqArray1_S_S 10 m_1 m_0[k_3->s2_0]).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'Q1' in 'caller3':
+Let x_0 = k_3-1.
+Let m_0 = q_7[x_0->v_2].
+Let m_1 = m_0[k_3->v_0].
+Assume {
+  (* Domain *)
+  Type: (IsArray1S_S q_7) /\ (IsS_S s1_0) /\ (IsS_S s2_0) /\ (IsS_S v_0)
+        /\ (IsS_S v_2) /\ (is_sint32 k_3) /\ (is_sint32 x_0)
+        /\ (is_sint32 (1+k_3)) /\ (IsArray1S_S m_0) /\ (IsArray1S_S m_1).
+  (* Pre-condition (file tests/wp_typed/user_collect.i, line 70) in 'caller3' *)
+  (* Pre-condition: *)
+  Have: (0<k_3) /\ (k_3<=9).
+  (* tests/wp_typed/user_collect.i:78: Call 'job3' *)
+  Have: (k_3<=10) /\ (EqArray1_S_S 10 m_0 q_7[x_0->s1_0]).
+  (* tests/wp_typed/user_collect.i:79: Call 'job3' *)
+  Have: (EqArray1_S_S 10 m_1 m_0[k_3->s2_0]).
+}
+Prove: (EqS_S v_2 s1_0).
+
+------------------------------------------------------------
+
+Goal Post-condition 'Q2' in 'caller3':
+Let x_0 = k_3-1.
+Let m_0 = q_7[x_0->v_2].
+Let m_1 = m_0[k_3->v_0].
+Assume {
+  (* Domain *)
+  Type: (IsArray1S_S q_7) /\ (IsS_S s1_0) /\ (IsS_S s2_0) /\ (IsS_S v_0)
+        /\ (IsS_S v_2) /\ (is_sint32 k_3) /\ (is_sint32 x_0)
+        /\ (is_sint32 (1+k_3)) /\ (IsArray1S_S m_0) /\ (IsArray1S_S m_1).
+  (* Pre-condition (file tests/wp_typed/user_collect.i, line 70) in 'caller3' *)
+  (* Pre-condition: *)
+  Have: (0<k_3) /\ (k_3<=9).
+  (* tests/wp_typed/user_collect.i:78: Call 'job3' *)
+  Have: (k_3<=10) /\ (EqArray1_S_S 10 m_0 q_7[x_0->s1_0]).
+  (* tests/wp_typed/user_collect.i:79: Call 'job3' *)
+  Have: (EqArray1_S_S 10 m_1 m_0[k_3->s2_0]).
+}
+Prove: (EqS_S v_0 s2_0).
+
+------------------------------------------------------------
+
+Goal Post-condition 'R' in 'caller3':
+Let x_0 = k_3-1.
+Let m_0 = q_7[x_0->v_2].
+Let m_1 = m_0[k_3->v_0].
+Let m_2 = q_7[x_0->s1_0].
+Assume {
+  (* Domain *)
+  Type: (IsArray1S_S q_7) /\ (IsS_S s1_0) /\ (IsS_S s2_0) /\ (IsS_S v_0)
+        /\ (IsS_S v_2) /\ (is_sint32 k_3) /\ (is_sint32 x_0)
+        /\ (is_sint32 (1+k_3)) /\ (IsArray1S_S m_0) /\ (IsArray1S_S m_1).
+  (* Pre-condition (file tests/wp_typed/user_collect.i, line 70) in 'caller3' *)
+  (* Pre-condition: *)
+  Have: (0<k_3) /\ (k_3<=9).
+  (* tests/wp_typed/user_collect.i:78: Call 'job3' *)
+  Have: (k_3<=10) /\ (EqArray1_S_S 10 m_0 m_2).
+  (* tests/wp_typed/user_collect.i:79: Call 'job3' *)
+  Have: (EqArray1_S_S 10 m_1 m_0[k_3->s2_0]).
+}
+Prove: (EqArray1_S_S 10 m_1 m_2[k_3->s2_0]).
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_typed/user_collect.i, line 32) in 'job3'' in 'caller3' at call 'job3' (file tests/wp_typed/user_collect.i, line 78)
+:
+Assume {
+  (* Domain *)
+  Type: (is_sint32 k_9) /\ (IsS_S q_0[k_9]) /\ (IsS_S q_0[1+k_9]).
+  (* Pre-condition (file tests/wp_typed/user_collect.i, line 70) in 'caller3' *)
+  (* Pre-condition: *)
+  Have: (0<=k_9) /\ (k_9<=8).
+}
+Prove: k_9<=9.
+
+------------------------------------------------------------
+
+Goal Instance of 'Pre-condition (file tests/wp_typed/user_collect.i, line 32) in 'job3'' in 'caller3' at call 'job3' (file tests/wp_typed/user_collect.i, line 79)
+:
+Let m_0 = q_10[k_7->v_2].
+Let x_0 = 1+k_7.
+Assume {
+  (* Domain *)
+  Type: (IsArray1S_S q_10) /\ (IsS_S s1_0) /\ (is_sint32 k_7)
+        /\ (IsArray1S_S m_0) /\ (IsS_S q_0[k_7]) /\ (is_sint32 x_0)
+        /\ (IsS_S q_0[x_0]).
+  (* Pre-condition (file tests/wp_typed/user_collect.i, line 70) in 'caller3' *)
+  (* Pre-condition: *)
+  Have: (0<=k_7) /\ (k_7<=8).
+  (* tests/wp_typed/user_collect.i:78: Call 'job3' *)
+  Have: (k_7<=9) /\ (EqArray1_S_S 10 m_0 q_10[k_7->s1_0]).
+}
+Prove: -1<=k_7.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function job
+------------------------------------------------------------
+
+Goal Post-condition 'K' in 'job':
+Assume {
+  (* Domain *)
+  Type: (is_sint32 k_0) /\ (is_sint32 (1+k_0)).
+  (* Pre-condition (file tests/wp_typed/user_collect.i, line 10) in 'job' *)
+  (* Pre-condition: *)
+  Have: (0<=k_0) /\ (k_0<=9).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'P' in 'job':
+Let m_0 = p_1[k_0->x_0].
+Assume {
+  (* Domain *)
+  Type: (IsArray1_sint32 p_1) /\ (is_sint32 k_0) /\ (is_sint32 x_0)
+        /\ (IsArray1_sint32 m_0).
+  (* Pre-condition (file tests/wp_typed/user_collect.i, line 10) in 'job' *)
+  (* Pre-condition: *)
+  Have: (0<=k_0) /\ (k_0<=9).
+}
+Prove: (EqArray1_int 10 m_0 m_0).
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_typed/user_collect.i, line 13) in 'job' (1/3):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_typed/user_collect.i, line 13) in 'job' (2/3):
+Effect at line 17
+Assume {
+  (* Domain *)
+  Type: (is_sint32 k_0).
+  (* Pre-condition (file tests/wp_typed/user_collect.i, line 10) in 'job' *)
+  (* Pre-condition: *)
+  Have: (0<=k_0) /\ (k_0<=9).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_typed/user_collect.i, line 13) in 'job' (3/3):
+Effect at line 17
+Assume {
+  (* Domain *)
+  Type: (is_sint32 tmp_1).
+  (* Goal *)
+  When: (0<=tmp_1) /\ (tmp_1<=9).
+}
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function job2
+------------------------------------------------------------
+
+Goal Post-condition 'K' in 'job2':
+Assume {
+  (* Domain *)
+  Type: (is_sint32 k_0) /\ (is_sint32 (1+k_0)).
+  (* Pre-condition (file tests/wp_typed/user_collect.i, line 21) in 'job2' *)
+  (* Pre-condition: *)
+  Have: (0<=k_0) /\ (k_0<=9).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'Q' in 'job2':
+Let m_0 = q_1[k_0->s_0].
+Assume {
+  (* Domain *)
+  Type: (IsArray1S_S q_1) /\ (IsS_S s_0) /\ (is_sint32 k_0)
+        /\ (IsArray1S_S m_0).
+  (* Pre-condition (file tests/wp_typed/user_collect.i, line 21) in 'job2' *)
+  (* Pre-condition: *)
+  Have: (0<=k_0) /\ (k_0<=9).
+}
+Prove: (EqArray1_S_S 10 m_0 m_0).
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_typed/user_collect.i, line 24) in 'job2' (1/3):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_typed/user_collect.i, line 24) in 'job2' (2/3):
+Effect at line 28
+Assume {
+  (* Domain *)
+  Type: (is_sint32 k_0).
+  (* Pre-condition (file tests/wp_typed/user_collect.i, line 21) in 'job2' *)
+  (* Pre-condition: *)
+  Have: (0<=k_0) /\ (k_0<=9).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_typed/user_collect.i, line 24) in 'job2' (3/3):
+Effect at line 28
+Assume {
+  (* Domain *)
+  Type: (is_sint32 tmp_1).
+  (* Goal *)
+  When: (0<=tmp_1) /\ (tmp_1<=9).
+}
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function job3
+------------------------------------------------------------
+
+Goal Post-condition 'K' in 'job3':
+Assume {
+  (* Domain *)
+  Type: (is_sint32 k_0) /\ (is_sint32 (1+k_0)).
+  (* Pre-condition (file tests/wp_typed/user_collect.i, line 32) in 'job3' *)
+  (* Pre-condition: *)
+  Have: (0<=k_0) /\ (k_0<=9).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'Q' in 'job3':
+Let a_0 = s_0.F_S_f.
+Let m_0 = q_1[k_0->{ F_S_f = q_1[k_0].F_S_f[0->a_0[0]][1->a_0[1]] }].
+Assume {
+  (* Domain *)
+  Type: (IsArray1S_S q_1) /\ (IsS_S s_0) /\ (is_sint32 k_0)
+        /\ (IsArray1S_S m_0).
+  (* Pre-condition (file tests/wp_typed/user_collect.i, line 32) in 'job3' *)
+  (* Pre-condition: *)
+  Have: (0<=k_0) /\ (k_0<=9).
+}
+Prove: (EqArray1_S_S 10 m_0 q_1[k_0->s_0]).
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_typed/user_collect.i, line 35) in 'job3' (1/3):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_typed/user_collect.i, line 35) in 'job3' (2/3):
+Effect at line 39
+Assume {
+  (* Domain *)
+  Type: (is_sint32 k_0).
+  (* Goal *)
+  When: (0<=k_0) /\ (k_0<=9).
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assigns (file tests/wp_typed/user_collect.i, line 35) in 'job3' (3/3):
+Effect at line 40
+Assume {
+  (* Domain *)
+  Type: (is_sint32 k_0).
+  (* Goal *)
+  When: (0<=k_0) /\ (k_0<=9).
+}
+Prove: true.
+
+------------------------------------------------------------

@@ -1,0 +1,189 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_usage/caveat.i (no preprocessing)
+tests/wp_usage/caveat.i:41:[kernel] warning: parsing obsolete ACSL construct 'logic declaration'. 'an axiomatic block' should be used instead.
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function explicit
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_usage/caveat.i, line 28) in 'explicit':
+Let a_1 = (shiftfield_F_S_f a_0).
+Let x_0 = Mint_0[a_1].
+Let a_2 = (shiftfield_F_S_g a_0).
+Let x_1 = Mint_0[a_2].
+Let m_0 = Mint_0[r_0->x_0+x_1].
+Let x_2 = m_0[a_1].
+Let x_3 = m_0[a_2].
+Let x_4 = 1+x_2.
+Let x_5 = 1+x_3.
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_0) /\ (is_sint32 x_1) /\ (is_sint32 x_2)
+        /\ (is_sint32 x_3) /\ (is_sint32 x_4) /\ (is_sint32 x_5)
+        /\ (is_sint32 m_0[a_1->x_4][a_2->x_5][r_0]).
+  (* Heap *)
+  Have: ((region (base a_0))<=0) /\ ((region (base r_0))<=0).
+  (* Pre-condition (file tests/wp_usage/caveat.i, line 27) in 'explicit' *)
+  (* Pre-condition: *)
+  Have: (separated a_0 2 r_0 1).
+}
+Prove: x_0=x_2.
+
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_usage/caveat.i, line 29) in 'explicit':
+Let a_1 = (shiftfield_F_S_g a_0).
+Let x_0 = Mint_0[a_1].
+Let a_2 = (shiftfield_F_S_f a_0).
+Let x_1 = Mint_0[a_2].
+Let m_0 = Mint_0[r_0->x_1+x_0].
+Let x_2 = m_0[a_1].
+Let x_3 = m_0[a_2].
+Let x_4 = 1+x_3.
+Let x_5 = 1+x_2.
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_1) /\ (is_sint32 x_0) /\ (is_sint32 x_3)
+        /\ (is_sint32 x_2) /\ (is_sint32 x_4) /\ (is_sint32 x_5)
+        /\ (is_sint32 m_0[a_2->x_4][a_1->x_5][r_0]).
+  (* Heap *)
+  Have: ((region (base a_0))<=0) /\ ((region (base r_0))<=0).
+  (* Pre-condition (file tests/wp_usage/caveat.i, line 27) in 'explicit' *)
+  (* Pre-condition: *)
+  Have: (separated a_0 2 r_0 1).
+}
+Prove: x_0=x_2.
+
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_usage/caveat.i, line 30) in 'explicit':
+Let a_1 = (shiftfield_F_S_f a_0).
+Let x_0 = Mint_0[a_1].
+Let a_2 = (shiftfield_F_S_g a_0).
+Let x_1 = Mint_0[a_2].
+Let x_2 = x_0+x_1.
+Let m_0 = Mint_0[r_0->x_2].
+Let x_3 = m_0[a_1].
+Let x_4 = 1+x_3.
+Let x_5 = m_0[a_2].
+Let x_6 = 1+x_5.
+Let x_7 = m_0[a_1->x_4][a_2->x_6][r_0].
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_0) /\ (is_sint32 x_1) /\ (is_sint32 x_3)
+        /\ (is_sint32 x_5) /\ (is_sint32 x_4) /\ (is_sint32 x_6)
+        /\ (is_sint32 x_7).
+  (* Heap *)
+  Have: ((region (base a_0))<=0) /\ ((region (base r_0))<=0).
+  (* Pre-condition (file tests/wp_usage/caveat.i, line 27) in 'explicit' *)
+  (* Pre-condition: *)
+  Have: (separated a_0 2 r_0 1).
+}
+Prove: x_2=x_7.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function implicit
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_usage/caveat.i, line 13) in 'implicit':
+Let a_1 = (shiftfield_F_S_f a_0).
+Let x_0 = Mint_0[a_1].
+Let a_2 = (shiftfield_F_S_g a_0).
+Let x_1 = Mint_0[a_2].
+Let m_0 = Mint_0[r_0->x_0+x_1].
+Let x_2 = m_0[a_1].
+Let x_3 = m_0[a_2].
+Let x_4 = 1+x_2.
+Let x_5 = 1+x_3.
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_0) /\ (is_sint32 x_1) /\ (is_sint32 x_2)
+        /\ (is_sint32 x_3) /\ (is_sint32 x_4) /\ (is_sint32 x_5)
+        /\ (is_sint32 m_0[a_1->x_4][a_2->x_5][r_0]).
+  (* Heap *)
+  Have: ((region (base a_0))<=0) /\ ((region (base r_0))<=0).
+}
+Prove: x_0=x_2.
+
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_usage/caveat.i, line 14) in 'implicit':
+Let a_1 = (shiftfield_F_S_g a_0).
+Let x_0 = Mint_0[a_1].
+Let a_2 = (shiftfield_F_S_f a_0).
+Let x_1 = Mint_0[a_2].
+Let m_0 = Mint_0[r_0->x_1+x_0].
+Let x_2 = m_0[a_1].
+Let x_3 = m_0[a_2].
+Let x_4 = 1+x_3.
+Let x_5 = 1+x_2.
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_1) /\ (is_sint32 x_0) /\ (is_sint32 x_3)
+        /\ (is_sint32 x_2) /\ (is_sint32 x_4) /\ (is_sint32 x_5)
+        /\ (is_sint32 m_0[a_2->x_4][a_1->x_5][r_0]).
+  (* Heap *)
+  Have: ((region (base a_0))<=0) /\ ((region (base r_0))<=0).
+}
+Prove: x_0=x_2.
+
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_usage/caveat.i, line 15) in 'implicit':
+Let a_1 = (shiftfield_F_S_f a_0).
+Let x_0 = Mint_0[a_1].
+Let a_2 = (shiftfield_F_S_g a_0).
+Let x_1 = Mint_0[a_2].
+Let x_2 = x_0+x_1.
+Let m_0 = Mint_0[r_0->x_2].
+Let x_3 = m_0[a_1].
+Let x_4 = 1+x_3.
+Let x_5 = m_0[a_2].
+Let x_6 = 1+x_5.
+Let x_7 = m_0[a_1->x_4][a_2->x_6][r_0].
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_0) /\ (is_sint32 x_1) /\ (is_sint32 x_3)
+        /\ (is_sint32 x_5) /\ (is_sint32 x_4) /\ (is_sint32 x_6)
+        /\ (is_sint32 x_7).
+  (* Heap *)
+  Have: ((region (base a_0))<=0) /\ ((region (base r_0))<=0).
+}
+Prove: x_2=x_7.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function observer
+------------------------------------------------------------
+
+Goal Post-condition 'KO' in 'observer':
+Let a_1 = (shiftfield_F_S_f a_0).
+Let x_0 = Mint_3[a_1].
+Let a_2 = (shiftfield_F_S_g a_0).
+Let x_1 = Mint_3[a_2].
+Let m_0 = Mint_3[r_0->x_0+x_1].
+Let x_2 = m_0[a_1].
+Let x_3 = 1+x_2.
+Let x_4 = m_0[a_2].
+Let x_5 = 1+x_4.
+Let x_6 = m_0[a_1->x_3][a_2->x_5][r_0].
+Let x_7 = Mint_3[r_0].
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_7) /\ (is_sint32 x_0) /\ (is_sint32 x_1)
+        /\ (is_sint32 x_2) /\ (is_sint32 x_4) /\ (is_sint32 x_3)
+        /\ (is_sint32 x_5) /\ (is_sint32 x_6).
+  (* Heap *)
+  Have: ((region (base a_0))<=0) /\ ((region (base r_0))<=0).
+  (* Pre-condition 'KO' in 'observer' *)
+  (* Pre-condition 'KO': *)
+  Have: (P_OBS x_0 x_1 x_7).
+}
+Prove: (P_OBS x_3 x_5 x_6).
+
+------------------------------------------------------------

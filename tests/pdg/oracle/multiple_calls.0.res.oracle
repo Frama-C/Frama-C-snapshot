@@ -1,0 +1,172 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/pdg/multiple_calls.c (with preprocessing)
+[value] Analyzing a complete application starting at appel_ptr_fct
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  G1 ∈ [--..--]
+  G2 ∈ [--..--]
+  G3 ∈ [--..--]
+  G4 ∈ [--..--]
+[value] computing for function fct1 <- appel_ptr_fct.
+        Called from tests/pdg/multiple_calls.c:23.
+[value] Recording results for fct1
+[value] Done for function fct1
+[value] computing for function fct2 <- appel_ptr_fct.
+        Called from tests/pdg/multiple_calls.c:23.
+[value] Recording results for fct2
+[value] Done for function fct2
+tests/pdg/multiple_calls.c:24:[kernel] warning: signed overflow. assert x+G1 ≤ 2147483647;
+tests/pdg/multiple_calls.c:24:[kernel] warning: signed overflow. assert -2147483648 ≤ (int)(x+G1)+G2;
+tests/pdg/multiple_calls.c:24:[kernel] warning: signed overflow. assert (int)(x+G1)+G2 ≤ 2147483647;
+[value] Recording results for appel_ptr_fct
+[value] done for function appel_ptr_fct
+[from] Computing for function fct1
+[from] Done for function fct1
+[from] Computing for function fct2
+[from] Done for function fct2
+[from] Computing for function appel_ptr_fct
+[from] Done for function appel_ptr_fct
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function fct1:
+  G1 FROM z
+  G3 FROM y
+  G4 FROM z
+  \result FROM x
+[from] Function fct2:
+  G2 FROM z
+  G3 FROM x
+  \result FROM y
+[from] Function appel_ptr_fct:
+  G1 FROM c; d (and SELF)
+  G2 FROM c; d (and SELF)
+  G3 FROM c
+  G4 FROM c; d (and SELF)
+  \result FROM G1; G2; c; d
+[from] ====== END OF DEPENDENCIES ======
+[inout] InOut (internal) for function fct1:
+        Operational inputs:
+          x; y; z
+        Operational inputs on termination:
+          x; y; z
+        Sure outputs:
+          G1; G3; G4
+[inout] InOut (internal) for function fct2:
+        Operational inputs:
+          x; y; z
+        Operational inputs on termination:
+          x; y; z
+        Sure outputs:
+          G2; G3
+[inout] InOut (internal) for function appel_ptr_fct:
+        Operational inputs:
+          G1; G2; c; d
+        Operational inputs on termination:
+          G1; G2; c; d
+        Sure outputs:
+          G3; a; b; pf; tmp; x; __retres
+[pdg] computing for function appel_ptr_fct
+[pdg] done for function appel_ptr_fct
+[pdg] PDG for appel_ptr_fct
+ {n1}: InCtrl
+ {n2}: VarDecl : c
+   -[a--]-> 3
+ {n3}: In1
+   -[a--]-> 2
+ {n4}: VarDecl : d
+   -[a--]-> 5
+ {n5}: In2
+   -[a--]-> 4
+ {n6}: VarDecl : a
+ {n7}: VarDecl : b
+ {n8}: VarDecl : pf
+ {n9}: VarDecl : tmp
+ {n10}: VarDecl : x
+ {n11}: VarDecl : __retres
+ {n12}: a = 1;
+   -[-c-]-> 1
+   -[a--]-> 6
+ {n13}: b = 2;
+   -[-c-]-> 1
+   -[a--]-> 7
+ {n14}: c
+   -[-c-]-> 1
+   -[--d]-> 2
+   -[--d]-> 3
+ {n15}: tmp = & fct1;
+   -[-c-]-> 1
+   -[a--]-> 9
+   -[-c-]-> 14
+ {n16}: tmp = & fct2;
+   -[-c-]-> 1
+   -[a--]-> 9
+   -[-c-]-> 14
+ {n17}: pf = tmp;
+   -[-c-]-> 1
+   -[a--]-> 8
+   -[--d]-> 9
+   -[--d]-> 15
+   -[--d]-> 16
+ {n18}: Call19-InCtrl : x = (*pf)(a,b,d);
+   -[-c-]-> 1
+ {n19}: Call19-In1 : x = (*pf)(a,b,d);
+   -[-c-]-> 1
+   -[--d]-> 6
+   -[--d]-> 12
+   -[-c-]-> 18
+ {n20}: Call19-In2 : x = (*pf)(a,b,d);
+   -[-c-]-> 1
+   -[--d]-> 7
+   -[--d]-> 13
+   -[-c-]-> 18
+ {n21}: Call19-In3 : x = (*pf)(a,b,d);
+   -[-c-]-> 1
+   -[--d]-> 4
+   -[--d]-> 5
+   -[-c-]-> 18
+ {n22}: Call19-Out(G1) : x = (*pf)(a,b,d);
+   -[-c-]-> 1
+   -[-c-]-> 17
+   -[-c-]-> 18
+   -[--d]-> 21
+ {n23}: Call19-Out(G3) : x = (*pf)(a,b,d);
+   -[-c-]-> 1
+   -[-c-]-> 17
+   -[-c-]-> 18
+   -[--d]-> 19
+   -[--d]-> 20
+ {n24}: Call19-Out(G4) : x = (*pf)(a,b,d);
+   -[-c-]-> 1
+   -[-c-]-> 17
+   -[-c-]-> 18
+   -[--d]-> 21
+ {n25}: Call19-OutRet : x = (*pf)(a,b,d);
+   -[-c-]-> 1
+   -[a--]-> 10
+   -[-c-]-> 17
+   -[-c-]-> 18
+   -[--d]-> 19
+   -[--d]-> 20
+ {n26}: Call19-Out(G2) : x = (*pf)(a,b,d);
+   -[-c-]-> 1
+   -[-c-]-> 17
+   -[-c-]-> 18
+   -[--d]-> 21
+ {n27}: __retres = (x + G1) + G2;
+   -[-c-]-> 1
+   -[--d]-> 10
+   -[a--]-> 11
+   -[--d](G1)-> 22
+   -[--d]-> 25
+   -[--d](G2)-> 26
+   -[--d]-> 30
+   -[--d]-> 31
+ {n28}: return __retres;
+   -[-c-]-> 1
+   -[--d]-> 11
+   -[--d]-> 27
+ {n29}: OutRet
+   -[--d]-> 28
+ {n30}: In(G1)
+ {n31}: In(G2)

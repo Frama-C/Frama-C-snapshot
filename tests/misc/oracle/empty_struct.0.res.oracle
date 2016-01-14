@@ -1,0 +1,44 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/empty_struct.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+tests/misc/empty_struct.c:18:[kernel] 0-sized location
+tests/misc/empty_struct.c:20:[kernel] 0-sized location
+[value] Initial state computed
+[value] Values of globals at initialization
+  s.[bits 0 to ..] ∈ {0} or UNINITIALIZED
+  s2 ∈ {0}
+  t[bits 0 to ..] ∈ {0} or UNINITIALIZED
+tests/misc/empty_struct.c:36:[kernel] 0-sized location
+tests/misc/empty_struct.c:37:[kernel] 0-sized location
+tests/misc/empty_struct.c:37:[kernel] warning: out of bounds write. assert \valid(&s2.s);
+tests/misc/empty_struct.c:37:[kernel] warning: accessing uninitialized left-value: assert \initialized(&s);
+tests/misc/empty_struct.c:37:[kernel] warning: out of bounds read. assert \valid_read(&s);
+tests/misc/empty_struct.c:38:[kernel] 0-sized location
+tests/misc/empty_struct.c:38:[kernel] warning: out of bounds write. assert \valid((struct s *)t);
+tests/misc/empty_struct.c:38:[kernel] warning: accessing uninitialized left-value: assert \initialized(&t[1]);
+tests/misc/empty_struct.c:38:[kernel] warning: out of bounds read. assert \valid_read(&t[1]);
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  s2 ∈ {0}
+  t[bits 0 to ..] ∈ {0} or UNINITIALIZED
+  p ∈ {{ (void *)&s }}
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  s2 FROM s[..] (and SELF)
+  t[bits 0 to ..] FROM t[..] (and SELF)
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          s2[..]; t[..]; p
+tests/misc/empty_struct.c:36:[kernel] 0-sized location
+[inout] Inputs for function main:
+          s[..]; t[..]
+[value] Analyzing an incomplete application starting at main
+[value] Computing initial state
+tests/misc/empty_struct.c:18:[value] user error: empty struct are unsupported (type 'struct s', location s). Aborting
+[kernel] Plug-in value aborted: invalid user input.

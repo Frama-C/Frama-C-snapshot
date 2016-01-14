@@ -1,5 +1,5 @@
 /* run.config
-   STDOPT: +"-input -out -inout -report -then -plevel 250 -then -wlevel 56"
+   STDOPT: +"-then -inout -report -then -plevel 250 -then -wlevel 56"
 */
 
 struct s {

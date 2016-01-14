@@ -1,0 +1,52 @@
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/report/csv.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  v ∈ [--..--]
+[value] computing for function main1 <- main.
+        Called from tests/report/csv.c:28.
+tests/report/csv.c:11:[kernel] warning: signed overflow. assert -2147483648 ≤ x*x;
+tests/report/csv.c:11:[kernel] warning: signed overflow. assert x*x ≤ 2147483647;
+tests/report/csv.c:12:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert 0 ≤ x;
+tests/report/csv.c:12:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert x < 15;
+tests/report/csv.c:13:[kernel] warning: accessing uninitialized left-value: assert \initialized(&u[x]);
+tests/report/csv.c:14:[kernel] warning: accessing uninitialized left-value: assert \initialized(&u[x]);
+[value] Recording results for main1
+[value] Done for function main1
+[value] computing for function main2 <- main.
+        Called from tests/report/csv.c:29.
+[value] computing for function f <- main2 <- main.
+        Called from tests/report/csv.c:21.
+tests/report/csv.c:21:[kernel] warning: No code nor implicit assigns clause for function f, generating default assigns from the prototype
+[value] using specification for function f
+tests/report/csv.c:17:[value] Function f: precondition got status unknown.
+[value] Done for function f
+[value] computing for function f <- main2 <- main.
+        Called from tests/report/csv.c:22.
+[value] Done for function f
+[value] computing for function f <- main2 <- main.
+        Called from tests/report/csv.c:23.
+[value] Done for function f
+[value] computing for function f <- main2 <- main.
+        Called from tests/report/csv.c:24.
+tests/report/csv.c:17:[value] Function f: precondition got status valid.
+[value] Done for function f
+[value] Recording results for main2
+[value] Done for function main2
+[value] Recording results for main
+[value] done for function main
+[scope:rm_asserts] removing 1 assertion(s)
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main1:
+  x ∈ [0..14]
+  t[0] ∈ UNINITIALIZED
+   [1] ∈ {3}
+   [2..9] ∈ UNINITIALIZED
+  u[0..14] ∈ {1} or UNINITIALIZED
+[value] Values at end of function main2:
+  
+[value] Values at end of function main:
+  
+[report] Dumping properties in 'tests/report/result/csv.csv'

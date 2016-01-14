@@ -1,0 +1,155 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/shift_big.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  nondet ∈ [--..--]
+[value] computing for function t1 <- main.
+        Called from tests/misc/shift_big.i:63.
+tests/misc/shift_big.i:5:[kernel] warning: invalid RHS operand for shift. assert 0 ≤ j < 32;
+tests/misc/shift_big.i:5:[kernel] warning: signed overflow. assert 1<<j ≤ 2147483647;
+[value] Recording results for t1
+[value] Done for function t1
+[value] computing for function t2 <- main.
+        Called from tests/misc/shift_big.i:64.
+tests/misc/shift_big.i:15:[kernel] warning: invalid RHS operand for shift. assert 0 ≤ j < 32;
+tests/misc/shift_big.i:15:[kernel] warning: signed overflow. assert 1<<j ≤ 2147483647;
+[value] Recording results for t2
+[value] Done for function t2
+tests/misc/shift_big.i:64:[kernel] warning: signed overflow. assert r+tmp_0 ≤ 2147483647;
+                                   (tmp_0 from t2())
+[value] computing for function t3 <- main.
+        Called from tests/misc/shift_big.i:65.
+tests/misc/shift_big.i:22:[value] entering loop for the first time
+tests/misc/shift_big.i:25:[value] Assertion got status valid.
+[value] Recording results for t3
+[value] Done for function t3
+[value] computing for function t4 <- main.
+        Called from tests/misc/shift_big.i:66.
+tests/misc/shift_big.i:31:[value] Assertion got status valid.
+[value] Recording results for t4
+[value] Done for function t4
+[value] computing for function t5 <- main.
+        Called from tests/misc/shift_big.i:67.
+tests/misc/shift_big.i:37:[value] entering loop for the first time
+tests/misc/shift_big.i:40:[value] Assertion got status valid.
+[value] Recording results for t5
+[value] Done for function t5
+[value] computing for function t6 <- main.
+        Called from tests/misc/shift_big.i:68.
+tests/misc/shift_big.i:46:[value] Assertion got status valid.
+[value] Recording results for t6
+[value] Done for function t6
+[value] computing for function t7 <- main.
+        Called from tests/misc/shift_big.i:69.
+tests/misc/shift_big.i:52:[value] Assertion got status unknown.
+[value] Recording results for t7
+[value] Done for function t7
+[value] computing for function t8 <- main.
+        Called from tests/misc/shift_big.i:70.
+tests/misc/shift_big.i:58:[value] Assertion got status valid.
+[value] Recording results for t8
+[value] Done for function t8
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function t1:
+  j ∈ [0..31]
+  i ∈ [1..2147483647]
+  __retres ∈ [1..2147483647]
+[value] Values at end of function t2:
+  j ∈ {1; 10; 31}
+  i ∈ {2; 1024}
+  __retres ∈ {2; 1024}
+[value] Values at end of function t3:
+  x ∈ [1000000000..1999999999]
+  i ∈ {2000000000}
+[value] Values at end of function t4:
+  x ∈ {1000000000; 1000000001}
+[value] Values at end of function t5:
+  x ∈ [1000000000..1999999999]
+  i ∈ {2000000000}
+[value] Values at end of function t6:
+  x ∈ {1000000000; 1000000001}
+[value] Values at end of function t7:
+  x ∈ {1022; 1023}
+[value] Values at end of function t8:
+  x ∈ {1022; 1023}
+[value] Values at end of function main:
+  r ∈ [0..2147483647]
+[from] Computing for function t1
+[from] Done for function t1
+[from] Computing for function t2
+[from] Done for function t2
+[from] Computing for function t3
+[from] Done for function t3
+[from] Computing for function t4
+[from] Done for function t4
+[from] Computing for function t5
+[from] Done for function t5
+[from] Computing for function t6
+[from] Done for function t6
+[from] Computing for function t7
+[from] Done for function t7
+[from] Computing for function t8
+[from] Done for function t8
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function t1:
+  \result FROM nondet
+[from] Function t2:
+  \result FROM nondet
+[from] Function t3:
+  NO EFFECTS
+[from] Function t4:
+  NO EFFECTS
+[from] Function t5:
+  NO EFFECTS
+[from] Function t6:
+  NO EFFECTS
+[from] Function t7:
+  NO EFFECTS
+[from] Function t8:
+  NO EFFECTS
+[from] Function main:
+  \result FROM nondet
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function t1:
+          j; i; __retres
+[inout] Inputs for function t1:
+          nondet
+[inout] Out (internal) for function t2:
+          j; i; __retres
+[inout] Inputs for function t2:
+          nondet
+[inout] Out (internal) for function t3:
+          x; i
+[inout] Inputs for function t3:
+          nondet
+[inout] Out (internal) for function t4:
+          x
+[inout] Inputs for function t4:
+          nondet
+[inout] Out (internal) for function t5:
+          x; i
+[inout] Inputs for function t5:
+          nondet
+[inout] Out (internal) for function t6:
+          x
+[inout] Inputs for function t6:
+          nondet
+[inout] Out (internal) for function t7:
+          x
+[inout] Inputs for function t7:
+          nondet
+[inout] Out (internal) for function t8:
+          x
+[inout] Inputs for function t8:
+          nondet
+[inout] Out (internal) for function main:
+          r; tmp; tmp_0
+[inout] Inputs for function main:
+          nondet

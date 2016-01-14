@@ -22,8 +22,11 @@
 
 #ifndef __FC_ICONV
 #define __FC_ICONV
-#include "__fc_define_restrict.h"
+#include "features.h"
 #include "__fc_define_size_t.h"
+
+__BEGIN_DECLS
+
 typedef void * iconv_t;
 
 extern int __FC_errno;
@@ -39,5 +42,7 @@ int     iconv_close(iconv_t);
 /*@ assigns \result \from tocode[..],fromcode[..];
   assigns __FC_errno; */
 iconv_t iconv_open(const char *tocode, const char *fromcode);
+
+__END_DECLS
 
 #endif

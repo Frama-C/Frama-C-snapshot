@@ -1,8 +1,8 @@
 /* run.config
   GCC:
-  OPT: -val -deps -out -input  -main g -journal-disable -pdg-print -pdg-verbose 2
-  OPT: -val -deps -out -input  -main h -journal-disable -pdg-print -pdg-verbose 2
-  OPT: -val -deps -out -input  -main f -journal-disable -pdg-print -pdg-verbose 2
+  STDOPT: #"-main g -pdg-print -pdg-verbose 2"
+  STDOPT: #"-main h -pdg-print -pdg-verbose 2"
+  STDOPT: #"-main f -pdg-print -pdg-verbose 2"
 */
 struct Tstr;
 extern int X;

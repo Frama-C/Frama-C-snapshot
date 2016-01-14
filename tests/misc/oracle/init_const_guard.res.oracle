@@ -146,7 +146,6 @@ tests/misc/init_const_guard.i:35:[value] Assertion 'Value,mem_access' got final 
   q ∈ {{ &x }}
   p ∈ {{ NULL ; &S_p[0] }}
   v ∈ [--..--]
-  S_q[0..1] ∈ [--..--]
   S_p[0..1] ∈ [--..--]
 [value] Recording results for f
 [value] done for function f
@@ -218,7 +217,6 @@ tests/misc/init_const_guard.i:35:[value] Assertion 'Value,mem_access' got final 
   q ∈ {{ &x }}
   p ∈ {{ NULL ; &S_p[0] }}
   v ∈ [--..--]
-  S_q[0..1] ∈ [--..--]
   S_p[0..1] ∈ [--..--]
 tests/misc/init_const_guard.i:35:[kernel] warning: out of bounds write. assert \valid(p);
 [value] Recording results for g

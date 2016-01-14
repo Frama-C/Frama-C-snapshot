@@ -1,5 +1,5 @@
 /* run.config
-   STDOPT: +"-warn-decimal-float all" +"-float-hex"
+   STDOPT: #"-warn-decimal-float all -float-hex"
 */
 
 volatile v;

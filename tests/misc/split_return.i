@@ -1,9 +1,14 @@
 /* run.config
-   STDOPT: +"-slevel-function init:3,main1:3,f2:4,main2:4,f4:3,main5:3 -val-split-return-function f2:0,f3:-2:-4,f4:4,f5:-2,NON_EXISTING:4 -permissive -then -report"
-   STDOPT: +"-slevel 6 -val-split-return-auto -val-split-return-function f7:0:3 -then -report"
+   STDOPT: #"-slevel-function init:3,main1:3,f2:4,main2:4,f4:3,main5:3 -val-split-return-function f2:0,f3:-2:-4,f4:4,f5:-2,NON_EXISTING:4 -permissive" +"-then -report"
+   STDOPT: #"-slevel 6 -val-split-return auto -val-split-return-function f7:0:3" +"-then -report"
    COMMENT: below command must fail, as -permissive is not set
-   STDOPT: +"-slevel-function NON_EXISTING:4"
+   STDOPT: #"-slevel-function NON_EXISTING:4"
+  STDOPT: #"-slevel 6 -val-split-return full"
+  STDOPT: #"-slevel 6 -val-split-return full -val-split-return-function f7:0:3 -val-split-return-function f2:full" +"-then -val-split-return-function f2:auto"
  */
+
+
+
 /*@ assigns \result \from \nothing;
   assigns *p \from \nothing;
   ensures \result == 0 && \initialized(p) || \result == 1; */
@@ -149,6 +154,25 @@ void main7() {
   Frama_C_show_each_NULL(p, v7);
 }
 
+int* f8(int *p) {
+  if (v) {
+    *p = 4;
+    return p;
+  } else {
+    *p = -1;
+    return 0;
+  }
+}
+
+
+void main8() {
+  int x;
+
+  int * (*pf)(int *) = &f8;
+  int *p = (*pf)(&x);
+  Frama_C_show_each_then8(x, p);
+}
+
 void main() {
   main1();
   main2();
@@ -157,4 +181,5 @@ void main() {
   main5(); // no need for slevel, because we do not fuse on return instr
   main6();
   main7();
+  main8();
 }

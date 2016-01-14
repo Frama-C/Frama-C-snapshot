@@ -30,8 +30,7 @@ void double_effect3(void)
 {
   int tmp;
   /*@ slice pragma stmt; */
-  {
-    /*sequence*/
+  { /* sequence */
     tmp = y;
     y ++;
     x += tmp;

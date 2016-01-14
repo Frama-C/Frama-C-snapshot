@@ -1,9 +1,9 @@
 /* run.config
    STDOPT:
-   STDOPT: +"-main main_2"
-   STDOPT: +"-main g"
+   STDOPT: #"-main main_2"
+   STDOPT: #"-main g"
 */
-#include "share/libc/__fc_builtin.h"
+#include "__fc_builtin.h"
 
 int x;
 int f();
@@ -14,7 +14,7 @@ void main_2 () {
   int w=0,v = 0;
   
   for (j = 0; j < nSelectors; j++) { if (Frama_C_interval(0,1)) w += 1;
-    CEA_F(w);}
+    Frama_C_show_each_F(w);}
    // w widens to top_int
   
 }
@@ -27,7 +27,7 @@ void main () {
   for (j = 0; j <= nSelectors; j++) 
     { v = j ;
       while (v>0) v--;
-      CEA_F(j);}
+      Frama_C_show_each_F(j);}
   
 }
 
@@ -36,9 +36,9 @@ void g () {
   int T[1000];
   int nSelectors = Frama_C_interval(0,1000);
   int w=0;
-  CEA_DUMP();
+  Frama_C_dump_each();
   for (j = 0; j < nSelectors; j++) T[j] = 1;
-  CEA_DUMP();
+  Frama_C_dump_each();
   for (j = 0; j < nSelectors; j++) w += T[j];
   return;
 }

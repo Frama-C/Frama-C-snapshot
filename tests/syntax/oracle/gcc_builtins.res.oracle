@@ -297,8 +297,7 @@ void main(void)
     x_0 = 0;
   }
   x_1 = 2;
-  {
-    /*sequence*/
+  { /* sequence */
     ;
     tmp = x_1;
     x_1 ++;

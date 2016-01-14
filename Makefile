@@ -30,14 +30,15 @@ include share/Makefile.dynamic_config.internal
 
 #Check share/Makefile.config available
 ifndef FRAMAC_TOP_SRCDIR
-$(error "You should run ./configure first")
+$(error "You should run ./configure first (or autoconf if there is no configure)")
 endif
 
 ###################
 # Frama-C Version #
 ###################
 
-VERSION=$(shell $(SED) -e 's/\\(.*\\)/\\1/' VERSION)
+VERSION:=$(shell $(SED) -e 's/\(\.*\)/\1/' VERSION)
+VERSION_PREFIX = $(shell $(SED) -e 's/\([a-zA-Z]\+-[0-9]\+\).*/\1/' VERSION)
 
 ifeq ($(findstring +dev,$(VERSION)),+dev)
 DEVELOPMENT=yes
@@ -67,6 +68,7 @@ PLUGIN_DYN_EXISTS:="no"
 PLUGIN_DYN_LIST :=
 PLUGIN_CMO_LIST	:=
 PLUGIN_CMX_LIST	:=
+PLUGIN_META_LIST :=
 PLUGIN_DYN_CMO_LIST :=
 PLUGIN_DYN_CMX_LIST :=
 PLUGIN_INTERNAL_CMO_LIST:=
@@ -120,7 +122,7 @@ SRC_DIRS+= $(FRAMAC_SRC_DIRS)
 INCLUDES=$(addprefix -I , $(FRAMAC_SRC_DIRS)) -I $(PLUGIN_LIB_DIR) -I lib
 
 # Directories to include for ocamldep
-# Remove -I +.* and -I C:/absolute/win/path 
+# Remove -I +.* and -I C:/absolute/win/path
 INCLUDES_FOR_OCAMLDEP=$(addprefix -I , $(FRAMAC_SRC_DIRS)) \
                       -I $(PLUGIN_LIB_DIR) -I lib
 
@@ -130,30 +132,34 @@ DEP_FLAGS= $(shell echo $(INCLUDES_FOR_OCAMLDEP) \
 
 # Files for which dependencies are computed
 FILES_FOR_OCAMLDEP+=$(PLUGIN_LIB_DIR)/*.mli \
-		$(addsuffix /*.mli, $(UNPACKED_DIRS)) \
-		$(addsuffix /*.ml, $(UNPACKED_DIRS))
+		$(addsuffix /*.mli, $(FRAMAC_SRC_DIRS)) \
+		$(addsuffix /*.ml, $(FRAMAC_SRC_DIRS))
 
-# Flags to use by ocamlc and ocamlopt
+# Developments flags to be used by ocamlc and ocamlopt when compiling Frama-C
+# itself. For development versions, we add -warn-error for most warnings
+# (or all if WARN_ERROR_ALL is set). -warn-error has effect only for warnings
+# that are explicitely set using '-w'. For Frama-C, this is done in
+# share/Makefile.common, as active warnings are inherited by plugins.
 ifeq ($(DEVELOPMENT),yes)
-ifeq ($(WARN_ERROR_ALL),yes)
-DEV_FLAGS=$(FLAGS) -warn-error +a
+ifeq ($(WARN_ERROR_ALL),yes) # To be set on the command-line
+DEV_WARNINGS= -warn-error +a
 else
-DEV_FLAGS=$(FLAGS) -warn-error +a-3-32-33-34-35-36-37-38-39
+DEV_WARNINGS= -warn-error +a-32-33-34-35-36-37-38-39
 endif #WARN_ERROR_ALL
+DEV_FLAGS=$(FLAGS) $(DEV_WARNINGS)
 else
 DEV_FLAGS=$(FLAGS)
 endif #DEVELOPMENT
 
-BFLAGS	= $(DEV_FLAGS) $(DEBUG) $(INCLUDES) $(COVERAGE_COMPILER_BYTE) \
-	  $(OUNIT_COMPILER_BYTE)
-OFLAGS	= $(DEV_FLAGS) $(DEBUG) $(INCLUDES) $(COVERAGE_COMPILER_OPT) \
-	  $(GPROFOPT) $(OUNIT_COMPILER_OPT) -compact
+BFLAGS	= $(DEV_FLAGS) $(DEBUG) $(INCLUDES) $(OUNIT_COMPILER_BYTE) \
+		$(FRAMAC_USER_FLAGS)
+OFLAGS	= $(DEV_FLAGS) $(DEBUG) $(INCLUDES) $(OUNIT_COMPILER_OPT) -compact \
+		$(FRAMAC_USER_FLAGS)
 
 BLINKFLAGS += $(BFLAGS) -linkall -custom
 OLINKFLAGS += $(OFLAGS) -linkall
 
-DOC_FLAGS= -colorize-code -stars -inv-merge-ml-mli -m A -hide-warnings \
-	$(INCLUDES) $(GUI_INCLUDES)
+DOC_FLAGS= -colorize-code -stars -m A -hide-warnings $(INCLUDES) $(GUI_INCLUDES)
 
 ifeq ($(HAS_OCAML402),yes)
 	DOC_FLAGS += -w -3
@@ -165,9 +171,12 @@ GEN_OPT_LIBS=
 
 # Libraries used in Frama-C
 EXTRA_OPT_LIBS:=
-BYTE_LIBS = nums.cma unix.cma bigarray.cma str.cma dynlink.cma \
+INCLUDE_FINDLIB:=$(shell ocamlfind query -i-format findlib)
+INCLUDES+= $(INCLUDE_FINDLIB)
+BYTE_LIBS = nums.cma unix.cma bigarray.cma str.cma findlib.cma dynlink.cma \
 	$(GEN_BYTE_LIBS)
-OPT_LIBS = nums.cmxa unix.cmxa bigarray.cmxa str.cmxa $(EXTRA_OPT_LIBS)
+OPT_LIBS = nums.cmxa unix.cmxa bigarray.cmxa str.cmxa findlib.cmxa \
+	$(EXTRA_OPT_LIBS)
 
 ifeq ("$(NATIVE_DYNLINK)","yes")
 OPT_LIBS+= dynlink.cmxa
@@ -244,15 +253,7 @@ clean-check-libc:
 # NB: configure for the distribution is generated in the distrib directory
 # itself, rather than copied: otherwise, it could include references to
 # non-distributed plug-ins.
-DISTRIB_FILES:= cil/*/*.ml* cil/*/*.in        				\
-      $(filter-out $(CIL_PATH)/frontc/cparser.ml			\
-	$(CIL_PATH)/frontc/cparser.mli                                  \
-	$(CIL_PATH)/logic/logic_lexer.ml                                \
-	$(CIL_PATH)/logic/logic_parser.mli                              \
-	$(CIL_PATH)/logic/logic_parser.ml				\
-	$(CIL_PATH)/frontc/clexer.ml					\
-	$(CIL_PATH)/logic/logic_preprocess.ml,                          \
-	  $(wildcard $(CIL_PATH)/*/*.ml*))                              \
+DISTRIB_FILES:=\
       bin/*2*.sh							\
       share/frama-c.WIN32.rc share/frama-c.Unix.rc                      \
       $(ICONS) $(FEEDBACK_ICONS_DEFAULT) $(FEEDBACK_ICONS_COLORBLIND)	\
@@ -283,22 +284,35 @@ DISTRIB_FILES:= cil/*/*.ml* cil/*/*.in        				\
       share/Makefile.plugin share/Makefile.dynamic			\
       share/Makefile.dynamic_config.external				\
       share/Makefile.dynamic_config.internal		   		\
-      $(filter-out src/kernel/config.ml, $(wildcard src/kernel/*.ml*))  \
-      external/hptmap.ml* external/unmarshal*.ml* external/unz.ml*      \
-      external/sysutil.ml* 			\
-      src/ai/*.ml* src/buckx/*.ml*				 	\
-      src/buckx/*.c src/gui/*.ml* src/logic/*.ml*                       \
-      $(filter-out src/lib/integer.ml                                   \
-         src/lib/dynlink_common_interface.ml,				\
-	$(wildcard src/lib/*.ml*)) 					\
-      src/memory_state/*.ml* src/misc/*.ml* src/project/*.ml*		\
-      src/printer/*.ml* src/toplevel/toplevel_config.ml src/type/*.ml*  \
+      $(filter-out src/kernel_internals/runtime/config.ml,              \
+	  $(wildcard src/kernel_internals/runtime/*.ml*))               \
+      src/kernel_services/abstract_interp/*.ml*                         \
+      src/plugins/gui/*.ml*                                             \
+      $(filter-out src/libraries/stdlib/integer.ml                      \
+	src/libraries/stdlib/FCDnlink.ml,                               \
+        $(wildcard src/libraries/stdlib/*.ml*))                         \
+      $(wildcard src/libraries/utils/*.ml*)                             \
+      src/libraries/utils/*.c                                           \
+      src/libraries/project/*.ml*                                       \
+      $(filter-out src/kernel_internals/parsing/check_logic_parser.ml, \
+	  src/kernel_internals/parsing/*.ml*)                          \
+      src/kernel_internals/typing/*.ml*                               \
+      src/kernel_services/ast_data/*.ml*                                \
+      src/kernel_services/ast_queries/*.ml*                          \
+      src/kernel_services/ast_printing/*.ml*                            \
+      src/kernel_services/cmdline_parameters/*.ml*                      \
+      src/kernel_services/analysis/*.ml*                                \
+      src/kernel_services/ast_transformations/*.ml*                                 \
+      src/kernel_services/plugin_entry_points/*.ml*                     \
+      src/kernel_services/visitors/*.ml*                                \
+      src/kernel_services/parsetree/*.ml*                                    \
+      src/libraries/datatype/*.ml*                                      \
       bin/sed_get_make_major bin/sed_get_make_minor                     \
       INSTALL INSTALL_WITH_WHY .make-clean	                        \
       .make-clean-stamp .make-ocamlgraph-stamp .force-reconfigure 	\
       opam/* opam/files/*
 
-DISTRIB_TESTS=$(filter-out tests/non-free/%, $(shell git ls-files tests src/aorai/tests src/report/tests src/wp/tests))
+DISTRIB_TESTS=$(filter-out tests/non-free/%, $(shell git ls-files tests src/plugins/aorai/tests src/plugins/report/tests src/plugins/wp/tests))
 
 
 # files that are needed to compile API documentation of external plugins
@@ -324,7 +338,7 @@ endif
 
 all:: byte $(OCAMLBEST) $(EXTRAS) plugins_ptests_config
 
-.PHONY: top opt byte dist bdist archclean rebuild
+.PHONY: top opt byte dist bdist archclean rebuild rebuild-branch
 
 dist: clean
 	$(QUIET_MAKE) OPTIM="-unsafe -noassert" DEBUG="" all
@@ -351,11 +365,20 @@ rebuild: archclean
 OCAMLGRAPH_MERLIN="PKG ocamlgraph"
 endif
 
+rebuild-branch: config.status
+	$(MAKE) smartclean
+	$(MAKE) depend $(FRAMAC_PARALLEL)
+	$(MAKE) all $(FRAMAC_PARALLEL)
+
+sinclude .Makefile.user # Should defines FRAMAC_PARALLEL and FRAMAC_USER_FLAGS
+
 .PHONY:merlin
-merlin:
+.merlin merlin:
 #create Merlin file
-	find `echo "src cil external" | xargs -n 1 -d ' ' readlink -f` \( -name .svn -o -name tests -o -name doc -o -name result -o -name -o -name oracle -o -name "*.cache" -o -name .git \) -prune -o \( -type d -printf "B %p\nS %p\n"  \) > .merlin
+	echo "FLG $(FRAMAC_USER_MERLIN_FLAGS)" > .merlin
+	find `echo "src" | xargs -n 1 -d ' ' readlink -f` \( -name .svn -o -name tests -o -name doc -o -name result -o -name -o -name oracle -o -name "*.cache" -o -name .git \) -prune -o \( -type d -printf "B %p\nS %p\n"  \) >> .merlin
 	echo $(OCAMLGRAPH_MERLIN) >> .merlin
+	echo "PKG findlib" >> .merlin
 	echo "PKG zarith" >> .merlin
 	echo "PKG lablgtk2" >> .merlin
 
@@ -540,13 +563,14 @@ DISTRIB_FILES += .make-ocamlgraph
 force-ocamlgraph:
 	expr `$(CAT) .make-ocamlgraph-stamp` + 1 > .make-ocamlgraph-stamp
 
-.PHONY: untar-ocamlgraph
 untar-ocamlgraph:
 	$(PRINT_UNTAR) $@
 	$(RM) -r $(OCAMLGRAPH_LOCAL)
 	$(TAR) xzf ocamlgraph.tar.gz
 	cd $(OCAMLGRAPH_LOCAL) && ./configure
 	$(MAKE) clean
+
+.PHONY: force-ocamlgraph untar-ocamlgraph
 
 ##########
 # Zarith #
@@ -556,18 +580,19 @@ ifeq ($(HAS_ZARITH),yes)
 BYTE_LIBS+= zarith.cma
 OPT_LIBS+= zarith.cmxa
 INCLUDES+= -I $(ZARITH_PATH)
-src/lib/integer.ml: src/lib/integer.ml.zarith share/Makefile.config
+src/libraries/stdlib/integer.ml: \
+		src/libraries/stdlib/integer.zarith.ml share/Makefile.config
 	$(PRINT_CP) $@
 	$(CP) $< $@
 	$(CHMOD_RO) $@
 else
-src/lib/integer.ml: src/lib/integer.ml.bigint share/Makefile.config
+src/libraries/stdlib/integer.ml: \
+		src/libraries/stdlib/integer.bigint.ml share/Makefile.config
 	$(PRINT_CP) $@
 	$(CP) $< $@
 	$(CHMOD_RO) $@
 endif
-GENERATED += src/lib/integer.ml
-DISTRIB_FILES+= src/lib/integer.ml.zarith src/lib/integer.ml.bigint
+GENERATED += src/libraries/stdlib/integer.ml
 
 ##################
 # Frama-C Kernel #
@@ -576,11 +601,12 @@ DISTRIB_FILES+= src/lib/integer.ml.zarith src/lib/integer.ml.bigint
 # Dynlink library
 #################
 
-GENERATED += src/lib/dynlink_common_interface.ml
+GENERATED += src/libraries/stdlib/FCDynlink.ml
 
 ifeq ($(USABLE_NATIVE_DYNLINK),yes) # native dynlink works
 
-src/lib/dynlink_common_interface.ml: src/lib/dynlink_311_or_higher.ml share/Makefile.config
+src/libraries/stdlib/FCDynlink.ml: \
+		src/libraries/stdlib/dynlink_native_ok.ml share/Makefile.config
 	$(PRINT_MAKING) $@
 	$(CP) $< $@
 	$(CHMOD_RO) $@
@@ -588,7 +614,8 @@ src/lib/dynlink_common_interface.ml: src/lib/dynlink_311_or_higher.ml share/Make
 else # native dynlink doesn't work
 
 ifeq ($(NATIVE_DYNLINK),yes) # native dynlink does exist but doesn't work
-src/lib/dynlink_common_interface.ml: src/lib/bad_dynlink_311_or_higher.ml share/Makefile.config
+src/libraries/stdlib/lib/FCDynlink.ml: \
+		src/libraries/stdlib/dynlink_native_ko.ml share/Makefile.config
 	$(PRINT_MAKING) $@
 	$(CP) $< $@
 	$(CHMOD_RO) $@
@@ -596,33 +623,35 @@ src/lib/dynlink_common_interface.ml: src/lib/bad_dynlink_311_or_higher.ml share/
 else # no dynlink at all (for instance no native compiler)
 
 # Just for ocamldep
-src/lib/dynlink_common_interface.ml: src/lib/dynlink_311_or_higher.ml share/Makefile.config
+src/libraries/stdlib/FCDynlink.ml: \
+		src/libraries/stdlib/dynlink_native_ok.ml share/Makefile.config
 	$(PRINT_MAKING) $@
 	$(CP) $< $@
 	$(CHMOD_RO) $@
 
 # Add two different rules for bytecode and native since
-# the file dynlink_common_interface.ml does not provide from the same file
-# in these cases.
+# the file FCDynlink.ml is not built from the same file in these cases.
 
-src/lib/dynlink_common_interface.cmo: src/lib/dynlink_311_or_higher.ml share/Makefile.config
-	$(PRINT_MAKING) src/lib/dynlink_common_interface.ml
-	$(CP) $< src/lib/dynlink_common_interface.ml
-	$(CHMOD_RO) src/lib/dynlink_common_interface.ml
+src/libraries/stdlib/FCDynlink.cmo: \
+		src/libraries/stdlib/dynlink_native_ok.ml share/Makefile.config
+	$(PRINT_MAKING) src/libraries/stdlib/FCDynlink.ml
+	$(CP) $< src/libraries/stdlib/FCDynlink.ml
+	$(CHMOD_RO) src/libraries/stdlib/FCDynlink.ml
 	$(PRINT_OCAMLC) $@
-	$(OCAMLC) -c $(BFLAGS) src/lib/dynlink_common_interface.ml
+	$(OCAMLC) -c $(BFLAGS) src/libraries/stdlib/FCDynlink.ml
 
-src/lib/dynlink_common_interface.cmx: src/lib/no_dynlink_opt.ml share/Makefile.config
-	$(PRINT_MAKING) src/lib/dynlink_common_interface.ml
-	$(CP) $< src/lib/dynlink_common_interface.ml
-	$(CHMOD_RO) src/lib/dynlink_common_interface.ml
+src/libraries/stdlib/FCDynlink.cmx: \
+		src/libraries/stdlib/dynlink_no_native.ml share/Makefile.config
+	$(PRINT_MAKING) src/libraries/stdlib/FCDynlink.ml
+	$(CP) $< src/libraries/stdlib/FCDynlink.ml
+	$(CHMOD_RO) src/libraries/stdlib/FCDynlink.ml
 	$(PRINT_OCAMLOPT) $@
-	$(OCAMLOPT) -c $(OFLAGS) src/lib/dynlink_common_interface.ml
+	$(OCAMLOPT) -c $(OFLAGS) src/libraries/stdlib/FCDynlink.ml
 
 # force dependency order between these two files in order to not generate them
 # in parallel since each of them generates the same .ml file
-src/lib/dynlink_common_interface.cmx: src/lib/dynlink_common_interface.cmo
-src/lib/dynlink_common_interface.o: src/lib/dynlink_common_interface.cmx
+src/libraries/stdlib/FCDynlink.cmx: src/libraries/stdlib/FCDynlink.cmo
+src/libraries/stdlib/FCDynlink.o: src/libraries/stdlib/FCDynlink.cmx
 
 endif
 endif
@@ -631,38 +660,39 @@ endif
 # Libraries which could be compiled fully independently
 #######################################################
 
-EXTERNAL_LIB_CMO = unmarshal unmarshal_nums sysutil
-
-# Zarith
-ifeq ($(HAS_ZARITH),yes)
-EXTERNAL_LIB_CMO+= unz
-MODULES_NODOC+=external/unz.mli
-endif
-
-VERY_FIRST_CMO = src/kernel/frama_c_init.cmo
+VERY_FIRST_CMO = src/kernel_internals/runtime/frama_c_init.cmo
 CMO	+= $(VERY_FIRST_CMO)
 
-EXTERNAL_LIB_CMO:= $(patsubst %, external/%.cmo, $(EXTERNAL_LIB_CMO))
-CMO	+= $(EXTERNAL_LIB_CMO)
+LIB_CMO =\
+	src/libraries/stdlib/FCDynlink \
+	src/libraries/stdlib/FCSet \
+	src/libraries/stdlib/FCMap \
+	src/libraries/stdlib/FCHashtbl \
+	src/libraries/stdlib/extlib \
+	src/libraries/datatype/unmarshal \
+	src/libraries/datatype/unmarshal_nums
 
-LIB_CMO = \
-	src/lib/dynlink_common_interface \
-	src/type/structural_descr \
-	src/type/type \
-	src/type/descr \
-	src/lib/FCSet \
-	src/lib/FCMap \
-	src/lib/FCHashtbl \
-	src/lib/extlib \
-	src/lib/pretty_utils \
-	src/lib/hook \
-	src/lib/bag \
-	src/lib/indexer \
-	src/lib/vector \
-	src/lib/bitvector \
-	src/lib/qstack \
-	src/lib/integer \
-	src/lib/filepath
+ifeq ($(HAS_ZARITH),yes)
+LIB_CMO+= src/libraries/datatype/unmarshal_z
+MODULES_NODOC+=external/unmarshal_z.mli
+endif
+
+LIB_CMO+=\
+	src/libraries/datatype/structural_descr \
+	src/libraries/datatype/type \
+	src/libraries/datatype/descr \
+	src/libraries/utils/sysutil  \
+	src/libraries/utils/pretty_utils \
+	src/libraries/utils/hook \
+	src/libraries/utils/bag \
+	src/libraries/utils/wto \
+	src/libraries/utils/vector \
+	src/libraries/utils/fixpoint \
+	src/libraries/utils/indexer \
+	src/libraries/utils/bitvector \
+	src/libraries/utils/qstack \
+	src/libraries/stdlib/integer \
+	src/libraries/utils/filepath
 
 LIB_CMO:= $(addsuffix .cmo, $(LIB_CMO))
 CMO	+= $(LIB_CMO)
@@ -670,13 +700,13 @@ CMO	+= $(LIB_CMO)
 # Very first files to be linked (most modules use them)
 ###############################
 
-FIRST_CMO= src/kernel/config \
-	src/kernel/gui_init \
-	src/kernel/log \
-	src/kernel/cmdline \
-	src/project/project_skeleton \
-	src/type/datatype \
-	src/kernel/journal
+FIRST_CMO= src/kernel_internals/runtime/config \
+	src/kernel_internals/runtime/gui_init \
+	src/kernel_services/plugin_entry_points/log \
+	src/kernel_services/cmdline_parameters/cmdline \
+	src/libraries/project/project_skeleton \
+	src/libraries/datatype/datatype \
+	src/kernel_services/plugin_entry_points/journal
 
 # project_skeleton requires log
 # datatype requires project_skeleton
@@ -693,182 +723,173 @@ PROJECT_CMO= \
 	state_selection \
 	project \
 	state_builder
-PROJECT_CMO:= $(patsubst %, src/project/%.cmo, $(PROJECT_CMO))
+PROJECT_CMO:= $(patsubst %, src/libraries/project/%.cmo, $(PROJECT_CMO))
 CMO	+= $(PROJECT_CMO)
 
-# Kernel files usable by Cil
-PRE_KERNEL_CMO= \
-	src/lib/binary_cache \
-	external/hptmap \
-	src/lib/hptset \
-	$(CIL_PATH)/cil_datatype \
-	src/kernel/typed_parameter \
-	src/kernel/dynamic \
-	src/kernel/parameter_category \
-	src/kernel/parameter_customize \
-	src/kernel/parameter_state \
-	src/kernel/parameter_builder \
-	src/kernel/plugin \
-	src/kernel/kernel \
-	src/kernel/emitter \
-	src/lib/floating_point \
-	src/lib/rangemap \
-	src/printer/printer_builder
+# kernel
+########
 
-PRE_KERNEL_CMO:= $(patsubst %, %.cmo, $(PRE_KERNEL_CMO))
-CMO	+= $(PRE_KERNEL_CMO)
-
-MLI_ONLY +=src/kernel/parameter_sig.mli
-
-# Cil
-#####
-
-# .cmo files of cil
-CIL_CMO = $(CIL_PATH)/cilmsg.cmo cil/ocamlutil/alpha.cmo			\
-	cil/ocamlutil/cilconfig.cmo 					\
-	$(addprefix $(CIL_PATH)/,                                       \
-		cil_state_builder.cmo 					\
-		logic/utf8_logic.cmo				        \
-		machdeps.cmo						\
-		cil_const.cmo			                        \
-		logic/logic_env.cmo escape.cmo				\
-		logic/logic_const.cmo cil.cmo)		                \
-        src/printer/cil_printer.cmo                                     \
-        src/printer/cil_descriptive_printer.cmo                         \
-	$(addprefix $(CIL_PATH)/,                                       \
-		    frontc/errorloc.cmo	                                \
-		    frontc/cabs.cmo					\
-		    frontc/cabs_debug.cmo				\
-		    frontc/cabshelper.cmo 				\
-		    logic/logic_utils.cmo logic/logic_builtin.cmo	\
-		    logic/logic_print.cmo logic/logic_parser.cmo	\
-		    logic/logic_lexer.cmo frontc/lexerhack.cmo		\
-		    mergecil.cmo rmtmps.cmo logic/logic_typing.cmo	\
-		    frontc/cprint.cmo 					\
-		    frontc/cabsvisit.cmo frontc/cabs2cil.cmo		\
-		    frontc/clexer.cmo frontc/cparser.cmo		\
-		    logic/logic_preprocess.cmo				\
-		    frontc/frontc.cmo					\
-		    ext/callgraph.cmo					\
-		    ext/dataflow.cmo 					\
-		    ext/oneret.cmo \
-		    ext/cfg.cmo \
-	) # end of addprefix
-
-CMO	+= $(CIL_CMO)
-MLI_ONLY+= $(CIL_PATH)/cil_types.mli $(CIL_PATH)/logic/logic_ptree.mli \
-	src/printer/printer_api.mli
-NO_MLI+= \
-	$(CIL_PATH)/machdep_ppc_32.mli \
-	$(CIL_PATH)/machdep_x86_16.mli \
-	$(CIL_PATH)/machdep_x86_32.mli \
-	$(CIL_PATH)/machdep_x86_64.mli \
-	$(CIL_PATH)/frontc/cabs.mli \
-	$(CIL_PATH)/frontc/cabs_debug.mli \
-	$(CIL_PATH)/logic/logic_lexer.mli \
-	$(CIL_PATH)/frontc/lexerhack.mli \
-
-MODULES_NODOC+= $(CIL_PATH)/machdep_ppc_32.ml \
-	$(CIL_PATH)/machdep_x86_16.ml \
-	$(CIL_PATH)/machdep_x86_32.ml \
-	$(CIL_PATH)/machdep_x86_64.ml \
-
-GENERATED += $(addprefix $(CIL_PATH)/, \
-		frontc/clexer.ml frontc/cparser.ml frontc/cparser.mli \
-		logic/logic_lexer.ml logic/logic_parser.ml \
-		logic/logic_parser.mli logic/logic_preprocess.ml)
-
-.PHONY: check-logic-parser-wildcard
-check-logic-parser-wildcard:
-	cd $(CIL_PATH)/logic && ocaml check_logic_parser.ml
-
-# Buckx
-#######
-
-GEN_BUCKX=src/buckx/buckx_c.o
-GEN_BYTE_LIBS+= $(GEN_BUCKX)
-GEN_OPT_LIBS+= $(GEN_BUCKX)
-
-src/buckx/buckx_c.o: src/buckx/buckx_c.c
-	$(PRINT_CC) $@
-	$(CC) -c -I$(call winpath, $(OCAMLLIB)) -O3 -Wall $(GEN_BUCKX_CFLAGS) -o $@ $<
-
-# Main part of the kernel
-#########################
-
-# cannot use $(CONFIG_CMO) here :-(
-KERNEL_CMO= \
-	src/kernel/ast_info.cmo \
-	src/kernel/ast.cmo \
-	src/kernel/globals.cmo \
-	src/kernel/kernel_function.cmo \
-	src/logic/property.cmo \
-	src/logic/property_status.cmo \
-	src/logic/annotations.cmo \
-	src/printer/printer.cmo \
-	src/kernel/stmts_graph.cmo \
-	$(CIL_PATH)/ext/ordered_stmt.cmo \
-	$(CIL_PATH)/ext/dataflows.cmo \
-	$(CIL_PATH)/ext/dataflow2.cmo \
-	src/kernel/dominators.cmo \
-	src/logic/description.cmo \
-	src/logic/statuses_by_call.cmo \
-	src/kernel/alarms.cmo \
-	src/kernel/messages.cmo \
-	src/ai/abstract_interp.cmo \
-	src/ai/int_Base.cmo \
-	src/kernel/unicode.cmo \
-	src/misc/service_graph.cmo \
-	src/ai/ival.cmo \
-	src/misc/bit_utils.cmo \
-	src/ai/base.cmo \
-	src/ai/origin.cmo \
-	src/ai/map_Lattice.cmo \
-	src/ai/trace.cmo \
-	src/memory_state/value_messages.cmo \
-	src/kernel/cilE.cmo \
-	src/memory_state/tr_offset.cmo \
-	src/memory_state/offsetmap.cmo \
-	src/ai/int_Intervals.cmo \
-	src/memory_state/locations.cmo \
-	src/memory_state/precise_locs.cmo \
-	src/memory_state/lmap.cmo \
-	src/memory_state/lmap_bitwise.cmo \
-	src/memory_state/function_Froms.cmo \
-	src/memory_state/cvalue.cmo \
-	src/memory_state/widen_type.cmo \
-	src/kernel/visitor.cmo \
-	src/kernel/clone.cmo \
-	src/kernel/loop.cmo \
-	$(PLUGIN_TYPES_CMO_LIST) \
-	src/memory_state/value_types.cmo \
-	src/kernel/db.cmo  \
-	src/kernel/command.cmo \
-	src/kernel/task.cmo \
-	src/kernel/file.cmo \
-	src/kernel/exn_flow.cmo \
-	src/logic/translate_lightweight.cmo \
-	src/kernel/unroll_loops.cmo \
-	src/misc/filter.cmo \
-	src/kernel/special_hooks.cmo \
-	src/logic/logic_interp.cmo \
-	src/logic/infer_annotations.cmo \
-	src/logic/allocates.cmo
+KERNEL_CMO=\
+	src/libraries/utils/utf8_logic.cmo                              \
+	src/libraries/utils/binary_cache.cmo                            \
+	src/libraries/utils/hptmap.cmo                                  \
+	src/libraries/utils/hptset.cmo                                  \
+	src/libraries/utils/escape.cmo                                  \
+	src/kernel_services/ast_queries/cil_datatype.cmo             \
+	src/kernel_services/cmdline_parameters/typed_parameter.cmo      \
+	src/kernel_services/plugin_entry_points/dynamic.cmo             \
+	src/kernel_services/cmdline_parameters/parameter_category.cmo   \
+	src/kernel_services/cmdline_parameters/parameter_customize.cmo  \
+	src/kernel_services/cmdline_parameters/parameter_state.cmo      \
+	src/kernel_services/cmdline_parameters/parameter_builder.cmo    \
+	src/kernel_services/plugin_entry_points/plugin.cmo              \
+	src/kernel_services/plugin_entry_points/kernel.cmo              \
+	src/libraries/utils/unicode.cmo                                 \
+	src/kernel_services/plugin_entry_points/emitter.cmo             \
+	src/libraries/utils/floating_point.cmo                          \
+	src/libraries/utils/rangemap.cmo                                \
+	src/kernel_services/ast_printing/printer_builder.cmo            \
+	src/libraries/utils/cilconfig.cmo                               \
+	src/kernel_internals/typing/alpha.cmo                         \
+	src/kernel_services/ast_queries/cil_state_builder.cmo        \
+	src/kernel_internals/runtime/machdeps.cmo                       \
+	src/kernel_services/ast_queries/cil_const.cmo                \
+	src/kernel_services/ast_queries/logic_env.cmo                \
+	src/kernel_services/ast_queries/logic_const.cmo              \
+	src/kernel_services/ast_queries/cil.cmo                      \
+	src/kernel_internals/parsing/errorloc.cmo                      \
+	src/kernel_services/ast_printing/cil_printer.cmo                \
+	src/kernel_services/ast_printing/cil_descriptive_printer.cmo    \
+	src/kernel_services/parsetree/cabs.cmo                               \
+	src/kernel_services/parsetree/cabshelper.cmo                         \
+	src/kernel_services/ast_printing/logic_print.cmo                \
+	src/kernel_services/ast_queries/logic_utils.cmo              \
+	src/kernel_internals/parsing/logic_parser.cmo                  \
+	src/kernel_internals/parsing/logic_lexer.cmo                   \
+	src/kernel_internals/typing/logic_builtin.cmo                 \
+	src/kernel_services/ast_queries/logic_typing.cmo             \
+	src/kernel_services/ast_printing/cabs_debug.cmo                 \
+	src/kernel_services/ast_printing/cprint.cmo                     \
+	src/kernel_internals/parsing/lexerhack.cmo                     \
+	src/kernel_internals/parsing/clexer.cmo                        \
+	src/kernel_services/visitors/cabsvisit.cmo                      \
+	src/kernel_internals/parsing/cparser.cmo                       \
+	src/kernel_internals/parsing/logic_preprocess.cmo              \
+	src/kernel_internals/typing/mergecil.cmo                      \
+	src/kernel_internals/typing/rmtmps.cmo                        \
+	src/kernel_internals/typing/cabs2cil.cmo                      \
+	src/kernel_internals/typing/oneret.cmo                        \
+	src/kernel_internals/typing/frontc.cmo                        \
+	src/kernel_services/ast_queries/ast_info.cmo                 \
+	src/kernel_services/ast_data/ast.cmo                            \
+	src/kernel_services/ast_data/globals.cmo                        \
+	src/kernel_internals/typing/cfg.cmo                           \
+	src/kernel_services/ast_data/kernel_function.cmo                \
+	src/kernel_services/ast_data/property.cmo                       \
+	src/kernel_services/ast_data/property_status.cmo                \
+	src/kernel_services/ast_data/annotations.cmo                    \
+	src/kernel_services/ast_printing/printer.cmo                    \
+	src/kernel_services/ast_data/statuses_by_call.cmo               \
+	src/kernel_services/analysis/dataflow.cmo                       \
+	src/kernel_services/analysis/ordered_stmt.cmo                   \
+	src/kernel_services/analysis/wto_statement.cmo                  \
+	src/kernel_services/analysis/dataflows.cmo                      \
+	src/kernel_services/analysis/dataflow2.cmo                      \
+	src/kernel_services/analysis/stmts_graph.cmo                    \
+	src/kernel_services/analysis/dominators.cmo                     \
+	src/kernel_services/analysis/service_graph.cmo                  \
+	src/kernel_services/ast_printing/description.cmo                \
+	src/kernel_services/ast_data/alarms.cmo                         \
+	src/kernel_services/abstract_interp/lattice_messages.cmo        \
+	src/kernel_services/abstract_interp/abstract_interp.cmo         \
+	src/kernel_services/abstract_interp/int_Base.cmo                \
+	src/kernel_services/analysis/bit_utils.cmo                      \
+	src/kernel_services/abstract_interp/fval.cmo                    \
+	src/kernel_services/abstract_interp/ival.cmo                    \
+	src/kernel_services/abstract_interp/base.cmo                    \
+	src/kernel_services/abstract_interp/origin.cmo                  \
+	src/kernel_services/abstract_interp/map_Lattice.cmo             \
+	src/kernel_services/abstract_interp/trace.cmo                   \
+	src/kernel_services/abstract_interp/tr_offset.cmo               \
+	src/kernel_services/abstract_interp/offsetmap.cmo               \
+	src/kernel_services/abstract_interp/int_Intervals.cmo           \
+	src/kernel_services/abstract_interp/locations.cmo               \
+	src/kernel_services/abstract_interp/lmap.cmo                    \
+	src/kernel_services/abstract_interp/lmap_bitwise.cmo            \
+	src/kernel_services/visitors/visitor.cmo                        \
+	$(PLUGIN_TYPES_CMO_LIST)                                        \
+	src/kernel_services/plugin_entry_points/db.cmo                  \
+	src/libraries/utils/command.cmo                                 \
+	src/libraries/utils/task.cmo                                    \
+	src/kernel_services/ast_queries/filecheck.cmo                \
+	src/kernel_services/ast_queries/file.cmo                     \
+	src/kernel_internals/typing/translate_lightweight.cmo         \
+	src/kernel_internals/typing/allocates.cmo                     \
+	src/kernel_internals/typing/unroll_loops.cmo                  \
+	src/kernel_services/analysis/loop.cmo                           \
+	src/kernel_services/analysis/exn_flow.cmo                       \
+	src/kernel_services/analysis/logic_interp.cmo                   \
+	src/kernel_internals/typing/infer_annotations.cmo             \
+	src/kernel_services/ast_transformations/clone.cmo                           \
+	src/kernel_services/ast_transformations/filter.cmo                          \
+	src/kernel_internals/runtime/special_hooks.cmo                  \
+	src/kernel_internals/runtime/messages.cmo
 
 CMO	+= $(KERNEL_CMO)
 
-MLI_ONLY+= src/ai/lattice_type.mli src/ai/int_Intervals_sig.mli \
-	src/memory_state/offsetmap_lattice_with_isotropy.mli \
-	src/memory_state/offsetmap_sig.mli src/memory_state/lmap_sig.mli \
-	src/memory_state/offsetmap_bitwise_sig.mli
+MLI_ONLY+=\
+        src/libraries/utils/hptmap_sig.mli                                   \
+        src/kernel_services/cmdline_parameters/parameter_sig.mli             \
+	src/kernel_services/ast_data/cil_types.mli                           \
+	src/kernel_services/parsetree/logic_ptree.mli                             \
+	src/kernel_services/ast_printing/printer_api.mli                     \
+	src/kernel_services/abstract_interp/lattice_type.mli                 \
+	src/kernel_services/abstract_interp/int_Intervals_sig.mli            \
+	src/kernel_services/abstract_interp/offsetmap_lattice_with_isotropy.mli \
+	src/kernel_services/abstract_interp/offsetmap_sig.mli                \
+	src/kernel_services/abstract_interp/lmap_sig.mli                     \
+	src/kernel_services/abstract_interp/offsetmap_bitwise_sig.mli
 
-NO_MLI+= src/ai/map_Lattice.mli src/memory_state/value_messages.mli
+NO_MLI+= src/kernel_services/abstract_interp/map_Lattice.mli    \
+	src/kernel_services/parsetree/cabs.mli                       \
+	src/kernel_internals/runtime/machdep_ppc_32.mli         \
+	src/kernel_internals/runtime/machdep_x86_16.mli         \
+	src/kernel_internals/runtime/machdep_x86_32.mli         \
+	src/kernel_internals/runtime/machdep_x86_64.mli         \
+	src/kernel_services/ast_printing/cabs_debug.mli        \
+	src/kernel_internals/parsing/logic_lexer.mli           \
+	src/kernel_internals/parsing/lexerhack.mli             \
+
+MODULES_NODOC+= src/kernel_internals/runtime/machdep_ppc_32.ml \
+	src/kernel_internals/runtime/machdep_x86_16.ml         \
+	src/kernel_internals/runtime/machdep_x86_32.ml         \
+	src/kernel_internals/runtime/machdep_x86_64.ml         \
+
+GENERATED += $(addprefix src/kernel_internals/parsing/, \
+		clexer.ml cparser.ml cparser.mli \
+		logic_lexer.ml logic_parser.ml \
+		logic_parser.mli logic_preprocess.ml)
+
+.PHONY: check-logic-parser-wildcard
+check-logic-parser-wildcard:
+	cd src/kernel_internals/parsing && ocaml check_logic_parser.ml
+
+# C Bindings
+############
+
+GEN_C_BINDINGS=src/libraries/utils/c_bindings.o
+GEN_BYTE_LIBS+= $(GEN_C_BINDINGS)
+GEN_OPT_LIBS+= $(GEN_C_BINDINGS)
+
+src/libraries/utils/c_bindings.o: src/libraries/utils/c_bindings.c
+	$(PRINT_CC) $@
+	$(CC) -c -I$(call winpath, $(OCAMLLIB)) -O3 -Wall -o $@ $<
 
 # Common startup module
 # All link command should add it as last linked module and depend on it.
 ########################################################################
 
-STARTUP_CMO=src/kernel/boot.cmo
+STARTUP_CMO=src/kernel_internals/runtime/boot.cmo
 STARTUP_CMX=$(STARTUP_CMO:.cmo=.cmx)
 
 # GUI modules
@@ -883,12 +904,13 @@ SINGLE_GUI_CMO:= gui_parameters \
 	launcher \
 	menu_manager \
 	history \
+	gui_printers \
 	design \
 	analyses_manager file_manager project_manager debug_manager \
 	help_manager \
 	property_navigator
 
-SINGLE_GUI_CMO:= $(patsubst %, src/gui/%.cmo, $(SINGLE_GUI_CMO))
+SINGLE_GUI_CMO:= $(patsubst %, src/plugins/gui/%.cmo, $(SINGLE_GUI_CMO))
 
 ###############################################################################
 #                                                                             #
@@ -906,61 +928,89 @@ SINGLE_GUI_CMO:= $(patsubst %, src/gui/%.cmo, $(SINGLE_GUI_CMO))
 ###########
 
 PLUGIN_ENABLE:=$(ENABLE_METRICS)
+PLUGIN_DYNAMIC:=$(DYNAMIC_METRICS)
 PLUGIN_NAME:=Metrics
 PLUGIN_DISTRIBUTED:=yes
-PLUGIN_HAS_MLI:=yes
-PLUGIN_DIR:=src/metrics
+PLUGIN_DIR:=src/plugins/metrics
 PLUGIN_CMO:= metrics_parameters css_html metrics_base metrics_acsl \
 	     metrics_cabs metrics_cilast metrics_coverage \
 	     register
 PLUGIN_GUI_CMO:= metrics_gui register_gui
+PLUGIN_DEPENDENCIES:=Value
 PLUGIN_INTERNAL_TEST:=yes
 include share/Makefile.plugin
 
-#######################
-# Syntactic callgraph #
-#######################
+#############
+# Callgraph #
+#############
 
-# Extension of the GUI for syntactic callgraph is compilable
-# only if dgraph is available
-ifeq ($(HAS_DGRAPH),yes)
-PLUGIN_GUI_CMO:=cg_viewer
-else
-PLUGIN_UNDOC:=cg_viewer.ml
-endif
-
-PLUGIN_ENABLE:=$(ENABLE_SYNTACTIC_CALLGRAPH)
-PLUGIN_NAME:=Syntactic_callgraph
+PLUGIN_ENABLE:=$(ENABLE_CALLGRAPH)
+PLUGIN_DYNAMIC:=$(DYNAMIC_CALLGRAPH)
+PLUGIN_NAME:=Callgraph
 PLUGIN_DISTRIBUTED:=yes
-PLUGIN_HAS_MLI:=yes
-PLUGIN_DIR:=src/syntactic_callgraph
-PLUGIN_CMO:= options register
+PLUGIN_DIR:=src/plugins/callgraph
+PLUGIN_CMO:= options journalize cg services uses register
+PLUGIN_CMI:= callgraph_api
 PLUGIN_NO_TEST:=yes
 PLUGIN_INTERNAL_TEST:=yes
 include share/Makefile.plugin
+
+# Callgraph GUI
+###############
+
+# Separate the Callgraph GUI from the Callgraph in order to fix a major
+# compilation issue which occurs when compiling the native GUI if a plug-in
+# depends on a plug-in with a GUI (some plug-ins depends on Callgraph)
+#
+# FB claims that the general issue could be fixed by replacing packed modules
+# by module aliases, but it would require to use OCaml >= 4.02.1.
+# Splitting GUI and non GUI parts is a 'manual' non-invasive hack.
+
+# The Callgraph GUI depends on OcamlGraph's Dgraph
+ifeq ($(HAS_DGRAPH),yes)
+PLUGIN_ENABLE:=$(ENABLE_CALLGRAPH)
+PLUGIN_DYNAMIC:=$(DYNAMIC_CALLGRAPH)
+PLUGIN_NAME:=Callgraph_gui
+PLUGIN_DISTRIBUTED:=yes
+PLUGIN_HAS_MLI:=yes
+PLUGIN_DIR:=src/plugins/callgraph_gui
+PLUGIN_CMO:=
+PLUGIN_GUI_CMO:=cg_viewer
+PLUGIN_NO_TEST:=yes
+PLUGIN_DEPENDENCIES:=Callgraph
+include share/Makefile.plugin
+endif
 
 ##################
 # Value analysis #
 ##################
 
-PLUGIN_ENABLE:=$(ENABLE_VALUE)
+PLUGIN_ENABLE:=$(ENABLE_VALUE_ANALYSIS)
+PLUGIN_DYNAMIC:=$(DYNAMIC_VALUE_ANALYSIS)
 PLUGIN_NAME:=Value
-PLUGIN_DIR:=src/value
+PLUGIN_DIR:=src/plugins/value
 PLUGIN_CMO:= split_strategy value_parameters \
-        stop_at_nth value_perf value_util \
+        stop_at_nth value_perf state_set value_util value_messages \
 	library_functions mark_noresults separate \
-	state_set state_imp value_results widen valarms warn \
-	eval_op eval_exprs non_linear initial_state \
-	locals_scoping  builtins \
+	state_imp value_results widen valarms warn eval_typ \
+	mem_lvalue eval_op eval_exprs eval_non_linear initial_state \
+	locals_scoping  builtins builtins_float \
 	eval_terms eval_annots mem_exec function_args \
 	split_return eval_stmt per_stmt_slevel eval_slevel \
-	$(sort $(patsubst src/value/%.ml,%,\
-	           $(wildcard src/value/builtins_nonfree*.ml))) \
+	$(sort $(patsubst src/plugins/value/%.ml,%,\
+	           $(wildcard src/plugins/value/builtins_nonfree*.ml))) \
 	eval_funs register
-PLUGIN_GUI_CMO:=register_gui
-PLUGIN_HAS_MLI:=yes
+PLUGIN_DEPENDENCIES:=Callgraph
+# These files are used by the GUI, but do not depend on Lablgtk
+VALUE_GUI_AUX:=gui_types gui_eval gui_callstacks_filters
+PLUGIN_GUI_CMO:=$(VALUE_GUI_AUX) register_gui
 PLUGIN_NO_TEST:=yes
 PLUGIN_DISTRIBUTED:=yes
+VALUE_TYPES:=$(addprefix src/plugins/value_types/, \
+		cilE cvalue precise_locs value_types widen_type)
+PLUGIN_TYPES_CMO:=$(VALUE_TYPES)
+PLUGIN_TYPES_TODOC:=$(addsuffix .mli, $(VALUE_TYPES))
+
 include share/Makefile.plugin
 
 ##################
@@ -968,14 +1018,15 @@ include share/Makefile.plugin
 ##################
 
 PLUGIN_ENABLE:=$(ENABLE_OCCURRENCE)
+PLUGIN_DYNAMIC:=$(DYNAMIC_OCCURRENCE)
 PLUGIN_NAME:=Occurrence
 PLUGIN_DISTRIBUTED:=yes
-PLUGIN_HAS_MLI:=yes
-PLUGIN_DIR:=src/occurrence
+PLUGIN_DIR:=src/plugins/occurrence
 PLUGIN_CMO:= options register
 PLUGIN_GUI_CMO:=register_gui
 PLUGIN_INTRO:=doc/code/intro_occurrence.txt
 PLUGIN_INTERNAL_TEST:=yes
+PLUGIN_DEPENDENCIES:=Value
 include share/Makefile.plugin
 
 ################################################
@@ -984,9 +1035,8 @@ include share/Makefile.plugin
 
 PLUGIN_ENABLE:=$(ENABLE_RTEGEN)
 PLUGIN_NAME:=RteGen
-PLUGIN_DIR:=src/rte
+PLUGIN_DIR:=src/plugins/rte
 PLUGIN_CMO:= options generator rte visit register
-PLUGIN_HAS_MLI:=yes
 PLUGIN_DISTRIBUTED:=yes
 PLUGIN_INTERNAL_TEST:=yes
 include share/Makefile.plugin
@@ -995,16 +1045,20 @@ include share/Makefile.plugin
 # From analysis #
 #################
 
-PLUGIN_ENABLE:=$(ENABLE_FROM)
+PLUGIN_ENABLE:=$(ENABLE_FROM_ANALYSIS)
+PLUGIN_DYNAMIC:=$(DYNAMIC_FROM_ANALYSIS)
 PLUGIN_NAME:=From
-PLUGIN_DIR:=src/from
+PLUGIN_DIR:=src/plugins/from
 PLUGIN_CMO:= from_parameters from_compute \
 	functionwise callwise path_dependencies mem_dependencies from_register
 PLUGIN_GUI_CMO:=from_register_gui
-PLUGIN_HAS_MLI:=yes
 PLUGIN_TESTS_DIRS:=idct test float
 PLUGIN_DISTRIBUTED:=yes
 PLUGIN_INTERNAL_TEST:=yes
+FROM_TYPES:=src/plugins/value_types/function_Froms
+PLUGIN_TYPES_CMO:=$(FROM_TYPES)
+PLUGIN_TYPES_TODOC:=$(addsuffix .mli, $(FROM_TYPES))
+PLUGIN_DEPENDENCIES:=Callgraph Value
 include share/Makefile.plugin
 
 ##################
@@ -1012,13 +1066,14 @@ include share/Makefile.plugin
 ##################
 
 PLUGIN_ENABLE:=$(ENABLE_USERS)
+PLUGIN_DYNAMIC:=$(DYNAMIC_USERS)
 PLUGIN_NAME:=Users
-PLUGIN_DIR:=src/users
+PLUGIN_DIR:=src/plugins/users
 PLUGIN_CMO:= users_register
-PLUGIN_HAS_MLI:=yes
 PLUGIN_NO_TEST:=yes
 PLUGIN_DISTRIBUTED:=yes
 PLUGIN_INTERNAL_TEST:=yes
+PLUGIN_DEPENDENCIES:=Value
 include share/Makefile.plugin
 
 ########################
@@ -1026,13 +1081,14 @@ include share/Makefile.plugin
 ########################
 
 PLUGIN_ENABLE:=$(ENABLE_CONSTANT_PROPAGATION)
+PLUGIN_DYNAMIC:=$(DYNAMIC_CONSTANT_PROPAGATION)
 PLUGIN_NAME:=Constant_Propagation
-PLUGIN_DIR:=src/constant_propagation
+PLUGIN_DIR:=src/plugins/constant_propagation
 PLUGIN_CMO:= propagationParameters \
 	register
-PLUGIN_HAS_MLI:=yes
 PLUGIN_DISTRIBUTED:=yes
 PLUGIN_INTERNAL_TEST:=yes
+PLUGIN_DEPENDENCIES:=Value
 include share/Makefile.plugin
 
 ###################
@@ -1041,9 +1097,8 @@ include share/Makefile.plugin
 
 PLUGIN_ENABLE:=$(ENABLE_POSTDOMINATORS)
 PLUGIN_NAME:=Postdominators
-PLUGIN_DIR:=src/postdominators
+PLUGIN_DIR:=src/plugins/postdominators
 PLUGIN_CMO:= postdominators_parameters print compute
-PLUGIN_HAS_MLI:=yes
 PLUGIN_NO_TEST:=yes
 PLUGIN_DISTRIBUTED:=yes
 PLUGIN_INTERNAL_TEST:=yes
@@ -1054,29 +1109,19 @@ include share/Makefile.plugin
 #########
 
 PLUGIN_ENABLE:=$(ENABLE_INOUT)
+PLUGIN_DYNAMIC:=$(DYNAMIC_INOUT)
 PLUGIN_NAME:=Inout
-PLUGIN_DIR:=src/inout
+PLUGIN_DIR:=src/plugins/inout
 PLUGIN_CMO:= inout_parameters cumulative_analysis \
 	     operational_inputs outputs inputs derefs register
-PLUGIN_TYPES_CMO:=src/memory_state/inout_type
-PLUGIN_HAS_MLI:=yes
+PLUGIN_TYPES_CMO:=src/kernel_services/memory_state/inout_type
 PLUGIN_NO_TEST:=yes
 PLUGIN_DISTRIBUTED:=yes
 PLUGIN_INTERNAL_TEST:=yes
-include share/Makefile.plugin
-
-######################
-# Semantic callgraph #
-######################
-
-PLUGIN_ENABLE:=$(ENABLE_SEMANTIC_CALLGRAPH)
-PLUGIN_NAME:=Semantic_callgraph
-PLUGIN_DIR:=src/semantic_callgraph
-PLUGIN_CMO:= options register
-PLUGIN_HAS_MLI:=yes
-PLUGIN_NO_TEST:=yes
-PLUGIN_DISTRIBUTED:=yes
-PLUGIN_INTERNAL_TEST:=yes
+INOUT_TYPES:=src/plugins/value_types/inout_type
+PLUGIN_TYPES_CMO:=$(INOUT_TYPES)
+PLUGIN_TYPES_TODOC:=$(addsuffix .mli, $(INOUT_TYPES))
+PLUGIN_DEPENDENCIES:=Callgraph Value
 include share/Makefile.plugin
 
 ###################
@@ -1084,14 +1129,15 @@ include share/Makefile.plugin
 ###################
 
 PLUGIN_ENABLE:=$(ENABLE_IMPACT)
+PLUGIN_DYNAMIC:=$(DYNAMIC_IMPACT)
 PLUGIN_NAME:=Impact
-PLUGIN_DIR:=src/impact
+PLUGIN_DIR:=src/plugins/impact
 PLUGIN_CMO:= options pdg_aux reason_graph compute_impact register
 PLUGIN_GUI_CMO:= register_gui
-PLUGIN_HAS_MLI:=yes
 PLUGIN_DISTRIBUTED:=yes
 # PLUGIN_UNDOC:=impact_gui.ml
 PLUGIN_INTERNAL_TEST:=yes
+PLUGIN_DEPENDENCIES:=Inout Value Pdg
 include share/Makefile.plugin
 
 ##################################
@@ -1099,9 +1145,9 @@ include share/Makefile.plugin
 ##################################
 
 PLUGIN_ENABLE:=$(ENABLE_PDG)
+PLUGIN_DYNAMIC:=$(DYNAMIC_PDG)
 PLUGIN_NAME:=Pdg
-PLUGIN_DIR:=src/pdg
-PLUGIN_HAS_MLI:=yes
+PLUGIN_DIR:=src/plugins/pdg
 PLUGIN_CMO:= pdg_parameters \
 	    ctrlDpds \
 	    pdg_state \
@@ -1112,12 +1158,12 @@ PLUGIN_CMO:= pdg_parameters \
 	    register
 
 PDG_TYPES:=pdgIndex pdgTypes pdgMarks
-PDG_TYPES:=$(addprefix src/pdg_types/, $(PDG_TYPES))
+PDG_TYPES:=$(addprefix src/plugins/pdg_types/, $(PDG_TYPES))
 PLUGIN_TYPES_CMO:=$(PDG_TYPES)
 
 PLUGIN_INTRO:=doc/code/intro_pdg.txt
 PLUGIN_TYPES_TODOC:=$(addsuffix .mli, $(PDG_TYPES))
-
+PLUGIN_DEPENDENCIES:=Callgraph Value
 PLUGIN_DISTRIBUTED:=yes
 PLUGIN_INTERNAL_TEST:=yes
 include share/Makefile.plugin
@@ -1127,11 +1173,12 @@ include share/Makefile.plugin
 ################################################
 
 PLUGIN_ENABLE:=$(ENABLE_SCOPE)
+PLUGIN_DYNAMIC:=$(DYNAMIC_SCOPE)
 PLUGIN_NAME:=Scope
-PLUGIN_DIR:=src/scope
+PLUGIN_DIR:=src/plugins/scope
 PLUGIN_CMO:= datascope zones defs
-PLUGIN_HAS_MLI:=yes
 PLUGIN_GUI_CMO:=dpds_gui
+PLUGIN_DEPENDENCIES:=Value
 PLUGIN_INTRO:=doc/code/intro_scope.txt
 PLUGIN_DISTRIBUTED:=yes
 PLUGIN_INTERNAL_TEST:=yes
@@ -1142,14 +1189,14 @@ include share/Makefile.plugin
 #####################################
 
 PLUGIN_ENABLE:=$(ENABLE_SPARECODE)
+PLUGIN_DYNAMIC:=$(DYNAMIC_SPARECODE)
 PLUGIN_NAME:=Sparecode
-PLUGIN_DIR:=src/sparecode
+PLUGIN_DIR:=src/plugins/sparecode
 PLUGIN_CMO:= sparecode_params globs spare_marks transform register
-PLUGIN_HAS_MLI:=yes
-PLUGIN_DEPENDS:=Pdg
 PLUGIN_INTRO:=doc/code/intro_sparecode.txt
 PLUGIN_DISTRIBUTED:=yes
 PLUGIN_INTERNAL_TEST:=yes
+PLUGIN_DEPENDENCIES:=Pdg Value
 include share/Makefile.plugin
 
 ###########
@@ -1157,8 +1204,9 @@ include share/Makefile.plugin
 ###########
 
 PLUGIN_ENABLE:=$(ENABLE_SLICING)
+PLUGIN_DYNAMIC:=$(DYNAMIC_SLICING)
 PLUGIN_NAME:=Slicing
-PLUGIN_DIR:=src/slicing
+PLUGIN_DIR:=src/plugins/slicing
 PLUGIN_CMO:= slicingParameters \
 	    slicingMacros \
 	    slicingMarks \
@@ -1170,7 +1218,7 @@ PLUGIN_CMO:= slicingParameters \
 	    slicingCmds \
 	    register
 SLICING_TYPES:=slicingInternals slicingTypes
-SLICING_TYPES:=$(addprefix src/slicing_types/, $(SLICING_TYPES))
+SLICING_TYPES:=$(addprefix src/plugins/slicing_types/, $(SLICING_TYPES))
 PLUGIN_TYPES_CMO:=$(SLICING_TYPES)
 
 PLUGIN_GUI_CMO:=register_gui
@@ -1182,9 +1230,9 @@ PLUGIN_UNDOC:=register.ml # slicing_gui.ml
 PLUGIN_TESTS_DIRS:= slicing slicing2
 #PLUGIN_TESTS_DIRS_DEFAULT:=slicing
 PLUGIN_TESTS_LIB:= tests/slicing/libSelect tests/slicing/libAnim
-PLUGIN_DEPENDS:=Pdg
 PLUGIN_DISTRIBUTED:=yes
 PLUGIN_INTERNAL_TEST:=yes
+PLUGIN_DEPENDENCIES:=Pdg Callgraph Value
 include share/Makefile.plugin
 
 FILES_FOR_OCAMLDEP+=$(TEST_SLICING_ML)
@@ -1230,73 +1278,55 @@ MODULES_TODOC+=$(filter-out $(MODULES_NODOC), \
 	$(filter-out $(NO_MLI), \
 	$(filter-out $(PLUGIN_TYPES_CMO_LIST:.cmo=.mli), $(CMO:.cmo=.mli))))
 
-############
-# Toplevel #
-############
+################################
+# toplevel.{byte,opt} binaries #
+################################
 
-ALL_BATCH_CMO= $(filter-out src/kernel/gui_init.cmo, $(ALL_CMO))
+ALL_BATCH_CMO= $(filter-out src/kernel_internals/runtime/gui_init.cmo, \
+	$(ALL_CMO))
 # ALL_BATCH_CMX is not a translation of ALL_BATCH_CMO with cmo -> cmx
 # in case native dynlink is not available: dynamic plugin are linked
 # dynamically in bytecode and statically in native code...
-ALL_BATCH_CMX= $(filter-out src/kernel/gui_init.cmx, $(ALL_CMX))
+ALL_BATCH_CMX= $(filter-out src/kernel_internals/runtime/gui_init.cmx, \
+	$(ALL_CMX))
 
 bin/toplevel.byte$(EXE): $(ALL_BATCH_CMO) $(GEN_BYTE_LIBS) \
 			$(PLUGIN_DYN_CMO_LIST)
 	$(PRINT_LINKING) $@
 	$(OCAMLC) $(BLINKFLAGS) -o $@ $(BYTE_LIBS) $(ALL_BATCH_CMO)
 
+#Profiling version of toplevel.byte using ocamlprof
 bin/toplevel.prof$(EXE): $(ALL_BATCH_CMO) $(GEN_BYTE_LIBS) \
 			$(PLUGIN_DYN_CMO_LIST)
 	$(PRINT_OCAMLCP) $@
-	$(OCAMLCP) $(BFLAGS) -o $@ $(BYTE_LIBS) $(ALL_BATCH_CMO)
-
-GENERATED+= src/toplevel/toplevel_boot.ml
-
-bin/toplevel.top$(EXE): $(filter-out src/kernel/boot.ml, $(ALL_BATCH_CMO)) \
-			src/toplevel/toplevel_boot.cmo \
-			$(GEN_BYTE_LIBS) $(PLUGIN_DYN_CMO_LIST)
-	$(PRINT_OCAMLMKTOP) $@
-	$(OCAMLMKTOP) $(BFLAGS) -warn-error -31 -custom -o $@ $(BYTE_LIBS) \
-	  $(patsubst src/kernel/boot.cmo, src/toplevel/toplevel_boot.cmo, \
-		 $(ALL_BATCH_CMO))	  
+	$(OCAMLCP) $(BLINKFLAGS) -o $@ $(BYTE_LIBS) $(ALL_BATCH_CMO)
 
 bin/toplevel.opt$(EXE): $(ALL_BATCH_CMX) $(GEN_OPT_LIBS) \
 			$(PLUGIN_DYN_CMX_LIST)
 	$(PRINT_LINKING) $@
 	$(OCAMLOPT) $(OLINKFLAGS) -o $@ $(OPT_LIBS) $(ALL_BATCH_CMX)
 
-##################
-# Frama-C-config #
-##################
+####################
+# (Ocaml) Toplevel #
+####################
 
-src/kernel/frama_c_config.ml: src/kernel/config.ml \
-	src/kernel/frama_c_config.ml.in
-	$(PRINT_MAKING) $@
-	$(RM) $@
-	$(ECHO) "module Filepath = struct let add_symbolic_dir _ _ = () end" > $@
-	$(CAT) $^ >> $@
-	$(CHMOD_RO) $@
-
-GENERATED+= src/kernel/frama_c_config.ml
-
-bin/frama-c-config$(EXE): src/kernel/frama_c_config.ml
-ifeq ($(OCAMLBEST),opt)
-	$(OCAMLOPT) $< -o $@
-else
-	$(OCAMLC) $< -o $@
-endif
-
+bin/toplevel.top$(EXE): $(filter-out src/kernel_internals/runtime/boot.ml, $(ALL_BATCH_CMO)) \
+			src/kernel_internals/runtime/toplevel_config.cmo \
+			$(GEN_BYTE_LIBS) $(PLUGIN_DYN_CMO_LIST)
+	$(PRINT_OCAMLMKTOP) $@
+	$(OCAMLMKTOP) $(BFLAGS) -warn-error -31 -custom -o $@ $(BYTE_LIBS) \
+	  $(ALL_BATCH_CMO) src/kernel_backend/runtime/toplevel_config.cmo
 
 #######
 # GUI #
 #######
 
 ifneq ($(ENABLE_GUI),no)
-GUI_INCLUDES = -I src/gui -I $(LABLGTK_PATH)
-INCLUDES_FOR_OCAMLDEP+=-I src/gui
+GUI_INCLUDES = -I src/plugins/gui -I $(PLUGIN_LIB_DIR)/gui -I $(LABLGTK_PATH)
+INCLUDES_FOR_OCAMLDEP+=-I src/plugins/gui
 BYTE_GUI_LIBS+= lablgtk.cma
 OPT_GUI_LIBS += lablgtk.cmxa
-FILES_FOR_OCAMLDEP+= src/gui/*.ml src/gui/*.mli
+FILES_FOR_OCAMLDEP+= src/plugins/gui/*.ml src/plugins/gui/*.mli
 
 ifeq ("$(OCAMLGRAPH_LOCAL)","")
 GUI_INCLUDES += $(OCAMLGRAPH)
@@ -1322,9 +1352,7 @@ ifeq (no,yes)
 PLUGIN_ENABLE:=$(ENABLE_GUI)
 PLUGIN_NAME:=Gui
 PLUGIN_DISTRIBUTED:=yes
-# PLUGIN_HAS_MLI:=yes
-PLUGIN_DIR:=src/gui
-#PLUGIN_CMO:=
+PLUGIN_DIR:=src/plugins/gui
 PLUGIN_CMO:= \
 	gtk_helper gtk_form toolbox \
 	source_viewer pretty_source source_manager \
@@ -1333,6 +1361,7 @@ PLUGIN_CMO:= \
 	launcher \
 	menu_manager \
 	history \
+	gui_printers \
 	design \
 	project_manager \
 	debug_manager \
@@ -1360,7 +1389,7 @@ SINGLE_GUI_CMX = $(SINGLE_GUI_CMO:.cmo=.cmx)
 
 GUICMO += $(SINGLE_GUI_CMO) $(PLUGIN_GUI_CMO_LIST)
 
-MODULES_TODOC+= $(filter-out src/gui/book_manager.mli, \
+MODULES_TODOC+= $(filter-out src/plugins/gui/book_manager.mli, \
 	$(SINGLE_GUI_CMO:.cmo=.mli))
 
 GUICMI = $(GUICMO:.cmo=.cmi)
@@ -1374,7 +1403,10 @@ $(PLUGIN_DEP_GUI_CMX_LIST) $(PLUGIN_DYN_DEP_GUI_CMX_LIST): OFLAGS+= $(GUI_INCLUD
 
 .PHONY:gui
 
-gui:: bin/viewer.byte$(EXE) share/Makefile.dynamic_config share/Makefile.kernel
+gui:: bin/viewer.byte$(EXE) \
+	share/Makefile.dynamic_config \
+	share/Makefile.kernel \
+	$(PLUGIN_META_LIST)
 
 ifeq ($(OCAMLBEST),opt)
 gui:: bin/viewer.opt$(EXE)
@@ -1438,10 +1470,11 @@ bin/obfuscator.opt$(EXE): $(ACMX) $(KERNEL_CMX) $(STARTUP_CMX) $(GEN_OPT_LIBS)
 # Config Ocaml File #
 #####################
 
-CONFIG_DIR=src/kernel
+CONFIG_DIR=src/kernel_internals/runtime
 CONFIG_FILE=$(CONFIG_DIR)/config.ml
 CONFIG_CMO=$(CONFIG_DIR)/config.cmo
 GENERATED +=$(CONFIG_FILE)
+#Generated in Makefile.generating
 
 empty:=
 space:=$(empty) $(empty)
@@ -1468,6 +1501,18 @@ STATIC_GUI_PLUGINS=\
 COMPILATION_UNITS=\
   $(foreach p,$(CONFIG_CMO),\"$(notdir $(patsubst %.cmo,%,$p))\"; )
 
+LIBRARY_NAMES=\
+  $(foreach p,$(BYTE_LIBS),\"$(notdir $(patsubst %.cmo,%,$(patsubst %.cma,%,$p)))\"; )
+
+
+###################
+# Generating part #
+###################
+# It is in another file in order to have a dependency only on Makefile.generating.
+# It must be before `.depend` definition because it modifies $GENERATED.
+
+include Makefile.generating
+
 #########
 # Tests #
 #########
@@ -1483,7 +1528,8 @@ endif
 
 tests:: byte opt ptests
 	$(PRINT_EXEC) ptests
-	time -p $(PTESTS) $(PTESTS_OPTS) -make "$(MAKE)" $(PLUGIN_TESTS_LIST)
+	time -p $(PTESTS) $(PTESTS_OPTS) $(FRAMAC_PARALLEL) \
+		-make "$(MAKE)" $(PLUGIN_TESTS_LIST)
 
 external_tests: byte opt ptests
 tests:: external_tests
@@ -1526,34 +1572,8 @@ TEST_DIRS_AS_PLUGIN=dynamic dynamic_plugin journal saveload spec misc syntax pre
 PLUGIN_TESTS_LIST += $(TEST_DIRS_AS_PLUGIN)
 $(foreach d,$(TEST_DIRS_AS_PLUGIN),$(eval $(call COMPILE_TESTS_ML_FILES,$d,,)))
 
-# Testing of dynamic plug-ins
-#############################
-
-tests/dynamic/.cmi tests/dynamic/empty.cmifoo:tests/dynamic/empty.cmi
-	$(CP) $< $@
-
-tests/dynamic/.cmo tests/dynamic/empty.cmofoo:tests/dynamic/empty.cmo \
-			tests/dynamic/.cmi tests/dynamic/empty.cmifoo
-	$(CP) $< $@
-
-tests/dynamic/Register_mod1.cmo:tests/dynamic_plugin/register_mod1.cmo
-	$(OCAMLC) -o $@ -pack $^
-
-tests/dynamic/Register_mod2.cmo:tests/dynamic_plugin/register_mod2.cmo
-	$(OCAMLC) -o $@ -pack $^
-
-tests/dynamic/Apply.cmo:tests/dynamic_plugin/apply.cmo
-	$(OCAMLC) -o $@ -pack $^
-
-DYNAMIC_TESTS_TARGETS=tests/dynamic/empty.cmo tests/dynamic/empty_gui.cmo \
-	tests/dynamic/.cmo tests/dynamic/empty.cmofoo \
-	tests/dynamic/Register_mod1.cmo tests/dynamic/Register_mod2.cmo \
-	tests/dynamic/Apply.cmo \
-	tests/dynamic/abstract.cmo tests/dynamic/abstract2.cmo
-
-.PHONY:tests/dynamic/all
-tests/dynamic/all:
-	$(QUIET_MAKE) $(DYNAMIC_TESTS_TARGETS)
+# Tests directories without .ml but that must be tested anyway
+PLUGIN_TESTS_LIST += cil
 
 ##############
 # Emacs tags #
@@ -1563,9 +1583,9 @@ tests/dynamic/all:
 # otags gives a better tagging of ocaml files than etags
 ifdef OTAGS
 tags:
-	$(OTAGS) -r external src lib cil
+	$(OTAGS) -r src lib
 vtags:
-	$(OTAGS) -vi -r external src lib cil
+	$(OTAGS) -vi -r src lib
 else
 tags:
 	find . -name "*.ml[ily]" -o -name "*.ml" | sort -r | xargs \
@@ -1585,9 +1605,9 @@ endif
 .PHONY: wc doc doc-distrib
 
 wc:
-	ocamlwc -p external/*.ml* cil/*/*.ml cil/*/*.ml[ily] \
-		$(CIL_PATH)/*/*.ml[ily] $(CIL_PATH)/*/*.ml[ly] \
-		src/*/*.ml src/*/*.ml[iyl]
+	ocamlwc -p \
+		src/*/*/*.ml src/*/*/*.ml[iyl]  \
+		src/plugins/wp/qed/src/*.ml src/plugins/wp/qed/src/*.ml[iyl]
 
 # private targets, useful for recompiling the doc without dependencies
 # (too long!)
@@ -1686,14 +1706,20 @@ $(DOC_DIR)/kernel-doc.ocamldoc: $(DOC_DEPEND)
 DYN_MLI_DIR := doc/code/print_api
 
 .PHONY: doc-dynamic
-doc-dynamic: PLUGIN_LIB_DIR=$(DYN_MLI_DIR)
+# Cannot use either the standard PLUGIN_LIB_DIR to build the Print_api plugin:
+# the .cm* would be copied in lib/plugins, which would create warnings "cannot
+# load plugin_api" when the kernel is later recompiled.
+# We cannot use $(DYN_MLI_DIR) directly either: the generic "clean" rule of
+# the Makefile for lib/plugins ends up removing Print_api.mli from the
+# directory...
+doc-dynamic: PLUGIN_LIB_DIR=$(DYN_MLI_DIR)/_build
 doc-dynamic: doc-kernel
 	$(RM) $(DYN_MLI_DIR)/dynamic_plugins.mli
 	$(call external_make,$(DYN_MLI_DIR),clean)
 	$(call external_make,$(DYN_MLI_DIR),depend)
 	$(call external_make,$(DYN_MLI_DIR),byte)
 	FRAMAC_PLUGIN=lib/plugins FRAMAC_LIB=lib/fc FRAMAC_SHARE=share \
-          ./bin/toplevel.byte -load-module $(DYN_MLI_DIR)/Print_api \
+          ./bin/toplevel.byte -add-path $(DYN_MLI_DIR)/_build \
             -print_api $(call winpath, $(FRAMAC_TOP_SRCDIR)/$(DYN_MLI_DIR))
 	$(PRINT_DOC) Dynamically registered plugins Documentation
 	$(MKDIR) $(DOC_DIR)/dynamic_plugins
@@ -1708,7 +1734,7 @@ doc-dynamic: doc-kernel
 	  $(DYN_MLI_DIR)/dynamic_plugins.mli
 	$(ECHO) '<li><a href="dynamic_plugins/Dynamic_plugins.html">Dynamically registered plugins</a </li>' > $(DOC_DIR)/dynamic_plugins.toc
 
-doc-index: #dependencies in doc target
+doc-index: doc-kernel doc-dynamic plugins-doc
 	$(PRINT_MAKING) doc/code/index.html
 	$(CAT)  $(DOC_DIR)/toc_head.htm $(DOC_DIR)/*.toc \
 		$(DOC_DIR)/toc_tail.htm > $(DOC_DIR)/index.html
@@ -1787,7 +1813,7 @@ check-devguide: $(CHECK_CODE) $(DOC_DEPEND) $(DOC_DIR)/kernel-doc.ocamldoc
 # Installation #
 ################
 
-FILTER_INTERFACE_DIRS:=src/gui $(ZARITH_PATH)
+FILTER_INTERFACE_DIRS:=src/plugins/gui $(ZARITH_PATH)
 
 ifeq ("$(OCAMLGRAPH_LOCAL)","")
 FILTER_INTERFACE_DIRS+= $(OCAMLGRAPH_HOME)
@@ -1798,14 +1824,11 @@ endif
 #Byte
 # $(sort ...) is a quick fix for duplicated graph.cmi
 LIB_BYTE_TO_INSTALL=\
-	$(sort	\
-	$(filter-out \
-	 	$(patsubst %.cma,%.cmi,$(PLUGIN_DYN_CMO_LIST:.cmo=.cmi)), \
-		$(wildcard $(foreach d,$(filter-out $(FILTER_INTERFACE_DIRS),$(INCLUDES:-I%=%)), $(d)/*.cmi))) \
+	$(MLI_ONLY:.mli=.cmi) \
+	$(ALL_BATCH_CMO:.cmo=.cmi) \
 	$(ALL_BATCH_CMO) \
 	$(filter-out %.o, $(GEN_BYTE_LIBS:.cmo=.cmi)) \
-	$(GEN_BYTE_LIBS) \
-	)
+	$(GEN_BYTE_LIBS)
 
 #Byte GUI
 ifneq ("$(ENABLE_GUI)","no")
@@ -1830,6 +1853,7 @@ endif
 
 install-lib:
 	$(PRINT_CP) kernel API
+	$(RM) -r $(FRAMAC_LIBDIR)
 	$(MKDIR) $(FRAMAC_LIBDIR)
 	$(CP) $(LIB_BYTE_TO_INSTALL) $(LIB_OPT_TO_INSTALL) $(FRAMAC_LIBDIR)
 
@@ -1903,7 +1927,7 @@ install:: install-lib
 	$(PRINT_CP) dynamic plug-ins
 	if [ -d "$(FRAMAC_PLUGIN)" -a "$(PLUGIN_DYN_EXISTS)" = "yes" ]; then \
 	  $(CP)  $(patsubst %.cma,%.cmi,$(PLUGIN_DYN_CMO_LIST:%.cmo=%.cmi)) \
-		 $(PLUGIN_DYN_CMO_LIST) $(PLUGIN_DYN_CMX_LIST) \
+		 $(PLUGIN_META_LIST) $(PLUGIN_DYN_CMO_LIST) $(PLUGIN_DYN_CMX_LIST) \
 		 $(FRAMAC_PLUGINDIR); \
 	fi
 	$(PRINT_CP) dynamic gui plug-ins
@@ -1933,87 +1957,186 @@ uninstall::
 ################################
 
 # Modify this variable if you add a new header
-HEADERS:= MODIFIED_OCAMLGRAPH MODIFIED_MENHIR CIL CEA_LGPL		\
-	 CEA_PROPRIETARY CEA_INRIA_LGPL INRIA_LGPL			\
+HEADERS:=MODIFIED_MENHIR CIL INRIA_LGPL		\
+	 CEA_CORE CEA_EXTERNALS CEA_PROPRIETARY CEA_INRIA_LGPL CEA_WP 	\
 	 MODIFIED_CAMLLIB INSA_INRIA_LGPL INRIA_BSD ACSL_EL JCF_LGPL	\
-	 OCAML_STDLIB AORAI_LGPL CEA_WP MODIFIED_WHY3 UNMODIFIED_WHY3
+	 OCAML_STDLIB AORAI_LGPL MODIFIED_WHY3 UNMODIFIED_WHY3 \
+	 MODIFIED_OCAMLGRAPH
 
 PROPRIETARY_HEADERS = CEA_PROPRIETARY
 
-# Kernel licences
+# Kernel licenses
 #################
-CEA_CIL = $(CIL_PATH)/frontc/cabs_debug.ml \
-	  $(CIL_PATH)/frontc/cabs_debug.mli \
-	  $(CIL_PATH)/ext/ordered_stmt.ml* \
-	  $(CIL_PATH)/cil_state_builder.ml* \
-	  $(CIL_PATH)/ext/dataflow2.ml* \
-	  $(CIL_PATH)/cil_datatype.ml* \
 
-CIL	= $(filter-out $(CEA_CIL), \
-              $(wildcard cil/ocamlutil/*.ml* \
-			 $(CIL_PATH)/*.ml* \
-			 $(CIL_PATH)/ext/*.ml* \
-			 $(CIL_PATH)/frontc/*.ml*)) \
-	  $(CIL_PATH)/machdep.c
+CIL = \
+        $(filter-out \
+           $(wildcard src/kernel_internals/parsing/check_logic_parser.ml \
+                      src/kernel_internals/parsing/logic_lexer.mll \
+                      src/kernel_internals/parsing/logic_parser.mly \
+                      src/kernel_internals/parsing/logic_preprocess.ml*), \
+           $(wildcard src/kernel_internals/parsing/*.ml*)) \
+	share/machdep.c \
+	src/kernel_internals/runtime/machdeps.ml* \
+	$(filter-out \
+	    $(wildcard \
+	        src/kernel_internals/typing/allocates.ml* \
+	        src/kernel_internals/typing/logic_builtin.ml* \
+	        src/kernel_internals/typing/translate_lightweight.ml* \
+                src/kernel_internals/typing/unroll_loops.ml*), \
+	    $(wildcard src/kernel_internals/typing/*.ml*)) \
+	src/kernel_services/analysis/callgraph.ml* \
+	src/kernel_services/analysis/cfg.ml* \
+	src/kernel_services/ast_queries/cil.ml* \
+	src/kernel_services/ast_queries/cil_const.ml* \
+	src/kernel_services/ast_data/cil_types.mli \
+	src/kernel_services/ast_printing/cprint.ml* \
+	src/kernel_services/analysis/dataflow.ml* \
+	src/kernel_services/analysis/dataflows.ml* \
+	src/kernel_services/parsetree/cabs*.ml* \
+	src/kernel_services/visitors/cabsvisit.ml* \
+	src/libraries/utils/cilconfig.ml* \
+	src/libraries/utils/escape.ml*
 
-CEA_INRIA_LGPL	= configure.in $(CIL_PATH)/logic/*.ml*
+CEA_INRIA_LGPL = configure.in \
+	src/kernel_internals/parsing/logic_lexer.mli \
+	src/kernel_internals/parsing/logic_lexer.mll \
+	src/kernel_internals/parsing/logic_parser.mly \
+	src/kernel_internals/parsing/logic_preprocess.ml* \
+	src/kernel_internals/typing/logic_builtin.ml* \
+	src/kernel_internals/typing/translate_lightweight.ml* \
+	src/kernel_services/ast_printing/logic_print.ml* \
+	src/kernel_services/ast_queries/logic_*.ml* \
+	src/kernel_services/parsetree/logic_ptree.mli \
+	src/libraries/utils/utf8_logic.ml*
 
-MODIFIED_WHY3+=external/sysutil.ml*
-MODIFIED_OCAMLGRAPH=src/project/state_topological.ml*
-MODIFIED_MENHIR=external/hptmap.ml*
-OCAML_STDLIB=src/lib/rangemap.ml src/lib/rangemap.mli \
-	src/lib/FCSet.mli src/lib/FCSet.ml src/lib/FCMap.mli src/lib/FCMap.ml
-INRIA_LGPL=
-INRIA_BSD= external/unmarshal*.ml*
-INSA_INRIA_LGPL=
+MODIFIED_WHY3+=src/libraries/utils/sysutil.ml*
+MODIFIED_MENHIR=src/libraries/utils/hptmap.ml* \
+	src/libraries/utils/hptmap_sig.mli
+MODIFIED_OCAMLGRAPH=src/libraries/project/state_topological.ml*
 
-CEA_LGPL= Makefile Makefile.generating \
+OCAML_STDLIB=src/libraries/stdlib/FCSet.ml* \
+	src/libraries/stdlib/FCMap.ml* \
+	src/libraries/utils/rangemap.ml*
+
+INRIA_BSD= src/libraries/datatype/unmarshal.ml* \
+	src/libraries/datatype/unmarshal_nums.ml* \
+	src/libraries/datatype/unmarshal_*test.ml
+
+# CEA Files used to build Frama-C kernel
+CEA_CORE= Makefile Makefile.generating \
 	share/Makefile.config.in share/Makefile.common share/Makefile.generic \
 	share/Makefile.plugin share/Makefile.dynamic \
 	share/Makefile.dynamic_config.internal \
 	share/Makefile.dynamic_config.external \
 	share/configure.ac configure.ml \
-	config.h.in \
-	src/report/*.ml* src/report/configure.ac src/report/Makefile.in \
 	share/frama-c.WIN32.rc share/frama-c.Unix.rc \
-	external/unz.ml* \
-	src/ai/*.ml* \
-	src/buckx/*.ml* src/buckx/*.[cS] \
-	src/constant_propagation/*.ml* \
-	src/from/*.ml* \
-	src/gui/*.ml* \
-	src/inout/*.ml* \
-	src/pdg_types/*.ml* src/pdg/*.ml* doc/code/intro_pdg.txt \
-	src/slicing_types/*.ml* src/slicing/*.ml* doc/code/intro_slicing.txt \
-	src/scope/*.ml* doc/code/intro_scope.txt \
-	src/sparecode/*.ml* doc/code/intro_sparecode.txt \
-	src/impact/*.ml* \
-	src/kernel/*.ml* \
-	src/printer/*.ml* \
-	src/lib/*.ml* \
-	src/logic/*.ml* \
-	src/memory_state/*.ml* \
-	src/metrics/*.ml* \
-	src/misc/*.ml* \
-	src/obfuscator/*.ml* src/obfuscator/configure.ac \
-	src/obfuscator/Makefile.in \
-	src/occurrence/*.ml* doc/code/intro_occurrence.txt \
-	src/postdominators/*.ml* \
+	config.h.in \
+	$(filter-out doc/code/intro_wp.txt, $(wildcard doc/code/intro_*.txt)) \
+	doc/Makefile \
+	doc/code/docgen_*.ml \
+	doc/code/style.css \
+	doc/code/toc_head.htm doc/code/toc_tail.htm \
+	doc/code/print_api/*.ml* doc/code/print_api/Makefile \
+	man/frama-c.1 \
+	ptests/*.ml* \
+        src/kernel_internals/parsing/check_logic_parser.ml \
+	$(filter-out \
+          $(wildcard src/kernel_internals/runtime/machdeps.ml*), \
+          $(wildcard src/kernel_internals/runtime/*.ml*)) \
+	src/kernel_internals/typing/unroll_loops.ml* \
+	src/kernel_internals/typing/allocates.ml* \
+	src/kernel_internals/typing/infer_annotations.ml* \
+	src/kernel_services/abstract_interp/*.ml* \
+	$(filter-out \
+          $(wildcard \
+            src/kernel_services/analysis/callgraph.ml* \
+            src/kernel_services/analysis/cfg.ml* \
+            src/kernel_services/analysis/dataflow.ml* \
+            src/kernel_services/analysis/dataflows.ml*), \
+          $(wildcard src/kernel_services/analysis/*.ml*)) \
+	src/kernel_services/ast_transformations/*.ml* \
+	$(filter-out \
+          $(wildcard \
+            src/kernel_services/ast_printing/cprint.ml* \
+            src/kernel_services/ast_printing/logic_print.ml*), \
+          $(wildcard src/kernel_services/ast_printing/*.ml*)) \
+	$(filter-out src/kernel_services/ast_data/cil_types.mli, \
+          $(wildcard src/kernel_services/ast_data/*.ml*)) \
+	$(filter-out \
+	  $(wildcard \
+            src/kernel_services/ast_queries/cil.ml* \
+            src/kernel_services/ast_queries/cil_const.ml* \
+            src/kernel_services/ast_queries/logic_print.ml* \
+            src/kernel_services/ast_queries/logic_const.ml* \
+            src/kernel_services/ast_queries/logic_utils.ml* \
+            src/kernel_services/ast_queries/logic_typing.ml* \
+            src/kernel_services/ast_queries/logic_env.ml*), \
+          $(wildcard src/kernel_services/ast_queries/*.ml*)) \
+        src/kernel_services/cmdline_parameters/*.ml* \
+	src/kernel_services/plugin_entry_points/*.ml* \
+	src/kernel_services/visitors/visitor.ml* \
+	$(filter-out \
+	  $(wildcard src/libraries/datatype/unmarshal*), \
+          $(wildcard src/libraries/datatype/*.ml*)) \
+        src/libraries/datatype/unmarshal_z.ml* \
+	$(filter-out \
+          $(wildcard src/libraries/project/state_topological.ml*), \
+          $(wildcard src/libraries/project/*.ml*)) \
+	$(filter-out \
+          $(wildcard \
+            src/libraries/stdlib/FCSet.ml* \
+            src/libraries/stdlib/FCMap.ml*), \
+          $(wildcard src/libraries/stdlib/*.ml*)) \
+	$(filter-out \
+          $(wildcard \
+            src/libraries/utils/alpha.ml* \
+            src/libraries/utils/cilconfig.ml* \
+            src/libraries/utils/escape.ml* \
+            src/libraries/utils/hptmap*.ml* \
+            src/libraries/utils/rangemap.ml* \
+            src/libraries/utils/sysutil.ml* \
+            src/libraries/utils/utf8_logic.ml*), \
+          $(wildcard src/libraries/utils/*.ml*)) \
+	src/libraries/utils/c_bindings.c
+
+# CEA FILES used to build plug-ins, docs, tests, ... (externals to the kernel)
+CEA_EXTERNALS=  \
+	src/plugins/report/configure.ac \
+        src/plugins/report/Makefile.in \
+	$(filter-out $(wildcard src/plugins/*/*nonfree*),\
+          $(wildcard \
+            src/plugins/constant_propagation/*.ml* \
+	    src/plugins/from/*.ml* \
+            src/plugins/gui/*.ml* \
+            src/plugins/impact/*.ml* \
+            src/plugins/inout/*.ml* \
+            src/plugins/metrics/*.ml* \
+            src/plugins/obfuscator/*.ml* \
+            src/plugins/occurrence/*.ml* \
+            src/plugins/pdg*/*.ml* \
+            src/plugins/postdominators/*.ml* \
+            src/plugins/report/*.ml* \
+            src/plugins/rte/*.ml* \
+            src/plugins/scope/*.ml* \
+            src/plugins/*slicing*/*.ml* \
+            src/plugins/*_callgraph/*.ml* \
+            src/plugins/sparecode/*.ml* \
+            src/plugins/users/*.ml* \
+            src/plugins/value/*.ml* \
+            src/plugins/value_types/*.ml* \
+	)) \
 	$(patsubst %.cmo, %.ml*, \
 	  $(filter-out src/project/state_topological.cmo, $(PROJECT_CMO))) \
 	src/project/project_skeleton.ml* \
-	src/security_slicing/*.ml* \
-	src/security_slicing/configure.ac src/security_slicing/Makefile.in \
-	src/semantic_callgraph/*.ml* \
-	src/syntactic_callgraph/*.ml* \
-	src/toplevel/*.ml* \
-	src/type/*.ml* \
-	src/users/*.ml* \
-	src/value/*.ml* \
+	src/plugins/security_slicing/*.ml* \
+	src/plugins/security_slicing/configure.ac \
+        src/plugins/security_slicing/Makefile.in \
+	src/plugins/callgraph/*.ml* \
+	src/plugins/users/*.ml* \
+	src/plugins/value/*.ml* \
 	src/dummy/*/*.ml* \
 	src/dummy/*/Makefile \
 	src/rte/*.ml* \
-	$(CEA_CIL) \
 	ptests/*.ml* \
 	doc/Makefile \
 	doc/code/docgen_*.ml \
@@ -2024,23 +2147,25 @@ CEA_LGPL= Makefile Makefile.generating \
         doc/code/intro_kernel_plugin.txt \
 	doc/code/toc_head.htm doc/code/toc_tail.htm \
 	doc/code/print_api/*.ml* doc/code/print_api/Makefile \
-	man/frama-c.1 \
 	bin/lithium2beryllium.sh bin/boron2carbon.sh bin/carbon2nitrogen.sh \
 	bin/nitrogen2oxygen.sh bin/oxygen2fluorine.sh bin/fluorine2neon.sh \
 	bin/neon2sodium.sh \
-	$(FREE_LIBC)
+	bin/sodium2magnesium.sh
 
+# Should always start by CEA_PROPRIETARY license header
 CEA_PROPRIETARY:= \
-	src/*/*nonfree*.ml* \
-	src/finder/*.ml* src/finder/configure.ac src/finder/Makefile.in \
+	src/*/*/*nonfree*.ml* \
+	src/plugins/finder/*.ml* \
+	src/plugins/finder/configure.ac src/plugins/finder/Makefile.in \
 	$(filter-out $(wildcard $(FREE_LIBC)), $(wildcard $(NONFREE_LIBC)))
 
-ACSL_EL	:= share/acsl.el
+ACSL_EL := share/acsl.el
 
-# Plug-in specific licences
+# Plug-in specific licenses
 ###########################
 
-AORAI_LGPL:= src/aorai/*.ml* src/aorai/Makefile.in src/aorai/configure.ac
+AORAI_LGPL:= src/plugins/aorai/*.ml* \
+	src/plugins/aorai/Makefile.in src/plugins/aorai/configure.ac
 
 CEA_WP+=doc/code/intro_wp.txt
 
@@ -2049,42 +2174,51 @@ CEA_WP+=doc/code/intro_wp.txt
 
 .PHONY: headers show_headers $(add_prefix show_,$(HEADERS))
 
+HEADER_FILE?=headers/header_spec@opensource.txt
+
 headers:: $(GENERATED)
 	@echo "Applying Headers..."
-	$(foreach l,$(HEADERS),\
-	$(foreach f,$(wildcard $($l)),$(shell if test -f $f; then \
-	   LC_ALL=C $(HEADACHE) -h headers/$l $f; fi)))
+	./headers/updates-headers.sh $(HEADER_FILE)
 
 show_headers: $(patsubst %,show_%,$(HEADERS))
 
-show_%:	
+show_%:
 	@echo "files under $(patsubst show_%,%,$@) licence:"
 	@echo $($(patsubst show_%,%,$@))
 
 NO_CHECK_HEADERS=tests/*/* doc/manuals/*.pdf \
-		 doc/README cil/LICENSE cil/CHANGES Changelog .make* \
-		 src/wp/Changelog \
+		 doc/README Changelog .make* \
+		 src/plugins/wp/Changelog \
 		 .force-reconfigure \
 		 licenses/* VERSION INSTALL bin/sed* \
 		 share/Makefile.kernel $(ICONS) $(FEEDBACK_ICONS_DEFAULT) \
 		 $(FEEDBACK_ICONS_COLORBLIND) \
 		 INSTALL_WITH_WHY opam/* opam/files/*
 
+HEADER_EXCEPTIONS=$(wildcard src/plugins/*/configure) opam/files
+
 .PHONY: check-headers check-headers-xunit
-check-headers: $(GENERATED)
+check-headers:
 	@echo "Checking Headers..."
+	./headers/check-headers.sh $(HEADER_FILE) \
+	 $(filter-out $(HEADER_EXCEPTIONS), $(DISTRIB_FILES))
+
+define remove_until
+  $(if $(findstring $(1),$(2)),\
+       $(call remove_until,$(1),$(wordlist 2,$(words $(2)),$(2))),\
+       $(2))
+endef
+
+check-headers-separated: $(GENERATED)
 	EXIT_VALUE=0; \
-	$(foreach f,$(wildcard $(DISTRIB_FILES)),\
-	  $(if $(findstring $(f),\
-		  $(wildcard $(NO_CHECK_HEADERS)) \
-		  $(foreach l,$(filter-out $(PROPRIETARY_HEADERS),$(HEADERS)),\
-                              $(wildcard $($l)))),,\
-	       EXIT_VALUE=1; \
-	       $(if $(findstring $(f),\
-                      $(foreach l, $(PROPRIETARY_HEADERS),$(wildcard $($l)))),\
-                    echo "file $(f) has a proprietary license", \
-                    echo "file $(f) does not have a license");)) \
-	exit $$EXIT_VALUE
+	$(foreach l, $(HEADERS),\
+	     $(foreach m, $(call remove_until,$l,$(HEADERS)) \
+                          NO_CHECK_HEADERS,\
+	       $(if $(filter $(wildcard $($l)), $(wildcard $($m))), \
+                echo "Licences $l and $m both claim the following files"; \
+                echo "$(filter $(wildcard $($l)), $(wildcard $($m)))"; \
+                EXIT_VALUE=1;))) \
+        exit $$EXIT_VALUE
 
 check-headers-xunit: $(GENERATED)
 	@echo '<?xml version="1.0" encoding="UTF-8"?>' > check-headers-xunit.xml
@@ -2166,6 +2300,8 @@ force-clean:
 force-reconfigure:
 	expr `$(CAT) .force-reconfigure` + 1 > .force-reconfigure
 
+.PHONY: force-clean force-reconfigure
+
 ############
 # cleaning #
 ############
@@ -2202,19 +2338,20 @@ clean-doc:: $(PLUGIN_LIST:=_CLEAN_DOC)
 
 clean-gui::
 	$(PRINT_RM) gui
-	$(RM) src/*/*_gui.cm* src/*/*_gui.o src/gui/*.cm* src/gui/*.o
+	$(RM) src/*/*/*_gui.cm* src/*/*/*_gui.o \
+	      src/plugins/gui/*.cm* src/plugins/gui/*.o
 
 clean:: $(PLUGIN_LIST:=_CLEAN) $(PLUGIN_DYN_LIST:=_CLEAN) \
 		clean-tests clean-journal clean-check-libc
 	$(PRINT_RM) $(PLUGIN_LIB_DIR)
 	$(RM) $(PLUGIN_LIB_DIR)/*.mli $(PLUGIN_LIB_DIR)/*.cm* \
-	  $(PLUGIN_LIB_DIR)/*.o
+	  $(PLUGIN_LIB_DIR)/*.o $(PLUGIN_LIB_DIR)/META.*
 	$(RM) $(PLUGIN_GUI_LIB_DIR)/*.mli $(PLUGIN_GUI_LIB_DIR)/*.cm* \
 	  $(PLUGIN_GUI_LIB_DIR)/*.o
 	$(PRINT_RM) local installation
 	$(RM) lib/*.cm* lib/*.o lib/fc/*.cm* lib/fc/*.o lib/gui/*.cm* lib/*.cm*
 	$(PRINT_RM) other sources
-	for d in . $(SRC_DIRS) src/gui share; do \
+	for d in . $(SRC_DIRS) src/plugins/gui share; do \
 	  $(RM) $$d/*.cm* $$d/*.o $$d/*.a $$d/*.annot $$d/*~ $$d/*.output \
 	   	$$d/*.annot $$d/\#*; \
 	done
@@ -2222,7 +2359,7 @@ clean:: $(PLUGIN_LIST:=_CLEAN) $(PLUGIN_DYN_LIST:=_CLEAN) \
 	$(RM) $(GENERATED)
 	$(PRINT_RM) binaries
 	$(RM) bin/toplevel.byte$(EXE) bin/viewer.byte$(EXE) \
-		bin/ptests.byte$(EXE) bin/*.opt$(EXE) bin/*.top$(EXE)
+		bin/ptests.byte$(EXE) bin/*.opt$(EXE) bin/toplevel.top$(EXE)
 	$(RM) bin/frama-c-config$(EXE)
 
 smartclean:
@@ -2245,7 +2382,6 @@ dist-clean distclean: clean clean-doc distclean-ocamlgraph \
 	$(RM) share/Makefile.config
 	$(RM) config.cache config.log config.h
 	$(RM) -r autom4te.cache
-	$(RM) src/lib/dynlink_common_interface.ml
 	$(PRINT_RM) documentation
 	$(RM) $(DOC_DIR)/docgen.ml $(DOC_DIR)/kernel-doc.ocamldoc
 	$(PRINT_RM) dummy plug-ins
@@ -2350,46 +2486,66 @@ DISTRIB_FILES += $(PLUGIN_DISTRIBUTED_LIST) $(PLUGIN_DIST_EXTERNAL_LIST) \
 		 $(PLUGIN_DIST_DOC_LIST) $(STANDALONE_PLUGINS_FILES)
 
 NONFREE=no
-ifeq ($(NONFREE),no)
-DISTRIB_FILES := $(filter-out \
-			src/value/builtins_nonfree% src/report/csv_nonfree%, \
-			$(wildcard $(DISTRIB_FILES)))
-else
+
+ifeq ($(NONFREE),yes)
 DISTRIB_FILES:=$(DISTRIB_FILES) $(NONFREE_LIBC)
+EXCLUDE=
+else
+DISTRIB_FILES := $(filter-out \
+			src/plugins/value/builtins_nonfree%, \
+			$(wildcard $(DISTRIB_FILES)))
+EXCLUDE=--exclude \"*/non-free/*\"
 endif
 
 DISTRIB_FILES:=$(filter-out $(GENERATED) $(PLUGIN_GENERATED_LIST), \
 			$(wildcard $(DISTRIB_FILES)))
 
+ifeq ("$(GITVERSION)","")
+VERSION_NAME:=$(VERSION)
+else
+VERSION_NAME:=$(shell git describe --tags --match $(VERSION_PREFIX) --dirty)
+endif
+
 DISTRIB_DIR=tmp
 ifeq ("$(CLIENT)","")
-VERSION_NAME=$(VERSION)
+VERSION_NAME:=$(VERSION_NAME)
 else
-VERSION_NAME=$(VERSION)-$(CLIENT)
+VERSION_NAME:=$(VERSION_NAME)-$(CLIENT)
 endif
 
 DISTRIB?=frama-c-$(VERSION_NAME)
 CLIENT_DIR=$(DISTRIB_DIR)/$(DISTRIB)
 
-ifeq ($(NONFREE),no)
-EXCLUDE=--exclude \"*/non-free/*\"
-else
-EXCLUDE=
-endif
+# this NEWLINE variable containing literal newline character is used to avoid
+# the error "argument list too long" in target src-distrib, with gmake 3.82.
+define NEWLINE
+
+
+endef
 
 # useful parameters:
 # CLIENT: name of the client (in the version number, the archive name, etc)
 # DISTRIB: name of the generated tarball and of the root tarball directory
 # NONFREE: set it to 'yes' if you want to deliver the non-free part of Frama-C
+# GITVERSION: set it to 'yes" if you want to use git to generate the version
+#             number ("distance" to the last tag) + hash of the commit
 src-distrib:
 ifeq ("$(CLIENT)","")
-	$(PRINT_BUILD) "$(DISTRIB) (non-free: $(NONFREE))"
+	$(PRINT_BUILD) "$(DISTRIB) (NONFREE=$(NONFREE))"
 else
-	$(PRINT_BUILD) "distrib $(DISTRIB) for $(CLIENT) (non-free: $(NONFREE))"
+	$(PRINT_BUILD) "distrib $(DISTRIB) for $(CLIENT) (NONFREE=$(NONFREE))"
 endif
 	$(RM) -r $(CLIENT_DIR)
 	$(MKDIR) -p $(CLIENT_DIR)
-	$(TAR) -cf - $(DISTRIB_FILES) $(DISTRIB_TESTS) ocamlgraph.tar.gz | $(TAR) -C $(CLIENT_DIR) -xf -
+	@#Workaround to avoid "argument list too long" in make 3.82+ without
+	@#using 'file' built-in, only available on make 4.0+
+	@#for make 4.0+, using the 'file' function could be a better solution,
+	@#although it seems to segfault in 4.0 (but not in 4.1)
+	$(RM) file_to_archive.tmp
+	@$(foreach file,$(DISTRIB_FILES) $(DISTRIB_TESTS) ocamlgraph.tar.gz,\
+			echo $(file) >> file_to_archive.tmp$(NEWLINE))
+	$(TAR) -cf - --files-from file_to_archive.tmp | $(TAR) -C $(CLIENT_DIR) -xf -
+	$(RM) file_to_archive.tmp
 	$(PRINT_MAKING) files
 	(cd $(CLIENT_DIR) ; \
 	   echo "$(VERSION_NAME)" > VERSION && \
@@ -2397,7 +2553,6 @@ endif
 	$(MKDIR) $(CLIENT_DIR)/bin
 	$(MKDIR) $(CLIENT_DIR)/lib/plugins
 	$(MKDIR) $(CLIENT_DIR)/lib/gui
-	$(MKDIR) $(CLIENT_DIR)/external
 	$(MKDIR) $(CLIENT_DIR)/tests/non-free
 	$(RM) ../$(DISTRIB).tar.gz
 	$(PRINT_TAR) $(DISTRIB).tar.gz
@@ -2424,16 +2579,19 @@ create_lib_to_install_list = $(addprefix $(FRAMAC_LIB)/,$(call map,notdir,$(1)))
 
 byte:: bin/toplevel.byte$(EXE) \
       share/Makefile.dynamic_config share/Makefile.kernel \
-	$(call create_lib_to_install_list,$(LIB_BYTE_TO_INSTALL))
+	$(call create_lib_to_install_list,$(LIB_BYTE_TO_INSTALL)) \
+      $(PLUGIN_META_LIST)
 
 opt:: bin/toplevel.opt$(EXE) \
      share/Makefile.dynamic_config share/Makefile.kernel \
 	$(call create_lib_to_install_list,$(LIB_OPT_TO_INSTALL)) \
-	$(filter %.o %.cmi, $(call create_lib_to_install_list,$(LIB_BYTE_TO_INSTALL)))
+	$(filter %.o %.cmi, \
+	   $(call create_lib_to_install_list,$(LIB_BYTE_TO_INSTALL))) \
+      $(PLUGIN_META_LIST)
 
 top: bin/toplevel.top$(EXE) \
-	$(call create_lib_to_install_list,$(LIB_BYTE_TO_INSTALL))
-
+	$(call create_lib_to_install_list,$(LIB_BYTE_TO_INSTALL)) \
+      $(PLUGIN_META_LIST)
 
 ##################
 # Copy in lib/fc #
@@ -2448,14 +2606,6 @@ endef
 $(eval $(foreach file, $(LIB_BYTE_TO_INSTALL), $(call copy_in_lib, $(file))))
 $(eval $(foreach file, $(LIB_OPT_TO_INSTALL), $(call copy_in_lib, $(file))))
 
-
-###################
-# Generating part #
-###################
-# It is in another file in order to have a dependency only on Makefile.generating
-
-include Makefile.generating
-
 ################
 # Generic part #
 ################
@@ -2464,5 +2614,5 @@ include share/Makefile.generic
 
 ###############################################################################
 # Local Variables:
-# compile-command: "LC_ALL=C make"
+# compile-command: "make"
 # End:

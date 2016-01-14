@@ -1,0 +1,1997 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/float/math_builtins.c (with preprocessing)
+tests/float/math_builtins.c:248:[kernel] warning: Floating-point constant 5.8 is not represented exactly. Will use 0x1.7333333333333p2. See documentation for option -warn-decimal-float
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  __FC_errno ∈ [--..--]
+  nondet ∈ [--..--]
+[value] computing for function test_cos_det <- main.
+        Called from tests/float/math_builtins.c:656.
+[value] Recording results for test_cos_det
+[value] Done for function test_cos_det
+[value] computing for function test_sin_det <- main.
+        Called from tests/float/math_builtins.c:657.
+[value] Recording results for test_sin_det
+[value] Done for function test_sin_det
+[value] computing for function test_atan2_det <- main.
+        Called from tests/float/math_builtins.c:658.
+[value] Recording results for test_atan2_det
+[value] Done for function test_atan2_det
+[value] computing for function test_atan2 <- main.
+        Called from tests/float/math_builtins.c:659.
+[value] computing for function double_interval <- test_atan2 <- main.
+        Called from tests/float/math_builtins.c:46.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_atan2 <- main.
+        Called from tests/float/math_builtins.c:47.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_atan2 <- main.
+        Called from tests/float/math_builtins.c:49.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_atan2 <- main.
+        Called from tests/float/math_builtins.c:51.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_atan2 <- main.
+        Called from tests/float/math_builtins.c:53.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_atan2 <- main.
+        Called from tests/float/math_builtins.c:55.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_atan2 <- main.
+        Called from tests/float/math_builtins.c:57.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_atan2 <- main.
+        Called from tests/float/math_builtins.c:58.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_atan2 <- main.
+        Called from tests/float/math_builtins.c:60.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_atan2 <- main.
+        Called from tests/float/math_builtins.c:62.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_atan2 <- main.
+        Called from tests/float/math_builtins.c:64.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_atan2 <- main.
+        Called from tests/float/math_builtins.c:66.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] Recording results for test_atan2
+[value] Done for function test_atan2
+[value] computing for function test_pow_det <- main.
+        Called from tests/float/math_builtins.c:660.
+[value] Recording results for test_pow_det
+[value] Done for function test_pow_det
+[value] computing for function test_pow_singleton_exp <- main.
+        Called from tests/float/math_builtins.c:661.
+[value] computing for function double_interval <- test_pow_singleton_exp <- main.
+        Called from tests/float/math_builtins.c:98.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+tests/float/math_builtins.c:100:[value] warning: builtin Frama_C_pow: completely out-of-range arguments
+                 ([-3.5000000000000000 .. -2.7500000000000000], {1.5000000000000000}):
+                 negative base and noninteger exponent, computation may result in NaN
+tests/float/math_builtins.c:102:[value] warning: builtin Frama_C_pow: completely out-of-range arguments
+                 ([-3.5000000000000000 .. -2.7500000000000000], {-1.5000000000000000}):
+                 negative base and noninteger exponent, computation may result in NaN
+[value] computing for function double_interval <- test_pow_singleton_exp <- main.
+        Called from tests/float/math_builtins.c:105.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+tests/float/math_builtins.c:106:[value] warning: builtin Frama_C_pow: out-of-range arguments
+                 ([-3.5000000000000000 .. 2.7500000000000000], {1.5000000000000000}):
+                 negative base and noninteger exponent, computation may result in NaN
+tests/float/math_builtins.c:107:[value] warning: builtin Frama_C_pow: out-of-range arguments
+                 ([-3.5000000000000000 .. 2.7500000000000000], {-1.5000000000000000}):
+                 negative base and noninteger exponent, computation may result in +oo/NaN
+tests/float/math_builtins.c:110:[value] warning: builtin Frama_C_pow: out-of-range arguments
+                 ([-3.5000000000000000 .. 2.7500000000000000], {-3.0000000000000000}),
+                 computation may result in +oo/-oo
+tests/float/math_builtins.c:111:[value] warning: builtin Frama_C_pow: out-of-range arguments
+                 ([-3.5000000000000000 .. 2.7500000000000000], {-2.0000000000000000}),
+                 computation may result in +oo
+[value] computing for function double_interval <- test_pow_singleton_exp <- main.
+        Called from tests/float/math_builtins.c:114.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+tests/float/math_builtins.c:115:[value] warning: builtin Frama_C_pow: out-of-range arguments
+                 ([1.0000000000000000*2^50 .. 1.0000000000000000*2^62], {19.5000000000000000})
+                 , computation may result in +oo
+[value] computing for function double_interval <- test_pow_singleton_exp <- main.
+        Called from tests/float/math_builtins.c:116.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+tests/float/math_builtins.c:117:[value] warning: builtin Frama_C_pow: out-of-range arguments
+                 ([-1.0000000000000000*2^49 .. -1.5000000000000000*2^-1], {23.0000000000000000})
+                 , computation may result in -oo
+[value] computing for function double_interval <- test_pow_singleton_exp <- main.
+        Called from tests/float/math_builtins.c:120.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] Called Frama_C_show_each_i([0.0000000000000000 .. 1.0000000000000000*2^-1000])
+[value] computing for function double_interval <- test_pow_singleton_exp <- main.
+        Called from tests/float/math_builtins.c:123.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] Called Frama_C_show_each_j([0.2500000000000000*2^-1022 .. 1.2707064924076672*2^-330])
+[value] computing for function double_interval <- test_pow_singleton_exp <- main.
+        Called from tests/float/math_builtins.c:132.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_pow_singleton_exp <- main.
+        Called from tests/float/math_builtins.c:139.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] Recording results for test_pow_singleton_exp
+[value] Done for function test_pow_singleton_exp
+[value] computing for function test_pow <- main.
+        Called from tests/float/math_builtins.c:662.
+[value] computing for function double_interval <- test_pow <- main.
+        Called from tests/float/math_builtins.c:147.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_pow <- main.
+        Called from tests/float/math_builtins.c:149.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_pow <- main.
+        Called from tests/float/math_builtins.c:151.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_pow <- main.
+        Called from tests/float/math_builtins.c:158.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_pow <- main.
+        Called from tests/float/math_builtins.c:159.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+tests/float/math_builtins.c:160:[value] warning: builtin Frama_C_pow: out-of-range arguments
+                 ([-4.0000000000000000 .. 7.5000000000000000], [2.1250000000000000 .. 2.8750000000000000])
+                 : negative base and noninteger exponent, computation may result in NaN
+[value] computing for function double_interval <- test_pow <- main.
+        Called from tests/float/math_builtins.c:161.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+tests/float/math_builtins.c:162:[value] warning: builtin Frama_C_pow: out-of-range arguments
+                 ([-4.0000000000000000 .. 7.5000000000000000], [2.1250000000000000 .. 4.8750000000000000])
+                 : negative base and noninteger exponent, computation may result in NaN
+[value] computing for function double_interval <- test_pow <- main.
+        Called from tests/float/math_builtins.c:163.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+tests/float/math_builtins.c:164:[value] warning: builtin Frama_C_pow: out-of-range arguments
+                 ([-4.0000000000000000 .. 7.5000000000000000], [2.0000000000000000 .. 3.0000000000000000])
+                 : negative base and noninteger exponent, computation may result in NaN
+[value] computing for function double_interval <- test_pow <- main.
+        Called from tests/float/math_builtins.c:165.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_pow <- main.
+        Called from tests/float/math_builtins.c:166.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_pow <- main.
+        Called from tests/float/math_builtins.c:170.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_pow <- main.
+        Called from tests/float/math_builtins.c:171.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_pow <- main.
+        Called from tests/float/math_builtins.c:175.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_pow <- main.
+        Called from tests/float/math_builtins.c:176.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+tests/float/math_builtins.c:177:[value] warning: builtin Frama_C_pow: out-of-range arguments
+                 ([-1.0000000000000000 .. 1.0000000000000000], [-1.0000000000000000 .. 1.0000000000000000])
+                 : negative base and noninteger exponent,
+                 computation may result in +oo/-oo/NaN
+[value] computing for function double_interval <- test_pow <- main.
+        Called from tests/float/math_builtins.c:178.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_pow <- main.
+        Called from tests/float/math_builtins.c:179.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+tests/float/math_builtins.c:180:[value] warning: builtin Frama_C_pow: out-of-range arguments
+                 ([-1.0000000000000000 .. 1.0000000000000000], [-1.0000000000000000*2^-1 .. 1.0000000000000000])
+                 : negative base and noninteger exponent, computation may result in +oo/NaN
+[value] computing for function double_interval <- test_pow <- main.
+        Called from tests/float/math_builtins.c:184.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_pow <- main.
+        Called from tests/float/math_builtins.c:185.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+tests/float/math_builtins.c:186:[value] warning: builtin Frama_C_pow: out-of-range arguments
+                 ([-13.0000000000000000 .. 430.0000000000000000], [3.0000000000000000 .. 6.0000000000000000])
+                 : negative base and noninteger exponent, computation may result in NaN
+[value] computing for function double_interval <- test_pow <- main.
+        Called from tests/float/math_builtins.c:189.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_pow <- main.
+        Called from tests/float/math_builtins.c:190.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+tests/float/math_builtins.c:191:[value] warning: builtin Frama_C_pow: out-of-range arguments
+                 ([-4.0000000000000000 .. -2.0000000000000000], [3.0000000000000000 .. 5.0000000000000000])
+                 : negative base and noninteger exponent, computation may result in NaN
+[value] computing for function double_interval <- test_pow <- main.
+        Called from tests/float/math_builtins.c:194.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_pow <- main.
+        Called from tests/float/math_builtins.c:195.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_pow <- main.
+        Called from tests/float/math_builtins.c:199.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_pow <- main.
+        Called from tests/float/math_builtins.c:200.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+tests/float/math_builtins.c:201:[value] warning: builtin Frama_C_pow: out-of-range arguments
+                 ([-0.0000000000000000 .. 10.0000000000000000], [-3.5000000000000000 .. 4.5000000000000000])
+                 , computation may result in +oo/-oo
+[value] computing for function double_interval <- test_pow <- main.
+        Called from tests/float/math_builtins.c:204.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_pow <- main.
+        Called from tests/float/math_builtins.c:205.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+tests/float/math_builtins.c:206:[value] warning: builtin Frama_C_pow: completely out-of-range arguments
+                 ([-5.0000000000000000 .. -1.0000000000000000*2^-1], [-1.7500000000000000*2^-1 .. -1.0000000000000000*2^-3])
+                 : negative base and noninteger exponent, computation may result in NaN
+[value] computing for function double_interval <- test_pow <- main.
+        Called from tests/float/math_builtins.c:207.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+tests/float/math_builtins.c:208:[value] warning: builtin Frama_C_pow: out-of-range arguments
+                 ([-5.0000000000000000 .. -1.0000000000000000*2^-1], [-1.0000000000000000*2^-2 .. 1.0000000000000000*2^-2])
+                 : negative base and noninteger exponent, computation may result in NaN
+[value] computing for function double_interval <- test_pow <- main.
+        Called from tests/float/math_builtins.c:209.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+tests/float/math_builtins.c:210:[value] warning: builtin Frama_C_pow: out-of-range arguments
+                 ([-5.0000000000000000 .. -1.0000000000000000*2^-1], [10.0000000000000000 .. 11.5000000000000000])
+                 : negative base and noninteger exponent, computation may result in NaN
+[value] computing for function double_interval <- test_pow <- main.
+        Called from tests/float/math_builtins.c:211.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+tests/float/math_builtins.c:212:[value] warning: builtin Frama_C_pow: out-of-range arguments
+                 ([-5.0000000000000000 .. -1.0000000000000000*2^-1], [-1.2056274414062500*2^13 .. 1234.5000000000000000])
+                 : negative base and noninteger exponent,
+                 computation may result in +oo/-oo/NaN
+[value] computing for function double_interval <- test_pow <- main.
+        Called from tests/float/math_builtins.c:215.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_pow <- main.
+        Called from tests/float/math_builtins.c:216.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+tests/float/math_builtins.c:217:[value] warning: builtin Frama_C_pow: result is always non-finite
+[value] computing for function double_interval <- test_pow <- main.
+        Called from tests/float/math_builtins.c:220.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_pow <- main.
+        Called from tests/float/math_builtins.c:221.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+tests/float/math_builtins.c:222:[value] warning: builtin Frama_C_pow: result is always non-finite
+[value] computing for function double_interval <- test_pow <- main.
+        Called from tests/float/math_builtins.c:224.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] Recording results for test_pow
+[value] Done for function test_pow
+[value] computing for function test_fmod_det <- main.
+        Called from tests/float/math_builtins.c:663.
+tests/float/math_builtins.c:341:[value] warning: builtin Frama_C_fmod: completely out-of-range arguments
+                 ({1.0000000000000000*2^-3}, {0.0000000000000000}): division by zero,
+                 computation may result in NaN
+[value] Recording results for test_fmod_det
+[value] Done for function test_fmod_det
+[value] computing for function test_fmod <- main.
+        Called from tests/float/math_builtins.c:664.
+[value] computing for function double_interval <- test_fmod <- main.
+        Called from tests/float/math_builtins.c:346.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_fmod <- main.
+        Called from tests/float/math_builtins.c:351.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_fmod <- main.
+        Called from tests/float/math_builtins.c:354.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_fmod <- main.
+        Called from tests/float/math_builtins.c:355.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_fmod <- main.
+        Called from tests/float/math_builtins.c:357.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_fmod <- main.
+        Called from tests/float/math_builtins.c:358.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_fmod <- main.
+        Called from tests/float/math_builtins.c:361.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_fmod <- main.
+        Called from tests/float/math_builtins.c:362.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+tests/float/math_builtins.c:363:[value] warning: builtin Frama_C_fmod: out-of-range arguments
+                 ([-9.0000000000000000 .. 8.7500000000000000], [-2.0000000000000000 .. 4.5000000000000000])
+                 : division by zero, computation may result in NaN
+[value] computing for function double_interval <- test_fmod <- main.
+        Called from tests/float/math_builtins.c:364.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_fmod <- main.
+        Called from tests/float/math_builtins.c:365.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+tests/float/math_builtins.c:366:[value] warning: builtin Frama_C_fmod: out-of-range arguments
+                 ([-2.0000000000000000 .. 4.5000000000000000], [-9.0000000000000000 .. 8.7500000000000000])
+                 : division by zero, computation may result in NaN
+[value] computing for function double_interval <- test_fmod <- main.
+        Called from tests/float/math_builtins.c:367.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+tests/float/math_builtins.c:368:[value] warning: builtin Frama_C_fmod: completely out-of-range arguments
+                 ([-2.0000000000000000 .. 4.5000000000000000], [-0.0000000000000000 .. 0.0000000000000000])
+                 : division by zero, computation may result in NaN
+[value] computing for function double_interval <- test_fmod <- main.
+        Called from tests/float/math_builtins.c:369.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+tests/float/math_builtins.c:370:[value] warning: builtin Frama_C_fmod: out-of-range arguments
+                 ([-2.0000000000000000 .. 4.5000000000000000], [0.0000000000000000 .. 1.0000000000000000*2^-3])
+                 : division by zero, computation may result in NaN
+[value] computing for function double_interval <- test_fmod <- main.
+        Called from tests/float/math_builtins.c:371.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+tests/float/math_builtins.c:372:[value] warning: builtin Frama_C_fmod: out-of-range arguments
+                 ([-2.0000000000000000 .. 4.5000000000000000], [-1.0000000000000000*2^-3 .. -0.0000000000000000])
+                 : division by zero, computation may result in NaN
+[value] computing for function double_interval <- test_fmod <- main.
+        Called from tests/float/math_builtins.c:373.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_fmod <- main.
+        Called from tests/float/math_builtins.c:375.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_fmod <- main.
+        Called from tests/float/math_builtins.c:377.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_fmod <- main.
+        Called from tests/float/math_builtins.c:379.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_fmod <- main.
+        Called from tests/float/math_builtins.c:381.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_fmod <- main.
+        Called from tests/float/math_builtins.c:383.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_fmod <- main.
+        Called from tests/float/math_builtins.c:385.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_fmod <- main.
+        Called from tests/float/math_builtins.c:387.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_fmod <- main.
+        Called from tests/float/math_builtins.c:389.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_fmod <- main.
+        Called from tests/float/math_builtins.c:390.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_fmod <- main.
+        Called from tests/float/math_builtins.c:392.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_fmod <- main.
+        Called from tests/float/math_builtins.c:394.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_fmod <- main.
+        Called from tests/float/math_builtins.c:396.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_fmod <- main.
+        Called from tests/float/math_builtins.c:398.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_fmod <- main.
+        Called from tests/float/math_builtins.c:399.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+tests/float/math_builtins.c:400:[value] warning: builtin Frama_C_fmod: out-of-range arguments
+                 ([2.0000000000000000 .. 3.0000000000000000], [-4.0000000000000000 .. 5.0000000000000000])
+                 : division by zero, computation may result in NaN
+[value] computing for function double_interval <- test_fmod <- main.
+        Called from tests/float/math_builtins.c:401.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+tests/float/math_builtins.c:402:[value] warning: builtin Frama_C_fmod: out-of-range arguments
+                 ([-2.0000000000000000 .. 3.0000000000000000], [-4.0000000000000000 .. 5.0000000000000000])
+                 : division by zero, computation may result in NaN
+[value] computing for function double_interval <- test_fmod <- main.
+        Called from tests/float/math_builtins.c:403.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+tests/float/math_builtins.c:404:[value] warning: builtin Frama_C_fmod: out-of-range arguments
+                 ([-3.0000000000000000 .. 2.0000000000000000], [-4.0000000000000000 .. 5.0000000000000000])
+                 : division by zero, computation may result in NaN
+[value] Recording results for test_fmod
+[value] Done for function test_fmod
+[value] computing for function test_sqrt_det <- main.
+        Called from tests/float/math_builtins.c:665.
+tests/float/math_builtins.c:410:[value] warning: builtin Frama_C_sqrt: completely out-of-range argument
+                 ({-2.0000000000000000}): negative argument, computation may result in NaN
+[value] Recording results for test_sqrt_det
+[value] Done for function test_sqrt_det
+[value] computing for function test_sqrt <- main.
+        Called from tests/float/math_builtins.c:666.
+[value] computing for function double_interval <- test_sqrt <- main.
+        Called from tests/float/math_builtins.c:416.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_sqrt <- main.
+        Called from tests/float/math_builtins.c:418.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+tests/float/math_builtins.c:419:[value] warning: builtin Frama_C_sqrt: out-of-range argument
+                 ([-6.5000000000000000 .. 0.0000000000000000]): negative argument,
+                 computation may result in NaN
+[value] computing for function double_interval <- test_sqrt <- main.
+        Called from tests/float/math_builtins.c:420.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+tests/float/math_builtins.c:421:[value] warning: builtin Frama_C_sqrt: out-of-range argument
+                 ([-6.5000000000000000 .. -0.0000000000000000]): negative argument,
+                 computation may result in NaN
+[value] computing for function double_interval <- test_sqrt <- main.
+        Called from tests/float/math_builtins.c:422.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+tests/float/math_builtins.c:423:[value] warning: builtin Frama_C_sqrt: completely out-of-range argument
+                 ([-6.5000000000000000 .. -1.6000000000000000*2^-4]): negative argument,
+                 computation may result in NaN
+[value] Recording results for test_sqrt
+[value] Done for function test_sqrt
+[value] computing for function test_exp_det <- main.
+        Called from tests/float/math_builtins.c:667.
+tests/float/math_builtins.c:451:[value] warning: builtin Frama_C_exp: result is always non-finite
+[value] Recording results for test_exp_det
+[value] Done for function test_exp_det
+[value] computing for function test_log_det <- main.
+        Called from tests/float/math_builtins.c:668.
+tests/float/math_builtins.c:465:[value] warning: builtin Frama_C_log: completely out-of-range argument ({-2.0000000000000000})
+                 : negative argument, computation may result in NaN
+tests/float/math_builtins.c:466:[value] warning: builtin Frama_C_log: completely out-of-range argument ({0.0000000000000000}):
+                 negative argument, computation may result in NaN
+tests/float/math_builtins.c:467:[value] warning: builtin Frama_C_log: completely out-of-range argument ({-0.0000000000000000})
+                 : negative argument, computation may result in NaN
+tests/float/math_builtins.c:468:[value] warning: builtin Frama_C_log: completely out-of-range argument ({-1.0000000000000000})
+                 : negative argument, computation may result in NaN
+[value] Recording results for test_log_det
+[value] Done for function test_log_det
+[value] computing for function test_log10_det <- main.
+        Called from tests/float/math_builtins.c:669.
+tests/float/math_builtins.c:483:[value] warning: builtin Frama_C_log10: completely out-of-range argument
+                 ({-2.0000000000000000}): negative argument, computation may result in NaN
+tests/float/math_builtins.c:484:[value] warning: builtin Frama_C_log10: completely out-of-range argument
+                 ({0.0000000000000000}): negative argument, computation may result in NaN
+tests/float/math_builtins.c:485:[value] warning: builtin Frama_C_log10: completely out-of-range argument
+                 ({-0.0000000000000000}): negative argument, computation may result in NaN
+tests/float/math_builtins.c:486:[value] warning: builtin Frama_C_log10: completely out-of-range argument
+                 ({-1.0000000000000000}): negative argument, computation may result in NaN
+[value] Recording results for test_log10_det
+[value] Done for function test_log10_det
+[value] computing for function test_powf_det <- main.
+        Called from tests/float/math_builtins.c:671.
+[value] Recording results for test_powf_det
+[value] Done for function test_powf_det
+[value] computing for function test_powf_singleton_exp <- main.
+        Called from tests/float/math_builtins.c:672.
+[value] computing for function double_interval <- test_powf_singleton_exp <- main.
+        Called from tests/float/math_builtins.c:231.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+tests/float/math_builtins.c:233:[value] warning: builtin Frama_C_powf: completely out-of-range arguments
+                 ([-3.5000000000000000 .. -2.7500000000000000], {1.5000000000000000}):
+                 negative base and noninteger exponent, computation may result in NaN
+tests/float/math_builtins.c:235:[value] warning: builtin Frama_C_powf: completely out-of-range arguments
+                 ([-3.5000000000000000 .. -2.7500000000000000], {-1.5000000000000000}):
+                 negative base and noninteger exponent, computation may result in NaN
+[value] computing for function double_interval <- test_powf_singleton_exp <- main.
+        Called from tests/float/math_builtins.c:238.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+tests/float/math_builtins.c:239:[value] warning: builtin Frama_C_powf: out-of-range arguments
+                 ([-3.5000000000000000 .. 2.7500000000000000], {1.5000000000000000}):
+                 negative base and noninteger exponent, computation may result in NaN
+tests/float/math_builtins.c:240:[value] warning: builtin Frama_C_powf: out-of-range arguments
+                 ([-3.5000000000000000 .. 2.7500000000000000], {-1.5000000000000000}):
+                 negative base and noninteger exponent, computation may result in +oo/NaN
+tests/float/math_builtins.c:243:[value] warning: builtin Frama_C_powf: out-of-range arguments
+                 ([-3.5000000000000000 .. 2.7500000000000000], {-3.0000000000000000}),
+                 computation may result in +oo/-oo
+tests/float/math_builtins.c:244:[value] warning: builtin Frama_C_powf: out-of-range arguments
+                 ([-3.5000000000000000 .. 2.7500000000000000], {-2.0000000000000000}),
+                 computation may result in +oo
+[value] computing for function double_interval <- test_powf_singleton_exp <- main.
+        Called from tests/float/math_builtins.c:247.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_powf_singleton_exp <- main.
+        Called from tests/float/math_builtins.c:249.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+tests/float/math_builtins.c:250:[value] warning: builtin Frama_C_powf: out-of-range arguments
+                 ([-1.0000000000000000*2^49 .. -1.5000000000000000*2^-1], {23.0000000000000000})
+                 , computation may result in -oo
+[value] computing for function double_interval <- test_powf_singleton_exp <- main.
+        Called from tests/float/math_builtins.c:253.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] Called Frama_C_show_each_i([0.0000000000000000 .. 1.0000000000000000*2^-120])
+[value] computing for function double_interval <- test_powf_singleton_exp <- main.
+        Called from tests/float/math_builtins.c:256.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] Called Frama_C_show_each_j({0})
+[value] computing for function double_interval <- test_powf_singleton_exp <- main.
+        Called from tests/float/math_builtins.c:265.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_powf_singleton_exp <- main.
+        Called from tests/float/math_builtins.c:272.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] Recording results for test_powf_singleton_exp
+[value] Done for function test_powf_singleton_exp
+[value] computing for function test_powf <- main.
+        Called from tests/float/math_builtins.c:673.
+[value] computing for function double_interval <- test_powf <- main.
+        Called from tests/float/math_builtins.c:280.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_powf <- main.
+        Called from tests/float/math_builtins.c:282.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_powf <- main.
+        Called from tests/float/math_builtins.c:284.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_powf <- main.
+        Called from tests/float/math_builtins.c:291.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_powf <- main.
+        Called from tests/float/math_builtins.c:292.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+tests/float/math_builtins.c:293:[value] warning: builtin Frama_C_powf: out-of-range arguments
+                 ([-4.0000000000000000 .. 7.5000000000000000], [2.1250000000000000 .. 2.8750000000000000])
+                 : negative base and noninteger exponent, computation may result in NaN
+[value] computing for function double_interval <- test_powf <- main.
+        Called from tests/float/math_builtins.c:294.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+tests/float/math_builtins.c:295:[value] warning: builtin Frama_C_powf: out-of-range arguments
+                 ([-4.0000000000000000 .. 7.5000000000000000], [2.1250000000000000 .. 4.8750000000000000])
+                 : negative base and noninteger exponent, computation may result in NaN
+[value] computing for function double_interval <- test_powf <- main.
+        Called from tests/float/math_builtins.c:296.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+tests/float/math_builtins.c:297:[value] warning: builtin Frama_C_powf: out-of-range arguments
+                 ([-4.0000000000000000 .. 7.5000000000000000], [2.0000000000000000 .. 3.0000000000000000])
+                 : negative base and noninteger exponent, computation may result in NaN
+[value] computing for function double_interval <- test_powf <- main.
+        Called from tests/float/math_builtins.c:298.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_powf <- main.
+        Called from tests/float/math_builtins.c:299.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_powf <- main.
+        Called from tests/float/math_builtins.c:303.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_powf <- main.
+        Called from tests/float/math_builtins.c:304.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_powf <- main.
+        Called from tests/float/math_builtins.c:308.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_powf <- main.
+        Called from tests/float/math_builtins.c:309.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+tests/float/math_builtins.c:310:[value] warning: builtin Frama_C_powf: out-of-range arguments
+                 ([-1.0000000000000000 .. 1.0000000000000000], [-1.0000000000000000 .. 1.0000000000000000])
+                 : negative base and noninteger exponent,
+                 computation may result in +oo/-oo/NaN
+[value] computing for function double_interval <- test_powf <- main.
+        Called from tests/float/math_builtins.c:313.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_powf <- main.
+        Called from tests/float/math_builtins.c:314.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+tests/float/math_builtins.c:315:[value] warning: builtin Frama_C_powf: out-of-range arguments
+                 ([-1.0000000000000000 .. 1.0000000000000000], [-1.0000000000000000*2^-1 .. 1.0000000000000000])
+                 : negative base and noninteger exponent, computation may result in +oo/NaN
+[value] computing for function double_interval <- test_powf <- main.
+        Called from tests/float/math_builtins.c:319.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_powf <- main.
+        Called from tests/float/math_builtins.c:320.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+tests/float/math_builtins.c:321:[value] warning: builtin Frama_C_powf: out-of-range arguments
+                 ([-13.0000000000000000 .. 430.0000000000000000], [3.0000000000000000 .. 6.0000000000000000])
+                 : negative base and noninteger exponent, computation may result in NaN
+[value] computing for function double_interval <- test_powf <- main.
+        Called from tests/float/math_builtins.c:324.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_powf <- main.
+        Called from tests/float/math_builtins.c:325.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+tests/float/math_builtins.c:326:[value] warning: builtin Frama_C_powf: out-of-range arguments
+                 ([-4.0000000000000000 .. -2.0000000000000000], [3.0000000000000000 .. 5.0000000000000000])
+                 : negative base and noninteger exponent, computation may result in NaN
+[value] computing for function double_interval <- test_powf <- main.
+        Called from tests/float/math_builtins.c:329.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_powf <- main.
+        Called from tests/float/math_builtins.c:330.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] Recording results for test_powf
+[value] Done for function test_powf
+[value] computing for function test_sqrtf_det <- main.
+        Called from tests/float/math_builtins.c:674.
+tests/float/math_builtins.c:429:[value] warning: builtin Frama_C_sqrtf: completely out-of-range argument
+                 ({-2.0000000000000000}): negative argument, computation may result in NaN
+[value] Recording results for test_sqrtf_det
+[value] Done for function test_sqrtf_det
+[value] computing for function test_sqrtf <- main.
+        Called from tests/float/math_builtins.c:675.
+[value] computing for function double_interval <- test_sqrtf <- main.
+        Called from tests/float/math_builtins.c:435.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_sqrtf <- main.
+        Called from tests/float/math_builtins.c:437.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+tests/float/math_builtins.c:438:[value] warning: builtin Frama_C_sqrtf: out-of-range argument
+                 ([-6.5000000000000000 .. 0.0000000000000000]): negative argument,
+                 computation may result in NaN
+[value] computing for function double_interval <- test_sqrtf <- main.
+        Called from tests/float/math_builtins.c:439.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+tests/float/math_builtins.c:440:[value] warning: builtin Frama_C_sqrtf: out-of-range argument
+                 ([-6.5000000000000000 .. -0.0000000000000000]): negative argument,
+                 computation may result in NaN
+[value] computing for function double_interval <- test_sqrtf <- main.
+        Called from tests/float/math_builtins.c:441.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+tests/float/math_builtins.c:442:[value] warning: builtin Frama_C_sqrt: completely out-of-range argument
+                 ([-6.5000000000000000 .. -1.6000000238418579*2^-4]): negative argument,
+                 computation may result in NaN
+[value] Recording results for test_sqrtf
+[value] Done for function test_sqrtf
+[value] computing for function test_expf_det <- main.
+        Called from tests/float/math_builtins.c:676.
+[value] Recording results for test_expf_det
+[value] Done for function test_expf_det
+[value] computing for function test_logf_det <- main.
+        Called from tests/float/math_builtins.c:677.
+tests/float/math_builtins.c:474:[value] warning: builtin Frama_C_logf: completely out-of-range argument
+                 ({-2.0000000000000000}): negative argument, computation may result in NaN
+tests/float/math_builtins.c:475:[value] warning: builtin Frama_C_logf: completely out-of-range argument ({0.0000000000000000})
+                 : negative argument, computation may result in NaN
+tests/float/math_builtins.c:476:[value] warning: builtin Frama_C_logf: completely out-of-range argument
+                 ({-0.0000000000000000}): negative argument, computation may result in NaN
+tests/float/math_builtins.c:477:[value] warning: builtin Frama_C_logf: completely out-of-range argument
+                 ({-1.0000000000000000}): negative argument, computation may result in NaN
+[value] Recording results for test_logf_det
+[value] Done for function test_logf_det
+[value] computing for function test_log10f_det <- main.
+        Called from tests/float/math_builtins.c:678.
+tests/float/math_builtins.c:492:[value] warning: builtin Frama_C_log10f: completely out-of-range argument
+                 ({-2.0000000000000000}): negative argument, computation may result in NaN
+tests/float/math_builtins.c:493:[value] warning: builtin Frama_C_log10f: completely out-of-range argument
+                 ({0.0000000000000000}): negative argument, computation may result in NaN
+tests/float/math_builtins.c:494:[value] warning: builtin Frama_C_log10f: completely out-of-range argument
+                 ({-0.0000000000000000}): negative argument, computation may result in NaN
+tests/float/math_builtins.c:495:[value] warning: builtin Frama_C_log10f: completely out-of-range argument
+                 ({-1.0000000000000000}): negative argument, computation may result in NaN
+[value] Recording results for test_log10f_det
+[value] Done for function test_log10f_det
+[value] computing for function test_diff_pow_powf <- main.
+        Called from tests/float/math_builtins.c:680.
+[value] Recording results for test_diff_pow_powf
+[value] Done for function test_diff_pow_powf
+[value] computing for function test_floor_det <- main.
+        Called from tests/float/math_builtins.c:682.
+[value] Recording results for test_floor_det
+[value] Done for function test_floor_det
+[value] computing for function test_ceil_det <- main.
+        Called from tests/float/math_builtins.c:683.
+[value] Recording results for test_ceil_det
+[value] Done for function test_ceil_det
+[value] computing for function test_trunc_det <- main.
+        Called from tests/float/math_builtins.c:684.
+[value] Recording results for test_trunc_det
+[value] Done for function test_trunc_det
+[value] computing for function test_round_det <- main.
+        Called from tests/float/math_builtins.c:685.
+[value] Recording results for test_round_det
+[value] Done for function test_round_det
+[value] computing for function test_floor <- main.
+        Called from tests/float/math_builtins.c:686.
+[value] computing for function double_interval <- test_floor <- main.
+        Called from tests/float/math_builtins.c:541.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_floor <- main.
+        Called from tests/float/math_builtins.c:543.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_floor <- main.
+        Called from tests/float/math_builtins.c:545.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] Recording results for test_floor
+[value] Done for function test_floor
+[value] computing for function test_ceil <- main.
+        Called from tests/float/math_builtins.c:687.
+[value] computing for function double_interval <- test_ceil <- main.
+        Called from tests/float/math_builtins.c:551.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_ceil <- main.
+        Called from tests/float/math_builtins.c:553.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_ceil <- main.
+        Called from tests/float/math_builtins.c:555.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] Recording results for test_ceil
+[value] Done for function test_ceil
+[value] computing for function test_trunc <- main.
+        Called from tests/float/math_builtins.c:688.
+[value] computing for function double_interval <- test_trunc <- main.
+        Called from tests/float/math_builtins.c:561.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_trunc <- main.
+        Called from tests/float/math_builtins.c:563.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_trunc <- main.
+        Called from tests/float/math_builtins.c:565.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] Recording results for test_trunc
+[value] Done for function test_trunc
+[value] computing for function test_round <- main.
+        Called from tests/float/math_builtins.c:689.
+[value] computing for function double_interval <- test_round <- main.
+        Called from tests/float/math_builtins.c:571.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_round <- main.
+        Called from tests/float/math_builtins.c:573.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_round <- main.
+        Called from tests/float/math_builtins.c:575.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] Recording results for test_round
+[value] Done for function test_round
+[value] computing for function test_floorf_det <- main.
+        Called from tests/float/math_builtins.c:691.
+[value] Recording results for test_floorf_det
+[value] Done for function test_floorf_det
+[value] computing for function test_ceilf_det <- main.
+        Called from tests/float/math_builtins.c:692.
+[value] Recording results for test_ceilf_det
+[value] Done for function test_ceilf_det
+[value] computing for function test_truncf_det <- main.
+        Called from tests/float/math_builtins.c:693.
+[value] Recording results for test_truncf_det
+[value] Done for function test_truncf_det
+[value] computing for function test_roundf_det <- main.
+        Called from tests/float/math_builtins.c:694.
+[value] Recording results for test_roundf_det
+[value] Done for function test_roundf_det
+[value] computing for function test_floorf <- main.
+        Called from tests/float/math_builtins.c:695.
+[value] computing for function double_interval <- test_floorf <- main.
+        Called from tests/float/math_builtins.c:617.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_floorf <- main.
+        Called from tests/float/math_builtins.c:619.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_floorf <- main.
+        Called from tests/float/math_builtins.c:621.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] Recording results for test_floorf
+[value] Done for function test_floorf
+[value] computing for function test_ceilf <- main.
+        Called from tests/float/math_builtins.c:696.
+[value] computing for function double_interval <- test_ceilf <- main.
+        Called from tests/float/math_builtins.c:627.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_ceilf <- main.
+        Called from tests/float/math_builtins.c:629.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_ceilf <- main.
+        Called from tests/float/math_builtins.c:631.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] Recording results for test_ceilf
+[value] Done for function test_ceilf
+[value] computing for function test_truncf <- main.
+        Called from tests/float/math_builtins.c:697.
+[value] computing for function double_interval <- test_truncf <- main.
+        Called from tests/float/math_builtins.c:637.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_truncf <- main.
+        Called from tests/float/math_builtins.c:639.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_truncf <- main.
+        Called from tests/float/math_builtins.c:641.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] Recording results for test_truncf
+[value] Done for function test_truncf
+[value] computing for function test_roundf <- main.
+        Called from tests/float/math_builtins.c:698.
+[value] computing for function double_interval <- test_roundf <- main.
+        Called from tests/float/math_builtins.c:647.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_roundf <- main.
+        Called from tests/float/math_builtins.c:649.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] computing for function double_interval <- test_roundf <- main.
+        Called from tests/float/math_builtins.c:651.
+[value] Recording results for double_interval
+[value] Done for function double_interval
+[value] Recording results for test_roundf
+[value] Done for function test_roundf
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function double_interval:
+  __retres ∈ [-1.2237906221789607*2^1023 .. 1.2237906221789607*2^1023]
+[value] Values at end of function test_atan2:
+  x ∈ [1.0000000000000000 .. 5.0000000000000000]
+  y ∈ [-0.0000000000000000 .. 0.0000000000000000]
+  a ∈ [1.5999166744782948*2^-7 .. 1.5582969777755348]
+  b ∈ [1.3325625311548295*2^-5 .. 3.0916342578678506]
+  c ∈ [-2.9441970937399126 .. -1.3211894193170146*2^-3]
+  d ∈ [-2.9764439761751662 .. -2.6779450445889869]
+  e ∈ {-1.5707963267948965}
+  f ∈ [-1.5707963267948965*2^-1 .. -0.0000000000000000]
+  g ∈ [0.0000000000000000 .. 1.8545904360032243*2^-2]
+  h ∈ [-3.1415929794311523 .. 3.1415929794311523]
+  i ∈ [-3.1415929794311523 .. 3.1415929794311523]
+  j ∈ [-3.1415929794311523 .. 3.1415929794311523]
+  k ∈ {0}
+  l ∈ {-0.0000000000000000}
+  m ∈ {3.1415926535897931}
+  n ∈ {-3.1415926535897931}
+[value] Values at end of function test_atan2_det:
+  a ∈ {1.5707963267948965}
+  b ∈ {0}
+  c ∈ {1.5707963267948965}
+  d ∈ {-0.0000000000000000}
+  e ∈ {-1.5707963267948965}
+  f ∈ {-1.5707963267948965}
+  g ∈ {-1.5707963267948965}
+  h ∈ {-1.5707963267948965}
+  i ∈ {0}
+  j ∈ {1.1071487177940904}
+  k ∈ {-1.1071487177940904}
+  l ∈ {2.0344439357957027}
+  m ∈ {-2.0344439357957027}
+[value] Values at end of function test_ceil:
+  x ∈ [-2.5000000000000000 .. -1.0000000000000000*2^-1]
+  a ∈ [-0.0000000000000000 .. 2.0000000000000000]
+  b ∈ [-0.0000000000000000 .. 1.0000000000000000]
+  c ∈ [-2.0000000000000000 .. -0.0000000000000000]
+[value] Values at end of function test_ceil_det:
+  a ∈ {2.0000000000000000}
+  b ∈ {1.0000000000000000}
+  c ∈ {0}
+  d ∈ {-0.0000000000000000}
+  e ∈ {-0.0000000000000000}
+  f ∈ {-1.0000000000000000}
+[value] Values at end of function test_ceilf:
+  f32__x ∈ [-2.500000 .. -1.000000*2^-1]
+  f32__a ∈ [-0.000000 .. 2.000000]
+  f32__b ∈ [-0.000000 .. 1.000000]
+  f32__c ∈ [-2.000000 .. -0.000000]
+[value] Values at end of function test_ceilf_det:
+  f32__a ∈ {2.000000}
+  f32__b ∈ {1.000000}
+  f32__c ∈ {0}
+  f32__d ∈ {-0.000000}
+  f32__e ∈ {-0.000000}
+  f32__f ∈ {-1.000000}
+[value] Values at end of function test_cos_det:
+  x ∈ {1.0806046117362795*2^-1}
+  y ∈ {1.0000000000000000}
+  z ∈ {1.0806046117362795*2^-1}
+[value] Values at end of function test_diff_pow_powf:
+  d ∈ {1.3824840787361052*2^-96}
+  f32__f ∈ {1.382483*2^-96}
+[value] Values at end of function test_exp_det:
+  a ∈ {1.7094457008275896*2^60}
+  b ∈ {1.0826822658929016*2^-3}
+  c ∈ {1.0000000000000000}
+  d ∈ {1.0000000000000000}
+  e ∈ {1.4715177646857693*2^-2}
+[value] Values at end of function test_expf_det:
+  f32__a ∈ {1.709445*2^60}
+  f32__b ∈ {1.082682*2^-3}
+  f32__c ∈ {1.000000}
+  f32__d ∈ {1.000000}
+  f32__e ∈ {1.471517*2^-2}
+[value] Values at end of function test_floor:
+  x ∈ [-2.5000000000000000 .. -1.0000000000000000*2^-1]
+  a ∈ [-1.0000000000000000 .. 1.0000000000000000]
+  b ∈ [-0.0000000000000000 .. 0.0000000000000000]
+  c ∈ [-3.0000000000000000 .. -1.0000000000000000]
+[value] Values at end of function test_floor_det:
+  a ∈ {1.0000000000000000}
+  b ∈ {0}
+  c ∈ {0}
+  d ∈ {-0.0000000000000000}
+  e ∈ {-1.0000000000000000}
+  f ∈ {-2.0000000000000000}
+[value] Values at end of function test_floorf:
+  f32__x ∈ [-2.500000 .. -1.000000*2^-1]
+  f32__a ∈ [-1.000000 .. 1.000000]
+  f32__b ∈ [-0.000000 .. 0.000000]
+  f32__c ∈ [-3.000000 .. -1.000000]
+[value] Values at end of function test_floorf_det:
+  f32__a ∈ {1.000000}
+  f32__b ∈ {0}
+  f32__c ∈ {0}
+  f32__d ∈ {-0.000000}
+  f32__e ∈ {-1.000000}
+  f32__f ∈ {-2.000000}
+[value] Values at end of function test_fmod:
+  x ∈ [-3.0000000000000000 .. 2.0000000000000000]
+  y ∈ [-4.0000000000000000 .. 5.0000000000000000]
+  a ∈ [0.0000000000000000 .. 1.4999999999999998]
+  b ∈ [0.0000000000000000 .. 1.4999999999999998]
+  c ∈ [-1.4999999999999998 .. -0.0000000000000000]
+  d ∈ [-1.4999999999999998 .. -0.0000000000000000]
+  e ∈ [1.5000000000000000*2^-1 .. 1.2500000000000000]
+  f ∈ [1.5000000000000000*2^-1 .. 1.2500000000000000]
+  g ∈ [4.0000000000000000 .. 5.5000000000000000]
+  h ∈ [0.0000000000000000 .. 5.4999999999999991]
+  i ∈ [0.0000000000000000 .. 5.4999999999999991]
+  j ∈ [-4.4999999999999991 .. 4.4999999999999991]
+  k ∈ [-2.0000000000000000 .. 4.5000000000000000]
+  l ∈ [-1.9999999999999998*2^-4 .. 1.9999999999999998*2^-4]
+  m ∈ [-1.9999999999999998*2^-4 .. 1.9999999999999998*2^-4]
+  n ∈ [0.0000000000000000 .. 1.9999999999999998*2^-10]
+  o ∈ [-1.9999999999999998*2^-10 .. -0.0000000000000000]
+  p ∈ [0.0000000000000000 .. 1.9999999999999998*2^-10]
+  q ∈ [1.5000000000000000*2^-14 .. 1.0000000000000000*2^-11]
+  r ∈ [0.0000000000000000 .. 1.0000025599999997*2^-9]
+  s ∈ [0.0000000000000000 .. 1.5999999999999998*2^-4]
+  t ∈ [-1.5999999999999998*2^-4 .. -0.0000000000000000]
+  u ∈ [-3.9999999999999996 .. -0.0000000000000000]
+  v1 ∈ [1.0000000000000000 .. 3.0000000000000000]
+  v2 ∈ [1.0000000000000000 .. 3.0000000000000000]
+  v3 ∈ [-3.0000000000000000 .. -1.0000000000000000]
+  v4 ∈ [-3.0000000000000000 .. -1.0000000000000000]
+  w1 ∈ [0.0000000000000000 .. 3.0000000000000000]
+  w2 ∈ [-2.0000000000000000 .. 3.0000000000000000]
+  w3 ∈ [-3.0000000000000000 .. 2.0000000000000000]
+[value] Values at end of function test_fmod_det:
+  a ∈ {1.7500000000000000}
+  b ∈ {-1.7500000000000000}
+  c ∈ {-0.0000000000000000}
+  d ∈ {0}
+  e ∈ {0}
+  f ∈ {0}
+[value] Values at end of function test_log10_det:
+  a ∈ {1.6245399138793950}
+  b ∈ {-1.8061799739838871*2^-1}
+[value] Values at end of function test_log10f_det:
+  f32__a ∈ {1.624539}
+  f32__b ∈ {-1.806180*2^-1}
+[value] Values at end of function test_log_det:
+  a ∈ {3.7406413886725258}
+  b ∈ {-2.0794415416798357}
+[value] Values at end of function test_logf_det:
+  f32__a ∈ {3.740641}
+  f32__b ∈ {-2.079441}
+[value] Values at end of function test_pow:
+  x ∈ [-1.4551915228366852*2^36 .. -1.1641532182693481*2^33]
+  y ∈ [-1.0000000000000000*2^-1 .. 9.5000000000000000]
+  a ∈ {1.0000000000000000}
+  b ∈ {1.0000000000000000}
+  c ∈ {1.0000000000000000}
+  d ∈ [0.0000000000000000 .. 327.9450894181683225]
+  e ∈ [-64.0000000000000000 .. 1.1259101122907695*2^14]
+  f ∈ [-64.0000000000000000 .. 421.8750000000000000]
+  g ∈ [1.7652004904783322*2^-3 .. 4.7568284600108841]
+  h ∈ [1.4142135623730951*2^-3 .. 1.7469281074217106]
+  i ∈ [-1.9999999999999998*2^1023 .. 1.9999999999999998*2^1023]
+  j ∈ [-1.0000000000000000 .. 1.0000000000000000*2^537]
+  k ∈ [-1.4163703918457031*2^18 .. 1.4036245608028963*2^52]
+  l ∈ [-1024.0000000000000000 .. 256.0000000000000000]
+  m ∈ [-0.0000000000000000 .. 1.5258789062500000*2^16]
+  n ∈ [-0.0000000000000000 .. 1.9999999999999998*2^1023]
+  o ∈ {1.0000000000000000}
+  p ∈ [-1.4551915228366852*2^25 .. 1.1641532182693481*2^23]
+  q ∈ [-1.9999999999999998*2^1023 .. 1.9999999999999998*2^1023]
+  r ∈ [1.2649110640673517*2^-2 .. 1.4725502860585131*2^31]
+[value] Values at end of function test_pow_det:
+  a ∈ {1.0000000000000000}
+  b ∈ {0}
+  c ∈ {1.0000000000000000}
+  d ∈ {1.2247448713915889}
+  e ∈ {3.6539061185009513}
+  f ∈ {1.1857484052378015*2^-2}
+  g ∈ {1.6817928305074290*2^-21}
+  h ∈ {1.0000000000000000}
+[value] Values at end of function test_pow_singleton_exp:
+  x ∈ [-3.5000000000000000 .. -1.0000000000000000*2^-3]
+  c ∈ [0.0000000000000000 .. 4.5603590867386749]
+  d ∈ [1.7542478229978975*2^-3 .. 1.9999999999999998*2^1023]
+  e ∈ [-1.9999999999999998*2^1023 .. 1.9999999999999998*2^1023]
+  f ∈ [1.3061224489795917*2^-4 .. 1.9999999999999998*2^1023]
+  g ∈ [1.0000000000000000*2^975 .. 1.9999999999999998*2^1023]
+  h ∈ [-1.9999999999999998*2^1023 .. -1.3699635576194850*2^-10]
+  i ∈ [0.0000000000000000 .. 1.0000000000000000*2^-1000]
+  j ∈ [0.2500000000000000*2^-1022 .. 1.2707064924076672*2^-330]
+  k ∈ [1.7469281074217106 .. 5.6568542494923805]
+  l ∈ [2.1836601342771384 .. 11.3137084989847611]
+  m ∈ [1.3196114778086369*2^-5 .. 22.6274169979695223]
+  n ∈ [1.9097831327702532*2^-4 .. 8.0000000000000000]
+  o ∈ [1.4142135623730951*2^-1 .. 1.4251349413858991]
+  p ∈ [1.6817928305074290*2^-4 .. 10.0014719999210708]
+  q ∈ [1.0000000000000000*2^-8 .. 289.5314941406250000]
+  r ∈ [1.3061224489795917*2^-4 .. 64.0000000000000000]
+  s ∈ [-8.0000000000000000 .. -1.1428571428571428*2^-2]
+[value] Values at end of function test_powf:
+  f32__x ∈ [-0.000000 .. 10.000000]
+  f32__y ∈ [-0.000000 .. 5.000000]
+  f32__a ∈ {1.000000}
+  f32__b ∈ {1.000000}
+  f32__c ∈ {1.000000}
+  f32__d ∈ [0.000000 .. 327.945098]
+  f32__e ∈ [-64.000000 .. 1.125910*2^14]
+  f32__f ∈ [-64.000000 .. 421.875000]
+  f32__g ∈ [1.765200*2^-3 .. 4.756828]
+  f32__h ∈ [1.414213*2^-3 .. 1.746928]
+  f32__i ∈ [-1.999999*2^127 .. 1.999999*2^127]
+  f32__j ∈ [-1.000000 .. 1.414213*2^74]
+  f32__k ∈ [-1.416370*2^18 .. 1.403624*2^52]
+  f32__l ∈ [-1024.000000 .. 256.000000]
+  f32__m ∈ [-0.000000 .. 1.525878*2^16]
+[value] Values at end of function test_powf_det:
+  f32__a ∈ {1.000000}
+  f32__b ∈ {0}
+  f32__c ∈ {1.000000}
+  f32__d ∈ {1.224744}
+  f32__e ∈ {3.653906}
+  f32__f ∈ {1.185748*2^-2}
+  f32__g ∈ {1.681792*2^-21}
+  f32__h ∈ {1.000000}
+[value] Values at end of function test_powf_singleton_exp:
+  f32__x ∈ [-3.500000 .. -1.000000*2^-3]
+  f32__c ∈ [0.000000 .. 4.560359]
+  f32__d ∈ [1.754247*2^-3 .. 1.999999*2^127]
+  f32__e ∈ [-1.999999*2^127 .. 1.999999*2^127]
+  f32__f ∈ [1.306122*2^-4 .. 1.999999*2^127]
+  f32__g ∈ [1.000002*2^116 .. 1.741105*2^121]
+  f32__h ∈ [-1.999999*2^127 .. -1.369963*2^-10]
+  f32__i ∈ [0.000000 .. 1.000000*2^-120]
+  f32__j ∈ {0}
+  f32__k ∈ [1.746928 .. 5.656854]
+  f32__l ∈ [2.183660 .. 11.313708]
+  f32__m ∈ [1.319611*2^-5 .. 22.627416]
+  f32__n ∈ [1.909783*2^-4 .. 8.000000]
+  f32__o ∈ [1.414213*2^-1 .. 1.425134]
+  f32__p ∈ [1.681792*2^-4 .. 10.001472]
+  f32__q ∈ [1.000000*2^-8 .. 289.531494]
+  f32__r ∈ [1.306122*2^-4 .. 64.000000]
+  f32__s ∈ [-8.000000 .. -1.142857*2^-2]
+[value] Values at end of function test_round:
+  x ∈ [-2.5000000000000000 .. -1.0000000000000000*2^-1]
+  a ∈ [-1.0000000000000000 .. 2.0000000000000000]
+  b ∈ [-0.0000000000000000 .. 1.0000000000000000]
+  c ∈ [-3.0000000000000000 .. -1.0000000000000000]
+[value] Values at end of function test_round_det:
+  a ∈ {2.0000000000000000}
+  b ∈ {1.0000000000000000}
+  c ∈ {0}
+  d ∈ {-0.0000000000000000}
+  e ∈ {-1.0000000000000000}
+  f ∈ {-2.0000000000000000}
+[value] Values at end of function test_roundf:
+  f32__x ∈ [-2.500000 .. -1.000000*2^-1]
+  f32__a ∈ [-1.000000 .. 2.000000]
+  f32__b ∈ [-0.000000 .. 1.000000]
+  f32__c ∈ [-3.000000 .. -1.000000]
+[value] Values at end of function test_roundf_det:
+  f32__a ∈ {2.000000}
+  f32__b ∈ {1.000000}
+  f32__c ∈ {0}
+  f32__d ∈ {-0.000000}
+  f32__e ∈ {-1.000000}
+  f32__f ∈ {-2.000000}
+[value] Values at end of function test_sin_det:
+  x ∈ {1.6829419696157930*2^-1}
+  y ∈ {0}
+  z ∈ {-1.6829419696157930*2^-1}
+[value] Values at end of function test_sqrt:
+  x ∈ [-6.5000000000000000 .. -1.6000000000000000*2^-4]
+  a ∈ [-0.0000000000000000 .. 2.2360679774997898]
+  b ∈ [-0.0000000000000000 .. 0.0000000000000000]
+  c ∈ {-0.0000000000000000}
+[value] Values at end of function test_sqrt_det:
+  a ∈ {6.4903774928735851}
+  b ∈ {1.4142135623730951*2^-2}
+  c ∈ {0}
+  d ∈ {-0.0000000000000000}
+[value] Values at end of function test_sqrtf:
+  f32__x ∈ [-6.500000 .. -1.600000*2^-4]
+  f32__a ∈ [-0.000000 .. 2.236068]
+  b ∈ [-0.0000000000000000 .. 0.0000000000000000]
+  c ∈ {-0.0000000000000000}
+[value] Values at end of function test_sqrtf_det:
+  f32__a ∈ {6.490377}
+  f32__b ∈ {1.414213*2^-2}
+  f32__c ∈ {0}
+  f32__d ∈ {-0.000000}
+[value] Values at end of function test_trunc:
+  x ∈ [-2.5000000000000000 .. -1.0000000000000000*2^-1]
+  a ∈ [-0.0000000000000000 .. 1.0000000000000000]
+  b ∈ [-0.0000000000000000 .. 0.0000000000000000]
+  c ∈ [-2.0000000000000000 .. -0.0000000000000000]
+[value] Values at end of function test_trunc_det:
+  a ∈ {1.0000000000000000}
+  b ∈ {0}
+  c ∈ {0}
+  d ∈ {-0.0000000000000000}
+  e ∈ {-0.0000000000000000}
+  f ∈ {-1.0000000000000000}
+[value] Values at end of function test_truncf:
+  f32__x ∈ [-2.500000 .. -1.000000*2^-1]
+  f32__a ∈ [-0.000000 .. 1.000000]
+  f32__b ∈ [-0.000000 .. 0.000000]
+  f32__c ∈ [-2.000000 .. -0.000000]
+[value] Values at end of function test_truncf_det:
+  f32__a ∈ {1.000000}
+  f32__b ∈ {0}
+  f32__c ∈ {0}
+  f32__d ∈ {-0.000000}
+  f32__e ∈ {-0.000000}
+  f32__f ∈ {-1.000000}
+[value] Values at end of function main:
+  __retres ∈ {0}
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function double_interval:
+  __retres ∈ [-1.2237906221789607*2^1023 .. 1.2237906221789607*2^1023]
+[value] Values at end of function test_atan2:
+  x ∈ [1.0000000000000000 .. 5.0000000000000000]
+  y ∈ [-0.0000000000000000 .. 0.0000000000000000]
+  a ∈ [1.5999166744782948*2^-7 .. 1.5582969777755348]
+  b ∈ [1.3325625311548295*2^-5 .. 3.0916342578678506]
+  c ∈ [-2.9441970937399126 .. -1.3211894193170146*2^-3]
+  d ∈ [-2.9764439761751662 .. -2.6779450445889869]
+  e ∈ {-1.5707963267948965}
+  f ∈ [-1.5707963267948965*2^-1 .. -0.0000000000000000]
+  g ∈ [0.0000000000000000 .. 1.8545904360032243*2^-2]
+  h ∈ [-3.1415929794311523 .. 3.1415929794311523]
+  i ∈ [-3.1415929794311523 .. 3.1415929794311523]
+  j ∈ [-3.1415929794311523 .. 3.1415929794311523]
+  k ∈ {0}
+  l ∈ {-0.0000000000000000}
+  m ∈ {3.1415926535897931}
+  n ∈ {-3.1415926535897931}
+[value] Values at end of function test_atan2_det:
+  a ∈ {1.5707963267948965}
+  b ∈ {0}
+  c ∈ {1.5707963267948965}
+  d ∈ {-0.0000000000000000}
+  e ∈ {-1.5707963267948965}
+  f ∈ {-1.5707963267948965}
+  g ∈ {-1.5707963267948965}
+  h ∈ {-1.5707963267948965}
+  i ∈ {0}
+  j ∈ {1.1071487177940904}
+  k ∈ {-1.1071487177940904}
+  l ∈ {2.0344439357957027}
+  m ∈ {-2.0344439357957027}
+[value] Values at end of function test_ceil:
+  x ∈ [-2.5000000000000000 .. -1.0000000000000000*2^-1]
+  a ∈ [-0.0000000000000000 .. 2.0000000000000000]
+  b ∈ [-0.0000000000000000 .. 1.0000000000000000]
+  c ∈ [-2.0000000000000000 .. -0.0000000000000000]
+[value] Values at end of function test_ceil_det:
+  a ∈ {2.0000000000000000}
+  b ∈ {1.0000000000000000}
+  c ∈ {0}
+  d ∈ {-0.0000000000000000}
+  e ∈ {-0.0000000000000000}
+  f ∈ {-1.0000000000000000}
+[value] Values at end of function test_ceilf:
+  f32__x ∈ [-2.500000 .. -1.000000*2^-1]
+  f32__a ∈ [-0.000000 .. 2.000000]
+  f32__b ∈ [-0.000000 .. 1.000000]
+  f32__c ∈ [-2.000000 .. -0.000000]
+[value] Values at end of function test_ceilf_det:
+  f32__a ∈ {2.000000}
+  f32__b ∈ {1.000000}
+  f32__c ∈ {0}
+  f32__d ∈ {-0.000000}
+  f32__e ∈ {-0.000000}
+  f32__f ∈ {-1.000000}
+[value] Values at end of function test_cos_det:
+  x ∈ {1.0806046117362795*2^-1}
+  y ∈ {1.0000000000000000}
+  z ∈ {1.0806046117362795*2^-1}
+[value] Values at end of function test_diff_pow_powf:
+  d ∈ {1.3824840787361052*2^-96}
+  f32__f ∈ {1.382483*2^-96}
+[value] Values at end of function test_exp_det:
+  a ∈ {1.7094457008275896*2^60}
+  b ∈ {1.0826822658929016*2^-3}
+  c ∈ {1.0000000000000000}
+  d ∈ {1.0000000000000000}
+  e ∈ {1.4715177646857693*2^-2}
+[value] Values at end of function test_expf_det:
+  f32__a ∈ {1.709445*2^60}
+  f32__b ∈ {1.082682*2^-3}
+  f32__c ∈ {1.000000}
+  f32__d ∈ {1.000000}
+  f32__e ∈ {1.471517*2^-2}
+[value] Values at end of function test_floor:
+  x ∈ [-2.5000000000000000 .. -1.0000000000000000*2^-1]
+  a ∈ [-1.0000000000000000 .. 1.0000000000000000]
+  b ∈ [-0.0000000000000000 .. 0.0000000000000000]
+  c ∈ [-3.0000000000000000 .. -1.0000000000000000]
+[value] Values at end of function test_floor_det:
+  a ∈ {1.0000000000000000}
+  b ∈ {0}
+  c ∈ {0}
+  d ∈ {-0.0000000000000000}
+  e ∈ {-1.0000000000000000}
+  f ∈ {-2.0000000000000000}
+[value] Values at end of function test_floorf:
+  f32__x ∈ [-2.500000 .. -1.000000*2^-1]
+  f32__a ∈ [-1.000000 .. 1.000000]
+  f32__b ∈ [-0.000000 .. 0.000000]
+  f32__c ∈ [-3.000000 .. -1.000000]
+[value] Values at end of function test_floorf_det:
+  f32__a ∈ {1.000000}
+  f32__b ∈ {0}
+  f32__c ∈ {0}
+  f32__d ∈ {-0.000000}
+  f32__e ∈ {-1.000000}
+  f32__f ∈ {-2.000000}
+[value] Values at end of function test_fmod:
+  x ∈ [-3.0000000000000000 .. 2.0000000000000000]
+  y ∈ [-4.0000000000000000 .. 5.0000000000000000]
+  a ∈ [0.0000000000000000 .. 1.4999999999999998]
+  b ∈ [0.0000000000000000 .. 1.4999999999999998]
+  c ∈ [-1.4999999999999998 .. -0.0000000000000000]
+  d ∈ [-1.4999999999999998 .. -0.0000000000000000]
+  e ∈ [1.5000000000000000*2^-1 .. 1.2500000000000000]
+  f ∈ [1.5000000000000000*2^-1 .. 1.2500000000000000]
+  g ∈ [4.0000000000000000 .. 5.5000000000000000]
+  h ∈ [0.0000000000000000 .. 5.4999999999999991]
+  i ∈ [0.0000000000000000 .. 5.4999999999999991]
+  j ∈ [-4.4999999999999991 .. 4.4999999999999991]
+  k ∈ [-2.0000000000000000 .. 4.5000000000000000]
+  l ∈ [-1.9999999999999998*2^-4 .. 1.9999999999999998*2^-4]
+  m ∈ [-1.9999999999999998*2^-4 .. 1.9999999999999998*2^-4]
+  n ∈ [0.0000000000000000 .. 1.9999999999999998*2^-10]
+  o ∈ [-1.9999999999999998*2^-10 .. -0.0000000000000000]
+  p ∈ [0.0000000000000000 .. 1.9999999999999998*2^-10]
+  q ∈ [1.5000000000000000*2^-14 .. 1.0000000000000000*2^-11]
+  r ∈ [0.0000000000000000 .. 1.0000025599999997*2^-9]
+  s ∈ [0.0000000000000000 .. 1.5999999999999998*2^-4]
+  t ∈ [-1.5999999999999998*2^-4 .. -0.0000000000000000]
+  u ∈ [-3.9999999999999996 .. -0.0000000000000000]
+  v1 ∈ [1.0000000000000000 .. 3.0000000000000000]
+  v2 ∈ [1.0000000000000000 .. 3.0000000000000000]
+  v3 ∈ [-3.0000000000000000 .. -1.0000000000000000]
+  v4 ∈ [-3.0000000000000000 .. -1.0000000000000000]
+  w1 ∈ [0.0000000000000000 .. 3.0000000000000000]
+  w2 ∈ [-2.0000000000000000 .. 3.0000000000000000]
+  w3 ∈ [-3.0000000000000000 .. 2.0000000000000000]
+[value] Values at end of function test_fmod_det:
+  a ∈ {1.7500000000000000}
+  b ∈ {-1.7500000000000000}
+  c ∈ {-0.0000000000000000}
+  d ∈ {0}
+  e ∈ {0}
+  f ∈ {0}
+[value] Values at end of function test_log10_det:
+  a ∈ {1.6245399138793950}
+  b ∈ {-1.8061799739838871*2^-1}
+[value] Values at end of function test_log10f_det:
+  f32__a ∈ {1.624539}
+  f32__b ∈ {-1.806180*2^-1}
+[value] Values at end of function test_log_det:
+  a ∈ {3.7406413886725258}
+  b ∈ {-2.0794415416798357}
+[value] Values at end of function test_logf_det:
+  f32__a ∈ {3.740641}
+  f32__b ∈ {-2.079441}
+[value] Values at end of function test_pow:
+  x ∈ [-1.4551915228366852*2^36 .. -1.1641532182693481*2^33]
+  y ∈ [-1.0000000000000000*2^-1 .. 9.5000000000000000]
+  a ∈ {1.0000000000000000}
+  b ∈ {1.0000000000000000}
+  c ∈ {1.0000000000000000}
+  d ∈ [0.0000000000000000 .. 327.9450894181683225]
+  e ∈ [-64.0000000000000000 .. 1.1259101122907695*2^14]
+  f ∈ [-64.0000000000000000 .. 421.8750000000000000]
+  g ∈ [1.7652004904783322*2^-3 .. 4.7568284600108841]
+  h ∈ [1.4142135623730951*2^-3 .. 1.7469281074217106]
+  i ∈ [-1.9999999999999998*2^1023 .. 1.9999999999999998*2^1023]
+  j ∈ [-1.0000000000000000 .. 1.0000000000000000*2^537]
+  k ∈ [-1.4163703918457031*2^18 .. 1.4036245608028963*2^52]
+  l ∈ [-1024.0000000000000000 .. 256.0000000000000000]
+  m ∈ [-0.0000000000000000 .. 1.5258789062500000*2^16]
+  n ∈ [-0.0000000000000000 .. 1.9999999999999998*2^1023]
+  o ∈ {1.0000000000000000}
+  p ∈ [-1.4551915228366852*2^25 .. 1.1641532182693481*2^23]
+  q ∈ [-1.9999999999999998*2^1023 .. 1.9999999999999998*2^1023]
+  r ∈ [1.2649110640673517*2^-2 .. 1.4725502860585131*2^31]
+[value] Values at end of function test_pow_det:
+  a ∈ {1.0000000000000000}
+  b ∈ {0}
+  c ∈ {1.0000000000000000}
+  d ∈ {1.2247448713915889}
+  e ∈ {3.6539061185009513}
+  f ∈ {1.1857484052378015*2^-2}
+  g ∈ {1.6817928305074290*2^-21}
+  h ∈ {1.0000000000000000}
+[value] Values at end of function test_pow_singleton_exp:
+  x ∈ [-3.5000000000000000 .. -1.0000000000000000*2^-3]
+  c ∈ [0.0000000000000000 .. 4.5603590867386749]
+  d ∈ [1.7542478229978975*2^-3 .. 1.9999999999999998*2^1023]
+  e ∈ [-1.9999999999999998*2^1023 .. 1.9999999999999998*2^1023]
+  f ∈ [1.3061224489795917*2^-4 .. 1.9999999999999998*2^1023]
+  g ∈ [1.0000000000000000*2^975 .. 1.9999999999999998*2^1023]
+  h ∈ [-1.9999999999999998*2^1023 .. -1.3699635576194850*2^-10]
+  i ∈ [0.0000000000000000 .. 1.0000000000000000*2^-1000]
+  j ∈ [0.2500000000000000*2^-1022 .. 1.2707064924076672*2^-330]
+  k ∈ [1.7469281074217106 .. 5.6568542494923805]
+  l ∈ [2.1836601342771384 .. 11.3137084989847611]
+  m ∈ [1.3196114778086369*2^-5 .. 22.6274169979695223]
+  n ∈ [1.9097831327702532*2^-4 .. 8.0000000000000000]
+  o ∈ [1.4142135623730951*2^-1 .. 1.4251349413858991]
+  p ∈ [1.6817928305074290*2^-4 .. 10.0014719999210708]
+  q ∈ [1.0000000000000000*2^-8 .. 289.5314941406250000]
+  r ∈ [1.3061224489795917*2^-4 .. 64.0000000000000000]
+  s ∈ [-8.0000000000000000 .. -1.1428571428571428*2^-2]
+[value] Values at end of function test_powf:
+  f32__x ∈ [-0.000000 .. 10.000000]
+  f32__y ∈ [-0.000000 .. 5.000000]
+  f32__a ∈ {1.000000}
+  f32__b ∈ {1.000000}
+  f32__c ∈ {1.000000}
+  f32__d ∈ [0.000000 .. 327.945098]
+  f32__e ∈ [-64.000000 .. 1.125910*2^14]
+  f32__f ∈ [-64.000000 .. 421.875000]
+  f32__g ∈ [1.765200*2^-3 .. 4.756828]
+  f32__h ∈ [1.414213*2^-3 .. 1.746928]
+  f32__i ∈ [-1.999999*2^127 .. 1.999999*2^127]
+  f32__j ∈ [-1.000000 .. 1.414213*2^74]
+  f32__k ∈ [-1.416370*2^18 .. 1.403624*2^52]
+  f32__l ∈ [-1024.000000 .. 256.000000]
+  f32__m ∈ [-0.000000 .. 1.525878*2^16]
+[value] Values at end of function test_powf_det:
+  f32__a ∈ {1.000000}
+  f32__b ∈ {0}
+  f32__c ∈ {1.000000}
+  f32__d ∈ {1.224744}
+  f32__e ∈ {3.653906}
+  f32__f ∈ {1.185748*2^-2}
+  f32__g ∈ {1.681792*2^-21}
+  f32__h ∈ {1.000000}
+[value] Values at end of function test_powf_singleton_exp:
+  f32__x ∈ [-3.500000 .. -1.000000*2^-3]
+  f32__c ∈ [0.000000 .. 4.560359]
+  f32__d ∈ [1.754247*2^-3 .. 1.999999*2^127]
+  f32__e ∈ [-1.999999*2^127 .. 1.999999*2^127]
+  f32__f ∈ [1.306122*2^-4 .. 1.999999*2^127]
+  f32__g ∈ [1.000002*2^116 .. 1.741105*2^121]
+  f32__h ∈ [-1.999999*2^127 .. -1.369963*2^-10]
+  f32__i ∈ [0.000000 .. 1.000000*2^-120]
+  f32__j ∈ {0}
+  f32__k ∈ [1.746928 .. 5.656854]
+  f32__l ∈ [2.183660 .. 11.313708]
+  f32__m ∈ [1.319611*2^-5 .. 22.627416]
+  f32__n ∈ [1.909783*2^-4 .. 8.000000]
+  f32__o ∈ [1.414213*2^-1 .. 1.425134]
+  f32__p ∈ [1.681792*2^-4 .. 10.001472]
+  f32__q ∈ [1.000000*2^-8 .. 289.531494]
+  f32__r ∈ [1.306122*2^-4 .. 64.000000]
+  f32__s ∈ [-8.000000 .. -1.142857*2^-2]
+[value] Values at end of function test_round:
+  x ∈ [-2.5000000000000000 .. -1.0000000000000000*2^-1]
+  a ∈ [-1.0000000000000000 .. 2.0000000000000000]
+  b ∈ [-0.0000000000000000 .. 1.0000000000000000]
+  c ∈ [-3.0000000000000000 .. -1.0000000000000000]
+[value] Values at end of function test_round_det:
+  a ∈ {2.0000000000000000}
+  b ∈ {1.0000000000000000}
+  c ∈ {0}
+  d ∈ {-0.0000000000000000}
+  e ∈ {-1.0000000000000000}
+  f ∈ {-2.0000000000000000}
+[value] Values at end of function test_roundf:
+  f32__x ∈ [-2.500000 .. -1.000000*2^-1]
+  f32__a ∈ [-1.000000 .. 2.000000]
+  f32__b ∈ [-0.000000 .. 1.000000]
+  f32__c ∈ [-3.000000 .. -1.000000]
+[value] Values at end of function test_roundf_det:
+  f32__a ∈ {2.000000}
+  f32__b ∈ {1.000000}
+  f32__c ∈ {0}
+  f32__d ∈ {-0.000000}
+  f32__e ∈ {-1.000000}
+  f32__f ∈ {-2.000000}
+[value] Values at end of function test_sin_det:
+  x ∈ {1.6829419696157930*2^-1}
+  y ∈ {0}
+  z ∈ {-1.6829419696157930*2^-1}
+[value] Values at end of function test_sqrt:
+  x ∈ [-6.5000000000000000 .. -1.6000000000000000*2^-4]
+  a ∈ [-0.0000000000000000 .. 2.2360679774997898]
+  b ∈ [-0.0000000000000000 .. 0.0000000000000000]
+  c ∈ {-0.0000000000000000}
+[value] Values at end of function test_sqrt_det:
+  a ∈ {6.4903774928735851}
+  b ∈ {1.4142135623730951*2^-2}
+  c ∈ {0}
+  d ∈ {-0.0000000000000000}
+[value] Values at end of function test_sqrtf:
+  f32__x ∈ [-6.500000 .. -1.600000*2^-4]
+  f32__a ∈ [-0.000000 .. 2.236068]
+  b ∈ [-0.0000000000000000 .. 0.0000000000000000]
+  c ∈ {-0.0000000000000000}
+[value] Values at end of function test_sqrtf_det:
+  f32__a ∈ {6.490377}
+  f32__b ∈ {1.414213*2^-2}
+  f32__c ∈ {0}
+  f32__d ∈ {-0.000000}
+[value] Values at end of function test_trunc:
+  x ∈ [-2.5000000000000000 .. -1.0000000000000000*2^-1]
+  a ∈ [-0.0000000000000000 .. 1.0000000000000000]
+  b ∈ [-0.0000000000000000 .. 0.0000000000000000]
+  c ∈ [-2.0000000000000000 .. -0.0000000000000000]
+[value] Values at end of function test_trunc_det:
+  a ∈ {1.0000000000000000}
+  b ∈ {0}
+  c ∈ {0}
+  d ∈ {-0.0000000000000000}
+  e ∈ {-0.0000000000000000}
+  f ∈ {-1.0000000000000000}
+[value] Values at end of function test_truncf:
+  f32__x ∈ [-2.500000 .. -1.000000*2^-1]
+  f32__a ∈ [-0.000000 .. 1.000000]
+  f32__b ∈ [-0.000000 .. 0.000000]
+  f32__c ∈ [-2.000000 .. -0.000000]
+[value] Values at end of function test_truncf_det:
+  f32__a ∈ {1.000000}
+  f32__b ∈ {0}
+  f32__c ∈ {0}
+  f32__d ∈ {-0.000000}
+  f32__e ∈ {-0.000000}
+  f32__f ∈ {-1.000000}
+[value] Values at end of function main:
+  __retres ∈ {0}
+[from] Computing for function double_interval
+[from] Done for function double_interval
+[from] Computing for function test_atan2
+[from] Computing for function atan2 <-test_atan2
+[from] Done for function atan2
+[from] Done for function test_atan2
+[from] Computing for function test_atan2_det
+[from] Done for function test_atan2_det
+[from] Computing for function test_ceil
+[from] Computing for function ceil <-test_ceil
+[from] Done for function ceil
+[from] Done for function test_ceil
+[from] Computing for function test_ceil_det
+[from] Done for function test_ceil_det
+[from] Computing for function test_ceilf
+[from] Computing for function ceilf <-test_ceilf
+[from] Done for function ceilf
+[from] Done for function test_ceilf
+[from] Computing for function test_ceilf_det
+[from] Done for function test_ceilf_det
+[from] Computing for function test_cos_det
+[from] Computing for function cos <-test_cos_det
+[from] Done for function cos
+[from] Done for function test_cos_det
+[from] Computing for function test_diff_pow_powf
+[from] Computing for function pow <-test_diff_pow_powf
+[from] Done for function pow
+[from] Computing for function powf <-test_diff_pow_powf
+[from] Done for function powf
+[from] Done for function test_diff_pow_powf
+[from] Computing for function test_exp_det
+[from] Computing for function exp <-test_exp_det
+[from] Done for function exp
+[from] Done for function test_exp_det
+[from] Computing for function test_expf_det
+[from] Computing for function expf <-test_expf_det
+[from] Done for function expf
+[from] Done for function test_expf_det
+[from] Computing for function test_floor
+[from] Computing for function floor <-test_floor
+[from] Done for function floor
+[from] Done for function test_floor
+[from] Computing for function test_floor_det
+[from] Done for function test_floor_det
+[from] Computing for function test_floorf
+[from] Computing for function floorf <-test_floorf
+[from] Done for function floorf
+[from] Done for function test_floorf
+[from] Computing for function test_floorf_det
+[from] Done for function test_floorf_det
+[from] Computing for function test_fmod
+[from] Computing for function fmod <-test_fmod
+[from] Done for function fmod
+[from] Done for function test_fmod
+[from] Computing for function test_fmod_det
+[from] Done for function test_fmod_det
+[from] Computing for function test_log10_det
+[from] Computing for function log10 <-test_log10_det
+[from] Done for function log10
+[from] Done for function test_log10_det
+[from] Computing for function test_log10f_det
+[from] Computing for function log10f <-test_log10f_det
+[from] Done for function log10f
+[from] Done for function test_log10f_det
+[from] Computing for function test_log_det
+[from] Computing for function log <-test_log_det
+[from] Done for function log
+[from] Done for function test_log_det
+[from] Computing for function test_logf_det
+[from] Computing for function logf <-test_logf_det
+[from] Done for function logf
+[from] Done for function test_logf_det
+[from] Computing for function test_pow
+[from] Done for function test_pow
+[from] Computing for function test_pow_det
+[from] Done for function test_pow_det
+[from] Computing for function test_pow_singleton_exp
+[from] Done for function test_pow_singleton_exp
+[from] Computing for function test_powf
+[from] Done for function test_powf
+[from] Computing for function test_powf_det
+[from] Done for function test_powf_det
+[from] Computing for function test_powf_singleton_exp
+[from] Done for function test_powf_singleton_exp
+[from] Computing for function test_round
+[from] Computing for function round <-test_round
+[from] Done for function round
+[from] Done for function test_round
+[from] Computing for function test_round_det
+[from] Done for function test_round_det
+[from] Computing for function test_roundf
+[from] Computing for function roundf <-test_roundf
+[from] Done for function roundf
+[from] Done for function test_roundf
+[from] Computing for function test_roundf_det
+[from] Done for function test_roundf_det
+[from] Computing for function test_sin_det
+[from] Computing for function sin <-test_sin_det
+[from] Done for function sin
+[from] Done for function test_sin_det
+[from] Computing for function test_sqrt
+[from] Computing for function sqrt <-test_sqrt
+[from] Done for function sqrt
+[from] Done for function test_sqrt
+[from] Computing for function test_sqrt_det
+[from] Done for function test_sqrt_det
+[from] Computing for function test_sqrtf
+[from] Computing for function sqrtf <-test_sqrtf
+[from] Done for function sqrtf
+[from] Done for function test_sqrtf
+[from] Computing for function test_sqrtf_det
+[from] Done for function test_sqrtf_det
+[from] Computing for function test_trunc
+[from] Computing for function trunc <-test_trunc
+[from] Done for function trunc
+[from] Done for function test_trunc
+[from] Computing for function test_trunc_det
+[from] Done for function test_trunc_det
+[from] Computing for function test_truncf
+[from] Computing for function truncf <-test_truncf
+[from] Done for function truncf
+[from] Done for function test_truncf
+[from] Computing for function test_truncf_det
+[from] Done for function test_truncf_det
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function atan2:
+  \result FROM y; x
+[from] Function ceil:
+  \result FROM x
+[from] Function ceilf:
+  \result FROM x
+[from] Function cos:
+  \result FROM x
+[from] Function double_interval:
+  \result FROM min; max; nondet
+[from] Function exp:
+  \result FROM x
+[from] Function expf:
+  \result FROM x
+[from] Function floor:
+  \result FROM x
+[from] Function floorf:
+  \result FROM x
+[from] Function fmod:
+  \result FROM x; y
+[from] Function log:
+  \result FROM x
+[from] Function log10:
+  \result FROM x
+[from] Function log10f:
+  \result FROM x
+[from] Function logf:
+  \result FROM x
+[from] Function pow:
+  \result FROM x; y
+[from] Function powf:
+  \result FROM x; y
+[from] Function round:
+  \result FROM x
+[from] Function roundf:
+  \result FROM x
+[from] Function sin:
+  \result FROM x
+[from] Function sqrt:
+  \result FROM x
+[from] Function sqrtf:
+  \result FROM x
+[from] Function test_atan2:
+  NO EFFECTS
+[from] Function test_atan2_det:
+  NO EFFECTS
+[from] Function test_ceil:
+  NO EFFECTS
+[from] Function test_ceil_det:
+  NO EFFECTS
+[from] Function test_ceilf:
+  NO EFFECTS
+[from] Function test_ceilf_det:
+  NO EFFECTS
+[from] Function test_cos_det:
+  NO EFFECTS
+[from] Function test_diff_pow_powf:
+  NO EFFECTS
+[from] Function test_exp_det:
+  NO EFFECTS
+[from] Function test_expf_det:
+  NO EFFECTS
+[from] Function test_floor:
+  NO EFFECTS
+[from] Function test_floor_det:
+  NO EFFECTS
+[from] Function test_floorf:
+  NO EFFECTS
+[from] Function test_floorf_det:
+  NO EFFECTS
+[from] Function test_fmod:
+  NO EFFECTS
+[from] Function test_fmod_det:
+  NO EFFECTS
+[from] Function test_log10_det:
+  NO EFFECTS
+[from] Function test_log10f_det:
+  NO EFFECTS
+[from] Function test_log_det:
+  NO EFFECTS
+[from] Function test_logf_det:
+  NO EFFECTS
+[from] Function test_pow:
+  NO EFFECTS
+[from] Function test_pow_det:
+  NO EFFECTS
+[from] Function test_pow_singleton_exp:
+  NO EFFECTS
+[from] Function test_powf:
+  NO EFFECTS
+[from] Function test_powf_det:
+  NO EFFECTS
+[from] Function test_powf_singleton_exp:
+  NO EFFECTS
+[from] Function test_round:
+  NO EFFECTS
+[from] Function test_round_det:
+  NO EFFECTS
+[from] Function test_roundf:
+  NO EFFECTS
+[from] Function test_roundf_det:
+  NO EFFECTS
+[from] Function test_sin_det:
+  NO EFFECTS
+[from] Function test_sqrt:
+  NO EFFECTS
+[from] Function test_sqrt_det:
+  NO EFFECTS
+[from] Function test_sqrtf:
+  NO EFFECTS
+[from] Function test_sqrtf_det:
+  NO EFFECTS
+[from] Function trunc:
+  \result FROM x
+[from] Function test_trunc:
+  NO EFFECTS
+[from] Function test_trunc_det:
+  NO EFFECTS
+[from] Function truncf:
+  \result FROM x
+[from] Function test_truncf:
+  NO EFFECTS
+[from] Function test_truncf_det:
+  NO EFFECTS
+[from] Function main:
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function double_interval:
+          __retres
+[inout] Inputs for function double_interval:
+          nondet
+[inout] Out (internal) for function test_atan2:
+          x; y; a; b; c; d; e; f; g; h; i; j; k; l; m; n
+[inout] Inputs for function test_atan2:
+          nondet
+[inout] Out (internal) for function test_atan2_det:
+          a; b; c; d; e; f; g; h; i; j; k; l; m
+[inout] Inputs for function test_atan2_det:
+          \nothing
+[inout] Out (internal) for function test_ceil:
+          x; a; b; c
+[inout] Inputs for function test_ceil:
+          nondet
+[inout] Out (internal) for function test_ceil_det:
+          a; b; c; d; e; f
+[inout] Inputs for function test_ceil_det:
+          \nothing
+[inout] Out (internal) for function test_ceilf:
+          f32__x; tmp; f32__a; tmp_1; f32__b; tmp_3; f32__c
+[inout] Inputs for function test_ceilf:
+          nondet
+[inout] Out (internal) for function test_ceilf_det:
+          f32__a; f32__b; f32__c; f32__d; f32__e; f32__f
+[inout] Inputs for function test_ceilf_det:
+          \nothing
+[inout] Out (internal) for function test_cos_det:
+          x; y; z
+[inout] Inputs for function test_cos_det:
+          \nothing
+[inout] Out (internal) for function test_diff_pow_powf:
+          d; f32__f
+[inout] Inputs for function test_diff_pow_powf:
+          \nothing
+[inout] Out (internal) for function test_exp_det:
+          a; b; c; d; e
+[inout] Inputs for function test_exp_det:
+          nondet
+[inout] Out (internal) for function test_expf_det:
+          f32__a; f32__b; f32__c; f32__d; f32__e
+[inout] Inputs for function test_expf_det:
+          \nothing
+[inout] Out (internal) for function test_floor:
+          x; a; b; c
+[inout] Inputs for function test_floor:
+          nondet
+[inout] Out (internal) for function test_floor_det:
+          a; b; c; d; e; f
+[inout] Inputs for function test_floor_det:
+          \nothing
+[inout] Out (internal) for function test_floorf:
+          f32__x; tmp; f32__a; tmp_1; f32__b; tmp_3; f32__c
+[inout] Inputs for function test_floorf:
+          nondet
+[inout] Out (internal) for function test_floorf_det:
+          f32__a; f32__b; f32__c; f32__d; f32__e; f32__f
+[inout] Inputs for function test_floorf_det:
+          \nothing
+[inout] Out (internal) for function test_fmod:
+          x; y; a; b; c; d; e; f; g; h; i; j; k; l; m; n; o; p; q; r; s; tmp_18; 
+          t; u; v1; v2; v3; v4; w1; w2; w3
+[inout] Inputs for function test_fmod:
+          nondet
+[inout] Out (internal) for function test_fmod_det:
+          a; b; c; d; e; f
+[inout] Inputs for function test_fmod_det:
+          nondet
+[inout] Out (internal) for function test_log10_det:
+          a; b
+[inout] Inputs for function test_log10_det:
+          nondet
+[inout] Out (internal) for function test_log10f_det:
+          f32__a; f32__b
+[inout] Inputs for function test_log10f_det:
+          nondet
+[inout] Out (internal) for function test_log_det:
+          a; b
+[inout] Inputs for function test_log_det:
+          nondet
+[inout] Out (internal) for function test_logf_det:
+          f32__a; f32__b
+[inout] Inputs for function test_logf_det:
+          nondet
+[inout] Out (internal) for function test_pow:
+          x; y; a; b; c; d; e; f; g; h; i; j; k; l; m; n; o; p; q; r
+[inout] Inputs for function test_pow:
+          nondet
+[inout] Out (internal) for function test_pow_det:
+          a; b; c; d; e; f; g; h
+[inout] Inputs for function test_pow_det:
+          \nothing
+[inout] Out (internal) for function test_pow_singleton_exp:
+          x; c; d; e; f; g; h; i; j; k; l; m; n; o; p; q; r; s
+[inout] Inputs for function test_pow_singleton_exp:
+          nondet
+[inout] Out (internal) for function test_powf:
+          f32__x; f32__y; tmp; f32__a; tmp_1; f32__b; tmp_3; f32__c; tmp_5; tmp_6;
+          f32__d; tmp_8; f32__e; tmp_10; f32__f; tmp_12; tmp_13; f32__g; tmp_15;
+          tmp_16; f32__h; tmp_18; tmp_19; f32__i; tmp_21; tmp_22; f32__j; tmp_24;
+          tmp_25; f32__k; tmp_27; tmp_28; f32__l; tmp_30; tmp_31; f32__m
+[inout] Inputs for function test_powf:
+          nondet
+[inout] Out (internal) for function test_powf_det:
+          f32__a; f32__b; f32__c; f32__d; f32__e; f32__f; f32__g; f32__h
+[inout] Inputs for function test_powf_det:
+          \nothing
+[inout] Out (internal) for function test_powf_singleton_exp:
+          f32__x; tmp; tmp_0; f32__c; f32__d; f32__e; f32__f; tmp_5; f32__g; 
+          tmp_7; f32__h; tmp_9; f32__i; tmp_11; f32__j; f32__k; f32__l; tmp_15;
+          f32__m; f32__n; f32__o; f32__p; f32__q; tmp_21; f32__r; f32__s
+[inout] Inputs for function test_powf_singleton_exp:
+          nondet
+[inout] Out (internal) for function test_round:
+          x; a; b; c
+[inout] Inputs for function test_round:
+          nondet
+[inout] Out (internal) for function test_round_det:
+          a; b; c; d; e; f
+[inout] Inputs for function test_round_det:
+          \nothing
+[inout] Out (internal) for function test_roundf:
+          f32__x; tmp; f32__a; tmp_1; f32__b; tmp_3; f32__c
+[inout] Inputs for function test_roundf:
+          nondet
+[inout] Out (internal) for function test_roundf_det:
+          f32__a; f32__b; f32__c; f32__d; f32__e; f32__f
+[inout] Inputs for function test_roundf_det:
+          \nothing
+[inout] Out (internal) for function test_sin_det:
+          x; y; z
+[inout] Inputs for function test_sin_det:
+          \nothing
+[inout] Out (internal) for function test_sqrt:
+          x; a; b; c
+[inout] Inputs for function test_sqrt:
+          nondet
+[inout] Out (internal) for function test_sqrt_det:
+          a; b; c; d
+[inout] Inputs for function test_sqrt_det:
+          nondet
+[inout] Out (internal) for function test_sqrtf:
+          f32__x; tmp; f32__a; tmp_1; b; tmp_3; c; tmp_5
+[inout] Inputs for function test_sqrtf:
+          nondet
+[inout] Out (internal) for function test_sqrtf_det:
+          f32__a; f32__b; f32__c; f32__d
+[inout] Inputs for function test_sqrtf_det:
+          nondet
+[inout] Out (internal) for function test_trunc:
+          x; a; b; c
+[inout] Inputs for function test_trunc:
+          nondet
+[inout] Out (internal) for function test_trunc_det:
+          a; b; c; d; e; f
+[inout] Inputs for function test_trunc_det:
+          \nothing
+[inout] Out (internal) for function test_truncf:
+          f32__x; tmp; f32__a; tmp_1; f32__b; tmp_3; f32__c
+[inout] Inputs for function test_truncf:
+          nondet
+[inout] Out (internal) for function test_truncf_det:
+          f32__a; f32__b; f32__c; f32__d; f32__e; f32__f
+[inout] Inputs for function test_truncf_det:
+          \nothing
+[inout] Out (internal) for function main:
+          __retres
+[inout] Inputs for function main:
+          nondet

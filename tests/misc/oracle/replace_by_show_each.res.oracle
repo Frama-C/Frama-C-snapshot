@@ -30,20 +30,6 @@ Cannot filter: dumping raw memory (including unchanged variables)
 [from] entry point:
   \result FROM j
 [from] ====== END OF CALLWISE DEPENDENCIES ======
-[inout] InOut (internal) for function Frama_C_show_each_1:
-        Operational inputs:
-          ANYTHING(origin:Unknown)
-        Operational inputs on termination:
-          ANYTHING(origin:Unknown)
-        Sure outputs:
-          \nothing
-[inout] InOut (internal) for function Frama_C_show_each_2:
-        Operational inputs:
-          \nothing
-        Operational inputs on termination:
-          \nothing
-        Sure outputs:
-          \nothing
 [inout] InOut (internal) for function main:
         Operational inputs:
           ANYTHING(origin:Unknown)

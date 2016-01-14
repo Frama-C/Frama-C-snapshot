@@ -28,7 +28,8 @@
    [3].pp ∈ {0}
    [3].p ∈ {{ &x }}
    [4..21] ∈ {0}
-tests/misc/struct_array.i:11:[kernel] warning: accessing out of bounds index [-128..127]. assert 0 ≤ c < 22;
+tests/misc/struct_array.i:11:[kernel] warning: accessing out of bounds index [-128..127]. assert 0 ≤ c;
+tests/misc/struct_array.i:11:[kernel] warning: accessing out of bounds index [-128..127]. assert c < 22;
 tests/misc/struct_array.i:12:[kernel] warning: out of bounds write. assert \valid(outp);
 [value] Recording results for main
 [value] done for function main

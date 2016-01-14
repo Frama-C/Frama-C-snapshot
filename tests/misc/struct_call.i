@@ -1,6 +1,6 @@
 /* run.config
-   OPT: -val -deps -out -input -journal-disable
-   OPT: -val -deps -out -input -journal-disable -machdep ppc_32
+   STDOPT: #"-machdep x86_32"
+   STDOPT: #"-machdep ppc_32"
 */
 int G= 77;
 int GG;

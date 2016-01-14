@@ -10,17 +10,22 @@
 [value] using specification for function f1
 tests/misc/cast_fun.i:6:[value] warning: no 'assigns \result \from ...' clause specified for function f1
 [value] Done for function f1
-tests/misc/cast_fun.i:63:[value] warning: Function pointer and pointed function 'f2'  have incompatible types:
+tests/misc/cast_fun.i:63:[value] warning: Function pointer and pointed function 'f2' have incompatible types:
                  int (int ) vs. int (void). assert(function type matches)
+[value] computing for function f2 <- main.
+        Called from tests/misc/cast_fun.i:63.
+[value] using specification for function f2
+tests/misc/cast_fun.i:8:[value] warning: no 'assigns \result \from ...' clause specified for function f2
+[value] Done for function f2
 [value] computing for function f3 <- main.
         Called from tests/misc/cast_fun.i:68.
 [value] using specification for function f3
 tests/misc/cast_fun.i:10:[value] warning: no 'assigns \result \from ...' clause specified for function f3
 [value] Done for function f3
-tests/misc/cast_fun.i:73:[value] warning: Function pointer and pointed function 'f4'  have incompatible types:
-                 int (int ) vs. void (int ). assert(function type matches)
-tests/misc/cast_fun.i:78:[value] warning: Function pointer and pointed function 'f5'  have incompatible types:
-                 int (int ) vs. int (int , int ). assert(function type matches)
+tests/misc/cast_fun.i:73:[value] warning: Function pointer and pointed function 'f4' have completely incompatible
+                 types: int (int ) vs. void (int ). assert(function type matches)
+tests/misc/cast_fun.i:78:[value] warning: Function pointer and pointed function 'f5' have completely incompatible
+                 types: int (int ) vs. int (int , int ). assert(function type matches)
 [value] computing for function f6 <- main.
         Called from tests/misc/cast_fun.i:83.
 [value] using specification for function f6
@@ -29,36 +34,37 @@ tests/misc/cast_fun.i:78:[value] warning: Function pointer and pointed function 
         Called from tests/misc/cast_fun.i:88.
 [value] using specification for function f7
 [value] Done for function f7
-tests/misc/cast_fun.i:93:[value] warning: Function pointer and pointed function 'f8'  have incompatible types:
-                 void (struct s1 ) vs. void (struct s3 ). assert(function type matches)
+tests/misc/cast_fun.i:93:[value] warning: Function pointer and pointed function 'f8' have completely incompatible
+                 types: void (struct s1 ) vs. void (struct s3 ). assert(function type matches)
 [value] computing for function f9 <- main.
         Called from tests/misc/cast_fun.i:98.
 [value] using specification for function f9
 [value] Done for function f9
-tests/misc/cast_fun.i:103:[value] warning: Function pointer and pointed function 'f10'  have incompatible types:
-                 void (int  , ...) vs. void (). assert(function type matches)
-tests/misc/cast_fun.i:108:[value] warning: Function pointer and pointed function 'f9'  have incompatible types: void (
-                 ) vs. void (int  , ...). assert(function type matches)
+tests/misc/cast_fun.i:103:[value] warning: Function pointer and pointed function 'f10' have completely incompatible
+                 types: void (int  , ...) vs. void (). assert(function type matches)
+tests/misc/cast_fun.i:108:[value] warning: Function pointer and pointed function 'f9' have completely incompatible
+                 types: void () vs. void (int  , ...). assert(function type matches)
 [value] computing for function f10 <- main.
         Called from tests/misc/cast_fun.i:113.
 [value] using specification for function f10
 [value] Done for function f10
-tests/misc/cast_fun.i:118:[value] warning: Function pointer and pointed function 'f10'  have incompatible types:
-                 int (int ) vs. void (). assert(function type matches)
-tests/misc/cast_fun.i:123:[value] warning: Function pointer and pointed function 'f10'  have incompatible types:
-                 int (int ) vs. void (). assert(function type matches)
-tests/misc/cast_fun.i:128:[value] warning: Function pointer and pointed function 'f1'  have incompatible types: void (
-                 ) vs. int (). assert(function type matches)
+tests/misc/cast_fun.i:118:[value] warning: Function pointer and pointed function 'f10' have completely incompatible
+                 types: int (int ) vs. void (). assert(function type matches)
+tests/misc/cast_fun.i:123:[value] warning: Function pointer and pointed function 'f10' have completely incompatible
+                 types: int (int ) vs. void (). assert(function type matches)
+tests/misc/cast_fun.i:128:[value] warning: Function pointer and pointed function 'f1' have completely incompatible
+                 types: void () vs. int (). assert(function type matches)
 [value] Recording results for main
 [from] Computing for function main
 tests/misc/cast_fun.i:58:[from] warning: variadic call detected. Using only 0 argument(s).
+tests/misc/cast_fun.i:63:[from] warning: variadic call detected. Using only 0 argument(s).
 tests/misc/cast_fun.i:98:[from] warning: variadic call detected. Using only 1 argument(s).
 tests/misc/cast_fun.i:113:[from] warning: variadic call detected. Using only 0 argument(s).
 [from] Done for function main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
 [value] Values at end of function main:
-  p1 ∈ {{ &f1 ; &f3 }} or UNINITIALIZED
+  p1 ∈ {{ &f1 ; (int (*)(int ))&f2 ; &f3 }} or UNINITIALIZED
   p2 ∈ {{ &f6 ; (void (*)(struct s1 ))&f7 }} or UNINITIALIZED
   p3 ∈ {{ &f9 }} or UNINITIALIZED
   p4 ∈ {{ &f10 }} or UNINITIALIZED
@@ -67,6 +73,8 @@ tests/misc/cast_fun.i:113:[from] warning: variadic call detected. Using only 0 a
 [from] Computing for function main
 [from] Computing for function f1 <-main
 [from] Done for function f1
+[from] Computing for function f2 <-main
+[from] Done for function f2
 [from] Computing for function f3 <-main
 [from] Done for function f3
 [from] Computing for function f6 <-main
@@ -84,6 +92,8 @@ tests/misc/cast_fun.i:113:[from] warning: variadic call detected. Using only 0 a
   \result FROM ANYTHING(origin:Unknown)
 [from] Function f10:
   NO EFFECTS
+[from] Function f2:
+  \result FROM ANYTHING(origin:Unknown)
 [from] Function f3:
   \result FROM ANYTHING(origin:Unknown)
 [from] Function f6:
@@ -97,6 +107,8 @@ tests/misc/cast_fun.i:113:[from] warning: variadic call detected. Using only 0 a
 [from] ====== END OF DEPENDENCIES ======
 [from] ====== DISPLAYING CALLWISE DEPENDENCIES ======
 [from] call to f1 at tests/misc/cast_fun.i:58 (by main):
+  \result FROM ANYTHING(origin:Unknown)
+[from] call to f2 at tests/misc/cast_fun.i:63 (by main):
   \result FROM ANYTHING(origin:Unknown)
 [from] call to f3 at tests/misc/cast_fun.i:68 (by main):
   \result FROM ANYTHING(origin:Unknown)

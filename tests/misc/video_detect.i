@@ -1,5 +1,5 @@
 /* run.config
-   STDOPT: +"-absolute-valid-range 0x20-0x23"
+   STDOPT: #"-absolute-valid-range 0x20-0x23"
 */
 
 int G;
@@ -9,7 +9,7 @@ typedef short u16;
 static int detect_video(void *video_base)
 {
    volatile u16 *p = (u16 *)video_base;
-//   CEA_F(p,p[0]);
+//   Frama_C_show_each_F(p,p[0]);
    u16 saved1 = p[0];
    u16 saved2 = p[1];
    int video_found = 1;

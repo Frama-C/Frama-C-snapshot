@@ -6,7 +6,8 @@
 [value] Values of globals at initialization
   t[0..11] ∈ {0}
   G ∈ {0}
-tests/misc/copy_paste.i:8:[kernel] warning: accessing out of bounds index {-3; 4}. assert 0 ≤ j < 12;
+tests/misc/copy_paste.i:8:[kernel] warning: accessing out of bounds index {-3; 4}. assert 0 ≤ j;
+tests/misc/copy_paste.i:8:[kernel] warning: accessing out of bounds index {-3; 4}. assert j < 12;
 tests/misc/copy_paste.i:9:[kernel] warning: out of bounds read. assert \valid_read((int *)l);
 [value] Recording results for main
 [value] done for function main

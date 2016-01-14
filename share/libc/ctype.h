@@ -22,7 +22,11 @@
 
 #ifndef __FC_CTYPE
 #define __FC_CTYPE
+#include "features.h"
+
 /* ISO C : 7.4.1 */
+
+__BEGIN_DECLS
 
 /*@ assigns \result \from c ; */
 int isalnum(int c);
@@ -71,5 +75,7 @@ int toupper(int c);
 /* POSIX */
 /*@ assigns \result \from c ; */
 int isascii(int c);
+
+__END_DECLS
 
 #endif

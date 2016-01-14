@@ -1,0 +1,40 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/pdg/inter_alias2.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  
+[value] computing for function f1 <- main.
+        Called from tests/pdg/inter_alias2.c:23.
+[value] computing for function incr_ptr <- f1 <- main.
+        Called from tests/pdg/inter_alias2.c:14.
+tests/pdg/inter_alias2.c:9:[kernel] warning: signed overflow. assert *p+1 ≤ 2147483647;
+[value] Recording results for incr_ptr
+[value] Done for function incr_ptr
+[value] Recording results for f1
+[value] Done for function f1
+[value] computing for function f2 <- main.
+        Called from tests/pdg/inter_alias2.c:24.
+[value] computing for function incr_ptr <- f2 <- main.
+        Called from tests/pdg/inter_alias2.c:19.
+[value] Recording results for incr_ptr
+[value] Done for function incr_ptr
+[value] Recording results for f2
+[value] Done for function f2
+tests/pdg/inter_alias2.c:26:[kernel] warning: signed overflow. assert -2147483648 ≤ v1+v2;
+tests/pdg/inter_alias2.c:26:[kernel] warning: signed overflow. assert v1+v2 ≤ 2147483647;
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function incr_ptr:
+  x1 ∈ [-2147483647..2147483647]
+  x2 ∈ [-2147483647..2147483647]
+[value] Values at end of function f1:
+  x1 ∈ [-2147483647..2147483647]
+[value] Values at end of function f2:
+  x2 ∈ [-2147483647..2147483647]
+[value] Values at end of function main:
+  v1 ∈ [-2147483647..2147483647]
+  v2 ∈ [-2147483647..2147483647]
+  __retres ∈ [--..--]

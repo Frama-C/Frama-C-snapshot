@@ -15,9 +15,12 @@
 [value] Done for function init
 [value] computing for function add <- g <- main.
         Called from tests/slicing/merge.c:22.
-tests/slicing/merge.c:17:[kernel] warning: signed overflow. assert -2147483648 ≤ G1+a1 ≤ 2147483647;
-tests/slicing/merge.c:17:[kernel] warning: signed overflow. assert -2147483648 ≤ G2+a2 ≤ 2147483647;
-tests/slicing/merge.c:17:[kernel] warning: signed overflow. assert -2147483648 ≤ G3+a3 ≤ 2147483647;
+tests/slicing/merge.c:17:[kernel] warning: signed overflow. assert -2147483648 ≤ G1+a1;
+tests/slicing/merge.c:17:[kernel] warning: signed overflow. assert G1+a1 ≤ 2147483647;
+tests/slicing/merge.c:17:[kernel] warning: signed overflow. assert -2147483648 ≤ G2+a2;
+tests/slicing/merge.c:17:[kernel] warning: signed overflow. assert G2+a2 ≤ 2147483647;
+tests/slicing/merge.c:17:[kernel] warning: signed overflow. assert -2147483648 ≤ G3+a3;
+tests/slicing/merge.c:17:[kernel] warning: signed overflow. assert G3+a3 ≤ 2147483647;
 [value] Recording results for add
 [value] Done for function add
 [value] Recording results for g

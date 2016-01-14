@@ -1,6 +1,6 @@
 /* run.config
    GCC:
-   OPT: -val -deps -out -input -main f -journal-disable
+   STDOPT: #"-main f"
 */
 int TT[10]={1,2,3};
 int T[10]={1,2,3};

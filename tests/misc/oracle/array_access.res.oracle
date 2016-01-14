@@ -143,8 +143,9 @@ tests/misc/any_int.c:9:[kernel] warning: signed overflow. assert -2147483648 ≤
         Called from tests/misc/array_access.c:16.
 [value] Recording results for any_int
 [value] Done for function any_int
-[value] Called CEA_I([0..8])
-tests/misc/array_access.c:19:[kernel] warning: accessing out of bounds index [-9..-1]. assert 0 ≤ (int)((int)(-i)-1) < 10;
+[value] Called Frama_C_show_each_I([0..8])
+tests/misc/array_access.c:19:[kernel] warning: accessing out of bounds index [-9..-1]. assert 0 ≤ (int)((int)(-i)-1);
+tests/misc/array_access.c:19:[kernel] warning: accessing out of bounds index [-9..-1]. assert (int)((int)(-i)-1) < 10;
 [value] computing for function any_int <- main.
         Called from tests/misc/array_access.c:21.
 [value] Recording results for any_int

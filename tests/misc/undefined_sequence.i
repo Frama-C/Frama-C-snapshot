@@ -1,6 +1,6 @@
 /* run.config
-   STDOPT: +"-unspecified-access"
-   STDOPT: +"-no-unspecified-access"
+   STDOPT: #"-unspecified-access"
+   STDOPT: #"-no-unspecified-access"
 */
 /* detection of undefined behavior for read/write accesses
    in unspecified order

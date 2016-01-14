@@ -28,7 +28,8 @@
 [value] using specification for function unknownfun
 [value] Done for function unknownfun
 tests/misc/paths.i:41:[kernel] warning: signed overflow. assert r+1 ≤ 2147483647;
-tests/misc/paths.i:44:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert 0 ≤ w < 3;
+tests/misc/paths.i:44:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert 0 ≤ w;
+tests/misc/paths.i:44:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert w < 3;
 [value] computing for function f1 <- main.
         Called from tests/misc/paths.i:44.
 [value] Recording results for f1

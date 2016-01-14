@@ -7,8 +7,8 @@
   t[0..99] ∈ {0}
 [value] computing for function f <- main.
         Called from tests/pdg/array_struct.i:18.
-tests/pdg/array_struct.i:13:[kernel] warning: accessing out of bounds index [-2147483648..2147483647].
-                  assert 0 ≤ c < 100;
+tests/pdg/array_struct.i:13:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert 0 ≤ c;
+tests/pdg/array_struct.i:13:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert c < 100;
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function f <- main.

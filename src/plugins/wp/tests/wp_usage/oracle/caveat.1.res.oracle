@@ -1,0 +1,98 @@
+# frama-c -wp -wp-model 'Typed (Caveat)' [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_usage/caveat.i (no preprocessing)
+tests/wp_usage/caveat.i:41:[kernel] warning: parsing obsolete ACSL construct 'logic declaration'. 'an axiomatic block' should be used instead.
+[wp] Running WP plugin...
+.................................................
+... Ref Usage
+.................................................
+... Initial state
+  Nothing
+............
+... Function implicit
+   a
+  *r
+   p
+   q
+............
+... Function explicit
+   a
+  *r
+   p
+   q
+............
+... Function observer
+   a
+  *r
+   p
+   q
+.................................................
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function explicit
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_usage/caveat.i, line 28) in 'explicit':
+Assume { (* Heap *) Have: (linked Malloc_2). }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_usage/caveat.i, line 29) in 'explicit':
+Assume { (* Heap *) Have: (linked Malloc_2). }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_usage/caveat.i, line 30) in 'explicit':
+Assume { (* Heap *) Have: (linked Malloc_2). }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function implicit
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_usage/caveat.i, line 13) in 'implicit':
+Assume { (* Heap *) Have: (linked Malloc_2). }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_usage/caveat.i, line 14) in 'implicit':
+Assume { (* Heap *) Have: (linked Malloc_2). }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_usage/caveat.i, line 15) in 'implicit':
+Assume { (* Heap *) Have: (linked Malloc_2). }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function observer
+------------------------------------------------------------
+
+Goal Post-condition 'KO' in 'observer':
+Let a_0 = (shift_S (global P_a_90) 0).
+Let x_0 = Mint_2[(shiftfield_F_S_f a_0)].
+Let x_1 = 1+x_0.
+Let x_2 = Mint_2[(shiftfield_F_S_g a_0)].
+Let x_3 = 1+x_2.
+Let x_4 = x_0+x_2.
+Assume {
+  (* Domain *)
+  Type: (is_sint32 r_1) /\ (is_sint32 x_0) /\ (is_sint32 x_2)
+        /\ (is_sint32 x_1) /\ (is_sint32 x_3) /\ (is_sint32 x_4).
+  (* Heap *)
+  Have: (linked Malloc_2).
+  (* Pre-condition 'KO' in 'observer' *)
+  (* Pre-condition 'KO': *)
+  Have: (P_OBS x_0 x_2 r_1).
+}
+Prove: (P_OBS x_1 x_3 x_4).
+
+------------------------------------------------------------

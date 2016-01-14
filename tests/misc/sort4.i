@@ -1,8 +1,8 @@
 /* run.config
   GCC:
-  OPT: -val -deps -out -input  -lib-entry -main sort4_1 -journal-disable
-  OPT: -val -deps -out -input  -lib-entry -main sort4_4 -journal-disable
-  OPT: -val -deps -out -input  -lib-entry -main sort4_3 -journal-disable
+  STDOPT: #"-lib-entry -main sort4_1"
+  STDOPT: #"-lib-entry -main sort4_4"
+  STDOPT: #"-lib-entry -main sort4_3"
 */
 
 /* sort 4 integers */

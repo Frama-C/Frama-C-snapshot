@@ -1,5 +1,5 @@
 /* run.config
-   STDOPT: +"-value-msg-key initial_state -journal-disable"
+   STDOPT: #"-value-msg-key initial_state"
 */
 
 // Cf. Bts 856

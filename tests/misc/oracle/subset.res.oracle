@@ -1,0 +1,126 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/subset.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  t[0..9] ∈ {0}
+  __fc_fopen[0..511] ∈ {0}
+  _p__fc_fopen ∈ {{ &__fc_fopen[0] }}
+  v ∈ [--..--]
+[value] computing for function main1 <- main.
+        Called from tests/misc/subset.c:71.
+tests/misc/subset.c:16:[value] Assertion got status valid.
+tests/misc/subset.c:17:[value] Assertion got status valid.
+tests/misc/subset.c:18:[value] Assertion got status valid.
+tests/misc/subset.c:22:[value] Assertion got status unknown.
+[value] computing for function fopen <- main1 <- main.
+        Called from tests/misc/subset.c:25.
+[value] using specification for function fopen
+[value] Done for function fopen
+tests/misc/subset.c:26:[value] Assertion got status valid.
+[value] Recording results for main1
+[value] Done for function main1
+[value] computing for function main2 <- main.
+        Called from tests/misc/subset.c:72.
+tests/misc/subset.c:35:[value] Assertion got status valid.
+[value] Recording results for main2
+[value] Done for function main2
+[value] computing for function main3 <- main.
+        Called from tests/misc/subset.c:73.
+tests/misc/subset.c:40:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert 0 ≤ v;
+tests/misc/subset.c:40:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert v < 10;
+tests/misc/subset.c:41:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert 0 ≤ v;
+tests/misc/subset.c:41:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert v < 300;
+tests/misc/subset.c:42:[value] Assertion got status unknown.
+tests/misc/subset.c:43:[value] Assertion got status unknown.
+tests/misc/subset.c:45:[value] Assertion got status unknown.
+tests/misc/subset.c:48:[value] Assertion got status unknown.
+tests/misc/subset.c:49:[value] Assertion got status unknown.
+tests/misc/subset.c:50:[value] Assertion got status unknown.
+[value] Recording results for main3
+[value] Done for function main3
+[value] computing for function main4 <- main.
+        Called from tests/misc/subset.c:74.
+tests/misc/subset.c:55:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert 0 ≤ v;
+tests/misc/subset.c:55:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert v < 10;
+tests/misc/subset.c:56:[value] Assertion got status unknown.
+tests/misc/subset.c:57:[value] Assertion got status unknown.
+tests/misc/subset.c:59:[value] Assertion got status unknown.
+tests/misc/subset.c:60:[value] Assertion got status unknown.
+tests/misc/subset.c:61:[value] Assertion got status unknown.
+tests/misc/subset.c:63:[value] Assertion got status unknown.
+tests/misc/subset.c:64:[value] Assertion got status unknown.
+tests/misc/subset.c:65:[value] Assertion 'OK' got status valid.
+tests/misc/subset.c:66:[value] Assertion 'KO' got status unknown.
+[value] Recording results for main4
+[value] Done for function main4
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main1:
+  p ∈ {{ NULL ; &__fc_fopen + [0..14308],0%28 }}
+[value] Values at end of function main2:
+  x ∈ {1}
+  y ∈ {1}
+  z ∈ {1}
+[value] Values at end of function main3:
+  a[0..8] ∈ {5}
+   [9] ∈ [--..--]
+  b[0..100] ∈ [-10..10]
+   [101..299] ∈ [--..--]
+  z ∈ [-10..10]
+[value] Values at end of function main4:
+  a[0..4] ∈ {4; 5; 6; 7; 8}
+   [5] ∈ {5}
+   [6..9] ∈ {4; 5; 6; 7; 8}
+  k ∈ {4; 5; 6; 7; 8}
+[value] Values at end of function main:
+  
+[from] Computing for function main1
+[from] Computing for function fopen <-main1
+[from] Done for function fopen
+[from] Done for function main1
+[from] Computing for function main2
+[from] Done for function main2
+[from] Computing for function main3
+[from] Done for function main3
+[from] Computing for function main4
+[from] Done for function main4
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function fopen:
+  \result FROM _p__fc_fopen; "bla"
+[from] Function main1:
+  NO EFFECTS
+[from] Function main2:
+  NO EFFECTS
+[from] Function main3:
+  NO EFFECTS
+[from] Function main4:
+  NO EFFECTS
+[from] Function main:
+  NO EFFECTS
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main1:
+          p
+[inout] Inputs for function main1:
+          _p__fc_fopen; "bla"
+[inout] Out (internal) for function main2:
+          x; y; z
+[inout] Inputs for function main2:
+          \nothing
+[inout] Out (internal) for function main3:
+          a[0..9]; b[0..299]; z
+[inout] Inputs for function main3:
+          v
+[inout] Out (internal) for function main4:
+          a[0..9]; k
+[inout] Inputs for function main4:
+          v
+[inout] Out (internal) for function main:
+          \nothing
+[inout] Inputs for function main:
+          _p__fc_fopen; v; "bla"

@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -val -deps -out -input -journal-disable
+   COMMENT: this line preserves locations...
 */
 int a,b,d,e,i,*p,*q;
 

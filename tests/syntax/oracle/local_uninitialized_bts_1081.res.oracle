@@ -17,8 +17,7 @@ int main(void)
     if (y) ;
   if (! foo) 
     if (y) ;
-  {
-    /*sequence*/
+  { /* sequence */
     if (foo) ;
     ;
   }

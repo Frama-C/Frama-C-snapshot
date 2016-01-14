@@ -5,7 +5,8 @@
 [value] Initial state computed
 [value] Values of globals at initialization
   
-tests/misc/cmp.i:10:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert 0 ≤ d < 10;
+tests/misc/cmp.i:10:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert 0 ≤ d;
+tests/misc/cmp.i:10:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert d < 10;
 [value] computing for function cmp <- main.
         Called from tests/misc/cmp.i:11.
 tests/misc/cmp.i:4:[kernel] warning: accessing uninitialized left-value: assert \initialized(s1);

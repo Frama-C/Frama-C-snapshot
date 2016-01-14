@@ -43,8 +43,7 @@ int f_slice_1(void)
 int main(void)
 {
   int tmp;
-  {
-    /*sequence*/
+  { /* sequence */
     tmp = f_slice_1();
     G += tmp;
   }

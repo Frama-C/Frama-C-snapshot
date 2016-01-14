@@ -33,6 +33,7 @@
 [value] Done for function st
 [value] computing for function tt <- main.
         Called from tests/misc/attribute-aligned.c:100.
+tests/misc/attribute-aligned.c:84:[kernel] 0-sized location
 [value] Recording results for tt
 [value] Done for function tt
 [value] Recording results for main

@@ -1,5 +1,5 @@
 /* run.config
-   STDOPT: +"-slevel 5 -slevel-function main:0 -slevel-function gu:21 -slevel-function ginc:21"
+   STDOPT: #"-slevel 5 -slevel-function main:0 -slevel-function gu:21 -slevel-function ginc:21"
 */
 
 volatile int c;

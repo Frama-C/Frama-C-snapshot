@@ -13,8 +13,7 @@ int main(void)
   struct S s4;
   struct S s5;
   s1.f = 0;
-  {
-    /*sequence*/
+  { /* sequence */
     s5.f = s1.f;
     s4.f = s5.f;
     s3.f = s4.f;

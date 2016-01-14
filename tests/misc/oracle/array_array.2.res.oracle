@@ -9,7 +9,7 @@
   next_free ∈ {0}
 [value] computing for function LIB_MEM_StaticAlloc <- main3.
         Called from tests/misc/array_array.c:66.
-[value] Called CEA_ALLOCATION_WITH_STATIC_ALLOC({24})
+[value] Called Frama_C_show_each_ALLOCATION_WITH_STATIC_ALLOC({24})
 [value] Recording results for LIB_MEM_StaticAlloc
 [value] Done for function LIB_MEM_StaticAlloc
 tests/misc/array_array.c:68:[value] entering loop for the first time

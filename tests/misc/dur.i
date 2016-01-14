@@ -1,6 +1,6 @@
 /* run.config
   GCC:
-  OPT: -float-normal -val -deps -out -input  -main F2 -journal-disable
+  STDOPT: #"-float-normal -main F2"
 */
 
 struct T1 {

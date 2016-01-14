@@ -1,5 +1,5 @@
 /* run.config
-   STDOPT: +"-big-ints-hex 65536"
+   STDOPT: #"-big-ints-hex 65536"
 */
 
 float f;

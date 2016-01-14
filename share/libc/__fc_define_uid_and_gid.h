@@ -22,7 +22,10 @@
 
 #ifndef __FC_DEFINE_UID_AND_GID
 #define __FC_DEFINE_UID_AND_GID
+#include "features.h"
+__BEGIN_DECLS
 typedef unsigned int gid_t;
 typedef unsigned int uid_t;
+__END_DECLS
 #endif
 

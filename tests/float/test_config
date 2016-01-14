@@ -1,1 +1,0 @@
-CMD: FRAMAC_PLUGIN=tests/.empty @frama-c@

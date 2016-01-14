@@ -1,5 +1,5 @@
-/* Simplification do {...} while(0) into {...}. Deactivated for now, as plugins
-   that read both the Cabs and the Cil may become desynchronized */
+/* Simplification do {...} while(0) into {...}. 
+*/
 void f1() {
   //@ loop invariant \true;
   do {
@@ -57,4 +57,10 @@ void f7() {
     int x = 1;
     int y = 2;
   } while((int *)0);
+}
+
+void f8(int v) {
+  if (v == 0) {
+    do {} while (0);
+  }
 }

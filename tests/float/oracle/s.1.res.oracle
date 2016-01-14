@@ -248,27 +248,27 @@ tests/float/s.i:18:[kernel] warning: Floating-point constant 1.882f is not repre
 tests/float/s.i:230:[kernel] warning: Neither code nor specification for function F1, generating default assigns from the prototype
 [value] using specification for function F1
 [value] Done for function F1
-tests/float/s.i:231:[kernel] warning: accessing out of bounds index [-2147483648..2147483647].
-                  assert 0 ≤ V4 < 64;
+tests/float/s.i:231:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert 0 ≤ V4;
+tests/float/s.i:231:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert V4 < 64;
 [value] computing for function F2 <- F4 <- main.
         Called from tests/float/s.i:233.
 tests/float/s.i:233:[kernel] warning: Neither code nor specification for function F2, generating default assigns from the prototype
 [value] using specification for function F2
 [value] Done for function F2
-tests/float/s.i:238:[kernel] warning: accessing out of bounds index [-2147483648..2147483647].
-                  assert 0 ≤ V5 < 64;
+tests/float/s.i:238:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert 0 ≤ V5;
+tests/float/s.i:238:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert V5 < 64;
 [value] computing for function F2 <- F4 <- main.
         Called from tests/float/s.i:241.
 [value] Done for function F2
-tests/float/s.i:242:[kernel] warning: accessing out of bounds index [-2147483648..2147483647].
-                  assert 0 ≤ V6 < 64;
+tests/float/s.i:242:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert 0 ≤ V6;
+tests/float/s.i:242:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert V6 < 64;
 [value] computing for function F3 <- F4 <- main.
         Called from tests/float/s.i:244.
 tests/float/s.i:244:[kernel] warning: Neither code nor specification for function F3, generating default assigns from the prototype
 [value] using specification for function F3
 [value] Done for function F3
-tests/float/s.i:245:[kernel] warning: accessing out of bounds index [-2147483648..2147483647].
-                  assert 0 ≤ V7 < 32;
+tests/float/s.i:245:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert 0 ≤ V7;
+tests/float/s.i:245:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert V7 < 32;
 [value] Recording results for F4
 [value] Done for function F4
 [value] Recording results for main

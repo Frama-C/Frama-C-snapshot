@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -val -lib-entry -context-width 4
+   OPT: -val -lib-entry -context-width 4 -val-initialization-padding-globals no
 */
 
 typedef struct {

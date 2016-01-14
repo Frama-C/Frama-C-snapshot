@@ -24,9 +24,12 @@
 
 #ifndef __FC_STRING_AXIOMATIC
 #define __FC_STRING_AXIOMATIC
+#include "features.h"
 
 #include "__fc_define_null.h"
 #include "__fc_define_wchar_t.h"
+
+__BEGIN_DECLS
 
 /*@ axiomatic MemCmp {
   @ logic ℤ memcmp{L1,L2}(char *s1, char *s2, ℤ n)
@@ -42,8 +45,8 @@
 
 
 /*@ axiomatic MemChr {
-  @ logic 𝔹 memchr{L}(char *s, ℤ c, ℤ n);
-  @ // reads s[0..n - 1];
+  @ logic 𝔹 memchr{L}(char *s, ℤ c, ℤ n)
+  @   reads s[0..n - 1];
   @ // Returns [true] iff array [s] contains character [c]
   @
   @ axiom memchr_def{L}:
@@ -53,8 +56,8 @@
   @*/
 
 /*@ axiomatic MemSet {
-  @ logic 𝔹 memset{L}(char *s, ℤ c, ℤ n);
-  @ // reads s[0..n - 1];
+  @ logic 𝔹 memset{L}(char *s, ℤ c, ℤ n)
+  @   reads s[0..n - 1];
   @ // Returns [true] iff array [s] contains only character [c]
   @
   @ axiom memset_def{L}:
@@ -64,8 +67,8 @@
   @*/
 
 /*@ axiomatic StrLen {
-  @ logic ℤ strlen{L}(char *s);
-  @ // reads s[0..];
+  @ logic ℤ strlen{L}(char *s)
+  @   reads s[0..];
   @
   @ axiom strlen_pos_or_null{L}:
   @   \forall char* s; \forall ℤ i;
@@ -129,8 +132,8 @@
   @*/
 
 /*@ axiomatic StrCmp {
-  @ logic ℤ strcmp{L}(char *s1, char *s2);
-  @ // reads s1[0..strlen(s1)], s2[0..strlen(s2)];
+  @ logic ℤ strcmp{L}(char *s1, char *s2)
+  @   reads s1[0..strlen(s1)], s2[0..strlen(s2)];
   @
   @ axiom strcmp_zero{L}:
   @   \forall char *s1, *s2;
@@ -141,8 +144,8 @@
   @*/
 
 /*@ axiomatic StrNCmp {
-  @ logic ℤ strncmp{L}(char *s1, char *s2, ℤ n);
-  @ // reads s1[0..n-1], s2[0..n-1];
+  @ logic ℤ strncmp{L}(char *s1, char *s2, ℤ n)
+  @   reads s1[0..n-1], s2[0..n-1];
   @
   @ axiom strncmp_zero{L}:
   @   \forall char *s1, *s2; \forall ℤ n;
@@ -153,8 +156,8 @@
   @*/
 
 /*@ axiomatic StrChr {
-  @ logic 𝔹 strchr{L}(char *s, ℤ c);
-  @ // reads s[0..strlen(s)];
+  @ logic 𝔹 strchr{L}(char *s, ℤ c)
+  @   reads s[0..strlen(s)];
   @ // Returns [true] iff string [s] contains character [c]
   @
   @ axiom strchr_def{L}:
@@ -164,8 +167,8 @@
   @*/
 
 /*@ axiomatic WcsLen {
-  @ logic ℤ wcslen{L}(wchar_t *s);
-  @ // reads s[0..];
+  @ logic ℤ wcslen{L}(wchar_t *s)
+  @   reads s[0..];
   @
   @ axiom wcslen_pos_or_null{L}:
   @   \forall wchar_t* s; \forall ℤ i;
@@ -211,8 +214,8 @@
   @*/
 
 /*@ axiomatic WcsCmp {
-  @ logic ℤ wcscmp{L}(wchar_t *s1, wchar_t *s2);
-  @ // reads s1[0..wcslen(s1)], s2[0..wcslen(s2)];
+  @ logic ℤ wcscmp{L}(wchar_t *s1, wchar_t *s2)
+  @   reads s1[0..wcslen(s1)], s2[0..wcslen(s2)];
   @
   @ axiom wcscmp_zero{L}:
   @   \forall wchar_t *s1, *s2;
@@ -223,8 +226,8 @@
   @*/
 
 /*@ axiomatic WcsNCmp {
-  @ logic ℤ wcsncmp{L}(wchar_t *s1, wchar_t *s2, ℤ n);
-  @ // reads s1[0..n-1], s2[0..n-1];
+  @ logic ℤ wcsncmp{L}(wchar_t *s1, wchar_t *s2, ℤ n)
+  @   reads s1[0..n-1], s2[0..n-1];
   @
   @ axiom wcsncmp_zero{L}:
   @   \forall wchar_t *s1, *s2; \forall ℤ n;
@@ -241,6 +244,9 @@
 /*@ predicate valid_string{L}(char *s) =
   @   0 <= strlen(s) && \valid(s+(0..strlen(s)));
   @
+  @ predicate valid_read_string{L}(char *s) =
+  @   0 <= strlen(s) && \valid_read(s+(0..strlen(s)));
+  @
   @ predicate valid_string_or_null{L}(char *s) =
   @   s == \null || valid_string(s);
   @
@@ -250,6 +256,8 @@
   @ predicate valid_wstring_or_null{L}(wchar_t *s) =
   @   s == \null || valid_wstring(s);
   @*/
+
+__END_DECLS
 
 #define FRAMA_C_PTR __declspec(valid)
 #define FRAMA_C_ARRAY(n) __declspec(valid_range(0,n))

@@ -56,7 +56,7 @@ extern FILE *__fc_stdout;
 extern int remove(char const *filename);
 
 /*@ assigns \nothing; */
-extern int rename(char const *old, char const *new);
+extern int rename(char const *old_name, char const *new_name);
 
 /*@ ensures
       \result ≡ \null ∨
@@ -71,25 +71,25 @@ extern FILE *tmpfile(void);
  */
 extern char *tmpnam(char *s);
 
-/*@ ensures \result ≡ 0 ∨ \result ≡ -1;
-    assigns *stream;
-    assigns *stream \from \nothing;
+/*@ requires \valid(stream);
+    ensures \result ≡ 0 ∨ \result ≡ -1;
+    assigns \result;
+    assigns \result \from stream, stream->__fc_stdio_id;
  */
 extern int fclose(FILE *stream);
 
-/*@ ensures \result ≡ 0 ∨ \result ≡ -1;
-    assigns *stream;
-    assigns *stream \from \nothing;
+/*@ requires stream ≡ \null ∨ \valid_read(stream);
+    ensures \result ≡ 0 ∨ \result ≡ -1;
+    assigns \result;
+    assigns \result \from stream, stream->__fc_stdio_id;
  */
 extern int fflush(FILE *stream);
 
 FILE __fc_fopen[512];
-FILE const *_p__fc_fopen = (FILE const *)(__fc_fopen);
-/*@ ensures
-      \result ≡ \null ∨
-      (\valid(\result) ∧ \subset(\result, &__fc_fopen[0 ..]));
+FILE * const __p_fc_fopen = __fc_fopen;
+/*@ ensures \result ≡ \null ∨ \subset(\result, &__fc_fopen[0 .. 512-1]);
     assigns \result;
-    assigns \result \from *(filename+(..)), *(mode+(..)), _p__fc_fopen;
+    assigns \result \from *(filename+(..)), *(mode+(..)), __p_fc_fopen;
  */
 extern FILE *fopen(char const *filename, char const *mode);
 
@@ -114,10 +114,12 @@ extern void setbuf(FILE *stream, char *buf);
     assigns *stream \from buf, mode, size; */
 extern int setvbuf(FILE *stream, char *buf, int mode, size_t size);
 
-/*@ assigns *stream; */
+/*@ assigns *stream;
+    assigns *stream \from stream->__fc_stdio_id; */
 extern int fprintf(FILE *stream, char const *format , ...);
 
-/*@ assigns *stream; */
+/*@ assigns *stream;
+    assigns *stream \from stream->__fc_stdio_id; */
 extern int fscanf(FILE *stream, char const *format , ...);
 
 /*@ assigns *__fc_stdout;
@@ -209,13 +211,22 @@ extern int puts(char const *s);
     assigns *stream \from c; */
 extern int ungetc(int c, FILE *stream);
 
-/*@ assigns *((char *)ptr+(0 .. nmemb*size-1));
-    assigns *((char *)ptr+(0 .. nmemb*size-1)) \from *stream;
+/*@ requires \valid((char *)ptr+(0 .. nmemb*size-1));
+    requires \valid(stream);
+    ensures \result ≤ \old(nmemb);
+    ensures \initialized((char *)\old(ptr)+(0 .. \result*\old(size)-1));
+    assigns *((char *)ptr+(0 .. nmemb*size-1)), \result;
+    assigns *((char *)ptr+(0 .. nmemb*size-1)) \from size, nmemb, *stream;
+    assigns \result \from size, *stream;
  */
 extern size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream);
 
-/*@ assigns *stream;
+/*@ requires \valid_read((char *)ptr+(0 .. nmemb*size-1));
+    requires \valid(stream);
+    ensures \result ≤ \old(nmemb);
+    assigns *stream, \result;
     assigns *stream \from *((char *)ptr+(0 .. nmemb*size-1));
+    assigns \result \from *((char *)ptr+(0 .. nmemb*size-1));
  */
 extern size_t fwrite(void const *ptr, size_t size, size_t nmemb, FILE *stream);
 

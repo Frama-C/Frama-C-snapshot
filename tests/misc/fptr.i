@@ -1,7 +1,7 @@
 /* run.config
    GCC:
-   OPT: -val -deps -out  -journal-disable
-   OPT: -val -deps -out -main main_uninit -journal-disable -inout-callwise
+   OPT: -val -journal-disable -then -deps -out
+   OPT: -val -main main_uninit -journal-disable -inout-callwise -then -deps -out
 */
 int R=77;
 
@@ -48,7 +48,7 @@ void main (int c)
   GLOBAL[0] = h;
   GLOBAL[1] = hh;
   for(i=0;i<3;i++) {
-    CEA_F(GLOBAL[i]);
+    Frama_C_show_each_F(GLOBAL[i]);
     G=f(GLOBAL[i]);
   }
 
@@ -64,7 +64,7 @@ void main_uninit (int c)
   GLOBAL[0] = h;
   GLOBAL[1] = hh;
   for(i=0;i<3;i++) {
-    CEA_F(GLOBAL[i]);
+    Frama_C_show_each_F(GLOBAL[i]);
     G=f(GLOBAL[i]);
   }
 }

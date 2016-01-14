@@ -22,6 +22,9 @@
 
 #ifndef __FC_GETOPT_H
 #define __FC_GETOPT_H
+#include "features.h"
+
+__BEGIN_DECLS
 
 extern char *optarg;
 extern int optind, opterr, optopt;
@@ -61,4 +64,7 @@ extern int getopt_long (int argc, char *const argv[],
 extern int getopt_long_only (int argc, char *const argv[],
 			     const char *shortopts,
 			     const struct option *longopts, int *longind);
+
+__END_DECLS
+
 #endif

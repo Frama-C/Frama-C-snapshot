@@ -1,6 +1,6 @@
 /* run.config
-   EXECNOW: make -s tests/slicing/merge.opt
-   CMD: tests/slicing/merge.opt
+   EXECNOW: make -s tests/slicing/merge.cmxs
+   CMD: @frama-c@ -load-module tests/slicing/libSelect.cmxs -load-module tests/slicing/libAnim.cmxs -load-module tests/slicing/merge.cmxs
    OPT: -check -deps -slicing-level 3 -journal-disable
 */
 

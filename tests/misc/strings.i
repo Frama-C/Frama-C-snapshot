@@ -1,9 +1,9 @@
 /* run.config
   GCC:
-  OPT: -val -deps -out -input  -main main1 -journal-disable
-  OPT: -val -deps -out -input  -main main6 -journal-disable
-  OPT: -val -deps -out -input  -main main7 -journal-disable
-  OPT: -val -deps -out -input  -main main8 -slevel-function strcmp:50 -journal-disable
+  STDOPT: #"-main main1"
+  STDOPT: #"-main main6"
+  STDOPT: #"-main main7"
+  STDOPT: #"-main main8 -slevel-function strcmp:50"
 */
 char s1[]="hello\000 world";
 char s2[]="hello";

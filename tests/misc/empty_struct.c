@@ -1,7 +1,7 @@
 /* run.config
-   STDOPT: +" -cpp-extra-args=-DP1 -val -then -lib-entry"
-   STDOPT: +" -cpp-extra-args=-DP2 -lib-entry"
-   STDOPT: +" -cpp-extra-args=-DP3 -lib-entry"
+   STDOPT: #" -cpp-extra-args=-DP1" +"-then -lib-entry"
+   STDOPT: #" -cpp-extra-args=-DP2 -lib-entry"
+   STDOPT: #" -cpp-extra-args=-DP3 -lib-entry"
 */
 
 // BTS 1416 and 1874

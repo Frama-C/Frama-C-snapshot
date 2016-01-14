@@ -8,8 +8,7 @@ static int x;
 static int f(void)
 {
   int tmp;
-  {
-    /*sequence*/
+  { /* sequence */
     tmp = x;
     x ++;
     ;

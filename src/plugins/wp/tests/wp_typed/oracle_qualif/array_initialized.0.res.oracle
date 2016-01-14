@@ -1,0 +1,25 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_typed/array_initialized.c (with preprocessing)
+tests/wp_typed/array_initialized.c:13:[kernel] warning: Too many initializers for array g
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] 5 goals scheduled
+[wp] [Alt-Ergo] Goal typed_main1_assert : Valid
+[wp] [Alt-Ergo] Goal typed_main2_assert : Valid
+[wp] [Qed] Goal typed_main3_assert : Valid
+[wp] [Alt-Ergo] Goal typed_main_pointer_assert : Valid
+[wp] [Alt-Ergo] Goal typed_simpl_post : Valid
+[wp] Proved goals:    5 / 5
+     Qed:             1 
+     Alt-Ergo:        4
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+main1               -       1 (5)      1       100%
+main2               -       1 (107)    1       100%
+main3                1     -           1       100%
+main_pointer        -       1 (47)     1       100%
+simpl               -       1 (15)     1       100%
+----------------------------------------------------------

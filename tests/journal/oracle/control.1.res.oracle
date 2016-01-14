@@ -32,6 +32,7 @@ tests/journal/control.i:21:[kernel] warning: signed overflow. assert x+1 ≤ 214
   y ∈ {0}
   c ∈ {0}
   d ∈ {0}
+tests/journal/control.i:21:[kernel] warning: signed overflow. assert x+1 ≤ 2147483647;
 [value] Recording results for f
 [from] Computing for function f
 [from] Done for function f

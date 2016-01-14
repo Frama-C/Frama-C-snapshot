@@ -1,0 +1,158 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/fptr.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  R ∈ {77}
+  X ∈ {77}
+  XH ∈ {0}
+  XHH ∈ {0}
+  GLOBAL[0..9] ∈ {0}
+  G ∈ {0}
+  TA ∈ {0}
+[value] computing for function retshort <- main.
+        Called from tests/misc/fptr.i:42.
+[value] Recording results for retshort
+[value] Done for function retshort
+[value] computing for function retint <- main.
+        Called from tests/misc/fptr.i:43.
+[value] Recording results for retint
+[value] Done for function retint
+tests/misc/fptr.i:44:[value] warning: Function pointer and pointed function 'retshort' have completely incompatible
+                 types: int () vs. short (void). assert(function type matches)
+tests/misc/fptr.i:45:[value] warning: Function pointer and pointed function 'retint' have completely incompatible
+                 types: short () vs. int (void). assert(function type matches)
+tests/misc/fptr.i:50:[value] entering loop for the first time
+[value] Called Frama_C_show_each_F({{ &h }})
+[value] computing for function f <- main.
+        Called from tests/misc/fptr.i:52.
+[value] computing for function h <- f <- main.
+        Called from tests/misc/fptr.i:9.
+[value] Recording results for h
+[value] Done for function h
+[value] Recording results for f
+[value] Done for function f
+[value] Called Frama_C_show_each_F({{ &h ; &hh }})
+[value] computing for function f <- main.
+        Called from tests/misc/fptr.i:52.
+[value] computing for function h <- f <- main.
+        Called from tests/misc/fptr.i:9.
+[value] Recording results for h
+[value] Done for function h
+[value] computing for function hh <- f <- main.
+        Called from tests/misc/fptr.i:9.
+[value] Recording results for hh
+[value] Done for function hh
+[value] Recording results for f
+[value] Done for function f
+[value] Called Frama_C_show_each_F({{ NULL ; &h ; &hh }})
+[value] computing for function f <- main.
+        Called from tests/misc/fptr.i:52.
+tests/misc/fptr.i:9:[value] warning: Function pointer call at absolute position in memory: ignoring this particular value: assert(\valid_fun_pointer(*ptr))
+[value] computing for function h <- f <- main.
+        Called from tests/misc/fptr.i:9.
+[value] Recording results for h
+[value] Done for function h
+[value] computing for function hh <- f <- main.
+        Called from tests/misc/fptr.i:9.
+[value] Recording results for hh
+[value] Done for function hh
+[value] Recording results for f
+[value] Done for function f
+tests/misc/fptr.i:56:[kernel] warning: division by zero: assert (int)(c&64) ≢ 0;
+[value] computing for function h <- main.
+        Called from tests/misc/fptr.i:56.
+[value] Recording results for h
+[value] Done for function h
+[value] computing for function hh <- main.
+        Called from tests/misc/fptr.i:56.
+[value] Recording results for hh
+[value] Done for function hh
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function h:
+  X ∈ {0; 1}
+  XH ∈ {0; 1}
+[value] Values at end of function hh:
+  X ∈ {0; 2}
+  XHH ∈ {0; 1}
+[value] Values at end of function f:
+  R ∈ {1; 2}
+  X ∈ {1; 2}
+  XH ∈ {0; 1}
+  XHH ∈ {0; 1}
+[value] Values at end of function retint:
+  __retres ∈ {42}
+[value] Values at end of function retshort:
+  __retres ∈ {12}
+[value] Values at end of function main:
+  R ∈ {1; 2; 77}
+  X ∈ {0; 1; 2; 77}
+  XH ∈ {0; 1}
+  XHH ∈ {0; 1}
+  GLOBAL[0] ∈ {{ &h }}
+        [1] ∈ {{ &hh }}
+        [2..9] ∈ {0}
+  G ∈ {0; 1; 2}
+  TA ∈ {0}
+  in ∈ {12} or UNINITIALIZED
+  pin ∈ UNINITIALIZED
+  sh ∈ {42} or UNINITIALIZED
+  psh ∈ UNINITIALIZED
+  i ∈ {3}
+  p ∈ {{ &h ; &hh }}
+[from] Computing for function h
+[from] Done for function h
+[from] Computing for function hh
+[from] Done for function hh
+[from] Computing for function f
+[from] Done for function f
+[from] Computing for function retint
+[from] Done for function retint
+[from] Computing for function retshort
+[from] Done for function retshort
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function h:
+  X FROM y
+  XH FROM y
+  \result FROM y
+[from] Function hh:
+  X FROM y
+  XHH FROM y
+  \result FROM y
+[from] Function f:
+  R FROM ptr
+  X FROM ptr
+  XH FROM ptr (and SELF)
+  XHH FROM ptr (and SELF)
+  \result FROM ptr
+[from] Function retint:
+  \result FROM \nothing
+[from] Function retshort:
+  \result FROM \nothing
+[from] Function main:
+  R FROM GLOBAL[2] (and SELF)
+  X FROM GLOBAL[2]; c (and SELF)
+  XH FROM GLOBAL[2]; c (and SELF)
+  XHH FROM GLOBAL[2]; c (and SELF)
+  GLOBAL[0..1] FROM \nothing
+  G FROM GLOBAL[2] (and SELF)
+  TA FROM c (and SELF)
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function h:
+          X; XH
+[inout] Out (internal) for function hh:
+          X; XHH
+[inout] Out (internal) for function f:
+          R; X; XH; XHH
+[inout] Out (internal) for function retint:
+          __retres
+[inout] Out (internal) for function retshort:
+          __retres
+[inout] Out (internal) for function main:
+          R; X; XH; XHH; GLOBAL[0..1]; G; TA; in; pin; sh; psh; tmp; i; p; tmp_0

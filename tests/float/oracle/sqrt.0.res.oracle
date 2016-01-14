@@ -1,0 +1,54 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/float/sqrt.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  
+tests/float/sqrt.i:12:[value] Assertion got status valid.
+tests/float/sqrt.i:14:[value] Assertion got status valid.
+[value] DUMPING STATE of file tests/float/sqrt.i line 19
+        k ∈ UNINITIALIZED
+        i ∈ {-0.}
+        j ∈ {-0.}
+        r ∈ UNINITIALIZED
+        p ∈ {{ (unsigned long long *)&j }}
+        c[0..7] ∈ UNINITIALIZED
+        =END OF DUMP==
+[value] DUMPING STATE of file tests/float/sqrt.i line 23
+        k ∈ UNINITIALIZED
+        i ∈ {-0.}
+        j ∈ {-0.}
+        r ∈ {-0x8000000000000000}
+        p ∈ {{ (unsigned long long *)&j }}
+        c[0..7] ∈ UNINITIALIZED
+        =END OF DUMP==
+[value] Called Frama_C_show_each_long_long({-0x8000000000000000})
+[value] Called Frama_C_show_each_double({-0.})
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+tests/float/sqrt.i:11:[kernel] warning: Neither code nor specification for function Frama_C_sqrt, generating default assigns from the prototype
+[value] Values at end of function main:
+  k ∈ {8}
+  i ∈ {-0.}
+  j ∈ {-0.}
+  r ∈ {-0x8000000000000000}
+  p ∈ {{ (unsigned long long *)&j }}
+  c[0..6] ∈ {0}
+   [7] ∈ {128}
+[from] Computing for function main
+[from] Computing for function Frama_C_sqrt <-main
+[from] Done for function Frama_C_sqrt
+[from] Computing for function Frama_C_dump_each <-main
+[from] Done for function Frama_C_dump_each
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  NO EFFECTS
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          k; i; j; r; p; c[0..7]
+[inout] Inputs for function main:
+          \nothing

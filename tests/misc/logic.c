@@ -1,6 +1,6 @@
 int t[10], u[11];
 struct ts { int f1; int f2; } s1, s2, s3[10];
-unsigned int x;
+unsigned int x; volatile v;
 
 void eq_tsets () {
 
@@ -71,10 +71,51 @@ void empty_tset () {
   //@ assert T[0] == 2;
 }
 
+void reduce_by_equal() {
+  int a[10];
+  a[v] = v;
+  //@ assert \initialized(&a[0..9]);
+  //@ assert a[0..8] == 1; // This syntax is not recommended (use \subset instead), but works for == and !=;
+}
+
+// Check that "partial" arithmetic operators check their arguments.
+// We cannot reduce either
+void alarms () {
+  //@ slevel 0;
+  int x = v;
+  //@ assert ASSUME: x == -1 || x == 1;
+
+  //@ assert UNK: 1 << x == 2; // Does not hold because of -1. Cannot reduce, because 1 << -1 may be equal to 2
+  Frama_C_show_each(x);
+  //@ assert UNK: 2 >> x == 1;
+  Frama_C_show_each(x);
+
+  //@ assert ASSUME: x == 1;
+  //@ assert OK: 1 << x == 2;
+  Frama_C_show_each(x);
+  //@ assert OK: 2 >> x == 1;
+  Frama_C_show_each(x);
+
+
+  x = v;
+  //@ assert ASSUME: x == 0 || x == 1;
+  //@ assert UNK: 1 / x == 1; // Does not hold because of 0
+  Frama_C_show_each(x);
+  //@ assert UNK: 1 % x == 0; // Does not hold because of 0
+  Frama_C_show_each(x);
+
+  //@ assert ASSUME: x == 1;
+  //@ assert OK: 1 / x == 1;
+  Frama_C_show_each(x);
+  //@ assert OK: 1 % x == 0;
+  Frama_C_show_each(x);
+}
 
 void main () {
   eq_tsets();
   eq_char();
   casts();
   empty_tset();
+  reduce_by_equal();
+  alarms ();
 }

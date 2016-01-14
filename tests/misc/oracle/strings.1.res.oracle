@@ -44,7 +44,7 @@ tests/misc/strings.i:58:[kernel] warning: Return statement with a value in funct
 tests/misc/strings.i:72:[kernel] warning: Neither code nor specification for function u, generating default assigns from the prototype
 [value] using specification for function u
 [value] Done for function u
-tests/misc/strings.i:73:[kernel] warning: pointer comparison: assert \pointer_comparable(s3, s4);
+tests/misc/strings.i:73:[kernel] warning: pointer comparison: assert \pointer_comparable((void *)s3, (void *)s4);
 [value] computing for function u <- main6.
         Called from tests/misc/strings.i:74.
 [value] Done for function u
@@ -54,14 +54,15 @@ tests/misc/strings.i:73:[kernel] warning: pointer comparison: assert \pointer_co
 [value] computing for function u <- main6.
         Called from tests/misc/strings.i:78.
 [value] Done for function u
-tests/misc/strings.i:79:[kernel] warning: pointer comparison: assert \pointer_comparable(s7, s8);
+tests/misc/strings.i:79:[kernel] warning: pointer comparison: assert \pointer_comparable((void *)s7, (void *)s8);
 [value] computing for function u <- main6.
         Called from tests/misc/strings.i:80.
 [value] Done for function u
 [value] computing for function u <- main6.
         Called from tests/misc/strings.i:82.
 [value] Done for function u
-tests/misc/strings.i:83:[kernel] warning: pointer comparison: assert \pointer_comparable(s7+1, s8+1);
+tests/misc/strings.i:83:[kernel] warning: pointer comparison:
+                  assert \pointer_comparable((void *)(s7+1), (void *)(s8+1));
 [value] computing for function u <- main6.
         Called from tests/misc/strings.i:84.
 [value] Done for function u
@@ -83,11 +84,12 @@ tests/misc/strings.i:83:[kernel] warning: pointer comparison: assert \pointer_co
 [value] computing for function u <- main6.
         Called from tests/misc/strings.i:90.
 [value] Done for function u
-tests/misc/strings.i:91:[kernel] warning: pointer comparison: assert \pointer_comparable(s5, s6);
+tests/misc/strings.i:91:[kernel] warning: pointer comparison: assert \pointer_comparable((void *)s5, (void *)s6);
 [value] computing for function u <- main6.
         Called from tests/misc/strings.i:92.
 [value] Done for function u
-tests/misc/strings.i:93:[kernel] warning: pointer comparison: assert \pointer_comparable("oh, hello"+4, s7);
+tests/misc/strings.i:93:[kernel] warning: pointer comparison:
+                  assert \pointer_comparable((void *)("oh, hello"+4), (void *)s7);
 [value] Recording results for main6
 [value] done for function main6
 [value] ====== VALUES COMPUTED ======

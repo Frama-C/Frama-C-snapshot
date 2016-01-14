@@ -13,11 +13,25 @@
    [8] ∈ {5}
    [9] ∈ {0}
    [10..12] ∈ {1}
-[value] Called CEA_F({1})
-[value] Called CEA_F({16777216})
-[value] Called CEA_F({67305985})
-[value] Called CEA_F({16843008})
-[value] Called CEA_F({1048577})
+[value] Called Frama_C_show_each_F([bits 0 to 7] ∈ {1}
+                                   [bits 8 to 31] ∈ {0}
+                                   This amounts to: {1})
+[value] Called Frama_C_show_each_F([bits 0 to 23] ∈ {0}
+                                   [bits 24 to 31] ∈ {1}
+                                   This amounts to: {16777216})
+[value] Called Frama_C_show_each_F([bits 0 to 7] ∈ {1}
+                                   [bits 8 to 15] ∈ {2}
+                                   [bits 16 to 23] ∈ {3}
+                                   [bits 24 to 31] ∈ {4}
+                                   This amounts to: {67305985})
+[value] Called Frama_C_show_each_F([bits 0 to 7] ∈ {0}
+                                   [bits 8 to 31]# ∈ {1} repeated %8 
+                                   This amounts to: {16843008})
+[value] Called Frama_C_show_each_F([bits 0 to 7] ∈ {1}
+                                   [bits 8 to 15] ∈ {0}
+                                   [bits 16 to 31]# ∈
+                                   {-1879048176}%32, bits 0 to 15 
+                                   This amounts to: {1048577})
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======

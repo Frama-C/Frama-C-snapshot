@@ -23,17 +23,6 @@
 #ifndef __FC_MACHDEP
 #define __FC_MACHDEP
 
-// Default machdep is x86_32
-#ifndef __FC_MACHDEP_X86_64
-#ifndef __FC_MACHDEP_X86_16
-#ifndef __FC_MACHDEP_X86_32
-#ifndef __FC_MACHDEP_PPC_32
-#define __FC_MACHDEP_X86_32
-#endif
-#endif
-#endif
-#endif
-
 #ifdef __FC_MACHDEP_X86_32
 #define __FC_FORCE_INCLUDE_MACHDEP__
 #include "__fc_machdep_linux_gcc_shared.h"
@@ -149,7 +138,7 @@
 #define __FC_PTRDIFF_MIN __FC_LONG_MIN
 #define __FC_PTRDIFF_MAX __FC_LONG_MAX
 #else
-#ifdef __FC_MACHDEP_X86_32
+#ifdef __FC_MACHDEP_PPC_32
 #define __FC_FORCE_INCLUDE_MACHDEP__
 #include "__fc_machdep_linux_gcc_shared.h"
 #undef __FC_FORCE_INCLUDE_MACHDEP__

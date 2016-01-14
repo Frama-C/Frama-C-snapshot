@@ -1,6 +1,6 @@
 /*  run.config
-   EXECNOW: make -s tests/slicing/switch.opt
-   CMD: tests/slicing/switch.opt
+   EXECNOW: make -s tests/slicing/switch.cmxs
+   CMD: @frama-c@ -load-module tests/slicing/libSelect.cmxs -load-module tests/slicing/switch.cmxs
    OPT: -check -deps -journal-disable
 */
 int main (char choix) {

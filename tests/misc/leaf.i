@@ -41,16 +41,16 @@ void main() {
   T[0]=f_int_int(0); /* T[0] modified */
   
   int *p = f_int_star_int(0);
-  CEA_F(*p);
+  Frama_C_show_each_F(*p);
   *p = 5;
-  CEA_F(*p);
+  Frama_C_show_each_F(*p);
 
   int **pp  =f_int_star_int_star_int(0);
-  CEA_G(*pp);
-  CEA_F(**pp);
+  Frama_C_show_each_G(*pp);
+  Frama_C_show_each_F(**pp);
 //  if (*pp==&d) **pp = 6;
-  CEA_G(*pp);
-  CEA_F(**pp);
+  Frama_C_show_each_G(*pp);
+  Frama_C_show_each_F(**pp);
 
   T[2]=f_star_int_cint(&T[3]); /* T[2] modified */
 

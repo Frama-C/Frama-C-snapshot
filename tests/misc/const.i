@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -const-writable -val -deps -out -input -journal-disable -then -const-readonly
+   STDOPT: #"-const-writable" +"-then -const-readonly"
 */
 extern const int G;
 extern const int I=2;

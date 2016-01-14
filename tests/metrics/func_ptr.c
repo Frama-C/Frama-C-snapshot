@@ -3,7 +3,7 @@
    STDOPT: +"-metrics-value-cover" +"-main foobar" +"-metrics-cover foobar"
 **/
 
-void (*bar) (int);
+void (*bar) (int);  extern void (*bar_extern) (int);
 
 void baz (int j) { return; }
 
@@ -25,6 +25,7 @@ int main() {
     return 1;
   }
   else {
+    if (bar == bar_extern) exit (1);
     bar = foo;
     bar (1);
     return 0;

@@ -1,0 +1,93 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/pdg/dpds_intra.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  G ∈ [--..--]
+  S ∈ [--..--]
+tests/pdg/dpds_intra.c:113:[kernel] warning: signed overflow. assert b+1 ≤ 2147483647;
+tests/pdg/dpds_intra.c:113:[kernel] warning: signed overflow. assert tmp+s.a ≤ 2147483647;
+                                   (tmp from b++)
+tests/pdg/dpds_intra.c:114:[kernel] warning: signed overflow. assert -2147483648 ≤ 2*a;
+tests/pdg/dpds_intra.c:114:[kernel] warning: signed overflow. assert 2*a ≤ 2147483647;
+tests/pdg/dpds_intra.c:124:[kernel] warning: signed overflow. assert *p+1 ≤ 2147483647;
+[value] computing for function test_struct <- main.
+        Called from tests/pdg/dpds_intra.c:126.
+[value] Recording results for test_struct
+[value] Done for function test_struct
+[value] computing for function test_if_simple <- main.
+        Called from tests/pdg/dpds_intra.c:127.
+[value] Recording results for test_if_simple
+[value] Done for function test_if_simple
+tests/pdg/dpds_intra.c:127:[kernel] warning: accessing uninitialized left-value:
+                  assert \initialized(&tmp_1);
+                  (tmp_1 from test_if_simple())
+[value] computing for function test_goto_simple <- main.
+        Called from tests/pdg/dpds_intra.c:128.
+[value] Recording results for test_goto_simple
+[value] Done for function test_goto_simple
+[value] computing for function test_goto_arriere <- main.
+        Called from tests/pdg/dpds_intra.c:129.
+tests/pdg/dpds_intra.c:66:[kernel] warning: signed overflow. assert -2147483648 ≤ G-1;
+tests/pdg/dpds_intra.c:65:[kernel] warning: signed overflow. assert x+1 ≤ 2147483647;
+[value] Recording results for test_goto_arriere
+[value] Done for function test_goto_arriere
+tests/pdg/dpds_intra.c:129:[kernel] warning: signed overflow.
+                  assert res+tmp_3 ≤ 2147483647;
+                  (tmp_3 from test_goto_arriere())
+[value] computing for function test_goto_else <- main.
+        Called from tests/pdg/dpds_intra.c:130.
+[value] Recording results for test_goto_else
+[value] Done for function test_goto_else
+tests/pdg/dpds_intra.c:130:[kernel] warning: signed overflow.
+                  assert res+tmp_4 ≤ 2147483647;
+                  (tmp_4 from test_goto_else())
+[value] computing for function test_simple_loop <- main.
+        Called from tests/pdg/dpds_intra.c:131.
+tests/pdg/dpds_intra.c:99:[value] entering loop for the first time
+tests/pdg/dpds_intra.c:100:[kernel] warning: signed overflow. assert s+1 ≤ 2147483647;
+[value] Recording results for test_simple_loop
+[value] Done for function test_simple_loop
+tests/pdg/dpds_intra.c:131:[kernel] warning: signed overflow.
+                  assert res+tmp_5 ≤ 2147483647;
+                  (tmp_5 from test_simple_loop(G))
+[value] computing for function multiple_global_inputs <- main.
+        Called from tests/pdg/dpds_intra.c:132.
+tests/pdg/dpds_intra.c:35:[kernel] warning: signed overflow. assert -2147483648 ≤ S.a+G;
+tests/pdg/dpds_intra.c:35:[kernel] warning: signed overflow. assert S.a+G ≤ 2147483647;
+[value] Recording results for multiple_global_inputs
+[value] Done for function multiple_global_inputs
+tests/pdg/dpds_intra.c:132:[kernel] warning: signed overflow.
+                  assert res+tmp_6 ≤ 2147483647;
+                  (tmp_6 from multiple_global_inputs())
+tests/pdg/dpds_intra.c:134:[kernel] warning: signed overflow. assert -2147483648 ≤ *p+res;
+tests/pdg/dpds_intra.c:134:[kernel] warning: signed overflow. assert *p+res ≤ 2147483647;
+[value] Recording results for main
+[value] done for function main
+[pdg] computing for function test_struct
+[pdg] done for function test_struct
+[pdg] PDG for test_struct
+ {n1}: InCtrl
+ {n2}: VarDecl : s1
+ {n3}: VarDecl : s2
+ {n4}: VarDecl : __retres
+ {n5}: s1.a = 1;
+   -[-c-]-> 1
+   -[a--]-> 2
+ {n6}: s2 = s1;
+   -[-c-]-> 1
+   -[--d]-> 2
+   -[a--]-> 3
+   -[--d]-> 5
+ {n7}: __retres = s2.a;
+   -[-c-]-> 1
+   -[--d]-> 3
+   -[a--]-> 4
+   -[--d]-> 6
+ {n8}: return __retres;
+   -[-c-]-> 1
+   -[--d]-> 4
+   -[--d]-> 7
+ {n9}: OutRet
+   -[--d]-> 8

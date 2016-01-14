@@ -64,13 +64,11 @@ int _gnutls_epoch_set_cipher_suite(gnutls_session_t session, int epoch_rel,
         __retres = tmp_0;
         goto return_label;
       }
-  {
-    /*sequence*/
+  { /* sequence */
     tmp_1 = _gnutls_cipher_suite_get_cipher_algo(suite);
     cipher_algo = (void (*)(int ))tmp_1;
   }
-  {
-    /*sequence*/
+  { /* sequence */
     tmp_2 = _gnutls_cipher_suite_get_mac_algo(suite);
     mac_algo = (void (*)(int ))tmp_2;
   }

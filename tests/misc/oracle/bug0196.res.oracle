@@ -51,8 +51,7 @@ int fact(int n)
     int tmp;
     /*@ assert n > 0; */ ;
     before:
-      {
-        /*sequence*/
+      { /* sequence */
         tmp = n;
         n --;
         /*@ assert Value: signed_overflow: r*tmp ≤ 2147483647; */

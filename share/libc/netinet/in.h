@@ -23,8 +23,11 @@
 #ifndef __FC_NETINET_IN_H__
 #define __FC_NETINET_IN_H__
 
+#include "../features.h"
 #include "inttypes.h"
 #include "sys/socket.h"
+
+__BEGIN_DECLS
 
 typedef uint16_t in_port_t;
 typedef uint32_t in_addr_t;
@@ -311,5 +314,7 @@ struct in_pktinfo
 #define IPV6_RTHDR_STRICT	1	/* Hop must be a neighbour.  */
 
 #define IPV6_RTHDR_TYPE_0	0	/* IPv6 Routing header type 0.  */
+
+__END_DECLS
 
 #endif

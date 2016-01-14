@@ -22,9 +22,11 @@
 
 #ifndef __FC_DEFINE_FILE
 #define __FC_DEFINE_FILE
-
+#include "features.h"
 #include "__fc_define_stat.h"
 #include "__fc_define_fpos_t.h"
+
+__BEGIN_DECLS
 
 struct __fc_FILE {
   unsigned int __fc_stdio_id;
@@ -38,5 +40,6 @@ struct __fc_FILE {
 };
 typedef struct __fc_FILE FILE;
 
+__END_DECLS
 #endif
 

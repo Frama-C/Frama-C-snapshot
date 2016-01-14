@@ -1,5 +1,5 @@
 /* run.config
-   STDOPT: +"-load-module lib/plugins/Report -then -report"
+   STDOPT: +"-then -report"
 */
 
 int i = 1;

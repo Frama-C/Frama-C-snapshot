@@ -1,0 +1,44 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/propagate_bottom.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  v ∈ [--..--]
+tests/misc/propagate_bottom.i:5:[kernel] warning: division by zero: assert 0 ≢ 0;
+tests/misc/propagate_bottom.i:8:[kernel] warning: division by zero: assert 0 ≢ 0;
+tests/misc/propagate_bottom.i:11:[kernel] warning: division by zero: assert 0 ≢ 0;
+tests/misc/propagate_bottom.i:14:[kernel] warning: division by zero: assert 0 ≢ 0;
+tests/misc/propagate_bottom.i:17:[kernel] warning: division by zero: assert 0 ≢ 0;
+tests/misc/propagate_bottom.i:20:[kernel] warning: division by zero: assert 0 ≢ 0;
+tests/misc/propagate_bottom.i:25:[kernel] warning: non-finite double value ([--..--]):
+                  assert \is_finite((double)(1./(double)0));
+tests/misc/propagate_bottom.i:28:[kernel] warning: non-finite double value ([--..--]):
+                  assert \is_finite((double)(1./(double)0));
+tests/misc/propagate_bottom.i:31:[kernel] warning: non-finite double value ([--..--]):
+                  assert \is_finite((double)(1./(double)0));
+tests/misc/propagate_bottom.i:34:[kernel] warning: non-finite double value ([--..--]): assert \is_finite((double)(1./0.));
+tests/misc/propagate_bottom.i:37:[kernel] warning: non-finite double value ([--..--]): assert \is_finite((double)(1./0.));
+tests/misc/propagate_bottom.i:40:[kernel] warning: non-finite double value ([--..--]): assert \is_finite((double)(1./0.));
+[value] Recording results for main
+[value] done for function main
+tests/misc/propagate_bottom.i:5:[value] Assertion 'Value,division_by_zero' got final status invalid.
+tests/misc/propagate_bottom.i:8:[value] Assertion 'Value,division_by_zero' got final status invalid.
+tests/misc/propagate_bottom.i:11:[value] Assertion 'Value,division_by_zero' got final status invalid.
+tests/misc/propagate_bottom.i:14:[value] Assertion 'Value,division_by_zero' got final status invalid.
+tests/misc/propagate_bottom.i:17:[value] Assertion 'Value,division_by_zero' got final status invalid.
+tests/misc/propagate_bottom.i:20:[value] Assertion 'Value,division_by_zero' got final status invalid.
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  NO EFFECTS
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          x1; x2; x3; x4; x5; x6; y1; y2; y3; y4; y5; y6
+[inout] Inputs for function main:
+          v

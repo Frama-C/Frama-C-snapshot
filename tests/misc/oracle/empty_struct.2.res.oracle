@@ -2,5 +2,6 @@
 [kernel] Parsing tests/misc/empty_struct.c (with preprocessing)
 [value] Analyzing an incomplete application starting at main
 [value] Computing initial state
+tests/misc/empty_struct.c:30:[kernel] 0-sized location
 tests/misc/empty_struct.c:30:[value] user error: empty struct are unsupported (type 'struct s', location t[0]). Aborting
 [kernel] Plug-in value aborted: invalid user input.

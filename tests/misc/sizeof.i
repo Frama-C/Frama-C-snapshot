@@ -1,5 +1,5 @@
 /* run.config
-   STDOPT: +"-remove-redundant-alarms -print"
+   STDOPT: #"-remove-redundant-alarms" +"-print"
 */
 
 int sz_str,sz_typ,align_str,align_typ;

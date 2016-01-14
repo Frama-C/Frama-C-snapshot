@@ -1,5 +1,5 @@
 /* run.config
-   STDOPT: +"-slevel 20"
+   STDOPT: #"-slevel 20"
 */
 
 /* Problem with Value's memory model, that does not guarantee that we call

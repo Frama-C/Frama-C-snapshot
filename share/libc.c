@@ -136,8 +136,7 @@ strlen(const char *s)
   return (s - s0);
 }
 
-int
-memcmp(const void *s1, const void *s2, size_t n)
+int memcmp(const void *s1, const void *s2, size_t n)
 {
   if (s1 != s2 && n != 0) {
     const unsigned char	*ps1 = s1;
@@ -179,56 +178,48 @@ memcmp(const void *s1, const void *s2, size_t n)
 	(_c) == '\r' || \
 	(_c) == '\n')
 
-static int
-isdigit(int c)
+static int isdigit(int c)
 {
-	return (ISDIGIT(c));
+  return (ISDIGIT(c));
 }
 
 
-static int
-isxdigit(int c)
+static int isxdigit(int c)
 {
-	return (ISXDIGIT(c));
+  return (ISXDIGIT(c));
 }
 
 
-static int
-islower(int c)
+static int islower(int c)
 {
-	return (ISLOWER(c));
+  return (ISLOWER(c));
 }
 
 
-static int
-isupper(int c)
+static int isupper(int c)
 {
-	return (ISUPPER(c));
+  return (ISUPPER(c));
 }
 
 
-static int
-isalpha(int c)
+static int isalpha(int c)
 {
-	return (ISALPHA(c));
+  return (ISALPHA(c));
 }
 
 
-static int
-isalnum(int c)
+static int isalnum(int c)
 {
-	return (ISALNUM(c));
+  return (ISALNUM(c));
 }
 
 
-static int
-isspace(int c)
+static int isspace(int c)
 {
-	return (ISSPACE(c));
+  return (ISSPACE(c));
 }
 
-int
-atoi(const char *p)
+int atoi(const char *p)
 {
   int n;
   int c, neg = 0;
@@ -254,10 +245,7 @@ atoi(const char *p)
   return (neg ? n : -n);
 }
 
-char *
-strchr (s, c)
-  const char *s;
-  int c;
+char * strchr (const char *s, int c)
 {
   do {
     if (*s == c)
@@ -268,10 +256,7 @@ strchr (s, c)
   return (0);
 }
 
-char *
-strrchr (s, c)
-  const char *s;
-  int c;
+char * strrchr (const char *s, int c)
 {
   char *rtnval = 0;
 
@@ -282,9 +267,7 @@ strrchr (s, c)
   return (rtnval);
 }
 
-char *
-strstr (s1, s2)
-  char *s1, *s2;
+char * strstr (char *s1, *s2)
 {
   char *p = s1;
   int len = strlen (s2);
@@ -299,53 +282,8 @@ strstr (s1, s2)
   return (0);
 }
 
-char * getenv(const char * c) {
-  return (char*)0;
-}
 
 
-volatile int any;
-int my_errno = 0;
-
-int *_errno()
-{
-  return &my_errno;
-}
-
-#if 0
-int fprintf(FILE *restrict stream, const char *restrict format, ...)
-{
-  return any;
-}
-#endif
-
-int printf(const char *restrict format, ...)
-{
-  return any;
-}
-
-int sprintf(char *restrict s, const char *restrict format, ...)
-{
-  int i;
-
-  for (i = 0; format[i] != '\0'; i++)
-    {
-      s[i] = format[i];
-    }
-  /* boucle qui copie le format vers s */
-  return any;
-}
-
-int snprintf (char *restrict s, size_t size, const char *restrict fmt, ...) {
-  int i;
-  for (i = 0; i < size && fmt[i] != '\0'; i++)
-      s[i] = fmt[i];
-  return any;
-}
-
-/*@ ensures \valid(t2);
-    assigns *t2; */
-int localtime_r (struct tm *t2, const time_t t);
 
 int toupper (int c)
 {
@@ -361,17 +299,3 @@ int abs (int i)
   return i;
 }
 
-#if 0
-int vsprintf(char *restrict s, const char *restrict format, .../*va_list va_arg*/)
-{
-  return sprintf(s,format/*,va_arg*/);
-}
-#endif
-
-ssize_t read(int fd, void *buf, size_t count)
-{
-  unsigned char *ptr = (unsigned char*)buf;
-  while (count-- > 0)
-    *ptr++ = any;
-  return any;
-}

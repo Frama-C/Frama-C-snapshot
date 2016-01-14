@@ -1,5 +1,5 @@
 /* run.config
-STDOPT: +"-unspecified-access"
+STDOPT: #"-unspecified-access"
 */
 /*@ assigns \nothing; */
 void f(int,int);

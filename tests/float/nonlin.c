@@ -1,15 +1,15 @@
 /* run.config
-   OPT: -slevel 30 -val -cpp-extra-args="-DFLOAT=double" share/builtin.c -float-hex -journal-disable -subdivide-float-var 0
-   OPT: -slevel 30 -val -cpp-extra-args="-DFLOAT=double" share/builtin.c -float-hex -journal-disable -subdivide-float-var 10
-   OPT: -slevel 30 -val -cpp-extra-args="-DFLOAT=float" share/builtin.c -float-hex -journal-disable -subdivide-float-var 0
-   OPT: -slevel 30 -val -cpp-extra-args="-DFLOAT=float" share/builtin.c -float-hex -journal-disable -subdivide-float-var 10
+   OPT: -value-msg-key nonlin -slevel 30 -val -cpp-extra-args="-DFLOAT=double" -float-hex -journal-disable -val-subdivide-non-linear 0 -then -no-float-hex -no-val-print -val-print
+   OPT: -value-msg-key nonlin -slevel 30 -val -cpp-extra-args="-DFLOAT=double" -float-hex -journal-disable -val-subdivide-non-linear 10  -then -no-float-hex -no-val-print -val-print
+   OPT: -value-msg-key nonlin -slevel 30 -val -cpp-extra-args="-DFLOAT=float" -float-hex -journal-disable -val-subdivide-non-linear 0 -then -no-float-hex -no-val-print -val-print
+   OPT: -value-msg-key nonlin -slevel 30 -val -cpp-extra-args="-DFLOAT=float" -float-hex -journal-disable -val-subdivide-non-linear 10 -then -no-float-hex -no-val-print -val-print
 */
 
-#include "share/builtin.h"
+#include "__fc_builtin.h"
 
 FLOAT a, b, c, r1, r2, d, i, s, zf, s2, sq, h;
 
-int t[10]={1,2,3,4,5,6,7,8,9,10},r,z;
+int t[10]={1,2,3,4,5,6,7,8,9,10},r,x,y,z;
 
 void nonlin_f()
 {
@@ -52,7 +52,7 @@ int access_bits(FLOAT X )
   rbits1 = x0;
   return 0;
 }
-
+void split_alarm();
 
 main()
 {
@@ -67,4 +67,16 @@ main()
   sq = s * s;
   h = s * (1 - s);
   rbits2 = access_bits(i);
+
+  x = Frama_C_interval(0,42);
+  y = (1 / x) * x;
+
+  split_alarm();
+}
+
+extern float ff;
+
+void split_alarm() { // No alarm with sufficient subdivide-float-var
+  //@ requires -8 <= ff <= 15;
+  double d = 1 / ((double)ff * ff + 0.000000001);
 }

@@ -21,8 +21,7 @@ int g(int *a)
 {
   int __retres;
   int *tmp;
-  {
-    /*sequence*/
+  { /* sequence */
     tmp = a;
     a ++;
     ;
@@ -41,8 +40,7 @@ int g(int *a)
   }
   if (*a != 0) {
     int *tmp_0;
-    {
-      /*sequence*/
+    { /* sequence */
       tmp_0 = a;
       a ++;
       ;

@@ -1,7 +1,7 @@
 /* run.config
   GCC:
-  OPT: -val -deps -out -input  -main g -journal-disable
-  OPT: -val -deps -out -input  -main h -journal-disable
+  STDOPT: #"-main g"
+  STDOPT: #"-main h"
 */
 int * f (int *r) {
   return r;

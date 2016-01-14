@@ -58,8 +58,7 @@ void test_tab(int v)
   int *r;
   char *q;
   int decal;
-  {
-    /*sequence*/
+  { /* sequence */
     (s2.b) ++;
     TAB[s1.b] = TAB[s2.b];
   }

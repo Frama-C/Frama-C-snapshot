@@ -1,0 +1,500 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_typed/array_initialized.c (with preprocessing)
+tests/wp_typed/array_initialized.c:13:[kernel] warning: Too many initializers for array g
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function main1
+------------------------------------------------------------
+
+Goal Assertion (file tests/wp_typed/array_initialized.c, line 71):
+Assume {
+  (* Goal *)
+  When: (0<=i_0) /\ (i_0<=499).
+  (* Initializer *)
+  Init: forall i_1:int. (0<=i_1) -> (i_1<=499) -> (0=g_0[i_1]).
+}
+Prove: 0=g_0[i_0].
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function main2
+------------------------------------------------------------
+
+Goal Assertion (file tests/wp_typed/array_initialized.c, line 185):
+Assume {
+  (* Goal *)
+  When: (0<=i_0) /\ (i_0<=499).
+  (* Initializer *)
+  Init: 0=h2_0[0].
+  (* Initializer *)
+  Init: 1=h2_0[1].
+  (* Initializer *)
+  Init: 2=h2_0[2].
+  (* Initializer *)
+  Init: 3=h2_0[3].
+  (* Initializer *)
+  Init: 4=h2_0[4].
+  (* Initializer *)
+  Init: 5=h2_0[5].
+  (* Initializer *)
+  Init: 6=h2_0[6].
+  (* Initializer *)
+  Init: 7=h2_0[7].
+  (* Initializer *)
+  Init: 8=h2_0[8].
+  (* Initializer *)
+  Init: 9=h2_0[9].
+  (* Initializer *)
+  Init: 10=h2_0[10].
+  (* Initializer *)
+  Init: 11=h2_0[11].
+  (* Initializer *)
+  Init: 12=h2_0[12].
+  (* Initializer *)
+  Init: 13=h2_0[13].
+  (* Initializer *)
+  Init: 14=h2_0[14].
+  (* Initializer *)
+  Init: 15=h2_0[15].
+  (* Initializer *)
+  Init: 16=h2_0[16].
+  (* Initializer *)
+  Init: 17=h2_0[17].
+  (* Initializer *)
+  Init: 18=h2_0[18].
+  (* Initializer *)
+  Init: 19=h2_0[19].
+  (* Initializer *)
+  Init: 20=h2_0[20].
+  (* Initializer *)
+  Init: 21=h2_0[21].
+  (* Initializer *)
+  Init: 22=h2_0[22].
+  (* Initializer *)
+  Init: 23=h2_0[23].
+  (* Initializer *)
+  Init: 24=h2_0[24].
+  (* Initializer *)
+  Init: 25=h2_0[25].
+  (* Initializer *)
+  Init: 26=h2_0[26].
+  (* Initializer *)
+  Init: 27=h2_0[27].
+  (* Initializer *)
+  Init: 28=h2_0[28].
+  (* Initializer *)
+  Init: 29=h2_0[29].
+  (* Initializer *)
+  Init: 30=h2_0[30].
+  (* Initializer *)
+  Init: 31=h2_0[31].
+  (* Initializer *)
+  Init: 32=h2_0[32].
+  (* Initializer *)
+  Init: 33=h2_0[33].
+  (* Initializer *)
+  Init: 34=h2_0[34].
+  (* Initializer *)
+  Init: 35=h2_0[35].
+  (* Initializer *)
+  Init: 36=h2_0[36].
+  (* Initializer *)
+  Init: 37=h2_0[37].
+  (* Initializer *)
+  Init: 38=h2_0[38].
+  (* Initializer *)
+  Init: 39=h2_0[39].
+  (* Initializer *)
+  Init: 40=h2_0[40].
+  (* Initializer *)
+  Init: 41=h2_0[41].
+  (* Initializer *)
+  Init: 42=h2_0[42].
+  (* Initializer *)
+  Init: 43=h2_0[43].
+  (* Initializer *)
+  Init: 44=h2_0[44].
+  (* Initializer *)
+  Init: 45=h2_0[45].
+  (* Initializer *)
+  Init: 46=h2_0[46].
+  (* Initializer *)
+  Init: 47=h2_0[47].
+  (* Initializer *)
+  Init: 48=h2_0[48].
+  (* Initializer *)
+  Init: 49=h2_0[49].
+  (* Initializer *)
+  Init: forall i_1:int. (50<=i_1) -> (i_1<=499) -> (0=h2_0[i_1]).
+  (* Initializer *)
+  Init: 0=h1_0[0].
+  (* Initializer *)
+  Init: 1=h1_0[1].
+  (* Initializer *)
+  Init: 2=h1_0[2].
+  (* Initializer *)
+  Init: 3=h1_0[3].
+  (* Initializer *)
+  Init: 4=h1_0[4].
+  (* Initializer *)
+  Init: 5=h1_0[5].
+  (* Initializer *)
+  Init: 6=h1_0[6].
+  (* Initializer *)
+  Init: 7=h1_0[7].
+  (* Initializer *)
+  Init: 8=h1_0[8].
+  (* Initializer *)
+  Init: 9=h1_0[9].
+  (* Initializer *)
+  Init: 10=h1_0[10].
+  (* Initializer *)
+  Init: 11=h1_0[11].
+  (* Initializer *)
+  Init: 12=h1_0[12].
+  (* Initializer *)
+  Init: 13=h1_0[13].
+  (* Initializer *)
+  Init: 14=h1_0[14].
+  (* Initializer *)
+  Init: 15=h1_0[15].
+  (* Initializer *)
+  Init: 16=h1_0[16].
+  (* Initializer *)
+  Init: 17=h1_0[17].
+  (* Initializer *)
+  Init: 18=h1_0[18].
+  (* Initializer *)
+  Init: 19=h1_0[19].
+  (* Initializer *)
+  Init: 20=h1_0[20].
+  (* Initializer *)
+  Init: 21=h1_0[21].
+  (* Initializer *)
+  Init: 22=h1_0[22].
+  (* Initializer *)
+  Init: 23=h1_0[23].
+  (* Initializer *)
+  Init: 24=h1_0[24].
+  (* Initializer *)
+  Init: 25=h1_0[25].
+  (* Initializer *)
+  Init: 26=h1_0[26].
+  (* Initializer *)
+  Init: 27=h1_0[27].
+  (* Initializer *)
+  Init: 28=h1_0[28].
+  (* Initializer *)
+  Init: 29=h1_0[29].
+  (* Initializer *)
+  Init: 30=h1_0[30].
+  (* Initializer *)
+  Init: 31=h1_0[31].
+  (* Initializer *)
+  Init: 32=h1_0[32].
+  (* Initializer *)
+  Init: 33=h1_0[33].
+  (* Initializer *)
+  Init: 34=h1_0[34].
+  (* Initializer *)
+  Init: 35=h1_0[35].
+  (* Initializer *)
+  Init: 36=h1_0[36].
+  (* Initializer *)
+  Init: 37=h1_0[37].
+  (* Initializer *)
+  Init: 38=h1_0[38].
+  (* Initializer *)
+  Init: 39=h1_0[39].
+  (* Initializer *)
+  Init: 40=h1_0[40].
+  (* Initializer *)
+  Init: 41=h1_0[41].
+  (* Initializer *)
+  Init: 42=h1_0[42].
+  (* Initializer *)
+  Init: 43=h1_0[43].
+  (* Initializer *)
+  Init: 44=h1_0[44].
+  (* Initializer *)
+  Init: 45=h1_0[45].
+  (* Initializer *)
+  Init: 46=h1_0[46].
+  (* Initializer *)
+  Init: 47=h1_0[47].
+  (* Initializer *)
+  Init: 48=h1_0[48].
+  (* Initializer *)
+  Init: 49=h1_0[49].
+  (* Initializer *)
+  Init: forall i_1:int. (50<=i_1) -> (i_1<=499) -> (0=h1_0[i_1]).
+}
+Prove: h1_0[i_0]=h2_0[i_0].
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function main3
+------------------------------------------------------------
+
+Goal Assertion (file tests/wp_typed/array_initialized.c, line 194):
+Assume {
+  (* Domain *)
+  Type: (is_sint32 h1_0[50]) /\ (is_sint32 h1_0[51]) /\ (is_sint32 h1_0[52])
+        /\ (is_sint32 h1_0[53]) /\ (is_sint32 h1_0[54])
+        /\ (is_sint32 h1_0[55]) /\ (is_sint32 h1_0[56])
+        /\ (is_sint32 h1_0[57]) /\ (is_sint32 h1_0[58])
+        /\ (is_sint32 h1_0[59]) /\ (is_sint32 h1_0[60])
+        /\ (is_sint32 h1_0[61]) /\ (is_sint32 h1_0[62])
+        /\ (is_sint32 h1_0[63]) /\ (is_sint32 h1_0[64])
+        /\ (is_sint32 h1_0[65]) /\ (is_sint32 h1_0[66])
+        /\ (is_sint32 h1_0[67]) /\ (is_sint32 h1_0[68])
+        /\ (is_sint32 h1_0[69]) /\ (is_sint32 h1_0[70])
+        /\ (is_sint32 h1_0[71]) /\ (is_sint32 h1_0[72])
+        /\ (is_sint32 h1_0[73]) /\ (is_sint32 h1_0[74])
+        /\ (is_sint32 h1_0[75]) /\ (is_sint32 h1_0[76])
+        /\ (is_sint32 h1_0[77]) /\ (is_sint32 h1_0[78])
+        /\ (is_sint32 h1_0[79]) /\ (is_sint32 h1_0[80])
+        /\ (is_sint32 h1_0[81]) /\ (is_sint32 h1_0[82])
+        /\ (is_sint32 h1_0[83]) /\ (is_sint32 h1_0[84])
+        /\ (is_sint32 h1_0[85]) /\ (is_sint32 h1_0[86])
+        /\ (is_sint32 h1_0[87]) /\ (is_sint32 h1_0[88])
+        /\ (is_sint32 h1_0[89]) /\ (is_sint32 h1_0[90])
+        /\ (is_sint32 h1_0[91]) /\ (is_sint32 h1_0[92])
+        /\ (is_sint32 h1_0[93]) /\ (is_sint32 h1_0[94])
+        /\ (is_sint32 h1_0[95]) /\ (is_sint32 h1_0[96])
+        /\ (is_sint32 h1_0[97]) /\ (is_sint32 h1_0[98])
+        /\ (is_sint32 h1_0[99]) /\ (is_sint32 h1_0[150])
+        /\ (is_sint32 h1_0[151]) /\ (is_sint32 h1_0[152])
+        /\ (is_sint32 h1_0[153]) /\ (is_sint32 h1_0[154])
+        /\ (is_sint32 h1_0[155]) /\ (is_sint32 h1_0[156])
+        /\ (is_sint32 h1_0[157]) /\ (is_sint32 h1_0[158])
+        /\ (is_sint32 h1_0[159]) /\ (is_sint32 h1_0[160])
+        /\ (is_sint32 h1_0[161]) /\ (is_sint32 h1_0[162])
+        /\ (is_sint32 h1_0[163]) /\ (is_sint32 h1_0[164])
+        /\ (is_sint32 h1_0[165]) /\ (is_sint32 h1_0[166])
+        /\ (is_sint32 h1_0[167]) /\ (is_sint32 h1_0[168])
+        /\ (is_sint32 h1_0[169]) /\ (is_sint32 h1_0[170])
+        /\ (is_sint32 h1_0[171]) /\ (is_sint32 h1_0[172])
+        /\ (is_sint32 h1_0[173]) /\ (is_sint32 h1_0[174])
+        /\ (is_sint32 h1_0[175]) /\ (is_sint32 h1_0[176])
+        /\ (is_sint32 h1_0[177]) /\ (is_sint32 h1_0[178])
+        /\ (is_sint32 h1_0[179]) /\ (is_sint32 h1_0[180])
+        /\ (is_sint32 h1_0[181]) /\ (is_sint32 h1_0[182])
+        /\ (is_sint32 h1_0[183]) /\ (is_sint32 h1_0[184])
+        /\ (is_sint32 h1_0[185]) /\ (is_sint32 h1_0[186])
+        /\ (is_sint32 h1_0[187]) /\ (is_sint32 h1_0[188])
+        /\ (is_sint32 h1_0[189]) /\ (is_sint32 h1_0[190])
+        /\ (is_sint32 h1_0[191]) /\ (is_sint32 h1_0[192])
+        /\ (is_sint32 h1_0[193]) /\ (is_sint32 h1_0[194])
+        /\ (is_sint32 h1_0[195]) /\ (is_sint32 h1_0[196])
+        /\ (is_sint32 h1_0[197]) /\ (is_sint32 h1_0[198])
+        /\ (is_sint32 h1_0[199]) /\ (is_sint32 h1_0[250])
+        /\ (is_sint32 h1_0[251]) /\ (is_sint32 h1_0[252])
+        /\ (is_sint32 h1_0[253]) /\ (is_sint32 h1_0[254])
+        /\ (is_sint32 h1_0[255]) /\ (is_sint32 h1_0[256])
+        /\ (is_sint32 h1_0[257]) /\ (is_sint32 h1_0[258])
+        /\ (is_sint32 h1_0[259]) /\ (is_sint32 h1_0[260])
+        /\ (is_sint32 h1_0[261]) /\ (is_sint32 h1_0[262])
+        /\ (is_sint32 h1_0[263]) /\ (is_sint32 h1_0[264])
+        /\ (is_sint32 h1_0[265]) /\ (is_sint32 h1_0[266])
+        /\ (is_sint32 h1_0[267]) /\ (is_sint32 h1_0[268])
+        /\ (is_sint32 h1_0[269]) /\ (is_sint32 h1_0[270])
+        /\ (is_sint32 h1_0[271]) /\ (is_sint32 h1_0[272])
+        /\ (is_sint32 h1_0[273]) /\ (is_sint32 h1_0[274])
+        /\ (is_sint32 h1_0[275]) /\ (is_sint32 h1_0[276])
+        /\ (is_sint32 h1_0[277]) /\ (is_sint32 h1_0[278])
+        /\ (is_sint32 h1_0[279]) /\ (is_sint32 h1_0[280])
+        /\ (is_sint32 h1_0[281]) /\ (is_sint32 h1_0[282])
+        /\ (is_sint32 h1_0[283]) /\ (is_sint32 h1_0[284])
+        /\ (is_sint32 h1_0[285]) /\ (is_sint32 h1_0[286])
+        /\ (is_sint32 h1_0[287]) /\ (is_sint32 h1_0[288])
+        /\ (is_sint32 h1_0[289]) /\ (is_sint32 h1_0[290])
+        /\ (is_sint32 h1_0[291]) /\ (is_sint32 h1_0[292])
+        /\ (is_sint32 h1_0[293]) /\ (is_sint32 h1_0[294])
+        /\ (is_sint32 h1_0[295]) /\ (is_sint32 h1_0[296])
+        /\ (is_sint32 h1_0[297]) /\ (is_sint32 h1_0[298])
+        /\ (is_sint32 h1_0[299]) /\ (is_sint32 h1_0[350])
+        /\ (is_sint32 h1_0[351]) /\ (is_sint32 h1_0[352])
+        /\ (is_sint32 h1_0[353]) /\ (is_sint32 h1_0[354])
+        /\ (is_sint32 h1_0[355]) /\ (is_sint32 h1_0[356])
+        /\ (is_sint32 h1_0[357]) /\ (is_sint32 h1_0[358])
+        /\ (is_sint32 h1_0[359]) /\ (is_sint32 h1_0[360])
+        /\ (is_sint32 h1_0[361]) /\ (is_sint32 h1_0[362])
+        /\ (is_sint32 h1_0[363]) /\ (is_sint32 h1_0[364])
+        /\ (is_sint32 h1_0[365]) /\ (is_sint32 h1_0[366])
+        /\ (is_sint32 h1_0[367]) /\ (is_sint32 h1_0[368])
+        /\ (is_sint32 h1_0[369]) /\ (is_sint32 h1_0[370])
+        /\ (is_sint32 h1_0[371]) /\ (is_sint32 h1_0[372])
+        /\ (is_sint32 h1_0[373]) /\ (is_sint32 h1_0[374])
+        /\ (is_sint32 h1_0[375]) /\ (is_sint32 h1_0[376])
+        /\ (is_sint32 h1_0[377]) /\ (is_sint32 h1_0[378])
+        /\ (is_sint32 h1_0[379]) /\ (is_sint32 h1_0[380])
+        /\ (is_sint32 h1_0[381]) /\ (is_sint32 h1_0[382])
+        /\ (is_sint32 h1_0[383]) /\ (is_sint32 h1_0[384])
+        /\ (is_sint32 h1_0[385]) /\ (is_sint32 h1_0[386])
+        /\ (is_sint32 h1_0[387]) /\ (is_sint32 h1_0[388])
+        /\ (is_sint32 h1_0[389]) /\ (is_sint32 h1_0[390])
+        /\ (is_sint32 h1_0[391]) /\ (is_sint32 h1_0[392])
+        /\ (is_sint32 h1_0[393]) /\ (is_sint32 h1_0[394])
+        /\ (is_sint32 h1_0[395]) /\ (is_sint32 h1_0[396])
+        /\ (is_sint32 h1_0[397]) /\ (is_sint32 h1_0[398])
+        /\ (is_sint32 h1_0[399]).
+  (* Initializer *)
+  Init: 0=h1_0[0].
+  (* Initializer *)
+  Init: 1=h1_0[1].
+  (* Initializer *)
+  Init: 2=h1_0[2].
+  (* Initializer *)
+  Init: 3=h1_0[3].
+  (* Initializer *)
+  Init: 4=h1_0[4].
+  (* Initializer *)
+  Init: 5=h1_0[5].
+  (* Initializer *)
+  Init: 6=h1_0[6].
+  (* Initializer *)
+  Init: 7=h1_0[7].
+  (* Initializer *)
+  Init: 8=h1_0[8].
+  (* Initializer *)
+  Init: 9=h1_0[9].
+  (* Initializer *)
+  Init: 10=h1_0[10].
+  (* Initializer *)
+  Init: 11=h1_0[11].
+  (* Initializer *)
+  Init: 12=h1_0[12].
+  (* Initializer *)
+  Init: 13=h1_0[13].
+  (* Initializer *)
+  Init: 14=h1_0[14].
+  (* Initializer *)
+  Init: 15=h1_0[15].
+  (* Initializer *)
+  Init: 16=h1_0[16].
+  (* Initializer *)
+  Init: 17=h1_0[17].
+  (* Initializer *)
+  Init: 18=h1_0[18].
+  (* Initializer *)
+  Init: 19=h1_0[19].
+  (* Initializer *)
+  Init: 20=h1_0[20].
+  (* Initializer *)
+  Init: 21=h1_0[21].
+  (* Initializer *)
+  Init: 22=h1_0[22].
+  (* Initializer *)
+  Init: 23=h1_0[23].
+  (* Initializer *)
+  Init: 24=h1_0[24].
+  (* Initializer *)
+  Init: 25=h1_0[25].
+  (* Initializer *)
+  Init: 26=h1_0[26].
+  (* Initializer *)
+  Init: 27=h1_0[27].
+  (* Initializer *)
+  Init: 28=h1_0[28].
+  (* Initializer *)
+  Init: 29=h1_0[29].
+  (* Initializer *)
+  Init: 30=h1_0[30].
+  (* Initializer *)
+  Init: 31=h1_0[31].
+  (* Initializer *)
+  Init: 32=h1_0[32].
+  (* Initializer *)
+  Init: 33=h1_0[33].
+  (* Initializer *)
+  Init: 34=h1_0[34].
+  (* Initializer *)
+  Init: 35=h1_0[35].
+  (* Initializer *)
+  Init: 36=h1_0[36].
+  (* Initializer *)
+  Init: 37=h1_0[37].
+  (* Initializer *)
+  Init: 38=h1_0[38].
+  (* Initializer *)
+  Init: 39=h1_0[39].
+  (* Initializer *)
+  Init: 40=h1_0[40].
+  (* Initializer *)
+  Init: 41=h1_0[41].
+  (* Initializer *)
+  Init: 42=h1_0[42].
+  (* Initializer *)
+  Init: 43=h1_0[43].
+  (* Initializer *)
+  Init: 44=h1_0[44].
+  (* Initializer *)
+  Init: 45=h1_0[45].
+  (* Initializer *)
+  Init: 46=h1_0[46].
+  (* Initializer *)
+  Init: 47=h1_0[47].
+  (* Initializer *)
+  Init: 48=h1_0[48].
+  (* Initializer *)
+  Init: 49=h1_0[49].
+  (* Initializer *)
+  Init: forall i_0:int. (50<=i_0) -> (i_0<=499) -> (0=h1_0[i_0]).
+}
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function main_pointer
+------------------------------------------------------------
+
+Goal Assertion (file tests/wp_typed/array_initialized.c, line 283):
+Assume {
+  (* Goal *)
+  When: (0<=i_0) /\ (i_0<=499).
+  (* Initializer *)
+  Init: forall i_1:int.
+        (0<=i_1) -> (i_1<=499)
+        -> (p_0[i_1]=(shift_sint32 (global G_p0_75) 0)).
+  (* Heap *)
+  Have: (linked Malloc_0).
+}
+Prove: (valid_rw Malloc_0 p_0[i_0] 1).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function simpl
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_typed/array_initialized.c, line 288) in 'simpl':
+Let x_0 = Mint_0[(shift_sint32 t_0 0)].
+Assume {
+  (* Domain *)
+  Type: (is_sint32 x_0).
+  (* Goal *)
+  When: (0<=i_1) /\ (i_1<=49).
+  (* Heap *)
+  Have: (region (base t_0))<=0.
+  (* Pre-condition (file tests/wp_typed/array_initialized.c, line 287) in 'simpl' *)
+  (* Pre-condition: *)
+  Have: forall i_0:int.
+        (0<=i_0) -> (i_0<=49) -> (x_0=Mint_0[(shift_sint32 t_0 i_0)]).
+  (* tests/wp_typed/array_initialized.c:291: Conditional *)
+  If: 0<=x_0
+  Then {
+    (* tests/wp_typed/array_initialized.c:292: Assignment *)
+    Have: 1=simpl_0.
+  }
+  Else {
+    (* tests/wp_typed/array_initialized.c:294: Assignment *)
+    Have: 0=simpl_0.
+  }
+}
+Prove: (1=simpl_0)=(0<=Mint_0[(shift_sint32 t_0 i_1)]).
+
+------------------------------------------------------------

@@ -11,11 +11,15 @@
   Y ∈ {0}
   Z ∈ {0}
 tests/slicing/loops.c:149:[value] entering loop for the first time
-tests/slicing/loops.c:165:[kernel] warning: signed overflow. assert -2147483648 ≤ G+data2 ≤ 2147483647;
-tests/slicing/loops.c:150:[kernel] warning: signed overflow. assert -2147483648 ≤ G+data1 ≤ 2147483647;
-tests/slicing/loops.c:154:[kernel] warning: signed overflow. assert -2147483648 ≤ G+no_data ≤ 2147483647;
+tests/slicing/loops.c:165:[kernel] warning: signed overflow. assert -2147483648 ≤ G+data2;
+tests/slicing/loops.c:165:[kernel] warning: signed overflow. assert G+data2 ≤ 2147483647;
+tests/slicing/loops.c:150:[kernel] warning: signed overflow. assert -2147483648 ≤ G+data1;
+tests/slicing/loops.c:150:[kernel] warning: signed overflow. assert G+data1 ≤ 2147483647;
+tests/slicing/loops.c:154:[kernel] warning: signed overflow. assert -2147483648 ≤ G+no_data;
+tests/slicing/loops.c:154:[kernel] warning: signed overflow. assert G+no_data ≤ 2147483647;
 tests/slicing/loops.c:155:[value] entering loop for the first time
-tests/slicing/loops.c:156:[kernel] warning: signed overflow. assert -2147483648 ≤ G+no_data ≤ 2147483647;
+tests/slicing/loops.c:156:[kernel] warning: signed overflow. assert -2147483648 ≤ G+no_data;
+tests/slicing/loops.c:156:[kernel] warning: signed overflow. assert G+no_data ≤ 2147483647;
 [value] Recording results for test_infinite_loop_5
 [value] done for function test_infinite_loop_5
 [from] Computing for function test_infinite_loop_5

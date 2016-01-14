@@ -1,7 +1,7 @@
 /* run.config
    GCC:
-   OPT: -val -deps -out -input -journal-disable
-   OPT: -val -deps -out -input -main f -journal-disable
+   STDOPT: #"-main main"
+   STDOPT: #"-main f"
 */
 
 

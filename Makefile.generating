@@ -88,25 +88,29 @@ $(CONFIG_FILE): $(CONFIG_FILE).in VERSION share/Makefile.config Makefile.generat
 	  -e "s|@STATIC_PLUGINS@|$(STATIC_PLUGINS)|" \
           -e "s|@STATIC_GUI_PLUGINS@|$(STATIC_GUI_PLUGINS)|" \
           -e "s|@COMPILATION_UNITS@|$(COMPILATION_UNITS)|" \
+          -e "s|@LIBRARY_NAMES@|$(LIBRARY_NAMES)|" \
 	  -e "s|@OPTDOT@|$(OPTDOT)|" \
           -e "s|@EXE@|$(EXE)|" \
           $< > $@
 	$(CHMOD_RO) $@
 
-src/toplevel/toplevel_boot.ml: src/toplevel/toplevel_config.ml \
-			       src/kernel/boot.ml Makefile.generating
-	cp src/toplevel/toplevel_config.ml $@
-	sed -e "s/~quit:true/~quit:false/" src/kernel/boot.ml >> $@
-
 ifeq ("$(LOCAL_MACHDEP)","yes")
+
+MACHDEP_PATH=share
 
 # Create the machine dependency module
 # If the cl command cannot be run then the MSVC part will be identical to GCC
-.PHONY : machdep $(CIL_PATH)/local_machdep.ml
-machdep: $(CIL_PATH)/local_machdep.ml
+.PHONY : machdep $(MACHDEP_PATH)/local_machdep.ml
+machdep: $(MACHDEP_PATH)/local_machdep.ml
 bin/machdep.exe: machdep
 
-$(CIL_PATH)/local_machdep.ml: $(CIL_PATH)/machdep.c configure.in Makefile.generating
+config.h: 
+	$(PRINT_MAKING) $@
+	$(ECHO) "missing config.h file generated at configure stage using --enable-localmachdep option."
+	exit 1;
+
+$(MACHDEP_PATH)/local_machdep.ml: \
+  $(MACHDEP_PATH)/machdep.c config.h Makefile.generating
 	$(PRINT_MAKING) $@
 	$(RM) $@
 	$(ECHO) "(* This module was generated automatically by code in Makefile and machdep.c *)" >$@
@@ -137,6 +141,32 @@ $(CIL_PATH)/local_machdep.ml: $(CIL_PATH)/machdep.c configure.in Makefile.genera
 	  "$@ generated. You may have this file merged into Frama-C by developers."
 	$(CHMOD_RO) $@
 
+endif
+
+
+
+##################
+# Frama-C-config #
+##################
+
+src/kernel_internals/runtime/frama_c_config.ml: src/kernel_internals/runtime/config.ml \
+	src/kernel_internals/runtime/frama_c_config.ml.in Makefile.generating
+	$(PRINT_MAKING) $@
+	$(RM) $@
+	$(ECHO) "module Filepath = struct let add_symbolic_dir _ _ = () end" >> $@
+	$(ECHO) "module Config = struct" >> $@
+	$(CAT) src/kernel_internals/runtime/config.ml >> $@
+	$(ECHO) "end" >> $@
+	$(CAT) src/kernel_internals/runtime/frama_c_config.ml.in >> $@
+	$(CHMOD_RO) $@
+
+GENERATED+= src/kernel_internals/runtime/frama_c_config.ml
+
+bin/frama-c-config$(EXE): src/kernel_internals/runtime/frama_c_config.ml
+ifeq ($(OCAMLBEST),opt)
+	$(OCAMLOPT) str.cmxa $< -o $@
+else
+	$(OCAMLC) str.cma $< -o $@
 endif
 
 

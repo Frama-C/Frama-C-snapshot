@@ -1,0 +1,21 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_plugin/dynamic.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Computing dynamic calls.
+[wp] Dynamic call(s): 1.
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] 4 goals scheduled
+[wp] [Alt-Ergo] Goal typed_call_stmt_calls_f1_f2 : Valid
+[wp] [Qed] Goal typed_call_post_part1 : Valid
+[wp] [Qed] Goal typed_call_post_part2 : Valid
+[wp] [Alt-Ergo] Goal typed_call_call_f1_pre : Valid
+[wp] Proved goals:    4 / 4
+     Qed:             2 
+     Alt-Ergo:        2
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+call                 2      2 (76)     4       100%
+----------------------------------------------------------

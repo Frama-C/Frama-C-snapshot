@@ -22,6 +22,9 @@
 
 #ifndef __FC_DEFINE_SA_FAMILY_T
 #define __FC_DEFINE_SA_FAMILY_T
+#include "features.h"
 #include "__fc_machdep.h"
+__BEGIN_DECLS
 typedef __UINT_LEAST16_T sa_family_t;
+__END_DECLS
 #endif

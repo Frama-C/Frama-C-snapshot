@@ -1,5 +1,5 @@
 /* run.config
-   STDOPT:  +"-rte-select fbug -rte -memexec-all"
+   STDOPT: #"-memexec-all" +"-rte-select fbug -rte"
 */
 
 int x1, y1, z1; volatile int c;
@@ -114,6 +114,42 @@ void f5() {
   Frama_C_show_each_f5(arg, g_f5_1, g_f5_2); // Cache, but reduce g_f5_* and arg after the call. Currently does not work for g_f5_1, because dependencies are not taken into account
 }
 
+struct two_fields { int x; int y; } two_fields;
+void f6_1() {
+  two_fields.x = 1;
+}
+void f6() {
+  two_fields.y = 2;
+  f6_1();
+
+  two_fields.y = 3;
+  f6_1();
+}
+
+void f7_1(struct two_fields *p) {
+  p->x = 1;
+  p->y = 1;
+}
+
+void f7() {
+  struct two_fields x;
+  f7_1(&x);
+  f7_1(&x);
+}
+
+void f8_1(int *q) {
+  if (*q == 1)
+    q = 0;
+}
+
+void f8() {
+  int x;
+  if (c) f8_1(&x);
+  x = 1;
+  f8_1(&x);
+  f8_1(&x);
+}
+
 void main () {
   f1 ();
   f2 ();
@@ -121,6 +157,7 @@ void main () {
   bug();
   f4();
   f5();
+  f6();
+  f7();
+  f8();
 }
-
-

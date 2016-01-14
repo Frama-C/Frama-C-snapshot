@@ -5,7 +5,7 @@ void main() {
   r=0;
   n=50;
   for (i=0; i<n ; i+=2) {
-    CEA_F(i);
+    Frama_C_show_each_F(i);
     r = i+r; }
 }
 

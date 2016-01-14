@@ -1,0 +1,22 @@
+# frama-c -wp -wp-rte [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp/bug_rte.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[rte] annotating function bug
+------------------------------------------------------------
+  Function bug
+------------------------------------------------------------
+
+Goal Assertion 'rte,signed_overflow' (file tests/wp/bug_rte.i, line 7):
+Assume { (* Domain *) Type: (is_sint32 i_0) /\ (is_sint32 j_0). }
+Prove: if (1=j_0) then (-2147483647<=i_0) else (-2147483648<=i_0).
+
+------------------------------------------------------------
+
+Goal Assertion 'rte,signed_overflow' (file tests/wp/bug_rte.i, line 7):
+Assume { (* Domain *) Type: (is_sint32 i_0) /\ (is_sint32 j_0). }
+Prove: i_0<=(2147483647+(if (1=j_0) then 1 else 0)).
+
+------------------------------------------------------------

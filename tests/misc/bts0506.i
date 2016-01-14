@@ -1,6 +1,6 @@
 /*run.config
-STDOPT: +"-no-collapse-call-cast" +"-print"
-STDOPT: +"-collapse-call-cast" +"-print"
+STDOPT: #"-no-collapse-call-cast" +"-print"
+STDOPT: #"-collapse-call-cast" +"-print"
 */
 
 int f1();

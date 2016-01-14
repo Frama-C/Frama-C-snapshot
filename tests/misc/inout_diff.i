@@ -1,5 +1,5 @@
 /* run.config
-   STDOPT: +"-ulevel 10 -inout"
+   STDOPT: #"-ulevel 10" +"-inout"
 */
 
 int t[50];

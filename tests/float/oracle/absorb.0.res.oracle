@@ -1,0 +1,24 @@
+[kernel] warning: ignoring source files specified on the command line while loading a global initial context.
+[from] Computing for function main
+[from] Computing for function Frama_C_interval <-main
+[from] Done for function Frama_C_interval
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function Frama_C_interval:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  \result FROM Frama_C_entropy_source; min; max
+[from] Function main:
+  Frama_C_entropy_source FROM Frama_C_entropy_source (and SELF)
+  x FROM x; y (and SELF)
+  y FROM x; y (and SELF)
+  z FROM y
+  t FROM Frama_C_entropy_source
+  min_f FROM \nothing
+  min_fl FROM \nothing
+  den FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          Frama_C_entropy_source; x; y; z; t; min_f; min_fl; den; b
+[inout] Inputs for function main:
+          Frama_C_entropy_source; x; y; min_f

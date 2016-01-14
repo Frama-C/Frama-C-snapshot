@@ -1,0 +1,52 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_acsl/init_value_mem.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function main
+------------------------------------------------------------
+
+Goal Post-condition 'P' in 'main':
+Let a_0 = (shift_St (global G_v_67) 0).
+Let a_1 = (Load_S_St a_0 Mint_0).
+Assume {
+  (* Domain *)
+  Type: (IsS_St w_0) /\ (IsS_St a_1).
+  (* Initializer *)
+  Init: 1=w_0.F_St_a.
+  (* Initializer *)
+  Init: 2=w_0.F_St_b.
+  (* Initializer *)
+  Init: 1=Mint_0[(shiftfield_F_St_a a_0)].
+  (* Initializer *)
+  Init: 2=Mint_0[(shiftfield_F_St_b a_0)].
+  (* Heap *)
+  Have: (region G_v_67)<=0.
+}
+Prove: (EqS_St a_1 w_0).
+
+------------------------------------------------------------
+
+Goal Post-condition 'Q' in 'main':
+Let a_0 = (shift_St (global G_v_67) 0).
+Let a_1 = (Load_S_St a_0 Mint_0).
+Assume {
+  (* Domain *)
+  Type: (IsS_St w_0) /\ (IsS_St a_1).
+  (* Initializer *)
+  Init: 1=w_0.F_St_a.
+  (* Initializer *)
+  Init: 2=w_0.F_St_b.
+  (* Initializer *)
+  Init: 1=Mint_0[(shiftfield_F_St_a a_0)].
+  (* Initializer *)
+  Init: 2=Mint_0[(shiftfield_F_St_b a_0)].
+  (* Heap *)
+  Have: (region G_v_67)<=0.
+}
+Prove: (EqS_St a_1 w_0).
+
+------------------------------------------------------------

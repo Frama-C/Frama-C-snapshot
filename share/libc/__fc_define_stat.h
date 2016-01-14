@@ -22,6 +22,7 @@
 
 #ifndef __FC_DEFINE_STAT_H
 #define __FC_DEFINE_STAT_H
+#include "features.h"
 
 
 #include "__fc_define_ino_t.h"
@@ -35,6 +36,8 @@
 #include "__fc_define_off_t.h"
 
 #define __statfs_word unsigned int
+
+__BEGIN_DECLS
 
 struct statfs {
 	__statfs_word f_type;
@@ -66,5 +69,7 @@ struct stat {
   blksize_t st_blksize;
   blkcnt_t  st_blocks;
 };
+
+__END_DECLS
 
 #endif

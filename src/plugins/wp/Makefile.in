@@ -1,0 +1,338 @@
+##########################################################################
+#                                                                        #
+#  This file is part of WP plug-in of Frama-C.                           #
+#                                                                        #
+#  Copyright (C) 2007-2015                                               #
+#    CEA (Commissariat a l'energie atomique et aux energies              #
+#         alternatives)                                                  #
+#                                                                        #
+#  you can redistribute it and/or modify it under the terms of the GNU   #
+#  Lesser General Public License as published by the Free Software       #
+#  Foundation, version 2.1.                                              #
+#                                                                        #
+#  It is distributed in the hope that it will be useful,                 #
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of        #
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         #
+#  GNU Lesser General Public License for more details.                   #
+#                                                                        #
+#  See the GNU Lesser General Public License version 2.1                 #
+#  for more details (enclosed in the file licenses/LGPLv2.1).            #
+#                                                                        #
+##########################################################################
+
+# Do not use ?= to initialize both below variables
+# (fixed efficiency issue, see GNU Make manual, Section 8.11)
+ifndef FRAMAC_SHARE
+FRAMAC_SHARE  :=$(shell frama-c -journal-disable -print-path)
+endif
+ifndef FRAMAC_LIBDIR
+FRAMAC_LIBDIR :=$(shell frama-c -journal-disable -print-libpath)
+endif
+PLUGIN_DIR ?=.
+
+include $(FRAMAC_SHARE)/Makefile.config
+
+# Coq Resources Installation
+
+include $(PLUGIN_DIR)/share/Makefile.resources
+
+# Extension of the GUI for wp is compilable
+# only if gnomecanvas is available
+ifeq ($(HAS_GNOMECANVAS),yes)
+PLUGIN_GUI_CMO:= \
+	GuiConfig \
+	GuiList \
+	GuiGoal \
+	GuiSource \
+	GuiPanel \
+	GuiNavigator
+endif
+
+PLUGIN_ENABLE:=@ENABLE_WP@
+PLUGIN_DYNAMIC:=@DYNAMIC_WP@
+PLUGIN_NAME:=Wp
+PLUGIN_CMO:= \
+	rformat wprop \
+	wp_parameters wp_error \
+	dyncall ctypes clabels \
+	LogicUsage VarUsageRef VarUsage RefUsage variables_analysis \
+	cil2cfg normAtLabels \
+	wpPropId wpStrategy wpAnnot \
+	Context Warning Model Lang Matrix Passive Splitter \
+	Letify Cleaning Conditions \
+	LogicBuiltins Definitions \
+	Cint Cfloat Vset Region Cstring Cvalues \
+	CodeSemantics \
+	LogicCompiler \
+	LogicSemantics LogicAssigns  \
+	Sigma MemEmpty MemVar MemTyped \
+	VCS script proof wpo wpReport \
+	ProverTask ProverErgo ProverCoq ProverWhy3 \
+	why3_xml why3_session \
+	driver prover \
+	calculus \
+	cfgDump cfgWP \
+	Generator Factory \
+	register
+
+PLUGIN_CMI:= mcfg Memory \
+
+PLUGIN_GENERATED:= \
+   $(PLUGIN_DIR)/script.ml \
+   $(PLUGIN_DIR)/rformat.ml \
+   $(PLUGIN_DIR)/driver.ml \
+   $(PLUGIN_DIR)/why3_xml.ml \
+   $(PLUGIN_DIR)/qed/src/numbers.ml \
+
+PLUGIN_UNDOC+=
+PLUGIN_DOCFLAGS+= -I $(PLUGIN_DIR)/qed/bin
+PLUGIN_INTRO:=$(FRAMAC_SRC)/doc/code/intro_wp.txt
+PLUGIN_DISTRIBUTED:=$(PLUGIN_ENABLE)
+PLUGIN_DISTRIB_EXTERNAL:= \
+	Changelog \
+	Makefile.in \
+	configure.ac \
+	configure \
+	$(addprefix share/, $(ALL_CEA_RESOURCES) \
+	                    $(ALL_UNMODIFIED_WHY3_RESOURCES) \
+	                    $(ALL_MODIFIED_WHY3_RESOURCES))
+
+CEA_WP_GENEREATED=why3_xml.ml script.ml rformat.ml driver.ml
+MODIFIED_WHY3+= $(addprefix $(PLUGIN_DIR)/, why3_xml.mll why3_xml.mli why3_session.ml why3_session.mli)
+
+CEA_WP+= $(addprefix $(PLUGIN_DIR)/, Makefile.in configure.ac) \
+	 $(addprefix $(PLUGIN_DIR)/share/, $(ALL_CEA_RESOURCES)) \
+	 $(addprefix $(PLUGIN_DIR)/, script.mll rformat.mll driver.mll) \
+         $(filter-out $(MODIFIED_WHY3), $(addprefix $(PLUGIN_DIR)/, $(filter-out $(CEA_WP_GENEREATED), *.ml))) \
+	 $(filter-out $(MODIFIED_WHY3), $(addprefix $(PLUGIN_DIR)/, *.mli)) \
+	 $(PLUGIN_DIR)/why3_xml.mll
+
+UNMODIFIED_WHY3+= $(addprefix $(PLUGIN_DIR)/share/, $(ALL_UNMODIFIED_WHY3_RESOURCES))
+MODIFIED_WHY3+= $(addprefix $(PLUGIN_DIR)/share/, $(ALL_MODIFIED_WHY3_RESOURCES))
+NO_CHECK_HEADERS+=$(addprefix $(PLUGIN_DIR), Changelog)
+
+# --------------------------------------------------------------------------
+# --- Qed Dependencies                                                   ---
+# --------------------------------------------------------------------------
+
+QED_LIB := $(PLUGIN_DIR)/qed/bin
+QED_CMO = $(QED_LIB)/Qed.cmo
+QED_CMX = $(QED_LIB)/Qed.cmx
+
+QED_SRC = $(PLUGIN_DIR)/qed/src
+
+include $(QED_SRC)/Makefile.src
+
+QED_FILES = Makefile.src Makefile MakeOcaml ocamldoc.css numbers.mll \
+  $(addsuffix .mli,$(QED_LIB_ML) $(QED_SRC_ML) $(QED_SRC_MLI)) \
+  $(addsuffix .ml, \
+	$(filter-out $(QED_GENERATED), \
+		$(QED_LIB_ML) $(QED_SRC_ML)))
+QED_SOURCES:= $(addprefix $(QED_SRC)/,$(QED_FILES))
+
+PLUGIN_BFLAGS:= -I $(QED_LIB)
+PLUGIN_OFLAGS:= -I $(QED_LIB)
+
+PLUGIN_EXTRA_BYTE:=$(QED_CMO)
+PLUGIN_EXTRA_OPT:=$(QED_CMX)
+
+QED_DISTRIB_SRC:=$(addprefix qed/src/,$(QED_FILES))
+
+CEA_WP+=$(QED_SOURCES)
+PLUGIN_DISTRIB_EXTERNAL+= $(QED_DISTRIB_SRC)
+
+# --------------------------------------------------------------------------
+# --- Tests                                                              ---
+# --------------------------------------------------------------------------
+
+PLUGIN_TESTS_DIRS:= \
+  wp wp_plugin wp_acsl wp_bts \
+  wp_store wp_hoare wp_typed wp_usage
+
+# --------------------------------------------------------------------------
+# --- Dynamic Plugin                                                     ---
+# --------------------------------------------------------------------------
+
+# Hide warnings that are bothersome during development
+PLUGIN_BFLAGS+=-w -32..39
+PLUGIN_OFLAGS+=-w -32..39
+
+include $(FRAMAC_SHARE)/Makefile.dynamic
+
+# Regenerating the Makefile on need
+
+ifeq ("$(FRAMAC_INTERNAL)","yes")
+CONFIG_STATUS_DIR=$(FRAMAC_SRC)
+else
+CONFIG_STATUS_DIR=.
+endif
+
+$(Wp_DIR)/Makefile: $(Wp_DIR)/Makefile.in $(Wp_DIR)/share/Makefile.resources $(QED_SRC)/Makefile.src $(CONFIG_STATUS_DIR)/config.status
+	@cd $(CONFIG_STATUS_DIR) && ./config.status --file $@
+	#$(QUIET_MAKE) depend
+
+# --------------------------------------------------------------------------
+# --- Qed Dependencies                                                   ---
+# --------------------------------------------------------------------------
+
+.PHONY: qed
+
+qed:
+	@echo "Cleaning     Qed"
+	@rm -f $(QED_LIB)/*
+	@rm -f $(Wp_DIR)/qed/src/*.cm?
+	$(MAKE) $(QED_CMO) $(QED_CMX)
+
+clean::
+	@echo "Cleaning     Qed"
+	@rm -f $(QED_LIB)/*
+	$(QUIET_MAKE) -C $(Wp_DIR)/qed/src clean
+
+$(Wp_DIR)/Memory.cmi: $(QED_CMO)
+$(Wp_DIR)/ctypes.cmi: $(QED_CMO)
+$(Wp_DIR)/ctypes.cmo: $(QED_CMO)
+$(Wp_DIR)/ctypes.cmx: $(QED_CMX)
+$(Wp_DIR)/RefUsage.cmi: $(QED_CMO)
+$(Wp_DIR)/RefUsage.cmo: $(QED_CMO)
+$(Wp_DIR)/RefUsage.cmx: $(QED_CMX)
+$(Wp_DIR)/Splitter.cmi: $(QED_CMO)
+$(Wp_DIR)/Splitter.cmo: $(QED_CMO)
+$(Wp_DIR)/Splitter.cmx: $(QED_CMX)
+$(Wp_DIR)/Lang.cmi:   $(QED_CMO)
+$(Wp_DIR)/Lang.cmo:   $(QED_CMO)
+$(Wp_DIR)/Lang.cmx:   $(QED_CMX)
+$(Wp_DIR)/Vset.cmo:   $(QED_CMO)
+$(Wp_DIR)/Vset.cmx:   $(QED_CMX)
+
+ifeq ($(OCAMLOPT),ocamlopt.opt)
+QEDOPT=.opt
+else
+QEDOPT=
+endif
+
+$(QED_CMO): $(QED_SOURCES)
+	@echo "Compiling    Qed (byte$(QEDOPT))"
+	$(QUIET_MAKE) -C $(Wp_DIR)/qed/src depend OCAMLDEP=$(OCAMLDEP)
+	$(QUIET_MAKE) OPT=$(QEDOPT) -C $(Wp_DIR)/qed/src byte \
+		"OCAMLC=$(OCAMLC)" \
+		"OCAMLLEX=$(OCAMLLEX)"
+
+$(QED_CMX): $(QED_CMO) #- To avoid parallel invocation of Qed makefile
+	@echo "Compiling    Qed (opt$(QEDOPT))"
+	$(QUIET_MAKE) OPT=$(QEDOPT) -C $(Wp_DIR)/qed/src opt \
+		"OCAMLOPT=$(OCAMLOPT)" \
+		"OCAMLLEX=$(OCAMLLEX)"
+
+# --------------------------------------------------------------------------
+# --- Installation Resources
+# --------------------------------------------------------------------------
+
+## All relative to share/
+
+WP_COQ_SOURCES= $(addprefix coqwp/, $(COQ_LIBS_CEA) $(COQ_LIBS_INRIA))
+WHY3_COQ_SOURCES= $(addprefix why3/, $(COQ_LIBS_CEA))
+
+ALL_COQ_SOURCES= $(WP_COQ_SOURCES) $(WHY3_COQ_SOURCES)
+ALL_COQ_BINARIES= $(addsuffix o, $(ALL_COQ_SOURCES))
+ALL_ERGO_SOURCES= $(addprefix ergo/, $(ERGO_LIBS_CEA) $(ERGO_LIBS_INRIA))
+ALL_WHY3_SOURCES= $(addprefix why3/, $(WHY3_LIBS_CEA))
+
+ALL_RESOURCES= \
+	wp.driver \
+	why3/coq.drv \
+	why3/why3.conf \
+	$(ALL_COQ_SOURCES) \
+	$(ALL_ERGO_SOURCES) \
+	$(ALL_WHY3_SOURCES)
+
+INSTALL_OPT?=
+INSTALL_SHARE=@$(Wp_DIR)/share/instwp $(INSTALL_OPT)
+
+byte:: $(Wp_DIR)/share/instwp
+opt:: $(Wp_DIR)/share/instwp
+clean::
+	rm -f $(Wp_DIR)/share/instwp
+	rm -f $(Wp_DIR)/share/install.cm*
+
+$(Wp_DIR)/share/instwp: $(Wp_DIR)/share/install.ml
+	$(OCAMLC) $(WARNINGS) -o $@ unix.cma $^
+
+# --------------------------------------------------------------------------
+# --- Pre-Compiled Coq Libraries                                         ---
+# --------------------------------------------------------------------------
+
+.PHONY: wp-coq wp-why3 wp-coq-all wp-coq-clean wp-coq-install wp-coq-uninstall
+
+wp-coq-all: wp-coq wp-why3
+
+wp-coq: coqwpcompile
+	@echo "Run 'make wp-coq-install' to install all precompiled libraries"
+
+wp-why3:  why3compile
+	@echo "Run 'make wp-coq-install' to install all precompiled libraries"
+
+WP_COQC_ENABLED=@COQC@
+WP_WHY3COQC_ENABLED=@WHY3COQC@
+
+include $(Wp_DIR)/share/Makefile
+
+wp-coq-install:
+	$(PRINT_INSTALL) "Coq Libraries"
+	$(INSTALL_SHARE) -f -p -s \
+		-i $(Wp_DIR)/share \
+		-d $(FRAMAC_DATADIR)/wp \
+		$(ALL_COQ_BINARIES)
+
+wp-coq-uninstall:
+	$(PRINT_RM) "Coq Libraries"
+	@rm -f $(FRAMAC_DATADIR)/wp/why3/*.vo
+	@rm -f $(FRAMAC_DATADIR)/wp/coqwp/*.vo
+	@rm -f $(FRAMAC_DATADIR)/wp/coqwp/*/*.vo
+
+
+# --------------------------------------------------------------------------
+# --- Why3 configuration
+# --------------------------------------------------------------------------
+
+byte:: $(Wp_DIR)/share/why3/why3.conf
+opt:: $(Wp_DIR)/share/why3/why3.conf
+
+$(Wp_DIR)/share/why3/why3.conf:
+	@echo Generation of the extra-config for why3
+	@printf "[prover_modifiers]\n" >> $@
+	@printf "name=\"Coq\"\n" >> $@
+	@printf "option=\"-I $(FRAMAC_DATADIR)/wp/why3\"\n" >> $@
+	@printf "driver=\"$(FRAMAC_DATADIR)/wp/why3/coq.drv\"\n" >> $@
+	@printf "\n"  >> $@
+	@printf "[editor_modifiers coqide]\n" >> $@
+	@printf "option=\"-I $(FRAMAC_DATADIR)/wp/why3\"\n" >> $@
+	@printf "\n"  >> $@
+	@printf "[editor_modifiers proofgeneral-coq]\n" >> $@
+	@printf "option=\"--eval \\\\\"(setq coq-load-path (cons '(\\\\\\\\\\\\\"$(FRAMAC_DATADIR)/wp/why3\\\\\\\\\\\\\" \\\\\\\\\\\\\"\\\\\\\\\\\\\") coq-load-path))\\\\\"\"\n"  >> $@
+	@chmod u-w $@
+
+
+# --------------------------------------------------------------------------
+# --- Installation                                                       ---
+# --------------------------------------------------------------------------
+
+install::
+	$(PRINT_INSTALL) WP shared files
+	$(MKDIR) $(FRAMAC_DATADIR)/wp
+	$(INSTALL_SHARE) -p \
+		-i $(Wp_DIR)/share \
+		-d $(FRAMAC_DATADIR)/wp \
+		$(ALL_RESOURCES) -f -b $(ALL_COQ_BINARIES)
+
+uninstall::
+	$(PRINT_RM) WP shared files
+	$(RM) -r $(FRAMAC_DATADIR)/wp
+
+# --------------------------------------------------------------------------
+# --- WP Release Stuff (CEA-LIST Only)
+# --------------------------------------------------------------------------
+sinclude MakeDistrib
+# --------------------------------------------------------------------------
+
+$(Wp_DIR)/.depend: $(Wp_DIR)/driver.mll
+$(Wp_DIR)/driver.mll: $(Wp_DIR)/Makefile

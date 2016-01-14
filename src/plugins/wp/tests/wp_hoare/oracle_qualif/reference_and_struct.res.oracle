@@ -1,0 +1,55 @@
+# frama-c -wp -wp-model 'Typed (Ref)' [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_hoare/reference_and_struct.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] Collecting variable usage
+[wp] 32 goals scheduled
+[wp] [Qed] Goal typed_ref_call_array_in_struct_param_post_Pload2 : Valid
+[wp] [Qed] Goal typed_ref_call_array_in_struct_param_post_Pload3 : Valid
+[wp] [Qed] Goal typed_ref_call_array_in_struct_param_assign_exit : Valid
+[wp] [Qed] Goal typed_ref_call_array_in_struct_param_assign_normal : Valid
+[wp] [Qed] Goal typed_ref_call_array_in_struct_param_call_load_5_pre : Valid
+[wp] [Alt-Ergo] Goal typed_ref_call_on_array_in_struct_global_post_Pload : Valid
+[wp] [Qed] Goal typed_ref_call_on_array_in_struct_global_assign_exit : Valid
+[wp] [Qed] Goal typed_ref_call_on_array_in_struct_global_assign_normal : Valid
+[wp] [Qed] Goal typed_ref_call_on_array_in_struct_global_call_load_5_pre : Valid
+[wp] [Qed] Goal typed_ref_call_reset_post : Valid
+[wp] [Qed] Goal typed_ref_call_reset_assign_exit : Valid
+[wp] [Qed] Goal typed_ref_call_reset_assign_normal_part1 : Valid
+[wp] [Qed] Goal typed_ref_call_reset_assign_normal_part2 : Valid
+[wp] [Qed] Goal typed_ref_call_reset_call_reset_pre : Valid
+[wp] [Alt-Ergo] Goal typed_ref_call_reset_1_5_post_Presset_mat : Valid
+[wp] [Qed] Goal typed_ref_call_reset_1_5_assign_exit : Valid
+[wp] [Qed] Goal typed_ref_call_reset_1_5_assign_normal : Valid
+[wp] [Qed] Goal typed_ref_call_reset_1_5_call_reset_1_5_pre : Valid
+[wp] [Alt-Ergo] Goal typed_ref_call_reset_5_post_Preset_5 : Valid
+[wp] [Qed] Goal typed_ref_call_reset_5_assign_exit : Valid
+[wp] [Qed] Goal typed_ref_call_reset_5_assign_normal : Valid
+[wp] [Qed] Goal typed_ref_call_reset_5_call_reset_5_pre : Valid
+[wp] [Alt-Ergo] Goal typed_ref_call_reset_5_dim2_post_Presset_mat : Valid
+[wp] [Qed] Goal typed_ref_call_reset_5_dim2_assign_exit : Valid
+[wp] [Qed] Goal typed_ref_call_reset_5_dim2_assign_normal : Valid
+[wp] [Qed] Goal typed_ref_call_reset_5_dim2_call_reset_5_pre : Valid
+[wp] [Alt-Ergo] Goal typed_ref_call_reset_5_tps_post_Preset_5_tps : Valid
+[wp] [Qed] Goal typed_ref_call_reset_5_tps_assign_exit : Valid
+[wp] [Qed] Goal typed_ref_call_reset_5_tps_assign_normal : Valid
+[wp] [Qed] Goal typed_ref_call_reset_5_tps_call_reset_5_pre : Valid
+[wp] [Qed] Goal typed_ref_reset_post : Valid
+[wp] [Qed] Goal typed_ref_reset_assign : Valid
+[wp] Proved goals:   32 / 32
+     Qed:            27 
+     Alt-Ergo:        5
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+reset                2     -           2       100%
+call_reset           5     -           5       100%
+call_reset_5         3      1 (21)     4       100%
+call_reset_5_tps     3      1 (17)     4       100%
+call_reset_1_5       3      1 (21)     4       100%
+call_reset_5_dim2    3      1 (21)     4       100%
+call_on_array_in_struct_global   3    1 (19)   4  100%
+call_array_in_struct_param   5   -     5       100%
+----------------------------------------------------------

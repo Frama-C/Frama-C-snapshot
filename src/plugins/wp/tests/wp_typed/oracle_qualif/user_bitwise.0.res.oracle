@@ -1,0 +1,33 @@
+# frama-c -wp -wp-model 'Typed (Ref)' [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_typed/user_bitwise.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] Collecting variable usage
+[wp] 12 goals scheduled
+[wp] [Qed] Goal typed_ref_rl1_post_b0 : Valid
+[wp] [Alt-Ergo] Goal typed_ref_rl1_post_bk : Valid
+[wp] [Alt-Ergo] Goal typed_ref_rln32_post_b1 : Valid
+[wp] [Alt-Ergo] Goal typed_ref_rln32_post_b2 : Valid
+[wp] [Alt-Ergo] Goal typed_ref_rln64_post_b1 : Valid
+[wp] [Alt-Ergo] Goal typed_ref_rln64_post_b2 : Valid
+[wp] [Alt-Ergo] Goal typed_ref_rr1_post_b0 : Valid
+[wp] [Alt-Ergo] Goal typed_ref_rr1_post_bk : Valid
+[wp] [Alt-Ergo] Goal typed_ref_rrn32_post_b1 : Valid
+[wp] [Alt-Ergo] Goal typed_ref_rrn32_post_b2 : Valid
+[wp] [Alt-Ergo] Goal typed_ref_rrn64_post_b1 : Valid
+[wp] [Alt-Ergo] Goal typed_ref_rrn64_post_b2 : Valid
+[wp] Proved goals:   12 / 12
+     Qed:             1 
+     Alt-Ergo:       11
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+rl1                  1      1 (85)     2       100%
+rr1                 -       2 (63)     2       100%
+rln32               -       2 (92)     2       100%
+rrn32               -       2 (89)     2       100%
+rln64               -       2 (92)     2       100%
+rrn64               -       2 (89)     2       100%
+----------------------------------------------------------

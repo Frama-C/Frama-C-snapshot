@@ -1,0 +1,56 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/array_zero_length.i (no preprocessing)
+tests/misc/array_zero_length.i:7:[kernel] warning: Length of array is zero. This GCC extension is unsupported. Assuming length is 1.
+tests/misc/array_zero_length.i:9:[kernel] warning: Length of array is zero. This GCC extension is unsupported. Assuming length is 1.
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+tests/misc/array_zero_length.i:6:[value] warning: during initialization of variable 'T', size of type 'char []' cannot be
+                 computed (Size of array without number of elements.)
+tests/misc/array_zero_length.i:6:[kernel] imprecise size for variable T
+tests/misc/array_zero_length.i:8:[value] warning: during initialization of variable 'V', size of type 'char [][2]' cannot be
+                 computed (Size of array without number of elements.)
+tests/misc/array_zero_length.i:8:[kernel] imprecise size for variable V
+tests/misc/array_zero_length.i:9:[value] warning: during initialization of variable 'W', size of type 'char [][1]' cannot be
+                 computed (Size of array without number of elements.)
+tests/misc/array_zero_length.i:9:[kernel] imprecise size for variable W
+[value] Initial state computed
+[value] Values of globals at initialization
+  T[0..4294967295] ∈ {0} or UNINITIALIZED
+  U[0] ∈ {0}
+  V[0..2147483647][0..1] ∈ {0} or UNINITIALIZED
+  W[0..4294967295][0] ∈ {0} or UNINITIALIZED
+  pW ∈ {0}
+tests/misc/array_zero_length.i:14:[kernel] warning: out of bounds write. assert \valid(&T[2]);
+tests/misc/array_zero_length.i:15:[kernel] warning: out of bounds write. assert \valid(&T[1]);
+tests/misc/array_zero_length.i:15:[kernel] warning: accessing uninitialized left-value: assert \initialized(&T[3]);
+tests/misc/array_zero_length.i:15:[kernel] warning: out of bounds read. assert \valid_read(&T[3]);
+tests/misc/array_zero_length.i:17:[kernel] warning: accessing out of bounds index {2}. assert 2 < 1;
+tests/misc/array_zero_length.i:17:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
+tests/misc/array_zero_length.i:18:[kernel] warning: accessing out of bounds index {1}. assert 1 < 1;
+tests/misc/array_zero_length.i:18:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
+tests/misc/array_zero_length.i:20:[kernel] warning: out of bounds write. assert \valid(&V[2][1]);
+tests/misc/array_zero_length.i:21:[kernel] warning: out of bounds write. assert \valid(&V[1][1]);
+tests/misc/array_zero_length.i:21:[kernel] warning: accessing uninitialized left-value: assert \initialized(&V[3][1]);
+tests/misc/array_zero_length.i:21:[kernel] warning: out of bounds read. assert \valid_read(&V[3][1]);
+tests/misc/array_zero_length.i:23:[kernel] warning: accessing out of bounds index {1}. assert 1 < 1;
+tests/misc/array_zero_length.i:23:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
+tests/misc/array_zero_length.i:24:[kernel] warning: accessing out of bounds index {1}. assert 1 < 1;
+tests/misc/array_zero_length.i:24:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
+[value] Recording results for main
+[value] done for function main
+tests/misc/array_zero_length.i:17:[value] Assertion 'Value,index_bound' got final status invalid.
+tests/misc/array_zero_length.i:18:[value] Assertion 'Value,index_bound' got final status invalid.
+tests/misc/array_zero_length.i:23:[value] Assertion 'Value,index_bound' got final status invalid.
+tests/misc/array_zero_length.i:24:[value] Assertion 'Value,index_bound' got final status invalid.
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  T[0] ∈ {0} or UNINITIALIZED
+   [1] ∈ {0; 3} or UNINITIALIZED
+   [2] ∈ {3}
+   [3..4294967295] ∈ {0} or UNINITIALIZED
+  V{[0][0..1]; [1][0]} ∈ {0} or UNINITIALIZED
+   [1][1] ∈ {0; 3} or UNINITIALIZED
+   [2][0] ∈ {0} or UNINITIALIZED
+   [2][1] ∈ {0; 3} or UNINITIALIZED
+   [3..2147483647][0..1] ∈ {0} or UNINITIALIZED
+  pW ∈ {{ NULL ; &W[1][0] }}

@@ -1,0 +1,44 @@
+# frama-c -wp -wp-model 'Hoare' [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_acsl/init_value_mem.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+tests/wp_acsl/init_value_mem.i:24:[wp] warning: Can not load value in Empty model
+------------------------------------------------------------
+  Function main
+------------------------------------------------------------
+
+Goal Post-condition 'P' in 'main':
+Assume {
+  (* Domain *)
+  Type: (IsS_St v_0) /\ (IsS_St w_1).
+  (* Initializer *)
+  Init: 1=w_1.F_St_a.
+  (* Initializer *)
+  Init: 2=w_1.F_St_b.
+  (* Initializer *)
+  Init: 1=v_0.F_St_a.
+  (* Initializer *)
+  Init: 2=v_0.F_St_b.
+}
+Prove: (EqS_St v_0 w_1).
+
+------------------------------------------------------------
+
+Goal Post-condition 'Q' in 'main':
+tests/wp_acsl/init_value_mem.i:24: warning from Empty Model:
+ - Warning: Hide sub-term definition
+   Reason: Can not load value in Empty model
+Assume {
+  (* Domain *)
+  Type: (IsS_St w_1).
+  (* Initializer *)
+  Init: 1=w_1.F_St_a.
+  (* Initializer *)
+  Init: 2=w_1.F_St_b.
+}
+Prove: (EqS_St w_0 w_1).
+
+------------------------------------------------------------

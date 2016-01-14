@@ -5,8 +5,6 @@ tests/float/const1.i:1:[kernel] warning: Floating-point constant 1e40f is not re
 [value] Computing initial state
 tests/float/const1.i:1:[kernel] warning: non-finite float value (INFINITY): assert \is_finite(1e40f);
 tests/float/const1.i:1:[value] Floating-point literal (or constant expression) is not finite. This path is assumed to be dead.
-tests/float/const1.i:1:[kernel] warning: overflow in conversion of 1e40f ({{  }}) from floating-point to integer.
-                  assert -1 < 1e40f < 18446744073709551616;
 tests/float/const1.i:1:[value] Evaluation of initializer '(unsigned long long)1e40f' failed
 [value] Initial state computed
 [value] Values of globals at initialization

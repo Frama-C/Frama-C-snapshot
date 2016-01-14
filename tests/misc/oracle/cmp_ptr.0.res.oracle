@@ -1,0 +1,107 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/cmp_ptr.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  p ∈ {0}
+  T[0] ∈ {0}
+   [1] ∈ {1}
+   [2] ∈ {2}
+   [3] ∈ {3}
+   [4] ∈ {4}
+   [5] ∈ {5}
+   [6] ∈ {6}
+   [7] ∈ {7}
+   [8] ∈ {8}
+   [9] ∈ {9}
+  C[0] ∈ {0}
+   [1] ∈ {1}
+   [2] ∈ {2}
+   [3] ∈ {3}
+   [4] ∈ {4}
+   [5] ∈ {5}
+   [6] ∈ {6}
+   [7] ∈ {7}
+   [8] ∈ {8}
+   [9] ∈ {9}
+  q ∈ {0}
+  top_p ∈ [--..--]
+  top_q ∈ [--..--]
+  x ∈ {0}
+  y ∈ {0}
+  z ∈ {0}
+  t ∈ {0}
+  r ∈ {0}
+  ff ∈ {0}
+tests/misc/cmp_ptr.i:21:[kernel] warning: pointer comparison: assert \pointer_comparable((void *)p, (void *)(&T[5]));
+tests/misc/cmp_ptr.i:21:[kernel] warning: out of bounds write. assert \valid(p);
+tests/misc/cmp_ptr.i:21:[kernel] warning: out of bounds write. assert \valid(q);
+tests/misc/cmp_ptr.i:22:[kernel] warning: pointer comparison: assert \pointer_comparable((void *)0, (void *)(&y+2));
+tests/misc/cmp_ptr.i:24:[kernel] warning: non-finite float value ({{ &y + {8} }}): assert \is_finite(ff);
+tests/misc/cmp_ptr.i:24:[kernel] warning: pointer comparison: assert \pointer_comparable((void *)0, (void *)ff);
+tests/misc/cmp_ptr.i:28:[kernel] warning: signed overflow. assert -2147483648 ≤ 1+(int)tmp_0;
+                                   (tmp_0 from u?& f:& g)
+tests/misc/cmp_ptr.i:28:[kernel] warning: signed overflow. assert 1+(int)tmp_0 ≤ 2147483647;
+                                   (tmp_0 from u?& f:& g)
+tests/misc/cmp_ptr.i:28:[kernel] warning: pointer comparison:
+                  assert \pointer_comparable((void *)((int)(1+(int)tmp_0)), (void *)0);
+                  (tmp_0 from u?& f:& g)
+tests/misc/cmp_ptr.i:30:[kernel] warning: pointer comparison:
+                  assert \pointer_comparable((void *)((int *)T-1), (void *)((int *)0));
+tests/misc/cmp_ptr.i:32:[kernel] warning: pointer comparison:
+                  assert \pointer_comparable((void (*)())0, (void (*)())(&f+3));
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  p ∈ {{ &T + [-8589934588..36],0%4 }}
+  T[0] ∈ {0}
+   [1] ∈ {1}
+   [2] ∈ {2}
+   [3] ∈ {3}
+   [4] ∈ {4}
+   [5] ∈ {5; 88}
+   [6] ∈ {6; 88}
+   [7] ∈ {7; 88}
+   [8] ∈ {8; 88}
+   [9] ∈ {9; 88}
+  C[0] ∈ {0; 77}
+   [1] ∈ {1; 77}
+   [2] ∈ {2; 77}
+   [3] ∈ {3; 77}
+   [4] ∈ {4; 77}
+   [5] ∈ {5; 77}
+   [6] ∈ {6; 77}
+   [7] ∈ {7; 77}
+   [8] ∈ {8; 77}
+   [9] ∈ {9; 77}
+  q ∈ {{ &C + [-2147483647..2147483648] }}
+  x ∈ {0}
+  y ∈ {0; 1}
+  z ∈ {0}
+  t ∈ {0}
+  r ∈ {0}
+  ff ∈ {{ &y + {8} }}
+  __retres ∈ {0}
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  p FROM top_p
+  T[5..9] FROM top_p (and SELF)
+  C[0..9] FROM top_p; top_q (and SELF)
+  q FROM top_q
+  x FROM \nothing
+  y FROM \nothing
+  z FROM u
+  t FROM u
+  r FROM \nothing
+  ff FROM \nothing
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          p; T[5..9]; C[0..9]; q; x; y; z; t; r; ff; tmp; tmp_0; __retres
+[inout] Inputs for function main:
+          p; q; top_p; top_q; ff

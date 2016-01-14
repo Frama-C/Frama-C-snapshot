@@ -1,2 +1,0 @@
-CMD: @frama-c@ -wp -wp-proof none -wp-print -wp-check -wp-share ./share -wp-log shell
-OPT:

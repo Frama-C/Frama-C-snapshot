@@ -1,0 +1,133 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_bts/bts_1462.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function local
+------------------------------------------------------------
+
+Goal Preservation of Invariant (file tests/wp_bts/bts_1462.i, line 26):
+Assume { (* Heap *) Have: (linked Malloc_0). }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant (file tests/wp_bts/bts_1462.i, line 26):
+Assume { (* Heap *) Have: (linked Malloc_0). }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Loop assigns (file tests/wp_bts/bts_1462.i, line 26) (1/2):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Loop assigns (file tests/wp_bts/bts_1462.i, line 26) (2/2):
+Effect at line 30
+Assume { (* Heap *) Have: (linked Malloc_0). }
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function wrong
+------------------------------------------------------------
+
+Goal Assertion 'for_value' (file tests/wp_bts/bts_1462.i, line 5):
+Assume { (* Domain *) Type: (is_sint32 c_3). }
+Prove: (1=c_3) \/ (2<=c_3) \/ (c_3<=0).
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant 'A_KO' (file tests/wp_bts/bts_1462.i, line 9):
+Assume {
+  (* Domain *)
+  Type: (is_sint32 c_1) /\ (is_sint32 i_1) /\ (is_sint32 x_5)
+        /\ (is_sint32 y_0) /\ (is_sint32 y_2) /\ (is_sint32 (1+i_1)).
+  (* Goal *)
+  When: -1!=i_1.
+  (* Assertion 'for_value' (file tests/wp_bts/bts_1462.i, line 5) *)
+  (* tests/wp_bts/bts_1462.i:5: Assertion 'for_value': *)
+  Have: (1=c_1) \/ (2<=c_1) \/ (c_1<=0).
+  (* tests/wp_bts/bts_1462.i:6: Conditional *)
+  Have: 2!=c_1.
+  (* Invariant 'C' (file tests/wp_bts/bts_1462.i, line 11) *)
+  (* tests/wp_bts/bts_1462.i:14: Invariant 'C': *)
+  Have: (0=c_1) -> (0=i_1) -> (0=x_5).
+  (* Invariant 'A_KO' (file tests/wp_bts/bts_1462.i, line 9) *)
+  (* tests/wp_bts/bts_1462.i:14: Invariant 'A_KO': *)
+  Have: (0!=i_1) -> (0=y_2).
+  (* tests/wp_bts/bts_1462.i:14: Then *)
+  Have: i_1<=9.
+  (* tests/wp_bts/bts_1462.i:16: Conditional *)
+  If: 1=c_1
+  Then { (* tests/wp_bts/bts_1462.i:16: Assignment *) Have: 1=y_0. }
+  Else { (* Control Flow *) Have: y_0=y_2. }
+}
+Prove: 0=y_0.
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant 'A_KO' (file tests/wp_bts/bts_1462.i, line 9):
+Assume { (* Goal *) When: false. }
+Prove: 0=y_5.
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant 'B' (file tests/wp_bts/bts_1462.i, line 10):
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_1) /\ (is_sint32 x_3) /\ (is_sint32 (1+i_1)).
+  (* Goal *)
+  When: -1!=i_1.
+  (* Invariant 'B' (file tests/wp_bts/bts_1462.i, line 10) *)
+  (* tests/wp_bts/bts_1462.i:14: Invariant 'B': *)
+  Have: (0!=i_1) -> (1=x_3).
+  (* tests/wp_bts/bts_1462.i:14: Then *)
+  Have: i_1<=9.
+}
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant 'B' (file tests/wp_bts/bts_1462.i, line 10):
+Assume { (* Goal *) When: false. }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Preservation of Invariant 'C' (file tests/wp_bts/bts_1462.i, line 11):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Establishment of Invariant 'C' (file tests/wp_bts/bts_1462.i, line 11):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Assertion 'consequence_of_false_invariant' (file tests/wp_bts/bts_1462.i, line 19):
+Assume {
+  (* Domain *)
+  Type: (is_sint32 i_1) /\ (is_sint32 y_3).
+  (* Invariant 'A_KO' (file tests/wp_bts/bts_1462.i, line 9) *)
+  (* tests/wp_bts/bts_1462.i:14: Invariant 'A_KO': *)
+  Have: (0!=i_1) -> (0=y_3).
+  (* tests/wp_bts/bts_1462.i:14: Else *)
+  Have: 10<=i_1.
+}
+Prove: 0=y_3.
+
+------------------------------------------------------------
+
+Goal Loop assigns (file tests/wp_bts/bts_1462.i, line 12):
+Assume { }
+Prove: true.
+
+------------------------------------------------------------

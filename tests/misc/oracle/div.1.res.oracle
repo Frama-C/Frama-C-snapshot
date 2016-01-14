@@ -28,40 +28,51 @@
   p ∈ {0}
 tests/misc/div.i:14:[value] entering loop for the first time
 tests/misc/div.i:14:[value] Assertion 'rte,signed_overflow' got status unknown.
+tests/misc/div.i:14:[kernel] warning: signed overflow. assert c+1 ≤ 2147483647;
 tests/misc/div.i:16:[value] Assertion 'rte,signed_overflow' got status valid.
 tests/misc/div.i:17:[value] Assertion 'rte,signed_overflow' got status unknown.
+tests/misc/div.i:17:[kernel] warning: signed overflow. assert c+2 ≤ 2147483647;
 tests/misc/div.i:17:[value] Assertion 'rte,signed_overflow' got status valid.
 tests/misc/div.i:16:[value] Assertion 'rte,signed_overflow' got status unknown.
+tests/misc/div.i:16:[kernel] warning: signed overflow. assert X+1 ≤ 2147483647;
 tests/misc/div.i:17:[value] Assertion 'rte,signed_overflow' got status unknown.
+tests/misc/div.i:17:[kernel] warning: signed overflow. assert -2147483648 ≤ X-1;
 tests/misc/div.i:22:[value] Assertion 'rte,signed_overflow' got status valid.
 tests/misc/div.i:25:[value] Assertion 'rte,signed_overflow' got status valid.
 tests/misc/div.i:28:[value] Assertion 'rte,signed_overflow' got status valid.
 tests/misc/div.i:32:[value] Assertion 'rte,division_by_zero' got status unknown.
+tests/misc/div.i:32:[kernel] warning: division by zero: assert Z2 ≢ 0;
 tests/misc/div.i:33:[value] Assertion 'rte,division_by_zero' got status unknown.
 tests/misc/div.i:33:[value] Assertion 'rte,signed_overflow' got status unknown.
+tests/misc/div.i:33:[kernel] warning: division by zero: assert Z2 ≢ 0;
 tests/misc/div.i:33:[value] warning: Operation {{ &Z2 }} / [-25..66] incurs a loss of precision
 tests/misc/div.i:33:[kernel] warning: signed overflow. assert -2147483648 ≤ (int)(&Z2)/Z2;
+tests/misc/div.i:33:[kernel] warning: signed overflow. assert (int)(&Z2)/Z2 ≤ 2147483647;
 tests/misc/div.i:33:[value] Assigning imprecise value to b.
         The imprecision originates from Arithmetic {tests/misc/div.i:33}
 tests/misc/div.i:34:[value] Assertion 'rte,division_by_zero' got status valid.
-tests/misc/div.i:34:[kernel] warning: pointer comparison:
-                  assert \pointer_comparable((void *)0, (void *)((int)(&X+2)));
+tests/misc/div.i:34:[kernel] warning: pointer comparison: assert \pointer_comparable((void *)0, (void *)(&X+2));
+tests/misc/div.i:34:[kernel] warning: division by zero: assert (int)(&X+2) ≢ 0;
 tests/misc/div.i:34:[value] warning: Operation {100} / {{ &X + {8} }} incurs a loss of precision
-tests/misc/div.i:34:[kernel] warning: signed overflow. assert -2147483648 ≤ 100/(int)(&X+2) ≤ 2147483647;
+tests/misc/div.i:34:[kernel] warning: signed overflow. assert -2147483648 ≤ 100/(int)(&X+2);
+tests/misc/div.i:34:[kernel] warning: signed overflow. assert 100/(int)(&X+2) ≤ 2147483647;
 tests/misc/div.i:34:[value] Assigning imprecise value to d2.
         The imprecision originates from Arithmetic {tests/misc/div.i:34}
 tests/misc/div.i:35:[value] Assertion 'rte,division_by_zero' got status valid.
 tests/misc/div.i:35:[value] warning: Operation {100} / {{ &X + {4} }} incurs a loss of precision
-tests/misc/div.i:35:[kernel] warning: signed overflow. assert -2147483648 ≤ 100/(int)(&X+1) ≤ 2147483647;
+tests/misc/div.i:35:[kernel] warning: signed overflow. assert -2147483648 ≤ 100/(int)(&X+1);
+tests/misc/div.i:35:[kernel] warning: signed overflow. assert 100/(int)(&X+1) ≤ 2147483647;
 tests/misc/div.i:35:[value] Assigning imprecise value to d1.
         The imprecision originates from Arithmetic {tests/misc/div.i:35}
 tests/misc/div.i:36:[value] Assertion 'rte,division_by_zero' got status valid.
 tests/misc/div.i:36:[value] warning: Operation {100} / {{ &X }} incurs a loss of precision
-tests/misc/div.i:36:[kernel] warning: signed overflow. assert -2147483648 ≤ 100/(int)(&X) ≤ 2147483647;
+tests/misc/div.i:36:[kernel] warning: signed overflow. assert -2147483648 ≤ 100/(int)(&X);
+tests/misc/div.i:36:[kernel] warning: signed overflow. assert 100/(int)(&X) ≤ 2147483647;
 tests/misc/div.i:36:[value] Assigning imprecise value to d0.
         The imprecision originates from Arithmetic {tests/misc/div.i:36}
 tests/misc/div.i:37:[value] Assertion 'rte,signed_overflow' got status unknown.
-tests/misc/div.i:37:[kernel] warning: signed overflow. assert -2147483648 ≤ -((int)(&X)) ≤ 2147483647;
+tests/misc/div.i:37:[kernel] warning: signed overflow. assert -2147483648 ≤ -((int)(&X));
+tests/misc/div.i:37:[kernel] warning: signed overflow. assert -((int)(&X)) ≤ 2147483647;
 tests/misc/div.i:37:[value] Assigning imprecise value to e.
         The imprecision originates from Arithmetic {tests/misc/div.i:37}
 [value] Recording results for main

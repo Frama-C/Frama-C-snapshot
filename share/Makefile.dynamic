@@ -23,7 +23,7 @@
 PLUGIN_ENABLE	?=yes
 PLUGIN_DIR	?=.
 
-FRAMAC_SRC 	?=$(PLUGIN_DIR)/../..
+FRAMAC_SRC 	?=$(PLUGIN_DIR)/../../..
 
 FRAMAC_MAKE	?=no
 
@@ -136,9 +136,15 @@ $(PLUGIN_DIR)/tests/ptests_config: $(PTESTS_DEP)
 	  $(ECHO) "TOPLEVEL_PATH=./frama-c-$(PLUGIN_NAME).$(OCAMLBEST)$(EXE)\";;" >> $$@; \
 	fi
 	$(ECHO) "FRAMAC_SHARE=$(FRAMAC_SHARE)" >> $$@
-	$(ECHO) "FRAMAC_PLUGIN=$(PLUGIN_LIB_DIR)" >> $$@
-	$(ECHO) "FRAMAC_PLUGIN_GUI=$(PLUGIN_GUI_LIB_DIR)" >> $$@
 	$(ECHO) "FRAMAC_LIB=$(FRAMAC_LIB)" >> $$@
+	if test "$(FRAMAC_INTERNAL)" = "no"; then \
+	  $(ECHO) "FRAMAC_PLUGIN=$(PLUGIN_LIB_DIR):$(PLUGIN_INSTALL_DIR)" >> $$@; \
+	  $(ECHO) "FRAMAC_PLUGIN_GUI=$(PLUGIN_GUI_LIB_DIR):$(PLUGIN_INSTALL_DIR)/gui" >> $$@; \
+	  $(ECHO) "OCAMLPATH=$(FRAMAC_PLUGINDIR):$(OCAMLPATH)" >> $$@; \
+        else \
+	  $(ECHO) "FRAMAC_PLUGIN=$(PLUGIN_LIB_DIR)" >> $$@; \
+	  $(ECHO) "FRAMAC_PLUGIN_GUI=$(PLUGIN_GUI_LIB_DIR)" >> $$@; \
+        fi
 	$(ECHO) "OCAMLRUNPARAM=" >> $$@
 	$(CHMOD_RO) $$@
 
@@ -179,11 +185,13 @@ PLUGIN_DOCFLAGS:=$(FRAMAC_INCLUDES) $(PLUGIN_DOCFLAGS)
 
 include $(MAKECONFIG_DIR)/Makefile.plugin
 
-TARGETS	:= $(TARGET_CMI) $(TARGET_CMO) $(TARGET_CMA) $(TARGET_CMXS)
-TARGETS_GUI := $(TARGET_GUI_CMI) $(TARGET_GUI_CMO) $(TARGET_GUI_CMX) $(TARGET_GUI_CMXS)
+TARGETS := $(TARGET_META) $(TARGET_CMI) $(TARGET_CMO) $(TARGET_CMA) \
+           $(TARGET_CMXS)
+TARGETS_GUI := $(TARGET_META) $(TARGET_GUI_CMI) $(TARGET_GUI_CMO) \
+               $(TARGET_GUI_CMX) $(TARGET_GUI_CMXS)
+TARGETS_BYTE:= $(TARGET_META) $(TARGET_CMI) $(TARGET_CMO) $(TARGET_CMA)
+TARGETS_OPT:=  $(TARGET_META) $(TARGET_CMI) $(TARGET_CMX) $(TARGET_CMXS)
 
-TARGETS_BYTE:= $(TARGET_CMI) $(TARGET_CMO) $(TARGET_CMA)
-TARGETS_OPT:=$(TARGET_CMI) $(TARGET_CMX) $(TARGET_CMXS)
 include $(MAKECONFIG_DIR)/Makefile.kernel
 
 byte:: $(TARGETS_BYTE)
@@ -200,6 +208,10 @@ ifneq ($(FRAMAC_MAKE),yes)
 ifeq ($(HAS_ZARITH),yes)
 ZARITH_INCLUDES= -I $(ZARITH_PATH)
 endif
+
+##################
+# Static Linking #
+##################
 
 $(PLUGIN_DIR)/frama-c-$(PLUGIN_NAME).byte$(EXE): $(TARGET_CMO)
 	$(PRINT_LINKING) $@
@@ -220,6 +232,10 @@ static.opt:: $(PLUGIN_DIR)/frama-c-$(PLUGIN_NAME).opt$(EXE)
 static:: $(PLUGIN_DIR)/frama-c-$(PLUGIN_NAME).byte$(EXE) \
 	 $(PLUGIN_DIR)/frama-c-$(PLUGIN_NAME).$(OCAMLBEST)$(EXE)
 
+###################
+# Clean & Install #
+###################
+
 .PHONY: tests all install uninstall clean depend $(PLUGIN_NAME)_CLEAN_DYNAMIC
 
 clean:: $(PLUGIN_NAME)_CLEAN_DYNAMIC
@@ -238,9 +254,11 @@ STATIC=static
 else
 STATIC=
 endif
+
 all:: $(PLUGIN_DIR)/.depend byte $(OCAMLBEST) gui $(STATIC) plugins_ptests_config
 
 ifneq ($(PLUGIN_ENABLE),no)
+
 install::
 	$(PRINT_CP) $(PLUGIN_INSTALL_DIR)
 	$(MKDIR) $(PLUGIN_INSTALL_DIR)
@@ -253,23 +271,6 @@ install::
 	  $(CP) frama-c-$(PLUGIN_NAME).$(OCAMLBEST)$(EXE) \
 		$(BINDIR)/frama-c-$(PLUGIN_NAME)$(EXE); \
 	fi
-	$(PRINT_CP) $(PLUGIN_INSTALL_DIR)/dependencies
-	$(MKDIR) $(PLUGIN_INSTALL_DIR)/dependencies
-	if [ -f $(PLUGIN_DIR)/dependencies/$(PLUGIN_NAME)_dependencies.cmo ]; \
-	then \
-	  $(CP) $(PLUGIN_DIR)/dependencies/$(PLUGIN_NAME)_dependencies.cmo \
-	        $(PLUGIN_INSTALL_DIR)/dependencies; \
-	fi
-	if [ -f $(PLUGIN_DIR)/dependencies/$(PLUGIN_NAME)_dependencies.cmxs ]; \
-	then \
-	  $(CP) $(PLUGIN_DIR)/dependencies/$(PLUGIN_NAME)_dependencies.cmxs \
-	        $(PLUGIN_INSTALL_DIR)/dependencies; \
-	fi
-	if [ -f $(PLUGIN_DIR)/dependencies/$(PLUGIN_NAME)_dependencies.cmi ]; \
-	then \
-	  $(CP) $(PLUGIN_DIR)/dependencies/$(PLUGIN_NAME)_dependencies.cmi \
-	        $(PLUGIN_INSTALL_DIR)/dependencies; \
-	fi
 ifeq ($(HAS_GUI),yes)
 	$(PRINT_CP) $(PLUGIN_INSTALL_DIR)/gui
 	$(MKDIR) $(PLUGIN_INSTALL_DIR)/gui
@@ -277,15 +278,11 @@ ifeq ($(HAS_GUI),yes)
 endif
 
 uninstall::
-	$(PRINT_RM) installed $(PLUGIN_NAME) libraries
+	$(PRINT_RM) installed $(PLUGIN_NAME)
+	$(RM) $(PLUGIN_INSTALL_DIR)/META.$(PLUGIN_PKG)
 	$(RM) $(PLUGIN_INSTALL_DIR)/$(PLUGIN_NAME).*
-	$(PRINT_RM) installed $(PLUGIN_NAME) dependencies
-	$(RM) $(PLUGIN_INSTALL_DIR)/dependencies/$(PLUGIN_NAME)_dependencies.*
-	$(PRINT_RM) installed $(PLUGIN_NAME) binaries
-	$(RM) $(BINDIR)/frama-c-$(PLUGIN_NAME).opt$(EXE) \
-		$(BINDIR)/frama-c-$(PLUGIN_NAME).byte$(EXE)
+	$(RM) $(BINDIR)/frama-c-$(PLUGIN_NAME).*
 ifeq ($(HAS_GUI),yes)
-	$(PRINT_RM) installed $(PLUGIN_NAME)/gui
 	$(RM) $(PLUGIN_INSTALL_DIR)/gui/$(PLUGIN_NAME).*
 endif
 endif # PLUGIN_ENABLE <> no

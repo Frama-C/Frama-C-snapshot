@@ -24,8 +24,10 @@ struct __fc_exn_struct {
    enum __fc_exn_enum exn_kind ;
    union __fc_exn_union exn_obj ;
 };
-struct __fc_exn_struct __fc_exn = {.exn_uncaught = 0, .exn_kind = 0,
-                                   .exn_obj = {.__fc_Smy_exn2 = {.c = (char)0}}};
+struct __fc_exn_struct __fc_exn =
+  {.exn_uncaught = 0,
+   .exn_kind = 0,
+   .exn_obj = {.__fc_Smy_exn2 = {.c = (char)0}}};
 struct my_exn foo;
 struct my_exn2 bar;
 int x = 42;

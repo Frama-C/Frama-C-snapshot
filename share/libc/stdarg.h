@@ -23,7 +23,10 @@
 /* ISO C: 7.15 */
 #ifndef __FC_STDARG
 #define __FC_STDARG
+#include "features.h"
+__BEGIN_DECLS
 typedef __builtin_va_list va_list;
+__END_DECLS
 #define va_arg(a,b) __builtin_va_arg(a,b)
 #define va_copy(a,b) __builtin_va_copy(a,b)
 #define va_end(a) __builtin_va_end(a)

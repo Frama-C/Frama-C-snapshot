@@ -4,16 +4,12 @@
 [value] Computing initial state
 [value] Initial state computed
 [value] Values of globals at initialization
-  A4O1_Ci_sNO_ERREUR_ANO.a ∈ {0}
-                        .[bits 16 to 31] ∈ UNINITIALIZED
-                        .b ∈ {0}
+  A4O1_Ci_sNO_ERREUR_ANO ∈ {0}
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
 [value] Values at end of function main:
-  Rl_sErreurAno.a ∈ {0}
-               .[bits 16 to 31] ∈ UNINITIALIZED
-               .b ∈ {0}
+  Rl_sErreurAno ∈ {0}
 [from] Computing for function main
 [from] Done for function main
 [from] ====== DEPENDENCIES COMPUTED ======

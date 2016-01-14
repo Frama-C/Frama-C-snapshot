@@ -1,6 +1,6 @@
 /* run.config
-   EXECNOW: make -s tests/slicing/slice_no_body.opt
-   CMD: tests/slicing/slice_no_body.opt
+   EXECNOW: make -s tests/slicing/slice_no_body.cmxs
+   CMD: @frama-c@ -load-module tests/slicing/libSelect.cmxs -load-module tests/slicing/slice_no_body.cmxs
    OPT: -check -deps -lib-entry -main h -journal-disable
 */
 

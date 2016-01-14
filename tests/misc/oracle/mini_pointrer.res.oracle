@@ -8,7 +8,8 @@
   ppp ∈ {0}
   pp[0..1] ∈ {0}
   p ∈ {0}
-tests/misc/mini_pointrer.i:6:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert 0 ≤ c1 < 2;
+tests/misc/mini_pointrer.i:6:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert 0 ≤ c1;
+tests/misc/mini_pointrer.i:6:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert c1 < 2;
 tests/misc/mini_pointrer.i:8:[kernel] warning: out of bounds read. assert \valid_read(ppp);
 tests/misc/mini_pointrer.i:8:[kernel] warning: out of bounds write. assert \valid(*ppp);
 tests/misc/mini_pointrer.i:10:[kernel] warning: accessing out of bounds index {0; 1; 2; 3; 4; 5}. assert c2 < 2;

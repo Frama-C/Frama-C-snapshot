@@ -1,0 +1,88 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_typed/unit_string.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function f
+------------------------------------------------------------
+
+Goal Assertion 'AB' (file tests/wp_typed/unit_string.i, line 11):
+Assume { (* Heap *) Have: (linked Malloc_0) /\ (sconst Mchar_0). }
+Prove: Str_2!=Str_5.
+
+------------------------------------------------------------
+
+Goal Assertion 'B_valid' (file tests/wp_typed/unit_string.i, line 12):
+Assume {
+  (* Heap *)
+  Have: (linked Malloc_0) /\ (sconst Mchar_0).
+  (* Assertion 'AB' (file tests/wp_typed/unit_string.i, line 11) *)
+  (* tests/wp_typed/unit_string.i:11: Assertion 'AB': *)
+  Have: Str_2!=Str_5.
+}
+Prove: (valid_rd Malloc_0 (shift_sint8 (global Str_5) 0) 3).
+
+------------------------------------------------------------
+
+Goal Assertion 'B_out' (file tests/wp_typed/unit_string.i, line 13):
+Let a_0 = (global Str_5).
+Assume {
+  (* Heap *)
+  Have: (linked Malloc_0) /\ (sconst Mchar_0).
+  (* Assertion 'AB' (file tests/wp_typed/unit_string.i, line 11) *)
+  (* tests/wp_typed/unit_string.i:11: Assertion 'AB': *)
+  Have: Str_2!=Str_5.
+  (* Assertion 'B_valid' (file tests/wp_typed/unit_string.i, line 12) *)
+  (* tests/wp_typed/unit_string.i:12: Assertion 'B_valid': *)
+  Have: (valid_rd Malloc_0 (shift_sint8 a_0 0) 3).
+}
+Prove: not (valid_rd Malloc_0 (shift_sint8 a_0 3) 1).
+
+------------------------------------------------------------
+
+Goal Assertion 'B_rw' (file tests/wp_typed/unit_string.i, line 14):
+Let a_0 = (global Str_5).
+Assume {
+  (* Heap *)
+  Have: (linked Malloc_0) /\ (sconst Mchar_0).
+  (* Assertion 'AB' (file tests/wp_typed/unit_string.i, line 11) *)
+  (* tests/wp_typed/unit_string.i:11: Assertion 'AB': *)
+  Have: Str_2!=Str_5.
+  (* Assertion 'B_valid' (file tests/wp_typed/unit_string.i, line 12) *)
+  (* tests/wp_typed/unit_string.i:12: Assertion 'B_valid': *)
+  Have: (valid_rd Malloc_0 (shift_sint8 a_0 0) 3).
+  (* Assertion 'B_out' (file tests/wp_typed/unit_string.i, line 13) *)
+  (* tests/wp_typed/unit_string.i:13: Assertion 'B_out': *)
+  Have: not (valid_rd Malloc_0 (shift_sint8 a_0 3) 1).
+}
+Prove: not (valid_rw Malloc_0 (shift_sint8 a_0 1) 1).
+
+------------------------------------------------------------
+
+Goal Assertion 'VAL' (file tests/wp_typed/unit_string.i, line 15):
+Let a_0 = (global Str_5).
+Assume {
+  (* Goal *)
+  When: (0<=i_2) /\ (i_2<=2).
+  (* Heap *)
+  Have: (linked Malloc_0) /\ (sconst Mchar_0).
+  (* Assertion 'AB' (file tests/wp_typed/unit_string.i, line 11) *)
+  (* tests/wp_typed/unit_string.i:11: Assertion 'AB': *)
+  Have: Str_2!=Str_5.
+  (* Assertion 'B_valid' (file tests/wp_typed/unit_string.i, line 12) *)
+  (* tests/wp_typed/unit_string.i:12: Assertion 'B_valid': *)
+  Have: (valid_rd Malloc_0 (shift_sint8 a_0 0) 3).
+  (* Assertion 'B_out' (file tests/wp_typed/unit_string.i, line 13) *)
+  (* tests/wp_typed/unit_string.i:13: Assertion 'B_out': *)
+  Have: not (valid_rd Malloc_0 (shift_sint8 a_0 3) 1).
+  (* Assertion 'B_rw' (file tests/wp_typed/unit_string.i, line 14) *)
+  (* tests/wp_typed/unit_string.i:14: Assertion 'B_rw': *)
+  Have: not (valid_rw Malloc_0 (shift_sint8 a_0 1) 1).
+}
+Prove: Mchar_0[(shift_sint8 a_0 i_2)]=
+       Mchar_0[(shift_sint8 (global Str_11) (3+i_2))].
+
+------------------------------------------------------------

@@ -47,3 +47,4 @@ clean::
 	$(RM) $(Print_api_DIR)/grammar.ml
 	$(RM) $(Print_api_DIR)/grammar.mli
 	$(RM) $(Print_api_DIR)/lexer.ml
+	$(RM) -r _build

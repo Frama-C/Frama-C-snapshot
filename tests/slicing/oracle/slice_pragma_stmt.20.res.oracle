@@ -35,8 +35,7 @@ void test7(int c1, int c2)
     /*@ slice pragma stmt; */
     {
       int tmp;
-      {
-        /*sequence*/
+      { /* sequence */
         tmp = c1;
         c1 ++;
         x = tmp;

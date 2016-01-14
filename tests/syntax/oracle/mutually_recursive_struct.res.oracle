@@ -1,0 +1,6 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/syntax/mutually_recursive_struct.i (no preprocessing)
+tests/syntax/mutually_recursive_struct.i:4:[kernel] user error: attempt to declare an array over incomplete type struct S2
+[kernel] user error: type struct S2 is circular
+[kernel] user error: stopping on file "tests/syntax/mutually_recursive_struct.i" that has errors.
+[kernel] Frama-C aborted: invalid user input.

@@ -66,8 +66,7 @@ int main(void)
   int __retres;
   int tmp;
   int tmp_0;
-  {
-    /*sequence*/
+  { /* sequence */
     tmp = f0_slice_1();
     tmp_0 = f1_slice_1();
   }

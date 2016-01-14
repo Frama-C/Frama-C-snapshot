@@ -1,1 +1,1 @@
-CMD: FRAMAC_PLUGIN=tests/.empty @frama-c@
+EXECNOW: make -s tests/slicing/libSelect.cmxs tests/slicing/libAnim.cmxs

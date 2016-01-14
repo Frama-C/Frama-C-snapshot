@@ -1,6 +1,6 @@
 /* run.config
-   EXECNOW: make -s tests/slicing/ex_spec_interproc.opt
-   CMD: tests/slicing/ex_spec_interproc.opt
+   EXECNOW: make -s tests/slicing/ex_spec_interproc.cmxs
+   CMD: @frama-c@ -load-module tests/slicing/libSelect.cmxs -load-module tests/slicing/ex_spec_interproc.cmxs
    OPT: -check -deps -journal-disable
 */
 

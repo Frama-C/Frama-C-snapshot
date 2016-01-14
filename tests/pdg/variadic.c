@@ -1,7 +1,7 @@
 /* run.config
-*    GCC:
 *    OPT: -pdg  -journal-disable  -pdg-print -pdg-verbose 2
 */
+// __builtin_va_start and co do not appear in PDG output because Value forgets to register them in the table of called functions. This is a bug of Value
 
 #include <stdarg.h>
 

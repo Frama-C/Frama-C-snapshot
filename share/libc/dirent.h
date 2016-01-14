@@ -22,11 +22,14 @@
 
 #ifndef __FC_DIRENT_H
 #define __FC_DIRENT_H
+#include "features.h"
 
 #include "errno.h"
 
 #include "__fc_define_ino_t.h"
 #include "__fc_define_off_t.h"
+
+__BEGIN_DECLS
 
 struct dirent {
     ino_t          d_ino;       /* inode number */
@@ -45,15 +48,15 @@ typedef struct DIR {
 } DIR;
 
 DIR __fc_opendir[__FC_FOPEN_MAX];
-const DIR* _p__fc_opendir = __fc_opendir;
+DIR* const __p_fc_opendir = __fc_opendir;
 
 int            alphasort(const struct dirent **, const struct dirent **);
 
 /*@
-  requires \subset(dirp,&__fc_opendir[0..]);
-  assigns \result \from dirp, *dirp, _p__fc_opendir;
-  assigns __FC_errno \from dirp, *dirp, _p__fc_opendir;
-  assigns *dirp \from dirp, *dirp, _p__fc_opendir;
+  requires \subset(dirp,&__fc_opendir[0 .. __FC_FOPEN_MAX-1]);
+  assigns \result \from dirp, *dirp, __p_fc_opendir;
+  assigns __FC_errno \from dirp, *dirp, __p_fc_opendir;
+  assigns *dirp \from dirp, *dirp, __p_fc_opendir;
   ensures (\result == 0 && dirp->__fc_dir_inode == \null)
            || \result == -1;
 */
@@ -62,8 +65,8 @@ int            dirfd(DIR *);
 DIR           *fdopendir(int);
 
 /*@
-  assigns \result \from path[0..], _p__fc_opendir;
-  assigns __FC_errno \from path[0..], _p__fc_opendir;
+  assigns \result \from path[0..], __p_fc_opendir;
+  assigns __FC_errno \from path[0..], __p_fc_opendir;
   ensures \result == \null || \valid(\result);
   ensures \result != \null ==>
              \result == &__fc_opendir[\result->__fc_dir_id];
@@ -72,10 +75,10 @@ DIR           *fdopendir(int);
 DIR           *opendir(const char *path);
 
 /*@
-  requires \subset(dirp, &__fc_opendir[0..]);
-  assigns \result \from *dirp, _p__fc_opendir;
+  requires \subset(dirp, &__fc_opendir[0 .. __FC_FOPEN_MAX-1]);
+  assigns \result \from *dirp, __p_fc_opendir;
   assigns dirp->__fc_dir_position \from dirp->__fc_dir_position;
-  assigns __FC_errno \from dirp, *dirp, _p__fc_opendir;
+  assigns __FC_errno \from dirp, *dirp, __p_fc_opendir;
   ensures \result == \null || \valid(\result);
 */
 struct dirent *readdir(DIR *dirp);
@@ -120,6 +123,7 @@ enum
 # define IFTODT(mode)	(((mode) & 0170000) >> 12)
 # define DTTOIF(dirtype)	((dirtype) << 12)
 
+__END_DECLS
 
 #endif
 

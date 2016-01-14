@@ -126,23 +126,28 @@ tests/slicing/call_accuracy.c:17:[kernel] warning: signed overflow. assert z+1 �
 [from] Computing for function f_set
 [from] Done for function f_set
 [value] Done for function f_set
-tests/slicing/call_accuracy.c:49:[kernel] warning: signed overflow. assert -2147483648 ≤ b+s1.b ≤ 2147483647;
+tests/slicing/call_accuracy.c:49:[kernel] warning: signed overflow. assert -2147483648 ≤ b+s1.b;
+tests/slicing/call_accuracy.c:49:[kernel] warning: signed overflow. assert b+s1.b ≤ 2147483647;
 tests/slicing/call_accuracy.c:49:[kernel] warning: signed overflow. assert (int)(b+s1.b)+s3.b ≤ 2147483647;
+tests/slicing/call_accuracy.c:49:[kernel] warning: signed overflow. assert -2147483648 ≤ (int)((int)(b+s1.b)+s3.b)+tab[1];
+tests/slicing/call_accuracy.c:49:[kernel] warning: signed overflow. assert (int)((int)(b+s1.b)+s3.b)+tab[1] ≤ 2147483647;
 tests/slicing/call_accuracy.c:49:[kernel] warning: signed overflow.
-                  assert -2147483648 ≤ (int)((int)(b+s1.b)+s3.b)+tab[1] ≤ 2147483647;
+                  assert -2147483648 ≤ (int)((int)((int)(b+s1.b)+s3.b)+tab[1])+S1.b;
+tests/slicing/call_accuracy.c:49:[kernel] warning: signed overflow.
+                  assert (int)((int)((int)(b+s1.b)+s3.b)+tab[1])+S1.b ≤ 2147483647;
 tests/slicing/call_accuracy.c:49:[kernel] warning: signed overflow.
                   assert
-                  -2147483648 ≤ (int)((int)((int)(b+s1.b)+s3.b)+tab[1])+S1.b ≤ 2147483647;
+                  -2147483648 ≤ (int)((int)((int)((int)(b+s1.b)+s3.b)+tab[1])+S1.b)+S2.b;
 tests/slicing/call_accuracy.c:49:[kernel] warning: signed overflow.
                   assert
-                  -2147483648 ≤ (int)((int)((int)((int)(b+s1.b)+s3.b)+tab[1])+S1.b)+S2.b ≤
-                  2147483647;
+                  (int)((int)((int)((int)(b+s1.b)+s3.b)+tab[1])+S1.b)+S2.b ≤ 2147483647;
 [value] Recording results for test_set
 [from] Computing for function test_set
 [from] Done for function test_set
 [value] Done for function test_set
 tests/slicing/call_accuracy.c:65:[kernel] warning: signed overflow. assert r1+r2 ≤ 2147483647;
-tests/slicing/call_accuracy.c:65:[kernel] warning: signed overflow. assert -2147483648 ≤ (int)(r1+r2)+r3 ≤ 2147483647;
+tests/slicing/call_accuracy.c:65:[kernel] warning: signed overflow. assert -2147483648 ≤ (int)(r1+r2)+r3;
+tests/slicing/call_accuracy.c:65:[kernel] warning: signed overflow. assert (int)(r1+r2)+r3 ≤ 2147483647;
 tests/slicing/call_accuracy.c:65:[kernel] warning: signed overflow. assert (int)((int)(r1+r2)+r3)+S3.b ≤ 2147483647;
 [value] Recording results for main
 [from] Computing for function main

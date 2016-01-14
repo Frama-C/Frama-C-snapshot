@@ -22,12 +22,17 @@
 
 #ifndef FC_UN
 #define FC_UN
+#include "../features.h"
 #include "../__fc_define_sa_family_t.h"
+
+__BEGIN_DECLS
+
 struct sockaddr_un
   {
     sa_family_t sun_family;
     char sun_path[__FC_SOCKADDR_SUN_SUN_PATH];         /* Path name.  */
   };
 
+__END_DECLS
 
 #endif

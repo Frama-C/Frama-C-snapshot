@@ -23,7 +23,10 @@
 #ifndef FC_NET_IF
 #define FC_NET_IF
 
+#include "../features.h"
 #include "sys/socket.h"
+
+__BEGIN_DECLS
 
 struct if_nameidx {unsigned if_index; char *if_name;};
 #define IF_NAMESIZE 255
@@ -159,5 +162,7 @@ struct ifconf
   };
 # define ifc_buf	ifc_ifcu.ifcu_buf	/* Buffer address.  */
 # define ifc_req	ifc_ifcu.ifcu_req	/* Array of structures.  */
+
+__END_DECLS
 
 #endif

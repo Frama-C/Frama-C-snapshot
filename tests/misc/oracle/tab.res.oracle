@@ -30,7 +30,8 @@ tests/misc/any_int.c:9:[kernel] warning: signed overflow. assert x_0+1 ≤ 21474
 tests/misc/any_int.c:9:[kernel] warning: signed overflow. assert -2147483648 ≤ x_0-1;
 [value] Recording results for any_int
 [value] Done for function any_int
-tests/misc/tab.c:12:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert 0 ≤ i < 4;
+tests/misc/tab.c:12:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert 0 ≤ i;
+tests/misc/tab.c:12:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert i < 4;
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======

@@ -43,8 +43,7 @@ double f4(void)
   tab[0] = 1.0;
   tab[1] = 2.0;
   r = g4(& tab);
-  {
-    /*sequence*/
+  { /* sequence */
     tmp = h4(tab);
     ;
   }

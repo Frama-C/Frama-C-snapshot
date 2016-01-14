@@ -29,6 +29,7 @@ typedef __UINT_LEAST32_T socklen_t;
 #include "../__fc_define_sockaddr.h"
 /* Not POSIX compliant but seems needed for some functions... */
 #include "../__fc_define_ssize_t.h"
+#include "../features.h"
 
 struct sockaddr_storage {
   sa_family_t   ss_family;
@@ -132,13 +133,64 @@ struct msghdr {
 
 #define SOMAXCONN 0xFF
 
-int     accept(int, struct sockaddr *, socklen_t *);
-int     bind(int, const struct sockaddr *, socklen_t);
+#ifndef __FC_MAX_OPEN_SOCKETS
+// arbitrary number
+#define __FC_MAX_OPEN_SOCKETS 1024
+#endif
+
+// Allows different implementations for internal socket structures
+#ifndef __FC_INTERNAL_SOCKFDS_PROVIDED
+struct __fc_sockfds_type { int x; };
+#endif
+//@ ghost struct __fc_sockfds_type __fc_sockfds[__FC_MAX_OPEN_SOCKETS];
+
+/* Represents the creation of new file descriptors for sockets. */
+//@ ghost extern int __fc_socket_counter __attribute__((__FRAMA_C_MODEL__));
+
+// __fc_sockfds represents the state of open socket descriptors.
+//@ ghost volatile int __fc_open_sock_fds;
+// TODO: Model the state of some functions more precisely.
+
+/*@
+  requires 0 <= sockfd < __FC_MAX_OPEN_SOCKETS;
+  assigns  \result, *(((char *)addr)+(0 .. *addrlen-1)), __fc_sockfds[sockfd]
+           \from *addr, *addrlen, __fc_sockfds[sockfd];
+  ensures 0 <= \result < __FC_MAX_OPEN_SOCKETS || \result == -1;
+  behavior addr_null:
+    assumes addr == \null;
+    requires addrlen == \null;
+    assigns \result, __fc_sockfds[sockfd] \from __fc_sockfds[sockfd];
+  behavior addr_not_null:
+    assumes addr != \null;
+    requires \valid(addrlen);
+    requires \valid(((char *)addr)+(0 .. *addrlen-1));
+    ensures \initialized(((char *)addr)+(0..*addrlen-1));
+  disjoint behaviors;
+  // TODO: check what to do when the buffer addr is too small
+ */
+int     accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
+
+/*@
+  requires 0 <= sockfd < __FC_MAX_OPEN_SOCKETS;
+  requires \valid_read(((char*)addr)+(0..addrlen-1));
+  assigns \result, __fc_sockfds[sockfd] 
+          \from sockfd, *addr, addrlen, __fc_sockfds[sockfd];
+  ensures \result == 0 || \result == -1;
+ */
+int     bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
+
 int     connect(int, const struct sockaddr *, socklen_t);
 int     getpeername(int, struct sockaddr *, socklen_t *);
 int     getsockname(int, struct sockaddr *, socklen_t *);
 int     getsockopt(int, int, int, void *, socklen_t *);
-int     listen(int, int);
+
+/*@
+  requires 0 <= sockfd < __FC_MAX_OPEN_SOCKETS;
+  assigns  \result \from sockfd, __fc_sockfds[sockfd];
+  assigns  __fc_sockfds[sockfd] \from sockfd, backlog, __fc_sockfds[sockfd];
+  ensures  \result == 0 || \result == -1;
+ */
+int listen(int sockfd, int backlog);
 
 /* Flags for passing to recv() and others */
 #define MSG_OOB 1
@@ -147,42 +199,76 @@ int     listen(int, int);
 #define MSG_DONTWAIT 64
 
 /*@ 
-  ensures -1 <= \result <= length ;
-  assigns ((char*)buffer)[0 .. length-1] ;
+  requires 0 <= sockfd < __FC_MAX_OPEN_SOCKETS;
+  requires \valid((char *)buf+(0 .. len-1));
+  assigns  *((char *)buf+(0 .. len-1)), __fc_sockfds[sockfd], \result
+           \from sockfd, len, flags, __fc_sockfds[sockfd];
+  ensures  0 <= \result <= len || \result == -1;
+  ensures  \initialized(((char *)buf+(0 .. \result-1)));
  */
-ssize_t recv(int socket, void * buffer, size_t length, int flags);
+ssize_t recv(int sockfd, void * buf, size_t len, int flags);
 
 ssize_t recvfrom(int, void *, size_t, int,
         struct sockaddr *, socklen_t *);
 
-/*@ requires \valid(&((char *)hdr->msg_control)[0..hdr->msg_controllen-1]);
+/*@ requires 0 <= sockfd < __FC_MAX_OPEN_SOCKETS;
+  @ requires \valid(&((char *)hdr->msg_control)[0..hdr->msg_controllen-1]);
   @ requires \valid(&(hdr->msg_iov[0..hdr->msg_iovlen-1]));
   @ requires hdr->msg_name == 0
       || \valid(&((char *)hdr->msg_name)[0..hdr->msg_namelen-1]);
-  @ assigns ((char *) hdr->msg_name)[0..hdr->msg_namelen-1];
-  @ assigns hdr->msg_namelen;
-  @ assigns ((char *) hdr->msg_iov[0..hdr->msg_iovlen-1].iov_base)[0..];
-  @ assigns ((char *) hdr->msg_control)[0..];
-  @ assigns hdr->msg_controllen;
-  @ assigns hdr->msg_flags;
+  @ assigns ((char *) hdr->msg_name)[0..hdr->msg_namelen-1] \from 
+                                                           __fc_sockfds[sockfd];
+  @ assigns hdr->msg_namelen \from __fc_sockfds[sockfd];
+  @ assigns ((char *) hdr->msg_iov[0..hdr->msg_iovlen-1].iov_base)[0..] \from
+                                                           __fc_sockfds[sockfd];
+  @ assigns ((char *) hdr->msg_control)[0..hdr->msg_controllen-1] \from __fc_sockfds[sockfd];
+  @ assigns \result \from __fc_sockfds[sockfd];
+  @ assigns hdr->msg_controllen \from __fc_sockfds[sockfd];
+  @ assigns hdr->msg_flags \from __fc_sockfds[sockfd];
+  @ assigns __fc_sockfds[sockfd] \from __fc_sockfds[sockfd];
+  @ ensures \result <= hdr->msg_iovlen;
 */
 ssize_t recvmsg(int sockfd, struct msghdr *hdr, int flags);
 ssize_t send(int, const void *, size_t, int);
 ssize_t sendmsg(int, const struct msghdr *, int);
 ssize_t sendto(int, const void *, size_t, int, const struct sockaddr *,
         socklen_t);
-int     setsockopt(int, int, int, const void *, socklen_t);
-int     shutdown(int, int);
-int     socket(int, int, int);
-int     sockatmark(int);
 
+/*@
+  requires 0 <= sockfd < __FC_MAX_OPEN_SOCKETS;
+  requires optval == \null || \valid_read(((char *)optval)+(0..optlen-1));
+  assigns  \result, __fc_sockfds[sockfd] 
+           \from  __fc_sockfds[sockfd], level, optname,
+             ((char *)optval)[0..optlen-1], optlen;
+  ensures  \result == 0 || \result == -1;
+ */
+int setsockopt(int sockfd, int level, int optname, const void *optval, socklen_t optlen);
 
-/* Represents the creation of new file descriptors for sockets. */
-extern int __fc_socket_counter;
+/*@
+  requires 0 <= sockfd < __FC_MAX_OPEN_SOCKETS;
+  assigns \result, __fc_sockfds[sockfd] \from how, __fc_sockfds[sockfd];
+  ensures \result == 0 || \result == -1;
+ */
+int shutdown(int sockfd, int how);
+
+int sockatmark(int);
+
+/*@
+  assigns  \result, __fc_socket_counter
+           \from domain, type, protocol, __fc_socket_counter;
+  ensures  0 <= \result < __FC_MAX_OPEN_SOCKETS || \result == -1;
+*/
+int socket(int domain, int type, int protocol);
+
+int sockatmark(int);
 
 /*@ requires \valid(&socket_vector[0..1]);
-  @ assigns __fc_socket_counter, socket_vector[0..1] \from __fc_socket_counter;
+  @ assigns \result, __fc_socket_counter, socket_vector[0..1] \from
+                     __fc_socket_counter;
   @ ensures \initialized(&socket_vector[0..1]);
+  @ ensures \result == 0 || \result == -1;
+  @ ensures 0 <= socket_vector[0] < __FC_MAX_OPEN_SOCKETS;
+  @ ensures 0 <= socket_vector[1] < __FC_MAX_OPEN_SOCKETS;
   @*/
 int socketpair(int domain, int type, int protocol, int socket_vector[2]);
 #endif

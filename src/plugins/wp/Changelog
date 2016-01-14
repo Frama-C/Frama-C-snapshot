@@ -1,0 +1,261 @@
+###############################################################################
+# Preliminary notes:                                                          #
+# ------------------                                                          #
+# Mark "-": change with an impact for users (and possibly developers).        #
+# Mark "o": change with an impact for developers only.                        #
+# Mark "+": change for Frama-C-commits audience (not in html version)         #
+# Mark "*": bug fixed.                                                        #
+# Mark "!": change that can break compatibility with existing development.    #
+# '#nnn'   : BTS entry #nnn                                                   #
+# '#!nnn'  : BTS private entry #nnn                                           #
+# For compatibility with old change log formats:                              #
+# '#?nnn'  : OLD-BTS entry #nnn                                               #
+###############################################################################
+# Categories:
+#   Cmd: command line interface
+#   Gui: graphical user interface
+#   Makefile: Makefile
+#   WP: proof obligation calculus
+#   <Model>: memory model
+#   <Prover>: prover
+###############################################################################
+
+################################
+Plugin WP 0.9 Magnesium_20151002
+################################
+
+- WP	      [2015/09/02] Added support for float-classification.
+              (\is_NaN, \is_finite, \is_infinite, \is_plus_infinity, \is_minus_infinity).
+-* WP         [2015/09/02] Fixed bug #2082 (crash with \is_infinite).
+-* WP         [2015/08/19] Fixed bug #2040 (wrong label Here in assumes).
+-* WP         [2015/08/18] Fixed bug #2110 (wrong premisses for structs assigns).
+-* WP         [2015/08/18] Fixed bug #2141 (incorrect simplification of 'x%1').
+-* WP         [2015/08/18] Fixed bug #2144 (lost \result after explicit assignment).
+-* WP         [2015/06/29] Fixed bug #2078 (ill typed PO with void*).
+-* WP         [2015/06/29] Fixed bug #2127 (unsigned inequality).
+-* WP         [2015/06/29] Fixed bug #2126 (0-shift rewriting).
+-* WP         [2015/05/20] Fixed bug #1683 (multiply reported Qed proofs).
+-* WP         [2015/03/20] Fixed bug #2079 (incorrect pointer arithmetics).
+- WP	      [2015/02/28] Handle global constants (-wp-init-const).
+- WP	      [2015/02/28] Quiet output on TTY (see -tty kernel option).
+- WP	      [2015/02/28] Added solver mean time to console output.
+-* Hoare      [2015/02/28] Fixed incorrect partial assignments in compound objects.
+- WP	      [2015/02/28] Refactoring of compound objects modeling.
+- Qed	      [2015/02/28] Fold constant expressions in goals.
+- Qed	      [2015/02/28] More simplifications on strict inequalities.
+- Qed	      [2015/02/28] More agressive filtering and pruning (-wp-filter).
+- Qed	      [2015/02/28] Aggressive ite-lifting.
+- Qed	      [2015/02/28] Automatic introduction of existentials.
+-! Coq	      [2015/02/28] Inductive if-then-else construct.
+- WP	      [2015/02/28] -wp-simplify-type remove some most type constraints (sound, incomplete).
+- WP	      [2015/02/28] -wp-simplify-forall of quantifier guards (unsound).
+- Qed	      [2015/02/28] Factorization of core equalities (-wp-core).
+- WP	      [2015/02/28] Improved -wp-check mode.
+-* WP	      [2015/02/28] Fixed bool-prop conversions.
+- WP	      [2015/02/28] Summarize initializers (-wp-init-summarize-array).
+- WP	      [2015/02/28] Simplifications of 'is_cint' with quantifiers.
+- Caveat      [2015/02/28] New 'Caveat' memory model.
+- Typed	      [2015/02/28] Named shift operators (better triggers).
+- WP          [2015/02/28] New integer model '+rg'.
+-* WP	      [2015/02/28] Fixed bug #1683 (duplicate Qed results).
+-* WP	      [2015/02/28] Improved typing for alt-ergo let-bindings.
+-* WP	      [2015/02/28] Fix sharing bug in proof obligation output.
+- Report      [2015/02/28] Support for CVC4 reporting.
+-* WP	      [2015/02/28] Fix bugs with -wp-extern-arrays.
+- WP 	      [2015/02/28] More lemmas for bitwise operations.
+- WP	      [2015/02/28] Options -wp-*-vars to tune memory model detection.
+-* WP         [2015/02/18] Fixed bug #1785 (fixed pre-condition with Clang).
+- WP	      [2015/01/27] Support for \subset.
+- WP	      [2014/09/24] Now accept patterns in drivers.
+-* WP	      [2014/09/15] Fixed bug #1828 (separation of locals/formals/heap).
+
+#############################
+Plugin WP 0.8 Sodium_20150201
+#############################
+
+- WP          [2014/09/05] Drivers for min/max.
+- Typed       [2014/09/04] Simplification of assigns and separated.
+-* Gui	      [2014/09/04] Fixed bug #1688 (recover results from cmdline).
+-! WP         [2014/07/09] Next to the new way the kernel handles command line
+	      options, -wp-include +dir has to be replaced by -wp-include ++dir.
+	      Forward and backward compatibilities are broken.
+- WP          [2014/06/11] Some improvements on bitwise operators.
+- Cmd         [2014/05/22] Added option -wp-filename-truncation to truncate
+	                   proof obligation filenames.
+
+###########################
+Plugin WP 0.8 Neon_20140301
+###########################
+
+- Gui	      [2014/01/30] Edition of current proof script (right-click).
+- Gui	      [2014/01/30] Consistent icons with status.
+- Driver      [2014/01/30] Refactoring of prover external libraries.
+	                   (consult driver section in manual).
+-* WP         [2014/01/16] Important bug-fix in CFG (missing hyps in goals).
+-* WP         [2013/12/11] Major speed-up for huge functions.
+- WP          [2014/01/30] Many improvements on reals and floats.
+- WP          [2014/01/30] Many improvements on bitwise operators.
+- WP          [2014/01/30] Better integration with Why-3 and Coq.
+- WP          [2013/12/09] Clever assigns everything with formals and locals.
+- WP	      [2013/11/26] More type constraints in typed memory model.
+
+###############################
+Plugin WP 0.7 Fluorine_20130501
+###############################
+
+-* Typed      [2013/05/23] Better trigger generation for arrays with Alt-Ergo.
+-* Provers    [2013/05/23] Fixed various bugs with drivers and provers.
+-* WP         [2013/05/23] Fixed various bugs on floats.
+-* Typed      [2013/05/23] Fixed bug on address differences and offsets.
+
+###############################
+Plugin WP 0.7 Fluorine_20130401
+###############################
+
+-* Makefile   [2013/04/17] Fixed bug #1385 about ocamllex.opt.
+-! Cmd        [2013/04/15] Removed now useless options -wp-huge, -wp-dot,
+	      -wp-trace.
+-  Cmd        [2013/04/15] Added option -wp-skip-fct to exclude functions.
+-  Cmd        [2013/04/15] Using -wp-prover instead of -wp-proof
+	      (kept for compatibility).
+-  Gui        [2013/04/15] New Why3 provers selection, added -wp-detect to
+	      force detection.
+-  WP         [2013/02/29] Added support for string literals (-wp-literals).
+-  WP         [2013/02/01] New simplification engine (specific options).
+-  WP         [2013/02/01] New interface to model selection (unique
+	      -wp-model option).
+-  WP         [2013/02/01] Experimental float and machine-integer models.
+-  WP         [2013/02/01] 'Store' and 'Runtime' models abandonned.
+-  WP         [2013/01/09] 'Typed' becomes the default model.
+-  Why3       [2012/12/18] Why3 output (-wp-proof why3:xxx).
+-  Typed      [2012/10/23] Extensions of Typed model (unsafe-casts).
+-  WP         [2012/10/09] Drivers for linking ACSL symbols to external
+	      libs (-wp-driver).
+
+#############################
+Plugin WP 0.6 Oxygen_20120901
+#############################
+
+-  WP	      [2012/09/14] Experimental simplifier with new 'Typed' model
+	      (see manual).
+o! WP	      [2012/09/05] Enhanced Ocaml API (see manual). Old bindings
+	      are preserved, but now emit a deprecated warning.
+-* WP         [2012/07/31] Fixed issue about -ulevel option (bug #1244).
+-  WP         [2012/06/30] Truncating too long log filenames.
+-  WP         [2012/06/20] Enhanced statistics for -wp-report (see manual).
+-* Coq        [2012/05/22] Better translation in Coq for floats and reals
+	      (fixed bugs #1174 and #1176).
+-  Gui        [2012/05/15] Graphical version of Alt-Ergo (altgr-ergo) can be
+	      launched from the 'Proof Obligation Panel'.
+-  Cmd	      [2012/03/15] Extended selection language: -wp-prop [+|-][@]id
+	      to add or remove property category or name.
+-  WP	      [2012/03/06] Better elimination of let constructs for -wp-norm Eqs
+	      option.
+-  WP         [2012/02/08] Limited support for triggers in axioms and lemmas.
+-  Cmd	      [2012/02/03] Extended support for external libraries:
+	      Options -wp-coq-lib, -wp-why-lib and now -wp-alt-ergo-lib.
+
+###############################
+Plugin WP 0.5 Nitrogen_20111001
+###############################
+
++* Store      [2012/01/03] Adding guard for 'fresh' axiomatization in Store.
++  WP	      [2011/12/23] Timing.
+-  Gui	      [2011/12/19] Changes into Gui panel.
+-  Cmd	      [2011/12/16] Adding support for reporting with option: -wp-report.
++* WP         [2011/11/25] Fixed bug #!1020 on arbitrary invariants.
+-  Cmd        [2011/11/22] Adding support for external proof libraries.
+	      See options -wp-include, -wp-tactic, -wp-coq-lib and -wp-why-lib.
+-  Cmd	      [2011/11/21] Adding support for multi-provers in command line.
+
+###############################
+Plugin WP 0.4 Nitrogen_20111001
+###############################
+
+-  WP         [2011/10/24] Further improvement for proof of assigns clauses.
+-  WP         [2011/10/14] A warning is now emitted for missing assigns clauses.
++* WP         [2011/09/30] Fixed bug #!572 for logic declaration without
+	      'reads' clause.
++* WP         [2011/09/22] Fixed bug #!970 for labels that may escape the
+	      control flow.
++* WP         [2011/09/07] Fixed bug #!943 on translation of reals and floats
+-  Cmd	      [2011/08/25] Optimization of arguments passing by reference
+              with option: -wp-byreference.
+-  WP         [2011/09/15] Improvements of conversion between C-integers
+	      and Z-integers.
+-  WP         [2011/07/22] Optimization of arguments passing by reference.
+-  WP         [2011/07/22] Print of formula change.
+-  Gui        [2011/06/29] Feedback for proof of preconditions at call sites.
+-  Gui        [2011/06/29] New menu options to prove preconditions at one
+	      or all call sites.
+-  Cmd        [2011/06/17] Added option -wp-proof-trace to obtain more
+	      informations from provers when available (option 'Trace' in GUI).
+-! Ergo       [2011/06/17] Alt-Ergo is always used with builtin arrays.
+	      Removed option -wp-arrays.
+-  Vampire    [2011/06/10] Support for Vampire as back-end prover.
+-* WP         [2011/06/10] In some cases, a proof attempt could silently
+	      failed. It is now properly reported.
+-  Gui        [2011/06/07] Default output directory is set to
+	      <home>/.frama-c-wp in Gui.
+-  Gui        [2011/06/07] Enhancement of Proof-Obligation panel.
+-! WP         [2011/05/20] Translation of axioms with labels
+	      (removed option -wp-axioms).
++  Caveat     [2011/05/19] Suppression of legacy Caveat model.
+-  Hoare      [2011/05/19] New Hoare model
+	      (now implemented on top of logic variables).
+-  WP         [2011/05/19] Handling partial initializers in C global variables.
+-  Cmd        [2011/05/17] New engine to compute proof obligations for
+	      arbitrary invariants. See option -wp-invariants.
+-! Ergo       [2011/05/17] Alt-Ergo 0.93 now required.
+-! Gui	      [2011/05/17] Removed 'Refresh' button from WP panel.
++* Gui 	      [2011/05/17] Fixed bug #!706 : property status not refreshed.
++* Gui	      [2011/05/17] Fixed bug #!707 : unexpected run of wp provers
+	      after -then.
++* WP         [2011/05/02] Fixed bug #!708 (missing definitions in
+	      environments).
+-  WP         [2011/04/29] Alt-Ergo is now selected (and run) by default.
+-* WP         [2011/04/29] Fixed problems with -wp-out <dir>.
+-  WP         [2011/04/21] Better representation of records and unions in logic.
+-  WP         [2011/04/21] No more logic generic pointers. Pointer arithmetics
+	      moved to memory models.
+-* Store      [2011/04/21] Better representation of pointers (issue #796).
+-* Gui        [2011/04/15] Fixed bug on PO status (wrong PO identification).
+-* Gui        [2011/04/13] Fixed bug #711 (cyclic dependencies).
+
+#############################
+Plugin WP 0.3 Carbon_20110201
+#############################
+
+-* Coq        [2011/04/08] Fixed bug #740 for Coq on Windows.
+	      WP now uses directly coqtop -compile instead of coqc.
+-  Runtime    [2011/04/01] Optimization of effect-assigns.
+-* Store      [2011/03/30] Fixed bug #766 about offsets in assigns.
+-  Cmd        [2011/03/23] Adding version in -wp-help.
++* WP         [2011/03/10] Proof of requires of the main entry point (bug #675).
+-  Cmd        [2011/01/31] Option -wp-warnings to display additional
+	      informations for 'Stronger' and 'Degenerated' goals.
+-  WP         [2011/01/24] New spliting algorithm. See option -wp-split.
+	      Option -wp-split-dim <n> to limit spliting up to 2**n sub-goals.
+-  WP         [2011/01/24] When -rte-precond is not used,
+	      wp generates a separate proof obligation for each call site.
+-  Cmd	      [2011/01/20] Options -wp-status-xxx to refine goal selection
+-  Cmd        [2011/01/19] Clarification of -save/-then effect on WP
+-* Gui        [2011/01/10] Fixed incorrect property status refresh in the GUI.
+-* Coq        [2011/01/04] Fixed bug #702 on Coq output with large integers.
+-* WP         [2011/03/10] Proof of requires of the main entry point (bug #675).
+
+#############################
+Plugin WP 0.2 Carbon_20101202
+#############################
+
+-* Coq        [2010/12/16] Fixed bug #639: no more compilation to shared
+	      directory.
+-  Gui        [2010/12/16] Accessibility of all provers from gui.
+
+#############################
+Plugin WP 0.1 Carbon_20101201
+#############################
+
+-  WP         [2010/12/06] New WP plugin.
+
+#############################

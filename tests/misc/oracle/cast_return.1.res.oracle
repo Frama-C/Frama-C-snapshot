@@ -180,8 +180,7 @@ void main1(void)
     char tmp_1;
     x = (int *)0;
     p = & x;
-    {
-      /*sequence*/
+    { /* sequence */
       tmp_1 = h();
       /*@ assert Value: mem_access: \valid(*p); */
       *(*p) = (int)tmp_1;
@@ -211,15 +210,13 @@ void main2(void)
   float tmp_0;
   if (c) {
     float tmp;
-    {
-      /*sequence*/
+    { /* sequence */
       tmp = fl1();
       /*@ assert Value: initialisation: \initialized(&tmp); */
       d1 = (double)tmp;
     }
   }
-  {
-    /*sequence*/
+  { /* sequence */
     tmp_0 = fl2();
     /*@ assert Value: initialisation: \initialized(&tmp_0); */
     d2 = (double)tmp_0;

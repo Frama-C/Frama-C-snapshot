@@ -26,9 +26,10 @@ tests/slicing/bts335b.c:21:[kernel] warning: signed overflow. assert j+1 ≤ 214
 [from] Computing for function g
 [from] Done for function g
 [value] Done for function g
-tests/slicing/bts335b.c:22:[kernel] warning: signed overflow.
-                  assert -2147483648 ≤ r+tmp_0 ≤ 2147483647;
-                  (tmp_0 from g(2, w, b, j))
+tests/slicing/bts335b.c:22:[kernel] warning: signed overflow. assert -2147483648 ≤ r+tmp_0;
+                                   (tmp_0 from g(2, w, b, j))
+tests/slicing/bts335b.c:22:[kernel] warning: signed overflow. assert r+tmp_0 ≤ 2147483647;
+                                   (tmp_0 from g(2, w, b, j))
 [value] Recording results for main
 [from] Computing for function main
 [from] Done for function main
@@ -117,8 +118,7 @@ int main(int v, int w, int a, int b, int i, int j)
   int tmp_0;
   r = f_slice_1(1,v,a,i);
   j ++;
-  {
-    /*sequence*/
+  { /* sequence */
     tmp_0 = g_slice_1(2,w,b,j);
     r += tmp_0;
   }

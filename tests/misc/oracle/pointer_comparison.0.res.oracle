@@ -1,0 +1,47 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/pointer_comparison.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  x ∈ {0}
+  y ∈ {0}
+  p ∈ {0}
+[value] Called Frama_C_show_each_1t({{ &x + {4} }})
+tests/misc/pointer_comparison.c:10:[kernel] warning: pointer comparison:
+                  assert \pointer_comparable((void *)tmp_0, (void *)(&y));
+                  (tmp_0 from p++)
+[value] Called Frama_C_show_each_2({{ &x + {8} }})
+tests/misc/pointer_comparison.c:12:[kernel] warning: pointer comparison:
+                  assert \pointer_comparable((void *)tmp_1, (void *)(&y));
+                  (tmp_1 from p++)
+[value] Called Frama_C_show_each_3({{ &x + {12} }})
+tests/misc/pointer_comparison.c:14:[kernel] warning: pointer comparison:
+                  assert \pointer_comparable((void *)tmp_2, (void *)(&y));
+                  (tmp_2 from p++)
+[value] Called Frama_C_show_each_4({{ &x + {16} }})
+tests/misc/pointer_comparison.c:16:[value] entering loop for the first time
+tests/misc/pointer_comparison.c:16:[kernel] warning: pointer comparison:
+                  assert \pointer_comparable((void *)tmp_3, (void *)(&y));
+                  (tmp_3 from p++)
+[value] Called Frama_C_show_each_5({{ &x + {20} }})
+[value] Called Frama_C_show_each_5({{ &x + {20; 24} }})
+[value] Called Frama_C_show_each_5({{ &x + {20; 24; 28} }})
+[value] Called Frama_C_show_each_5({{ &x + [20..--],0%4 }})
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  NON TERMINATING FUNCTION
+[from] Computing for function main
+[from] Non-terminating function main (no dependencies)
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  NON TERMINATING - NO EFFECTS
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          p; tmp; tmp_0; tmp_1; tmp_2; tmp_3
+[inout] Inputs for function main:
+          p

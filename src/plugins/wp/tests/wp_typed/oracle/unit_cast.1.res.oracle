@@ -1,0 +1,28 @@
+# frama-c -wp -wp-model 'Typed (Ref)' [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_typed/unit_cast.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] Collecting variable usage
+tests/wp_typed/unit_cast.i:4:[wp] warning: Cast with incompatible pointers types (source: sint32*) (target: sint8*)
+------------------------------------------------------------
+  Function f
+------------------------------------------------------------
+
+Goal Assertion 'OUT' (file tests/wp_typed/unit_cast.i, line 5):
+tests/wp_typed/unit_cast.i:4: warning from Typed Model:
+ - Warning: Hide sub-term definition
+   Reason: Cast with incompatible pointers types (source: sint32*) (target: sint8*)
+Let x_0 = Mchar_0[w_0].
+Assume {
+  (* Domain *)
+  Type: (is_sint8 x_0).
+  (* Heap *)
+  Have: (sconst Mchar_0) /\ ((region (base p_1))<=0)
+        /\ ((region (base v_0))<=0).
+}
+Prove: x_0<=255.
+
+------------------------------------------------------------

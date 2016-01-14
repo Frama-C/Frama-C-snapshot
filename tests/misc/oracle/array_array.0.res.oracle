@@ -1,0 +1,48 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/array_array.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  StaticAllocHEAP[0..3] ∈ {2}
+                 [4..9999] ∈ {0}
+  next_free ∈ {0}
+[value] computing for function LIB_MEM_StaticAlloc <- main.
+        Called from tests/misc/array_array.c:24.
+[value] Called Frama_C_show_each_ALLOCATION_WITH_STATIC_ALLOC({24})
+[value] Recording results for LIB_MEM_StaticAlloc
+[value] Done for function LIB_MEM_StaticAlloc
+tests/misc/array_array.c:26:[value] entering loop for the first time
+[value] Called Frama_C_show_each_I({29})
+tests/misc/array_array.c:28:[kernel] warning: accessing out of bounds index {29}. assert i < 3;
+tests/misc/array_array.c:28:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
+[value] Recording results for main
+[value] done for function main
+tests/misc/array_array.c:28:[value] Assertion 'Value,index_bound' got final status invalid.
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function LIB_MEM_StaticAlloc:
+  new ∈ {{ (void *)&StaticAllocHEAP }}
+  next_free ∈ {24}
+[value] Values at end of function main:
+  NON TERMINATING FUNCTION
+[from] Computing for function LIB_MEM_StaticAlloc
+[from] Done for function LIB_MEM_StaticAlloc
+[from] Computing for function main
+[from] Non-terminating function main (no dependencies)
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function LIB_MEM_StaticAlloc:
+  next_free FROM size; next_free
+  \result FROM next_free
+[from] Function main:
+  NON TERMINATING - NO EFFECTS
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function LIB_MEM_StaticAlloc:
+          new; tmp; next_free
+[inout] Inputs for function LIB_MEM_StaticAlloc:
+          next_free
+[inout] Out (internal) for function main:
+          v; i; next_free
+[inout] Inputs for function main:
+          next_free

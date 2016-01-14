@@ -46,8 +46,8 @@ struct __anonstruct_G1_3 {
    S1_t c3 ;
 };
 struct __anonstruct_G1_3 G1;
-static S2_t const G2 = {.p1 = (S1_t const *)(& G1.c12), .p2 = & G1.c12,
-                        .p3 = & G1.c3};
+static S2_t const G2 =
+  {.p1 = (S1_t const *)(& G1.c12), .p2 = & G1.c12, .p3 = & G1.c3};
 void h1(S2_t const *q)
 {
   S1_t *s1;

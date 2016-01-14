@@ -1,0 +1,45 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_acsl/unit_bit_test.c (with preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function rotate_left
+------------------------------------------------------------
+
+Goal Post-condition 'bit_zero' in 'rotate_left':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'other_bits' in 'rotate_left':
+Let x_1 = (lsr x_0 31).
+Assume {
+  (* Domain *)
+  Type: (is_uint32 x_0) /\ (is_uint32 x_1).
+  (* Goal *)
+  When: (0<=i_0) /\ (i_0<=30) /\ (is_sint32 i_0).
+}
+Prove: (0!=(land x_0 (lsl 1 i_0)))=
+       (0!=(land (lsl 1 (1+i_0)) (lor x_1 (to_uint32 (lsl x_0 1))))).
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function sum
+------------------------------------------------------------
+
+Goal Post-condition 'ok' in 'sum':
+Assume { }
+Prove: true.
+
+------------------------------------------------------------
+
+Goal Post-condition 'ko' in 'sum':
+Assume { (* Domain *) Type: (is_sint8 a_0) /\ (is_sint8 b_0). }
+Prove: ((bit_test a_0 1) /\ (bit_test b_0 1))
+       <-> ((bit_test a_0 1) \/ (bit_test b_0 1)).
+
+------------------------------------------------------------
