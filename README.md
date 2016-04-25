@@ -54,7 +54,7 @@ you can install the command-line version only:
     opam install frama-c-base
 
 For more detailed information about installing OPAM/Frama-C,
-see [INSTALL](INSTALL).
+see [INSTALL.md](INSTALL.md).
 
 ## Usage
 
