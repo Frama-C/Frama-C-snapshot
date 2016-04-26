@@ -1,5 +1,21 @@
 # Installing Frama-C
 
+## Table of Contents
+
+- [Recommended mode: OPAM](#recommended-mode-opam)
+  - [Frama-C Requirements](#frama-c-requirements)
+  - [Installing OPAM](#installing-opam)
+  - [Installing Frama-C from OPAM](#installing-frama-c-from-opam)
+  - [Installing Custom Versions of Frama-C via OPAM](#installing-custom-versions-of-frama-c-via-opam)
+  - [Installing Frama-C on Windows (via Cygwin + OPAM)](#installing-frama-c-on-windows-via-cygwin--opam)
+  - [Installing Frama-C on Mac OS X](#installing-frama-c-on-mac-os-x)
+- [Installing Frama-C via your Linux distribution (Debian/Ubuntu/Fedora)](#installing-frama-c-via-your-linux-distribution-debianubuntufedora)
+  - [Debian/Ubuntu](#debianubuntu)
+  - [Fedora](#fedora)
+- [Compiling from source](#compiling-from-source)
+  - [Quick Start](#quick-start)
+  - [Full Compilation Guide](#full-compilation-guide)
+
 ## Recommended mode: OPAM
 
 The preferred method of installation for Frama-C is using
@@ -148,7 +164,7 @@ or, if you don't want the Gtk-based GUI:
 
     sudo apt-get install frama-c-base
 
-### Fedora >= 13
+### Fedora
 
 If you are using Fedora >= 13 then a Frama-C package is provided:
 
@@ -190,7 +206,6 @@ If you are using Fedora >= 13 then a Frama-C package is provided:
 
 ### Full Compilation Guide
 
-
 #### Requirements
 
 - GNU make version >= 3.81
@@ -217,7 +232,7 @@ Consult their specific documentations for details.
 [Zarith]: http://forge.ocamlcore.org/projects/zarith
 
 
-##### Ubuntu >= Lucid Lynx 12.04
+##### Ubuntu
 
 If you are using Ubuntu >= Precise Pangolin 12.04 then an optimal list of
 packages is installed by:

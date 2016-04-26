@@ -7,7 +7,7 @@ source code written in C.
 
 Frama-C gathers several analysis techniques in a single collaborative
 platform, consisting of a **kernel** providing a core set of features
-(e.g., a normalized AST for *C* programs) plus a set of analyzers,
+(e.g., a normalized AST for C programs) plus a set of analyzers,
 called **plug-ins**. Plug-ins can build upon results computed by other
 plug-ins in the platform.
 
@@ -22,16 +22,17 @@ Thanks to this approach, Frama-C provides sophisticated tools, including:
   (**From**, **Impact**, **Metrics**, **Occurrence**, **Scope**, etc.).
 
 These plug-ins share a common language and can exchange information via
- **ACSL** (*ANSI/ISO C Specification Language*) properties.
-Plug-ins can also collaborate via their APIs.
+**[ACSL](http://frama-c.com/acsl.html)** (*ANSI/ISO C Specification Language*)
+properties. Plug-ins can also collaborate via their APIs.
 
 ## Installation
 
 #### Prerequisites
 
 - [OPAM](http://opam.ocaml.org/) (v1.2 or newer)
-- OCaml 4.xx (incompatible with versions 4.02.2, 4.02.0 and 4.00.0)
-- A C compiler (gcc, clang, CompCert, etc.)
+- OCaml 4.xx (make sure to use the latest patch release for your minor branch:
+  4.00.1, 4.01.0 or 4.02.3)
+- A C compiler (gcc and clang are recommended)
 - GNU Make
 
 Frama-C is developed mainly in Linux, often tested in Mac OSX
@@ -47,9 +48,7 @@ OCaml Package Manager.
 
 Please ensure that your OPAM is version 1.2 or newer.
 
-If you are having trouble with some of Frama-C's dependencies
-(namely those related to the GUI),
-you can install the command-line version only:
+You can install the command-line version only:
 
     opam install frama-c-base
 
