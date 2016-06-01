@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -33,21 +33,33 @@ module Initial_Values = struct
             [Base.null,Ival.top];
             [Base.null,Ival.top_float];
             [Base.null,Ival.top_single_precision_float];
+            [Base.null,Ival.float_zeros];
              ]
 end
 
-(* Store the information that the location has at most cardinal 1 *)
-module Comp_cardinal_0_1 = struct
-  let e = true
-  let compose _ _ = false (* Keys cannot be bound to Bottom (see MapLattice).
-                             Hence, two subtrees have cardinal one. *)
-  let f _k v = Ival.cardinal_zero_or_one v
-  let default = true
+(* Store the information that the location has at most cardinal 1, ignoring
+   weak bases. The rationale is as follows: this compositional bool is used
+   to improve the performance of slevel, to detect the parts of memory states
+   that are "exact". Intuitively, locations that involve weak bases do not
+   qualify. However, "exact" must be understood w.r.t. the [is_included]
+   function: a value is "exact" if no other value than itself and bottom
+   are included in it. Said otherwise, we do not consider the cardinality
+   of the concretization, but instead the one of the Ocaml datastructure. *)
+module Comp_exact = struct
+  let e = true (* corresponds to bottom *)
+  let default = true (* corresponds to missing keys, hence bottom *)
+
+  let f _b v = Ival.cardinal_zero_or_one v
+  (* on Ival, both forms of cardinal coincide *)
+
+  let compose _ _ = false
+  (* Keys cannot be bound to Bottom (see MapLattice). Hence, two subtrees have
+     a t least cardinal two. *)
 end
 
 module MapLatticeIval =
   Map_Lattice.Make
-    (Base.Base)(Base.SetLattice)(Ival)(Comp_cardinal_0_1)(Initial_Values)
+    (Base.Base)(Base.SetLattice)(Ival)(Comp_exact)(Initial_Values)
 
 module Location_Bytes = struct
 
@@ -92,19 +104,52 @@ module Location_Bytes = struct
        wrong. *)
     with Error_Top -> assert false
 
-  (* Override the function coming from MapLattice, we can do better *)
+  let sub_pointwise ?factor l1 l2 =
+    let factor = match factor with
+      | None -> Int_Base.minus_one
+      | Some f -> Int_Base.neg f
+    in
+    match l1, l2 with
+    | Top _, Top _
+    | Top (Base.SetLattice.Top, _), Map _
+    | Map _, Top (Base.SetLattice.Top, _) -> Ival.top
+    | Top (Base.SetLattice.Set s, _), Map m
+    | Map m, Top (Base.SetLattice.Set s, _) ->
+      let s' = Base.SetLattice.O.add Base.null s in
+      if M.exists (fun base _ -> Base.SetLattice.O.mem base s') m then
+        Ival.top
+      else
+        Ival.bottom
+    | Map m1, Map m2 ->
+      (* Subtract pointwise for all the bases that are present in both m1
+         and m2. *)
+      M.fold2_join_heterogeneous
+        ~cache:Hptmap_sig.NoCache
+        ~empty_left:(fun _ -> Ival.bottom)
+        ~empty_right:(fun _ -> Ival.bottom)
+        ~both:(fun _b i1 i2 -> Ival.add_int i1 (Ival.scale_int_base factor i2))
+        ~join:Ival.join
+        ~empty:Ival.bottom
+        m1 (M.shape m2)
+
   let cardinal_zero_or_one = function
     | Top _ -> false
-    | Map m -> M.compositional_bool m
+    | Map m ->
+      M.is_empty m ||
+      M.on_singleton
+        (fun b i -> not (Base.is_weak b) && Ival.cardinal_zero_or_one i) m
 
   let cardinal = function
     | Top _ -> None
     | Map m ->
-      M.fold (fun _ v card ->
-        match card, Ival.cardinal v with
+      let aux_base b i card =
+        if Base.is_weak b then None
+        else
+          match card, Ival.cardinal i with
           | None, _ | _, None -> None
           | Some c1, Some c2 -> Some (Int.add c1 c2)
-      ) m (Some Int.zero)
+      in
+      M.fold aux_base m (Some Int.zero)
 
   let top_with_origin origin =
     Top(Base.SetLattice.top, origin)
@@ -147,7 +192,8 @@ module Location_Bytes = struct
    try
      let b,_ = find_lonely_binding m in
      match Base.validity b with
-     | Base.Known _ | Base.Unknown _ | Base.Invalid -> true
+     | Base.Empty | Base.Known _ | Base.Unknown _ | Base.Invalid -> true
+     | Base.Variable { Base.weak } -> not weak
    with Not_found -> false
 
  let iter_on_strings =
@@ -296,6 +342,27 @@ module Location_Bytes = struct
 	   f
        in
        map_partially_overlaps m1 m2
+
+   let widen (size, wh) =
+    let widen_map =
+      let decide k v1 v2 =
+        (* Do not perform size-based widening for pointers. This will only
+           delay convergence, for no real benefit. The only interesting
+           bound is the validity. *)
+        let size = if Base.equal k Base.null then size else Integer.zero in
+        Ival.widen (size, wh k) v1 v2
+      in
+      M.join
+        ~cache:Hptmap_sig.NoCache (* No cache, because of wh *)
+        ~symmetric:false ~idempotent:true ~decide
+    in
+    fun m1 m2 ->
+      match m1, m2 with
+        | _ , Top _ -> m2
+        | Top _, _ -> assert false (* m2 should be larger than m1 *)
+        | Map m1, Map m2 ->
+            Map (widen_map m1 m2)
+
 end
 
 module Location_Bits = Location_Bytes
@@ -376,20 +443,32 @@ type location =
 exception Found_two
 
 (* Reduce [offsets] so that reading [size] from [offsets] fits within
-   the validity of [base] *)
-let reduce_offset_by_validity ~for_writing base offsets size =
+   the validity of [base]. If [aligned] is set to true, make the offset
+   congruent to 0 modulo 8. *)
+let reduce_offset_by_validity ~for_writing ?(bitfield=true) base offsets size =
   if for_writing && Base.is_read_only base then
     Ival.bottom
   else
     match Base.validity base, size with
+      | Base.Empty, _ ->
+        if Int_Base.(compare size zero) > 0 then Ival.bottom else Ival.zero
       | Base.Invalid, _ -> Ival.bottom
       | _, Int_Base.Top -> offsets
       | (Base.Known (minv,maxv) | Base.Unknown (minv,_,maxv)),
         Int_Base.Value size ->
           let maxv = Int.succ (Int.sub maxv size) in
-          let range = Ival.inject_range (Some minv) (Some maxv) in
+          let range =
+            if bitfield
+            then Ival.inject_range (Some minv) (Some maxv)
+            else Ival.inject_interval (Some minv) (Some maxv) Int.zero Int.eight
+          in
           Ival.narrow range offsets
-
+      | Base.Variable variable_v, Int_Base.Value size ->
+          let maxv = Int.succ (Int.sub variable_v.Base.max_alloc size) in
+          let range =
+            Ival.inject_range (Some Int.zero) (Some maxv)
+          in
+          Ival.narrow range offsets
 
 let valid_cardinal_zero_or_one ~for_writing {loc=loc;size=size} =
   Location_Bits.equal Location_Bits.bottom loc ||
@@ -407,6 +486,7 @@ let valid_cardinal_zero_or_one ~for_writing {loc=loc;size=size} =
         else begin
           Location_Bits.M.iter
             (fun base offsets ->
+               if Base.is_weak base then raise Found_two;
                let valid_offsets =
                  reduce_offset_by_validity ~for_writing base offsets size
                in
@@ -449,16 +529,7 @@ let loc_bits_to_loc_bytes_under x =
 let loc_to_loc_without_size {loc = loc} = loc_bits_to_loc_bytes loc
 let loc_size { size = size } = size
 
-let make_loc loc_bits size =
-  if (match size with
-            | Int_Base.Value v -> Int.gt v Int.zero
-            | _ -> true)
-  then
-    { loc = loc_bits; size = size }
-  else begin
-    Lattice_messages.emit_approximation emitter "0-sized location";
-    { loc = loc_bits; size = Int_Base.top }
-    end
+let make_loc loc_bits size = { loc = loc_bits; size = size }
 
 let is_valid ~for_writing {loc; size} =
   try
@@ -493,20 +564,13 @@ let loc_of_varinfo v =
 let loc_of_base v =
   make_loc (Location_Bits.inject v Ival.zero) (Base.bits_sizeof v)
 
-let loc_of_typoffset v typ offset =
+let loc_of_typoffset b typ offset =
   try
-    let offs, size = bitsOffset typ offset in
-    let size = if size = 0 then
-      Int_Base.top
-    else Int_Base.inject (Int.of_int size)
-    in
-    make_loc
-      (Location_Bits.inject v (Ival.of_int offs))
-      size
-  with SizeOfError _ ->
-    make_loc
-      (Location_Bits.inject v Ival.top)
-      Int_Base.top
+    let offs, size = Cil.bitsOffset typ offset in
+    let size = Int_Base.inject (Int.of_int size) in
+    make_loc (Location_Bits.inject b (Ival.of_int offs)) size
+  with SizeOfError _ as _e ->
+    make_loc (Location_Bits.inject b Ival.top) Int_Base.top
 
 let loc_bottom = make_loc Location_Bits.bottom Int_Base.top
 let is_bottom_loc l = Location_Bits.is_bottom l.loc
@@ -567,17 +631,25 @@ let enumerate_valid_bits_under_over under_over ~for_writing {loc; size} =
     if Ival.is_bottom valid_offset then
       acc
     else
-      let valid_itvs = under_over valid_offset size in
-      Zone.M.add base valid_itvs acc
+      let valid_itvs = under_over base valid_offset size in
+      if Int_Intervals.(equal bottom valid_itvs) then acc
+      else Zone.M.add base valid_itvs acc
   in
   Zone.Map (Location_Bits.fold_topset_ok compute_offset loc Zone.M.empty)
+
+let interval_from_ival_over _ offset size =
+  Int_Intervals.from_ival_size offset size
+
+let interval_from_ival_under base offset size =
+  match Base.validity base with
+  | Base.Variable { Base.weak = true } -> Int_Intervals.bottom
+  | _ -> Int_Intervals.from_ival_size_under offset size
 
 let enumerate_valid_bits ~for_writing loc =
   match loc.loc with
   | Location_Bits.Top (Base.SetLattice.Top, _) -> Zone.top
   | _ ->
-    enumerate_valid_bits_under_over
-      Int_Intervals.from_ival_size ~for_writing loc
+    enumerate_valid_bits_under_over interval_from_ival_over ~for_writing loc
 ;;
 
 let enumerate_valid_bits_under ~for_writing loc = 
@@ -587,15 +659,16 @@ let enumerate_valid_bits_under ~for_writing loc =
     match loc.loc with
     | Location_Bits.Top _ -> Zone.bottom
     | Location_Bits.Map _ ->
-        enumerate_valid_bits_under_over
-          Int_Intervals.from_ival_size_under ~for_writing loc
+      enumerate_valid_bits_under_over interval_from_ival_under ~for_writing loc
 ;;
 
 (** [valid_part l] is an over-approximation of the valid part
-   of the location [l] *)
-let valid_part ~for_writing {loc = loc; size = size } =
+    of the location [l]. *)
+let valid_part ~for_writing ?(bitfield=true) {loc = loc; size = size } =
   let compute_loc base offs acc =
-    let valid_offset = reduce_offset_by_validity ~for_writing base offs size in
+    let valid_offset =
+      reduce_offset_by_validity ~for_writing ~bitfield base offs size
+    in
     if Ival.is_bottom valid_offset then
       acc
     else
@@ -614,24 +687,21 @@ let valid_part ~for_writing {loc = loc; size = size } =
 
 let enumerate_bits_under_over under_over {loc; size} =
   let compute_offset base offs acc =
-    let valid_offset = under_over offs size in
-    if Int_Intervals.(equal valid_offset bottom) then
-      acc (* Should not occur, as this means that [loc] maps something
-             to Bottom *)
-    else
-      Zone.M.add base valid_offset acc
+    let valid_offset = under_over base offs size in
+    if Int_Intervals.(equal valid_offset bottom) then acc
+    else Zone.M.add base valid_offset acc
   in
   Zone.Map (Location_Bits.fold_topset_ok compute_offset loc Zone.M.empty)
 
 let enumerate_bits loc =
   match loc.loc with
   | Location_Bits.Top (Base.SetLattice.Top, _) -> Zone.top
-  | _ -> enumerate_bits_under_over Int_Intervals.from_ival_size loc
+  | _ -> enumerate_bits_under_over interval_from_ival_over loc
 
 let enumerate_bits_under loc =
   match loc.loc, loc.size with
   | Location_Bits.Top _, _ | _, Int_Base.Top -> Zone.bottom
-  | _ -> enumerate_bits_under_over Int_Intervals.from_ival_size_under loc
+  | _ -> enumerate_bits_under_over interval_from_ival_under loc
 
 
 let zone_of_varinfo var = enumerate_bits (loc_of_varinfo var)

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -38,7 +38,7 @@ type t = {
 
 let make ?tab_pos ?packing () =
   let notebook = GPack.notebook
-    ~scrollable:true ~show_tabs:true ?tab_pos ?packing ()
+      ~scrollable:true ~show_tabs:true ?tab_pos ?packing ()
   in
   notebook#set_enable_popup true ;
   {
@@ -49,9 +49,6 @@ let make ?tab_pos ?packing () =
     pages = 0 ;
   }
 
-(* Try to convert a source file either as UTF-8 or as locale. *)
-let try_convert = Gtk_helper.to_utf8
-
 let input_channel b ic =
   let buf = String.create 1024 and len = ref 0 in
   while len := input ic buf 0 1024; !len > 0 do
@@ -60,10 +57,10 @@ let input_channel b ic =
 
 let with_file name ~f =
   try
-  let ic = open_in_gen [Open_rdonly] 0o644 name in
-  try f ic; close_in ic with _exn ->
-    close_in ic (*; !flash_info ("Error: "^Printexc.to_string exn)*)
- with _exn -> ()
+    let ic = open_in_gen [Open_rdonly] 0o644 name in
+    try f ic; close_in ic with _exn ->
+      close_in ic (*; !flash_info ("Error: "^Printexc.to_string exn)*)
+  with _exn -> ()
 
 let clear w =
   begin
@@ -91,7 +88,7 @@ let select_name w title =
 let selection_locked = ref false
 
 let load_file w ?title ~filename ?(line=(-1)) ~click_cb () =
-  Gui_parameters.debug "Opening file %S line %d" filename line ;
+  Gui_parameters.debug ~level:2 "Opening file %S line %d" filename line ;
   let tab =
     begin
       try Hashtbl.find w.file_index filename
@@ -102,12 +99,12 @@ let load_file w ?title ~filename ?(line=(-1)) ~click_cb () =
         in
         let label = GMisc.label ~text:name () in
         let sw = GBin.scrolled_window
-          ~vpolicy:`AUTOMATIC
-          ~hpolicy:`AUTOMATIC
-          ~packing:(fun arg ->
-                      ignore
-                        (w.notebook#append_page ~tab_label:label#coerce arg))
-          () in
+            ~vpolicy:`AUTOMATIC
+            ~hpolicy:`AUTOMATIC
+            ~packing:(fun arg ->
+                ignore
+                  (w.notebook#append_page ~tab_label:label#coerce arg))
+            () in
         let original_source_view = Source_viewer.make ~name:"original_source"
             ~packing:sw#add ()
         in
@@ -115,7 +112,7 @@ let load_file w ?title ~filename ?(line=(-1)) ~click_cb () =
         let page_num = w.notebook#page_num sw#coerce in
         let b = Buffer.create 1024 in
         with_file filename ~f:(input_channel b) ;
-        let s = try_convert (Buffer.contents b) in
+        let s = Wutil.to_utf8 (Buffer.contents b) in
         Buffer.reset b;
         let (buffer:GText.buffer) = window#buffer in
         buffer#set_text s;
@@ -135,48 +132,48 @@ let load_file w ?title ~filename ?(line=(-1)) ~click_cb () =
         in
         (* Ctrl+click opens the external viewer at the current line and file. *)
         ignore (window#event#connect#button_press
-          ~callback:
-            (fun ev ->
-               (if GdkEvent.Button.button ev = 1 &&
-                   List.mem `CONTROL
-                     (Gdk.Convert.modifier (GdkEvent.Button.state ev))
-                then
-                  Gtk_helper.later
-                    (fun () ->
-                       try
-                         let cur_page = w.notebook#current_page in
-                         let tab = Hashtbl.find w.page_index cur_page in
-                         let file = tab.tab_file in
-                         let iter = buffer#get_iter_at_mark `INSERT in
-                         let line = iter#line + 1 in
-                         Gtk_helper.open_in_external_viewer ~line file
-                       with Not_found ->
-                         failwith (Printf.sprintf "ctrl+click cb: invalid page %d"
-                                     w.notebook#current_page)
-                    );
-                if GdkEvent.Button.button ev = 1 then
-                  Gtk_helper.later
-                    (fun () ->
-                       try
-                         let iter = buffer#get_iter_at_mark `INSERT in
-                         let line = iter#line + 1 in
-                         let col = iter#line_index in
-                         let offset = iter#offset in
-                         let pos = {Lexing.pos_fname = filename;
-                                    Lexing.pos_lnum = line;
-                                    Lexing.pos_bol = offset - col;
-                                    Lexing.pos_cnum = offset;} in
-                         let localz =
-                           Pretty_source.loc_to_localizable ~precise_col:true pos
-                         in
-                         click_cb localz
-                       with Not_found ->
-                         failwith (Printf.sprintf "click cb: invalid page %d"
-                                     w.notebook#current_page)
-                    );
-               );
-               false (* other events are processed as usual *)
-            ));
+                  ~callback:
+                    (fun ev ->
+                       (if GdkEvent.Button.button ev = 1 &&
+                           List.mem `CONTROL
+                             (Gdk.Convert.modifier (GdkEvent.Button.state ev))
+                        then
+                          Wutil.later
+                            (fun () ->
+                               try
+                                 let cur_page = w.notebook#current_page in
+                                 let tab = Hashtbl.find w.page_index cur_page in
+                                 let file = tab.tab_file in
+                                 let iter = buffer#get_iter_at_mark `INSERT in
+                                 let line = iter#line + 1 in
+                                 Gtk_helper.open_in_external_viewer ~line file
+                               with Not_found ->
+                                 failwith (Printf.sprintf "ctrl+click cb: invalid page %d"
+                                             w.notebook#current_page)
+                            );
+                        if GdkEvent.Button.button ev = 1 then
+                          Wutil.later
+                            (fun () ->
+                               try
+                                 let iter = buffer#get_iter_at_mark `INSERT in
+                                 let line = iter#line + 1 in
+                                 let col = iter#line_index in
+                                 let offset = iter#offset in
+                                 let pos = {Lexing.pos_fname = filename;
+                                            Lexing.pos_lnum = line;
+                                            Lexing.pos_bol = offset - col;
+                                            Lexing.pos_cnum = offset;} in
+                                 let localz =
+                                   Pretty_source.loc_to_localizable ~precise_col:true pos
+                                 in
+                                 click_cb localz
+                               with Not_found ->
+                                 failwith (Printf.sprintf "click cb: invalid page %d"
+                                             w.notebook#current_page)
+                            );
+                       );
+                       false (* other events are processed as usual *)
+                    ));
         let tab = {
           tab_file = filename ;
           tab_name = name ;

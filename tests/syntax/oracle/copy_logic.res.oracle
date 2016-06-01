@@ -7,10 +7,10 @@ tests/syntax/copy_logic.i:7:[kernel] warning: parsing obsolete ACSL construct 'l
 [value] Initial state computed
 [value] Values of globals at initialization
   
-tests/syntax/copy_logic.i:16:[value] Assertion got status unknown.
+tests/syntax/copy_logic.i:16:[value] warning: assertion got status unknown.
 tests/syntax/copy_logic.i:17:[kernel] warning: signed overflow. assert y+x ≤ 2147483647;
 tests/syntax/copy_logic.i:18:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
-tests/syntax/copy_logic.i:18:[value] Assertion got status unknown.
+tests/syntax/copy_logic.i:18:[value] warning: assertion got status unknown.
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======

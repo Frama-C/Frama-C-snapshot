@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -304,7 +304,8 @@ let add_stmt_spec_assigns_hyp acc kf s l_post spec =
       add_assigns_any acc Ahyp
         (WpPropId.mk_stmt_any_assigns_info s)
   | Some(bhv, assigns) ->
-      let id = WpPropId.mk_stmt_assigns_id kf s bhv assigns in
+      (* We are always using the spec covering all possible parent behaviors. *)
+      let id = WpPropId.mk_stmt_assigns_id kf s [] bhv assigns in
       match id with
       | None -> add_assigns_any acc Ahyp
                   (WpPropId.mk_stmt_any_assigns_info s)
@@ -329,7 +330,9 @@ let add_call_assigns_hyp acc kf_caller s ~called_kf l_post spec_opt =
           let asgn = WpPropId.mk_stmt_any_assigns_info s in
           add_assigns_any acc (AcallHyp called_kf) asgn
       | Some(bhv, assigns) ->
-          let id = WpPropId.mk_stmt_assigns_id kf_caller s bhv assigns in
+          (* we're taking assigns from a function contract.
+             They're not subject to any active behavior. *)
+          let id = WpPropId.mk_stmt_assigns_id kf_caller s [] bhv assigns in
           match id with
           | None ->
               let asgn = WpPropId.mk_stmt_any_assigns_info s in

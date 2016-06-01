@@ -15,9 +15,9 @@
         Called from tests/spec/array_typedef.c:26.
 [value] Recording results for host_address
 [value] Done for function host_address
-tests/spec/array_typedef.c:27:[value] Assertion got status valid.
-tests/spec/array_typedef.c:28:[value] Assertion got status valid.
-tests/spec/array_typedef.c:29:[value] Assertion got status valid.
+tests/spec/array_typedef.c:27:[value] assertion got status valid.
+tests/spec/array_typedef.c:28:[value] assertion got status valid.
+tests/spec/array_typedef.c:29:[value] assertion got status valid.
 [value] Recording results for create_msg
 [value] Done for function create_msg
 [value] computing for function send_msg <- main.

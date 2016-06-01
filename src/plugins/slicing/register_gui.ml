@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -405,11 +405,11 @@ let slicing_selector (popup_factory:GMenu.menu GMenu.factory)
         projects;
     end
 
-let slicing_highlighter
-    (buffer:GSourceView2.source_buffer) localizable ~start ~stop =
+let slicing_highlighter(buffer:Design.reactive_buffer) localizable ~start ~stop=
   if Enabled.get () then begin
     (* Definition for highlight 'Slicing' *)
     let highlight project =
+      let buffer = buffer#buffer in
       let ki = Pretty_source.ki_of_localizable localizable in
       if Db.Value.is_accessible ki then
         let unused_code_area =

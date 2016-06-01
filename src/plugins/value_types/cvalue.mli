@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -46,12 +46,19 @@ module V : sig
        of all of them. Use some shortcuts *)
     with type M.t = Location_Bytes.M.t
     and type t = Location_Bytes.t
+    and type generic_widen_hint = Location_Bytes.generic_widen_hint
+    and type size_widen_hint = Location_Bytes.size_widen_hint
 
   include module type of Offsetmap_lattice_with_isotropy
       with type t := t
+      and type generic_widen_hint := generic_widen_hint
+      and type size_widen_hint := size_widen_hint
       and type widen_hint := widen_hint
 
   val pretty_typ: Cil_types.typ option -> t Pretty_utils.formatter
+
+  (** Returns true if the value may not be a pointer. *)
+  val is_arithmetic: t -> bool
 
   exception Not_based_on_null
   val project_ival : t -> Ival.t
@@ -76,14 +83,13 @@ module V : sig
   val compare_min_int : t -> t -> int
   val compare_max_int : t -> t -> int
 
-  val filter_le_ge_lt_gt_int: Cil_types.binop -> t -> cond_expr:t -> t
-  val filter_le_ge_lt_gt_float :
-    Cil_types.binop ->
-    bool -> Fval.float_kind -> t -> cond_expr:t -> t
+  val backward_comp_int_left: Comp.t -> t -> t -> t
+  val backward_comp_float_left: Comp.t -> bool -> Fval.float_kind -> t -> t -> t
 
-  val eval_comp: signed:bool -> Cil_types.binop -> t -> t -> t
-  (** Can only be called on the 6 comparison operators *)
+  val forward_comp_int: signed:bool -> Comp.t -> t -> t -> Comp.result
 
+  val inject_comp_result: Comp.result -> t
+  
   val inject_int : Int.t -> t
   val interp_boolean : contains_zero:bool -> contains_non_zero:bool -> t
 
@@ -107,18 +113,28 @@ module V : sig
     (bool * bool) (** overflow, in both directions *) *
     t
   val cast_float_to_int_inverse :
-    single_precision:bool -> t -> t
+    single_precision:bool -> t -> t option
   val cast_int_to_float :
     Fval.rounding_mode -> t -> t * bool
+  val cast_int_to_float_inverse :
+    single_precision:bool -> t -> t option
 
-  val add_untyped : Int_Base.t -> t -> t -> t
-  val add_untyped_under : Int_Base.t -> t -> t -> t
+  val add_untyped : factor:Int_Base.t -> t -> t -> t
+  (** [add_untyped ~factor e1 e2] computes [e1+factor*e2] using C semantic
+      for +, i.e. [ptr+v] is [add_untyped ~factor:sizeof( *ptr ) ptr v]. (Thus,
+      [factor] is in bytes.) This function handles simultaneously PlusA, MinusA,
+      PlusPI, MinusPI and sometimes MinusPP, by setting [factor] accordingly.
+      This is more precise than having multiple functions, as computations such
+      as [(int)&t[1] - (int)&t[2]] would not be treated precisely otherwise. *)
 
-  val sub_untyped_pointwise: t -> t -> Ival.t * bool
-  (** Substracts two pointers (assumed to have type [char*]) and returns the
-      difference of their offsets. The two pointers are supposed to be pointing
-      to the same base; the returned boolean indicates that this assumption
-      might be incorrect. *)
+  val add_untyped_under : factor:Int_Base.t -> t -> t -> t
+  (** Under-approximating variant of {!add_untyped}. Takes two
+      under-approximation, and returns an under-approximation.*)
+ 
+  val sub_untyped_pointwise: ?factor:Int_Base.t -> t -> t -> Ival.t * bool
+  (** See {!Locations.sub_pointwise}. In this module, [factor] is expressed in
+      bytes. The two pointers are supposed to be pointing to the same base;
+      the returned boolean indicates that this assumption might be incorrect. *)
 
   val mul: t -> t -> t
   val div: t -> t -> t
@@ -128,7 +144,11 @@ module V : sig
   val bitwise_and: signed:bool -> size:int -> t -> t -> t
   val bitwise_xor: t -> t -> t
   val bitwise_or : t -> t -> t
+  val bitwise_not: t -> t
+  val bitwise_not_size: signed:bool -> size:int -> t -> t
 
+  (** [all_values ~size v] returns true iff v contains all integer values
+      representable in [size] bits. *)
   val all_values : size:Int.t -> t -> bool
   val create_all_values : signed:bool -> size:int -> t
 end
@@ -156,11 +176,15 @@ module V_Or_Uninitialized : sig
 
   include module type of Offsetmap_lattice_with_isotropy
     with type t := t
+    and  type size_widen_hint = Location_Bytes.size_widen_hint
+    and  type generic_widen_hint = Location_Bytes.generic_widen_hint
     and  type widen_hint = Locations.Location_Bytes.widen_hint
   include Lattice_type.With_Under_Approximation with type t:= t
   include Lattice_type.With_Narrow with type t := t
+  include Lattice_type.With_Top with type t := t
 
   val get_v : t -> V.t
+  val make : initialized: bool -> escaping: bool -> V.t -> t
 
   val is_bottom: t -> bool
 
@@ -204,20 +228,24 @@ module V_Or_Uninitialized : sig
     exact:bool -> (V.M.key -> bool) -> t -> Base.SetLattice.t * t
 
   val map: (V.t -> V.t) -> t -> t
+  val map2: (V.t -> V.t -> V.t) -> t -> t -> t
+  (** initialized/escaping information is the join of the information
+      on each argument. *)
  end
 
 (** Memory slices. They are maps from intervals to values with
     flags. All sizes and intervals are in bits. *)
-module V_Offsetmap:
-  module type of Offsetmap_sig
+module V_Offsetmap: sig
+  include module type of Offsetmap_sig
   with type v = V_Or_Uninitialized.t
-  and type widen_hint = V_Or_Uninitialized.widen_hint
+  and type widen_hint = V_Or_Uninitialized.generic_widen_hint
+
+  val narrow: t -> t -> t Bottom.Type.or_bottom
+end
 
 
 (** Values bound by default to a variable. *)
 module Default_offsetmap: sig
-  val create_initialized_var :
-    Cil_types.varinfo -> Base.validity -> V_Offsetmap.t -> Base.t
   val default_offsetmap : Base.t -> [ `Bottom | `Map of V_Offsetmap.t ]
 end
 
@@ -228,7 +256,7 @@ module Model: sig
   include module type of Lmap_sig
     with type v = V_Or_Uninitialized.t
     and type offsetmap = V_Offsetmap.t
-    and type widen_hint_base = V_Or_Uninitialized.widen_hint
+    and type widen_hint_base = V_Or_Uninitialized.generic_widen_hint
 
   (** {2 Finding values *} *)
 
@@ -277,6 +305,9 @@ module Model: sig
   val add_binding :
     exact:bool -> t -> location -> V.t -> bool * t
 
+  val add_unsafe_binding :
+    exact:bool -> t -> location -> V_Or_Uninitialized.t -> bool * t
+
   val add_binding_unspecified :
     exact:bool -> t -> location -> V_Or_Uninitialized.t -> bool * t
 
@@ -290,6 +321,10 @@ module Model: sig
       in state; use with caution, as the inclusion between the new and the
       old value is not checked.  *)
   val reduce_previous_binding : t -> location -> V.t -> t
+
+  (** Same behavior as [reduce_previous_binding], but takes a value
+      with 'undefined' and 'escaping addresses' flags. *)
+  val reduce_indeterminate_binding: t -> location -> V_Or_Uninitialized.t -> t
 
   (** [reduce_binding state loc v] refines the value associated to
       [loc] in [state] according to [v], by keeping the values common

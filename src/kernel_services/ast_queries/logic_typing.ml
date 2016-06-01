@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -107,6 +107,10 @@ let wcharlist_of_string s =
       | c -> res := Int64.of_int (Char.code c)::!res; incr i
   done;
   List.rev (!res)
+
+let type_of_list_elem t = Logic_const.type_of_list_elem (unroll_type t)
+
+let is_list_type t = Logic_const.is_list_type (unroll_type t)
 
 let type_of_set_elem t = Logic_const.type_of_element (unroll_type t)
 
@@ -531,13 +535,13 @@ let plain_arithmetic_type t =
       | Linteger | Lreal -> true
       | Ltype _ | Lvar _ | Larrow _ -> false
 
-  let plain_integral_type t =
+let plain_integral_type t =
     match unroll_type t with
       | Ctype ty -> Cil.isIntegralType ty
       | Linteger -> true
       | Ltype _ | Lreal | Lvar _ | Larrow _ -> false
 
-  let plain_boolean_type t =
+let plain_boolean_type t =
     match unroll_type t with
       | Ctype ty -> isIntegralType ty
       | Linteger -> true
@@ -545,18 +549,18 @@ let plain_arithmetic_type t =
           name = Utf8_logic.boolean
       | Lreal | Ltype _ | Lvar _ | Larrow _ -> false
 
-  let plain_fun_ptr typ =
+let plain_fun_ptr typ =
     match unroll_type typ with
       | Ctype (TPtr(ty,_)) -> Cil.isFunctionType ty
       | _ -> false
 
-  let is_arithmetic_type = plain_or_set plain_arithmetic_type
+let is_arithmetic_type = plain_or_set plain_arithmetic_type
 
-  let is_integral_type = plain_or_set plain_integral_type
+let is_integral_type = plain_or_set plain_integral_type
 
-  let is_fun_ptr = plain_or_set plain_fun_ptr
+let is_fun_ptr = plain_or_set plain_fun_ptr
 
-  let rec type_of_pointed t =
+let rec type_of_pointed t =
     match unroll_type t with
       Ctype ty when isPointerType ty -> Ctype (Cil.typeOf_pointed ty)
     | Ltype ({lt_name = "set"} as lt,[t]) ->
@@ -565,7 +569,7 @@ let plain_arithmetic_type t =
         Kernel.fatal ~current:true "type %a is not a pointer type" 
 	  Cil_printer.pp_logic_type t
 
-  let rec ctype_of_pointed t =
+let rec ctype_of_pointed t =
     match unroll_type t with
       Ctype ty when isPointerType ty -> Cil.typeOf_pointed ty
     | Ltype ({lt_name = "set"},[t]) -> ctype_of_pointed t
@@ -573,7 +577,7 @@ let plain_arithmetic_type t =
         Kernel.fatal ~current:true "type %a is not a pointer type" 
 	  Cil_printer.pp_logic_type t
 
-  let type_of_array_elem =
+let type_of_array_elem =
     plain_or_set
       (fun t ->
          match unroll_type t with
@@ -582,7 +586,7 @@ let plain_arithmetic_type t =
              Kernel.fatal ~current:true "type %a is not an array type"
                Cil_printer.pp_logic_type t)
 
-  let rec ctype_of_array_elem t =
+let rec ctype_of_array_elem t =
     match unroll_type t with
       |	Ctype ty when isArrayType ty -> Cil.typeOf_array_elem ty
       | Ltype ({lt_name = "set"},[t]) -> ctype_of_array_elem t
@@ -590,29 +594,24 @@ let plain_arithmetic_type t =
         Kernel.fatal ~current:true "type %a is not a pointer type" 
 	  Cil_printer.pp_logic_type t
 
-  let mk_mem ?loc t ofs =
+let mk_mem ?loc t ofs =
     lift_set
       (fun t -> term ?loc (TLval (plain_mk_mem ?loc t ofs))
          (type_of_pointed t.term_type))
       t
 
-  let is_set_type t =
-    match unroll_type t with
-      | Ltype ({lt_name = "set"},[_]) -> true
-      | _ -> false
-
-  let is_plain_array_type t =
+let is_plain_array_type t =
     match unroll_type t with
       | Ctype ct -> Cil.isArrayType ct
       | _ -> false
 
-  let is_plain_pointer_type t =
+let is_plain_pointer_type t =
     match unroll_type t with
       | Ctype ct -> Cil.isPointerType ct
       | _ -> false
 
-  let is_array_type = plain_or_set is_plain_array_type
-  let is_pointer_type = plain_or_set is_plain_pointer_type
+let is_array_type = plain_or_set is_plain_array_type
+let is_pointer_type = plain_or_set is_plain_pointer_type
 
 module Make
   (C:
@@ -682,6 +681,26 @@ struct
     if Logic_utils.isLogicVoidPointerType ty then
       C.error loc "Cannot use a pointer to void here"
 
+  let check_fun_ptr loc ty =
+    let is_fun_ptr t =
+      match Cil.unrollType t with
+      | TPtr(t,_) when Cil.isFunctionType t -> true
+      | _ -> false
+    in
+    if not (Logic_utils.isLogicType is_fun_ptr ty) then
+      C.error loc "expecting a function pointer, found %a"
+        Cil_datatype.Logic_type.pretty ty
+
+  let check_object_ptr loc ty =
+    let is_object_ptr t =
+      match Cil.unrollType t with
+      | TPtr(t,_) when not (Cil.isFunctionType t) -> true
+      | _ -> false
+    in
+    if not (Logic_utils.isLogicType is_object_ptr ty) then
+      C.error loc "expecting a pointer to an object, found %a"
+        Cil_datatype.Logic_type.pretty ty
+
   let has_field f ty =
     try
       ignore (Logic_env.find_model_field f ty); true
@@ -719,7 +738,6 @@ struct
 
   let c_void_star = Ctype (TPtr (TVoid [], []))
 
-
   (* keep in sync with fresh_type below *)
   let generated_var s = String.contains s '#'
 
@@ -746,6 +764,8 @@ struct
   let fresh_type = new fresh_type_var
 
   let fresh typ = visitCilLogicType (fresh_type :> cilVisitor) typ
+
+  let fresh_type_var name = fresh (Lvar name)
 
   let instantiate env ty =
     let obj = object
@@ -882,48 +902,48 @@ struct
   let mk_at_here idx =
     let rec needs_at idx =
       match idx.term_node with
-        | TConst _ | TSizeOf _ | TSizeOfE _ | TSizeOfStr _
-        | TAlignOf _ | TAlignOfE _ | Tat _ | Ttypeof _ | Ttype _
-        | Tempty_set | Tbase_addr _ | Toffset _ | Tblock_length _ | Tnull
-          -> false
-        | TLval _ -> true
-        | TUnOp(_,t) -> needs_at t
-        | TBinOp(_,t1,t2) -> needs_at t1 || needs_at t2
-        | TCastE(_,t) -> needs_at t
-        | TAddrOf (_,o) -> needs_at_offset o
-        | TStartOf (_,o) -> needs_at_offset o
-        | Tapp(_,_,l) | TDataCons(_,l) -> List.exists needs_at l
-        | Tlambda(_,t) -> needs_at t
-        | TCoerce(t,_) -> needs_at t
-        | TCoerceE(t,_) -> needs_at t
-        | TUpdate(t1,o,t2) -> needs_at t1 || needs_at_offset o || needs_at t2
-        | Tunion l | Tinter l -> List.exists needs_at l
-        | Tcomprehension(t,_,None) -> needs_at t
-        | Tcomprehension(t,_,Some p) -> needs_at t || needs_at_pred p
-        | Trange (None, None) -> false
-        | Trange (None, Some t) | Trange(Some t, None) -> needs_at t
-        | Trange (Some t1, Some t2) -> needs_at t1 || needs_at t2
-        | Tlet(_,t) -> needs_at t
-        | Tif(t1,t2,t3) -> needs_at t1 || needs_at t2 || needs_at t3
-        | TLogic_coerce(_,t) -> needs_at t
+      | TConst _ | TSizeOf _ | TSizeOfE _ | TSizeOfStr _
+      | TAlignOf _ | TAlignOfE _ | Tat _ | Ttypeof _ | Ttype _
+      | Tempty_set | Tbase_addr _ | Toffset _ | Tblock_length _ | Tnull
+        -> false
+      | TLval _ -> true
+      | TUnOp(_,t) -> needs_at t
+      | TBinOp(_,t1,t2) -> needs_at t1 || needs_at t2
+      | TCastE(_,t) -> needs_at t
+      | TAddrOf (_,o) -> needs_at_offset o
+      | TStartOf (_,o) -> needs_at_offset o
+      | Tapp(_,_,l) | TDataCons(_,l) -> List.exists needs_at l
+      | Tlambda(_,t) -> needs_at t
+      | TCoerce(t,_) -> needs_at t
+      | TCoerceE(t,_) -> needs_at t
+      | TUpdate(t1,o,t2) -> needs_at t1 || needs_at_offset o || needs_at t2
+      | Tunion l | Tinter l -> List.exists needs_at l
+      | Tcomprehension(t,_,None) -> needs_at t
+      | Tcomprehension(t,_,Some p) -> needs_at t || needs_at_pred p
+      | Trange (None, None) -> false
+      | Trange (None, Some t) | Trange(Some t, None) -> needs_at t
+      | Trange (Some t1, Some t2) -> needs_at t1 || needs_at t2
+      | Tlet(_,t) -> needs_at t
+      | Tif(t1,t2,t3) -> needs_at t1 || needs_at t2 || needs_at t3
+      | TLogic_coerce(_,t) -> needs_at t
     and needs_at_offset = function
       | TNoOffset -> false
       | TIndex (t,o) -> needs_at t || needs_at_offset o
       | TField(_,o) | TModel(_,o) -> needs_at_offset o
     and needs_at_pred p =
       match p.content with
-          | Pfalse | Ptrue | Pat _ -> false
-          | Papp(_,_,t) | Pseparated t -> List.exists needs_at t
-          | Prel(_,t1,t2) -> needs_at t1 || needs_at t2
-          | Pand(p1,p2) | Por(p1,p2) | Pxor(p1,p2)
-          | Pimplies(p1,p2) | Piff(p1,p2)
-            -> needs_at_pred p1 || needs_at_pred p2
-          | Pnot p | Plet (_,p) | Pforall(_,p) | Pexists(_,p) -> needs_at_pred p
-          | Pif(t,p1,p2) -> needs_at t || needs_at_pred p1 || needs_at_pred p2
-          | Pvalid (_,t) | Pvalid_read (_,t) | Pinitialized (_,t)
-          | Pdangling (_, t) | Pallocable(_,t) | Pfreeable(_,t)-> needs_at t
-          | Pfresh (_,_,t,n) -> (needs_at t) && (needs_at n)
-          | Psubtype _ -> false
+      | Pfalse | Ptrue | Pat _ -> false
+      | Papp(_,_,t) | Pseparated t -> List.exists needs_at t
+      | Prel(_,t1,t2) -> needs_at t1 || needs_at t2
+      | Pand(p1,p2) | Por(p1,p2) | Pxor(p1,p2)
+      | Pimplies(p1,p2) | Piff(p1,p2) -> needs_at_pred p1 || needs_at_pred p2
+      | Pnot p | Plet (_,p) | Pforall(_,p) | Pexists(_,p) -> needs_at_pred p
+      | Pif(t,p1,p2) -> needs_at t || needs_at_pred p1 || needs_at_pred p2
+      | Pvalid (_,t) | Pvalid_read (_,t) | Pvalid_function t
+      | Pinitialized (_,t) | Pdangling (_, t)
+      | Pallocable(_,t) | Pfreeable(_,t)-> needs_at t
+      | Pfresh (_,_,t,n) -> (needs_at t) && (needs_at n)
+      | Psubtype _ -> false
     in
     if needs_at idx then tat ~loc:idx.term_loc (idx,here_label) else idx
 
@@ -949,9 +969,12 @@ struct
   let is_same_c_type ctyp1 ctyp2 =
     Cil_datatype.Logic_type.equal (Ctype ctyp1) (Ctype ctyp2)
 
-  let rec c_mk_cast e oldt newt =
-    if is_same_c_type oldt newt then e
-    else begin
+  let rec c_mk_cast ?(force=false) e oldt newt =
+    if is_same_c_type oldt newt then begin
+      if force then
+        Logic_utils.mk_cast ~loc:e.term_loc ~force newt e
+      else e
+    end else begin
       (* Watch out for constants *)
       if isPointerType newt && isLogicNull e && not (isLogicZero e) then
         (* \null can have any pointer type, see ACSL manual. *)
@@ -967,7 +990,8 @@ struct
           | TEnum (ei,[]), TConst (LEnum { eihost = ei'})
             when ei.ename = ei'.ename -> e
           | _ ->
-              { e with term_node = (Logic_utils.mk_cast newt e).term_node;
+              { e with term_node =
+                         (Logic_utils.mk_cast ~force newt e).term_node;
                        term_type = Ctype newt }
       end
     end
@@ -1328,6 +1352,10 @@ struct
             List.map2 (find_supertype ~overloaded loc t) oprms nprms
           in
           Ltype(ot,res)
+      | Ltype({lt_name = "\\list"} as lt, [t1]), 
+        Ltype({lt_name = "\\list"}, [t2]) ->
+        let st = find_supertype ~overloaded loc t t1 t2 in
+        Ltype(lt, [st])
       | Ltype({lt_name = "set"} as set, [t1]), t2
       | t1, Ltype({lt_name = "set"} as set, [t2]) ->
         let st = find_supertype ~overloaded loc t t1 t2 in
@@ -1437,11 +1465,12 @@ struct
           let args1 = List.map (instantiate env) args1 in
           let args2 = List.map (instantiate env) args2 in
           env, Larrow(args1,rt1), Larrow(args2,rt2)
+      | Ltype ({lt_name = "\\list"},[t1]), Ltype ({lt_name = "\\list"},[t2]) ->
+        let (env, ot, nt) = partial_unif ~overloaded loc term t1 t2 env in
+        env, ot, make_type_list_of nt
       | t1, Ltype ({lt_name = "set"},[t2]) ->
-          let (env,ot,nt) =
-            partial_unif ~overloaded loc term t1 t2 env
-          in
-          env, ot, make_set_type nt
+        let (env, ot, nt) = partial_unif ~overloaded loc term t1 t2 env in
+        env, ot, make_set_type nt
       | Ltype({lt_name = "set"}, [t1]), t2 ->
         let (env, ot, nt) = partial_unif ~overloaded loc term t1 t2 env in
         env, make_set_type ot, make_set_type nt
@@ -1588,7 +1617,7 @@ struct
   let conditional_conversion loc env t1 t2 =
     (* a comparison is mainly a function of type 'a -> 'a -> Bool/Prop.
        performs the needed unifications on both sides.*)
-    let var = fresh (Lvar "cmp") in
+    let var = fresh_type_var "cmp" in
     let env,_,_ =
       partial_unif ~overloaded:false loc t1 t1.term_type var env in
     let env,ty2,_ =
@@ -1631,8 +1660,10 @@ struct
             when Cil.isIntegralType t -> Linteger
         | (Linteger, Ctype t | Ctype t, Linteger)
             when Cil.isArithmeticType t -> Lreal
-        | (Ltype({lt_name = name},[]), t
-          | t, Ltype({lt_name = name},[]))
+        | Ltype({lt_name = name},[]), t
+            when is_integral_type t && name = Utf8_logic.boolean ->
+             Ltype(C.find_logic_type Utf8_logic.boolean,[])
+        | t, Ltype({lt_name = name},[])
             when is_integral_type t && name = Utf8_logic.boolean ->
             Ltype(C.find_logic_type Utf8_logic.boolean,[])
         | Lreal, Ctype ty | Ctype ty, Lreal when isArithmeticType ty -> Lreal
@@ -1641,6 +1672,9 @@ struct
         | Lvar s1, Lvar s2 when s1 = s2 -> lty1
         | Linteger, Linteger -> Linteger
         | (Lreal | Linteger) , (Lreal | Linteger) -> Lreal
+        | Ltype ({lt_name = "\\list"} as lt,[t1]),
+          Ltype({lt_name="\\list"},[t2]) ->
+            Ltype(lt,[aux t1 t2])
         | Ltype ({lt_name = "set"} as lt,[t1]), Ltype({lt_name="set"},[t2]) ->
             Ltype(lt,[aux t1 t2])
         (* implicit conversion to set *)
@@ -1649,7 +1683,7 @@ struct
         | _ ->
             C.error loc "types %a and %a are not convertible"
               Cil_printer.pp_logic_type lty1 Cil_printer.pp_logic_type lty2
-    in
+     in
     let rt = aux ty1 ty2 in
     env,rt,ty1,ty2
 
@@ -1663,7 +1697,8 @@ struct
     else if is_arithmetic_type ot && is_arithmetic_type nt then
       let typ = arithmetic_conversion ot nt in ArithConv, typ
     else if is_pointer_type ot && is_pointer_type nt then
-      PointerConv, make_set_type (Ctype Cil.charPtrType)
+      let typ = Ctype Cil.charPtrType in
+      PointerConv, (if is_set_type ot then make_set_type typ else typ)
     else
       let _,_,t = partial_unif ~overloaded:false loc t ot nt env in
       transform_pointer_set,t
@@ -1674,6 +1709,24 @@ struct
       | ArithConv -> logic_coerce Lreal t
       | IntegralConv -> logic_coerce Linteger t
       | PointerConv -> location_to_char_ptr t
+
+  let list_conversion loc t ot nt env =
+    if is_same_type ot nt then ot
+    else if plain_integral_type ot && plain_integral_type nt then ot
+    else if plain_arithmetic_type ot && plain_arithmetic_type nt then ot
+    else let _,_,t = partial_unif ~overloaded:false loc t ot nt env in
+      t
+
+  let list_promotion typ =
+    if plain_integral_type typ then
+      Linteger
+    else if plain_arithmetic_type typ then
+      Lreal
+    else typ
+
+  let list_coercion typ t =
+    if is_same_type typ t.term_type then t
+    else logic_coerce typ t
 
   (* Typing terms *)
 
@@ -1997,15 +2050,48 @@ struct
 	    | Tat _ -> t
 	    | _ -> { t with term_node = Tat(t,lab) }
 
+(* Updates recursive calls of a function that gets an implicit label during
+   the type-checking of its body. We have to add said implicit label to the
+   call itself to have a consistent AST, i.e. something like
+   logic f{L}(...) = ... f{L}(...).
 
+   The visit must be done after the type-checking, as the implicit label may
+   be added after the recursive call has been handled.
+*)
+let add_label info lab =
+  let vis =
+    object
+      inherit Cil.nopCilVisitor
+      method! vterm_node t =
+        match t with
+        | Tapp(info',[],args) when Cil_datatype.Logic_info.equal info info' ->
+          ChangeDoChildrenPost(Tapp(info,[lab, lab], args),Extlib.id)
+        | _ -> DoChildren
+      method! vpredicate p =
+        match p with
+        | Papp(info',[],args) when Cil_datatype.Logic_info.equal info info' ->
+          ChangeDoChildrenPost (Papp(info, [lab,lab], args),Extlib.id)
+        | _ -> DoChildren
+    end
+  in
+  (* body will be changed in place by visitor if needed. *)
+  ignore (Cil.visitCilLogicInfo vis info)
+
+  (* In case we have added an implicit label in the environment 
+     during type-checking of the body of the logic function/predicate,
+     we update the label list, and visit the body to ensure potential
+     recursive calls are coherent with the declaration.
+  *)
   let update_info_wrt_default_label info =
     match info.l_labels with
-      | [] -> (
-	match !Lenv.default_label with
-	  | None -> ()
-	  | Some lab -> info.l_labels <- [ lab ]
+    | [] ->
+      (match !Lenv.default_label with
+       | None -> ()
+       | Some lab ->
+         info.l_labels <- [ lab ];
+         add_label info lab
       )
-      | _ -> ()
+    | _ -> ()
 
   let update_predicate_wrt_default_label p =
     match !Lenv.default_label with
@@ -2013,10 +2099,70 @@ struct
       | Some lab ->
 	{ p with content = Pat(p,lab) }
 
-  let update_predicate_wrt_label p lab =
-    match p.content with
-      | Pat(_,lab') when lab = lab' -> p
-      | _ -> { p with content = Pat(p,lab) }
+  let update_ind_case_wrt_default_label (name, labs, tvars, p as case) =
+    match labs, !Lenv.default_label with
+    | [], Some lab -> (name, [lab], tvars, update_predicate_wrt_default_label p)
+    | _ -> case
+
+  type lval_mode =
+    { accept_empty: bool;
+      accept_formal: bool;
+      accept_array: bool; 
+      accept_models: bool;
+      accept_func_ptr: bool;
+    }
+
+  let lval_addressable_mode =
+    { accept_empty = false; accept_formal = true; accept_array = true;
+      accept_models = false; accept_func_ptr = true; }
+  let lval_assignable_mode =
+    { accept_empty = true; accept_formal = true; accept_array = false;
+      accept_models = true; accept_func_ptr = false; }
+
+  let is_fct_ptr lv =
+    let t = Cil.typeOfTermLval lv in
+    match Logic_utils.unroll_type ~unroll_typedef:true t with
+    | Ctype (TFun _) -> true
+    | _ -> false
+
+  let check_lval_kind m t =
+    let rec aux t = match t.term_node with
+      | Tempty_set -> m.accept_empty
+      | TLval (lhost,loff) ->
+        (not (isLogicArrayType t.term_type) || m.accept_array) &&
+        (match lhost with
+         | TVar v -> begin
+             match v.lv_origin with
+             | None ->
+               (* specific case: \exit_status is a model of the
+                  exit status of the program. *)
+               if Logic_const.is_exit_status t then m.accept_models
+               else
+                 false (* pure logic variable, at least as long as
+                          model variables are not supported. *)
+             | Some v -> not v.vformal || m.accept_formal
+           end
+         | TResult _ -> m.accept_models
+         | _ -> true) &&
+        (match snd (Logic_utils.remove_term_offset loff) with
+         | TModel _ -> m.accept_models
+         | _ -> true)
+      | TAddrOf lv -> is_fct_ptr lv && m.accept_func_ptr
+      | Tif (_,t1,t2) -> aux t1 && aux t2
+
+      | Tunion l | Tinter l -> List.for_all aux l
+
+      | TLogic_coerce (_,t) | Tat (t, _) | Tcomprehension (t,_,_) | Tlet (_, t)
+        -> aux t
+
+      | Trange _ | TConst _ | TSizeOf _ | TSizeOfE _ | TSizeOfStr _ | TAlignOf _
+      | TAlignOfE _ | TUnOp (_,_) | TBinOp (_,_,_) | TCastE (_,_)
+      | TStartOf _ | Tlambda (_,_) | TDataCons (_,_) | Tbase_addr (_,_)
+      | Toffset (_,_) | Tblock_length (_,_) | Tnull | Tapp _ | TCoerce (_,_)
+      | TCoerceE (_,_) | TUpdate (_,_,_) | Ttypeof _ | Ttype _ ->
+        false
+    in
+    aux t
 
   let rec term ?(silent=false) env t =
     match t.lexpr_node with
@@ -2026,7 +2172,7 @@ struct
       | _ ->
 	let t', ty = term_node ~silent env t.lexpr_loc t.lexpr_node in
 	{ term_node = t'; term_loc=t.lexpr_loc; term_type=ty; term_name = [] }
-  and normalize_update_term env loc t v = function
+  and normalize_update_term ~silent env loc t v = function
       (* Transform terms like {x \with .c[idx] = v}
 	 into {x \with .c = {x.c \with [idx] = v}}.
 	 \let expressions can be introduced. *)
@@ -2036,6 +2182,7 @@ struct
 	  let t_type = 
             try Logic_utils.logicCType t.term_type 
             with Failure _ ->
+              if silent then raise Backtrack;
               C.error loc "Update field on a non-struct type %a"
                 Cil_printer.pp_logic_type t.term_type
           in
@@ -2050,66 +2197,121 @@ struct
 		let toff, ofs_type =
 		  let mk_field f = TField (f, TNoOffset)
 		  and mk_idx idx = TIndex(idx,TNoOffset)
-		  and idx_typing idx = term env idx
+		  and idx_typing idx = term ~silent env idx
 		  in
                   updated_offset_term
 		    idx_typing is_integral_type mk_field mk_idx loc t_type toff
 		in
-		let v = term env v in
+		let v = term ~silent env v in
 		let v = mk_cast v ofs_type in
 		let updated = TUpdate(t,toff,v)
 		in updated, t.term_type
 	    | toffs ->
-		let idx_typing idx = term env idx
+		let idx_typing idx = term ~silent env idx
 		and normalizing_cont t2 =
-                  normalize_update_term env loc t2 v toffs
+                  normalize_update_term ~silent env loc t2 v toffs
 		in
                 normalize_updated_offset_term
                   idx_typing env loc t normalizing_cont toff
 	end
-  and normalize_update_cont env loc t =
+  and normalize_update_cont ~silent env loc t =
     function
-      | [],_ -> assert false (* parsing invariant *)
-      | _,[] -> assert false (* parsing invariant *)
-      | ((contoffs,PLupdateTerm v)::[]),toffs ->
-	  (* {x \with .c1 = {\with .c2 = v}} =
-	     {x \with .c1.c2 = v} *)
-	  normalize_update_term env loc t v (toffs@contoffs)
-      | ((contoffs,PLupdateCont v)::[]),toffs ->
-	  (* {x \with .c1 = {\with .c2 = {\with...}}} =
-	     {x \with .c1.c2 = {\with...}} *)
-	  normalize_update_cont env loc t (v,(toffs@contoffs))
-      | (cont::conts),toff::[] ->
-	  (* {x \with .c1 = {\with .c2 = v2, ..., c22 = v22}} =
-	     {x \with .c1 = {...{x.c1 \with .c2 = v2} .. \with c22 = v22} *)
-	  let idx_typing idx = term env idx in
-	  let normalizing_cont t2 =
-	    let normalize t = function
-	      | contoffs,PLupdateTerm v -> normalize_update_term env loc t v contoffs
-	      | contoffs,PLupdateCont cont -> normalize_update_cont env loc t (cont, contoffs)
-	    in
-	    let normalize_folding (tn,typ) cont =  normalize (Logic_const.term ~loc tn typ) cont
-	    in List.fold_left normalize_folding (normalize t2 cont) conts
-	  in normalize_updated_offset_term idx_typing env loc t normalizing_cont toff
-      | cont,toff::toffs ->
-	  (* {x \with .c1.c2 = {\with...}} =
-	     {x \with .c1 = { x.c1 \with .c2 = {\with...}}} *)
-	  let idx_typing idx = term env idx
-	  and normalizing_cont t2 = normalize_update_cont env loc t2 (cont,toffs)
-	  in normalize_updated_offset_term idx_typing env loc t normalizing_cont toff
-
+    | [],_ -> assert false (* parsing invariant *)
+    | _,[] -> assert false (* parsing invariant *)
+    | ((contoffs,PLupdateTerm v)::[]),toffs ->
+      (* {x \with .c1 = {\with .c2 = v}} =
+         {x \with .c1.c2 = v} *)
+      normalize_update_term ~silent env loc t v (toffs@contoffs)
+    | ((contoffs,PLupdateCont v)::[]),toffs ->
+      (* {x \with .c1 = {\with .c2 = {\with...}}} =
+         {x \with .c1.c2 = {\with...}} *)
+      normalize_update_cont ~silent env loc t (v,(toffs@contoffs))
+    | (cont::conts),toff::[] ->
+      (* {x \with .c1 = {\with .c2 = v2, ..., c22 = v22}} =
+         {x \with .c1 = {...{x.c1 \with .c2 = v2} .. \with c22 = v22} *)
+      let idx_typing idx = term ~silent env idx in
+      let normalizing_cont t2 =
+        let normalize t = function
+          | contoffs,PLupdateTerm v ->
+            normalize_update_term ~silent env loc t v contoffs
+          | contoffs,PLupdateCont cont ->
+            normalize_update_cont ~silent env loc t (cont, contoffs)
+        in
+        let normalize_folding (tn,typ) cont =
+          normalize (Logic_const.term ~loc tn typ) cont
+        in List.fold_left normalize_folding (normalize t2 cont) conts
+      in normalize_updated_offset_term
+        idx_typing env loc t normalizing_cont toff
+    | cont,toff::toffs ->
+      (* {x \with .c1.c2 = {\with...}} =
+         {x \with .c1 = { x.c1 \with .c2 = {\with...}}} *)
+      let idx_typing idx = term ~silent env idx
+      and normalizing_cont t2 =
+        normalize_update_cont ~silent env loc t2 (cont,toffs)
+      in
+      normalize_updated_offset_term
+        idx_typing env loc t normalizing_cont toff
+  and locations_set ~silent ~lift_set env loc l init_type =
+    let convert_ptr, locs, typ =
+      List.fold_left
+        (fun (convert_ptr,locs,typ) t ->
+          let t' = term ~silent env t in
+	  if (not lift_set) && is_set_type t'.term_type then begin
+	    if silent then raise Backtrack;
+            C.error loc "set of sets is not yet implemented" ;
+	  end;
+          let convert_ptr, typ =
+            location_set_conversion
+              t'.term_loc convert_ptr t' t'.term_type typ env
+          in 
+          assert (locs <> [] || convert_ptr = NoConv);
+	  (convert_ptr,t'::locs, typ))
+        (NoConv, [], init_type) l
+    in
+    let locs = List.rev_map (make_set_conversion convert_ptr) locs in
+    locs,typ
+  and lfun_app ~silent env loc f labels ttl =
+    begin
+      try
+        let info = C.find_logic_ctor f in
+        if labels <> [] then begin
+          if silent then raise Backtrack;
+          C.error loc
+            "symbol %s is a data constructor. \
+                   It cannot have logic labels" f;
+	end;
+        let params = List.map fresh info.ctor_params in
+        let env, tl =
+          type_arguments ~overloaded:false env loc params ttl
+        in
+        let t = Ltype(info.ctor_type,
+		      List.map fresh_type_var
+                              info.ctor_type.lt_params)
+        in
+        let t = instantiate env t in
+              TDataCons(info,tl), t
+      with Not_found ->
+	let info, label_assoc, tl, t =
+          type_logic_app env loc f labels ttl
+        in
+	match t with
+	| None ->
+          if silent then raise Backtrack;
+          C.error loc "symbol %s is a predicate, not a function" f
+	| Some t -> Tapp(info, label_assoc, tl), t
+    end
   and term_node ?(silent=false) env loc pl =
     match pl with
       | PLinitIndex _ ->
-	  C.error loc "unsupported aggregated array construct"
+          C.error loc "unsupported aggregated array construct"
       | PLinitField _ ->
-	  C.error loc "unsupported aggregated field construct"
+          C.error loc "unsupported aggregated field construct"
       | PLupdate (t, toff, PLupdateCont cont) ->
 	  let t = term env t in
-            normalize_update_cont env loc t (cont, toff)
+            normalize_update_cont ~silent env loc t (cont, toff)
       | PLupdate (t, toff, PLupdateTerm v) ->
 	  let t = term env t in
-            normalize_update_term env loc t v toff
+            normalize_update_term ~silent env loc t v toff
 
       | PLsizeof typ ->
 	  (match
@@ -2117,7 +2319,8 @@ struct
                 (logic_type loc env typ)
            with
                Ctype t -> TSizeOf t,Linteger
-             | _ -> C.error loc "sizeof can only handle C types")
+             | _ -> if silent then raise Backtrack;
+                    C.error loc "sizeof can only handle C types")
 	    (* NB: don't forget to add the case of literal string
                when they are authorized in the logic *)
       | PLsizeofE 
@@ -2130,7 +2333,8 @@ struct
           in
           (match typ with
             | Ctype _ -> TSizeOfE t, Linteger
-            | _ -> C.error loc "sizeof can only handle C types")
+            | _ -> if silent then raise Backtrack;
+                   C.error loc "sizeof can only handle C types")
       | PLnamed _ -> assert false (* should be captured by term *)
       | PLconstant (IntConstant s) ->
           begin match (parseInt loc s).term_node with
@@ -2210,8 +2414,7 @@ struct
                         [] ->
                           TDataCons(info,[]),
                           Ltype(info.ctor_type,
-                                List.map
-                                  (fun x -> fresh (Lvar x))
+                                List.map fresh_type_var
                                   info.ctor_type.lt_params)
                       | _ ->
                           C.error loc "Data constructor %s needs arguments"
@@ -2263,35 +2466,9 @@ struct
                                   %s as constant" x)
           end
       | PLapp (f, labels, tl) ->
+          let ttl = List.map (term ~silent env) tl in
           fresh_type#reset ();
-          let ttl = List.map (term env) tl in
-          begin
-	    try
-              let info = C.find_logic_ctor f in
-              if labels <> [] then
-                C.error loc
-                  "symbol %s is a data constructor. \
-                   It cannot have logic labels" f;
-              let params = List.map fresh info.ctor_params in
-              let env, tl =
-                type_arguments ~overloaded:false env loc params ttl
-              in
-              let t = Ltype(info.ctor_type,
-			    List.map (fun x -> fresh (Lvar x))
-                              info.ctor_type.lt_params)
-              in
-              let t = instantiate env t in
-              TDataCons(info,tl), t
-	    with Not_found ->
-	      let info, label_assoc, tl, t =
-                type_logic_app env loc f labels ttl
-              in
-	      match t with
-	        | None ->
-                  if silent then raise Backtrack;
-                  C.error loc "symbol %s is a predicate, not a function" f
-	        | Some t -> Tapp(info, label_assoc, tl), t
-          end
+          lfun_app ~silent env loc f labels ttl
       | PLunop (Ubw_not, t) ->
           let t = type_int_term env t in
           TUnOp (BNot, t), logic_arithmetic_promotion t.term_type
@@ -2314,7 +2491,11 @@ struct
       | PLunop (Uamp, t) ->
           check_current_label loc env;
           (* &x need a current label to have some semantics *)
-          let t = term_lval (mkAddrOfAndMark loc) (term env t) in
+          let t = term env t in
+          if not (check_lval_kind lval_addressable_mode t) then
+            C.error t.term_loc "not an addressable left value: %a"
+              Cil_printer.pp_term t;
+          let t = term_lval (mkAddrOfAndMark loc) t in
           t.term_node, t.term_type
       | PLbinop (t1, (Badd | Bsub | Bmul | Bdiv | Bmod
 	         | Bbw_and | Bbw_or | Bbw_xor | Blshift | Brshift as op), t2) ->
@@ -2335,8 +2516,12 @@ struct
                 when is_arithmetic_type ty1 && is_arithmetic_type ty2 ->
 	        binop (type_binop op) (arithmetic_conversion ty1 ty2)
             | Bbw_and | Bbw_or | Bbw_xor
-	          when is_integral_type ty1 && is_integral_type ty2 ->
+	        when is_integral_type ty1 && is_integral_type ty2 ->
 	        binop (type_binop op) (arithmetic_conversion ty1 ty2)
+	    | Bbw_xor
+	        when is_list_type ty1 && is_list_type ty2 ->
+                fresh_type#reset ();
+	        lfun_app silent env loc "\\concat" [] [t1;t2]
             | Blshift | Brshift
                   when is_integral_type ty1 && is_integral_type ty2 ->
                 binop (type_binop op) (arithmetic_conversion ty1 ty2)
@@ -2357,7 +2542,8 @@ struct
                 assert (isLogicPointerType t2.term_type);
                 (match t2.term_node with
                   | TStartOf lv ->
-                      TAddrOf (Logic_const.addTermOffsetLval (TIndex(t1,TNoOffset)) lv)
+                      TAddrOf (
+                        Logic_const.addTermOffsetLval (TIndex(t1,TNoOffset)) lv)
                   | _ ->
 	            TBinOp (PlusPI, t2, mk_cast t1 (integral_promotion ty1))),
                 set_conversion ty2 ty1
@@ -2487,7 +2673,8 @@ struct
           let t = term env t in
           if isLogicPointer t then
             let t =
-              lift_set (fun t -> Logic_const.term (Tblock_length (l,t)) Linteger)
+              lift_set
+                (fun t -> Logic_const.term (Tblock_length (l,t)) Linteger)
                 (mk_logic_pointer_or_StartOf t)
             in t.term_node, t.term_type
           else C.error loc "subscripted value is neither array nor pointer"
@@ -2512,7 +2699,7 @@ struct
 		  if isPointerType tnew && isArrayType told
 		    && not (is_C_array t) then
 		    C.error loc "cannot cast logic array to pointer type";
-		  (c_mk_cast t told tnew).term_node , ctnew
+		  (c_mk_cast ~force:true t told tnew).term_node , ctnew
 		| _ -> (Logic_utils.mk_cast tnew t).term_node, ctnew)
             | Linteger | Lreal | Ltype _ | Lvar _ | Larrow _ ->
               C.error loc "cannot cast to logic type")
@@ -2566,14 +2753,13 @@ struct
       | PLlet (ident, def, body) ->
           let tdef = term env def in
           (* At least for now, the type is supposed to be fully instantiated.
-             No generalization is needed.
-           *)
+             No generalization is needed. *)
           let var = Cil_const.make_logic_info_local ident in
           let tdef = normalize_lambda_term env tdef in
           let args, tdef =
             match tdef.term_node with
-                Tlambda(args,term) -> args, term
-              | _ -> [],tdef
+            | Tlambda(args,term) -> args, term
+            | _ -> [],tdef
           in
           var.l_type <- Some tdef.term_type;
           var.l_var_info.lv_type <- tdef.term_type;
@@ -2584,63 +2770,68 @@ struct
           Tlet(var,tbody), tbody.term_type
       | PLcomprehension(t,quants,pred) ->
           let quants, env = add_quantifiers loc ~kind:LVQuant quants env in
-          let t = term env t in
-          let pred = Extlib.opt_map (predicate env) pred in
-          Tcomprehension(t,quants,pred),
-          Ltype(C.find_logic_type "set",[t.term_type])
-      | PLsingleton t ->
-          let t = term env t in
-	  if is_set_type t.term_type then
-            C.error loc "syntax error (set of set is not yet implemented)" ;
-	  Tunion [t], (* lifting to a set can be used for non-set type *)
-	  Ltype(C.find_logic_type "set",[t.term_type])
+          let t = term ~silent env t in
+          if is_set_type t.term_type then begin
+            C.error loc "sets of sets are not supported yet"
+          end else begin
+            let pred = Extlib.opt_map (predicate env) pred in
+            Tcomprehension(t,quants,pred), (make_set_type t.term_type)
+          end
+      | PLempty 
+      | PLset [] ->
+          fresh_type#reset();
+          let typ = make_set_type (fresh_type_var "_") in
+          Tempty_set,typ
+      | PLset l ->
+          fresh_type#reset();
+          let typ = make_set_type (fresh_type_var "_") in
+          let locs,typ = locations_set ~silent ~lift_set:false env loc l typ in
+          Tunion locs, typ
       | PLunion l ->
           fresh_type#reset();
-          let init_type = visitCilLogicType (fresh_type:>cilVisitor)
-            (make_set_type (Lvar "_"))
-          in
-          let convert_ptr,locs, typ =
-            List.fold_left
-              (fun (convert_ptr,locs,typ) t ->
-                 let loc = term env t in
-                 let convert_ptr, typ =
-                   location_set_conversion
-                     loc.term_loc convert_ptr loc loc.term_type typ env
-                 in convert_ptr,loc::locs, typ)
-              (NoConv, [], init_type) l
-          in
-          let locs = List.rev_map (make_set_conversion convert_ptr) locs
-          in Tunion locs, typ
+          let typ = make_set_type (fresh_type_var "_") in
+          let locs,typ = locations_set ~silent ~lift_set:true env loc l typ in
+          Tunion locs, typ
       | PLinter l ->
           fresh_type#reset();
-          let init_type = visitCilLogicType (fresh_type:>cilVisitor)
-            (make_set_type (Lvar "_"))
-          in
-          let convert_ptr, locs, typ =
-            List.fold_left
-              (fun (convert_ptr,locs,typ) t ->
-                 let loc = term env t in
-                 let convert_ptr, typ =
-                   location_set_conversion
-                     loc.term_loc convert_ptr loc loc.term_type typ env
-                 in (convert_ptr,loc::locs, typ))
-              (NoConv, [], init_type) l
-          in
-          let locs = List.rev_map (make_set_conversion convert_ptr) locs in
+          let typ = make_set_type (fresh_type_var "_") in
+          let locs,typ = locations_set ~silent ~lift_set:true env loc l typ in
           Tinter locs, typ
-      | PLempty ->
-          let typ =
-            fresh_type#reset();
-            visitCilLogicType(fresh_type:>cilVisitor) (make_set_type (Lvar "_"))
+      | PLlist l ->
+        fresh_type#reset();
+        let empty_list,typ_items = 
+          let empty_list,typ = lfun_app silent env loc "\\Nil" [] [] in
+          empty_list,(type_of_list_elem typ)
+        in
+        let l,typ_items = List.fold_left
+            (fun (l,typ_items) t ->
+               let t' = term ~silent env t in
+               let typ_items' =
+                 list_conversion t'.term_loc t' typ_items t'.term_type env in
+               (t'::l), typ_items')
+            ([],typ_items) l
+        in 
+        let typ_items = list_promotion typ_items in
+        let add_ahead (tnode, typ) e =
+          let t' = { term_node = tnode; term_loc=loc; 
+                     term_type=typ; term_name = [] }
           in
-          Tempty_set,typ
+          fresh_type#reset();
+          lfun_app silent env loc "\\Cons" [] [(list_coercion typ_items e);t']
+        in
+        List.fold_left add_ahead (empty_list, (make_type_list_of typ_items)) l
+      | PLrepeat (t1,t2) ->
+          let ttl = List.map (term ~silent env) [t1;t2] in
+          fresh_type#reset ();
+          lfun_app silent env loc "\\repeat" [] ttl
       | PLrange (t1,t2) ->
           (* we allow range of floats/real.  *)
           let t1,ty1 = type_num_term_option env t1 in
           let t2,ty2 = type_num_term_option env t2 in
           (Trange(t1,t2),
            Ltype(C.find_logic_type "set", [arithmetic_conversion ty1 ty2]))
-      | PLvalid _ | PLvalid_read _ | PLfresh _ | PLallocable _ | PLfreeable _
+      | PLvalid _ | PLvalid_read _ | PLvalid_function _
+      | PLfresh _ | PLallocable _ | PLfreeable _
       | PLinitialized _ | PLdangling _ | PLexists _ | PLforall _ 
       | PLimplies _ | PLiff _
       | PLxor _ | PLsubtype _ | PLseparated _ ->
@@ -2719,10 +2910,10 @@ struct
   and term_lval f t =
     let check_lval t =
         match t.term_node with
-            TLval lv | TCastE (_,{term_node = TLval lv})
+            TLval lv
           | TLogic_coerce(_,{term_node = TLval lv })
           | Tat({term_node = TLval lv},_) -> f lv t
-          | TStartOf lv | TCastE(_,{term_node = TStartOf lv})
+          | TStartOf lv
           | Tat ({term_node = TStartOf lv}, _) ->
               f lv t
           | TAddrOf lv when is_fun_ptr t.term_type ->
@@ -2906,11 +3097,15 @@ struct
   and predicate env p0 =
     let loc = p0.lexpr_loc in
     (* Auxiliary function for valid, valid_read, initialized and specified *)
-    let predicate_label_non_void_ptr fpred label t =
+    let predicate_label_non_void_ptr check fpred label t =
       let l = find_current_logic_label loc env label in
       let t = term env t in
+      if not (isLogicPointer t) then
+        C.error loc "%a is neither a pointer nor a C array"
+          Cil_printer.pp_term t;
       let t = mk_logic_pointer_or_StartOf t in
       check_non_void_ptr t.term_loc t.term_type;
+      check t.term_loc t.term_type;
       (* higher-order funs do not mix well with (optional) labels,
          hence the binding below. *)
       let loc = Some loc in
@@ -2922,21 +3117,16 @@ struct
       | PLrel (t1, (Eq | Neq | Lt | Le | Gt | Ge as op), t2) ->
         let f loc op t1 t2 = prel ~loc (type_rel op, t1, t2) in
         type_relation env f t1 op t2
-      | PLand (p1, p2) ->
-          pand ~loc:p0.lexpr_loc (predicate env p1, predicate env p2)
-      | PLor (p1, p2) ->
-          por ~loc:p0.lexpr_loc (predicate env p1, predicate env p2)
-      | PLxor (p1, p2) ->
-          pxor ~loc:p0.lexpr_loc (predicate env p1, predicate env p2)
-      | PLimplies (p1, p2) ->
-          pimplies ~loc:p0.lexpr_loc (predicate env p1, predicate env p2)
-      | PLiff (p1, p2) ->
-          piff ~loc:p0.lexpr_loc (predicate env p1, predicate env p2)
+      | PLand (p1, p2) -> pand ~loc (predicate env p1, predicate env p2)
+      | PLor (p1, p2) -> por ~loc (predicate env p1, predicate env p2)
+      | PLxor (p1, p2) -> pxor ~loc (predicate env p1, predicate env p2)
+      | PLimplies (p1, p2) -> pimplies ~loc (predicate env p1, predicate env p2)
+      | PLiff (p1, p2) -> piff ~loc (predicate env p1, predicate env p2)
       | PLnot p ->
           (match (predicate env p) with
 	     | {content = Prel (Cil_types.Rneq, t, z)} when isLogicZero z ->
-	         prel ~loc:p0.lexpr_loc (Cil_types.Req, t, Cil.lzero ~loc ())
-	     | p -> pnot ~loc:p0.lexpr_loc p)
+	         prel ~loc (Cil_types.Req, t, Cil.lzero ~loc ())
+	     | p -> pnot ~loc p)
       | PLapp (p, labels, tl) ->
           let ttl= List.map (term env) tl in
           let info, label_assoc, tl, t = type_logic_app env loc p labels ttl in
@@ -2947,14 +3137,13 @@ struct
 	          boolean_term_to_predicate
 		    { term_loc = loc; term_node = Tapp(info, label_assoc, tl);
 		      term_type = t ; term_name = []}
-	      | None ->
-	          papp ~loc:p0.lexpr_loc (info, label_assoc, tl)
+	      | None -> papp ~loc (info, label_assoc, tl)
           end
 
       | PLif (t, p1, p2) ->
           begin try
             let t = type_bool_term ~silent:true env t in
-            pif ~loc:p0.lexpr_loc (t, predicate env p1, predicate env p2)
+            pif ~loc (t, predicate env p1, predicate env p2)
           with Backtrack ->
 	    (* p1 ? p2 : p3 is syntactic sugar
                for (p1 ==> p2) && (!p1 ==> p3) *)
@@ -2967,65 +3156,73 @@ struct
 		           lexpr_loc = loc}
           end
       | PLforall (q, p) ->
-          let q, env' = add_quantifiers p0.lexpr_loc ~kind:LVQuant q env in
-          pforall ~loc:p0.lexpr_loc (q, predicate env' p)
+          let q, env' = add_quantifiers loc ~kind:LVQuant q env in
+          pforall ~loc (q, predicate env' p)
       | PLexists (q, p) ->
-          let q, env' = add_quantifiers p0.lexpr_loc ~kind:LVQuant q env in
-          pexists ~loc:p0.lexpr_loc (q, predicate env' p)
+          let q, env' = add_quantifiers loc ~kind:LVQuant q env in
+          pexists ~loc (q, predicate env' p)
       | PLfresh (l12,t,n) ->
-	  let l1,l2=
-	    match l12 with
-	      | None -> (find_logic_label loc env "Old"),(find_current_label loc env )
-	      | Some (l1,l2) ->(find_logic_label loc env l1),(find_logic_label loc env l2)
-	  in
-          let tloc = t.lexpr_loc in
-	  if l1 == l2 then
-	    C.error tloc "\\fresh requires two different labels";
-          let t = term env t in
-          let n = term env n in
-          if isLogicPointerType t.term_type then
-            let t = mk_logic_pointer_or_StartOf t in
-	    pfresh ~loc:p0.lexpr_loc (l1,l2,t,n)
-          else C.error tloc "subscripted value is not a pointer"
+        let l1,l2=
+          match l12 with
+          | None ->
+            (find_logic_label loc env "Old"),(find_current_label loc env )
+          | Some (l1,l2) ->
+            (find_logic_label loc env l1),(find_logic_label loc env l2)
+        in
+        let tloc = t.lexpr_loc in
+        if l1 == l2 then
+          C.error tloc "\\fresh requires two different labels";
+        let t = term env t in
+        let n = term env n in
+        if isLogicPointerType t.term_type then
+          let t = mk_logic_pointer_or_StartOf t in
+          pfresh ~loc (l1,l2,t,n)
+        else C.error tloc "subscripted value is not a pointer"
       | PLfreeable (l, t) ->
           (* freeable need a current label to have some semantics *)
           let l = find_current_logic_label loc env l in
           let t = term env t in
-          if isLogicPointer t then
+          if isLogicPointer t then begin
             let t = mk_logic_pointer_or_StartOf t in
-	    pfreeable ~loc:p0.lexpr_loc (l,t)
-	  else C.error loc "subscripted value is neither array nor pointer"
+	    pfreeable ~loc (l,t)
+	  end else C.error loc "subscripted value is neither array nor pointer"
        | PLallocable (l, t) ->
           (* allocable need a current label to have some semantics *)
           let l = find_current_logic_label loc env l in
           let t = term env t in
-          if isLogicPointer t then
+          if isLogicPointer t then begin
             let t = mk_logic_pointer_or_StartOf t in
-	    pallocable ~loc:p0.lexpr_loc (l,t)
-	  else C.error loc "subscripted value is neither array nor pointer"
+	    pallocable ~loc (l,t)
+	  end else C.error loc "subscripted value is neither array nor pointer"
       | PLvalid_read (l, t) ->
-          predicate_label_non_void_ptr pvalid_read l t
+          predicate_label_non_void_ptr check_object_ptr pvalid_read l t
       | PLvalid (l,t) ->
-          predicate_label_non_void_ptr pvalid l t
+          predicate_label_non_void_ptr check_object_ptr pvalid l t
+      | PLvalid_function t ->
+          let t = term env t in
+          if isLogicPointer t then begin
+              check_fun_ptr loc t.term_type;
+              let t = mk_logic_pointer_or_StartOf t in
+              pvalid_function ~loc t
+          end else C.error loc "subscripted value is neither array nor pointer"
       | PLinitialized (l,t) ->
-          predicate_label_non_void_ptr pinitialized l t
+          predicate_label_non_void_ptr check_object_ptr pinitialized l t
       | PLdangling (l,t) ->
-          predicate_label_non_void_ptr pdangling l t
+          predicate_label_non_void_ptr check_object_ptr pdangling l t
       | PLold p ->
-          let lab = find_old_label p0.lexpr_loc env in
+          let lab = find_old_label loc env in
           let env = Lenv.set_current_logic_label lab env in
           (* could be Tat(t,lab) *)
-          pold ~loc:p0.lexpr_loc (predicate env p)
+          pold ~loc (predicate env p)
       | PLat (p, l) ->
-          let lab = find_logic_label p0.lexpr_loc env l in
+          let lab = find_logic_label loc env l in
           let env = Lenv.set_current_logic_label lab env in
-          pat ~loc:p0.lexpr_loc (predicate env p, lab)
+          pat ~loc (predicate env p, lab)
       | PLvar x ->
 	  (try
 	     let def = C.find_macro x
 	     in predicate env def
 	   with Not_found ->
-             let loc = p0.lexpr_loc in
              let make_app info =
 	       match info.l_type with
 		 | None ->
@@ -3069,82 +3266,36 @@ struct
           var.l_body <- tdef;
           let env = Lenv.add_logic_info x var env in
           let tbody = predicate env body in
-          { name = []; loc = p0.lexpr_loc;
-            content = Plet(var,tbody) }
+          { name = []; loc; content = Plet(var,tbody) }
       | PLcast _ | PLblock_length _ | PLbase_addr _ | PLoffset _
-      | PLarrget _ | PLarrow _
+      | PLrepeat _ | PLlist _ | PLarrget _ | PLarrow _
       | PLdot _ | PLbinop _ | PLunop _ | PLconstant _
       | PLnull | PLresult | PLcoercion _ | PLcoercionE _ | PLsizeof _
       | PLsizeofE _ | PLlambda _
       | PLupdate _ | PLinitIndex _ | PLinitField _
       | PLtypeof _ | PLtype _ -> boolean_to_predicate env p0
-      | PLrange _ ->
-          C.error p0.lexpr_loc "cannot use operator .. within a predicate"
+      | PLrange _ -> C.error loc "cannot use operator .. within a predicate"
       | PLnamed (n, p) ->
-          let p = predicate env p in { p with name = n::p.name }
-      | PLsubtype (t,tc) ->
-          let t = term env t in
-          let tc = term env tc in
-          psubtype ~loc:p0.lexpr_loc (t,tc)
-     | PLseparated seps ->
-          let type_loc loc =
-            let res = term env loc in
-            let res = mk_logic_pointer_or_StartOf res in
-            check_non_void_ptr res.term_loc res.term_type;
-            res
-          in
-          let seps = List.map type_loc seps in
-          pseparated ~loc:p0.lexpr_loc seps
-      | PLcomprehension _ | PLsingleton _ | PLunion _ | PLinter _ | PLempty ->
-          C.error p0.lexpr_loc "expecting a predicate and not tsets"
-
-  (* checks if the given offset points to a location inside a formal. *)
-  and is_substructure off =
-    let rec aux is_array_field off =
-      match off with
-          TNoOffset -> true
-        | TField (f,o) -> aux (Cil.isArrayType f.ftype) o
-        | TModel(mi,o) ->
-            aux (Logic_utils.isLogicArrayType mi.mi_field_type) o
-        | TIndex(_,o) ->
-          (* if we are in an array field, the element is still part of
-             the structure. Otherwise, this is an index to a memory cell
-             outside of the current region.
-           *)
-          is_array_field && aux is_array_field o
-       (* The formal is never an array by definition:
-          start recursion with false. *)
-    in aux false off
+        let p = predicate env p in { p with name = n::p.name }
+      | PLsubtype (t,tc) -> psubtype ~loc (term env t, term env tc)
+      | PLseparated seps ->
+        let type_loc l =
+          let res = term env l in
+          let res = mk_logic_pointer_or_StartOf res in
+          check_non_void_ptr res.term_loc res.term_type;
+          res
+        in
+        let seps = List.map type_loc seps in
+        pseparated ~loc seps
+      | PLcomprehension _ | PLset _ | PLunion _ | PLinter _ | PLempty ->
+        C.error loc "expecting a predicate and not tsets"
 
   and term_lval_assignable ~accept_formal env t =
-    let f t =
-      if isLogicArrayType t.term_type then
-        C.error t.term_loc "not an assignable left value: %a" 
-	  Cil_printer.pp_term t
-      else begin
-        match t.term_node with
-          | Tapp _ -> t (* allow to use footprint functions in assigns. *)
-          | _ ->
-              term_lval
-                (fun _ t ->
-                   match t.term_node with
-                       TStartOf lv | TCastE(_,{ term_node = TStartOf lv}) ->
-                         C.error t.term_loc "not an assignable left value: %a"
-                           Cil_printer.pp_term_lval lv
-                     | TLval (TVar v, o) when not accept_formal ->
-                       (match v.lv_origin with
-                           None -> t
-                         | Some v ->
-                           if v.vformal && is_substructure o then
-                             C.error t.term_loc
-                               "can not assign part of a formal parameter: %a"
-                               Cil_printer.pp_term t
-                           else t)
-                     | _ -> t
-                )
-                t
-      end
-    in lift_set f (term env t)
+    let t = term env t in
+    if not (check_lval_kind { lval_assignable_mode with accept_formal } t) then
+      C.error t.term_loc "not an assignable left value: %a"
+        Cil_printer.pp_term t;
+    lift_set (term_lval (fun _ t -> t)) t
 
   (* silent is an internal argument that should not escape the scope of this
      module.
@@ -3605,263 +3756,268 @@ struct
     let loc = a.decl_loc in
     Cil.CurrentLoc.set loc;
     match a.decl_node with
-      | LDlogic_reads (f, labels, poly, t, p, l) ->
-	  let env,info = logic_decl loc f labels poly ~return_type:t p in
-          info.l_body <-
-            (match l with
-               | Some l ->
-	           let l =
-                     List.map (fun x ->
-		       new_identified_term (update_term_wrt_default_label (term env x))) l
-                   in
-	           LBreads l
-              | None -> LBnone);
-	  update_info_wrt_default_label info (* potential creation of label w.r.t. reads clause *) ;
-          Dfun_or_pred (info,loc)
-      | LDpredicate_reads (f, labels, poly, p, l) ->
-	  let env,info = logic_decl loc f labels poly p in
-          info.l_body <-
-	    (match l with
-               | Some l ->
-                   let l =
-                     List.map (fun x ->
-		       new_identified_term (update_term_wrt_default_label (term env x))) l
-                   in
-	           LBreads l
-               | None -> LBnone);
-	  update_info_wrt_default_label info (* potential creation of label w.r.t. reads clause *) ;
-          Dfun_or_pred (info,loc)
-      | LDlogic_def(f, labels, poly,t,p,e) ->
-	  let env,info = logic_decl loc f labels poly ~return_type:t p in
-	  let redefinition = false in
-	  let rt = match info.l_type with
-	    | None -> assert false
-	    | Some t -> t
-	  in
-          (try
-             let e = term env e in
-             let _,new_typ,new_term =
-               instantiate_app ~overloaded:false loc e rt env in
-             if is_same_type new_typ rt then begin
-               info.l_body <- LBterm (update_term_wrt_default_label new_term);
-	       update_info_wrt_default_label info (* potential creation of label w.r.t. def *) ;
-               Dfun_or_pred (info,loc)
-             end else
-               C.error loc
-                 "return type of logic function %s is %a but %a was expected"
-                 f
-		 Cil_printer.pp_logic_type new_typ
-		 Cil_printer.pp_logic_type rt
-           with e when not redefinition ->
-             C.remove_logic_function f; raise e)
-      | LDpredicate_def (f, labels, poly, p, e) ->
-	  let env,info = logic_decl loc f labels poly p in
-	  let e = update_predicate_wrt_default_label (predicate env e) in
-          (match !Lenv.default_label with
-               None -> ()
-             | Some lab -> info.l_labels <- [lab]);
-          info.l_body <- LBpred e;
-	  update_info_wrt_default_label info;
-          (* potential creation of label w.r.t. def *)
-	  Dfun_or_pred (info,loc)
-      | LDinductive_def (f, input_labels, poly, p, indcases) ->
-	let _env,info = logic_decl loc f input_labels poly p in
-	(* env is ignored: because params names are indeed useless...*)
-	let need_label = ref false in
-        let l =
-	  List.map
-	    (fun (id,labels,poly,e) ->
-              let labels,env = annot_env loc labels poly in
-              let p = predicate env e in
-              let labels, np = 
-                match !Lenv.default_label, env.Lenv.current_logic_label with
-                  | Some lab, None
-		  | None, Some lab ->
-		      need_label := true ;
-		      [ lab ], update_predicate_wrt_label p lab
-		  | _, _ -> labels, p
-              in (id, labels, poly, np))
-            indcases
-	in
-	if !need_label && input_labels = [] then
-	  C.error loc "inductive predicate %s needs a label" f
-	else (
-	  info.l_body <- LBinductive l;
-	  Dfun_or_pred (info,loc)
-	)
-      | LDaxiomatic(id,decls) ->
-          (*
-	    Format.eprintf "Typing axiomatic %s@." id;
-           *)
-	  let l = List.map annot decls in
-	  Daxiomatic(id,l,loc)
-
-      | LDtype(s,l,def) ->
-
-          let env = init_type_variables loc l in
-          let my_info =
-            { lt_name = s;
-              lt_params = l;
-              lt_def = None; (* will be updated later *)
-            }
-          in
-          (try
-             ignore (C.find_logic_type s);
-             C.error loc "logic type %s is already defined" s
-           with Not_found -> ());
-          C.add_logic_type s my_info;
-          (try
-             let tdef =
-               Extlib.opt_map (typedef loc env my_info) def
+    | LDlogic_reads (f, labels, poly, t, p, l) ->
+      let env,info = logic_decl loc f labels poly ~return_type:t p in
+      info.l_body <-
+        (match l with
+         | Some l ->
+           let l =
+             List.map (fun x ->
+                 new_identified_term
+                   (update_term_wrt_default_label (term env x))) l
+           in
+           LBreads l
+         | None -> LBnone);
+      (* potential creation of label w.r.t. reads clause *)
+      update_info_wrt_default_label info;
+      Dfun_or_pred (info,loc)
+    | LDpredicate_reads (f, labels, poly, p, l) ->
+      let env,info = logic_decl loc f labels poly p in
+      info.l_body <-
+        (match l with
+         | Some l ->
+           let l =
+             List.map (fun x ->
+                 new_identified_term
+                   (update_term_wrt_default_label (term env x))) l
+           in
+           LBreads l
+         | None -> LBnone);
+       (* potential creation of label w.r.t. reads clause *)
+      update_info_wrt_default_label info;
+      Dfun_or_pred (info,loc)
+    | LDlogic_def(f, labels, poly,t,p,e) ->
+      let env,info = logic_decl loc f labels poly ~return_type:t p in
+      let redefinition = false in
+      let rt = match info.l_type with
+        | None -> assert false
+        | Some t -> t
+      in
+      (try
+         let e = term env e in
+         let _,new_typ,new_term =
+           instantiate_app ~overloaded:false loc e rt env in
+         if is_same_type new_typ rt then begin
+           info.l_body <- LBterm (update_term_wrt_default_label new_term);
+           (* potential creation of label w.r.t. def *)
+           update_info_wrt_default_label info;
+           Dfun_or_pred (info,loc)
+         end else
+           C.error loc
+             "return type of logic function %s is %a but %a was expected"
+             f
+             Cil_printer.pp_logic_type new_typ
+             Cil_printer.pp_logic_type rt
+       with e when not redefinition ->
+         C.remove_logic_function f; raise e)
+    | LDpredicate_def (f, labels, poly, p, e) ->
+      let env,info = logic_decl loc f labels poly p in
+      let e = update_predicate_wrt_default_label (predicate env e) in
+      info.l_body <- LBpred e;
+      (* potential creation of label w.r.t. def *)
+      update_info_wrt_default_label info;
+      Dfun_or_pred (info,loc)
+    | LDinductive_def (f, input_labels, poly, p, indcases) ->
+      let _env,info = logic_decl loc f input_labels poly p in
+      (* env is ignored: because params names are indeed useless...*)
+      let (global_default, l) =
+        List.fold_left 
+          (fun (global_default, acc) (id,labels,poly,e) ->
+             Lenv.default_label := None;
+             let labels,env = annot_env loc labels poly in
+             let p = predicate env e in
+             let res = update_ind_case_wrt_default_label (id, labels, poly, p)
              in
-             if is_cyclic_typedef s tdef then
-               C.error loc "Definition of %s is cyclic" s;
-             my_info.lt_def <- tdef;
-             Dtype (my_info,loc)
-           with e ->
-             (* clean up the env in case we are in continue mode *)
-             C.remove_logic_type s;
-             Extlib.may
-               (function
-                    TDsum cons ->
-                      List.iter
-                        (fun (name,_) -> C.remove_logic_ctor name) cons
-                  | TDsyn _ -> ())
-               def;
-             raise e)
-      | LDlemma (x,is_axiom, labels, poly, e) ->
-          if Logic_env.Lemmas.mem x then begin
-            let old_def = Logic_env.Lemmas.find x in
-            let old_loc = Cil_datatype.Global_annotation.loc old_def in
-            let is_axiom =
-              match old_def with
-                | Dlemma(_, is_axiom, _, _, _, _) -> is_axiom
-                | _ -> 
-		  Kernel.fatal ~current:true
-		    "Logic_env.get_lemma must return Dlemma"
-            in
-            C.error loc "%s is already registered as %s (%a)"
-              x (if is_axiom then "axiom" else "lemma")
-              Cil_datatype.Location.pretty old_loc
-          end;
-          let labels,env = annot_env loc labels poly in
-          let p = predicate env e in
-          let labels = match !Lenv.default_label with
-            | None -> labels
-            | Some lab -> [lab]
-          in
-          let def = Dlemma (x,is_axiom, labels, poly,  p, loc) in
-          Logic_env.Lemmas.add x def;
-          def
-      | LDinvariant (s, e) ->
-        let env = append_here_label (append_init_label (Lenv.empty())) in
-        let p = predicate env e in
-        let li = Cil_const.make_logic_info s in
-	li.l_labels <- [Logic_const.here_label];
-        li.l_body <- LBpred p;
-        add_logic_function loc li;
-	Dinvariant (li,loc)
-      | LDtype_annot l ->
-          Dtype_annot (type_annot loc l,loc)
-      | LDmodel_annot l ->
-          Dmodel_annot (model_annot loc l,loc);
-      | LDvolatile (tsets, (rd_opt, wr_opt)) ->
-	  let tsets =
-            List.map
-              (term_lval_assignable ~accept_formal:false (Lenv.empty ())) tsets
-	  in
-          let checks_tsets_type fct ctyp =
-	    List.iter
-              (fun t ->
-                 let check t = match Logic_utils.unroll_type t with
-                   | Ctype ctyp' -> Cil_datatype.Typ.equal ctyp ctyp'
-                   | _ -> false
-                 in
-		 if not (Logic_const.plain_or_set check t.term_type) then
-		   C.error t.term_loc "incompatible return type of '%s' with %a"
-		     fct Cil_printer.pp_term t)
-              tsets
-	  in
-          let checks_reads_fct fct ty =
-	    let error () =
-	      C.error loc
-                "incompatible type of '%s' with volatile writes declaration"
-                fct;
-	    in let ret,args,is_varg_arg,_attrib =
-	      if not (Cil.isFunctionType ty) then
-		error ();
-	      Cil.splitFunctionType ty
-	    in
-            let volatile_ret_type =
-              typeAddAttributes [Attr ("volatile",[])] ret
-            in
-            let ret_type = ret
-	    in match args with
-	      | Some [_,arg1,_] when
-		  (not (isVoidType ret || is_varg_arg))
-                  && isPointerType arg1
-                  && Cil_datatype.Typ.equal
-                    (typeOf_pointed arg1) volatile_ret_type
-		  -> (* matching prototype: T fct (volatile T *arg1) *)
-                checks_tsets_type fct volatile_ret_type (* tsets should have type: volatile T *)
-	      | Some [_,arg1,_] when
-		  (not (isVoidType ret || is_varg_arg))
-                  && isPointerType arg1
-                  && Cil_datatype.Typ.equal (typeOf_pointed arg1) ret_type
-		  && Cil.typeHasAttributeDeep "volatile" ret
-		  ->  (* matching prototype: T fct (T *arg1) when T has some volatile attr*)
-                checks_tsets_type fct ret_type (* tsets should have type: T *)
-	      | _ ->
-                error ()
- 	  in
-          let checks_writes_fct fct ty =
-	    let error () =
-	      C.error loc
-                "incompatible type of '%s' with volatile writes declaration"
-                fct;
-	    in let ret,args,is_varg_arg,_attrib =
-	      if not (Cil.isFunctionType ty) then
-		error ();
-	      Cil.splitFunctionType ty
-	    in let volatile_ret_type = typeAddAttributes [Attr ("volatile",[])] ret
-	    in let ret_type = ret
-	    in match args with
-	      | Some ((_,arg1,_)::[_,arg2,_]) when
-		    (not (isVoidType ret || is_varg_arg))
-                  && isPointerType arg1
-                  && Cil_datatype.Typ.equal arg2 ret_type
-                  && Cil_datatype.Typ.equal
-                      (typeOf_pointed arg1) volatile_ret_type
-		  -> (* matching prototype: T fct (volatile T *arg1, T arg2) *)
-                  checks_tsets_type fct volatile_ret_type
-                   (* tsets should have type: volatile T *)
-	      | Some ((_,arg1,_)::[_,arg2,_]) when
-		    (not (isVoidType ret || is_varg_arg))
-                  && isPointerType arg1
-                  && Cil_datatype.Typ.equal arg2 ret_type
-                  && Cil_datatype.Typ.equal (typeOf_pointed arg1) ret_type
-		  && Cil.typeHasAttributeDeep "volatile" ret
-		  -> 
-                  (* matching prototype: T fct (T *arg1, T arg2) 
-                     when T has some volatile attr *)
-                  checks_tsets_type fct ret_type (* tsets should have type: T *)
-	      | _ ->
-                error ()
- 	  in
-          let get_volatile_fct checks_type = function
-	    | None -> None
-	    | Some fct ->
-	      try (match (C.find_var fct).lv_origin
-		with
-                  | None -> raise Not_found
-		  | Some vi as vi_opt-> checks_type fct vi.vtype ; vi_opt)
-	      with Not_found ->
-                C.error loc "cannot find function '%s' for volatile clause" fct
-	  in
-          let tsets = List.map (Logic_const.new_identified_term) tsets in
-	  let rvi_opt = get_volatile_fct checks_reads_fct rd_opt in
-	  let wvi_opt = get_volatile_fct checks_writes_fct wr_opt in
-          Dvolatile (tsets, rvi_opt, wvi_opt, loc)
+             let global_default =
+               match global_default, !Lenv.default_label with
+               | _, None -> global_default
+               | Some _, _ -> global_default
+               | None, (Some _ as lab) -> lab
+             in
+             (global_default, res::acc))
+          (!Lenv.default_label,[]) indcases
+      in
+      Lenv.default_label := global_default;
+      (* After all inductive cases has been processed, we might have added
+         an implicit label for the predicate at some point. 
+         Update the inductive cases that need it (i.e. do not define 
+         their own label(s)).
+      *)
+      let l =
+        List.rev_map update_ind_case_wrt_default_label l
+      in
+      info.l_body <- LBinductive l;
+      update_info_wrt_default_label info;
+      Dfun_or_pred (info,loc)
+    | LDaxiomatic(id,decls) ->
+      let l = List.map annot decls in Daxiomatic(id,l,loc)
+    | LDtype(s,l,def) ->
+      let env = init_type_variables loc l in
+      let my_info =
+        { lt_name = s;
+          lt_params = l;
+          lt_def = None; (* will be updated later *)
+        }
+      in
+      (try
+         ignore (C.find_logic_type s);
+         C.error loc "logic type %s is already defined" s
+       with Not_found -> ());
+      C.add_logic_type s my_info;
+      (try
+         let tdef =
+           Extlib.opt_map (typedef loc env my_info) def
+         in
+         if is_cyclic_typedef s tdef then
+           C.error loc "Definition of %s is cyclic" s;
+         my_info.lt_def <- tdef;
+         Dtype (my_info,loc)
+       with e ->
+         (* clean up the env in case we are in continue mode *)
+         C.remove_logic_type s;
+         Extlib.may
+           (function
+               TDsum cons ->
+               List.iter
+                 (fun (name,_) -> C.remove_logic_ctor name) cons
+             | TDsyn _ -> ())
+           def;
+         raise e)
+    | LDlemma (x,is_axiom, labels, poly, e) ->
+      if Logic_env.Lemmas.mem x then begin
+        let old_def = Logic_env.Lemmas.find x in
+        let old_loc = Cil_datatype.Global_annotation.loc old_def in
+        let is_axiom =
+          match old_def with
+          | Dlemma(_, is_axiom, _, _, _, _) -> is_axiom
+          | _ -> 
+            Kernel.fatal ~current:true
+              "Logic_env.get_lemma must return Dlemma"
+        in
+        C.error loc "%s is already registered as %s (%a)"
+          x (if is_axiom then "axiom" else "lemma")
+          Cil_datatype.Location.pretty old_loc
+      end;
+      let labels,env = annot_env loc labels poly in
+      let p = predicate env e in
+      let labels = match !Lenv.default_label with
+        | None -> labels
+        | Some lab -> [lab]
+      in
+      let def = Dlemma (x,is_axiom, labels, poly,  p, loc) in
+      Logic_env.Lemmas.add x def;
+      def
+    | LDinvariant (s, e) ->
+      let env = append_here_label (append_init_label (Lenv.empty())) in
+      let p = predicate env e in
+      let li = Cil_const.make_logic_info s in
+      li.l_labels <- [Logic_const.here_label];
+      li.l_body <- LBpred p;
+      add_logic_function loc li;
+      Dinvariant (li,loc)
+    | LDtype_annot l ->
+      Dtype_annot (type_annot loc l,loc)
+    | LDmodel_annot l ->
+      Dmodel_annot (model_annot loc l,loc);
+    | LDvolatile (tsets, (rd_opt, wr_opt)) ->
+      let tsets =
+        List.map
+          (term_lval_assignable ~accept_formal:false (Lenv.empty ())) tsets
+      in
+      let checks_tsets_type fct ctyp =
+        List.iter
+          (fun t ->
+             let check t = match Logic_utils.unroll_type t with
+               | Ctype ctyp' -> Cil_datatype.Typ.equal ctyp ctyp'
+               | _ -> false
+             in
+             if not (Logic_const.plain_or_set check t.term_type) then
+               C.error t.term_loc "incompatible return type of '%s' with %a"
+                 fct Cil_printer.pp_term t)
+          tsets
+      in
+      let checks_reads_fct fct ty =
+        let error () =
+          C.error loc
+            "incompatible type of '%s' with volatile writes declaration"
+            fct;
+        in let ret,args,is_varg_arg,_attrib =
+             if not (Cil.isFunctionType ty) then
+               error ();
+             Cil.splitFunctionType ty
+        in
+        let volatile_ret_type =
+          typeAddAttributes [Attr ("volatile",[])] ret
+        in
+        let ret_type = ret
+        in match args with
+        | Some [_,arg1,_] when
+            (not (isVoidType ret || is_varg_arg))
+            && isPointerType arg1
+            && Cil_datatype.Typ.equal
+              (typeOf_pointed arg1) volatile_ret_type
+          -> (* matching prototype: T fct (volatile T *arg1) *)
+          checks_tsets_type fct volatile_ret_type
+        (* tsets should have type: volatile T *)
+        | Some [_,arg1,_] when
+            (not (isVoidType ret || is_varg_arg))
+            && isPointerType arg1
+            && Cil_datatype.Typ.equal (typeOf_pointed arg1) ret_type
+            && Cil.typeHasAttributeDeep "volatile" ret
+          -> 
+          (* matching prototype: T fct (T *arg1) when T has some volatile attr*)
+          checks_tsets_type fct ret_type (* tsets should have type: T *)
+        | _ ->
+          error ()
+      in
+      let checks_writes_fct fct ty =
+        let error () =
+          C.error loc
+            "incompatible type of '%s' with volatile writes declaration"
+            fct;
+        in let ret,args,is_varg_arg,_attrib =
+             if not (Cil.isFunctionType ty) then
+               error ();
+             Cil.splitFunctionType ty
+        in let volatile_ret_type = typeAddAttributes [Attr ("volatile",[])] ret
+        in let ret_type = ret
+        in match args with
+        | Some ((_,arg1,_)::[_,arg2,_]) when
+            (not (isVoidType ret || is_varg_arg))
+            && isPointerType arg1
+            && Cil_datatype.Typ.equal arg2 ret_type
+            && Cil_datatype.Typ.equal
+              (typeOf_pointed arg1) volatile_ret_type
+          ->
+          (* matching prototype: T fct (volatile T *arg1, T arg2).
+             tsets should have type volatile T. *)
+          checks_tsets_type fct volatile_ret_type
+        | Some ((_,arg1,_)::[_,arg2,_]) when
+            (not (isVoidType ret || is_varg_arg))
+            && isPointerType arg1
+            && Cil_datatype.Typ.equal arg2 ret_type
+            && Cil_datatype.Typ.equal (typeOf_pointed arg1) ret_type
+            && Cil.typeHasAttributeDeep "volatile" ret
+          -> 
+          (* matching prototype: T fct (T *arg1, T arg2) 
+             when T has some volatile attr *)
+          checks_tsets_type fct ret_type (* tsets should have type: T *)
+        | _ -> error ()
+      in
+      let get_volatile_fct checks_type = function
+        | None -> None
+        | Some fct ->
+          try (match (C.find_var fct).lv_origin
+               with
+               | None -> raise Not_found
+               | Some vi as vi_opt-> checks_type fct vi.vtype ; vi_opt)
+          with Not_found ->
+            C.error loc "cannot find function '%s' for volatile clause" fct
+      in
+      let tsets = List.map (Logic_const.new_identified_term) tsets in
+      let rvi_opt = get_volatile_fct checks_reads_fct rd_opt in
+      let wvi_opt = get_volatile_fct checks_writes_fct wr_opt in
+      Dvolatile (tsets, rvi_opt, wvi_opt, loc)
 
   let custom _c = CustomDummy
 

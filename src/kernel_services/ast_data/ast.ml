@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -63,18 +63,18 @@ module After_building = Hook.Build(struct type t = Cil_types.file end)
 let apply_after_computed = After_building.extend
 
 let mark_as_changed () =
+  Kernel.debug "AST has changed";
   let depends = State_selection.only_dependencies self in
-  let no_remove = State_selection.list_state_union !linked_states in
+  let no_remove = State_selection.of_list !linked_states in
   let selection = State_selection.diff depends no_remove in
   Project.clear ~selection ();
   After_building.apply (get())
 
 let mark_as_grown () =
+  Kernel.debug "AST has grown";
   let depends = State_selection.only_dependencies self in
-  let no_remove = State_selection.list_state_union !linked_states in
   let no_remove =
-    State_selection.union no_remove
-      (State_selection.list_state_union !monotonic_states)
+    State_selection.of_list (!linked_states @ !monotonic_states)
   in
   let selection = State_selection.diff depends no_remove in
   Project.clear ~selection ()
@@ -174,6 +174,15 @@ let compute_last_def_decl () =
     List.iter update_one_global globs;
     LastDecl.mark_as_computed ()
   end
+
+let def_or_last_decl v =
+  compute_last_def_decl();
+  try
+    LastDecl.find v
+  with Not_found ->
+    Kernel.fatal
+      "%a does not have a global declaration in the AST"
+      Cil_printer.pp_varinfo v
 
 let is_def_or_last_decl g =
   let is_eq v =

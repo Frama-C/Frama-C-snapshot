@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,11 +20,13 @@
 (*                                                                        *)
 (**************************************************************************)
 
+let dkey = Gui_parameters.register_category "book_manager"
+
 module Q = Qstack.Make
-  (struct
-     type t = GSourceView2.source_view
-     let equal x y = x == y
-   end)
+    (struct
+      type t = GSourceView2.source_view
+      let equal x y = x == y
+    end)
 
 type t = {
   notebook : GPack.notebook ;
@@ -33,7 +35,7 @@ type t = {
 
 let make ?tab_pos ?packing () =
   let notebook = GPack.notebook
-    ~scrollable:true ~show_tabs:true ?tab_pos ?packing ()
+      ~scrollable:true ~show_tabs:true ?tab_pos ?packing ()
   in
   notebook#set_enable_popup true ;
   {
@@ -48,32 +50,32 @@ let set_current_view t n =
   if (n>=0) && (n < (Q.length t.views)) then t.notebook#goto_page n
 
 let prepend_source_tab w titre =
-  Gui_parameters.debug "prepend_source_tab";
+  Gui_parameters.debug ~dkey "prepend_source_tab";
   (* insert one extra tab in the source window w, with label *)
   let label = GMisc.label ~text:titre () in
   let sw = GBin.scrolled_window
-    ~vpolicy:`AUTOMATIC
-    ~hpolicy:`AUTOMATIC
-    ~packing:(fun arg ->
-                ignore
-                  (w.notebook#prepend_page ~tab_label:label#coerce arg))
-    ()
+      ~vpolicy:`AUTOMATIC
+      ~hpolicy:`AUTOMATIC
+      ~packing:(fun arg ->
+          ignore
+            (w.notebook#prepend_page ~tab_label:label#coerce arg))
+      ()
   in
   let window = (Source_viewer.make ~packing:sw#add ()) in
-    (* Remove default pango menu for textviews *)
-    ignore (window#event#connect#button_press ~callback:
-              (fun ev -> GdkEvent.Button.button ev = 3));
-    Q.add window w.views;
-    w.notebook#goto_page 0;
-    window
+  (* Remove default pango menu for textviews *)
+  ignore (window#event#connect#button_press ~callback:
+            (fun ev -> GdkEvent.Button.button ev = 3));
+  Q.add window w.views;
+  w.notebook#goto_page 0;
+  window
 
 let get_nth_page (t:t) n =
   let nb =  t.notebook in
-    nb#get_nth_page n (* Deprecated *)
+  nb#get_nth_page n (* Deprecated *)
 
 let current_page (t:t) =
   let nb =  t.notebook in
-    nb#current_page
+  nb#current_page
 
 let last_page t = Q.length t.views - 1
 
@@ -81,26 +83,26 @@ let last_page t = Q.length t.views - 1
 let get_current_view (t:t) =
   let nb =  t.notebook in
   let cp = nb#current_page in
-  Gui_parameters.debug "get_current_view: %d" cp;
+  Gui_parameters.debug ~dkey "get_current_view: %d" cp;
   Q.nth cp t.views
 
 let get_current_index (t:t) =
   let cp = t.notebook#current_page in
-  Gui_parameters.debug "get_current_index: %d" cp;
+  Gui_parameters.debug ~dkey "get_current_index: %d" cp;
   cp
 
 let delete_view (t:t) cp =
   let nb =  t.notebook in
-    Gui_parameters.debug "delete_current_view - cur is page %d" cp;
-    Q.remove (Q.nth cp t.views) t.views;
-    nb#remove_page cp;
-    let last = pred (Q.length t.views) in
-    Gui_parameters.debug "Going to page (delete_current_view) %d" last;
-    nb#goto_page last
+  Gui_parameters.debug ~dkey "delete_current_view - cur is page %d" cp;
+  Q.remove (Q.nth cp t.views) t.views;
+  nb#remove_page cp;
+  let last = pred (Q.length t.views) in
+  Gui_parameters.debug ~dkey "Going to page (delete_current_view) %d" last;
+  nb#goto_page last
 
 (* delete within w the tab that contains window win *)
 let delete_view_and_loc w win () =
-  Gui_parameters.debug "delete_view_and_loc ";
+  Gui_parameters.debug ~dkey "delete_view_and_loc ";
   let idx = Q.idx win w.views in
   delete_view w idx
 
@@ -116,34 +118,35 @@ let append_view (t:t) (v:GSourceView2.source_view) =
   let text = Printf.sprintf "Page %d" next in
   let label = GMisc.label ~text:text () in
   let sw = GBin.scrolled_window
-    ~vpolicy:`AUTOMATIC
-    ~hpolicy:`AUTOMATIC
-    ~packing:(fun arg ->
-                ignore
-                  (nb#append_page ~tab_label:label#coerce arg)) () in
+      ~vpolicy:`AUTOMATIC
+      ~hpolicy:`AUTOMATIC
+      ~packing:(fun arg ->
+          ignore
+            (nb#append_page ~tab_label:label#coerce arg)) () in
   sw#add (v:>GObj.widget);
   nb#goto_page next;
-  Gui_parameters.debug "Going to page (append_view) %d" next;
+  Gui_parameters.debug ~dkey "Going to page (append_view) %d" next;
   Q.add_at_end v t.views;
-  Gui_parameters.debug "append_view - nb pages is %d" (Q.length t.views);
-  Gui_parameters.debug "append_view - current nb page is %d" nb#current_page
+  Gui_parameters.debug ~dkey "append_view - nb pages is %d" (Q.length t.views);
+  Gui_parameters.debug ~dkey
+    "append_view - current nb page is %d" nb#current_page
 
 let get_nth_view t (n:int) = Q.nth n t.views
 
 let enable_popup (t:t) (b:bool) =
   let nb =  t.notebook in
-    nb#set_enable_popup b
+  nb#set_enable_popup b
 
 let set_scrollable (t:t) (b:bool) =
   let nb =  t.notebook in
-    nb#set_scrollable b
+  nb#set_scrollable b
 
 (* get length of the current source_views list *)
 let length t = Q.length t.views
 
 
 let append_source_tab w titre =
-  Gui_parameters.debug "append_source_tab";
+  Gui_parameters.debug ~dkey "append_source_tab";
   (* insert one extra tab in the source window w, with some title *)
   let composed_label = GPack.hbox  () in
 
@@ -151,34 +154,34 @@ let append_source_tab w titre =
 
   let cbutton = GButton.button  ~packing:composed_label#add () in
 
-    cbutton#set_use_stock false ;
-    cbutton#set_label "X";
-    cbutton#misc#set_size_request ~width:20 ~height:20 ();
+  cbutton#set_use_stock false ;
+  cbutton#set_label "X";
+  cbutton#misc#set_size_request ~width:20 ~height:20 ();
 
   let sw = GBin.scrolled_window
-    ~vpolicy:`AUTOMATIC
-    ~hpolicy:`AUTOMATIC
-    ~packing:(fun arg ->
-                ignore
-                  (w.notebook#append_page ~tab_label:composed_label#coerce arg))
+      ~vpolicy:`AUTOMATIC
+      ~hpolicy:`AUTOMATIC
+      ~packing:(fun arg ->
+          ignore
+            (w.notebook#append_page ~tab_label:composed_label#coerce arg))
     (*
     ~packing:(fun arg ->
                 ignore
                   (w.notebook#append_page ~tab_label:label#coerce arg)) *)
-    ()
+      ()
   in
   let window = (Source_viewer.make ~packing:sw#add ()) in
-    ignore
-      (cbutton#connect#clicked 
-	 ~callback:(fun () -> delete_view_and_loc w window ()));
+  ignore
+    (cbutton#connect#clicked 
+       ~callback:(fun () -> delete_view_and_loc w window ()));
   (* Remove default pango menu for textviews *)
-    ignore (window#event#connect#button_press ~callback:
-              (fun ev -> GdkEvent.Button.button ev = 3));
-    Q.add_at_end window w.views;
-    let last = pred (Q.length w.views) in
-    (* THIS CALLS THE SWITCH_PAGE CALLBACK IMMEDIATELY! *)
-    w.notebook#goto_page last;  
-    window
+  ignore (window#event#connect#button_press ~callback:
+            (fun ev -> GdkEvent.Button.button ev = 3));
+  Q.add_at_end window w.views;
+  let last = pred (Q.length w.views) in
+  (* THIS CALLS THE SWITCH_PAGE CALLBACK IMMEDIATELY! *)
+  w.notebook#goto_page last;  
+  window
 
 (*
 Local Variables:

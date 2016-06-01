@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -26,8 +26,8 @@
 
 open Cil_types
 
-(* This type represents a list; Nil is the empty list, Node conses a
-   single element, while Component conses a whole component. Note:
+(** This type represents a list; [Nil] is the empty list, [Node] conses a
+   single element, while [Component] conses a whole component. Note:
    Bourdoncle paper always has a single element as the header of a
    component, and this type does not enforce this. *)
 type wto =
@@ -37,10 +37,10 @@ type wto =
 
 
 (** wto as Datatype *)
-module WTO : Datatype.S
+module WTO : Datatype.S with type t = wto
 
-(** Returns the depth of a statement *)
+(** @return depth of a statement *)
 val depth_of_stmt : stmt -> int
 
-(** Returns the wto of a kernel function *)
+(** @return wto of a kernel function *)
 val wto_of_kf : kernel_function -> wto

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -56,10 +56,14 @@ val disjoint : set -> set -> pred
 
 val concretize : set -> term
 
-val pp_bound : Format.formatter -> term option -> unit
 val bound_shift : term option -> term -> term option
 val bound_add : term option -> term option -> term option
 val bound_sub : term option -> term option -> term option
+
+(** {3 Pretty} *)
+
+val pp_bound : Format.formatter -> term option -> unit
+val pp_vset : Format.formatter -> vset -> unit
 
 (** {3 Maping}
     These operations computes different kinds of [{f x y with x in A, y in B}].

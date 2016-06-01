@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -47,12 +47,12 @@ module Make(T : Term) :
 sig
 
   open T
+  module TauMap : Map.S with type key = tau
+  module Env : Env with type term := term
 
   type trigger = (var,Fun.t) ftrigger
   type typedef = (tau,Field.t,Fun.t) ftypedef
-
-  module TauMap : Map.S with type key = tau
-
+  
   class virtual engine :
     object
 
@@ -62,6 +62,10 @@ sig
       (** Allows to sanitize the basename used for in this engine for variable. *)
       method virtual link : Fun.t -> link
 
+      method env : Env.t (** A safe copy of the environment *)
+      method marks : Env.t * T.marks (** The current environment with empty marks *)
+      method lookup : term -> scope
+      method scope : Env.t -> (unit -> unit) -> unit
       method local : (unit -> unit) -> unit
       method global : (unit -> unit) -> unit
       method bind : var -> string
@@ -142,6 +146,7 @@ sig
       method pp_var : string printer
       method pp_term : term printer
       method pp_prop : term printer
+      method pp_sort : term printer
       method pp_expr : tau -> term printer
 
     end

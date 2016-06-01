@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -203,12 +203,12 @@ let obfuscate_behaviors () =
       in
       handle_bnames
 	Annotations.iter_complete
-	Annotations.remove_complete
-	Annotations.add_complete;
+	(fun e kf l -> Annotations.remove_complete e kf l)
+	(fun e kf l -> Annotations.add_complete e kf l);
       handle_bnames 
 	Annotations.iter_disjoint
-	Annotations.remove_disjoint
-	Annotations.add_disjoint)
+	(fun e kf l -> Annotations.remove_disjoint e kf l)
+	(fun e kf l -> Annotations.add_disjoint e kf l))
 
 module UpdatePrinter (X: Printer.PrinterClass) = struct
 (* obfuscated printer *)

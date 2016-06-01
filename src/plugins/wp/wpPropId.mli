@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -115,29 +115,39 @@ val mk_var_decr_id : kernel_function -> stmt -> code_annotation -> prop_id
 (** Variant positive *)
 val mk_var_pos_id : kernel_function -> stmt -> code_annotation -> prop_id
 
-(** \from property of loop assigns *)
+(** \from property of loop assigns. Must not be [FromAny] *)
 val mk_loop_from_id : kernel_function -> stmt -> code_annotation ->
   identified_term from -> prop_id
 
-(** \from property of function or statement behavior assigns *)
-val mk_bhv_from_id : kernel_function -> kinstr -> funbehavior ->
+(** \from property of function or statement behavior assigns.
+    Must not be [FromAny] *)
+val mk_bhv_from_id :
+  kernel_function -> kinstr -> string list -> funbehavior ->
   identified_term from -> prop_id
 
+(** \from property of function behavior assigns. Must not be [FromAny]. *)
 val mk_fct_from_id : kernel_function -> funbehavior ->
   termination_kind -> identified_term from -> prop_id
 
-(** disjoint behaviors property. *)
-val mk_disj_bhv_id : kernel_function * kinstr * string list -> prop_id
+(** disjoint behaviors property. 
+    See {!Property.ip_of_disjoint} for more information
+*)
+val mk_disj_bhv_id :
+  kernel_function * kinstr * string list * string list -> prop_id
 
-(** complete behaviors property. *)
-val mk_compl_bhv_id : kernel_function * kinstr * string list -> prop_id
+(** complete behaviors property.
+    See {!Property.ip_of_complete} for more information
+ *)
+val mk_compl_bhv_id :
+  kernel_function * kinstr * string list * string list -> prop_id
 
 val mk_decrease_id : kernel_function * kinstr * term variant -> prop_id
 
 (** axiom identification *)
 val mk_lemma_id : logic_lemma -> prop_id
 
-val mk_stmt_assigns_id : kernel_function -> stmt -> funbehavior ->
+val mk_stmt_assigns_id :
+  kernel_function -> stmt -> string list -> funbehavior ->
   identified_term from list -> prop_id option
 
 val mk_loop_assigns_id : kernel_function -> stmt -> code_annotation ->
@@ -185,6 +195,7 @@ type assigns_full_info = private
   | NoAssignsInfo
 
 val empty_assigns_info : assigns_full_info
+
 val mk_assigns_info : prop_id -> assigns_desc -> assigns_full_info
 val mk_stmt_any_assigns_info : stmt -> assigns_full_info
 val mk_kf_any_assigns_info : unit -> assigns_full_info
@@ -197,6 +208,8 @@ val merge_assign_info :
 val mk_loop_assigns_desc : stmt -> identified_term from list -> assigns_desc
 
 val mk_stmt_assigns_desc : stmt -> identified_term from list -> assigns_desc
+
+val mk_asm_assigns_desc : stmt -> assigns_desc
 
 val mk_kf_assigns_desc : identified_term from list -> assigns_desc
 

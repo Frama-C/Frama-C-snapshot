@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -44,6 +44,7 @@ Require Import ZArith.
 Require Import FunctionalExtensionality.
 Require Import Qedlib.
 Require Import Bits.
+Require Import Psatz.
 
 Open Local Scope Z_scope.
 
@@ -1048,12 +1049,12 @@ Proof.
   apply Zmax_case_strong.
   (** ZxHbound y <= ZxHbound x *)
   + intros Ryx Rzxy.
-    destruct Rzxy.
-    omega.
+    destruct Rzxy as [ bound_neg bound_pos ].
+    lia.
   (** ZxHbound x <= ZxHbound y *)
   + intros Ryx Rzxy.
-    destruct Rzxy.
-    omega.
+    destruct Rzxy as [ bound_neg bound_pos ].
+    lia.
 Qed.
   
 Theorem Z_bitwise_sign: forall (f: bool -> bool -> bool) (x y: Z),  
@@ -1133,13 +1134,12 @@ Proof.
   apply Zmax_case_strong.
   (** ZxHbound y <= ZxHbound x *)
   + intros Ryx Rzxy.
-    destruct Rzxy.
-    auto with zarith.
+    destruct Rzxy as [ Bneg Bpos ].
+    lia.
   (** ZxHbound x <= ZxHbound y *)
   + intros Ryx Rzxy.
-    destruct Rzxy.
-    (* auto with zarith. *)
-    omega.
+    destruct Rzxy as [ Bneg Bpos ].
+    lia.
 Qed.
 
 (** Commutative bitwise operators *)

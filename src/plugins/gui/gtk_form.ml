@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -37,14 +37,14 @@ let refresh demon () =
 (* ------------------------------------------------------------------------ *)
 
 type 'a field =
-    ?tooltip:string -> packing:(GObj.widget -> unit) ->
+  ?tooltip:string -> packing:(GObj.widget -> unit) ->
   (unit -> 'a) -> ('a -> unit) -> demon -> unit
 
 let mk_tooltip ?tooltip obj = match tooltip with
   | None -> ()
   | Some text ->
-    let tooltip = GData.tooltips () in
-    tooltip#set_tip ~text obj#coerce
+      let tooltip = GData.tooltips () in
+      tooltip#set_tip ~text obj#coerce
 
 (* ------------------------------------------------------------------------ *)
 (* --- Check Button                                                     --- *)
@@ -71,11 +71,11 @@ let menu entries ?width ?tooltip ~packing get set demon =
   let callback () =
     try
       match combo_box#active_iter with
-        | None -> ()
-        | Some row ->
-            let title = (combo_box#model#get ~row ~column) in
-            let (_,item) = List.find (fun (t,_) -> t=title) entries in
-            set item
+      | None -> ()
+      | Some row ->
+          let title = (combo_box#model#get ~row ~column) in
+          let (_,item) = List.find (fun (t,_) -> t=title) entries in
+          set item
     with Not_found -> ()
   in
   let rec lookup k item = function
@@ -113,24 +113,24 @@ let spinner ?(lower=0) ?(upper=max_int) ?width ?tooltip ~packing get set demon =
 (* ------------------------------------------------------------------------ *)
 
 class form ~packing =
-object
+  object
 
-  val table = GPack.table ~rows:2 ~col_spacings:8 ~packing ()
-  val mutable top = 0
+    val table = GPack.table ~rows:2 ~col_spacings:8 ~packing ()
+    val mutable top = 0
 
-  method label text =
-    ignore (GMisc.label ~text
-              ~packing:(table#attach ~top ~left:0 ~expand:`NONE) ())
+    method label text =
+      ignore (GMisc.label ~text
+                ~packing:(table#attach ~top ~left:0 ~expand:`NONE) ())
 
-  method item obj =
-    table#attach ~top ~left:1 ~expand:`X ~fill:`X obj ;
-    top <- succ top
+    method item obj =
+      table#attach ~top ~left:1 ~expand:`X ~fill:`X obj ;
+      top <- succ top
 
-  method row obj =
-    table#attach ~top ~left:0 ~right:2 ~expand:`X ~fill:`X obj ;
-    top <- succ top
+    method row obj =
+      table#attach ~top ~left:0 ~right:2 ~expand:`X ~fill:`X obj ;
+      top <- succ top
 
-end
+  end
 
 let label ~text ~packing () =
   ignore (GMisc.label ~xpad:3 ~text ~packing ())

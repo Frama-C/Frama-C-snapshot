@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -175,7 +175,7 @@ class printer_with_annot () = object (self)
     Format.close_box ()
 
   method! global fmt glob =
-    if Kernel.PrintComments.get () then begin
+    if Kernel.PrintComments.get () && Cil_printer.print_global glob then begin
       let comments = Globals.get_comments_global glob in
       Pretty_utils.pp_list 
         ~sep:"@\n" ~suf:"@\n" 
@@ -277,6 +277,7 @@ end (* class printer_with_annot *)
 include Printer_builder.Make(struct class printer = printer_with_annot end)
 
 (* initializing Cil_datatype's pretty printers *)
+let () = Cil_datatype.Location.pretty_ref := pp_location
 let () = Cil_datatype.Constant.pretty_ref := pp_constant
 let () = Cil_datatype.Exp.pretty_ref := pp_exp
 let () = Cil_datatype.Varinfo.pretty_ref := pp_varinfo
@@ -294,6 +295,8 @@ let () = Cil_datatype.Term.pretty_ref := pp_term
 let () = Cil_datatype.Term_lval.pretty_ref := pp_term_lval
 let () = Cil_datatype.Term_offset.pretty_ref := pp_term_offset
 let () = Cil_datatype.Code_annotation.pretty_ref := pp_code_annotation
+let () =
+  Cil_datatype.Fieldinfo.pretty_ref := (fun fmt f -> pp_varname fmt f.fname)
 
 (*
 Local Variables:

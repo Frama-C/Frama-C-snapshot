@@ -13,7 +13,7 @@
 [value] computing for function Frama_C_interval <- main.
         Called from tests/float/absorb.c:13.
 [value] using specification for function Frama_C_interval
-share/libc/__fc_builtin.h:51:[value] Function Frama_C_interval: precondition got status valid.
+share/libc/__fc_builtin.h:50:[value] function Frama_C_interval: precondition got status valid.
 [value] Done for function Frama_C_interval
 tests/float/absorb.c:16:[value] entering loop for the first time
 [value] Recording results for main

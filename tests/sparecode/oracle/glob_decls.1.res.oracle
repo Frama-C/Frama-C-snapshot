@@ -1,5 +1,5 @@
 [kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
-[kernel] Parsing tests/sparecode/glob_decls.c (with preprocessing)
+[kernel] Parsing tests/sparecode/glob_decls.i (no preprocessing)
 [slicing] slicing requests in progress...
 [value] Analyzing an incomplete application starting at main
 [value] Computing initial state
@@ -21,13 +21,13 @@
   S_PG1[0..1] ∈ [--..--]
   S_GPs[0..1] ∈ [--..--]
   S_PX[0..1] ∈ [--..--]
-tests/sparecode/glob_decls.c:42:[value] Function main: precondition got status unknown.
-tests/sparecode/glob_decls.c:46:[kernel] warning: signed overflow. assert y+Y ≤ 2147483647;
-tests/sparecode/glob_decls.c:47:[kernel] warning: out of bounds read. assert \valid_read(PX);
-tests/sparecode/glob_decls.c:47:[kernel] warning: signed overflow. assert -2147483648 ≤ y+*PX;
-tests/sparecode/glob_decls.c:47:[kernel] warning: signed overflow. assert y+*PX ≤ 2147483647;
-tests/sparecode/glob_decls.c:48:[value] Assertion got status unknown.
-tests/sparecode/glob_decls.c:49:[kernel] warning: signed overflow. assert X+x ≤ 2147483647;
+tests/sparecode/glob_decls.i:42:[value] warning: function main: precondition got status unknown.
+tests/sparecode/glob_decls.i:46:[kernel] warning: signed overflow. assert y+Y ≤ 2147483647;
+tests/sparecode/glob_decls.i:47:[kernel] warning: out of bounds read. assert \valid_read(PX);
+tests/sparecode/glob_decls.i:47:[kernel] warning: signed overflow. assert -2147483648 ≤ y+*PX;
+tests/sparecode/glob_decls.i:47:[kernel] warning: signed overflow. assert y+*PX ≤ 2147483647;
+tests/sparecode/glob_decls.i:48:[value] warning: assertion got status unknown.
+tests/sparecode/glob_decls.i:49:[kernel] warning: signed overflow. assert X+x ≤ 2147483647;
 [value] Recording results for main
 [value] done for function main
 [slicing] making slicing project 'Slicing'...

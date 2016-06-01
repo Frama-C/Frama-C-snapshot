@@ -13,7 +13,6 @@ tests/wp/wp_call_pre.c:53:[kernel] warning: No code nor implicit assigns clause 
 
 Goal Instance of 'Pre-condition 'qed_ok,Rmain' in 'main'' in 'call_main' at call 'main' (file tests/wp/wp_call_pre.c, line 40)
 :
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
@@ -22,7 +21,6 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Pre-condition 'qed_ok,Rmain' in 'main':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------

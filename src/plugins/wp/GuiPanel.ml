@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -87,19 +87,19 @@ let run_and_prove
 (* ---  Model Panel                                                     --- *)
 (* ------------------------------------------------------------------------ *)
 
-type memory = HOARE | TYPED
+type memory = TREE | HOARE | TYPED
 
 class model_selector (main : Design.main_window_extension_points) =
-  let dialog = new Toolbox.dialog
+  let dialog = new Wpane.dialog
     ~title:"WP Memory Model" ~window:main#main_window () in
-  let memory = new Toolbox.switch HOARE in
+  let memory = new Widget.group HOARE in
   let r_hoare  = memory#add_radio ~label:"Hoare Memory Model" ~value:HOARE () in
   let r_typed  = memory#add_radio ~label:"Typed Memory Model" ~value:TYPED () in
-  let c_casts  = new Toolbox.checkbox ~label:"Unsafe casts" () in
-  let c_byref  = new Toolbox.checkbox ~label:"Reference Arguments" () in
-  let c_cint   = new Toolbox.checkbox ~label:"Machine Integers" () in
-  let c_cfloat = new Toolbox.checkbox ~label:"Floating Points" () in
-  let m_label  = new Toolbox.label ~style:`Title () in
+  let c_casts  = new Widget.checkbox ~label:"Unsafe casts" () in
+  let c_byref  = new Widget.checkbox ~label:"Reference Arguments" () in
+  let c_cint   = new Widget.checkbox ~label:"Machine Integers" () in
+  let c_cfloat = new Widget.checkbox ~label:"Floating Points" () in
+  let m_label  = new Widget.label ~style:`Title () in
   object(self)
 
     initializer
@@ -127,6 +127,7 @@ class model_selector (main : Design.main_window_extension_points) =
     method set (s:setup) =
       begin
         (match s.mheap with
+         | ZeroAlias -> memory#set TREE
          | Hoare -> memory#set HOARE
          | Typed m -> memory#set TYPED ; c_casts#set (m = MemTyped.Unsafe)) ;
         c_byref#set (s.mvar = Ref) ;
@@ -136,6 +137,7 @@ class model_selector (main : Design.main_window_extension_points) =
 
     method get : setup =
       let m = match memory#get with
+        | TREE -> ZeroAlias
         | HOARE -> Hoare
         | TYPED -> Typed
                      (if c_casts#get then MemTyped.Unsafe else MemTyped.Fits)
@@ -198,9 +200,9 @@ let wp_panel
   let demon = Gtk_form.demon () in
   let packing = vbox#pack in
 
-  let form = new Toolbox.form () in
+  let form = new Wpane.form () in
   (* Model Row *)
-  let model_cfg = new Toolbox.button
+  let model_cfg = new Widget.button
     ~label:"Model..." ~tooltip:"Configure WP Model" () in
   let model_lbl = GMisc.label ~xalign:0.0 () in
   Gtk_form.register demon (wp_update_model model_lbl) ;
@@ -208,7 +210,7 @@ let wp_panel
   form#add_label_widget model_cfg#coerce ;
   form#add_field model_lbl#coerce ;
   (* Script Row *)
-  let script_cfg = new Toolbox.button
+  let script_cfg = new Widget.button
     ~label:"Script..." ~tooltip:"Load/Save User Scripts file" () in
   let script_lbl = GMisc.label ~xalign:0.0 () in
   Gtk_form.register demon (wp_update_script script_lbl) ;
@@ -216,7 +218,7 @@ let wp_panel
   form#add_label_widget script_cfg#coerce ;
   form#add_field script_lbl#coerce ;
   (* Prover Row *)
-  let prover_cfg = new Toolbox.button
+  let prover_cfg = new Widget.button
     ~label:"Provers..." ~tooltip:"Detect WP Provers" () in
   prover_cfg#connect configure_provers ;
   form#add_label_widget prover_cfg#coerce ;

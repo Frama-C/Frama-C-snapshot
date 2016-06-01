@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -28,15 +28,19 @@ type model = {
   id : string ; (* Identifier Basename for Model (unique) *)
   descr : string ; (* Title of the Model (for pretty) *)
   emitter : Emitter.t ;
-  mutable params : tuning list ;
+  separation : separation ;
+  mutable tuning : tuning list ;
 }
 
 and tuning = unit -> unit
+and separation = Kernel_function.t -> Separation.clause list
 
+let nosep (_kf) = []
 let repr = {
   id = "?model" ; descr = "?model" ;
   emitter = Emitter.kernel ;
-  params = [ fun () -> () ] ;
+  tuning = [ fun () -> () ] ;
+  separation = nosep ;
 }
 
 module D = Datatype.Make_with_collections(struct
@@ -80,7 +84,7 @@ end
 let find ~id = MODELS.find id
 let iter f = MODELS.iter f
 
-let register ~id ?(descr=id) ?(tuning=[]) () =
+let register ~id ?(descr=id) ?(tuning=[]) ?(separation=nosep) () =
   if MODELS.mem id then
     Wp_parameters.fatal "Duplicate model '%s'" id ;
   let emitter =
@@ -91,25 +95,27 @@ let register ~id ?(descr=id) ?(tuning=[]) () =
   in
   let model = {
     id = id ;
-    descr = descr ;
-    emitter = emitter ;
-    params = tuning ;
+    descr ;
+    emitter ;
+    tuning ;
+    separation ;
   } in
   MODELS.add model ; model
 
 let get_id m = m.id
 let get_descr m = m.descr
-
+let get_separation m = m.separation
+  
 type scope = Kernel_function.t option
 let scope : scope Context.value = Context.create "Wp.Scope"
 let model : model Context.value = Context.create "Wp.Model"
 
 let rec bind = function [] -> () | f::fs -> f () ; bind fs
-let back = function None -> () | Some c -> bind c.params
+let back = function None -> () | Some c -> bind c.tuning
 let with_model m f x =
   let current = Context.push model m in
   try
-    bind m.params ;
+    bind m.tuning ;
     let result = f x in
     Context.pop model current ;
     back current ; result
@@ -117,9 +123,9 @@ let with_model m f x =
     Context.pop model current ;
     back current ; raise err
 let on_model m f = with_model m f ()
-let on_scope s f = Context.bind scope s f ()
-let on_kf kf = on_scope (Some kf)
-let on_global = on_scope None
+let on_scope s f a = Context.bind scope s f a
+let on_kf kf f = on_scope (Some kf) f ()
+let on_global f = on_scope None f ()
 let get_scope () = Context.get scope
 
 let get_model () = Context.get model
@@ -170,7 +176,6 @@ struct
   let demon = ref []
 
   type entries = {
-    mutable ident : int ;
     mutable index : E.data MAP.t ;
     mutable lock : SET.t ;
   }
@@ -180,7 +185,7 @@ struct
       (struct
         type t = entries
         include Datatype.Serializable_undefined
-        let reprs = [{ident=0;index=MAP.empty;lock=SET.empty}]
+        let reprs = [{index=MAP.empty;lock=SET.empty}]
         let name = "Wp.Model.Index." ^ E.name
       end)
 
@@ -198,9 +203,9 @@ struct
     let mid = (Context.get model).id in
     try REGISTRY.find mid
     with Not_found ->
-      let e = { ident=0 ; index=MAP.empty ; lock=SET.empty } in
+      let e = { index=MAP.empty ; lock=SET.empty } in
       REGISTRY.add mid e ; e
-
+  
   let mem k = let e = entries () in MAP.mem k e.index || SET.mem k e.lock
 
   let find k = let e = entries () in MAP.find k e.index
@@ -268,7 +273,6 @@ struct
   let demon = ref []
 
   type entries = {
-    mutable ident : int ;
     mutable index : E.data MAP.t ;
     mutable lock : SET.t ;
   }
@@ -278,7 +282,7 @@ struct
       (struct
         type t = entries
         include Datatype.Serializable_undefined
-        let reprs = [{ident=0;index=MAP.empty;lock=SET.empty}]
+        let reprs = [{index=MAP.empty;lock=SET.empty}]
         let name = "Wp.Model.Index." ^ E.name
       end)
 
@@ -287,7 +291,7 @@ struct
       (struct
         let name = "Wp.Model." ^ E.name
         let dependencies = [Ast.self]
-        let default () = { ident=0 ; index=MAP.empty ; lock=SET.empty }
+        let default () = { index=MAP.empty ; lock=SET.empty }
       end)
   (* Projectified entry map, indexed by model *)
 
@@ -320,7 +324,7 @@ struct
       e.index <- MAP.add k d e.index ;
       fire k d ;
     end
-
+  
   let memoize f k =
     let e = entries () in
     try MAP.find k e.index
@@ -399,9 +403,3 @@ end
 
 module S = D
 type t = S.t
-
-(*
-Local Variables:
-compile-command: "make -C ../../.."
-End:
-*)

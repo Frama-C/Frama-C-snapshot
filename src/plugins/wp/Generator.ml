@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -48,7 +48,7 @@ let compute_ip cc ip =
       in iter cc ip ;
       cc#compute
 
-  | Property.IPBehavior (kf,_,b)  ->
+  | Property.IPBehavior (kf,_,_,b)  ->
       let bhv = [b.Cil_types.b_name] in
       List.iter cc#add_strategy
         (WpAnnot.get_function_strategies ~assigns:WpAnnot.WithAssigns ~bhv kf) ;

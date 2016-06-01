@@ -9,11 +9,11 @@ axiomatic IsMax {
   
   axiom max_gt{L}:
     ∀ int t[], ℤ max, ℤ length, ℤ i;
-      is_max{L}(max, t, length) ⇒ 0 ≤ i < length ⇒ t[i] ≤ max;
+      is_max(max, t, length) ⇒ 0 ≤ i < length ⇒ t[i] ≤ max;
   
   axiom max_eq{L}:
     ∀ int t[], ℤ max, ℤ length;
-      is_max{L}(max, t, length) ⇒ (∃ ℤ i; t[i] ≡ max);
+      is_max(max, t, length) ⇒ (∃ ℤ i; t[i] ≡ max);
   
   }
  */

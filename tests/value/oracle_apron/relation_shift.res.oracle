@@ -1,0 +1,67 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/value/relation_shift.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  r1 ∈ {0}
+  r2 ∈ {0}
+  r3 ∈ {0}
+  r4 ∈ {0}
+tests/value/relation_shift.i:5:[kernel] warning: signed overflow. assert x+1 ≤ 2147483647;
+tests/value/relation_shift.i:6:[kernel] warning: signed overflow. assert -2147483648 ≤ y-1;
+tests/value/relation_shift.i:11:[kernel] warning: signed overflow. assert z+t ≤ 2147483647;
+tests/value/relation_shift.i:12:[kernel] warning: out of bounds write. assert \valid(q);
+tests/value/relation_shift.i:15:[kernel] warning: signed overflow. assert -2147483648 ≤ x-y;
+tests/value/relation_shift.i:15:[kernel] warning: signed overflow. assert x-y ≤ 2147483647;
+tests/value/relation_shift.i:16:[kernel] warning: signed overflow. assert -2147483648 ≤ z-y;
+tests/value/relation_shift.i:16:[kernel] warning: signed overflow. assert z-y ≤ 2147483647;
+tests/value/relation_shift.i:18:[kernel] warning: out of bounds read. assert \valid_read(q);
+[value] DUMPING STATE of file tests/value/relation_shift.i line 19
+        r1 ∈ {2}
+        r2 ∈ {7}
+        r3 ∈ {3}
+        r4 ∈ [--..--]
+        x ∈ [-2147483646..2147483642]
+        y ∈ [-2147483648..2147483640]
+        z ∈ [-2147483641..2147483647]
+        t ∈ {5}
+        p ∈ {{ &p + {4} }}
+        q ∈ {{ &S_q[1] }}
+        S_q[0] ∈ {3}
+           [1] ∈ [--..--]
+        S_p[0..1] ∈ [--..--]
+        =END OF DUMP==
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  r1 ∈ {2}
+  r2 ∈ {7}
+  r3 ∈ {3}
+  r4 ∈ [--..--]
+  x ∈ [-2147483646..2147483642]
+  y ∈ [-2147483648..2147483640]
+  z ∈ [-2147483641..2147483647]
+  t ∈ {5}
+  p ∈ {{ &p + {4} }}
+  q ∈ {{ &S_q[1] }}
+  S_q[0] ∈ {3}
+     [1] ∈ [--..--]
+[from] Computing for function main
+[from] Computing for function Frama_C_dump_each <-main
+[from] Done for function Frama_C_dump_each
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  r1 FROM y
+  r2 FROM y
+  r3 FROM q
+  r4 FROM q; S_q[1]
+  S_q[0] FROM q
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          r1; r2; r3; r4; x; y; z; t; p; q; S_q[0]
+[inout] Inputs for function main:
+          S_q[0..1]

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -324,6 +324,12 @@ let is_false p = e_if (e_prop p) e_zero e_one
 (* --- Lifting Memory Model to Values                                     --- *)
 (* -------------------------------------------------------------------------- *)
 
+type polarity = [ `Positive | `Negative | `NoPolarity ]
+let negate = function
+  | `Positive -> `Negative
+  | `Negative -> `Positive
+  | `NoPolarity -> `NoPolarity
+
 module Logic(M : Memory.Model) =
 struct
 
@@ -449,19 +455,21 @@ struct
   let restrict kset = function
     | None -> kset
     | Some s ->
-        match kset with
-        | Vset.Singleton _ | Vset.Set _ -> kset
-        | Vset.Range(a,b) ->
-            let cap l = function None -> Some l | u -> u in
-            Vset.Range(cap e_zero a,cap (e_int (s-1)) b)
-        | Vset.Descr(xs,k,p) ->
-            let a = e_zero in
-            let b = e_int s in
-            Vset.Descr(xs,k,p_conj [p_leq a k;p_lt k b;p])
+        if Kernel.SafeArrays.get () then
+          match kset with
+          | Vset.Singleton _ | Vset.Set _ -> kset
+          | Vset.Range(a,b) ->
+              let cap l = function None -> Some l | u -> u in
+              Vset.Range(cap e_zero a,cap (e_int (s-1)) b)
+          | Vset.Descr(xs,k,p) ->
+              let a = e_zero in
+              let b = e_int s in
+              Vset.Descr(xs,k,p_conj [p_leq a k;p_lt k b;p])
+        else kset
 
   let shift_set sloc obj (size : int option) kset =
-    match sloc , kset , size with
-    | Sloc l , Vset.Range(None,None) , Some s -> Sarray(l,obj,s)
+    match sloc , size , kset with
+    | Sloc l , Some n , Vset.Range(None,None) when Kernel.SafeArrays.get () -> Sarray(l,obj,n)
     | _ ->
         match sloc , restrict kset size with
         | Sloc l , Vset.Singleton k -> Sloc(M.shift l obj k)
@@ -476,7 +484,7 @@ struct
             let xs,l,p = rdescr sloc in
             let ys,k,q = Vset.descr kset in
             Sdescr( xs @ ys , M.shift l obj k , p_and p q )
-
+              
   let shift lv obj ?size kv =
     if is_single kv then
       let k = value kv in map_loc (fun l -> M.shift l obj k) lv

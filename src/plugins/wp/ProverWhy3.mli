@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,23 +27,20 @@ open VCS
 (* --- Why3 Multi-Theorem Prover                                          --- *)
 (* -------------------------------------------------------------------------- *)
 
-type goal_id =
+type goal =
   {
-    gfile : string;
-    gtheory : string;
-    ggoal : string;
+    file : string;
+    theory : string;
+    goal : string;
   }
 
-val assemble_wpo: Wpo.t -> (string list (* includes *) * goal_id) option
+val assemble_wpo: Wpo.t -> (string list (* includes *) * goal) option
 (** None if the po is trivial *)
 
 val prove : Wpo.t -> prover:string -> result task
 (** The string must be a valid why3 prover identifier
     Return NoResult if it is already proved by Qed
 *)
-
-val call_ide : includes:string list -> files:string list ->
-  session:string -> bool Task.task
 
 type dp = {
   dp_name : string ;
@@ -56,3 +53,14 @@ val detect_provers : (dp list -> unit) -> unit
 
 val find : string -> dp list -> dp
 val parse : string -> dp
+
+(* -------------------------------------------------------------------------- *)
+(* --- Why3 Multi-Theorem Prover                                          --- *)
+(* -------------------------------------------------------------------------- *)
+
+module Goal :
+sig
+  type t = goal
+  val compare : t -> t -> int
+  val pretty : Format.formatter -> t -> unit
+end

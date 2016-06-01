@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -154,6 +154,20 @@ val mapi: (int -> 'a -> 'b) -> 'a list -> 'b list
 val sort_unique: ('a -> 'a -> int) -> 'a list -> 'a list
   (**  Same as List.sort , but also remove duplicates. *)
 
+val subsets: int -> 'a list -> 'a list list
+  (** [subsets k l] computes the combinations of [k] elements from list [l].
+      E.g. subsets 2 [1;2;3;4] = [[1;2];[1;3];[1;4];[2;3];[2;4];[3;4]].
+      This function preserves the order of the elements in [l] when
+      computing the sublists. [l] should not contain duplicates.
+      @since Aluminium-20160501 *)
+
+(* ************************************************************************* *)
+(** {2 Arrays} *)
+(* ************************************************************************* *)
+
+val array_exists: ('a -> bool) -> 'a array -> bool
+val array_existsi: (int -> 'a -> bool) -> 'a array -> bool
+
 (* ************************************************************************* *)
 (** {2 Options} *)
 (* ************************************************************************* *)
@@ -240,6 +254,19 @@ val string_del_prefix: ?strict:bool -> string -> string -> string option
       [s] and Some [s1] iff [s=p^s1].
       @since Oxygen-20120901 *)
 
+val string_suffix: ?strict:bool -> string -> string -> bool
+  (** [string_suffix ~strict suf s] returns [true] iff [suf] is a suffix of
+      string [s]. [strict], which defaults to [false], indicates whether [s]
+      should be strictly longer than [p].
+      @since Aluminium-20160501
+  *)
+
+val string_del_suffix: ?strict:bool -> string -> string -> string option
+  (** [string_del_suffix ~strict suf s] returns [Some s1] when [s = s1 ^ suf]
+      and None of [suf] is not a suffix of [s].
+      @since Aluminium-20160501
+  *)
+
 val string_split: string -> int -> string * string
 (** [string_split s i] returns the beginning of [s] up to char [i-1] and the 
     end of [s] starting from char [i+1]
@@ -274,6 +301,11 @@ val try_finally: finally:(unit -> unit) -> ('a -> 'b) -> 'a -> 'b
 (* ************************************************************************* *)
 (** System commands *)
 (* ************************************************************************* *)
+
+val safe_at_exit : (unit -> unit) -> unit
+  (** Register function to call with [Pervasives.at_exit], but only
+      for non-child process (fork). The order of execution is preserved 
+      {i wrt} ordinary calls to [Pervasives.at_exit]. *)
 
 val cleanup_at_exit: string -> unit
   (** [cleanup_at_exit file] indicates that [file] must be removed when the

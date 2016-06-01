@@ -11,21 +11,19 @@
 ------------------------------------------------------------
 
 Goal Post-condition 'b0' in 'rl1':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Post-condition 'bk' in 'rl1':
-Let x_1 = (lsr x_0 31).
+Let x_1 = lsr(x, 31).
 Assume {
-  (* Domain *)
-  Type: (is_uint32 x_0) /\ (is_uint32 x_1).
+  Type: is_uint32(x) /\ is_uint32(x_1).
   (* Goal *)
-  When: (0<=i_0) /\ (i_0<=30) /\ (is_sint32 i_0).
+  When: (0 <= i) /\ (i <= 30) /\ is_sint32(i).
 }
-Prove: (0!=(land x_0 (lsl 1 i_0)))=
-       (0!=(land (lsl 1 (1+i_0)) (lor x_1 (to_uint32 (lsl x_0 1))))).
+Prove: (0 != land(x, lsl(1, i))) <->
+    (0 != land(lsl(1, 1 + i), lor(x_1, to_uint32(lsl(x, 1))))).
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -33,36 +31,32 @@ Prove: (0!=(land x_0 (lsl 1 i_0)))=
 ------------------------------------------------------------
 
 Goal Post-condition 'b1' in 'rln32':
-Let x_1 = -n_0.
-Let x_2 = (lsr x_0 (32-n_0)).
+Let x_1 = -n.
+Let x_2 = lsr(x, 32 - n).
 Assume {
-  (* Domain *)
-  Type: (is_uint32 n_0) /\ (is_uint32 x_0) /\ (is_uint32 x_2).
+  Type: is_uint32(n) /\ is_uint32(x) /\ is_uint32(x_2).
   (* Goal *)
-  When: (i_1<n_0) /\ (0<=i_1) /\ (is_sint32 i_1).
-  (* Pre-condition 'r' in 'rln32' *)
-  (* Pre-condition 'r': *)
-  Have: (0<n_0) /\ (n_0<=31).
+  When: (i < n) /\ (0 <= i) /\ is_sint32(i).
+  (* Pre-condition 'r' *)
+  Have: (0 < n) /\ (n <= 31).
 }
-Prove: (0!=(land x_0 (lsl 1 (32+i_1-n_0))))=
-       (0!=(land (lsl 1 i_1) (lor (to_uint32 (lsl x_0 n_0)) x_2))).
+Prove: (0 != land(x, lsl(1, 32 + i - n))) <->
+    (0 != land(lsl(1, i), lor(to_uint32(lsl(x, n)), x_2))).
 
 ------------------------------------------------------------
 
 Goal Post-condition 'b2' in 'rln32':
-Let x_1 = i_0+n_0.
-Let x_2 = (lsr x_0 (32-n_0)).
+Let x_1 = i + n.
+Let x_2 = lsr(x, 32 - n).
 Assume {
-  (* Domain *)
-  Type: (is_uint32 n_0) /\ (is_uint32 x_0) /\ (is_uint32 x_2).
+  Type: is_uint32(n) /\ is_uint32(x) /\ is_uint32(x_2).
   (* Goal *)
-  When: (0<=i_0) /\ (is_sint32 i_0) /\ (x_1<=31).
-  (* Pre-condition 'r' in 'rln32' *)
-  (* Pre-condition 'r': *)
-  Have: (0<n_0) /\ (n_0<=31).
+  When: (0 <= i) /\ is_sint32(i) /\ (x_1 <= 31).
+  (* Pre-condition 'r' *)
+  Have: (0 < n) /\ (n <= 31).
 }
-Prove: (0!=(land x_0 (lsl 1 i_0)))=
-       (0!=(land (lsl 1 x_1) (lor (to_uint32 (lsl x_0 n_0)) x_2))).
+Prove: (0 != land(x, lsl(1, i))) <->
+    (0 != land(lsl(1, x_1), lor(to_uint32(lsl(x, n)), x_2))).
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -70,36 +64,32 @@ Prove: (0!=(land x_0 (lsl 1 i_0)))=
 ------------------------------------------------------------
 
 Goal Post-condition 'b1' in 'rln64':
-Let x_1 = -n_0.
-Let x_2 = (lsr x_0 (64-n_0)).
+Let x_1 = -n.
+Let x_2 = lsr(x, 64 - n).
 Assume {
-  (* Domain *)
-  Type: (is_uint64 n_0) /\ (is_uint64 x_0) /\ (is_uint64 x_2).
+  Type: is_uint64(n) /\ is_uint64(x) /\ is_uint64(x_2).
   (* Goal *)
-  When: (i_1<n_0) /\ (0<=i_1) /\ (is_sint32 i_1).
-  (* Pre-condition 'r' in 'rln64' *)
-  (* Pre-condition 'r': *)
-  Have: (0<n_0) /\ (n_0<=63).
+  When: (i < n) /\ (0 <= i) /\ is_sint32(i).
+  (* Pre-condition 'r' *)
+  Have: (0 < n) /\ (n <= 63).
 }
-Prove: (0!=(land x_0 (lsl 1 (64+i_1-n_0))))=
-       (0!=(land (lsl 1 i_1) (lor (to_uint64 (lsl x_0 n_0)) x_2))).
+Prove: (0 != land(x, lsl(1, 64 + i - n))) <->
+    (0 != land(lsl(1, i), lor(to_uint64(lsl(x, n)), x_2))).
 
 ------------------------------------------------------------
 
 Goal Post-condition 'b2' in 'rln64':
-Let x_1 = i_0+n_0.
-Let x_2 = (lsr x_0 (64-n_0)).
+Let x_1 = i + n.
+Let x_2 = lsr(x, 64 - n).
 Assume {
-  (* Domain *)
-  Type: (is_uint64 n_0) /\ (is_uint64 x_0) /\ (is_uint64 x_2).
+  Type: is_uint64(n) /\ is_uint64(x) /\ is_uint64(x_2).
   (* Goal *)
-  When: (0<=i_0) /\ (is_sint32 i_0) /\ (x_1<=63).
-  (* Pre-condition 'r' in 'rln64' *)
-  (* Pre-condition 'r': *)
-  Have: (0<n_0) /\ (n_0<=63).
+  When: (0 <= i) /\ is_sint32(i) /\ (x_1 <= 63).
+  (* Pre-condition 'r' *)
+  Have: (0 < n) /\ (n <= 63).
 }
-Prove: (0!=(land x_0 (lsl 1 i_0)))=
-       (0!=(land (lsl 1 x_1) (lor (to_uint64 (lsl x_0 n_0)) x_2))).
+Prove: (0 != land(x, lsl(1, i))) <->
+    (0 != land(lsl(1, x_1), lor(to_uint64(lsl(x, n)), x_2))).
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -107,21 +97,20 @@ Prove: (0!=(land x_0 (lsl 1 i_0)))=
 ------------------------------------------------------------
 
 Goal Post-condition 'b0' in 'rr1':
-Assume { (* Domain *) Type: (is_uint32 x_0) /\ (is_uint32 (lsr x_0 1)). }
-Prove: (bit_test x_0 0) <-> ((bit_test x_0 0) \/ (bit_test x_0 32)).
+Assume { Type: is_uint32(x) /\ is_uint32(lsr(x, 1)). }
+Prove: bit_test(x, 0) <-> (bit_test(x, 0) \/ bit_test(x, 32)).
 
 ------------------------------------------------------------
 
 Goal Post-condition 'bk' in 'rr1':
-Let x_1 = (lsr x_0 1).
+Let x_1 = lsr(x, 1).
 Assume {
-  (* Domain *)
-  Type: (is_uint32 x_0) /\ (is_uint32 x_1).
+  Type: is_uint32(x) /\ is_uint32(x_1).
   (* Goal *)
-  When: (0<=i_0) /\ (i_0<=30) /\ (is_sint32 i_0).
+  When: (0 <= i) /\ (i <= 30) /\ is_sint32(i).
 }
-Prove: (0!=(land x_0 (lsl 1 (1+i_0))))=
-       (0!=(land (lsl 1 i_0) (lor x_1 (to_uint32 (lsl x_0 31))))).
+Prove: (0 != land(x, lsl(1, 1 + i))) <->
+    (0 != land(lsl(1, i), lor(x_1, to_uint32(lsl(x, 31))))).
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -129,37 +118,32 @@ Prove: (0!=(land x_0 (lsl 1 (1+i_0))))=
 ------------------------------------------------------------
 
 Goal Post-condition 'b1' in 'rrn32':
-Let x_1 = -n_0.
-Let x_2 = (lsr x_0 n_0).
+Let x_1 = lsr(x, n).
+Let x_2 = -n.
 Assume {
-  (* Domain *)
-  Type: (is_uint32 n_0) /\ (is_uint32 x_0) /\ (is_uint32 x_2).
+  Type: is_uint32(n) /\ is_uint32(x) /\ is_uint32(x_1).
   (* Goal *)
-  When: (i_1<n_0) /\ (0<=i_1) /\ (is_sint32 i_1).
-  (* Pre-condition 'r' in 'rrn32' *)
-  (* Pre-condition 'r': *)
-  Have: (0<n_0) /\ (n_0<=31).
+  When: (i < n) /\ (0 <= i) /\ is_sint32(i).
+  (* Pre-condition 'r' *)
+  Have: (0 < n) /\ (n <= 31).
 }
-Prove: (0!=(land x_0 (lsl 1 i_1)))=
-       (0!=
-        (land (lsl 1 (32+i_1-n_0)) (lor x_2 (to_uint32 (lsl x_0 (32-n_0)))))).
+Prove: (0 != land(x, lsl(1, i))) <->
+    (0 != land(lsl(1, 32 + i - n), lor(x_1, to_uint32(lsl(x, 32 - n))))).
 
 ------------------------------------------------------------
 
 Goal Post-condition 'b2' in 'rrn32':
-Let x_1 = i_0+n_0.
-Let x_2 = (lsr x_0 n_0).
+Let x_1 = i + n.
+Let x_2 = lsr(x, n).
 Assume {
-  (* Domain *)
-  Type: (is_uint32 n_0) /\ (is_uint32 x_0) /\ (is_uint32 x_2).
+  Type: is_uint32(n) /\ is_uint32(x) /\ is_uint32(x_2).
   (* Goal *)
-  When: (0<=i_0) /\ (is_sint32 i_0) /\ (x_1<=31).
-  (* Pre-condition 'r' in 'rrn32' *)
-  (* Pre-condition 'r': *)
-  Have: (0<n_0) /\ (n_0<=31).
+  When: (0 <= i) /\ is_sint32(i) /\ (x_1 <= 31).
+  (* Pre-condition 'r' *)
+  Have: (0 < n) /\ (n <= 31).
 }
-Prove: (0!=(land x_0 (lsl 1 x_1)))=
-       (0!=(land (lsl 1 i_0) (lor x_2 (to_uint32 (lsl x_0 (32-n_0)))))).
+Prove: (0 != land(x, lsl(1, x_1))) <->
+    (0 != land(lsl(1, i), lor(x_2, to_uint32(lsl(x, 32 - n))))).
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -167,36 +151,31 @@ Prove: (0!=(land x_0 (lsl 1 x_1)))=
 ------------------------------------------------------------
 
 Goal Post-condition 'b1' in 'rrn64':
-Let x_1 = -n_0.
-Let x_2 = (lsr x_0 n_0).
+Let x_1 = lsr(x, n).
+Let x_2 = -n.
 Assume {
-  (* Domain *)
-  Type: (is_uint64 n_0) /\ (is_uint64 x_0) /\ (is_uint64 x_2).
+  Type: is_uint64(n) /\ is_uint64(x) /\ is_uint64(x_1).
   (* Goal *)
-  When: (i_1<n_0) /\ (0<=i_1) /\ (is_sint32 i_1).
-  (* Pre-condition 'r' in 'rrn64' *)
-  (* Pre-condition 'r': *)
-  Have: (0<n_0) /\ (n_0<=63).
+  When: (i < n) /\ (0 <= i) /\ is_sint32(i).
+  (* Pre-condition 'r' *)
+  Have: (0 < n) /\ (n <= 63).
 }
-Prove: (0!=(land x_0 (lsl 1 i_1)))=
-       (0!=
-        (land (lsl 1 (64+i_1-n_0)) (lor x_2 (to_uint64 (lsl x_0 (64-n_0)))))).
+Prove: (0 != land(x, lsl(1, i))) <->
+    (0 != land(lsl(1, 64 + i - n), lor(x_1, to_uint64(lsl(x, 64 - n))))).
 
 ------------------------------------------------------------
 
 Goal Post-condition 'b2' in 'rrn64':
-Let x_1 = i_0+n_0.
-Let x_2 = (lsr x_0 n_0).
+Let x_1 = i + n.
+Let x_2 = lsr(x, n).
 Assume {
-  (* Domain *)
-  Type: (is_uint64 n_0) /\ (is_uint64 x_0) /\ (is_uint64 x_2).
+  Type: is_uint64(n) /\ is_uint64(x) /\ is_uint64(x_2).
   (* Goal *)
-  When: (0<=i_0) /\ (is_sint32 i_0) /\ (x_1<=63).
-  (* Pre-condition 'r' in 'rrn64' *)
-  (* Pre-condition 'r': *)
-  Have: (0<n_0) /\ (n_0<=63).
+  When: (0 <= i) /\ is_sint32(i) /\ (x_1 <= 63).
+  (* Pre-condition 'r' *)
+  Have: (0 < n) /\ (n <= 63).
 }
-Prove: (0!=(land x_0 (lsl 1 x_1)))=
-       (0!=(land (lsl 1 i_0) (lor x_2 (to_uint64 (lsl x_0 (64-n_0)))))).
+Prove: (0 != land(x, lsl(1, x_1))) <->
+    (0 != land(lsl(1, i), lor(x_2, to_uint64(lsl(x, 64 - n))))).
 
 ------------------------------------------------------------

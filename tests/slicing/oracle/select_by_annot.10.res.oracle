@@ -10,7 +10,7 @@
   Y9 ∈ [--..--]
   Z9 ∈ [--..--]
   d ∈ [--..--]
-tests/slicing/select_by_annot.c:133:[value] Assertion got status valid.
+tests/slicing/select_by_annot.c:133:[value] assertion got status valid.
 tests/slicing/select_by_annot.c:137:[kernel] warning: signed overflow. assert (int)((int)(a+b)+c)+d ≤ 2147483647;
 [value] computing for function modifS <- main.
         Called from tests/slicing/select_by_annot.c:138.
@@ -24,12 +24,12 @@ tests/slicing/select_by_annot.c:140:[kernel] warning: Neither code nor specifica
 [value] Done for function new_int
 [value] computing for function f1 <- main.
         Called from tests/slicing/select_by_annot.c:141.
-tests/slicing/select_by_annot.c:29:[value] Assertion got status unknown.
+tests/slicing/select_by_annot.c:29:[value] warning: assertion got status unknown.
 [value] Recording results for f1
 [value] Done for function f1
 [value] computing for function f2 <- main.
         Called from tests/slicing/select_by_annot.c:142.
-tests/slicing/select_by_annot.c:39:[value] Assertion got status unknown.
+tests/slicing/select_by_annot.c:39:[value] warning: assertion got status unknown.
 [value] Recording results for f2
 [value] Done for function f2
 [value] computing for function f3 <- main.
@@ -56,9 +56,9 @@ tests/slicing/select_by_annot.c:88:[kernel] warning: signed overflow. assert Sa+
 [value] Done for function f7
 [value] computing for function f8 <- main.
         Called from tests/slicing/select_by_annot.c:148.
-tests/slicing/select_by_annot.c:97:[value] Loop invariant got status unknown.
+tests/slicing/select_by_annot.c:97:[value] warning: loop invariant got status unknown.
 tests/slicing/select_by_annot.c:99:[value] entering loop for the first time
-tests/slicing/select_by_annot.c:100:[value] Assertion got status unknown.
+tests/slicing/select_by_annot.c:100:[value] warning: assertion got status unknown.
 tests/slicing/select_by_annot.c:104:[kernel] warning: signed overflow. assert S.a+1 ≤ 2147483647;
 [value] Recording results for f8
 [value] Done for function f8

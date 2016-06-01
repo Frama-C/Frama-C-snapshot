@@ -30,7 +30,22 @@ enum aorai_OpStatusList {
       assumes 0 ≡ S0 ∨ ¬(x ≥ 4);
       ensures 0 ≡ Sf;
  */
-extern void f_pre_func(int x);
+void f_pre_func(int x)
+{
+  /*@ ghost int S0_tmp; */
+  /*@ ghost int Sf_tmp; */
+  aorai_CurOpStatus = aorai_Called;
+  aorai_CurOperation = op_f;
+  S0_tmp = S0;
+  Sf_tmp = Sf;
+  if (S0 == 1) 
+    if (x >= 4) Sf_tmp = 1; else Sf_tmp = 0;
+  else Sf_tmp = 0;
+  S0_tmp = 0;
+  S0 = S0_tmp;
+  Sf = Sf_tmp;
+  return;
+}
 
 /*@ requires 1 ≡ Sf ∧ 0 ≡ S0;
     ensures aorai_CurOpStatus ≡ aorai_Terminated;
@@ -48,7 +63,20 @@ extern void f_pre_func(int x);
       assumes 0 ≡ Sf;
       ensures 0 ≡ Sf;
  */
-extern void f_post_func(int res);
+void f_post_func(int res)
+{
+  /*@ ghost int S0_tmp; */
+  /*@ ghost int Sf_tmp; */
+  aorai_CurOpStatus = aorai_Terminated;
+  aorai_CurOperation = op_f;
+  S0_tmp = S0;
+  Sf_tmp = Sf;
+  if (Sf == 1) Sf_tmp = 1; else Sf_tmp = 0;
+  S0_tmp = 0;
+  S0 = S0_tmp;
+  Sf = Sf_tmp;
+  return;
+}
 
 /*@ requires 1 ≡ S0 ∧ 0 ≡ Sf;
     requires 1 ≡ S0 ⇒ x ≥ 4;

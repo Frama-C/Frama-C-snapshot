@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of WP plug-in of Frama-C.                           #
 #                                                                        #
-#  Copyright (C) 2007-2015                                               #
+#  Copyright (C) 2007-2016                                               #
 #    CEA (Commissariat a l'energie atomique et aux energies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -51,11 +51,12 @@ dot:  depend.pdf
 Qed.cmo: $(LBO) $(CMO) $(CML)
 	$(OCAMLC) -pack -o $@ $(LBO) $(CML) $(CMO)
 
+# force byte compilation
 ifeq ($(PACK),no)
-Qed.cmx: $(LBX) $(CMX) $(CML)
+Qed.cmx: Qed.cmo $(LBX) $(CMX) $(CML)
 	$(OCAMLOPT) -pack -o $@ $(LBX) $(CML) $(CMX)
 else
-Qed.cmx: $(LBX) $(CMX) $(CML)
+Qed.cmx: Qed.cmo $(LBX) $(CMX) $(CML)
 	$(OCAMLOPT) -pack -for-pack $(PACK) -o $@ $(LBX) $(CML) $(CMX)
 endif
 
@@ -63,9 +64,9 @@ endif
 	@mkdir -p ../bin
 	cp Qed.cmo Qed.cmi ../bin/
 
-../bin/Qed.cmx: Qed.cmx
-	@mkdir -p ../bin
-	cp Qed.cmx Qed.cmi Qed.o ../bin/
+# force byte installation
+../bin/Qed.cmx: Qed.cmx ../bin/Qed.cmo
+	cp Qed.cmx Qed.o ../bin/
 
 ../html/index.html: $(DOC) Makefile feedback.ml
 	@rm -fr ../html
@@ -88,7 +89,7 @@ clean::
 distclean::
 	rm -f ../bin/Qed.*
 
-OPTML= -annot -w PSUZ+7-3 -warn-error PSUZ+7-3
+OPTML= -bin-annot -w PSUZ+7-3 -warn-error PSUZ+7-3
 INCLUDES=
 OPTCMI=
 OPTCMO=

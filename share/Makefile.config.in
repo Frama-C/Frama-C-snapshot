@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2015                                               #
+#  Copyright (C) 2007-2016                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -56,7 +56,6 @@ EMACS_DATADIR	?=$(DATADIR)/emacs/site-lisp
 FRAMAC_DEFAULT_CPP ?=@FRAMAC_DEFAULT_CPP@
 FRAMAC_GNU_CPP ?=@FRAMAC_GNU_CPP@
 DEFAULT_CPP_KEEP_COMMENTS?=@DEFAULT_CPP_KEEP_COMMENTS@
-FC_MCPP ?=@FC_MCPP@
 CC =@CC@
 
 ###############
@@ -111,6 +110,10 @@ HAS_GNOMECANVAS	?=@HAS_GNOMECANVAS@
 # zarith
 HAS_ZARITH	?=@HAS_ZARITH@
 ZARITH_PATH	?=@ZARITH_PATH@
+
+# apron
+HAS_APRON	?=@HAS_APRON@
+APRON_PATH	?=@APRON_PATH@
 
 ##########################
 # Miscellaneous commands #

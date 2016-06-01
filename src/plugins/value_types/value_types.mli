@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -62,6 +62,11 @@ type call_result = {
 
   c_cacheable: cacheable
     (** Is it possible to cache the result of this call? *);
+
+  c_from: (Function_Froms.froms * Locations.Zone.t) option
+    (** If not None, the froms of the function, and its sure outputs;
+        i.e. the dependencies of the result, and the dependencies
+        of each zone written to. *)
 }
 
 

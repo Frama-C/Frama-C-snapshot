@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -33,13 +33,14 @@ Require real.RealInfix.
 Require real.FromInt.
 
 (* Why3 goal *)
-Definition ite: forall {a:Type} {a_WT:WhyType a}, bool -> a -> a -> a.
+Definition match_bool: forall {a:Type} {a_WT:WhyType a}, bool -> a -> a -> a.
 exact (fun _ _ b x y => if b then x else y).
 Defined.
 
 (* Why3 goal *)
-Lemma ite1 : forall {a:Type} {a_WT:WhyType a}, forall (p:bool) (x:a) (y:a),
-  ((p = true) /\ ((ite p x y) = x)) \/ ((p = false) /\ ((ite p x y) = y)).
+Lemma match_bool1 : forall {a:Type} {a_WT:WhyType a}, forall (p:bool) (x:a)
+  (y:a), ((p = true) /\ ((match_bool p x y) = x)) \/ ((p = false) /\
+  ((match_bool p x y) = y)).
 Proof.
   intros a a_WT p x y.
   destruct p; intuition.

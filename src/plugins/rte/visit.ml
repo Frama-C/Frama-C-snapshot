@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -196,7 +196,60 @@ module KfPrecondBehaviors =
     (Datatype.String) (* Behavior *)
     (struct let module_name = "Rte.KfBehaviors" end)
 
-class annot_visitor kf = object (self)
+type to_annotate = {
+  mem_access: bool;
+  div_mod: bool;
+  shift: bool;
+  signed_ov: bool;
+  unsigned_ov: bool;
+  signed_downcast: bool;
+  unsigned_downcast: bool;
+  float_to_int: bool;
+  precond: bool;
+}
+
+let annotate_nothing = {
+  mem_access = false;
+  div_mod = false;
+  shift = false;
+  signed_ov = false;
+  unsigned_ov = false;
+  signed_downcast = false;
+  unsigned_downcast = false;
+  float_to_int = false;
+  precond = false;
+}
+
+let annotate_all = {
+  mem_access = true;
+  div_mod = true;
+  shift = true;
+  signed_ov = true;
+  unsigned_ov = true;
+  signed_downcast = true;
+  unsigned_downcast = true;
+  float_to_int = true;
+  precond = true;
+}
+
+(** Which annotations should be added, deduced from the options of RTE and
+    the kernel itself. *)
+let annotate_from_options () = {
+  mem_access = Options.DoMemAccess.get ();
+  div_mod = Options.DoDivMod.get ();
+  shift = Options.DoShift.get ();
+  signed_ov = Kernel.SignedOverflow.get ();
+  unsigned_ov = Kernel.UnsignedOverflow.get ();
+  signed_downcast = Kernel.SignedDowncast.get ();
+  unsigned_downcast = Kernel.UnsignedDowncast.get ();
+  float_to_int = Options.DoFloatToInt.get ();
+  precond = Options.DoCalledPrecond.get ();
+}
+
+(** [kf]: function to annotate
+    [to_annot]: which RTE to generate.
+    [register]: the action to perform on each RTE alarm *)
+class annot_visitor kf to_annot on_alarm = object (self)
 
   inherit Visitor.frama_c_inplace
 
@@ -208,34 +261,32 @@ class annot_visitor kf = object (self)
   method private must_skip exp = Exp.Set.mem exp skip_set
 
   method private do_mem_access () =
-    Options.DoMemAccess.get () && not (Generator.Mem_access.is_computed kf)
-
-  method private do_called_precond () =
-    Options.DoCalledPrecond.get ()
-  && not (Generator.Called_precond.is_computed kf)
+    to_annot.mem_access && not (Generator.Mem_access.is_computed kf)
 
   method private do_div_mod () =
-    Options.DoDivMod.get () && not (Generator.Div_mod.is_computed kf)
+    to_annot.div_mod && not (Generator.Div_mod.is_computed kf)
 
   method private do_shift () =
-    Options.DoShift.get () && not (Generator.Shift.is_computed kf)
+    to_annot.shift && not (Generator.Shift.is_computed kf)
 
   method private do_signed_overflow () =
-    Kernel.SignedOverflow.get () && not (Generator.Signed.is_computed kf)
+    to_annot.signed_ov && not (Generator.Signed_overflow.is_computed kf)
 
   method private do_unsigned_overflow () =
-    Kernel.UnsignedOverflow.get () &&
-      not (Generator.Unsigned_overflow.is_computed kf)
+    to_annot.unsigned_ov && not (Generator.Unsigned_overflow.is_computed kf)
 
-  method private do_downcast () =
-    Kernel.SignedDowncast.get () && not (Generator.Downcast.is_computed kf)
+  method private do_signed_downcast () =
+    to_annot.signed_downcast && not (Generator.Signed_downcast.is_computed kf)
 
-  method private do_unsigned_downcast () = 
-    Kernel.UnsignedDowncast.get () &&
-      not (Generator.Unsigned_downcast.is_computed kf)
+  method private do_unsigned_downcast () =
+    to_annot.unsigned_downcast &&
+    not (Generator.Unsigned_downcast.is_computed kf)
 
   method private do_float_to_int () =
-    Options.DoFloatToInt.get () && not (Generator.Float_to_int.is_computed kf)
+    to_annot.float_to_int && not (Generator.Float_to_int.is_computed kf)
+
+  method private do_called_precond () =
+    to_annot.precond && not (Generator.Called_precond.is_computed kf)
 
   method private queue_stmt_spec spec =
     let stmt = Extlib.the (self#current_stmt) in
@@ -556,12 +607,11 @@ class annot_visitor kf = object (self)
     with Exit -> 
       None
 
-  method private generate_assertion: 'a 'b. ('a, 'b) Rte.alarm_gen -> 'a -> 'b =
+  method private generate_assertion: 'a. 'a Rte.alarm_gen -> 'a -> unit =
     let remove_trivial = not (Options.Trivial.get ()) in
-    let warning = Options.Warn.get () in
-    fun f ->
-      let kinstr = self#current_kinstr in
-      f ~remove_trivial ~warning kf kinstr
+    fun fgen ->
+      let on_alarm ?status a = on_alarm self#current_kinstr ?status a in
+      fgen ~remove_trivial ~on_alarm
 
   method! vstmt s = match s.skind with
   | UnspecifiedSequence l ->
@@ -718,25 +768,17 @@ class annot_visitor kf = object (self)
       (match Cil.unrollType ty, Cil.unrollType (Cil.typeOf e) with 
       | TInt(kind,_), TInt (_, _) ->
         if Cil.isSigned kind then begin
-	  if self#do_downcast () then
-	    let alarm =
-              self#generate_assertion Rte.signed_downcast_assertion (ty, e)
-            in
-	    if alarm then self#mark_to_skip e
-	end
-        else
-	  if self#do_unsigned_downcast () then
-	    let alarm =
-	      self#generate_assertion Rte.unsigned_downcast_assertion (ty, e)
-	    in
-            if alarm then () (* self#mark_to_skip e *)
+          if self#do_signed_downcast () then begin
+            self#generate_assertion Rte.signed_downcast_assertion (ty, e);
+            self#mark_to_skip e;
+          end
+        end
+        else if self#do_unsigned_downcast () then
+          self#generate_assertion Rte.unsigned_downcast_assertion (ty, e)
 
       | TInt _, TFloat _ ->
         if self#do_float_to_int () then
-          let _alarm =
-            self#generate_assertion Rte.float_to_int_assertion (ty, e)
-          in
-          ()
+          self#generate_assertion Rte.float_to_int_assertion (ty, e)
 
       | _ -> ());
       Cil.DoChildren
@@ -761,159 +803,109 @@ let rte_annotations stmt =
     stmt
     []
 
+
+(** {2 List of all RTEs on a given Cil object} *)
+
 let get_annotations from kf stmt x =
-  Rte.reset_generated_annotations ();
-  let old = !Rte.save_alarms in
-  Rte.save_alarms := false;
+  let to_annot = annotate_from_options () in
+  (* Accumulator containing all the code_annots corresponding to an alarm
+     emitted so far. *)
+  let code_annots = ref [] in
+  let on_alarm ki ?status:_ alarm =
+    let ca, _ = Alarms.to_annot ki alarm in
+    code_annots := ca :: !code_annots;
+  in
   let o = object (self)
-    inherit annot_visitor kf
+    inherit annot_visitor kf to_annot on_alarm
     initializer self#push_stmt stmt
   end in
   ignore (from (o :> Cil.cilVisitor) x);
-  Rte.save_alarms := old;
-  Rte.generated_annotations ()
+  !code_annots
 
 let do_stmt_annotations kf stmt =
   get_annotations Cil.visitCilStmt kf stmt stmt
 
 let do_exp_annotations = get_annotations Cil.visitCilExpr
 
-let check_compute kf get is_computed set update_acc =
-(*  feedback "get %b / doall %b / is_computed %b"
-    (get ())
-    (DoAll.get ())
-    (is_computed kf);*)
-  if get () && not (is_computed kf) then
-    true, (fun () -> update_acc (); set kf true)
-  else
-    false, update_acc
-    
-let annotate_kf kf =
-  (* generates annotation for function kf on the basis of command-line
-     options *) 
+
+(** {2 Annotations of kernel_functions for a given type of RTE} *)
+
+(* generates annotation for function kf on the basis of [to_annot] *)
+let annotate_kf_aux to_annot kf =
   Options.debug "annotating function %a" Kernel_function.pretty kf;
-  (* add annotations *)
   match kf.fundec with
   | Declaration _ -> ()
-  | Definition(f, _) -> 
-    let update = ref (fun () -> ()) in
-    let module Check
-	(M: Generator.S)
-	(P: sig val get: unit -> bool end)
-      = struct
-      let compute () = 
-	let get () = P.get () in
-	let b, u = check_compute kf get M.is_computed M.set !update in
-	update := u;
-	b
-    end in
-    let must_run1 = 
-      let module C = Check(Generator.Signed)(Kernel.SignedOverflow) in 
-      C.compute ()
+  | Definition(f, _) ->
+    (* This reference contains all the RTE statuses that should be positioned
+       once this function has been annotated. *)
+    let to_update = ref [] in
+    (* Check whether there is something to compute + lists all the statuses
+       that will be ultimately updated *)
+    let comp (_name, set, is_computed) should_compute =
+      if should_compute && not (is_computed kf) then begin
+        to_update := (fun () -> set kf true) :: !to_update;
+        true
+      end
+      else false
     in
-    let must_run2 = 
-      let module C = Check(Generator.Mem_access)(Options.DoMemAccess) in 
-      C.compute ()
-    in
-    let must_run3 =
-      let module C = Check(Generator.Div_mod)(Options.DoDivMod) in 
-      C.compute ()
-    in
-    let must_run3bis =
-      let module C = Check(Generator.Shift)(Options.DoShift) in
-      C.compute ()
-    in
-    let must_run4 =
-      let module C = Check (Generator.Downcast)(Kernel.SignedDowncast) in 
-      C.compute ()
-    in 
-    let must_run5 =
-      let module C =
-        Check(Generator.Unsigned_overflow)(Kernel.UnsignedOverflow) 
-      in 
-      C.compute ()
-    in
-    let must_run6 =
-      let module C =
-        Check(Generator.Unsigned_downcast)(Kernel.UnsignedDowncast) 
-      in 
-      C.compute ()
-    in
-    let must_run7 =
-      let module C =
-        Check(Generator.Float_to_int)(Options.DoFloatToInt) 
-      in 
-      C.compute ()
-    in
-    let must_run8 =
-      let module C = Check(Generator.Called_precond)(Options.DoCalledPrecond) in
-      C.compute ()
-    in
-    if must_run1 || must_run2 || must_run3  || must_run3bis
-      || must_run4 || must_run5 
-      || must_run6 || must_run7 || must_run8
+    (* Strict version of ||, because [comp] has side-effects *)
+    let (|||) a b = a || b in
+    if comp Generator.mem_access_status to_annot.mem_access |||
+       comp Generator.div_mod_status to_annot.div_mod |||
+       comp Generator.shift_status to_annot.shift |||
+       comp Generator.signed_overflow_status to_annot.signed_ov |||
+       comp Generator.signed_downcast_status to_annot.signed_downcast |||
+       comp Generator.unsigned_overflow_status to_annot.unsigned_ov |||
+       comp Generator.unsigned_downcast_status to_annot.unsigned_downcast |||
+       comp Generator.float_to_int_status to_annot.float_to_int |||
+       comp Generator.precond_status to_annot.precond
     then begin
       Options.feedback "annotating function %a" Kernel_function.pretty kf;
-      let vis = new annot_visitor kf in
+      let warn = Options.Warn.get () in
+      let on_alarm ki ?status alarm =
+        let ca, _ = Alarms.register Generator.emitter ~kf ki ?status alarm in
+        match warn, status with
+        | true, Some Property_status.False_if_reachable ->
+          Options.warn "@[guaranteed RTE:@ %a@]"
+            Printer.pp_code_annotation ca
+        | _ -> ()
+      in
+      let vis = new annot_visitor kf to_annot on_alarm in
       let nkf = Visitor.visitFramacFunction vis f in
       assert(nkf == f);
-      !update ()
+      List.iter (fun f -> f ()) !to_update;
     end
 
-let do_precond kf =
-  (* annotate call sites with contracts, for a given function *)
-  let old_signed = Generator.Signed.is_computed kf in
-  Generator.Signed.set kf true;
-  let old_mem = Generator.Mem_access.is_computed kf in
-  Generator.Mem_access.set kf true;
-  let old_divmod = Generator.Div_mod.is_computed kf in
-  Generator.Div_mod.set kf true;
-  let old_uo = Generator.Unsigned_overflow.is_computed kf in
-  Generator.Unsigned_overflow.set kf true;
-  let old_ud = Generator.Unsigned_downcast.is_computed kf in
-  Generator.Unsigned_downcast.set kf true;
-  let old_downcast = Generator.Downcast.is_computed kf in
-  Generator.Downcast.set kf true;
-  let old_float_to_int = Generator.Float_to_int.is_computed kf in
-  Generator.Float_to_int.set kf true;
-  (* TODO: Why is this option set to true without being restored later? *)
-  Options.DoCalledPrecond.on ();
-  annotate_kf kf;
-  Generator.Signed.set kf old_signed;
-  Generator.Mem_access.set kf old_mem;
-  Generator.Div_mod.set kf old_divmod;
-  Generator.Unsigned_overflow.set kf old_uo;
-  Generator.Unsigned_downcast.set kf old_ud;
-  Generator.Downcast.set kf old_downcast;
-  Generator.Float_to_int.set kf old_float_to_int
+(* generates annotation for function kf on the basis of command-line options *)
+let annotate_kf kf =
+  annotate_kf_aux (annotate_from_options ()) kf
 
+(* annotate call sites with contracts, for a given function *)
+let do_precond kf =
+  annotate_kf_aux { annotate_nothing with precond = true } kf
+
+(* annonate for all rte + unsigned overflows (which are not rte), for a given
+   function *)
 let do_all_rte kf =
-  (* annonate for all rte + unsigned overflows (which are not rte), for a given
-     function *) 
-  Options.DoAll.on ();
-  Kernel.SignedOverflow.off ();
-  let old_ud = Generator.Unsigned_downcast.is_computed kf in
-  Generator.Unsigned_downcast.set kf true;
-  let old_called = Generator.Called_precond.is_computed kf in
-  Generator.Called_precond.set kf true;
-  annotate_kf kf;
-  Generator.Unsigned_downcast.set kf old_ud;
-  Generator.Called_precond.set kf old_called
-    
-let do_rte kf = 
-  (* annotate for rte only (not unsigned overflows and downcasts) for a given
-     function *)
-  Options.DoAll.on ();
-  let old_uo = Generator.Unsigned_overflow.is_computed kf in
-  Generator.Unsigned_overflow.set kf true;
-  let old_ud = Generator.Unsigned_downcast.is_computed kf in
-  Generator.Unsigned_downcast.set kf true;
-  let old_called = Generator.Called_precond.is_computed kf in
-  Generator.Called_precond.set kf true;
-  annotate_kf kf;
-  Generator.Unsigned_overflow.set kf old_uo;
-  Generator.Unsigned_downcast.set kf old_ud;
-  Generator.Called_precond.set kf old_called
+  let to_annot =
+    { annotate_all with
+      signed_downcast = false;
+      unsigned_downcast = false;
+      precond = false }
+  in
+  annotate_kf_aux to_annot kf
+
+(* annotate for rte only (not unsigned overflows and downcasts) for a given
+   function *)
+let do_rte kf =
+  let to_annot =
+    { annotate_all with
+      unsigned_ov = false;
+      signed_downcast = false;
+      unsigned_downcast = false;
+      precond = false }
+  in
+  annotate_kf_aux to_annot kf
 
 let compute () =
   (* compute RTE annotations, whether Enabled is set or not *)

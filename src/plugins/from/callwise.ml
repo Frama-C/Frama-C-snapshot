@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -64,26 +64,33 @@ let record_callwise_dependencies_in_db call_site froms =
     Tbl.replace call_site (Function_Froms.join previous froms)
   with Not_found -> Tbl.add call_site froms
 
-let call_for_individual_froms (value_initial_state, call_stack) =
+let call_for_individual_froms (call_type, value_initial_state, call_stack) =
   if From_parameters.ForceCallDeps.get () then begin
     let current_function, call_site = List.hd call_stack in
-    if not (!Db.Value.use_spec_instead_of_definition current_function) then
+    let register_from froms =
+      try
+        let { table_for_calls = table } = List.hd !call_froms_stack in
+        merge_call_froms table call_site froms;
+        record_callwise_dependencies_in_db call_site froms;
+      with Failure _ ->
+        From_parameters.fatal
+          "calldeps internal error 23 empty callfromsstack %a"
+          Kernel_function.pretty current_function
+    in
+    match call_type with
+    | `Def | `Memexec -> 
       let table_for_calls = Kinstr.Hashtbl.create 7 in
       call_froms_stack :=
         { current_function; value_initial_state; table_for_calls } ::
-          !call_froms_stack
-    else
-      try
-        let { table_for_calls = table } = List.hd !call_froms_stack in
+        !call_froms_stack
+    | `Builtin { Value_types.c_from = Some (result,_) } ->
+       register_from result
+    | `Spec | `Builtin { Value_types.c_from = None } ->
         let froms =
           From_compute.compute_using_prototype_for_state
             value_initial_state current_function
         in
-        merge_call_froms table call_site froms;
-        record_callwise_dependencies_in_db call_site froms;
-      with Failure "hd" ->
-        From_parameters.fatal "calldeps internal error 23 empty callfromsstack %a"
-          Kernel_function.pretty current_function
+        register_from froms
   end
 
 let end_record call_stack froms =
@@ -172,7 +179,7 @@ let record_for_individual_froms (call_stack, value_res) =
 let () = From_parameters.ForceCallDeps.add_update_hook
   (fun _bold bnew ->
     if bnew then begin
-      Db.Value.Call_Value_Callbacks.extend_once call_for_individual_froms;
+      Db.Value.Call_Type_Value_Callbacks.extend_once call_for_individual_froms;
       Db.Value.Record_Value_Callbacks_New.extend_once
         record_for_individual_froms;
     end)

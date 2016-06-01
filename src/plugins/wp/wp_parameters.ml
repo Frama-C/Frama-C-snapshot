@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -28,7 +28,7 @@ include Plugin.Register
       let name = "WP"
       let shortname = "wp"
       let help = "Weakest Precondition Calculus\n\
-                  WP 0.9 for " ^ Config.version
+                  WP 1.0 for " ^ Config.version
     end)
 
 (* localize all warnings inside WP *)
@@ -40,18 +40,7 @@ let warning ?current = match current with
 let resetdemon = ref []
 let on_reset f = resetdemon := f :: !resetdemon
 let reset () = List.iter (fun f -> f ()) !resetdemon
-
-module Log =
-  String_set
-    (struct
-      let option_name = "-wp-log"
-      let arg_name = "..."
-      let help = "Log Specific informations"
-    end)
-
-let has_dkey k =
-  Datatype.String.Set.mem k (Log.get()) ||
-  Datatype.String.Set.mem k (Debug_category.get())
+let has_dkey k = Datatype.String.Set.mem k (Debug_category.get())
 
 (* ------------------------------------------------------------------------ *)
 (* ---  WP Generation                                                   --- *)
@@ -467,17 +456,6 @@ module Timeout =
   end)
 
 let () = Parameter_customize.set_group wp_prover
-module CoqTimeout =
-  Int(struct
-    let option_name = "-wp-coq-timeout"
-    let default = 30
-    let arg_name = "n"
-    let help =
-      Printf.sprintf
-        "Set the timeout (in seconds) for Coq (default: %d)." default
-  end)
-
-let () = Parameter_customize.set_group wp_prover
 module Procs =
   Int(struct
     let option_name = "-wp-par"
@@ -497,12 +475,12 @@ module ProofTrace =
     end)
 
 (* ------------------------------------------------------------------------ *)
-(* ---  Prover Libraries                                                --- *)
+(* ---  Prover Options                                                  --- *)
 (* ------------------------------------------------------------------------ *)
 
-let wp_proverlibs = add_group "Prover Libraries"
+let wp_prover_options = add_group "Prover Options"
 
-let () = Parameter_customize.set_group wp_proverlibs
+let () = Parameter_customize.set_group wp_prover_options
 module Script =
   String(struct
     let option_name = "-wp-script"
@@ -511,14 +489,60 @@ module Script =
     let help = "Set user's file for Coq proofs."
   end)
 
-let () = Parameter_customize.set_group wp_proverlibs
+let () = Parameter_customize.set_group wp_prover_options
 module UpdateScript =
   True(struct
     let option_name = "-wp-update-script"
     let help = "If turned off, do not save or modify user's proofs."
   end)
 
-let () = Parameter_customize.set_group wp_proverlibs
+let () = Parameter_customize.set_group wp_prover_options
+module CoqTimeout =
+  Int(struct
+    let option_name = "-wp-coq-timeout"
+    let default = 30
+    let arg_name = "n"
+    let help =
+      Printf.sprintf
+        "Set the timeout (in seconds) for Coq (default: %d)." default
+  end)
+
+let () = Parameter_customize.set_group wp_prover_options
+module CoqCompiler =
+  String(struct
+    let option_name = "-wp-coqc"
+    let default = "coqc"
+    let arg_name = "cmd"
+    let help =
+      Printf.sprintf
+        "Set the command line to run Coq Compiler (default 'coqc')."
+  end)
+
+let () = Parameter_customize.set_group wp_prover_options
+module CoqIde =
+  String(struct
+    let option_name = "-wp-coqide"
+    let default = "coqide"
+    let arg_name = "cmd"
+    let help =
+      Printf.sprintf
+        "Set the command line to run CoqIde (default 'coqide')\n\
+         If the command-line contains 'emacs' (case insentive),\n\
+         a coq-project file is used instead of coq options."
+  end)
+
+let () = Parameter_customize.set_group wp_prover_options
+module CoqProject =
+  String(struct
+    let option_name = "-wp-coq-project"
+    let default = "_CoqProject"
+    let arg_name = "file"
+    let help =
+      Printf.sprintf
+        "Set the Coq-Project file to used with Proof General (default '_CoqProject')"
+  end)
+
+let () = Parameter_customize.set_group wp_prover_options
 module CoqTactic =
   String
     (struct
@@ -528,7 +552,7 @@ module CoqTactic =
       let help = "Default tactic for Coq"
     end)
 
-let () = Parameter_customize.set_group wp_proverlibs
+let () = Parameter_customize.set_group wp_prover_options
 module TryHints =
   False
     (struct
@@ -536,7 +560,7 @@ module TryHints =
       let help = "Try scripts from other goals (see also -wp-hints)"
     end)
 
-let () = Parameter_customize.set_group wp_proverlibs
+let () = Parameter_customize.set_group wp_prover_options
 module Hints =
   Int
     (struct
@@ -546,7 +570,7 @@ module Hints =
       let help = "Maximum number of proposed Coq scripts (default 3)"
     end)
 
-let () = Parameter_customize.set_group wp_proverlibs
+let () = Parameter_customize.set_group wp_prover_options
 module Includes =
   String_list
     (struct
@@ -555,7 +579,7 @@ module Includes =
       let help = "Directory where to find libraries and drivers for provers"
     end)
 
-let () = Parameter_customize.set_group wp_proverlibs
+let () = Parameter_customize.set_group wp_prover_options
 module CoqLibs =
   String_list
     (struct
@@ -564,7 +588,16 @@ module CoqLibs =
       let help = "Additional libraries for Coq"
     end)
 
-let () = Parameter_customize.set_group wp_proverlibs
+let () = Parameter_customize.set_group wp_prover_options
+module Why3 =
+  String(struct
+    let option_name = "-wp-why3"
+    let default = "why3" 
+    let arg_name = "cmd"
+    let help = "Command to run Why-3 (default: 'why3')"
+  end)
+
+let () = Parameter_customize.set_group wp_prover_options
 module WhyLibs =
   String_list
     (struct
@@ -573,7 +606,7 @@ module WhyLibs =
       let help = "Additional libraries for Why"
     end)
 
-let () = Parameter_customize.set_group wp_proverlibs
+let () = Parameter_customize.set_group wp_prover_options
 let () = Parameter_customize.no_category ()
 module WhyFlags =
   String_list
@@ -583,7 +616,25 @@ module WhyFlags =
       let help = "Additional options for Why3"
     end)
 
-let () = Parameter_customize.set_group wp_proverlibs
+let () = Parameter_customize.set_group wp_prover_options
+module AltErgo =
+  String(struct
+    let option_name = "-wp-alt-ergo"
+    let default = "alt-ergo" 
+    let arg_name = "<cmd>"
+    let help = "Command to run alt-ergo (default: 'alt-ergo')"
+  end)
+
+let () = Parameter_customize.set_group wp_prover_options
+module AltGrErgo =
+  String(struct
+    let option_name = "-wp-altgr-ergo"
+    let default = "altgr-ergo" 
+    let arg_name = "<cmd>"
+    let help = "Command to run alt-ergo user interface (default: 'altgr-ergo')"
+  end)
+
+let () = Parameter_customize.set_group wp_prover_options
 module AltErgoLibs =
   String_list
     (struct
@@ -592,7 +643,7 @@ module AltErgoLibs =
       let help = "Additional library file for Alt-Ergo"
     end)
 
-let () = Parameter_customize.set_group wp_proverlibs
+let () = Parameter_customize.set_group wp_prover_options
 let () = Parameter_customize.no_category ()
 module AltErgoFlags =
   String_list
@@ -648,6 +699,15 @@ module ReportName =
   end)
 
 let () = Parameter_customize.set_group wp_po
+let () = Parameter_customize.do_not_save ()
+module Separation =
+  False
+    (struct
+      let option_name = "-wp-print-separation"
+      let help = "Print Separation Hypotheses"
+    end)
+
+let () = Parameter_customize.set_group wp_po
 module OutputDir =
   String(struct
     let option_name = "-wp-out"
@@ -686,7 +746,7 @@ let get_env ?default var =
         debug ~dkey "ENV %s undefined." var ;
         raise Not_found
 
-let dkey = register_category "out"
+let dkey = register_category "prover"
 
 let is_out () = !Fc_config.is_gui || OutputDir.get() <> ""
 
@@ -701,9 +761,11 @@ let make_output_dir dir =
       try
         Unix.mkdir dir 0o770 ;
         debug ~dkey "Created output directory '%s'" dir
-      with e ->
-        debug ~dkey "System error '%s'" (Printexc.to_string e) ;
-        abort "Can not create output directory '%s'" dir
+      with Unix.Unix_error (err,_,_) ->
+        let msg = Unix.error_message err in
+        abort
+          "System Error (%s)@\nCan not create output directory '%s'"
+          msg dir
     end
 
 (*[LC] Do not projectify this reference : it is common to all projects *)
@@ -714,8 +776,11 @@ let make_tmp_dir () =
       let tmp =
         try Extlib.temp_dir_cleanup_at_exit "wp"
         with Extlib.Temp_file_error s ->
-          abort "cannot create temporary file: %s" s
-      in unique_tmp := Some tmp ; tmp
+          abort "Cannot create temporary file: %s" s
+      in
+      unique_tmp := Some tmp ;
+      debug ~dkey "Created temporary directory '%s'" tmp ;
+      tmp
   | Some tmp -> tmp
 
 let make_gui_dir () =
@@ -774,17 +839,10 @@ let get_includes () =
 let cat_print_generated = register_category "print-generated"
 
 let print_generated file =
-  debug2 ~dkey:cat_print_generated
+  debug ~dkey:cat_print_generated
     "%a@."
     (fun fmt file ->
        Command.read_lines file (fun s ->
            Format.pp_print_string fmt s;
            Format.pp_print_newline fmt ()))
     file;
-
-
-(*
-Local Variables:
-compile-command: "make -C ../../.."
-End:
-*)

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -19,6 +19,8 @@
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
+
+open Widget
 
 (* -------------------------------------------------------------------------- *)
 (* --- PO Details View                                                    --- *)
@@ -44,12 +46,12 @@ let icon = function
 
 class prover prv =
   let label  = VCS.name_of_prover prv in
-  let button = new Toolbox.button ~label () in
+  let button = new Widget.button ~label () in
   object(self)
     val mutable state = PS_nogoal
     val mutable run = (fun _ _ -> ())
     val mutable log = (fun _ _ -> ())
-    method widget = (button :> Toolbox.widget)
+    method widget = (button :> widget)
     method set_display = function
       | DSP_nogoal ->
           begin
@@ -118,9 +120,9 @@ class prover prv =
   end
 
 class pane () =
-  let goal = new Toolbox.button ~tooltip:"Proof Obligation" ~icon:`FILE () in
+  let goal = new Widget.button ~tooltip:"Proof Obligation" ~icon:`FILE () in
   let title = GMisc.label ~xalign:0.0 ~text:"Goal" () in
-  let text = new Toolbox.text () in
+  let text = new Wtext.text () in
   let () = text#set_font "Monospace" in
   let hbox = GPack.hbox ~show:true () in
   let vbox = GPack.vbox ~show:true () in
@@ -137,7 +139,7 @@ class pane () =
         hbox#pack ~expand:false goal#coerce ;
         hbox#pack ~padding:3 ~expand:true ~fill:true title#coerce ;
         let tabs = List.map (fun p -> p#widget) provers in
-        let rack = new Toolbox.rack tabs in
+        let rack = new Widget.hbox tabs in
         hbox#pack ~expand:false rack#coerce ;
         vbox#pack ~expand:false hbox#coerce ;
         vbox#pack ~expand:true ~fill:true text#coerce ;

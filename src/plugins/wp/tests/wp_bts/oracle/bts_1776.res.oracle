@@ -11,11 +11,10 @@
 
 Goal Assertion 'KO,ax2' (file tests/wp_bts/bts_1776.i, line 14):
 Assume {
-  (* Domain *)
-  Type: (is_sint32 X_0) /\ (is_sint32 X_2) /\ (is_sint32 x_0).
-  (* tests/wp_bts/bts_1776.i:12: Then *)
-  Have: X_2<x_0.
+  Type: is_sint32(X) /\ is_sint32(X_1) /\ is_sint32(x).
+  (* Then *)
+  Have: X_1 < x.
 }
-Prove: X_0<x_0.
+Prove: X < x.
 
 ------------------------------------------------------------

@@ -1,5 +1,5 @@
-/* run.config
-   OPT: -val -obviously-terminates -journal-disable -float-normal
+/* run.config*
+   OPT: -val @VALUECONFIG@ -obviously-terminates -journal-disable -float-normal
 */
 
 #include <__fc_builtin.h>

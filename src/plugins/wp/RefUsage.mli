@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -35,12 +35,9 @@ type access =
   | ByValue   (* The expression ["x"], equal to [load(&x)] *)
   | ByAddr    (* The expression ["&x"] *)
 
-val iter :
-  ?on_init:(access -> unit) ->
-  ?on_kf:(kernel_function -> access -> unit) ->
-  varinfo -> unit
-
 val get : ?kf:kernel_function -> ?init:bool -> varinfo -> access
+
+val iter: ?kf:kernel_function -> ?init:bool -> (varinfo -> access -> unit) -> unit
 
 val dump : unit -> unit
 val compute : unit -> unit

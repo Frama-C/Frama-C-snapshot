@@ -9,7 +9,7 @@
   Y ∈ {0}
 [value] computing for function k <- main_bis.
         Called from tests/slicing/bts344.c:32.
-tests/slicing/bts344.c:9:[value] Function k: postcondition got status valid.
+tests/slicing/bts344.c:9:[value] function k: postcondition got status valid.
 [value] Recording results for k
 [value] Done for function k
 [value] Recording results for main_bis

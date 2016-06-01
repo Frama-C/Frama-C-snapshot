@@ -10,16 +10,15 @@
 ------------------------------------------------------------
 
 Goal Post-condition 'KO' in 'alias':
-Let a_0 = (shift_sint32 (global P_r_86) 0).
-Let x_0 = Mint_0[a_0].
-Let x_1 = Mint_1[a_0].
+Let a = shift_sint32(global(P_r_86), 0).
+Let x = Mint_0[a].
+Let x_1 = Mint_1[a].
 Assume {
-  (* Domain *)
-  Type: (is_sint32 x_0) /\ (is_sint32 x_1).
+  Type: is_sint32(x) /\ is_sint32(x_1).
   (* Heap *)
-  Have: (linked Malloc_7).
+  Have: linked(Malloc_0).
 }
-Prove: x_0=x_1.
+Prove: x = x_1.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -27,8 +26,8 @@ Prove: x_0=x_1.
 ------------------------------------------------------------
 
 Goal Post-condition 'KO' in 'global':
-Assume { (* Domain *) Type: (is_sint32 g_0) /\ (is_sint32 global_0). }
-Prove: g_0=global_0.
+Assume { Type: is_sint32(g) /\ is_sint32(global_0). }
+Prove: g = global_0.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -36,14 +35,13 @@ Prove: g_0=global_0.
 ------------------------------------------------------------
 
 Goal Post-condition 'FRAMED' in 'local':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Post-condition 'KO' in 'local':
-Assume { (* Domain *) Type: (is_sint32 g_0) /\ (is_sint32 local_0). }
-Prove: g_0=local_0.
+Assume { Type: is_sint32(g) /\ is_sint32(local_0). }
+Prove: g = local_0.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -51,25 +49,18 @@ Prove: g_0=local_0.
 ------------------------------------------------------------
 
 Goal Post-condition 'KO' in 'localref':
-Let x_0 = Mint_0[p_0].
-Let x_1 = Mint_1[p_0].
+Let x = Mint_0[p].
+Let x_1 = Mint_1[p].
 Assume {
-  (* Domain *)
-  Type: (is_sint32 x_0) /\ (is_sint32 x_1).
+  Type: is_sint32(x) /\ is_sint32(x_1).
   (* Heap *)
-  Have: (region (base p_0))<=0.
+  Have: region(p.base) <= 0.
 }
-Prove: x_0=x_1.
+Prove: x = x_1.
 
 ------------------------------------------------------------
 
 Goal Assertion 'FRAMED' (file tests/wp_plugin/frame.i, line 28):
-Assume {
-  (* Domain *)
-  Type: (is_sint32 Mint_0[p_0]).
-  (* Heap *)
-  Have: (region (base p_0))<=0.
-}
 Prove: true.
 
 ------------------------------------------------------------

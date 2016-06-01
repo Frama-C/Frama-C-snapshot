@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -28,7 +28,7 @@ use int.ComputerDivision as ComputerDivision
 use real.Real as Real
 use real.FromInt as FromInt
 
-function ite Bool.bool 'a 'a : 'a
+function match_bool Bool.bool 'a 'a : 'a
 
 function eqb 'a 'a : Bool.bool
 

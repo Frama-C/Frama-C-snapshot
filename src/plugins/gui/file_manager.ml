@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -34,8 +34,8 @@ let add_files (host_window: Design.main_window_extension_points) =
        end)
 
 let filename: string option ref = ref None
-  (* [None] for opening the 'save as' dialog box;
-     [Some f] for saving in file [f] *)
+(* [None] for opening the 'save as' dialog box;
+   [Some f] for saving in file [f] *)
 
 let reparse (host_window: Design.main_window_extension_points) =
   let old_helt = History.get_current () in
@@ -44,30 +44,30 @@ let reparse (host_window: Design.main_window_extension_points) =
     (adj#value -. adj#lower ) /. (adj#upper -. adj#lower)
   in
   let succeeded = host_window#full_protect ~cancelable:true
-    (fun () ->
-      let files = Kernel.Files.get () in
-      Kernel.Files.set [];
-      Kernel.Files.set files;
-      Ast.compute ();
-      !Db.Main.play ();
-      Source_manager.clear host_window#original_source_viewer)
+      (fun () ->
+         let files = Kernel.Files.get () in
+         Kernel.Files.set [];
+         Kernel.Files.set files;
+         Ast.compute ();
+         !Db.Main.play ();
+         Source_manager.clear host_window#original_source_viewer)
   in
   begin match old_helt, succeeded with
     | None, _ -> (** no history available before reparsing *)
-      host_window#reset ()
+        host_window#reset ()
     | _, None -> (** the user stopped or an error occured  *)
-      host_window#reset ()
+        host_window#reset ()
     | Some old_helt, Some () ->
-      let new_helt = History.translate_history_elt old_helt in
-      Extlib.may History.push new_helt;
-      host_window#reset ();
-      (** The buffer is not ready yet, modification of its vadjustement
-          is unrealiable *)
-      let set () =
-        let adj = host_window#source_viewer_scroll#vadjustment in
-        adj#set_value (old_scroll *. (adj#upper-.adj#lower) +. adj#lower)
-      in
-      Gtk_helper.later set
+        let new_helt = History.translate_history_elt old_helt in
+        Extlib.may History.push new_helt;
+        host_window#reset ();
+        (** The buffer is not ready yet, modification of its vadjustement
+            is unrealiable *)
+        let set () =
+          let adj = host_window#source_viewer_scroll#vadjustment in
+          adj#set_value (old_scroll *. (adj#upper-.adj#lower) +. adj#lower)
+        in
+        Wutil.later set
   end
 
 let save_in (host_window: Design.main_window_extension_points) parent name =
@@ -107,20 +107,20 @@ let save_file (host_window: Design.main_window_extension_points) =
 (** Load a project file *)
 let load_file (host_window: Design.main_window_extension_points) =
   let dialog = GWindow.file_chooser_dialog
-    ~action:`OPEN
-    ~title:"Load a saved session"
-    ~parent:host_window#main_window () in
+      ~action:`OPEN
+      ~title:"Load a saved session"
+      ~parent:host_window#main_window () in
   dialog#add_button_stock `CANCEL `CANCEL ;
   dialog#add_select_button_stock `OPEN `OPEN ;
   host_window#protect ~cancelable:true ~parent:(dialog:>GWindow.window_skel)
     (fun () -> match dialog#run () with
-     | `OPEN ->
-         begin match dialog#filename with
-         | None -> ()
-         | Some f ->
-             Project.load_all f
-         end
-     | `DELETE_EVENT | `CANCEL -> ());
+       | `OPEN ->
+           begin match dialog#filename with
+             | None -> ()
+             | Some f ->
+                 Project.load_all f
+           end
+       | `DELETE_EVENT | `CANCEL -> ());
   dialog#destroy ()
 
 let insert (host_window: Design.main_window_extension_points) =

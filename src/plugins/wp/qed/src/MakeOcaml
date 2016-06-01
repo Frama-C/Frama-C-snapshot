@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of WP plug-in of Frama-C.                           #
 #                                                                        #
-#  Copyright (C) 2007-2015                                               #
+#  Copyright (C) 2007-2016                                               #
 #    CEA (Commissariat a l'energie atomique et aux energies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -27,7 +27,7 @@ depend:
 	$(OCAMLDEP) $(INCLUDES) *.ml *.mli *.mll *.mly > .depend
 
 clean::
-	rm -f *~ *.cmi *.cmo *.cma *.cmx *.o *.a *.so *.cmxa
+	rm -f *~ *.cm* *.o *.a *.so *.annot
 
 .SUFFIXES: .ml .mli .mll .mly .cmo .cmi .cmx
 

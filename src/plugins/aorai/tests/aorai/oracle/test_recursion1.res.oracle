@@ -1,8 +1,8 @@
 [kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/aorai/test_recursion1.c (with preprocessing)
-tests/aorai/test_recursion1.c:22:[kernel] warning: parsing obsolete ACSL construct '\valid_range(addr,min,max)'. '\valid(addr+(min..max))' should be used instead.
-tests/aorai/test_recursion1.c:43:[kernel] warning: parsing obsolete ACSL construct '\valid_range(addr,min,max)'. '\valid(addr+(min..max))' should be used instead.
-tests/aorai/test_recursion1.c:55:[kernel] warning: parsing obsolete ACSL construct '\valid_range(addr,min,max)'. '\valid(addr+(min..max))' should be used instead.
+tests/aorai/test_recursion1.c:21:[kernel] warning: parsing obsolete ACSL construct '\valid_range(addr,min,max)'. '\valid(addr+(min..max))' should be used instead.
+tests/aorai/test_recursion1.c:42:[kernel] warning: parsing obsolete ACSL construct '\valid_range(addr,min,max)'. '\valid(addr+(min..max))' should be used instead.
+tests/aorai/test_recursion1.c:54:[kernel] warning: parsing obsolete ACSL construct '\valid_range(addr,min,max)'. '\valid(addr+(min..max))' should be used instead.
 [aorai] Welcome to the Aorai plugin
 [kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing /tmp/aorai_test_recursion10.i (no preprocessing)
@@ -20,30 +20,28 @@ enum aorai_OpStatusList {
 axiomatic string_len {
   logic ℤ string_len{L}(char *s) ;
   
-  axiom strlen0{L}: ∀ char *s; \valid{L}(s) ⇒ string_len{L}(s) ≥ 0;
+  axiom strlen0{L}: ∀ char *s; \valid(s) ⇒ string_len(s) ≥ 0;
   
   axiom strlen1{L}:
-    ∀ char *s;
-      \valid{L}(s) ∧ *(s+0) ≡ '\000' ⇒ string_len{L}(s) ≡ 0;
+    ∀ char *s; \valid(s) ∧ *(s+0) ≡ '\000' ⇒ string_len(s) ≡ 0;
   
-  axiom strlen2{L}:
-    ∀ char *s; \valid{L}(s) ⇒ *(s+string_len{L}(s)) ≡ '\000';
+  axiom strlen2{L}: ∀ char *s; \valid(s) ⇒ *(s+string_len(s)) ≡ '\000';
   
   axiom strlen3{L}:
     ∀ char *s;
-      \valid{L}(s) ∧ *(s+0) ≢ '\000' ⇒
-      string_len{L}(s) ≡ 1+string_len{L}(s+1) ∧ \valid{L}(s+1);
+      \valid(s) ∧ *(s+0) ≢ '\000' ⇒
+      string_len(s) ≡ 1+string_len(s+1) ∧ \valid(s+1);
   
   axiom strlen4{L}:
     ∀ char *s;
-      \valid{L}(s) ⇒
-      (∀ ℤ i; 0 ≤ i < string_len{L}(s) ⇒ *(s+i) ≢ '\000');
+      \valid(s) ⇒
+      (∀ ℤ i; 0 ≤ i < string_len(s) ⇒ *(s+i) ≢ '\000');
   
   }
  */
 /*@
 predicate valid_string{L}(char *s) =
-  \valid{L}(s) ∧ \valid{L}(s+(0 .. string_len{L}(s)));
+  \valid(s) ∧ \valid(s+(0 .. string_len(s)));
  */
 /*@ ghost enum aorai_ListOper aorai_CurOperation = op_main; */
 /*@ ghost enum aorai_OpStatusList aorai_CurOpStatus = aorai_Called; */
@@ -68,7 +66,24 @@ predicate valid_string{L}(char *s) =
     behavior buch_state_accept_S1_out:
       ensures 0 ≡ accept_S1;
  */
-extern void countOne_pre_func(char *argv);
+void countOne_pre_func(char *argv)
+{
+  /*@ ghost int T0_S2_tmp; */
+  /*@ ghost int T0_init_tmp; */
+  /*@ ghost int accept_S1_tmp; */
+  aorai_CurOpStatus = aorai_Called;
+  aorai_CurOperation = op_countOne;
+  T0_S2_tmp = T0_S2;
+  T0_init_tmp = T0_init;
+  accept_S1_tmp = accept_S1;
+  accept_S1_tmp = 0;
+  T0_init_tmp = 0;
+  if (T0_S2 == 1) T0_S2_tmp = 1; else T0_S2_tmp = 0;
+  T0_S2 = T0_S2_tmp;
+  T0_init = T0_init_tmp;
+  accept_S1 = accept_S1_tmp;
+  return;
+}
 
 /*@ requires 1 ≡ T0_S2 ∧ 0 ≡ T0_init ∧ 0 ≡ accept_S1;
     ensures aorai_CurOpStatus ≡ aorai_Terminated;
@@ -89,7 +104,24 @@ extern void countOne_pre_func(char *argv);
     behavior buch_state_accept_S1_out:
       ensures 0 ≡ accept_S1;
  */
-extern void countOne_post_func(int res);
+void countOne_post_func(int res)
+{
+  /*@ ghost int T0_S2_tmp; */
+  /*@ ghost int T0_init_tmp; */
+  /*@ ghost int accept_S1_tmp; */
+  aorai_CurOpStatus = aorai_Terminated;
+  aorai_CurOperation = op_countOne;
+  T0_S2_tmp = T0_S2;
+  T0_init_tmp = T0_init;
+  accept_S1_tmp = accept_S1;
+  accept_S1_tmp = 0;
+  T0_init_tmp = 0;
+  if (T0_S2 == 1) T0_S2_tmp = 1; else T0_S2_tmp = 0;
+  T0_S2 = T0_S2_tmp;
+  T0_init = T0_init_tmp;
+  accept_S1 = accept_S1_tmp;
+  return;
+}
 
 /*@ requires 1 ≡ T0_S2 ∧ 0 ≡ T0_init ∧ 0 ≡ accept_S1;
     requires valid_string(argv);
@@ -136,7 +168,24 @@ int countOne(char *argv)
     behavior buch_state_accept_S1_out:
       ensures 0 ≡ accept_S1;
  */
-extern void count_pre_func(int argc, char **argv);
+void count_pre_func(int argc, char **argv)
+{
+  /*@ ghost int T0_S2_tmp; */
+  /*@ ghost int T0_init_tmp; */
+  /*@ ghost int accept_S1_tmp; */
+  aorai_CurOpStatus = aorai_Called;
+  aorai_CurOperation = op_count;
+  T0_S2_tmp = T0_S2;
+  T0_init_tmp = T0_init;
+  accept_S1_tmp = accept_S1;
+  accept_S1_tmp = 0;
+  T0_init_tmp = 0;
+  if (accept_S1 == 1) T0_S2_tmp = 1; else T0_S2_tmp = 0;
+  T0_S2 = T0_S2_tmp;
+  T0_init = T0_init_tmp;
+  accept_S1 = accept_S1_tmp;
+  return;
+}
 
 /*@ requires 1 ≡ T0_S2 ∧ 0 ≡ T0_init ∧ 0 ≡ accept_S1;
     ensures aorai_CurOpStatus ≡ aorai_Terminated;
@@ -157,7 +206,24 @@ extern void count_pre_func(int argc, char **argv);
       assumes 0 ≡ T0_S2;
       ensures 0 ≡ accept_S1;
  */
-extern void count_post_func(int res);
+void count_post_func(int res)
+{
+  /*@ ghost int T0_S2_tmp; */
+  /*@ ghost int T0_init_tmp; */
+  /*@ ghost int accept_S1_tmp; */
+  aorai_CurOpStatus = aorai_Terminated;
+  aorai_CurOperation = op_count;
+  T0_S2_tmp = T0_S2;
+  T0_init_tmp = T0_init;
+  accept_S1_tmp = accept_S1;
+  if (T0_S2 == 1) accept_S1_tmp = 1; else accept_S1_tmp = 0;
+  T0_init_tmp = 0;
+  T0_S2_tmp = 0;
+  T0_S2 = T0_S2_tmp;
+  T0_init = T0_init_tmp;
+  accept_S1 = accept_S1_tmp;
+  return;
+}
 
 /*@ requires 1 ≡ accept_S1 ∧ 0 ≡ T0_S2 ∧ 0 ≡ T0_init;
     requires
@@ -201,7 +267,24 @@ int count(int argc, char **argv)
       assumes 0 ≡ T0_init;
       ensures 0 ≡ accept_S1;
  */
-extern void main_pre_func(int argc, char **argv);
+void main_pre_func(int argc, char **argv)
+{
+  /*@ ghost int T0_S2_tmp; */
+  /*@ ghost int T0_init_tmp; */
+  /*@ ghost int accept_S1_tmp; */
+  aorai_CurOpStatus = aorai_Called;
+  aorai_CurOperation = op_main;
+  T0_S2_tmp = T0_S2;
+  T0_init_tmp = T0_init;
+  accept_S1_tmp = accept_S1;
+  if (T0_init == 1) accept_S1_tmp = 1; else accept_S1_tmp = 0;
+  T0_init_tmp = 0;
+  T0_S2_tmp = 0;
+  T0_S2 = T0_S2_tmp;
+  T0_init = T0_init_tmp;
+  accept_S1 = accept_S1_tmp;
+  return;
+}
 
 /*@ requires 1 ≡ accept_S1 ∧ 0 ≡ T0_S2 ∧ 0 ≡ T0_init;
     ensures aorai_CurOpStatus ≡ aorai_Terminated;
@@ -227,7 +310,24 @@ extern void main_pre_func(int argc, char **argv);
       assumes 0 ≡ accept_S1;
       ensures 0 ≡ accept_S1;
  */
-extern void main_post_func(int res);
+void main_post_func(int res)
+{
+  /*@ ghost int T0_S2_tmp; */
+  /*@ ghost int T0_init_tmp; */
+  /*@ ghost int accept_S1_tmp; */
+  aorai_CurOpStatus = aorai_Terminated;
+  aorai_CurOperation = op_main;
+  T0_S2_tmp = T0_S2;
+  T0_init_tmp = T0_init;
+  accept_S1_tmp = accept_S1;
+  if (accept_S1 == 1) accept_S1_tmp = 1; else accept_S1_tmp = 0;
+  T0_init_tmp = 0;
+  if (accept_S1 == 1) T0_S2_tmp = 1; else T0_S2_tmp = 0;
+  T0_S2 = T0_S2_tmp;
+  T0_init = T0_init_tmp;
+  accept_S1 = accept_S1_tmp;
+  return;
+}
 
 /*@ requires 1 ≡ T0_init ∧ 0 ≡ T0_S2 ∧ 0 ≡ accept_S1;
     requires

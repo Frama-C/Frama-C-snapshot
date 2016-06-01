@@ -12,7 +12,7 @@ tests/pdg/globals.c:28:[kernel] warning: signed overflow. assert s2.a2+s2.b2 ≤
 [value] done for function h
 [value] ====== VALUES COMPUTED ======
 [value] Values at end of function h:
-  s2.a2 ∈ [--..--]
+  s2.a2 ∈ [-2147483648..2147483644]
     .b2 ∈ {3}
     .s2 ∈ UNINITIALIZED
   __retres ∈ [-2147483645..2147483647]

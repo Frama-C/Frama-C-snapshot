@@ -18,47 +18,7 @@ tests/pdg/postdom.c:20:[value] entering loop for the first time
         Called from tests/pdg/postdom.c:23.
 [value] Recording results for __VERIFIER_assert
 [value] Done for function __VERIFIER_assert
-[value] computing for function __VERIFIER_assert <- main.
-        Called from tests/pdg/postdom.c:23.
-[value] Recording results for __VERIFIER_assert
-[value] Done for function __VERIFIER_assert
-[value] computing for function __VERIFIER_assert <- main.
-        Called from tests/pdg/postdom.c:23.
-[value] Recording results for __VERIFIER_assert
-[value] Done for function __VERIFIER_assert
-[value] computing for function __VERIFIER_assert <- main.
-        Called from tests/pdg/postdom.c:23.
-[value] Recording results for __VERIFIER_assert
-[value] Done for function __VERIFIER_assert
-[value] computing for function __VERIFIER_assert <- main.
-        Called from tests/pdg/postdom.c:23.
-[value] Recording results for __VERIFIER_assert
-[value] Done for function __VERIFIER_assert
-[value] computing for function __VERIFIER_assert <- main.
-        Called from tests/pdg/postdom.c:23.
-[value] Recording results for __VERIFIER_assert
-[value] Done for function __VERIFIER_assert
-[value] computing for function __VERIFIER_assert <- main.
-        Called from tests/pdg/postdom.c:23.
-[value] Recording results for __VERIFIER_assert
-[value] Done for function __VERIFIER_assert
-[value] computing for function __VERIFIER_assert <- main.
-        Called from tests/pdg/postdom.c:23.
-[value] Recording results for __VERIFIER_assert
-[value] Done for function __VERIFIER_assert
-[value] computing for function __VERIFIER_assert <- main.
-        Called from tests/pdg/postdom.c:23.
-[value] Recording results for __VERIFIER_assert
-[value] Done for function __VERIFIER_assert
 tests/pdg/postdom.c:21:[kernel] warning: signed overflow. assert sn+2 ≤ 2147483647;
-[value] computing for function __VERIFIER_assert <- main.
-        Called from tests/pdg/postdom.c:23.
-[value] Recording results for __VERIFIER_assert
-[value] Done for function __VERIFIER_assert
-[value] computing for function __VERIFIER_assert <- main.
-        Called from tests/pdg/postdom.c:23.
-[value] Recording results for __VERIFIER_assert
-[value] Done for function __VERIFIER_assert
 [value] computing for function __VERIFIER_assert <- main.
         Called from tests/pdg/postdom.c:23.
 [value] Recording results for __VERIFIER_assert

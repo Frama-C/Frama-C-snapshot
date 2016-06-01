@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -35,6 +35,7 @@ open Definitions
 module L = Qed.Logic
 
 let datatype = "MemTyped"
+let separation () = []
 let library = "memory"
 
 let a_addr = Lang.datatype ~library "addr"
@@ -514,6 +515,13 @@ struct
   let pretty fmt (eid,cst) = Format.fprintf fmt "%a@%d" Cstring.pretty cst eid
 end
 
+module EID = State_builder.Ref(Datatype.Int)
+    (struct
+      let name = "Wp.MemTyped.EID"
+      let dependencies = [Ast.self]
+      let default () = 0
+    end)
+
 module STRING = Model.Generator(LITERAL)
     (struct
       let name = "MemTyped.STRING"
@@ -561,7 +569,12 @@ module STRING = Model.Generator(LITERAL)
           l_lemma = F.p_imply m_sconst read ;
         }
 
-      let compile (eid,cst) =
+      let fresh () =
+        let eid = succ (EID.get ()) in
+        EID.set eid ; eid
+      
+      let compile (_,cst) =
+        let eid = fresh () in
         let lfun = Lang.generated_f ~result:L.Int "Str_%d" eid in
         (* Since its a generated it is the unique name given *)
         let prefix = Lang.Fun.debug lfun in
@@ -690,7 +703,7 @@ struct
       l_assumed = true ;
       l_name = name ; l_types = 0 ;
       l_triggers = [[Trigger.of_term phi']] ;
-      l_forall = Vars.elements (F.varsp lemma) ;
+      l_forall = F.p_vars lemma ;
       l_lemma = lemma ;
       l_cluster = cluster_memory () ;
     }
@@ -712,7 +725,7 @@ struct
         [Trigger.of_pred eqmem ; Trigger.of_term phi ] ;
         [Trigger.of_pred eqmem ; Trigger.of_term phi'] ;
       ] ;
-      l_forall = Vars.elements (F.varsp lemma) ;
+      l_forall = F.p_vars lemma ; 
       l_lemma = lemma ;
       l_cluster = cluster_memory () ;
     }
@@ -734,7 +747,7 @@ struct
         [ Trigger.of_pred havoc ; Trigger.of_term phi ] ;
         [ Trigger.of_pred havoc ; Trigger.of_term phi'] ;
       ] ;
-      l_forall = Vars.elements (F.varsp lemma) ;
+      l_forall = F.p_vars lemma ;
       l_lemma = lemma ;
       l_cluster = cluster_memory () ;
     }
@@ -823,7 +836,7 @@ module ARRAY = Model.Generator(Matrix.NATURAL)
         Definitions.define_lemma {
           l_assumed = true ;
           l_name = axiom ; l_types = 0 ;
-          l_forall = Vars.elements (F.varsp lemma) ;
+          l_forall = F.p_vars lemma ;
           l_triggers = [[Trigger.of_term arr]] ;
           l_lemma = lemma ;
           l_cluster = cluster ;
@@ -1189,15 +1202,11 @@ let valid sigma acs = function
       let l = shift l obj a in
       let n = e_fact (size_of_object obj) (e_range a b) in
       s_valid sigma acs l n
-  | Rrange(l,obj,None,Some b) ->
-      let n = e_add b e_one in
-      s_valid sigma acs l (e_fact (size_of_object obj) n)
-  | Rrange(l,obj,Some a,None) ->
-      let k = e_add (a_offset l) (e_fact (size_of_object obj) a) in
-      p_conj [ access acs l ; p_lt e_zero k ; p_leq k (get_alloc sigma l) ]
-  | Rrange(l,_obj,None,None) ->
-      p_conj [ access acs l ; p_lt e_zero (get_alloc sigma l) ]
-
+  | Rrange(l,_,a,b) ->
+      Wp_parameters.abort ~current:true
+        "Invalid infinite range @[<hov 2>%a+@,(%a@,..%a)@]"
+        F.pp_term l Vset.pp_bound a Vset.pp_bound b
+      
 type alloc = ALLOC | FREE
 
 let allocates spost xs a =

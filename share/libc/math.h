@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2015                                               */
+/*  Copyright (C) 2007-2016                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -39,6 +39,23 @@ typedef double double_t;
 #define HUGE_VAL  0x1.0p2047
 #define HUGE_VALF 0x1.0p255f
 #define HUGE_VALL 0x1.0p32767L
+
+/* The constants below are not part of C99/C11 but they are defined in POSIX */
+#ifdef _XOPEN_SOURCE
+# define M_E 0x1.5bf0a8b145769p1         /* e          */
+# define M_LOG2E 0x1.71547652b82fep0     /* log_2 e    */
+# define M_LOG10E 0x1.bcb7b1526e50ep-2   /* log_10 e   */
+# define M_LN2 0x1.62e42fefa39efp-1      /* log_e 2    */
+# define M_LN10 0x1.26bb1bbb55516p1      /* log_e 10   */
+# define M_PI 0x1.921fb54442d18p1        /* pi         */
+# define M_PI_2 0x1.921fb54442d18p0      /* pi/2       */
+# define M_PI_4 0x1.921fb54442d18p-1     /* pi/4       */
+# define M_1_PI 0x1.45f306dc9c883p-2     /* 1/pi       */
+# define M_2_PI 0x1.45f306dc9c883p-1     /* 2/pi       */
+# define M_2_SQRTPI 0x1.20dd750429b6dp0  /* 2/sqrt(pi) */
+# define M_SQRT2 0x1.6a09e667f3bcdp0     /* sqrt(2)    */
+# define M_SQRT1_2 0x1.6a09e667f3bcdp-1  /* 1/sqrt(2)  */
+#endif
 
 /* The following specifications will set errno. */
 #define math_errhandling	MATH_ERRNO

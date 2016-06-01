@@ -321,7 +321,7 @@ let in_block l =
 %token <int64 list * Cabs.cabsloc> CST_WSTRING
 
 %token EOF
-%token<Cabs.cabsloc> BOOL CHAR INT DOUBLE FLOAT VOID INT64 INT32
+%token<Cabs.cabsloc> BOOL CHAR INT DOUBLE FLOAT VOID INT64
 %token<Cabs.cabsloc> ENUM STRUCT TYPEDEF UNION
 %token<Cabs.cabsloc> SIGNED UNSIGNED LONG SHORT
 %token<Cabs.cabsloc> VOLATILE EXTERN STATIC CONST RESTRICT AUTO REGISTER
@@ -347,7 +347,7 @@ let in_block l =
 %token<Cabs.cabsloc> LPAREN RBRACE
 %token<Cabs.cabsloc> LBRACE
 %token LBRACKET RBRACKET
-%token COLON
+%token COLON COLON2
 %token<Cabs.cabsloc> SEMICOLON
 %token COMMA ELLIPSIS QUEST
 
@@ -359,8 +359,7 @@ let in_block l =
 
 %token<Cabs.cabsloc> ATTRIBUTE INLINE ASM TYPEOF FUNCTION__ PRETTY_FUNCTION__
 %token LABEL__
-%token<Cabs.cabsloc> BUILTIN_VA_ARG ATTRIBUTE_USED
-%token BUILTIN_VA_LIST
+%token<Cabs.cabsloc> BUILTIN_VA_ARG
 %token BLOCKATTRIBUTE
 %token<Cabs.cabsloc> BUILTIN_TYPES_COMPAT BUILTIN_OFFSETOF
 %token<Cabs.cabsloc> DECLSPEC
@@ -376,26 +375,7 @@ let in_block l =
 %nonassoc 	IF
 %nonassoc 	ELSE
 
-
-%left	COMMA
-%right	EQ PLUS_EQ MINUS_EQ STAR_EQ SLASH_EQ PERCENT_EQ
-                AND_EQ PIPE_EQ CIRC_EQ INF_INF_EQ SUP_SUP_EQ
-%right	QUEST COLON
-%left	PIPE_PIPE
-%left	AND_AND
-%left	PIPE
-%left 	CIRC
-%left	AND
-%left	EQ_EQ EXCLAM_EQ
-%left	INF SUP INF_EQ SUP_EQ
-%left	INF_INF SUP_SUP
-%left	PLUS MINUS
-%left	STAR SLASH PERCENT CONST RESTRICT VOLATILE
-%right	EXCLAM TILDE PLUS_PLUS MINUS_MINUS CAST RPAREN ADDROF SIZEOF ALIGNOF
-%left 	LBRACKET
-%left	DOT ARROW LPAREN LBRACE
-%right  NAMED_TYPE     /* We'll use this to handle redefinitions of
-                        * NAMED_TYPE as variables */
+%right  NAMED_TYPE /* We'll use this to handle redefinitions of NAMED_TYPE as variables */
 %left   IDENT
 
 /* Non-terminals informations */
@@ -450,7 +430,6 @@ let in_block l =
 
  /* (* Each element is a "* <type_quals_opt>". *) */
 %type <attribute list list * cabsloc> pointer pointer_opt
-%type <Cabs.cabsloc> location
 %type <Cabs.spec_elem * cabsloc> cvspec
 %%
 
@@ -463,10 +442,6 @@ globals:
 | global globals                        { (false,$1) :: $2 }
 | LGHOST ghost_globals globals          { $2 @ $3 }
 | SEMICOLON globals                     { $2 }
-;
-
-location:
-   /* empty */                	{ Errorloc.currentLoc () }  %prec IDENT
 ;
 
 /* Rules for global ghosts: TODO keep the ghost status! */
@@ -512,13 +487,12 @@ global:
         [(($1, PROTO(JUSTBASE, pardecl,isva), 
            ["FC_OLDSTYLEPROTO",[]], loc), NO_INIT)]
     }
-/* (* Old style function prototype, but without any arguments *) */
-| IDENT LPAREN RPAREN  SEMICOLON
-    { (* Make the function declarator *)
-      let loc = Parsing.rhs_start_pos 1, Parsing.rhs_end_pos 1 in
-      doDeclaration None loc []
-        [(($1, PROTO(JUSTBASE,[],false), [], loc), NO_INIT)]
-    }
+| IDENT LPAREN RPAREN SEMICOLON {
+  let loc = Parsing.rhs_start_pos 1, Parsing.rhs_end_pos 1 in
+  doDeclaration None loc []
+    [(($1, PROTO(JUSTBASE,[],false),
+       ["FC_OLDSTYLEPROTO",[]], loc), NO_INIT)]
+}
 ;
 
 id_or_typename_as_id:
@@ -1249,6 +1223,9 @@ direct_decl: /* (* ISO 6.7.5 *) */
                                    { let (n, decl) = $1 in
                                      let (attrs, size) = $3 in
                                      (n, ARRAY(decl, attrs, size)) }
+|   direct_decl LPAREN RPAREN {
+   let (n,decl) = $1 in (n, PROTO(decl,[],false))
+  }
 |   direct_decl parameter_list_startscope rest_par_list RPAREN
                                    { let (n, decl) = $1 in
                                      let (params, isva) = $3 in
@@ -1260,7 +1237,6 @@ parameter_list_startscope:
     LPAREN                         { !Lexerhack.push_context () }
 ;
 rest_par_list:
-|   /* empty */                    { ([], false) }
 |   parameter_decl rest_par_list1  { let (params, isva) = $2 in
                                      ($1 :: params, isva)
                                    }
@@ -1292,13 +1268,10 @@ old_proto_decl:
 ;
 
 direct_old_proto_decl:
-  direct_decl LPAREN old_parameter_list_ne RPAREN old_pardef_list {
+| direct_decl LPAREN old_parameter_list_ne RPAREN old_pardef_list {
     let par_decl, isva = doOldParDecl $3 $5 in
     let n, decl = $1 in
     (n, PROTO(decl, par_decl, isva), ["FC_OLDSTYLEPROTO",[]])
-  }
-| direct_decl LPAREN RPAREN {
-    let n, decl = $1 in (n, PROTO(decl, [], false), [])
   }
 
 /* (* appears sometimesm but generates a shift-reduce conflict. *)
@@ -1370,7 +1343,9 @@ abs_direct_decl: /* (* ISO 6.7.6. We do not support optional declarator for
                                      !Lexerhack.pop_context ();
                                      PROTO ($1, params, isva)
                                    }
+| abs_direct_decl LPAREN RPAREN { PROTO ($1, [], false) }
 ;
+
 abs_direct_decl_opt:
     abs_direct_decl                 { $1 }
 |   /* empty */                     { JUSTBASE }
@@ -1436,17 +1411,15 @@ function_def_start:  /* (* ISO 6.9.1 *) */
       let fdec = ($1, PROTO(JUSTBASE, pardecl,isva), [], loc) in
       announceFunctionName fdec;
       (* Default is int type *)
-      let defSpec = [SpecType Tint] in (loc, defSpec, fdec)
+      (loc, [SpecType Tint], fdec)
     }
-/* (* No return type and no parameters *) */
 | IDENT LPAREN RPAREN
-    { (* Make the function declarator *)
-      let loc = Parsing.rhs_start_pos 1, Parsing.rhs_end_pos 1 in
-      let fdec = ($1, PROTO(JUSTBASE, [], false), [], loc) in
-      announceFunctionName fdec;
-      (* Default is int type *)
-      let defSpec = [SpecType Tint] in (loc, defSpec, fdec)
-    }
+  {
+    let loc = Parsing.rhs_start_pos 1, Parsing.rhs_start_pos 1 in
+    let fdec = ($1, PROTO(JUSTBASE,[],false),[],loc) in
+    announceFunctionName fdec;
+    (loc, [SpecType Tint], fdec)
+  }
 ;
 
 /* const/volatile as type specifier elements */
@@ -1481,10 +1454,6 @@ attributes_with_asm:
 attribute_nocv:
     ATTRIBUTE LPAREN paren_attr_list RPAREN
                                         { ("__attribute__", $3), $1 }
-/*(*
-|   ATTRIBUTE_USED                      { ("__attribute__",
-                                             [ VARIABLE "used" ]), $1 }
-*)*/
 |   DECLSPEC paren_attr_list_ne         { ("__declspec", $2), $1 }
 |   MSATTR                              { (fst $1, []), snd $1 }
                                         /* ISO 6.7.3 */
@@ -1544,11 +1513,7 @@ var_attr:
 |   CONST { make_expr (VARIABLE "aconst") }
 /*(** GCC allows this as an attribute for functions, synonym for noreturn **)*/
 |   VOLATILE { make_expr (VARIABLE ("__noreturn__")) }
-|   IDENT COLON CST_INT { make_expr (VARIABLE ($1 ^ ":" ^ fst $3)) }
-|   NAMED_TYPE COLON CST_INT { make_expr (VARIABLE ($1 ^ ":" ^ fst $3)) }
-/*(* The following rule conflicts with the ? : attributes. We give it a very
-   * low priority *)*/
-|   CST_INT COLON CST_INT { make_expr (VARIABLE (fst $1 ^ ":" ^ fst $3)) }
+|   CST_INT COLON CST_INT      { make_expr (VARIABLE (fst $1 ^ ":" ^ fst $3)) }
 ;
 
 basic_attr:
@@ -1692,10 +1657,12 @@ logical_or_attr:
 
 conditional_attr:
     logical_or_attr                        { $1 }
-/* This is in conflict for now */
-|   logical_or_attr QUEST conditional_attr COLON conditional_attr
-    { make_expr (QUESTION($1, $3, $5)) }
+|   logical_or_attr QUEST attr_test conditional_attr COLON2 conditional_attr
+    { make_expr (QUESTION($1, $4, $6)) }
 
+/* hack to avoid shift reduce conflict in attribute parsing. */
+attr_test:
+| /* empty */ { Cabshelper.push_attr_test () }
 
 attr: conditional_attr                    { $1 }
 ;

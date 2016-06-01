@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -75,6 +75,7 @@ let journal_enable_ref = ref !Config.is_gui
 let journal_isset_ref = ref false
 let use_obj_ref = ref true
 let use_type_ref = ref true
+let deterministic = ref false
 
 let last_project_created_by_copy = ref (fun () -> assert false)
 
@@ -277,6 +278,7 @@ let get_option_and_arg option arg =
 type then_argument =
   | Default
   | Last
+  | Replace
   | Name of string
 
 let parse known_options_list then_expected options_list =
@@ -319,7 +321,8 @@ let parse known_options_list then_expected options_list =
   in
   let rec go unknown_options nb_used = function
     | [] -> unknown_options, nb_used, None
-    | [ "-then" | "-then-last" as then_name ] when then_expected ->
+    | [ "-then" | "-then-last" | "-then-replace" as then_name ]
+        when then_expected ->
         Kernel_log.warning "ignoring last option `%s'." then_name;
         unknown_options, nb_used, None
     | [ "-then-on" ] when then_expected ->
@@ -334,6 +337,8 @@ let parse known_options_list then_expected options_list =
         unknown_options, nb_used, Some (then_options, Default)
     | "-then-last" :: then_options when then_expected ->
         unknown_options, nb_used, Some (then_options, Last)
+    | "-then-replace" :: then_options when then_expected ->
+        unknown_options, nb_used, Some (then_options, Replace)
     | "-then-on" :: project_name :: then_options when then_expected ->
         unknown_options, nb_used, Some (then_options, Name project_name)
     | option :: (arg :: next_options as arg_next) ->
@@ -377,7 +382,8 @@ let () =
         "-verbose", Int (fun n -> Verbose_level.set n);
         "-debug", Int (fun n -> Debug_level.set n);
         "-kernel-verbose", Int (fun n -> Kernel_verbose_level.set n);
-        "-kernel-debug", Int (fun n -> Kernel_debug_level.set n)
+        "-kernel-debug", Int (fun n -> Kernel_debug_level.set n);
+        "-deterministic", Unit (fun () -> deterministic := true);
       ]
       false
       all_options
@@ -408,6 +414,7 @@ let journal_enable = !journal_enable_ref
 let journal_isset = !journal_isset_ref
 let use_obj = !use_obj_ref
 let use_type = !use_type_ref
+let deterministic = !deterministic
 
 (* ************************************************************************* *)
 (** {2 Plugin} *)
@@ -748,7 +755,9 @@ let nb_given_options () =
 
 let load_all_plugins = ref (fun () -> assert false)
 
-let rec play_in_toplevel on_from_name nb_used play options =
+(** execute one execution shot between 2 "-then*".
+    @return the remaining "-then" and the associated options, if any *)
+let play_in_toplevel_one_shot nb_used play options =
   let options, nb_used_extended, then_options_extended =
     Extended_Stage.parse options
   in
@@ -776,24 +785,42 @@ let rec play_in_toplevel on_from_name nb_used play options =
   set_files (nb_used_loading > 0) files;
   Kernel_log.feedback ~dkey "running plug-in mains.";
   play ();
-  match then_options_extended with
-  | None -> ()
-  | Some(options, then_argument) ->
-      match then_argument with
-      | Default -> play_in_toplevel on_from_name nb_used play options
-      | Last ->
-          (match !last_project_created_by_copy () with
-           | None -> Kernel_log.abort "no known last created project."
-           | Some p ->
-               on_from_name
-                 p
-                 (fun () -> play_in_toplevel on_from_name nb_used play options))
-      | Name p ->
-          on_from_name
-            p
-            (fun () -> play_in_toplevel on_from_name nb_used play options)
+  then_options_extended
 
-let parse_and_boot on_from_name get_toplevel play =
+let play_in_toplevel on_from_name nb_used play options =
+  (* [aux then_opts] handles the following "-then" options *)
+  let rec aux current = function
+    | None -> ()
+    | Some(options, then_argument) ->
+      let play_on options p =
+        p,
+        on_from_name
+          p
+          (fun () -> play_in_toplevel_one_shot nb_used play options)
+      in
+      let last_current, then_opts = match then_argument with
+        | Default -> current, play_in_toplevel_one_shot nb_used play options
+        | Last ->
+          (match !last_project_created_by_copy () with
+          | None -> Kernel_log.abort "no known last created project."
+          | Some p -> play_on options p)
+        | Replace ->
+          (match !last_project_created_by_copy () with
+          | None -> Kernel_log.abort "no known last created project."
+          | Some p ->
+            play_on (("-remove-projects=-@all,+" ^ current) :: options) p)
+        | Name p -> play_on options p
+      in
+      aux last_current then_opts
+  in
+  (* play the first shot before the first "-then" *)
+  let then_opts = play_in_toplevel_one_shot nb_used play options in
+  (* play the "-then" options *)
+  aux "default" then_opts
+
+type on_from_name = { on_from_name: 'a. string -> (unit -> 'a) -> 'a }
+
+let parse_and_boot ~on_from_name ~get_toplevel ~play_analysis =
   let options, nb_used_early, then_options_early =
     Early_Stage.parse !non_initial_options_ref
   in
@@ -809,9 +836,9 @@ let parse_and_boot on_from_name get_toplevel play =
        provides the good one. *)
     (fun () ->
        play_in_toplevel
-         on_from_name
+         on_from_name.on_from_name
          (nb_used_early + nb_used_extending)
-         play
+         play_analysis
          options)
 
 (* ************************************************************************* *)

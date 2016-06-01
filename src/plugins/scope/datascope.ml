@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -257,14 +257,10 @@ module BackwardScope (X : sig val modified : stmt -> bool end ) = struct
 end
 
 let backward_data_scope _allstmts modif_stmts s kf =
-  let _modified s = (* the undescore is for ocaml3.12.1. Otherwise:
-File "src/scope/datascope.ml", line 326, characters 6-14:
-Warning 26: unused variable modified.
-Error: Error-enabled warnings (1 occurrences) *) 
-    StmtSetLattice.mem s modif_stmts in 
+  let modified s = StmtSetLattice.mem s modif_stmts in 
   let module Fenv = (val Dataflows.function_env kf: Dataflows.FUNCTION_ENV) in
   let module Arg = struct
-      include BackwardScope(struct let modified = _modified end)
+      include BackwardScope(struct let modified = modified end)
       let init = [(s,State.Start)];;
   end in
   let module Compute = Dataflows.Simple_backward(Fenv)(Arg) in
@@ -293,14 +289,10 @@ module ForwardScope (X : sig val modified : stmt -> bool end ) = struct
 end
 
 let forward_data_scope modif_stmts s kf =
-  let _modified s = (* the undescore is for ocaml3.12.1. Otherwise:
-File "src/scope/datascope.ml", line 326, characters 6-14:
-Warning 26: unused variable modified.
-Error: Error-enabled warnings (1 occurrences) *) 
-    StmtSetLattice.mem s modif_stmts in 
+  let modified s = StmtSetLattice.mem s modif_stmts in 
   let module Fenv = (val Dataflows.function_env kf: Dataflows.FUNCTION_ENV) in
   let module Arg = struct
-      include ForwardScope(struct let modified = _modified end)
+      include ForwardScope(struct let modified = modified end)
       let init = [(s,State.Start)];;
   end in
   let module Compute = Dataflows.Simple_forward(Fenv)(Arg) in

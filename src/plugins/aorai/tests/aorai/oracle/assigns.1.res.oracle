@@ -58,7 +58,16 @@ int X;
     behavior buch_state_in_main_out:
       ensures aorai_CurStates ≢ in_main;
  */
-extern void f_pre_func(void);
+void f_pre_func(void)
+{
+  /*@ ghost int aorai_CurStates_tmp; */
+  aorai_CurOpStatus = aorai_Called;
+  aorai_CurOperation = op_f;
+  aorai_CurStates_tmp = aorai_CurStates;
+  if (3 == aorai_CurStates) aorai_CurStates_tmp = S_in_f;
+  aorai_CurStates_tmp = aorai_CurStates;
+  return;
+}
 
 /*@ requires aorai_CurStates ≡ S_in_f;
     ensures aorai_CurOpStatus ≡ aorai_Terminated;
@@ -85,7 +94,16 @@ extern void f_pre_func(void);
       assumes aorai_CurStates ≢ S_in_f;
       ensures aorai_CurStates ≢ in_main;
  */
-extern void f_post_func(void);
+void f_post_func(void)
+{
+  /*@ ghost int aorai_CurStates_tmp; */
+  aorai_CurOpStatus = aorai_Terminated;
+  aorai_CurOperation = op_f;
+  aorai_CurStates_tmp = aorai_CurStates;
+  if (2 == aorai_CurStates) aorai_CurStates_tmp = in_main;
+  aorai_CurStates_tmp = aorai_CurStates;
+  return;
+}
 
 /*@ requires aorai_CurStates ≡ Sf;
     
@@ -124,7 +142,16 @@ void f(void)
     behavior buch_state_in_main_out:
       ensures aorai_CurStates ≢ in_main;
  */
-extern void main_pre_func(void);
+void main_pre_func(void)
+{
+  /*@ ghost int aorai_CurStates_tmp; */
+  aorai_CurOpStatus = aorai_Called;
+  aorai_CurOperation = op_main;
+  aorai_CurStates_tmp = aorai_CurStates;
+  if (0 == aorai_CurStates) aorai_CurStates_tmp = Sf;
+  aorai_CurStates_tmp = aorai_CurStates;
+  return;
+}
 
 /*@ requires aorai_CurStates ≡ in_main;
     ensures aorai_CurOpStatus ≡ aorai_Terminated;
@@ -151,7 +178,16 @@ extern void main_pre_func(void);
     behavior buch_state_in_main_out:
       ensures aorai_CurStates ≢ in_main;
  */
-extern void main_post_func(int res);
+void main_post_func(int res)
+{
+  /*@ ghost int aorai_CurStates_tmp; */
+  aorai_CurOpStatus = aorai_Terminated;
+  aorai_CurOperation = op_main;
+  aorai_CurStates_tmp = aorai_CurStates;
+  if (4 == aorai_CurStates) aorai_CurStates_tmp = S2;
+  aorai_CurStates_tmp = aorai_CurStates;
+  return;
+}
 
 /*@ requires aorai_CurStates ≡ S1;
     assigns X, aorai_CurOpStatus, aorai_CurOperation, aorai_CurStates;
@@ -167,7 +203,7 @@ int main(void)
   main_pre_func();
   /*@ assigns X; */
   X ++;
-  /*@ assigns X, aorai_CurOpStatus, aorai_CurOperation, aorai_CurStates; */
+  /*@ assigns aorai_CurOpStatus, aorai_CurOperation, aorai_CurStates, X; */
   f();
   main_post_func(X);
   return X;

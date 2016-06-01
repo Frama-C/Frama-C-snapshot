@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -166,7 +166,7 @@ struct
     mutable obligation : F.pred ;
   }
 
-  let empty = Conditions.hypotheses Conditions.empty
+  let empty = Conditions.empty
 
   let dummy = {
     time = 0.0 ;
@@ -308,7 +308,7 @@ struct
           | WpPropId.FromReturn -> "Call Result"
         in
         Format.fprintf fmt "%s at line %d@\n" desc line
-
+    
   let pretty fmt pid vc results =
     begin
       Format.fprintf fmt "@{<bf>Goal@} %a:@\n" WpPropId.pretty pid ;
@@ -320,7 +320,7 @@ struct
           Format.fprintf fmt "@].@\n" ;
         end ;
       pp_warnings fmt vc.warn ;
-      Conditions.pretty fmt (GOAL.compute_descr vc.goal) ;
+      Pcond.pretty fmt (GOAL.compute_descr vc.goal) ;
       List.iter
         (fun (prover,result) ->
            if result.verdict <> NoResult then

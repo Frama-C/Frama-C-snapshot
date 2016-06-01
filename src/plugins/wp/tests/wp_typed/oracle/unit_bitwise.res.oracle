@@ -145,15 +145,13 @@ Prove: true
 ------------------------------------------------------------
 
 Goal Assertion 'ok' (file tests/wp_typed/unit_bitwise.c, line 116):
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Assertion 'ok' (file tests/wp_typed/unit_bitwise.c, line 117):
-Let x_0 = (land 1 a_0).
-Assume { (* Domain *) Type: (is_uint8 a_0) /\ (is_uint8 x_0). }
-Prove: 0<=x_0.
+Let x = land(1, a). Assume { Type: is_uint8(a) /\ is_uint8(x). }
+Prove: 0 <= x.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -161,15 +159,13 @@ Prove: 0<=x_0.
 ------------------------------------------------------------
 
 Goal Assertion 'ok' (file tests/wp_typed/unit_bitwise.c, line 51):
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Assertion 'ok' (file tests/wp_typed/unit_bitwise.c, line 52):
-Let x_0 = (land 1 a_0).
-Assume { (* Domain *) Type: (is_uint32 a_0) /\ (is_uint32 x_0). }
-Prove: 0<=x_0.
+Let x = land(1, a). Assume { Type: is_uint32(a) /\ is_uint32(x). }
+Prove: 0 <= x.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -177,15 +173,13 @@ Prove: 0<=x_0.
 ------------------------------------------------------------
 
 Goal Assertion 'ok' (file tests/wp_typed/unit_bitwise.c, line 169):
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Assertion 'ok' (file tests/wp_typed/unit_bitwise.c, line 170):
-Let x_0 = (land 1 a_0).
-Assume { (* Domain *) Type: (is_uint32 a_0) /\ (is_uint32 x_0). }
-Prove: 0<=x_0.
+Let x = land(1, a). Assume { Type: is_uint32(a) /\ is_uint32(x). }
+Prove: 0 <= x.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -193,15 +187,13 @@ Prove: 0<=x_0.
 ------------------------------------------------------------
 
 Goal Assertion 'ok' (file tests/wp_typed/unit_bitwise.c, line 164):
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Assertion 'ok' (file tests/wp_typed/unit_bitwise.c, line 165):
-Let x_0 = (land 1 a_0).
-Assume { (* Domain *) Type: (is_uint16 a_0) /\ (is_uint16 x_0). }
-Prove: 0<=x_0.
+Let x = land(1, a). Assume { Type: is_uint16(a) /\ is_uint16(x). }
+Prove: 0 <= x.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -209,9 +201,8 @@ Prove: 0<=x_0.
 ------------------------------------------------------------
 
 Goal Post-condition 'ok' in 'band_char':
-Let x_0 = (land a_0 b_0).
-Assume { (* Domain *) Type: (is_sint8 a_0) /\ (is_sint8 b_0). }
-Prove: x_0=(to_sint8 x_0).
+Let x = land(a, b). Assume { Type: is_sint8(a) /\ is_sint8(b). }
+Prove: x = to_sint8(x).
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -219,26 +210,18 @@ Prove: x_0=(to_sint8 x_0).
 ------------------------------------------------------------
 
 Goal Post-condition 'ok' in 'band_int':
-Assume {
-  (* Domain *)
-  Type: (is_sint32 a_0) /\ (is_sint32 (land a_0 b_0)).
-  (* Assertion 'ko' (file tests/wp_typed/unit_bitwise.c, line 20) *)
-  (* tests/wp_typed/unit_bitwise.c:20: Assertion 'ko': *)
-  Have: (land 281 a_0)<=172.
-}
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Assertion 'ok' (file tests/wp_typed/unit_bitwise.c, line 19):
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Assertion 'ko' (file tests/wp_typed/unit_bitwise.c, line 20):
-Assume { (* Domain *) Type: (is_sint32 a_1). }
-Prove: (land 281 a_1)<=172.
+Assume { Type: is_sint32(a). }
+Prove: land(281, a) <= 172.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -246,9 +229,8 @@ Prove: (land 281 a_1)<=172.
 ------------------------------------------------------------
 
 Goal Post-condition 'ok' in 'band_uchar':
-Let x_0 = (land a_0 b_0).
-Assume { (* Domain *) Type: (is_uint8 a_0) /\ (is_uint8 b_0). }
-Prove: x_0=(to_uint8 x_0).
+Let x = land(a, b). Assume { Type: is_uint8(a) /\ is_uint8(b). }
+Prove: x = to_uint8(x).
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -256,7 +238,6 @@ Prove: x_0=(to_uint8 x_0).
 ------------------------------------------------------------
 
 Goal Post-condition 'ok' in 'band_uint':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
@@ -265,9 +246,8 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition 'ok' in 'bnot_char':
-Let x_0 = (lnot a_0).
-Assume { (* Domain *) Type: (is_sint8 a_0). }
-Prove: x_0=(to_sint8 x_0).
+Let x = lnot(a). Assume { Type: is_sint8(a). }
+Prove: x = to_sint8(x).
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -275,7 +255,6 @@ Prove: x_0=(to_sint8 x_0).
 ------------------------------------------------------------
 
 Goal Post-condition 'ok' in 'bnot_int':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
@@ -284,15 +263,13 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition 'ok' in 'bnot_uchar':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Post-condition 'ko' in 'bnot_uchar':
-Let x_0 = (lnot a_0).
-Assume { (* Domain *) Type: (is_uint8 a_0). }
-Prove: x_0=(to_uint8 x_0).
+Let x = lnot(a). Assume { Type: is_uint8(a). }
+Prove: x = to_uint8(x).
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -300,15 +277,13 @@ Prove: x_0=(to_uint8 x_0).
 ------------------------------------------------------------
 
 Goal Post-condition 'ok' in 'bnot_uint':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Post-condition 'ko' in 'bnot_uint':
-Let x_0 = (lnot a_0).
-Assume { (* Domain *) Type: (is_uint32 a_0). }
-Prove: x_0=(to_uint32 x_0).
+Let x = lnot(a). Assume { Type: is_uint32(a). }
+Prove: x = to_uint32(x).
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -316,9 +291,8 @@ Prove: x_0=(to_uint32 x_0).
 ------------------------------------------------------------
 
 Goal Post-condition 'ok' in 'bor_char':
-Let x_0 = (lor a_0 b_0).
-Assume { (* Domain *) Type: (is_sint8 a_0) /\ (is_sint8 b_0). }
-Prove: x_0=(to_sint8 x_0).
+Let x = lor(a, b). Assume { Type: is_sint8(a) /\ is_sint8(b). }
+Prove: x = to_sint8(x).
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -326,7 +300,6 @@ Prove: x_0=(to_sint8 x_0).
 ------------------------------------------------------------
 
 Goal Post-condition 'ok' in 'bor_int':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
@@ -335,8 +308,8 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition 'ok' in 'bor_uchar':
-Assume { (* Domain *) Type: (is_uint8 a_0) /\ (is_uint8 b_0). }
-Prove: (lor a_0 b_0)=(lor (to_uint8 a_0) (to_uint8 b_0)).
+Assume { Type: is_uint8(a) /\ is_uint8(b). }
+Prove: lor(a, b) = lor(to_uint8(a), to_uint8(b)).
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -344,7 +317,6 @@ Prove: (lor a_0 b_0)=(lor (to_uint8 a_0) (to_uint8 b_0)).
 ------------------------------------------------------------
 
 Goal Post-condition 'ok' in 'bor_uint':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
@@ -353,9 +325,8 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition 'ok' in 'bxor_char':
-Let x_0 = (lxor a_0 b_0).
-Assume { (* Domain *) Type: (is_sint8 a_0) /\ (is_sint8 b_0). }
-Prove: x_0=(to_sint8 x_0).
+Let x = lxor(a, b). Assume { Type: is_sint8(a) /\ is_sint8(b). }
+Prove: x = to_sint8(x).
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -363,7 +334,6 @@ Prove: x_0=(to_sint8 x_0).
 ------------------------------------------------------------
 
 Goal Post-condition 'ok' in 'bxor_int':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
@@ -372,15 +342,13 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition 'ok' in 'bxor_uchar':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Post-condition 'ko' in 'bxor_uchar':
-Let x_0 = (lxor a_0 b_0).
-Assume { (* Domain *) Type: (is_uint8 a_0) /\ (is_uint8 b_0). }
-Prove: x_0=(to_uint8 x_0).
+Let x = lxor(a, b). Assume { Type: is_uint8(a) /\ is_uint8(b). }
+Prove: x = to_uint8(x).
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -388,15 +356,13 @@ Prove: x_0=(to_uint8 x_0).
 ------------------------------------------------------------
 
 Goal Post-condition 'ok' in 'bxor_uint':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Post-condition 'ko' in 'bxor_uint':
-Let x_0 = (lxor a_0 b_0).
-Assume { (* Domain *) Type: (is_uint32 a_0) /\ (is_uint32 b_0). }
-Prove: x_0=(to_uint32 x_0).
+Let x = lxor(a, b). Assume { Type: is_uint32(a) /\ is_uint32(b). }
+Prove: x = to_uint32(x).
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -404,73 +370,62 @@ Prove: x_0=(to_uint32 x_0).
 ------------------------------------------------------------
 
 Goal Post-condition 'ok' in 'cast':
-Let x_0 = (to_sint8 c_0).
+Let x = to_sint8(c).
 Assume {
-  (* Domain *)
-  Type: (is_uint8 c_0) /\ (is_uint32 i_0).
-  (* Assertion 'ok' (file tests/wp_typed/unit_bitwise.c, line 176) *)
-  (* tests/wp_typed/unit_bitwise.c:176: Assertion 'ok': *)
-  Have: i_0=(to_uint32 i_0).
-  (* Assertion 'ko' (file tests/wp_typed/unit_bitwise.c, line 186) *)
-  (* tests/wp_typed/unit_bitwise.c:186: Assertion 'ko': *)
-  Have: x_0=(to_uint32 x_0).
+  Type: is_uint8(c) /\ is_uint32(i).
+  (* Assertion 'ok' *)
+  Have: i = to_uint32(i).
+  (* Assertion 'ko' *)
+  Have: x = to_uint32(x).
 }
-Prove: c_0=(to_uint8 c_0).
+Prove: c = to_uint8(c).
 
 ------------------------------------------------------------
 
 Goal Assertion 'ok' (file tests/wp_typed/unit_bitwise.c, line 176):
-Assume { (* Domain *) Type: (is_uint32 i_0). }
-Prove: i_0=(to_uint32 i_0).
+Assume { Type: is_uint32(i). }
+Prove: i = to_uint32(i).
 
 ------------------------------------------------------------
 
 Goal Assertion 'ok' (file tests/wp_typed/unit_bitwise.c, line 177):
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Assertion 'ok' (file tests/wp_typed/unit_bitwise.c, line 178):
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Assertion 'ok' (file tests/wp_typed/unit_bitwise.c, line 180):
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Assertion 'ok' (file tests/wp_typed/unit_bitwise.c, line 181):
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Assertion 'ok' (file tests/wp_typed/unit_bitwise.c, line 182):
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Assertion 'ok' (file tests/wp_typed/unit_bitwise.c, line 184):
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Assertion 'ko' (file tests/wp_typed/unit_bitwise.c, line 186):
-Let x_0 = (to_sint8 c_1).
+Let x = to_sint8(c).
 Assume {
-  (* Domain *)
-  Type: (is_uint8 c_1) /\ (is_uint32 i_0).
-  (* Assertion 'ok' (file tests/wp_typed/unit_bitwise.c, line 176) *)
-  (* tests/wp_typed/unit_bitwise.c:176: Assertion 'ok': *)
-  Have: i_0=(to_uint32 i_0).
+  Type: is_uint8(c) /\ is_uint32(i).
+  (* Assertion 'ok' *)
+  Have: i = to_uint32(i).
 }
-Prove: x_0=(to_uint32 x_0).
+Prove: x = to_uint32(x).
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -478,7 +433,6 @@ Prove: x_0=(to_uint32 x_0).
 ------------------------------------------------------------
 
 Goal Post-condition 'ok' in 'lshift_char':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
@@ -487,7 +441,6 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition 'ok' in 'lshift_int':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
@@ -496,7 +449,6 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition 'ok' in 'lshift_uchar':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
@@ -505,7 +457,6 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition 'ok' in 'lshift_uint':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
@@ -514,7 +465,6 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition 'ok' in 'rshift_char':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
@@ -523,7 +473,6 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition 'ok' in 'rshift_int':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
@@ -532,9 +481,8 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition 'ok' in 'rshift_uchar':
-Let x_0 = (lsr a_0 n_0).
-Assume { (* Domain *) Type: (is_uint8 a_0) /\ (is_uint8 n_0). }
-Prove: x_0=(to_uint8 x_0).
+Let x = lsr(a, n). Assume { Type: is_uint8(a) /\ is_uint8(n). }
+Prove: x = to_uint8(x).
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -542,7 +490,6 @@ Prove: x_0=(to_uint8 x_0).
 ------------------------------------------------------------
 
 Goal Post-condition 'ok' in 'rshift_uint':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------

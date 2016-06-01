@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,7 +27,7 @@
 module Make (V : module type of Offsetmap_lattice_with_isotropy) :
   module type of Offsetmap_sig
   with type v = V.t
-  and type widen_hint = V.widen_hint
+  and type widen_hint = V.generic_widen_hint
 
 (**/**)
 (* Exported as Int_Intervals, do not use this module directly *)

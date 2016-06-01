@@ -55,7 +55,7 @@ tests/wp/wp_behav.c:81:[wp] warning: Missing assigns clause (assigns 'everything
 Functions           WP   Alt-Ergo    Total   Success
 f                    5     -           5       100%
 min                  4     -           4       100%
-bhv                  2      1 (5)      3       100%
+bhv                  2      1 (4)      3       100%
 stmt_contract        3     -           3       100%
 stmt_contract_label   2    -           2       100%
 stmt_contract_assigns   5   -          5       100%

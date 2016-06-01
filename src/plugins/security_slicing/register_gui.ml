@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -42,6 +42,7 @@ module DirectHighlighterState =
   Make_HighlighterState(struct let name = "Security_gui.Direct" end)
 
 let security_highlighter buffer loc ~start ~stop =
+  let buffer = buffer#buffer in
   match loc with
   | PStmt (_,s) ->
       let f = ForwardHighlighterState.get () in

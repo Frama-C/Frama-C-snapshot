@@ -1,0 +1,19 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_bts/issue_143.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] 2 goals scheduled
+[wp] [Coq] Goal typed_lemma_with_consistent_antecedent_ok : Failed
+     Command './tests/inexistant-prover' not found
+[wp] [Coq] Goal typed_lemma_with_inconsistent_antecedent_ok : Default tactic
+[wp] [Coq] Goal typed_lemma_with_inconsistent_antecedent_ok : Failed
+     Command './tests/inexistant-prover' not found
+[wp] Proved goals:    0 / 2
+     Coq:             0  (failed: 2)
+----------------------------------------------------------
+Axiomatics          WP   Alt-Ergo    Total   Success
+Axiomatic With_consistent_antecedent  -    -     1  0.0%
+Axiomatic With_inconsistent_antecedent  -    -     1  0.0%
+----------------------------------------------------------

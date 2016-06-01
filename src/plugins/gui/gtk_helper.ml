@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -22,45 +22,39 @@
 
 (** Generic Gtk helpers. *)
 
+let () =
+  begin
+    Wutil.share := Config.datadir;
+    Wutil.flush := (fun msg -> Gui_parameters.warning "%s" msg);
+  end
+
 let framac_logo, framac_icon =
   try
     let img ext =
       Some (GdkPixbuf.from_file (Config.datadir ^ "/frama-c." ^ ext))
     in
-    img "gif", img "ico"
-  with Glib.GError _ ->
+    img "png", img "ico"
+  with
+  | Glib.GError _ ->
     Gui_parameters.warning
-      "Frama-C images not found. Is FRAMAC_SHARE correctly set?";
+      "Frama-C icon/logo not found. Is FRAMAC_SHARE correctly set?";
+    None, None
+  | GdkPixbuf.GdkPixbufError (_, errmsg) ->
+    Gui_parameters.warning
+      "Could not load Frama-C icon/logo: %s" errmsg;
     None, None
 
 module Icon = struct
 
   type kind = Frama_C | Unmark
-              | Custom of string
-	      | Feedback of Property_status.Feedback.t
-
-  let default_icon =
-    [| "12 12 2 1";
-       ". c #ffffff";
-       "# c #000000";
-       "############";
-       "#..........#";
-       "#..........#";
-       "#..........#";
-       "#..........#";
-       "#..........#";
-       "#..........#";
-       "#..........#";
-       "#..........#";
-       "#..........#";
-       "#..........#";
-       "############"|]
+            | Custom of string
+            | Feedback of Property_status.Feedback.t
 
   module F = Property_status.Feedback
 
   type theme_file =
-  | ThemeSpecific of string
-  | ThemeGeneric of string
+    | ThemeSpecific of string
+    | ThemeGeneric of string
 
   let builtins =
     [(Frama_C,                      ThemeGeneric "frama-c.ico");
@@ -91,25 +85,19 @@ module Icon = struct
       (fun (k,f) -> Hashtbl.add h k (Filename f))
       builtins
 
-  let default () = GdkPixbuf.from_xpm_data default_icon
-
   let get k =
     try match Hashtbl.find h k with
       | Filename f' ->
-	let f = get_file_in_theme f' in
-	let p =
-	  try GdkPixbuf.from_file (Config.datadir ^ "/" ^ f)
-	  with Glib.GError _ ->
-            Gui_parameters.warning ~once:true
-	      "Frama-C images not found. Is FRAMAC_SHARE correctly set?";
-	    default ()
-	in
-	Hashtbl.replace h k (Pixbuf p); p
+          let f = get_file_in_theme f' in
+          let p = Widget.shared_icon f in
+          Hashtbl.replace h k (Pixbuf p); p
       | Pixbuf p -> p
     with Not_found -> assert false
-      
+
+  let default = Widget.default_icon
+
   let register ~name ~file = Hashtbl.replace h (Custom name)
-    (Filename (ThemeGeneric file))
+      (Filename (ThemeGeneric file))
 
 end
 
@@ -155,26 +143,13 @@ module Configuration = struct
     with Not_found -> match default with
       | None -> raise Not_found
       | Some v -> set s (ConfString v);
-	v
+          v
   let use_string = useConfigurationString
 
   let find_list = findConfigurationList
   let use_list = useConfigurationList
 
 end
-
-let to_utf8 s =
-  try
-    if Glib.Utf8.validate s then s else Glib.Convert.locale_to_utf8 s
-  with Glib.Convert.Error _ ->
-    try
-      Glib.Convert.convert_with_fallback
-        ~fallback:"#neither UTF-8 nor locale nor ISO-8859-15#"
-        ~to_codeset:"UTF-8"
-        ~from_codeset:"ISO_8859-15"
-        s
-    with Glib.Convert.Error _ as e -> Printexc.to_string e
-
 
 let apply_tag b tag pb pe =
   let b = (b:>GText.buffer) in
@@ -196,10 +171,10 @@ let cleanup_tag b tag =
    informations *)
 module IntHashtbl =
   Hashtbl.Make(struct
-                 type t = int
-                 let hash = Hashtbl.hash
-                 let equal : int -> int -> bool = (=)
-               end)
+    type t = int
+    let hash = Hashtbl.hash
+    let equal : int -> int -> bool = (=)
+  end)
 
 let tag_names = IntHashtbl.create 17
 let cleanup_all_tags b =
@@ -207,14 +182,14 @@ let cleanup_all_tags b =
   let start = b#start_iter in
   let stop = b#end_iter in
   try
-  let tags = IntHashtbl.find tag_names (Oo.id b) in
-  Datatype.String.Set.iter (fun s -> b#remove_tag_by_name s ~start ~stop) tags
+    let tags = IntHashtbl.find tag_names (Oo.id b) in
+    Datatype.String.Set.iter (fun s -> b#remove_tag_by_name s ~start ~stop) tags
   with Not_found -> ()
 
 let make_tag (buffer:< tag_table : Gtk.text_tag_table;
               create_tag : ?name:string -> GText.tag_property list -> GText.tag ; .. >)
     ~name l
-    =
+  =
   match GtkText.TagTable.lookup buffer#tag_table name with
   | None ->
       let oid = Oo.id buffer in
@@ -296,24 +271,24 @@ let channel_redirector channel callback =
   let current_partial = ref "" in
   let buf = String.create len in
   ignore (Glib.Io.add_watch channel ~prio:0 ~cond:[`IN; `HUP; `ERR] ~callback:
-    begin fun cond ->
-      try if List.mem `IN cond then begin
-        (* On Windows, you must use Io.read *)
-        let len = Glib.Io.read channel ~buf ~pos:0 ~len in
-        len >= 1 &&
-          (let full_string = !current_partial ^ String.sub buf 0 len in
-           let to_emit, c = splitting_for_utf8 full_string in
-           current_partial := c;
-           callback to_emit)
-      end
-      else false
-      with e ->
-        ignore
-          (callback
-             ("Channel redirector got an exception: "
-              ^ (Printexc.to_string e)));
-       false
-    end)
+            begin fun cond ->
+              try if List.mem `IN cond then begin
+                  (* On Windows, you must use Io.read *)
+                  let len = Glib.Io.read channel ~buf ~pos:0 ~len in
+                  len >= 1 &&
+                  (let full_string = !current_partial ^ String.sub buf 0 len in
+                   let to_emit, c = splitting_for_utf8 full_string in
+                   current_partial := c;
+                   callback to_emit)
+                end
+                else false
+              with e ->
+                ignore
+                  (callback
+                     ("Channel redirector got an exception: "
+                      ^ (Printexc.to_string e)));
+                false
+            end)
 
 let log_redirector ?(flush=fun () -> ()) emit_string =
   let output s offset length = emit_string (String.sub s offset length) in
@@ -329,15 +304,15 @@ let make_string_list ~packing =
   let get_all () =
     let l = ref [] in
     model#foreach (fun _ row ->
-                     l := model#get ~row ~column ::!l ;
-                     false);
-      !l
+        l := model#get ~row ~column ::!l ;
+        false);
+    !l
   in
   let view = GTree.view ~model ~reorderable:true ~packing () in
   let view_column = GTree.view_column ~title:"Source file(s)" () in
   let str_renderer = GTree.cell_renderer_text [] in
-    view_column#pack str_renderer;
-    view_column#add_attribute str_renderer "text" column;
+  view_column#pack str_renderer;
+  view_column#add_attribute str_renderer "text" column;
   let _ = view#append_column view_column in
   let remove_selected () =
     let path_list = view#selection#get_selected_rows in
@@ -352,8 +327,8 @@ let model_of_list conv l =
   let model = GTree.list_store cols in
   List.iter
     (fun data ->
-      let row = model#append () in
-      model#set ~row ~column data)
+       let row = model#append () in
+       model#set ~row ~column data)
     l ;
   (model, column)
 
@@ -373,7 +348,7 @@ let mk_label ?(use_markup=false) ?xalign (container:GPack.box) label =
   if use_markup then l ~markup:label () else l ~text:label ()
 
 type 'a chooser =
-    GPack.box -> string -> (unit -> 'a) -> ('a -> unit) -> (unit -> unit)
+  GPack.box -> string -> (unit -> 'a) -> ('a -> unit) -> (unit -> unit)
 
 (* ------------------------------------------------------------------------ *)
 (* --- Bundle of fields                                                 --- *)
@@ -382,8 +357,8 @@ type 'a chooser =
 let do_tooltip ?tooltip obj = match tooltip with
   | None -> ()
   | Some text ->
-    let tooltip = GData.tooltips () in
-    tooltip#set_tip ~text obj#coerce
+      let tooltip = GData.tooltips () in
+      tooltip#set_tip ~text obj#coerce
 
 let on_bool ?tooltip ?use_markup (container:GPack.box) label get set =
   let result = ref (get ()) in
@@ -411,7 +386,7 @@ let range_selector
   ignore
     (x#connect#value_changed
        ~callback:
-       (fun () -> set x#value_as_int));
+         (fun () -> set x#value_as_int));
   ignore (mk_label ?use_markup ~xalign:0. container label);
   (fun () -> x#adjustment#set_value (float (get ())))
 
@@ -423,7 +398,7 @@ let on_int
   do_tooltip ?tooltip container;
   let non_fixed = width=None in
   let spin = GEdit.spin_button ~digits:0
-    ?width ~packing:(container#pack ~expand:non_fixed ~fill:non_fixed) ()
+      ?width ~packing:(container#pack ~expand:non_fixed ~fill:non_fixed) ()
   in
   spin#adjustment#set_bounds
     ~lower:(float lower) ~upper:(float upper) ~step_incr:1. ();
@@ -431,12 +406,12 @@ let on_int
   ignore
     (spin#connect#value_changed
        ~callback:
-       (fun () -> set spin#value_as_int));
+         (fun () -> set spin#value_as_int));
   let label = mk_label ?use_markup ~xalign:0. container label in
   (fun () ->
-    label#misc#set_sensitive (sensitive ());
-    spin#misc#set_sensitive (sensitive ());
-    spin#adjustment#set_value (float (get())))
+     label#misc#set_sensitive (sensitive ());
+     spin#misc#set_sensitive (sensitive ());
+     spin#adjustment#set_value (float (get())))
 
 let on_string ?tooltip ?use_markup ?(validator=(fun _ -> true)) ?width
     (container:GPack.box) label get set =
@@ -453,8 +428,8 @@ let on_string ?tooltip ?use_markup ?(validator=(fun _ -> true)) ?width
   ignore (entry#connect#activate ~callback:(fun () -> ignore (callback ())));
   ignore (mk_label ?use_markup ~xalign:0. container label);
   (fun () -> 
-    if not (Gobject.Property.get entry#as_widget GtkBase.Widget.P.has_focus)
-    then entry#set_text (get ()))
+     if not (Gobject.Property.get entry#as_widget GtkBase.Widget.P.has_focus)
+     then entry#set_text (get ()))
 
 let on_string_set ?tooltip ?use_markup ?width (container:GPack.box) label get set =
   let container = GPack.hbox ~packing:container#pack () in
@@ -465,8 +440,8 @@ let on_string_set ?tooltip ?use_markup ?width (container:GPack.box) label get se
   ignore (entry#connect#activate ~callback:(fun () -> ignore (callback ())));
   ignore (mk_label ?use_markup ~xalign:0. container (label ^ " (list)"));
   (fun () -> 
-    if not (Gobject.Property.get entry#as_widget GtkBase.Widget.P.has_focus)
-    then entry#set_text (get()))
+     if not (Gobject.Property.get entry#as_widget GtkBase.Widget.P.has_focus)
+     then entry#set_text (get()))
 
 let on_string_completion
     ?tooltip ?use_markup ?(validator=(fun _ -> true)) completions
@@ -504,13 +479,13 @@ let on_combo
   in
   let callback () =
     match combo_box#active_iter with
-      | None -> ()
-      | Some row -> set (combo_box#model#get ~row ~column)
+    | None -> ()
+    | Some row -> set (combo_box#model#get ~row ~column)
   in
   let update () =
     let result = ref (get ()) in
     let k = select 0 !result values in
-      if k >= 0 then combo_box#set_active k
+    if k >= 0 then combo_box#set_active k
   in
   ignore (combo_box#connect#changed callback) ;
   ignore (mk_label ~use_markup ~xalign:0. container label) ;
@@ -525,7 +500,7 @@ let save_paned_ratio key (paned:GPack.paned) =
   let paned_max_pos = paned#max_position in
   let length = paned_max_pos - paned_min_pos in
   let ratio = if length = 0 then 0.5
-  else (float_of_int paned#position)/.(float_of_int length)
+    else (float_of_int paned#position)/.(float_of_int length)
   in
   Configuration.set key (Configuration.ConfFloat ratio)
 
@@ -541,52 +516,52 @@ let old_gtk_compat f x = try f x with Not_found -> ()
 let trace_event (w:GObj.event_ops) =
   let string_of_event x =
     match GdkEvent.get_type x with
-      | `NOTHING -> "nothing"
-      | `DELETE -> "delete"
-      | `DESTROY -> "destroy"
-      | `EXPOSE -> "expose"
-      | `MOTION_NOTIFY -> "motion-notify"
-      | `BUTTON_PRESS -> "button-press"
-      | `TWO_BUTTON_PRESS -> "2 button-press"
-      | `THREE_BUTTON_PRESS -> "3 button-press"
-      | `BUTTON_RELEASE -> "button-release"
-      | `KEY_PRESS -> "key-press"
-      | `KEY_RELEASE  -> "key-release"
-      | `ENTER_NOTIFY  -> "enter-notfiy"
-      | `LEAVE_NOTIFY -> "leave-notify"
-      | `FOCUS_CHANGE  -> "focus-change"
-      | `CONFIGURE -> "configure"
-      | `MAP -> "map"
-      | `UNMAP -> "unmap"
-      | `PROPERTY_NOTIFY -> "property-notify"
-      | `SELECTION_CLEAR -> "selection-clear"
-      | `SELECTION_REQUEST -> "selection-request"
-      | `SELECTION_NOTIFY -> "selection-notify"
-      | `PROXIMITY_IN -> "proximity-in"
-      | `PROXIMITY_OUT -> "proximiy-out"
-      | `DRAG_ENTER -> "drag-enter"
-      | `DRAG_LEAVE -> "drag-leave"
-      | `DRAG_MOTION -> "drag-motion"
-      | `DRAG_STATUS -> "drag-status"
-      | `DROP_START -> "drop-start"
-      | `DROP_FINISHED -> "drop-finish"
-      | `CLIENT_EVENT -> "client-event"
-      | `VISIBILITY_NOTIFY -> "visibility-notify"
-      | `NO_EXPOSE-> "no-expose"
-      | `SCROLL -> "scroll"
-      | `WINDOW_STATE -> "window-state"
-      | `SETTING -> "setting"
+    | `NOTHING -> "nothing"
+    | `DELETE -> "delete"
+    | `DESTROY -> "destroy"
+    | `EXPOSE -> "expose"
+    | `MOTION_NOTIFY -> "motion-notify"
+    | `BUTTON_PRESS -> "button-press"
+    | `TWO_BUTTON_PRESS -> "2 button-press"
+    | `THREE_BUTTON_PRESS -> "3 button-press"
+    | `BUTTON_RELEASE -> "button-release"
+    | `KEY_PRESS -> "key-press"
+    | `KEY_RELEASE  -> "key-release"
+    | `ENTER_NOTIFY  -> "enter-notfiy"
+    | `LEAVE_NOTIFY -> "leave-notify"
+    | `FOCUS_CHANGE  -> "focus-change"
+    | `CONFIGURE -> "configure"
+    | `MAP -> "map"
+    | `UNMAP -> "unmap"
+    | `PROPERTY_NOTIFY -> "property-notify"
+    | `SELECTION_CLEAR -> "selection-clear"
+    | `SELECTION_REQUEST -> "selection-request"
+    | `SELECTION_NOTIFY -> "selection-notify"
+    | `PROXIMITY_IN -> "proximity-in"
+    | `PROXIMITY_OUT -> "proximiy-out"
+    | `DRAG_ENTER -> "drag-enter"
+    | `DRAG_LEAVE -> "drag-leave"
+    | `DRAG_MOTION -> "drag-motion"
+    | `DRAG_STATUS -> "drag-status"
+    | `DROP_START -> "drop-start"
+    | `DROP_FINISHED -> "drop-finish"
+    | `CLIENT_EVENT -> "client-event"
+    | `VISIBILITY_NOTIFY -> "visibility-notify"
+    | `NO_EXPOSE-> "no-expose"
+    | `SCROLL -> "scroll"
+    | `WINDOW_STATE -> "window-state"
+    | `SETTING -> "setting"
   in
   ignore (w#connect#any
-    ~callback:(fun e ->
-                 Format.eprintf "TRACING event: %s@." (string_of_event e);
-                 false))
+            ~callback:(fun e ->
+                Format.eprintf "TRACING event: %s@." (string_of_event e);
+                false))
 
 module MAKE_CUSTOM_LIST(A:sig type t end) =
 struct
   type custom_list =
-      {finfo: A.t;
-       fidx: int (* invariant: root.(fidx)==myself *) }
+    {finfo: A.t;
+     fidx: int (* invariant: root.(fidx)==myself *) }
 
   module H = Hashtbl
 
@@ -594,69 +569,69 @@ struct
 
   (** The custom model itself *)
   class custom_list_class column_list =
-  object (self)
-    inherit
-      [custom_list,custom_list,unit,unit] GTree.custom_tree_model column_list
+    object (self)
+      inherit
+        [custom_list,custom_list,unit,unit] GTree.custom_tree_model column_list
 
-    method custom_encode_iter cr = cr, (), ()
-    method custom_decode_iter cr () () = cr
+      method custom_encode_iter cr = cr, (), ()
+      method custom_decode_iter cr () () = cr
 
-    val mutable last_idx = 0
-    val mutable roots : (int,custom_list) H.t = H.create 19
-    method private find_opt i =
-      try Some (H.find roots i) with Not_found -> None
-    method! custom_flags = [`LIST_ONLY]
-    method custom_get_iter (path:Gtk.tree_path) : custom_list option =
-      let indices: int array  = GTree.Path.get_indices path in
-      match indices with
-      | [||] ->
-          None
-      | [|i|] -> self#find_opt i
-      | _ -> failwith "Invalid Path of depth > 1 in a list"
+      val mutable last_idx = 0
+      val mutable roots : (int,custom_list) H.t = H.create 19
+      method private find_opt i =
+        try Some (H.find roots i) with Not_found -> None
+      method! custom_flags = [`LIST_ONLY]
+      method custom_get_iter (path:Gtk.tree_path) : custom_list option =
+        let indices: int array  = GTree.Path.get_indices path in
+        match indices with
+        | [||] ->
+            None
+        | [|i|] -> self#find_opt i
+        | _ -> failwith "Invalid Path of depth > 1 in a list"
 
-    method custom_get_path (row:custom_list) : Gtk.tree_path =
-      GTree.Path.create [row.fidx]
+      method custom_get_path (row:custom_list) : Gtk.tree_path =
+        GTree.Path.create [row.fidx]
 
-    method custom_value (_t:Gobject.g_type) (_row:custom_list) ~column:_ =
-      assert false
+      method custom_value (_t:Gobject.g_type) (_row:custom_list) ~column:_ =
+        assert false
 
-    method custom_iter_next (row:custom_list) : custom_list option =
-      let nidx = succ row.fidx in
-      self#find_opt nidx
-	
-    method custom_iter_children (rowopt:custom_list option):custom_list option =
-      match rowopt with
-	| None -> self#find_opt 0
-	| Some _ -> None
-	    
-    method custom_iter_has_child (_:custom_list) : bool = false
-      
-    method custom_iter_n_children (rowopt:custom_list option) : int =
-      match rowopt with
-	| None -> H.length roots
-	| Some _ -> assert false
-	    
-    method custom_iter_nth_child (rowopt:custom_list option) (n:int)
-      : custom_list option =
-      match rowopt with
-	| None -> self#find_opt n
-	| _ -> None
-	    
-    method custom_iter_parent (_:custom_list) : custom_list option = None
-      
-    method insert (t:A.t) =
-      let e = {finfo=t; fidx= last_idx } in
-      self#custom_row_inserted (GTree.Path.create [last_idx]) e;
-      H.add roots last_idx e;
-      last_idx <- last_idx+1;
-      
-    method clear () =
-      for i=last_idx-1 downto 0 do
-	self#custom_row_deleted (GTree.Path.create [i]);
-      done;
-      last_idx <- 0;
-      H.clear roots;
-  end
+      method custom_iter_next (row:custom_list) : custom_list option =
+        let nidx = succ row.fidx in
+        self#find_opt nidx
+
+      method custom_iter_children (rowopt:custom_list option):custom_list option =
+        match rowopt with
+        | None -> self#find_opt 0
+        | Some _ -> None
+
+      method custom_iter_has_child (_:custom_list) : bool = false
+
+      method custom_iter_n_children (rowopt:custom_list option) : int =
+        match rowopt with
+        | None -> H.length roots
+        | Some _ -> assert false
+
+      method custom_iter_nth_child (rowopt:custom_list option) (n:int)
+        : custom_list option =
+        match rowopt with
+        | None -> self#find_opt n
+        | _ -> None
+
+      method custom_iter_parent (_:custom_list) : custom_list option = None
+
+      method insert (t:A.t) =
+        let e = {finfo=t; fidx= last_idx } in
+        self#custom_row_inserted (GTree.Path.create [last_idx]) e;
+        H.add roots last_idx e;
+        last_idx <- last_idx+1;
+
+      method clear () =
+        for i=last_idx-1 downto 0 do
+          self#custom_row_deleted (GTree.Path.create [i]);
+        done;
+        last_idx <- 0;
+        H.clear roots;
+    end
 
   let custom_list () =
     new custom_list_class (new GTree.column_list)
@@ -665,8 +640,8 @@ struct
     let m_renderer renderer (lmodel:GTree.model) iter =
       let (path:Gtk.tree_path) = lmodel#get_path iter  in
       let props = match model#custom_get_iter path with
-      | Some {finfo=v} -> properties v
-      | None -> []
+        | Some {finfo=v} -> properties v
+        | None -> []
       in
       renderer#set_properties props
     in
@@ -692,114 +667,114 @@ class type host = object
 end
 
 class error_manager ?reset (o_parent:GWindow.window_skel) : host = 
-object (self: #host)
+  object (self: #host)
 
-  val mutable f_reset = match reset with
-  | None -> fun () -> ()
-  | Some f -> f
+    val mutable f_reset = match reset with
+      | None -> fun () -> ()
+      | Some f -> f
 
-  method private set_reset f = f_reset <- f
+    method private set_reset f = f_reset <- f
 
-  method private error_string ?parent ~reset message =
-    let w = GWindow.message_dialog
-      ~message
-      ~message_type:`ERROR
-      ~parent:(Extlib.opt_conv o_parent parent)
-      ~buttons:GWindow.Buttons.ok
-      ~title:"Error"
-      ~position:`CENTER_ALWAYS
-      ~modal:true
-      ()
-    in
-    w#show ();
-    w#present ();
-    ignore (w#run ());
-    w#destroy ();
-    if reset then f_reset ()
-
-  method error ?parent ?(reset=false) fmt =
-    let b = Buffer.create 80 in
-    let bfmt = Format.formatter_of_buffer b in
-    Format.kfprintf
-      (function fmt ->
-        Format.pp_print_flush fmt ();
-        let content = Buffer.contents b in
-        self#error_string ?parent ~reset content)
-      bfmt
-      fmt
-
-  method private display_toplevel_error ?parent ~cancelable e =
-    Cmdline.error_occurred e;
-    if cancelable then Project.Undo.restore ();
-    self#error ?parent ~reset:true "%s" (Cmdline.protect e);
-
-  method protect ~cancelable ?(parent:GWindow.window_skel option) f =
-    ignore (self#full_protect ~cancelable ?parent f)
-
-  method full_protect ~cancelable ?(parent:GWindow.window_skel option) f =
-    let cancelable = cancelable && Gui_parameters.Undo.get () in
-    try
-      if cancelable then Project.Undo.breakpoint ();
-      let old_gui_unlocked = !gui_unlocked in
-      let res =
-        Extlib.try_finally
-          ~finally:(fun () -> if old_gui_unlocked then begin
-            Unlock.apply ();
-            gui_unlocked := true
-          end)
-          (fun () ->
-            if old_gui_unlocked then begin
-              Lock.apply cancelable;
-              gui_unlocked := false;
-            end;
-            f ())
+    method private error_string ?parent ~reset message =
+      let w = GWindow.message_dialog
+          ~message
+          ~message_type:`ERROR
+          ~parent:(Extlib.opt_conv o_parent parent)
+          ~buttons:GWindow.Buttons.ok
+          ~title:"Error"
+          ~position:`CENTER_ALWAYS
+          ~modal:true
           ()
       in
-      if cancelable then Project.Undo.clear_breakpoint ();
-      Some res
-    with
-    | Cmdline.Exit ->
-      if cancelable then Project.Undo.clear_breakpoint ();
-      None
-    | Sys.Break | Db.Cancel ->
-      if cancelable then Project.Undo.restore ();
-      self#error ?parent ~reset:true
-        "Stopping current computation on user request.";
-      None
-    | Globals.No_such_entry_point msg ->
-      (try Gui_parameters.abort "%s" msg
-       with
-       | Log.AbortError _ as e ->
-         self#display_toplevel_error ?parent ~cancelable e;
-         None)
-    | e when Cmdline.catch_at_toplevel e ->
-      self#display_toplevel_error ?parent ~cancelable e;
-      None
-    | e ->
-      if Kernel.debug_atleast 1 then begin
-	Cmdline.error_occurred e;
-	raise e
-      end else begin
-	self#display_toplevel_error ?parent ~cancelable e;
-	None
-      end
+      w#show ();
+      w#present ();
+      ignore (w#run ());
+      w#destroy ();
+      if reset then f_reset ()
 
-end
+    method error ?parent ?(reset=false) fmt =
+      let b = Buffer.create 80 in
+      let bfmt = Format.formatter_of_buffer b in
+      Format.kfprintf
+        (function fmt ->
+          Format.pp_print_flush fmt ();
+          let content = Buffer.contents b in
+          self#error_string ?parent ~reset content)
+        bfmt
+        fmt
+
+    method private display_toplevel_error ?parent ~cancelable e =
+      Cmdline.error_occurred e;
+      if cancelable then Project.Undo.restore ();
+      self#error ?parent ~reset:true "%s" (Cmdline.protect e);
+
+    method protect ~cancelable ?(parent:GWindow.window_skel option) f =
+      ignore (self#full_protect ~cancelable ?parent f)
+
+    method full_protect ~cancelable ?(parent:GWindow.window_skel option) f =
+      let cancelable = cancelable && Gui_parameters.Undo.get () in
+      try
+        if cancelable then Project.Undo.breakpoint ();
+        let old_gui_unlocked = !gui_unlocked in
+        let res =
+          Extlib.try_finally
+            ~finally:(fun () -> if old_gui_unlocked then begin
+                Unlock.apply ();
+                gui_unlocked := true
+              end)
+            (fun () ->
+               if old_gui_unlocked then begin
+                 Lock.apply cancelable;
+                 gui_unlocked := false;
+               end;
+               f ())
+            ()
+        in
+        if cancelable then Project.Undo.clear_breakpoint ();
+        Some res
+      with
+      | Cmdline.Exit ->
+          if cancelable then Project.Undo.clear_breakpoint ();
+          None
+      | Sys.Break | Db.Cancel ->
+          if cancelable then Project.Undo.restore ();
+          self#error ?parent ~reset:true
+            "Stopping current computation on user request.";
+          None
+      | Globals.No_such_entry_point msg ->
+          (try Gui_parameters.abort "%s" msg
+           with
+           | Log.AbortError _ as e ->
+               self#display_toplevel_error ?parent ~cancelable e;
+               None)
+      | e when Cmdline.catch_at_toplevel e ->
+          self#display_toplevel_error ?parent ~cancelable e;
+          None
+      | e ->
+          if Gui_parameters.debug_atleast 1 then begin
+            Cmdline.error_occurred e;
+            raise e
+          end else begin
+            self#display_toplevel_error ?parent ~cancelable e;
+            None
+          end
+
+  end
 
 let make_text_page ?pos (notebook:GPack.notebook) title =
   let make_tab_label (notebook:GPack.notebook) =
     let flash_title = Format.sprintf "<i>%s</i>" title in
     let tab_label = GMisc.label ~markup:title () in
     let sw = GBin.scrolled_window
-      ~vpolicy:`AUTOMATIC
-      ~hpolicy:`AUTOMATIC
-      ~packing:
-      (fun w -> ignore (notebook#insert_page ?pos ~tab_label:tab_label#coerce w))
-      ()
+        ~vpolicy:`AUTOMATIC
+        ~hpolicy:`AUTOMATIC
+        ~packing:
+          (fun w -> ignore (notebook#insert_page ?pos ~tab_label:tab_label#coerce w))
+        ()
     in
     let flash b =
-    tab_label#set_text (if b then flash_title else title);
-    ignore(tab_label#set_use_markup true)
+      tab_label#set_text (if b then flash_title else title);
+      ignore(tab_label#set_use_markup true)
     in
     flash, sw
   in
@@ -860,21 +835,21 @@ let all_files () =
 
 let source_files_chooser (main_ui: source_files_chooser_host) defaults f =
   let dialog = GWindow.dialog
-    ~width:800
-    ~height:400
-    ~modal:true
-    ~title:"Select C source files"
-    ~parent:main_ui#main_window
-    ~destroy_with_parent:true
-    ()
+      ~width:800
+      ~height:400
+      ~modal:true
+      ~title:"Select C source files"
+      ~parent:main_ui#main_window
+      ~destroy_with_parent:true
+      ()
   in
   dialog#add_button_stock `CANCEL `CANCEL ;
   dialog#add_button_stock `OK `OPEN;
   let hbox = GPack.box `HORIZONTAL ~packing:dialog#vbox#add () in
   let filechooser = GFile.chooser_widget
-    ~action:`OPEN
-    ~packing:(hbox#pack ~expand:true ~fill:true)
-    ()
+      ~action:`OPEN
+      ~packing:(hbox#pack ~expand:true ~fill:true)
+      ()
   in
   Configuration.use_string "last_opened_dir" 
     (fun s -> ignore (filechooser#set_current_folder s));
@@ -904,26 +879,21 @@ let source_files_chooser (main_ui: source_files_chooser_host) defaults f =
   ignore (remove_button#connect#pressed ~callback:remove);
   ignore (filechooser#connect#file_activated ~callback:add_selected_files);
   let response r = (match r with
-    | `OPEN ->
-      main_ui#protect
-        ~cancelable:true
-        ~parent:(dialog :> GWindow.window_skel)
-        (fun () -> f (get_all ()))
-    | `DELETE_EVENT | `CANCEL ->
-      ());
+      | `OPEN ->
+          main_ui#protect
+            ~cancelable:true
+            ~parent:(dialog :> GWindow.window_skel)
+            (fun () -> f (get_all ()))
+      | `DELETE_EVENT | `CANCEL ->
+          ());
     Extlib.may (fun f ->
-      Configuration.set "last_opened_dir"
-        (Configuration.ConfString f)) filechooser#current_folder;
+        Configuration.set "last_opened_dir"
+          (Configuration.ConfString f)) filechooser#current_folder;
     dialog#destroy ()
   in
   let (_:GtkSignal.id) = dialog#connect#response ~callback:response in
   dialog#show ();
   ()
-
-let later f =
-  let for_idle () = f () ; false in
-  let prio = Glib.int_of_priority `LOW in
-  ignore (Glib.Idle.add ~prio for_idle)
 
 let spawn_command ?(timeout=0) ?stdout ?stderr s args f =
   let check_result = Command.command_async s ?stdout ?stderr args in
@@ -944,350 +914,6 @@ let spawn_command ?(timeout=0) ?stdout ?stderr s args f =
   in
   let prio = Glib.int_of_priority `LOW in
   ignore (Glib.Idle.add ~prio for_idle)
-
-(* Simple custom model interfaces *)
-module Custom =struct
-
-  type ('a,'b) column = 
-      ?title:string -> 'b list -> ('a -> 'b list) -> GTree.view_column
-      
-  let add_column (view:GTree.view) empty data ?title renderer render =
-  begin
-    let column = GTree.view_column ?title ~renderer:(renderer,[]) () in
-    column#set_resizable true ;
-    (* column#set_sizing `FIXED ;  *)
-    column#set_cell_data_func renderer
-      (fun model iter ->
-	 let props = match data (model#get_path iter) with
-	   | None -> []
-	   | Some e -> render e in
-	 renderer#set_properties props) ;
-    ignore (view#append_column column); 
-    begin
-      match empty with
-	| None -> ()
-	| Some e -> ignore (view#move_column e ~after:column)
-    end ;
-    column
-  end
-
-  class type virtual ['a] custom = 
-  object
-    inherit ['a,'a,unit,unit] GTree.custom_tree_model
-    method reload : unit
-  end
-
-  class type ['a] columns =
-  object
-    method view : GTree.view (** the tree *)
-    method scroll : GBin.scrolled_window (** scrolled tree (build on demand) *)
-    method coerce : GObj.widget (** widget of the scroll *)
-    method pack : (GObj.widget -> unit) -> unit (** packs the scroll *)
-    method reload : unit (** Structure has changed *)
-    method update_all : unit (** (only) Content of rows has changed *)
-    method update_row : 'a -> unit
-    method insert_row : 'a -> unit
-    method set_focus : 'a -> GTree.view_column -> unit
-    method on_click : ('a -> GTree.view_column -> unit) -> unit
-    method on_right_click : ('a -> GTree.view_column -> unit) -> unit
-    method on_double_click : ('a -> GTree.view_column -> unit) -> unit
-    method set_selection_mode : Gtk.Tags.selection_mode -> unit
-    method on_selection : (unit -> unit) -> unit
-    method count_selected : int
-    method iter_selected : ('a -> unit) -> unit
-    method is_selected : 'a -> bool
-    method add_column_text   : ('a,GTree.cell_properties_text) column
-    method add_column_pixbuf : ('a,GTree.cell_properties_pixbuf) column
-    method add_column_toggle : ('a,GTree.cell_properties_toggle) column
-    method add_column_empty : GTree.view_column
-  end
-
-  class ['a] makecolumns ?packing ?width ?height (view:GTree.view) 
-    (model : 'a #custom) 
-    =
-  object(self)
-
-    val mutable scroll = None
-
-    initializer match packing with 
-      | Some packing -> self#pack packing
-      | None -> ()
-
-    method scroll =
-      match scroll with
-	| None ->
-	    let s = GBin.scrolled_window ?width ?height () in
-	    s#add view#coerce ; scroll <- Some s ; s
-	| Some s -> s
-
-    method pack packing = packing self#scroll#coerce
-    method view = view
-    method coerce = self#scroll#coerce
-	
-    method update_all = GtkBase.Widget.queue_draw view#as_tree_view
-      
-    method update_row x =
-      (*TODO : get the rectangle for raw and use queue_draw_area 
-	See  : http://www.gtkforums.com/viewtopic.php?t=1716
-	Sadly this is not available in LablGtk2 yet...*)
-      model#custom_row_changed (model#custom_get_path x) x
-
-    method insert_row x = 
-      let path = model#custom_get_path x in
-      model#custom_row_inserted path x
-
-    method reload =
-      begin
-	(* Delete all nodes in view *)
-	let root = GTree.Path.create [0] in
-	model#foreach 
-	  (fun _p _i -> 
-	     (* Do not use p since the path is changed by the call 
-		to custom_row_deleted*)
-	     model#custom_row_deleted root;
-	     false) ;
-	(* Then call model *)
-	model#reload ;
-      end
-
-    method on_right_click f =
-      let callback evt =
-	let open GdkEvent in
-	if Button.button evt = 3 then
-	  begin
-	    let x = int_of_float (Button.x evt) in
-	    let y = int_of_float (Button.y evt) in
-	    match view#get_path_at_pos ~x ~y with
-	      | Some (path,col,_,_) ->
-		  begin
-		    match model#custom_get_iter path with
-		      | None -> false
-		      | Some item -> 
-			  let () = f item col in false
-		  end
-	      | _ -> false
-	  end
-	else false
-      in ignore (view#event#connect#button_release ~callback)
-	
-    method on_click f =
-      let callback () =
-	match view#get_cursor () with
-	  | Some path , Some col -> 
-	    begin
-	      match model#custom_get_iter path with
-		| None -> ()
-		| Some item -> f item col
-	    end
-	  | _ -> ()
-      in ignore (view#connect#cursor_changed ~callback)
-
-    method on_double_click f =
-      let callback path col = 
-	match model#custom_get_iter path with
-	  | None -> ()
-	  | Some item -> f item col
-      in ignore (view#connect#row_activated ~callback)
-
-    method is_selected item =
-      view#selection#path_is_selected (model#custom_get_path item)
-
-    method on_selection f = 
-      ignore (view#selection#connect#changed ~callback:f)
-
-    method set_selection_mode = view#selection#set_mode
-
-    method count_selected = view#selection#count_selected_rows
-
-    method iter_selected f =
-      List.iter 
-	(fun p -> 
-	   match model#custom_get_iter p with
-	     | None -> ()
-	     | Some item -> f item)
-	view#selection#get_selected_rows
-	
-    method set_focus item col =
-      begin
-	let path = model#custom_get_path item in
-	view#scroll_to_cell path col ;
-	view#selection#select_path path ;
-      end
-
-    val mutable empty : GTree.view_column option = None
-
-    method add_column_text ?title props render = 
-      let cell = GTree.cell_renderer_text props in
-      add_column view empty model#custom_get_iter ?title cell render
-
-    method add_column_pixbuf ?title props render =
-      let cell = GTree.cell_renderer_pixbuf props in
-      add_column view empty model#custom_get_iter ?title cell render
-
-    method add_column_toggle ?title props render =
-      let cell = GTree.cell_renderer_toggle props in
-      add_column view empty model#custom_get_iter ?title cell render
-
-    method add_column_empty =
-      let column = GTree.view_column ~title:"" () in
-      empty <- Some column ;
-      ignore (view#append_column column);
-      column
-
-  end
-
-  (* Helper for GTK Lists *)
-  module List = struct
-    class type ['a] model =
-    object
-      method reload : unit
-      method size : int
-      method index : 'a -> int
-      method get : int -> 'a
-    end
-      
-    class ['a] list_model (m : 'a model) =
-    object
-      method reload = m#reload
-      inherit ['a,'a,unit,unit] GTree.custom_tree_model (new GTree.column_list)
-      method! custom_flags = [`LIST_ONLY]
-      method custom_decode_iter a () () = a
-      method custom_encode_iter a = (a,(),())
-	
-      method custom_get_iter path =
-	let idx:int array = GtkTree.TreePath.get_indices path in
-	match idx with 
-	  | [||] -> None
-	  | [|i|] -> (try let e = m#get i in
-			  Some e 
-	    with Not_found -> None)
-	  | _ -> failwith "Invalid path of depth>1 in a list"
-
-      method custom_get_path e = 
-	GtkTree.TreePath.create [m#index e]
-
-      method custom_value (_:Gobject.g_type) (_:'a) ~column:_ = 
-	failwith "GwList: empty columns"
-
-      method custom_iter_children e = match e with
-	| None when (m#size > 0) -> 
-	  Some(m#get 0)
-	| _ -> 
-	  None
-
-      method custom_iter_has_child (_:'a) = 
-	false
-
-      method custom_iter_n_children = function
-	| Some _ -> failwith "GwList: no children"
-	| None -> m#size
-
-      method custom_iter_nth_child r k = match r with
-	| Some _ -> failwith "GwList: no nth-child"
-	| None -> 
-	  if k < m#size then Some (m#get k) else None
-	    
-      method custom_iter_parent (_:'a) = None
-
-      method custom_iter_next e =
-	let r = 
-	try 
-	  let k = succ (m#index e) in
-	  if k < m#size then Some (m#get k) else None
-	with Not_found -> None
-	in
-	r
-    end
-
-    class ['a] view 
-      ?packing ?width ?height
-      ?(headers=true) ?(rules=true)
-      (m : 'a model) =
-      let model = new list_model m in
-      let view = GTree.view ~model 
-	~headers_visible:headers
-	~rules_hint:rules 
-	~show:true () 
-      in
-    object
-      inherit ['a] makecolumns ?packing ?width ?height view model
-    end
-  end 
-    
-  module Tree=struct
-    class type ['a] model =
-    object
-      method reload : unit
-      method has_child : 'a -> bool
-      method children : 'a option -> int
-      method child_at : 'a option -> int -> 'a
-      method parent : 'a -> 'a option
-      method index : 'a -> int
-    end
-
-    let rec get_iter m r idx k =
-      if k >= Array.length idx then r else
-	let a = m#child_at r idx.(k) in
-	get_iter m (Some a) idx (succ k)
-
-    let rec get_path ks m a =
-      let ks = m#index a :: ks in
-      match m#parent a with
-	| None -> ks 
-	| Some b -> get_path ks m b
-	    
-    class ['a] tree_model (m : 'a model) =
-    object
-      method reload = m#reload
-      inherit ['a,'a,unit,unit] GTree.custom_tree_model (new GTree.column_list)
-      method custom_decode_iter a () () = a
-      method custom_encode_iter a = (a,(),())
-
-      method custom_get_iter path =
-	let idx = GtkTree.TreePath.get_indices path in
-	if Array.length idx = 0 then None else
-	  let a = m#child_at None idx.(0) in
-	  get_iter m (Some a) idx 1
-
-      method custom_get_path e = 
-	let ks = get_path [] m e in
-	GtkTree.TreePath.create ks
-
-      method custom_value (_:Gobject.g_type) (_:'a) ~column:(_:int) : Gobject.basic 
-	= Format.eprintf "Value ?@." ; assert false
-	  
-      method custom_iter_children r = 
-	let node = match r with None -> true | Some f -> m#has_child f in
-	if node && m#children r > 0 then Some (m#child_at r 0) else None
-
-      method custom_iter_has_child r = 
-	m#has_child r && m#children (Some r) > 0
-      method custom_iter_n_children = m#children
-      method custom_iter_nth_child r k = 
-	if k < m#children r then Some (m#child_at r k) else None
-      method custom_iter_parent r = m#parent r
-      method custom_iter_next e =
-	let p = m#parent e in
-	let k = succ (m#index e) in
-	if k < m#children p then Some (m#child_at p k) else None
-
-    end
-
-    class ['a] view 
-      ?packing ?width ?height
-      ?(headers=true) ?(rules=true) (m : 'a model) =
-      let model = new tree_model m in
-      let view = GTree.view ~model
-	~headers_visible:headers
-	~rules_hint:rules
-	~show:true () 
-      in
-    object
-      inherit ['a] makecolumns ?packing ?width ?height view model
-    end
-
-  end
-end
 
 let graph_window ~parent ~title make_view =
   let height = int_of_float (float parent#default_height *. 3. /. 4.) in

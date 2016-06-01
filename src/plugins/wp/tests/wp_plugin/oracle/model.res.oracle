@@ -48,14 +48,13 @@ logic P_P : int -> prop
 ------------------------------------------------------------
 
 Goal Post-condition (file tests/wp_plugin/model.i, line 13) in 'f':
-Let x_0 = Mint_0[(shift_sint32 p_0 k_0)].
+Let x = Mint_0[shift_sint32(p, k)].
 Assume {
-  (* Domain *)
-  Type: (is_sint32 k_0) /\ (is_sint32 x_0).
+  Type: is_sint32(k) /\ is_sint32(x).
   (* Heap *)
-  Have: (region (base p_0))<=0.
+  Have: region(p.base) <= 0.
 }
-Prove: (P_P x_0).
+Prove: P_P(x).
 
 ------------------------------------------------------------
 [wp] Running WP plugin...
@@ -119,25 +118,23 @@ goal f_post:
 ------------------------------------------------------------
 
 Goal Post-condition (file tests/wp_plugin/model.i, line 13) in 'f':
-Let x_0 = Mint_0[(shift_sint32 p_0 k_0)].
+Let x = Mint_0[shift_sint32(p, k)].
 Assume {
-  (* Domain *)
-  Type: (is_sint32 k_0) /\ (is_sint32 x_0).
+  Type: is_sint32(k) /\ is_sint32(x).
   (* Heap *)
-  Have: (region (base p_0))<=0.
+  Have: region(p.base) <= 0.
 }
-Prove: (P_P x_0).
+Prove: P_P(x).
 
 ------------------------------------------------------------
 
 Goal Post-condition (file tests/wp_plugin/model.i, line 13) in 'f':
-Let x_0 = Mint_0[(shift_sint32 p_0 k_0)].
+Let x = Mint_0[shift_sint32(p, k)].
 Assume {
-  (* Domain *)
-  Type: (is_sint32 k_0) /\ (is_sint32 x_0).
+  Type: is_sint32(k) /\ is_sint32(x).
   (* Heap *)
-  Have: (region (base p_0))<=0.
+  Have: region(p.base) <= 0.
 }
-Prove: (P_P x_0).
+Prove: P_P(x).
 
 ------------------------------------------------------------

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -118,91 +118,3 @@ let spawn wpo ?start ?callin ?callback ?success provers =
            prover , prove wpo ~mode ?start ?callin ?callback prover)
         provers
     end
-
-(* ------------------------------------------------------------------------ *)
-(* ---  Why3ide                                                         --- *)
-(* ------------------------------------------------------------------------ *)
-
-module String = Datatype.String
-
-(** Different instance of why3ide can't be run simultanely *)
-let why3ide_running = ref false
-
-(** Update Wpo from Sessions *)
-let update_wpo_from_session ?callback ~goals ~session:filename_session () =
-  let open ProverWhy3 in
-  let open Why3_session in
-  let module HStr = String.Hashtbl in
-  let session = read_session filename_session in
-  Wpo.S.Hashtbl.iter (fun wpo g ->
-      match g with
-      | None -> (* proved by QED *)
-          let time = qed_time wpo in
-          let result = VCS.result ~time VCS.Valid in
-          update ?callback wpo VCS.Qed result;
-          update ?callback wpo VCS.Why3ide (VCS.result VCS.NoResult)
-      | Some g ->
-          try
-            let filename = Sysutil.relativize_filename filename_session g.gfile in
-            let file   = HStr.find session.session_files filename in
-            let theory = HStr.find file.file_theories g.gtheory in
-            let goal   = HStr.find theory.theory_goals g.ggoal in
-            let result = VCS.result
-                (if goal.goal_verified then VCS.Valid else VCS.NoResult) in
-            update ?callback wpo VCS.Why3ide result
-          with Not_found ->
-            if Wp_parameters.has_dkey "prover" then
-              Wp_parameters.feedback
-                "[WP.Why3ide] a goal normally present in generated file \
-                 is not present in the session: %s %s %s@."
-                g.gfile g.gtheory g.ggoal;
-            update ?callback wpo VCS.Why3ide (VCS.result VCS.NoResult)
-    ) goals;
-  why3ide_running := false
-
-let wp_why3ide ?callback iter =
-  let includes = String.Hashtbl.create 2 in
-  let files    = String.Hashtbl.create 5 in
-  let goals    = Wpo.S.Hashtbl.create 24 in
-  let on_goal wpo  =
-    match  ProverWhy3.assemble_wpo wpo with
-    | None ->
-        Wpo.S.Hashtbl.add goals wpo None;
-    | Some (incs,goal) ->
-        Wpo.S.Hashtbl.add goals wpo (Some goal);
-        List.iter (fun f -> String.Hashtbl.replace includes f ()) incs;
-        String.Hashtbl.replace files goal.ProverWhy3.gfile ()
-  in
-  iter on_goal;
-  let dir = Wp_parameters.get_output () in
-  let session = Format.sprintf "%s/project.session" dir in
-  let get_value h = String.Hashtbl.fold_sorted (fun s () acc -> s::acc) h [] in
-  let includes = get_value includes in
-  let files = get_value files in
-  if files = [] then (why3ide_running := false; Task.nop)
-  else
-    begin
-      ProverWhy3.call_ide ~includes ~files ~session >>=
-      fun ok -> begin
-        if ok then begin
-          try update_wpo_from_session ?callback ~goals ~session ()
-          with Why3_session.LoadError ->
-            Wp_parameters.error
-              "[WP] why3session: can't import back why3 results because of \
-               previous error"
-        end;
-        Task.return ()
-      end
-    end
-
-let wp_why3ide ?callback iter =
-  if !why3ide_running
-  then begin
-    Wp_parameters.feedback "Why3ide is already running. Close it before \
-                            starting other tasks for it.";
-    Task.nop
-  end
-  else begin
-    why3ide_running := true;
-    wp_why3ide ?callback iter
-  end

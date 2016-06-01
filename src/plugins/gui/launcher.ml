@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -32,10 +32,10 @@ end
 
 let run (host:basic_main) dialog () =
   ignore (host#protect ~cancelable:true ~parent:(dialog :> GWindow.window_skel)
-    (fun () ->
-       dialog#destroy ();
-       Kernel_hook.apply ();
-       !Db.Main.play ()));
+            (fun () ->
+               dialog#destroy ();
+               Kernel_hook.apply ();
+               !Db.Main.play ()));
   (* Even if the above operation failed, we try to reset the gui, as the
      plugins might have done something before crashing *)
   ignore (host#protect ~cancelable:false ~parent:(dialog :> GWindow.window_skel)
@@ -50,64 +50,64 @@ let add_parameter (box:GPack.box) p =
   let highlight s = "<span foreground=\"blue\">" ^ s ^ "</span>" in
   let hname = highlight name in
   (match p.Typed_parameter.accessor with
-  | Typed_parameter.Bool ({ Typed_parameter.get = get; set = set }, None) ->
-    let name = if use_markup then hname else name in
-    (* fix bts#510: a parameter [p] must be set if and only if it is set by the
-       user in the launcher. In particular, it must not be reset to its old
-       value if setting another parameter [p'] modifies [p] via hooking. *)
-    let old = get () in
-    let set r = if r <> old then set r in
-    Kernel_hook.extend (on_bool ~tooltip ~use_markup box name get set);
+   | Typed_parameter.Bool ({ Typed_parameter.get = get; set = set }, None) ->
+       let name = if use_markup then hname else name in
+       (* fix bts#510: a parameter [p] must be set if and only if it is set by the
+          user in the launcher. In particular, it must not be reset to its old
+          value if setting another parameter [p'] modifies [p] via hooking. *)
+       let old = get () in
+       let set r = if r <> old then set r in
+       Kernel_hook.extend (on_bool ~tooltip ~use_markup box name get set);
 
-  | Typed_parameter.Bool
-      ({ Typed_parameter.get = get; set = set }, Some negative_name) ->
-    let use_markup = is_set () in
-    let name, _negative_name =
-      if use_markup then hname, highlight negative_name
-      else name, negative_name
-    in
-    let old = get () in
-    let set r = if r <> old then set r in
-    Kernel_hook.extend
-      (on_bool ~tooltip ~use_markup box name (*negative_name*) get set);
+   | Typed_parameter.Bool
+       ({ Typed_parameter.get = get; set = set }, Some negative_name) ->
+       let use_markup = is_set () in
+       let name, _negative_name =
+         if use_markup then hname, highlight negative_name
+         else name, negative_name
+       in
+       let old = get () in
+       let set r = if r <> old then set r in
+       Kernel_hook.extend
+         (on_bool ~tooltip ~use_markup box name (*negative_name*) get set);
 
-  | Typed_parameter.Int ({ Typed_parameter.get = get; set = set }, range) ->
-    let use_markup = is_set () in
-    let name = if use_markup then hname else name in
-    let lower, upper = range () in
-    let old = get () in
-    let set r = if r <> old then set r in
-    Kernel_hook.extend
-      (on_int ~tooltip ~use_markup ~lower ~upper ~width:120 box name get set);
+   | Typed_parameter.Int ({ Typed_parameter.get = get; set = set }, range) ->
+       let use_markup = is_set () in
+       let name = if use_markup then hname else name in
+       let lower, upper = range () in
+       let old = get () in
+       let set r = if r <> old then set r in
+       Kernel_hook.extend
+         (on_int ~tooltip ~use_markup ~lower ~upper ~width:120 box name get set);
 
-  | Typed_parameter.String
-      ({ Typed_parameter.get = get; set = set }, possible_values) ->
-    let use_markup = is_set () in
-    let hname = if use_markup then hname else name in
-    let old = get () in
-    let widget_value = ref old in
-    let w_set r = widget_value := r in
-    let w_get () = !widget_value in
-    (match possible_values () with
-    | [] ->
-      let _refresh = 
-	on_string ~tooltip ~use_markup ~width:250 box hname w_get w_set
-      in
-      Kernel_hook.extend 
-	(fun () -> if !widget_value <> old then set !widget_value)
+   | Typed_parameter.String
+       ({ Typed_parameter.get = get; set = set }, possible_values) ->
+       let use_markup = is_set () in
+       let hname = if use_markup then hname else name in
+       let old = get () in
+       let widget_value = ref old in
+       let w_set r = widget_value := r in
+       let w_get () = !widget_value in
+       (match possible_values () with
+        | [] ->
+            let _refresh =
+              on_string ~tooltip ~use_markup ~width:250 box hname w_get w_set
+            in
+            Kernel_hook.extend
+              (fun () -> if !widget_value <> old then set !widget_value)
 
-    | v ->
-      let validator s =
-	let b = List.mem s v in
-	if not b then Gui_parameters.error "invalid input `%s' for %s" s name;
-	b
-      in
-      let _refresh = 
-	on_string_completion
-	  ~tooltip ~use_markup ~validator v box hname w_get w_set
-      in
-      Kernel_hook.extend 
-	   (fun () -> if !widget_value <> old then set !widget_value))
+        | v ->
+            let validator s =
+              let b = List.mem s v in
+              if not b then Gui_parameters.error "invalid input `%s' for %s" s name;
+              b
+            in
+            let _refresh =
+              on_string_completion
+                ~tooltip ~use_markup ~validator v box hname w_get w_set
+            in
+            Kernel_hook.extend
+              (fun () -> if !widget_value <> old then set !widget_value))
   );
   use_markup
 
@@ -148,14 +148,14 @@ let box_plugin p =
   let frame = GBin.frame ~border_width:5 () in
   let vbox = GPack.vbox ~packing:frame#add () in
   let markup = "<span font_weight=\"bold\">" ^
-    String.capitalize p.Plugin.p_help ^ "</span>" in
+               String.capitalize p.Plugin.p_help ^ "</span>" in
   ignore (GMisc.label ~markup ~packing:(vbox#pack ~padding:15) ());
   let sorted_groups =
     List.sort
       (fun (s1, _) (s2, _) -> String.compare s1 s2)
       (Hashtbl.fold
          (fun l g acc ->
-	   if g = [] then acc else (String.capitalize l, g) :: acc)
+            if g = [] then acc else (String.capitalize l, g) :: acc)
          p.Plugin.p_parameters
          [])
   in
@@ -168,7 +168,7 @@ let box_plugin p =
   frame, highlight
 
 (* Sort plugins, kernel first *)
-let compare_plugin_name n1 n2 = 
+let compare_plugin_name n1 n2 =
   if n1 = "Kernel" then
     if n2 = "Kernel" then 0 else -1
   else if n2 = "Kernel" then 1
@@ -180,10 +180,10 @@ let compare_plugin_name n1 n2 =
 (* -------------------------------------------------------------------------- *)
 
 type plugin_options =
-    string (* plugin name *) * bool (* highlighted *) * GBin.frame
+  string (* plugin name *) * bool (* highlighted *) * GBin.frame
 
 let listview_plugins ~(packing:?from:Gtk.Tags.pack_type ->
-  ?expand:bool -> ?fill:bool -> ?padding:int -> GObj.widget -> unit) plugins =
+                       ?expand:bool -> ?fill:bool -> ?padding:int -> GObj.widget -> unit) plugins =
   let module Data = Indexer.Make(
     struct
       type t = plugin_options
@@ -192,13 +192,13 @@ let listview_plugins ~(packing:?from:Gtk.Tags.pack_type ->
   in
   let model = object(self)
     val mutable m = Data.empty
-    method data = m 
+    method data = m
     method size =  Data.size m
     method index i = Data.index i m
     method get i = Data.get i m
     method add i = m <- Data.add i m; i
     method reload = m <- Data.empty
-    method coerce = (self:> plugin_options Gtk_helper.Custom.List.model)
+    method coerce = (self:> plugin_options Wtable.listmodel)
   end in
 
   let scrolling_list_plugins =
@@ -206,7 +206,7 @@ let listview_plugins ~(packing:?from:Gtk.Tags.pack_type ->
       ~packing:(packing ~expand:false ~padding:5) ~vpolicy:`AUTOMATIC ~hpolicy:`NEVER ()
   in
 
-  let w = new Gtk_helper.Custom.List.view ~headers:false model#coerce in
+  let w = new Wtable.list ~headers:false model#coerce in
   scrolling_list_plugins#add_with_viewport (w#view :> GObj.widget);
 
 
@@ -220,23 +220,23 @@ let listview_plugins ~(packing:?from:Gtk.Tags.pack_type ->
 
   let append e = w#insert_row (model#add e) in
   let _ = w#add_column_text (*~title:"Plugins"*) [`YALIGN 0.0]
-    (fun (name, highlight, _expander) ->
-       let bold = [`FOREGROUND (if highlight then "blue" else "black")] in
-       `TEXT name :: bold )
+      (fun (name, highlight, _expander) ->
+         let bold = [`FOREGROUND (if highlight then "blue" else "black")] in
+         `TEXT name :: bold )
   in
   w#on_click (fun (_, _, expander) _col ->
-                List.iter box#remove (box#all_children);
-                box#pack (expander :> GObj.widget));
+      List.iter box#remove (box#all_children);
+      box#pack (expander :> GObj.widget));
 
-(*  scrolling#add_with_viewport (hbox :> GObj.widget); *)
+  (*  scrolling#add_with_viewport (hbox :> GObj.widget); *)
   List.iter (fun (pname, p) ->
-               let frame, highlight = box_plugin p in
-               append (pname, highlight, frame);
-            ) plugins;
+      let frame, highlight = box_plugin p in
+      append (pname, highlight, frame);
+    ) plugins;
 
   (w#view#get_column 0)#set_sizing `AUTOSIZE
-       
-   
+
+
 
 (* -------------------------------------------------------------------------- *)
 (* ---                                                                    --- *)
@@ -258,8 +258,8 @@ let show ?height ?width ~(host:basic_main) () =
   in
   ignore (dialog#misc#connect#size_allocate
             (fun ({Gtk.width=w;Gtk.height=h}) ->
-              Configuration.set "launcher_width" (Configuration.ConfInt w);
-              Configuration.set "launcher_height" (Configuration.ConfInt h)));
+               Configuration.set "launcher_width" (Configuration.ConfInt w);
+               Configuration.set "launcher_height" (Configuration.ConfInt h)));
   ignore
     (GMisc.label
        ~text:"Customize parameters, then click on `Execute'"

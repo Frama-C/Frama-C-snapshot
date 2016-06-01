@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -60,7 +60,7 @@ val unroll_type : ?unroll_typedef:bool -> logic_type -> logic_type
 
 (** [isLogicType test typ] is [false] for pure logic types and the result
     of test for C types.
-*)
+*) (* BY: seriously? *)
 val isLogicType : (typ -> bool) -> logic_type -> bool
 
 (** {3 Predefined tests over types} *)
@@ -110,8 +110,14 @@ val isLogicPointer : term -> bool
 val mk_logic_pointer_or_StartOf : term -> term
 
 (** creates a logic cast if required, with some automatic simplifications being
-    performed automatically *)
-val mk_cast: ?loc:location -> typ -> term -> term
+    performed automatically. If [force] is [true], the cast will always
+    be inserted. Otherwise (which is the default), [mk_cast typ t] will return
+    [t] if it is already of type [typ]
+
+    @modify Aluminium-20160501 added [force] optional argument
+
+*)
+val mk_cast: ?loc:location -> ?force:bool -> typ -> term -> term
 
 
 (** [array_with_range arr size] returns the logic term [array'+{0..(size-1)}],
@@ -121,11 +127,11 @@ val array_with_range: exp -> term -> term
 (** Removes TLogic_coerce at head of term. *)
 val remove_logic_coerce: term -> term
 
-(** [numeric_coerce typ t] returns a term with the same value as [t] and of type [typ].
-[typ] which should be [Linteger] or [Lreal]. [numeric_coerce] 
-tries to avoid unnecessary type conversions in [t]. In particular, 
-[numeric_coerce (int)cst Linteger], where [cst] fits in int will be directly [cst],
-without any coercion.
+(** [numeric_coerce typ t] returns a term with the same value as [t]
+    and of type [typ].  [typ] which should be [Linteger] or
+    [Lreal]. [numeric_coerce] tries to avoid unnecessary type conversions
+    in [t]. In particular, [numeric_coerce (int)cst Linteger], where [cst]
+    fits in int will be directly [cst], without any coercion.
 
 @since Magnesium-20151001
 *)

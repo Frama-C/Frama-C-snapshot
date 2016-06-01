@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -127,7 +127,7 @@ type po = t and t = {
 
 module S : Datatype.S_with_collections with type t = po
 module Index : Map.OrderedType with type t = index
-module Gmap : Map.S with type key = index
+module Gmap : FCMap.S with type key = index
 
 (** Dynamically exported
     @since Nitrogen-20111001

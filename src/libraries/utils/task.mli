@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -33,17 +33,10 @@ type 'a status =
   | Canceled
   | Result of 'a
   | Failed of exn
-type 'a running =
-  | Waiting
-  | Running of (unit -> unit)
-  | Finished of 'a status
 
 val error  : exn -> string (** Extract error message form exception *)
 
-val start  : 'a task -> unit
-val cancel : 'a task -> unit
 val wait   : 'a task -> 'a status (** Blocks until termination. *)
-val ping   : 'a task -> 'a running
 
 val map : ('a -> 'b) -> 'a status -> 'b status
 val pretty : (Format.formatter -> 'a -> unit) -> Format.formatter -> 'a status -> unit
@@ -163,11 +156,15 @@ val share : 'a shared -> 'a task
 (** {2 Task Server} *)
 (* ************************************************************************* *)
 
-val run : unit task -> unit
+type server
+type thread
+
+val thread : 'a task -> thread
+val cancel : thread -> unit
+
+val run : thread -> unit
 (** Runs one single task in the background. 
     Typically using [on_idle]. *)
-
-type server
 
 val server :
   ?stages:int ->
@@ -178,7 +175,7 @@ val server :
       Stage 0 tasks are issued first. Default is 1.
       @param procs maximum number of running tasks. Default is 4. *)
 
-val spawn : server -> ?stage:int -> unit task -> unit
+val spawn : server -> ?stage:int -> thread -> unit
   (** Schedules a task on the server.
       The task is not immediately started. *)
 
@@ -200,8 +197,13 @@ val on_server_start    : server -> (unit -> unit) -> unit
 val on_server_stop     : server -> (unit -> unit) -> unit
 (** On-stop server callback *)
 
+val on_server_wait     : server -> (unit -> unit) -> unit
+(** On-wait server callback (all tasks are scheduled) *)
+
 val scheduled  : server -> int (** Number of scheduled process *)
 val terminated : server -> int (** Number of terminated process *)
+val waiting : server -> int option
+(** All task scheduled and server is waiting for termination *)
 
 (* ************************************************************************* *)
 (** {2 GUI Configuration} *)

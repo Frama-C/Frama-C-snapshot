@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -34,6 +34,7 @@ open Lang.F
 (* -------------------------------------------------------------------------- *)
 
 type step = {
+  size : int ; (* number of conditions *)
   vars : Vars.t ;
   stmt : stmt option ;
   descr : string option ;
@@ -42,6 +43,7 @@ type step = {
   condition : condition ;
 }
 and sequence = {
+  seq_size : int ;
   seq_vars : Vars.t ;
   seq_core : Pset.t ;
   seq_list : step list ;
@@ -61,13 +63,17 @@ and condition =
 
 let vars_seqs w = List.fold_left (fun xs s -> Vars.union xs s.seq_vars) Vars.empty w
 let vars_list s = List.fold_left (fun xs s -> Vars.union xs s.vars) Vars.empty s
+let size_list s = List.fold_left (fun n s -> n + s.size) 0 s
 let vars_cond = function
   | Type q | When q | Have q | Core q | Init q -> F.varsp q
   | Branch(p,sa,sb) -> Vars.union (F.varsp p) (Vars.union sa.seq_vars sb.seq_vars)
   | Either cases -> vars_seqs cases
-
-let vars_sequent (hs,g) = Vars.union (F.varsp g) (vars_list hs)
-
+let size_cond = function
+  | Type _ | When _ | Have _ | Core _ | Init _ -> 1
+  | Branch(_,sa,sb) -> 1 + sa.seq_size + sb.seq_size
+  | Either cases -> List.fold_left (fun n s -> n + s.seq_size) 1 cases
+let vars_hyp hs = hs.seq_vars
+let vars_seq (hs,g) = Vars.union (F.varsp g) hs.seq_vars
 (* -------------------------------------------------------------------------- *)
 (* --- Core Utilities                                                     --- *)
 (* -------------------------------------------------------------------------- *)
@@ -117,6 +123,7 @@ struct
     { step with condition ; vars }
 
   let seq l = {
+    seq_size = size_list l ;
     seq_vars = vars_list l ;
     seq_core = core_list l ;
     seq_list = l ;
@@ -210,9 +217,9 @@ struct
   let big_inter cs = build (SEQ.big_inter (List.map snd cs))
   let diff (_,a) (_,b) = build (SEQ.diff a b)
   let freeze (xs,bundle) =
-    { seq_vars = xs ;
-      seq_core = Pset.empty ;
-      seq_list = List.map snd bundle }
+    let seq = List.map snd bundle in
+    let size = size_list seq in
+    { seq_size = size ; seq_vars = xs ; seq_core = Pset.empty ; seq_list = seq }
   let map f b = List.map (fun (_,s) -> f s.condition) (snd b)
   let exists f b = List.exists (fun (_,s) -> f s.condition) (snd b)
   let is_true = function
@@ -225,129 +232,17 @@ end
 (* -------------------------------------------------------------------------- *)
 
 type bundle = Bundle.t
-type hypotheses = step list
-type sequent = hypotheses * F.pred
+type sequent = sequence * F.pred
 
-(* -------------------------------------------------------------------------- *)
-(* --- Pretty                                                             --- *)
-(* -------------------------------------------------------------------------- *)
+let is_empty = function { seq_list=[] } -> true | _ -> false
 
-type link = Lstmt of stmt | Lprop of Property.t
-type linker = (string,link) Hashtbl.t
-let glinker = ref None
-let pid = ref 0
+let is_absurd h = match h.condition with
+  | (Type p | When p | Have p) -> p == F.p_false
+  | _ -> false
 
-let linker () = Hashtbl.create 131
-let get_link = Hashtbl.find
-
-let pp_link link pp fmt a =
-  match !glinker with
-  | None -> pp fmt a
-  | Some href ->
-      begin
-        let aref = match link with
-          | Lstmt s -> Printf.sprintf "s%d" s.sid
-          | Lprop _ -> incr pid ; Printf.sprintf "p%d" !pid
-        in
-        Hashtbl.add href aref link ;
-        Format.pp_open_tag fmt ("link:" ^ aref) ;
-        pp fmt a ;
-        Format.pp_close_tag fmt () ;
-      end
-
-let pp_loc fmt loc =
-  let file = loc.Lexing.pos_fname in
-  let line = loc.Lexing.pos_lnum in
-  Format.fprintf fmt "%s:%d: " (Filepath.pretty file) line
-
-let pp_stmt fmt = function
-  | None -> ()
-  | Some stmt ->
-      let loc = fst (Cil_datatype.Stmt.loc stmt) in
-      pp_link (Lstmt stmt) pp_loc fmt loc
-
-let pp_descr fmt s =
-  match s.descr with
-  | None -> ()
-  | Some msg ->
-      Format.fprintf fmt "@ @{<green>(* %a%s *)@}" pp_stmt s.stmt msg
-
-let pp_depend fmt s p =
-  let stmt =
-    match Property.get_kinstr p with Kstmt stmt -> Some stmt | _ -> s.stmt in
-  Format.fprintf fmt "@ @{<blue>(* %a@[<hov 0>%a@]: *)@}"
-    pp_stmt stmt (pp_link (Lprop p) Description.pp_local) p
-
-let pp_warning fmt w =
-  Format.fprintf fmt
-    "@ @[<hov 0>@{<red>@{<bf>Warning@}@}[%s]: %s@ (%s).@]"
-    w.Warning.source w.Warning.reason w.Warning.effect
-
-let pp_clause fmt env title p =
-  Format.fprintf fmt "@ @[<hov 2>@{<bf>%s@}: %a.@]" title (F.pp_epred env) p
-
-let mark_seq m seq = List.iter
-    (fun s -> match s.condition with
-       | When p | Type p | Have p | Init p | Core p | Branch(p,_,_) -> F.mark_p m p
-       | Either _ -> ()
-    ) seq
-
-let rec pp_step fmt env s =
-  begin
-    pp_descr fmt s ;
-    List.iter (pp_depend fmt s) s.deps ;
-    Warning.Set.iter (pp_warning fmt) s.warn ;
-    pp_condition fmt env s.condition ;
-  end
-
-and pp_condition fmt env = function
-  | Init p -> pp_clause fmt env "Init" p
-  | Type p -> pp_clause fmt env "Type" p
-  | Have p -> pp_clause fmt env "Have" p
-  | When p -> pp_clause fmt env "When" p
-  | Core p -> pp_clause fmt env "Core" p
-  | Branch(p,{seq_list=a},{seq_list=b}) ->
-      begin
-        Format.fprintf fmt "@ @[<hov 2>@{<bf>If@}: %a@]" (F.pp_epred env) p ;
-        if a<>[] then pp_sequence fmt "Then" env a ;
-        if b<>[] then pp_sequence fmt "Else" env b ;
-      end
-  | Either cases ->
-      begin
-        Format.fprintf fmt "@[<hv 0>@[<hv 2>@{<bf>Either@} {" ;
-        List.iter
-          (fun seq ->
-             Format.fprintf fmt "@ @[<hv 2>@{<bf>Case@}:" ;
-             pp_block fmt env seq.seq_list ;
-             Format.fprintf fmt "@]" ;
-          ) cases ;
-        Format.fprintf fmt "@]@ }@]" ;
-      end
-
-and pp_sequence fmt title env = function
-  | [] -> Format.fprintf fmt "@ @{<bf>%s@} {}" title
-  | seq ->
-      begin
-        Format.fprintf fmt "@ @[<hv 0>@[<hv 2>@{<bf>%s@} {" title ;
-        pp_block fmt env seq ;
-        Format.fprintf fmt "@]@ }@]" ;
-      end
-
-and pp_block fmt env (seq : step list) =
-  let m = F.marker env in
-  mark_seq m seq ;
-  let env = F.define
-      (fun env x t ->
-         Format.fprintf fmt "@ @[<hov 4>@{<bf>Let@} %s = %a.@]"
-           x (F.pp_eterm env) t)
-      env m in
-  List.iter (pp_step fmt env) seq
-
-let dump fmt (b:bundle) =
-  let s = Bundle.freeze b in
-  pp_sequence fmt "Assume" (F.env s.seq_vars) s.seq_list
-
-let pp_seq title fmt s = pp_sequence fmt title (F.env (vars_list s)) s
+let is_trivial_hs_p hs p = p == F.p_true || List.exists is_absurd hs
+let is_trivial_hsp (hs,p) = is_trivial_hs_p hs p
+let is_trivial (s:sequent) = is_trivial_hs_p (fst s).seq_list (snd s)
 
 (* -------------------------------------------------------------------------- *)
 (* --- Extraction                                                         --- *)
@@ -359,44 +254,19 @@ let rec pred_cond = function
   | Either cases -> F.p_any pred_seq cases
 and pred_seq seq = F.p_all (fun s -> pred_cond s.condition) seq.seq_list
 let extract bundle = Bundle.map pred_cond bundle
-let hypotheses bundle = (Bundle.freeze bundle).seq_list
+let sequence = Bundle.freeze
 
 let intersect p bundle = Vars.intersect (F.varsp p) (Bundle.vars bundle)
 let occurs x bundle = Vars.mem x (Bundle.vars bundle)
 
 (* -------------------------------------------------------------------------- *)
-(* --- Pretty Printer                                                     --- *)
-(* -------------------------------------------------------------------------- *)
-
-let pretty ?linker fmt s =
-  try
-    glinker := linker ;
-    let env = F.env (vars_sequent s) in
-    let m = F.marker env in
-    let (hyps,goal) = s in
-    mark_seq m hyps ;
-    F.mark_p m goal ;
-    let env = F.define
-        (fun env x t ->
-           Format.fprintf fmt "@[<hov 4>@{<bf>Let@} %s = %a.@]@\n"
-             x (F.pp_eterm env) t
-        ) env m in
-    Format.fprintf fmt "@[<hv 0>@[<hv 2>@{<bf>Assume@} {" ;
-    List.iter (pp_step fmt env) hyps ;
-    Format.fprintf fmt "@]@ }@]@\n" ;
-    Format.fprintf fmt "@[<hov 4>@{<bf>Prove:@} %a.@]@."
-      (F.pp_epred env) goal ;
-    glinker := None ;
-  with err ->
-    glinker := None ; raise err
-
-(* -------------------------------------------------------------------------- *)
 (* --- Constructors                                                       --- *)
 (* -------------------------------------------------------------------------- *)
 
-let empty = Bundle.empty
+let nil = Bundle.empty
 let step ?descr ?stmt ?(deps=[]) ?(warn=Warning.Set.empty) cond =
   {
+    size = size_cond cond ;
     vars = vars_cond cond ;
     stmt = stmt ;
     descr = descr ;
@@ -447,7 +317,7 @@ type 'a attributed =
 
 let domain ps hs =
   if ps = [] then hs else
-    Bundle.add (step ~descr:"Domain" (Type (p_conj ps))) hs
+    Bundle.add (step (Type (p_conj ps))) hs
 
 
 let intros ps hs =
@@ -515,6 +385,13 @@ let merge cases = either ~descr:"Merge" cases
 (* --- Flattening                                                         --- *)
 (* -------------------------------------------------------------------------- *)
 
+let seq_list steps = {
+  seq_size = size_list steps ;
+  seq_vars = vars_list steps ;
+  seq_core = core_list steps ;
+  seq_list = steps ;
+}
+
 let flat_cons step tail =
   match is_seq_true tail with
   | Yes | Maybe -> step :: tail
@@ -531,6 +408,7 @@ let flat_concat head tail =
       | Maybe -> head @ tail
 
 let core_residual step core = {
+  size = 1 ;
   vars = F.varsp core ;
   condition = Core core ;
   descr = None ;
@@ -598,10 +476,7 @@ let rec flatten_sequence m = function
           | EITHER [hc] ->
               m := true ; flat_concat hc (flatten_sequence m seq)
           | EITHER cs ->
-              let cases = List.map
-                  (fun s -> { seq_vars = vars_list s ;
-                              seq_core = core_list s ;
-                              seq_list = s }) cs in
+              let cases = List.map seq_list cs in
               let vars = vars_seqs cases in
               let step = { step with vars ; condition = Either cases } in
               flat_cons step (flatten_sequence m seq)
@@ -705,12 +580,8 @@ and letify_step dseq dsigma ~required ~target ~used i (_,d,s) =
   in { s with vars = vars_cond cond ; condition = cond }
 
 and letify_case sigma ~target ~export seq =
-  let (_,_,_,seq) = letify_seq sigma ~target ~export seq.seq_list
-  in {
-    seq_vars = vars_list seq ;
-    seq_core = core_list seq ;
-    seq_list = seq ;
-  }
+  let (_,_,_,s) = letify_seq sigma ~target ~export seq.seq_list
+  in seq_list s
 
 (* -------------------------------------------------------------------------- *)
 (* --- External Simplifier                                                --- *)
@@ -776,16 +647,17 @@ let add_infer modified s hs =
 
 type outcome =
   | NoSimplification
-  | Simplified of sequent
+  | Simplified of hsp
   | Trivial
 
-let simplify (solvers : simplifier list) sequent =
+and hsp = step list * pred
+
+let simplify (solvers : simplifier list) (hs,g) =
   if solvers = [] then NoSimplification
   else
     try
       let modified = ref false in
       let solvers = List.map (fun s -> s#copy) solvers in
-      let hs,g = sequent in
       let hs = List.map (apply_hyp modified solvers) hs in
       List.iter (fun s -> s#target g) solvers ;
       List.iter (fun s -> s#fixpoint) solvers ;
@@ -798,6 +670,39 @@ let simplify (solvers : simplifier list) sequent =
         NoSimplification
     with Contradiction ->
       Trivial
+
+(* -------------------------------------------------------------------------- *)
+(* --- Sequence Builder                                                   --- *)
+(* -------------------------------------------------------------------------- *)
+
+let empty = {
+  seq_size = 0 ;
+  seq_vars = Vars.empty ;
+  seq_core = Pset.empty ;
+  seq_list = [] ;
+}
+
+let append sa sb =
+  if sa.seq_size = 0 then sb else
+  if sb.seq_size = 0 then sa else
+    let seq_size = sa.seq_size + sb.seq_size in
+    let seq_vars = Vars.union sa.seq_vars sb.seq_vars in
+    let seq_core = Pset.union sa.seq_core sb.seq_core in
+    let seq_list = sa.seq_list @ sb.seq_list in
+    { seq_size ; seq_vars ; seq_core ; seq_list }
+
+let concat slist =
+  if slist = [] then empty else
+    let seq_size = List.fold_left (fun n s -> n + s.seq_size) 0 slist in
+    let seq_list = List.concat (List.map (fun s -> s.seq_list) slist) in 
+    let seq_vars = List.fold_left (fun w s -> Vars.union w s.seq_vars)
+        Vars.empty slist in
+    let seq_core = List.fold_left (fun w s -> Pset.union w s.seq_core)
+        Pset.empty slist in
+    { seq_size ; seq_vars ; seq_core ; seq_list }
+
+let seq_branch ?stmt p sa sb =
+  seq_list [step ?stmt (Branch(p,sa,sb))]
 
 (* -------------------------------------------------------------------------- *)
 (* --- Constant Folder                                                    --- *)
@@ -871,10 +776,7 @@ struct
     { step with vars ; condition }
 
   and seq_apply s seq =
-    let seq_list = List.map (s_apply s) seq.seq_list in
-    let seq_core = core_list seq_list in
-    let seq_vars = vars_list seq_list in
-    { seq_list ; seq_core ; seq_vars }
+    seq_list (List.map (s_apply s) seq.seq_list)
 
   let simplify (hs,p) =
     let s = {
@@ -906,6 +808,8 @@ let rec fixpoint n solvers sigma sequent =
     letify_seq sigma ~target ~export hs in
   let p = Sigma.p_apply sigma2 p in
   let s = hs , p in
+  if is_trivial_hsp s then [],p_true
+  else
   if modified
   then fixpoint n solvers sigma1 s
   else
@@ -914,13 +818,18 @@ let rec fixpoint n solvers sigma sequent =
     | Trivial -> [],p_true
     | NoSimplification -> s
 
-let letify ?(solvers=[]) s = fixpoint 1 solvers Sigma.empty s
+let letify_hsp ?(solvers=[]) hsp = fixpoint 1 solvers Sigma.empty hsp
+
+let letify ?(solvers=[]) (seq,p) =
+  let hs,p = fixpoint 1 solvers Sigma.empty (seq.seq_list,p) in
+  seq_list hs , p
 
 (* -------------------------------------------------------------------------- *)
 (* --- Pruning                                                            --- *)
 (* -------------------------------------------------------------------------- *)
 
 let residual p = {
+  size = 1 ;
   vars = F.varsp p ;
   stmt = None ;
   descr = Some "Residual" ;
@@ -934,20 +843,13 @@ let rec add_case p = function
       step :: add_case p tail
   | hs -> residual p :: hs
 
-let is_absurd h = match h.condition with
-  | (Type p | When p | Have p) -> p == F.p_false
-  | _ -> false
-
-let is_trivial (s:sequent) =
-  (snd s) == F.p_true || List.exists is_absurd (fst s)
-
-let test_case p (s:sequent) =
-  let w = letify (add_case p (fst s) , snd s) in
-  if is_trivial w then None else Some w
+let test_case p (s:hsp) =
+  let w = letify_hsp (add_case p (fst s) , snd s) in
+  if is_trivial_hsp w then None else Some w
 
 let tc = ref 0
 
-let rec test_cases (s : sequent) = function
+let rec test_cases (s : hsp) = function
   | [] -> s
   | (p,_) :: tail ->
       !Db.progress () ;
@@ -965,21 +867,24 @@ let rec collect_cond m = function
 and collect_seq m seq = collect_steps m seq.seq_list
 and collect_steps m steps = List.iter (fun s -> collect_cond m s.condition) steps
 
-let pruning ?(solvers=[]) sequent =
-  if is_trivial sequent then sequent
+let pruning ?(solvers=[]) seq =
+  if is_trivial seq then seq
   else
     begin
+      let hs = (fst seq).seq_list in
+      let p = snd seq in
       ignore solvers ;
       let m = Letify.Split.create () in
-      collect_steps m (fst sequent) ;
+      collect_steps m hs ;
       tc := 0 ;
-      let sequent = test_cases sequent (Letify.Split.select m) in
+      let hsp = test_cases (hs,p) (Letify.Split.select m) in
       if !tc > 0 && Wp_parameters.has_dkey "pruning" then
-        if is_trivial sequent then
+        if is_trivial_hsp hsp then
           Wp_parameters.feedback "[Pruning] Trivial"
         else
           Wp_parameters.feedback "[Pruning] %d branche(s) removed" !tc ;
-      sequent
+      let hs,p = hsp in
+      seq_list hs , p
     end
 
 (* -------------------------------------------------------------------------- *)
@@ -1009,7 +914,8 @@ let rec clean_cond u = function
 
 and clean_seq u s =
   let s = clean_steps u s.seq_list in
-  { seq_vars = vars_list s ;
+  { seq_size = size_list s ;
+    seq_vars = vars_list s ;
     seq_core = Pset.empty ;
     seq_list = s }
 
@@ -1023,10 +929,10 @@ and clean_steps u = function
       | No -> [{ s with vars = vars_cond c ; condition = c }]
       | Maybe -> { s with vars = vars_cond c ; condition = c } :: seq
 
-let clean (hs,p) =
+let clean (s,p) =
   let u = Cleaning.create () in
-  Cleaning.as_atom u p ; collect_steps u hs ;
-  clean_steps u hs , p
+  Cleaning.as_atom u p ; collect_steps u s.seq_list ;
+  seq_list (clean_steps u s.seq_list) , p
 
 (* -------------------------------------------------------------------------- *)
 (* --- Filter Used Variables                                              --- *)
@@ -1108,14 +1014,17 @@ struct
               s :: w
             else w
 
-  let make (hs,g) =
-    let m = { gs = Gset.empty ; xs = Vars.empty ; fixpoint = false ; footprint = Tmap.empty } in
-    List.iter (collect_step m) hs ; collect_have m g ;
+  let make (seq,g) =
+    let m = { gs = Gset.empty ;
+              xs = Vars.empty ;
+              fixpoint = false ;
+              footprint = Tmap.empty } in
+    List.iter (collect_step m) seq.seq_list ; collect_have m g ;
     let rec loop m hs g =
       m.fixpoint <- true ;
       let hs' = filter_steplist m hs in
-      if m.fixpoint then hs' , g else loop m hs g
-    in loop m hs g
+      if m.fixpoint then seq_list hs' , g else loop m hs g
+    in loop m seq.seq_list g
 
 end
 
@@ -1129,8 +1038,20 @@ let close_cond = function
   | Type _ when Wp_parameters.SimplifyType.get () -> p_true
   | c -> pred_cond c
 
-let close (hs,goal) =
-  let hs = List.map (fun s -> close_cond s.condition) hs in
-  F.p_close (F.p_hyps hs goal)
+let hyps s = List.map (fun s -> close_cond s.condition) s.seq_list
+let condition s = F.p_conj (hyps s)
+let close (s,goal) = F.p_close (F.p_hyps (hyps s) goal)
+
+
+(* -------------------------------------------------------------------------- *)
+(* --- Visitor                                                            --- *)
+(* -------------------------------------------------------------------------- *)
+
+let rec walk f k = function
+  | [] -> ()
+  | s::seq -> f k s ; walk f (k + s.size) seq
+
+let iter f seq = List.iter f seq.seq_list
+let iteri ?(from=0) f seq = walk f from seq.seq_list
 
 (* -------------------------------------------------------------------------- *)

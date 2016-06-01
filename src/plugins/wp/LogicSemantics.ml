@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -33,6 +33,8 @@ open Lang
 open Lang.F
 open Definitions
 open Memory
+
+type polarity = [ `Positive | `Negative | `NoPolarity ]
 
 module Make(M : Memory.Model) =
 struct
@@ -118,10 +120,12 @@ struct
     match C.logic env t with
     | Vexp e -> e
     | Vloc l -> M.pointer_val l
-    | _ ->
-        Wp_parameters.abort ~current:true "Unexpected set (%a)"
+    | Vset s -> Vset.concretize s
+    | Lset _ ->
+        Wp_parameters.abort ~current:true "Unexpected set of locations (%a)"
           Printer.pp_term t
 
+        
   let set_of_term env t =
     let v = C.logic env t in
     match v with
@@ -304,10 +308,11 @@ struct
     | EQ_plain , EQ_plain -> EQ_plain
     | _ -> EQ_incomparable
 
-  let use_equal positive =
-    not positive && Wp_parameters.ExtEqual.get ()
+  let use_equal = function
+    | `Negative -> Wp_parameters.ExtEqual.get ()
+    | `Positive | `NoPolarity -> false
 
-  let term_equal positive env a b =
+  let term_equal polarity env a b =
     match eqsort_of_comparison a b with
 
     | EQ_set ->
@@ -324,14 +329,14 @@ struct
     | EQ_comp c ->
         let va = val_of_term env a in
         let vb = val_of_term env b in
-        if use_equal positive
+        if use_equal polarity
         then p_equal va vb
         else Cvalues.equal_comp c va vb
 
     | EQ_array m ->
         let va = val_of_term env a in
         let vb = val_of_term env b in
-        if use_equal positive
+        if use_equal polarity
         then p_equal va vb
         else Cvalues.equal_array m va vb
 
@@ -346,7 +351,8 @@ struct
           Printer.pp_logic_type b.term_type ;
         p_false
 
-  let term_diff positive env a b = p_not (term_equal (not positive) env a b)
+  let term_diff polarity env a b =
+    p_not (term_equal (Cvalues.negate polarity) env a b)
 
   let compare_term env vrel lrel a b =
     if Logic_typing.is_pointer_type a.term_type then
@@ -359,10 +365,10 @@ struct
   (* -------------------------------------------------------------------------- *)
 
   let exp_equal env a b =
-    Vexp(e_prop (term_equal true env a b))
+    Vexp(e_prop (term_equal `Positive env a b))
 
   let exp_diff env a b =
-    Vexp(e_prop (term_diff true env a b))
+    Vexp(e_prop (term_diff `Positive env a b))
 
   let exp_compare env vrel lrel a b =
     Vexp(e_prop (compare_term env vrel lrel a b))
@@ -590,7 +596,8 @@ struct
           let condition = match cond with
             | None -> p_conj domain
             | Some p ->
-                let p = Lang.without_assume (C.pred true env) p in
+                let cc = C.pred `Positive env in
+                let p = Lang.without_assume cc p in
                 p_conj (p :: domain)
           in match C.logic env t with
           | Vexp e -> Vset[Vset.Descr(xs,e,condition)]
@@ -635,14 +642,14 @@ struct
   (* --- Relations                                                          --- *)
   (* -------------------------------------------------------------------------- *)
 
-  let relation positive env rel a b =
+  let relation polarity env rel a b =
     match rel with
     | Rlt -> compare_term env p_lt M.loc_lt a b
     | Rgt -> compare_term env p_lt M.loc_lt b a
     | Rle -> compare_term env p_leq M.loc_leq a b
     | Rge -> compare_term env p_leq M.loc_leq b a
-    | Req -> term_equal positive env a b
-    | Rneq -> term_diff positive env a b
+    | Req -> term_equal polarity env a b
+    | Rneq -> term_diff polarity env a b
 
   (* -------------------------------------------------------------------------- *)
   (* --- Predicates                                                         --- *)
@@ -654,22 +661,24 @@ struct
     let addrs = C.logic env t in
     L.valid sigma acs (Ctypes.object_of te) (L.sloc addrs)
 
-  let predicate positive env p =
+  let predicate polarity env p =
     match p.content with
     | Pfalse -> p_false
     | Ptrue -> p_true
     | Pseparated ts -> separated_terms env ts
-    | Prel(rel,a,b) -> relation positive env rel a b
-    | Pand(a,b) -> p_and (C.pred positive env a) (C.pred positive env b)
-    | Por(a,b)  -> p_or (C.pred positive env a) (C.pred positive env b)
-    | Pxor(a,b) -> p_not (p_equiv (C.pred positive env a) (C.pred positive env b))
-    | Pimplies(a,b) -> p_imply (C.pred (not positive) env a) (C.pred positive env b)
-    | Piff(a,b) -> p_equiv (C.pred positive env a) (C.pred positive env b)
-    | Pnot a -> p_not (C.pred (not positive) env a)
+    | Prel(rel,a,b) -> relation polarity env rel a b
+    | Pand(a,b) -> p_and (C.pred polarity env a) (C.pred polarity env b)
+    | Por(a,b)  -> p_or (C.pred polarity env a) (C.pred polarity env b)
+    | Pxor(a,b) -> p_not (p_equiv (C.pred `NoPolarity env a) (C.pred `NoPolarity env b))
+    | Pimplies(a,b) ->
+        let negated = Cvalues.negate polarity in
+        p_imply (C.pred negated env a) (C.pred polarity env b)
+    | Piff(a,b) -> p_equiv (C.pred `NoPolarity  env a) (C.pred `NoPolarity  env b)
+    | Pnot a -> p_not (C.pred (Cvalues.negate polarity) env a)
     | Pif(t,a,b) ->
         p_if (p_bool (val_of_term env t))
-          (C.pred positive env a)
-          (C.pred positive env b)
+          (C.pred polarity env a)
+          (C.pred polarity env b)
     | Papp({l_var_info = {lv_name = "\\subset"}},_,ts) ->
         begin match ts with
           | [a;b] -> L.subset
@@ -679,18 +688,31 @@ struct
         end
     | Papp(f,ls,ts) ->
         begin
-          match LogicBuiltins.logic f with
-          | ACSLDEF ->
-              let es = List.map (val_of_term env) ts in
-              C.call_pred env f ls es
-          | LFUN phi ->
-              let vs = List.map (val_of_term env) ts in
-              p_call phi vs
+          match C.logic_info env f with
+          | Some p ->
+              if ls <> [] || ts <> [] then
+                Warning.error "Unexpected parameters for named predicate '%a'"
+                  Logic_info.pretty f ; p
+          | None ->
+              match LogicBuiltins.logic f with
+              | ACSLDEF ->
+                  let es = List.map (val_of_term env) ts in
+                  C.call_pred env f ls es
+              | LFUN phi ->
+                  if ls <> [] then
+                    Warning.error "Unexpected labels for purely logic '%a'"
+                      Logic_info.pretty f ;
+                  let vs = List.map (val_of_term env) ts in
+                  p_call phi vs
         end
 
     | Plet( { l_var_info=v ; l_body=LBterm a } , p ) ->
         let va = C.logic env a in
-        C.pred positive (C.env_let env v va) p
+        C.pred polarity (C.env_let env v va) p
+
+    | Plet( { l_var_info=v ; l_body=LBpred q } , p ) ->
+        let vq = C.pred `NoPolarity env q in
+        C.pred polarity (C.env_letp env v vq) p
 
     | Plet _ ->
         Warning.error "Complex let-inding not implemented yet (%a)"
@@ -698,20 +720,25 @@ struct
 
     | Pforall(qs,p) ->
         let xs,env,hs = bind_quantifiers env qs in
-        let p = Lang.without_assume (C.pred positive env) p in
+        let p = Lang.without_assume (C.pred polarity env) p in
         p_forall xs (p_hyps hs p)
 
     | Pexists(qs,p) ->
         let xs,env,hs = bind_quantifiers env qs in
-        let p = Lang.without_assume (C.pred positive env) p in
+        let p = Lang.without_assume (C.pred polarity env) p in
         p_exists xs (p_conj (p :: hs))
 
     | Pat(p,label) ->
         let clabel = Clabels.c_label label in
-        C.pred positive (C.env_at env clabel) p
+        C.pred polarity (C.env_at env clabel) p
 
     | Pvalid(label,t) -> valid env RW label t
     | Pvalid_read(label,t) -> valid env RD label t
+
+    | Pvalid_function _t ->
+        Warning.error
+          "\\valid_function not yet implemented@\n\
+           @[<hov 0>(%a)@]" Printer.pp_predicate_named p
 
     | Pallocable _ | Pfreeable _ | Pfresh _ | Pinitialized _ | Pdangling _->
         Warning.error
@@ -733,7 +760,7 @@ struct
   let assignable env t =
     match t.term_node with
     | Tempty_set -> []
-    | TLval lv | TStartOf lv -> assignable_lval env lv
+    | TLval lv -> assignable_lval env lv
     | Tunion ts -> List.concat (List.map (C.region env) ts)
     | Tinter _ -> Warning.error "Intersection in assigns not implemented yet"
 
@@ -742,7 +769,7 @@ struct
           let xs,env,domain = bind_quantifiers env qs in
           let conditions = match cond with
             | None -> domain
-            | Some p -> C.pred true env p :: domain
+            | Some p -> C.pred `Positive env p :: domain
           in
           List.map
             (function
@@ -764,14 +791,13 @@ struct
         Warning.error "Complex let-binding not implemented yet (%a)"
           Printer.pp_term t
 
-    | TCastE(_,t) -> C.region env t
     | TLogic_coerce(_,t) -> C.region env t
 
     | TBinOp _ | TUnOp _ | Trange _ | TUpdate _ | Tapp _ | Tif _
     | TConst _ | Tnull | TDataCons _ | Tlambda _
-    | Ttype _ | Ttypeof _
+    | Ttype _ | Ttypeof _ | TCastE _
     | TAlignOfE _ | TAlignOf _ | TSizeOfStr _ | TSizeOfE _ | TSizeOf _
-    | Tblock_length _ | Tbase_addr _ | Toffset _ | TAddrOf _
+    | Tblock_length _ | Tbase_addr _ | Toffset _ | TAddrOf _ | TStartOf _
       -> Wp_parameters.abort ~current:true
            "Non-assignable term (%a)" Printer.pp_term t
 
@@ -794,16 +820,20 @@ struct
       ~effect:"Hide sub-term definition"
       (term_node env) t
 
-  let pred_handler positive _p =
-    if positive then p_false else p_true
-
-  let pred_protected positive env p =
-    let effect =
-      if positive then "Target turned to false" else "Ignored hypothesis"
-    in
-    Warning.handle
-      ~handler:(pred_handler positive) ~severe:positive
-      ~effect (predicate positive env) p
+  let pred_protected polarity env p =
+    match polarity with
+    | `Positive ->
+        Warning.handle
+          ~effect:"Target turned to False"
+          ~severe:true ~handler:(fun _ -> p_false)
+          (predicate `Positive env) p
+    | `Negative ->
+        Warning.handle
+          ~effect:"Ignored Hypothesis"
+          ~severe:false ~handler:(fun _ -> p_true)
+          (predicate `Negative env) p
+    | `NoPolarity ->
+        predicate `NoPolarity env p
 
   (* -------------------------------------------------------------------------- *)
   (* --- Boot Strapping                                                     --- *)
@@ -825,8 +855,8 @@ struct
     if List.mem "TRIGGER" np.Cil_types.name then
       C.trigger (Trigger.of_pred p) ; p
 
-  let pred ~positive env p =
-    Context.with_current_loc p.loc (pred_trigger positive env) p
+  let pred polarity env p =
+    Context.with_current_loc p.loc (pred_trigger polarity env) p
 
   let logic env t =
     Context.with_current_loc t.term_loc (term_trigger env) t
@@ -834,7 +864,7 @@ struct
   let region env t =
     Context.with_current_loc t.term_loc (assignable env) t
 
-  let () = C.bootstrap_pred (fun positive env p -> pred ~positive env p)
+  let () = C.bootstrap_pred pred
   let () = C.bootstrap_term term
   let () = C.bootstrap_logic logic
   let () = C.bootstrap_region region

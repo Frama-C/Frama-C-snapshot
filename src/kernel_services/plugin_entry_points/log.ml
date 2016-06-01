@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -674,24 +674,6 @@ sig
   val result  : ?level:int -> ?dkey:category -> 'a pretty_printer
   val feedback: ?ontty:ontty -> ?level:int -> ?dkey:category -> 'a pretty_printer
   val debug   : ?level:int -> ?dkey:category -> 'a pretty_printer
-  val debug0   : ?level:int -> ?dkey:category ->
-    unit pretty_printer
-  val debug1   : ?level:int -> ?dkey:category ->
-    ('a -> unit) pretty_printer
-  val debug2   : ?level:int -> ?dkey:category ->
-    ('a -> 'b -> unit) pretty_printer
-  val debug3   : ?level:int -> ?dkey:category ->
-    ('a -> 'b -> 'c -> unit) pretty_printer
-  val debug4   : ?level:int -> ?dkey:category ->
-    ('a -> 'b -> 'c -> 'd -> unit) pretty_printer
-  val debug5   : ?level:int -> ?dkey:category ->
-    ('a -> 'b -> 'c -> 'd -> 'e -> unit) pretty_printer
-  val debug6   : ?level:int -> ?dkey:category ->
-    ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> unit) pretty_printer
-  val debug7   : ?level:int -> ?dkey:category ->
-    ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g -> unit) pretty_printer
-  val debug8   : ?level:int -> ?dkey:category ->
-    ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g -> 'h -> unit) pretty_printer
   val warning : 'a pretty_printer
   val error   : 'a pretty_printer
   val abort   : ('a,'b) pretty_aborter
@@ -790,19 +772,15 @@ struct
 
   let channel = new_channel P.channel
   let prefix_first = Label (Printf.sprintf "[%s] " label)
-  let prefix_all = Prefix (Printf.sprintf "[%s] " label)
   let prefix_error = Label (Printf.sprintf "[%s] user error: " label)
   let prefix_warning = Label (Printf.sprintf "[%s] warning: " label)
   let prefix_failure = Label (Printf.sprintf "[%s] failure: " label)
   let prefix_dkey = function
-    | None -> if debug_atleast 1 then prefix_all else prefix_first
-    | Some key -> 
-        let lab = (Printf.sprintf "[%s:%s] " label key) in
-        if debug_atleast 1 then Prefix lab else Label lab
+    | None -> prefix_first
+    | Some key -> Label (Printf.sprintf "[%s:%s] " label key)
 
   let prefix_for = function
-    | Result | Feedback | Debug ->
-        if debug_atleast 1 then prefix_all else prefix_first
+    | Result | Feedback | Debug -> prefix_first
     | Error -> prefix_error
     | Warning -> prefix_warning
     | Failure -> prefix_failure
@@ -877,14 +855,14 @@ struct
       ?(level=1) ?dkey ?(current=false) ?source
       ?emitwith ?(echo=true) ?(once=false) ?append text =
     let mode =
-      match ontty with
-      | `Feedback -> if transient channel then `Transient else `Message
-      | `Transient -> if transient channel then `Transient else `Silent
-      | `Silent -> if transient channel then `Silent else `Message
-      | `Message ->
-          if verbose_atleast level && has_debug_key dkey
-          then `Message
-          else `Silent
+      if verbose_atleast level && has_debug_key dkey
+      then
+        match ontty with
+        | `Feedback -> if transient channel then `Transient else `Message
+        | `Transient -> if transient channel then `Transient else `Silent
+        | `Silent -> if transient channel then `Silent else `Message
+        | `Message -> `Message
+      else `Silent
     in match mode with
     | `Message ->
         logtext channel
@@ -923,106 +901,6 @@ struct
         text
     else
       nullprintf text
-
-  let debug0
-      ?level ?dkey ?(current=false) ?source
-      ?emitwith ?(echo=true) ?(once=false) ?append text =
-    if should_output_debug level dkey then
-      logtext channel
-        ~kind:Feedback
-        ~prefix:(prefix_dkey dkey)
-        ~source:(get_source current source)
-        ~once ~emitwith ~echo ~append
-        text
-
-  let debug1
-      ?level ?dkey ?(current=false) ?source
-      ?emitwith ?(echo=true) ?(once=false) ?append text x1 =
-    if should_output_debug level dkey then
-      logtext channel
-        ~kind:Feedback
-        ~prefix:(prefix_dkey dkey)
-        ~source:(get_source current source)
-        ~once ~emitwith ~echo ~append
-        text x1
-
-  let debug2
-      ?level ?dkey ?(current=false) ?source
-      ?emitwith ?(echo=true) ?(once=false) ?append text x1 x2 =
-    if should_output_debug level dkey then
-      logtext channel
-        ~kind:Feedback
-        ~prefix:(prefix_dkey dkey)
-        ~source:(get_source current source)
-        ~once ~emitwith ~echo ~append
-        text x1 x2
-
-  let debug3
-      ?level ?dkey ?(current=false) ?source
-      ?emitwith ?(echo=true) ?(once=false) ?append text x1 x2 x3 =
-    if should_output_debug level dkey then
-      logtext channel
-        ~kind:Feedback
-        ~prefix:(prefix_dkey dkey)
-        ~source:(get_source current source)
-        ~once ~emitwith ~echo ~append
-        text x1 x2 x3
-
-  let debug4
-      ?level ?dkey ?(current=false) ?source
-      ?emitwith ?(echo=true) ?(once=false) ?append text x1 x2 x3 x4 =
-    if should_output_debug level dkey then
-      logtext channel
-        ~kind:Feedback
-        ~prefix:(prefix_dkey dkey)
-        ~source:(get_source current source)
-        ~once ~emitwith ~echo ~append
-        text x1 x2 x3 x4
-
-  let debug5
-      ?level ?dkey ?(current=false) ?source
-      ?emitwith ?(echo=true) ?(once=false) ?append text x1 x2 x3 x4 x5 =
-    if should_output_debug level dkey then
-      logtext channel
-        ~kind:Feedback
-        ~prefix:(prefix_dkey dkey)
-        ~source:(get_source current source)
-        ~once ~emitwith ~echo ~append
-        text x1 x2 x3 x4 x5
-
-  let debug6
-      ?level ?dkey ?(current=false) ?source
-      ?emitwith ?(echo=true) ?(once=false) ?append text x1 x2 x3 x4 x5 x6 =
-    if should_output_debug level dkey then
-      logtext channel
-        ~kind:Feedback
-        ~prefix:(prefix_dkey dkey)
-        ~source:(get_source current source)
-        ~once ~emitwith ~echo ~append
-        text x1 x2 x3 x4 x5 x6
-
-  let debug7
-      ?level ?dkey ?(current=false) ?source
-      ?emitwith ?(echo=true) ?(once=false) ?append text x1 x2 x3 x4 x5 x6 x7 =
-    if should_output_debug level dkey then
-      logtext channel
-        ~kind:Feedback
-        ~prefix:(prefix_dkey dkey)
-        ~source:(get_source current source)
-        ~once ~emitwith ~echo ~append
-        text x1 x2 x3 x4 x5 x6 x7
-
-  let debug8
-      ?level ?dkey ?(current=false) ?source
-      ?emitwith ?(echo=true) ?(once=false) ?append text
-      x1 x2 x3 x4 x5 x6 x7 x8 =
-    if should_output_debug level dkey then
-      logtext channel
-        ~kind:Feedback
-        ~prefix:(prefix_dkey dkey)
-        ~source:(get_source current source)
-        ~once ~emitwith ~echo ~append
-        text x1 x2 x3 x4 x5 x6 x7 x8
 
   let warning
       ?(current=false) ?source
@@ -1088,7 +966,7 @@ struct
       ?(echo=true) ?append text =
     logwith channel
       ~kind:Result
-      ~prefix:(if debug_atleast 1 then prefix_all else prefix_first)
+      ~prefix:prefix_first
       ~source:(get_source current source)
       ~echo ~append (finally_do f) text
 

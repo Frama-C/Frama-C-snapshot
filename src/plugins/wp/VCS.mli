@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -95,6 +95,7 @@ val timeout : result
 val stepout : result
 val computing : (unit -> unit) -> result
 val failed : ?pos:Lexing.position -> string -> result
+val kfailed : ?pos:Lexing.position -> ('a,Format.formatter,unit,result) format4 -> 'a
 val result : ?solver:float -> ?time:float -> ?steps:int -> verdict -> result
 
 val is_verdict : result -> bool

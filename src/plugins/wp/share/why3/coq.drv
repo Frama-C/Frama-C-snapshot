@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -28,3 +28,4 @@ theory cbits.Cbits meta "realized_theory" "cbits.Cbits", "Cbits" end
 theory memory.Memory meta "realized_theory" "memory.Memory", "Memory" end
 theory vset.Vset meta "realized_theory" "vset.Vset", "Vset" end
 theory cfloat.Cfloat meta "realized_theory" "cfloat.Cfloat", "Cfloat" end
+theory vlist.Vlist meta "realized_theory" "vlist.Vlist", "Vlist" end

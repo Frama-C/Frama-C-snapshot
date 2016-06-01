@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,6 +27,36 @@ Require BuiltIn.
 Require bool.Bool.
 Require int.Int.
 
+Require Import Qedlib.
+
+(** * remarks about two_power_nat *)
+Remark two_power_nat_is_positive: forall n,
+  (0 < two_power_nat n)%Z.
+Proof.
+  induction n. 
+  (** base *) 
+  + compute. auto.
+  (** ind. *) 
+  + rewrite two_power_nat_S.
+    apply Zmult_lt_0_compat.
+    omega.
+    auto.
+Qed.
+
+Remark two_power_nat_plus: forall n m,
+  (two_power_nat (n+m) = (two_power_nat n)*(two_power_nat m))%Z.
+Proof.
+  induction m.
+  (replace (two_power_nat 0) with 1%Z by (compute;forward)).
+  (replace (n + 0)%nat with n by (auto with zarith)).
+  ring.
+  rewrite two_power_nat_S.
+  replace (n + S m)%nat with (S(n+m)) by (auto with zarith).
+  rewrite two_power_nat_S.
+  rewrite IHm.
+  ring.
+Qed.
+						      
 (** * C-Integer bounds * **)
 
 (** ** bounds are inlined into prover files ** **)
@@ -128,8 +158,7 @@ Lemma two_power_abs_is_positive : forall (n:Z), (0%Z < (two_power_abs n))%Z.
 Proof.
   intros n.
   unfold two_power_abs.
-  Require Import Bits.
-  apply Bits.two_power_nat_is_positive.
+  apply two_power_nat_is_positive.
 Qed.
 
 (* Why3 goal *)
@@ -139,7 +168,7 @@ Lemma two_power_abs_plus_pos : forall (n:Z) (m:Z), (0%Z <= n)%Z ->
 Proof.
   intros n m h1 h2.
   unfold two_power_abs.
-  replace (Z.abs_nat (n + m)) with ((Z.abs_nat n) + (Z.abs_nat m)).
+  replace (Z.abs_nat (n + m)) with ((Z.abs_nat n) + (Z.abs_nat m))%nat.
   + rewrite two_power_nat_plus. trivial.
   + rewrite Zabs2Nat.inj_add by omega. trivial.
 Qed.
@@ -476,9 +505,9 @@ Proof.
       pose (mn:=(m2 * n2)); fold mn.
       assert (n2 <= mn).
       { replace n2 with (1*n2) by auto with zarith.
-	unfold mn. 
+	      unfold mn. 
         apply Int.CompatOrderMult; omega. }
-      omega.
+      destruct H2. omega.
 Qed.
 
 (* Why3 goal *)

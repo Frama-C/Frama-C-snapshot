@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -37,9 +37,9 @@ let projects_list () =
 module PrjRadiosSet =
   FCSet.Make
     (struct
-       type t = (Project.t * string) * GMenu.radio_menu_item
-       let compare (p1, _) (p2, _) = compare_prj p1 p2
-     end)
+      type t = (Project.t * string) * GMenu.radio_menu_item
+      let compare (p1, _) (p2, _) = compare_prj p1 p2
+    end)
 
 let project_radios : PrjRadiosSet.t ref = ref PrjRadiosSet.empty
 
@@ -117,25 +117,25 @@ let save_project (host_window: Design.main_window_extension_points) project =
 
 let load_project (host_window: Design.main_window_extension_points) =
   let dialog = GWindow.file_chooser_dialog
-    ~action:`OPEN
-    ~title:"Load a saved project"
-    ~parent:host_window#main_window ()
+      ~action:`OPEN
+      ~title:"Load a saved project"
+      ~parent:host_window#main_window ()
   in
   dialog#add_button_stock `CANCEL `CANCEL ;
   dialog#add_select_button_stock `OPEN `OPEN ;
   host_window#protect ~cancelable:true ~parent:(dialog:>GWindow.window_skel)
     (fun () -> match dialog#run () with
-     | `OPEN ->
-         begin match dialog#filename with
-         | None -> ()
-         | Some f ->
-             (try ignore (Project.load f)
-              with Project.IOError s | Failure s ->
-                host_window#error
-                  ~reset:true ~parent:(dialog:>GWindow.window_skel)
-                  "Cannot load: %s" s)
-         end
-     | `DELETE_EVENT | `CANCEL -> ());
+       | `OPEN ->
+           begin match dialog#filename with
+             | None -> ()
+             | Some f ->
+                 (try ignore (Project.load f)
+                  with Project.IOError s | Failure s ->
+                    host_window#error
+                      ~reset:true ~parent:(dialog:>GWindow.window_skel)
+                      "Cannot load: %s" s)
+           end
+       | `DELETE_EVENT | `CANCEL -> ());
   dialog#destroy ()
 
 let rename_project (main_ui: Design.main_window_extension_points) project =
@@ -205,10 +205,10 @@ let rec duplicate_project window menu project =
 
 and mk_project_entry window menu ?group p =
   let p_item = GMenu.radio_menu_item
-    ?group
-    ~active:(Project.is_current p)
-    ~packing:menu#append
-    ()
+      ?group
+      ~active:(Project.is_current p)
+      ~packing:menu#append
+      ()
   in
   let callback () = if p_item#active then Project.set_current p in
   let pname = Project.get_unique_name p in

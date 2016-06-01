@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -39,11 +39,11 @@ let add_allocates_loop stmt =
       (Logic_const.new_code_annotation ca)
 
 let add_allocates_nothing_funspec kf =
-  let behav = Cil.default_behavior_name in
+  let behavior = Cil.default_behavior_name in
   let all_default _ alloc r = r && alloc = FreeAllocAny in
-  let all_default = Annotations.fold_allocates all_default kf behav true in
+  let all_default = Annotations.fold_allocates all_default kf behavior true in
   if all_default then
-    Annotations.add_allocates Emitter.kernel kf behav (FreeAlloc ([], []))
+    Annotations.add_allocates Emitter.kernel kf ~behavior (FreeAlloc ([], []))
 
 class vis_add_loop_allocates =
 object

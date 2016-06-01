@@ -5,9 +5,9 @@
 [value] Initial state computed
 [value] Values of globals at initialization
   G ∈ {0}
-tests/pdg/annot.c:22:[value] Loop invariant got status unknown.
+tests/pdg/annot.c:22:[value] warning: loop invariant got status unknown.
 tests/pdg/annot.c:25:[value] entering loop for the first time
-tests/pdg/annot.c:22:[value] Loop invariant got status valid.
+tests/pdg/annot.c:22:[value] loop invariant got status valid.
 tests/pdg/annot.c:26:[kernel] warning: signed overflow. assert s+2 ≤ 2147483647;
 [value] Recording results for loop
 [value] done for function loop

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -369,6 +369,12 @@ struct
         M.exists (fun b _ -> Top_Param.O.mem b s) m
       | Map m1, Map m2 -> map_intersects m1 m2
 
+  let find k v =
+    match v with
+    | Top (s, _) ->
+      if Top_Param.mem k s then V.top else V.bottom
+    | Map m -> find_or_bottom k m
+
   (** if there is only one key [k] in map [m], then returns the pair [k,v]
       where [v] is the value associated to [k].
       @raise Not_found otherwise. *)
@@ -471,7 +477,10 @@ module Make
   (K : Key)
   (Top_Param : Lattice_type.Lattice_Hashconsed_Set with type O.elt=K.t)
   (V : sig
+    type generic_widen_hint
+    type size_widen_hint
     include Lattice_type.Full_AI_Lattice_with_cardinality
+      with type widen_hint = size_widen_hint * generic_widen_hint
     val pretty_debug: t Pretty_utils.formatter
   end)
   (Comp: sig (** See {!Hptmap} for the documentation of this option *)
@@ -485,11 +494,13 @@ module Make
 struct
   include Make_without_cardinal(K)(Top_Param)(V)(Comp)(L)
 
-  type widen_hint = K.t -> V.widen_hint
+  type size_widen_hint = V.size_widen_hint
+  type generic_widen_hint = K.t -> V.generic_widen_hint
+  type widen_hint = size_widen_hint * generic_widen_hint
 
-  let widen wh =
+  let widen (size,wh) =
     let widen_map =
-      let decide k v1 v2 = V.widen (wh k) v1 v2 in
+      let decide k v1 v2 = V.widen (size,wh k) v1 v2 in
       M.join
         ~cache:Hptmap_sig.NoCache (* No cache, because of wh *)
         ~symmetric:false ~idempotent:true ~decide

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -280,8 +280,7 @@ let pretty_extern_vars fmt s =
     VInfoSet.iter Printer.pp_varinfo fmt s
 
 let is_in_libc (loc:location) =
-  let loc = fst loc in
-  Extlib.string_prefix (Filepath.normalize Config.datadir) loc.Lexing.pos_fname
+  Filepath.is_relative ~base:Config.datadir (fst loc).Lexing.pos_fname
 
 let is_entry_point vinfo times_called =
   times_called = 0 && not vinfo.vaddrof && not (is_in_libc vinfo.vdecl)
@@ -338,7 +337,8 @@ let consider_function vinfo =
   ) && (Metrics_parameters.Libc.get () || not (is_in_libc vinfo.vdecl))
 
 let consider_variable vinfo =
-  not (Cil.hasAttribute "FRAMA_C_MODEL" vinfo.vattr)
+  not (Cil.hasAttribute "FRAMA_C_MODEL" vinfo.vattr) &&
+    not (is_in_libc vinfo.vdecl)
 
 let float_to_string f =
   let s = Format.sprintf "%F" f in

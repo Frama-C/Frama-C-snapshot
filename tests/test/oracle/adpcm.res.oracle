@@ -447,7 +447,7 @@
         Called from tests/test/adpcm.c:394.
 [value] Recording results for uppol1
 [value] Done for function uppol1
-tests/test/adpcm.c:262:[value] Function encode: postcondition got status valid.
+tests/test/adpcm.c:262:[value] function encode: postcondition got status valid.
 [value] Recording results for encode
 [value] Done for function encode
 [value] computing for function encode <- main.

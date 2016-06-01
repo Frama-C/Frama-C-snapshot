@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -103,7 +103,16 @@ let get_preprocessor_command () =
   if cmdline <> "" then begin
      (cmdline, cpp_opt_kind ())
   end else begin
-    try (Sys.getenv "CPP", cpp_opt_kind ())
+    try
+      let runtime_cpp = Sys.getenv "CPP" in
+      match cpp_opt_kind () with
+      | Unknown ->
+         (* if CPP has not been changed in the runtime, use it *)
+         if Config.preprocessor = runtime_cpp then
+           if Config.preprocessor_is_gnu_like then runtime_cpp, Gnu
+           else runtime_cpp, Not_gnu
+         else runtime_cpp, Unknown
+      | _ as kind -> runtime_cpp, kind
     with Not_found ->
       let gnu = if Config.preprocessor_is_gnu_like then Gnu else Not_gnu in
       (Config.preprocessor, gnu)
@@ -177,9 +186,12 @@ end = struct
     State_dependency_graph.add_dependencies
       ~from:Pre_files.self
       [ Ast.self; 
-	Ast.UntypedFiles.self; 
-	Cabshelper.Comments.self;
+        Ast.UntypedFiles.self; 
+        Cabshelper.Comments.self;
         Cil.Frama_c_builtins.self ]
+
+  let () =
+    Ast.add_linked_state Cabshelper.Comments.self
 
   let pre_register_state = Pre_files.self
 
@@ -280,10 +292,13 @@ module Machdeps =
 
 let mem_machdep s = Machdeps.mem s || List.mem_assoc s default_machdeps
 
-let new_machdep s f =
-  if mem_machdep s then
-    invalid_arg (Format.sprintf "machdep `%s' already exists" s);
-  Machdeps.add s f
+let new_machdep s m =
+  try
+    let cm = Machdeps.find s in
+    if not (cm = m) then
+      Kernel.abort "trying to register incompatible machdeps under name `%s'" s
+  with Not_found ->
+    Machdeps.add s m
 
 let pretty_machdeps fmt =
   Machdeps.iter (fun x _ -> Format.fprintf fmt "@ %s" x);
@@ -376,7 +391,7 @@ let build_cpp_cmd cmdl supp_args in_file out_file =
                  shell metacharacters *)
       (Filename.quote out_file) (Filename.quote in_file)
 
-let parse = function
+let parse_cabs = function
   | NoCPP f ->
       if not (Sys.file_exists  f) then
         Kernel.abort "preprocessed file %S does not exist" f;
@@ -495,6 +510,26 @@ preprocessor command or use the option \"-cpp-command\"." cpp_command
       with Not_found ->
         Kernel.abort "could not find a suitable plugin for parsing %s." f
 
+let to_cil_cabs f =
+  try
+    let a,c = parse_cabs f in
+    Kernel.debug ~dkey:dkey_print_one "result of parsing %s:@\n%a"
+      (get_name f) Cil_printer.pp_file a;
+    if Errorloc.had_errors () then raise Exit;
+    a, c
+  with exn when Errorloc.had_errors () ->
+    if Kernel.Debug.get () >= 1 then raise exn
+    else
+      Kernel.abort "@[stopping on@ file %S@ that@ has@ errors.%t@]"
+        (get_name f)
+        (fun fmt ->
+           if Filename.check_suffix (get_name f) ".c" &&
+              not (Kernel.is_debug_key_enabled dkey_pp)
+           then
+             Format.fprintf fmt "@ Add@ '-kernel-msg-key pp'@ \
+                                 for preprocessing command.")
+
+
 let () =
   let handle f =
     let preprocess =
@@ -513,6 +548,135 @@ let () =
   in
   new_file_type ".ci" handle
 
+(* Print a warning message when an undefined behavior may occurs in an
+   unspecified sequence, i.e. two writes or a write and a read (not used
+   for determining the value to write, Cf. C99 6.5§2). We compute an
+   over-approximation here but under the assumption that
+   it is not possible to access two distinct fields by overflowing
+   an index, i.e. s.f[i] is always distinct from s.g[j]
+*)
+let check_unspecified file =
+  (* checks whether offsets starting from the same base might overlap *)
+  let rec may_overlap_offset offs1 offs2 =
+    match offs1, offs2 with
+    | NoOffset,_ | _, NoOffset -> true
+    | Field (f1,offs1), Field(f2,offs2) ->
+      (* it's probably a bit overkill to check if any of the field is in
+         an union, as the types of offs1 and offs2 are very probably 
+         identical, but I don't have a Coq proof of that fact at the moment. *)
+      (not f1.fcomp.cstruct || not f2.fcomp.cstruct) ||
+      (f1.fname = f2.fname &&
+       f1.fcomp.ckey = f2.fcomp.ckey &&
+       may_overlap_offset offs1 offs2)
+    | Index(i1,offs1), Index(i2,offs2) ->
+      (match Cil.constFoldToInt i1, Cil.constFoldToInt i2 with
+       | Some c1, Some c2 ->
+         Integer.equal c1 c2 &&
+         may_overlap_offset offs1 offs2
+       | None, _ | _, None ->
+         may_overlap_offset offs1 offs2
+      )
+    | (Index _|Field _), (Index _|Field _) ->
+      (* A bit strange, but we're not immune against some ugly cast.
+         Let's play safe here. *)
+      true
+  in
+  (* checks whether two lval may overlap *)
+  let may_overlap_lval (base1,offs1)(base2,offs2) =
+    match (base1,offs1), (base2,offs2) with
+    | (Mem _,_),(Mem _,_) -> true
+    | (Var v,_),(Mem _,_) | (Mem _,_), (Var v,_)->
+      v.vaddrof (* if the address of v is not taken,
+                   it cannot be aliased*)
+    | (Var v1,offs1),(Var v2,offs2) ->
+      v1.vid = v2.vid && may_overlap_offset offs1 offs2
+  in
+  (* checks whether some element of the first list may overlap with some
+     element of the second one. *)
+  let may_overlap l1 l2 =
+    Extlib.product_fold (fun f e1 e2 -> f || may_overlap_lval e1 e2)
+      false l1 l2
+  in
+  let check_unspec = object
+    inherit Cil.nopCilVisitor
+    method! vstmt s =
+      (match s.skind with
+       | UnspecifiedSequence [] | UnspecifiedSequence [ _ ] -> ()
+       | UnspecifiedSequence seq ->
+         (* We have more than one side-effect in an unspecified sequence.
+            For each statement, we check whether its side effects may overlap
+            with the others, or with the reads. *)
+         let my_stmt_print = object(self)
+           inherit Cil_printer.extensible_printer () as super
+           method! stmt fmt = function
+             | {skind = UnspecifiedSequence seq } ->
+               Pretty_utils.pp_list ~sep:"@\n"
+                 (fun fmt (s,m,w,r,_) ->
+                    Format.fprintf fmt
+                      "/*@ %t%a@ <-@ %a@ */@\n%a"
+                      (fun fmt -> if (Kernel.debug_atleast 2) then
+                          Pretty_utils.pp_list
+                            ~pre:"@[("
+                            ~suf:")@]"
+                            ~sep:"@ "
+                            self#lval fmt m)
+                      (Pretty_utils.pp_list ~sep:"@ " self#lval) w
+                      (Pretty_utils.pp_list ~sep:"@ " self#lval) r
+                      self#stmt s)
+                 fmt
+                 seq
+             | s -> super#stmt fmt s
+         end in
+         (* when checking for overlaps, we do not consider temporaries
+            introduced by the normalization. In other words,
+            we assume that the normalization itself is correct. *)
+         let remove_mod m l =
+           List.filter (fun x -> not (List.exists (Lval.equal x) m)) l
+         in
+         (* l1 contains two lists: the first one is the temporaries we
+            do not want to consider, the second one are locations that
+            are read by a given statement. l2 contains locations that are
+            written by another statement. *)
+         let may_overlap_modified l1 l2 =
+           List.fold_left
+             (fun flag (m,r) -> flag || may_overlap (remove_mod m l2) r)
+             false l1
+         in
+         let warn,_,_ =
+           List.fold_left
+             (fun ((warn,writes,reads) as res) (_,m,w,r,_) ->
+                (* the accumulator contains the lists of written 
+                   and read locations from the previous statements.
+                   We check for overlapping between the following pairs:
+                   - w vs writes
+                   - r vs writes (modulo temporaries m as explained above).
+                   - reads vs w (id. )
+                   As soon as we have identified a potential overlap, we
+                   output the whole unspecified sequence.
+                *)
+                if warn then res else begin
+                  let new_writes = w @ writes in
+                  let new_reads = (m,r)::reads in
+                  let new_warn =
+                    warn || may_overlap writes w ||
+                    may_overlap (remove_mod m writes) r ||
+                    may_overlap_modified reads w
+                  in
+                  new_warn,new_writes,new_reads
+                end)
+             (false, [], []) seq
+         in
+         if warn then
+           Kernel.warning ~current:true ~once:true
+             "Unspecified sequence with side effect:@\n%a@\n"
+             (my_stmt_print#without_annot my_stmt_print#stmt) s
+       | _ -> ());
+      DoChildren
+  end
+  in
+  Cil.visitCilFileSameGlobals check_unspec file
+
+
 (** Keep defined entry point even if not defined, and possibly the functions
     with only specifications (according to parameter
     keep_unused_specified_function). This function is meant to be passed to
@@ -529,172 +693,39 @@ let keep_entry_point ?(specs=Kernel.Keep_unused_specified_functions.get ()) g =
          command line.*)
     | _ -> false
 
-let files_to_cil files =
-  (* BY 2011-05-10 Deactivated this mark_as_computed. Does not seem to
-     do anything useful anymore, and causes problem with the self-recovering
-     gui (commit 13295)
-  (* mark as computed early in case of a typing error occur: do not type check
-     the erroneous program twice. *)
-     Ast.mark_as_computed (); *)
-  let debug_globals files =
-    let level = 6 in
-    if Kernel.debug_atleast level then begin
-      List.iter
-        (fun f ->
-           (* NB: don't use frama-C printer here, as the
-              annotations tables are not filled yet. *)
-           List.iter
-             (fun g -> Kernel.debug ~level "%a" Printer.pp_global g)
-             f.globals)
-        files
-    end
-  in
+let files_to_cabs_cil files =
+  Kernel.feedback ~level:2 "parsing";
   (* Parsing and merging must occur in the very same order.
      Otherwise the order of files on the command line will not be consistantly
      handled. *)
-    Kernel.feedback ~level:2 "parsing";
-    let files,cabs =
-      List.fold_left
-        (fun (acca,accc) f ->
-           try
-             let a,c = parse f in
-	     Kernel.debug ~dkey:dkey_print_one "result of parsing %s:@\n%a"
-	       (get_name f) Cil_printer.pp_file a;
-	     if Errorloc.had_errors () then raise Exit;
-             a::acca, c::accc
-           with exn when Errorloc.had_errors () ->
-             if Kernel.Debug.get () >= 1 then raise exn
-             else
-               Kernel.abort "@[stopping on@ file %S@ that@ has@ errors.%t@]"
-                 (get_name f)
-                 (fun fmt ->
-                   if Filename.check_suffix (get_name f) ".c" &&
-                     not (Kernel.is_debug_key_enabled dkey_pp)
-                   then
-                     Format.fprintf fmt "@ Add@ '-kernel-msg-key pp'@ \
-                       for preprocessing command.")
-        )
-        ([],[])
-        files
-    in
-    (* fold_left reverses the list order.
-       This is an issue with pre-registered files. *)
-    let files = List.rev files in
-    let cabs = List.rev cabs in
-    Ast.UntypedFiles.set cabs;
-    debug_globals files;
-  (* Clean up useless parts *)
+  let cil_cabs = List.fold_left (fun acc f -> to_cil_cabs f :: acc) [] files in
+  let cil_files, cabs_files = List.split cil_cabs in
+  (* fold_left reverses the list order.
+     This is an issue with pre-registered files. *)
+  let cil_files = List.rev cil_files in
+  let cabs_files = List.rev cabs_files in
+  Ast.UntypedFiles.set cabs_files;
+  (* Clean up useless parts in each file *)
   Kernel.feedback ~level:2 "cleaning unused parts";
   (* remove unused functions. However, we keep declarations that have a spec,
      since they might be merged with another one which is used. If this is not
      the case, these declarations will be removed after Mergecil.merge. *)
   List.iter
     (Rmtmps.removeUnusedTemps ~isRoot:(keep_entry_point ~specs:true)) 
-    files;
-  debug_globals files;
-
+    cil_files;
+  (* Perform symbolic merge of all files *)
   Kernel.feedback ~level:2 "symbolic link";
-  let merged_file = Mergecil.merge files "whole_program" in
-  debug_globals [merged_file];
-
+  let merged_file = Mergecil.merge cil_files "whole_program" in
+  (* Tidy up resulting files; in particular remove unused globals *)
   Logic_utils.complete_types merged_file;
   Rmtmps.removeUnusedTemps ~isRoot:keep_entry_point merged_file;
-  if Kernel.UnspecifiedAccess.get()
-  then begin
-    let rec not_separated_offset offs1 offs2 =
-      match offs1, offs2 with
-          NoOffset,_ | _, NoOffset -> true
-        | Field (f1,offs1), Field(f2,offs2) ->
-            f1.fname = f2.fname && f1.fcomp.ckey = f2.fcomp.ckey &&
-            not_separated_offset offs1 offs2
-        | Index(i1,offs1), Index(i2,offs2) ->
-            (match Cil.constFoldToInt i1, Cil.constFoldToInt i2 with
-               | Some c1, Some c2 ->
-                   Integer.equal c1 c2 &&
-                   not_separated_offset offs1 offs2
-               | None, _ | _, None -> true)
-        | (Index _|Field _), (Index _|Field _) ->
-            (* A bit strange, but we're not immune against some ugly cast.
-               Let's play safe here.
-             *)
-            true
-    in
-    let not_separated (base1,offs1)(base2,offs2) =
-      match (base1,offs1), (base2,offs2) with
-          (Mem _,_),(Mem _,_) -> true
-        | (Var v,_),(Mem _,_) | (Mem _,_), (Var v,_)->
-            v.vaddrof (* if the address of v is not taken,
-                         it cannot be aliased*)
-        | (Var v1,offs1),(Var v2,offs2) ->
-            v1.vid = v2.vid && not_separated_offset offs1 offs2
-    in
-    let not_separated l1 l2 =
-      Extlib.product_fold (fun f e1 e2 -> f || not_separated e1 e2)
-        false l1 l2
-    in
-    let check_unspec = object
-      inherit Cil.nopCilVisitor
-      method! vstmt s =
-        (match s.skind with
-             UnspecifiedSequence [] | UnspecifiedSequence [ _ ] -> ()
-           | UnspecifiedSequence seq ->
-               let my_stmt_print = object(self)
-                 inherit Cil_printer.extensible_printer () as super
-                 method! stmt fmt = function
-                 | {skind = UnspecifiedSequence seq } ->
-                   Pretty_utils.pp_list ~sep:"@\n"
-                     (fun fmt (s,m,w,r,_) ->
-                       Format.fprintf fmt
-                         "/*@ %t%a@ <-@ %a@ */@\n%a"
-                         (fun fmt -> if (Kernel.debug_atleast 2) then
-                             Pretty_utils.pp_list
-                               ~pre:"@[("
-                               ~suf:")@]"
-                               ~sep:"@ "
-                               self#lval fmt m)
-                         (Pretty_utils.pp_list ~sep:"@ " self#lval) w
-                         (Pretty_utils.pp_list ~sep:"@ " self#lval) r
-                         self#stmt s) 
-		     fmt 
-		     seq
-                 | s -> super#stmt fmt s
-               end in
-               let remove_mod m l =
-                 List.filter
-                   (fun x -> not (List.exists (Lval.equal x) m))
-                   l
-               in
-               let not_separated_modified l1 l2 =
-                 List.fold_left
-                   (fun flag (m,r) ->
-                      flag || not_separated (remove_mod m l2) r) false l1
-               in
-               let warn,_,_ =
-                 List.fold_left
-                   (fun ((warn,writes,reads) as res) (_,m,w,r,_) ->
-                      if warn then res else begin
-                        let new_writes = w @ writes in
-                        let new_reads = (m,r)::reads in
-                        let new_warn =
-                          warn || not_separated writes w ||
-                            not_separated (remove_mod m writes) r ||
-                            not_separated_modified reads w
-                        in
-                        new_warn,new_writes,new_reads
-                      end)
-                   (false, [], []) seq
-                 in if warn then
-                 Kernel.warning ~current:true ~once:true
-                   "Unspecified sequence with side effect:@\n%a@\n"
-                   (my_stmt_print#without_annot my_stmt_print#stmt) s
-           | _ -> ());
-        DoChildren
-    end
-    in
-    Cil.visitCilFileSameGlobals check_unspec merged_file
-  end;
-  merged_file
+  if Kernel.UnspecifiedAccess.get () then
+    check_unspecified merged_file;
+  merged_file, cabs_files
 
+(* "Implicit" annotations are those added by the kernel with ACSL name
+   'Frama_C_implicit_init'. Currently, this concerns statements that are
+   generated to initialize local variables. *)
 module Implicit_annotations =
   State_builder.Set_ref
     (Property.Set)
@@ -707,10 +738,12 @@ let () = Ast.add_linked_state Implicit_annotations.self
 
 let () =
   Property_status.register_property_remove_hook
-    (fun p -> 
-      Kernel.debug ~dkey:dkey_annot "Removing implicit property %a"
-        Property.pretty p;
-      Implicit_annotations.remove p)
+    (fun p ->
+       if Implicit_annotations.mem p then begin
+         Kernel.debug ~dkey:dkey_annot "Removing implicit property %a"
+           Property.pretty p;
+         Implicit_annotations.remove p
+       end)
 
 let emit_status p =
   Kernel.debug
@@ -732,7 +765,7 @@ let add_annotation kf st a =
   | AStmtSpec
       ([],
        ({ spec_behavior = [ { b_name = "Frama_C_implicit_init" } as bhv]})) ->
-    let props = Property.ip_post_cond_of_behavior kf (Kstmt st) bhv in
+    let props = Property.ip_post_cond_of_behavior kf (Kstmt st) [] bhv in
     List.iter Implicit_annotations.add props
   | _ -> ()
 
@@ -744,20 +777,15 @@ let synchronize_source_annot has_new_stmt kf =
       val block_with_user_annots = ref None
       val user_annots_for_next_stmt = ref []
       method! vstmt st =
-        let stmt, father = match super#current_kinstr with
-          | Kstmt stmt ->
-            super#pop_stmt stmt;
-            let father = super#current_stmt in
-            super#push_stmt stmt;
-            stmt, father
-          | Kglobal -> assert false
-        in
+        super#pop_stmt st;
+        let father = super#current_stmt in
+        super#push_stmt st;
         let is_in_same_block () = match !block_with_user_annots,father with
           | None, None -> true
           | Some block, Some stmt_father when block == stmt_father -> true
           | _, _ -> false
         in
-        let synchronize_user_annot a = add_annotation kf stmt a in
+        let synchronize_user_annot a = add_annotation kf st a in
         let synchronize_previous_user_annots () =
           if !user_annots_for_next_stmt <> [] then begin
             if is_in_same_block () then begin
@@ -770,9 +798,9 @@ let synchronize_source_annot has_new_stmt kf =
                         Cil.mkStmt ~valid_sid:true (Block (Cil.mkBlock [st]))
                       in
                       has_new_stmt := true;
-		      Annotations.add_code_annot
-			Emitter.end_user ~kf new_stmt annot;
-		      (true, new_stmt)
+                      Annotations.add_code_annot
+                        Emitter.end_user ~kf new_stmt annot;
+                      (true, new_stmt)
                     end else begin
                       add_annotation kf st annot;
                       (true,st)
@@ -819,7 +847,6 @@ effects";
               user_annots_for_next_stmt := [annot] ;
             end
         in
-        assert (stmt == st) ;
         assert (!block_with_user_annots = None
                || !user_annots_for_next_stmt <> []);
         match st.skind with
@@ -1019,13 +1046,10 @@ let add_transform_parameter
         "applying %s to current AST, after option %s changed"
         name.name P.option_name;
       f (Ast.get());
-      if Kernel.Check.get () then begin
-        Cil.visitCilFileSameGlobals
-          (new Filecheck.check
-             ("after code transformation: " ^ name.name ^ 
-                 " triggered by " ^ P.option_name)
-           :> Cil.cilVisitor) (Ast.get());
-      end
+      if Kernel.Check.get () then
+        Filecheck.check_ast
+          ("after code transformation: " ^ name.name ^
+              " triggered by " ^ P.option_name)
     end
   in
   (* P.add_set_hook must be done only once. *)
@@ -1114,6 +1138,7 @@ let prepare_cil_file file =
   end;
   Transform_before_cleanup.apply file;
   (* Compute the list of functions and their CFG *)
+  Rmtmps.removeUnusedTemps ~isRoot:keep_entry_point file;
   (try
      List.iter register_global file.globals
    with Globals.Vars.AlreadyExists(vi,_) ->
@@ -1121,7 +1146,6 @@ let prepare_cil_file file =
        "Trying to add the same varinfo twice: %a (vid:%d)"
        Printer.pp_varinfo vi vi.vid);
   Kernel.feedback ~level:2 "register globals done";
-  Rmtmps.removeUnusedTemps ~isRoot:keep_entry_point file;
   (* NB: register_global also calls oneret, which might introduce new
      statements and new annotations tied to them. Since sid are set by cfg,
      we must compute it again before annotation synchronisation *)
@@ -1163,11 +1187,11 @@ let init_project_from_cil_file prj file =
   let selection =
     State_selection.diff
       State_selection.full
-      (State_selection.list_state_union
-         ~deps:State_selection.with_dependencies 
-         [Cil.Builtin_functions.self;
-          Ast.self;
-          Files.pre_register_state])
+      (State_selection.list_union
+         (List.map State_selection.with_dependencies
+            [Cil.Builtin_functions.self;
+             Ast.self;
+             Files.pre_register_state]))
   in
   Project.copy ~selection prj;
   Project.on prj (fun file -> fill_built_ins (); prepare_cil_file file) file
@@ -1191,7 +1215,7 @@ let find_typeinfo ty =
         | GType (ty',_) when ty.tname = ty'.tname ->
             Kernel.fatal 
               "Lost sharing between definition and declaration of type %s"
-	      ty.tname
+              ty.tname
         | _ -> ())
       globs;
     Kernel.fatal "Reordering AST: unknown typedef for %s"  ty.tname
@@ -1542,17 +1566,20 @@ let reorder_custom_ast ast =
 
 let reorder_ast () = reorder_custom_ast (Ast.get())
 
+(* Fill logic tables with builtins *)
 let init_cil () =
   Cil.initCIL (Logic_builtin.init()) (get_machdep ());
   Logic_env.Builtins.apply ();
   Logic_env.prepare_tables ()
 
-(* Fill logic tables with builtins *)
 let prepare_from_c_files () =
   init_cil ();
   let files = Files.get () in (* Allow pre-registration of prolog files *)
-  let cil = files_to_cil files in
-  prepare_cil_file cil
+  let cil, cabs_files = files_to_cabs_cil files in
+  prepare_cil_file cil;
+  (* prepare_cil_file may call syntactic transformers, that will ultimately
+     reset the untyped AST. Restore it here. *)
+  Ast.UntypedFiles.set cabs_files
 
 let init_project_from_visitor ?(reorder=false) prj 
     (vis:Visitor.frama_c_visitor) =
@@ -1573,22 +1600,21 @@ let init_project_from_visitor ?(reorder=false) prj
   (* reorder _before_ check. *)
   if reorder then Project.on prj reorder_ast ();
   if Kernel.Check.get() then begin
+    let name = prj.Project.name in
+    Kernel.debug ~dkey:dkey_print_one "Check for project %s" name;
     Project.on
       prj
       (* eta-expansion required because of operations on the current project in
-         the class construtor *)
+         the class constructor *)
       (fun f ->
-         Cil.visitCilFile
-          (new Filecheck.check ("AST of " ^ prj.Project.name) :> Cil.cilVisitor)
-          f)
+         Visitor.visitFramacFileSameGlobals
+           (new Filecheck.check ("AST of " ^ name)) f)
       file';
-    assert (Kernel.verify (file == Ast.get())
-              "Creation of project %s modifies original project" 
-              prj.Project.name);
-    Cil.visitCilFile
-      (new Filecheck.check("Original AST after creation of " ^ prj.Project.name)
-         :> Cil.cilVisitor)
-      file
+    assert
+      (Kernel.verify (file == Ast.get())
+         "Creation of project %s modifies original project"  name);
+    Visitor.visitFramacFileSameGlobals
+      (new Filecheck.check("Original AST after creation of " ^ name)) file
   end
 
 let prepare_from_visitor ?reorder prj visitor =
@@ -1597,9 +1623,9 @@ let prepare_from_visitor ?reorder prj visitor =
 
 let create_project_from_visitor ?reorder ?(last=true) prj_name visitor =
   let selection =
-    State_selection.list_state_union
-      ~deps:State_selection.with_dependencies
-      [ Kernel.Files.self; Files.pre_register_state ]
+    State_selection.list_union
+      (List.map State_selection.with_dependencies
+         [ Kernel.Files.self; Files.pre_register_state ])
   in
   let selection = State_selection.diff State_selection.full selection in
   let prj = Project.create_by_copy ~selection ~last prj_name in
@@ -1622,13 +1648,13 @@ let init_from_cmdline () =
     let selection =
       State_selection.diff
         State_selection.full
-        (State_selection.list_state_union
-           ~deps:State_selection.with_dependencies
-	   [ Cil.Builtin_functions.self;
-             Logic_env.Logic_info.self;
-             Logic_env.Logic_type_info.self;
-             Logic_env.Logic_ctor_info.self;
-             Ast.self ])
+        (State_selection.list_union
+           (List.map State_selection.with_dependencies
+              [ Cil.Builtin_functions.self;
+                Logic_env.Logic_info.self;
+                Logic_env.Logic_type_info.self;
+                Logic_env.Logic_ctor_info.self;
+                Ast.self ]))
     in
     let prj2 = Project.create_by_copy ~selection ~last:false "debug_copy_prj" in
     Project.set_current prj2;
@@ -1690,7 +1716,7 @@ let journalized_pretty_ast =
        ~label1:("prj",Some Project.current) Project.ty
        ~label2:("fmt",Some (fun () -> None))
        (let module O = Datatype.Option(Datatype.Formatter) in
-	O.ty)
+        O.ty)
        Datatype.unit Datatype.unit)
     unjournalized_pretty
 

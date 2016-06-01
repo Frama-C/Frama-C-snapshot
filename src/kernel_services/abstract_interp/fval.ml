@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -344,7 +344,7 @@ end
 type t = FRange.t
 (* open Private_Couple *) (* Workaround for Ocaml bug 5718 *)
 
-type builtin_res = Builtin_alarms.t * FRange.t Abstract_interp.Bot.or_bottom
+type builtin_res = Builtin_alarms.t * FRange.t Bottom.or_bottom
 
 let structural_descr =
   Structural_descr.t_sum [| [| F.packed_descr; F.packed_descr |] |]
@@ -423,8 +423,8 @@ let inject_singleton x = inject x x
 let one = inject_singleton F.one
 
 let zero = inject_singleton F.zero
-
 let minus_zero = inject_singleton F.minus_zero
+let zeros = inject F.minus_zero F.zero
 
 let compare_min (FRange.I(m1,_)) (FRange.I(m2,_)) =
   F.compare m1 m2
@@ -438,18 +438,20 @@ let is_included (FRange.I(b1, e1)) (FRange.I(b2, e2)) =
 let join (FRange.I(b1, e1)) (FRange.I(b2, e2)) =
   inject (F.min b1 b2) (F.max e1 e2)
 
-let join_or_bottom = Bot.join_or_bottom join
+let join_or_bottom = Bottom.join join
 
 let meet (FRange.I(b1, e1)) (FRange.I(b2, e2)) =
   if F.le b2 e1 && F.le b1 e2
   then `Value (inject (F.max b1 b2) (F.min e1 e2))
   else `Bottom
 
+let narrow = meet
+
 let contains_zero = is_included zero
 let contains_minus_zero = is_included minus_zero
 
 (* Returns true if [f] is certainly a zero (positive, negative or both). *)
-let is_a_zero f = is_included f (inject F.minus_zero F.zero)
+let is_a_zero f = is_included f zeros
 
 let fold_split n f (FRange.I(b, e)) acc =
   let bound = ref b in
@@ -472,6 +474,11 @@ let is_zero f =
   0 = compare zero f
 
 let is_singleton (FRange.I(b, e)) = F.equal b e
+
+exception Not_Singleton_Float
+
+let project_float (FRange.I(b, e)) =
+  if F.equal b e then b else raise Not_Singleton_Float
 
 let neg (FRange.I(b, e)) =
   inject (F.neg e) (F.neg b) (* do not round because exact operation *)
@@ -1021,21 +1028,35 @@ let widen (FRange.I(b1,e1)) (FRange.I(b2, e2)) =
   let e = if F.equal e2 e1 then e2 else F.widen_up e2 in
   inject b e
 
-let equal_float_ieee (FRange.I(b1, e1)) (FRange.I(b2, e2)) =
+let forward_eq (FRange.I(b1, e1)) (FRange.I(b2, e2)) =
   let intersects =
     F.le_ieee b1 e2 && F.le_ieee b2 e1
   in
   if not intersects
-  then true, false
+  then Comp.False
   else if F.equal_ieee b1 e1 && F.equal_ieee b2 e2
-  then false, true
-  else true, true
+  then Comp.True
+  else Comp.Unknown
 
-let maybe_le_ieee_float (FRange.I(b1, _e1)) (FRange.I(_b2, e2)) =
-  F.le_ieee b1 e2
+let forward_le (FRange.I(b1, e1)) (FRange.I(b2, e2)) =
+  if F.le_ieee e1 b2 then Comp.True
+  else if F.lt_ieee e2 b1 then Comp.False
+  else Comp.Unknown
 
-let maybe_lt_ieee_float (FRange.I(b1, _e1)) (FRange.I(_b2, e2)) =
-  F.lt_ieee b1 e2
+let forward_lt (FRange.I(b1, e1)) (FRange.I(b2, e2)) =
+  if F.lt_ieee e1 b2 then Comp.True
+  else if F.le_ieee e2 b1 then Comp.False
+  else Comp.Unknown
+
+let forward_comp op f1 f2 =
+  let open Abstract_interp.Comp in
+  match op with
+  | Le -> forward_le f1 f2
+  | Ge -> forward_le f2 f1
+  | Lt -> forward_lt f1 f2
+  | Gt -> forward_lt f2 f1
+  | Eq -> forward_eq f1 f2
+  | Ne -> Comp.inv_result (forward_eq f1 f2)
 
 let diff (FRange.I(b1, e1) as f1) (FRange.I(b2, e2)) =
   if F.le b2 b1 && F.le e1 e2
@@ -1046,7 +1067,7 @@ let diff (FRange.I(b1, e1) as f1) (FRange.I(b2, e2)) =
   then `Value (inject e2 e1)
   else `Value f1
 
-let filter_le_f allmodes fkind (FRange.I(b1, e1) as f1) e2 =
+let backward_le_f allmodes fkind (FRange.I(b1, e1) as f1) e2 =
   let e2 =
     if F.equal_ieee F.zero e2
     then F.zero
@@ -1070,10 +1091,10 @@ let filter_le_f allmodes fkind (FRange.I(b1, e1) as f1) e2 =
   then `Value f1
   else `Value (inject b1 e2)
 
-let filter_le allmodes fkind f1 (FRange.I(_b2, e2) as _f2) =
-  filter_le_f allmodes fkind f1 e2
+let backward_le allmodes fkind f1 (FRange.I(_b2, e2) as _f2) =
+  backward_le_f allmodes fkind f1 e2
 
-let filter_lt allmodes fkind (FRange.I(b1, _e1) as f1) (FRange.I(_b2, e2)) =
+let backward_lt allmodes fkind (FRange.I(b1, _e1) as f1) (FRange.I(_b2, e2)) =
   if F.le_ieee e2 b1
   then `Bottom
   else
@@ -1084,15 +1105,15 @@ let filter_lt allmodes fkind (FRange.I(b1, _e1) as f1) (FRange.I(_b2, e2)) =
       then Floating_point.neg_min_denormal
       else F.prev_float e2 (* non-infinite because >= b1 *)
     in
-    filter_le_f allmodes fkind f1 e2
+    backward_le_f allmodes fkind f1 e2
 
-let filter_ge_f allmodes fkind (FRange.I(b1, e1) as f1) b2 =
+let backward_ge_f allmodes fkind (FRange.I(b1, e1) as f1) b2 =
   let b2 =
     if F.equal_ieee F.minus_zero b2
     then F.minus_zero
     else
       match fkind with
-      | Float32 -> (* see comments in filter_le_f *)
+      | Float32 -> (* see comments in backward_le_f *)
         if allmodes then
           Floating_point.set_round_downward ()
         else
@@ -1108,10 +1129,10 @@ let filter_ge_f allmodes fkind (FRange.I(b1, e1) as f1) b2 =
   then `Value f1
   else `Value (inject b2 e1)
 
-let filter_ge allmodes fkind f1 (FRange.I(b2, _e2)) =
-  filter_ge_f allmodes fkind f1 b2
+let backward_ge allmodes fkind f1 (FRange.I(b2, _e2)) =
+  backward_ge_f allmodes fkind f1 b2
 
-let filter_gt allmodes fkind (FRange.I(_b1, e1) as f1) (FRange.I(b2, _e2)) =
+let backward_gt allmodes fkind (FRange.I(_b1, e1) as f1) (FRange.I(b2, _e2)) =
   if F.le_ieee e1 b2
   then `Bottom
   else
@@ -1122,14 +1143,31 @@ let filter_gt allmodes fkind (FRange.I(_b1, e1) as f1) (FRange.I(b2, _e2)) =
       then Floating_point.min_denormal
       else F.next_float b2 (* non-infinite because <= e1 *)
     in
-    filter_ge_f allmodes fkind f1 b2
+    backward_ge_f allmodes fkind f1 b2
 
-let filter_le_ge_lt_gt op allmodes fkind f1 f2 = match op with
-  | Cil_types.Le -> filter_le allmodes fkind f1 f2
-  | Cil_types.Ge -> filter_ge allmodes fkind f1 f2
-  | Cil_types.Lt -> filter_lt allmodes fkind f1 f2
-  | Cil_types.Gt -> filter_gt allmodes fkind f1 f2
-  | _ -> `Value f1
+let backward_comp_left op allmodes fkind f1 f2 =
+  match op with
+  | Comp.Le -> backward_le allmodes fkind f1 f2
+  | Comp.Ge -> backward_ge allmodes fkind f1 f2
+  | Comp.Lt -> backward_lt allmodes fkind f1 f2
+  | Comp.Gt -> backward_gt allmodes fkind f1 f2
+  | Comp.Eq ->
+    (* -0 and +0 must not be distinguished here *)
+    let f2 = if contains_a_zero f2 then join f2 zeros else f2 in
+    narrow f1 f2
+  | Comp.Ne ->
+    (* compute ]-infty,min[ \cup ]max,infty[ *)
+    let before_or_after min max =
+      Bottom.join join
+        (backward_lt allmodes fkind f1 min) (backward_gt allmodes fkind f1 max)
+    in
+    (* As usual, we cannot reduce if [f2] is not a singleton, except that
+       the two zeros are a kind of singleton. Checking whether [f2] is on
+       a frontier of [f1] is not obvious because of the multiple cases
+       (and [allmodes]) so we use the transformers for [lt] instead. *)
+    if is_a_zero f2 then before_or_after minus_zero zero
+    else if is_singleton f2 then before_or_after f2 f2
+    else `Value f1
 
 let nan_fmod = an_alarm (ANaN "division by zero")
 
@@ -1194,13 +1232,13 @@ let fmod (FRange.I(b1, e1) as x) (FRange.I(b2, e2) as y) =
            e.g. (2.5 fmod 6) <= 2.5, and (6 fmod 2.5) < 2.5.
            Also, if x > 0, then 0 <= fmod(x,y), and symmetrically for x < 0. *)
         (* Auxiliary functions to filter interval extremities *)
-        let filter_lower_bound (FRange.I(b,_) as i) =
-          Abstract_interp.Bot.non_bottom
-            (filter_gt false Float64 i (inject_f Float64 b b))
+        let backward_lower_bound (FRange.I(b,_) as i) =
+          Bottom.non_bottom
+            (backward_gt false Float64 i (inject_f Float64 b b))
         in
-        let filter_upper_bound (FRange.I(_,e) as i) =
-          Abstract_interp.Bot.non_bottom
-            (filter_lt false Float64 i (inject_f Float64 e e))
+        let backward_upper_bound (FRange.I(_,e) as i) =
+          Bottom.non_bottom
+            (backward_lt false Float64 i (inject_f Float64 e e))
         in
         (* remove zeroes from y, by normalizing it to [ay1,ay2],
            where [ay1] and [ay2] are both positive.
@@ -1212,7 +1250,7 @@ let fmod (FRange.I(b1, e1) as x) (FRange.I(b2, e2) as y) =
         let x', y' = abs x, abs y in
         let y' = if contains_zero y' then
             (* y crosses the x-axis, filter zero out (alarm already emitted) *)
-            filter_lower_bound (inject_f Float64 F.zero (max y')) else y'
+            backward_lower_bound (inject_f Float64 F.zero (max y')) else y'
         in
         let r_mod = F.min (max x') (max y') in
         (* To know whether we can ignore the extremities of the interval,
@@ -1225,19 +1263,21 @@ let fmod (FRange.I(b1, e1) as x) (FRange.I(b2, e2) as y) =
           if F.compare e1 F.zero < 0 then
             (* x always negative *)
             let r = inject_f Float64 (-.r_mod) F.minus_zero in
-            if strict_le then filter_lower_bound r else r
+            if strict_le then backward_lower_bound r else r
           else if F.compare b1 F.minus_zero > 0 then
             (* x always positive *)
             let r = inject_f Float64 F.zero r_mod in
-            if strict_le then filter_upper_bound r else r
+            if strict_le then backward_upper_bound r else r
           else
             (* x may be negative or positive => intersect [-r_mod, r_mod]
                with the original interval *)
             let r = inject_f Float64 (-.r_mod) r_mod in
             let r =
-              if strict_le then filter_lower_bound (filter_upper_bound r) else r
+              if strict_le
+              then backward_lower_bound (backward_upper_bound r)
+              else r
             in
-            Abstract_interp.Bot.non_bottom (meet x r)
+            Bottom.non_bottom (meet x r)
         in
         (alarms, `Value res)
   end
@@ -1251,7 +1291,7 @@ let nan_log_assume =
 let log_float_aux fkind flog rounding_mode (FRange.I(_, e) as v) =
   (* we want to compute the smallest denormal bigger than zero -> use
      allroundingmodes=false. *)
-  match filter_gt false fkind v zero with
+  match backward_gt false fkind v zero with
   | `Bottom -> nan_log, `Bottom
   | `Value (FRange.I(b_reduced, _) as reduced) ->
     let alarm = if equal reduced v then no_alarm else nan_log_assume in
@@ -1343,8 +1383,22 @@ let subdiv_float_interval ~size (FRange.I(l, u) as i) =
   assert (is_included i2 i);
   i1, i2
 
+let cast_float_to_double_inverse (FRange.I(min, max)) =
+  Floating_point.set_round_upward ();
+  let min' = Floating_point.round_to_single_precision_float min in
+  Floating_point.set_round_downward ();
+  let max' = Floating_point.round_to_single_precision_float max in
+  Floating_point.set_round_nearest_even ();
+  inject min' max'
+
+let enlarge_1ulp fk (FRange.I(b, e)) =
+  let b' = next_after fk b (-. infinity) in
+  let e' = next_after fk e infinity in
+  inject b' e'
+
+
 (*
 Local Variables:
-compile-command: "make -C ../.. byte"
+compile-command: "make -C ../../.. byte"
 End:
 *)

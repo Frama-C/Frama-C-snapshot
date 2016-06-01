@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -124,6 +124,15 @@ type ('f,'a) funtype = {
   params : ('f,'a) datatype list ; (** Type of parameters *)
 }
 
+(** representation of terms. type arguments are the following:
+  - 'z: representation of integral constants
+  - 'f: representation of fields
+  - 'a: representation of abstract data types
+  - 'd: representation of functions
+  - 'x: representation of free variables
+  - 'b: representation of bound term (phantom type equal to 'e)
+  - 'e: sub-expression
+*)
 type ('z,'f,'a,'d,'x,'b,'e) term_repr =
   | True
   | False
@@ -147,10 +156,10 @@ type ('z,'f,'a,'d,'x,'b,'e) term_repr =
   | Not   of 'e
   | Imply of 'e list * 'e
   | If    of 'e * 'e * 'e
-  | Fun   of 'd * 'e list
+  | Fun   of 'd * 'e list (** Complete call (no partial app.) *)
   | Fvar  of 'x
   | Bvar  of int * ('f,'a) datatype
-  | Apply of 'e * 'e list
+  | Apply of 'e * 'e list (** High-Order application (Cf. binder) *)
   | Bind  of binder * ('f,'a) datatype * 'b
 
 type ('z,'a) affine = { constant : 'z ; factors : ('z * 'a) list }
@@ -393,14 +402,31 @@ sig
   (** Low-level shared primitives: [shared] is actually a combination of
       building marks, marking terms, and extracting definitions:
 
-      {[ let m = marks ?... () in List.iter (mark m) es ; defs m ]} *)
+      {[ let share ?... e =
+           let m = marks ?... () in 
+           List.iter (mark m) es ; 
+           defs m ]} *)
 
   type marks
+
+  (** Create a marking accumulator
+      @param shared terms that are (or will be) already shared
+      (default to none) 
+      @param shareable terms that can be shared (default to all) *)
   val marks :
     ?shared:(term -> bool) ->
     ?shareable:(term -> bool) ->
     unit -> marks
+
+  (** Mark a term to be printed *)
   val mark : marks -> term -> unit
+
+  (** Mark a term to be explicitely shared *)
+  val share : marks -> term -> unit
+
+  (** Returns a list of terms to be shared among all {i shared} or {i
+      marked} subterms.  The order of terms is consistent with
+      definition order: head terms might be used in tail ones. *)
   val defs : marks -> term list
 
 end

@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2015                                               */
+/*  Copyright (C) 2007-2016                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -42,7 +42,7 @@ void longjmp(jmp_buf env, int val);
 #include "__fc_define_sigset_t.h"
 typedef struct {jmp_buf buf; sigset_t sigs;} sigjmp_buf;
 
-/*@ assigns env.buf[0..4]; // unsound - should "assigns \anything" */
+
 int sigsetjmp(sigjmp_buf env, int savesigs);
 
 /*@

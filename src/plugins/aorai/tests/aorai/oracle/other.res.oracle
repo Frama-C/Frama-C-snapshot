@@ -54,7 +54,57 @@ int x = 0;
         (0 ≡ init ∨ ¬(x ≡ 3));
       ensures 0 ≡ step1;
  */
-extern void f_pre_func(void);
+void f_pre_func(void)
+{
+  /*@ ghost int init_tmp; */
+  /*@ ghost int last_tmp; */
+  /*@ ghost int step1_tmp; */
+  aorai_CurOpStatus = aorai_Called;
+  aorai_CurOperation = op_f;
+  init_tmp = init;
+  last_tmp = last;
+  step1_tmp = step1;
+  if (init == 1) {
+    if (x == 3) step1_tmp = 1; else goto _LAND_0;
+  }
+  else {
+    _LAND_0: ;
+    if (last == 1) {
+      if (x == 3) step1_tmp = 1; else goto _LAND;
+    }
+    else {
+      _LAND: ;
+      if (step1 == 1) 
+        if (x != 4) step1_tmp = 1; else step1_tmp = 0;
+      else step1_tmp = 0;
+    }
+  }
+  if (last == 1) {
+    if (x != 4) {
+      if (x != 3) last_tmp = 1; else goto _LAND_1;
+    }
+    else goto _LAND_1;
+  }
+  else {
+    _LAND_1: ;
+    if (step1 == 1) 
+      if (x == 4) last_tmp = 1; else last_tmp = 0;
+    else last_tmp = 0;
+  }
+  if (init == 1) {
+    if (x != 3) init_tmp = 1; else goto _LAND_2;
+  }
+  else {
+    _LAND_2: ;
+    if (last == 1) 
+      if (x == 4) init_tmp = 1; else init_tmp = 0;
+    else init_tmp = 0;
+  }
+  init = init_tmp;
+  last = last_tmp;
+  step1 = step1_tmp;
+  return;
+}
 
 /*@ requires 1 ≡ init ∨ 1 ≡ last ∨ 1 ≡ step1;
     requires 1 ≡ last ⇒ x ≡ 4 ∨ (x ≢ 4 ∧ x ≢ 3) ∨ x ≡ 3;
@@ -93,7 +143,57 @@ extern void f_pre_func(void);
         (0 ≡ init ∨ ¬(x ≡ 3));
       ensures 0 ≡ step1;
  */
-extern void f_post_func(void);
+void f_post_func(void)
+{
+  /*@ ghost int init_tmp; */
+  /*@ ghost int last_tmp; */
+  /*@ ghost int step1_tmp; */
+  aorai_CurOpStatus = aorai_Terminated;
+  aorai_CurOperation = op_f;
+  init_tmp = init;
+  last_tmp = last;
+  step1_tmp = step1;
+  if (init == 1) {
+    if (x == 3) step1_tmp = 1; else goto _LAND_0;
+  }
+  else {
+    _LAND_0: ;
+    if (last == 1) {
+      if (x == 3) step1_tmp = 1; else goto _LAND;
+    }
+    else {
+      _LAND: ;
+      if (step1 == 1) 
+        if (x != 4) step1_tmp = 1; else step1_tmp = 0;
+      else step1_tmp = 0;
+    }
+  }
+  if (last == 1) {
+    if (x != 4) {
+      if (x != 3) last_tmp = 1; else goto _LAND_1;
+    }
+    else goto _LAND_1;
+  }
+  else {
+    _LAND_1: ;
+    if (step1 == 1) 
+      if (x == 4) last_tmp = 1; else last_tmp = 0;
+    else last_tmp = 0;
+  }
+  if (init == 1) {
+    if (x != 3) init_tmp = 1; else goto _LAND_2;
+  }
+  else {
+    _LAND_2: ;
+    if (last == 1) 
+      if (x == 4) init_tmp = 1; else init_tmp = 0;
+    else init_tmp = 0;
+  }
+  init = init_tmp;
+  last = last_tmp;
+  step1 = step1_tmp;
+  return;
+}
 
 /*@ requires 1 ≡ init ∨ 1 ≡ last ∨ 1 ≡ step1;
     requires 1 ≡ last ⇒ x ≡ 4 ∨ (x ≢ 4 ∧ x ≢ 3) ∨ x ≡ 3;
@@ -194,7 +294,57 @@ void f(void)
         (0 ≡ init ∨ ¬(x ≡ 3));
       ensures 0 ≡ step1;
  */
-extern void g_pre_func(void);
+void g_pre_func(void)
+{
+  /*@ ghost int init_tmp; */
+  /*@ ghost int last_tmp; */
+  /*@ ghost int step1_tmp; */
+  aorai_CurOpStatus = aorai_Called;
+  aorai_CurOperation = op_g;
+  init_tmp = init;
+  last_tmp = last;
+  step1_tmp = step1;
+  if (init == 1) {
+    if (x == 3) step1_tmp = 1; else goto _LAND_0;
+  }
+  else {
+    _LAND_0: ;
+    if (last == 1) {
+      if (x == 3) step1_tmp = 1; else goto _LAND;
+    }
+    else {
+      _LAND: ;
+      if (step1 == 1) 
+        if (x != 4) step1_tmp = 1; else step1_tmp = 0;
+      else step1_tmp = 0;
+    }
+  }
+  if (last == 1) {
+    if (x != 4) {
+      if (x != 3) last_tmp = 1; else goto _LAND_1;
+    }
+    else goto _LAND_1;
+  }
+  else {
+    _LAND_1: ;
+    if (step1 == 1) 
+      if (x == 4) last_tmp = 1; else last_tmp = 0;
+    else last_tmp = 0;
+  }
+  if (init == 1) {
+    if (x != 3) init_tmp = 1; else goto _LAND_2;
+  }
+  else {
+    _LAND_2: ;
+    if (last == 1) 
+      if (x == 4) init_tmp = 1; else init_tmp = 0;
+    else init_tmp = 0;
+  }
+  init = init_tmp;
+  last = last_tmp;
+  step1 = step1_tmp;
+  return;
+}
 
 /*@ requires 1 ≡ init ∨ 1 ≡ last ∨ 1 ≡ step1;
     requires 1 ≡ last ⇒ x ≡ 4 ∨ (x ≢ 4 ∧ x ≢ 3) ∨ x ≡ 3;
@@ -233,7 +383,57 @@ extern void g_pre_func(void);
         (0 ≡ init ∨ ¬(x ≡ 3));
       ensures 0 ≡ step1;
  */
-extern void g_post_func(void);
+void g_post_func(void)
+{
+  /*@ ghost int init_tmp; */
+  /*@ ghost int last_tmp; */
+  /*@ ghost int step1_tmp; */
+  aorai_CurOpStatus = aorai_Terminated;
+  aorai_CurOperation = op_g;
+  init_tmp = init;
+  last_tmp = last;
+  step1_tmp = step1;
+  if (init == 1) {
+    if (x == 3) step1_tmp = 1; else goto _LAND_0;
+  }
+  else {
+    _LAND_0: ;
+    if (last == 1) {
+      if (x == 3) step1_tmp = 1; else goto _LAND;
+    }
+    else {
+      _LAND: ;
+      if (step1 == 1) 
+        if (x != 4) step1_tmp = 1; else step1_tmp = 0;
+      else step1_tmp = 0;
+    }
+  }
+  if (last == 1) {
+    if (x != 4) {
+      if (x != 3) last_tmp = 1; else goto _LAND_1;
+    }
+    else goto _LAND_1;
+  }
+  else {
+    _LAND_1: ;
+    if (step1 == 1) 
+      if (x == 4) last_tmp = 1; else last_tmp = 0;
+    else last_tmp = 0;
+  }
+  if (init == 1) {
+    if (x != 3) init_tmp = 1; else goto _LAND_2;
+  }
+  else {
+    _LAND_2: ;
+    if (last == 1) 
+      if (x == 4) init_tmp = 1; else init_tmp = 0;
+    else init_tmp = 0;
+  }
+  init = init_tmp;
+  last = last_tmp;
+  step1 = step1_tmp;
+  return;
+}
 
 /*@ requires 1 ≡ init ∨ 1 ≡ last ∨ 1 ≡ step1;
     requires 1 ≡ last ⇒ x ≡ 4 ∨ (x ≢ 4 ∧ x ≢ 3) ∨ x ≡ 3;
@@ -317,7 +517,26 @@ void g(void)
     behavior buch_state_step1_out:
       ensures 0 ≡ step1;
  */
-extern void main_pre_func(void);
+void main_pre_func(void)
+{
+  /*@ ghost int init_tmp; */
+  /*@ ghost int last_tmp; */
+  /*@ ghost int step1_tmp; */
+  aorai_CurOpStatus = aorai_Called;
+  aorai_CurOperation = op_main;
+  init_tmp = init;
+  last_tmp = last;
+  step1_tmp = step1;
+  step1_tmp = 0;
+  last_tmp = 0;
+  if (init == 1) 
+    if (x != 3) init_tmp = 1; else init_tmp = 0;
+  else init_tmp = 0;
+  init = init_tmp;
+  last = last_tmp;
+  step1 = step1_tmp;
+  return;
+}
 
 /*@ requires 1 ≡ init ∨ 1 ≡ last ∨ 1 ≡ step1;
     requires 1 ≡ last ⇒ x ≡ 4 ∨ (x ≢ 4 ∧ x ≢ 3) ∨ x ≡ 3;
@@ -356,7 +575,57 @@ extern void main_pre_func(void);
         (0 ≡ init ∨ ¬(x ≡ 3));
       ensures 0 ≡ step1;
  */
-extern void main_post_func(int res);
+void main_post_func(int res)
+{
+  /*@ ghost int init_tmp; */
+  /*@ ghost int last_tmp; */
+  /*@ ghost int step1_tmp; */
+  aorai_CurOpStatus = aorai_Terminated;
+  aorai_CurOperation = op_main;
+  init_tmp = init;
+  last_tmp = last;
+  step1_tmp = step1;
+  if (init == 1) {
+    if (x == 3) step1_tmp = 1; else goto _LAND_0;
+  }
+  else {
+    _LAND_0: ;
+    if (last == 1) {
+      if (x == 3) step1_tmp = 1; else goto _LAND;
+    }
+    else {
+      _LAND: ;
+      if (step1 == 1) 
+        if (x != 4) step1_tmp = 1; else step1_tmp = 0;
+      else step1_tmp = 0;
+    }
+  }
+  if (last == 1) {
+    if (x != 4) {
+      if (x != 3) last_tmp = 1; else goto _LAND_1;
+    }
+    else goto _LAND_1;
+  }
+  else {
+    _LAND_1: ;
+    if (step1 == 1) 
+      if (x == 4) last_tmp = 1; else last_tmp = 0;
+    else last_tmp = 0;
+  }
+  if (init == 1) {
+    if (x != 3) init_tmp = 1; else goto _LAND_2;
+  }
+  else {
+    _LAND_2: ;
+    if (last == 1) 
+      if (x == 4) init_tmp = 1; else init_tmp = 0;
+    else init_tmp = 0;
+  }
+  init = init_tmp;
+  last = last_tmp;
+  step1 = step1_tmp;
+  return;
+}
 
 /*@ requires 1 ≡ init ∧ 0 ≡ last ∧ 0 ≡ step1;
     requires 1 ≡ init ⇒ x ≢ 3;

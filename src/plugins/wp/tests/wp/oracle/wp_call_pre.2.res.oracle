@@ -13,29 +13,21 @@ tests/wp/wp_call_pre.c:53:[kernel] warning: No code nor implicit assigns clause 
 
 Goal Instance of 'Pre-condition 'qed_ok,Rf' in 'f'' in 'double_call' at call 'f' (file tests/wp/wp_call_pre.c, line 26)
 :
-Assume {
-  (* Domain *)
-  Type: (is_sint32 x_1).
-  (* Pre-condition 'Rd' in 'double_call' *)
-  (* Pre-condition 'Rd': *)
-  Have: 0<=x_1.
-}
-Prove: 0<=x_1.
+Assume { Type: is_sint32(x). (* Pre-condition 'Rd' *) Have: 0 <= x. }
+Prove: 0 <= x.
 
 ------------------------------------------------------------
 
 Goal Instance of 'Pre-condition 'qed_ok,Rf' in 'f'' in 'double_call' at call 'f' (file tests/wp/wp_call_pre.c, line 27)
 :
 Assume {
-  (* Domain *)
-  Type: (is_sint32 f_1) /\ (is_sint32 x_1).
-  (* Pre-condition 'Rd' in 'double_call' *)
-  (* Pre-condition 'Rd': *)
-  Have: 0<=x_1.
-  (* tests/wp/wp_call_pre.c:26: Call 'f' *)
-  Have: (0<f_1) /\ (0<=x_1).
+  Type: is_sint32(f) /\ is_sint32(x).
+  (* Pre-condition 'Rd' *)
+  Have: 0 <= x.
+  (* Call 'f' *)
+  Have: (0 < f) /\ (0 <= x).
 }
-Prove: -1<=x_1.
+Prove: (-1) <= x.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -44,7 +36,6 @@ Prove: -1<=x_1.
 
 Goal Instance of 'Pre-condition 'qed_ok,Rf' in 'f'' in 'main' at call 'f' (file tests/wp/wp_call_pre.c, line 33)
 :
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -64,24 +64,6 @@ Definition round_float: rounding_mode -> R -> R.
 Admitted.
 
 (* Why3 goal *)
-Variable is_finite32: R -> Prop.
-
-(* Why3 goal *)
-Variable is_finite64: R -> Prop.
-
-(* Why3 goal *)
-Variable is_NaN: R -> Prop.
-
-(* Why3 goal *)
-Variable is_infinite: R -> Prop.
-
-(* Why3 goal *)
-Variable is_positive_infinite: R -> Prop.
-
-(* Why3 goal *)
-Variable is_negative_infinite: R -> Prop.
-
-(* Why3 goal *)
 Lemma float_32 : forall (x:R),
   ((to_float32 x) = (round_float NearestTiesToEven x)).
 Admitted.
@@ -90,6 +72,43 @@ Admitted.
 Lemma float_64 : forall (x:R),
   ((to_float64 x) = (round_double NearestTiesToEven x)).
 Admitted.
+
+(* Why3 assumption *)
+Inductive float_kind :=
+  | Real : float_kind
+  | Float32 : float_kind
+  | Float64 : float_kind
+  | NaN : float_kind
+  | Inf_pos : float_kind
+  | Inf_neg : float_kind.
+Axiom float_kind_WhyType : WhyType float_kind.
+Existing Instance float_kind_WhyType.
+
+(* Why3 goal *)
+Definition classify_float: R -> float_kind.
+Admitted.
+
+(* Why3 assumption *)
+Definition is_finite32 (x:R): Prop := ((classify_float x) = Float32).
+
+(* Why3 assumption *)
+Definition is_finite64 (x:R): Prop := ((classify_float x) = Float32) \/
+  ((classify_float x) = Float64).
+
+(* Why3 assumption *)
+Definition is_NaN (x:R): Prop := ((classify_float x) = NaN).
+
+(* Why3 assumption *)
+Definition is_infinite (x:R): Prop := ((classify_float x) = Inf_pos) \/
+  ((classify_float x) = Inf_neg).
+
+(* Why3 assumption *)
+Definition is_positive_infinite (x:R): Prop :=
+  ((classify_float x) = Inf_pos).
+
+(* Why3 assumption *)
+Definition is_negative_infinite (x:R): Prop :=
+  ((classify_float x) = Inf_neg).
 
 (* Why3 goal *)
 Lemma is_finite_to_float_32 : forall (x:R), (is_finite32 (to_float32 x)).
@@ -161,3 +180,4 @@ Admitted.
 Lemma model_sqrt : forall (x:R),
   ((model (Reals.R_sqrt.sqrt x)) = (Reals.R_sqrt.sqrt (model x))).
 Admitted.
+

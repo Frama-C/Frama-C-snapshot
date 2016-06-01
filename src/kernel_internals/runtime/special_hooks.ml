@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -25,13 +25,11 @@ let print_config () =
     Log.print_on_output 
       (fun fmt -> Format.fprintf fmt
           "Frama-C %s@\n\
-           Compiled on %s@\n\
            Environment:@\n  \
            FRAMAC_SHARE  = %S@\n  \
            FRAMAC_LIB    = %S@\n  \
            FRAMAC_PLUGIN = %S%t@."
           Config.version
-          Config.date
           Config.datadir Config.libdir Config.plugin_path
         (fun fmt ->
           if Config.preprocessor = "" then
@@ -84,7 +82,7 @@ let time () =
       time;
     flush oc;
     close_out oc
-let () = at_exit time
+let () = Extlib.safe_at_exit time
 
 (* Save Frama-c on disk if required *)
 let save_binary keep_name =
@@ -130,15 +128,19 @@ let () = Cmdline.run_after_loading_stage load_binary
 
 (* This hook cannot be registered directly in Kernel or Cabs2cil, as it
    depends on Ast_info *)
-let warn_for_call_to_undeclared_function vi =
+let on_call_to_undeclared_function vi =
   let name = vi.Cil_types.vname in
-  if Kernel.WarnUndeclared.get () && not (Ast_info.is_frama_c_builtin name)
-  then
-    Kernel.warning ~current:true ~once:true
-      "Calling undeclared function %s. Old style K&R code?" name
+  if not (Ast_info.is_frama_c_builtin name) then
+    let action = Kernel.ImplicitFunctionDeclaration.get () in
+    if action = "warn" then
+      Kernel.warning ~current:true ~once:true
+        "Calling undeclared function %s. Old style K&R code?" name
+    else if action = "error" then
+      Kernel.abort ~current:true
+        "calling undeclared function %s." name
 
 let () =
-  Cabs2cil.register_implicit_prototype_hook warn_for_call_to_undeclared_function
+  Cabs2cil.register_implicit_prototype_hook on_call_to_undeclared_function
 
 
 (*

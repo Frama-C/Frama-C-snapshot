@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -144,13 +144,14 @@ module Position =
       let internal_pretty_code = Datatype.undefined
       let pretty fmt pos =
         Format.fprintf fmt "%s:%d char %d"
-          pos.Lexing.pos_fname pos.Lexing.pos_lnum
+          (Filepath.pretty pos.Lexing.pos_fname) pos.Lexing.pos_lnum
           (pos.Lexing.pos_cnum - pos.Lexing.pos_bol)
       let varname _ = "pos"
      end)
 
 module Location = struct
   let unknown = Lexing.dummy_pos, Lexing.dummy_pos
+  let pretty_ref = ref (fun _ _ -> assert false)
   include Make_with_collections
     (struct
       type t = location
@@ -161,11 +162,7 @@ module Location = struct
       let copy = Datatype.identity (* immutable strings *)
       let equal : t -> t -> bool = ( = )
       let internal_pretty_code = Datatype.undefined
-      let pretty fmt loc = 
-	let loc = (fst loc) in
-	Format.fprintf fmt "%s:%d" 
-          (Filepath.pretty loc.Lexing.pos_fname)
-          loc.Lexing.pos_lnum
+      let pretty fmt loc = !pretty_ref fmt loc
       let varname _ = "loc"
      end)
 
@@ -203,7 +200,7 @@ module Instr = struct
     | Skip l
     | Set (_,_,l)
     | Call (_,_,_,l)
-    | Asm (_,_,_,_,_,_,l)
+    | Asm (_,_,_,l)
     | Code_annot (_,l) -> l
 
 end
@@ -720,8 +717,9 @@ module Compinfo =
       let varname = Datatype.undefined
      end)
 
-module Fieldinfo =
-  Make_with_collections
+module Fieldinfo = struct
+let pretty_ref = Extlib.mk_fun "Cil_datatype.Fieldinfo.pretty_ref"
+include  Make_with_collections
     (struct
       type t = fieldinfo
       let name = "fieldinfo"
@@ -756,9 +754,10 @@ module Fieldinfo =
       let equal f1 f2 = (fid f1) = (fid f2)
       let copy = Datatype.undefined
       let internal_pretty_code = Datatype.undefined
-      let pretty = Datatype.undefined
+      let pretty fmt f = !pretty_ref fmt f
       let varname = Datatype.undefined
      end)
+end
 
 module Enuminfo =
   Make_with_collections
@@ -828,6 +827,8 @@ module StructEq =
   struct
     let rec compare_exp e1 e2 =
       match e1.enode, e2.enode with
+        | Const (CStr _), Const (CStr _)
+        | Const (CWStr _), Const (CWStr _) -> compare e1.eid e2.eid
         | Const c1, Const c2 -> compare_constant c1 c2
         | Const _, _ -> 1
         | _, Const _ -> -1
@@ -1225,7 +1226,7 @@ module Logic_info =
       let hash i = Logic_var.hash i.l_var_info
       let copy = Datatype.undefined
       let internal_pretty_code = Datatype.undefined
-      let pretty = Datatype.undefined
+      let pretty fmt f = Logic_var.pretty fmt f.l_var_info
       let varname _ = "logic_varinfo"
      end)
 

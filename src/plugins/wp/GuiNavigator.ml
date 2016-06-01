@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -25,7 +25,7 @@
 (* -------------------------------------------------------------------------- *)
 
 open Design
-open Toolbox
+open Widget
 open Property
 open GuiSource
 
@@ -82,12 +82,12 @@ let goal_of_selection = function
 
 class behavior
     ~(main : Design.main_window_extension_points)
-    ~(filter : filter Toolbox.selector)
-    ~(next : Toolbox.button)
-    ~(prev : Toolbox.button)
-    ~(index : Toolbox.button)
-    ~(clear : Toolbox.button)
-    ~(card : card Toolbox.selector)
+    ~(filter : filter Widget.selector)
+    ~(next : Widget.button)
+    ~(prev : Widget.button)
+    ~(index : Widget.button)
+    ~(clear : Widget.button)
+    ~(card : card Widget.selector)
     ~(list : GuiList.pane)
     ~(goal : GuiGoal.pane)
     ~(source : GuiSource.highlighter)
@@ -201,17 +201,16 @@ class behavior
         in
         if prover = VCS.Why3ide
         then
-          let callback w p r =
-            callback w p r in
-          let task = Prover.wp_why3ide ~callback
-              (fun f -> Wpo.iter ~on_goal:f ()) in
+          let iter f = Wpo.iter ~on_goal:f () in
+          let task = ProverWhy3ide.prove ~callback ~iter in
+          let thread = Task.thread task in
           let kill () =
             Wpo.set_result w prover VCS.no_result ;
-            Task.cancel task;
+            Task.cancel thread ;
           in
           Wpo.set_result w prover (VCS.computing kill) ;
           let server = ProverTask.server () in
-          Task.spawn server (Task.job task) ;
+          Task.spawn server thread ;
           Task.launch server ;
         else
           let open VCS in
@@ -221,12 +220,13 @@ class behavior
             | None , AltErgo -> FixMode
             | _ -> BatchMode in
           let task = Prover.prove w ~mode ~callback prover in
+          let thread = Task.thread task in
           let kill () =
             Wpo.set_result w prover VCS.no_result ;
-            Task.cancel task in
+            Task.cancel thread in
           Wpo.set_result w prover (VCS.computing kill) ;
           let server = ProverTask.server () in
-          Task.spawn server (Task.job task) ;
+          Task.spawn server thread ;
           Task.launch server ;
       end
 
@@ -249,10 +249,10 @@ class behavior
     (* --- Popup on Goals                                                     --- *)
     (* -------------------------------------------------------------------------- *)
 
-    val popup_qed  = new Toolbox.popup ()
-    val popup_ergo = new Toolbox.popup ()
-    val popup_coq  = new Toolbox.popup ()
-    val popup_why3 = new Toolbox.popup ()
+    val popup_qed  = new Widget.popup ()
+    val popup_ergo = new Widget.popup ()
+    val popup_coq  = new Widget.popup ()
+    val popup_why3 = new Widget.popup ()
     val mutable popup_target = None
 
     method private popup_delete () =
@@ -372,24 +372,24 @@ let make (main : main_window_extension_points) =
     (* --- Focus Bar                                                          --- *)
     (* -------------------------------------------------------------------------- *)
 
-    let filter = new Toolbox.switch (`All :> filter) in
-    let switch = new Toolbox.rack [
+    let filter = new Widget.group (`All :> filter) in
+    let switch = new Widget.hbox [
       filter#add_toggle ~label:"All" ~tooltip:"All goals" ~value:`All () ;
       filter#add_toggle ~label:"Module"
         ~tooltip:"Goals of current function or axiomatics" ~value:`Module () ;
       filter#add_toggle ~label:"Property"
         ~tooltip:"Goals of current property" ~value:`Select () ;
     ] in
-    let prev = new Toolbox.button ~icon:`GO_BACK ~tooltip:"Previous goal" () in
-    let next = new Toolbox.button ~icon:`GO_FORWARD ~tooltip:"Next goal" () in
-    let index = new Toolbox.button ~icon:`INDEX ~tooltip:"List of goals" () in
-    let navigation = new Toolbox.rack [
+    let prev = new Widget.button ~icon:`GO_BACK ~tooltip:"Previous goal" () in
+    let next = new Widget.button ~icon:`GO_FORWARD ~tooltip:"Next goal" () in
+    let index = new Widget.button ~icon:`INDEX ~tooltip:"List of goals" () in
+    let navigation = new Widget.hbox [
       (prev :> widget) ;
       (index :> widget) ;
       (next :> widget) ;
     ] in
-    let provers = new Toolbox.button ~label:"Provers..." () in
-    let clear = new Toolbox.button ~label:"Clear" ~icon:`DELETE () in
+    let provers = new Widget.button ~label:"Provers..." () in
+    let clear = new Widget.button ~label:"Clear" ~icon:`DELETE () in
     let focusbar = GPack.hbox ~spacing:0 () in
     begin
       focusbar#pack ~padding:0 ~expand:false navigation#coerce ;
@@ -403,7 +403,7 @@ let make (main : main_window_extension_points) =
     (* --- List/Goal view                                                     --- *)
     (* -------------------------------------------------------------------------- *)
 
-    let book : card notebook = new Toolbox.notebook ~default:`List () in
+    let book = new Wpane.notebook ~default:`List () in
     let list = new GuiList.pane enabled in
     let goal = new GuiGoal.pane () in
     begin
@@ -422,8 +422,8 @@ let make (main : main_window_extension_points) =
     (* --- Panel Behavior                                                     --- *)
     (* -------------------------------------------------------------------------- *)
 
-    let card = (book :> _ Toolbox.selector) in
-    let filter = (filter :> _ Toolbox.selector) in
+    let card = (book :> _ Widget.selector) in
+    let filter = (filter :> _ Widget.selector) in
     let behavior = new behavior ~main
       ~next ~prev ~index ~filter ~clear
       ~list ~card ~goal ~source ~popup in

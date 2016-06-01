@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -104,12 +104,13 @@ let mk_var_decr_id   kf s ca = mk_prop PKVarDecr (mk_annot_id kf s ca)
 let mk_var_pos_id    kf s ca = mk_prop PKVarPos  (mk_annot_id kf s ca)
 
 let mk_loop_from_id kf s ca from =
-  let id = Property.ip_of_from kf (Kstmt s) (Property.Id_code_annot ca) from in
-  mk_prop PKPropLoop id
+  let id = Property.ip_of_from kf (Kstmt s) (Property.Id_loop ca) from in
+  mk_prop PKPropLoop (Extlib.the id)
 
-let mk_bhv_from_id kf ki bhv from =
-  let id = Property.ip_of_from kf ki (Property.Id_behavior bhv) from in
-  mk_prop PKProp id
+let mk_bhv_from_id kf ki a bhv from =
+  let a = Datatype.String.Set.of_list a in
+  let id = Property.ip_of_from kf ki (Property.Id_contract (a,bhv)) from in
+  mk_prop PKProp (Extlib.the id)
 
 let get_kind_for_tk kf tkind = match tkind with
   | Normal ->
@@ -118,31 +119,33 @@ let get_kind_for_tk kf tkind = match tkind with
   | _ -> assert false
 
 let mk_fct_from_id kf bhv tkind from =
-  let id = Property.ip_of_from kf Kglobal (Property.Id_behavior bhv) from in
+  let contract_info = Property.Id_contract(Datatype.String.Set.empty,bhv) in
+  let id = Property.ip_of_from kf Kglobal contract_info from in
   let kind = get_kind_for_tk kf tkind in
-  mk_prop kind id
+  mk_prop kind (Extlib.the id)
 
-let mk_disj_bhv_id (kf,ki,disj)  =
-  mk_prop PKProp (Property.ip_of_disjoint kf ki disj)
-let mk_compl_bhv_id (kf,ki,comp) =
-  mk_prop PKProp (Property.ip_of_complete kf ki comp)
+let mk_disj_bhv_id (kf,ki,active,disj)  =
+  mk_prop PKProp (Property.ip_of_disjoint kf ki active disj)
+let mk_compl_bhv_id (kf,ki,active,comp) =
+  mk_prop PKProp (Property.ip_of_complete kf ki active comp)
 let mk_decrease_id (kf, s, x)  =
   mk_prop PKProp (Property.ip_of_decreases kf s x)
 
 let mk_lemma_id l = mk_prop PKProp (LogicUsage.ip_lemma l)
 
-let mk_stmt_assigns_id kf s b a =
-  let b = Property.Id_behavior b in
+let mk_stmt_assigns_id kf s active b a =
+  let active = Datatype.String.Set.of_list active in
+  let b = Property.Id_contract (active,b) in
   let p = Property.ip_of_assigns kf (Kstmt s) b (Writes a) in
   Extlib.opt_map (mk_prop PKProp) p
 
 let mk_loop_assigns_id kf s ca a =
-  let ca = Property.Id_code_annot ca in
+  let ca = Property.Id_loop ca in
   let p = Property.ip_of_assigns kf (Kstmt s) ca (Writes a) in
   Extlib.opt_map (mk_prop PKPropLoop) p
 
 let mk_fct_assigns_id kf b tkind a =
-  let b = Property.Id_behavior b in
+  let b = Property.Id_contract(Datatype.String.Set.empty,b) in
   let kind = get_kind_for_tk kf tkind in
   let p = Property.ip_of_assigns kf Kglobal b (Writes a) in
   Extlib.opt_map (mk_prop kind) p
@@ -337,12 +340,12 @@ let user_prop_names p = match p with
         Pretty_utils.sfprintf  "%c%a" '@' Property.pretty_predicate_kind kind
       in kind_name::idp.ip_name
   | Property.IPCodeAnnot (_,_, ca) -> code_annot_names ca
-  | Property.IPComplete (_, _, lb) ->
+  | Property.IPComplete (_, _,_,lb) ->
       let kind_name = "@complete_behaviors" in
       let name =
         Pretty_utils.sfprintf  "complete_behaviors%a" pp_names lb
       in kind_name::[name]
-  | Property.IPDisjoint (_, _, lb) ->
+  | Property.IPDisjoint (_, _,_, lb) ->
       let kind_name = "@disjoint_behaviors" in
       let name = Pretty_utils.sfprintf  "disjoint_behaviors%a" pp_names lb
       in kind_name::[name]
@@ -506,7 +509,7 @@ let property_hints hs = function
   | Property.IPAxiom (s,_,_,p,_)
   | Property.IPLemma (s,_,_,p,_) -> List.iter (add_required hs) (s::p.name)
   | Property.IPBehavior _ -> ()
-  | Property.IPComplete(_,_,ps) | Property.IPDisjoint(_,_,ps) ->
+  | Property.IPComplete(_,_,_,ps) | Property.IPDisjoint(_,_,_,ps) ->
       List.iter (add_required hs) ps
   | Property.IPPredicate(_,_,_,ipred) ->
       List.iter (add_hint hs) ipred.ip_name
@@ -641,6 +644,13 @@ type assigns_desc = {
   a_stmt : Cil_types.stmt option ;
   a_kind : a_kind ;
   a_assigns : Cil_types.identified_term Cil_types.assigns ;
+}
+
+let mk_asm_assigns_desc s = {
+  a_label = Clabels.mk_logic_label s ;
+  a_stmt = Some s ;
+  a_kind = StmtAssigns ;
+  a_assigns = WritesAny ;
 }
 
 let mk_loop_assigns_desc s assigns = {
@@ -876,7 +886,7 @@ let get_induction p =
           ->
             if loop then (*loop invariant *) Some stmt
             else (* invariant inside loop *) get_loop_stmt kf stmt
-        | Property.IPAssigns (_, Kstmt stmt, Property.Id_code_annot _, _) ->
+        | Property.IPAssigns (_, Kstmt stmt, Property.Id_loop _, _) ->
             (* loop assigns *) Some stmt
         | _ -> None (* assert false ??? *)
       in loop_stmt_opt

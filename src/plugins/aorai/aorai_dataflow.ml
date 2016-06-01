@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Aorai plug-in of Frama-C.                        *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -470,7 +470,7 @@ module Computer(I: Init) = struct
           (new_state,loops)
         end
       | Call (_,e,_,_) ->
-	Aorai_option.not_yet_implemented
+        Aorai_option.not_yet_implemented
           "Indirect call to %a is not handled yet" Printer.pp_exp e
       | Set _ | Asm _ | Skip _ | Code_annot _ -> d
         

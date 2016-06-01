@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -34,12 +34,13 @@ module Make(T : Term) :
 sig
 
   open T
-
-  type trigger = (T.var,Fun.t) ftrigger
+  module Env : Engine.Env with type term := term
+  
+  type trigger = (T.var,Fun.t) Engine.ftrigger
+  type typedef = (tau,Field.t,Fun.t) Engine.ftypedef
 
   class virtual engine :
     object
-
       method set_quantify_let : bool -> unit
 
       method typecheck : term -> tau (** or raise Not_found *)
@@ -50,7 +51,8 @@ sig
       method virtual get_typedef : ADT.t -> tau option
       method virtual set_typedef : ADT.t -> tau -> unit
 
-      inherit [Z.t,ADT.t,Field.t,Fun.t,tau,var,term] Engine.engine
+      inherit [Z.t,ADT.t,Field.t,Fun.t,tau,var,term,Env.t] Engine.engine
+      method marks : Env.t * T.marks
       method op_spaced : string -> bool
       method op_record : string * string
       method pp_forall : tau -> string list printer
@@ -64,7 +66,11 @@ sig
       method pp_declare_sum : formatter -> ADT.t -> int -> (Fun.t * tau list) list -> unit
       method pp_goal : formatter -> term -> unit
 
+      method declare_type : formatter -> ADT.t -> int -> typedef -> unit
       method declare_prop : kind:string -> formatter -> string -> T.var list -> trigger list list -> term -> unit
+      method declare_axiom : formatter -> string -> var list -> trigger list list -> term -> unit
+      method declare_signature : formatter -> Fun.t -> tau list -> tau -> unit
+      method declare_definition : formatter -> Fun.t -> var list -> tau -> term -> unit
 
     end
 

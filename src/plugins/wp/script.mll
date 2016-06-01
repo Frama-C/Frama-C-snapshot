@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -25,7 +25,7 @@
   type token =
     | Id of string
     | Key of string
-    | Proof of string
+    | Proof of string * string (* script , closing *)
     | Word
     | Eof
 
@@ -49,14 +49,14 @@ rule token = parse
       {
         newline lexbuf ;
         let buffer = Buffer.create 512 in
-        proof buffer 0 lexbuf ;
-        Proof (Buffer.contents buffer)
+        let closing = proof buffer 0 lexbuf in
+        Proof (Buffer.contents buffer,closing)
       }
   | "Proof." space*
       {
         let buffer = Buffer.create 512 in
-        proof buffer 0 lexbuf ;
-        Proof (Buffer.contents buffer)
+        let closing = proof buffer 0 lexbuf in
+        Proof (Buffer.contents buffer,closing)
       }
   | [ 'a'-'z' 'A'-'Z' '0'-'9' '_' '-' '*' ]+
       {
@@ -75,9 +75,9 @@ and comment n = parse
   | _ { comment n lexbuf }
 
 and proof buffer n = parse
-    ( "Qed." | "Save." )
+    ( "Qed." | "Save." | "Admitted." )
       {
-        if n > 0 then proof buffer (pred n) lexbuf
+        if n > 0 then proof buffer (pred n) lexbuf else Lexing.lexeme lexbuf
       }
   | "(*@" { skip 0 lexbuf ; proof buffer n lexbuf }
   | "(*"  { fill buffer lexbuf ; proof buffer (succ n) lexbuf }

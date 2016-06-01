@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of WP plug-in of Frama-C.                           #
 #                                                                        #
-#  Copyright (C) 2007-2015                                               #
+#  Copyright (C) 2007-2016                                               #
 #    CEA (Commissariat a l'energie atomique et aux energies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -55,27 +55,28 @@ PLUGIN_CMO:= \
 	rformat wprop \
 	wp_parameters wp_error \
 	dyncall ctypes clabels \
+	Separation \
 	LogicUsage VarUsageRef VarUsage RefUsage variables_analysis \
 	cil2cfg normAtLabels \
-	wpPropId wpStrategy wpAnnot \
-	Context Warning Model Lang Matrix Passive Splitter \
-	Letify Cleaning Conditions \
+	wpPropId wpStrategy wpAnnot mcfg \
+	Context Warning Model Lang Plang Matrix Passive Splitter \
+	Letify Cleaning Conditions Pcond \
 	LogicBuiltins Definitions \
-	Cint Cfloat Vset Region Cstring Cvalues \
+	Cint Cfloat Vset Vlist Region Cstring Cvalues \
+	Memory \
 	CodeSemantics \
 	LogicCompiler \
 	LogicSemantics LogicAssigns  \
-	Sigma MemEmpty MemVar MemTyped \
+	Sigma MemEmpty MemZeroAlias MemVar MemTyped \
 	VCS script proof wpo wpReport \
-	ProverTask ProverErgo ProverCoq ProverWhy3 \
-	why3_xml why3_session \
+	why3_xml \
+	ProverTask ProverErgo ProverCoq ProverWhy3 ProverWhy3ide \
 	driver prover \
-	calculus \
-	cfgDump cfgWP \
 	Generator Factory \
-	register
+	calculus cfgDump cfgWP \
+	register VC
 
-PLUGIN_CMI:= mcfg Memory \
+PLUGIN_CMI:= 
 
 PLUGIN_GENERATED:= \
    $(PLUGIN_DIR)/script.ml \
@@ -83,14 +84,16 @@ PLUGIN_GENERATED:= \
    $(PLUGIN_DIR)/driver.ml \
    $(PLUGIN_DIR)/why3_xml.ml \
    $(PLUGIN_DIR)/qed/src/numbers.ml \
+   $(PLUGIN_DIR)/Wp.mli
 
 PLUGIN_UNDOC+=
 PLUGIN_DOCFLAGS+= -I $(PLUGIN_DIR)/qed/bin
-PLUGIN_INTRO:=$(FRAMAC_SRC)/doc/code/intro_wp.txt
+PLUGIN_INTRO:=$(PLUGIN_DIR)/intro_wp.txt
 PLUGIN_DISTRIBUTED:=$(PLUGIN_ENABLE)
 PLUGIN_DISTRIB_EXTERNAL:= \
 	Changelog \
 	Makefile.in \
+        MakeAPI \
 	configure.ac \
 	configure \
 	$(addprefix share/, $(ALL_CEA_RESOURCES) \
@@ -98,18 +101,6 @@ PLUGIN_DISTRIB_EXTERNAL:= \
 	                    $(ALL_MODIFIED_WHY3_RESOURCES))
 
 CEA_WP_GENEREATED=why3_xml.ml script.ml rformat.ml driver.ml
-MODIFIED_WHY3+= $(addprefix $(PLUGIN_DIR)/, why3_xml.mll why3_xml.mli why3_session.ml why3_session.mli)
-
-CEA_WP+= $(addprefix $(PLUGIN_DIR)/, Makefile.in configure.ac) \
-	 $(addprefix $(PLUGIN_DIR)/share/, $(ALL_CEA_RESOURCES)) \
-	 $(addprefix $(PLUGIN_DIR)/, script.mll rformat.mll driver.mll) \
-         $(filter-out $(MODIFIED_WHY3), $(addprefix $(PLUGIN_DIR)/, $(filter-out $(CEA_WP_GENEREATED), *.ml))) \
-	 $(filter-out $(MODIFIED_WHY3), $(addprefix $(PLUGIN_DIR)/, *.mli)) \
-	 $(PLUGIN_DIR)/why3_xml.mll
-
-UNMODIFIED_WHY3+= $(addprefix $(PLUGIN_DIR)/share/, $(ALL_UNMODIFIED_WHY3_RESOURCES))
-MODIFIED_WHY3+= $(addprefix $(PLUGIN_DIR)/share/, $(ALL_MODIFIED_WHY3_RESOURCES))
-NO_CHECK_HEADERS+=$(addprefix $(PLUGIN_DIR), Changelog)
 
 # --------------------------------------------------------------------------
 # --- Qed Dependencies                                                   ---
@@ -138,7 +129,6 @@ PLUGIN_EXTRA_OPT:=$(QED_CMX)
 
 QED_DISTRIB_SRC:=$(addprefix qed/src/,$(QED_FILES))
 
-CEA_WP+=$(QED_SOURCES)
 PLUGIN_DISTRIB_EXTERNAL+= $(QED_DISTRIB_SRC)
 
 # --------------------------------------------------------------------------
@@ -170,6 +160,47 @@ endif
 $(Wp_DIR)/Makefile: $(Wp_DIR)/Makefile.in $(Wp_DIR)/share/Makefile.resources $(QED_SRC)/Makefile.src $(CONFIG_STATUS_DIR)/config.status
 	@cd $(CONFIG_STATUS_DIR) && ./config.status --file $@
 	#$(QUIET_MAKE) depend
+
+define WP_capitalize
+$(shell printf "%s%s" \
+    $$($(ECHO) $(1) | cut -c 1 | tr '[:lower:]' '[:upper:]')
+    $$($(ECHO) $(1) | cut -c 2-))
+endef
+
+define WP_export
+$(ECHO) "module $(call WP_capitalize, $(basename $(notdir $(1)))) : sig" >> $(2);
+$(CAT) $(1) >> $(2);
+$(ECHO) "end" >> $(2);
+endef
+
+WP_API_BASE= \
+	ctypes.mli clabels.mli normAtLabels.mli \
+	Separation.mli \
+	LogicUsage.mli RefUsage.mli \
+	wpPropId.mli mcfg.ml \
+	Context.mli Warning.mli Model.mli \
+	Lang.mli Splitter.mli Definitions.mli Conditions.mli \
+	LogicBuiltins.mli Vset.mli Cstring.mli \
+	Passive.mli Memory.ml \
+	Cint.mli Cfloat.mli \
+	Sigma.mli \
+	CodeSemantics.mli LogicCompiler.mli LogicSemantics.mli \
+	MemVar.mli MemTyped.mli \
+	Factory.mli \
+	VCS.mli VC.mli
+
+WP_MLI=$(addprefix $(Wp_DIR)/, $(WP_API_BASE))
+
+$(Wp_DIR)/Wp.mli: $(WP_MLI)
+	$(PRINT_MAKING) $@
+	$(RM) $@ $@.tmp
+	$(ECHO) "(* This file is generated. Do not edit. *)" > $@.tmp
+	$(foreach file,$(WP_MLI),$(call WP_export,$(file),$@.tmp))
+	$(CHMOD_RO) $@.tmp
+	$(MV) $@.tmp $@
+
+clean::
+	$(RM) $(Wp_DIR)/Wp.mli
 
 # --------------------------------------------------------------------------
 # --- Qed Dependencies                                                   ---
@@ -203,6 +234,8 @@ $(Wp_DIR)/Lang.cmo:   $(QED_CMO)
 $(Wp_DIR)/Lang.cmx:   $(QED_CMX)
 $(Wp_DIR)/Vset.cmo:   $(QED_CMO)
 $(Wp_DIR)/Vset.cmx:   $(QED_CMX)
+$(Wp_DIR)/Vlist.cmo:  $(QED_CMO)
+$(Wp_DIR)/Vlist.cmx:  $(QED_CMX)
 
 ifeq ($(OCAMLOPT),ocamlopt.opt)
 QEDOPT=.opt
@@ -212,14 +245,14 @@ endif
 
 $(QED_CMO): $(QED_SOURCES)
 	@echo "Compiling    Qed (byte$(QEDOPT))"
-	$(QUIET_MAKE) -C $(Wp_DIR)/qed/src depend OCAMLDEP=$(OCAMLDEP)
-	$(QUIET_MAKE) OPT=$(QEDOPT) -C $(Wp_DIR)/qed/src byte \
+	$(QUIET_MAKE) -C $(Wp_DIR)/qed/src depend "OCAMLDEP=$(OCAMLDEP)"
+	$(QUIET_MAKE) "OPT=$(QEDOPT)" -C $(Wp_DIR)/qed/src byte \
 		"OCAMLC=$(OCAMLC)" \
 		"OCAMLLEX=$(OCAMLLEX)"
 
 $(QED_CMX): $(QED_CMO) #- To avoid parallel invocation of Qed makefile
 	@echo "Compiling    Qed (opt$(QEDOPT))"
-	$(QUIET_MAKE) OPT=$(QEDOPT) -C $(Wp_DIR)/qed/src opt \
+	$(QUIET_MAKE) "OPT=$(QEDOPT)" -C $(Wp_DIR)/qed/src opt \
 		"OCAMLOPT=$(OCAMLOPT)" \
 		"OCAMLLEX=$(OCAMLLEX)"
 
@@ -301,7 +334,7 @@ $(Wp_DIR)/share/why3/why3.conf:
 	@echo Generation of the extra-config for why3
 	@printf "[prover_modifiers]\n" >> $@
 	@printf "name=\"Coq\"\n" >> $@
-	@printf "option=\"-I $(FRAMAC_DATADIR)/wp/why3\"\n" >> $@
+	@printf "option=\"-Q $(FRAMAC_DATADIR)/wp/why3 ''\"\n" >> $@
 	@printf "driver=\"$(FRAMAC_DATADIR)/wp/why3/coq.drv\"\n" >> $@
 	@printf "\n"  >> $@
 	@printf "[editor_modifiers coqide]\n" >> $@
@@ -316,17 +349,24 @@ $(Wp_DIR)/share/why3/why3.conf:
 # --- Installation                                                       ---
 # --------------------------------------------------------------------------
 
-install::
+install:: clean-install
 	$(PRINT_INSTALL) WP shared files
 	$(MKDIR) $(FRAMAC_DATADIR)/wp
 	$(INSTALL_SHARE) -p \
 		-i $(Wp_DIR)/share \
 		-d $(FRAMAC_DATADIR)/wp \
 		$(ALL_RESOURCES) -f -b $(ALL_COQ_BINARIES)
+	$(PRINT_INSTALL) "Qed Library"
+	$(MKDIR) $(FRAMAC_LIBDIR)
+	$(CP) $(wildcard $(Wp_DIR)/qed/bin/Qed.*) $(FRAMAC_LIBDIR)
 
 uninstall::
 	$(PRINT_RM) WP shared files
 	$(RM) -r $(FRAMAC_DATADIR)/wp
+	$(PRINT_RM) "Qed Library"
+	$(RM) $(patsubst $(Wp_DIR)/qed/bin/%, \
+		         $(FRAMAC_LIBDIR)/%, \
+	                 $(wildcard $(Wp_DIR)/qed/bin/Qed.*))
 
 # --------------------------------------------------------------------------
 # --- WP Release Stuff (CEA-LIST Only)

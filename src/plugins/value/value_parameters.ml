@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -67,11 +67,110 @@ module ForceValues =
        let output_by_default = true
      end)
 
+module Eva =
+  Bool
+    (struct
+      let option_name = "-eva"
+      let help = "Use the new evolved value analysis."
+      let default = true
+    end)
+
+let domains = add_group "Abstract Domains"
 let precision_tuning = add_group "Precision vs. time"
 let initial_context = add_group "Initial Context"
 let performance = add_group "Results memoization vs. time"
 let interpreter = add_group "Deterministic programs"
 let alarms = add_group "Propagation and alarms "
+
+
+(* -------------------------------------------------------------------------- *)
+(* --- Eva domains                                                        --- *)
+(* -------------------------------------------------------------------------- *)
+
+let () = Parameter_customize.set_group domains
+module CvalueDomain =
+  Bool
+    (struct
+      let option_name = "-eva-cvalue-domain"
+      let help = "Use the default domain of eva."
+      let default = true
+    end)
+let () = add_precision_dep CvalueDomain.parameter
+
+let () = Parameter_customize.set_group domains
+module EqualityDomain =
+  Bool
+    (struct
+      let option_name = "-eva-equality-domain"
+      let help = "Use the equality domain of eva. Experimental."
+      let default = false
+    end)
+let () = add_precision_dep EqualityDomain.parameter
+
+
+let apron_help = "Experimental binding of the numerical domains provided \
+                  by the APRON library: http://apron.cri.ensmp.fr/library \n"
+
+let () = Parameter_customize.set_group domains
+module ApronOctagon =
+  Bool
+    (struct
+      let option_name = "-eva-apron-oct"
+      let help = apron_help ^ "Use the octagon domain of apron."
+      let default = false
+    end)
+let () = add_precision_dep ApronOctagon.parameter
+
+let () = Parameter_customize.set_group domains
+module ApronBox =
+  Bool
+    (struct
+      let option_name = "-eva-apron-box"
+      let help = apron_help ^ "Use the box domain of apron."
+      let default = false
+    end)
+let () = add_precision_dep ApronBox.parameter
+
+let () = Parameter_customize.set_group domains
+module PolkaLoose =
+  Bool
+    (struct
+      let option_name = "-eva-polka-loose"
+      let help = apron_help ^ "Use the loose polyhedra domain of apron."
+      let default = false
+    end)
+let () = add_precision_dep PolkaLoose.parameter
+
+let () = Parameter_customize.set_group domains
+module PolkaStrict =
+  Bool
+    (struct
+      let option_name = "-eva-polka-strict"
+      let help = apron_help ^ "Use the strict polyhedra domain of apron."
+      let default = false
+    end)
+let () = add_precision_dep PolkaStrict.parameter
+
+let () = Parameter_customize.set_group domains
+module PolkaEqualities =
+  Bool
+    (struct
+      let option_name = "-eva-polka-equalities"
+      let help = apron_help ^ "Use the linear equalities domain of apron."
+      let default = false
+    end)
+let () = add_precision_dep PolkaEqualities.parameter
+
+let () = Parameter_customize.set_group domains
+module BitwiseOffsmDomain =
+  Bool
+    (struct
+      let option_name = "-eva-bitwise-domain"
+      let help = "Use "
+      let default = false
+    end)
+let () = add_precision_dep BitwiseOffsmDomain.parameter
+
 
 (* -------------------------------------------------------------------------- *)
 (* --- Performance options                                                --- *)
@@ -203,6 +302,20 @@ module UndefinedPointerComparisonPropagateAll =
 let () = add_correctness_dep UndefinedPointerComparisonPropagateAll.parameter
 
 let () = Parameter_customize.set_group alarms
+module WarnPointerComparison =
+  String
+    (struct
+      let option_name = "-val-warn-undefined-pointer-comparison"
+      let help = "warn on all pointer comparisons (default), on comparisons \
+                  where the arguments have pointer type, or never warn"
+      let default = "all"
+      let arg_name = "all|pointer|none"
+    end)
+let () = WarnPointerComparison.set_possible_values ["all"; "pointer"; "none"]
+let () = add_correctness_dep WarnPointerComparison.parameter
+
+
+let () = Parameter_customize.set_group alarms
 module WarnLeftShiftNegative =
   True
     (struct
@@ -275,6 +388,15 @@ module ShowTrace =
      end)
 let () = ShowTrace.add_update_hook (fun _ b -> Trace.set_compute_trace b)
 
+module ReduceOnLogicAlarms =
+  False
+    (struct
+      let option_name = "-val-reduce-on-logic-alarms"
+      let help = "Force reductions by a predicate to ignore logic alarms \
+                  emitted while the predicated is evaluated (experimental)"
+    end)
+let () = add_correctness_dep ReduceOnLogicAlarms.parameter
+
 (* ------------------------------------------------------------------------- *)
 (* --- Initial context                                                   --- *)
 (* ------------------------------------------------------------------------- *)
@@ -343,7 +465,6 @@ let () = InitializedPaddingGlobals.add_update_hook
     warning "This option is deprecated. Use %s instead"
       InitializationPaddingGlobals.name;
     InitializationPaddingGlobals.set (if v then  "yes" else "no"))
-
 
 (* ------------------------------------------------------------------------- *)
 (* --- Tuning                                                            --- *)
@@ -498,8 +619,11 @@ module BuiltinsOverrides =
         begin match nameopt with
         | Some name ->
            if not (!Db.Value.mem_builtin name) then
-             abort "option '-val-builtin %a:%s': undeclared builtin '%s'"
-                   Kernel_function.pretty kf name name;
+             abort "option '-val-builtin %a:%s': undeclared builtin '%s'@.\
+                    declared builtins: @[%a@]"
+               Kernel_function.pretty kf name name
+               (Pretty_utils.pp_list ~sep:",@ " Format.pp_print_string)
+               (List.map fst (!Db.Value.registered_builtins ()))
         | _ -> ()
         end;
         nameopt
@@ -627,6 +751,94 @@ module SeparateStmtOf =
      end)
 let () = SeparateStmtOf.set_range ~min:0 ~max:1073741823
 let () = add_correctness_dep SeparateStmtOf.parameter
+
+(* Options SaveFunctionState and LoadFunctionState are related
+   and mutually dependent for sanity checking.
+   Also, they depend on BuiltinsOverrides, so they cannot be defined before it. *)
+let () = Parameter_customize.set_group initial_context
+module SaveFunctionState =
+  Kernel_function_map
+    (struct
+      include Datatype.String
+      type key = Cil_types.kernel_function
+      let of_string ~key:_ ~prev:_ file = file
+      let to_string ~key:_ file = file
+    end)
+    (struct
+      let option_name = "-val-save-fun-state"
+      let arg_name = "function:filename"
+      let help = "save state of function <function> in file <filename>"
+      let default = Kernel_function.Map.empty
+    end)
+module LoadFunctionState =
+  Kernel_function_map
+    (struct
+      include Datatype.String
+      type key = Cil_types.kernel_function
+      let of_string ~key:_ ~prev:_ file = file
+      let to_string ~key:_ file = file
+    end)
+    (struct
+      let option_name = "-val-load-fun-state"
+      let arg_name = "function:filename"
+      let help = "load state of function <function> from file <filename>"
+      let default = Kernel_function.Map.empty
+    end)
+let () = add_correctness_dep SaveFunctionState.parameter
+let () = add_correctness_dep LoadFunctionState.parameter
+(* checks that SaveFunctionState has a unique argument pair, and returns it. *)
+let get_SaveFunctionState () =
+  let is_first = ref true in
+  let (kf, filename) = SaveFunctionState.fold
+      (fun (kf, opt_filename) _acc ->
+         if !is_first then is_first := false
+         else abort "option `%s' requires a single function:filename pair"
+             SaveFunctionState.name;
+         let filename = Extlib.the opt_filename in
+         kf, filename
+      ) (Kernel_function.dummy (), "")
+  in
+  if filename = "" then abort "option `%s' requires a function:filename pair"
+      SaveFunctionState.name
+  else kf, filename
+(* checks that LoadFunctionState has a unique argument pair, and returns it. *)
+let get_LoadFunctionState () =
+  let is_first = ref true in
+  let (kf, filename) = LoadFunctionState.fold
+      (fun (kf, opt_filename) _acc ->
+         if !is_first then is_first := false
+         else abort "option `%s' requires a single function:filename pair"
+             LoadFunctionState.name;
+         let filename = Extlib.the opt_filename in
+         kf, filename
+      ) (Kernel_function.dummy (), "")
+  in
+  if filename = "" then abort "option `%s' requires a function:filename pair"
+      LoadFunctionState.name
+  else kf, filename
+(* perform early sanity checks to avoid aborting the analysis only at the end *)
+let () = Ast.apply_after_computed (fun _ ->
+    (* check the function to save returns 'void' *)
+    if SaveFunctionState.is_set () then begin
+      let (kf, _) = get_SaveFunctionState () in
+      if not (Kernel_function.returns_void kf) then
+        abort "option `%s': function `%a' must return void"
+          SaveFunctionState.name Kernel_function.pretty kf
+    end;
+    if SaveFunctionState.is_set () && LoadFunctionState.is_set () then begin
+      (* check that if both save and load are set, they do not specify the
+         same function name (note: cannot compare using function ids) *)
+      let (save_kf, _) = get_SaveFunctionState () in
+      let (load_kf, _) = get_LoadFunctionState () in
+      if Kernel_function.equal save_kf load_kf then
+        abort "options `%s' and `%s' cannot save/load the same function `%a'"
+          SaveFunctionState.name LoadFunctionState.name
+          Kernel_function.pretty save_kf
+    end;
+    if LoadFunctionState.is_set () then
+      let (kf, _) = get_LoadFunctionState () in
+      BuiltinsOverrides.add (kf, Some "Frama_C_load_state");
+  )
 
 (* ------------------------------------------------------------------------- *)
 (* --- Messages                                                          --- *)
@@ -759,6 +971,47 @@ let () =
   
 let parameters_correctness = !parameters_correctness
 let parameters_tuning = !parameters_tuning
+
+
+(* -------------------------------------------------------------------------- *)
+(* --- Eva options                                                        --- *)
+(* -------------------------------------------------------------------------- *)
+
+let () = Parameter_customize.set_group precision_tuning
+module EnumerateCond =
+  Bool
+    (struct
+      let option_name = "-eva-enumerate-cond"
+      let help = "Activate reduce_by_cond_enumerate."
+      let default = true
+    end)
+let () = add_precision_dep EnumerateCond.parameter
+
+
+let () = Parameter_customize.set_group precision_tuning
+module OracleDepth =
+  Int
+    (struct
+      let option_name = "-eva-oracle-depth"
+      let help = "Maximum number of successive uses of the oracle by the domain \
+                  for the evaluation of an expression. Set 0 to disable the \
+                  oracle."
+      let default = 2
+      let arg_name = ""
+    end)
+let () = add_precision_dep OracleDepth.parameter
+
+let () = Parameter_customize.set_group precision_tuning
+module ReductionDepth =
+  Int
+    (struct
+      let option_name = "-eva-reduction-depth"
+      let help = "Maximum number of successive backward reductions that the \
+                  domain may initiate."
+      let default = 4
+      let arg_name = ""
+    end)
+let () = add_precision_dep ReductionDepth.parameter
 
 (*
 Local Variables:

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -44,10 +44,10 @@ let rec merge a b =
   | Sbool , _ | _ , Sbool -> Sbool
   | Sarray x , Sarray y -> Sarray (merge x y)
   | Sarray _ , _ | _ , Sarray _ -> Sdata
-  | Sint , Sreal | Sreal , Sint -> Sreal
   | Sint , Sint -> Sint
+  | Sint , Sreal | Sreal , Sint -> Sreal
   | Sreal , Sreal -> Sreal
-  | Sdata , _ | _ , Sdata -> Sdata
+  | Sdata , _ | _ , Sdata -> Sdata 
 
 let image = function Sarray s -> s | _ -> Sdata
 

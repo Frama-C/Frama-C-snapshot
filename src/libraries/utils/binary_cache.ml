@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -36,7 +36,7 @@ let memory_footprint =
     else i
   with
   | Not_found -> 2
-  | Failure "int_of_string" -> error ()
+  | Failure _ -> error ()
 
 let cache_size = 1 lsl (8 + memory_footprint)
 

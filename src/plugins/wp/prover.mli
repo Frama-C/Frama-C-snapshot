@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -39,7 +39,3 @@ val spawn : Wpo.t ->
   ?callback:(Wpo.t -> prover -> result -> unit) ->
   ?success:(Wpo.t -> prover option -> unit) ->
   (mode * prover) list -> unit
-
-val wp_why3ide:
-  ?callback:(Wpo.S.Hashtbl.key -> VCS.prover -> VCS.result -> unit) ->
-  ((Wpo.t -> unit) -> unit) -> unit Task.task

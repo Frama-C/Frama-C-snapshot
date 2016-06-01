@@ -33,7 +33,8 @@ let main () =
     try Globals.Functions.find_by_name "main"
     with Not_found -> assert false
   in
-  (* for any annotation, emits valid depending on the previous annotations *)
+  (* for any annotation, emits dont_know. The dependency depends on the parity
+     of the annotations: either nothing, or all the previous ones *)
   let _, l =
     Annotations.fold_all_code_annot
       ~sorted:true
@@ -53,7 +54,7 @@ let main () =
   | (a1, s1, p1) :: ([ a2, s2, p2; a3, s3, p3; a4, s4, p4 ] as l') ->
     Property_status.(emit emitter ~hyps:[ p2 ] p4 True);
     report "P4 only depends on P2" l;
-    Annotations.remove_code_annot emitter ~kf s1 a1;
+    Annotations.remove_code_annot Emitter.end_user ~kf s1 a1;
     report "removing P1" l'
   | _ -> assert false
 

@@ -484,10 +484,15 @@ let fileGlobals () =
   let rec revonto (tail: global list) = function
       [] -> tail
 
-    | GVarDecl (vi, l) :: rest
+    | GVarDecl (vi, _) :: rest
       when vi.vstorage != Extern && IH.mem mustTurnIntoDef vi.vid ->
       IH.remove mustTurnIntoDef vi.vid;
-      revonto (GVar (vi, {init = None}, l) :: tail) rest
+      (* Use the location of vi instead of the one carried by GVarDecl.
+         Maybe we found in the same file a declaration and then a tentative
+         definition. In this case, both are GVarDecl, but the location carried
+         by [vi] is the location of the tentative definition, which is more
+         useful. *)
+      revonto (GVar (vi, {init = None}, vi.vdecl) :: tail) rest
 
     | x :: rest -> revonto (x :: tail) rest
   in
@@ -1424,7 +1429,7 @@ struct
       "Removing %a from chunk@\n%a@."
       Cil_printer.pp_lval lv d_chunk c;
     let remove_list =
-      List.filter (fun x -> not (Cil.compareLval lv x))
+      List.filter (fun x -> not (LvalStructEq.equal lv x))
     in
     let remove_from_reads =
       List.map (fun (s,m,w,r,c) -> (s,lv::m,w,remove_list r,c)) in
@@ -2179,7 +2184,7 @@ let rec combineTypes (what: combineWhat) (oldt: typ) (t: typ) : typ =
         (* They are not structurally equal. But perhaps they are equal if
          * we evaluate them. Check first machine independent comparison  *)
         let checkEqualSize (machdep: bool) =
-          compareExp
+          ExpStructEq.equal
             (constFold machdep oldsz')
             (constFold machdep sz')
         in
@@ -2336,11 +2341,8 @@ let makeGlobalVarinfo (isadef: bool) (vi: varinfo) : varinfo * bool =
       (* Extern and something else is that thing *)
       | Extern, other
       | other, Extern -> other
-
       | NoStorage, other
       | other, NoStorage ->  other
-
-
       | _ ->
         if vi.vstorage != oldvi.vstorage then
           Kernel.warning ~current:true
@@ -2350,7 +2352,6 @@ let makeGlobalVarinfo (isadef: bool) (vi: varinfo) : varinfo * bool =
         vi.vstorage
     in
     oldvi.vinline <- oldvi.vinline || vi.vinline;
-    oldvi.vstorage <- newstorage;
     (* If the new declaration has a section attribute, remove any
      * preexisting section attribute. This mimics behavior of gcc that is
      * required to compile the Linux kernel properly. *)
@@ -2378,14 +2379,16 @@ let makeGlobalVarinfo (isadef: bool) (vi: varinfo) : varinfo * bool =
           vi.vname Cil_printer.pp_location oldloc reason;
         IncompatibleDeclHook.apply (oldvi,vi,reason)
     end;
-
-    (* Found an old one. Keep the location always from the definition *)
-    if isadef then begin
+    (* Update the storage and vdecl if useful. Do so only after the hooks have
+       been applied, as they may need to read those fields *)
+    if oldvi.vstorage <> newstorage then begin
+      oldvi.vstorage <- newstorage;
+      (* Also update the location; [vi.vdecl] is a better declaration/definition
+         site for [vi]. *)
       oldvi.vdecl <- vi.vdecl;
     end;
-
-    (* Let's mutate the formals vid's name attribute and type for function prototypes.
-       Logic specifications refer to the varinfo in this table. *)
+    (* Let's mutate the formals vid's name attribute and type for function
+       prototypes. Logic specifications refer to the varinfo in this table. *)
     begin
       match vi.vtype with
       | TFun (_,Some formals , _, _ ) ->
@@ -2406,17 +2409,19 @@ let makeGlobalVarinfo (isadef: bool) (vi: varinfo) : varinfo * bool =
              old_formals_env
              formals;
          with
-         | Invalid_argument "List.iter2" ->
+         | Invalid_argument _ ->
            Kernel.abort "Inconsistent formals" ;
          | Not_found -> 
            Cil.setFormalsDecl oldvi vi.vtype)
       | _ -> ()
     end ;
-    (* update the field [vdefined] *)
-    if isadef then oldvi.vdefined <- true;
-    (* the *immutable* vtemp field in oldvi cannot be updated. We assume
-       that all Frama-C builtins bear the FC_BUILTIN attribute - and thus are
-       translated into variables with vtemp fields at [true]. *)
+    (* if [isadef] is true, [vi] is a definition.  *)
+    if isadef then begin
+      oldvi.vdecl <- vi.vdecl; (* always favor the location of the definition.*)
+      oldvi.vdefined <- true;
+    end;
+    (* notice that [vtemp] is immutable, and cannot be updated. Hopefully,
+       temporaries have sufficiently fresh names that this is not a problem *)
     oldvi, true
   with Not_found -> begin (* A new one.  *)
       Kernel.debug ~level:2 ~dkey:category_global
@@ -2503,12 +2508,26 @@ type preInit =
   | CompoundPre of int ref (* the maximum used index *)
                    * preInit array ref (* an array with initializers *)
 
+(* internal pretty-printing function for debugging purposes *)
+let rec _pp_preInit fmt = function
+  | NoInitPre -> Format.fprintf fmt "NoInitPre"
+  | SinglePre e -> Format.fprintf fmt "SinglePre(%a)" Cil_printer.pp_exp e
+  | CompoundPre (int_ref, preInit_a_ref) ->
+    Format.fprintf fmt "CompoundPre(%d,@[%a@])" !int_ref
+      (Pretty_utils.pp_array ~sep:",@ "
+         (fun fmt index e -> Format.fprintf fmt "@[[%d -> %a]@]" index _pp_preInit e))
+      !preInit_a_ref
+
+(* special case for treating GNU extension on empty compound initializers. *)
+let empty_preinit() =
+  if Cil.gccMode () || Cil.msvcMode () then
+    CompoundPre (ref (-1), ref [| |])
+  else Kernel.abort "empty initializers only allowed for GCC/MSVC"
 
 (* Set an initializer *)
-let rec setOneInit (this: preInit)
-    (o: offset) (e: exp) : preInit =
+let rec setOneInit this o preinit =
   match o with
-  | NoOffset -> SinglePre e
+  | NoOffset -> preinit
   | _ ->
     let idx, (* Index in the current comp *)
         restoff (* Rest offset *) =
@@ -2546,10 +2565,9 @@ let rec setOneInit (this: preInit)
         Kernel.fatal ~current:true "Index %d is already initialized" idx
     in
     assert (idx >= 0 && idx < Array.length !pArray);
-    let this' = setOneInit !pArray.(idx) restoff e in
+    let this' = setOneInit !pArray.(idx) restoff preinit in
     !pArray.(idx) <- this';
     CompoundPre (pMaxIdx, pArray)
-
 
 (* collect a CIL initializer, given the original syntactic initializer
  * 'preInit'; this returns a type too, since initialization of an array
@@ -2557,13 +2575,25 @@ let rec setOneInit (this: preInit)
  * (ANSI C, 6.7.8, para 22) *)
 let rec collectInitializer
     (this: preInit)
-    (thistype: typ) : (init * typ) =
+    (thistype: typ) ~(parenttype: typ) : (init * typ) =
+  (* parenttype is used to identify a tentative flexible array member
+     initialization *)
+  let dkey = category_initializer in
   let loc = CurrentLoc.get() in
-  if this = NoInitPre then (makeZeroInit ~loc thistype), thistype
-  else
+  if this = NoInitPre then begin
+    Kernel.debug ~dkey "zero-initializing object of type %a"
+      Cil_printer.pp_typ thistype;
+    (makeZeroInit ~loc thistype), thistype
+  end else
     match unrollType thistype, this with
-    | _ , SinglePre e -> SingleInit e, thistype
+    | _ , SinglePre e ->
+      Kernel.debug ~dkey "Initializing object of type %a to %a"
+        Cil_printer.pp_typ thistype Cil_printer.pp_exp e;
+      SingleInit e, thistype
     | TArray (bt, leno, _, at), CompoundPre (pMaxIdx, pArray) ->
+      Kernel.debug ~dkey
+        "Initialization of an array object of type %a with index max %d"
+        Cil_printer.pp_typ thistype !pMaxIdx;
       let len, initializer_len_used =
         (* normal case: use array's declared length, newtype=thistype *)
         match leno with
@@ -2611,7 +2641,7 @@ let rec collectInitializer
         match v with
         | NoInitPre -> (idx-1,init,typ,len_used)
         | _ -> 
-          let (vinit,typ') = collectInitializer v typ in
+          let (vinit,typ') = collectInitializer v typ ~parenttype:typ in
           let len_used =
             len_used || not (Cil_datatype.Typ.equal typ typ')
           in
@@ -2625,7 +2655,26 @@ let rec collectInitializer
           !pArray (Array.length !pArray - 1, [], bt, initializer_len_used)
       in
       let newtype =
-        TArray (typ, Some (integer ~loc len), empty_size_cache (), at)
+        (* detect flexible array member initialization *)
+        match thistype, Cil.unrollType parenttype with
+        | TArray (_, None, _, _), TComp (comp, _, _)
+          when comp.cstruct && len > 0 ->
+          (* incomplete array type inside a struct => FAM, with
+             a non-empty initializer (len > 0)
+          *)
+          Kernel.debug ~dkey:category_initializer
+            "Detected initialization of a flexible array member \
+             (length %d, parenttype %a)" len Cil_printer.pp_typ parenttype;
+          Kernel.error ~once:true ~current:true
+            "static initialization of flexible array members is an \
+             unsupported GNU extension";
+          TArray (typ, None, empty_size_cache (), at)
+        | _ -> (* not a flexible array member *)
+          if len = 0 && not (Cil.gccMode() || Cil.msvcMode ()) then
+            Kernel.error ~once:true ~current:true
+              "arrays of size zero not supported in C99@ \
+               (only allowed as compiler extensions)";
+          TArray (typ, Some (integer ~loc len), empty_size_cache (), at)
       in
       CompoundInit (newtype, (* collect [] endAt*)init),
       (* If the sizes of the initializers have not been used anywhere,
@@ -2634,6 +2683,9 @@ let rec collectInitializer
       (if len_used then newtype else thistype)
 
     | TComp (comp, _, _), CompoundPre (pMaxIdx, pArray) when comp.cstruct ->
+      Kernel.debug ~dkey
+        "Initialization of an object of type %a with at least %d components"
+        Cil_printer.pp_typ thistype !pMaxIdx;
       let rec collect (idx: int) = function
           [] -> []
         | f :: restf ->
@@ -2644,13 +2696,16 @@ let rec collectInitializer
               if idx > !pMaxIdx then
                 makeZeroInit ~loc f.ftype
               else
-                collectFieldInitializer !pArray.(idx) f
+                collectFieldInitializer !pArray.(idx) f ~parenttype:thistype
             in
             (Field(f, NoOffset), thisi) :: collect (idx + 1) restf
       in
       CompoundInit (thistype, collect 0 comp.cfields), thistype
 
     | TComp (comp, _, _), CompoundPre (pMaxIdx, pArray) when not comp.cstruct ->
+      Kernel.debug ~dkey
+        "Initialization of an object of type %a with at least %d components"
+        Cil_printer.pp_typ thistype !pMaxIdx;
       (* Find the field to initialize *)
       let rec findField (idx: int) = function
         | [] -> Kernel.abort ~current:true "collectInitializer: union"
@@ -2658,7 +2713,7 @@ let rec collectInitializer
           findField (idx + 1) rest
         | f :: _ when idx = !pMaxIdx ->
           Field(f, NoOffset),
-          collectFieldInitializer !pArray.(idx) f
+          collectFieldInitializer !pArray.(idx) f ~parenttype:thistype
         | _ ->
           Kernel.fatal ~current:true "Can initialize only one field for union"
       in
@@ -2671,9 +2726,9 @@ let rec collectInitializer
 
 and collectFieldInitializer
     (this: preInit)
-    (f: fieldinfo) : init =
+    (f: fieldinfo) ~(parenttype: typ) : init =
   (* collect, and rewrite type *)
-  let init,newtype = (collectInitializer this f.ftype) in
+  let init,newtype = (collectInitializer this f.ftype ~parenttype) in
   f.ftype <- newtype;
   init
 
@@ -3321,8 +3376,6 @@ let set_to_zero ~ghost vi off typ =
           (None,Cil.evar ~loc bzero,
            [zone; size], loc)))
 
-
-exception ChangeSize of Cil_types.exp
 
 (* Initialize the first cell of an array, and call Frama_C_copy_block to
    propagate this initialization to the rest of the array.
@@ -4239,17 +4292,33 @@ and doType (ghost:bool) isFuncArg
       restyp', cabsAddAttributes an nattr
 
     | A.ARRAY (d, al, len) ->
-      if not (Cil.isCompleteType ~allowZeroSizeArrays bt) || 
-         Cil.isFunctionType bt
-      then
+      if Cil.isFunctionType bt then
         Kernel.error ~once:true ~current:true
-          "attempt to declare an array over incomplete type %a"
-          Cil_printer.pp_typ bt;
+          "declaration of array of function type '%a`"
+          Cil_printer.pp_typ bt
+      else if not (Cil.isCompleteType ~allowZeroSizeArrays:true bt) then
+        Kernel.error ~once:true ~current:true
+          "declaration of array of incomplete type '%a`"
+          Cil_printer.pp_typ bt
+      else if not allowZeroSizeArrays &&
+         not (Cil.isCompleteType ~allowZeroSizeArrays:false bt)
+      then
+        (* because we tested previously for incomplete types and now tested again
+           forbidding zero-length arrays, bt is necessarily a zero-length array *)
+        if Cil.gccMode () || Cil.msvcMode () then
+          Kernel.warning ~once:true ~current:true
+            "declaration of array of 'zero-length arrays' ('%a`);@ \
+             zero-length arrays are a compiler extension"
+            Cil_printer.pp_typ bt
+        else
+          Kernel.error ~once:true ~current:true
+            "declaration of array of 'zero-length arrays' ('%a`);@ \
+             zero-length arrays are not allowed in C99"
+            Cil_printer.pp_typ bt;
       let lo =
         match len.expr_node with
         | A.NOTHING -> None
         | _ -> 
-          try
             (* Check that len is a constant expression.
                We used to also cast the length to int here, but that's
                theoretically too restrictive on 64-bit machines. *)
@@ -4266,13 +4335,6 @@ and doType (ghost:bool) isFuncArg
                  if Integer.lt i Integer.zero then
                    Kernel.error ~once:true ~current:true 
                      "Length of array is negative"
-                 else if Integer.equal i Integer.zero && not allowZeroSizeArrays then
-                   begin 
-                     Kernel.warning ~once:true ~source:(fst len'.eloc)
-                       "Length of array is zero. This GCC extension is unsupported. Assuming length is 1.";
-                     raise (ChangeSize (Cil.one ~loc:len'.eloc))
-                   end;
-                 raise (ChangeSize cst)
                | _ ->
                  if isConstant cst then
                    (* e.g., there may be a float constant involved.
@@ -4288,7 +4350,6 @@ and doType (ghost:bool) isFuncArg
                      Cil_printer.pp_exp cst)
             end;
             Some len'
-          with ChangeSize fixed_len -> Some fixed_len
       in
       let al' = doAttributes ghost al in
       if not isFuncArg && hasAttribute "static" al' then
@@ -4746,7 +4807,7 @@ and doExp local_env
            +++
            (mkStmtOneInstr ~ghost (Set(lv, e'', CurrentLoc.get ())),
             writes,writes,
-            List.filter (fun x -> not (Cil.compareLval x lv)) r @ reads),
+            List.filter (fun x -> not (LvalStructEq.equal x lv)) r @ reads),
            e'', t'')
 
       end
@@ -6553,15 +6614,19 @@ and doBinOp loc (bop: binop) (e1: exp) (t1: typ) (e2: exp) (t2: typ) =
       Kernel.fatal ~current:true "%a operator on a non-integer type" 
         Cil_printer.pp_binop bop
   in
+  (* Invariant: t1 and t2 are pointers types *)
   let pointerComparison e1 t1 e2 t2 =
-    (* Cast both sides to an integer *)
-    (* in Frama-C, do not add these non-standard useless casts *)
-    let e1', e2' = if false && theMachine.insertImplicitCasts then
-        let commontype = theMachine.upointType in
-        (makeCastT e1 t1 commontype),
-        (makeCastT e2 t2 commontype)
-      else
-        e1, e2
+    if false then Kernel.debug "%a %a %a %a"
+        Cil_printer.pp_exp e1 Cil_printer.pp_typ t1
+        Cil_printer.pp_exp e2 Cil_printer.pp_typ t2;
+    let t1p = Cil.(unrollType (typeOf_pointed t1)) in
+    let t2p = Cil.(unrollType (typeOf_pointed t2)) in
+    (* We are more lenient than the norm here (C99 6.5.8, 6.5.9), and cast
+       arguments with incompatible types to a common type *)
+    let e1', e2' =
+      if not (compatibleTypesp t1p t2p) then
+        makeCastT e1 t1 Cil.voidPtrType, makeCastT e2 t2 Cil.voidPtrType
+      else e1, e2
     in
     intType,
     optConstFoldBinOp loc false bop e1' e2' intType
@@ -6606,32 +6671,22 @@ and doBinOp loc (bop: binop) (e1: exp) (t1: typ) (e2: exp) (t2: typ) =
     intType,
     optConstFoldBinOp loc false MinusPP (makeCastT e1 t1 commontype)
       (makeCastT e2 t2 commontype) intType
+
+  (* Two special cases for comparisons with the NULL pointer. We are a bit
+     more permissive. *)
+  | (Le|Lt|Ge|Gt|Eq|Ne) when isPointerType t1 && isZero e2 ->
+    pointerComparison e1 t1 (makeCast e2 t1) t1
+  | (Le|Lt|Ge|Gt|Eq|Ne) when isPointerType t2 && isZero e1 ->
+    pointerComparison (makeCast e1 t2) t2 e2 t2
+
   | (Le|Lt|Ge|Gt|Eq|Ne) when isPointerType t1 && isPointerType t2 ->
     pointerComparison e1 t1 e2 t2
-  | (Eq|Ne) when isPointerType t1 && isZero e2 ->
-    pointerComparison e1 t1 (makeCastT (zero ~loc)theMachine.upointType t1) t1
-  | (Eq|Ne) when isPointerType t2 && isZero e1 ->
-    pointerComparison (makeCastT (zero ~loc)theMachine.upointType t2) t2 e2 t2
 
-  | (Eq|Ne) when isVariadicListType t1 && isZero e2 ->
-    Kernel.debug ~level:3 "Comparison of va_list and zero";
-    pointerComparison e1 t1 (makeCastT (zero ~loc)theMachine.upointType t1) t1
-  | (Eq|Ne) when isVariadicListType t2 && isZero e1 ->
-    Kernel.debug ~level:3 "Comparison of zero and va_list";
-    pointerComparison (makeCastT (zero ~loc)theMachine.upointType t2) t2 e2 t2
-
-  | (Eq|Ne|Le|Lt|Ge|Gt) when isPointerType t1 && isArithmeticType t2 ->
-    Kernel.debug ~level:3 "Comparison of pointer and non-pointer";
-    (* Cast both values to upointType *)
-    doBinOp loc bop
-      (makeCastT e1 t1 theMachine.upointType) theMachine.upointType
-      (makeCastT e2 t2 theMachine.upointType) theMachine.upointType
-  | (Eq|Ne|Le|Lt|Ge|Gt) when isArithmeticType t1 && isPointerType t2 ->
-    Kernel.debug ~level:3 "Comparison of pointer and non-pointer";
-    (* Cast both values to upointType *)
-    doBinOp loc
-      bop (makeCastT e1 t1 theMachine.upointType) theMachine.upointType
-      (makeCastT e2 t2 theMachine.upointType) theMachine.upointType
+  | (Eq|Ne|Le|Lt|Ge|Gt) when (isPointerType t1 && isArithmeticType t2 ||
+                              isArithmeticType t1 && isPointerType t2 ) ->
+    Kernel.fatal ~current:true
+      "comparison between pointer and non-pointer: %a"
+      Cil_printer.pp_exp (dummy_exp(BinOp(bop,e1,e2,intType)))
 
   | _ ->
     Kernel.fatal ~current:true
@@ -6715,10 +6770,6 @@ and doCondExp local_env (asconst: bool)
 
     | A.UNARY(A.NOT, e1) -> begin
         match doCondExp local_env asconst ?ctxt e1 with
-        | CEExp (se1, ({enode = Const ci1})) ->
-          (match isConstTrueFalse ci1 with
-           | `CFalse -> CEExp (se1, one e1.expr_loc)
-           | `CTrue -> CEExp (se1, zero e1.expr_loc))
         | CEExp (se1, e) when isEmpty se1 ->
           let t = typeOf e in
           if not ((isPointerType t) || (isArithmeticType t))then
@@ -6835,12 +6886,23 @@ and doCondition local_env (isconst: bool)
     (st: chunk)
     (sf: chunk) : chunk =
   if isEmpty st && isEmpty sf(*TODO: ignore attribute FRAMA_C_KEEP_BLOCK*) then
-    let (_, se,_,_) = doExp local_env false e ADrop in se
-  else
-    let ce = doCondExp local_env isconst e in
-    let chunk = compileCondExp ~ghost:local_env.is_ghost ce st sf in
-    chunk
-
+    begin
+      let (_, se,e,_) = doExp local_env false e ADrop in
+      if is_dangerous e then begin
+        let ghost = local_env.is_ghost in
+        se @@ (keepPureExpr ~ghost e e.eloc, ghost)
+      end else begin
+        if (isEmpty se) then begin
+          let name = !currentFunctionFDEC.svar.vorig_name in
+          IgnorePureExpHook.apply (name, e)
+        end;
+        se
+      end
+    end else begin
+      let ce = doCondExp local_env isconst e in
+      let chunk = compileCondExp ~ghost:local_env.is_ghost ce st sf in
+      chunk
+    end
 
 and doPureExp local_env (e : A.expression) : exp =
   let (_,se, e', _) = doExp local_env true e (AExp None) in
@@ -6859,20 +6921,12 @@ and doInitializer local_env (vi: varinfo) (inite: A.init_expression)
    * different for arrays) *)
   : chunk * init * typ =
 
-  (* Setup the pre-initializer *)
-  let topPreInit = ref NoInitPre in
   Kernel.debug ~dkey:category_initializer
     "@\nStarting a new initializer for %s : %a@\n"
     vi.vname Cil_printer.pp_typ vi.vtype;
-  let topSetupInit (o: offset) (e: exp) =
-    Kernel.debug ~dkey:category_initializer " set %a := %a@\n"  
-      Cil_printer.pp_lval (Var vi, o) Cil_printer.pp_exp e;
-    let newinit = setOneInit !topPreInit o e in
-    if newinit != !topPreInit then topPreInit := newinit
-  in
-  let acc, restl =
+  let acc, preinit, restl =
     let so = makeSubobj vi vi.vtype NoOffset in
-    doInit local_env vi.vglob Extlib.nop topSetupInit so
+    doInit local_env vi.vglob Extlib.nop NoInitPre so
       (unspecified_chunk empty) [ (A.NEXT_INIT, inite) ]
   in
   if restl <> [] then
@@ -6883,7 +6937,7 @@ and doInitializer local_env (vi: varinfo) (inite: A.init_expression)
   let typ' = vi.vtype in
   Kernel.debug ~dkey:category_initializer
     "Collecting the initializer for %s@\n" vi.vname;
-  let (init, typ'') = collectInitializer !topPreInit typ' in
+  let (init, typ'') = collectInitializer preinit typ' typ' in
   Kernel.debug ~dkey:category_initializer
     "Finished the initializer for %s@\n  init=%a@\n  typ=%a@\n  acc=%a@\n"
     vi.vname Cil_printer.pp_init init Cil_printer.pp_typ typ' d_chunk acc;
@@ -6893,28 +6947,27 @@ and blockInitializer local_env vi inite =
   let ghost = local_env.is_ghost in
   let c,init,ty = doInitializer local_env vi inite in c2block ~ghost c, init, ty
 
-(* [VP-2012-03-01] As a matter of fact, this function is not tail-rec, but it seems
-   that it's not an issue in practice. *)
-(* Consume some initializers. Watch out here. Make sure we use only
- * tail-recursion because these things can be big.  *)
-and doInit
-    local_env
-    (isconst: bool)
-    (add_implicit_ensures: predicate named -> unit)
-    (* callback to add an ensures clause to contracts
-       above current initialized part when it is partially initialized.
-       Does nothing initially.
-    *)
-    (setone: offset -> exp -> unit) (* Use to announce an initializer *)
-    (so: subobj)
-    (acc: chunk)
-    (initl: (A.initwhat * A.init_expression) list)
-
-  (* Return the resulting chunk along with some unused initializers *)
-  : chunk * (A.initwhat * A.init_expression) list =
-
+(* Consume some initializers. This is used by both global and local variables
+   initialization.
+   - local_env is the current environment
+   - isconst is used to indicate that expressions must be compile-time constant
+     (i.e. we are in a global initializer)
+   - add_implicit_ensures is a callback to add an ensures clause to contracts
+     above current initialized part when it is partially initialized.
+     Does nothing initially. Useful only for initialization of locals
+   - preinit corresponds to the initializers seen previously (for globals)
+   - so contains the information about the current subobject currently being
+     initialized
+   - acc is the chunk corresponding to initializations seen previously
+     (for locals)
+   - initl is the current list of initializers to be processed
+doInit returns a triple:
+   - chunk performing initialization
+   - preinit corresponding to the complete initialization
+   - the list of unused initializers if any (should be empty most of the time)
+*)
+and doInit local_env isconst add_implicit_ensures preinit so acc initl =
   let whoami fmt = Cil_printer.pp_lval fmt (Var so.host, so.soOff) in
-
   let initl1 =
     match initl with
     | (A.NEXT_INIT,
@@ -6960,12 +7013,10 @@ and doInit
          Cprint.print_init_expression fmt (A.COMPOUND_INIT [(what, ie)])
     );
   match unrollType so.soTyp, allinitl with
-  | _, [] -> acc, [] (* No more initializers return *)
-
-  (* No more subobjects *)
-  | _, (A.NEXT_INIT, _) :: _ when so.eof -> acc, allinitl
-
-
+  (* No more initializers return *)
+  | _, [] -> acc, preinit, []
+  (* No more subobjects to initialize *)
+  | _, (A.NEXT_INIT, _) :: _ when so.eof -> acc, preinit, allinitl
   (* If we are at an array of characters and the initializer is a
    * string literal (optionally enclosed in braces) then explode the
    * string into characters *)
@@ -7016,16 +7067,15 @@ and doInit
     let leno = integerArrayLength leno in
     so'.stack <- [InArray(so'.curOff, bt, leno, ref 0)];
     normalSubobj so';
-    let acc', initl' =
-      doInit local_env isconst add_implicit_ensures setone so' acc charinits in
+    let acc', preinit', initl' =
+      doInit local_env isconst add_implicit_ensures preinit so' acc charinits in
     if initl' <> [] then
       Kernel.warning ~current:true
         "Too many initializers for character array %t" whoami;
     (* Advance past the array *)
     advanceSubobj so;
     (* Continue *)
-    doInit local_env isconst add_implicit_ensures setone so acc' restil
-
+    doInit local_env isconst add_implicit_ensures preinit' so acc' restil
   (* If we are at an array of WIDE characters and the initializer is a
    * WIDE string literal (optionally enclosed in braces) then explore
    * the WIDE string into characters *)
@@ -7090,8 +7140,9 @@ and doInit
     let leno = integerArrayLength leno in
     so'.stack <- [InArray(so'.curOff, bt, leno, ref 0)];
     normalSubobj so';
-    let acc', initl' =
-      doInit local_env isconst add_implicit_ensures setone so' acc charinits in
+    let acc', preinit', initl' =
+      doInit local_env isconst add_implicit_ensures preinit so' acc charinits
+    in
     if initl' <> [] then
       (* sm: see above regarding ISO 6.7.8 para 14, which is not implemented
        * for wchar_t because, as far as I can tell, we don't even put in
@@ -7101,8 +7152,7 @@ and doInit
     (* Advance past the array *)
     advanceSubobj so;
     (* Continue *)
-    doInit local_env isconst add_implicit_ensures setone so acc' restil
-
+    doInit local_env isconst add_implicit_ensures preinit' so acc' restil
   (* If we are at an array and we see a single initializer then it must
    * be one for the first element *)
   | TArray(bt, leno, _, _), (A.NEXT_INIT, A.SINGLE_INIT _oneinit) :: _restil  ->
@@ -7111,8 +7161,12 @@ and doInit
     so.stack <- InArray(so.soOff, bt, leno, ref 0) :: so.stack;
     normalSubobj so;
     (* Start over with the fields *)
-    doInit local_env isconst add_implicit_ensures setone so acc allinitl
-
+    doInit local_env isconst add_implicit_ensures preinit so acc allinitl
+  (* An incomplete structure with any initializer is an error. *)
+  | TComp (comp, _, _), _ :: restil when not comp.cdefined ->
+    Kernel.error ~current:true ~once:true
+      "variable `%s' has initializer but incomplete type" so.host.vname;
+    doInit local_env isconst add_implicit_ensures preinit so acc restil
   (* If we are at a composite and we see a single initializer of the same
    * type as the composite then grab it all. If the type is not the same
    * then we must go on and try to initialize the fields *)
@@ -7126,16 +7180,16 @@ and doInit
         | _ -> false)
     then begin
       (* Initialize the whole struct *)
-      setone so.soOff oneinit';
+      let preinit = setOneInit preinit so.soOff (SinglePre oneinit') in
       (* Advance to the next subobject *)
       advanceSubobj so;
       let se = acc @@ (se, local_env.is_ghost) in
-      doInit local_env isconst add_implicit_ensures setone so se restil
+      doInit local_env isconst add_implicit_ensures preinit so se restil
     end else begin (* Try to initialize fields *)
       let toinit = fieldsToInit comp None in
       so.stack <- InComp(so.soOff, comp, toinit) :: so.stack;
       normalSubobj so;
-      doInit local_env isconst add_implicit_ensures setone so acc allinitl
+      doInit local_env isconst add_implicit_ensures preinit so acc allinitl
     end
 
   (* A scalar with a single initializer *)
@@ -7146,27 +7200,38 @@ and doInit
     Kernel.debug ~dkey:category_initializer "oneinit'=%a, t'=%a, so.soTyp=%a"
       Cil_printer.pp_exp oneinit' Cil_printer.pp_typ t'
       Cil_printer.pp_typ so.soTyp;
-    setone so.soOff (if theMachine.insertImplicitCasts then
-                       snd (castTo t' so.soTyp oneinit')
-                     else oneinit');
+    let init_expr =
+      if theMachine.insertImplicitCasts then snd (castTo t' so.soTyp oneinit')
+      else oneinit'
+    in
+    let preinit' = setOneInit preinit so.soOff (SinglePre init_expr) in
     (* Move on *)
     advanceSubobj so;
     let se = acc @@ (se,local_env.is_ghost) in
-    doInit local_env isconst add_implicit_ensures setone so se restil
-
-
+    doInit local_env isconst add_implicit_ensures preinit' so se restil
   (* An array with a compound initializer. The initializer is for the
    * array elements *)
   | TArray (bt, leno, _, _), (A.NEXT_INIT, A.COMPOUND_INIT initl) :: restil ->
     (* Create a separate object for the array *)
     let so' = makeSubobj so.host so.soTyp so.soOff in
     (* Go inside the array *)
-    let leno = integerArrayLength leno in
-    so'.stack <- [InArray(so'.curOff, bt, leno, ref 0)];
+    let len = integerArrayLength leno in
+    so'.stack <- [InArray(so'.curOff, bt, len, ref 0)];
     normalSubobj so';
-    let acc', initl' =
-      doInit
-        local_env isconst add_implicit_ensures setone so' acc initl
+    let acc', preinit', initl' =
+      match initl with
+      | [] ->
+        (* we must actually indicate that there is some initializer, albeit
+           empty, to our parent. This is in particular important if said
+           parent is an array of indeterminate size, as the number of
+           initializers of its children matters. *)
+        let preinit' = setOneInit preinit so'.curOff (empty_preinit()) in
+        (* zero initialization will be done anyway,
+           no need to change the chunk.*)
+        acc, preinit', []
+      | _ ->
+        doInit
+          local_env isconst add_implicit_ensures preinit so' acc initl
     in
     if initl' <> [] then
       Kernel.warning ~current:true
@@ -7174,17 +7239,14 @@ and doInit
     (* Advance past the array *)
     advanceSubobj so;
     (* Continue *)
-    let res =
-      doInit local_env isconst add_implicit_ensures setone so acc' restil
-    in
-    res
-
+    doInit local_env isconst add_implicit_ensures preinit' so acc' restil
   (* We have a designator that tells us to select the matching union field.
    * This is to support a GCC extension *)
-  | TComp(ci, _, _) as targ, [(A.NEXT_INIT,
-                               A.COMPOUND_INIT [(A.INFIELD_INIT ("___matching_field",
-                                                                 A.NEXT_INIT),
-                                                 A.SINGLE_INIT oneinit)])]
+  | TComp(ci, _, _) as targ,
+    [(A.NEXT_INIT,
+      A.COMPOUND_INIT
+        [(A.INFIELD_INIT ("___matching_field", A.NEXT_INIT),
+          A.SINGLE_INIT oneinit)])]
     when not ci.cstruct ->
     (* Do the expression to find its type *)
     let _, _, _, t' = doExp local_env isconst oneinit (AExp None) in
@@ -7198,13 +7260,15 @@ and doInit
     in
     (* If this is a cast from union X to union X *)
     if Typ.equal t'noattr (Cil.typeDeepDropAllAttributes targ) then
-      doInit local_env isconst add_implicit_ensures setone so acc
+      doInit
+        local_env isconst add_implicit_ensures preinit so acc
         [(A.NEXT_INIT, A.SINGLE_INIT oneinit)]
     else
       (* If this is a GNU extension with field-to-union cast find the field *)
       let fi = findField ci.cfields in
       (* Change the designator and redo *)
-      doInit local_env isconst add_implicit_ensures setone so acc
+      doInit
+        local_env isconst add_implicit_ensures preinit so acc
         [A.INFIELD_INIT (fi.fname, A.NEXT_INIT), A.SINGLE_INIT oneinit]
 
   (* A structure with a composite initializer. We initialize the fields*)
@@ -7214,17 +7278,22 @@ and doInit
     (* Go inside the comp *)
     so'.stack <- [InComp(so'.curOff, comp, fieldsToInit comp None)];
     normalSubobj so';
-    let acc', initl' =
-      doInit local_env isconst add_implicit_ensures setone so' acc initl
+    let acc', preinit', initl' =
+      match initl with
+      | [] -> (* empty initializer, a GNU extension to indicate 
+                 0-initialization. We must indicate to our parent that we are
+                 here, though. *)
+        let preinit' = setOneInit preinit so'.curOff (empty_preinit()) in
+        acc, preinit', []
+      | _ ->
+        doInit local_env isconst add_implicit_ensures preinit so' acc initl
     in
     if initl' <> [] then
       Kernel.warning ~current:true "Too many initializers for structure";
     (* Advance past the structure *)
     advanceSubobj so;
     (* Continue *)
-    doInit local_env isconst add_implicit_ensures setone so acc' restil
-
-
+    doInit local_env isconst add_implicit_ensures preinit' so acc' restil
   (* A scalar with a initializer surrounded by a number of braces *)
   | t, (A.NEXT_INIT, next) :: restil ->
     begin
@@ -7240,17 +7309,17 @@ and doInit
           doExp local_env isconst oneinit (AExp(Some so.soTyp))
         in
         let se = add_reads oneinit'.eloc r se in
-        setone so.soOff (makeCastT oneinit' t' so.soTyp);
+        let init_expr = makeCastT oneinit' t' so.soTyp in
+        let preinit' = setOneInit preinit so.soOff (SinglePre init_expr) in
         (* Move on *)
         advanceSubobj so;
         let se = acc @@ (se, local_env.is_ghost) in
-        doInit local_env isconst add_implicit_ensures setone so se restil
+        doInit local_env isconst add_implicit_ensures preinit' so se restil
       with Not_found ->
         Kernel.abort ~current:true
           "scalar value (of type %a) initialized by compound initializer" 
           Cil_printer.pp_typ t
     end
-
   (* We have a designator *)
   | _, (what, ie) :: restil when what != A.NEXT_INIT ->
     (* Process a designator and position to the designated subobject *)
@@ -7343,18 +7412,17 @@ and doInit
                  A.NEXT_INIT)), ie)
             :: loop (i + 1)
         in
-        doInit local_env isconst add_implicit_ensures setone so acc (loop first)
-
+        doInit
+          local_env isconst add_implicit_ensures preinit so acc (loop first)
       | A.NEXT_INIT -> (* We have not found any RANGE *)
         let acc' = addressSubobj so what acc in
-        doInit local_env isconst add_implicit_ensures setone so acc'
+        doInit
+          local_env isconst add_implicit_ensures preinit so acc'
           ((A.NEXT_INIT, ie) :: restil)
     in
     expandRange (fun x -> x) what
-
   | t, (_what, _ie) :: _ ->
     Kernel.abort ~current:true "doInit: cases for t=%a" Cil_printer.pp_typ t
-
 
 (* Create and add to the file (if not already added) a global. Return the
  * varinfo *)
@@ -8864,7 +8932,7 @@ and doStatement local_env (s : A.statement) : chunk =
     let loc' = convLoc loc in
     CurrentLoc.set loc';
     if not (isVoidType !currentReturnType) then
-      Kernel.warning ~current:true
+      Kernel.error ~current:true
         "Return statement without a value in function returning %a\n"
         Cil_printer.pp_typ !currentReturnType;
     returnChunk ~ghost None loc'
@@ -8874,7 +8942,7 @@ and doStatement local_env (s : A.statement) : chunk =
     CurrentLoc.set loc';
     (* Sometimes we return the result of a void function call *)
     if isVoidType !currentReturnType then begin
-      Kernel.warning ~current:true
+      Kernel.error ~current:true
         "Return statement with a value in function returning void";
       let (se, _, _) = doFullExp local_env false e ADrop in
       se @@ (returnChunk ~ghost None loc', ghost)
@@ -9017,7 +9085,7 @@ and doStatement local_env (s : A.statement) : chunk =
     let attr' = doAttributes local_env.is_ghost asmattr in
     CurrentLoc.set loc';
     let stmts : chunk ref = ref empty in
-    let (tmpls', outs', ins', clobs', labels') =
+    let (tmpls', ext_asm) =
       match details with
       | None ->
         let tmpls' =
@@ -9027,9 +9095,9 @@ and doStatement local_env (s : A.statement) : chunk =
             let escape = Str.global_replace pattern "%%" in
             List.map escape tmpls
         in
-        (tmpls', [], [], [],[])
-      | Some { aoutputs = outs; ainputs = ins; aclobbers = clobs; alabels = labels } ->
-        let outs' =
+        (tmpls', None)
+      | Some { aoutputs; ainputs; aclobbers; alabels} ->
+        let asm_outputs =
           List.map
             (fun (id, c, e) ->
                let (se, e', _) =
@@ -9043,35 +9111,38 @@ and doStatement local_env (s : A.statement) : chunk =
                    Kernel.fatal ~current:true
                      "Expected lval for ASM outputs"
                in
-               stmts := !stmts @@ (se, ghost);
-               (id, c, lv)) outs
+               if not (isEmpty se) then
+                 stmts := !stmts @@ (se, ghost);
+               (id, c, lv)) aoutputs
         in
         (* Get the side-effects out of expressions *)
-        let ins' =
+        let asm_inputs =
           List.map
             (fun (id, c, e) ->
                let (r, se, e', _) =
                  doExp local_env false e (AExp None)
                in
                let se = add_reads e'.eloc r se in
-               stmts := !stmts @@ (se, ghost);
+               if not (isEmpty se) then
+                 stmts := !stmts @@ (se, ghost);
                (id, c, e'))
-            ins
+            ainputs
         in
-        let labels' = 
+        let asm_clobbers = aclobbers in
+        let asm_gotos =
           List.map 
             (fun label -> 
                let label = lookupLabel label in
                let gref = ref dummyStmt in
                addGoto label gref;
                gref) 
-            labels 
+            alabels
         in
-        (tmpls, outs', ins', clobs, labels')
+        (tmpls, Some { asm_outputs; asm_inputs; asm_clobbers; asm_gotos })
     in
     !stmts @@
     (i2c(mkStmtOneInstr ~ghost:local_env.is_ghost
-           (Asm(attr', tmpls', outs', ins', clobs', labels', loc')),[],[],[]),
+           (Asm(attr', tmpls', ext_asm, loc')),[],[],[]),
      ghost)
   | THROW (e,loc) ->
     let loc' = convLoc loc in

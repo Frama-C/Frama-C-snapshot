@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -485,11 +485,10 @@ module Cfg (W : Mcfg.S) = struct
     | Instr i ->
         begin match i with
           | (Set (lv, e, _)) -> W.assign wenv s lv e obj
-          | (Call _) -> assert false
           | (Asm _) ->
-              Wp_parameters.warning
-                "Unsupported inline assembler. Assuming no effects.@.";
-              obj
+              let asm = WpPropId.mk_asm_assigns_desc s in
+              W.use_assigns wenv asm.WpPropId.a_stmt None asm obj
+          | (Call _) -> assert false
           | Skip _ | Code_annot _ -> obj
         end
     | Break _ | Continue _ | Goto _ -> obj
@@ -555,9 +554,11 @@ module Cfg (W : Mcfg.S) = struct
 
   and get_only_succ env cfg v = match Cil2cfg.succ_e cfg v with
     | [e'] -> get_wp_edge env e'
-    | ls -> Wp_parameters.fatal "CFG node %a has %d successors instead of 1@."
-              Cil2cfg.pp_node v (List.length ls)
-
+    | ls ->
+        Wp_parameters.debug "CFG node %a has %d successors instead of 1@."
+          Cil2cfg.pp_node v (List.length ls);
+        Wp_error.unsupported "strange loop(s)."
+ 
   and compute_wp_edge ((kf, cfg, _annots, res, wenv) as env) e =
     let v = Cil2cfg.edge_dst e in
     debug "[compute_edge] before %a go...@." Cil2cfg.pp_node v;
@@ -569,7 +570,8 @@ module Cfg (W : Mcfg.S) = struct
     let formals = Kernel_function.get_formals kf in
     let res = match Cil2cfg.node_type v with
       | Cil2cfg.Vstart ->
-          Wp_parameters.fatal "No CFG edge can lead to Vstart"
+          Wp_parameters.debug "No CFG edge can lead to Vstart";
+	  Wp_error.unsupported "strange CFGs."
       | Cil2cfg.VfctIn ->
           let obj = get_only_succ env cfg v in
           let obj = wp_scope wenv formals Mcfg.SC_Function_in obj in

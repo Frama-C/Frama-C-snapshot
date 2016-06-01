@@ -1,0 +1,87 @@
+# frama-c -wp -wp-model 'Typed (Caveat)' [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_plugin/sep.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function f1_none
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_plugin/sep.i, line 13) in 'f1_none':
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function f2_p_a
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_plugin/sep.i, line 17) in 'f2_p_a':
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function f3_p_ab
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_plugin/sep.i, line 21) in 'f3_p_ab':
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function f4_pq_ab
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_plugin/sep.i, line 25) in 'f4_pq_ab':
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function f5_pq
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_plugin/sep.i, line 29) in 'f5_pq':
+Prove: true.
+
+------------------------------------------------------------
+------------------------------------------------------------
+  Function f6_Pa
+------------------------------------------------------------
+
+Goal Post-condition (file tests/wp_plugin/sep.i, line 33) in 'f6_Pa':
+Prove: true.
+
+------------------------------------------------------------
+//-------------------------------------------
+//--- Separation Hypotheses
+//-------------------------------------------
+(* behavior typed_caveat: requires \separated(p,&a); *)
+void f2_p_a(int *p);
+//-------------------------------------------
+(*
+behavior typed_caveat:
+requires \separated(p,\union(&a,&b));
+*)
+void f3_p_ab(int *p);
+//-------------------------------------------
+(*
+behavior typed_caveat:
+requires \separated(p,q,\union(&a,&b));
+*)
+void f4_pq_ab(int *p, int *q);
+//-------------------------------------------
+(*
+behavior typed_caveat:
+requires \separated(p,q);
+*)
+void f5_pq(int *p, int *q);
+//-------------------------------------------
+(*
+behavior typed_caveat:
+requires \separated(p+(..),&a);
+*)
+void f6_Pa(int *p, int k);
+//-------------------------------------------
+/* (5 hypotheses) */
+//-------------------------------------------

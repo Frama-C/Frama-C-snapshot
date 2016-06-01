@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -90,6 +90,7 @@ and source =
   | Extern of Engine.link extern
 
 val builtin_type : name:string -> link:string infoprover -> library:string -> unit
+val is_builtin_type : name:string -> tau -> bool
 val datatype : library:string -> string -> adt
 val record :
   link:string infoprover -> library:string -> (string * tau) list -> adt
@@ -259,7 +260,10 @@ sig
   val e_subst : ?sigma:sigma -> (term -> term) -> term -> term
   val p_subst : ?sigma:sigma -> (term -> term) -> pred -> pred
 
-  val p_close : pred -> pred
+  val e_vars : term -> var list (** Sorted *)
+  val p_vars : pred -> var list (** Sorted *)
+  
+  val p_close : pred -> pred (** Quantify over (sorted) free variables *)
 
   val idp : pred -> int
   val varsp : pred -> Vars.t
@@ -268,6 +272,7 @@ sig
   val intersect : term -> term -> bool
   val intersectp : pred -> pred -> bool
 
+  val pp_tau : Format.formatter -> tau -> unit
   val pp_var : Format.formatter -> var -> unit
   val pp_vars : Format.formatter -> Vars.t -> unit
   val pp_term : Format.formatter -> term -> unit
@@ -285,6 +290,7 @@ sig
 
   val pred : pred -> pred expression
   val epred : pred -> term expression
+  val p_iter : (pred -> unit) -> (term -> unit) -> pred -> unit
 
   module Pmap : Qed.Idxmap.S with type key = pred
   module Pset : Qed.Idxset.S with type elt = pred

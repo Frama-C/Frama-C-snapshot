@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -204,7 +204,7 @@ class highlighter (main:Design.main_window_extension_points) =
           current <- s ;
           self#clear ;
           match s with
-          | None -> Gtk_helper.later main#rehighlight ;
+          | None -> Wutil.later main#rehighlight ;
           | Some { Wpo.po_pid = pid ; Wpo.po_formula = f } ->
               begin
                 match f with
@@ -219,15 +219,16 @@ class highlighter (main:Design.main_window_extension_points) =
               if not (WpPropId.is_check pid) then
                 ( let ip = WpPropId.property_of_id pid in
                   goal <- Some ip ) ;
-              Gtk_helper.later self#scroll ;
+              Wutil.later self#scroll ;
         end
 
     method update = main#rehighlight ()
 
     method highlight
-        (buffer : GSourceView2.source_buffer)
+        (buffer : Design.reactive_buffer)
         (loc : Pretty_source.localizable)
         ~(start:int) ~(stop:int) =
+      let buffer = buffer#buffer in
       begin match loc with
         | PStmt( _ , stmt ) ->
             begin

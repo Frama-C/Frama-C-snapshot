@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -139,7 +139,7 @@ struct
 
   let pp_vc fmt vc =
     Format.fprintf fmt "%a@ @[<hov 2>Prove %a@]"
-      Conditions.dump vc.hyps
+      Pcond.dump vc.hyps
       F.pp_pred vc.goal
 
   let pp_vcs fmt vcs =
@@ -178,7 +178,7 @@ struct
   (* -------------------------------------------------------------------------- *)
 
   let empty_vc = {
-    hyps = Conditions.empty ;
+    hyps = Conditions.nil ;
     goal = p_true ;
     vars = V.empty ;
     warn = W.empty ;
@@ -205,7 +205,7 @@ struct
   let intersect_vc vc p =
     Vars.intersect (F.varsp p) vc.vars || Conditions.intersect p vc.hyps
 
-  let assume_vc ~descr ?hpid ?stmt ?warn ?(filter=false) ?(init=false) hs vc =
+  let assume_vc ?descr ?hpid ?stmt ?warn ?(filter=false) ?(init=false) hs vc =
     if (hs = [] && warn = None) ||
        (filter && not (List.exists (intersect_vc vc) hs))
     then vc else
@@ -214,12 +214,14 @@ struct
         | Some s -> S.add s vc.path in
       let deps = match hpid with
         | None -> [] | Some p -> [WpPropId.property_of_id p] in
+      let descr = match hpid with
+        | None -> descr | Some _ -> None in
       let dset = List.fold_right D.add deps vc.deps in
       let wrns = match warn with
         | None -> vc.warn
         | Some w -> Warning.Set.union w vc.warn in
       let hyps = Conditions.assume
-          ~descr ?stmt ?warn ~deps ~init
+          ?descr ?stmt ?warn ~deps ~init
           (F.p_conj hs) vc.hyps
       in {
         hyps = hyps ;
@@ -232,7 +234,7 @@ struct
 
   let passify_vc pa vc =
     let hs = Passive.conditions pa (occurs_vc vc) in
-    assume_vc ~descr:"Control Flow" hs vc
+    assume_vc hs vc
 
   (* -------------------------------------------------------------------------- *)
   (* --- Branching                                                          --- *)
@@ -242,17 +244,16 @@ struct
     let hyps , goal =
       if F.eqp vc1.goal vc2.goal then
         begin
-          Conditions.branch ~descr:"Conditional" ~stmt cond vc1.hyps vc2.hyps ,
+          Conditions.branch ~stmt cond vc1.hyps vc2.hyps ,
           vc1.goal
         end
       else
         let k = F.e_var (Lang.freshvar ~basename:"K" Logic.Bool) in
         let p = F.p_equal k F.e_true in
         let q = F.p_equal k F.e_false in
-        let h1 = Conditions.assume ~descr:"Then Case" p vc1.hyps in
-        let h2 = Conditions.assume ~descr:"Else Case" q vc2.hyps in
-        (Conditions.branch ~descr:"Conditional"
-           ~stmt cond h1 h2 , F.p_if p vc1.goal vc2.goal)
+        let h1 = Conditions.assume p vc1.hyps in
+        let h2 = Conditions.assume q vc2.hyps in
+        (Conditions.branch ~stmt cond h1 h2 , F.p_if p vc1.goal vc2.goal)
     in
     {
       hyps = hyps ;
@@ -275,8 +276,8 @@ struct
         let k = F.e_var (Lang.freshvar ~basename:"K" Logic.Bool) in
         let p = F.p_equal k F.e_true in
         let q = F.p_equal k F.e_false in
-        let h1 = Conditions.assume ~descr:"Case A" p vc1.hyps in
-        let h2 = Conditions.assume ~descr:"Case B" q vc2.hyps in
+        let h1 = Conditions.assume ~descr:"Merge Left" p vc1.hyps in
+        let h2 = Conditions.assume ~descr:"Merge Right" q vc2.hyps in
         (Conditions.merge [h1 ; h2] , F.p_if p vc1.goal vc2.goal)
     in
     {
@@ -406,7 +407,7 @@ struct
 
   let add_vc target ?(warn=Warning.Set.empty) pred vcs =
     let xs , hs , goal = introduction pred in
-    let hyps = Conditions.intros hs Conditions.empty in
+    let hyps = Conditions.intros hs Conditions.nil in
     let vc = { empty_vc with goal=goal ; vars=xs ; hyps=hyps ; warn=warn } in
     Gmap.add target (Splitter.singleton vc) vcs
 
@@ -452,7 +453,7 @@ struct
          let descr = Pretty_utils.to_string WpPropId.pretty hpid in
          let outcome = Warning.catch
              ~severe:false ~effect:"Skip hypothesis"
-             (L.pred ~positive:false env) predicate in
+             (L.pred `Positive env) predicate in
          let warn,hs = match outcome with
            | Warning.Result(warn,p) -> warn , [p]
            | Warning.Failed warn -> warn , []
@@ -464,7 +465,7 @@ struct
       (fun env wp ->
          let outcome = Warning.catch
              ~severe:true ~effect:"Degenerated goal"
-             (L.pred ~positive:true env) predicate in
+             (L.pred `Positive env) predicate in
          let warn,goal = match outcome with
            | Warning.Result(warn,goal) -> warn,goal
            | Warning.Failed warn -> warn,F.p_false
@@ -555,10 +556,10 @@ struct
          Gmap.add target group vcs
       ) effects vcs
 
-  let do_assigns ~descr ?stmt ~source ?hpid ?warn sequence region effects vcs =
+  let do_assigns ?descr ?stmt ~source ?hpid ?warn sequence region effects vcs =
     let vcs = check_assigns stmt source ?warn region effects vcs in
     let eqmem = A.assigned sequence region in
-    gmap (assume_vc ~descr ?hpid ?stmt ?warn eqmem) vcs
+    gmap (assume_vc ?descr ?hpid ?stmt ?warn eqmem) vcs
 
   let do_assigns_everything ?stmt ?warn effects vcs =
     Eset.fold
@@ -601,7 +602,7 @@ struct
             match outcome with
             | Warning.Result(warn,(sequence,assigned)) ->
                 let vcs =
-                  do_assigns ~source:FromCode ~descr:"Assigns"
+                  do_assigns ~source:FromCode
                     ?hpid ?stmt ~warn sequence assigned wp.effects wp.vcs in
                 { sigma = Some sequence.pre ; vcs=vcs ; effects = wp.effects }
             | Warning.Failed warn ->
@@ -674,7 +675,7 @@ struct
             | Warning.Failed r_warn ->
                 (* R-Value is unknown *)
                 let warn = Warning.Set.union l_warn r_warn in
-                let vcs = do_assigns ~descr:"Assignment" ~source:FromCode
+                let vcs = do_assigns ~source:FromCode
                     ~stmt ~warn seq region wp.effects wp.vcs in
                 { sigma = Some seq.pre ; vcs=vcs ; effects = wp.effects }
             | Warning.Result(r_warn,stored) ->
@@ -685,7 +686,7 @@ struct
                 in
                 let update vc =
                   if List.exists (occurs_vc vc) ft
-                  then assume_vc ~descr:"Assignment" ~stmt ~warn stored vc
+                  then assume_vc ~stmt ~warn stored vc
                   else vc in
                 let vcs = gmap update wp.vcs in
                 let vcs =
@@ -959,7 +960,7 @@ struct
                  (fun vcs (gid,p) ->
                     let outcome = Warning.catch
                         ~severe:true ~effect:"Can not prove call precondition"
-                        (L.in_frame call_f (L.pred ~positive:true call_e)) p in
+                        (L.in_frame call_f (L.pred `Positive call_e)) p in
                     match outcome with
                     | Warning.Result(warn2,goal) ->
                         let warn = W.union warn warn2 in
@@ -1073,7 +1074,7 @@ struct
 
   let cc_contract_hyp frame env contract =
     L.in_frame frame
-      (List.map (fun (_,p) -> L.pred ~positive:false env p)) contract
+      (List.map (fun (_,p) -> L.pred `Negative env p)) contract
 
   (* --- Binding Result --- *)
 
@@ -1198,7 +1199,7 @@ struct
     let p = p_hyps a_hs a_p in
     { vc with
       goal = p ; vars = F.varsp p ;
-      hyps = Conditions.empty ;
+      hyps = Conditions.nil ;
       deps = D.union deps vc.deps ;
     }
 
@@ -1207,7 +1208,7 @@ struct
          let sigma = L.mem_frame Pre in
          let env_pre = L.move env sigma in
          let hs = List.map
-             (fun (_,p) -> L.pred ~positive:false env_pre p)
+             (fun (_,p) -> L.pred `Negative env_pre p)
              preconds in
          let ds = List.fold_left
              (fun ds (pid,_) -> D.add (WpPropId.property_of_id pid) ds)
@@ -1236,7 +1237,7 @@ struct
       VC_Annot.path = vc.path ;
       VC_Annot.warn = W.elements vc.warn ;
     } in
-    let hyps = Conditions.hypotheses vc.hyps in
+    let hyps = Conditions.sequence vc.hyps in
     let goal g = { vcq with VC_Annot.goal = GOAL.make (hyps,g) } in
     match F.pred vc.goal with
     | Logic.And gs when Wp_parameters.Split.get () -> Bag.list (List.map goal gs)
@@ -1399,7 +1400,7 @@ struct
   module VCG = VC(M)
   module WP = Calculus.Cfg(VCG)
 
-  class thecomputer (m:Model.t) =
+  class wp (m:Model.t) =
     object
       val mutable lemmas : LogicUsage.logic_lemma Bag.t = Bag.empty
       val mutable annots : WpStrategy.strategy Bag.t = Bag.empty
@@ -1453,6 +1454,18 @@ struct
         end
     end
 
-  let create m = (new thecomputer m :> Generator.computer)
-
 end
+
+(* A Cash is necessary because computer functors can not be instanciated twice *)
+module COMPUTERS = Model.S.Hashtbl
+let computers = COMPUTERS.create 1
+
+let computer setup driver =
+  let model = Factory.instance setup driver in
+  try COMPUTERS.find computers model
+  with Not_found ->
+    let module M = (val Factory.(memory setup.mheap setup.mvar)) in
+    let module VC = Computer(M) in
+    let generator = (new VC.wp model :> Generator.computer) in
+    COMPUTERS.add computers model generator ;
+    generator

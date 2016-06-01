@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -84,7 +84,7 @@ val has_finite : t -> bool
 type builtin_alarm = APosInf | ANegInf | ANaN of string | AAssume of string
 module Builtin_alarms : (Set.S with type elt = builtin_alarm)
 
-type builtin_res = Builtin_alarms.t * t Bot.or_bottom
+type builtin_res = Builtin_alarms.t * t Bottom.or_bottom
 (** Builtins return structured alarms, in the guise of a set of string
     explaining the problem. *)
 
@@ -141,15 +141,26 @@ val pretty_overflow: Format.formatter -> t -> unit
     bounds. Instead, the specical notation [--.] is used. *)
 
 val hash : t -> int
+
 val zero : t
+val minus_zero: t
+val zeros: t (** Both positive and negative zero *)
+
 val is_zero : t -> bool
-(*    val rounding_inject : F.t -> F.t -> t *)
+
 val is_included : t -> t -> bool
 val join : t -> t -> t
-val meet : t -> t -> t Bot.or_bottom
+val meet : t -> t -> t Bottom.or_bottom
+val narrow : t -> t -> t Bottom.or_bottom
 
 val contains_a_zero : t -> bool
+
 val is_singleton : t -> bool
+
+exception Not_Singleton_Float
+
+val project_float: t -> F.t
+(** @raise Not_Singleton_Float when the interval is not a single float. *)
 
 val minus_one_one : t
 
@@ -216,15 +227,23 @@ val froundf: rounding_mode -> t -> Builtin_alarms.t * t
 (** Single-precision versions *)
 
 val widen : t -> t -> t
-val equal_float_ieee : t -> t -> bool * bool
-val maybe_le_ieee_float : t -> t -> bool
-val maybe_lt_ieee_float : t -> t -> bool
-val diff : t -> t -> t Bot.or_bottom
 
-val filter_le_ge_lt_gt :
-  Cil_types.binop -> bool -> float_kind -> t -> t -> t Bot.or_bottom
-(** [filter_le_ge_lt_gt op allroundingmodes fkind f1 f2] attemps to reduce
+val forward_comp: Comp.t -> t -> t -> Comp.result
+
+val diff : t -> t -> t Bottom.or_bottom
+
+val backward_comp_left :
+  Comp.t -> bool -> float_kind -> t -> t -> t Bottom.or_bottom
+(** [backward_comp op allroundingmodes fkind f1 f2] attemps to reduce
     [f1] into [f1'] so that the relation [f1' op f2] holds. [fkind] is
     the type of [f1] and [f1'] (not necessarily of [f2]). If
     [allroundingmodes] is set, all possible rounding modes are taken into
-    acount. [op] must be [Le], [Ge], [Lt] or [Gt] *)
+    acount. [op] must be [Eq], [Ne], [Le], [Ge], [Lt] or [Gt] *)
+
+val cast_float_to_double_inverse: t -> t
+(** [cast_float_to_double_inverse d] return all possible float32 [f] such that
+    [(double)f = d]. The double of [d] that have no float32 equivalent are
+    discarded. *)
+
+val enlarge_1ulp: float_kind -> t -> t
+(** enlarge the bounds of the interval by one ulp. *)

@@ -9,8 +9,27 @@ struct S {
 
 /*@
    requires \valid(\union(s,footprint(*s)));
-   assigns footprint(*s);
+   assigns *footprint(*s);
 */
 int f(struct S* s) {
   return *s->x + *s->y;
+}
+
+
+struct V {
+  char x;
+  char t[10];
+};
+
+/*@ logic set<char> footprint2{L}(struct V *s) =
+  \union(s->x, s->t[0..5]) ;
+*/
+
+/*@
+   requires \valid(s);
+   assigns footprint2(s);
+*/
+void g(struct V* s) {
+  s->x = 1;
+  s->t[4] = 1;
 }

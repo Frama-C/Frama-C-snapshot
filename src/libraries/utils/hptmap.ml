@@ -57,7 +57,7 @@ struct
   let get_comp x = x < 0 
   let encode tag comp =
     if comp then tag lor min_int else tag
-  let pretty = Format.pp_print_int
+  let pretty fmt x = Format.fprintf fmt "%x" x
 end 
 type tag = Tag_comp.t
 
@@ -132,13 +132,16 @@ struct
     let rec pretty_debug fmt = function
       | Empty -> Format.fprintf fmt "Empty"
       | Leaf (k, v, comp) as t ->
-        Format.fprintf fmt "K<%d> (%a -><%d> %a, %a)"
-          (Extlib.address_of_value t) Key.pretty k
-          (Extlib.address_of_value v) V.pretty_debug v Tag_comp.pretty comp
-      | Branch (prefix, mask, t1, t2, tag) ->
-        Format.fprintf fmt"B@[<v>@[(p%d, m%d, t%a)@]@  @[%a@]@  @[%a@]@]"
-          prefix mask Tag_comp.pretty tag pretty_debug t1 pretty_debug t2
-
+        Format.fprintf fmt
+          "L@[<v>@[(A %x, T %a)@]@ @[(AK %x)%a@]@ @[ -> (AV %x)@]@ @[%a@]@]"
+          (Extlib.address_of_value t) Tag_comp.pretty comp
+          (Extlib.address_of_value k) Key.pretty k
+          (Extlib.address_of_value v) V.pretty_debug v
+      | Branch (prefix, mask, t1, t2, tag) as t ->
+        Format.fprintf fmt
+          "B@[<v>@[(A %x, T %a, P %x, M %x)@]@ @[%a@]@ @[ %a@]@]"
+          (Extlib.address_of_value t) Tag_comp.pretty tag
+          prefix mask  pretty_debug t1 pretty_debug t2
 
     let compare =
       if Key.compare == Datatype.undefined ||
@@ -240,7 +243,7 @@ struct
       Datatype.Make_with_collections
 	(struct
 	  type t = hptmap
-	  let name = "(" ^ Type.name Key.ty ^ ", " ^ Type.name V.ty ^ ") ptmap"
+	  let name = "(" ^ Key.name ^ ", " ^ V.name ^ ") ptmap"
 	  open Structural_descr
 	  let r = Recursive.create ()
 	  let structural_descr =
@@ -591,6 +594,10 @@ struct
     | Empty
     | Branch _ ->
 	None
+
+    let on_singleton f htr = match htr with
+    | Leaf (k, d, _) -> f k d
+    | Empty | Branch _ -> false
 
     let is_empty htr = match htr with
     | Empty ->

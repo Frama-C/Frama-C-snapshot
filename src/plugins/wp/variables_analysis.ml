@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -1961,7 +1961,7 @@ let add_requires hyp kf =
           So, what should do this function in that case? *)
   let spec = Annotations.funspec kf in
   Extlib.may
-    (fun b -> Annotations.add_requires emitter kf b.b_name [ hyp ])
+    (fun b -> Annotations.add_requires emitter kf ~behavior:b.b_name [ hyp ])
     (Cil.find_default_behavior spec)
 
 let kernel_functions_separation_hyps () =

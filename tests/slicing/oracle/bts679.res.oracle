@@ -11,10 +11,10 @@
 [value] Recording results for f
 [value] Done for function f
 tests/slicing/bts679.i:8:[value] cannot evaluate ACSL term, \at() on a C label is unsupported
-tests/slicing/bts679.i:8:[value] Assertion got status unknown.
+tests/slicing/bts679.i:8:[value] warning: assertion got status unknown.
 [value] Recording results for main
 [value] done for function main
-tests/slicing/bts679.i:8:[value] Assertion got final status valid.
+tests/slicing/bts679.i:8:[value] assertion got final status valid.
 [slicing] making slicing project 'Slicing'...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function main

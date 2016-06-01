@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -32,17 +32,17 @@ let set_language_to_C (buffer:GSourceView2.source_buffer)  =
       ~content_type:"text/x-csrc" ()
   in
   begin match original_lang with
-  | Some _ -> buffer#set_language original_lang
-  | None -> Gui_parameters.warning "Mime type 'text/x-csrc' not found"
+    | Some _ -> buffer#set_language original_lang
+    | None -> Gui_parameters.warning "Mime type 'text/x-csrc' not found"
   end;
   buffer#set_highlight_syntax true
 
 let make ?name ~packing () =
-(*  let d = GWindow.font_selection_dialog ~title:"tutu" ~show:true () in
-  d#selection#set_preview_text
-    (Format.sprintf "%s %s %s %s"
-       Utf8_logic.forall Utf8_logic.exists Utf8_logic.eq Utf8_logic.neq) ;
-*)
+  (*  let d = GWindow.font_selection_dialog ~title:"tutu" ~show:true () in
+      d#selection#set_preview_text
+      (Format.sprintf "%s %s %s %s"
+         Utf8_logic.forall Utf8_logic.exists Utf8_logic.eq Utf8_logic.neq) ;
+  *)
   let original_source_window =
     GSourceView2.source_view
       ~show_line_numbers:true
@@ -50,10 +50,10 @@ let make ?name ~packing () =
       ~packing
       ()
   in
-(*  let pixbuf =
-    original_source_window#misc#render_icon ~size:`MENU `DIALOG_WARNING
-  in
-  original_source_window#set_marker_pixbuf "warning" pixbuf; *)
+  (*  let pixbuf =
+      original_source_window#misc#render_icon ~size:`MENU `DIALOG_WARNING
+      in
+      original_source_window#set_marker_pixbuf "warning" pixbuf; *)
   original_source_window#misc#modify_font_by_name "Monospace";
   original_source_window#misc#set_name (Extlib.opt_conv "source" name);
   let original_source_buffer = original_source_window#source_buffer in
@@ -61,8 +61,8 @@ let make ?name ~packing () =
 (*
   ignore (original_source_buffer#create_marker ~typ:"warning" original_source_buffer#start_iter ) ;*)
   begin try
-    original_source_window#set_highlight_current_line true
-  with Not_found -> ()
+      original_source_window#set_highlight_current_line true
+    with Not_found -> ()
     (* very old gtksourceview do not have this property. *)
   end;
   original_source_window

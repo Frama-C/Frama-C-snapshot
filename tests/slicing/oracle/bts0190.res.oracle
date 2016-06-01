@@ -8,8 +8,8 @@
   
 [value] computing for function x <- main.
         Called from tests/slicing/bts0190.c:15.
-tests/slicing/bts0190.c:8:[value] Assertion got status valid.
-tests/slicing/bts0190.c:9:[value] Assertion got status valid.
+tests/slicing/bts0190.c:8:[value] assertion got status valid.
+tests/slicing/bts0190.c:9:[value] assertion got status valid.
 [value] computing for function z1 <- x <- main.
         Called from tests/slicing/bts0190.c:10.
 [value] Recording results for z1

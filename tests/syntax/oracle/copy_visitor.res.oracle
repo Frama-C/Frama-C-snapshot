@@ -6,10 +6,10 @@
 [value] Values of globals at initialization
   s.a ∈ {1}
    .b ∈ {2}
-tests/syntax/copy_visitor.i:22:[value] Assertion got status valid.
+tests/syntax/copy_visitor.i:22:[value] assertion got status valid.
 [value] computing for function f <- main.
         Called from tests/syntax/copy_visitor.i:23.
-tests/syntax/copy_visitor.i:11:[value] Function f: precondition got status valid.
+tests/syntax/copy_visitor.i:11:[value] function f: precondition got status valid.
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for main

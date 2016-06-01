@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -46,8 +46,9 @@ function to_float32 real : real
 
 function to_float64 real : real
 
-predicate is_float32(x:real) = to_float32 x = x
-predicate is_float64(x:real) = to_float64 x = x
+predicate is_float32 (x:real) = ((to_float32 x) = (x))
+
+predicate is_float64 (x:real) = ((to_float64 x) = (x))
 
 type rounding_mode =
   | Up
@@ -60,23 +61,35 @@ function round_double rounding_mode real : real
 
 function round_float rounding_mode real : real
 
-type float_kind = Real | Float32 | Float64 | NaN | Inf_pos | Inf_neg
-
-function classify_float real : float_kind
-predicate is_finite32(x:real) = classify_float x = Float32
-predicate is_finite64(x:real) = classify_float(x) = Float32 ||
-                                  classify_float(x) = Float64
-predicate is_NaN(x:real) = classify_float(x) = NaN
-predicate is_infinite(x:real) = classify_float(x) = Inf_pos ||
-                                  classify_float(x) = Inf_neg
-predicate is_positive_infinite(x:real) = classify_float(x) = Inf_pos
-predicate is_negative_infinite(x:real) = classify_float(x) = Inf_neg
-
 axiom float_32 : forall x:real [round_float NearestTiesToEven x].
   ((to_float32 x) = (round_float NearestTiesToEven x))
 
 axiom float_64 : forall x:real [round_double NearestTiesToEven x].
   ((to_float64 x) = (round_double NearestTiesToEven x))
+
+type float_kind =
+  | Real
+  | Float32
+  | Float64
+  | NaN
+  | Inf_pos
+  | Inf_neg
+
+function classify_float real : float_kind
+
+predicate is_finite32 (x:real) = ((classify_float x) = (Float32))
+
+predicate is_finite64 (x:real) = ("asym_split" ((classify_float
+  x) = (Float32))) || ((classify_float x) = (Float64))
+
+predicate is_NaN (x:real) = ((classify_float x) = (NaN))
+
+predicate is_infinite (x:real) = ("asym_split" ((classify_float
+  x) = (Inf_pos))) || ((classify_float x) = (Inf_neg))
+
+predicate is_positive_infinite (x:real) = ((classify_float x) = (Inf_pos))
+
+predicate is_negative_infinite (x:real) = ((classify_float x) = (Inf_neg))
 
 axiom is_finite_to_float_32 : forall x:real [is_finite32 (to_float32 x)].
   is_finite32 (to_float32 x)

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -204,10 +204,12 @@ val bail_out: unit -> 'a
 
     These functions should not be used by a standard plug-in developer. *)
 
+type on_from_name = { on_from_name: 'a. string -> (unit -> 'a) -> 'a }
+
 val parse_and_boot:
-  (string -> (unit -> unit) -> unit) ->
-  (unit -> (unit -> unit) -> unit) ->
-  (unit -> unit) -> unit
+  on_from_name:on_from_name ->
+  get_toplevel:(unit -> (unit -> unit) -> unit) ->
+  play_analysis:(unit -> unit) -> unit
 (** Not for casual users.
     [parse_and_boot on_from_name get_toplevel play] performs the
     parsing of the command line, then play the analysis with the good
@@ -216,7 +218,9 @@ val parse_and_boot:
     @since Beryllium-20090901
     @modify Carbon-20101201
     @modify Sodium-20150201 the first argument of the first functional is no
-    more a string option, just a string *)
+    more a string option, just a string
+    @modify Aluminium-20160501 add labels and generalize the type of
+    [on_from_name] *)
 
 val nb_given_options: unit -> int
   (** Number of options provided by the user on the command line.
@@ -369,6 +373,12 @@ val use_type: bool
 val quiet: bool
   (** Must not be used for something else that initializing values
       @since Beryllium-20090601-beta1 *)
+
+val deterministic: bool
+  (** Indicates that the plugins should strive to be as deterministic as
+      possible in their outputs. Higher memory consumption or analysis time
+      are acceptable, as reproductibility is more important.
+      @since Aluminium-20160501 *)
 
 val last_project_created_by_copy: (unit -> string option) ref
 

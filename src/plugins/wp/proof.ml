@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,8 +24,8 @@
 (* --- Proof Script Database                                              --- *)
 (* -------------------------------------------------------------------------- *)
 
-let scriptbase : (string, string list * string) Hashtbl.t = Hashtbl.create 81
-(* [ goal name -> sorted hints , script ] *)
+let scriptbase : (string, string list * string * string) Hashtbl.t = Hashtbl.create 81
+(* [ goal name -> sorted hints , script , closing ] *)
 let scriptfile = ref None (* current file script name *)
 let needback   = ref false (* file script need backup before modification *)
 let needsave   = ref false (* file script need to be saved *)
@@ -50,9 +50,9 @@ let sanitize hint =
     done ; true
   with Exit -> false
 
-let register_script goal hints proof =
+let register_script goal hints proof closing =
   let hints = List.sort String.compare (List.filter sanitize hints) in
-  Hashtbl.replace scriptbase goal (hints,proof)
+  Hashtbl.replace scriptbase goal (hints,proof,closing)
 
 let delete_script goal =
   Hashtbl.remove scriptbase goal
@@ -75,7 +75,7 @@ let parse_coqproof file =
   try
     let rec fetch_proof input =
       match token input with
-      | Proof p -> Some p
+      | Proof(p,c) -> Some(p,c)
       | Eof -> None
       | _ -> skip input ; fetch_proof input
     in
@@ -95,12 +95,12 @@ let collect_scripts input =
         eat input "." ; xs
       else []
     in
-    let p =
+    let proof,qed =
       match token input with
-      | Proof p -> skip input ; p
+      | Proof(p,c) -> skip input ; p,c
       | _ -> error input "Missing proof"
     in
-    register_script g xs p
+    register_script g xs proof qed
   done ;
   if token input <> Eof
   then error input "Unexpected script declaration"
@@ -125,7 +125,7 @@ let dump_scripts file =
     let goals = Hashtbl.fold (fun goal _ gs -> goal::gs) scriptbase [] in
     List.iter
       (fun goal ->
-         let (hints,proof) = Hashtbl.find scriptbase goal in
+         let (hints,proof,qed) = Hashtbl.find scriptbase goal in
          Format.fprintf fmt "Goal %s.@\n" goal ;
          (match hints with
           | [] -> ()
@@ -133,7 +133,7 @@ let dump_scripts file =
               Format.fprintf fmt "Hint %s" k ;
               List.iter (fun k -> Format.fprintf fmt ",%s" k) ks ;
               Format.fprintf fmt ".@\n");
-         Format.fprintf fmt "Proof.@\n%sQed.@\n@." proof
+         Format.fprintf fmt "Proof.@\n%s@\n%s@\n@." proof qed
       ) (List.sort String.compare goals) ;
     Format.pp_print_newline fmt () ;
     close_out out ;
@@ -215,16 +215,18 @@ let loadscripts () =
 
 let find_script_for_goal goal =
   loadscripts () ;
-  try Some(snd (Hashtbl.find scriptbase goal))
+  try
+    let _,proof,qed = Hashtbl.find scriptbase goal in
+    Some(proof,qed)
   with Not_found -> None
 
 let update_hints_for_goal goal hints =
   try
-    let old_hints,script = Hashtbl.find scriptbase goal in
+    let old_hints,script,qed = Hashtbl.find scriptbase goal in
     let new_hints = List.sort String.compare hints in
     if Pervasives.compare new_hints old_hints <> 0 then
       begin
-        Hashtbl.replace scriptbase goal (new_hints,script) ;
+        Hashtbl.replace scriptbase goal (new_hints,script,qed) ;
         needsave := true ;
       end
   with Not_found -> ()
@@ -249,7 +251,7 @@ let rec filter xs ys =
       if c > 0 then y :: filter xs rys else
         filter rxs rys
 
-let most_suitable (n,_,_) (n',_,_) = n'-n
+let most_suitable (n,_,_,_) (n',_,_,_) = n'-n
 
 let find_script_with_hints required hints =
   loadscripts () ;
@@ -258,10 +260,10 @@ let find_script_with_hints required hints =
   List.sort most_suitable
     begin
       Hashtbl.fold
-        (fun g (xs,p) scripts ->
+        (fun g (xs,proof,qed) scripts ->
            try
              let n = matches 0 hints (filter required xs) in
-             (n,g,p)::scripts
+             (n,g,proof,qed)::scripts
            with Not_found -> scripts)
         scriptbase []
     end
@@ -288,14 +290,14 @@ let rec head n = function [] -> []
 let hints_for ~pid =
   let default = match Wp_parameters.CoqTactic.get () with
     | "none" -> []
-    | tactic -> ["Default tactic",Printf.sprintf "  %s.\n" tactic]
+    | tactic -> ["Default tactic",Printf.sprintf "  %s.\n" tactic,"Qed."]
   in
   if Wp_parameters.TryHints.get () then
     let nhints = Wp_parameters.Hints.get () in
     if nhints > 0 then
       let required,hints = WpPropId.prop_id_keys pid in
       let scripts = find_script_with_hints required hints in
-      default @ List.map (fun (_,_,s) -> "Hint",s) (head nhints scripts)
+      default @ List.map (fun (_,_,s,q) -> "Hint",s,q) (head nhints scripts)
     else default
   else default
 
@@ -304,22 +306,24 @@ let script_for_ide ~pid ~gid =
   | Some script -> script
   | None ->
       let required,hints = WpPropId.prop_id_keys pid in
-      let scripts = find_script_with_hints required hints in
-      if scripts = [] then
-        begin
-          match Wp_parameters.CoqTactic.get () with
-          | "none" -> ""
-          | tactic -> Pretty_utils.sfprintf "(* %s. *)\n" tactic
-        end
-      else
-        begin
-          let nhints = Wp_parameters.Hints.get () in
-          Pretty_utils.sfprintf "%t"
-            (fun fmt ->
-               List.iter
-                 (fun (_,g,script) ->
-                    Format.fprintf fmt
-                      "(*@ --------------------------------------\n  \
-                       @ From '%s': \n%s*)\n%!" g script
-                 ) (head nhints scripts))
-        end
+      let hints = find_script_with_hints required hints in
+      let script =
+        if hints = [] then
+          begin
+            match Wp_parameters.CoqTactic.get () with
+            | "none" -> ""
+            | tactic -> Pretty_utils.sfprintf "(* %s. *)\n" tactic
+          end
+        else
+          begin
+            let nhints = Wp_parameters.Hints.get () in
+            Pretty_utils.sfprintf "%t"
+              (fun fmt ->
+                 List.iter
+                   (fun (_,g,script,_) ->
+                      Format.fprintf fmt
+                        "(*@ --------------------------------------\n  \
+                         @ From '%s': \n%s*)\n%!" g script
+                   ) (head nhints hints))
+          end
+      in script , "Qed."

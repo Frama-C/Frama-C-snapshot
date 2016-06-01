@@ -1,0 +1,126 @@
+(**************************************************************************)
+(*                                                                        *)
+(*  This file is part of WP plug-in of Frama-C.                           *)
+(*                                                                        *)
+(*  Copyright (C) 2007-2016                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
+(*         alternatives)                                                  *)
+(*                                                                        *)
+(*  you can redistribute it and/or modify it under the terms of the GNU   *)
+(*  Lesser General Public License as published by the Free Software       *)
+(*  Foundation, version 2.1.                                              *)
+(*                                                                        *)
+(*  It is distributed in the hope that it will be useful,                 *)
+(*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
+(*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
+(*  GNU Lesser General Public License for more details.                   *)
+(*                                                                        *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
+(*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
+(*                                                                        *)
+(**************************************************************************)
+
+(* this is the prelude for Alt-Ergo, any versions *)
+(** The theory BuiltIn_ must be appended to this file*)
+(** The theory Bool_ must be appended to this file*)
+(** The theory int_Int_ must be appended to this file*)
+(** The theory int_Abs_ must be appended to this file*)
+(** The theory int_ComputerDivision_ must be appended to this file*)
+type 'a list
+
+logic nil : 'a list
+
+logic cons : 'a, 'a list -> 'a list
+
+logic concat : 'a list, 'a list -> 'a list
+
+logic repeat : 'a list, int -> 'a list
+
+logic length : 'a list -> int
+
+logic nth : 'a list, int -> 'a
+
+axiom length_pos : (forall w:'a list. (0 <= length(w)))
+
+axiom length_nil : (length((nil : 'a list)) = 0)
+
+axiom length_nil_bis :
+  (forall w:'a list. ((length(w) = 0) -> (w = (nil : 'a list))))
+
+axiom length_cons :
+  (forall x:'a. forall w:'a list [length(cons(x, w))]. (length(cons(x,
+  w)) = (1 + length(w))))
+
+axiom length_concat :
+  (forall u:'a list. forall v:'a list [length(concat(u, v))].
+  (length(concat(u, v)) = (length(u) + length(v))))
+
+axiom length_repeat :
+  (forall w:'a list. forall n:int [length(repeat(w, n))]. ((0 <= n) ->
+  (length(repeat(w, n)) = (n * length(w)))))
+
+axiom nth_cons :
+  (forall k:int. forall x:'a. forall w:'a list [nth(cons(x, w), k)].
+  ((k = 0) -> (nth(cons(x, w), k) = x)))
+
+axiom nth_cons1 :
+  (forall k:int. forall x:'a. forall w:'a list [nth(cons(x, w), k)].
+  ((not (k = 0)) -> (nth(cons(x, w), k) = nth(w, (k - 1)))))
+
+axiom nth_concat :
+  (forall u:'a list. forall v:'a list. forall k:int [nth(concat(u, v), k)].
+  ((k <  length(u)) -> (nth(concat(u, v), k) = nth(u, k))))
+
+axiom nth_concat1 :
+  (forall u:'a list. forall v:'a list. forall k:int [nth(concat(u, v), k)].
+  ((not (k <  length(u))) -> (nth(concat(u, v), k) = nth(v,
+  (k - length(u))))))
+
+axiom nth_repeat :
+  (forall n:int. forall k:int. forall w:'a list [nth(repeat(w, n), k)].
+  (((0 <= k) and (k <  (n * length(w)))) -> ((0 <  length(w)) ->
+  (nth(repeat(w, n), k) = nth(w, safe_comp_mod(k,length(w)))))))
+
+predicate vlist_eq(u: 'a list, v: 'a list) = ((length(u) = length(v)) and
+  (forall i:int. (((0 <= i) and (i <  length(u))) -> (nth(u, i) = nth(v,
+  i)))))
+
+axiom extensionality :
+  (forall u:'a list. forall v:'a list. (vlist_eq(u, v) -> (u = v)))
+
+axiom rw_nil_concat_left :
+  (forall w:'a list [concat((nil : 'a list), w)]. (concat((nil : 'a list),
+  w) = w))
+
+axiom rw_nil_concat_right :
+  (forall w:'a list [concat(w, (nil : 'a list))]. (concat(w,
+  (nil : 'a list)) = w))
+
+axiom rw_nil_repeat :
+  (forall n:int [repeat((nil : 'a list), n)]. ((0 <= n) ->
+  (repeat((nil : 'a list), n) = (nil : 'a list))))
+
+axiom rw_repeat_zero :
+  (forall w:'a list [repeat(w, 0)]. (repeat(w, 0) = (nil : 'a list)))
+
+axiom rw_repeat_one : (forall w:'a list [repeat(w, 1)]. (repeat(w, 1) = w))
+
+logic repeat_box : 'a list, int -> 'a list
+
+axiom rw_repeat_box_unfold :
+  (forall w:'a list. forall n:int [repeat_box(w, n)]. (repeat_box(w,
+  n) = repeat(w, n)))
+
+axiom rw_repeat_plus_box_unfold :
+  (forall w:'a list. forall a1:int. forall b:int [repeat_box(w, (a1 + b))].
+  ((0 <= a1) -> ((0 <= b) -> (repeat_box(w, (a1 + b)) = concat(repeat(w, a1),
+  repeat(w, b))))))
+
+axiom rw_repeat_plus_one_box_unfold :
+  (forall w:'a list. forall n:int [repeat_box(w, n)]. ((0 <  n) ->
+  (repeat_box(w, n) = concat(repeat(w, (n - 1)), w))))
+
+axiom rw_repeat_plus_one_box_unfold1 :
+  (forall w:'a list. forall n:int [repeat_box(w, n)]. ((0 <  n) ->
+  (repeat_box(w, (n + 1)) = concat(repeat(w, n), w))))
+

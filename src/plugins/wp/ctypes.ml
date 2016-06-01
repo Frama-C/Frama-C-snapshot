@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -354,6 +354,7 @@ let rec array_dimensions a =
 let array_size typ =
   match object_of typ with
   | C_array { arr_flat=Some { arr_size=s } } -> Some s
+  | C_array { arr_flat=None } when Wp_parameters.ExternArrays.get () -> Some max_int
   | _ -> None
 
 let dimension_of_object = function

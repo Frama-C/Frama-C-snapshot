@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Aorai plug-in of Frama-C.                        */
 /*                                                                        */
-/*  Copyright (C) 2007-2015                                               */
+/*  Copyright (C) 2007-2016                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*    INRIA (Institut National de Recherche en Informatique et en         */
@@ -78,224 +78,224 @@ let to_seq c =
 
 promela
         : PROMELA_NEVER PROMELA_LBRACE states PROMELA_RBRACE EOF { 
-	    let states=
-	      Hashtbl.fold (fun _ st l -> 
-		if st.acceptation=Undefined || st.init=Undefined then
-		  begin
-		    Format.print_string ("Error: the state '"^(st.name)^"' is used but never defined.\n");
-		    exit 1
-		  end;
-		st::l
-	      ) observed_states []
-	    in
-	    (states , $3)
-	}
+            let states=
+              Hashtbl.fold (fun _ st l -> 
+                if st.acceptation=Undefined || st.init=Undefined then
+                  begin
+                    Format.print_string ("Error: the state '"^(st.name)^"' is used but never defined.\n");
+                    exit 1
+                  end;
+                st::l
+              ) observed_states []
+            in
+            (states , $3)
+        }
         | PROMELA_NEVER PROMELA_LBRACE states 
             PROMELA_SEMICOLON PROMELA_RBRACE EOF {
-	    let states=
-	      Hashtbl.fold (fun _ st l -> 
-		if st.acceptation=Undefined || st.init=Undefined then
-		  begin
+            let states=
+              Hashtbl.fold (fun _ st l -> 
+                if st.acceptation=Undefined || st.init=Undefined then
+                  begin
                     Aorai_option.abort 
                       "Error: state %s is used bug never defined" st.name
-		  end;
-		st::l
-	      ) observed_states []
-	    in
-	    (states , $3) }
+                  end;
+                st::l
+              ) observed_states []
+            in
+            (states , $3) }
   ;
 
 states   
         : states PROMELA_SEMICOLON state { $1@$3 }
-	| state { $1 }
+        | state { $1 }
         ;
 
 state 
         : state_labels state_body {
-	  let (stl,trans)=$1 in
-	  let (trl,force_final)=$2 in
-	    if force_final then
-	      begin
-		List.iter (fun s -> 
-		  try 
-		    (Hashtbl.find observed_states s.name).acceptation <- True
-		  with
-		    | Not_found -> assert false 
+          let (stl,trans)=$1 in
+          let (trl,force_final)=$2 in
+            if force_final then
+              begin
+                List.iter (fun s -> 
+                  try 
+                    (Hashtbl.find observed_states s.name).acceptation <- True
+                  with
+                    | Not_found -> assert false 
                 (* This state has to be in the hashtable -- by construction *)
-		) stl
-	      end;
-	    if trl=[] then
-	      trans 
-	    else
-	      let tr_list=
-		List.fold_left (fun l1 (cr,stop_st)  -> 
-		  List.fold_left (fun l2 st -> 
-		    {start=st;stop=stop_st;cross=Seq (to_seq cr);numt=(-1)}::l2
-		  ) l1 stl
-		) [] trl
-	      in
-	      (List.rev tr_list)@trans
-	}
+                ) stl
+              end;
+            if trl=[] then
+              trans 
+            else
+              let tr_list=
+                List.fold_left (fun l1 (cr,stop_st)  -> 
+                  List.fold_left (fun l2 st -> 
+                    {start=st;stop=stop_st;cross=Seq (to_seq cr);numt=(-1)}::l2
+                  ) l1 stl
+                ) [] trl
+              in
+              (List.rev tr_list)@trans
+        }
         ;
 
 state_labels
         : label state_labels { 
-	    let (stl1,trl1)=$1 in
-	    let (stl2,trl2)=$2 in
-	      (stl1@stl2,trl1@trl2) 
-	}
-	| label { $1 }
+            let (stl1,trl1)=$1 in
+            let (stl2,trl2)=$2 in
+              (stl1@stl2,trl1@trl2) 
+        }
+        | label { $1 }
         ;
 
 label   
         : PROMELA_LABEL PROMELA_COLON {
-	  begin
+          begin
             (* Step 0 : trans is the set of new transitions and old 
                is the description of the current state *)
-	    let trans = ref [] in
-	    (* Promela Label is a state. According to its name, 
+            let trans = ref [] in
+            (* Promela Label is a state. According to its name, 
                we will try to give him its properties (init / accept) *)
-	    (* Firstly, if this state is still referenced, 
+            (* Firstly, if this state is still referenced, 
                then we get it back. Else, we make a new "empty" state *)
-	    let old= 
-	      try  
-		Hashtbl.find observed_states $1
-	      with
-		| Not_found -> 
-		    let s = Data_for_aorai.new_state $1 in
-		    Hashtbl.add observed_states $1 s;
-		    s
-	    in
+            let old= 
+              try  
+                Hashtbl.find observed_states $1
+              with
+                | Not_found -> 
+                    let s = Data_for_aorai.new_state $1 in
+                    Hashtbl.add observed_states $1 s;
+                    s
+            in
             (* Step 1 : setting up the acceptance status *)
-	    (* Default status : Non acceptation state *)
- 	    old.acceptation <- False;
-	    
-	    (* Accept_all state means acceptance state with a 
+            (* Default status : Non acceptation state *)
+            old.acceptation <- False;
+            
+            (* Accept_all state means acceptance state with a 
                reflexive transition without cross condition *)
-	    (* This case is not exclusive with the following. 
+            (* This case is not exclusive with the following. 
                Acceptation status is set in this last. *)
-	    if (String.length $1>=10) && 
+            if (String.length $1>=10) && 
               (String.compare (String.sub $1 0 10) "accept_all")=0 
             then 
-	      trans:=
+              trans:=
                 {start=old;stop=old;cross=Seq (to_seq PTrue);numt=(-1)}::!trans;
-	    
-	    (* If the name includes accept then this state is 
+            
+            (* If the name includes accept then this state is 
                an acceptation one. *)
-	    if (String.length $1>=7) && 
+            if (String.length $1>=7) && 
               (String.compare (String.sub $1 0 7) "accept_")=0 
             then
-	      old.acceptation <- True;
+              old.acceptation <- True;
 
             (* Step 2 : setting up the init status *)
-	    (* If the state name ended with "_init" then 
+            (* If the state name ended with "_init" then 
                it is an initial state. Else, it is not. *)
-	    if (String.length $1>=5) && 
+            if (String.length $1>=5) && 
               (String.compare 
                  (String.sub $1 ((String.length $1)-5) 5) "_init" ) = 0
-	    then
-	      old.init <- True
-	    else
-	      old.init <- False;
-	    
-	    ([old],!trans)
-	  end
-	}
+            then
+              old.init <- True
+            else
+              old.init <- False;
+            
+            ([old],!trans)
+          end
+        }
         ;
 
 
 state_body
         : PROMELA_IF transitions PROMELA_FI { ($2,false) }
-	| PROMELA_SKIP { ([],false) }
-	| PROMELA_FALSE { ([],true) }
-	| PROMELA_IF PROMELA_DOUBLE_COLON PROMELA_FALSE PROMELA_FI { ([],true) }
+        | PROMELA_SKIP { ([],false) }
+        | PROMELA_FALSE { ([],true) }
+        | PROMELA_IF PROMELA_DOUBLE_COLON PROMELA_FALSE PROMELA_FI { ([],true) }
         ; 
 
 
 transitions
         : transitions transition { $1@[$2] }
-	| transition { [$1] }
+        | transition { [$1] }
         ;
 
 transition
         : PROMELA_DOUBLE_COLON guard 
         PROMELA_RIGHT_ARROW PROMELA_GOTO PROMELA_LABEL {
-	  let s=
-	    try
-	      Hashtbl.find observed_states $5
-	    with
-		Not_found -> 
-		  let r = Data_for_aorai.new_state $5 in
-		  Hashtbl.add observed_states $5 r;
-		  r
-	  in
-	  ($2,s)
-	}
+          let s=
+            try
+              Hashtbl.find observed_states $5
+            with
+                Not_found -> 
+                  let r = Data_for_aorai.new_state $5 in
+                  Hashtbl.add observed_states $5 r;
+                  r
+          in
+          ($2,s)
+        }
         ;
 
 guard
-	: PROMELA_CALLORRETURNOF { POr(PCall ($1,None), PReturn $1) }
+        : PROMELA_CALLORRETURNOF { POr(PCall ($1,None), PReturn $1) }
         | PROMELA_CALLOF { PCall ($1,None) }
         | PROMELA_RETURNOF { PReturn $1 }
-	| PROMELA_TRUE { PTrue }
-	| PROMELA_FALSE { PFalse }
-	| PROMELA_NOT guard { PNot $2 }
-	| guard PROMELA_AND guard { PAnd ($1,$3) }
-	| guard PROMELA_OR guard { POr ($1,$3) }
-	| PROMELA_LPAREN guard PROMELA_RPAREN { $2 }
+        | PROMELA_TRUE { PTrue }
+        | PROMELA_FALSE { PFalse }
+        | PROMELA_NOT guard { PNot $2 }
+        | guard PROMELA_AND guard { PAnd ($1,$3) }
+        | guard PROMELA_OR guard { POr ($1,$3) }
+        | PROMELA_LPAREN guard PROMELA_RPAREN { $2 }
         | logic_relation { $1 }
    ;
 
 logic_relation
-	: arith_relation PROMELA_EQ  arith_relation { PRel(Eq, $1, $3) }
-	| arith_relation PROMELA_LT  arith_relation { PRel(Lt, $1, $3) }
-	| arith_relation PROMELA_GT  arith_relation { PRel(Gt, $1, $3) }
-	| arith_relation PROMELA_LE  arith_relation { PRel(Le, $1, $3) }
-	| arith_relation PROMELA_GE  arith_relation { PRel(Ge, $1, $3) }
-	| arith_relation PROMELA_NEQ arith_relation { PRel(Neq,$1, $3) }
-	| arith_relation { PRel(Neq,$1, PCst(IntConstant "0")) }
+        : arith_relation PROMELA_EQ  arith_relation { PRel(Eq, $1, $3) }
+        | arith_relation PROMELA_LT  arith_relation { PRel(Lt, $1, $3) }
+        | arith_relation PROMELA_GT  arith_relation { PRel(Gt, $1, $3) }
+        | arith_relation PROMELA_LE  arith_relation { PRel(Le, $1, $3) }
+        | arith_relation PROMELA_GE  arith_relation { PRel(Ge, $1, $3) }
+        | arith_relation PROMELA_NEQ arith_relation { PRel(Neq,$1, $3) }
+        | arith_relation { PRel(Neq,$1, PCst(IntConstant "0")) }
   ;
 
 /* returns a Cil_types.exp expression */
 arith_relation
         : arith_relation_mul PROMELA_PLUS arith_relation 
             { PBinop(Badd, $1 , $3)}
-	| arith_relation_mul PROMELA_MINUS arith_relation
+        | arith_relation_mul PROMELA_MINUS arith_relation
             { PBinop(Bsub,$1,$3) }
-	| arith_relation_mul { $1 }
+        | arith_relation_mul { $1 }
         ;
 
 
 arith_relation_mul
-	: arith_relation_mul PROMELA_DIV access_or_const
+        : arith_relation_mul PROMELA_DIV access_or_const
             { PBinop(Bdiv,$1,$3) }
-	| arith_relation_mul PROMELA_STAR access_or_const
+        | arith_relation_mul PROMELA_STAR access_or_const
             { PBinop(Bmul,$1,$3) }
-	| arith_relation_mul PROMELA_MODULO access_or_const
+        | arith_relation_mul PROMELA_MODULO access_or_const
             { PBinop(Bmod,$1,$3) }
-	| access_or_const { $1 }
+        | access_or_const { $1 }
         ;
 
 access_or_const
         : PROMELA_INT { PCst(IntConstant $1) }
         | PROMELA_MINUS PROMELA_INT
             { PUnop (Uminus, PCst (IntConstant $2)) }
-	| access { $1 }
-	| PROMELA_LPAREN arith_relation PROMELA_RPAREN { $2 }
+        | access { $1 }
+        | PROMELA_LPAREN arith_relation PROMELA_RPAREN { $2 }
         ;
 
 access
-	: access PROMELA_DOT PROMELA_LABEL { PField ($1,$3) }
-	| access_array {$1}
+        : access PROMELA_DOT PROMELA_LABEL { PField ($1,$3) }
+        | access_array {$1}
 
 access_array
-	: access_array PROMELA_LEFT_SQUARE access_or_const PROMELA_RIGHT_SQUARE
-	    { PArrget($1,$3) }
-    	| access_leaf {$1}
+        : access_array PROMELA_LEFT_SQUARE access_or_const PROMELA_RIGHT_SQUARE
+            { PArrget($1,$3) }
+        | access_leaf {$1}
 
 access_leaf
         : PROMELA_STAR access { PUnop(Ustar,$2) }
-	| PROMELA_LABEL PROMELA_FUNC PROMELA_DOT PROMELA_LABEL { PPrm($1,$4) }
-	| PROMELA_LABEL { PVar $1 }
-	| PROMELA_LPAREN access PROMELA_RPAREN { $2 }
+        | PROMELA_LABEL PROMELA_FUNC PROMELA_DOT PROMELA_LABEL { PPrm($1,$4) }
+        | PROMELA_LABEL { PVar $1 }
+        | PROMELA_LPAREN access PROMELA_RPAREN { $2 }
         ;

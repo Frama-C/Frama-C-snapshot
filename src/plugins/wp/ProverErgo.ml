@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -42,10 +42,13 @@ let option_file = LogicBuiltins.create_option
 let altergo_gui =
   lazy
     begin
-      let x = Command.command "altgr-ergo" [| "-version" |] in
+      let name = Wp_parameters.AltGrErgo.get () in
+      let x = Command.command name [| "-version" |] in
       match x with
       | Unix.WEXITED 0 ->  true
-      | _ -> Wp_parameters.error ~current:false "Command 'altgr-ergo' does not work." ; false
+      | Unix.WEXITED 127 -> Wp_parameters.error ~current:false "AltGr-Ergo command '%s' not found." name; false
+      | Unix.WEXITED r ->   Wp_parameters.error ~current:false "AltGr-Ergo command '%s' exits with status [%d]" name r ; false
+      | _ -> Wp_parameters.error ~current:false "AltGr-Ergo command '%s' does not work." name; false
     end
 
 let append_file out file =
@@ -94,7 +97,7 @@ module TYPES = Model.Index
 
 let engine =
   let module E = Qed.Export_altergo.Make(Lang.F) in
-  object
+  object(self)
     inherit E.engine as super
     inherit Lang.idprinting
 
@@ -104,11 +107,40 @@ let engine =
     method! typeof_call = Lang.tau_of_lfun
     method! typeof_getfield = Lang.tau_of_field
     method! typeof_setfield = Lang.tau_of_record
+
     val mutable share = true
     method! is_shareable e = share && super#is_shareable e
     method! declare_axiom fmt a xs tgs phi =
       try share <- false ; super#declare_axiom fmt a xs tgs phi ; share <- true
       with err -> share <- true ; raise err
+
+    val mutable goal = false
+    method set_goal g = goal <- g
+
+    method private is_vlist polarity a b =
+      goal && self#mode = polarity &&
+      (Vlist.check_term a || Vlist.check_term b)
+
+    method! pp_equal fmt a b =
+      if self#is_vlist Qed.Engine.Mpositive a b
+      then Qed.Plib.pp_call_var "vlist_eq" self#pp_term fmt [a;b]
+      else super#pp_equal fmt a b
+
+    method! pp_noteq fmt a b =
+      if self#is_vlist Qed.Engine.Mnegative a b
+      then
+        begin
+          Format.fprintf fmt "@[<hov 2>not@,(" ;
+          Qed.Plib.pp_call_var "vlist_eq" self#pp_term fmt [a;b] ;
+          Format.fprintf fmt ")@]" ;
+        end
+      else super#pp_noteq fmt a b
+
+    method! pp_fun cmode fct ts =
+      if fct == Vlist.f_concat
+      then Vlist.pp_concat self ts
+      else super#pp_fun cmode fct ts
+    
   end
 
 class visitor fmt c =
@@ -190,7 +222,9 @@ let write_cluster c job =
   let output = Command.print_file f
       begin fun fmt ->
         let v = new visitor fmt c in
-        job v ; v#flush
+        engine#set_goal false ;
+        job v ;
+        v#flush
       end
   in
   if Wp_parameters.has_dkey "cluster" then
@@ -261,14 +295,17 @@ let assemble_goal ~file ~id ~title ~axioms prop =
         try
           let qlet = List.mem "qlet" (Wp_parameters.AltErgoFlags.get ()) in
           engine#set_quantify_let qlet ;
+          engine#set_goal true ;
           engine#global
             begin fun () ->
               v#printf "@[<hv 2>goal %s:@ %a@]@." id
                 engine#pp_goal (F.e_prop prop) ;
             end ;
           engine#set_quantify_let false ;
+          engine#set_goal false ;
         with error ->
           engine#set_quantify_let false ;
+          engine#set_goal false ;
           raise error
       end in
   Command.write_file file
@@ -290,8 +327,8 @@ open ProverTask
 (*bug in Alt-Ergo: sometimes error messages are repeated. *)
 (*let p_loc = "^File " ... *)
 
-let p_loc = "File " ^ p_string ^ ", line " ^ p_int ^ ", [^:]+:"
-let p_valid = p_loc ^ "Valid (" ^ p_float ^ ") (" ^ p_int ^ ")"
+let p_loc = "^File " ^ p_string ^ ", line " ^ p_int ^ ", [^:]+:"
+let p_valid = p_loc ^ "Valid (" ^ p_float ^ ") (" ^ p_int ^ "\\( +steps\\)?)"
 let p_unsat = p_loc ^ "I don't know"
 let p_limit = "^Steps limit reached: " ^ p_int
 
@@ -305,7 +342,7 @@ class altergo ~pid ~gui ~file ~lines ~logout ~logerr =
 
     initializer ignore pid
 
-    inherit ProverTask.command "alt-ergo"
+    inherit ProverTask.command (Wp_parameters.AltErgo.get ())
 
     val mutable files = []
     val mutable error = None
@@ -341,49 +378,54 @@ class altergo ~pid ~gui ~file ~lines ~logout ~logerr =
       end
 
     method result r =
-      match error with
-      | Some(pos,message) ->
-          Wp_parameters.error ~source:pos "Alt-Ergo error:@\n%s" message ;
-          VCS.failed ~pos message
-      | None ->
-          try
-            let verdict =
-              if unsat then VCS.Unknown else
-              if valid then VCS.Valid else
-              if limit then VCS.Stepout else
-                raise Not_found in
-            VCS.result ~time:(if gui then 0.0 else time) ~steps verdict
-          with
-          | Not_found when Wp_parameters.Check.get () ->
-              if r = 0 then VCS.checked
-              else
-                begin
-                  ProverTask.pp_file ~message:"Alt-Ergo (stdout)" ~file:logout ;
-                  ProverTask.pp_file ~message:"Alt-Ergo (stderr)" ~file:logerr ;
-                  VCS.failed "Alt-Ergo type-checking failed"
-                end
-          | Not_found ->
-              begin
-                ProverTask.pp_file ~message:"Alt-Ergo (stdout)" ~file:logout ;
-                ProverTask.pp_file ~message:"Alt-Ergo (stderr)" ~file:logerr ;
-                if r <> 0 then
-                  VCS.failed (Printf.sprintf "Alt-Ergo exits with status [%d]" r)
+      if r = 127 then
+        let cmd = Wp_parameters.AltErgo.get () in
+        VCS.kfailed "Command '%s' not found" cmd
+      else
+        match error with
+        | Some(pos,message) when unsat || limit || not valid ->
+            Wp_parameters.error ~source:pos "Alt-Ergo error:@\n%s" message ;
+            VCS.failed ~pos message
+        | _ -> 
+            try
+              let verdict =
+                if unsat then VCS.Unknown else
+                if valid then VCS.Valid else
+                if limit then VCS.Stepout else
+                  raise Not_found in
+              VCS.result ~time:(if gui then 0.0 else time) ~steps verdict
+            with
+            | Not_found when Wp_parameters.Check.get () ->
+                if r = 0 then VCS.checked
                 else
-                  VCS.failed "Can not understand Alt-Ergo output."
-              end
+                  begin
+                    if Wp_parameters.verbose_atleast 1 then begin
+                      ProverTask.pp_file ~message:"Alt-Ergo (stdout)" ~file:logout ;
+                      ProverTask.pp_file ~message:"Alt-Ergo (stderr)" ~file:logerr ;
+                    end;
+                    VCS.failed "Alt-Ergo type-checking failed."
+                  end
+            | Not_found ->
+                begin
+                  if Wp_parameters.verbose_atleast 1 then begin
+                    ProverTask.pp_file ~message:"Alt-Ergo (stdout)" ~file:logout ;
+                    ProverTask.pp_file ~message:"Alt-Ergo (stderr)" ~file:logerr ;
+                  end;
+                  if r = 0 then VCS.failed "Unexpected Alt-Ergo output"
+                  else VCS.kfailed "Alt-Ergo exits with status [%d]." r
+                end
 
     method prove =
       let depth = Wp_parameters.Depth.get () in
       let steps = Wp_parameters.Steps.get () in
       let time = Wp_parameters.Timeout.get () in
       files <- lines ;
-      if gui then ergo#set_command "altgr-ergo" ;
+      if gui then ergo#set_command (Wp_parameters.AltGrErgo.get ()) ;
       if Wp_parameters.Check.get () then
         ergo#add ["-type-only"]
       else
         begin
           ergo#add_positive ~name:"-age-bound" ~value:depth ;
-          ergo#add_positive ~name:"-steps-bound" ~value:steps ;
           ergo#add_parameter ~name:"-proof" Wp_parameters.ProofTrace.get ;
           ergo#add_parameter ~name:"-model" Wp_parameters.ProofTrace.get ;
         end ;
@@ -392,7 +434,10 @@ class altergo ~pid ~gui ~file ~lines ~logout ~logerr =
           (Wp_parameters.AltErgoFlags.get ()) in
       ergo#add flags ;
       ergo#add [ file ] ;
-      if not gui then ergo#timeout time ;
+      if not gui then begin
+        ergo#add_positive ~name:"-steps-bound" ~value:steps ;
+        ergo#timeout time ;
+      end ;
       ergo#validate_time ergo#time ;
       ergo#validate_pattern ~logs:`ERR re_error ergo#error ;
       ergo#validate_pattern ~logs:`OUT re_valid ergo#valid ;

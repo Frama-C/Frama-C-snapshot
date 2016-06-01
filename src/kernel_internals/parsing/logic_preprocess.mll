@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -163,6 +163,7 @@
         Str.split_delim re_annot_content (Buffer.contents output_buffer)
       in
       output_result outfile result content;
+      close_in result
     end else begin
       Buffer.output_buffer outfile output_buffer
     end;
@@ -191,7 +192,7 @@ rule main = parse
     [' ''\t']* (('"' [^'"']+ '"') as file)  [^'\n']* "\n"
     { (try
         curr_line := (int_of_string line) -1
-       with Failure "int_of_string" -> curr_line:= -1);
+       with Failure _ -> curr_line:= -1);
       if file <> "" then curr_file := file;
       Buffer.add_string output_buffer (lexeme lexbuf);
       make_newline();
@@ -305,6 +306,10 @@ and macro_string blacklisted = parse
   Buffer.add_char output_buffer '\n';
   macro_string blacklisted lexbuf
 }
+| "\\\\" as s {
+    if not blacklisted then Buffer.add_string preprocess_buffer s;
+    macro_string blacklisted lexbuf
+  }
 | "\n" { abort_preprocess "unterminated string in macro definition" }
 | eof { abort_preprocess "unterminated string in macro definition" }
 | '"' { if not blacklisted then Buffer.add_char preprocess_buffer '"';
@@ -321,6 +326,10 @@ and macro_char blacklisted = parse
   Buffer.add_char output_buffer '\n';
   macro_char blacklisted lexbuf
 }
+| "\\\\" as s {
+    if not blacklisted then Buffer.add_string preprocess_buffer s;
+    macro_char blacklisted lexbuf
+  }
 | "\n" { abort_preprocess "unterminated char in macro definition" }
 | eof { abort_preprocess "unterminated char in macro definition" }
 | "'" { if not blacklisted then Buffer.add_char preprocess_buffer '\'';

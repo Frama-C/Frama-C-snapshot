@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,24 +20,24 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* -------------------------------------------------------------------------- *)
-(* --- Variable Analysis                                                  --- *)
-(* -------------------------------------------------------------------------- *)
+(* ---------------------------------------------------------------------- *)
+(* --- Variable Analysis                                              --- *)
+(* ---------------------------------------------------------------------- *)
 
 open Ctypes
 open Cil_types
 open Cil_datatype
 
-(* -------------------------------------------------------------------------- *)
-(* --- Varinfo Accesses                                                  --- *)
-(* -------------------------------------------------------------------------- *)
+(* ---------------------------------------------------------------------- *)
+(* --- Varinfo Accesses                                               --- *)
+(* ---------------------------------------------------------------------- *)
 
 type access =
   | NoAccess
-  | ByRef     (* The expression ["*x"], equal to [load(load(&x))] *)
-  | ByArray   (* The expression ["x[_]"], equal to [load(shift(load(&x),_))] *)
-  | ByValue   (* The expression ["x"], equal to [load(&x)] *)
-  | ByAddr    (* The expression ["&x"] *)
+  | ByRef   (* The expr ["*x"],   equals to [load(load(&x))] *)
+  | ByArray (* The expr ["x[_]"], equals to [load(shift(load(&x),_))] *)
+  | ByValue (* The expr ["x"],    equals to [load(&x)] *)
+  | ByAddr  (* The expr ["&x"] *)
 
 module Access :
 sig
@@ -67,9 +67,9 @@ struct
   let cup a b = if rank a < rank b then b else a
 end
 
-(* -------------------------------------------------------------------------- *)
-(* --- Expressions & Memory Model                                         --- *)
-(* -------------------------------------------------------------------------- *)
+(* ---------------------------------------------------------------------- *)
+(* --- Expressions & Memory Model                                     --- *)
+(* ---------------------------------------------------------------------- *)
 
 module E :
 sig
@@ -87,15 +87,19 @@ sig
   val partition_formals_vs_others : t -> t*t
 
   val pretty : Format.formatter -> t -> unit
+
+  val iter: (varinfo -> access -> unit) -> t -> unit
 end =
 struct
 
   module Xmap = Qed.Mergemap.Make(Varinfo)
+
   type t = access Xmap.t
 
   let pretty fmt m =
     if (Xmap.is_empty m) then  Format.fprintf fmt "  Nothing@."
-    else Xmap.iter (fun x e -> Format.fprintf fmt "  %a@." (Access.pretty x) e) m
+    else Xmap.iter (fun x e -> Format.fprintf fmt "  %a@."
+                       (Access.pretty x) e) m
 
   let bot = Xmap.empty
   let is_bot = Xmap.is_empty
@@ -103,14 +107,16 @@ struct
   let cup_differ e1 e2 =
     let r = cup e1 e2 in
     let is_modified = not (r==e1) in
-    (* Format.printf "cup_differ %a %a = %a,%b@." pretty e1 pretty e2 pretty r is_modified; *)
+    (* Format.printf "cup_differ %a %a = %a,%b@." 
+                     pretty e1 pretty e2 pretty r is_modified; *)
     r, is_modified
   (* unused for now *)
   (* let leq = Xmap.subset (fun _ -> Access.leq) *)
 
   (* unused for now *)
-  (*  let rec lcup = function [] -> bot | [x] -> x | x::xs -> cup x (lcup xs)*)
-  let rec fcup f = function [] -> bot | [x] -> f x | x::xs -> cup (f x) (fcup f xs)
+  (* let rec lcup = function [] -> bot |[x] -> x |x::xs -> cup x (lcup xs)*)
+  let rec fcup f = function 
+      [] -> bot | [x] -> f x | x::xs -> cup (f x) (fcup f xs)
 
   let get vi e = try Xmap.find vi e with Not_found -> NoAccess
   let access vi u e =
@@ -119,6 +125,8 @@ struct
 
   let partition_formals_vs_others e =
     Xmap.partition (fun vi _a -> vi.vformal) e
+
+  let iter = Xmap.iter
 
 end
 
@@ -132,17 +140,17 @@ type model =
   | Val_shift of varinfo * value (* (x + E) *)
 
 let nothing = E E.bot
-let m_value v = if E.is_bot v then nothing else E v
+let v_model v = if E.is_bot v then nothing else E v
 
-let vcup (a:value) (b:value) : model = m_value (E.cup a b)
+let vcup (a:value) (b:value) : model = v_model (E.cup a b)
 
-let _share_cup  (m:model) ~old (b:value) : model = assert (m = E(old)) ; vcup old b
 let share_vcup (m:model) ~old (b:value) : model =
   (* requires m = E(old) *)
-  let e = E.cup old b in if e == old then m else m_value e
+  (* ensures \result == vcup old b *)
+  let e = E.cup old b in if e == old then m else v_model e
 
 (* let lcup xs = m_value (E.lcup xs) *) (* unused for now *)
-let _fcup f xs = m_value (E.fcup f xs)
+(* let fcup f xs = m_value (E.fcup f xs) *) (* unused for now *)
 
 let e_value = function
   | Loc_var x -> E.access x ByAddr E.bot
@@ -151,26 +159,32 @@ let e_value = function
   | Val_comp(x,e) | Val_shift(x,e) -> E.access x ByValue e
   | E e -> e
 
-let _m_value m = E (e_value m)
-let m_value = function
+let m_value = 
+  let m_value m = E (e_value m) in
+  function
   | E _ as m -> m (* better sharing than E (e_value m) *)
-  | m -> E (e_value m)
+  | m -> m_value m
 
-let _m_vcup m = vcup (e_value m)
-let m_vcup = function
+let m_vcup = 
+  let m_vcup m = vcup (e_value m) in
+  function
   | E old as m -> (* better sharing than vcup (e_value m) b *)
       share_vcup m ~old
-  | _ as m -> vcup (e_value m)
+  | _ as m -> m_vcup m
 
-let _m_fcup f = E.fcup (fun x -> e_value (f x))
-let m_fcup f = function  (* better sharing than E.fcup (fun x -> e_value (f x)) *)
-  | [] -> nothing | [x] -> m_value (f x) | x::xs -> m_vcup (f x) (E.fcup (fun x -> e_value (f x)) xs)
+let m_fcup f = 
+  let m_fcup f = E.fcup (fun x -> e_value (f x)) in
+  function  (* better sharing than E.fcup (fun x -> e_value (f x)) *)
+  | [] -> nothing
+  | [x] -> m_value (f x)
+  | x::xs -> m_vcup (f x) (m_fcup f xs)
 
 let cval x = Val_var x
 let cvar x = Loc_var x
 let shift (m:model) (k:value) =
   let share ~old mk e = (* for a better sharing between maps *)
-    if e == old then m else mk e in
+    if e == old then m else mk e 
+  in
   match m with
   | Loc_var x -> Loc_shift(x,k)
   | Loc_shift(x,e) -> share ~old:e (fun k -> Loc_shift(x,k)) (E.cup e k)
@@ -192,28 +206,29 @@ let load = function
   | Val_shift(x,e) -> E (E.access x ByArray e)
   | E _ as m -> m
 
-(* for \\valid, \\separated, \\block_length : no variable escape, excepts for shifts *)
-let e_unescape = function (* better than e_value (load m) *)
+(* for \\valid, \\separated, \\block_length: no variable escape,
+   excepts for shifts *)
+let v_unescape = function (* better than e_value (load m) *)
   | Loc_var x -> E.access x ByValue E.bot
   | Loc_shift(x,e) -> E.access x ByValue e
   | Val_var x -> E.access x ByRef E.bot
   | Val_comp(x,e) -> E.access x ByRef e
   | Val_shift(x,e) -> E.access x ByArray e
   | E e -> e
-let _e_unescape m = e_value (load m)
+let _v_unescape m = e_value (load m)
 
-let m_unescape = function (* better sharing than m_value (e_unescape m) *)
+let m_unescape = function (* better sharing than m_value (v_unescape m) *)
   | Loc_var x -> E (E.access x ByValue E.bot)
   | Loc_shift(x,e) -> E (E.access x ByValue e)
   | Val_var x -> E (E.access x ByRef E.bot)
   | Val_comp(x,e) -> E (E.access x ByRef e)
   | Val_shift(x,e) -> E (E.access x ByArray e)
   | E _ as m -> m
-let _m_unescape m = E (e_unescape m)
+let _m_unescape m = E (v_unescape m)
 
-(* -------------------------------------------------------------------------- *)
-(* --- Casts                                                              --- *)
-(* -------------------------------------------------------------------------- *)
+(* ---------------------------------------------------------------------- *)
+(* --- Casts                                                          --- *)
+(* ---------------------------------------------------------------------- *)
 
 type cast =
   | Identity
@@ -235,19 +250,20 @@ let cast_obj tgt src =
       else Cast
   | _ -> if Ctypes.equal tgt src then Identity else Cast
 
-let cast_ctyp tgt src = cast_obj (Ctypes.object_of tgt) (Ctypes.object_of src)
+let cast_ctyp tgt src =
+  cast_obj (Ctypes.object_of tgt) (Ctypes.object_of src)
 let cast_ltyp tgt src = match Logic_utils.unroll_type src with
   | Ctype src -> cast_ctyp tgt src
   | _ -> Cast
 
-(* -------------------------------------------------------------------------- *)
-(* --- Environment                                                        --- *)
-(* -------------------------------------------------------------------------- *)
+(* ---------------------------------------------------------------------- *)
+(* --- Environment                                                    --- *)
+(* ---------------------------------------------------------------------- *)
 
 module KFmap = Qed.Mergemap.Make(Kernel_function)
 module KFset = Qed.Mergeset.Make(Kernel_function)
 module LVmap = Qed.Mergemap.Make(Logic_var)
-module LIset = Qed.Mergeset.Make(Logic_info)
+module LFset = Qed.Mergeset.Make(Logic_info)
 
 type global_ctx = {
 
@@ -264,26 +280,30 @@ type global_ctx = {
       to a list of models for each arg_exp of the call to the kf. *)
   mutable cphi : (model list list) KFmap.t ;
 
-  (** Logical function/predicate used by specs/annots of a function *)
-  mutable lphi : LIset.t ;
+  (** Logical function/predicate used directly and indirectly by 
+      specs/annots of a C function *)
+  mutable lphi : LFset.t ; 
 }
-let mk_global_ctx () = { code=E.bot; spec_formals=E.bot; spec_globals=E.bot; cphi=KFmap.empty ; lphi=LIset.empty }
+let mk_global_ctx () =
+  { code = E.bot ; spec_formals = E.bot ; spec_globals = E.bot ; 
+    cphi = KFmap.empty ; lphi = LFset.empty }
 
 (* Temporary local context *)
 type local_ctx = {
 
-  mutable tlet : model LVmap.t; (* for \\let variable bound to a term *)
-  mutable plet : value LVmap.t; (* for \\let variable bound to a predicate *)
-  mutable spec : value; (* for formals and globals of of spec, before partionning the result *)
+  mutable tlet : model LVmap.t; (* for \\let var bound to a term *)
+  mutable plet : value LVmap.t; (* for \\let var bound to a predicate *)
+  mutable spec : value; (* for formals and globals of of spec, 
+                           before partionning the result *)
 }
-let mk_local_ctx () = { tlet=LVmap.empty; plet=LVmap.empty; spec=E.bot }
+let mk_local_ctx () = { tlet=LVmap.empty ; plet=LVmap.empty ; spec=E.bot }
 
 type ctx = { local:local_ctx ; global:global_ctx }
-let mk_ctx () = { global=mk_global_ctx (); local= mk_local_ctx () }
+let mk_ctx () = { global = mk_global_ctx () ; local = mk_local_ctx () }
 
-(* -------------------------------------------------------------------------- *)
-(* --- Tlet                                                               --- *)
-(* -------------------------------------------------------------------------- *)
+(* ---------------------------------------------------------------------- *)
+(* --- Tlet                                                           --- *)
+(* ---------------------------------------------------------------------- *)
 
 (* For \\let binding a predicate *)
 let get_tlet (env:local_ctx) (lv:logic_var) =
@@ -295,9 +315,9 @@ let add_tlet (env:local_ctx) (lv:logic_var) (m:model) =
 let rem_tlet (env:local_ctx) (lv:logic_var) =
   env.tlet <- LVmap.remove lv env.tlet
 
-(* -------------------------------------------------------------------------- *)
-(* --- Plet                                                               --- *)
-(* -------------------------------------------------------------------------- *)
+(* ---------------------------------------------------------------------- *)
+(* --- Plet                                                           --- *)
+(* ---------------------------------------------------------------------- *)
 
 (* For \\let binding a predicate *)
 let get_plet (env:local_ctx) (lv:logic_var) =
@@ -310,21 +330,9 @@ let add_plet (env:local_ctx) (lv:logic_var) (e:value) =
 let rem_plet (env:local_ctx) (lv:logic_var) =
   env.plet <- LVmap.remove lv env.plet
 
-(* -------------------------------------------------------------------------- *)
-(* --- Call to Logical functions/Predicates                               --- *)
-(* -------------------------------------------------------------------------- *)
-
-let add_lphi (env:global_ctx) (lphi:logic_info) =
-  match lphi.l_var_info.lv_kind with
-  | LVGlobal ->  env.lphi <- LIset.add lphi env.lphi
-  | LVC -> Wp_parameters.not_yet_implemented "unknown construct with LVC"
-  | LVFormal -> Wp_parameters.not_yet_implemented "unknown construct with LVFormal"
-  | LVQuant -> Wp_parameters.not_yet_implemented "unknown construct with LVQuant"
-  | LVLocal -> Wp_parameters.not_yet_implemented "unknown construct with LVLocal"
-
-(* -------------------------------------------------------------------------- *)
-(* --- Compilation of C-Expressions                                       --- *)
-(* -------------------------------------------------------------------------- *)
+(* ---------------------------------------------------------------------- *)
+(* --- Compilation of C-Expressions                                   --- *)
+(* ---------------------------------------------------------------------- *)
 
 let rec vexpr (e:Cil_types.exp) : value = e_value (expr e)
 
@@ -370,17 +378,18 @@ and offset (m:model) = function
   | Field(_,ofs) -> offset (field m) ofs
   | Index(e,ofs) -> offset (shift m (vexpr e)) ofs
 
-(* -------------------------------------------------------------------------- *)
-(* --- Compilation of ACSL-Terms                                          --- *)
-(* -------------------------------------------------------------------------- *)
+(* ---------------------------------------------------------------------- *)
+(* --- Compilation of ACSL-Terms                                      --- *)
+(* ---------------------------------------------------------------------- *)
 
 let rec vterm (env:ctx) (t:term) : value = e_value (term env t)
 
-and mterm (env:ctx) (t:term) : model = (* better sharing than E (vterm env e) *)
-  m_value (term env t)
+and mterm (env:ctx) (t:term) : model =
+  m_value (term env t) (* better sharing than E (vterm env e) *)
 
 and termopt (env:ctx) = function None -> nothing | Some t -> term env t
 
+(* --- Expr --- *)
 and term (env:ctx) (t:term) : model = match t.term_node with
 
   (* Logics *)
@@ -394,7 +403,7 @@ and term (env:ctx) (t:term) : model = match t.term_node with
   (* Binary *)
   | TBinOp( (MinusPP|PlusA|MinusA|Mult|Div|Mod
             |Shiftlt|Shiftrt|BAnd|BXor|BOr|LAnd|LOr
-            |Lt|Gt|Le|Ge|Eq|Ne), a,b )   -> m_vcup (term env a) (vterm env b)
+            |Lt|Gt|Le|Ge|Eq|Ne), a,b )  -> m_vcup (term env a) (vterm env b)
 
   (* Shifts *)
   | TBinOp((PlusPI|IndexPI|MinusPI),a,b) -> shift (term env a) (vterm env b)
@@ -435,7 +444,8 @@ and term (env:ctx) (t:term) : model = match t.term_node with
       let m = term env t in
       rem_tlet env.local l_var_info;
       m
-  | Tlet(_,_t) ->  Wp_parameters.not_yet_implemented "unknown \\let construct"
+  | Tlet(_,_t) ->
+      Wp_parameters.not_yet_implemented "unknown \\let construct"
 
   (* No escape *)
   | Tblock_length(_, t) -> m_unescape ((term env) t)
@@ -444,10 +454,9 @@ and term (env:ctx) (t:term) : model = match t.term_node with
   | Tapp({l_var_info=({lv_origin=None; lv_kind=LVLocal} as lvar)},[],[]) ->
       (* var bound by a \\let *)
       get_tlet env.local lvar
-  | Tapp(phi,_,ts) ->
-      (*TODO[LC] take into account the READS of lphi *)
-      add_lphi env.global phi; m_fcup (term env) ts
+  | Tapp(phi,_,ts) -> v_model (v_lphi env phi ts)
 
+(* --- Lvalues --- *)
 and term_lval env (h,ofs) = match h with
   | TResult _ -> nothing
   | TVar( {lv_origin=None ; lv_kind=LVLocal} as lvar) ->
@@ -476,7 +485,8 @@ and addr_lval env (h,ofs) = match h with
       Wp_parameters.abort ~current:true
         "Address of logic variable (%a)" Logic_var.pretty x
 
-and pred (env:ctx) p = match p.content with
+(* --- Predicates --- *)
+and pred (env:ctx) p : value = match p.content with
   | Psubtype (_, _) | Pfalse | Ptrue ->  E.bot
 
   (* Unary *)
@@ -501,48 +511,65 @@ and pred (env:ctx) p = match p.content with
       add_plet env.local l_var_info e_def;
       let e = pred env p in
       rem_plet env.local l_var_info; e
-  | Plet(_,_t) ->  Wp_parameters.not_yet_implemented "unknown \\let construct"
+  | Plet(_,_t) ->
+      Wp_parameters.not_yet_implemented "unknown \\let construct"
 
   (* Call *)
   | Papp({l_var_info=({lv_origin=None; lv_kind=LVLocal} as lvar)},[],[]) ->
       (* var bound by a \\let *)
       get_plet env.local lvar
-  | Papp(phi,_,ts) ->
-      add_lphi env.global phi; E.fcup (vterm env) ts
+  | Papp(phi,_,ts) -> v_lphi env phi ts
 
   (* No escape *)
   | Pinitialized(_, t) | Pdangling(_,t)
   | Pallocable(_, t) | Pfreeable(_, t)
-  | Pvalid(_,t) | Pvalid_read (_,t) ->
-      e_unescape ((term env) t)
+  | Pvalid(_,t) | Pvalid_read (_,t) | Pvalid_function t ->
+      v_unescape ((term env) t)
   | Pseparated ts ->
-      E.fcup (fun t -> e_unescape ((term env) t)) ts
+      E.fcup (fun t -> v_unescape ((term env) t)) ts
   | Pfresh(_, _, t1, t2) ->
-      E.fcup (fun t -> e_unescape ((term env) t)) [t1;t2]
+      E.fcup (fun t -> v_unescape ((term env) t)) [t1;t2]
 
-(* -------------------------------------------------------------------------- *)
-(* --- Compilation of Logical Functions/Predicates                        --- *)
-(* -------------------------------------------------------------------------- *)
-
-let body (env:ctx) = function
+(* --- Call to Logical functions/Predicates --- *)
+and v_lphi (env:ctx) (lphi:logic_info) ts : value =
+  let not_yet_implemented s = 
+    Wp_parameters.not_yet_implemented "unknown construct with %s" s
+  in
+  match lphi.l_var_info.lv_kind with
+  | LVC -> not_yet_implemented "LVC"
+  | LVFormal -> not_yet_implemented "LVFormal"
+  | LVQuant -> not_yet_implemented "LVQuant"
+  | LVLocal -> not_yet_implemented "LVLocal"
+  | LVGlobal ->
+      let v_body = (* get the accesses the globals *)
+        if not (LFset.mem lphi env.global.lphi) then begin
+          env.global.lphi <- LFset.add lphi env.global.lphi;
+          v_body env lphi.l_body
+        end
+        else E.bot
+      and v_param =
+        E.fcup (vterm env) ts (* usage of the parameter of the application *)
+      in E.cup v_param v_body
+and v_body (env:ctx) = (* locals of the logical function are removed *)
+  let vglob v = snd (E.partition_formals_vs_others v) in
+  function
   | LBnone -> E.bot
-  | LBreads(its) -> E.fcup (fun it -> (vterm env) it.it_content) its
-  | LBterm(t) -> vterm env t
-  | LBpred(p) -> pred env p
-  | LBinductive(inds) -> E.fcup (fun (_,_,_,p) -> pred env p) inds
+  | LBreads(its) -> E.fcup (fun it -> vglob ((vterm env) it.it_content)) its
+  | LBterm(t) -> vglob (vterm env t)
+  | LBpred(p) -> vglob (pred env p)
+  | LBinductive(inds) -> E.fcup (fun (_,_,_,p) -> vglob (pred env p)) inds
 
-(* -------------------------------------------------------------------------- *)
-(* --- Compilation of C Function                                          --- *)
-(* -------------------------------------------------------------------------- *)
+(* ---------------------------------------------------------------------- *)
+(* --- Compilation of C Function                                      --- *)
+(* ---------------------------------------------------------------------- *)
 
 let cfun_code env kf = (* Visits term/pred of code annotations and C exp *)
   let update_code_env v = env.global.code <- E.cup env.global.code v in
   let do_term t = update_code_env (vterm env t) in
   let do_pred p = update_code_env (pred env p) in
   let do_code =
-    let do_arg arg =
-      (* normalizing model: taking out access map in order to put it code_env *)
-      match expr arg with
+    let do_arg arg =      (* normalizing model: taking out access map *)
+      match expr arg with (* in order to put it code_env *)
       | (Loc_var _ | Val_var _) as m -> m
       | (Loc_shift(_,e) | Val_shift(_,e)) as m when E.is_bot e -> m
       | Loc_shift(x,e) -> update_code_env e; Loc_shift(x,E.bot)
@@ -551,7 +578,8 @@ let cfun_code env kf = (* Visits term/pred of code annotations and C exp *)
       | m when m == nothing -> m
       | E e -> update_code_env e ; nothing
     in
-    let do_args kf args = env.global.cphi <- KFmap.insert (fun _ u old -> u @ old)
+    let do_args kf args =
+      env.global.cphi <- KFmap.insert (fun _ u old -> u @ old)
           kf [(List.map do_arg args)] env.global.cphi in
     let do_exp exp = update_code_env (vexpr exp) in
     let do_lval lval = update_code_env (e_value (load (lvalue lval))) in
@@ -592,8 +620,8 @@ let cfun_code env kf = (* Visits term/pred of code annotations and C exp *)
     method! vloop_pragma _ =  Cil.SkipChildren (* via vcode_annot *)
     method! vinst _ =  Cil.SkipChildren (* via visitCilStmt *)
     method! vvdec _ = Cil.SkipChildren (* via visitCilFunction *)
-    method! vexpr _ = Cil.SkipChildren (* via stmt such as Return, IF, ... *)
-    method! vlval _ = Cil.SkipChildren (* via stmt such as Set, Call, Asm, ... *)
+    method! vexpr _ = Cil.SkipChildren (* via stmt such as Return, IF, ...*)
+    method! vlval _ = Cil.SkipChildren (* via stmt such as Set, Call, ... *)
     method! vattr _ = Cil.SkipChildren (* via Asm stmt *)
   end
   in
@@ -603,11 +631,13 @@ let cfun_code env kf = (* Visits term/pred of code annotations and C exp *)
   with Not_found -> ()
 
 let cfun_spec env kf =
-  let update_spec_env v = env.local.spec <- E.cup env.local.spec v in
+  let update_spec_env v = env.local.spec <- E.cup env.local.spec v ;
+    Cil.SkipChildren
+  in
   let visitor = object
     inherit Cil.nopCilVisitor as super
-    method !vpredicate_named p = update_spec_env (pred env p) ; Cil.SkipChildren
-    method !vterm t = update_spec_env (vterm env t) ; Cil.SkipChildren
+    method !vpredicate_named p = update_spec_env (pred env p)
+    method !vterm t = update_spec_env (vterm env t)
   end in
   let spec = Annotations.funspec kf in
   ignore (Cil.visitCilFunspec (visitor:>Cil.cilVisitor) spec) ;
@@ -631,15 +661,19 @@ let cvarinit vi initinfo env =
   | None -> env
   | Some init ->
       let update_code_env a v = E.cup a v in
-      let einit (m:model) a exp = update_code_env a (E.cup (e_value m) (vexpr exp)) in
+      let einit (m:model) a exp =
+        update_code_env a (E.cup (e_value m) (vexpr exp)) 
+      in
       let rec cinit (m: model) a = function
         | SingleInit (exp) ->  einit m a exp
-        | CompoundInit(_,loi) -> List.fold_left (fun a (ofs,init) -> cinit (offset m ofs) a init) a loi
+        | CompoundInit(_,loi) ->
+            List.fold_left (fun a (ofs,init) -> cinit (offset m ofs) a init)
+              a loi
       in E.cup env (cinit (cval vi) E.bot init)
 
-(* -------------------------------------------------------------------------- *)
-(* --- Compilation                                                        --- *)
-(* -------------------------------------------------------------------------- *)
+(* ---------------------------------------------------------------------- *)
+(* --- Compilation                                                    --- *)
+(* ---------------------------------------------------------------------- *)
 
 type context = global_ctx KFmap.t
 let mk_context () = KFmap.empty
@@ -665,7 +699,9 @@ let call_kf (env:global_ctx) (formals:access list) (models:model list) (reached:
   let unmodified = ref reached in
   let rec call xs ms = match xs, ms with
     | [] , _ | _ , [] -> ()
-    | x::xs , m::ms -> if update_call_env env (param x m) then unmodified := false; call xs ms
+    | x::xs , m::ms ->
+        if update_call_env env (param x m) then unmodified := false; 
+        call xs ms
   in call formals models;
   !unmodified
 
@@ -692,15 +728,22 @@ let compute_usage () =
       usage KFmap.empty
   in
   (* extract kf map to be fixed (the callers). *)
-  let callers = KFmap.mapq (fun _kf v -> if KFmap.is_empty v.cphi then None else Some v) usage in
-  (* extract it as a working list to be fixed (the todo map is used to intersect the callers map). *)
+  let callers = KFmap.mapq
+      (fun _kf v -> if KFmap.is_empty v.cphi then None else Some v) usage 
+  in
+  (* extract it as a working list to be fixed *)
   let todo = KFmap.map (fun _ -> ()) callers in
+  (* the todo map is used to intersect the callers map *)
   let kf_fp state_fp kf env _ =
     let kf_calls called_kf calls (reached:bool) =
-      let called = try KFmap.find called_kf usage with Not_found -> assert false in
+      let called =
+        try KFmap.find called_kf usage with Not_found -> assert false 
+      in
       (* update from accesses of globals of the called spec *)
-      let reached = if update_call_env env called.spec_globals then false else reached in
-      (* update from accesses of formals of the called spec for each calls *)
+      let reached =
+        if update_call_env env called.spec_globals then false else reached 
+      in
+      (* update from accesses of formals of the called spec for each calls*)
       let specs_formals = called.spec_formals in
       let formals = Kernel_function.get_formals called_kf in
       let formals = List.map (fun vi -> E.get vi specs_formals) formals in
@@ -709,16 +752,16 @@ let compute_usage () =
     state_fp.todo <- KFmap.remove kf state_fp.todo ;
     let cphi = env.cphi in
     let reached = KFmap.fold kf_calls cphi true in
-    if not reached then
-      begin
-        let callers = try KFmap.find kf callees with Not_found -> KFset.empty in
-        KFset.iter (fun kf_caller ->
-            try ignore (KFmap.find kf_caller todo)
-            (* kf_caller is still into the current remaining working list *)
-            with Not_found ->
-              (* kf_caller must be added to the next working list. *)
-              state_fp.redo <- KFmap.add kf_caller () state_fp.redo) callers
-      end;
+    if not reached then begin
+      let callers = try KFmap.find kf callees with Not_found -> KFset.empty 
+      in
+      KFset.iter (fun kf_caller ->
+          try ignore (KFmap.find kf_caller todo)
+          (* kf_caller is still into the current remaining working list *)
+          with Not_found ->
+            (* kf_caller must be added to the next working list. *)
+            state_fp.redo <- KFmap.add kf_caller () state_fp.redo) callers
+    end;
     (* the intersect result is not used *)
     None
   in
@@ -729,12 +772,15 @@ let compute_usage () =
       fixpoint state_fp.todo
   in fixpoint todo ;
   (* TODO[LC]: prendre en compte la compilation des fonctions logiques et predicats ; Cf. add_lphi *)
-  let usage = KFmap.map (fun ctx -> E.cup (E.cup ctx.code ctx.spec_globals) ctx.spec_formals) usage in
-  u_init, usage
+  let usage =
+    KFmap.map
+      (fun ctx -> E.cup (E.cup ctx.code ctx.spec_globals) ctx.spec_formals)
+      usage 
+  in u_init, usage
 
-(* -------------------------------------------------------------------------- *)
-(* --- Projectified Analysis Result                                       --- *)
-(* -------------------------------------------------------------------------- *)
+(* ---------------------------------------------------------------------- *)
+(* --- Projectified Analysis Result                                   --- *)
+(* ---------------------------------------------------------------------- *)
 
 module D = Datatype.Make
     (struct
@@ -753,26 +799,20 @@ module S = State_builder.Option_ref(D)
 (* compute_usage is called once per project *)
 let usage () = S.memo compute_usage
 
-(* -------------------------------------------------------------------------- *)
-(* --- API                                                                --- *)
-(* -------------------------------------------------------------------------- *)
+(* ---------------------------------------------------------------------- *)
+(* --- API                                                            --- *)
+(* ---------------------------------------------------------------------- *)
 
-let iter ?on_init ?on_kf vi =
-  let u_init, u_kfmap = usage () in
-  let option opt job = match opt with None -> () | Some f -> job f in
-  begin
-    option on_init (fun on_init ->
-        let u = E.get vi u_init in
-        if u <> NoAccess then on_init u
-      ) ;
-    option on_kf (fun on_kf ->
-        KFmap.iter
-          (fun kf u_kf ->
-             let u = E.get vi u_kf in
-             if u<>NoAccess then on_kf kf u)
-          u_kfmap
-      ) ;
-  end
+let iter ?kf ?(init=false) f =
+  let u_init, usage = usage () in
+  let kf_access = match kf with
+    | None -> E.bot
+    | Some kf ->
+        (try KFmap.find kf usage
+         with Not_found -> E.bot)
+  in
+  let access = if init then E.cup kf_access u_init else kf_access in
+  E.iter f access
 
 let get ?kf ?(init=false) vi =
   let u_init, usage = usage () in
@@ -798,7 +838,8 @@ let dump () =
       KFmap.iter (fun kf m ->
           (* Do not dump results for frama-c builtins *)
           if not (Cil.is_builtin (Kernel_function.get_vi kf)) then
-            Format.fprintf fmt "............@.... Function %a@.%a" Kernel_function.pretty kf E.pretty m;
+            Format.fprintf fmt "............@.... Function %a@.%a"
+              Kernel_function.pretty kf E.pretty m;
         ) a_usage;
       Format.fprintf fmt ".................................................@\n" ;
     end

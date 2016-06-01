@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,7 +20,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* this is a prelude for Alt-Ergo*)
+(* this is the prelude for Alt-Ergo, any versions *)
 (** The theory BuiltIn_ must be appended to this file*)
 (** The theory Bool_ must be appended to this file*)
 (** The theory real_Real_ must be appended to this file*)
@@ -74,13 +74,47 @@ axiom float_64 :
 
 type float_kind = Real | Float32 | Float64 | NaN | Inf_pos | Inf_neg
 
+logic match_float_kind : float_kind, 'a, 'a, 'a, 'a, 'a, 'a -> 'a
+
+axiom match_float_kind_Real :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  forall z5:'a. (match_float_kind(Real, z, z1, z2, z3, z4, z5) = z))
+
+axiom match_float_kind_Float32 :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  forall z5:'a. (match_float_kind(Float32, z, z1, z2, z3, z4, z5) = z1))
+
+axiom match_float_kind_Float64 :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  forall z5:'a. (match_float_kind(Float64, z, z1, z2, z3, z4, z5) = z2))
+
+axiom match_float_kind_NaN :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  forall z5:'a. (match_float_kind(NaN, z, z1, z2, z3, z4, z5) = z3))
+
+axiom match_float_kind_Inf_pos :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  forall z5:'a. (match_float_kind(Inf_pos, z, z1, z2, z3, z4, z5) = z4))
+
+axiom match_float_kind_Inf_neg :
+  (forall z:'a. forall z1:'a. forall z2:'a. forall z3:'a. forall z4:'a.
+  forall z5:'a. (match_float_kind(Inf_neg, z, z1, z2, z3, z4, z5) = z5))
+
 logic classify_float : real -> float_kind
-predicate is_finite32(x:real) = classify_float(x) = Float32
-predicate is_finite64(x:real) = classify_float(x) = Float32 or classify_float(x) = Float64
-predicate is_NaN(x:real) = classify_float(x) = NaN
-predicate is_infinite(x:real) = classify_float(x) = Inf_pos or classify_float(x) = Inf_neg
-predicate is_positive_infinite(x:real) = classify_float(x) = Inf_pos
-predicate is_negative_infinite(x:real) = classify_float(x) = Inf_neg
+
+predicate is_finite32(x: real) = (classify_float(x) = Float32)
+
+predicate is_finite64(x: real) = ((classify_float(x) = Float32) or
+  (classify_float(x) = Float64))
+
+predicate is_NaN(x: real) = (classify_float(x) = NaN)
+
+predicate is_infinite(x: real) = ((classify_float(x) = Inf_pos) or
+  (classify_float(x) = Inf_neg))
+
+predicate is_positive_infinite(x: real) = (classify_float(x) = Inf_pos)
+
+predicate is_negative_infinite(x: real) = (classify_float(x) = Inf_neg)
 
 axiom is_finite_to_float_32 :
   (forall x:real [is_finite32(to_float32(x))]. is_finite32(to_float32(x)))
@@ -124,3 +158,4 @@ axiom model_div :
   (forall x:real. forall y:real. (model((x / y)) = (model(x) / model(y))))
 
 axiom model_sqrt : (forall x:real. (model(sqrt(x)) = sqrt(model(x))))
+

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -399,8 +399,7 @@ module Memory = struct
       ~reducing:false ~exact m loc (DepsOrUnassigned.AssignedFrom v)
 
   let is_unassigned m =
-    let unassigned v = DepsOrUnassigned.(equal v Unassigned) in
-    LOffset.is_single_interval ~f:unassigned m
+    LOffset.is_same_value m DepsOrUnassigned.Unassigned
 
   (* Unassigned is a neutral value for compose, on both sides *)
   let decide_compose m1 m2 =
@@ -597,7 +596,8 @@ let pretty_with_type ~indirect typ fmt { deps_return = r; deps_table = t } =
           Format.fprintf fmt "@ "
       in
       Format.fprintf fmt "@[<v>%a%t@[\\result FROM @[%a@]@]@]"
-        map_pretty t pp_space Deps.pretty r
+        map_pretty t pp_space
+        (if indirect then Deps.pretty_precise else Deps.pretty) r
 
 let pretty_with_type_indirect = pretty_with_type ~indirect:true
 let pretty_with_type = pretty_with_type ~indirect:false

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -114,7 +114,7 @@ class occurrence = object (self)
         Locations.Zone.fold_topset_ok
           (fun b _ () ->
             match b with
-              | Base.Var (vi, _) | Base.Initialized_Var (vi, _) ->
+              | Base.Var (vi, _) | Base.Allocated (vi, _) ->
                   Occurrences.add vi self#current_kf ki lv
               | _ -> ()
           ) z ()
@@ -129,8 +129,8 @@ class occurrence = object (self)
        let lv = !Db.Properties.Interp.term_lval_to_lval ~result:None tlv in
        ignore (self#vlval lv)
      with
-       | Invalid_argument "not an lvalue" -> () (* Translation to lval failed.*)
-       | Invalid_argument msg -> error ~current:true "%s@." msg);
+       (* Translation to lval failed.*)
+       | Db.Properties.Interp.No_conversion -> ());
     DoChildren
 
   method! vstmt_aux s =
@@ -178,9 +178,9 @@ let classify_accesses (_kf, ki, lv) =
               else Write
             else Read
 
-        | Asm (_, _, out, inp, _, _,_) ->
-            if List.exists (fun (_, _, out) -> is_lv out) out then
-              if List.exists (fun (_, _, inp) -> contained_exp inp) inp
+        | Asm (_, _, Some { asm_outputs; asm_inputs },_) ->
+            if List.exists (fun (_, _, out) -> is_lv out) asm_outputs then
+              if List.exists (fun (_, _, inp) -> contained_exp inp) asm_inputs
               then Both
               else Write
             else Read

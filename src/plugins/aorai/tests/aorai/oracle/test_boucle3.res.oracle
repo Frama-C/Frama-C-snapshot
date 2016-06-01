@@ -54,7 +54,32 @@ int rr = 1;
     behavior buch_state_accept_all_out:
       ensures 0 ≡ accept_all;
  */
-extern void opa_pre_func(void);
+void opa_pre_func(void)
+{
+  /*@ ghost int T0_S4_tmp; */
+  /*@ ghost int T0_init_tmp; */
+  /*@ ghost int T1_S2_tmp; */
+  /*@ ghost int accept_S3_tmp; */
+  /*@ ghost int accept_all_tmp; */
+  aorai_CurOpStatus = aorai_Called;
+  aorai_CurOperation = op_opa;
+  T0_S4_tmp = T0_S4;
+  T0_init_tmp = T0_init;
+  T1_S2_tmp = T1_S2;
+  accept_S3_tmp = accept_S3;
+  accept_all_tmp = accept_all;
+  accept_all_tmp = 0;
+  accept_S3_tmp = 0;
+  if (T1_S2 == 1) T1_S2_tmp = 1; else T1_S2_tmp = 0;
+  T0_init_tmp = 0;
+  if (T0_S4 == 1) T0_S4_tmp = 1; else T0_S4_tmp = 0;
+  T0_S4 = T0_S4_tmp;
+  T0_init = T0_init_tmp;
+  T1_S2 = T1_S2_tmp;
+  accept_S3 = accept_S3_tmp;
+  accept_all = accept_all_tmp;
+  return;
+}
 
 /*@ requires
       (1 ≡ T0_S4 ∨ 1 ≡ T1_S2) ∧ 0 ≡ T0_init ∧ 0 ≡ accept_S3 ∧
@@ -89,7 +114,32 @@ extern void opa_pre_func(void);
     behavior buch_state_accept_all_out:
       ensures 0 ≡ accept_all;
  */
-extern void opa_post_func(void);
+void opa_post_func(void)
+{
+  /*@ ghost int T0_S4_tmp; */
+  /*@ ghost int T0_init_tmp; */
+  /*@ ghost int T1_S2_tmp; */
+  /*@ ghost int accept_S3_tmp; */
+  /*@ ghost int accept_all_tmp; */
+  aorai_CurOpStatus = aorai_Terminated;
+  aorai_CurOperation = op_opa;
+  T0_S4_tmp = T0_S4;
+  T0_init_tmp = T0_init;
+  T1_S2_tmp = T1_S2;
+  accept_S3_tmp = accept_S3;
+  accept_all_tmp = accept_all;
+  accept_all_tmp = 0;
+  accept_S3_tmp = 0;
+  if (T1_S2 == 1) T1_S2_tmp = 1; else T1_S2_tmp = 0;
+  T0_init_tmp = 0;
+  if (T0_S4 == 1) T0_S4_tmp = 1; else T0_S4_tmp = 0;
+  T0_S4 = T0_S4_tmp;
+  T0_init = T0_init_tmp;
+  T1_S2 = T1_S2_tmp;
+  accept_S3 = accept_S3_tmp;
+  accept_all = accept_all_tmp;
+  return;
+}
 
 /*@ requires
       (1 ≡ T0_S4 ∨ 1 ≡ T1_S2) ∧ 0 ≡ T0_init ∧ 0 ≡ accept_S3 ∧
@@ -159,7 +209,34 @@ void opa(void)
     behavior buch_state_accept_all_out:
       ensures 0 ≡ accept_all;
  */
-extern void opb_pre_func(void);
+void opb_pre_func(void)
+{
+  /*@ ghost int T0_S4_tmp; */
+  /*@ ghost int T0_init_tmp; */
+  /*@ ghost int T1_S2_tmp; */
+  /*@ ghost int accept_S3_tmp; */
+  /*@ ghost int accept_all_tmp; */
+  aorai_CurOpStatus = aorai_Called;
+  aorai_CurOperation = op_opb;
+  T0_S4_tmp = T0_S4;
+  T0_init_tmp = T0_init;
+  T1_S2_tmp = T1_S2;
+  accept_S3_tmp = accept_S3;
+  accept_all_tmp = accept_all;
+  accept_all_tmp = 0;
+  if (T1_S2 == 1) 
+    if (rr == 51) accept_S3_tmp = 1; else accept_S3_tmp = 0;
+  else accept_S3_tmp = 0;
+  T1_S2_tmp = 0;
+  T0_init_tmp = 0;
+  T0_S4_tmp = 0;
+  T0_S4 = T0_S4_tmp;
+  T0_init = T0_init_tmp;
+  T1_S2 = T1_S2_tmp;
+  accept_S3 = accept_S3_tmp;
+  accept_all = accept_all_tmp;
+  return;
+}
 
 /*@ requires
       1 ≡ accept_S3 ∧ 0 ≡ T0_S4 ∧ 0 ≡ T0_init ∧ 0 ≡ T1_S2 ∧
@@ -189,7 +266,32 @@ extern void opb_pre_func(void);
     behavior buch_state_accept_all_out:
       ensures 0 ≡ accept_all;
  */
-extern void opb_post_func(void);
+void opb_post_func(void)
+{
+  /*@ ghost int T0_S4_tmp; */
+  /*@ ghost int T0_init_tmp; */
+  /*@ ghost int T1_S2_tmp; */
+  /*@ ghost int accept_S3_tmp; */
+  /*@ ghost int accept_all_tmp; */
+  aorai_CurOpStatus = aorai_Terminated;
+  aorai_CurOperation = op_opb;
+  T0_S4_tmp = T0_S4;
+  T0_init_tmp = T0_init;
+  T1_S2_tmp = T1_S2;
+  accept_S3_tmp = accept_S3;
+  accept_all_tmp = accept_all;
+  accept_all_tmp = 0;
+  accept_S3_tmp = 0;
+  T1_S2_tmp = 0;
+  T0_init_tmp = 0;
+  if (accept_S3 == 1) T0_S4_tmp = 1; else T0_S4_tmp = 0;
+  T0_S4 = T0_S4_tmp;
+  T0_init = T0_init_tmp;
+  T1_S2 = T1_S2_tmp;
+  accept_S3 = accept_S3_tmp;
+  accept_all = accept_all_tmp;
+  return;
+}
 
 /*@ requires
       1 ≡ T1_S2 ∧ 0 ≡ T0_S4 ∧ 0 ≡ T0_init ∧ 0 ≡ accept_S3 ∧
@@ -235,7 +337,32 @@ void opb(void)
     behavior buch_state_accept_all_out:
       ensures 0 ≡ accept_all;
  */
-extern void main_pre_func(void);
+void main_pre_func(void)
+{
+  /*@ ghost int T0_S4_tmp; */
+  /*@ ghost int T0_init_tmp; */
+  /*@ ghost int T1_S2_tmp; */
+  /*@ ghost int accept_S3_tmp; */
+  /*@ ghost int accept_all_tmp; */
+  aorai_CurOpStatus = aorai_Called;
+  aorai_CurOperation = op_main;
+  T0_S4_tmp = T0_S4;
+  T0_init_tmp = T0_init;
+  T1_S2_tmp = T1_S2;
+  accept_S3_tmp = accept_S3;
+  accept_all_tmp = accept_all;
+  accept_all_tmp = 0;
+  accept_S3_tmp = 0;
+  if (T0_init == 1) T1_S2_tmp = 1; else T1_S2_tmp = 0;
+  T0_init_tmp = 0;
+  T0_S4_tmp = 0;
+  T0_S4 = T0_S4_tmp;
+  T0_init = T0_init_tmp;
+  T1_S2 = T1_S2_tmp;
+  accept_S3 = accept_S3_tmp;
+  accept_all = accept_all_tmp;
+  return;
+}
 
 /*@ requires
       1 ≡ T0_S4 ∧ 0 ≡ T0_init ∧ 0 ≡ T1_S2 ∧ 0 ≡ accept_S3 ∧
@@ -270,7 +397,32 @@ extern void main_pre_func(void);
       assumes 0 ≡ T0_S4;
       ensures 0 ≡ accept_all;
  */
-extern void main_post_func(int res);
+void main_post_func(int res)
+{
+  /*@ ghost int T0_S4_tmp; */
+  /*@ ghost int T0_init_tmp; */
+  /*@ ghost int T1_S2_tmp; */
+  /*@ ghost int accept_S3_tmp; */
+  /*@ ghost int accept_all_tmp; */
+  aorai_CurOpStatus = aorai_Terminated;
+  aorai_CurOperation = op_main;
+  T0_S4_tmp = T0_S4;
+  T0_init_tmp = T0_init;
+  T1_S2_tmp = T1_S2;
+  accept_S3_tmp = accept_S3;
+  accept_all_tmp = accept_all;
+  if (T0_S4 == 1) accept_all_tmp = 1; else accept_all_tmp = 0;
+  accept_S3_tmp = 0;
+  T1_S2_tmp = 0;
+  T0_init_tmp = 0;
+  if (T0_S4 == 1) T0_S4_tmp = 1; else T0_S4_tmp = 0;
+  T0_S4 = T0_S4_tmp;
+  T0_init = T0_init_tmp;
+  T1_S2 = T1_S2_tmp;
+  accept_S3 = accept_S3_tmp;
+  accept_all = accept_all_tmp;
+  return;
+}
 
 /*@ requires
       1 ≡ T0_init ∧ 0 ≡ T0_S4 ∧ 0 ≡ T1_S2 ∧ 0 ≡ accept_S3 ∧

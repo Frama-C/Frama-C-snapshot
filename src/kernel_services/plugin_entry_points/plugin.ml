@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -19,6 +19,8 @@
 (*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
 (*                                                                        *)
 (**************************************************************************)
+
+module CamlString = String
 
 let empty_string = ""
 
@@ -119,6 +121,42 @@ let get_from_shortname s = List.find (fun p -> p.p_shortname = s) !plugins
 let get s = 
   Cmdline.Kernel_log.deprecated
     "Plugin.get" ~now:"Plugin.get_from_name" get_from_name s
+
+(* ************************************************************************* *)
+(** {2 Global data structures} *)
+(* ************************************************************************* *)
+
+(* File formatters used by options [-<plugin>-log]. *)
+module File_formatters : sig
+  val get : string -> Format.formatter
+end =
+struct
+  (* File formatters must be globally defined so that if a new plugin
+     wants to redirect output to an existing file, the same formatter
+     must be used to avoid re-opening file descriptors and erasing data.
+     E.g. in `frama-c -plugin1-log file.txt -then -plugin2-log file.txt`,
+     the formatter avoids Frama-C from opening file.txt a second time, which
+     would truncate its contents. *)
+  let file_formatters : (string, Format.formatter) Hashtbl.t =
+    Hashtbl.create 0
+
+  (* Opens and returns a new file formatter if the file has not been opened
+     yet, otherwise returns the existing formatter for the file. *)
+  let get filename =
+    (* Note: normalized paths are not necessarily canonical, so if the
+       command-line arguments are unusual, this may fail to detect two
+       filenames as referring to the same file. *)
+    let normalized_filename = Filepath.normalize filename in
+    try
+      Hashtbl.find file_formatters normalized_filename
+    with
+    | Not_found ->
+      let oc = open_out normalized_filename in
+      let fmt = Format.formatter_of_out_channel oc in
+      Hashtbl.add file_formatters normalized_filename fmt;
+      Extlib.safe_at_exit (fun () -> Pervasives.close_out oc);
+      fmt
+end
 
 (* ************************************************************************* *)
 (** {2 The functor [Register]} *)
@@ -373,6 +411,95 @@ struct
       Parameter_customize.set_cmdline_stage Cmdline.Extended;
       prefix ^ optname
     end
+
+  let logfile_optname = output_mode "LogToFile" "log"
+  module LogToFile = struct
+    include String_map
+        (struct
+          include Datatype.String
+          type key = string
+          let of_string ~key:_ ~prev:_ s = s
+          let to_string ~key:_a b = b
+        end)
+        (struct
+          let option_name = logfile_optname
+          let arg_name = "K_1:file_1,..."
+          let help = "copy log messages from " ^
+                     (if is_kernel () then "the Frama-C kernel" else P.name) ^
+                     " to a file. <K> is a combination of these characters: \n\
+                      a: ALL messages (equivalent to 'dfiruw')\n\
+                      d: debug       e: user or internal error (same as 'iu')\n\
+                      f: feedback    i: internal error\n\
+                      r: result      u: user error    w: warning\n\
+                      An empty <K> (e.g. \":file.txt\") defaults to 'iruw'. \
+                      One plug-in can output to several files and vice-versa."
+          let default = Datatype.String.Map.empty
+        end)
+
+    type parse_result = | Parse_OK of Log.kind list
+                        | Parse_Error of string (*msg*)
+
+    (* default kinds when none are specified *)
+    let default_kinds_str = "erw"
+
+    (* all valid characters for specifing kinds *)
+    let valid_kinds_str = "adefiruw"
+
+    (* [parse_kinds str] parses [str] to return a list of [kind]s. *)
+    let parse_kinds str =
+      if Str.string_match (Str.regexp ("[^" ^ valid_kinds_str ^ "]")) str 0
+      then
+        Parse_Error
+          ("invalid log kind character, must be one of: " ^ valid_kinds_str)
+      else
+        let str = if str = "" then default_kinds_str else str in
+        let has_ch c = CamlString.contains str (Char.lowercase c) in
+        let list_of_bool b e = if b then [e] else [] in
+        let kinds =
+          list_of_bool (has_ch 'd' || has_ch 'a') Log.Debug @
+          list_of_bool (has_ch 'f' || has_ch 'a') Log.Feedback @
+          list_of_bool (has_ch 'i' || has_ch 'a' || has_ch 'e') Log.Failure @
+          list_of_bool (has_ch 'r' || has_ch 'a') Log.Result @
+          list_of_bool (has_ch 'u' || has_ch 'a' || has_ch 'e') Log.Error @
+          list_of_bool (has_ch 'w' || has_ch 'a') Log.Warning
+        in
+        Parse_OK kinds
+
+    let pp_source fmt = function
+      | None -> ()
+      | Some src ->
+        Format.fprintf fmt "%s:%d:" (Filepath.pretty src.Lexing.pos_fname)
+          src.Lexing.pos_lnum
+  end
+
+  (* Note: because of the imperative nature of Log listeners, and the
+     fact that they cannot be removed, whenever the -log option is
+     processed again (e.g. after a -then), we must only add new entries
+     to the list of listeners, otherwise we will duplicate the output. *)
+  (* Also note that this code CANNOT be put inside LogToFile, because it
+     uses Datatype. *)
+  let add_new_listeners plugin_name old_value new_value =
+    let new_entries =
+      Datatype.String.Map.filter
+        (fun k _ -> not (Datatype.String.Map.mem k old_value)) new_value
+    in
+    Datatype.String.Map.iter (fun kinds_str filename ->
+        match LogToFile.parse_kinds kinds_str with
+        | LogToFile.Parse_Error msg -> L.abort "%s" msg
+        | LogToFile.Parse_OK kinds ->
+          let fmt = File_formatters.get filename in
+          Log.add_listener ~plugin:plugin_name ~kind:kinds
+            (fun event ->
+               Format.fprintf fmt "%a[%s] %s@."
+                 LogToFile.pp_source event.Log.evt_source
+                 event.Log.evt_plugin event.Log.evt_message);
+      ) new_entries
+
+  let () =
+    LogToFile.add_set_hook
+      (add_new_listeners
+         (if is_kernel () then kernel_name else P.shortname)
+      )
 
   let verbose_optname = output_mode "Verbose" "verbose"
   module Verbose = struct

@@ -7,7 +7,7 @@ struct list {
 };
 /*@
 predicate reachable{L}(struct list *root, struct list *to) =
-  root ≡ to ∨ (root ≢ \null ∧ reachable{L}(root->next, to));
+  root ≡ to ∨ (root ≢ \null ∧ reachable(root->next, to));
  */
 int *q;
 /*@ assigns *p, q; */

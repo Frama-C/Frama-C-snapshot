@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -108,6 +108,7 @@ let occurrence_highlighter buffer loc ~start ~stop =
         ()
     | Some (result, vi) ->
         let result = filter_accesses result in
+        let buffer = buffer#buffer in
         let highlight () =
           let tag = make_tag buffer "occurrence" [`BACKGROUND "yellow" ] in
           apply_tag buffer tag start stop

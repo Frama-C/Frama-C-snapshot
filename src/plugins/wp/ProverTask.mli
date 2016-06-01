@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -75,7 +75,7 @@ class virtual command : string ->
 
   end
 
-val server : unit -> Task.server
+val server : ?procs:int -> unit -> Task.server
 
 val spawn : ?monitor:('a option -> unit) -> ('a * bool Task.task) list -> unit
 (** Spawn all the tasks over the server and retain the first 'validated' one.

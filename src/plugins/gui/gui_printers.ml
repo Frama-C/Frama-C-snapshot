@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -72,14 +72,14 @@ module ResolveLoc =
 let tid_of_typ typ =
   match typ with
   | TNamed _ | TComp _ | TEnum _ ->
-    (try
-       Some (ResolveTypId.find typ)
-     with
-     | Not_found ->
-       let nextId = ResolveTypId.length () in
-       ResolveTypId.replace typ nextId;
-       ResolveTyp.replace nextId typ;
-       Some nextId)
+      (try
+         Some (ResolveTypId.find typ)
+       with
+       | Not_found ->
+           let nextId = ResolveTypId.length () in
+           ResolveTypId.replace typ nextId;
+           ResolveTyp.replace nextId typ;
+           Some nextId)
   | _ -> None
 
 (* Returns the ID associated to a location (adding it to the maps if needed). *)
@@ -88,10 +88,10 @@ let lid_of_loc loc =
     ResolveLocId.find loc
   with
   | Not_found ->
-    let nextId = ResolveLocId.length () in
-    ResolveLocId.replace loc nextId;
-    ResolveLoc.replace nextId loc;
-    nextId
+      let nextId = ResolveLocId.length () in
+      ResolveLocId.replace loc nextId;
+      ResolveLoc.replace nextId loc;
+      nextId
 
 (* Returns the base type for a pointer/array, otherwise [t] itself.
    E.g. for [t = int***], returns [int]. *)
@@ -120,16 +120,16 @@ let pp_enum_unfolded fmt enum attrs =
 let pp_typ_unfolded fmt (t : typ) =
   match t with
   | TNamed (ty, attrs) ->
-    begin
-      (* unfolds the typedef, and one step further if it is a TComp/TEnum *)
-      match ty.ttype with
-      | TComp (comp, _, cattrs) ->
-        pp_tcomp_unfolded fmt comp (Cil.addAttributes attrs cattrs)
-      | TEnum (enum, eattrs) ->
-        pp_enum_unfolded fmt enum (Cil.addAttributes attrs eattrs)
-      | _ ->
-        Printer.pp_typ fmt (Cil.typeAddAttributes attrs ty.ttype)
-    end
+      begin
+        (* unfolds the typedef, and one step further if it is a TComp/TEnum *)
+        match ty.ttype with
+        | TComp (comp, _, cattrs) ->
+            pp_tcomp_unfolded fmt comp (Cil.addAttributes attrs cattrs)
+        | TEnum (enum, eattrs) ->
+            pp_enum_unfolded fmt enum (Cil.addAttributes attrs eattrs)
+        | _ ->
+            Printer.pp_typ fmt (Cil.typeAddAttributes attrs ty.ttype)
+      end
   | TComp (comp, _, attrs) -> pp_tcomp_unfolded fmt comp attrs
   | TEnum (enum, attrs) -> pp_enum_unfolded fmt enum attrs
   | _ -> Printer.pp_typ fmt t
@@ -138,7 +138,7 @@ let pp_typ fmt typ =
   match tid_of_typ typ with
   | None -> Format.fprintf fmt "@{%a@}" Printer.pp_typ typ
   | Some tid ->
-    Format.fprintf fmt "@{<link:typ%d>%a@}" tid Printer.pp_typ typ
+      Format.fprintf fmt "@{<link:typ%d>%a@}" tid Printer.pp_typ typ
 
 (* Override the default printer to add <link> tags around types and
    some l-values *)
@@ -150,8 +150,8 @@ module LinkPrinter(X: Printer.PrinterClass) = struct
       match tid_of_typ t with
       | None -> Format.fprintf fmt "@{%a@}" (super#typ ?fundecl nameOpt) t
       | Some tid ->
-        Format.fprintf fmt "@{<link:typ%d>%a@}"
-          tid (super#typ ?fundecl nameOpt) t
+          Format.fprintf fmt "@{<link:typ%d>%a@}"
+            tid (super#typ ?fundecl nameOpt) t
 
     method! varinfo fmt vi =
       ResolveVid.replace vi.vid vi;

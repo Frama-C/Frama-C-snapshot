@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -197,11 +197,15 @@
         "\\valid_read", VALID_READ;
         "\\valid_index", VALID_INDEX;
         "\\valid_range", VALID_RANGE;
+        "\\valid_function", VALID_FUNCTION;
         "\\with", WITH;
       ];
     fun lexbuf ->
       let s = lexeme lexbuf in
-      try Hashtbl.find h s with Not_found -> IDENTIFIER s
+      try Hashtbl.find h s with Not_found ->         
+	if Logic_env.typename_status s then TYPENAME s
+        else
+	  IDENTIFIER s
 
 
   let int_of_digit chr =
@@ -323,6 +327,7 @@ rule token = parse
   | "-"                     { MINUS }
   | "+"                     { PLUS }
   | "*"                     { STAR }
+  | "*^"                    { STARHAT }
   | "&"                     { AMP }
   | "^^"                    { HATHAT }
   | "^"                     { HAT }
@@ -343,6 +348,8 @@ rule token = parse
   | "}"                     { pop_state(); RBRACE }
   | "["                     { Stack.push Normal state_stack; LSQUARE }
   | "]"                     { pop_state(); RSQUARE }
+  | "[|"                    { Stack.push Normal state_stack; LSQUAREPIPE }
+  | "|]"                    { pop_state(); RSQUAREPIPE }
   | "<:"                    { LTCOLON }
   | ":>"                    { COLONGT }
   | "<<"                    { LTLT }
@@ -403,13 +410,15 @@ and hash = parse
 | rD+	        { (* We are seeing a line number. This is the number for the
                    * next line *)
                  let s = Lexing.lexeme lexbuf in
-                 let lineno = try
-                   int_of_string s
-                 with Failure ("int_of_string") ->
-                   (* the int is too big. *)
-                   Kernel.warning ~source:lexbuf.lex_start_p
-                     "Bad line number in preprocessed file: %s"  s;
-                   (-1)
+                 let lineno =
+                   try
+                     int_of_string s
+                   with Failure _ ->
+                     (* the int is too big. *)
+                     Kernel.warning
+                       ~source:lexbuf.lex_start_p
+                       "Bad line number in preprocessed file: %s"  s;
+                     (-1)
                  in
                  update_line_loc lexbuf (lineno - 1) true 0;
                   (* A file name may follow *)

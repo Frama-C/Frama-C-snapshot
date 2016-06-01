@@ -1,0 +1,9 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_plugin/unsafe-arrays.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+tests/wp_plugin/unsafe-arrays.i:13:[wp] user error: Invalid infinite range (shiftfield_F1_f p_0)+(..)
+[kernel] Plug-in wp aborted: invalid user input.

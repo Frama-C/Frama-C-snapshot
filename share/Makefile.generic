@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2015                                               #
+#  Copyright (C) 2007-2016                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -71,7 +71,7 @@ endif
 	$(OCAMLC) -c $(BFLAGS) $<
 
 %.cmi: %.cmo
-	:
+	$(TOUCH) $@
 
 %.cmo: %.ml
 	$(PRINT_OCAMLC) $@
@@ -81,14 +81,21 @@ endif
 	$(PRINT_INFERRING) $@
 	$(OCAMLC) -i $(BFLAGS) $< > $@
 
-%.cmx: %.ml
+# Using the technique of intf-suffix given by Alain Frisch in
+# http://caml.inria.fr/mantis/view.php?id=4991
+# forces ocamlopt to not create a new cmi.
+%.cmx: %.ml %.cmi
 	$(PRINT_OCAMLOPT) $@
-	$(OCAMLOPT) -c $(OFLAGS) $<
+	$(OCAMLOPT) -intf-suffix .cmi -c $(OFLAGS) $<
+
+# So we can define specific variables that are not inherited
+# Cf. GNU Make manual, Section 6.12 Pattern-specific Variable Values
+%.cmx: OFLAGS:=$(OFLAGS)
 
 # .o are generated together with .cmx, but %.o %.cmx: %.ml only confuses
 # make when computing dependencies...
 %.o: %.cmx
-	:
+	$(TOUCH) $@
 
 .ml.cmxs:
 	$(PRINT_PACKING) $@

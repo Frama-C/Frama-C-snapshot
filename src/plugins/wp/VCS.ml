@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -206,6 +206,8 @@ let failed ?pos msg = {
   prover_errmsg = msg ;
 }
 
+let kfailed ?pos msg = Pretty_utils.ksfprintf (failed ?pos) msg
+
 let pp_perf fmt r =
   begin
     let t = r.solver_time in
@@ -229,7 +231,7 @@ let pp_result fmt r =
   | Unknown -> Format.fprintf fmt "Unknown%a" pp_perf r
   | Timeout -> Format.fprintf fmt "Timeout%a" pp_perf r
   | Stepout -> Format.fprintf fmt "Step limit%a" pp_perf r
-  | Failed -> Format.fprintf fmt "Failed@\nError: %s" r.prover_errmsg
+  | Failed -> Format.fprintf fmt "Failed@ %s" r.prover_errmsg
 
 let compare p q =
   let rank = function

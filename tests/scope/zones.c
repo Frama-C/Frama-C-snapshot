@@ -1,8 +1,8 @@
 /* run.config
-
-
    OPT: -load-script tests/scope/zones.ml -val -journal-disable
 */
+
+
 
 /* bin/viewer.opt -val tests/scope/zones.c */
 

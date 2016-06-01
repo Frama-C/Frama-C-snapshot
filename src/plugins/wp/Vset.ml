@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -68,51 +68,17 @@ let vars vset = List.fold_left
 (* --- Pretty                                                             --- *)
 (* -------------------------------------------------------------------------- *)
 
-(*
-let is_elt = function Set _ | Descr _ -> false | Singleton _ | Range _ -> true
-
-let pp_elt fmt = function
-  | Set _ | Descr _ -> ()
-  | Singleton t -> F.pp_term fmt t
-  | Range(Some a,Some b) -> Format.fprintf fmt "%a..%a" F.pp_term a F.pp_term b
-  | Range(None,Some b) -> Format.fprintf fmt "..%a" F.pp_term b
-  | Range(Some a,None) -> Format.fprintf fmt "%a.." F.pp_term a
-  | Range(None,None) -> Format.pp_print_string fmt ".."
-
-let pp_elts fmt = function
-  | [] -> ()
-  | x::xs ->
-      pp_elt fmt x ;
-      List.iter (fun x -> Format.fprintf fmt ",@,%a" pp_elt x) xs
+let pp_bound fmt = function
+  | None -> ()
+  | Some e -> F.pp_term fmt e
 
 let pp_vset fmt = function
-  | (Singleton _ | Range _) as e -> Format.fprintf fmt "@[{%a}@]" pp_elt e
   | Set(_,t) -> F.pp_term fmt t
-  | Descr(xs,t,p) ->
-      begin
-	Format.fprintf fmt "@[<hv 2>{ @[<hov 2>%a@]" F.pp_term t  ;
-	if xs <> [] then
-	  ( Format.fprintf fmt "@ @[<hov 2>for" ;
-	    List.iter (fun x -> Format.fprintf fmt "@ %a" Var.pretty x) xs ) ;
-	Format.fprintf fmt "@ @[<hov 2>with <hov 2>%a@] }@]" F.pp_pred p ;
-      end
+  | Singleton x -> Format.fprintf fmt "@[<hov 2>{ %a }@]" F.pp_term x
+  | Range(None,None) -> Format.pp_print_string fmt "[..]"
+  | Range(a,b) -> Format.fprintf fmt "@[<hov 2>[%a@,..%a]@]" pp_bound a pp_bound b
+  | Descr _ -> Format.fprintf fmt "{ <comprehension> }"
 
- let pretty fmt = function
-  | [] -> Format.fprintf fmt "{}"
-  | s ->
-      begin
-	let es,ds = List.partition is_elt s in
-	Format.fprintf fmt "@[<hv 0>" ;
-	if es <> [] then Format.fprintf fmt "@[<hov 1>{%a}@]" pp_elts es ;
-	match ds with
-	  | [] -> ()
-	  | ds when es <> [] ->
-	      List.iter (fun d -> Format.fprintf fmt "@ + %a" pp_vset d) ds
-	  | d::ds ->
-	      pp_vset fmt d ;
-	      List.iter (fun d -> Format.fprintf fmt "@ + %a" pp_vset d) ds
-      end
-*)
 (* -------------------------------------------------------------------------- *)
 (* --- Set Operations                                                     --- *)
 (* -------------------------------------------------------------------------- *)
@@ -157,7 +123,7 @@ let ordered ~limit ~strict a b =
   | Some x , Some y -> if strict then p_lt x y else p_leq x y
   | _ -> if limit then p_true else p_false
 
-let member x xs = p_all
+let member x xs = p_any
     (function
       | Set(_,s) -> p_call p_member [x;s]
       | Singleton e -> p_equal x e
@@ -354,10 +320,6 @@ let lift f xs ys =
        | Singleton a , Singleton b -> Singleton (f a b)
        | _ -> lift_vset f x y
     ) xs ys
-
-let pp_bound fmt = function
-  | None -> ()
-  | Some e -> F.pp_term fmt e
 
 let bound_shift a k =
   match a with

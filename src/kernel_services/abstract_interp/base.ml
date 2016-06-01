@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -24,18 +24,31 @@ open Cil_types
 open Cil
 open Abstract_interp
 
+type variable_validity = {
+  mutable weak: bool;
+  mutable min_alloc : Int.t;
+  mutable max_alloc : Int.t;
+  max_allocable: Int.t (* not mutable, determined when the base is created *);
+}
+
 type validity =
+  | Empty
   | Known of Int.t * Int.t
   | Unknown of Int.t * Int.t option * Int.t
+  | Variable of variable_validity
   | Invalid
 
 let pretty_validity fmt v =
   match v with
+  | Empty -> Format.fprintf fmt "Empty"
   | Unknown (b,k,e)  -> 
       Format.fprintf fmt "Unknown %a/%a/%a"
 	Int.pretty b (Pretty_utils.pp_opt Int.pretty) k Int.pretty e
   | Known (b,e)  -> Format.fprintf fmt "Known %a-%a" Int.pretty b Int.pretty e
   | Invalid -> Format.fprintf fmt "Invalid"
+  | Variable variable_v ->
+      Format.fprintf fmt "Variable [0..%a--%a]"
+	Int.pretty variable_v.min_alloc Int.pretty variable_v.max_alloc
 
 module Validity = Datatype.Make
   (struct
@@ -44,29 +57,45 @@ module Validity = Datatype.Make
     let structural_descr = Structural_descr.t_abstract
     let reprs = [ Known (Int.zero, Int.one) ]
 
+    (* Invalid > Variable > Unknown > Known > Empty *)
     let compare v1 v2 = match v1, v2 with
+      | Empty, Empty -> 0
+      | Known (b1, e1), Known (b2, e2) ->
+        let c = Int.compare b1 b2 in
+        if c = 0 then Int.compare e1 e2 else c
       | Unknown (b1, m1, e1), Unknown (b2, m2, e2) ->
         let c = Int.compare b1 b2 in
         if c = 0 then
           let c = Extlib.opt_compare Int.compare m1 m2 in
-          if c = 0 then Int.compare e1 e2 else 0
+          if c = 0 then Int.compare e1 e2 else c
+        else c
+      | Variable v1, Variable v2 ->
+        let c = Int.compare v1.min_alloc v2.min_alloc in
+        if c = 0 then
+          let c = Int.compare v1.max_alloc v2.max_alloc in
+          if c = 0 then Int.compare v1.max_allocable v2.max_allocable
+          else c
         else c
       | Invalid, Invalid -> 0
-      | Known (b1, e1), Known (b2, e2) ->
-        let c = Int.compare b1 b2 in
-        if c = 0 then Int.compare e1 e2 else 0
-      | Known _, (Unknown _ | Invalid)
-      | Unknown _, Invalid -> -1
-      | Invalid, (Unknown _ | Known _)
-      | Unknown _, Known _ -> 1
+      | Empty, (Known _ | Unknown _ | Variable _ | Invalid)
+      | Known _, (Unknown _ | Variable _ | Invalid)
+      | Unknown _, (Variable _ | Invalid)
+      | Variable _, Invalid -> -1
+      | Invalid, (Variable _ | Unknown _ | Known _ | Empty)
+      | Variable _, (Unknown _ | Known _ | Empty)
+      | Unknown _, (Known _ | Empty)
+      | Known _, Empty -> 1
 
     let equal = Datatype.from_compare
 
     let hash v = match v with
+      | Empty -> 13
       | Invalid -> 37
       | Known (b, e) -> Hashtbl.hash (3, Int.hash b, Int.hash e)
       | Unknown (b, m, e) ->
         Hashtbl.hash (7, Int.hash b, Extlib.opt_hash Int.hash m, Int.hash e)
+      | Variable variable_v ->
+        Hashtbl.hash (Int.hash variable_v.min_alloc, Int.hash variable_v.max_alloc)
 
     let pretty = pretty_validity
     let mem_project = Datatype.never_any_project
@@ -80,14 +109,13 @@ type cstring = CSString of string | CSWstring of Escape.wstring
 
 type base =
   | Var of varinfo * validity
-  | Initialized_Var of varinfo * validity
-      (** base that is implicitly initialized. *)
   | CLogic_Var of logic_var * typ * validity
   | Null (** base for addresses like [(int* )0x123] *)
   | String of int * cstring (** String constants *)
+  | Allocated of varinfo * validity
 
 let id = function
-  | Var (vi,_) | Initialized_Var (vi,_) -> vi.vid
+  | Var (vi,_) | Allocated (vi,_) -> vi.vid
   | CLogic_Var (lvi, _, _) -> lvi.lv_id
   | Null -> 0
   | String (id,_) -> id
@@ -103,13 +131,13 @@ let pretty fmt t =
     | String (_, CSString s) -> Format.fprintf fmt "%S" s
     | String (_, CSWstring s) -> 
         Format.fprintf fmt "L\"%s\"" (Escape.escape_wstring s)
-    | Var (t,_) | Initialized_Var (t,_) -> Printer.pp_varinfo fmt t
+    | Var (t,_) | Allocated (t,_) -> Printer.pp_varinfo fmt t
     | CLogic_Var (lvi, _, _) -> Printer.pp_logic_var fmt lvi
     | Null -> Format.pp_print_string fmt "NULL"
 
 let pretty_addr fmt t =
   (match t with
-    | Var _ | Initialized_Var _ | CLogic_Var _ ->
+    | Var _ | CLogic_Var _ | Allocated _ ->
       Format.pp_print_string fmt "&"
     | String _ | Null -> ()
   );
@@ -122,7 +150,7 @@ let typeof v =
   | String (_,_) -> Some charConstPtrType
   | CLogic_Var (_, ty, _) -> Some ty
   | Null -> None
-  | Var (v,_) | Initialized_Var (v,_) -> Some (unrollType v.vtype)
+  | Var (v,_) | Allocated(v,_) -> Some (unrollType v.vtype)
 
 let cstring_bitlength s = 
   let u, l = 
@@ -139,7 +167,7 @@ let bits_sizeof v =
     | String (_,e) ->
         Int_Base.inject (cstring_bitlength e)
     | Null -> Int_Base.top
-    | Var (v,_) | Initialized_Var (v,_) ->
+    | Var (v,_) | Allocated (v,_) ->
         Bit_utils.sizeof_vid v
     | CLogic_Var (_, ty, _) -> Bit_utils.sizeof ty
 
@@ -182,18 +210,22 @@ let () =
 let min_valid_absolute_address = MinValidAbsoluteAddress.get
 let max_valid_absolute_address = MaxValidAbsoluteAddress.get
 
+let validity_from_size size =
+  assert Int.(ge size zero);
+  if Int.(equal size zero) then Empty
+  else Known (Int.zero, Int.pred size)
+
 let validity_from_known_size size =
   match size with
   | Int_Base.Value size ->
           (* all start to be valid at offset 0 *)
-    Known (Int.zero,Int.pred size)
+    validity_from_size size
   | Int_Base.Top ->
     Unknown (Int.zero, None, Bit_utils.max_bit_address ())
 
-  
-
-let validity v =
-  match v with
+let validity b =
+  match b with
+  | Var (_,v) | CLogic_Var (_, _, v) | Allocated (_,v) -> v
   | Null ->
       let mn = min_valid_absolute_address ()in
       let mx = max_valid_absolute_address () in
@@ -201,9 +233,8 @@ let validity v =
         Known (mn, mx)
       else
         Invalid
-  | Var (_,v) | Initialized_Var (_,v) | CLogic_Var (_, _, v) -> v
   | String _ ->
-      let size = bits_sizeof v in
+      let size = bits_sizeof b in
       validity_from_known_size size
 
 exception Not_valid_offset
@@ -214,10 +245,22 @@ let is_read_only base =
   | Var (v,_) -> Kernel.ConstReadonly.get () && typeHasQualifier "const" v.vtype
   | _ -> false
 
+(* Minor optimization compared to [is_weak (validity b)] *)
+let is_weak = function
+  | Allocated (_, Variable { weak }) -> weak
+  | _ -> false
+
 let is_valid_offset ~for_writing size base offset =
+  let wrap_inf = function
+    | None -> raise Not_valid_offset
+    | Some v -> v
+  in
   if for_writing && (is_read_only base)
   then raise Not_valid_offset;
   match validity base with
+  | Empty ->
+    if not (Int.(equal zero size) && Ival.(equal offset zero)) then
+       raise Not_valid_offset
   | Invalid ->
     (* Special case. We stretch the truth and say that the address of the
        base itself is valid for a size of 0. We use a size of 0 to emulate
@@ -226,36 +269,26 @@ let is_valid_offset ~for_writing size base offset =
       raise Not_valid_offset
   | Known (min_valid,max_valid)
   | Unknown (min_valid, Some max_valid, _) ->
+    (* valid between min_valid .. max_valid inclusive *)
     if not (Ival.is_bottom offset) then
-      let min = Ival.min_int offset in
-      begin match min with
-      | None -> raise Not_valid_offset
-      | Some min -> 
-(*	  Format.printf "111 %a %a@." Int.pretty min_valid Int.pretty min; *)
-	  if Int.lt min min_valid then raise Not_valid_offset
-      end;
-      let max = Ival.max_int offset in
-      begin match max with
-      | None -> raise Not_valid_offset
-      | Some max ->
-	  (*Format.printf "222 %a: mb %a, m %a, size %a@."
-            pretty base Int.pretty  max_valid Int.pretty max Int.pretty size;*)
-          if Int.gt (Int.pred (Int.add max size)) max_valid then
-            raise Not_valid_offset
-      end
+      let min = wrap_inf (Ival.min_int offset) in
+      if Int.lt min min_valid then raise Not_valid_offset;
+      let max = wrap_inf (Ival.max_int offset) in
+      if Int.gt (Int.pred (Int.add max size)) max_valid then
+        raise Not_valid_offset
+  | Variable {min_alloc = min_valid} ->
+    (* valid between 0 .. min_valid inclusive *)
+    if not (Ival.is_bottom offset) then
+      let min = wrap_inf (Ival.min_int offset) in
+      if Int.lt min Int.zero then raise Not_valid_offset;
+      let max = wrap_inf (Ival.max_int offset) in
+      if Int.gt (Int.pred (Int.add max size)) min_valid then
+        raise Not_valid_offset
   | Unknown (_, None, _) -> raise Not_valid_offset
-
-let validity_max_offset = function
-  | Known (_, ma) -> Ival.inject_singleton ma
-  | Unknown (mi, None, ma) -> Ival.inject_range (Some mi) (Some ma)
-  | Unknown (_, Some mi, ma) -> Ival.inject_range (Some (Int.succ mi)) (Some ma)
-  | Invalid -> Ival.bottom
-
-let base_max_offset b = validity_max_offset (validity b)
 
 let is_function base =
   match base with
-    String _ | Null | Initialized_Var _ | CLogic_Var _ -> false
+  | String _ | Null | CLogic_Var _ | Allocated _ -> false
   | Var(v,_) ->
       isFunctionType v.vtype
 
@@ -266,7 +299,7 @@ let is_aligned_by b alignment =
   then false
   else
     match b with
-      Var (v,_) | Initialized_Var (v,_) ->
+    | Var (v,_) | Allocated(v,_) ->
         Int.is_zero (Int.rem (Int.of_int (Cil.bytesAlignOf v.vtype)) alignment)
     | CLogic_Var (_, ty, _) ->
       Int.is_zero (Int.rem (Int.of_int (Cil.bytesAlignOf ty)) alignment)
@@ -275,54 +308,46 @@ let is_aligned_by b alignment =
 
 let is_any_formal_or_local v =
   match v with
-  | Var (v,_) | Initialized_Var (v,_) -> v.vsource && not v.vglob
-  | CLogic_Var _ -> false
+  | Var (v,_) -> v.vsource && not v.vglob
+  | Allocated _ | CLogic_Var _ -> false
   | Null | String _ -> false
 
 let is_any_local v =
   match v with
-  | Var (v,_) | Initialized_Var (v,_) ->
-    v.vsource && not v.vglob && not v.vformal
-  | CLogic_Var _ -> false
+  | Var (v,_) -> v.vsource && not v.vglob && not v.vformal
+  | Allocated _ | CLogic_Var _ -> false
   | Null | String _ -> false
 
 let is_global v =
   match v with
-  | Var (v,_) | Initialized_Var (v,_) -> v.vglob
+  | Var (v,_) -> v.vglob
+  | Allocated _ | Null | String _ -> true
   | CLogic_Var _ -> false
-  | Null | String _ -> true
 
 let is_formal_or_local v fundec =
   match v with
-  | Var (v,_) | Initialized_Var (v,_) ->
-      Ast_info.Function.is_formal_or_local v fundec
-  | CLogic_Var _ -> false
-  | Null | String _ -> false
+  | Var (v,_) -> Ast_info.Function.is_formal_or_local v fundec
+  | Allocated _ | CLogic_Var _ | Null | String _ -> false
 
 let is_formal_of_prototype v vi =
   match v with
-  | Var (v,_) | Initialized_Var (v,_) ->
-      Ast_info.Function.is_formal_of_prototype v vi
-  | CLogic_Var _ -> false
-  | Null | String _ -> false
+  | Var (v,_) -> Ast_info.Function.is_formal_of_prototype v vi
+  | Allocated _ | CLogic_Var _ | Null | String _ -> false
 
 let is_local v fundec =
   match v with
-  | CLogic_Var _ -> false
-  | Var (v,_) | Initialized_Var (v,_) -> Ast_info.Function.is_local v fundec
-  | Null | String _ -> false
+  | Var (v,_) -> Ast_info.Function.is_local v fundec
+  | Allocated _ | CLogic_Var _ | Null | String _ -> false
 
 let is_formal v fundec =
   match v with
-  | CLogic_Var _ -> false
-  | Var (v,_) | Initialized_Var (v,_) -> Ast_info.Function.is_formal v fundec
-  | Null | String _ -> false
+  | Var (v,_)  -> Ast_info.Function.is_formal v fundec
+  | Allocated _ | CLogic_Var _ | Null | String _ -> false
 
 let is_block_local v block =
   match v with
-  | CLogic_Var _ -> false
-  | Var (v,_) | Initialized_Var (v,_) -> Ast_info.is_block_local v block
-  | Null | String _ -> false
+  | Var (v,_) -> Ast_info.is_block_local v block
+  | Allocated _ | CLogic_Var _ | Null | String _ -> false
 
 let validity_from_type v =
   if isFunctionType v.vtype then Invalid
@@ -330,18 +355,32 @@ let validity_from_type v =
   let max_valid = Bit_utils.sizeof_vid v in
   match max_valid with
   | Int_Base.Top ->
-      Unknown (Int.zero, None, Bit_utils.max_bit_address ())
-  | Int_Base.Value size when Int.gt size Int.zero ->
-      (*Format.printf "Got %a for %s@\n" Int.pretty size v.vname;*)
-      Known (Int.zero,Int.pred size)
-  | Int_Base.Value size ->
-      assert (Int.equal size Int.zero);
-      Unknown (Int.zero, None, Bit_utils.max_bit_address ())
+    Unknown (Int.zero, None, Bit_utils.max_bit_address ())
+  | Int_Base.Value size -> validity_from_size size
+
+type range_validity =
+  | Invalid_range
+  | Valid_range of Int_Intervals_sig.itv option
 
 let valid_range = function
-  | Invalid -> None
+  | Invalid -> Invalid_range
+  | Empty -> Valid_range None
   | Known (min_valid,max_valid)
-  | Unknown (min_valid,_,max_valid)-> Some (min_valid, max_valid)
+  | Unknown (min_valid,_,max_valid)-> Valid_range (Some (min_valid, max_valid))
+  | Variable variable_v -> Valid_range (Some (Int.zero, variable_v.max_alloc))
+
+let is_weak_validity = function
+  | Variable { weak } -> weak
+  | _ -> false
+
+let create_variable_validity ~weak ~min_alloc ~max_alloc =
+  let max_allocable = Bit_utils.max_bit_address () in
+  { weak; min_alloc; max_alloc; max_allocable }
+
+let update_variable_validity v ~weak ~min_alloc ~max_alloc =
+  v.min_alloc <- Int.min min_alloc v.min_alloc;
+  v.max_alloc <- Int.max max_alloc v.max_alloc;
+  if weak then v.weak <- true
 
 
 module Base = struct
@@ -410,9 +449,9 @@ let register_memory_var varinfo validity =
   VarinfoNotSource.add varinfo base;
   base
 
-let register_initialized_var varinfo validity =
+let register_allocated_var varinfo validity =
   assert (not varinfo.vsource);
-  let base = Initialized_Var (varinfo,validity) in
+  let base = Allocated (varinfo,validity) in
   VarinfoNotSource.add varinfo base;
   base
 
@@ -434,8 +473,8 @@ let of_varinfo varinfo =
 exception Not_a_C_variable
 
 let to_varinfo t = match t with
-  | Var (t,_) | Initialized_Var (t,_) -> t
-  | _ -> raise Not_a_C_variable
+  | Var (t,_) | Allocated (t,_) -> t
+  | CLogic_Var _ | Null | String _ -> raise Not_a_C_variable
 
 
 module LiteralStrings =

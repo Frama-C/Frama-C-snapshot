@@ -1,0 +1,56 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/float/float_cast_implicite.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  C0 ∈ {0}
+  C2 ∈ {2}
+  CBP ∈ {2000000000}
+  fic0 ∈ {0}
+  fic1 ∈ {0}
+  fic2 ∈ {0}
+  fic4 ∈ {0}
+  fec0 ∈ {0}
+  fec2 ∈ {0}
+  fec4 ∈ {0}
+  ficbp ∈ {0}
+  ficbn ∈ {0}
+  fecbp ∈ {0}
+  fecbn ∈ {0}
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  fic0 ∈ {0}
+  fic1 ∈ {1.}
+  fic2 ∈ {2.}
+  fic4 ∈ {4.}
+  fec0 ∈ {0}
+  fec2 ∈ {2.}
+  fec4 ∈ {4.}
+  ficbp ∈ {2000000000.}
+  ficbn ∈ {-2000000000.}
+  fecbp ∈ {2000000000.}
+  fecbn ∈ {-2000000000.}
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  fic0 FROM C0
+  fic1 FROM \nothing
+  fic2 FROM C2
+  fic4 FROM C2
+  fec0 FROM C0
+  fec2 FROM C2
+  fec4 FROM C2
+  ficbp FROM CBP
+  ficbn FROM CBP
+  fecbp FROM CBP
+  fecbn FROM CBP
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          fic0; fic1; fic2; fic4; fec0; fec2; fec4; ficbp; ficbn; fecbp; fecbn
+[inout] Inputs for function main:
+          C0; C2; CBP

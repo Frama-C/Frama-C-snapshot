@@ -5,7 +5,7 @@
 [value] Initial state computed
 [value] Values of globals at initialization
   
-tests/syntax/unroll_visit.i:8:[value] Assertion got status valid.
+tests/syntax/unroll_visit.i:8:[value] assertion got status valid.
 tests/syntax/unroll_visit.i:6:[value] entering loop for the first time
 [value] Recording results for main
 [value] done for function main

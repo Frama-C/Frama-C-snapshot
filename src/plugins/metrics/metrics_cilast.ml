@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -187,8 +187,11 @@ class slocVisitor : sloc_visitor = object(self)
   method! vvdec vi =
     if not (Varinfo.Set.mem vi seen_vars) then (
       if Cil.isFunctionType vi.vtype then (
-        if consider_function vi then
+        if consider_function vi then begin
           global_metrics := incr_funcs !global_metrics;
+          (* Mark the function as seen, adding 0 to the number of calls *)
+          self#update_call_maps vi 0;
+        end
       ) else (
         if vi.vglob && not vi.vtemp && Metrics_base.consider_variable vi
         then (
@@ -312,22 +315,23 @@ class slocVisitor : sloc_visitor = object(self)
     let les_images = List.map self#image globs in
     String.concat "," les_images
 
+  method private update_call_maps vinfo increment =
+    if consider_function vinfo then
+      let update_call_map funcmap =
+        self#add_map funcmap vinfo
+          (increment + try VInfoMap.find vinfo !funcmap with Not_found-> 0)
+      in
+      if vinfo.vdefined
+      then update_call_map fundef_calls
+      else update_call_map fundecl_calls
+
+
   method! vinst i =
     begin match i with
       | Call(_, e, _, _) ->
         self#incr_both_metrics incr_calls;
         (match e.enode with
-          | Lval(Var vinfo, NoOffset) ->
-            if consider_function vinfo then
-              begin
-                let update_call_map funcmap =
-                  self#add_map funcmap vinfo
-                    (1 + try VInfoMap.find vinfo !funcmap with Not_found-> 0)
-                in
-                if vinfo.vdefined
-                then update_call_map fundef_calls
-                else update_call_map fundecl_calls
-              end
+          | Lval(Var vinfo, NoOffset) -> self#update_call_maps vinfo 1
           | _ -> ());
       | Set _ -> self#incr_both_metrics incr_assigns;
       | _ -> ()

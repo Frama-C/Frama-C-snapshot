@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -28,7 +28,7 @@ open ProverWhy3
 
 class provers config =
   object(self)
-    inherit [dp list] Toolbox.selector []
+    inherit [dp list] Wutil.selector []
 
     method private load () =
       let open Gtk_helper.Configuration in
@@ -63,11 +63,11 @@ class dp_chooser
     ~(available:provers)
     ~(enabled:provers)
   =
-  let dialog = new Toolbox.dialog
+  let dialog = new Wpane.dialog
     ~title:"Why3 Provers"
     ~window:main#main_window
     ~resize:false () in
-  let array = new Toolbox.warray () in
+  let array = new Wpane.warray () in
   object(self)
 
     val mutable provers = []
@@ -86,8 +86,8 @@ class dp_chooser
 
     method private entry dp =
       let text = Printf.sprintf "%s (%s)" dp.dp_name dp.dp_version in
-      let sw = new Toolbox.switchbox () in
-      let lb = new Toolbox.label ~align:`Left ~text () in
+      let sw = new Widget.switch () in
+      let lb = new Widget.label ~align:`Left ~text () in
       sw#set (self#lookup dp) ;
       sw#connect (self#enable dp) ;
       let hbox = GPack.hbox ~spacing:10 ~homogeneous:false () in
@@ -126,7 +126,7 @@ class dp_chooser
         dialog#button ~action:(`ACTION self#detect) ~label:"Detect Provers" () ;
         dialog#button ~action:(`CANCEL) ~label:"Cancel" () ;
         dialog#button ~action:(`APPLY) ~label:"Apply" () ;
-        array#create self#entry ;
+        array#set_entry self#entry ;
         dialog#add_block array#coerce ;
         dialog#on_value `APPLY self#select ;
       end
@@ -153,7 +153,7 @@ class dp_button ~(available:provers) ~(enabled:provers) =
     | Why3 dp -> Printf.sprintf "Why3: %s (%s)" dp.dp_name dp.dp_version
   in
   let items = [ NoProver ; AltErgo ; Coq ; Why3ide ] in
-  let button = new Toolbox.menulist ~default:AltErgo ~render ~items () in
+  let button = new Widget.menu ~default:AltErgo ~render ~items () in
   object(self)
     method coerce = button#coerce
     method set_enabled = button#set_enabled

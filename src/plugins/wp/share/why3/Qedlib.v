@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -191,7 +191,7 @@ Qed.
 
 Definition real_base e a n :=
   match n with
-  | 0 => 1%R
+  | 0 => a
   | Zpos n => (a * pow e (Pos.to_nat n))%R
   | Zneg n => (a / pow e (Pos.to_nat n))%R
   end.

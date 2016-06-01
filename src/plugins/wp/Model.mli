@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -26,16 +26,20 @@ module S : Datatype.S_with_collections
 type t = S.t
 type model = S.t
 type tuning = (unit -> unit)
+type separation = Kernel_function.t -> Separation.clause list
 
 val repr : model
-val register : id:string ->
+val register :
+  id:string ->
   ?descr:string ->
   ?tuning:tuning list ->
+  ?separation:separation ->
   unit -> model
 
 val get_id : model -> string
 val get_descr : model -> string
 val get_emitter : model -> Emitter.t
+val get_separation : model -> separation
 
 val find : id:string -> model
 val iter : (model -> unit) -> unit
@@ -46,9 +50,9 @@ val get_model : unit -> model (** Current model *)
 val is_model_defined : unit -> bool
 
 type scope = Kernel_function.t option
-val on_scope : scope -> (unit -> unit) -> unit
-val on_kf : Kernel_function.t -> (unit -> unit) -> unit (** on_scope None *)
-val on_global : (unit -> unit) -> unit (** on_scope (Some kf) *)
+val on_scope : scope -> ('a -> 'b) -> 'a -> 'b
+val on_kf : Kernel_function.t -> (unit -> unit) -> unit (** on_scope (Some kf) *)
+val on_global : (unit -> unit) -> unit (** on_scope None *)
 val get_scope : unit -> scope
 
 val directory : unit -> string (** Current model in ["-wp-out"] directory *)

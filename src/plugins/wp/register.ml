@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -62,7 +62,59 @@ let set_model (s:setup) =
 let computer () =
   if Wp_parameters.Model.get () = ["Dump"]
   then CfgDump.create ()
-  else Factory.computer (cmdline ()) (Driver.load_driver ())
+  else CfgWP.computer (cmdline ()) (Driver.load_driver ())
+
+(* ------------------------------------------------------------------------ *)
+(* ---  Separation Hypotheses                                           --- *)
+(* ------------------------------------------------------------------------ *)
+
+module Models = Model.S.Set
+module Fmap = Kernel_function.Map
+
+let wp_iter_model ?ip ?index job =
+  begin
+    let pool : Models.t Fmap.t ref = ref Fmap.empty in
+    Wpo.iter ?ip ?index ~on_goal:(fun wpo ->
+        match Wpo.get_index wpo with
+        | Wpo.Axiomatic _ -> ()
+        | Wpo.Function(kf,_) ->
+            let m = Wpo.get_model wpo in
+            let ms = try Fmap.find kf !pool with Not_found -> Models.empty in
+            if not (Models.mem m ms) then
+              pool := Fmap.add kf (Models.add m ms) !pool ;
+      ) () ;
+    Fmap.iter (fun kf ms -> Models.iter (fun m -> job kf m) ms) !pool
+  end
+
+let wp_print_separation fmt =
+  begin
+    Format.fprintf fmt "//-------------------------------------------@\n" ;
+    Format.fprintf fmt "//--- Separation Hypotheses@\n" ;
+    Format.fprintf fmt "//-------------------------------------------@\n" ;
+    let k = ref 0 in
+    let printer = new Printer.extensible_printer () in
+    let pp_vdecl = printer#without_annot printer#vdecl in
+    wp_iter_model
+      (fun kf m ->
+         let sep = Separation.requires (Model.get_separation m kf) in
+         let vkf = Kernel_function.get_vi kf in
+         if sep <> [] then
+           begin
+             incr k ;
+             Format.fprintf fmt
+               "@[<hv 0>(*@ behavior %s:" (Model.get_id m) ;
+             List.iter
+               (fun clause ->
+                  Format.fprintf fmt "@ @[<hov 2>requires %a;@]"
+                    Separation.pp_clause clause
+               ) sep ;
+             Format.fprintf fmt "@ *)@\n%a;@]@\n" pp_vdecl vkf ;
+             Format.fprintf fmt "//-------------------------------------------@." ;
+           end
+      ) ;
+    if !k>1 then Format.fprintf fmt "/* (%d hypotheses) */@\n" !k ;
+    Format.fprintf fmt "//-------------------------------------------@." ;
+  end
 
 (* ------------------------------------------------------------------------ *)
 (* ---  Printing informations                                           --- *)
@@ -90,13 +142,17 @@ let do_wp_print_for goals =
         (fun fmt -> Bag.iter (Wpo.pp_goal_flow fmt) goals)
 
 let do_wp_report () =
-  let rfiles = Wp_parameters.Report.get () in
-  if rfiles <> [] then
-    begin
-      let stats = WpReport.fcstat () in
-      List.iter (WpReport.export stats) rfiles ;
-    end
-
+  begin
+    let rfiles = Wp_parameters.Report.get () in
+    if rfiles <> [] then
+      begin
+        let stats = WpReport.fcstat () in
+        List.iter (WpReport.export stats) rfiles ;
+      end ;
+    if Wp_parameters.Separation.get () then
+      Log.print_on_output wp_print_separation ;
+  end
+    
 (* ------------------------------------------------------------------------ *)
 (* ---  Wp Results                                                      --- *)
 (* ------------------------------------------------------------------------ *)
@@ -121,10 +177,10 @@ let auto_check_valid goal result = match goal with
   | { Wpo.po_formula = Wpo.GoalCheck _ } -> result.VCS.verdict = VCS.Valid
   | _ -> false
 
-let wp_why3ide_launch task =
+let launch task =
   let server = ProverTask.server () in
   (** Do on_server_stop save why3 session *)
-  Task.spawn server task;
+  Task.spawn server (Task.thread task) ;
   Task.launch server
 
 (* ------------------------------------------------------------------------ *)
@@ -224,6 +280,9 @@ let do_wpo_start goal =
       Wp_parameters.feedback "[Qed] Goal %s preprocessing" (Wpo.get_gid goal) ;
   end
 
+let do_wpo_wait () =
+  Wp_parameters.feedback ~ontty:`Transient "[wp] Waiting provers..."
+
 let do_wpo_prover goal _prover =
   begin
     if !scheduled > 0 then
@@ -232,6 +291,24 @@ let do_wpo_prover goal _prover =
       Wp_parameters.feedback ~ontty:`Transient "[%02d%%] %s" pp goal.Wpo.po_sid ;
   end
 
+let do_wpo_stat goal prover res =
+  let s = get_pstat prover in
+  let open VCS in
+  match res.verdict with
+  | Checked | NoResult | Computing _ | Invalid | Unknown ->
+      s.unknown <- succ s.unknown
+  | Stepout | Timeout ->
+      s.interrupted <- succ s.interrupted
+  | Failed ->
+      s.failed <- succ s.failed
+  | Valid ->
+      proved := GOALS.add goal !proved ;
+      s.proved <- succ s.proved ;
+      add_step s res.prover_steps ;
+      add_time s res.prover_time ;
+      if prover <> Qed then
+        add_time (get_pstat Qed) res.solver_time
+          
 let do_wpo_result goal prover res =
   if VCS.is_verdict res && not (auto_check_valid goal res) then
     begin
@@ -245,19 +322,19 @@ let do_wpo_result goal prover res =
             VCS.pp_result res ;
         end ;
       if prover = VCS.Qed then do_wpo_prover goal prover ;
-      let s = get_pstat prover in
+      do_wpo_stat goal prover res ;
+    end
+
+let do_why3_result goal prover res =
+  if VCS.is_verdict res && not (auto_check_valid goal res) then
+    begin
+      do_wpo_stat goal prover res ;
       let open VCS in
-      match res.verdict with
-      | Checked | NoResult | Computing _ | Invalid | Unknown -> s.unknown <- succ s.unknown
-      | Stepout | Timeout -> s.interrupted <- succ s.interrupted
-      | Failed -> s.failed <- succ s.failed
-      | Valid ->
-          proved := GOALS.add goal !proved ;
-          s.proved <- succ s.proved ;
-          add_step s res.prover_steps ;
-          add_time s res.prover_time ;
-          if prover <> Qed then
-            add_time (get_pstat Qed) res.solver_time
+      if res.verdict <> Valid then
+        Wp_parameters.result
+          "[%a] Goal %s : %a"
+          VCS.pp_prover prover (Wpo.get_gid goal)
+          VCS.pp_result res ;
     end
 
 let do_wpo_success goal s =
@@ -277,7 +354,7 @@ let do_wpo_success goal s =
                     pp_warnings fmt goal ;
                     List.iter
                       (fun (p,r) ->
-                         Format.fprintf fmt "@\n%8s: %a"
+                         Format.fprintf fmt "@\n%8s: @[<hv>%a@]"
                            (VCS.name_of_prover p) VCS.pp_result r
                       ) pres ;
                   end
@@ -345,8 +422,8 @@ let do_list_scheduled_result () =
 (* ---  Proving                                                         --- *)
 (* ------------------------------------------------------------------------ *)
 
-let spwan_wp_proofs_iter ~provers iter_on_goals =
-  if provers <> [] then
+let spawn_wp_proofs_iter ~provers iter_on_goals =
+  if provers<>[] then
     begin
       let server = ProverTask.server () in
       ignore (Wp_parameters.Share.dir ()); (* To prevent further errors *)
@@ -360,13 +437,9 @@ let spwan_wp_proofs_iter ~provers iter_on_goals =
                ~success:do_wpo_success
                provers
         ) ;
+      Task.on_server_wait server do_wpo_wait ;
       Task.launch server
     end
-  else if not (Wp_parameters.Print.get ()) then
-    iter_on_goals
-      (fun goal ->
-         if not (already_valid goal) then
-           do_wpo_display goal)
 
 let get_prover_names () =
   match Wp_parameters.Provers.get () with [] -> [ "alt-ergo" ] | pnames -> pnames
@@ -387,9 +460,14 @@ let do_wp_proofs_iter iter =
   begin
     if spawned then do_list_scheduled iter ;
     if !do_why3_ide
-    then wp_why3ide_launch (Prover.wp_why3ide ~callback:do_wpo_result iter) ;
-    spwan_wp_proofs_iter ~provers iter ;
-    if spawned then do_list_scheduled_result () ;
+    then launch (ProverWhy3ide.prove ~callback:do_why3_result ~iter) ;
+    spawn_wp_proofs_iter ~provers iter ;
+    if spawned then do_list_scheduled_result ()
+    else if not (Wp_parameters.Print.get ()) then
+      iter
+        (fun goal ->
+           if not (already_valid goal) then
+             do_wpo_display goal)
   end
 
 let do_wp_proofs () = do_wp_proofs_iter (fun f -> Wpo.iter ~on_goal:f ())
@@ -592,24 +670,46 @@ let do_prover_detect () =
 (* ---  Main Entry Point                                                --- *)
 (* ------------------------------------------------------------------------ *)
 
-let do_finally job1 job2 () =
-  if Wp_parameters.has_dkey "raised" then
-    begin
-      job1 () ;
-      job2 () ;
-    end
-  else
-    let r1 = try job1 () ; None with error -> Some error in
-    let r2 = try job2 () ; None with error -> Some error in
-    match r1 , r2 with
-    | None , None -> ()
-    | Some e1 , _ -> raise e1
-    | None , Some e2 -> raise e2
+(*
+(* This filter can be changed to make exceptions interrupting
+   the sequence immediately *)
+let catch_exn (_:exn) =
+  not (Wp_parameters.has_dkey "raised")
 
-let (&&&) = do_finally
-let rec sequence jobs = match jobs with
-  | [] -> fun () -> ()
-  | head::tail -> head &&& sequence tail
+(* This order can be changed *)
+let reraised_exn (first:exn) (_last:exn) = Some first
+
+(* Don't use Extlib.try_finally:
+   No exception is used for control here.
+   Backtrace is dumped here for debugging purpose.
+   We just record one of the raised exceptions (to be raised again),
+   while ensuring all tasks are finally executed. *)
+let protect err job =
+  try job ()
+  with e when catch_exn e ->
+    let b = Printexc.get_raw_backtrace () in
+    Wp_parameters.failure "%s@\n%s"
+      (Printexc.to_string e)
+      (Printexc.raw_backtrace_to_string b) ;
+    match !err with
+    | None -> err := Some e
+    | Some previous -> err := reraised_exn previous e
+
+let sequence jobs =
+  let err = ref None in
+  List.iter (protect err) jobs ;
+  match !err with None -> () | Some e -> raise e
+*)
+
+let rec try_sequence jobs () = match jobs with
+  | [] -> ()
+  | head :: tail ->
+      Extlib.try_finally ~finally:(try_sequence tail) head ()
+
+let sequence jobs () =
+  if Wp_parameters.has_dkey "raised"
+  then List.iter (fun f -> f ()) jobs
+  else try_sequence jobs ()
 
 let tracelog () =
   if Datatype.String.Set.is_empty (Wp_parameters.Debug_category.get ()) then

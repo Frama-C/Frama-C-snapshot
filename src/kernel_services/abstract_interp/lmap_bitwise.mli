@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -55,6 +55,8 @@ module type Location_map_bitwise = sig
     sep:string ->
     unit ->
     t Pretty_utils.formatter
+
+  val pretty_debug: t Pretty_utils.formatter
 
   val add_binding : reducing:bool -> exact:bool -> t -> Zone.t -> v -> t
   val add_binding_loc: reducing:bool -> exact:bool -> t -> location -> v -> t

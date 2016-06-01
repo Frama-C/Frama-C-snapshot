@@ -5,18 +5,21 @@ Hint InfN_not_finite,property.
 Proof.
 (* auto with zarith. *)
 admit.
-Qed.
+Admitted.
 
 Goal typed_lemma_InfP_not_finite.
 Hint InfP_not_finite,property.
 Proof.
 (* auto with zarith. *)
 admit.
-Qed.
+Admitted.
 
 Goal typed_lemma_NaN_not_finite.
 Hint NaN_not_finite,property.
 Proof.
 (* auto with zarith. *)
 admit.
-Qed.
+Admitted.
+
+
+

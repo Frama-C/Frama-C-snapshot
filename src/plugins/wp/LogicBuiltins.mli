@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -36,10 +36,17 @@ type kind =
   | F of Ctypes.c_float (** C-floats *)
   | A                   (** Abstract Data *)
 
+(** Add a new builtin. This builtin will be shared with all created drivers *)
+val add_builtin : string -> kind list -> lfun -> unit
+
 type driver
 val driver: driver Context.value
-val new_driver: ?includes:string list -> id:string -> descr:string -> unit
-(** reset the context to an empty driver *)
+
+val create: id:string -> ?descr:string -> ?includes:string list -> unit -> driver
+(** Create a new driver. leave the context empty. *)
+
+val init: id:string -> ?descr:string -> ?includes:string list -> unit -> unit
+(** Reset the context to a newly created driver *)
 
 val id : driver -> string
 val descr : driver -> string
@@ -54,8 +61,6 @@ val dependencies : string -> string list
 
 val add_library : string -> string list -> unit
 (** Add a new library or update the dependencies of an existing one *)
-
-val add_builtin : string -> kind list -> lfun -> unit
 
 val add_alias : string -> kind list -> alias:string -> unit -> unit
 

@@ -1,5 +1,5 @@
 [kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
-[kernel] Parsing tests/sparecode/params.c (with preprocessing)
+[kernel] Parsing tests/sparecode/params.i (no preprocessing)
 [slicing] slicing requests in progress...
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
@@ -7,7 +7,7 @@
 [value] Values of globals at initialization
   
 [value] computing for function main1 <- main.
-        Called from tests/sparecode/params.c:17.
+        Called from tests/sparecode/params.i:17.
 [value] Recording results for main1
 [value] Done for function main1
 [value] Recording results for main

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -446,6 +446,13 @@ module Value = struct
     Hook.Build
       (struct type t = state * (kernel_function * kinstr) list end)
 
+  module Call_Type_Value_Callbacks =
+    Hook.Build(struct
+      type t = [`Builtin of Value_types.call_result | `Spec | `Def | `Memexec]
+        * state * (kernel_function * kinstr) list end)
+  ;;
+
+
   module Compute_Statement_Callbacks =
     Hook.Build
       (struct type t = stmt * callstack * state list end)
@@ -605,7 +612,8 @@ module Value = struct
       Value_types.call_result
 
   exception Outside_builtin_possibilities
-  let register_builtin = mk_fun "Value.record_builtin"
+  let register_builtin = mk_fun "Value.register_builtin"
+  let registered_builtins = mk_fun "Value.registered_builtins"
   let mem_builtin = mk_fun "Value.mem_builtin"
 
   let use_spec_instead_of_definition =
@@ -698,6 +706,9 @@ module Value = struct
 end
 
 module From = struct
+
+  exception Not_lval
+
   let access = mk_fun "From.access"
   let find_deps_no_transitivity = mk_fun "From.find_deps_no_transitivity"
   let find_deps_no_transitivity_state =
@@ -1035,6 +1046,8 @@ module Properties = struct
 
   module Interp = struct
 
+   exception No_conversion
+
   (** Interpretation and conversions of of formulas *)
     let code_annot = mk_fun "Properties.Interp.code_annot"
     let term_lval = mk_fun "Properties.Interp.term_lval"
@@ -1131,7 +1144,7 @@ module RteGen = struct
   let get_precond_status = mk_fun "RteGen.get_precond_status"
   let get_signedOv_status = mk_fun "RteGen.get_signedOv_status"
   let get_divMod_status = mk_fun "RteGen.get_divMod_status"
-  let get_downCast_status = mk_fun "RteGen.get_downCast_status"
+  let get_signed_downCast_status = mk_fun "RteGen.get_signed_downCast_status"
   let get_memAccess_status = mk_fun "RteGen.get_memAccess_status"
   let get_unsignedOv_status = mk_fun "RteGen.get_unsignedOv_status"
   let get_unsignedDownCast_status = mk_fun "RteGen.get_unsignedDownCast_status"

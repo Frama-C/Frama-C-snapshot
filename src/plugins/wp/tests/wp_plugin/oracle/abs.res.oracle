@@ -12,13 +12,11 @@
 
 Goal Post-condition (file tests/wp_plugin/abs.i, line 13) in 'abs':
 Assume {
-  (* Domain *)
-  Type: (is_sint32 abs_0) /\ (is_sint32 x_0).
-  (* tests/wp_plugin/abs.i:16: Conditional *)
-  If: x_0<0
-  Then { (* Control Flow *) Have: 0=(abs_0+x_0). }
-  Else { (* Control Flow *) Have: abs_0=x_0. }
+  Type: is_sint32(abs_0) /\ is_sint32(x).
+  If x < 0
+  Then { Have: 0 = (abs_0 + x). }
+  Else { Have: abs_0 = x. }
 }
-Prove: abs_0=(ABS x_0).
+Prove: abs_0 = my_abs(x).
 
 ------------------------------------------------------------

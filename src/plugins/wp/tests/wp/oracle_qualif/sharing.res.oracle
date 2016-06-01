@@ -6,9 +6,9 @@
 [wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
 [wp] 1 goal scheduled
-[wp] [Alt-Ergo] Goal typed_f_post : Timeout
+[wp] [Alt-Ergo] Goal typed_f_post : Unknown
 [wp] Proved goals:    0 / 1
-     Alt-Ergo:        0  (interrupted: 1)
+     Alt-Ergo:        0  (unknown: 1)
 ----------------------------------------------------------
 Functions           WP   Alt-Ergo    Total   Success
 f                   -      -           1       0.0%

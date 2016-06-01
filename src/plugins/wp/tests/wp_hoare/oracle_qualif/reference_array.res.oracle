@@ -53,7 +53,7 @@ Functions           WP   Alt-Ergo    Total   Success
 reset_1_5            3      1 (17)     4       100%
 load_1_5             3      1 (15)     4       100%
 add_1_5              3      1 (15)     4       100%
-calls_on_array_dim_1   5    3 (21)     8       100%
-calls_on_array_dim_2_to_1   4    1 (31)  10   50.0%
-calls_on_array_dim_2   5    3 (20)     8       100%
+calls_on_array_dim_1   5    3 (10)     8       100%
+calls_on_array_dim_2_to_1   4    1 (25)  10   50.0%
+calls_on_array_dim_2   5    3 (13)     8       100%
 ----------------------------------------------------------

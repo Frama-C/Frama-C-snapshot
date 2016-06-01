@@ -1,0 +1,12 @@
+# frama-c -wp -wp-rte [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_bts/issue_141.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[rte] annotating function f
+[rte] annotating function main
+tests/wp_bts/issue_141.i:18:[wp] warning: calculus failed on strategy
+              for 'main', behavior 'default!', all properties, both assigns or not because
+              unsupported strange loop(s). (abort)
+[wp] No proof obligations

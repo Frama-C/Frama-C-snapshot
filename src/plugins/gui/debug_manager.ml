@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -43,7 +43,7 @@ let state_dependency_graph ~packing () =
 (* [JS 2011/07/05] to be reimplemented *)
 let status_dependency_graph ~packing:_ () = assert false
 (*  let g = Properties_status.Consolidation_tree.get_full_graph () in
-  graph_view ~packing (Properties_status.Consolidation_tree.dump g)*)
+    graph_view ~packing (Properties_status.Consolidation_tree.dump g)*)
 
 let graph_window main_window title mk_view =
   let height = int_of_float (float main_window#default_height *. 3. /. 4.) in
@@ -62,16 +62,16 @@ open Menu_manager
 let () =
   Design.register_extension
     (fun window ->
-      let mk_graph = graph_window window#main_window in
-      ignore
-        ((window#menu_manager ())#add_debug
-            ~show:(fun () -> Kernel.debug_atleast 1)
+       let mk_graph = graph_window window#main_window in
+       ignore
+         ((window#menu_manager ())#add_debug
+            ~show:(fun () -> Gui_parameters.debug_atleast 1)
             [ (let s = "State Dependency Graph" in
                menubar s
                  (Unit_callback (fun () -> mk_graph s state_dependency_graph)));
               (let s = "Status Graph" in
                menubar s
-                (Unit_callback (fun () -> mk_graph s status_dependency_graph)))
+                 (Unit_callback (fun () -> mk_graph s status_dependency_graph)))
             ]))
 
 (*

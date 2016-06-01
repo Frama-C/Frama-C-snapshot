@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -44,6 +44,10 @@ val register_behavior_extension:
  *)
 
 val state: Printer_api.state
+
+val print_global: Cil_types.global -> bool
+(** Is the given global displayed by the pretty-printer.
+    @since Aluminium-20160501 *)
 
 (*
 Local Variables:

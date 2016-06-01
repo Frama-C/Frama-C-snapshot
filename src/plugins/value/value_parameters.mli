@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -23,6 +23,23 @@
 include Plugin.General_services
 
 module ForceValues: Parameter_sig.With_output
+
+module Eva: Parameter_sig.Bool
+
+module EnumerateCond: Parameter_sig.Bool
+module OracleDepth: Parameter_sig.Int
+module ReductionDepth: Parameter_sig.Int
+
+module CvalueDomain: Parameter_sig.Bool
+module EqualityDomain: Parameter_sig.Bool
+module BitwiseOffsmDomain: Parameter_sig.Bool
+
+module ApronOctagon: Parameter_sig.Bool
+module ApronBox: Parameter_sig.Bool
+module PolkaLoose: Parameter_sig.Bool
+module PolkaStrict: Parameter_sig.Bool
+module PolkaEqualities: Parameter_sig.Bool
+
 
 module AutomaticContextMaxDepth: Parameter_sig.Int
 module AutomaticContextMaxWidth: Parameter_sig.Int
@@ -60,8 +77,19 @@ module ArrayPrecisionLevel: Parameter_sig.Int
 module AllocatedContextValid: Parameter_sig.Bool
 module InitializationPaddingGlobals: Parameter_sig.String
 
-module UndefinedPointerComparisonPropagateAll: Parameter_sig.Bool
+module SaveFunctionState:
+  Parameter_sig.Map with type key = Cil_types.kernel_function
+                     and type value = string
+module LoadFunctionState:
+  Parameter_sig.Map with type key = Cil_types.kernel_function
+                     and type value = string
+val get_SaveFunctionState : unit -> Cil_types.kernel_function * string
+val get_LoadFunctionState : unit -> Cil_types.kernel_function * string
 
+module UndefinedPointerComparisonPropagateAll: Parameter_sig.Bool
+module WarnPointerComparison: Parameter_sig.String
+
+module ReduceOnLogicAlarms: Parameter_sig.Bool
 
 module UsePrototype: Parameter_sig.Kernel_function_set
 

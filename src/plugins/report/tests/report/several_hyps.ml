@@ -46,12 +46,12 @@ let main () =
   let ensures =
     let kf = Globals.Functions.find_by_name "f" in
     let spec = Annotations.funspec kf in
-    Property.ip_post_cond_of_spec kf Kglobal spec
+    Property.ip_post_cond_of_spec kf Kglobal ~active:[] spec
   in
   let ensures2 =
     let kf = Globals.Functions.find_by_name "f2" in
     let spec = Annotations.funspec kf in
-    Property.ip_post_cond_of_spec kf Kglobal spec
+    Property.ip_post_cond_of_spec kf Kglobal ~active:[] spec
   in
   let reset f =
     clear ();

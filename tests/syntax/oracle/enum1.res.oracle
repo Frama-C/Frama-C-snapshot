@@ -57,7 +57,7 @@ int i1(void)
 int f(void)
 {
   int __retres;
-  __retres = 1;
+  __retres = ! EN1;
   return __retres;
 }
 

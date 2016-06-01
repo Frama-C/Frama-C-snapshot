@@ -148,13 +148,11 @@ Prove: true
 ------------------------------------------------------------
 
 Goal Post-condition 'qed_ko,KO' in 'cast_sgn_usgn':
-Assume { }
 Prove: false.
 
 ------------------------------------------------------------
 
 Goal Post-condition 'qed_ok,nat' in 'cast_sgn_usgn':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
@@ -163,19 +161,13 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Assertion 'qed_ok,A1' (file tests/wp_acsl/arith.i, line 16):
-Assume { (* Domain *) Type: (is_uint8 i_0). }
-Prove: 0<=i_0.
+Assume { Type: is_uint8(i). }
+Prove: 0 <= i.
 
 ------------------------------------------------------------
 
 Goal Assertion 'qed_ok,A2' (file tests/wp_acsl/arith.i, line 17):
-Assume {
-  (* Domain *)
-  Type: (is_uint8 i_0).
-  (* Assertion 'qed_ok,A1' (file tests/wp_acsl/arith.i, line 16) *)
-  (* tests/wp_acsl/arith.i:16: Assertion 'qed_ok,A1': *)
-  Have: 0<=i_0.
-}
-Prove: i_0<=255.
+Assume { Type: is_uint8(i). (* Assertion 'qed_ok,A1' *) Have: 0 <= i. }
+Prove: i <= 255.
 
 ------------------------------------------------------------

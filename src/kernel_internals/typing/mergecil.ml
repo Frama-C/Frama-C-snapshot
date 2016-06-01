@@ -2394,8 +2394,9 @@ let oneFilePass2 (f: file) =
 	    in
             let printout =
               (* Temporarily turn of printing of lines *)
-              let oldprintln = miscState.lineDirectiveStyle in
-              miscState.lineDirectiveStyle <- None;
+              let oldprintln =
+                Cil_printer.state.Printer_api.line_directive_style in
+              Cil_printer.state.Printer_api.line_directive_style <- None;
               (* Temporarily set the name to all functions in the same way *)
               let newname = fdec'.svar.vname in
               (* If we must do alpha conversion then temporarily set the
@@ -2429,7 +2430,7 @@ let oneFilePass2 (f: file) =
               end;
               (* Now print it *)
               let res = Pretty_utils.sfprintf "%a" Cil_printer.pp_global g' in
-              miscState.lineDirectiveStyle <- oldprintln;
+              Cil_printer.state.Printer_api.line_directive_style <- oldprintln;
               fdec'.svar.vname <- newname;
               if mergeInlinesWithAlphaConvert then begin
                 (* Do the locals in reverse order *)
@@ -2758,7 +2759,7 @@ let global_merge_spec g =
 	 (fun s -> 
 	   Kernel.debug ~dkey "Found spec to merge %a" Cil_printer.pp_funspec s)
          specs;
-       Kernel.debug "Renaming %a" Cil_printer.pp_funspec spec ;
+       Kernel.debug ~dkey "Renaming %a" Cil_printer.pp_funspec spec ;
        rename v spec;
        (* The registered specs might also need renaming up to 
           definition's formals instead of declaration's ones. *)

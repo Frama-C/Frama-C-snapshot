@@ -1,6 +1,6 @@
-opam-version: "1.2.0"
+opam-version: "1.2"
 name: "frama-c-base"
-version: "20151002"
+version: "20160502"
 maintainer: "francois.bobot@cea.fr"
 authors: [
   "Patrick Baudin"
@@ -8,12 +8,14 @@ authors: [
   "Richard Bonichon"
   "David Bühler"
   "Loïc Correnson"
+  "Julien Crétin"
   "Pascal Cuoq"
   "Zaynah Dargaye"
   "Jean-Christophe Filliâtre"
   "Philippe Herrmann"
   "Florent Kirchner"
   "Matthieu Lemerre"
+  "David Maison"
   "Claude Marché"
   "André Maroneze"
   "Benjamin Monate"
@@ -29,7 +31,7 @@ authors: [
 ]
 homepage: "http://frama-c.com/"
 license: "GNU Lesser General Public License version 2.1"
-doc: ["http://frama-c.com/download/user-manual-Sodium-20150201.pdf"]
+doc: ["http://frama-c.com/download/user-manual-Aluminium-20160501.pdf"]
 bug-reports: "https://bts.frama-c.com/"
 tags: [
   "deductive"
@@ -47,15 +49,28 @@ tags: [
 ]
 
 build: [
-  ["ocaml" "run_autoconf_if_needed.ml"] #when used in pinned mode the configure *can* not yet be generated
-  ["./configure" "--prefix" prefix]
+  ["sh" "-eux" "./run_autoconf_if_needed.sh"] # when used in pinned mode,
+                                              # the configure *cannot* yet be
+                                              # generated
+  ["./configure" "--prefix" prefix "--disable-local-ocamlgraph"
+                 "--disable-gui" { !conf-gtksourceview:installed |
+                                   !conf-gnomecanvas:installed }
+]
   [make]
+]
+
+install: [
   [make "install"]
 ]
 
 remove: [
-  ["ocaml" "run_autoconf_if_needed.ml"] #when used in pinned mode the configure *can* not yet be generated
-  ["./configure" "--prefix" prefix]
+  ["sh" "-eux" "./run_autoconf_if_needed.sh"] # when used in pinned mode,
+                                              # the configure *cannot* yet be
+                                              # generated
+  ["./configure" "--prefix" prefix "--disable-local-ocamlgraph"
+                 "--disable-gui" { !conf-gtksourceview:installed |
+                                   !conf-gnomecanvas:installed }
+]
   [make "uninstall"]
   ["rm" "-rf" frama-c:doc]
 ]
@@ -83,13 +98,15 @@ depopts: [
 ]
 
 messages: [
-   "Why3 can be used by the WP plugin for running additional automatic solvers" { !why3:installed }
-   "Coq can be used with the WP plugin for proving interactively proof obligations" { !coq:installed }
+   "Why3 can be used by the WP plug-in for running additional automatic solvers" { !why3:installed }
+   "Coq can be used with the WP plug-in for proving interactively proof obligations" { !coq:installed }
 ]
 
 conflicts: [
-  "why3" { < "0.85" }
+  "why3-base" { < "0.86" } #for WP plug-in
+  "coq"      { < "8.4.6" } #for WP plug-in
   "lablgtk" { < "2.18.2" } #for ocaml >= 4.02.1
 ]
 
-available: [ ocaml-version >= "4.00.1" & ocaml-version != "4.02.0" & ocaml-version != "4.02.2" ]
+available: [ ocaml-version >= "4.00.1" & ocaml-version != "4.02.0" &
+             ocaml-version != "4.02.2" ]

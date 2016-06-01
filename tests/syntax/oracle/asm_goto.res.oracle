@@ -4,7 +4,8 @@
 int main(unsigned short bit)
 {
   int __retres;
-  __asm__ goto ("1: jmp %l[t_no]\n": : "i"(bit): : t_no);
+  /*@ assigns \nothing; */
+  __asm__ goto ("1: jmp %l[t_no]\n" :  : "i" (bit) :  :t_no);
   __retres = 1;
   goto return_label;
   t_no: __retres = 0;

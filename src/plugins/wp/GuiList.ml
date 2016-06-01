@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -37,7 +37,7 @@ class model =
     method size = Windex.size index
     method index w = Windex.index w index
     method get k = Windex.get k index
-    method coerce = (self :> Wpo.t Custom.List.model)
+    method coerce = (self :> Wpo.t Wtable.listmodel)
   end
 
 let render_prover_result p =
@@ -67,7 +67,7 @@ let render_prover_result p =
 
 class pane (enabled:GuiConfig.provers) =
   let model = new model in
-  let list = new Custom.List.view ~headers:true ~rules:true model#coerce in
+  let list = new Wtable.list ~headers:true ~rules:true model#coerce in
   object(self)
 
     method coerce = list#coerce

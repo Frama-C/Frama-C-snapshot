@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -25,13 +25,11 @@ open Cil_types
 module type S = sig
   val is_computed: kernel_function -> bool
   val set: kernel_function -> bool -> unit
-  val self: State.t
 end
 
 module Make
   (M:sig
     val name:string
-    val default: kernel_function -> bool
     val parameter: Typed_parameter.t
     val additional_parameters: Typed_parameter.t list
   end)
@@ -42,7 +40,7 @@ struct
     Kernel_function.Make_Table
       (Datatype.Bool)
       (struct
-	let name = M.name
+	let name = "RTE.Computed." ^ M.name
 	let size = 17
 	let dependencies =
           let extract p = State.get p.Typed_parameter.name in
@@ -51,27 +49,20 @@ struct
 	  :: List.map extract (M.parameter :: M.additional_parameters) 
        end)
 
-  let is_computed kf = H.memo M.default kf
+  let is_computed =
+    (* Nothing to do for functions without body. *)
+    let default kf = not (Kernel_function.is_definition kf) in
+    fun kf -> H.memo default kf
   let set = H.replace
   let self = H.self
   let triple = M.name, set, is_computed
 
 end
 
-module Signed =
-  Make
-    (struct
-       let name = "signed_overflow"
-       let default kf = not (Kernel_function.is_definition kf)
-       let parameter = Kernel.SignedOverflow.parameter
-       let additional_parameters = []
-     end)
-
 module Mem_access =
   Make
     (struct
        let name = "mem_access"
-       let default kf = not (Kernel_function.is_definition kf)
        let parameter = Options.DoMemAccess.parameter
        let additional_parameters = [ Kernel.SafeArrays.parameter ]
      end)
@@ -80,7 +71,6 @@ module Div_mod =
   Make
     (struct
        let name = "division_by_zero"
-       let default kf = not (Kernel_function.is_definition kf)
        let parameter = Options.DoDivMod.parameter
        let additional_parameters = []
      end)
@@ -89,16 +79,22 @@ module Shift =
   Make
     (struct
        let name = "shift_value_out_of_bounds"
-       let default kf = not (Kernel_function.is_definition kf)
        let parameter = Options.DoShift.parameter
        let additional_parameters = []
      end)
 
-module Downcast =
+module Signed_overflow =
+  Make
+    (struct
+       let name = "signed_overflow"
+       let parameter = Kernel.SignedOverflow.parameter
+       let additional_parameters = []
+     end)
+
+module Signed_downcast =
   Make
     (struct
        let name = "downcast"
-       let default kf = not (Kernel_function.is_definition kf)
        let parameter = Kernel.SignedDowncast.parameter
        let additional_parameters = []
      end)
@@ -107,7 +103,6 @@ module Unsigned_overflow =
   Make
     (struct
        let name = "unsigned_overflow"
-       let default kf = not (Kernel_function.is_definition kf)
        let parameter = Kernel.UnsignedOverflow.parameter
        let additional_parameters = []
      end)
@@ -116,7 +111,6 @@ module Unsigned_downcast =
   Make
     (struct
        let name = "unsigned_downcast"
-       let default kf = not (Kernel_function.is_definition kf)
        let parameter = Kernel.UnsignedDowncast.parameter
        let additional_parameters = []
      end)
@@ -125,7 +119,6 @@ module Float_to_int =
   Make
     (struct
        let name = "float_to_int"
-       let default kf = not (Kernel_function.is_definition kf)
        let parameter = Options.DoFloatToInt.parameter
        let additional_parameters = []
      end)
@@ -134,7 +127,6 @@ module Called_precond =
   Make
     (struct
        let name = "precondition"
-       let default kf = not (Kernel_function.is_definition kf)
        let parameter = Options.DoCalledPrecond.parameter
        let additional_parameters = []
      end)
@@ -143,39 +135,39 @@ let proxy =
   State_builder.Proxy.create
     "RTE" 
     State_builder.Proxy.Backward
-    [ Signed.self;
-      Mem_access.self;
+    [ Mem_access.self;
       Div_mod.self;
       Shift.self;
-      Downcast.self;
-      Unsigned_downcast.self;
+      Signed_overflow.self;
+      Signed_downcast.self;
       Unsigned_overflow.self;
+      Unsigned_downcast.self;
       Float_to_int.self;
       Called_precond.self ]
 
 let self = State_builder.Proxy.get proxy
 let () = Db.RteGen.self := self
 
-let precond_status () = Called_precond.triple
-let signed_status () = Signed.triple
-let div_mod_status () = Div_mod.triple
-let shift_status () = Shift.triple
-let downcast_status () = Downcast.triple
-let mem_access_status () = Mem_access.triple
-let float_to_int_status () = Float_to_int.triple
-let unsigned_overflow_status () = Unsigned_overflow.triple
-let unsigned_downcast_status () = Unsigned_downcast.triple
+let precond_status = Called_precond.triple
+let div_mod_status = Div_mod.triple
+let shift_status = Shift.triple
+let signed_overflow_status = Signed_overflow.triple
+let signed_downcast_status = Signed_downcast.triple
+let mem_access_status = Mem_access.triple
+let float_to_int_status = Float_to_int.triple
+let unsigned_overflow_status = Unsigned_overflow.triple
+let unsigned_downcast_status = Unsigned_downcast.triple
 
-let all_status () =
-  [ precond_status ();
-    signed_status ();
-    mem_access_status ();
-    div_mod_status ();
-    shift_status ();
-    downcast_status ();
-    float_to_int_status ();
-    unsigned_overflow_status ();
-    unsigned_downcast_status ();
+let all_status =
+  [ precond_status;
+    mem_access_status;
+    div_mod_status;
+    shift_status;
+    signed_overflow_status;
+    signed_downcast_status;
+    unsigned_overflow_status;
+    unsigned_downcast_status;
+    float_to_int_status;
   ]
 
 let emitter =

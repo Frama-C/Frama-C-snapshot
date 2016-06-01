@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -72,12 +72,18 @@ let avoid_leading_backlash s =
   else s
 
 let comp_id c =
-  if c.cstruct
-  then Printf.sprintf "S_%s" c.cname
-  else Printf.sprintf "U_%s" c.cname
+  let prefix = if c.cstruct then 'S' else 'U' in
+  if c.corig_name = "" then
+    Printf.sprintf "%c%d" prefix c.ckey
+  else
+    Printf.sprintf "%c%d_%s" prefix c.ckey c.corig_name
 
 let field_id f =
-  Printf.sprintf "F_%s_%s" f.fcomp.cname f.fname
+  let c = f.fcomp in
+  if c.corig_name = "" then
+    Printf.sprintf "F%d_%s" c.ckey f.fname
+  else
+    Printf.sprintf "F%d_%s_%s" c.ckey c.corig_name f.fname
 
 let type_id l =
   Printf.sprintf "A_%s" l.lt_name
@@ -194,12 +200,11 @@ let rec tau_of_ltype t = match Logic_utils.unroll_type t with
         Printer.pp_logic_type t
   | Ltype _ as b when Logic_const.is_boolean_type b -> Logic.Bool
   | Ltype(lt,ps) ->
-      try
-        let mdt = Hashtbl.find builtins lt.lt_name in
-        assert (ps = []) ;
-        Logic.Data(Mtype mdt,[])
-      with Not_found ->
-        Logic.Data(Atype lt,List.map tau_of_ltype ps)
+      let tau =
+        (*TODO: check arity *)
+        try Mtype(Hashtbl.find builtins lt.lt_name)
+        with Not_found -> Atype lt
+      in Logic.Data(tau,List.map tau_of_ltype ps)
 
 let tau_of_return l = match l.l_type with
   | None -> Logic.Prop
@@ -262,6 +267,14 @@ let atype t =
 let builtin_type ~name ~link ~library =
   let m = new_extern ~link ~library ~debug:name in
   Hashtbl.add builtins name m
+
+let is_builtin_type ~name = function
+  | Data(Mtype m,_) ->
+      begin
+        try m == Hashtbl.find builtins name
+        with Not_found -> false
+      end
+  | _ -> false
 
 let datatype ~library name =
   let m = new_extern ~link:(infoprover name) ~library ~debug:name in
@@ -565,6 +578,13 @@ struct
   struct
     include Integer
     let leq = Integer.le
+    let div = Integer.c_div (* acsl division *)
+    let rem = Integer.c_rem (* acsl remainder *)
+    let div_rem a b = (* acsl division, remainder *)
+      let sa, a = if leq zero a then true, a else false, neg a in
+      let sb, b = if leq zero b then true, b else false, neg b in
+      let d,r = div_rem a b in
+      (if sa == sb then d else neg d), (if sa then r else neg r)
   end
 
   module T = Qed.Term.Make(ZInteger)(ADT)(Field)(Fun)
@@ -715,7 +735,7 @@ struct
 
   let p_true = e_true
   let p_false = e_false
-
+  
   let p_not = e_not
   let p_bind = e_bind
   let p_forall = e_forall
@@ -735,8 +755,11 @@ struct
   let p_all f xs = e_and (List.map f xs)
   let p_any f xs = e_or (List.map f xs)
 
+  let e_vars e = List.sort Var.compare (Vars.elements (vars e))
+  let p_vars = e_vars
+  
   let p_call = e_fun
-  let p_close p = p_forall (Vars.elements (vars p)) p
+  let p_close p = p_forall (p_vars p) p
 
   let occurs x t = Vars.mem x (vars t)
   let intersect a b = Vars.intersect (vars a) (vars b)
@@ -745,8 +768,17 @@ struct
   let varsp = vars
   let pred = repr
   let epred = repr
+  let p_iter fp fe p =
+    match T.repr p with
+    | True | False | Kint _ | Kreal _ | Fvar _ | Bvar _ -> ()
+    | Eq(a,b) | Neq(a,b) when T.is_prop a && T.is_prop b -> fp a ; fp b
+    | Eq _ | Neq _ | Leq _ | Lt _ | Times _ | Add _ | Mul _ | Div _ | Mod _
+    | Aget _ | Aset _ | Rget _ | Rdef _ | Fun _ | Apply _ -> T.lc_iter fe p
+    | And _ | Or _ | Imply _ | If _ | Not _ | Bind _ -> T.lc_iter fp p
+                                                          
   let idp = id
 
+  let pp_tau = Pretty.pp_tau
   let pp_term fmt e =
     if Wp_parameters.has_dkey "pretty"
     then T.debug fmt e

@@ -1,0 +1,35 @@
+# frama-c -wp -wp-rte [...]
+[rte] annotating function swap
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+swap                 6      3 (17)     9       100%
+----------------------------------------------------------
+[report] Computing properties status...
+
+--------------------------------------------------------------------------------
+--- Properties of Function 'swap'
+--------------------------------------------------------------------------------
+
+[  Valid  ] Post-condition 'A'
+            by Wp.typed.
+[  Valid  ] Post-condition 'B'
+            by Wp.typed.
+[  Valid  ] Assigns (file tests/wp_manual/working_dir/swap2.h, line 4)
+            by Wp.typed.
+[  Valid  ] Assertion 'rte,mem_access' (file tests/wp_manual/working_dir/swap.c, line 3)
+            by Wp.typed.
+[  Valid  ] Assertion 'rte,mem_access' (file tests/wp_manual/working_dir/swap.c, line 4)
+            by Wp.typed.
+[  Valid  ] Assertion 'rte,mem_access' (file tests/wp_manual/working_dir/swap.c, line 4)
+            by Wp.typed.
+[  Valid  ] Assertion 'rte,mem_access' (file tests/wp_manual/working_dir/swap.c, line 5)
+            by Wp.typed.
+[  Valid  ] Default behavior
+            by Frama-C kernel.
+
+--------------------------------------------------------------------------------
+--- Status Report Summary
+--------------------------------------------------------------------------------
+     8 Completely validated
+     8 Total
+--------------------------------------------------------------------------------

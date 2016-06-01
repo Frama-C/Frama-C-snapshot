@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of WP plug-in of Frama-C.                           #
 #                                                                        #
-#  Copyright (C) 2007-2015                                               #
+#  Copyright (C) 2007-2016                                               #
 #    CEA (Commissariat a l'energie atomique et aux energies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -34,7 +34,8 @@ WHY3_LIBS_CEA:=	\
  Cmath.why 	\
  Memory.why 	\
  Qed.why 	\
- Vset.why
+ Vset.why	\
+ Vlist.why
 
 # --------------------------------------------------------------------------
 # ---  Coq Libraries
@@ -51,6 +52,7 @@ COQ_LIBS_CEA:=	\
  Qed.v 		\
  Qedlib.v 	\
  Vset.v 	\
+ Vlist.v	\
  Zbits.v
 
 ## Used in share/coqwp only
@@ -81,7 +83,8 @@ ERGO_LIBS_CEA:= \
  Cmath.mlw 	\
  Memory.mlw 	\
  Qed.mlw 	\
- Vset.mlw
+ Vset.mlw	\
+ Vlist.mlw
 
 # Used in share/ergo
 ERGO_LIBS_INRIA:= \

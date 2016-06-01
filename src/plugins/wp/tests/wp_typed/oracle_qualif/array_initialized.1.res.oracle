@@ -20,6 +20,6 @@ Functions           WP   Alt-Ergo    Total   Success
 main1               -       1 (121)    1       100%
 main2               -       1 (123)    1       100%
 main3                1     -           1       100%
-main_pointer        -       1 (103)    1       100%
-simpl               -       1 (127)    1       100%
+main_pointer        -       1 (91)     1       100%
+simpl               -       1 (348)    1       100%
 ----------------------------------------------------------

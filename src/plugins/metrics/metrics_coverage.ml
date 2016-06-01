@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -83,7 +83,9 @@ class callableFunctionsVisitor = object(self)
      consider it is called *)
   method! vvrbl vi =
     if not (self#already_seen vi) then begin
-      if Cil.isFunctionType vi.vtype then
+      if Cil.isFunctionType vi.vtype &&
+           Metrics_base.consider_function vi
+      then
         callable <- Varinfo.Set.add vi callable;
       Stack.push vi todo;
     end;
@@ -110,7 +112,7 @@ class callableFunctionsVisitor = object(self)
         begin
           Metrics_parameters.debug "Coverage: visiting %s" vi.vname;
           Varinfo.Hashtbl.add visited vi ();
-          if Cil.isFunctionType vi.vtype
+          if Cil.isFunctionType vi.vtype && Metrics_base.consider_function vi
           then self#visit_function vi
           else ignore (self#visit_non_function_var vi)
         end;
@@ -128,7 +130,7 @@ object(self)
 
   (* When an unseen function is reachable by the body of a function reached,
      or inside an initializer, display the information *)
-  method private reached_vi vi =
+  method private reached_fun vi =
     if Metrics_base.consider_function vi && Varinfo.Set.mem vi unseen then
       match self#current_kf with
       | None ->
@@ -153,7 +155,7 @@ object(self)
             Location.pretty (Cil.CurrentLoc.get ())
 
   method! vvrbl vi =
-    if Cil.isFunctionType vi.vtype then self#reached_vi vi;
+    if Cil.isFunctionType vi.vtype then self#reached_fun vi;
     Cil.SkipChildren (* no children anyway *)
 
 
@@ -221,7 +223,9 @@ let compute_semantic () =
   (* Just iter on all the functions and consult the appropriate table *)
   Globals.Functions.iter
     (fun kf ->
-       if !Db.Value.is_called kf then
+       if !Db.Value.is_called kf &&
+            Metrics_base.consider_function (Kernel_function.get_vi kf)
+       then
          res := Varinfo.Set.add (Kernel_function.get_vi kf) !res
     );
   !res

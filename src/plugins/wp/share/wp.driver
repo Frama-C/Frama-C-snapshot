@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of WP plug-in of Frama-C.                           */
 /*                                                                        */
-/*  Copyright (C) 2007-2015                                               */
+/*  Copyright (C) 2007-2016                                               */
 /*    CEA (Commissariat a l'energie atomique et aux energies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -22,7 +22,6 @@
 
 library qed:
 coq.file += "coqwp/BuiltIn.v";
-coq.file += "coqwp:bool/Bool.v";
 coq.file += "coqwp:int/Int.v";
 coq.file += "coqwp:int/Abs.v";
 coq.file += "coqwp:int/ComputerDivision.v";
@@ -41,6 +40,10 @@ altergo.file += "ergo/real.Real.mlw";
 altergo.file += "ergo/real.RealInfix.mlw";
 altergo.file += "ergo/real.FromInt.mlw";
 altergo.file += "ergo/Qed.mlw";
+
+library bool:
+coq.file += "coqwp:bool/Bool.v";
+altergo.file += "ergo/bool.Bool.mlw";
 
 library minmax_int:
 coq.file += "coqwp:int/MinMax.v";
@@ -103,16 +106,20 @@ logic bool "\\round_float"(rounding_mode,real) = "round_float";
 logic bool "\\round_double"(rounding_mode,real) = "round_double";
 
 library vset:
+type set = "set";
 coq.file := "coqwp/Vset.v";
 why3.file := "why3/Vset.why";
 altergo.file := "ergo/Vset.mlw";
 
+library vlist:
+coq.file := "coqwp/Vlist.v";
+why3.file := "why3/Vlist.why";
+altergo.file := "ergo/Vlist.mlw";
 
 library memory:
 coq.file := "coqwp/Memory.v";
 why3.file := "why3/Memory.why";
 altergo.file := "ergo/Memory.mlw";
-
 
 library cmath: qed
 coq.file := "coqwp/Cmath.v";

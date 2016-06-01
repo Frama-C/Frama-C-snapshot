@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -33,9 +33,12 @@
 type precise_offset
 val pretty_offset : Format.formatter -> precise_offset -> unit
 
+val equal_offset: precise_offset -> precise_offset -> bool
+
 val offset_zero : precise_offset
 val offset_bottom : precise_offset
 val offset_top : precise_offset
+val inject_ival : Ival.t -> precise_offset
 
 val is_bottom_offset : precise_offset -> bool
 
@@ -66,6 +69,8 @@ val imprecise_location_bits :
 
 type precise_location
 
+val equal_loc: precise_location -> precise_location -> bool
+
 val loc_size: precise_location -> Int_Base.t
 
 val make_precise_loc :
@@ -91,3 +96,12 @@ val cardinal_zero_or_one: precise_location -> bool
     useful *)
 
 val pretty_loc: precise_location Pretty_utils.formatter
+
+val valid_part:
+  for_writing:bool -> bitfield:bool -> precise_location -> precise_location
+(** Overapproximation of the valid part of the given location for a read or write
+    operation, according to the [for_writing] boolean.
+    [bitfield] indicates whether the location may be the one of a bitfield, and
+    is true by default. If it is set to false, the location is assumed to be
+    byte aligned, and its offset (expressed in bits) is reduced to be congruent
+    to 0 modulo 8. *)

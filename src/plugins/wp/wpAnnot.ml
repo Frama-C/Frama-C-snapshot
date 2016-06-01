@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -45,34 +45,25 @@ let rte_find rte_st kf =
 let rte_precond_status    = rte_find Db.RteGen.get_precond_status
 let rte_signedOv_status   = rte_find Db.RteGen.get_signedOv_status
 let rte_divMod_status     = rte_find Db.RteGen.get_divMod_status
-let _rte_downCast_status   = rte_find Db.RteGen.get_downCast_status (* Seems unused *)
 let rte_memAccess_status  = rte_find Db.RteGen.get_memAccess_status
 let rte_unsignedOv_status = rte_find Db.RteGen.get_unsignedOv_status
+let _rte_signed_downCast_status = rte_find Db.RteGen.get_signed_downCast_status (* Seems unused *)
 
 let rte_wp =
   [
-    "valid pointer dereferencing" , rte_memAccess_status , "-rte-mem";
-    "division by zero" , rte_divMod_status , "-rte-div";
-    (* both below are too strong for Runtime model. *)
-    "signed overflow" , rte_signedOv_status , "-warn-signed-overflow";
-    "unsigned overflow" , rte_unsignedOv_status , "-warn-unsigned-overflow";
+    "valid pointer dereferencing" , rte_memAccess_status;
+    "division by zero" , rte_divMod_status;
+    "signed overflow" , rte_signedOv_status;
+    "unsigned overflow" , rte_unsignedOv_status;
   ]
 
 let missing_rte kf =
   List.map
-    (fun (name, _, _) -> name)
-    (List.filter (fun (_, rte, _) -> not (rte kf)) rte_wp)
+    (fun (name, _) -> name)
+    (List.filter (fun (_, rte) -> not (rte kf)) rte_wp)
 
 let compute_rte_for kf =
-  Dynamic.Parameter.Bool.set "-rte" true ;
-  (* RTE is using the kernel option "-safe-arrays". Its default value leads
-     to generation of stronger properties for the model runtime.  These
-     stronger properties are necessary conditions for application of Hoare and
-     Typed model.  So, the default value of this option is not modified.
-     Dynamic.Parameter.Bool.set "-safe-arrays" false ; (* Weakest RTE for
-     Runtime model. *) *)
-  List.iter (fun (_, _, opt) -> Dynamic.Parameter.Bool.set opt true) rte_wp ;
-  !Db.RteGen.annotate_kf kf
+  !Db.RteGen.do_all_rte kf
 
 (* -------------------------------------------------------------------------- *)
 (* --- Selection of relevant assigns and postconditions                   --- *)
@@ -102,7 +93,7 @@ let get_called_assigns kf =
   List.fold_left
     (fun properties bhv ->
        if Cil.is_default_behavior bhv then
-         match Property.ip_assigns_of_behavior kf Kglobal bhv with
+         match Property.ip_assigns_of_behavior kf Kglobal [] bhv with
          | None -> properties
          | Some ip -> ip :: properties
        else properties)
@@ -126,8 +117,9 @@ let set_unreachable pid =
       "unreachable annotation %a@." Property.pretty p;
     Property_status.emit wp_unreachable ~hyps:[] p Property_status.True in
   let pids = match WpPropId.property_of_id pid with
-    | Property.IPBehavior(kf, kinstr, bhv) ->
-        (Property.ip_post_cond_of_behavior kf kinstr bhv) @
+    | Property.IPBehavior(kf, kinstr, active, bhv) ->
+        let active = Datatype.String.Set.elements active in
+        (Property.ip_post_cond_of_behavior kf kinstr active bhv) @
         (Property.ip_requires_of_behavior kf kinstr bhv)
     | p ->
         Wp_parameters.result "[WP:unreachability] Goal %a : Valid" WpPropId.pp_propid pid ;
@@ -250,12 +242,12 @@ type asked_bhv =
   | FunBhv of funbehavior option (* None means default behavior
                                     when the function has no spec. This is useful to process internal
                                     properties even if the function has no default behavior *)
-  | StmtBhv of Cil2cfg.node * stmt * funbehavior
+  | StmtBhv of Cil2cfg.node * stmt * Datatype.String.Set.t * funbehavior
 
 let name_of_asked_bhv = function
   | FunBhv (Some bhv) -> bhv.b_name
   | FunBhv None -> Cil.default_behavior_name
-  | StmtBhv (_, _, bhv) -> bhv.b_name
+  | StmtBhv (_, _, _, bhv) -> bhv.b_name
 
 (* This is to code what properties the user asked for in a given behavior. *)
 type asked_prop =
@@ -300,7 +292,7 @@ let pp_assigns_mode fmt config =
     | WithAssigns -> "both assigns or not"
   in Format.fprintf fmt "%s" str
 
-let pp_asked_prop fmt config = match config.asked_prop  with
+let pp_asked_prop fmt = function
   | AllProps -> Format.fprintf fmt "all properties"
   | NamedProp names ->  Format.fprintf fmt "properties %a"
                           (Pretty_utils.pp_list ~sep:"," Format.pp_print_string) names
@@ -315,10 +307,14 @@ let pp_strategy_info fmt config =
   let _ = match config.cur_bhv with
     | FunBhv _bhv ->
         Format.fprintf fmt "behavior '%s'" (name_of_asked_bhv config.cur_bhv)
-    | StmtBhv (_, s, bhv) ->
-        Format.fprintf fmt "behavior '%s' of statement %d" bhv.b_name s.sid
+    | StmtBhv (_, s, a, bhv) ->
+        Format.fprintf fmt "behavior '%s' of statement %d%a"
+          bhv.b_name s.sid
+          (Pretty_utils.pp_list
+             ~pre:" (for active behaviors " ~sep:"," Format.pp_print_string)
+          (Datatype.String.Set.elements a)
   in Format.fprintf fmt ", %a, %a"
-    pp_asked_prop config pp_assigns_mode config
+    pp_asked_prop config.asked_prop pp_assigns_mode config
 
 let cur_fct_default_bhv config = match config.cur_bhv with
   | FunBhv None -> true
@@ -434,10 +430,10 @@ let add_loop_assigns_goal config s (ca, assigns) acc =
         WpStrategy.add_assigns acc WpStrategy.Agoal id a_desc
       else acc
 
-let add_stmt_assigns_goal config s acc b l_post = match b.b_assigns with
+let add_stmt_assigns_goal config s active acc b l_post = match b.b_assigns with
   | WritesAny -> acc
   | Writes assigns ->
-      let id = WpPropId.mk_stmt_assigns_id config.kf s b assigns in
+      let id = WpPropId.mk_stmt_assigns_id config.kf s active b assigns in
       match id with
       | None -> acc
       | Some id ->
@@ -476,7 +472,7 @@ let get_named_bhv name bhv_list =
 let get_behav config ki bh_list = match config.cur_bhv, ki with
   | FunBhv _, Kglobal ->
       get_named_bhv (name_of_asked_bhv config.cur_bhv) bh_list
-  | StmtBhv (_, s1, b), Kstmt s2 when s1.sid = s2.sid ->
+  | StmtBhv (_, s1, _, b), Kstmt s2 when s1.sid = s2.sid ->
       get_named_bhv b.b_name bh_list
   | _ -> None
 
@@ -523,7 +519,7 @@ let is_annot_for_config config node s_annot bhv_name_list =
                   TBRhyp
                 with Not_found -> TBRok
               end
-          | StmtBhv (n, sb, b) when b.b_name = Cil.default_behavior_name ->
+          | StmtBhv (n, sb, _, b) when b.b_name = Cil.default_behavior_name ->
               begin
                 try
                   let s,_ = HdefAnnotBhv.find config.def_annots_info e in
@@ -532,7 +528,7 @@ let is_annot_for_config config node s_annot bhv_name_list =
                 with Not_found -> hyp_but_not_at_post n
               end
           | FunBhv _ -> TBRhyp
-          | StmtBhv (n,_,_) -> hyp_but_not_at_post n
+          | StmtBhv (n,_,_,_) -> hyp_but_not_at_post n
         end
     | bhvs -> (* TODOopt : there is surely a better way to do this : *)
         let asked_bhv = name_of_asked_bhv config.cur_bhv in
@@ -597,12 +593,12 @@ let add_terminates acc spec = (* TODO *)
                                               (Logic_const.pred_of_id_pred p)
   in acc
 
-let add_disjoint_behaviors_props config ki spec acc =
+let add_disjoint_behaviors_props config ki active spec acc =
   match spec.spec_disjoint_behaviors with
   | [] -> acc
   | l ->
       let add_disj acc bhv_names =
-        let id = WpPropId.mk_disj_bhv_id (config.kf, ki, bhv_names) in
+        let id = WpPropId.mk_disj_bhv_id (config.kf, ki, active, bhv_names) in
         if goal_to_select config id then
           begin
             let prop = Ast_info.disjoint_behaviors spec bhv_names in
@@ -615,12 +611,12 @@ let add_disjoint_behaviors_props config ki spec acc =
         else acc
       in List.fold_left add_disj acc l
 
-let add_complete_behaviors_props config ki spec acc =
+let add_complete_behaviors_props config ki active spec acc =
   match spec.spec_complete_behaviors with
   | [] -> acc
   | l ->
       let mk_prop acc bhv_names =
-        let id = WpPropId.mk_compl_bhv_id (config.kf, ki, bhv_names) in
+        let id = WpPropId.mk_compl_bhv_id (config.kf, ki, active, bhv_names) in
         if goal_to_select config id then
           let prop = Ast_info.complete_behaviors spec bhv_names in
           let labels = match ki with
@@ -631,16 +627,19 @@ let add_complete_behaviors_props config ki spec acc =
         else acc
       in List.fold_left mk_prop acc l
 
-let add_behaviors_props config ki spec acc =
+let add_behaviors_props config ki active spec acc =
   let add = match config.cur_bhv, ki with
     | FunBhv _, Kglobal when cur_fct_default_bhv config -> true
-    | StmtBhv (_, cur_s,  b), Kstmt s
-      when (s.sid = cur_s.sid && b.b_name = Cil.default_behavior_name) -> true
+    | StmtBhv (_, cur_s,  cur_a, b), Kstmt s
+      when (s.sid = cur_s.sid &&
+            b.b_name = Cil.default_behavior_name &&
+            Datatype.String.Set.(equal cur_a (of_list active)))
+      -> true
     | _ -> false
   in
   if add then
-    let acc = add_complete_behaviors_props config ki spec acc in
-    let acc = add_disjoint_behaviors_props config ki spec acc in
+    let acc = add_complete_behaviors_props config ki active spec acc in
+    let acc = add_disjoint_behaviors_props config ki active spec acc in
     acc
   else acc
 
@@ -669,7 +668,7 @@ let add_stmt_spec_post_as_hyp config v s spec acc =
  * - add the assumes as hypotheses,
  * - add the postconditions as goals.
 *)
-let add_stmt_bhv_as_goal config v s b (b_acc, (p_acc, e_acc)) =
+let add_stmt_bhv_as_goal config v s active b (b_acc, (p_acc, e_acc)) =
   let l_post = Cil2cfg.get_post_logic_label config.cfg v in
   let assumes = None in (* [assumes] are used as separate hypotheses *)
   let add_pre_hyp acc p =
@@ -694,8 +693,8 @@ let add_stmt_bhv_as_goal config v s b (b_acc, (p_acc, e_acc)) =
   let p_acc, e_acc = WpStrategy.fold_bhv_post_cond ~warn:true
       (add_post Normal) (add_post Exits) (p_acc, e_acc) b
   in
-  let p_acc = add_stmt_assigns_goal config s p_acc b l_post in
-  (*let e_acc = TODO, but crach at the moment... why ?
+  let p_acc = add_stmt_assigns_goal config s active p_acc b l_post in
+  (*let e_acc = TODO, but crash at the moment... why ?
                         add_stmt_assigns config s e_acc b l_post in *)
   b_acc, (p_acc, e_acc)
 
@@ -711,21 +710,26 @@ let is_empty_spec s =
   s.spec_terminates = None &&
   List.for_all is_empty_behavior s.spec_behavior
 
-let add_stmt_spec_annots config v s spec ((b_acc, (p_acc, e_acc)) as acc) =
+let add_stmt_spec_annots
+    config v s active spec ((b_acc, (p_acc, e_acc)) as acc)
+  =
   if is_empty_spec spec then acc
   else
     let acc = add_variant acc spec in
     let acc = add_terminates acc spec in
     match config.cur_bhv with
-    | StmtBhv (_n, cur_s, b) when s.sid = cur_s.sid ->
+    | StmtBhv (_n, cur_s, cur_a, b)
+      when s.sid = cur_s.sid &&
+           Datatype.String.Set.(equal cur_a (of_list active))
+      ->
           (*
             begin match get_behav config (Kstmt s) spec.spec_behavior with
             | None -> (* in some cases, it seems that we can have several spec
             for the same statement -> not an error *) acc
             | Some b ->
           *)
-        let b_acc, a_acc = add_stmt_bhv_as_goal config v s b acc in
-        let b_acc = add_behaviors_props config (Kstmt s) spec b_acc in
+        let b_acc, a_acc = add_stmt_bhv_as_goal config v s active b acc in
+        let b_acc = add_behaviors_props config (Kstmt s) active spec b_acc in
         b_acc, a_acc
     | _ -> (* in all other cases, use the specification as hypothesis *)
         let kind = WpStrategy.Aboth false in
@@ -968,7 +972,7 @@ let get_stmt_annots config v s =
             "Ignored specification 'for %a' (generalize to all behavior)"
             (Pretty_utils.pp_list ~sep:", " Format.pp_print_string)
             b_list;
-        add_stmt_spec_annots config v s spec acc
+        add_stmt_spec_annots config v s b_list spec acc
   in
   let before_acc = WpStrategy.empty_acc in
   let after_acc = WpStrategy.empty_acc in
@@ -979,7 +983,7 @@ let get_stmt_annots config v s =
 let get_fct_pre_annots config spec =
   let acc = WpStrategy.empty_acc in
   let acc = add_fct_pre config acc spec in
-  let acc = add_behaviors_props config Kglobal spec acc in
+  let acc = add_behaviors_props config Kglobal [] spec acc in
   let acc = add_variant acc spec in
   let acc = add_terminates acc spec in
   acc
@@ -1129,14 +1133,22 @@ let add_global_annotations annots =
 (* --- Main functions to build the strategies                           --- *)
 (* ------------------------------------------------------------------------ *)
 
+let string_of_active active =
+  Pretty_utils.sfprintf "%a"
+    (Pretty_utils.pp_list (fun fmt s -> Format.fprintf fmt "_%s" s))
+    (Datatype.String.Set.elements active)
+
 let behavior_name_of_config config =
   match config.cur_bhv with
   | FunBhv None -> None
   | FunBhv (Some b) when b.b_name = Cil.default_behavior_name -> None
   | FunBhv (Some b) -> Some b.b_name
-  | StmtBhv (_, s, b) when b.b_name = Cil.default_behavior_name ->
-      Some ("default_for_stmt_"^(string_of_int s.sid))(*TODO better name ?*)
-  | StmtBhv (_, s, b) -> Some (b.b_name^"_stmt_"^(string_of_int s.sid))
+  | StmtBhv (_, s, active, b) when b.b_name = Cil.default_behavior_name ->
+      Some(
+        "default_for_stmt_"^(string_of_int s.sid)^(string_of_active active))
+        (*TODO better name ?*)
+  | StmtBhv (_, s, active, b) ->
+      Some (b.b_name^"_stmt_"^(string_of_int s.sid)^(string_of_active active))
 
 let build_bhv_strategy config =
   let annots = get_behavior_annots config in
@@ -1152,7 +1164,7 @@ let build_bhv_strategy config =
 let internal_function_behaviors cfg =
   let def_annot_bhv = HdefAnnotBhv.create 42 in
   let get_stmt_bhv node stmt acc =
-    let add_bhv_info acc b =
+    let add_bhv_info active acc b =
       if is_empty_behavior b then acc else
         begin
           if b.b_name = Cil.default_behavior_name then
@@ -1170,12 +1182,12 @@ let internal_function_behaviors cfg =
               in
               Cil2cfg.Eset.iter reg int_edges
             end;
-          (node, stmt, b)::acc
+          (node, stmt, active, b)::acc
         end
     in
     let spec_bhv_names acc annot = match annot with
-      | {annot_content = AStmtSpec (_,spec)} ->
-          List.fold_left add_bhv_info acc spec.spec_behavior
+      | {annot_content = AStmtSpec (active, spec)} ->
+          List.fold_left (add_bhv_info active) acc spec.spec_behavior
       | _ -> Wp_parameters.fatal "filter on is_contract didn't work ?"
     in
     let annots = Annotations.code_annot ~filter:Logic_utils.is_contract stmt in
@@ -1211,13 +1223,14 @@ let find_behaviors kf cfg ki bhv_names =
       | Some Kstmt _ -> def, acc
   in
 
-  let add_stmt_bhv acc (n,s,b) =
-    if bhv_names = [] then (StmtBhv (n,s,b))::acc
+  let add_stmt_bhv acc (n,s,active,b) =
+    let active = Datatype.String.Set.of_list active in
+    if bhv_names = [] then (StmtBhv (n,s,active,b))::acc
     else if List.mem b.b_name bhv_names then
       let acc = match ki with
-        | None -> (* not specified ki *) (StmtBhv (n, s, b))::acc
+        | None -> (* not specified ki *) (StmtBhv (n, s, active, b))::acc
         | Some (Kstmt stmt) when stmt.sid = s.sid ->
-            (StmtBhv (n, s, b))::acc
+            (StmtBhv (n, s, active, b))::acc
         | _ -> (* specified ki but not this one *) acc
       in acc
     else acc
@@ -1381,7 +1394,7 @@ let get_id_prop_strategies ?(assigns=WithAssigns) p =
         | AAssert (l, _) | AInvariant (l, _, _) | AAssigns (l, _) -> l
         | _ -> []
       in get_strategies assigns kf bhvs None (IdProp p)
-  | Property.IPAssigns (kf, _, Property.Id_code_annot _, _)
+  | Property.IPAssigns (kf, _, Property.Id_loop _, _)
   (*loop assigns: belongs to the default behavior *)
   | Property.IPDecrease (kf,_,_,_) ->
       (* any variant property is attached to the default behavior of

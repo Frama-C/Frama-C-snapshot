@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -117,7 +117,8 @@ module Config = struct
         fun _n m -> match m with
         | true, M.Glob -> Some (true, M.Loc)
         | true, M.Loc -> Some m
-        | _ -> fatal "cannot propagate invisible mark@."
+        | _ -> fatal "cannot propagate invisible mark of called function '%a'@."
+                 Kernel_function.pretty (PdgTypes.Pdg.get_kf called_pdg)
 
 end
 
@@ -238,13 +239,15 @@ let rec process_call_inputs proj =
     | (pdg_caller, call, sel, m) as e :: calls ->
         let kf_caller = PdgTypes.Pdg.get_kf pdg_caller in
         let visible, select = match call with
-          | Some call ->
-              let fm = match get_marks proj kf_caller with
-                | None -> fatal "the caller should have marks@."
-                | Some fm -> fm
-              in
-              let visible = call_visible fm call in
-                visible, Some (sel, m)
+          | Some call -> 
+
+            let visible = match get_marks proj kf_caller with
+              | None -> (* the caller have no marks! *)
+                debug 1 "the caller '%a' is a spare function" 
+                  Kernel_function.pretty kf_caller;
+                false
+              | Some fm -> call_visible fm call 
+            in visible, Some (sel, m)
           | None -> (* let see if the function is visible or not *)
               assert (PdgTypes.Pdg.is_top pdg_caller);
               KfTopVisi.get proj kf_caller, None
@@ -276,7 +279,7 @@ let select_entry_point proj _kf pdg =
 
 let select_all_outputs proj kf pdg =
   let outputs = !Db.Outputs.get_external kf in
-    debug 1 "selecting output zones %a@." Locations.Zone.pretty outputs;
+    debug 1 "@[selecting output zones %a@]" Locations.Zone.pretty outputs;
   try
     let nodes, undef = !Db.Pdg.find_location_nodes_at_end pdg outputs in
     let nodes =

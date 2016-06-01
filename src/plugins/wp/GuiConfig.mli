@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -26,7 +26,7 @@
 
 open ProverWhy3
 
-class provers : string -> [dp list] Toolbox.selector
+class provers : string -> [dp list] Widget.selector
 
 class dp_chooser :
   main:Design.main_window_extension_points ->
@@ -40,6 +40,6 @@ class dp_button :
   available:provers ->
   enabled:provers ->
   object
-    inherit Toolbox.widget
+    inherit Widget.widget
     method update : unit -> unit
   end

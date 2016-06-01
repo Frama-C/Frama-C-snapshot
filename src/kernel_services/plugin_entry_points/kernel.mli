@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -77,9 +77,6 @@ module UseUnicode: Parameter_sig.Bool
 module Time: Parameter_sig.String
   (** Behavior of option "-time" *)
 
-module Collect_messages: Parameter_sig.Bool
-(** Behavior of option "-collect-messages" *)
-
 (* ************************************************************************* *)
 (** {2 Input / Output Source Code} *)
 (* ************************************************************************* *)
@@ -145,6 +142,19 @@ module Config_dir: Parameter_sig.String
 (** Directory in which config files are searched. 
     @since Neon-20140301 *)
 
+(* this stop special comment does not work as expected (and as explained in the
+   OCamldoc manual, Section 15.2.2. It just skips all the rest of the file
+   instead of skipping until the next stop comment...
+(**/**)
+ *)
+
+module Set_project_as_default: Parameter_sig.Bool
+(** Undocumented. *)
+
+(* See (meta-)comment on the previous stop comment
+(**/**)
+ *)
+
 (* ************************************************************************* *)
 (** {2 Customizing Normalization and parsing} *)
 (* ************************************************************************* *)
@@ -209,6 +219,12 @@ module InitializedPaddingLocals: Parameter_sig.Bool
 module AggressiveMerging: Parameter_sig.Bool
   (** Behavior of option "-aggressive-merging" *)
 
+module AsmContractsGenerate: Parameter_sig.Bool
+  (** Behavior of option "-asm-contracts" *)
+
+module AsmContractsAutoValidate: Parameter_sig.Bool
+  (** Behavior of option "-asm-contracts-auto-validate." *)
+
 module RemoveExn: Parameter_sig.Bool
   (** Behavior of option "-remove-exn" *)
 
@@ -226,8 +242,8 @@ val normalization_parameters: Typed_parameter.t list
 module WarnDecimalFloat: Parameter_sig.String
   (** Behavior of option "-warn-decimal-float" *)
 
-module WarnUndeclared: Parameter_sig.Bool
-  (** Behavior of option "-warn-call-to-undeclared" *)
+module ImplicitFunctionDeclaration: Parameter_sig.String
+  (** Behavior of option "-implicit-function-declaration" *)
 
 
 (* ************************************************************************* *)

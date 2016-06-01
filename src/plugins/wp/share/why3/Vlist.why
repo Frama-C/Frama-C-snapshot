@@ -1,0 +1,105 @@
+(**************************************************************************)
+(*                                                                        *)
+(*  This file is part of WP plug-in of Frama-C.                           *)
+(*                                                                        *)
+(*  Copyright (C) 2007-2016                                               *)
+(*    CEA (Commissariat a l'energie atomique et aux energies              *)
+(*         alternatives)                                                  *)
+(*                                                                        *)
+(*  you can redistribute it and/or modify it under the terms of the GNU   *)
+(*  Lesser General Public License as published by the Free Software       *)
+(*  Foundation, version 2.1.                                              *)
+(*                                                                        *)
+(*  It is distributed in the hope that it will be useful,                 *)
+(*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
+(*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
+(*  GNU Lesser General Public License for more details.                   *)
+(*                                                                        *)
+(*  See the GNU Lesser General Public License version 2.1                 *)
+(*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
+(*                                                                        *)
+(**************************************************************************)
+
+theory Vlist
+use int.Int as Int
+use int.Abs as Abs
+use int.ComputerDivision as ComputerDivision
+
+type list 'a
+
+function nil : list 'a
+
+function cons 'a (list 'a) : list 'a
+
+function concat (list 'a) (list 'a) : list 'a
+
+function repeat (list 'a) int : list 'a
+
+function length (list 'a) : int
+
+function nth (list 'a) int : 'a
+
+axiom length_pos : forall w:list 'a. (Int.(<=) (0) (length w))
+
+axiom length_nil : ((length (nil:list 'a)) = (0))
+
+axiom length_nil_bis : forall w:list 'a. ((length w) = (0)) ->
+  ((w) = (nil:list 'a))
+
+axiom length_cons : forall x:'a, w:list 'a [length (cons x w)]. ((length
+  (cons x w)) = ((Int.(+) (1) (length w))))
+
+axiom length_concat : forall u:list 'a, v:list 'a [length (concat u v)].
+  ((length (concat u v)) = ((Int.(+) (length u) (length v))))
+
+axiom length_repeat : forall w:list 'a, n:int [length (repeat w n)].
+  (Int.(<=) (0) (n)) -> ((length (repeat w n)) = ((Int.(*) (n) (length w))))
+
+axiom nth_cons : forall k:int, x:'a, w:list 'a [nth (cons x w) k]. ((nth
+  (cons x w) k) = (if ((k) = (0)) then x else nth w (Int.(-) (k) (1))))
+
+axiom nth_concat : forall u:list 'a, v:list 'a, k:int [nth (concat u v) k].
+  ((nth (concat u v) k) = (if (Int.(<) (k) (length u)) then nth u k else nth
+  v (Int.(-) (k) (length u))))
+
+axiom nth_repeat : forall n:int, k:int, w:list 'a [nth (repeat w n) k].
+  (Int.(<=) (0) (k)) /\ (Int.(<) (k) ((Int.(*) (n) (length w)))) ->
+  (Int.(<) (0) (length w)) -> ((nth (repeat w n) k) = (nth w
+  (ComputerDivision.mod k (length w))))
+
+predicate vlist_eq (u:list 'a) (v:list 'a) = ("asym_split" ((length
+  u) = (length v))) && (forall i:int. (Int.(<=) (0) (i)) /\
+  (Int.(<) (i) (length u)) -> ((nth u i) = (nth v i)))
+
+axiom extensionality : forall u:list 'a, v:list 'a. vlist_eq u v ->
+  ((u) = (v))
+
+axiom rw_nil_concat_left : forall w:list 'a [concat (nil:list 'a) w].
+  ((concat (nil:list 'a) w) = (w))
+
+axiom rw_nil_concat_right : forall w:list 'a [concat w (nil:list 'a)].
+  ((concat w (nil:list 'a)) = (w))
+
+axiom rw_nil_repeat : forall n:int [repeat (nil:list 'a) n].
+  (Int.(>=) (n) (0)) -> ((repeat (nil:list 'a) n) = (nil:list 'a))
+
+axiom rw_repeat_zero : forall w:list 'a [repeat w 0]. ((repeat w
+  0) = (nil:list 'a))
+
+axiom rw_repeat_one : forall w:list 'a [repeat w 1]. ((repeat w 1) = (w))
+
+function repeat_box (list 'a) int : list 'a
+
+axiom rw_repeat_box_unfold : forall w:list 'a, n:int [repeat_box w n].
+  ((repeat_box w n) = (repeat w n))
+
+axiom rw_repeat_plus_box_unfold : forall w:list 'a, a:int, b:int [repeat_box
+  w (Int.(+) (a) (b))]. (Int.(<=) (0) (a)) -> (Int.(<=) (0) (b)) ->
+  ((repeat_box w (Int.(+) (a) (b))) = (concat (repeat w a) (repeat w b)))
+
+axiom rw_repeat_plus_one_box_unfold : forall w:list 'a, n:int [repeat_box w
+  n]. (Int.(<) (0) (n)) -> ("asym_split" ((repeat_box w n) = (concat (repeat
+  w (Int.(-) (n) (1))) w))) && ((repeat_box w (Int.(+) (n) (1))) = (concat
+  (repeat w n) w))
+
+end

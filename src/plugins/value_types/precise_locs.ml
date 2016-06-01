@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -50,6 +50,16 @@ let rec pretty_offset fmt = function
   | POImprecise po -> Format.fprintf fmt "<%a>i" Ival.pretty po
   | POShift (i, po, _) ->
     Format.fprintf fmt "<%a+%a>" pretty_offset po Ival.pretty i
+
+let rec equal_offset o1 o2 = match o1, o2 with
+  | POBottom, POBottom -> true
+  | POZero, POZero -> true
+  | POSingleton i1, POSingleton i2 -> Int.equal i1 i2
+  | POPrecise (i1, _), POPrecise (i2, _) -> Ival.equal i1 i2
+  | POImprecise i1, POImprecise i2 -> Ival.equal i1 i2
+  | POShift (shift1, o1, _), POShift (shift2, o2, _) ->
+    Ival.equal shift1 shift2 && equal_offset o1 o2
+  | _, _ -> false
 
 let offset_zero = POZero
 let offset_bottom = POBottom
@@ -103,6 +113,18 @@ let shift_offset_by_singleton shift po =
       | POShift (shift', po, c) ->
         POShift (Ival.add_singleton_int shift shift', po, c)
 
+let inject_ival ival =
+  if Ival.is_bottom ival then POBottom
+  else
+    match Ival.cardinal ival with
+    | Some c when small_cardinal c ->
+      if Int.equal c Int.one then
+        let i = Ival.project_int ival in
+        if Int.equal i Int.zero then POZero else POSingleton (Ival.project_int ival)
+      else
+        POPrecise (ival, c)
+    | _ -> POImprecise ival
+
 let shift_offset shift po =
   if Ival.is_bottom shift then
     POBottom
@@ -110,14 +132,7 @@ let shift_offset shift po =
     match po with
       | POBottom -> POBottom
 
-      | POZero ->
-        (match Ival.cardinal shift with
-          | Some c when small_cardinal c ->
-            if Int.equal c Int.one then
-              POSingleton (Ival.project_int shift)
-            else
-              POPrecise (shift, c)
-          | _ -> POImprecise shift)
+      | POZero -> inject_ival shift
 
       | POImprecise i -> POImprecise (Ival.add_int shift i)
 
@@ -168,6 +183,15 @@ let pretty_loc_bits fmt = function
   | PLLocOffset (loc, po) ->
     Format.fprintf fmt "[%a+%a]" Location_Bits.pretty loc pretty_offset po
 
+let equal_loc_bits l1 l2 = match l1, l2 with
+  | PLBottom, PLBottom -> true
+  | PLLoc l1, PLLoc l2 -> Location_Bits.equal l1 l2
+  | PLVarOffset (b1, o1), PLVarOffset (b2, o2) ->
+    Base.equal b1 b2 && equal_offset o1 o2
+  | PLLocOffset (l1, o1), PLLocOffset (l2, o2) ->
+    Location_Bits.equal l1 l2 && equal_offset o1 o2
+  | _, _ -> false
+
 let bottom_location_bits = PLBottom
 
 let cardinal_zero_or_one_location_bits = function
@@ -183,29 +207,28 @@ let inject_location_bits loc =
 let combine_base_precise_offset base po =
   match po with
     | POBottom -> PLBottom
-    | POZero -> PLLoc (Location_Bits.inject base Ival.zero)
-    | POSingleton i ->
-      PLLoc (Location_Bits.inject base (Ival.inject_singleton i))
-    | POImprecise i | POPrecise (i, _) -> PLLoc (Location_Bits.inject base i)
-    | POShift _ -> PLVarOffset (base, po)
+    | _ -> PLVarOffset (base, po)
 
 let combine_loc_precise_offset loc po =
+  try
+    let base, ival = Location_Bits.find_lonely_key loc in
+    begin match shift_offset ival po with
+      | POBottom -> PLBottom
+      | po -> PLVarOffset (base, po)
+    end
+  with Not_found ->
   match po with
-    | POBottom -> PLBottom
-    | POZero -> PLLoc loc
-    | POImprecise i ->
-      PLLoc (Location_Bits.shift i loc)
-    | POSingleton i ->
-      PLLoc (Location_Bits.shift (Ival.inject_singleton i) loc)
-    | POPrecise (i, _c) when Location_Bits.cardinal_zero_or_one loc ->
-      PLLoc (Location_Bits.shift i loc)
-    | POPrecise (_, c) | POShift (_, _, c) ->
-      (match Location_Bits.cardinal loc with
-        | Some card when small_cardinal (Int.mul card c) ->
-          PLLocOffset (loc, po)
-        | _ ->
-          PLLoc (Location_Bits.shift (imprecise_offset po) loc)
-      )
+  | POBottom      -> PLBottom
+  | POZero        -> PLLoc loc
+  | POImprecise i -> PLLoc (Location_Bits.shift i loc)
+  | POSingleton i -> PLLoc (Location_Bits.shift (Ival.inject_singleton i) loc)
+  | POPrecise (i, _c) when Location_Bits.cardinal_zero_or_one loc ->
+    PLLoc (Location_Bits.shift i loc)
+  | POPrecise (_, c) | POShift (_, _, c) ->
+    match Location_Bits.cardinal loc with
+    | Some card when small_cardinal (Int.mul card c) -> PLLocOffset (loc, po)
+    | _ -> PLLoc (Location_Bits.shift (imprecise_offset po) loc)
+
 
 let imprecise_location_bits = function
   | PLBottom -> Location_Bits.bottom
@@ -217,6 +240,9 @@ type precise_location = {
   loc: precise_location_bits;
   size: Int_Base.t
 }
+
+let equal_loc pl1 pl2 =
+  equal_loc_bits pl1.loc pl2.loc && Int_Base.equal pl1.size pl2.size
 
 let imprecise_location pl =
   make_loc (imprecise_location_bits pl.loc) pl.size
@@ -305,6 +331,75 @@ let pretty_loc fmt loc =
   Format.fprintf fmt "%a (size:%a)"
     pretty_loc_bits loc.loc Int_Base.pretty loc.size
 
+
+let rec reduce_offset_by_range range offset = match offset with
+  | POBottom -> offset
+  | POZero -> if Ival.contains_zero range then offset else POBottom
+  | POSingleton i ->
+    let i = Ival.inject_singleton i in
+    if Ival.is_included i range then offset else POBottom
+  | POPrecise (ival, card) ->
+    let ival = Ival.narrow range ival in
+    if Ival.is_bottom ival then POBottom else POPrecise (ival, card)
+  | POImprecise ival ->
+    let ival = Ival.narrow range ival in
+    if Ival.is_bottom ival then POBottom else POImprecise ival
+  | POShift (shift, offset, card) ->
+    let range = Ival.sub_int range shift in
+    let offset = reduce_offset_by_range range offset in
+    if offset = POBottom then offset else POShift (shift, offset, card)
+
+(* Maintain synchronized with Locations.reduce_offset_by_validity *)
+let reduce_offset_by_validity ~for_writing ~bitfield base offset size =
+  if for_writing && Base.is_read_only base then
+    POBottom
+  else
+    match Base.validity base, size with
+    | Base.Empty, _ ->
+      if Int_Base.(compare size zero) > 0
+      then POBottom
+      else reduce_offset_by_range Ival.zero offset
+    | Base.Invalid, _ -> POBottom
+    | _, Int_Base.Top -> offset
+    | (Base.Known (minv, maxv) | Base.Unknown (minv,_,maxv)),
+      Int_Base.Value size ->
+      let maxv = Int.succ (Int.sub maxv size) in
+      let range =
+        if bitfield
+        then Ival.inject_range (Some minv) (Some maxv)
+        else Ival.inject_interval (Some minv) (Some maxv) Int.zero Int.eight
+      in
+      reduce_offset_by_range range offset
+    | Base.Variable variable_v, Int_Base.Value size ->
+      let maxv = Int.succ (Int.sub variable_v.Base.max_alloc size) in
+      let range =
+        if bitfield
+        then Ival.inject_range (Some Int.zero) (Some maxv)
+        else Ival.inject_interval (Some Int.zero) (Some maxv) Int.zero Int.eight
+      in
+      reduce_offset_by_range range offset
+
+
+let reduce_by_valid_part ~for_writing ~bitfield precise_loc size =
+  match precise_loc with
+  | PLBottom -> precise_loc
+  | PLLoc loc ->
+    let loc = Locations.make_loc loc size in
+    PLLoc Locations.((valid_part ~for_writing ~bitfield loc).Locations.loc)
+  | PLVarOffset (base, offset) ->
+    begin
+      match reduce_offset_by_validity ~for_writing ~bitfield base offset size with
+      | POBottom -> PLBottom
+      | offset -> PLVarOffset (base, offset)
+    end
+  | PLLocOffset (_loc, _offset) ->
+    (* Reduction is difficult in this case, because we must take into account
+       simultaneously [loc] and [offset]. We do nothing for the time being. *)
+    precise_loc
+
+let valid_part ~for_writing ~bitfield {loc; size} =
+  { loc = reduce_by_valid_part ~for_writing ~bitfield loc size;
+    size = size }
 
 (*
 Local Variables:

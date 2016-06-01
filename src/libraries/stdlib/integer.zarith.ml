@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -119,6 +119,7 @@ let popcount = Z.popcount
 
   let to_string = Z.to_string
   let to_float = Z.to_float
+  let of_float = Z.of_float
 
   let add_2_64 x = add two_power_64 x
   let add_2_32 x = add two_power_32 x

@@ -38,30 +38,26 @@
 ------------------------------------------------------------
 
 Goal Post-condition (file tests/wp/sharing.c, line 8) in 'f':
-Let a_0 = (shift_sint32 t_0 0).
-Let a_1 = (shift_sint32 t_0 x_0).
-Let m_0 = Mint_5[a_0->Mint_5[a_1]].
-Let m_1 = m_0[(shift_sint32 t_0 1)->m_0[a_1]].
-Let m_2 = m_1[(shift_sint32 t_0 2)->m_1[a_1]].
-Let m_3 = m_2[(shift_sint32 t_0 3)->m_2[a_1]].
+Let a = shift_sint32(t, 0).
+Let a_1 = shift_sint32(t, x).
+Let m = Mint_0[a <- Mint_0[a_1]].
+Let m_1 = m[shift_sint32(t, 1) <- m[a_1]].
+Let m_2 = m_1[shift_sint32(t, 2) <- m_1[a_1]].
+Let m_3 = m_2[shift_sint32(t, 3) <- m_2[a_1]].
 Assume {
-  (* Domain *)
-  Type: (is_sint32 x_0).
+  Type: is_sint32(x).
   (* Goal *)
-  When: (0<=i_0) /\ (i_0<=9).
+  When: (0 <= i) /\ (i <= 9).
   (* Heap *)
-  Have: (linked Malloc_0) /\ ((region (base t_0))<=0).
-  (* Pre-condition (file tests/wp/sharing.c, line 5) in 'f' *)
-  (* Pre-condition: *)
-  Have: (valid_rw Malloc_0 a_0 10).
-  (* Pre-condition (file tests/wp/sharing.c, line 6) in 'f' *)
-  (* Pre-condition: *)
-  Have: (0<=x_0) /\ (x_0<=9).
-  (* Pre-condition (file tests/wp/sharing.c, line 7) in 'f' *)
-  (* Pre-condition: *)
-  Have: forall i_1:int.
-        (0<=i_1) -> (i_1<=9) -> (0<=Mint_5[(shift_sint32 t_0 i_1)]).
+  Have: linked(Malloc_0) /\ (region(t.base) <= 0).
+  (* Pre-condition *)
+  Have: valid_rw(Malloc_0, a, 10).
+  (* Pre-condition *)
+  Have: (0 <= x) /\ (x <= 9).
+  (* Pre-condition *)
+  Have: forall i_1 : Z. ((0 <= i_1) -> ((i_1 <= 9) ->
+      (0 <= Mint_0[shift_sint32(t, i_1)]))).
 }
-Prove: 0<=m_3[(shift_sint32 t_0 4)->m_3[a_1]][(shift_sint32 t_0 i_0)].
+Prove: 0 <= m_3[shift_sint32(t, 4) <- m_3[a_1]][shift_sint32(t, i)].
 
 ------------------------------------------------------------

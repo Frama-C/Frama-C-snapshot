@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -34,6 +34,8 @@ open Lang
 open Lang.F
 open Memory
 open Definitions
+
+type polarity = [ `Positive | `Negative | `NoPolarity ]
 
 module Make( M : Memory.Model ) =
 struct
@@ -283,18 +285,44 @@ struct
     | _ -> mem_frame label
 
   let env_let env x v = { env with vars = Logic_var.Map.add x v env.vars }
+  let env_letp env x p = env_let env x (Vexp (F.e_prop p))
   let env_letval env x = function
     | Loc l -> env_let env x (Vloc l)
     | Val e -> env_let env x (plain_of_exp x.lv_type e)
 
   (* -------------------------------------------------------------------------- *)
-  (* --- Generic Compiler                                                   --- *)
+  (* --- Signature Generators                                               --- *)
   (* -------------------------------------------------------------------------- *)
 
   let param_of_lv lv =
     let t = Lang.tau_of_ltype lv.lv_type in
     freshvar ~basename:lv.lv_name t
 
+  let profile_sig lvs =
+    List.map param_of_lv lvs ,
+    List.map (fun lv -> Sig_value lv) lvs
+
+  let profile_mem l vars =
+    let signature = profile_sig l.l_profile in
+    if vars = [] then signature
+    else
+      let heap = List.fold_left
+          (fun m x ->
+             let obj = object_of x.vtype in
+             Heap.Set.union m (M.domain obj (M.cvar x))
+          ) Heap.Set.empty vars
+      in List.fold_left
+        (fun acc l ->
+           let label = Clabels.c_label l in
+           let sigma = Sigma.create () in
+           Heap.Set.fold_sorted
+             (fun chunk (parm,sigm) ->
+                let x = Sigma.get sigma chunk in
+                let s = Sig_chunk (chunk,label) in
+                ( x::parm , s :: sigm )
+             ) heap acc
+        ) signature l.l_labels
+  
   let rec profile_env vars domain sigv = function
     | [] -> { vars=vars ; lhere=None ; current=None } , domain , List.rev sigv
     | lv :: profile ->
@@ -310,6 +338,10 @@ struct
   let default_label env = function
     | [l] -> move env (mem_frame (Clabels.c_label l))
     | _ -> env
+
+  (* -------------------------------------------------------------------------- *)
+  (* --- Generic Compiler                                                   --- *)
+  (* -------------------------------------------------------------------------- *)
 
   let compile_step
       (name:string)
@@ -348,7 +380,7 @@ struct
 
   let cc_term : (env -> Cil_types.term -> term) ref
     = ref (fun _ _ -> assert false)
-  let cc_pred : (bool -> env -> predicate named -> pred) ref
+  let cc_pred : (polarity -> env -> predicate named -> pred) ref
     = ref (fun _ _ -> assert false)
   let cc_logic : (env -> Cil_types.term -> logic) ref
     = ref (fun _ _ -> assert false)
@@ -356,7 +388,7 @@ struct
     = ref (fun _ _ -> assert false)
 
   let term env t = !cc_term env t
-  let pred positive env t = !cc_pred positive env t
+  let pred polarity env t = !cc_pred polarity env t
   let logic env t = !cc_logic env t
   let region env t = !cc_region env t
   let reads env ts = List.iter (fun t -> ignore (logic env t.it_content)) ts
@@ -406,7 +438,8 @@ struct
   let compile_lemma cluster name ~assumed types labels lemma =
     let qs,prop = strip_forall [] lemma in
     let xs,tgs,domain,prop,_ =
-      compile_step name types qs labels (pred true) in_pred prop in
+      let cc_pred = pred `Positive in
+      compile_step name types qs labels cc_pred in_pred prop in
     {
       l_name = name ;
       l_types = List.length types ;
@@ -448,7 +481,7 @@ struct
               l_cluster = ldef.d_cluster ;
               l_lemma = lemma ;
             }
-
+  
   (* -------------------------------------------------------------------------- *)
   (* --- Compiling Pure Logic Function                                      --- *)
   (* -------------------------------------------------------------------------- *)
@@ -456,8 +489,7 @@ struct
   let compile_lbpure cluster l =
     let lfun = ACSL l in
     let tau = Lang.tau_of_return l in
-    let parp = Lang.local (List.map param_of_lv) l.l_profile in
-    let sigp = List.map (fun lv -> Sig_value lv) l.l_profile in
+    let parp,sigp = Lang.local profile_sig l.l_profile in
     let ldef = {
       d_lfun = lfun ;
       d_types = List.length l.l_tparams ;
@@ -476,28 +508,7 @@ struct
   let compile_lbnone cluster l vars =
     let lfun = ACSL l in
     let tau = Lang.tau_of_return l in
-    let parp = Lang.local (List.map param_of_lv) l.l_profile in
-    let sigp = List.map (fun lv -> Sig_value lv) l.l_profile in
-    let (parm,sigm) =
-      if vars = [] then (parp,sigp)
-      else
-        let heap = List.fold_left
-            (fun m x ->
-               let obj = object_of x.vtype in
-               Heap.Set.union m (M.domain obj (M.cvar x))
-            ) Heap.Set.empty vars
-        in List.fold_left
-          (fun acc l ->
-             let label = Clabels.c_label l in
-             let sigma = Sigma.create () in
-             Heap.Set.fold_sorted
-               (fun chunk (parm,sigm) ->
-                  let x = Sigma.get sigma chunk in
-                  let s = Sig_chunk (chunk,label) in
-                  ( x::parm , s :: sigm )
-               ) heap acc
-          ) (parp,sigp) l.l_labels
-    in
+    let parm,sigm = Lang.local (profile_mem l) vars in
     let ldef = {
       d_lfun = lfun ;
       d_types = List.length l.l_tparams ;
@@ -506,7 +517,7 @@ struct
       d_definition = Logic tau ;
     } in
     Definitions.define_symbol ldef ;
-    type_for_signature l ldef sigp ; SIG sigm
+    type_for_signature l ldef sigm ; SIG sigm
 
   (* -------------------------------------------------------------------------- *)
   (* --- Compiling Logic Function with Reads                                --- *)
@@ -575,7 +586,8 @@ struct
   let compile_lbpred cluster l p =
     let lfun = ACSL l in
     let name = l.l_var_info.lv_name in
-    let xs,_,_,r,s = compile_rec name l (pred true) in_pred p in
+    let cc_pred = pred `Positive in
+    let xs,_,_,r,s = compile_rec name l cc_pred in_pred p in
     let ldef = {
       d_lfun = lfun ;
       d_types = List.length l.l_tparams ;
@@ -609,7 +621,8 @@ struct
     let support = List.fold_left
         (fun support (case,labels,types,lemma) ->
            let _,_,_,_,s =
-             compile_step case types [] labels (pred true) in_pred lemma in
+             let cc_pred = pred `Positive in
+             compile_step case types [] labels cc_pred in_pred lemma in
            let labels_used = LogicUsage.get_induction_labels l case in
            List.fold_left (heap_case labels_used) support s)
         Heap.Map.empty cases in
@@ -789,5 +802,13 @@ struct
       with Not_found ->
         Wp_parameters.fatal "Unbound logic variable '%a'"
           Printer.pp_logic_var x
+
+  let logic_info env f =
+    try
+      match Logic_var.Map.find f.l_var_info env.vars with
+      | Vexp p -> Some (F.p_bool p)
+      | _ -> Wp_parameters.fatal "Logic variable '%a' is not a predicate"
+               Logic_info.pretty f
+    with Not_found -> None
 
 end

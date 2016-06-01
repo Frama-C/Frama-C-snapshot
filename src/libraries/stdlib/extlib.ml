@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -55,10 +55,10 @@ let number_to_color n =
 (** {2 Function builders} *)
 (* ************************************************************************* *)
 
-exception Unregistered_function of string 
+exception Unregistered_function of string
 
 let mk_labeled_fun s =
-  raise 
+  raise
     (Unregistered_function
        (Printf.sprintf "Function '%s' not registered yet" s))
 
@@ -170,6 +170,40 @@ let list_unique cmp l =
 
 (* Remove once OCaml 4.02 is mandatory *)
 let sort_unique cmp l = list_unique cmp (List.sort cmp l)
+
+let subsets k l =
+  let rec aux k l len =
+    if k = 0 then [[]]
+    else if len < k then []
+    else if len = k then [l]
+    else
+      match l with
+      | h :: t ->
+        let l1 = List.map (fun sl -> h :: sl) (aux (k-1) t (len-1)) in
+        let l2 = aux k t (len-1)
+        in l1 @ l2
+      | [] -> assert false
+  in aux k l (List.length l)
+
+(* ************************************************************************* *)
+(** {2 Arrays} *)
+(* ************************************************************************* *)
+
+let array_exists f a =
+  try
+    for i = 0 to Array.length a - 1 do
+      if f a.(i) then raise Exit
+    done;
+    false
+  with Exit -> true
+
+let array_existsi f a =
+  try
+    for i = 0 to Array.length a - 1 do
+      if f i a.(i) then raise Exit
+    done;
+    false
+  with Exit -> true
 
 (* ************************************************************************* *)
 (** {2 Options} *)
@@ -297,17 +331,27 @@ external address_of_value: 'a -> int = "address_of_value" "noalloc"
 (* ************************************************************************* *)
 
 let try_finally ~finally f x =
-  try
-    let r = f x in
-    finally ();
-    r
-  with e ->
-    finally ();
-    raise e
+  let r = try f x with e -> finally () ; raise e in
+  finally () ; r
 
 (* ************************************************************************* *)
 (** System commands *)
 (* ************************************************************************* *)
+
+(*[LC] due to Unix.exec calls, at_exit might be cloned into child process
+  and executed when they are canceled early.
+
+  The alternative, such as registering an dameon that raises an exception,
+  hence interrupting the process, might not work: child processes still need to
+  run some daemons, such as [Pervasives.flush_all] which is registered by default. *)
+
+let pid = Unix.getpid ()
+let safe_at_exit f =
+  Pervasives.at_exit
+    begin fun () ->
+      let child = Unix.getpid () in
+      if child = pid then f ()
+    end
 
 let safe_remove f = try Unix.unlink f with Unix.Unix_error _ -> ()
 
@@ -321,7 +365,7 @@ let rec safe_remove_dir d =
     Unix.rmdir d
   with Unix.Unix_error _ | Sys_error _ -> ()
 
-let cleanup_at_exit f = at_exit (fun () -> safe_remove f)
+let cleanup_at_exit f = safe_at_exit (fun () -> safe_remove f)
 
 exception Temp_file_error of string
 
@@ -331,16 +375,17 @@ let temp_file_cleanup_at_exit ?(debug=false) s1 s2 =
     with Sys_error s -> raise (Temp_file_error s)
   in
   (try close_out out with Unix.Unix_error _ -> ());
-  at_exit 
-    (fun () -> 
-      if debug then begin
-        (* If the caller decided to erase this file after all, don't
-           print anything *)
-        if Sys.file_exists file then
-          Format.printf
-            "@[[extlib] Debug flag was set: not removing file %s@]@." file;
-      end else
-        safe_remove file) ;
+  safe_at_exit
+    begin fun () ->
+      if debug then
+        begin
+          if Sys.file_exists file then
+            Format.printf
+              "[extlib] Debug: not removing file %s@." file;
+        end
+      else
+        safe_remove file
+    end ;
   file
 
 let temp_dir_cleanup_at_exit ?(debug=false) base =
@@ -350,31 +395,31 @@ let temp_dir_cleanup_at_exit ?(debug=false) base =
     safe_remove file;
     try
       Unix.mkdir dir 0o700 ;
-      at_exit
-        (fun () ->
-          if debug then begin
-            if Sys.file_exists dir then
-              Format.printf
-                "@[[extlib] Debug flag was set: not removing dir %s@]@." dir;
-          end else
-            safe_remove_dir dir);
+      safe_at_exit
+        begin fun () ->
+          if debug then
+            begin
+              if Sys.file_exists dir then
+                Format.printf
+                  "[extlib] Debug: not removing dir %s@." dir;
+            end
+          else
+            safe_remove_dir dir
+        end ;
       dir
-    with Unix.Unix_error _ ->
+    with Unix.Unix_error(err,_,_) ->
       if limit < 0 then
-        let msg =
-          Printf.sprintf "Impossible to create temporary directory ('%s')" dir
-        in
-        raise (Temp_file_error msg)
+        raise (Temp_file_error (Unix.error_message err))
       else
         try_dir_cleanup_at_exit (pred limit) base
   in
   try_dir_cleanup_at_exit 10 base
 
 external terminate_process: int -> unit = "terminate_process" "noalloc"
-  (* In src/buckx/buckx_c.c. Can be replaced by Unix.kill in OCaml >= 4.02 *)
+  (* In ../utils/c_binding.c ; can be replaced by Unix.kill in OCaml >= 4.02 *)
 
 external usleep: int -> unit = "ml_usleep" "noalloc"
-  (* In src/buckx/buckx_c.c ; man usleep for details. *)
+  (* In ../utils/c_bindings.c ; man usleep for details. *)
 
 (* ************************************************************************* *)
 (** Strings *)
@@ -392,6 +437,19 @@ let string_del_prefix ?(strict=false) prefix s =
     Some
       (String.sub s
          (String.length prefix) (String.length s - String.length prefix))
+  else None
+
+let string_suffix ?(strict=false) suffix s =
+  let len = String.length s in
+  let suf_len = String.length suffix in
+  let strict_len = if strict then suf_len + 1 else suf_len in
+  len >= strict_len &&
+  compare_strings suffix (String.sub s (len - suf_len) suf_len) suf_len
+
+let string_del_suffix ?(strict=false) suffix s =
+  if string_suffix ~strict suffix s then
+    Some
+      (String.sub s 0 (String.length s - String.length suffix))
   else None
 
 let string_split s i =

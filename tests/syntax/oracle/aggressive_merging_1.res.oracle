@@ -9,11 +9,13 @@ __inline static void f(void)
 
 void foo(void)
 {
+  f();
   return;
 }
 
 void bar(void)
 {
+  f();
   return;
 }
 

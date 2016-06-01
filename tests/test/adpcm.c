@@ -603,7 +603,7 @@ int compressed[10]={0};
 void main () //(int test_data[10], int compressed[10])
 {
   int i;
-/*@ loop pragma UNROLL 11; */
+  /*@ loop pragma UNROLL 11; loop pragma WIDEN_HINTS 32767; */   /* Better bounds:    loop invariant detl <= 32064; loop invariant nbh <= 22528; loop invariant nbl <= 18432; */
   for(i = 0 ; i < 10 ; i += 2)
     compressed[i/2] = encode(test_data[i],test_data[i+1]);
 

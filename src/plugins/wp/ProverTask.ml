@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -235,19 +235,19 @@ class command name =
             | Task.Result 0 | Task.Canceled | Task.Timeout -> ()
             | Task.Result 127 ->
                 begin
-                  Wp_parameters.error "%s not installed (exit status 127)@." cmd ;
+                  Wp_parameters.error "Command '%s' not found (exit status 127)@." cmd ;
                   echo_buffer stdout ;
                   echo_buffer stderr ;
                 end
             | Task.Result s ->
                 begin
-                  Wp_parameters.error "%s exit with status [%d]@." cmd s ;
+                  Wp_parameters.error "Command '%s' exits with status [%d]@." cmd s ;
                   echo_buffer stdout ;
                   echo_buffer stderr ;
                 end
             | Task.Failed exn ->
                 begin
-                  Wp_parameters.error "%s fails: %s@." cmd (Task.error exn) ;
+                  Wp_parameters.error "Command '%s' fails: %s@." cmd (Task.error exn) ;
                   echo_buffer stdout ;
                   echo_buffer stderr ;
                 end
@@ -267,14 +267,13 @@ class command name =
 (* -------------------------------------------------------------------------- *)
 
 let server = ref None
-let server () =
+let getprocs = function Some n -> n | None -> Wp_parameters.Procs.get ()
+let server ?procs () =
   match !server with
   | Some s ->
-      let procs = Wp_parameters.Procs.get () in
-      Task.set_procs s procs ; s
+      Task.set_procs s (getprocs procs) ; s
   | None ->
-      let procs = Wp_parameters.Procs.get () in
-      let s = Task.server ~procs () in
+      let s = Task.server ~procs:(getprocs procs) () in
       Task.on_server_stop s Proof.savescripts ;
       server := Some s ; s
 
@@ -283,7 +282,7 @@ let server () =
 (* -------------------------------------------------------------------------- *)
 
 let silent _ = ()
-let spawn ?(monitor=silent) jobs =
+let spawn ?(monitor=silent) (jobs : ('a * bool Task.task) list) =
   begin
     let pool = ref [] in
     let step = ref 0 in
@@ -303,7 +302,7 @@ let spawn ?(monitor=silent) jobs =
           if not !canceled && !step = 0 then
             monitor None ;
         end in
-    let pack (a,t) = t >>= Task.call (callback a) in
+    let pack (a,t) = Task.thread (t >>= Task.call (callback a)) in
     let server = server () in
     step := List.length jobs ;
     pool := List.map pack jobs ;

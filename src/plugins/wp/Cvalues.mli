@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -76,6 +76,9 @@ val map_value : ('a -> 'b) -> 'a Memory.value -> 'b Memory.value
 val map_logic : ('a -> 'b) -> 'a Memory.logic -> 'b Memory.logic
 
 (** {2 ACSL Utilities} *)
+
+type polarity = [ `Positive | `Negative | `NoPolarity ]
+val negate : polarity -> polarity
 
 module Logic(M : Memory.Model) :
 sig

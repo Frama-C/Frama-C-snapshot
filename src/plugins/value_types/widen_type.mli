@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -43,7 +43,7 @@ val add_var_hints : Cil_types.stmt -> Base.Set.t -> t -> t
     {!Cvalue.Model.widen}. *)
 val hints_from_keys :
   Cil_types.stmt -> t ->
-  Base.Set.t * (Base.t -> Locations.Location_Bytes.widen_hint)
+  Base.Set.t * (Base.t -> Locations.Location_Bytes.generic_widen_hint)
 
 (*
 Local Variables:

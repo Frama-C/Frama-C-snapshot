@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -309,9 +309,18 @@ module Functions = struct
     else
       raise Not_found
 
+  let find_decl_by_name fct_name =
+    let vi = Datatype.String.Map.find fct_name (Iterator.State.get ()) in
+    let res = State.find vi in
+    if Ast_info.Function.is_definition res.fundec then
+      raise Not_found
+    else
+      res
+
   let () =
     Parameter_builder.find_kf_by_name := find_by_name;
     Parameter_builder.find_kf_def_by_name := find_def_by_name;
+    Parameter_builder.find_kf_decl_by_name := find_decl_by_name;
     Parameter_customize.find_kf_by_name := find_by_name
 
   exception Found of kernel_function
@@ -355,22 +364,26 @@ module Functions = struct
       [ self ]
       o
 
-  let def_category =
+  let generate_kf_category is_definition =
     let o = object
       method fold: 'a. (kernel_function -> 'a -> 'a) -> 'a -> 'a =
         fun f acc ->
           fold
             (fun kf acc -> match kf.fundec with
-            | Definition _ -> f kf acc
-            | Declaration _ -> acc)
+            | Definition _ -> if is_definition then f kf acc else acc
+            | Declaration _ -> if is_definition then acc else f kf acc)
             acc
       method mem kf =
-        State.mem (get_vi kf) && Ast_info.Function.is_definition kf.fundec
+        State.mem (get_vi kf) &&
+          (is_definition = Ast_info.Function.is_definition kf.fundec)
     end in
     Parameter_category.create "functions" Cil_datatype.Kf.ty
       ~register:true
       [ self ]
       o
+
+  let def_category = generate_kf_category true
+  let decl_category = generate_kf_category false
 
   let fundec_category =
     let o = object
@@ -402,6 +415,7 @@ module Functions = struct
   let () =
     Parameter_builder.kf_category := (fun () -> category);
     Parameter_builder.kf_def_category := (fun () -> def_category);
+    Parameter_builder.kf_decl_category := (fun () -> decl_category);
     Parameter_builder.kf_string_category := (fun () -> string_category);
     Parameter_builder.fundec_category := (fun () -> fundec_category)
 

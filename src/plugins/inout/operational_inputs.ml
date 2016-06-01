@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -111,7 +111,7 @@ let eval_assigns kf state assigns =
     let clean_deps =
       Locations.Zone.filter_base
         (function
-           | Base.Var (v, _) | Base.Initialized_Var (v, _) ->
+           | Base.Var (v, _) | Base.Allocated (v, _) ->
                not (Kernel_function.is_formal v kf)
            | Base.CLogic_Var _ | Base.Null | Base.String _ -> true)
     in
@@ -219,8 +219,8 @@ module CallwiseResults =
    end)
 
 module Computer(Fenv:Dataflows.FUNCTION_ENV)(X:sig
-  val version: string (* Callwise or functionwise *)
-  val kf: kernel_function (* Function being analyzed *)
+  val _version: string (* Debug: Callwise or functionwise *)
+  val _kf: kernel_function (* Debug: Function being analyzed *)
   val stmt_state: stmt -> Db.Value.state (* Memory state at the given stmt *)
   val at_call: stmt -> kernel_function -> Inout_type.t (* Results of the
       analysis for the given call. Must not contain locals or formals *)
@@ -463,6 +463,29 @@ let get_external_aux ?stmt kf =
             r
           else !Db.Operational_inputs.get_external kf
 
+let extract_inout_from_froms froms =
+  let open Function_Froms in 
+  let {deps_return; deps_table } = froms in
+  let in_return = Deps.to_zone deps_return in
+  let in_, out_ =
+    match deps_table with
+    | Memory.Top -> Zone.top, Zone.top
+    | Memory.Bottom -> Zone.bottom, Zone.bottom
+    | Memory.Map m ->
+      let aux_from out in_ (acc_in,acc_out as acc) =
+        let open DepsOrUnassigned in
+        (* Skip zones fully unassigned, they are not really port of the
+           dependencies, but just present in the offsetmap to avoid "holes" *)
+        match in_ with
+        | DepsBottom | Unassigned -> acc
+        | AssignedFrom in_ | MaybeAssignedFrom in_ ->
+          Zone.join acc_in (Deps.to_zone in_),
+          Zone.join acc_out out
+      in
+      Memory.fold aux_from m (Zone.bottom, Zone.bottom)
+  in
+  (Zone.join in_return in_), out_
+
 
 module Callwise = struct
 
@@ -500,28 +523,39 @@ module Callwise = struct
 
   let call_inout_stack = ref []
 
-  let call_for_callwise_inout (state, call_stack) =
+  let call_for_callwise_inout (call_type, state, call_stack) =
     if compute_callwise () then begin
       let (current_function, ki as call_site) = List.hd call_stack in
-      if not (!Db.Value.use_spec_instead_of_definition current_function) then
-        let table_current_function = CallsiteHash.create 7 in
-        call_inout_stack :=
-          (current_function, table_current_function) :: !call_inout_stack
-      else 
-        let inout = compute_using_prototype_state state current_function in
+      let merge_inout inout =
         if ki = Kglobal 
         then merge_call_in_global_tables call_site inout
         else
-          try
-            let _above_function, table = 
-              try List.hd !call_inout_stack 
-              with Failure "hd" -> assert false
-            in
-            merge_call_in_local_table call_site table inout;
-          with Failure "hd" ->
-            Inout_parameters.fatal "inout: empty stack"
-              Kernel_function.pretty current_function
-    end
+          let _above_function, table =
+            try List.hd !call_inout_stack
+            with Failure _ -> assert false
+          in
+          merge_call_in_local_table call_site table inout
+      in
+      match call_type with
+      | `Builtin {Value_types.c_from = Some (froms,sure_out) } ->
+         let in_, out_ = extract_inout_from_froms froms in
+         let inout = {
+           over_inputs_if_termination = in_;
+           over_inputs = in_;
+           over_outputs_if_termination = out_ ;
+           over_outputs = out_;
+           under_outputs_if_termination = sure_out;
+         } in
+         merge_inout inout
+      | `Def | `Memexec ->
+        let table_current_function = CallsiteHash.create 7 in
+        call_inout_stack :=
+          (current_function, table_current_function) :: !call_inout_stack
+      | `Spec | `Builtin { Value_types.c_from = None } ->
+        let inout = compute_using_prototype_state state current_function in
+        merge_inout inout
+    end;;
+
 
   module MemExec =
     State_builder.Hashtbl
@@ -557,8 +591,8 @@ module Callwise = struct
     let module Fenv = (val Dataflows.function_env kf: Dataflows.FUNCTION_ENV) in
     let module Computer = Computer(Fenv)(
       struct
-        let version = "callwise"
-        let kf = kf
+        let _version = "callwise"
+        let _kf = kf
 
         let stmt_state stmt =
           try Cil_datatype.Stmt.Hashtbl.find states stmt
@@ -610,7 +644,7 @@ module Callwise = struct
 
   let add_hooks () =
     Db.Value.Record_Value_Callbacks_New.extend_once record_for_callwise_inout;
-    Db.Value.Call_Value_Callbacks.extend_once call_for_callwise_inout
+    Db.Value.Call_Type_Value_Callbacks.extend_once call_for_callwise_inout;;
 
   let () = Inout_parameters.ForceCallwiseInout.add_update_hook
     (fun _bold bnew -> if bnew then add_hooks ())
@@ -637,8 +671,8 @@ module FunctionWise = struct
             (val Dataflows.function_env kf: Dataflows.FUNCTION_ENV)
       in
       let module Computer = Computer(Fenv)(struct
-        let version = "functionwise"
-        let kf = kf
+        let _version = "functionwise"
+        let _kf = kf
         let stmt_state = Db.Value.get_stmt_state
         let at_call stmt kf = get_external_aux ~stmt kf
       end) in

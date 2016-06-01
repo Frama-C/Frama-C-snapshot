@@ -10,274 +10,213 @@
 ------------------------------------------------------------
 
 Goal Post-condition 'P,todo' in 'f':
-Let a_0 = (shift_sint32 t_2 a_1).
-Let x_0 = -a_1.
+Let a_1 = shift_sint32(t, a).
+Let x = -a.
 Assume {
-  (* Domain *)
-  Type: (is_sint32 a_1) /\ (is_sint32 b_1) /\ (is_sint32 i_2).
+  Type: is_sint32(a) /\ is_sint32(b) /\ is_sint32(i).
   (* Heap *)
-  Have: (linked Malloc_1) /\ ((region (base t_2))<=0).
-  (* Pre-condition (file tests/wp_acsl/axioms.i, line 20) in 'f' *)
-  (* Pre-condition: *)
-  Have: (valid_rw Malloc_1 a_0 (1+b_1-a_1)).
-  (* Pre-condition (file tests/wp_acsl/axioms.i, line 21) in 'f' *)
-  (* Pre-condition: *)
-  Have: a_1<=b_1.
-  (* tests/wp_acsl/axioms.i:34: Assigns *)
-  (* tests/wp_acsl/axioms.i:34: Loop assigns ...: *)
-  Have: (havoc Mint_4 Mint_2 a_0 (i_2-a_1)).
-  (* Invariant 'Positive' (file tests/wp_acsl/axioms.i, line 31) *)
-  (* tests/wp_acsl/axioms.i:34: Invariant 'Positive': *)
-  Have: forall i_0:int.
-        (i_0<i_2) -> (a_1<=i_0) -> (0<Mint_2[(shift_sint32 t_2 i_0)]).
-  (* Invariant 'Index' (file tests/wp_acsl/axioms.i, line 30) *)
-  (* tests/wp_acsl/axioms.i:34: Invariant 'Index': *)
-  Have: (a_1<=i_2) /\ (i_2<=(1+b_1)).
-  (* tests/wp_acsl/axioms.i:34: Else *)
-  Have: b_1<i_2.
+  Have: linked(Malloc_0) /\ (region(t.base) <= 0).
+  (* Pre-condition *)
+  Have: valid_rw(Malloc_0, a_1, 1 + b - a).
+  (* Pre-condition *)
+  Have: a <= b.
+  (* Loop assigns ... *)
+  Have: havoc(Mint_1, Mint_0, a_1, i - a).
+  (* Invariant 'Positive' *)
+  Have: forall i_1 : Z. ((i_1 < i) -> ((a <= i_1) ->
+      (0 < Mint_0[shift_sint32(t, i_1)]))).
+  (* Invariant 'Index' *)
+  Have: (a <= i) /\ (i <= (1 + b)).
+  (* Else *)
+  Have: b < i.
 }
-Prove: (P_P Mint_2 t_2 a_1 b_1).
+Prove: P_P(Mint_0, t, a, b).
 
 ------------------------------------------------------------
 
 Goal Post-condition 'Q' in 'f':
-Let a_0 = (shift_sint32 t_2 a_1).
-Let x_0 = -a_1.
+Let a_1 = shift_sint32(t, a).
+Let x = -a.
 Assume {
-  (* Domain *)
-  Type: (is_sint32 a_1) /\ (is_sint32 b_1) /\ (is_sint32 i_2).
+  Type: is_sint32(a) /\ is_sint32(b) /\ is_sint32(i).
   (* Heap *)
-  Have: (linked Malloc_1) /\ ((region (base t_2))<=0).
-  (* Pre-condition (file tests/wp_acsl/axioms.i, line 20) in 'f' *)
-  (* Pre-condition: *)
-  Have: (valid_rw Malloc_1 a_0 (1+b_1-a_1)).
-  (* Pre-condition (file tests/wp_acsl/axioms.i, line 21) in 'f' *)
-  (* Pre-condition: *)
-  Have: a_1<=b_1.
-  (* tests/wp_acsl/axioms.i:34: Assigns *)
-  (* tests/wp_acsl/axioms.i:34: Loop assigns ...: *)
-  Have: (havoc Mint_4 Mint_2 a_0 (i_2-a_1)).
-  (* Invariant 'Positive' (file tests/wp_acsl/axioms.i, line 31) *)
-  (* tests/wp_acsl/axioms.i:34: Invariant 'Positive': *)
-  Have: forall i_0:int.
-        (i_0<i_2) -> (a_1<=i_0) -> (0<Mint_2[(shift_sint32 t_2 i_0)]).
-  (* Invariant 'Index' (file tests/wp_acsl/axioms.i, line 30) *)
-  (* tests/wp_acsl/axioms.i:34: Invariant 'Index': *)
-  Have: (a_1<=i_2) /\ (i_2<=(1+b_1)).
-  (* tests/wp_acsl/axioms.i:34: Else *)
-  Have: b_1<i_2.
+  Have: linked(Malloc_0) /\ (region(t.base) <= 0).
+  (* Pre-condition *)
+  Have: valid_rw(Malloc_0, a_1, 1 + b - a).
+  (* Pre-condition *)
+  Have: a <= b.
+  (* Loop assigns ... *)
+  Have: havoc(Mint_1, Mint_0, a_1, i - a).
+  (* Invariant 'Positive' *)
+  Have: forall i_1 : Z. ((i_1 < i) -> ((a <= i_1) ->
+      (0 < Mint_0[shift_sint32(t, i_1)]))).
+  (* Invariant 'Index' *)
+  Have: (a <= i) /\ (i <= (1 + b)).
+  (* Else *)
+  Have: b < i.
 }
-Prove: (P_Q Malloc_1 Mint_2 t_2 a_1 b_1).
+Prove: P_Q(Malloc_0, Mint_0, t, a, b).
 
 ------------------------------------------------------------
 
 Goal Preservation of Invariant 'Index' (file tests/wp_acsl/axioms.i, line 30):
-Let x_0 = 1+i_2.
-Let a_1 = (shift_sint32 t_0 a_0).
-Let x_1 = -a_0.
+Let a_1 = shift_sint32(t, a).
+Let x = -a.
+Let x_1 = 1 + i.
 Assume {
-  (* Domain *)
-  Type: (is_sint32 a_0) /\ (is_sint32 b_0) /\ (is_sint32 i_2)
-        /\ (is_sint32 x_0).
+  Type: is_sint32(a) /\ is_sint32(b) /\ is_sint32(i) /\ is_sint32(x_1).
   (* Heap *)
-  Have: (linked Malloc_1) /\ ((region (base t_0))<=0).
-  (* Pre-condition (file tests/wp_acsl/axioms.i, line 20) in 'f' *)
-  (* Pre-condition: *)
-  Have: (valid_rw Malloc_1 a_1 (1+b_0-a_0)).
-  (* Pre-condition (file tests/wp_acsl/axioms.i, line 21) in 'f' *)
-  (* Pre-condition: *)
-  Have: a_0<=b_0.
-  (* tests/wp_acsl/axioms.i:34: Assigns *)
-  (* tests/wp_acsl/axioms.i:34: Loop assigns ...: *)
-  Have: (havoc Mint_4 Mint_3 a_1 (i_2-a_0)).
-  (* Invariant 'Positive' (file tests/wp_acsl/axioms.i, line 31) *)
-  (* tests/wp_acsl/axioms.i:34: Invariant 'Positive': *)
-  Have: forall i_0:int.
-        (i_0<i_2) -> (a_0<=i_0) -> (0<Mint_3[(shift_sint32 t_0 i_0)]).
-  (* Invariant 'Index' (file tests/wp_acsl/axioms.i, line 30) *)
-  (* tests/wp_acsl/axioms.i:34: Invariant 'Index': *)
-  Have: (a_0<=i_2) /\ (i_2<=(1+b_0)).
-  (* tests/wp_acsl/axioms.i:34: Then *)
-  Have: i_2<=b_0.
+  Have: linked(Malloc_0) /\ (region(t.base) <= 0).
+  (* Pre-condition *)
+  Have: valid_rw(Malloc_0, a_1, 1 + b - a).
+  (* Pre-condition *)
+  Have: a <= b.
+  (* Loop assigns ... *)
+  Have: havoc(Mint_0, Mint_1, a_1, i - a).
+  (* Invariant 'Positive' *)
+  Have: forall i_1 : Z. ((i_1 < i) -> ((a <= i_1) ->
+      (0 < Mint_1[shift_sint32(t, i_1)]))).
+  (* Invariant 'Index' *)
+  Have: (a <= i) /\ (i <= (1 + b)).
+  (* Then *)
+  Have: i <= b.
 }
-Prove: a_0<=x_0.
+Prove: a <= x_1.
 
 ------------------------------------------------------------
 
 Goal Establishment of Invariant 'Index' (file tests/wp_acsl/axioms.i, line 30):
 Assume {
-  (* Domain *)
-  Type: (is_sint32 a_0) /\ (is_sint32 b_0).
+  Type: is_sint32(a) /\ is_sint32(b).
   (* Heap *)
-  Have: (linked Malloc_1) /\ ((region (base t_0))<=0).
-  (* Pre-condition (file tests/wp_acsl/axioms.i, line 20) in 'f' *)
-  (* Pre-condition: *)
-  Have: (valid_rw Malloc_1 (shift_sint32 t_0 a_0) (1+b_0-a_0)).
-  (* Pre-condition (file tests/wp_acsl/axioms.i, line 21) in 'f' *)
-  (* Pre-condition: *)
-  Have: a_0<=b_0.
+  Have: linked(Malloc_0) /\ (region(t.base) <= 0).
+  (* Pre-condition *)
+  Have: valid_rw(Malloc_0, shift_sint32(t, a), 1 + b - a).
+  (* Pre-condition *)
+  Have: a <= b.
 }
-Prove: a_0<=(1+b_0).
+Prove: a <= (1 + b).
 
 ------------------------------------------------------------
 
 Goal Preservation of Invariant 'Positive' (file tests/wp_acsl/axioms.i, line 31):
-Let a_1 = (shift_sint32 t_0 a_0).
-Let x_0 = -a_0.
+Let a_1 = shift_sint32(t, a).
+Let x = -a.
 Assume {
-  (* Domain *)
-  Type: (is_sint32 a_0) /\ (is_sint32 b_0) /\ (is_sint32 i_2)
-        /\ (is_sint32 (1+i_2)).
+  Type: is_sint32(a) /\ is_sint32(b) /\ is_sint32(i) /\ is_sint32(1 + i).
   (* Goal *)
-  When: (a_0<=i_1) /\ (i_1<=i_2) /\ (is_sint32 i_1).
+  When: (a <= i_1) /\ (i_1 <= i) /\ is_sint32(i_1).
   (* Heap *)
-  Have: (linked Malloc_1) /\ ((region (base t_0))<=0).
-  (* Pre-condition (file tests/wp_acsl/axioms.i, line 20) in 'f' *)
-  (* Pre-condition: *)
-  Have: (valid_rw Malloc_1 a_1 (1+b_0-a_0)).
-  (* Pre-condition (file tests/wp_acsl/axioms.i, line 21) in 'f' *)
-  (* Pre-condition: *)
-  Have: a_0<=b_0.
-  (* tests/wp_acsl/axioms.i:34: Assigns *)
-  (* tests/wp_acsl/axioms.i:34: Loop assigns ...: *)
-  Have: (havoc Mint_4 Mint_1 a_1 (i_2-a_0)).
-  (* Invariant 'Positive' (file tests/wp_acsl/axioms.i, line 31) *)
-  (* tests/wp_acsl/axioms.i:34: Invariant 'Positive': *)
-  Have: forall i_0:int.
-        (i_0<i_2) -> (a_0<=i_0) -> (0<Mint_1[(shift_sint32 t_0 i_0)]).
-  (* Invariant 'Index' (file tests/wp_acsl/axioms.i, line 30) *)
-  (* tests/wp_acsl/axioms.i:34: Invariant 'Index': *)
-  Have: (a_0<=i_2) /\ (i_2<=(1+b_0)).
-  (* tests/wp_acsl/axioms.i:34: Then *)
-  Have: i_2<=b_0.
+  Have: linked(Malloc_0) /\ (region(t.base) <= 0).
+  (* Pre-condition *)
+  Have: valid_rw(Malloc_0, a_1, 1 + b - a).
+  (* Pre-condition *)
+  Have: a <= b.
+  (* Loop assigns ... *)
+  Have: havoc(Mint_1, Mint_0, a_1, i - a).
+  (* Invariant 'Positive' *)
+  Have: forall i_2 : Z. ((i_2 < i) -> ((a <= i_2) ->
+      (0 < Mint_0[shift_sint32(t, i_2)]))).
+  (* Invariant 'Index' *)
+  Have: (a <= i) /\ (i <= (1 + b)).
+  (* Then *)
+  Have: i <= b.
 }
-Prove: 0<Mint_1[(shift_sint32 t_0 i_2)->1][(shift_sint32 t_0 i_1)].
+Prove: 0 < Mint_0[shift_sint32(t, i) <- 1][shift_sint32(t, i_1)].
 
 ------------------------------------------------------------
 
 Goal Establishment of Invariant 'Positive' (file tests/wp_acsl/axioms.i, line 31):
-Assume { (* Goal *) When: false. }
-Prove: 0<Mint_4[(shift_sint32 t_0 i_6)].
+Prove: true.
 
 ------------------------------------------------------------
 
 Goal Loop assigns (file tests/wp_acsl/axioms.i, line 32) (1/3):
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Loop assigns (file tests/wp_acsl/axioms.i, line 32) (2/3):
 Effect at line 34
-Let a_1 = (shift_sint32 t_0 a_0).
-Let x_0 = -a_0.
-Let x_1 = i_2-a_0.
+Let a_1 = shift_sint32(t, a).
+Let x = -a.
+Let x_1 = i - a.
 Assume {
-  (* Domain *)
-  Type: (is_sint32 a_0) /\ (is_sint32 b_0) /\ (is_sint32 i_2)
-        /\ (is_sint32 (1+i_2)).
+  Type: is_sint32(a) /\ is_sint32(b) /\ is_sint32(i) /\ is_sint32(1 + i).
   (* Goal *)
-  When: (valid_rd Malloc_0 a_1 x_1).
+  When: valid_rd(Malloc_0, a_1, x_1).
   (* Heap *)
-  Have: (linked Malloc_0) /\ ((region (base t_0))<=0).
-  (* Pre-condition (file tests/wp_acsl/axioms.i, line 20) in 'f' *)
-  (* Pre-condition: *)
-  Have: (valid_rw Malloc_0 a_1 (1+b_0-a_0)).
-  (* Pre-condition (file tests/wp_acsl/axioms.i, line 21) in 'f' *)
-  (* Pre-condition: *)
-  Have: a_0<=b_0.
-  (* tests/wp_acsl/axioms.i:34: Assigns *)
-  (* tests/wp_acsl/axioms.i:34: Loop assigns ...: *)
-  Have: (havoc Mint_4 Mint_3 a_1 x_1).
-  (* Invariant 'Positive' (file tests/wp_acsl/axioms.i, line 31) *)
-  (* tests/wp_acsl/axioms.i:34: Invariant 'Positive': *)
-  Have: forall i_0:int.
-        (i_0<i_2) -> (a_0<=i_0) -> (0<Mint_3[(shift_sint32 t_0 i_0)]).
-  (* Invariant 'Index' (file tests/wp_acsl/axioms.i, line 30) *)
-  (* tests/wp_acsl/axioms.i:34: Invariant 'Index': *)
-  Have: (a_0<=i_2) /\ (i_2<=(1+b_0)).
-  (* tests/wp_acsl/axioms.i:34: Then *)
-  Have: i_2<=b_0.
+  Have: linked(Malloc_0) /\ (region(t.base) <= 0).
+  (* Pre-condition *)
+  Have: valid_rw(Malloc_0, a_1, 1 + b - a).
+  (* Pre-condition *)
+  Have: a <= b.
+  (* Loop assigns ... *)
+  Have: havoc(Mint_0, Mint_1, a_1, x_1).
+  (* Invariant 'Positive' *)
+  Have: forall i_1 : Z. ((i_1 < i) -> ((a <= i_1) ->
+      (0 < Mint_1[shift_sint32(t, i_1)]))).
+  (* Invariant 'Index' *)
+  Have: (a <= i) /\ (i <= (1 + b)).
+  (* Then *)
+  Have: i <= b.
 }
-Prove: (included a_1 x_1 a_1 (1+i_2-a_0)).
+Prove: included(a_1, x_1, a_1, 1 + i - a).
 
 ------------------------------------------------------------
 
 Goal Loop assigns (file tests/wp_acsl/axioms.i, line 32) (3/3):
 Effect at line 34
-Let a_1 = (shift_sint32 t_0 i_2).
-Let a_2 = (shift_sint32 t_0 a_0).
-Let x_0 = -a_0.
+Let a_1 = shift_sint32(t, a).
+Let x = -a.
+Let a_2 = shift_sint32(t, i).
 Assume {
-  (* Domain *)
-  Type: (is_sint32 a_0) /\ (is_sint32 b_0) /\ (is_sint32 i_2)
-        /\ (is_sint32 (1+i_2)).
+  Type: is_sint32(a) /\ is_sint32(b) /\ is_sint32(i) /\ is_sint32(1 + i).
   (* Goal *)
-  When: (valid_rd Malloc_0 a_1 1).
+  When: valid_rd(Malloc_0, a_2, 1).
   (* Heap *)
-  Have: (linked Malloc_0) /\ ((region (base t_0))<=0).
-  (* Pre-condition (file tests/wp_acsl/axioms.i, line 20) in 'f' *)
-  (* Pre-condition: *)
-  Have: (valid_rw Malloc_0 a_2 (1+b_0-a_0)).
-  (* Pre-condition (file tests/wp_acsl/axioms.i, line 21) in 'f' *)
-  (* Pre-condition: *)
-  Have: a_0<=b_0.
-  (* tests/wp_acsl/axioms.i:34: Assigns *)
-  (* tests/wp_acsl/axioms.i:34: Loop assigns ...: *)
-  Have: (havoc Mint_4 Mint_3 a_2 (i_2-a_0)).
-  (* Invariant 'Positive' (file tests/wp_acsl/axioms.i, line 31) *)
-  (* tests/wp_acsl/axioms.i:34: Invariant 'Positive': *)
-  Have: forall i_0:int.
-        (i_0<i_2) -> (a_0<=i_0) -> (0<Mint_3[(shift_sint32 t_0 i_0)]).
-  (* Invariant 'Index' (file tests/wp_acsl/axioms.i, line 30) *)
-  (* tests/wp_acsl/axioms.i:34: Invariant 'Index': *)
-  Have: (a_0<=i_2) /\ (i_2<=(1+b_0)).
-  (* tests/wp_acsl/axioms.i:34: Then *)
-  Have: i_2<=b_0.
+  Have: linked(Malloc_0) /\ (region(t.base) <= 0).
+  (* Pre-condition *)
+  Have: valid_rw(Malloc_0, a_1, 1 + b - a).
+  (* Pre-condition *)
+  Have: a <= b.
+  (* Loop assigns ... *)
+  Have: havoc(Mint_0, Mint_1, a_1, i - a).
+  (* Invariant 'Positive' *)
+  Have: forall i_1 : Z. ((i_1 < i) -> ((a <= i_1) ->
+      (0 < Mint_1[shift_sint32(t, i_1)]))).
+  (* Invariant 'Index' *)
+  Have: (a <= i) /\ (i <= (1 + b)).
+  (* Then *)
+  Have: i <= b.
 }
-Prove: (included a_1 1 a_2 (1+i_2-a_0)).
+Prove: included(a_2, 1, a_1, 1 + i - a).
 
 ------------------------------------------------------------
 
 Goal Assigns 'todo' in 'f' (1/2):
 Effect at line 34
-Assume {
-  (* Domain *)
-  Type: (is_sint32 a_0) /\ (is_sint32 b_0).
-  (* Heap *)
-  Have: (linked Malloc_1) /\ ((region (base t_0))<=0).
-  (* Pre-condition (file tests/wp_acsl/axioms.i, line 20) in 'f' *)
-  (* Pre-condition: *)
-  Have: (valid_rw Malloc_1 (shift_sint32 t_0 a_0) (1+b_0-a_0)).
-  (* Pre-condition (file tests/wp_acsl/axioms.i, line 21) in 'f' *)
-  (* Pre-condition: *)
-  Have: a_0<=b_0.
-}
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Assigns 'todo' in 'f' (2/2):
 Effect at line 34
-Let a_1 = (shift_sint32 t_0 a_0).
-Let x_0 = -a_0.
-Let x_1 = i_2-a_0.
-Let x_2 = 1+b_1-a_0.
+Let a_1 = shift_sint32(t, a).
+Let x = -a.
+Let x_1 = i - a.
+Let x_2 = 1 + b - a.
 Assume {
-  (* Domain *)
-  Type: (is_sint32 a_0) /\ (is_sint32 b_1) /\ (is_sint32 i_2).
+  Type: is_sint32(a) /\ is_sint32(b) /\ is_sint32(i).
   (* Heap *)
-  Have: (linked Malloc_2) /\ ((region (base t_0))<=0).
-  (* Pre-condition (file tests/wp_acsl/axioms.i, line 20) in 'f' *)
-  (* Pre-condition: *)
-  Have: (valid_rw Malloc_2 a_1 x_2).
-  (* Pre-condition (file tests/wp_acsl/axioms.i, line 21) in 'f' *)
-  (* Pre-condition: *)
-  Have: a_0<=b_1.
-  (* tests/wp_acsl/axioms.i:34: Assigns *)
-  (* tests/wp_acsl/axioms.i:34: Loop assigns ...: *)
-  Have: (havoc Mint_4 Mint_3 a_1 x_1).
+  Have: linked(Malloc_0) /\ (region(t.base) <= 0).
+  (* Pre-condition *)
+  Have: valid_rw(Malloc_0, a_1, x_2).
+  (* Pre-condition *)
+  Have: a <= b.
+  (* Loop assigns ... *)
+  Have: havoc(Mint_0, Mint_1, a_1, x_1).
 }
-Prove: (valid_rd Malloc_2 a_1 x_1) -> (included a_1 x_1 a_1 x_2).
+Prove: (valid_rd(Malloc_0, a_1, x_1) -> included(a_1, x_1, a_1, x_2)).
 
 ------------------------------------------------------------

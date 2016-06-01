@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -27,11 +27,11 @@
 (** {2 Database} *)
 
 val delete_script : string -> unit
-val add_script : string -> string list -> string -> unit
-(** [new_script goal keys proof] registers the script [proof] for goal [goal]
-    and keywords [keys] *)
+val add_script : string -> string list -> string -> string -> unit
+(** [new_script goal keys proof qed] registers the script [proof] terminated by [qed]
+    for goal [goal] and keywords [keys] *)
 
-val find_script_for_goal : string -> string option
+val find_script_for_goal : string -> (string * string) option
 (** Retrieve script file for one specific goal.
     The file specified by [-wp-script f] is loaded if necessary. *)
 
@@ -39,9 +39,9 @@ val update_hints_for_goal : string -> string list -> unit
 (** Update the hints for one specific goal. The script file will be saved if hints
     are different. *)
 
-val find_script_with_hints : string list -> string list -> (int * string * string) list
+val find_script_with_hints : string list -> string list -> (int * string * string * string) list
 (** Retrieve matchable script files for w.r.t provided required and hints keywords.
-    Most suitable scripts comes first, with format [(n,g,p)] where [p] is a script
+    Most suitable scripts comes first, with format [(n,g,p,q)] where [p,q] is a script
     matching [n] hints from possibly deprecated goal [g]. *)
 
 val clear : unit -> unit
@@ -58,7 +58,7 @@ val savescripts : unit -> unit
 
 val is_empty : string -> bool
 
-val parse_coqproof : string -> string option
+val parse_coqproof : string -> (string * string) option
 (** [parse_coqproof f] parses a coq-file [f] and fetch the first proof. *)
 
 val parse_scripts : string -> unit
@@ -73,6 +73,6 @@ val dump_scripts : string -> unit
 
 open WpPropId
 
-val script_for : pid:prop_id -> gid:string -> string option
-val script_for_ide : pid:prop_id -> gid:string -> string
-val hints_for : pid:prop_id -> (string * string) list
+val script_for : pid:prop_id -> gid:string -> (string * string) option
+val script_for_ide : pid:prop_id -> gid:string -> string * string
+val hints_for : pid:prop_id -> (string * string * string) list

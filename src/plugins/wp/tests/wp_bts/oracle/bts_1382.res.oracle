@@ -22,7 +22,6 @@ tests/wp_bts/bts_1382.i:18: warning from Typed Model:
 tests/wp_bts/bts_1382.i:18: warning from Typed Model:
  - Warning: Hide sub-term definition
    Reason: Cast with incompatible pointers types (source: sint32*) (target: sint8*)
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
@@ -33,18 +32,17 @@ tests/wp_bts/bts_1382.i:17: warning from Typed Model:
  - Warning: Hide sub-term definition
    Reason: Cast with incompatible pointers types (source: sint32*) (target: uint8*)
 Assume {
-  (* Domain *)
-  Type: (is_sint32 i_0).
+  Type: is_sint32(i).
   (* Goal *)
-  When: (valid_rd Malloc_0 w_7 1).
+  When: valid_rd(Malloc_0, w, 1).
   (* Heap *)
-  Have: (linked Malloc_0) /\ (sconst Mchar_0).
-  (* tests/wp_bts/bts_1382.i:16: Then *)
-  Have: i_0<=99.
-  (* tests/wp_bts/bts_1382.i:18: Call Effects *)
-  Have: (havoc Mchar_0 Mchar_3 (shift_sint8 w_2 0) 4).
+  Have: linked(Malloc_0) /\ sconst(Mchar_0).
+  (* Then *)
+  Have: i <= 99.
+  (* Call Effects *)
+  Have: havoc(Mchar_0, Mchar_1, shift_sint8(w_1, 0), 4).
 }
-Prove: w_7=(shift_sint32 (global G_dest_87) 0).
+Prove: w = shift_sint32(global(G_dest_87), 0).
 
 ------------------------------------------------------------
 
@@ -59,19 +57,18 @@ tests/wp_bts/bts_1382.i:18: warning from Typed Model:
 tests/wp_bts/bts_1382.i:18: warning from Typed Model:
  - Warning: Hide sub-term definition
    Reason: Cast with incompatible pointers types (source: sint32*) (target: sint8*)
-Let a_0 = (shift_sint8 w_2 0).
+Let a = shift_sint8(w, 0).
 Assume {
-  (* Domain *)
-  Type: (is_sint32 i_0).
+  Type: is_sint32(i).
   (* Goal *)
-  When: (valid_rd Malloc_0 a_0 4).
+  When: valid_rd(Malloc_0, a, 4).
   (* Heap *)
-  Have: (linked Malloc_0) /\ (sconst Mchar_0).
-  (* tests/wp_bts/bts_1382.i:16: Then *)
-  Have: i_0<=99.
-  (* tests/wp_bts/bts_1382.i:18: Call Effects *)
-  Have: (havoc Mchar_0 Mchar_3 a_0 4).
+  Have: linked(Malloc_0) /\ sconst(Mchar_0).
+  (* Then *)
+  Have: i <= 99.
+  (* Call Effects *)
+  Have: havoc(Mchar_0, Mchar_1, a, 4).
 }
-Prove: (included a_0 4 (shift_sint32 (global G_dest_87) 0) 1).
+Prove: included(a, 4, shift_sint32(global(G_dest_87), 0), 1).
 
 ------------------------------------------------------------

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -87,6 +87,9 @@ module Script: Parameter_sig.String
 module UpdateScript: Parameter_sig.Bool
 module Timeout: Parameter_sig.Int
 module CoqTimeout: Parameter_sig.Int
+module CoqCompiler : Parameter_sig.String
+module CoqIde : Parameter_sig.String
+module CoqProject : Parameter_sig.String
 module Depth: Parameter_sig.Int
 module Steps: Parameter_sig.Int
 module Procs: Parameter_sig.Int
@@ -95,8 +98,11 @@ module CoqLibs: Parameter_sig.String_list
 module CoqTactic: Parameter_sig.String
 module Hints: Parameter_sig.Int
 module TryHints: Parameter_sig.Bool
+module Why3: Parameter_sig.String
 module WhyLibs: Parameter_sig.String_list
 module WhyFlags: Parameter_sig.String_list
+module AltErgo: Parameter_sig.String
+module AltGrErgo: Parameter_sig.String
 module AltErgoLibs: Parameter_sig.String_list
 module AltErgoFlags: Parameter_sig.String_list
 
@@ -106,6 +112,7 @@ module TruncPropIdFileName: Parameter_sig.Int
 module Print: Parameter_sig.Bool
 module Report: Parameter_sig.String_list
 module ReportName: Parameter_sig.String
+module Separation: Parameter_sig.Bool
 module Check: Parameter_sig.Bool
 
 (** {2 Environment Variables} *)
@@ -121,10 +128,3 @@ val make_output_dir: string -> unit
 val print_generated: string -> unit
 (** print the given file if the debugging category
     "print-generated" is set *)
-
-
-(*
-Local Variables:
-compile-command: "make -C ../../.."
-End:
-*)

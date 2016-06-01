@@ -1,0 +1,130 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/value/assigns_from_direct.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  
+[value] computing for function f_valid <- main.
+        Called from tests/value/assigns_from_direct.i:14.
+[value] Recording results for f_valid
+[from] Computing for function f_valid
+[from] Done for function f_valid
+tests/value/assigns_from_direct.i:21:[value] function f_valid: assigns got status valid.
+tests/value/assigns_from_direct.i:21:[value] function f_valid: \from ... part in assign clause got status valid.
+[value] Done for function f_valid
+[value] computing for function f_invalid_direct <- main.
+        Called from tests/value/assigns_from_direct.i:15.
+[value] Recording results for f_invalid_direct
+[from] Computing for function f_invalid_direct
+[from] Done for function f_invalid_direct
+tests/value/assigns_from_direct.i:30:[value] function f_invalid_direct: assigns got status valid.
+tests/value/assigns_from_direct.i:30:[value] warning: function f_invalid_direct: \from ... part in assign clause got status unknown (cannot validate direct dependencies).
+[value] Done for function f_invalid_direct
+[value] computing for function f_invalid_address <- main.
+        Called from tests/value/assigns_from_direct.i:16.
+[value] Recording results for f_invalid_address
+[from] Computing for function f_invalid_address
+[from] Done for function f_invalid_address
+tests/value/assigns_from_direct.i:39:[value] function f_invalid_address: assigns got status valid.
+tests/value/assigns_from_direct.i:39:[value] warning: function f_invalid_address: \from ... part in assign clause got status unknown (cannot validate indirect dependencies).
+[value] Done for function f_invalid_address
+[value] computing for function f_invalid_condition <- main.
+        Called from tests/value/assigns_from_direct.i:17.
+[value] Recording results for f_invalid_condition
+[from] Computing for function f_invalid_condition
+[from] Done for function f_invalid_condition
+tests/value/assigns_from_direct.i:48:[value] function f_invalid_condition: assigns got status valid.
+tests/value/assigns_from_direct.i:48:[value] warning: function f_invalid_condition: \from ... part in assign clause got status unknown (cannot validate indirect dependencies).
+[value] Done for function f_invalid_condition
+[value] computing for function f_invalid_all <- main.
+        Called from tests/value/assigns_from_direct.i:18.
+[value] Recording results for f_invalid_all
+[from] Computing for function f_invalid_all
+[from] Done for function f_invalid_all
+tests/value/assigns_from_direct.i:57:[value] function f_invalid_all: assigns got status valid.
+tests/value/assigns_from_direct.i:57:[value] warning: function f_invalid_all: \from ... part in assign clause got status unknown (cannot validate direct and indirect dependencies).
+[value] Done for function f_invalid_all
+[value] Recording results for main
+[from] Computing for function main
+[from] Done for function main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function f_invalid_address:
+  y ∈ {3}
+[value] Values at end of function f_invalid_all:
+  y ∈ {3}
+[value] Values at end of function f_invalid_condition:
+  y ∈ {3}
+[value] Values at end of function f_invalid_direct:
+  y ∈ {3}
+[value] Values at end of function f_valid:
+  y ∈ {3}
+[value] Values at end of function main:
+  x ∈ {3}
+  y ∈ {3}
+[from] Computing for function f_invalid_address
+[from] Done for function f_invalid_address
+[from] Computing for function f_invalid_all
+[from] Done for function f_invalid_all
+[from] Computing for function f_invalid_condition
+[from] Done for function f_invalid_condition
+[from] Computing for function f_invalid_direct
+[from] Done for function f_invalid_direct
+[from] Computing for function f_valid
+[from] Done for function f_valid
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function f_invalid_address:
+  y FROM a; b; c
+[from] Function f_invalid_all:
+  y FROM a; b; c
+[from] Function f_invalid_condition:
+  y FROM a; b; c
+[from] Function f_invalid_direct:
+  y FROM a; b; c
+[from] Function f_valid:
+  y FROM a; b; c
+[from] Function main:
+  NO EFFECTS
+[from] ====== END OF DEPENDENCIES ======
+[from] ====== DISPLAYING CALLWISE DEPENDENCIES ======
+[from] call to f_valid at tests/value/assigns_from_direct.i:14 (by main):
+  y FROM a; b; c
+[from] call to f_invalid_direct at tests/value/assigns_from_direct.i:15 (by main):
+  y FROM a; b; c
+[from] call to f_invalid_address at tests/value/assigns_from_direct.i:16 (by main):
+  y FROM a; b; c
+[from] call to f_invalid_condition at tests/value/assigns_from_direct.i:17 (by main):
+  y FROM a; b; c
+[from] call to f_invalid_all at tests/value/assigns_from_direct.i:18 (by main):
+  y FROM a; b; c
+[from] entry point:
+  NO EFFECTS
+[from] ====== END OF CALLWISE DEPENDENCIES ======
+[inout] Out (internal) for function f_invalid_address:
+          y
+[inout] Inputs for function f_invalid_address:
+          \nothing
+[inout] Out (internal) for function f_invalid_all:
+          y
+[inout] Inputs for function f_invalid_all:
+          \nothing
+[inout] Out (internal) for function f_invalid_condition:
+          y
+[inout] Inputs for function f_invalid_condition:
+          \nothing
+[inout] Out (internal) for function f_invalid_direct:
+          y
+[inout] Inputs for function f_invalid_direct:
+          \nothing
+[inout] Out (internal) for function f_valid:
+          y
+[inout] Inputs for function f_valid:
+          \nothing
+[inout] Out (internal) for function main:
+          x; y
+[inout] Inputs for function main:
+          \nothing

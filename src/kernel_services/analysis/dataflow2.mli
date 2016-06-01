@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -134,7 +134,16 @@ module Forwards(T : ForwardsTransfer) : sig
   (** Fill in the T.stmtStartData, given a number of initial statements to
       start from. All of the initial statements must have some entry in
       T.stmtStartData (i.e., the initial data should not be bottom) *)
+
+  val compute_strategy: Cil_types.stmt list -> Wto_statement.wto -> unit
+  (** Same as compute but using a given strategy, instead of the default
+      strategy computed by the Wto module. *)
+
+  val compute_worklist: Cil_types.stmt list -> unit
+  (** Same as compute but using only a working list of statements instead
+      of iterating on a weak topological ordering. *)
 end
+
 
 (* ************************************************************************* *)
 (** {2 Backwards Dataflow Analysis} *)

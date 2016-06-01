@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of WP plug-in of Frama-C.                           #
 #                                                                        #
-#  Copyright (C) 2007-2015                                               #
+#  Copyright (C) 2007-2016                                               #
 #    CEA (Commissariat a l'energie atomique et aux energies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -44,7 +44,7 @@ opt:: why3compile
 why3compile: $(addprefix $(WPLSHARE)/why3/, $(addsuffix o, $(COQ_LIBS_CEA)))
 
 WHY3LIB:=$(shell why3 --print-libdir)
-WHY3INCLUDES= -R $(WHY3LIB)/coq -as Why3 -I $(WPLSHARE)/why3
+WHY3INCLUDES= -R $(WHY3LIB)/coq Why3 -R $(WPLSHARE)/why3 ''
 
 $(WPLSHARE)/why3/%.vo: $(WPLSHARE)/why3/%.v
 	echo "Coqc         $@"
@@ -57,7 +57,7 @@ $(WPLSHARE)/why3/.depend: $(addprefix $(WPLSHARE)/, $(WHY3_COQ_SOURCES))
 ifneq ($(MAKECMDGOALS),clean)
 ifneq ($(MAKECMDGOALS),distclean)
 ifneq ($(MAKECMDGOALS),smartclean)
-include $(WPLSHARE)/why3/.depend
+sinclude $(WPLSHARE)/why3/.depend
 endif
 endif
 endif
@@ -75,7 +75,7 @@ opt:: coqwpcompile
 
 coqwpcompile: $(addprefix $(WPLSHARE)/coqwp/, $(addsuffix o, $(COQ_LIBS_CEA) $(COQ_LIBS_INRIA)))
 
-COQWPINCLUDES= -R $(WPLSHARE)/coqwp/ -as ""
+COQWPINCLUDES= -R $(WPLSHARE)/coqwp ''
 
 $(WPLSHARE)/coqwp/%.vo: $(WPLSHARE)/coqwp/%.v
 	echo "Coqc         $<"
@@ -88,7 +88,7 @@ $(WPLSHARE)/coqwp/.depend: $(addprefix $(WPLSHARE)/, $(WP_COQ_SOURCES))
 ifneq ($(MAKECMDGOALS),clean)
 ifneq ($(MAKECMDGOALS),distclean)
 ifneq ($(MAKECMDGOALS),smartclean)
-include $(WPLSHARE)/coqwp/.depend
+sinclude $(WPLSHARE)/coqwp/.depend
 endif
 endif
 endif

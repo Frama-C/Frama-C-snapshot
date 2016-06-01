@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -437,8 +437,12 @@ let smp_bitk_positive = function
           | Logic.Fun( f , [e;n] ) when Fun.equal f f_lsr && is_positive_or_null n ->
               bitk_positive (e_add k n) e
           | Logic.Fun( f , [e;n] ) when Fun.equal f f_lsl && is_positive_or_null n ->
-              e_if (e_leq n k) (bitk_positive (e_sub k n) e) e_false
-          | Logic.Fun( f , es ) when Fun.equal f f_land ->
+              begin match is_leq n k with
+                | Logic.Yes -> bitk_positive (e_sub k n) e
+                | Logic.No  -> e_false
+                | Logic.Maybe -> raise Not_found
+              end
+         | Logic.Fun( f , es ) when Fun.equal f f_land ->
               F.e_and (List.map (bitk_positive k) es)
           | Logic.Fun( f , es ) when Fun.equal f f_lor ->
               F.e_or (List.map (bitk_positive k) es)
@@ -738,19 +742,19 @@ let is_cint_simplifier = object (self)
             try Tmap.find base domain
             with Not_found -> Ival.top
       in
-      var_domain := Ival.filter_le_ge_lt_gt_int op !var_domain dom
+      var_domain := Ival.backward_comp_int_left op !var_domain dom
     in
     let rec reduce_on_neg var var_domain t =
       match Lang.F.repr t with
       | _ when not (is_prop t) -> ()
       | Leq(a,b) when Lang.F.equal a var ->
-          reduce Cil_types.Le var_domain b
+          reduce Abstract_interp.Comp.Le var_domain b
       | Leq(b,a) when Lang.F.equal a var ->
-          reduce Cil_types.Ge var_domain b
+          reduce Abstract_interp.Comp.Ge var_domain b
       | Lt(a,b) when Lang.F.equal a var ->
-          reduce Cil_types.Lt var_domain b
+          reduce Abstract_interp.Comp.Lt var_domain b
       | Lt(b,a) when Lang.F.equal a var ->
-          reduce Cil_types.Gt var_domain b
+          reduce Abstract_interp.Comp.Gt var_domain b
       | And l -> List.iter (reduce_on_neg var var_domain) l
       | _ -> ()
     in

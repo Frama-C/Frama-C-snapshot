@@ -5,7 +5,7 @@
 [value] Initial state computed
 [value] Values of globals at initialization
   
-tests/misc/ensures.i:8:[value] Function main: postcondition got status invalid.
+tests/misc/ensures.i:8:[value] warning: function main: postcondition got status invalid.
 [value] Recording results for main
 [value] done for function main
 [kernel] Frama_C_bzero: behavior default!

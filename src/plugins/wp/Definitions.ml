@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -183,6 +183,7 @@ let cluster_position c = c.c_position
 let cluster_age c = c.c_age
 let cluster_compare a b = String.compare a.c_id b.c_id
 let pp_cluster fmt c = Format.pp_print_string fmt c.c_id
+let iter f = Cluster.iter_sorted (fun _key c -> f c)
 
 let newcluster ~id ?title ?position () =
   {
@@ -341,26 +342,35 @@ class virtual visitor main =
       | Data(a,ts) -> self#vadt a ; List.iter self#vtau ts
 
     method vparam x = self#vtau (tau_of_var x)
-
+        
+    method private repr ~bool = function
+      | Fun(f,_) -> self#vsymbol f
+      | Rget(_,f) -> self#vfield f
+      | Rdef fts -> List.iter (fun (f,_) -> self#vfield f) fts
+      | Fvar x -> self#vparam x
+      | Bind(_,t,_) -> self#vtau t
+      | True | False | Kint _ | Kreal _ | Bvar _
+      | Times _ | Add _ | Mul _ | Div _ | Mod _
+      | Aget _ | Aset _ | Apply _ -> ()
+      | Eq _ | Neq _ | Leq _ | Lt _
+      | And _ | Or _ | Not _ | Imply _ | If _ ->
+          if bool then self#on_library "bool"
+    
     method vterm t =
       if not (Tset.mem t terms) then
         begin
           terms <- Tset.add t terms ;
+          self#repr ~bool:true (F.repr t) ;
           F.lc_iter self#vterm t ;
-          match F.repr t with
-          | Fun(f,_) -> self#vsymbol f
-          | Rget(_,f) -> self#vfield f
-          | Rdef fts -> List.iter (fun (f,_) -> self#vfield f) fts
-          | Fvar x -> self#vparam x
-          | Bind(_,t,_) -> self#vtau t
-          | True | False | Kint _ | Kreal _ | Bvar _
-          | Times _ | Add _ | Mul _ | Div _ | Mod _
-          | Eq _ | Neq _ | Leq _ | Lt _
-          | Aget _ | Aset _
-          | And _ | Or _ | Not _ | Imply _ | If _ | Apply _ -> ()
         end
 
-    method vpred p = self#vterm (F.e_prop p)
+    method vpred p =
+      let t = F.e_prop p in
+      if not (Tset.mem t terms) then
+        begin
+          self#repr ~bool:false (F.repr t) ;
+          F.p_iter self#vpred self#vterm p
+        end
 
     method private vdefinition = function
       | Logic t -> self#vtau t

@@ -2,7 +2,7 @@
 #                                                                        #
 #  This file is part of WP plug-in of Frama-C.                           #
 #                                                                        #
-#  Copyright (C) 2007-2015                                               #
+#  Copyright (C) 2007-2016                                               #
 #    CEA (Commissariat a l'energie atomique et aux energies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -63,16 +63,16 @@ if test "$ENABLE_WP" != "no"; then
     if test "$COQC" = "yes" ; then
       COQVERSION=`coqc -v | sed -n -e 's|.*version* *\([[^ ]]*\) .*$|\1|p' `
       case $COQVERSION in
-        8.4*|trunk) 
+        8.4pl6|8.5*|trunk)
           AC_MSG_RESULT(coqc version $COQVERSION found)
           ;;
         *) 
-          AC_MSG_RESULT(wp needs coq 8.4, found $COQVERSION) 
+          AC_MSG_RESULT(unsupported coqc version $COQVERSION)
           COQC="no"
           ;;
       esac
     else
-      AC_MSG_NOTICE(rerun configure to make wp using coq 8.4)
+      AC_MSG_NOTICE(rerun configure to make wp using coq 8.5)
     fi
   else
     COQC="no"
@@ -85,7 +85,7 @@ if test "$ENABLE_WP" != "no"; then
     if test "$WHY3COQC" = "yes" ; then
       WHY3VERSION=`why3 --version | sed -n -e 's|.*version* *\([[^ ]]*\) .*$|\1|p' `
       case $WHY3VERSION in
-        0.85*)
+        0.86*|0.87*)
           AC_MSG_RESULT(why3 version $WHY3VERSION found)
 	  WHY3LIB=`why3 --print-libdir`
 	  if test -f $WHY3LIB/coq/BuiltIn.vo ; then
@@ -96,12 +96,12 @@ if test "$ENABLE_WP" != "no"; then
           fi
           ;;
         *) 
-          AC_MSG_RESULT(wp needs why3 0.85, found $WHY3VERSION) 
+          AC_MSG_RESULT(why3 unsupported version $WHY3VERSION) 
           WHY3COQC="no"
           ;;
       esac
     else
-      AC_MSG_NOTICE(rerun configure to make wp using why3 0.85)
+      AC_MSG_NOTICE(rerun configure to make wp using why3 0.87)
     fi
   else
     WHY3COQC="no"

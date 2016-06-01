@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -21,11 +21,11 @@
 (**************************************************************************)
 
 (** Special pretty-printers for the GUI. Some sub-elements are annotated
-  by format tags, in order to make them reactive. *)
+    by format tags, in order to make them reactive. *)
 
 val get_type_specifier: Cil_types.typ -> Cil_types.typ
 (** Returns the base type for a pointer/array, otherwise [t] itself.
-   E.g. for [t = int***], returns [int]. *)
+    E.g. for [t = int***], returns [int]. *)
 
 val pp_typ: Format.formatter -> Cil_types.typ -> unit
 (** Same as {!Printer.pp_typ}, except that the type is output between

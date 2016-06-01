@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -42,7 +42,7 @@ let succ stmt_to_ordered ordered_to_stmt f i =
     (fun s ->
       let ordered = Ordered_stmt.to_ordered stmt_to_ordered s in
       f ordered)
-    stmt.succs
+    (List.rev stmt.succs)
 
 (** Converts a partition to a wto *)
 let rec partition_to_wto ots = function
@@ -90,15 +90,11 @@ let get_depth stmt wto =
 module WTO_input : Datatype.Make_input with type t = wto =
 struct
 
-  include Datatype.Undefined
+  include Datatype.Serializable_undefined
 
   type t = wto
 
-  let structural_descr = Structural_descr.t_abstract
-
   let name = "Wto_statement.WTO_input"
-
-  let rehash w = w
 
   let rec pretty fmt = function
     | Nil -> ()

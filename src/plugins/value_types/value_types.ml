@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -59,6 +59,7 @@ type call_result = {
   c_values: (Cvalue.V_Offsetmap.t option * Cvalue.Model.t) list;
   c_clobbered: Base.SetLattice.t;
   c_cacheable: cacheable;
+  c_from: (Function_Froms.froms * Locations.Zone.t) option
 }
 
 type logic_dependencies = Locations.Zone.t Cil_datatype.Logic_label.Map.t

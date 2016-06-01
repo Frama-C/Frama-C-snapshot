@@ -6,12 +6,12 @@
 [value] Values of globals at initialization
   t[0..9] ∈ {0}
   j ∈ [--..--]
-tests/spec/forall_value.i:9:[value] Function main: precondition got status unknown.
-tests/spec/forall_value.i:11:[value] Assertion got status valid.
-tests/spec/forall_value.i:12:[value] Assertion got status unknown.
-tests/spec/forall_value.i:13:[value] Assertion got status valid.
-tests/spec/forall_value.i:15:[value] Assertion got status unknown.
-tests/spec/forall_value.i:16:[value] Assertion got status unknown.
+tests/spec/forall_value.i:9:[value] warning: function main: precondition got status unknown.
+tests/spec/forall_value.i:11:[value] assertion got status valid.
+tests/spec/forall_value.i:12:[value] warning: assertion got status unknown.
+tests/spec/forall_value.i:13:[value] assertion got status valid.
+tests/spec/forall_value.i:15:[value] warning: assertion got status unknown.
+tests/spec/forall_value.i:16:[value] warning: assertion got status unknown.
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======

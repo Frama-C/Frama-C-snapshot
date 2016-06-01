@@ -1,5 +1,5 @@
 [kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
-[kernel] Parsing tests/sparecode/bts324_bis.c (with preprocessing)
+[kernel] Parsing tests/sparecode/bts324_bis.i (no preprocessing)
 [sparecode] remove unused code...
 [sparecode] selecting function main outputs and entry point
 [value] Analyzing a complete application starting at main
@@ -16,50 +16,50 @@
   si[0..1] ∈ {0}
   so[0..1] ∈ {0}
 [value] computing for function init <- main.
-        Called from tests/sparecode/bts324_bis.c:37.
+        Called from tests/sparecode/bts324_bis.i:37.
 [value] Recording results for init
 [value] Done for function init
-tests/sparecode/bts324_bis.c:39:[value] entering loop for the first time
+tests/sparecode/bts324_bis.i:39:[value] entering loop for the first time
 [value] computing for function loop_body <- main.
-        Called from tests/sparecode/bts324_bis.c:40.
+        Called from tests/sparecode/bts324_bis.i:40.
 [value] computing for function f <- loop_body <- main.
-        Called from tests/sparecode/bts324_bis.c:22.
-tests/sparecode/bts324_bis.c:10:[kernel] warning: signed overflow. assert -2147483648 ≤ ki[i]*(int)(vi-si[i]);
-tests/sparecode/bts324_bis.c:10:[kernel] warning: signed overflow. assert ki[i]*(int)(vi-si[i]) ≤ 2147483647;
+        Called from tests/sparecode/bts324_bis.i:22.
+tests/sparecode/bts324_bis.i:10:[kernel] warning: signed overflow. assert -2147483648 ≤ ki[i]*(int)(vi-si[i]);
+tests/sparecode/bts324_bis.i:10:[kernel] warning: signed overflow. assert ki[i]*(int)(vi-si[i]) ≤ 2147483647;
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function f <- loop_body <- main.
-        Called from tests/sparecode/bts324_bis.c:23.
+        Called from tests/sparecode/bts324_bis.i:23.
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for loop_body
 [value] Done for function loop_body
 [value] computing for function loop_body <- main.
-        Called from tests/sparecode/bts324_bis.c:40.
+        Called from tests/sparecode/bts324_bis.i:40.
 [value] computing for function f <- loop_body <- main.
-        Called from tests/sparecode/bts324_bis.c:22.
-tests/sparecode/bts324_bis.c:10:[kernel] warning: signed overflow. assert -2147483648 ≤ vi-si[i];
-tests/sparecode/bts324_bis.c:10:[kernel] warning: signed overflow. assert vi-si[i] ≤ 2147483647;
-tests/sparecode/bts324_bis.c:10:[kernel] warning: signed overflow.
+        Called from tests/sparecode/bts324_bis.i:22.
+tests/sparecode/bts324_bis.i:10:[kernel] warning: signed overflow. assert -2147483648 ≤ vi-si[i];
+tests/sparecode/bts324_bis.i:10:[kernel] warning: signed overflow. assert vi-si[i] ≤ 2147483647;
+tests/sparecode/bts324_bis.i:10:[kernel] warning: signed overflow.
                   assert -2147483648 ≤ (int)(so[i]/k)+(int)(ki[i]*(int)(vi-si[i]));
-tests/sparecode/bts324_bis.c:10:[kernel] warning: signed overflow.
+tests/sparecode/bts324_bis.i:10:[kernel] warning: signed overflow.
                   assert (int)(so[i]/k)+(int)(ki[i]*(int)(vi-si[i])) ≤ 2147483647;
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function f <- loop_body <- main.
-        Called from tests/sparecode/bts324_bis.c:23.
+        Called from tests/sparecode/bts324_bis.i:23.
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for loop_body
 [value] Done for function loop_body
 [value] computing for function loop_body <- main.
-        Called from tests/sparecode/bts324_bis.c:40.
+        Called from tests/sparecode/bts324_bis.i:40.
 [value] computing for function f <- loop_body <- main.
-        Called from tests/sparecode/bts324_bis.c:22.
+        Called from tests/sparecode/bts324_bis.i:22.
 [value] Recording results for f
 [value] Done for function f
 [value] computing for function f <- loop_body <- main.
-        Called from tests/sparecode/bts324_bis.c:23.
+        Called from tests/sparecode/bts324_bis.i:23.
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for loop_body
@@ -73,11 +73,10 @@ tests/sparecode/bts324_bis.c:10:[kernel] warning: signed overflow.
 [from] Computing for function f <-loop_body
 [from] Done for function f
 [from] Done for function loop_body
-tests/sparecode/bts324_bis.c:47:[pdg] warning: no final state. Probably unreachable...
+tests/sparecode/bts324_bis.i:47:[pdg] warning: no final state. Probably unreachable...
 [pdg] done for function main
 [sparecode] add selection in function 'main'
-[sparecode] selecting output zones ki[0..1]; k; s0; s1; is_ok; si[0..1];
-[sparecode] so[0..1]
+[sparecode] selecting output zones ki[0..1]; k; s0; s1; is_ok; si[0..1]; so[0..1]
 [sparecode] look for annotations in function Frama_C_bzero
 [pdg] computing for function Frama_C_bzero
 [from] Computing for function Frama_C_bzero

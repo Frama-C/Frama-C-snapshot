@@ -21,6 +21,26 @@
 ###############################################################################
 
 ################################
+Plugin WP 1.0 Aluminium_20160502
+################################
+
+- Coq         [2016/03/30] Fixed bug #2214 (coq realbase)
+- WP	      [2016/03/29] Support for why3 0.87 (and ide)
+- WP	      [2016/03/25] Support for Why3 0.86
+- WP	      [2016/03/25] Support for Coq 8.5
+- WP	      [2016/02/24] Support for Alt-Ergo 1.01
+- WP	      [2016/02/18] Fix behavior on ASM code
+- WP	      [2016/02/15] Now follows '-safe-arrays' when refining 'p+(..)'
+- WP          [2016/02/02] Added support for ACSL let-predicate
+-! WP         [2016/01/15] Removed alias '-wp-log' (use '-wp-msg-key' instead)
+- WP          [2015/12/16] Strict parsing of -wp-model (stop on error)
+- Caveat      [2015/12/02] Separation Hypotheses with -wp-print-separation
+- WP          [2015/11/13] Exported OCaml API via Wp.mli
+- WP          [2015/11/24] Added support for built-in ACSL lists
+- WP	      [2015/11/19] New options to set prover commands
+- Coq	      [2015/11/19] Support for Proof General 4.3
+
+################################
 Plugin WP 0.9 Magnesium_20151002
 ################################
 

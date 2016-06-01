@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -32,19 +32,27 @@ open Lang
 open Lang.F
 open Memory
 
-type param = ByValue | ByRef | InContext | InHeap
+type param = NotUsed | ByValue | ByRef | InContext | InHeap
+type separation = Separation.clause
 
 module type VarUsage =
 sig
   val datatype : string
   val param : varinfo -> param
+  val separation : unit -> separation
 end
 
 module Make(V : VarUsage)(M : Memory.Model) =
 struct
 
+  (* -------------------------------------------------------------------------- *)
+  (* ---  Model                                                             --- *)
+  (* -------------------------------------------------------------------------- *)
+
   let datatype = "MemVar." ^ V.datatype ^ M.datatype
   let configure = M.configure
+
+  let separation () = V.separation () :: M.separation ()
 
   (* -------------------------------------------------------------------------- *)
   (* ---  Chunk                                                             --- *)
@@ -58,7 +66,7 @@ struct
   let is_framed_var x =
     not x.vglob &&
     match V.param x with
-    | ByValue -> true
+    | NotUsed | ByValue -> true
     | ByRef | InHeap | InContext -> false
 
   module VAR =
@@ -71,7 +79,7 @@ struct
     let pretty = Varinfo.pretty
     let typ_of_param x =
       match V.param x with
-      | ByValue | InHeap | InContext -> x.vtype
+      | NotUsed | ByValue | InHeap | InContext -> x.vtype
       | ByRef -> Cil.typeOf_pointed x.vtype
     let tau_of_chunk x = Lang.tau_of_ctype (typ_of_param x)
     let basename_of_chunk = LogicUsage.basename
@@ -91,7 +99,7 @@ struct
     let basename_of_chunk x =
       match V.param x with
       | ByRef -> "ra_" ^ LogicUsage.basename x
-      | ByValue | InHeap | InContext -> "ta_" ^ LogicUsage.basename x
+      | NotUsed | ByValue | InHeap | InContext -> "ta_" ^ LogicUsage.basename x
     let is_framed = is_framed_var
   end
 
@@ -325,7 +333,7 @@ struct
 
   let cvar x = 	match V.param x with
     | ByRef -> Fref x
-    | ByValue -> Fval(x,[])
+    | NotUsed | ByValue -> Fval(x,[])
     | InHeap -> Mval(x,[])
     | InContext -> Cval x
 
@@ -490,15 +498,15 @@ struct
   let size_of_array_type typ = match object_of typ with
     | C_int _ | C_float _ | C_pointer _ | C_comp _ -> assert false
     | C_array { arr_flat=None } ->
-        if not (Wp_parameters.ExternArrays.get ())
-        then Wp_parameters.warning ~once:true
-            "Validity of unsized array not implemented yet (considered valid)." ;
-        None
+        if Wp_parameters.ExternArrays.get ()
+        then Some (e_int max_int)
+        else
+          ( Wp_parameters.warning ~once:true
+              "Validity of unsized array not implemented yet (considered valid)." ;
+            None )
     | C_array { arr_flat=Some s } -> Some (e_int s.arr_size)
 
   (* offset *)
-
-  let first_index = Some e_zero
 
   let range_offset typ k =
     match size_of_array_type typ with
@@ -518,12 +526,12 @@ struct
         let te = Cil.typeOf_array_elem typ in
         let elt = Ctypes.object_of te in
         if Ctypes.equal elt obj then
-          let n = size_of_array_type typ in
-          let a = Vset.bound_shift a k in
-          let b = Vset.bound_shift b k in
-          let p_inf = Vset.ordered ~limit:true ~strict:false first_index a in
-          let p_sup = Vset.ordered ~limit:true ~strict:true b n in
-          p_and p_inf p_sup
+          let p_inf = F.p_positive (F.e_add k a) in
+          let p_sup =
+            match size_of_array_type typ with
+            | None -> F.p_true
+            | Some n -> F.p_lt (F.e_add k b) n
+          in p_and p_inf p_sup
         else
           let rg = range_offset typ k in
           let te = Cil.typeOf_array_elem typ in
@@ -533,11 +541,13 @@ struct
         let te = Cil.typeOf_array_elem typ in
         p_and rg (valid_offsetrange te ofs a b)
     | [] ->
-        let n = size_of_array_type typ in
-        let p_inf = Vset.ordered ~limit:true ~strict:false first_index a in
-        let p_sup = Vset.ordered ~limit:true ~strict:true b n in
-        p_and p_inf p_sup
-
+        let p_inf = F.p_positive a in
+        let p_sup =
+          match size_of_array_type typ with
+          | None -> F.p_true
+          | Some n -> F.p_lt b n
+        in p_and p_inf p_sup
+        
   (* varinfo + offset *)
 
   let valid_base sigma acs x =
@@ -555,9 +565,7 @@ struct
   let valid_pathrange sigma acs x t ofs a b =
     p_and
       (valid_base sigma acs x)
-      (p_imply
-         (Vset.ordered ~limit:true ~strict:false a b)
-         (valid_offsetrange t ofs a b))
+      (valid_offsetrange t ofs a b)
 
   (* segment *)
 
@@ -567,11 +575,6 @@ struct
     | Fval(x,p) | Mval(x,p) -> valid_path sigma acs x (VAR.typ_of_param x) p
     | Mloc _ as l -> M.valid sigma.mem acs (Rloc(obj,mloc_of_loc l))
 
-  let valid_range sigma acs l obj a b = match l with
-    | Fref _ | Cval _ -> Wp_parameters.fatal "range of ref-var"
-    | Fval(x,p) | Mval(x,p) -> valid_pathrange sigma acs x (VAR.typ_of_param x) p a b
-    | Mloc _ as l -> M.valid sigma.mem acs (Rrange(mloc_of_loc l,obj,a,b))
-
   let valid_array sigma acs l obj s = match l with
     | Fref _ | Cval _ -> Wp_parameters.fatal "range of ref-var"
     | Fval(x,p) | Mval(x,p) -> valid_path sigma acs x (VAR.typ_of_param x) p
@@ -580,17 +583,31 @@ struct
         let b = Some (e_int (s-1)) in
         M.valid sigma.mem acs (Rrange(mloc_of_loc l,obj,a,b))
 
+  let valid_range sigma acs x t ofs a b =
+    match a,b with
+    | Some a,Some b -> p_imply (F.p_lt a b) (valid_pathrange sigma acs x t ofs a b)
+    | _ ->
+        Wp_parameters.abort ~current:true
+          "Invalid infinite range @[<hov 2>%a%a+@,(%a@,..%a)@]"
+          VAR.pretty x pp_ofs ofs Vset.pp_bound a Vset.pp_bound b
+  
   let valid sigma acs = function
     | Rloc(obj,l) -> valid_loc sigma acs obj l
     | Rarray(l,obj,s) -> valid_array sigma acs l obj s
-    | Rrange(l,obj,a,b) -> valid_range sigma acs l obj a b
+    | Rrange(l,obj,a,b) ->
+        match l with
+        | Mloc _ as l ->
+            M.valid sigma.mem acs (Rrange(mloc_of_loc l,obj,a,b))
+        | Fref _ | Cval _ -> Wp_parameters.fatal "range of ref-var"
+        | Fval(x,p) | Mval(x,p) ->
+            valid_range sigma acs x (VAR.typ_of_param x) p a b
 
   (* -------------------------------------------------------------------------- *)
   (* ---  Scope                                                             --- *)
   (* -------------------------------------------------------------------------- *)
 
-  let is_mem x = match V.param x with InHeap | InContext -> true | ByRef | ByValue -> false
-  let is_ref x = match V.param x with ByRef -> true | ByValue | InHeap | InContext -> false
+  let is_mem x = match V.param x with InHeap | InContext -> true | ByRef | NotUsed | ByValue -> false
+  let is_ref x = match V.param x with ByRef -> true | NotUsed | ByValue | InHeap | InContext -> false
 
   let alloc_var ta xs v =
     TALLOC.Set.fold
@@ -660,8 +677,6 @@ struct
 
   let dsize s = Drange(Some (e_int 0) , Some (e_int (s-1)))
   let rsize ofs s = delta ofs @ [ dsize s ]
-
-
 
   let locseg = function
 
@@ -821,14 +836,14 @@ struct
         stored s obj loc (e_var v)
 
     (* Optimisation for full update of one array variable *)
-    | Sarray(Fval(_,[]),_,_) -> []
-    | Sarray(Fval(x,ofs),_,_) ->
+    | Sarray((Fval(_,[])|Mval(_,[])),_,_) -> []
+    | Sarray((Fval(x,ofs)|Mval(x,ofs)),_,_) ->
         let a = get_term s.pre x in
         let b = get_term s.post x in
         assigned_path [] [] [] a b ofs
 
     | sloc ->
-
+        
         (* Transfer the job to memory model M if sloc is in M *)
         try
           let sloc = Cvalues.map_sloc
@@ -844,11 +859,12 @@ struct
 
           let xs,l,p = sloc_descr sloc in
           let x,ofs = floc_path l in
+          let valid = valid_offset x.vtype ofs in
           let a = get_term s.pre x in
           let b = get_term s.post x in
           let a_ofs = access a ofs in
           let b_ofs = access b ofs in
-          let p_sloc = p_forall xs (p_imply (p_not p) (p_equal a_ofs b_ofs)) in
+          let p_sloc = p_forall xs (p_hyps [valid;p_not p] (p_equal a_ofs b_ofs)) in
           assigned_path [p_sloc] xs [] a b ofs
 
   (* -------------------------------------------------------------------------- *)

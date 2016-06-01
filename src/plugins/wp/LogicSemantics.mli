@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -31,6 +31,8 @@ open Ctypes
 open Clabels
 open Lang.F
 open Memory
+
+type polarity = [ `Positive | `Negative | `NoPolarity ]
 
 module Make(M : Memory.Model) :
 sig
@@ -79,7 +81,7 @@ sig
   val call_env : sigma -> env
 
   val term : env -> Cil_types.term -> term
-  val pred : positive:bool -> env -> Cil_types.predicate named -> pred
+  val pred : polarity -> env -> Cil_types.predicate named -> pred
   val region : env -> Cil_types.term -> region
   val assigns : env -> identified_term assigns -> (c_object * region) list option
   val assigns_from : env -> identified_term from list -> (c_object * region) list

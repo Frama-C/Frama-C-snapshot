@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -218,7 +218,7 @@ module DumpDependencies =
        let arg_name = ""
      end)
 let () =
-  at_exit
+  Extlib.safe_at_exit
     (fun () ->
        if not (DumpDependencies.is_default ()) then
          State_dependency_graph.dump (DumpDependencies.get ()))
@@ -362,20 +362,31 @@ module Time =
        let help = "append process time and timestamp to <filename> at exit"
      end)
 
-let () = Parameter_customize.set_group messages
+let () = Parameter_customize.is_invisible ()
 let () = Parameter_customize.set_negative_option_name "-do-not-collect-messages"
 let () = Parameter_customize.do_not_projectify ()
-let () = Parameter_customize.set_cmdline_stage Cmdline.Early
-module Collect_messages =
+module Collect_messages = (* TODO: remove in Silicium *)
   Bool
     (struct
       let module_name = "Collect_messages"
       let option_name = "-collect-messages"
       let help = "collect warning and error messages for displaying them in \
-the GUI (set by default iff the GUI is launched)"
+                  the GUI (set by default iff the GUI is launched)"
       let default = !Fc_config.is_gui
-     (* ok: Config.is_gui already initialised by Gui_init *)
-     end)
+      (* ok: Config.is_gui already initialised by Gui_init *)
+    end)
+let () =
+  Collect_messages.add_set_hook
+    (fun _ b ->
+       match b, !Fc_config.is_gui with
+       | true, false ->
+         warning "option -collect-messages is obsolete; messages are always \
+                  collected"
+       | false, true ->
+         error "option -do-not-collect-messages is obsolete and no longer has \
+                an effect"
+       | _ -> ())
+
 
 let () = Parameter_customize.set_group messages
 let () = Parameter_customize.do_not_projectify ()
@@ -461,7 +472,7 @@ module CodeOutput = struct
              file s)
       streams
 
-  let () = at_exit close_all
+  let () = Extlib.safe_at_exit close_all
 
 end
 
@@ -575,9 +586,10 @@ module LoadModule =
        let arg_name = "SPEC,..."
        let help = "Dynamically load plug-ins, modules and scripts. \
                    Each <SPEC> can be an OCaml source or object file, with \
-                   or without extension, or a directory of oject OCaml \
-                   files to load, or a Findlib package. Loading order is preserved \
-                   and additional dependencies can be listed in *.depend files."
+                   or without extension, or a directory of object OCaml \
+                   files to load, or a Findlib package. \
+                   Loading order is preserved and \
+                   additional dependencies can be listed in *.depend files."
     end)
 let () = LoadModule.add_aliases [ "-load-script" ]
 
@@ -587,7 +599,7 @@ let bootstrap_loader () =
     List.iter Dynamic.load_module (LoadModule.get()) ;
   end
 
-let () = Cmdline.load_all_plugins := bootstrap_loader 
+let () = Cmdline.load_all_plugins := bootstrap_loader
 
 module Journal = struct
   let () = Parameter_customize.set_negative_option_name "-journal-disable"
@@ -784,12 +796,16 @@ module Orig_name =
 
 let () = Parameter_customize.set_group parsing
 let () = Parameter_customize.do_not_reset_on_copy ()
-module WarnUndeclared =
-  True(struct
-    let option_name = "-warn-undeclared-callee"
-    let help = "Warn when a function is called before it has been declared."
-    let module_name = "WarnUndeclared"
+module ImplicitFunctionDeclaration =
+  String(struct
+    let option_name = "-implicit-function-declaration"
+    let arg_name = "action"
+    let help = "Warn or abort when a function is called before it has been declared \
+                (non-C99 compliant); action must be ignore, warn, or error"
+    let default = "warn"
+    let module_name = "ImplicitFunctionDeclaration"
   end)
+let () = ImplicitFunctionDeclaration.set_possible_values ["ignore"; "warn"; "error"]
 
 let () = Parameter_customize.set_group parsing
 let () = Parameter_customize.do_not_reset_on_copy ()
@@ -915,7 +931,28 @@ module AggressiveMerging =
     (struct
        let option_name = "-aggressive-merging"
        let module_name = "AggressiveMerging"
-       let help = "merge function definitions modulo renaming"
+       let help = "merge function definitions modulo renaming \
+                   (defaults to false)"
+     end)
+
+let () = Parameter_customize.set_group normalisation
+module AsmContractsGenerate =
+  True
+    (struct
+        let option_name = "-asm-contracts"
+        let module_name = "AsmContractsGenerate"
+        let help = "generate contracts for assembly code written according \
+                    to gcc's extended syntax"
+     end)
+
+let () = Parameter_customize.set_group normalisation
+module AsmContractsAutoValidate =
+  False
+    (struct
+        let option_name = "-asm-contracts-auto-validate"
+        let module_name = "AsmContractsAutoValidate"
+        let help = "automatically mark contracts generated from asm as valid \
+                    (defaults to false)"
      end)
 
 let () = Parameter_customize.set_group normalisation
@@ -1106,10 +1143,10 @@ destination range"
      end)
 
 (* ************************************************************************* *)
-(** {2 Others options} *)
+(** {2 Sequencing options} *)
 (* ************************************************************************* *)
 
-let misc = add_group "Miscellaneous Options"
+let misc = add_group "Sequencing Options"
 
 let () =
   Cmdline.add_option_without_action
@@ -1135,6 +1172,16 @@ on the last project created by a program transformer."
 
 let () =
   Cmdline.add_option_without_action
+    "-then-replace"
+    ~plugin:""
+    ~group:(misc :> Cmdline.Group.t)
+    ~help:"like `-then-last', but also remove the previous current project."
+    ~visible:true
+    ~ext_help:""
+    ()
+
+let () =
+  Cmdline.add_option_without_action
     "-then-on"
     ~plugin:""
     ~argname:"p"
@@ -1145,9 +1192,76 @@ on project <p>"
     ~ext_help:""
     ()
 
+(* ************************************************************************* *)
+(** {2 Project-related options} *)
+(* ************************************************************************* *)
+
+let misc = add_group "Project-related Options"
+
 let () = Parameter_customize.set_group misc
+let () = Parameter_customize.do_not_projectify ()
+module Set_project_as_default =
+  False(struct
+    let module_name = "Set_project_as_default"
+    let option_name = "-set-project-as-default"
+    let help = "the current project becomes the default one \
+(and so future '-then' sequences are applied on it)"
+  end)
+
+let () = Parameter_customize.set_group misc
+let () = Parameter_customize.do_not_projectify ()
+module Remove_projects =
+  P.Make_set
+    (struct
+      include Project.Datatype
+      let of_singleton_string = P.no_element_of_string
+      let of_string s =
+        try Project.from_unique_name s
+        with Project.Unknown_project ->
+          raise (P.Cannot_build ("no project '" ^ s ^ "'"))
+      let to_string = Project.get_unique_name
+     end)
+    (struct
+      let option_name = "-remove-projects"
+      let arg_name = "p1, ..., pn"
+      let help = "remove the given projects <p1>, ..., <pn>. \
+@all_but_current removes all projects but the current one."
+      let default = Project.Datatype.Set.empty
+     end)
+
+let _ =
+  Remove_projects.Category.enable_all
+    []
+    (object
+      method fold: 'a. (Project.t -> 'a -> 'a) -> 'a -> 'a =
+        fun f acc -> Project.fold_on_projects (fun acc p -> f p acc) acc
+      method mem _p = true (* impossible to build an unregistred project *)
+     end)
+
+let _ =
+  Remove_projects.Category.add
+    "all_but_current"
+    []
+    (object
+      method fold: 'a. (Project.t -> 'a -> 'a) -> 'a -> 'a =
+        fun f acc ->
+          Project.fold_on_projects
+            (fun acc p -> if Project.is_current p then acc else f p acc)
+            acc
+      method mem p = not (Project.is_current p)
+     end)
+
+let () =
+  Cmdline.run_after_configuring_stage
+    (fun () -> Remove_projects.iter (fun project -> Project.remove ~project ()))
+
+(* ************************************************************************* *)
+(** {2 Others options} *)
+(* ************************************************************************* *)
+
 let () = Parameter_customize.set_negative_option_name ""
 let () = Parameter_customize.set_cmdline_stage Cmdline.Early
+let () = Parameter_customize.is_invisible ()
 module NoType =
   Bool
     (struct
@@ -1157,15 +1271,27 @@ module NoType =
        let help = ""
      end)
 
-let () = Parameter_customize.set_group misc
 let () = Parameter_customize.set_negative_option_name ""
 let () = Parameter_customize.set_cmdline_stage Cmdline.Early
+let () = Parameter_customize.is_invisible ()
 module NoObj =
   Bool
     (struct
        let module_name = "NoObj"
        let default = not Cmdline.use_obj
        let option_name = "-no-obj"
+       let help = ""
+     end)
+
+let () = Parameter_customize.set_group misc
+let () = Parameter_customize.set_negative_option_name ""
+let () = Parameter_customize.set_cmdline_stage Cmdline.Early
+module Deterministic =
+  Bool
+    (struct
+       let module_name = "Deterministic"
+       let default = not Cmdline.deterministic
+       let option_name = "-deterministic"
        let help = ""
      end)
 

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,7 +20,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* this is a prelude for Alt-Ergo*)
+(* this is the prelude for Alt-Ergo, any versions *)
 (** The theory BuiltIn_ must be appended to this file*)
 (** The theory Bool_ must be appended to this file*)
 (** The theory bool_Bool_ must be appended to this file*)
@@ -30,11 +30,12 @@
 (** The theory real_Real_ must be appended to this file*)
 (** The theory real_RealInfix_ must be appended to this file*)
 (** The theory real_FromInt_ must be appended to this file*)
-logic ite : bool, 'a, 'a -> 'a
+logic match_bool : bool, 'a, 'a -> 'a
 
-axiom ite1 :
-  (forall p:bool. forall x:'a. forall y:'a [ite(p, x, y)]. (((p = true) and
-  (ite(p, x, y) = x)) or ((p = false) and (ite(p, x, y) = y))))
+axiom match_bool1 :
+  (forall p:bool. forall x:'a. forall y:'a [match_bool(p, x, y)].
+  (((p = true) and (match_bool(p, x, y) = x)) or ((p = false) and
+  (match_bool(p, x, y) = y))))
 
 logic eqb : 'a, 'a -> bool
 

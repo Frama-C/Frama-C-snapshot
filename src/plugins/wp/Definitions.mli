@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of WP plug-in of Frama-C.                           *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat a l'energie atomique et aux energies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -40,6 +40,7 @@ val cluster_position : cluster -> Lexing.position option
 val cluster_age : cluster -> int
 val cluster_compare : cluster -> cluster -> int
 val pp_cluster : Format.formatter -> cluster -> unit
+val iter : (cluster -> unit) -> unit
 
 type trigger = (var,lfun) Qed.Engine.ftrigger
 type typedef = (tau,field,lfun) Qed.Engine.ftypedef
@@ -125,7 +126,3 @@ class virtual visitor : cluster ->
     method virtual on_dfun : dfun -> unit (** This local function must be defined *)
 
   end
-
-
-
-

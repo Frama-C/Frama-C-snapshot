@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -433,7 +433,7 @@ object(self)
   method private update_union_bindings union exns =
     let update_one_binding t =
       let s = get_type_tag t in
-      Kernel.debug2 ~dkey
+      Kernel.debug ~dkey
         "Registering %a as possible exn type" Cil_datatype.Typ.pretty t;
       let fi = List.find (fun fi -> fi.fname = s) union.cfields in
       Cil_datatype.Typ.Hashtbl.add exn_union t fi
@@ -466,7 +466,7 @@ object(self)
     self#exn_field_term exn_uncaught_name
 
   method private exn_obj_kind_field t =
-    Kernel.debug2 ~dkey
+    Kernel.debug ~dkey
       "Searching for %a as possible exn type" Cil_datatype.Typ.pretty t; 
     Cil_datatype.Typ.Hashtbl.find exn_union t
 

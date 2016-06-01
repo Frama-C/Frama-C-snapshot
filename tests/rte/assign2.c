@@ -17,7 +17,7 @@ void f() {
   t[i]++;
 }
 
-void main() {
+int main() {
   f(); f();
   return 0;
 }

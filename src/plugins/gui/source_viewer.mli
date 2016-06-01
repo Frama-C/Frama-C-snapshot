@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -25,7 +25,7 @@
 
 val make : ?name:string -> packing:(GObj.widget -> unit) -> unit ->
   GSourceView2.source_view
-  (** Build a new source viewer. *)
+(** Build a new source viewer. *)
 
 val buffer : unit -> GSourceView2.source_buffer
-  (** @return the buffer displaying the pretty-printed AST. *)
+(** @return the buffer displaying the pretty-printed AST. *)

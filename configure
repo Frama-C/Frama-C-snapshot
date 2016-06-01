@@ -625,7 +625,6 @@ LABLGTK_PATH
 PTESTSBEST
 HAS_NATIVE_THREADS
 EXTERNAL_PLUGINS
-FC_MCPP
 DEFAULT_CPP_KEEP_COMMENTS
 FRAMAC_GNU_CPP
 FRAMAC_DEFAULT_CPP
@@ -646,6 +645,8 @@ OCAMLBEST
 OCAMLGRAPH_HOME
 OCAMLGRAPH_LOCAL
 OCAMLGRAPH_INCLUDE
+APRON_PATH
+HAS_APRON
 ZARITH_PATH
 HAS_ZARITH
 VERBOSEMAKE
@@ -665,12 +666,20 @@ WHY3COQC
 COQC
 DYNAMIC_WP
 ENABLE_WP
+DYNAMIC_VARIADIC
+ENABLE_VARIADIC
 DYNAMIC_SECURITY_SLICING
 ENABLE_SECURITY_SLICING
 DYNAMIC_REPORT
 ENABLE_REPORT
+DYNAMIC_PRINT_API
+ENABLE_PRINT_API
 DYNAMIC_OBFUSCATOR
 ENABLE_OBFUSCATOR
+DYNAMIC_NONTERM
+ENABLE_NONTERM
+DYNAMIC_LOOP_ANALYSIS
+ENABLE_LOOP_ANALYSIS
 LTLTOBA
 HAS_LTLTOBA
 DYNAMIC_AORAI
@@ -754,7 +763,6 @@ infodir
 docdir
 oldincludedir
 includedir
-runstatedir
 localstatedir
 sharedstatedir
 sysconfdir
@@ -783,7 +791,6 @@ with_ocamlgraph
 enable_zarith
 with_cc
 enable_localmachdep
-enable_mcpp
 with_cpp
 with_all_static
 with_no_plugin
@@ -819,12 +826,20 @@ with_value_analysis_static
 enable_external
 enable_aorai
 with_aorai_static
+enable_loop_analysis
+with_loop_analysis_static
+enable_nonterm
+with_nonterm_static
 enable_obfuscator
 with_obfuscator_static
+enable_print_api
+with_print_api_static
 enable_report
 with_report_static
 enable_security_slicing
 with_security_slicing_static
+enable_variadic
+with_variadic_static
 enable_wp
 with_wp_static
 enable_wp_coq
@@ -877,7 +892,6 @@ datadir='${datarootdir}'
 sysconfdir='${prefix}/etc'
 sharedstatedir='${prefix}/com'
 localstatedir='${prefix}/var'
-runstatedir='${localstatedir}/run'
 includedir='${prefix}/include'
 oldincludedir='/usr/include'
 docdir='${datarootdir}/doc/${PACKAGE}'
@@ -1130,15 +1144,6 @@ do
   | -silent | --silent | --silen | --sile | --sil)
     silent=yes ;;
 
-  -runstatedir | --runstatedir | --runstatedi | --runstated \
-  | --runstate | --runstat | --runsta | --runst | --runs \
-  | --run | --ru | --r)
-    ac_prev=runstatedir ;;
-  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
-  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
-  | --run=* | --ru=* | --r=*)
-    runstatedir=$ac_optarg ;;
-
   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
     ac_prev=sbindir ;;
   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
@@ -1276,7 +1281,7 @@ fi
 for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
 		datadir sysconfdir sharedstatedir localstatedir includedir \
 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
-		libdir localedir mandir runstatedir
+		libdir localedir mandir
 do
   eval ac_val=\$$ac_var
   # Remove trailing slashes.
@@ -1429,7 +1434,6 @@ Fine tuning of the installation directories:
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
-  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
@@ -1463,7 +1467,6 @@ Optional Features:
 
   --enable-zarith=<dir> use ZArith library
   --enable-localmachdep    enable local machdep configuration
-  --enable-mcpp           use Frama-C's mcpp
   --enable-callgraph      support for callgraph plugin (default: yes)
   --enable-semantic_constant_folding
                           support for constant propagation plugin (default: yes)
@@ -1485,10 +1488,14 @@ Optional Features:
                           allows to compile directly from Frama-C kernel
                           some external plug-ins.
   --enable-aorai          support for Aorai plug-in (default: yes)
+  --enable-loop_analysis  support for loop analysis plug-in (default: yes)
+  --enable-nonterm        support for nonterm plug-in (default: yes)
   --enable-obfuscator     support for Obfuscator plug-in (default: yes)
+  --enable-print_api      support for print_api plug-in (default: yes)
   --enable-report         support for report plug-in (default: yes)
   --enable-security_slicing
                           support for Security_slicing plug-in (default: yes)
+  --enable-variadic       support for variadic plug-in (default: yes)
   --enable-wp             WP plug-in (default: yes)
   --enable-wp-coq         Wp precompiled Coq libraries (default: yes)
   --enable-wp-why3        Wp precompiled Why3-Coq libraries (default: yes)
@@ -1521,11 +1528,16 @@ specifies a custom C compiler and pre-processor
   --with-value_analysis-static
                           link value_analysis statically (default: no)
   --with-aorai-static     link aorai statically (default: no)
+  --with-loop_analysis-static
+                          link loop_analysis statically (default: no)
+  --with-nonterm-static   link nonterm statically (default: no)
   --with-obfuscator-static
                           link obfuscator statically (default: no)
+  --with-print_api-static link print_api statically (default: no)
   --with-report-static    link report statically (default: no)
   --with-security_slicing-static
                           link security_slicing statically (default: no)
+  --with-variadic-static  link variadic statically (default: no)
   --with-wp-static        link wp statically (default: no)
 
 Some influential environment variables:
@@ -2310,7 +2322,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2015                                               #
+#  Copyright (C) 2007-2016                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -2713,6 +2725,14 @@ if test "$VERBOSEMAKE" = yes ; then
 $as_echo "Make will be verbose." >&6; }
 fi
 
+##########################################
+# Check for invalid command-line options #
+##########################################
+case $prefix in
+  *\ * ) as_fn_error $? "spaces not allowed in --prefix argument \"$prefix\"" "$LINENO" 5;;
+  * ) ;;
+esac
+
 #############################
 # Check for Ocaml compilers #
 #############################
@@ -2778,6 +2798,8 @@ case $OCAMLVERSION in
      as_fn_error $? "Incompatible OCaml version; use at least 4.02.1 instead." "$LINENO" 5;;
    4.02.2)
      as_fn_error $? "Incompatible OCaml version; use at least 4.02.3 instead." "$LINENO" 5;;
+   4.00.*|4.01.*)
+     OCAML_ANNOT_OPTION="-bin-annot";;
    *)
      OCAML_ANNOT_OPTION="-bin-annot";;
 esac
@@ -3694,6 +3716,9 @@ if test "${enable_zarith+set}" = set; then :
 fi
 
 
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for Zarith" >&5
+$as_echo_n "checking for Zarith... " >&6; }
+
 if test -z "$ZARITH_PATH"; then
   # standard installation procedure of zarith diverges according to
   # ocamlfind installation (see zarith's README)
@@ -3706,6 +3731,9 @@ if test -z "$ZARITH_PATH"; then
   if test "$HAS_ZARITH" = "no"; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Zarith not found: will use the default less efficient library instead" >&5
 $as_echo "$as_me: WARNING: Zarith not found: will use the default less efficient library instead" >&2;}
+  else
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: found" >&5
+$as_echo "found" >&6; }
   fi
 else
   as_ac_File=`$as_echo "ac_cv_file_$ZARITH_PATH/zarith.$LIB_SUFFIX" | $as_tr_sh`
@@ -3733,8 +3761,29 @@ fi
 
   if test "$HAS_ZARITH" = "no"; then
     as_fn_error $? "Zarith: file $ZARITH_PATH/zarith.$LIB_SUFFIX not found." "$LINENO" 5
+  else
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: found" >&5
+$as_echo "found" >&6; }
   fi
 fi
+
+# apron
+########
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for Apron" >&5
+$as_echo_n "checking for Apron... " >&6; }
+
+APRON_PATH=$($OCAMLFIND query apron 2>/dev/null | tr -d '\r\n')
+if test -f "$APRON_PATH/apron.cmxs"; then
+  HAS_APRON="yes";
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: found" >&5
+$as_echo "found" >&6; }
+else
+  HAS_APRON="no";
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: not found. The corresponding domains won't be available in Eva" >&5
+$as_echo "not found. The corresponding domains won't be available in Eva" >&6; }
+fi;
+
 
 ############
 # Platform #
@@ -5258,27 +5307,6 @@ fi # local machdep configuration
 # Frama-C's pre-processor support #
 ###################################
 
-# mcpp support. Very experimental
-
-# Check whether --enable-mcpp was given.
-if test "${enable_mcpp+set}" = set; then :
-  enableval=$enable_mcpp; #' making emacs mode happy
-  FC_MCPP=$enableval
-else
-  FC_MCPP=no
-fi
-
-
-if test "$FC_MCPP" = yes ; then
-new_section "configure Frama-C-mcpp"
-(cd mcpp ; ./configure --prefix=$prefix --datarootdir=$datarootdir \
-        --exec_prefix=$exec_prefix --bindir=$bindir --libdir=$datadir/frama-c \
-        --host=$host --build=$build --mandir=$mandir > /dev/null \
-      || \
-      as_fn_error $? "cannot configure Frama-C-mcpp" "$LINENO" 5)
-FRAMAC_DEFAULT_CPP="frama-c-mcpp$EXE -C -I- -I$datadir/frama-c/libc -I."
-fi
-
 # Specific preprocessor support
 
 # Check whether --with-cpp was given.
@@ -5289,7 +5317,6 @@ else
 fi
 
 
-if test "$FC_MCPP" = no; then
 # if no specific pre-processor has been given, check whether we can use
 # $CC. Note that we want to keep comments in the output, so that AC_PROG_CPP
 # alone is not sufficient.
@@ -5494,7 +5521,6 @@ $as_echo "$as_me: WARNING: Unable to find a working pre-processor.
 
 fi
 rm -f conftest.err conftest.i conftest.$ac_ext
-fi # test FC_MCPP
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: Default preprocessor is '$FRAMAC_DEFAULT_CPP'." >&5
 $as_echo "Default preprocessor is '$FRAMAC_DEFAULT_CPP'." >&6; }
@@ -7803,7 +7829,7 @@ fi
 #                                                                        #
 #  This file is part of Aorai plug-in of Frama-C.                        #
 #                                                                        #
-#  Copyright (C) 2007-2015                                               #
+#  Copyright (C) 2007-2016                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #    INRIA (Institut National de Recherche en Informatique et en         #
@@ -8041,6 +8067,168 @@ fi
 
 
 
+                ##########################################################################
+#                                                                        #
+#  This file is part of Frama-C.                                         #
+#                                                                        #
+#  Copyright (C) 2007-2016                                               #
+#    CEA (Commissariat à l'énergie atomique et aux énergies              #
+#         alternatives)                                                  #
+#                                                                        #
+#  you can redistribute it and/or modify it under the terms of the GNU   #
+#  Lesser General Public License as published by the Free Software       #
+#  Foundation, version 2.1.                                              #
+#                                                                        #
+#  It is distributed in the hope that it will be useful,                 #
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of        #
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         #
+#  GNU Lesser General Public License for more details.                   #
+#                                                                        #
+#  See the GNU Lesser General Public License version 2.1                 #
+#  for more details (enclosed in the file licenses/LGPLv2.1).            #
+#                                                                        #
+##########################################################################
+
+########################################
+# E-ACSL as a standard Frama-C plug-in #
+########################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/loop_analysis/Makefile.in" >&5
+$as_echo_n "checking for src/plugins/loop_analysis/Makefile.in... " >&6; }
+if ${ac_cv_file_src_plugins_loop_analysis_Makefile_in+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  test "$cross_compiling" = yes &&
+  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
+if test -r "src/plugins/loop_analysis/Makefile.in"; then
+  ac_cv_file_src_plugins_loop_analysis_Makefile_in=yes
+else
+  ac_cv_file_src_plugins_loop_analysis_Makefile_in=no
+fi
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_plugins_loop_analysis_Makefile_in" >&5
+$as_echo "$ac_cv_file_src_plugins_loop_analysis_Makefile_in" >&6; }
+if test "x$ac_cv_file_src_plugins_loop_analysis_Makefile_in" = xyes; then :
+  default=yes;plugin_present=yes
+else
+  plugin_present=no;default=no
+fi
+
+
+FORCE=no
+
+# Check whether --enable-loop_analysis was given.
+if test "${enable_loop_analysis+set}" = set; then :
+  enableval=$enable_loop_analysis; ENABLE=$enableval;FORCE=$enableval
+else
+  ENABLE=$default
+
+fi
+
+
+if test "$ONLY_KERNEL" = "yes" -a "$FORCE" = "no"; then
+  ENABLE=no
+fi
+
+
+
+# Test to change for static plugin, dynamic option
+#default_dyn=no
+#define([PLUGIN_HELP_DYN],
+#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
+#                     [PLUGIN_MSG (default: static)])
+#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
+#AC_ARG_ENABLE(
+# [PLUGIN_NAME_DYN],
+#  PLUGIN_HELP_DYN,
+#  ENABLE=$enableval;
+#  FORCE=$enableval
+#  ENABLE=$default_dyn
+#)
+#eval ENABLE_DYNAMIC_$up=\$ENABLE
+
+if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
+  as_fn_error $? "loop_analysis is not available" "$LINENO" 5
+fi
+
+FORCE_LOOP_ANALYSIS=$FORCE
+PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_LOOP_ANALYSIS
+
+ENABLE_LOOP_ANALYSIS=$ENABLE
+NAME_LOOP_ANALYSIS=loop_analysis
+if test "$default" = "no" -a "$FORCE" = "no"; then
+  INFO_LOOP_ANALYSIS=" (not available by default)"
+fi
+
+# Dynamic plug-ins configuration
+
+
+# Check whether --with-loop_analysis-static was given.
+if test "${with_loop_analysis_static+set}" = set; then :
+  withval=$with_loop_analysis_static; is_static=$withval
+else
+  is_static=$IS_ALL_STATIC
+fi
+
+
+   # is_static = "yes" iff the user forces the plug-in to be static
+   # is_static = "no"  iff the user forces the plug-in to be dynamic
+   # is_static = "" in others cases (no special instruction)
+   STATIC_LOOP_ANALYSIS=$is_static
+   if test "$is_static" != "yes"; then
+     USE_NATIVE_DYNLINK="${USE_NATIVE_DYNLINK} loop_analysis"
+     DYNAMIC_LOOP_ANALYSIS=yes
+   else
+     DYNAMIC_LOOP_ANALYSIS=no
+   fi
+
+
+
+echo "loop_analysis... $ENABLE"
+# kept defined for write_plugin_config. A bit ugly, but not more than
+# usual autoconf stuff.
+# m4_undefine([PLUGIN_NAME])
+
+
+
+
+
+
+
+
+#######################
+# Generating Makefile #
+#######################
+
+
+
+
+        ac_config_files="$ac_config_files src/plugins/loop_analysis/Makefile"
+
+
+
+         if test "$ENABLE_LOOP_ANALYSIS" != "no"; then
+            EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} src/plugins/loop_analysis";
+         fi
+
+
+
+
 
 
 
@@ -8054,7 +8242,189 @@ fi
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2015                                               #
+#  Copyright (C) 2007-2016                                               #
+#    CEA (Commissariat à l'énergie atomique et aux énergies              #
+#         alternatives)                                                  #
+#                                                                        #
+#  you can redistribute it and/or modify it under the terms of the GNU   #
+#  Lesser General Public License as published by the Free Software       #
+#  Foundation, version 2.1.                                              #
+#                                                                        #
+#  It is distributed in the hope that it will be useful,                 #
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of        #
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         #
+#  GNU Lesser General Public License for more details.                   #
+#                                                                        #
+#  See the GNU Lesser General Public License version 2.1                 #
+#  for more details (enclosed in the file licenses/LGPLv2.1).            #
+#                                                                        #
+##########################################################################
+
+########################################
+# Nonterm as a standard Frama-C plug-in #
+########################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/nonterm/Makefile.in" >&5
+$as_echo_n "checking for src/plugins/nonterm/Makefile.in... " >&6; }
+if ${ac_cv_file_src_plugins_nonterm_Makefile_in+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  test "$cross_compiling" = yes &&
+  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
+if test -r "src/plugins/nonterm/Makefile.in"; then
+  ac_cv_file_src_plugins_nonterm_Makefile_in=yes
+else
+  ac_cv_file_src_plugins_nonterm_Makefile_in=no
+fi
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_plugins_nonterm_Makefile_in" >&5
+$as_echo "$ac_cv_file_src_plugins_nonterm_Makefile_in" >&6; }
+if test "x$ac_cv_file_src_plugins_nonterm_Makefile_in" = xyes; then :
+  default=yes;plugin_present=yes
+else
+  plugin_present=no;default=no
+fi
+
+
+FORCE=no
+
+# Check whether --enable-nonterm was given.
+if test "${enable_nonterm+set}" = set; then :
+  enableval=$enable_nonterm; ENABLE=$enableval;FORCE=$enableval
+else
+  ENABLE=$default
+
+fi
+
+
+if test "$ONLY_KERNEL" = "yes" -a "$FORCE" = "no"; then
+  ENABLE=no
+fi
+
+
+
+# Test to change for static plugin, dynamic option
+#default_dyn=no
+#define([PLUGIN_HELP_DYN],
+#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
+#                     [PLUGIN_MSG (default: static)])
+#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
+#AC_ARG_ENABLE(
+# [PLUGIN_NAME_DYN],
+#  PLUGIN_HELP_DYN,
+#  ENABLE=$enableval;
+#  FORCE=$enableval
+#  ENABLE=$default_dyn
+#)
+#eval ENABLE_DYNAMIC_$up=\$ENABLE
+
+if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
+  as_fn_error $? "nonterm is not available" "$LINENO" 5
+fi
+
+FORCE_NONTERM=$FORCE
+PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_NONTERM
+
+ENABLE_NONTERM=$ENABLE
+NAME_NONTERM=nonterm
+if test "$default" = "no" -a "$FORCE" = "no"; then
+  INFO_NONTERM=" (not available by default)"
+fi
+
+# Dynamic plug-ins configuration
+
+
+# Check whether --with-nonterm-static was given.
+if test "${with_nonterm_static+set}" = set; then :
+  withval=$with_nonterm_static; is_static=$withval
+else
+  is_static=$IS_ALL_STATIC
+fi
+
+
+   # is_static = "yes" iff the user forces the plug-in to be static
+   # is_static = "no"  iff the user forces the plug-in to be dynamic
+   # is_static = "" in others cases (no special instruction)
+   STATIC_NONTERM=$is_static
+   if test "$is_static" != "yes"; then
+     USE_NATIVE_DYNLINK="${USE_NATIVE_DYNLINK} nonterm"
+     DYNAMIC_NONTERM=yes
+   else
+     DYNAMIC_NONTERM=no
+   fi
+
+
+
+echo "nonterm... $ENABLE"
+# kept defined for write_plugin_config. A bit ugly, but not more than
+# usual autoconf stuff.
+# m4_undefine([PLUGIN_NAME])
+
+
+
+
+
+
+
+
+
+
+
+
+        REQUIRE_VALUE_ANALYSIS=$REQUIRE_VALUE_ANALYSIS" "nonterm
+        REQUIRED_NONTERM=$REQUIRED_NONTERM" "value_analysis
+
+
+
+
+
+
+#######################
+# Generating Makefile #
+#######################
+
+
+
+
+        ac_config_files="$ac_config_files src/plugins/nonterm/Makefile"
+
+
+
+         if test "$ENABLE_NONTERM" != "no"; then
+            EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} src/plugins/nonterm";
+         fi
+
+
+
+
+
+
+
+
+
+
+
+
+                ##########################################################################
+#                                                                        #
+#  This file is part of Frama-C.                                         #
+#                                                                        #
+#  Copyright (C) 2007-2016                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -8216,11 +8586,131 @@ echo "obfuscator... $ENABLE"
 
 
 
+
+
+
+
+
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/print_api" >&5
+$as_echo_n "checking for src/plugins/print_api... " >&6; }
+if ${ac_cv_file_src_plugins_print_api+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  test "$cross_compiling" = yes &&
+  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
+if test -r "src/plugins/print_api"; then
+  ac_cv_file_src_plugins_print_api=yes
+else
+  ac_cv_file_src_plugins_print_api=no
+fi
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_plugins_print_api" >&5
+$as_echo "$ac_cv_file_src_plugins_print_api" >&6; }
+if test "x$ac_cv_file_src_plugins_print_api" = xyes; then :
+  default=yes;plugin_present=yes
+else
+  plugin_present=no;default=no
+fi
+
+
+FORCE=no
+
+# Check whether --enable-print_api was given.
+if test "${enable_print_api+set}" = set; then :
+  enableval=$enable_print_api; ENABLE=$enableval;FORCE=$enableval
+else
+  ENABLE=$default
+
+fi
+
+
+if test "$ONLY_KERNEL" = "yes" -a "$FORCE" = "no"; then
+  ENABLE=no
+fi
+
+
+
+# Test to change for static plugin, dynamic option
+#default_dyn=no
+#define([PLUGIN_HELP_DYN],
+#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
+#                     [PLUGIN_MSG (default: static)])
+#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
+#AC_ARG_ENABLE(
+# [PLUGIN_NAME_DYN],
+#  PLUGIN_HELP_DYN,
+#  ENABLE=$enableval;
+#  FORCE=$enableval
+#  ENABLE=$default_dyn
+#)
+#eval ENABLE_DYNAMIC_$up=\$ENABLE
+
+if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
+  as_fn_error $? "print_api is not available" "$LINENO" 5
+fi
+
+FORCE_PRINT_API=$FORCE
+PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_PRINT_API
+
+ENABLE_PRINT_API=$ENABLE
+NAME_PRINT_API=print_api
+if test "$default" = "no" -a "$FORCE" = "no"; then
+  INFO_PRINT_API=" (not available by default)"
+fi
+
+# Dynamic plug-ins configuration
+
+
+# Check whether --with-print_api-static was given.
+if test "${with_print_api_static+set}" = set; then :
+  withval=$with_print_api_static; is_static=$withval
+else
+  is_static=$IS_ALL_STATIC
+fi
+
+
+   # is_static = "yes" iff the user forces the plug-in to be static
+   # is_static = "no"  iff the user forces the plug-in to be dynamic
+   # is_static = "" in others cases (no special instruction)
+   STATIC_PRINT_API=$is_static
+   if test "$is_static" != "yes"; then
+     USE_NATIVE_DYNLINK="${USE_NATIVE_DYNLINK} print_api"
+     DYNAMIC_PRINT_API=yes
+   else
+     DYNAMIC_PRINT_API=no
+   fi
+
+
+
+echo "print_api... $ENABLE"
+# kept defined for write_plugin_config. A bit ugly, but not more than
+# usual autoconf stuff.
+# m4_undefine([PLUGIN_NAME])
+
+
+
+
+
+
+
+                      if test "$ENABLE_PRINT_API" != "no"; then
+                         EXTERNAL_PLUGINS="$EXTERNAL_PLUGINS src/plugins/print_api";
+                      fi
+
+
+
+
+
+
+
+
                 ##########################################################################
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2015                                               #
+#  Copyright (C) 2007-2016                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -8392,7 +8882,7 @@ echo "report... $ENABLE"
 #                                                                        #
 #  This file is part of Frama-C.                                         #
 #                                                                        #
-#  Copyright (C) 2007-2015                                               #
+#  Copyright (C) 2007-2016                                               #
 #    CEA (Commissariat à l'énergie atomique et aux énergies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -8607,9 +9097,179 @@ echo "security_slicing... $ENABLE"
 
                 ##########################################################################
 #                                                                        #
+#  This file is part of Frama-C.                                         #
+#                                                                        #
+#  Copyright (C) 2007-2016                                               #
+#    CEA (Commissariat à l'énergie atomique et aux énergies              #
+#         alternatives)                                                  #
+#                                                                        #
+#  you can redistribute it and/or modify it under the terms of the GNU   #
+#  Lesser General Public License as published by the Free Software       #
+#  Foundation, version 2.1.                                              #
+#                                                                        #
+#  It is distributed in the hope that it will be useful,                 #
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of        #
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         #
+#  GNU Lesser General Public License for more details.                   #
+#                                                                        #
+#  See the GNU Lesser General Public License version 2.1                 #
+#  for more details (enclosed in the file licenses/LGPLv2.1).            #
+#                                                                        #
+##########################################################################
+
+##########################################
+# Variadic as a standard Frama-C plug-in #
+##########################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for src/plugins/variadic/Makefile.in" >&5
+$as_echo_n "checking for src/plugins/variadic/Makefile.in... " >&6; }
+if ${ac_cv_file_src_plugins_variadic_Makefile_in+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  test "$cross_compiling" = yes &&
+  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
+if test -r "src/plugins/variadic/Makefile.in"; then
+  ac_cv_file_src_plugins_variadic_Makefile_in=yes
+else
+  ac_cv_file_src_plugins_variadic_Makefile_in=no
+fi
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_file_src_plugins_variadic_Makefile_in" >&5
+$as_echo "$ac_cv_file_src_plugins_variadic_Makefile_in" >&6; }
+if test "x$ac_cv_file_src_plugins_variadic_Makefile_in" = xyes; then :
+  default=yes;plugin_present=yes
+else
+  plugin_present=no;default=no
+fi
+
+
+FORCE=no
+
+# Check whether --enable-variadic was given.
+if test "${enable_variadic+set}" = set; then :
+  enableval=$enable_variadic; ENABLE=$enableval;FORCE=$enableval
+else
+  ENABLE=$default
+
+fi
+
+
+if test "$ONLY_KERNEL" = "yes" -a "$FORCE" = "no"; then
+  ENABLE=no
+fi
+
+
+
+# Test to change for static plugin, dynamic option
+#default_dyn=no
+#define([PLUGIN_HELP_DYN],
+#	AC_HELP_STRING([--enable-PLUGIN_NAME-dynamic],
+#                     [PLUGIN_MSG (default: static)])
+#define([PLUGIN_NAME_DYN],[PLUGIN_NAME]-dynamic)
+#AC_ARG_ENABLE(
+# [PLUGIN_NAME_DYN],
+#  PLUGIN_HELP_DYN,
+#  ENABLE=$enableval;
+#  FORCE=$enableval
+#  ENABLE=$default_dyn
+#)
+#eval ENABLE_DYNAMIC_$up=\$ENABLE
+
+if test "$plugin_present" = "no" -a "$FORCE" = "yes"; then
+  as_fn_error $? "variadic is not available" "$LINENO" 5
+fi
+
+FORCE_VARIADIC=$FORCE
+PLUGINS_FORCE_LIST=${PLUGINS_FORCE_LIST}" "FORCE_VARIADIC
+
+ENABLE_VARIADIC=$ENABLE
+NAME_VARIADIC=variadic
+if test "$default" = "no" -a "$FORCE" = "no"; then
+  INFO_VARIADIC=" (not available by default)"
+fi
+
+# Dynamic plug-ins configuration
+
+
+# Check whether --with-variadic-static was given.
+if test "${with_variadic_static+set}" = set; then :
+  withval=$with_variadic_static; is_static=$withval
+else
+  is_static=$IS_ALL_STATIC
+fi
+
+
+   # is_static = "yes" iff the user forces the plug-in to be static
+   # is_static = "no"  iff the user forces the plug-in to be dynamic
+   # is_static = "" in others cases (no special instruction)
+   STATIC_VARIADIC=$is_static
+   if test "$is_static" != "yes"; then
+     USE_NATIVE_DYNLINK="${USE_NATIVE_DYNLINK} variadic"
+     DYNAMIC_VARIADIC=yes
+   else
+     DYNAMIC_VARIADIC=no
+   fi
+
+
+
+echo "variadic... $ENABLE"
+# kept defined for write_plugin_config. A bit ugly, but not more than
+# usual autoconf stuff.
+# m4_undefine([PLUGIN_NAME])
+
+
+
+
+
+
+
+
+#######################
+# Generating Makefile #
+#######################
+
+
+
+
+        ac_config_files="$ac_config_files src/plugins/variadic/Makefile"
+
+
+
+         if test "$ENABLE_VARIADIC" != "no"; then
+            EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} src/plugins/variadic";
+         fi
+
+
+
+
+
+
+
+
+
+
+
+
+                ##########################################################################
+#                                                                        #
 #  This file is part of WP plug-in of Frama-C.                           #
 #                                                                        #
-#  Copyright (C) 2007-2015                                               #
+#  Copyright (C) 2007-2016                                               #
 #    CEA (Commissariat a l'energie atomique et aux energies              #
 #         alternatives)                                                  #
 #                                                                        #
@@ -9334,19 +9994,19 @@ fi
     if test "$COQC" = "yes" ; then
       COQVERSION=`coqc -v | sed -n -e 's|.*version* *\([^ ]*\) .*$|\1|p' `
       case $COQVERSION in
-        8.4*|trunk)
+        8.4pl6|8.5*|trunk)
           { $as_echo "$as_me:${as_lineno-$LINENO}: result: coqc version $COQVERSION found" >&5
 $as_echo "coqc version $COQVERSION found" >&6; }
           ;;
         *)
-          { $as_echo "$as_me:${as_lineno-$LINENO}: result: wp needs coq 8.4" >&5
-$as_echo "wp needs coq 8.4" >&6; }
+          { $as_echo "$as_me:${as_lineno-$LINENO}: result: unsupported coqc version $COQVERSION" >&5
+$as_echo "unsupported coqc version $COQVERSION" >&6; }
           COQC="no"
           ;;
       esac
     else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: rerun configure to make wp using coq 8.4" >&5
-$as_echo "$as_me: rerun configure to make wp using coq 8.4" >&6;}
+      { $as_echo "$as_me:${as_lineno-$LINENO}: rerun configure to make wp using coq 8.5" >&5
+$as_echo "$as_me: rerun configure to make wp using coq 8.5" >&6;}
     fi
   else
     COQC="no"
@@ -9396,7 +10056,7 @@ fi
     if test "$WHY3COQC" = "yes" ; then
       WHY3VERSION=`why3 --version | sed -n -e 's|.*version* *\([^ ]*\) .*$|\1|p' `
       case $WHY3VERSION in
-        0.85*)
+        0.86*|0.87*)
           { $as_echo "$as_me:${as_lineno-$LINENO}: result: why3 version $WHY3VERSION found" >&5
 $as_echo "why3 version $WHY3VERSION found" >&6; }
 	  WHY3LIB=`why3 --print-libdir`
@@ -9410,14 +10070,14 @@ $as_echo "why3 compiled coq libraries not found in $WHY3LIB" >&6; }
           fi
           ;;
         *)
-          { $as_echo "$as_me:${as_lineno-$LINENO}: result: wp needs why3 0.85" >&5
-$as_echo "wp needs why3 0.85" >&6; }
+          { $as_echo "$as_me:${as_lineno-$LINENO}: result: why3 unsupported version $WHY3VERSION" >&5
+$as_echo "why3 unsupported version $WHY3VERSION" >&6; }
           WHY3COQC="no"
           ;;
       esac
     else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: rerun configure to make wp using why3 0.85" >&5
-$as_echo "$as_me: rerun configure to make wp using why3 0.85" >&6;}
+      { $as_echo "$as_me:${as_lineno-$LINENO}: rerun configure to make wp using why3 0.87" >&5
+$as_echo "$as_me: rerun configure to make wp using why3 0.87" >&6;}
     fi
   else
     WHY3COQC="no"
@@ -9582,7 +10242,7 @@ $as_echo "$as_me: WARNING: native dynlink unavailable" >&2;}
         # compile statically all dynamic plug-ins
    # except contrary instructions
    USE_NATIVE_DYNLINK="";
-   for plugin in  CALLGRAPH SEMANTIC_CONSTANT_FOLDING FROM_ANALYSIS GUI IMPACT INOUT METRICS OCCURRENCE PDG POSTDOMINATORS RTEGEN SCOPE SLICING SPARECODE USERS VALUE_ANALYSIS AORAI OBFUSCATOR REPORT SECURITY_SLICING WP; do
+   for plugin in  CALLGRAPH SEMANTIC_CONSTANT_FOLDING FROM_ANALYSIS GUI IMPACT INOUT METRICS OCCURRENCE PDG POSTDOMINATORS RTEGEN SCOPE SLICING SPARECODE USERS VALUE_ANALYSIS AORAI LOOP_ANALYSIS NONTERM OBFUSCATOR PRINT_API REPORT SECURITY_SLICING VARIADIC WP; do
      n=NAME_$plugin
      d=DYNAMIC_$plugin
      s=STATIC_$plugin
@@ -9636,7 +10296,7 @@ $as_echo "$as_me: WARNING: native dynlink unsupported on this platform" >&2;}
         # compile statically all dynamic plug-ins
    # except contrary instructions
    USE_NATIVE_DYNLINK="";
-   for plugin in  CALLGRAPH SEMANTIC_CONSTANT_FOLDING FROM_ANALYSIS GUI IMPACT INOUT METRICS OCCURRENCE PDG POSTDOMINATORS RTEGEN SCOPE SLICING SPARECODE USERS VALUE_ANALYSIS AORAI OBFUSCATOR REPORT SECURITY_SLICING WP; do
+   for plugin in  CALLGRAPH SEMANTIC_CONSTANT_FOLDING FROM_ANALYSIS GUI IMPACT INOUT METRICS OCCURRENCE PDG POSTDOMINATORS RTEGEN SCOPE SLICING SPARECODE USERS VALUE_ANALYSIS AORAI LOOP_ANALYSIS NONTERM OBFUSCATOR PRINT_API REPORT SECURITY_SLICING VARIADIC WP; do
      n=NAME_$plugin
      d=DYNAMIC_$plugin
      s=STATIC_$plugin
@@ -9739,8 +10399,17 @@ EXTERNAL_PLUGINS="${EXTERNAL_PLUGINS} ${EXTRA_EXTERNAL_PLUGINS}"
 
 
 
+
 # m4_foreach_w is not supported in some old autoconf versions.
 # Sadly AC_FOREACH is deprecated now...
+
+
+
+
+
+
+
+
 
 
 
@@ -10485,9 +11154,12 @@ do
   case $ac_config_target in
     "config.h") CONFIG_HEADERS="$CONFIG_HEADERS config.h" ;;
     "src/plugins/aorai/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/aorai/Makefile" ;;
+    "src/plugins/loop_analysis/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/loop_analysis/Makefile" ;;
+    "src/plugins/nonterm/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/nonterm/Makefile" ;;
     "src/plugins/obfuscator/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/obfuscator/Makefile" ;;
     "src/plugins/report/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/report/Makefile" ;;
     "src/plugins/security_slicing/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/security_slicing/Makefile" ;;
+    "src/plugins/variadic/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/variadic/Makefile" ;;
     "src/plugins/wp/Makefile") CONFIG_FILES="$CONFIG_FILES src/plugins/wp/Makefile" ;;
     "share/Makefile.config") CONFIG_FILES="$CONFIG_FILES share/Makefile.config" ;;
 
@@ -11038,9 +11710,12 @@ $as_echo "$as_me: $ac_file is unchanged" >&6;}
 
   case $ac_file$ac_mode in
     "src/plugins/aorai/Makefile":F) chmod -w src/plugins/aorai/Makefile ;;
+    "src/plugins/loop_analysis/Makefile":F) chmod -w src/plugins/loop_analysis/Makefile ;;
+    "src/plugins/nonterm/Makefile":F) chmod -w src/plugins/nonterm/Makefile ;;
     "src/plugins/obfuscator/Makefile":F) chmod -w src/plugins/obfuscator/Makefile ;;
     "src/plugins/report/Makefile":F) chmod -w src/plugins/report/Makefile ;;
     "src/plugins/security_slicing/Makefile":F) chmod -w src/plugins/security_slicing/Makefile ;;
+    "src/plugins/variadic/Makefile":F) chmod -w src/plugins/variadic/Makefile ;;
     "src/plugins/wp/Makefile":F) chmod -w src/plugins/wp/Makefile ;;
     "share/Makefile.config":F) chmod a-w share/Makefile.config ;;
 
@@ -11088,7 +11763,7 @@ fi
 
 new_section "summary: plug-ins available"
 
-for plugin in  CALLGRAPH SEMANTIC_CONSTANT_FOLDING FROM_ANALYSIS GUI IMPACT INOUT METRICS OCCURRENCE PDG POSTDOMINATORS RTEGEN SCOPE SLICING SPARECODE USERS VALUE_ANALYSIS AORAI OBFUSCATOR REPORT SECURITY_SLICING WP; do
+for plugin in  CALLGRAPH SEMANTIC_CONSTANT_FOLDING FROM_ANALYSIS GUI IMPACT INOUT METRICS OCCURRENCE PDG POSTDOMINATORS RTEGEN SCOPE SLICING SPARECODE USERS VALUE_ANALYSIS AORAI LOOP_ANALYSIS NONTERM OBFUSCATOR PRINT_API REPORT SECURITY_SLICING VARIADIC WP; do
   n=NAME_$plugin
   e=ENABLE_$plugin
   d=DYNAMIC_$plugin

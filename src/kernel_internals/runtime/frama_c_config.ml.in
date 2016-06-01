@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -28,13 +28,11 @@
 let version _ =
   Format.printf
     "Frama-C %s@\n\
-     Compiled on %s@\n\
      Environment:@\n  \
        FRAMAC_SHARE  = %S@\n  \
        FRAMAC_LIB    = %S@\n  \
        FRAMAC_PLUGIN = %S@."
     Config.version
-    Config.date
     Config.datadir Config.libdir Config.plugin_path
   ;
   exit 0
