@@ -13,13 +13,12 @@ tests/wp_typed/unit_call.i:7:[kernel] warning: No code nor implicit assigns clau
 
 Goal Assertion (file tests/wp_typed/unit_call.i, line 14):
 Assume {
-  (* Domain *)
-  Type: (is_sint32 r_0) /\ (is_sint32 r_1).
-  (* tests/wp_typed/unit_call.i:10: Call 'f' *)
-  Have: r_1<0.
-  (* tests/wp_typed/unit_call.i:12: Call 'f' *)
-  Have: 0<r_0.
+  Type: is_sint32(r) /\ is_sint32(r_1).
+  (* Call 'f' *)
+  Have: r_1 < 0.
+  (* Call 'f' *)
+  Have: 0 < r.
 }
-Prove: r_0!=r_1.
+Prove: r != r_1.
 
 ------------------------------------------------------------

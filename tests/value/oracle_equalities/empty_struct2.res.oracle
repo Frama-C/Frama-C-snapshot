@@ -1,0 +1,94 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/value/empty_struct2.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  nondet ∈ [--..--]
+tests/value/empty_struct2.c:40:[value] assertion got status valid.
+[value] Called Frama_C_show_each_global_empty({{  }})
+[value] Called Frama_C_show_each_e1({{  }})
+[value] computing for function memcpy <- main.
+        Called from tests/value/empty_struct2.c:44.
+[value] using specification for function memcpy
+share/libc/string.h:59:[value] function memcpy: precondition 'valid_dst' got status valid.
+share/libc/string.h:60:[value] function memcpy: precondition 'valid_src' got status valid.
+share/libc/string.h:61:[value] function memcpy: precondition got status valid.
+tests/value/empty_struct2.c:44:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
+[value] Done for function memcpy
+[value] computing for function memcpy <- main.
+        Called from tests/value/empty_struct2.c:49.
+tests/value/empty_struct2.c:49:[value] cannot evaluate ACSL term, unsupported ACSL construct: logic functions or predicates
+[value] Done for function memcpy
+[value] Called Frama_C_show_each_c2([--..--])
+[value] Called Frama_C_show_each_c2_e({{  }})
+[value] computing for function f <- main.
+        Called from tests/value/empty_struct2.c:52.
+tests/value/empty_struct2.c:27:[kernel] warning: accessing uninitialized left-value. assert \initialized(&s.b);
+tests/value/empty_struct2.c:27:[kernel] warning: signed overflow. assert s.b+10 ≤ 2147483647;
+tests/value/empty_struct2.c:28:[kernel] warning: accessing uninitialized left-value. assert \initialized(&s.a);
+tests/value/empty_struct2.c:28:[kernel] warning: signed overflow. assert -2147483648 ≤ s.a-3;
+[value] Recording results for f
+[value] Done for function f
+[value] Called Frama_C_show_each_res(.a ∈ [-2147483638..2147483647]
+                                     .b ∈ [-2147483648..2147483644])
+tests/value/empty_struct2.c:58:[value] assertion got status valid.
+[value] computing for function ret_empty <- main.
+        Called from tests/value/empty_struct2.c:60.
+[value] using specification for function ret_empty
+[value] Done for function ret_empty
+[value] computing for function ret_ptr_empty <- main.
+        Called from tests/value/empty_struct2.c:61.
+tests/value/empty_struct2.c:61:[kernel] warning: Neither code nor specification for function ret_ptr_empty, generating default assigns from the prototype
+[value] using specification for function ret_ptr_empty
+[value] Done for function ret_ptr_empty
+tests/value/empty_struct2.c:62:[kernel] warning: out of bounds read. assert \valid_read(ptr_ret);
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function f:
+  res.a ∈ [-2147483638..2147483647]
+     .b ∈ [-2147483648..2147483644]
+[value] Values at end of function main:
+  c1.a ∈ {42}
+    .b ∈ {77}
+  c2 ∈ [--..--] or UNINITIALIZED
+  res.a ∈ [-2147483638..2147483647]
+     .b ∈ [-2147483648..2147483644]
+  cb.i ∈ {91}
+  ce.ch ∈ {90}
+  p ∈ {{ (struct empty *)&cb }}
+  ptr_ret ∈ {{ &alloced_return_ret_ptr_empty + [0..2147483647] }}
+  __retres ∈ {0}
+[from] Computing for function f
+[from] Done for function f
+[from] Computing for function main
+[from] Computing for function memcpy <-main
+[from] Done for function memcpy
+[from] Computing for function ret_empty <-main
+[from] Done for function ret_empty
+[from] Computing for function ret_ptr_empty <-main
+[from] Done for function ret_ptr_empty
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function f:
+  \result FROM s
+[from] Function memcpy:
+  c2 FROM c1 (and SELF)
+  \result FROM dest
+[from] Function ret_empty:
+  \result FROM \nothing
+[from] Function ret_ptr_empty:
+  \result FROM \nothing
+[from] Function main:
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function f:
+          res
+[inout] Inputs for function f:
+          nondet
+[inout] Out (internal) for function main:
+          c1; c2; res; cb; ce; p; ptr_ret; __retres
+[inout] Inputs for function main:
+          nondet

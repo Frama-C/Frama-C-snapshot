@@ -10,70 +10,40 @@
 ------------------------------------------------------------
 
 Goal Assertion 'Ok_A' (file tests/wp_plugin/subset_fopen.c, line 17):
-Assume {
-  (* Domain *)
-  Type: (is_sint32 i_1).
-  (* Heap *)
-  Have: (linked Malloc_0).
-}
-Prove: (0<=i_1) /\ (i_1<=9).
+Assume { Type: is_sint32(i). (* Heap *) Have: linked(Malloc_0). }
+Prove: (0 <= i) /\ (i <= 9).
 
 ------------------------------------------------------------
 
 Goal Assertion 'Ok_B' (file tests/wp_plugin/subset_fopen.c, line 18):
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Assertion 'Ok_C' (file tests/wp_plugin/subset_fopen.c, line 19):
-Assume {
-  (* Domain *)
-  Type: (is_sint32 i_1).
-  (* Goal *)
-  When: 5<=i_1.
-  (* Heap *)
-  Have: (linked Malloc_0).
-  (* Assertion 'Ok_A' (file tests/wp_plugin/subset_fopen.c, line 17) *)
-  (* tests/wp_plugin/subset_fopen.c:17: Assertion 'Ok_A': *)
-  Have: (0<=i_1) /\ (i_1<=9).
-}
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Assertion 'Ok_D' (file tests/wp_plugin/subset_fopen.c, line 22):
-Assume {
-  (* Domain *)
-  Type: (is_sint32 i_1) /\ (is_sint32 j_0).
-  (* Heap *)
-  Have: (linked Malloc_0).
-  (* Assertion 'Ok_A' (file tests/wp_plugin/subset_fopen.c, line 17) *)
-  (* tests/wp_plugin/subset_fopen.c:17: Assertion 'Ok_A': *)
-  Have: (0<=i_1) /\ (i_1<=9).
-  (* tests/wp_plugin/subset_fopen.c:21: Then *)
-  Have: j_0<=i_1.
-}
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Assertion 'Ok_E' (file tests/wp_plugin/subset_fopen.c, line 26):
 Assume {
-  (* Domain *)
-  Type: (is_sint32 i_1).
+  Type: is_sint32(i).
   (* Goal *)
-  When: p_0!=null.
+  When: p != null.
   (* Heap *)
-  Have: (linked Malloc_0).
-  (* Assertion 'Ok_A' (file tests/wp_plugin/subset_fopen.c, line 17) *)
-  (* tests/wp_plugin/subset_fopen.c:17: Assertion 'Ok_A': *)
-  Have: (0<=i_1) /\ (i_1<=9).
-  (* tests/wp_plugin/subset_fopen.c:25: Call 'fopen' *)
-  Have: (included p_0 8
-          (shift___fc_FILE (shift_A512___fc_FILE (global G___fc_fopen_68) 0)
-            0) 4096).
+  Have: linked(Malloc_0).
+  (* Assertion 'Ok_A' *)
+  Have: (0 <= i) /\ (i <= 9).
+  (* Call 'fopen' *)
+  Have: included(p, 8,
+          shift___fc_FILE(shift_A512___fc_FILE(global(G___fc_fopen_68), 0),
+            0), 4096).
 }
-Prove: (valid_rw Malloc_0 p_0 8).
+Prove: valid_rw(Malloc_0, p, 8).
 
 ------------------------------------------------------------

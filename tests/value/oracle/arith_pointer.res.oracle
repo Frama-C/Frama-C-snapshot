@@ -1,0 +1,195 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/value/arith_pointer.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  a ∈ {0}
+  t[0..24] ∈ {0}
+  vol ∈ [--..--]
+[value] computing for function main1 <- main.
+        Called from tests/value/arith_pointer.c:69.
+[value] Recording results for main1
+[value] Done for function main1
+[value] computing for function main2 <- main.
+        Called from tests/value/arith_pointer.c:70.
+tests/value/arith_pointer.c:30:[kernel] warning: pointer subtraction. assert \base_addr(p1) ≡ \base_addr(p2);
+[value] Called Frama_C_show_each({-1})
+[value] Called Frama_C_show_each({0})
+tests/value/arith_pointer.c:49:[kernel] warning: pointer subtraction. assert \base_addr(p2) ≡ \base_addr(p1);
+[value] Called Frama_C_show_each({6; 11})
+tests/value/arith_pointer.c:51:[kernel] warning: pointer subtraction. assert \base_addr(p2) ≡ \base_addr(p2);
+[value] Called Frama_C_show_each({0})
+tests/value/arith_pointer.c:54:[value] Assigning imprecise value to p1.
+        The imprecision originates from Arithmetic {tests/value/arith_pointer.c:54}
+tests/value/arith_pointer.c:56:[kernel] warning: pointer subtraction. assert \base_addr(p2) ≡ \base_addr(p1);
+tests/value/arith_pointer.c:56:[kernel] warning: signed overflow. assert -2147483648 ≤ p2-p1;
+tests/value/arith_pointer.c:56:[kernel] warning: signed overflow. assert p2-p1 ≤ 2147483647;
+[value] Called Frama_C_show_each([-2147483648..2147483647])
+tests/value/arith_pointer.c:60:[value] warning: assertion got status unknown.
+[value] Called Frama_C_show_each([-3..5])
+tests/value/arith_pointer.c:65:[value] warning: assertion got status unknown.
+[value] Recording results for main2
+[value] Done for function main2
+[value] Recording results for main
+[value] done for function main
+tests/value/arith_pointer.c:30:[value] assertion 'Value,differing_blocks' got final status invalid.
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main1:
+  t[0..1] ∈ {-3}
+   [2..5] ∈ {-2}
+   [6..9] ∈ {-1}
+   [10..13] ∈ {0}
+   [14..17] ∈ {1}
+   [18..19] ∈ {2}
+   [20..24] ∈ {0}
+  i ∈ {10}
+  j ∈ {-10}
+[value] Values at end of function main2:
+  d ∈ {1}
+  p1 ∈ {{ &x + {0; 4; 8; 12; 16} }}
+  p2 ∈ {{ &x + {4; 8; 12; 16; 20} }}
+  i ∈ {0; 1; 2; 3; 4}
+[value] Values at end of function main:
+  t[0..1] ∈ {-3}
+   [2..5] ∈ {-2}
+   [6..9] ∈ {-1}
+   [10..13] ∈ {0}
+   [14..17] ∈ {1}
+   [18..19] ∈ {2}
+   [20..24] ∈ {0}
+[from] Computing for function main1
+[from] Done for function main1
+[from] Computing for function main2
+[from] Done for function main2
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main1:
+  t[0..19] FROM \nothing
+[from] Function main2:
+  NO EFFECTS
+[from] Function main:
+  t[0..19] FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main1:
+          t[0..19]; i; j
+[inout] Inputs for function main1:
+          \nothing
+[inout] Out (internal) for function main2:
+          d; p1; p2; i
+[inout] Inputs for function main2:
+          vol
+[inout] Out (internal) for function main:
+          t[0..19]
+[inout] Inputs for function main:
+          vol
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  a ∈ {0}
+  t[0..24] ∈ {0}
+  vol ∈ [--..--]
+[value] computing for function main1 <- main.
+        Called from tests/value/arith_pointer.c:69.
+[value] Recording results for main1
+[value] Done for function main1
+[value] computing for function main2 <- main.
+        Called from tests/value/arith_pointer.c:70.
+tests/value/arith_pointer.c:30:[kernel] warning: signed overflow. assert -2147483648 ≤ p1-p2;
+tests/value/arith_pointer.c:30:[kernel] warning: signed overflow. assert p1-p2 ≤ 2147483647;
+tests/value/arith_pointer.c:30:[value] Assigning imprecise value to d.
+        The imprecision originates from Arithmetic {tests/value/arith_pointer.c:30}
+tests/value/arith_pointer.c:31:[value] Reading left-value d.
+        It contains a garbled mix of {x; y} because of Arithmetic
+        {tests/value/arith_pointer.c:30}.
+[value] Called Frama_C_show_each({{ garbled mix of &{x; y}
+                                 (origin: Arithmetic
+                                 {tests/value/arith_pointer.c:30}) }})
+[value] Called Frama_C_show_each({-1})
+[value] Called Frama_C_show_each({0})
+tests/value/arith_pointer.c:49:[kernel] warning: signed overflow. assert -2147483648 ≤ p2-p1;
+tests/value/arith_pointer.c:49:[kernel] warning: signed overflow. assert p2-p1 ≤ 2147483647;
+tests/value/arith_pointer.c:49:[value] Assigning imprecise value to d.
+        The imprecision originates from Arithmetic {tests/value/arith_pointer.c:49}
+tests/value/arith_pointer.c:50:[value] Reading left-value d.
+        It contains a garbled mix of {x; y} because of Arithmetic
+        {tests/value/arith_pointer.c:49}.
+[value] Called Frama_C_show_each({{ garbled mix of &{x; y}
+                                 (origin: Arithmetic
+                                 {tests/value/arith_pointer.c:49}) }})
+tests/value/arith_pointer.c:51:[kernel] warning: signed overflow. assert -2147483648 ≤ p2-p2;
+tests/value/arith_pointer.c:51:[kernel] warning: signed overflow. assert p2-p2 ≤ 2147483647;
+tests/value/arith_pointer.c:51:[value] Assigning imprecise value to d.
+        The imprecision originates from Arithmetic {tests/value/arith_pointer.c:51}
+tests/value/arith_pointer.c:52:[value] Reading left-value d.
+        It contains a garbled mix of {x; y} because of Arithmetic
+        {tests/value/arith_pointer.c:51}.
+[value] Called Frama_C_show_each({{ garbled mix of &{x; y}
+                                 (origin: Arithmetic
+                                 {tests/value/arith_pointer.c:51}) }})
+tests/value/arith_pointer.c:56:[kernel] warning: signed overflow. assert -2147483648 ≤ p2-p1;
+tests/value/arith_pointer.c:56:[kernel] warning: signed overflow. assert p2-p1 ≤ 2147483647;
+tests/value/arith_pointer.c:56:[value] Assigning imprecise value to d.
+        The imprecision originates from Arithmetic
+tests/value/arith_pointer.c:57:[value] Reading left-value d.
+        It contains a garbled mix of {x} because of Arithmetic.
+[value] Called Frama_C_show_each({{ garbled mix of &{x} (origin: Arithmetic) }})
+[value] Called Frama_C_show_each([-3..5])
+[value] Recording results for main2
+[value] Done for function main2
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main1:
+  t[0..1] ∈ {-3}
+   [2..5] ∈ {-2}
+   [6..9] ∈ {-1}
+   [10..13] ∈ {0}
+   [14..17] ∈ {1}
+   [18..19] ∈ {2}
+   [20..24] ∈ {0}
+  i ∈ {10}
+  j ∈ {-10}
+[value] Values at end of function main2:
+  d ∈ {1}
+  p1 ∈ {{ &x + {0; 4; 8; 12; 16} }}
+  p2 ∈ {{ &x + {4; 8; 12; 16; 20} }}
+  i ∈ {0; 1; 2; 3; 4}
+[value] Values at end of function main:
+  t[0..1] ∈ {-3}
+   [2..5] ∈ {-2}
+   [6..9] ∈ {-1}
+   [10..13] ∈ {0}
+   [14..17] ∈ {1}
+   [18..19] ∈ {2}
+   [20..24] ∈ {0}
+[from] Computing for function main1
+[from] Done for function main1
+[from] Computing for function main2
+[from] Done for function main2
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main1:
+  t[0..19] FROM \nothing
+[from] Function main2:
+  NO EFFECTS
+[from] Function main:
+  t[0..19] FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main1:
+          t[0..19]; i; j
+[inout] Inputs for function main1:
+          \nothing
+[inout] Out (internal) for function main2:
+          d; p1; p2; i
+[inout] Inputs for function main2:
+          vol
+[inout] Out (internal) for function main:
+          t[0..19]
+[inout] Inputs for function main:
+          vol

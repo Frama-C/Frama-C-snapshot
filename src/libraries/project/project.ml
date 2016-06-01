@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -36,7 +36,7 @@ type project = t = private
 let rehash_ref = ref (fun _ -> assert false)
 
 module D =
-  Datatype.Make
+  Datatype.Make_with_collections
     (struct
       type t = project
       let name = "Project"
@@ -61,7 +61,7 @@ module D =
       let varname p = "p_" ^ p.name
       let mem_project f x = f x
      end)
-include D
+include (D: Datatype.S_no_copy with type t = Project_skeleton.t)
 
 module Project_tbl = Hashtbl.Make(D)
 
@@ -109,6 +109,8 @@ module States_operations = struct
       (fun s -> (private_ops s).update)
 
   let clear ?(selection=State_selection.full) p =
+    debug ~dkey ~level:2 "clearing following selection:@.  @[%a@]@.%a"
+      State_selection.pretty_witness selection State_selection.pretty selection;
     let clear s = (private_ops s).clear in
     if State_selection.is_full selection then
       iter clear p (* clearing the static states also clears the dynamic ones *)
@@ -357,17 +359,45 @@ let journalized_set_current =
 let set_current ?(on=false) ?(selection=State_selection.full) p =
   if not (equal p (current ())) then journalized_set_current on selection p
 
+(** Indicates if we should keep [p] as the current project when calling {!on p}. *)
+let keep_current: bool ref = ref false
+
+let unjournalized_set_keep_current b = keep_current := b
+
+let set_keep_current =
+  Journal.register "Project.set_keep_current"
+    (Datatype.func Datatype.bool Datatype.unit)
+    unjournalized_set_keep_current
+
 let on ?selection p f x =
   let old_current = current () in
-  let set p = set_current ~on:true ?selection p in
-  let go () =
-    set p;
-    let r = f x in
-    set old_current;
-    r
-  in
-  if debug_atleast 1 then go ()
-  else begin try go () with e -> set old_current; raise e end
+  if old_current == p then f x
+  else
+    let set p = set_current ~on:true ?selection p in
+    let set_to_old () =
+      if not !keep_current then
+        try
+          (* if someone asks for keeping [p] as current during the execution of
+             [f], do not restore [old_current] at the end. *)
+          set old_current
+        with Invalid_argument _ ->
+          (* the old current project has been remove: replace it by the previous
+             one, if any *)
+          if Q.length projects < 2 then
+            warning "cannot restore project '%s'. Keep '%s' as default project."
+              old_current.unique_name
+              (current ()).unique_name
+          else
+            Q.move_at_top (Q.nth 1 projects) projects
+    in
+    let go () =
+      set p;
+      let r = f x in
+      set_to_old ();
+      r
+    in
+    if debug_atleast 1 then go ()
+    else begin try go () with e -> set_to_old (); raise e end
 
 (* [set_current] must never be called internally. *)
 module Hide_set_current = struct let set_current () = assert false end

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -33,16 +33,25 @@ let sizeofchar () = Integer.of_int (bitsSizeOf charType)
 (** [sizeof(char* )] in bits *)
 let sizeofpointer () =  bitsSizeOf theMachine.upointType
 
+(** 2^(8 * sizeof( void * )) *)
+let max_byte_size () =
+  Integer.two_power_of_int (sizeofpointer())
+
+(** 8 * 2^(8 * sizeof( void * )) *)
 let max_bit_size () =
   Integer.mul
   (sizeofchar())
-  (Integer.two_power_of_int (sizeofpointer()))
+  (max_byte_size ())
 
+(** 2^(8 x sizeof( void * )) - 1 *)
+let max_byte_address () = Integer.pred (max_byte_size())
+
+(** 8 * 2^(8 x sizeof( void * )) - 1 *)
 let max_bit_address () = Integer.pred (max_bit_size())
 
 let warn_if_zero ty r =
   if r = 0 then
-    Kernel.abort
+    Kernel.warning
       "size of '%a' is zero. Check target code or Frama-C -machdep option."
       Printer.pp_typ ty;
   r
@@ -112,7 +121,7 @@ let sizeof_pointed typ =
     | TPtr (typ,_) -> sizeof typ
     | TArray(typ,_,_,_) -> sizeof typ
     | _ ->
-        Kernel.abort "TYPE IS: %a (unrolled as %a)"
+        Kernel.fatal "TYPE IS: %a (unrolled as %a)"
           Printer.pp_typ typ
           Printer.pp_typ (unrollType typ)
 
@@ -169,8 +178,8 @@ let rec pretty_bits_internal env bfinfo typ ~align ~start ~stop =
   assert ( Integer.le Integer.zero align
            && Integer.lt align env.rh_size);
   assert (if (Integer.lt start Integer.zero
-              || Integer.lt stop Integer.zero) then
-            (Format.printf "start: %a stop: %a@\n"
+              || Integer.lt stop Integer.minus_one) then
+            (Format.printf "start: %a stop: %a@."
                Abstract_interp.Int.pretty start
                Abstract_interp.Int.pretty stop;
              false) else true);
@@ -197,10 +206,10 @@ let rec pretty_bits_internal env bfinfo typ ~align ~start ~stop =
       )
       (if cond then (env.misaligned <- true ; "#") else "")
   in
-  assert (if (Integer.le req_size Integer.zero
+  assert (if (Integer.lt req_size Integer.zero
               || Integer.lt start Integer.zero
-              || Integer.lt stop Integer.zero) then
-            (Format.printf "req_s: %a start: %a stop: %a@\n"
+              || Integer.lt stop Integer.minus_one) then
+            (Format.printf "req_s: %a start: %a stop: %a@."
                Abstract_interp.Int.pretty req_size
                Abstract_interp.Int.pretty start
                Abstract_interp.Int.pretty stop;
@@ -496,6 +505,8 @@ let offset_match_cell om size_elt =
   | MatchSize size -> Integer.le size size_elt
   | MatchType typ' -> Integer.le (Integer.of_int (Cil.bitsSizeOf typ')) size_elt
 
+let minus_one_expr = Cil.mone ~loc:Cil_datatype.Location.unknown
+
 let rec find_offset typ ~offset om =
   (* Format.printf "Searching offset %a in %a, size %a@."
      Abstract_interp.Int.pretty offset
@@ -508,30 +519,44 @@ let rec find_offset typ ~offset om =
     match Cil.unrollType typ with
     | TArray (typ_elt, _, _, _) ->
       let size_elt = Integer.of_int (Cil.bitsSizeOf typ_elt) in
-      let start = Integer.pos_div offset size_elt in
-      let exp_start = Cil.kinteger64 ~loc start in
-      let rem = Integer.pos_rem offset size_elt in
-      if offset_match_cell om size_elt then
-        (* [size] covers at most one cell; we continue in the relevant one *)
-        let off, typ = find_offset typ_elt rem om in
-        Index (exp_start, off), typ
-      else begin
-        match om with
-        | MatchFirst | MatchType _ -> raise NoMatchingOffset
-        | MatchSize size ->
-          if Integer.is_zero rem
+      if Integer.(equal size_elt zero) then
+        begin
+          (* array of elements of size 0 - trying to recompute the original
+             offset in the case of multidimensional incomplete arrays is
+             too complicated, to we just "normalize" everything to -1, which
+             should be a noticeable visual indicator that the element size is 0.
+             Since the sizeof each element is zero, any offset is valid anyway.
+          *)
+          let typ =
+            TArray (typ_elt, Some minus_one_expr, Cil.empty_size_cache (),[])
+          in
+          Index (minus_one_expr, NoOffset), typ
+        end
+      else
+        let start = Integer.pos_div offset size_elt in
+        let exp_start = Cil.kinteger64 ~loc start in
+        let rem = Integer.pos_rem offset size_elt in
+        if offset_match_cell om size_elt then
+          (* [size] covers at most one cell; we continue in the relevant one *)
+          let off, typ = find_offset typ_elt rem om in
+          Index (exp_start, off), typ
+        else begin
+          match om with
+          | MatchFirst | MatchType _ -> raise NoMatchingOffset
+          | MatchSize size ->
+            if Integer.is_zero rem
             && Integer.is_zero (Integer.rem size size_elt)
-          then
-            (* We cover more than one cell, but we are aligned. *)
-            let nb = Integer.div size size_elt in
-            let exp_nb = Cil.kinteger64 ~loc nb in
-            let typ =
-              TArray (typ_elt, Some exp_nb, Cil.empty_size_cache (),[])
-            in
-            Index (exp_start, NoOffset), typ
-          else (* We match different parts of multiple cells: too imprecise. *)
-            raise NoMatchingOffset
-      end
+            then
+              (* We cover more than one cell, but we are aligned. *)
+              let nb = Integer.div size size_elt in
+              let exp_nb = Cil.kinteger64 ~loc nb in
+              let typ =
+                TArray (typ_elt, Some exp_nb, Cil.empty_size_cache (),[])
+              in
+              Index (exp_start, NoOffset), typ
+            else (* We match different parts of multiple cells: too imprecise. *)
+              raise NoMatchingOffset
+        end
 
     | TComp (ci, _, _) ->
       let rec find_field = function

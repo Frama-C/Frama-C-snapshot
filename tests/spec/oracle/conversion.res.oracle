@@ -38,11 +38,13 @@ T_PTR_T4 const Tab_Ptr =
   {(int *)(& X), (int *)(& X), (int *)(& X), (int *)(& X)};
 /*@
 axiomatic useless_logic_cast {
-  logic int vX{L}= X;
+  logic ℤ v2= 1+1;
   
-  logic int [4] vTab{L}= Tab;
+  logic int vX{L}= \at((int)X,L);
   
-  logic T_PTR_T4 * vTab_Ptr{L}= \at(&Tab_Ptr,L);
+  logic int [4] vTab{L}= \at((T4)Tab,L);
+  
+  logic T_PTR_T4 * vTab_Ptr{L}= \at((T_PTR_T4 *)(&Tab_Ptr),L);
   
   }
 

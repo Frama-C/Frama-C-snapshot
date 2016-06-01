@@ -1,6 +1,6 @@
-/* run.config
-   OPT: -val -float-normal -journal-disable -no-results
-   OPT: -val -float-normal -all-rounding-modes -journal-disable -no-results
+/* run.config*
+   OPT: -val @VALUECONFIG@ -float-normal -journal-disable -no-results
+   OPT: -val @VALUECONFIG@ -float-normal -all-rounding-modes -journal-disable -no-results
 */
 int main()
 {

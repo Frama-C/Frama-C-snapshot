@@ -1,10 +1,5 @@
 [kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing tests/aorai/test_recursion2.c (with preprocessing)
-tests/aorai/test_recursion2.c:29:[kernel] warning: parsing obsolete ACSL construct '\valid_range(addr,min,max)'. '\valid(addr+(min..max))' should be used instead.
-tests/aorai/test_recursion2.c:38:[kernel] warning: parsing obsolete ACSL construct '\valid_range(addr,min,max)'. '\valid(addr+(min..max))' should be used instead.
-tests/aorai/test_recursion2.c:39:[kernel] warning: parsing obsolete ACSL construct '\valid_range(addr,min,max)'. '\valid(addr+(min..max))' should be used instead.
-tests/aorai/test_recursion2.c:40:[kernel] warning: parsing obsolete ACSL construct '\valid_range(addr,min,max)'. '\valid(addr+(min..max))' should be used instead.
-tests/aorai/test_recursion2.c:59:[kernel] warning: parsing obsolete ACSL construct '\valid_range(addr,min,max)'. '\valid(addr+(min..max))' should be used instead.
 [aorai] Welcome to the Aorai plugin
 [kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
 [kernel] Parsing /tmp/aorai_test_recursion21.i (no preprocessing)
@@ -22,48 +17,45 @@ enum aorai_OpStatusList {
 axiomatic string_len {
   logic ℤ string_len{L}(char *s) ;
   
-  axiom strlen0{L}: ∀ char *s; \valid{L}(s) ⇒ string_len{L}(s) ≥ 0;
+  axiom strlen0{L}: ∀ char *s; \valid(s) ⇒ string_len(s) ≥ 0;
   
   axiom strlen1{L}:
-    ∀ char *s;
-      \valid{L}(s) ∧ *(s+0) ≡ '\000' ⇒ string_len{L}(s) ≡ 0;
+    ∀ char *s; \valid(s) ∧ *(s+0) ≡ '\000' ⇒ string_len(s) ≡ 0;
   
-  axiom strlen2{L}:
-    ∀ char *s; \valid{L}(s) ⇒ *(s+string_len{L}(s)) ≡ '\000';
+  axiom strlen2{L}: ∀ char *s; \valid(s) ⇒ *(s+string_len(s)) ≡ '\000';
   
   axiom strlen3{L}:
     ∀ char *s;
-      \valid{L}(s) ∧ *(s+0) ≢ '\000' ⇒
-      string_len{L}(s) ≡ 1+string_len{L}(s+1) ∧ \valid{L}(s+1);
+      \valid(s) ∧ *(s+0) ≢ '\000' ⇒
+      string_len(s) ≡ 1+string_len(s+1) ∧ \valid(s+1);
   
   axiom strlen4{L}:
     ∀ char *s;
-      \valid{L}(s) ⇒
-      (∀ ℤ i; 0 ≤ i < string_len{L}(s) ⇒ *(s+i) ≢ '\000');
+      \valid(s) ⇒
+      (∀ ℤ i; 0 ≤ i < string_len(s) ⇒ *(s+i) ≢ '\000');
   
   }
  */
 /*@
 predicate valid_string{L}(char *s) =
-  \valid{L}(s) ∧ \valid{L}(s+(0 .. string_len{L}(s)));
+  \valid(s) ∧ \valid(s+(0 .. string_len(s)));
  */
 /*@
 axiomatic sum_tab {
   logic ℤ sum_tab{L}(char *t, ℤ l, ℤ i) ;
   
   axiom sum_tab0{L}:
-    ∀ char *t, ℤ l;
-      \valid{L}(t+(0 .. l)) ⇒ sum_tab{L}(t, l, 0) ≡ *(t+0);
+    ∀ char *t, ℤ l; \valid(t+(0 .. l)) ⇒ sum_tab(t, l, 0) ≡ *(t+0);
   
   axiom sum_tabi{L}:
     ∀ char *t, ℤ l, ℤ i;
-      \valid{L}(t+(0 .. l)) ∧ 0 < i ≤ l ⇒
-      sum_tab{L}(t, l, i) ≡ sum_tab{L}(t, l, i-1)+*(t+i);
+      \valid(t+(0 .. l)) ∧ 0 < i ≤ l ⇒
+      sum_tab(t, l, i) ≡ sum_tab(t, l, i-1)+*(t+i);
   
   axiom sum_tabn{L}:
     ∀ char *t, ℤ l;
-      \valid{L}(t+(0 .. l)) ∧ l > 0 ∧ l ≡ string_len{L}(t) ⇒
-      sum_tab{L}(t, l, l) ≡ sum_tab{L}(t, l, l-1);
+      \valid(t+(0 .. l)) ∧ l > 0 ∧ l ≡ string_len(t) ⇒
+      sum_tab(t, l, l) ≡ sum_tab(t, l, l-1);
   
   }
  */
@@ -96,7 +88,32 @@ int global_argc = 0;
     behavior buch_state_accept_T2_out:
       ensures 0 ≡ accept_T2;
  */
-extern void count_pre_func(char *argv);
+void count_pre_func(char *argv)
+{
+  /*@ ghost int S1_tmp; */
+  /*@ ghost int T0_init_tmp; */
+  /*@ ghost int T1_tmp; */
+  /*@ ghost int accept_T2_tmp; */
+  aorai_CurOpStatus = aorai_Called;
+  aorai_CurOperation = op_count;
+  S1_tmp = S1;
+  T0_init_tmp = T0_init;
+  T1_tmp = T1;
+  accept_T2_tmp = accept_T2;
+  accept_T2_tmp = 0;
+  T1_tmp = 0;
+  T0_init_tmp = 0;
+  if (S1 == 1) S1_tmp = 1;
+  else 
+    if (T1 == 1) 
+      if (global_argc > 0) S1_tmp = 1; else S1_tmp = 0;
+    else S1_tmp = 0;
+  S1 = S1_tmp;
+  T0_init = T0_init_tmp;
+  T1 = T1_tmp;
+  accept_T2 = accept_T2_tmp;
+  return;
+}
 
 /*@ requires 1 ≡ S1 ∧ 0 ≡ T0_init ∧ 0 ≡ T1 ∧ 0 ≡ accept_T2;
     ensures aorai_CurOpStatus ≡ aorai_Terminated;
@@ -121,7 +138,28 @@ extern void count_pre_func(char *argv);
     behavior buch_state_accept_T2_out:
       ensures 0 ≡ accept_T2;
  */
-extern void count_post_func(int res);
+void count_post_func(int res)
+{
+  /*@ ghost int S1_tmp; */
+  /*@ ghost int T0_init_tmp; */
+  /*@ ghost int T1_tmp; */
+  /*@ ghost int accept_T2_tmp; */
+  aorai_CurOpStatus = aorai_Terminated;
+  aorai_CurOperation = op_count;
+  S1_tmp = S1;
+  T0_init_tmp = T0_init;
+  T1_tmp = T1;
+  accept_T2_tmp = accept_T2;
+  accept_T2_tmp = 0;
+  T1_tmp = 0;
+  T0_init_tmp = 0;
+  if (S1 == 1) S1_tmp = 1; else S1_tmp = 0;
+  S1 = S1_tmp;
+  T0_init = T0_init_tmp;
+  T1 = T1_tmp;
+  accept_T2 = accept_T2_tmp;
+  return;
+}
 
 /*@ requires (1 ≡ S1 ∨ 1 ≡ T1) ∧ 0 ≡ T0_init ∧ 0 ≡ accept_T2;
     requires 1 ≡ T1 ⇒ global_argc > 0;
@@ -171,7 +209,28 @@ int count(char *argv)
     behavior buch_state_accept_T2_out:
       ensures 0 ≡ accept_T2;
  */
-extern void sumOne_pre_func(char *t, int length);
+void sumOne_pre_func(char *t, int length)
+{
+  /*@ ghost int S1_tmp; */
+  /*@ ghost int T0_init_tmp; */
+  /*@ ghost int T1_tmp; */
+  /*@ ghost int accept_T2_tmp; */
+  aorai_CurOpStatus = aorai_Called;
+  aorai_CurOperation = op_sumOne;
+  S1_tmp = S1;
+  T0_init_tmp = T0_init;
+  T1_tmp = T1;
+  accept_T2_tmp = accept_T2;
+  accept_T2_tmp = 0;
+  if (S1 == 1) T1_tmp = 1; else T1_tmp = 0;
+  T0_init_tmp = 0;
+  S1_tmp = 0;
+  S1 = S1_tmp;
+  T0_init = T0_init_tmp;
+  T1 = T1_tmp;
+  accept_T2 = accept_T2_tmp;
+  return;
+}
 
 /*@ requires 1 ≡ T1 ∧ 0 ≡ S1 ∧ 0 ≡ T0_init ∧ 0 ≡ accept_T2;
     ensures aorai_CurOpStatus ≡ aorai_Terminated;
@@ -196,12 +255,31 @@ extern void sumOne_pre_func(char *t, int length);
     behavior buch_state_accept_T2_out:
       ensures 0 ≡ accept_T2;
  */
-extern void sumOne_post_func(int res);
+void sumOne_post_func(int res)
+{
+  /*@ ghost int S1_tmp; */
+  /*@ ghost int T0_init_tmp; */
+  /*@ ghost int T1_tmp; */
+  /*@ ghost int accept_T2_tmp; */
+  aorai_CurOpStatus = aorai_Terminated;
+  aorai_CurOperation = op_sumOne;
+  S1_tmp = S1;
+  T0_init_tmp = T0_init;
+  T1_tmp = T1;
+  accept_T2_tmp = accept_T2;
+  accept_T2_tmp = 0;
+  if (T1 == 1) T1_tmp = 1; else T1_tmp = 0;
+  T0_init_tmp = 0;
+  S1_tmp = 0;
+  S1 = S1_tmp;
+  T0_init = T0_init_tmp;
+  T1 = T1_tmp;
+  accept_T2 = accept_T2_tmp;
+  return;
+}
 
 /*@ requires 1 ≡ S1 ∧ 0 ≡ T0_init ∧ 0 ≡ T1 ∧ 0 ≡ accept_T2;
-    requires
-      \valid(t) ∧ length ≥ 0 ∧ length ≡ string_len(t) ∧
-      \valid(t+(0 .. length));
+    requires valid_string(t) ∧ length ≥ 0 ∧ length ≡ string_len(t);
     ensures \result ≡ sum_tab(\old(t), \old(length), \old(length));
     
     behavior Buchi_property_behavior:
@@ -260,7 +338,28 @@ int sumOne(char *t, int length)
     behavior buch_state_accept_T2_out:
       ensures 0 ≡ accept_T2;
  */
-extern void main_pre_func(int argc, char **argv);
+void main_pre_func(int argc, char **argv)
+{
+  /*@ ghost int S1_tmp; */
+  /*@ ghost int T0_init_tmp; */
+  /*@ ghost int T1_tmp; */
+  /*@ ghost int accept_T2_tmp; */
+  aorai_CurOpStatus = aorai_Called;
+  aorai_CurOperation = op_main;
+  S1_tmp = S1;
+  T0_init_tmp = T0_init;
+  T1_tmp = T1;
+  accept_T2_tmp = accept_T2;
+  accept_T2_tmp = 0;
+  if (T0_init == 1) T1_tmp = 1; else T1_tmp = 0;
+  T0_init_tmp = 0;
+  S1_tmp = 0;
+  S1 = S1_tmp;
+  T0_init = T0_init_tmp;
+  T1 = T1_tmp;
+  accept_T2 = accept_T2_tmp;
+  return;
+}
 
 /*@ requires 1 ≡ T1 ∧ 0 ≡ S1 ∧ 0 ≡ T0_init ∧ 0 ≡ accept_T2;
     ensures aorai_CurOpStatus ≡ aorai_Terminated;
@@ -290,7 +389,30 @@ extern void main_pre_func(int argc, char **argv);
       assumes 0 ≡ T1 ∨ ¬(res ≡ 1);
       ensures 0 ≡ accept_T2;
  */
-extern void main_post_func(int res);
+void main_post_func(int res)
+{
+  /*@ ghost int S1_tmp; */
+  /*@ ghost int T0_init_tmp; */
+  /*@ ghost int T1_tmp; */
+  /*@ ghost int accept_T2_tmp; */
+  aorai_CurOpStatus = aorai_Terminated;
+  aorai_CurOperation = op_main;
+  S1_tmp = S1;
+  T0_init_tmp = T0_init;
+  T1_tmp = T1;
+  accept_T2_tmp = accept_T2;
+  if (T1 == 1) 
+    if (res == 1) accept_T2_tmp = 1; else accept_T2_tmp = 0;
+  else accept_T2_tmp = 0;
+  if (T1 == 1) T1_tmp = 1; else T1_tmp = 0;
+  T0_init_tmp = 0;
+  S1_tmp = 0;
+  S1 = S1_tmp;
+  T0_init = T0_init_tmp;
+  T1 = T1_tmp;
+  accept_T2 = accept_T2_tmp;
+  return;
+}
 
 /*@ requires 1 ≡ T0_init ∧ 0 ≡ S1 ∧ 0 ≡ T1 ∧ 0 ≡ accept_T2;
     requires

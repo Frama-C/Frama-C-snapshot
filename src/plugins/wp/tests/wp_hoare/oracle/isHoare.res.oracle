@@ -11,7 +11,6 @@
 ------------------------------------------------------------
 
 Goal Post-condition 'ok' in 'cmp_invalid_addr_as_int':
-Assume { (* Heap *) Have: (linked Malloc_4). }
 Prove: true.
 
 ------------------------------------------------------------

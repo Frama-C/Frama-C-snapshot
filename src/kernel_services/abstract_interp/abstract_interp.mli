@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -29,11 +29,23 @@ exception Not_less_than
 exception Can_not_subdiv
 (** Used by other modules e.g. {!Fval.subdiv_float_interval}. *)
 
-module Bot: sig
-  type 'a or_bottom = [ `Value of 'a | `Bottom ]
-  val non_bottom: 'a or_bottom -> 'a
-  val join_or_bottom:
-    ('a -> 'a -> 'a) -> 'a or_bottom -> 'a or_bottom -> 'a or_bottom
+(** Signatures for comparison operators [==, !=, <, >, <=, >=]. *)
+module Comp: sig
+  type t = Lt | Gt | Le | Ge | Eq | Ne (** comparison operators *)
+
+  type result = True | False | Unknown (** result of a comparison *)
+
+  val pretty_comp: t Pretty_utils.formatter
+
+  val inv: t -> t
+  (** Inverse relation: [a op b <==> ! (a (inv op) b)].  *)
+
+  val sym: t -> t
+  (** Opposite relation: [a op b <==> b (sym op) a]. *)
+
+  val inv_result: result -> result
+  (** Given a result [r] for an operation [op], [inv_result r] is
+      the result that would have been obtained for [inv op]. *)
 end
 
 
@@ -64,11 +76,17 @@ module Rel : sig
   val is_zero: t -> bool
 
   val sub : t -> t -> t
-  val add_abs : Int.t -> t -> Int.t 
+  val add_abs : Int.t -> t -> Int.t
+  val add : t -> t -> t
   val sub_abs : Int.t -> Int.t -> t
   val pos_rem: t -> Int.t -> t
 
   val check: rem:t -> modu:Int.t -> bool
+end
+
+module Bool : sig
+  type t = Top | True | False | Bottom
+  include Full_AI_Lattice_with_cardinality with type t := t
 end
 
 module Make_Lattice_Base (V : Lattice_Value) : Lattice_Base with type l = V.t

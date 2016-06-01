@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -414,15 +414,16 @@ module Polymorphic2
   end) :
   Polymorphic2 with type ('a, 'b) poly = ('a, 'b) P.t
 
-(** Output signature of {!Polymorphic3}. 
+(** Output signature of {!Polymorphic3}.
     @since Oxygen-20120901 *)
 module type Polymorphic3 = sig
   include Type.Polymorphic3
   module Make(T1:S)(T2:S)(T3:S) : S with type t = (T1.t, T2.t, T3.t) poly
 end
 
-(** Functor for polymorphic types with 3 type variables. 
-    @since Oxygen-20120901 *)
+(** Functor for polymorphic types with 3 type variables.
+    @since Oxygen-20120901
+    @plugin development guide *)
 module Polymorphic3
   (P: sig
     include Type.Polymorphic3_input
@@ -458,7 +459,7 @@ module Polymorphic3
   end) :
   Polymorphic3 with type ('a, 'b, 'c) poly = ('a, 'b, 'c) P.t
 
-(** Output signature of {!Polymorphic4}. 
+(** Output signature of {!Polymorphic4}.
     @since Oxygen-20120901 *)
 module type Polymorphic4 = sig
   include Type.Polymorphic4
@@ -466,8 +467,9 @@ module type Polymorphic4 = sig
     : S with type t = (T1.t, T2.t, T3.t, T4.t) poly
 end
 
-(** Functor for polymorphic types with 4 type variables. 
-    @since Oxygen-20120901 *)
+(** Functor for polymorphic types with 4 type variables.
+    @since Oxygen-20120901
+    @plugin development guide *)
 module Polymorphic4
   (P: sig
     include Type.Polymorphic4_input

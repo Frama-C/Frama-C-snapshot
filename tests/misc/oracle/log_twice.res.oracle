@@ -10,13 +10,12 @@
 tests/misc/log_twice.i:7:[value] warning: locals {x} escaping the scope of f through \result
 [value] Recording results for f
 [value] Done for function f
-tests/misc/log_twice.i:12:[kernel] warning: accessing left-value that contains escaping addresses:
+tests/misc/log_twice.i:12:[kernel] warning: accessing left-value that contains escaping addresses.
                   assert ¬\dangling(&p);
-tests/misc/log_twice.i:12:[kernel] warning: completely indeterminate value in p.
 tests/misc/log_twice.i:12:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
 [value] Recording results for main
 [value] done for function main
-tests/misc/log_twice.i:12:[value] Assertion 'Value,dangling_pointer' got final status invalid.
+tests/misc/log_twice.i:12:[value] assertion 'Value,dangling_pointer' got final status invalid.
 [value] Analyzing a complete application starting at main
 [value] Computing initial state
 [value] Initial state computed
@@ -27,10 +26,9 @@ tests/misc/log_twice.i:12:[value] Assertion 'Value,dangling_pointer' got final s
 tests/misc/log_twice.i:7:[value] warning: locals {x} escaping the scope of f through \result
 [value] Recording results for f
 [value] Done for function f
-tests/misc/log_twice.i:12:[kernel] warning: accessing left-value that contains escaping addresses:
+tests/misc/log_twice.i:12:[kernel] warning: accessing left-value that contains escaping addresses.
                   assert ¬\dangling(&p);
-tests/misc/log_twice.i:12:[kernel] warning: completely indeterminate value in p.
 tests/misc/log_twice.i:12:[kernel] warning: all target addresses were invalid. This path is assumed to be dead.
 [value] Recording results for main
 [value] done for function main
-tests/misc/log_twice.i:12:[value] Assertion 'Value,dangling_pointer' got final status invalid.
+tests/misc/log_twice.i:12:[value] assertion 'Value,dangling_pointer' got final status invalid.

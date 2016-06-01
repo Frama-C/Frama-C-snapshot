@@ -11,22 +11,16 @@ tests/wp_typed/unit_loopscope.i:14:[wp] warning: Missing assigns clause (assigns
 ------------------------------------------------------------
 
 Goal Preservation of Invariant (file tests/wp_typed/unit_loopscope.i, line 13):
-Assume {
-  (* Invariant (file tests/wp_typed/unit_loopscope.i, line 13) *)
-  (* tests/wp_typed/unit_loopscope.i:14: Invariant: *)
-  Have: false.
-}
-Prove: false.
+Prove: true.
 
 ------------------------------------------------------------
 
 Goal Establishment of Invariant (file tests/wp_typed/unit_loopscope.i, line 13):
 Assume {
   (* Heap *)
-  Have: (linked Malloc_0) /\ ((region (base written_1))<=0).
-  (* Pre-condition (file tests/wp_typed/unit_loopscope.i, line 8) in 'f' *)
-  (* Pre-condition: *)
-  Have: (valid_rw Malloc_0 written_1 1).
+  Have: linked(Malloc_0) /\ (region(written_0.base) <= 0).
+  (* Pre-condition *)
+  Have: valid_rw(Malloc_0, written_0, 1).
 }
 Prove: false.
 

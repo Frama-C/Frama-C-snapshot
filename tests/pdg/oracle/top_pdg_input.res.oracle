@@ -17,18 +17,11 @@ tests/pdg/top_pdg_input.c:13:[kernel] warning: Neither code nor specification fo
 [value] Done for function top_input
 tests/pdg/top_pdg_input.c:13:[kernel] warning: out of bounds read. assert \valid_read(tmp);
                                       (tmp from top_input())
-tests/pdg/top_pdg_input.c:13:[value] Reading left-value *tmp.
-        The location is {{ alloced_return_top_input -> [0..17179868928],0%256 }}.
-        It contains a garbled mix of {alloced_return_top_input} because of
-        Library function {tests/pdg/top_pdg_input.c:13}.
 tests/pdg/top_pdg_input.c:13:[kernel] warning: out of bounds read. assert \valid_read(*tmp);
                                       (tmp from top_input())
 tests/pdg/top_pdg_input.c:13:[value] Assigning imprecise value to i.
         The imprecision originates from Library function
         {tests/pdg/top_pdg_input.c:13}
-tests/pdg/top_pdg_input.c:14:[value] Reading left-value i.
-        It contains a garbled mix of {alloced_return_top_input} because of
-        Library function {tests/pdg/top_pdg_input.c:13}.
 tests/pdg/top_pdg_input.c:14:[kernel] warning: out of bounds read. assert \valid_read(&tab[i]);
 tests/pdg/top_pdg_input.c:14:[value] Assigning imprecise value to v.
         The imprecision originates from Library function
@@ -42,22 +35,12 @@ tests/pdg/top_pdg_input.c:14:[value] Assigning imprecise value to v.
 [value] Done for function top_input
 tests/pdg/top_pdg_input.c:20:[kernel] warning: out of bounds read. assert \valid_read(tmp);
                                       (tmp from top_input())
-tests/pdg/top_pdg_input.c:20:[value] Reading left-value *tmp.
-        The location is {{ alloced_return_top_input -> [0..17179868928],0%256 }}.
-        It contains a garbled mix of {alloced_return_top_input} because of
-        Library function {tests/pdg/top_pdg_input.c:20}.
 tests/pdg/top_pdg_input.c:20:[kernel] warning: out of bounds read. assert \valid_read(*tmp);
                                       (tmp from top_input())
 tests/pdg/top_pdg_input.c:20:[value] Assigning imprecise value to i.
         The imprecision originates from Library function
         {tests/pdg/top_pdg_input.c:20}
-tests/pdg/top_pdg_input.c:24:[value] Reading left-value i.
-        It contains a garbled mix of {alloced_return_top_input} because of
-        Library function {tests/pdg/top_pdg_input.c:20}.
 tests/pdg/top_pdg_input.c:24:[kernel] warning: out of bounds read. assert \valid_read(&s.t[i]);
-tests/pdg/top_pdg_input.c:24:[value] Reading left-value s.t[i].
-        It contains a garbled mix of {alloced_return_top_input} because of
-        Library function {tests/pdg/top_pdg_input.c:20}.
 tests/pdg/top_pdg_input.c:24:[kernel] warning: signed overflow. assert -2147483648 ≤ s.a+s.t[i];
 tests/pdg/top_pdg_input.c:24:[kernel] warning: signed overflow. assert s.a+s.t[i] ≤ 2147483647;
 tests/pdg/top_pdg_input.c:24:[value] Assigning imprecise value to __retres.
@@ -65,45 +48,27 @@ tests/pdg/top_pdg_input.c:24:[value] Assigning imprecise value to __retres.
         {tests/pdg/top_pdg_input.c:20}
 [value] Recording results for f2
 [value] Done for function f2
-tests/pdg/top_pdg_input.c:39:[value] Reading left-value i.
-        It contains a garbled mix of {alloced_return_top_input} because of
-        Library function {tests/pdg/top_pdg_input.c:13}.
-tests/pdg/top_pdg_input.c:39:[value] Reading left-value tmp_0.
-        It contains a garbled mix of {alloced_return_top_input} because of
-        Library function {tests/pdg/top_pdg_input.c:20}.
 tests/pdg/top_pdg_input.c:39:[kernel] warning: signed overflow. assert -2147483648 ≤ i+tmp_0;
                                    (tmp_0 from f2())
 tests/pdg/top_pdg_input.c:39:[kernel] warning: signed overflow. assert i+tmp_0 ≤ 2147483647;
                                    (tmp_0 from f2())
 tests/pdg/top_pdg_input.c:39:[value] Assigning imprecise value to i.
         The imprecision originates from Library function
-tests/pdg/top_pdg_input.c:40:[value] Reading left-value i.
-        It contains a garbled mix of {alloced_return_top_input} because of
-        Library function.
 tests/pdg/top_pdg_input.c:40:[kernel] warning: out of bounds read. assert \valid_read(p_str+i);
 tests/pdg/top_pdg_input.c:40:[value] Reading left-value *(p_str + i).
-        The location is a garbled mix of {S_p_str; alloced_return_top_input}
-        because of Library function.
+        The location is {{ S_p_str -> {0; 8; 16; 24; 32};
+                           alloced_return_top_input -> [0..34359738336],0%8 }}.
         It contains a garbled mix of
-        {S_0_S_p_str; S_1_S_p_str; alloced_return_top_input} because of Misaligned
-        {tests/pdg/top_pdg_input.c:40}.
+        {S_0_S_p_str; S_1_S_p_str; alloced_return_top_input} because of
+        Library function {tests/pdg/top_pdg_input.c:20}.
 [value] computing for function strlen <- main.
         Called from tests/pdg/top_pdg_input.c:40.
 tests/pdg/top_pdg_input.c:31:[value] Assigning imprecise value to q.
-        The imprecision originates from Misaligned {tests/pdg/top_pdg_input.c:40}
+        The imprecision originates from Library function
+        {tests/pdg/top_pdg_input.c:20}
 tests/pdg/top_pdg_input.c:31:[value] entering loop for the first time
-tests/pdg/top_pdg_input.c:31:[value] Reading left-value q.
-        It contains a garbled mix of
-        {S_0_S_p_str; S_1_S_p_str; alloced_return_top_input} because of Misaligned
-        {tests/pdg/top_pdg_input.c:40}.
 tests/pdg/top_pdg_input.c:31:[kernel] warning: out of bounds read. assert \valid_read(q);
-tests/pdg/top_pdg_input.c:31:[value] Reading left-value *q.
-        The location is {{ S_0_S_p_str -> [0..8];
-                           S_1_S_p_str -> [0..8];
-                           alloced_return_top_input -> [0..34359738360] }}.
-        It contains a garbled mix of {alloced_return_top_input} because of
-        Library function {tests/pdg/top_pdg_input.c:20}.
-tests/pdg/top_pdg_input.c:31:[kernel] warning: pointer comparison: assert \pointer_comparable((void *)0, (void *)*q);
+tests/pdg/top_pdg_input.c:31:[kernel] warning: pointer comparison. assert \pointer_comparable((void *)0, (void *)*q);
 tests/pdg/top_pdg_input.c:31:[kernel] warning: signed overflow. assert k+1 ≤ 2147483647;
 [value] Recording results for strlen
 [value] Done for function strlen
@@ -134,7 +99,6 @@ tests/pdg/top_pdg_input.c:31:[kernel] warning: signed overflow. assert k+1 ≤ 2
   __retres ∈
           {{ garbled mix of &{alloced_return_top_input}
            (origin: Library function {tests/pdg/top_pdg_input.c:20}) }}
-tests/pdg/top_pdg_input.c:13:[kernel] more than 200(67108864) elements to enumerate. Approximating.
 [value] Values at end of function main:
   S.a ∈ {2}
    .t[0..4] ∈ {0}
@@ -471,7 +435,7 @@ tests/pdg/top_pdg_input.c:45:[pdg] warning: Ignoring inline assembly code
  {n77}: In1
    -[a--]-> 76
  {n78}: VarDecl : __retres
- {n79}: __asm__ ("BLA":);
+ {n79}: __asm__ ("BLA");
    -[-c-]-> 75
  {n80}: __retres = i + 1;
    -[-c-]-> 75

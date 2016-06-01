@@ -7,8 +7,8 @@
   
 [value] computing for function f <- main.
         Called from tests/slicing/slice_behavior.c:12.
-tests/slicing/slice_behavior.c:4:[value] Function f: precondition got status valid.
-tests/slicing/slice_behavior.c:7:[value] Assertion got status valid.
+tests/slicing/slice_behavior.c:4:[value] function f: precondition got status valid.
+tests/slicing/slice_behavior.c:7:[value] assertion got status valid.
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for main

@@ -21,8 +21,8 @@ tests/scope/zones.c:16:[kernel] warning: signed overflow. assert y+z ≤ 2147483
 [value] Done for function simple
 [value] computing for function array1 <- main.
         Called from tests/scope/zones.c:74.
-tests/scope/zones.c:21:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert 0 ≤ x;
-tests/scope/zones.c:21:[kernel] warning: accessing out of bounds index [-2147483648..2147483647]. assert x < 10;
+tests/scope/zones.c:21:[kernel] warning: accessing out of bounds index. assert 0 ≤ x;
+tests/scope/zones.c:21:[kernel] warning: accessing out of bounds index. assert x < 10;
 tests/scope/zones.c:22:[kernel] warning: signed overflow. assert T[0]+y ≤ 2147483647;
 [value] Recording results for array1
 [value] Done for function array1
@@ -44,16 +44,16 @@ tests/scope/zones.c:22:[kernel] warning: signed overflow. assert T[0]+y ≤ 2147
         Called from tests/scope/zones.c:67.
 [value] Recording results for g
 [value] Done for function g
-[value] computing for function f <- caller <- main.
-        Called from tests/scope/zones.c:68.
-tests/scope/zones.c:54:[kernel] warning: signed overflow. assert x+y ≤ 2147483647;
-[value] Recording results for f
-[value] Done for function f
 [value] computing for function g <- caller <- main.
         Called from tests/scope/zones.c:68.
 tests/scope/zones.c:60:[kernel] warning: signed overflow. assert a+b ≤ 2147483647;
 [value] Recording results for g
 [value] Done for function g
+[value] computing for function f <- caller <- main.
+        Called from tests/scope/zones.c:68.
+tests/scope/zones.c:54:[kernel] warning: signed overflow. assert x+y ≤ 2147483647;
+[value] Recording results for f
+[value] Done for function f
 [value] Recording results for caller
 [value] Done for function caller
 [value] Recording results for main
@@ -67,17 +67,17 @@ tests/scope/zones.c:60:[kernel] warning: signed overflow. assert a+b ≤ 2147483
   a ∈ [--..--]
 [value] Values at end of function f:
   Xf ∈ [0..9]
-  Yf ∈ [--..--]
+  Yf ∈ [-2147483648..2147483644]
   __retres ∈ [--..--]
 [value] Values at end of function g:
   Xg ∈ [--..--]
-  Yg ∈ [--..--]
+  Yg ∈ [-2147483648..2147483644]
   __retres ∈ [--..--]
 [value] Values at end of function caller:
   Xf ∈ [0..9]
   Xg ∈ [--..--]
-  Yf ∈ [--..--]
-  Yg ∈ [--..--]
+  Yf ∈ [-2147483648..2147483644]
+  Yg ∈ [-2147483648..2147483644]
   x1 ∈ {0}
   y1 ∈ {0}
   z1 ∈ {0}
@@ -97,8 +97,8 @@ tests/scope/zones.c:60:[kernel] warning: signed overflow. assert a+b ≤ 2147483
    [1..9] ∈ {0; 3}
   Xf ∈ [0..9]
   Xg ∈ [--..--]
-  Yf ∈ [--..--]
-  Yg ∈ [--..--]
+  Yf ∈ [-2147483648..2147483644]
+  Yg ∈ [-2147483648..2147483644]
   __retres ∈ {0}
 [pdg] computing for function simple
 [pdg] done for function simple

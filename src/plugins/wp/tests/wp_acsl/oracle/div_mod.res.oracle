@@ -1,0 +1,177 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_acsl/div_mod.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+------------------------------------------------------------
+  Function f
+------------------------------------------------------------
+
+Goal Post-condition 'd0,div_pos_pos' in 'f':
+Prove: P_Peq(1, 1).
+
+------------------------------------------------------------
+
+Goal Post-condition 'd1,div_neg_pos' in 'f':
+Prove: P_Peq(-1, -1).
+
+------------------------------------------------------------
+
+Goal Post-condition 'd2,div_pos_neg' in 'f':
+Prove: P_Peq(-1, -1).
+
+------------------------------------------------------------
+
+Goal Post-condition 'd3,div_neg_neg' in 'f':
+Prove: P_Peq(1, 1).
+
+------------------------------------------------------------
+
+Goal Post-condition 'd4,div_x_1' in 'f':
+Assume { Type: is_sint32(x). }
+Prove: P_Peq(x, x).
+
+------------------------------------------------------------
+
+Goal Post-condition 'd5,div_x_minus1' in 'f':
+Let x_1 = -x. Assume { Type: is_sint32(x). }
+Prove: P_Peq(x_1, x_1).
+
+------------------------------------------------------------
+
+Goal Post-condition 'd6,div_0_x' in 'f':
+Assume { Type: is_sint32(x). (* Goal *) When: 0 != x. }
+Prove: P_Peq(0 / x, 0).
+
+------------------------------------------------------------
+
+Goal Post-condition 'd7,div_0_x,ko' in 'f':
+Assume { Type: is_sint32(x). }
+Prove: P_Peq(0 / x, 0).
+
+------------------------------------------------------------
+
+Goal Post-condition 'sd0,div_pos_pos' in 'f':
+Assume {
+  Type: is_sint32(x) /\ is_sint32(y).
+  (* Goal *)
+  When: (0 < y) /\ (0 <= x).
+}
+Prove: 0 <= (x / y).
+
+------------------------------------------------------------
+
+Goal Post-condition 'sd1,div_neg_pos' in 'f':
+Assume {
+  Type: is_sint32(x) /\ is_sint32(y).
+  (* Goal *)
+  When: (0 < y) /\ (x <= 0).
+}
+Prove: (x / y) <= 0.
+
+------------------------------------------------------------
+
+Goal Post-condition 'sd2,div_pos_neg' in 'f':
+Assume {
+  Type: is_sint32(x) /\ is_sint32(y).
+  (* Goal *)
+  When: (y < 0) /\ (0 <= x).
+}
+Prove: (x / y) <= 0.
+
+------------------------------------------------------------
+
+Goal Post-condition 'sd3,div_neg_neg' in 'f':
+Assume {
+  Type: is_sint32(x) /\ is_sint32(y).
+  (* Goal *)
+  When: (y < 0) /\ (x <= 0).
+}
+Prove: 0 <= (x / y).
+
+------------------------------------------------------------
+
+Goal Post-condition 'm0,mod_pos_pos' in 'f':
+Prove: P_Peq(2, 2).
+
+------------------------------------------------------------
+
+Goal Post-condition 'm1,mod_neg_pos' in 'f':
+Prove: P_Peq(-2, -2).
+
+------------------------------------------------------------
+
+Goal Post-condition 'm2,mod_pos_neg' in 'f':
+Prove: P_Peq(2, 2).
+
+------------------------------------------------------------
+
+Goal Post-condition 'm3,mod_neg_neg' in 'f':
+Prove: P_Peq(-2, -2).
+
+------------------------------------------------------------
+
+Goal Post-condition 'm4,mod_x_1' in 'f':
+Prove: P_Peq(0, 0).
+
+------------------------------------------------------------
+
+Goal Post-condition 'm5,mod_x_minus1' in 'f':
+Assume { Type: is_sint32(x). }
+Prove: P_Peq(x % (-1), 0).
+
+------------------------------------------------------------
+
+Goal Post-condition 'm6,mod_0_x' in 'f':
+Assume { Type: is_sint32(x). (* Goal *) When: 0 != x. }
+Prove: P_Peq(0 % x, 0).
+
+------------------------------------------------------------
+
+Goal Post-condition 'm7,mod_0_x,ko' in 'f':
+Assume { Type: is_sint32(x). }
+Prove: P_Peq(0 % x, 0).
+
+------------------------------------------------------------
+
+Goal Post-condition 'sm0,mod_pos_pos' in 'f':
+Assume {
+  Type: is_sint32(x) /\ is_sint32(y).
+  (* Goal *)
+  When: (0 < y) /\ (0 <= x).
+}
+Prove: 0 <= (x % y).
+
+------------------------------------------------------------
+
+Goal Post-condition 'sm1,mod_neg_pos' in 'f':
+Assume {
+  Type: is_sint32(x) /\ is_sint32(y).
+  (* Goal *)
+  When: (0 < y) /\ (x <= 0).
+}
+Prove: (x % y) <= 0.
+
+------------------------------------------------------------
+
+Goal Post-condition 'sm2,mod_pos_neg' in 'f':
+Assume {
+  Type: is_sint32(x) /\ is_sint32(y).
+  (* Goal *)
+  When: (y < 0) /\ (0 <= x).
+}
+Prove: 0 <= (x % y).
+
+------------------------------------------------------------
+
+Goal Post-condition 'sm3,mod_neg_neg' in 'f':
+Assume {
+  Type: is_sint32(x) /\ is_sint32(y).
+  (* Goal *)
+  When: (y < 0) /\ (x <= 0).
+}
+Prove: (x % y) <= 0.
+
+------------------------------------------------------------

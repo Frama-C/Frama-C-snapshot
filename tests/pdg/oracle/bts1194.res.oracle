@@ -13,7 +13,7 @@
         Called from tests/pdg/bts1194.c:13.
 [value] using specification for function input
 [value] Done for function input
-tests/pdg/bts1194.c:17:[value] Assertion got status unknown.
+tests/pdg/bts1194.c:17:[value] warning: assertion got status unknown.
 [value] Recording results for f
 [from] Computing for function f
 [from] Done for function f
@@ -23,7 +23,6 @@ tests/pdg/bts1194.c:17:[value] Assertion got status unknown.
 [value] computing for function g <- h <- main.
         Called from tests/pdg/bts1194.c:26.
 tests/pdg/bts1194.c:22:[value] entering loop for the first time
-tests/pdg/bts1194.c:20:[value] Function g: no state left in which to evaluate postcondition, status not computed.
 [value] Recording results for g
 [from] Computing for function g
 [from] Non-terminating function g (no dependencies)
@@ -216,12 +215,12 @@ tests/pdg/bts1194.c:22:[pdg] warning: no final state. Probably unreachable...
   Y ∈ {0}
 [value] computing for function f_slice_1 <- main.
         Called from tests/pdg/bts1194.c:32.
-tests/pdg/bts1194.c:13:[kernel] warning: Neither code nor specification for function input, generating default assigns from the prototype
 [value] computing for function input <- f_slice_1 <- main.
         Called from tests/pdg/bts1194.c:13.
+tests/pdg/bts1194.c:13:[kernel] warning: Neither code nor specification for function input, generating default assigns from the prototype
 [value] using specification for function input
 [value] Done for function input
-tests/pdg/bts1194.c:17:[value] Assertion got status unknown.
+tests/pdg/bts1194.c:17:[value] warning: assertion got status unknown.
 [value] Recording results for f_slice_1
 [value] Done for function f_slice_1
 [value] Recording results for main

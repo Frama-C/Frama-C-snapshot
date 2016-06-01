@@ -1,8 +1,8 @@
-/* run.config
-   OPT: -value-msg-key nonlin -slevel 30 -val -cpp-extra-args="-DFLOAT=double" -float-hex -journal-disable -val-subdivide-non-linear 0 -then -no-float-hex -no-val-print -val-print
-   OPT: -value-msg-key nonlin -slevel 30 -val -cpp-extra-args="-DFLOAT=double" -float-hex -journal-disable -val-subdivide-non-linear 10  -then -no-float-hex -no-val-print -val-print
-   OPT: -value-msg-key nonlin -slevel 30 -val -cpp-extra-args="-DFLOAT=float" -float-hex -journal-disable -val-subdivide-non-linear 0 -then -no-float-hex -no-val-print -val-print
-   OPT: -value-msg-key nonlin -slevel 30 -val -cpp-extra-args="-DFLOAT=float" -float-hex -journal-disable -val-subdivide-non-linear 10 -then -no-float-hex -no-val-print -val-print
+/* run.config*
+   OPT: -value-msg-key nonlin -slevel 30 -val @VALUECONFIG@ -cpp-extra-args="-DFLOAT=double" -float-hex -journal-disable -val-subdivide-non-linear 0 -then -no-float-hex -no-val-print -val-print
+   OPT: -value-msg-key nonlin -slevel 30 -val @VALUECONFIG@ -cpp-extra-args="-DFLOAT=double" -float-hex -journal-disable -val-subdivide-non-linear 10  -then -no-float-hex -no-val-print -val-print
+   OPT: -value-msg-key nonlin -slevel 30 -val @VALUECONFIG@ -cpp-extra-args="-DFLOAT=float" -float-hex -journal-disable -val-subdivide-non-linear 0 -then -no-float-hex -no-val-print -val-print
+   OPT: -value-msg-key nonlin -slevel 30 -val @VALUECONFIG@ -cpp-extra-args="-DFLOAT=float" -float-hex -journal-disable -val-subdivide-non-linear 10 -then -no-float-hex -no-val-print -val-print
 */
 
 #include "__fc_builtin.h"
@@ -38,7 +38,7 @@ void nonlin_f()
     || (6.75 <= a <= 6.875)
     || (6.875 <= a <= 7.0) ; */
 
-  r2 = a + (b * (c - a));
+  r2 = (b * (c - a)) + a;
   Frama_C_show_each_a_r2("a", a, "r2", r2);
 }
 

@@ -44,7 +44,7 @@ int f(int x, int y, float z)
 
 /*@
 predicate is_valid_int_range{L}(int *p, int n) =
-  \at(0 ≤ n ∧ \valid{L}(p+(0 .. n-1)),L);
+  \at(0 ≤ n ∧ \valid(p+(0 .. n-1)),L);
 
 */
 /*@ requires is_valid_int_range(p, i); */

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -46,6 +46,12 @@ val is_integral_type: Cil_types.logic_type -> bool
 val is_set_type: Cil_types.logic_type -> bool
 val is_array_type: Cil_types.logic_type -> bool
 val is_pointer_type: Cil_types.logic_type -> bool
+
+(** @since Aluminium-20160501 *)
+val is_list_type: Cil_types.logic_type -> bool
+
+(** @since Aluminium-20160501 *)
+val type_of_list_elem : logic_type -> logic_type
 
 val type_of_pointed: logic_type -> logic_type
 val type_of_array_elem: logic_type -> logic_type

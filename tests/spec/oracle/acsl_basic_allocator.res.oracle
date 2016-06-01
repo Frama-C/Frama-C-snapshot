@@ -309,32 +309,32 @@ type invariant inv_memory_block(memory_block mb) =
  */
 /*@
 predicate used_memory_block{L}(memory_block mb) =
-  mb.free ≡ false ∧ inv_memory_block{L}(mb);
+  mb.free ≡ false ∧ inv_memory_block(mb);
  */
 /*@
 predicate freed_memory_block{L}(memory_block mb) =
-  mb.free ≡ true ∧ inv_memory_block{L}(mb);
+  mb.free ≡ true ∧ inv_memory_block(mb);
  */
 /*@
 predicate valid_memory_block{L}(memory_block *mb) =
-  \valid{L}(mb) ∧ inv_memory_block{L}(*mb);
+  \valid(mb) ∧ inv_memory_block(*mb);
  */
 /*@
 predicate valid_used_memory_block{L}(memory_block *mb) =
-  \valid{L}(mb) ∧ used_memory_block{L}(*mb);
+  \valid(mb) ∧ used_memory_block(*mb);
  */
 /*@
 predicate valid_freed_memory_block{L}(memory_block *mb) =
-  \valid{L}(mb) ∧ freed_memory_block{L}(*mb);
+  \valid(mb) ∧ freed_memory_block(*mb);
  */
 /*@
 predicate valid_memory_block_list{L}(memory_block_list *mbl) =
-  \valid{L}(mbl) ∧ valid_memory_block{L}(mbl->block) ∧
-  (mbl->next ≡ \null ∨ valid_memory_block_list{L}(mbl->next));
+  \valid(mbl) ∧ valid_memory_block(mbl->block) ∧
+  (mbl->next ≡ \null ∨ valid_memory_block_list(mbl->next));
  */
 /*@
 predicate valid_memory_pool{L}(memory_pool *mp) =
-  \valid{L}(mp) ∧ valid_memory_block_list{L}(*mp);
+  \valid(mp) ∧ valid_memory_block_list(*mp);
  */
 /*@ requires valid_memory_pool(arena) ∧ 0 < s;
     ensures valid_used_memory_block(\result);

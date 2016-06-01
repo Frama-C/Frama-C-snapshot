@@ -1,0 +1,20 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_acsl/tset.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] 4 goals scheduled
+[wp] [Coq] Goal typed_lemma_UNION_DESCR : Saved script
+[wp] [Coq] Goal typed_lemma_UNION_DESCR : Valid
+[wp] [Alt-Ergo] Goal typed_lemma_UNION_EQ : Valid
+[wp] [Qed] Goal typed_lemma_UNION_LIFT : Valid
+[wp] [Alt-Ergo] Goal typed_lemma_UNION_RANGE : Valid
+[wp] Proved goals:    4 / 4
+     Qed:             1 
+     Alt-Ergo:        2  (unknown: 1)
+     Coq:             1
+----------------------------------------------------------
+Axiomatics          WP   Alt-Ergo    Total   Success
+Lemma                1      2 (8)      4       100%
+----------------------------------------------------------

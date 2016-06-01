@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -61,6 +61,17 @@ val of_list: ((t -> v -> t) -> t -> 'l -> t) -> 'l -> Int.t -> t
     [fold] to the container [c], the elements of [c] being supposed to
     be of size [size]. [c] must be such that [fold] is called at least
     once. *)
+
+val empty: t
+(** offsetmap containing no interval. *)
+
+val size_from_validity: Base.validity -> Integer.t Bottom.or_bottom
+(** [size_from_validity v] returns the size to be used when creating a
+    new offsetmap for a base with validity [v]. This is a convention that
+    must be shared by all modules that create offsetmaps, because operations
+    such as {!join} or {!is_included} require offsetmaps of the same .
+    Returns [`Bottom] iff [v] is {!Base.Invalid}.
+    @since Aluminium-20160501 *)
 
 
 (** {2 Iterators} *)
@@ -140,13 +151,21 @@ val map2_on_values:
 (** {2 Join and inclusion testing} *)
 
 include Lattice_type.Join_Semi_Lattice with type t := t
-include Lattice_type.With_Narrow with type t := t
 
 val join_top_bottom: [< t_top_bottom] -> [<  t_top_bottom] -> [> t_top_bottom]
 
 val widen : widen_hint -> t -> t -> t
 (** [widen wh m1 m2] performs a widening step on [m2], assuming that
     [m1] was the previous state. The relation [is_included m1 m2] must hold *)
+
+(** {2 Narrowing} *)
+
+module Make_Narrow (X: sig
+    include Lattice_type.With_Top with type t := v
+    include Lattice_type.With_Narrow with type t := v
+  end) : sig
+  include Lattice_type.With_Narrow with type t := t
+end
 
 
 (** {2 Searching values} *)
@@ -240,14 +259,17 @@ val cardinal_zero_or_one: t -> bool
 (** Returns [true] if and only if all the interval bound in the
     offsetmap are mapped to values with cardinal at most 1. *)
 
-(** [is_single_interval ?f o] is true if
-    (1) the offsetmap [o] contains a single binding
-    (2) either [f] is [None], or the bound value [v] verifies [f v]. *)
-val is_single_interval: ?f:(v -> bool) -> t -> bool
+val is_single_interval: t -> bool
+(** [is_single_interval o] is true if the offsetmap [o] contains a single
+    binding. *)
 
 val single_interval_value: t -> v option
 (** [single_interval_value o] returns [Some v] if [o] contains a single
     interval, to which [v] is bound, and [None] otherwise. *)
+
+val is_same_value: t -> v -> bool
+(** [is_same_value o v] is true if the offsetmap [o] contains a single
+    binding to [v], or is the empty offsetmap. *)
 
 
 (** {2 Misc} *)

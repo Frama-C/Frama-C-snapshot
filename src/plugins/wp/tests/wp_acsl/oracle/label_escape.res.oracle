@@ -10,14 +10,9 @@
 ------------------------------------------------------------
 
 Goal Assertion 'qed_ko,oracle_ko' (file tests/wp_acsl/label_escape.i, line 12):
-Assume {
-  (* Domain *)
-  Type: (is_sint32 x_0) /\ (is_sint32 y_1).
-  (* tests/wp_acsl/label_escape.i:8: Conditional *)
-  If: 0!=x_0
-  Else { (* Control Flow *) Have: 1=y_1. }
+Assume { Type: is_sint32(x) /\ is_sint32(y). If 0 != x Else { Have: 1 = y. }
 }
-Prove: 0=y_1.
+Prove: 0 = y.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -25,7 +20,6 @@ Prove: 0=y_1.
 ------------------------------------------------------------
 
 Goal Assertion 'qed_ok,ok' (file tests/wp_acsl/label_escape.i, line 25):
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -34,7 +34,7 @@
 (* ************************************************************************* *)
 
 include Datatype.S_no_copy with type t = Project_skeleton.t
-module Datatype: Datatype.S with type t = Project_skeleton.t
+module Datatype: Datatype.S_with_collections with type t = Project_skeleton.t
 
 (* re-exporting record fields *)
 type project = Project_skeleton.t =
@@ -136,6 +136,11 @@ val on: ?selection:State_selection.t -> t -> ('a -> 'b) -> 'a -> 'b
       @modify Carbon-20101201 replace the optional arguments [only] and
       [except] by a single one [selection].
       @plugin development guide *)
+
+val set_keep_current: bool -> unit
+  (** [set_keep_current b] keeps the current project forever (even after the end
+      of the current {!on}) iff [b] is [true].
+      @since Aluminium-20160501 *)
 
 val copy: ?selection:State_selection.t -> ?src:t -> t -> unit
   (** Copy a project into another one. Default project for [src] is [current

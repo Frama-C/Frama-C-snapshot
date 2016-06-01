@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2015                                               */
+/*  Copyright (C) 2007-2016                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*                                                                        */
@@ -23,7 +23,6 @@
 #ifndef Frama_C_BUILTIN
 #define Frama_C_BUILTIN
 #include "__fc_define_size_t.h"
-#include "__fc_builtin_for_normalization.i"
 #include "features.h"
 __BEGIN_DECLS
 
@@ -164,9 +163,9 @@ void* Frama_C_memcpy(void *dest, const void *src, size_t n);
 /*@ assigns ((char*)p)[0 .. s-1] \from c ; assigns \result \from p; */
 void* Frama_C_memset(void *p, int c, size_t s);
 
-/*@
+/*@ // Signals an error;
+  requires \false;
   assigns \nothing;
-  ensures \false;
 */
 void Frama_C_abort(void) __attribute__ ((noreturn));
 
@@ -174,10 +173,6 @@ void Frama_C_abort(void) __attribute__ ((noreturn));
 size_t Frama_C_offset(const void* p);
 
 void *Frama_C_alloc_size(size_t size);
-
-//@ assigns \nothing;
-void Frama_C_show_each_warning(const char*, ...);
-
 __END_DECLS
 
 #endif

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -20,20 +20,18 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(** Undocumented. All the interesting functions defined below
-    are exported through Db.Interp. *)
+(** All the interesting functions of this module are exported through
+    {!Db.Interp}. *)
 
 (* TODO: remove the module Properties from Db and export directly the
    functions from here. *)
 
-open Cil_types
-
 module To_zone : sig
   exception NYI of string
-  val  not_yet_implemented : string ref
+  val not_yet_implemented : string ref
 end
 
-exception Error of location * string
+exception Error of Cil_types.location * string
 
 (*
 Local Variables:

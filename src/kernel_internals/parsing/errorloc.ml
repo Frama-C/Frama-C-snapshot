@@ -110,9 +110,8 @@ let setCurrentFile ?(normalize=true) (n: string) =
   let n =
     if not normalize then n
     else
-      (match !current.current_working_directory with
-        | None -> Filepath.normalize n
-        | Some(s) -> Sysutil.absolutize_filename s n)
+      let base = !current.current_working_directory in
+      Filepath.normalize ?base n
   in
   let pos = !current.lexbuf.Lexing.lex_curr_p in
   !current.lexbuf.Lexing.lex_curr_p <- { pos with Lexing.pos_fname = n }

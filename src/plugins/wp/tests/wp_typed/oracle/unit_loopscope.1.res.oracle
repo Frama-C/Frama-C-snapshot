@@ -12,17 +12,11 @@ tests/wp_typed/unit_loopscope.i:14:[wp] warning: Missing assigns clause (assigns
 ------------------------------------------------------------
 
 Goal Preservation of Invariant (file tests/wp_typed/unit_loopscope.i, line 13):
-Assume {
-  (* Invariant (file tests/wp_typed/unit_loopscope.i, line 13) *)
-  (* tests/wp_typed/unit_loopscope.i:14: Invariant: *)
-  Have: false.
-}
-Prove: false.
+Prove: true.
 
 ------------------------------------------------------------
 
 Goal Establishment of Invariant (file tests/wp_typed/unit_loopscope.i, line 13):
-Assume { }
 Prove: false.
 
 ------------------------------------------------------------

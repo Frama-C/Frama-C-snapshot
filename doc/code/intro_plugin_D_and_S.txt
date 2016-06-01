@@ -1,26 +1,26 @@
-@ignore                                                                        
-@ignore                                                                        
-@ignore  This file is part of Frama-C.                                         
-@ignore                                                                        
-@ignore  Copyright (C) 2007-2015                                               
-@ignore    CEA (Commissariat à l'énergie atomique et aux énergies              
-@ignore         alternatives)                                                  
-@ignore                                                                        
-@ignore  you can redistribute it and/or modify it under the terms of the GNU   
-@ignore  Lesser General Public License as published by the Free Software       
-@ignore  Foundation, version 2.1.                                              
-@ignore                                                                        
-@ignore  It is distributed in the hope that it will be useful,                 
-@ignore  but WITHOUT ANY WARRANTY; without even the implied warranty of        
-@ignore  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         
-@ignore  GNU Lesser General Public License for more details.                   
-@ignore                                                                        
-@ignore  See the GNU Lesser General Public License version 2.1                 
-@ignore  for more details (enclosed in the file licenses/LGPLv2.1).            
-@ignore                                                                        
-@ignore                                                                        
+#*************************************************************************#
+#*                                                                        #
+#*  This file is part of Frama-C.                                         #
+#*                                                                        #
+#*  Copyright (C) 2007-2016                                               #
+#*    CEA (Commissariat à l'énergie atomique et aux énergies              #
+#*         alternatives)                                                  #
+#*                                                                        #
+#*  you can redistribute it and/or modify it under the terms of the GNU   #
+#*  Lesser General Public License as published by the Free Software       #
+#*  Foundation, version 2.1.                                              #
+#*                                                                        #
+#*  It is distributed in the hope that it will be useful,                 #
+#*  but WITHOUT ANY WARRANTY; without even the implied warranty of        #
+#*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         #
+#*  GNU Lesser General Public License for more details.                   #
+#*                                                                        #
+#*  See the GNU Lesser General Public License version 2.1                 #
+#*  for more details (enclosed in the file licenses/LGPLv2.1).            #
+#*                                                                        #
+#*************************************************************************#
 
-{2 API Documentation}
+{2 Dynamic Entry Points}
 
 The _PluginName_ plugin is integrated with the Frama-C kernel:
  - {{:../index.html}Frama-C} complete kernel API
@@ -31,7 +31,7 @@ This plugin is also dynamically registered:
  - {{:../dynamic_plugins/Dynamic_plugins.html}dynamically registered plugins} index
  - {{:../html/Dynamic.html}Dynamic} kernel registery for plugins' API
 
-{2 Internal Documentation}
+{2 Internal Structure}
 
  - {{:modules.svg}_PluginName_} architecture (SVG format)
  - Index of {{:index_modules.html}Modules}

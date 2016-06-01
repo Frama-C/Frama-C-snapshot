@@ -26,30 +26,6 @@ tests/pdg/no_body.c:18:[kernel] warning: signed overflow. assert G+1 ≤ 2147483
 [value] computing for function f <- loop <- main.
         Called from tests/pdg/no_body.c:16.
 [value] Done for function f
-[value] computing for function f <- loop <- main.
-        Called from tests/pdg/no_body.c:16.
-[value] Done for function f
-[value] computing for function f <- loop <- main.
-        Called from tests/pdg/no_body.c:16.
-[value] Done for function f
-[value] computing for function f <- loop <- main.
-        Called from tests/pdg/no_body.c:16.
-[value] Done for function f
-[value] computing for function f <- loop <- main.
-        Called from tests/pdg/no_body.c:16.
-[value] Done for function f
-[value] computing for function f <- loop <- main.
-        Called from tests/pdg/no_body.c:16.
-[value] Done for function f
-[value] computing for function f <- loop <- main.
-        Called from tests/pdg/no_body.c:16.
-[value] Done for function f
-[value] computing for function f <- loop <- main.
-        Called from tests/pdg/no_body.c:16.
-[value] Done for function f
-[value] computing for function f <- loop <- main.
-        Called from tests/pdg/no_body.c:16.
-[value] Done for function f
 tests/pdg/no_body.c:17:[kernel] warning: signed overflow. assert x+1 ≤ 2147483647;
 [value] Recording results for loop
 [value] Done for function loop

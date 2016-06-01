@@ -6,8 +6,6 @@
 [wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
 [wp] Collecting variable usage
-tests/wp_typed/user_injector.i:61:[wp] warning: Validity of unsized array not implemented yet (considered valid).
-tests/wp_typed/user_injector.i:60:[wp] warning: Validity of unsized array not implemented yet (considered valid).
 [wp] 16 goals scheduled
 [wp] [Qed] Goal typed_ref_job_post_SEQ : Valid
 [wp] [Qed] Goal typed_ref_job_post_ID1 : Valid

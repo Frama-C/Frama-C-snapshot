@@ -10,3 +10,7 @@ tests/report	csv.c	18	f	from clause	Unknown	assigns \result \from x;
 tests/report	csv.c	21	main2	precondition of f	Unknown	x ≥ 1
 tests/report	csv.c	22	main2	precondition of f	Unknown	x ≥ 1
 tests/report	csv.c	23	main2	precondition of f	Unknown	x ≥ 1
+tests/report	csv.c	33	main3	is_nan_or_infinite	Unknown	\is_finite(Frama_C_pow(f1,f2))
+tests/report	csv.c	37	__FC_assert	precondition	Invalid or unreachable	\false
+tests/report	csv.c	50	main4	is_nan_or_infinite	Unknown	\is_finite(d)
+tests/report	csv.c	50	main4	precondition of __FC_assert	Invalid or unreachable	\false

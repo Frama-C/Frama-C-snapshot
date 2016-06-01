@@ -6,7 +6,7 @@ int x;
  */
 /*@ logic ℤ f{B}= x+42;
  */
-/*@ lemma foo{C}: P{C} ⇒ f{C} ≡ 84;
+/*@ lemma foo{C}: P ⇒ f ≡ 84;
  */
 /*@ ensures f ≡ 84; */
 void g(void)

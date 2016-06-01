@@ -1,0 +1,2 @@
+MACRO: VALUECONFIG -no-eva
+OPT: -val @VALUECONFIG@ -journal-disable -out -input -deps

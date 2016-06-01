@@ -5,8 +5,6 @@
 [wp] Loading driver 'share/wp.driver'
 [wp] Collecting axiomatic usage
 [wp] warning: Missing RTE guards
-tests/wp_typed/user_injector.i:61:[wp] warning: Validity of unsized array not implemented yet (considered valid).
-tests/wp_typed/user_injector.i:60:[wp] warning: Validity of unsized array not implemented yet (considered valid).
 [wp] 20 goals scheduled
 [wp] [Qed] Goal typed_job_post_SEQ : Valid
 [wp] [Qed] Goal typed_job_post_ID1 : Valid

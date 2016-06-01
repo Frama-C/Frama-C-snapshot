@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Aorai plug-in of Frama-C.                        *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -102,7 +102,7 @@ let find_max_value t =
   try Some (Max_value_counter.find t) with Not_found -> None
 
 let raise_error msg =
-	Aorai_option.fatal "Aorai plugin internal error. \nStatus : %s.\n" msg;;
+        Aorai_option.fatal "Aorai plugin internal error. \nStatus : %s.\n" msg;;
 (*  Format.printf "Aorai plugin internal error. \nStatus : %s.\n" msg; *)
 (*  assert false                                                             *)
 
@@ -183,7 +183,6 @@ let acceptSt    = "aorai_AcceptStates"                   (* TODO *)
 
 (* C constants #define *)
 let nbOp        = "aorai_NbOper"                         (* Deprecated ? *)
-let nbStates    = "aorai_NbStates"                       (* Deprecated ? *)
 let nbAcceptSt  = "aorai_NbAcceptStates"                 (* Deprecated ? *)
 let nbTrans     = "aorai_NbTrans"                        (* Deprecated ? *)
 
@@ -653,10 +652,11 @@ struct
   let find_macro _ = raise Not_found
   let find_var _ = raise Not_found
   let find_enum_tag _ = raise Not_found
+  (*let find_comp_type ~kind:_ _ = raise Not_found*)
   let find_comp_field info s =
     let field = Cil.getCompField info s in
     Field(field,NoOffset)
-  let find_type _ _ = raise Not_found
+  let find_type _ = raise Not_found
   let find_label _ = raise Not_found
 
   include Logic_env
@@ -1509,10 +1509,10 @@ let setCData () =
   let (f_decl,f_def) =
     Globals.Functions.fold
       (fun f (lf_decl,lf_def) ->
-	 let name = (Kernel_function.get_name f) in
-	 match f.fundec with
-	   | Definition _ -> (lf_decl,name::lf_def)
-	   | Declaration _ -> (name::lf_decl,lf_def))
+         let name = (Kernel_function.get_name f) in
+         match f.fundec with
+           | Definition _ -> (lf_decl,name::lf_def)
+           | Declaration _ -> (name::lf_decl,lf_def))
       ([],[])
   in
   functions_from_c:=f_def;
@@ -2096,16 +2096,16 @@ let get_cenum_option name =
   let opnamed = func_to_op_func name in
     Hashtbl.fold
       (fun _ ei value ->
-	 match value with
-	   | Some(_) as r -> r (* Already found *)
-	   | None ->
-	       let rec search = function
-		 | {einame = n} as ei ::_ when n=name -> Some(CEnum ei)
-		 | {einame = n} as ei ::_ when n=opnamed -> Some(CEnum ei)
-		 | _::l -> search l
-		 | [] -> None
-	       in
-	       search ei.eitems
+         match value with
+           | Some(_) as r -> r (* Already found *)
+           | None ->
+               let rec search = function
+                 | {einame = n} as ei ::_ when n=name -> Some(CEnum ei)
+                 | {einame = n} as ei ::_ when n=opnamed -> Some(CEnum ei)
+                 | _::l -> search l
+                 | [] -> None
+               in
+               search ei.eitems
       )
       used_enuminfo
       None

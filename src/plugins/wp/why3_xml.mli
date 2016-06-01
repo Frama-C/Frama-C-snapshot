@@ -18,6 +18,9 @@ type element =
     elements : element list;
   }
 
+val pretty : Format.formatter -> element -> unit
+(* Opening, attributes only *)
+
 type t =
   { version : string;
     encoding : string;

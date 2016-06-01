@@ -21,6 +21,11 @@ int main() {
   z = (int) 0x7ffffffc + y;
   z = x + (int) 0x7ffffffc;
 
+  z = y + (-2);
+  z = y - (-2);
+  z = -1 - y;
+  z = -2 - y;
+  z = 0 - y;
 
   return 0;
 }

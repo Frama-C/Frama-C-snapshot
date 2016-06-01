@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Aorai plug-in of Frama-C.                        *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -88,10 +88,10 @@ let extract_min heap =
   let (min,h) = 
     List.fold_left
       (fun ((lmin,min),h) (lcur,cur) -> 
-	 if lmin<=lcur then
-	   ((lmin,min),(lcur,cur)::h) 
-	 else
-	   ((lcur,cur),(lmin,min)::h) 
+         if lmin<=lcur then
+           ((lmin,min),(lcur,cur)::h) 
+         else
+           ((lcur,cur),(lmin,min)::h) 
       )
       ((List.hd heap),[])
       (List.tl heap)
@@ -113,11 +113,11 @@ let dijkstra (adj: 'a -> ('a * int) list) (v1:'a) (v2:'a) =
         List.rev p, w
       else
         let h =
-  	  if not (Hashtbl.mem visited v) then begin
-  	    Hashtbl.add visited v ();
-  	    List.fold_left (fun h (e,d) -> add (w+d, (e, e::p)) h) h (adj v)
-  	  end else
-  	    h
+          if not (Hashtbl.mem visited v) then begin
+            Hashtbl.add visited v ();
+            List.fold_left (fun h (e,d) -> add (w+d, (e, e::p)) h) h (adj v)
+          end else
+            h
         in
           loop h
   in

@@ -20,7 +20,7 @@ tests/pdg/dpds_intra.c:124:[kernel] warning: signed overflow. assert *p+1 ≤ 21
         Called from tests/pdg/dpds_intra.c:127.
 [value] Recording results for test_if_simple
 [value] Done for function test_if_simple
-tests/pdg/dpds_intra.c:127:[kernel] warning: accessing uninitialized left-value:
+tests/pdg/dpds_intra.c:127:[kernel] warning: accessing uninitialized left-value.
                   assert \initialized(&tmp_1);
                   (tmp_1 from test_if_simple())
 [value] computing for function test_goto_simple <- main.

@@ -1,8 +1,8 @@
 /* run.config
    OPT: -rte -warn-signed-overflow  -warn-signed-downcast -print -machdep x86_32
+   OPT: -rte -rte-trivial-annotations -warn-signed-overflow  -warn-signed-downcast -print -machdep x86_32
 */
 int main() {
-  
   int x=0,y=0,z=0;
   unsigned int ux=0,uy=0,uz=0;
   short sz=0;

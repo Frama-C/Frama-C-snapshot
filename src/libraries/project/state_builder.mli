@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -258,23 +258,42 @@ module Weak_hashtbl
 module Caml_weak_hashtbl(Data: Datatype.S)(Info: Info_with_size) :
   Weak_hashtbl with type data = Data.t
 
-(** Weak hashtbl dedicated to hashconsing.
-    Note that the resulting table is not saved on disk.
-    @since Boron-20100401 *)
-module Hashconsing_tbl
-  (Data: sig
-    include Datatype.S
+(** Signature for the creation of projectified hashconsing tables..
+    @since Aluminium-20160501 *)
+module type Hashconsing_tbl =
+  functor
+    (Data: sig
+       include Datatype.S
        (** The hashconsed datatype *)
-     val equal_internal: t -> t -> bool
+       val equal_internal: t -> t -> bool
        (** Equality on the datatype internally used by the built table. *)
-     val hash_internal: t -> int
+       val hash_internal: t -> int
        (** Hash function for datatype internally used by the built table. *)
-     val initial_values: t list
+       val initial_values: t list
        (** Pre-existing values stored in the built table and shared by all
            existing projects. *)
-   end)
-  (Info: Info_with_size) :
-  Weak_hashtbl with type data = Data.t
+    end) ->
+  functor (Info: Info_with_size) ->
+    Weak_hashtbl with type data = Data.t
+
+(** Weak hashtbl dedicated to hashconsing.
+    Note that the resulting table is not saved on disk.
+    @since Boron-20100401
+    @modified Aluminium-20160501, renamed *)
+module Hashconsing_tbl_weak: Hashconsing_tbl
+
+(** Hash table for hashconsing, but the internal table is _not_ weak
+    (it is a regular hash table). This module should be used only in case
+    perfect reproductibility matters, as the table will never be emptied by
+    the GC.
+    @since Aluminium-20160501  *)
+module Hashconsing_tbl_not_weak: Hashconsing_tbl
+
+(** Weak or non-weak hashconsing tables, depending on variable
+    {!Cmdline.deterministic}.
+    @since Aluminium-20160501  *)
+module Hashconsing_tbl: Hashconsing_tbl
+
 
 (* ************************************************************************* *)
 (** {3 Hashtables}
@@ -356,6 +375,7 @@ module Set_ref(S: Datatype.Set)(Info: Info)
 
 module type Queue = sig
   type elt
+  val self: State.t
   val add: elt -> unit
   val iter: (elt -> unit) -> unit
   val is_empty: unit -> bool

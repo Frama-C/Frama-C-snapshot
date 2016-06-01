@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -48,11 +48,15 @@ module Location_Bytes : sig
   (** This type should be considered private *)
   (* TODO: make it private when OCaml 4.01 is mandatory *)
 
+  type size_widen_hint = Ival.size_widen_hint
+  type generic_widen_hint = Base.t -> Ival.generic_widen_hint
+  type widen_hint = size_widen_hint * generic_widen_hint
+
   (** Those locations have a lattice structure, including standard operations
       such as [join], [narrow], etc. *)
   include Lattice_type.AI_Lattice_with_cardinal_one
     with type t := t
-    and type  widen_hint = Base.t -> Ival.widen_hint
+    and type widen_hint := widen_hint
   include Lattice_type.With_Error_Top
 
   include Datatype.S_with_collections with type t := t
@@ -90,6 +94,10 @@ module Location_Bytes : sig
   val shift_under : Ival.t -> t -> t
   (** Over- and under-approximation of shifting the value by the given Ival. *)
 
+  val sub_pointwise: ?factor:Int_Base.t -> t -> t -> Ival.t
+  (** Subtracts the offsets of two locations [loc1] and [loc2].
+      Returns the pointwise substraction of their offsets
+      [off1 - factor * off2]. [factor] defaults to [1]. *)
 
   (** Topifying of values, in case of imprecise accesses *)
   val topify_arith_origin : t -> t
@@ -131,7 +139,9 @@ module Location_Bytes : sig
     f:(Base.t -> Ival.t -> 'a) ->
     projection:(Base.t -> Ival.t) ->
     joiner:('a -> 'a -> 'a) -> empty:'a -> t -> 'a
-    (** Cached version of [fold_i], for advanced users *)
+  (** Cached version of [fold_i], for advanced users *)
+
+  val filter_base : (Base.t -> bool) -> t -> t
 
 
   (** {2 Number of locations} *)
@@ -154,6 +164,7 @@ module Location_Bytes : sig
 
 
   (** {2 Destructuring} *)
+  val find: Base.t -> t -> Ival.t
   val find_or_bottom : Base.t -> M.t -> Ival.t
   val split : Base.t -> t -> Ival.t * t
 
@@ -187,6 +198,8 @@ module Location_Bytes : sig
     (** Is there a possibly-non empty intersection between the two supplied
         locations, assuming they have size [size] *)
 
+  (** [is_relationable loc] returns [true] iff [loc] represents a single
+      memory location. *)
   val is_relationable: t -> bool
 
   val may_reach : Base.t -> t -> bool
@@ -229,6 +242,7 @@ module Zone : sig
 
   val find_lonely_key : t -> Base.t * Int_Intervals.t
   val find_or_bottom : Base.t -> map_t -> Int_Intervals.t
+  val find: Base.t -> t -> Int_Intervals.t
 
   val mem_base : Base.t -> t -> bool
     (** [mem_base b m] returns [true] if [b] is associated to something
@@ -312,10 +326,14 @@ val is_valid : for_writing:bool -> location -> bool
     operation if [for_writing] is true, as the destination of a read
     otherwise. *)
 
-val valid_part : for_writing:bool -> location -> location
+val valid_part : for_writing:bool -> ?bitfield:bool -> location -> location
 (** Overapproximation of the valid part of the given location. Beware that
     [is_valid (valid_part loc)] does not necessarily hold, as garbled mix
-    are not reduced by [valid_part]. *)
+    may not be reduced by [valid_part].
+    [bitfield] indicates whether the location may be the one of a bitfield, and
+    is true by default. If it is set to false, the location is assumed to be
+    byte aligned, and its offset (expressed in bits) is reduced to be congruent
+    to 0 modulo 8. *)
 
 val invalid_part : location -> location
 (** Overapproximation of the invalid part of a location *)

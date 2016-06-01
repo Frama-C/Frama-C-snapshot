@@ -1,5 +1,5 @@
 /* run.config
-   STDOPT: +"tests/syntax/bts1553.i -kernel-msg-key file"
+   STDOPT: +"tests/syntax/bts1553.i -kernel-msg-key file -kernel-msg-key=-file:transformation"
    COMMENT: this file is also parse together with bts1553.i
 */
 

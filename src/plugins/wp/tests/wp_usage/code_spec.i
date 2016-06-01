@@ -1,5 +1,5 @@
 /* run.config
-   OPT: -wp-prop none -wp-log refusage
+   OPT: -wp-prop none -wp-msg-key refusage
 */
 
 /* run.config_qualif

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -22,13 +22,23 @@
 
 (** Functions manipulating filepaths. *)
 
-(** returns an absolute path leading to the given file. *)
-val normalize: string -> string
+(** returns an absolute path leading to the given file.
+    @modified Aluminium-20160501 optional base. *)
+val normalize: ?base:string -> string -> string
+
+(** returns an absolute path or a (strict) relative path of file to base.
+    The default base is working directory.
+    @since Aluminium-20160501 *)
+val relativize: ?base:string -> string -> string
+
+(** returns true if the file is strictly relative to base.
+    @since Aluminium-20160501 *)
+val is_relative: ?base:string -> string -> bool
 
 (** Normalize a filename: make it relative if it is "close" to the
-    current working directory and results in a shorter path and replace 
+    current working directory and results in a shorter path and replace
     known prefixes by symbolic names. Note that the result of this function
-    does not necessarily represent a valid file name. Use 
+    does not necessarily represent a valid file name. Use
     {!Sysutil.absolutize_filename} if you want to obtain the absolute path
     of a given file.
 

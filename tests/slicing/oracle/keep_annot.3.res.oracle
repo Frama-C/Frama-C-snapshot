@@ -7,13 +7,13 @@
 [value] Values of globals at initialization
   
 tests/slicing/keep_annot.c:40:[kernel] warning: signed overflow. assert -2147483648 ≤ nn-2;
-tests/slicing/keep_annot.c:39:[value] Loop invariant got status unknown.
+tests/slicing/keep_annot.c:39:[value] warning: loop invariant got status unknown.
 tests/slicing/keep_annot.c:40:[value] entering loop for the first time
 tests/slicing/keep_annot.c:41:[kernel] warning: out of bounds read. assert \valid_read(dabs+(int)(ii+1));
-tests/slicing/keep_annot.c:41:[kernel] warning: non-finite float value ([-1.02084703992e+39 .. 1.02084703992e+39]):
+tests/slicing/keep_annot.c:41:[kernel] warning: non-finite float value.
                   assert
                   \is_finite((float)((double)((double)u-(double)((double)*(dabs+(int)(ii+1))*2.0))));
-tests/slicing/keep_annot.c:42:[value] Assertion got status unknown.
+tests/slicing/keep_annot.c:42:[value] warning: assertion got status unknown.
 [value] Recording results for L
 [value] done for function L
 [slicing] making slicing project 'Slicing'...

@@ -1,0 +1,42 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_acsl/tset.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+------------------------------------------------------------
+  Global
+------------------------------------------------------------
+
+Lemma UNION_DESCR:
+Assume: 'UNION_RANGE' 'UNION_LIFT' 'UNION_EQ'
+Prove: (forall i_0:int.
+        (0<=i_0) -> (i_0<=n_0) -> ((0<=i_0) /\ (i_0<=n_0)))
+       /\ (forall i_0:int.
+           (0<=i_0) -> (i_0<=n_0)
+           -> (exists i_1:int.
+               (0<=i_1) /\ (i_1<=n_0) /\ (n_0=(i_1+i_0))))
+
+------------------------------------------------------------
+
+Lemma UNION_EQ:
+Prove: (x_0=y_0)=(((0=x_0) \/ (x_0=y_0)) /\ ((0=y_0) \/ (x_0=y_0)))
+
+------------------------------------------------------------
+
+Lemma UNION_LIFT:
+Assume: 'UNION_EQ'
+Prove: true
+
+------------------------------------------------------------
+
+Lemma UNION_RANGE:
+Assume: 'UNION_LIFT' 'UNION_EQ'
+Prove: (0<=k_0) -> (k_0<=n_0)
+       -> ((-1<=k_0) /\ (0<=k_0) /\ (k_0<=n_0) /\ (k_0<=(1+n_0))
+           /\ (forall i_0:int.
+               (0<=i_0) -> (i_0<=n_0)
+               -> ((k_0=i_0) \/ ((k_0<i_0) /\ (i_0<=n_0))
+                   \/ ((i_0<k_0) /\ (0<=i_0)))))
+
+------------------------------------------------------------

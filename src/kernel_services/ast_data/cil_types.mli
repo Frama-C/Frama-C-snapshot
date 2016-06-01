@@ -1184,30 +1184,39 @@ and instr =
   | Asm of
       attributes (* Really only const and volatile can appear here *) 
     * string list (* templates (CR-separated) *)
-    * (string option * string * lval) list
-      (* outputs must be lvals with optional names and constraints.  I would
-         like these to be actually variables, but I run into some trouble with
-         ASMs in the Linux sources *)
-    * (string option * string * exp) list
-    (* inputs with optional names and constraints *)
-    * string list (* register clobbers *)
-    * (stmt ref) list  (* list of statements this asm section may jump to. Destination
-			must have a label. *)
+    * extended_asm option
     * location
   (** An inline assembly instruction. The arguments are 
       (1) a list of attributes (only const and volatile can appear here and only
       for GCC)
       (2) templates (CR-separated)
-      (3) a list of outputs, each of which is an lvalue with optional names and
-     constraints.
-      (4) a list of input expressions along with constraints
-      (5) clobbered registers
-      (6) Possible destinations statements
-      (7) location information *)
+      (3) GCC extended asm information if any
+      (4) location information *)
 
   | Skip of location
 
   | Code_annot of code_annotation * location
+
+
+(** GNU extended-asm information:
+    - a list of outputs, each of which is an lvalue with optional names and
+      constraints.
+    - a list of input expressions along with constraints
+    - clobbered registers
+    - Possible destinations statements *)
+and extended_asm =
+  { 
+    asm_outputs: (string option * string * lval) list
+    (** outputs must be lvals with optional names and constraints.  I would
+        like these to be actually variables, but I run into some trouble with
+        ASMs in the Linux sources *);
+    asm_inputs: (string option * string * exp) list
+    (** inputs with optional names and constraints *);
+    asm_clobbers: string list (** register clobbers *);
+    asm_gotos: (stmt ref) list
+    (** list of statements this asm section may jump to. Destination
+        must have a label. *); 
+  }
 
 (** Describes a location in a source file *)
 and location = Lexing.position * Lexing.position
@@ -1469,6 +1478,8 @@ and predicate =
   (** predicate refers to a particular program point. *)
   | Pvalid_read of logic_label * term   (** the given locations are valid for reading. *)
   | Pvalid of logic_label * term   (** the given locations are valid. *)
+  | Pvalid_function of term
+    (** the pointed function has a type compatible with the one of pointer. *)
   | Pinitialized of logic_label * term   (** the given locations are initialized. *)
   | Pdangling of logic_label * term (** the given locations contain dangling
                                         adresses. *)
@@ -1599,7 +1610,8 @@ and ('term, 'pred, 'spec_pred, 'locs) code_annot =
       behaviors to which this assertion applies. *)
 
   | AStmtSpec of string list * ('term, 'spec_pred, 'locs) spec
-  (** statement contract eventualy for some behaviors. *)
+  (** statement contract
+      (potentially restricted to some enclosing behaviors). *)
 
   | AInvariant of string list * bool * 'pred
   (** loop/code invariant. The list of strings is the list of behaviors to which

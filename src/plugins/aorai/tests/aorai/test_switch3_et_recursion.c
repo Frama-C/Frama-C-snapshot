@@ -1,6 +1,5 @@
-/* run.config
-   EXECNOW: make tests/aorai/Aorai_test.cmxs
-   OPT: -aorai-ltl tests/aorai/test_switch3_et_recursion.ltl -aorai-test 1 -aorai-acceptance -load-module tests/aorai/Aorai_test.cmxs -aorai-test-number @PTEST_NUMBER@
+/* run.config*
+   OPT: -aorai-ltl tests/aorai/test_switch3_et_recursion.ltl -aorai-test 1 -aorai-acceptance -load-module tests/aorai/Aorai_test.cmxs -aorai-test-number @PTEST_NUMBER@ @PROVE_OPTIONS@
 */
 
 /* Calcul de la longueur cumulee des chaines de caracteres prises en parametre */

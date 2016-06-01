@@ -43,8 +43,7 @@ axiomatic MemChr {
     ∀ char *s;
     ∀ ℤ c;
     ∀ ℤ n;
-      memchr{L}(s, c, n) ≡ \true ⇔
-      (∃ int i; 0 ≤ i < n ∧ *(s+i) ≡ c);
+      memchr(s, c, n) ≡ \true ⇔ (∃ int i; 0 ≤ i < n ∧ *(s+i) ≡ c);
   
   }
  */
@@ -57,8 +56,7 @@ axiomatic MemSet {
     ∀ char *s;
     ∀ ℤ c;
     ∀ ℤ n;
-      memset{L}(s, c, n) ≡ \true ⇔
-      (∀ ℤ i; 0 ≤ i < n ⇒ *(s+i) ≡ c);
+      memset(s, c, n) ≡ \true ⇔ (∀ ℤ i; 0 ≤ i < n ⇒ *(s+i) ≡ c);
   
   }
  */
@@ -71,83 +69,81 @@ axiomatic StrLen {
     ∀ char *s;
     ∀ ℤ i;
       0 ≤ i ∧ (∀ ℤ j; 0 ≤ j < i ⇒ *(s+j) ≢ '\000') ∧
-      *(s+i) ≡ '\000' ⇒ strlen{L}(s) ≡ i;
+      *(s+i) ≡ '\000' ⇒ strlen(s) ≡ i;
   
   axiom strlen_neg{L}:
-    ∀ char *s;
-      (∀ ℤ i; 0 ≤ i ⇒ *(s+i) ≢ '\000') ⇒ strlen{L}(s) < 0;
+    ∀ char *s; (∀ ℤ i; 0 ≤ i ⇒ *(s+i) ≢ '\000') ⇒ strlen(s) < 0;
   
   axiom strlen_before_null{L}:
     ∀ char *s;
-    ∀ ℤ i; 0 ≤ i < strlen{L}(s) ⇒ *(s+i) ≢ '\000';
+    ∀ ℤ i; 0 ≤ i < strlen(s) ⇒ *(s+i) ≢ '\000';
   
   axiom strlen_at_null{L}:
-    ∀ char *s; 0 ≤ strlen{L}(s) ⇒ *(s+strlen{L}(s)) ≡ '\000';
+    ∀ char *s; 0 ≤ strlen(s) ⇒ *(s+strlen(s)) ≡ '\000';
   
   axiom strlen_not_zero{L}:
     ∀ char *s;
-    ∀ ℤ i;
-      0 ≤ i ≤ strlen{L}(s) ∧ *(s+i) ≢ '\000' ⇒ i < strlen{L}(s);
+    ∀ ℤ i; 0 ≤ i ≤ strlen(s) ∧ *(s+i) ≢ '\000' ⇒ i < strlen(s);
   
   axiom strlen_zero{L}:
     ∀ char *s;
     ∀ ℤ i;
-      0 ≤ i ≤ strlen{L}(s) ∧ *(s+i) ≡ '\000' ⇒ i ≡ strlen{L}(s);
+      0 ≤ i ≤ strlen(s) ∧ *(s+i) ≡ '\000' ⇒ i ≡ strlen(s);
   
   axiom strlen_sup{L}:
     ∀ char *s;
-    ∀ ℤ i; 0 ≤ i ∧ *(s+i) ≡ '\000' ⇒ 0 ≤ strlen{L}(s) ≤ i;
+    ∀ ℤ i; 0 ≤ i ∧ *(s+i) ≡ '\000' ⇒ 0 ≤ strlen(s) ≤ i;
   
   axiom strlen_shift{L}:
     ∀ char *s;
-    ∀ ℤ i; 0 ≤ i ≤ strlen{L}(s) ⇒ strlen{L}(s+i) ≡ strlen{L}(s)-i;
+    ∀ ℤ i; 0 ≤ i ≤ strlen(s) ⇒ strlen(s+i) ≡ strlen(s)-i;
   
   axiom strlen_create{L}:
     ∀ char *s;
-    ∀ ℤ i; 0 ≤ i ∧ *(s+i) ≡ '\000' ⇒ 0 ≤ strlen{L}(s) ≤ i;
+    ∀ ℤ i; 0 ≤ i ∧ *(s+i) ≡ '\000' ⇒ 0 ≤ strlen(s) ≤ i;
   
   axiom strlen_create_shift{L}:
     ∀ char *s;
     ∀ ℤ i;
     ∀ ℤ k;
-      0 ≤ k ≤ i ∧ *(s+i) ≡ '\000' ⇒ 0 ≤ strlen{L}(s+k) ≤ i-k;
+      0 ≤ k ≤ i ∧ *(s+i) ≡ '\000' ⇒ 0 ≤ strlen(s+k) ≤ i-k;
   
   axiom memcmp_strlen_left{L}:
     ∀ char *s1, char *s2;
     ∀ ℤ n;
-      memcmp{L, L}(s1, s2, n) ≡ 0 ∧ strlen{L}(s1) < n ⇒
-      strlen{L}(s1) ≡ strlen{L}(s2);
+      memcmp{L, L}(s1, s2, n) ≡ 0 ∧ strlen(s1) < n ⇒
+      strlen(s1) ≡ strlen(s2);
   
   axiom memcmp_strlen_right{L}:
     ∀ char *s1, char *s2;
     ∀ ℤ n;
-      memcmp{L, L}(s1, s2, n) ≡ 0 ∧ strlen{L}(s2) < n ⇒
-      strlen{L}(s1) ≡ strlen{L}(s2);
+      memcmp{L, L}(s1, s2, n) ≡ 0 ∧ strlen(s2) < n ⇒
+      strlen(s1) ≡ strlen(s2);
   
   axiom memcmp_strlen_shift_left{L}:
     ∀ char *s1, char *s2;
     ∀ ℤ k, ℤ n;
-      memcmp{L, L}(s1, s2+k, n) ≡ 0 ≤ k ∧ strlen{L}(s1) < n ⇒
-      0 ≤ strlen{L}(s2) ≤ k+strlen{L}(s1);
+      memcmp{L, L}(s1, s2+k, n) ≡ 0 ≤ k ∧ strlen(s1) < n ⇒
+      0 ≤ strlen(s2) ≤ k+strlen(s1);
   
   axiom memcmp_strlen_shift_right{L}:
     ∀ char *s1, char *s2;
     ∀ ℤ k, ℤ n;
-      memcmp{L, L}(s1+k, s2, n) ≡ 0 ≤ k ∧ strlen{L}(s2) < n ⇒
-      0 ≤ strlen{L}(s1) ≤ k+strlen{L}(s2);
+      memcmp{L, L}(s1+k, s2, n) ≡ 0 ≤ k ∧ strlen(s2) < n ⇒
+      0 ≤ strlen(s1) ≤ k+strlen(s2);
   
   }
  */
 /*@
 axiomatic StrCmp {
   logic ℤ strcmp{L}(char *s1, char *s2) 
-    reads *(s1+(0 .. strlen{L}(s1))), *(s2+(0 .. strlen{L}(s2)));
+    reads *(s1+(0 .. strlen(s1))), *(s2+(0 .. strlen(s2)));
   
   axiom strcmp_zero{L}:
     ∀ char *s1, char *s2;
-      strcmp{L}(s1, s2) ≡ 0 ⇔
-      strlen{L}(s1) ≡ strlen{L}(s2) ∧
-      (∀ ℤ i; 0 ≤ i ≤ strlen{L}(s1) ⇒ *(s1+i) ≡ *(s2+i));
+      strcmp(s1, s2) ≡ 0 ⇔
+      strlen(s1) ≡ strlen(s2) ∧
+      (∀ ℤ i; 0 ≤ i ≤ strlen(s1) ⇒ *(s1+i) ≡ *(s2+i));
   
   }
  */
@@ -159,8 +155,8 @@ axiomatic StrNCmp {
   axiom strncmp_zero{L}:
     ∀ char *s1, char *s2;
     ∀ ℤ n;
-      strncmp{L}(s1, s2, n) ≡ 0 ⇔
-      (strlen{L}(s1) < n ∧ strcmp{L}(s1, s2) ≡ 0) ∨
+      strncmp(s1, s2, n) ≡ 0 ⇔
+      (strlen(s1) < n ∧ strcmp(s1, s2) ≡ 0) ∨
       (∀ ℤ i; 0 ≤ i < n ⇒ *(s1+i) ≡ *(s2+i));
   
   }
@@ -168,13 +164,13 @@ axiomatic StrNCmp {
 /*@
 axiomatic StrChr {
   logic 𝔹 strchr{L}(char *s, ℤ c) 
-    reads *(s+(0 .. strlen{L}(s)));
+    reads *(s+(0 .. strlen(s)));
   
   axiom strchr_def{L}:
     ∀ char *s;
     ∀ ℤ c;
-      strchr{L}(s, c) ≡ \true ⇔
-      (∃ ℤ i; 0 ≤ i ≤ strlen{L}(s) ∧ *(s+i) ≡ c);
+      strchr(s, c) ≡ \true ⇔
+      (∃ ℤ i; 0 ≤ i ≤ strlen(s) ∧ *(s+i) ≡ c);
   
   }
  */
@@ -187,58 +183,55 @@ axiomatic WcsLen {
     ∀ wchar_t *s;
     ∀ ℤ i;
       0 ≤ i ∧ (∀ ℤ j; 0 ≤ j < i ⇒ *(s+j) ≢ 0) ∧ *(s+i) ≡ 0 ⇒
-      wcslen{L}(s) ≡ i;
+      wcslen(s) ≡ i;
   
   axiom wcslen_neg{L}:
-    ∀ wchar_t *s;
-      (∀ ℤ i; 0 ≤ i ⇒ *(s+i) ≢ 0) ⇒ wcslen{L}(s) < 0;
+    ∀ wchar_t *s; (∀ ℤ i; 0 ≤ i ⇒ *(s+i) ≢ 0) ⇒ wcslen(s) < 0;
   
   axiom wcslen_before_null{L}:
     ∀ wchar_t *s;
-    ∀ int i; 0 ≤ i < wcslen{L}(s) ⇒ *(s+i) ≢ 0;
+    ∀ int i; 0 ≤ i < wcslen(s) ⇒ *(s+i) ≢ 0;
   
   axiom wcslen_at_null{L}:
-    ∀ wchar_t *s; 0 ≤ wcslen{L}(s) ⇒ *(s+wcslen{L}(s)) ≡ 0;
+    ∀ wchar_t *s; 0 ≤ wcslen(s) ⇒ *(s+wcslen(s)) ≡ 0;
   
   axiom wcslen_not_zero{L}:
     ∀ wchar_t *s;
-    ∀ int i; 0 ≤ i ≤ wcslen{L}(s) ∧ *(s+i) ≢ 0 ⇒ i < wcslen{L}(s);
+    ∀ int i; 0 ≤ i ≤ wcslen(s) ∧ *(s+i) ≢ 0 ⇒ i < wcslen(s);
   
   axiom wcslen_zero{L}:
     ∀ wchar_t *s;
-    ∀ int i;
-      0 ≤ i ≤ wcslen{L}(s) ∧ *(s+i) ≡ 0 ⇒ i ≡ wcslen{L}(s);
+    ∀ int i; 0 ≤ i ≤ wcslen(s) ∧ *(s+i) ≡ 0 ⇒ i ≡ wcslen(s);
   
   axiom wcslen_sup{L}:
     ∀ wchar_t *s;
-    ∀ int i; 0 ≤ i ∧ *(s+i) ≡ 0 ⇒ 0 ≤ wcslen{L}(s) ≤ i;
+    ∀ int i; 0 ≤ i ∧ *(s+i) ≡ 0 ⇒ 0 ≤ wcslen(s) ≤ i;
   
   axiom wcslen_shift{L}:
     ∀ wchar_t *s;
-    ∀ int i; 0 ≤ i ≤ wcslen{L}(s) ⇒ wcslen{L}(s+i) ≡ wcslen{L}(s)-i;
+    ∀ int i; 0 ≤ i ≤ wcslen(s) ⇒ wcslen(s+i) ≡ wcslen(s)-i;
   
   axiom wcslen_create{L}:
     ∀ wchar_t *s;
-    ∀ int i; 0 ≤ i ∧ *(s+i) ≡ 0 ⇒ 0 ≤ wcslen{L}(s) ≤ i;
+    ∀ int i; 0 ≤ i ∧ *(s+i) ≡ 0 ⇒ 0 ≤ wcslen(s) ≤ i;
   
   axiom wcslen_create_shift{L}:
     ∀ wchar_t *s;
     ∀ int i;
-    ∀ int k;
-      0 ≤ k ≤ i ∧ *(s+i) ≡ 0 ⇒ 0 ≤ wcslen{L}(s+k) ≤ i-k;
+    ∀ int k; 0 ≤ k ≤ i ∧ *(s+i) ≡ 0 ⇒ 0 ≤ wcslen(s+k) ≤ i-k;
   
   }
  */
 /*@
 axiomatic WcsCmp {
   logic ℤ wcscmp{L}(wchar_t *s1, wchar_t *s2) 
-    reads *(s1+(0 .. wcslen{L}(s1))), *(s2+(0 .. wcslen{L}(s2)));
+    reads *(s1+(0 .. wcslen(s1))), *(s2+(0 .. wcslen(s2)));
   
   axiom wcscmp_zero{L}:
     ∀ wchar_t *s1, wchar_t *s2;
-      wcscmp{L}(s1, s2) ≡ 0 ⇔
-      wcslen{L}(s1) ≡ wcslen{L}(s2) ∧
-      (∀ ℤ i; 0 ≤ i ≤ wcslen{L}(s1) ⇒ *(s1+i) ≡ *(s2+i));
+      wcscmp(s1, s2) ≡ 0 ⇔
+      wcslen(s1) ≡ wcslen(s2) ∧
+      (∀ ℤ i; 0 ≤ i ≤ wcslen(s1) ⇒ *(s1+i) ≡ *(s2+i));
   
   }
  */
@@ -250,8 +243,8 @@ axiomatic WcsNCmp {
   axiom wcsncmp_zero{L}:
     ∀ wchar_t *s1, wchar_t *s2;
     ∀ ℤ n;
-      wcsncmp{L}(s1, s2, n) ≡ 0 ⇔
-      (wcslen{L}(s1) < n ∧ wcscmp{L}(s1, s2) ≡ 0) ∨
+      wcsncmp(s1, s2, n) ≡ 0 ⇔
+      (wcslen(s1) < n ∧ wcscmp(s1, s2) ≡ 0) ∨
       (∀ ℤ i; 0 ≤ i < n ⇒ *(s1+i) ≡ *(s2+i));
   
   }
@@ -262,23 +255,22 @@ axiomatic WcsNCmp {
  */
 /*@
 predicate valid_string{L}(char *s) =
-  0 ≤ strlen{L}(s) ∧ \valid{L}(s+(0 .. strlen{L}(s)));
+  0 ≤ strlen(s) ∧ \valid(s+(0 .. strlen(s)));
  */
 /*@
 predicate valid_read_string{L}(char *s) =
-  0 ≤ strlen{L}(s) ∧ \valid_read{L}(s+(0 .. strlen{L}(s)));
+  0 ≤ strlen(s) ∧ \valid_read(s+(0 .. strlen(s)));
  */
 /*@
-predicate valid_string_or_null{L}(char *s) =
-  s ≡ \null ∨ valid_string{L}(s);
+predicate valid_string_or_null{L}(char *s) = s ≡ \null ∨ valid_string(s);
  */
 /*@
 predicate valid_wstring{L}(wchar_t *s) =
-  0 ≤ wcslen{L}(s) ∧ \valid{L}(s+(0 .. wcslen{L}(s)));
+  0 ≤ wcslen(s) ∧ \valid(s+(0 .. wcslen(s)));
  */
 /*@
 predicate valid_wstring_or_null{L}(wchar_t *s) =
-  s ≡ \null ∨ valid_wstring{L}(s);
+  s ≡ \null ∨ valid_wstring(s);
  */
 /*@ requires \valid_read((char *)s1+(0 .. n-1));
     requires \valid_read((char *)s2+(0 .. n-1));
@@ -290,14 +282,18 @@ predicate valid_wstring_or_null{L}(wchar_t *s) =
  */
 extern int memcmp(void const *s1, void const *s2, size_t n);
 
-/*@ requires \valid_read((char *)s+(0 .. n-1));
+/*@ requires \valid_read((unsigned char *)s+(0 .. n-1));
     assigns \result;
-    assigns \result \from s, c, *((char *)s+(0 .. n-1));
+    assigns \result \from s, c, *((unsigned char *)s+(0 .. n-1));
     
     behavior found:
       assumes memchr((char *)s, c, n) ≡ \true;
       ensures \base_addr(\result) ≡ \base_addr(\old(s));
       ensures (int)*((char *)\result) ≡ \old(c);
+      ensures
+        ∀ ℤ i;
+          0 ≤ i < \old(n) ⇒
+          *((unsigned char *)\old(s)+i) ≡ \old(c) ⇒ \result ≤ \old(s)+i;
     
     behavior not_found:
       assumes ¬(memchr((char *)s, c, n) ≡ \true);
@@ -487,7 +483,9 @@ extern char *strerror(int errnum);
 extern char *strcpy(char *dest, char const *src);
 
 /*@ requires valid_string_src: valid_read_string(src);
+    requires room_nstring: \valid(dest+(0 .. n-1));
     ensures \result ≡ \old(dest);
+    ensures \initialized(\old(dest)+(0 .. \old(n)-1));
     assigns *(dest+(0 .. n-1)), \result;
     assigns *(dest+(0 .. n-1)) \from *(src+(0 .. n-1));
     assigns \result \from dest;
@@ -499,7 +497,6 @@ extern char *strcpy(char *dest, char const *src);
     behavior partial:
       assumes n ≤ strlen(src);
       ensures memcmp{Post, Post}(\old(dest), \old(src), \old(n)) ≡ 0;
-      assigns *(dest+(0 .. n-1));
  */
 extern char *strncpy(char *dest, char const *src, size_t n);
 
@@ -848,21 +845,21 @@ extern size_t wcstombs(char *s, wchar_t const *pwcs, size_t n);
 char *strdup(char const *str)
 {
   char *__retres;
-  if (str != (void *)0) {
+  if (str != (char const *)0) {
     register char *copy;
     char *tmp_0;
     size_t tmp;
     tmp = strlen(str);
     tmp_0 = (char *)malloc(tmp + (size_t)1);
     copy = tmp_0;
-    if (copy != (void *)0) {
+    if (copy != (char *)0) {
       char *tmp_1;
       tmp_1 = strcpy(copy,str);
       __retres = tmp_1;
       goto return_label;
     }
   }
-  __retres = (char *)((void *)0);
+  __retres = (char *)0;
   return_label: return __retres;
 }
 

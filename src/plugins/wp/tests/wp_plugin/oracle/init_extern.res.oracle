@@ -11,19 +11,17 @@
 ------------------------------------------------------------
 
 Goal Post-condition 'OK' in 'f':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Post-condition 'KO' in 'f':
-Assume { }
 Prove: false.
 
 ------------------------------------------------------------
 
 Goal Post-condition 'KO' in 'f':
-Assume { (* Domain *) Type: (is_sint32 b_0). }
-Prove: 0=b_0.
+Assume { Type: is_sint32(b). }
+Prove: 0 = b.
 
 ------------------------------------------------------------

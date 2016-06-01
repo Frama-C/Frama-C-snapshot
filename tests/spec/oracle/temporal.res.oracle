@@ -112,8 +112,8 @@ predicate aorai_Trans_Cond_param{L}
  */
 /*@
 predicate aorai_Trans_Cond{L}(ℤ _aorai_numTrans) =
-  aorai_Trans_Cond_param{L}(_aorai_numTrans, aorai_CurOperation,
-                           aorai_CurOpStatus);
+  aorai_Trans_Cond_param(_aorai_numTrans, aorai_CurOperation,
+                        aorai_CurOpStatus);
  */
 /*@
 global invariant _Buch_not_crossable_cond:

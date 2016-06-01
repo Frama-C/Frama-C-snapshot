@@ -1,0 +1,51 @@
+# frama-c -wp -wp-model 'Typed (Caveat)' -wp-depth 16 [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_plugin/sequence.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+[wp] warning: Missing RTE guards
+[wp] 34 goals scheduled
+[wp] [alt-ergo] Goal typed_caveat_loops_post_ok_first : Valid
+[wp] [alt-ergo] Goal typed_caveat_loops_post_ok_last : Valid
+[wp] [alt-ergo] Goal typed_caveat_loops_loop_inv_ok_id_max_preserved : Valid
+[wp] [Qed] Goal typed_caveat_loops_loop_inv_ok_id_max_established : Valid
+[wp] [alt-ergo] Goal typed_caveat_loops_loop_inv_ok_id_min_preserved : Valid
+[wp] [Qed] Goal typed_caveat_loops_loop_inv_ok_id_min_established : Valid
+[wp] [alt-ergo] Goal typed_caveat_loops_loop_inv_ok_inv_preserved : Valid
+[wp] [Qed] Goal typed_caveat_loops_loop_inv_ok_inv_established : Valid
+[wp] [Qed] Goal typed_caveat_loops_loop_assign : Valid
+[wp] [Qed] Goal typed_caveat_loops_assign_exit_part1 : Valid
+[wp] [Qed] Goal typed_caveat_loops_assign_exit_part2 : Valid
+[wp] [Qed] Goal typed_caveat_loops_assign_exit_part3 : Valid
+[wp] [Qed] Goal typed_caveat_loops_assign_normal_part1 : Valid
+[wp] [Qed] Goal typed_caveat_loops_assign_normal_part2 : Valid
+[wp] [Qed] Goal typed_caveat_loops_assign_normal_part3 : Valid
+[wp] [alt-ergo] Goal typed_caveat_loops_g_called_post_ok_u1 : Valid
+[wp] [alt-ergo] Goal typed_caveat_loops_g_called_post_ok_u2 : Valid
+[wp] [alt-ergo] Goal typed_caveat_loops_g_not_called_post_ok_v1 : Valid
+[wp] [alt-ergo] Goal typed_caveat_loops_g_not_called_post_ok_v2 : Valid
+[wp] [Qed] Goal typed_caveat_no_calls_post_ok_m1 : Valid
+[wp] [alt-ergo] Goal typed_caveat_no_calls_post_ok_m2 : Valid
+[wp] [alt-ergo] Goal typed_caveat_no_calls_post_ok_n2 : Valid
+[wp] [alt-ergo] Goal typed_caveat_no_calls_post_ok_n3 : Valid
+[wp] [Qed] Goal typed_caveat_no_calls_assign : Valid
+[wp] [Qed] Goal typed_caveat_sequence_assign_exit : Valid
+[wp] [Qed] Goal typed_caveat_sequence_assign_normal : Valid
+[wp] [alt-ergo] Goal typed_caveat_sequence_g_called_post_ok_o1 : Valid
+[wp] [alt-ergo] Goal typed_caveat_sequence_g_called_post_ok_p1 : Valid
+[wp] [alt-ergo] Goal typed_caveat_sequence_g_called_post_ok_p2 : Valid
+[wp] [alt-ergo] Goal typed_caveat_sequence_g_called_post_ok_p3 : Valid
+[wp] [alt-ergo] Goal typed_caveat_sequence_g_not_called_post_ok_o2 : Valid
+[wp] [alt-ergo] Goal typed_caveat_sequence_g_not_called_post_ok_q1 : Valid
+[wp] [alt-ergo] Goal typed_caveat_sequence_g_not_called_post_ok_q2 : Valid
+[wp] [alt-ergo] Goal typed_caveat_sequence_g_not_called_post_ok_q3 : Valid
+[wp] Proved goals:   34 / 34
+     Qed:            14 
+     alt-ergo:       20
+----------------------------------------------------------
+Functions           WP   Alt-Ergo    Total   Success
+no_calls             2     -           5       100%
+sequence             2     -          10       100%
+loops               10     -          19       100%
+----------------------------------------------------------

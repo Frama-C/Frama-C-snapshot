@@ -96,17 +96,11 @@ tests/slicing/callwise.c:29:[value] entering loop for the first time
 [from] Computing for function fs163_f
 [from] Done for function fs163_f
 [value] Done for function fs163_f
-[value] computing for function fs163_f <- fs163_main <- main.
-        Called from tests/slicing/callwise.c:30.
-[value] Recording results for fs163_f
-[from] Computing for function fs163_f
-[from] Done for function fs163_f
-[value] Done for function fs163_f
 [value] Recording results for fs163_main
 [from] Computing for function fs163_main
 [from] Done for function fs163_main
 [value] Done for function fs163_main
-tests/slicing/callwise.c:45:[kernel] warning: accessing uninitialized left-value:
+tests/slicing/callwise.c:45:[kernel] warning: accessing uninitialized left-value.
                   assert \initialized(&tmp_0);
                   (tmp_0 from fs163_main(10))
 [value] Recording results for main

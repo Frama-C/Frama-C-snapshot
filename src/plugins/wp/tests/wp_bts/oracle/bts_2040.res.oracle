@@ -10,12 +10,6 @@
 ------------------------------------------------------------
 
 Goal Assertion (file tests/wp_bts/bts_2040.i, line 17):
-Assume {
-  (* Domain *)
-  Type: (is_sint32 B_0).
-  (* tests/wp_bts/bts_2040.i:16: Call 'job' *)
-  Have: 0<B_0.
-}
 Prove: true.
 
 ------------------------------------------------------------

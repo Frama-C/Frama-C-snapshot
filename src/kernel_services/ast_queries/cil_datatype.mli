@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -43,7 +43,10 @@ module Location: sig
         the full-path to the file. The default pretty-printer [pretty] echoes
         [<dir/f>:<l>] *)
   val pretty_line: t Pretty_utils.formatter
-    (** Prints only the line of the location *)
+  (** Prints only the line of the location *)
+
+  (**/**)
+  val pretty_ref: (Format.formatter -> t -> unit) ref
 end
 
 module Localisation: Datatype.S with type t = localisation
@@ -96,7 +99,12 @@ end
 
 module ExpStructEq: S_with_collections with type t = exp
 
-module Fieldinfo: S_with_collections with type t = fieldinfo
+module Fieldinfo: sig
+  include S_with_collections with type t = fieldinfo
+  (**/**)
+  val pretty_ref: (Format.formatter -> t -> unit) ref
+  (**/**)
+end
 module File: S with type t = file
 
 module Global: sig
@@ -109,6 +117,7 @@ module Initinfo: S with type t = initinfo
 module Instr: sig
   include S with type t = instr
   val loc: t -> location
+  (**/**)
   val pretty_ref: (Format.formatter -> t -> unit) ref
 end
 

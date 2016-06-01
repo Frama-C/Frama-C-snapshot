@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -159,7 +159,7 @@ class type extensible_printer_type = object
   (** Print a line-number. This is assumed to come always on an empty line. If
       the forcefile argument is present and is true then the file name will be
       printed always. Otherwise the file name is printed only if it is
-      different from the last time time this function is called. The last file
+      different from the last time this function is called. The last file
       name is stored in a private field inside the cilPrinter object. *)
 
   method stmt_labels: Format.formatter -> stmt -> unit
@@ -308,7 +308,7 @@ end
 type line_directive_style =
   | Line_comment (** Before every element, print the line number in
                      comments. This is ignored by processing tools
-                     (thus errors are reproted in the CIL output),
+                     (thus errors are reported on the lines of the CIL output),
                      but useful for visual inspection *)
   | Line_comment_sparse (** Like LineComment but only print a line directive for
                             a new source line *)

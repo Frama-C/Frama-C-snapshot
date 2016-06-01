@@ -1,5 +1,5 @@
-/* run.config
-   OPT: -val -journal-disable -float-hex
+/* run.config*
+   OPT: -val @VALUECONFIG@ -journal-disable -float-hex
 */
 
 #include "__fc_builtin.h"

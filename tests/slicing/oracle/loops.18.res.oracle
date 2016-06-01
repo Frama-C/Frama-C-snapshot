@@ -12,7 +12,7 @@
   Z ∈ [--..--]
 tests/slicing/loops.c:82:[value] entering loop for the first time
 tests/slicing/loops.c:82:[kernel] warning: signed overflow. assert c+10 ≤ 2147483647;
-tests/slicing/loops.c:88:[value] Assertion got status unknown.
+tests/slicing/loops.c:88:[value] warning: assertion got status unknown.
 [value] computing for function stop <- stop_f2.
         Called from tests/slicing/loops.c:89.
 tests/slicing/loops.c:89:[kernel] warning: Neither code nor specification for function stop, generating default assigns from the prototype

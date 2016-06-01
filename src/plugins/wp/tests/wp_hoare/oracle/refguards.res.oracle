@@ -11,7 +11,6 @@
 ------------------------------------------------------------
 
 Goal Post-condition (file tests/wp_hoare/refguards.i, line 9) in 'f':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
@@ -20,16 +19,15 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition (file tests/wp_hoare/refguards.i, line 17) in 'g':
-Let a_1 = (shift_sint32 b_0 k_0).
-Let x_0 = Mint_1[a_1].
-Let x_1 = Mint_1[(shift_sint32 a_0 k_0)->x_0][a_1].
+Let a_1 = shift_sint32(b, k).
+Let x = Mint_0[a_1].
+Let x_1 = Mint_0[shift_sint32(a, k) <- x][a_1].
 Assume {
-  (* Domain *)
-  Type: (is_sint32 k_0) /\ (is_sint32 x_0) /\ (is_sint32 x_1).
+  Type: is_sint32(k) /\ is_sint32(x) /\ is_sint32(x_1).
   (* Heap *)
-  Have: ((region (base a_0))<=0) /\ ((region (base b_0))<=0).
+  Have: (region(a.base) <= 0) /\ (region(b.base) <= 0).
 }
-Prove: x_0=x_1.
+Prove: x = x_1.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -37,7 +35,6 @@ Prove: x_0=x_1.
 ------------------------------------------------------------
 
 Goal Post-condition (file tests/wp_hoare/refguards.i, line 24) in 'h':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
@@ -46,40 +43,32 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition (file tests/wp_hoare/refguards.i, line 32) in 's':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Post-condition (file tests/wp_hoare/refguards.i, line 33) in 's':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Post-condition (file tests/wp_hoare/refguards.i, line 34) in 's':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Post-condition (file tests/wp_hoare/refguards.i, line 35) in 's':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Post-condition (file tests/wp_hoare/refguards.i, line 36) in 's':
-Assume {
-  (* Heap *)
-  Have: ((region (base c_0))<=0) /\ ((region (base d_0))<=0).
-}
-Prove: c_0!=d_0.
+Assume { (* Heap *) Have: (region(c.base) <= 0) /\ (region(d.base) <= 0). }
+Prove: c != d.
 
 ------------------------------------------------------------
 
 Goal Post-condition (file tests/wp_hoare/refguards.i, line 37) in 's':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------

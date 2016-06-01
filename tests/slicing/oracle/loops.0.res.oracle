@@ -11,7 +11,7 @@
   Y ∈ [--..--]
   Z ∈ [--..--]
 tests/slicing/loops.c:34:[value] entering loop for the first time
-tests/slicing/loops.c:36:[value] Assertion got status valid.
+tests/slicing/loops.c:36:[value] assertion got status valid.
 tests/slicing/loops.c:35:[kernel] warning: signed overflow. assert s+1 ≤ 2147483647;
 [value] Recording results for f1
 [value] done for function f1

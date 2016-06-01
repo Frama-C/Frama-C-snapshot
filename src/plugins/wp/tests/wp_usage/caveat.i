@@ -1,6 +1,6 @@
 /* run.config
    OPT:
-   OPT: -wp-log refusage -wp-model Caveat
+   OPT: -wp-msg-key refusage -wp-model Caveat
 */
 
 /* run.config_qualif

@@ -11,14 +11,12 @@
 ------------------------------------------------------------
 
 Goal Post-condition 'qed_ok' in 'correct':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Instance of 'Pre-condition 'qed_ok' in 'f'' in 'correct' at call 'f' (file tests/wp_hoare/byref.i, line 27)
 :
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
@@ -27,13 +25,11 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition 'qed_ok' in 'f':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Assigns 'qed_ok' in 'f':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
@@ -42,13 +38,11 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition 'qed_ok' in 'f_ko':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Assigns 'qed_ok' in 'f_ko':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
@@ -57,14 +51,12 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition 'qed_ok' in 'formal':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Instance of 'Pre-condition 'qed_ok' in 'f'' in 'formal' at call 'f' (file tests/wp_hoare/byref.i, line 42)
 :
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
@@ -73,14 +65,12 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition 'qed_ok' in 'local':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Instance of 'Pre-condition 'qed_ok' in 'f'' in 'local' at call 'f' (file tests/wp_hoare/byref.i, line 35)
 :
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
@@ -89,14 +79,12 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition 'qed_ok' in 'wrong':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Instance of 'Pre-condition 'qed_ko' in 'f_ko'' in 'wrong' at call 'f_ko' (file tests/wp_hoare/byref.i, line 20)
 :
-Assume { }
-Prove: ra_q_0.
+Prove: (ra_q_0=true).
 
 ------------------------------------------------------------

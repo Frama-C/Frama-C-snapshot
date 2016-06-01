@@ -1,0 +1,428 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/value/addition.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  NULL[rbits 360 to 391] ∈ [--..--]
+  t[0..9] ∈ {0}
+  x ∈ {0}
+  y ∈ {0}
+  z ∈ {0}
+  zz ∈ {0}
+  p1 ∈ {0}
+  p2 ∈ {0}
+  p3 ∈ {0}
+  p4 ∈ {0}
+  p5 ∈ {0}
+  p6 ∈ {0}
+  p7 ∈ {0}
+  p8 ∈ {0}
+  p9 ∈ {0}
+  p10 ∈ {0}
+  p11 ∈ {0}
+  p12 ∈ {0}
+  p13 ∈ {0}
+  p14 ∈ {0}
+  p15 ∈ {0}
+  p16 ∈ {0}
+  p17 ∈ {0}
+  u1 ∈ {0}
+  u3 ∈ {0}
+  q1 ∈ {0}
+  quo1 ∈ {0}
+  rem1 ∈ {0}
+  quo2 ∈ {0}
+  rem2 ∈ {0}
+  quo3 ∈ {0}
+  rem3 ∈ {0}
+  quo4 ∈ {0}
+  rem4 ∈ {0}
+  quo5 ∈ {0}
+  rem5 ∈ {0}
+  mm1 ∈ {0}
+  mm2 ∈ {0}
+  mm3 ∈ {0}
+  quo6 ∈ {0}
+  c1 ∈ {0}
+  c2 ∈ {0}
+  qu1 ∈ {0}
+  qu2 ∈ {0}
+  ll1 ∈ {0}
+  ll2 ∈ {0}
+  tt[0..4] ∈ {0}
+  ttt[0..4][0..5] ∈ {0}
+  square ∈ {0}
+tests/value/addition.i:34:[kernel] warning: signed overflow. assert -2147483648 ≤ &p2-&p3;
+tests/value/addition.i:34:[kernel] warning: signed overflow. assert &p2-&p3 ≤ 2147483647;
+tests/value/addition.i:34:[value] Assigning imprecise value to p1.
+        The imprecision originates from Arithmetic {tests/value/addition.i:34}
+tests/value/addition.i:36:[value] Assigning imprecise value to p2.
+        The imprecision originates from Arithmetic {tests/value/addition.i:36}
+tests/value/addition.i:38:[value] Assigning imprecise value to p3.
+        The imprecision originates from Arithmetic {tests/value/addition.i:38}
+tests/value/addition.i:40:[value] Assigning imprecise value to p4.
+        The imprecision originates from Arithmetic {tests/value/addition.i:40}
+tests/value/addition.i:42:[value] Assigning imprecise value to p5.
+        The imprecision originates from Arithmetic {tests/value/addition.i:42}
+tests/value/addition.i:44:[value] Assigning imprecise value to p6.
+        The imprecision originates from Arithmetic {tests/value/addition.i:44}
+tests/value/addition.i:46:[value] Assigning imprecise value to p7.
+        The imprecision originates from Arithmetic {tests/value/addition.i:46}
+tests/value/addition.i:48:[kernel] warning: pointer comparison.
+                  assert \pointer_comparable((void *)(&p1+1), (void *)(&p2));
+tests/value/addition.i:50:[kernel] warning: signed overflow. assert -2147483648 ≤ (int)(&p1)/2;
+tests/value/addition.i:50:[kernel] warning: signed overflow. assert (int)(&p1)/2 ≤ 2147483647;
+tests/value/addition.i:50:[value] Assigning imprecise value to p9.
+        The imprecision originates from Arithmetic {tests/value/addition.i:50}
+tests/value/addition.i:52:[value] Assigning imprecise value to p10.
+        The imprecision originates from Arithmetic {tests/value/addition.i:52}
+tests/value/addition.i:56:[value] Assigning imprecise value to p12.
+        The imprecision originates from Arithmetic {tests/value/addition.i:56}
+tests/value/addition.i:59:[kernel] warning: signed overflow. assert -2147483648 ≤ (int)*((char *)(&q1))+2;
+tests/value/addition.i:59:[kernel] warning: signed overflow. assert (int)*((char *)(&q1))+2 ≤ 2147483647;
+tests/value/addition.i:59:[value] Assigning imprecise value to p13.
+        The imprecision originates from Misaligned {tests/value/addition.i:59}
+tests/value/addition.i:61:[value] Assigning imprecise value to p14.
+        The imprecision originates from Misaligned {tests/value/addition.i:61}
+tests/value/addition.i:66:[kernel] warning: out of bounds read. assert \valid_read(*((int **)45));
+[value] Called Frama_C_show_each_1([-10..15])
+tests/value/addition.i:88:[value] assertion got status valid.
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  t[0] ∈ {0}
+   [1] ∈ {45}
+   [2] ∈ {3}
+   [3..9] ∈ {0}
+  z ∈ {37}
+  p1 ∈
+    {{ garbled mix of &{p2; p3}
+     (origin: Arithmetic {tests/value/addition.i:34}) }}
+  p2 ∈
+    {{ garbled mix of &{p1}
+     (origin: Arithmetic {tests/value/addition.i:36}) }}
+  p3 ∈
+    {{ garbled mix of &{t; p1}
+     (origin: Arithmetic {tests/value/addition.i:38}) }}
+  p4 ∈
+    {{ garbled mix of &{p1; tt}
+     (origin: Arithmetic {tests/value/addition.i:40}) }}
+  p5 ∈
+    {{ garbled mix of &{p1; p2; ttt}
+     (origin: Arithmetic {tests/value/addition.i:42}) }}
+  p6 ∈
+    {{ garbled mix of &{p1; ttt}
+     (origin: Arithmetic {tests/value/addition.i:44}) }}
+  p7 ∈
+    {{ garbled mix of &{p2; ttt}
+     (origin: Arithmetic {tests/value/addition.i:46}) }}
+  p8 ∈ {0; 1}
+  p9 ∈
+    {{ garbled mix of &{p1}
+     (origin: Arithmetic {tests/value/addition.i:50}) }}
+  p10 ∈
+     {{ garbled mix of &{p1}
+      (origin: Arithmetic {tests/value/addition.i:52}) }}
+  p11 ∈ [-2147483648..0]
+  p12 ∈
+     {{ garbled mix of &{p1; p2}
+      (origin: Arithmetic {tests/value/addition.i:56}) }}
+  p13 ∈
+     {{ garbled mix of &{p1}
+      (origin: Misaligned {tests/value/addition.i:59}) }}
+  p14 ∈
+     {{ garbled mix of &{p1}
+      (origin: Misaligned {tests/value/addition.i:61}) }}
+  p15 ∈ {-1}
+  p16 ∈ {2949122}
+  p17 ∈ {-2147483648; 0}
+  u1 ∈ {8}
+  q1 ∈ {{ &p1 }}
+  quo1 ∈ {3}
+  rem1 ∈ {1}
+  quo2 ∈ {-3}
+  rem2 ∈ {-1}
+  quo3 ∈ {3}
+  rem3 ∈ {-1}
+  quo4 ∈ {-3}
+  rem4 ∈ {1}
+  quo5 ∈ {-3}
+  rem5 ∈ {0}
+  mm1 ∈ [-224848..151152],0%16
+  mm2 ∈ [-6982976..4665024],64%128
+  mm3 ∈ [-1182974..789526],1%5
+  quo6 ∈ [-446..-371],1%3
+  c1 ∈ [-48..77],2%5
+  c2 ∈ [-46..79],4%5
+  qu1 ∈ [53..223]
+  qu2 ∈ [-14..23]
+  ll1 ∈ [4294967248..4294967373],3%5
+  ll2 ∈ [4294967250..4294967375],0%5
+  tt[0].a ∈ {0}
+    [0].b ∈ {-1}
+    {[0].[bits 34 to 63]; [1..4]} ∈ {0}
+  square ∈ [-150..225]
+  u2 ∈ {34}
+  __retres ∈ {6}
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  t[1] FROM NULL[45..48]
+   [2] FROM \nothing
+  z FROM \nothing
+  p1 FROM \nothing
+  p2 FROM \nothing
+  p3 FROM \nothing
+  p4 FROM \nothing
+  p5 FROM \nothing
+  p6 FROM u2
+  p7 FROM u2
+  p8 FROM \nothing
+  p9 FROM \nothing
+  p10 FROM \nothing
+  p11 FROM u2 (and SELF)
+  p12 FROM \nothing
+  p13 FROM \nothing
+  p14 FROM \nothing
+  p15 FROM \nothing
+  p16 FROM NULL[45..48]; t[0][bits 16 to 31]
+  p17 FROM u4
+  u1 FROM \nothing
+  q1 FROM \nothing
+  quo1 FROM \nothing
+  rem1 FROM \nothing
+  quo2 FROM \nothing
+  rem2 FROM \nothing
+  quo3 FROM \nothing
+  rem3 FROM \nothing
+  quo4 FROM \nothing
+  rem4 FROM \nothing
+  quo5 FROM \nothing
+  rem5 FROM \nothing
+  mm1 FROM u2; u3_0
+  mm2 FROM u2; u3_0
+  mm3 FROM u2; u3_0
+  quo6 FROM u3_0
+  c1 FROM u3_0
+  c2 FROM u3_0
+  qu1 FROM u3_0
+  qu2 FROM u3_0
+  ll1 FROM u3_0
+  ll2 FROM u3_0
+  tt[0].b FROM \nothing
+  square FROM u3_0
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          t[1..2]; z; p1; p2; p3; p4; p5; p6; p7; p8; p9; p10; p11; p12; p13; 
+          p14; p15; p16; p17; u1; q1; quo1; rem1; quo2; rem2; quo3; rem3; quo4; 
+          rem4; quo5; rem5; mm1; mm2; mm3; quo6; c1; c2; qu1; qu2; ll1; ll2; 
+          tt[0].b; square; u2; s; t_0; __retres
+[inout] Inputs for function main:
+          NULL[45..48]; t{{[0][bits 16 to 31]; [1][bits 0 to 15]}; [2]}; z; p17;
+          q1[bits 0 to 7]; ll1; ll2; tt[0].b
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  NULL[rbits 360 to 399] ∈ [--..--]
+  t[0..9] ∈ {0}
+  x ∈ {0}
+  y ∈ {0}
+  z ∈ {0}
+  zz ∈ {0}
+  p1 ∈ {0}
+  p2 ∈ {0}
+  p3 ∈ {0}
+  p4 ∈ {0}
+  p5 ∈ {0}
+  p6 ∈ {0}
+  p7 ∈ {0}
+  p8 ∈ {0}
+  p9 ∈ {0}
+  p10 ∈ {0}
+  p11 ∈ {0}
+  p12 ∈ {0}
+  p13 ∈ {0}
+  p14 ∈ {0}
+  p15 ∈ {0}
+  p16 ∈ {0}
+  p17 ∈ {0}
+  u1 ∈ {0}
+  u3 ∈ {0}
+  q1 ∈ {0}
+  quo1 ∈ {0}
+  rem1 ∈ {0}
+  quo2 ∈ {0}
+  rem2 ∈ {0}
+  quo3 ∈ {0}
+  rem3 ∈ {0}
+  quo4 ∈ {0}
+  rem4 ∈ {0}
+  quo5 ∈ {0}
+  rem5 ∈ {0}
+  mm1 ∈ {0}
+  mm2 ∈ {0}
+  mm3 ∈ {0}
+  quo6 ∈ {0}
+  c1 ∈ {0}
+  c2 ∈ {0}
+  qu1 ∈ {0}
+  qu2 ∈ {0}
+  ll1 ∈ {0}
+  ll2 ∈ {0}
+  tt[0..4] ∈ {0}
+  ttt[0..4][0..5] ∈ {0}
+  square ∈ {0}
+tests/value/addition.i:34:[kernel] warning: signed overflow. assert -2147483648 ≤ &p2-&p3;
+tests/value/addition.i:34:[kernel] warning: signed overflow. assert &p2-&p3 ≤ 2147483647;
+tests/value/addition.i:48:[kernel] warning: pointer comparison.
+                  assert \pointer_comparable((void *)(&p1+1), (void *)(&p2));
+tests/value/addition.i:50:[kernel] warning: signed overflow. assert -2147483648 ≤ (int)(&p1)/2;
+tests/value/addition.i:50:[kernel] warning: signed overflow. assert (int)(&p1)/2 ≤ 2147483647;
+tests/value/addition.i:59:[kernel] warning: signed overflow. assert -2147483648 ≤ (int)*((char *)(&q1))+2;
+tests/value/addition.i:59:[kernel] warning: signed overflow. assert (int)*((char *)(&q1))+2 ≤ 2147483647;
+tests/value/addition.i:66:[kernel] warning: out of bounds read. assert \valid_read(*((int **)45));
+[value] Called Frama_C_show_each_1([-10..15])
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  t[0] ∈ {0}
+   [1][bits 0 to 23] ∈ {0; 45; 46}
+   [1][bits 24 to 31] ∈ [--..--]
+   [2] ∈ {3}
+   [3..9] ∈ {0}
+  z ∈ {37}
+  p1 ∈
+    {{ garbled mix of &{p2; p3}
+     (origin: Arithmetic {tests/value/addition.i:34}) }}
+  p2 ∈
+    {{ garbled mix of &{p1}
+     (origin: Arithmetic {tests/value/addition.i:36}) }}
+  p3 ∈
+    {{ garbled mix of &{t; p1}
+     (origin: Arithmetic {tests/value/addition.i:38}) }}
+  p4 ∈
+    {{ garbled mix of &{p1; tt}
+     (origin: Arithmetic {tests/value/addition.i:40}) }}
+  p5 ∈
+    {{ garbled mix of &{p1; p2; ttt}
+     (origin: Arithmetic {tests/value/addition.i:42}) }}
+  p6 ∈
+    {{ garbled mix of &{p1; ttt}
+     (origin: Arithmetic {tests/value/addition.i:44}) }}
+  p7 ∈
+    {{ garbled mix of &{p2; ttt}
+     (origin: Arithmetic {tests/value/addition.i:46}) }}
+  p8 ∈ {0; 1}
+  p9 ∈
+    {{ garbled mix of &{p1}
+     (origin: Arithmetic {tests/value/addition.i:50}) }}
+  p10 ∈
+     {{ garbled mix of &{p1}
+      (origin: Arithmetic {tests/value/addition.i:52}) }}
+  p11 ∈ [-2147483648..0]
+  p12 ∈
+     {{ garbled mix of &{p1; p2}
+      (origin: Arithmetic {tests/value/addition.i:56}) }}
+  p13 ∈
+     {{ garbled mix of &{p1}
+      (origin: Misaligned {tests/value/addition.i:59}) }}
+  p14 ∈
+     {{ garbled mix of &{p1}
+      (origin: Misaligned {tests/value/addition.i:61}) }}
+  p15 ∈ {-1}
+  p16 ∈ {2; 2949122; 3014658}
+  p17 ∈ {-2147483648; 0}
+  u1 ∈ {8}
+  q1 ∈ {{ &p1 }}
+  quo1 ∈ {3}
+  rem1 ∈ {1}
+  quo2 ∈ {-3}
+  rem2 ∈ {-1}
+  quo3 ∈ {3}
+  rem3 ∈ {-1}
+  quo4 ∈ {-3}
+  rem4 ∈ {1}
+  quo5 ∈ {-3}
+  rem5 ∈ {0}
+  mm1 ∈ [-224848..151152],0%16
+  mm2 ∈ [-6982976..4665024],64%128
+  mm3 ∈ [-1182974..789526],1%5
+  quo6 ∈ [-446..-371],1%3
+  c1 ∈ [-48..77],2%5
+  c2 ∈ [-46..79],4%5
+  qu1 ∈ [53..223]
+  qu2 ∈ [-14..23]
+  ll1 ∈ [4294967248..4294967373],3%5
+  ll2 ∈ [4294967250..4294967375],0%5
+  tt[0].a ∈ {0}
+    [0].b ∈ {-1}
+    {[0].[bits 34 to 63]; [1..4]} ∈ {0}
+  square ∈ [-150..225]
+  u2 ∈ {34}
+  __retres ∈ {6}
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  t[1] FROM NULL[45..49]
+   [2] FROM \nothing
+  z FROM \nothing
+  p1 FROM \nothing
+  p2 FROM \nothing
+  p3 FROM \nothing
+  p4 FROM \nothing
+  p5 FROM \nothing
+  p6 FROM u2
+  p7 FROM u2
+  p8 FROM \nothing
+  p9 FROM \nothing
+  p10 FROM \nothing
+  p11 FROM u2 (and SELF)
+  p12 FROM \nothing
+  p13 FROM \nothing
+  p14 FROM \nothing
+  p15 FROM \nothing
+  p16 FROM NULL[45..49]; t[0][bits 16 to 31]
+  p17 FROM u4
+  u1 FROM \nothing
+  q1 FROM \nothing
+  quo1 FROM \nothing
+  rem1 FROM \nothing
+  quo2 FROM \nothing
+  rem2 FROM \nothing
+  quo3 FROM \nothing
+  rem3 FROM \nothing
+  quo4 FROM \nothing
+  rem4 FROM \nothing
+  quo5 FROM \nothing
+  rem5 FROM \nothing
+  mm1 FROM u2; u3_0
+  mm2 FROM u2; u3_0
+  mm3 FROM u2; u3_0
+  quo6 FROM u3_0
+  c1 FROM u3_0
+  c2 FROM u3_0
+  qu1 FROM u3_0
+  qu2 FROM u3_0
+  ll1 FROM u3_0
+  ll2 FROM u3_0
+  tt[0].b FROM \nothing
+  square FROM u3_0
+  \result FROM \nothing
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          t[1..2]; z; p1; p2; p3; p4; p5; p6; p7; p8; p9; p10; p11; p12; p13; 
+          p14; p15; p16; p17; u1; q1; quo1; rem1; quo2; rem2; quo3; rem3; quo4; 
+          rem4; quo5; rem5; mm1; mm2; mm3; quo6; c1; c2; qu1; qu2; ll1; ll2; 
+          tt[0].b; square; u2; s; t_0; __retres
+[inout] Inputs for function main:
+          NULL[45..49]; t{{[0][bits 16 to 31]; [1][bits 0 to 15]}; [2]}; z; p17;
+          q1[bits 0 to 7]; ll1; ll2; tt[0].b

@@ -10,7 +10,6 @@ tests/wp_acsl/logic.i:10:[kernel] warning: No code nor implicit assigns clause f
 ------------------------------------------------------------
 
 Goal Pre-condition (file tests/wp_acsl/logic.i, line 10) in 'main':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------

@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Frama-C.                                         */
 /*                                                                        */
-/*  Copyright (C) 2007-2015                                               */
+/*  Copyright (C) 2007-2016                                               */
 /*    CEA   (Commissariat à l'énergie atomique et aux énergies            */
 /*           alternatives)                                                */
 /*    INRIA (Institut National de Recherche en Informatique et en         */
@@ -74,8 +74,8 @@
 
   let relation_sense rel sense =
     match rel, sense with
-        Eq, _ -> sense, true
-      | Neq, Unknown -> Disequal, true (* No chain of disequality for now*)
+      | Eq, (Unknown|Greater|Less) -> sense, true
+      | Neq, Unknown -> Disequal, false (* No chain of disequality for now*)
       | (Gt|Ge), (Unknown|Greater) -> Greater, true
       | (Lt|Le), (Unknown|Less) -> Less, true
       | _ -> sense, false
@@ -240,7 +240,7 @@
 %token INT INTEGER REAL BOOLEAN BOOL FLOAT LT GT LE GE EQ NE COMMA ARROW EQUAL
 %token FORALL EXISTS IFF IMPLIES AND OR NOT SEPARATED
 %token TRUE FALSE OLD AT RESULT
-%token BLOCK_LENGTH BASE_ADDR OFFSET VALID VALID_READ VALID_INDEX VALID_RANGE
+%token BLOCK_LENGTH BASE_ADDR OFFSET VALID VALID_READ VALID_INDEX VALID_RANGE VALID_FUNCTION
 %token ALLOCATION STATIC REGISTER AUTOMATIC DYNAMIC UNALLOCATED
 %token ALLOCABLE FREEABLE FRESH
 %token DOLLAR QUESTION MINUS PLUS STAR AMP SLASH PERCENT LSQUARE RSQUARE EOF
@@ -254,16 +254,16 @@
 %token BSUNION INTER
 %token LTCOLON COLONGT TYPE BEHAVIOR BEHAVIORS ASSUMES COMPLETE DISJOINT
 %token TERMINATES
-%token BIFF BIMPLIES HAT HATHAT PIPE TILDE GTGT LTLT
+%token BIFF BIMPLIES STARHAT HAT HATHAT PIPE TILDE GTGT LTLT
 %token SIZEOF LAMBDA LET
 %token TYPEOF BSTYPE
 %token WITH CONST
 %token INITIALIZED DANGLING
 %token CUSTOM
+%token LSQUAREPIPE RSQUAREPIPE
 
-%nonassoc lowest
 %right prec_named
-%nonassoc IDENTIFIER TYPENAME SEPARATED
+%nonassoc TYPENAME
 %nonassoc prec_forall prec_exists prec_lambda LET
 %right QUESTION prec_question
 %left IFF
@@ -271,22 +271,19 @@
 %left OR
 %left HATHAT
 %left AND
-%left PIPE
 %left BIFF
 %right BIMPLIES
+%left PIPE
 %left HAT
+%left STARHAT
 %left AMP
-%nonassoc prec_no_rel
-%left prec_rel_list /* for list of relations (LT GT LE GE EQ NE) */
 %left LT
 %left LTLT GTGT
 %left PLUS MINUS
-%left STAR SLASH PERCENT CONST VOLATILE
+%left STAR SLASH PERCENT
 %right prec_cast TILDE NOT prec_unary_op
 %nonassoc LTCOLON COLONGT
 %left DOT ARROW LSQUARE
-%right prec_par
-%nonassoc highest
 
 %type <Logic_ptree.lexpr> lexpr_eof
 %start lexpr_eof
@@ -367,12 +364,12 @@ lexpr:
         let str = escape str in
          info (PLnamed (str, $3))
        }
-| lexpr_rel %prec prec_rel_list { $1 }
+| lexpr_rel { $1 }
 ;
 
 lexpr_rel:
-| lexpr_end_rel %prec prec_no_rel { $1 }
-| lexpr_inner rel_list %prec prec_rel_list
+| lexpr_end_rel  { $1 }
+| lexpr_inner rel_list
       { let rel, rhs, _, oth_rel = $2 in
         let loc = loc_start $1, loc_end rhs in
         let relation = loc_info loc (PLrel($1,rel,rhs)) in
@@ -393,15 +390,15 @@ lexpr_binder:
 ;
 
 lexpr_end_rel:
-  lexpr_inner %prec prec_no_rel { $1 }
+  lexpr_inner  { $1 }
 | lexpr_binder { $1 }
 | NOT lexpr_binder { info (PLnot $2) }
 ;
 
 rel_list:
-| relation lexpr_end_rel %prec prec_rel_list
+| relation lexpr_end_rel
   { $1, $2, fst(relation_sense $1 Unknown), None }
-| relation lexpr_inner rel_list %prec prec_rel_list
+| relation lexpr_inner rel_list
   {
     let next_rel, rhs, sense, oth_rel = $3 in
     let (sense, correct) = relation_sense $1 sense
@@ -454,6 +451,7 @@ lexpr_inner:
 | FALSE { info PLfalse }
 | VALID opt_label_1 LPAR lexpr RPAR { info (PLvalid ($2,$4)) }
 | VALID_READ opt_label_1 LPAR lexpr RPAR { info (PLvalid_read ($2,$4)) }
+| VALID_FUNCTION LPAR lexpr RPAR { info (PLvalid_function $3) }
 | VALID_INDEX opt_label_1 LPAR lexpr COMMA lexpr RPAR { 
   let source = fst (loc ()) in
   obsolete ~source "\\valid_index(addr,idx)" ~now:"\\valid(addr+idx)";
@@ -492,10 +490,12 @@ lexpr_inner:
 | lexpr_inner STAR lexpr_inner { info (PLbinop ($1, Bmul, $3)) }
 | lexpr_inner SLASH lexpr_inner { info (PLbinop ($1, Bdiv, $3)) }
 | lexpr_inner PERCENT lexpr_inner { info (PLbinop ($1, Bmod, $3)) }
+| lexpr_inner STARHAT lexpr_inner  { info (PLrepeat ($1, $3)) }
 | lexpr_inner ARROW identifier_or_typename { info (PLarrow ($1, $3)) }
 | lexpr_inner DOT identifier_or_typename { info (PLdot ($1, $3)) }
 | lexpr_inner LSQUARE range RSQUARE { info (PLarrget ($1, $3)) }
 | lexpr_inner LSQUARE lexpr RSQUARE { info (PLarrget ($1, $3)) }
+| LSQUAREPIPE lexpr_list RSQUAREPIPE {info (PLlist $2) }
 | MINUS lexpr_inner %prec prec_unary_op { info (PLunop (Uminus, $2)) }
 | PLUS  lexpr_inner %prec prec_unary_op { $2 }
 | TILDE lexpr_inner { info (PLunop (Ubw_not, $2)) }
@@ -514,16 +514,16 @@ lexpr_inner:
       { info (PLapp ($1, $3, $6)) }
 | identifier LBRACE ne_label_args RBRACE
       { info (PLapp ($1, $3, [])) }
-| identifier %prec IDENTIFIER { info (PLvar $1) }
+| identifier  { info (PLvar $1) }
 | lexpr_inner GTGT lexpr_inner { info (PLbinop ($1, Brshift, $3))}
 | lexpr_inner LTLT lexpr_inner { info (PLbinop ($1, Blshift, $3))}
-| LPAR lexpr RPAR %prec prec_par { info $2.lexpr_node }
+| LPAR lexpr RPAR { info $2.lexpr_node }
 | LPAR range RPAR { info $2.lexpr_node }
 | LPAR cast_logic_type RPAR lexpr_inner %prec prec_cast
       { info (PLcast ($2, $4)) }
 | lexpr_inner LTCOLON lexpr_inner %prec prec_cast
       { info (PLsubtype ($1, $3)) }
-| lexpr_inner COLONGT logic_type %prec prec_cast
+| lexpr_inner COLONGT logic_type 
       { info (PLcoercion ($1, $3)) }
 | lexpr_inner COLONGT lexpr_inner %prec prec_cast
       { info (PLcoercionE ($1, $3)) }
@@ -534,8 +534,8 @@ lexpr_inner:
 | EMPTY { info PLempty }
 | BSUNION LPAR lexpr_list RPAR { info (PLunion $3) }
 | INTER LPAR lexpr_list RPAR { info (PLinter $3) }
-| LBRACE lexpr RBRACE
-      { info (PLsingleton ($2)) }
+| LBRACE lexpr_list RBRACE
+      { info (PLset ($2)) }
 | LBRACE lexpr PIPE binders RBRACE
       {info (PLcomprehension ($2,$4,None)) }
 | LBRACE lexpr PIPE binders SEMICOLON lexpr RBRACE
@@ -742,7 +742,7 @@ abs_spec_option:
 ;
 
 abs_spec_cv_option:
-| /* empty */ %prec TYPENAME  { fun t -> t }
+| /* empty */   { fun t -> t }
 | abs_spec_cv { $1 }
 ;
 
@@ -758,12 +758,12 @@ abs_spec:
 
 abs_spec_cv:
 |                         tabs { $1 }
-| stars_cv                      %prec TYPENAME { $1 }
+| stars_cv                       { $1 }
 | stars_cv                 tabs                { fun t -> $2 ($1 t) }
-| stars_cv abs_spec_bis_cv      %prec TYPENAME { fun t -> $2 ($1 t) }
+| stars_cv abs_spec_bis_cv       { fun t -> $2 ($1 t) }
 | stars_cv abs_spec_bis_cv tabs                { fun t -> $2 ($3 ($1 t)) }
 |          abs_spec_bis_cv tabs                { fun t -> $1 ($2 t) }
-|          abs_spec_bis_cv      %prec TYPENAME { $1 }
+|          abs_spec_bis_cv       { $1 }
 ;
 
 abs_spec_bis:
@@ -1249,9 +1249,9 @@ annot:
 
 custom_tree:
 | TYPE type_spec  { CustomType $2 }
-| LOGIC lexpr %prec prec_named    { CustomLexpr $2 }
-| any_identifier_non_logic %prec lowest { CustomOther($1,[]) }
-| any_identifier_non_logic LPAR custom_tree_list RPAR %prec lowest { CustomOther($1,$3) }
+| LOGIC lexpr     { CustomLexpr $2 }
+| any_identifier_non_logic  { CustomOther($1,[]) }
+| any_identifier_non_logic LPAR custom_tree_list RPAR  { CustomOther($1,$3) }
 ;
 
 custom_tree_list:
@@ -1872,6 +1872,7 @@ bs_keyword:
 | VALID_INDEX { () }
 | VALID_RANGE { () }
 | VALID_READ { () }
+| VALID_FUNCTION { () }
 | INITIALIZED { () }
 | DANGLING { () }
 | WITH { () }
@@ -1911,6 +1912,7 @@ wildcard:
 | LE { () }
 | LPAR { () }
 | LSQUARE { () }
+| LSQUAREPIPE { () }
 | LT { () }
 | LTCOLON { () }
 | LTLT { () }
@@ -1925,9 +1927,11 @@ wildcard:
 | RBRACE { () }
 | RPAR { () }
 | RSQUARE { () }
+| RSQUAREPIPE { () }
 | SEMICOLON { () }
 | SLASH { () }
 | STAR { () }
+| STARHAT { () }
 | STRING_LITERAL { () }
 | TILDE { () }
 ;

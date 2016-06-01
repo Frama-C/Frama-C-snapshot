@@ -10,13 +10,13 @@
 ------------------------------------------------------------
 
 Goal Post-condition 'qed_ok' in 'f':
-Assume { (* Domain *) Type: (is_uint8 t_0). }
-Prove: (0<=t_0) /\ (t_0<=255).
+Assume { Type: is_uint8(t). }
+Prove: (0 <= t) /\ (t <= 255).
 
 ------------------------------------------------------------
 
 Goal Post-condition 'qed_ko' in 'f':
-Assume { (* Domain *) Type: (is_uint8 t_0). }
-Prove: (0<=t_0) /\ (t_0<=127).
+Assume { Type: is_uint8(t). }
+Prove: (0 <= t) /\ (t <= 127).
 
 ------------------------------------------------------------

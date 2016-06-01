@@ -9,15 +9,15 @@
   ptf ∈ {0}
 [value] computing for function g <- h.
         Called from tests/slicing/ptr_fct.c:23.
-[value] computing for function f1 <- g <- h.
-        Called from tests/slicing/ptr_fct.c:17.
-[value] Recording results for f1
-[value] Done for function f1
 [value] computing for function f2 <- g <- h.
         Called from tests/slicing/ptr_fct.c:17.
 tests/slicing/ptr_fct.c:17:[kernel] warning: Neither code nor specification for function f2, generating default assigns from the prototype
 [value] using specification for function f2
 [value] Done for function f2
+[value] computing for function f1 <- g <- h.
+        Called from tests/slicing/ptr_fct.c:17.
+[value] Recording results for f1
+[value] Done for function f1
 [value] Recording results for g
 [value] Done for function g
 [value] Recording results for h

@@ -415,9 +415,9 @@ class markReachableVisitor
 	SkipChildren
 
   method! vinst = function
-    | Asm (_, tmpls, _, _, _, _,_) when Cil.msvcMode () ->
+    | Asm (_, tmpls, _, _) when Cil.msvcMode () ->
           (* If we have inline assembly on MSVC, we cannot tell which locals
-           * are referenced. Keep thsem all *)
+           * are referenced. Keep them all *)
         (match !currentFunc with
           Some fd ->
             List.iter (fun v ->
@@ -430,20 +430,6 @@ class markReachableVisitor
                 v.vreferenced <- true) fd.slocals
         | _ -> assert false);
         DoChildren
-    | Call (None,
-            {enode = Lval(Var {vname = name; vinline = true}, NoOffset)},
-            args,loc) ->
-        let glob = Hashtbl.find globalMap name in
-          begin
-            match glob with
-            GFun ({sbody = {bstmts = [] | [{skind = Return (None,_)}]}},_)
-                ->
-                  if false then
-                  ChangeTo
-                    [Asm ([],["nop"],[],List.map (fun e -> None,"q",e) args ,[],[],loc)]
-                  else ChangeTo []
-            | _ -> DoChildren
-        end
     | _ -> DoChildren
 
   method! vvrbl v =

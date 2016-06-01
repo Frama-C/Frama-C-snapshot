@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -154,24 +154,24 @@ let is_frama_c_builtin name =
 (* Put an 'Unknown' status on all 'assigns' and 'from' clauses that we
    generate. *)
 let emit_unknown_status_on_assigns kf bhv assigns =
+  let emit ip = Property_status.emit emitter [] ip Property_status.Dont_know in
   let pptopt =
-    Property.ip_of_assigns kf Kglobal (Property.Id_behavior bhv) assigns
+    Property.ip_of_assigns
+      kf Kglobal (Property.Id_contract (Datatype.String.Set.empty,bhv)) assigns
   in
-  match pptopt with
-  | None -> ()
-  | Some ppt ->
-    Property_status.emit emitter [] ppt Property_status.Dont_know;
-    match assigns with
+  Extlib.may emit pptopt;
+  match assigns with
     | WritesAny -> ()
     | Writes froms ->
-      let emit from =
-        let ppt =
-          Property.ip_of_from kf Kglobal (Property.Id_behavior bhv) from
+        let emit from =
+          let pptopt =
+            Property.ip_of_from
+              kf Kglobal
+              (Property.Id_contract (Datatype.String.Set.empty,bhv)) from
+          in
+          Extlib.may emit pptopt
         in
-        Property_status.emit emitter [] ppt Property_status.Dont_know
-      in
-      List.iter emit froms
-      
+        List.iter emit froms
 
 module Is_populated =
   State_builder.Hashtbl
@@ -252,7 +252,8 @@ generating default assigns from the %s"
 	  end
 	end
       in
-      Annotations.add_assigns ~keep_empty:false emitter kf bhv.b_name assigns;
+      Annotations.add_assigns
+        ~keep_empty:false emitter kf ~behavior:bhv.b_name assigns;
       emit_unknown_status_on_assigns kf bhv assigns
 
 let populate_funspec kf spec =

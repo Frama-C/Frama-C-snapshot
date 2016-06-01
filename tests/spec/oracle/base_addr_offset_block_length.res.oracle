@@ -7,19 +7,19 @@
   x ∈ {0}
   y ∈ {0}
   z ∈ {0}
-tests/spec/base_addr_offset_block_length.i:9:[value] Function main: precondition got status unknown.
-tests/spec/base_addr_offset_block_length.i:17:[value] Assertion got status valid.
-tests/spec/base_addr_offset_block_length.i:18:[value] Assertion got status valid.
-tests/spec/base_addr_offset_block_length.i:19:[value] Assertion got status valid.
-tests/spec/base_addr_offset_block_length.i:20:[value] Assertion got status unknown.
-tests/spec/base_addr_offset_block_length.i:21:[value] Assertion got status valid.
-tests/spec/base_addr_offset_block_length.i:22:[value] Assertion got status valid.
-tests/spec/base_addr_offset_block_length.i:23:[value] Assertion got status unknown.
-tests/spec/base_addr_offset_block_length.i:24:[value] Assertion got status valid.
-tests/spec/base_addr_offset_block_length.i:25:[value] Assertion got status valid.
-tests/spec/base_addr_offset_block_length.i:26:[value] Assertion got status valid.
-tests/spec/base_addr_offset_block_length.i:27:[value] Assertion got status valid.
-tests/spec/base_addr_offset_block_length.i:28:[value] Assertion got status valid.
+tests/spec/base_addr_offset_block_length.i:9:[value] warning: function main: precondition got status unknown.
+tests/spec/base_addr_offset_block_length.i:17:[value] assertion got status valid.
+tests/spec/base_addr_offset_block_length.i:18:[value] assertion got status valid.
+tests/spec/base_addr_offset_block_length.i:19:[value] assertion got status valid.
+tests/spec/base_addr_offset_block_length.i:20:[value] warning: assertion got status unknown.
+tests/spec/base_addr_offset_block_length.i:21:[value] assertion got status valid.
+tests/spec/base_addr_offset_block_length.i:22:[value] assertion got status valid.
+tests/spec/base_addr_offset_block_length.i:23:[value] warning: assertion got status unknown.
+tests/spec/base_addr_offset_block_length.i:24:[value] assertion got status valid.
+tests/spec/base_addr_offset_block_length.i:25:[value] assertion got status valid.
+tests/spec/base_addr_offset_block_length.i:26:[value] assertion got status valid.
+tests/spec/base_addr_offset_block_length.i:27:[value] assertion got status valid.
+tests/spec/base_addr_offset_block_length.i:28:[value] assertion got status valid.
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
@@ -37,8 +37,8 @@ tests/spec/base_addr_offset_block_length.i:28:[value] Assertion got status valid
   x ∈ {0}
   y ∈ {0}
   z ∈ {0}
-tests/spec/base_addr_offset_block_length.i:20:[value] Assertion got status valid.
-tests/spec/base_addr_offset_block_length.i:23:[value] Assertion got status valid.
+tests/spec/base_addr_offset_block_length.i:20:[value] assertion got status valid.
+tests/spec/base_addr_offset_block_length.i:23:[value] assertion got status valid.
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======

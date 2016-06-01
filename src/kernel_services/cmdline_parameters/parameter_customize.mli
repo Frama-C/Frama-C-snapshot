@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -108,6 +108,11 @@ val argument_may_be_fundecl: unit -> unit
     declaration (otherwise it has to match a defined functions).
     @since Sodium-20150201 *)
 
+val argument_must_be_fundecl: unit -> unit
+(** Indicate that the argument of the parameter must match a valid function
+    declaration.
+    @since Aluminium-20160501 *)
+
 val argument_must_be_existing_fun: unit -> unit
 (** Indicate that if the argument of the parameter does not match a valid
     function name, it raises an error whatever the value of the option
@@ -203,6 +208,7 @@ val projectify_ref: bool ref
 val optional_help_ref: (unit, Format.formatter, unit) format ref
 val argument_is_function_name_ref: bool ref
 val argument_may_be_fundecl_ref: bool ref
+val argument_must_be_fundecl_ref: bool ref
 val argument_must_be_existing_fun_ref: bool ref
 val group_ref: Cmdline.Group.t ref
 val do_iterate_ref: bool option ref

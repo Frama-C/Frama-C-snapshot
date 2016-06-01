@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Aorai plug-in of Frama-C.                        *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -143,9 +143,6 @@ val acceptSt     : string
 
 (** DEPRECATED ?*)
 val nbOp         : string
-
-(** DEPRECATED ?*)
-val nbStates     : string
 
 (** DEPRECATED ?*)
 val nbAcceptSt   : string

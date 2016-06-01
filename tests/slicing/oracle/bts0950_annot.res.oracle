@@ -8,7 +8,7 @@
   b ∈ {2}
 [value] computing for function cpy <- main.
         Called from tests/slicing/bts0950_annot.i:14.
-tests/slicing/bts0950_annot.i:4:[value] Function cpy: precondition got status valid.
+tests/slicing/bts0950_annot.i:4:[value] function cpy: precondition got status valid.
 [value] Recording results for cpy
 [value] Done for function cpy
 [value] Recording results for main

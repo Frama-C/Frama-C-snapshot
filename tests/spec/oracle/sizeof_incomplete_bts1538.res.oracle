@@ -7,15 +7,19 @@ void main(void)
   int v;
   v = (int)sizeof(t);
   /*@
-  assert /* type:ℤ *//* type:int */v ≡ /* type:ℤ */sizeof(int [10]); */
-  ;
-  /*@ assert /* type:ℤ */sizeof(/* type:int [10] */t) ≡ /* type:ℤ */0;
-   */
+  assert
+  /*(type:ℤ *//*(type:int */v/*)*//*)*/ ≡
+  /*(type:ℤ */sizeof(int [10])/*)*/; */
   ;
   /*@
   assert
-  /* type:ℤ */sizeof(/* type:int [10] */t) ≡
-  /* type:ℤ */sizeof(int [10]); */
+  /*(type:ℤ */sizeof(/*(type:int [10] */t/*)*/)/*)*/ ≡
+  /*(type:ℤ */0/*)*/; */
+  ;
+  /*@
+  assert
+  /*(type:ℤ */sizeof(/*(type:int [10] */t/*)*/)/*)*/ ≡
+  /*(type:ℤ */sizeof(int [10])/*)*/; */
   ;
   return;
 }

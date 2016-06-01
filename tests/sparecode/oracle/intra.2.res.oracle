@@ -1,5 +1,5 @@
 [kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
-[kernel] Parsing tests/sparecode/intra.c (with preprocessing)
+[kernel] Parsing tests/sparecode/intra.i (no preprocessing)
 [sparecode] remove unused code...
 [value] Analyzing a complete application starting at main2
 [value] Computing initial state
@@ -9,8 +9,8 @@
   X10 ∈ {0}
   Y10 ∈ {0}
 [value] computing for function f10 <- main2.
-        Called from tests/sparecode/intra.c:115.
-tests/sparecode/intra.c:109:[value] Assertion got status valid.
+        Called from tests/sparecode/intra.i:115.
+tests/sparecode/intra.i:109:[value] assertion got status valid.
 [value] Recording results for f10
 [value] Done for function f10
 [value] Recording results for main2
@@ -49,7 +49,7 @@ tests/sparecode/intra.c:109:[value] Assertion got status valid.
 [pdg] Bottom for function spare_called_fct
 [pdg] computing for function stop
 [from] Computing for function stop
-tests/sparecode/intra.c:35:[kernel] warning: Neither code nor specification for function stop, generating default assigns from the prototype
+tests/sparecode/intra.i:35:[kernel] warning: Neither code nor specification for function stop, generating default assigns from the prototype
 [from] Done for function stop
 [pdg] done for function stop
 [pdg] computing for function tmp

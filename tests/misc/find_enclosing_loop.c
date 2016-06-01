@@ -2,7 +2,7 @@
 OPT: -load-script tests/misc/find_enclosing_loop.ml
 */
 
-int f () {
+void f () {
   int x = 0;
   int y = 0;
   while (x<15) {

@@ -2,21 +2,12 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
-(*  you can redistribute it and/or modify it under the terms of the GNU   *)
-(*  Lesser General Public License as published by the Free Software       *)
-(*  Foundation, version 2.1.                                              *)
-(*                                                                        *)
-(*  It is distributed in the hope that it will be useful,                 *)
-(*  but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
-(*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
-(*  GNU Lesser General Public License for more details.                   *)
-(*                                                                        *)
-(*  See the GNU Lesser General Public License version 2.1                 *)
-(*  for more details (enclosed in the file licenses/LGPLv2.1).            *)
+(*  All rights reserved.                                                  *)
+(*  Contact CEA LIST for licensing.                                       *)
 (*                                                                        *)
 (**************************************************************************)
 
@@ -27,7 +18,7 @@ let filter name extension =
 
 let run title filter_name extension loader
     (host_window: Design.main_window_extension_points)
-    =
+  =
   let dialog =
     GWindow.file_chooser_dialog
       ~action:`OPEN
@@ -85,19 +76,19 @@ let insert (main_ui: Design.main_window_extension_points) =
   Gtk_helper.register_locking_machinery
     ~lock_last:true
     ~lock:(fun cancelable ->
-             if !stop_sensitive then Gui_parameters.warning
-               "Inconsistent state for stop button. Ignoring.";
-             old_progress := !Db.progress;
-             menu_manager#set_sensitive false;
-             if cancelable then (stop_button#misc#set_sensitive true;
-                                 stop_sensitive := true);
-          )
+        if !stop_sensitive then Gui_parameters.warning
+            "Inconsistent state for stop button. Ignoring.";
+        old_progress := !Db.progress;
+        menu_manager#set_sensitive false;
+        if cancelable then (stop_button#misc#set_sensitive true;
+                            stop_sensitive := true);
+      )
     ~unlock:(fun () ->
-               Db.progress := !old_progress;
-               menu_manager#set_sensitive true;
-               stop_button#misc#set_sensitive false;
-               stop_sensitive := false;
-            )
+        Db.progress := !old_progress;
+        menu_manager#set_sensitive true;
+        stop_button#misc#set_sensitive false;
+        stop_sensitive := false;
+      )
     ()
 
 let () = Design.register_extension insert

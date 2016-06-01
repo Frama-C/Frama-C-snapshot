@@ -1,5 +1,5 @@
-/* run.config
-   OPT: -val -then -main main_log_exp -then -all-rounding-modes
+/* run.config*
+   OPT: -val @VALUECONFIG@ -then -main main_log_exp -then -all-rounding-modes
 */
 
 #include <__fc_builtin.h>

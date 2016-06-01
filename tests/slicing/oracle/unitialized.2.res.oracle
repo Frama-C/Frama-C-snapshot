@@ -17,14 +17,14 @@
 [value] Done for function f2
 [value] computing for function g <- main.
         Called from tests/slicing/unitialized.c:37.
-tests/slicing/unitialized.c:27:[kernel] warning: accessing uninitialized left-value: assert \initialized(&y);
 tests/slicing/unitialized.c:27:[value] completely invalid value in evaluation of
         argument y
+tests/slicing/unitialized.c:27:[kernel] warning: accessing uninitialized left-value. assert \initialized(&y);
 [value] Recording results for g
 [value] Done for function g
 [value] Recording results for main
 [value] done for function main
-tests/slicing/unitialized.c:27:[value] Assertion 'Value,initialisation' got final status invalid.
+tests/slicing/unitialized.c:27:[value] assertion 'Value,initialisation' got final status invalid.
 [slicing] making slicing project 'Slicing'...
 [slicing] interpreting slicing requests from the command line...
 [pdg] computing for function main

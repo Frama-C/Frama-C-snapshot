@@ -55,9 +55,9 @@
         Called from tests/constant_propagation/const_propagate.c:87.
 [value] Recording results for test_ptr
 [value] Done for function test_ptr
-tests/constant_propagation/const_propagate.c:88:[value] Assertion got status valid.
-tests/constant_propagation/const_propagate.c:91:[value] Assertion got status unknown.
-tests/constant_propagation/const_propagate.c:92:[value] Assertion got status valid.
+tests/constant_propagation/const_propagate.c:88:[value] assertion got status valid.
+tests/constant_propagation/const_propagate.c:91:[value] warning: assertion got status unknown.
+tests/constant_propagation/const_propagate.c:92:[value] assertion got status valid.
 [value] Recording results for main
 [value] done for function main
 [value] ====== VALUES COMPUTED ======

@@ -104,7 +104,7 @@ let oneret (f: fundec) : unit =
     match f.svar.vtype with
       TFun(rt, _, _, _) -> rt
     | _ ->
-	Kernel.abort "Function %s does not have a function type" f.svar.vname
+	Kernel.fatal "Function %s does not have a function type" f.svar.vname
   in
   (* Does it return anything ? *)
   let hasRet = match unrollType retTyp with TVoid _ -> false | _ -> true in
@@ -243,10 +243,10 @@ let oneret (f: fundec) : unit =
       d_loc l);
      *)
       if hasRet && retval = None then
-        Kernel.error ~current:true
+        Kernel.fatal ~current:true
 	  "Found return without value in function %s" fname;
       if not hasRet && retval <> None then
-        Kernel.error ~current:true "Found return in subroutine %s" fname;
+        Kernel.fatal ~current:true "Found return in subroutine %s" fname;
     (* Keep this statement because it might have labels. But change it to
      * an instruction that sets the return value (if any). *)
       s.skind <- begin

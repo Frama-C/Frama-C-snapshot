@@ -1,7 +1,9 @@
-
+/* run.config
+   OPT: -wp-extern-arrays
+ */
 /* run.config_qualif
-   OPT:
-   OPT: -wp-model +ref
+   OPT: -wp-extern-arrays
+   OPT: -wp-extern-arrays -wp-model +ref
  */
 
 /* -------------------------------------------------------------------------- */

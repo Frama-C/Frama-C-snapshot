@@ -55,7 +55,7 @@ tests/misc/bts1347.i:10:[kernel] warning: out of bounds read. assert \valid_read
 [value] Values of globals at initialization
   
 tests/misc/bts1347.i:9:[kernel] warning: out of bounds read. assert \valid_read(x);
-tests/misc/bts1347.i:9:[value] Assertion 'emitter' got status valid.
+tests/misc/bts1347.i:9:[value] assertion 'emitter' got status valid.
 [value] Recording results for f
 [value] done for function f
 [value] Analyzing an incomplete application starting at g
@@ -65,6 +65,6 @@ tests/misc/bts1347.i:9:[value] Assertion 'emitter' got status valid.
   
 tests/misc/bts1347.i:10:[kernel] warning: out of bounds read. assert \valid_read(tmp);
                                       (tmp from x++)
-tests/misc/bts1347.i:10:[value] Assertion 'emitter' got status valid.
+tests/misc/bts1347.i:10:[value] assertion 'emitter' got status valid.
 [value] Recording results for g
 [value] done for function g

@@ -479,6 +479,7 @@ tests/test/adpcm.c:506:[value] entering loop for the first time
         Called from tests/test/adpcm.c:394.
 [value] Recording results for uppol1
 [value] Done for function uppol1
+tests/test/adpcm.c:262:[value] function encode: postcondition got status valid.
 [value] Recording results for encode
 [value] Done for function encode
 [value] computing for function encode <- main.
@@ -538,79 +539,6 @@ tests/test/adpcm.c:294:[kernel] warning: signed overflow. assert xa-xb ≤ 21474
 [value] computing for function upzero <- encode <- main.
         Called from tests/test/adpcm.c:331.
 tests/test/adpcm.c:512:[value] entering loop for the first time
-[value] Recording results for upzero
-[value] Done for function upzero
-[value] computing for function uppol2 <- encode <- main.
-        Called from tests/test/adpcm.c:335.
-[value] Recording results for uppol2
-[value] Done for function uppol2
-[value] computing for function uppol1 <- encode <- main.
-        Called from tests/test/adpcm.c:339.
-[value] Recording results for uppol1
-[value] Done for function uppol1
-[value] computing for function filtez <- encode <- main.
-        Called from tests/test/adpcm.c:352.
-[value] Recording results for filtez
-[value] Done for function filtez
-[value] computing for function filtep <- encode <- main.
-        Called from tests/test/adpcm.c:354.
-[value] Recording results for filtep
-[value] Done for function filtep
-[value] computing for function abs <- encode <- main.
-        Called from tests/test/adpcm.c:370.
-[value] Recording results for abs
-[value] Done for function abs
-[value] computing for function logsch <- encode <- main.
-        Called from tests/test/adpcm.c:376.
-[value] Recording results for logsch
-[value] Done for function logsch
-[value] computing for function scalel <- encode <- main.
-        Called from tests/test/adpcm.c:379.
-[value] Recording results for scalel
-[value] Done for function scalel
-[value] computing for function upzero <- encode <- main.
-        Called from tests/test/adpcm.c:387.
-[value] Recording results for upzero
-[value] Done for function upzero
-[value] computing for function uppol2 <- encode <- main.
-        Called from tests/test/adpcm.c:391.
-[value] Recording results for uppol2
-[value] Done for function uppol2
-[value] computing for function uppol1 <- encode <- main.
-        Called from tests/test/adpcm.c:394.
-[value] Recording results for uppol1
-[value] Done for function uppol1
-[value] Recording results for encode
-[value] Done for function encode
-[value] computing for function encode <- main.
-        Called from tests/test/adpcm.c:608.
-[value] computing for function filtez <- encode <- main.
-        Called from tests/test/adpcm.c:301.
-[value] Recording results for filtez
-[value] Done for function filtez
-[value] computing for function filtep <- encode <- main.
-        Called from tests/test/adpcm.c:304.
-[value] Recording results for filtep
-[value] Done for function filtep
-[value] computing for function quantl <- encode <- main.
-        Called from tests/test/adpcm.c:311.
-[value] computing for function abs <- quantl <- encode <- main.
-        Called from tests/test/adpcm.c:444.
-[value] Recording results for abs
-[value] Done for function abs
-[value] Recording results for quantl
-[value] Done for function quantl
-[value] computing for function logscl <- encode <- main.
-        Called from tests/test/adpcm.c:318.
-[value] Recording results for logscl
-[value] Done for function logscl
-[value] computing for function scalel <- encode <- main.
-        Called from tests/test/adpcm.c:322.
-[value] Recording results for scalel
-[value] Done for function scalel
-[value] computing for function upzero <- encode <- main.
-        Called from tests/test/adpcm.c:331.
-tests/test/adpcm.c:514:[kernel] warning: signed overflow. assert -2147483648 ≤ 255L*(long)*(bli+i);
 tests/test/adpcm.c:514:[kernel] warning: signed overflow. assert 255L*(long)*(bli+i) ≤ 2147483647;
 [value] Recording results for upzero
 [value] Done for function upzero
@@ -666,6 +594,81 @@ tests/test/adpcm.c:416:[kernel] warning: signed overflow.
 tests/test/adpcm.c:416:[kernel] warning: signed overflow.
                   assert (long)*tmp*(long)*tmp_0 ≤ 2147483647;
                   (tmp from bpl++, tmp_0 from dlt_0++)
+[value] Recording results for filtez
+[value] Done for function filtez
+[value] computing for function filtep <- encode <- main.
+        Called from tests/test/adpcm.c:304.
+[value] Recording results for filtep
+[value] Done for function filtep
+[value] computing for function quantl <- encode <- main.
+        Called from tests/test/adpcm.c:311.
+[value] computing for function abs <- quantl <- encode <- main.
+        Called from tests/test/adpcm.c:444.
+[value] Recording results for abs
+[value] Done for function abs
+[value] Recording results for quantl
+[value] Done for function quantl
+[value] computing for function logscl <- encode <- main.
+        Called from tests/test/adpcm.c:318.
+[value] Recording results for logscl
+[value] Done for function logscl
+[value] computing for function scalel <- encode <- main.
+        Called from tests/test/adpcm.c:322.
+[value] Recording results for scalel
+[value] Done for function scalel
+[value] computing for function upzero <- encode <- main.
+        Called from tests/test/adpcm.c:331.
+tests/test/adpcm.c:507:[kernel] warning: signed overflow. assert 255L*(long)*(bli+i) ≤ 2147483647;
+tests/test/adpcm.c:514:[kernel] warning: signed overflow. assert -2147483648 ≤ 255L*(long)*(bli+i);
+[value] Recording results for upzero
+[value] Done for function upzero
+[value] computing for function uppol2 <- encode <- main.
+        Called from tests/test/adpcm.c:335.
+[value] Recording results for uppol2
+[value] Done for function uppol2
+[value] computing for function uppol1 <- encode <- main.
+        Called from tests/test/adpcm.c:339.
+[value] Recording results for uppol1
+[value] Done for function uppol1
+[value] computing for function filtez <- encode <- main.
+        Called from tests/test/adpcm.c:352.
+[value] Recording results for filtez
+[value] Done for function filtez
+[value] computing for function filtep <- encode <- main.
+        Called from tests/test/adpcm.c:354.
+[value] Recording results for filtep
+[value] Done for function filtep
+[value] computing for function abs <- encode <- main.
+        Called from tests/test/adpcm.c:370.
+[value] Recording results for abs
+[value] Done for function abs
+[value] computing for function logsch <- encode <- main.
+        Called from tests/test/adpcm.c:376.
+[value] Recording results for logsch
+[value] Done for function logsch
+[value] computing for function scalel <- encode <- main.
+        Called from tests/test/adpcm.c:379.
+[value] Recording results for scalel
+[value] Done for function scalel
+[value] computing for function upzero <- encode <- main.
+        Called from tests/test/adpcm.c:387.
+[value] Recording results for upzero
+[value] Done for function upzero
+[value] computing for function uppol2 <- encode <- main.
+        Called from tests/test/adpcm.c:391.
+[value] Recording results for uppol2
+[value] Done for function uppol2
+[value] computing for function uppol1 <- encode <- main.
+        Called from tests/test/adpcm.c:394.
+[value] Recording results for uppol1
+[value] Done for function uppol1
+tests/test/adpcm.c:262:[value] warning: function encode: postcondition got status unknown.
+[value] Recording results for encode
+[value] Done for function encode
+[value] computing for function encode <- main.
+        Called from tests/test/adpcm.c:608.
+[value] computing for function filtez <- encode <- main.
+        Called from tests/test/adpcm.c:301.
 tests/test/adpcm.c:419:[kernel] warning: signed overflow.
                   assert -2147483648 ≤ (long)*tmp_1*(long)*tmp_2;
                   (tmp_1 from bpl++, tmp_2 from dlt_0++)
@@ -703,15 +706,18 @@ tests/test/adpcm.c:419:[kernel] warning: signed overflow.
 [value] computing for function upzero <- encode <- main.
         Called from tests/test/adpcm.c:331.
 tests/test/adpcm.c:507:[kernel] warning: signed overflow. assert -2147483648 ≤ 255L*(long)*(bli+i);
-tests/test/adpcm.c:507:[kernel] warning: signed overflow. assert 255L*(long)*(bli+i) ≤ 2147483647;
 [value] Recording results for upzero
 [value] Done for function upzero
 [value] computing for function uppol2 <- encode <- main.
         Called from tests/test/adpcm.c:335.
+tests/test/adpcm.c:534:[kernel] warning: signed overflow. assert -2147483648 ≤ (long)plt_0*(long)plt1_0;
+tests/test/adpcm.c:534:[kernel] warning: signed overflow. assert (long)plt_0*(long)plt1_0 ≤ 2147483647;
 [value] Recording results for uppol2
 [value] Done for function uppol2
 [value] computing for function uppol1 <- encode <- main.
         Called from tests/test/adpcm.c:339.
+tests/test/adpcm.c:558:[kernel] warning: signed overflow. assert -2147483648 ≤ (long)plt_0*(long)plt1_0;
+tests/test/adpcm.c:558:[kernel] warning: signed overflow. assert (long)plt_0*(long)plt1_0 ≤ 2147483647;
 [value] Recording results for uppol1
 [value] Done for function uppol1
 [value] computing for function filtez <- encode <- main.
@@ -780,14 +786,12 @@ tests/test/adpcm.c:507:[kernel] warning: signed overflow. assert 255L*(long)*(bl
 [value] Done for function upzero
 [value] computing for function uppol2 <- encode <- main.
         Called from tests/test/adpcm.c:335.
-tests/test/adpcm.c:534:[kernel] warning: signed overflow. assert -2147483648 ≤ (long)plt_0*(long)plt1_0;
-tests/test/adpcm.c:534:[kernel] warning: signed overflow. assert (long)plt_0*(long)plt1_0 ≤ 2147483647;
+tests/test/adpcm.c:536:[kernel] warning: signed overflow. assert -2147483648 ≤ (long)plt_0*(long)plt2_0;
+tests/test/adpcm.c:536:[kernel] warning: signed overflow. assert (long)plt_0*(long)plt2_0 ≤ 2147483647;
 [value] Recording results for uppol2
 [value] Done for function uppol2
 [value] computing for function uppol1 <- encode <- main.
         Called from tests/test/adpcm.c:339.
-tests/test/adpcm.c:558:[kernel] warning: signed overflow. assert -2147483648 ≤ (long)plt_0*(long)plt1_0;
-tests/test/adpcm.c:558:[kernel] warning: signed overflow. assert (long)plt_0*(long)plt1_0 ≤ 2147483647;
 [value] Recording results for uppol1
 [value] Done for function uppol1
 [value] computing for function filtez <- encode <- main.
@@ -869,162 +873,13 @@ tests/test/adpcm.c:513:[kernel] warning: signed overflow. assert (long)dlt_0*(lo
 [value] computing for function uppol2 <- encode <- main.
         Called from tests/test/adpcm.c:335.
 tests/test/adpcm.c:533:[kernel] warning: signed overflow. assert -2147483648 ≤ 4L*(long)al1_0;
-tests/test/adpcm.c:533:[kernel] warning: signed overflow. assert 4L*(long)al1_0 ≤ 2147483647;
 tests/test/adpcm.c:534:[kernel] warning: signed overflow. assert -wd2 ≤ 2147483647;
-tests/test/adpcm.c:536:[kernel] warning: signed overflow. assert -2147483648 ≤ (long)plt_0*(long)plt2_0;
-tests/test/adpcm.c:536:[kernel] warning: signed overflow. assert (long)plt_0*(long)plt2_0 ≤ 2147483647;
 tests/test/adpcm.c:542:[kernel] warning: signed overflow. assert -2147483648 ≤ 127L*(long)al2_0;
-tests/test/adpcm.c:542:[kernel] warning: signed overflow. assert 127L*(long)al2_0 ≤ 2147483647;
 [value] Recording results for uppol2
 [value] Done for function uppol2
 [value] computing for function uppol1 <- encode <- main.
         Called from tests/test/adpcm.c:339.
 tests/test/adpcm.c:557:[kernel] warning: signed overflow. assert -2147483648 ≤ (long)al1_0*255L;
-tests/test/adpcm.c:557:[kernel] warning: signed overflow. assert (long)al1_0*255L ≤ 2147483647;
-[value] Recording results for uppol1
-[value] Done for function uppol1
-[value] computing for function filtez <- encode <- main.
-        Called from tests/test/adpcm.c:352.
-[value] Recording results for filtez
-[value] Done for function filtez
-[value] computing for function filtep <- encode <- main.
-        Called from tests/test/adpcm.c:354.
-[value] Recording results for filtep
-[value] Done for function filtep
-[value] computing for function abs <- encode <- main.
-        Called from tests/test/adpcm.c:370.
-[value] Recording results for abs
-[value] Done for function abs
-[value] computing for function logsch <- encode <- main.
-        Called from tests/test/adpcm.c:376.
-[value] Recording results for logsch
-[value] Done for function logsch
-[value] computing for function scalel <- encode <- main.
-        Called from tests/test/adpcm.c:379.
-[value] Recording results for scalel
-[value] Done for function scalel
-[value] computing for function upzero <- encode <- main.
-        Called from tests/test/adpcm.c:387.
-[value] Recording results for upzero
-[value] Done for function upzero
-[value] computing for function uppol2 <- encode <- main.
-        Called from tests/test/adpcm.c:391.
-[value] Recording results for uppol2
-[value] Done for function uppol2
-[value] computing for function uppol1 <- encode <- main.
-        Called from tests/test/adpcm.c:394.
-[value] Recording results for uppol1
-[value] Done for function uppol1
-[value] Recording results for encode
-[value] Done for function encode
-[value] computing for function encode <- main.
-        Called from tests/test/adpcm.c:608.
-[value] computing for function filtez <- encode <- main.
-        Called from tests/test/adpcm.c:301.
-[value] Recording results for filtez
-[value] Done for function filtez
-[value] computing for function filtep <- encode <- main.
-        Called from tests/test/adpcm.c:304.
-[value] Recording results for filtep
-[value] Done for function filtep
-[value] computing for function quantl <- encode <- main.
-        Called from tests/test/adpcm.c:311.
-[value] computing for function abs <- quantl <- encode <- main.
-        Called from tests/test/adpcm.c:444.
-[value] Recording results for abs
-[value] Done for function abs
-[value] Recording results for quantl
-[value] Done for function quantl
-[value] computing for function logscl <- encode <- main.
-        Called from tests/test/adpcm.c:318.
-[value] Recording results for logscl
-[value] Done for function logscl
-[value] computing for function scalel <- encode <- main.
-        Called from tests/test/adpcm.c:322.
-[value] Recording results for scalel
-[value] Done for function scalel
-[value] computing for function upzero <- encode <- main.
-        Called from tests/test/adpcm.c:331.
-[value] Recording results for upzero
-[value] Done for function upzero
-[value] computing for function uppol2 <- encode <- main.
-        Called from tests/test/adpcm.c:335.
-[value] Recording results for uppol2
-[value] Done for function uppol2
-[value] computing for function uppol1 <- encode <- main.
-        Called from tests/test/adpcm.c:339.
-[value] Recording results for uppol1
-[value] Done for function uppol1
-[value] computing for function filtez <- encode <- main.
-        Called from tests/test/adpcm.c:352.
-[value] Recording results for filtez
-[value] Done for function filtez
-[value] computing for function filtep <- encode <- main.
-        Called from tests/test/adpcm.c:354.
-[value] Recording results for filtep
-[value] Done for function filtep
-[value] computing for function abs <- encode <- main.
-        Called from tests/test/adpcm.c:370.
-[value] Recording results for abs
-[value] Done for function abs
-[value] computing for function logsch <- encode <- main.
-        Called from tests/test/adpcm.c:376.
-[value] Recording results for logsch
-[value] Done for function logsch
-[value] computing for function scalel <- encode <- main.
-        Called from tests/test/adpcm.c:379.
-[value] Recording results for scalel
-[value] Done for function scalel
-[value] computing for function upzero <- encode <- main.
-        Called from tests/test/adpcm.c:387.
-[value] Recording results for upzero
-[value] Done for function upzero
-[value] computing for function uppol2 <- encode <- main.
-        Called from tests/test/adpcm.c:391.
-[value] Recording results for uppol2
-[value] Done for function uppol2
-[value] computing for function uppol1 <- encode <- main.
-        Called from tests/test/adpcm.c:394.
-[value] Recording results for uppol1
-[value] Done for function uppol1
-[value] Recording results for encode
-[value] Done for function encode
-[value] computing for function encode <- main.
-        Called from tests/test/adpcm.c:608.
-[value] computing for function filtez <- encode <- main.
-        Called from tests/test/adpcm.c:301.
-[value] Recording results for filtez
-[value] Done for function filtez
-[value] computing for function filtep <- encode <- main.
-        Called from tests/test/adpcm.c:304.
-[value] Recording results for filtep
-[value] Done for function filtep
-[value] computing for function quantl <- encode <- main.
-        Called from tests/test/adpcm.c:311.
-[value] computing for function abs <- quantl <- encode <- main.
-        Called from tests/test/adpcm.c:444.
-[value] Recording results for abs
-[value] Done for function abs
-[value] Recording results for quantl
-[value] Done for function quantl
-[value] computing for function logscl <- encode <- main.
-        Called from tests/test/adpcm.c:318.
-[value] Recording results for logscl
-[value] Done for function logscl
-[value] computing for function scalel <- encode <- main.
-        Called from tests/test/adpcm.c:322.
-[value] Recording results for scalel
-[value] Done for function scalel
-[value] computing for function upzero <- encode <- main.
-        Called from tests/test/adpcm.c:331.
-[value] Recording results for upzero
-[value] Done for function upzero
-[value] computing for function uppol2 <- encode <- main.
-        Called from tests/test/adpcm.c:335.
-[value] Recording results for uppol2
-[value] Done for function uppol2
-[value] computing for function uppol1 <- encode <- main.
-        Called from tests/test/adpcm.c:339.
 [value] Recording results for uppol1
 [value] Done for function uppol1
 [value] computing for function filtez <- encode <- main.
@@ -1948,6 +1803,7 @@ int abs_slice_1(int x)
   return m;
 }
 
+/*@ ensures sh ≡ 0 ∨ sh ≡ -2; */
 void encode_slice_1(int xin1, int xin2)
 {
   int i;
@@ -1983,6 +1839,7 @@ void encode_slice_1(int xin1, int xin2)
     xb = (long)*tmp_1 * (long)*tmp_2;
   }
   i = 0;
+  /*@ loop pragma UNROLL 11; */
   while (i < 10) {
     {
       int *tmp_3;
@@ -2019,6 +1876,7 @@ void encode_slice_1(int xin1, int xin2)
   }
   tqmf_ptr1 = tqmf_ptr - 2;
   i = 0;
+  /*@ loop pragma UNROLL 23; */
   while (i < 22) {
     int *tmp_10;
     int *tmp_11;
@@ -2096,6 +1954,7 @@ int filtez_slice_1(int *bpl, int *dlt_0)
     zl = (long)*tmp * (long)*tmp_0;
   }
   i = 1;
+  /*@ loop pragma UNROLL 7; */
   while (i < 6) {
     int *tmp_1;
     int *tmp_2;
@@ -2134,6 +1993,7 @@ int quantl_slice_1(int el_0, int detl_0)
   wd = (long)abs_slice_1(el_0);
   mil = 0;
   decis = (long)decis_levl[mil] * (long)detl_0 >> 15L;
+  /*@ loop pragma UNROLL 30; */
   while (1) {
     if (wd <= decis) {
       if (! (mil < 29)) break;
@@ -2176,6 +2036,7 @@ void upzero_slice_1(int dlt_0, int *dlti, int *bli)
   int wd3;
   if (dlt_0 == 0) {
     i = 0;
+    /*@ loop pragma UNROLL 7; */
     while (i < 6) {
       *(bli + i) = (int)(255L * (long)*(bli + i) >> 8L);
       i ++;
@@ -2183,6 +2044,7 @@ void upzero_slice_1(int dlt_0, int *dlti, int *bli)
   }
   else {
     i = 0;
+    /*@ loop pragma UNROLL 7; */
     while (i < 6) {
       if ((long)dlt_0 * (long)*(dlti + i) >= (long)0) wd2 = 128;
       else wd2 = -128;
@@ -2244,6 +2106,8 @@ void main(void)
 {
   int i;
   i = 0;
+  /*@ loop pragma UNROLL 11;
+      loop pragma WIDEN_HINTS 32767; */
   while (i < 10) {
     encode_slice_1(test_data[i],test_data[i + 1]);
     i += 2;

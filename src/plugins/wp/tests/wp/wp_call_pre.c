@@ -7,7 +7,7 @@ OPT: -wp-model Hoare -wp-no-simpl -wp-fct stmt_pre -wp-prop Rstmt
 */
 
 /* run.config_qualif
-OPT: -journal-disable -wp -wp-model Store -wp-par 1
+COMMENT:
 */
 
 int G = 3;

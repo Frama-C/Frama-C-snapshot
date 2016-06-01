@@ -17,7 +17,7 @@
 [value] computing for function loop <- main.
         Called from tests/slicing/loops.c:202.
 tests/slicing/loops.c:176:[value] entering loop for the first time
-tests/slicing/loops.c:183:[value] Assertion got status valid.
+tests/slicing/loops.c:183:[value] assertion got status valid.
 tests/slicing/loops.c:179:[kernel] warning: signed overflow. assert X+1 ≤ 2147483647;
 [value] Recording results for loop
 [value] Done for function loop

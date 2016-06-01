@@ -10,21 +10,19 @@
 ------------------------------------------------------------
 
 Goal Post-condition 'bit_zero' in 'rotate_left':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Post-condition 'other_bits' in 'rotate_left':
-Let x_1 = (lsr x_0 31).
+Let x_1 = lsr(x, 31).
 Assume {
-  (* Domain *)
-  Type: (is_uint32 x_0) /\ (is_uint32 x_1).
+  Type: is_uint32(x) /\ is_uint32(x_1).
   (* Goal *)
-  When: (0<=i_0) /\ (i_0<=30) /\ (is_sint32 i_0).
+  When: (0 <= i) /\ (i <= 30) /\ is_sint32(i).
 }
-Prove: (0!=(land x_0 (lsl 1 i_0)))=
-       (0!=(land (lsl 1 (1+i_0)) (lor x_1 (to_uint32 (lsl x_0 1))))).
+Prove: (0 != land(x, lsl(1, i))) <->
+    (0 != land(lsl(1, 1 + i), lor(x_1, to_uint32(lsl(x, 1))))).
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -32,14 +30,13 @@ Prove: (0!=(land x_0 (lsl 1 i_0)))=
 ------------------------------------------------------------
 
 Goal Post-condition 'ok' in 'sum':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Post-condition 'ko' in 'sum':
-Assume { (* Domain *) Type: (is_sint8 a_0) /\ (is_sint8 b_0). }
-Prove: ((bit_test a_0 1) /\ (bit_test b_0 1))
-       <-> ((bit_test a_0 1) \/ (bit_test b_0 1)).
+Assume { Type: is_sint8(a) /\ is_sint8(b). }
+Prove: (bit_test(a, 1) /\ bit_test(b, 1)) <->
+    (bit_test(a, 1) \/ bit_test(b, 1)).
 
 ------------------------------------------------------------

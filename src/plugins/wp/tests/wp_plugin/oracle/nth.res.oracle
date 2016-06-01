@@ -1,0 +1,31 @@
+# frama-c -wp [...]
+[kernel] Parsing FRAMAC_SHARE/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/wp_plugin/nth.i (no preprocessing)
+[wp] Running WP plugin...
+[wp] Loading driver 'share/wp.driver'
+[wp] Collecting axiomatic usage
+------------------------------------------------------------
+  Axiomatic 'Nth'
+------------------------------------------------------------
+
+Lemma access_16_16:
+Prove: (0<=k_0) -> (k_0<=15)
+       -> ((L_f k_0)=
+           (nth
+             (concat (elt (L_f 0)) (elt (L_f 1)) (elt (L_f 2)) (elt (L_f 3))
+               (elt (L_f 4)) (elt (L_f 5)) (elt (L_f 6)) (elt (L_f 7))
+               (elt (L_f 8)) (elt (L_f 9)) (elt (L_f 10)) (elt (L_f 11))
+               (elt (L_f 12)) (elt (L_f 13)) (elt (L_f 14)) (elt (L_f 15)))
+             k_0))
+
+------------------------------------------------------------
+
+Lemma access_4_4:
+Assume: 'access_16_16'
+Prove: (0<=k_0) -> (k_0<=3)
+       -> ((L_f k_0)=
+           (nth
+             (concat (elt (L_f 0)) (elt (L_f 1)) (elt (L_f 2)) (elt (L_f 3)))
+             k_0))
+
+------------------------------------------------------------

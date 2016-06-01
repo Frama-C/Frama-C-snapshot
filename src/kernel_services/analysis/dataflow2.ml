@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -91,6 +91,13 @@ module type WORKLIST = sig
 (** Add a statement to the worklist. If the statement is already
     there, it is not added a second time. *)
   val add: t -> stmt -> unit
+
+(** Remove a statement from the worklist. *)
+  val clear: t -> stmt -> unit
+
+(** Tells wheter a statement is in the worklist or not. *)
+  val mem : t -> stmt -> bool
+
 
   (** Retrieve and remove the next element in the worklist. Raise
       [Empty] if the worklist is empty. *)
@@ -189,6 +196,16 @@ module Worklist(MaybeReverse:MAYBE_REVERSE):WORKLIST = struct
       match t.must_restart_cc with
       | None -> Some(i)
       | Some(j) -> Some(min i j)
+  ;;
+
+  let clear t stmt =
+    let i = ordered_from_stmt t stmt in
+    Bitvector.clear t.bv i;
+  ;;
+
+  let mem t stmt = 
+    let i = ordered_from_stmt t stmt in
+    Bitvector.mem t.bv i;
   ;;
 
   let is_empty t = Bitvector.is_empty t.bv
@@ -441,21 +458,28 @@ module Forwards(T : ForwardsTransfer) = struct
       end
 
 
-    (** Compute the data flow. *)
-    let compute (sources: stmt list) =
+    let init_worklist (sources: stmt list) =
       let kf = current_kf sources in
       let worklist = ForwardWorklist.create kf sources in
-
       List.iter (fun s -> ForwardWorklist.add worklist s) sources;
+      worklist
 
-      (** All initial stmts must have non-bottom data *)
+    (** All initial stmts must have non-bottom data *)
+    let check_initial_stmts (sources: stmt list) =
       List.iter
-	(fun s ->
+        (fun s ->
           if not (T.StmtStartData.mem s) then
             Kernel.fatal ~current:true
-	      "FF(%s): initial stmt %d does not have data"
+              "FF(%s): initial stmt %d does not have data"
               T.name s.sid)
-        sources;
+        sources
+
+    (** Compute the data flow using worklists and starting with the given
+        sources. *)
+    let compute_worklist (sources: stmt list) =
+      check_initial_stmts sources;
+      let worklist = init_worklist sources in
+      
       if T.debug then
         (Kernel.debug "FF(%s): processing" T.name);
       let rec fixedpoint () =
@@ -469,11 +493,50 @@ module Forwards(T : ForwardsTransfer) = struct
         processStmt worklist s;
         fixedpoint ()
       in
-      (try
+      try
          fixedpoint ()
-       with ForwardWorklist.Empty ->
-         if T.debug then
-           (Kernel.debug "FF(%s): done" T.name))
+      with ForwardWorklist.Empty ->
+        if T.debug then
+          Kernel.debug "FF(%s): done" T.name
+
+
+    (** Compute the dataflow for the given strategy. *)
+    let compute_strategy (sources: stmt list) (strategy : Wto_statement.wto) =
+      check_initial_stmts sources;
+      let worklist = init_worklist sources in
+      (* the reference "change" tracks wether something has been computed *)
+      let rec process_wto change = function
+        (* End of wto, do nothing *)
+        | Wto_statement.Nil -> ()
+
+        (* Some statement, process it and mark as changed if necessary *)
+        | Wto_statement.Node (stmt, wto) ->
+            if ForwardWorklist.mem worklist stmt then begin
+              ForwardWorklist.clear worklist stmt;
+              processStmt worklist stmt;
+              change := true;
+            end;
+            process_wto change wto
+
+        (* Component, iterate until it reached a fixpoint *)
+        | Wto_statement.Component (component, wto) ->
+            let component_change = ref true in
+            while !component_change do
+              component_change := false;
+              process_wto component_change component;
+              if !component_change then
+                change := true
+            done;
+            process_wto change wto
+      in
+      process_wto (ref false) strategy
+
+
+    (** Compute the dataflow for the default strategy. *)
+    let compute (sources: stmt list) =
+      let kf = current_kf sources in
+      let strategy = Wto_statement.wto_of_kf kf in     
+      compute_strategy sources strategy
 
   end
 

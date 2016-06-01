@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -23,7 +23,7 @@
 (** Frama-C Entry Point (last linked module).
     @plugin development guide *)
 
-let run_plugins () =
+let play_analysis () =
   if Kernel.TypeCheck.get () then begin
     if Kernel.Files.get () <> [] || Kernel.TypeCheck.is_set () then begin
       Ast.compute ();
@@ -37,6 +37,10 @@ let run_plugins () =
     Db.Main.apply ();
     (* Printing code if required, have to be done at end *)
     if Kernel.PrintCode.get () then File.pretty_ast ();
+    (* Easier to handle option -set-project-as-default at the last moment:
+       no need to worry about nested [Project.on] *)
+    Project.set_keep_current (Kernel.Set_project_as_default.get ());
+    Kernel.Set_project_as_default.off ()
   with Globals.No_such_entry_point msg ->
     Kernel.abort "%s" msg
 
@@ -44,28 +48,26 @@ let on_from_name name f =
   try Project.on (Project.from_unique_name name) f ()
   with Project.Unknown_project -> Kernel.abort "no project `%s'." name
 
-let () = Db.Main.play := run_plugins
+let () = Db.Main.play := play_analysis
 
 (* ************************************************************************* *)
 (** Booting Frama-C *)
 (* ************************************************************************* *)
 
-(* Customisation of pretty-printers' parameters. *)
-let boot_cil () =
-  Cil.miscState.Cil.lineDirectiveStyle <- None;
-  Cil.miscState.Cil.printCilAsIs <- Kernel.debug_atleast 1;
-  Cil_printer.state.Printer_api.line_directive_style <- None;
-  Cil_printer.state.Printer_api.print_cil_as_is <- Kernel.debug_atleast 1
-
 (* Main: let's go! *)
 let () =
-  boot_cil ();
+  Cil_printer.state.Printer_api.print_cil_as_is <- Kernel.debug_atleast 1;
   Sys.catch_break true;
+  let f () =
+    ignore (Project.create "default");
+    let on_from_name = { Cmdline.on_from_name } in
+    Cmdline.parse_and_boot
+      ~on_from_name
+      ~get_toplevel:(fun () -> !Db.Toplevel.run)
+      ~play_analysis
+  in
   Cmdline.catch_toplevel_run
-    ~f:(fun () ->
-          ignore (Project.create "default");
-          Cmdline.parse_and_boot
-            on_from_name (fun () -> !Db.Toplevel.run) run_plugins)
+    ~f
     ~at_normal_exit:Cmdline.run_normal_exit_hook
     ~on_error:Cmdline.run_error_exit_hook;
 

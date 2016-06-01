@@ -1,4 +1,4 @@
-/* run.config
+/* run.config*
   STDOPT: #"-warn-decimal-float all"
   STDOPT: #"-warn-decimal-float all -all-rounding-modes-constants -float-hex"
 */

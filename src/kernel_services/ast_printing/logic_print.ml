@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -115,6 +115,7 @@ let getParenthLevel e =
     | PLand _ | PLor _ | PLxor _ -> 80
     | PLif _ -> 77
     | PLbinop (_,(Bbw_and | Bbw_or | Bbw_xor),_) -> 75
+    | PLrepeat _ -> 72
     | PLrel _ -> 70
     | PLbinop (_,(Badd|Bsub|Blshift|Brshift),_) -> 60
     | PLbinop (_,(Bmul|Bdiv|Bmod),_) -> 40
@@ -125,11 +126,12 @@ let getParenthLevel e =
     | PLapp _ | PLold _ | PLat _ 
     | PLoffset _ | PLbase_addr _ | PLblock_length _
     | PLupdate _  | PLinitField _ | PLinitIndex _
-    | PLvalid _ | PLvalid_read _ | PLinitialized _ | PLdangling _
+    | PLvalid _ | PLvalid_read _ | PLvalid_function _
+    | PLinitialized _ | PLdangling _
     | PLallocable _ | PLfreeable _ | PLfresh _ 
     | PLseparated _ | PLsubtype _ | PLunion _ | PLinter _ -> 10
     | PLvar _ | PLconstant _ | PLresult | PLnull | PLtypeof _ | PLtype _
-    | PLfalse | PLtrue | PLcomprehension _ | PLempty | PLsingleton _ -> 0
+    | PLfalse | PLtrue | PLcomprehension _ | PLempty | PLset _ | PLlist _ -> 0
 
 let rec print_path_elt fmt = function
     | PLpathField s -> fprintf fmt ".%s" s
@@ -189,6 +191,12 @@ and print_lexpr_level n fmt e =
       | PLarrow(e,f) -> fprintf fmt "%a->%s" print_lexpr e f
       | PLarrget(b,i) ->
           fprintf fmt "%a[@;@[%a@]@;]" print_lexpr b print_lexpr i
+      | PLlist(args) ->
+          fprintf fmt "[@[%a@]]"
+            (pp_list ~sep:",@ " print_lexpr_plain) args
+      | PLrepeat(e1,e2) ->
+          fprintf fmt "%a@ *^@ %a"
+            print_lexpr e1 print_lexpr e2
       | PLold(e) -> fprintf fmt "\\old(@;@[%a@]@;)" print_lexpr_plain e
       | PLat(e,s) -> fprintf fmt "\\at(@;@[%a,@ %s@]@;)" print_lexpr_plain e s
       | PLbase_addr (l,e) -> fprintf fmt "\\base_addr%a(@;@[%a@])" print_label_1 l print_lexpr_plain e
@@ -244,6 +252,8 @@ and print_lexpr_level n fmt e =
             print_quantifiers q print_lexpr e
       | PLvalid (l,e) -> fprintf fmt "\\valid%a(@;@[%a@]@;)" print_label_1 l print_lexpr_plain e
       | PLvalid_read (l,e) -> fprintf fmt "\\valid_read%a(@;@[%a@]@;)" print_label_1 l print_lexpr_plain e
+      | PLvalid_function e ->
+        fprintf fmt "\\valid_function(@;@[%a@]@;)" print_lexpr_plain e
       | PLinitialized (l,e) ->
           fprintf fmt "\\initialized%a(@;@[%a@]@;)" print_label_1 l print_lexpr_plain e
       | PLdangling (l,e) ->
@@ -265,7 +275,9 @@ and print_lexpr_level n fmt e =
           fprintf fmt "{@ @[%a;@ %a%a@]@ }"
             print_lexpr e print_quantifiers q
             (pp_opt ~pre:"@ |@ " print_lexpr) p
-      | PLsingleton e -> fprintf fmt "{@ @[%a@]@ }" print_lexpr e
+      | PLset l -> 
+          fprintf fmt "{@ @[%a@]@ }"
+            (pp_list ~pre:"@;@[" ~sep:",@ " ~suf:"@]@;" print_lexpr_plain) l
       | PLempty -> pp_print_string fmt "\\empty"
       | PLunion l->
           fprintf fmt "\\union(%a)"

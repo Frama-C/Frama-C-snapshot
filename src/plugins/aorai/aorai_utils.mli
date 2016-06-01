@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Aorai plug-in of Frama-C.                        *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -68,12 +68,32 @@ val initGlobals : Cil_types.kernel_function -> bool -> unit
 (** base lhost corresponding to curState. *)
 val host_state_term: unit -> Cil_types.term_lval
 
-(** returns the predicate saying that automaton is in corresponding state. *)
+(** Returns the predicate saying that automaton is in 
+    corresponding state. *)
 val is_state_pred: state -> Cil_types.predicate Cil_types.named
 
-(** returns the predicate saying that automaton is NOT
+(** Returns the statement saying the state is affected *)
+val is_state_stmt: state * Cil_types.varinfo -> location -> Cil_types.stmt
+
+(** Returns the boolean expression saying the state is affected *)
+val is_state_exp: state -> location -> Cil_types.exp
+
+(** Returns the predicate saying that automaton is NOT
     in corresponding state. *)
 val is_out_of_state_pred: state -> Cil_types.predicate Cil_types.named
+
+(** Returns the statement saying the automaton is not in the corresponding
+    state.
+    @raise AbortFatal in the deterministic case, as such an assignment is
+    meaningless in this context: we only assign the state variable to be
+    in the (unique by definition) state currently active
+*)
+val is_out_of_state_stmt:
+  state * Cil_types.varinfo -> location -> Cil_types.stmt
+
+(** Returns the expression testing that automaton is NOT
+    in the corresponding state.*)
+val is_out_of_state_exp: state -> location -> Cil_types.exp
 
 (** returns assigns clause corresponding to updating automaton's state, and
     assigning auxiliary variable depending on the possible transitions made
@@ -107,6 +127,17 @@ val auto_func_preconditions:
 val auto_func_behaviors:
   Cil_types.location -> kernel_function -> Promelaast.funcStatus ->
   Data_for_aorai.state -> Cil_types.funbehavior list
+
+(** [auto_func_block loc f status st res]
+    generates the body of pre & post functions.
+    res must be [None] for a pre-function and [Some v] for a post-func where
+    [v] is the formal corresponding to the value returned by the original
+    function. If the original function returns [Void], [res] must be [None].
+    It also returns the local variables list declared in the body. *)
+val auto_func_block:
+  Cil_types.location -> kernel_function -> Promelaast.funcStatus ->
+  Data_for_aorai.state -> Cil_types.varinfo option ->
+  Cil_types.block * Cil_types.varinfo list
 
 val get_preds_pre_wrt_params :
   kernel_function -> Cil_types.predicate Cil_types.named
@@ -142,7 +173,7 @@ val action_to_pred:
 
 (** All actions that might have been performed on aux variables from the
     given program point, guarded by the path followed.
-    @modify Neon-20130301 add logic_label argument
+    @modify Neon-20140301 add logic_label argument
  *)
 val all_actions_preds: 
   Cil_types.logic_label ->

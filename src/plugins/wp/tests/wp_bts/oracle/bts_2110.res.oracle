@@ -18,7 +18,7 @@ goal myMain_stmt_assign:
   forall t : int farray.
   forall t_2,t_1 : (addr,int) farray.
   forall a_1,a : addr.
-  let a_2 = shiftfield_F_FD_pos(a) : addr in
+  let a_2 = shiftfield_F1_FD_pos(a) : addr in
   let x = t_1[a_2] : int in
   let x_1 = t_2[a_2] : int in
   linked(t) ->
@@ -38,53 +38,53 @@ goal myMain_stmt_assign:
 (* --- Memory Compound Updates                            --- *)
 (* ---------------------------------------------------------- *)
 
-function shiftfield_F_A_dummy(p:addr) : addr = shift(p, 0)
+function shiftfield_F2_A_dummy(p:addr) : addr = shift(p, 0)
 
-function Load_S_A
+function Load_S2_A
     (p:addr,
     Mint_0:(addr,int) farray) :
-    S_A =
-    { F_A_dummy = Mint_0[shiftfield_F_A_dummy(p)] }
+    S2_A =
+    { F2_A_dummy = Mint_0[shiftfield_F2_A_dummy(p)] }
 
-function shiftfield_F_FD_pos(p:addr) : addr = shift(p, 0)
+function shiftfield_F1_FD_pos(p:addr) : addr = shift(p, 0)
 
-axiom Q_Load_S_A_havoc_Mint:
+axiom Q_Load_S2_A_havoc_Mint:
   forall p,q : addr.
   forall Mint_0,Mint_1 : (addr,int) farray.
   forall k : int
-  [havoc(Mint_0, Mint_1, q, k),Load_S_A(p, Mint_0)|
-    havoc(Mint_0, Mint_1, q, k),Load_S_A(p, Mint_1)].
+  [havoc(Mint_0, Mint_1, q, k),Load_S2_A(p, Mint_0)|
+    havoc(Mint_0, Mint_1, q, k),Load_S2_A(p, Mint_1)].
   separated(p, 1, q, k) -> havoc(Mint_0, Mint_1, q, k) ->
-    (Load_S_A(p, Mint_0) = Load_S_A(p, Mint_1))
+    (Load_S2_A(p, Mint_0) = Load_S2_A(p, Mint_1))
 
-axiom Q_Load_S_A_eqmem_Mint:
+axiom Q_Load_S2_A_eqmem_Mint:
   forall p,q : addr.
   forall Mint_0,Mint_1 : (addr,int) farray.
   forall k : int
-  [eqmem(Mint_0, Mint_1, q, k),Load_S_A(p, Mint_0)|
-    eqmem(Mint_0, Mint_1, q, k),Load_S_A(p, Mint_1)].
+  [eqmem(Mint_0, Mint_1, q, k),Load_S2_A(p, Mint_0)|
+    eqmem(Mint_0, Mint_1, q, k),Load_S2_A(p, Mint_1)].
   included(p, 1, q, k) -> eqmem(Mint_0, Mint_1, q, k) ->
-    (Load_S_A(p, Mint_0) = Load_S_A(p, Mint_1))
+    (Load_S2_A(p, Mint_0) = Load_S2_A(p, Mint_1))
 
-axiom Q_Load_S_A_update_Mint:
+axiom Q_Load_S2_A_update_Mint:
   forall p,q : addr.
   forall Mint_0 : (addr,int) farray.
   forall v : int
-  [Load_S_A(p, Mint_0[q <- v])].
-  (p <> q) -> (Load_S_A(p, Mint_0) = Load_S_A(p, Mint_0[q <- v]))
+  [Load_S2_A(p, Mint_0[q <- v])].
+  (p <> q) -> (Load_S2_A(p, Mint_0) = Load_S2_A(p, Mint_0[q <- v]))
 
 ---------------------------------------------
---- File 'typed/S_A.ergo' 
+--- File 'typed/S2_A.ergo' 
 ---------------------------------------------
 (* ---------------------------------------------------------- *)
 (* --- Struct 'A'                                         --- *)
 (* ---------------------------------------------------------- *)
 
-type S_A = { F_A_dummy : int }
+type S2_A = { F2_A_dummy : int }
 
-predicate EqS_A(S:S_A, S_1:S_A) = (S.F_A_dummy) = (S_1.F_A_dummy)
+predicate EqS2_A(S:S2_A, S_1:S2_A) = (S.F2_A_dummy) = (S_1.F2_A_dummy)
 
-predicate IsS_A(S:S_A) = is_sint32(S.F_A_dummy)
+predicate IsS2_A(S:S2_A) = is_sint32(S.F2_A_dummy)
 
 ---------------------------------------------
 --- File 'typed/myMain_post_KO.ergo' 
@@ -96,13 +96,13 @@ predicate IsS_A(S:S_A) = is_sint32(S.F_A_dummy)
 goal myMain_post_KO:
   forall t_1,t : (addr,int) farray.
   forall a_1,a : addr.
-  let a_2 = Load_S_A(a, t) : S_A in
-  let a_3 = Load_S_A(a, t_1) : S_A in
+  let a_2 = Load_S2_A(a_1, t) : S2_A in
+  let a_3 = Load_S2_A(a_1, t_1) : S2_A in
   (region(a.base) <= 0) ->
   (region(a_1.base) <= 0) ->
-  IsS_A(a_2) ->
-  IsS_A(a_3) ->
-  havoc(t, t_1, a, 1) ->
-  EqS_A(a_3, a_2)
+  IsS2_A(a_2) ->
+  IsS2_A(a_3) ->
+  havoc(t, t_1, a_1, 1) ->
+  EqS2_A(a_3, a_2)
 
 [wp] 2 goals generated

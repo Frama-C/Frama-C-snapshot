@@ -1,0 +1,66 @@
+Loop and "slevel" analysis.
+
+* Overview
+
+This plugin performs two analyses.
+
+ - Loop analysis :: Tries to compute an upper bound on the number of
+                    iterations in a loop.
+ - Slevel analysis :: Based on loop analysis, tries to compute a
+      sensible per-function "slevel" in Value.
+
+The analysis proceeds in two steps: first the loop analysis is done,
+then using its results, the slevel analysis is performed.
+
+* Installation
+
+The installation follows the standard installation of Frama-C
+plugins. By default, it is compiled and installed with Frama-C itself.
+Otherwise, a manual installation can be performed by typing:
+
+: make
+
+And then, with the sufficient privileges (e.g. as root or using =sudo=):
+
+: make install
+
+* Usage
+
+The analysis of the two parts is triggered using the =-loop= option, for
+instance:
+
+: frama-c -loop test.c
+
+The final pass of the analysis, the =slevel= path, outputs:
+
+:  Add this to your command line:
+:          -val-slevel-merge-after-loop main \
+:          -val-slevel-merge-after-loop g \
+:          -val-slevel-merge-after-loop h3 \
+:          -val-slevel-merge-after-loop h4 \
+:          -val-slevel-merge-after-loop h5 \
+:          -val-slevel-merge-after-loop h6 \
+:          -slevel-function main:40 \
+:          -slevel-function k:2 \
+:          -slevel-function f:8 \
+:          -slevel-function g:0 \
+:          -slevel-function h:9 \
+:          -slevel-function h2:9 \
+:          -slevel-function h3:80 \
+:          -slevel-function h4:40 \
+:          -slevel-function h5:40 \
+:          -slevel-function h6:0
+
+These options are ready to be copy-and-pasted into a shell script or a Makefile.
+
+The =-slevel-function=, when found, gives a value that can be used to
+unroll loops and avoid merging paths; in addition it can detect when
+Value should merge analysis paths with the option
+=-val-slevel-merge-after-loop=. A value of 0 means that no reasonable bound
+has been found, and therefore it might be better to avoid spending time in that
+function. Note that this is just an initial recommendation, to be later refined
+by the user.
+
+The loop analysis path is silent, but its results can be read
+programmatically in the =Loop_Max_Iteration= table for use by other
+plugins.

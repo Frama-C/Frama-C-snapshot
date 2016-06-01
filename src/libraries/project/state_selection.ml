@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -22,18 +22,59 @@
 
 module Selection = Graph.Persistent.Digraph.ConcreteBidirectional(State)
 
-type state_selection =
+(* Set of the states in a selection *)
+type concrete_state_selection =
   | Full
   | Subset of Selection.t
 
-let empty = Subset Selection.empty
-let full = Full
-let singleton s = Subset (Selection.add_vertex Selection.empty s)
-let of_list l = Subset (List.fold_left Selection.add_vertex Selection.empty l)
+(* Reification of the atomic operations that are used to create a selection *)
+type witness =
+  | WAll
+  | WEmpty
+  | WSingleton of State.t
+  | WOfStateList of State.t list
+  | WDependencies of State.t
+  | WStrictDependencies of State.t
+  | WCoDependencies of State.t
+  | WStrictCoDependencies of State.t
+  | WUnion of witness * witness
+  | WDiff of witness * witness
+  | WOfList of witness list
 
-let is_empty s = s = Subset Selection.empty
-let is_full s = s = Full
-let mem sel s = match sel with
+let rec pretty_witness fmt = function
+  | WAll -> Format.pp_print_string fmt "*"
+  | WEmpty -> Format.pp_print_string fmt "<>"
+  | WSingleton s -> pretty_state fmt s
+  | WOfStateList l ->
+    Pretty_utils.pp_list ~pre:"[@[<hv>" ~suf:"@]]" ~sep:",@ " pretty_state fmt l
+  | WDependencies s -> Format.fprintf fmt "Deps(%a)" pretty_state s
+  | WStrictDependencies s -> Format.fprintf fmt "StrictDeps(%a)" pretty_state s
+  | WCoDependencies s -> Format.fprintf fmt "CoDeps(%a)" pretty_state s
+  | WStrictCoDependencies s ->
+    Format.fprintf fmt "StrictCoDeps(%a)" pretty_state s
+  | WUnion (w1, w2) ->
+    Format.fprintf fmt "@[<hv 1>Union(%a,@ %a)@]"
+      pretty_witness w1 pretty_witness w2
+  | WDiff (w1, w2) ->
+    Format.fprintf fmt "@[<hv 1>Diff(%a,@ %a)@]"
+      pretty_witness w1 pretty_witness w2
+  | WOfList l ->
+    Pretty_utils.pp_list ~pre:"[@[<hv>" ~suf:"@]]" ~sep:",@ "
+      pretty_witness fmt l
+and pretty_state fmt s =
+  Format.pp_print_string fmt (State.get_name s)
+
+type state_selection = concrete_state_selection * witness
+
+let empty = Subset Selection.empty, WEmpty
+let full = Full, WAll
+let singleton s = Subset (Selection.add_vertex Selection.empty s), WSingleton s
+let of_list l =
+  Subset (List.fold_left Selection.add_vertex Selection.empty l), WOfStateList l
+
+let is_empty (sel, _) = sel = Subset Selection.empty
+let is_full (sel, _) = sel = Full
+let mem (sel, _) s = match sel with
   | Full -> true
   | Subset sel -> Selection.mem_vertex sel s
 
@@ -43,7 +84,7 @@ include Datatype.Make
   type t = state_selection
   let name = "State_selection"
   let reprs = [ full; empty; singleton State.dummy ]
-  let internal_pretty_code p_caller fmt = function
+  let internal_pretty_code p_caller fmt (s, _) = match s with
     | Full -> Format.fprintf fmt "@[State_selection.full@]"
     | Subset sel ->
       match Selection.fold_vertex (fun s acc -> s :: acc) sel [] with
@@ -72,11 +113,11 @@ module type S = sig
   val only_codependencies: State.t -> t
   val union: t -> t -> t
   val list_union: t list -> t
-  val list_state_union: ?deps:(State.t -> t) -> State.t list -> t
   val diff: t -> t -> t
   val cardinal: t -> int
   val to_list: t -> State.t list
   val pretty: Format.formatter -> t -> unit
+  val pretty_witness: Format.formatter -> t -> unit
   val iter_succ: (State.t -> unit) -> t -> State.t -> unit
   val fold_succ: (State.t -> 'a -> 'a) -> t -> State.t -> 'a -> 'a
   val iter: (State.t -> unit) -> t -> unit
@@ -100,23 +141,25 @@ module Static = struct
     visit (Selection.add_vertex Selection.empty s) s
 
   let with_dependencies s = 
-    Subset (transitive_closure State_dependency_graph.G.fold_succ s)
+    Subset (transitive_closure State_dependency_graph.G.fold_succ s),
+    WDependencies s
 
   let with_codependencies s = 
-    Subset (transitive_closure State_dependency_graph.G.fold_pred s)
+    Subset (transitive_closure State_dependency_graph.G.fold_pred s),
+    WCoDependencies s
 
   let only_dependencies s =
     let g = transitive_closure State_dependency_graph.G.fold_succ s in
-    Subset (Selection.remove_vertex g s)
+    Subset (Selection.remove_vertex g s), WStrictDependencies s
 
   let only_codependencies s =
     let g = transitive_closure State_dependency_graph.G.fold_pred s in
-    Subset (Selection.remove_vertex g s)
+    Subset (Selection.remove_vertex g s), WStrictCoDependencies s
 
-  let diff sel1 sel2 =
-    match sel1, sel2 with
+  let diff (sel1, w1) (sel2, w2 as selw2) =
+    let sel = match sel1, sel2 with
       | _, Full -> Subset Selection.empty
-      | Full, sel2 when is_empty sel2 -> Full
+      | Full, _sel2 when is_empty selw2 -> Full
       | Full, Subset sel2 ->
         let selection =
           State_dependency_graph.G.fold_vertex
@@ -140,39 +183,43 @@ module Static = struct
         Subset
           (Selection.fold_vertex
              (fun v acc -> Selection.remove_vertex acc v) sel2 sel1)
+    in
+    sel, WDiff (w1, w2)
 
-  let union =
-    let module O = Graph.Oper.P(Selection) in
-    fun sel1 sel2 -> match sel1, sel2 with
-    | Full, _ | _, Full -> Full
-    | Subset sel1, Subset sel2 -> Subset (O.union sel1 sel2)
+  module Operations = Graph.Oper.P(Selection)
 
-  let list_union l = List.fold_left union (Subset Selection.empty) l
-    
-  let list_state_union ?(deps=singleton) l =
-    List.fold_left
-      (fun acc state -> union acc (deps state)) (Subset Selection.empty) l
+  let union (sel1, w1) (sel2, w2) =
+    let sel = match sel1, sel2 with
+      | Full, _ | _, Full -> Full
+      | Subset sel1, Subset sel2 -> Subset (Operations.union sel1 sel2)
+    in
+    sel, WUnion (w1, w2)
 
-  let cardinal = function
+  let list_union l =
+    let sel, _ = List.fold_left union empty l in
+    let w = WOfList (List.map snd l) in
+    sel, w
+
+  let cardinal (sel, _) = match sel with
     | Full -> State_dependency_graph.G.nb_vertex State_dependency_graph.graph
     | Subset sel -> Selection.nb_vertex sel
 
-  let iter_succ f sel v = match sel with
+  let iter_succ f (sel, _) v = match sel with
     | Full -> 
       State_dependency_graph.G.iter_succ f State_dependency_graph.graph v
     | Subset sel -> Selection.iter_succ f sel v
 
-  let fold_succ f sel v acc = match sel with
+  let fold_succ f (sel, _) v acc = match sel with
     | Full -> 
       State_dependency_graph.G.fold_succ f State_dependency_graph.graph v acc
     | Subset sel -> Selection.fold_succ f sel v acc
 
-  let iter f = function
+  let iter f (sel, _) = match sel with
     | Full -> 
       State_dependency_graph.G.iter_vertex f State_dependency_graph.graph
     | Subset sel -> Selection.iter_vertex f sel
 
-  let fold f s acc = match s with
+  let fold f (sel, _) acc = match sel with
     | Full -> 
       State_dependency_graph.G.fold_vertex f State_dependency_graph.graph acc
     | Subset sel -> Selection.fold_vertex f sel acc
@@ -182,11 +229,11 @@ module Static = struct
   module TG = State_topological.Make(State_dependency_graph.G)
   module TS = State_topological.Make(Selection)
 
-  let iter_in_order f = function
+  let iter_in_order f (sel, _) = match sel with
     | Full -> TG.iter f State_dependency_graph.graph
     | Subset sel -> TS.iter f sel
 
-  let fold_in_order f s acc = match s with
+  let fold_in_order f (sel, _) acc = match sel with
     | Full -> TG.fold f State_dependency_graph.graph acc
     | Subset sel -> TS.fold f sel acc
 
@@ -204,6 +251,9 @@ module Static = struct
           (if mem s then "" else "(\"" ^ State.get_name s ^ "\")"))
       sel;
     Format.pp_print_flush fmt ()
+
+  let pretty_witness fmt (_, w) =
+    pretty_witness fmt w
 
 end
 

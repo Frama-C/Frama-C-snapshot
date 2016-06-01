@@ -7,13 +7,13 @@
 [value] Values of globals at initialization
   t[0..9] ∈ {0}
   u[0..9] ∈ {0}
-tests/slicing/forall_loop_invariant.i:10:[value] Loop invariant got status valid.
-tests/slicing/forall_loop_invariant.i:11:[value] Loop invariant got status valid.
-tests/slicing/forall_loop_invariant.i:12:[value] Loop invariant got status valid.
+tests/slicing/forall_loop_invariant.i:10:[value] loop invariant got status valid.
+tests/slicing/forall_loop_invariant.i:11:[value] loop invariant got status valid.
+tests/slicing/forall_loop_invariant.i:12:[value] loop invariant got status valid.
 tests/slicing/forall_loop_invariant.i:14:[value] entering loop for the first time
-tests/slicing/forall_loop_invariant.i:11:[value] Loop invariant got status unknown.
-tests/slicing/forall_loop_invariant.i:12:[value] Loop invariant got status unknown.
-tests/slicing/forall_loop_invariant.i:18:[value] Assertion got status unknown.
+tests/slicing/forall_loop_invariant.i:11:[value] warning: loop invariant got status unknown.
+tests/slicing/forall_loop_invariant.i:12:[value] warning: loop invariant got status unknown.
+tests/slicing/forall_loop_invariant.i:18:[value] warning: assertion got status unknown.
 [value] Recording results for main
 [value] done for function main
 [slicing] making slicing project 'Slicing'...

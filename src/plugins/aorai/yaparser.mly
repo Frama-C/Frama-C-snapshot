@@ -2,7 +2,7 @@
 /*                                                                        */
 /*  This file is part of Aorai plug-in of Frama-C.                        */
 /*                                                                        */
-/*  Copyright (C) 2007-2015                                               */
+/*  Copyright (C) 2007-2016                                               */
 /*    CEA (Commissariat à l'énergie atomique et aux énergies              */
 /*         alternatives)                                                  */
 /*    INRIA (Institut National de Recherche en Informatique et en         */
@@ -60,9 +60,9 @@ let prefetch_and_create_state name =
       not (Hashtbl.mem observed_states name) 
     then
       begin
-	let s= fetch_and_create_state name in 
-	Hashtbl.add prefetched_states name name;
-	s
+        let s= fetch_and_create_state name in 
+        Hashtbl.add prefetched_states name name;
+        s
       end 
     else
       (fetch_and_create_state name)
@@ -109,15 +109,15 @@ main
              List.iter
                (fun id -> 
                  try
-	           (Hashtbl.find observed_states id).init <- True
+                   (Hashtbl.find observed_states id).init <- True
                  with
-	             Not_found ->
+                     Not_found ->
                        Aorai_option.abort "Error: no state '%s'\n" id)
                ids
          | "accept" ->
              List.iter
                (fun id -> try
-	          (Hashtbl.find observed_states id).acceptation <- True
+                  (Hashtbl.find observed_states id).acceptation <- True
                 with Not_found ->
                   Aorai_option.abort "no state '%s'\n" id) ids
          | "deterministic" -> Aorai_option.Deterministic.set true;
@@ -126,12 +126,12 @@ main
     let states=
       Hashtbl.fold
         (fun _ st l ->
-	   if st.acceptation=Undefined || st.init=Undefined then
-	     begin
-	       Aorai_option.abort
+           if st.acceptation=Undefined || st.init=Undefined then
+             begin
+               Aorai_option.abort
                  "Error: the state '%s' is used but never defined.\n" st.name
-	     end;
-	   st::l)
+             end;
+           st::l)
         observed_states []
     in
     (try
@@ -141,13 +141,13 @@ main
      with Exit -> ());
     if Hashtbl.length prefetched_states >0 then 
       begin
-	let r = Hashtbl.fold
-	  (fun s n _ -> 
+        let r = Hashtbl.fold
+          (fun s n _ -> 
             s^"Error: the state '"^n^"' is used but never defined.\n")
-	  prefetched_states 
-	  ""
-	in
-	Aorai_option.abort "%s" r
+          prefetched_states 
+          ""
+        in
+        Aorai_option.abort "%s" r
       end;
     (states, $2)
   }
@@ -191,7 +191,7 @@ state
             else begin
               let trans =
                 { start=start_state; stop=stop_state;
-	          cross=cross;       numt=(-1) }::transitions
+                  cross=cross;       numt=(-1) }::transitions
               in
               let otherwise = 
                 match cross with 
@@ -350,7 +350,7 @@ access_or_const
 access
   : access DOT IDENTIFIER { PField($1,$3) }
   | access LSQUARE access_or_const RSQUARE { PArrget($1,$3) }
-  | access_leaf	    {$1}
+  | access_leaf     {$1}
   ;
 
 access_leaf

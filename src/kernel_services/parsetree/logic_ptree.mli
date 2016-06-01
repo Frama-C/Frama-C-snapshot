@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -130,6 +130,7 @@ and lexpr_node =
                                 expression. *)
   | PLvalid of string option * lexpr (** pointer is valid. *)
   | PLvalid_read of string option * lexpr (** pointer is valid for reading. *)
+  | PLvalid_function of lexpr (** function pointer is compatible with pointed type. *)
   | PLallocable of string option * lexpr (** pointer is valid for malloc. *)
   | PLfreeable of string option * lexpr (** pointer is valid for free. *)
   | PLinitialized of string option * lexpr (** pointer is guaranteed to be
@@ -146,14 +147,18 @@ and lexpr_node =
   | PLcomprehension of lexpr * quantifiers * lexpr option
       (** set of expression defined in comprehension
           ({t \{ e | integer i; P(i)\}})*)
-  | PLsingleton of lexpr
-      (** singleton sets. *)
+  | PLset of lexpr list
+      (** sets of elements. *)
   | PLunion of lexpr list
       (** union of sets. *)
   | PLinter of lexpr list
       (** intersection of sets. *)
   | PLempty
       (** empty set. *)
+  | PLlist of lexpr list
+      (** list of elements. *)
+  | PLrepeat of lexpr * lexpr
+      (** repeat a list of elements a number of times. *)
 
 (** type invariant. *)
 type type_annot =  {inv_name: string;

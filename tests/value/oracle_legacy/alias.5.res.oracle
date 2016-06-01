@@ -1,0 +1,222 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/value/alias.i (no preprocessing)
+[value] Analyzing a complete application starting at main11
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  NULL[rbits 0 to 2047] ∈ [--..--]
+  A ∈ {0}
+  B ∈ {0}
+  C ∈ {0}
+  D ∈ {0}
+  E ∈ {0}
+  F ∈ {0}
+  G ∈ {0}
+  p[0..4] ∈ {0}
+  q[0] ∈ {1}
+   [1] ∈ {2}
+   [2] ∈ {3}
+   [3] ∈ {4}
+   [4] ∈ {5}
+  p2[0..4] ∈ {0}
+  q2[0] ∈ {1}
+    [1] ∈ {2}
+    [2] ∈ {3}
+    [3] ∈ {4}
+    [4] ∈ {5}
+  p3[0..4] ∈ {0}
+  t ∈ {0}
+  u ∈ {0}
+  v ∈ {0}
+  w ∈ {0}
+  x ∈ {0}
+  y ∈ {0}
+  z ∈ {0}
+  t2 ∈ {0}
+  v2 ∈ {0}
+  PTR1 ∈ {0}
+  PTR2 ∈ {0}
+  PTR3 ∈ {0}
+  PTR4 ∈ {0}
+  PTR5 ∈ {0}
+  PTR6 ∈ {0}
+  c ∈ [--..--]
+  c1 ∈ [--..--]
+  c2 ∈ [--..--]
+  c3 ∈ [--..--]
+  c4 ∈ [--..--]
+  e ∈ {0}
+  g ∈ {0}
+  h ∈ {0}
+  i ∈ {0}
+  tz1 ∈ {0}
+  tz2 ∈ {0}
+  tz3 ∈ {0}
+  tx ∈ {0}
+  ty ∈ {0}
+  tz ∈ {0}
+  U ∈ {0}
+  char1 ∈ {0}
+  ll1 ∈ {0}
+tests/value/alias.i:260:[value] entering loop for the first time
+[value] computing for function f2 <- main11.
+        Called from tests/value/alias.i:268.
+[value] DUMPING STATE of file tests/value/alias.i line 23
+        NULL[rbits 0 to 2047] ∈ [--..--]
+        x_0 ∈ {{ (char *)&p2 }}
+        q_0 ∈ {{ &p2 + {1} }}
+        A ∈ {0}
+        B ∈ {0}
+        C ∈ {0}
+        D ∈ {33}
+        E ∈ {0}
+        F ∈ {0}
+        G ∈ {0}
+        p[0..4] ∈ {0}
+        q[0] ∈ {1}
+         [1] ∈ {2}
+         [2] ∈ {3}
+         [3] ∈ {4}
+         [4] ∈ {5}
+        p2[0][bits 0 to 15]# ∈ {1} repeated %8 
+          [0][bits 16 to 31] ∈ {0}
+          [1] ∈ {33}
+          [2..4] ∈ {0}
+        q2[0] ∈ {1}
+          [1] ∈ {2}
+          [2] ∈ {3}
+          [3] ∈ {4}
+          [4] ∈ {5}
+        p3[0..4] ∈ {0}
+        t ∈ {0}
+        u ∈ {0}
+        v ∈ {0}
+        w ∈ {0}
+        x ∈ {0}
+        y ∈ {0}
+        z ∈ {0}
+        t2 ∈ {0}
+        v2 ∈ {0}
+        PTR1 ∈ {0}
+        PTR2 ∈ {0}
+        PTR3 ∈ {{ &p2[1] }}
+        PTR4 ∈ {0}
+        PTR5 ∈ {0}
+        PTR6 ∈ {0}
+        c ∈ [--..--]
+        c1 ∈ [--..--]
+        c2 ∈ [--..--]
+        c3 ∈ [--..--]
+        c4 ∈ [--..--]
+        e ∈ {0}
+        g ∈ {0}
+        h ∈ {0}
+        i ∈ {0}
+        tz1 ∈ {0}
+        tz2 ∈ {0}
+        tz3 ∈ {0}
+        tx ∈ {0}
+        ty ∈ {0}
+        tz ∈ {0}
+        U ∈ {0}
+        char1 ∈ {0}
+        ll1 ∈ {0}
+        i_0 ∈ {0}
+        =END OF DUMP==
+[value] Recording results for f2
+[value] Done for function f2
+tests/value/alias.i:271:[kernel] warning: signed overflow. assert c2+1 ≤ 2147483647;
+tests/value/alias.i:273:[kernel] warning: signed overflow. assert c2+2 ≤ 2147483647;
+tests/value/alias.i:279:[value] entering loop for the first time
+tests/value/alias.i:285:[kernel] warning: pointer comparison. assert \pointer_comparable((void *)PTR2, (void *)PTR1);
+tests/value/alias.i:292:[value] entering loop for the first time
+tests/value/alias.i:292:[kernel] warning: signed overflow. assert c1+1 ≤ 2147483647;
+[value] Recording results for main11
+[value] done for function main11
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function f2:
+  q_0 ∈ {{ &p2 + {1} }}
+  p2[0][bits 0 to 15]# ∈ {1} repeated %8 
+    [0][bits 16 to 31] ∈ {0}
+    [1] ∈ {33}
+    [2..4] ∈ {0}
+[value] Values at end of function main11:
+  A ∈ {1; 33}
+  B ∈ {-32; 0; 32}
+  D ∈ {33}
+  p[0] ∈ {0}
+   [1] ∈ {0; 77}
+   [2..4] ∈ {0}
+  q[0] ∈ {1}
+   [1] ∈ {2}
+   [2] ∈ {3; 77}
+   [3] ∈ {4}
+   [4] ∈ {5}
+  p2[0][bits 0 to 15]# ∈ {1} repeated %8 
+    [0][bits 16 to 31] ∈ {0}
+    [1] ∈ {33}
+    [2..4] ∈ {0}
+  q2[0] ∈ {1; 33}
+    [1] ∈ {33}
+    [2] ∈ {3}
+    [3] ∈ {4}
+    [4] ∈ {5}
+  t ∈ {0; 1}
+  x ∈ [0..99]
+  y ∈ {0; 3; 77}
+  z ∈ {-33}
+  PTR1 ∈ {{ &p[1] ; &q[2] }}
+  PTR2 ∈ [--..--]
+  PTR3 ∈ {{ &p2[1] }}
+  PTR4 ∈ {{ &q2[1] }}
+  c1 ∈ [--..--]
+  U{.ll[bits 0 to 31]; .i; .c[bits 0 to 31]} ∈ {2; 3}
+   {.ll[bits 32 to 63]#; .i[bits 32 to 63]#; .c[bits 32 to 63]#} ∈
+   {16; 17}%64, bits 32 to 63 
+  ll1 ∈ {15; 16}
+  i_0 ∈ {100}
+[from] Computing for function f2
+[from] Computing for function Frama_C_dump_each <-f2
+[from] Done for function Frama_C_dump_each
+[from] Done for function f2
+[from] Computing for function main11
+[from] Done for function main11
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function f2:
+  p2[0][bits 0 to 7] FROM x_0; p2[0][bits 0 to 7]
+    [0][bits 8 to 15] FROM x_0; p2[0][bits 8 to 15]
+[from] Function main11:
+  A FROM q2[0]; c1
+  B FROM q2[0]; c1
+  D FROM c
+  p[1] FROM c (and SELF)
+  q[2] FROM c (and SELF)
+  p2[0][bits 0 to 7] FROM p2[0][bits 0 to 7]
+    [0][bits 8 to 15] FROM p2[0][bits 8 to 15]
+    [1] FROM \nothing
+    [2] FROM p2[2]; c (and SELF)
+  q2[0] FROM c1 (and SELF)
+    [1] FROM \nothing
+  t FROM c2
+  x FROM \nothing (and SELF)
+  y FROM p[1]; q[2]; c
+  z FROM NULL[0..3]; PTR2; c
+  PTR1 FROM c
+  PTR2 FROM NULL[0..3]; PTR2
+  PTR3 FROM c
+  PTR4 FROM c1
+  c1 FROM c1
+  U FROM c2
+  ll1 FROM c2
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function f2:
+          q_0; p2[0][bits 0 to 15]
+[inout] Inputs for function f2:
+          p2[0][bits 0 to 15]
+[inout] Out (internal) for function main11:
+          A; B; D; p[1]; q[2]; p2{[0][bits 0 to 15]; [1..2]}; q2[0..1]; t; x; 
+          y; z; PTR1; PTR2; PTR3; PTR4; c1; U; ll1; i_0; tm; tmp
+[inout] Inputs for function main11:
+          NULL[0..3]; A; p[1]; q[2]; p2{[0][bits 0 to 15]; [1..2]}; q2[0]; t; 
+          PTR1; PTR2; PTR3; PTR4; c; c1; c2; ll1

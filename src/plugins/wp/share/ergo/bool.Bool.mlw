@@ -12,18 +12,16 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* this is a prelude for Alt-Ergo*)
+(* this is the prelude for Alt-Ergo, any versions *)
 (** The theory BuiltIn_ must be appended to this file*)
 (** The theory Bool_ must be appended to this file*)
 function andb(x: bool, y: bool) : bool = match_bool(x, y, false)
 
 function orb(x: bool, y: bool) : bool = match_bool(x, true, y)
 
-function xorb(x: bool, y: bool) : bool = match_bool(y, match_bool(x, false,
-  true), match_bool(x, true, false))
-
 function notb(x: bool) : bool = match_bool(x, false, true)
 
-function implb(x: bool, y: bool) : bool = match_bool(y, true, match_bool(x,
-  false, true))
+function xorb(x: bool, y: bool) : bool = match_bool(x, notb(y), y)
+
+function implb(x: bool, y: bool) : bool = match_bool(x, y, true)
 

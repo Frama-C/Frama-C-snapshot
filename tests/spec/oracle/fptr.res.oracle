@@ -60,7 +60,7 @@ void my_f(void)
   return;
 }
 
-/*@ lemma OK{L}: P{L}((void (*)())(&my_f)) ∧ P1{L}(&my_f);
+/*@ lemma OK{L}: P((void (*)())(&my_f)) ∧ P1(&my_f);
 
 */
 

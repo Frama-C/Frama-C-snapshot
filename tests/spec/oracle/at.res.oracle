@@ -15,7 +15,7 @@ axiomatic A {
   }
  */
 /*@ ensures x ≡ (2+\old(x))+\old(y);
-    ensures \at(E{Pre}(\at((x-2)-y,Here)),Pre);
+    ensures \at(E(\at((x-2)-y,Here)),Pre);
  */
 int f(int y)
 {

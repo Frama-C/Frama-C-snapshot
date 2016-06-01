@@ -1,0 +1,44 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/value/empty_struct.c (with preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  s2 ∈ {0}
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  p ∈ {{ (void *)&s }}
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  NO EFFECTS
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          p
+[inout] Inputs for function main:
+          \nothing
+[value] Analyzing an incomplete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  s2 ∈ [--..--]
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  p ∈ {{ (void *)&s }}
+[from] Computing for function main
+[from] Done for function main
+[from] ====== DEPENDENCIES COMPUTED ======
+       These dependencies hold at termination for the executions that terminate:
+[from] Function main:
+  NO EFFECTS
+[from] ====== END OF DEPENDENCIES ======
+[inout] Out (internal) for function main:
+          p
+[inout] Inputs for function main:
+          \nothing

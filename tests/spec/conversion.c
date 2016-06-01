@@ -27,6 +27,7 @@ const T_PTR_T4  Tab_Ptr = { &X, &X, &X, &X};
 
 
 /*@ axiomatic useless_logic_cast {
+  @ logic integer v2 = (int)1 + (T)1;
   @ logic int vX = (int) X;
   @ logic int[4] vTab = (T4) Tab;
   @ logic T_PTR_T4 * vTab_Ptr = (T_PTR_T4 *)(&Tab_Ptr);

@@ -26,46 +26,6 @@ tests/pdg/simple_call.c:45:[kernel] warning: signed overflow. assert G+y ≤ 214
         Called from tests/pdg/simple_call.c:52.
 [value] Recording results for call
 [value] Done for function call
-[value] computing for function call <- call_in_loop.
-        Called from tests/pdg/simple_call.c:52.
-[value] Recording results for call
-[value] Done for function call
-[value] computing for function call <- call_in_loop.
-        Called from tests/pdg/simple_call.c:52.
-[value] Recording results for call
-[value] Done for function call
-[value] computing for function call <- call_in_loop.
-        Called from tests/pdg/simple_call.c:52.
-[value] Recording results for call
-[value] Done for function call
-[value] computing for function call <- call_in_loop.
-        Called from tests/pdg/simple_call.c:52.
-[value] Recording results for call
-[value] Done for function call
-[value] computing for function call <- call_in_loop.
-        Called from tests/pdg/simple_call.c:52.
-[value] Recording results for call
-[value] Done for function call
-[value] computing for function call <- call_in_loop.
-        Called from tests/pdg/simple_call.c:52.
-[value] Recording results for call
-[value] Done for function call
-[value] computing for function call <- call_in_loop.
-        Called from tests/pdg/simple_call.c:52.
-[value] Recording results for call
-[value] Done for function call
-[value] computing for function call <- call_in_loop.
-        Called from tests/pdg/simple_call.c:52.
-[value] Recording results for call
-[value] Done for function call
-[value] computing for function call <- call_in_loop.
-        Called from tests/pdg/simple_call.c:52.
-[value] Recording results for call
-[value] Done for function call
-[value] computing for function call <- call_in_loop.
-        Called from tests/pdg/simple_call.c:52.
-[value] Recording results for call
-[value] Done for function call
 tests/pdg/simple_call.c:52:[kernel] warning: signed overflow. assert a+tmp ≤ 2147483647;
                                    (tmp from call(i, c))
 [value] computing for function call <- call_in_loop.

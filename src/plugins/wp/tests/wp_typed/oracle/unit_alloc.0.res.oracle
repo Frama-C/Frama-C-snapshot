@@ -10,7 +10,6 @@
 ------------------------------------------------------------
 
 Goal Assigns nothing in 'f':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
@@ -20,7 +19,6 @@ Prove: true.
 
 Goal Assigns nothing in 'g':
 Effect at line 31
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
@@ -29,8 +27,8 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition (file tests/wp_typed/unit_alloc.i, line 33) in 'h':
-Assume { (* Heap *) Have: (linked Malloc_2). }
-Prove: not (valid_rw Malloc_2[P_x_87->0] (shift_sint32 (global P_x_87) 0) 1).
+Assume { (* Heap *) Have: linked(Malloc_0). }
+Prove: !valid_rw(Malloc_0[P_x_87 <- 0], shift_sint32(global(P_x_87), 0), 1).
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -38,41 +36,31 @@ Prove: not (valid_rw Malloc_2[P_x_87->0] (shift_sint32 (global P_x_87) 0) 1).
 ------------------------------------------------------------
 
 Goal Assertion (file tests/wp_typed/unit_alloc.i, line 15):
-Assume { (* Heap *) Have: (linked Malloc_4) /\ ((region (base p_1))<=0). }
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Assertion (file tests/wp_typed/unit_alloc.i, line 21):
-Assume { (* Heap *) Have: (linked Malloc_4) /\ ((region (base p_1))<=0). }
-Prove: (valid_rw Malloc_4[P_x_71->1][L_y_72->1][L_z_74->1]
-         (shift_sint32 (global L_y_72) 0) 1).
+Assume { (* Heap *) Have: linked(Malloc_0) /\ (region(p.base) <= 0). }
+Prove: valid_rw(Malloc_0[P_x_71 <- 1][L_y_72 <- 1][L_z_74 <- 1],
+         shift_sint32(global(L_y_72), 0), 1).
 
 ------------------------------------------------------------
 
 Goal Assertion (file tests/wp_typed/unit_alloc.i, line 22):
-Assume {
-  (* Heap *)
-  Have: (linked Malloc_4) /\ ((region (base p_1))<=0).
-  (* Assertion (file tests/wp_typed/unit_alloc.i, line 21) *)
-  (* tests/wp_typed/unit_alloc.i:21: Assertion: *)
-  Have: (valid_rw Malloc_4[P_x_71->1][L_y_72->1][L_z_74->1]
-          (shift_sint32 (global L_y_72) 0) 1).
-}
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Assertion (file tests/wp_typed/unit_alloc.i, line 24):
-Let m_0 = Malloc_4[P_x_71->1][L_y_72->1][L_z_74->1].
-Let a_0 = (shift_sint32 (global L_y_72) 0).
+Let m = Malloc_0[P_x_71 <- 1][L_y_72 <- 1][L_z_74 <- 1].
+Let a = shift_sint32(global(L_y_72), 0).
 Assume {
   (* Heap *)
-  Have: (linked Malloc_4) /\ ((region (base p_1))<=0).
-  (* Assertion (file tests/wp_typed/unit_alloc.i, line 21) *)
-  (* tests/wp_typed/unit_alloc.i:21: Assertion: *)
-  Have: (valid_rw m_0 a_0 1).
+  Have: linked(Malloc_0) /\ (region(p.base) <= 0).
+  (* Assertion *)
+  Have: valid_rw(m, a, 1).
 }
-Prove: not (valid_rw m_0[L_y_72->0][L_z_74->0] a_0 1).
+Prove: !valid_rw(m[L_y_72 <- 0][L_z_74 <- 0], a, 1).
 
 ------------------------------------------------------------

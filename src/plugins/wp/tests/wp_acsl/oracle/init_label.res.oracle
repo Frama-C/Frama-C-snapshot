@@ -11,9 +11,8 @@ tests/wp_acsl/init_label.i:21:[kernel] warning: No code nor implicit assigns cla
 ------------------------------------------------------------
 
 Goal Post-condition 'KO' in 'extra':
-Let x_0 = A_0[2].
-Assume { (* Domain *) Type: (is_sint32 x_0). }
-Prove: 12=x_0.
+Let x = A[2]. Assume { Type: is_sint32(x). }
+Prove: 12 = x.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -21,18 +20,6 @@ Prove: 12=x_0.
 ------------------------------------------------------------
 
 Goal Post-condition 'OK' in 'foreign':
-Assume {
-  (* Domain *)
-  Type: (is_sint32 A_0[8]).
-  (* Initializer *)
-  Init: 10=A_0[0].
-  (* Initializer *)
-  Init: 11=A_0[1].
-  (* Initializer *)
-  Init: 12=A_0[2].
-  (* Initializer *)
-  Init: forall i_0:int. (3<=i_0) -> (i_0<=19) -> (0=A_0[i_0]).
-}
 Prove: true.
 
 ------------------------------------------------------------
@@ -41,23 +28,21 @@ Prove: true.
 ------------------------------------------------------------
 
 Goal Post-condition 'OK' in 'job':
-Let x_0 = A_0[2].
+Let x = A[2].
 Assume {
-  (* Domain *)
-  Type: (IsArray1_sint32 A_0) /\ (IsArray1_sint32 A_2) /\ (is_sint32 x_0).
+  Type: IsArray1_sint32(A) /\ IsArray1_sint32(A_1) /\ is_sint32(x).
   (* Initializer *)
-  Init: 10=A_2[0].
+  Init: 10 = A_1[0].
   (* Initializer *)
-  Init: 11=A_2[1].
+  Init: 11 = A_1[1].
   (* Initializer *)
-  Init: 12=A_2[2].
+  Init: 12 = A_1[2].
   (* Initializer *)
-  Init: forall i_0:int. (3<=i_0) -> (i_0<=19) -> (0=A_2[i_0]).
-  (* Pre-condition 'Init' in 'job' *)
-  (* Pre-condition 'Init': *)
-  Have: (EqArray1_int 20 A_0 A_2).
+  Init: forall i : Z. ((3 <= i) -> ((i <= 19) -> (0 = A_1[i]))).
+  (* Pre-condition 'Init' *)
+  Have: EqArray1_int(20, A, A_1).
 }
-Prove: 12=x_0.
+Prove: 12 = x.
 
 ------------------------------------------------------------
 ------------------------------------------------------------
@@ -65,18 +50,6 @@ Prove: 12=x_0.
 ------------------------------------------------------------
 
 Goal Pre-condition 'OK' in 'main':
-Assume {
-  (* Domain *)
-  Type: (is_sint32 A_0[19]).
-  (* Initializer *)
-  Init: 10=A_0[0].
-  (* Initializer *)
-  Init: 11=A_0[1].
-  (* Initializer *)
-  Init: 12=A_0[2].
-  (* Initializer *)
-  Init: forall i_0:int. (3<=i_0) -> (i_0<=19) -> (0=A_0[i_0]).
-}
 Prove: true.
 
 ------------------------------------------------------------

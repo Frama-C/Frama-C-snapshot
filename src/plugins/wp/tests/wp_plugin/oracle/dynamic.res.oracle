@@ -12,68 +12,30 @@
 ------------------------------------------------------------
 
 Goal calls f1 f2 in 'call' at instruction (file tests/wp_plugin/dynamic.i, line 30):
-Let a_0 = Mptr_0[(shiftfield_F_S_f closure_5)].
-Let a_1 = (shift_PTR (global G_f1_69) 0).
-Let a_2 = (shift_PTR (global G_f2_75) 0).
-Let x_0 = Mint_0[(shiftfield_F_S_param closure_5)].
+Let a = Mptr_0[shiftfield_F1_S_f(closure_0)].
+Let a_1 = shift_PTR(global(G_f2_75), 0).
+Let a_2 = shift_PTR(global(G_f1_69), 0).
+Let x = Mint_0[shiftfield_F1_S_param(closure_0)].
 Assume {
-  (* Domain *)
-  Type: (is_sint32 Mint_0[(shiftfield_F_S_param closure_2)])
-        /\ (is_sint32 Mint_0[(shiftfield_F_S_param closure_4)])
-        /\ (is_sint32 x_0).
+  Type: is_sint32(Mint_0[shiftfield_F1_S_param(closure_1)]) /\
+      is_sint32(Mint_0[shiftfield_F1_S_param(closure_2)]) /\ is_sint32(x).
   (* Heap *)
-  Have: (framed Mptr_0) /\ ((region (base closure_5))<=0).
-  (* Pre-condition (file tests/wp_plugin/dynamic.i, line 25) in 'call' *)
-  (* Pre-condition: *)
-  Have: (a_0=a_2) \/ ((a_0=a_1) /\ ((\iabs x_0)<=5)).
+  Have: framed(Mptr_0) /\ (region(closure_0.base) <= 0).
+  (* Pre-condition *)
+  Have: (a = a_1) \/ ((a = a_2) /\ (abs_int(x) <= 5)).
 }
-Prove: (a_0=a_1) \/ (a_0=a_2).
+Prove: (a = a_2) \/ (a = a_1).
 
 ------------------------------------------------------------
 
 Goal Post-condition (file tests/wp_plugin/dynamic.i, line 26) in 'call' (1/2):
 Tags: Call f1.
-Let x_0 = Mint_0[(shiftfield_F_S_param closure_2)].
-Let a_0 = Mptr_0[(shiftfield_F_S_f closure_2)].
-Let a_1 = (shift_PTR (global G_f1_69) 0).
-Assume {
-  (* Domain *)
-  Type: (is_sint32 x_0)
-        /\ (is_sint32 Mint_0[(shiftfield_F_S_param closure_4)])
-        /\ (is_sint32 (1+x_0)).
-  (* Heap *)
-  Have: (framed Mptr_0) /\ ((region (base closure_2))<=0).
-  (* Pre-condition (file tests/wp_plugin/dynamic.i, line 25) in 'call' *)
-  (* Pre-condition: *)
-  Have: (a_0=(shift_PTR (global G_f2_75) 0))
-        \/ ((a_0=a_1) /\ ((\iabs x_0)<=5)).
-  (* tests/wp_plugin/dynamic.i:30: Instance of 'f1' *)
-  Have: a_0=a_1.
-  (* tests/wp_plugin/dynamic.i:30: Call 'f1' *)
-  Have: (-10<=x_0) /\ (x_0<=10).
-}
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Post-condition (file tests/wp_plugin/dynamic.i, line 26) in 'call' (2/2):
 Tags: Call f2.
-Let a_0 = Mptr_0[(shiftfield_F_S_f closure_4)].
-Let a_1 = (shift_PTR (global G_f2_75) 0).
-Let x_0 = Mint_0[(shiftfield_F_S_param closure_4)].
-Assume {
-  (* Domain *)
-  Type: (is_sint32 Mint_0[(shiftfield_F_S_param closure_2)])
-        /\ (is_sint32 x_0) /\ (is_sint32 (x_0-1)).
-  (* Heap *)
-  Have: (framed Mptr_0) /\ ((region (base closure_4))<=0).
-  (* Pre-condition (file tests/wp_plugin/dynamic.i, line 25) in 'call' *)
-  (* Pre-condition: *)
-  Have: (a_0=a_1)
-        \/ ((a_0=(shift_PTR (global G_f1_69) 0)) /\ ((\iabs x_0)<=5)).
-  (* tests/wp_plugin/dynamic.i:30: Instance of 'f2' *)
-  Have: a_0=a_1.
-}
 Prove: true.
 
 ------------------------------------------------------------
@@ -81,22 +43,19 @@ Prove: true.
 Goal Instance of 'Pre-condition (file tests/wp_plugin/dynamic.i, line 10) in 'f1'' in 'call' at instruction (file tests/wp_plugin/dynamic.i, line 30)
 :
 Tags: Call f1.
-Let x_0 = Mint_0[(shiftfield_F_S_param closure_2)].
-Let a_0 = Mptr_0[(shiftfield_F_S_f closure_2)].
-Let a_1 = (shift_PTR (global G_f1_69) 0).
+Let a = Mptr_0[shiftfield_F1_S_f(closure_0)].
+Let a_1 = shift_PTR(global(G_f1_69), 0).
+Let x = Mint_0[shiftfield_F1_S_param(closure_0)].
 Assume {
-  (* Domain *)
-  Type: (is_sint32 x_0)
-        /\ (is_sint32 Mint_0[(shiftfield_F_S_param closure_4)]).
+  Type: is_sint32(x) /\ is_sint32(Mint_0[shiftfield_F1_S_param(closure_1)]).
   (* Heap *)
-  Have: (framed Mptr_0) /\ ((region (base closure_2))<=0).
-  (* Pre-condition (file tests/wp_plugin/dynamic.i, line 25) in 'call' *)
-  (* Pre-condition: *)
-  Have: (a_0=(shift_PTR (global G_f2_75) 0))
-        \/ ((a_0=a_1) /\ ((\iabs x_0)<=5)).
-  (* tests/wp_plugin/dynamic.i:30: Instance of 'f1' *)
-  Have: a_0=a_1.
+  Have: framed(Mptr_0) /\ (region(closure_0.base) <= 0).
+  (* Pre-condition *)
+  Have: (a = shift_PTR(global(G_f2_75), 0)) \/
+      ((a = a_1) /\ (abs_int(x) <= 5)).
+  (* Instance of 'f1' *)
+  Have: a = a_1.
 }
-Prove: (-10<=x_0) /\ (x_0<=10).
+Prove: ((-10) <= x) /\ (x <= 10).
 
 ------------------------------------------------------------

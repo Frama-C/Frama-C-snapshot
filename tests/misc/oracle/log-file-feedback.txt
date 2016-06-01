@@ -1,0 +1,12 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/misc/log-file.i (no preprocessing)
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] computing for function f <- main.
+Called from tests/misc/log-file.i:15.
+[value] using specification for function f
+[value] Done for function f
+tests/misc/log-file.i:16:[value] entering loop for the first time
+[value] Recording results for main
+[value] done for function main

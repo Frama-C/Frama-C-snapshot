@@ -142,8 +142,8 @@ module type S = sig
     t -> t -> t
   (** Merge of two trees, parameterized by the [decide] function. If [symmetric]
       holds, the function must verify [decide key v1 v2 = decide key v2 v1]. If
-      [idempotent] holds, the function must verify [decide k (Some x) (Some x) = x].
-      and [merge (Some v) None = v]. *)
+      [idempotent] holds, the function must verify
+      [decide k (Some x) (Some x) = x]. *)
 
   val join :
     cache:cache_type ->
@@ -161,7 +161,8 @@ module type S = sig
     decide:(key -> v -> v -> v option) ->
     t -> t -> t
   (** Intersection of two trees, parameterized by the [decide] function. If the
-      [decide] function returns [None], the key will not be in the resulting map.
+      [decide] function returns [None], the key will not be in the resulting
+      map. Keys present in only one map are similarly unmapped in the result.
   *)
 
   val inter_with_shape: 'a shape -> t -> t
@@ -274,6 +275,10 @@ module type S = sig
   (** [is_singleton m] returns [Some (k, d)] if [m] is a singleton map
       that maps [k] to [d]. Otherwise, it returns [None]. *)
 
+  val on_singleton: (key -> v -> bool) -> t -> bool
+  (** [on_singleton f m] returns [f k d] if [m] is a singleton map
+      that maps [k] to [d]. Otherwise, it returns false. *)
+
   val cardinal: t -> int
   (** [cardinal m] returns [m]'s cardinal, that is, the number of keys it
       binds, or, in other words, its domain's cardinal. *)
@@ -314,7 +319,7 @@ module type S = sig
         ~join ~empty m1 m2] iterates simultaneously on [m1] and [m2]. If a subtree
       [t] is present in [m1] but not in [m2] (resp. in [m2] but not in [m1]),
       [empty_right t] (resp. [empty_left t]) is called. If a key [k] is present
-      in both trees, and bound to to [v1] and [v2] respectively, [both k v1 v2] is
+      in both trees, and bound to [v1] and [v2] respectively, [both k v1 v2] is
       called. If both trees are empty, [empty] is returned. The values of type
       ['b] returned by the auxiliary functions are merged using [join], which is
       called in an unspecified order. The results of the function may be cached,

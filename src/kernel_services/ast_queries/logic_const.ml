@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA   (Commissariat à l'énergie atomique et aux énergies            *)
 (*           alternatives)                                                *)
 (*    INRIA (Institut National de Recherche en Informatique et en         *)
@@ -130,6 +130,20 @@ let loop_entry_label = LogicLabel (None, "LoopEntry")
 
 (** {2 Types} *)
 
+let is_list_type = function
+  | Ltype ({lt_name = "\\list"},[_]) -> true
+  | _ -> false
+
+(** returns the type of elements of a list type.
+    @raise Failure if the input type is not a list type. *)
+let type_of_list_elem ty = match ty with
+  | Ltype ({lt_name = "\\list"},[t]) -> t
+  | _ -> failwith "not a list type"
+
+(** build the type list of [ty]. *)
+let make_type_list_of ty =
+  Ltype(Logic_env.find_logic_type "\\list",[ty])
+
 let is_set_type = function
   | Ltype ({lt_name = "set"},[_]) -> true
   | _ -> false
@@ -145,7 +159,8 @@ let set_conversion ty1 ty2 =
 
 (** converts a type into the corresponding set type if needed. *)
 let make_set_type ty =
-  set_conversion ty (Ltype(Logic_env.find_logic_type "set",[Lvar "_"]))
+  if is_set_type ty then ty
+  else Ltype(Logic_env.find_logic_type "set",[ty])
 
 (** returns the type of elements of a set type.
     @raise Failure if the input type is not a set type. *)
@@ -234,6 +249,11 @@ let treal ?(loc=Cil_datatype.Location.unknown) f =
 let treal_zero ?(loc=Cil_datatype.Location.unknown) ?(ltyp=Lreal) () = 
   let zero = { r_nearest = 0.0 ; r_upper = 0.0 ; r_lower = 0.0 ; r_literal = "0." } in
   term ~loc (TConst (LReal zero)) ltyp
+
+let tstring ?(loc=Cil_datatype.Location.unknown) s =
+  (* Cannot refer to Cil.charConstPtrType in this module... *)
+  let typ = TPtr(TInt(IChar, [Attr("const", [])]),[]) in
+  term ~loc (TConst (LStr s)) (Ctype typ)
 
 let tat ?(loc=Cil_datatype.Location.unknown) (t,label) =
   term ~loc (Tat(t,label)) t.term_type
@@ -355,8 +375,10 @@ let pexists ?(loc=Cil_datatype.Location.unknown) (l,p) = match l with
 let pfresh ?(loc=Cil_datatype.Location.unknown) (l1,l2,p,n) = unamed ~loc (Pfresh (l1,l2,p,n))
 let pallocable ?(loc=Cil_datatype.Location.unknown) (l,p) = unamed ~loc (Pallocable (l,p))
 let pfreeable ?(loc=Cil_datatype.Location.unknown) (l,p) = unamed ~loc (Pfreeable (l,p))
-let pvalid_read ?(loc=Cil_datatype.Location.unknown) (l,p) = unamed ~loc (Pvalid_read (l,p))
 let pvalid ?(loc=Cil_datatype.Location.unknown) (l,p) = unamed ~loc (Pvalid (l,p))
+let pvalid_read ?(loc=Cil_datatype.Location.unknown) (l,p) = unamed ~loc (Pvalid_read (l,p))
+let pvalid_function ?(loc=Cil_datatype.Location.unknown) p = unamed ~loc (Pvalid_function p)
+
 (* the index should be an integer or a range of integers *)
 let pvalid_index ?(loc=Cil_datatype.Location.unknown) (l,t1,t2) =
   let ty1 = t1.term_type in

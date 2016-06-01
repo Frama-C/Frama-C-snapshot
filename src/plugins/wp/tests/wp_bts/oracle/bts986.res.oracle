@@ -10,7 +10,7 @@
 ------------------------------------------------------------
 
 Goal Assertion 'A' (file tests/wp_bts/bts986.i, line 12):
-Assume { (* Heap *) Have: (linked Malloc_2). }
-Prove: not (valid_rw Malloc_2[L_x_70->0] (shift_sint32 (global L_x_70) 0) 1).
+Assume { (* Heap *) Have: linked(Malloc_0). }
+Prove: !valid_rw(Malloc_0[L_x_70 <- 0], shift_sint32(global(L_x_70), 0), 1).
 
 ------------------------------------------------------------

@@ -11,7 +11,7 @@ tests/saveload/deps.i:15:[kernel] warning: signed overflow. assert -2147483648 �
 [value] done for function main
 [value] ====== VALUES COMPUTED ======
 [value] Values at end of function main:
-  i ∈ [-2147483648..2147483646]
+  i ∈ [-2147483648..9]
   j ∈ {5}
   __retres ∈ {0}
 [from] Computing for function main

@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -98,6 +98,10 @@ module Functions: sig
 
   val find_def_by_name : string -> kernel_function
     (** @raise Not_found if there is no function definition of this name. *)
+
+  val find_decl_by_name : string -> kernel_function
+    (** @raise Not_found if there is no function declaration of this name.
+        @since Aluminium-20160501 *)
 
   (** {2 Iterators} *)
 

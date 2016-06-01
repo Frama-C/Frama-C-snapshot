@@ -2,7 +2,7 @@
 (*                                                                        *)
 (*  This file is part of Frama-C.                                         *)
 (*                                                                        *)
-(*  Copyright (C) 2007-2015                                               *)
+(*  Copyright (C) 2007-2016                                               *)
 (*    CEA (Commissariat à l'énergie atomique et aux énergies              *)
 (*         alternatives)                                                  *)
 (*                                                                        *)
@@ -199,7 +199,7 @@ let bitwise_extraction first_bit last_bit x =
 
   let to_int v =
     try int_of_big_int v
-    with Failure "int_of_big_int" -> failwith "to_int"
+    with Failure _ -> failwith "to_int"
 
   let of_int i =
     if 0 <= i && i <= 32
@@ -216,6 +216,20 @@ let bitwise_extraction first_bit last_bit x =
      or Failure "invalid digit". Let's leave the exact string unspecified *)
   let to_string = string_of_big_int
   let to_float = float_of_big_int
+
+  (* Taken from Zarith, equal to 0x3ffffffffffff000. All positive double below
+     this one can be translated as 63 bits OCaml integers, AND this double
+     is exact. *)
+  let max_precise_double_as_64_bits = 4611686018427383808.
+
+  (* A better implementation is available through Zarith *)
+  let of_float f =
+    if (Sys.word_size = 32 &&
+        Pervasives.abs_float f <= Pervasives.float_of_int max_int) ||
+       (Sys.word_size = 64 &&
+        Pervasives.abs_float f <= max_precise_double_as_64_bits)
+    then of_int (int_of_float f)
+    else raise Too_big
 
   let minus_one = pred zero
 

@@ -71,3 +71,8 @@ val get_statementloc : Cabs.statement -> Cabs.cabsloc
 val explodeStringToInts : string -> int64 list
 val valueOfDigit : char -> int64
 val d_cabsloc : Cabs.cabsloc Pretty_utils.formatter
+
+(* hack to avoid shift/reduce conflict is attr parsing. *)
+val push_attr_test: unit -> unit
+val pop_attr_test: unit -> unit
+val is_attr_test: unit -> bool

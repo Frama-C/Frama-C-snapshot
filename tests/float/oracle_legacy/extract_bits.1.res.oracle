@@ -1,0 +1,31 @@
+[kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
+[kernel] Parsing tests/float/extract_bits.i (no preprocessing)
+tests/float/extract_bits.i:6:[kernel] warning: Floating-point constant 3.14 is not represented exactly. Will use 0x1.91eb851eb851fp1
+tests/float/extract_bits.i:7:[kernel] warning: Floating-point constant 2.71 is not represented exactly. Will use 0x1.5ae147ae147aep1
+tests/float/extract_bits.i:9:[kernel] warning: Floating-point constant 1.8254370818746402660437411213933955878019332885742187 is not represented exactly. Will use 0x1.d34fd8378ea83p0
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+  f ∈ {3.1400001049041748}
+  d ∈ {2.7099999999999999}
+  stdtod_bug ∈ {1.8254370818746401}
+  fr[0..0x3] ∈ {0}
+  dr[0..0x7] ∈ {0}
+[value] Recording results for main
+[value] done for function main
+[value] ====== VALUES COMPUTED ======
+[value] Values at end of function main:
+  fr[0] ∈ {0xC3}
+    [0x1] ∈ {0xF5}
+    [0x2] ∈ {0x48}
+    [0x3] ∈ {0x40}
+  dr[0] ∈ {0xAE}
+    [0x1] ∈ {0x47}
+    [0x2] ∈ {0xE1}
+    [0x3] ∈ {0x7A}
+    [0x4] ∈ {0x14}
+    [0x5] ∈ {0xAE}
+    [0x6] ∈ {0x5}
+    [0x7] ∈ {0x40}
+  i ∈ {0x8}

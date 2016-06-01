@@ -10,12 +10,11 @@ typedef struct _list list;
  */
 /*@
 inductive logic_model{L}(list *root, List<int>  logic_list) {
-  case nil{L}: \at(logic_model{L}(\null, Nil),L);
-  case cons{L}: \at(∀ list *l1, List<int>  ll1;
-                      \valid{L}(l1) ⇒
-                      logic_model{L}(l1->next, ll1) ⇒
-                      logic_model{L}(l1, Cons(l1->element, ll1)),
-                    L);
+  case nil{L}: logic_model(\null, Nil);
+  case cons{L}: ∀ list *l1, List<int>  ll1;
+                  \valid(l1) ⇒
+                  logic_model(l1->next, ll1) ⇒
+                  logic_model(l1, Cons(l1->element, ll1));
   }
  */
 

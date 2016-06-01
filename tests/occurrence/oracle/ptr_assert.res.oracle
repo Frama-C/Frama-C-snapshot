@@ -7,8 +7,8 @@
 [value] Values of globals at initialization
   x ∈ {0}
   y ∈ {0}
-tests/occurrence/ptr_assert.i:11:[value] Assertion got status valid.
-tests/occurrence/ptr_assert.i:16:[value] Assertion got status valid.
+tests/occurrence/ptr_assert.i:11:[value] assertion got status valid.
+tests/occurrence/ptr_assert.i:16:[value] assertion got status valid.
 [value] Recording results for main
 [value] done for function main
 [occurrence] analysis done

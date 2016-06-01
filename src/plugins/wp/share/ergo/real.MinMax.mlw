@@ -12,7 +12,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* this is a prelude for Alt-Ergo*)
+(* this is the prelude for Alt-Ergo, any versions *)
 (** The theory BuiltIn_ must be appended to this file*)
 (** The theory Bool_ must be appended to this file*)
 (** The theory real_Real_ must be appended to this file*)

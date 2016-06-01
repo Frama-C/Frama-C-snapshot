@@ -10,43 +10,36 @@
 ------------------------------------------------------------
 
 Goal Post-condition 'Pt' in 'f':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Post-condition 'Psiz1' in 'f':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Post-condition 'Pmat1' in 'f':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Post-condition 'Psiz2' in 'f':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Post-condition 'Pmat2' in 'f':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Post-condition 'Ps' in 'f':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------
 
 Goal Post-condition 'Pts' in 'f':
-Assume { }
 Prove: true.
 
 ------------------------------------------------------------

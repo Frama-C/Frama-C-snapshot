@@ -10,79 +10,69 @@
 ------------------------------------------------------------
 
 Goal Assertion 'AB' (file tests/wp_typed/unit_string.i, line 11):
-Assume { (* Heap *) Have: (linked Malloc_0) /\ (sconst Mchar_0). }
-Prove: Str_2!=Str_5.
+Assume { (* Heap *) Have: linked(Malloc_0) /\ sconst(Mchar_0). }
+Prove: Str_3 != Str_4.
 
 ------------------------------------------------------------
 
 Goal Assertion 'B_valid' (file tests/wp_typed/unit_string.i, line 12):
 Assume {
   (* Heap *)
-  Have: (linked Malloc_0) /\ (sconst Mchar_0).
-  (* Assertion 'AB' (file tests/wp_typed/unit_string.i, line 11) *)
-  (* tests/wp_typed/unit_string.i:11: Assertion 'AB': *)
-  Have: Str_2!=Str_5.
+  Have: linked(Malloc_0) /\ sconst(Mchar_0).
+  (* Assertion 'AB' *)
+  Have: Str_3 != Str_4.
 }
-Prove: (valid_rd Malloc_0 (shift_sint8 (global Str_5) 0) 3).
+Prove: valid_rd(Malloc_0, shift_sint8(global(Str_3), 0), 3).
 
 ------------------------------------------------------------
 
 Goal Assertion 'B_out' (file tests/wp_typed/unit_string.i, line 13):
-Let a_0 = (global Str_5).
+Let a = global(Str_3).
 Assume {
   (* Heap *)
-  Have: (linked Malloc_0) /\ (sconst Mchar_0).
-  (* Assertion 'AB' (file tests/wp_typed/unit_string.i, line 11) *)
-  (* tests/wp_typed/unit_string.i:11: Assertion 'AB': *)
-  Have: Str_2!=Str_5.
-  (* Assertion 'B_valid' (file tests/wp_typed/unit_string.i, line 12) *)
-  (* tests/wp_typed/unit_string.i:12: Assertion 'B_valid': *)
-  Have: (valid_rd Malloc_0 (shift_sint8 a_0 0) 3).
+  Have: linked(Malloc_0) /\ sconst(Mchar_0).
+  (* Assertion 'AB' *)
+  Have: Str_3 != Str_4.
+  (* Assertion 'B_valid' *)
+  Have: valid_rd(Malloc_0, shift_sint8(a, 0), 3).
 }
-Prove: not (valid_rd Malloc_0 (shift_sint8 a_0 3) 1).
+Prove: !valid_rd(Malloc_0, shift_sint8(a, 3), 1).
 
 ------------------------------------------------------------
 
 Goal Assertion 'B_rw' (file tests/wp_typed/unit_string.i, line 14):
-Let a_0 = (global Str_5).
+Let a = global(Str_3).
 Assume {
   (* Heap *)
-  Have: (linked Malloc_0) /\ (sconst Mchar_0).
-  (* Assertion 'AB' (file tests/wp_typed/unit_string.i, line 11) *)
-  (* tests/wp_typed/unit_string.i:11: Assertion 'AB': *)
-  Have: Str_2!=Str_5.
-  (* Assertion 'B_valid' (file tests/wp_typed/unit_string.i, line 12) *)
-  (* tests/wp_typed/unit_string.i:12: Assertion 'B_valid': *)
-  Have: (valid_rd Malloc_0 (shift_sint8 a_0 0) 3).
-  (* Assertion 'B_out' (file tests/wp_typed/unit_string.i, line 13) *)
-  (* tests/wp_typed/unit_string.i:13: Assertion 'B_out': *)
-  Have: not (valid_rd Malloc_0 (shift_sint8 a_0 3) 1).
+  Have: linked(Malloc_0) /\ sconst(Mchar_0).
+  (* Assertion 'AB' *)
+  Have: Str_3 != Str_4.
+  (* Assertion 'B_valid' *)
+  Have: valid_rd(Malloc_0, shift_sint8(a, 0), 3).
+  (* Assertion 'B_out' *)
+  Have: !valid_rd(Malloc_0, shift_sint8(a, 3), 1).
 }
-Prove: not (valid_rw Malloc_0 (shift_sint8 a_0 1) 1).
+Prove: !valid_rw(Malloc_0, shift_sint8(a, 1), 1).
 
 ------------------------------------------------------------
 
 Goal Assertion 'VAL' (file tests/wp_typed/unit_string.i, line 15):
-Let a_0 = (global Str_5).
+Let a = global(Str_3).
 Assume {
   (* Goal *)
-  When: (0<=i_2) /\ (i_2<=2).
+  When: (0 <= i) /\ (i <= 2).
   (* Heap *)
-  Have: (linked Malloc_0) /\ (sconst Mchar_0).
-  (* Assertion 'AB' (file tests/wp_typed/unit_string.i, line 11) *)
-  (* tests/wp_typed/unit_string.i:11: Assertion 'AB': *)
-  Have: Str_2!=Str_5.
-  (* Assertion 'B_valid' (file tests/wp_typed/unit_string.i, line 12) *)
-  (* tests/wp_typed/unit_string.i:12: Assertion 'B_valid': *)
-  Have: (valid_rd Malloc_0 (shift_sint8 a_0 0) 3).
-  (* Assertion 'B_out' (file tests/wp_typed/unit_string.i, line 13) *)
-  (* tests/wp_typed/unit_string.i:13: Assertion 'B_out': *)
-  Have: not (valid_rd Malloc_0 (shift_sint8 a_0 3) 1).
-  (* Assertion 'B_rw' (file tests/wp_typed/unit_string.i, line 14) *)
-  (* tests/wp_typed/unit_string.i:14: Assertion 'B_rw': *)
-  Have: not (valid_rw Malloc_0 (shift_sint8 a_0 1) 1).
+  Have: linked(Malloc_0) /\ sconst(Mchar_0).
+  (* Assertion 'AB' *)
+  Have: Str_3 != Str_4.
+  (* Assertion 'B_valid' *)
+  Have: valid_rd(Malloc_0, shift_sint8(a, 0), 3).
+  (* Assertion 'B_out' *)
+  Have: !valid_rd(Malloc_0, shift_sint8(a, 3), 1).
+  (* Assertion 'B_rw' *)
+  Have: !valid_rw(Malloc_0, shift_sint8(a, 1), 1).
 }
-Prove: Mchar_0[(shift_sint8 a_0 i_2)]=
-       Mchar_0[(shift_sint8 (global Str_11) (3+i_2))].
+Prove: Mchar_0[shift_sint8(a, i)]
+         = Mchar_0[shift_sint8(global(Str_1), 3 + i)].
 
 ------------------------------------------------------------

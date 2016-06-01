@@ -1,5 +1,5 @@
 [kernel] Parsing share/libc/__fc_builtin_for_normalization.i (no preprocessing)
-[kernel] Parsing tests/sparecode/top.c (with preprocessing)
+[kernel] Parsing tests/sparecode/top.i (no preprocessing)
 [sparecode] remove unused code...
 [sparecode] selecting function main_call_top outputs and entry point
 [value] Analyzing a complete application starting at main_call_top
@@ -8,18 +8,18 @@
 [value] Values of globals at initialization
   
 [value] computing for function main_top <- main_call_top.
-        Called from tests/sparecode/top.c:26.
+        Called from tests/sparecode/top.i:26.
 [value] computing for function f <- main_top <- main_call_top.
-        Called from tests/sparecode/top.c:21.
+        Called from tests/sparecode/top.i:21.
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for main_top
 [value] Done for function main_top
 [value] computing for function not_used_in_main_top <- main_call_top.
-        Called from tests/sparecode/top.c:27.
+        Called from tests/sparecode/top.i:27.
 [value] computing for function print <- not_used_in_main_top <- main_call_top.
-        Called from tests/sparecode/top.c:10.
-tests/sparecode/top.c:10:[kernel] warning: Neither code nor specification for function print, generating default assigns from the prototype
+        Called from tests/sparecode/top.i:10.
+tests/sparecode/top.i:10:[kernel] warning: Neither code nor specification for function print, generating default assigns from the prototype
 [value] using specification for function print
 [value] Done for function print
 [value] Recording results for not_used_in_main_top
@@ -53,17 +53,17 @@ tests/sparecode/top.c:10:[kernel] warning: Neither code nor specification for fu
 [value] Values of globals at initialization
   
 [value] computing for function main_top <- main_call_top.
-        Called from tests/sparecode/top.c:26.
+        Called from tests/sparecode/top.i:26.
 [value] computing for function f <- main_top <- main_call_top.
-        Called from tests/sparecode/top.c:21.
+        Called from tests/sparecode/top.i:21.
 [value] Recording results for f
 [value] Done for function f
 [value] Recording results for main_top
 [value] Done for function main_top
 [value] computing for function not_used_in_main_top <- main_call_top.
-        Called from tests/sparecode/top.c:27.
+        Called from tests/sparecode/top.i:27.
 [value] computing for function print <- not_used_in_main_top <- main_call_top.
-        Called from tests/sparecode/top.c:10.
+        Called from tests/sparecode/top.i:10.
 [value] Done for function print
 [value] Recording results for not_used_in_main_top
 [value] Done for function not_used_in_main_top
